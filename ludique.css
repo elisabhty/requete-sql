@@ -3463,82 +3463,88 @@ html[data-motion="reduce"].lq #loader .spinner::before,html[data-motion="reduce"
 html[data-motion="reduce"].lq #loader p,html[data-motion="reduce"].lq #loader .ld-spark{animation:none!important}
 
 /* ---------- 37 bis. L’ouverture de l’appli iOS ----------
-   Elisa, 3 novembre, 21 h 03 : « une animation quand on appuie sur l’application ». Dans l’appli seulement (html.is-native).
-   La première image du chargement reprend au pixel près l’écran de lancement fixe d’iOS (resources/splash.png : un carré de
-   2732 px étiré sur la hauteur de l’écran, d’où l’unité --u ; la touche fait 512 de côté, 28 d’épaisseur, coins de 116), si bien
-   que le passage de l’un à l’autre ne se voit pas. Puis la touche >_ s’enfonce comme une touche de clavier (petit retour
-   haptique), remonte en rebondissant et lâche trois étincelles, le curseur clignote, le nom arrive, et l’appli se découvre.
-   Si la base met du temps à se préparer, l’anneau et la phrase viennent dessous. Mouvement réduit : l’image reste fixe. */
+   Elisa, 3 novembre, 21 h 03 : « une animation quand on appuie sur l’application » ; 21 h 56 : « c’est pas waouh et ça a l’air de
+   bug ». Dans l’appli seulement (html.is-native). L’écran de lancement fixe d’iOS reste jusqu’à ce que l’appli soit prête ; derrière
+   lui, la page se dessine à l’identique (resources/splash.png : un carré de 2732 px étiré sur la hauteur de l’écran, d’où --u ; la
+   touche fait 512 de côté, 28 d’épaisseur, coins de 116), si bien que son départ ne se voit pas. Puis tout se déroule d’un seul
+   tenant à partir d’une classe (is-play), en transform et opacité seulement, donc sans à-coups : la touche >_ s’enfonce (retour
+   haptique) et rebondit, deux ondes et une gerbe de confettis partent de derrière elle, « Requête » s’écrit lettre par lettre, puis
+   on plonge dans la touche : elle remplit tout l’écran, et c’est seulement alors que le violet s’efface sur l’appli (jamais de touche
+   à moitié transparente par-dessus l’accueil). 1,3 s. Mouvement réduit : un simple fondu. */
 html.is-native.lq #loader.is-intro{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;background:#F4F2FC!important;color:#1B1640;overflow:hidden;
-  --u:calc(max(100vw,100vh) / 2732)}
-html.is-native.lq #loader.is-intro::before{content:"";position:absolute;left:50%;top:50%;z-index:0;width:calc(1500*var(--u));height:calc(1500*var(--u));
-  margin:calc(-764*var(--u)) 0 0 calc(-750*var(--u));border-radius:50%;opacity:0;-webkit-mask-image:none;mask-image:none;
-  background:radial-gradient(closest-side,rgba(128,96,255,.3),rgba(128,96,255,.1) 58%,rgba(128,96,255,0))}
+  --u:calc(max(100vw,100vh) / 2732);--cy:calc(50% - 14*var(--u))}
+html.is-native.lq #loader.is-intro::before{content:"";position:absolute;left:50%;top:var(--cy);z-index:0;width:calc(1600*var(--u));height:calc(1600*var(--u));
+  margin:calc(-800*var(--u)) 0 0 calc(-800*var(--u));border-radius:50%;opacity:0;-webkit-mask-image:none;mask-image:none;
+  background:radial-gradient(closest-side,rgba(128,96,255,.32),rgba(128,96,255,.1) 58%,rgba(128,96,255,0))}
 html.is-native.lq #loader.is-intro .logo-badge{position:absolute;z-index:1;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
   margin:calc(-270*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:0;border-radius:calc(116*var(--u));rotate:0deg;animation:none;
-  background:linear-gradient(135deg,#8060FF,#593CE7)!important;box-shadow:none!important;font-size:0;color:transparent;transform-origin:50% 60%}
-/* L’épaisseur de la touche : un socle fixe sous elle (et non une ombre), si bien que l’animation ne bouge que la touche, en
-   transform, sans calcul sur le fil principal pendant que l’appli démarre */
-html.is-native.lq #loader.is-intro::after{content:"";position:absolute;z-index:0;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
-  margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC}
-/* Le chevron et le curseur, dessinés comme sur l’écran de lancement (le curseur peut clignoter seul) */
+  background:linear-gradient(135deg,#8060FF,#593CE7)!important;box-shadow:none!important;font-size:0;color:transparent;will-change:transform}
+/* Le chevron et le curseur, dessinés comme sur l’écran de lancement */
 html.is-native.lq #loader.is-intro .logo-badge::before{content:"";position:absolute;inset:0;background:#fff;
   clip-path:polygon(29.1% 34.375%,46.68% 42.56%,46.68% 47.48%,29.1% 55.66%,29.1% 51.37%,42.75% 45.02%,29.1% 38.67%)}
 html.is-native.lq #loader.is-intro .logo-badge::after{content:"";position:absolute;left:52.34%;top:59.18%;width:19.14%;height:4.49%;background:#fff}
-html.is-native.lq #loader.is-intro .ld-name{position:absolute;z-index:1;left:0;right:0;top:calc(50% + 330*var(--u));margin:0;text-align:center;
-  font:700 27px/1 var(--display);letter-spacing:-.02em;color:#1B1640;opacity:0;animation:none}
-html.is-native.lq #loader.is-intro .ld-spark{z-index:0;left:50%;top:calc(50% - 14*var(--u));width:calc(140*var(--u));height:calc(140*var(--u));
-  margin:calc(-70*var(--u)) 0 0 calc(-70*var(--u));background:#6A4DF4;opacity:0;scale:.2;animation:none}
-html.is-native.lq #loader.is-intro .ld-spark.s2{width:calc(108*var(--u));height:calc(108*var(--u));margin:calc(-54*var(--u)) 0 0 calc(-54*var(--u));background:var(--sun)}
-html.is-native.lq #loader.is-intro .ld-spark.s3{width:calc(88*var(--u));height:calc(88*var(--u));margin:calc(-44*var(--u)) 0 0 calc(-44*var(--u));background:#3FC98A}
-html.is-native.lq #loader.is-intro .spinner{position:absolute;z-index:1;left:50%;top:calc(50% + 330*var(--u) + 50px);margin:0 0 0 -17px;width:34px!important;height:34px!important;
+/* L’épaisseur de la touche : un socle fixe sous elle, de la même forme ; enfoncée, la touche y descend */
+html.is-native.lq #loader.is-intro::after{content:"";position:absolute;z-index:0;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
+  margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC}
+/* Les ondes et les confettis partent du centre de la touche, de derrière elle (créés par le script qui suit #loader) */
+html.is-native.lq #loader.is-intro .in-ring{position:absolute;z-index:0;left:50%;top:var(--cy);width:calc(512*var(--u));height:calc(512*var(--u));
+  margin:calc(-256*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:calc(12*var(--u)) solid #6A4DF4;border-radius:calc(116*var(--u));
+  opacity:0;will-change:transform,opacity}
+html.is-native.lq #loader.is-intro .in-ring.is-2{border-color:var(--sun);border-width:calc(10*var(--u))}
+html.is-native.lq #loader.is-intro .in-p{position:absolute;z-index:0;left:50%;top:var(--cy);width:calc(var(--t)*var(--u));height:calc(var(--t)*var(--u));
+  margin:calc(var(--t)*-.5*var(--u)) 0 0 calc(var(--t)*-.5*var(--u));border-radius:50%;background:var(--c);opacity:0;will-change:transform,opacity}
+html.is-native.lq #loader.is-intro .in-p.is-star{border-radius:0;-webkit-mask:var(--mstk-star) center/contain no-repeat;mask:var(--mstk-star) center/contain no-repeat}
+html.is-native.lq #loader.is-intro .in-p.is-sq{border-radius:28%}
+html.is-native.lq #loader.is-intro .ld-spark{display:none}
+/* « Requête », sous la touche, lettre par lettre (derrière elle : quand on y plonge, la touche le recouvre) */
+html.is-native.lq #loader.is-intro .ld-name{position:absolute;z-index:0;left:0;right:0;top:calc(50% + 330*var(--u));margin:0;text-align:center;
+  font:700 30px/1 var(--display);letter-spacing:-.02em;color:#1B1640;opacity:0;animation:none}
+html.is-native.lq #loader.is-intro .in-l{display:inline-block;opacity:0;transform-origin:50% 90%;will-change:transform,opacity}
+/* Si la base met du temps à se préparer : l’anneau et la phrase, dessous */
+html.is-native.lq #loader.is-intro .spinner{position:absolute;z-index:1;left:50%;top:calc(50% + 330*var(--u) + 54px);margin:0 0 0 -17px;width:34px!important;height:34px!important;
   box-shadow:inset 0 0 0 5px rgba(106,77,244,.16);opacity:0;transition:opacity .3s ease;animation:none}
 html.is-native.lq #loader.is-intro .spinner::after{background:conic-gradient(rgba(106,77,244,0) 0 120deg,rgba(106,77,244,.5) 250deg,#6A4DF4 359deg,rgba(106,77,244,0) 0)!important;
   -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5.5px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 5.5px),#000 calc(100% - 5px))}
 html.is-native.lq #loader.is-intro .spinner::before{background:#6A4DF4;box-shadow:0 0 8px 2px rgba(106,77,244,.4);transform-origin:3px 17px}
-html.is-native.lq #loader.is-intro p{position:absolute;z-index:1;left:24px;right:24px;top:calc(50% + 330*var(--u) + 100px);margin:0;text-align:center;
+html.is-native.lq #loader.is-intro p{position:absolute;z-index:1;left:24px;right:24px;top:calc(50% + 330*var(--u) + 104px);margin:0;text-align:center;
   color:var(--ink-2);opacity:0;transition:opacity .3s ease;animation:none}
 html.is-native.lq #loader.is-intro.is-long :is(.spinner,p){opacity:1}
-/* L’animation, lancée dès que l’écran de lancement s’est retiré (script juste après #loader) */
-html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .72s cubic-bezier(.3,.7,.3,1) both}
-html.is-native.lq #loader.is-intro.is-play .logo-badge::after{animation:introCursor .5s linear .5s both}
-html.is-native.lq #loader.is-intro.is-play::before{animation:introGlow .9s cubic-bezier(.2,.7,.3,1) .1s both}
-html.is-native.lq #loader.is-intro.is-play .ld-spark{--dx:calc(-340*var(--u));--dy:calc(-370*var(--u));--r:-40deg;animation:introSpark .7s cubic-bezier(.15,.8,.3,1) .16s both}
-html.is-native.lq #loader.is-intro.is-play .ld-spark.s2{--dx:calc(400*var(--u));--dy:calc(-200*var(--u));--r:35deg;animation-delay:.2s}
-html.is-native.lq #loader.is-intro.is-play .ld-spark.s3{--dx:calc(220*var(--u));--dy:calc(-450*var(--u));--r:60deg;animation-delay:.24s}
-html.is-native.lq #loader.is-intro.is-play .ld-name{animation:introName .45s cubic-bezier(.2,.8,.3,1) .3s both}
-/* La sortie : la touche grossit en s’effaçant, puis le fond lavande laisse voir l’appli */
-html.is-native.lq #loader.is-intro.fade-out{animation:introOut .42s cubic-bezier(.4,0,.2,1) forwards}
-html.is-native.lq #loader.is-intro.fade-out .logo-badge{animation:introBadgeOut .42s cubic-bezier(.5,0,.75,0) forwards}
-html.is-native.lq #loader.is-intro.fade-out .ld-name{animation:introNameOut .3s ease-in forwards}
-html.is-native.lq #loader.is-intro.fade-out::after{animation:introSocleOut .2s ease-in forwards}
-@keyframes introSocleOut{to{opacity:0}}
+/* L’animation : une seule classe, tout est réglé ici */
+html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .5s cubic-bezier(.3,.7,.3,1) both,introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards}
+html.is-native.lq #loader.is-intro.is-play .logo-badge::before,html.is-native.lq #loader.is-intro.is-play .logo-badge::after,
+html.is-native.lq #loader.is-intro.is-play::after{animation:introFade .1s linear .74s forwards}
+html.is-native.lq #loader.is-intro.is-play::before{animation:introGlow .8s cubic-bezier(.2,.7,.3,1) .1s forwards}
+html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introRing .62s cubic-bezier(.15,.7,.3,1) .12s forwards}
+html.is-native.lq #loader.is-intro.is-play .in-ring.is-2{animation-duration:.72s;animation-delay:.2s}
+html.is-native.lq #loader.is-intro.is-play .in-p{animation:introPartMove .8s cubic-bezier(.12,.75,.3,1) calc(.14s + var(--d)*1ms) forwards,
+  introPartFade .8s linear calc(.14s + var(--d)*1ms) forwards}
+html.is-native.lq #loader.is-intro.is-play .ld-name{opacity:1;animation:introFade .16s ease-in .74s forwards}
+html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLetter .4s cubic-bezier(.3,1.45,.5,1) calc(.2s + var(--i)*40ms) forwards}
+html.is-native.lq #loader.is-intro.is-play{animation:introOut .24s linear 1.04s forwards}
+html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}
 @keyframes introKey{
   0%{transform:none}
-  13%{transform:translateY(calc(24*var(--u))) scale(.975)}
-  45%{transform:translateY(calc(-14*var(--u))) scale(1.045)}
-  70%{transform:translateY(calc(4*var(--u))) scale(.99)}
+  18%{transform:translateY(calc(22*var(--u)))}
+  46%{transform:translateY(calc(-18*var(--u))) scale(1.06)}
+  70%{transform:translateY(calc(5*var(--u))) scale(.985)}
+  86%{transform:translateY(calc(-3*var(--u)))}
   100%{transform:none}}
-@keyframes introCursor{0%,30%{opacity:1}31%,70%{opacity:0}71%,100%{opacity:1}}
+@keyframes introZoom{from{transform:none}to{transform:scale(9)}}
+@keyframes introFade{to{opacity:0}}
 @keyframes introGlow{0%{opacity:0;transform:scale(.45)}35%{opacity:1}100%{opacity:0;transform:scale(1.2)}}
-@keyframes introSpark{0%{opacity:0;scale:.3;translate:0 0;rotate:0deg}22%{opacity:1;scale:1}70%{opacity:.9}100%{opacity:0;scale:.7;translate:var(--dx) var(--dy);rotate:var(--r)}}
-@keyframes introName{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes introOut{0%,30%{opacity:1}100%{opacity:0}}
-@keyframes introBadgeOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(1.18)}}
-@keyframes introNameOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-6px)}}
+@keyframes introRing{0%{opacity:.9;transform:scale(.92)}100%{opacity:0;transform:scale(2.5)}}
+@keyframes introPartMove{from{transform:translate(0,0) scale(.3) rotate(0deg)}
+  to{transform:translate(calc(var(--x)*var(--u)),calc(var(--y)*var(--u))) scale(var(--s)) rotate(calc(var(--r)*1deg))}}
+@keyframes introPartFade{0%{opacity:0}12%{opacity:1}65%{opacity:1}100%{opacity:0}}
+@keyframes introLetter{from{opacity:0;transform:translateY(calc(70*var(--u))) scale(.3) rotate(-10deg)}to{opacity:1;transform:none}}
+@keyframes introOut{to{opacity:0}}
 /* Si le moteur SQL ne se charge pas : le message d’erreur, lisible, au centre */
 html.is-native.lq #loader.is-intro.fatal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;animation:none}
-html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;filter:none;
+html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;
   display:flex;align-items:center;justify-content:center;font:700 32px/1 var(--mono);color:#fff;animation:none}
-html.is-native.lq #loader.is-intro.fatal .logo-badge::before,html.is-native.lq #loader.is-intro.fatal .logo-badge::after,html.is-native.lq #loader.is-intro.fatal::after{display:none}
+html.is-native.lq #loader.is-intro.fatal .logo-badge::before,html.is-native.lq #loader.is-intro.fatal .logo-badge::after,html.is-native.lq #loader.is-intro.fatal::after,
+html.is-native.lq #loader.is-intro.fatal :is(.in-ring,.in-p){display:none}
 html.is-native.lq #loader.is-intro.fatal p{position:static;opacity:1;color:#1B1640}
-@media (prefers-reduced-motion:reduce){
-  html.is-native.lq #loader.is-intro.is-play .logo-badge,html.is-native.lq #loader.is-intro.is-play .logo-badge::after,html.is-native.lq #loader.is-intro.is-play .ld-spark,
-  html.is-native.lq #loader.is-intro.is-play .ld-name,html.is-native.lq #loader.is-intro.is-play::before{animation:none!important}
-}
-html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .logo-badge,html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .logo-badge::after,
-html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .ld-spark,html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .ld-name,
-html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play::before{animation:none!important}
 
 /* ---------- 38. L’appui : chaque bouton répond ----------
    Elisa, 30 octobre, 23 h 23 : « micro-interaction quand on appuie sur les boutons stp ». Partout, le bouton s’enfonce sous le doigt
