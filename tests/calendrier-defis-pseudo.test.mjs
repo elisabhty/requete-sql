@@ -179,7 +179,9 @@ test('réf 4 — chaque partie nourrit le tableau ; la sauvegarde le garde propr
 test('réf 5 — le prénom dans l’onboarding (17 h 53), le pseudo juste après sur sa mini-page ; la salle ne le redemande plus', () => {
   const ob = cut("}else if(slide==='name'){", "}else if(slide==='pseudo'){");
   assert.ok(ob.includes('<span>Ton prénom</span>') && ob.includes('autocomplete="given-name"'), 'le prénom, pour saluer');
-  assert.ok(ob.includes('Ton pseudo, celui que tes amis verront, se choisit à la fin.'), 'on dit où va le pseudo');
+  /* 3 novembre, 17 h 32 (Elisa) : « ne pas mettre ces textes en petit (il sert à te saluer…) » : la phrase sur le pseudo est retirée
+     avec le reste du petit texte ; le pseudo garde sa mini-page à la fin (tests/retours-1732.test.mjs). */
+  assert.ok(!ob.includes('Ton pseudo, celui que tes amis verront, se choisit à la fin.') && !ob.includes('ob-helper'), 'plus de petit texte sous le prénom');
   const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
   assert.ok(page.includes('maxlength="15"') && page.includes('required aria-required="true"') && page.includes('<b class="ob-at" aria-hidden="true">@</b>'), 'un identifiant : @ puis 15 caractères');
   assert.ok(!fnLast('finishOnboard').includes("localStorage.setItem('rq-jeu-nom'"), 'le prénom ne devient plus le pseudo des salles');

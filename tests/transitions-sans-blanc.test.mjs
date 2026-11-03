@@ -83,7 +83,7 @@ test('fermeture : le fond uni du lecteur prend la couleur de l’écran d’en d
   assert.ok(surf.includes('html.lq .lv.is-closing{background-color:var(--browser-top)}'));
   assert.ok(!surf.includes('html.lq .lv.is-closing{background-color:transparent}'));
   assert.ok(surf.includes('html.lq .lv{background-color:var(--immersive-top);background-image:var(--immersive-background)}'), 'dégradé opaque par-dessus');
-  assert.ok(app.includes('<link rel="stylesheet" href="safari-surface.css?v=9">') && lire('sw.js').includes("'./safari-surface.css?v=9',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="safari-surface.css?v=10">') && lire('sw.js').includes("'./safari-surface.css?v=10',"));
 });
 
 /* Elisa, 3 novembre, 10 h 00 : « là c’est ok quand j’arrive sur la page, mais quand je descends et remonte, j’ai la barre blanche
