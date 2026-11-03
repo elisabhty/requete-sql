@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=d166e5fc">
+<link rel="stylesheet" href="vitrine.css?v=1a30bdf1">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 /* Fiche d’un module (module.html?m=<id>), construite à partir de modules.js. Styles dans vitrine.css. */
@@ -118,11 +118,16 @@ document.documentElement.classList.add('js');
   var meta=document.querySelector('meta[name="theme-color"]'),fond='';
   var on=function(){
     var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
+    /* 8 h 43 : « quand je pars en bas et que je reviens en haut, c’est encore blanc ». Safari garde la couleur déjà prise tant qu’un
+       élément collant touche le bord : tout en haut, la barre n’est plus collante (voir .nav.is-top), il lâche le blanc. */
+    nav.classList.toggle('is-top',scrollY<1&&menu.hidden);
     var hero=document.querySelector('.hero,.mh,.lg-hero');
     /* En bas (8 h 39) : sous le dernier écran, Safari montre aussi le fond de <body> ; blanc comme le pied de page dès qu’il est en
        vue, sinon une bande lavande restait sous le blanc. */
     var foot=document.querySelector('footer');
-    var c=hero&&scrollY<=8&&menu.hidden?'#6E50F6':foot&&foot.getBoundingClientRect().top<innerHeight?'#FFFFFF':'#F7F6FD';
+    /* « Ce n’est pas le même violet » : le haut de l’en-tête, éclairci par son halo, est plus clair que #6E50F6 ; chaque en-tête
+       donne sa couleur réelle (--hero-top, mesurée à l’écran). */
+    var c=hero&&scrollY<=8&&menu.hidden?(getComputedStyle(hero).getPropertyValue('--hero-top').trim()||'#6E50F6'):foot&&foot.getBoundingClientRect().top<innerHeight?'#FFFFFF':'#F7F6FD';
     if(fond===c)return;fond=c;
     document.documentElement.style.backgroundColor=c;document.body.style.backgroundColor=c;if(meta)meta.content=c;
   };
