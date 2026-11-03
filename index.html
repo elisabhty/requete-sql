@@ -4935,17 +4935,18 @@
   @media (min-width:481px){
     .tab-label{height:21px;min-height:21px}
   }
-  /* Dès 600 px : cadre arrondi qui occupe la fenêtre, plafonné à 1120 px.
+  /* Dès 600 px : cadre arrondi qui occupe la fenêtre, plafonné à 1 440 px (3 novembre : il était bloqué à 680 px dès 700 px,
+     voir responsive.css pour la mise en page qui en profite).
      En dessous, l'app reste une colonne mobile plein écran (téléphones). */
   @media (min-width:600px){
     body{padding:14px;overflow:hidden}
     #app{
-      width:100%;max-width:min(1120px,100%);
+      width:100%;max-width:min(1440px,100%);
       height:calc(100dvh - 28px);min-height:calc(100dvh - 28px);
       border-radius:34px;overflow:hidden;
       box-shadow:0 34px 80px -36px rgba(26,28,42,.48),0 0 0 1px rgba(255,255,255,.62),inset 0 1px 0 #fff;
     }
-    .kbar-wrap,.imp-sheet{max-width:min(1120px,calc(100vw - 28px))}
+    .kbar-wrap,.imp-sheet{max-width:min(1440px,calc(100vw - 28px))}
   }
   @media (prefers-reduced-motion:reduce){
     #scr-learn>.lgtitle,#scr-learn>.lgtitle h1,#scr-learn>.lgtitle p.sub,.ls-node{transition:none}
@@ -6552,7 +6553,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <link rel="stylesheet" href="ux-polish.css?v=1">
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
-<link rel="stylesheet" href="home-journey.css?v=1131">
+<link rel="stylesheet" href="home-journey.css?v=1132">
 <link rel="stylesheet" href="design-premium.css?v=1237">
 <script src="design-premium.js?v=1403" defer></script>
 <script src="import-formats.js?v=3" defer></script>
@@ -6689,7 +6690,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=124">
+<link rel="stylesheet" href="ludique.css?v=125">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -7192,9 +7193,10 @@ html[data-motion="reduce"] .lv-end-cat,html[data-motion="reduce"] .lv-end-bravo{
 @keyframes lvFeIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.lv-fe>*{animation:none!important;opacity:1!important;transform:none!important}}
 html[data-motion="reduce"] .lv-fe>*{animation:none!important;opacity:1!important;transform:none!important}
-/* Sur ordinateur et tablette (dès 600 px), l’app est un cadre arrondi au milieu de la fenêtre (680 px de large dès 700 px) : le lecteur
-   se pose dans ce cadre au lieu de prendre toute la largeur (Elisa, 30 octobre, 16 h 47 : « il faut que la vidéo soit centrée, pas prendre
-   toute la largeur »). L’écran de fin du parcours suit le lecteur. */
+/* Sur ordinateur et tablette (dès 600 px), l’app est un cadre arrondi au milieu de la fenêtre : le lecteur s’y pose au milieu, en
+   colonne de 680 px dès 700 px, au lieu de prendre toute la largeur (Elisa, 30 octobre, 16 h 47 : « il faut que la vidéo soit centrée,
+   pas prendre toute la largeur »). Depuis le 3 novembre, le cadre occupe la fenêtre (responsive.css) ; le lecteur garde sa colonne.
+   L’écran de fin du parcours suit le lecteur. */
 @media (min-width:600px){
   .lv{top:14px;bottom:14px;left:0;right:0;width:min(1120px,calc(100% - 28px));margin:0 auto;border-radius:34px;overflow:hidden;
     box-shadow:0 34px 80px -36px rgba(26,28,42,.48),0 0 0 1px rgba(255,255,255,.62)}
@@ -7321,6 +7323,8 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #sgbd-sheet{z-index:85}
 </style>
 <link rel="stylesheet" href="safari-surface.css?v=9">
+<!-- Toutes les tailles d’écran (3 novembre) : chargé en dernier, il décide de la mise en page du téléphone au grand écran. -->
+<link rel="stylesheet" href="responsive.css?v=1">
 <script src="safari-surface.js?v=8" defer></script>
 </head>
 <body>
@@ -17904,13 +17908,15 @@ function lqTabbarScroll(){
   bar.addEventListener('touchcancel',end,{passive:true});
   bar.addEventListener('click',e=>{if(Date.now()<mute){e.preventDefault();e.stopPropagation();}},true);
 }
+/* Sur ordinateur, les onglets forment un menu vertical à gauche (responsive.css) : les flèches haut et bas y passent d’un
+   onglet à l’autre, comme gauche et droite sur la barre du bas. */
 function navigateMainTabs(event){
-  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))return;
   const tabs=[...event.currentTarget.querySelectorAll('.tab')];
   const index=tabs.indexOf(event.target.closest('.tab'));
   if(index<0)return;
   event.preventDefault();
-  const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+  const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'||event.key==='ArrowDown'?1:-1)+tabs.length)%tabs.length;
   tabs[next].click();tabs[next].focus();
 }
 function jumpToSection(selector){
@@ -34008,7 +34014,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-fluidite-v2463';
+  const SW_CACHE='requete-2026-11-03-responsive-v2464';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
