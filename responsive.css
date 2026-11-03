@@ -1,0 +1,146 @@
+/* ============================================================
+   Toutes les tailles d’écran
+   Elisa, 3 novembre, 11 h 38 : « Corrige pour que l’application et le site soient le plus responsive possible ».
+   Photo de l’accueil sur un ordinateur portable (fenêtre d’environ 1 280 px) : l’appli tenait dans une colonne de 680 px au
+   milieu de l’écran (home-journey.css la bloquait à 680 px dès 700 px, alors que les mises en page à deux colonnes de l’accueil,
+   du planning et du compte démarrent à 900 px : elles s’écrasaient dans 680 px), la carte du cours serrée à gauche, la série
+   seule à droite avec un grand vide dessous, et le parcours caché sous la barre du bas.
+
+   Chargé en dernier (après safari-surface.css), ce fichier règle la mise en page selon la largeur de la fenêtre :
+   - téléphone (moins de 600 px) : rien ne change, l’appli occupe l’écran, barre d’onglets en bas ;
+   - tablette et petite fenêtre (600 à 1 179 px) : le cadre arrondi occupe toute la fenêtre (1 440 px au plus), barre en bas ;
+   - ordinateur (dès 1 180 px) : la barre d’onglets devient un menu à gauche du cadre, avec le nom de l’appli en haut.
+   Partout, le contenu d’un écran reste centré et borné à 1 100 px, pour rester lisible sur un grand écran.
+   ============================================================ */
+
+/* ---------- 1. Le contenu des écrans, centré ---------- */
+@media (min-width:600px){
+  html.lq{--rq-content:1100px}
+  html.lq #app>.stage>.screen:not(#scr-lesson){
+    padding-left:max(0px,calc((100% - var(--rq-content)) / 2));
+    padding-right:max(0px,calc((100% - var(--rq-content)) / 2));
+  }
+}
+/* Un cours se lit en colonne, comme sa page de départ (600 px) et sa vidéo (680 px) : sur un cadre large, la carte de la vidéo,
+   la barre « Valide la leçon » et le bilan ne s’étirent plus sur toute la largeur. */
+@media (min-width:700px){
+  html.lq #scr-lesson #lesson-body{max-width:680px;margin-left:auto;margin-right:auto}
+}
+
+/* ---------- 2. Ordinateur : le menu à gauche ---------- */
+@media (min-width:1180px){
+  html.lq{--rq-side:232px;--tabbar-h:0px;--tabbar-total-h:var(--safe-bottom)}
+  html.lq #app>.stage{margin-left:var(--rq-side)}
+
+  html.lq #app>.tabbar.tabbar{
+    top:0;bottom:0;left:0;right:auto;width:var(--rq-side);min-height:0;height:auto;
+    flex-direction:column;align-items:stretch;justify-content:flex-start;gap:6px;
+    padding:20px 16px 24px;overflow:visible;
+    border-radius:0;border-top:0;border-right:2px solid var(--line);background:#fff;box-shadow:none;
+  }
+  /* Le nom de l’appli en haut du menu (l’accueil le montrait au-dessus de la carte du cours) : le logo, puis « Requête ». */
+  html.lq #app>.tabbar.tabbar::before{
+    content:">_";order:-1;flex:none;display:grid;place-items:center;width:36px;height:36px;margin:4px 0 28px 10px;
+    border-radius:11px;background:var(--accent);box-shadow:0 3px 0 var(--accent-lip);color:#fff;font:700 13px/1 var(--mono);
+  }
+  html.lq #app>.tabbar.tabbar::after{
+    content:"Requête";position:absolute;top:31px;left:72px;pointer-events:none;
+    font:700 21px/1 var(--display);letter-spacing:-.01em;color:var(--ink);
+  }
+  html.lq #app>.tabbar .tab{
+    flex:none!important;flex-direction:row;justify-content:flex-start;align-items:center;gap:14px;
+    width:auto;min-width:0!important;min-height:52px;height:52px;padding:0 16px;border-radius:16px;
+    font-size:15.5px!important;letter-spacing:0!important;
+  }
+  html.lq #app>.tabbar .tab>svg{width:26px;height:26px;flex:none}
+  html.lq #app>.tabbar .tab-avatar{width:26px;height:26px;font-size:12px}
+  html.lq #app>.tabbar .tab-label{display:block;height:auto!important;min-height:0!important;line-height:1.2;text-align:left}
+  /* La pastille de l’onglet ouvert couvre toute la ligne. */
+  html.lq #app>.tabbar .tab::before{left:0;top:0;width:100%;height:100%;border-radius:16px;transform:scaleX(.7);transform-origin:left center}
+  html.lq #app>.tabbar .tab.active::before{transform:none}
+  @media (hover:hover) and (pointer:fine){
+    html.lq #app>.tabbar .tab:not(.active):hover{background:#F6F4FE!important;color:var(--accent-ink)}
+  }
+  /* La bulle du Planning se range au bout de sa ligne. */
+  html.lq #app>.tabbar #badge-planning:not([hidden]){top:50%;left:auto;right:14px;transform:translateY(-50%);box-shadow:none}
+  html.lq #app>.tabbar #badge-planning.is-bump{animation:none}
+
+  /* Plus de barre à dégager en bas des écrans. */
+  html.lq #app>.stage>.screen:not(#scr-lesson){padding-bottom:calc(40px + var(--safe-bottom) + var(--kbar-offset))}
+  /* Le nom de l’appli est dans le menu : l’accueil commence directement par la carte du cours. */
+  html.lq #scr-learn>.lgtitle .journey-brand{display:none!important}
+  html.lq #scr-learn>.lgtitle{min-height:0;padding-top:12px;padding-bottom:0}
+
+  /* Pendant un cours, le menu s’efface (comme la barre du bas sur téléphone) : le cours reprend toute la largeur du cadre. */
+  html.lq body.in-lesson #app>.stage{margin-left:0}
+  /* Le message du bas se centre sous le contenu, pas sous le menu. */
+  html.lq body:not(.in-lesson) #app>.toast{left:calc(var(--rq-side) + 16px)}
+  /* La barre de touches SQL (ludique.css, 33) se pose en bas du cadre, après le menu. Elle est fixée à la fenêtre : ses
+     pourcentages se lisent sur la largeur de la fenêtre, comme ceux du cadre (14 px de marge, 1 440 px au plus). */
+  html.lq body:not(.in-lesson) .kbar{
+    left:calc((100% - min(1440px,100% - 28px)) / 2 + var(--rq-side));right:auto;
+    width:calc(min(1440px,100% - 28px) - var(--rq-side));margin:0;border-radius:0 0 34px 0;
+  }
+}
+
+/* ---------- 3. Accueil ---------- */
+/* Deux colonnes dès que le cadre dépasse ~870 px : la carte du cours à gauche ; la série et les activités à replacer
+   empilées à droite, en haut ; le parcours dessous, sur toute la largeur. Avant, la série flottait seule à droite au-dessus
+   d’un grand vide, et les activités à replacer passaient sous la carte. */
+@media (min-width:900px){
+  html.lq #home-hero{grid-template-columns:minmax(0,1fr) clamp(280px,32%,360px);grid-template-rows:auto auto 1fr;gap:16px 20px;align-items:start}
+  html.lq #scr-learn #home-hero>.lq-hero{grid-column:1;grid-row:1 / -1;margin:0!important}
+  html.lq #scr-learn #home-hero>:not(.lq-hero){grid-column:2;margin:0!important;width:auto}
+}
+/* Titre du cours sur une carte large : des lignes de longueur égale, pas un mot seul sur la dernière. */
+@media (min-width:600px){
+  html.lq .lq-hero-title{text-wrap:balance}
+}
+
+/* ---------- 4. Planning ---------- */
+/* La colonne de droite (activités à replacer, avancement, 14 derniers jours) s’élargit avec l’écran : les chiffres de
+   l’avancement (leçons, défis, série, record) tiennent sur leur ligne au lieu de se couper. */
+@media (min-width:900px){
+  html.lq #planning-body{grid-template-columns:minmax(0,1fr) clamp(340px,36%,400px)}
+}
+
+/* ---------- 5. Pratiquer et Bibliothèque ---------- */
+/* Sur un écran large, les ressources passent sur deux colonnes au lieu de lignes de 1 000 px ; la grande carte de la salle de
+   défi garde toute la largeur. */
+@media (min-width:900px){
+  html.lq #app .journey-hub-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+  html.lq #app .journey-hub-list>:not(.journey-resource){grid-column:1/-1}
+  html.lq #app .journey-hub-list>.journey-resource{height:100%;margin:0}
+}
+
+/* ---------- 6. Feuilles qui montent du bas ---------- */
+/* Dans un cadre large, elles gardent une largeur de lecture (720 px au plus), au milieu, au lieu de s’étirer d’un bord à
+   l’autre de l’écran. */
+@media (min-width:600px){
+  html.lq #app>.viz,html.lq #app>.imp-sheet{left:0;right:0;width:auto;max-width:min(720px,100%);margin-left:auto;margin-right:auto}
+}
+
+/* ---------- 7. Premier lancement ---------- */
+/* Les écrans de bienvenue sont une colonne au milieu du cadre : les boutons du bas (« Personnaliser mon parcours »,
+   « Continuer »…) gardent la largeur de cette colonne au lieu de traverser tout le cadre. */
+@media (min-width:600px){
+  html.lq #onboarding .ob-foot{padding-left:max(24px,calc((100% - 480px) / 2))!important;padding-right:max(24px,calc((100% - 480px) / 2))!important}
+}
+
+/* ---------- 8. Petits téléphones ---------- */
+/* Salle de défi, « Avec qui ? » : sous 375 px, les trois choix (En solo, Entre amis, Rejoindre) ne tenaient plus avec leurs
+   icônes (« Rejoindre » sortait de la carte à 320 px) : le texte seul, un peu plus petit. */
+@media (max-width:374px){
+  html.lq .room-seg.is-3 .room-opt svg{display:none}
+  html.lq .room-seg.is-3 .room-opt{font-size:13.5px!important;padding-left:4px!important;padding-right:4px!important}
+}
+
+/* ---------- 9. Téléphone à l’horizontale ---------- */
+/* Fenêtre basse (téléphone tourné : moins de 500 px de haut) : pas de cadre arrondi ni de marge autour, l’appli, sa vidéo et sa
+   barre de touches occupent l’écran comme à la verticale ; chaque pixel de hauteur compte. */
+@media (min-width:600px) and (max-width:1179px) and (max-height:500px){
+  html.lq body{padding:0}
+  html.lq #app{height:100dvh;min-height:100dvh;max-width:none;border-radius:0;box-shadow:none}
+  html.lq .lv{top:0;bottom:0;width:100%;border-radius:0;box-shadow:none}
+  html.lq .kbar{bottom:0;width:100%;border-radius:0}
+}
