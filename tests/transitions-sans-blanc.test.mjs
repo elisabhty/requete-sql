@@ -85,3 +85,30 @@ test('fermeture : le fond uni du lecteur prend la couleur de l’écran d’en d
   assert.ok(surf.includes('html.lq .lv{background-color:var(--immersive-top);background-image:var(--immersive-background)}'), 'dégradé opaque par-dessus');
   assert.ok(app.includes('<link rel="stylesheet" href="safari-surface.css?v=9">') && lire('sw.js').includes("'./safari-surface.css?v=9',"));
 });
+
+/* Elisa, 3 novembre, 10 h 00 : « là c’est ok quand j’arrive sur la page, mais quand je descends et remonte, j’ai la barre blanche
+   en haut ». Safari 26 garde la couleur du dernier élément fixe ou collant trouvé au bord haut tant qu’il est affiché, et un
+   <header> même caché : la barre de navigation, claire une fois qu’on a défilé. Un repère vide, présent seulement quand la barre
+   est claire, prend sa place ; il est retiré sur l’en-tête violet. */
+const vitrines = ['index', 'module', 'conditions', 'confidentialite', 'mentions-legales'];
+test('vitrine : un seul script pour la barre de navigation par page (sur les pages légales, le menu s’ouvrait puis se refermait)', () => {
+  for (const p of vitrines) {
+    const h = lire(`decouvrir/${p}.html`);
+    assert.equal(h.split("var nav=document.getElementById('nav')").length, 2, `${p} : une seule fois`);
+    assert.equal(h.split("var prog=document.getElementById('prog')").length, 2, `${p} : une seule barre de lecture`);
+    assert.equal(h.split("b.addEventListener('click',function(){ouvrir(menu.hidden);});").length, 2, `${p} : un seul écouteur sur le menu`);
+  }
+});
+
+test('vitrine : la zone de l’heure redevient violette en remontant sur l’en-tête', () => {
+  for (const p of vitrines) {
+    const h = lire(`decouvrir/${p}.html`), on = cut(h, '  var on=function(){', '\n  };');
+    assert.ok(h.includes("rep.style.cssText='position:fixed;top:0;left:0;right:0;height:12px;z-index:2147483647;margin:0;padding:0;border:0;pointer-events:none;background-color:#F7F6FD;background-clip:text;-webkit-background-clip:text;transition:none';"), `${p} : repère invisible, plus de 10 px de haut, au-dessus de la barre`);
+    assert.ok(h.includes("}else if(!clair&&rep){rep.remove();rep=null;}"), `${p} : retiré sur l’en-tête`);
+    assert.ok(on.includes("if(s)nav.style.removeProperty('transition');else nav.style.transition='none';"), `${p} : la barre perd son fond clair d’un coup`);
+    assert.ok(on.includes("nav.classList.toggle('scrolled',s);repere(s);"), `${p} : repère quand la barre est claire (défilement ou menu ouvert)`);
+    assert.ok(on.indexOf("nav.style.transition='none'") < on.indexOf("nav.classList.toggle('scrolled',s)"), `${p} : sans fondu, avant de changer de classe`);
+  }
+  /* La barre est bien un <header> : WebKit garde la couleur d’un <header> même caché, d’où le repère. */
+  for (const p of vitrines) assert.ok(lire(`decouvrir/${p}.html`).includes('<header class="nav" id="nav">'), p);
+});

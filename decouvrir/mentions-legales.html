@@ -141,9 +141,24 @@ document.documentElement.classList.add('js');
      page, Safari montre alors le fond de <body> : violet tout en haut, clair dès qu’on défile (le contenu, lui, a son fond, voir
      vitrine.css) ; <html> prend le même,
      sinon un trait de 1 px apparaît au bord du document. Une fois la barre claire, elle se prolonge sous l’heure. */
-  var meta=document.querySelector('meta[name="theme-color"]'),fond='';
+  var meta=document.querySelector('meta[name="theme-color"]'),fond='',rep=null;
+  /* Elisa, 3 novembre, 10 h 00 : « quand je descends et remonte, j’ai la barre blanche en haut ». Safari 26 (WebKit,
+     Page::updateFixedContainerEdges) garde la couleur du dernier élément fixe ou collant trouvé au bord haut tant que cet
+     élément est affiché, et un <header> même caché : c’était la barre de navigation, claire une fois qu’on a défilé, gardée en
+     haut même redevenue transparente. Dès que la barre est claire, un repère vide de la même couleur passe devant elle et c’est
+     lui que Safari retient ; revenu sur l’en-tête violet, le repère est retiré, Safari n’a plus rien à garder et reprend le
+     violet. La barre perd aussi son fond clair d’un coup, sans fondu, pour que Safari n’en lise pas un reste. */
+  var repere=function(clair){
+    if(clair&&!rep){
+      rep=document.createElement('div');rep.className='zone-heure';rep.setAttribute('aria-hidden','true');
+      rep.style.cssText='position:fixed;top:0;left:0;right:0;height:12px;z-index:2147483647;margin:0;padding:0;border:0;pointer-events:none;background-color:#F7F6FD;background-clip:text;-webkit-background-clip:text;transition:none';
+      document.body.appendChild(rep);
+    }else if(!clair&&rep){rep.remove();rep=null;}
+  };
   var on=function(){
-    var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
+    var s=scrollY>8||!menu.hidden;
+    if(s)nav.style.removeProperty('transition');else nav.style.transition='none';
+    nav.classList.toggle('scrolled',s);repere(s);
     /* 8 h 43 : « quand je pars en bas et que je reviens en haut, c’est encore blanc ». Safari garde la couleur déjà prise tant qu’un
        élément collant touche le bord : tout en haut, la barre n’est plus collante (voir .nav.is-top), il lâche le blanc. */
     nav.classList.toggle('is-top',scrollY<1&&menu.hidden);
@@ -168,47 +183,6 @@ document.documentElement.classList.add('js');
 })();
 
 
-/* Barre de lecture sous la navigation */
-(function(){
-  var prog=document.getElementById('prog'),t=0;
-  var lire=function(){t=0;var h=document.documentElement.scrollHeight-innerHeight;prog.style.transform='scaleX('+(h>0?Math.min(1,scrollY/h):0).toFixed(4)+')';};
-  addEventListener('scroll',function(){if(!t)t=requestAnimationFrame(lire);},{passive:true});lire();
-})();
-/* Barre de navigation et menu */
-(function(){
-  var nav=document.getElementById('nav'),b=document.getElementById('burger'),menu=document.getElementById('menu');
-  /* La zone de l’heure, transparente (Elisa, 3 novembre, 8 h 12 → 8 h 27). Safari 26 (WebKit, LocalFrameView::fixedContainerEdges)
-     sonde le milieu du bord haut : s’il y trouve un élément fixe ou collant, il peint la zone en aplat (la couleur de l’élément, ou
-     celle de la page s’il est transparent), d’où la « barre ». Sur l’en-tête violet, la barre de navigation ne compte plus
-     (transparente et pointer-events:none, voir vitrine.css) : la page passe sous l’heure, comme une appli. Au-dessus du haut de la
-     page, Safari montre alors le fond de <body> : violet tout en haut, clair dès qu’on défile (le contenu, lui, a son fond, voir
-     vitrine.css) ; <html> prend le même,
-     sinon un trait de 1 px apparaît au bord du document. Une fois la barre claire, elle se prolonge sous l’heure. */
-  var meta=document.querySelector('meta[name="theme-color"]'),fond='';
-  var on=function(){
-    var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
-    /* 8 h 43 : « quand je pars en bas et que je reviens en haut, c’est encore blanc ». Safari garde la couleur déjà prise tant qu’un
-       élément collant touche le bord : tout en haut, la barre n’est plus collante (voir .nav.is-top), il lâche le blanc. */
-    nav.classList.toggle('is-top',scrollY<1&&menu.hidden);
-    var hero=document.querySelector('.hero,.mh,.lg-hero');
-    /* En bas (8 h 39) : sous le dernier écran, Safari montre aussi le fond de <body> ; blanc comme le pied de page dès qu’il est en
-       vue, sinon une bande lavande restait sous le blanc. */
-    var foot=document.querySelector('footer');
-    /* « Ce n’est pas le même violet » : le haut de l’en-tête, éclairci par son halo, est plus clair que #6E50F6 ; chaque en-tête
-       donne sa couleur réelle (--hero-top, mesurée à l’écran). */
-    var c=hero&&scrollY<=8&&menu.hidden?(getComputedStyle(hero).getPropertyValue('--hero-top').trim()||'#6E50F6'):foot&&foot.getBoundingClientRect().top<innerHeight?'#FFFFFF':'#F7F6FD';
-    if(fond===c)return;fond=c;
-    document.documentElement.style.backgroundColor=c;document.body.style.backgroundColor=c;if(meta)meta.content=c;
-  };
-  var ouvrir=function(o){menu.hidden=!o;b.setAttribute('aria-expanded',o);on();};
-  b.addEventListener('click',function(){ouvrir(menu.hidden);});
-  menu.addEventListener('click',function(e){if(e.target.closest('a'))ouvrir(false);});
-  addEventListener('keydown',function(e){if(e.key==='Escape'&&!menu.hidden){ouvrir(false);b.focus();}});
-  addEventListener('resize',function(){if(innerWidth>=960&&!menu.hidden)ouvrir(false);});
-  addEventListener('scroll',on,{passive:true});on();
-  /* La fiche d’un parcours dessine son en-tête violet après ce script : on relit la couleur une fois la page posée. */
-  requestAnimationFrame(on);addEventListener('load',on);addEventListener('pageshow',function(){fond='';on();});addEventListener('resize',on,{passive:true});
-})();
 </script>
 <script>
 /* Choix de la langue : le site n’existe qu’en français pour l’instant ; les autres langues annoncent leur arrivée */
