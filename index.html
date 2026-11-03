@@ -26520,7 +26520,13 @@ function jeuRender(){
     const sc=jeuScores(),got=r.found[J.me]!=null;
     /* Pas trouvé : le résultat attendu n’est plus montré, on pourra retomber sur ce défi (Elisa, 3 novembre, 7 h 14 : « ne pas mettre
        voici ce qu’il fallait obtenir, au cas où il repasse sur le même défi »). */
-    const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:((r.closed?(sl?'Manche abandonnée.':'Manche close par l’hôte.'):'Temps écoulé.')+' Tu pourras retenter ce défi plus tard.');
+    const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';
+    /* Pas trouvé : une carte qui dit ce qui s’est passé, 0 point, réponse non validée (Elisa, 3 novembre, 7 h 25, maquette, DA du site). */
+    const miss=got?'':(()=>{
+      const [t,p]=r.closed?(sl?['Manche abandonnée','Tu as quitté la manche avant de valider ta réponse.']:['Manche close par l’hôte','L’hôte a fermé la manche avant que tu valides ta réponse.'])
+        :['Temps écoulé','Le chrono s’est arrêté avant que tu valides ta réponse.'];
+      return `<div class="jeu-card jeu-miss"><div class="jeu-miss-h"><span class="jeu-miss-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><b>${t}</b></div><p class="jeu-miss-p">${p}</p><div class="jeu-miss-tiles"><div><b>0</b><small>Point obtenu</small></div><div><b>Non validée</b><small>Ta réponse</small></div></div></div>`;
+    })();
     /* En attendant l’hôte : la carte « Classement de la salle » (7 h 22), avec le nombre de participants et une roue qui tourne. */
     const np=Object.keys(J.players||{}).length;
     const waitTxt=last?(sl?'Ton bilan arrive…':'En attente des derniers résultats…'):'La manche suivante arrive…';
@@ -26530,7 +26536,7 @@ function jeuRender(){
     /* La solution se replie quand on a trouvé ; les scores cumulés n’apparaissent qu’à partir de la 2e manche, et à plusieurs. */
     html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
       `<div id="jeu-netslot">${jeuNetHTML()}</div>
-      <div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>
+      ${miss}${sl&&!got?'':`<div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>`}
       ${got?`<details class="jeu-card jeu-sol"><summary class="jeu-card-h">Le résultat attendu</summary>${typeof defiAttenduHTML==='function'?defiAttenduHTML(c):''}</details>`:''}
       ${sl||n<1?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
       ${next}`;
@@ -33846,7 +33852,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-salle-v2450';
+  const SW_CACHE='requete-2026-11-03-manche-ratee-v2451';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
