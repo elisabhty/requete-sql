@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=121">
+<link rel="stylesheet" href="ludique.css?v=122">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -19278,21 +19278,12 @@ if(typeof window!=='undefined'){
 /* Réf. 4 (16 h 49) : « garder que la première phrase ». */
 const JEU_NOTE_HTML='<p class="jeu-note">🔒 Tes amis voient ton pseudo, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';
 /* Même défi, seul ou à plusieurs : le choix se fait dans l’écran du défi. Ici, seulement l’entrée « j’ai reçu un code ». */
+const JEU_JOIN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16.5 14.5 12 10 7.5M14.5 12H4"/></svg>';
 const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
 function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
+/* « Un code reçu ? » est passé dans la carte de la salle, en mode « Rejoindre » (3 novembre, 7 h 49). */
 function renderDefisJoin(){
-  const host=document.getElementById('defis-join');if(!host)return;
-  const c=jeuInvite;
-  host.innerHTML=`<details class="def-join"${c?' open':''}>
-    <summary><span class="def-join-ico" aria-hidden="true">${JEU_FRIENDS_SVG}</span><span><b>Un code reçu ?</b><small>Rejoins la salle d’un ami en direct</small></span>${DEF_CHEV_SVG}</summary>
-    <div class="def-join-body">
-      ${c?`<p class="jeu-card-h">Tu es invité·e dans la salle <b class="jeu-code-inline">${c}</b></p>`:''}
-      ${c?'':`<label class="jeu-lab" for="jeu-code">Code de la salle</label>
-      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" placeholder="ABC123" oninput="this.value=jeuCleanCode(this.value)">`}
-      <button type="button" class="journey-primary" onclick="jeuJoin(${c?`'${c}'`:`document.getElementById('jeu-code').value`})"><span>Rejoindre la salle</span>${DEF_CHEV_SVG}</button>
-      <p class="jeu-msg" role="status" aria-live="polite"></p>
-    </div>
-  </details>`;
+  const host=document.getElementById('defis-join');if(host)host.innerHTML='';
 }
 /* Les défis en chiffres (Elisa, 31 octobre, 18 h 02 : « le nombre de points et le nombre de manches réussies, un chiffre dynamique :
    0/0, 1/1 quand on en gagne une, 1/2 quand on en gagne une et en perd une » ; « modifier le KPI ailleurs s’il est présent ») :
@@ -19313,7 +19304,9 @@ function renderDefisRoom(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const auto=jeuNivAuto();
-  const friends=jeuMode==='friends';
+  /* Un code reçu par lien : la salle s’ouvre sur « Rejoindre », le code déjà posé. */
+  if(jeuInvite)jeuMode='join';
+  const friends=jeuMode==='friends',join=jeuMode==='join';
   /* 15 h 54 : plus de sous-texte sous les niveaux (« 0/0 réussie » faisait vide) ; seul un niveau encore vide dit « Bientôt ». */
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
   /* L’en-tête violet quadrillé de la vitrine, l’autocollant de la cible ; dessous, sur blanc, les réglages (ludique.css, 42). */
@@ -19321,17 +19314,24 @@ function renderDefisRoom(){
     <div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('target')}</span><div>
     <p class="room-kicker">Salle de défi</p>
     <h2 id="room-h">Entre dans la salle</h2>
-    <p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
-    <div class="room-field"><p class="jeu-lab" id="room-niv-l">Niveau</p>
-      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':''}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
+    <p class="room-sub">${join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.'}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
+    <!-- 3 novembre, 7 h 49 : « mettre la partie code reçu ici, en mode rejoindre une salle ». Le mode d’abord ; « Rejoindre » cache le
+         niveau et les manches (l’hôte les choisit) et demande le code. -->
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
-      <div class="room-seg" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','En solo'],['friends',JEU_FRIENDS_SVG+'Entre amis']],jeuMode)}</div></div>
-    <div class="room-field"><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
+      <div class="room-seg is-3" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','En solo'],['friends',JEU_FRIENDS_SVG+'Entre amis'],['join',JEU_JOIN_SVG+'Rejoindre']],jeuMode)}</div></div>
+    <div class="room-field room-join" data-join${join?'':' hidden'}>
+      ${jeuInvite?`<p class="room-invite">Tu es invité·e dans la salle <b class="jeu-code-inline">${jeuInvite}</b></p>`:''}
+      <label class="jeu-lab" for="jeu-code">Code de la salle</label>
+      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${jeuInvite||''}" oninput="this.value=jeuCleanCode(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go">
+      <small class="room-hint">Les 6 caractères que ton ami t’a envoyés. Il choisit le niveau et les manches.</small></div>
+    <div class="room-field" data-create${join?' hidden':''}><p class="jeu-lab" id="room-niv-l">Niveau</p>
+      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':''}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
+    <div class="room-field" data-create${join?' hidden':''}><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-nb-l">${seg('nb',[[1,'1'],[3,'3'],[5,'5']].map(([v,l])=>[v,l,v>jeuChallenges(jeuNiv).length?' disabled':'']),jeuNb)}</div></div>
-    <div class="room-field" data-friends${friends?'':' hidden'}>${jeuNomField('jeu-nom')}</div>
-    <button type="button" class="room-go" onclick="jeuEnterRoom()"><span>${friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button>
+    <div class="room-field" data-friends${friends||join?'':' hidden'}>${jeuNomField('jeu-nom')}</div>
+    <button type="button" class="room-go" onclick="jeuEnterRoom()"><span>${join?'Rejoindre la salle':friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button>
     <p class="jeu-msg" role="status" aria-live="polite"></p>
-    <div data-friends${friends?'':' hidden'}>${JEU_NOTE_HTML}</div>
+    <div data-friends${friends||join?'':' hidden'}>${JEU_NOTE_HTML}</div>
   </section>`;
 }
 /* L’écran Défis : la salle de défi seule (Elisa, 31 octobre, 1 h 34 : « pas de défis libres ni d’entraînement libre, que la salle de
@@ -25840,7 +25840,7 @@ function openJeu(code){
   if(document.body.classList.contains('in-lesson'))leaveLessonScreen('defis');
   else if(activeTab==='defis')renderDefis();
   else switchTab('defis');
-  if(jeuInvite)setTimeout(()=>{const j=document.getElementById('defis-join');if(j&&j.scrollIntoView)j.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});},380);
+  if(jeuInvite)setTimeout(()=>{const j=document.getElementById('defis-room');if(j&&j.scrollIntoView)j.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});},380);
 }
 function jeuSetOpt(k,v,btn){
   if(k==='niv'){jeuNiv=v;jeuNivUser=true;}else jeuNb=v;
@@ -25867,19 +25867,24 @@ function jeuRoomSet(k,v){
   if(k==='niv'&&!(JEU_NIVL[v]&&jeuChallenges(v).length))return;
   if(k==='niv'){jeuNiv=v;jeuNivUser=true;}
   else if(k==='nb'&&[1,3,5].includes(v))jeuNb=v;
-  else if(k==='mode'&&(v==='solo'||v==='friends'))jeuMode=v;
+  else if(k==='mode'&&(v==='solo'||v==='friends'||v==='join'))jeuMode=v;
   else return;
   jeuSavePrefs();
   card.querySelectorAll(`[data-set="${k}"]`).forEach(b=>{const on=b.dataset.v===String(v);b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
-  const friends=jeuMode==='friends';
-  card.querySelectorAll('[data-friends]').forEach(el=>{el.hidden=!friends;});
-  const go=card.querySelector('.room-go span');if(go)go.textContent=friends?'Ouvrir la salle':'Tirer un défi';
+  const friends=jeuMode==='friends',join=jeuMode==='join';
+  card.querySelectorAll('[data-friends]').forEach(el=>{el.hidden=!(friends||join);});
+  card.querySelectorAll('[data-create]').forEach(el=>{el.hidden=join;});
+  card.querySelectorAll('[data-join]').forEach(el=>{el.hidden=!join;});
+  const sub=card.querySelector('.room-sub');if(sub)sub.textContent=join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.';
+  const go=card.querySelector('.room-go span');if(go)go.textContent=join?'Rejoindre la salle':friends?'Ouvrir la salle':'Tirer un défi';
+  if(k==='mode'&&join){const inp=card.querySelector('#jeu-code');if(inp&&!inp.value)setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},60);}
   const msg=card.querySelector('.jeu-msg');if(msg)msg.textContent='';
   card.querySelectorAll('[data-set="nb"]').forEach(b=>{const n=+b.dataset.v;b.disabled=n>jeuChallenges(jeuNiv).length;});
   if(jeuNb>jeuChallenges(jeuNiv).length){const last=[...card.querySelectorAll('[data-set="nb"]')].filter(b=>!b.disabled).pop();if(last)jeuRoomSet('nb',+last.dataset.v);}
   if(navigator.vibrate)navigator.vibrate(6);
 }
 function jeuEnterRoom(){
+  if(jeuMode==='join')return jeuJoin((document.getElementById('jeu-code')||{}).value||'');
   if(jeuMode==='solo')jeuStart(jeuRand(6),true,null,{solo:true});
   else jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom'}));
 }
@@ -25939,9 +25944,9 @@ function jeuReprendre(nav){
   jeuPseudoPuis(()=>jeuStart(nav.code,false,null,{nomId:'jeu-nom',reprise:{host:!!nav.host}}));
 }
 function jeuJoin(code){
-  const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom-join');
-  if(c.length!==6){if(msg)msg.textContent='Le code fait 6 caractères.';return;}
-  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom-join'}));
+  const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom');
+  if(c.length!==6){if(msg)msg.textContent=c.length?'Le code fait 6 caractères.':'Entre le code que ton ami t’a envoyé.';const inp=document.getElementById('jeu-code');if(inp){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}return;}
+  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom'}));
 }
 function jeuSend(m){
   if(!JEU)return '';
@@ -33893,7 +33898,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-bilan-plus-v2456';
+  const SW_CACHE='requete-2026-11-03-rejoindre-v2457';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -100,7 +100,7 @@ test('9 h 19 : pas à pas dans la DA du site, épingle en icône animée partout
   /* L’épingle d’une note : sur sa carte, dans la liste ; plus dans l’éditeur (Elisa, 2 novembre, 18 h 45 : « Il y a trop de bouton »). */
   assert.ok(app.includes(`togglePinFromList('\${n.id}')">\${PIN_CK}</button>`) && !app.includes('onclick="togglePin()"'), 'l’épingle de la note en icône, sur sa carte');
   assert.ok(css.includes('@keyframes pinSway{'));
-  assert.ok(app.includes('<p class="room-sub">Un défi tiré au sort, au niveau que tu choisis.</p>'));
+  assert.ok(app.includes("<p class=\"room-sub\">${join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.'}</p>"), 'le sous-titre, et celui du mode Rejoindre (3 novembre, 7 h 49)');
   assert.ok(app.includes("if(name==='defis')tabScrollPositions.defis=0;"));
 });
 
