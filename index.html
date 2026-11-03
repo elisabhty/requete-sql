@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=117">
+<link rel="stylesheet" href="ludique.css?v=118">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -26236,6 +26236,12 @@ function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pt
 function jeuPtsDetail(x){return `<span class="jeu-pd"><i>Défi ${x.val}</i>${x.essai?`<i class="is-essai">1er essai +${x.essai}</i>`:''}${x.rang?`<i class="is-rang">${x.place===1?'1er':x.place+'e'} +${x.rang}</i>`:''}</span>`;}
 /* Seul dans la salle (personne n’a rejoint, ou tous sont partis) et personne d’autre n’a trouvé cette manche : tout se dessine
    comme seul (ni liste de joueurs, ni réactions, ni « Clore la manche », ni annonce « seul·e dans la salle »). */
+/* Fin de manche sans réponse validée (Elisa, 3 novembre, 7 h 25) : ce qui s’est passé, 0 point, « Non validée ». */
+function jeuMissHTML(r,sl){
+  const [t,p]=r.closed?(sl?['Manche abandonnée','Tu as quitté la manche avant de valider ta réponse.']:['Manche close par l’hôte','L’hôte a fermé la manche avant que tu valides ta réponse.'])
+    :['Temps écoulé','Le chrono s’est arrêté avant que tu valides ta réponse.'];
+  return `<div class="jeu-card jeu-miss"><div class="jeu-miss-h"><span class="jeu-miss-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><b>${t}</b></div><p class="jeu-miss-p">${p}</p><div class="jeu-miss-tiles"><div><b>0</b><small>Point obtenu</small></div><div><b>Non validée</b><small>Ta réponse</small></div></div></div>`;
+}
 function jeuSoloLike(n){
   const J=JEU;if(J.solo)return true;
   const r=n>=0?J.rounds[n]:null;
@@ -26254,6 +26260,8 @@ function jeuView(){
   const n=jeuCur();
   if(n<0)return jeuRoomEmpty()?'empty':'lobby';
   if(Date.now()<J.rounds[n].t1)return'draw'+n;
+  /* Seul, la dernière manche finie mène tout droit au bilan, sur la même page (Elisa, 3 novembre, 7 h 31). */
+  if(jeuRoundDone(n)&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';
   return (jeuRoundDone(n)?'res':'play')+n;
 }
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
@@ -26522,11 +26530,7 @@ function jeuRender(){
        voici ce qu’il fallait obtenir, au cas où il repasse sur le même défi »). */
     const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';
     /* Pas trouvé : une carte qui dit ce qui s’est passé, 0 point, réponse non validée (Elisa, 3 novembre, 7 h 25, maquette, DA du site). */
-    const miss=got?'':(()=>{
-      const [t,p]=r.closed?(sl?['Manche abandonnée','Tu as quitté la manche avant de valider ta réponse.']:['Manche close par l’hôte','L’hôte a fermé la manche avant que tu valides ta réponse.'])
-        :['Temps écoulé','Le chrono s’est arrêté avant que tu valides ta réponse.'];
-      return `<div class="jeu-card jeu-miss"><div class="jeu-miss-h"><span class="jeu-miss-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><b>${t}</b></div><p class="jeu-miss-p">${p}</p><div class="jeu-miss-tiles"><div><b>0</b><small>Point obtenu</small></div><div><b>Non validée</b><small>Ta réponse</small></div></div></div>`;
-    })();
+    const miss=got?'':jeuMissHTML(r,sl);
     /* En attendant l’hôte : la carte « Classement de la salle » (7 h 22), avec le nombre de participants et une roue qui tourne. */
     const np=Object.keys(J.players||{}).length;
     const waitTxt=last?(sl?'Ton bilan arrive…':'En attente des derniers résultats…'):'La manche suivante arrive…';
@@ -26551,8 +26555,10 @@ function jeuRender(){
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
       const avg=got.length?jeuChrono(got.reduce((a,x)=>a+x.ms,0)/got.length):'—';
       const all=got.length===rows.length&&rows.length>0;
+      if(!J.over&&host)setTimeout(()=>{if(JEU===J&&!J.over)jeuFinish();},0);
+      const lastR=rows.length?rows[rows.length-1]:null,lastMiss=lastR&&lastR.ms==null?jeuMissHTML(lastR.r,true):'';
       html=head('Fin de la partie',all?'Tout trouvé ! 🏆':'Ton bilan',`${rows.length} manche${rows.length>1?'s':''} jouée${rows.length>1?'s':''} · niveau ${JEU_NIVL[J.niv].toLowerCase()}.`)+
-        `<div class="jeu-bilan"><div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${got.length}/${rows.length}</b><small>trouvé${got.length>1?'s':''}</small></div><div><b>${avg}</b><small>temps moyen</small></div></div>
+        `${lastMiss}<div class="jeu-bilan"><div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${got.length}/${rows.length}</b><small>trouvé${got.length>1?'s':''}</small></div><div><b>${avg}</b><small>temps moyen</small></div></div>
         <div class="jeu-card"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rank">${rows.map((x,i)=>{const k=J.rounds.indexOf(x.r),y=x.ms!=null?jeuRanking(k).find(z=>z.pid===J.me):null;return `<li style="--i:${i}"><span class="jeu-rk">${i+1}</span><b>${esc(x.c.titre)}</b><em>${x.ms!=null?jeuChrono(x.ms):'—'}</em><small>${y?'+'+y.pts:'0'}</small>${y?jeuPtsDetail(y):''}</li>`;}).join('')}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
         ${J.solo?jeuBtn2('level','Changer de niveau','openJeu()'):jeuBtn2('quit','Quitter la salle','goBack()')}`;
@@ -33852,7 +33858,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-styles-v2452';
+  const SW_CACHE='requete-2026-11-03-bilan-v2453';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

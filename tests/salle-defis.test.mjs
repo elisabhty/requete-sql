@@ -509,8 +509,8 @@ test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pa
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=1;jeuNiv='d'");
   s.ev("jeuStart('SOLO22',true,null,{solo:true})"); sec(w, 4);
   s.ev('jeuClose()'); sec(w, 1);
-  assert.equal(s.view(), 'res0'); assert.match(s.html, /Manche abandonnée/);
-  s.ev('jeuFinish()'); sec(w, 1);
+  /* 3 novembre, 7 h 31 : seul, la dernière manche mène tout droit au bilan, sur la même page que la manche abandonnée. */
+  assert.equal(s.view(), 'final'); assert.match(s.html, /Manche abandonnée/);
   assert.match(s.html, /Ton bilan/); assert.match(s.html, /0\/1/);
   assert.equal(s.ev('state.salle.pts'), 0);
   assert.equal(s.ev('Object.keys(state.defis).length'), 0);
@@ -527,9 +527,8 @@ test('solo : la manche dure 10 min au plus ; trouvée après 7 min, elle rapport
   assert.equal(s.ev('jeuRanking(0)[0].pts'), 75, '50 + 25');
   s.ev('jeuNextRound()'); sec(w, 4);
   sec(w, 9.5 * 60); assert.equal(s.view(), 'play1');
-  sec(w, 31); assert.equal(s.view(), 'res1', 'à 10 min, la manche s’arrête');
-  assert.match(s.html, /<b>Temps écoulé<\/b>.*<b>Non validée<\/b>/s, "la carte de la manche ratée (3 novembre, 7 h 25)");
-  s.ev('jeuFinish()'); sec(w, 1);
+  sec(w, 31); assert.equal(s.view(), 'final', 'à 10 min, la manche s’arrête, et le bilan suit sur la même page (3 novembre, 7 h 31)');
+  assert.match(s.html, /<b>Temps écoulé<\/b>.*<b>Non validée<\/b>.*class="jeu-bilan"/s, "la carte de la manche ratée, puis le bilan");
   assert.equal(s.ev('state.salle.pts'), 75);
 });
 
