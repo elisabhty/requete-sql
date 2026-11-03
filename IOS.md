@@ -18,8 +18,8 @@ lent (écran noir le temps qu’Xcode charge ses symboles) : c’est normal, les
 
 ```bash
 npm install
-npm run ios:add       # crée le dossier ios/ (projet Xcode)
-npm run ios:assets    # génère icônes et écran de lancement depuis resources/
+npm run ios:add       # crée le dossier ios/ (projet Xcode) et y met l’écran de lancement (resources/ios)
+npm run ios:assets    # génère les icônes depuis resources/
 npm run ios           # copie l’app web, synchronise et ouvre Xcode
 ```
 
@@ -66,12 +66,20 @@ profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans X
 2. **Info.plist** (`ios/App/App/Info.plist`, réglé le 3 novembre sur le Mac d’Elisa) : « Portrait » seulement sur iPhone,
    l’appli en français (`CFBundleDevelopmentRegion` = `fr`, `CFBundleLocalizations` = `fr`, pour que les menus d’iOS dans
    l’appli soient en français) et `ITSAppUsesNonExemptEncryption` = `NO` (pas de question sur le chiffrement à chaque envoi).
-3. **Icône et lancement** : `resources/icon-only.png` (1024 × 1024, sans transparence)
-   et `resources/splash.png` (2732 × 2732). Remplace-les si le logo change, puis relance `npm run ios:assets`.
-   **Ouverture animée** (3 novembre) : la première image de l’appli reprend `splash.png` au pixel près (ludique.css, 37 bis :
+3. **Icône et lancement** : `resources/icon-only.png` (1024 × 1024, sans transparence) et `resources/splash.png`
+   (2732 × 2732, l’image de référence). Remplace-les si le logo change, puis relance `npm run ios:assets`.
+   **Écran de lancement** (3 novembre, 23 h 02 : « quand j’ouvre l’appli, il y a un écran noir ») : `resources/ios/LaunchScreen.storyboard`
+   (fond `#F4F2FC` fixe, même en mode sombre) et `resources/ios/SplashLogo.imageset` (la touche >_ seule, 768 × 810 px au
+   plus), recopiés dans `ios/` par `scripts/ios-ecran-lancement.sh` à chaque `npm run ios`, `ios:add` ou `ios:testflight`.
+   L’ancien écran étirait `splash.png` entière sur un fond « couleur système » : trop lourde, iOS ne la dessinait pas et
+   laissait le fond, noir en mode sombre. La touche fait 540/2732 du plus grand côté de l’écran, au centre : c’est la place
+   qu’elle avait dans `splash.png`. iOS garde l’écran de lancement en mémoire : si l’ancien revient après une mise à jour,
+   redémarrer l’iPhone.
+   **Ouverture animée** (3 novembre) : la première image de l’appli reprend cet écran au pixel près (ludique.css, 37 bis :
    touche de 512 de côté, 28 d’épaisseur, coins de 116, fond `#F4F2FC`), puis la touche >_ s’enfonce, rebondit et lâche ses
    étincelles. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
-   jusqu’à ce que la page se soit dessinée (au plus 4 s, `launchShowDuration`).
+   jusqu’à ce que la page se soit dessinée (au plus 4 s, `launchShowDuration`). Avec « Réduire les animations » (iOS), un
+   simple fondu.
 
 ## Points App Store
 
