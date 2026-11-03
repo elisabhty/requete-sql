@@ -12,11 +12,13 @@ window.MODULES=[
   statut:'disponible',
   titre:'SQL, de zéro à avancé',
   nom:'SQL',
-  accroche:'Interroger, croiser et analyser des données avec le langage des data analysts, sur une vraie base.',
+  accroche:'Apprends à interroger, croiser et analyser des données, des premières requêtes aux techniques avancées. Progresse à ton rythme en pratiquant directement sur une véritable base de données.',
   apropos:[
-    'Le SQL est la langue des bases de données : c’est avec lui qu’on interroge les clients, les produits ou les commandes d’une entreprise. Ce parcours te l’apprend du tout premier SELECT jusqu’aux fonctions de fenêtre, aux transactions et aux droits d’accès.',
-    'Chaque cours est une courte vidéo interactive qui s’arrête sur des moments « À toi » : tu écris la requête, la base te répond. Tu deviens l’analyste de NutriBoost, une boutique en ligne, et ses clients, ses produits et ses commandes servent d’exemples d’un bout à l’autre.',
-    'Entre les cours, des cas pratiques sans filet, des révisions qui reviennent au bon moment et une console SQL libre te font pratiquer. Tu peux aussi importer tes propres fichiers Excel ou CSV et les interroger comme une vraie base.'
+    'Apprends le SQL pas à pas, de tes premières requêtes aux notions les plus avancées : jointures, fonctions de fenêtre, transactions et bien plus encore. Aucune connaissance préalable n’est nécessaire.',
+    'Ici, tu ne fais pas que regarder : tu pratiques. Chaque cours prend la forme d’une vidéo immersive et interactive. À chaque étape, tu écris tes propres requêtes, tu les exécutes et tu découvres immédiatement les résultats.',
+    'Tout au long du parcours, tu incarnes un Data Analyst chez NutriBoost, une boutique en ligne. À travers des situations concrètes, tu explores ses données clients, ses produits et ses commandes pour résoudre de véritables problématiques métier.',
+    'Pour progresser, tu retrouves également des cas pratiques, des révisions, des défis et un laboratoire SQL en accès libre. Tu peux même importer tes propres fichiers Excel ou CSV pour t’entraîner sur tes données.',
+    'Ton objectif : comprendre le SQL, savoir l’utiliser et gagner en autonomie.'
   ],
   niveau:{de:1,a:3,texte:'Débutant à avancé'},
   badge:'Vidéo interactive',
@@ -29,7 +31,7 @@ window.MODULES=[
     ['langue','En français'],
     ['appareil','Sur ordinateur, tablette et téléphone'],
     ['horsligne','Même hors ligne, à ton rythme'],
-    ['maj','Mis à jour le 29 octobre 2026']
+    ['maj','Mis à jour le 3 novembre 2026']
   ],
   competences:[
     ['Interroger une base','SELECT, WHERE, ORDER BY et LIMIT pour trouver exactement les lignes et les colonnes dont tu as besoin.'],
