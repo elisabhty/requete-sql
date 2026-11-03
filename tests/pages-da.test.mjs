@@ -27,7 +27,7 @@ test('de nouveaux autocollants, dans le même dessin que les autres (silhouette 
 });
 
 test('le haut des pages : rubrique au tiret, titre souligné en jaune, autocollant qui se colle à chaque arrivée (et saute au toucher)', () => {
-  assert.ok(app.includes("const LQ_HEAD_STK={'scr-planning':'cal','scr-practice':'rocket','scr-library':'book','scr-compte':'user','scr-stickers':'peel','scr-sgbd':'db','scr-collection':'cards','scr-notes':'note','scr-entretien':'mic'};"));
+  assert.ok(app.includes("const LQ_HEAD_STK={'scr-planning':'cal','scr-practice':'rocket','scr-library':'book','scr-compte':'user','scr-stickers':'peel','scr-sgbd':'db','scr-collection':'cards','scr-notes':'note','scr-entretien':'mic','scr-parcours':'route'};"));
   const heads = fn('lqHeads');
   assert.ok(heads.includes("head.classList.add('lq-head');") && heads.includes("u.className='lq-tu';u.textContent=h1.textContent;") && heads.includes('head.insertBefore(st,head.firstChild);'));
   assert.ok(app.includes("  }catch(e){ bootFatal(); return; }\n  try{lqHeads();}catch(e){}"), 'posé au démarrage');
