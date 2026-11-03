@@ -6690,7 +6690,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=127">
+<link rel="stylesheet" href="ludique.css?v=128">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=5">
 <style id="lesson-video-css">
@@ -7332,6 +7332,33 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   <div id="loader"><i class="ld-spark s1" aria-hidden="true"></i><i class="ld-spark s2" aria-hidden="true"></i><i class="ld-spark s3" aria-hidden="true"></i>
     <div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>
     <p>Préparation de ta base de données…</p></div>
+  <script>
+/* Appli iOS : l’ouverture animée (Elisa, 3 novembre, 21 h 03 ; ludique.css, 37 bis). La page se dessine d’abord à l’identique
+   de l’écran de lancement fixe ; deux images plus tard, on le retire et la touche >_ joue son animation, avec un petit retour
+   haptique quand elle s’enfonce. Le mouvement réduit (réglage d’iOS ou de l’appli) garde l’image fixe. */
+(function(){
+  var d=document.documentElement,L=document.getElementById('loader'),C=window.Capacitor;
+  if(!L||!d.classList.contains('is-native'))return;
+  L.classList.add('is-intro');
+  var calme=false;
+  try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
+  window.__introFin=performance.now()+1500;
+  var go=function(){
+    try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:120});}catch(e){}
+    window.__introFin=performance.now()+(calme?250:1180);
+    setTimeout(function(){if(!L.classList.contains('fade-out'))L.classList.add('is-long');},2600);
+    if(calme)return;
+    setTimeout(function(){
+      /* Le retour haptique part avec l’animation (la touche est en bas 94 ms plus tard), et la fin se compte d’ici : un
+         minuteur retardé par le démarrage de l’appli ne les décale jamais l’un de l’autre. */
+      L.classList.add('is-play');
+      try{navigator.vibrate&&navigator.vibrate(10);}catch(e){}
+      window.__introFin=performance.now()+980;
+    },140);
+  };
+  requestAnimationFrame(function(){requestAnimationFrame(go);});
+})();
+  </script>
   <!-- Script à part : il tourne même si le gros JS a une erreur de syntaxe. -->
   <script>
 /* Mode de saisie : doigt ou souris (pas d’anneau de focus) ou clavier (anneau). Voir html.pointer-nav dans le style. */
@@ -7649,7 +7676,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   <!-- Schéma du cours -->
   <div class="viz-back" id="schema-back" onclick="closeSchemaSheet()"></div>
   <div class="viz" id="schema-sheet" role="dialog" aria-modal="true" aria-labelledby="schema-head-title">
-    <div class="viz-head"><div class="grab"></div><button type="button" class="sch-back" onclick="closeSchemaSheet()" aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><b id="schema-head-title">Schéma · base du cours</b></div>
+    <div class="viz-head"><div class="grab"></div><b id="schema-head-title">Schéma · base du cours</b><button type="button" onclick="closeSchemaSheet()" aria-label="Fermer">✕</button></div>
     <div class="viz-body sch-sheet-body" id="schema-body"></div>
   </div>
 
@@ -14293,10 +14320,15 @@ function hideLoader(){
   const loader=document.getElementById('loader');
   if(!loader||loader.classList.contains('fade-out'))return;
   const t=typeof performance!=='undefined'&&performance.now?performance.now():LOADER_MIN_MS;
-  setTimeout(()=>{
+  /* Dans l’appli, l’ouverture animée va jusqu’au bout avant que l’écran ne se découvre (ludique.css, 37 bis). */
+  const intro=loader.classList.contains('is-intro');
+  const reste=()=>intro&&typeof window.__introFin==='number'?window.__introFin-performance.now():0;
+  const sortir=()=>{
+    if(reste()>16){setTimeout(sortir,reste());return;}   /* l’animation a pu démarrer plus tard que prévu */
     loader.classList.add('fade-out');
-    setTimeout(()=>{loader.style.display='none';}, 380);
-  },Math.max(0,LOADER_MIN_MS-t));
+    setTimeout(()=>{loader.style.display='none';}, intro?440:380);
+  };
+  setTimeout(sortir,Math.max(0,LOADER_MIN_MS-t,reste()));
 }
 async function boot(){
   /* Seul l'échec du moteur SQL est fatal. Une erreur de rendu ne doit pas
@@ -17739,7 +17771,10 @@ function renderSchemaSheet(){
   let cur=schTabSel[key];if(!tables.includes(cur))cur=tables[0];
   const tabs=tables.length>1?`<div class="sch-tabs" role="tablist" aria-label="Tables de la base">${tables.map(name=>`<button type="button" role="tab" class="sch-tab${name===cur?' on':''}" aria-selected="${name===cur}" data-t="${esc(name)}" onclick="schemaPickTab(this)">${esc(name)}</button>`).join('')}</div>`:'';
   body.dataset.base=key;
-  body.innerHTML=(dId?`<p class="sch-base"><b>Base ${esc(DEFI_BASES[dId].nom)}</b> ${esc(DEFI_BASES[dId].desc)}</p>`:'')+tabs+(tables.map(name=>{
+  /* La présentation de la base, pliable (3 novembre, 21 h 03) : fermée d’abord, elle reste comme on l’a laissée pendant la visite. */
+  const baseOuverte=!!schBaseOuverte[key];
+  const baseCarte=dId?`<div class="sch-base${baseOuverte?' open':''}"><button type="button" class="sch-base-h" aria-expanded="${baseOuverte}" aria-controls="sch-base-txt" onclick="schemaBaseToggle(this)"><b>Base ${esc(DEFI_BASES[dId].nom)}</b><span class="sch-base-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button><div class="sch-base-body" id="sch-base-txt"><div><p>${esc(DEFI_BASES[dId].desc)}</p></div></div></div>`:'';
+  body.innerHTML=baseCarte+tabs+(tables.map(name=>{
     const meta=SCHEMA_META.find(t=>t.table===name);
     const n=database?tableRowCount(database,name):(meta?meta.n:'?');
     const cols=introspectTable(database,name,tables);
@@ -17758,7 +17793,14 @@ function renderSchemaSheet(){
   }).join('')||'<p class="viz-e">Aucune table disponible.</p>');
   }finally{if(dId)database.close();}
 }
-const schTabSel={};
+const schTabSel={},schBaseOuverte={};
+function schemaBaseToggle(btn){
+  const card=btn&&btn.closest('.sch-base');if(!card)return;
+  const open=!card.classList.contains('open');
+  card.classList.toggle('open',open);
+  btn.setAttribute('aria-expanded',String(open));
+  schBaseOuverte[document.getElementById('schema-body')?.dataset.base||'cours']=open;
+}
 function schemaPickTab(btn){
   const body=document.getElementById('schema-body'),t=btn.dataset.t;
   schTabSel[body.dataset.base||'cours']=t;
@@ -34262,7 +34304,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-parcours-v2468';
+  const SW_CACHE='requete-2026-11-03-intro-v2469';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

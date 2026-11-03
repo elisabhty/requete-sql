@@ -125,12 +125,13 @@ test('feuille « Schéma » : l’en-tête violet des feuilles et les cartes des
     assert.ok(s41.includes(part), part);
 });
 
-test('Schéma : une table à la fois choisie dans des onglets en haut, et un bouton Retour', () => {
+test('Schéma : une table à la fois choisie dans des onglets en haut, et la croix en haut à droite', () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   const r = app.slice(app.indexOf('function renderSchemaSheet(){'), app.indexOf('function openSchemaSheet(){'));
   assert.ok(r.includes('class="sch-tabs" role="tablist"') && r.includes('role="tabpanel"') && r.includes("onclick=\"schemaPickTab(this)\""));
-  assert.ok(app.includes('class="sch-back" onclick="closeSchemaSheet()" aria-label="Retour"') && !app.includes('class="sch-ret"'), 'le retour en haut à gauche (3 novembre, 7 h 39)');
+  assert.ok(app.includes('<b id="schema-head-title">Schéma · base du cours</b><button type="button" onclick="closeSchemaSheet()" aria-label="Fermer">✕</button>')
+    && !app.includes('class="sch-back"') && !app.includes('class="sch-ret"'), 'la croix en haut à droite, plus de flèche (3 novembre, 21 h 03)');
   assert.ok(css.includes('html.lq #schema-sheet .sch-tabs{position:sticky;top:0'));
   assert.ok(!/coach-tag\.is-go\{[^}]*animation/.test(css), '« À toi de jouer » sans animation infinie (texte flou)');
 });
