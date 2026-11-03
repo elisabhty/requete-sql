@@ -77,6 +77,12 @@ npm run ios
   `contact_boite` : Storage › contact-pieces, puis le dossier du même nom, pour les ouvrir. Le ménage des 3 ans
   n’efface que les messages : supprimer à la main les fichiers des messages traités (et les dossiers sans message,
   si un envoi a échoué après le dépôt).
+- **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre) : le parcours choisi, sa date et l’empreinte
+  de l’identifiant tiré au hasard par l’appareil partent dans la table `parcours_vote` (fonction `parcours_voter`, un vote
+  par appareil, revoter le remplace). À appliquer avant l’envoi : `supabase/migrations/20261103181500_parcours_vote.sql`
+  (éditeur SQL de Supabase). **Résultats** : vue `parcours_votes`. Dans App Store Connect, déclarer « Identifiant
+  utilisateur » (l’identifiant au hasard) et « Autres données d’usage » (le vote) ; usage « Analyses » ; non liés à
+  l’identité, sans pistage. L’alerte « Préviens-moi à la sortie » reste sur l’appareil.
 - **Effacement** : « Retirer mes scores du classement » et « Effacer la progression » suppriment les données du
   serveur depuis l’appli (pas de compte, donc pas de suppression de compte à prévoir).
 - **Passer du site à l’app** : Mon compte › Données › « Exporter ma progression » sur le site, puis « Importer une
