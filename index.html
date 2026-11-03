@@ -6698,6 +6698,10 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
   opacity:0;transform:translateY(28px) scale(.985);transition:opacity .26s ease,transform .38s cubic-bezier(.2,.8,.2,1)}
 .lv.on{opacity:1;transform:none}
+/* Sur téléphone, le lecteur couvre tout l’écran : il apparaît et disparaît en fondu, sans glisser ni rétrécir. En glissant, son bord
+   découvrait la page claire du dessous en un trait sous l’heure, au début d’un cours (et des filets sur les côtés en rétrécissant) ;
+   en repartant vers le bas, le violet passait sous la barre de Safari (Elisa, 3 novembre, 9 h 01). */
+@media (max-width:599.98px){.lv{transform:none}}
 /* Pendant le fondu de fermeture (320 ms), le lecteur devenu transparent ne retient plus le doigt : on peut déjà faire défiler le cours. */
 .lv:not(.on){pointer-events:none}
 /* Confettis d’un bouton réussi dans la vidéo (lvConfetti) : par-dessus l’image, sans jamais retenir le doigt. */
@@ -7316,7 +7320,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #sgbd-back{z-index:84}
 #sgbd-sheet{z-index:85}
 </style>
-<link rel="stylesheet" href="safari-surface.css?v=8">
+<link rel="stylesheet" href="safari-surface.css?v=9">
 <script src="safari-surface.js?v=8" defer></script>
 </head>
 <body>
@@ -20183,9 +20187,16 @@ function lessonStartShow(l,go){
     /* La croix ramène toujours à l’accueil (14 h 43), et directement (15 h 36) : l’accueil se met en place sous la page, sans la
        glissade de l’écran du cours, puis la page s’efface par-dessus. */
     if(!ok)leaveLessonScreen('learn',true);
+    if(ok)go&&go();
+    /* « Commencer » (Elisa, 3 novembre, 9 h 01 : « 2 secondes avant, on voit du blanc et la vidéo apparaît ») : la page s’effaçait
+       aussitôt et découvrait l’écran clair du cours le temps que le lecteur s’ouvre. Le lecteur s’ouvre maintenant par-dessus
+       elle, en fondu ; elle ne s’efface qu’une fois couverte (sur ordinateur, autour du lecteur, elle laisse place au cours). */
+    if(ok&&document.getElementById('lesson-video')&&!prefersReduceMotion()){
+      setTimeout(()=>{ root.classList.add('is-out'); setTimeout(()=>root.remove(),220); },LV_FADE_MS);
+      return;
+    }
     root.classList.add('is-out');
     setTimeout(()=>root.remove(),prefersReduceMotion()?0:220);
-    if(ok)go&&go();
   };
   /* Elisa, 2 novembre, 1 h 06 (réf. 4) : « j’ai validé la leçon donc plutôt mettre voir le bilan avec une coche validé ». Une leçon validée
      s’ouvre sur son bilan (la vidéo se revoit depuis le bilan ou l’étape du cours). */
@@ -20271,6 +20282,8 @@ let LV=null, LV_MUTED=false;
 const LV_RATES=[0.5,0.75,1,1.5,2];
 let LV_RATE=(()=>{ try{ const r=parseFloat(localStorage.getItem('rq-video-vitesse')); return LV_RATES.includes(r)?r:1; }catch(e){ return 1; } })();
 const LV_SKIP=5;
+/* Durée du fondu d’ouverture et de fermeture du lecteur (transition d’opacité de .lv, 260 ms) : la fermeture le retire juste après. */
+const LV_FADE_MS=260;
 const LV_ICO={
   close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   sound:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2h3.8l5-4.2v14l-5-4.2H3.5z" fill="currentColor"/><path d="M16 8.6a4.9 4.9 0 0 1 0 6.8M18.7 6a8.6 8.6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -20968,7 +20981,10 @@ function openLessonVideo(fin){
   document.addEventListener('click',lvWake,true);
   /* La vidéo de fin prend la place de la leçon sans fondu : l’écran ne repasse pas par la page de la leçon. */
   if(prefersReduceMotion()||fin){ if(fin)root.style.transition='none'; root.classList.add('on'); if(fin)requestAnimationFrame(()=>requestAnimationFrame(()=>root.style.removeProperty('transition'))); }
-  else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('on')));
+  /* Le fondu part tout de suite : il attendait deux images (requestAnimationFrame), et sur iPhone, le chargement de l’animation
+     dans son cadre pouvait les retarder d’une à deux secondes ; on voyait alors l’écran clair du cours avant la vidéo (Elisa,
+     3 novembre, 9 h 01). Lire l’opacité fixe le point de départ (transparent) ; le fondu se joue ensuite sans le fil principal. */
+  else{ void getComputedStyle(root).opacity; root.classList.add('on'); }
   lvPlay();
   try{root.focus({preventScroll:true});}catch(e){}
 }
@@ -22751,6 +22767,8 @@ function closeLessonVideo(instant){
   if(ro)ro.disconnect(); else removeEventListener('resize',place);
   if(window.visualViewport)visualViewport.removeEventListener('resize',place);
   try{video.pause();}catch(e){}
+  /* Fermé aussitôt ouvert depuis « Commencer » : la page de départ, encore sous le lecteur (voir lessonStartShow), part avec lui. */
+  document.getElementById('lesson-start')?.remove();
   lvCardSync(id);
   document.removeEventListener('keydown',lvKey);
   document.removeEventListener('visibilitychange',lvHidden);
@@ -33942,7 +33960,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-teinte-v2461';
+  const SW_CACHE='requete-2026-11-03-transitions-v2462';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

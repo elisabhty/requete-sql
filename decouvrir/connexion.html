@@ -23,6 +23,11 @@ html,body{height:100%}
 body.cx{min-height:100%;background:var(--bg)}
 .cx-wrap{min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:1fr;transition:opacity .28s,transform .28s}
 .cx-leave .cx-wrap{opacity:0;transform:scale(.985)}
+/* En partant vers l’appli (Elisa, 3 novembre, 9 h 01 : « on voit du blanc »), la page ne s’efface plus sur son fond clair
+   pendant que l’appli se charge : elle passe au violet de l’écran de chargement de l’appli, qui prend le relais sans raccord. */
+body.cx::after{content:'';position:fixed;inset:0;z-index:100;pointer-events:none;opacity:0;transition:opacity .28s;
+  background:linear-gradient(180deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%)}
+body.cx.cx-leave::after{opacity:1}
 
 /* ---------- Côté violet ---------- */
 .cx-show{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;background:var(--deep);color:#fff;padding:18px 20px 128px}
@@ -281,7 +286,13 @@ body.cx{min-height:100%;background:var(--bg)}
       setTimeout(() => c.remove(), 1500);
     }
   }
-  function leave(dest){ document.body.classList.add('cx-leave'); setTimeout(() => { location.href = dest || APP; }, reduce ? 0 : 280); }
+  function leave(dest){
+    document.body.classList.add('cx-leave');
+    /* Le haut de l’écran (zone de l’heure, Safari) prend le même violet que le haut de l’écran de chargement de l’appli. */
+    document.documentElement.style.backgroundColor = document.body.style.backgroundColor = '#6E50F6';
+    const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = '#6E50F6';
+    setTimeout(() => { location.href = dest || APP; }, reduce ? 0 : 280);
+  }
   function enter(btn, wait, done, dest){
     if (leaving) return;
     leaving = true; pass.value = '';

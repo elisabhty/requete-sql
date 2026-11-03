@@ -10,6 +10,9 @@
 <link rel="icon" href="../assets/icon-192.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
+<!-- L’affiche de départ écrit aussi en Inter gras (« 70+ cours ») et en JetBrains Mono (durée, SELECT, GROUP BY, JOIN) : chargées tout de suite. -->
+<link rel="preload" href="../assets/fonts/inter-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* Vidéo de la page vitrine : le métier de data analyst en chiffres réels et sourcés — salaire moyen, salaires
    par ville, progression, freelance, demande, IA, place du SQL dans les offres, reconversions — puis Requête
@@ -58,6 +61,12 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 @media (max-width:340px){.bar.top{padding-left:12px;padding-right:12px}.bar-r{gap:6px}.pill .me{display:none}}
 .pill:focus-visible,.ctl:focus-visible,#seek:focus-visible,#src-btn:focus-visible{outline:3px solid var(--accent-ink);outline-offset:3px}
 #frame{position:relative;flex:none;overflow:hidden;box-shadow:0 0 0 1px rgba(34,28,70,.06),0 2px 4px rgba(34,28,70,.04),0 30px 70px -28px rgba(52,34,150,.35);cursor:pointer;background:var(--bg)}
+/* La taille du cadre dès la première image, avant tout script (même calcul que fit() : 1080 × 1350 réduit pour tenir entre
+   les deux barres, 62 px et 68 px plus les zones sûres de l’iPhone) ; fit() la recale ensuite au pixel près. */
+#frame{--vh:100vh;--fw:min(calc(100vw - 24px),880px,calc((var(--vh) - 116px - max(10px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom))) * .8));
+  width:var(--fw);height:calc(var(--fw) * 1.25);border-radius:max(16px,calc(var(--fw) * .04444))}
+@supports (height:100dvh){#frame{--vh:100dvh}}
+@supports (width:round(down,1.5px,1px)){#frame{width:round(down,var(--fw),1px);height:round(down,calc(var(--fw) * 1.25),1px)}}
 .ctl{flex:none;width:46px;height:46px;border-radius:14px;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:0 4px 0 var(--accent-lip);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
 .ctl:active{transform:translateY(4px);box-shadow:0 0 0 var(--accent-lip)}
 .ctl svg{width:20px;height:20px}
@@ -1006,7 +1015,7 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 <!-- Départ avec le son (Elisa, 2 novembre, 15 h 48 : « attend un toucher pour lancer la voix ») : affiché seulement quand la voix off est là -->
 <button type="button" id="go" class="wait" aria-label="Lancer la vidéo, avec le son">
     <span class="go-top" aria-hidden="true"><i>&gt;_</i>Requête</span>
-    <span class="go-dur" id="go-dur" aria-hidden="true">2 min 22</span>
+    <span class="go-dur" id="go-dur" aria-hidden="true">2 min 24</span>
     <span class="go-h" aria-hidden="true"><small>Le métier de</small><em>Data analyst</em><span>et comment l’apprendre</span></span>
     <span class="go-s m" aria-hidden="true">SELECT</span>
     <span class="go-s y" aria-hidden="true">GROUP BY</span>
@@ -1023,11 +1032,30 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 </div>
 
 <div class="bar bottom">
-  <button type="button" class="ctl" id="pp" aria-label="Lecture"></button>
+  <button type="button" class="ctl" id="pp" aria-label="Lecture"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg></button>
   <div id="seek" role="slider" tabindex="0" aria-label="Position dans la vidéo" aria-valuemin="0" aria-valuenow="0"><div class="track"><div class="fill"></div></div></div>
-  <span id="time">0:00</span>
+  <span id="time">0:00 / 2:24</span>
   <button type="button" id="src-btn" aria-haspopup="dialog">Sources</button>
 </div>
+<script>
+/* Elisa, 3 novembre, 9 h 01 : « quand je clique sur Commencer, 2 secondes avant, on voit du blanc et la vidéo apparaît ».
+   Le cadre recevait sa taille à la fin de la page, après GSAP et la construction de toute la vidéo : la première image
+   montrait le fond clair et les deux barres, sans l’affiche. Sa taille est maintenant posée par le CSS (#frame, --fw)
+   et calée ici, dès que les deux barres existent : l’affiche violette est là dès la première image. */
+function fit(){
+  var f = document.getElementById('frame'), st = document.getElementById('stage');
+  if (!f || !st) return;
+  var bars = 0;
+  [].forEach.call(document.querySelectorAll('.bar'), function(b){ bars += b.offsetHeight; });
+  var availH = innerHeight - bars - 8, availW = Math.min(innerWidth - 24, 880);
+  var s = Math.min(availW / 1080, availH / 1350);
+  f.style.width = Math.floor(1080 * s) + 'px';
+  f.style.height = Math.floor(1350 * s) + 'px';
+  f.style.borderRadius = Math.max(16, 48 * s) + 'px';
+  st.style.transform = 'scale(' + s + ')';
+}
+fit();
+</script>
 
 <div id="sources" role="dialog" aria-modal="true" aria-labelledby="src-h">
   <div class="sheet">
@@ -1577,9 +1605,12 @@ const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><p
 const PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
+/* La durée affichée (« 0:00 / 2:24 », écrite dans la page) ne change qu’une fois la voix connue : avant, elle passait un instant
+   à 2:14 (la vidéo sans les arrêts de la voix), et les repères des chapitres sautaient de place. */
+let dureeConnue = false;
 function ui(t){
   fill.style.width = (t / VDUR() * 100) + '%';
-  time.textContent = `${mmss(t)} / ${mmss(VDUR())}`;
+  if (dureeConnue) time.textContent = `${mmss(t)} / ${mmss(VDUR())}`;
   seek.setAttribute('aria-valuenow', Math.round(t));
   seek.setAttribute('aria-valuetext', `${mmss(t)}, ${CHAPTERS[Math.max(0, chapIdx)][1]}`);
 }
@@ -1708,19 +1739,11 @@ seek.addEventListener('pointerdown', e => { dragging = true; wasPlaying = !C.pau
 seek.addEventListener('pointermove', e => { if (dragging) seekTo(e.clientX); });
 seek.addEventListener('pointerup', () => { dragging = false; if (wasPlaying && C.time() < VDUR() - .05) play(); else setPlaying(!C.paused()); });
 
-function fit(){
-  const bars = $$('.bar').reduce((s, b) => s + b.offsetHeight, 0);
-  const availH = innerHeight - bars - 8, availW = Math.min(innerWidth - 24, 880);
-  const s = Math.min(availW / 1080, availH / 1350);
-  frame.style.width = Math.floor(1080 * s) + 'px';
-  frame.style.height = Math.floor(1350 * s) + 'px';
-  frame.style.borderRadius = Math.max(16, 48 * s) + 'px';
-  stage.style.transform = `scale(${s})`;
-}
+/* fit() est posée juste après la barre du bas (voir plus haut) : le cadre a sa taille avant ce script. */
 addEventListener('resize', fit);
 fit();
 
-setPlaying(false); ticks(); sync();
+setPlaying(false); sync();   // les repères des chapitres attendent la voix (ticks, plus bas), sinon ils sautaient de place
 /* 17 h 13 : le bouton s’affiche tout de suite (avant, il attendait les polices, les images et la voix : 3 s d’écran figé
    sur un réseau lent). Un toucher pendant le chargement est gardé : la vidéo part dès que la première phrase est prête. */
 const GO = $('#go');
@@ -1738,7 +1761,7 @@ const voixPrete = () => new Promise(res => {
 });
 Promise.all([document.fonts ? document.fonts.ready : 0, sonLoad(), ...$$('img').map(i => i.decode ? i.decode().catch(() => 0) : 0)])
   .then(([, son]) => {
-    fit(); ticks(); ui(C.time());
+    dureeConnue = true; fit(); ticks(); ui(C.time());
     const d = Math.floor(VDUR()); $('#go-dur').textContent = Math.floor(d / 60) + ' min ' + String(d % 60).padStart(2, '0');
     if (!son) {
       /* Pas de voix : pas besoin d’attendre un toucher. */
