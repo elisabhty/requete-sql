@@ -130,7 +130,7 @@ test('Schéma : une table à la fois choisie dans des onglets en haut, et un bou
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   const r = app.slice(app.indexOf('function renderSchemaSheet(){'), app.indexOf('function openSchemaSheet(){'));
   assert.ok(r.includes('class="sch-tabs" role="tablist"') && r.includes('role="tabpanel"') && r.includes("onclick=\"schemaPickTab(this)\""));
-  assert.ok(app.includes('class="sch-ret" onclick="closeSchemaSheet()"'));
+  assert.ok(app.includes('class="sch-back" onclick="closeSchemaSheet()" aria-label="Retour"') && !app.includes('class="sch-ret"'), 'le retour en haut à gauche (3 novembre, 7 h 39)');
   assert.ok(css.includes('html.lq #schema-sheet .sch-tabs{position:sticky;top:0'));
   assert.ok(!/coach-tag\.is-go\{[^}]*animation/.test(css), '« À toi de jouer » sans animation infinie (texte flou)');
 });
