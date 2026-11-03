@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=122">
+<link rel="stylesheet" href="ludique.css?v=123">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -7690,7 +7690,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <button class="tab active" role="tab" aria-selected="true" data-tab="learn" onclick="switchTab('learn')">
       <svg viewBox="0 0 24 24" fill="none"><path d="m3.5 10.5 8.5-7 8.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 9.5V20h13V9.5M9.5 20v-6h5v6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tab-label">Accueil</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="planning" onclick="switchTab('planning')">
-      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg><span class="tab-label">Planning</span><span class="dot-n" id="badge-planning" style="display:none">0</span></button>
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg><span class="tab-label">Planning</span><span class="dot-n" id="badge-planning" hidden></span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="practice" onclick="switchTab('practice')">
       <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5v15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5 5.2h10.2l-1.8 3.5 1.8 3.5H5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="tab-label">Pratiquer</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="library" onclick="switchTab('library')">
@@ -30316,14 +30316,17 @@ function scrollToToday(){const s=document.getElementById('scr-planning');if(s)s.
 
 /* ---------- Carte d'accueil ---------- */
 function renderHomeToday(){ renderHomeHero(); }
+/* La bulle de l’onglet Planning dit combien d’activités il reste à faire aujourd’hui : 0, 2, 4… (Elisa, 3 novembre, 7 h 54). Elle
+   saute un peu quand le nombre change ; à 0, elle pâlit. Le retard à replacer reste dit sur l’accueil et dans le planning. */
 function majBadgePlanning(){
   const b=document.getElementById('badge-planning'); if(!b)return;
-  const late=state.plan?latePlanDetails():null;
-  const n=late?late.count:(state.plan?activitesRestantesAujourdhui():0);
-  b.textContent=n>99?'99+':n;b.style.display=n?'flex':'none';
-  b.classList.toggle('late',!!late);
-  const tab=b.closest('.tab');if(tab)tab.classList.toggle('has-late',!!late);
-  b.setAttribute('aria-label',late?`${plur(n,'activité')} à replacer`:`${plur(n,'activité')} aujourd’hui`);
+  const n=state.plan?activitesRestantesAujourdhui():0,txt=n>99?'99+':String(n);
+  b.hidden=!state.plan;b.style.removeProperty('display');
+  const prev=b.textContent;b.textContent=txt;
+  b.classList.toggle('is-zero',!n);b.classList.remove('late');
+  const tab=b.closest('.tab');if(tab)tab.classList.remove('has-late');
+  b.setAttribute('aria-label',n?`${plur(n,'activité')} aujourd’hui`:'Rien de prévu aujourd’hui');
+  if(prev!==txt&&prev!==''&&typeof prefersReduceMotion==='function'&&!prefersReduceMotion()){b.classList.remove('is-bump');void b.offsetWidth;b.classList.add('is-bump');}
 }
 
 /* ---------- Glisser-déposer ---------- */
@@ -33898,7 +33901,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-rejoindre-v2457';
+  const SW_CACHE='requete-2026-11-03-bulle-planning-v2458';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
