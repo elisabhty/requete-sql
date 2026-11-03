@@ -6690,7 +6690,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=126">
+<link rel="stylesheet" href="ludique.css?v=127">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=5">
 <style id="lesson-video-css">
@@ -19255,11 +19255,12 @@ function parcoursVote(){const v=state.parcoursVote;return v&&PARCOURS.some(p=>p.
 function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}
 function parcoursSqlEtat(done){return done>=TOTAL?'Terminé':done?'En cours':'Disponible';}
 function parcoursValidees(done){return `${done} leçon${done>1?'s':''} validée${done>1?'s':''} sur ${TOTAL}`;}
-/* Accueil, sous « Parcours SQL » : la rangée des parcours (elle défile à l’horizontale sur un téléphone). */
+/* Accueil, sous « Parcours SQL » : la rangée des parcours (elle défile à l’horizontale sur un téléphone). Chaque pastille sur
+   deux lignes, le nom puis l’état (19 h 48 : « les écritures et tout ça font tassé »). */
 function parcoursChipsHTML(done){
   const items=PARCOURS.map(p=>p.dispo
-    ?`<li><span class="pc-chip is-on"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i>${esc(p.court)}<em>${parcoursSqlEtat(done)}</em></span></li>`
-    :`<li><button type="button" class="pc-chip" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i>${esc(p.court)}<em>À venir</em></button></li>`).join('');
+    ?`<li><span class="pc-chip is-on"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>${parcoursSqlEtat(done)}</small></span></span></li>`
+    :`<li><button type="button" class="pc-chip" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>À venir</small></span></button></li>`).join('');
   return `<ul class="pc-chips" aria-label="Tes parcours">${items}<li><button type="button" class="pc-chip is-all" onclick="openParcours()">Tous les parcours${DEF_CHEV_SVG}</button></li></ul>`;
 }
 function openParcours(id){
@@ -19308,17 +19309,15 @@ function parcoursPageHTML(p){
   const opts=parcoursAVenir().map(o=>`<label class="pc-opt"><input type="radio" name="pc-vote" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value)"><span>${esc(o.titre)}</span></label>`).join('');
   return `<div class="pc-view">
     <section class="pc-hero" aria-labelledby="pc-titre">
-      <div class="pc-hero-body">
-        <em class="pc-hero-tag">En préparation</em>
-        <p class="pc-hero-k">Parcours à venir</p>
-        <h2 id="pc-titre">${esc(p.titre)}</h2>
-        <p class="pc-hero-sub">Pas encore disponible\u00a0: active l’alerte pour savoir quand il ouvre. D’ici là, ton parcours SQL t’attend.</p>
+      <div class="pc-hero-top">
+        <div><em class="pc-hero-tag">En préparation</em><p class="pc-hero-k">Parcours à venir</p></div>
+        <i class="pc-hero-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i>
       </div>
-      <i class="pc-hero-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i>
+      <h2 id="pc-titre">${esc(p.titre)}</h2>
+      <p class="pc-hero-sub">Pas encore disponible. Active l’alerte pour savoir quand il ouvre.</p>
     </section>
     <label class="pc-alert">
-      <i class="pc-alert-ic" aria-hidden="true">${PC_BELL_SVG}</i>
-      <span class="pc-alert-copy"><b>Préviens-moi à la sortie</b><small>Un message t’attend dans l’appli le jour où il ouvre.</small></span>
+      <span class="pc-alert-copy"><b>Préviens-moi à la sortie</b><small>Un message dans l’appli le jour où il ouvre.</small></span>
       <input type="checkbox" role="switch" class="pc-switch"${on?' checked':''} onchange="parcoursAlerte('${p.id}',this.checked)">
     </label>
     <fieldset class="pc-vote">
@@ -19415,7 +19414,7 @@ function renderModules(){
   const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
   /* « Parcours SQL », le premier d’une série (3 novembre, 19 h 01) : la rangée des parcours vient sous le titre. */
   const nMods=MODULES.filter(m=>m.lessons.length).length;
-  const html=`<div class="home-catalog-head"><div><span>Tes parcours</span><h2>Parcours SQL</h2><p>${parcoursValidees(allDone)} · ${nMods} modules</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div>${parcoursChipsHTML(allDone)}<div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
+  const html=`<div class="home-catalog-head"><div><span>Tes parcours</span><h2>Parcours SQL</h2></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>${parcoursChipsHTML(allDone)}<div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
   /* Rien n’a changé depuis le dernier rendu (3 novembre) : l’accueil garde ses éléments. Les remplacer recalculait tout l’écran et
      relançait la cascade d’ouverture du module à chaque retour sur l’accueil ; la recherche gardait aussi le clavier. */
   if(host.__lqHtml!==html||!host.firstElementChild){
@@ -34263,7 +34262,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-parcours-v2467';
+  const SW_CACHE='requete-2026-11-03-parcours-v2468';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
