@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=dc5f0225">
+<link rel="stylesheet" href="vitrine.css?v=1c06dc3a">
 <script>document.documentElement.classList.add('js')</script>
 <script src="../assets/curseur.js?v=60b94b87" defer></script>
 </head>
@@ -134,16 +134,19 @@ document.documentElement.classList.add('js');
 /* Barre de navigation : transparente sur l’en-tête violet, claire dès qu’on défile ou quand le menu est ouvert */
 (function(){
   var nav=document.getElementById('nav'),b=document.getElementById('burger'),menu=document.getElementById('menu');
-  /* La zone de l’heure (Elisa, 3 novembre, 8 h 21 : « je veux que ce soit transparent ») : aucun repère fixe en haut, Safari 26 laisse
-     voir la page. Au-dessus du haut de la page, il montre le fond de <html> : violet tant qu’on est sur l’en-tête, clair ensuite, pour
-     que le violet continue sous l’heure sans bande ni trait. */
+  /* La zone de l’heure (Elisa, 3 novembre, 8 h 12 puis 8 h 24) : Safari 26 la peint avec le fond de l’élément fixe qui touche le
+     haut. Comme dans l’appli, un repère vide et invisible porte la couleur du haut, et le fond de <html> prend la même : sans lui,
+     un trait clair restait entre la zone de l’heure et l’en-tête. Violet sur l’en-tête, clair une fois l’en-tête dépassé. */
   var meta=document.querySelector('meta[name="theme-color"]'),fond='';
+  var teinte=document.getElementById('nav-teinte');
+  if(!teinte){teinte=document.createElement('div');teinte.id='nav-teinte';teinte.setAttribute('aria-hidden','true');document.body.appendChild(teinte);}
   var on=function(){
     var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
     var hero=document.querySelector('.hero,.mh,.lg-hero');
-    var c=hero&&scrollY<hero.offsetHeight?'#6E50F6':'#F7F6FD';
+    var c=hero&&!s?'#6E50F6':'#F7F6FD';
     if(fond===c)return;fond=c;
-    document.documentElement.style.backgroundColor=c;if(meta)meta.content=c;
+    document.documentElement.style.backgroundColor=c;teinte.style.backgroundColor=c;if(meta)meta.content=c;
+    teinte.style.height='13px';requestAnimationFrame(function(){requestAnimationFrame(function(){teinte.style.height='12px';});});
   };
   var ouvrir=function(o){menu.hidden=!o;b.setAttribute('aria-expanded',o);on();};
   b.addEventListener('click',function(){ouvrir(menu.hidden);});
@@ -165,16 +168,19 @@ document.documentElement.classList.add('js');
 /* Barre de navigation et menu */
 (function(){
   var nav=document.getElementById('nav'),b=document.getElementById('burger'),menu=document.getElementById('menu');
-  /* La zone de l’heure (Elisa, 3 novembre, 8 h 21 : « je veux que ce soit transparent ») : aucun repère fixe en haut, Safari 26 laisse
-     voir la page. Au-dessus du haut de la page, il montre le fond de <html> : violet tant qu’on est sur l’en-tête, clair ensuite, pour
-     que le violet continue sous l’heure sans bande ni trait. */
+  /* La zone de l’heure (Elisa, 3 novembre, 8 h 12 puis 8 h 24) : Safari 26 la peint avec le fond de l’élément fixe qui touche le
+     haut. Comme dans l’appli, un repère vide et invisible porte la couleur du haut, et le fond de <html> prend la même : sans lui,
+     un trait clair restait entre la zone de l’heure et l’en-tête. Violet sur l’en-tête, clair une fois l’en-tête dépassé. */
   var meta=document.querySelector('meta[name="theme-color"]'),fond='';
+  var teinte=document.getElementById('nav-teinte');
+  if(!teinte){teinte=document.createElement('div');teinte.id='nav-teinte';teinte.setAttribute('aria-hidden','true');document.body.appendChild(teinte);}
   var on=function(){
     var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
     var hero=document.querySelector('.hero,.mh,.lg-hero');
-    var c=hero&&scrollY<hero.offsetHeight?'#6E50F6':'#F7F6FD';
+    var c=hero&&!s?'#6E50F6':'#F7F6FD';
     if(fond===c)return;fond=c;
-    document.documentElement.style.backgroundColor=c;if(meta)meta.content=c;
+    document.documentElement.style.backgroundColor=c;teinte.style.backgroundColor=c;if(meta)meta.content=c;
+    teinte.style.height='13px';requestAnimationFrame(function(){requestAnimationFrame(function(){teinte.style.height='12px';});});
   };
   var ouvrir=function(o){menu.hidden=!o;b.setAttribute('aria-expanded',o);on();};
   b.addEventListener('click',function(){ouvrir(menu.hidden);});
