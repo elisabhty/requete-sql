@@ -18400,7 +18400,9 @@ function switchTab(name){
    on revient en arrière ; sinon l’écran reprend sa place. */
 (function(){
   const EDGE=24;let g=null;
-  const blocked=()=>!!document.querySelector('#onboarding.on,#viz.on,#schema-sheet.on,#lesson-video.on,[id$="-back"].on,.plus-details[open],.mu');
+  /* La page de départ d’un cours (#lesson-start) se ferme par sa croix ou « Commencer » : un glissement depuis le bord ramenait
+     l’accueil dessous et la laissait affichée par-dessus (3 novembre). */
+  const blocked=()=>!!document.querySelector('#lesson-start:not(.is-out),#onboarding.on,#viz.on,#schema-sheet.on,#lesson-video.on,[id$="-back"].on,.plus-details[open],.mu');
   const target=()=>{
     if(blocked())return null;
     const cur=document.querySelector('.screen.active');if(!cur)return null;
@@ -19102,9 +19104,8 @@ function renderHomeHero(){
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
   const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
   if(nxt==null){
-    const keep=lqKeepMascot(host);
-    host.innerHTML=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
-    lqKeepMascot(host,keep);
+    const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
+    if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
     lqSesCount(host);
     return;
   }
@@ -19132,10 +19133,15 @@ function renderHomeHero(){
   const kicker=defi?'Ton prochain défi':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon';
   const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`;
   const sub=defi?(ch?.q||'Mets tes acquis à l’épreuve.'):(lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.');
-  const keep=lqKeepMascot(host);
-  host.innerHTML=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;
-  lqKeepMascot(host,keep);
+  const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;
+  if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesCount(host);
+}
+/* Même HTML qu’au rendu précédent (3 novembre) : les éléments en place sont gardés. Les remplacer à chaque retour sur l’accueil
+   recalculait tout l’écran pour rien ; le rendu suivant compare de nouveau. */
+function lqSameHtml(host,html){
+  if(host.__lqHtml===html&&host.firstElementChild)return true;
+  host.__lqHtml=html;return false;
 }
 /* « Ta session · 12 min » : les minutes défilent de 0 jusqu’à la durée, une fois par ouverture de l’appli (pas à chaque rendu). */
 let lqSesCounted=false;
@@ -19230,7 +19236,13 @@ function renderModules(){
     return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}${secs>=60?studyPill(secs,'home-module-time'):''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
   const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
-  host.innerHTML=`<div class="home-catalog-head"><div><span>Tous les cours</span><h2>Ton parcours</h2><p>${allDone} leçon${allDone>1?'s':''} validée${allDone>1?'s':''} sur ${TOTAL}</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
+  const html=`<div class="home-catalog-head"><div><span>Tous les cours</span><h2>Ton parcours</h2><p>${allDone} leçon${allDone>1?'s':''} validée${allDone>1?'s':''} sur ${TOTAL}</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
+  /* Rien n’a changé depuis le dernier rendu (3 novembre) : l’accueil garde ses éléments. Les remplacer recalculait tout l’écran et
+     relançait la cascade d’ouverture du module à chaque retour sur l’accueil ; la recherche gardait aussi le clavier. */
+  if(host.__lqHtml!==html||!host.firstElementChild){
+    host.innerHTML=html;host.__lqHtml=html;
+    host.querySelectorAll('.home-module[open]').forEach(d=>{d.__lqParsed=true;});
+  }
   filterCourseCatalog(courseSearch);
   /* Leçons validées depuis la dernière visite de l’accueil : leur pastille
      se remplit sous les yeux (seulement quand l’accueil est affiché). */
@@ -19259,12 +19271,16 @@ function toggleCatalogTools(btn){
    Dans un module ouvert, les leçons forment un chemin : un tracé relie leurs
    pastilles, plein jusqu’à la leçon en cours, en pointillés ensuite. */
 function lqModuleToggle(det){
-  if(!det||!det.open)return;
-  lqDrawPath(det,true);
+  if(!det)return;
+  /* Un module rendu déjà ouvert reçoit lui aussi un « toggle » : les pastilles apparaissent en cascade, mais le tracé n’est pas
+     redessiné depuis le début (il l’était à chaque rendu, puis aussitôt effacé par le tracé suivant). */
+  const parsed=det.__lqParsed===true;det.__lqParsed=false;
+  if(!det.open)return;
+  lqDrawPath(det,parsed?'cascade':true);
 }
 function lqAfterModules(host){
   if(typeof requestAnimationFrame!=='function')return;
-  const run=()=>host.querySelectorAll('.home-module[open]').forEach(d=>lqDrawPath(d,false));
+  const run=()=>lqDrawPaths(host.querySelectorAll('.home-module[open]'));
   run();
   requestAnimationFrame(run);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(run)).catch(()=>{});
@@ -19277,30 +19293,58 @@ function lqCurve(pts,upto){
   }
   return d;
 }
-function lqDrawPath(det,animate){
-  const list=det.querySelector(':scope>.list');
-  if(!list||det.hidden)return;
+/* Le tracé se fait en trois temps (3 novembre, « plus fluide dans la navigation ») : poser les --k de toutes les pastilles, puis lire
+   toutes les positions, puis dessiner. Avant, chaque --k posé entre deux lectures obligeait le navigateur à recalculer toute la page,
+   une fois par leçon du module ouvert : près de 200 ms figées à chaque retour sur l’accueil. Un tracé identique n’est pas réécrit. */
+function lqPathPrep(det){
+  const list=det&&det.querySelector(':scope>.list');
+  if(!list||det.hidden)return null;
   const rows=[...list.querySelectorAll(':scope>.row')];
-  const lb=list.getBoundingClientRect();
-  if(!rows.length||!lb.width||!lb.height)return;
-  const pts=rows.map((r,k)=>{
-    r.style.setProperty('--k',k);
+  if(!rows.length)return null;
+  rows.forEach((r,k)=>{const v=String(k);if(r.style.getPropertyValue('--k')!==v)r.style.setProperty('--k',v);});
+  return {list,rows};
+}
+function lqPathRead(p){
+  const lb=p.list.getBoundingClientRect();
+  if(!lb.width||!lb.height)return null;
+  p.lb=lb;
+  p.pts=p.rows.map(r=>{
     const b=(r.querySelector('.lz-num')||r).getBoundingClientRect();
     return [b.left-lb.left+b.width/2,b.top-lb.top+b.height/2];
   });
-  let last=-1;
-  rows.forEach((r,k)=>{if(r.classList.contains('done-row')||r.classList.contains('current'))last=k;});
+  p.last=-1;
+  p.rows.forEach((r,k)=>{if(r.classList.contains('done-row')||r.classList.contains('current'))p.last=k;});
+  return p;
+}
+function lqPathPaint(p,animate){
+  const {list,lb,pts,last}=p;
   let svg=list.querySelector(':scope>.lq-path');
   if(!svg){
     svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.setAttribute('class','lq-path');svg.setAttribute('aria-hidden','true');
     list.prepend(svg);
   }
-  svg.setAttribute('viewBox',`0 0 ${lb.width.toFixed(1)} ${lb.height.toFixed(1)}`);
-  svg.setAttribute('width',lb.width.toFixed(1));svg.setAttribute('height',lb.height.toFixed(1));
-  svg.innerHTML=`<path class="lq-path-base" d="${lqCurve(pts,pts.length-1)}"/>${last>0?`<path class="lq-path-done" d="${lqCurve(pts,last)}"/>`:''}`;
+  const w=lb.width.toFixed(1),h=lb.height.toFixed(1);
+  const html=`<path class="lq-path-base" d="${lqCurve(pts,pts.length-1)}"/>${last>0?`<path class="lq-path-done" d="${lqCurve(pts,last)}"/>`:''}`;
+  const key=w+' '+h+' '+html;
+  if(!animate&&svg.__lqKey===key)return svg;
+  svg.__lqKey=key;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  svg.setAttribute('width',w);svg.setAttribute('height',h);
+  svg.innerHTML=html;
+  return svg;
+}
+function lqDrawPaths(dets){
+  const ps=[...dets].map(lqPathPrep).filter(Boolean).filter(lqPathRead);
+  ps.forEach(p=>lqPathPaint(p,false));
+}
+function lqDrawPath(det,animate){
+  const p=lqPathPrep(det);
+  if(!p||!lqPathRead(p))return;
+  const list=p.list,svg=lqPathPaint(p,animate===true);
   if(!animate||prefersReduceMotion())return;
   list.classList.remove('lq-in');void list.offsetWidth;list.classList.add('lq-in');
+  if(animate==='cascade')return;
   const done=svg.querySelector('.lq-path-done');
   if(done&&done.getTotalLength){
     const L=done.getTotalLength();
@@ -19313,7 +19357,7 @@ function lqDrawPath(det,animate){
 if(typeof window!=='undefined'){
   let lqResizeT=null;
   window.addEventListener('resize',()=>{clearTimeout(lqResizeT);lqResizeT=setTimeout(()=>{
-    document.querySelectorAll('#modules .home-module[open]').forEach(d=>lqDrawPath(d,false));
+    lqDrawPaths(document.querySelectorAll('#modules .home-module[open]'));
   },120);});
 }
 /* Réf. 4 (16 h 49) : « garder que la première phrase ». */
@@ -19943,6 +19987,8 @@ function showScreen(){
 function leaveLessonScreen(toTab,instant){
   annulerBilanAuto();
   stkLeaveLesson();
+  /* La page de départ du cours s’en va avec l’écran du cours, quel que soit le chemin du retour (même fondu que sa croix). */
+  {const ls=document.getElementById('lesson-start');if(ls&&!ls.classList.contains('is-out')){ls.classList.add('is-out');setTimeout(()=>ls.remove(),prefersReduceMotion()?0:220);}}
   if(mode==='jeu')jeuStop();
   const tab=toTab||activeTab||'learn';
   activeTab=tab;
@@ -20128,7 +20174,9 @@ function openLesson(id, restoreStep){
   const done=lecCompletee(id);
   if(restoreStep!=null){
     if(restoreStep===3&&done) lessonStep=3;
-    else if(restoreStep>=0&&restoreStep<=2&&!(restoreStep===2&&!e.exo)) lessonStep=restoreStep;
+    /* Une leçon seule (toutes, depuis les vidéos à moments) n’a ni exercice ni quiz : une étape 1 ou 2 gardée d’une ancienne
+       visite (reprise au lancement) ouvrait une consigne « undefined » et un éditeur vide (3 novembre). */
+    else if(restoreStep>=0&&restoreStep<=2&&!(restoreStep===2&&!e.exo)&&!(restoreStep>0&&l.leconSeule)) lessonStep=restoreStep;
     else lessonStep=done?3:(e.exo?2:0);
   }else if(done) lessonStep=3;
   else if(e.exo) lessonStep=2;
@@ -33960,7 +34008,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-transitions-v2462';
+  const SW_CACHE='requete-2026-11-03-fluidite-v2463';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
