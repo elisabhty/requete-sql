@@ -499,7 +499,8 @@ test('contact : la zone des pièces jointes compte les fichiers, et le message s
 test('vidéo : « Se connecter » dans la barre du haut, qui mène au formulaire de connexion', () => {
   const bar = video.slice(video.indexOf('<div class="bar top">'), video.indexOf('</div>', video.indexOf('<div class="bar top">')));
   const liens = [...bar.matchAll(/<a class="pill[^"]*" href="([^"]+)"(?: aria-label="([^"]+)")?>/g)].map(m => [m[1], m[2] || '']);
-  assert.deepEqual(liens, [['./', 'Retour'], ['connexion.html#cx-form', ''], ['connexion.html', 'Passer la vidéo']]);
+  /* 3 novembre, 13 h 04 : « Passer la vidéo » ouvre directement l’onboarding de l’appli ; « Se connecter » mène toujours au formulaire. */
+  assert.deepEqual(liens, [['./', 'Retour'], ['connexion.html#cx-form', ''], ['../?depuis=video', 'Passer la vidéo']]);
   assert.match(bar, /<a class="pill login" href="connexion\.html#cx-form"><svg class="me"[^>]*aria-hidden="true">.*?<\/svg>Se connecter<\/a>/s, 'icône et texte « Se connecter »');
   assert.ok(lire('connexion.html').includes('<form class="cx-card" id="cx-form"'), 'le formulaire de connexion existe');
   /* Sur téléphone, les trois boutons tiennent : « Retour » en flèche, « Passer la vidéo » en « Passer », « Se connecter » écrit */
@@ -628,7 +629,7 @@ test('la prépa entretien devient une carte des atouts ; « bientôt dans ta poc
    il y a un bug dans l’animation, puis on n’atterrit pas sur la page d’accueil directement ». Deux causes : la page de
    l’appli se rechargeait à la première ouverture (le service worker qui s’installe en prend le contrôle), ce qui relançait
    l’animation d’arrivée après un éclair de l’écran de chargement ; et « Se connecter » ouvrait le parcours de bienvenue. */
-test('connexion : nouveau texte, « Se connecter » mène à l’accueil, sans rechargement à la première ouverture', async () => {
+test('connexion : nouveau texte, « Se connecter » mène à l’accueil (avec un compte), sans rechargement à la première ouverture', async () => {
   const vm = await import('node:vm');
   const cx = lire('connexion.html');
   assert.ok(cx.includes('<h1 id="cx-h">Ta prochaine requête <em>t’attend</em>.</h1>'));
@@ -642,7 +643,7 @@ test('connexion : nouveau texte, « Se connecter » mène à l’accueil, sans r
   assert.ok(app.includes("if(_swRefreshing||!_swHadController)return;"));
   /* L’arrivée : exécutée seule, avec et sans ?depuis=connexion */
   const src = app.slice(app.indexOf('function maybeOnboard(){'), app.indexOf('function startOnboarding(){', app.indexOf('function maybeOnboard(){')));
-  const arrive = (search, onboarded = false) => {
+  const arrive = (search, onboarded = false, comptes = false) => {
     const appels = [], url = 'https://requete.app/' + search + '#x';
     const store = k => ({removeItem: c => appels.push(`oublie ${k} ${c}`)});
     const ctx = vm.createContext({URL, URLSearchParams, location: {search, href: url}, appels,
@@ -652,11 +653,15 @@ test('connexion : nouveau texte, « Se connecter » mène à l’accueil, sans r
       apercuPlan: (n, r, f) => ({niveau: n, rythme: r, freq: f, sessions: []}), obVitrineGoal: () => 'reconversion',
       save: () => appels.push('save'), startOnboarding: () => appels.push('parcours'), switchTab: t => appels.push('onglet ' + t),
       renderGreeting() {}, renderHomeHero() {}, renderProgress() {}, renderPlanning() {}, renderCompte() {}});
+    if (comptes) ctx.obAuthReady = () => true;
     vm.runInContext(src + '\nmaybeOnboard();', ctx);
     return {appels, state: ctx.state};
   };
-  const a = arrive('?depuis=connexion');
-  assert.deepEqual(a.appels, ['url /#x', 'oublie session nav', 'oublie local nav-long', 'save', 'onglet learn'], 'l’adresse est nettoyée, l’ancien écran oublié, puis l’accueil');
+  /* Tant que les comptes n’existent pas, « Se connecter » sur un appareil sans progression, c’est une première visite :
+     l’onboarding, comme les autres boutons (Elisa, 3 novembre, 13 h 04). */
+  assert.deepEqual(arrive('?depuis=connexion').appels, ['url /#x', 'oublie session nav', 'oublie local nav-long', 'parcours'], 'sans compte possible : l’onboarding');
+  const a = arrive('?depuis=connexion', false, true);
+  assert.deepEqual(a.appels, ['url /#x', 'oublie session nav', 'oublie local nav-long', 'save', 'onglet learn'], 'avec un compte : l’adresse est nettoyée, l’ancien écran oublié, puis l’accueil');
   assert.ok(a.state.onboarded && a.state.plan.niveau === 'debutant' && a.state.plan.rythme === 'regulier' && a.state.plan.freq === 7);
   assert.equal(a.state.profile.goal, 'reconversion', 'l’objectif choisi sur la vitrine');
   assert.equal(a.state.accountMode, 'guest');
