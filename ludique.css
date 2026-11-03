@@ -3462,6 +3462,84 @@ html[data-motion="reduce"].lq #loader .logo-badge,html[data-motion="reduce"].lq 
 html[data-motion="reduce"].lq #loader .spinner::before,html[data-motion="reduce"].lq #loader .spinner::after,
 html[data-motion="reduce"].lq #loader p,html[data-motion="reduce"].lq #loader .ld-spark{animation:none!important}
 
+/* ---------- 37 bis. L’ouverture de l’appli iOS ----------
+   Elisa, 3 novembre, 21 h 03 : « une animation quand on appuie sur l’application ». Dans l’appli seulement (html.is-native).
+   La première image du chargement reprend au pixel près l’écran de lancement fixe d’iOS (resources/splash.png : un carré de
+   2732 px étiré sur la hauteur de l’écran, d’où l’unité --u ; la touche fait 512 de côté, 28 d’épaisseur, coins de 116), si bien
+   que le passage de l’un à l’autre ne se voit pas. Puis la touche >_ s’enfonce comme une touche de clavier (petit retour
+   haptique), remonte en rebondissant et lâche trois étincelles, le curseur clignote, le nom arrive, et l’appli se découvre.
+   Si la base met du temps à se préparer, l’anneau et la phrase viennent dessous. Mouvement réduit : l’image reste fixe. */
+html.is-native.lq #loader.is-intro{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;background:#F4F2FC!important;color:#1B1640;overflow:hidden;
+  --u:calc(max(100vw,100vh) / 2732)}
+html.is-native.lq #loader.is-intro::before{content:"";position:absolute;left:50%;top:50%;z-index:0;width:calc(1500*var(--u));height:calc(1500*var(--u));
+  margin:calc(-764*var(--u)) 0 0 calc(-750*var(--u));border-radius:50%;opacity:0;-webkit-mask-image:none;mask-image:none;
+  background:radial-gradient(closest-side,rgba(128,96,255,.3),rgba(128,96,255,.1) 58%,rgba(128,96,255,0))}
+html.is-native.lq #loader.is-intro .logo-badge{position:absolute;z-index:1;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
+  margin:calc(-270*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:0;border-radius:calc(116*var(--u));rotate:0deg;animation:none;
+  background:linear-gradient(135deg,#8060FF,#593CE7)!important;box-shadow:none!important;font-size:0;color:transparent;transform-origin:50% 60%}
+/* L’épaisseur de la touche : un socle fixe sous elle (et non une ombre), si bien que l’animation ne bouge que la touche, en
+   transform, sans calcul sur le fil principal pendant que l’appli démarre */
+html.is-native.lq #loader.is-intro::after{content:"";position:absolute;z-index:0;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
+  margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC}
+/* Le chevron et le curseur, dessinés comme sur l’écran de lancement (le curseur peut clignoter seul) */
+html.is-native.lq #loader.is-intro .logo-badge::before{content:"";position:absolute;inset:0;background:#fff;
+  clip-path:polygon(29.1% 34.375%,46.68% 42.56%,46.68% 47.48%,29.1% 55.66%,29.1% 51.37%,42.75% 45.02%,29.1% 38.67%)}
+html.is-native.lq #loader.is-intro .logo-badge::after{content:"";position:absolute;left:52.34%;top:59.18%;width:19.14%;height:4.49%;background:#fff}
+html.is-native.lq #loader.is-intro .ld-name{position:absolute;z-index:1;left:0;right:0;top:calc(50% + 330*var(--u));margin:0;text-align:center;
+  font:700 27px/1 var(--display);letter-spacing:-.02em;color:#1B1640;opacity:0;animation:none}
+html.is-native.lq #loader.is-intro .ld-spark{z-index:0;left:50%;top:calc(50% - 14*var(--u));width:calc(140*var(--u));height:calc(140*var(--u));
+  margin:calc(-70*var(--u)) 0 0 calc(-70*var(--u));background:#6A4DF4;opacity:0;scale:.2;animation:none}
+html.is-native.lq #loader.is-intro .ld-spark.s2{width:calc(108*var(--u));height:calc(108*var(--u));margin:calc(-54*var(--u)) 0 0 calc(-54*var(--u));background:var(--sun)}
+html.is-native.lq #loader.is-intro .ld-spark.s3{width:calc(88*var(--u));height:calc(88*var(--u));margin:calc(-44*var(--u)) 0 0 calc(-44*var(--u));background:#3FC98A}
+html.is-native.lq #loader.is-intro .spinner{position:absolute;z-index:1;left:50%;top:calc(50% + 330*var(--u) + 50px);margin:0 0 0 -17px;width:34px!important;height:34px!important;
+  box-shadow:inset 0 0 0 5px rgba(106,77,244,.16);opacity:0;transition:opacity .3s ease;animation:none}
+html.is-native.lq #loader.is-intro .spinner::after{background:conic-gradient(rgba(106,77,244,0) 0 120deg,rgba(106,77,244,.5) 250deg,#6A4DF4 359deg,rgba(106,77,244,0) 0)!important;
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5.5px),#000 calc(100% - 5px));mask:radial-gradient(farthest-side,transparent calc(100% - 5.5px),#000 calc(100% - 5px))}
+html.is-native.lq #loader.is-intro .spinner::before{background:#6A4DF4;box-shadow:0 0 8px 2px rgba(106,77,244,.4);transform-origin:3px 17px}
+html.is-native.lq #loader.is-intro p{position:absolute;z-index:1;left:24px;right:24px;top:calc(50% + 330*var(--u) + 100px);margin:0;text-align:center;
+  color:var(--ink-2);opacity:0;transition:opacity .3s ease;animation:none}
+html.is-native.lq #loader.is-intro.is-long :is(.spinner,p){opacity:1}
+/* L’animation, lancée dès que l’écran de lancement s’est retiré (script juste après #loader) */
+html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .72s cubic-bezier(.3,.7,.3,1) both}
+html.is-native.lq #loader.is-intro.is-play .logo-badge::after{animation:introCursor .5s linear .5s both}
+html.is-native.lq #loader.is-intro.is-play::before{animation:introGlow .9s cubic-bezier(.2,.7,.3,1) .1s both}
+html.is-native.lq #loader.is-intro.is-play .ld-spark{--dx:calc(-340*var(--u));--dy:calc(-370*var(--u));--r:-40deg;animation:introSpark .7s cubic-bezier(.15,.8,.3,1) .16s both}
+html.is-native.lq #loader.is-intro.is-play .ld-spark.s2{--dx:calc(400*var(--u));--dy:calc(-200*var(--u));--r:35deg;animation-delay:.2s}
+html.is-native.lq #loader.is-intro.is-play .ld-spark.s3{--dx:calc(220*var(--u));--dy:calc(-450*var(--u));--r:60deg;animation-delay:.24s}
+html.is-native.lq #loader.is-intro.is-play .ld-name{animation:introName .45s cubic-bezier(.2,.8,.3,1) .3s both}
+/* La sortie : la touche grossit en s’effaçant, puis le fond lavande laisse voir l’appli */
+html.is-native.lq #loader.is-intro.fade-out{animation:introOut .42s cubic-bezier(.4,0,.2,1) forwards}
+html.is-native.lq #loader.is-intro.fade-out .logo-badge{animation:introBadgeOut .42s cubic-bezier(.5,0,.75,0) forwards}
+html.is-native.lq #loader.is-intro.fade-out .ld-name{animation:introNameOut .3s ease-in forwards}
+html.is-native.lq #loader.is-intro.fade-out::after{animation:introSocleOut .2s ease-in forwards}
+@keyframes introSocleOut{to{opacity:0}}
+@keyframes introKey{
+  0%{transform:none}
+  13%{transform:translateY(calc(24*var(--u))) scale(.975)}
+  45%{transform:translateY(calc(-14*var(--u))) scale(1.045)}
+  70%{transform:translateY(calc(4*var(--u))) scale(.99)}
+  100%{transform:none}}
+@keyframes introCursor{0%,30%{opacity:1}31%,70%{opacity:0}71%,100%{opacity:1}}
+@keyframes introGlow{0%{opacity:0;transform:scale(.45)}35%{opacity:1}100%{opacity:0;transform:scale(1.2)}}
+@keyframes introSpark{0%{opacity:0;scale:.3;translate:0 0;rotate:0deg}22%{opacity:1;scale:1}70%{opacity:.9}100%{opacity:0;scale:.7;translate:var(--dx) var(--dy);rotate:var(--r)}}
+@keyframes introName{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes introOut{0%,30%{opacity:1}100%{opacity:0}}
+@keyframes introBadgeOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(1.18)}}
+@keyframes introNameOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-6px)}}
+/* Si le moteur SQL ne se charge pas : le message d’erreur, lisible, au centre */
+html.is-native.lq #loader.is-intro.fatal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;animation:none}
+html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;filter:none;
+  display:flex;align-items:center;justify-content:center;font:700 32px/1 var(--mono);color:#fff;animation:none}
+html.is-native.lq #loader.is-intro.fatal .logo-badge::before,html.is-native.lq #loader.is-intro.fatal .logo-badge::after,html.is-native.lq #loader.is-intro.fatal::after{display:none}
+html.is-native.lq #loader.is-intro.fatal p{position:static;opacity:1;color:#1B1640}
+@media (prefers-reduced-motion:reduce){
+  html.is-native.lq #loader.is-intro.is-play .logo-badge,html.is-native.lq #loader.is-intro.is-play .logo-badge::after,html.is-native.lq #loader.is-intro.is-play .ld-spark,
+  html.is-native.lq #loader.is-intro.is-play .ld-name,html.is-native.lq #loader.is-intro.is-play::before{animation:none!important}
+}
+html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .logo-badge,html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .logo-badge::after,
+html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .ld-spark,html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play .ld-name,
+html[data-motion="reduce"].is-native.lq #loader.is-intro.is-play::before{animation:none!important}
+
 /* ---------- 38. L’appui : chaque bouton répond ----------
    Elisa, 30 octobre, 23 h 23 : « micro-interaction quand on appuie sur les boutons stp ». Partout, le bouton s’enfonce sous le doigt
    (plus haut) puis rebondit au relâché (assets/curseur.js, sur la vitrine aussi). Ici, ce qui se passe dans les boutons eux-mêmes. */
@@ -3846,8 +3924,25 @@ html[data-motion="reduce"].lq #scr-console .console-schema-panel .db-tblock.is-n
    le nom de la table (plus d’autocollant, Elisa, 1er novembre, 1 h 26 : « enlever les stickers sur les tables »), ses lignes en pastille ; les colonnes une à une, la clé primaire en jaune, la clé étrangère en
    menthe. Les cartes arrivent l’une après l’autre à l’ouverture. */
 /* Défi sur une autre base (Elisa, 1er novembre, 0 h 29) : le nom et la description de la base en tête du schéma, en carte lilas. */
-html.lq #schema-sheet .sch-base{margin:0 16px 14px;padding:12px 14px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);font:500 13.5px/1.45 var(--ui)}
-html.lq #schema-sheet .sch-base b{display:block;margin-bottom:3px;font:700 16px/1.2 var(--display);color:var(--accent-lip)}
+/* La présentation de la base se plie (Elisa, 3 novembre, 21 h 03) : fermée d’abord, il reste « Base Aéroport » et la flèche ronde ;
+   un appui déplie le texte en douceur, un autre le replie. */
+html.lq #schema-sheet .sch-base{margin:0 16px 14px;border-radius:18px;background:var(--accent-soft);color:var(--accent-ink);font:500 13.5px/1.45 var(--ui)}
+html.lq #schema-sheet .sch-base-h{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:0;padding:10px 11px 10px 14px;border:0;border-radius:18px;
+  background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.lq #schema-sheet .sch-base-h b{flex:1;min-width:0;font:700 16px/1.2 var(--display);color:var(--accent-lip)}
+html.lq #schema-sheet .sch-base-chev{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--accent-ink);
+  box-shadow:0 2px 0 rgba(75,48,204,.18);transition:transform .32s var(--spring-ios,ease),scale .12s ease}
+html.lq #schema-sheet .sch-base-chev svg{display:block;width:17px;height:17px}
+html.lq #schema-sheet .sch-base-h:active .sch-base-chev{scale:.9}
+html.lq #schema-sheet .sch-base.open .sch-base-chev{transform:rotate(180deg)}
+html.lq #schema-sheet .sch-base-h:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+html.lq #schema-sheet .sch-base-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s var(--spring-ios,ease)}
+html.lq #schema-sheet .sch-base.open .sch-base-body{grid-template-rows:1fr}
+html.lq #schema-sheet .sch-base-body>div{min-height:0;overflow:hidden;visibility:hidden;transition:visibility 0s linear .32s}
+html.lq #schema-sheet .sch-base.open .sch-base-body>div{visibility:visible;transition-delay:0s}
+html.lq #schema-sheet .sch-base-body p{margin:0;padding:0 14px 14px}
+@media (prefers-reduced-motion:reduce){html.lq #schema-sheet :is(.sch-base-chev,.sch-base-body,.sch-base-body>div){transition:none}}
+html[data-motion="reduce"].lq #schema-sheet :is(.sch-base-chev,.sch-base-body,.sch-base-body>div){transition:none}
 html.lq #schema-sheet .sch-table{margin:0 16px 14px;border:2px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 4px 0 var(--lip)}
 html.lq #schema-sheet .sch-sheet-body{padding-top:16px}
 html.lq #schema-sheet .sch-head{gap:10px;padding:12px 14px;background:#F8F6FF;color:var(--ink);box-shadow:inset 0 -2px 0 var(--line)}
@@ -6423,13 +6518,9 @@ html.lq #app .jeu-recap .jeu-rank li{align-items:flex-start}
 html.lq #app .jeu-recap .jeu-rank li b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.3}
 html.lq #app .jeu-recap .jeu-rank li :is(.jeu-rk,em,small){margin-top:1px}
 html.lq #app .jeu-recap .jeu-rank li.is-miss :is(em,small){color:var(--ink-3)!important}
-/* Schéma : le retour en haut à gauche (Elisa, 3 novembre, 7 h 39), le rond violet des retours de l’appli ; plus de croix ni de
-   bouton en bas. L’autocollant de la base laisse sa place. */
+/* Schéma : seulement la croix en haut à droite, comme les autres feuilles, et plus de flèche de retour (Elisa, 3 novembre, 21 h 03,
+   qui remplace le retour de 7 h 39). Sans autocollant, le titre « Schéma · base Aéroport » tient sur une ligne. */
 html.lq #schema-sheet .viz-cap-stk{display:none}
-html.lq #schema-sheet .viz-head .sch-back{flex:none;display:grid;place-items:center;width:40px!important;height:40px!important;margin:0 2px 0 0;padding:0;border-radius:50%!important;
-  border:0!important;background:#fff!important;color:var(--accent-ink)!important;box-shadow:0 3px 0 rgba(27,22,64,.3)!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
-html.lq #schema-sheet .viz-head .sch-back svg{width:22px;height:22px}
-html.lq #schema-sheet .viz-head .sch-back:active{transform:translateY(3px)!important;box-shadow:0 0 0 rgba(27,22,64,.3)!important}
 html.lq #schema-sheet .viz-body{padding-bottom:calc(18px + var(--safe-bottom))}
 /* 7 h 42 : le bilan seul, revu. Un point par manche sous « trouvés », le record en autocollant, et chaque manche en carte : la coche
    verte ou la croix, « Manche 2 », la question en entier, ce qui s’est passé, les points ; une manche manquée se retente. */

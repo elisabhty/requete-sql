@@ -7,8 +7,12 @@ Elles ne s’activent que dans l’app, jamais dans Safari.
 
 ## Ce qu’il faut
 
-- Un Mac avec Xcode (dernière version) et Node.js 20 ou plus.
+- Un Mac avec Xcode 26 ou plus et Node.js 22 ou plus (Capacitor 8 ; le Mac d’Elisa a Node 24).
 - Un compte Apple Developer (99 €/an) pour publier.
+
+Capacitor 8 range les extensions natives avec Swift Package Manager : pas besoin de CocoaPods. Au premier lancement,
+Xcode télécharge `capacitor-swift-pm` (une à deux minutes), et le premier lancement dans un simulateur tout neuf est très
+lent (écran noir le temps qu’Xcode charge ses symboles) : c’est normal, les suivants sont rapides.
 
 ## Première fois
 
@@ -31,9 +35,15 @@ npm run ios
 
 1. **Identifiant de l’app** : `appId` dans `capacitor.config.json` (`fr.requete.app` par défaut).
    Il doit correspondre à celui créé sur App Store Connect et ne changera plus ensuite.
-2. **Orientation** : dans Xcode, garde seulement « Portrait » pour l’iPhone.
+2. **Info.plist** (`ios/App/App/Info.plist`, réglé le 3 novembre sur le Mac d’Elisa) : « Portrait » seulement sur iPhone,
+   l’appli en français (`CFBundleDevelopmentRegion` = `fr`, `CFBundleLocalizations` = `fr`, pour que les menus d’iOS dans
+   l’appli soient en français) et `ITSAppUsesNonExemptEncryption` = `NO` (pas de question sur le chiffrement à chaque envoi).
 3. **Icône et lancement** : `resources/icon-only.png` (1024 × 1024, sans transparence)
    et `resources/splash.png` (2732 × 2732). Remplace-les si le logo change, puis relance `npm run ios:assets`.
+   **Ouverture animée** (3 novembre) : la première image de l’appli reprend `splash.png` au pixel près (ludique.css, 37 bis :
+   touche de 512 de côté, 28 d’épaisseur, coins de 116, fond `#F4F2FC`), puis la touche >_ s’enfonce, rebondit et lâche ses
+   étincelles. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
+   jusqu’à ce que la page se soit dessinée (au plus 4 s, `launchShowDuration`).
 
 ## Points App Store
 
