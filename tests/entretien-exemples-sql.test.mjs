@@ -26,7 +26,7 @@ ctx.ENTRETIEN.forEach(q => {
   });
 });
 /* Les exemples réécrits tiennent dans le bloc SQL sur iPhone : 30 caractères par ligne au plus (3 novembre, 1 h 21). */
-const reecrits = '02 03 04 22 47 49 50 51 53 54 56 58 59 60 61 62 63 64 65 66 67 69 70 71 72 74 75 84 85 92 93 94 95 98 99 100 101 106 108 111 117'.split(' ').map(x => 'ent-v2-' + x);
+const reecrits = '02 03 04 22 47 49 50 51 52 53 54 56 58 59 60 61 62 63 64 65 66 67 69 70 71 72 74 75 84 85 92 93 94 95 98 99 100 101 106 108 111 117'.split(' ').map(x => 'ent-v2-' + x);
 ctx.ENTRETIEN.filter(q => reecrits.includes(q.id)).forEach(q => q.sql.split('\n').forEach(l => assert(l.length <= 30, `${q.id} : ligne de ${l.length} caractères (${l})`)));
 const q74 = ctx.ENTRETIEN.find(q => q.id === 'ent-v2-74');
 assert(q74.niveau === 'Intermédiaire' && q74.ex && q74.ex.rows.length === 4 && /WHERE id > 30/.test(q74.sql), 'pagination : Intermédiaire, pages en exemple, pagination par clé');
