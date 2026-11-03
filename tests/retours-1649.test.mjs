@@ -345,9 +345,10 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
 test('réf. 4 et 5 — la note de la salle garde sa première phrase ; « Un code reçu ? » respire, sans rappel du pseudo', () => {
   assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Tes amis voient ton pseudo, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';"));
   assert.ok(!app.includes('et s’effacent au bout de 24&nbsp;h. Il faut une connexion internet.</p>'));
-  const join = fn('renderDefisJoin');
-  assert.ok(!join.includes('jeuNomField'), 'le pseudo n’y est plus rappelé');
-  assert.ok(join.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && join.includes('<p class="jeu-msg" role="status" aria-live="polite"></p>'));
+  /* 3 novembre, 7 h 49 : le code reçu passe dans la carte de la salle, en mode « Rejoindre ». */
+  const join = fn('renderDefisRoom');
+  assert.ok(join.includes("['join',JEU_JOIN_SVG+'Rejoindre']") && join.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && join.includes('<p class="jeu-msg" role="status" aria-live="polite"></p>'));
+  assert.ok(!fn('renderDefisJoin').includes('jeu-code'), 'plus de carte « Un code reçu ? » à part');
   for (const part of ['html.lq .def-join-body{padding:2px 16px 18px!important;gap:10px!important}', 'html.lq .def-join-body>.jeu-msg:empty{display:none}',
     'html.lq:not(.pointer-nav) .def-join>summary:focus-visible{box-shadow:inset 0 0 0 2.5px rgba(106,77,244,.45)!important;'])
     assert.ok(s51.includes(part), part);
