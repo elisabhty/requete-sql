@@ -6700,7 +6700,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=129">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=6">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=7">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -32777,23 +32777,29 @@ function obNamePreview(){
 }
 /* L'accueil tape une vraie requête de la base du cours : la promesse
    « le SQL s'apprend en le pratiquant » devient visible dès la première seconde. */
+/* 3 novembre, 22 h 55 (Elisa) : « en entrant dans la page, ça saute trop avec l’animation d’écriture ». La console grandissait ligne
+   après ligne, puis son résultat apparaissait : vers 1,8 s, la page se réajustait (obFit) et le titre sautait de 150 px. La requête
+   et son résultat sont maintenant posés dès la première image, à leur place : l’écriture n’est plus qu’un dévoilement, ligne par
+   ligne (CSS, comme la première requête), et le résultat s’allume sans rien pousser. La page garde sa taille du début à la fin. */
+/* Même forme que la console du cours : une clause par ligne. */
+const OB_DEMO_TOKENS=[['SELECT ','k'],['prenom, ville\n','o'],['FROM ','k'],['clients\n','o'],['WHERE ','k'],['ville = ','o'],["'Paris';",'s']];
+const OB_DEMO_T0=.55;
+function obDemoCode(){
+  const lines=[[]];
+  OB_DEMO_TOKENS.forEach(([t,c])=>t.split('\n').forEach((p,i)=>{if(i)lines.push([]);if(p)lines[lines.length-1].push([p,c]);}));
+  let dl=OB_DEMO_T0;
+  const html=lines.filter(l=>l.length).map(l=>{
+    const n=l.reduce((a,[p])=>a+p.length,0),t=Math.round(n*22)/1000;
+    const h=`<span class="ob-tl" style="--n:${n};--t:${t}s;--dl:${dl.toFixed(2)}s">${l.map(([p,c])=>`<span class="${c}">${esc(p)}</span>`).join('')}</span>`;
+    dl+=t+.08;return h;
+  }).join('\n');
+  return {html,fin:Math.round((dl+.04)*100)/100};
+}
 function obRunWelcomeDemo(){
-  const code=document.getElementById('ob-demo-code'),res=document.getElementById('ob-demo-res');
-  if(!code)return;
-  obDemoTimers.forEach(clearTimeout);obDemoTimers=[];
-  /* Même forme que la console du cours : une clause par ligne. */
-  const tokens=[['SELECT ','k'],['prenom, ville\n','o'],['FROM ','k'],['clients\n','o'],['WHERE ','k'],['ville = ','o'],["'Paris';",'s']];
-  const caret='<span class="car"></span>';
-  if(prefersReduceMotion()){
-    code.innerHTML=tokens.map(([t,c])=>`<span class="${c}">${esc(t)}</span>`).join('');
-    if(res)res.hidden=false;
-    return;
-  }
-  let acc='';
-  tokens.forEach(([t,c],i)=>{
-    obDemoTimers.push(setTimeout(()=>{acc+=`<span class="${c}">${esc(t)}</span>`;code.innerHTML=acc+caret;},300+i*130));
-  });
-  obDemoTimers.push(setTimeout(()=>{code.innerHTML=acc;if(res)res.hidden=false;buzz('selection');},300+tokens.length*130+420));
+  const code=document.getElementById('ob-demo-code');
+  if(!code||!code.closest('.is-typing'))return;
+  /* Le résultat s’allume à la fin de l’écriture : la petite vibration l’accompagne. */
+  obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='welcome'&&typeof buzz==='function')buzz('selection');},Math.round(obDemoCode().fin*1000)));
 }
 /* Balayage tactile : vers la gauche on avance via le bouton principal
    (un CTA désactivé reste donc bloquant), vers la droite on revient. */
@@ -33095,6 +33101,8 @@ function paintOb(){
     let nParis=4;
     try{nParis=db.exec("SELECT COUNT(*) FROM clients WHERE ville = 'Paris';")[0].values[0][0];}catch(e){}
     const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||25;
+    /* La console, posée en entier dès la première image (22 h 55) ; l’écriture ne joue qu’à l’arrivée sur l’accueil. */
+    const demo=obDemoCode(),demoTyping=obJustEntered&&!prefersReduceMotion();
     html=`<div class="ob-screen welcome"><div class="ob-brand"><code>&gt;_</code><span>Requête</span></div>
       <div class="ob-hello-stage">
         <span class="ob-hk ob-hk-1" aria-hidden="true">SELECT</span><span class="ob-hk ob-hk-2" aria-hidden="true">JOIN</span>
@@ -33104,7 +33112,7 @@ function paintOb(){
       </div>
       <h1 class="ob-title" id="ob-title">Apprends le SQL<br><em>en pratiquant</em>.</h1>
       <p class="ob-lead">Écris tes requêtes sur une vraie base SQLite, exécute-les dans ton navigateur et vois aussitôt le résultat. Rien à installer. Choisis ton parcours en quelques étapes.</p>
-      <div class="ob-welcome-demo" aria-hidden="true"><div class="ob-code"><div class="oc-bar"><i></i><i></i><i></i><em>requete.sql</em></div><pre class="oc-code" id="ob-demo-code"></pre><div class="oc-res" id="ob-demo-res" hidden><i>✓</i> ${plur(nParis,'client')} à Paris</div></div></div>
+      <div class="ob-welcome-demo${demoTyping?' is-typing':''}" aria-hidden="true"><div class="ob-code"><div class="oc-bar"><i></i><i></i><i></i><em>requete.sql</em></div><pre class="oc-code" id="ob-demo-code">${demo.html}</pre><div class="oc-res" id="ob-demo-res" style="--res-dl:${demo.fin}s"><i>✓</i> ${plur(nParis,'client')} à Paris</div></div></div>
       <div class="ob-proof-stats" aria-label="L’apprentissage en bref"><div><strong>${TOTAL}</strong><span>leçons guidées</span></div><div><strong>${nDefis}</strong><span>défis pratiques</span></div><div><strong>SQLite</strong><span>dans ton navigateur</span></div></div></div>`;
     /* 17 h 32 (Réf. 8, « c’est un mode avec compte, justement ») : plus de « Aucun compte n’est nécessaire » : le pseudo se choisit à la fin. */
     obSetFooter('Personnaliser mon parcours',()=>obGoto('name'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'Ta progression est enregistrée sur cet appareil.');
@@ -34428,7 +34436,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-barres-chargement-v2473';
+  const SW_CACHE='requete-2026-11-03-accueil-stable-v2474';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
