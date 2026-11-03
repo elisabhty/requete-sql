@@ -189,14 +189,27 @@ test('les animations ne jouent qu’avec les mouvements autorisés ; au repos, t
 
 test('première page : sous les barres de Safari, le fond est uni (grille et halo n’arrivent qu’après la zone de l’heure)', () => {
   const s = sansCommentaires(surf);
-  assert.ok(s.includes('html #onboarding.ob-vitrine::before{\n  -webkit-mask-image:linear-gradient(transparent calc(var(--safe-top,0px) + 6px),#000 calc(var(--safe-top,0px) + 150px),#000 calc(100% - var(--safe-bottom,0px) - 190px),transparent calc(100% - var(--safe-bottom,0px) - 56px));'));
+  assert.ok(s.includes('html #onboarding.ob-vitrine::before{\n  -webkit-mask-image:linear-gradient(transparent calc(var(--safe-top,0px) + 6px),#000 calc(var(--safe-top,0px) + 150px),#000 calc(100% - var(--safe-bottom,0px) - 220px),transparent calc(100% - var(--safe-bottom,0px) - 80px));'));
   assert.ok(s.includes('html #onboarding.ob-vitrine::after{\n  top:calc(var(--safe-top,0px) - 150px);\n  -webkit-mask-image:linear-gradient(transparent 156px,#000 310px);'), 'le halo commence sous la zone de l’heure');
   assert.ok(s.includes('html.lq .lv::before{\n  -webkit-mask-image:linear-gradient(transparent,#000 72px,#000 calc(100% - 72px),transparent);'), 'le lecteur garde son fondu');
 });
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=10', 'onboarding-vitrine.css?v=6']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=11', 'onboarding-vitrine.css?v=6']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
+});
+
+test('22 h 24, « Regarde la barre » : l’écran de chargement aussi a un fond uni sous les barres de Safari', () => {
+  /* Sa grille et ses halos touchaient les deux bords : sous la barre d’adresse, Safari posait une bande plus claire au bord net,
+     et la grille commençait d’un coup sous l’heure. Même fondu que l’onboarding, croisé avec l’ellipse d’origine. */
+  const s = sansCommentaires(surf);
+  const fondu = 'linear-gradient(transparent calc(var(--safe-top,0px) + 6px),#000 calc(var(--safe-top,0px) + 150px),#000 calc(100% - var(--safe-bottom,0px) - 220px),transparent calc(100% - var(--safe-bottom,0px) - 80px))';
+  const ellipse = 'radial-gradient(ellipse 85% 75% at 50% 40%,#000 30%,transparent 92%)';
+  assert.ok(lire('ludique.css').includes(`-webkit-mask-image:${ellipse};`), 'l’ellipse reprise de ludique.css');
+  assert.ok(s.includes(`html.lq #loader:not(.is-intro)::before{\n  -webkit-mask-image:${fondu},${ellipse};\n  -webkit-mask-composite:source-in;\n  mask-image:${fondu},${ellipse};\n  mask-composite:intersect;\n}`));
+  assert.ok(s.includes(`html #onboarding.ob-vitrine::before{\n  -webkit-mask-image:${fondu};`), 'le même fondu sur l’onboarding');
+  /* Avant que safari-surface.js ne tourne, la couleur du navigateur est déjà celle du premier écran (violet), plus le lavande clair */
+  assert.ok(app.includes('<meta name="theme-color" content="#6E50F6">') && !app.includes('<meta name="theme-color" content="#F4F2FC">'));
 });
