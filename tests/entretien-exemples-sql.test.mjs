@@ -33,6 +33,8 @@ assert(q74.niveau === 'Intermédiaire' && q74.ex && q74.ex.rows.length === 4 && 
 const vitrine = fs.readFileSync(path.join(ROOT, 'decouvrir/index.html'), 'utf8');
 const nb = k => ctx.ENTRETIEN.filter(q => q.niveau === k).length;
 assert(vitrine.includes(`<li>Débutant · ${nb('Débutant')}</li><li>Intermédiaire · ${nb('Intermédiaire')}</li><li>Avancé · ${nb('Avancé')}</li>`), 'la vitrine compte les niveaux de l’appli');
+/* 3 novembre, 6 h 07 : « supprimer les À retenir dans Entretien SQL ». */
+assert(ctx.ENTRETIEN.every(q => !('retenir' in q)) && !html.includes('class="ent-retenir"'), 'plus de « À retenir » dans l’entretien');
 console.log(`  ${n} exemples vérifiés`);
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
