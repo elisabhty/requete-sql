@@ -166,3 +166,20 @@ test('appli iOS : le « sauvetage » du service worker ne recharge jamais l’ap
   assert.ok(r.includes("if(document.documentElement.classList.contains('is-native'))return;"), 'pas de rechargement qui rejouerait l’ouverture');
   assert.ok(r.indexOf("if(document.documentElement.classList.contains('is-native'))return;") < r.indexOf('setTimeout(function(){'));
 });
+
+/* 22 h 19 : « on peut avec TestFlight ? » — l’envoi en une commande, sans les menus d’Xcode */
+test('TestFlight : npm run ios:testflight archive et envoie à App Store Connect', () => {
+  const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.equal(pkg.scripts['ios:testflight'], 'npm run build:www && npx cap sync ios && bash scripts/ios-testflight.sh');
+  const sh = fs.readFileSync(new URL('../scripts/ios-testflight.sh', import.meta.url), 'utf8');
+  assert.ok(sh.startsWith('#!/bin/bash') && sh.includes('set -euo pipefail'));
+  assert.ok(sh.includes("grep -q 'DEVELOPMENT_TEAM' App.xcodeproj/project.pbxproj"), 'prévient si aucune équipe n’est choisie');
+  assert.ok(sh.includes("-destination 'generic/platform=iOS' -archivePath build/Requete.xcarchive") && sh.includes('-allowProvisioningUpdates archive'));
+  assert.ok(sh.includes('-exportOptionsPlist ../../scripts/ios-export-options.plist -exportPath build/envoi'));
+  const opts = fs.readFileSync(new URL('../scripts/ios-export-options.plist', import.meta.url), 'utf8');
+  for (const part of ['<key>method</key>\n\t<string>app-store-connect</string>', '<key>destination</key>\n\t<string>upload</string>',
+    '<key>signingStyle</key>\n\t<string>automatic</string>', '<key>manageAppVersionAndBuildNumber</key>\n\t<true/>']) assert.ok(opts.includes(part), part);
+  const ios = fs.readFileSync(new URL('../IOS.md', import.meta.url), 'utf8');
+  assert.ok(ios.includes('## TestFlight (l’appli sur un vrai iPhone)') && ios.includes('npm run ios:testflight 2>&1 | tee ios-envoi.log'));
+  assert.ok(fs.statSync(new URL('../scripts/ios-testflight.sh', import.meta.url)).mode & 0o100, 'exécutable');
+});

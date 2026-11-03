@@ -31,6 +31,29 @@ Dans Xcode : choisis ton équipe (Signing & Capabilities), puis lance sur un iPh
 npm run ios
 ```
 
+## TestFlight (l’appli sur un vrai iPhone)
+
+La première fois :
+
+1. **Équipe** : dans Xcode, cible App › Signing & Capabilities › Team, choisir son équipe Apple Developer (compte ajouté
+   dans Xcode › Réglages › Comptes). Xcode enregistre alors l’identifiant `fr.requete.app`.
+2. **Fiche de l’appli** : sur App Store Connect, Apps › « + » › Nouvelle app : iOS, nom « Requête — Apprends le SQL » (unique
+   sur l’App Store), langue principale Français, identifiant `fr.requete.app`, SKU `requete-sql`. Si l’identifiant n’est pas
+   dans la liste : developer.apple.com › Identifiers › « + » › App IDs, description « Requete », identifiant explicite `fr.requete.app`.
+3. **Envoi** :
+
+   ```bash
+   npm run ios:testflight 2>&1 | tee ios-envoi.log
+   ```
+
+   L’app web est copiée, puis `scripts/ios-testflight.sh` archive en Release et envoie à App Store Connect
+   (`scripts/ios-export-options.plist` : signature automatique, numéro de build augmenté tout seul s’il a déjà servi).
+4. **Sur l’iPhone** : après l’e-mail d’Apple (10 à 30 min), App Store Connect › TestFlight › Tests internes : créer un
+   groupe et s’y ajouter, puis installer l’appli TestFlight sur l’iPhone : Requête y apparaît.
+
+Ensuite, à chaque nouvelle version : `npm run ios:testflight`. Si l’archive se plaint qu’il n’y a aucun appareil pour le
+profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans Xcode (en haut, à la place du simulateur) et relancer.
+
 ## Réglages à vérifier avant l’envoi
 
 1. **Identifiant de l’app** : `appId` dans `capacitor.config.json` (`fr.requete.app` par défaut).
