@@ -43,7 +43,7 @@ test('l’appli a bien ses questions d’entretien, lues ici sans en perdre', ()
   assert.ok(start > 0, 'tableau ENTRETIEN trouvé dans index.html');
   assert.equal(QUESTIONS.length, 142, '75 questions, puis 27 (19 h 12), puis 39 (19 h 19), puis le chiffre d’affaires des commandes payées (2 novembre, 22 h 25)');
   assert.deepEqual(NIVEAUX, ['Débutant', 'Intermédiaire', 'Avancé']);
-  assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [47, 51, 44], 'la pagination et OLTP / OLAP passent en Intermédiaire (3 novembre, 1 h 21 et 1 h 34) ; le test A/B passe en Intermédiaire (21 h 54), le chiffre d’affaires des commandes payées s’ajoute (22 h 25)');
+  assert.deepEqual(NIVEAUX.map(n => QUESTIONS.filter(q => q.niveau === n).length), [47, 52, 43], 'la pagination, OLTP / OLAP (3 novembre, 1 h 21 et 1 h 34) et les schémas (6 h 21) passent en Intermédiaire ; le test A/B passe en Intermédiaire (21 h 54), le chiffre d’affaires des commandes payées s’ajoute (22 h 25)');
   assert.deepEqual([...FILTRES.map(f => f.key)].sort(), [...NOTIONS].sort(), 'les notions de la liste sont celles de la banque (rangées dans l’ordre où on les apprend, 18 h 48)');
   assert.equal(FILTRES[0].key, 'Bases du SQL', 'les bases du langage en haut, puis SELECT (22 h 08 : « Débutant · Bases du SQL »)');
   assert.equal(FILTRES[1].key, 'SELECT');
