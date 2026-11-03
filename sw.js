@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-03-json-v2440';
+const CACHE = 'requete-2026-11-03-plan-json-mysql-v2441';
 
 const PRECACHE = [
   './safari-surface.css?v=6',
