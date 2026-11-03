@@ -1137,7 +1137,7 @@ function pontRender(T){
    fixe garde la proportion des vides au-dessus et au-dessous (Elisa, 0 h 57 : « tu peux le centrer ») : un contenu centré reste centré,
    un contenu calé en haut reste en haut. Le zoom se réduit un peu AVANT qu’un nouvel élément n’arrive et passe d’une taille à l’autre en
    douceur. La bulle, la puce, l’intro et les cartes des moments « À toi » ne bougent pas. Sur un téléphone, l’image remplit déjà la
-   largeur : rien n’est relevé, rien ne change. Le contenu de chaque instant est relevé une fois, par petits lots, sans gêner la lecture. */
+   largeur : rien n’est relevé, rien ne change. Le contenu de chaque instant est relevé une fois, par tranches, sans gêner la lecture (camPlan). */
 const CAM_ZMAX = 1.6, CAM_ZOUT = 0.8, CAM_STEP = 0.2, CAM_MIN = 1.06;
 const CAM = {on: false, samp: null, z: null, o: null, lastT: 0, secs: [], loose: []};
 if (typeof window !== 'undefined') window.__cam = CAM;   // pour les contrôles (lecteur, tests)
@@ -1158,6 +1158,25 @@ function camRect(el, depth){
     u = u ? {left: Math.min(u.left, r.left), top: Math.min(u.top, r.top), right: Math.max(u.right, r.right), bottom: Math.max(u.bottom, r.bottom)} : {left: r.left, top: r.top, right: r.right, bottom: r.bottom}; });
   return u;
 }
+/* Le relevé se fait quand l’image ne bouge pas (3 novembre, « plus fluide dans la navigation ») : pendant une pause de la timeline
+   (chaque vidéo en a une vers 2,3 s, sur la carte de l’intro, puis une autre vers 6 s) ou quand la lecture est arrêtée. Relever un
+   instant oblige à montrer cet instant à la page, puis à revenir : pendant que l’image bouge, ces allers-retours la faisaient saccader
+   (des lots de 31 instants, les premières secondes de chaque vidéo). Les instants que la lecture va montrer passent d’abord ; la caméra
+   suit dès que les 2,4 s à venir sont relevées (un instant pas encore relevé prend la valeur du précédent, comme un instant vide).
+   Pendant un moment « À toi », le relevé attend : la page y montre la réponse de l’élève, hors timeline. */
+const CAM_CHUNK = 30;
+/* Combien de temps (ms) l’image va rester immobile : la lecture ne demande plus d’image (arrêtée, pas encore lancée), ou une pause. */
+function camQuiet(){
+  if (performance.now() - (CAM.rt || 0) > 120) return 1e9;
+  const T = CAM.lastT || 0; let shift = 0;
+  for (const [t, d] of HOLDS) {
+    if (d < 0) { shift += d; continue; }
+    const a = t + shift; if (T < a) break;
+    if (T < a + d) return (a + d - T) * 1000;
+    shift += d;
+  }
+  return 0;
+}
 function camPlan(dur){
   if (!EMBED || /[?&]check\b/.test(location.search)) return;
   const stage = $('#stage'); if (!stage) return;
@@ -1168,28 +1187,44 @@ function camPlan(dur){
   if (!secs.length) return;
   /* Sur un téléphone aussi : l’image n’y grandit pas (elle remplit déjà la largeur), mais un contenu qui passerait sous la bulle s’y réduit. */
   CAM.secs = secs; CAM.loose = loose;
-  const N = Math.ceil(dur / CAM_STEP), samp = new Array(N + 1).fill(null);
-  let i = 0;
-  const chunk = () => {
-    const end = Math.min(N, i + 30), sr = stage.getBoundingClientRect(), k = sr.width / 1080 || 1;
-    for (; i <= end; i++) {
-      tl.seek(i * CAM_STEP, true);
-      /* L’intro a sa propre mise en page : tant qu’elle se voit, la caméra ne bouge pas. */
-      if (s0 && getComputedStyle(s0).visibility !== 'hidden' && +getComputedStyle(s0).opacity > 0.05) { samp[i] = {fixe: true}; continue; }
-      let b = null;
-      const add = c => { if (!camVis(c)) return; const r = camRect(c, 0); if (!r) return;
-        const x = {l: (r.left - sr.left) / k, t: (r.top - sr.top) / k, r: (r.right - sr.left) / k, b: (r.bottom - sr.top) / k};
-        b = b ? {l: Math.min(b.l, x.l), t: Math.min(b.t, x.t), r: Math.max(b.r, x.r), b: Math.max(b.b, x.b)} : x; };
-      secs.forEach(s => { const cs = getComputedStyle(s); if (cs.visibility === 'hidden' || +cs.opacity < 0.05) return; [...s.children].forEach(add); });
-      loose.forEach(add);
-      /* La bulle cachée (le mail se lit seul) : l’image peut aussi descendre jusqu’en bas. */
-      const cp = $('#cap'), ccs = cp && getComputedStyle(cp), free = !cp || ccs.visibility === 'hidden' || +ccs.opacity < 0.05;
-      if (b) samp[i] = {b, free};
-    }
-    if (i <= N) { window.renderAt(CAM.lastT); setTimeout(chunk, 12); return; }
-    CAM.samp = samp; camFit(); window.renderAt(CAM.lastT);
+  const N = Math.ceil(dur / CAM_STEP), samp = new Array(N + 1).fill(null), seen = new Uint8Array(N + 1), born = performance.now();
+  let left = N + 1, lastFit = -1e9;
+  CAM.left = left;   // instants restant à relever (contrôles, tests)
+  const one = (i, sr, k) => {
+    tl.seek(i * CAM_STEP, true);
+    /* L’intro a sa propre mise en page : tant qu’elle se voit, la caméra ne bouge pas. */
+    if (s0 && getComputedStyle(s0).visibility !== 'hidden' && +getComputedStyle(s0).opacity > 0.05) { samp[i] = {fixe: true}; return; }
+    let b = null;
+    const add = c => { if (!camVis(c)) return; const r = camRect(c, 0); if (!r) return;
+      const x = {l: (r.left - sr.left) / k, t: (r.top - sr.top) / k, r: (r.right - sr.left) / k, b: (r.bottom - sr.top) / k};
+      b = b ? {l: Math.min(b.l, x.l), t: Math.min(b.t, x.t), r: Math.max(b.r, x.r), b: Math.max(b.b, x.b)} : x; };
+    secs.forEach(s => { const cs = getComputedStyle(s); if (cs.visibility === 'hidden' || +cs.opacity < 0.05) return; [...s.children].forEach(add); });
+    loose.forEach(add);
+    /* La bulle cachée (le mail se lit seul) : l’image peut aussi descendre jusqu’en bas. */
+    const cp = $('#cap'), ccs = cp && getComputedStyle(cp), free = !cp || ccs.visibility === 'hidden' || +ccs.opacity < 0.05;
+    if (b) samp[i] = {b, free};
   };
-  setTimeout(chunk, 0);
+  const from = () => Math.max(0, Math.floor((CAM.t || 0) / CAM_STEP) - 3);
+  const next = () => { const p = from(); for (let j = p; j <= N; j++) if (!seen[j]) return j; for (let j = p - 1; j >= 0; j--) if (!seen[j]) return j; return -1; };
+  const slice = () => {
+    if (CAM.pause || document.body.classList.contains('lv-pk-open')) { setTimeout(later, 250); return; }
+    /* L’image bouge : on attend qu’elle s’arrête. Au-delà de 10 s sans pause (lecture reprise au milieu, par exemple), de petites tranches. */
+    const q = camQuiet(), t0 = performance.now();
+    if (q < 90 && t0 - born < 10000) { later(); return; }
+    const budget = q < 90 ? 4 : Math.min(CAM_CHUNK, q - 60);
+    if (CAM.on) camApply(1, 240);   // les instants se relèvent sans l’agrandissement en cours
+    const sr = stage.getBoundingClientRect(), k = sr.width / 1080 || 1;
+    do { const i = next(); if (i < 0) break; seen[i] = 1; left--; one(i, sr, k); } while (left > 0 && performance.now() - t0 < budget);
+    CAM.left = left;
+    let near = true;
+    for (let j = from(), e = Math.min(N, j + 12); j <= e; j++) if (!seen[j]) { near = false; break; }
+    if (left <= 0 || (near && t0 - lastFit > 500)) { CAM.samp = samp; camFit(); lastFit = t0; }
+    /* L’image revient à l’instant affiché ; ce retour ne compte pas comme une image demandée par le lecteur. */
+    const rt = CAM.rt; window.renderAt(CAM.lastT); CAM.rt = rt;
+    if (left > 0) later();
+  };
+  const later = () => requestAnimationFrame(() => setTimeout(slice, 0));
+  later();
 }
 /* Le zoom et le point fixe de chaque instant, pour la fenêtre actuelle (recalculés quand elle change de taille). */
 function camFit(){
@@ -1302,7 +1337,7 @@ function Course(cfg){
     /* Avant de dessiner l’image, la page retire l’aperçu d’un moment « À toi » que la timeline va montrer (sinon la réponse réapparaîtrait en reculant). */
     if (cfg.beforeRender) cfg.beforeRender(t);
     tl.seek(t, true);
-    CAM.lastT = T; camRender(t);
+    CAM.lastT = T; CAM.rt = performance.now(); camRender(t);
     const stage = document.getElementById('stage');
     stage.style.setProperty('--blink', Math.floor(T * 1.9) % 2 === 0 ? 1 : 0);
     if (!EMBED) {
