@@ -6689,7 +6689,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=120">
+<link rel="stylesheet" href="ludique.css?v=121">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=4">
 <style id="lesson-video-css">
@@ -26552,15 +26552,37 @@ function jeuRender(){
     if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
-      const avg=got.length?jeuChrono(got.reduce((a,x)=>a+x.ms,0)/got.length):'—';
-      const all=got.length===rows.length&&rows.length>0;
+      /* Le bilan, revu (Elisa, 3 novembre, 7 h 42 : « pousse encore l’amélioration fonctionnelle et UI/UX ») : un verdict en une phrase,
+         les points qui montent, un point par manche (trouvée ou non), le record ; chaque manche dit ce qui s’est passé, en entier, et
+         une manche manquée se retente d’un geste. Les durées se lisent « 12 s », « 2 min 05 ». */
+      const dur=ms=>{const t=Math.max(0,Math.round(ms/1000));return t<60?`${t}\u00a0s`:`${Math.floor(t/60)}\u00a0min\u00a0${String(t%60).padStart(2,'0')}`;};
+      const nOk=got.length,nT=rows.length,nivL=JEU_NIVL[J.niv].toLowerCase();
+      const avg=nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—';
+      const all=nOk===nT&&nT>0;
       if(!J.over&&host)setTimeout(()=>{if(JEU===J&&!J.over)jeuFinish();},0);
-      const lastR=rows.length?rows[rows.length-1]:null,lastMiss=lastR&&lastR.ms==null?jeuMissHTML(lastR.r,true):'';
-      html=head('Fin de la partie',all?'Tout trouvé ! 🏆':'Ton bilan',`${rows.length} manche${rows.length>1?'s':''} jouée${rows.length>1?'s':''} · niveau ${JEU_NIVL[J.niv].toLowerCase()}.`)+
-        `${lastMiss}<div class="jeu-bilan"><div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${got.length}/${rows.length}</b><small>trouvé${got.length>1?'s':''}</small></div><div><b>${avg}</b><small>temps moyen</small></div></div>
-        <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rank">${rows.map((x,i)=>{const k=J.rounds.indexOf(x.r),y=x.ms!=null?jeuRanking(k).find(z=>z.pid===J.me):null;return `<li style="--i:${i}"${x.ms==null?' class="is-miss"':''}><span class="jeu-rk">${i+1}</span><b>${esc(x.c.titre)}</b><em>${x.ms!=null?jeuChrono(x.ms):'—'}</em><small>${y?'+'+y.pts:'0'}</small>${y?jeuPtsDetail(y):''}</li>`;}).join('')}</ol></div>
+      const verdict=all?(nT>1?`Les ${nT} défis trouvés, niveau ${nivL}.`:`Défi trouvé, niveau ${nivL}.`)
+        :nOk*2>=nT&&nOk?`Bien joué : ${nOk} défi${nOk>1?'s':''} sur ${nT}, niveau ${nivL}.`
+        :nOk?`${nOk} défi sur ${nT} : retente ceux qui t’ont échappé.`
+        :`Aucun défi trouvé cette fois : retente-le${nT>1?'s':''} à tête reposée.`;
+      const lastR=rows.length?rows[rows.length-1]:null,lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,true):'';
+      const ICO_OK='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12.5l4 4 8-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const ICO_KO='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
+      const recap=rows.map((x,i)=>{
+        const k=J.rounds.indexOf(x.r),ok=x.ms!=null,y=ok?jeuRanking(k).find(z=>z.pid===J.me):null;
+        const why=x.r.closed?(J.solo?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
+        return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ICO_KO}</span>
+          <div class="jr-t"><small class="jr-n">Manche ${i+1}</small><b>${esc(x.c.titre)}</b>
+          <span class="jr-meta">${ok?`<i class="jr-time">Trouvé en ${dur(x.ms)}</i>${y?jeuPtsDetail(y):''}`:`<i class="jr-why">${why}</i>`}</span>
+          ${!ok&&J.solo?`<button type="button" class="jr-retry" onclick="jeuRetenter('${x.c.id}')"><span>Retenter ce défi</span>${DEF_CHEV_SVG}</button>`:''}</div>
+          <b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b></li>`;
+      }).join('');
+      const nextNiv={f:'m',m:'d'}[J.niv];
+      html=head('Fin de la partie',all?'Tout trouvé ! 🏆':'Ton bilan',verdict)+
+        `${lastMiss}<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>trouvé${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${avg}</b><small>temps moyen</small></div></div>
+        <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rounds">${recap}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
-        ${J.solo?jeuBtn2('level','Changer de niveau','openJeu()'):jeuBtn2('quit','Quitter la salle','goBack()')}`;
+        ${J.solo?(all&&nextNiv?jeuBtn2('level',`Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}`,'jeuNiveauSuivant()'):jeuBtn2('level','Changer de niveau','openJeu()')):jeuBtn2('quit','Quitter la salle','goBack()')}`;
+      if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
       if(all)setTimeout(celebrate,300);
     }else{
       jeuPlaces(sc);
@@ -26623,6 +26645,18 @@ function jeuClose(){
 }
 function jeuFinish(){if(JEU&&jeuIsHost())jeuSend({t:'end'});}
 /* Nouvelle partie dans la même salle (même code, mêmes joueurs). Seul : on enchaîne. */
+/* Une manche manquée, retentée tout de suite : le défi seul, avec son chrono (la partie seule est finie, ses points comptés). */
+function jeuRetenter(cid){
+  if(!CHALLENGES.some(x=>x.id===cid))return;
+  if(JEU&&JEU.solo)jeuStop();
+  openChallenge(cid);
+}
+/* Tout trouvé : la partie suivante, un niveau au-dessus, avec le même nombre de manches. */
+function jeuNiveauSuivant(){
+  const J=JEU,n=J?{f:'m',m:'d'}[J.niv]:null;if(!n)return openJeu();
+  jeuNiv=n;jeuNivUser=true;jeuNb=J.nb;jeuSavePrefs();
+  jeuStart(jeuRand(6),true,null,{solo:true});
+}
 function jeuAgain(){
   const J=JEU;if(!J||!jeuIsHost()||!J.over)return;
   jeuSend({t:'again',g:J.g+1});
@@ -26762,6 +26796,8 @@ function jeuCreditGame(){
   try{
     const sc=jeuPlaces(jeuScores()),me=sc.find(x=>x.pid===J.me),pts=me?me.pts:0;
     const s=state.salle=state.salle&&typeof state.salle==='object'?state.salle:{pts:0,parties:0,best:0};
+    /* Nouveau record : mieux que la meilleure partie précédente (pas à la toute première partie). */
+    J.record=pts>0&&(s.parties||0)>0&&pts>(s.best||0);
     s.pts=(s.pts||0)+pts;s.parties=(s.parties||0)+1;s.best=Math.max(s.best||0,pts);
     /* Le tableau « Tes performances » : les manches comptées comme dans les scores (terminées, ou toutes à la fin de la partie). */
     const cur=jeuCur(),played=J.rounds.filter((r,n)=>r&&(n<cur||jeuRoundDone(n)||J.over));
@@ -33857,7 +33893,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-schema-retour-v2455';
+  const SW_CACHE='requete-2026-11-03-bilan-plus-v2456';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
