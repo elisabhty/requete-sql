@@ -28,13 +28,15 @@ test('l’âge et la profession, juste après le prénom, dans le compte des ét
   vm.runInContext(fn('obNext', 'function obBack(){') + ';var next=s=>{obStep=OB_SLIDES.indexOf(s);obNext();};', ctx);
   for (const s of ['name', 'age', 'job']) vm.runInContext(`next('${s}')`, ctx);
   assert.deepEqual(vers, ['age', 'job', 'goal']);
-  /* Le prénom y mène aussi par « Passer pour le moment » et par Entrée */
+  /* Le prénom y mène par « Continuer » et par Entrée. 17 h 32 (« enlève les notions de facultatif ») : plus de « Passer pour le
+     moment » ; « Continuer » attend le prénom (tests/retours-1732.test.mjs). */
   const name = slide('name', "}else if(slide==='pseudo'){");
-  assert.ok(name.includes("obSetFooter('Continuer',()=>obGoto('age'),'Passer pour le moment',()=>obGoto('age'),"));
-  assert.ok(name.includes(`onkeydown="if(event.key==='Enter'){event.preventDefault();obGoto('age');}"`));
+  assert.ok(name.includes("obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());") && !name.includes('Passer pour le moment'));
+  assert.ok(name.includes(`onkeydown="if(event.key==='Enter'){event.preventDefault();obNameNext();}"`));
+  assert.ok(fn('obNameNext', 'let obCheerT').includes("if((draft.name||'').trim()){obGoto('age');return;}"));
 });
 
-test('âge : six tranches en tuiles, choix unique, facultatif', () => {
+test('âge : six tranches en tuiles, choix unique (obligatoire depuis 17 h 32)', () => {
   const ages = vm.runInNewContext(app.match(/const OB_AGES=(\[[\s\S]*?\]);\nconst OB_JOBS/)[1]);
   assert.deepEqual(Array.from(ages, a => a[0]), ['u18', '18-24', '25-34', '35-44', '45-54', '55+']);
   assert.deepEqual(Array.from(ages, a => a[2]), ['Moins de 18 ans', '18 à 24 ans', '25 à 34 ans', '35 à 44 ans', '45 à 54 ans', '55 ans et plus'], 'ce que lit un lecteur d’écran');
@@ -43,7 +45,7 @@ test('âge : six tranches en tuiles, choix unique, facultatif', () => {
   assert.ok(age.includes("obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')"), 'la mascotte pose la question, comme aux autres étapes');
   assert.ok(age.includes('role="radiogroup" aria-label="Ta tranche d’âge"') && age.includes('role="radio" aria-checked="${draft.ageRange===k?\'true\':\'false\'}" aria-label="${escAttr(label)}"'));
   assert.ok(age.includes("onclick=\"obPick('ageRange','${k}')\"") && age.includes('style="--d:${i*45}ms"'), 'les tuiles arrivent l’une après l’autre');
-  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'Facultatif · reste sur cet appareil',!draft.ageRange);"), '« Continuer » après un choix, « Passer » sinon');
+  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange);"), '« Continuer » après un choix ; ni « Passer » ni « Facultatif » (17 h 32)');
 });
 
 test('profession : six situations en tuiles, avec leur pastille de couleur', () => {
@@ -52,7 +54,7 @@ test('profession : six situations en tuiles, avec leur pastille de couleur', () 
   const job = slide('job', "}else if(slide==='goal'){");
   assert.ok(job.includes('<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>'));
   assert.ok(job.includes('role="radiogroup" aria-label="Ta situation"') && job.includes("onclick=\"obPick('job','${k}')\"") && job.includes('${obOptionIcon(icon)}<span>${esc(label)}</span>'));
-  assert.ok(job.includes("obSetFooter('Continuer',()=>obGoto('goal'),'Passer',()=>obGoto('goal'),'Facultatif · reste sur cet appareil',!draft.job);"));
+  assert.ok(job.includes("obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);"));
   assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(!['niveau','rythme','goal','ageRange','job'].includes(champ))return;"));
   /* Les réponses restent sur l’appareil, dans le profil, et l’onboarding les reprend (Mon compte › Personnalisation). */
   assert.ok(app.includes("    ageRange:draft.ageRange||'',\n    job:draft.job||'',") && app.includes("    ageRange:profile.ageRange||'',\n    job:profile.job||'',"));
@@ -132,7 +134,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=5">') && sw.includes("'./onboarding-vitrine.css?v=5',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=6">') && sw.includes("'./onboarding-vitrine.css?v=6',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');

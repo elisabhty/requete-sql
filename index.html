@@ -6692,7 +6692,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=129">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=5">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=6">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -7322,7 +7322,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #sgbd-back{z-index:84}
 #sgbd-sheet{z-index:85}
 </style>
-<link rel="stylesheet" href="safari-surface.css?v=9">
+<link rel="stylesheet" href="safari-surface.css?v=10">
 <!-- Toutes les tailles d’écran (3 novembre) : chargé en dernier, il décide de la mise en page du téléphone au grand écran. -->
 <link rel="stylesheet" href="responsive.css?v=1">
 <script src="safari-surface.js?v=8" defer></script>
@@ -29109,17 +29109,19 @@ if(typeof window!=='undefined')window.addEventListener('resize',()=>{
    9. PLANNING — vue semaine, dates explicites
    ============================================================ */
 const NIVEAUX=[
-  {k:'debutant',i:'○',t:"Je pars de zéro",d:"Jamais écrit une requête · départ au début",from:0},
-  {k:'bases',i:'◐',t:"J'ai quelques bases",d:"SELECT et les filtres me parlent · départ au tri",from:11},
-  {k:'inter',i:'●',t:"Je vise le niveau analyste",d:"Agrégations et jointures acquises · départ aux sous-requêtes",from:45}
+  {k:'debutant',i:'○',t:"Je pars de zéro",d:"Jamais écrit une requête · défis faciles",from:0},
+  {k:'bases',i:'◐',t:"J'ai quelques bases",d:"SELECT et les filtres me parlent · défis moyens",from:11},
+  {k:'inter',i:'●',t:"Je vise le niveau analyste",d:"Agrégations et jointures acquises · défis difficiles",from:45}
 ];
+/* 3 novembre, 17 h 32 : tout nouveau parcours part de la première leçon (buildMixPool). `from` reste le point de départ des parcours
+   créés avant, et la part du parcours comptée comme acquise pour le niveau du compte et des défis (niveauCompte). */
 const RYTHMES=[
   {k:'calme',i:'10',t:"10 minutes",d:"~2 activités · rythme tranquille",per:2,min:12},
   {k:'regulier',i:'20',t:"20 minutes",d:"~3 activités · rythme régulier",per:3,min:18},
   {k:'intensif',i:'30',t:"30 minutes",d:"~5 activités · rythme intensif",per:5,min:30}
 ];
 const FREQS=[
-  {k:7,i:'7',t:"Tous les jours",d:"Sept jours sur sept · ~30 jours"},
+  {k:7,i:'7',t:"Tous les jours",d:"Sept jours sur sept"},
   {k:5,i:'5',t:"En semaine",d:"Du lundi au vendredi"},
   {k:3,i:'3',t:"3 jours / semaine",d:"Lundi, mercredi, vendredi"},
   {k:2,i:'2',t:"2 jours / semaine",d:"Lundi et jeudi"}
@@ -29127,7 +29129,6 @@ const FREQS=[
 const PATTERN={2:[1,4],3:[1,3,5],5:[1,2,3,4,5],7:[0,1,2,3,4,5,6]};
 const JOURS=['D','L','M','M','J','V','S'];
 const MIN_PAR_ACTIVITE=6;
-const DUREE_PARCOURS_JOURS=30;
 let draft={niveau:null,rythme:null,freq:null};
 let semaineOffset=0,jourSel=null;
 let planToolsOpen=false;
@@ -29174,9 +29175,11 @@ function distribuerSessions(pool,dates){
   const per=Math.ceil(pool.length/n);
   return dates.map((d,i)=>({d,lessons:pool.slice(i*per,(i+1)*per)}));
 }
+/* Réf. 5 (3 novembre, 17 h 32 : « vérifie bien que la page s’adapte si on met autre chose que 30 min »). Le parcours ne faisait
+   jamais moins de 30 séances : 20 et 30 minutes donnaient le même planning (3 leçons par jour, puis des jours vides en fin de
+   parcours) et la même date de fin. La durée suit maintenant le rythme : 2, 3 ou 5 activités par séance (10, 20 ou 30 minutes). */
 function nbSeancesDefaut(pool,perPref){
-  const nRythme=Math.max(1,Math.ceil((pool.length||1)/Math.max(1,perPref)));
-  return Math.max(nRythme,DUREE_PARCOURS_JOURS);
+  return Math.max(1,Math.ceil((pool.length||1)/Math.max(1,perPref)));
 }
 function libelleJour(iso){
   const d=parseD(iso),t=auj(),diff=Math.round((d-t)/86400000);
@@ -29537,8 +29540,11 @@ function leconsDepuis(fromId){
   return allLessons.slice(i<0?0:i).map(l=>l.id);
 }
 /* Le planning ne contient plus que des leçons : les défis se font dans Pratiquer → Défis (Elisa, 30 octobre, 22 h 11). */
+/* 3 novembre, 17 h 32 (Elisa) : « commencer toujours par la même leçon, car c’est le début ». Quel que soit le niveau choisi, un
+   nouveau parcours part de la première leçon ; le niveau règle la difficulté des défis (niveauCompte). Les parcours déjà créés
+   gardent leur point de départ (nettoyerPlan lit encore NIVEAUX[].from). */
 function buildMixPool(niveau){
-  const from=(NIVEAUX.find(n=>n.k===niveau)||NIVEAUX[0]).from;
+  const from=allLessons.length?allLessons[0].id:0;
   return leconsDepuis(from);
 }
 function apercuPlan(niveau,rythme,freq){
@@ -30086,7 +30092,7 @@ function renderSetup(){
   const pret=draft.niveau&&draft.rythme&&draft.freq;
   return `<div class="pl-setup">
     <div class="pl-intro">${PL_STK_CAL}<b>Ton planning personnalisé</b>
-      <p>Niveau, minutes, jours — parcours étalé sur ~${DUREE_PARCOURS_JOURS} jours par défaut. Les défis restent dans Pratiquer, à faire quand tu veux. Tu pourras tout ajuster après.</p></div>
+      <p>Niveau, minutes, jours — la durée du parcours suit ton rythme. Les défis restent dans Pratiquer, à faire quand tu veux. Tu pourras tout ajuster après.</p></div>
     ${bloc("Où en es-tu ?","niveau",NIVEAUX,o=>o.k)}
     ${bloc("Combien de minutes par séance ?","rythme",RYTHMES,o=>o.k)}
     ${bloc("Combien de jours par semaine ?","freq",FREQS,o=>o.k)}
@@ -32649,6 +32655,8 @@ function obPick(champ,val){
   if(obLock)return;
   if(!['niveau','rythme','goal','ageRange','job'].includes(champ))return;
   draft[champ]=val;
+  /* Un autre objectif, niveau ou rythme change le parcours : il se reconstruit, en animation, à la prochaine étape « build ». */
+  if(champ==='niveau'||champ==='rythme'||champ==='goal')draft.buildDone=false;
   if(champ==='source'&&val!=='referral')draft.referral='';
   buzz('light');
   paintOb();
@@ -32666,13 +32674,25 @@ function obPseudoTape(el){
   obInput('pseudo',h);
 }
 function obInput(champ,val){
-  if(champ==='name'){draft.name=String(val||'').slice(0,32);obNamePreview();}
+  if(champ==='name'){draft.name=String(val||'').slice(0,32);obNamePreview();obNameCta();}
   /* La mini-page du pseudo : vérifié en direct. */
   if(champ==='pseudo'){draft.pseudo=psForme(val);const next=document.getElementById('ob-next');if(next&&OB_SLIDES[obStep]==='pseudo')next.disabled=!draft.pseudo;psVerif('ob',draft.pseudo);}
   if(champ==='referral')draft.referral=String(val||'').slice(0,80);
 }
+/* « À la requête, mets une animation » (3 novembre, 17 h 32). L’appui sur « Exécuter » : le bouton tourne (« Exécution… ») pendant
+   qu’un trait balaie la requête, puis la vraie requête part sur la base du cours et le résultat se déplie (obPracticeRun). */
+let obPracticeBusy=false;
 function obRunPractice(){
-  if(draft.practiceDone)return;
+  if(draft.practiceDone||obPracticeBusy)return;
+  const reduce=prefersReduceMotion(),st=obStep;
+  const card=document.querySelector('#ob-body .ob-practice-card'),btn=document.getElementById('ob-practice-run');
+  if(card){card.classList.remove('is-typing');card.classList.add('is-running');}
+  if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');const l=btn.querySelector('.ob-practice-lbl');if(l)l.textContent='Exécution…';}
+  if(typeof buzz==='function')buzz('light');
+  obPracticeBusy=true;
+  setTimeout(()=>{obPracticeBusy=false;if(obStep===st&&OB_SLIDES[obStep]==='practice')obPracticeRun();},reduce?0:760);
+}
+function obPracticeRun(){
   try{
     const result=db.exec("SELECT id, prenom, ville FROM clients WHERE ville = 'Paris' ORDER BY id;")[0];
     draft.practiceRows=result&&Array.isArray(result.values)?result.values:[];
@@ -32680,28 +32700,70 @@ function obRunPractice(){
   }catch(e){
     draft.practiceRows=[];
     draft.practiceDone=false;
+    /* Le moteur SQL n’a pas démarré : sans « Passer l’essai », « Continuer » reste possible (obAfterPractice). */
+    draft.practiceFailed=true;
   }
-  buzz('success');
+  const reduce=prefersReduceMotion();
+  draft.practiceJust=draft.practiceDone;
+  if(typeof buzz==='function')buzz(draft.practiceDone?'success':'light');
   paintOb();
   const root=document.getElementById('onboarding');
-  if(root&&draft.practiceDone&&!prefersReduceMotion()){root.classList.remove('ob-cheer');void root.offsetWidth;root.classList.add('ob-cheer');setTimeout(()=>root.classList.remove('ob-cheer'),1100);}
+  if(root&&draft.practiceDone&&!reduce){
+    root.classList.remove('ob-cheer');void root.offsetWidth;root.classList.add('ob-cheer');setTimeout(()=>root.classList.remove('ob-cheer'),1100);
+    document.querySelector('#ob-body .ob-bubble')?.classList.add('is-new');
+  }
+  /* Le nombre de lignes monte de 0 à sa valeur pendant que les lignes arrivent. */
+  const nb=document.querySelector('#ob-body .ob-practice-n');
+  if(nb&&!reduce){
+    const n=+nb.dataset.n||0,t0=performance.now()+120,T=520;
+    const tick=()=>{if(!nb.isConnected)return;const k=Math.max(0,Math.min(1,(performance.now()-t0)/T));nb.textContent=Math.round(n*k);if(k<1)requestAnimationFrame(tick);};
+    nb.textContent='0';requestAnimationFrame(tick);
+  }
   /* Le résultat s'ajoute sous la requête : on l'amène dans le champ de vision
      pour que la réussite soit vue, pas seulement annoncée. */
   requestAnimationFrame(()=>{
     const res=document.querySelector('.ob-practice-result');
-    if(res)res.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'});
+    if(res)res.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'});
   });
 }
 function obCanNext(){return true;}
+/* Le prénom est demandé sans « Passer » (17 h 32) : « Continuer » s’allume dès qu’il est tapé ; Entrée sur un champ vide le fait vibrer. */
+function obNameCta(){
+  const next=document.getElementById('ob-next');
+  if(!next||OB_SLIDES[obStep]!=='name')return;
+  const was=next.disabled;next.disabled=!(draft.name||'').trim();
+  if(was&&!next.disabled)obCtaWake(next);
+}
+function obNameNext(){
+  if((draft.name||'').trim()){obGoto('age');return;}
+  const f=document.querySelector('#ob-body .ob-field');
+  if(f&&!prefersReduceMotion()){f.classList.remove('is-shake');void f.offsetWidth;f.classList.add('is-shake');}
+  document.getElementById('ob-prenom')?.focus({preventScroll:true});
+}
+let obCheerT=null;
 function obNamePreview(){
   const box=document.getElementById('ob-name-greet'),ini=document.getElementById('ob-name-initial'),wrap=document.getElementById('ob-name-preview');
   if(!box||!ini)return;
   const n=(draft.name||'').trim();
   /* L'aperçu n'apparaît qu'une fois le prénom tapé : pas d'initiale fictive. Quand il apparaît ou disparaît, l'écran se
      réajuste (obFit) pour tout garder sans défiler. */
-  if(wrap){const was=wrap.hidden;wrap.hidden=!n;if(was!==wrap.hidden&&typeof obFit==='function')obFit();}
-  ini.textContent=(n.charAt(0)||'').toUpperCase();
-  box.textContent=n?`Enchantée, ${n} !`:'';
+  /* 17 h 32 : « Enchantée, Elisa ! J’ai hâte d’en savoir plus sur toi », de façon animée : la carte arrive d’un rebond, l’initiale
+     tourne sur elle-même, les deux phrases glissent l’une après l’autre, le prénom se souligne, deux étoiles scintillent et la
+     mascotte saute de joie. Une seule fois par apparition : taper la suite du prénom met seulement le texte à jour. */
+  /* Le texte d’abord, puis la mesure (obFit) : la carte est mesurée à sa vraie hauteur, deux lignes comprises. */
+  ini.textContent=(Array.from(n)[0]||'').toUpperCase();
+  box.innerHTML=n?`Enchantée, <em>${esc(n)}</em>&nbsp;!`:'';
+  if(wrap){
+    const was=wrap.hidden;wrap.hidden=!n;
+    if(was!==wrap.hidden){
+      if(n&&!prefersReduceMotion()){
+        wrap.classList.remove('is-in');void wrap.offsetWidth;wrap.classList.add('is-in');
+        const root=document.getElementById('onboarding');
+        if(root){root.classList.remove('ob-cheer');void root.offsetWidth;root.classList.add('ob-cheer');clearTimeout(obCheerT);obCheerT=setTimeout(()=>root.classList.remove('ob-cheer'),900);}
+      }
+      if(typeof obFit==='function')obFit();
+    }else if(n&&typeof obFit==='function'&&document.getElementById('ob-body')?.scrollHeight>document.getElementById('ob-body')?.clientHeight+1)obFit();
+  }
 }
 /* L'accueil tape une vraie requête de la base du cours : la promesse
    « le SQL s'apprend en le pratiquant » devient visible dès la première seconde. */
@@ -32759,55 +32821,67 @@ function obLevelHint(){
 /* Chemin en quatre étapes : ce que le niveau choisi considère acquis, le
    point de départ, la suite. Remplace un graphique décoratif par une
    information qui réagit au choix. */
+/* 3 novembre, 17 h 32 (Elisa) : « commencer toujours par la même leçon, car c’est le début ». Quel que soit le niveau, le parcours
+   part de la première étape ; le niveau choisi règle la difficulté des défis (niveauCompte, jeuNivAuto). */
 function obLevelPath(){
   const stages=['SELECT','Filtres & tris','Jointures','Analyses'];
-  const start={debutant:0,bases:1,inter:3}[draft.niveau]||0;
-  const steps=stages.map((s,i)=>{
-    const cls=i<start?'done':i===start?'start':'';
-    const ico=i<start?'✓':i===start?'▶':'';
-    return `<div class="ob-path-step ${cls}"><i aria-hidden="true">${ico}</i><span>${s}</span></div>`;
-  }).join('');
-  const note=start===0
-    ?'Tu pars du début : chaque notion arrive dans l’ordre.'
-    :`<b>${start===1?'Une étape':start+' étapes'}</b> considérée${start>1?'s':''} acquise${start>1?'s':''} · le parcours démarre plus loin.`;
+  const start=0,defi={bases:'Moyen',inter:'Difficile'}[draft.niveau]||'';
+  const steps=stages.map((s,i)=>`<div class="ob-path-step ${i===start?'start':''}"><i aria-hidden="true">${i===start?'▶':''}</i><span>${s}</span></div>`).join('');
+  const note=defi
+    ?`Départ à la première leçon, comme tout le monde · tes défis seront de niveau <b>${defi}</b>.`
+    :'Tu pars du début : chaque notion arrive dans l’ordre.';
   return `<div class="ob-path" role="img" aria-label="Parcours en quatre étapes : ${stages.join(', ')}. Départ à ${stages[start]}."><div class="ob-path-track">${steps}</div><small class="ob-path-note">${note}</small></div>`;
 }
 /* Ce que le plan réellement généré contient : départ, leçons, séances, date de fin, niveau des défis, modules. */
 function obPlanInfo(){
   const niv=draft.niveau||'debutant',ryt=RYTHMES.find(r=>r.k===(draft.rythme||'regulier'))||RYTHMES[1],freq=draft.freq||7;
   let p={sessions:[]};try{p=apercuPlan(niv,ryt.k,freq);}catch(e){}
-  const ids=[].concat(...p.sessions.map(x=>x.lessons||[])).filter(id=>!isDefiId(id));
+  /* Réf. 5 (17 h 32) : les jours et la date de fin sont ceux des séances qui ont vraiment des leçons : ils changent avec le rythme
+     (10, 20 ou 30 minutes), comme le planning qui sera créé. */
+  const pleines=p.sessions.filter(x=>(x.lessons||[]).length);
+  const ids=[].concat(...pleines.map(x=>x.lessons)).filter(id=>!isDefiId(id));
   const first=allLessons.find(l=>l.id===ids[0]);
-  const last=p.sessions.length?p.sessions[p.sessions.length-1].d:dstr(auj());
+  const last=pleines.length?pleines[pleines.length-1].d:dstr(auj());
   const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);
   const end=parseD(last),endLabel=(end.getDate()===1?'1er':end.getDate())+' '+end.toLocaleDateString('fr-FR',{month:'long'});
-  const startId=(NIVEAUX.find(n=>n.k===niv)||NIVEAUX[0]).from,startMod=moduleDeLecon(startId);
+  /* Tout le monde part de la première leçon (17 h 32) : le départ est la première leçon du plan, aucun module n’est sauté. */
+  const startId=ids.length?ids[0]:(allLessons[0]||{}).id,startMod=moduleDeLecon(startId);
   let seen=false;
   const modules=MODULES.map(m=>{const start=m===startMod;if(start)seen=true;return {t:m.titre,start,skip:!seen};});
   const rank={debutant:1,bases:2,inter:4}[niv]||1;
   return {goal:(OB_GOALS.find(g=>g[0]===draft.goal)||[])[1]||'Progresser en SQL',first:first?first.titre:'SELECT',lessons:ids.length,
-    sessions:p.sessions.length,minutes:obRythmeMinutes(ryt),freqLabel:(FREQS.find(f=>f.k===freq)||FREQS[0]).t,days,endLabel,
+    sessions:pleines.length,minutes:obRythmeMinutes(ryt),freqLabel:(FREQS.find(f=>f.k===freq)||FREQS[0]).t,days,endLabel,
     defiNiv:rank>=4?'Difficile':rank>=2?'Moyen':'Facile',modules};
 }
-/* La construction : 5 briques en 2,4 s, la barre de 0 à 100 %, puis le bouton s’allume. */
+/* La construction : 5 briques en 3 s, la barre de 0 à 100 %, puis le bouton s’allume. 17 h 32 (« l’effet waouh ») : la brique en
+   cours s’allume et sa pastille tourne, chaque brique terminée se coche d’un rebond (petite vibration), le pourcentage monte avec la
+   barre rayée ; à la fin, le titre change, des étincelles partent du bout de la barre et la mascotte saute de joie. Revenir sur
+   l’étape (« Retour ») la montre construite tout de suite, sans tout rejouer. */
 function obRunBuild(){
-  const reduce=prefersReduceMotion(),T=reduce?0:2400;
-  const t0=performance.now();
+  const reduce=prefersReduceMotion(),again=!!draft.buildDone,T=reduce||again?0:3000;
+  const t0=performance.now()+(T?380:0);
+  let done=0;
   const tick=()=>{
     if(OB_SLIDES[obStep]!=='build')return;
-    const k=T?Math.min(1,(performance.now()-t0)/T):1;
+    const k=T?Math.max(0,Math.min(1,(performance.now()-t0)/T)):1;
     const f=document.getElementById('ob-build-fill'),pc=document.getElementById('ob-build-pct');
-    if(f)f.style.transform=`scaleX(${k})`;
+    if(f)f.style.clipPath=`inset(0 ${(100-k*100).toFixed(2)}% 0 0 round 99px)`;
     if(pc)pc.textContent=Math.round(k*100)+' %';
-    document.querySelectorAll('#ob-body .ob-build-list li').forEach((li,i)=>li.classList.toggle('is-done',k>=(i+1)/5-.02));
-    document.querySelectorAll('#ob-body .ob-build-path span').forEach((sp,i,all)=>sp.classList.toggle('is-in',k>=i/all.length));
-    if(k<1){obDemoTimers.push(setTimeout(tick,40));return;}
+    const lis=document.querySelectorAll('#ob-body .ob-build-list li'),n=lis.length||5;
+    let nd=0;
+    lis.forEach((li,i)=>{const ok=k>=(i+1)/n-.02;if(ok)nd++;li.classList.toggle('is-done',ok);li.classList.toggle('is-active',!ok&&k>=i/n);});
+    if(nd>done){done=nd;if(k<1&&T&&typeof buzz==='function')buzz('selection');}
+    document.querySelectorAll('#ob-body .ob-build-path span').forEach((sp,i,all)=>sp.classList.toggle('is-in',k>=i/all.length*.9));
+    if(k<1){obDemoTimers.push(setTimeout(tick,32));return;}
     const btn=document.getElementById('ob-next');if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}
     document.querySelector('#ob-body .ob-build')?.classList.add('is-built');
-    if(pc)pc.textContent='Parcours construit ✓';
-    if(typeof buzz==='function')buzz('success');
+    if(pc)pc.textContent='100 %';
+    const lbl=document.getElementById('ob-build-k');if(lbl)lbl.textContent='Parcours construit';
+    const t=document.getElementById('ob-title');if(t){t.innerHTML='Ton parcours<br>est <em>construit</em>&nbsp;!';if(T)t.classList.add('is-swap');}
+    if(T&&typeof buzz==='function')buzz('success');
+    draft.buildDone=true;
   };
-  obDemoTimers.push(setTimeout(tick,reduce?0:300));
+  obDemoTimers.push(setTimeout(tick,T?Math.round(t0-performance.now()):0));
 }
 /* Le grand chiffre monte de 0 à sa valeur. */
 function obRunBig(){
@@ -33022,7 +33096,8 @@ function paintOb(){
       <p class="ob-lead">Écris tes requêtes sur une vraie base SQLite, exécute-les dans ton navigateur et vois aussitôt le résultat. Rien à installer. Choisis ton parcours en quelques étapes.</p>
       <div class="ob-welcome-demo" aria-hidden="true"><div class="ob-code"><div class="oc-bar"><i></i><i></i><i></i><em>requete.sql</em></div><pre class="oc-code" id="ob-demo-code"></pre><div class="oc-res" id="ob-demo-res" hidden><i>✓</i> ${plur(nParis,'client')} à Paris</div></div></div>
       <div class="ob-proof-stats" aria-label="L’apprentissage en bref"><div><strong>${TOTAL}</strong><span>leçons guidées</span></div><div><strong>${nDefis}</strong><span>défis pratiques</span></div><div><strong>SQLite</strong><span>dans ton navigateur</span></div></div></div>`;
-    obSetFooter('Personnaliser mon parcours',()=>obGoto('name'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'Ta progression est enregistrée sur cet appareil. Aucun compte n’est nécessaire.');
+    /* 17 h 32 (Réf. 8, « c’est un mode avec compte, justement ») : plus de « Aucun compte n’est nécessaire » : le pseudo se choisit à la fin. */
+    obSetFooter('Personnaliser mon parcours',()=>obGoto('name'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'Ta progression est enregistrée sur cet appareil.');
   }else if(slide==='account'){
     const message=obAuthMessage?`<p class="ob-auth-message" role="status">${esc(obAuthMessage)}</p>`:'';
     html=`<div class="ob-screen ob-account">${obFlowHeader(slide)}${obMascotQuestion('Ta première requête est réussie ! Veux-tu la retrouver sur tous tes appareils ?')}<h1 class="ob-title" id="ob-title">Garde ta progression.</h1>
@@ -33036,14 +33111,17 @@ function paintOb(){
   }else if(slide==='name'){
     /* Le prénom (Elisa, 31 octobre, 17 h 53 : « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour
        le choix du pseudo ») : il sert à saluer ; le pseudo, unique et public, se choisit après l’onboarding (étape « pseudo »). */
+    /* 3 novembre, 17 h 32 : « ne pas mettre ces textes en petit (il sert à te saluer…, 1 question facultative…), enlève les notions de
+       facultatif ; Enchantée Elisa ! J’ai hâte d’en savoir plus sur toi, de façon animée ». Plus de texte d’aide ni de « Passer » :
+       « Continuer » s’allume dès que le prénom est tapé, et l’accueil à son nom arrive en animation (obNamePreview). La mascotte dit
+       « Salut ! » : « Enchantée » est gardé pour l’accueil au prénom, qui le dit juste en dessous. */
     const nameValue=esc(draft.name||'').replace(/"/g,'&quot;');
     html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
-      ${obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')}
-      <label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32" value="${nameValue}" placeholder="Ex. Léa" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obGoto('age');}"></label>
-      <div class="ob-name-preview" id="ob-name-preview" aria-hidden="true"><span class="ob-name-initial" id="ob-name-initial"></span><span id="ob-name-greet"></span></div>
-      <p class="ob-helper">${psMien()?'Il sert à te saluer. Tu pourras le modifier plus tard.':'Il sert à te saluer. Ton pseudo, celui que tes amis verront, se choisit à la fin.'}</p></div>`;
-    obSetFooter('Continuer',()=>obGoto('age'),'Passer pour le moment',()=>obGoto('age'),'1 question facultative · tes réponses restent modifiables');
+      ${obMascotQuestion('Salut ! Comment dois-je t’appeler ?')}
+      <label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32" value="${nameValue}" placeholder="Ex. Léa" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obNameNext();}"></label>
+      <div class="ob-name-preview" id="ob-name-preview" aria-hidden="true" hidden><span class="ob-name-initial" id="ob-name-initial"></span><span class="ob-name-msg"><b id="ob-name-greet"></b><span class="ob-name-sub">J’ai hâte d’en savoir plus sur toi.</span></span><i class="ob-name-spark"></i><i class="ob-name-spark"></i></div></div>`;
+    obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());
   }else if(slide==='pseudo'){
     /* La mini-page du pseudo : la base dit en direct s’il est libre et en propose trois s’il est pris ; « C’est mon pseudo » le réserve.
        Le @ est posé dans le champ ; on tape en minuscules, sans espace (18 h 22). */
@@ -33061,12 +33139,13 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-age-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>
       ${obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')}
       <div class="ob-tiles ob-age-grid" role="radiogroup" aria-label="Ta tranche d’âge">${OB_AGES.map(([k,big,label],i)=>`<button type="button" role="radio" aria-checked="${draft.ageRange===k?'true':'false'}" aria-label="${escAttr(label)}" class="ob-tile ob-age-tile ${draft.ageRange===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('ageRange','${k}')"><b aria-hidden="true">${esc(big)}</b><small aria-hidden="true">ans</small></button>`).join('')}</div></div>`;
-    obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'Facultatif · reste sur cet appareil',!draft.ageRange);
+    /* 17 h 32 : « enlève les notions de facultatif » : ni « Passer » ni « Facultatif » ; « Continuer » s’allume au choix. */
+    obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange);
   }else if(slide==='job'){
     html=`<div class="ob-screen ob-profile ob-job-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>
       ${obMascotQuestion('Étudiant·e, en poste ou en reconversion : tout le monde a sa place ici.')}
       <div class="ob-tiles ob-job-grid" role="radiogroup" aria-label="Ta situation">${OB_JOBS.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.job===k?'true':'false'}" class="ob-tile ob-job-tile ${draft.job===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('job','${k}')">${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div></div>`;
-    obSetFooter('Continuer',()=>obGoto('goal'),'Passer',()=>obGoto('goal'),'Facultatif · reste sur cet appareil',!draft.job);
+    obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);
   }else if(slide==='goal'){
     html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
@@ -33076,22 +33155,31 @@ function paintOb(){
   }else if(slide==='level'){
     const levels=[['debutant','Je débute en SQL','bulb'],['bases','Je connais les bases','chart'],['inter','Je pratique déjà','trophy']];
     html=`<div class="ob-screen ob-profile ob-level">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Où en es-tu avec <em>SQL</em>&nbsp;?</h1>
-      ${obMascotQuestion('Je te ferai commencer au bon endroit.')}
+      ${obMascotQuestion('Dis-moi tout : tes défis suivront ton niveau.')}
       ${obAnswers(levels,'niveau',draft.niveau)}
       ${obLevelHint()}
       ${obLevelPath()}</div>`;
     obSetFooter('Continuer',()=>obGoto('rhythm'),'','','');
   }else if(slide==='practice'){
-    const practiceRows=(draft.practiceRows||[]).map((row,ri)=>row.map(value=>`<span style="--rd:${160+ri*110}ms">${esc(String(value))}</span>`).join('')).join('');
-    const result=draft.practiceDone?`<div class="ob-practice-result" role="status"><div><span>✓ Requête réussie</span><span>${draft.practiceRows.length} lignes</span></div><div class="ob-practice-table"><span class="head">id</span><span class="head">prenom</span><span class="head">ville</span>${practiceRows}</div></div>`:`<button type="button" class="ob-practice-run" onclick="obRunPractice()"><span aria-hidden="true">▶</span>Exécuter la requête</button>`;
+    /* 17 h 32 : « À la requête, mets une animation ». En arrivant, la requête se tape d’elle-même, ligne par ligne, avec son curseur,
+       puis « Exécuter » palpite. Après l’appui (obRunPractice), le résultat se déplie : « Requête réussie » se coche, le nombre de
+       lignes monte, les lignes arrivent l’une après l’autre et « Paris », le filtre du WHERE, s’allume ; le badge du premier succès se
+       pose en tampon. Plus de « Passer l’essai » ni de petit texte (« enlève les notions de facultatif »). */
+    const fresh=!!draft.practiceJust;draft.practiceJust=false;
+    const typing=!draft.practiceDone&&obJustEntered&&!prefersReduceMotion();
+    const rowsN=(draft.practiceRows||[]).length;
+    const practiceRows=(draft.practiceRows||[]).map((row,ri)=>row.map((value,ci)=>`<span${ci===2?' class="is-hit"':''} style="--rd:${220+ri*120}ms">${esc(String(value))}</span>`).join('')).join('');
+    const result=draft.practiceDone?`<div class="ob-practice-result${fresh?' is-new':''}" role="status"><div><span><i class="ob-practice-ok" aria-hidden="true"></i>Requête réussie</span><span><b class="ob-practice-n" data-n="${rowsN}">${rowsN}</b> ${rowsN>1?'lignes':'ligne'}</span></div><div class="ob-practice-table"><span class="head">id</span><span class="head">prenom</span><span class="head">ville</span>${practiceRows}</div></div>`
+      :`<button type="button" class="ob-practice-run" id="ob-practice-run" onclick="obRunPractice()"><span class="ob-practice-play" aria-hidden="true">▶</span><span class="ob-practice-lbl">Exécuter la requête</span></button>`;
     html=`<div class="ob-screen ob-profile ob-practice">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ta première requête.</h1>
       <p class="ob-lead">Pas besoin de tout connaître : observe ce que SQL renvoie.</p>
-      ${obMascotQuestion(draft.practiceDone?'Bravo ! Tu viens d’interroger la vraie base du cours.':'Appuie sur Exécuter pour trouver les clients de Paris.')}
-      <div class="ob-practice-card"><div class="ob-practice-head"><span>requete.sql</span><span>base du cours</span></div><pre class="ob-practice-code"><span class="kw">SELECT</span> <span class="field">id, prenom, ville</span>
-<span class="kw">FROM</span> clients
-<span class="kw">WHERE</span> ville = <span class="str">'Paris'</span>;</pre>${result}</div>
-      ${draft.practiceDone?'<p class="ob-practice-reward">Premier succès débloqué · tu apprendras toujours en pratiquant.</p>':''}</div>`;
-    obSetFooter(draft.practiceDone?'Continuer':'Exécute la requête pour continuer',()=>obGoto(obAfterPractice()),draft.practiceDone?'':'Passer l’essai',()=>obGoto(obAfterPractice()),draft.practiceDone?'':'Aucune erreur possible : cet essai est guidé.',!draft.practiceDone);
+      ${obMascotQuestion(draft.practiceDone?'Bravo ! Tu viens d’interroger la vraie base du cours.':draft.practiceFailed?'Le moteur SQL n’a pas pu démarrer ici : tu essaieras dans ta première leçon.':'Appuie sur Exécuter pour trouver les clients de Paris.')}
+      <div class="ob-practice-card${typing?' is-typing':''}"><div class="ob-practice-head"><span>requete.sql</span><span>base du cours</span></div><pre class="ob-practice-code"><span class="ob-tl" style="--n:24;--t:.53s;--dl:.32s"><span class="kw">SELECT</span> <span class="field">id, prenom, ville</span></span>
+<span class="ob-tl" style="--n:12;--t:.27s;--dl:.92s"><span class="kw">FROM</span> clients</span>
+<span class="ob-tl" style="--n:22;--t:.49s;--dl:1.26s"><span class="kw">WHERE</span> ville = <span class="str">'Paris'</span>;</span></pre>${result}</div>
+      ${draft.practiceDone?`<p class="ob-practice-reward${fresh?' is-new':''}">Premier succès débloqué · tu apprendras toujours en pratiquant.</p>`:''}</div>`;
+    const canGo=!!(draft.practiceDone||draft.practiceFailed);
+    obSetFooter(canGo?'Continuer':'Exécute la requête pour continuer',()=>obGoto(obAfterPractice()),'','','',!canGo);
   }else if(slide==='rhythm'){
     const subtitles={calme:'Pour garder le rythme',regulier:'Le bon équilibre',intensif:'Pour progresser plus vite'};
     html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>rythme</em> te convient&nbsp;?</h1>
@@ -33102,11 +33190,16 @@ function paintOb(){
   }else if(slide==='build'){
     /* Elisa, 1er novembre, 13 h 46 : « une page où on voit bien que le parcours se construit ». Les briques du parcours arrivent l’une
        après l’autre, cochées, pendant que la barre se remplit ; puis le bouton s’allume. Tout vient du plan réellement généré. */
+    /* 3 novembre, 17 h 32 : « améliorer la page "On construit ton parcours" pour l’effet waouh ; anime, micro-anime ». La mascotte
+       travaille à côté du titre, la barre rayée avance et le pourcentage monte ; chaque brique s’allume (pastille qui tourne) puis se
+       coche d’un rebond ; les modules se posent un à un. À 100 % : étincelles au bout de la barre, reflet, le titre devient « Ton
+       parcours est construit ! », la mascotte saute de joie et le bouton s’allume (obRunBuild). */
     const b=obPlanInfo();
     const rows=[['◎','Ton objectif',b.goal],['▶','Ton point de départ',b.first],['≡',`${b.lessons} leçons`,'dans le bon ordre, pour toi'],
       ['◷',`${plur(b.sessions,'séance')} de ${b.minutes} min`,b.freqLabel],['⚑','Tes défis',`au niveau ${b.defiNiv}`]];
-    html=`<div class="ob-screen ob-profile ob-build">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1>
-      <div class="ob-build-card"><div class="ob-build-bar" aria-hidden="true"><i id="ob-build-fill"></i></div><p class="ob-build-pct" id="ob-build-pct" aria-live="polite">0 %</p>
+    html=`<div class="ob-screen ob-profile ob-build">${obFlowHeader(slide)}<div class="ob-build-hero"><h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1><img class="ob-build-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false"></div>
+      <div class="ob-build-card"><div class="ob-build-top"><span class="ob-build-k" id="ob-build-k" role="status">Construction en cours…</span><b class="ob-build-pct" id="ob-build-pct" aria-hidden="true">0 %</b></div>
+        <div class="ob-build-track" aria-hidden="true"><div class="ob-build-bar"><i id="ob-build-fill"></i></div><span class="ob-build-burst">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--a:${i*45+22}deg"></i>`).join('')}</span></div>
         <ul class="ob-build-list">${rows.map(([ico,t,d],i)=>`<li style="--i:${i}"><span class="ob-build-ico" aria-hidden="true">${ico}</span><span><b>${esc(t)}</b><small>${esc(d)}</small></span><i class="ob-build-ok" aria-hidden="true"></i></li>`).join('')}</ul>
         <div class="ob-build-path" aria-hidden="true">${b.modules.map((m,i)=>`<span class="${m.skip?'is-skip':m.start?'is-start':''}" style="--i:${i}">${esc(m.t)}</span>`).join('')}</div></div></div>`;
     obSetFooter('Voir ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);
@@ -33152,14 +33245,20 @@ function paintOb(){
     const dates=new Set(p.sessions.map(s=>s.d)),d0=auj();
     const week=Array.from({length:7},(_,i)=>dates.has(dstr(addJ(d0,i))));
     const nWeek=week.filter(Boolean).length;
-    html=`<div class="ob-screen ready"><div class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    /* 3 novembre, 17 h 32 : « améliore la dernière page de manière animée ». La coche se trace dans son rond, deux ondes en partent ;
+       le prénom se souligne ; les lignes du récapitulatif arrivent l’une après l’autre, leur pastille rebondit ; les sept jours se
+       remplissent un à un, les jours de séance en jaune ; puis le bouton se réveille. Réf. 8 (« c’est un mode avec compte,
+       justement ») : plus de « Mode sans compte · sauvegardé sur cet appareil » sous les boutons. */
+    html=`<div class="ob-screen ready"><div class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path class="ob-success-tick" pathLength="1" d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><i></i><i></i></div>
       <h1 class="ob-title" id="ob-title">Ton parcours est prêt${firstName?', <em>'+esc(firstName)+'</em>':''}.</h1><p class="ob-lead">Commence par ta première leçon et avance jusqu’à ton objectif.</p>
       ${mascotMedalHtml({hi:'C’est parti\u00a0!',intro:!mascotReduced()})}
-      <div class="ob-ready-summary"><div class="ob-ready-row"><span class="ob-ready-ico">◎</span><div><small>Ton objectif</small><b>${esc(goalLabel)}</b></div></div>
-        <div class="ob-ready-row"><span class="ob-ready-ico">✓</span><div><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
-        <div class="ob-ready-row"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
-      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes 7 prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map(on=>`<i class="${on?'on':'rest'}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
-    obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'Mode sans compte · sauvegardé sur cet appareil');
+      <div class="ob-ready-summary"><div class="ob-ready-row" style="--i:0"><span class="ob-ready-ico">◎</span><div><small>Ton objectif</small><b>${esc(goalLabel)}</b></div></div>
+        <div class="ob-ready-row" style="--i:1"><span class="ob-ready-ico">✓</span><div><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
+        <div class="ob-ready-row" style="--i:2"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
+      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes 7 prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
+    obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
+    /* Le bouton se réveille une fois tout posé (coche, récapitulatif, semaine). */
+    if(obJustEntered&&!prefersReduceMotion())obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='ready')obCtaWake();},1650));
   }
   body.classList.remove('out');
   body.innerHTML=html;
@@ -34319,7 +34418,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-intro2-v2470';
+  const SW_CACHE='requete-2026-11-03-onboarding-anime-v2471';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
