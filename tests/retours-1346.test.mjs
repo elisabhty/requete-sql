@@ -48,13 +48,14 @@ test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton
 });
 
 test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l’engagement signé ; tout tient sur un écran', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];"));
   const ob = cut('function obPlanInfo(){', 'function obRhythmSummary(){');
   assert.ok(ob.includes("const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);"), 'le nombre de jours vient du plan réellement généré');
   assert.ok(ob.includes("if(ink>40){"), 'une vraie signature, pas un point');
-  assert.ok(ob.includes("for(const c of C){") && app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4'];"), 'se resserre par paliers tant que ça déborde');
+  assert.ok(ob.includes("for(const c of C){") && app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'se resserre par paliers tant que ça déborde');
   assert.ok(app.includes('<div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>'));
-  assert.ok(app.includes('<p class="ob-pact-k">Mon contrat d’apprentissage</p>'));
+  /* 3 novembre, 13 h 25 : « Mon engagement personnel » à la place de « Mon contrat d’apprentissage » (tests/onboarding-age-profession.test.mjs) */
+  assert.ok(app.includes('<p class="ob-pact-k">Mon engagement personnel</p>'));
   assert.ok(app.includes("obSetFooter('Je m’engage',()=>{draft.pacteAt=Date.now();obGoto('practice');},'Plus tard',()=>obGoto('practice'),'',!draft.pacte);"), '« Je m’engage » s’allume une fois signé');
   assert.ok(app.includes("...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})"), 'la signature reste sur l’appareil, dans le profil');
   const v = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
@@ -96,7 +97,7 @@ test('15 h 12 : la page de départ tient sur un écran, sans défilement ; elle 
 test('15 h 12 : l’onboarding repasse son ajustement une fois polices, images et démo posées ; 4e palier ; « Bientôt » ne couvre plus le texte', () => {
   assert.ok(app.includes('  body.scrollTop=0;\n  obFitSoon();'));
   assert.ok(app.includes("[350,900,1800].forEach(t=>setTimeout(again,t));"));
-  assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4'];"));
+  assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), '4e palier, puis un 5e pour l’engagement (3 novembre)');
   const ob = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
   assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-fit-4 .ob-sign{height:78px;margin-top:10px}'));
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-provider{grid-template-columns:28px minmax(0,1fr) auto!important;'));
