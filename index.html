@@ -7316,8 +7316,8 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #sgbd-back{z-index:84}
 #sgbd-sheet{z-index:85}
 </style>
-<link rel="stylesheet" href="safari-surface.css?v=7">
-<script src="safari-surface.js?v=7" defer></script>
+<link rel="stylesheet" href="safari-surface.css?v=8">
+<script src="safari-surface.js?v=8" defer></script>
 </head>
 <body>
 <div id="app">
@@ -22761,6 +22761,10 @@ function closeLessonVideo(instant){
   const done=()=>{ try{ if(video.destroy)video.destroy(); else{ video.removeAttribute('src'); video.load(); } }catch(e){} root.remove(); lvCardSync(id); };
   if(instant||prefersReduceMotion())done();
   else{ root.classList.remove('on'); setTimeout(done,320); }
+  /* La couleur du haut de Safari quitte le violet dès la fermeture, pas à la fin du fondu (Elisa, 3 novembre, 8 h 12 : « le violet
+     reste un peu même quand on quitte le cours »). */
+  root.classList.add('is-closing');
+  if(typeof window.rqSyncBrowserChrome==='function')window.rqSyncBrowserChrome();
   if(!instant){
     const card=document.querySelector('#lesson-body .lv-card');
     if(card)try{card.focus({preventScroll:true});}catch(e){}
@@ -33938,7 +33942,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-vitrine-v2460';
+  const SW_CACHE='requete-2026-11-03-teinte-v2461';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

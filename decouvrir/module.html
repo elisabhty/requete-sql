@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=b0fb7502">
+<link rel="stylesheet" href="vitrine.css?v=ab2425e1">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 /* Fiche d’un module (module.html?m=<id>), construite à partir de modules.js. Styles dans vitrine.css. */
@@ -108,13 +108,26 @@ document.documentElement.classList.add('js');
 /* Barre de navigation : transparente sur l’en-tête violet, claire dès qu’on défile ou quand le menu est ouvert */
 (function(){
   var nav=document.getElementById('nav'),b=document.getElementById('burger'),menu=document.getElementById('menu');
-  var on=function(){nav.classList.toggle('scrolled',scrollY>8||!menu.hidden);};
+  /* Safari 26 teinte la zone de l’heure avec le fond de l’élément fixe qui touche le haut ; la barre, transparente sur le violet,
+     y laissait une bande claire (Elisa, 3 novembre, 8 h 12). Un repère vide, invisible, porte la couleur du haut : violet sur
+     l’en-tête, clair dès qu’on défile. */
+  var teinte=document.getElementById('nav-teinte'),meta=document.querySelector('meta[name="theme-color"]');
+  if(!teinte){teinte=document.createElement('div');teinte.id='nav-teinte';teinte.setAttribute('aria-hidden','true');document.body.appendChild(teinte);}
+  var on=function(){
+    var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
+    var c=s||!document.querySelector('.hero,.mh,.lg-hero')?'#F7F6FD':'#6E50F6';
+    if(teinte.dataset.c===c)return;
+    teinte.dataset.c=c;teinte.style.backgroundColor=c;if(meta)meta.content=c;
+    teinte.style.height='13px';requestAnimationFrame(function(){requestAnimationFrame(function(){teinte.style.height='12px';});});
+  };
   var ouvrir=function(o){menu.hidden=!o;b.setAttribute('aria-expanded',o);on();};
   b.addEventListener('click',function(){ouvrir(menu.hidden);});
   menu.addEventListener('click',function(e){if(e.target.closest('a'))ouvrir(false);});
   addEventListener('keydown',function(e){if(e.key==='Escape'&&!menu.hidden){ouvrir(false);b.focus();}});
   addEventListener('resize',function(){if(innerWidth>=960&&!menu.hidden)ouvrir(false);});
   addEventListener('scroll',on,{passive:true});on();
+  /* La fiche d’un parcours dessine son en-tête violet après ce script : on relit la couleur une fois la page posée. */
+  requestAnimationFrame(on);addEventListener('load',on);addEventListener('pageshow',function(){teinte.dataset.c='';on();});
 })();
 
 /* Fiche du module demandé (?m=sql par défaut) */
