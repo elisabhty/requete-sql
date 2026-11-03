@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=1c06dc3a">
+<link rel="stylesheet" href="vitrine.css?v=c3e4b4cb">
 <script>document.documentElement.classList.add('js')</script>
 <script src="../assets/curseur.js?v=60b94b87" defer></script>
 </head>
@@ -134,19 +134,20 @@ document.documentElement.classList.add('js');
 /* Barre de navigation : transparente sur l’en-tête violet, claire dès qu’on défile ou quand le menu est ouvert */
 (function(){
   var nav=document.getElementById('nav'),b=document.getElementById('burger'),menu=document.getElementById('menu');
-  /* La zone de l’heure (Elisa, 3 novembre, 8 h 12 puis 8 h 24) : Safari 26 la peint avec le fond de l’élément fixe qui touche le
-     haut. Comme dans l’appli, un repère vide et invisible porte la couleur du haut, et le fond de <html> prend la même : sans lui,
-     un trait clair restait entre la zone de l’heure et l’en-tête. Violet sur l’en-tête, clair une fois l’en-tête dépassé. */
+  /* La zone de l’heure, transparente (Elisa, 3 novembre, 8 h 12 → 8 h 27). Safari 26 (WebKit, LocalFrameView::fixedContainerEdges)
+     sonde le milieu du bord haut : s’il y trouve un élément fixe ou collant, il peint la zone en aplat (la couleur de l’élément, ou
+     celle de la page s’il est transparent), d’où la « barre ». Sur l’en-tête violet, la barre de navigation ne compte plus
+     (transparente et pointer-events:none, voir vitrine.css) : la page passe sous l’heure, comme une appli. Au-dessus du haut de la
+     page, Safari montre alors le fond de <body> : violet tout en haut, clair dès qu’on défile (le contenu, lui, a son fond, voir
+     vitrine.css) ; <html> prend le même,
+     sinon un trait de 1 px apparaît au bord du document. Une fois la barre claire, elle se prolonge sous l’heure. */
   var meta=document.querySelector('meta[name="theme-color"]'),fond='';
-  var teinte=document.getElementById('nav-teinte');
-  if(!teinte){teinte=document.createElement('div');teinte.id='nav-teinte';teinte.setAttribute('aria-hidden','true');document.body.appendChild(teinte);}
   var on=function(){
     var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
     var hero=document.querySelector('.hero,.mh,.lg-hero');
-    var c=hero&&!s?'#6E50F6':'#F7F6FD';
+    var c=hero&&scrollY<=8&&menu.hidden?'#6E50F6':'#F7F6FD';
     if(fond===c)return;fond=c;
-    document.documentElement.style.backgroundColor=c;teinte.style.backgroundColor=c;if(meta)meta.content=c;
-    teinte.style.height='13px';requestAnimationFrame(function(){requestAnimationFrame(function(){teinte.style.height='12px';});});
+    document.documentElement.style.backgroundColor=c;document.body.style.backgroundColor=c;if(meta)meta.content=c;
   };
   var ouvrir=function(o){menu.hidden=!o;b.setAttribute('aria-expanded',o);on();};
   b.addEventListener('click',function(){ouvrir(menu.hidden);});
@@ -155,7 +156,7 @@ document.documentElement.classList.add('js');
   addEventListener('resize',function(){if(innerWidth>=960&&!menu.hidden)ouvrir(false);});
   addEventListener('scroll',on,{passive:true});on();
   /* La fiche d’un parcours dessine son en-tête violet après ce script : on relit la couleur une fois la page posée. */
-  requestAnimationFrame(on);addEventListener('load',on);addEventListener('pageshow',function(){fond='';on();});
+  requestAnimationFrame(on);addEventListener('load',on);addEventListener('pageshow',function(){fond='';on();});addEventListener('resize',on,{passive:true});
 })();
 
 
@@ -168,19 +169,20 @@ document.documentElement.classList.add('js');
 /* Barre de navigation et menu */
 (function(){
   var nav=document.getElementById('nav'),b=document.getElementById('burger'),menu=document.getElementById('menu');
-  /* La zone de l’heure (Elisa, 3 novembre, 8 h 12 puis 8 h 24) : Safari 26 la peint avec le fond de l’élément fixe qui touche le
-     haut. Comme dans l’appli, un repère vide et invisible porte la couleur du haut, et le fond de <html> prend la même : sans lui,
-     un trait clair restait entre la zone de l’heure et l’en-tête. Violet sur l’en-tête, clair une fois l’en-tête dépassé. */
+  /* La zone de l’heure, transparente (Elisa, 3 novembre, 8 h 12 → 8 h 27). Safari 26 (WebKit, LocalFrameView::fixedContainerEdges)
+     sonde le milieu du bord haut : s’il y trouve un élément fixe ou collant, il peint la zone en aplat (la couleur de l’élément, ou
+     celle de la page s’il est transparent), d’où la « barre ». Sur l’en-tête violet, la barre de navigation ne compte plus
+     (transparente et pointer-events:none, voir vitrine.css) : la page passe sous l’heure, comme une appli. Au-dessus du haut de la
+     page, Safari montre alors le fond de <body> : violet tout en haut, clair dès qu’on défile (le contenu, lui, a son fond, voir
+     vitrine.css) ; <html> prend le même,
+     sinon un trait de 1 px apparaît au bord du document. Une fois la barre claire, elle se prolonge sous l’heure. */
   var meta=document.querySelector('meta[name="theme-color"]'),fond='';
-  var teinte=document.getElementById('nav-teinte');
-  if(!teinte){teinte=document.createElement('div');teinte.id='nav-teinte';teinte.setAttribute('aria-hidden','true');document.body.appendChild(teinte);}
   var on=function(){
     var s=scrollY>8||!menu.hidden;nav.classList.toggle('scrolled',s);
     var hero=document.querySelector('.hero,.mh,.lg-hero');
-    var c=hero&&!s?'#6E50F6':'#F7F6FD';
+    var c=hero&&scrollY<=8&&menu.hidden?'#6E50F6':'#F7F6FD';
     if(fond===c)return;fond=c;
-    document.documentElement.style.backgroundColor=c;teinte.style.backgroundColor=c;if(meta)meta.content=c;
-    teinte.style.height='13px';requestAnimationFrame(function(){requestAnimationFrame(function(){teinte.style.height='12px';});});
+    document.documentElement.style.backgroundColor=c;document.body.style.backgroundColor=c;if(meta)meta.content=c;
   };
   var ouvrir=function(o){menu.hidden=!o;b.setAttribute('aria-expanded',o);on();};
   b.addEventListener('click',function(){ouvrir(menu.hidden);});
@@ -189,7 +191,7 @@ document.documentElement.classList.add('js');
   addEventListener('resize',function(){if(innerWidth>=960&&!menu.hidden)ouvrir(false);});
   addEventListener('scroll',on,{passive:true});on();
   /* La fiche d’un parcours dessine son en-tête violet après ce script : on relit la couleur une fois la page posée. */
-  requestAnimationFrame(on);addEventListener('load',on);addEventListener('pageshow',function(){fond='';on();});
+  requestAnimationFrame(on);addEventListener('load',on);addEventListener('pageshow',function(){fond='';on();});addEventListener('resize',on,{passive:true});
 })();
 </script>
 <script>
