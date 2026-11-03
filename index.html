@@ -13,6 +13,13 @@
   if(ls.getItem('rq-vu-appli'))return;
   location.replace('decouvrir/');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
+     safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
+<script>(function(){try{var u=navigator.userAgent,m=u.match(/Version\/(\d+)/),v=m?+m[1]:0,
+  ios=/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1),
+  inst=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone,
+  nat=window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform();
+  if(ios&&v>=26&&/Safari\//.test(u)&&!inst&&!nat)document.documentElement.classList.add('safari-glass');}catch(e){}})();</script>
 <title>Requête — Apprends le SQL</title>
 <meta name="description" content="Apprends le SQL en écrivant des requêtes sur une base SQLite interactive. Leçons courtes, défis pratiques et console dans ton navigateur, sans installation.">
 <!-- 22 h 24 : la couleur du haut de l’écran de chargement, le premier écran (violet) ; safari-surface.js la met ensuite à jour à chaque écran. -->
@@ -7323,12 +7330,14 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #sgbd-back{z-index:84}
 #sgbd-sheet{z-index:85}
 </style>
-<link rel="stylesheet" href="safari-surface.css?v=11">
+<link rel="stylesheet" href="safari-surface.css?v=12">
 <!-- Toutes les tailles d’écran (3 novembre) : chargé en dernier, il décide de la mise en page du téléphone au grand écran. -->
 <link rel="stylesheet" href="responsive.css?v=1">
-<script src="safari-surface.js?v=8" defer></script>
+<script src="safari-surface.js?v=9" defer></script>
 </head>
 <body>
+<!-- Repères de couleur des barres de Safari 26 (safari-surface.css et .js) : présents dès la première image. -->
+<div id="browser-status-sample" aria-hidden="true"></div><div id="browser-bottom-sample" aria-hidden="true"></div>
 <div id="app">
   <div id="loader"><i class="ld-spark s1" aria-hidden="true"></i><i class="ld-spark s2" aria-hidden="true"></i><i class="ld-spark s3" aria-hidden="true"></i>
     <div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>
@@ -34419,7 +34428,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-barres-v2472';
+  const SW_CACHE='requete-2026-11-03-barres-chargement-v2473';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

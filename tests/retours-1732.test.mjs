@@ -196,7 +196,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=11', 'onboarding-vitrine.css?v=6']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=6']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -212,4 +212,45 @@ test('22 h 24, « Regarde la barre » : l’écran de chargement aussi a un fond
   assert.ok(s.includes(`html #onboarding.ob-vitrine::before{\n  -webkit-mask-image:${fondu};`), 'le même fondu sur l’onboarding');
   /* Avant que safari-surface.js ne tourne, la couleur du navigateur est déjà celle du premier écran (violet), plus le lavande clair */
   assert.ok(app.includes('<meta name="theme-color" content="#6E50F6">') && !app.includes('<meta name="theme-color" content="#F4F2FC">'));
+});
+
+test('22 h 44, « ça le fait pendant 1 s » : les repères de couleur des barres sont là dès la première image', () => {
+  /* Créés par safari-surface.js (defer), ils n’existaient qu’une fois toute la page lue : pendant cette seconde, Safari teintait la
+     barre du bas avec le fond de body (le violet du haut). Ils sont maintenant dans la page, en tête de <body>, et Safari 26 est
+     reconnu dès le <head>. */
+  assert.ok(app.includes('<body>\n<!-- Repères de couleur des barres de Safari 26 (safari-surface.css et .js) : présents dès la première image. -->\n<div id="browser-status-sample" aria-hidden="true"></div><div id="browser-bottom-sample" aria-hidden="true"></div>\n<div id="app">'));
+  const s = sansCommentaires(surf);
+  assert.ok(s.includes('#browser-status-sample,#browser-bottom-sample{display:none}'), 'invisibles ailleurs');
+  assert.ok(s.includes('html.safari-glass #browser-status-sample{\n  display:block;position:fixed;inset:0 0 auto;') && s.includes('html.safari-glass #browser-bottom-sample{\n  display:block;position:fixed;inset:auto 0 0;'));
+  /* Le script du <head> reconnaît Safari 26 comme safari-surface.js : iPhone, Version/26 et plus, ni appli installée ni appli iOS */
+  const tete = app.slice(app.indexOf('<script>(function(){try{var u=navigator.userAgent,m=u.match('), app.indexOf('</script>', app.indexOf('<script>(function(){try{var u=navigator.userAgent,m=u.match('))).replace('<script>', '');
+  const essai = (ua, { standalone = false, capacitor = false, touch = 5 } = {}) => {
+    const classes = new Set();
+    const g = { navigator: { userAgent: ua, maxTouchPoints: touch, standalone: false }, matchMedia: () => ({ matches: standalone }),
+      document: { documentElement: { classList: { add: c => classes.add(c) } } } };
+    if (capacitor) g.Capacitor = { isNativePlatform: () => true };
+    g.window = g;
+    vm.runInNewContext(tete, g);
+    return classes.has('safari-glass');
+  };
+  const ios26 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 26_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1';
+  assert.equal(essai(ios26), true);
+  assert.equal(essai(ios26.replace('Version/26.1', 'Version/18.6')), false, 'Safari 18 : pas de verre');
+  assert.equal(essai(ios26, { standalone: true }), false, 'installée sur l’écran d’accueil');
+  assert.equal(essai(ios26, { capacitor: true }), false, 'appli iOS');
+  assert.equal(essai('Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Mobile Safari/537.36'), false);
+  /* safari-surface.js reprend les repères déjà présents, sans en ajouter */
+  const js = lire('safari-surface.js');
+  const nodes = [], existants = {};
+  for (const id of ['browser-status-sample', 'browser-bottom-sample']) existants[id] = { id, style: {}, setAttribute() {} };
+  const ctx = { navigator: { userAgent: ios26, maxTouchPoints: 5 }, screen: { width: 402, height: 874, orientation: { angle: 0 } }, innerWidth: 402, innerHeight: 714,
+    document: { documentElement: { style: { setProperty() {} }, classList: { add() {} } }, body: { appendChild: n => nodes.push(n) }, createElement: () => ({ style: {}, setAttribute() {} }),
+      getElementById: id => existants[id] || null, querySelector: () => ({ content: '#6E50F6' }), addEventListener() {} },
+    getComputedStyle: () => ({ getPropertyValue: k => k === '--browser-bottom' ? '#4529CC' : '#6E50F6' }), matchMedia: () => ({ matches: false }),
+    MutationObserver: class { observe() {} }, requestAnimationFrame: () => 1, cancelAnimationFrame() {}, addEventListener() {} };
+  ctx.window = ctx;
+  vm.runInNewContext(js, ctx);
+  assert.equal(nodes.length, 0, 'aucun repère en double');
+  assert.equal(existants['browser-bottom-sample'].style.backgroundColor, '#4529CC');
+  assert.equal(existants['browser-status-sample'].style.backgroundColor, '#6E50F6');
 });

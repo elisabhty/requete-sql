@@ -27,8 +27,13 @@
   // le fond de l'écran plein (.lv, la couleur du HAUT de son dégradé) qui
   // était lu : une bande plus claire derrière la barre d'adresse.
   // https://1ar.io/updates/safari-26-liquid-glass-web/
+  // Les deux repères sont déjà dans la page, en tête de <body> (Elisa, 3 novembre, 22 h 44 : « ça le fait pendant 1 s ») :
+  // créés ici seulement, ils n'existaient qu'une fois toute la page lue (script defer). Pendant cette seconde de chargement,
+  // Safari teintait la barre du bas avec le fond de body (le violet du haut) : une bande plus claire sous la barre d'adresse.
   function makeSample(id){
-    const el=document.createElement('div');
+    let el=document.getElementById?document.getElementById(id):null;
+    if(el)return el;
+    el=document.createElement('div');
     el.id=id;
     el.setAttribute('aria-hidden','true');
     document.body.appendChild(el);
