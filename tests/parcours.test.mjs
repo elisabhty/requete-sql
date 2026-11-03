@@ -38,17 +38,18 @@ test('SQL est le premier parcours ; trois parcours à venir, sans date ni conten
 
 test('accueil : « Parcours SQL » sous « Tes parcours », la rangée des parcours, la recherche reste', () => {
   const mods = app.slice(app.indexOf('function renderModules(){'), app.indexOf('function toggleCatalogTools('));
-  assert.ok(mods.includes('<span>Tes parcours</span><h2>Parcours SQL</h2><p>${parcoursValidees(allDone)} · ${nMods} modules</p>'));
-  assert.ok(mods.includes('<span>Chercher</span></button></div>${parcoursChipsHTML(allDone)}<div id="catalog-tools"'), 'la rangée vient sous le titre, avant la recherche');
+  assert.ok(mods.includes('<span>Tes parcours</span><h2>Parcours SQL</h2></div>'));
+  assert.ok(mods.includes('<span>Chercher</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>${parcoursChipsHTML(allDone)}<div id="catalog-tools"'), 'la ligne sous le titre, sur toute la largeur (19 h 48), puis la rangée, avant la recherche');
   const { ctx } = sandbox();
   const chips = ctx.parcoursChipsHTML(1);
   assert.ok(chips.startsWith('<ul class="pc-chips" aria-label="Tes parcours">'));
-  assert.ok(chips.includes('<span class="pc-chip is-on">') && chips.includes('SQL<em>En cours</em>'), 'SQL en cours, pas un bouton');
+  assert.ok(chips.includes('<span class="pc-chip is-on">') && chips.includes('<span class="pc-chip-t"><b>SQL</b><small>En cours</small></span>'), 'SQL en cours, pas un bouton ; le nom puis l’état, sur deux lignes');
   assert.equal((chips.match(/onclick="openParcours\('(python|excel|powerbi)'\)"/g) || []).length, 3, 'chaque parcours à venir ouvre sa page');
-  assert.equal((chips.match(/<em>À venir<\/em>/g) || []).length, 3);
+  assert.equal((chips.match(/<small>À venir<\/small>/g) || []).length, 3);
   assert.ok(chips.includes('onclick="openParcours()">Tous les parcours'), 'puis « Tous les parcours »');
-  assert.ok(ctx.parcoursChipsHTML(0).includes('SQL<em>Disponible</em>') && ctx.parcoursChipsHTML(3).includes('SQL<em>Terminé</em>'));
-  assert.ok(css.includes('html.lq .pc-chips{display:flex;gap:8px;margin:0 0 16px;padding:2px 0 6px;list-style:none;overflow-x:auto;'), 'elle défile à l’horizontale');
+  assert.ok(ctx.parcoursChipsHTML(0).includes('<b>SQL</b><small>Disponible</small>') && ctx.parcoursChipsHTML(3).includes('<b>SQL</b><small>Terminé</small>'));
+  assert.ok(css.includes('html.lq .pc-chips{display:flex;gap:10px;margin:0 0 22px;padding:2px 0 8px;list-style:none;overflow-x:auto;'), 'elle défile à l’horizontale');
+  assert.ok(css.includes('html.lq .pc-chip{display:inline-flex;align-items:center;gap:10px;min-height:58px;'), 'des pastilles plus hautes, sur deux lignes');
   assert.ok(css.includes('html.lq .pc-chip{') && css.includes('border:2px dashed #C9BFF0'), 'les parcours à venir en pointillés');
 });
 
@@ -90,6 +91,9 @@ test('liste et page d’un parcours : ouvrir, revenir (vers la liste ou l’accu
   assert.equal(vm.runInContext('parcoursVue', ctx), null);
   const page = ctx.parcoursPageHTML(vm.runInContext("PARCOURS.find(p=>p.id==='python')", ctx));
   assert.ok(page.includes('<em class="pc-hero-tag">En préparation</em>') && page.includes('<h2 id="pc-titre">Python pour la data</h2>'));
+  assert.ok(page.includes('<div class="pc-hero-top">') && page.indexOf('class="pc-hero-stk"') < page.indexOf('<h2 id="pc-titre">'), 'l’autocollant en haut à droite, le titre sur toute la largeur');
+  assert.ok(page.includes('<p class="pc-hero-sub">Pas encore disponible. Active l’alerte pour savoir quand il ouvre.</p>'));
+  assert.ok(!page.includes('pc-alert-ic') && page.includes('<small>Un message dans l’appli le jour où il ouvre.</small>'), 'l’alerte sans pictogramme, une phrase courte');
   assert.ok(page.includes('<input type="checkbox" role="switch" class="pc-switch" onchange="parcoursAlerte(\'python\',this.checked)">'));
   assert.equal((page.match(/<input type="radio" name="pc-vote"/g) || []).length, 3);
   assert.ok(page.includes('value="python" checked'), 'le parcours de la page est proposé d’abord');
