@@ -51,6 +51,11 @@ La première fois :
 4. **Sur l’iPhone** : après l’e-mail d’Apple (10 à 30 min), App Store Connect › TestFlight › Tests internes : créer un
    groupe et s’y ajouter, puis installer l’appli TestFlight sur l’iPhone : Requête y apparaît.
 
+**Déjà fait (3 novembre)** : identifiant `fr.requete.app` enregistré (« Requete SQL »), fiche « Requête — Apprends le SQL »
+sur App Store Connect (n° 6830361256), équipe `RN77C85JG4` réglée dans le projet Xcode, groupe interne « Équipe Requête »
+(distribution automatique : chaque version envoyée y arrive seule) avec Elisa ; première version 1.0 (1) envoyée à 22 h 47.
+Restent, pour vendre l’appli : le contrat des apps payantes (Accords, taxes et banque) et le statut de commerçant (UE).
+
 Ensuite, à chaque nouvelle version : `npm run ios:testflight`. Si l’archive se plaint qu’il n’y a aucun appareil pour le
 profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans Xcode (en haut, à la place du simulateur) et relancer.
 
