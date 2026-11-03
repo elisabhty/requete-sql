@@ -196,7 +196,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=6']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=7']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -253,4 +253,27 @@ test('22 h 44, « ça le fait pendant 1 s » : les repères de couleur des barre
   assert.equal(nodes.length, 0, 'aucun repère en double');
   assert.equal(existants['browser-bottom-sample'].style.backgroundColor, '#4529CC');
   assert.equal(existants['browser-status-sample'].style.backgroundColor, '#6E50F6');
+});
+
+test('22 h 55, « en entrant dans la page, ça saute trop avec l’animation d’écriture » : l’accueil garde sa taille du début à la fin', () => {
+  /* La console grandissait ligne après ligne, puis son résultat apparaissait : vers 1,8 s, obFit réajustait la page et le titre
+     sautait de 150 px. La requête et son résultat sont posés dès la première image ; l’écriture n’est plus qu’un dévoilement. */
+  const w = slide('welcome', "}else if(slide==='account'){");
+  assert.ok(w.includes('const demo=obDemoCode(),demoTyping=obJustEntered&&!prefersReduceMotion();'));
+  assert.ok(w.includes('<pre class="oc-code" id="ob-demo-code">${demo.html}</pre><div class="oc-res" id="ob-demo-res" style="--res-dl:${demo.fin}s">'), 'la requête et le résultat dans la page dès le départ');
+  assert.ok(!w.includes('id="ob-demo-res" hidden'), 'plus de résultat caché qui pousse la page en apparaissant');
+  /* Chaque ligne se dévoile en autant de pas que de caractères, l’une après l’autre ; le résultat s’allume juste après */
+  const code = fn('obDemoCode', 'function obRunWelcomeDemo(');
+  const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;') });
+  vm.runInContext(app.match(/const OB_DEMO_TOKENS=[^\n]+\n/)[0] + app.match(/const OB_DEMO_T0=[^\n]+\n/)[0] + code + ';var out=obDemoCode();', ctx);
+  const out = ctx.out, lignes = [...out.html.matchAll(/<span class="ob-tl" style="--n:(\d+);--t:([\d.]+)s;--dl:([\d.]+)s">([\s\S]*?)<\/span>(?=\n|$)/g)];
+  assert.deepEqual(lignes.map(l => l[4].replace(/<[^>]+>/g, '')), ['SELECT prenom, ville', 'FROM clients', "WHERE ville = 'Paris';"]);
+  for (const [, n, , , h] of lignes) assert.equal(h.replace(/<[^>]+>/g, '').length, Number(n));
+  for (let i = 1; i < lignes.length; i++) assert.ok(Number(lignes[i][3]) >= Number(lignes[i - 1][3]) + Number(lignes[i - 1][2]), 'une ligne après l’autre');
+  const derniere = lignes.at(-1);
+  assert.ok(out.fin >= Number(derniere[3]) + Number(derniere[2]) && out.fin < 2.5, `le résultat à la fin de l’écriture (${out.fin} s)`);
+  assert.ok(fn('obRunWelcomeDemo', '/* Balayage tactile').includes("if(!code||!code.closest('.is-typing'))return;"), 'la vibration seulement quand l’écriture joue');
+  for (const k of ['.ob-welcome-demo.is-typing .ob-tl{overflow:hidden;animation:obvType var(--t) steps(var(--n),end) var(--dl) backwards,obvCaret var(--t) linear var(--dl)}',
+    '.ob-welcome-demo.is-typing .oc-res{animation:obvResPop .45s var(--v-pop) var(--res-dl,2s) both}', '@keyframes obvResPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}'])
+    assert.ok(css.includes(k), k);
 });
