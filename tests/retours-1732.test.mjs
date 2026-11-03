@@ -196,7 +196,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=7']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=8']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -276,4 +276,17 @@ test('22 h 55, « en entrant dans la page, ça saute trop avec l’animation d�
   for (const k of ['.ob-welcome-demo.is-typing .ob-tl{overflow:hidden;animation:obvType var(--t) steps(var(--n),end) var(--dl) backwards,obvCaret var(--t) linear var(--dl)}',
     '.ob-welcome-demo.is-typing .oc-res{animation:obvResPop .45s var(--v-pop) var(--res-dl,2s) both}', '@keyframes obvResPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}'])
     assert.ok(css.includes(k), k);
+});
+
+test('23 h 03, « l’écran n’est pas centré » : l’accueil reste centré quand obFit retire son dernier bloc', () => {
+  /* Le centrage tenait à la marge automatique du dernier bloc (les trois chiffres) ; retiré sur téléphone, il emportait sa marge
+     et le contenu se tassait en bas, contre le bouton. Deux cales invisibles se partagent maintenant l’espace libre. */
+  for (const k of ['html #onboarding.ob-vitrine .ob-screen.welcome>.ob-brand{margin-top:0}', 'html #onboarding.ob-vitrine .ob-screen.welcome>:last-child{margin-bottom:0}',
+    "html #onboarding.ob-vitrine .ob-screen.welcome::before,html #onboarding.ob-vitrine .ob-screen.welcome::after{content:'';flex:none;width:100%;height:0}",
+    'html #onboarding.ob-vitrine .ob-screen.welcome::before{margin-bottom:auto}', 'html #onboarding.ob-vitrine .ob-screen.welcome::after{margin-top:auto}'])
+    assert.ok(css.includes(k), k);
+  /* La cause : la règle d’origine centre avec la marge du dernier bloc, et ce bloc (les chiffres) part au palier 2 */
+  assert.ok(app.includes('.ob-screen.welcome>:last-child{margin-bottom:auto}'));
+  assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-proof-stats{display:none!important}'));
+  assert.ok(app.includes('<div class="ob-proof-stats" aria-label="L’apprentissage en bref">') && app.indexOf('<div class="ob-proof-stats"') > app.indexOf('<div class="ob-welcome-demo'), 'les chiffres sont le dernier bloc');
 });
