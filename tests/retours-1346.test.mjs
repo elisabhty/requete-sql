@@ -198,7 +198,7 @@ test('18 h 38 : entretien — familles de notions, « Voir selon le SGBD », pr�
   assert.ok(app.includes(`onclick="entVoirSgbd('\${x.id}','\${entSgbdTheme(x.q)}')"`));
   assert.ok(app.includes("entOpen=parent==='entretien'&&activeTab==='sgbd'&&entSgbdRetour?entSgbdRetour:null;"), 'le retour ramène à la question');
   assert.ok(app.includes('<div class="ent-nav">${entPrevTarget(x.id)?`<button type="button" class="ent-prev" onclick="prevEntretien('));
-  assert.ok(app.includes('Avec JSONB, PostgreSQL permet d’aller chercher des informations directement à l’intérieur d’un document JSON. <code>-&gt;</code> récupère une valeur JSON, <code>-&gt;&gt;</code> récupère sa valeur sous forme de texte et <code>@&gt;</code> permet de vérifier si le JSON contient une information précise.'));
+  assert.ok(app.includes('J’utilise <code>-&gt;</code> pour extraire une valeur JSON, <code>-&gt;&gt;</code> pour la récupérer sous forme de texte, et <code>@&gt;</code> pour vérifier qu’un document contient une structure ou des valeurs précises.'), 'réponse JSONB (3 novembre, 6 h 50 : reprise d’Elisa, avec l’exemple de Sophie et l’index GIN)');
   assert.ok(css.includes('html.lq .ent-focus .ent-nav{display:flex;gap:10px;margin-top:14px}'));
 });
 
