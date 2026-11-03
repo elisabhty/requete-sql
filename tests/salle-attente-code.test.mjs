@@ -16,5 +16,8 @@ assert(lobby.includes('${chips()}${codeTuiles()}<button') && lobby.includes('onc
 assert(!/psPage\(/.test(sec), 'la salle sécurisée n’ouvre plus la page du pseudo');
 assert(sec.includes('psReserverPourSalle()') && sec.includes('nameRetry:true'), 'pseudo inconnu de la base : réservé sans rien demander, puis on entre');
 assert(html.includes('multiplayer-security.js?v=2') && fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8').includes("'./multiplayer-security.js?v=2'"), 'script versionné');
+/* 3 novembre, 6 h 08 : en solo, pas de salle d’attente avant le défi : le tirage au sort directement. */
+const k = html.indexOf("}else if(v==='lobby'&&J.solo){"), solo = html.slice(k, html.indexOf("}else if(v==='lobby'){", k));
+assert(k > 0 && solo.includes('<h1>Tirage au sort</h1>') && !solo.includes('jeu-etat-code') && !solo.includes('Lancer') && !solo.includes('Invite'), 'solo : le tirage au sort, sans code ni « Invite tes amis »');
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
