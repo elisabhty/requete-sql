@@ -170,7 +170,8 @@ test('appli iOS : le « sauvetage » du service worker ne recharge jamais l’ap
 /* 22 h 19 : « on peut avec TestFlight ? » — l’envoi en une commande, sans les menus d’Xcode */
 test('TestFlight : npm run ios:testflight archive et envoie à App Store Connect', () => {
   const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
-  assert.equal(pkg.scripts['ios:testflight'], 'npm run build:www && npx cap sync ios && bash scripts/ios-testflight.sh');
+  /* 23 h 02 : l’écran de lancement est recopié juste avant l’archive (tests/ios-ecran-lancement.test.mjs) */
+  assert.equal(pkg.scripts['ios:testflight'], 'npm run build:www && npx cap sync ios && bash scripts/ios-ecran-lancement.sh && bash scripts/ios-testflight.sh');
   const sh = fs.readFileSync(new URL('../scripts/ios-testflight.sh', import.meta.url), 'utf8');
   assert.ok(sh.startsWith('#!/bin/bash') && sh.includes('set -euo pipefail'));
   assert.ok(sh.includes("grep -q 'DEVELOPMENT_TEAM' App.xcodeproj/project.pbxproj"), 'prévient si aucune équipe n’est choisie');
