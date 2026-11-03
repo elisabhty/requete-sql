@@ -238,7 +238,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   /* Elisa, 31 octobre, 17 h 53 : « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour le pseudo » */
   const name = cut("}else if(slide==='name'){", "}else if(slide==='pseudo'){");
   assert.ok(name.includes('<label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32"') && name.includes('autocomplete="given-name"'));
-  assert.ok(name.includes("obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')") && name.includes("obSetFooter('Continuer',()=>obGoto('goal'),'Passer pour le moment',()=>obGoto('goal'),"));
+  assert.ok(name.includes("obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')") && name.includes("obSetFooter('Continuer',()=>obGoto('age'),'Passer pour le moment',()=>obGoto('age'),"), 'puis l’âge (3 novembre, 13 h 25)');
   assert.ok(!name.includes('psVerif') && !name.includes('ob-ps-etat'), 'le prénom ne passe plus par la base');
   assert.ok(fn('obInput').includes("if(champ==='name'){draft.name=String(val||'').slice(0,32);obNamePreview();}"));
   const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
@@ -248,7 +248,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   assert.ok(page.includes('autocapitalize="none" autocorrect="off" spellcheck="false"') && page.includes('oninput="obPseudoTape(this)"') && page.includes('<p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>'));
   assert.ok(page.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);"));
   assert.ok(!page.includes('unique dans l’appli') && !page.includes('Il est unique et ne se changera plus') && !page.includes('ob-helper'), 'ni « unique dans l’appli », ni texte en bas');
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];"));
   const back = app.slice(app.lastIndexOf('function obBack(){'), app.indexOf('\n}', app.lastIndexOf('function obBack(){')));
   assert.ok(back.includes("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'pas de retour depuis la mini-page');
   /* La fin de l’onboarding : la mini-page, puis l’appli */

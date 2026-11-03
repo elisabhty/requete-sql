@@ -6692,7 +6692,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=125">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=4">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=5">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -31919,7 +31919,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];
+const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -32267,7 +32267,7 @@ let obJustEntered=false;
 let obSelectionTimer=0;
 let obDemoTimers=[];
 let obSwipe2On=false;
-const OB_PROFILE_SLIDES=['name','goal','level','rhythm','build','promise','pact','practice'];
+const OB_PROFILE_SLIDES=['name','age','job','goal','level','rhythm','build','promise','pact','practice'];
 const OB_GOALS=[
   ['career','Me reconvertir dans la data','briefcase'],
   ['interview','Réussir un entretien','person'],
@@ -32279,6 +32279,17 @@ const OB_GOALS=[
 function obVitrineGoal(){
   try{ const g=localStorage.getItem('rq-vitrine-objectif')||''; return OB_GOALS.some(o=>o[0]===g)?g:''; }catch(e){ return ''; }
 }
+/* Âge et profession (Elisa, 3 novembre, 13 h 25 : « demander l’âge et la profession (sélection) ») : deux étapes après le
+   prénom, facultatives, en tuiles aux couleurs de l’onboarding. Les réponses restent sur l’appareil (state.profile.ageRange,
+   state.profile.job ; Mon compte › Profil et objectif › Personnalisation pour les changer). */
+const OB_AGES=[
+  ['u18','<\u00a018','Moins de 18 ans'],
+  ['18-24','18–24','18 à 24 ans'],
+  ['25-34','25–34','25 à 34 ans'],
+  ['35-44','35–44','35 à 44 ans'],
+  ['45-54','45–54','45 à 54 ans'],
+  ['55+','55\u00a0+','55 ans et plus']
+];
 const OB_JOBS=[
   ['student','Étudiant·e','school'],
   ['data','Data ou développement','code'],
@@ -32313,6 +32324,7 @@ function startOnboarding(initial='welcome'){
   const root=document.getElementById('onboarding');
   root.classList.add('on');
   root.removeAttribute('aria-hidden');
+  delete root.dataset.obDir;
   obBarreEtat(true);
   obJustEntered=true;
   brancherObSwipeV2();
@@ -32330,9 +32342,19 @@ function obGoto(target){
   const cible=Math.max(0,Math.min(n,OB_STEPS-1));
   if(cible===obStep){paintOb();return;}
   obLock=true;
-  const body=document.getElementById('ob-body');
+  const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');
+  if(root)root.dataset.obDir=cible>obStep?'fwd':'back';
   body.classList.add('out');
   setTimeout(()=>{obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;paintOb();},prefersReduceMotion()?0:180);
+}
+/* Le bouton principal se réveille quand il devient utilisable (un choix fait, une signature, le parcours construit, la première
+   requête réussie) : un petit rebond et un reflet, pour montrer où aller ensuite (3 novembre, 13 h 25 : « améliorer les
+   micro-interactions »). */
+function obCtaWake(btn){
+  btn=btn||document.getElementById('ob-next');
+  if(!btn||btn.disabled||prefersReduceMotion())return;
+  btn.classList.remove('is-awake');void btn.offsetWidth;btn.classList.add('is-awake');
+  clearTimeout(btn._wakeT);btn._wakeT=setTimeout(()=>btn.classList.remove('is-awake'),750);
 }
 /* L'étape « compte » n'a de sens que si un fournisseur de connexion est
    branché. Sans adaptateur, elle sortirait trois boutons désactivés : on la
@@ -32345,7 +32367,9 @@ function obNext(){
   /* Tunnel : promesse prouvée → personnalisation → première réussite →
      (sauvegarde du succès si la connexion existe) → écran final. */
   if(slide==='welcome')obGoto('name');
-  else if(slide==='name')obGoto('goal');
+  else if(slide==='name')obGoto('age');
+  else if(slide==='age')obGoto('job');
+  else if(slide==='job')obGoto('goal');
   else if(slide==='goal')obGoto('level');
   else if(slide==='level')obGoto('rhythm');
   else if(slide==='rhythm')obGoto('build');
@@ -32365,7 +32389,7 @@ function obBack(){
 }
 function obPick(champ,val){
   if(obLock)return;
-  if(!['niveau','rythme','goal'].includes(champ))return;
+  if(!['niveau','rythme','goal','ageRange','job'].includes(champ))return;
   draft[champ]=val;
   if(champ==='source'&&val!=='referral')draft.referral='';
   buzz('light');
@@ -32401,6 +32425,8 @@ function obRunPractice(){
   }
   buzz('success');
   paintOb();
+  const root=document.getElementById('onboarding');
+  if(root&&draft.practiceDone&&!prefersReduceMotion()){root.classList.remove('ob-cheer');void root.offsetWidth;root.classList.add('ob-cheer');setTimeout(()=>root.classList.remove('ob-cheer'),1100);}
   /* Le résultat s'ajoute sous la requête : on l'amène dans le champ de vision
      pour que la réussite soit vue, pas seulement annoncée. */
   requestAnimationFrame(()=>{
@@ -32413,8 +32439,9 @@ function obNamePreview(){
   const box=document.getElementById('ob-name-greet'),ini=document.getElementById('ob-name-initial'),wrap=document.getElementById('ob-name-preview');
   if(!box||!ini)return;
   const n=(draft.name||'').trim();
-  /* L'aperçu n'apparaît qu'une fois le prénom tapé : pas d'initiale fictive. */
-  if(wrap)wrap.hidden=!n;
+  /* L'aperçu n'apparaît qu'une fois le prénom tapé : pas d'initiale fictive. Quand il apparaît ou disparaît, l'écran se
+     réajuste (obFit) pour tout garder sans défiler. */
+  if(wrap){const was=wrap.hidden;wrap.hidden=!n;if(was!==wrap.hidden&&typeof obFit==='function')obFit();}
   ini.textContent=(n.charAt(0)||'').toUpperCase();
   box.textContent=n?`Enchantée, ${n} !`:'';
 }
@@ -32517,7 +32544,7 @@ function obRunBuild(){
     document.querySelectorAll('#ob-body .ob-build-list li').forEach((li,i)=>li.classList.toggle('is-done',k>=(i+1)/5-.02));
     document.querySelectorAll('#ob-body .ob-build-path span').forEach((sp,i,all)=>sp.classList.toggle('is-in',k>=i/all.length));
     if(k<1){obDemoTimers.push(setTimeout(tick,40));return;}
-    const btn=document.getElementById('ob-next');if(btn)btn.disabled=false;
+    const btn=document.getElementById('ob-next');if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}
     document.querySelector('#ob-body .ob-build')?.classList.add('is-built');
     if(pc)pc.textContent='Parcours construit ✓';
     if(typeof buzz==='function')buzz('success');
@@ -32540,7 +32567,8 @@ function obSignInit(){
   const g=cv.getContext('2d');g.scale(dpr,dpr);g.lineCap='round';g.lineJoin='round';g.lineWidth=3;g.strokeStyle='#1B1640';
   if(draft.pacte&&draft.pacte.startsWith('data:')){const im=new Image();im.onload=()=>g.drawImage(im,0,0,r.width,r.height);im.src=draft.pacte;}
   let on=false,last=null,ink=0;
-  const pt=e=>{const b=cv.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top];};
+  /* Coordonnées ramenées à la taille du dessin : si le cadre change de taille après coup (obFit, rotation), le trait reste sous le doigt. */
+  const pt=e=>{const b=cv.getBoundingClientRect();return [(e.clientX-b.left)*r.width/(b.width||r.width),(e.clientY-b.top)*r.height/(b.height||r.height)];};
   cv.onpointerdown=e=>{on=true;last=pt(e);try{cv.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();};
   cv.onpointermove=e=>{if(!on)return;const p=pt(e);g.beginPath();g.moveTo(last[0],last[1]);g.lineTo(p[0],p[1]);g.stroke();ink+=Math.hypot(p[0]-last[0],p[1]-last[1]);last=p;box.classList.add('is-drawing');e.preventDefault();};
   cv.onpointerup=cv.onpointercancel=()=>{
@@ -32548,7 +32576,7 @@ function obSignInit(){
     if(ink>40){
       try{draft.pacte=cv.toDataURL('image/png');}catch(x){draft.pacte='1';}
       box.classList.add('is-signed');
-      const btn=document.getElementById('ob-next');if(btn)btn.disabled=false;
+      const btn=document.getElementById('ob-next');if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}
       document.querySelector('#ob-body .ob-pact-card')?.classList.add('is-signed');
       if(typeof buzz==='function')buzz('success');
     }
@@ -32576,7 +32604,8 @@ function obFitSoon(){
 }
 function obFit(){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');if(!body||!root)return;
-  const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4'];
+  /* ob-fit-5 (3 novembre) : un palier de plus, pour l’engagement seulement : sa phrase d’intro ne part qu’en tout dernier recours. */
+  const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];
   root.classList.remove(...C);
   for(const c of C){
     if(body.scrollHeight<=body.clientHeight+1)break;
@@ -32686,11 +32715,12 @@ function obOptionIcon(type){
   return `<span class="ob-answer-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${paths[type]||paths.more}</svg></span>`;
 }
 function obAnswers(items,champ,value){
-  return `<div class="ob-answer-list" role="radiogroup" aria-label="Choisis une réponse">${items.map(([key,label,icon])=>`<button type="button" role="radio" aria-checked="${value===key?'true':'false'}" class="ob-answer ${value===key?'on':''}" onclick="obPick('${champ}','${key}')"><span class="ob-radio" aria-hidden="true"></span>${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div>`;
+  return `<div class="ob-answer-list" role="radiogroup" aria-label="Choisis une réponse">${items.map(([key,label,icon],i)=>`<button type="button" role="radio" aria-checked="${value===key?'true':'false'}" class="ob-answer ${value===key?'on':''}" style="--d:${i*45}ms" onclick="obPick('${champ}','${key}')"><span class="ob-radio" aria-hidden="true"></span>${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div>`;
 }
 function obSetFooter(primary,primaryAction,secondary,secondaryAction,note,disabled=false){
   const btn=document.getElementById('ob-next'),skip=document.getElementById('ob-skip'),footNote=document.getElementById('ob-foot-note');
-  if(btn){btn.textContent=primary||'';btn.style.display=primary?'':'none';btn.disabled=!!disabled;btn.onclick=primaryAction||null;}
+  if(btn){const was=btn.disabled;btn.textContent=primary||'';btn.style.display=primary?'':'none';btn.disabled=!!disabled;btn.onclick=primaryAction||null;
+    if(was&&!btn.disabled&&primary&&!obJustEntered)obCtaWake(btn);}
   if(skip){skip.textContent=secondary||'';skip.style.display=secondary?'':'none';skip.onclick=secondaryAction||null;}
   if(footNote)footNote.textContent=note||'';
 }
@@ -32752,10 +32782,10 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
       ${obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')}
-      <label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32" value="${nameValue}" placeholder="Ex. Léa" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obGoto('goal');}"></label>
+      <label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32" value="${nameValue}" placeholder="Ex. Léa" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obGoto('age');}"></label>
       <div class="ob-name-preview" id="ob-name-preview" aria-hidden="true"><span class="ob-name-initial" id="ob-name-initial"></span><span id="ob-name-greet"></span></div>
       <p class="ob-helper">${psMien()?'Il sert à te saluer. Tu pourras le modifier plus tard.':'Il sert à te saluer. Ton pseudo, celui que tes amis verront, se choisit à la fin.'}</p></div>`;
-    obSetFooter('Continuer',()=>obGoto('goal'),'Passer pour le moment',()=>obGoto('goal'),'1 question facultative · tes réponses restent modifiables');
+    obSetFooter('Continuer',()=>obGoto('age'),'Passer pour le moment',()=>obGoto('age'),'1 question facultative · tes réponses restent modifiables');
   }else if(slide==='pseudo'){
     /* La mini-page du pseudo : la base dit en direct s’il est libre et en propose trois s’il est pris ; « C’est mon pseudo » le réserve.
        Le @ est posé dans le champ ; on tape en minuscules, sans espace (18 h 22). */
@@ -32769,6 +32799,16 @@ function paintOb(){
     obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);
     const pg=PS.page||{};
     setTimeout(()=>{if(OB_SLIDES[obStep]!=='pseudo')return;if(pg.raison==='pris'||pg.raison==='refuse')psAfficher('ob',pg.raison,psForme(pg.voulu||''),pg.idees);else if(v)psVerif('ob',v);},0);
+  }else if(slide==='age'){
+    html=`<div class="ob-screen ob-profile ob-age-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>
+      ${obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')}
+      <div class="ob-tiles ob-age-grid" role="radiogroup" aria-label="Ta tranche d’âge">${OB_AGES.map(([k,big,label],i)=>`<button type="button" role="radio" aria-checked="${draft.ageRange===k?'true':'false'}" aria-label="${escAttr(label)}" class="ob-tile ob-age-tile ${draft.ageRange===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('ageRange','${k}')"><b aria-hidden="true">${esc(big)}</b><small aria-hidden="true">ans</small></button>`).join('')}</div></div>`;
+    obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'Facultatif · reste sur cet appareil',!draft.ageRange);
+  }else if(slide==='job'){
+    html=`<div class="ob-screen ob-profile ob-job-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>
+      ${obMascotQuestion('Étudiant·e, en poste ou en reconversion : tout le monde a sa place ici.')}
+      <div class="ob-tiles ob-job-grid" role="radiogroup" aria-label="Ta situation">${OB_JOBS.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.job===k?'true':'false'}" class="ob-tile ob-job-tile ${draft.job===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('job','${k}')">${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div></div>`;
+    obSetFooter('Continuer',()=>obGoto('goal'),'Passer',()=>obGoto('goal'),'Facultatif · reste sur cet appareil',!draft.job);
   }else if(slide==='goal'){
     html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
@@ -32814,27 +32854,29 @@ function paintOb(){
     obSetFooter('Voir ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);
     obRunBuild();
   }else if(slide==='promise'){
-    /* « Comme la réf. 3 (Duolingo) : une page pour dire… tu apprendras en 30 jours » : un grand chiffre jaune en relief, puis la phrase. */
-    const b=obPlanInfo(),firstName=(draft.name||'').trim();
-    const goalLine={career:'c’est assez pour tes premiers entretiens de data analyst.',interview:'c’est assez pour répondre aux questions SQL d’un entretien.',
-      work:'c’est assez pour interroger tes données sans attendre personne.',advanced:'et la suite t’emmène jusqu’aux requêtes les plus avancées.',
-      curious:'et tu sauras enfin ce que font les requêtes.'}[draft.goal]||'et tu écriras tes requêtes en toute autonomie.';
-    const lead=firstName?`${esc(firstName)}, ${esc(goalLine)}`:esc(goalLine.charAt(0).toUpperCase()+goalLine.slice(1));
+    /* « Comme la réf. 3 (Duolingo) : une page pour dire… tu apprendras en 30 jours » : un grand chiffre jaune en relief, puis la phrase.
+       3 novembre, 13 h 25 : « ne mets pas : c’est assez pour les entretiens de data analyst » : plus de phrase de résultat promis sous
+       le titre, quel que soit l’objectif (toutes promettaient un résultat du même genre). */
+    const b=obPlanInfo();
     html=`<div class="ob-screen ob-profile ob-promise">${obFlowHeader(slide)}
       <div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>
       <img class="ob-promise-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
-      <h1 class="ob-title" id="ob-title">Avec <em>${b.minutes} minutes</em> par jour, tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1>
-      <p class="ob-lead">${lead}</p></div>`;
+      <h1 class="ob-title" id="ob-title">Avec <em>${b.minutes} minutes</em> par jour, tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1></div>`;
     obSetFooter('Continuer',()=>obGoto('pact'),'','','');
     obRunBig();
   }else if(slide==='pact'){
     /* « Une page où la personne va signer (dans un cadre) pour dire qu’elle va bien suivre les cours pour s’améliorer ». Le cadre du
        certificat, le texte de l’engagement à son nom et à son rythme, la zone où signer au doigt ; « Je m’engage » s’allume une fois
        signé (la signature reste sur l’appareil). */
-    const b=obPlanInfo(),firstName=(draft.name||'').trim();
+    /* 3 novembre, 13 h 25 : nouveau texte (« Chaque minute compte… », « Mon engagement personnel ») et le cadre de signature centré
+       à la verticale, entre le titre et le bouton. */
+    const b=obPlanInfo(),firstName=(draft.name||'').trim(),f=draft.freq||7,m=`${b.minutes} minutes`;
+    const duree=f===7?`<b>${m} par jour</b>`:f===5?`<b>${m} par jour</b> en semaine`:`<b>${m}</b>, <b>${f} jours par semaine</b>,`;
     html=`<div class="ob-screen ob-profile ob-pact">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>
-      <div class="ob-pact-card${draft.pacte?' is-signed':''}"><p class="ob-pact-k">Mon contrat d’apprentissage</p>
-        <p class="ob-pact-txt">Moi, <b>${firstName?esc(firstName):'futur·e pro du SQL'}</b>, je m’engage à suivre mes séances de <b>${b.minutes} minutes</b>, ${esc(b.freqLabel.toLowerCase())}, pour progresser en SQL${draft.goal&&b.goal?` et atteindre mon objectif : <b>${esc(b.goal.charAt(0).toLowerCase()+b.goal.slice(1))}</b>`:''}.</p>
+      <p class="ob-lead">Chaque minute compte pour atteindre ton objectif.</p>
+      <div class="ob-pact-card${draft.pacte?' is-signed':''}"><p class="ob-pact-k">Mon engagement personnel</p>
+        <p class="ob-pact-txt">Moi, <b>${firstName?esc(firstName):'futur·e pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>
+        <p class="ob-pact-txt">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>
         <div class="ob-sign${draft.pacte?' is-signed':''}" id="ob-sign"><canvas id="ob-sign-cv" aria-label="Zone de signature : signe avec ton doigt ou ta souris" role="img"></canvas><span class="ob-sign-ph" aria-hidden="true">Signe ici</span><i class="ob-sign-line" aria-hidden="true"></i></div>
         <div class="ob-pact-foot"><small>Le ${new Date().getDate()===1?'1er':new Date().getDate()} ${esc(new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))}</small><button type="button" class="ob-sign-clear" id="ob-sign-clear" onclick="obSignClear()">Effacer</button></div>
         <span class="ob-pact-stamp" aria-hidden="true">Signé ✓</span></div></div>`;
@@ -34018,7 +34060,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-responsive-v2464';
+  const SW_CACHE='requete-2026-11-03-onboarding-v2465';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
