@@ -31945,15 +31945,16 @@ function renderGreeting(){
 }
 function renderStartCta(){ renderHomeHero(); }
 function maybeOnboard(){
+  const apercu=obApercuDemande();
   const viaConnexion=depuisConnexion(),viaVitrine=depuisVitrine();
   oublierDepuis();
   /* Chaque connexion depuis la vitrine ouvre l’accueil (Elisa, 30 octobre, 22 h 50 : « revenir à chaque connexion à l’accueil de
      l’appli ») : l’écran de la dernière visite est oublié, restoreNav (juste après, au démarrage) n’a plus rien à reprendre. Un
      rechargement, ou l’appli rouverte depuis l’écran d’accueil du téléphone, reprend toujours où l’on en était. */
   if(viaVitrine)oublierNav();
-  if(state.onboarded){renderGreeting();renderHomeHero();if(viaVitrine)switchTab('learn');return;}
+  if(state.onboarded){renderGreeting();renderHomeHero();if(viaVitrine)switchTab('learn');if(apercu)obApercuOuvrir();return;}
   const done=Object.values(state.lessons||{}).some(l=>l.done);
-  if(done){state.onboarded=true;save();renderGreeting();renderHomeHero();return;}
+  if(done){state.onboarded=true;save();renderGreeting();renderHomeHero();if(apercu)obApercuOuvrir();return;}
   /* « Se connecter » sans rien sur cet appareil : tant que les comptes n’existent pas (aucun fournisseur de connexion,
      obAuthReady), il n’y a aucune progression à retrouver ; c’est quelqu’un qui découvre l’appli, il passe par l’onboarding
      comme les autres (Elisa, 3 novembre, 13 h 04 : un nouveau qui cliquait « Se connecter » n’avait ni prénom, ni objectif,
@@ -31970,6 +31971,19 @@ function depuisConnexion(){
 }
 function depuisVitrine(){
   try{ return new URLSearchParams(location.search).has('depuis'); }catch(e){ return false; }
+}
+/* Aperçu de l’onboarding (Elisa, 3 novembre, 17 h : « je ne vois pas l’onboarding car déjà connectée, tu as un lien ? ») :
+   ./?app=onboarding le montre comme à un nouveau visiteur, même avec un parcours sur l’appareil (app : le site n’est pas
+   reproposé, voir le script de tête). Rien n’est enregistré : ni prénom, ni âge, ni profession, ni planning, ni signature.
+   L’adresse est nettoyée tout de suite : recharger la page ramène à l’appli telle qu’elle était. */
+function obApercuDemande(){
+  try{
+    const u=new URL(location.href);
+    if(u.searchParams.get('app')!=='onboarding')return false;
+    u.searchParams.delete('app');
+    history.replaceState(history.state,'',u.pathname+u.search+u.hash);
+    return true;
+  }catch(e){ return false; }
 }
 function oublierNav(){
   try{ sessionStorage.removeItem(NAV_KEY); }catch(e){}
@@ -32329,6 +32343,21 @@ function startOnboarding(initial='welcome'){
   obJustEntered=true;
   brancherObSwipeV2();
   paintOb();
+}
+let obApercu=false;
+function obApercuOuvrir(){
+  startOnboarding('welcome');
+  obApercu=true;
+  /* Comme un nouveau visiteur : rien de prérempli depuis le profil de l’appareil. */
+  draft={niveau:'debutant',rythme:'regulier',freq:7,name:'',goal:obVitrineGoal(),ageRange:'',job:'',source:'',referral:'',
+    practiceDone:false,practiceRows:[],accountMode:null};
+  obJustEntered=true;
+  paintOb();
+}
+function obApercuFermer(){
+  obApercu=false;
+  obDemoTimers.forEach(clearTimeout);obDemoTimers=[];
+  closeOnboardingAuth();
 }
 function closeOnboardingAuth(){
   const root=document.getElementById('onboarding');
@@ -32921,6 +32950,7 @@ function paintOb(){
   obJustEntered=false;
 }
 function finishOnboard(action){
+  if(typeof obApercu!=='undefined'&&obApercu){obApercuFermer();return;}
   if(!draft.niveau)draft.niveau='debutant';
   if(!draft.rythme)draft.rythme='regulier';
   if(!draft.freq)draft.freq=7;
@@ -34060,7 +34090,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-03-onboarding-v2465';
+  const SW_CACHE='requete-2026-11-03-apercu-v2466';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
