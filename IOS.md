@@ -75,7 +75,8 @@ Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App G
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre
 l’accueil, où le chat dit dans sa bulle « Je t’avais dit que j’allais te retrouver ! ») et **« ⭐ Fais une petite requête ! —
-Quelques minutes suffisent. »** (ouvre l’onglet Défis). Rien pendant une leçon, ni avant la fin de l’onboarding. La page les pose au démarrage (index.html, `RACCOURCIS`, pont `RequeteWidget.raccourcis`) : ils apparaissent après
+Quelques minutes suffisent. »** (ouvre l’onglet Défis). Pendant l’onboarding, un bandeau le dit (« Termine ton parcours de
+bienvenue : les défis t’attendent juste après ! ») ; en pleine leçon, une bulle. La page les pose au démarrage (index.html, `RACCOURCIS`, pont `RequeteWidget.raccourcis`) : ils apparaissent après
 le premier lancement de la nouvelle version. Le raccourci choisi arrive au délégué de scène, puis à la page (événement
 `raccourci`, gardé jusqu’à ce qu’elle l’écoute, même si l’app était fermée).
 
@@ -85,6 +86,13 @@ Le délégué de scène : celui du modèle de Capacitor 8.6 (`ios/App/App/SceneD
 reçoit les raccourcis) et garde l’original dans `SceneDelegate.swift.avant-requete`. Un délégué modifié à la main n’est pas
 touché (un avertissement le dit) : y remplacer `CAPBridgeViewController()` par `RequeteViewController()` et y ajouter
 `windowScene(_:performActionFor:completionHandler:)` comme dans le nôtre.
+
+### Sous le clavier (4 novembre, 11 h 08)
+
+Avec le clavier, la page rétrécit au-dessus de lui (Keyboard `resize: native`) : ses coins arrondis laissaient voir la fenêtre
+de l’app, noire. La fenêtre prend maintenant le fond de l’app au lancement (`SceneDelegate.swift`), puis la couleur du bas de
+la page avant chaque ouverture du clavier (index.html, `fondSousClavier`, pont `RequeteWidget.fond`) : le violet de
+l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 
 ## Réglages à vérifier avant l’envoi
 

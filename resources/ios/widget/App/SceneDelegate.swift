@@ -15,6 +15,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
+        // Derrière la page (sous les coins arrondis du clavier) : le fond de l’app plutôt que du noir ; la page le change ensuite
+        // selon ce qu’elle montre (RequeteWidgetPlugin.fond).
+        window?.backgroundColor = UIColor(requeteHex: "#F4F2FC")
         window?.rootViewController = RequeteViewController()
         window?.makeKeyAndVisible()
 
