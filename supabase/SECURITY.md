@@ -18,7 +18,7 @@ Les tables de vérification sont dans un schéma privé, avec RLS et sans droits
 - `node scripts/test-secure-multiplayer.mjs` : vraie intégration Supabase, six identités temporaires, faux messages, contrôle SQL, horloge serveur et absence de double comptage ; les identités sont libérées à la fin.
 - `CHECK_LEGACY_REVOKED=1 node scripts/test-secure-multiplayer.mjs` vérifie en plus le refus des anciens appels.
 
-Après un changement des défis, des bases, du moteur ou de la comparaison, exécuter `node scripts/build-secure-catalog.cjs`, vérifier l'empreinte du Wasm dans `verifier.mjs`, tester toutes les solutions, mettre à jour `requete_private.catalogue` par migration et redéployer `jeu-verifier`. Le schéma de salle et les défis doivent correspondre au catalogue déployé.
+Après un changement des défis, des bases, du moteur ou de la comparaison, exécuter `node scripts/build-secure-catalog.cjs`, vérifier l'empreinte du Wasm dans `verifier.mjs`, tester toutes les solutions, mettre à jour `requete_private.catalogue` par migration et redéployer `jeu-verifier`. Le schéma de salle et les défis doivent correspondre au catalogue déployé. `tests/serveur-synchro.test.mjs` échoue si `sql-compat.mjs`, `matcher.mjs` ou le catalogue ne suivent plus index.html.
 
 ## Déploiement
 

@@ -1,6 +1,6 @@
 import initSqlJs from './sqlite.mjs';
 import {attachDateFns,sqlCompat} from './sql-compat.mjs';
-import {exerciseResultsMatch,execChallengeResult} from './matcher.mjs';
+import {exerciseResultsMatch,execChallengeResult,resultatsDefiEgaux} from './matcher.mjs';
 let engine;
 export async function sqlite(testBinary){
   if(!engine)engine=(async()=>{
@@ -20,7 +20,9 @@ export function safeSelect(sql){
   if(typeof sql!=='string'||sql.length>12000)throw Error('Requête trop longue.');
   const tokens=sql.replace(/'(?:''|[^'])*'|"(?:""|[^"])*"|`(?:``|[^`])*`|\[[^\]]*\]|--[^\n]*|\/\*[\s\S]*?\*\//g,token => token.startsWith("'") || token.startsWith('--') || token.startsWith('/*') ? ' ' : ' '+token.slice(1,-1)+' ');
   const body=tokens.trim().replace(/;\s*$/,'');
-  if(!/^(SELECT|WITH)\b/i.test(body)||body.includes(';')||/\b(INSERT|UPDATE|DELETE|REPLACE|DROP|ALTER|CREATE|ATTACH|DETACH|PRAGMA|VACUUM|REINDEX|LOAD_EXTENSION|RECURSIVE|RANDOMBLOB|ZEROBLOB|PRINTF|FORMAT|REPEAT|REPLICATE|SPACE|LPAD|RPAD|READFILE|WRITEFILE|SQLITE_SCHEMA|SQLITE_MASTER)\b/i.test(body))
+  // REPLACE(), printf() et format() sont des fonctions de lecture de SQLite, bornées par hard_heap_limit ; LPAD, RPAD, REPEAT et SPACE
+  // (écrites en JavaScript dans sql-compat) ne dépassent plus 10 000 caractères. Seule l’instruction REPLACE INTO reste refusée (4 novembre).
+  if(!/^(SELECT|WITH)\b/i.test(body)||body.includes(';')||/\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|ATTACH|DETACH|PRAGMA|VACUUM|REINDEX|LOAD_EXTENSION|RECURSIVE|RANDOMBLOB|ZEROBLOB|REPLICATE|READFILE|WRITEFILE|SQLITE_SCHEMA|SQLITE_MASTER)\b|\bREPLACE\s+INTO\b/i.test(body))
     throw Error('Utilise une seule requête de lecture SELECT pour ce défi.');
   return sqlCompat(sql);
 }
@@ -34,6 +36,6 @@ export async function verify(catalog,id,sql){
     db.run('PRAGMA query_only=ON; PRAGMA hard_heap_limit=33554432; PRAGMA temp_store=MEMORY;');
     const st=db.prepare(query),columns=st.getColumnNames(),values=[];
     try{while(st.step()){if(values.length>=2000)throw Error('Résultat trop volumineux.');const row=st.get();if(row.some(v=>typeof v==='string'&&v.length>10000))throw Error('Valeur trop volumineuse.');values.push(row);}}finally{st.free();}
-    return exerciseResultsMatch(columns.length?[{columns,values}]:[],expected,c,true);
+    return resultatsDefiEgaux(columns.length?[{columns,values}]:[],expected,c,alt=>execChallengeResult(db,alt));
   }finally{db.close();}
 }
