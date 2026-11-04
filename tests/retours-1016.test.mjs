@@ -2,7 +2,9 @@
    progression » n’apparaissait qu’avec un fournisseur de connexion branché (window.REQUETE_AUTH), donc jamais. Elle termine
    maintenant toujours le tunnel, comptée dans « Étape X sur N », habillée comme les autres étapes. Sans fournisseur, Apple, Google
    et l’e-mail portent « Bientôt » : les toucher ne connecte à rien, ne crée aucun faux compte, et la page le dit (la mascotte,
-   un lecteur d’écran, le bouton qui hoche la tête) ; « Continuer sans compte » reste le chemin. */
+   un lecteur d’écran, le bouton qui hoche la tête) ; « Continuer » passe la page.
+   10 h 29 : « enlève le mode local, on ne va pas prendre cette option, car on a le paywall qui arrive après » : plus de
+   « Continuer sans compte » ni de « Mode local et privé ». Une fois la connexion branchée, le compte est le seul chemin. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -33,7 +35,7 @@ const rendre = ({ authReady = false, obAuthBusy = false, obAuthMessage = '' } = 
   const pied = [];
   const ctx = vm.createContext({ slide: 'account', authReady, obAuthBusy, obAuthMessage,
     obFlowHeader: s => `<header data-etape="${s}"></header>`, obMascotQuestion: t => `<div class="ob-chat"><div class="ob-bubble">${t}</div></div>`,
-    esc: s => String(s), escAttr: s => String(s), legalUrl: k => `decouvrir/${k}.html`, obSetFooter: (...a) => pied.push(a), obChooseGuest() {} });
+    esc: s => String(s), escAttr: s => String(s), legalUrl: k => `decouvrir/${k}.html`, obSetFooter: (...a) => pied.push(a), obPasserConnexion() {} });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS='), ctx);
   vm.runInContext("var html='';if(slide==='x'){" + page + '}', ctx);
   return { html: ctx.html, pied, ctx };
@@ -51,9 +53,16 @@ test('la page de connexion termine toujours le tunnel, avec ou sans fournisseur 
     assert.equal(ctx.obFinPrecedente('account'), 'source', '« Retour » ramène à l’étape d’avant');
   }
   assert.ok(!fin.includes('if(obAuthReady())f.push'), 'plus sautée sans fournisseur');
-  /* « Continuer sans compte » (et le glissé vers la suite) : le mode local, puis la mini-page du pseudo et la dernière page */
-  assert.ok(app.includes("  else if(slide==='account')obChooseGuest();"));
-  assert.ok(cut('function obChooseGuest(){', '/* Les fournisseurs,').includes("state.accountMode='guest';") && cut('function obChooseGuest(){', '/* Les fournisseurs,').includes("obGoto('ready');"));
+  /* « Continuer » (et le glissé, et « Suivant ») : la mini-page du pseudo et la dernière page, tant que la connexion n’est pas
+     branchée ; une fois branchée, rien ne passe la page (10 h 29 : pas de mode local, le paywall vient après). */
+  assert.ok(app.includes("  else if(slide==='account')obPasserConnexion();") && !app.includes('function obChooseGuest('));
+  for (const pret of [false, true]) {
+    const vers = [];
+    const ctx = vm.createContext({ obAuthReady: () => pret, buzz() {}, obGoto: t => vers.push(t) });
+    vm.runInContext(cut('function obPasserConnexion(){', '/* Les fournisseurs,'), ctx);
+    vm.runInContext('obPasserConnexion()', ctx);
+    assert.deepEqual(vers, pret ? [] : ['ready'], pret ? 'connexion branchée : le compte seul' : 'pas encore de connexion : on passe');
+  }
 });
 
 test('la page, habillée comme les autres étapes : le titre, la mascotte, puis Apple, Google et l’e-mail', () => {
@@ -68,12 +77,13 @@ test('la page, habillée comme les autres étapes : le titre, la mascotte, puis 
   assert.ok(!/<button[^>]*class="ob-provider[^>]*disabled/.test(html), 'vifs : on peut les toucher (ils ne connectent à rien)');
   assert.ok(boutons[0][5].includes('<svg viewBox="0 0 24 24"><path fill="currentColor" d="M16.37 12.62') && !app.includes(''), 'la pomme est dessinée (le caractère U+F8FF ne s’affichait que sur les appareils Apple)');
   assert.ok(html.includes('<p class="ob-sr" id="ob-auth-live" role="status" aria-live="polite"></p>'), 'un lecteur d’écran entend la réponse');
-  assert.ok(html.includes('<b>Mode local et privé</b><small>Progression sauvegardée sur cet appareil.</small>'));
+  assert.ok(!html.includes('ob-local-proof') && !html.includes('Mode local') && !html.includes('sans compte'), 'plus de mode local (10 h 29)');
   assert.ok(html.includes('En continuant, tu acceptes les <a class="ob-legal-link" href="decouvrir/terms.html" target="_blank" rel="noopener">Conditions d’utilisation</a>'));
   assert.ok(!html.includes('ob-divider') && !html.includes('ob-auth-availability') && !html.includes('ob-lead'), 'plus court : ni « ou », ni deux phrases qui disent la même chose');
-  assert.deepEqual(pied.map(a => a[0]), ['Continuer sans compte']);
+  assert.deepEqual(pied.map(a => a[0]), ['Continuer'], 'tant que la connexion n’est pas branchée');
   /* Avec un fournisseur : les vrais boutons */
-  const branche = rendre({ authReady: true }).html;
+  const { html: branche, pied: piedBranche } = rendre({ authReady: true });
+  assert.deepEqual(piedBranche.map(a => [a[0], a[1]]), [['', null]], 'connexion branchée : pas de bouton pour passer, le compte est le seul chemin');
   assert.ok(branche.includes('Avec un compte, tu la retrouves sur tous tes appareils.') && !branche.includes('is-soon') && !branche.includes('Bientôt') && (branche.match(/ob-provider-chev/g) || []).length === 3);
   /* Pendant une vraie connexion : boutons occupés */
   assert.equal((rendre({ authReady: true, obAuthBusy: true }).html.match(/disabled aria-busy="true"/g) || []).length, 3);
@@ -92,19 +102,19 @@ test('sans fournisseur, toucher un bouton ne connecte à rien : la page le dit, 
   });
   vm.runInContext(obTypo + fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS=') + connexion, ctx);
   vm.runInContext("obStartAuth('apple',btn)", Object.assign(ctx, { btn }));
-  assert.equal(voix.textContent, 'Pas encore ! La connexion avec Apple arrive bientôt. En attendant, ta progression reste sur cet appareil.');
-  assert.equal(bulle.textContent, 'Pas encore\u202f! La connexion avec Apple arrive bientôt. En attendant, ta progression reste sur cet appareil.', 'la mascotte répond, ponctuation insécable');
+  assert.equal(voix.textContent, 'Pas encore ! La connexion avec Apple arrive bientôt. En attendant, touche « Continuer ».');
+  assert.equal(bulle.textContent, 'Pas encore\u202f! La connexion avec Apple arrive bientôt. En attendant, touche «\u00a0Continuer\u00a0».', 'la mascotte répond, ponctuation insécable');
   assert.ok(bulle.classes.has('is-new') && btn.classes.has('is-nudge'), 'la bulle se rouvre, le bouton hoche la tête');
   assert.ok(!racine.classes.has('ob-enter'), 'l’arrivée sur l’étape ne prend plus le pas sur les animations du toucher');
   assert.deepEqual(appels, ['buzz light', 'ajuste']);
   assert.equal(state(ctx).accountMode, null, 'aucun faux compte');
-  /* « Continuer sans compte » se réveille, puis le bouton se calme */
+  /* « Continuer » se réveille, puis le bouton se calme */
   minuteurs.forEach(([f]) => f());
   assert.ok(appels.includes('réveil') && !btn.classes.has('is-nudge'));
   assert.ok(!appels.includes('repeint'), 'pas redessinée : le focus reste sur le bouton touché');
   /* L’e-mail et Google */
   vm.runInContext("obStartAuth('email',null)", ctx);
-  assert.equal(voix.textContent, 'Pas encore ! La connexion par e-mail arrive bientôt. En attendant, ta progression reste sur cet appareil.');
+  assert.equal(voix.textContent, 'Pas encore ! La connexion par e-mail arrive bientôt. En attendant, touche « Continuer ».');
   vm.runInContext("obStartAuth('google',null)", ctx);
   assert.ok(voix.textContent.startsWith('Pas encore ! La connexion avec Google arrive bientôt.'));
   /* Mouvements réduits : le message, sans animation */
@@ -134,7 +144,7 @@ test('l’habillage : Apple en noir à la police du système, « Bientôt » en 
     "html #onboarding.ob-vitrine .ob-provider{cursor:pointer;font:600 15.5px/1.15 -apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif!important;",
     'html #onboarding.ob-vitrine .ob-provider:not(:disabled):active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--v-shadow-lip)!important}',
     'html #onboarding.ob-vitrine .ob-provider.is-apple{border-color:#000!important;background:#000!important;color:#fff!important;',
-    'html #onboarding.ob-vitrine.ob-fit-4 .ob-account .ob-local-proof small{display:none}'])
+    'html #onboarding.ob-vitrine .ob-account .ob-legal-note{margin-top:16px!important;font-size:11px!important;line-height:1.45!important}'])
     assert.ok(s.includes(r), r);
   const etroit = s.slice(s.indexOf('@media (max-width:359px){'));
   assert.ok(etroit.includes('html #onboarding.ob-vitrine .ob-provider small{position:absolute;top:-8px;right:12px;'), '« Bientôt » ne prend plus la place du texte');
@@ -142,7 +152,7 @@ test('l’habillage : Apple en noir à la police du système, « Bientôt » en 
   for (const k of ['.ob-enter .ob-provider{animation:obvTileIn .34s var(--v-pop) calc(.16s + var(--i,0) * 70ms) backwards}', ' .ob-provider.is-nudge{animation:obvShake .42s ease both}',
     ' .ob-provider.is-nudge small{animation:obvJoyIcon .5s var(--v-pop)}', ' .ob-bubble.is-new{transform-origin:0 50%;animation:obvBubbleIn'])
     assert.ok(media.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=15">') && sw.includes("'./onboarding-vitrine.css?v=15',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=16">') && sw.includes("'./onboarding-vitrine.css?v=16',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache.includes('connexion'));
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
 });
