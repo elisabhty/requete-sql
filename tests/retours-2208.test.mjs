@@ -1,5 +1,6 @@
 /* Elisa, 4 novembre, 22 h 08 : « pour les requêtes à refaire et correction douteuse je te laisse la main ». Huit défis ont une
-   nouvelle solution ; tant que le serveur de vérification des salles n’est pas redéployé avec elle, ils restent hors des salles. */
+   nouvelle solution. Ils sont restés hors des salles le temps de redéployer le serveur de vérification avec elle (version 11,
+   4 novembre, 23 h, « Oui, déploie ») : les revoilà dans les salles. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -9,19 +10,19 @@ const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const catalog = JSON.parse(fs.readFileSync(new URL('../supabase/functions/jeu-verifier/catalog.json', import.meta.url), 'utf8'));
 const HUIT = ['sm9', 'sd3', 'zm8', 'zd6', 'ld1', 'ld9', 'vm4', 'wf2'];
 
-test('les huit défis refaits restent hors des salles tant que le serveur n’a pas leur solution', () => {
-  assert.ok(app.includes(`const JEU_ATTENTE_SERVEUR=new Set(${JSON.stringify(HUIT).replace(/"/g, "'")});`));
+test('les huit défis refaits reviennent dans les salles : le serveur a leur nouvelle solution', () => {
+  assert.ok(!app.includes('JEU_ATTENTE_SERVEUR'), 'plus de mise à l’écart');
   const ctx = vm.createContext({});
   vm.runInContext(app.slice(app.indexOf('const CHALLENGES=['), app.indexOf('const NIV=')).replace('const CHALLENGES=', 'CHALLENGES=') + ';' +
-    app.slice(app.indexOf('const JEU_ATTENTE_SERVEUR='), app.indexOf('\n', app.indexOf('function jeuEligible(c){'))) + ';' +
+    app.slice(app.indexOf('function jeuEligible(c){'), app.indexOf('\n', app.indexOf('function jeuEligible(c){'))) + ';' +
     app.slice(app.indexOf('function jeuChallenges(niv){'), app.indexOf('\n', app.indexOf('function jeuChallenges(niv){'))), ctx);
   const ids = vm.runInContext("['f','m','d'].flatMap(n=>jeuChallenges(n)).map(c=>c.id)", ctx);
   for (const id of HUIT) {
-    assert.ok(!ids.includes(id), id + ' : pas tiré en salle');
-    assert.equal(vm.runInContext(`jeuEligible(CHALLENGES.find(c=>c.id==='${id}'))`, ctx), false, id);
+    assert.ok(ids.includes(id), id + ' : tiré en salle');
+    assert.equal(vm.runInContext(`jeuEligible(CHALLENGES.find(c=>c.id==='${id}'))`, ctx), true, id);
   }
-  assert.equal(ids.length, 267 - HUIT.length);
-  for (const id of HUIT) assert.equal(catalog.challenges.find(c => c.id === id).sol, vm.runInContext(`CHALLENGES.find(c=>c.id==='${id}').sol`, ctx), id + ' : le catalogue du dépôt a déjà la nouvelle solution');
+  assert.equal(ids.length, 267);
+  for (const id of HUIT) assert.equal(catalog.challenges.find(c => c.id === id).sol, vm.runInContext(`CHALLENGES.find(c=>c.id==='${id}').sol`, ctx), id + ' : le catalogue du serveur a la nouvelle solution');
 });
 
 /* 22 h 08 : « dans compte il manque évaluez-nous » ; « le bouton exporter la progression est vraiment cohérent par rapport au fichier
@@ -42,6 +43,15 @@ test('Mon compte : noter l’appli sur l’App Store, se déconnecter, supprimer
   assert.equal((f.match(/lqAsk\(/g) || []).length, 2, 'deux confirmations');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   assert.ok(css.includes('html.lq #scr-compte .account-setting-row.is-danger b{color:var(--danger)}'), 'en rouge, comme une action destructrice d’iOS');
+});
+
+test('validation Apple : dans l’app iPhone sans connexion branchée, le bravo sans les boutons « Bientôt »', () => {
+  assert.ok(app.includes("function obConnexionMasquee(){return typeof appliNative==='function'&&appliNative()&&!obAuthReady();}"));
+  const s = cut("}else if(slide==='account'){", "}else if(slide==='name'){");
+  assert.ok(s.includes("const reussie=!!draft.practiceDone,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee();"));
+  assert.ok(s.includes("${masquee?'':`<div class=\"ob-provider-list\">"), 'pas de boutons');
+  assert.ok(s.includes("${masquee?'':'<p class=\"ob-compte-sub\">Tu pourras sauvegarder ta progression et reprendre tes cours sur tous tes appareils.</p>'}"), 'pas de promesse');
+  assert.ok(s.includes('Ta première requête est <em>réussie</em>&nbsp;!'), 'le bravo reste');
 });
 
 test('validation Apple : les textes de confidentialité disent la suppression de compte et la vérification en ligne', () => {

@@ -85,6 +85,14 @@ const brancher = () => { if (sb.includes(sbAvant)) writeFileSync(story, sb.repla
 
 /* 3. Le projet Xcode, une seule fois. */
 let p = readFileSync(projet, 'utf8');
+/* 3 bis. iPhone seulement (Elisa, 4 novembre, 22 h 50 : « iPhone seulement », pour la validation Apple) : Capacitor crée la cible
+   App pour l’iPhone et l’iPad (« 1,2 ») ; toutes les cibles passent à 1. Sur iPad, l’app tourne alors en mode iPhone, et App Store
+   Connect ne demande pas de captures d’iPad. À chaque lancement, widget déjà là ou pas (« cap add ios » refait la cible App). */
+if (p.includes('TARGETED_DEVICE_FAMILY = "1,2";')) {
+  p = p.replace(/TARGETED_DEVICE_FAMILY = "1,2";/g, 'TARGETED_DEVICE_FAMILY = 1;');
+  writeFileSync(projet, p);
+  console.log('iPhone seulement : TARGETED_DEVICE_FAMILY = 1 dans toutes les cibles du projet Xcode.');
+}
 if (p.includes('RequeteWidgetExtension')) {
   if (!p.includes('RequeteViewController.swift in Sources')) arret('la cible du widget est là, mais pas RequeteViewController ; rien n’a été changé.');
   brancher();
@@ -310,7 +318,7 @@ ${equipe ? `\t\t\t\tDEVELOPMENT_TEAM = ${equipe};\n` : ''}\t\t\t\tGENERATE_INFOP
 \t\t\t\tSKIP_INSTALL = YES;
 ${debug ? '\t\t\t\tSWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;\n' : ''}\t\t\t\tSWIFT_EMIT_LOC_STRINGS = YES;
 \t\t\t\tSWIFT_VERSION = 5.0;
-\t\t\t\tTARGETED_DEVICE_FAMILY = "1,2";
+\t\t\t\tTARGETED_DEVICE_FAMILY = 1;
 \t\t\t};
 \t\t\tname = ${nom};
 \t\t};
