@@ -13,12 +13,15 @@ const entre = (a, b) => { const i = swift.indexOf(a); assert.ok(i >= 0, a); cons
 
 test('« 0/1 » à côté de la flamme : la séance du jour, le « /1 » plus petit, le chiffre qui roule de 0 à 1', () => {
   const c = entre('private func compteurVue(_ w: CGFloat) -> some View {', '    /// La flamme du jour : éteinte');
-  assert.ok(c.includes('HStack(alignment: .center, spacing: w * (humeur == .soir ? 0.07 : entree.faitAujourdhui ? 0.05 : 0.03)) {\n            flammeVue(w)'));
+  assert.ok(c.includes('let ecart: CGFloat = w * ecartCompteur\n        return HStack(alignment: .center, spacing: ecart) {\n            flammeVue(w)'));
+  /* 16 h 28 : l’écart (plus grand le soir, un peu plus avec la coche) est calculé à part, avec son type (l’archive échouait sur ces chaînes) */
+  assert.ok(swift.includes('private var ecartCompteur: CGFloat {\n        if humeur == .soir { return 0.07 }\n        return entree.faitAujourdhui ? 0.05 : 0.03\n    }'));
   assert.ok(c.includes('if !entree.repos {\n                objectifVue(w)\n                    .transition(.opacity)\n            }'), 'un jour de repos : la flamme seule');
   const o = entre('private func objectifVue(_ w: CGFloat) -> some View {', '    /// La coche « validé »');
-  for (const k of ['HStack(alignment: .firstTextBaseline, spacing: 0) {', 'Text(entree.faitAujourdhui ? "1" : "0")', '.chiffreQuiRoule(entree.faitAujourdhui ? 1 : 0)',
-    'Text("/1")', '.font(.system(size: w * 0.13, weight: .bold, design: .rounded))', '.opacity(0.75)',
-    '.foregroundColor(entree.faitAujourdhui ? doreClair : Color.white.opacity(0.9))'])
+  for (const k of ['let fait: Bool = entree.faitAujourdhui', 'let chiffre: String = fait ? "1" : "0"', 'let valeur: Int = fait ? 1 : 0',
+    'return HStack(alignment: .firstTextBaseline, spacing: 0) {', 'Text(chiffre)', '.chiffreQuiRoule(valeur)',
+    'Text("/1")', 'let petit: Font = Font.system(size: w * 0.13, weight: .bold, design: .rounded)', '.font(petit)', '.opacity(0.75)',
+    'let teinte: Color = fait ? doreClair : Color.white.opacity(0.9)', '.foregroundColor(teinte)'])
     assert.ok(o.includes(k), k);
   assert.ok(swift.includes('compteurVue(w)\n                .scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)'), 'le matin, le compteur se range dans le coin');
 });

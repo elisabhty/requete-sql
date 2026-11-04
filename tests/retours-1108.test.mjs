@@ -147,7 +147,9 @@ test('réf. 5 : sous le clavier, la couleur du bas de la page plutôt que du noi
   /* Le côté iPhone : la méthode « fond » du pont, la fenêtre aux couleurs de l’app dès le lancement */
   assert.ok(plugin.includes('CAPPluginMethod(name: "fond", returnType: CAPPluginReturnPromise)') && plugin.includes('@objc func fond(_ call: CAPPluginCall) {'));
   assert.ok(plugin.includes('self.bridge?.viewController?.view.window?.backgroundColor = couleur') && plugin.includes('convenience init?(requeteHex hex: String) {'));
-  assert.ok(plugin.includes('self.init(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)'), 'en CGFloat (pas de division entière)');
+  for (const k of ['let rouge: CGFloat = CGFloat((v >> 16) & 0xFF) / 255', 'let vert: CGFloat = CGFloat((v >> 8) & 0xFF) / 255',
+    'let bleu: CGFloat = CGFloat(v & 0xFF) / 255', 'self.init(red: rouge, green: vert, blue: bleu, alpha: 1)'])
+    assert.ok(plugin.includes(k), `${k} : en CGFloat (pas de division entière), une composante par ligne (16 h 28)`);
   assert.ok(scene.includes('window?.backgroundColor = UIColor(requeteHex: "#F4F2FC")\n        window?.rootViewController = RequeteViewController()'));
 });
 

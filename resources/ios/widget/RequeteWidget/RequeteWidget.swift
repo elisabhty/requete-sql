@@ -222,21 +222,35 @@ struct SerieVue: View {
             .position(x: w / 2, y: h * hauteurChat)
     }
 
-    /// Le soir, sous la flamme.
+    /// Le soir, sous la flamme. Comme la bulle (16 h 28) : la phrase et les mesures d’abord, chacune avec son type.
     private func legende(_ w: CGFloat, _ h: CGFloat) -> some View {
-        Text(entree.serie > 0 ? "Ta flamme t’attend\u{202F}!" : "Allume ta flamme\u{202F}!")
-            .font(.system(size: w * 0.072, weight: .bold, design: .rounded))
-            .foregroundColor(Color.white.opacity(0.92))
+        let phrase: String = entree.serie > 0 ? "Ta flamme t’attend\u{202F}!" : "Allume ta flamme\u{202F}!"
+        let police: Font = Font.system(size: w * 0.072, weight: .bold, design: .rounded)
+        let couleur: Color = Color.white.opacity(0.92)
+        let largeur: CGFloat = w * 0.9
+        let marge: CGFloat = w * 0.05
+        let haut: CGFloat = h * 0.425
+        return Text(phrase)
+            .font(police)
+            .foregroundColor(couleur)
             .lineLimit(1)
             .minimumScaleFactor(0.6)
-            .frame(width: w * 0.9)
-            .padding(.horizontal, w * 0.05)
-            .padding(.top, h * 0.425)
+            .frame(width: largeur)
+            .padding(.horizontal, marge)
+            .padding(.top, haut)
+    }
+
+    /// L’écart entre la flamme et « 0/1 », en part de la largeur : plus grand le soir (la flamme grandit), un peu plus quand la coche
+    /// est posée sur la flamme.
+    private var ecartCompteur: CGFloat {
+        if humeur == .soir { return 0.07 }
+        return entree.faitAujourdhui ? 0.05 : 0.03
     }
 
     /// La flamme du jour et la séance du jour à côté (« 0/1 », puis « 1/1 »). Un jour de repos du planning, pas d’objectif : la flamme seule.
     private func compteurVue(_ w: CGFloat) -> some View {
-        HStack(alignment: .center, spacing: w * (humeur == .soir ? 0.07 : entree.faitAujourdhui ? 0.05 : 0.03)) {
+        let ecart: CGFloat = w * ecartCompteur
+        return HStack(alignment: .center, spacing: ecart) {
             flammeVue(w)
             if !entree.repos {
                 objectifVue(w)
@@ -266,15 +280,21 @@ struct SerieVue: View {
 
     /// « 0/1 » : le « /1 » plus petit, pour que le chiffre reste lisible même rangé dans le coin, le matin. Il roule de 0 à 1 (iOS 17).
     private func objectifVue(_ w: CGFloat) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 0) {
-            Text(entree.faitAujourdhui ? "1" : "0")
-                .font(.system(size: w * 0.22, weight: .heavy, design: .rounded))
-                .chiffreQuiRoule(entree.faitAujourdhui ? 1 : 0)
+        let fait: Bool = entree.faitAujourdhui
+        let chiffre: String = fait ? "1" : "0"
+        let valeur: Int = fait ? 1 : 0
+        let grand: Font = Font.system(size: w * 0.22, weight: .heavy, design: .rounded)
+        let petit: Font = Font.system(size: w * 0.13, weight: .bold, design: .rounded)
+        let teinte: Color = fait ? doreClair : Color.white.opacity(0.9)
+        return HStack(alignment: .firstTextBaseline, spacing: 0) {
+            Text(chiffre)
+                .font(grand)
+                .chiffreQuiRoule(valeur)
             Text("/1")
-                .font(.system(size: w * 0.13, weight: .bold, design: .rounded))
+                .font(petit)
                 .opacity(0.75)
         }
-        .foregroundColor(entree.faitAujourdhui ? doreClair : Color.white.opacity(0.9))
+        .foregroundColor(teinte)
         .lineLimit(1)
     }
 
@@ -289,20 +309,32 @@ struct SerieVue: View {
     }
 
     /// La bulle du matin, en haut à droite, après le compteur réduit (la flamme et « 0/1 », de 0,08 à 0,39 de la largeur environ).
+    /// 4 novembre, 16 h 28 (« mon TestFlight s’est arrêté à 5 ») : l’archive échouait ici, Xcode n’arrivait pas à vérifier à temps
+    /// les types de la phrase au choix suivie de onze modificateurs. La phrase, la police et les mesures sont posées d’abord, chacune
+    /// avec son type, et la chaîne est coupée en deux.
     private func bulle(_ w: CGFloat) -> some View {
-        let pointe = w * 0.055
-        return Text(entree.repos ? "Jour de repos\u{202F}!" : "Une petite requête\u{202F}?")
-            .font(.system(size: w * 0.075, weight: .bold, design: .rounded))
-            .foregroundColor(violetTexte)
+        let pointe: CGFloat = w * 0.055
+        let phrase: String = entree.repos ? "Jour de repos\u{202F}!" : "Une petite requête\u{202F}?"
+        let police: Font = Font.system(size: w * 0.075, weight: .bold, design: .rounded)
+        let margeH: CGFloat = w * 0.035
+        let margeV: CGFloat = w * 0.03
+        let largeur: CGFloat = w * 0.53
+        let flou: CGFloat = w * 0.025
+        let chute: CGFloat = w * 0.012
+        let ombre: Color = Color.black.opacity(0.15)
+        let fond = Bulle(pointe: pointe).fill(Color.white)
+        let texte: Text = Text(phrase).font(police).foregroundColor(violetTexte)
+        let cadre = texte
             .multilineTextAlignment(.center)
             .lineLimit(3)
             .minimumScaleFactor(0.7)
-            .padding(.horizontal, w * 0.035)
-            .padding(.vertical, w * 0.03)
-            .frame(width: w * 0.53)
+            .padding(.horizontal, margeH)
+            .padding(.vertical, margeV)
+            .frame(width: largeur)
+        return cadre
             .padding(.bottom, pointe)
-            .background(Bulle(pointe: pointe).fill(Color.white))
-            .shadow(color: Color.black.opacity(0.15), radius: w * 0.025, y: w * 0.012)
+            .background(fond)
+            .shadow(color: ombre, radius: flou, x: 0, y: chute)
     }
 
     /// Les étincelles de la fête, autour de la tête du chat.
