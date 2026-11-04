@@ -42,7 +42,7 @@ const lecteur = (goal, communaute) => {
   const d = faux();
   const ctx = vm.createContext({ draft: { goal }, document: d.document, Image: function () {}, escAttr: s => String(s).replace(/"/g, '&quot;'), obTypo: s => s,
     obNombre: n => Number(n).toLocaleString('fr-FR'), cancelAnimationFrame() {}, requestAnimationFrame() {}, obDemoTimers: [], setTimeout: () => 0, buzz() {}, isFinite });
-  vm.runInContext((communaute === undefined ? bloc : bloc.replace('const OB_COMMUNAUTE=null;', `const OB_COMMUNAUTE=${communaute};`)) + ';this.OB_TEMOINS=OB_TEMOINS;this.OB_FORMATEURS=OB_FORMATEURS;this.obTvLire=()=>obTv;', ctx);
+  vm.runInContext((communaute === undefined ? bloc : bloc.replace('const OB_COMMUNAUTE=1000;', `const OB_COMMUNAUTE=${communaute};`)) + ';this.OB_TEMOINS=OB_TEMOINS;this.OB_FORMATEURS=OB_FORMATEURS;this.obTvLire=()=>obTv;', ctx);
   return { ctx, d };
 };
 
@@ -143,7 +143,7 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
   /* Sur le site, ce sont de vrais avis, publiés avec l’accord des personnes, et la voix est une voix de synthèse */
   assert.ok(site.includes('N’ajouter ici que de VRAIS avis, avec l’accord de la personne'));
   assert.ok(read('decouvrir/mentions-legales.html').includes('sont lus par une <b>voix de synthèse</b>'));
-  assert.ok(bloc.includes('<p class="ob-tv-note">Avis réels, lus par une voix de synthèse.</p>'), 'la carte le dit aussi');
+  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête · voix de synthèse</p>'), 'la carte le dit aussi (14 h 50)');
   /* L’objectif choisi juste avant décide du premier avis */
   const ordre = g => [...lecteur(g).ctx.obTemoinsListe(g)].map(t => t.prenom);
   assert.deepEqual(ordre('career'), ['Aminata C.', 'Sofia B.', 'Thomas L.'], 'la reconversion');
@@ -158,7 +158,7 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
 test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 10+ formateurs te feront progresser »', () => {
   const { ctx } = lecteur('career');
   const html = ctx.obTemoinsHtml();
-  assert.ok(!html.includes('ob-tv-stat'), 'pas de « 1 000 personnes » sans chiffre vérifié');
+  assert.ok(!lecteur('career', null).ctx.obTemoinsHtml().includes('ob-tv-stat'), 'pas de « 1 000 personnes » sans chiffre vérifié');
   assert.ok(html.includes('<img class="ob-tv-img" id="ob-tv-img" src="decouvrir/avis/aminata-c.webp" width="640" height="640" alt="Aminata C., 35 ans, en reconversion data" draggable="false">'));
   assert.deepEqual([...html.matchAll(/aria-label="(Témoignage [^"]+)" onclick="obTemoinsChoisir\((\d)\)"><img src="([^"]+)"/g)].map(m => [m[1], +m[2], m[3]]),
     [['Témoignage d’Aminata C.', 0, 'decouvrir/avis/aminata-c-mini.webp'], ['Témoignage de Sofia B.', 1, 'decouvrir/avis/sofia-b-mini.webp'], ['Témoignage de Thomas L.', 2, 'decouvrir/avis/thomas-l-mini.webp']]);
@@ -173,9 +173,10 @@ test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 10+ f
   assert.ok(site.includes('13 formateurs <em>pour t’accompagner jusqu’au bout</em>'), 'le site en annonce treize : « 10+ » est vrai');
   assert.equal((html.match(/<img src="assets\/anim\/[a-z-]+\.webp" width="420" height="420" alt=""/g) || []).length, 4);
   assert.ok(html.includes('<b style="--i:4">+9</b></span><p><b>10+ formateurs</b> te feront progresser</p></div>'));
-  /* Un chiffre vérifié s’affiche au-dessus des avis */
-  assert.ok(bloc.includes('const OB_COMMUNAUTE=null;'));
-  assert.ok(lecteur('career', 1200).ctx.obTemoinsHtml().startsWith('<p class="ob-tv-stat"><b>Plus de 1') && lecteur('career', 1200).ctx.obTemoinsHtml().includes('</b> personnes accompagnées</p>'));
+  /* Un chiffre vérifié s’affiche au-dessus des avis (14 h 50 : « vrai chiffre, 1000+ ») */
+  assert.ok(bloc.includes('const OB_COMMUNAUTE=1000;'));
+  assert.ok(html.startsWith('<p class="ob-tv-stat"><b>Plus de <i data-n="1000">1\u202f000</i></b> personnes accompagnées</p>'), html.slice(0, 120));
+  assert.ok(lecteur('career', 1200).ctx.obTemoinsHtml().startsWith('<p class="ob-tv-stat"><b>Plus de <i data-n="1200">'));
 });
 
 test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d’un avis à l’autre, l’onde qui avance', () => {
@@ -187,7 +188,7 @@ test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d�
   assert.equal(a('ob-tv-stars', 'aria-label'), '5 étoiles sur 5');
   assert.equal(a('ob-tv-audio', 'src'), 'decouvrir/avis/thomas-l.mp3');
   assert.equal(a('ob-tv-play', 'aria-label'), 'Écouter l’avis de Thomas L.');
-  assert.ok(t('ob-tv-tx').startsWith('Avis de Thomas L., Business Analyst, octobre 2026 : « J’avais déjà essayé') && t('ob-tv-tx').endsWith('» Un avis réel, lu par une voix de synthèse.'), 'le texte pour un lecteur d’écran');
+  assert.ok(t('ob-tv-tx').startsWith('Avis de Thomas L., Business Analyst, octobre 2026 : « J’avais déjà essayé') && t('ob-tv-tx').endsWith('» Un vrai avis, recueilli par Requête et lu par une voix de synthèse.'), 'le texte pour un lecteur d’écran');
   assert.equal(d.el('ob-tv-wave').children.length, 48, 'les 48 barres de l’onde');
   assert.deepEqual([a('ob-tv-prev', 'aria-label'), a('ob-tv-next', 'aria-label')], ['Témoignage précédent : Aminata C.', 'Témoignage suivant : Sofia B.']);
   assert.deepEqual(d.pastilles.map(p => p.getAttribute('aria-pressed')), ['true', 'false', 'false']);
