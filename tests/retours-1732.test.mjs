@@ -133,7 +133,7 @@ test('« On construit ton parcours » : l’effet waouh', () => {
   assert.ok(run.includes("li.classList.toggle('is-active',!ok&&k>=i/n);") && run.includes("buzz('selection')") && run.includes('f.style.clipPath=`inset(0 ${(100-k*100).toFixed(2)}% 0 0 round 99px)`;'));
   /* 4 novembre, 1 h 31 (Réf. 2) : « Ton parcours est prêt », plutôt que « construit » */
   assert.ok(run.includes("t.innerHTML='Ton parcours<br>est <em>prêt</em>&nbsp;!';") && run.includes("lbl.textContent='Parcours prêt';") && run.includes('draft.buildDone=true;'));
-  assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(champ==='niveau'||champ==='rythme'||champ==='goal')draft.buildDone=false;"), 'un autre choix reconstruit le parcours');
+  assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(champ==='niveau'||champ==='rythme'||champ==='goal'||champ==='freq')draft.buildDone=false;"), 'un autre choix reconstruit le parcours (les jours par semaine aussi, 4 novembre, 9 h 36)');
   for (const k of ['.ob-build:not(.is-built) .ob-build-bar i{animation:obvStripes .55s linear infinite}', '.ob-build.is-built .ob-build-burst i{animation:obvBurst 1s',
     '.ob-build.is-built .ob-build-card{animation:obvCardGlow 1s ease-out both}', '.ob-build-list li.is-active .ob-build-ok{animation:obvSpin .7s linear infinite}',
     '.ob-build.is-built .ob-build-stk{animation:obvJoy .8s var(--v-pop) both', '.ob-build-hero .ob-title.is-swap{animation:obvTitleSwap', '.ob-build.is-built .ob-build-pct{transform-origin:100% 60%;animation:obvPctPop'])
@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=13']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=14']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });

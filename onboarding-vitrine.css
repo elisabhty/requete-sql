@@ -795,6 +795,16 @@ html #onboarding.ob-vitrine .ob-success>i{position:absolute;inset:0;border-radiu
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-ph-tuto[data-phase="3"] .ob-ph-add{animation:obvWt3Add 5.2s ease both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-ph-tuto[data-phase="3"] .ob-ph-doigt{animation:obvWt3Doigt 5.2s var(--v-press) both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-ph-tuto[data-phase="3"] .ob-ph-placed{display:block;animation:obvWt3Placed 5.2s var(--v-pop) both}
+  /* Les jours par semaine (4 novembre, 9 h 36) : à l’arrivée, les points des jours s’allument du lundi au dimanche et les icônes de
+     « ce que ça t’apporte » surgissent ; à chaque choix, le chiffre saute, ses jours se rallument et les deux nombres rebondissent
+     (le défilement des nombres est dans obJoursCompter). */
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-jour-dots i.on{animation:obvDotOn .32s var(--v-pop) calc(.42s + var(--d,0ms) + var(--j,0) * 32ms) backwards}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-selection-update .ob-jour-tile.on b{animation:obvJoyIcon .5s var(--v-pop)}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-selection-update .ob-jour-tile.on .ob-jour-dots i.on{animation:obvDotOn .3s var(--v-pop) calc(var(--j,0) * 34ms) backwards}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-apport-ico{animation:obvPopSpin .5s var(--v-pop) .5s backwards}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-apport-c+.ob-apport-c .ob-apport-ico{animation-delay:.62s}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-selection-update .ob-apport-c b{transform-origin:0 70%;animation:obvNumBump .5s var(--v-pop)}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-selection-update .ob-apport-ico{animation:obvJoyIcon .5s var(--v-pop)}
 }
 @media (prefers-reduced-motion:reduce){
   html #onboarding.ob-vitrine :is(.ob-build-list li,.ob-build-list li::before,.ob-build-ico,.ob-build-path span){transition:none!important}
@@ -947,3 +957,50 @@ html #onboarding.ob-vitrine .ob-ph-tuto[data-phase="3"] .ob-ph-sheet{transform:n
 @keyframes obvWt3Add{0%,47%{transform:scale(1);background:#007AFF}50%{transform:scale(.93);background:#0062CC}55%,100%{transform:scale(1);background:#007AFF}}
 @keyframes obvWt3Doigt{0%,30%{opacity:0;left:62%;top:74%;transform:translate(-50%,-50%) scale(1)}37%{opacity:1;left:62%;top:74%}46%{left:50%;top:87.5%;transform:translate(-50%,-50%) scale(1)}50%{left:50%;top:87.5%;transform:translate(-50%,-50%) scale(.76)}55%{left:50%;top:87.5%;transform:translate(-50%,-50%) scale(1)}62%,100%{opacity:0;left:50%;top:87.5%;transform:translate(-50%,-50%) scale(1)}}
 @keyframes obvWt3Placed{0%,68%{opacity:0;transform:scale(.6)}76%{opacity:1;transform:scale(1.07)}82%,100%{opacity:1;transform:scale(1)}}
+
+/* ---------- « Combien de jours par semaine ? » (Elisa, 4 novembre, 9 h 36, d’après une autre appli : « Combien de minutes par
+   jour ? » et « Voilà ce que ça t’apporte ») ----------
+   Quatre tuiles en ligne, comme l’âge : le chiffre en grand (une couleur par tuile), « jours », et les sept jours de la semaine en
+   petits points, ceux des séances allumés. Dessous, une carte voilée, comme le récapitulatif du rythme : ce que ça t’apporte en un an,
+   les nombres en jaune soleil, chacun avec son icône. Les animations sont dans le média « no-preference » plus haut. */
+html #onboarding.ob-vitrine .ob-jours-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+html #onboarding.ob-vitrine .ob-jour-tile{--c:var(--v-accent-ink);--off:#E2DCF4;min-height:98px;gap:6px;padding:12px 4px 11px}
+html #onboarding.ob-vitrine .ob-jour-tile.on{--off:#F3E3B5}
+html #onboarding.ob-vitrine .ob-jour-tile:nth-child(2){--c:var(--v-pink)}
+html #onboarding.ob-vitrine .ob-jour-tile:nth-child(3){--c:var(--v-blue)}
+html #onboarding.ob-vitrine .ob-jour-tile:nth-child(4){--c:var(--v-ok)}
+html #onboarding.ob-vitrine .ob-jour-tile b{display:block;font:800 32px/1 var(--v-display);letter-spacing:-.03em;color:var(--c);font-variant-numeric:tabular-nums}
+html #onboarding.ob-vitrine .ob-jour-tile small{display:block;color:var(--v-ink-3);font:700 12px/1 var(--v-ui);letter-spacing:.02em}
+html #onboarding.ob-vitrine .ob-jour-dots{display:flex;justify-content:center;gap:2.5px;margin-top:3px}
+html #onboarding.ob-vitrine .ob-jour-dots i{display:block;flex:none;width:5px;height:5px;border-radius:50%;background:var(--off)}
+html #onboarding.ob-vitrine .ob-jour-dots i.on{background:var(--c)}
+
+html #onboarding.ob-vitrine .ob-apport{margin-top:16px;padding:13px 12px 12px;border:1.5px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(255,255,255,.1);color:#fff;text-align:center}
+html #onboarding.ob-vitrine .ob-apport-k{margin:0 0 11px;color:rgba(255,255,255,.86);font:800 11.5px/1.25 var(--v-ui);letter-spacing:.1em;text-transform:uppercase;text-wrap:balance}
+html #onboarding.ob-vitrine .ob-apport-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Chaque nombre part de son icône, calée à gauche de sa moitié : quand il défile, l’icône ne bouge pas. */
+html #onboarding.ob-vitrine .ob-apport-c{display:grid;grid-template-columns:auto minmax(0,1fr);justify-content:start;align-items:center;column-gap:9px;row-gap:3px;min-width:0;padding:0 6px 0 clamp(4px,3.4vw,16px)}
+html #onboarding.ob-vitrine .ob-apport-c+.ob-apport-c{border-left:1.5px solid rgba(255,255,255,.18)}
+html #onboarding.ob-vitrine .ob-apport-ico{grid-row:1/3;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(255,200,61,.16);color:var(--v-sun)}
+html #onboarding.ob-vitrine .ob-apport-ico svg{display:block;width:20px;height:20px}
+html #onboarding.ob-vitrine .ob-apport-c b{grid-column:2;display:flex;align-items:baseline;font:800 clamp(23px,7.2vw,29px)/1 var(--v-display);letter-spacing:-.03em;color:var(--v-sun-hi);
+  font-variant-numeric:tabular-nums;white-space:nowrap;text-align:left;text-shadow:0 2px 0 rgba(27,22,64,.22)}
+html #onboarding.ob-vitrine .ob-apport-c b i{display:inline-block;font-style:normal}
+html #onboarding.ob-vitrine .ob-apport-c b em{margin-left:2px;font-style:normal;font-size:.6em;letter-spacing:0}
+html #onboarding.ob-vitrine .ob-apport-c small{grid-column:2;color:rgba(255,255,255,.8);font:700 12px/1.2 var(--v-ui);text-align:left;white-space:nowrap}
+html #onboarding.ob-vitrine .ob-apport-note{margin:12px 0 0;padding-top:10px;border-top:1.5px dashed rgba(255,255,255,.2);color:rgba(255,255,255,.74);font:600 12.5px/1.35 var(--v-ui);text-wrap:balance}
+/* Tout tient sur un écran (obFit) */
+html #onboarding.ob-vitrine.ob-fit-1 .ob-jour-tile{min-height:86px}
+html #onboarding.ob-vitrine.ob-fit-1 .ob-apport{margin-top:12px}
+html #onboarding.ob-vitrine.ob-fit-2 .ob-jour-tile{min-height:76px;gap:4px;padding:9px 4px 8px}
+html #onboarding.ob-vitrine.ob-fit-2 .ob-jour-tile b{font-size:28px}
+html #onboarding.ob-vitrine.ob-fit-2 .ob-apport{padding:10px 10px 9px}
+html #onboarding.ob-vitrine.ob-fit-2 .ob-apport-k{margin-bottom:8px}
+html #onboarding.ob-vitrine.ob-fit-3 .ob-apport-note{display:none}
+html #onboarding.ob-vitrine.ob-fit-4 .ob-jour-tile{min-height:0;padding:7px 3px 6px}
+html #onboarding.ob-vitrine.ob-fit-4 .ob-jour-tile b{font-size:24px}
+html #onboarding.ob-vitrine.ob-fit-4 .ob-apport-ico{width:30px;height:30px;border-radius:10px}
+html #onboarding.ob-vitrine.ob-fit-4 .ob-apport-ico svg{width:17px;height:17px}
+
+@keyframes obvDotOn{from{background:var(--off)}50%{transform:scale(1.65)}}
+@keyframes obvNumBump{0%{transform:none}40%{transform:scale(1.14)}100%{transform:none}}

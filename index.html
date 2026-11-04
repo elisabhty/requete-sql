@@ -6715,7 +6715,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=134">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=13">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=14">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -32358,7 +32358,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];
+const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -32723,7 +32723,7 @@ let obJustEntered=false;
 let obSelectionTimer=0;
 let obDemoTimers=[];
 let obSwipe2On=false;
-const OB_PROFILE_SLIDES=['name','age','job','goal','level','rhythm','build','promise','pact','practice'];
+const OB_PROFILE_SLIDES=['name','age','job','goal','level','rhythm','jours','build','promise','pact','practice'];
 const OB_GOALS=[
   ['career','Me reconvertir dans la data','briefcase'],
   ['interview','Réussir un entretien','person'],
@@ -33087,7 +33087,8 @@ function obNext(){
   else if(slide==='job')obGoto('goal');
   else if(slide==='goal')obGoto('level');
   else if(slide==='level')obGoto('rhythm');
-  else if(slide==='rhythm')obGoto('build');
+  else if(slide==='rhythm')obGoto('jours');
+  else if(slide==='jours')obGoto('build');
   else if(slide==='build')obGoto('promise');
   else if(slide==='promise')obGoto('pact');
   else if(slide==='pact')obGoto('practice');
@@ -33107,10 +33108,11 @@ function obBack(){
 }
 function obPick(champ,val){
   if(obLock)return;
-  if(!['niveau','rythme','goal','ageRange','job','source'].includes(champ))return;
+  if(!['niveau','rythme','goal','ageRange','job','source','freq'].includes(champ))return;
+  if(champ==='freq'){obJoursAvant=obJoursApport(draft.freq||7);val=OB_JOURS.includes(+val)?+val:7;}
   draft[champ]=val;
-  /* Un autre objectif, niveau ou rythme change le parcours : il se reconstruit, en animation, à la prochaine étape « build ». */
-  if(champ==='niveau'||champ==='rythme'||champ==='goal')draft.buildDone=false;
+  /* Un autre objectif, niveau, rythme ou nombre de jours change le parcours : il se reconstruit, en animation, à l’étape « build ». */
+  if(champ==='niveau'||champ==='rythme'||champ==='goal'||champ==='freq')draft.buildDone=false;
   if(champ==='source'&&val!=='referral')draft.referral='';
   buzz('light');
   paintOb();
@@ -33564,6 +33566,40 @@ function obFlowHeader(slide){
 /* Autocollants de l’écran de bienvenue : mêmes icônes que les stickers de la vitrine (contour blanc, trait encre). */
 const OB_STK_JEU='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4c1.5 7 11 11.5 11 23a11 11 0 0 1-22 0c0-6 3-9.5 5.5-12.5.5 4 2.5 5.5 4 5.5-1-6 0-11 1.5-16Z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M24 4c1.5 7 11 11.5 11 23a11 11 0 0 1-22 0c0-6 3-9.5 5.5-12.5.5 4 2.5 5.5 4 5.5-1-6 0-11 1.5-16Z" fill="#FF7A00" stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 24c.8 3 5.5 4.5 5.5 9a5.5 5.5 0 0 1-11 0c0-3 1.8-4.5 3-6 .3 1.6 1.2 2.4 2 2.4-.5-2.2-.2-3.9.5-5.4Z" fill="#FFC83D"/></svg>';
 const OB_STK_MEMO='<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"><rect x="6" y="13" width="24" height="30" rx="5" transform="rotate(-10 18 28)"/><rect x="17" y="6" width="24" height="30" rx="5" transform="rotate(8 29 21)"/></g><rect x="6" y="13" width="24" height="30" rx="5" transform="rotate(-10 18 28)" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><rect x="17" y="6" width="24" height="30" rx="5" transform="rotate(8 29 21)" fill="#fff" stroke="#1B1640" stroke-width="2.5"/><path d="M23 15h11M22.5 20.5h8" transform="rotate(8 29 21)" stroke="#6A4DF4" stroke-width="3" stroke-linecap="round"/></svg>';
+/* Les jours de la semaine (9 h 36) : les rythmes du planning (FREQS), du plus léger à tous les jours. Ce que ça apporte en un an :
+   chaque séance compte ses activités (le rythme choisi : 2, 3 ou 5) et ses minutes (10, 20 ou 30), sur cinquante-deux semaines.
+   (Les activités par mois et les heures par an, comme sur la capture, tombaient sur le même chiffre au rythme de 10 minutes.) */
+const OB_JOURS=[2,3,5,7];
+const OB_ICO_ACTIVITES='<svg viewBox="0 0 24 24"><path d="M4 20V11h3.6v9zM10.2 20V5h3.6v15zM16.4 20v-7H20v7z" fill="currentColor"/></svg>';
+const OB_ICO_HEURES='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.7l2.6 1.6M9.6 2.8h4.8M12 2.8V6"/></svg>';
+let obJoursAvant=null;
+function obJoursApport(f){
+  const r=RYTHMES.find(x=>x.k===(draft.rythme||'regulier'))||RYTHMES[1],min=obRythmeMinutes(r),j=OB_JOURS.includes(+f)?+f:7;
+  return {activites:r.per*j*52,heures:Math.round(min*j*52/60),minutes:min};
+}
+/* Sous le chiffre, les sept jours du lundi au dimanche : ceux des séances (PATTERN, le planning) sont allumés. */
+function obJoursPoints(k){
+  const on=PATTERN[k]||PATTERN[7];
+  return [1,2,3,4,5,6,0].map((d,j)=>`<i class="${on.includes(d)?'on':''}" style="--j:${j}"></i>`).join('');
+}
+function obNombre(n){ try{ return Number(n).toLocaleString('fr-FR'); }catch(e){ return String(n); } }
+/* Les chiffres défilent : depuis zéro à l’arrivée sur l’étape, depuis les anciennes valeurs à chaque choix. */
+function obJoursCompter(entree){
+  const de=obJoursAvant;obJoursAvant=null;
+  const ns=[...document.querySelectorAll('#ob-body .ob-apport-n[data-n]')];
+  if((!de&&!entree)||!ns.length||prefersReduceMotion())return;
+  const debut=de?[de.activites,de.heures]:[0,0],D=de?650:950,attente=de?0:380;
+  ns.forEach((n,i)=>{n.textContent=obNombre(debut[i]);});
+  let t0=0;
+  const tick=now=>{
+    if(!ns[0].isConnected)return;
+    if(!t0)t0=now+attente;
+    const k=Math.max(0,Math.min(1,(now-t0)/D)),e=1-Math.pow(1-k,3);
+    ns.forEach((n,i)=>{const fin=+n.dataset.n;n.textContent=obNombre(Math.round(debut[i]+(fin-debut[i])*e));});
+    if(k<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 function obMascotQuestion(text){
   return `<div class="ob-chat"><img class="ob-chat-stk" src="${MASCOT_IMG}" width="450" height="674" alt="La mascotte Requête" draggable="false"><div class="ob-bubble">${esc(text)}</div></div>`;
 }
@@ -33772,6 +33808,21 @@ function paintOb(){
       ${obMascotQuestion('Même dix minutes suffisent pour avancer.')}
       <div class="ob-answer-list ob-rhythm-list" role="radiogroup" aria-label="Temps par séance">${RYTHMES.map((r,i)=>`<button type="button" role="radio" aria-checked="${draft.rythme===r.k?'true':'false'}" class="ob-answer ${draft.rythme===r.k?'on':''}" style="--d:${i*60}ms" onclick="obPick('rythme','${r.k}')"><span class="ob-radio" aria-hidden="true"></span><span><b>${obRythmeMinutes(r)} minutes</b><small>${subtitles[r.k]||''}</small></span><span class="ob-rhythm-min">${r.k==='regulier'?'Conseillé':''}</span></button>`).join('')}</div>
       ${obRhythmSummary()}</div>`;
+    obSetFooter('Continuer',()=>obGoto('jours'),'','','');
+  }else if(slide==='jours'){
+    /* Elisa, 4 novembre, 9 h 36 (capture d’une autre appli : « Combien de minutes par jour ? », et « Voilà ce que ça t’apporte ») :
+       « j’ai oublié de demander le nombre de jours préféré pour étudier, ou tous les jours ». Quatre tuiles, les rythmes du planning
+       (2, 3 ou 5 jours par semaine, ou tous les jours), les jours de la semaine en petits points sous le chiffre, et ce que ça
+       t’apporte en un an, calculé avec la durée de séance choisie juste avant : les activités et les heures de pratique, qui défilent
+       jusqu’à leur valeur à l’arrivée et à chaque choix (obJoursCompter). */
+    const f=OB_JOURS.includes(draft.freq)?draft.freq:7,F=FREQS.find(x=>x.k===f)||FREQS[0],a=obJoursApport(f);
+    html=`<div class="ob-screen ob-profile ob-jours-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Combien de <em>jours</em> par semaine&nbsp;?</h1>
+      ${obMascotQuestion('Même deux jours par semaine, ça fait avancer !')}
+      <div class="ob-tiles ob-jours-grid" role="radiogroup" aria-label="Jours d’entraînement par semaine">${OB_JOURS.map((k,i)=>{const x=FREQS.find(y=>y.k===k);return `<button type="button" role="radio" aria-checked="${f===k?'true':'false'}" class="ob-tile ob-jour-tile ${f===k?'on':''}" style="--d:${i*60}ms" onclick="obPick('freq',${k})" aria-label="${escAttr(x.t+' : '+x.d)}"><b>${k}</b><small>jours</small><span class="ob-jour-dots" aria-hidden="true">${obJoursPoints(k)}</span></button>`;}).join('')}</div>
+      <div class="ob-apport"><p class="ob-apport-k">Voilà ce que ça t’apporte en un an</p>
+        <div class="ob-apport-row"><span class="ob-apport-c"><span class="ob-apport-ico" aria-hidden="true">${OB_ICO_ACTIVITES}</span><b><i class="ob-apport-n" data-n="${a.activites}">${obNombre(a.activites)}</i></b><small>activités</small></span>
+          <span class="ob-apport-c"><span class="ob-apport-ico" aria-hidden="true">${OB_ICO_HEURES}</span><b><i class="ob-apport-n" data-n="${a.heures}">${obNombre(a.heures)}</i><em>h</em></b><small>de pratique</small></span></div>
+        <p class="ob-apport-note">${esc(F.d)} · ${a.minutes}&nbsp;min par séance</p></div></div>`;
     obSetFooter('Construire mon parcours',()=>obGoto('build'),'','','');
   }else if(slide==='build'){
     /* Elisa, 1er novembre, 13 h 46 : « une page où on voit bien que le parcours se construit ». Les briques du parcours arrivent l’une
@@ -33800,11 +33851,12 @@ function paintOb(){
     /* « Comme la réf. 3 (Duolingo) : une page pour dire… tu apprendras en 30 jours » : un grand chiffre jaune en relief, puis la phrase.
        3 novembre, 13 h 25 : « ne mets pas : c’est assez pour les entretiens de data analyst » : plus de phrase de résultat promis sous
        le titre, quel que soit l’objectif (toutes promettaient un résultat du même genre). */
-    const b=obPlanInfo();
+    /* 9 h 36 : la phrase suit les jours choisis (« par jour », « par jour en semaine » ou « 3 jours par semaine »). */
+    const b=obPlanInfo(),fq=draft.freq||7,quand=fq===7?' par jour':fq===5?' par jour en semaine':`, ${fq} jours par semaine`;
     html=`<div class="ob-screen ob-profile ob-promise">${obFlowHeader(slide)}
       <div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>
       <img class="ob-promise-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
-      <h1 class="ob-title" id="ob-title">Avec <em>${b.minutes} minutes</em> par jour, tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1></div>`;
+      <h1 class="ob-title" id="ob-title">Avec <em>${b.minutes} minutes</em>${quand}, tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1></div>`;
     obSetFooter('Continuer',()=>obGoto('pact'),'','','');
     obRunBig();
   }else if(slide==='pact'){
@@ -33866,6 +33918,7 @@ function paintOb(){
   if(slide==='rappel')obNotifCaler();
   if(slide==='widget')obWidgetPromoJouer();
   if(slide==='widgetTuto')obWidgetTutoJouer();
+  if(slide==='jours')obJoursCompter(obJustEntered);
   if(slide==='name'||slide==='pseudo'){
     if(slide==='name')obNamePreview();
     /* Au clavier physique, le champ est prêt à taper ; au tactile on n'ouvre
@@ -35017,7 +35070,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-ouverture-douce-v2492';
+  const SW_CACHE='requete-2026-11-04-jours-semaine-v2493';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

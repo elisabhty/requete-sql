@@ -29,7 +29,7 @@ const flux = (globals = {}) => {
 };
 
 test('le tunnel de fin : sources, rappel (s’il peut être demandé), widget (app iPhone qui l’embarque), puis le compte', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];"));
   assert.deepEqual([...flux().obFinFlux()], ['practice', 'source'], 'navigateur sans notifications : la question seule');
   assert.deepEqual([...flux({Notification: {permission: 'default'}}).obFinFlux()], ['practice', 'source', 'rappel']);
   assert.deepEqual([...flux({Notification: {permission: 'granted'}}).obFinFlux()], ['practice', 'source'], 'déjà décidé : rien à demander');
@@ -60,7 +60,7 @@ test('« Comment as-tu connu Requête ? » : dix réponses en tuiles, « Continu
   assert.ok(s.includes("obMascotQuestion('Dis-moi tout : ça m’aide à faire connaître Requête !')"));
   assert.ok(s.includes(`class="ob-tile ob-source-tile \${draft.source===k?'on':''}"`) && s.includes(`onclick="obPick('source','\${k}')"`));
   assert.ok(s.includes("obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'','','',!draft.source);"));
-  assert.ok(app.includes("if(!['niveau','rythme','goal','ageRange','job','source'].includes(champ))return;") && app.includes("    source:draft.source||'',"));
+  assert.ok(app.includes("if(!['niveau','rythme','goal','ageRange','job','source','freq'].includes(champ))return;") && app.includes("    source:draft.source||'',"));
   for (const k of ['note', 'camera', 'play', 'article']) assert.ok(cut('function obOptionIcon(type){', 'function obAnswers(').includes(`    ${k}:'`), `icône ${k}`);
   assert.ok(css.includes('html #onboarding.ob-vitrine .ob-source-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}'));
 });
