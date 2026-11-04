@@ -71,7 +71,8 @@ assert(onboarding.includes("${plur(nParis,'client')} à Paris") && onboarding.in
 assert(html.includes('#onboarding.ob-enter .ob-answer{animation:'), 'les réponses apparaissent en cascade à l\'entrée d\'une étape');
 assert(onboarding.includes("classList.add('ob-selection-update')") && html.includes('.ob-selection-update .ob-answer.on'), 'choisir une réponse déclenche le pop de sélection');
 assert(onboarding.includes('function obNamePreview()') && onboarding.includes('ob-name-preview'), 'le prénom saisi est renvoyé en aperçu immédiat');
-assert(onboarding.includes('function obLevelHint()') && onboarding.includes('Tu commenceras par'), 'le niveau choisi révèle la vraie première leçon du plan');
+/* 3 novembre, 23 h 21 (Elisa) : « ne parle pas de commencer par Les bases de données relationnelles, mets juste le cadre du bas » */
+assert(!onboarding.includes('function obLevelHint()') && !onboarding.includes('${obLevelHint()}') && onboarding.includes('${obLevelPath()}'), 'le niveau ne montre plus que le chemin, sans « Tu commenceras par la leçon… »');
 assert(html.includes('.ob-practice-table span:not(.head){animation:'), 'les lignes du résultat SQL arrivent une par une');
 assert(onboarding.includes('Ta séance type :') && html.includes('.ob-rhythm-summary'), 'le rythme choisi résume la séance type réelle');
 assert(html.includes("if(obRoot&&obRoot.classList.contains('on')){"), 'l\'onboarding capte le clavier dès qu\'il est ouvert');

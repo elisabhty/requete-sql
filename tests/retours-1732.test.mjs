@@ -77,8 +77,11 @@ test('« commencer toujours par la même leçon » : tout nouveau parcours part 
     assert.equal((h.match(/ob-path-step start/g) || []).length, 1); assert.ok(h.includes('<div class="ob-path-step start"><i aria-hidden="true">▶</i><span>SELECT</span></div>'), niv);
     assert.ok(!h.includes('acquise') && !h.includes('ob-path-step done'), 'plus d’étape « acquise »');
   }
-  assert.ok(run('debutant').includes('Tu pars du début : chaque notion arrive dans l’ordre.'));
-  assert.ok(run('bases').includes('tes défis seront de niveau <b>Moyen</b>') && run('inter').includes('tes défis seront de niveau <b>Difficile</b>'));
+  /* 23 h 21 : « mets pas "comme tout le monde" ; défis recommandés en Moyen, et pareil, débutant niveau Facile » */
+  assert.equal(run('debutant').match(/<small class="ob-path-note">([\s\S]*?)<\/small>/)[1], 'Défis recommandés : niveau <b>Facile</b>');
+  assert.equal(run('bases').match(/<small class="ob-path-note">([\s\S]*?)<\/small>/)[1], 'Défis recommandés : niveau <b>Moyen</b>');
+  assert.equal(run('inter').match(/<small class="ob-path-note">([\s\S]*?)<\/small>/)[1], 'Défis recommandés : niveau <b>Difficile</b>');
+  for (const niv of ['debutant', 'bases', 'inter']) assert.ok(!run(niv).includes('comme tout le monde'), niv);
   assert.ok(app.includes("${obMascotQuestion('Dis-moi tout : tes défis suivront ton niveau.')}") && !code.includes('Je te ferai commencer au bon endroit.'));
   /* Le réglage du planning ne promet plus un départ « au tri » ou « aux sous-requêtes » */
   assert.ok(!code.includes('départ au tri') && !code.includes('départ aux sous-requêtes'));
@@ -150,7 +153,7 @@ test('« À la requête, mets une animation » : la requête se tape, « Exécut
   assert.ok(p.includes('<b class="ob-practice-n" data-n="${rowsN}">${rowsN}</b> ${rowsN>1?\'lignes\':\'ligne\'}') && p.includes("`<span${ci===2?' class=\"is-hit\"':''} style=\"--rd:${220+ri*120}ms\">"));
   /* Plus de « Passer l’essai » ; si le moteur SQL ne démarre pas, « Continuer » reste possible */
   assert.ok(!code.includes('Passer l’essai') && !code.includes('Aucune erreur possible : cet essai est guidé.'));
-  assert.ok(p.includes("const canGo=!!(draft.practiceDone||draft.practiceFailed);") && p.includes("obSetFooter(canGo?'Continuer':'Exécute la requête pour continuer',()=>obGoto(obAfterPractice()),'','','',!canGo);"));
+  assert.ok(p.includes("const canGo=!!(draft.practiceDone||draft.practiceFailed);") && p.includes("obSetFooter(canGo?'Continuer':'Lance la requête pour découvrir le résultat',()=>obGoto(obAfterPractice()),'','','',!canGo);"));
   const run = fn('obRunPractice', 'function obCanNext(');
   assert.ok(run.includes("if(draft.practiceDone||obPracticeBusy)return;") && run.includes("l.textContent='Exécution…'") && run.includes("btn.setAttribute('aria-busy','true')"));
   assert.ok(run.includes('setTimeout(()=>{obPracticeBusy=false;if(obStep===st&&OB_SLIDES[obStep]===\'practice\')obPracticeRun();},reduce?0:760);'), 'la requête part après le balayage, sauf si l’on a quitté l’étape');
@@ -196,7 +199,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=8']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=9']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -289,4 +292,32 @@ test('23 h 03, « l’écran n’est pas centré » : l’accueil reste centré 
   assert.ok(app.includes('.ob-screen.welcome>:last-child{margin-bottom:auto}'));
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-proof-stats{display:none!important}'));
   assert.ok(app.includes('<div class="ob-proof-stats" aria-label="L’apprentissage en bref">') && app.indexOf('<div class="ob-proof-stats"') > app.indexOf('<div class="ob-welcome-demo'), 'les chiffres sont le dernier bloc');
+});
+
+test('23 h 21 : le niveau sans « Tu commenceras par… », la première requête reformulée et son « Bravo », la construction plus animée', () => {
+  /* Le niveau : seul le cadre du chemin, avec le niveau de défis recommandé */
+  const lvl = slide('level', "}else if(slide==='practice'){");
+  assert.ok(!lvl.includes('obLevelHint') && lvl.includes('${obLevelPath()}'));
+  assert.ok(!code.includes('Tu commenceras par la leçon'), 'nulle part');
+  /* La première requête : les textes retenus par Elisa */
+  const p = slide('practice', "}else if(slide==='rhythm'){");
+  assert.ok(p.includes('<h1 class="ob-title" id="ob-title">À toi de lancer ta première requête&nbsp;!</h1>'));
+  assert.ok(p.includes('<p class="ob-lead">Une seule action suffit pour découvrir comment SQL retrouve les données.</p>'));
+  assert.ok(p.includes("'Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.'"));
+  assert.ok(p.includes("draft.practiceDone?'Bravo, ta première requête fonctionne ! 🎉'"), 'le retour après l’exécution');
+  assert.ok(p.includes("'Lance la requête pour découvrir le résultat'"));
+  /* La construction : nombres qui montent, comète, étincelles, confettis, vague sur les modules */
+  const b = slide('build', "}else if(slide==='promise'){");
+  assert.ok(b.includes("const anim=!draft.buildDone&&!prefersReduceMotion(),nb=(n,txt)=>`<span class=\"ob-n\" data-n=\"${n}\">${anim?0:n}</span>${txt}`;"));
+  assert.ok(b.includes("['≡',nb(b.lessons,' leçons'),'dans le bon ordre, pour toi']") && b.includes("['⚑','Tes défis',`niveau ${esc(b.defiNiv)} recommandé`]"));
+  assert.ok(b.includes('<b class="ob-build-head"></b>') && (b.match(/<i class="ob-build-spark" aria-hidden="true"><\/i>/g) || []).length === 3);
+  const run = fn('obRunBuild', 'function obBuildConfetti(');
+  assert.ok(run.includes("style.setProperty('--k',k.toFixed(4))") && run.includes("li.querySelectorAll('.ob-n').forEach(e=>{e.textContent=String(Math.round((+e.dataset.n||0)*p));});"));
+  assert.ok(run.includes('if(T)obBuildConfetti();'), 'confettis seulement quand la construction joue');
+  const conf = fn('obBuildConfetti', 'function obRunBig(');
+  assert.ok(conf.includes('if(prefersReduceMotion())return;') && conf.includes("layer.className='ob-build-confetti'") && conf.includes('setTimeout(()=>layer.remove(),2100);'));
+  for (const k of ['html #onboarding.ob-vitrine>.ob-build-confetti{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden}',
+    '.ob-build:not(.is-built) .ob-build-head{animation:obvHeadPulse', '.ob-build-list li.is-done::before{animation:obvRowFlash .7s ease-out}',
+    '.ob-build.is-built .ob-build-spark{animation:obvSpark 1s ease-out .12s both}', '.ob-build.is-built .ob-build-path span{animation:obvChipWave'])
+    assert.ok(css.includes(k), k);
 });
