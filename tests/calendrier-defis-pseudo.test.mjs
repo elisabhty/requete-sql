@@ -113,7 +113,7 @@ function perfCtx(salle) {
 }
 
 test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps, les dernières parties, les niveaux, les podiums, l’historique', () => {
-  assert.ok(app.includes('<div id="defis-room"></div>\n      <div id="defis-perf"></div>'), 'sous la salle');
+  assert.ok(app.includes('<div class="dx-stats-tete" id="defis-stats-tete"></div>\n        <div id="defis-perf"></div>'), 'dans « Mes stats » (4 novembre, 19 h 10)');
   assert.ok(fn('renderDefis').includes('renderDefisRoom();renderDefisPerf();renderDefisJoin();renderDefisRules();'));
   const h = perfCtx(SALLE);
   assert.match(h, /<h2 id="perf-h">Tes performances<\/h2>/);

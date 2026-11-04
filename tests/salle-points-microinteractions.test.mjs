@@ -37,7 +37,7 @@ test('ref 3 — la barre Insérer ne coupe plus net sa dernière touche : le bor
 });
 
 test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses règles de points', () => {
-  assert.ok(app.includes('<div id="defis-room"></div>\n      <div id="defis-perf"></div>\n      <div id="defis-join" class="jeu"></div>\n      <div id="defis-rules"></div>'));
+  assert.ok(app.includes('<div id="defis-room"></div>\n        <div id="defis-salles"></div>') && app.includes('<div id="defis-perf"></div>\n        <div id="defis-join" class="jeu"></div>\n        <div id="defis-rules"></div>'), 'Jouer, puis Mes stats (4 novembre, 19 h 10)');
   assert.ok(app.includes('<div class="eyebrow">Salle de défi</div>'), 'plus « Entraînement »');
   for (const gone of ['function setDefisLevel(', 'function defiListRow(', 'id="defis-list"', 'id="defis-free"', 'def-list-static'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);

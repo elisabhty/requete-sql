@@ -174,7 +174,7 @@ test('les défis réussis suivent le classement, seulement quand ils changent, j
   assert.ok(app.includes('s.horsCls=1;s.envoi=[];delete s.clsId;delete s.defisEnv;save();'));
   assert.ok(app.includes("if(typeof salleSrc.defisEnv==='string'&&salleSrc.defisEnv.length<=4000)salle.defisEnv=salleSrc.defisEnv;"), 'gardé dans la progression');
   assert.ok(app.includes("state.defis[current.id]=true; noteActivityDay(); save(); renderDefis(); renderProgress(); renderPlanning();\n      if(typeof clsDefis==='function')clsDefis();"), 'un défi réussi en entraînement libre');
-  assert.ok(app.includes("clsFlush();clsCharger();if(typeof clsDefis==='function')clsDefis();"), 'à l’ouverture des Défis');
+  assert.ok(app.includes("clsFlush();if(typeof clsDefis==='function')clsDefis();"), 'à l’ouverture des stats des Défis');
 });
 
 test('la base : jeu_defis ne crée personne, vérifie ce qu’elle reçoit ; trois vues pour toi, fermées à l’appli', () => {
