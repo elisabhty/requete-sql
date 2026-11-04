@@ -131,7 +131,8 @@ test('« On construit ton parcours » : l’effet waouh', () => {
   const run = fn('obRunBuild', 'function obRunBig(');
   assert.ok(run.includes("const reduce=prefersReduceMotion(),again=!!draft.buildDone,T=reduce||again?0:3000;"), '3 s ; tout de suite au retour ou en animations réduites');
   assert.ok(run.includes("li.classList.toggle('is-active',!ok&&k>=i/n);") && run.includes("buzz('selection')") && run.includes('f.style.clipPath=`inset(0 ${(100-k*100).toFixed(2)}% 0 0 round 99px)`;'));
-  assert.ok(run.includes("t.innerHTML='Ton parcours<br>est <em>construit</em>&nbsp;!';") && run.includes("lbl.textContent='Parcours construit';") && run.includes('draft.buildDone=true;'));
+  /* 4 novembre, 1 h 31 (Réf. 2) : « Ton parcours est prêt », plutôt que « construit » */
+  assert.ok(run.includes("t.innerHTML='Ton parcours<br>est <em>prêt</em>&nbsp;!';") && run.includes("lbl.textContent='Parcours prêt';") && run.includes('draft.buildDone=true;'));
   assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(champ==='niveau'||champ==='rythme'||champ==='goal')draft.buildDone=false;"), 'un autre choix reconstruit le parcours');
   for (const k of ['.ob-build:not(.is-built) .ob-build-bar i{animation:obvStripes .55s linear infinite}', '.ob-build.is-built .ob-build-burst i{animation:obvBurst 1s',
     '.ob-build.is-built .ob-build-card{animation:obvCardGlow 1s ease-out both}', '.ob-build-list li.is-active .ob-build-ok{animation:obvSpin .7s linear infinite}',
@@ -148,7 +149,7 @@ test('« À la requête, mets une animation » : la requête se tape, « Exécut
   const lignes = [...p.matchAll(/<span class="ob-tl" style="--n:(\d+);--t:[\d.]+s;--dl:[\d.]+s">([\s\S]*?)<\/span>\n?(?=<span class="ob-tl"|<\/pre>)/g)];
   assert.equal(lignes.length, 3);
   for (const [, n, h] of lignes) assert.equal(h.replace(/<[^>]+>/g, '').length, Number(n), h);
-  assert.ok(p.includes("const typing=!draft.practiceDone&&obJustEntered&&!prefersReduceMotion();") && p.includes('<div class="ob-practice-card${typing?\' is-typing\':\'\'}">'));
+  assert.ok(p.includes("const typing=!draft.practiceDone&&obJustEntered&&!prefersReduceMotion();") && p.includes('<div class="ob-practice-card${typing?\' is-typing\':\'\'}${fresh?\' is-flip-in\':\'\'}">'));
   assert.ok(p.includes('<button type="button" class="ob-practice-run" id="ob-practice-run" onclick="obRunPractice()"><span class="ob-practice-play" aria-hidden="true">▶</span><span class="ob-practice-lbl">Exécuter la requête</span></button>'));
   assert.ok(p.includes('<b class="ob-practice-n" data-n="${rowsN}">${rowsN}</b> ${rowsN>1?\'lignes\':\'ligne\'}') && p.includes("`<span${ci===2?' class=\"is-hit\"':''} style=\"--rd:${220+ri*120}ms\">"));
   /* Plus de « Passer l’essai » ; si le moteur SQL ne démarre pas, « Continuer » reste possible */
@@ -156,7 +157,9 @@ test('« À la requête, mets une animation » : la requête se tape, « Exécut
   assert.ok(p.includes("const canGo=!!(draft.practiceDone||draft.practiceFailed);") && p.includes("obSetFooter(canGo?'Continuer':'Lance la requête pour découvrir le résultat',()=>obGoto(obAfterPractice()),'','','',!canGo);"));
   const run = fn('obRunPractice', 'function obCanNext(');
   assert.ok(run.includes("if(draft.practiceDone||obPracticeBusy)return;") && run.includes("l.textContent='Exécution…'") && run.includes("btn.setAttribute('aria-busy','true')"));
-  assert.ok(run.includes('setTimeout(()=>{obPracticeBusy=false;if(obStep===st&&OB_SLIDES[obStep]===\'practice\')obPracticeRun();},reduce?0:760);'), 'la requête part après le balayage, sauf si l’on a quitté l’étape');
+  /* Après le balayage (760 ms), la console se retourne (1 h 31), puis la requête part ; rien si l’on a quitté l’étape */
+  assert.ok(run.includes("if(obStep!==st||OB_SLIDES[obStep]!=='practice'){obPracticeBusy=false;return;}") && run.includes("if(card&&!reduce)card.classList.add('is-flip-out');"));
+  assert.ok(run.includes("setTimeout(()=>{obPracticeBusy=false;if(obStep===st&&OB_SLIDES[obStep]==='practice')obPracticeRun();},reduce?0:210);") && run.includes('},reduce?0:760);'), 'la requête part après le balayage et le quart de tour');
   assert.ok(/catch\(e\)\{\s*draft\.practiceRows=\[\];\s*draft\.practiceDone=false;[\s\S]*?draft\.practiceFailed=true;/.test(run));
   for (const k of ['.ob-practice-card.is-typing .ob-tl{overflow:hidden;animation:obvType var(--t) steps(var(--n),end) var(--dl) backwards,obvCaret var(--t) linear var(--dl)}',
     '.ob-practice-run:not(:disabled)::after{animation:obvRing 1.8s ease-in-out .5s infinite}', '.ob-practice-card.is-running .ob-practice-code::after{animation:obvScan',
@@ -199,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=10']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=11']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -304,7 +307,7 @@ test('23 h 21 : le niveau sans « Tu commenceras par… », la première requêt
   assert.ok(p.includes('<h1 class="ob-title" id="ob-title">À toi de lancer ta première requête&nbsp;!</h1>'));
   assert.ok(p.includes('<p class="ob-lead">Une seule action suffit pour découvrir comment SQL retrouve les données.</p>'));
   assert.ok(p.includes("'Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.'"));
-  assert.ok(p.includes("draft.practiceDone?'Bravo, ta première requête fonctionne ! 🎉'"), 'le retour après l’exécution');
+  assert.ok(p.includes('<h1 class="ob-title" id="ob-title">Bravo, ta première requête fonctionne&nbsp;! 🎉</h1>'), 'le retour après l’exécution (en titre depuis 1 h 31)');
   assert.ok(p.includes("'Lance la requête pour découvrir le résultat'"));
   assert.ok(css.includes('html #onboarding.ob-vitrine[data-ob-slide="practice"] .ob-cta:disabled{font-size:15px!important;'), 'le bouton inactif tient sur une ligne dès 375 px');
   /* La construction : nombres qui montent, comète, étincelles, confettis, vague sur les modules */
@@ -321,4 +324,37 @@ test('23 h 21 : le niveau sans « Tu commenceras par… », la première requêt
     '.ob-build:not(.is-built) .ob-build-head{animation:obvHeadPulse', '.ob-build-list li.is-done::before{animation:obvRowFlash .7s ease-out}',
     '.ob-build.is-built .ob-build-spark{animation:obvSpark 1s ease-out .12s both}', '.ob-build.is-built .ob-build-path span{animation:obvChipWave'])
     assert.ok(css.includes(k), k);
+});
+
+test('4 novembre, 1 h 31 : la première requête en deux pages, « Ton parcours est prêt », la flèche, et la place bien prise', () => {
+  /* Réf. 1 : « tu n’as pas mis de message ici quand elle est lancée ; fais plutôt une deuxième page, comme si elle tournait, avec le
+     résultat et le bravo » — sur son iPhone, la bulle du « Bravo » était retirée par obFit. */
+  const p = slide('practice', "}else if(slide==='rhythm'){");
+  assert.ok(p.includes("html=`<div class=\"ob-screen ob-profile ob-practice${done?' is-result':''}${fresh?' is-fresh':''}\">${obFlowHeader(slide)}${head}"));
+  assert.ok(p.includes("<p class=\"ob-lead\">SQL a retrouvé, dans la table clients, ${rowsN>1?`les <b>${rowsN}</b> clients qui habitent`:'le client qui habite'} à Paris.</p>"), 'la phrase qui explique le résultat');
+  const avant = p.slice(p.indexOf(':`<h1 class="ob-title" id="ob-title">À toi de lancer'), p.indexOf('html=`<div class="ob-screen ob-profile ob-practice'));
+  assert.ok(avant.includes('obMascotQuestion(') && !p.slice(p.indexOf('head=done?'), p.indexOf(':`<h1 class="ob-title" id="ob-title">À toi de lancer')).includes('obMascotQuestion('), 'la mascotte avant, le Bravo en titre après');
+  /* La console se retourne : un quart de tour, puis revient de l’autre côté ; confettis depuis le résultat */
+  for (const k of ['.ob-practice-card.is-flip-out{transform:rotateY(90deg);', '.ob-practice-card.is-flip-in{animation:obvFlipIn .55s', '@keyframes obvFlipIn{from{transform:rotateY(-90deg);',
+    'html #onboarding.ob-vitrine .ob-screen.ob-practice{min-height:100%;perspective:1100px}'])
+    assert.ok(css.includes(k), k);
+  assert.ok(fn('obPracticeRun', 'function obCanNext(').includes("obConfettiAt(r,'top',34)"));
+  /* Réf. 2 : la flèche animée du bouton */
+  const b = slide('build', "}else if(slide==='promise'){");
+  assert.ok(b.includes("obSetFooter('Découvre ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);") && b.includes('<span class="ob-cta-arrow" aria-hidden="true"><svg'));
+  assert.ok(css.includes('.ob-cta:not(:disabled) .ob-cta-arrow{animation:obvArrow 1.1s ease-in-out .4s infinite}'), 'elle avance une fois le parcours prêt');
+  /* « Maîtrise de l’espace » : la carte de la construction remplit la hauteur, les modules prennent la place qui reste */
+  for (const k of ['html #onboarding.ob-vitrine .ob-screen.ob-build{height:100%}', 'html #onboarding.ob-vitrine .ob-build-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}',
+    'html #onboarding.ob-vitrine .ob-build-path{position:relative;flex:0 1 auto;min-height:56px;overflow:hidden;align-content:flex-start}',
+    'html #onboarding.ob-vitrine .ob-practice.is-result .ob-practice-table{flex:1 0 auto;grid-auto-rows:1fr;align-items:center}',
+    'html #onboarding.ob-vitrine .ob-screen.ob-practice:not(.is-result)>.ob-title{margin-top:auto!important}'])
+    assert.ok(css.includes(k), k);
+  const chips = fn('obFitChips', "if(typeof window!=='undefined')window.addEventListener('resize'");
+  const ctx = vm.createContext({});
+  const spans = [0, 30, 60, 90].map(t => ({ offsetTop: t, offsetHeight: 24, cut: false, classList: { toggle(c, on) { this.o.cut = on; } } }));
+  spans.forEach(sp => { sp.classList.o = sp; });
+  ctx.document = { querySelector: () => ({ clientHeight: 80, querySelectorAll: () => spans }) };
+  vm.runInContext(chips, ctx); vm.runInContext('obFitChips()', ctx);
+  assert.deepEqual(spans.map(s => s.cut), [false, false, true, true], 'un module qui ne tient pas entier est masqué');
+  assert.ok(fn('obFit', 'function obFitChips(').includes('obFitChips();'));
 });
