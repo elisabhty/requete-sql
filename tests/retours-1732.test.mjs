@@ -37,7 +37,7 @@ test('« enlève les notions de facultatif » : ni texte d’aide, ni « Passer 
   const cta = fn('obNameCta', 'function obNameNext(');
   assert.ok(cta.includes("next.disabled=!(draft.name||'').trim();") && cta.includes('if(was&&!next.disabled)obCtaWake(next);'));
   const go = fn('obNameNext', 'let obCheerT');
-  assert.ok(go.includes("if((draft.name||'').trim()){obGoto('age');return;}") && go.includes("f.classList.add('is-shake')"));
+  assert.ok(go.includes("if((draft.name||'').trim()){obGoto('pays');return;}") && go.includes("f.classList.add('is-shake')"));
   assert.ok(css.includes('.ob-field.is-shake input{animation:obvShake .4s ease both}'));
 });
 
@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=18']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=19']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });

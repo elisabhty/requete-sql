@@ -29,7 +29,7 @@ const flux = (globals = {}) => {
 };
 
 test('le tunnel de fin : sources, rappel (s’il peut être demandé), widget (app iPhone qui l’embarque), puis le compte', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
   /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte est toujours là ; 10 h 45
      (« passer directement à la connexion ») : juste après la première requête. */
   assert.deepEqual([...flux().obFinFlux()], ['practice', 'account', 'source'], 'navigateur sans notifications : le compte, puis la question');

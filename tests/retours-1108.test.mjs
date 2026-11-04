@@ -154,7 +154,7 @@ test('réf. 5 : sous le clavier, la couleur du bas de la page plutôt que du noi
 test('réf. 6 et 7 : la première page parle de tous les appareils, et le bouton remonte sur toutes les étapes', () => {
   assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
   assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + 34px)!important}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=18">') && sw.includes("'./onboarding-vitrine.css?v=18',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=19">') && sw.includes("'./onboarding-vitrine.css?v=19',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   /* Le cache a changé de nom ce jour-là (rappel-jours, v2497), et de nouveau à chaque version qui a suivi */
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2497, cache);

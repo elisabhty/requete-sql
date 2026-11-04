@@ -19,21 +19,21 @@ const fn = (name, next) => { const i = app.lastIndexOf(`function ${name}(`); ass
 const slide = (name, next) => { const i = app.lastIndexOf(`}else if(slide==='${name}'){`); assert.ok(i > 0, name); return app.slice(i, app.indexOf(next, i + 10)); };
 
 test('l’âge et la profession, juste après le prénom, dans le compte des étapes', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
-  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','age','job','goal','level','rhythm','jours','build','promise','pact','practice'];"), '« Étape 2 sur 10 », « Étape 3 sur 10 »');
-  /* obNext, exécuté seul : prénom → âge → profession → objectif */
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','promise','pact','practice'];"), '« Étape 2 sur 10 », « Étape 3 sur 10 »');
+  /* obNext, exécuté seul : prénom → pays (4 novembre, 13 h 18 : retours-1318) → âge → profession → objectif */
   const vers = [];
   const ctx = vm.createContext({ OB_SLIDES: vm.runInNewContext(app.match(/const OB_SLIDES = (\[[^\]]+\]);/)[1]), obStep: 0,
     obGoto: t => vers.push(t), obAfterPractice: () => 'ready', obChooseGuest() {}, finishOnboard() {} });
   vm.runInContext(fn('obNext', 'function obBack(){') + ';var next=s=>{obStep=OB_SLIDES.indexOf(s);obNext();};', ctx);
-  for (const s of ['name', 'age', 'job']) vm.runInContext(`next('${s}')`, ctx);
-  assert.deepEqual(vers, ['age', 'job', 'goal']);
+  for (const s of ['name', 'pays', 'age', 'job']) vm.runInContext(`next('${s}')`, ctx);
+  assert.deepEqual(vers, ['pays', 'age', 'job', 'goal']);
   /* Le prénom y mène par « Continuer » et par Entrée. 17 h 32 (« enlève les notions de facultatif ») : plus de « Passer pour le
      moment » ; « Continuer » attend le prénom (tests/retours-1732.test.mjs). */
   const name = slide('name', "}else if(slide==='pseudo'){");
   assert.ok(name.includes("obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());") && !name.includes('Passer pour le moment'));
   assert.ok(name.includes(`onkeydown="if(event.key==='Enter'){event.preventDefault();obNameNext();}"`));
-  assert.ok(fn('obNameNext', 'let obCheerT').includes("if((draft.name||'').trim()){obGoto('age');return;}"));
+  assert.ok(fn('obNameNext', 'let obCheerT').includes("if((draft.name||'').trim()){obGoto('pays');return;}"));
 });
 
 test('âge : six tranches en tuiles, choix unique (obligatoire depuis 17 h 32)', () => {
@@ -136,7 +136,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=18">') && sw.includes("'./onboarding-vitrine.css?v=18',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=19">') && sw.includes("'./onboarding-vitrine.css?v=19',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');

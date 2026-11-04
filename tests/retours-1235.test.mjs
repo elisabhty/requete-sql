@@ -79,7 +79,8 @@ test('le pont : leconDebut, leconMaj, leconFin (iOS 16.2), et rien de resté à 
     'await a.end(nil, dismissalPolicy: .immediate)', 'await toutArreter()'])
     assert.ok(p.includes(k), k);
   assert.ok(pont.includes('@available(iOS 16.2, *)\nenum RequeteLeconPont {'));
-  assert.ok(cut(pont, 'override public func load() {', '\n    }\n').includes('if #available(iOS 16.2, *) {\n            Task { await RequeteLeconPont.toutArreter() }\n        }'));
+  assert.ok(cut(pont, 'override public func load() {', '\n    }\n').includes('if #available(iOS 16.2, *) {\n            Task { await RequeteLeconPont.arreterEnCours() }\n        }'));
+  assert.ok(p.includes('for a in Activity<RequeteLecon>.activities where !a.content.state.fini {'), 'la relance garde la carte d’une leçon réussie');
   const code = sansCommentaires(pont);
   for (const [o, f] of [['{', '}'], ['(', ')'], ['[', ']']]) assert.equal(code.split(o).length, code.split(f).length, `${o}${f} équilibrées (pont)`);
 });
@@ -263,7 +264,7 @@ test('la note se garde dans la progression (normalizeState), sans rien d’autre
 });
 
 test('les étoiles en CSS : la fiche du bilan, leur arrivée, leur ondulation, le rebond, les étincelles, et le mouvement réduit', () => {
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=135">'));
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=136">'));
   for (const k of ['html.lq #scr-lesson .bravo-avis{', 'html.lq #scr-lesson .bravo-avis .av-star.on path{fill:var(--sun);stroke:var(--sun-lip)}',
     'html.lq #scr-lesson .bravo-avis .av-star input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
     'html.lq #scr-lesson .bravo-avis .av-star{animation:avStarIn .5s var(--pop) calc(.42s + var(--i) * .07s) backwards}',
