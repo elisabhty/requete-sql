@@ -247,13 +247,11 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   sans la page « 24 jours » le 4 novembre à 18 h 30 : `supabase/migrations/20261104173026_onboarding_entonnoir_sans_promesse.sql`. Dans App
   Store Connect, déclarer « Interactions avec le produit » ; usage « Analyses » ; non lié à l’identité, sans pistage.
 - **Supprimer mon compte** (4 novembre, 22 h 08 ; règle 5.1.1 v) : Mon compte › Compte et assistance › « Supprimer mon compte »,
-  deux confirmations, puis `compte_supprimer` (`supabase/migrations/20261104221600_compte_supprimer.sql`) efface tout ce que le
+  deux confirmations, puis `compte_supprimer` (appliquée le 4 novembre à 23 h 49 : `supabase/migrations/20261104224931_compte_supprimer.sql`) efface tout ce que le
   serveur garde pour l’appareil (pseudo et pays, classement et parties, vote, avis, écrans de l’accueil vus, messages de « Nous
   contacter », places dans les salles) et, avec un compte connecté, le compte (ses tables privées suivent par cascade, l’identifiant
-  de l’appareil est révoqué) ; puis l’appareil est vidé et l’appli repart de zéro. Tant que la migration n’est pas appliquée, l’appli
-  se rabat sur `jeu_pseudo_liberer` (pseudo et scores) : le 4 novembre, le connecteur Supabase demandait une confirmation que l’appli
-  mobile annule d’elle-même ; à appliquer depuis le tableau de bord (SQL Editor, coller le fichier) ou depuis l’app Claude sur l’ordi.
-  Les pièces jointes de « Nous contacter » restent à effacer à la main
+  de l’appareil est révoqué) ; puis l’appareil est vidé et l’appli repart de zéro. Si la fonction manquait (ancien serveur), l’appli
+  se rabattrait sur `jeu_pseudo_liberer` (pseudo et scores). Les pièces jointes de « Nous contacter » restent à effacer à la main
   (Storage) : la politique de confidentialité promet « dans le mois ». Celles qui n’ont plus de message (compte supprimé, ou envoi
   raté) : `select name from storage.objects o where bucket_id = 'contact-pieces' and not exists (select 1 from public.contact_message m
   where o.name = any(m.pieces));` dans l’éditeur SQL, puis les supprimer dans Storage › contact-pieces.
