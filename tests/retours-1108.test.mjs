@@ -85,7 +85,7 @@ test('réf. 2 : la page du rappel, l’heure en grand, quatre moments, les jours
   const moments = ['08:00', '12:30', '19:00', '21:30'].map(h => Object.assign(el(), { dataset: { h } }));
   const h = el(), inp = el(), cta = el(), appels = [];
   const ctx = vm.createContext({ PATTERN, JOURS, OB_ICO_HEURES: '<svg/>', OB_SLIDES: ['rappel'], obStep: 0, draft: { freq: 3, rappelHeure: '19:00' },
-    rappelHeure: () => '19:00', escAttr: s => String(s), rappelJoursTexte: j => j.join('-'), prefersReduceMotion: () => false, buzz: k => appels.push(k),
+    rappelHeure: () => '19:00', escAttr: s => String(s), rappelJoursTexte: j => j.join('-'), prefersReduceMotion: () => false, buzz: k => appels.push(k), obCtaLibelle: (b, t) => { b.textContent = t; },
     document: { getElementById: id => ({ 'ob-rappel-h': h, 'ob-rappel-input': inp, 'ob-next': cta })[id], querySelectorAll: () => moments } });
   vm.runInContext(aides.replace('const OB_RAPPEL_MOMENTS=', 'var OB_RAPPEL_MOMENTS='), ctx);
   assert.deepEqual(['19:00', '08:00', '12:30', '21:30'].map(x => vm.runInContext(`obHeureTexte('${x}')`, ctx)), ['19\u00a0h', '8\u00a0h', '12\u00a0h\u00a030', '21\u00a0h\u00a030']);
@@ -153,8 +153,9 @@ test('réf. 5 : sous le clavier, la couleur du bas de la page plutôt que du noi
 
 test('réf. 6 et 7 : la première page parle de tous les appareils, et le bouton remonte sur toutes les étapes', () => {
   assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
-  assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + 34px)!important}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=19">') && sw.includes("'./onboarding-vitrine.css?v=19',"), 'feuille rechargée');
+  /* 4 novembre, 14 h 08 (réf. 3) : « monter encore le bouton jaune » : jusqu’à 58 px au-dessus de la barre d’accueil, 34 px au moins */
+  assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + clamp(34px,6.6vh,58px))!important}'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=20">') && sw.includes("'./onboarding-vitrine.css?v=20',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   /* Le cache a changé de nom ce jour-là (rappel-jours, v2497), et de nouveau à chaque version qui a suivi */
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2497, cache);

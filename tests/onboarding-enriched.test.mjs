@@ -29,7 +29,7 @@ console.log('\n=== Onboarding : parcours, pratique réelle et accessibilité ===
 assert(onboarding.length > 5000, 'bloc onboarding localisé (repères de découpe intacts)');
 
 console.log('\n--- Le parcours ---');
-assert(html.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready']"), 'les étapes du parcours sont déclarées dans l’ordre (la mini-page du pseudo avant la dernière page : 17 h 53, puis 4 novembre, 2 h 13) ; l’âge et la profession après le prénom (3 novembre, 13 h 25)');
+assert(html.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','temoignages','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready']"), 'les étapes du parcours sont déclarées dans l’ordre (la mini-page du pseudo avant la dernière page : 17 h 53, puis 4 novembre, 2 h 13) ; l’âge et la profession après le prénom (3 novembre, 13 h 25)');
 assert(onboarding.includes("if(slide==='welcome')obGoto('name')") && onboarding.includes("else if(slide==='rhythm')obGoto('jours')") && onboarding.includes("else if(slide==='jours')obGoto('build')") && onboarding.includes("else if(slide==='pact')obGoto('practice')") && onboarding.includes("else if(slide==='practice')obGoto(obAfterPractice())"), 'obNext enchaîne les étapes dans cet ordre (compte sauté sans fournisseur, vers ready directement)');
 assert(onboarding.includes("obEntry") && onboarding.includes('function obBack()'), 'chaque étape peut revenir en arrière');
 

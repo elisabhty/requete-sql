@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=19']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=20']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -343,7 +343,7 @@ test('4 novembre, 1 h 31 : la première requête en deux pages, « Ton parcours 
   assert.ok(!run.includes('obConfettiAt(') && run.includes("if(draft.practiceDone)obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='practice'&&!obLock)obGoto(obAfterPractice());},reduce?1800:2400));"));
   /* Réf. 2 : la flèche animée du bouton */
   const b = slide('build', "}else if(slide==='promise'){");
-  assert.ok(b.includes("obSetFooter('Découvre ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);") && b.includes('<span class="ob-cta-arrow" aria-hidden="true"><svg'));
+  assert.ok(b.includes("obSetFooter('Découvre ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);") && app.includes("btn.insertAdjacentHTML('beforeend',OB_CTA_FLECHE);"), 'obSetFooter la pose (14 h 08)');
   assert.ok(css.includes('.ob-cta:not(:disabled) .ob-cta-arrow{animation:obvArrow 1.1s ease-in-out .4s infinite}'), 'elle avance une fois le parcours prêt');
   /* « Maîtrise de l’espace » : la carte de la construction remplit la hauteur, les modules prennent la place qui reste */
   for (const k of ['html #onboarding.ob-vitrine .ob-screen.ob-build{height:100%}', 'html #onboarding.ob-vitrine .ob-build-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}',

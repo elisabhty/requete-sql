@@ -118,7 +118,7 @@ test('où l’onboarding perd du monde : chaque étape comptée une fois par app
   for (const k of ['primary key (cle, etape)', "etape text not null check (etape ~ '^[a-zA-Z]{2,16}$')", 'revoke all on public.onboarding_etape from public, anon, authenticated;',
     'create or replace function public.onboarding_compter(p_cle text, p_etapes text[])', 'security definer', 'v_cle text := public.jeu_cle(p_cle);',
     'on conflict (cle, etape) do nothing;', 'grant execute on function public.onboarding_compter(text, text[]) to anon, authenticated;',
-    'create or replace view public.onboarding_entonnoir with (security_invoker = true) as', "('pays', 3, 'Pays')", "('termine', 18, 'Onboarding terminé')",
+    'create or replace view public.onboarding_entonnoir with (security_invoker = true) as', "('pays', 3, 'Pays')", "('termine', 19, 'Onboarding terminé')",
     'revoke all on public.onboarding_entonnoir from public, anon, authenticated;'])
     assert.ok(sql.includes(k), k);
   /* La confidentialité le dit (la page de l’onboarding et la feuille de secours) */
