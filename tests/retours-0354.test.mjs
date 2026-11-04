@@ -104,11 +104,12 @@ test('le widget : l’écran d’accueil avec la série, puis le tutoriel en tro
   const timers = [], box = {dataset: {}}, bulle = {textContent: ''};
   const ctx = vm.createContext({OB_SLIDES: ['widgetTuto'], obStep: 0, obDemoTimers: [], OB_WT_TEXTES: textes,
     document: {getElementById: id => id === 'ob-wt' ? box : bulle, body: {contains: () => true}}, setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }});
+  vm.runInContext(cut('function obTypo(s){', '\n'), ctx);   // 8 h 19 : la ponctuation ne part pas seule à la ligne
   vm.runInContext(cut('function obWidgetTutoJouer(){', '/* ---------- Le widget de l’app iPhone'), ctx);
   ctx.obWidgetTutoJouer();
   const vu = [];
   for (let i = 0; i < 4; i++) { vu.push([box.dataset.phase, bulle.textContent.slice(0, 12), timers.at(-1)[1]]); timers.at(-1)[0](); }
-  assert.deepEqual(vu, [['1', 'D’abord, mai', 3400], ['2', 'Appuie ensui', 3600], ['3', 'Cherche « Re', 5200], ['1', 'D’abord, mai', 3400]]);
+  assert.deepEqual(vu, [['1', 'D’abord, mai', 3400], ['2', 'Appuie ensui', 3600], ['3', 'Cherche «\u00A0Re', 5200], ['1', 'D’abord, mai', 3400]]);
   assert.equal(ctx.obDemoTimers.length, 5, 'chaque temps dans obDemoTimers : arrêtée en quittant l’étape (paintOb les vide)');
   /* Chaque app à sa case ; le widget posé passe par-dessus les quatre premières */
   assert.ok(app.includes('style="--i:${i};grid-area:${Math.floor(i/3)+1}/${i%3+1}"'));

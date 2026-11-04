@@ -32945,7 +32945,7 @@ function obWidgetTutoJouer(){
   const durees=[3400,3600,5200];let p=0;
   const etape=()=>{
     if(OB_SLIDES[obStep]!=='widgetTuto'||!document.body.contains(box))return;
-    box.dataset.phase=String(p+1);if(bulle)bulle.textContent=OB_WT_TEXTES[p];
+    box.dataset.phase=String(p+1);if(bulle)bulle.textContent=obTypo(OB_WT_TEXTES[p]);
     obDemoTimers.push(setTimeout(()=>{p=(p+1)%3;etape();},durees[p]));
   };
   etape();
@@ -33327,6 +33327,7 @@ function obFit(){
     root.classList.add(c);
   }
   obFitChips();
+  obChampEnVue();
 }
 /* 1 h 31 : les modules du parcours prennent la place qui reste dans la carte ; un module qui ne tient pas entier est masqué
    (pas de pastille coupée en deux). */
@@ -33336,6 +33337,48 @@ function obFitChips(){
   box.querySelectorAll('span').forEach(sp=>sp.classList.toggle('is-cut',sp.offsetTop+sp.offsetHeight>lim+1));
 }
 if(typeof window!=='undefined')window.addEventListener('resize',()=>{const r=document.getElementById('onboarding');if(r&&r.classList.contains('on'))obFit();});
+/* 4 novembre, 8 h 19 (Elisa, capture de l’iPhone : « Bug sur l’application ») : clavier ouvert, le champ du prénom était coupé
+   sous « Continuer » et l’écran gardait sa taille pleine (titre, phrase, mascotte). Dans l’app, le clavier rétrécit la vue web
+   (Keyboard « native ») une demi-seconde après être apparu, et la hauteur de l’écran (100dvh) ne suit qu’après l’événement resize :
+   obFit mesurait encore l’ancienne hauteur, rien ne se resserrait. obFit suit maintenant la taille réelle de l’onboarding
+   (ResizeObserver) et se relance pendant que le clavier s’ouvre ou se ferme ; le champ où l’on tape est ramené en vue, avec ce qui
+   le suit (l’accueil au prénom, l’état du pseudo). */
+function obChampEnVue(){
+  const body=document.getElementById('ob-body'),a=document.activeElement;
+  if(!body||!a||a===body||!body.contains(a)||!/^(INPUT|TEXTAREA)$/.test(a.tagName))return;
+  const champ=a.closest('.ob-field')||a,suite=champ.nextElementSibling;
+  const avec=suite&&!suite.hidden&&suite.offsetHeight>0&&suite.matches('.ob-name-preview,.ps-etat')?suite:champ;
+  const b=body.getBoundingClientRect(),haut=champ.getBoundingClientRect().top,bas=avec.getBoundingClientRect().bottom,m=12;
+  let d=0;
+  if(bas+m>b.bottom)d=Math.min(bas+m-b.bottom,haut-m-b.top);   // le haut du champ ne passe jamais au-dessus du bord
+  else if(haut-m<b.top)d=haut-m-b.top;
+  if(Math.abs(d)>1)body.scrollTop+=d;
+}
+if(typeof window!=='undefined'&&typeof document!=='undefined'){
+  let obTailleH=-1,obClavierT=[];
+  const obRefit=()=>{const r=document.getElementById('onboarding');if(r&&r.classList.contains('on'))obFit();};
+  /* La vue met environ une demi-seconde à changer de taille avec le clavier : on remesure pendant ce temps-là. */
+  const obRefitBientot=()=>{obClavierT.forEach(clearTimeout);obClavierT=[120,520,900].map(t=>setTimeout(obRefit,t));};
+  if(typeof ResizeObserver==='function'){
+    const ro=new ResizeObserver(es=>{const h=Math.round(es[es.length-1].contentRect.height);if(h===obTailleH)return;obTailleH=h;obRefit();});
+    const suivre=()=>{const r=document.getElementById('onboarding');if(r)ro.observe(r);};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',suivre,{once:true});else suivre();
+  }
+  document.addEventListener('focusin',e=>{const b=document.getElementById('ob-body'),t=e.target;if(b&&t&&b.contains(t)&&/^(INPUT|TEXTAREA)$/.test(t.tagName))obRefitBientot();});
+  ['keyboardWillShow','keyboardDidShow','keyboardDidHide'].forEach(n=>window.addEventListener(n,obRefitBientot));
+}
+/* Même capture : dans la bulle, « Salut ! Comment dois-je t’appeler » puis « ? » seul sur la ligne d’en dessous. Les espaces avant
+   « ? ! ; » deviennent des fines insécables, celles avant « : » et « » » et après « « » des insécables : la ponctuation ne part plus
+   seule à la ligne, sur toutes les pages de l’onboarding (le code SQL et les tableaux de résultats restent tels quels). */
+function obTypo(s){return String(s).replace(/ ([?!;])/g,' $1').replace(/ ([:»])/g,' $1').replace(/« /g,'« ');}
+function obInsecables(el){
+  if(!el||typeof document==='undefined'||typeof document.createTreeWalker!=='function'||typeof NodeFilter==='undefined')return;
+  const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
+  for(let n=w.nextNode();n;n=w.nextNode()){
+    const p=n.parentElement;if(p&&p.closest('code,pre,script,style,textarea,table,[class*="code"]'))continue;
+    const t=n.nodeValue,u=obTypo(t);if(u!==t)n.nodeValue=u;
+  }
+}
 function obRhythmSummary(){
   const r=RYTHMES.find(x=>x.k===(draft.rythme||'regulier'))||RYTHMES[1];
   return `<div class="ob-rhythm-summary" role="status"><span aria-hidden="true">◎</span><span>Ta séance type : <b>${plur(r.per,'activité')} · ≈ ${obRythmeMinutes(r)} min</b> · modifiable à tout moment.</span></div>`;
@@ -33708,6 +33751,7 @@ function paintOb(){
   }
   body.classList.remove('out');
   body.innerHTML=html;
+  obInsecables(body);
   body.scrollTop=0;
   obFitSoon();
   /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
@@ -34868,7 +34912,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-fin-onboarding-v2487';
+  const SW_CACHE='requete-2026-11-04-clavier-prenom-v2488';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
