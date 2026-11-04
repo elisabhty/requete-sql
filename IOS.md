@@ -71,6 +71,23 @@ L’app y range la série (index.html, `widgetMaj`) chaque fois qu’elle passe 
 Si l’archive refuse la signature du groupe d’apps : dans Xcode, cible App puis cible RequeteWidgetExtension › Signing &
 Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App Groups (Xcode l’enregistre), puis relancer.
 
+### Le chat change dans la journée (4 novembre, 12 h 14)
+
+Un widget ne joue ni vidéo ni boucle (iOS ne le permet pas) : il anime le passage d’un état à l’autre, à partir d’iOS 17. Le chat
+a donc quatre poses (`Humeur`, dans `RequeteWidget.swift`), et le fournisseur pose une entrée à minuit, 5 h, midi et 18 h :
+
+- **le matin** (5 h – midi) : le compteur se range dans le coin, le chat dit « Une petite requête ? » dans une bulle
+  (« Jour de repos ! » un jour de repos du planning) ;
+- **l’après-midi** (midi – 18 h, et la nuit) : comme avant ;
+- **le soir** (18 h – minuit, un jour de séance) : la flamme grandit et rougeoie, « Ta flamme t’attend ! » (« Allume ta flamme ! »
+  sans série) ; un jour de repos, le soir reste calme ;
+- **séance faite** : la flamme dorée, le chat en l’air et penché, entre des étincelles. L’app recharge le widget en partant : en
+  revenant sur l’écran d’accueil après une séance, le chat plonge et ressort d’un bond.
+
+À chaque changement, le chat plonge et ressort dans sa nouvelle pose, la bulle sort de sa bouche, les étincelles jaillissent.
+Avant iOS 17, les poses changent sans animation. Le jour de repos vient de `limite` (rangée par l’app) : avant elle, la série tient
+sans séance.
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre

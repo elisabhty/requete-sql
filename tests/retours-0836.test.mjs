@@ -121,7 +121,8 @@ test('réf. 2 : la feuille de note réserve sous son contenu la hauteur de la ba
 test('« c’est possible d’animer plus le widget ? » : le passage d’un état à l’autre s’anime (iOS n’anime pas un widget en boucle)', () => {
   const swift = fs.readFileSync(path.join(ROOT, 'resources/ios/widget/RequeteWidget/RequeteWidget.swift'), 'utf8');
   for (const k of ['.id(entree.faitAujourdhui)   // allumée ↔ éteinte', '.transition(.scale(scale: 0.3).combined(with: .opacity))',
-    '.chiffreQuiRoule(entree.serie)', '.id(entree.serie)   // la série change : le chat plonge et ressort', '.transition(.move(edge: .bottom))',
+    '.chiffreQuiRoule(entree.serie)', '.id(chat)   // la série ou le moment change : le chat plonge et ressort', 'private var chat: String { "\\(entree.serie)-\\(humeur.rawValue)" }',
+    'insertion: AnyTransition.move(edge: .bottom)', 'removal: AnyTransition.move(edge: .bottom)',
     '.animation(ressort, value: entree.serie)', '.animation(ressort, value: entree.faitAujourdhui)',
     'private var ressort: Animation { .spring(response: 0.55, dampingFraction: 0.58) }'])
     assert.ok(swift.includes(k), k);
