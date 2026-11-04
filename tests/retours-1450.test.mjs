@@ -17,17 +17,17 @@ test('« De vrais avis, recueillis par Requête » : sous la photo, et pour un l
   assert.ok(bloc.includes('» Un vrai avis, recueilli par Requête.`);'));
 });
 
-test('« Plus de 1 000 personnes accompagnées », sous le titre ; le chiffre défile à l’arrivée, sauf en mouvements réduits', () => {
+test('le chiffre « 1 000 » : en badge (16 h 09) ; il défile à l’arrivée, sauf en mouvements réduits', () => {
   assert.ok(bloc.includes('const OB_COMMUNAUTE=1000;'));
-  assert.ok(bloc.includes('<p class="ob-tv-stat"><b>Plus de <i data-n="${OB_COMMUNAUTE}">${obNombre(OB_COMMUNAUTE)}</i></b> personnes accompagnées</p>'));
+  assert.ok(bloc.includes('<b><i data-n="${OB_COMMUNAUTE}">${n}</i>+</b><span>personnes apprécient Requête</span>'));
   const b = cut('function obTemoinsBrancher(){', "if(typeof document!=='undefined')document.addEventListener('visibilitychange'");
-  assert.ok(b.includes("const n=document.querySelector('#ob-body .ob-tv-stat i[data-n]');\n  if(n&&obJustEntered&&!prefersReduceMotion()){"));
+  assert.ok(b.includes("const n=document.querySelector('#ob-body .ob-tv-badge i[data-n]');\n  if(n&&obJustEntered&&!prefersReduceMotion()){"));
   /* Le défilement, joué à la main : de 0 à 1 000, en ralentissant */
   const images = [];
   const n = { dataset: { n: '1000' }, isConnected: true, textContent: '' };
-  const ctx = vm.createContext({ document: { querySelector: s => (s === '#ob-body .ob-tv-stat i[data-n]' ? n : null) }, obJustEntered: true, prefersReduceMotion: () => false,
+  const ctx = vm.createContext({ document: { querySelector: s => (s === '#ob-body .ob-tv-badge i[data-n]' ? n : null) }, obJustEntered: true, prefersReduceMotion: () => false,
     obNombre: x => String(x), requestAnimationFrame: f => images.push(f) });
-  vm.runInContext(b.slice(b.indexOf("  const n=document.querySelector('#ob-body .ob-tv-stat i[data-n]');"), b.indexOf('  /* Les autres photos se chargent à l’avance. */')), ctx);
+  vm.runInContext(b.slice(b.indexOf("  const n=document.querySelector('#ob-body .ob-tv-badge i[data-n]');"), b.indexOf('  /* Les autres photos se chargent à l’avance. */')), ctx);
   assert.equal(n.textContent, '0', 'il part de zéro');
   const suivre = t => { const f = images.shift(); assert.ok(f, 'encore une image'); f(t); return n.textContent; };
   suivre(1000);                       // première image : le départ, 250 ms plus tard
@@ -38,8 +38,8 @@ test('« Plus de 1 000 personnes accompagnées », sous le titre ; le chiffre d�
   /* En mouvements réduits : le chiffre est là tout de suite */
   const fixe = { dataset: { n: '1000' }, isConnected: true, textContent: '1 000' };
   const c2 = vm.createContext({ document: { querySelector: () => fixe }, obJustEntered: true, prefersReduceMotion: () => true, obNombre: String, requestAnimationFrame() { throw new Error('rien ne défile'); } });
-  vm.runInContext(b.slice(b.indexOf("  const n=document.querySelector('#ob-body .ob-tv-stat i[data-n]');"), b.indexOf('  /* Les autres photos se chargent à l’avance. */')), c2);
+  vm.runInContext(b.slice(b.indexOf("  const n=document.querySelector('#ob-body .ob-tv-badge i[data-n]');"), b.indexOf('  /* Les autres photos se chargent à l’avance. */')), c2);
   assert.equal(fixe.textContent, '1 000');
-  assert.ok(css.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-tv-stat{animation:obvTileIn .4s var(--v-pop) .05s backwards}'));
-  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-tv-stat i{font-style:normal;font-variant-numeric:tabular-nums}'), 'les chiffres ne dansent pas en défilant');
+  assert.ok(css.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-tv-badge-c{animation:obvTileIn .4s var(--v-pop) .05s backwards}'));
+  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-tv-badge-c b i{font-style:normal;font-variant-numeric:tabular-nums}'), 'les chiffres ne dansent pas en défilant');
 });

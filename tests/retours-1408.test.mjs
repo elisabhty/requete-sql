@@ -108,13 +108,14 @@ test('réf. 3 : le bouton jaune remonte encore, et chaque bouton jaune a sa flè
   assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-cta:not(:disabled) .ob-cta-arrow{animation:obvArrow 1.1s ease-in-out .4s infinite}'));
 });
 
-test('« Ils apprécient Requête » : juste après l’objectif, compté dans les étapes, l’avis s’arrête quand on change d’étape', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','temoignages','level',"));
-  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','temoignages','level',"), '« Étape X sur N » le compte');
-  assert.ok(app.includes("  else if(slide==='goal')obGoto('temoignages');\n  else if(slide==='temoignages')obGoto('level');"), 'Suivant, au balayage');
+test('« Ils apprécient Requête » : entre la promesse et l’engagement (16 h 09), compté dans les étapes, l’avis s’arrête quand on change d’étape', () => {
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact',"));
+  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice'];"), '« Étape X sur N » le compte');
+  assert.ok(app.includes("  else if(slide==='promise')obGoto('temoignages');\n  else if(slide==='temoignages')obGoto('pact');"), 'Suivant, au balayage');
   const s = lastCut("}else if(slide==='goal'){", "}else if(slide==='level'){");
-  assert.ok(s.includes("obSetFooter('Continuer',()=>obGoto('temoignages'),'','','',!draft.goal);"));
-  assert.ok(s.includes('<div class="ob-screen ob-profile ob-temoins">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ils <em>apprécient</em> Requête</h1>') && s.includes("obSetFooter('Continuer',()=>obGoto('level'),'','','');"));
+  assert.ok(s.includes("obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);"), 'l’objectif mène au niveau');
+  assert.ok(s.includes('<div class="ob-screen ob-profile ob-temoins">${obFlowHeader(slide)}${obTemoinsTitre()}') && s.includes("obSetFooter('Continuer',()=>obGoto('pact'),'','','');"));
+  assert.ok(lastCut("}else if(slide==='promise'){", "}else if(slide==='pact'){").includes("obSetFooter('Continuer',()=>obGoto('temoignages'),'','','');"), 'la promesse mène aux avis');
   const peindre = lastCut('function paintOb(){', '  body.classList.remove(\'out\');');
   assert.ok(peindre.includes("  obDemoTimers.forEach(clearTimeout);obDemoTimers=[];\n  obTemoinsCouper();"), 'en changeant d’étape, l’avis s’arrête');
   assert.ok(app.includes("  if(slide==='temoignages')obTemoinsBrancher();"));
@@ -122,7 +123,7 @@ test('« Ils apprécient Requête » : juste après l’objectif, compté dans l
   /* L’entonnoir de l’onboarding la compte, à sa place */
   assert.match('temoignages', /^[a-zA-Z]{2,16}$/);
   const sql = read('supabase/migrations/20261104135000_onboarding_entonnoir.sql');
-  assert.ok(sql.includes("('goal', 6, 'Objectif'), ('temoignages', 7, 'Ils apprécient Requête'), ('level', 8, 'Niveau')") && sql.includes("('termine', 19, 'Onboarding terminé')"));
+  assert.ok(sql.includes("('promise', 11, 'Promesse'), ('temoignages', 12, 'Ils apprécient Requête'), ('pact', 13, 'Engagement')") && sql.includes("('termine', 19, 'Onboarding terminé')"));
 });
 
 test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; le premier suit l’objectif choisi', () => {
@@ -155,7 +156,7 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
 test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 10+ formateurs te feront progresser »', () => {
   const { ctx } = lecteur('career');
   const html = ctx.obTemoinsHtml();
-  assert.ok(!lecteur('career', null).ctx.obTemoinsHtml().includes('ob-tv-stat'), 'pas de « 1 000 personnes » sans chiffre vérifié');
+  assert.ok(!html.includes('ob-tv-stat') && !html.includes('ob-tv-badge'), 'le chiffre est dans le titre (obTemoinsTitre, 16 h 09)');
   assert.ok(html.includes('<img class="ob-tv-img" id="ob-tv-img" src="decouvrir/avis/sofia-b.webp" width="640" height="640" alt="Sofia B., Data Analyst junior" draggable="false">'), 'même après « Me reconvertir »');
   assert.deepEqual([...html.matchAll(/aria-label="(Témoignage [^"]+)" onclick="obTemoinsChoisir\((\d)\)"><img src="([^"]+)"/g)].map(m => [m[1], +m[2], m[3]]),
     [['Témoignage de Sofia B.', 0, 'decouvrir/avis/sofia-b-mini.webp'], ['Témoignage de Thomas L.', 1, 'decouvrir/avis/thomas-l-mini.webp'], ['Témoignage d’Aminata C.', 2, 'decouvrir/avis/aminata-c-mini.webp']]);
@@ -170,10 +171,10 @@ test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 10+ f
   assert.ok(site.includes('13 formateurs <em>pour t’accompagner jusqu’au bout</em>'), 'le site en annonce treize : « 10+ » est vrai');
   assert.equal((html.match(/<img src="assets\/anim\/[a-z-]+\.webp" width="420" height="420" alt=""/g) || []).length, 4);
   assert.ok(html.includes('<b style="--i:4">+9</b></span><p><b>10+ formateurs</b> te feront progresser</p></div>'));
-  /* Un chiffre vérifié s’affiche au-dessus des avis (14 h 50 : « vrai chiffre, 1000+ ») */
+  /* Un chiffre vérifié s’affiche en badge, à la place du titre (14 h 50 : « vrai chiffre, 1000+ » ; 16 h 09 : le badge) */
   assert.ok(bloc.includes('const OB_COMMUNAUTE=1000;'));
-  assert.ok(html.startsWith('<p class="ob-tv-stat"><b>Plus de <i data-n="1000">1\u202f000</i></b> personnes accompagnées</p>'), html.slice(0, 120));
-  assert.ok(lecteur('career', 1200).ctx.obTemoinsHtml().startsWith('<p class="ob-tv-stat"><b>Plus de <i data-n="1200">'));
+  assert.ok(ctx.obTemoinsTitre().includes('<b><i data-n="1000">1\u202f000</i>+</b><span>personnes apprécient Requête</span>'));
+  assert.equal(lecteur('career', null).ctx.obTemoinsTitre(), '<h1 class="ob-title" id="ob-title">Ils <em>apprécient</em> Requête</h1>', 'sans chiffre vérifié');
 });
 
 test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d’un avis à l’autre, l’onde qui avance', () => {
@@ -226,7 +227,7 @@ test('le style : la carte du site, qui prend la hauteur qui reste ; ses animatio
   for (const k of ['.ob-enter .ob-tv-ph{animation:obvTvIn .6s var(--v-pop) .08s backwards}', '.ob-enter .ob-tv-faces>*{animation:obvTvFace .42s var(--v-pop) calc(.74s + var(--i,0) * 70ms) backwards}',
     ' .ob-tv:not(.is-lecture) .ob-tv-play::after{animation:obvTvRing 2.4s ease-out 1.4s infinite}', ' .ob-tv-wave i.cur{animation:obvTvCur .45s ease-in-out infinite alternate}'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=21">') && sw.includes("'./onboarding-vitrine.css?v=21',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=22">') && sw.includes("'./onboarding-vitrine.css?v=22',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2501, cache);
 });

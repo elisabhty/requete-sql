@@ -16,7 +16,7 @@ test('une échelle commune : 16 px sous la barre d’étapes, 10 px sous le titr
   for (const k of ['html #onboarding.ob-vitrine .ob-flow-top{margin-bottom:16px}', 'html #onboarding.ob-vitrine .ob-pact .ob-title{margin-top:0}',
     'html #onboarding.ob-vitrine .ob-build-hero{margin-top:0}', 'html #onboarding.ob-vitrine .ob-title+.ob-lead{margin-top:10px!important}',
     'html #onboarding.ob-vitrine .ob-chat{margin:16px 0 20px!important}', 'html #onboarding.ob-vitrine .ob-chat+.ob-field{margin-top:0!important}',
-    'html #onboarding.ob-vitrine .ob-hello-stage{margin-bottom:12px}', 'html #onboarding.ob-vitrine .ob-tv-stat{margin-top:12px}', 'html #onboarding.ob-vitrine .ob-tv-stat+.ob-tv{margin-top:16px}'])
+    'html #onboarding.ob-vitrine .ob-hello-stage{margin-bottom:12px}', 'html #onboarding.ob-vitrine .ob-tv-badge+.ob-tv{margin-top:14px}'])
     assert.ok(rythme.includes(k), k);
   /* Les paliers de resserrement gardent leurs écarts plus serrés : leur règle est plus précise, elle l’emporte toujours */
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-1 .ob-chat{grid-template-columns:58px 1fr!important;margin:10px 0 12px!important}'));
@@ -42,5 +42,5 @@ test('les petits écrans : la mascotte se fait petite au palier 3, part au palie
   const avant = css.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:none!important}'), apres = css.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:grid!important;');
   assert.ok(avant > 0 && apres > avant);
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'cinq paliers, comme avant');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=21">') && sw.includes("'./onboarding-vitrine.css?v=21',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=22">') && sw.includes("'./onboarding-vitrine.css?v=22',"), 'feuille rechargée');
 });
