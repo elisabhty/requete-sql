@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Le son de l’ouverture de l’appli iOS (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son »).
 
-Calé à la milliseconde sur l’animation (ludique.css, 37 bis ; le 0 est l’instant où #loader prend la classe is-play) :
-  0,085 s  la touche >_ touche le fond : un « toc » de touche Entrée (corps grave qui descend, petit déclic aigu) ;
-  0,12 s   l’onde part : un souffle qui monte, et un bip par anneau de cases, au moment où l’onde l’atteint
-           (120 + (r - 256) / 3,048 ms, comme dans le script de l’ouverture), de plus en plus doux au loin ;
-  0,50 s   la requête allume ses résultats, un toutes les 14 ms : huit clochettes qui montent (gamme pentatonique de do) ;
-  0,72 s   la plongée dans la touche : un souffle qui enfle ;
-  1,04 s   l’appli apparaît : un accord de do majeur, doux, qui s’éteint.
+Calé à la milliseconde sur l’animation (ludique.css, 37 bis ; le 0 est l’instant où #loader prend la classe is-play) ;
+2 h 33 (« ralentis juste un peu », et le chat qui cligne des yeux) :
+  0,105 s  la touche >_ touche le fond : un « toc » de touche Entrée (corps grave qui descend, petit déclic aigu) ;
+  0,14 s   l’onde part : un souffle qui monte, et un bip par anneau de cases, au moment où l’onde l’atteint
+           (140 + (r - 256) / 2,5 ms, comme dans le script de l’ouverture), de plus en plus doux au loin ;
+  0,55 s   le chat surgit de derrière la touche : un « plop » qui monte ;
+  0,62 s   la requête allume ses résultats, un toutes les 18 ms : huit clochettes qui montent (gamme pentatonique de do) ;
+  1,065 s  le chat ferme les yeux, 1,155 s il les rouvre : deux « plic » à peine audibles ;
+  1,20 s   la plongée dans la touche : un souffle qui enfle ;
+  1,56 s   l’appli apparaît : un accord de do majeur, doux, qui s’éteint.
 Son synthétisé ici (aucun enregistrement), en stéréo, avec un peu de réverbération ; crête à -4 dB.
 
     python3 tools/sons/ouverture.py      # écrit assets/sons/ouverture.m4a (et tools/sons/sortie/ouverture.wav)
@@ -20,7 +23,7 @@ import wave
 import numpy as np
 
 SR = 44100
-DUREE = 1.8
+DUREE = 2.35
 N = int(SR * DUREE)
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(os.path.dirname(ICI))
@@ -28,13 +31,15 @@ SORTIE_WAV = os.path.join(ICI, 'sortie', 'ouverture.wav')
 SORTIE_M4A = os.path.join(RACINE, 'assets', 'sons', 'ouverture.m4a')
 
 # Les instants de l’animation (en secondes après is-play)
-TOUCHE = 0.085                 # introKey : 18 % de 0,5 s, la touche au plus bas
-ONDE = 0.12                    # introWave part à 0,12 s
-VITESSE = 3048                 # unités par seconde, comme --w dans le script de l’ouverture
+TOUCHE = 0.105                 # introKey : 18 % de 0,6 s, la touche au plus bas
+ONDE = 0.14                    # introWave part à 0,14 s
+VITESSE = 2500                 # unités par seconde, comme --w dans le script de l’ouverture
 ANNEAUX = [320, 452, 576, 640, 704, 768, 832, 896, 960, 1024]   # distances des rangées de cases (unités)
-RESULTATS = [0.500 + i * 0.014 for i in range(8)]                # --p : 500 + k × 14 ms
-PLONGEE = 0.72
-ARRIVEE = 1.04
+CHAT = 0.55                    # introChat part à 0,52 s : il se montre vers 0,55 s
+RESULTATS = [0.620 + i * 0.018 for i in range(8)]                # --p : 620 + k × 18 ms
+CLIGNE = (1.065, 1.155)        # les yeux se ferment (25 % de 0,18 s après 1,02 s) puis se rouvrent (75 %)
+PLONGEE = 1.20
+ARRIVEE = 1.56
 
 gauche = np.zeros(N)
 droite = np.zeros(N)
@@ -110,12 +115,19 @@ for pan, graine in ((-0.35, 1), (0.35, 2)):
     poser(s, ONDE, pan, 0.075)
 pentatonique = [84, 86, 88, 91, 93, 96, 98, 100]       # do6 ré6 mi6 sol6 la6 do7 ré7 mi7
 for i, r in enumerate(ANNEAUX):
-    t0 = (120 + (r - 256) / (VITESSE / 1000)) / 1000
+    t0 = (140 + (r - 256) / (VITESSE / 1000)) / 1000
     fr = note(pentatonique[int(alea.integers(0, 6))])
     n = int(0.07 * SR)
     tt = np.arange(n) / SR
     bip = (np.sin(2 * np.pi * fr * tt) + 0.18 * np.sin(4 * np.pi * fr * tt)) * enveloppe(n, 0.0012, 0.016)
     poser(bip, t0, -0.6 if i % 2 else 0.6, 0.22 * (1 - i / len(ANNEAUX)) ** 1.3 + 0.03)
+
+# 2 bis. Le chat surgit : un « plop » qui monte (380 → 1 100 Hz), rond, avec un soupçon d’octave en dessous
+n = int(0.22 * SR)
+tt = np.arange(n) / SR
+f = 380 * np.power(1100 / 380, np.minimum(1, tt / 0.075))
+plop = (np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.25 * np.sin(np.pi * np.cumsum(f) / SR)) * enveloppe(n, 0.003, 0.055)
+poser(plop, CHAT, 0.0, 0.2)
 
 # 3. Les résultats : huit clochettes qui montent, une par case allumée
 for i, t0 in enumerate(RESULTATS):
@@ -126,6 +138,12 @@ for i, t0 in enumerate(RESULTATS):
               + 0.22 * np.sin(2 * np.pi * fr * 2.0 * tt) * np.exp(-tt / 0.07)
               + 0.10 * np.sin(2 * np.pi * fr * 3.01 * tt) * np.exp(-tt / 0.04)) * enveloppe(n, 0.0015, 0.20)
     poser(cloche, t0 + 0.02, -0.5 + i / 7, 0.13)
+
+# 3 bis. Le clignement : deux « plic » très doux (le second un peu plus haut, les yeux se rouvrent)
+for t0, fr in ((CLIGNE[0], 2300), (CLIGNE[1], 2900)):
+    n = int(0.06 * SR)
+    tt = np.arange(n) / SR
+    poser(np.sin(2 * np.pi * fr * tt * (1 - 0.15 * tt / 0.06)) * enveloppe(n, 0.0008, 0.011), t0, 0.15, 0.07)
 
 # 4. La plongée : un souffle qui enfle (300 → 2 600 Hz) jusqu’à ce que la touche remplisse l’écran
 duree = 0.38
