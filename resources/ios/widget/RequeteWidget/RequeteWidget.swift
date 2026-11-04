@@ -479,19 +479,25 @@ struct LeconBarre: View {
     }
 }
 
-/// L’avancement en anneau, à droite de la Dynamic Island.
-struct LeconAnneau: View {
-    let progression: Double
-    let fini: Bool
+/// L’avancement en pour cent, à droite de la Dynamic Island ; une coche dorée quand la leçon est réussie.
+/// 4 novembre, 17 h 27 (réf. 5 : « la Dynamic Island bugue, j’ai l’impression ») : l’anneau d’avant, presque vide en début de leçon,
+/// ressemblait à une roue qui charge, et iOS en coupait le bord gauche. Le chiffre se lit d’un coup d’œil et tient dans la place.
+@available(iOS 16.1, *)
+struct LeconPourcent: View {
+    let etat: RequeteLecon.ContentState
 
     var body: some View {
-        ZStack {
-            Circle().stroke(Color.white.opacity(0.25), lineWidth: 3)
-            Circle()
-                .trim(from: 0, to: CGFloat(min(1, max(0.03, progression))))
-                .stroke(fini ? dore : braise, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-        }
+        let part: Double = etat.fini ? 1 : min(1, max(0, etat.progression))
+        let pct: Int = Int((part * 100).rounded())
+        let texte: String = etat.fini ? "✓" : "\(pct)\u{202F}%"
+        let teinte: Color = etat.fini ? dore : braise
+        let police: Font = Font.system(size: 14, weight: .heavy, design: .rounded)
+        return Text(texte)
+            .font(police)
+            .monospacedDigit()
+            .foregroundColor(teinte)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
     }
 }
 
@@ -578,8 +584,7 @@ struct RequeteLeconActivite: Widget {
             } compactLeading: {
                 LeconFlamme(etat: context.state, taille: 15)
             } compactTrailing: {
-                LeconAnneau(progression: context.state.fini ? 1 : context.state.progression, fini: context.state.fini)
-                    .frame(width: 17, height: 17)
+                LeconPourcent(etat: context.state)
             } minimal: {
                 LeconFlamme(etat: context.state, taille: 14)
             }

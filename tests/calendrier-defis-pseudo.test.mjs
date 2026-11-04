@@ -185,7 +185,7 @@ test('réf 5 — le prénom dans l’onboarding (17 h 53), le pseudo juste aprè
   const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
   assert.ok(page.includes('maxlength="15"') && page.includes('required aria-required="true"') && page.includes('<b class="ob-at" aria-hidden="true">@</b>'), 'un identifiant : @ puis 15 caractères');
   assert.ok(!fnLast('finishOnboard').includes("localStorage.setItem('rq-jeu-nom'"), 'le prénom ne devient plus le pseudo des salles');
-  assert.ok(fnLast('finishOnboard').includes('psPage({voulu:psAncien(),suite:()=>obTerminer(action)})'), 'la mini-page du pseudo, puis l’appli');
+  assert.ok(fnLast('finishOnboard').includes('psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)})'), 'la mini-page du pseudo (obligatoire, 4 novembre, 17 h 27), puis l’appli');
   assert.ok(!app.includes('function saveAccountName(') && !app.includes('id="acc-name"'), 'Mon compte ne le change plus');
   assert.ok(fn('psAdopter').includes("localStorage.setItem('rq-jeu-nom',n);") && !fn('psAdopter').includes('state.name='), 'le pseudo réservé ne touche pas au prénom');
   for (const id of ['jeu-nom', 'jeu-nom-defi']) assert.ok(app.includes(`\${jeuNomField('${id}')}`), id);
