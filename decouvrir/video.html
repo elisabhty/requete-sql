@@ -8,6 +8,9 @@
 <title>Data analyst : salaires, demande et SQL — Requête</title>
 <meta name="description" content="En deux minutes : ce que gagne un data analyst, ville par ville et en freelance, pourquoi la demande monte, même avec l’IA, pourquoi le SQL est la compétence la plus demandée, et comment l’apprendre avec Requête, jusqu’à la préparation des entretiens.">
 <link rel="icon" href="../assets/icon-192.png">
+<!-- Dans l’onboarding de l’appli (../index.html, Elisa, 4 novembre, 3 h 37) : video.html?onboarding, ouverte dans un cadre. Repéré dès
+     la première image : ni « Retour » ni « Se connecter », et la fin (« Passer la vidéo », « Commencer ») est signalée à l’appli. -->
+<script>if(/[?&]onboarding\b/.test(location.search)&&window.parent!==window)document.documentElement.classList.add('vd-onboarding');</script>
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
 <!-- L’affiche de départ écrit aussi en Inter gras (« 70+ cours ») et en JetBrains Mono (durée, SELECT, GROUP BY, JOIN) : chargées tout de suite. -->
@@ -733,6 +736,9 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 body::after{content:'';position:fixed;inset:0;z-index:1000;pointer-events:none;opacity:0;transition:opacity .28s;
   background:linear-gradient(180deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%)}
 body.vd-leave::after{opacity:1}
+/* Dans l’onboarding de l’appli : seul « Passer la vidéo » reste en haut, à droite ; l’appli gère l’heure et la barre d’accueil. */
+html.vd-onboarding .bar.top{justify-content:flex-end}
+html.vd-onboarding .pill.back,html.vd-onboarding .pill.login{display:none}
 </style>
 <script src="../assets/curseur.js?v=60b94b87" defer></script>
 </head>
@@ -1781,14 +1787,19 @@ Promise.all([document.fonts ? document.fonts.ready : 0, sonLoad(), ...$$('img').
   });
 </script>
 <script>
-/* Vers l’appli : la vidéo s’arrête, l’écran passe au violet de l’écran de chargement, puis l’onboarding s’ouvre (../?depuis=video). */
+/* Vers l’appli : la vidéo s’arrête, l’écran passe au violet de l’écran de chargement, puis l’onboarding s’ouvre (../?depuis=video).
+   Dans l’onboarding (?onboarding) : la vidéo s’arrête et le dit à l’appli, qui ouvre son accueil ; la page ne change pas. */
 (function(){
   var tc = document.querySelector('meta[name="theme-color"]'), tc0 = tc && tc.content;
+  var dansAppli = document.documentElement.classList.contains('vd-onboarding');
+  var dire = function(m){ try { window.parent.postMessage({requete: m}, '*'); } catch (err) {} };
+  if (dansAppli) dire('video-prete');
   document.addEventListener('click', function(e){
     var a = e.target.closest && e.target.closest('a[href^="../?depuis="]');
     if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
     e.preventDefault();
     try { if (typeof pause === 'function') pause(); } catch (err) {}
+    if (dansAppli) { dire('video-fin'); return; }
     document.body.classList.add('vd-leave');
     document.documentElement.style.backgroundColor = '#6E50F6';
     if (tc) tc.content = '#6E50F6';
