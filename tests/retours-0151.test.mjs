@@ -57,7 +57,7 @@ function lancer({ natif = true, calme = false, audio = true, haptique = true, se
     for (;;) {
       file.sort((a, b) => a[0] - b[0]);
       const t = file[0];
-      if (!t || t[0] >= 1860) break;
+      if (!t || t[0] >= 1300) break;
       file.shift(); horloge = Math.max(horloge, t[0]); t[1]();
       log.splice(0).forEach(l => daté.push([horloge, l]));
     }
@@ -85,15 +85,13 @@ test('haptique : la touche, l’onde qui s’éloigne, les résultats deux par d
   const s = lancer(); await attendre(); s.log.splice(0);
   const j = s.jouer().filter(([, l]) => /^(choc|cran)/.test(l) || l.startsWith('crans'));
   assert.deepEqual(j, [[0, 'crans prêts'],
-    [108, 'choc MEDIUM'],                                  // la touche au fond (introKey : 18 % de 0,6 s)
-    [200, 'choc LIGHT'], [290, 'choc LIGHT'], [380, 'cran'], [470, 'cran'],   // l’onde, de plus en plus légère
-    [638, 'cran'], [674, 'cran'], [710, 'cran'], [746, 'cran'],              // les résultats (620 + 18 k), un cran par paire
-    [790, 'choc LIGHT'],                                   // le chat surgit (au plus haut de son élan)
-    [1080, 'cran'],                                        // il ferme les yeux
-    [1220, 'choc MEDIUM'],                                 // la plongée (1,2 s)
-    [1220, 'crans finis']]);
+    [90, 'choc MEDIUM'],                                   // la touche au fond (introKey : 18 % de 0,5 s)
+    [160, 'choc LIGHT'], [230, 'choc LIGHT'], [300, 'cran'], [370, 'cran'],   // l’onde, de plus en plus légère
+    [514, 'cran'], [542, 'cran'], [570, 'cran'], [598, 'cran'],              // les résultats (500 + 14 k), un cran par paire
+    [760, 'choc MEDIUM'],                                  // la plongée (0,74 s)
+    [760, 'crans finis']]);
   /* Les crans des résultats tombent sur une case allumée sur deux */
-  for (const [ms] of j.filter(([ms, l]) => l === 'cran' && ms > 600 && ms < 800)) assert.equal((ms - 620 - 18) % 36, 0);
+  for (const [ms] of j.filter(([ms, l]) => l === 'cran' && ms > 500)) assert.equal((ms - 500 - 14) % 28, 0);
   assert.ok(!s.log.some(l => l.startsWith('vibre')), 'pas de vibration en double');
 });
 
@@ -102,14 +100,14 @@ test('haptique : fil principal occupé au départ, rien ne s’entasse ; la touc
     const s = lancer(); await attendre(); s.log.splice(0);
     const coups = s.jouer({ occupe }).filter(([, l]) => l === 'cran' || l.startsWith('choc '));
     assert.equal(coups.filter(([, l]) => l === 'choc MEDIUM').length, 2, `${occupe} ms : la touche et la plongée`);
-    assert.equal(coups[0][1], 'choc MEDIUM'); assert.equal(coups.at(-1).join(' '), '1220 choc MEDIUM');
+    assert.equal(coups[0][1], 'choc MEDIUM'); assert.equal(coups.at(-1).join(' '), '760 choc MEDIUM');
     for (let i = 1; i < coups.length; i++) {
       const ecart = coups[i][0] - coups[i - 1][0];
       assert.ok(ecart >= 25 || coups[i][1] === 'choc MEDIUM', `${occupe} ms : ${coups[i - 1].join(' ')} puis ${coups[i].join(' ')}`);
     }
     /* Ce qui part le fait à son heure, ou avec au plus 45 ms de retard (la touche mise à part) */
     for (const [ms, l] of coups.slice(1)) {
-      const prevu = [[200, 'choc LIGHT'], [290, 'choc LIGHT'], [380, 'cran'], [470, 'cran'], [638, 'cran'], [674, 'cran'], [710, 'cran'], [746, 'cran'], [790, 'choc LIGHT'], [1080, 'cran'], [1220, 'choc MEDIUM']]
+      const prevu = [[160, 'choc LIGHT'], [230, 'choc LIGHT'], [300, 'cran'], [370, 'cran'], [514, 'cran'], [542, 'cran'], [570, 'cran'], [598, 'cran'], [760, 'choc MEDIUM']]
         .filter(([t, n]) => n === l && ms - t >= 0 && ms - t <= 45);
       assert.ok(prevu.length, `${occupe} ms : ${ms} ${l} hors de son créneau`);
     }
@@ -118,7 +116,7 @@ test('haptique : fil principal occupé au départ, rien ne s’entasse ; la touc
 
 test('sans Haptics : la vibration de la touche comme avant ; sans Web Audio ou son illisible : muet, sans rien bloquer', async () => {
   const a = lancer({ haptique: false }); await attendre();
-  assert.ok(a.jouer().some(([ms, l]) => ms === 108 && l === 'vibre 25'));
+  assert.ok(a.jouer().some(([ms, l]) => ms === 90 && l === 'vibre 25'));
   const b = lancer({ audio: false }); await attendre();
   const jb = b.jouer();
   assert.ok(!jb.some(([, l]) => l.startsWith('son')) && b.cls.has('is-play'));
@@ -153,16 +151,15 @@ test('le fichier son : léger, de la bonne durée, et calé sur les instants de 
   assert.ok(b.length > 10000 && b.length < 60000, `${b.length} octets`);
   const i = b.indexOf('mvhd'), v = b[i + 4];
   const [echelle, duree] = v === 1 ? [b.readUInt32BE(i + 24), Number(b.readBigUInt64BE(i + 28))] : [b.readUInt32BE(i + 16), b.readUInt32BE(i + 20)];
-  assert.ok(Math.abs(duree / echelle - 2.35) < 0.06, `${(duree / echelle).toFixed(3)} s`);
+  assert.ok(Math.abs(duree / echelle - 1.8) < 0.06, `${(duree / echelle).toFixed(3)} s`);
   /* Le générateur : mêmes instants que l’animation */
   const py = lire('tools/sons/ouverture.py');
-  for (const l of ['TOUCHE = 0.105', 'ONDE = 0.14', 'VITESSE = 2500', 'CHAT = 0.55', 'RESULTATS = [0.620 + i * 0.018 for i in range(8)]', 'CLIGNE = (1.065, 1.155)', 'PLONGEE = 1.20', 'ARRIVEE = 1.56',
+  for (const l of ['TOUCHE = 0.085', 'ONDE = 0.12', 'VITESSE = 3048', 'RESULTATS = [0.500 + i * 0.014 for i in range(8)]', 'PLONGEE = 0.72', 'ARRIVEE = 1.04',
     "SORTIE_M4A = os.path.join(RACINE, 'assets', 'sons', 'ouverture.m4a')"]) assert.ok(py.includes(l), l);
-  assert.ok(css.includes('@keyframes introKey{\n  0%{transform:none}\n  18%{transform:translateY(calc(22*var(--u)))}') && css.includes('{animation:introKey .6s'), 'la touche au fond à 18 % de 0,6 s, soit 108 ms');
-  assert.ok(css.includes('.in-ring{animation:introWave .41s linear .14s forwards}'), 'l’onde part à 0,14 s');
-  assert.ok(intro.includes('w=Math.round(140+(r-256)/2.5)') && intro.includes("'<s style=\"--p:'+(620+k*18)+'"), 'cases et résultats aux instants du son');
-  assert.ok(css.includes('introZoom .38s cubic-bezier(.55,0,.9,.4) 1.2s forwards') && css.includes('{animation:introOut .28s linear 1.56s forwards}'));
-  assert.ok(css.includes('.in-chat{opacity:1;animation:introChat .46s cubic-bezier(.25,.8,.35,1) .52s backwards}') && css.includes('.in-chat .clos{animation:introCligneClos .18s steps(1,end) 1.02s forwards}'), 'le chat et son clignement aux instants du son');
+  assert.ok(css.includes('@keyframes introKey{\n  0%{transform:none}\n  18%{transform:translateY(calc(22*var(--u)))}'), 'la touche au fond à 18 % de 0,5 s, soit 90 ms');
+  assert.ok(css.includes('.in-ring{animation:introWave .34s linear .12s forwards}'), 'l’onde part à 0,12 s');
+  assert.ok(intro.includes('w=Math.round(120+(r-256)/3.048)') && intro.includes("'<s style=\"--p:'+(500+k*14)+'"), 'cases et résultats aux instants du son');
+  assert.ok(css.includes('introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards') && css.includes('{animation:introOut .24s linear 1.04s forwards}'));
   /* Le dossier assets part dans l’appli ; le .wav de travail reste hors du dépôt */
   assert.ok(lire('scripts/build-www.mjs').includes("for (const dir of ['assets', 'vendor'])"));
   assert.ok(lire('.gitignore').includes('tools/sons/sortie/'));
