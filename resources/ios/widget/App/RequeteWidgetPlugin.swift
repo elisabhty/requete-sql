@@ -7,7 +7,10 @@ import WidgetKit
 // - le widget (3 h 54) : index.html (widgetMaj) appelle Capacitor.nativePromise('RequeteWidget', 'maj', { serie, jour, fait, limite }) ;
 //   la série est rangée dans le groupe d’apps, que le widget (RequeteWidget.swift) relit, puis le widget est redessiné ;
 // - les raccourcis de l’icône (9 h 02, « comment avoir ça », d’après Duolingo) : la page les pose (raccourcis), et le raccourci
-//   choisi lui revient en événement « raccourci », gardé jusqu’à ce qu’elle l’écoute, même si l’app était fermée.
+//   choisi lui revient en événement « raccourci », gardé jusqu’à ce qu’elle l’écoute, même si l’app était fermée ;
+// - sous le clavier (11 h 08, « en bas, tu vois du noir sur les deux côtés, je préfère du transparent ») : la page rétrécit au-dessus
+//   du clavier (Keyboard « native ») et ses coins arrondis laissaient voir la fenêtre, noire. La page lui donne la couleur de son bas
+//   (fond), avant que le clavier s’ouvre.
 
 /// Le raccourci choisi sur l’icône : le délégué de scène (SceneDelegate.swift) le range ici, l’app ouverte ou non ;
 /// le pont le passe à la page dès qu’il existe.
@@ -27,7 +30,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "RequeteWidget"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "maj", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "raccourcis", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "raccourcis", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "fond", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -65,5 +69,26 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             UIApplication.shared.shortcutItems = items
             call.resolve()
         }
+    }
+
+    /// La couleur de la fenêtre, derrière la page : « #RRGGBB » (celle du bas de la page, que le clavier laisse voir dans ses coins).
+    @objc func fond(_ call: CAPPluginCall) {
+        guard let couleur = UIColor(requeteHex: call.getString("couleur") ?? "") else {
+            call.reject("Couleur attendue : #RRGGBB")
+            return
+        }
+        DispatchQueue.main.async {
+            self.bridge?.viewController?.view.window?.backgroundColor = couleur
+            call.resolve()
+        }
+    }
+}
+
+extension UIColor {
+    /// « #4529CC » ou « 4529CC » ; nil sinon.
+    convenience init?(requeteHex hex: String) {
+        let s = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
+        guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
+        self.init(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
     }
 }

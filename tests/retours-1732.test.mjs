@@ -120,7 +120,7 @@ test('Réf. 6 et 7, « la page s’élargit » : l’en-tête de la promesse gar
 
 test('Réf. 8 et première page : plus de « Mode sans compte » ni de « Aucun compte n’est nécessaire »', () => {
   assert.ok(!code.includes('Mode sans compte · sauvegardé sur cet appareil') && !code.includes('Aucun compte n’est nécessaire'));
-  assert.ok(app.includes("'Ta progression est enregistrée sur cet appareil.');"));
+  assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');"), 'compte obligatoire (4 novembre, 11 h 08)');
 });
 
 test('« On construit ton parcours » : l’effet waouh', () => {
@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=17']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=18']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });

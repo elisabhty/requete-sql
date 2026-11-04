@@ -6715,7 +6715,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=134">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=17">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=18">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -29764,6 +29764,7 @@ function validerPlan(){
   if(!(draft.niveau&&draft.rythme&&draft.freq))return;
   state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);
   semaineOffset=0;jourSel=null;save();renderPlanning();
+  try{rappelNativeSync();}catch(e){}
   requestAnimationFrame(()=>{const sc=document.getElementById('scr-planning');if(sc)sc.scrollTop=0;});
 }
 function refairePlan(){
@@ -29849,6 +29850,7 @@ function planAdjustCommit(preview){
   p.per=preview.choice.per;
   p.freq=preview.choice.freq;
   p.rythme=preview.choice.per===2?'calme':(preview.choice.per===5?'intensif':'regulier');
+  try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours (11 h 08)
   semaineOffset=0;jourSel=dstr(auj());planToolsOpen=false;planAdjustDraft=null;lateRecoveryCollapsed=false;
   hidePlanAdjustSheet(false);
   save();renderPlanning();
@@ -32966,6 +32968,9 @@ async function obRappelDemander(){
   if(obLock)return;
   const suite=()=>obGoto(obFinSuivante('rappel'));
   if(typeof obApercu!=='undefined'&&obApercu){suite();return;}
+  /* 11 h 08 : l’heure choisie sur la page (les jours sont ceux du parcours, rappelJours) */
+  const h=(typeof draft!=='undefined'&&draft&&draft.rappelHeure)||rappelHeure();
+  try{localStorage.setItem('requete-rappel-heure',h);}catch(e){}
   const btn=document.getElementById('ob-next');if(btn)btn.disabled=true;
   let ok=false;
   try{
@@ -32977,6 +32982,29 @@ async function obRappelDemander(){
   if(ok){rappelNativeSync();buzz('success');}
   if(btn)btn.disabled=false;
   suite();
+}
+/* L’heure et les jours du rappel (11 h 08, réf. 2). Les moments : un toucher ; l’heure exacte : la roue d’iOS (un champ « time »
+   posé sur l’heure affichée). Tout change sur place, sans redessiner la page (la fenêtre en aperçu ne rejoue pas son entrée). */
+const OB_RAPPEL_MOMENTS=[['08:00','Matin'],['12:30','Midi'],['19:00','Soir'],['21:30','Tard']];
+function obHeureTexte(h){const [hh,mm]=String(h||'19:00').split(':');return `${+hh}\u00a0h${mm&&mm!=='00'?'\u00a0'+mm:''}`;}
+function obRappelCarte(){
+  const h=draft.rappelHeure||rappelHeure(),jours=PATTERN[draft.freq||7]||PATTERN[7];
+  return `<div class="ob-rappel-carte">
+        <div class="ob-rappel-ligne"><span class="ob-rappel-k">À quelle heure&nbsp;?</span><label class="ob-rappel-heure"><span class="ob-rappel-ico" aria-hidden="true">${OB_ICO_HEURES}</span><b id="ob-rappel-h">${obHeureTexte(h)}</b><input type="time" id="ob-rappel-input" value="${h}" aria-label="Heure du rappel" onchange="obRappelHeure(this.value)" onclick="try{this.showPicker&&this.showPicker();}catch(e){}"></label></div>
+        <div class="ob-rappel-moments" role="group" aria-label="Moments de la journée">${OB_RAPPEL_MOMENTS.map(([v,t],i)=>`<button type="button" class="ob-rappel-moment${v===h?' on':''}" data-h="${v}" aria-pressed="${v===h?'true':'false'}" style="--i:${i}" onclick="obRappelHeure('${v}')"><b>${t}</b><small>${obHeureTexte(v)}</small></button>`).join('')}</div>
+        <div class="ob-rappel-jours"><span class="ob-rappel-k">Tes séances</span><span class="ob-rappel-semaine" role="img" aria-label="${escAttr(rappelJoursTexte(jours))}">${[1,2,3,4,5,6,0].map((d,i)=>`<i class="${jours.includes(d)?'on':''}" style="--i:${i}">${JOURS[d]}</i>`).join('')}</span></div>
+      </div>`;
+}
+function obRappelHeure(v){
+  v=String(v||'');
+  if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(v)||OB_SLIDES[obStep]!=='rappel')return;
+  const avant=draft.rappelHeure;draft.rappelHeure=v;
+  const b=document.getElementById('ob-rappel-h'),inp=document.getElementById('ob-rappel-input'),cta=document.getElementById('ob-next');
+  if(b){b.textContent=obHeureTexte(v);if(avant!==v&&!prefersReduceMotion()){b.classList.remove('is-new');void b.offsetWidth;b.classList.add('is-new');}}
+  if(inp&&inp.value!==v)inp.value=v;
+  document.querySelectorAll('#ob-body .ob-rappel-moment').forEach(m=>{const on=m.dataset.h===v;m.classList.toggle('on',on);m.setAttribute('aria-pressed',on?'true':'false');});
+  if(cta)cta.textContent=`Me rappeler à ${obHeureTexte(v)}`;
+  if(avant!==v)buzz('selection');
 }
 /* La fenêtre en aperçu au centre de l’écran, là où iOS ouvrira la sienne : la flèche montre alors le vrai « Autoriser ». */
 function obNotifCaler(){
@@ -33069,16 +33097,34 @@ function raccourcisBrancher(){
   try{ Promise.resolve(C.nativePromise('RequeteWidget','raccourcis',{items:RACCOURCIS})).catch(()=>{}); }catch(e){}
   if(typeof C.addListener==='function')C.addListener('RequeteWidget','raccourci',e=>raccourciOuvrir(e&&e.type));
 }
+/* 11 h 08 (réf. 3, « le lien ne fonctionne pas vers les défis ») : touché pendant l’onboarding (ou en pleine séance), le raccourci ne
+   faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
-  if(!state.onboarded)return;   // premier lancement : l’onboarding d’abord
-  if(document.querySelector('#scr-lesson.active,#lesson-video'))return;   // déjà en séance (leçon, vidéo) : on y reste
-  if(type.endsWith('.requete'))switchTab('defis');
-  else if(type.endsWith('.adieu')){
+  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu');
+  if(!requete&&!adieu)return;
+  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':'Je t’avais dit que j’allais te retrouver !');return;}
+  if(document.querySelector('#scr-lesson.active,#lesson-video')){   // déjà en séance (leçon, vidéo) : on y reste
+    if(requete&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, les défis t’attendent juste après.','info');
+    return;
+  }
+  if(requete)switchTab('defis');
+  else if(adieu){
     mascotRetrouveJusqua=Date.now()+6500;   // l’accueil redessiné garde la phrase
     switchTab('learn');
     setTimeout(mascotDitRetrouve,450);
   }
+}
+/* Un bandeau en haut de l’onboarding, quelques secondes (les toasts de l’app passent sous lui) ; lu par un lecteur d’écran. */
+function obBandeau(texte){
+  const root=document.getElementById('onboarding');
+  if(!root||!root.classList.contains('on'))return;
+  let b=root.querySelector(':scope>.ob-bandeau');
+  if(!b){b=document.createElement('p');b.className='ob-bandeau';b.setAttribute('role','status');b.setAttribute('aria-live','polite');root.appendChild(b);}
+  b.textContent=obTypo(texte);
+  b.classList.remove('is-on');void b.offsetWidth;b.classList.add('is-on');
+  clearTimeout(obBandeau.t);obBandeau.t=setTimeout(()=>b.classList.remove('is-on'),3600);
+  if(typeof buzz==='function')buzz('light');
 }
 function obNext(){
   const slide=OB_SLIDES[obStep];
@@ -33486,9 +33532,48 @@ function obInsecables(el){
     const t=n.nodeValue,u=obTypo(t);if(u!==t)n.nodeValue=u;
   }
 }
+/* Elisa, 4 novembre, 11 h 08 (réf. 5, capture du prénom, clavier ouvert : « en bas, tu vois du noir sur les deux côtés, je préfère
+   du transparent »). Dans l’app, la page rétrécit au-dessus du clavier (Keyboard « native ») : derrière les coins arrondis du clavier,
+   c’était la fenêtre de l’app, noire. Elle prend la couleur du bas de la page (RequeteWidget.fond) : le violet de l’onboarding,
+   sinon le fond de ce qui est en bas de l’écran. */
+function couleurHex(c){
+  const m=String(c||'').match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s\/]+([\d.]+%?))?/);
+  if(!m)return null;
+  if(m[4]!=null&&parseFloat(m[4])/(m[4].endsWith('%')?100:1)<.5)return null;
+  return '#'+[m[1],m[2],m[3]].map(v=>Math.min(255,+v).toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function couleurDuBas(){
+  const ob=document.getElementById('onboarding');
+  if(ob&&ob.classList.contains('on'))return '#4529CC';   // le bas du dégradé de l’onboarding (onboarding-vitrine.css)
+  try{
+    for(let el=document.elementFromPoint(Math.round(innerWidth/2),innerHeight-2);el&&el.nodeType===1;el=el.parentElement){
+      const h=couleurHex(getComputedStyle(el).backgroundColor);if(h)return h;
+    }
+  }catch(e){}
+  return '#F4F2FC';
+}
+function fondSousClavier(){
+  const C=typeof window!=='undefined'?window.Capacitor:null;
+  if(!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
+  const couleur=couleurDuBas();
+  if(couleur===fondSousClavier.derniere)return;
+  fondSousClavier.derniere=couleur;
+  try{Promise.resolve(C.nativePromise('RequeteWidget','fond',{couleur})).catch(()=>{fondSousClavier.derniere=null;});}catch(e){fondSousClavier.derniere=null;}
+}
+if(typeof window!=='undefined'&&typeof document!=='undefined'&&document.addEventListener){
+  /* Avant que le clavier s’ouvre (un champ touché, l’événement du clavier), la fenêtre de l’app prend la couleur du bas de la page. */
+  document.addEventListener('focusin',e=>{const t=e.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable))fondSousClavier();});
+  window.addEventListener('keyboardWillShow',fondSousClavier);
+}
 function obRhythmSummary(){
   const r=RYTHMES.find(x=>x.k===(draft.rythme||'regulier'))||RYTHMES[1];
-  return `<div class="ob-rhythm-summary" role="status"><span aria-hidden="true">◎</span><span>Ta séance type : <b>${plur(r.per,'activité')} · ≈ ${obRythmeMinutes(r)} min</b> · modifiable à tout moment.</span></div>`;
+  return `<div class="ob-rhythm-summary" role="status"><span aria-hidden="true">◎</span><span>Ta séance type : <b>${plur(r.per,'activité')} · ≈ ${obRythmeMinutes(r)} min</b>.</span></div>`;
+}
+/* 11 h 08 (réf. 4, « mettre que ça pourra être modifiable directement dans son planning, donc t’inquiète », et pareil pour le rythme) :
+   sous les jours par semaine et sous la durée des séances. */
+const OB_ICO_PLANNING='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="13" height="14" rx="2.5"/><path d="M3.5 9.5h13M7.5 3.2v3.3M12.5 3.2v3.3M14.5 20.5l1-3.4 4.6-4.6a1.7 1.7 0 0 1 2.4 2.4L17.9 19.5Z"/></svg>';
+function obModifiable(){
+  return `<p class="ob-modifiable"><span class="ob-modifiable-ico" aria-hidden="true">${OB_ICO_PLANNING}</span><span>Pas de stress&nbsp;: tu pourras le changer à tout moment dans ton planning.</span></p>`;
 }
 /* Elisa, 4 novembre, 10 h 29 : « enlève le mode local, on ne va pas prendre cette option, car on a le paywall qui arrive après ».
    Plus de bouton pour rester sans compte ni de carte du mode local sur la page de connexion. Tant que la connexion n’est pas
@@ -33739,7 +33824,8 @@ function paintOb(){
       <div class="ob-welcome-demo${demoTyping?' is-typing':''}" aria-hidden="true"><div class="ob-code"><div class="oc-bar"><i></i><i></i><i></i><em>requete.sql</em></div><pre class="oc-code" id="ob-demo-code">${demo.html}</pre><div class="oc-res" id="ob-demo-res" style="--res-dl:${demo.fin}s"><i>✓</i> ${plur(nParis,'client')} à Paris</div></div></div>
       <div class="ob-proof-stats" aria-label="L’apprentissage en bref"><div><strong>${TOTAL}</strong><span>leçons guidées</span></div><div><strong>${nDefis}</strong><span>défis pratiques</span></div><div><strong>SQLite</strong><span>dans ton navigateur</span></div></div></div>`;
     /* 17 h 32 (Réf. 8, « c’est un mode avec compte, justement ») : plus de « Aucun compte n’est nécessaire » : le pseudo se choisit à la fin. */
-    obSetFooter('Personnaliser mon parcours',()=>obGoto('name'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'Ta progression est enregistrée sur cet appareil.');
+    /* 11 h 08 (réf. 6) : « ça sera enregistré sur tous les appareils, car compte obligatoire ». */
+    obSetFooter('Personnaliser mon parcours',()=>obGoto('name'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'Ta progression sera sauvegardée sur tous tes appareils.');
   }else if(slide==='account'){
     /* Elisa, 4 novembre, 10 h 16 : « mettre la page de connexion (il faut pas qu’elle marche encore) ». Sans fournisseur branché
        (window.REQUETE_AUTH), chaque bouton porte « Bientôt » et ne connecte à rien (obConnexionBientot) ; « Continuer » passe la
@@ -33854,14 +33940,19 @@ function paintOb(){
     obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'','','',!draft.source);
   }else if(slide==='rappel'){
     /* Le rappel du jour (d’après Duolingo) : la fenêtre d’iOS en aperçu, au centre de l’écran, là où la vraie s’ouvrira, et une flèche
-       qui rebondit vers « Autoriser ». Le bouton ouvre la vraie demande (obRappelDemander), puis programme le rappel. */
-    const [hh,mm]=String(rappelHeure()).split(':'),heure=`${+hh}&nbsp;h${mm&&mm!=='00'?'&nbsp;'+mm:''}`;
-    html=`<div class="ob-screen ob-profile ob-rappel-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un petit <em>rappel</em><br>chaque jour&nbsp;?</h1>
+       qui rebondit vers « Autoriser ». Le bouton ouvre la vraie demande (obRappelDemander), puis programme le rappel.
+       11 h 08 (réf. 2) : « laisser choisir de manière UI/UX à quelle heure, et récupérer les jours mis dans l’autre page » : l’heure
+       en grand (la roue d’iOS au toucher), quatre moments en un geste, les jours de séance choisis plus tôt ; le rappel ne sonne
+       que ces jours-là, à cette heure-là (rappelNativeSync). */
+    if(!draft.rappelHeure)draft.rappelHeure=rappelHeure();
+    const fq=draft.freq||7,quand=fq===7?'chaque jour':fq===5?'en semaine':'tes jours de séance';
+    html=`<div class="ob-screen ob-profile ob-rappel-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un petit <em>rappel</em><br>${quand}&nbsp;?</h1>
       ${obMascotQuestion('Avec moi, tu n’oublieras pas ta séance SQL !')}
+      ${obRappelCarte()}
       <div class="ob-notif" id="ob-notif" aria-hidden="true"><div class="ob-notif-alert"><b>«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small>Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><span>Ne pas autoriser</span><span class="is-ok">Autoriser</span></span></div>
         <svg class="ob-notif-arrow" viewBox="0 0 40 70" aria-hidden="true"><path d="M20 66V8M6 22 20 7l14 15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <p class="ob-rappel-note">Un rappel par jour à ${heure}, modifiable dans Mon compte.</p></div>`;
-    obSetFooter('Me rappeler de m’entraîner',obRappelDemander,'','','');
+      <p class="ob-rappel-note">Modifiable à tout moment dans Mon compte.</p></div>`;
+    obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');
   }else if(slide==='widget'){
     /* L’écran d’accueil (d’après Duolingo) : le widget de la série, la flamme et le chat, posé parmi les apps. App iPhone seulement. */
     html=`<div class="ob-screen ob-profile ob-widget-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ta série sur ton<br><em>écran d’accueil</em></h1>
@@ -33881,7 +33972,7 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>rythme</em> te convient&nbsp;?</h1>
       ${obMascotQuestion('Même dix minutes suffisent pour avancer.')}
       <div class="ob-answer-list ob-rhythm-list" role="radiogroup" aria-label="Temps par séance">${RYTHMES.map((r,i)=>`<button type="button" role="radio" aria-checked="${draft.rythme===r.k?'true':'false'}" class="ob-answer ${draft.rythme===r.k?'on':''}" style="--d:${i*60}ms" onclick="obPick('rythme','${r.k}')"><span class="ob-radio" aria-hidden="true"></span><span><b>${obRythmeMinutes(r)} minutes</b><small>${subtitles[r.k]||''}</small></span><span class="ob-rhythm-min">${r.k==='regulier'?'Conseillé':''}</span></button>`).join('')}</div>
-      ${obRhythmSummary()}</div>`;
+      ${obRhythmSummary()}${obModifiable()}</div>`;
     obSetFooter('Continuer',()=>obGoto('jours'),'','','');
   }else if(slide==='jours'){
     /* Elisa, 4 novembre, 9 h 36 (capture d’une autre appli : « Combien de minutes par jour ? », et « Voilà ce que ça t’apporte ») :
@@ -33896,7 +33987,7 @@ function paintOb(){
       <div class="ob-apport"><p class="ob-apport-k">Voilà ce que ça t’apporte en un an</p>
         <div class="ob-apport-row"><span class="ob-apport-c"><span class="ob-apport-ico" aria-hidden="true">${OB_ICO_ACTIVITES}</span><b><i class="ob-apport-n" data-n="${a.activites}">${obNombre(a.activites)}</i></b><small>activités</small></span>
           <span class="ob-apport-c"><span class="ob-apport-ico" aria-hidden="true">${OB_ICO_HEURES}</span><b><i class="ob-apport-n" data-n="${a.heures}">${obNombre(a.heures)}</i><em>h</em></b><small>de pratique</small></span></div>
-        <p class="ob-apport-note">${esc(F.d)} · ${a.minutes}&nbsp;min par séance</p></div></div>`;
+        <p class="ob-apport-note">${esc(F.d)} · ${a.minutes}&nbsp;min par séance</p></div>${obModifiable()}</div>`;
     obSetFooter('Construire mon parcours',()=>obGoto('build'),'','','');
   }else if(slide==='build'){
     /* Elisa, 1er novembre, 13 h 46 : « une page où on voit bien que le parcours se construit ». Les briques du parcours arrivent l’une
@@ -34021,6 +34112,7 @@ function finishOnboard(action){
   state.accountMode=draft.accountMode||state.accountMode||'guest';
   state.onboarded=true;
   save();
+  try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours créé (11 h 08)
   /* Première connexion : la mini-page du pseudo (Elisa, 31 octobre, 17 h 53), puis l’appli. */
   if(!psMien()&&!clsSalle().psPage&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}
   obTerminer(action);
@@ -34215,17 +34307,35 @@ function rappelSlotId(h){
   if(n<18) return 'afternoon';
   return 'evening';
 }
-/* App iOS : le rappel passe par une notification locale programmée chaque
-   jour (plugin LocalNotifications), car les notifications web n’y existent pas. */
+/* Les jours du rappel (Elisa, 4 novembre, 11 h 08, réf. 2) : ceux des séances du parcours (0 = dimanche, comme PATTERN). Pendant
+   l’onboarding, ceux choisis à l’étape des jours (le parcours n’est créé qu’à la fin). */
+function rappelJours(){
+  const ob=typeof document!=='undefined'?document.getElementById('onboarding'):null;
+  const f=(ob&&ob.classList.contains('on')&&typeof draft!=='undefined'&&draft&&draft.freq)||(state.plan&&state.plan.freq)||7;
+  return PATTERN[f]||PATTERN[7];
+}
+const JOURS_NOMS=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+function rappelJoursTexte(jours){
+  jours=jours||rappelJours();
+  if(jours.length>=7)return 'Chaque jour';
+  if(jours.length===5&&[1,2,3,4,5].every(d=>jours.includes(d)))return 'En semaine';
+  const n=[1,2,3,4,5,6,0].filter(d=>jours.includes(d)).map(d=>JOURS_NOMS[d]);
+  const t=n.length>1?`${n.slice(0,-1).join(', ')} et ${n[n.length-1]}`:(n[0]||'');
+  return t.charAt(0).toUpperCase()+t.slice(1);
+}
+/* App iOS : le rappel passe par des notifications locales (plugin LocalNotifications), car les notifications web n’y existent pas :
+   une par jour quand on s’entraîne tous les jours, sinon une par jour de séance, chaque semaine (weekday : 1 = dimanche). */
 function rappelNativeSync(){
   const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
   if(!LN)return;
   const go=async()=>{
-    try{await LN.cancel({notifications:[{id:1}]});}catch(e){}
+    try{await LN.cancel({notifications:[1,11,12,13,14,15,16,17].map(id=>({id}))});}catch(e){}
     if(!rappelOn())return;
     try{const p=await LN.requestPermissions();if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
-    const [h,m]=String(rappelHeure()).split(':').map(Number);
-    try{await LN.schedule({notifications:[{id:1,title:'Requête',body:'C’est l’heure de ta séance SQL.',schedule:{on:{hour:h||0,minute:m||0},repeats:true,allowWhileIdle:true}}]});}catch(e){}
+    const [h,m]=String(rappelHeure()).split(':').map(Number),jours=rappelJours(),corps='C’est l’heure de ta séance SQL.';
+    const notifications=jours.length>=7?[{id:1,title:'Requête',body:corps,schedule:{on:{hour:h||0,minute:m||0},repeats:true,allowWhileIdle:true}}]
+      :jours.map(d=>({id:11+d,title:'Requête',body:corps,schedule:{on:{weekday:d+1,hour:h||0,minute:m||0},repeats:true,allowWhileIdle:true}}));
+    try{await LN.schedule({notifications});}catch(e){}
   };
   go();
 }
@@ -34257,6 +34367,7 @@ function tickRappel(){
   const hh=String(now.getHours()).padStart(2,'0');
   const mm=String(now.getMinutes()).padStart(2,'0');
   if(`${hh}:${mm}`!==rappelHeure()) return;
+  if(!rappelJours().includes(now.getDay())) return;   // les jours de séance seulement (11 h 08)
   const day=now.toDateString();
   try{ if(localStorage.getItem('requete-rappel-last')===day) return; localStorage.setItem('requete-rappel-last',day); }catch(e){ return; }
   try{ new Notification('Requête',{body:'C’est l’heure de ta séance SQL.',tag:'requete-daily'}); }catch(e){}
@@ -34473,7 +34584,7 @@ function renderCompte(){
           <div class="account-settings-list">
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-profile-settings')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Profil et objectif</b><small>${esc(profileSummary)}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route is-stk">${lqStkSvg(ACCT_STK.route)}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel quotidien</b><small>${remind?`Chaque jour à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>
@@ -34507,10 +34618,10 @@ function renderCompte(){
       <div class="plus-details-body reading-preferences-sheet">${readingPreferencesHtml({compact:true})}</div>
     </details>
     <details class="plus-details" id="plus-reminders">
-      <summary><span>Rappel quotidien</span><small>${remind?`Activé chaque jour à ${hour}`:'Choisis un créneau sans pression'}</small><i aria-hidden="true">×</i></summary>
+      <summary><span>Rappel de séance</span><small>${remind?`Activé · ${rappelJoursTexte().toLowerCase()} à ${hour}`:'Choisis un créneau sans pression'}</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
         <button class="acc-row" type="button" onclick="toggleRappel()">
-          <div class="at"><b>Rappel quotidien</b><small>${remind?`Tous les jours à ${hour}`:'Notification désactivée'}</small></div>
+          <div class="at"><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}, les jours de ton parcours`:'Notification désactivée'}</small></div>
           <span class="acc-remind-now">${hour}</span>
           <span class="acc-toggle ${remind?'on':''}" aria-hidden="true"><i></i></span></button>
         <div class="acc-remind">
@@ -35145,7 +35256,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-connexion-fete-v2496';
+  const SW_CACHE='requete-2026-11-04-rappel-jours-v2497';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

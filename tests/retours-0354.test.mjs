@@ -72,7 +72,7 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
   const s = slide('rappel', "}else if(slide==='widget'){");
   assert.ok(s.includes("obMascotQuestion('Avec moi, tu n’oublieras pas ta séance SQL !')"));
   assert.ok(s.includes('<b>«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b>') && s.includes('<span class="ob-notif-btns"><span>Ne pas autoriser</span><span class="is-ok">Autoriser</span></span>'));
-  assert.ok(s.includes('<svg class="ob-notif-arrow"') && s.includes("obSetFooter('Me rappeler de m’entraîner',obRappelDemander,'','','');"));
+  assert.ok(s.includes('<svg class="ob-notif-arrow"') && s.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');"), 'à l’heure choisie (11 h 08)');
   assert.ok(app.includes("  if(slide==='rappel')obNotifCaler();"));
   const caler = cut('function obNotifCaler(){', '/* Le widget, tel qu’il est sur l’iPhone');
   assert.ok(caler.includes('let dy=innerHeight/2-(r.top+r.height/2);'), 'centrée sur l’écran, là où iOS ouvre sa fenêtre');
@@ -84,13 +84,13 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
     const ctx = vm.createContext({obLock: false, obApercu: apercu, document: {getElementById: () => ({disabled: false})},
       window: {Capacitor: {isNativePlatform: () => true, Plugins: {LocalNotifications: {requestPermissions: async () => { appels.push('demande'); return {display: reponse}; }}}}},
       localStorage: {setItem: (k, v) => { store[k] = v; }}, rappelNativeSync: () => appels.push('programme'), buzz: () => {},
-      obGoto: t => appels.push('vers ' + t), obFinSuivante: () => 'widget'});
+      obGoto: t => appels.push('vers ' + t), obFinSuivante: () => 'widget', draft: {rappelHeure: '08:00'}, rappelHeure: () => '19:00'});
     vm.runInContext(demande, ctx);
     await ctx.obRappelDemander();
     return {appels, store};
   };
-  assert.deepEqual(await essai(), {appels: ['demande', 'programme', 'vers widget'], store: {'requete-rappel': '1'}});
-  assert.deepEqual(await essai({reponse: 'denied'}), {appels: ['demande', 'vers widget'], store: {'requete-rappel': '0'}}, 'refusé : pas de rappel');
+  assert.deepEqual(await essai(), {appels: ['demande', 'programme', 'vers widget'], store: {'requete-rappel-heure': '08:00', 'requete-rappel': '1'}}, 'l’heure choisie (11 h 08), puis le rappel');
+  assert.deepEqual(await essai({reponse: 'denied'}), {appels: ['demande', 'vers widget'], store: {'requete-rappel-heure': '08:00', 'requete-rappel': '0'}}, 'refusé : pas de rappel (l’heure reste pour Mon compte)');
   assert.deepEqual(await essai({apercu: true}), {appels: ['vers widget'], store: {}}, 'aperçu : rien demandé, rien gardé');
 });
 

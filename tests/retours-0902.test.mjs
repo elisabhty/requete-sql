@@ -49,8 +49,12 @@ test('9 h 19 : « Fais une petite requête ! » ouvre l’onglet Défis ; « Tu 
   x = page(); const avant = Date.now(); x.ctx.raccourciOuvrir('fr.requete.app.adieu');
   assert.deepEqual(x.vu, [['onglet', 'learn'], ['attend', 450], ['bulle']], 'l’accueil, puis la bulle');
   assert.ok(x.ctx.mascotRetrouveJusqua >= avant + 6000, 'l’accueil redessiné garde la phrase le temps qu’il la dise');
-  for (const v of [{ enSeance: true }, { onboarded: false }]) for (const r of ['requete', 'adieu']) {
-    x = page(v); x.ctx.raccourciOuvrir('fr.requete.app.' + r); assert.deepEqual(x.vu, [], JSON.stringify(v) + ' ' + r);
+  /* L’onboarding d’abord, et en séance on y reste ; depuis 11 h 08 (« le lien ne fonctionne pas vers les défis »), ils le disent */
+  for (const r of ['requete', 'adieu']) {
+    x = page({ onboarded: false }); x.ctx.obBandeau = t => x.vu.push(['bandeau', t]); x.ctx.raccourciOuvrir('fr.requete.app.' + r);
+    assert.deepEqual(x.vu, [['bandeau', r === 'requete' ? 'Termine ton parcours de bienvenue : les défis t’attendent juste après !' : 'Je t’avais dit que j’allais te retrouver !']], 'onboarding ' + r);
+    x = page({ enSeance: true }); x.ctx.toast = t => x.vu.push(['toast', t]); x.ctx.raccourciOuvrir('fr.requete.app.' + r);
+    assert.deepEqual(x.vu, r === 'requete' ? [['toast', 'Tu es déjà en séance']] : [], 'en séance ' + r);
   }
   /* La bulle : « Je t’avais dit que j’allais te retrouver ! », à la place de « Ravi de te revoir ! », tant qu’il la dit */
   const m = vm.createContext({ esc: s => String(s) });
