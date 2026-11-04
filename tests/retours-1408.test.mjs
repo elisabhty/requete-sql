@@ -144,12 +144,9 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
   assert.ok(site.includes('N’ajouter ici que de VRAIS avis, avec l’accord de la personne'));
   assert.ok(read('decouvrir/mentions-legales.html').includes('sont lus par une <b>voix de synthèse</b>'));
   assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête · voix de synthèse</p>'), 'la carte le dit aussi (14 h 50)');
-  /* L’objectif choisi juste avant décide du premier avis */
-  const ordre = g => [...lecteur(g).ctx.obTemoinsListe(g)].map(t => t.prenom);
-  assert.deepEqual(ordre('career'), ['Aminata C.', 'Sofia B.', 'Thomas L.'], 'la reconversion');
-  assert.deepEqual(ordre('interview'), ['Sofia B.', 'Thomas L.', 'Aminata C.'], 'l’entretien');
-  assert.deepEqual(ordre('work'), ['Thomas L.', 'Sofia B.', 'Aminata C.'], 'le travail');
-  assert.deepEqual(ordre('curious'), ['Sofia B.', 'Thomas L.', 'Aminata C.'], 'sinon, l’ordre du site');
+  /* 15 h 20 : l’ordre du site pour tout le monde (Sofia B. d’abord, Aminata C. en dernier), quel que soit l’objectif */
+  const ordre = g => [...lecteur(g).ctx.obTemoinsListe()].map(t => t.prenom);
+  for (const g of ['career', 'interview', 'work', 'advanced', 'curious', undefined]) assert.deepEqual(ordre(g), ['Sofia B.', 'Thomas L.', 'Aminata C.'], String(g));
   /* Embarqués dans l’app iPhone (www/) ; sur le web, le service worker les range au passage (decouvrir/, réseau d’abord) */
   assert.ok(read('scripts/build-www.mjs').includes("for (const f of ['decouvrir/video.html', 'decouvrir/mascotte.webp', 'decouvrir/voix', 'decouvrir/avis'])"));
   assert.ok(sw.includes("if (url.pathname.includes('/decouvrir/')) {"));
@@ -159,9 +156,9 @@ test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 10+ f
   const { ctx } = lecteur('career');
   const html = ctx.obTemoinsHtml();
   assert.ok(!lecteur('career', null).ctx.obTemoinsHtml().includes('ob-tv-stat'), 'pas de « 1 000 personnes » sans chiffre vérifié');
-  assert.ok(html.includes('<img class="ob-tv-img" id="ob-tv-img" src="decouvrir/avis/aminata-c.webp" width="640" height="640" alt="Aminata C., 35 ans, en reconversion data" draggable="false">'));
+  assert.ok(html.includes('<img class="ob-tv-img" id="ob-tv-img" src="decouvrir/avis/sofia-b.webp" width="640" height="640" alt="Sofia B., Data Analyst junior" draggable="false">'), 'même après « Me reconvertir »');
   assert.deepEqual([...html.matchAll(/aria-label="(Témoignage [^"]+)" onclick="obTemoinsChoisir\((\d)\)"><img src="([^"]+)"/g)].map(m => [m[1], +m[2], m[3]]),
-    [['Témoignage d’Aminata C.', 0, 'decouvrir/avis/aminata-c-mini.webp'], ['Témoignage de Sofia B.', 1, 'decouvrir/avis/sofia-b-mini.webp'], ['Témoignage de Thomas L.', 2, 'decouvrir/avis/thomas-l-mini.webp']]);
+    [['Témoignage de Sofia B.', 0, 'decouvrir/avis/sofia-b-mini.webp'], ['Témoignage de Thomas L.', 1, 'decouvrir/avis/thomas-l-mini.webp'], ['Témoignage d’Aminata C.', 2, 'decouvrir/avis/aminata-c-mini.webp']]);
   for (const k of ['<button type="button" class="ob-tv-nav" id="ob-tv-prev" onclick="obTemoinsPasser(-1)">', '<button type="button" class="ob-tv-play" id="ob-tv-play" aria-pressed="false" aria-describedby="ob-tv-tx" onclick="obTemoinsLire()">',
     '<button type="button" class="ob-tv-nav" id="ob-tv-next" onclick="obTemoinsPasser(1)">', '<div class="ob-tv-wave" id="ob-tv-wave" role="slider" tabindex="0" aria-valuemin="0"></div>',
     '<audio id="ob-tv-audio" preload="none"></audio>', '<p class="ob-sr" id="ob-tv-tx"></p>'])
@@ -184,13 +181,13 @@ test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d�
   ctx.obTemoinsHtml();
   ctx.obTemoinsMontrer(0);
   const t = id => d.el(id).textContent, a = (id, k) => d.el(id).getAttribute(k);
-  assert.deepEqual([t('ob-tv-nom'), t('ob-tv-info'), t('ob-tv-date'), t('ob-tv-stars')], ['Thomas L.', 'Business Analyst', 'octobre 2026', '★★★★★']);
+  assert.deepEqual([t('ob-tv-nom'), t('ob-tv-info'), t('ob-tv-date'), t('ob-tv-stars')], ['Sofia B.', 'Data Analyst junior', 'septembre 2026', '★★★★★']);
   assert.equal(a('ob-tv-stars', 'aria-label'), '5 étoiles sur 5');
-  assert.equal(a('ob-tv-audio', 'src'), 'decouvrir/avis/thomas-l.mp3');
-  assert.equal(a('ob-tv-play', 'aria-label'), 'Écouter l’avis de Thomas L.');
-  assert.ok(t('ob-tv-tx').startsWith('Avis de Thomas L., Business Analyst, octobre 2026 : « J’avais déjà essayé') && t('ob-tv-tx').endsWith('» Un vrai avis, recueilli par Requête et lu par une voix de synthèse.'), 'le texte pour un lecteur d’écran');
+  assert.equal(a('ob-tv-audio', 'src'), 'decouvrir/avis/sofia-b.mp3');
+  assert.equal(a('ob-tv-play', 'aria-label'), 'Écouter l’avis de Sofia B.');
+  assert.ok(t('ob-tv-tx').startsWith('Avis de Sofia B., Data Analyst junior, septembre 2026 : « J’ai décroché mon premier poste') && t('ob-tv-tx').endsWith('» Un vrai avis, recueilli par Requête et lu par une voix de synthèse.'), 'le texte pour un lecteur d’écran');
   assert.equal(d.el('ob-tv-wave').children.length, 48, 'les 48 barres de l’onde');
-  assert.deepEqual([a('ob-tv-prev', 'aria-label'), a('ob-tv-next', 'aria-label')], ['Témoignage précédent : Aminata C.', 'Témoignage suivant : Sofia B.']);
+  assert.deepEqual([a('ob-tv-prev', 'aria-label'), a('ob-tv-next', 'aria-label')], ['Témoignage précédent : Aminata C.', 'Témoignage suivant : Thomas L.']);
   assert.deepEqual(d.pastilles.map(p => p.getAttribute('aria-pressed')), ['true', 'false', 'false']);
   /* Pendant l’écoute : la carte s’allume, les barres lues passent en menthe, celle du moment palpite */
   const au = d.el('ob-tv-audio');
@@ -198,7 +195,7 @@ test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d�
   ctx.obTemoinsEtat(true); ctx.obTemoinsPeindre();
   const barres = d.el('ob-tv-wave').children;
   assert.equal(barres.filter(b => b.cls.has('on')).length, 24); assert.ok(barres[24].cls.has('cur'));
-  assert.ok(d.el('ob-tv').cls.has('is-lecture')); assert.equal(a('ob-tv-play', 'aria-label'), 'Mettre en pause l’avis de Thomas L.');
+  assert.ok(d.el('ob-tv').cls.has('is-lecture')); assert.equal(a('ob-tv-play', 'aria-label'), 'Mettre en pause l’avis de Sofia B.');
   assert.equal(a('ob-tv-wave', 'aria-valuetext'), '0:07 sur 0:14');
   /* Toucher la pastille de l’avis en cours ne l’arrête pas ; une autre, si */
   ctx.obTemoinsChoisir(0); assert.equal(au.paused, false);
@@ -207,7 +204,7 @@ test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d�
   assert.equal(a('ob-tv-play', 'aria-label'), 'Écouter l’avis d’Aminata C.');
   assert.ok(!d.el('ob-tv').cls.has('is-lecture'));
   /* Les flèches font le tour */
-  ctx.obTemoinsPasser(1); assert.equal(t('ob-tv-nom'), 'Thomas L.');
+  ctx.obTemoinsPasser(1); assert.equal(t('ob-tv-nom'), 'Sofia B.', 'après la dernière, la première');
   ctx.obTemoinsPasser(-1); assert.equal(t('ob-tv-nom'), 'Aminata C.');
   /* En changeant d’étape : l’avis s’arrête */
   au.paused = false; ctx.obTemoinsCouper(); assert.equal(au.paused, true);
