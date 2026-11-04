@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=132">
+<link rel="stylesheet" href="ludique.css?v=133">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=13">
 <style id="lesson-video-css">
@@ -19238,13 +19238,18 @@ function homeLessonSteps(id){
    est peinte dans l’image : aucun filtre CSS, l’autocollant reste net sur iPhone (voir tests/sticker-sharp). */
 const MASCOT_IMG='assets/mascotte-autocollant.webp';
 let mascotWavedThisSession=false;
+/* Elisa, 4 novembre, 9 h 19 : le raccourci « 😱 Tu supprimes Requête ? — On te retrouvera. » ouvre l’accueil, et le chat dit dans sa
+   bulle « Je t’avais dit que j’allais te retrouver ! » (raccourciOuvrir, mascotDitRetrouve) ; tant qu’il la dit, l’accueil redessiné
+   la garde. */
+const MASCOT_RETROUVE='Je t’avais dit que j’allais te retrouver\u00a0!';
+let mascotRetrouveJusqua=0;
 /* o.kw : mot-clé SQL collé à côté (avec deux étincelles) ; o.hi : texte de la bulle ; o.intro : arrivée collée. */
 function mascotMedalHtml(o){
   o=o||{};
   const sp=o.kw?'<i class="mstk-sp mstk-sp-a" aria-hidden="true"></i><i class="mstk-sp mstk-sp-b" aria-hidden="true"></i>':'';
   const kw=o.niv?`<span class="mstk-niv" role="img" aria-label="${escAttr(`Niveau ${o.niv.rank} : ${o.niv.label}`)}"><i><span>Niv.</span>${o.niv.rank}</i><b>${esc(o.niv.label)}</b></span>`
     :o.kw?`<span class="mstk-kw" aria-hidden="true">${esc(o.kw)}</span>`:'';
-  const hi=o.hi?`<span class="mstk-bub" aria-hidden="true">${esc(o.hi)}</span>`:'';
+  const hi=o.hi?`<span class="mstk-bub" aria-hidden="true">${esc(mascotRetrouveJusqua>Date.now()?MASCOT_RETROUVE:o.hi)}</span>`:'';
   return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="La mascotte Requête te fait coucou">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">${kw}${hi}</button>`;
 }
 function mascotReduced(){
@@ -19258,6 +19263,16 @@ function mascotWave(btn){
   btn.classList.add('is-hello');
   clearTimeout(btn._mstkT);
   btn._mstkT=setTimeout(()=>btn.classList.remove('is-hello'),2900);
+}
+/* La phrase des retrouvailles : le chat fait coucou et la bulle, plus large, reste le temps de la lire ; puis l’accueil reprend
+   « Ravi de te revoir ! ». */
+function mascotDitRetrouve(){
+  const btn=document.querySelector('#home-hero .mascot-stk');
+  if(!btn){mascotRetrouveJusqua=0;return;}
+  const bub=btn.querySelector('.mstk-bub');if(bub)bub.textContent=MASCOT_RETROUVE;
+  btn.classList.add('is-retrouve');mascotWave(btn);
+  clearTimeout(btn._mstkT);
+  btn._mstkT=setTimeout(()=>{btn.classList.remove('is-hello','is-retrouve');mascotRetrouveJusqua=0;if(typeof renderHomeHero==='function')renderHomeHero();},5800);
 }
 function mascotGreetOnce(){
   if(mascotWavedThisSession||mascotReduced())return;
@@ -33035,10 +33050,11 @@ if(typeof document!=='undefined'&&document.addEventListener){
    Elisa, 4 novembre, 9 h 02 (capture de l’appui long sur l’icône de Duolingo : « 😱 Tu supprimes Duolingo ? Duo te retrouvera. »,
    « ⭐ Fais une petite leçon ! Ça prend juste 3 minutes. ») : « comment avoir ça ». Les mêmes pour Requête : la page les pose au
    démarrage (le pont RequeteWidget, UIApplication.shortcutItems) ; le raccourci choisi revient du délégué de scène (SceneDelegate.swift)
-   en événement « raccourci », gardé jusqu’à ce que la page l’écoute, même quand l’app était fermée. Le premier ouvre la séance
-   recommandée (comme le bouton de l’accueil), le second l’accueil, où le chat dit qu’il t’a retrouvé. */
+   en événement « raccourci », gardé jusqu’à ce que la page l’écoute, même quand l’app était fermée. 9 h 19 : « Tu supprimes Requête ?
+   — On te retrouvera. » ouvre l’accueil, où le chat dit dans sa bulle « Je t’avais dit que j’allais te retrouver ! » ; « Fais une
+   petite requête ! » ouvre l’onglet Défis. */
 const RACCOURCIS=[
-  {type:'fr.requete.app.adieu',titre:'😱 Tu supprimes Requête ?',sousTitre:'Le chat te retrouvera.',icone:'eyes'},
+  {type:'fr.requete.app.adieu',titre:'😱 Tu supprimes Requête ?',sousTitre:'On te retrouvera.',icone:'eyes'},
   {type:'fr.requete.app.requete',titre:'⭐ Fais une petite requête !',sousTitre:'Quelques minutes suffisent.',icone:'terminal'}
 ];
 let raccourcisBranches=false;
@@ -33052,15 +33068,12 @@ function raccourcisBrancher(){
 function raccourciOuvrir(type){
   type=String(type||'');
   if(!state.onboarded)return;   // premier lancement : l’onboarding d’abord
-  if(type.endsWith('.requete')){
-    if(typeof mode!=='undefined'&&mode==='lesson')return;   // déjà en séance : on y reste
-    const s=typeof recommendedSession==='function'?recommendedSession():null,id=s?s.id:null;
-    if(id==null){switchTab('learn');return;}   // parcours fini : l’accueil
-    const steps=isDefiId(id)?[]:homeLessonSteps(id);
-    openItem(id,isDefiId(id)||steps.length<2?0:steps[1].done?2:nbFaites(id)>0?1:0);   // l’étape que propose l’accueil
-  }else if(type.endsWith('.adieu')){
+  if(document.querySelector('#scr-lesson.active,#lesson-video'))return;   // déjà en séance (leçon, vidéo) : on y reste
+  if(type.endsWith('.requete'))switchTab('defis');
+  else if(type.endsWith('.adieu')){
+    mascotRetrouveJusqua=Date.now()+6500;   // l’accueil redessiné garde la phrase
     switchTab('learn');
-    setTimeout(()=>toast('Te revoilà\u00a0!','Le chat savait qu’il te retrouverait. Une petite requête\u00a0?','info'),450);
+    setTimeout(mascotDitRetrouve,450);
   }
 }
 function obNext(){
@@ -35003,7 +35016,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-raccourcis-v2490';
+  const SW_CACHE='requete-2026-11-04-raccourcis-v2491';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

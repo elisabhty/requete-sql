@@ -16,14 +16,14 @@ const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const app = read('index.html');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 
-const page = ({ natif = true, plugin = true, onboarded = true, mode = 'learn', session = { id: 12 }, steps = [{ done: true }, { done: false }], faites = 0 } = {}) => {
+const page = ({ natif = true, plugin = true, onboarded = true, enSeance = false } = {}) => {
   const appels = [], ecoute = {}, vu = [];
   const ctx = vm.createContext({
     window: { Capacitor: natif ? { isNativePlatform: () => true, isPluginAvailable: n => plugin && n === 'RequeteWidget',
       nativePromise: (p, m, o) => { appels.push([p, m, o]); return Promise.resolve(); }, addListener: (p, e, f) => { ecoute[p + ':' + e] = f; } } : undefined },
-    state: { onboarded }, mode, recommendedSession: () => session, isDefiId: id => typeof id === 'string', homeLessonSteps: () => steps, nbFaites: () => faites,
-    openItem: (id, step) => vu.push(['ouvre', id, step]), switchTab: t => vu.push(['onglet', t]), toast: (a, b) => vu.push(['toast', a, b]),
-    setTimeout: f => f(),
+    document: { querySelector: sel => (sel === '#scr-lesson.active,#lesson-video' && enSeance ? {} : null) },
+    state: { onboarded }, switchTab: t => vu.push(['onglet', t]), mascotRetrouveJusqua: 0, mascotDitRetrouve: () => vu.push(['bulle']),
+    setTimeout: (f, ms) => { vu.push(['attend', ms]); f(); },
   });
   vm.runInContext(cut('const RACCOURCIS=[', 'function obNext(){').replace('const RACCOURCIS=', 'var RACCOURCIS=').replace('let raccourcisBranches=', 'var raccourcisBranches='), ctx);
   return { ctx, appels, ecoute, vu };
@@ -36,24 +36,33 @@ test('les deux raccourcis de Duolingo, version Requête : posés au démarrage d
   const [p, m, o] = appels[0];
   assert.equal(p, 'RequeteWidget'); assert.equal(m, 'raccourcis');
   assert.deepEqual(JSON.parse(JSON.stringify(o.items)), [
-    { type: 'fr.requete.app.adieu', titre: '😱 Tu supprimes Requête ?', sousTitre: 'Le chat te retrouvera.', icone: 'eyes' },
+    { type: 'fr.requete.app.adieu', titre: '😱 Tu supprimes Requête ?', sousTitre: 'On te retrouvera.', icone: 'eyes' },
     { type: 'fr.requete.app.requete', titre: '⭐ Fais une petite requête !', sousTitre: 'Quelques minutes suffisent.', icone: 'terminal' }]);
   assert.equal(typeof ecoute['RequeteWidget:raccourci'], 'function', 'la page écoute le raccourci choisi');
   for (const v of [{ natif: false }, { plugin: false }]) { const x = page(v); x.ctx.raccourcisBrancher(); assert.equal(x.appels.length, 0, JSON.stringify(v)); }
   assert.ok(app.includes("    setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône"), 'au démarrage');
 });
 
-test('« Fais une petite requête ! » ouvre la séance que propose l’accueil ; « Tu supprimes Requête ? », l’accueil et le chat', () => {
+test('9 h 19 : « Fais une petite requête ! » ouvre l’onglet Défis ; « Tu supprimes Requête ? », l’accueil, où le chat le dit dans sa bulle', () => {
   let x = page(); x.ctx.raccourcisBrancher(); x.ecoute['RequeteWidget:raccourci']({ type: 'fr.requete.app.requete' });
-  assert.deepEqual(x.vu, [['ouvre', 12, 0]], 'la leçon, comme le bouton de l’accueil');
-  x = page({ faites: 2 }); x.ctx.raccourciOuvrir('fr.requete.app.requete'); assert.deepEqual(x.vu, [['ouvre', 12, 1]], 'exercice commencé : l’exercice');
-  x = page({ steps: [{ done: true }, { done: true }] }); x.ctx.raccourciOuvrir('fr.requete.app.requete'); assert.deepEqual(x.vu, [['ouvre', 12, 2]], 'puis le quiz');
-  x = page({ session: { id: 'd3' } }); x.ctx.raccourciOuvrir('fr.requete.app.requete'); assert.deepEqual(x.vu, [['ouvre', 'd3', 0]], 'un défi');
-  x = page({ session: null }); x.ctx.raccourciOuvrir('fr.requete.app.requete'); assert.deepEqual(x.vu, [['onglet', 'learn']], 'parcours fini : l’accueil');
-  x = page({ mode: 'lesson' }); x.ctx.raccourciOuvrir('fr.requete.app.requete'); assert.deepEqual(x.vu, [], 'déjà en séance : on y reste');
-  x = page({ onboarded: false }); x.ctx.raccourciOuvrir('fr.requete.app.requete'); assert.deepEqual(x.vu, [], 'premier lancement : l’onboarding d’abord');
-  x = page(); x.ctx.raccourciOuvrir('fr.requete.app.adieu');
-  assert.deepEqual(x.vu, [['onglet', 'learn'], ['toast', 'Te revoilà !', 'Le chat savait qu’il te retrouverait. Une petite requête ?']]);
+  assert.deepEqual(x.vu, [['onglet', 'defis']], 'l’onglet Défis');
+  x = page(); const avant = Date.now(); x.ctx.raccourciOuvrir('fr.requete.app.adieu');
+  assert.deepEqual(x.vu, [['onglet', 'learn'], ['attend', 450], ['bulle']], 'l’accueil, puis la bulle');
+  assert.ok(x.ctx.mascotRetrouveJusqua >= avant + 6000, 'l’accueil redessiné garde la phrase le temps qu’il la dise');
+  for (const v of [{ enSeance: true }, { onboarded: false }]) for (const r of ['requete', 'adieu']) {
+    x = page(v); x.ctx.raccourciOuvrir('fr.requete.app.' + r); assert.deepEqual(x.vu, [], JSON.stringify(v) + ' ' + r);
+  }
+  /* La bulle : « Je t’avais dit que j’allais te retrouver ! », à la place de « Ravi de te revoir ! », tant qu’il la dit */
+  const m = vm.createContext({ esc: s => String(s) });
+  vm.runInContext(cut('const MASCOT_IMG=', 'function mascotReduced(){'), m);
+  assert.ok(vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Ravi de te revoir\\u00a0!'})", m).includes('>Ravi de te revoir\u00a0!</span>'));
+  vm.runInContext('mascotRetrouveJusqua=Date.now()+5000', m);
+  assert.ok(vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Ravi de te revoir\\u00a0!'})", m).includes('<span class="mstk-bub" aria-hidden="true">Je t’avais dit que j’allais te retrouver\u00a0!</span>'));
+  assert.ok(!vm.runInContext('mascotMedalHtml({kw:"SELECT"})', m).includes('mstk-bub'), 'sans bulle : rien');
+  const dit = cut('function mascotDitRetrouve(){', 'function mascotGreetOnce(){');
+  assert.ok(dit.includes("btn.classList.add('is-retrouve');mascotWave(btn);") && dit.includes('},5800);'), 'plus longtemps que le coucou (2,9 s)');
+  const lq = read('ludique.css');
+  assert.ok(lq.includes('html.lq .lq-hero .mascot-stk.is-retrouve .mstk-bub{max-width:150px}') && lq.includes('html.lq .mascot-stk.is-hello.is-retrouve .mstk-bub{animation:mstkBub 5.4s ease-out .18s both}'));
 });
 
 test('côté iPhone : le délégué de scène crée le contrôleur de Requête et reçoit les raccourcis ; le pont les passe à la page', () => {
