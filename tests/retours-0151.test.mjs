@@ -46,7 +46,7 @@ function lancer({ natif = true, calme = false, audio = true, haptique = true, se
     performance: perf, requestAnimationFrame: f => frames.push(f), setTimeout: (f, ms) => file.push([horloge + (ms || 0), f])
   });
   vm.runInContext(intro, ctx);
-  /* Joue l’ouverture : deux images (is-play à 0 ms), puis les minuteurs dans l’ordre jusqu’au rangement (1,3 s) ; « occupe » simule
+  /* Joue l’ouverture : deux images (is-play à 0 ms), puis les minuteurs dans l’ordre jusqu’au rangement (2,08 s) ; « occupe » simule
      un fil principal pris pendant ce temps-là juste après le départ. Renvoie le journal daté (ms après is-play). */
   const jouer = ({ occupe = 0 } = {}) => {
     window.__introJouer();
@@ -57,7 +57,7 @@ function lancer({ natif = true, calme = false, audio = true, haptique = true, se
     for (;;) {
       file.sort((a, b) => a[0] - b[0]);
       const t = file[0];
-      if (!t || t[0] >= 1300) break;
+      if (!t || t[0] >= 2080) break;
       file.shift(); horloge = Math.max(horloge, t[0]); t[1]();
       log.splice(0).forEach(l => daté.push([horloge, l]));
     }
@@ -85,13 +85,13 @@ test('haptique : la touche, l’onde qui s’éloigne, les résultats deux par d
   const s = lancer(); await attendre(); s.log.splice(0);
   const j = s.jouer().filter(([, l]) => /^(choc|cran)/.test(l) || l.startsWith('crans'));
   assert.deepEqual(j, [[0, 'crans prêts'],
-    [90, 'choc MEDIUM'],                                   // la touche au fond (introKey : 18 % de 0,5 s)
-    [160, 'choc LIGHT'], [230, 'choc LIGHT'], [300, 'cran'], [370, 'cran'],   // l’onde, de plus en plus légère
-    [514, 'cran'], [542, 'cran'], [570, 'cran'], [598, 'cran'],              // les résultats (500 + 14 k), un cran par paire
-    [760, 'choc MEDIUM'],                                  // la plongée (0,74 s)
-    [760, 'crans finis']]);
+    [112, 'choc MEDIUM'],                                  // la touche au fond (introKey : 18 % de 0,62 s ; 9 h 28 : « trop rapide »)
+    [210, 'choc LIGHT'], [310, 'choc LIGHT'], [420, 'cran'], [540, 'cran'],   // l’onde, de plus en plus légère
+    [822, 'cran'], [906, 'cran'], [990, 'cran'], [1074, 'cran'],             // les résultats (780 + 42 k), un cran par paire
+    [1270, 'choc MEDIUM'],                                 // la plongée (1,25 s)
+    [1270, 'crans finis']]);
   /* Les crans des résultats tombent sur une case allumée sur deux */
-  for (const [ms] of j.filter(([ms, l]) => l === 'cran' && ms > 500)) assert.equal((ms - 500 - 14) % 28, 0);
+  for (const [ms] of j.filter(([ms, l]) => l === 'cran' && ms > 780)) assert.equal((ms - 780 - 42) % 84, 0);
   assert.ok(!s.log.some(l => l.startsWith('vibre')), 'pas de vibration en double');
 });
 
@@ -100,14 +100,14 @@ test('haptique : fil principal occupé au départ, rien ne s’entasse ; la touc
     const s = lancer(); await attendre(); s.log.splice(0);
     const coups = s.jouer({ occupe }).filter(([, l]) => l === 'cran' || l.startsWith('choc '));
     assert.equal(coups.filter(([, l]) => l === 'choc MEDIUM').length, 2, `${occupe} ms : la touche et la plongée`);
-    assert.equal(coups[0][1], 'choc MEDIUM'); assert.equal(coups.at(-1).join(' '), '760 choc MEDIUM');
+    assert.equal(coups[0][1], 'choc MEDIUM'); assert.equal(coups.at(-1).join(' '), '1270 choc MEDIUM');
     for (let i = 1; i < coups.length; i++) {
       const ecart = coups[i][0] - coups[i - 1][0];
       assert.ok(ecart >= 25 || coups[i][1] === 'choc MEDIUM', `${occupe} ms : ${coups[i - 1].join(' ')} puis ${coups[i].join(' ')}`);
     }
     /* Ce qui part le fait à son heure, ou avec au plus 45 ms de retard (la touche mise à part) */
     for (const [ms, l] of coups.slice(1)) {
-      const prevu = [[160, 'choc LIGHT'], [230, 'choc LIGHT'], [300, 'cran'], [370, 'cran'], [514, 'cran'], [542, 'cran'], [570, 'cran'], [598, 'cran'], [760, 'choc MEDIUM']]
+      const prevu = [[210, 'choc LIGHT'], [310, 'choc LIGHT'], [420, 'cran'], [540, 'cran'], [822, 'cran'], [906, 'cran'], [990, 'cran'], [1074, 'cran'], [1270, 'choc MEDIUM']]
         .filter(([t, n]) => n === l && ms - t >= 0 && ms - t <= 45);
       assert.ok(prevu.length, `${occupe} ms : ${ms} ${l} hors de son créneau`);
     }
@@ -116,7 +116,7 @@ test('haptique : fil principal occupé au départ, rien ne s’entasse ; la touc
 
 test('sans Haptics : la vibration de la touche comme avant ; sans Web Audio ou son illisible : muet, sans rien bloquer', async () => {
   const a = lancer({ haptique: false }); await attendre();
-  assert.ok(a.jouer().some(([ms, l]) => ms === 90 && l === 'vibre 25'));
+  assert.ok(a.jouer().some(([ms, l]) => ms === 112 && l === 'vibre 25'));
   const b = lancer({ audio: false }); await attendre();
   const jb = b.jouer();
   assert.ok(!jb.some(([, l]) => l.startsWith('son')) && b.cls.has('is-play'));
@@ -151,15 +151,15 @@ test('le fichier son : léger, de la bonne durée, et calé sur les instants de 
   assert.ok(b.length > 10000 && b.length < 60000, `${b.length} octets`);
   const i = b.indexOf('mvhd'), v = b[i + 4];
   const [echelle, duree] = v === 1 ? [b.readUInt32BE(i + 24), Number(b.readBigUInt64BE(i + 28))] : [b.readUInt32BE(i + 16), b.readUInt32BE(i + 20)];
-  assert.ok(Math.abs(duree / echelle - 1.8) < 0.06, `${(duree / echelle).toFixed(3)} s`);
+  assert.ok(Math.abs(duree / echelle - 2.6) < 0.06, `${(duree / echelle).toFixed(3)} s`);
   /* Le générateur : mêmes instants que l’animation */
   const py = lire('tools/sons/ouverture.py');
-  for (const l of ['TOUCHE = 0.085', 'ONDE = 0.12', 'VITESSE = 3048', 'RESULTATS = [0.500 + i * 0.014 for i in range(8)]', 'PLONGEE = 0.72', 'ARRIVEE = 1.04',
+  for (const l of ['TOUCHE = 0.112', 'ONDE = 0.18', 'VITESSE = 1650', 'DEPART = 170', 'RESULTATS = [0.780 + i * 0.042 for i in range(8)]', 'PLONGEE = 1.23', 'ARRIVEE = 1.62',
     "SORTIE_M4A = os.path.join(RACINE, 'assets', 'sons', 'ouverture.m4a')"]) assert.ok(py.includes(l), l);
-  assert.ok(css.includes('@keyframes introKey{\n  0%{transform:none}\n  18%{transform:translateY(calc(22*var(--u)))}'), 'la touche au fond à 18 % de 0,5 s, soit 90 ms');
-  assert.ok(css.includes('.in-ring{animation:introWave .34s linear .12s forwards}'), 'l’onde part à 0,12 s');
-  assert.ok(intro.includes('w=Math.round(120+(r-256)/3.048)') && intro.includes("'<s style=\"--p:'+(500+k*14)+'"), 'cases et résultats aux instants du son');
-  assert.ok(css.includes('introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards') && css.includes('{animation:introOut .24s linear 1.04s forwards}'));
+  assert.ok(css.includes('@keyframes introKey{\n  0%{transform:none}\n  18%{transform:translateY(calc(22*var(--u)))}') && css.includes('{animation:introKey .62s '), 'la touche au fond à 18 % de 0,62 s, soit 112 ms');
+  assert.ok(css.includes('.in-ring{animation:introWave .6s linear .18s forwards}'), 'l’onde part à 0,18 s');
+  assert.ok(intro.includes('w=Math.round(170+(r-256)/1.65)') && intro.includes("'<s style=\"--p:'+(780+k*42)+'"), 'cases et résultats aux instants du son');
+  assert.ok(css.includes('introZoom .55s cubic-bezier(.42,0,.72,.42) 1.25s forwards') && css.includes('{animation:introOut .4s ease-out 1.62s forwards}'));
   /* Le dossier assets part dans l’appli ; le .wav de travail reste hors du dépôt */
   assert.ok(lire('scripts/build-www.mjs').includes("for (const dir of ['assets', 'vendor'])"));
   assert.ok(lire('.gitignore').includes('tools/sons/sortie/'));

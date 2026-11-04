@@ -81,8 +81,8 @@ test('ouverture : l’onde part de la touche, la requête allume ses résultats 
   const cs = cases(inserer());
   for (const c of cs) {
     const r = Math.hypot(c.x, c.y);
-    assert.equal(c.w, Math.round(120 + (r - 256) / 3.048), 'la case surgit quand l’onde (3 048 unités par seconde, partie à 0,12 s) la touche');
-    assert.ok(c.w >= 120 && c.w + 340 < 840, `${c.w} ms : posée vers la plongée au plus tard`);
+    assert.equal(c.w, Math.round(170 + (r - 256) / 1.65), 'la case surgit quand l’onde (1 650 unités par seconde, partie à 0,18 s, 9 h 28 : « trop rapide ») la touche');
+    assert.ok(c.w >= 170 && c.w + 480 < 1250, `${c.w} ms : posée avant la plongée (1,25 s)`);
     if (r < 560) {
       assert.ok(c.lignes && c.lignes.length === 4, 'les proches défilent : trois nombres, puis le bon');
       assert.ok(c.lignes.every(l => /^\d\d$/.test(l)));
@@ -93,9 +93,9 @@ test('ouverture : l’onde part de la touche, la requête allume ses résultats 
   res.forEach((c, i) => {
     assert.ok(Math.hypot(c.x, c.y) < 720, 'des résultats proches de la touche');
     assert.equal(c.choix.valeur, c.valeur, 'le résultat garde le nombre de sa case');
-    assert.equal(+c.choix['--p'], 500 + i * 14, 'l’un après l’autre, de 0,5 à 0,64 s');
-    assert.ok(+c.choix['--p'] >= c.w + 190, 'la case est déjà là (opaque) quand elle s’allume');
-    assert.ok(+c.choix['--p'] + 240 < 900);
+    assert.equal(+c.choix['--p'], 780 + i * 42, 'l’un après l’autre, de 0,78 à 1,16 s');
+    assert.ok(+c.choix['--p'] >= c.w + 290, 'la case est déjà là (opaque) quand elle s’allume');
+    assert.ok(+c.choix['--p'] + 360 < 1620, 'allumé avant que l’appli n’apparaisse');
   });
   /* Les quatre couleurs de l’appli, à tour de rôle */
   assert.deepEqual(res.slice(0, 4).map(c => c.choix['--c']), ['#FFC83D', '#3FC98A', '#F0616A', '#6A4DF4']);
@@ -109,24 +109,26 @@ test('ouverture : tout se joue en transform et opacité, et la table file sur le
     'width:calc(112*var(--u));height:calc(112*var(--u));border-radius:calc(26*var(--u));background:var(--b);box-shadow:0 calc(9*var(--u)) 0 var(--l);',
     'html.is-native.lq #loader.is-intro .in-t>b{display:block;height:1em;overflow:hidden;font:inherit}',
     'html.is-native.lq #loader.is-intro .in-t>s{position:absolute;inset:0;border-radius:inherit;background:var(--c);box-shadow:0 calc(9*var(--u)) 0 var(--cl);',
-    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .34s linear .12s forwards}',
-    'html.is-native.lq #loader.is-intro.is-play .in-t{animation:introTile .34s cubic-bezier(.3,.7,.4,1) calc(var(--w)*1ms) both}',
-    'html.is-native.lq #loader.is-intro.is-play .in-t>b>b{animation:introRoll .3s steps(3,end) calc(var(--w)*1ms) both}',
-    'html.is-native.lq #loader.is-intro.is-play .in-t>s{animation:introPick .24s cubic-bezier(.3,1.5,.5,1) calc(var(--p)*1ms) both}',
-    'html.is-native.lq #loader.is-intro.is-play .in-grid{animation:introWarp .34s cubic-bezier(.55,0,.9,.4) .74s forwards}',
+    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .6s linear .18s forwards}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t{animation:introTile .48s cubic-bezier(.3,.7,.4,1) calc(var(--w)*1ms) both}',
+    /* 9 h 28 : les nombres défilent d’un seul glissé (plus de saut par cran, qui scintillait) */
+    'html.is-native.lq #loader.is-intro.is-play .in-t>b>b{animation:introRoll .6s cubic-bezier(.25,.8,.3,1) calc(var(--w)*1ms) both}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t>s{animation:introPick .36s cubic-bezier(.3,1.3,.5,1) calc(var(--p)*1ms) both}',
+    'html.is-native.lq #loader.is-intro.is-play .in-grid{animation:introWarp .55s cubic-bezier(.42,0,.72,.42) 1.25s forwards}',
     '@keyframes introWave{0%{opacity:.9;transform:none}60%{opacity:.25}100%{opacity:0;transform:scale(5)}}',
-    '@keyframes introTile{0%{opacity:0;transform:scale(.3)}55%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:none}}',
+    '@keyframes introTile{0%{opacity:0;transform:scale(.55)}60%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:none}}',
     '@keyframes introRoll{from{transform:none}to{transform:translateY(calc(1em - 100%))}}',
     '@keyframes introPick{0%{opacity:0;transform:scale(.6)}60%{opacity:1}100%{opacity:1;transform:none}}',
     '@keyframes introWarp{to{opacity:0;transform:scale(2.4)}}',
     'html.is-native.lq #loader.is-intro.fatal :is(.in-ring,.in-grid){display:none}',
-    /* La plongée et la fin ne bougent pas : 1,3 s en tout */
-    'introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards', 'html.is-native.lq #loader.is-intro.is-play{animation:introOut .24s linear 1.04s forwards}'
+    /* La plongée, deux fois plus longue, puis l’appli en fondu : 2 s en tout (9 h 28 : « trop rapide ») */
+    'introZoom .55s cubic-bezier(.42,0,.72,.42) 1.25s forwards', 'html.is-native.lq #loader.is-intro.is-play{animation:introOut .4s ease-out 1.62s forwards}'
   ]) assert.ok(bloc.includes(part), part);
   /* L’onde (de la demi-touche, 256, jusqu’à 5 fois plus) va à la vitesse que le script prête aux cases */
-  assert.ok(Math.abs((256 * 5 - 256) / 0.34 - 3048) / 3048 < 0.02);
+  assert.ok(Math.abs((256 * 5 - 256) / 0.6 - 1650) / 1650 < 0.04);
+  assert.ok(!bloc.includes('steps('), 'aucun défilement par crans');
   assert.ok(!/introPart|introLand|\.in-p\b|\.in-n\b|\.in-c\b/.test(bloc), 'plus de styles de confettis ni de nombres volants');
   const images = bloc.slice(bloc.indexOf('@keyframes introKey'), bloc.indexOf('/* Si le moteur SQL ne se charge pas'));
   assert.ok(!/filter|box-shadow|width|height|top|left|margin|background|color/.test(images), 'les images clés ne touchent qu’à transform et opacity');
-  assert.ok(app.includes('setTimeout(ranger,1300);'), 'rangé à 1,3 s, comme avant');
+  assert.ok(app.includes('setTimeout(ranger,2080);'), 'rangé à 2,08 s, une fois le fondu fini (1,62 + 0,4 s)');
 });
