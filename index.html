@@ -34214,13 +34214,10 @@ const OB_TEMOINS=[
    onde:[0.82,0.68,0.84,0.9,0.55,0.6,0.12,0.28,0.37,0.47,0.32,0.73,0.45,0.5,0.35,0.3,0.18,0.12,0.75,0.47,0.4,0.6,0.31,0.53,0.73,0.75,0.5,0.57,0.64,0.35,0.68,0.44,0.37,0.2,0.12,0.94,0.94,1,0.37,0.52,0.54,0.32,0.61,0.49,0.75,0.26,0.18,0.12],
    texte:'Je me forme pour devenir Data Analyst et je pensais que SQL serait beaucoup plus compliqué. Les explications sont simples, les petits jeux rendent les cours moins scolaires et on pratique tout de suite. Je commence maintenant les questions d’entretien et ça m’aide vraiment à prendre confiance.'}
 ];
-/* Le premier avis suit l’objectif choisi juste avant (la reconversion, l’entretien, le travail) ; les autres gardent l’ordre du site. */
-const OB_TEMOINS_ORDRE={career:'Aminata C.',interview:'Sofia B.',work:'Thomas L.'};
-function obTemoinsListe(goal){
-  const l=OB_TEMOINS.slice(),i=l.findIndex(t=>t.prenom===OB_TEMOINS_ORDRE[goal]);
-  if(i>0)l.unshift(l.splice(i,1)[0]);
-  return l;
-}
+/* L’ordre des avis : celui du site, pour tout le monde. (14 h 08, le premier suivait l’objectif choisi juste avant ; Elisa, 15 h 20, sur
+   la capture où Aminata C. s’affichait d’abord : « mettre la deuxième en premier et celle sur l’écran en dernier » : Sofia B. d’abord,
+   Aminata C. en dernier, quel que soit l’objectif.) */
+function obTemoinsListe(){return OB_TEMOINS.slice();}
 /* « Plus de 1 000 personnes accompagnées » : un chiffre affiché seulement quand il est vérifié. Un nombre ici le montre au-dessus des
    avis (« Plus de 1 000 personnes accompagnées ») ; null le cache. Elisa, 4 novembre, 14 h 50 : « vrai chiffre, 1000+, car j’ai un
    site web » (on y apprend sans compte : le serveur ne compte pas ces personnes). */
@@ -34232,7 +34229,7 @@ const OB_FORMATEURS=[['formatrice','Agathe'],['formateur','Adam'],['formatrice-p
 function obTvFleche(j){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${j?'m9 5 7 7-7 7':'m15 5-7 7 7 7'}"/></svg>`;}
 let obTv=null;
 function obTemoinsHtml(){
-  const liste=obTemoinsListe(draft.goal),r=liste[0],montres=OB_FORMATEURS.slice(0,4);
+  const liste=obTemoinsListe(),r=liste[0],montres=OB_FORMATEURS.slice(0,4);
   obTv={liste,i:0,raf:0,bars:[],last:-2,lit:null};
   const stat=OB_COMMUNAUTE>0?`<p class="ob-tv-stat"><b>Plus de <i data-n="${OB_COMMUNAUTE}">${obNombre(OB_COMMUNAUTE)}</i></b> personnes accompagnées</p>`:'';
   return `${stat}<div class="ob-tv" id="ob-tv">
@@ -35869,7 +35866,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-communaute-v2503';
+  const SW_CACHE='requete-2026-11-04-ordre-avis-v2504';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
