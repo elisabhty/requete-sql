@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=136">
+<link rel="stylesheet" href="ludique.css?v=137">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=19">
 <style id="lesson-video-css">
@@ -17232,7 +17232,8 @@ function normalizeState(raw){
   const avis={};
   Object.keys(avisSrc).filter(k=>/^\d{1,6}$/.test(k)).slice(0,600).forEach(k=>{
     const a=avisSrc[k],n=a&&typeof a==='object'?Math.floor(Number(a.n)):0;
-    if(n>=1&&n<=5)avis[k]={n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false};
+    const c=typeof a.c==='string'?a.c.replace(/\s+/g,' ').trim().slice(0,500):'';
+    if(n>=1&&n<=5)avis[k]=Object.assign({n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false},c?{c}:{});
   });
   return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
 }
@@ -18574,6 +18575,7 @@ function switchTab(name){
   if(primaryTabFor(name)!==name&&!tabBackNav)tabScrollPositions[name]=0;
   activeTab=name;
   syncTabBack(name);
+  if(name==='learn'&&typeof obWidgetBientot==='function')obWidgetBientot();
   document.getElementById('fab')?.classList.remove('is-tucked');
   document.querySelectorAll('.tab').forEach(t=>{
     const on=t.dataset.tab===name;
@@ -24001,7 +24003,46 @@ function bravoAvisHtml(l){
     <p class="av-sub">${n?esc(avisMerci(n)):'Elle t’a plu&nbsp;? Touche une étoile.'}</p>
     <div class="av-stars" role="radiogroup" aria-labelledby="av-h-${l.id}" onchange="avisNoter(event)">${[1,2,3,4,5].map(etoile).join('')}</div>
     <p class="av-mot${n?'':' is-hint'}" aria-live="polite">${n?AVIS_MOTS[n]:'Ton avis reste anonyme.'}</p>
+    ${avisCommentaireHtml(l.id,a)}
   </section>`;
+}
+/* 13 h 48 (« veux-tu laisser un commentaire, en mode lien qu’on clique si jamais ») : sous la note, un lien ; touché, un champ
+   s’ouvre (500 signes au plus) et « Envoyer » part avec la note. Déjà laissé : il se relit, et se modifie d’un appui. */
+const AVIS_COM_MAX=500;
+function avisCommentaireHtml(id,a){
+  const c=a&&typeof a.c==='string'?a.c:'';
+  return `<div class="av-com${a?'':' is-cache'}${c?' is-fait':''}">
+      ${c?`<p class="av-com-lu">«&nbsp;${esc(c)}&nbsp;»</p>`:''}
+      <button type="button" class="av-com-lien" onclick="avisCommentOuvrir(this)" aria-expanded="false" aria-controls="av-com-${id}">${c?'Modifier mon commentaire':'Veux-tu laisser un commentaire&nbsp;?'}</button>
+      <div class="av-com-champ" id="av-com-${id}" hidden>
+        <label class="av-com-zone"><span class="av-sr">Ton commentaire sur la leçon</span><textarea maxlength="${AVIS_COM_MAX}" rows="3" placeholder="Ce qui t’a plu, ce qui manque, ce qui n’est pas clair…" oninput="avisCommentCompter(this)">${esc(c)}</textarea></label>
+        <div class="av-com-pied"><small class="av-com-n" aria-live="polite">${c.length}/${AVIS_COM_MAX}</small><button type="button" class="av-com-go" onclick="avisCommentEnvoyer(this)">Envoyer</button></div>
+      </div>
+    </div>`;
+}
+function avisCommentOuvrir(btn){
+  const box=btn.closest('.av-com'),champ=box&&box.querySelector('.av-com-champ');
+  if(!champ)return;
+  champ.hidden=false;btn.setAttribute('aria-expanded','true');box.classList.add('is-ouvert');
+  const t=champ.querySelector('textarea');
+  if(t)setTimeout(()=>{try{t.focus({preventScroll:true});t.setSelectionRange(t.value.length,t.value.length);t.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){}},60);
+}
+function avisCommentCompter(t){
+  const n=t.closest('.av-com').querySelector('.av-com-n');
+  if(n)n.textContent=`${t.value.length}/${AVIS_COM_MAX}`;
+}
+function avisCommentEnvoyer(btn){
+  const sec=btn.closest('.bravo-avis'),box=btn.closest('.av-com'),t=box&&box.querySelector('textarea');
+  const id=sec?String(sec.dataset.lecon||''):'',a=id&&state.avis&&state.avis[id];
+  if(!a||!t)return;
+  const c=String(t.value||'').replace(/\s+/g,' ').trim().slice(0,AVIS_COM_MAX);
+  if(c)a.c=c;else delete a.c;
+  a.envoye=false;a.le=Date.now();save();
+  box.outerHTML=avisCommentaireHtml(id,a).replace('class="av-com','class="av-com is-merci');
+  const merci=sec.querySelector('.av-com');
+  if(merci&&c)merci.insertAdjacentHTML('afterbegin','<p class="av-com-merci" role="status">Merci pour ton commentaire&nbsp;! 💜</p>');
+  if(typeof buzz==='function')buzz('light');
+  avisEnvoyer();
 }
 function avisNoter(e){
   const inp=e&&e.target;
@@ -24009,7 +24050,8 @@ function avisNoter(e){
   const box=inp.closest('.bravo-avis'),id=box?String(box.dataset.lecon||''):'',n=Math.floor(Number(inp.value));
   if(!/^\d{1,6}$/.test(id)||!(n>=1&&n<=5))return;
   if(!state.avis||typeof state.avis!=='object'||Array.isArray(state.avis))state.avis={};
-  state.avis[id]={n,le:Date.now(),envoye:false};save();
+  const avant=state.avis[id];
+  state.avis[id]=Object.assign({n,le:Date.now(),envoye:false},avant&&typeof avant.c==='string'&&avant.c?{c:avant.c}:{});save();
   avisPeindre(box,n,inp.closest('.av-star'));
   if(typeof buzz==='function')buzz(n>=4?'success':'light');
   avisEnvoyer();
@@ -24026,6 +24068,8 @@ function avisPeindre(box,n,star){
   if(mot){ mot.textContent=AVIS_MOTS[n]; mot.classList.remove('in','is-hint'); void mot.offsetWidth; mot.classList.add('in'); }
   const sub=box.querySelector('.av-sub');
   if(sub)sub.textContent=avisMerci(n);
+  const com=box.querySelector('.av-com.is-cache');
+  if(com)com.classList.remove('is-cache');
   if(star&&!prefersReduceMotion())avisEclats(star);
 }
 /* Les étincelles de l’étoile touchée : huit points, jaunes et violets, qui filent en rond et s’éteignent. */
@@ -24046,9 +24090,10 @@ function avisEnvoyer(){
   if(id==null||avisEnvoi||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
   const n=av[id].n,l=typeof allLessons!=='undefined'?allLessons.find(x=>String(x.id)===id):null;
   avisEnvoi=true;
-  return clsRpc('lecon_noter',{p_cle:clsCle(),p_lecon:+id,p_note:n,p_titre:l?String(l.titre||'').slice(0,120):null}).then(r=>{
+  const c=typeof av[id].c==='string'?av[id].c:'';
+  return clsRpc('lecon_noter',{p_cle:clsCle(),p_lecon:+id,p_note:n,p_titre:l?String(l.titre||'').slice(0,120):null,p_commentaire:c||null}).then(r=>{
     const ok=!!(r&&r.ok);
-    if(ok&&state.avis&&state.avis[id]&&state.avis[id].n===n){state.avis[id].envoye=true;save();}
+    if(ok&&state.avis&&state.avis[id]&&state.avis[id].n===n&&(state.avis[id].c||'')===c){state.avis[id].envoye=true;save();}
     return ok;
   }).catch(()=>false).then(ok=>{avisEnvoi=false;if(ok)avisEnvoyer();return ok;});
 }
@@ -33091,13 +33136,77 @@ function startOnboarding(initial='welcome'){
   obJustEntered=true;
   brancherObSwipeV2();
   obVideoMontree=false;obFinRappel=obFinWidget=null;
-  if(obEntry==='welcome'&&obVideoVoulue())obVideoOuvrir();
+  const reprise=obEntry==='welcome'&&!state.onboarded&&!obApercu?obRepriseLire():null;
+  if(reprise){
+    Object.assign(draft,reprise.draft);
+    obStep=OB_SLIDES.indexOf(reprise.slide);
+    setTimeout(()=>{try{obBandeau('On reprend là où tu en étais.');}catch(e){}},650);
+  }else if(obEntry==='welcome'&&obVideoVoulue())obVideoOuvrir();
   paintOb();
+}
+/* 13 h 48 (« ok » pour la proposition 3) : iOS ferme souvent une app laissée en arrière-plan ; l’onboarding repartait alors de
+   l’accueil, tout oublié. À chaque page, l’étape et les réponses sont gardées sur l’appareil (14 jours au plus) ; à la réouverture,
+   il reprend là, avec un bandeau. La fin de l’onboarding les efface. Ni l’aperçu ni les pages ouvertes depuis l’app (déjà inscrit). */
+const OB_REPRISE='requete-onboarding-reprise';
+const OB_REPRISE_OUBLI=['paysCherche','paysPop','practiceJust','feteConnexion'];
+function obRepriseGarder(slide){
+  if(state.onboarded||obApercu||obLegalMode||!OB_SLIDES.includes(slide))return;
+  try{
+    const d={};
+    Object.keys(draft||{}).forEach(k=>{if(!OB_REPRISE_OUBLI.includes(k))d[k]=draft[k];});
+    localStorage.setItem(OB_REPRISE,JSON.stringify({v:1,at:Date.now(),slide,draft:d}));
+  }catch(e){}
+}
+function obRepriseLire(){
+  try{
+    const r=JSON.parse(localStorage.getItem(OB_REPRISE)||'null');
+    if(!r||r.v!==1||!OB_SLIDES.includes(r.slide)||!r.draft||typeof r.draft!=='object'||Array.isArray(r.draft))return null;
+    if(!(Date.now()-Number(r.at)<14*864e5))return null;
+    if(r.slide==='welcome'||OB_WIDGET_SLIDES.includes(r.slide))return null;
+    return {slide:r.slide==='pseudo'?'ready':r.slide,draft:r.draft};
+  }catch(e){return null;}
+}
+function obRepriseOublier(){ try{localStorage.removeItem(OB_REPRISE);}catch(e){} }
+/* ---------- Où l’onboarding perd du monde ----------
+   13 h 48 (« ok » pour la proposition 4) : chaque étape vue une première fois est comptée, une fois par appareil, avec l’identifiant
+   tiré au hasard des défis (ni nom, ni e-mail, ni réponse) ; la base de l’appli (onboarding_compter :
+   supabase/migrations/20261104135000_onboarding_entonnoir.sql) en tire l’entonnoir (vue onboarding_entonnoir : combien d’appareils
+   ont vu chaque étape, et la part de ceux qui ont vu l’accueil). Hors ligne, les étapes attendent et repartent ensemble.
+   Ni l’aperçu, ni quelqu’un déjà inscrit (les pages ouvertes depuis l’app). */
+const OB_COMPTE='requete-onboarding-compte';
+let obCompteT=0,obCompteEnvoi=false;
+function obCompteLire(){
+  try{ const c=JSON.parse(localStorage.getItem(OB_COMPTE)||'null'); if(c&&Array.isArray(c.vues)&&Array.isArray(c.parties))return c; }catch(e){}
+  return {vues:[],parties:[]};
+}
+function obCompter(etape){
+  if((typeof obApercu!=='undefined'&&obApercu)||!/^[a-zA-Z]{2,16}$/.test(String(etape||'')))return;
+  const c=obCompteLire();
+  if(c.vues.includes(etape))return;
+  c.vues.push(etape);
+  try{localStorage.setItem(OB_COMPTE,JSON.stringify(c));}catch(e){}
+  clearTimeout(obCompteT);obCompteT=setTimeout(obCompteEnvoyer,1500);
+}
+function obCompteEnvoyer(){
+  const c=obCompteLire(),reste=c.vues.filter(v=>!c.parties.includes(v)).slice(0,30);
+  if(!reste.length||obCompteEnvoi||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
+  obCompteEnvoi=true;
+  return clsRpc('onboarding_compter',{p_cle:clsCle(),p_etapes:reste}).then(r=>{
+    const ok=!!(r&&r.ok);
+    if(ok){ const d=obCompteLire(); d.parties=[...new Set([...d.parties,...reste])]; try{localStorage.setItem(OB_COMPTE,JSON.stringify(d));}catch(e){} }
+    return ok;
+  }).catch(()=>false).then(ok=>{obCompteEnvoi=false;return ok;});
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
+  window.addEventListener('load',()=>setTimeout(()=>{try{obCompteEnvoyer();}catch(e){}},5000));
+  window.addEventListener('online',()=>{try{obCompteEnvoyer();}catch(e){}});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')try{obCompteEnvoyer();}catch(e){}});
 }
 let obApercu=false;
 function obApercuOuvrir(){
   startOnboarding('welcome');
   obApercu=true;
+  obStep=OB_SLIDES.indexOf('welcome');obEntry='welcome';
   /* Comme un nouveau visiteur : rien de prérempli depuis le profil de l’appareil. */
   draft={niveau:'debutant',rythme:'regulier',freq:7,name:'',goal:obVitrineGoal(),ageRange:'',job:'',source:'',referral:'',
     practiceDone:false,practiceRows:[],accountMode:null};
@@ -33158,20 +33267,44 @@ function obAuthReady(){return !!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH
    j’ai oublié, c’est une animation à la fin ») : « Comment as-tu connu Requête ? », le rappel du jour (une fenêtre iOS en aperçu et
    une flèche vers « Autoriser », puis la vraie demande), et, dans l’app iPhone qui a son widget, l’écran d’accueil avec la série
    et le tutoriel animé pour l’y ajouter. Puis le compte (s’il existe), la mini-page du pseudo et la dernière page. */
-const OB_FIN_SLIDES=['source','rappel','widget','widgetTuto'];
+const OB_FIN_SLIDES=['source','rappel'];
+/* 13 h 48 (« ok » pour la proposition 6 : environ 20 écrans avant la première leçon) : le widget et son tutoriel sortent du tunnel ;
+   ils arrivent une fois, de retour à l’accueil après la première leçon terminée (obWidgetProposer), puis rendent la main à l’app. */
+const OB_WIDGET_SLIDES=['widget','widgetTuto'];
 function obFinFlux(){
   /* Elisa, 4 novembre, 10 h 16 : « mettre la page de connexion (il faut pas qu’elle marche encore) » : elle est toujours là ; sans
      fournisseur de connexion branché, ses boutons sont « Bientôt » et ne connectent à rien (obConnexionBientot). 10 h 45 : « supprimer
      le bravo pour la requête et passer directement à la connexion avec confettis de ouf » : elle vient juste après la première
-     requête, avant les sources, le rappel et le widget. */
+     requête, avant les sources et le rappel. 13 h 48 : le tutoriel du widget n’est plus dans ce tunnel, il vient après la première
+     leçon (obWidgetProposer). */
   const f=['practice','account','source'];
   if(obRappelPossible())f.push('rappel');
-  if(obWidgetPossible())f.push('widget','widgetTuto');
   return f;
 }
 function obFinSuivante(slide){const f=obFinFlux(),i=f.indexOf(slide);return i>=0&&i<f.length-1?f[i+1]:'ready';}
 function obFinPrecedente(slide){const f=obFinFlux();if(slide==='ready')return f[f.length-1];const i=f.indexOf(slide);return i>0?f[i-1]:'practice';}
 function obFlowSteps(){return [...OB_PROFILE_SLIDES,...obFinFlux().slice(1)];}
+/* Le widget, après la première leçon : une fois, dans l’app iPhone qui a son widget, de retour à l’accueil (pas pendant une leçon,
+   ni par-dessus une autre fenêtre). « Pas maintenant » et « C’est fait ! » ferment, et c’est tout : il ne revient pas. */
+const OB_WIDGET_VU='requete-widget-propose';
+let obWidgetT=0;
+function obWidgetBientot(){ clearTimeout(obWidgetT); obWidgetT=setTimeout(()=>{try{if(activeTab==='learn')obWidgetProposer();}catch(e){}},900); }
+function obWidgetProposer(){
+  try{
+    if(!state.onboarded||!obWidgetPossible()||localStorage.getItem(OB_WIDGET_VU))return false;
+    if(!allLessons.some(l=>lecCompletee(l.id)))return false;
+    const root=document.getElementById('onboarding');
+    if(document.body.classList.contains('in-lesson')||(root&&root.classList.contains('on'))||document.getElementById('pays-feuille')||document.querySelector('.lq-ask.on,#lesson-video'))return false;
+    localStorage.setItem(OB_WIDGET_VU,'1');
+  }catch(e){return false;}
+  startOnboarding('widget');
+  return true;
+}
+function obWidgetFin(){
+  try{localStorage.setItem(OB_WIDGET_VU,'1');}catch(e){}
+  if(!state.onboarded){obGoto(obFinSuivante(obFinFlux().slice(-1)[0]));return;}   // pendant l’onboarding (ancienne page restée ouverte) : la suite du tunnel
+  closeOnboardingAuth();
+}
 function obAfterPractice(){return obFinSuivante('practice');}
 /* Retenus pour tout l’onboarding (startOnboarding les oublie) : une permission accordée en route ne retire pas l’étape du compte. */
 let obFinRappel=null,obFinWidget=null;
@@ -33409,6 +33542,8 @@ function obNext(){
   else if(slide==='pact')obGoto('practice');
   else if(slide==='practice')obGoto(obAfterPractice());
   else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));
+  else if(slide==='widget')obGoto('widgetTuto');
+  else if(slide==='widgetTuto')obWidgetFin();
   else if(slide==='account')obPasserConnexion();
   else if(slide==='pseudo')obPseudoSuivant();
   else finishOnboard('home');
@@ -34077,7 +34212,7 @@ function paintOb(){
   root.classList.toggle('ob-account-step',slide==='account'&&!obLegalMode);
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
-  root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
+  root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||OB_WIDGET_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
   root.classList.toggle('ob-legal-step',!!obLegalMode);
   root.classList.toggle('ob-enter',obJustEntered);
   const body=document.getElementById('ob-body');
@@ -34086,7 +34221,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -34259,7 +34394,7 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-widget-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ta série sur ton<br><em>écran d’accueil</em></h1>
       ${obMascotQuestion('Je t’encouragerai directement depuis ton écran d’accueil !')}
       <div class="ob-ph ob-ph-promo" aria-hidden="true">${obTelPromo()}</div></div>`;
-    obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',()=>obGoto(obFinSuivante('widgetTuto')),'');
+    obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');
   }else if(slide==='widgetTuto'){
     /* Le tutoriel animé (d’après Duolingo) : appui long sur l’écran d’accueil, les apps tremblent ; « Modifier », « Ajouter un widget » ;
        la recherche « Requête », le widget, « Ajouter le widget ». La bulle de la mascotte suit chaque étape (obWidgetTutoJouer). */
@@ -34267,7 +34402,7 @@ function paintOb(){
       ${obMascotQuestion(OB_WT_TEXTES[0]).replace('class="ob-bubble"','class="ob-bubble" id="ob-wt-bulle"')}
       <div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>
       <ol class="ob-sr-steps">${OB_WT_TEXTES.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`;
-    obSetFooter('Continuer',()=>obGoto(obFinSuivante('widgetTuto')),'','','');
+    obSetFooter('C’est fait\u00a0!',obWidgetFin,'','','');
   }else if(slide==='rhythm'){
     const subtitles={calme:'Pour garder le rythme',regulier:'Le bon équilibre',intensif:'Pour progresser plus vite'};
     html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>rythme</em> te convient&nbsp;?</h1>
@@ -34386,6 +34521,8 @@ function paintOb(){
   if(slide==='widgetTuto')obWidgetTutoJouer();
   if(slide==='jours')obJoursCompter(obJustEntered);
   if(slide==='pays')obPaysJouer();
+  obRepriseGarder(slide);
+  if(obJustEntered&&!state.onboarded&&!obLegalMode)obCompter(slide);
   if(slide==='account'&&obJustEntered&&draft.practiceDone&&!draft.feteConnexion){draft.feteConnexion=true;obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='account')obFeteConnexion();},120));}
   if(slide==='name'||slide==='pseudo'){
     if(slide==='name')obNamePreview();
@@ -34398,6 +34535,8 @@ function paintOb(){
 }
 function finishOnboard(action){
   if(typeof obApercu!=='undefined'&&obApercu){obApercuFermer();return;}
+  obRepriseOublier();
+  if(!state.onboarded){obCompter('termine');setTimeout(()=>{try{obCompteEnvoyer();}catch(e){}},300);}
   if(!draft.niveau)draft.niveau='debutant';
   if(!draft.rythme)draft.rythme='regulier';
   if(!draft.freq)draft.freq=7;
@@ -35016,7 +35155,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -35560,7 +35699,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-pays-v2499';
+  const SW_CACHE='requete-2026-11-04-reprise-v2500';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

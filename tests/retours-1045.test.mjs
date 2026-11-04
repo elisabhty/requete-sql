@@ -37,10 +37,10 @@ test('la connexion vient juste après la première requête, et les transitions 
   const ctx = vm.createContext({ OB_PROFILE_SLIDES: ['name', 'practice'], obAuthReady: () => false, window: { Capacitor: { isNativePlatform: () => true, getPlatform: () => 'ios',
     isPluginAvailable: n => n === 'RequeteWidget', Plugins: { LocalNotifications: {} } } } });
   vm.runInContext(fin, ctx);
-  assert.deepEqual([...ctx.obFinFlux()], ['practice', 'account', 'source', 'rappel', 'widget', 'widgetTuto']);
+  assert.deepEqual([...ctx.obFinFlux()], ['practice', 'account', 'source', 'rappel'], '13 h 48 : le widget vient après la première leçon');
   assert.equal(ctx.obAfterPractice(), 'account');
-  assert.equal(ctx.obFinSuivante('account'), 'source', 'puis les sources, le rappel et le widget');
-  assert.equal(ctx.obFinSuivante('widgetTuto'), 'ready');
+  assert.equal(ctx.obFinSuivante('account'), 'source', 'puis les sources et le rappel');
+  assert.equal(ctx.obFinSuivante('rappel'), 'ready');
   assert.ok(cut('function obPasserConnexion(){', '/* Les fournisseurs,').includes("obGoto(obFinSuivante('account'));"));
 });
 

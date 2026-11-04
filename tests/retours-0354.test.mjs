@@ -28,7 +28,7 @@ const flux = (globals = {}) => {
   return ctx;
 };
 
-test('le tunnel de fin : sources, rappel (s’il peut être demandé), widget (app iPhone qui l’embarque), puis le compte', () => {
+test('le tunnel de fin : sources, rappel (s’il peut être demandé), puis le compte ; le widget après la première leçon (13 h 48)', () => {
   assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
   /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte est toujours là ; 10 h 45
      (« passer directement à la connexion ») : juste après la première requête. */
@@ -38,13 +38,13 @@ test('le tunnel de fin : sources, rappel (s’il peut être demandé), widget (a
   const natif = (plugins = ['RequeteWidget', 'LocalNotifications'], plateforme = 'ios') => ({window: {Capacitor: {isNativePlatform: () => true, getPlatform: () => plateforme,
     isPluginAvailable: n => plugins.includes(n), Plugins: plugins.includes('LocalNotifications') ? {LocalNotifications: {}} : {}}}});
   const c = flux(natif());
-  assert.deepEqual([...c.obFinFlux()], ['practice', 'account', 'source', 'rappel', 'widget', 'widgetTuto']);
+  assert.deepEqual([...c.obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'app iPhone : le widget n’est plus dans le tunnel');
   assert.equal(c.obAfterPractice(), 'account');
-  assert.equal(c.obFinSuivante('widgetTuto'), 'ready'); assert.equal(c.obFinSuivante('account'), 'source'); assert.equal(c.obFinPrecedente('ready'), 'widgetTuto');
+  assert.equal(c.obFinSuivante('rappel'), 'ready'); assert.equal(c.obFinSuivante('account'), 'source'); assert.equal(c.obFinPrecedente('ready'), 'rappel');
   assert.equal(c.obFinPrecedente('account'), 'practice'); assert.equal(c.obFinPrecedente('source'), 'account');
-  assert.deepEqual([...c.obFlowSteps()], ['name', 'practice', 'account', 'source', 'rappel', 'widget', 'widgetTuto'], '« Étape 12 sur 16 »');
-  assert.deepEqual([...flux(natif(['LocalNotifications'])).obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'ancienne app, sans le pont du widget : pas de widget');
-  assert.deepEqual([...flux({...natif(), obAuthReady: () => true}).obFinFlux()], ['practice', 'account', 'source', 'rappel', 'widget', 'widgetTuto']);
+  assert.deepEqual([...c.obFlowSteps()], ['name', 'practice', 'account', 'source', 'rappel'], 'deux étapes de moins');
+  assert.deepEqual([...flux(natif(['LocalNotifications'])).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
+  assert.deepEqual([...flux({...natif(), obAuthReady: () => true}).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
   /* Retenu pour tout l’onboarding : une permission accordée en route ne retire pas l’étape (ni ne fausse « Suivant »). */
   const w = flux({Notification: {permission: 'default'}}); w.obFinFlux(); w.Notification.permission = 'granted';
   assert.deepEqual([...w.obFinFlux()], ['practice', 'account', 'source', 'rappel']);
@@ -52,7 +52,7 @@ test('le tunnel de fin : sources, rappel (s’il peut être demandé), widget (a
   /* Suivant, Précédent */
   assert.ok(fn('obNext', 'function obBack(){').includes("else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));"));
   assert.ok(fn('obBack', 'function obPick(').includes("if(OB_SLIDES[obStep]==='ready'||OB_SLIDES[obStep]==='account'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}"));
-  assert.ok(app.includes("root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);"));
+  assert.ok(app.includes("root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||OB_WIDGET_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);"));
 });
 
 test('« Comment as-tu connu Requête ? » : dix réponses en tuiles, « Continuer » au choix, gardée dans le profil', () => {
@@ -97,7 +97,7 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
 test('le widget : l’écran d’accueil avec la série, puis le tutoriel en trois temps qui tournent avec la bulle', () => {
   const w = slide('widget', "}else if(slide==='widgetTuto'){");
   assert.ok(w.includes("obMascotQuestion('Je t’encouragerai directement depuis ton écran d’accueil !')") && w.includes('${obTelPromo()}'));
-  assert.ok(w.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',()=>obGoto(obFinSuivante('widgetTuto')),'');"), '« Pas maintenant » saute le tutoriel');
+  assert.ok(w.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');"), '« Pas maintenant » rend la main à l’app (13 h 48 : après la première leçon)');
   const t = slide('widgetTuto', "}else if(slide==='rhythm'){");
   assert.ok(t.includes('<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>') && t.includes('<div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>'));
   assert.ok(t.includes('<ol class="ob-sr-steps">'), 'les trois étapes, lues par VoiceOver');
