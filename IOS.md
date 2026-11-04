@@ -82,7 +82,10 @@ profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans X
    **Son et haptique** (4 novembre, 1 h 51) : un son calé sur l’animation (`assets/sons/ouverture.m4a`, fabriqué par
    `python3 tools/sons/ouverture.py` : toc de la touche, bips de l’onde, clochettes des résultats, souffle de la plongée, accord
    d’arrivée), joué par Web Audio en session « ambient » : il se mêle à la musique en cours et se tait en mode silencieux. Et une
-   haptique qui suit l’onde (extension Haptics) : la touche, l’onde qui s’éloigne, les résultats, la plongée. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
+   haptique qui suit l’onde (extension Haptics) : la touche, l’onde qui s’éloigne, les résultats, la plongée.
+   **Le chat** (4 novembre, 2 h 33 : « fais cligner des yeux au lancement ») : il surgit de derrière la touche, la tête et la patte
+   qui salue par-dessus le bord, et cligne des yeux avant la plongée ; un reflet passe sur la touche ; le tout dure 1,86 s.
+   Ses images (`assets/intro/`) sont fabriquées par `python3 tools/intro/chat.py` à partir de la mascotte entière. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
    jusqu’à ce que la page se soit dessinée (au plus 4 s, `launchShowDuration`). Avec « Réduire les animations » (iOS), un
    simple fondu.
 

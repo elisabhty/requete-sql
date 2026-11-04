@@ -41,7 +41,7 @@ const hexa = (c) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
 
 test('ouverture : la table remplace les confettis, une case chiffrée tous les 128 (la touche en couvre 4 × 4)', () => {
   const h = inserer();
-  assert.ok(!/in-p|is-(star|dot|sq)|in-n|in-c/.test(h), 'plus de confettis ni de nombres volants');
+  assert.ok(!/\bin-p\b|is-(star|dot|sq)|\bin-n\b|\bin-c\b/.test(h), 'plus de confettis ni de nombres volants (le chat, in-chat, est d’une autre famille)');
   assert.equal((h.match(/class="in-ring/g) || []).length, 2, 'les deux ondes restent');
   assert.ok(h.includes('<div class="in-grid" aria-hidden="true">') && h.endsWith('</div>'));
   const cs = cases(h);
@@ -81,8 +81,8 @@ test('ouverture : l’onde part de la touche, la requête allume ses résultats 
   const cs = cases(inserer());
   for (const c of cs) {
     const r = Math.hypot(c.x, c.y);
-    assert.equal(c.w, Math.round(120 + (r - 256) / 3.048), 'la case surgit quand l’onde (3 048 unités par seconde, partie à 0,12 s) la touche');
-    assert.ok(c.w >= 120 && c.w + 340 < 840, `${c.w} ms : posée vers la plongée au plus tard`);
+    assert.equal(c.w, Math.round(140 + (r - 256) / 2.5), 'la case surgit quand l’onde (2 500 unités par seconde, partie à 0,14 s, 2 h 33) la touche');
+    assert.ok(c.w >= 140 && c.w + 420 < 1260, `${c.w} ms : posée vers la plongée au plus tard`);
     if (r < 560) {
       assert.ok(c.lignes && c.lignes.length === 4, 'les proches défilent : trois nombres, puis le bon');
       assert.ok(c.lignes.every(l => /^\d\d$/.test(l)));
@@ -93,9 +93,9 @@ test('ouverture : l’onde part de la touche, la requête allume ses résultats 
   res.forEach((c, i) => {
     assert.ok(Math.hypot(c.x, c.y) < 720, 'des résultats proches de la touche');
     assert.equal(c.choix.valeur, c.valeur, 'le résultat garde le nombre de sa case');
-    assert.equal(+c.choix['--p'], 500 + i * 14, 'l’un après l’autre, de 0,5 à 0,64 s');
+    assert.equal(+c.choix['--p'], 620 + i * 18, 'l’un après l’autre, toutes les 18 ms à partir de 0,62 s');
     assert.ok(+c.choix['--p'] >= c.w + 190, 'la case est déjà là (opaque) quand elle s’allume');
-    assert.ok(+c.choix['--p'] + 240 < 900);
+    assert.ok(+c.choix['--p'] + 280 < 1200, 'allumée avant la plongée');
   });
   /* Les quatre couleurs de l’appli, à tour de rôle */
   assert.deepEqual(res.slice(0, 4).map(c => c.choix['--c']), ['#FFC83D', '#3FC98A', '#F0616A', '#6A4DF4']);
@@ -109,24 +109,24 @@ test('ouverture : tout se joue en transform et opacité, et la table file sur le
     'width:calc(112*var(--u));height:calc(112*var(--u));border-radius:calc(26*var(--u));background:var(--b);box-shadow:0 calc(9*var(--u)) 0 var(--l);',
     'html.is-native.lq #loader.is-intro .in-t>b{display:block;height:1em;overflow:hidden;font:inherit}',
     'html.is-native.lq #loader.is-intro .in-t>s{position:absolute;inset:0;border-radius:inherit;background:var(--c);box-shadow:0 calc(9*var(--u)) 0 var(--cl);',
-    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .34s linear .12s forwards}',
-    'html.is-native.lq #loader.is-intro.is-play .in-t{animation:introTile .34s cubic-bezier(.3,.7,.4,1) calc(var(--w)*1ms) both}',
-    'html.is-native.lq #loader.is-intro.is-play .in-t>b>b{animation:introRoll .3s steps(3,end) calc(var(--w)*1ms) both}',
-    'html.is-native.lq #loader.is-intro.is-play .in-t>s{animation:introPick .24s cubic-bezier(.3,1.5,.5,1) calc(var(--p)*1ms) both}',
-    'html.is-native.lq #loader.is-intro.is-play .in-grid{animation:introWarp .34s cubic-bezier(.55,0,.9,.4) .74s forwards}',
+    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .41s linear .14s forwards}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t{opacity:1;animation:introTile .42s cubic-bezier(.3,.7,.4,1) calc(var(--w)*1ms) backwards}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t>b>b{animation:introRoll .36s steps(3,end) calc(var(--w)*1ms) both}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t>s{opacity:1;animation:introPick .28s cubic-bezier(.3,1.5,.5,1) calc(var(--p)*1ms) backwards}',
+    'html.is-native.lq #loader.is-intro.is-play .in-grid{animation:introWarp .42s cubic-bezier(.55,0,.9,.4) 1.2s forwards}',
     '@keyframes introWave{0%{opacity:.9;transform:none}60%{opacity:.25}100%{opacity:0;transform:scale(5)}}',
-    '@keyframes introTile{0%{opacity:0;transform:scale(.3)}55%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:none}}',
+    '@keyframes introTile{0%{opacity:0;transform:perspective(calc(700*var(--u))) rotateX(-75deg) scale(.7)}45%{opacity:1}',
     '@keyframes introRoll{from{transform:none}to{transform:translateY(calc(1em - 100%))}}',
     '@keyframes introPick{0%{opacity:0;transform:scale(.6)}60%{opacity:1}100%{opacity:1;transform:none}}',
     '@keyframes introWarp{to{opacity:0;transform:scale(2.4)}}',
-    'html.is-native.lq #loader.is-intro.fatal :is(.in-ring,.in-grid){display:none}',
-    /* La plongée et la fin ne bougent pas : 1,3 s en tout */
-    'introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards', 'html.is-native.lq #loader.is-intro.is-play{animation:introOut .24s linear 1.04s forwards}'
+    'html.is-native.lq #loader.is-intro.fatal :is(.in-ring,.in-grid,.in-chat,.in-shine){display:none}',
+    /* La plongée et la fin : 1,86 s en tout depuis 2 h 33 (« ralentis juste un peu », et le chat) */
+    'introZoom .38s cubic-bezier(.55,0,.9,.4) 1.2s forwards', 'html.is-native.lq #loader.is-intro.is-play{animation:introOut .28s linear 1.56s forwards}'
   ]) assert.ok(bloc.includes(part), part);
   /* L’onde (de la demi-touche, 256, jusqu’à 5 fois plus) va à la vitesse que le script prête aux cases */
-  assert.ok(Math.abs((256 * 5 - 256) / 0.34 - 3048) / 3048 < 0.02);
+  assert.ok(Math.abs((256 * 5 - 256) / 0.41 - 2500) / 2500 < 0.02);
   assert.ok(!/introPart|introLand|\.in-p\b|\.in-n\b|\.in-c\b/.test(bloc), 'plus de styles de confettis ni de nombres volants');
   const images = bloc.slice(bloc.indexOf('@keyframes introKey'), bloc.indexOf('/* Si le moteur SQL ne se charge pas'));
   assert.ok(!/filter|box-shadow|width|height|top|left|margin|background|color/.test(images), 'les images clés ne touchent qu’à transform et opacity');
-  assert.ok(app.includes('setTimeout(ranger,1300);'), 'rangé à 1,3 s, comme avant');
+  assert.ok(app.includes('setTimeout(ranger,1860);'), 'rangé à 1,86 s');
 });

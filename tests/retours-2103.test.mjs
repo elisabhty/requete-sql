@@ -100,9 +100,9 @@ test('appli iOS : prête, l’écran natif part d’un coup puis tout se joue d�
   assert.ok(!s.cls.has('is-play'));
   s.tick(); assert.ok(!s.cls.has('is-play'), 'pas avant que la page ait fini de se dessiner'); s.tick();
   assert.ok(s.cls.has('is-play'));
-  s.run(90); assert.equal(s.log.at(-1), 'vibre 25', 'le retour haptique quand la touche est en bas (90 ms)');
+  s.run(108); assert.equal(s.log.at(-1), 'vibre 25', 'le retour haptique quand la touche est en bas (108 ms, 2 h 33)');
   assert.equal(s.L.style.display, undefined);
-  s.run(1300); assert.equal(s.L.style.display, 'none', 'rangé à la fin (1,3 s)');
+  s.run(1860); assert.equal(s.L.style.display, 'none', 'rangé à la fin (1,86 s depuis 2 h 33)');
   s.ctx.window.__introJouer(); assert.equal(s.log.filter(l => l.startsWith('écran retiré')).length, 1, 'une seule fois');
 });
 
@@ -148,11 +148,11 @@ test('appli iOS : la première image reprend l’écran de lancement, et l’ani
     'html.is-native.lq #loader.is-intro .ld-spark{display:none}', 'font:700 30px/1 var(--display);letter-spacing:-.02em;color:#1B1640;opacity:0;animation:none}',
     'html.is-native.lq #loader.is-intro .in-l{display:inline-block;opacity:0;', 'font:800 calc(44*var(--u))/1 var(--mono);color:var(--k);font-variant-numeric:tabular-nums;opacity:0}',
     /* Le déroulé */
-    'html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .5s cubic-bezier(.3,.7,.3,1) both,introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards}',
-    '18%{transform:translateY(calc(22*var(--u)))}', '@keyframes introZoom{from{transform:none}to{transform:scale(9)}}',
-    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .34s linear .12s forwards}', 'html.is-native.lq #loader.is-intro.is-play .in-t{animation:introTile .34s',
-    'html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLetter .4s cubic-bezier(.3,1.45,.5,1) calc(.2s + var(--i)*40ms) forwards}',
-    'html.is-native.lq #loader.is-intro.is-play{animation:introOut .24s linear 1.04s forwards}', /* le violet s’efface une fois l’écran rempli (plongée finie à 1,04 s) */ 'html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}',
+    'html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .6s cubic-bezier(.3,.7,.3,1) both,introZoom .38s cubic-bezier(.55,0,.9,.4) 1.2s forwards}',
+    '18%{transform:translateY(calc(22*var(--u)))}', '@keyframes introZoom{0%{transform:none}16%{transform:scale(.94)}100%{transform:scale(9)}}',
+    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .41s linear .14s forwards}', 'html.is-native.lq #loader.is-intro.is-play .in-t{opacity:1;animation:introTile .42s',
+    'html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLetter .46s cubic-bezier(.3,1.45,.5,1) calc(.26s + var(--i)*46ms) forwards}',
+    'html.is-native.lq #loader.is-intro.is-play{animation:introOut .28s linear 1.56s forwards}', /* le violet s’efface une fois l’écran rempli (plongée finie à 1,58 s) */ 'html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}',
     'html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;'
   ]) assert.ok(s.includes(part), part);
   const images = s.slice(s.indexOf('@keyframes introKey'), s.indexOf('/* Si le moteur SQL ne se charge pas'));

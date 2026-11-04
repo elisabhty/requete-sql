@@ -6698,7 +6698,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=131">
+<link rel="stylesheet" href="ludique.css?v=132">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=12">
 <style id="lesson-video-css">
@@ -7365,7 +7365,8 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
        « Requête ». Chaque case surgit quand l’onde partie de la touche l’atteint (--w) ; plus elle est loin, plus elle se fond dans
        le fond, jusqu’à disparaître vers 1 050 unités : un halo de données autour de la touche, le haut et le bas de l’écran restent
        nets. Les plus proches font défiler leur nombre. Puis la requête choisit ses résultats : une dizaine de cases proches
-       s’allument l’une après l’autre aux couleurs de l’appli (--p, en ms), juste avant la plongée. */
+       s’allument l’une après l’autre aux couleurs de l’appli (--p, en ms), juste avant la plongée. 2 h 33 (« ralentis juste un
+       peu ») : l’onde va à 2 500 unités par seconde (--w), les résultats tombent toutes les 18 ms à partir de 0,62 s. */
     var iw=window.innerWidth||390,ih=window.innerHeight||844,u=Math.max(iw,ih)/2732,demi=iw/2/u,haut=ih/2/u-14,bas=ih/2/u+14;
     var graine=11,alea=function(){graine=graine*16807%2147483647;return graine/2147483647;};
     var mele=function(a,b,f){var r='#';for(var i=1;i<7;i+=2){var v=Math.round(parseInt(a.substr(i,2),16)*f+parseInt(b.substr(i,2),16)*(1-f));r+=(v<16?'0':'')+v.toString(16);}return r;};
@@ -7379,14 +7380,18 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         if(ax<256&&(ay<256||y===320||y===448))continue;
         var r=Math.sqrt(x*x+y*y),q=Math.max(0,(r-340)/760);
         if(q>=.94)continue;
-        var f=Math.pow(1-q,1.2),n=nb(),w=Math.round(120+(r-256)/3.048);
+        var f=Math.pow(1-q,1.2),n=nb(),w=Math.round(140+(r-256)/2.5);
         var txt=r<560?'<b><b>'+nb()+'\n'+nb()+'\n'+nb()+'\n'+n+'</b></b>':n;
-        if(r<720&&alea()<.16){var c=choix[k%4];txt+='<s style="--p:'+(500+k*14)+';--c:'+c[0]+';--cl:'+c[1]+';--ci:'+c[2]+'">'+n+'</s>';k++;}
+        if(r<720&&alea()<.16){var c=choix[k%4];txt+='<s style="--p:'+(620+k*18)+';--c:'+c[0]+';--cl:'+c[1]+';--ci:'+c[2]+'">'+n+'</s>';k++;}
         h+='<i class="in-t" style="--x:'+x+';--y:'+y+';--w:'+w+';--b:'+mele('#E8E2FB','#F4F2FC',f)+';--l:'+mele('#D8CFF5','#F4F2FC',f)+';--k:'+mele('#6A4DF4','#F4F2FC',f)+'">'+txt+'</i>';
       }
     }
     h+='</div>';
+    /* Le chat (2 h 33 : « fais cligner des yeux au lancement ») : il surgit de derrière la touche et cligne des yeux ; ses paupières
+       sont deux images posées sur lui (tools/intro/chat.py). Et le reflet qui passe sur la touche après l’appui. */
+    h+='<div class="in-chat" aria-hidden="true"><img src="assets/intro/chat.webp" alt="" decoding="async"><img class="mi" src="assets/intro/chat-mi-clos.webp" alt="" decoding="async"><img class="clos" src="assets/intro/chat-clos.webp" alt="" decoding="async"></div>';
     L.insertAdjacentHTML('afterbegin',h);
+    var kb=L.querySelector('.logo-badge');if(kb)kb.insertAdjacentHTML('beforeend','<i class="in-shine" aria-hidden="true"></i>');
     /* Le son (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son ») : assets/sons/ouverture.m4a, calé sur
        l’animation (tools/sons/ouverture.py), chargé pendant le démarrage. Web Audio en session « ambient » : il se mêle à la
        musique en cours au lieu de la couper, et se tait en mode silencieux. Pas prêt à temps : l’ouverture reste muette. */
@@ -7419,14 +7424,15 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     }catch(e){finSon();}
   };
   /* L’haptique suit l’onde (1 h 51) : la touche au fond (moyen), l’onde qui s’éloigne (léger, léger, puis deux crans), un cran par
-     paire de résultats allumés, et la plongée (moyen) ; [ms après le départ, MEDIUM | LIGHT | cran]. Un coup à la fois, chacun à
+     paire de résultats allumés, le chat qui surgit (léger) et ferme les yeux (un cran, 2 h 33), et la plongée (moyen) ; [ms après le
+     départ, MEDIUM | LIGHT | cran]. Un coup à la fois, chacun à
      son heure : si le fil principal est occupé (le départ de l’animation en demande), un coup léger en retard de plus de 45 ms, ou
      à moins de 25 ms du précédent, saute au lieu de s’entasser ; la touche et la plongée partent toujours. Sans l’extension
      Haptics, la seule vibration de la touche. */
-  var HAPTIQUE=[[90,'MEDIUM'],[160,'LIGHT'],[230,'LIGHT'],[300,'cran'],[370,'cran'],[514,'cran'],[542,'cran'],[570,'cran'],[598,'cran'],[760,'MEDIUM']];
+  var HAPTIQUE=[[108,'MEDIUM'],[200,'LIGHT'],[290,'LIGHT'],[380,'cran'],[470,'cran'],[638,'cran'],[674,'cran'],[710,'cran'],[746,'cran'],[790,'LIGHT'],[1080,'cran'],[1220,'MEDIUM']];
   var vibrer=function(){
     var H=C&&C.Plugins&&C.Plugins.Haptics;
-    if(!H||!H.impact){setTimeout(function(){try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}},90);return;}
+    if(!H||!H.impact){setTimeout(function(){try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}},108);return;}
     var perf=window.performance,ici=function(){return perf&&perf.now?perf.now():Date.now();},t0=ici(),dernier=-1e9;
     try{H.selectionStart&&H.selectionStart();}catch(e){}
     var suivant=function(i){
@@ -7450,7 +7456,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
       L.classList.add('is-play');
       jouerSon();
       vibrer();
-      setTimeout(ranger,1300);
+      setTimeout(ranger,1860);
     });});
   };
 })();
@@ -34579,7 +34585,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-fin-onboarding-v2482';
+  const SW_CACHE='requete-2026-11-04-chat-ouverture-v2483';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
