@@ -20675,6 +20675,9 @@ function lvRateLabel(r){ return String(r).replace('.',',')+'×'; }
    silencieux (session audio « lecture ») ; le bouton son du lecteur les coupe. */
 const LvSfx=(()=>{
   let ctx=null, master=null, wet=null, muted=false, unlocked=false, played=0, prevSession=null, silentEl=null;
+  /* Dans l’app iPhone, la vue web ne lit pas une copie en mémoire (blob:capacitor://…) : le même silence y est un fichier de l’app. */
+  const app=(()=>{ try{ const C=typeof window!=='undefined'?window.Capacitor:null;
+    return !!(C&&C.isNativePlatform&&C.isNativePlatform())||(typeof location!=='undefined'&&location.protocol==='capacitor:'); }catch(e){ return false; } })();
   /* Petit fichier WAV silencieux (0,25 s), pour les iPhone sans Audio Session API. */
   function silentWav(){
     const n=2000, b=new ArrayBuffer(44+n), v=new DataView(b), w=(o,t)=>{ for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i)); };
@@ -20696,7 +20699,7 @@ const LvSfx=(()=>{
       const ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform||''));
       if(!ios)return;
       if(on){
-        if(!silentEl){ silentEl=document.createElement('audio'); silentEl.setAttribute('x-webkit-airplay','deny'); silentEl.setAttribute('playsinline',''); silentEl.preload='auto'; silentEl.loop=true; silentEl.src=URL.createObjectURL(silentWav()); }
+        if(!silentEl){ silentEl=document.createElement('audio'); silentEl.setAttribute('x-webkit-airplay','deny'); silentEl.setAttribute('playsinline',''); silentEl.preload='auto'; silentEl.loop=true; silentEl.src=app?'assets/sons/silence.wav':URL.createObjectURL(silentWav()); }
         const p=silentEl.play(); if(p&&p.catch)p.catch(()=>{});
       }else if(silentEl)silentEl.pause();
     }catch(e){}
@@ -20832,10 +20835,32 @@ const LvSfx=(()=>{
    d : durée) et celles dites à part (consignes « À toi », réactions, indices, messages à toucher). Une seule balise <audio> les lit
    toutes : lancée une fois pendant le premier appui sur Lire (unlock), elle joue ensuite sans appui sur iPhone, et passe même en
    mode silencieux, comme une vidéo. Les fichiers du cours sont gardés en mémoire (blob) : une phrase part sans attendre le réseau.
-   La vitesse de la vidéo s’applique à la voix sans changer sa hauteur ; le bouton son la coupe avec le reste. */
+   La vitesse de la vidéo s’applique à la voix sans changer sa hauteur ; le bouton son la coupe avec le reste.
+   Dans l’app iPhone (Elisa, 4 novembre, 3 h 01 : « pour les vidéos des cours il n’y a pas de son ») : la vue web de l’app ne lit pas
+   une copie en mémoire (adresse blob:capacitor://…), sans le dire (ni son, ni erreur), et l’app répond aux téléchargements de sons
+   sans code HTTP (statut 0) : chaque fichier passait pour introuvable et la voix était sautée. Les fichiers y sont dans l’app
+   elle-même : la voix les lit directement, sans copie. Ailleurs, une copie qui ne démarre pas en 2 s fait de même, et seul un
+   fichier que le serveur dit absent (code 400 ou plus) est sauté. */
 const LvVoice=(()=>{
-  let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=false, endClip=null, endRaf=0;
+  const app=(()=>{ try{ const C=typeof window!=='undefined'?window.Capacitor:null;
+    return !!(C&&C.isNativePlatform&&C.isNativePlatform())||(typeof location!=='undefined'&&location.protocol==='capacitor:'); }catch(e){ return false; } })();
+  let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=app, endClip=null, endRaf=0, wd=0;
   const blobs=new Map(), loading=new Map(), bad=new Set();
+  /* Copie en mémoire illisible : on repasse par l’adresse du fichier, pour tout le reste du cours, à la même position. */
+  function direct(){
+    noBlob=true; clearTimeout(wd);
+    const a=el; if(!a||!src)return;
+    const at=seekTo!=null?seekTo:a.currentTime, again=!!sayClip||!a.paused;
+    a.src=src; seekTo=at; a.defaultPlaybackRate=rate; a.playbackRate=rate; try{ a.load(); }catch(e){}
+    if(again){ playT=-1e9; go(); }
+  }
+  /* Une copie en mémoire qui, lancée, ne s’ouvre pas en 2 s (sans erreur non plus) : certaines vues web ne les lisent pas. */
+  function watch(){
+    clearTimeout(wd); const a=el;
+    if(noBlob||!a||!String(a.src).startsWith('blob:'))return;
+    const s=src, u=a.src;
+    wd=setTimeout(()=>{ if(el===a&&src===s&&a.src===u&&a.readyState<1&&!a.error)direct(); },2000);
+  }
   function audio(){
     if(el)return el;
     el=document.createElement('audio');
@@ -20843,7 +20868,7 @@ const LvVoice=(()=>{
     try{ el.preservesPitch=true; el.webkitPreservesPitch=true; el.mozPreservesPitch=true; }catch(e){}
     el.addEventListener('loadedmetadata',()=>{ if(seekTo!=null){ try{ el.currentTime=seekTo; }catch(e){} seekTo=null; } el.playbackRate=rate; });
     /* Fichier en mémoire illisible (certaines vues web refusent les blob:) : on repasse par son adresse, une fois ; sinon il est sauté. */
-    el.addEventListener('error',()=>{ if(!src)return; if(el.src.startsWith('blob:')){ noBlob=true; const at=seekTo!=null?seekTo:el.currentTime; el.src=src; seekTo=at; try{ el.load(); }catch(e){} if(sayClip||!el.paused)go(); } else bad.add(src); });
+    el.addEventListener('error',()=>{ if(!src)return; if(String(el.src).startsWith('blob:'))direct(); else bad.add(src); });
     el.muted=muted;
     return el;
   }
@@ -20860,13 +20885,16 @@ const LvVoice=(()=>{
     if(!a.paused)return;
     const now=performance.now(); if(now-playT<150)return; playT=now;
     const p=a.play(); if(p&&p.then)p.then(()=>{ a._ok=true; },e=>{ if(e&&e.name==='NotAllowedError'&&onBlock)onBlock(); });
+    watch();
   }
   return {
-    /* Fichiers du cours : téléchargés deux à la fois, dans l’ordre de la vidéo. */
+    /* Fichiers du cours : téléchargés deux à la fois, dans l’ordre de la vidéo. Dans l’app iPhone, ils y sont déjà : rien à faire. */
     preload(files){
+      if(noBlob)return;
       const list=(files||[]).filter(f=>!blobs.has(f)&&!loading.has(f)); let i=0;
-      const next=()=>{ if(i>=list.length)return; const f=list[i++];
-        loading.set(f,fetch(f).then(r=>r.ok?r.blob():null).then(b=>{ if(b&&b.size)blobs.set(f,URL.createObjectURL(b)); else bad.add(f); }).catch(()=>{}).finally(()=>{ loading.delete(f); next(); })); };
+      const next=()=>{ if(i>=list.length||noBlob)return; const f=list[i++];
+        loading.set(f,fetch(f).then(r=>{ if(r.ok)return r.blob(); if(r.status>=400)bad.add(f); return null; })
+          .then(b=>{ if(!b)return; if(b.size)blobs.set(f,URL.createObjectURL(b)); else bad.add(f); }).catch(()=>{}).finally(()=>{ loading.delete(f); next(); })); };
       next(); next();
     },
     /* Pendant un appui (Lire, le son remis) : la balise est lancée puis arrêtée aussitôt, ce qui la déverrouille sur iPhone ;
@@ -20917,8 +20945,8 @@ const LvVoice=(()=>{
     setMuted(m){ muted=!!m; if(el)el.muted=muted; if(muted)this.stop(); },
     onBlocked(fn){ onBlock=fn; },
     /* Fermeture du cours : la mémoire est rendue. */
-    release(){ this.stop(); if(el){ try{ el.removeAttribute('src'); el.load(); }catch(e){} el=null; } src=''; seekTo=null; blobs.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); blobs.clear(); bad.clear(); },
-    stats(){ return {src,state:el?el.readyState:-1,paused:!el||el.paused,t:el?+el.currentTime.toFixed(2):0,rate:el?el.playbackRate:rate,cached:blobs.size,saying:!!sayClip,muted}; }
+    release(){ this.stop(); clearTimeout(wd); if(el){ try{ el.removeAttribute('src'); el.load(); }catch(e){} el=null; } src=''; seekTo=null; blobs.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); blobs.clear(); bad.clear(); },
+    stats(){ return {src,state:el?el.readyState:-1,paused:!el||el.paused,t:el?+el.currentTime.toFixed(2):0,rate:el?el.playbackRate:rate,cached:blobs.size,saying:!!sayClip,muted,direct:noBlob}; }
   };
 })();
 /* ---------- Animation jouée comme une vidéo ----------
@@ -34579,7 +34607,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-retour-table-v2484';
+  const SW_CACHE='requete-2026-11-04-voix-app-v2485';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

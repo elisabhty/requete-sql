@@ -99,7 +99,7 @@ test('lecteur : LvVoice charge, cale, recale, suit la vitesse, se tait, dit à p
     load() {} play() { this.paused = false; this.plays++; return Promise.resolve(); } pause() { this.paused = true; }
   }
   const ctx = vm.createContext({document: {createElement: () => new El()}, performance: {now: () => now},
-    requestAnimationFrame: f => { raf.push(f); return raf.length; }, cancelAnimationFrame: () => {},
+    requestAnimationFrame: f => { raf.push(f); return raf.length; }, cancelAnimationFrame: () => {}, setTimeout: () => 0, clearTimeout: () => {},
     fetch: u => { fetched.push(u); return Promise.resolve({ok: true, blob: () => Promise.resolve({size: 10})}); },
     URL: {createObjectURL: () => 'blob:' + fetched.length, revokeObjectURL: u => revoked.push(u)}});
   vm.runInContext(src + ';this.V=LvVoice;', ctx);
@@ -142,6 +142,90 @@ test('lecteur : LvVoice charge, cale, recale, suit la vitesse, se tait, dit à p
   V.start(c2, 0); assert.ok(el.src.startsWith('blob:'), 'fichier en mémoire : sans réseau');
   el.fire('error'); assert.equal(el.src, 'https://x/ch02.mp3', 'mémoire illisible : retour à l’adresse du fichier');
   V.release(); assert.equal(revoked.length, 3, 'fermeture du cours : la mémoire est rendue');
+});
+
+/* Elisa, 4 novembre, 3 h 01 (« pour les vidéos des cours également il n’y a pas de son ») : dans l’app iPhone, la vue web ne lit pas
+   une copie en mémoire (blob:capacitor://localhost/…) et ne le signale pas ; la voix y lit les fichiers de l’app directement. */
+const voiceLab = (extra = {}) => {
+  const src = cut('const LvVoice=(()=>{', '/* ---------- Animation jouée comme une vidéo');
+  const made = [], fetched = [], timers = []; let now = 0;
+  class El {
+    constructor() { this.l = {}; this.attrs = {}; this.paused = true; this.readyState = 0; this.currentTime = 0; this.seeking = false; this.ended = false; this.muted = false; this.playbackRate = 1; this.plays = 0; this.error = null; this._src = ''; made.push(this); }
+    set src(v) { this._src = v; this.readyState = 0; this.paused = true; } get src() { return this._src; }
+    setAttribute(k, v) { this.attrs[k] = v; } removeAttribute(k) { if (k === 'src') this._src = ''; }
+    addEventListener(t, f) { (this.l[t] || (this.l[t] = [])).push(f); } fire(t) { (this.l[t] || []).forEach(f => f()); }
+    load() {} play() { this.paused = false; this.plays++; return Promise.resolve(); } pause() { this.paused = true; }
+  }
+  const ctx = vm.createContext({document: {createElement: () => new El()}, performance: {now: () => now},
+    requestAnimationFrame: () => 1, cancelAnimationFrame: () => {},
+    setTimeout: (f, ms) => { timers.push({f, ms}); return timers.length; }, clearTimeout: id => { if (id && timers[id - 1]) timers[id - 1].f = null; },
+    fetch: u => { fetched.push(u); return Promise.resolve({ok: true, blob: () => Promise.resolve({size: 10})}); },
+    URL: {createObjectURL: () => 'blob:capacitor://localhost/' + fetched.length, revokeObjectURL() {}}, ...extra});
+  vm.runInContext(src + ';this.V=LvVoice;', ctx);
+  return {V: ctx.V, made, fetched, timers, tick: ms => { now += ms; }};
+};
+
+test('app iPhone : la voix lit les fichiers de l’app (pas de copie en mémoire, que la vue web de l’app ne lit pas)', async () => {
+  const lab = voiceLab({window: {Capacitor: {isNativePlatform: () => true}}, location: {protocol: 'capacitor:'}});
+  const {V, made, fetched} = lab, c1 = {src: 'assets/voix/cours/ch01.mp3', o: 2, d: 3}, c2 = {src: 'assets/voix/cours/ch02.mp3', o: 0, d: 2};
+  V.preload([c1.src, c2.src]); await new Promise(r => setTimeout(r, 10));
+  assert.equal(fetched.length, 0, 'rien à télécharger : les fichiers sont dans l’app');
+  V.start(c1, 0.5); const el = made[0];
+  assert.equal(el.src, 'assets/voix/cours/ch01.mp3', 'l’adresse du fichier, jamais blob:'); assert.equal(el.paused, false);
+  el.readyState = 1; el.fire('loadedmetadata'); assert.equal(el.currentTime, 2.5);
+  lab.tick(1000); V.start(c2, 0); assert.equal(el.src, 'assets/voix/cours/ch02.mp3');
+  assert.equal(V.stats().direct, true);
+  /* Repéré aussi sans le plugin (adresse capacitor:) ; dans Safari, la copie en mémoire reste. */
+  assert.equal(voiceLab({location: {protocol: 'capacitor:'}}).V.stats().direct, true);
+  assert.equal(voiceLab({window: {}, location: {protocol: 'https:'}}).V.stats().direct, false);
+});
+
+test('web : une copie en mémoire qui ne s’ouvre pas en 2 s (ni son, ni erreur) laisse la place à l’adresse du fichier', async () => {
+  const lab = voiceLab({window: {}, location: {protocol: 'https:'}});
+  const {V, made, timers} = lab, c1 = {src: 'https://x/ch01.mp3', o: 0, d: 3}, c2 = {src: 'https://x/ch02.mp3', o: 1.5, d: 2};
+  V.preload([c1.src, c2.src]); await new Promise(r => setTimeout(r, 10));
+  V.start(c1, 0); const el = made[0];
+  assert.ok(el.src.startsWith('blob:'), 'copie en mémoire : sans réseau');
+  const w1 = timers.at(-1); assert.equal(w1.ms, 2000, 'surveillée 2 s');
+  el.readyState = 4; el.fire('loadedmetadata'); w1.f && w1.f();
+  assert.ok(el.src.startsWith('blob:'), 'ouverte à temps : elle reste');
+  lab.tick(1000); V.start(c2, 0.5);
+  assert.ok(el.src.startsWith('blob:')); const plays = el.plays, w2 = timers.at(-1);
+  w2.f();   // 2 s plus tard, toujours rien (readyState 0, pas d’erreur)
+  assert.equal(el.src, 'https://x/ch02.mp3', 'repli : l’adresse du fichier');
+  assert.equal(el.plays, plays + 1, 'et la phrase repart aussitôt');
+  el.readyState = 1; el.fire('loadedmetadata'); assert.equal(el.currentTime, 2, 'à la même position');
+  lab.tick(1000); V.start(c1, 0); assert.equal(el.src, 'https://x/ch01.mp3', 'puis plus de copie pour le reste du cours');
+  assert.equal(V.stats().direct, true);
+});
+
+test('préchargement : seule une réponse « absent » (400 et plus) fait sauter un fichier ; une réponse sans code (statut 0) non', async () => {
+  const st = {'https://x/a.mp3': 0, 'https://x/b.mp3': 404};
+  const lab = voiceLab({window: {}, location: {protocol: 'https:'},
+    fetch: u => Promise.resolve({ok: false, status: st[u], blob: () => Promise.resolve({size: 10})})});
+  lab.V.preload(Object.keys(st)); await new Promise(r => setTimeout(r, 10));
+  const {V, made} = lab;
+  V.start({src: 'https://x/a.mp3', o: 0, d: 2}, 0); const el = made[0];
+  assert.equal(el.src, 'https://x/a.mp3', 'statut 0 : lu par son adresse'); assert.equal(el.paused, false, 'et il joue');
+  el.pause(); lab.tick(1000); V.start({src: 'https://x/b.mp3', o: 0, d: 2}, 0);
+  assert.equal(el.paused, true, '404 : sauté'); assert.equal(V.ready(), true, 'sans faire attendre l’image');
+});
+
+test('app iPhone sans Audio Session API : le silence qui garde le son en mode silencieux est un fichier de l’app', () => {
+  const sfx = cut('const LvSfx=(()=>{', '/* ---------- Voix off des cours');
+  const made = [];
+  const ctx = vm.createContext({window: {Capacitor: {isNativePlatform: () => true}}, location: {protocol: 'capacitor:'},
+    navigator: {userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X)', maxTouchPoints: 5},
+    document: {createElement: () => { const a = {attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, play() { this.playing = true; return Promise.resolve(); }, pause() { this.playing = false; }}; made.push(a); return a; }},
+    URL: {createObjectURL: () => 'blob:capacitor://localhost/silence'}, Blob: class {}, ArrayBuffer, DataView});
+  vm.runInContext(sfx + ';this.LvSfx=LvSfx;', ctx);
+  ctx.LvSfx.resume();
+  assert.equal(made.length, 1); assert.equal(made[0].src, 'assets/sons/silence.wav'); assert.equal(made[0].loop, true); assert.equal(made[0].playing, true);
+  /* Le fichier : exactement le silence que la page fabrique pour Safari (WAV 8 kHz, 8 bits, 0,25 s). */
+  let parts = null;
+  const web = vm.createContext({Blob: class { constructor(p) { parts = p; } }, ArrayBuffer, DataView});
+  vm.runInContext(sfx.slice(sfx.indexOf('function silentWav(){'), sfx.indexOf('function session(on){')) + ';silentWav();', web);
+  assert.deepEqual(Buffer.from(parts[0]), fs.readFileSync(path.join(ROOT, 'assets/sons/silence.wav')));
 });
 
 test('le cours « Les bases de données relationnelles » a sa voix : chaque phrase à sa légende, chaque fichier présent', () => {
