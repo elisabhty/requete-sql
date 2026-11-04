@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=141">
+<link rel="stylesheet" href="ludique.css?v=142">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -15322,8 +15322,8 @@ async function boot(){
     setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône (appui long, comme Duolingo)
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
-    /* Retour d’« Importer une progression » : Mon compte, et la carte « Tes données » dit que c’est fait. */
-    try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');setTimeout(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Importée','Progression importée'),500);}}catch(e){}
+    /* Retour de « Restaurer une sauvegarde » : Mon compte, et la carte « Tes données » dit que c’est fait. */
+    try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');setTimeout(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Restaurée','Sauvegarde restaurée : ta progression est de retour'),500);}}catch(e){}
     tickRappel();
     setInterval(tickRappel,30000);
     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tickRappel(); });
@@ -20634,7 +20634,10 @@ const JEU_NOTE_HTML='<p class="jeu-note">🔒 Les joueurs de ta salle voient ton
 /* Même défi, seul ou à plusieurs : le choix se fait dans l’écran du défi. Ici, seulement l’entrée « j’ai reçu un code ». */
 const JEU_JOIN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16.5 14.5 12 10 7.5M14.5 12H4"/></svg>';
 const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
-function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
+/* 4 novembre, 22 h 15 : huit défis refaits (sm9, sd3, zm8, zd6, ld1, ld9, vm4, wf2) ont une nouvelle solution ; tant que le serveur de
+   vérification des salles n’est pas redéployé avec elle, ils restent hors des salles (seul, hors salle, ils se jouent normalement). */
+const JEU_ATTENTE_SERVEUR=new Set(['sm9','sd3','zm8','zd6','ld1','ld9','vm4','wf2']);
+function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec&&!JEU_ATTENTE_SERVEUR.has(c.id);}
 /* « Un code reçu ? » est passé dans la carte de la salle, en mode « Rejoindre » (3 novembre, 7 h 49). */
 function renderDefisJoin(){
   const host=document.getElementById('defis-join');if(host)host.innerHTML='';
@@ -27731,7 +27734,7 @@ function jeuDe(n){return (jeuVoy(n)?'d’':'de ')+esc(n);}
 function jeuQue(n){return (jeuVoy(n)?'qu’':'que ')+esc(n);}
 /* Le chrono de la manche monte depuis 00:00 (Elisa : « le chrono compte de 00:00 à … ») ; les temps s’écrivent de la même façon. */
 function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
-function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec);}
+function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec&&!(typeof JEU_ATTENTE_SERVEUR!=='undefined'&&JEU_ATTENTE_SERVEUR.has(c.id)));}
 
 /* Transport : la base Supabase entre amis, un canal local pour les tests, ou rien
    du tout en solo. Chaque message reçu du relais (la base) porte fromRelay : c’est
@@ -35829,7 +35832,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -36588,7 +36591,7 @@ function renderCompte(){
     ?{title:'Compte connecté',copy:esc(state.accountLabel||'Ta progression est liée à ton compte.'),btn:'Gérer mes données',action:"openPlusDetails('plus-data')"}
     :obAuthReady()
       ?{title:'Mode local actif',copy:'Connecte-toi pour retrouver ta progression sur tous tes appareils. Connexion optionnelle.',btn:'Se connecter',action:"startOnboarding('account')"}
-      :{title:'Mode local actif',copy:'Ta progression est enregistrée sur cet appareil.',btn:'Exporter ma progression',icon:plusIcon('export'),action:'exportProgress()'};
+      :{title:'Mode local actif',copy:'Ta progression est enregistrée sur cet appareil. Garde-en une sauvegarde pour la retrouver ailleurs.',btn:'Sauvegarder ma progression',icon:plusIcon('export'),action:'exportProgress()'};
   const planSummary=state.plan?`${plural(state.plan.freq||7,'séance')} par semaine · ${plural(state.plan.per||3,'activité')}`:'Créer un parcours sur mesure';
   host.innerHTML=`
     <section class="acct-hero" aria-label="Ton profil">
@@ -36645,9 +36648,12 @@ function renderCompte(){
         <div class="account-settings-group">
           <p class="account-settings-group-title">Compte et assistance</p>
           <div class="account-settings-list">
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Données et confidentialité</b><small>Export, effacement, stockage local</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Données et confidentialité</b><small>Sauvegarde, effacement, ce qui est gardé</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">${lqStkSvg(ACCT_STK.contact)}</span><span><b>Nous contacter</b><small>Un bug, une idée, une question</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+            ${appliNative()?`<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('trophy')}</span><span><b>Noter Requête</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+            ${connected?`<button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>Ta progression reste sur ton compte</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+            <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>Supprimer mon compte</b><small>Ton pseudo, tes scores et toutes tes données</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>
       </section>
@@ -36694,11 +36700,11 @@ function renderCompte(){
         ${accDonneesHTML()}
         <button class="acc-row" type="button" onclick="exportProgress()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('export')}</span>
-          <div class="at"><b>Exporter ma progression</b><small>Leçons, défis, cartes, notes, planning et projets, dans un fichier</small></div>
+          <div class="at"><b>Sauvegarder ma progression</b><small>Un fichier de sauvegarde, à restaurer ici ou sur un autre appareil</small></div>
           ${CHEV}</button>
         <button class="acc-row" type="button" onclick="importProgress()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('import')}</span>
-          <div class="at"><b>Importer une progression</b><small>Le fichier exporté, depuis un autre appareil</small></div>
+          <div class="at"><b>Restaurer une sauvegarde</b><small>Le fichier créé par « Sauvegarder ma progression »</small></div>
           ${CHEV}</button>
         ${clsOn()?'':`<button class="acc-row" type="button" onclick="clsQuitter()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('trophy')}</span>
@@ -36766,15 +36772,15 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>Ton <b>pseudo</b> est unique : il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. Pour retirer tes scores, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;».</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne&nbsp;: elle nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
-      <p>Si tu te connectes plus tard, Requête indiquera clairement quelles données sont synchronisées et permettra de supprimer le compte.</p>
+      <p>«&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, efface d’un coup ce que le serveur garde pour cet appareil, puis tout ce qui est sur l’appareil. Si tu te connectes plus tard, Requête indiquera clairement quelles données sont synchronisées.</p>
     </div>`,
     terms:`<div class="legal-copy">
       <p>Requête t’aide à apprendre le SQL en pratiquant. Le contenu est fourni tel quel, à des fins pédagogiques.</p>
-      <p>Le compte est optionnel. Tu peux exporter ou effacer tes données à tout moment depuis Mon compte. Un reset est définitif, sauf si tu as exporté avant.</p>
+      <p>Le compte est optionnel. Tu peux sauvegarder ta progression, l’effacer ou supprimer ton compte à tout moment depuis Mon compte. Un effacement est définitif, sauf si tu as fait une sauvegarde avant.</p>
       <p>Les leçons, les défis et les outils de pratique disponibles dans cette version sont utilisables sans compte.</p>
     </div>`
   };
@@ -36809,16 +36815,17 @@ function accDonneesHTML(){
           <button type="button" class="acc-donnees-t" aria-expanded="false" aria-controls="acc-donnees" onclick="accDonnees(this)"><span class="acc-donnees-ico is-stk" aria-hidden="true">${lqStkSvg('shield')}</span><span class="acc-donnees-tt"><b>Comprendre mes données</b><small>Sans compte, ton apprentissage reste sur cet appareil</small></span><svg class="acc-donnees-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
           <div class="acc-donnees-c" id="acc-donnees" hidden>
             <h4>Sur cet appareil</h4>
-            <p>Ton prénom, tes leçons, défis, cartes, notes, planning et bases importées. Le moteur SQL tourne dans l’appli&nbsp;: tes requêtes ne quittent jamais ton appareil.</p>
+            <p>Ton prénom, tes leçons, défis, cartes, notes, planning et bases importées. Le moteur SQL tourne dans l’appli&nbsp;: les requêtes de ta console, de tes leçons et de tes défis en solo restent sur ton appareil.</p>
             <h4>Sur le serveur de l’appli <small>Supabase, à Paris</small></h4>
             <ul>
               <li><b>Ton pseudo</b>, réservé avec un identifiant tiré au hasard&nbsp;: ni ton nom, ni ton e-mail.</li>
               <li><b>Le classement</b>&nbsp;: ton pseudo, tes points, tes parties et les défis réussis, jamais tes requêtes.</li>
-              <li><b>La salle entre amis</b>&nbsp;: ton pseudo, tes temps et tes réactions, effacés au bout de 24&nbsp;h.</li>
+              <li><b>La salle entre amis</b>&nbsp;: ton pseudo, tes temps et tes réactions, effacés au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, jamais montrées aux autres.</li>
               <li><b>Tes messages</b> envoyés depuis «&nbsp;Nous contacter&nbsp;», avec ce que tu joins et ton e-mail si tu le donnes, pour te répondre.</li>
+              <li><b>Tes avis</b> sur les leçons, <b>ton vote</b> pour le prochain parcours et les écrans de l’accueil que tu as vus (ni ton prénom, ni tes réponses).</li>
             </ul>
             <h4>Tu gardes la main</h4>
-            <p>Juste en dessous&nbsp;: exporter ta progression ou tout effacer. Pour supprimer ton pseudo ou retirer tes scores du classement, écris-nous depuis «&nbsp;Nous contacter&nbsp;».</p>
+            <p>Juste en dessous&nbsp;: sauvegarder ta progression ou tout effacer. Dans Mon compte, «&nbsp;Supprimer mon compte&nbsp;» efface ce que le serveur garde pour toi et tout ce qui est sur cet appareil.</p>
           </div>
         </div>`;
 }
@@ -37098,12 +37105,23 @@ function progressPayload(){
   try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&EXPORT_EXTRA(k)){const v=localStorage.getItem(k);if(v!=null)extra[k]=v;}}}catch(e){}
   return {v:1,app:'requete-sql',exportedAt:new Date().toISOString(),state:normalizeState(state),extra};
 }
+/* Elisa, 4 novembre, 22 h 08 : « le bouton exporter la progression est vraiment cohérent par rapport au fichier qu’elle donne ? De plus
+   on a une interaction qui dit fichier exporté alors qu’on a juste cliqué ». Le fichier est une sauvegarde à restaurer (pas un relevé
+   lisible) : le bouton s’appelle « Sauvegarder ma progression », le fichier requete-sauvegarde-AAAA-MM-JJ.json. Dans l’app iPhone, la
+   feuille de partage d’iOS s’ouvre (pont RequeteWidget.partager : Enregistrer dans Fichiers, AirDrop, Mail…) ; le message ne vient
+   qu’une fois le fichier vraiment parti, rien si on annule. Sur le site : la feuille de partage du téléphone, ou un téléchargement. */
 async function exportProgress(){
-  const fileName=`requete-progression-${new Date().toISOString().slice(0,10)}.json`;
-  const how=await saveFile(new Blob([JSON.stringify(progressPayload(),null,2)],{type:'application/json'}),fileName,'Ma progression Requête');
+  const fileName=`requete-sauvegarde-${new Date().toISOString().slice(0,10)}.json`;
+  const texte=JSON.stringify(progressPayload(),null,2);
+  const C=typeof ilePont==='function'?ilePont():null;
+  let how=null;
+  if(C){
+    try{const r=await C.nativePromise('RequeteWidget','partager',{nom:fileName,texte});how=r&&r.ok?'share':null;}
+    catch(e){how=await saveFile(new Blob([texte],{type:'application/json'}),fileName,'Ma sauvegarde Requête');}
+  }else how=await saveFile(new Blob([texte],{type:'application/json'}),fileName,'Ma sauvegarde Requête');
   if(!how)return;
   closePlusDetails();
-  lqDone(document.querySelector('#scr-compte .acct-data'),'Exportée',how==='share'?'Progression exportée : garde ce fichier de ton côté.':`Progression exportée : ${fileName}`);
+  lqDone(document.querySelector('#scr-compte .acct-data'),'Sauvegardée',how==='share'?'Sauvegarde envoyée : garde ce fichier, il se restaure dans Mon compte.':`Sauvegarde téléchargée : ${fileName}`);
 }
 /* Importer une progression : le fichier d’« Exporter ma progression » remplace celle de cet appareil (après confirmation), puis l’appli
    redémarre pour tout redessiner. */
@@ -37114,7 +37132,7 @@ function importProgress(){
     const rd=new FileReader();
     rd.onload=()=>{
       let p=null;try{p=JSON.parse(String(rd.result||''));}catch(e){}
-      if(!p||p.v!==1||!p.state||typeof p.state!=='object'){lqInfo('Fichier non reconnu','Choisis le fichier créé par « Exporter ma progression » (requete-progression-….json).','📄');return;}
+      if(!p||p.v!==1||!p.state||typeof p.state!=='object'){lqInfo('Fichier non reconnu','Choisis le fichier créé par « Sauvegarder ma progression » (requete-sauvegarde-….json).','📄');return;}
       const st=normalizeState(p.state),nl=Object.values(st.lessons||{}).filter(l=>l&&(l.done||l.level>0)).length,nd=Object.keys(st.defis||{}).length;
       lqAsk({ico:'📥',titre:'Remplacer ta progression ?',texte:`Ce fichier contient ${plur(nl,'leçon')} commencée${nl>1?'s':''}, ${plur(nd,'défi')} réussi${nd>1?'s':''} et ${plur((st.notes||[]).length,'note')}. Ta progression actuelle sur cet appareil sera remplacée.`,oui:'Importer',non:'Annuler',danger:true})
         .then(ok=>{
@@ -37128,6 +37146,51 @@ function importProgress(){
     rd.readAsText(f);
   };
   inp.click();
+}
+/* ---------- Noter l’appli, se déconnecter, supprimer son compte (Elisa, 4 novembre, 22 h 08) ----------
+   « Dans compte il manque évaluez-nous, est-ce que ça peut faire le lien avec les avis Apple Store pour que ça apparaisse dans Apple si
+   on nous met un avis » ; « mettre se déconnecter aussi » ; « suppression du compte » ; « toutes les choses obligatoires pour passer la
+   validation Apple en sérénité ». Noter : la page « Écrire un avis » de l’App Store (le lien qu’Apple donne pour un bouton « Noter »),
+   l’avis paraît sur la fiche de l’app. Se déconnecter : seulement avec un compte connecté. Supprimer mon compte (règle 5.1.1 v
+   d’Apple) : tout ce que le serveur garde pour cet appareil (compte_supprimer : pseudo, scores, avis, vote, messages, écrans vus,
+   et le compte s’il est connecté), puis tout ce qui est sur l’appareil ; l’appli repart de zéro. */
+const APP_STORE_ID='6830361256';
+function appliNative(){return document.documentElement.classList.contains('is-native');}
+function noterAppli(){
+  const url=`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`;
+  const C=typeof ilePont==='function'?ilePont():null;
+  if(C){Promise.resolve(C.nativePromise('RequeteWidget','ouvrir',{url})).catch(()=>{location.href=url;});return;}
+  window.open(`https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`,'_blank','noopener');
+}
+async function seDeconnecter(){
+  if(!await lqAsk({ico:'👋',titre:'Te déconnecter ?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
+  try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
+  state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
+  if(typeof closePlusDetails==='function')closePlusDetails();
+  startOnboarding('account');
+}
+async function compteSupprimer(){
+  const p=typeof psMien==='function'?psMien():'',compte=state.accountMode==='connected';
+  if(!await lqAsk({ico:'🗑️',titre:'Supprimer ton compte ?',texte:`Sur le serveur de l’appli : ${p?`ton pseudo « ${p} », `:''}tes scores, tes avis, ton vote et tes messages${compte?', et ton compte':''}. Sur cet appareil : tes leçons, défis, cartes, notes, planning et projets. C’est définitif.`,oui:'Continuer',non:'Annuler',danger:true}))return;
+  if(!await lqAsk({ico:'⚠️',titre:'Dernière confirmation',texte:'Tout supprimer maintenant ? Il ne sera plus possible de revenir en arrière.',oui:'Supprimer mon compte',non:'Garder mon compte',danger:true}))return;
+  const cle=state.salle&&typeof state.salle.cle==='string'?state.salle.cle:'';
+  if(cle){
+    try{
+      await clsRpc('compte_supprimer',{p_cle:cle}).catch(e=>{
+        if(!(e&&(e.status===404||e.code==='PGRST202')))throw e;
+        return clsRpc('jeu_pseudo_liberer',{p_cle:cle});   /* serveur sans compte_supprimer : au moins le pseudo et les scores */
+      });
+    }catch(e){
+      if(e&&e.status)lqInfo('Suppression refusée','Le serveur n’a pas pu supprimer ton compte : écris-nous depuis « Nous contacter », on s’en occupe. Rien n’a été effacé.','⚠️');
+      else lqInfo('Pas de réseau','Il faut une connexion internet pour supprimer ton compte sur le serveur. Réessaie dans un instant : rien n’a été effacé.','📶');
+      return;
+    }
+  }
+  try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
+  try{const LN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications;if(LN)await LN.cancel({notifications:[1,11,12,13,14,15,16,17].map(id=>({id}))});}catch(e){}
+  try{localStorage.clear();}catch(e){}
+  try{sessionStorage.clear();}catch(e){}
+  location.reload();
 }
 /* Les deux confirmations dans la DA de l’appli (Elisa, 31 octobre, 16 h 49 : « faire une notif in-app avec la même DA que le site,
    pareil s’il y a encore une notif comme ça ») : c’était la dernière fenêtre du navigateur. */
@@ -37310,7 +37373,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-defis-refaits-v2515';
+  const SW_CACHE='requete-2026-11-04-compte-v2516';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
