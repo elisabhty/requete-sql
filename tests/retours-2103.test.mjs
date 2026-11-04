@@ -83,12 +83,12 @@ test('appli iOS : derrière l’écran de lancement, la page se dessine à l’i
   s.tick(); s.tick();
   assert.ok(!s.log.some(l => l.startsWith('écran retiré')), 'l’écran natif reste tant que l’appli n’est pas prête');
   assert.equal(typeof s.ctx.window.__introJouer, 'function');
-  /* « Requête » en lettres, deux ondes, quatorze confettis */
+  /* « Requête » en lettres, deux ondes, quatorze nombres (des confettis jusqu’au 4 novembre : tests/retours-0116.test.mjs) */
   assert.equal(s.nom.attrs['aria-label'], 'Requête');
   assert.equal((s.nom.innerHTML.match(/class="in-l"/g) || []).length, 7);
   assert.ok(s.nom.innerHTML.includes('<span class="in-l" aria-hidden="true" style="--i:4">ê</span>'));
   assert.equal((s.html[0].match(/class="in-ring/g) || []).length, 2);
-  assert.equal((s.html[0].match(/class="in-p is-(star|dot|sq)"/g) || []).length, 14);
+  assert.equal((s.html[0].match(/<i class="in-p" aria-hidden="true"/g) || []).length, 14);
   s.run(2600); assert.ok(s.cls.has('is-long'), 'l’anneau et la phrase si l’appli tarde');
 });
 
@@ -109,7 +109,7 @@ test('appli iOS : prête, l’écran natif part d’un coup puis tout se joue d�
 test('appli iOS : mouvement réduit, un simple fondu ; sur le site, rien ne change', () => {
   for (const opts of [{ calme: true }, { stocke: '{"preferences":{"reduceMotion":true}}' }]) {
     const s = lancer(opts);
-    assert.equal(s.html.length, 0); assert.equal(s.nom.innerHTML, '', 'ni lettres ni confettis');
+    assert.equal(s.html.length, 0); assert.equal(s.nom.innerHTML, '', 'ni lettres ni nombres');
     s.ctx.window.__introJouer();
     assert.ok(s.log.includes('écran retiré 0') && s.cls.has('fade-out') && !s.cls.has('is-play'));
     assert.ok(!s.log.some(l => l.startsWith('vibre')));
@@ -146,7 +146,7 @@ test('appli iOS : la première image reprend l’écran de lancement, et l’ani
     'margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC}',
     /* Rien d’autre à la première image */
     'html.is-native.lq #loader.is-intro .ld-spark{display:none}', 'font:700 30px/1 var(--display);letter-spacing:-.02em;color:#1B1640;opacity:0;animation:none}',
-    'html.is-native.lq #loader.is-intro .in-l{display:inline-block;opacity:0;', 'border-radius:50%;background:var(--c);opacity:0;will-change:transform,opacity}',
+    'html.is-native.lq #loader.is-intro .in-l{display:inline-block;opacity:0;', 'top:var(--cy);width:0;height:0;opacity:0;will-change:transform,opacity}',
     /* Le déroulé */
     'html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .5s cubic-bezier(.3,.7,.3,1) both,introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards}',
     '18%{transform:translateY(calc(22*var(--u)))}', '@keyframes introZoom{from{transform:none}to{transform:scale(9)}}',

@@ -76,8 +76,8 @@ profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans X
    qu’elle avait dans `splash.png`. iOS garde l’écran de lancement en mémoire : si l’ancien revient après une mise à jour,
    redémarrer l’iPhone.
    **Ouverture animée** (3 novembre) : la première image de l’appli reprend cet écran au pixel près (ludique.css, 37 bis :
-   touche de 512 de côté, 28 d’épaisseur, coins de 116, fond `#F4F2FC`), puis la touche >_ s’enfonce, rebondit et lâche ses
-   étincelles. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
+   touche de 512 de côté, 28 d’épaisseur, coins de 116, fond `#F4F2FC`), puis la touche >_ s’enfonce, rebondit et lâche une
+   gerbe de nombres dont les chiffres défilent comme un compteur avant de se poser (4 novembre : « en mode data »). Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
    jusqu’à ce que la page se soit dessinée (au plus 4 s, `launchShowDuration`). Avec « Réduire les animations » (iOS), un
    simple fondu.
 
