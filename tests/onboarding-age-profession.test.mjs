@@ -19,7 +19,7 @@ const fn = (name, next) => { const i = app.lastIndexOf(`function ${name}(`); ass
 const slide = (name, next) => { const i = app.lastIndexOf(`}else if(slide==='${name}'){`); assert.ok(i > 0, name); return app.slice(i, app.indexOf(next, i + 10)); };
 
 test('l’âge et la profession, juste après le prénom, dans le compte des étapes', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];"));
   assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','age','job','goal','level','rhythm','build','promise','pact','practice'];"), '« Étape 2 sur 10 », « Étape 3 sur 10 »');
   /* obNext, exécuté seul : prénom → âge → profession → objectif */
   const vers = [];
@@ -55,10 +55,10 @@ test('profession : six situations en tuiles, avec leur pastille de couleur', () 
   assert.ok(job.includes('<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>'));
   assert.ok(job.includes('role="radiogroup" aria-label="Ta situation"') && job.includes("onclick=\"obPick('job','${k}')\"") && job.includes('${obOptionIcon(icon)}<span>${esc(label)}</span>'));
   assert.ok(job.includes("obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);"));
-  assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(!['niveau','rythme','goal','ageRange','job'].includes(champ))return;"));
+  assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(!['niveau','rythme','goal','ageRange','job','source'].includes(champ))return;"));
   /* Les réponses restent sur l’appareil, dans le profil, et l’onboarding les reprend (Mon compte › Personnalisation). */
   assert.ok(app.includes("    ageRange:draft.ageRange||'',\n    job:draft.job||'',") && app.includes("    ageRange:profile.ageRange||'',\n    job:profile.job||'',"));
-  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge et ta profession (si tu les indiques), ton objectif,'), 'la page Confidentialité le dit');
+  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge et ta profession (si tu les indiques), la façon dont tu as connu Requête, ton objectif,'), 'la page Confidentialité le dit');
 });
 
 test('les tuiles suivent la DA de l’onboarding : cartes blanches à rebord, coche jaune soleil', () => {
@@ -134,7 +134,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=12">') && sw.includes("'./onboarding-vitrine.css?v=12',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=13">') && sw.includes("'./onboarding-vitrine.css?v=13',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');

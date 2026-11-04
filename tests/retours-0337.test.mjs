@@ -91,7 +91,7 @@ test('aperçu : rien n’est retenu ; fermeture de l’onboarding : sans suite ;
 
 test('dans le parcours : à l’entrée par l’accueil, l’aperçu et « Revoir l’intro » ; retour arrière depuis l’accueil ; arrivée du site', () => {
   const start = fn('startOnboarding', 'let obApercu=false;');
-  assert.ok(start.includes("obVideoMontree=false;\n  if(obEntry==='welcome'&&obVideoVoulue())obVideoOuvrir();\n  paintOb();"), 'avant de peindre l’accueil');
+  assert.ok(start.includes("obVideoMontree=false;obFinRappel=obFinWidget=null;\n  if(obEntry==='welcome'&&obVideoVoulue())obVideoOuvrir();\n  paintOb();"), 'avant de peindre l’accueil');
   assert.ok(fn('obApercuOuvrir', 'function obApercuFermer(').includes('obVideoOuvrir();   // la vidéo d’abord, même déjà vue sur cet appareil'));
   assert.ok(fn('replayOnboarding', '/* Enregistrer un fichier').includes('startOnboarding();\n  obVideoOuvrir();'));
   assert.ok(fn('closeOnboardingAuth', 'function obGoto(').includes('obVideoFermer(true);'));
