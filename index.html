@@ -20634,10 +20634,7 @@ const JEU_NOTE_HTML='<p class="jeu-note">🔒 Les joueurs de ta salle voient ton
 /* Même défi, seul ou à plusieurs : le choix se fait dans l’écran du défi. Ici, seulement l’entrée « j’ai reçu un code ». */
 const JEU_JOIN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16.5 14.5 12 10 7.5M14.5 12H4"/></svg>';
 const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
-/* 4 novembre, 22 h 15 : huit défis refaits (sm9, sd3, zm8, zd6, ld1, ld9, vm4, wf2) ont une nouvelle solution ; tant que le serveur de
-   vérification des salles n’est pas redéployé avec elle, ils restent hors des salles (seul, hors salle, ils se jouent normalement). */
-const JEU_ATTENTE_SERVEUR=new Set(['sm9','sd3','zm8','zd6','ld1','ld9','vm4','wf2']);
-function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec&&!JEU_ATTENTE_SERVEUR.has(c.id);}
+function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
 /* « Un code reçu ? » est passé dans la carte de la salle, en mode « Rejoindre » (3 novembre, 7 h 49). */
 function renderDefisJoin(){
   const host=document.getElementById('defis-join');if(host)host.innerHTML='';
@@ -27734,7 +27731,7 @@ function jeuDe(n){return (jeuVoy(n)?'d’':'de ')+esc(n);}
 function jeuQue(n){return (jeuVoy(n)?'qu’':'que ')+esc(n);}
 /* Le chrono de la manche monte depuis 00:00 (Elisa : « le chrono compte de 00:00 à … ») ; les temps s’écrivent de la même façon. */
 function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
-function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec&&!(typeof JEU_ATTENTE_SERVEUR!=='undefined'&&JEU_ATTENTE_SERVEUR.has(c.id)));}
+function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec);}
 
 /* Transport : la base Supabase entre amis, un canal local pour les tests, ou rien
    du tout en solo. Chaque message reçu du relais (la base) porte fromRelay : c’est
@@ -34688,6 +34685,11 @@ function obAuthReady(){return !!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH
    une flèche vers « Autoriser », puis la vraie demande), et, dans l’app iPhone qui a son widget, l’écran d’accueil avec la série
    et le tutoriel animé pour l’y ajouter. Puis le compte (s’il existe), la mini-page du pseudo et la dernière page. */
 const OB_FIN_SLIDES=['source','rappel'];
+/* Elisa, 4 novembre, 22 h 50 (« Oui, masque-la ») : dans l’app iPhone, tant qu’aucun fournisseur de connexion n’est branché, plus de
+   boutons « Bientôt » (Apple refuse les fonctions pas finies, règle 2.1). La page garde son bravo et ses confettis après la première
+   requête (10 h 45), sans les boutons ni la promesse de sauvegarde ; sans première requête réussie, elle est sautée. Le site garde
+   la page entière (10 h 16 : « mettre la page de connexion, il faut pas qu’elle marche encore »). */
+function obConnexionMasquee(){return typeof appliNative==='function'&&appliNative()&&!obAuthReady();}
 /* 13 h 48 (« ok » pour la proposition 6 : environ 20 écrans avant la première leçon) : le widget et son tutoriel sortent du tunnel ;
    ils arrivent une fois, de retour à l’accueil après la première leçon terminée (obWidgetProposer), puis rendent la main à l’app. */
 const OB_WIDGET_SLIDES=['widget','widgetTuto'];
@@ -34697,7 +34699,9 @@ function obFinFlux(){
      le bravo pour la requête et passer directement à la connexion avec confettis de ouf » : elle vient juste après la première
      requête, avant les sources et le rappel. 13 h 48 : le tutoriel du widget n’est plus dans ce tunnel, il vient après la première
      leçon (obWidgetProposer). */
-  const f=['practice','account','source'];
+  const f=['practice'];
+  if(!obConnexionMasquee()||(typeof draft!=='undefined'&&draft&&draft.practiceDone))f.push('account');
+  f.push('source');
   if(obRappelPossible())f.push('rappel');
   return f;
 }
@@ -35864,17 +35868,17 @@ function paintOb(){
        après la première requête (le « Bravo » de la requête est supprimé) et avec des confettis de ouf à l’arrivée (obFeteConnexion).
        Ouverte sans première requête réussie (moteur SQL indisponible, ou depuis Mon compte), elle ne parle pas de réussite. */
     const message=obAuthMessage?`<p class="ob-auth-message" role="status">${esc(obAuthMessage)}</p>`:'';
-    const reussie=!!draft.practiceDone;
-    html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}">${obFlowHeader(slide)}
+    const reussie=!!draft.practiceDone,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee();
+    html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':''}">${obFlowHeader(slide)}
       <img class="ob-promise-stk ob-compte-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
       ${reussie?`<h1 class="ob-title" id="ob-title">Ta première requête est <em>réussie</em>&nbsp;!<span class="ob-fete-emoji" aria-hidden="true"> 🎉</span></h1>
       <p class="ob-compte-lead">Tu viens de franchir une première étape. Et ce n’est que le début&nbsp;!</p>
-      <p class="ob-compte-sub">Tu pourras sauvegarder ta progression et reprendre tes cours sur tous tes appareils.</p>`
+      ${masquee?'':'<p class="ob-compte-sub">Tu pourras sauvegarder ta progression et reprendre tes cours sur tous tes appareils.</p>'}`
       :`<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
       <p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>`}
-      <div class="ob-provider-list">
+      ${masquee?'':`<div class="ob-provider-list">
         ${OB_PROVIDERS.map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
-      </div>${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
+      </div>`}${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
       <p class="ob-legal-note">En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.</p></div>`;
     obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','','');
   }else if(slide==='name'){
@@ -37373,7 +37377,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-compte-v2516';
+  const SW_CACHE='requete-2026-11-04-iphone-v2517';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

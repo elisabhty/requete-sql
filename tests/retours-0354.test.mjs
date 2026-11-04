@@ -45,6 +45,11 @@ test('le tunnel de fin : sources, rappel (s’il peut être demandé), puis le c
   assert.deepEqual([...c.obFlowSteps()], ['name', 'practice', 'account', 'source', 'rappel'], 'deux étapes de moins');
   assert.deepEqual([...flux(natif(['LocalNotifications'])).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
   assert.deepEqual([...flux({...natif(), obAuthReady: () => true}).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
+  /* 4 novembre, 22 h 50 (« Oui, masque-la ») : l’app iPhone sans connexion branchée garde le bravo d’une première requête réussie,
+     sans les boutons « Bientôt » ; sans réussite, la page est sautée ; avec un fournisseur branché, elle revient. */
+  assert.deepEqual([...flux({...natif(), appliNative: () => true}).obFinFlux()], ['practice', 'source', 'rappel'], 'app iPhone, sans première requête réussie');
+  assert.deepEqual([...flux({...natif(), appliNative: () => true, draft: {practiceDone: true}}).obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'le bravo reste');
+  assert.deepEqual([...flux({...natif(), appliNative: () => true, obAuthReady: () => true}).obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'connexion branchée');
   /* Retenu pour tout l’onboarding : une permission accordée en route ne retire pas l’étape (ni ne fausse « Suivant »). */
   const w = flux({Notification: {permission: 'default'}}); w.obFinFlux(); w.Notification.permission = 'granted';
   assert.deepEqual([...w.obFinFlux()], ['practice', 'account', 'source', 'rappel']);
@@ -197,6 +202,8 @@ test('scripts/ios-widget.mjs : la cible du widget ajoutée une fois au projet de
     assert.equal(n('CODE_SIGN_ENTITLEMENTS = App/App.entitlements;'), 2);
     assert.equal(n('CODE_SIGN_ENTITLEMENTS = RequeteWidget/RequeteWidget.entitlements;'), 2);
     assert.equal(n('DEVELOPMENT_TEAM = ABCDE12345;'), 4, 'la même équipe que l’app');
+    assert.equal(n('TARGETED_DEVICE_FAMILY = 1;'), 4, 'iPhone seulement (4 novembre, 22 h 50) : l’app et le widget, en Debug et en Release');
+    assert.equal(n('TARGETED_DEVICE_FAMILY = "1,2";'), 0);
     assert.equal(n('/* PrivacyInfo.xcprivacy in Resources */,'), 2, 'un manifeste de confidentialité dans chaque cible');
     assert.ok(/buildPhases = \(\n\t\t\t\t504EC3001FED79650016851F \/\* Sources \*\/,\n\t\t\t\t504EC3011FED79650016851F \/\* Frameworks \*\/,\n\t\t\t\t504EC3021FED79650016851F \/\* Resources \*\/,\n\t\t\t\tA7E1D0000000000000000017 \/\* Embed Foundation Extensions \*\/,/.test(p), 'l’app embarque le widget');
     assert.ok(p.includes('RequeteWidgetPlugin.swift in Sources */,\n\t\t\t\tA7E1D0000000000000000004 /* RequeteViewController.swift in Sources */,'));
@@ -207,6 +214,11 @@ test('scripts/ios-widget.mjs : la cible du widget ajoutée une fois au projet de
     /* Relancé (chaque envoi) : fichiers recopiés, projet inchangé */
     const encore = execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
     assert.ok(encore.includes('Widget à jour'));
+    assert.equal(fs.readFileSync(pbx, 'utf8'), p);
+    /* Un projet déjà muni du widget mais encore pour l’iPad (le Mac d’Elisa, 4 novembre) : il passe à l’iPhone seul au lancement suivant */
+    fs.writeFileSync(pbx, p.replaceAll('TARGETED_DEVICE_FAMILY = 1;', 'TARGETED_DEVICE_FAMILY = "1,2";'));
+    const ipad = execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
+    assert.ok(ipad.includes('iPhone seulement') && ipad.includes('Widget à jour'), ipad);
     assert.equal(fs.readFileSync(pbx, 'utf8'), p);
   } finally { fs.rmSync(t, {recursive: true, force: true}); }
 });

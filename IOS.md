@@ -193,7 +193,7 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   internes, jamais montrées aux joueurs). Dans App Store Connect, déclarer :
   « Contenu de jeu » et « Autre contenu utilisateur » (le pseudo), « Identifiant utilisateur » (l’identifiant
   au hasard) ; usages « Fonctionnalités de l’app » et « Analyses » (les défis trouvés) ; non utilisés pour le pistage.
-- **Défis en trois onglets** (4 novembre, 19 h 10 ; migration `supabase/migrations/…_defis_trois_onglets.sql`) :
+- **Défis en trois onglets** (4 novembre, 19 h 10 ; appliquée le 4 novembre à 22 h 52 : `supabase/migrations/20261104215200_defis_trois_onglets.sql`) :
   le pays du profil part avec le pseudo (colonne `jeu_pseudo.pays`, fonction `jeu_pays`) pour le drapeau à côté du pseudo ;
   il se masque dans Mon compte (« Afficher mon drapeau »). Les salles publiques (le choix par défaut) apparaissent
   dans « Salles ouvertes » (`jeu_salles_ouvertes`, `jeu_salle_publier`) avec le pseudo et le drapeau de leurs joueurs.
@@ -251,7 +251,9 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   serveur garde pour l’appareil (pseudo et pays, classement et parties, vote, avis, écrans de l’accueil vus, messages de « Nous
   contacter », places dans les salles) et, avec un compte connecté, le compte (ses tables privées suivent par cascade, l’identifiant
   de l’appareil est révoqué) ; puis l’appareil est vidé et l’appli repart de zéro. Tant que la migration n’est pas appliquée, l’appli
-  se rabat sur `jeu_pseudo_liberer` (pseudo et scores). Les pièces jointes de « Nous contacter » restent à effacer à la main
+  se rabat sur `jeu_pseudo_liberer` (pseudo et scores) : le 4 novembre, le connecteur Supabase demandait une confirmation que l’appli
+  mobile annule d’elle-même ; à appliquer depuis le tableau de bord (SQL Editor, coller le fichier) ou depuis l’app Claude sur l’ordi.
+  Les pièces jointes de « Nous contacter » restent à effacer à la main
   (Storage) : la politique de confidentialité promet « dans le mois ». Celles qui n’ont plus de message (compte supprimé, ou envoi
   raté) : `select name from storage.objects o where bucket_id = 'contact-pieces' and not exists (select 1 from public.contact_message m
   where o.name = any(m.pieces));` dans l’éditeur SQL, puis les supprimer dans Storage › contact-pieces.
@@ -266,6 +268,12 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   (`itms-apps://itunes.apple.com/app/id6830361256?action=write-review`, pont `RequeteWidget.ouvrir`) ; l’avis paraît sur la fiche.
   Elle ne marche qu’une fois l’appli publiée.
 - **Se déconnecter** : dans Mon compte, seulement avec un compte connecté (rien tant que la connexion n’est pas branchée).
+- **Connexion pas encore branchée** (4 novembre, 22 h 50, « Oui, masque-la » ; règle 2.1) : dans l’app, la page qui suit la première
+  requête garde son bravo et ses confettis, sans les boutons « Bientôt » ni la promesse de sauvegarde ; sans première requête réussie,
+  elle est sautée. Le site garde la page entière. Les boutons reviennent d’eux-mêmes quand un fournisseur est branché (`REQUETE_AUTH`).
+- **iPhone seulement** (4 novembre, 22 h 50) : `scripts/ios-widget.mjs` passe toutes les cibles du projet Xcode à
+  `TARGETED_DEVICE_FAMILY = 1`, à chaque envoi. Sur iPad, l’app tourne en mode iPhone ; App Store Connect ne demande pas de captures
+  d’iPad. À faire avant la première publication : une fois une version publiée pour l’iPad, Apple n’accepte plus de la retirer.
 - **Pièces jointes de « Nous contacter »** : `scripts/ios-widget.mjs` ajoute `NSCameraUsageDescription` et
   `NSPhotoLibraryUsageDescription` à l’Info.plist (sans elles, « Prendre une photo » fermerait l’app).
 - **Politique de confidentialité** : Apple demande une URL publique (decouvrir/confidentialite.html). Dans l’app,
