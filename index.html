@@ -6700,7 +6700,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=131">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=11">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=12">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -20066,8 +20066,10 @@ function obPseudoPlusTard(){
 }
 function psPageFin(ok){
   const root=document.getElementById('onboarding');
-  if(root){root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');root.setAttribute('aria-hidden','true');}
-  obBarreEtat(false);
+  /* Montrée pendant l’onboarding (garder) : l’écran reste ouvert, la dernière page (parcours prêt) prend la place */
+  const garder=!!(PS.page&&PS.page.garder);
+  if(root&&!garder){root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');root.setAttribute('aria-hidden','true');}
+  if(!garder)obBarreEtat(false);
   const a=PS.suite,b=ok?PS.siOk:null;PS.suite=PS.siOk=PS.page=null;
   try{if(activeTab==='compte'&&typeof renderCompte==='function')renderCompte();if(activeTab==='defis'&&typeof renderDefis==='function')renderDefis();}catch(e){}
   if(a)a();if(b)b();
@@ -32236,7 +32238,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];
+const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','pseudo','ready'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -32685,6 +32687,7 @@ function closeOnboardingAuth(){
 function obGoto(target){
   if(obLock)return;
   const n=typeof target==='number'?target:OB_SLIDES.indexOf(target);
+  if(OB_SLIDES[n]==='ready'&&obPseudoAvant())return;
   const cible=Math.max(0,Math.min(n,OB_STEPS-1));
   if(cible===obStep){paintOb();return;}
   obLock=true;
@@ -32692,6 +32695,18 @@ function obGoto(target){
   if(root)root.dataset.obDir=cible>obStep?'fwd':'back';
   body.classList.add('out');
   setTimeout(()=>{obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;paintOb();},prefersReduceMotion()?0:180);
+}
+/* 4 novembre, 2 h 13 : « quand on clique sur Voir mon parcours, on atterrit » sur « Choisis ton pseudo » : la mini-page venait après
+   la dernière page, celle du parcours prêt, si bien qu’aucun de ses deux boutons ne menait d’abord où il le disait. Elle passe avant (une fois :
+   pseudo déjà réservé ou « Plus tard » déjà choisi, on va droit à la dernière page), et l’onboarding reste ouvert jusque-là. */
+function obPseudoAvant(){
+  if(typeof psPage!=='function'||typeof psMien!=='function'||psMien())return false;
+  if(typeof obApercu!=='undefined'&&obApercu)return false;
+  const s=clsSalle();if(s.psPage)return false;
+  s.psPage=1;save();
+  const entree=obEntry;
+  psPage({voulu:psAncien(),garder:true,suite:()=>{obEntry=entree;obGoto('ready');}});
+  return true;
 }
 /* Le bouton principal se réveille quand il devient utilisable (un choix fait, une signature, le parcours construit, la première
    requête réussie) : un petit rebond et un reflet, pour montrer où aller ensuite (3 novembre, 13 h 25 : « améliorer les
@@ -32724,6 +32739,7 @@ function obNext(){
   else if(slide==='pact')obGoto('practice');
   else if(slide==='practice')obGoto(obAfterPractice());
   else if(slide==='account')obChooseGuest();
+  else if(slide==='pseudo')obPseudoSuivant();
   else finishOnboard('home');
 }
 function obBack(){
@@ -33305,8 +33321,8 @@ function paintOb(){
        deuxième page : le « Bravo » en titre, toujours visible, une phrase qui explique le résultat, puis la console retournée, qui
        prend toute la place jusqu’au bouton (« maîtrise de l’espace »). */
     const done=!!draft.practiceDone,
-      head=done?`<h1 class="ob-title" id="ob-title">Bravo, ta première requête fonctionne&nbsp;! 🎉</h1>
-      <p class="ob-lead">SQL a retrouvé, dans la table clients, ${rowsN>1?`les <b>${rowsN}</b> clients qui habitent`:'le client qui habite'} à Paris.</p>`
+      head=done?`<h1 class="ob-title" id="ob-title">Bravo, tu viens d’exécuter ta première requête&nbsp;! 🎉</h1>
+      <p class="ob-lead">Ta requête a fonctionné&nbsp;! Tu as retrouvé ${rowsN>1?`les <b>${rowsN}</b> clients qui habitent`:'le client qui habite'} à Paris.</p>`
       :`<h1 class="ob-title" id="ob-title">À toi de lancer ta première requête&nbsp;!</h1>
       <p class="ob-lead">Une seule action suffit pour découvrir comment SQL retrouve les données.</p>
       ${obMascotQuestion(draft.practiceFailed?'Le moteur SQL n’a pas pu démarrer ici : tu essaieras dans ta première leçon.':'Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.')}`;
@@ -33314,7 +33330,7 @@ function paintOb(){
       <div class="ob-practice-card${typing?' is-typing':''}${fresh?' is-flip-in':''}"><div class="ob-practice-head"><span>requete.sql</span><span>base du cours</span></div><pre class="ob-practice-code"><span class="ob-tl" style="--n:24;--t:.53s;--dl:.32s"><span class="kw">SELECT</span> <span class="field">id, prenom, ville</span></span>
 <span class="ob-tl" style="--n:12;--t:.27s;--dl:.92s"><span class="kw">FROM</span> clients</span>
 <span class="ob-tl" style="--n:22;--t:.49s;--dl:1.26s"><span class="kw">WHERE</span> ville = <span class="str">'Paris'</span>;</span></pre>${result}</div>
-      ${draft.practiceDone?`<p class="ob-practice-reward${fresh?' is-new':''}">Premier succès débloqué · tu apprendras toujours en pratiquant.</p>`:''}</div>`;
+      ${draft.practiceDone?`<p class="ob-practice-reward${fresh?' is-new':''}">Premier succès débloqué&nbsp;! Ce n’est que le début de ton parcours.</p>`:''}</div>`;
     const canGo=!!(draft.practiceDone||draft.practiceFailed);
     obSetFooter(canGo?'Continuer':'Lance la requête pour découvrir le résultat',()=>obGoto(obAfterPractice()),'','','',!canGo);
   }else if(slide==='rhythm'){
@@ -33400,6 +33416,8 @@ function paintOb(){
         <div class="ob-ready-row" style="--i:2"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
       <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes 7 prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
     obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
+    /* 4 novembre, 2 h 13 : « Commencer la première leçon avec la flèche animée », la même que sur le bouton de la construction. */
+    document.getElementById('ob-next')?.insertAdjacentHTML('beforeend','<span class="ob-cta-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h14M13 6l6 6-6 6"/></svg></span>');
     /* Le bouton se réveille une fois tout posé (coche, récapitulatif, semaine). */
     if(obJustEntered&&!prefersReduceMotion())obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='ready')obCtaWake();},1650));
   }
@@ -33439,7 +33457,7 @@ function finishOnboard(action){
   state.onboarded=true;
   save();
   /* Première connexion : la mini-page du pseudo (Elisa, 31 octobre, 17 h 53), puis l’appli. */
-  if(!psMien()&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}
+  if(!psMien()&&!clsSalle().psPage&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}
   obTerminer(action);
 }
 function obTerminer(action){
@@ -34561,7 +34579,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-son-ouverture-v2481';
+  const SW_CACHE='requete-2026-11-04-fin-onboarding-v2482';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -163,7 +163,7 @@ test('« À la requête, mets une animation » : la requête se tape, « Exécut
   assert.ok(/catch\(e\)\{\s*draft\.practiceRows=\[\];\s*draft\.practiceDone=false;[\s\S]*?draft\.practiceFailed=true;/.test(run));
   for (const k of ['.ob-practice-card.is-typing .ob-tl{overflow:hidden;animation:obvType var(--t) steps(var(--n),end) var(--dl) backwards,obvCaret var(--t) linear var(--dl)}',
     '.ob-practice-run:not(:disabled)::after{animation:obvRing 1.8s ease-in-out .5s infinite}', '.ob-practice-card.is-running .ob-practice-code::after{animation:obvScan',
-    '.ob-practice-result.is-new .ob-practice-table span.is-hit{animation:obResultIn', '.ob-practice-reward.is-new{animation:obvStampIn .55s var(--v-pop) 1s both}',
+    '.ob-practice-result.is-new .ob-practice-table span.is-hit{animation:obResultIn', '.ob-practice-reward.is-new{animation:obvStampIn .55s var(--v-pop) 1s backwards}',
     'html #onboarding.ob-vitrine.ob-fit-2 .ob-practice .ob-practice-reward{display:block!important}'])
     assert.ok(css.includes(k), k);
   /* Le tampon arrive en grandissant : une animation qui partirait plus grand gonflerait la page mesurée par obFit */
@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=11']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=12']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -307,7 +307,7 @@ test('23 h 21 : le niveau sans « Tu commenceras par… », la première requêt
   assert.ok(p.includes('<h1 class="ob-title" id="ob-title">À toi de lancer ta première requête&nbsp;!</h1>'));
   assert.ok(p.includes('<p class="ob-lead">Une seule action suffit pour découvrir comment SQL retrouve les données.</p>'));
   assert.ok(p.includes("'Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.'"));
-  assert.ok(p.includes('<h1 class="ob-title" id="ob-title">Bravo, ta première requête fonctionne&nbsp;! 🎉</h1>'), 'le retour après l’exécution (en titre depuis 1 h 31)');
+  assert.ok(p.includes('<h1 class="ob-title" id="ob-title">Bravo, tu viens d’exécuter ta première requête&nbsp;! 🎉</h1>'), 'le retour après l’exécution (en titre depuis 1 h 31)');
   assert.ok(p.includes("'Lance la requête pour découvrir le résultat'"));
   assert.ok(css.includes('html #onboarding.ob-vitrine[data-ob-slide="practice"] .ob-cta:disabled{font-size:15px!important;'), 'le bouton inactif tient sur une ligne dès 375 px');
   /* La construction : nombres qui montent, comète, étincelles, confettis, vague sur les modules */
@@ -331,7 +331,7 @@ test('4 novembre, 1 h 31 : la première requête en deux pages, « Ton parcours 
      résultat et le bravo » — sur son iPhone, la bulle du « Bravo » était retirée par obFit. */
   const p = slide('practice', "}else if(slide==='rhythm'){");
   assert.ok(p.includes("html=`<div class=\"ob-screen ob-profile ob-practice${done?' is-result':''}${fresh?' is-fresh':''}\">${obFlowHeader(slide)}${head}"));
-  assert.ok(p.includes("<p class=\"ob-lead\">SQL a retrouvé, dans la table clients, ${rowsN>1?`les <b>${rowsN}</b> clients qui habitent`:'le client qui habite'} à Paris.</p>"), 'la phrase qui explique le résultat');
+  assert.ok(p.includes("<p class=\"ob-lead\">Ta requête a fonctionné&nbsp;! Tu as retrouvé ${rowsN>1?`les <b>${rowsN}</b> clients qui habitent`:'le client qui habite'} à Paris.</p>"), 'la phrase qui explique le résultat');
   const avant = p.slice(p.indexOf(':`<h1 class="ob-title" id="ob-title">À toi de lancer'), p.indexOf('html=`<div class="ob-screen ob-profile ob-practice'));
   assert.ok(avant.includes('obMascotQuestion(') && !p.slice(p.indexOf('head=done?'), p.indexOf(':`<h1 class="ob-title" id="ob-title">À toi de lancer')).includes('obMascotQuestion('), 'la mascotte avant, le Bravo en titre après');
   /* La console se retourne : un quart de tour, puis revient de l’autre côté ; confettis depuis le résultat */
