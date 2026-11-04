@@ -29,7 +29,7 @@ const flux = (globals = {}) => {
 };
 
 test('le tunnel de fin : sources, rappel (s’il peut être demandé), puis le compte ; le widget après la première leçon (13 h 48)', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
   /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte est toujours là ; 10 h 45
      (« passer directement à la connexion ») : juste après la première requête. */
   assert.deepEqual([...flux().obFinFlux()], ['practice', 'account', 'source'], 'navigateur sans notifications : le compte, puis la question');
@@ -63,7 +63,7 @@ test('« Comment as-tu connu Requête ? » : dix réponses en tuiles, « Continu
   assert.ok(s.includes("obMascotQuestion('Dis-moi tout : ça m’aide à faire connaître Requête !')"));
   assert.ok(s.includes(`class="ob-tile ob-source-tile \${draft.source===k?'on':''}"`) && s.includes(`onclick="obPick('source','\${k}')"`));
   assert.ok(s.includes("obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'','','',!draft.source);"));
-  assert.ok(app.includes("if(!['niveau','rythme','goal','ageRange','job','source','freq'].includes(champ))return;") && app.includes("    source:draft.source||'',"));
+  assert.ok(app.includes("if(!['niveau','rythme','goal','ageRange','genre','job','source','freq'].includes(champ))return;") && app.includes("    source:draft.source||'',"));
   for (const k of ['note', 'camera', 'play', 'article']) assert.ok(cut('function obOptionIcon(type){', 'function obAnswers(').includes(`    ${k}:'`), `icône ${k}`);
   assert.ok(css.includes('html #onboarding.ob-vitrine .ob-source-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}'));
 });

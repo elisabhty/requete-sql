@@ -6713,9 +6713,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=137">
+<link rel="stylesheet" href="ludique.css?v=138">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=22">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -19352,7 +19352,7 @@ function renderHomeHero(){
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
   const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
   if(nxt==null){
-    const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
+    const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}${objectifAccueilHTML()}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
     lqSesCount(host);
     return;
@@ -19381,9 +19381,38 @@ function renderHomeHero(){
   const kicker=defi?'Ton prochain défi':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon';
   const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`;
   const sub=defi?(ch?.q||'Mets tes acquis à l’épreuve.'):(lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.');
-  const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;
+  const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}${objectifAccueilHTML()}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesCount(host);
+}
+/* Elisa, 4 novembre, 17 h 27 (réf. 7) : « essayer de mettre l’objectif sur l’accueil, de manière UI/UX (DA du site internet) ». Sous la
+   série, l’objectif choisi à l’onboarding dans une carte blanche en relief, comme les objectifs de la vitrine (son pictogramme dans un
+   carré pastel, sa petite phrase) ; puis les leçons validées vers lui, la barre qui se remplit et la date de fin du planning. Un appui
+   ouvre « Profil et objectif » (Mon compte), pour le changer. */
+const LQ_OBJ_PHRASES={career:'Les bases pour décrocher ton premier poste',interview:'Des questions proches du réel',work:'Analyse tes propres données avec SQL',advanced:'Fenêtres, CTE, index et requêtes complexes',curious:'Comprends comment les données sont interrogées'};
+function objectifAccueilHTML(){
+  const g=state.profile&&typeof state.profile.goal==='string'?state.profile.goal:'',o=typeof OB_GOALS!=='undefined'?OB_GOALS.find(x=>x[0]===g):null;
+  if(!o)return '';
+  let done=0,tot=0,fin='';
+  try{const all=moduleProgressData(MODULES,state.lessons);done=all.reduce((a,m)=>a+m.done,0);tot=all.reduce((a,m)=>a+m.total,0);}catch(e){}
+  try{
+    const pleines=(state.plan&&Array.isArray(state.plan.sessions)?state.plan.sessions:[]).filter(x=>Array.isArray(x.lessons)&&x.lessons.length);
+    if(pleines.length){const d=parseD(pleines[pleines.length-1].d);fin=(d.getDate()===1?'1er':d.getDate())+' '+d.toLocaleDateString('fr-FR',{month:'long'});}
+  }catch(e){}
+  const pct=tot?Math.min(100,Math.round(done/tot*100)):0,atteint=tot>0&&done>=tot;
+  /* Le nombre de leçons est déjà juste en dessous (« 0 leçon validée sur 71 », Parcours SQL) : ici, la part faite et la date de fin. */
+  const meta=atteint?'Objectif atteint, bravo !':`${pct}\u00a0% fait${fin?` · fin prévue le ${fin}`:''}`;
+  const lu=atteint?meta:`${done} leçon${done>1?'s':''} validée${done>1?'s':''} sur ${tot}${fin?`, fin prévue le ${fin}`:''}.`;
+  return `<button type="button" class="lq-obj${atteint?' is-atteint':''}" data-goal="${escAttr(g)}" onclick="objectifModifier()" aria-label="${escAttr(`Ton objectif : ${o[1]}. ${lu} Modifier mon objectif.`)}">
+    <span class="lq-obj-ico" aria-hidden="true">${obOptionIcon(o[2])}</span>
+    <span class="lq-obj-copy" aria-hidden="true"><small class="lq-obj-k">Ton objectif</small><b>${esc(o[1])}</b><small class="lq-obj-p">${esc(LQ_OBJ_PHRASES[g]||'')}</small>
+      <span class="lq-obj-bar" style="--p:${pct}%"><i></i></span><small class="lq-obj-meta">${esc(meta)}</small></span>
+    <span class="lq-obj-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></button>`;
+}
+function objectifModifier(){
+  if(typeof buzz==='function')buzz('light');
+  switchTab('compte');
+  setTimeout(()=>{try{openPlusDetails('plus-profile-settings');}catch(e){}},80);
 }
 /* Même HTML qu’au rendu précédent (3 novembre) : les éléments en place sont gardés. Les remplacer à chaque retour sur l’accueil
    recalculait tout l’écran pour rien ; le rendu suivant compare de nouveau. */
@@ -19808,7 +19837,7 @@ function renderDefisRoom(){
     <div class="room-field"><p class="jeu-lab" id="room-mode-l">Avec qui ?</p>
       <div class="room-seg is-3" role="radiogroup" aria-labelledby="room-mode-l">${seg('mode',[['solo','En solo'],['friends',JEU_FRIENDS_SVG+'Entre amis'],['join',JEU_JOIN_SVG+'Rejoindre']],jeuMode)}</div></div>
     <div class="room-field room-join" data-join${join?'':' hidden'}>
-      ${jeuInvite?`<p class="room-invite">Tu es invité·e dans la salle <b class="jeu-code-inline">${jeuInvite}</b></p>`:''}
+      ${jeuInvite?`<p class="room-invite">Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'} dans la salle <b class="jeu-code-inline">${jeuInvite}</b></p>`:''}
       <label class="jeu-lab" for="jeu-code">Code de la salle</label>
       <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${jeuInvite||''}" oninput="this.value=jeuCleanCode(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go">
       <small class="room-hint">Les 6 caractères que ton ami t’a envoyés. Il choisit le niveau et les manches.</small></div>
@@ -27077,7 +27106,7 @@ function jeuLobbyLabel(){
 }
 function jeuLobbyHint(){
   const live=jeuLive();
-  if(live.length<2)return 'Personne n’a encore rejoint : partage le code. Si tu lances maintenant, tu joues seul·e.';
+  if(live.length<2)return `Personne n’a encore rejoint : partage le code. Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;
   const wait=live.filter(p=>!jeuIsReady(p));
   return wait.length?`En attente : ${wait.map(p=>esc((JEU.players[p]||{}).name||'Joueur')).join(', ')}. Tu peux lancer quand tu veux.`:'Tout le monde est prêt.';
 }
@@ -32506,7 +32535,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];
+const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -32871,7 +32900,7 @@ let obJustEntered=false;
 let obSelectionTimer=0;
 let obDemoTimers=[];
 let obSwipe2On=false;
-const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice'];
+const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice'];
 const OB_GOALS=[
   ['career','Me reconvertir dans la data','briefcase'],
   ['interview','Réussir un entretien','person'],
@@ -32902,6 +32931,16 @@ const OB_JOBS=[
   ['career-change','En reconversion','refresh'],
   ['other','Autre activité','more']
 ];
+/* 4 novembre, 17 h 27 : « demander si c’est une femme ou un homme, ou ne veut pas dire ». La réponse reste sur l’appareil
+   (state.profile.genre) et accorde les quelques mots qui parlent de la personne (accord) : « Étudiante » ou « Étudiant », « seule »
+   ou « seul » ; sans réponse ou « Ne pas dire », la forme inclusive (« Étudiant·e »). */
+const OB_GENRES=[['f','Une femme'],['h','Un homme'],['n','Ne pas dire','Je préfère ne pas le dire']];
+function genreDe(){
+  const d=typeof draft!=='undefined'&&draft&&draft.genre,p=typeof state!=='undefined'&&state&&state.profile&&state.profile.genre;
+  const g=d||p||'';return g==='f'||g==='h'?g:'';
+}
+function accord(f,h,n){const g=genreDe();return g==='f'?f:g==='h'?h:n;}
+function obJobNom(k){return k==='student'?accord('Étudiante','Étudiant','Étudiant·e'):(OB_JOBS.find(j=>j[0]===k)||[])[1]||'';}
 /* « Comment as-tu connu Requête ? » (4 novembre, 3 h 54, d’après Duolingo) : la réponse reste sur l’appareil (state.profile.source). */
 const OB_SOURCES=[
   ['tiktok','TikTok','note'],
@@ -33120,6 +33159,7 @@ function startOnboarding(initial='welcome'){
     name:state.name||'',
     goal:profile.goal||obVitrineGoal(),
     ageRange:profile.ageRange||'',
+    genre:profile.genre||'',
     job:profile.job||'',
     source:profile.source||'',
     referral:profile.referral||'',
@@ -33160,6 +33200,7 @@ function obRepriseGarder(slide){
 function obRepriseLire(){
   try{
     const r=JSON.parse(localStorage.getItem(OB_REPRISE)||'null');
+    if(r&&r.slide==='promise')r.slide='temoignages';   // la page « 24 jours » a rejoint celle des jours (17 h 27)
     if(!r||r.v!==1||!OB_SLIDES.includes(r.slide)||!r.draft||typeof r.draft!=='object'||Array.isArray(r.draft))return null;
     if(!(Date.now()-Number(r.at)<14*864e5))return null;
     if(r.slide==='welcome'||OB_WIDGET_SLIDES.includes(r.slide))return null;
@@ -33244,10 +33285,12 @@ function obGoto(target){
 function obPseudoAvant(){
   if(typeof psPage!=='function'||typeof psMien!=='function'||psMien())return false;
   if(typeof obApercu!=='undefined'&&obApercu)return false;
-  const s=clsSalle();if(s.psPage)return false;
+  /* 4 novembre, 17 h 27 : « pas de Plus tard pour Choisis ton pseudo (obligatoire) » : la page revient tant qu’aucun pseudo n’est
+     réservé, même déjà montrée ; sans réseau, le pseudo tapé est gardé et réservé au retour en ligne (obPseudoSuivant). */
+  const s=clsSalle();if(s.psVoulu)return false;
   s.psPage=1;save();
   const entree=obEntry;
-  psPage({voulu:psAncien(),garder:true,suite:()=>{obEntry=entree;obGoto('ready');}});
+  psPage({voulu:psAncien(),garder:true,obligatoire:true,suite:()=>{obEntry=entree;obGoto('ready');}});
   return true;
 }
 /* Le bouton principal se réveille quand il devient utilisable (un choix fait, une signature, le parcours construit, la première
@@ -33537,8 +33580,7 @@ function obNext(){
   else if(slide==='level')obGoto('rhythm');
   else if(slide==='rhythm')obGoto('jours');
   else if(slide==='jours')obGoto('build');
-  else if(slide==='build')obGoto('promise');
-  else if(slide==='promise')obGoto('temoignages');
+  else if(slide==='build')obGoto('temoignages');
   else if(slide==='temoignages')obGoto('pact');
   else if(slide==='pact')obGoto('practice');
   else if(slide==='practice')obGoto(obAfterPractice());
@@ -33559,8 +33601,9 @@ function obBack(){
 }
 function obPick(champ,val){
   if(obLock)return;
-  if(!['niveau','rythme','goal','ageRange','job','source','freq'].includes(champ))return;
-  if(champ==='freq'){obJoursAvant=obJoursApport(draft.freq||7);val=OB_JOURS.includes(+val)?+val:7;}
+  if(!['niveau','rythme','goal','ageRange','genre','job','source','freq'].includes(champ))return;
+  if(champ==='genre'&&!OB_GENRES.some(g=>g[0]===val))return;
+  if(champ==='freq'){obJoursAvant=obJoursApport();val=OB_JOURS.includes(+val)?+val:7;}
   draft[champ]=val;
   /* Un autre objectif, niveau, rythme ou nombre de jours change le parcours : il se reconstruit, en animation, à l’étape « build ». */
   if(champ==='niveau'||champ==='rythme'||champ==='goal'||champ==='freq')draft.buildDone=false;
@@ -34132,9 +34175,10 @@ const OB_JOURS=[2,3,5,7];
 const OB_ICO_ACTIVITES='<svg viewBox="0 0 24 24"><path d="M4 20V11h3.6v9zM10.2 20V5h3.6v15zM16.4 20v-7H20v7z" fill="currentColor"/></svg>';
 const OB_ICO_HEURES='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.7l2.6 1.6M9.6 2.8h4.8M12 2.8V6"/></svg>';
 let obJoursAvant=null;
-function obJoursApport(f){
-  const r=RYTHMES.find(x=>x.k===(draft.rythme||'regulier'))||RYTHMES[1],min=obRythmeMinutes(r),j=OB_JOURS.includes(+f)?+f:7;
-  return {activites:r.per*j*52,heures:Math.round(min*j*52/60),minutes:min};
+/* À ce rythme, le parcours dure tant de jours (17 h 27 : plus de bilan sur un an) : ceux du plan que donneraient les réponses du moment. */
+function obJoursApport(){
+  let b={days:0};try{b=obPlanInfo();}catch(e){}
+  return {jours:b.days};
 }
 /* Sous le chiffre, les sept jours du lundi au dimanche : ceux des séances (PATTERN, le planning) sont allumés. */
 function obJoursPoints(k){
@@ -34147,7 +34191,7 @@ function obJoursCompter(entree){
   const de=obJoursAvant;obJoursAvant=null;
   const ns=[...document.querySelectorAll('#ob-body .ob-apport-n[data-n]')];
   if((!de&&!entree)||!ns.length||prefersReduceMotion())return;
-  const debut=de?[de.activites,de.heures]:[0,0],D=de?650:950,attente=de?0:380;
+  const debut=de?[de.jours]:[0],D=de?650:950,attente=de?0:380;
   ns.forEach((n,i)=>{n.textContent=obNombre(debut[i]);});
   let t0=0;
   const tick=now=>{
@@ -34240,10 +34284,14 @@ const OB_FORMATEURS=[['formatrice','Agathe'],['formateur','Adam'],['formatrice-p
   ['formateur-sam','Sam'],['formateur-abraham','Abraham'],['formatrice-anna','Anna']];
 function obTvFleche(j){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${j?'m9 5 7 7-7 7':'m15 5-7 7 7 7'}"/></svg>`;}
 let obTv=null;
+/* 4 novembre, 17 h 27 (réf. 1) : « Découvrez ce qu’ils en pensent (UI/UX, DA du site internet), après Requête » : sous le badge, un
+   autocollant lavande comme « Tes retours font l’appli » de la vitrine (decouvrir/, section des avis), avec son étoile. */
+const OB_STK_AVIS='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l5.6 11.8 12.9 1.6-9.5 8.9 2.4 12.8L24 32.8l-11.4 6.3 2.4-12.8-9.5-8.9 12.9-1.6z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M24 4l5.6 11.8 12.9 1.6-9.5 8.9 2.4 12.8L24 32.8l-11.4 6.3 2.4-12.8-9.5-8.9 12.9-1.6z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round"/><path d="M17.5 21.5c1.2-2 3.6-2.6 5.2-1.4" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>';
 function obTemoinsHtml(){
   const liste=obTemoinsListe(),r=liste[0],montres=OB_FORMATEURS.slice(0,4);
   obTv={liste,i:0,raf:0,bars:[],last:-2,lit:null};
   return `<div class="ob-tv" id="ob-tv">
+      <span class="ob-stk lav ob-tv-stk">Découvre ce qu’ils en pensent${OB_STK_AVIS}</span>
       <div class="ob-tv-ph">
         <img class="ob-tv-img" id="ob-tv-img" src="${escAttr(r.photo)}" width="640" height="640" alt="${escAttr(r.prenom+', '+r.info)}" draggable="false">
         <div class="ob-tv-pick" role="group" aria-label="Choisir un témoignage">${liste.map((x,j)=>`<button type="button" aria-pressed="${j?'false':'true'}" aria-label="Témoignage ${escAttr(obTvDe(x.prenom))}" onclick="obTemoinsChoisir(${j})"><img src="${escAttr(x.mini)}" width="64" height="64" alt="" draggable="false"></button>`).join('')}</div>
@@ -34472,8 +34520,9 @@ function paintOb(){
       <label class="ob-field ob-field-at"><span>Ton pseudo</span><span class="ob-at-box"><b class="ob-at" aria-hidden="true">@</b><input id="ob-pseudo" type="text" maxlength="15" value="${escAttr(psHandle(v))}" placeholder="lea_sql" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" required aria-required="true" aria-describedby="ob-ps-etat" oninput="obPseudoTape(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();obPseudoSuivant();}"></span></label>
       <p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>
       <div class="ps-idees" id="ob-ps-idees"></div></div>`;
-    obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);
+    /* Pendant l’onboarding, le pseudo est obligatoire (17 h 27) : pas de « Plus tard ». Ouverte depuis l’app, la page garde sa sortie. */
     const pg=PS.page||{};
+    obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,'',!v);
     setTimeout(()=>{if(OB_SLIDES[obStep]!=='pseudo')return;if(pg.raison==='pris'||pg.raison==='refuse')psAfficher('ob',pg.raison,psForme(pg.voulu||''),pg.idees);else if(v)psVerif('ob',v);},0);
   }else if(slide==='pays'){
     /* 4 novembre, 13 h 18 : « une page où il détecte le pays où la personne vit » (voir paysDetecte). En arrivant, la carte cherche un
@@ -34495,13 +34544,16 @@ function paintOb(){
   }else if(slide==='age'){
     html=`<div class="ob-screen ob-profile ob-age-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>
       ${obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')}
-      <div class="ob-tiles ob-age-grid" role="radiogroup" aria-label="Ta tranche d’âge">${OB_AGES.map(([k,big,label],i)=>`<button type="button" role="radio" aria-checked="${draft.ageRange===k?'true':'false'}" aria-label="${escAttr(label)}" class="ob-tile ob-age-tile ${draft.ageRange===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('ageRange','${k}')"><b aria-hidden="true">${esc(big)}</b><small aria-hidden="true">ans</small></button>`).join('')}</div></div>`;
-    /* 17 h 32 : « enlève les notions de facultatif » : ni « Passer » ni « Facultatif » ; « Continuer » s’allume au choix. */
-    obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange);
+      <div class="ob-tiles ob-age-grid" role="radiogroup" aria-label="Ta tranche d’âge">${OB_AGES.map(([k,big,label],i)=>`<button type="button" role="radio" aria-checked="${draft.ageRange===k?'true':'false'}" aria-label="${escAttr(label)}" class="ob-tile ob-age-tile ${draft.ageRange===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('ageRange','${k}')"><b aria-hidden="true">${esc(big)}</b><small aria-hidden="true">ans</small></button>`).join('')}</div>
+      <div class="ob-genre"><p class="ob-genre-q" id="ob-genre-q">Et tu es…</p><div class="ob-tiles ob-genre-row" role="radiogroup" aria-labelledby="ob-genre-q">${OB_GENRES.map(([k,label,aria],i)=>`<button type="button" role="radio" aria-checked="${draft.genre===k?'true':'false'}"${aria?` aria-label="${escAttr(aria)}"`:''} class="ob-tile ob-genre-c ${draft.genre===k?'on':''}" style="--d:${(6+i)*45}ms" onclick="obPick('genre','${k}')">${esc(label)}</button>`).join('')}</div></div></div>`;
+    /* 17 h 32 : « enlève les notions de facultatif » : ni « Passer » ni « Facultatif » ; « Continuer » s’allume au choix.
+       4 novembre, 17 h 27 : « demander si c’est une femme ou un homme, ou ne veut pas dire (dans l’écran de l’âge, peut-être) » : sous
+       les âges, trois choix (OB_GENRES) ; « Continuer » s’allume avec les deux réponses. */
+    obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange||!draft.genre);
   }else if(slide==='job'){
     html=`<div class="ob-screen ob-profile ob-job-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>
-      ${obMascotQuestion('Étudiant·e, en poste ou en reconversion : tout le monde a sa place ici.')}
-      <div class="ob-tiles ob-job-grid" role="radiogroup" aria-label="Ta situation">${OB_JOBS.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.job===k?'true':'false'}" class="ob-tile ob-job-tile ${draft.job===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('job','${k}')">${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div></div>`;
+      ${obMascotQuestion(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.')}
+      <div class="ob-tiles ob-job-grid" role="radiogroup" aria-label="Ta situation">${OB_JOBS.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.job===k?'true':'false'}" class="ob-tile ob-job-tile ${draft.job===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('job','${k}')">${obOptionIcon(icon)}<span>${esc(obJobNom(k)||label)}</span></button>`).join('')}</div></div>`;
     obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);
   }else if(slide==='goal'){
     html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
@@ -34603,15 +34655,17 @@ function paintOb(){
        « j’ai oublié de demander le nombre de jours préféré pour étudier, ou tous les jours ». Quatre tuiles, les rythmes du planning
        (2, 3 ou 5 jours par semaine, ou tous les jours), les jours de la semaine en petits points sous le chiffre, et ce que ça
        t’apporte en un an, calculé avec la durée de séance choisie juste avant : les activités et les heures de pratique, qui défilent
-       jusqu’à leur valeur à l’arrivée et à chaque choix (obJoursCompter). */
-    const f=OB_JOURS.includes(draft.freq)?draft.freq:7,F=FREQS.find(x=>x.k===f)||FREQS[0],a=obJoursApport(f);
+       jusqu’à leur valeur à l’arrivée et à chaque choix (obJoursCompter).
+       4 novembre, 17 h 27 (réf. 8 et 9 : « fusionner sur une page, car on s’en fout des activités sur un an, etc. : à enlever ») : plus
+       de bilan sur un an ; à sa place, ce que disait la page « 24 jours » (elle disparaît) : à ce rythme, en combien de jours les leçons
+       sont finies, et à quelle date. Le chiffre défile à l’arrivée et à chaque choix, la phrase suit les jours et la durée choisis. */
+    const f=OB_JOURS.includes(draft.freq)?draft.freq:7,b=obPlanInfo(),quand=f===7?' par jour':f===5?' par jour en semaine':`, ${f}&nbsp;jours par semaine`;
     html=`<div class="ob-screen ob-profile ob-jours-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Combien de <em>jours</em> par semaine&nbsp;?</h1>
       ${obMascotQuestion('Même deux jours par semaine, ça fait avancer !')}
       <div class="ob-tiles ob-jours-grid" role="radiogroup" aria-label="Jours d’entraînement par semaine">${OB_JOURS.map((k,i)=>{const x=FREQS.find(y=>y.k===k);return `<button type="button" role="radio" aria-checked="${f===k?'true':'false'}" class="ob-tile ob-jour-tile ${f===k?'on':''}" style="--d:${i*60}ms" onclick="obPick('freq',${k})" aria-label="${escAttr(x.t+' : '+x.d)}"><b>${k}</b><small>jours</small><span class="ob-jour-dots" aria-hidden="true">${obJoursPoints(k)}</span></button>`;}).join('')}</div>
-      <div class="ob-apport"><p class="ob-apport-k">Voilà ce que ça t’apporte en un an</p>
-        <div class="ob-apport-row"><span class="ob-apport-c"><span class="ob-apport-ico" aria-hidden="true">${OB_ICO_ACTIVITES}</span><b><i class="ob-apport-n" data-n="${a.activites}">${obNombre(a.activites)}</i></b><small>activités</small></span>
-          <span class="ob-apport-c"><span class="ob-apport-ico" aria-hidden="true">${OB_ICO_HEURES}</span><b><i class="ob-apport-n" data-n="${a.heures}">${obNombre(a.heures)}</i><em>h</em></b><small>de pratique</small></span></div>
-        <p class="ob-apport-note">${esc(F.d)} · ${a.minutes}&nbsp;min par séance</p></div>${obModifiable()}</div>`;
+      <div class="ob-apport ob-proj"><p class="ob-apport-k">À ce rythme</p>
+        <div class="ob-proj-row"><span class="ob-proj-big" aria-hidden="true"><b><i class="ob-apport-n" data-n="${b.days}">${b.days}</i></b><small>jour${b.days>1?'s':''}</small></span>
+          <p class="ob-proj-t"><span class="ob-sr">En ${b.days} jour${b.days>1?'s':''}. </span>Avec <em>${b.minutes}&nbsp;minutes</em>${quand}, tu termines tes <em>${b.lessons}&nbsp;leçons</em> d’ici le <b>${esc(b.endLabel)}</b>.</p></div></div>${obModifiable()}</div>`;
     obSetFooter('Construire mon parcours',()=>obGoto('build'),'','','');
   }else if(slide==='build'){
     /* Elisa, 1er novembre, 13 h 46 : « une page où on voit bien que le parcours se construit ». Les briques du parcours arrivent l’une
@@ -34632,21 +34686,10 @@ function paintOb(){
         <div class="ob-build-track" aria-hidden="true"><div class="ob-build-bar"><i id="ob-build-fill"></i></div><b class="ob-build-head"></b><span class="ob-build-burst">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--a:${i*45+22}deg"></i>`).join('')}</span></div>
         <ul class="ob-build-list">${rows.map(([ico,t,d],i)=>`<li style="--i:${i}"><span class="ob-build-ico" aria-hidden="true">${ico}</span><span><b>${t}</b><small>${d}</small></span><i class="ob-build-ok" aria-hidden="true"></i></li>`).join('')}</ul>
         <div class="ob-build-path" aria-hidden="true">${b.modules.map((m,i)=>`<span class="${m.skip?'is-skip':m.start?'is-start':''}" style="--i:${i}">${esc(m.t)}</span>`).join('')}</div></div></div>`;
-    /* 1 h 31 : « Découvre ce que tu vas apprendre », avec une flèche animée (elle avance une fois le parcours prêt ; obSetFooter la pose). */
-    obSetFooter('Découvre ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);
+    /* 1 h 31 : « Découvre ce que tu vas apprendre », avec une flèche animée (elle avance une fois le parcours prêt ; obSetFooter la pose).
+       4 novembre, 17 h 27 : la page « 24 jours » qui suivait rejoint celle des jours (réf. 8 et 9) ; le bouton mène aux avis. */
+    obSetFooter('Continuer',()=>obGoto('temoignages'),'','','',true);
     obRunBuild();
-  }else if(slide==='promise'){
-    /* « Comme la réf. 3 (Duolingo) : une page pour dire… tu apprendras en 30 jours » : un grand chiffre jaune en relief, puis la phrase.
-       3 novembre, 13 h 25 : « ne mets pas : c’est assez pour les entretiens de data analyst » : plus de phrase de résultat promis sous
-       le titre, quel que soit l’objectif (toutes promettaient un résultat du même genre). */
-    /* 9 h 36 : la phrase suit les jours choisis (« par jour », « par jour en semaine » ou « 3 jours par semaine »). */
-    const b=obPlanInfo(),fq=draft.freq||7,quand=fq===7?' par jour':fq===5?' par jour en semaine':`, ${fq} jours par semaine`;
-    html=`<div class="ob-screen ob-profile ob-promise">${obFlowHeader(slide)}
-      <div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>
-      <img class="ob-promise-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
-      <h1 class="ob-title" id="ob-title">Avec <em>${b.minutes} minutes</em>${quand}, tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1></div>`;
-    obSetFooter('Continuer',()=>obGoto('temoignages'),'','','');
-    obRunBig();
   }else if(slide==='pact'){
     /* « Une page où la personne va signer (dans un cadre) pour dire qu’elle va bien suivre les cours pour s’améliorer ». Le cadre du
        certificat, le texte de l’engagement à son nom et à son rythme, la zone où signer au doigt ; « Je m’engage » s’allume une fois
@@ -34658,7 +34701,7 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-pact">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>
       <p class="ob-lead">Chaque minute compte pour atteindre ton objectif.</p>
       <div class="ob-pact-card${draft.pacte?' is-signed':''}"><p class="ob-pact-k">Mon engagement personnel</p>
-        <p class="ob-pact-txt">Moi, <b>${firstName?esc(firstName):'futur·e pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>
+        <p class="ob-pact-txt">Moi, <b>${firstName?esc(firstName):accord('future','futur','futur·e')+' pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>
         <p class="ob-pact-txt">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>
         <div class="ob-sign${draft.pacte?' is-signed':''}" id="ob-sign"><canvas id="ob-sign-cv" aria-label="Zone de signature : signe avec ton doigt ou ta souris" role="img"></canvas><span class="ob-sign-ph" aria-hidden="true">Signe ici</span><i class="ob-sign-line" aria-hidden="true"></i></div>
         <div class="ob-pact-foot"><small>Le ${new Date().getDate()===1?'1er':new Date().getDate()} ${esc(new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))}</small><button type="button" class="ob-sign-clear" id="ob-sign-clear" onclick="obSignClear()">Effacer</button></div>
@@ -34733,6 +34776,7 @@ function finishOnboard(action){
   state.profile={
     goal:draft.goal||'',
     ageRange:draft.ageRange||'',
+    genre:OB_GENRES.some(g=>g[0]===draft.genre)?draft.genre:'',
     job:draft.job||'',
     source:draft.source||'',
     referral:draft.source==='referral'?(draft.referral||''):'',
@@ -34744,7 +34788,7 @@ function finishOnboard(action){
   save();
   try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours créé (11 h 08)
   /* Première connexion : la mini-page du pseudo (Elisa, 31 octobre, 17 h 53), puis l’appli. */
-  if(!psMien()&&!clsSalle().psPage&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}
+  if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)});return;}
   obTerminer(action);
 }
 function obTerminer(action){
@@ -35122,7 +35166,7 @@ function renderCompte(){
   const connected=state.accountMode==='connected';
   const profile=state.profile||{};
   const profileGoal=(OB_GOALS.find(g=>g[0]===profile.goal)||[])[1]||'';
-  const profileJob=(OB_JOBS.find(j=>j[0]===profile.job)||[])[1]||'';
+  const profileJob=obJobNom(profile.job);
   const profileSummary=[profileGoal,profileJob,nivLab].filter(Boolean).join(' · ')||'Objectif, niveau et rythme';
   const CHEV=ACCT_CHEV;
   const plural=(n,word)=>`${n} ${word}${n>1?'s':''}`;
@@ -35887,7 +35931,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-migrations-v2509';
+  const SW_CACHE='requete-2026-11-04-onboarding-v2510';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

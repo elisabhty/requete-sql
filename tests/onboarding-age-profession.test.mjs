@@ -19,8 +19,8 @@ const fn = (name, next) => { const i = app.lastIndexOf(`function ${name}(`); ass
 const slide = (name, next) => { const i = app.lastIndexOf(`}else if(slide==='${name}'){`); assert.ok(i > 0, name); return app.slice(i, app.indexOf(next, i + 10)); };
 
 test('l’âge et la profession, juste après le prénom, dans le compte des étapes', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
-  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice'];"), '« Étape 2 sur 10 », « Étape 3 sur 10 »');
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice'];"), '« Étape 2 sur 10 », « Étape 3 sur 10 »');
   /* obNext, exécuté seul : prénom → pays (4 novembre, 13 h 18 : retours-1318) → âge → profession → objectif */
   const vers = [];
   const ctx = vm.createContext({ OB_SLIDES: vm.runInNewContext(app.match(/const OB_SLIDES = (\[[^\]]+\]);/)[1]), obStep: 0,
@@ -45,7 +45,13 @@ test('âge : six tranches en tuiles, choix unique (obligatoire depuis 17 h 32)',
   assert.ok(age.includes("obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')"), 'la mascotte pose la question, comme aux autres étapes');
   assert.ok(age.includes('role="radiogroup" aria-label="Ta tranche d’âge"') && age.includes('role="radio" aria-checked="${draft.ageRange===k?\'true\':\'false\'}" aria-label="${escAttr(label)}"'));
   assert.ok(age.includes("onclick=\"obPick('ageRange','${k}')\"") && age.includes('style="--d:${i*45}ms"'), 'les tuiles arrivent l’une après l’autre');
-  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange);"), '« Continuer » après un choix ; ni « Passer » ni « Facultatif » (17 h 32)');
+  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange||!draft.genre);"), '« Continuer » après les deux choix ; ni « Passer » ni « Facultatif » (17 h 32)');
+  /* 4 novembre, 17 h 27 : « demander si c’est une femme ou un homme, ou ne veut pas dire (dans l’écran de l’âge, peut-être) » */
+  const genres = vm.runInNewContext(app.match(/const OB_GENRES=(\[[^;]*\]);/)[1]);
+  assert.deepEqual(Array.from(genres, g => g[1]), ['Une femme', 'Un homme', 'Ne pas dire']);
+  assert.equal(genres[2][2], 'Je préfère ne pas le dire', 'ce que lit un lecteur d’écran');
+  assert.ok(age.includes('<p class="ob-genre-q" id="ob-genre-q">Et tu es…</p><div class="ob-tiles ob-genre-row" role="radiogroup" aria-labelledby="ob-genre-q">'));
+  assert.ok(age.includes("class=\"ob-tile ob-genre-c ${draft.genre===k?'on':''}\"") && age.includes("onclick=\"obPick('genre','${k}')\""));
 });
 
 test('profession : six situations en tuiles, avec leur pastille de couleur', () => {
@@ -53,12 +59,21 @@ test('profession : six situations en tuiles, avec leur pastille de couleur', () 
   assert.deepEqual(Array.from(jobs, j => j[1]), ['Étudiant·e', 'Data ou développement', 'Produit, marketing ou vente', 'Finance ou opérations', 'En reconversion', 'Autre activité']);
   const job = slide('job', "}else if(slide==='goal'){");
   assert.ok(job.includes('<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>'));
-  assert.ok(job.includes('role="radiogroup" aria-label="Ta situation"') && job.includes("onclick=\"obPick('job','${k}')\"") && job.includes('${obOptionIcon(icon)}<span>${esc(label)}</span>'));
+  assert.ok(job.includes('role="radiogroup" aria-label="Ta situation"') && job.includes("onclick=\"obPick('job','${k}')\"") && job.includes('${obOptionIcon(icon)}<span>${esc(obJobNom(k)||label)}</span>'));
   assert.ok(job.includes("obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);"));
-  assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(!['niveau','rythme','goal','ageRange','job','source','freq'].includes(champ))return;"));
+  assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(!['niveau','rythme','goal','ageRange','genre','job','source','freq'].includes(champ))return;"));
+  assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(champ==='genre'&&!OB_GENRES.some(g=>g[0]===val))return;"), 'seulement les trois réponses');
   /* Les réponses restent sur l’appareil, dans le profil, et l’onboarding les reprend (Mon compte › Personnalisation). */
-  assert.ok(app.includes("    ageRange:draft.ageRange||'',\n    job:draft.job||'',") && app.includes("    ageRange:profile.ageRange||'',\n    job:profile.job||'',"));
-  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge et ta profession (si tu les indiques), la façon dont tu as connu Requête, ton objectif,'), 'la page Confidentialité le dit');
+  assert.ok(app.includes("    ageRange:draft.ageRange||'',\n    genre:OB_GENRES.some(g=>g[0]===draft.genre)?draft.genre:'',\n    job:draft.job||'',") && app.includes("    ageRange:profile.ageRange||'',\n    genre:profile.genre||'',\n    job:profile.job||'',"));
+  /* « Étudiante » ou « Étudiant » selon la réponse ; sans réponse ou « Ne pas dire », « Étudiant·e » */
+  const ctx = vm.createContext({ draft: {}, state: { profile: {} } });
+  vm.runInContext(app.match(/const OB_JOBS=\[[\s\S]*?\];\n/)[0].replace('const OB_JOBS', 'var OB_JOBS') + fn('genreDe', 'function accord(') + fn('accord', 'function obJobNom(') + fn('obJobNom', 'const OB_SOURCES'), ctx);
+  const nom = g => { ctx.draft.genre = g; return vm.runInContext("obJobNom('student')", ctx); };
+  assert.deepEqual([nom('f'), nom('h'), nom('n'), nom(undefined)], ['Étudiante', 'Étudiant', 'Étudiant·e', 'Étudiant·e']);
+  ctx.draft.genre = ''; ctx.state.profile.genre = 'f';
+  assert.equal(vm.runInContext("obJobNom('student')", ctx), 'Étudiante', 'après l’onboarding, le profil');
+  assert.equal(vm.runInContext("obJobNom('data')", ctx), 'Data ou développement');
+  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), la façon dont tu as connu Requête, ton objectif,'), 'la page Confidentialité le dit');
 });
 
 test('les tuiles suivent la DA de l’onboarding : cartes blanches à rebord, coche jaune soleil', () => {
@@ -75,7 +90,7 @@ test('l’engagement : le nouveau texte, et le cadre de signature au milieu de l
   const pact = slide('pact', '}else{');
   assert.ok(pact.includes('<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>\n      <p class="ob-lead">Chaque minute compte pour atteindre ton objectif.</p>'));
   assert.ok(pact.includes('<p class="ob-pact-k">Mon engagement personnel</p>'));
-  assert.ok(pact.includes("<p class=\"ob-pact-txt\">Moi, <b>${firstName?esc(firstName):'futur·e pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>"));
+  assert.ok(pact.includes("<p class=\"ob-pact-txt\">Moi, <b>${firstName?esc(firstName):accord('future','futur','futur·e')+' pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>"));
   assert.ok(pact.includes("<p class=\"ob-pact-txt\">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>"));
   /* La durée dit le vrai rythme choisi : 20 minutes par jour (tous les jours), en semaine, ou n jours par semaine */
   const ligne = pact.match(/const duree=([^;]+);/)[1];
@@ -97,11 +112,12 @@ test('l’engagement : le nouveau texte, et le cadre de signature au milieu de l
 
 test('la promesse ne dit plus « c’est assez pour les entretiens de data analyst » (ni aucune promesse de résultat)', () => {
   /* Le code de l’écran, sans ses commentaires (ils citent la demande d’Elisa) */
-  const promise = slide('promise', "}else if(slide==='pact'){").replace(/\/\*[\s\S]*?\*\//g, '');
+  /* 4 novembre, 17 h 27 (réf. 8 et 9) : la page « 24 jours » a rejoint celle des jours ; la phrase y est, toujours sans promesse */
+  assert.ok(!app.includes("}else if(slide==='promise'){"), 'plus de page à part');
+  const promise = slide('jours', "}else if(slide==='build'){").replace(/\/\*[\s\S]*?\*\//g, '');
   for (const t of ['premiers entretiens', 'c’est assez pour', 'goalLine', '<p class="ob-lead">']) assert.ok(!promise.includes(t), t);
   assert.ok(!app.includes('premiers entretiens de data analyst'), 'nulle part dans l’appli');
-  assert.ok(promise.includes('tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1></div>`;'));
-  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-promise .ob-big{margin-top:auto}') && css.includes('html #onboarding.ob-vitrine .ob-promise .ob-title{margin-bottom:auto;'), 'au milieu de l’écran');
+  assert.ok(promise.includes('tu termines tes <em>${b.lessons}&nbsp;leçons</em> d’ici le <b>${esc(b.endLabel)}</b>.</p>'));
 });
 
 test('micro-interactions : sens des transitions, entrées en cascade, bouton qui se réveille, mascotte qui saute de joie', () => {
@@ -136,7 +152,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=22">') && sw.includes("'./onboarding-vitrine.css?v=22',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=23">') && sw.includes("'./onboarding-vitrine.css?v=23',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');

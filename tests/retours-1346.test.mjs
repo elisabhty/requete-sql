@@ -48,12 +48,13 @@ test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton
 });
 
 test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l’engagement signé ; tout tient sur un écran', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
   const ob = cut('function obPlanInfo(){', 'function obRhythmSummary(){');
   assert.ok(ob.includes("const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);"), 'le nombre de jours vient du plan réellement généré');
   assert.ok(ob.includes("if(ink>40){"), 'une vraie signature, pas un point');
   assert.ok(ob.includes("for(const c of C){") && app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'se resserre par paliers tant que ça déborde');
-  assert.ok(app.includes('<div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>'));
+  /* 4 novembre, 17 h 27 (réf. 8 et 9) : le grand chiffre des jours est passé sur la page des jours (plus de page « 24 jours ») */
+  assert.ok(app.includes('<span class="ob-proj-big" aria-hidden="true"><b><i class="ob-apport-n" data-n="${b.days}">${b.days}</i></b><small>jour${b.days>1?\'s\':\'\'}</small></span>'));
   /* 3 novembre, 13 h 25 : « Mon engagement personnel » à la place de « Mon contrat d’apprentissage » (tests/onboarding-age-profession.test.mjs) */
   assert.ok(app.includes('<p class="ob-pact-k">Mon engagement personnel</p>'));
   assert.ok(app.includes("obSetFooter('Je m’engage',()=>{draft.pacteAt=Date.now();obGoto('practice');},'Plus tard',()=>obGoto('practice'),'',!draft.pacte);"), '« Je m’engage » s’allume une fois signé');
@@ -254,7 +255,7 @@ test('19 h 22 : l’icône de chargement (tirer pour recharger) descend moins ba
 
 test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la carte du cours ; la série dessous', () => {
   assert.ok(app.includes('const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}${chip}'));
-  assert.ok(app.includes('<span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;'));
+  assert.ok(app.includes('<span>${esc(ctaLabel)}</span></button></section>${streak}${extras}${objectifAccueilHTML()}`;'), 'la série dessous, puis l’objectif (4 novembre, 17 h 27)');
   assert.ok(css.includes('html.lq .lq-hero.has-hi .lq-hero-hi{position:relative;z-index:1;margin:0 0 14px;padding:0 0 14px;border-bottom:1.5px solid rgba(255,255,255,.18)}'));
 });
 

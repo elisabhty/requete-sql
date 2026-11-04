@@ -65,7 +65,7 @@ test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », 
   assert.ok(!app.includes('Tu es seul·e dans la salle'), 'plus d’annonce « seul·e dans la salle »');
   assert.ok(app.includes("const seul=J.solo||sc.every(x=>x.pid===J.me);"), 'fin de partie seul : le bilan, pas le podium');
   assert.ok(app.includes("salle:J.code,g:J.g});"), 'au classement : la partie est identifiée, les bonus sont calculés sur le serveur');
-  assert.ok(app.includes("'Personne n’a encore rejoint : partage le code. Si tu lances maintenant, tu joues seul·e.'"));
+  assert.ok(app.includes("`Personne n’a encore rejoint : partage le code. Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`"));
 });
 
 test('résultats et fin de partie allégés ; la notification des points en une pastille', () => {

@@ -38,7 +38,7 @@ test('le bandeau vert n’est plus pixelisé : une fois posé, l’animation ne 
   assert.ok(css.includes('@keyframes obvStampIn{0%{opacity:0;transform:scale(.4) rotate(-12deg)}60%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{opacity:1;transform:rotate(-1.5deg)}}'));
   const base = css.match(/html #onboarding\.ob-vitrine \.ob-practice-reward\{[^}]+\}/)[0];
   assert.ok(base.includes('transform:rotate(-1.5deg)') && !/will-change/.test(base), 'penché, sans calque gardé exprès');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=22">') && sw.includes("'./onboarding-vitrine.css?v=22',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=23">') && sw.includes("'./onboarding-vitrine.css?v=23',"), 'feuille rechargée');
 });
 
 test('« Commencer la première leçon » a la flèche animée du bouton de la construction', () => {
@@ -51,24 +51,27 @@ test('« Commencer la première leçon » a la flèche animée du bouton de la c
 });
 
 test('le pseudo passe avant « Ton parcours est prêt », qui reste la dernière page', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
   const go = fnLast('obGoto');
   assert.ok(go.includes("if(OB_SLIDES[n]==='ready'&&obPseudoAvant())return;"), 'tout chemin vers la dernière page passe par le pseudo');
   assert.ok(go.indexOf('obPseudoAvant()') < go.indexOf('obLock=true'));
   assert.ok(fnLast('obNext').includes("else if(slide==='pseudo')obPseudoSuivant();"), 'glisser ou Entrée sur la mini-page : le pseudo, pas la fin');
   const fin = fnLast('finishOnboard');
-  assert.ok(fin.includes("if(!psMien()&&!clsSalle().psPage&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}"),
-    'déjà montrée (ou « Plus tard ») : pas redemandée à la fin');
+  /* 4 novembre, 17 h 27 : « pas de Plus tard pour Choisis ton pseudo (obligatoire) » : sans pseudo réservé ni gardé hors ligne, la fin
+     de l’onboarding le demande encore, même si la page a déjà été montrée (une reprise après fermeture de l’app, par exemple). */
+  assert.ok(fin.includes("if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)});return;}"),
+    'obligatoire : redemandée à la fin tant qu’il n’y a pas de pseudo');
   assert.ok(fnLast('obTerminer').includes("if(action==='plan-ready'){\n    switchTab('planning');"), '« Voir mon parcours » : le Planning');
 });
 
 /* obPseudoAvant et psPageFin, joués dans un bac à sable */
-function bac({ pseudo = '', dejaVue = false, apercu = false } = {}) {
+function bac({ pseudo = '', dejaVue = false, apercu = false, horsLigne = '' } = {}) {
   const log = [], classes = new Set(['on']), salle = dejaVue ? { psPage: 1 } : {};
+  if (horsLigne) salle.psVoulu = horsLigne;
   const ctx = vm.createContext({
     psMien: () => pseudo, clsSalle: () => salle, save: () => log.push('enregistré'), psAncien: () => 'lea_sql',
     obApercu: apercu, obEntry: 'welcome', PS: { suite: null, siOk: null, page: null, etat: {} },
-    psPage: o => { log.push('mini-page ' + JSON.stringify({ voulu: o.voulu, garder: o.garder })); ctx.PS.page = o; ctx.PS.suite = o.suite; ctx.obEntry = 'pseudo'; },
+    psPage: o => { log.push('mini-page ' + JSON.stringify({ voulu: o.voulu, garder: o.garder, obligatoire: o.obligatoire })); ctx.PS.page = o; ctx.PS.suite = o.suite; ctx.obEntry = 'pseudo'; },
     obGoto: t => log.push('vers ' + t), obBarreEtat: v => log.push('barre ' + v), renderCompte() {}, renderDefis() {}, activeTab: 'learn',
     document: { getElementById: () => ({ classList: { remove: (...c) => { c.forEach(x => classes.delete(x)); log.push('fermé'); } }, setAttribute() {} }) }
   });
@@ -76,20 +79,22 @@ function bac({ pseudo = '', dejaVue = false, apercu = false } = {}) {
   return { ctx, log, classes, salle };
 }
 
-test('bac à sable : la mini-page une seule fois, l’onboarding reste ouvert, puis la dernière page', () => {
+test('bac à sable : la mini-page obligatoire, l’onboarding reste ouvert, puis la dernière page', () => {
   const b = bac();
   assert.equal(b.ctx.obPseudoAvant(), true);
-  assert.deepEqual(b.log, ['enregistré', 'mini-page {"voulu":"lea_sql","garder":true}']);
-  assert.equal(b.salle.psPage, 1, 'notée comme montrée : la fin de l’onboarding ne la redemande pas');
+  assert.deepEqual(b.log, ['enregistré', 'mini-page {"voulu":"lea_sql","garder":true,"obligatoire":true}']);
+  assert.equal(b.salle.psPage, 1, 'notée comme montrée : l’ouverture de l’appli ne la propose plus d’elle-même');
   b.log.length = 0;
-  b.ctx.psPageFin(false);                       // « Plus tard », ou pseudo gardé hors ligne
+  b.ctx.psPageFin(false);                       // pseudo gardé hors ligne (plus de « Plus tard » pendant l’onboarding)
   assert.deepEqual(b.log, ['vers ready'], 'pas de fermeture, pas de barre rendue : « Ton parcours est prêt » prend la place');
   assert.ok(b.classes.has('on'));
   assert.equal(b.ctx.obEntry, 'welcome', 'l’entrée de l’onboarding revient');
-  for (const opts of [{ pseudo: 'tom' }, { dejaVue: true }, { apercu: true }]) {
+  for (const opts of [{ pseudo: 'tom' }, { horsLigne: 'tom_sql' }, { apercu: true }]) {
     const c = bac(opts);
     assert.equal(c.ctx.obPseudoAvant(), false, JSON.stringify(opts)); assert.deepEqual(c.log, []);
   }
+  /* Déjà montrée, mais toujours sans pseudo (l’app fermée sur la page, puis rouverte) : elle revient (obligatoire, 17 h 27) */
+  assert.equal(bac({ dejaVue: true }).ctx.obPseudoAvant(), true);
   /* Ailleurs (ouverture de l’appli, salle de défi) : la mini-page se ferme comme avant */
   const d = bac(); d.ctx.PS.page = {}; d.ctx.PS.suite = () => d.log.push('suite');
   d.ctx.psPageFin(true);

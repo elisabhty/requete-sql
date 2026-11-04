@@ -44,7 +44,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
   for (const k of ['ActivityConfiguration(for: RequeteLecon.self) { context in', 'LeconVerrouille(lecon: context.attributes, etat: context.state)',
     '.activityBackgroundTint(violetTexte)', '} dynamicIsland: { context in', 'DynamicIsland {',
     'DynamicIslandExpandedRegion(.leading) {', 'DynamicIslandExpandedRegion(.trailing) {', 'DynamicIslandExpandedRegion(.center) {', 'DynamicIslandExpandedRegion(.bottom) {',
-    '} compactLeading: {\n                LeconFlamme(etat: context.state, taille: 15)', '} compactTrailing: {\n                LeconAnneau(', '} minimal: {\n                LeconFlamme(etat: context.state, taille: 14)',
+    '} compactLeading: {\n                LeconFlamme(etat: context.state, taille: 15)', '} compactTrailing: {\n                LeconPourcent(etat: context.state)', '} minimal: {\n                LeconFlamme(etat: context.state, taille: 14)',
     '.keylineTint(braise)', 'Image("Mascotte")'])
     assert.ok(act.includes(k), k);
   for (const k of ['@available(iOS 16.1, *)\nstruct RequeteLeconActivite: Widget {', '@available(iOS 16.1, *)\nstruct LeconVerrouille: View {',
@@ -57,7 +57,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
   assert.ok(phrase.includes(`"\\(pct)${ESPACE}% de la leçon" : "\\(pct)${ESPACE}% · termine-la pour allumer ta flamme"`));
   /* La flamme : dorée allumée, braise sinon ; l’anneau et la barre dorés à la fin */
   assert.ok(widget.includes('.foregroundColor(etat.fini || etat.allumee ? dore : braise)'));
-  assert.ok(widget.includes('.stroke(fini ? dore : braise, style: StrokeStyle(lineWidth: 3, lineCap: .round))') && widget.includes('.fill(fini ? dore : Color.white)'));
+  assert.ok(widget.includes('let teinte: Color = etat.fini ? dore : braise') && widget.includes('.fill(fini ? dore : Color.white)'), 'le pour cent braise, la coche dorée (17 h 27) ; la barre dorée à la fin');
   const code = sansCommentaires(widget);
   for (const [o, f] of [['{', '}'], ['(', ')'], ['[', ']']]) assert.equal(code.split(o).length, code.split(f).length, `${o}${f} équilibrées (widget)`);
 });
@@ -265,7 +265,7 @@ test('la note se garde dans la progression (normalizeState), sans rien d’autre
 });
 
 test('les étoiles en CSS : la fiche du bilan, leur arrivée, leur ondulation, le rebond, les étincelles, et le mouvement réduit', () => {
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=137">'));
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=138">'));
   for (const k of ['html.lq #scr-lesson .bravo-avis{', 'html.lq #scr-lesson .bravo-avis .av-star.on path{fill:var(--sun);stroke:var(--sun-lip)}',
     'html.lq #scr-lesson .bravo-avis .av-star input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
     'html.lq #scr-lesson .bravo-avis .av-star{animation:avStarIn .5s var(--pop) calc(.42s + var(--i) * .07s) backwards}',

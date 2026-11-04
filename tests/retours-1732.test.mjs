@@ -124,7 +124,7 @@ test('Réf. 8 et première page : plus de « Mode sans compte » ni de « Aucun 
 });
 
 test('« On construit ton parcours » : l’effet waouh', () => {
-  const b = slide('build', "}else if(slide==='promise'){");
+  const b = slide('build', "}else if(slide==='pact'){");
   assert.ok(b.includes('<div class="ob-build-hero"><h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1><img class="ob-build-stk" src="${MASCOT_IMG}"'), 'la mascotte au travail');
   assert.ok(b.includes('<span class="ob-build-k" id="ob-build-k" role="status">Construction en cours…</span><b class="ob-build-pct" id="ob-build-pct" aria-hidden="true">0 %</b>'), 'un seul message pour les lecteurs d’écran, pas chaque pourcentage');
   assert.ok(b.includes('<span class="ob-build-burst">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--a:${i*45+22}deg"></i>`).join(\'\')}</span>'));
@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=22']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=23']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -311,7 +311,7 @@ test('23 h 21 : le niveau sans « Tu commenceras par… », la première requêt
   assert.ok(p.includes("'Lance la requête pour découvrir le résultat'"));
   assert.ok(css.includes('html #onboarding.ob-vitrine[data-ob-slide="practice"] .ob-cta:disabled{font-size:15px!important;'), 'le bouton inactif tient sur une ligne dès 375 px');
   /* La construction : nombres qui montent, comète, étincelles, confettis, vague sur les modules */
-  const b = slide('build', "}else if(slide==='promise'){");
+  const b = slide('build', "}else if(slide==='pact'){");
   assert.ok(b.includes("const anim=!draft.buildDone&&!prefersReduceMotion(),nb=(n,txt)=>`<span class=\"ob-n\" data-n=\"${n}\">${anim?0:n}</span>${txt}`;"));
   assert.ok(b.includes("['≡',nb(b.lessons,' leçons'),'dans le bon ordre, pour toi']") && b.includes("['⚑','Tes défis',`niveau ${esc(b.defiNiv)} recommandé`]"));
   assert.ok(b.includes('<b class="ob-build-head"></b>') && (b.match(/<i class="ob-build-spark" aria-hidden="true"><\/i>/g) || []).length === 3);
@@ -342,8 +342,9 @@ test('4 novembre, 1 h 31 : la première requête en deux pages, « Ton parcours 
   const run = fn('obPracticeRun', 'function obCanNext(');
   assert.ok(!run.includes('obConfettiAt(') && run.includes("if(draft.practiceDone)obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='practice'&&!obLock)obGoto(obAfterPractice());},reduce?1800:2400));"));
   /* Réf. 2 : la flèche animée du bouton */
-  const b = slide('build', "}else if(slide==='promise'){");
-  assert.ok(b.includes("obSetFooter('Découvre ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);") && app.includes("btn.insertAdjacentHTML('beforeend',OB_CTA_FLECHE);"), 'obSetFooter la pose (14 h 08)');
+  const b = slide('build', "}else if(slide==='pact'){");
+  /* 4 novembre, 17 h 27 : la page « 24 jours » a rejoint celle des jours ; le bouton mène aux avis, « Continuer » */
+  assert.ok(b.includes("obSetFooter('Continuer',()=>obGoto('temoignages'),'','','',true);") && app.includes("btn.insertAdjacentHTML('beforeend',OB_CTA_FLECHE);"), 'obSetFooter la pose (14 h 08)');
   assert.ok(css.includes('.ob-cta:not(:disabled) .ob-cta-arrow{animation:obvArrow 1.1s ease-in-out .4s infinite}'), 'elle avance une fois le parcours prêt');
   /* « Maîtrise de l’espace » : la carte de la construction remplit la hauteur, les modules prennent la place qui reste */
   for (const k of ['html #onboarding.ob-vitrine .ob-screen.ob-build{height:100%}', 'html #onboarding.ob-vitrine .ob-build-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}',

@@ -38,20 +38,21 @@ test('le badge : « 1 000+ » entre deux lauriers, « personnes apprécient Requ
   assert.ok(bloc.includes("const n=document.querySelector('#ob-body .ob-tv-badge i[data-n]');"));
 });
 
-test('l’ordre : les questions se suivent, puis le parcours, la promesse, la preuve et l’engagement', () => {
+test('l’ordre : les questions se suivent, puis le parcours (la promesse est sur la page des jours depuis 17 h 27), la preuve et l’engagement', () => {
   const ob = vm.runInNewContext(app.match(/const OB_SLIDES = (\[[^\]]+\]);/)[1]);
-  const ordre = ['goal', 'level', 'rhythm', 'jours', 'build', 'promise', 'temoignages', 'pact', 'practice'];
+  const ordre = ['goal', 'level', 'rhythm', 'jours', 'build', 'temoignages', 'pact', 'practice'];
+  assert.ok(!ob.includes('promise'), 'plus de page « 24 jours » à part');
   assert.deepEqual([...ob].slice(ob.indexOf('goal'), ob.indexOf('goal') + ordre.length), ordre);
   const prof = vm.runInNewContext(app.match(/const OB_PROFILE_SLIDES=(\[[^\]]+\]);/)[1]);
-  assert.deepEqual([...prof], ['name', 'pays', 'age', 'job', 'goal', 'level', 'rhythm', 'jours', 'build', 'promise', 'temoignages', 'pact', 'practice'], '« Étape X sur N »');
+  assert.deepEqual([...prof], ['name', 'pays', 'age', 'job', 'goal', 'level', 'rhythm', 'jours', 'build', 'temoignages', 'pact', 'practice'], '« Étape X sur N »');
   /* Suivant, le bouton et le retour suivent ce même ordre */
   assert.ok(app.includes("  else if(slide==='goal')obGoto('level');\n  else if(slide==='level')obGoto('rhythm');"));
-  assert.ok(app.includes("  else if(slide==='promise')obGoto('temoignages');\n  else if(slide==='temoignages')obGoto('pact');\n  else if(slide==='pact')obGoto('practice');"));
-  assert.ok(app.includes("    obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);") && app.includes("    obSetFooter('Continuer',()=>obGoto('temoignages'),'','','');\n    obRunBig();"));
+  assert.ok(app.includes("  else if(slide==='build')obGoto('temoignages');\n  else if(slide==='temoignages')obGoto('pact');\n  else if(slide==='pact')obGoto('practice');"));
+  assert.ok(app.includes("    obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);") && app.includes("    obSetFooter('Continuer',()=>obGoto('temoignages'),'','','',true);\n    obRunBuild();"));
   assert.ok(app.includes("    obSetFooter('Continuer',()=>obGoto('pact'),'','','');\n  }else if(slide==='level'){"), 'les avis mènent à l’engagement');
-  /* L’entonnoir de l’onboarding, dans le même ordre */
-  const sql = read('supabase/migrations/20261104160656_onboarding_entonnoir.sql');
+  /* L’entonnoir de l’onboarding, dans le même ordre (la dernière migration qui le définit) */
+  const sql = read('supabase/migrations/20261104173000_onboarding_entonnoir_sans_promesse.sql');
   const rangs = [...sql.matchAll(/\('([a-zA-Z]+)', (\d+), '/g)].map(m => [m[1], +m[2]]);
-  assert.deepEqual(rangs.map(r => r[0]), ['welcome', 'name', 'pays', 'age', 'job', 'goal', 'level', 'rhythm', 'jours', 'build', 'promise', 'temoignages', 'pact', 'practice', 'account', 'source', 'rappel', 'ready', 'termine']);
+  assert.deepEqual(rangs.map(r => r[0]), ['welcome', 'name', 'pays', 'age', 'job', 'goal', 'level', 'rhythm', 'jours', 'build', 'temoignages', 'pact', 'practice', 'account', 'source', 'rappel', 'ready', 'termine']);
   assert.deepEqual(rangs.map(r => r[1]), rangs.map((_, k) => k + 1), 'des rangs qui se suivent');
 });

@@ -109,8 +109,9 @@ Une Live Activity suit la leçon en vidéo : la page la lance à l’ouverture d
 (`RequeteLeconActivite`, dans `RequeteWidget.swift`) :
 
 - **Dynamic Island** (iPhone 14 Pro et plus récents, dès qu’on quitte l’app en pleine leçon) : la flamme à gauche, l’avancement en
-  anneau à droite ; appui long : le chat, le module et la leçon, la barre d’avancement, « 40 % · termine-la pour allumer ta
-  flamme » ;
+  pour cent à droite (« 12 % », une coche dorée une fois réussie ; 4 novembre, 17 h 27 : l’anneau d’avant ressemblait à une roue qui
+  charge et iOS en coupait un bord) ; appui long : le chat, le module et la leçon, la barre d’avancement, « 40 % · termine-la pour
+  allumer ta flamme » ;
 - **écran verrouillé** (tous les iPhone en iOS 16.2 et plus) : la même chose sur le violet de l’app ;
 - un appui ramène dans l’app, sur la leçon. **Leçon réussie** : la flamme du jour s’allume, dorée (« Leçon terminée ! Ta flamme
   du jour est allumée. »), et l’activité reste un quart d’heure sur l’écran verrouillé. **Leçon fermée avant la fin** : elle s’en va.
