@@ -1,7 +1,9 @@
-/* Retours de 1 h 16 (Elisa, 4 novembre), sur l’ouverture de l’appli iOS : « je suis sûr que tu peux améliorer l’écran de
-   lancement (en mode data) : mettre des chiffres au lieu des confettis ? » La gerbe de confettis qui part de derrière la touche
-   >_ devient quatorze nombres en chasse fixe : chaque chiffre défile comme sur un compteur, de gauche à droite, puis se pose
-   sur sa valeur, et le nombre fait un petit bond quand il est complet. Toujours en transform et opacité seulement. */
+/* Retours de 1 h 16 et 1 h 29 (Elisa, 4 novembre), sur l’ouverture de l’appli iOS : « je suis sûr que tu peux améliorer l’écran
+   de lancement (en mode data) : mettre des chiffres au lieu des confettis ? », puis, sur une gerbe de nombres lancés autour de la
+   touche : « réfléchis mieux stp, on peut faire mieux ». Des nombres au hasard restaient des confettis. L’écran devient une table :
+   l’appui sur la touche >_ y envoie une onde, chaque case chiffrée surgit à son passage (un halo de données autour de la touche),
+   la requête allume ses résultats un à un aux couleurs de l’appli, puis on plonge dans la touche pendant que la table file sur les
+   côtés. Toujours en transform et opacité seulement, toujours 1,3 s. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,105 +15,118 @@ const cut = (s, a, b) => { const i = s.indexOf(a); assert.ok(i >= 0, a); const j
 const intro = cut(app, '/* Appli iOS : l’ouverture animée', '  </script>');
 const bloc = css.slice(css.indexOf('/* ---------- 37 bis.'), css.indexOf('/* ---------- 38.'));
 
-/* Le script de l’ouverture, joué dans un bac à sable : ce qu’il insère dans #loader */
-function inserer() {
+/* Le script de l’ouverture, joué dans un bac à sable à la taille d’un écran : ce qu’il insère dans #loader */
+function inserer(largeur = 430, hauteur = 932) {
   const html = [];
   const nom = { textContent: 'Requête', innerHTML: '', setAttribute() {} };
   const L = { style: {}, classList: { add() {}, remove() {}, contains: () => false }, querySelector: q => (q === '.ld-name' ? nom : null), insertAdjacentHTML: (w, h) => html.push(h) };
   const ctx = vm.createContext({
     document: { documentElement: { classList: { contains: c => c === 'is-native' } }, getElementById: id => (id === 'loader' ? L : null) },
-    window: {}, Array, String, matchMedia: () => ({ matches: false }), localStorage: { getItem: () => '' },
+    window: { innerWidth: largeur, innerHeight: hauteur }, Array, matchMedia: () => ({ matches: false }), localStorage: { getItem: () => '' },
     navigator: {}, requestAnimationFrame() {}, setTimeout() {}
   });
   vm.runInContext(intro, ctx);
   assert.equal(html.length, 1);
   return html[0];
 }
-const nombres = (h) => [...h.matchAll(/<i class="in-p" aria-hidden="true" style="([^"]+)"><b class="in-n" style="--jm:(\d)">((?:<b class="in-c" style="--j:\d"><b>[\d\n]+<\/b><\/b>)+)<\/b><\/i>/g)]
-  .map(m => {
-    const v = Object.fromEntries(m[1].split(';').map(kv => kv.split(':')));
-    const cols = [...m[3].matchAll(/<b class="in-c" style="--j:(\d)"><b>([\d\n]+)<\/b><\/b>/g)].map(c => ({ j: +c[1], lignes: c[2].split('\n') }));
-    return { x: +v['--x'], y: +v['--y'], t: +v['--t'], c: v['--c'], r: +v['--r'], s: +v['--s'], d: +v['--d'], jm: +m[2], cols,
-      valeur: cols.map(c => c.lignes.at(-1)).join('') };
-  });
+const cases = (h) => [...h.matchAll(/<i class="in-t" style="([^"]+)">([\s\S]*?)<\/i>/g)].map(m => {
+  const v = Object.fromEntries(m[1].split(';').map(kv => kv.split(':')));
+  const corps = m[2], roule = corps.match(/^<b><b>([\d\n]+)<\/b><\/b>/), choix = corps.match(/<s style="([^"]+)">(\d+)<\/s>$/);
+  const lignes = roule ? roule[1].split('\n') : null;
+  return { x: +v['--x'], y: +v['--y'], w: +v['--w'], b: v['--b'], l: v['--l'], k: v['--k'], lignes,
+    valeur: lignes ? lignes.at(-1) : corps.replace(/<s .*$/, ''),
+    choix: choix && { ...Object.fromEntries(choix[1].split(';').map(kv => kv.split(':'))), valeur: choix[2] } };
+});
+const hexa = (c) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
 
-test('ouverture : quatorze nombres à la place des confettis, chacun avec ses chiffres qui défilent', () => {
+test('ouverture : la table remplace les confettis, une case chiffrée tous les 128 (la touche en couvre 4 × 4)', () => {
   const h = inserer();
-  assert.ok(!/is-(star|dot|sq)/.test(h) && !h.includes('mstk-star'), 'plus de confettis');
+  assert.ok(!/in-p|is-(star|dot|sq)|in-n|in-c/.test(h), 'plus de confettis ni de nombres volants');
   assert.equal((h.match(/class="in-ring/g) || []).length, 2, 'les deux ondes restent');
-  const ns = nombres(h);
-  assert.equal(ns.length, 14);
-  assert.deepEqual(ns.map(n => n.valeur), ['42', '1', '128', '7', '0', '0', '1', '16', '64', '99', '256', '8', '2', '3']);
-  for (const n of ns) {
-    assert.equal(n.jm, n.valeur.length - 1, `${n.valeur} : --jm, rang du dernier chiffre`);
-    assert.deepEqual(n.cols.map(c => c.j), [...n.valeur].map((_, j) => j), 'un --j par colonne, de gauche à droite');
-    for (const c of n.cols) {
-      assert.equal(c.lignes.length, 7, 'six chiffres au hasard, puis le bon');
-      const bon = c.lignes[6];
-      assert.ok(c.lignes.slice(0, 6).every(l => /^\d$/.test(l) && l !== bon), `${n.valeur} : le bon chiffre n’apparaît qu’à la fin`);
-      assert.equal(new Set(c.lignes.slice(0, 6)).size, 6, 'six chiffres différents : ça défile vraiment');
+  assert.ok(h.includes('<div class="in-grid" aria-hidden="true">') && h.endsWith('</div>'));
+  const cs = cases(h);
+  assert.ok(cs.length > 100 && cs.length < 160, `${cs.length} cases sur l’iPhone d’Elisa`);
+  for (const c of cs) {
+    assert.equal((Math.abs(c.x) - 64) % 128, 0); assert.equal((Math.abs(c.y) - 64) % 128, 0);
+    assert.ok(!(Math.abs(c.x) < 256 && Math.abs(c.y) < 256), 'rien sous la touche');
+    assert.ok(!(Math.abs(c.x) < 256 && (c.y === 320 || c.y === 448)), 'rien sous « Requête »');
+    assert.ok(/^\d\d$/.test(c.valeur), `nombre à deux chiffres (${c.valeur})`);
+  }
+  const ids = cs.map(c => `${c.x},${c.y}`); assert.equal(new Set(ids).size, ids.length, 'une case par place');
+  /* Même écran, même table : le hasard est tiré d’une graine fixe */
+  assert.equal(inserer(), h);
+});
+
+test('ouverture : un halo de données, net près de la touche, fondu dans le fond au loin, et dans l’écran', () => {
+  for (const [L, H] of [[430, 932], [375, 667], [1024, 1366]]) {
+    const u = Math.max(L, H) / 2732, cs = cases(inserer(L, H));
+    for (const c of cs) {
+      const r = Math.hypot(c.x, c.y);
+      assert.ok(r < 340 + 760 * 0.94, 'au-delà, la case serait invisible : pas créée');
+      assert.ok(Math.abs(c.x) - 56 < L / 2 / u && c.y - 56 < H / 2 / u + 14 && c.y + 56 > -(H / 2 / u - 14), 'au moins en partie à l’écran');
     }
-    assert.ok(/^#[0-9A-F]{6}$/.test(n.c), n.c);
-    assert.ok(Math.abs(n.r) <= 10, `${n.valeur} : penché d’au plus 10°, il reste lisible`);
+    /* Plus la case est loin, plus son nombre se fond dans le fond (#F4F2FC) */
+    const ecart = (c) => { const [r, g, b] = hexa(c.k); return Math.abs(r - 0xF4) + Math.abs(g - 0xF2) + Math.abs(b - 0xFC); };
+    const pres = cs.filter(c => Math.hypot(c.x, c.y) < 400), loin = cs.filter(c => Math.hypot(c.x, c.y) > 950);
+    assert.ok(pres.length && loin.length, `${L} × ${H}`);
+    assert.ok(Math.min(...pres.map(ecart)) > 4 * Math.max(...loin.map(ecart)), 'les cases lointaines sont pâles');
+    assert.ok(pres.every(c => ecart(c) > 250), 'les proches, du violet de l’appli');
   }
-  /* Couleurs de l’appli : violets, vert, rouge, ambre */
-  assert.deepEqual([...new Set(ns.map(n => n.c))].sort(), ['#169447', '#3FC98A', '#4B30CC', '#6A4DF4', '#8B6CFF', '#EF4F55', '#FFB020']);
+  /* Sur l’iPhone, le haut et le bas de l’écran restent nets (la table s’arrête avant) */
+  const u = 932 / 2732, cs = cases(inserer());
+  assert.ok(Math.max(...cs.map(c => Math.abs(c.y))) + 56 < 932 / 2 / u - 200);
 });
 
-test('ouverture : les nombres restent dans l’écran d’un iPhone et laissent la touche et « Requête » dégagées', () => {
-  const ns = nombres(inserer());
-  /* Unité = plus grand côté / 2732 : sur l’iPhone le plus étroit (430 × 932), la moitié de la largeur fait 630 unités et celle de
-     la hauteur 1366. Une colonne de JetBrains Mono fait 0,6 em ; au bond, le nombre grandit de 18 %. */
-  const demiLargeur = 2732 / 2 * 430 / 932;
-  assert.ok(demiLargeur > 630 && demiLargeur < 631);
-  for (const n of ns) {
-    const l = n.valeur.length * 0.6 * n.t * n.s * 1.18;
-    assert.ok(Math.abs(n.x) + l / 2 < demiLargeur - 20, `${n.valeur} : dans la largeur (${Math.round(Math.abs(n.x) + l / 2)})`);
-    assert.ok(Math.abs(n.y - 14) + n.t / 2 < 1366 - 200, `${n.valeur} : loin des bords haut et bas`);
-    const dansTouche = Math.abs(n.x) < 256 + l / 2 && n.y > -270 - n.t && n.y < 270 + n.t;
-    assert.ok(!dansTouche, `${n.valeur} : pas sur la touche`);
-    const dansNom = Math.abs(n.x) < 200 + l / 2 && n.y > 300 && n.y < 460;
-    assert.ok(!dansNom, `${n.valeur} : pas sur « Requête »`);
+test('ouverture : l’onde part de la touche, la requête allume ses résultats un à un, avant la plongée', () => {
+  const cs = cases(inserer());
+  for (const c of cs) {
+    const r = Math.hypot(c.x, c.y);
+    assert.equal(c.w, Math.round(120 + (r - 256) / 3.048), 'la case surgit quand l’onde (3 048 unités par seconde, partie à 0,12 s) la touche');
+    assert.ok(c.w >= 120 && c.w + 340 < 840, `${c.w} ms : posée vers la plongée au plus tard`);
+    if (r < 560) {
+      assert.ok(c.lignes && c.lignes.length === 4, 'les proches défilent : trois nombres, puis le bon');
+      assert.ok(c.lignes.every(l => /^\d\d$/.test(l)));
+    } else assert.equal(c.lignes, null, 'les autres restent fixes (moins d’animations)');
   }
-  /* Ils remplissent la hauteur : en haut comme en bas de la touche */
-  assert.ok(ns.filter(n => n.y < -700).length >= 3 && ns.filter(n => n.y > 650).length >= 3);
-  /* Deux nombres ne se recouvrent pas une fois posés */
-  for (let a = 0; a < ns.length; a++) for (let b = a + 1; b < ns.length; b++) {
-    const A = ns[a], B = ns[b], la = A.valeur.length * .6 * A.t * A.s, lb = B.valeur.length * .6 * B.t * B.s;
-    const separes = Math.abs(A.x - B.x) > (la + lb) / 2 || Math.abs(A.y - B.y) > (A.t * A.s + B.t * B.s) / 2;
-    assert.ok(separes, `${A.valeur} et ${B.valeur} se recouvrent`);
-  }
+  const res = cs.filter(c => c.choix);
+  assert.ok(res.length >= 6 && res.length <= 14, `${res.length} résultats`);
+  res.forEach((c, i) => {
+    assert.ok(Math.hypot(c.x, c.y) < 720, 'des résultats proches de la touche');
+    assert.equal(c.choix.valeur, c.valeur, 'le résultat garde le nombre de sa case');
+    assert.equal(+c.choix['--p'], 500 + i * 14, 'l’un après l’autre, de 0,5 à 0,64 s');
+    assert.ok(+c.choix['--p'] >= c.w + 190, 'la case est déjà là (opaque) quand elle s’allume');
+    assert.ok(+c.choix['--p'] + 240 < 900);
+  });
+  /* Les quatre couleurs de l’appli, à tour de rôle */
+  assert.deepEqual(res.slice(0, 4).map(c => c.choix['--c']), ['#FFC83D', '#3FC98A', '#F0616A', '#6A4DF4']);
+  assert.ok(res.every(c => (c.choix['--c'] === '#FFC83D') === (c.choix['--ci'] === '#221C46')), 'encre sombre sur le jaune, blanche ailleurs');
 });
 
-test('ouverture : le défilement et le bond, en transform seulement, finis avant la plongée dans la touche', () => {
+test('ouverture : tout se joue en transform et opacité, et la table file sur les côtés pendant la plongée', () => {
   for (const part of [
-    'html.is-native.lq #loader.is-intro .in-p{position:absolute;z-index:0;left:50%;top:var(--cy);width:0;height:0;opacity:0;will-change:transform,opacity}',
-    'html.is-native.lq #loader.is-intro .in-n{position:absolute;left:0;top:0;display:flex;transform:translate(-50%,-50%);',
-    'font:800 calc(var(--t)*var(--u))/1 var(--mono);color:var(--c);white-space:nowrap;font-variant-numeric:tabular-nums}',
-    'html.is-native.lq #loader.is-intro .in-c{display:block;height:1em;overflow:hidden}',
-    'html.is-native.lq #loader.is-intro .in-c>b{display:block;font:inherit;white-space:pre}',
-    'html.is-native.lq #loader.is-intro.is-play .in-c>b{animation:introRoll calc(.28s + var(--j)*50ms) steps(6,end) calc(.14s + var(--d)*1ms) both}',
-    'html.is-native.lq #loader.is-intro.is-play .in-n{animation:introLand .2s ease-out calc(.42s + var(--d)*1ms + var(--jm)*50ms) both}',
+    'html.is-native.lq #loader.is-intro .in-grid{position:absolute;inset:0;z-index:0;transform-origin:50% var(--cy)}',
+    'html.is-native.lq #loader.is-intro .in-t{position:absolute;left:calc(50% + (var(--x) - 56)*var(--u));top:calc(var(--cy) + (var(--y) - 56)*var(--u));',
+    'width:calc(112*var(--u));height:calc(112*var(--u));border-radius:calc(26*var(--u));background:var(--b);box-shadow:0 calc(9*var(--u)) 0 var(--l);',
+    'html.is-native.lq #loader.is-intro .in-t>b{display:block;height:1em;overflow:hidden;font:inherit}',
+    'html.is-native.lq #loader.is-intro .in-t>s{position:absolute;inset:0;border-radius:inherit;background:var(--c);box-shadow:0 calc(9*var(--u)) 0 var(--cl);',
+    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .34s linear .12s forwards}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t{animation:introTile .34s cubic-bezier(.3,.7,.4,1) calc(var(--w)*1ms) both}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t>b>b{animation:introRoll .3s steps(3,end) calc(var(--w)*1ms) both}',
+    'html.is-native.lq #loader.is-intro.is-play .in-t>s{animation:introPick .24s cubic-bezier(.3,1.5,.5,1) calc(var(--p)*1ms) both}',
+    'html.is-native.lq #loader.is-intro.is-play .in-grid{animation:introWarp .34s cubic-bezier(.55,0,.9,.4) .74s forwards}',
+    '@keyframes introWave{0%{opacity:.9;transform:none}60%{opacity:.25}100%{opacity:0;transform:scale(5)}}',
+    '@keyframes introTile{0%{opacity:0;transform:scale(.3)}55%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:none}}',
     '@keyframes introRoll{from{transform:none}to{transform:translateY(calc(1em - 100%))}}',
-    '@keyframes introLand{0%,100%{transform:translate(-50%,-50%)}45%{transform:translate(-50%,-50%) scale(1.18)}}',
-    '@keyframes introPartFade{0%{opacity:0}10%{opacity:1}75%{opacity:1}100%{opacity:0}}',
-    'html.is-native.lq #loader.is-intro.is-play .in-p{animation:introPartMove .8s cubic-bezier(.12,.75,.3,1) calc(.14s + var(--d)*1ms) forwards,'
+    '@keyframes introPick{0%{opacity:0;transform:scale(.6)}60%{opacity:1}100%{opacity:1;transform:none}}',
+    '@keyframes introWarp{to{opacity:0;transform:scale(2.4)}}',
+    'html.is-native.lq #loader.is-intro.fatal :is(.in-ring,.in-grid){display:none}',
+    /* La plongée et la fin ne bougent pas : 1,3 s en tout */
+    'introZoom .3s cubic-bezier(.55,0,.9,.4) .74s forwards', 'html.is-native.lq #loader.is-intro.is-play{animation:introOut .24s linear 1.04s forwards}'
   ]) assert.ok(bloc.includes(part), part);
-  assert.ok(!bloc.includes('.in-p.is-star') && !bloc.includes('.in-p.is-sq'), 'plus de styles de confettis');
-  /* Six pas pour sept lignes : la colonne finit décalée de six lignes (1em - 100 %), sur le bon chiffre */
-  const ns = nombres(inserer());
-  for (const n of ns) {
-    const debut = 0.14 + n.d / 1000;
-    const pose = debut + 0.28 + n.jm * 0.05;                 // dernier chiffre posé
-    assert.ok(pose < debut + 0.8 * 0.75, `${n.valeur} : posé avant de pâlir`);
-    assert.ok(pose < 0.6, `${n.valeur} : posé à ${pose.toFixed(2)} s, avant la plongée (0,74 s)`);
-    const bond = 0.42 + n.d / 1000 + n.jm * 0.05;
-    assert.ok(Math.abs(bond - pose) < 1e-9, `${n.valeur} : le bond part quand le dernier chiffre tombe`);
-  }
+  /* L’onde (de la demi-touche, 256, jusqu’à 5 fois plus) va à la vitesse que le script prête aux cases */
+  assert.ok(Math.abs((256 * 5 - 256) / 0.34 - 3048) / 3048 < 0.02);
+  assert.ok(!/introPart|introLand|\.in-p\b|\.in-n\b|\.in-c\b/.test(bloc), 'plus de styles de confettis ni de nombres volants');
   const images = bloc.slice(bloc.indexOf('@keyframes introKey'), bloc.indexOf('/* Si le moteur SQL ne se charge pas'));
-  assert.ok(!/filter|box-shadow|width|height|top|left|margin/.test(images), 'les images clés ne touchent qu’à transform et opacity');
-  /* La police des chiffres est celle de l’appli, chargée d’avance : les nombres, créés dès l’ouverture, la demandent pendant que tout est
-     encore invisible */
-  assert.ok(css.includes("@font-face{font-family:'JBM';src:url(assets/fonts/jetbrains-mono.woff2) format('woff2');font-weight:100 800;"));
-  assert.ok(app.indexOf('/* Appli iOS : l’ouverture animée') < app.indexOf('function hideLoader(){'));
+  assert.ok(!/filter|box-shadow|width|height|top|left|margin|background|color/.test(images), 'les images clés ne touchent qu’à transform et opacity');
+  assert.ok(app.includes('setTimeout(ranger,1300);'), 'rangé à 1,3 s, comme avant');
 });

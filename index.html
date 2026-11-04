@@ -6698,7 +6698,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=130">
+<link rel="stylesheet" href="ludique.css?v=131">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=10">
 <style id="lesson-video-css">
@@ -7354,26 +7354,37 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
   if(!calme){
-    /* « Requête » en lettres, deux ondes et quatorze nombres, créés tout de suite et invisibles jusqu’au départ */
+    /* « Requête » en lettres, deux ondes et la table, créés tout de suite et invisibles jusqu’au départ */
     var nom=L.querySelector('.ld-name');
     if(nom){var t=nom.textContent;nom.setAttribute('aria-label',t);
       nom.innerHTML=Array.from(t).map(function(c,i){return '<span class="in-l" aria-hidden="true" style="--i:'+i+'">'+c+'</span>';}).join('');}
     var h='<i class="in-ring" aria-hidden="true"></i><i class="in-ring is-2" aria-hidden="true"></i>';
-    /* Des nombres plutôt que des confettis (4 novembre, 1 h 16 : « en mode data, mettre des chiffres »).
-       [x, y, taille, nombre, couleur, inclinaison, échelle finale, retard en ms] ; x, y et taille en unités de l’écran de lancement.
-       Chaque chiffre défile sur six autres (jamais le bon), puis se pose : ludique.css, 37 bis. */
-    [[-330,-880,150,42,'#6A4DF4',-8,1,0],[60,-1010,96,1,'#FFB020',0,.95,20],[380,-850,120,128,'#4B30CC',8,.95,30],
-     [-560,-500,104,7,'#EF4F55',-6,.95,10],[540,-470,104,0,'#169447',6,.95,0],[-300,-530,78,0,'#EF4F55',-4,.9,60],
-     [310,-480,74,1,'#3FC98A',0,.9,50],[-520,-50,120,16,'#EF4F55',8,.95,10],[520,40,120,64,'#8B6CFF',-8,.95,40],
-     [-460,470,134,99,'#6A4DF4',-6,1,40],[460,450,118,256,'#169447',6,.95,20],[-230,840,96,8,'#6A4DF4',0,.95,60],
-     [250,900,100,2,'#FFB020',0,.95,50],[10,700,92,3,'#EF4F55',-5,.9,30]
-    ].forEach(function(p,i){
-      var n=String(p[3]).split('').map(function(c,j){
-        var s='';for(var k=0;k<6;k++)s+=(+c+1+(k*4+i*2+j*5)%9)%10+'\n';
-        return '<b class="in-c" style="--j:'+j+'"><b>'+s+c+'</b></b>';
-      }).join('');
-      h+='<i class="in-p" aria-hidden="true" style="--x:'+p[0]+';--y:'+p[1]+';--t:'+p[2]+';--c:'+p[4]+';--r:'+p[5]+';--s:'+p[6]+';--d:'+p[7]+'"><b class="in-n" style="--jm:'+(String(p[3]).length-1)+'">'+n+'</b></i>';
-    });
+    /* La table de données (4 novembre, 1 h 16 : « en mode data, des chiffres au lieu des confettis » ; 1 h 29 : « on peut faire
+       mieux ») : des cases chiffrées sur tout l’écran, au pas de 128 unités (la touche en couvre 4 × 4), rien sous la touche ni sous
+       « Requête ». Chaque case surgit quand l’onde partie de la touche l’atteint (--w) ; plus elle est loin, plus elle se fond dans
+       le fond, jusqu’à disparaître vers 1 050 unités : un halo de données autour de la touche, le haut et le bas de l’écran restent
+       nets. Les plus proches font défiler leur nombre. Puis la requête choisit ses résultats : une dizaine de cases proches
+       s’allument l’une après l’autre aux couleurs de l’appli (--p, en ms), juste avant la plongée. */
+    var iw=window.innerWidth||390,ih=window.innerHeight||844,u=Math.max(iw,ih)/2732,demi=iw/2/u,haut=ih/2/u-14,bas=ih/2/u+14;
+    var graine=11,alea=function(){graine=graine*16807%2147483647;return graine/2147483647;};
+    var mele=function(a,b,f){var r='#';for(var i=1;i<7;i+=2){var v=Math.round(parseInt(a.substr(i,2),16)*f+parseInt(b.substr(i,2),16)*(1-f));r+=(v<16?'0':'')+v.toString(16);}return r;};
+    var nb=function(){return String(10+Math.floor(alea()*90));};
+    var choix=[['#FFC83D','#E5A91A','#221C46'],['#3FC98A','#23A26A','#FFFFFF'],['#F0616A','#C9434C','#FFFFFF'],['#6A4DF4','#4B30CC','#FFFFFF']],k=0;
+    h+='<div class="in-grid" aria-hidden="true">';
+    for(var y=-1344-128*Math.ceil(Math.max(0,haut-1344)/128);y-56<bas;y+=128){
+      if(y+56<=-haut)continue;
+      for(var x=-64-128*Math.floor((demi+56-64)/128);x-56<demi;x+=128){
+        var ax=Math.abs(x),ay=Math.abs(y);
+        if(ax<256&&(ay<256||y===320||y===448))continue;
+        var r=Math.sqrt(x*x+y*y),q=Math.max(0,(r-340)/760);
+        if(q>=.94)continue;
+        var f=Math.pow(1-q,1.2),n=nb(),w=Math.round(120+(r-256)/3.048);
+        var txt=r<560?'<b><b>'+nb()+'\n'+nb()+'\n'+nb()+'\n'+n+'</b></b>':n;
+        if(r<720&&alea()<.16){var c=choix[k%4];txt+='<s style="--p:'+(500+k*14)+';--c:'+c[0]+';--cl:'+c[1]+';--ci:'+c[2]+'">'+n+'</s>';k++;}
+        h+='<i class="in-t" style="--x:'+x+';--y:'+y+';--w:'+w+';--b:'+mele('#E8E2FB','#F4F2FC',f)+';--l:'+mele('#D8CFF5','#F4F2FC',f)+';--k:'+mele('#6A4DF4','#F4F2FC',f)+'">'+txt+'</i>';
+      }
+    }
+    h+='</div>';
     L.insertAdjacentHTML('afterbegin',h);
   }
   setTimeout(function(){if(!L.classList.contains('is-play')&&!L.classList.contains('fade-out'))L.classList.add('is-long');},2600);
@@ -34465,7 +34476,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-chiffres-v2478';
+  const SW_CACHE='requete-2026-11-04-table-v2479';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
