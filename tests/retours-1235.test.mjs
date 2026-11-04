@@ -21,10 +21,9 @@ const sansCommentaires = t => t.replace(/\/\/.*$/gm, '').replace(/"(?:[^"\\]|\\.
 
 test('le widget : la flamme du jour seule, plus de nombre de jours', () => {
   const vue = cut(widget, 'struct SerieVue: View {', 'struct Bulle: Shape {');
-  assert.ok(!/Text\("\\\(entree\.serie\)"\)/.test(widget) && !widget.includes('chiffreQuiRoule') && !vue.includes('HStack('), 'ni nombre ni rangée');
-  for (const k of ['private func flammeVue(_ w: CGFloat) -> some View {\n        ZStack {\n            Image(systemName: "flame.fill")',
-    '.font(.system(size: w * 0.3, weight: .bold))', 'flammeVue(w)\n                .scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)',
-    'entree.faitAujourdhui ? "Ta flamme du jour est allumée." : "Ta flamme du jour n’est pas encore allumée."'])
+  assert.ok(!/Text\("\\\(entree\.serie\)"\)/.test(widget), 'plus de nombre de jours (13 h 11 : la séance du jour, 0/1, à sa place ; retours-1311)');
+  for (const k of ['private func flammeVue(_ w: CGFloat) -> some View {\n        ZStack(alignment: .bottomTrailing) {\n            Image(systemName: "flame.fill")',
+    '.font(.system(size: w * 0.3, weight: .bold))', 'compteurVue(w)\n                .scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)'])
     assert.ok(vue.includes(k), k);
   assert.ok(widget.includes('.configurationDisplayName("Ta flamme")'), 'son nom dans la galerie');
   assert.ok(!vue.includes('entree.serie)') || vue.includes('entree.serie > 0 ?'), 'la série ne sert plus qu’à choisir la phrase du soir');
