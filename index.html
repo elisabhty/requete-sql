@@ -9444,7 +9444,7 @@ guide({ id:82, titre:"MERGE", résumé:"Synchroniser deux tables",
     {recap:[
       ["🔀","<code>MERGE</code> compare deux tables et choisit l’action <b>ligne par ligne</b>.","<code>ON</code> indique comment reconnaître la même ligne : en général, l’identifiant."],
       ["🧭","<code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> <b>ajoute</b>.","Les lignes absentes de la source ne changent pas : rien n’est supprimé sans action <code>DELETE</code>."],
-      ["🔁","Dans SQLite, <code>MERGE</code> <b>n’existe pas</b>.","On obtient le même résultat avec <code>INSERT … ON CONFLICT DO UPDATE</code>."]
+      ["🔁","Dans la base de l’app, <code>MERGE</code> <b>n’existe pas</b>.","On obtient le même résultat avec <code>INSERT … ON CONFLICT DO UPDATE</code>."]
     ],label:"Les trois idées à retenir"}
   ]
 }),
@@ -9654,7 +9654,7 @@ guide({ id:83, titre:"Procédures et fonctions stockées", résumé:"Réutiliser
     {recap:[
       ["🛠️","Une <b>procédure stockée</b> exécute un traitement réutilisable.","Tu l’appelles avec <code>CALL</code> : <code>CALL expedier_commande(13);</code>"],
       ["🧮","Une <b>fonction stockée</b> renvoie un résultat réutilisable.","Tu l’utilises dans une requête : <code>SELECT calculer_points(80);</code>"],
-      ["⚠️","Leur syntaxe <b>dépend du SGBD</b>.","Les deux reçoivent des paramètres. SQLite, la base de l’app, n’en a pas."]
+      ["⚠️","Leur syntaxe <b>dépend du SGBD</b>.","Les deux reçoivent des paramètres. La base de l’app n’en a pas."]
     ],label:"Les trois idées à retenir"}
   ]
 }),
@@ -10540,7 +10540,7 @@ const CHALLENGES=[
      tri:"par prix décroissant, puis par nom",
      precis:[],
      sol:"SELECT nom, prix FROM plats WHERE disponible = 0 ORDER BY prix DESC, nom;",
-     indice:"La disponibilité est stockée comme un booléen SQLite\u00a0: 0 signifie indisponible."},
+     indice:"La disponibilité est stockée comme un booléen\u00a0: 0 signifie indisponible."},
     {id:'wf2',apres:97,titre:"Quels clients se sont inscrits au second semestre 2024\u00a0?",niv:'f',base:'wok',ordered:true,
      situation:"Le restaurant prépare une offre de bienvenue pour ses clients récemment inscrits.",
      affiche:["le prénom du client","son nom","son adresse e-mail"],
@@ -10836,7 +10836,7 @@ const CHALLENGES=[
      tri:"par date de vente, de la plus ancienne à la plus récente, puis par identifiant",
      precis:[],
      sol:"SELECT id, date_vente, prix_total FROM ventes WHERE date_vente >= '2024-10-01' ORDER BY date_vente, id;",
-     indice:"Les dates ISO se comparent directement comme du texte dans SQLite\u00a0; écris la date entre apostrophes."},
+     indice:"Les dates au format AAAA-MM-JJ se comparent directement comme du texte\u00a0; écris la date entre apostrophes."},
     {id:'ff9',apres:134,titre:"Quels types de pâte existent\u00a0?",niv:'f',base:'fromagerie',ordered:true,
      situation:"La boutique dresse la liste des types de pâte présents dans son catalogue.",
      affiche:["chaque type de pâte, une seule fois"],
@@ -12141,10 +12141,10 @@ function defiPiege(U,S,sql){
     U.values.forEach((r,i)=>r.forEach((u,j)=>{const v=S.values[i][j];
       if(u===v||(typeof u==='number'&&typeof v==='number'&&Math.abs(u-v)<5e-4))return;
       if(typeof u==='number'&&typeof v==='number'&&Number.isInteger(u)&&!Number.isInteger(v)&&Math.trunc(v)===u)entiers++;else autres++;}));
-    if(entiers&&!autres)return 'Presque : ta division se fait entre deux nombres entiers, alors SQLite ne garde que la partie entière. Utilise <code>AVG(…)</code>, ou multiplie par <code>1.0</code> avant de diviser : <code>SUM(x) * 1.0 / COUNT(*)</code>.';
+    if(entiers&&!autres)return 'Presque : ta division se fait entre deux nombres entiers, alors le résultat ne garde que la partie entière. Utilise <code>AVG(…)</code>, ou multiplie par <code>1.0</code> avant de diviser : <code>SUM(x) * 1.0 / COUNT(*)</code>.';
   }
   if(/\b[\w.]*date\w*\s*-\s*[\w.]*date\w*\b/i.test(q)&&!/julianday/i.test(q))
-    return 'En SQLite, soustraire deux dates ne donne pas un nombre de jours : le calcul ne garde que l’année. Écris <code>julianday(date_fin) - julianday(date_debut)</code>.';
+    return 'Ici, soustraire deux dates ne donne pas un nombre de jours : le calcul ne garde que l’année. Écris <code>julianday(date_fin) - julianday(date_debut)</code>.';
   return '';
 }
 function defisParProgression(){
@@ -14957,7 +14957,7 @@ const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
    ============================================================ */
 const CARTES={
  0:{k:"Modèle relationnel",t:"Tables, clés et lecture avec SELECT",s:"SELECT prenom, nom FROM clients;",
-    m:"Une base relationnelle, gérée par un <b>SGBD</b> comme SQLite, range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>, déclarée avec <code>PRIMARY KEY</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code> (<code>FOREIGN KEY … REFERENCES</code>). Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
+    m:"Une base relationnelle, gérée par un <b>SGBD</b> comme PostgreSQL ou MySQL, range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>, déclarée avec <code>PRIMARY KEY</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code> (<code>FOREIGN KEY … REFERENCES</code>). Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
  4:{k:"WHERE",t:"Filtrer les lignes",s:"WHERE ville = 'Paris'",
     m:"<code>WHERE</code> choisit les <b>lignes</b> qui restent dans le résultat. Texte entre guillemets simples : <code>'Paris'</code>. Rien n’est effacé de la table."},
  5:{k:"> < >= <=",t:"Seuils numériques",s:"WHERE prix > 25",
@@ -15000,7 +15000,7 @@ const CARTES={
  88:{k:"Ordre d’exécution",t:"FROM d’abord, SELECT presque en dernier",s:"FROM\nWHERE\nGROUP BY\nHAVING\nSELECT\nORDER BY\nLIMIT",
     m:"Une requête n’est pas exécutée dans l’ordre où on l’écrit : <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, puis <code>SELECT</code>, <code>ORDER BY</code> et <code>LIMIT</code>. Un comptage se filtre donc avec <code>HAVING</code>, et un alias du <code>SELECT</code> s’utilise dans <code>ORDER BY</code>, pas dans <code>WHERE</code>."},
  76:{k:"GROUP_CONCAT",t:"Agréger du texte",s:"GROUP_CONCAT(nom, ', ')",
-    m:"Dans SQLite, <code>GROUP_CONCAT</code> assemble les textes non nuls d’un groupe. Le séparateur est le second argument. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='agregats'>Selon le SGBD</button> de la Bibliothèque."},
+    m:"<code>GROUP_CONCAT</code> assemble les textes non nuls d’un groupe. Le séparateur est le second argument. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='agregats'>Selon le SGBD</button> de la Bibliothèque."},
  18:{k:"INNER JOIN",t:"L’enquête de satisfaction",s:"FROM commandes\nINNER JOIN clients\nON commandes.client_id = clients.id",
     m:"Une jointure réunit des informations de plusieurs tables. <code>INNER JOIN</code> ne garde que les correspondances. <code>ON</code> dit quelles lignes vont ensemble ; <code>WHERE</code> filtre le résultat."},
  19:{k:"3 tables",t:"Relier plusieurs tables",s:"FROM clients\nJOIN commandes ON …\nJOIN produits ON …",
@@ -15067,13 +15067,13 @@ const CARTES={
  28:{k:"DELETE",t:"Supprimer des lignes",s:"DELETE FROM commandes\nWHERE id = 15;",
     m:"Définitif. Même garde-fou que UPDATE. Attention aux orphelins dans les tables liées."},
  82:{k:"MERGE",t:"Synchroniser deux tables",s:"MERGE INTO produits\nUSING entrepot\nON produits.id = entrepot.id\nWHEN MATCHED THEN\n  UPDATE\n  SET stock = entrepot.stock\nWHEN NOT MATCHED THEN\n  INSERT (id, nom, stock)\n  VALUES (entrepot.id, entrepot.nom, entrepot.stock);",
-    m:"<code>ON</code> reconnaît la même ligne. <code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> ajoute ; une ligne absente de la source ne change pas. Dans SQLite : <code>INSERT … ON CONFLICT DO UPDATE</code>."},
+    m:"<code>ON</code> reconnaît la même ligne. <code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> ajoute ; une ligne absente de la source ne change pas. Dans la base de l’app : <code>INSERT … ON CONFLICT DO UPDATE</code>."},
  83:{k:"PROCÉDURE · FONCTION",t:"Réutiliser un traitement ou un calcul",s:"CALL expedier_commande(13);\n\nSELECT calculer_points(80);",
-    m:"Une <b>procédure</b> exécute un traitement (<code>CALL</code>) ; une <b>fonction</b> renvoie une valeur, utilisable dans une requête. Les deux reçoivent des paramètres. Leur syntaxe dépend du SGBD ; SQLite n’en a pas."},
+    m:"Une <b>procédure</b> exécute un traitement (<code>CALL</code>) ; une <b>fonction</b> renvoie une valeur, utilisable dans une requête. Les deux reçoivent des paramètres. Leur syntaxe dépend du SGBD ; la base de l’app n’en a pas."},
  84:{k:"SCHÉMA",t:"Ranger les tables par espace",s:"CREATE SCHEMA boutique;\n\nSELECT *\nFROM boutique.commandes;",
-    m:"Un <b>schéma</b> regroupe des tables. <code>schéma.table</code> est leur adresse : deux schémas peuvent avoir une table du même nom. Leur syntaxe dépend du SGBD ; SQLite range tout dans <code>main</code>."},
+    m:"Un <b>schéma</b> regroupe des tables. <code>schéma.table</code> est leur adresse : deux schémas peuvent avoir une table du même nom. Leur syntaxe dépend du SGBD ; la base de l’app range tout dans <code>main</code>."},
  50:{k:"GRANT / REVOKE",t:"Accorder uniquement les accès nécessaires",s:"GRANT SELECT ON commandes_expedition TO lina;\nGRANT UPDATE (statut) ON commandes TO lina;\n\nREVOKE SELECT ON commandes_expedition FROM lina;",
-    m:"<code>GRANT</code> accorde un droit, <code>REVOKE</code> le retire (le compte se place après <code>FROM</code>). Un droit porte sur une vue, une table ou certaines colonnes. Principe : uniquement les accès nécessaires, revus quand une mission change ou se termine. Un SGBD serveur gère des comptes ; SQLite, non."}
+    m:"<code>GRANT</code> accorde un droit, <code>REVOKE</code> le retire (le compte se place après <code>FROM</code>). Un droit porte sur une vue, une table ou certaines colonnes. Principe : uniquement les accès nécessaires, revus quand une mission change ou se termine. Un SGBD serveur gère des comptes ; la base de l’app, non."}
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#0EA5A0','#2DD4BF'],['#B45309','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
@@ -17853,7 +17853,7 @@ function bindTableSwipe(root){
 function errBox(msg,sql){
   const m=msg.toLowerCase(); let aide='';
   /* 23 h 50 (ld8) : DISTINCT ON, juste en PostgreSQL, n’existe pas en SQLite (« near "ON": syntax error ») */
-  if(sql&&/\bDISTINCT\s+ON\s*\(/i.test(String(sql).replace(/'(?:''|[^'])*'/g,"''"))) aide="<code>DISTINCT ON</code> est propre à PostgreSQL : SQLite ne le connaît pas. Pour garder une seule ligne par groupe, numérote les lignes dans une sous-requête avec <code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code>, puis garde le numéro 1.";
+  if(sql&&/\bDISTINCT\s+ON\s*\(/i.test(String(sql).replace(/'(?:''|[^'])*'/g,"''"))) aide="<code>DISTINCT ON</code> est propre à PostgreSQL : la base de l’app ne le connaît pas. Pour garder une seule ligne par groupe, numérote les lignes dans une sous-requête avec <code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code>, puis garde le numéro 1.";
   else if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
   else if(m.includes('no such table')){
     /* Pendant un défi sur une autre base (Aéroport…), ce sont ses tables à elle. */
@@ -17864,7 +17864,7 @@ function errBox(msg,sql){
   }
   else if(m.includes('syntax error')) aide="Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.";
   else if(m.includes('misuse of aggregate')) aide="Une fonction d'agrégation (COUNT, SUM…) ne peut pas être utilisée dans un WHERE.";
-  else if(m.includes('no such function')) aide="Cette fonction n’existe pas ici. Pour trouver son équivalent dans SQLite, voir la page <button type='button' class='sgbd-link' data-sgbd=''>Selon le SGBD</button>.";
+  else if(m.includes('no such function')) aide="Cette fonction n’existe pas ici. Pour trouver son équivalent, voir la page <button type='button' class='sgbd-link' data-sgbd=''>Selon le SGBD</button>.";
   else if(m.includes('ambiguous')) aide=/ambiguous column name: \S+\.\S+/.test(m)
     ? "La même table apparaît deux fois dans la requête. Donne-lui un alias différent à chaque utilisation, par exemple <code>clients AS c1</code> et <code>clients AS c2</code>."
     : "Deux tables ont une colonne du même nom. Préfixe-la avec le nom de la table.";
@@ -26113,7 +26113,7 @@ function situationSqlBlock(sql){
   </div>`;
 }
 function serverConceptBadge(){
-  return `<p class="server-badge" role="note"><i aria-hidden="true">⊘</i> Notion SQL serveur — non exécutable en SQLite</p>`;
+  return `<p class="server-badge" role="note"><i aria-hidden="true">⊘</i> Notion SQL serveur — non exécutable dans l’app</p>`;
 }
 function renderSituationBody(l){
   let html='';
@@ -26780,7 +26780,7 @@ function lessonRichFooter(l, innerAfterEditor){
   const variantsAttr=variants?` data-variants="${escAttr(JSON.stringify(variants))}" data-vi="0"`:'';
   const expect=testeExpectHtml(variants&&variants[0], l, !variants);
   const actions=noExec
-    ?`<p class="xf-noexec">${(l&&l.noExecNote)||'Notion SQL serveur — ces commandes ne s’exécutent pas dans SQLite. Lis-les, ne les lance pas.'}</p>`
+    ?`<p class="xf-noexec">${(l&&l.noExecNote)||'Notion SQL serveur — ces commandes ne s’exécutent pas dans l’app. Lis-les, ne les lance pas.'}</p>`
     :`<div class="xf-actions">
         <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>`;
@@ -26861,7 +26861,7 @@ function runExemple(btn){
   const runSql=sql;
   if((frame&&frame.dataset.noExec==='1')||(current&&current.noExec&&!btn.closest('.ij-run-frame'))){
     const activeVariant=testeFrameVariants(frame)?.[Number(frame.dataset.vi||0)];
-    const pourquoi=(activeVariant&&activeVariant.exec===false?esc(activeVariant.out||'Cet exemple est présenté sans exécution.'):null)||(current&&current.noExecWhy)||'SQLite ne gère pas <code>GRANT</code> / <code>REVOKE</code>. Cette commande est une notion de SQL serveur.';
+    const pourquoi=(activeVariant&&activeVariant.exec===false?esc(activeVariant.out||'Cet exemple est présenté sans exécution.'):null)||(current&&current.noExecWhy)||'La base de l’app ne gère pas <code>GRANT</code> / <code>REVOKE</code>. Cette commande est une notion de SQL serveur.';
     host.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Non exécutable ici</b><p>${pourquoi}</p></div></div>`;
     host.hidden=false;
     host.classList.add('on');
@@ -26998,7 +26998,7 @@ function renderLessonFlow(){
         <div class="l-kicker">Exercice</div>
         <div class="consigne"><span class="tag">Consigne</span><p>${l.consigne}</p>
           <p class="tip">${l.noExec
-            ?'Cette commande ne s’exécute pas dans SQLite. Écris-la, puis touche <b>Vérifier</b> : on compare le principe, pas un résultat de table.'
+            ?'Cette commande ne s’exécute pas dans l’app. Écris-la, puis touche <b>Vérifier</b> : on compare le principe, pas un résultat de table.'
             :`Tu peux toucher <b>Schéma</b> pour voir les noms des tables et colonnes.${l.write?'':` Une fois exécutée, tu peux voir l’exécution pas à pas de ta requête avec le bouton <b>Pas à pas</b>.`}`}</p>
         </div>
         ${editorBlock(!l.write,'exercice.sql')}
@@ -29448,7 +29448,7 @@ function runLesson(){
       }
       markExoPassed();
       const okB=(current&&current.noExecOk&&current.noExecOk.b)||'✓ Correct — droit de lecture seulement';
-      const okT=(current&&current.noExecOk&&current.noExecOk.t)||'GRANT SELECT suffit pour consulter <code>clients</code>. Cette commande ne s’exécute pas dans SQLite.';
+      const okT=(current&&current.noExecOk&&current.noExecOk.t)||'GRANT SELECT suffit pour consulter <code>clients</code>. Cette commande ne s’exécute pas dans l’app.';
       setLessonOut(`<div class="ok-panel"><div class="ok-banner">${okB}</div><p class="tip">${okT}</p></div>`);
       return;
     }
@@ -37459,7 +37459,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-voix-v2521';
+  const SW_CACHE='requete-2026-11-05-lecons-v2522';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
