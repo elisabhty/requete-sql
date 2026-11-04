@@ -44,9 +44,10 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
     override public func load() {
         NotificationCenter.default.addObserver(self, selector: #selector(raccourciRecu), name: RequeteRaccourci.annonce, object: nil)
         raccourciRecu()   // choisi avant que le pont n’existe (app lancée par le raccourci)
-        // Une leçon restée dans la Dynamic Island (l’app fermée en pleine leçon) : la page s’ouvre, plus rien n’est en cours.
+        // Une leçon restée dans la Dynamic Island (l’app fermée en pleine leçon) : la page s’ouvre, plus rien n’est en cours. La carte
+        // d’une leçon réussie (la flamme dorée, un quart d’heure sur l’écran verrouillé) reste jusqu’au bout.
         if #available(iOS 16.2, *) {
-            Task { await RequeteLeconPont.toutArreter() }
+            Task { await RequeteLeconPont.arreterEnCours() }
         }
     }
 
@@ -192,6 +193,12 @@ enum RequeteLeconPont {
 
     static func toutArreter() async {
         for a in Activity<RequeteLecon>.activities {
+            await a.end(nil, dismissalPolicy: .immediate)
+        }
+    }
+
+    static func arreterEnCours() async {
+        for a in Activity<RequeteLecon>.activities where !a.content.state.fini {
             await a.end(nil, dismissalPolicy: .immediate)
         }
     }

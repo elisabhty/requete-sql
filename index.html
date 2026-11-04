@@ -6713,9 +6713,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=135">
+<link rel="stylesheet" href="ludique.css?v=136">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=18">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=19">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -18961,8 +18961,20 @@ function progressContinuer(){
   };
 }
 function renderLearnAvatar(){
+  try{paysCompleter();}catch(e){}
   const name=(state.name||'').trim(),ini=name?name.charAt(0).toUpperCase():'R';
-  document.querySelectorAll('#learn-avatar,[data-account-avatar]').forEach(el=>{el.textContent=ini;});
+  /* 13 h 18 (« mettre le drapeau au niveau du rond compte ») : le drapeau du pays, en pastille, au coin du rond */
+  const pays=typeof paysDuProfil==='function'?paysDuProfil():'',drapeau=pays?paysDrapeau(pays):'';
+  document.querySelectorAll('#learn-avatar,[data-account-avatar]').forEach(el=>{el.innerHTML=esc(ini)+(drapeau?`<i class="av-drapeau">${drapeau}</i>`:'');});
+}
+/* Mon compte › Pays : la même liste que l’onboarding. */
+function paysChanger(){
+  paysFeuille(paysDuProfil(),code=>{
+    if(!PAYS_CODES.includes(code))return;
+    state.profile=Object.assign({},state.profile||{},{pays:code,paysAuto:false});save();
+    renderCompte();
+    if(typeof lqSay==='function')lqSay(`Pays enregistré\u00a0: ${paysNom(code)} ${paysDrapeau(code)}`);
+  });
 }
 function renderHomeStreak(){
   const el=document.getElementById('home-streak'); if(!el)return;
@@ -32449,7 +32461,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];
+const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -32814,7 +32826,7 @@ let obJustEntered=false;
 let obSelectionTimer=0;
 let obDemoTimers=[];
 let obSwipe2On=false;
-const OB_PROFILE_SLIDES=['name','age','job','goal','level','rhythm','jours','build','promise','pact','practice'];
+const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','promise','pact','practice'];
 const OB_GOALS=[
   ['career','Me reconvertir dans la data','briefcase'],
   ['interview','Réussir un entretien','person'],
@@ -32858,6 +32870,137 @@ const OB_SOURCES=[
   ['ecole','École ou formation','school'],
   ['autre','Autre','more']
 ];
+/* ---------- Le pays ----------
+   Elisa, 4 novembre, 13 h 18 : « faire une page où il détecte le pays où la personne vit, car plus tard je veux plusieurs langues, et
+   mettre le drapeau au niveau du rond compte ». Le pays se devine sans rien demander au téléphone, ni localisation ni réseau : son fuseau
+   horaire d’abord (Europe/Paris → France, America/Toronto → Canada : c’est là où il vit, même en voyage d’une langue à l’autre), puis la
+   région de sa langue (fr-BE → Belgique). L’onboarding le montre sur sa page (« Tu vis où ? ») et le fait confirmer ou changer
+   (paysFeuille : la liste, avec recherche) ; il se garde dans le profil (state.profile.pays, paysAuto s’il a été deviné), son drapeau se
+   pose sur le rond du compte, et Mon compte permet de le changer. Les noms viennent du navigateur, en français (Intl.DisplayNames). */
+const PAYS_CODES=('AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM '+
+  'CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GT GU GW '+
+  'GY HK HN HR HT HU ID IE IL IM IN IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME '+
+  'MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW '+
+  'PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG '+
+  'US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW').split(' ');
+/* Les pays proches de l’app, francophones d’abord : en tête de la liste */
+const PAYS_PROCHES=['FR','BE','CH','CA','LU','MA','DZ','TN','SN','CI','CM','MG'];
+const PAYS_NOMS_SECOURS={FR:'France',BE:'Belgique',CH:'Suisse',CA:'Canada',LU:'Luxembourg',MA:'Maroc',DZ:'Algérie',TN:'Tunisie',SN:'Sénégal',CI:'Côte d’Ivoire',CM:'Cameroun',MG:'Madagascar'};
+const PAYS_NOMS_COURTS={HK:'Hong Kong',MO:'Macao',PS:'Palestine',VA:'Vatican'};
+const PAYS_FUSEAUX=Object.fromEntries(('Europe/Paris:FR Europe/Monaco:MC Europe/Brussels:BE Europe/Luxembourg:LU Europe/Zurich:CH Europe/Vaduz:LI Europe/Andorra:AD'+
+  ' America/Guadeloupe:GP America/Martinique:MQ America/Cayenne:GF Indian/Reunion:RE Indian/Mayotte:YT Pacific/Noumea:NC Pacific/Tahiti:PF'+
+  ' Pacific/Marquesas:PF Pacific/Gambier:PF America/Miquelon:PM Pacific/Wallis:WF America/St_Barthelemy:BL America/Marigot:MF'+
+  ' America/Toronto:CA America/Montreal:CA America/Vancouver:CA America/Edmonton:CA America/Winnipeg:CA America/Halifax:CA'+
+  ' America/St_Johns:CA America/Regina:CA America/Moncton:CA America/Whitehorse:CA America/Yellowknife:CA America/Iqaluit:CA'+
+  ' America/Glace_Bay:CA America/Goose_Bay:CA America/Swift_Current:CA America/Dawson_Creek:CA America/Fort_Nelson:CA America/Creston:CA'+
+  ' America/Rankin_Inlet:CA America/Cambridge_Bay:CA America/Inuvik:CA America/Thunder_Bay:CA America/Nipigon:CA America/Rainy_River:CA'+
+  ' America/Atikokan:CA America/Blanc-Sablon:CA America/Dawson:CA America/Resolute:CA America/Pangnirtung:CA America/New_York:US'+
+  ' America/Chicago:US America/Denver:US America/Los_Angeles:US America/Phoenix:US America/Anchorage:US Pacific/Honolulu:US'+
+  ' America/Detroit:US America/Indiana/Indianapolis:US America/Boise:US America/Juneau:US America/Kentucky/Louisville:US'+
+  ' America/Puerto_Rico:PR Africa/Casablanca:MA Africa/El_Aaiun:EH Africa/Algiers:DZ Africa/Tunis:TN Africa/Tripoli:LY Africa/Cairo:EG'+
+  ' Africa/Dakar:SN Africa/Abidjan:CI Africa/Bamako:ML Africa/Ouagadougou:BF Africa/Niamey:NE Africa/Conakry:GN Africa/Lome:TG'+
+  ' Africa/Porto-Novo:BJ Africa/Douala:CM Africa/Libreville:GA Africa/Brazzaville:CG Africa/Kinshasa:CD Africa/Lubumbashi:CD'+
+  ' Africa/Bangui:CF Africa/Ndjamena:TD Africa/Malabo:GQ Africa/Nouakchott:MR Africa/Djibouti:DJ Africa/Kigali:RW Africa/Bujumbura:BI'+
+  ' Indian/Antananarivo:MG Indian/Mauritius:MU Indian/Comoro:KM Indian/Mahe:SC Africa/Lagos:NG Africa/Accra:GH Africa/Nairobi:KE'+
+  ' Africa/Johannesburg:ZA Africa/Addis_Ababa:ET Africa/Khartoum:SD Africa/Dar_es_Salaam:TZ Africa/Kampala:UG Africa/Luanda:AO'+
+  ' Africa/Maputo:MZ Africa/Harare:ZW Africa/Lusaka:ZM Africa/Windhoek:NA Africa/Banjul:GM Africa/Bissau:GW Africa/Freetown:SL'+
+  ' Africa/Monrovia:LR Atlantic/Cape_Verde:CV Africa/Sao_Tome:ST America/Port-au-Prince:HT America/Mexico_City:MX America/Cancun:MX'+
+  ' America/Tijuana:MX America/Monterrey:MX America/Bogota:CO America/Lima:PE America/Santiago:CL America/Argentina/Buenos_Aires:AR'+
+  ' America/Buenos_Aires:AR America/Sao_Paulo:BR America/Fortaleza:BR America/Manaus:BR America/Bahia:BR America/Recife:BR'+
+  ' America/Caracas:VE America/Montevideo:UY America/Asuncion:PY America/La_Paz:BO America/Guayaquil:EC America/Panama:PA'+
+  ' America/Costa_Rica:CR America/Guatemala:GT America/Havana:CU America/Santo_Domingo:DO America/Jamaica:JM Europe/London:GB'+
+  ' Europe/Dublin:IE Europe/Lisbon:PT Atlantic/Madeira:PT Atlantic/Azores:PT Europe/Madrid:ES Atlantic/Canary:ES Africa/Ceuta:ES'+
+  ' Europe/Rome:IT Europe/Vatican:VA Europe/San_Marino:SM Europe/Malta:MT Europe/Berlin:DE Europe/Busingen:DE Europe/Amsterdam:NL'+
+  ' Europe/Vienna:AT Europe/Prague:CZ Europe/Bratislava:SK Europe/Budapest:HU Europe/Warsaw:PL Europe/Copenhagen:DK Europe/Stockholm:SE'+
+  ' Europe/Oslo:NO Europe/Helsinki:FI Atlantic/Reykjavik:IS Europe/Tallinn:EE Europe/Riga:LV Europe/Vilnius:LT Europe/Athens:GR'+
+  ' Europe/Sofia:BG Europe/Bucharest:RO Europe/Chisinau:MD Europe/Kiev:UA Europe/Kyiv:UA Europe/Minsk:BY Europe/Moscow:RU Europe/Istanbul:TR'+
+  ' Asia/Istanbul:TR Asia/Nicosia:CY Europe/Belgrade:RS Europe/Zagreb:HR Europe/Ljubljana:SI Europe/Sarajevo:BA Europe/Skopje:MK'+
+  ' Europe/Podgorica:ME Europe/Tirane:AL Europe/Gibraltar:GI Europe/Guernsey:GG Europe/Jersey:JE Europe/Isle_of_Man:IM Europe/Mariehamn:AX'+
+  ' Atlantic/Faroe:FO Asia/Beirut:LB Asia/Damascus:SY Asia/Amman:JO Asia/Jerusalem:IL Asia/Tel_Aviv:IL Asia/Gaza:PS Asia/Hebron:PS'+
+  ' Asia/Baghdad:IQ Asia/Tehran:IR Asia/Riyadh:SA Asia/Dubai:AE Asia/Qatar:QA Asia/Bahrain:BH Asia/Kuwait:KW Asia/Muscat:OM Asia/Aden:YE'+
+  ' Asia/Yerevan:AM Asia/Tbilisi:GE Asia/Baku:AZ Asia/Karachi:PK Asia/Kolkata:IN Asia/Calcutta:IN Asia/Dhaka:BD Asia/Kathmandu:NP'+
+  ' Asia/Colombo:LK Asia/Bangkok:TH Asia/Ho_Chi_Minh:VN Asia/Saigon:VN Asia/Phnom_Penh:KH Asia/Vientiane:LA Asia/Yangon:MM'+
+  ' Asia/Kuala_Lumpur:MY Asia/Singapore:SG Asia/Jakarta:ID Asia/Manila:PH Asia/Hong_Kong:HK Asia/Macau:MO Asia/Shanghai:CN Asia/Taipei:TW'+
+  ' Asia/Seoul:KR Asia/Tokyo:JP Asia/Almaty:KZ Asia/Tashkent:UZ Asia/Kabul:AF Asia/Ulaanbaatar:MN Australia/Sydney:AU Australia/Melbourne:AU'+
+  ' Australia/Brisbane:AU Australia/Perth:AU Australia/Adelaide:AU Australia/Hobart:AU Australia/Darwin:AU Pacific/Auckland:NZ'+
+  ' Pacific/Fiji:FJ Pacific/Port_Moresby:PG Pacific/Efate:VU Pacific/Apia:WS Pacific/Tongatapu:TO Pacific/Guam:GU').split(' ').map(x=>x.split(':')));
+let paysNoms=null;
+function paysNom(code){
+  if(PAYS_NOMS_COURTS[code])return PAYS_NOMS_COURTS[code];
+  try{ if(!paysNoms)paysNoms=new Intl.DisplayNames(['fr'],{type:'region'}); const n=paysNoms.of(code); if(n&&n!==code)return n; }catch(e){}
+  return PAYS_NOMS_SECOURS[code]||code;
+}
+/* Le drapeau : les deux lettres du pays en symboles régionaux (FR → 🇫🇷), que l’iPhone dessine en drapeau. */
+function paysDrapeau(code){
+  return /^[A-Z]{2}$/.test(String(code||''))?String.fromCodePoint(...[...code].map(c=>0x1F1A5+c.charCodeAt(0))):'';
+}
+function paysDetecte(){
+  try{ const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''; if(PAYS_FUSEAUX[tz])return PAYS_FUSEAUX[tz]; }catch(e){}
+  const nav=typeof navigator!=='undefined'?navigator:{},langs=(nav.languages&&nav.languages.length?nav.languages:[nav.language]).filter(Boolean);
+  for(const l of langs){ const m=/^[a-z]{2,3}(?:-[A-Za-z]{4})?-([A-Z]{2})(?:-|$)/.exec(String(l)); if(m&&PAYS_CODES.includes(m[1]))return m[1]; }
+  return null;
+}
+function paysSansAccents(t){ return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’'\-]/g,' ').toLowerCase(); }
+function paysListe(){ return PAYS_CODES.map(code=>({code,nom:paysNom(code)})).sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'})); }
+function paysDuProfil(){ const p=state.profile&&state.profile.pays; return PAYS_CODES.includes(p)?p:''; }
+/* Déjà inscrit avant cette page : le pays deviné, sans rien demander, pour que le drapeau soit là (Mon compte permet d’en changer). */
+function paysCompleter(){
+  if(!state.onboarded||paysDuProfil())return;
+  const p=paysDetecte();
+  if(!p)return;
+  state.profile=Object.assign({},state.profile||{},{pays:p,paysAuto:true});save();
+}
+/* La liste des pays, en feuille : une recherche, les pays proches en tête, puis tous les pays de A à Z ; le pays choisi est coché.
+   choisir(code) reçoit le pays touché, la feuille se ferme. */
+function paysFeuille(actuel,choisir){
+  paysFeuilleFermer(true);
+  const f=document.createElement('div');
+  f.id='pays-feuille';f.className='pays-feuille';
+  f.setAttribute('role','dialog');f.setAttribute('aria-modal','true');f.setAttribute('aria-labelledby','pays-feuille-t');
+  const ligne=c=>`<li><button type="button" class="pays-ligne${c===actuel?' is-on':''}" data-pays="${c}" data-cherche="${escAttr(paysSansAccents(paysNom(c)+' '+c))}" aria-pressed="${c===actuel?'true':'false'}"><span class="pays-drapeau" aria-hidden="true">${paysDrapeau(c)}</span><span class="pays-nom">${esc(paysNom(c))}</span>${c===actuel?'<i class="pays-ok" aria-hidden="true">✓</i>':''}</button></li>`;
+  f.innerHTML=`<button type="button" class="pays-fond" aria-label="Fermer la liste des pays" tabindex="-1"></button>
+    <div class="pays-boite">
+      <div class="pays-tete"><h2 id="pays-feuille-t">Choisis ton pays</h2><button type="button" class="pays-x" aria-label="Fermer">✕</button></div>
+      <label class="pays-cherche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Rechercher un pays" aria-label="Rechercher un pays" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"></label>
+      <div class="pays-liste">
+        <p class="pays-titre" data-groupe="proches">Les plus proches</p><ul class="pays-ul" data-groupe="proches">${PAYS_PROCHES.map(ligne).join('')}</ul>
+        <p class="pays-titre" data-groupe="tous">Tous les pays</p><ul class="pays-ul" data-groupe="tous">${paysListe().map(p=>ligne(p.code)).join('')}</ul>
+        <p class="pays-rien" hidden>Aucun pays ne correspond.</p>
+      </div>
+    </div>`;
+  document.body.appendChild(f);
+  const input=f.querySelector('input'),liste=f.querySelector('.pays-liste');
+  f.querySelector('.pays-fond').onclick=()=>paysFeuilleFermer();
+  f.querySelector('.pays-x').onclick=()=>paysFeuilleFermer();
+  liste.addEventListener('click',e=>{
+    const b=e.target.closest&&e.target.closest('.pays-ligne');
+    if(!b)return;
+    if(typeof buzz==='function')buzz('light');
+    paysFeuilleFermer();
+    choisir(b.dataset.pays);
+  });
+  input.addEventListener('input',()=>paysFiltrer(f,input.value));
+  f.addEventListener('keydown',e=>{ if(e.key==='Escape'){e.preventDefault();paysFeuilleFermer();} });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>f.classList.add('on')));
+  /* Au clavier physique, la recherche est prête ; au toucher, le clavier ne s’ouvre pas d’office (il cacherait la liste). */
+  if(typeof matchMedia==='function'&&matchMedia('(hover:hover) and (pointer:fine)').matches)setTimeout(()=>{try{input.focus({preventScroll:true});}catch(e){}},200);
+  else setTimeout(()=>{ const on=f.querySelector('.pays-ul[data-groupe="tous"] .is-on'); if(on&&!PAYS_PROCHES.includes(actuel))try{on.scrollIntoView({block:'center'});}catch(e){} },60);
+}
+/* La recherche : sans accents ni majuscules, sur le nom et les deux lettres (« cote », « ci ») ; les pays proches s’effacent. */
+function paysFiltrer(f,texte){
+  const q=paysSansAccents(texte).trim();
+  let n=0;
+  f.querySelectorAll('.pays-ul[data-groupe="tous"] li').forEach(li=>{ const ok=!q||li.firstElementChild.dataset.cherche.includes(q); li.hidden=!ok; if(ok)n++; });
+  f.querySelectorAll('[data-groupe="proches"]').forEach(el=>{el.hidden=!!q;});
+  const t=f.querySelector('.pays-titre[data-groupe="tous"]'); if(t)t.hidden=!!q;
+  const rien=f.querySelector('.pays-rien'); if(rien)rien.hidden=n>0;
+}
+function paysFeuilleFermer(vite){
+  const f=document.getElementById('pays-feuille');
+  if(!f)return;
+  f.id='';f.classList.remove('on');
+  setTimeout(()=>f.remove(),vite||prefersReduceMotion()?0:260);
+}
 /* Les couleurs suivent la surface visible, y compris une vidéo au-dessus de l'onboarding. */
 function obBarreEtat(){
   if(typeof window.rqSyncBrowserChrome==='function')window.rqSyncBrowserChrome();
@@ -32935,6 +33078,7 @@ function startOnboarding(initial='welcome'){
     job:profile.job||'',
     source:profile.source||'',
     referral:profile.referral||'',
+    ...(PAYS_CODES.includes(profile.pays)?{pays:profile.pays,paysAuto:!!profile.paysAuto}:{}),
     practiceDone:false,
     practiceRows:[],
     accountMode:state.accountMode||null
@@ -33252,7 +33396,8 @@ function obNext(){
   /* Tunnel : promesse prouvée → personnalisation → première réussite →
      (sauvegarde du succès si la connexion existe) → écran final. */
   if(slide==='welcome')obGoto('name');
-  else if(slide==='name')obGoto('age');
+  else if(slide==='name')obGoto('pays');
+  else if(slide==='pays')obGoto('age');
   else if(slide==='age')obGoto('job');
   else if(slide==='job')obGoto('goal');
   else if(slide==='goal')obGoto('level');
@@ -33364,7 +33509,7 @@ function obNameCta(){
   if(was&&!next.disabled)obCtaWake(next);
 }
 function obNameNext(){
-  if((draft.name||'').trim()){obGoto('age');return;}
+  if((draft.name||'').trim()){obGoto('pays');return;}
   const f=document.querySelector('#ob-body .ob-field');
   if(f&&!prefersReduceMotion()){f.classList.remove('is-shake');void f.offsetWidth;f.classList.add('is-shake');}
   document.getElementById('ob-prenom')?.focus({preventScroll:true});
@@ -33867,6 +34012,24 @@ function obJoursCompter(entree){
   };
   requestAnimationFrame(tick);
 }
+/* La page du pays : la recherche dure un instant (1,3 s), puis le drapeau se pose ; un pays choisi dans la liste se pose aussi. */
+function obPaysJouer(){
+  const c=document.querySelector('#ob-body .ob-pays-carte.is-cherche');
+  if(!c)return;
+  obDemoTimers.push(setTimeout(()=>{
+    if(OB_SLIDES[obStep]!=='pays'||!c.isConnected)return;
+    c.classList.remove('is-cherche');c.classList.add('is-trouve');
+    if(typeof buzz==='function')buzz('success');
+  },1300));
+}
+function obPaysListe(){
+  if(obLock)return;
+  paysFeuille(PAYS_CODES.includes(draft.pays)?draft.pays:'',code=>{
+    if(OB_SLIDES[obStep]!=='pays'||!PAYS_CODES.includes(code))return;
+    draft.pays=code;draft.paysAuto=false;draft.paysPop=true;
+    paintOb();
+  });
+}
 function obMascotQuestion(text){
   return `<div class="ob-chat"><img class="ob-chat-stk" src="${MASCOT_IMG}" width="450" height="674" alt="La mascotte Requête" draggable="false"><div class="ob-bubble">${esc(text)}</div></div>`;
 }
@@ -33995,6 +34158,23 @@ function paintOb(){
     obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);
     const pg=PS.page||{};
     setTimeout(()=>{if(OB_SLIDES[obStep]!=='pseudo')return;if(pg.raison==='pris'||pg.raison==='refuse')psAfficher('ob',pg.raison,psForme(pg.voulu||''),pg.idees);else if(v)psVerif('ob',v);},0);
+  }else if(slide==='pays'){
+    /* 4 novembre, 13 h 18 : « une page où il détecte le pays où la personne vit » (voir paysDetecte). En arrivant, la carte cherche un
+       instant (le globe tourne : « Je cherche où tu es… »), puis le drapeau du pays deviné se pose d’un rebond ; il reste à confirmer
+       (« Oui, c’est ça »), ou à changer dans la liste (paysFeuille). Rien de deviné : la carte le dit, et la liste s’ouvre d’un appui. */
+    if(draft.pays===undefined){const p=paysDetecte();draft.pays=p||'';draft.paysAuto=!!p;draft.paysCherche=!!p;}
+    const code=PAYS_CODES.includes(draft.pays)?draft.pays:'',prenom=(draft.name||'').trim();
+    const cherche=!!(draft.paysCherche&&obJustEntered&&!prefersReduceMotion()),pop=!!draft.paysPop;
+    draft.paysCherche=false;draft.paysPop=false;
+    html=`<div class="ob-screen ob-profile ob-pays-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Tu vis <em>où</em>${prenom?`, ${esc(prenom)}`:''}&nbsp;?</h1>
+      ${obMascotQuestion('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.')}
+      <div class="ob-pays-carte${code?' is-on':''}${cherche?' is-cherche':''}${pop?' is-trouve':''}" role="status" aria-live="polite">
+        <span class="ob-pays-radar" aria-hidden="true"><span class="ob-pays-globe"><i style="--k:0">🌍</i><i style="--k:2">🌎</i><i style="--k:1">🌏</i></span><b>Je cherche où tu es…</b></span>
+        ${code?`<span class="ob-pays-trouve"><span class="ob-pays-drapeau" aria-hidden="true">${paysDrapeau(code)}</span><span class="ob-pays-copy"><b>${esc(paysNom(code))}</b><small>${draft.paysAuto?'📍 Deviné grâce à ton téléphone':'✓ Choisi par toi'}</small></span></span>`
+          :`<button type="button" class="ob-pays-trouve is-vide" onclick="obPaysListe()"><span class="ob-pays-drapeau" aria-hidden="true">🌍</span><span class="ob-pays-copy"><b>Choisis ton pays</b><small>Je n’ai pas réussi à le deviner.</small></span></button>`}
+      </div>
+      <button type="button" class="ob-pays-changer" onclick="obPaysListe()">${code?'Ce n’est pas ça&nbsp;? <u>Changer de pays</u>':'<u>Choisir dans la liste</u>'}</button></div>`;
+    obSetFooter(code&&draft.paysAuto?'Oui, c’est ça':'Continuer',()=>obGoto('age'),'','','',!code);
   }else if(slide==='age'){
     html=`<div class="ob-screen ob-profile ob-age-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>
       ${obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')}
@@ -34205,6 +34385,7 @@ function paintOb(){
   if(slide==='widget')obWidgetPromoJouer();
   if(slide==='widgetTuto')obWidgetTutoJouer();
   if(slide==='jours')obJoursCompter(obJustEntered);
+  if(slide==='pays')obPaysJouer();
   if(slide==='account'&&obJustEntered&&draft.practiceDone&&!draft.feteConnexion){draft.feteConnexion=true;obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='account')obFeteConnexion();},120));}
   if(slide==='name'||slide==='pseudo'){
     if(slide==='name')obNamePreview();
@@ -34228,6 +34409,7 @@ function finishOnboard(action){
     job:draft.job||'',
     source:draft.source||'',
     referral:draft.source==='referral'?(draft.referral||''):'',
+    ...(PAYS_CODES.includes(draft.pays)?{pays:draft.pays,paysAuto:!!draft.paysAuto}:{}),
     ...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})
   };
   state.accountMode=draft.accountMode||state.accountMode||'guest';
@@ -34662,7 +34844,7 @@ function renderCompte(){
   host.innerHTML=`
     <section class="acct-hero" aria-label="Ton profil">
       <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}`)}">
-        <span class="acct-avatar" aria-hidden="true">${esc(initial)}<i>${ACCT_PEN_SVG}</i></span>
+        <span class="acct-avatar" aria-hidden="true">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:''}</span>
         <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${lvlBadgeHTML(level,'is-on-deep')}</span>
       </button>
       <div class="acct-level" role="group" aria-label="${escAttr(`Prochain cap : ${level.next}, atteint à ${level.pct} %. ${progress.percent} % du parcours validé.`)}">
@@ -34704,6 +34886,7 @@ function renderCompte(){
           <p class="account-settings-group-title">Apprentissage</p>
           <div class="account-settings-list">
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-profile-settings')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Profil et objectif</b><small>${esc(profileSummary)}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="paysChanger()"><span class="plus-row-icon is-drapeau" aria-hidden="true">${paysDuProfil()?paysDrapeau(paysDuProfil()):'🌍'}</span><span><b>Pays</b><small>${paysDuProfil()?esc(paysNom(paysDuProfil())):'Choisir mon pays'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route is-stk">${lqStkSvg(ACCT_STK.route)}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
@@ -35377,7 +35560,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-avis-ile-v2498';
+  const SW_CACHE='requete-2026-11-04-pays-v2499';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
