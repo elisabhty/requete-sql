@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=16']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=17']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -307,7 +307,7 @@ test('23 h 21 : le niveau sans « Tu commenceras par… », la première requêt
   assert.ok(p.includes('<h1 class="ob-title" id="ob-title">À toi de lancer ta première requête&nbsp;!</h1>'));
   assert.ok(p.includes('<p class="ob-lead">Une seule action suffit pour découvrir comment SQL retrouve les données.</p>'));
   assert.ok(p.includes("'Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.'"));
-  assert.ok(p.includes('<h1 class="ob-title" id="ob-title">Bravo, tu viens d’exécuter ta première requête&nbsp;! 🎉</h1>'), 'le retour après l’exécution (en titre depuis 1 h 31)');
+  assert.ok(p.includes('<h1 class="ob-title" id="ob-title">Voilà le <em>résultat</em> de ta requête.</h1>'), 'le retour après l’exécution (en titre depuis 1 h 31 ; sans « Bravo » depuis 10 h 45, la connexion le fête)');
   assert.ok(p.includes("'Lance la requête pour découvrir le résultat'"));
   assert.ok(css.includes('html #onboarding.ob-vitrine[data-ob-slide="practice"] .ob-cta:disabled{font-size:15px!important;'), 'le bouton inactif tient sur une ligne dès 375 px');
   /* La construction : nombres qui montent, comète, étincelles, confettis, vague sur les modules */
@@ -331,14 +331,16 @@ test('4 novembre, 1 h 31 : la première requête en deux pages, « Ton parcours 
      résultat et le bravo » — sur son iPhone, la bulle du « Bravo » était retirée par obFit. */
   const p = slide('practice', "}else if(slide==='rhythm'){");
   assert.ok(p.includes("html=`<div class=\"ob-screen ob-profile ob-practice${done?' is-result':''}${fresh?' is-fresh':''}\">${obFlowHeader(slide)}${head}"));
-  assert.ok(p.includes("<p class=\"ob-lead\">Ta requête a fonctionné&nbsp;! Tu as retrouvé ${rowsN>1?`les <b>${rowsN}</b> clients qui habitent`:'le client qui habite'} à Paris.</p>"), 'la phrase qui explique le résultat');
+  assert.ok(p.includes("<p class=\"ob-lead\">${rowsN>1?`Les <b>${rowsN}</b> clients qui habitent`:'Le client qui habite'} à Paris, trouvés dans la table clients.</p>"), 'la phrase qui explique le résultat');
   const avant = p.slice(p.indexOf(':`<h1 class="ob-title" id="ob-title">À toi de lancer'), p.indexOf('html=`<div class="ob-screen ob-profile ob-practice'));
   assert.ok(avant.includes('obMascotQuestion(') && !p.slice(p.indexOf('head=done?'), p.indexOf(':`<h1 class="ob-title" id="ob-title">À toi de lancer')).includes('obMascotQuestion('), 'la mascotte avant, le Bravo en titre après');
   /* La console se retourne : un quart de tour, puis revient de l’autre côté ; confettis depuis le résultat */
   for (const k of ['.ob-practice-card.is-flip-out{transform:rotateY(90deg);', '.ob-practice-card.is-flip-in{animation:obvFlipIn .55s', '@keyframes obvFlipIn{from{transform:rotateY(-90deg);',
     'html #onboarding.ob-vitrine .ob-screen.ob-practice{min-height:100%;perspective:1100px}'])
     assert.ok(css.includes(k), k);
-  assert.ok(fn('obPracticeRun', 'function obCanNext(').includes("obConfettiAt(r,'top',34)"));
+  /* 10 h 45 : plus de confettis ici ; la page de connexion arrive d’elle-même et les lance (obFeteConnexion) */
+  const run = fn('obPracticeRun', 'function obCanNext(');
+  assert.ok(!run.includes('obConfettiAt(') && run.includes("if(draft.practiceDone)obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='practice'&&!obLock)obGoto(obAfterPractice());},reduce?1800:2400));"));
   /* Réf. 2 : la flèche animée du bouton */
   const b = slide('build', "}else if(slide==='promise'){");
   assert.ok(b.includes("obSetFooter('Découvre ce que tu vas apprendre',()=>obGoto('promise'),'','','',true);") && b.includes('<span class="ob-cta-arrow" aria-hidden="true"><svg'));
