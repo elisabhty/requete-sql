@@ -19,7 +19,7 @@ const fn = (name, next) => { const i = app.lastIndexOf(`function ${name}(`); ass
 const slide = (name, next) => { const i = app.lastIndexOf(`}else if(slide==='${name}'){`); assert.ok(i > 0, name); return app.slice(i, app.indexOf(next, i + 10)); };
 
 test('l’âge et la profession, juste après le prénom, dans le compte des étapes', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
   assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','age','job','goal','level','rhythm','jours','build','promise','pact','practice'];"), '« Étape 2 sur 10 », « Étape 3 sur 10 »');
   /* obNext, exécuté seul : prénom → âge → profession → objectif */
   const vers = [];
@@ -121,7 +121,9 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
   assert.ok(fn('obSetFooter', 'function obRythmeMinutes(').includes('if(was&&!btn.disabled&&primary&&!obJustEntered)obCtaWake(btn);'));
   assert.ok(fn('obSignInit', 'function obSignClear(').includes('if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}'));
   assert.ok(fn('obRunBuild', 'function obRunBig(').includes('if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}'));
-  assert.ok(fn('obRunPractice', 'function obCanNext(').includes("root.classList.add('ob-cheer')"));
+  /* 10 h 45 : la première requête réussie ne saute plus de joie ici (sa mascotte n’est plus sur la page du résultat) : la mascotte
+     de la connexion le fait, avec les confettis. */
+  assert.ok(!fn('obRunPractice', 'function obCanNext(').includes("root.classList.add('ob-cheer')") && css.includes('.ob-enter .ob-account.is-fete .ob-compte-stk{animation:obvJoy .9s var(--v-pop) .22s both}'));
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-cheer .ob-chat img{animation:obvJoy .8s var(--v-pop) both}'));
   /* La progression se remplit en jaune soleil en avançant */
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-enter[data-ob-dir="fwd"] .ob-mini-progress i.on::before{animation:obvSegFill .5s'));
@@ -134,7 +136,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=16">') && sw.includes("'./onboarding-vitrine.css?v=16',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=17">') && sw.includes("'./onboarding-vitrine.css?v=17',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');

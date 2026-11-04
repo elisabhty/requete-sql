@@ -29,24 +29,25 @@ const flux = (globals = {}) => {
 };
 
 test('le tunnel de fin : sources, rappel (s’il peut être demandé), widget (app iPhone qui l’embarque), puis le compte', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];"));
-  /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte termine toujours le tunnel. */
-  assert.deepEqual([...flux().obFinFlux()], ['practice', 'source', 'account'], 'navigateur sans notifications : la question, puis le compte');
-  assert.deepEqual([...flux({Notification: {permission: 'default'}}).obFinFlux()], ['practice', 'source', 'rappel', 'account']);
-  assert.deepEqual([...flux({Notification: {permission: 'granted'}}).obFinFlux()], ['practice', 'source', 'account'], 'déjà décidé : rien à demander');
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte est toujours là ; 10 h 45
+     (« passer directement à la connexion ») : juste après la première requête. */
+  assert.deepEqual([...flux().obFinFlux()], ['practice', 'account', 'source'], 'navigateur sans notifications : le compte, puis la question');
+  assert.deepEqual([...flux({Notification: {permission: 'default'}}).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
+  assert.deepEqual([...flux({Notification: {permission: 'granted'}}).obFinFlux()], ['practice', 'account', 'source'], 'déjà décidé : rien à demander');
   const natif = (plugins = ['RequeteWidget', 'LocalNotifications'], plateforme = 'ios') => ({window: {Capacitor: {isNativePlatform: () => true, getPlatform: () => plateforme,
     isPluginAvailable: n => plugins.includes(n), Plugins: plugins.includes('LocalNotifications') ? {LocalNotifications: {}} : {}}}});
   const c = flux(natif());
-  assert.deepEqual([...c.obFinFlux()], ['practice', 'source', 'rappel', 'widget', 'widgetTuto', 'account']);
-  assert.equal(c.obAfterPractice(), 'source');
-  assert.equal(c.obFinSuivante('widgetTuto'), 'account'); assert.equal(c.obFinSuivante('account'), 'ready'); assert.equal(c.obFinPrecedente('ready'), 'account');
-  assert.equal(c.obFinPrecedente('account'), 'widgetTuto'); assert.equal(c.obFinPrecedente('source'), 'practice');
-  assert.deepEqual([...c.obFlowSteps()], ['name', 'practice', 'source', 'rappel', 'widget', 'widgetTuto', 'account'], '« Étape 12 sur 16 »');
-  assert.deepEqual([...flux(natif(['LocalNotifications'])).obFinFlux()], ['practice', 'source', 'rappel', 'account'], 'ancienne app, sans le pont du widget : pas de widget');
-  assert.deepEqual([...flux({...natif(), obAuthReady: () => true}).obFinFlux()], ['practice', 'source', 'rappel', 'widget', 'widgetTuto', 'account']);
+  assert.deepEqual([...c.obFinFlux()], ['practice', 'account', 'source', 'rappel', 'widget', 'widgetTuto']);
+  assert.equal(c.obAfterPractice(), 'account');
+  assert.equal(c.obFinSuivante('widgetTuto'), 'ready'); assert.equal(c.obFinSuivante('account'), 'source'); assert.equal(c.obFinPrecedente('ready'), 'widgetTuto');
+  assert.equal(c.obFinPrecedente('account'), 'practice'); assert.equal(c.obFinPrecedente('source'), 'account');
+  assert.deepEqual([...c.obFlowSteps()], ['name', 'practice', 'account', 'source', 'rappel', 'widget', 'widgetTuto'], '« Étape 12 sur 16 »');
+  assert.deepEqual([...flux(natif(['LocalNotifications'])).obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'ancienne app, sans le pont du widget : pas de widget');
+  assert.deepEqual([...flux({...natif(), obAuthReady: () => true}).obFinFlux()], ['practice', 'account', 'source', 'rappel', 'widget', 'widgetTuto']);
   /* Retenu pour tout l’onboarding : une permission accordée en route ne retire pas l’étape (ni ne fausse « Suivant »). */
   const w = flux({Notification: {permission: 'default'}}); w.obFinFlux(); w.Notification.permission = 'granted';
-  assert.deepEqual([...w.obFinFlux()], ['practice', 'source', 'rappel', 'account']);
+  assert.deepEqual([...w.obFinFlux()], ['practice', 'account', 'source', 'rappel']);
   assert.ok(app.includes('obVideoMontree=false;obFinRappel=obFinWidget=null;'), 'oublié à chaque nouvel onboarding');
   /* Suivant, Précédent */
   assert.ok(fn('obNext', 'function obBack(){').includes("else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));"));
