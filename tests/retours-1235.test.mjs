@@ -222,7 +222,7 @@ test('toucher une étoile : la note gardée, les étoiles remplies une à une, l
   assert.equal(f.mot.textContent, '😀 Très bien'); assert.ok(f.mot.classList.contains('in') && !f.mot.classList.contains('is-hint'), 'le mot prend la place de « anonyme »');
   assert.equal(f.sub.textContent, 'Merci ! On est ravis qu’elle t’ait plu.');
   assert.ok(f.box.classList.contains('is-rated')); assert.deepEqual(buzz, ['success']);
-  assert.deepEqual(envois[0], ['lecon_noter', {p_cle: 'K'.repeat(32), p_lecon: 12, p_note: 4, p_titre: 'Les jointures'}]);
+  assert.deepEqual(envois[0], ['lecon_noter', {p_cle: 'K'.repeat(32), p_lecon: 12, p_note: 4, p_titre: 'Les jointures', p_commentaire: null}]);
   await new Promise(r => setTimeout(r, 0));
   assert.equal(ctx.state.avis[12].envoye, true, 'parti');
   /* Changer d’avis : 2 étoiles */
@@ -264,13 +264,13 @@ test('la note se garde dans la progression (normalizeState), sans rien d’autre
 });
 
 test('les étoiles en CSS : la fiche du bilan, leur arrivée, leur ondulation, le rebond, les étincelles, et le mouvement réduit', () => {
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=136">'));
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=137">'));
   for (const k of ['html.lq #scr-lesson .bravo-avis{', 'html.lq #scr-lesson .bravo-avis .av-star.on path{fill:var(--sun);stroke:var(--sun-lip)}',
     'html.lq #scr-lesson .bravo-avis .av-star input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
     'html.lq #scr-lesson .bravo-avis .av-star{animation:avStarIn .5s var(--pop) calc(.42s + var(--i) * .07s) backwards}',
     'html.lq #scr-lesson .bravo-avis:not(.is-rated) .av-star svg{animation:avWave', 'html.lq #scr-lesson .bravo-avis .av-star.pop svg{animation:avPop',
-    '@keyframes avSpark{', '@media (prefers-reduced-motion:reduce){html.lq #scr-lesson .bravo-avis :is(.av-star,.av-star svg,.av-mot,.av-spark),html.lq #scr-lesson .bravo-avis{animation:none!important}}',
-    'html[data-motion="reduce"].lq #scr-lesson .bravo-avis :is(.av-star,.av-star svg,.av-mot,.av-spark)'])
+    '@keyframes avSpark{', '@media (prefers-reduced-motion:reduce){html.lq #scr-lesson .bravo-avis :is(.av-star,.av-star svg,.av-mot,.av-spark,.av-com-champ,.av-com-merci),html.lq #scr-lesson .bravo-avis{animation:none!important}}',
+    'html[data-motion="reduce"].lq #scr-lesson .bravo-avis :is(.av-star,.av-star svg,.av-mot,.av-spark,.av-com-champ,.av-com-merci)'])
     assert.ok(css.includes(k), k);
   for (const k of ['avStarIn', 'avWave', 'avPop', 'avMotIn', 'avSpark']) assert.ok(css.includes(`@keyframes ${k}{`), k);
 });
@@ -279,13 +279,13 @@ test('la base de l’appli : lecon_noter, un avis par appareil et par leçon, ri
   const sql = read('supabase/migrations/20261104123500_avis_lecon.sql');
   for (const k of ['create table if not exists public.avis_lecon (', 'primary key (cle, lecon)', 'note smallint not null check (note between 1 and 5)',
     'alter table public.avis_lecon enable row level security;', 'revoke all on public.avis_lecon from public, anon, authenticated;',
-    'create or replace function public.lecon_noter(p_cle text, p_lecon integer, p_note integer, p_titre text default null)', 'security definer', "set search_path = ''",
+    'create or replace function public.lecon_noter(p_cle text, p_lecon integer, p_note integer, p_titre text default null, p_commentaire text default null)', 'security definer', "set search_path = ''",
     'v_cle text := public.jeu_cle(p_cle);', "if (select count(*) from public.avis_lecon where note_le > now() - interval '1 hour') >= 5000 then",
-    'on conflict (cle, lecon) do update set note = excluded.note', 'grant execute on function public.lecon_noter(text, integer, integer, text) to anon, authenticated;',
+    'on conflict (cle, lecon) do update set note = excluded.note', 'grant execute on function public.lecon_noter(text, integer, integer, text, text) to anon, authenticated;',
     'create or replace view public.avis_lecons with (security_invoker = true) as', 'revoke all on public.avis_lecons from public, anon, authenticated;'])
     assert.ok(sql.includes(k), k);
   /* La page appelle la fonction par ces noms */
-  assert.ok(html.includes("clsRpc('lecon_noter',{p_cle:clsCle(),p_lecon:+id,p_note:n,p_titre:l?String(l.titre||'').slice(0,120):null})"));
+  assert.ok(html.includes("clsRpc('lecon_noter',{p_cle:clsCle(),p_lecon:+id,p_note:n,p_titre:l?String(l.titre||'').slice(0,120):null,p_commentaire:c||null})"));
 });
 
 test('le guide iOS : la flamme seule, la Dynamic Island', () => {
