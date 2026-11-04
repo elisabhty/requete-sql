@@ -76,7 +76,7 @@ Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App G
 Un widget ne joue ni vidéo ni boucle (iOS ne le permet pas) : il anime le passage d’un état à l’autre, à partir d’iOS 17. Le chat
 a donc quatre poses (`Humeur`, dans `RequeteWidget.swift`), et le fournisseur pose une entrée à minuit, 5 h, midi et 18 h :
 
-- **le matin** (5 h – midi) : le compteur se range dans le coin, le chat dit « Une petite requête ? » dans une bulle
+- **le matin** (5 h – midi) : la flamme se range dans le coin, le chat dit « Une petite requête ? » dans une bulle
   (« Jour de repos ! » un jour de repos du planning) ;
 - **l’après-midi** (midi – 18 h, et la nuit) : comme avant ;
 - **le soir** (18 h – minuit, un jour de séance) : la flamme grandit et rougeoie, « Ta flamme t’attend ! » (« Allume ta flamme ! »
@@ -87,6 +87,27 @@ a donc quatre poses (`Humeur`, dans `RequeteWidget.swift`), et le fournisseur po
 À chaque changement, le chat plonge et ressort dans sa nouvelle pose, la bulle sort de sa bouche, les étincelles jaillissent.
 Avant iOS 17, les poses changent sans animation. Le jour de repos vient de `limite` (rangée par l’app) : avant elle, la série tient
 sans séance.
+
+12 h 35 (« pourquoi 12 ? non, je veux que la flamme du jour ! ») : le widget n’affiche plus de nombre de jours, seulement la flamme
+du jour — éteinte, rougeoyante le soir, dorée quand la séance est faite. Dans la galerie des widgets, il s’appelle « Ta flamme ».
+
+### La leçon dans la Dynamic Island (4 novembre, 12 h 35)
+
+Une Live Activity suit la leçon en vidéo : la page la lance à l’ouverture de la leçon (index.html, `ileDebut`), envoie l’avancement
+à chaque dixième de la vidéo et dès qu’on quitte l’app (`ileMaj`), et l’arrête à la fin (`ileFin`), par le pont
+(`RequeteWidget.leconDebut`, `leconMaj`, `leconFin`, dans `RequeteWidgetPlugin.swift`). Son dessin est dans le widget
+(`RequeteLeconActivite`, dans `RequeteWidget.swift`) :
+
+- **Dynamic Island** (iPhone 14 Pro et plus récents, dès qu’on quitte l’app en pleine leçon) : la flamme à gauche, l’avancement en
+  anneau à droite ; appui long : le chat, le module et la leçon, la barre d’avancement, « 40 % · termine-la pour allumer ta
+  flamme » ;
+- **écran verrouillé** (tous les iPhone en iOS 16.2 et plus) : la même chose sur le violet de l’app ;
+- un appui ramène dans l’app, sur la leçon. **Leçon réussie** : la flamme du jour s’allume, dorée (« Leçon terminée ! Ta flamme
+  du jour est allumée. »), et l’activité reste un quart d’heure sur l’écran verrouillé. **Leçon fermée avant la fin** : elle s’en va.
+  L’app relancée arrête une activité restée d’avant.
+
+iOS ne montre les Live Activities que si l’Info.plist de l’app a `NSSupportsLiveActivities` : `scripts/ios-widget.mjs` l’ajoute
+une fois (à chaque `npm run ios`, `ios:add` ou `ios:testflight`). Réglages › Requête › Activités en direct permet de les couper.
 
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 

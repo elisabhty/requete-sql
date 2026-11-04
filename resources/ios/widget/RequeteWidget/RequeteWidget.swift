@@ -1,8 +1,9 @@
 import WidgetKit
 import SwiftUI
+import ActivityKit
 
-// Le widget de Requête (Elisa, 4 novembre, 3 h 54, d’après l’onboarding de Duolingo) : la série de jours, la flamme du jour
-// et le chat qui dépasse du bas, sur le violet de l’app. L’app (index.html, widgetMaj) range la série dans le groupe d’apps
+// Le widget de Requête (Elisa, 4 novembre, 3 h 54, d’après l’onboarding de Duolingo) : la flamme du jour et le chat qui dépasse
+// du bas, sur le violet de l’app (12 h 35 : « pourquoi 12 ? non, je veux que la flamme du jour ! » : plus de nombre de jours). L’app (index.html, widgetMaj) range la série dans le groupe d’apps
 // chaque fois qu’elle passe en arrière-plan ; le widget la relit à chaque minuit : la flamme du jour s’éteint, et une série
 // qui n’a pas été tenue (après le dernier jour qui la gardait, jours de repos du planning compris) retombe à zéro.
 
@@ -104,14 +105,15 @@ private let violet = LinearGradient(
 private let dore = Color(red: 1.0, green: 0.784, blue: 0.239)
 private let doreClair = Color(red: 1.0, green: 0.847, blue: 0.420)
 private let violetTexte = Color(red: 0.333, green: 0.220, blue: 0.902)
+private let braise = Color(red: 1.0, green: 0.541, blue: 0.239)
 
 /// Elisa, 4 novembre, 8 h 36 : « c’est possible d’animer plus le widget ? ». iOS n’anime pas un widget en boucle (pas de flamme qui
-/// danse sur l’écran d’accueil) ; il anime le passage d’un état à l’autre, quand la série change : le chiffre roule (4 → 5), la flamme
-/// s’allume d’un rebond, et le chat plonge puis ressort en sautant. C’est ce qu’on voit en revenant sur l’écran d’accueil après une
-/// séance (l’app range la nouvelle série en partant), et à minuit quand la flamme s’éteint.
+/// danse sur l’écran d’accueil) ; il anime le passage d’un état à l’autre : la flamme s’allume d’un rebond, et le chat plonge puis
+/// ressort en sautant. C’est ce qu’on voit en revenant sur l’écran d’accueil après une séance (l’app range le jour en partant), et à
+/// minuit quand la flamme s’éteint.
 /// 12 h 14 : le chat change aussi avec la journée (voir Humeur) ; à chaque changement, il plonge et ressort dans sa nouvelle pose,
 /// la bulle sort de sa bouche, la flamme grandit ou se rallume, les étincelles jaillissent. Avant iOS 17, les poses changent sans
-/// animation.
+/// animation. 12 h 35 : la flamme du jour seule, sans le nombre de jours.
 struct SerieVue: View {
     let entree: SerieEntree
 
@@ -122,30 +124,26 @@ struct SerieVue: View {
         return Color.white.opacity(humeur == .soir ? 0.85 : 0.55)
     }
 
-    private var chiffre: Color {
-        entree.faitAujourdhui ? doreClair : Color.white.opacity(0.9)
-    }
-
     /// Le soir, la flamme grandit et rougeoie : elle attend la séance du jour.
     private var tailleFlamme: CGFloat {
         if entree.faitAujourdhui { return 1 }
-        return humeur == .soir ? 1.3 : 0.88
+        return humeur == .soir ? 1.25 : 0.88
     }
 
     private var lueur: Color {
         switch humeur {
-        case .soir: return Color(red: 1.0, green: 0.541, blue: 0.239).opacity(0.9)
+        case .soir: return braise.opacity(0.9)
         case .fete: return dore.opacity(0.5)
         case .matin, .journee: return Color.clear
         }
     }
 
-    /// Le haut du compteur, en part de la hauteur.
-    private var hautCompteur: CGFloat {
+    /// Le haut de la flamme, en part de la hauteur (le soir, plus haut : elle grandit, et sa phrase passe dessous).
+    private var hautFlamme: CGFloat {
         switch humeur {
-        case .matin, .soir: return 0.08
+        case .matin, .fete: return 0.08
         case .journee: return 0.1
-        case .fete: return 0.07
+        case .soir: return 0.06
         }
     }
 
@@ -154,13 +152,10 @@ struct SerieVue: View {
         switch humeur {
         case .matin: return 0.93
         case .journee: return 0.97
-        case .soir: return 1.02
+        case .soir: return 1.04
         case .fete: return 0.9
         }
     }
-
-    /// Ce qui fait plonger le chat : la série ou le moment change.
-    private var chat: String { "\(entree.serie)-\(humeur.rawValue)" }
 
     private var ressort: Animation { .spring(response: 0.55, dampingFraction: 0.58) }
 
@@ -168,8 +163,7 @@ struct SerieVue: View {
     private var saut: Animation { .spring(response: 0.5, dampingFraction: 0.5) }
 
     private var libelle: String {
-        let jours = entree.serie > 1 ? "\(entree.serie) jours" : "\(entree.serie) jour"
-        return entree.faitAujourdhui ? "Ta série : \(jours). Séance du jour faite." : "Ta série : \(jours)."
+        entree.faitAujourdhui ? "Ta flamme du jour est allumée." : "Ta flamme du jour n’est pas encore allumée."
     }
 
     var body: some View {
@@ -187,16 +181,16 @@ struct SerieVue: View {
                     .transition(.scale(scale: 0.2).combined(with: .opacity))   // elles jaillissent de derrière le chat
             }
             chatVue(w, h)
-                .id(chat)   // la série ou le moment change : le chat plonge et ressort dans sa nouvelle pose
+                .id(humeur)   // le moment change : le chat plonge et ressort dans sa nouvelle pose
                 .transition(.asymmetric(
                     insertion: AnyTransition.move(edge: .bottom).animation((humeur == .fete ? saut : ressort).delay(0.15)),
                     removal: AnyTransition.move(edge: .bottom).animation(.easeIn(duration: 0.2))
                 ))
-            compteur(w)
-                .scaleEffect(humeur == .matin ? 0.6 : 1, anchor: .topLeading)   // le matin, il se range dans le coin
+            flammeVue(w)
+                .scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)   // le matin, elle se range dans le coin
                 .frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)
                 .padding(.horizontal, w * 0.08)
-                .padding(.top, h * hautCompteur)
+                .padding(.top, h * hautFlamme)
             if humeur == .soir {
                 legende(w, h)
                     .transition(.opacity.combined(with: .offset(y: h * 0.05)))
@@ -209,7 +203,6 @@ struct SerieVue: View {
             }
         }
         .frame(width: w, height: h)
-        .animation(ressort, value: entree.serie)
         .animation(ressort, value: entree.faitAujourdhui)
         .animation(ressort, value: humeur)
         .accessibilityElement(children: .ignore)
@@ -237,29 +230,22 @@ struct SerieVue: View {
             .padding(.top, h * 0.425)
     }
 
-    private func compteur(_ w: CGFloat) -> some View {
-        HStack(spacing: w * (humeur == .soir ? 0.07 : 0.03)) {
+    /// La flamme du jour : éteinte, rougeoyante le soir, dorée quand la séance est faite. Dans un ZStack : allumée ou éteinte, c’est une
+    /// autre flamme, qui entre d’un rebond à la place de l’autre.
+    private func flammeVue(_ w: CGFloat) -> some View {
+        ZStack {
             Image(systemName: "flame.fill")
-                .font(.system(size: w * 0.2, weight: .bold))
+                .font(.system(size: w * 0.3, weight: .bold))
                 .foregroundColor(flamme)
                 .scaleEffect(tailleFlamme)
-                .shadow(color: lueur, radius: w * 0.05)
+                .shadow(color: lueur, radius: w * 0.06)
                 .id(entree.faitAujourdhui)   // allumée ↔ éteinte : une autre flamme, qui entre d’un rebond
                 .transition(.scale(scale: 0.3).combined(with: .opacity))
-            Text("\(entree.serie)")
-                .font(.system(size: w * 0.27, weight: .heavy, design: .rounded))
-                .foregroundColor(chiffre)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-                .chiffreQuiRoule(entree.serie)
         }
     }
 
-    /// La bulle du matin, en haut à droite : elle commence après le compteur réduit (plus large à partir de trois chiffres).
+    /// La bulle du matin, en haut à droite, après la flamme réduite (de 0,08 à 0,23 de la largeur environ).
     private func bulle(_ w: CGFloat) -> some View {
-        let chiffres = CGFloat(String(entree.serie).count)
-        let finCompteur = 0.08 + 0.6 * (0.2 + 0.175 * chiffres)   // en part de la largeur : la flamme, puis les chiffres
-        let debut = max(0.42, finCompteur + 0.03)
         let pointe = w * 0.055
         return Text(entree.repos ? "Jour de repos\u{202F}!" : "Une petite requête\u{202F}?")
             .font(.system(size: w * 0.075, weight: .bold, design: .rounded))
@@ -269,7 +255,7 @@ struct SerieVue: View {
             .minimumScaleFactor(0.7)
             .padding(.horizontal, w * 0.035)
             .padding(.vertical, w * 0.03)
-            .frame(width: w * (0.95 - debut))
+            .frame(width: w * 0.65)
             .padding(.bottom, pointe)
             .background(Bulle(pointe: pointe).fill(Color.white))
             .shadow(color: Color.black.opacity(0.15), radius: w * 0.025, y: w * 0.012)
@@ -320,18 +306,6 @@ extension View {
     }
 }
 
-extension View {
-    /// iOS 17 et plus : le chiffre de la série roule d’une valeur à l’autre (avant, il change d’un fondu).
-    @ViewBuilder
-    func chiffreQuiRoule(_ valeur: Int) -> some View {
-        if #available(iOSApplicationExtension 17.0, *) {
-            self.contentTransition(.numericText(value: Double(valeur)))
-        } else {
-            self
-        }
-    }
-}
-
 extension WidgetConfiguration {
     /// iOS 17 et plus : sans les marges ajoutées autour du contenu, le chat peut dépasser du bas, comme dans l’app.
     func sansMarges() -> some WidgetConfiguration {
@@ -343,7 +317,6 @@ extension WidgetConfiguration {
     }
 }
 
-@main
 struct RequeteWidget: Widget {
     let kind = "RequeteSerie"
 
@@ -351,9 +324,189 @@ struct RequeteWidget: Widget {
         StaticConfiguration(kind: kind, provider: SerieFournisseur()) { entree in
             SerieVue(entree: entree).fondRequete()
         }
-        .configurationDisplayName("Ta série")
-        .description("Ta série de jours sur Requête, et le chat qui change avec la journée.")
+        .configurationDisplayName("Ta flamme")
+        .description("La flamme du jour sur Requête, et le chat qui change avec la journée.")
         .supportedFamilies([.systemSmall])
         .sansMarges()
+    }
+}
+
+// MARK: - La leçon en cours, dans la Dynamic Island
+//
+// Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une Live Activity : la page (index.html, ileDebut, ileMaj, ileFin)
+// la lance quand une leçon en vidéo s’ouvre, la met à jour quand la vidéo avance et quand on quitte l’app, et l’arrête à la fin
+// (RequeteWidgetPlugin.swift : leconDebut, leconMaj, leconFin). On quitte l’app en pleine leçon : la flamme et l’avancement dans la
+// Dynamic Island, la leçon sur l’écran verrouillé, et un appui y ramène. Leçon réussie : la flamme du jour s’allume, dorée, sur l’écran
+// verrouillé, un quart d’heure.
+
+/// Le même type, au même nom et aux mêmes champs, est déclaré dans l’app (RequeteWidgetPlugin.swift) : iOS relie la Live Activity
+/// lancée par l’app à son dessin ici par ce nom.
+@available(iOS 16.1, *)
+struct RequeteLecon: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var progression: Double   // de 0 à 1 : l’avancement de la vidéo
+        var allumee: Bool         // la flamme du jour est déjà allumée (une séance faite aujourd’hui)
+        var fini: Bool            // la leçon est réussie
+    }
+
+    var titre: String
+    var module: String
+}
+
+@available(iOS 16.1, *)
+func leconPhrase(_ e: RequeteLecon.ContentState) -> String {
+    if e.fini { return "Leçon terminée\u{202F}! Ta flamme du jour est allumée." }
+    let pct = Int((min(1, max(0, e.progression)) * 100).rounded())
+    return e.allumee ? "\(pct)\u{202F}% de la leçon" : "\(pct)\u{202F}% · termine-la pour allumer ta flamme"
+}
+
+/// La flamme du jour : dorée quand elle est allumée, braise tant que la leçon la fait attendre.
+@available(iOS 16.1, *)
+struct LeconFlamme: View {
+    let etat: RequeteLecon.ContentState
+    let taille: CGFloat
+
+    var body: some View {
+        Image(systemName: "flame.fill")
+            .font(.system(size: taille, weight: .bold))
+            .foregroundColor(etat.fini || etat.allumee ? dore : braise)
+    }
+}
+
+/// L’avancement de la leçon : une barre, dorée quand la leçon est réussie.
+struct LeconBarre: View {
+    let progression: Double
+    let fini: Bool
+
+    var body: some View {
+        GeometryReader { g in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.white.opacity(0.22))
+                Capsule()
+                    .fill(fini ? dore : Color.white)
+                    .frame(width: max(g.size.height, g.size.width * CGFloat(min(1, max(0, progression)))))
+            }
+        }
+        .frame(height: 7)
+    }
+}
+
+/// L’avancement en anneau, à droite de la Dynamic Island.
+struct LeconAnneau: View {
+    let progression: Double
+    let fini: Bool
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.25), lineWidth: 3)
+            Circle()
+                .trim(from: 0, to: CGFloat(min(1, max(0.03, progression))))
+                .stroke(fini ? dore : braise, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+    }
+}
+
+/// L’écran verrouillé : le chat, le module et la leçon, l’avancement, et la flamme du jour.
+@available(iOS 16.1, *)
+struct LeconVerrouille: View {
+    let lecon: RequeteLecon
+    let etat: RequeteLecon.ContentState
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            Image("Mascotte")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 56)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(lecon.module)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color.white.opacity(0.7))
+                    .lineLimit(1)
+                Text(lecon.titre)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundColor(Color.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                LeconBarre(progression: etat.fini ? 1 : etat.progression, fini: etat.fini)
+                    .padding(.top, 2)
+                Text(leconPhrase(etat))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color.white.opacity(0.88))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+            }
+            LeconFlamme(etat: etat, taille: 34)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+}
+
+@available(iOS 16.1, *)
+struct RequeteLeconActivite: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: RequeteLecon.self) { context in
+            LeconVerrouille(lecon: context.attributes, etat: context.state)
+                .activityBackgroundTint(violetTexte)
+                .activitySystemActionForegroundColor(Color.white)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Image("Mascotte")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    LeconFlamme(etat: context.state, taille: 30)
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    VStack(spacing: 2) {
+                        Text(context.attributes.module)
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            .foregroundColor(Color.white.opacity(0.6))
+                            .lineLimit(1)
+                        Text(context.attributes.titre)
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundColor(Color.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    VStack(spacing: 7) {
+                        LeconBarre(progression: context.state.fini ? 1 : context.state.progression, fini: context.state.fini)
+                        Text(leconPhrase(context.state))
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundColor(Color.white.opacity(0.85))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .padding(.horizontal, 4)
+                    .padding(.top, 2)
+                }
+            } compactLeading: {
+                LeconFlamme(etat: context.state, taille: 15)
+            } compactTrailing: {
+                LeconAnneau(progression: context.state.fini ? 1 : context.state.progression, fini: context.state.fini)
+                    .frame(width: 17, height: 17)
+            } minimal: {
+                LeconFlamme(etat: context.state, taille: 14)
+            }
+            .keylineTint(braise)
+        }
+    }
+}
+
+/// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus).
+@main
+struct RequeteWidgets: WidgetBundle {
+    var body: some Widget {
+        RequeteWidget()
+        if #available(iOS 16.1, *) {
+            RequeteLeconActivite()
+        }
     }
 }

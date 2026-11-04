@@ -23,6 +23,15 @@ for (const f of ['RequeteWidgetPlugin.swift', 'RequeteViewController.swift', 'Ap
 /* Le manifeste de confidentialité de l’app : le nôtre, sauf s’il y en a déjà un autre (ajouté à la main dans Xcode). */
 const privApp = join(ios, 'App', 'PrivacyInfo.xcprivacy');
 if (!existsSync(privApp) || readFileSync(privApp, 'utf8').includes('ITMS-91053')) copyFileSync(join(src, 'App', 'PrivacyInfo.xcprivacy'), privApp);
+/* 1 bis. La Dynamic Island (Elisa, 4 novembre, 12 h 35) : iOS ne montre les Live Activities d’une app que si son Info.plist
+   (ios/App/App/Info.plist, hors de Git) a NSSupportsLiveActivities. Ajouté une fois, avant la fin du dictionnaire principal. */
+const infoApp = join(ios, 'App', 'Info.plist');
+if (existsSync(infoApp)) {
+  const t = readFileSync(infoApp, 'utf8'), k = t.lastIndexOf('</dict>');
+  if (t.includes('<key>NSSupportsLiveActivities</key>')) {}
+  else if (k > 0 && t.indexOf('</plist>', k) > k) writeFileSync(infoApp, t.slice(0, k) + '\t<key>NSSupportsLiveActivities</key>\n\t<true/>\n' + t.slice(k));
+  else console.warn('⚠️  Info.plist inattendu : NSSupportsLiveActivities n’y est pas (la leçon n’apparaîtra pas dans la Dynamic Island).');
+}
 
 /* 2. Main.storyboard : le contrôleur de l’app, qui enregistre le pont du widget. Seulement une fois le projet prêt (étape 3) :
    un storyboard qui désignerait un contrôleur absent du projet ouvrirait l’app sur un écran vide. */

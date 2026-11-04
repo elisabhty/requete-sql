@@ -64,13 +64,13 @@ test('le fournisseur : une entrée maintenant, puis à minuit, 5 h, midi et 18 h
 test('chaque pose : la bulle du matin, la flamme du soir, le saut de joie, et une transition à chaque changement', () => {
   const vue = entre('struct SerieVue: View {', 'struct Bulle: Shape {');
   for (const k of [
-    /* le matin : le compteur se range dans le coin, la bulle sort de la bouche du chat */
+    /* le matin : la flamme se range dans le coin, la bulle sort de la bouche du chat */
     `Text(entree.repos ? "Jour de repos${ESPACE}!" : "Une petite requête${ESPACE}?")`,
-    '.scaleEffect(humeur == .matin ? 0.6 : 1, anchor: .topLeading)', '.frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)',
+    '.scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)', '.frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)',
     '.transition(.scale(scale: 0.3, anchor: .bottomLeading).combined(with: .opacity))',
     /* le soir : la flamme grandit et rougeoie */
-    `Text(entree.serie > 0 ? "Ta flamme t’attend${ESPACE}!" : "Allume ta flamme${ESPACE}!")`, 'return humeur == .soir ? 1.3 : 0.88',
-    'case .soir: return Color(red: 1.0, green: 0.541, blue: 0.239).opacity(0.9)', '.shadow(color: lueur, radius: w * 0.05)',
+    `Text(entree.serie > 0 ? "Ta flamme t’attend${ESPACE}!" : "Allume ta flamme${ESPACE}!")`, 'return humeur == .soir ? 1.25 : 0.88',
+    'case .soir: return braise.opacity(0.9)', '.shadow(color: lueur, radius: w * 0.06)',
     '.transition(.opacity.combined(with: .offset(y: h * 0.05)))',
     /* la fête : la flamme dorée, le chat en l’air et penché, les étincelles */
     'if entree.faitAujourdhui { return dore }', '.rotationEffect(.degrees(humeur == .fete ? -8 : 0))   // le saut de joie', 'Image(systemName: "sparkle")',
@@ -83,38 +83,36 @@ test('chaque pose : la bulle du matin, la flamme du soir, le saut de joie, et un
     assert.ok(vue.includes(k), k);
   /* Le chat : réveillé le matin, plus bas le soir, en l’air quand c’est fait */
   const haut = Object.fromEntries([...entre('private var hauteurChat: CGFloat {', '}\n\n').matchAll(/case \.(\w+): return ([\d.]+)/g)].map(m => [m[1], +m[2]]));
-  assert.deepEqual(haut, { matin: 0.93, journee: 0.97, soir: 1.02, fete: 0.9 });
+  assert.deepEqual(haut, { matin: 0.93, journee: 0.97, soir: 1.04, fete: 0.9 });
   assert.ok(haut.fete < haut.matin && haut.matin < haut.journee && haut.journee < haut.soir);
   /* Chaque « switch humeur » couvre les quatre poses (sinon, Swift refuse de compiler) */
   const sw = [...swift.matchAll(/switch humeur \{([\s\S]*?)\n {8}\}/g)].map(m => m[1]);
   assert.equal(sw.length, 3);
   for (const s of sw) for (const c of ['matin', 'journee', 'soir', 'fete']) assert.ok(s.includes(`.${c}`) || s.includes('default:'), `${c} : ${s}`);
   /* Tout ce que la vue appelle existe */
-  for (const k of ['private func compteur(_ w: CGFloat) -> some View {', 'private func bulle(_ w: CGFloat) -> some View {',
+  for (const k of ['private func flammeVue(_ w: CGFloat) -> some View {', 'private func bulle(_ w: CGFloat) -> some View {',
     'private func etincelles(_ w: CGFloat, _ h: CGFloat) -> some View {', 'private func chatVue(_ w: CGFloat, _ h: CGFloat) -> some View {',
     'private func legende(_ w: CGFloat, _ h: CGFloat) -> some View {', 'private func etincelle(_ taille: CGFloat) -> some View {',
-    'private var tailleFlamme: CGFloat {', 'private var lueur: Color {', 'private var hautCompteur: CGFloat {', 'private var libelle: String {',
+    'private var tailleFlamme: CGFloat {', 'private var lueur: Color {', 'private var hautFlamme: CGFloat {', 'private var libelle: String {',
     'private let dore = Color(', 'private let doreClair = Color(', 'private let violetTexte = Color('])
     assert.ok(swift.includes(k), k);
-  for (const k of ['compteur(w)', 'bulle(w)', 'etincelles(w, h)', 'chatVue(w, h)\n                .id(chat)', 'legende(w, h)\n                    .transition', 'etincelle(w * 0.1)', 'Bulle(pointe: pointe)']) assert.ok(vue.includes(k), k);
+  for (const k of ['flammeVue(w)', 'bulle(w)', 'etincelles(w, h)', 'chatVue(w, h)\n                .id(humeur)', 'legende(w, h)\n                    .transition', 'etincelle(w * 0.1)', 'Bulle(pointe: pointe)']) assert.ok(vue.includes(k), k);
   const bulle = entre('struct Bulle: Shape {', 'extension View {');
   assert.ok(bulle.includes('var pointe: CGFloat') && bulle.includes('func path(in r: CGRect) -> Path {') && bulle.includes('p.closeSubpath()\n        return p'));
 });
 
-test('la bulle du matin commence après le compteur réduit, même à trois chiffres', () => {
-  const b = entre('private func bulle(_ w: CGFloat) -> some View {', 'return Text(');
-  assert.ok(b.includes('let finCompteur = 0.08 + 0.6 * (0.2 + 0.175 * chiffres)') && b.includes('let debut = max(0.42, finCompteur + 0.03)'));
-  assert.ok(swift.includes('.frame(width: w * (0.95 - debut))') && swift.includes('.padding(.trailing, w * 0.05)'), 'jusqu’au bord droit, moins la marge');
-  /* Le compteur réduit : 0,6 (le même que .scaleEffect), depuis 0,08 ; la flamme et l’espace (0,2), puis environ 0,175 par chiffre */
-  for (const [chiffres, large] of [[1, 0.53], [2, 0.51], [3, 0.405]]) {
-    const fin = 0.08 + 0.6 * (0.2 + 0.175 * chiffres), debut = Math.max(0.42, fin + 0.03);
-    assert.ok(debut > fin, `${chiffres} chiffre(s) : pas de chevauchement`);
-    assert.ok(Math.abs((0.95 - debut) - large) < 0.006, `${chiffres} chiffre(s) : ${(0.95 - debut).toFixed(3)}`);
-  }
+test('la bulle du matin commence après la flamme réduite', () => {
+  /* 12 h 35 : la flamme seule, sans nombre, ne s’élargit plus ; réduite (0,55) depuis 0,08 de la largeur, son dessin (environ 0,9 de sa
+     taille, 0,3 de la largeur) s’arrête vers 0,23 : la bulle part de 0,3 (0,65 de large, jusqu’à 0,95 moins la marge de droite). */
+  assert.ok(swift.includes('.frame(width: w * 0.65)') && swift.includes('.padding(.trailing, w * 0.05)'));
+  assert.ok(swift.includes('.font(.system(size: w * 0.3, weight: .bold))'));
+  const fin = 0.08 + 0.55 * 0.9 * 0.3;
+  assert.ok(fin < 0.95 - 0.05 - 0.65, `la flamme réduite s’arrête à ${fin.toFixed(3)}, avant la bulle`);
+  assert.ok(!swift.includes('finCompteur') && !swift.includes('chiffres'), 'plus de calcul par chiffre');
 });
 
 test('la galerie et le guide iOS', () => {
-  assert.ok(swift.includes('.description("Ta série de jours sur Requête, et le chat qui change avec la journée.")'));
+  assert.ok(swift.includes('.description("La flamme du jour sur Requête, et le chat qui change avec la journée.")'));
   assert.ok(swift.includes('completion(SerieEntree(date: Date(), serie: 5, faitAujourdhui: true))'), 'la galerie montre la fête');
   assert.ok(ios.includes('### Le chat change dans la journée (4 novembre, 12 h 14)'));
 });
