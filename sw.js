@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-04-ordre-avis-v2504';
+const CACHE = 'requete-2026-11-04-mentions-v2505';
 
 const PRECACHE = [
   './safari-surface.css?v=13',

@@ -11,10 +11,10 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), css = fs.rea
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 const bloc = cut('/* ---------- « Ils apprécient Requête » (Elisa, 4 novembre, 14 h 08) ----------', '/* 14 h 08 (réf. 3) : « mettre une flèche animée');
 
-test('« De vrais avis, recueillis par Requête · voix de synthèse » : sous la photo, et pour un lecteur d’écran', () => {
-  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête · voix de synthèse</p>'));
+test('« De vrais avis, recueillis par Requête » : sous la photo, et pour un lecteur d’écran', () => {
+  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête</p>'), '15 h 30 : la voix de synthèse est dans les mentions légales');
   assert.ok(!bloc.includes('Avis réels, lus par une voix de synthèse.'), 'l’ancienne ligne est partie');
-  assert.ok(bloc.includes('» Un vrai avis, recueilli par Requête et lu par une voix de synthèse.`);'));
+  assert.ok(bloc.includes('» Un vrai avis, recueilli par Requête.`);'));
 });
 
 test('« Plus de 1 000 personnes accompagnées », sous le titre ; le chiffre défile à l’arrivée, sauf en mouvements réduits', () => {
