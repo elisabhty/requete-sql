@@ -23,7 +23,7 @@ Après un changement des défis, des bases, du moteur ou de la comparaison, exé
 ## Déploiement
 
 1. Appliquer les migrations additives et déployer le vérificateur avec ses fichiers locaux (`verify_jwt=false`, car il authentifie lui-même chaque demande par sa clé d'appareil avant l'exécution SQL).
-   Sans la CLI (connecteur Supabase), les gros fichiers (catalogue, moteur, compatibilité, comparaison) sont importés depuis jsDelivr au commit figé, `https://cdn.jsdelivr.net/gh/elisabhty/requete-sql@<commit complet>/supabase/functions/jeu-verifier/…` : l’assembleur de Supabase refuse github.io. Le dépôt garde les imports relatifs pour les tests. Version 11 (4 novembre, 22 h 50) : commit ad38ca5.
+   Sans la CLI (connecteur Supabase), les gros fichiers (catalogue, moteur, compatibilité, comparaison) sont importés depuis jsDelivr au commit figé, `https://cdn.jsdelivr.net/gh/elisabhty/requete-sql@<commit complet>/supabase/functions/jeu-verifier/…` : l’assembleur de Supabase refuse github.io. Le dépôt garde les imports relatifs pour les tests. Version 11 (4 novembre, 22 h 50) : commit ad38ca5 ; version 12 (23 h 30, corrections A à E de la correction des défis) : commit cca071e.
 2. Vérifier les RPC et deux clients sur la vraie base.
 3. Publier le client et renouveler le cache du service worker sans changer la version de progression.
 4. Révoquer les anciens points d'entrée publics `jeu_envoyer`, `jeu_historique`, `jeu_balise`, `jeu_score`, `jeu_defis`. Les fonctions v2 peuvent continuer à utiliser ces fonctions internes avec les droits de leur propriétaire.
