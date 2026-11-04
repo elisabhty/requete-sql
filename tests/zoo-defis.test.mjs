@@ -29,7 +29,7 @@ test('le Zoo a dix défis par niveau, du Facile 1 au Difficile 10', () => {
     ...Array.from({ length: 10 }, (_, i) => `zm${i + 1}`),
     ...Array.from({ length: 10 }, (_, i) => `zd${i + 1}`),
   ]);
-  assert.ok(zoo.every(c => c.niv === c.id[1] && c.titre && c.contexte && c.q && c.sol && c.indice), 'énoncés complets');
+  assert.ok(zoo.every(c => c.niv === c.id[1] && c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice), 'énoncés complets');
 });
 
 test('les solutions Zoo s’exécutent et leurs tris restent stables', () => {

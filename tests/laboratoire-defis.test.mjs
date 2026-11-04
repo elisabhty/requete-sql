@@ -28,7 +28,7 @@ test('le catalogue contient trente défis Laboratoire, dix par niveau', () => {
     assert.ok(group.every(c => c.niv === level && c.base === 'labo'), prefix);
   }
   assert.deepEqual(laboratory.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'lf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'lm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ld' + (i + 1))]);
-  for (const c of laboratory) assert.ok(c.titre && c.contexte && c.q && c.sol && c.indice && Number.isInteger(c.apres), c.id);
+  for (const c of laboratory) assert.ok(c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice && Number.isInteger(c.apres), c.id);
 });
 
 test('le seed Laboratoire conserve ses volumes et ses clés', () => {
@@ -57,12 +57,12 @@ test('les résultats repères des défis Laboratoire correspondent au seed', () 
   const rows = id => db.exec(challenge(id).sol)[0].values;
   /* 2 novembre, 21 h 22 : ld7, ld8 et ld10 copiaient lm10, ld5 et ld4 ; remplacés par le cumul des budgets, le premier projet de chaque
      équipe et l’expérience la plus longue de chaque projet. */
-  assert.equal(challenge('ld7').titre, 'Comment le budget de chaque équipe s’accumule-t-il ?');
+  assert.equal(challenge('ld7').titre, 'Comment le budget de chaque équipe s’accumule-t-il\u00a0?');
   assert.deepEqual(rows('ld7')[2], ['Équipe Astrophysique', 'Spectroscopie des galaxies', '2024-05-01', 380000, 1300000]);
-  assert.equal(challenge('ld8').titre, 'Quel est le premier projet de chaque équipe ?');
+  assert.equal(challenge('ld8').titre, 'Quel est le premier projet de chaque équipe\u00a0?');
   assert.deepEqual(rows('ld8')[0], ['Équipe Astrophysique', 'Observation des exoplanètes', '2021-06-01']);
   assert.equal(rows('ld8').length, 6);
-  assert.equal(challenge('ld10').titre, 'Quelle est l’expérience la plus longue de chaque projet ?');
+  assert.equal(challenge('ld10').titre, 'Quelle est l’expérience la plus longue de chaque projet\u00a0?');
   assert.equal(rows('ld10').length, 14);
   const sols = new Set(); for (const c of laboratory) { assert.ok(!sols.has(c.sol), c.id + ' : pas une copie d’un autre défi'); sols.add(c.sol); }
   assert.equal(rows('lf1').length, 9);

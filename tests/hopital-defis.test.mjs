@@ -28,7 +28,7 @@ const challenge = id => hospital.find(c => c.id === id);
     assert.ok(group.every(c => c.niv === level && c.base === 'hopital'), prefix);
   }
   for (const c of hospital)
-    assert.ok(c.titre && c.contexte && c.q && c.sol && c.indice && Number.isInteger(c.apres), c.id);
+    assert.ok(c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice && Number.isInteger(c.apres), c.id);
 });
 
 test('le seed Hôpital conserve ses clés et le parcours pédagogique couvre les six services', () => {

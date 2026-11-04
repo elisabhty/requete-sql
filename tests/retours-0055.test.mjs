@@ -46,7 +46,7 @@ test('les défis comptent 57 Aéroport et sept bases de 30 défis', () => {
   for (const c of DEFIS) {
     assert.ok(['aeroport', 'hopital', 'wok', 'fromagerie', 'voyages', 'labo', 'zoo', 'salle_sport'].includes(c.base), c.id);
     assert.equal(c.niv, ({ f: 'f', m: 'm', d: 'd' })[c.id[1]], c.id);
-    assert.ok(c.contexte && c.q && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
+    assert.ok(((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
   assert.ok(!/\b(clients|commandes|produits)\b/.test(AERO.map(c => c.sol).join(' ')), 'plus rien sur la base du cours dans le lot Aéroport');
   assert.ok(app.includes('const CHALLENGE_GUIDES={};'));
@@ -98,16 +98,27 @@ test('chaque solution Aéroport s’exécute et son ordre reste stable', () => {
   }
 });
 
-test('la consigne autonome d’un défi apparaît une seule fois, sans indice, seul comme en salle', () => {
-  vm.runInContext(cut('function defiConsigneHTML(c){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;') }));
-  ctx.c = DEFIS[8];
-  const html = vm.runInContext('defiConsigneHTML(c)', ctx);
-  assert.ok(html.includes(ctx.c.contexte), 'tout le contexte est visible');
-  assert.ok(html.includes(ctx.c.q), 'le résultat et le tri attendus sont dans le contexte');
-  assert.equal(html.split(ctx.c.q).length - 1, 1, 'pas de répétition de la consigne');
-  assert.ok(!html.includes(ctx.c.sol), 'pas de solution dans la mission');
+/* Elisa, 4 novembre, 20 h 33 : en salle, le joueur ne voit que le défi ; « il faut que tu dises vous avez accès au schéma, et il faut
+   que tous les défis soient très très bien expliqués point par point ». */
+test('la consigne autonome d’un défi, point par point, avec l’accès au schéma, seul comme en salle', () => {
+  const NOMS = Object.fromEntries([...app.matchAll(/\n  ([a-z_]+):\{nom:'([^']+)',/g)].map(m => [m[1], { nom: m[2] }]));
+  vm.runInContext(cut('function defiConsigneHTML(c){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;'), DEFI_BASES: NOMS }));
+  for (const c of [DEFIS[8], DEFIS.find(x => !x.ordered && x.affiche), DEFIS.find(x => x.garde && x.garde.length && x.precis && x.precis.length)]) {
+    ctx.c = c;
+    const html = vm.runInContext('defiConsigneHTML(c)', ctx);
+    for (const t of [c.situation, ...c.affiche, ...c.garde, ...c.precis]) assert.ok(html.includes(t), c.id + ' : ' + t);
+    assert.ok(html.includes('<b>Affiche</b>') && (html.match(/<ol class="dq-l is-num">/g) || []).length >= 1, c.id + ' : une pastille numérotée par colonne');
+    assert.equal(html.includes('<b>Garde</b>'), c.garde.length > 0, c.id + ' : les lignes gardées, s’il y en a');
+    assert.equal(html.includes('<b>À savoir</b>'), c.precis.length > 0, c.id);
+    assert.ok(c.ordered ? c.tri.split(/,\s*puis\s+/).every(t => html.includes(t.trim())) && html.includes('l’ordre compte') : html.includes('<b>Ordre libre</b>'), c.id + ' : le tri clé par clé, ou l’ordre libre');
+    assert.ok(html.includes('onclick="openSchemaSheet()"') && html.includes('Tu as accès au <em>schéma</em>') && html.includes('de la base ' + NOMS[c.base].nom), c.id + ' : le schéma à un toucher');
+    assert.ok(!html.includes(c.sol) && !html.includes(c.indice), c.id + ' : ni solution ni indice');
+  }
+  ctx.c = { ...DEFIS[8], affiche: ['<script>intrusion</script>'] };
+  assert.ok(!vm.runInContext('defiConsigneHTML(c)', ctx).includes('<script>'), 'les points restent du texte');
   ctx.c = { contexte: '<script>intrusion</script>', q: 'Autre texte' };
-  assert.ok(!vm.runInContext('defiConsigneHTML(c)', ctx).includes('<script>'), 'le contexte reste du texte');
+  const ancien = vm.runInContext('defiConsigneHTML(c)', ctx);
+  assert.ok(!ancien.includes('<script>') && ancien.includes('Tu as accès au <em>schéma</em>'), 'un ancien défi garde son texte, et le schéma');
   assert.ok(!app.includes('<summary>Un indice</summary>'), 'pas d’indice');
   assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length, 2, 'défi seul et manche en salle');
 });
