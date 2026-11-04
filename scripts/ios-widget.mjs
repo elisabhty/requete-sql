@@ -1,7 +1,8 @@
 // Le widget de l’app iPhone (Elisa, 4 novembre, 3 h 54 : la série 🔥 et le chat sur l’écran d’accueil, comme Duolingo).
 // Le dossier ios/ n’est pas dans Git : ce script y recopie la version gardée dans resources/ios/widget, puis, une seule fois,
 // ajoute au projet Xcode la cible RequeteWidgetExtension (WidgetKit), le groupe d’apps group.fr.requete.app (app et widget)
-// et le pont RequeteWidgetPlugin (enregistré par RequeteViewController, désigné dans Main.storyboard). Lancé par npm run ios,
+// et le pont RequeteWidgetPlugin (enregistré par RequeteViewController, que crée le délégué de scène et que désigne Main.storyboard),
+// qui sert aussi aux raccourcis de l’icône. Lancé par npm run ios,
 // ios:add et ios:testflight, après « cap sync ». Relancé, il met les fichiers à jour et ne touche plus au projet.
 // Rien n’est changé si le projet ne ressemble pas à celui de Capacitor : un avertissement le dit, et la fabrication de l’app
 // continue sans widget (l’onboarding ne le propose alors pas : il n’apparaît qu’avec le pont natif).
@@ -29,7 +30,37 @@ const sb = readFileSync(story, 'utf8');
 const sbAvant = 'customClass="CAPBridgeViewController" customModule="Capacitor"';
 const sbApres = 'customClass="RequeteViewController" customModule="App" customModuleProvider="target"';
 if (!sb.includes(sbAvant) && !sb.includes(sbApres)) arret('Main.storyboard ne désigne pas CAPBridgeViewController ; rien n’a été changé.');
-const brancher = () => { if (sb.includes(sbAvant)) writeFileSync(story, sb.replace(sbAvant, sbApres)); };
+/* 2 bis. Le délégué de scène (Elisa, 4 novembre, 9 h 02 : les raccourcis de l’icône, comme Duolingo). Le modèle de Capacitor 8.6
+   crée lui-même un CAPBridgeViewController, sans passer par Main.storyboard : le pont du widget n’était donc jamais enregistré.
+   Le nôtre (resources/ios/widget/App/SceneDelegate.swift) crée RequeteViewController et reçoit les raccourcis ; il remplace celui
+   du modèle (gardé dans SceneDelegate.swift.avant-requete), ou le sien d’un envoi précédent. Un délégué modifié à la main n’est
+   pas touché. Sans délégué de scène (modèles plus anciens) : le storyboard suffit au pont, et l’app reçoit les raccourcis. */
+const scene = join(ios, 'App', 'SceneDelegate.swift'), appDel = join(ios, 'App', 'AppDelegate.swift');
+const MODELE = ['window?.rootViewController = CAPBridgeViewController()', 'SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)'];
+const RACC = `    // Raccourcis de l’icône (scripts/ios-widget.mjs) : passés à la page par RequeteWidgetPlugin (RequeteRaccourci).
+    func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        RequeteRaccourci.recevoir(shortcutItem.type)
+        completionHandler(true)
+    }
+`;
+const brancherScene = () => {
+  if (existsSync(scene)) {
+    const s = readFileSync(scene, 'utf8');
+    if (s.includes('RequeteRaccourci') || MODELE.every(m => s.includes(m))) {
+      const garde = scene + '.avant-requete';
+      if (!s.includes('RequeteRaccourci') && !existsSync(garde)) writeFileSync(garde, s);
+      copyFileSync(join(src, 'App', 'SceneDelegate.swift'), scene);
+    } else console.warn('⚠️  SceneDelegate.swift a été modifié à la main : ni le widget ni les raccourcis n’y sont branchés (voir IOS.md).');
+  } else if (existsSync(appDel)) {
+    const a = readFileSync(appDel, 'utf8');
+    if (!a.includes('RequeteRaccourci') && !a.includes('performActionFor shortcutItem')) {
+      const fin = a.lastIndexOf('}');
+      if (fin > 0 && /class AppDelegate\b/.test(a)) writeFileSync(appDel, a.slice(0, fin) + '\n' + RACC + a.slice(fin));
+      else console.warn('⚠️  AppDelegate.swift inattendu : les raccourcis de l’icône n’y sont pas branchés.');
+    }
+  }
+};
+const brancher = () => { if (sb.includes(sbAvant)) writeFileSync(story, sb.replace(sbAvant, sbApres)); brancherScene(); };
 
 /* 3. Le projet Xcode, une seule fois. */
 let p = readFileSync(projet, 'utf8');
