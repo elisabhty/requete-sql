@@ -34200,7 +34200,8 @@ function obAnswers(items,champ,value){
    (decouvrir/index.html, RECO), avec la photo de la personne, ses pastilles pour passer d’un avis à l’autre, la lecture et l’onde qui
    avance ; puis les formateurs des cours. Les avis sont ceux du site, recopiés tels quels (un test vérifie qu’ils restent identiques) :
    de vrais avis, transmis par l’éditrice avec l’accord des personnes et de leurs photos, lus par une voix de synthèse (ElevenLabs), ce
-   que la carte dit sous la photo, comme les mentions légales du site. Dans la barre, la note et la date de l’avis remplacent « Ils
+   que la carte dit sous la photo, comme les mentions légales du site. 14 h 50 (« avis réels, récoltés par Requête, reformule bien ») :
+   « De vrais avis, recueillis par Requête · voix de synthèse » (la voix n’est pas la leur : sans le dire, on croirait les entendre). Dans la barre, la note et la date de l’avis remplacent « Ils
    recommandent Requête », qui redisait le titre. */
 const OB_TEMOINS=[
   {prenom:'Sofia B.',info:'Data Analyst junior',date:'septembre 2026',note:5,photo:'decouvrir/avis/sofia-b.webp',mini:'decouvrir/avis/sofia-b-mini.webp',audio:'decouvrir/avis/sofia-b.mp3',duree:18.5,
@@ -34221,8 +34222,9 @@ function obTemoinsListe(goal){
   return l;
 }
 /* « Plus de 1 000 personnes accompagnées » : un chiffre affiché seulement quand il est vérifié. Un nombre ici le montre au-dessus des
-   avis (« Plus de 1 000 personnes accompagnées ») ; null le cache. */
-const OB_COMMUNAUTE=null;
+   avis (« Plus de 1 000 personnes accompagnées ») ; null le cache. Elisa, 4 novembre, 14 h 50 : « vrai chiffre, 1000+, car j’ai un
+   site web » (on y apprend sans compte : le serveur ne compte pas ces personnes). */
+const OB_COMMUNAUTE=1000;
 /* Les formateurs des cours vidéo (assets/anim), comme la section « Tes formateurs » de la vitrine : treize, un par module. */
 const OB_FORMATEURS=[['formatrice','Agathe'],['formateur','Adam'],['formatrice-perle','Amina'],['formateur-arthur','Arthur'],['formatrice-mia','Miya'],
   ['formateur-antoine','Antoine'],['formatrice-anais','Anaïs'],['formateur-dorian','Dorian'],['formatrice-emily','Emily'],['formatrice-koraly','Coralie'],
@@ -34232,7 +34234,7 @@ let obTv=null;
 function obTemoinsHtml(){
   const liste=obTemoinsListe(draft.goal),r=liste[0],montres=OB_FORMATEURS.slice(0,4);
   obTv={liste,i:0,raf:0,bars:[],last:-2,lit:null};
-  const stat=OB_COMMUNAUTE>0?`<p class="ob-tv-stat"><b>Plus de ${obNombre(OB_COMMUNAUTE)}</b> personnes accompagnées</p>`:'';
+  const stat=OB_COMMUNAUTE>0?`<p class="ob-tv-stat"><b>Plus de <i data-n="${OB_COMMUNAUTE}">${obNombre(OB_COMMUNAUTE)}</i></b> personnes accompagnées</p>`:'';
   return `${stat}<div class="ob-tv" id="ob-tv">
       <div class="ob-tv-ph">
         <img class="ob-tv-img" id="ob-tv-img" src="${escAttr(r.photo)}" width="640" height="640" alt="${escAttr(r.prenom+', '+r.info)}" draggable="false">
@@ -34243,7 +34245,7 @@ function obTemoinsHtml(){
         </div>
         <audio id="ob-tv-audio" preload="none"></audio>
       </div>
-      <p class="ob-tv-note">Avis réels, lus par une voix de synthèse.</p>
+      <p class="ob-tv-note">De vrais avis, recueillis par Requête · voix de synthèse</p>
       <p class="ob-sr" id="ob-tv-tx"></p>
     </div>
     <div class="ob-tv-profs"><span class="ob-tv-faces" aria-hidden="true">${montres.map(([f],j)=>`<img src="assets/anim/${f}.webp" width="420" height="420" alt="" style="--i:${j}" draggable="false">`).join('')}<b style="--i:${montres.length}">+${OB_FORMATEURS.length-montres.length}</b></span><p><b>10+ formateurs</b> te feront progresser</p></div>`;
@@ -34280,7 +34282,7 @@ function obTemoinsMontrer(i){
   document.getElementById('ob-tv-date').textContent=r.date;
   const st=document.getElementById('ob-tv-stars');st.textContent='★'.repeat(note);st.setAttribute('aria-label',`${note} étoile${note>1?'s':''} sur 5`);
   document.getElementById('ob-tv-voix').setAttribute('aria-label',`Témoignage audio ${obTvDe(r.prenom)}, qui utilise Requête`);
-  document.getElementById('ob-tv-tx').textContent=obTypo(`Avis ${obTvDe(r.prenom)}, ${r.info}, ${r.date} : « ${r.texte} » Un avis réel, lu par une voix de synthèse.`);
+  document.getElementById('ob-tv-tx').textContent=obTypo(`Avis ${obTvDe(r.prenom)}, ${r.info}, ${r.date} : « ${r.texte} » Un vrai avis, recueilli par Requête et lu par une voix de synthèse.`);
   w.setAttribute('aria-label',`Position dans l’avis ${obTvDe(r.prenom)}`);
   w.innerHTML=r.onde.map(h=>`<i style="--h:${h}"></i>`).join('');
   t.bars=[...w.children];t.last=-2;t.lit=null;
@@ -34336,6 +34338,13 @@ function obTemoinsBrancher(){
   ph.addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=null;if(Math.abs(dx)>44&&Math.abs(dy)<Math.abs(dx)*.6){buzz('selection');obTemoinsPasser(dx<0?1:-1);}});
   ph.addEventListener('pointercancel',()=>{sx=null;});
   obTemoinsMontrer(0);
+  /* À l’arrivée, le chiffre de la communauté défile jusqu’à sa valeur (comme les chiffres des jours) ; tel quel en mouvements réduits. */
+  const n=document.querySelector('#ob-body .ob-tv-stat i[data-n]');
+  if(n&&obJustEntered&&!prefersReduceMotion()){
+    const fin=+n.dataset.n;let t0=0;
+    const tick=now=>{if(!n.isConnected)return;if(!t0)t0=now+250;const k=Math.max(0,Math.min(1,(now-t0)/950)),e=1-Math.pow(1-k,3);n.textContent=obNombre(Math.round(fin*e));if(k<1)requestAnimationFrame(tick);};
+    n.textContent=obNombre(0);requestAnimationFrame(tick);
+  }
   /* Les autres photos se chargent à l’avance. */
   obDemoTimers.push(setTimeout(()=>{if(obTv===t)t.liste.slice(1).forEach(x=>{const p=new Image();p.src=x.photo;});},900));
 }
@@ -35860,7 +35869,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-rappel-v2502';
+  const SW_CACHE='requete-2026-11-04-communaute-v2503';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
