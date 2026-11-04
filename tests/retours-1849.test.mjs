@@ -151,7 +151,7 @@ test('Données et confidentialité : « Comprendre mes données » en tête, qui
   assert.ok(h.includes('<button type="button" class="acc-donnees-t" aria-expanded="false" aria-controls="acc-donnees" onclick="accDonnees(this)">'));
   assert.ok(h.includes('<b>Comprendre mes données</b><small>Sans compte, ton apprentissage reste sur cet appareil</small>'));
   assert.ok(h.includes('<div class="acc-donnees-c" id="acc-donnees" hidden>'), 'replié au départ');
-  for (const part of ['<h4>Sur cet appareil</h4>', 'tes requêtes ne quittent jamais ton appareil', '<h4>Sur le serveur de l’appli <small>Supabase, à Paris</small></h4>',
+  for (const part of ['<h4>Sur cet appareil</h4>', 'les requêtes de ta console, de tes leçons et de tes défis en solo restent sur ton appareil', '<h4>Sur le serveur de l’appli <small>Supabase, à Paris</small></h4>',
     '<b>Ton pseudo</b>', '<b>Le classement</b>', '<b>La salle entre amis</b>', 'effacés au bout de 24&nbsp;h', '<b>Tes messages</b> envoyés depuis «&nbsp;Nous contacter&nbsp;»',
     '<h4>Tu gardes la main</h4>'])
     assert.ok(h.includes(part), part);
@@ -166,7 +166,7 @@ test('la confidentialité dit où partent les messages (appli, site, notes App S
   const li = '<li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li>';
   assert.equal(app.split(li).length - 1, 2, 'dans la confidentialité de l’appli et dans le choix « sans compte »');
   assert.ok(site.includes('<li><b>Messages de contact.</b> Depuis l’appli (Mon compte, «&nbsp;Nous contacter&nbsp;»), ton message, son sujet'));
-  assert.ok(site.includes('ou depuis l’appli (Mon compte, «&nbsp;Nous contacter&nbsp;»).'), 'les droits s’exercent aussi depuis l’appli');
+  assert.ok(site.includes('ou depuis l’appli (Mon compte, «&nbsp;Nous contacter&nbsp;»)&nbsp;; «&nbsp;Supprimer mon compte&nbsp;» efface tout d’un coup.'), 'les droits s’exercent aussi depuis l’appli');
   assert.ok(ios.includes('vue\n  `contact_boite`') || ios.includes('`contact_boite`'), 'où lire les messages');
   assert.ok(ios.includes('« Adresse e-mail » (facultative), « Autre contenu utilisateur » (le message et les fichiers joints),\n  « Photos ou vidéos » (les captures jointes) et « Autres données de\n  diagnostic »'));
 });

@@ -15,6 +15,9 @@ import ActivityKit
 // - la Dynamic Island (12 h 35, « tu peux faire une Dynamic Island ») : la leçon en cours, en Live Activity. La page la lance à
 //   l’ouverture d’une leçon en vidéo (leconDebut), la met à jour quand la vidéo avance et quand on quitte l’app (leconMaj), et
 //   l’arrête à la fin (leconFin) ; son dessin est dans le widget (RequeteWidget.swift, RequeteLeconActivite).
+// - la sauvegarde (22 h 08, « une interaction qui dit fichier exporté alors qu’on a juste cliqué ») : partager écrit le fichier de
+//   sauvegarde et ouvre la feuille de partage d’iOS ; la page n’annonce la sauvegarde qu’une fois le fichier parti ;
+// - « Noter Requête » (22 h 08) : ouvrir passe la page « Écrire un avis » de l’App Store au système.
 
 /// Le raccourci choisi sur l’icône : le délégué de scène (SceneDelegate.swift) le range ici, l’app ouverte ou non ;
 /// le pont le passe à la page dès qu’il existe.
@@ -38,7 +41,9 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "fond", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "leconDebut", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "leconMaj", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "leconFin", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "leconFin", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "partager", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "ouvrir", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -135,6 +140,52 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         Task {
             await RequeteLeconPont.fin(reussie: fini, allumee: allumee)
             call.resolve()
+        }
+    }
+
+    /// La sauvegarde : { nom, texte }. Le fichier est écrit dans le dossier temporaire, puis la feuille de partage d’iOS s’ouvre
+    /// (Enregistrer dans Fichiers, AirDrop, Mail…). Répond { ok, type } : ok est faux si la personne a fermé la feuille sans rien faire.
+    @objc func partager(_ call: CAPPluginCall) {
+        guard let texte = call.getString("texte") else {
+            call.reject("Rien à partager")
+            return
+        }
+        let nom = (call.getString("nom") ?? "requete-sauvegarde.json").replacingOccurrences(of: "/", with: "-")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(nom)
+        do {
+            try texte.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            call.reject("Le fichier n’a pas pu être écrit")
+            return
+        }
+        DispatchQueue.main.async {
+            guard let vc = self.bridge?.viewController else {
+                call.reject("Aucune fenêtre pour partager")
+                return
+            }
+            let feuille = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            feuille.completionWithItemsHandler = { type, fait, _, _ in
+                call.resolve(["ok": fait, "type": type?.rawValue ?? ""])
+            }
+            if let pop = feuille.popoverPresentationController {
+                pop.sourceView = vc.view
+                pop.sourceRect = CGRect(x: vc.view.bounds.midX, y: vc.view.bounds.maxY - 80, width: 1, height: 1)
+                pop.permittedArrowDirections = []
+            }
+            vc.present(feuille, animated: true)
+        }
+    }
+
+    /// Une adresse que la page ne peut pas ouvrir elle-même (itms-apps:// pour l’App Store) : { url }. Répond { ok }.
+    @objc func ouvrir(_ call: CAPPluginCall) {
+        guard let texte = call.getString("url"), let url = URL(string: texte) else {
+            call.reject("Adresse invalide")
+            return
+        }
+        DispatchQueue.main.async {
+            UIApplication.shared.open(url, options: [:]) { ok in
+                call.resolve(["ok": ok])
+            }
         }
     }
 }

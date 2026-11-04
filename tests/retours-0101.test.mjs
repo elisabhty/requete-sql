@@ -27,7 +27,9 @@ test('réf. 1 : le crayon est dessiné, discret dans une leçon ou un défi', ()
 test('réf. 2 : ni « Supprimer mon pseudo » ni « Retirer mes scores » ; les textes disent de nous écrire', () => {
   const data = app.slice(app.indexOf('<details class="plus-details" id="plus-data">'), app.indexOf('</details>', app.indexOf('<details class="plus-details" id="plus-data">')));
   assert.ok(!data.includes('psSupprimer()') && !data.includes('Retirer mes scores'));
-  assert.ok(app.includes('Pour supprimer ton pseudo ou retirer tes scores du classement, écris-nous depuis «&nbsp;Nous contacter&nbsp;».'));
+  /* 4 novembre, 22 h 08 : « Suppression du compte » — le seul chemin, qui efface tout (pseudo, scores, et l’appareil) */
+  assert.ok(app.includes('Dans Mon compte, «&nbsp;Supprimer mon compte&nbsp;» efface ce que le serveur garde pour toi et tout ce qui est sur cet appareil.'));
+  assert.ok(conf.includes('<section id="suppression"><h2>Supprimer ton compte</h2>'));
   assert.ok(!conf.includes('«&nbsp;Supprimer mon pseudo&nbsp;»') && !conf.includes('«&nbsp;Retirer mes scores du classement&nbsp;»'));
 });
 

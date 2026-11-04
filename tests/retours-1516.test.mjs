@@ -65,7 +65,7 @@ test('réf. 3 — l’export contient toute la progression, et le même fichier 
   const imp = cut('function importProgress(){', '\nasync function resetAllProgress(){');
   assert.ok(imp.includes("if(!p||p.v!==1||!p.state||typeof p.state!=='object')") && imp.includes("titre:'Remplacer ta progression ?'") && imp.includes('setTimeout(()=>location.reload(),350);'));
   assert.ok(imp.includes('if(EXPORT_EXTRA(k)&&typeof v===\'string\')localStorage.setItem(k,v);'), 'seules les clés connues sont réécrites');
-  assert.ok(app.includes('<div class="at"><b>Importer une progression</b><small>Le fichier exporté, depuis un autre appareil</small></div>'));
+  assert.ok(app.includes('<div class="at"><b>Restaurer une sauvegarde</b><small>Le fichier créé par « Sauvegarder ma progression »</small></div>'), '22 h 08 : sauvegarder, restaurer');
   assert.ok(app.includes("try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');"), 'au retour : Mon compte dit que c’est fait');
 });
 

@@ -202,8 +202,7 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   ajouter « Localisation approximative » (le pays), usage « Fonctionnalités de l’app », non liée à l’identité, sans pistage.
 - **Pseudo unique** : choisi sur une mini-page juste après l’onboarding (le prénom de l’onboarding reste sur l’appareil),
   réservé dans la table `jeu_pseudo` (même identifiant au hasard que le classement), il ne se change plus et n’est jamais
-  libéré tout seul (pas de ménage) : la personne le supprime dans l’appli (Mon compte › Données et confidentialité ›
-  « Supprimer mon pseudo », fonction `jeu_pseudo_liberer`, qui efface aussi ses scores). Pour libérer un pseudo sur
+  libéré tout seul (pas de ménage) : seul « Supprimer mon compte » le libère, avec les scores. Pour libérer un pseudo sur
   demande : `delete from jeu_pseudo where pseudo = '…'` dans l’éditeur SQL de Supabase.
 - **Statistiques des défis** (savoir quand en ajouter) : dans le tableau de bord Supabase, Table Editor, les vues
   `stats_defis_resume` (en une ligne : joueurs, moyenne, combien ont tout fini, par niveau), `stats_defis_joueurs`
@@ -211,7 +210,7 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   depuis l’appli.
 - **Règle 1.2 (contenu créé par les utilisateurs)** : les pseudos sont filtrés (appli et serveur, jeu_pseudo_ok),
   chaque ligne du classement a « Signaler » (le joueur est aussitôt masqué pour soi ; 3 signalements le masquent
-  pour tous), l’adresse de contact est sur le site. À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
+  pour tous), « Nous contacter » dans l’app (l’adresse du site reste à remplir : `CONTACT_EMAIL` dans decouvrir/index.html). À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
   Supabase liste les pseudos signalés (Apple demande d’agir vite, sous 24 h) ; `update jeu_joueur set masque = true
   where id = '…'` masque un joueur.
 - **Nous contacter** (Mon compte, à la place de l’ancienne aide) : le sujet (bug, idée, question, autre), le message,
@@ -247,14 +246,31 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   **Résultats** : vue `onboarding_entonnoir` (combien d’appareils ont vu chaque écran, et la part de l’accueil), redéfinie
   sans la page « 24 jours » le 4 novembre à 18 h 30 : `supabase/migrations/20261104173026_onboarding_entonnoir_sans_promesse.sql`. Dans App
   Store Connect, déclarer « Interactions avec le produit » ; usage « Analyses » ; non lié à l’identité, sans pistage.
-- **Effacement** : « Retirer mes scores du classement » et « Effacer la progression » suppriment les données du
-  serveur depuis l’appli (pas de compte, donc pas de suppression de compte à prévoir).
-- **Passer du site à l’app** : Mon compte › Données › « Exporter ma progression » sur le site, puis « Importer une
-  progression » dans l’app : leçons, défis, notes, planning, projets et la place au classement suivent.
+- **Supprimer mon compte** (4 novembre, 22 h 08 ; règle 5.1.1 v) : Mon compte › Compte et assistance › « Supprimer mon compte »,
+  deux confirmations, puis `compte_supprimer` (`supabase/migrations/20261104221600_compte_supprimer.sql`) efface tout ce que le
+  serveur garde pour l’appareil (pseudo et pays, classement et parties, vote, avis, écrans de l’accueil vus, messages de « Nous
+  contacter », places dans les salles) et, avec un compte connecté, le compte (ses tables privées suivent par cascade, l’identifiant
+  de l’appareil est révoqué) ; puis l’appareil est vidé et l’appli repart de zéro. Tant que la migration n’est pas appliquée, l’appli
+  se rabat sur `jeu_pseudo_liberer` (pseudo et scores). Les pièces jointes de « Nous contacter » restent à effacer à la main
+  (Storage) : la politique de confidentialité promet « dans le mois ». Celles qui n’ont plus de message (compte supprimé, ou envoi
+  raté) : `select name from storage.objects o where bucket_id = 'contact-pieces' and not exists (select 1 from public.contact_message m
+  where o.name = any(m.pieces));` dans l’éditeur SQL, puis les supprimer dans Storage › contact-pieces.
+  **Avec la connexion Apple** (quand elle sera branchée) : Apple demande aussi de révoquer le jeton « Se connecter avec Apple » à la
+  suppression (appel serveur à `appleid.apple.com/auth/revoke`, avec la clé du compte développeur).
+- **Effacement** : « Effacer la progression » retire aussi la place au classement (`jeu_oublier`).
+- **Passer du site à l’app** : Mon compte › Données › « Sauvegarder ma progression » sur le site (un fichier
+  `requete-sauvegarde-AAAA-MM-JJ.json`), puis « Restaurer une sauvegarde » dans l’app : leçons, défis, notes, planning, projets et
+  la place au classement suivent. Dans l’app, la sauvegarde ouvre la feuille de partage d’iOS (pont `RequeteWidget.partager`) ;
+  le message « Sauvegardée » ne vient qu’une fois le fichier parti.
+- **Noter Requête** (Mon compte, dans l’app seulement) : ouvre la page « Écrire un avis » de la fiche App Store
+  (`itms-apps://itunes.apple.com/app/id6830361256?action=write-review`, pont `RequeteWidget.ouvrir`) ; l’avis paraît sur la fiche.
+  Elle ne marche qu’une fois l’appli publiée.
+- **Se déconnecter** : dans Mon compte, seulement avec un compte connecté (rien tant que la connexion n’est pas branchée).
+- **Pièces jointes de « Nous contacter »** : `scripts/ios-widget.mjs` ajoute `NSCameraUsageDescription` et
+  `NSPhotoLibraryUsageDescription` à l’Info.plist (sans elles, « Prendre une photo » fermerait l’app).
 - **Politique de confidentialité** : Apple demande une URL publique (decouvrir/confidentialite.html). Dans l’app,
   Compte › Données et confidentialité › « Comprendre mes données » la résume.
-- **Suppression des données** : « Effacer la progression » existe déjà dans Compte.
-  Si des comptes arrivent un jour, il faudra aussi pouvoir supprimer le compte depuis l’app.
+- **Suppression des données** : « Effacer la progression » et « Supprimer mon compte » sont dans Mon compte.
 - **Rappel quotidien** : dans l’app, il devient une notification locale programmée chaque jour
   (plugin `@capacitor/local-notifications`, déjà branché). iOS demande l’autorisation à l’activation.
 - **Hors ligne** : tout le contenu est embarqué. Seul le mode Jouer a besoin d’internet.
