@@ -76,6 +76,10 @@ private let violet = LinearGradient(
     endPoint: .bottomTrailing
 )
 
+/// Elisa, 4 novembre, 8 h 36 : « c’est possible d’animer plus le widget ? ». iOS n’anime pas un widget en boucle (pas de flamme qui
+/// danse sur l’écran d’accueil) ; il anime le passage d’un état à l’autre, quand la série change : le chiffre roule (4 → 5), la flamme
+/// s’allume d’un rebond, et le chat plonge puis ressort en sautant. C’est ce qu’on voit en revenant sur l’écran d’accueil après une
+/// séance (l’app range la nouvelle série en partant), et à minuit quand la flamme s’éteint.
 struct SerieVue: View {
     let entree: SerieEntree
 
@@ -87,6 +91,8 @@ struct SerieVue: View {
         entree.faitAujourdhui ? Color(red: 1.0, green: 0.847, blue: 0.420) : Color.white.opacity(0.9)
     }
 
+    private var ressort: Animation { .spring(response: 0.55, dampingFraction: 0.58) }
+
     var body: some View {
         GeometryReader { g in
             ZStack(alignment: .top) {
@@ -94,11 +100,15 @@ struct SerieVue: View {
                     Image(systemName: "flame.fill")
                         .font(.system(size: g.size.width * 0.2, weight: .bold))
                         .foregroundColor(flamme)
+                        .scaleEffect(entree.faitAujourdhui ? 1 : 0.88)
+                        .id(entree.faitAujourdhui)   // allumée ↔ éteinte : une autre flamme, qui entre d’un rebond
+                        .transition(.scale(scale: 0.3).combined(with: .opacity))
                     Text("\(entree.serie)")
                         .font(.system(size: g.size.width * 0.27, weight: .heavy, design: .rounded))
                         .foregroundColor(chiffre)
                         .lineLimit(1)
                         .minimumScaleFactor(0.5)
+                        .chiffreQuiRoule(entree.serie)
                 }
                 .padding(.top, g.size.height * 0.1)
                 .frame(width: g.size.width)
@@ -107,8 +117,12 @@ struct SerieVue: View {
                     .scaledToFit()
                     .frame(width: g.size.width * 0.66)
                     .position(x: g.size.width / 2, y: g.size.height * 0.97)
+                    .id(entree.serie)   // la série change : le chat plonge et ressort
+                    .transition(.move(edge: .bottom))
             }
             .frame(width: g.size.width, height: g.size.height)
+            .animation(ressort, value: entree.serie)
+            .animation(ressort, value: entree.faitAujourdhui)
         }
     }
 }
@@ -121,6 +135,18 @@ extension View {
             self.containerBackground(for: .widget) { violet }
         } else {
             self.background(violet)
+        }
+    }
+}
+
+extension View {
+    /// iOS 17 et plus : le chiffre de la série roule d’une valeur à l’autre (avant, il change d’un fondu).
+    @ViewBuilder
+    func chiffreQuiRoule(_ valeur: Int) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.contentTransition(.numericText(value: Double(valeur)))
+        } else {
+            self
         }
     }
 }

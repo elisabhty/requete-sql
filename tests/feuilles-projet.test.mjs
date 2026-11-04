@@ -76,10 +76,12 @@ test('enregistrer : le bouton passe au menthe, la coche se dessine, des confetti
     assert.ok(s39.includes(part), part);
 });
 
-test('épingler : une coche ronde animée partout (Elisa, 2 novembre, 7 h 26 : « pour les épingles je veux juste une coche V animée »)', () => {
-  assert.ok(app.includes(`const PIN_CK='<svg class="pin-ck" viewBox="0 0 24 24" aria-hidden="true"><circle class="pin-ck-c" cx="12" cy="12" r="9.5"/><path class="pin-ck-v" d="M7.6 12.3l3 3.1 5.9-6.3"/></svg>';`));
-  for (const part of ["if(glyph&&!glyph.querySelector('.pin-ck'))glyph.innerHTML=PIN_CK;", `data-pin-key="\${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(\${i})"`,
-    `onclick="unpinConsoleQuery(\${i})" aria-label="Désépingler cette requête" aria-pressed="true">\${PIN_CK}</button>`, `togglePinFromList('\${n.id}')">\${PIN_CK}</button>`,
+test('épingler : une punaise micro-animée partout, sans notification (Elisa, 4 novembre, 8 h 36 ; avant, 2 novembre, une coche ronde)', () => {
+  assert.ok(app.includes(`const PUNAISE_SVG='<svg class="pin-pp" viewBox="0 0 48 48" aria-hidden="true"><ellipse class="pin-pp-trou"`), 'la punaise');
+  for (const k of ['class="pin-pp-onde"', 'class="pin-pp-eclats"', 'class="pin-pp-corps"', 'class="pin-pp-aiguille"', 'class="pin-pp-tete"']) assert.ok(app.includes(k), k);
+  assert.ok(!app.includes('PIN_CK') && !app.includes('class="pin-ck"'), 'plus de coche');
+  for (const part of ["if(glyph&&!glyph.querySelector('.pin-pp'))glyph.innerHTML=PUNAISE_SVG;", `data-pin-key="\${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(\${i})"`,
+    `data-pin-key="\${escAttr(consoleSqlKey(it.sql))}" onclick="unpinConsoleQuery(\${i})" aria-label="Désépingler cette requête" aria-pressed="true">\${PUNAISE_SVG}</button>`, `togglePinFromList('\${n.id}')">\${PUNAISE_SVG}</button>`,
     "lqPinFx(document.getElementById('console-pin-current'),idx<0);"])
     assert.ok(app.includes(part), part);
   /* La note s’épingle depuis sa carte, plus depuis l’éditeur (Elisa, 2 novembre, 18 h 45 : « Il y a trop de bouton »). */
@@ -91,9 +93,15 @@ test('épingler : une coche ronde animée partout (Elisa, 2 novembre, 7 h 26 : �
   vm.runInContext(cut(app, 'function lqPinFx(btn,on){', '\n}\n') + '\n}\nthis.fx=lqPinFx;', f);
   f.fx(b, true); assert.ok(cls.has('is-pin') && bursts === 0 && done === 0);
   f.fx(b, false); assert.ok(cls.has('is-unpin') && !cls.has('is-pin'));
-  for (const part of ['@keyframes pinCkPop{', '@keyframes pinCkDraw{from{stroke-dashoffset:16}to{stroke-dashoffset:0}}', 'html.lq .is-pin .pin-ck-v{animation:pinCkDraw',
-    'html.lq :is(.ncard.pin .npin-btn,.ne-pin.pin-on,.console-query-pin.on,.console-pin-current.on) .pin-ck-c{fill:var(--accent);stroke:var(--accent)}'])
+  /* Désépingler depuis la liste : la punaise se décroche sur place, la ligne s’efface ; plus de coche « Désépinglée » flottante */
+  const un = cut(app, 'function unpinConsoleQuery(i){', 'function toggleHistoryPin(i){');
+  assert.ok(!un.includes('lqDone(') && un.includes("lqSay('Requête désépinglée');") && un.includes('lqPinFx(btn,false);') && un.includes("row.classList.add('is-leaving');") && un.includes('if(btn&&btn._busy)return;'));
+  for (const part of ['@keyframes pinPlante{', '@keyframes pinOnde{', '@keyframes pinEclat{', '@keyframes pinDecroche{',
+    'html.lq .is-pin .pin-pp .pin-pp-corps{animation:pinPlante', 'html.lq .pin-pp .pin-pp-corps{transform-box:view-box;transform-origin:50% 87.5%;transform:rotate(-24deg)',
+    'html.lq :is(.ncard.pin .npin-btn,.console-query-pin.on,.console-pin-current.on) .pin-pp :is(.pin-pp-tete,.pin-pp-base){fill:#FF6B6B;stroke:#1B1640}',
+    'html.lq #scr-console .console-query-row.is-leaving{pointer-events:none;'])
     assert.ok(lq.includes(part), part);
+  assert.ok(!lq.includes('.pin-ck'), 'la coche est partie de la feuille de style');
 });
 
 test('tables d’un projet : le nom en entier, « 1 ligne » dessous, les actions groupées ; la description se dit « Description de la table »', () => {

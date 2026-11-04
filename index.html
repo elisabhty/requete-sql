@@ -2930,6 +2930,7 @@
   .viz-head button:active{transform:scale(.92);background:rgba(118,118,128,.24)}
   .viz-body{flex:1;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding:18px 18px calc(18px + var(--safe-bottom))}
   .viz:has(.viz-nav) .viz-body{padding-bottom:18px}
+  body.kbar-on .viz.on .viz-body{padding-bottom:calc(18px + var(--safe-bottom) + var(--kbar-h,0px))}
   .viz-stepnum{font-family:var(--mono);font-size:11px;font-weight:750;letter-spacing:1px;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
   .viz-body h3{font-family:var(--mono);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-.4px}
   .viz-e{font-size:15px;color:var(--ink-2);margin:0 0 16px;line-height:1.5}
@@ -6712,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=131">
+<link rel="stylesheet" href="ludique.css?v=132">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=13">
 <style id="lesson-video-css">
@@ -7692,7 +7693,6 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         <section class="console-project-panel console-library-panel" id="console-panel-pins" role="tabpanel" aria-labelledby="console-tab-pins" hidden>
           <div class="console-library-head"><h2>Épinglées</h2><span>Accès rapide</span></div>
           <div class="console-query-list" id="console-pins"></div>
-          <p class="console-library-help">Épingle une requête depuis l’éditeur ou l’historique.</p>
         </section>
 
         <section class="console-project-panel console-library-panel" id="console-panel-history" role="tabpanel" aria-labelledby="console-tab-history" hidden>
@@ -15777,7 +15777,7 @@ function updateConsolePinButton(){
   const run=document.getElementById('btn-run-console');
   if(run&&!run.classList.contains('running'))run.disabled=!hasSql;
   btn.classList.toggle('on',on);btn.setAttribute('aria-pressed',on?'true':'false');
-  const glyph=btn.querySelector('.console-pin-glyph');if(glyph&&!glyph.querySelector('.pin-ck'))glyph.innerHTML=PIN_CK;
+  const glyph=btn.querySelector('.console-pin-glyph');if(glyph&&!glyph.querySelector('.pin-pp'))glyph.innerHTML=PUNAISE_SVG;
   const label=btn.querySelector('b');if(label)label.textContent=on?'Désépingler cette requête':'Épingler cette requête';
 }
 function renderConsoleSide(){
@@ -15799,9 +15799,9 @@ function renderConsoleSide(){
             <span class="console-query-copy"><code>${esc(it.sql)}</code><small>${esc(fmtPinnedWhen(it.ts))}</small></span>
             <span class="console-query-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
           </button>
-          <button type="button" class="console-query-pin on" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${PIN_CK}</button>
+          <button type="button" class="console-query-pin on" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${PUNAISE_SVG}</button>
         </div>`).join('')
-      : `<p class="console-query-empty">${q?'':`<span class="console-query-stk" aria-hidden="true">${lqStkSvg('pin')}</span>`}<b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête utile pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
+      : `<p class="console-query-empty">${q?'':`<span class="console-query-stk" aria-hidden="true">${lqStkSvg('pin')}</span>`}<b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête depuis l’éditeur ou l’historique pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
     if(qTok.length)SQ.mark(pins.querySelectorAll('code'),qTok);
   }
   if(hist){
@@ -15816,7 +15816,7 @@ function renderConsoleSide(){
               <span class="console-query-copy"><code>${esc(it.sql)}</code><small>${esc(meta)}</small></span>
               <span class="console-query-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
             </button>
-            <button type="button" class="console-query-pin ${on?'on':''}" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${PIN_CK}</button>
+            <button type="button" class="console-query-pin ${on?'on':''}" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${PUNAISE_SVG}</button>
           </div>`;
         }).join('')
       : `<p class="console-query-empty"><b>${q?'Aucun résultat':consoleHistFilter==='err'?'Aucune erreur':consoleHistFilter==='ok'?'Aucune exécution réussie':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
@@ -15854,10 +15854,13 @@ function pinConsoleQuery(){
 }
 /* Épingler (Elisa, 31 octobre, 0 h 19 : « améliorer le bouton d’épingle en fonction de la DA du site, ici ou ailleurs ») : la punaise se
    plante en sautant, avec des confettis ; désépinglée, elle se décroche d’un petit bond (CSS, .is-pin / .is-unpin). */
-/* Elisa, 2 novembre, 7 h 26 : « pour les épingles je veux juste une coche V animée ». Toutes les épingles (notes, éditeur de note, console)
-   sont une coche ronde : vide, elle attend ; épinglée, le rond se remplit en violet et la coche se trace en blanc, d’un rebond. Plus de
-   punaise, de confettis ni d’étiquette « Épinglée ». L’animation part du bouton tel qu’il est affiché, même dans la feuille des notes. */
-const PIN_CK='<svg class="pin-ck" viewBox="0 0 24 24" aria-hidden="true"><circle class="pin-ck-c" cx="12" cy="12" r="9.5"/><path class="pin-ck-v" d="M7.6 12.3l3 3.1 5.9-6.3"/></svg>';
+/* Elisa, 2 novembre, 7 h 26 : « pour les épingles je veux juste une coche V animée » ; puis 4 novembre, 8 h 36 : « change l’épingle avec
+   la coche validée pour une jolie épingle micro-animée, pour bien qu’on voie quand une épingle a bien été mise, sans notification ».
+   Toutes les épingles (cartes des notes, éditeur et listes de la console) sont une punaise : libre, penchée et lavande ; épinglée, droite,
+   rouge et plantée (son ombre au pied). À l’appui, elle tombe et se plante d’un rebond, une onde part de la pointe et quatre éclats
+   jaillissent ; retirée, elle se décroche d’un petit bond et se penche (ludique.css, .is-pin / .is-unpin). Ni toast ni étiquette : seul
+   un lecteur d’écran entend « Requête épinglée » (lqSay). */
+const PUNAISE_SVG='<svg class="pin-pp" viewBox="0 0 48 48" aria-hidden="true"><ellipse class="pin-pp-trou" cx="24" cy="43.2" rx="4.6" ry="1.6"/><circle class="pin-pp-onde" cx="24" cy="43" r="6"/><g class="pin-pp-eclats"><path d="M12.6 40.4l-3.8-1.4"/><path d="M35.4 40.4l3.8-1.4"/><path d="M15.8 35.4l-2.9-2.6"/><path d="M32.2 35.4l2.9-2.6"/></g><g class="pin-pp-corps"><path class="pin-pp-aiguille" d="M24 28v14"/><rect class="pin-pp-base" x="13" y="21" width="22" height="6.5" rx="3.2"/><path class="pin-pp-cou" d="M19 12h10l-2.2 9.5h-5.6z"/><rect class="pin-pp-tete" x="15" y="5" width="18" height="7.5" rx="3.6"/><path class="pin-pp-reflet" d="M18.6 8.7h7.2"/></g></svg>';
 function lqPinFx(btn,on){
   if(typeof buzz==='function')buzz('light');
   if(!btn||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
@@ -15866,11 +15869,18 @@ function lqPinFx(btn,on){
 }
 function unpinConsoleQuery(i){
   const p=projOf(activeDbId);if(!p.pins[i])return;
-  const head=document.querySelector('#scr-console .console-library-head');
-  p.pins=removeConsoleQuery(p.pins,p.pins[i].sql);saveProjState();renderConsoleSide();
-  /* La requête quitte la liste : la coche « Désépinglée » se pose sur le titre des épinglées. */
-  if(typeof lqDone==='function')lqDone(head&&head.isConnected?head.querySelector('h2')||head:null,'Désépinglée','Requête désépinglée');
-  else lqSay('Requête désépinglée');
+  /* 4 novembre, 8 h 36 (« sans notification ») : la punaise se décroche sur place, puis la ligne s’efface ; plus de coche
+     « Désépinglée » posée sur le titre. Pendant ce temps la ligne ne répond plus (un deuxième appui viserait la requête suivante). */
+  const sql=p.pins[i].sql,btn=document.querySelector(`#console-pins .console-query-pin[data-pin-key="${CSS.escape(consoleSqlKey(sql))}"]`);
+  if(btn&&btn._busy)return;
+  p.pins=removeConsoleQuery(p.pins,sql);saveProjState();
+  lqSay('Requête désépinglée');
+  const row=btn&&btn.closest('.console-query-row');
+  if(!row||motionOff()){if(typeof buzz==='function')buzz('light');renderConsoleSide();return;}
+  btn._busy=true;btn.classList.remove('on');btn.setAttribute('aria-pressed','false');
+  lqPinFx(btn,false);
+  row.classList.add('is-leaving');
+  setTimeout(renderConsoleSide,430);
 }
 function toggleHistoryPin(i){
   const p=projOf(activeDbId),it=p.hist[i];if(!it)return;
@@ -17613,9 +17623,29 @@ function syncKbarOffset(){
   if(on&&!kbar.classList.contains('kb-down')){ const oh=kbar.offsetHeight; if(oh>=44) kbarOpenH=oh; }
   const kh=on?kbarOpenH:0;
   document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb:0)+kh)+'px');
+  /* La barre seule (sans le clavier) : les feuilles (.viz) montent déjà au-dessus du clavier ; elles réservent sous leur contenu la
+     hauteur de la barre, qui passe par-dessus (Elisa, 4 novembre, 8 h 36, réf. 2 : « je ne peux pas descendre plus » dans une note). */
+  document.documentElement.style.setProperty('--kbar-h',kh+'px');
   kbar.style.bottom=kbLift?kb+'px':'';   // sans clavier à l’écran : la feuille de style décide (bas de l’écran, ou bas du cadre sur ordinateur)
   updateKbarDock();
+  noteSqlEnVue();
 }
+/* Dans l’éditeur de note, la requête associée ouvre la barre des touches SQL : la feuille défile pour que « Enregistrer » reste au-dessus
+   de la barre, sans faire passer le haut du champ sous l’en-tête. */
+function noteSqlEnVue(){
+  const sheet=document.getElementById('note-sheet'),body=document.getElementById('note-body'),kbar=document.getElementById('kbar');
+  if(!sheet||!body||!kbar||!sheet.classList.contains('on')||!kbar.classList.contains('on'))return;
+  const ta=document.activeElement;if(!ta||ta.id!=='ne-sql')return;
+  const row=body.querySelector('.ne-row'),shell=ta.closest('.ne-sql-shell')||ta;if(!row)return;
+  const limite=kbar.getBoundingClientRect().top-12,haut=shell.getBoundingClientRect().top-(body.getBoundingClientRect().top+8);
+  const d=Math.min(row.getBoundingClientRect().bottom-limite,haut);
+  if(d>1)body.scrollTop+=d;
+}
+if(typeof document!=='undefined')document.addEventListener('focusin',e=>{
+  if(!e.target||e.target.id!=='ne-sql')return;
+  /* Dans l’app, la vue rétrécit une demi-seconde après l’ouverture du clavier : on recale pendant ce temps-là. */
+  [150,550,950].forEach(t=>setTimeout(noteSqlEnVue,t));
+});
 function showKbar(on){
   document.getElementById('kbar').classList.toggle('on',on);
   document.body.classList.toggle('kbar-on',on);
@@ -20861,8 +20891,9 @@ const LvSfx=(()=>{
 const LvVoice=(()=>{
   const app=(()=>{ try{ const C=typeof window!=='undefined'?window.Capacitor:null;
     return !!(C&&C.isNativePlatform&&C.isNativePlatform())||(typeof location!=='undefined'&&location.protocol==='capacitor:'); }catch(e){ return false; } })();
-  let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=app, endClip=null, endRaf=0, wd=0;
-  const blobs=new Map(), loading=new Map(), bad=new Set();
+  let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=app, endClip=null, endRaf=0, wd=0,
+    want=false, gardeAt=0, gardeT=-1, reprises=0, derniere='';
+  const blobs=new Map(), loading=new Map(), bad=new Set(), echecs=new Map();
   /* Copie en mémoire illisible : on repasse par l’adresse du fichier, pour tout le reste du cours, à la même position. */
   function direct(){
     noBlob=true; clearTimeout(wd);
@@ -20878,17 +20909,43 @@ const LvVoice=(()=>{
     const s=src, u=a.src;
     wd=setTimeout(()=>{ if(el===a&&src===s&&a.src===u&&a.readyState<1&&!a.error)direct(); },2000);
   }
+  /* 4 novembre, 8 h 36 (Elisa, dans l’app : « avant le son fonctionnait (voix) et d’un coup ça n’a plus fonctionné ») : une seule erreur
+     de lecture d’un fichier (lecture coupée par le système, app passée en arrière-plan, lecteur du système qui lâche) le faisait sauter
+     pour tout le reste du cours, sans rien dire ; et une balise qui ne repartait plus restait muette. Maintenant, une balise neuve reprend
+     le même fichier à la même position ; il n’est sauté qu’au troisième échec. Une voix qui devrait parler mais n’avance plus depuis
+     2,5 s repart de même (garde). De retour dans l’app, chaque fichier retrouve sa chance. */
+  function reprendre(pourquoi){
+    const s=src; if(!s)return;
+    const n=(echecs.get(s)||0)+1; echecs.set(s,n); derniere=pourquoi;
+    if(n>=3){ bad.add(s); return; }
+    reprises++;
+    const old=el, at=seekTo!=null?seekTo:(old?old.currentTime:0);
+    el=null; clearTimeout(wd);
+    if(old){ try{ old.pause(); old.removeAttribute('src'); old.load(); }catch(e){} }
+    const a=audio(); a.src=(!noBlob&&blobs.get(s))||s; seekTo=at; a.defaultPlaybackRate=rate; a.playbackRate=rate; try{ a.load(); }catch(e){}
+    gardeAt=0;
+    if(want){ playT=-1e9; go(); }
+  }
+  function garde(){
+    const a=el; if(!a||!want||muted||!src||bad.has(src))return;
+    const now=performance.now();
+    if(!gardeAt||(!a.paused&&a.readyState>=2&&a.currentTime!==gardeT)){ gardeAt=now; gardeT=a.currentTime; return; }
+    if(now-gardeAt>2500)reprendre('immobile');
+  }
   function audio(){
     if(el)return el;
-    el=document.createElement('audio');
-    el.preload='auto'; el.setAttribute('playsinline',''); el.setAttribute('x-webkit-airplay','deny');
-    try{ el.preservesPitch=true; el.webkitPreservesPitch=true; el.mozPreservesPitch=true; }catch(e){}
-    el.addEventListener('loadedmetadata',()=>{ if(seekTo!=null){ try{ el.currentTime=seekTo; }catch(e){} seekTo=null; } el.playbackRate=rate; });
-    /* Fichier en mémoire illisible (certaines vues web refusent les blob:) : on repasse par son adresse, une fois ; sinon il est sauté. */
-    el.addEventListener('error',()=>{ if(!src)return; if(String(el.src).startsWith('blob:'))direct(); else bad.add(src); });
-    el.muted=muted;
-    return el;
+    const a=document.createElement('audio'); el=a;
+    a.preload='auto'; a.setAttribute('playsinline',''); a.setAttribute('x-webkit-airplay','deny');
+    try{ a.preservesPitch=true; a.webkitPreservesPitch=true; a.mozPreservesPitch=true; }catch(e){}
+    a.addEventListener('loadedmetadata',()=>{ if(el!==a)return; if(seekTo!=null){ try{ a.currentTime=seekTo; }catch(e){} seekTo=null; } a.playbackRate=rate; });
+    /* Fichier en mémoire illisible (certaines vues web refusent les blob:) : on repasse par son adresse ; sinon, une balise neuve
+       reprend le fichier (reprendre). */
+    a.addEventListener('error',()=>{ if(el!==a||!src)return; if(String(a.src).startsWith('blob:'))direct(); else reprendre('erreur'); });
+    a.muted=muted;
+    return a;
   }
+  if(app&&typeof document!=='undefined'&&typeof document.addEventListener==='function')
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ echecs.clear(); bad.clear(); gardeAt=0; } });
   /* Une phrase : le fichier (en mémoire s’il y est déjà), puis la position ; un autre fichier se charge avant d’y aller. */
   function load(s,at){
     const a=audio();
@@ -20922,16 +20979,16 @@ const LvVoice=(()=>{
       try{ const p=a.play(); if(p&&p.catch)p.catch(()=>{}); a.pause(); }catch(e){}
     },
     /* Phrase de la timeline, à off s de son début. */
-    start(c,off){ this.stopSay(); this.stopEnd(); load(c.src,c.o+Math.max(0,off)); playT=-1e9; go(); },
+    start(c,off){ this.stopSay(); this.stopEnd(); load(c.src,c.o+Math.max(0,off)); playT=-1e9; want=true; gardeAt=performance.now(); gardeT=-1; go(); },
     /* La vidéo a passé la fin de la phrase : le son, qui suit l’image avec un léger retard (le temps que la balise parte), finit son
        dernier mot, jusqu’à la fin du passage dans le fichier, puis s’arrête (Elisa, 31 octobre, 13 h 20 : « le dernier mot est coupé »). */
     finish(c){
       const a=el; if(!c)return;   // pas de phrase en cours : une fin déjà en route continue
       this.stopEnd();
-      if(!a||a.paused||sayClip)return;
-      if(src!==c.src){ a.pause(); return; }
+      if(!a||a.paused||sayClip){ if(!sayClip)want=false; return; }
+      if(src!==c.src){ a.pause(); want=false; return; }
       const end=c.o+c.d, t0=performance.now(); endClip=c;
-      const tick=()=>{ if(endClip!==c)return; if(a.paused||a.ended||a.currentTime>=end-.01||performance.now()-t0>1500){ if(!a.paused)a.pause(); endClip=null; return; } endRaf=requestAnimationFrame(tick); };
+      const tick=()=>{ if(endClip!==c)return; if(a.paused||a.ended||a.currentTime>=end-.01||performance.now()-t0>1500){ if(!a.paused)a.pause(); endClip=null; want=false; return; } endRaf=requestAnimationFrame(tick); };
       endRaf=requestAnimationFrame(tick);
     },
     stopEnd(){ if(!endClip)return; cancelAnimationFrame(endRaf); endClip=null; },
@@ -20939,31 +20996,32 @@ const LvVoice=(()=>{
     keep(c,off){
       if(muted)return;
       if(sayClip||src!==c.src){ this.start(c,off); return; }
-      const a=audio();
-      if(a.readyState>=2&&seekTo==null&&!a.seeking&&Math.abs((a.currentTime-c.o)-off)>.3*Math.max(1,rate))try{ a.currentTime=c.o+off; }catch(e){}
-      go();
+      const a=audio(); if(!want)gardeAt=0; want=true;   // reprise après un arrêt (question, moment) : la garde repart de zéro
+      if(a.readyState>=2&&seekTo==null&&!a.seeking&&Math.abs((a.currentTime-c.o)-off)>.3*Math.max(1,rate))try{ a.currentTime=c.o+off; gardeT=a.currentTime; }catch(e){}   // un recalage n’est pas une avancée
+      go(); garde();
     },
     /* La phrase peut-elle partir (fichier chargé, position atteinte) ? Un fichier en échec ne fait jamais attendre. */
     ready(){ const a=el; return !a||muted||bad.has(src)||(a.readyState>=3&&seekTo==null&&!a.seeking); },
-    pause(){ this.stopEnd(); if(el&&!el.paused)el.pause(); },
-    stop(){ this.stopSay(); this.stopEnd(); if(el&&!el.paused)el.pause(); },
+    pause(){ this.stopEnd(); want=false; gardeAt=0; if(el&&!el.paused)el.pause(); },
+    stop(){ this.stopSay(); this.stopEnd(); want=false; gardeAt=0; if(el&&!el.paused)el.pause(); },
     /* Phrase dite à part (consigne, réaction, indice) : jouée jusqu’à la fin de son passage, puis la balise s’arrête. */
     say(c){
       if(!c||muted)return;
-      const a=audio(); this.stopSay(); this.stopEnd(); sayClip=c; load(c.src,c.o); playT=-1e9; go();
+      audio(); this.stopSay(); this.stopEnd(); sayClip=c; load(c.src,c.o); playT=-1e9; want=true; gardeAt=performance.now(); gardeT=-1; go();
       const end=c.o+c.d;
-      const tick=()=>{ if(sayClip!==c)return;
-        if(a.readyState>=2&&seekTo==null&&!a.seeking&&(a.currentTime>=end-.02||a.ended)){ a.pause(); sayClip=null; return; }
-        go(); sayRaf=requestAnimationFrame(tick); };
+      /* La balise du moment (une reprise a pu la remplacer en cours de phrase). */
+      const tick=()=>{ if(sayClip!==c)return; const a=audio();
+        if(a.readyState>=2&&seekTo==null&&!a.seeking&&(a.currentTime>=end-.02||a.ended)){ a.pause(); sayClip=null; want=false; return; }
+        go(); garde(); sayRaf=requestAnimationFrame(tick); };
       sayRaf=requestAnimationFrame(tick);
     },
-    stopSay(){ if(!sayClip)return; cancelAnimationFrame(sayRaf); sayClip=null; if(el&&!el.paused)el.pause(); },
+    stopSay(){ if(!sayClip)return; cancelAnimationFrame(sayRaf); sayClip=null; want=false; if(el&&!el.paused)el.pause(); },
     setRate(r){ rate=+r||1; if(el){ el.defaultPlaybackRate=rate; el.playbackRate=rate; } },
     setMuted(m){ muted=!!m; if(el)el.muted=muted; if(muted)this.stop(); },
     onBlocked(fn){ onBlock=fn; },
     /* Fermeture du cours : la mémoire est rendue. */
-    release(){ this.stop(); clearTimeout(wd); if(el){ try{ el.removeAttribute('src'); el.load(); }catch(e){} el=null; } src=''; seekTo=null; blobs.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); blobs.clear(); bad.clear(); },
-    stats(){ return {src,state:el?el.readyState:-1,paused:!el||el.paused,t:el?+el.currentTime.toFixed(2):0,rate:el?el.playbackRate:rate,cached:blobs.size,saying:!!sayClip,muted,direct:noBlob}; }
+    release(){ this.stop(); clearTimeout(wd); if(el){ try{ el.removeAttribute('src'); el.load(); }catch(e){} el=null; } src=''; seekTo=null; blobs.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); blobs.clear(); bad.clear(); echecs.clear(); },
+    stats(){ return {src,state:el?el.readyState:-1,paused:!el||el.paused,t:el?+el.currentTime.toFixed(2):0,rate:el?el.playbackRate:rate,cached:blobs.size,saying:!!sayClip,muted,direct:noBlob,reprises,derniere,sautes:bad.size}; }
   };
 })();
 /* ---------- Animation jouée comme une vidéo ----------
@@ -31859,7 +31917,7 @@ function noteCardHtml(n,i){
         ${n.sql?`<div class="nsql">${highlight(n.sql)}</div>`:''}
         <div class="nfoot"><span class="ndate">${fmtDate(n.ts)}</span>
           <button type="button" class="nmore" aria-expanded="false" onclick="event.stopPropagation();toggleNoteMore(this)">Voir tout</button>
-          <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${PIN_CK}</button>
+          <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${PUNAISE_SVG}</button>
         </div>
       </div>`;
 }
@@ -34912,7 +34970,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-clavier-prenom-v2488';
+  const SW_CACHE='requete-2026-11-04-epingles-voix-v2489';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
