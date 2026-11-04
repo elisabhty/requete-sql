@@ -12119,7 +12119,7 @@ function coachRoomTick(){
   else if(!document.querySelector('#hint-slot .coach'))coachPaint();
 }
 /* Ce qui cloche dans un essai raté, sans rien dévoiler de la requête. */
-function defiDiag(userRes,solRes,c){
+function defiDiag(userRes,solRes,c,sql){
   const U=userRes&&userRes[0],S=solRes&&solRes[0];
   const nU=U?U.values.length:0,nS=S?S.values.length:0,cU=U?U.columns.length:0,cS=S?S.columns.length:0;
   const pl=(n,m)=>n+' '+m+(n>1?'s':'');
@@ -12127,7 +12127,25 @@ function defiDiag(userRes,solRes,c){
   if(cU!==cS)return `On attend ${pl(cS,'colonne')} ; ta requête en renvoie ${cU}.`;
   if(nU!==nS)return `Ta requête renvoie ${pl(nU,'ligne')} ; il en faut ${nS}.`;
   if(c&&c.ordered&&typeof memeResultatColonnesLibres==='function'&&memeResultatColonnesLibres(U,S,false))return 'Les bonnes lignes sont là, mais pas dans le bon ordre : relis le tri demandé.';
+  const piege=defiPiege(U,S,sql);if(piege)return piege;
   return 'Le bon nombre de lignes, mais pas les bonnes valeurs : vérifie tes filtres et tes calculs.';
+}
+/* Elisa, 4 novembre, 23 h 50 (les 4 bonnes requêtes encore refusées : « on supprime ou corrige ? ») : on corrige, sans accepter
+   un faux résultat. Ces écritures sont justes en PostgreSQL, mais SQLite, le moteur de l’appli, en tire un autre résultat ; l’appli
+   dit pourquoi. Une division entre deux entiers ne garde que la partie entière (af21, vm3 : SUM(prix) / COUNT(*) donne 550 au lieu
+   de 550,33) ; soustraire deux dates ne donne pas des jours (hm2 : date_fin - date_debut donne 0). DISTINCT ON : voir errBox. */
+function defiPiege(U,S,sql){
+  const q=String(sql||'').replace(/'(?:''|[^'])*'/g,"''");   // sans les textes entre guillemets
+  if(U&&S&&q.includes('/')&&U.values.length===S.values.length&&U.columns.length===S.columns.length){
+    let entiers=0,autres=0;
+    U.values.forEach((r,i)=>r.forEach((u,j)=>{const v=S.values[i][j];
+      if(u===v||(typeof u==='number'&&typeof v==='number'&&Math.abs(u-v)<5e-4))return;
+      if(typeof u==='number'&&typeof v==='number'&&Number.isInteger(u)&&!Number.isInteger(v)&&Math.trunc(v)===u)entiers++;else autres++;}));
+    if(entiers&&!autres)return 'Presque : ta division se fait entre deux nombres entiers, alors SQLite ne garde que la partie entière. Utilise <code>AVG(…)</code>, ou multiplie par <code>1.0</code> avant de diviser : <code>SUM(x) * 1.0 / COUNT(*)</code>.';
+  }
+  if(/\b[\w.]*date\w*\s*-\s*[\w.]*date\w*\b/i.test(q)&&!/julianday/i.test(q))
+    return 'En SQLite, soustraire deux dates ne donne pas un nombre de jours : le calcul ne garde que l’année. Écris <code>julianday(date_fin) - julianday(date_debut)</code>.';
+  return '';
 }
 function defisParProgression(){
   return CHALLENGES.slice().sort((a,b)=>(a.apres||Infinity)-(b.apres||Infinity)||a.id.localeCompare(b.id));
@@ -17832,9 +17850,11 @@ function bindTableSwipe(root){
     });
   });
 }
-function errBox(msg){
+function errBox(msg,sql){
   const m=msg.toLowerCase(); let aide='';
-  if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
+  /* 23 h 50 (ld8) : DISTINCT ON, juste en PostgreSQL, n’existe pas en SQLite (« near "ON": syntax error ») */
+  if(sql&&/\bDISTINCT\s+ON\s*\(/i.test(String(sql).replace(/'(?:''|[^'])*'/g,"''"))) aide="<code>DISTINCT ON</code> est propre à PostgreSQL : SQLite ne le connaît pas. Pour garder une seule ligne par groupe, numérote les lignes dans une sous-requête avec <code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code>, puis garde le numéro 1.";
+  else if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
   else if(m.includes('no such table')){
     /* Pendant un défi sur une autre base (Aéroport…), ce sont ses tables à elle. */
     const dId=defiBaseId(defiActif());let tabs;
@@ -17936,7 +17956,7 @@ function runConsole(){
       if(moved) renderConsoleChips();
     }catch(e){
       fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];
-      paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message)}</div>`);
+      paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message,sql)}</div>`);
       recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
       if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); renderConsoleChips(); }
     }finally{
@@ -29000,7 +29020,7 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);coachKo('La requête ne s’exécute pas : lis le message juste en dessous.');return;}
+  }catch(e){setLessonOut(errBox(e.message,sql));jeuEssaiRate(r);coachKo('La requête ne s’exécute pas : lis le message juste en dessous.');return;}
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
@@ -29013,7 +29033,7 @@ function jeuRun(){
     if(navigator.vibrate)navigator.vibrate([10,40,20]);
     return;
   }
-  const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c):exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
+  const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c,sql):exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
   const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
   setLessonOut(table);
   jeuEssaiRate(r);
@@ -29450,7 +29470,7 @@ function runLesson(){
       try{userRes=isDefi?execChallengeResult(dU,sql):dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
-  }catch(e){ setLessonOut(errBox(e.message)); if(isDefi&&COACH&&COACH.c===current){COACH.diag='La requête ne s’exécute pas : lis le message juste en dessous.';COACH.fx='is-new-ko';} registerExoFail(sql); return; }
+  }catch(e){ setLessonOut(errBox(e.message,sql)); if(isDefi&&COACH&&COACH.c===current){COACH.diag='La requête ne s’exécute pas : lis le message juste en dessous.';COACH.fx='is-new-ko';} registerExoFail(sql); return; }
   const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,alt=>{const d=defiSandbox(current);try{return execChallengeResult(d,alt);}finally{d.close();}}):exerciseResultsMatch(userRes,solRes,current,isDefi);
   if(ok){
     const table=renderTable(userRes,ms);
@@ -29495,7 +29515,7 @@ function runLesson(){
       if(leconFinie) finaliserLecon();
     }
   }else{
-    const diag=isDefi?defiDiag(userRes,solRes,current):exoFailDiag(sql,sol,userRes,solRes,ordered);
+    const diag=isDefi?defiDiag(userRes,solRes,current,sql):exoFailDiag(sql,sol,userRes,solRes,ordered);
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     // Évite le double message : pas de bandeau vert « Requête exécutée / Aucune ligne » sous le warn.
     const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
@@ -37439,7 +37459,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-schemas-v2519';
+  const SW_CACHE='requete-2026-11-04-pieges-v2520';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
