@@ -805,6 +805,11 @@ html #onboarding.ob-vitrine .ob-success>i{position:absolute;inset:0;border-radiu
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-apport-c+.ob-apport-c .ob-apport-ico{animation-delay:.62s}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-selection-update .ob-apport-c b{transform-origin:0 70%;animation:obvNumBump .5s var(--v-pop)}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-selection-update .ob-apport-ico{animation:obvJoyIcon .5s var(--v-pop)}
+  /* La page de connexion (4 novembre, 10 h 16) : les trois boutons arrivent l’un après l’autre ; touché alors que la connexion n’est
+     pas encore là, un bouton hoche la tête et son « Bientôt » saute (obConnexionBientot), pendant que la bulle de la mascotte se rouvre. */
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-provider{animation:obvTileIn .34s var(--v-pop) calc(.16s + var(--i,0) * 70ms) backwards}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-provider.is-nudge{animation:obvShake .42s ease both}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-provider.is-nudge small{animation:obvJoyIcon .5s var(--v-pop)}
 }
 @media (prefers-reduced-motion:reduce){
   html #onboarding.ob-vitrine :is(.ob-build-list li,.ob-build-list li::before,.ob-build-ico,.ob-build-path span){transition:none!important}
@@ -1004,3 +1009,32 @@ html #onboarding.ob-vitrine.ob-fit-4 .ob-apport-ico svg{width:17px;height:17px}
 
 @keyframes obvDotOn{from{background:var(--off)}50%{transform:scale(1.65)}}
 @keyframes obvNumBump{0%{transform:none}40%{transform:scale(1.14)}100%{transform:none}}
+
+/* ---------- La page de connexion (Elisa, 4 novembre, 10 h 16 : « mettre la page de connexion (il faut pas qu’elle marche
+   encore) ») ----------
+   Comme les autres étapes : le titre centré, la mascotte, puis les trois boutons. « Continuer avec Apple » en noir, pomme et texte
+   blancs, à la police du système (la charte d’Apple pour ce bouton), les deux autres en blanc à rebord, comme les réponses. Tant que
+   la connexion n’est pas branchée, chacun porte « Bientôt » et reste vif : le toucher fait réagir la page (le bouton s’enfonce, puis
+   hoche la tête). Les animations sont dans le média « no-preference » plus haut. */
+html #onboarding.ob-vitrine .ob-account .ob-title{text-align:center!important}
+html #onboarding.ob-vitrine .ob-account .ob-provider-list{margin-top:2px!important;gap:10px!important}
+html #onboarding.ob-vitrine .ob-provider{cursor:pointer;font:600 15.5px/1.15 -apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif!important;letter-spacing:-.01em;
+  transition:transform .12s var(--v-press),box-shadow .12s var(--v-press)!important}
+html #onboarding.ob-vitrine .ob-provider:not(:disabled):active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--v-shadow-lip)!important}
+html #onboarding.ob-vitrine .ob-provider.is-apple{border-color:#000!important;background:#000!important;color:#fff!important;box-shadow:0 4px 0 rgba(8,5,28,.6)!important}
+html #onboarding.ob-vitrine .ob-provider.is-apple:not(:disabled):active{box-shadow:0 0 0 rgba(8,5,28,.6)!important}
+html #onboarding.ob-vitrine .ob-provider-icon svg{display:block;width:21px;height:21px}
+html #onboarding.ob-vitrine .ob-provider.is-apple .ob-provider-icon{color:#fff}
+html #onboarding.ob-vitrine .ob-provider.is-apple .ob-provider-icon svg{width:22px;height:22px;margin-top:-3px}
+html #onboarding.ob-vitrine .ob-provider.is-email .ob-provider-icon{color:var(--v-accent)}
+html #onboarding.ob-vitrine .ob-account .ob-local-proof{margin-top:14px!important}
+html #onboarding.ob-vitrine .ob-account .ob-legal-note{margin-top:12px!important;font-size:11px!important;line-height:1.45!important}
+/* Tout tient sur un écran (obFit) */
+html #onboarding.ob-vitrine.ob-fit-2 .ob-account .ob-local-proof{margin-top:10px!important;padding-top:8px!important;padding-bottom:8px!important}
+html #onboarding.ob-vitrine.ob-fit-4 .ob-account .ob-local-proof small{display:none}
+/* Écrans étroits (moins de 360 px) : « Bientôt » passe en pastille sur le coin du bouton, le texte garde toute sa ligne. */
+@media (max-width:359px){
+  html #onboarding.ob-vitrine .ob-provider{position:relative;grid-template-columns:24px minmax(0,1fr) 24px!important;column-gap:8px!important;padding:0 12px!important;font-size:14.5px!important}
+  html #onboarding.ob-vitrine .ob-provider small{position:absolute;top:-8px;right:12px;box-shadow:0 2px 0 rgba(27,22,64,.18)}
+  html #onboarding.ob-vitrine .ob-account .ob-provider-list{margin-top:10px!important;gap:12px!important}
+}
