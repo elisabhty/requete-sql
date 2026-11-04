@@ -127,9 +127,9 @@ test('Script : recopie l’écran de lancement dans le projet iOS, avant chaque 
   assert.ok(sh.startsWith('#!/bin/bash') && sh.includes('set -euo pipefail'));
   assert.ok(fs.statSync(new URL('scripts/ios-ecran-lancement.sh', root)).mode & 0o100, 'exécutable');
   const pkg = JSON.parse(lire('package.json')).scripts;
-  assert.equal(pkg['ios:testflight'], 'npm run build:www && npx cap sync ios && bash scripts/ios-ecran-lancement.sh && bash scripts/ios-testflight.sh');
-  assert.equal(pkg.ios, 'npm run build:www && npx cap sync ios && bash scripts/ios-ecran-lancement.sh && npx cap open ios');
-  assert.equal(pkg['ios:add'], 'npm run build:www && npx cap add ios && bash scripts/ios-ecran-lancement.sh');
+  assert.equal(pkg['ios:testflight'], 'npm run build:www && npx cap sync ios && bash scripts/ios-ecran-lancement.sh && node scripts/ios-widget.mjs && bash scripts/ios-testflight.sh');
+  assert.equal(pkg.ios, 'npm run build:www && npx cap sync ios && bash scripts/ios-ecran-lancement.sh && node scripts/ios-widget.mjs && npx cap open ios');
+  assert.equal(pkg['ios:add'], 'npm run build:www && npx cap add ios && bash scripts/ios-ecran-lancement.sh && node scripts/ios-widget.mjs');
   /* Dans un faux dépôt : il remplace l’ancien storyboard, ajoute l’image, et s’arrête net s’il n’y a pas de projet iOS */
   const t = fs.mkdtempSync(path.join(os.tmpdir(), 'rq-lancement-'));
   try {

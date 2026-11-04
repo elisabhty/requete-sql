@@ -59,6 +59,18 @@ Restent, pour vendre l’appli : le contrat des apps payantes (Accords, taxes et
 Ensuite, à chaque nouvelle version : `npm run ios:testflight`. Si l’archive se plaint qu’il n’y a aucun appareil pour le
 profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans Xcode (en haut, à la place du simulateur) et relancer.
 
+### Le widget de la série (4 novembre)
+
+`scripts/ios-widget.mjs` (lancé par `npm run ios`, `ios:add` et `ios:testflight`, après `cap sync`) recopie
+`resources/ios/widget` dans `ios/App` et, la première fois, ajoute au projet Xcode la cible **RequeteWidgetExtension**
+(WidgetKit, identifiant `fr.requete.app.widget`), le groupe d’apps **`group.fr.requete.app`** (droits de l’app et du widget),
+le pont `RequeteWidgetPlugin` (enregistré par `RequeteViewController`, désigné dans `Main.storyboard`) et un manifeste de
+confidentialité par cible (`PrivacyInfo.xcprivacy`). L’ancien projet est gardé à côté : `project.pbxproj.avant-widget`.
+L’app y range la série (index.html, `widgetMaj`) chaque fois qu’elle passe en arrière-plan ; le widget la relit à minuit.
+
+Si l’archive refuse la signature du groupe d’apps : dans Xcode, cible App puis cible RequeteWidgetExtension › Signing &
+Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App Groups (Xcode l’enregistre), puis relancer.
+
 ## Réglages à vérifier avant l’envoi
 
 1. **Identifiant de l’app** : `appId` dans `capacitor.config.json` (`fr.requete.app` par défaut).

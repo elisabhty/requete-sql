@@ -6714,7 +6714,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=131">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=12">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=13">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -14489,6 +14489,7 @@ async function boot(){
     resetLeconFromUrl();
     apercuFromUrl();
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
+    setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
     /* Retour d’« Importer une progression » : Mon compte, et la carte « Tes données » dit que c’est fait. */
@@ -32282,7 +32283,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','pseudo','ready'];
+const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','source','rappel','widget','widgetTuto','account','pseudo','ready'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -32678,6 +32679,19 @@ const OB_JOBS=[
   ['career-change','En reconversion','refresh'],
   ['other','Autre activité','more']
 ];
+/* « Comment as-tu connu Requête ? » (4 novembre, 3 h 54, d’après Duolingo) : la réponse reste sur l’appareil (state.profile.source). */
+const OB_SOURCES=[
+  ['tiktok','TikTok','note'],
+  ['instagram','Instagram','camera'],
+  ['youtube','YouTube','play'],
+  ['linkedin','LinkedIn','briefcase'],
+  ['amis','Famille ou amis','people'],
+  ['store','App Store','store'],
+  ['google','Recherche Google','search'],
+  ['article','Article ou blog','article'],
+  ['ecole','École ou formation','school'],
+  ['autre','Autre','more']
+];
 /* Les couleurs suivent la surface visible, y compris une vidéo au-dessus de l'onboarding. */
 function obBarreEtat(){
   if(typeof window.rqSyncBrowserChrome==='function')window.rqSyncBrowserChrome();
@@ -32766,7 +32780,7 @@ function startOnboarding(initial='welcome'){
   obBarreEtat(true);
   obJustEntered=true;
   brancherObSwipeV2();
-  obVideoMontree=false;
+  obVideoMontree=false;obFinRappel=obFinWidget=null;
   if(obEntry==='welcome'&&obVideoVoulue())obVideoOuvrir();
   paintOb();
 }
@@ -32830,8 +32844,134 @@ function obCtaWake(btn){
    branché. Sans adaptateur, elle sortirait trois boutons désactivés : on la
    retire du tunnel (elle reste accessible depuis Mon compte). */
 function obAuthReady(){return !!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signIn==='function');}
-function obFlowSteps(){return obAuthReady()?[...OB_PROFILE_SLIDES,'account']:[...OB_PROFILE_SLIDES];}
-function obAfterPractice(){return obAuthReady()?'account':'ready';}
+/* La fin de l’onboarding, après la première requête réussie (Elisa, 4 novembre, 3 h 54, d’après l’onboarding de Duolingo : « ce que
+   j’ai oublié, c’est une animation à la fin ») : « Comment as-tu connu Requête ? », le rappel du jour (une fenêtre iOS en aperçu et
+   une flèche vers « Autoriser », puis la vraie demande), et, dans l’app iPhone qui a son widget, l’écran d’accueil avec la série
+   et le tutoriel animé pour l’y ajouter. Puis le compte (s’il existe), la mini-page du pseudo et la dernière page. */
+const OB_FIN_SLIDES=['source','rappel','widget','widgetTuto'];
+function obFinFlux(){
+  const f=['practice','source'];
+  if(obRappelPossible())f.push('rappel');
+  if(obWidgetPossible())f.push('widget','widgetTuto');
+  if(obAuthReady())f.push('account');
+  return f;
+}
+function obFinSuivante(slide){const f=obFinFlux(),i=f.indexOf(slide);return i>=0&&i<f.length-1?f[i+1]:'ready';}
+function obFinPrecedente(slide){const f=obFinFlux();if(slide==='ready')return f[f.length-1];const i=f.indexOf(slide);return i>0?f[i-1]:'practice';}
+function obFlowSteps(){return [...OB_PROFILE_SLIDES,...obFinFlux().slice(1)];}
+function obAfterPractice(){return obFinSuivante('practice');}
+/* Retenus pour tout l’onboarding (startOnboarding les oublie) : une permission accordée en route ne retire pas l’étape du compte. */
+let obFinRappel=null,obFinWidget=null;
+/* Le rappel : notification locale dans l’app (plugin LocalNotifications) ; sur le web, seulement si le navigateur peut encore demander. */
+function obRappelPossible(){
+  if(obFinRappel==null){
+    try{
+      const C=window.Capacitor;
+      obFinRappel=C&&C.isNativePlatform&&C.isNativePlatform()?!!(C.Plugins&&C.Plugins.LocalNotifications)
+        :typeof Notification!=='undefined'&&Notification.permission==='default';
+    }catch(e){ obFinRappel=false; }
+  }
+  return obFinRappel;
+}
+/* Le widget : l’app iPhone qui l’embarque (son pont natif RequeteWidget, scripts/ios-widget.mjs). */
+function obWidgetPossible(){
+  if(obFinWidget==null){
+    try{
+      const C=window.Capacitor;
+      obFinWidget=!!(C&&C.isNativePlatform&&C.isNativePlatform()&&(!C.getPlatform||C.getPlatform()==='ios')&&C.isPluginAvailable&&C.isPluginAvailable('RequeteWidget'));
+    }catch(e){ obFinWidget=false; }
+  }
+  return obFinWidget;
+}
+/* « Me rappeler de m’entraîner » : la vraie demande d’iOS (ou du navigateur), puis le rappel programmé si c’est oui. Rien en aperçu. */
+async function obRappelDemander(){
+  if(obLock)return;
+  const suite=()=>obGoto(obFinSuivante('rappel'));
+  if(typeof obApercu!=='undefined'&&obApercu){suite();return;}
+  const btn=document.getElementById('ob-next');if(btn)btn.disabled=true;
+  let ok=false;
+  try{
+    const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
+    if(LN){const p=await LN.requestPermissions();ok=!!(p&&p.display==='granted');}
+    else if(typeof Notification!=='undefined'){const r=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;ok=r==='granted';}
+  }catch(e){}
+  try{localStorage.setItem('requete-rappel',ok?'1':'0');}catch(e){}
+  if(ok){rappelNativeSync();buzz('success');}
+  if(btn)btn.disabled=false;
+  suite();
+}
+/* La fenêtre en aperçu au centre de l’écran, là où iOS ouvrira la sienne : la flèche montre alors le vrai « Autoriser ». */
+function obNotifCaler(){
+  requestAnimationFrame(()=>{
+    const z=document.getElementById('ob-notif'),a=z&&z.querySelector('.ob-notif-alert');if(!z||!a)return;
+    z.style.transform='';
+    const r=a.getBoundingClientRect(),zr=z.getBoundingClientRect(),prev=z.previousElementSibling,foot=document.querySelector('#onboarding .ob-foot');
+    let dy=innerHeight/2-(r.top+r.height/2);
+    const haut=prev?prev.getBoundingClientRect().bottom+10:0,bas=foot?foot.getBoundingClientRect().top-12:innerHeight;
+    dy=Math.max(haut-zr.top,Math.min(bas-zr.bottom,dy));
+    if(Math.abs(dy)>2)z.style.transform=`translateY(${Math.round(dy)}px)`;
+  });
+}
+/* Le widget, tel qu’il est sur l’iPhone (RequeteWidget.swift) : la flamme, la série, le chat qui dépasse du bas. */
+function obWidgetTuile(n){
+  return `<span class="ob-wg"><span class="ob-wg-top"><span class="ob-wg-fl">${FLAME_SVG}</span><b class="ob-wg-n" data-n="${n}">${n}</b></span><img class="ob-wg-cat" src="${MASCOT_IMG}" alt="" draggable="false"></span>`;
+}
+function obWidgetSerie(){ try{ return Math.max(1,streakJours()); }catch(e){ return 1; } }
+function obTelPromo(){
+  return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span><span class="ob-ph-home">${obWidgetTuile(obWidgetSerie())}<i class="ob-ph-app a1"></i><i class="ob-ph-app a2"></i><i class="ob-ph-app a3"></i><i class="ob-ph-app a4"></i><i class="ob-ph-app a5"></i></span></span></span>`;
+}
+const OB_WT_TEXTES=['D’abord, maintiens appuyé sur ton écran d’accueil…','Appuie ensuite sur « Modifier », puis sur « Ajouter un widget ».','Cherche « Requête » et ajoute mon widget !'];
+function obTelTuto(){
+  /* Chaque app à sa case : le widget posé à la fin (2 × 2) passe par-dessus les quatre premières, sans pousser les autres. */
+  const apps=Array.from({length:9},(_,i)=>`<i class="ob-ph-app t${i}" style="--i:${i};grid-area:${Math.floor(i/3)+1}/${i%3+1}"><em></em></i>`).join('');
+  return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span>
+    <span class="ob-ph-edit">Modifier</span><span class="ob-ph-ok">OK</span>
+    <span class="ob-ph-menu"><span>Ajouter un widget</span><span>Modifier les pages</span></span>
+    <span class="ob-ph-grid">${apps}<span class="ob-ph-placed">${obWidgetTuile(obWidgetSerie())}</span></span>
+    <span class="ob-ph-sheet"><span class="ob-ph-search"><i></i><b>Requête</b></span><span class="ob-ph-preview">${obWidgetTuile(obWidgetSerie())}</span><span class="ob-ph-add">Ajouter le widget</span></span>
+    <b class="ob-ph-doigt"></b></span></span>`;
+}
+/* Le widget surgit, la flamme s’allume et la série monte jusqu’à sa valeur. */
+function obWidgetPromoJouer(){
+  const n=document.querySelector('.ob-ph-promo .ob-wg-n');if(!n||prefersReduceMotion())return;
+  const fin=+n.dataset.n||1,t0=performance.now()+520,d=Math.min(900,240+fin*120);
+  n.textContent='0';
+  const tick=now=>{ if(!document.body.contains(n))return; const k=Math.max(0,Math.min(1,(now-t0)/d)); n.textContent=String(Math.round(fin*(1-Math.pow(1-k,3)))); if(k<1)requestAnimationFrame(tick); else buzz('light'); };
+  requestAnimationFrame(tick);
+}
+/* Les trois étapes du tutoriel, en boucle : la bulle dit l’étape que le téléphone montre. */
+function obWidgetTutoJouer(){
+  const box=document.getElementById('ob-wt'),bulle=document.getElementById('ob-wt-bulle');if(!box)return;
+  const durees=[3400,3600,5200];let p=0;
+  const etape=()=>{
+    if(OB_SLIDES[obStep]!=='widgetTuto'||!document.body.contains(box))return;
+    box.dataset.phase=String(p+1);if(bulle)bulle.textContent=OB_WT_TEXTES[p];
+    obDemoTimers.push(setTimeout(()=>{p=(p+1)%3;etape();},durees[p]));
+  };
+  etape();
+}
+/* ---------- Le widget de l’app iPhone : la série, mise à jour en partant ----------
+   Le widget (RequeteWidget.swift) lit la série dans le groupe d’apps : la série, le jour où elle a été comptée, si ce jour est fait,
+   et le dernier jour où une activité la garde (les jours de repos du planning sont sautés). Envoyée au démarrage et chaque fois que
+   l’app passe en arrière-plan ; sans le pont natif (web, ancienne version de l’app), rien ne se passe. */
+let widgetDernier='';
+function widgetMaj(){
+  try{
+    const C=window.Capacitor;
+    if(!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
+    const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
+    let d=fait?addJ(t,1):t;
+    for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
+    const data={serie,jour,fait,limite:dstr(d)},k=JSON.stringify(data);
+    if(k===widgetDernier)return;
+    widgetDernier=k;
+    Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
+  }catch(e){}
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
+  addEventListener('pagehide',widgetMaj);
+}
 function obNext(){
   const slide=OB_SLIDES[obStep];
   /* Tunnel : promesse prouvée → personnalisation → première réussite →
@@ -32847,6 +32987,7 @@ function obNext(){
   else if(slide==='promise')obGoto('pact');
   else if(slide==='pact')obGoto('practice');
   else if(slide==='practice')obGoto(obAfterPractice());
+  else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));
   else if(slide==='account')obChooseGuest();
   else if(slide==='pseudo')obPseudoSuivant();
   else finishOnboard('home');
@@ -32856,12 +32997,12 @@ function obBack(){
   if(OB_SLIDES[obStep]==='welcome'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}
   if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
-  if(OB_SLIDES[obStep]==='ready'){obGoto(obAfterPractice()==='ready'?'practice':'account');return;}
+  if(OB_SLIDES[obStep]==='ready'||OB_SLIDES[obStep]==='account'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}
   obGoto(obStep-1);
 }
 function obPick(champ,val){
   if(obLock)return;
-  if(!['niveau','rythme','goal','ageRange','job'].includes(champ))return;
+  if(!['niveau','rythme','goal','ageRange','job','source'].includes(champ))return;
   draft[champ]=val;
   /* Un autre objectif, niveau ou rythme change le parcours : il se reconstruit, en animation, à la prochaine étape « build ». */
   if(champ==='niveau'||champ==='rythme'||champ==='goal')draft.buildDone=false;
@@ -33292,7 +33433,11 @@ function obOptionIcon(type){
     search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
     social:'<path d="M7 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 11a3 3 0 1 0 0-6M1 21c.5-4 2.5-6 6-6s5.5 2 6 6M14 15c4-.5 7 1.5 8 5"/>',
     store:'<path d="m8 19 4-14 4 14M5 14h14M6 9l-3 10M18 9l3 10"/>',
-    people:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21c.5-4 2.5-6 6-6s5.5 2 6 6M15 15c3-.3 5.5 1.5 6 5"/>'
+    people:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21c.5-4 2.5-6 6-6s5.5 2 6 6M15 15c3-.3 5.5 1.5 6 5"/>',
+    note:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+    camera:'<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".9" fill="currentColor" stroke="none"/>',
+    play:'<rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/>',
+    article:'<path d="M5 4h11l3 3v13H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4.5"/>'
   };
   return `<span class="ob-answer-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${paths[type]||paths.more}</svg></span>`;
 }
@@ -33318,7 +33463,7 @@ function paintOb(){
   root.classList.toggle('ob-account-step',slide==='account'&&!obLegalMode);
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
-  root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
+  root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
   root.classList.toggle('ob-legal-step',!!obLegalMode);
   root.classList.toggle('ob-enter',obJustEntered);
   const body=document.getElementById('ob-body');
@@ -33443,6 +33588,36 @@ function paintOb(){
       ${draft.practiceDone?`<p class="ob-practice-reward${fresh?' is-new':''}">Premier succès débloqué&nbsp;! Ce n’est que le début de ton parcours.</p>`:''}</div>`;
     const canGo=!!(draft.practiceDone||draft.practiceFailed);
     obSetFooter(canGo?'Continuer':'Lance la requête pour découvrir le résultat',()=>obGoto(obAfterPractice()),'','','',!canGo);
+  }else if(slide==='source'){
+    /* 4 novembre, 3 h 54 (d’après Duolingo) : « Comment as-tu connu Requête ? », en tuiles comme la profession ; « Continuer » au choix. */
+    html=`<div class="ob-screen ob-profile ob-source-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Comment as-tu <em>connu</em> Requête&nbsp;?</h1>
+      ${obMascotQuestion('Dis-moi tout : ça m’aide à faire connaître Requête !')}
+      <div class="ob-tiles ob-source-grid" role="radiogroup" aria-label="Comment tu as connu Requête">${OB_SOURCES.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.source===k?'true':'false'}" class="ob-tile ob-source-tile ${draft.source===k?'on':''}" style="--d:${i*40}ms" onclick="obPick('source','${k}')">${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div></div>`;
+    obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'','','',!draft.source);
+  }else if(slide==='rappel'){
+    /* Le rappel du jour (d’après Duolingo) : la fenêtre d’iOS en aperçu, au centre de l’écran, là où la vraie s’ouvrira, et une flèche
+       qui rebondit vers « Autoriser ». Le bouton ouvre la vraie demande (obRappelDemander), puis programme le rappel. */
+    const [hh,mm]=String(rappelHeure()).split(':'),heure=`${+hh}&nbsp;h${mm&&mm!=='00'?'&nbsp;'+mm:''}`;
+    html=`<div class="ob-screen ob-profile ob-rappel-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un petit <em>rappel</em><br>chaque jour&nbsp;?</h1>
+      ${obMascotQuestion('Avec moi, tu n’oublieras pas ta séance SQL !')}
+      <div class="ob-notif" id="ob-notif" aria-hidden="true"><div class="ob-notif-alert"><b>«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small>Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><span>Ne pas autoriser</span><span class="is-ok">Autoriser</span></span></div>
+        <svg class="ob-notif-arrow" viewBox="0 0 40 70" aria-hidden="true"><path d="M20 66V8M6 22 20 7l14 15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <p class="ob-rappel-note">Un rappel par jour à ${heure}, modifiable dans Mon compte.</p></div>`;
+    obSetFooter('Me rappeler de m’entraîner',obRappelDemander,'','','');
+  }else if(slide==='widget'){
+    /* L’écran d’accueil (d’après Duolingo) : le widget de la série, la flamme et le chat, posé parmi les apps. App iPhone seulement. */
+    html=`<div class="ob-screen ob-profile ob-widget-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ta série sur ton<br><em>écran d’accueil</em></h1>
+      ${obMascotQuestion('Je t’encouragerai directement depuis ton écran d’accueil !')}
+      <div class="ob-ph ob-ph-promo" aria-hidden="true">${obTelPromo()}</div></div>`;
+    obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',()=>obGoto(obFinSuivante('widgetTuto')),'');
+  }else if(slide==='widgetTuto'){
+    /* Le tutoriel animé (d’après Duolingo) : appui long sur l’écran d’accueil, les apps tremblent ; « Modifier », « Ajouter un widget » ;
+       la recherche « Requête », le widget, « Ajouter le widget ». La bulle de la mascotte suit chaque étape (obWidgetTutoJouer). */
+    html=`<div class="ob-screen ob-profile ob-widget-step ob-wtuto">${obFlowHeader(slide)}<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>
+      ${obMascotQuestion(OB_WT_TEXTES[0]).replace('class="ob-bubble"','class="ob-bubble" id="ob-wt-bulle"')}
+      <div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>
+      <ol class="ob-sr-steps">${OB_WT_TEXTES.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`;
+    obSetFooter('Continuer',()=>obGoto(obFinSuivante('widgetTuto')),'','','');
   }else if(slide==='rhythm'){
     const subtitles={calme:'Pour garder le rythme',regulier:'Le bon équilibre',intensif:'Pour progresser plus vite'};
     html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>rythme</em> te convient&nbsp;?</h1>
@@ -33539,6 +33714,9 @@ function paintOb(){
      d'être construit, c'est le moment de réussite de l'onboarding. */
   if(slide==='ready'){ setTimeout(()=>{ if(OB_SLIDES[obStep]==='ready'&&typeof celebrate==='function') celebrate(); },260); }
   if(slide==='welcome'&&!obVideoOn())obRunWelcomeDemo();   // sous la vidéo, l’accueil attend qu’elle s’efface
+  if(slide==='rappel')obNotifCaler();
+  if(slide==='widget')obWidgetPromoJouer();
+  if(slide==='widgetTuto')obWidgetTutoJouer();
   if(slide==='name'||slide==='pseudo'){
     if(slide==='name')obNamePreview();
     /* Au clavier physique, le champ est prêt à taper ; au tactile on n'ouvre
@@ -34690,7 +34868,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-video-onboarding-v2486';
+  const SW_CACHE='requete-2026-11-04-fin-onboarding-v2487';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
