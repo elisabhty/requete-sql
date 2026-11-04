@@ -48,5 +48,6 @@ test('toujours refusé : autres lignes, mauvais tri, colonne en trop ou en moins
 
 test('les leçons gardent leur comparaison d’avant ; la salle de défi passe par la même vérification', () => {
   assert.ok(app.includes('return (expected||[]).every((result,i)=>isChallenge?memeResultatColonnesLibres(actual[i],result,ordered):normalize([actual[i]],ordered)===normalize([result],ordered));'));
-  assert.ok(app.includes('if(exerciseResultsMatch(userRes,solRes,c,true)){'));
+  assert.ok(app.includes('if(resultatsDefiEgaux(userRes,solRes,c,'));
+  assert.ok(app.includes('const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,'));
 });

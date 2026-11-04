@@ -169,6 +169,7 @@ function makeClient(world, name, { skew = 0 } = {}) {
     prefersReduceMotion: () => false, lessonBackLabel: () => 'Défis', leaveLessonScreen() {}, switchTab() {}, renderDefis() {}, activeTab: 'defis',
     noteActivityDay() { c.acts = (c.acts || 0) + 1; }, save() {}, renderProgress() {}, renderPlanning() {}, setLessonOut: h => { c.out = h; }, renderTable: () => '', errBox: m => m,
     exoFailDiag: () => 'x', exerciseRequiresOrder: () => false, exerciseResultsMatch: (a, b) => JSON.stringify(a) === JSON.stringify(b),
+    resultatsDefiEgaux: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     sandbox: () => ({ exec: sql => [{ columns: ['q'], values: [[sql]] }], close() {} }),
     execChallengeResult: (database,sql) => database.exec(sql),
     performance: { now: () => world.now }, confirm: () => true, toast() {},

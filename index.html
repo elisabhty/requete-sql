@@ -15547,6 +15547,11 @@ const SQLX=(()=>{
     return {d,time};
   }
   const onDate=fn=>x=>{const p=sqlDate(x);return p?fn(p.d,p.time):null;};
+  /* Une heure seule (« 08:30 », colonnes TIME) : EXTRACT(HOUR FROM heure_depart) et HOUR(heure) donnent l’heure au lieu d’une case
+     vide (4 novembre). */
+  const sqlDateOuHeure=v=>{const p=sqlDate(v);if(p||isNull(v))return p;const m=/^\s*(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?\s*$/.exec(String(v));
+    return m&&+m[1]<24&&+m[2]<60&&+(m[3]||0)<60?{d:new Date(Date.UTC(2000,0,1,+m[1],+m[2],+(m[3]||0))),time:true}:null;};
+  const onHeure=fn=>x=>{const p=sqlDateOuHeure(x);return p?fn(p.d,p.time):null;};
   const truthy=c=>!isNull(c)&&(typeof c==='number'?c!==0:(num(c)!==null&&num(c)!==0));
   const same=(a,b)=>isNull(a)?isNull(b):(!isNull(b)&&(num(a)!==null&&num(b)!==null?num(a)===num(b):String(a)===String(b)));
   const cmp=(a,b)=>num(a)!==null&&num(b)!==null?num(a)-num(b):String(a).localeCompare(String(b));
@@ -15554,7 +15559,7 @@ const SQLX=(()=>{
   const rx=(p,flags)=>{try{return new RegExp(String(p),String(flags||'').replace(/[^gimsuy]/g,'').replace('g',''));}catch(e){return null;}};
   function lpad(s,n,p,right){
     if(isNull(s)||isNull(n))return null;
-    const a=chars(str(s)),k=Math.max(0,Math.trunc(num(n)));p=isNull(p)?' ':str(p);
+    const a=chars(str(s)),k=Math.min(10000,Math.max(0,Math.trunc(num(n))));p=isNull(p)?' ':str(p);   // 10 000 caractères au plus (4 novembre)
     if(a.length>=k)return a.slice(0,k).join('');
     if(!p)return a.join('');
     const fill=chars(p.repeat(Math.ceil((k-a.length)/chars(p).length))).slice(0,k-a.length).join('');
@@ -15576,7 +15581,7 @@ const SQLX=(()=>{
   /* Fonctions à nombre d’arguments fixe */
   const fixed={
     YEAR:onDate(d=>d.getUTCFullYear()),MONTH:onDate(d=>d.getUTCMonth()+1),DAY:onDate(d=>d.getUTCDate()),DAYOFMONTH:onDate(d=>d.getUTCDate()),
-    HOUR:onDate(d=>d.getUTCHours()),MINUTE:onDate(d=>d.getUTCMinutes()),SECOND:onDate(d=>d.getUTCSeconds()),QUARTER:onDate(d=>Math.ceil((d.getUTCMonth()+1)/3)),
+    HOUR:onHeure(d=>d.getUTCHours()),MINUTE:onHeure(d=>d.getUTCMinutes()),SECOND:onHeure(d=>d.getUTCSeconds()),QUARTER:onDate(d=>Math.ceil((d.getUTCMonth()+1)/3)),
     DAYOFWEEK:onDate(d=>d.getUTCDay()+1),WEEKDAY:onDate(d=>(d.getUTCDay()+6)%7),DAYOFYEAR:onDate(doy),WEEKOFYEAR:onDate(isoWeek),
     DAYNAME:onDate(d=>DAYS[d.getUTCDay()]),MONTHNAME:onDate(d=>MONTHS[d.getUTCMonth()]),
     NOW:()=>out(nowLocal(),true),GETDATE:()=>out(nowLocal(),true),SYSDATE:()=>out(nowLocal(),true),SYSDATETIME:()=>out(nowLocal(),true),
@@ -15590,12 +15595,12 @@ const SQLX=(()=>{
       const months=(A.getUTCFullYear()-B.getUTCFullYear())*12+(A.getUTCMonth()-B.getUTCMonth());
       const bothLast=A.getUTCDate()===lastDay(A).getUTCDate()&&B.getUTCDate()===lastDay(B).getUTCDate();
       return A.getUTCDate()===B.getUTCDate()||bothLast?months:+(months+(A.getUTCDate()-B.getUTCDate())/31).toFixed(9);},
-    DATE_PART:(u,x)=>{const p=sqlDate(x);return p?part(u,p.d):null;},DATEPART:(u,x)=>{const p=sqlDate(x);return p?part(u,p.d):null;},
+    DATE_PART:(u,x)=>{const p=sqlDateOuHeure(x);return p?part(u,p.d):null;},DATEPART:(u,x)=>{const p=sqlDateOuHeure(x);return p?part(u,p.d):null;},
     DATE_TRUNC:(u,x)=>{const p=sqlDate(x);if(!p)return null;const d=p.d,Y=d.getUTCFullYear(),M=d.getUTCMonth();let r;
       switch(unit(u)){case 'year':r=Date.UTC(Y,0,1);break;case 'quarter':r=Date.UTC(Y,M-M%3,1);break;case 'month':r=Date.UTC(Y,M,1);break;
         case 'week':r=Date.UTC(Y,M,d.getUTCDate()-((d.getUTCDay()+6)%7));break;case 'day':r=Date.UTC(Y,M,d.getUTCDate());break;
         case 'hour':r=Date.UTC(Y,M,d.getUTCDate(),d.getUTCHours());break;case 'minute':r=Date.UTC(Y,M,d.getUTCDate(),d.getUTCHours(),d.getUTCMinutes());break;default:return null;}
-      return out(new Date(r),true);},
+      return out(new Date(r),p.time||['hour','minute'].includes(unit(u)));},   // sur une date sans heure : une date (4 novembre)
     DATE_FORMAT:(x,f)=>{const p=sqlDate(x);return p&&!isNull(f)?fmtMysql(p.d,f):null;},
     STR_TO_DATE:(s,f)=>{if(isNull(s)||isNull(f))return null;const p=parseWith(s,f,true);return p?out(p.d,p.time):null;},
     TO_TIMESTAMP:(s,f)=>{if(isNull(s)||isNull(f))return null;const p=parseWith(s,f,false);return p?out(p.d,true):null;},
@@ -15610,10 +15615,10 @@ const SQLX=(()=>{
        les accents passent aussi en majuscules ou en minuscules (3 ALLÉE DES PINS ; cours Fonctions de texte). */
     UPPER:s=>isNull(s)?null:str(s).toUpperCase(),LOWER:s=>isNull(s)?null:str(s).toLowerCase(),
     STRPOS:(s,t)=>{if(isNull(s)||isNull(t))return null;const a=str(s),j=a.indexOf(str(t));return j<0?0:chars(a.slice(0,j)).length+1;},
-    REPEAT:(s,n)=>isNull(s)||num(n)===null?null:str(s).repeat(Math.max(0,Math.trunc(num(n)))),
+    REPEAT:(s,n)=>isNull(s)||num(n)===null?null:str(s).repeat(Math.min(Math.max(0,Math.trunc(num(n))),Math.floor(10000/Math.max(1,str(s).length)))),
     INITCAP:s=>isNull(s)?null:str(s).toLowerCase().replace(/(^|[^\p{L}\p{N}])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()),
     SPLIT_PART:(s,d,n)=>{if(isNull(s)||isNull(d)||num(n)===null)return null;const a=str(d)===''?[str(s)]:str(s).split(str(d)),k=Math.trunc(num(n));const v=k>0?a[k-1]:a[a.length+k];return v===undefined?'':v;},
-    SPACE:n=>num(n)===null?null:' '.repeat(Math.max(0,Math.trunc(num(n)))),
+    SPACE:n=>num(n)===null?null:' '.repeat(Math.min(10000,Math.max(0,Math.trunc(num(n))))),
     ASCII:s=>isNull(s)?null:(str(s)===''?0:str(s).codePointAt(0)),
     CHR:n=>num(n)===null?null:String.fromCodePoint(Math.trunc(num(n))),
     TRANSLATE:(s,a,b)=>{if(isNull(s)||isNull(a)||isNull(b))return null;const A=chars(str(a)),B=chars(str(b));return chars(str(s)).map(c=>{const i=A.indexOf(c);return i<0?c:(i<B.length?B[i]:'');}).join('');},
@@ -15721,7 +15726,7 @@ const SQLX=(()=>{
    ISNULL(a, b) → IFNULL(a, b) ; CONVERT(type, x) et CAST(x AS DATE) ; DATE_ADD(d, INTERVAL 7 DAY) et d + INTERVAL '7 days' ;
    LISTAGG / STRING_AGG … WITHIN GROUP (ORDER BY …) → GROUP_CONCAT(… ORDER BY …) ; ILIKE → LIKE ; x::int → CAST(x AS INTEGER). */
 function sqlCompat(sql){
-  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT|TRUNCATE|SERIAL|BIGSERIAL|SMALLSERIAL|AUTO_INCREMENT|IDENTITY|TRY_CAST|TRY_CONVERT|SUBSTRING|TRIM|RLIKE|PERCENTILE_CONT|PERCENTILE_DISC|MODE|DATENAME|TIMESTAMPDIFF|TIMESTAMPADD|ANY|SOME|ALL|ANY_VALUE|ARRAY_AGG|ARRAY|JSON_VALUE|JSON_QUERY|SAFE_CAST|VERSION|SIMILAR|SYMMETRIC|GENERATE_SERIES|DATE|TIMESTAMP|TIME|DISTINCT|CURRENT_USER|SESSION_USER|ROLLUP|CUBE|GROUPING|PIVOT)\b|::|~/i.test(sql))return sql;
+  if(typeof sql!=='string'||!/\b(?:TOP|FETCH|OFFSET|EXTRACT|DATEADD|DATEDIFF|DATEPART|DATETRUNC|ISNULL|CONVERT|CAST|INTERVAL|WITHIN|ILIKE|SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|SEPARATOR|POSITION|FORMAT|TRUNCATE|SERIAL|BIGSERIAL|SMALLSERIAL|AUTO_INCREMENT|IDENTITY|TRY_CAST|TRY_CONVERT|SUBSTRING|TRIM|RLIKE|PERCENTILE_CONT|PERCENTILE_DISC|MODE|DATENAME|TIMESTAMPDIFF|TIMESTAMPADD|ANY|SOME|ALL|ANY_VALUE|ARRAY_AGG|ARRAY|JSON_VALUE|JSON_QUERY|SAFE_CAST|VERSION|SIMILAR|SYMMETRIC|GENERATE_SERIES|DATE|TIMESTAMP|TIME|DISTINCT|CURRENT_USER|SESSION_USER|ROLLUP|CUBE|GROUPING|PIVOT|DATE_PART|YEAR|MONTH|DAY|DAYOFMONTH|HOUR|MINUTE|SECOND|QUARTER|DAYOFWEEK|DAYOFYEAR|WEEKDAY|WEEKOFYEAR|WEEK)\b|::|~/i.test(sql))return sql;
   const keep=[];
   let t=sql.replace(/'(?:[^']|'')*'|"(?:[^"]|"")*"|`[^`]*`|\[[^\]]*\]|--[^\n]*|\/\*[\s\S]*?\*\//g,m=>{keep.push(m);return '\u0001'+(keep.length-1)+'\u0002';});
   const PH=/^\u0001(\d+)\u0002$/;
@@ -15745,6 +15750,8 @@ function sqlCompat(sql){
     if(/^TIME$/i.test(ty))return `TIME(${x})`;
     if(/^(?:SIGNED|UNSIGNED|BOOLEAN|BIT)\b/i.test(ty))return `CAST(${x} AS INTEGER)`;
     if(/^DOUBLE/i.test(ty))return `CAST(${x} AS REAL)`;
+    /* NUMERIC(10, 2), DECIMAL(10, 2) : PostgreSQL et MySQL arrondissent à 2 décimales, SQLite garde tout (4 novembre). */
+    const ech=/^(?:DECIMAL|NUMERIC|NUMBER)\s*\(\s*\d+\s*,\s*(\d+)\s*\)$/i.exec(ty);if(ech)return `ROUND(${x}, ${ech[1]})`;
     return `CAST(${x} AS ${ty})`;};
   t=t.replace(/\bEXTRACT\s*\(\s*([A-Za-z]+)\s+FROM\s+/gi,(m,u)=>`DATE_PART('${u.toLowerCase()}', `);
   t=t.replace(/\bTRY_CAST\s*\(/gi,'CAST(').replace(/\bTRY_CONVERT\s*\(/gi,'CONVERT(').replace(/\bTIMESTAMPDIFF\s*\(/gi,'DATEDIFF(').replace(/\bTIMESTAMPADD\s*\(/gi,'DATEADD(');
@@ -15752,6 +15759,9 @@ function sqlCompat(sql){
   t=t.replace(/\bDATETRUNC\s*\(\s*(?:iso_week|isowk|isoww)\s*,/gi,'DATETRUNC(week,');
   t=t.replace(/\b(DATEADD|DATEDIFF|DATEPART|DATETRUNC|DATENAME)\s*\(\s*(year|yyyy|yy|quarter|qq|q|month|mm|m|week|wk|ww|dayofyear|dy|y|day|dd|d|hour|hh|minute|mi|n|second|ss|s|weekday|dw)\s*,/gi,
     (m,f,u)=>`${/^DATETRUNC$/i.test(f)?'DATE_TRUNC':f}('${u.toLowerCase()}',`);
+  /* EXTRACT, DATE_PART, YEAR, MONTH… donnent un nombre entier, comme en PostgreSQL et MySQL : sql.js renvoie sinon un réel (2025.0)
+     et EXTRACT(YEAR FROM d) || '-' donnait « 2025.0- », CONCAT(YEAR(d), '-', …) aussi (4 novembre). */
+  calls(/\b(DATE_PART|DATEPART|YEAR|MONTH|DAY|DAYOFMONTH|HOUR|MINUTE|SECOND|QUARTER|DAYOFWEEK|DAYOFYEAR|WEEKDAY|WEEKOFYEAR|WEEK)\s*\(/gi,(inner,after,m)=>/CAST\s*\(\s*$/i.test(t.slice(0,m.index))&&/^\s*AS\s+INTEGER\s*\)/i.test(after)?null:[`CAST(${m[1]}(${inner}) AS INTEGER)`]);
   t=t.replace(/\bISNULL\s*\(/gi,'IFNULL(').replace(/\bILIKE\b/gi,'LIKE').replace(/\bNOT\s+RLIKE\b/gi,'NOT REGEXP').replace(/\bRLIKE\b/gi,'REGEXP');
   /* x ~ 'motif' (PostgreSQL) → x REGEXP 'motif' ; !~ → NOT REGEXP. Seulement entre deux opérandes, pas le ~ unaire (non binaire). */
   t=t.replace(/([\w)\u0002])(\s+)(!?)~\*?(\s+)(?=[\u0001\w(])/g,(m,a,s1,neg,s2,off,all)=>{const w=/([A-Za-z_]\w*)$/.exec(all.slice(0,off+1));
@@ -15762,15 +15772,22 @@ function sqlCompat(sql){
   t=t.replace(/\bOFFSET\s+(\d+)\s+ROWS?\s+FETCH\s+(?:FIRST|NEXT)\s+(\d+)\s+ROWS?\s+ONLY\b/gi,'LIMIT $2 OFFSET $1')
      .replace(/\bFETCH\s+(?:FIRST|NEXT)\s+(\d+)\s+ROWS?\s+ONLY\b/gi,'LIMIT $1').replace(/\bFETCH\s+(?:FIRST|NEXT)\s+ROWS?\s+ONLY\b/gi,'LIMIT 1')
      .replace(/\bOFFSET\s+(\d+)\s+ROWS?\b/gi,'LIMIT -1 OFFSET $1');
+  /* OFFSET 1 LIMIT 3 (PostgreSQL accepte les deux ordres) ; OFFSET 2 seul, sans LIMIT : toutes les lignes à partir de la 3e (4 novembre). */
+  t=t.replace(/\bOFFSET\s+(\d+)\s+LIMIT\s+(\d+)\b/gi,'LIMIT $2 OFFSET $1');
+  t=t.split(';').map(st=>/\bLIMIT\b/i.test(st)?st:st.replace(/\bOFFSET\s+(\d+)\b/gi,'LIMIT -1 OFFSET $1')).join(';');
   calls(/\bCONVERT\s*\(/gi,inner=>{const a=splitTop(inner);
     if(a.length>=2&&TYPE.test(a[0].trim()))return [castTo(a[1].trim(),a[0])];                 // SQL Server : CONVERT(type, x[, style])
     if(a.length===2&&TYPE.test(a[1].trim()))return [castTo(a[0].trim(),a[1])];                // MySQL : CONVERT(x, type)
     return null;});
   calls(/\bCAST\s*\(/gi,inner=>{const m=/^([\s\S]*\S)\s+AS\s+([A-Za-z][\w ]*(?:\([^)]*\))?)\s*$/i.exec(inner);
-    return m&&/^(?:DATE|DATETIME2?|SMALLDATETIME|TIMESTAMP(?:TZ)?|TIME|SIGNED|UNSIGNED|BOOLEAN|DOUBLE)\b/i.test(m[2].trim())?[castTo(m[1].trim(),m[2])]:null;});
+    return m&&(/^(?:DATE|DATETIME2?|SMALLDATETIME|TIMESTAMP(?:TZ)?|TIME|SIGNED|UNSIGNED|BOOLEAN|DOUBLE)\b/i.test(m[2].trim())||/^(?:DECIMAL|NUMERIC|NUMBER)\s*\(\s*\d+\s*,\s*\d+\s*\)$/i.test(m[2].trim()))?[castTo(m[1].trim(),m[2])]:null;});
   calls(/\b(DATE_ADD|DATE_SUB|ADDDATE|SUBDATE)\s*\(/gi,(inner,after,m)=>{const a=splitTop(inner);if(a.length!==2)return null;
     const iv=/^\s*INTERVAL\s+([\s\S]+?)\s+([A-Za-z]+)\s*$/i.exec(a[1]);if(!iv)return null;
     const neg=/SUB/i.test(m[1]);return [`DATEADD('${iv[2].toLowerCase()}', ${neg?'-(':''}${iv[1].trim()}${neg?')':''}, ${a[0].trim()})`];});
+  /* DATE '2024-07-01' + INTERVAL '6 months' (PostgreSQL) : le littéral DATE est lu avant l’intervalle, sinon il restait
+     « DATE DATEADD(…) », une erreur de syntaxe (4 novembre). La même règle plus bas ne trouve alors plus rien. */
+  t=t.replace(/\b(DATE|TIMESTAMP|TIME)\s+(\u0001\d+\u0002)/gi,(m,k,ph)=>{const v=textOf(ph);if(v===null)return m;
+    const f=/^DATE$/i.test(k)?'DATE':/^TIME$/i.test(k)?'TIME':'DATETIME';return `${f}(${ph})`;});
   /* Un intervalle, simple ('7 days', 7 DAY) ou composé ('1 month - 1 day', '1 year 2 months') : [[nombre signé, unité], …] */
   const ivParts=(txt,u1)=>{const out=[];let sg=1,rest=String(txt).trim();
     const re=/^([+-])?\s*(\d+(?:\.\d+)?)\s*([A-Za-z]+)?\s*/;
@@ -15832,6 +15849,14 @@ function sqlCompat(sql){
     const rep=castTo(t.slice(a,k),ty);
     t=t.slice(0,a)+rep+t.slice(k+after[0].length);k=a+rep.length-2;
   }
+  /* d1::date - d2::date, CAST(d1 AS DATE) - CAST(d2 AS DATE), DATE '…' - DATE '…' (PostgreSQL : un nombre de jours). En SQLite,
+     DATE(a) - DATE(b) soustrait deux textes et ne donne pas de jours ; on calcule l’écart avec julianday (4 novembre). */
+  {const re=/\bDATE\s*\(/gi;let m;
+   while((m=re.exec(t))){const p1=m.index+m[0].length-1,e1=close(t,p1);if(e1<0)break;
+     const s=/^\s*-\s*DATE\s*\(/i.exec(t.slice(e1+1));if(!s){re.lastIndex=e1+1;continue;}
+     const p2=e1+1+s[0].length-1,e2=close(t,p2);if(e2<0)break;
+     const rep=`CAST(julianday(${t.slice(p1+1,e1)}) - julianday(${t.slice(p2+1,e2)}) AS INTEGER)`;
+     t=t.slice(0,m.index)+rep+t.slice(e2+1);re.lastIndex=m.index+rep.length;}}
   /* Elisa, 2 novembre, 20 h 48 : « il y a d’autres fonctions que tu peux ajouter dans le moteur ? ». Les écritures qui manquaient encore :
      DATE '2026-07-02' et TIMESTAMP '…' (littéraux typés) ; ANY_VALUE (MySQL, PostgreSQL) ; ARRAY_AGG (PostgreSQL : un tableau JSON) ;
      JSON_VALUE et JSON_QUERY (SQL Server, Oracle, MySQL) ; SAFE_CAST (BigQuery) ; VERSION() ; CURRENT_USER ; x SIMILAR TO 'motif' ;
@@ -18078,7 +18103,9 @@ function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof 
 // sql.js exec() drops column metadata when SELECT returns zero rows.
 // Challenge validation still needs the expected number of columns in that case.
 function execChallengeResult(database,sql){
-  const statement=database.prepare(sql);
+  /* La requête passe par sqlCompat, comme dans la console et sur le serveur : EXTRACT, ::, ILIKE, FETCH FIRST… (4 novembre). Sur le
+     serveur, matcher.mjs ne connaît pas sqlCompat (typeof) : rien ne change, la requête y est déjà traduite par safeSelect. */
+  const statement=database.prepare(typeof sqlCompat==='function'?sqlCompat(sql):sql);
   try{
     const columns=statement.getColumnNames(),values=[];
     while(statement.step())values.push(statement.get());
@@ -18125,6 +18152,37 @@ function memeResultatColonnesLibres(a,e,ordered){
     return false;
   };
   return essai(0);
+}
+/* Tri des textes (4 novembre) : SQLite compare octet par octet, « SkyWings » passe avant « Skyline » et « de Vries » après « Zola ».
+   Un joueur qui trie sans tenir compte des majuscules (LOWER(nom), nom COLLATE NOCASE) a aussi raison : quand l’ordre ne correspond
+   pas, on compare aussi à la solution triée sans la casse (chaque clé du dernier ORDER BY suivie de COLLATE NOCASE). */
+function solSansCasse(sol){
+  const s=String(sol).replace(/;\s*$/,'');let d=0,q=null,pos=-1;
+  for(let i=0;i<s.length;i++){const ch=s[i];
+    if(q){if(ch===q){if(s[i+1]===q){i++;continue;}q=null;}continue;}
+    if(ch==="'"||ch==='"'){q=ch;continue;}
+    if(ch==='(')d++;else if(ch===')')d--;
+    else if(!d&&/^ORDER\s+BY\b/i.test(s.slice(i,i+12))&&!/\w/.test(s[i-1]||' '))pos=i;}
+  if(pos<0)return null;
+  const debut=pos+/^ORDER\s+BY/i.exec(s.slice(pos))[0].length;
+  const lim=/\s+LIMIT\s+\d+(?:\s*(?:,|OFFSET)\s*\d+)?\s*$/i.exec(s.slice(debut)),fin=lim?debut+lim.index:s.length;
+  const cles=[];let a=debut;d=0;q=null;
+  for(let i=debut;i<=fin;i++){const ch=s[i];
+    if(i<fin&&q){if(ch===q)q=null;continue;}
+    if(i<fin&&(ch==="'"||ch==='"')){q=ch;continue;}
+    if(ch==='(')d++;else if(ch===')')d--;
+    if(i===fin||(ch===','&&!d)){cles.push(s.slice(a,i).trim());a=i+1;}}
+  if(cles.some(k=>!k||/\bCOLLATE\b|\bNULLS\b/i.test(k)))return null;
+  return s.slice(0,debut)+' '+cles.map(k=>{const m=/^([\s\S]*?)(\s+(?:ASC|DESC))?$/i.exec(k);return `${m[1]} COLLATE NOCASE${m[2]||''}`;}).join(', ')+s.slice(fin);
+}
+/* Le verdict d’un défi : le résultat de la solution, ou, pour un défi trié, celui de la solution triée sans la casse. */
+function resultatsDefiEgaux(userRes,solRes,c,execSol){
+  if(exerciseResultsMatch(userRes,solRes,c,true))return true;
+  if(!c||!c.ordered||typeof execSol!=='function')return false;
+  if(!exerciseResultsMatch(userRes,solRes,Object.assign({},c,{ordered:false}),true))return false;   // d’autres lignes : inutile d’aller plus loin
+  const alt=solSansCasse(c.sol);if(!alt)return false;
+  let r;try{r=execSol(alt);}catch(e){return false;}
+  return JSON.stringify(r)!==JSON.stringify(solRes)&&exerciseResultsMatch(userRes,r,c,true);
 }
 function fmtLignes(n){ return n===1?'1 ligne':`${n} lignes`; }
 function exoFailDiag(sql,sol,userRes,solRes,ordered){
@@ -28939,7 +28997,7 @@ function jeuRun(){
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
   }catch(e){setLessonOut(errBox(e.message));jeuEssaiRate(r);coachKo('La requête ne s’exécute pas : lis le message juste en dessous.');return;}
-  if(exerciseResultsMatch(userRes,solRes,c,true)){
+  if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
     r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;
@@ -29389,7 +29447,7 @@ function runLesson(){
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
   }catch(e){ setLessonOut(errBox(e.message)); if(isDefi&&COACH&&COACH.c===current){COACH.diag='La requête ne s’exécute pas : lis le message juste en dessous.';COACH.fx='is-new-ko';} registerExoFail(sql); return; }
-  const ok=exerciseResultsMatch(userRes,solRes,current,isDefi);
+  const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,alt=>{const d=defiSandbox(current);try{return execChallengeResult(d,alt);}finally{d.close();}}):exerciseResultsMatch(userRes,solRes,current,isDefi);
   if(ok){
     const table=renderTable(userRes,ms);
     let head;
@@ -37377,7 +37435,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-iphone-v2517';
+  const SW_CACHE='requete-2026-11-04-correction-v2518';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
