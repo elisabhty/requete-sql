@@ -70,7 +70,7 @@ test('la page de connexion est toujours dans le tunnel, avec ou sans fournisseur
 test('les boutons : « Bientôt » et vifs sans fournisseur, de vrais boutons avec, jamais de mode local', () => {
   const { html, pied } = rendreCompte();
   const boutons = [...html.matchAll(/<button type="button" class="ob-provider is-(\w+) is-soon" data-provider="(\w+)" style="--i:(\d)" onclick="obStartAuth\('(\w+)',this\)" >(<span class="ob-provider-icon[^"]*" aria-hidden="true">[\s\S]*?<\/span>)<span>Continuer avec ([^<]+)<\/span><small>Bientôt<\/small><\/button>/g)];
-  assert.deepEqual(boutons.map(b => [b[1], b[2], +b[3], b[4], b[6]]), [['apple', 'apple', 0, 'apple', 'Apple'], ['email', 'email', 1, 'email', 'un e-mail']], 'Apple en premier, chacun « Bientôt »');
+  assert.deepEqual(boutons.map(b => [b[1], b[2], +b[3], b[4], b[6]]), [['apple', 'apple', 0, 'apple', 'Apple'], ['google', 'google', 1, 'google', 'Google'], ['email', 'email', 2, 'email', 'un e-mail']], 'Apple en premier, puis Google (14 h 08), chacun « Bientôt »');
   assert.ok(!/<button[^>]*class="ob-provider[^>]*disabled/.test(html), 'vifs : on peut les toucher (ils ne connectent à rien)');
   assert.ok(boutons[0][5].includes('<svg viewBox="0 0 24 24"><path fill="currentColor" d="M16.37 12.62') && !app.includes(''), 'la pomme est dessinée (le caractère U+F8FF ne s’affichait que sur les appareils Apple)');
   assert.ok(html.includes('<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>'), 'le message des boutons, qu’un lecteur d’écran entend aussi');
@@ -81,9 +81,9 @@ test('les boutons : « Bientôt » et vifs sans fournisseur, de vrais boutons av
   /* Avec un fournisseur : les vrais boutons, et le compte seul */
   const { html: branche, pied: piedBranche } = rendreCompte({ authReady: true });
   assert.deepEqual(piedBranche.map(a => [a[0], a[1]]), [['', null]], 'connexion branchée : pas de bouton pour passer, le compte est le seul chemin');
-  assert.ok(!branche.includes('is-soon') && !branche.includes('Bientôt') && (branche.match(/ob-provider-chev/g) || []).length === 2);
+  assert.ok(!branche.includes('is-soon') && !branche.includes('Bientôt') && (branche.match(/ob-provider-chev/g) || []).length === 3, 'Apple, Google et l’e-mail');
   /* Pendant une vraie connexion : boutons occupés */
-  assert.equal((rendreCompte({ authReady: true, obAuthBusy: true }).html.match(/disabled aria-busy="true"/g) || []).length, 2);
+  assert.equal((rendreCompte({ authReady: true, obAuthBusy: true }).html.match(/disabled aria-busy="true"/g) || []).length, 3);
 });
 
 test('sans fournisseur, toucher un bouton ne connecte à rien : la page le dit, sans se redessiner', () => {

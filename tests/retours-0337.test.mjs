@@ -159,7 +159,8 @@ test('decouvrir/video.html?onboarding : ni « Retour » ni « Se connecter », e
 
 test('l’app iPhone embarque la vidéo : la page, sa mascotte, sa voix et sa musique', () => {
   const b = read('scripts/build-www.mjs');
-  assert.ok(b.includes("for (const f of ['decouvrir/video.html', 'decouvrir/mascotte.webp', 'decouvrir/voix']) cpSync(join(root, f), join(out, f), {recursive: true});"));
+  /* 14 h 08 : avec les avis audio de la vitrine (decouvrir/avis), pour l’étape « Ils apprécient Requête » */
+  assert.ok(b.includes("for (const f of ['decouvrir/video.html', 'decouvrir/mascotte.webp', 'decouvrir/voix', 'decouvrir/avis']) cpSync(join(root, f), join(out, f), {recursive: true});"));
   const voix = JSON.parse(read('decouvrir/voix/voix.json'));
   for (const c of voix.scenes) assert.ok(fs.statSync(path.join(ROOT, 'decouvrir/voix', c.id + '.mp3')).size > 2000, c.id);
   assert.ok(fs.existsSync(path.join(ROOT, 'decouvrir/voix/musique.mp3')) && fs.existsSync(path.join(ROOT, 'decouvrir/mascotte.webp')));

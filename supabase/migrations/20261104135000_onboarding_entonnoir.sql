@@ -49,10 +49,10 @@ grant execute on function public.onboarding_compter(text, text[]) to anon, authe
 create or replace view public.onboarding_entonnoir with (security_invoker = true) as
 with ordre (etape, rang, nom) as (values
   ('welcome', 1, 'Accueil'), ('name', 2, 'Prénom'), ('pays', 3, 'Pays'), ('age', 4, 'Âge'), ('job', 5, 'Situation'),
-  ('goal', 6, 'Objectif'), ('level', 7, 'Niveau'), ('rhythm', 8, 'Rythme'), ('jours', 9, 'Jours par semaine'),
-  ('build', 10, 'Parcours construit'), ('promise', 11, 'Promesse'), ('pact', 12, 'Engagement'), ('practice', 13, 'Première requête'),
-  ('account', 14, 'Connexion'), ('source', 15, 'Comment as-tu connu Requête'), ('rappel', 16, 'Rappel'), ('ready', 17, 'Parcours prêt'),
-  ('termine', 18, 'Onboarding terminé')
+  ('goal', 6, 'Objectif'), ('temoignages', 7, 'Ils apprécient Requête'), ('level', 8, 'Niveau'), ('rhythm', 9, 'Rythme'),
+  ('jours', 10, 'Jours par semaine'), ('build', 11, 'Parcours construit'), ('promise', 12, 'Promesse'), ('pact', 13, 'Engagement'),
+  ('practice', 14, 'Première requête'), ('account', 15, 'Connexion'), ('source', 16, 'Comment as-tu connu Requête'), ('rappel', 17, 'Rappel'),
+  ('ready', 18, 'Parcours prêt'), ('termine', 19, 'Onboarding terminé')
 ),
 compte as (select etape, count(*) as appareils from public.onboarding_etape group by etape),
 accueil as (select count(*) as n from public.onboarding_etape where etape = 'welcome')

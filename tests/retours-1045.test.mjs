@@ -85,8 +85,8 @@ test('la page de connexion : son texte, Apple et l’e-mail, et la fête seuleme
   assert.ok(html.includes('<p class="ob-compte-sub">Tu pourras sauvegarder ta progression et reprendre tes cours sur tous tes appareils.</p>'));
   const ordre = ['ob-compte-stk', 'ob-title', 'ob-compte-lead', 'ob-compte-sub', 'ob-provider-list', 'ob-compte-msg', 'ob-legal-note'].map(k => html.indexOf(k));
   assert.deepEqual([...ordre].sort((x, y) => x - y), ordre, 'dans l’ordre de son texte');
-  assert.deepEqual([...html.matchAll(/<span>Continuer avec ([^<]+)<\/span>/g)].map(m => m[1]), ['Apple', 'un e-mail']);
-  assert.ok(!html.includes('ob-chat') && !html.includes('Google'));
+  assert.deepEqual([...html.matchAll(/<span>Continuer avec ([^<]+)<\/span>/g)].map(m => m[1]), ['Apple', 'Google', 'un e-mail'], '14 h 08 : « avec Google aussi »');
+  assert.ok(!html.includes('ob-chat'));
   /* Sans première requête réussie (moteur SQL indisponible, ou ouverte depuis Mon compte) : pas de réussite annoncée, pas de fête */
   const sans = rendre({ practiceDone: false });
   assert.ok(sans.startsWith('<div class="ob-screen ob-profile ob-account"><header') && sans.includes('<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>'));
@@ -146,7 +146,7 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
     ' .ob-account.is-fete .ob-fete-emoji{animation:obvFeteEmoji 1.2s var(--v-pop) .4s both}', ' .ob-compte-msg.is-new{transform-origin:50% 0;animation:obvBubbleIn'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvFeteEmoji{'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=19">') && sw.includes("'./onboarding-vitrine.css?v=19',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=20">') && sw.includes("'./onboarding-vitrine.css?v=20',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
 });

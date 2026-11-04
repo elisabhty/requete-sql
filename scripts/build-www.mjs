@@ -20,6 +20,7 @@ for (const name of readdirSync(root)) {
 const unused = new Set(['mascotte-requete.mp4', 'mascotte-coucou.mp4', 'mascotte-coucou.jpg', 'mascotte-onboarding.png']);
 for (const dir of ['assets', 'vendor']) cpSync(join(root, dir), join(out, dir), {recursive: true, filter: src => !unused.has(src.split('/').pop())});
 // La vidéo « Le métier de data analyst » de la vitrine, montrée aussi avant l’accueil de l’onboarding (Elisa, 4 novembre, 3 h 37) :
-// la page, sa mascotte, sa voix et sa musique (le reste de decouvrir/, le site, n’est pas dans l’app).
-for (const f of ['decouvrir/video.html', 'decouvrir/mascotte.webp', 'decouvrir/voix']) cpSync(join(root, f), join(out, f), {recursive: true});
+// la page, sa mascotte, sa voix et sa musique (le reste de decouvrir/, le site, n’est pas dans l’app). 14 h 08 : les avis audio du
+// héros de la vitrine (photos et voix, decouvrir/avis), repris dans l’étape « Ils apprécient Requête » de l’onboarding.
+for (const f of ['decouvrir/video.html', 'decouvrir/mascotte.webp', 'decouvrir/voix', 'decouvrir/avis']) cpSync(join(root, f), join(out, f), {recursive: true});
 console.log('www/ prêt pour Capacitor');
