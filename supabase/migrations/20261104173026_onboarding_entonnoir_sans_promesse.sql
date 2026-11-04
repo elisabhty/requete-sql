@@ -1,6 +1,6 @@
 -- « Fusionner sur une page » (Elisa, 4 novembre, 17 h 27, réf. 8 et 9) : la page « 24 jours » (promise) rejoint celle des jours ; elle
 -- n’est plus une étape de l’onboarding. L’entonnoir ne la montre plus (sinon, elle paraîtrait se vider entre la construction du
--- parcours et les avis) ; les étapes déjà comptées restent dans la table. À appliquer avec l’accord d’Elisa (pas encore appliquée).
+-- parcours et les avis) ; les étapes déjà comptées restent dans la table. Appliquée le 4 novembre à 18 h 30, avec l’accord d’Elisa (« oui »).
 create or replace view public.onboarding_entonnoir with (security_invoker = true) as
 with ordre (etape, rang, nom) as (values
   ('welcome', 1, 'Accueil'), ('name', 2, 'Prénom'), ('pays', 3, 'Pays'), ('age', 4, 'Âge'), ('job', 5, 'Situation'),

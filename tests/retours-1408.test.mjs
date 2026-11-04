@@ -122,7 +122,7 @@ test('« Ils apprécient Requête » : entre le parcours construit et l’engage
   assert.ok(bloc.includes("document.addEventListener('visibilitychange',()=>{if(document.hidden)obTemoinsCouper();});"), 'et quand l’appli passe en arrière-plan');
   /* L’entonnoir de l’onboarding la compte, à sa place */
   assert.match('temoignages', /^[a-zA-Z]{2,16}$/);
-  const sql = read('supabase/migrations/20261104173000_onboarding_entonnoir_sans_promesse.sql');
+  const sql = read('supabase/migrations/20261104173026_onboarding_entonnoir_sans_promesse.sql');
   assert.ok(sql.includes("('build', 10, 'Parcours construit'), ('temoignages', 11, 'Ils apprécient Requête'), ('pact', 12, 'Engagement')") && sql.includes("('termine', 18, 'Onboarding terminé')"));
   assert.ok(!sql.includes("'promise'"), 'plus de page « 24 jours » dans l’entonnoir');
 });

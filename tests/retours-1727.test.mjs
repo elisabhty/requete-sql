@@ -104,8 +104,8 @@ test('réf. 8 et 9 : la page « 24 jours » rejoint celle des jours, sans le bil
   for (const k of ['html #onboarding.ob-vitrine .ob-proj-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:16px;text-align:left}',
     'html #onboarding.ob-vitrine .ob-proj-big b{display:block;font:800 clamp(46px,13.5vw,58px)/.9 var(--v-display);'])
     assert.ok(section.includes(k), k);
-  /* L’entonnoir : une migration prête qui retire l’étape (à appliquer avec l’accord d’Elisa) */
-  const sql = lire('supabase/migrations/20261104173000_onboarding_entonnoir_sans_promesse.sql');
+  /* L’entonnoir : la migration qui retire l’étape (appliquée le 4 novembre à 18 h 30, avec l’accord d’Elisa) */
+  const sql = lire('supabase/migrations/20261104173026_onboarding_entonnoir_sans_promesse.sql');
   assert.ok(sql.includes('create or replace view public.onboarding_entonnoir with (security_invoker = true) as') && !sql.includes("'promise'"));
   assert.ok(sql.includes('revoke all on public.onboarding_entonnoir from public, anon, authenticated;'));
 });
