@@ -230,7 +230,8 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 - **Étapes de l’onboarding** (4 novembre) : chaque écran de l’accueil vu une première fois (son nom et la date, ni prénom ni
   réponse), avec l’empreinte de l’identifiant au hasard, part dans la table `onboarding_etape` (fonction
   `onboarding_compter`). Appliquée le 4 novembre : `supabase/migrations/20261104160656_onboarding_entonnoir.sql`.
-  **Résultats** : vue `onboarding_entonnoir` (combien d’appareils ont vu chaque écran, et la part de l’accueil). Dans App
+  **Résultats** : vue `onboarding_entonnoir` (combien d’appareils ont vu chaque écran, et la part de l’accueil), redéfinie
+  sans la page « 24 jours » le 4 novembre à 18 h 30 : `supabase/migrations/20261104173026_onboarding_entonnoir_sans_promesse.sql`. Dans App
   Store Connect, déclarer « Interactions avec le produit » ; usage « Analyses » ; non lié à l’identité, sans pistage.
 - **Effacement** : « Retirer mes scores du classement » et « Effacer la progression » suppriment les données du
   serveur depuis l’appli (pas de compte, donc pas de suppression de compte à prévoir).
