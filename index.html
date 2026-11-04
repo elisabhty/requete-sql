@@ -7353,6 +7353,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   L.classList.add('is-intro');
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
+  var son=null,sonCtx=null,avantSon=null;
   if(!calme){
     /* « Requête » en lettres, deux ondes et la table, créés tout de suite et invisibles jusqu’au départ */
     var nom=L.querySelector('.ld-name');
@@ -7386,9 +7387,60 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     }
     h+='</div>';
     L.insertAdjacentHTML('afterbegin',h);
+    /* Le son (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son ») : assets/sons/ouverture.m4a, calé sur
+       l’animation (tools/sons/ouverture.py), chargé pendant le démarrage. Web Audio en session « ambient » : il se mêle à la
+       musique en cours au lieu de la couper, et se tait en mode silencieux. Pas prêt à temps : l’ouverture reste muette. */
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(AC&&window.fetch){
+        var as=navigator.audioSession;
+        if(as&&as.type!=='ambient'){avantSon=as.type;as.type='ambient';}
+        sonCtx=new AC();
+        window.fetch('assets/sons/ouverture.m4a').then(function(r){return r.arrayBuffer();})
+          .then(function(b){return new Promise(function(ok,ko){sonCtx.decodeAudioData(b,ok,ko);});})
+          .then(function(b){son=b;}).catch(function(){});
+      }
+    }catch(e){}
   }
   setTimeout(function(){if(!L.classList.contains('is-play')&&!L.classList.contains('fade-out'))L.classList.add('is-long');},2600);
   var ranger=function(){L.style.display='none';};
+  /* Fin du son : la session audio d’avant revient, le contexte est fermé */
+  var finSon=function(){
+    try{if(avantSon!=null&&navigator.audioSession){navigator.audioSession.type=avantSon;}}catch(e){}
+    avantSon=null;
+    try{if(sonCtx&&sonCtx.close)sonCtx.close();}catch(e){}
+    sonCtx=null;
+  };
+  var jouerSon=function(){
+    if(!son||!sonCtx){finSon();return;}
+    try{
+      if(sonCtx.state!=='running'&&sonCtx.resume)sonCtx.resume();
+      var src=sonCtx.createBufferSource();src.buffer=son;src.connect(sonCtx.destination);src.onended=finSon;src.start(0);
+    }catch(e){finSon();}
+  };
+  /* L’haptique suit l’onde (1 h 51) : la touche au fond (moyen), l’onde qui s’éloigne (léger, léger, puis deux crans), un cran par
+     paire de résultats allumés, et la plongée (moyen) ; [ms après le départ, MEDIUM | LIGHT | cran]. Un coup à la fois, chacun à
+     son heure : si le fil principal est occupé (le départ de l’animation en demande), un coup léger en retard de plus de 45 ms, ou
+     à moins de 25 ms du précédent, saute au lieu de s’entasser ; la touche et la plongée partent toujours. Sans l’extension
+     Haptics, la seule vibration de la touche. */
+  var HAPTIQUE=[[90,'MEDIUM'],[160,'LIGHT'],[230,'LIGHT'],[300,'cran'],[370,'cran'],[514,'cran'],[542,'cran'],[570,'cran'],[598,'cran'],[760,'MEDIUM']];
+  var vibrer=function(){
+    var H=C&&C.Plugins&&C.Plugins.Haptics;
+    if(!H||!H.impact){setTimeout(function(){try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}},90);return;}
+    var perf=window.performance,ici=function(){return perf&&perf.now?perf.now():Date.now();},t0=ici(),dernier=-1e9;
+    try{H.selectionStart&&H.selectionStart();}catch(e){}
+    var suivant=function(i){
+      if(i>=HAPTIQUE.length){try{H.selectionEnd&&H.selectionEnd();}catch(e){}return;}
+      var p=HAPTIQUE[i],t=ici(),reste=t0+p[0]-t;
+      if(reste>4){setTimeout(function(){suivant(i);},reste);return;}
+      if(p[1]==='MEDIUM'||(reste>-45&&t-dernier>=25)){
+        dernier=t;
+        try{if(p[1]==='cran')H.selectionChanged&&H.selectionChanged();else H.impact({style:p[1]});}catch(e){}
+      }
+      suivant(i+1);
+    };
+    suivant(0);
+  };
   window.__introJouer=function(){
     if(L.classList.contains('is-play')||L.classList.contains('fade-out'))return;
     L.classList.remove('is-long');
@@ -7396,7 +7448,8 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       L.classList.add('is-play');
-      setTimeout(function(){try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}},90);
+      jouerSon();
+      vibrer();
       setTimeout(ranger,1300);
     });});
   };
@@ -34508,7 +34561,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-requete-en-deux-pages-v2480';
+  const SW_CACHE='requete-2026-11-04-son-ouverture-v2481';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
