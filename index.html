@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=139">
+<link rel="stylesheet" href="ludique.css?v=140">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -33973,14 +33973,18 @@ function obRappelHeure(v){
   if(cta)obCtaLibelle(cta,`Me rappeler à ${obHeureTexte(v)}`);
   if(avant!==v)buzz('selection');
 }
-/* La fenêtre en aperçu au centre de l’écran, là où iOS ouvrira la sienne : la flèche montre alors le vrai « Autoriser ». */
+/* La fenêtre en aperçu au centre de l’écran, là où iOS ouvrira la sienne : la flèche montre alors le vrai « Autoriser ».
+   Elisa, 4 novembre, 21 h 27 (réf. 1) : « il devrait y avoir un espace entre les deux cadres plus prononcé ». La marge de 17 h 27
+   (32 px, anneau de 9 px compris) était défaite ici : le centrage pouvait remonter le cadre jusqu’à 10 px de la carte de l’heure.
+   Il ne remonte plus au-dessus de sa marge (celle du palier obFit en cours) : il peut seulement descendre vers le centre. */
 function obNotifCaler(){
   requestAnimationFrame(()=>{
     const z=document.getElementById('ob-notif'),a=z&&z.querySelector('.ob-notif-alert');if(!z||!a)return;
     z.style.transform='';
     const r=a.getBoundingClientRect(),zr=z.getBoundingClientRect(),prev=z.previousElementSibling,foot=document.querySelector('#onboarding .ob-foot');
     let dy=innerHeight/2-(r.top+r.height/2);
-    const haut=prev?prev.getBoundingClientRect().bottom+10:0,bas=foot?foot.getBoundingClientRect().top-12:innerHeight;
+    const marge=parseFloat(getComputedStyle(z).marginTop)||0;
+    const haut=prev?prev.getBoundingClientRect().bottom+marge:0,bas=foot?foot.getBoundingClientRect().top-12:innerHeight;
     dy=Math.max(haut-zr.top,Math.min(bas-zr.bottom,dy));
     if(Math.abs(dy)>2)z.style.transform=`translateY(${Math.round(dy)}px)`;
   });
@@ -36490,7 +36494,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-defis-v2511';
+  const SW_CACHE='requete-2026-11-04-tirage-v2512';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
