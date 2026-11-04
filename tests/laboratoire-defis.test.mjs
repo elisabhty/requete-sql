@@ -28,7 +28,7 @@ test('le catalogue contient trente défis Laboratoire, dix par niveau', () => {
     assert.ok(group.every(c => c.niv === level && c.base === 'labo'), prefix);
   }
   assert.deepEqual(laboratory.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'lf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'lm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'ld' + (i + 1))]);
-  for (const c of laboratory) assert.ok(c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice && Number.isInteger(c.apres), c.id);
+  for (const c of laboratory) assert.ok(c.titre && (c.situation && c.affiche.length) && c.sol && c.indice && Number.isInteger(c.apres), c.id);
 });
 
 test('le seed Laboratoire conserve ses volumes et ses clés', () => {
@@ -75,6 +75,7 @@ test('les résultats repères des défis Laboratoire correspondent au seed', () 
   assert.deepEqual(rows('lm9'), [['Validé', 37, 82.2], ['En attente', 8, 17.8]]);
   assert.deepEqual(rows('ld3'), [["2023-03-10", 12, null, null], ["2024-03-05", 6, 12, -6]]);
   assert.equal(rows('ld6').length > 0, true);
-  assert.equal(rows('ld9').length, 3);
+  assert.equal(rows('ld9').length, 4, '22 h 08 : résultats validés dans au moins deux projets');
+  assert.equal(rows('ld1').length, 5, '22 h 08 : les cinq premiers, le départage par nom compte');
   db.close();
 });

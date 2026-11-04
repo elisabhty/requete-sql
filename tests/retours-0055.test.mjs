@@ -46,7 +46,7 @@ test('les défis comptent 57 Aéroport et sept bases de 30 défis', () => {
   for (const c of DEFIS) {
     assert.ok(['aeroport', 'hopital', 'wok', 'fromagerie', 'voyages', 'labo', 'zoo', 'salle_sport'].includes(c.base), c.id);
     assert.equal(c.niv, ({ f: 'f', m: 'm', d: 'd' })[c.id[1]], c.id);
-    assert.ok(((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
+    assert.ok((c.situation && c.affiche.length) && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }
   assert.ok(!/\b(clients|commandes|produits)\b/.test(AERO.map(c => c.sol).join(' ')), 'plus rien sur la base du cours dans le lot Aéroport');
   assert.ok(app.includes('const CHALLENGE_GUIDES={};'));

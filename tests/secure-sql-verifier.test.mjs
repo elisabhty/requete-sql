@@ -18,10 +18,10 @@ test('un faux résultat, une ligne en moins ou le mauvais ordre ne valident rien
  assert.equal(await verify(catalog,'af14','SELECT DISTINCT nationalite FROM passagers ORDER BY nationalite DESC'),false);
  await assert.rejects(verify(catalog,'inconnu','SELECT 1'),/inconnu/);
 });
-test('les trois résultats vides sont acceptés avec leurs colonnes, mais pas un SELECT vide à une colonne',async()=>{
- for(const id of ['zm8','zd6','sm9']){
-  assert.equal(await verify(catalog,id,catalog.challenges.find(c=>c.id===id).sol),true,id);
-  assert.equal(await verify(catalog,id,'SELECT 1 WHERE 0'),false,id+': mauvais nombre de colonnes');
+/* 4 novembre, 22 h 08 : les trois défis à résultat vide (zm8, zd6, sm9) sont refaits ; aucun défi n’accepte plus une requête vide. */
+test('aucun défi ne se réussit avec une requête vide, même avec le bon nombre de colonnes',async()=>{
+ for(const c of catalog.challenges){
+  for(const k of [1,2,3,4,5])assert.equal(await verify(catalog,c.id,'SELECT '+Array.from({length:k},(_,i)=>i+1).join(', ')+' WHERE 0'),false,c.id+' : requête vide à '+k+' colonne(s)');
  }
 });
 test('les écritures, instructions multiples et primitives coûteuses sont refusées',async()=>{
