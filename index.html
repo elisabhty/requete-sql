@@ -14490,6 +14490,7 @@ async function boot(){
     apercuFromUrl();
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
     setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
+    setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône (appui long, comme Duolingo)
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
     /* Retour d’« Importer une progression » : Mon compte, et la carte « Tes données » dit que c’est fait. */
@@ -33030,6 +33031,38 @@ if(typeof document!=='undefined'&&document.addEventListener){
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
   addEventListener('pagehide',widgetMaj);
 }
+/* ---------- Les raccourcis de l’icône de l’app iPhone ----------
+   Elisa, 4 novembre, 9 h 02 (capture de l’appui long sur l’icône de Duolingo : « 😱 Tu supprimes Duolingo ? Duo te retrouvera. »,
+   « ⭐ Fais une petite leçon ! Ça prend juste 3 minutes. ») : « comment avoir ça ». Les mêmes pour Requête : la page les pose au
+   démarrage (le pont RequeteWidget, UIApplication.shortcutItems) ; le raccourci choisi revient du délégué de scène (SceneDelegate.swift)
+   en événement « raccourci », gardé jusqu’à ce que la page l’écoute, même quand l’app était fermée. Le premier ouvre la séance
+   recommandée (comme le bouton de l’accueil), le second l’accueil, où le chat dit qu’il t’a retrouvé. */
+const RACCOURCIS=[
+  {type:'fr.requete.app.adieu',titre:'😱 Tu supprimes Requête ?',sousTitre:'Le chat te retrouvera.',icone:'eyes'},
+  {type:'fr.requete.app.requete',titre:'⭐ Fais une petite requête !',sousTitre:'Quelques minutes suffisent.',icone:'terminal'}
+];
+let raccourcisBranches=false;
+function raccourcisBrancher(){
+  const C=typeof window!=='undefined'?window.Capacitor:null;
+  if(raccourcisBranches||!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
+  raccourcisBranches=true;
+  try{ Promise.resolve(C.nativePromise('RequeteWidget','raccourcis',{items:RACCOURCIS})).catch(()=>{}); }catch(e){}
+  if(typeof C.addListener==='function')C.addListener('RequeteWidget','raccourci',e=>raccourciOuvrir(e&&e.type));
+}
+function raccourciOuvrir(type){
+  type=String(type||'');
+  if(!state.onboarded)return;   // premier lancement : l’onboarding d’abord
+  if(type.endsWith('.requete')){
+    if(typeof mode!=='undefined'&&mode==='lesson')return;   // déjà en séance : on y reste
+    const s=typeof recommendedSession==='function'?recommendedSession():null,id=s?s.id:null;
+    if(id==null){switchTab('learn');return;}   // parcours fini : l’accueil
+    const steps=isDefiId(id)?[]:homeLessonSteps(id);
+    openItem(id,isDefiId(id)||steps.length<2?0:steps[1].done?2:nbFaites(id)>0?1:0);   // l’étape que propose l’accueil
+  }else if(type.endsWith('.adieu')){
+    switchTab('learn');
+    setTimeout(()=>toast('Te revoilà\u00a0!','Le chat savait qu’il te retrouverait. Une petite requête\u00a0?','info'),450);
+  }
+}
 function obNext(){
   const slide=OB_SLIDES[obStep];
   /* Tunnel : promesse prouvée → personnalisation → première réussite →
@@ -34970,7 +35003,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-epingles-voix-v2489';
+  const SW_CACHE='requete-2026-11-04-raccourcis-v2490';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

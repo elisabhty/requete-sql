@@ -64,12 +64,27 @@ profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans X
 `scripts/ios-widget.mjs` (lancé par `npm run ios`, `ios:add` et `ios:testflight`, après `cap sync`) recopie
 `resources/ios/widget` dans `ios/App` et, la première fois, ajoute au projet Xcode la cible **RequeteWidgetExtension**
 (WidgetKit, identifiant `fr.requete.app.widget`), le groupe d’apps **`group.fr.requete.app`** (droits de l’app et du widget),
-le pont `RequeteWidgetPlugin` (enregistré par `RequeteViewController`, désigné dans `Main.storyboard`) et un manifeste de
+le pont `RequeteWidgetPlugin` (enregistré par `RequeteViewController`, que crée le délégué de scène — voir plus bas) et un manifeste de
 confidentialité par cible (`PrivacyInfo.xcprivacy`). L’ancien projet est gardé à côté : `project.pbxproj.avant-widget`.
 L’app y range la série (index.html, `widgetMaj`) chaque fois qu’elle passe en arrière-plan ; le widget la relit à minuit.
 
 Si l’archive refuse la signature du groupe d’apps : dans Xcode, cible App puis cible RequeteWidgetExtension › Signing &
 Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App Groups (Xcode l’enregistre), puis relancer.
+
+### Les raccourcis de l’icône (4 novembre, 9 h 02)
+
+L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — Le chat te retrouvera. »** (ouvre
+l’accueil, où le chat salue) et **« ⭐ Fais une petite requête ! — Quelques minutes suffisent. »** (ouvre la séance que propose
+l’accueil). La page les pose au démarrage (index.html, `RACCOURCIS`, pont `RequeteWidget.raccourcis`) : ils apparaissent après
+le premier lancement de la nouvelle version. Le raccourci choisi arrive au délégué de scène, puis à la page (événement
+`raccourci`, gardé jusqu’à ce qu’elle l’écoute, même si l’app était fermée).
+
+Le délégué de scène : celui du modèle de Capacitor 8.6 (`ios/App/App/SceneDelegate.swift`) crée lui-même un
+`CAPBridgeViewController`, sans passer par `Main.storyboard` — le pont du widget n’y était donc jamais enregistré.
+`scripts/ios-widget.mjs` le remplace par `resources/ios/widget/App/SceneDelegate.swift` (qui crée `RequeteViewController` et
+reçoit les raccourcis) et garde l’original dans `SceneDelegate.swift.avant-requete`. Un délégué modifié à la main n’est pas
+touché (un avertissement le dit) : y remplacer `CAPBridgeViewController()` par `RequeteViewController()` et y ajouter
+`windowScene(_:performActionFor:completionHandler:)` comme dans le nôtre.
 
 ## Réglages à vérifier avant l’envoi
 
