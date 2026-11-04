@@ -76,7 +76,7 @@ Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App G
 Un widget ne joue ni vidéo ni boucle (iOS ne le permet pas) : il anime le passage d’un état à l’autre, à partir d’iOS 17. Le chat
 a donc quatre poses (`Humeur`, dans `RequeteWidget.swift`), et le fournisseur pose une entrée à minuit, 5 h, midi et 18 h :
 
-- **le matin** (5 h – midi) : la flamme se range dans le coin, le chat dit « Une petite requête ? » dans une bulle
+- **le matin** (5 h – midi) : la flamme et « 0/1 » se rangent dans le coin, le chat dit « Une petite requête ? » dans une bulle
   (« Jour de repos ! » un jour de repos du planning) ;
 - **l’après-midi** (midi – 18 h, et la nuit) : comme avant ;
 - **le soir** (18 h – minuit, un jour de séance) : la flamme grandit et rougeoie, « Ta flamme t’attend ! » (« Allume ta flamme ! »
@@ -90,6 +90,9 @@ sans séance.
 
 12 h 35 (« pourquoi 12 ? non, je veux que la flamme du jour ! ») : le widget n’affiche plus de nombre de jours, seulement la flamme
 du jour — éteinte, rougeoyante le soir, dorée quand la séance est faite. Dans la galerie des widgets, il s’appelle « Ta flamme ».
+13 h 11 (« mettre 0/1 au niveau de la flamme, avec un validé coche ✅ quand c’est bon ») : à côté de la flamme, la séance du jour,
+« 0/1 » (le « /1 » plus petit), puis « 1/1 » en doré quand elle est faite, le chiffre qui roule de 0 à 1 (iOS 17), et la coche menthe
+« validé » qui se pose sur la flamme dorée. Un jour de repos du planning, pas d’objectif : la flamme seule.
 
 ### La leçon dans la Dynamic Island (4 novembre, 12 h 35)
 

@@ -106,6 +106,8 @@ private let dore = Color(red: 1.0, green: 0.784, blue: 0.239)
 private let doreClair = Color(red: 1.0, green: 0.847, blue: 0.420)
 private let violetTexte = Color(red: 0.333, green: 0.220, blue: 0.902)
 private let braise = Color(red: 1.0, green: 0.541, blue: 0.239)
+private let menthe = Color(red: 0.624, green: 0.941, blue: 0.776)
+private let encre = Color(red: 0.106, green: 0.086, blue: 0.251)
 
 /// Elisa, 4 novembre, 8 h 36 : « c’est possible d’animer plus le widget ? ». iOS n’anime pas un widget en boucle (pas de flamme qui
 /// danse sur l’écran d’accueil) ; il anime le passage d’un état à l’autre : la flamme s’allume d’un rebond, et le chat plonge puis
@@ -113,7 +115,8 @@ private let braise = Color(red: 1.0, green: 0.541, blue: 0.239)
 /// minuit quand la flamme s’éteint.
 /// 12 h 14 : le chat change aussi avec la journée (voir Humeur) ; à chaque changement, il plonge et ressort dans sa nouvelle pose,
 /// la bulle sort de sa bouche, la flamme grandit ou se rallume, les étincelles jaillissent. Avant iOS 17, les poses changent sans
-/// animation. 12 h 35 : la flamme du jour seule, sans le nombre de jours.
+/// animation. 12 h 35 : la flamme du jour, sans le nombre de jours. 13 h 11 (« mettre 0/1 au niveau de la flamme, avec un validé
+/// coche ✅ quand c’est bon ») : à côté de la flamme, la séance du jour, 0/1 puis 1/1, et la coche menthe sur la flamme dorée.
 struct SerieVue: View {
     let entree: SerieEntree
 
@@ -163,7 +166,8 @@ struct SerieVue: View {
     private var saut: Animation { .spring(response: 0.5, dampingFraction: 0.5) }
 
     private var libelle: String {
-        entree.faitAujourdhui ? "Ta flamme du jour est allumée." : "Ta flamme du jour n’est pas encore allumée."
+        if entree.faitAujourdhui { return "Séance du jour validée : 1 sur 1. Ta flamme est allumée." }
+        return entree.repos ? "Jour de repos." : "Séance du jour : 0 sur 1."
     }
 
     var body: some View {
@@ -186,8 +190,8 @@ struct SerieVue: View {
                     insertion: AnyTransition.move(edge: .bottom).animation((humeur == .fete ? saut : ressort).delay(0.15)),
                     removal: AnyTransition.move(edge: .bottom).animation(.easeIn(duration: 0.2))
                 ))
-            flammeVue(w)
-                .scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)   // le matin, elle se range dans le coin
+            compteurVue(w)
+                .scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)   // le matin, il se range dans le coin
                 .frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)
                 .padding(.horizontal, w * 0.08)
                 .padding(.top, h * hautFlamme)
@@ -230,10 +234,21 @@ struct SerieVue: View {
             .padding(.top, h * 0.425)
     }
 
-    /// La flamme du jour : éteinte, rougeoyante le soir, dorée quand la séance est faite. Dans un ZStack : allumée ou éteinte, c’est une
-    /// autre flamme, qui entre d’un rebond à la place de l’autre.
+    /// La flamme du jour et la séance du jour à côté (« 0/1 », puis « 1/1 »). Un jour de repos du planning, pas d’objectif : la flamme seule.
+    private func compteurVue(_ w: CGFloat) -> some View {
+        HStack(alignment: .center, spacing: w * (humeur == .soir ? 0.07 : entree.faitAujourdhui ? 0.05 : 0.03)) {
+            flammeVue(w)
+            if !entree.repos {
+                objectifVue(w)
+                    .transition(.opacity)
+            }
+        }
+    }
+
+    /// La flamme du jour : éteinte, rougeoyante le soir, dorée quand la séance est faite, avec sa coche menthe. Dans un ZStack : allumée
+    /// ou éteinte, c’est une autre flamme, qui entre d’un rebond à la place de l’autre ; la coche arrive d’un rebond aussi.
     private func flammeVue(_ w: CGFloat) -> some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             Image(systemName: "flame.fill")
                 .font(.system(size: w * 0.3, weight: .bold))
                 .foregroundColor(flamme)
@@ -241,10 +256,39 @@ struct SerieVue: View {
                 .shadow(color: lueur, radius: w * 0.06)
                 .id(entree.faitAujourdhui)   // allumée ↔ éteinte : une autre flamme, qui entre d’un rebond
                 .transition(.scale(scale: 0.3).combined(with: .opacity))
+            if entree.faitAujourdhui {
+                coche(w)
+                    .offset(x: w * 0.025, y: w * 0.015)
+                    .transition(.scale(scale: 0.2).combined(with: .opacity))   // validé : la coche se pose sur la flamme
+            }
         }
     }
 
-    /// La bulle du matin, en haut à droite, après la flamme réduite (de 0,08 à 0,23 de la largeur environ).
+    /// « 0/1 » : le « /1 » plus petit, pour que le chiffre reste lisible même rangé dans le coin, le matin. Il roule de 0 à 1 (iOS 17).
+    private func objectifVue(_ w: CGFloat) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            Text(entree.faitAujourdhui ? "1" : "0")
+                .font(.system(size: w * 0.22, weight: .heavy, design: .rounded))
+                .chiffreQuiRoule(entree.faitAujourdhui ? 1 : 0)
+            Text("/1")
+                .font(.system(size: w * 0.13, weight: .bold, design: .rounded))
+                .opacity(0.75)
+        }
+        .foregroundColor(entree.faitAujourdhui ? doreClair : Color.white.opacity(0.9))
+        .lineLimit(1)
+    }
+
+    /// La coche « validé » : menthe, cerclée de blanc, comme l’étiquette « ✓ Validée » du bilan.
+    private func coche(_ w: CGFloat) -> some View {
+        Image(systemName: "checkmark")
+            .font(.system(size: w * 0.07, weight: .heavy))
+            .foregroundColor(encre)
+            .frame(width: w * 0.14, height: w * 0.14)
+            .background(Circle().fill(menthe))
+            .overlay(Circle().stroke(Color.white, lineWidth: w * 0.012))
+    }
+
+    /// La bulle du matin, en haut à droite, après le compteur réduit (la flamme et « 0/1 », de 0,08 à 0,39 de la largeur environ).
     private func bulle(_ w: CGFloat) -> some View {
         let pointe = w * 0.055
         return Text(entree.repos ? "Jour de repos\u{202F}!" : "Une petite requête\u{202F}?")
@@ -255,7 +299,7 @@ struct SerieVue: View {
             .minimumScaleFactor(0.7)
             .padding(.horizontal, w * 0.035)
             .padding(.vertical, w * 0.03)
-            .frame(width: w * 0.65)
+            .frame(width: w * 0.53)
             .padding(.bottom, pointe)
             .background(Bulle(pointe: pointe).fill(Color.white))
             .shadow(color: Color.black.opacity(0.15), radius: w * 0.025, y: w * 0.012)
@@ -302,6 +346,18 @@ extension View {
             self.containerBackground(for: .widget) { violet }
         } else {
             self.background(violet)
+        }
+    }
+}
+
+extension View {
+    /// iOS 17 et plus : le chiffre de la séance du jour roule de 0 à 1 (avant, il change d’un fondu).
+    @ViewBuilder
+    func chiffreQuiRoule(_ valeur: Int) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.contentTransition(.numericText(value: Double(valeur)))
+        } else {
+            self
         }
     }
 }

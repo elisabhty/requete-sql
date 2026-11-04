@@ -101,13 +101,14 @@ test('chaque pose : la bulle du matin, la flamme du soir, le saut de joie, et un
   assert.ok(bulle.includes('var pointe: CGFloat') && bulle.includes('func path(in r: CGRect) -> Path {') && bulle.includes('p.closeSubpath()\n        return p'));
 });
 
-test('la bulle du matin commence après la flamme réduite', () => {
-  /* 12 h 35 : la flamme seule, sans nombre, ne s’élargit plus ; réduite (0,55) depuis 0,08 de la largeur, son dessin (environ 0,9 de sa
-     taille, 0,3 de la largeur) s’arrête vers 0,23 : la bulle part de 0,3 (0,65 de large, jusqu’à 0,95 moins la marge de droite). */
-  assert.ok(swift.includes('.frame(width: w * 0.65)') && swift.includes('.padding(.trailing, w * 0.05)'));
-  assert.ok(swift.includes('.font(.system(size: w * 0.3, weight: .bold))'));
-  const fin = 0.08 + 0.55 * 0.9 * 0.3;
-  assert.ok(fin < 0.95 - 0.05 - 0.65, `la flamme réduite s’arrête à ${fin.toFixed(3)}, avant la bulle`);
+test('la bulle du matin commence après le compteur réduit', () => {
+  /* 13 h 11 : la flamme et « 0/1 », toujours de la même largeur ; réduits (0,55) depuis 0,08 de la largeur : la flamme (0,3 de la largeur,
+     son dessin un peu moins large, 0,25), l’espace (0,03), « 0 » (0,22 ; un chiffre fait environ 0,6 de sa taille) et « /1 » (0,13 ; deux
+     signes) s’arrêtent vers 0,39 : la bulle part de 0,42 (0,53 de large, jusqu’à 0,95 moins la marge de droite). */
+  assert.ok(swift.includes('.frame(width: w * 0.53)') && swift.includes('.padding(.trailing, w * 0.05)'));
+  assert.ok(swift.includes('.font(.system(size: w * 0.3, weight: .bold))') && swift.includes('.font(.system(size: w * 0.22, weight: .heavy, design: .rounded))') && swift.includes('.font(.system(size: w * 0.13, weight: .bold, design: .rounded))'));
+  const fin = 0.08 + 0.55 * (0.25 + 0.03 + 0.6 * 0.22 + 2 * 0.55 * 0.13);
+  assert.ok(fin < 1 - 0.05 - 0.53, `le compteur réduit s’arrête à ${fin.toFixed(3)}, avant la bulle (0,42)`);
   assert.ok(!swift.includes('finCompteur') && !swift.includes('chiffres'), 'plus de calcul par chiffre');
 });
 

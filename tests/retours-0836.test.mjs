@@ -128,7 +128,9 @@ test('« c’est possible d’animer plus le widget ? » : le passage d’un ét
     '.animation(ressort, value: entree.faitAujourdhui)', '.animation(ressort, value: humeur)',
     'private var ressort: Animation { .spring(response: 0.55, dampingFraction: 0.58) }'])
     assert.ok(swift.includes(k), k);
-  assert.ok(!swift.includes('chiffreQuiRoule') && !swift.includes('Text("\\(entree.serie)")'), 'plus de nombre de jours');
+  assert.ok(!swift.includes('Text("\\(entree.serie)")'), 'plus de nombre de jours (13 h 11 : la séance du jour, 0/1, à la place)');
+  /* Le chiffre qui roule (0 → 1) n’existe qu’à partir d’iOS 17 */
+  assert.ok(swift.includes('if #available(iOSApplicationExtension 17.0, *) {\n            self.contentTransition(.numericText(value: Double(valeur)))\n        } else {\n            self\n        }'));
   /* Les transitions d’iOS 17 restent derrière leur garde : l’app reste installable en iOS 15 */
   assert.ok(swift.includes('if #available(iOSApplicationExtension 17.0, *) {\n            self.containerBackground(for: .widget) { violet }'));
   /* Accolades et parenthèses équilibrées (pas de compilateur Swift ici) */
