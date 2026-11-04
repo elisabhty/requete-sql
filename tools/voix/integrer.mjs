@@ -88,7 +88,10 @@ function bounds(L, spans, dur){
     /* Sans silence devant (la voix enchaîne dès le début du fichier, dans la continuité du chapitre d’avant) : depuis le début. */
     let a = pre ? head(pre[0], pre[1]) - 0.06 : k ? (spans[k - 1][1] + s) / 2 : 0;
     let b = post ? Math.min(tail(post[0], post[1]) + 0.15, post[1] - 0.02) : k + 1 < spans.length ? (e + spans[k + 1][0]) / 2 : dur;
-    if (pre && k) a = Math.max(a, tail(pre[0], pre[1]) + 0.16);   // jamais avant la fin de la phrase d’avant
+    /* Jamais avant la fin de la phrase d’avant, ni dans le premier mot : quand la phrase d’avant finit sur un souffle collé au mot
+       suivant, sa « fin » est ce souffle, et 0,16 s après tombait dans le mot (rapport des voix, 4 novembre : 60 débuts coupés,
+       « …faut donc associer »). Le début reste avant le premier son franc, pre[1]. */
+    if (pre && k) a = Math.min(Math.max(a, tail(pre[0], pre[1]) + 0.16), pre[1] - 0.04);
     return [r3(Math.max(0, a)), r3(Math.min(dur, Math.max(b, a + 0.3)))];
   });
 }
