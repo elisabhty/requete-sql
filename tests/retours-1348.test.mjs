@@ -45,7 +45,7 @@ test('envoyer le commentaire : gardé sur l’appareil (espaces resserrés, 500 
   const s = ctx.normalizeState({avis: {12: {n: 4, le: 1, c: '  Très   bien\n merci '}, 7: {n: 3, c: 'x'.repeat(700)}, 8: {n: 2, c: 42}}});
   assert.equal(s.avis[12].c, 'Très bien merci'); assert.equal(s.avis[7].c.length, 500); assert.equal(s.avis[8].c, undefined);
   /* La base : la colonne, la fonction à cinq arguments, la vue des commentaires */
-  const sql = read('supabase/migrations/20261104123500_avis_lecon.sql');
+  const sql = read('supabase/migrations/20261104160655_avis_lecon.sql');
   for (const k of ['commentaire text check (commentaire is null or char_length(commentaire) <= 500),', 'p_titre text default null, p_commentaire text default null)',
     "v_commentaire text := nullif(left(btrim(regexp_replace(coalesce(p_commentaire, ''), '[[:cntrl:][:space:]]+', ' ', 'g')), 500), '');",
     'commentaire = excluded.commentaire', 'create or replace view public.avis_commentaires with (security_invoker = true) as', 'revoke all on public.avis_commentaires from public, anon, authenticated;'])
@@ -114,7 +114,7 @@ test('où l’onboarding perd du monde : chaque étape comptée une fois par app
   assert.ok(!JSON.parse(ls.getItem(ctx.OB_COMPTE)).vues.includes('job'), 'pas l’aperçu');
   assert.ok(cut('function finishOnboard(action){', 'function obTerminer(action){').includes("if(!state.onboarded){obCompter('termine');"), 'la fin compte aussi');
   /* La base : une ligne par appareil et par étape, la fonction seule pour écrire, l’entonnoir dans l’ordre du parcours */
-  const sql = read('supabase/migrations/20261104135000_onboarding_entonnoir.sql');
+  const sql = read('supabase/migrations/20261104160656_onboarding_entonnoir.sql');
   for (const k of ['primary key (cle, etape)', "etape text not null check (etape ~ '^[a-zA-Z]{2,16}$')", 'revoke all on public.onboarding_etape from public, anon, authenticated;',
     'create or replace function public.onboarding_compter(p_cle text, p_etapes text[])', 'security definer', 'v_cle text := public.jeu_cle(p_cle);',
     'on conflict (cle, etape) do nothing;', 'grant execute on function public.onboarding_compter(text, text[]) to anon, authenticated;',

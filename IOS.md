@@ -215,10 +215,22 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   si un envoi a échoué après le dépôt).
 - **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre) : le parcours choisi, sa date et l’empreinte
   de l’identifiant tiré au hasard par l’appareil partent dans la table `parcours_vote` (fonction `parcours_voter`, un vote
-  par appareil, revoter le remplace). À appliquer avant l’envoi : `supabase/migrations/20261103181500_parcours_vote.sql`
-  (éditeur SQL de Supabase). **Résultats** : vue `parcours_votes`. Dans App Store Connect, déclarer « Identifiant
+  par appareil, revoter le remplace). Appliquée le 4 novembre : `supabase/migrations/20261104160653_parcours_vote.sql`.
+  **Résultats** : vue `parcours_votes`. Dans App Store Connect, déclarer « Identifiant
   utilisateur » (l’identifiant au hasard) et « Autres données d’usage » (le vote) ; usage « Analyses » ; non liés à
   l’identité, sans pistage. L’alerte « Préviens-moi à la sortie » reste sur l’appareil.
+- **Avis sur les leçons** (« Donne ton avis sur la leçon », fin de leçon, 4 novembre) : la note (1 à 5 étoiles), le
+  commentaire facultatif (500 signes), le numéro et le titre de la leçon, la date et l’empreinte de l’identifiant au hasard
+  partent dans la table `avis_lecon` (fonction `lecon_noter`, un avis par appareil et par leçon, le changer le remplace).
+  Appliquée le 4 novembre : `supabase/migrations/20261104160655_avis_lecon.sql`. **Résultats** : vues `avis_lecons` (les
+  leçons les moins bien notées d’abord) et `avis_commentaires`. Dans App Store Connect, déclarer « Interactions avec le
+  produit » (la note) et « Autre contenu utilisateur » (le commentaire) ; usage « Fonctionnalités de l’app » ; non liés à
+  l’identité, sans pistage.
+- **Étapes de l’onboarding** (4 novembre) : chaque écran de l’accueil vu une première fois (son nom et la date, ni prénom ni
+  réponse), avec l’empreinte de l’identifiant au hasard, part dans la table `onboarding_etape` (fonction
+  `onboarding_compter`). Appliquée le 4 novembre : `supabase/migrations/20261104160656_onboarding_entonnoir.sql`.
+  **Résultats** : vue `onboarding_entonnoir` (combien d’appareils ont vu chaque écran, et la part de l’accueil). Dans App
+  Store Connect, déclarer « Interactions avec le produit » ; usage « Analyses » ; non lié à l’identité, sans pistage.
 - **Effacement** : « Retirer mes scores du classement » et « Effacer la progression » suppriment les données du
   serveur depuis l’appli (pas de compte, donc pas de suppression de compte à prévoir).
 - **Passer du site à l’app** : Mon compte › Données › « Exporter ma progression » sur le site, puis « Importer une

@@ -122,7 +122,7 @@ test('« Ils apprécient Requête » : entre la promesse et l’engagement (16 h
   assert.ok(bloc.includes("document.addEventListener('visibilitychange',()=>{if(document.hidden)obTemoinsCouper();});"), 'et quand l’appli passe en arrière-plan');
   /* L’entonnoir de l’onboarding la compte, à sa place */
   assert.match('temoignages', /^[a-zA-Z]{2,16}$/);
-  const sql = read('supabase/migrations/20261104135000_onboarding_entonnoir.sql');
+  const sql = read('supabase/migrations/20261104160656_onboarding_entonnoir.sql');
   assert.ok(sql.includes("('promise', 11, 'Promesse'), ('temoignages', 12, 'Ils apprécient Requête'), ('pact', 13, 'Engagement')") && sql.includes("('termine', 19, 'Onboarding terminé')"));
 });
 

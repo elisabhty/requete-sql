@@ -277,7 +277,7 @@ test('les étoiles en CSS : la fiche du bilan, leur arrivée, leur ondulation, l
 });
 
 test('la base de l’appli : lecon_noter, un avis par appareil et par leçon, rien de lisible pour l’appli', () => {
-  const sql = read('supabase/migrations/20261104123500_avis_lecon.sql');
+  const sql = read('supabase/migrations/20261104160655_avis_lecon.sql');
   for (const k of ['create table if not exists public.avis_lecon (', 'primary key (cle, lecon)', 'note smallint not null check (note between 1 and 5)',
     'alter table public.avis_lecon enable row level security;', 'revoke all on public.avis_lecon from public, anon, authenticated;',
     'create or replace function public.lecon_noter(p_cle text, p_lecon integer, p_note integer, p_titre text default null, p_commentaire text default null)', 'security definer', "set search_path = ''",
