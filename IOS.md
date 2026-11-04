@@ -73,9 +73,9 @@ Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App G
 
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
-L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — Le chat te retrouvera. »** (ouvre
-l’accueil, où le chat salue) et **« ⭐ Fais une petite requête ! — Quelques minutes suffisent. »** (ouvre la séance que propose
-l’accueil). La page les pose au démarrage (index.html, `RACCOURCIS`, pont `RequeteWidget.raccourcis`) : ils apparaissent après
+L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre
+l’accueil, où le chat dit dans sa bulle « Je t’avais dit que j’allais te retrouver ! ») et **« ⭐ Fais une petite requête ! —
+Quelques minutes suffisent. »** (ouvre l’onglet Défis). Rien pendant une leçon, ni avant la fin de l’onboarding. La page les pose au démarrage (index.html, `RACCOURCIS`, pont `RequeteWidget.raccourcis`) : ils apparaissent après
 le premier lancement de la nouvelle version. Le raccourci choisi arrive au délégué de scène, puis à la page (événement
 `raccourci`, gardé jusqu’à ce qu’elle l’écoute, même si l’app était fermée).
 
