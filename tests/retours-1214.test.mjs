@@ -65,11 +65,11 @@ test('chaque pose : la bulle du matin, la flamme du soir, le saut de joie, et un
   const vue = entre('struct SerieVue: View {', 'struct Bulle: Shape {');
   for (const k of [
     /* le matin : la flamme se range dans le coin, la bulle sort de la bouche du chat */
-    `Text(entree.repos ? "Jour de repos${ESPACE}!" : "Une petite requête${ESPACE}?")`,
+    `let phrase: String = entree.repos ? "Jour de repos${ESPACE}!" : "Une petite requête${ESPACE}?"`, 'Text(phrase)',
     '.scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)', '.frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)',
     '.transition(.scale(scale: 0.3, anchor: .bottomLeading).combined(with: .opacity))',
     /* le soir : la flamme grandit et rougeoie */
-    `Text(entree.serie > 0 ? "Ta flamme t’attend${ESPACE}!" : "Allume ta flamme${ESPACE}!")`, 'return humeur == .soir ? 1.25 : 0.88',
+    `let phrase: String = entree.serie > 0 ? "Ta flamme t’attend${ESPACE}!" : "Allume ta flamme${ESPACE}!"`, 'return humeur == .soir ? 1.25 : 0.88',
     'case .soir: return braise.opacity(0.9)', '.shadow(color: lueur, radius: w * 0.06)',
     '.transition(.opacity.combined(with: .offset(y: h * 0.05)))',
     /* la fête : la flamme dorée, le chat en l’air et penché, les étincelles */
@@ -105,8 +105,8 @@ test('la bulle du matin commence après le compteur réduit', () => {
   /* 13 h 11 : la flamme et « 0/1 », toujours de la même largeur ; réduits (0,55) depuis 0,08 de la largeur : la flamme (0,3 de la largeur,
      son dessin un peu moins large, 0,25), l’espace (0,03), « 0 » (0,22 ; un chiffre fait environ 0,6 de sa taille) et « /1 » (0,13 ; deux
      signes) s’arrêtent vers 0,39 : la bulle part de 0,42 (0,53 de large, jusqu’à 0,95 moins la marge de droite). */
-  assert.ok(swift.includes('.frame(width: w * 0.53)') && swift.includes('.padding(.trailing, w * 0.05)'));
-  assert.ok(swift.includes('.font(.system(size: w * 0.3, weight: .bold))') && swift.includes('.font(.system(size: w * 0.22, weight: .heavy, design: .rounded))') && swift.includes('.font(.system(size: w * 0.13, weight: .bold, design: .rounded))'));
+  assert.ok(swift.includes('let largeur: CGFloat = w * 0.53') && swift.includes('.frame(width: largeur)') && swift.includes('.padding(.trailing, w * 0.05)'));
+  assert.ok(swift.includes('.font(.system(size: w * 0.3, weight: .bold))') && swift.includes('let grand: Font = Font.system(size: w * 0.22, weight: .heavy, design: .rounded)') && swift.includes('let petit: Font = Font.system(size: w * 0.13, weight: .bold, design: .rounded)'));
   const fin = 0.08 + 0.55 * (0.25 + 0.03 + 0.6 * 0.22 + 2 * 0.55 * 0.13);
   assert.ok(fin < 1 - 0.05 - 0.53, `le compteur réduit s’arrête à ${fin.toFixed(3)}, avant la bulle (0,42)`);
   assert.ok(!swift.includes('finCompteur') && !swift.includes('chiffres'), 'plus de calcul par chiffre');

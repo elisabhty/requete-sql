@@ -159,7 +159,9 @@ struct RequeteLecon: ActivityAttributes {
 @available(iOS 16.2, *)
 enum RequeteLeconPont {
     static func etat(progression: Double?, allumee: Bool?, fini: Bool) -> RequeteLecon.ContentState {
-        RequeteLecon.ContentState(progression: min(1, max(0, progression ?? 0)), allumee: allumee ?? false, fini: fini)
+        let brute: Double = progression ?? 0
+        let p: Double = min(1, max(0, brute))
+        return RequeteLecon.ContentState(progression: p, allumee: allumee ?? false, fini: fini)
     }
 
     static func debut(titre: String, module: String, etat: RequeteLecon.ContentState) async -> Bool {
@@ -185,9 +187,11 @@ enum RequeteLeconPont {
 
     static func fin(reussie: Bool, allumee: Bool) async {
         for a in Activity<RequeteLecon>.activities {
-            let p = reussie ? 1 : a.content.state.progression
-            let dernier = ActivityContent(state: RequeteLecon.ContentState(progression: p, allumee: allumee, fini: reussie), staleDate: nil)
-            await a.end(dernier, dismissalPolicy: reussie ? .after(Date().addingTimeInterval(15 * 60)) : .immediate)
+            let p: Double = reussie ? 1 : a.content.state.progression
+            let bilan = RequeteLecon.ContentState(progression: p, allumee: allumee, fini: reussie)
+            let dernier = ActivityContent(state: bilan, staleDate: nil)
+            let politique: ActivityUIDismissalPolicy = reussie ? .after(Date().addingTimeInterval(15 * 60)) : .immediate
+            await a.end(dernier, dismissalPolicy: politique)
         }
     }
 
@@ -205,10 +209,14 @@ enum RequeteLeconPont {
 }
 
 extension UIColor {
-    /// « #4529CC » ou « 4529CC » ; nil sinon.
+    /// « #4529CC » ou « 4529CC » ; nil sinon. Les trois composantes sont calculées d’abord, chacune avec son type (4 novembre,
+    /// 16 h 28 : une seule expression trop longue suffit à faire échouer l’archive, voir la bulle du widget).
     convenience init?(requeteHex hex: String) {
         let s = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
         guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
-        self.init(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+        let rouge: CGFloat = CGFloat((v >> 16) & 0xFF) / 255
+        let vert: CGFloat = CGFloat((v >> 8) & 0xFF) / 255
+        let bleu: CGFloat = CGFloat(v & 0xFF) / 255
+        self.init(red: rouge, green: vert, blue: bleu, alpha: 1)
     }
 }

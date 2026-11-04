@@ -75,7 +75,8 @@ test('le pont : leconDebut, leconMaj, leconFin (iOS 16.2), et rien de resté à 
   for (const k of ['guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }', 'try Activity<RequeteLecon>.request(',
     'content: ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600))', 'pushType: nil',
     'await a.update(ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)))',
-    'await a.end(dernier, dismissalPolicy: reussie ? .after(Date().addingTimeInterval(15 * 60)) : .immediate)',
+    'let politique: ActivityUIDismissalPolicy = reussie ? .after(Date().addingTimeInterval(15 * 60)) : .immediate',
+    'await a.end(dernier, dismissalPolicy: politique)',
     'await a.end(nil, dismissalPolicy: .immediate)', 'await toutArreter()'])
     assert.ok(p.includes(k), k);
   assert.ok(pont.includes('@available(iOS 16.2, *)\nenum RequeteLeconPont {'));

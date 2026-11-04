@@ -59,6 +59,13 @@ Restent, pour vendre l’appli : le contrat des apps payantes (Accords, taxes et
 Ensuite, à chaque nouvelle version : `npm run ios:testflight`. Si l’archive se plaint qu’il n’y a aucun appareil pour le
 profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans Xcode (en haut, à la place du simulateur) et relancer.
 
+Si `ios-envoi.log` finit par `** ARCHIVE FAILED **` avec « the compiler is unable to type-check this expression in reasonable
+time » (4 novembre, 16 h 28 : « mon TestFlight s’est arrêté à 5 », rien n’était parti) : Xcode n’arrive pas à vérifier à temps
+une longue chaîne de modificateurs SwiftUI. C’était la bulle du matin du widget (`RequeteWidget.swift`, `bulle`) : une phrase au
+choix (`entree.repos ? "…" : "…"`) suivie de onze modificateurs aux mesures calculées. La règle, dans le widget et dans le pont :
+poser d’abord la phrase, la police, les couleurs et les mesures dans des constantes typées (`let largeur: CGFloat = w * 0.53`),
+puis enchaîner les modificateurs sur ces constantes. L’erreur donne le fichier et la ligne : c’est là qu’il faut couper.
+
 ### Le widget de la série (4 novembre)
 
 `scripts/ios-widget.mjs` (lancé par `npm run ios`, `ios:add` et `ios:testflight`, après `cap sync`) recopie
