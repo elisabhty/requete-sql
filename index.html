@@ -6715,7 +6715,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=137">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=21">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=22">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -32506,7 +32506,7 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','pays','age','job','goal','temoignages','level','rhythm','jours','build','promise','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];
+const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -32871,7 +32871,7 @@ let obJustEntered=false;
 let obSelectionTimer=0;
 let obDemoTimers=[];
 let obSwipe2On=false;
-const OB_PROFILE_SLIDES=['name','pays','age','job','goal','temoignages','level','rhythm','jours','build','promise','pact','practice'];
+const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','promise','temoignages','pact','practice'];
 const OB_GOALS=[
   ['career','Me reconvertir dans la data','briefcase'],
   ['interview','Réussir un entretien','person'],
@@ -33533,13 +33533,13 @@ function obNext(){
   else if(slide==='pays')obGoto('age');
   else if(slide==='age')obGoto('job');
   else if(slide==='job')obGoto('goal');
-  else if(slide==='goal')obGoto('temoignages');
-  else if(slide==='temoignages')obGoto('level');
+  else if(slide==='goal')obGoto('level');
   else if(slide==='level')obGoto('rhythm');
   else if(slide==='rhythm')obGoto('jours');
   else if(slide==='jours')obGoto('build');
   else if(slide==='build')obGoto('promise');
-  else if(slide==='promise')obGoto('pact');
+  else if(slide==='promise')obGoto('temoignages');
+  else if(slide==='temoignages')obGoto('pact');
   else if(slide==='pact')obGoto('practice');
   else if(slide==='practice')obGoto(obAfterPractice());
   else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));
@@ -34243,8 +34243,7 @@ let obTv=null;
 function obTemoinsHtml(){
   const liste=obTemoinsListe(),r=liste[0],montres=OB_FORMATEURS.slice(0,4);
   obTv={liste,i:0,raf:0,bars:[],last:-2,lit:null};
-  const stat=OB_COMMUNAUTE>0?`<p class="ob-tv-stat"><b>Plus de <i data-n="${OB_COMMUNAUTE}">${obNombre(OB_COMMUNAUTE)}</i></b> personnes accompagnées</p>`:'';
-  return `${stat}<div class="ob-tv" id="ob-tv">
+  return `<div class="ob-tv" id="ob-tv">
       <div class="ob-tv-ph">
         <img class="ob-tv-img" id="ob-tv-img" src="${escAttr(r.photo)}" width="640" height="640" alt="${escAttr(r.prenom+', '+r.info)}" draggable="false">
         <div class="ob-tv-pick" role="group" aria-label="Choisir un témoignage">${liste.map((x,j)=>`<button type="button" aria-pressed="${j?'false':'true'}" aria-label="Témoignage ${escAttr(obTvDe(x.prenom))}" onclick="obTemoinsChoisir(${j})"><img src="${escAttr(x.mini)}" width="64" height="64" alt="" draggable="false"></button>`).join('')}</div>
@@ -34261,6 +34260,15 @@ function obTemoinsHtml(){
 }
 /* « l’avis d’Aminata C. », « l’avis de Sofia B. » */
 function obTvDe(n){return (/^[aeiouyàâäéèêëîïôöûü]/i.test(n)?'d’':'de ')+n;}
+/* « Fais comme un badge qui fusionne “1000 personnes apprécient Requête” et “Ils apprécient Requête” » (16 h 09) : le titre de l’étape devient un
+   badge, deux branches de laurier autour du chiffre (qui défile à l’arrivée) et de « personnes apprécient Requête ». Sans chiffre
+   vérifié (OB_COMMUNAUTE à null), le titre reste « Ils apprécient Requête ». */
+const OB_TV_LAURIER='<svg viewBox="-4 -8 48 112"><path d="M36 98C8 84 2 40 18 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><g fill="currentColor"><ellipse cx="20.9" cy="94.8" rx="4.1" ry="9.6" transform="rotate(85 20.9 94.8)"/><ellipse cx="28.0" cy="85.4" rx="4.1" ry="9.6" transform="rotate(-191 28.0 85.4)"/><ellipse cx="11.3" cy="80.5" rx="3.8" ry="8.9" transform="rotate(-255 11.3 80.5)"/><ellipse cx="20.5" cy="74.6" rx="3.8" ry="8.9" transform="rotate(-171 20.5 74.6)"/><ellipse cx="6.1" cy="64.0" rx="3.5" ry="8.1" transform="rotate(-239 6.1 64.0)"/><ellipse cx="15.7" cy="61.1" rx="3.5" ry="8.1" transform="rotate(-155 15.7 61.1)"/><ellipse cx="4.6" cy="46.0" rx="3.2" ry="7.4" transform="rotate(-226 4.6 46.0)"/><ellipse cx="13.7" cy="45.4" rx="3.2" ry="7.4" transform="rotate(-142 13.7 45.4)"/><ellipse cx="6.7" cy="27.4" rx="2.9" ry="6.7" transform="rotate(-214 6.7 27.4)"/><ellipse cx="14.9" cy="28.6" rx="2.9" ry="6.7" transform="rotate(-130 14.9 28.6)"/><ellipse cx="12.5" cy="9.3" rx="2.5" ry="6.0" transform="rotate(-203 12.5 9.3)"/><ellipse cx="21.0" cy="-0.3" rx="3.2" ry="7.4" transform="rotate(-155 21.0 -0.3)"/></g></svg>';
+function obTemoinsTitre(){
+  if(!(OB_COMMUNAUTE>0))return '<h1 class="ob-title" id="ob-title">Ils <em>apprécient</em> Requête</h1>';
+  const n=obNombre(OB_COMMUNAUTE);
+  return `<h1 class="ob-tv-badge" id="ob-title"><span class="ob-sr">Plus de ${n} personnes apprécient Requête</span><span class="ob-tv-laurier" aria-hidden="true">${OB_TV_LAURIER}</span><span class="ob-tv-badge-c" aria-hidden="true"><b><i data-n="${OB_COMMUNAUTE}">${n}</i>+</b><span>personnes apprécient Requête</span></span><span class="ob-tv-laurier is-d" aria-hidden="true">${OB_TV_LAURIER}</span></h1>`;
+}
 function obTvMmss(s){s=Math.max(0,Math.floor(s+.001));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function obTvDuree(au,r){return isFinite(au.duration)&&au.duration>0?au.duration:r.duree;}
 /* L’onde avance avec la lecture : les barres lues passent en menthe, celle du moment palpite. */
@@ -34348,7 +34356,7 @@ function obTemoinsBrancher(){
   ph.addEventListener('pointercancel',()=>{sx=null;});
   obTemoinsMontrer(0);
   /* À l’arrivée, le chiffre de la communauté défile jusqu’à sa valeur (comme les chiffres des jours) ; tel quel en mouvements réduits. */
-  const n=document.querySelector('#ob-body .ob-tv-stat i[data-n]');
+  const n=document.querySelector('#ob-body .ob-tv-badge i[data-n]');
   if(n&&obJustEntered&&!prefersReduceMotion()){
     const fin=+n.dataset.n;let t0=0;
     const tick=now=>{if(!n.isConnected)return;if(!t0)t0=now+250;const k=Math.max(0,Math.min(1,(now-t0)/950)),e=1-Math.pow(1-k,3);n.textContent=obNombre(Math.round(fin*e));if(k<1)requestAnimationFrame(tick);};
@@ -34500,12 +34508,13 @@ function paintOb(){
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
       ${obMascotQuestion('Qu’est-ce qui t’amène sur Requête ?')}
       ${obAnswers(OB_GOALS,'goal',draft.goal)}</div>`;
-    obSetFooter('Continuer',()=>obGoto('temoignages'),'','','',!draft.goal);
+    obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);
   }else if(slide==='temoignages'){
-    /* Elisa, 4 novembre, 14 h 08 : « Ils apprécient Requête », juste après l’objectif (obTemoinsHtml). */
-    html=`<div class="ob-screen ob-profile ob-temoins">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ils <em>apprécient</em> Requête</h1>
+    /* Elisa, 4 novembre, 14 h 08 : « Ils apprécient Requête » (obTemoinsHtml) ; 16 h 09 : le titre en badge (obTemoinsTitre), et l’étape
+       entre la promesse et l’engagement : la promesse, la preuve, puis l’engagement. */
+    html=`<div class="ob-screen ob-profile ob-temoins">${obFlowHeader(slide)}${obTemoinsTitre()}
       ${obTemoinsHtml()}</div>`;
-    obSetFooter('Continuer',()=>obGoto('level'),'','','');
+    obSetFooter('Continuer',()=>obGoto('pact'),'','','');
   }else if(slide==='level'){
     const levels=[['debutant','Je débute en SQL','bulb'],['bases','Je connais les bases','chart'],['inter','Je pratique déjà','trophy']];
     html=`<div class="ob-screen ob-profile ob-level">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Où en es-tu avec <em>SQL</em>&nbsp;?</h1>
@@ -34636,7 +34645,7 @@ function paintOb(){
       <div class="ob-big" aria-hidden="true"><b id="ob-big-n" data-n="${b.days}">${b.days}</b><span>jours</span></div>
       <img class="ob-promise-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
       <h1 class="ob-title" id="ob-title">Avec <em>${b.minutes} minutes</em>${quand}, tu termines tes <em>${b.lessons} leçons</em> d’ici le ${esc(b.endLabel)}.</h1></div>`;
-    obSetFooter('Continuer',()=>obGoto('pact'),'','','');
+    obSetFooter('Continuer',()=>obGoto('temoignages'),'','','');
     obRunBig();
   }else if(slide==='pact'){
     /* « Une page où la personne va signer (dans un cadre) pour dire qu’elle va bien suivre les cours pour s’améliorer ». Le cadre du
@@ -35878,7 +35887,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-espaces-v2507';
+  const SW_CACHE='requete-2026-11-04-badge-v2508';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
