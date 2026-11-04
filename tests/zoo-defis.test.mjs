@@ -29,7 +29,7 @@ test('le Zoo a dix défis par niveau, du Facile 1 au Difficile 10', () => {
     ...Array.from({ length: 10 }, (_, i) => `zm${i + 1}`),
     ...Array.from({ length: 10 }, (_, i) => `zd${i + 1}`),
   ]);
-  assert.ok(zoo.every(c => c.niv === c.id[1] && c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice), 'énoncés complets');
+  assert.ok(zoo.every(c => c.niv === c.id[1] && c.titre && (c.situation && c.affiche.length) && c.sol && c.indice), 'énoncés complets');
 });
 
 test('les solutions Zoo s’exécutent et leurs tris restent stables', () => {
@@ -37,8 +37,7 @@ test('les solutions Zoo s’exécutent et leurs tris restent stables', () => {
     const db = base();
     const result = db.exec(c.sol);
     const rows = result[0]?.values ?? [];
-    if (c.id === 'zm8') assert.equal(rows.length, 0, `${c.id}: aucun enclos ne dépasse sa capacité dans le seed`);
-    else if (c.id !== 'zd6') assert.ok(rows.length, `${c.id}: résultat non vide`);
+    assert.ok(rows.length, `${c.id}: résultat non vide (zm8 et zd6, vides, refaits le 4 novembre à 22 h 08)`);
     db.run('PRAGMA reverse_unordered_selects = ON');
     assert.deepEqual(db.exec(c.sol)[0]?.values ?? [], rows, `${c.id}: ordre stable`);
     db.close();

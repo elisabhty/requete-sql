@@ -14,12 +14,10 @@ const cmp=(a,b)=>a<b?-1:a>b?1:0;
 const round=n=>Math.round((n+Number.EPSILON)*100)/100;
 
 /* Elisa, 4 novembre, 20 h 33 : en salle, le joueur ne voit que la consigne ; elle dit point par point tout le résultat attendu
-   (« Affiche » : une ligne par colonne ; « Garde » ; « Trie » si l’ordre est vérifié ; « À savoir »). Six défis attendent sa
-   décision (à retirer, ou à refaire avec la requête proposée) et gardent leur ancien texte. */
-const EN_ATTENTE=['ld1','ld9','zm8','zd6','sm9','sd3'];
+   (« Affiche » : une ligne par colonne ; « Garde » ; « Trie » si l’ordre est vérifié ; « À savoir »). 22 h 08 (« je te laisse la
+   main ») : les six défis à retirer sont refaits avec la requête proposée, plus aucun n’attend d’ancien texte. */
 test('chaque consigne dit point par point le résultat attendu, sans renvoi à une question cachée',()=>{
  for(const c of data.challenges){
-  if(EN_ATTENTE.includes(c.id)){assert.ok(c.contexte.includes(c.q),c.id+': ancien texte complet, en attente');continue;}
   assert.ok(c.situation&&Array.isArray(c.affiche)&&c.affiche.length&&Array.isArray(c.garde)&&Array.isArray(c.precis),c.id+': situation, affiche, garde, à savoir');
   assert.equal(c.contexte,undefined,c.id+': plus d’ancien texte');
   const db=base(c.base);let cols;try{cols=db.exec(c.sol)[0]?.columns;}finally{db.close();}
@@ -38,7 +36,7 @@ test('toutes les solutions s’exécutent en lecture seule avec un résultat et 
  for(const c of data.challenges){const db=base(c.base);try{
   assert.equal(db.exec('PRAGMA foreign_key_check').length,0,c.id+': intégrité du seed');
   db.run('PRAGMA query_only=ON');
-  const expected=rows(db,c.id);if(['zm8','zd6','sm9'].includes(c.id))assert.equal(expected.length,0,c.id+': résultat vide prévu dans cette base');else assert.ok(expected.length,c.id+': résultat non vide');
+  const expected=rows(db,c.id);assert.ok(expected.length,c.id+': résultat non vide (22 h 08 : sm9, zm8 et zd6, vides, sont refaits)');
   db.run('PRAGMA reverse_unordered_selects=ON');
   if(c.ordered)assert.deepEqual(rows(db,c.id),expected,c.id+': tri stable');
  }finally{db.close();}}
@@ -92,8 +90,8 @@ test('voyages : plusieurs paiements ne multiplient pas les personnes, les annula
   const orders=new Map(table(db,'reservations').filter(r=>r.statut!=='Annulée').map(r=>[r.id,r]));
   const totals=new Map();for(const r of orders.values()){if(!totals.has(r.circuit_id))totals.set(r.circuit_id,{people:0,paid:0});totals.get(r.circuit_id).people+=r.nb_personnes;}
   for(const p of table(db,'paiements'))if(p.statut==='Payé'&&orders.has(p.reservation_id))totals.get(orders.get(p.reservation_id).circuit_id).paid+=p.montant;
-  const expected=table(db,'circuits').filter(c=>totals.has(c.id)).map(c=>[c.nom,totals.get(c.id).people,round(totals.get(c.id).paid)]).sort((a,b)=>b[1]-a[1]||cmp(a[0],b[0])).slice(0,5);
-  assert.deepEqual(rows(db,'vm4'),expected);
+  const expected=table(db,'circuits').filter(c=>totals.has(c.id)).map(c=>[c.nom,totals.get(c.id).people,round(totals.get(c.id).paid)]).sort((a,b)=>b[1]-a[1]||b[2]-a[2]||cmp(a[0],b[0])).slice(0,5);
+  assert.deepEqual(rows(db,'vm4'),expected,'22 h 08 : à égalité de voyageurs, le total encaissé départage');
  }finally{db.close();}
 });
 
@@ -129,12 +127,16 @@ test('sport : un cours sans créneau reste dans les compteurs et deux créneaux 
  }finally{db.close();}
 });
 
+/* sd3, refait le 4 novembre (22 h 08) : le montant des nouveaux abonnements mois par mois (les inscriptions tenaient en un mois). */
 test('les bilans mensuels ne fusionnent pas septembre de deux années différentes',()=>{
  const db=base('salle_sport');try{
-  const camille=table(db,'adherents').find(a=>a.prenom==='Camille'&&a.nom==='Moreau');
-  const row=table(db,'inscriptions_cours').find(i=>i.adherent_id===camille.id);
-  const copy={...row,id:99999,date_inscription:'2025-09-02'};
-  db.run('INSERT INTO inscriptions_cours ('+Object.keys(copy).join(',')+') VALUES ('+Object.keys(copy).map(()=>'?').join(',')+')',Object.values(copy));
-  assert.deepEqual(rows(db,'sd3'),[['2024-09',3,null,null],['2025-09',1,3,-2]]);
+  const row=table(db,'abonnements')[0];
+  const copy={...row,id:99999,date_debut:'2025-09-02',prix:777};
+  db.run('INSERT INTO abonnements ('+Object.keys(copy).join(',')+') VALUES ('+Object.keys(copy).map(()=>'?').join(',')+')',Object.values(copy));
+  const mois=new Map();for(const a of table(db,'abonnements')){const m=a.date_debut.slice(0,7);mois.set(m,(mois.get(m)||0)+a.prix);}
+  const tri=[...mois].sort((a,b)=>cmp(a[0],b[0]));
+  const expected=tri.map(([m,v],i)=>[m,v,i?tri[i-1][1]:null,i?v-tri[i-1][1]:null]);
+  assert.deepEqual(rows(db,'sd3'),expected);
+  assert.ok(rows(db,'sd3').some(r=>r[0]==='2025-09'&&r[1]===777),'septembre 2025 a sa propre ligne');
  }finally{db.close();}
 });

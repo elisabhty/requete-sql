@@ -355,6 +355,8 @@ function sqlCompat(sql){
     return `CAST(${x} AS ${ty})`;};
   t=t.replace(/\bEXTRACT\s*\(\s*([A-Za-z]+)\s+FROM\s+/gi,(m,u)=>`DATE_PART('${u.toLowerCase()}', `);
   t=t.replace(/\bTRY_CAST\s*\(/gi,'CAST(').replace(/\bTRY_CONVERT\s*\(/gi,'CONVERT(').replace(/\bTIMESTAMPDIFF\s*\(/gi,'DATEDIFF(').replace(/\bTIMESTAMPADD\s*\(/gi,'DATEADD(');
+  /* iso_week (SQL Server) : la semaine qui commence le lundi, celle de DATE_TRUNC('week') ici (3 novembre, 1 h 36). */
+  t=t.replace(/\bDATETRUNC\s*\(\s*(?:iso_week|isowk|isoww)\s*,/gi,'DATETRUNC(week,');
   t=t.replace(/\b(DATEADD|DATEDIFF|DATEPART|DATETRUNC|DATENAME)\s*\(\s*(year|yyyy|yy|quarter|qq|q|month|mm|m|week|wk|ww|dayofyear|dy|y|day|dd|d|hour|hh|minute|mi|n|second|ss|s|weekday|dw)\s*,/gi,
     (m,f,u)=>`${/^DATETRUNC$/i.test(f)?'DATE_TRUNC':f}('${u.toLowerCase()}',`);
   t=t.replace(/\bISNULL\s*\(/gi,'IFNULL(').replace(/\bILIKE\b/gi,'LIKE').replace(/\bNOT\s+RLIKE\b/gi,'NOT REGEXP').replace(/\bRLIKE\b/gi,'REGEXP');

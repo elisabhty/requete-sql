@@ -26,7 +26,7 @@ test('la Salle de sport a dix défis par niveau, du Facile 1 au Difficile 10', (
     ...Array.from({ length: 10 }, (_, i) => `sm${i + 1}`),
     ...Array.from({ length: 10 }, (_, i) => `sd${i + 1}`),
   ]);
-  assert.ok(sport.every(c => c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice && Number.isInteger(c.apres) && c.ordered));
+  assert.ok(sport.every(c => c.titre && (c.situation && c.affiche.length) && c.sol && c.indice && Number.isInteger(c.apres) && c.ordered));
   assert.ok(sport.slice(0, 10).every(c => c.niv === 'f'));
   assert.ok(sport.slice(10, 20).every(c => c.niv === 'm'));
   assert.ok(sport.slice(20).every(c => c.niv === 'd'));
@@ -36,8 +36,7 @@ test('les solutions s’exécutent et leurs tris sont stables; le cours moyen 9 
   for (const c of sport) {
     const db = base();
     const result = db.exec(c.sol);
-    if (c.id === 'sm9') assert.equal(result.length, 0, `${c.id}: aucun planning n’est vide dans le seed`);
-    else assert.ok(result[0]?.values.length, `${c.id}: résultat non vide`);
+    assert.ok(result[0]?.values.length, `${c.id}: résultat non vide (sm9, vide, refait le 4 novembre à 22 h 08)`);
     db.run('PRAGMA reverse_unordered_selects = ON');
     assert.deepEqual(db.exec(c.sol), result, `${c.id}: ordre stable`);
     db.close();
@@ -51,7 +50,8 @@ test('les résultats repères du yoga, des capacités, de Camille et du classeme
   assert.deepEqual(rows('sf4'), [['Antoine', 'Girard', 'CrossFit']]);
   assert.deepEqual(rows('sm6'), [['Pilates Avancé', 'Vendredi', '10:00', 10, 10], ['Zumba Party', 'Mercredi', '18:00', 25, 25]]);
   assert.deepEqual(rows('sm7'), [['Annuel', 15], ['Étudiant', 12], ['Mensuel', 3]]);
-  assert.deepEqual(rows('sd3'), [['2024-09', 3, null, null]]);
+  assert.equal(rows('sd3').length, 14, 'sd3 refait : 14 mois d’abonnements');
+  assert.deepEqual(rows('sd3')[0].slice(2), [null, null], 'case vide pour le premier mois');
   const coachRank = rows('sd8');
   assert.deepEqual(coachRank[0], ['Nadia', 'Cherif', 29, 1]);
   assert.deepEqual(coachRank.at(-1), ['Antoine', 'Girard', 0, 8]);
