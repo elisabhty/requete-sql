@@ -8,7 +8,7 @@ import vm from 'node:vm';
 
 const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
-const sql = fs.readFileSync(new URL('../supabase/migrations/20261103181500_parcours_vote.sql', import.meta.url), 'utf8');
+const sql = fs.readFileSync(new URL('../supabase/migrations/20261104160653_parcours_vote.sql', import.meta.url), 'utf8');
 const privacy = fs.readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
 const block = app.slice(app.indexOf('/* ---------- Les parcours ----------'), app.indexOf('function renderModules(){'));
 

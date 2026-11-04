@@ -8,7 +8,7 @@ import test from 'node:test';
 const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
 const site = fs.readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
-const sql = fs.readFileSync(new URL('../supabase/migrations/20261101093000_contact_pieces_jointes.sql', import.meta.url), 'utf8');
+const sql = fs.readFileSync(new URL('../supabase/migrations/20261101083415_contact_pieces_jointes.sql', import.meta.url), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
