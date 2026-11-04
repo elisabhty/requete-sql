@@ -27,7 +27,7 @@ test('le catalogue contient trente défis Fromagerie, dix par niveau', () => {
     assert.ok(group.every(c => c.niv === level && c.base === 'fromagerie'), prefix);
   }
   assert.deepEqual(fromagerie.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'ff' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'fm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'fd' + (i + 1))]);
-  for (const c of fromagerie) assert.ok(c.titre && c.contexte && c.q && c.sol && c.indice && Number.isInteger(c.apres), c.id);
+  for (const c of fromagerie) assert.ok(c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice && Number.isInteger(c.apres), c.id);
 });
 
 test('les ventes pédagogiques respectent les clés, les lots et le panier de Camille', () => {

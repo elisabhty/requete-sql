@@ -29,7 +29,7 @@ test('lot Moyen : les corrections (doublon, niveau, seuil impossible, égalités
   assert.ok(D('am9').sol.includes('> 3 ORDER BY') && !D('am9').sol.includes('> 30'), 'seuil de remplissage atteignable (3 %, 10 h 13)');
   const d = base();
   assert.equal(d.exec(D('am9').sol)[0].values.length, 5);
-  assert.ok(/puis (?:par )?nom et prénom/.test(D('am8').q) && D('am1').q.includes('puis par numéro de vol'));
+  assert.ok(/puis par nom, puis par prénom/.test(D('am8').tri) && D('am1').tri.includes('puis par numéro de vol'));
   d.close();
 });
 

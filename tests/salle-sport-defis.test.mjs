@@ -26,7 +26,7 @@ test('la Salle de sport a dix défis par niveau, du Facile 1 au Difficile 10', (
     ...Array.from({ length: 10 }, (_, i) => `sm${i + 1}`),
     ...Array.from({ length: 10 }, (_, i) => `sd${i + 1}`),
   ]);
-  assert.ok(sport.every(c => c.titre && c.contexte && c.q && c.sol && c.indice && Number.isInteger(c.apres) && c.ordered));
+  assert.ok(sport.every(c => c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice && Number.isInteger(c.apres) && c.ordered));
   assert.ok(sport.slice(0, 10).every(c => c.niv === 'f'));
   assert.ok(sport.slice(10, 20).every(c => c.niv === 'm'));
   assert.ok(sport.slice(20).every(c => c.niv === 'd'));

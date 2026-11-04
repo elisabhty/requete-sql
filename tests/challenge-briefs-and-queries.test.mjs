@@ -13,11 +13,24 @@ const table=(db,name)=>{const r=db.exec('SELECT * FROM '+name)[0];return r.value
 const cmp=(a,b)=>a<b?-1:a>b?1:0;
 const round=n=>Math.round((n+Number.EPSILON)*100)/100;
 
-test('tous les contextes contiennent la mission complète, sans renvoi à une question cachée',()=>{
+/* Elisa, 4 novembre, 20 h 33 : en salle, le joueur ne voit que la consigne ; elle dit point par point tout le résultat attendu
+   (« Affiche » : une ligne par colonne ; « Garde » ; « Trie » si l’ordre est vérifié ; « À savoir »). Six défis attendent sa
+   décision (à retirer, ou à refaire avec la requête proposée) et gardent leur ancien texte. */
+const EN_ATTENTE=['ld1','ld9','zm8','zd6','sm9','sd3'];
+test('chaque consigne dit point par point le résultat attendu, sans renvoi à une question cachée',()=>{
  for(const c of data.challenges){
-  assert.ok(c.contexte.includes(c.q),c.id+': colonnes, conditions et tri explicites');
-  assert.doesNotMatch(c.contexte,/voir (?:la question|la consigne)|comme (?:ci-dessus|précédemment)/i,c.id);
-  assert.ok(c.contexte.split(/\s+/).length<=150,c.id+': contexte lisible');
+  if(EN_ATTENTE.includes(c.id)){assert.ok(c.contexte.includes(c.q),c.id+': ancien texte complet, en attente');continue;}
+  assert.ok(c.situation&&Array.isArray(c.affiche)&&c.affiche.length&&Array.isArray(c.garde)&&Array.isArray(c.precis),c.id+': situation, affiche, garde, à savoir');
+  assert.equal(c.contexte,undefined,c.id+': plus d’ancien texte');
+  const db=base(c.base);let cols;try{cols=db.exec(c.sol)[0]?.columns;}finally{db.close();}
+  if(cols)assert.equal(c.affiche.length,cols.length,c.id+': un point « Affiche » par colonne du résultat');
+  if(!c.ordered)assert.equal(c.tri,undefined,c.id+': ordre libre, pas de tri');
+  else if(c.tri)assert.match(c.tri,/^par /,c.id+': le tri commence par « par »');
+  const t=[c.titre,c.situation,...c.affiche,...c.garde,c.tri||'',...c.precis].join(' ');
+  assert.doesNotMatch(t,/voir (?:la question|la consigne)|comme (?:ci-dessus|précédemment)/i,c.id);
+  assert.ok(t.split(/\s+/).length<=170,c.id+': consigne lisible d’un coup d’œil');
+  assert.doesNotMatch(t.replace(/«[^»]*»/g,''),/['"]/,c.id+': apostrophes et guillemets typographiques');
+  assert.doesNotMatch(t,/ [?!;:]/,c.id+': espace insécable avant la ponctuation');
  }
 });
 

@@ -28,7 +28,7 @@ test('le catalogue contient trente défis Agence de voyages, dix par niveau', ()
     assert.ok(group.every(c => c.niv === level && c.base === 'voyages'), prefix);
   }
   assert.deepEqual(voyages.map(c => c.id), [...Array.from({ length: 10 }, (_, i) => 'vf' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'vm' + (i + 1)), ...Array.from({ length: 10 }, (_, i) => 'vd' + (i + 1))]);
-  for (const c of voyages) assert.ok(c.titre && c.contexte && c.q && c.sol && c.indice && Number.isInteger(c.apres), c.id);
+  for (const c of voyages) assert.ok(c.titre && ((c.situation && c.affiche.length) || (['ld1','ld9','zm8','zd6','sm9','sd3'].includes(c.id) && c.contexte && c.q)) && c.sol && c.indice && Number.isInteger(c.apres), c.id);
 });
 
 test('les réservations pédagogiques respectent les clés et couvrent les cinq continents', () => {
