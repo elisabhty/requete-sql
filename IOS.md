@@ -59,6 +59,13 @@ Restent, pour vendre l’appli : le contrat des apps payantes (Accords, taxes et
 Ensuite, à chaque nouvelle version : `npm run ios:testflight`. Si l’archive se plaint qu’il n’y a aucun appareil pour le
 profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans Xcode (en haut, à la place du simulateur) et relancer.
 
+Si `ios-envoi.log` finit par `error: exportArchive Failed to Use Accounts` puis `** EXPORT FAILED **` (4 novembre, 16 h 55 et
+18 h 41) : l’archive est bonne, c’est l’envoi depuis le Terminal qui n’arrive pas à se servir du compte Apple connecté dans
+Xcode (Xcode, lui, renouvelle la session tout seul). Le script ouvre alors l’archive dans Xcode (Organizer) :
+« Distribute App » › « App Store Connect » › « Distribute » ; Xcode met lui-même le bon numéro de build. À la main :
+`open ~/SQL/ios/App/build/Requete.xcarchive`. Pour un envoi sans aucun clic, il faudrait une clé de l’API App Store Connect
+(options `-authenticationKeyPath`, `-authenticationKeyID` et `-authenticationKeyIssuerID` de `xcodebuild`).
+
 Si `ios-envoi.log` finit par `** ARCHIVE FAILED **` avec « the compiler is unable to type-check this expression in reasonable
 time » (4 novembre, 16 h 28 : « mon TestFlight s’est arrêté à 5 », rien n’était parti) : Xcode n’arrive pas à vérifier à temps
 une longue chaîne de modificateurs SwiftUI. C’était la bulle du matin du widget (`RequeteWidget.swift`, `bulle`) : une phrase au
