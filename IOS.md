@@ -106,6 +106,8 @@ touché (un avertissement le dit) : y remplacer `CAPBridgeViewController()` par 
    touche de 512 de côté, 28 d’épaisseur, coins de 116, fond `#F4F2FC`), puis la touche >_ s’enfonce comme une touche Entrée :
    l’écran devient une table de données (4 novembre, « en mode data ») où une onde partie de la touche fait surgir les cases
    chiffrées, la requête allume ses résultats un à un, et l’on plonge dans la touche pendant que la table file sur les côtés.
+   Environ 2 s depuis le 4 novembre, 9 h 28 (« l’arrivée de l’animation au début fait mal aux yeux, trop rapide ») : avant 1,3 s,
+   avec des nombres qui défilaient par crans (scintillement) et une plongée en 0,3 s ; le son et l’haptique suivent le même rythme.
    **Son et haptique** (4 novembre, 1 h 51) : un son calé sur l’animation (`assets/sons/ouverture.m4a`, fabriqué par
    `python3 tools/sons/ouverture.py` : toc de la touche, bips de l’onde, clochettes des résultats, souffle de la plongée, accord
    d’arrivée), joué par Web Audio en session « ambient » : il se mêle à la musique en cours et se tait en mode silencieux. Et une

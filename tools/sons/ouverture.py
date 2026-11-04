@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Le son de l’ouverture de l’appli iOS (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son »).
 
-Calé à la milliseconde sur l’animation (ludique.css, 37 bis ; le 0 est l’instant où #loader prend la classe is-play) :
-  0,085 s  la touche >_ touche le fond : un « toc » de touche Entrée (corps grave qui descend, petit déclic aigu) ;
-  0,12 s   l’onde part : un souffle qui monte, et un bip par anneau de cases, au moment où l’onde l’atteint
-           (120 + (r - 256) / 3,048 ms, comme dans le script de l’ouverture), de plus en plus doux au loin ;
-  0,50 s   la requête allume ses résultats, un toutes les 14 ms : huit clochettes qui montent (gamme pentatonique de do) ;
-  0,72 s   la plongée dans la touche : un souffle qui enfle ;
-  1,04 s   l’appli apparaît : un accord de do majeur, doux, qui s’éteint.
+Calé à la milliseconde sur l’animation (ludique.css, 37 bis ; le 0 est l’instant où #loader prend la classe is-play), ralentie
+le 4 novembre à 9 h 28 (« l’arrivée de l’animation au début fait mal aux yeux, trop rapide ») :
+  0,112 s  la touche >_ touche le fond : un « toc » de touche Entrée (corps grave qui descend, petit déclic aigu) ;
+  0,18 s   l’onde part : un souffle qui monte, et un bip par anneau de cases, au moment où l’onde l’atteint
+           (170 + (r - 256) / 1,65 ms, comme dans le script de l’ouverture), de plus en plus doux au loin ;
+  0,78 s   la requête allume ses résultats, un toutes les 42 ms : huit clochettes qui montent (gamme pentatonique de do) ;
+  1,23 s   la plongée dans la touche : un souffle qui enfle ;
+  1,62 s   l’appli apparaît : un accord de do majeur, doux, qui s’éteint.
 Son synthétisé ici (aucun enregistrement), en stéréo, avec un peu de réverbération ; crête à -4 dB.
 
     python3 tools/sons/ouverture.py      # écrit assets/sons/ouverture.m4a (et tools/sons/sortie/ouverture.wav)
@@ -20,7 +21,7 @@ import wave
 import numpy as np
 
 SR = 44100
-DUREE = 1.8
+DUREE = 2.6
 N = int(SR * DUREE)
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(os.path.dirname(ICI))
@@ -28,13 +29,14 @@ SORTIE_WAV = os.path.join(ICI, 'sortie', 'ouverture.wav')
 SORTIE_M4A = os.path.join(RACINE, 'assets', 'sons', 'ouverture.m4a')
 
 # Les instants de l’animation (en secondes après is-play)
-TOUCHE = 0.085                 # introKey : 18 % de 0,5 s, la touche au plus bas
-ONDE = 0.12                    # introWave part à 0,12 s
-VITESSE = 3048                 # unités par seconde, comme --w dans le script de l’ouverture
+TOUCHE = 0.112                 # introKey : 18 % de 0,62 s, la touche au plus bas
+ONDE = 0.18                    # introWave part à 0,18 s
+VITESSE = 1650                 # unités par seconde, comme --w dans le script de l’ouverture
+DEPART = 170                   # ms : --w = DEPART + (r - 256) / 1,65
 ANNEAUX = [320, 452, 576, 640, 704, 768, 832, 896, 960, 1024]   # distances des rangées de cases (unités)
-RESULTATS = [0.500 + i * 0.014 for i in range(8)]                # --p : 500 + k × 14 ms
-PLONGEE = 0.72
-ARRIVEE = 1.04
+RESULTATS = [0.780 + i * 0.042 for i in range(8)]                # --p : 780 + k × 42 ms
+PLONGEE = 1.23
+ARRIVEE = 1.62
 
 gauche = np.zeros(N)
 droite = np.zeros(N)
@@ -104,13 +106,13 @@ declic = bruit_bande(n, 1800, 7000) * enveloppe(n, 0.0004, 0.005)
 poser(0.8 * corps + 0.45 * clac + 0.32 * declic, TOUCHE - 0.002, 0.0, 0.62)
 
 # 2. L’onde : un souffle qui monte (500 → 3 500 Hz) puis s’efface, et un bip par anneau de cases
-duree = 0.40
+duree = 0.66
 for pan, graine in ((-0.35, 1), (0.35, 2)):
-    s = souffle(duree, 500, 3500, 0.10, lambda t: np.minimum(1, t / 0.10) * np.clip((duree - t) / 0.27, 0, 1) ** 1.5)
+    s = souffle(duree, 500, 3500, 0.16, lambda t: np.minimum(1, t / 0.16) * np.clip((duree - t) / 0.45, 0, 1) ** 1.5)
     poser(s, ONDE, pan, 0.075)
 pentatonique = [84, 86, 88, 91, 93, 96, 98, 100]       # do6 ré6 mi6 sol6 la6 do7 ré7 mi7
 for i, r in enumerate(ANNEAUX):
-    t0 = (120 + (r - 256) / (VITESSE / 1000)) / 1000
+    t0 = (DEPART + (r - 256) / (VITESSE / 1000)) / 1000
     fr = note(pentatonique[int(alea.integers(0, 6))])
     n = int(0.07 * SR)
     tt = np.arange(n) / SR
@@ -128,9 +130,9 @@ for i, t0 in enumerate(RESULTATS):
     poser(cloche, t0 + 0.02, -0.5 + i / 7, 0.13)
 
 # 4. La plongée : un souffle qui enfle (300 → 2 600 Hz) jusqu’à ce que la touche remplisse l’écran
-duree = 0.38
+duree = 0.58
 for pan in (-0.25, 0.25):
-    s = souffle(duree, 300, 2600, 0.0, lambda t: (np.clip(t / 0.27, 0, 1) ** 2.2) * np.clip((duree - t) / 0.08, 0, 1))
+    s = souffle(duree, 300, 2600, 0.0, lambda t: (np.clip(t / 0.45, 0, 1) ** 2.2) * np.clip((duree - t) / 0.12, 0, 1))
     poser(s, PLONGEE, pan, 0.12)
 
 # 5. L’arrivée : do majeur, doux (do5 mi5 sol5 do6, assez haut pour le haut-parleur de l’iPhone), qui s’éteint
