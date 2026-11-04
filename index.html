@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=134">
+<link rel="stylesheet" href="ludique.css?v=135">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=18">
 <style id="lesson-video-css">
@@ -17226,7 +17226,15 @@ function normalizeState(raw){
   const parcoursAnnonces=Array.isArray(source.parcoursAnnonces)?[...new Set(source.parcoursAnnonces.filter(pcId))].slice(0,20):[];
   const pv=source.parcoursVote;
   const parcoursVote=pv&&typeof pv==='object'&&pcId(pv.id)?{id:pv.id,le:Math.max(0,Math.floor(Number(pv.le))||0),envoye:pv.envoye!==false}:null;
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote};
+  /* L’avis sur chaque leçon (Elisa, 4 novembre, 12 h 35, voir bravoAvisHtml) : l’id de la leçon → la note de 1 à 5, sa date, et s’il
+     est parti à la base de l’appli (envoye:false tant qu’il attend le réseau). */
+  const avisSrc=source.avis&&typeof source.avis==='object'&&!Array.isArray(source.avis)?source.avis:{};
+  const avis={};
+  Object.keys(avisSrc).filter(k=>/^\d{1,6}$/.test(k)).slice(0,600).forEach(k=>{
+    const a=avisSrc[k],n=a&&typeof a==='object'?Math.floor(Number(a.n)):0;
+    if(n>=1&&n<=5)avis[k]={n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false};
+  });
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
@@ -21335,6 +21343,8 @@ function openLessonVideo(fin){
   LV={id:l.id,fin:!!fin,firstDone:fin?!!fin.first:undefined,root,video,seek,fill:root.querySelector('.lv-fill'),knob:root.querySelector('.lv-knob'),seeking:false,gate:-1,gateResume:false,retry:false,redo:null,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
   /* Le lecteur a le fond violet de la vitrine (ludique.css, section 35) : texte clair dans la barre d’état, le temps de la vidéo. */
   if(typeof obBarreEtat==='function')obBarreEtat(true);
+  /* La leçon dans la Dynamic Island (pas la vidéo de fin du parcours) */
+  if(!fin)ileDebut(l);
   /* « Rejouer les moments ratés » : la vidéo ne s’arrête que sur eux. */
   if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));
   const noteEl=root.querySelector('.lv-note');
@@ -21380,7 +21390,7 @@ function openLessonVideo(fin){
   video.addEventListener('timeupdate',()=>{
     if(!LV||LV.video!==video)return;
     if(!LV.seeking)lvSyncSeek();
-    lvNoteSync(); lvCapSync();
+    lvNoteSync(); lvCapSync(); ileMaj(false);
     if(!video.paused&&performance.now()-LV.saved>4000)lvPosKeep();
   });
   video.addEventListener('question',e=>{ if(LV&&LV.video===video&&e.detail)lvQShow(e.detail.i,e.detail.q); });
@@ -21649,6 +21659,7 @@ function lvEnded(){
   root.classList.toggle('is-retry',LV.retry);
   /* Leçon seule terminée avec le score requis : la fête (lvWin). */
   const win=!!(current&&current.id===id&&current.leconSeule&&!LV.retry);
+  if(win)ileFin(true);   // la flamme du jour s’allume aussi dans la Dynamic Island
   /* Leçon réussie et une vidéo de fin prévue (le dernier chapitre du projet : le bravo, le merci des équipes, le chemin parcouru) :
      elle se lance tout de suite. Ratée, la leçon garde son écran « Encore un effort ! », sans fête ni merci (Elisa, 27 octobre,
      7 h 11 : « on a raté la leçon mais on a quand même eu les bravo ; une autre vidéo qui se lance juste après avoir réussi »). */
@@ -23237,11 +23248,12 @@ function lvKey(e){
   if((e.key===' '||e.key==='k')&&!(e.target&&e.target.closest&&e.target.closest('button,input'))){e.preventDefault();lvToggle();}
   if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&!(e.target&&e.target.closest&&e.target.closest('input'))){e.preventDefault();lvSkip(e.key==='ArrowLeft'?-LV_SKIP:LV_SKIP);}
 }
-function lvHidden(){ if(!LV)return; if(document.hidden)LV.video.pause(); else if(LV.video.paused&&!LV.root.classList.contains('is-q'))lvBigFlash(); }
+function lvHidden(){ if(!LV)return; if(document.hidden){ LV.video.pause(); ileMaj(true); } else if(LV.video.paused&&!LV.root.classList.contains('is-q'))lvBigFlash(); }
 /* Un appui pendant la lecture réveille le son s’il est resté muet (lecture lancée sans appui, son coupé par iOS). */
 function lvWake(){ if(LV&&LV.video instanceof LvAnim&&!LV.video.paused)LvSfx.wake(); }
 function closeLessonVideo(instant){
   if(!LV)return;
+  ileFin(false);   // fermée avant la fin : elle quitte la Dynamic Island
   lvPosKeep();
   clearTimeout(LV.flashT);
   const {id,root,video,note,ro,place,tap,fin,firstDone}=LV;
@@ -23951,9 +23963,86 @@ function renderBravoSlide(l){
       ${stkBravoHtml()}
       ${typeof CARTES!=='undefined'&&CARTES[l.id]&&carteRetenirHtml(l.id)?'':bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
+      ${bravoAvisHtml(l)}
       ${bravoNextHtml(l)}
       ${bravoActionsHtml(l)}
     </div>`;
+}
+/* ---------- L’avis sur la leçon ----------
+   Elisa, 4 novembre, 12 h 35 : « à chaque fin de leçon, mettre une partie “Donne ton avis sur la leçon” avec des étoiles animées ».
+   Dans le bilan, avant la séance suivante : cinq étoiles qui arrivent une à une, puis ondulent pour inviter au toucher ; touchées, elles
+   se remplissent de jaune l’une après l’autre, celle qu’on a touchée lance des étincelles, et un mot dit la note (« 🤩 Génial »). On peut
+   changer d’avis. La note reste sur l’appareil (state.avis), puis part à la base de l’appli comme le vote des parcours (lecon_noter :
+   supabase/migrations/20261104123500_avis_lecon.sql), avec l’identifiant tiré au hasard de l’appareil, ni nom ni e-mail ; hors ligne,
+   elle repart au retour du réseau ou à la prochaine ouverture. Des boutons radio, sous les étoiles : VoiceOver et les flèches du clavier
+   les parcourent comme une seule question. */
+const AVIS_MOTS=['','😕 Pas terrible','😐 Bof','🙂 Pas mal','😀 Très bien','🤩 Génial'];
+function avisDe(id){ const a=typeof state!=='undefined'&&state&&state.avis&&state.avis[id]; return a&&a.n>=1&&a.n<=5?a:null; }
+function avisMerci(n){ return n>=4?'Merci\u00a0! On est ravis qu’elle t’ait plu.':'Merci\u00a0! Ton avis nous aide à améliorer les cours.'; }
+const AVIS_ETOILE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7l2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.27l-5.7 3 1.09-6.36-4.62-4.5 6.38-.93z"/></svg>';
+function bravoAvisHtml(l){
+  const a=avisDe(l.id),n=a?a.n:0;
+  const etoile=i=>`<label class="av-star${i<=n?' on':''}" style="--i:${i}"><input type="radio" name="av-${l.id}" value="${i}"${i===n?' checked':''} aria-label="${i} étoile${i>1?'s':''} sur 5">${AVIS_ETOILE}</label>`;
+  return `<section class="bravo-avis${n?' is-rated':''}" data-lecon="${l.id}" aria-labelledby="av-h-${l.id}">
+    <div class="av-lab" aria-hidden="true"><span class="bv-tag"><b>⭐ Ton avis</b></span></div>
+    <h2 class="av-h" id="av-h-${l.id}">Donne ton avis sur la leçon</h2>
+    <p class="av-sub">${n?esc(avisMerci(n)):'Elle t’a plu&nbsp;? Touche une étoile.'}</p>
+    <div class="av-stars" role="radiogroup" aria-labelledby="av-h-${l.id}" onchange="avisNoter(event)">${[1,2,3,4,5].map(etoile).join('')}</div>
+    <p class="av-mot${n?'':' is-hint'}" aria-live="polite">${n?AVIS_MOTS[n]:'Ton avis reste anonyme.'}</p>
+  </section>`;
+}
+function avisNoter(e){
+  const inp=e&&e.target;
+  if(!inp||inp.type!=='radio')return;
+  const box=inp.closest('.bravo-avis'),id=box?String(box.dataset.lecon||''):'',n=Math.floor(Number(inp.value));
+  if(!/^\d{1,6}$/.test(id)||!(n>=1&&n<=5))return;
+  if(!state.avis||typeof state.avis!=='object'||Array.isArray(state.avis))state.avis={};
+  state.avis[id]={n,le:Date.now(),envoye:false};save();
+  avisPeindre(box,n,inp.closest('.av-star'));
+  if(typeof buzz==='function')buzz(n>=4?'success':'light');
+  avisEnvoyer();
+}
+/* Les étoiles jusqu’à la note se remplissent l’une après l’autre (la classe pop relance leur rebond), les autres se vident. */
+function avisPeindre(box,n,star){
+  box.classList.add('is-rated');
+  box.querySelectorAll('.av-star').forEach((s,i)=>{
+    s.classList.toggle('on',i<n);
+    s.classList.remove('pop');
+    if(i<n){ void s.offsetWidth; s.classList.add('pop'); }
+  });
+  const mot=box.querySelector('.av-mot');
+  if(mot){ mot.textContent=AVIS_MOTS[n]; mot.classList.remove('in','is-hint'); void mot.offsetWidth; mot.classList.add('in'); }
+  const sub=box.querySelector('.av-sub');
+  if(sub)sub.textContent=avisMerci(n);
+  if(star&&!prefersReduceMotion())avisEclats(star);
+}
+/* Les étincelles de l’étoile touchée : huit points, jaunes et violets, qui filent en rond et s’éteignent. */
+function avisEclats(star){
+  for(let k=0;k<8;k++){
+    const i=document.createElement('i');
+    i.className='av-spark';
+    i.setAttribute('aria-hidden','true');
+    i.style.cssText=`--a:${k*45+Math.round(Math.random()*16-8)}deg;--d:${28+Math.round(Math.random()*12)}px;background:${k%2?'var(--accent)':'var(--sun)'}`;
+    star.appendChild(i);
+    setTimeout(()=>i.remove(),800);
+  }
+}
+let avisEnvoi=false;
+function avisEnvoyer(){
+  const av=state.avis&&typeof state.avis==='object'?state.avis:{};
+  const id=Object.keys(av).find(k=>av[k]&&av[k].envoye===false);
+  if(id==null||avisEnvoi||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
+  const n=av[id].n,l=typeof allLessons!=='undefined'?allLessons.find(x=>String(x.id)===id):null;
+  avisEnvoi=true;
+  return clsRpc('lecon_noter',{p_cle:clsCle(),p_lecon:+id,p_note:n,p_titre:l?String(l.titre||'').slice(0,120):null}).then(r=>{
+    const ok=!!(r&&r.ok);
+    if(ok&&state.avis&&state.avis[id]&&state.avis[id].n===n){state.avis[id].envoye=true;save();}
+    return ok;
+  }).catch(()=>false).then(ok=>{avisEnvoi=false;if(ok)avisEnvoyer();return ok;});
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
+  window.addEventListener('load',()=>setTimeout(()=>{try{avisEnvoyer();}catch(e){}},4500));
+  window.addEventListener('online',()=>{try{avisEnvoyer();}catch(e){}});
 }
 /* ---------- Blocs de cours enrichis (réutilisables) ---------- */
 function anatLinesHtml(lines){
@@ -33078,6 +33167,38 @@ if(typeof document!=='undefined'&&document.addEventListener){
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
   addEventListener('pagehide',widgetMaj);
 }
+/* ---------- La Dynamic Island : la leçon en cours ----------
+   Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une leçon en vidéo s’ouvre : l’iPhone la suit en Live Activity
+   (RequeteWidget.leconDebut). Dès qu’on quitte l’app en pleine leçon, la flamme et l’avancement sont dans la Dynamic Island, la leçon
+   sur l’écran verrouillé, et un appui y ramène. La page envoie l’avancement à chaque dixième de la vidéo, et tout de suite quand on
+   quitte l’app (leconMaj) ; leçon réussie, la flamme du jour s’allume et l’activité s’arrête (leconFin), comme quand on ferme la leçon.
+   Le dessin est dans le widget (resources/ios/widget/RequeteWidget/RequeteWidget.swift). Sans le pont natif : rien. */
+let ileEtat=null;   // la leçon suivie (id) et le dernier dixième envoyé (pas)
+function ilePont(){
+  const C=typeof window!=='undefined'?window.Capacitor:null;
+  return C&&C.isNativePlatform&&C.isNativePlatform()&&typeof C.nativePromise==='function'&&(!C.isPluginAvailable||C.isPluginAvailable('RequeteWidget'))?C:null;
+}
+function ileAppel(m,data){ const C=ilePont(); if(!C)return; try{ Promise.resolve(C.nativePromise('RequeteWidget',m,data)).catch(()=>{}); }catch(e){} }
+function ileProgression(){ const V=LV&&LV.video,d=V&&V.duration||0; return d?Math.max(0,Math.min(1,(V.currentTime||0)/d)):0; }
+function ileAllumee(){ try{ return !!jourActif(dstr(auj())); }catch(e){ return false; } }
+function ileDebut(l){
+  if(!l||!ilePont())return;
+  const m=typeof moduleDeLecon==='function'?moduleDeLecon(l.id):null,mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
+  ileEtat={id:l.id,pas:-1};
+  ileAppel('leconDebut',{titre:String(l.titre||'Leçon'),module:m?`Module ${mi+1} · ${m.titre}`:'Cours',progression:ileProgression(),allumee:ileAllumee()});
+}
+function ileMaj(force){
+  if(!ileEtat||!LV||LV.id!==ileEtat.id||LV.fin)return;
+  const p=ileProgression(),pas=Math.floor(p*10);
+  if(!force&&pas===ileEtat.pas)return;
+  ileEtat.pas=pas;
+  ileAppel('leconMaj',{progression:p,allumee:ileAllumee()});
+}
+function ileFin(reussie){
+  if(!ileEtat)return;
+  ileEtat=null;
+  ileAppel('leconFin',{fini:!!reussie,allumee:reussie?true:ileAllumee()});
+}
 /* ---------- Les raccourcis de l’icône de l’app iPhone ----------
    Elisa, 4 novembre, 9 h 02 (capture de l’appui long sur l’icône de Duolingo : « 😱 Tu supprimes Duolingo ? Duo te retrouvera. »,
    « ⭐ Fais une petite leçon ! Ça prend juste 3 minutes. ») : « comment avoir ça ». Les mêmes pour Requête : la page les pose au
@@ -35256,7 +35377,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-rappel-jours-v2497';
+  const SW_CACHE='requete-2026-11-04-avis-ile-v2498';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -134,7 +134,7 @@ test('vote hors ligne : il reste sur l’appareil et repart plus tard', async ()
 test('la progression garde les alertes, les annonces et le vote (normalizeState)', () => {
   assert.ok(app.includes('const parcoursAlertes=Array.isArray(source.parcoursAlertes)?[...new Set(source.parcoursAlertes.filter(pcId))].slice(0,20):[];'));
   assert.ok(app.includes("const parcoursVote=pv&&typeof pv==='object'&&pcId(pv.id)?{id:pv.id,le:Math.max(0,Math.floor(Number(pv.le))||0),envoye:pv.envoye!==false}:null;"));
-  assert.ok(app.includes('stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote};'));
+  assert.ok(app.includes('stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};'), 'et les avis sur les leçons (retours-1235)');
 });
 
 test('base de l’appli : un vote par appareil, par la seule fonction parcours_voter ; la confidentialité le dit', () => {

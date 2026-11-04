@@ -148,7 +148,9 @@ test('le widget natif : WidgetKit, le groupe d’apps partagé, le pont « Reque
   const groupe = 'group.fr.requete.app';
   for (const [f, t] of [['widget', swift], ['pont', plugin], ['droits du widget', read('resources/ios/widget/RequeteWidget/RequeteWidget.entitlements')], ['droits de l’app', read('resources/ios/widget/App/App.entitlements')]])
     assert.ok(t.includes(groupe), `${f} : ${groupe}`);
-  assert.ok(swift.includes('@main\nstruct RequeteWidget: Widget {') && swift.includes('.supportedFamilies([.systemSmall])') && swift.includes('Image(systemName: "flame.fill")') && swift.includes('Image("Mascotte")'));
+  /* 12 h 35 : le widget et la Live Activity de la leçon (Dynamic Island) dans un même paquet, le seul @main */
+  assert.ok(swift.includes('@main\nstruct RequeteWidgets: WidgetBundle {') && swift.includes('\nstruct RequeteWidget: Widget {') && swift.split('@main').length === 2);
+  assert.ok(swift.includes('.supportedFamilies([.systemSmall])') && swift.includes('Image(systemName: "flame.fill")') && swift.includes('Image("Mascotte")'));
   assert.ok(swift.includes('self.containerBackground(for: .widget) { violet }') && swift.includes('return self.contentMarginsDisabled()'), 'iOS 17 : fond et marges du widget');
   for (const k of ['serie', 'jour', 'fait', 'limite']) assert.ok(swift.includes(`forKey: "${k}"`) && plugin.includes(`forKey: "${k}"`), k);
   assert.ok(plugin.includes('public let jsName = "RequeteWidget"') && plugin.includes('CAPPluginMethod(name: "maj", returnType: CAPPluginReturnPromise)') && plugin.includes('WidgetCenter.shared.reloadAllTimelines()'));

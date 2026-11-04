@@ -120,16 +120,17 @@ test('réf. 2 : la feuille de note réserve sous son contenu la hauteur de la ba
 
 test('« c’est possible d’animer plus le widget ? » : le passage d’un état à l’autre s’anime (iOS n’anime pas un widget en boucle)', () => {
   const swift = fs.readFileSync(path.join(ROOT, 'resources/ios/widget/RequeteWidget/RequeteWidget.swift'), 'utf8');
+  /* 12 h 35 (« pourquoi 12 ? non, je veux que la flamme du jour ! ») : plus de nombre qui roule ; la flamme s’allume d’un rebond, le chat
+     plonge et ressort à chaque changement de moment (retours-1214, retours-1235). */
   for (const k of ['.id(entree.faitAujourdhui)   // allumée ↔ éteinte', '.transition(.scale(scale: 0.3).combined(with: .opacity))',
-    '.chiffreQuiRoule(entree.serie)', '.id(chat)   // la série ou le moment change : le chat plonge et ressort', 'private var chat: String { "\\(entree.serie)-\\(humeur.rawValue)" }',
+    '.id(humeur)   // le moment change : le chat plonge et ressort',
     'insertion: AnyTransition.move(edge: .bottom)', 'removal: AnyTransition.move(edge: .bottom)',
-    '.animation(ressort, value: entree.serie)', '.animation(ressort, value: entree.faitAujourdhui)',
+    '.animation(ressort, value: entree.faitAujourdhui)', '.animation(ressort, value: humeur)',
     'private var ressort: Animation { .spring(response: 0.55, dampingFraction: 0.58) }'])
     assert.ok(swift.includes(k), k);
-  /* Le chiffre qui roule n’existe qu’à partir d’iOS 17 : l’app reste installable en iOS 15 */
-  const roule = swift.slice(swift.indexOf('func chiffreQuiRoule(_ valeur: Int) -> some View {'), swift.indexOf('extension WidgetConfiguration {'));
-  assert.ok(roule.includes('if #available(iOSApplicationExtension 17.0, *) {\n            self.contentTransition(.numericText(value: Double(valeur)))\n        } else {\n            self\n        }'));
-  assert.ok(swift.indexOf('@ViewBuilder\n    func chiffreQuiRoule') > 0, 'deux branches de types différents : ViewBuilder');
+  assert.ok(!swift.includes('chiffreQuiRoule') && !swift.includes('Text("\\(entree.serie)")'), 'plus de nombre de jours');
+  /* Les transitions d’iOS 17 restent derrière leur garde : l’app reste installable en iOS 15 */
+  assert.ok(swift.includes('if #available(iOSApplicationExtension 17.0, *) {\n            self.containerBackground(for: .widget) { violet }'));
   /* Accolades et parenthèses équilibrées (pas de compilateur Swift ici) */
   const code = swift.replace(/\/\/.*$/gm, '').replace(/"(?:[^"\\]|\\.)*"/g, '""');
   for (const [o, f] of [['{', '}'], ['(', ')'], ['[', ']']]) assert.equal(code.split(o).length, code.split(f).length, `${o}${f} équilibrées`);
