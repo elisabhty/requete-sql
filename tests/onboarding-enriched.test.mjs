@@ -51,8 +51,9 @@ assert(/catch\(e\)\{\s*draft\.practiceRows=\[\];\s*draft\.practiceDone=false;/.t
 
 console.log('\n--- Le compte ---');
 assert(html.includes('window.REQUETE_AUTH'), 'l’authentification passe par un adaptateur externe, sans faux compte par défaut');
-assert(onboarding.includes('Continuer sans compte') && onboarding.includes('Mode local et privé'), 'le mode sans compte reste le chemin immédiatement utilisable');
-assert(onboarding.includes('function obChooseGuest()'), 'le choix « sans compte » est traité explicitement');
+/* Elisa, 4 novembre, 10 h 29 : « enlève le mode local, on ne va pas prendre cette option, car on a le paywall qui arrive après ». */
+assert(!onboarding.includes('Continuer sans compte') && !onboarding.includes('Mode local et privé') && !onboarding.includes('function obChooseGuest()'), 'plus de mode sans compte : le paywall vient après');
+assert(onboarding.includes('function obPasserConnexion(){\n  if(obAuthReady())return;'), 'tant que la connexion n’est pas branchée, « Continuer » passe la page ; ensuite, le compte est le seul chemin');
 
 console.log('\n--- Le parcours produit à la fin ---');
 assert(onboarding.includes('obRythmeMinutes(') && html.includes('state.plan=apercuPlan('), 'le rythme choisi alimente réellement le planning');

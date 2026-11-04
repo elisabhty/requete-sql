@@ -6715,7 +6715,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=134">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=15">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=16">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -33096,7 +33096,7 @@ function obNext(){
   else if(slide==='pact')obGoto('practice');
   else if(slide==='practice')obGoto(obAfterPractice());
   else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));
-  else if(slide==='account')obChooseGuest();
+  else if(slide==='account')obPasserConnexion();
   else if(slide==='pseudo')obPseudoSuivant();
   else finishOnboard('home');
 }
@@ -33492,18 +33492,13 @@ function obRhythmSummary(){
   const r=RYTHMES.find(x=>x.k===(draft.rythme||'regulier'))||RYTHMES[1];
   return `<div class="ob-rhythm-summary" role="status"><span aria-hidden="true">◎</span><span>Ta séance type : <b>${plur(r.per,'activité')} · ≈ ${obRythmeMinutes(r)} min</b> · modifiable à tout moment.</span></div>`;
 }
-function obChooseGuest(){
-  draft.accountMode='guest';
-  state.accountMode='guest';
-  delete state.accountProvider;
-  delete state.accountLabel;
-  save();
+/* Elisa, 4 novembre, 10 h 29 : « enlève le mode local, on ne va pas prendre cette option, car on a le paywall qui arrive après ».
+   Plus de bouton pour rester sans compte ni de carte du mode local sur la page de connexion. Tant que la connexion n’est pas
+   branchée, « Continuer » passe la page, pour aller au bout de l’onboarding ; une fois branchée, le compte est le seul chemin
+   (ni bouton, ni glissé, ni « Suivant » ne la passent). */
+function obPasserConnexion(){
+  if(obAuthReady())return;
   buzz('light');
-  if(obEntry==='account'&&state.onboarded){
-    closeOnboardingAuth();
-    toast('Mode sans compte','Ta progression reste sur cet appareil.','info');
-    return;
-  }
   obGoto('ready');
 }
 /* Les fournisseurs, dans l’ordre d’Apple (« Continuer avec Apple » en premier, aussi visible que les autres). */
@@ -33516,12 +33511,12 @@ function obProviderIcon(provider){
   return `<span class="ob-provider-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="m5 8 7 5 7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
 }
 /* 10 h 16 : pas encore de connexion. Toucher Apple, Google ou l’e-mail ne connecte à rien et ne redessine pas la page : le bouton
-   hoche la tête, son « Bientôt » saute, la mascotte explique (et un lecteur d’écran l’entend), puis « Continuer sans compte »
-   se réveille pour montrer le chemin. */
+   hoche la tête, son « Bientôt » saute, la mascotte explique (et un lecteur d’écran l’entend), puis « Continuer » se réveille
+   pour montrer le chemin. */
 function obConnexionBientot(provider,btn){
   buzz('light');
   const label=(OB_PROVIDERS.find(x=>x[0]===provider)||[])[1],par=provider==='email'?'par e-mail':label?`avec ${label}`:'';
-  const texte=`Pas encore ! La connexion${par?' '+par:''} arrive bientôt. En attendant, ta progression reste sur cet appareil.`;
+  const texte=`Pas encore ! La connexion${par?' '+par:''} arrive bientôt. En attendant, touche « Continuer ».`;
   const bulle=document.querySelector('#ob-body .ob-account .ob-bubble'),voix=document.getElementById('ob-auth-live');
   /* L’arrivée sur l’étape est finie : ses animations d’entrée ne doivent plus prendre le pas sur celles du toucher. */
   document.getElementById('onboarding')?.classList.remove('ob-enter');
@@ -33555,7 +33550,7 @@ async function obStartAuth(provider,btn){
     else obGoto('ready');
   }catch(e){
     obAuthBusy=false;
-    obAuthMessage=(e&&e.message==='Connexion annulée')?'Connexion annulée.':'Connexion impossible pour le moment. Réessaie ou continue sans compte.';
+    obAuthMessage=(e&&e.message==='Connexion annulée')?'Connexion annulée.':'Connexion impossible pour le moment. Réessaie dans un instant.';
     paintOb();
   }
 }
@@ -33706,16 +33701,16 @@ function paintOb(){
     /* Elisa, 4 novembre, 10 h 16 : « mettre la page de connexion (il faut pas qu’elle marche encore) ». Toujours dans le tunnel, en
        dernier, comptée dans « Étape X sur N », habillée comme les autres étapes : le titre, la mascotte, puis Apple (en noir, comme
        le demande Apple), Google et l’e-mail. Sans fournisseur branché (window.REQUETE_AUTH), chaque bouton porte « Bientôt » et ne
-       connecte à rien (obConnexionBientot) ; « Continuer sans compte » reste le chemin. Avec un fournisseur, ils connectent. */
+       connecte à rien (obConnexionBientot) ; « Continuer » passe la page. Avec un fournisseur, ils connectent, et c’est le seul chemin :
+       plus de mode local (10 h 29, « on a le paywall qui arrive après »). */
     const message=obAuthMessage?`<p class="ob-auth-message" role="status">${esc(obAuthMessage)}</p>`:'';
     html=`<div class="ob-screen ob-profile ob-account">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
       ${obMascotQuestion(authReady?'Ta première requête est réussie ! Avec un compte, tu la retrouves sur tous tes appareils.':'Ta première requête est réussie ! Bientôt, un compte te permettra de la retrouver sur tous tes appareils.')}
       <div class="ob-provider-list">
         ${OB_PROVIDERS.map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
       </div>${message}<p class="ob-sr" id="ob-auth-live" role="status" aria-live="polite"></p>
-      <div class="ob-local-proof"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.8 2.8 8.1 7 10 4.2-1.9 7-5.2 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><div><b>Mode local et privé</b><small>Progression sauvegardée sur cet appareil.</small></div></div>
       <p class="ob-legal-note">En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.</p></div>`;
-    obSetFooter('Continuer sans compte',obChooseGuest,'','','');
+    obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','','');
   }else if(slide==='name'){
     /* Le prénom (Elisa, 31 octobre, 17 h 53 : « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour
        le choix du pseudo ») : il sert à saluer ; le pseudo, unique et public, se choisit après l’onboarding (étape « pseudo »). */
@@ -35097,7 +35092,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-04-connexion-bientot-v2494';
+  const SW_CACHE='requete-2026-11-04-sans-mode-local-v2495';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
