@@ -78,7 +78,11 @@ profil de développement, brancher l’iPhone au Mac une fois, l’ouvrir dans X
    **Ouverture animée** (3 novembre) : la première image de l’appli reprend cet écran au pixel près (ludique.css, 37 bis :
    touche de 512 de côté, 28 d’épaisseur, coins de 116, fond `#F4F2FC`), puis la touche >_ s’enfonce comme une touche Entrée :
    l’écran devient une table de données (4 novembre, « en mode data ») où une onde partie de la touche fait surgir les cases
-   chiffrées, la requête allume ses résultats un à un, et l’on plonge dans la touche pendant que la table file sur les côtés. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
+   chiffrées, la requête allume ses résultats un à un, et l’on plonge dans la touche pendant que la table file sur les côtés.
+   **Son et haptique** (4 novembre, 1 h 51) : un son calé sur l’animation (`assets/sons/ouverture.m4a`, fabriqué par
+   `python3 tools/sons/ouverture.py` : toc de la touche, bips de l’onde, clochettes des résultats, souffle de la plongée, accord
+   d’arrivée), joué par Web Audio en session « ambient » : il se mêle à la musique en cours et se tait en mode silencieux. Et une
+   haptique qui suit l’onde (extension Haptics) : la touche, l’onde qui s’éloigne, les résultats, la plongée. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
    jusqu’à ce que la page se soit dessinée (au plus 4 s, `launchShowDuration`). Avec « Réduire les animations » (iOS), un
    simple fondu.
 
