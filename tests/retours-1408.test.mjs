@@ -143,7 +143,7 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
   /* Sur le site, ce sont de vrais avis, publiés avec l’accord des personnes, et la voix est une voix de synthèse */
   assert.ok(site.includes('N’ajouter ici que de VRAIS avis, avec l’accord de la personne'));
   assert.ok(read('decouvrir/mentions-legales.html').includes('sont lus par une <b>voix de synthèse</b>'));
-  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête · voix de synthèse</p>'), 'la carte le dit aussi (14 h 50)');
+  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête</p>'), 'la carte dit que ce sont de vrais avis (14 h 50) ; la voix, les mentions légales (15 h 30)');
   /* 15 h 20 : l’ordre du site pour tout le monde (Sofia B. d’abord, Aminata C. en dernier), quel que soit l’objectif */
   const ordre = g => [...lecteur(g).ctx.obTemoinsListe()].map(t => t.prenom);
   for (const g of ['career', 'interview', 'work', 'advanced', 'curious', undefined]) assert.deepEqual(ordre(g), ['Sofia B.', 'Thomas L.', 'Aminata C.'], String(g));
@@ -185,7 +185,7 @@ test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d�
   assert.equal(a('ob-tv-stars', 'aria-label'), '5 étoiles sur 5');
   assert.equal(a('ob-tv-audio', 'src'), 'decouvrir/avis/sofia-b.mp3');
   assert.equal(a('ob-tv-play', 'aria-label'), 'Écouter l’avis de Sofia B.');
-  assert.ok(t('ob-tv-tx').startsWith('Avis de Sofia B., Data Analyst junior, septembre 2026 : « J’ai décroché mon premier poste') && t('ob-tv-tx').endsWith('» Un vrai avis, recueilli par Requête et lu par une voix de synthèse.'), 'le texte pour un lecteur d’écran');
+  assert.ok(t('ob-tv-tx').startsWith('Avis de Sofia B., Data Analyst junior, septembre 2026 : « J’ai décroché mon premier poste') && t('ob-tv-tx').endsWith('» Un vrai avis, recueilli par Requête.'), 'le texte pour un lecteur d’écran');
   assert.equal(d.el('ob-tv-wave').children.length, 48, 'les 48 barres de l’onde');
   assert.deepEqual([a('ob-tv-prev', 'aria-label'), a('ob-tv-next', 'aria-label')], ['Témoignage précédent : Aminata C.', 'Témoignage suivant : Thomas L.']);
   assert.deepEqual(d.pastilles.map(p => p.getAttribute('aria-pressed')), ['true', 'false', 'false']);
