@@ -249,12 +249,12 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   assert.ok(page.includes('autocapitalize="none" autocorrect="off" spellcheck="false"') && page.includes('oninput="obPseudoTape(this)"') && page.includes('<p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>'));
   assert.ok(page.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,'Plus tard',obPseudoPlusTard,'',!v);"));
   assert.ok(!page.includes('unique dans l’appli') && !page.includes('Il est unique et ne se changera plus') && !page.includes('ob-helper'), 'ni « unique dans l’appli », ni texte en bas');
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','pseudo','ready'];"));
   const back = app.slice(app.lastIndexOf('function obBack(){'), app.indexOf('\n}', app.lastIndexOf('function obBack(){')));
   assert.ok(back.includes("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'pas de retour depuis la mini-page');
   /* La fin de l’onboarding : la mini-page, puis l’appli */
   const fin = app.slice(app.lastIndexOf('function finishOnboard(action){'), app.indexOf('function obTerminer(action){'));
-  assert.ok(fin.includes("if(!psMien()&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}"));
+  assert.ok(fin.includes("if(!psMien()&&!clsSalle().psPage&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}"))   // 2 h 13 : déjà montrée avant la dernière page, pas redemandée;
   assert.ok(!fin.includes("localStorage.setItem('rq-jeu-nom'"), 'le prénom ne devient plus le pseudo des salles');
   /* Mon compte */
   const ctx = vm.createContext({ PS_LOCK_SVG: '<svg data-k="lock"></svg>', ACCT_CHEV: '<svg data-k="chev"></svg>', esc, mien: '' });

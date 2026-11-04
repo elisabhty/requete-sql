@@ -29,7 +29,7 @@ console.log('\n=== Onboarding : parcours, pratique réelle et accessibilité ===
 assert(onboarding.length > 5000, 'bloc onboarding localisé (repères de découpe intacts)');
 
 console.log('\n--- Le parcours ---');
-assert(html.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','ready','pseudo']"), 'les étapes du parcours sont déclarées dans l’ordre (puis la mini-page du pseudo, 17 h 53) ; l’âge et la profession après le prénom (3 novembre, 13 h 25)');
+assert(html.includes("const OB_SLIDES = ['welcome','name','age','job','goal','level','rhythm','build','promise','pact','practice','account','pseudo','ready']"), 'les étapes du parcours sont déclarées dans l’ordre (la mini-page du pseudo avant la dernière page : 17 h 53, puis 4 novembre, 2 h 13) ; l’âge et la profession après le prénom (3 novembre, 13 h 25)');
 assert(onboarding.includes("if(slide==='welcome')obGoto('name')") && onboarding.includes("else if(slide==='rhythm')obGoto('build')") && onboarding.includes("else if(slide==='pact')obGoto('practice')") && onboarding.includes("else if(slide==='practice')obGoto(obAfterPractice())"), 'obNext enchaîne les étapes dans cet ordre (compte sauté sans fournisseur, vers ready directement)');
 assert(onboarding.includes("obEntry") && onboarding.includes('function obBack()'), 'chaque étape peut revenir en arrière');
 
@@ -39,7 +39,7 @@ console.log('\n--- La cohérence du tunnel ---');
 assert(onboarding.includes("else if(slide==='name')obGoto('age')") && onboarding.includes("else if(slide==='age')obGoto('job')") && onboarding.includes("else if(slide==='job')obGoto('goal')") && !onboarding.includes("slide==='source'"), 'l’âge et la profession sont de vraies étapes ; plus d’étape « source »');
 assert((()=>{const flow=(html.match(/const OB_SLIDES = \[([^\]]+)\]/)||[])[1]||'';return flow.indexOf('practice')<flow.indexOf('account')&&flow.indexOf('account')<flow.indexOf('ready');})(), 'le compte est proposé après le premier succès SQL et avant l’écran final');
 assert(onboarding.indexOf('Garde ta progression.')<onboarding.indexOf('Ton parcours est prêt'), 'la sauvegarde du succès précède l’écran final');
-assert((onboarding.match(/obGoto\('ready'\)/g)||[]).length===2, 'sans compte ou connecté, l’onboarding se termine sur l’écran final');
+assert((onboarding.match(/obGoto\('ready'\)/g)||[]).length===3, 'sans compte ou connecté, l’onboarding se termine sur l’écran final (après la mini-page du pseudo, 4 novembre, 2 h 13)');
 assert(onboarding.includes("obSetFooter('Construire mon parcours',()=>obGoto('build')"), 'le rythme mène à la construction du parcours (13 h 46), puis à la pratique, pas directement au récapitulatif');
 assert(onboarding.includes('function obLevelPath()') && onboarding.includes("const stages=['SELECT','Filtres & tris','Jointures','Analyses']"), 'l’échelle de progression éclaire le choix du niveau');
 
