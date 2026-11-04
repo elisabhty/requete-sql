@@ -199,7 +199,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=9']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=12', 'onboarding-vitrine.css?v=10']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -306,6 +306,7 @@ test('23 h 21 : le niveau sans « Tu commenceras par… », la première requêt
   assert.ok(p.includes("'Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.'"));
   assert.ok(p.includes("draft.practiceDone?'Bravo, ta première requête fonctionne ! 🎉'"), 'le retour après l’exécution');
   assert.ok(p.includes("'Lance la requête pour découvrir le résultat'"));
+  assert.ok(css.includes('html #onboarding.ob-vitrine[data-ob-slide="practice"] .ob-cta:disabled{font-size:15px!important;'), 'le bouton inactif tient sur une ligne dès 375 px');
   /* La construction : nombres qui montent, comète, étincelles, confettis, vague sur les modules */
   const b = slide('build', "}else if(slide==='promise'){");
   assert.ok(b.includes("const anim=!draft.buildDone&&!prefersReduceMotion(),nb=(n,txt)=>`<span class=\"ob-n\" data-n=\"${n}\">${anim?0:n}</span>${txt}`;"));
