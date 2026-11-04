@@ -17,7 +17,7 @@ test('réf. 1 : la barre « Valide la leçon » a la largeur de la carte de la v
 test('réf. 2 : les phrases de l’élève et pour l’élève, les mêmes pour tout le monde', () => {
   assert.ok(anim('bases-relationnelles.html').includes("const REPONSE = ['Avec plaisir !', 'On commence quand vous le voulez !'];"));
   for (const t of ['Envie d’écrire ta prochaine requête', '\'C’est bon pour moi ✓\':\'C’est bon pour moi\'', '✓ c’est bon</em>', '`En attente : ${',
-    'Une question pour t’entraîner', '\'Ta première note t’attend\'', "['solo','En solo']", "${h.solo?'En solo':'Entre amis'}", '>En solo</button>', 'En solo ou entre amis'])
+    'Une question pour t’entraîner', '\'Ta première note t’attend\'', "${h.solo?'En solo':'Entre amis'}", '>En solo</button>', 'En solo ou entre amis'])
     assert.ok(app.includes(t), t);
   for (const t of ['Prêt·e pour', 'Je suis prêt', 'pas prêt</em>', 'Pas encore prêt', 'Prêt pour une question', 'Prêt pour ta première note', "['solo','Seul']", '>Seul</button>'])
     assert.ok(!app.includes(t), t);

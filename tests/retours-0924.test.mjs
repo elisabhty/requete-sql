@@ -224,7 +224,7 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
   assert.ok(h.includes('<span class="jeu-medal perf-medal"><svg data-k="medal1"></svg></span>'), 'médailles autocollantes');
   /* Elisa, 31 octobre, 15 h 16 : « voir les 3 dernières personnes avec qui on a joué » */
   assert.ok(h.includes('<h4>Tes 3 derniers adversaires</h4><ul class="perf-mates">'));
-  assert.ok(h.includes('<div class="perf-block perf-top" id="perf-top"><p data-k="top5"></p></div>'), 'le Top 5 de tous les joueurs, sous les chiffres');
+  assert.ok(!h.includes('id="perf-top"'), 'le classement a son onglet, plus de Top 5 dans les stats (4 novembre, 19 h 10)');
   const mates = [...h.matchAll(/<li class="(is-\w+)" style="--i:\d"><b class="jeu-av" data-c="\d" aria-hidden="true">(.)<\/b><span class="perf-mate"><b>([^<]+)<\/b><small>([^<]+)<\/small><\/span><span class="perf-h2h" role="img" aria-label="([^"]+)"><em>(\d)<i>–<\/i>(\d)<\/em><small>([^<]+)<\/small>/g)]
     .map(m => [m[1], m[3], m[4], m[5], m[6] + '–' + m[7], m[8]]);
   assert.deepEqual(mates, [
@@ -244,7 +244,7 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
   /* Seulement seul jusqu’ici : le podium vide qui attend, et de quoi jouer entre amis */
   const s = perfCtx({ pts: 300, parties: 1, best: 300, manches: 3, trouves: 3, amis: 0, pl: [0, 0, 0], lv: { f: [3, 3] }, hist: [{ at: now, pts: 300, n: 3, ok: 3, ms: 1, niv: 'f', solo: 1, place: 0, players: 1 }] });
   assert.ok(s.includes('Ton prochain podium entre amis s’affichera ici.') && s.includes('<div class="jeu-podium perf-podium is-ghost">'));
-  assert.ok(s.includes("onclick=\"perfRematch('')\"") && s.includes('<span>Jouer entre amis</span>') && !s.includes('<ul class="perf-mates">'));
+  assert.ok(s.includes("onclick=\"perfRematch('')\"") && s.includes('<span>Jouer à plusieurs</span>') && !s.includes('<ul class="perf-mates">'));
   assert.ok(s.includes('<h4>Tes derniers adversaires</h4><p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'));
 });
 
@@ -257,7 +257,7 @@ test('réf 4 — le podium s’anime quand il arrive à l’écran ; « Les red�
   const card = { getBoundingClientRect: () => ({ top: 500 }), closest: () => scr, querySelector: () => go };
   const go = { classList: { remove() {}, add: c => calls.push(['nudge', c]) }, offsetWidth: 1 };
   const scr = { scrollTop: 900, getBoundingClientRect: () => ({ top: 0 }), scrollTo: o => calls.push(['scroll', o.top]) };
-  const ctx = vm.createContext({ document: { getElementById: () => card }, jeuRoomSet: (k, v) => calls.push([k, v]), JEU_NIVL: { f: 1, m: 1, d: 1 }, prefersReduceMotion: () => true, buzz() {}, setTimeout() {} });
+  const ctx = vm.createContext({ document: { getElementById: () => card }, jeuRoomSet: (k, v) => calls.push([k, v]), JEU_NIVL: { f: 1, m: 1, d: 1 }, prefersReduceMotion: () => true, buzz() {}, setTimeout() {}, jeuChallenges: () => [1], jeuSavePrefs() {} });
   vm.runInContext(fn('perfRematch') + ";perfRematch('m');", ctx);
   assert.deepEqual(calls, [['mode', 'friends'], ['niv', 'm'], ['scroll', 1336], ['nudge', 'is-nudge']], 'entre amis, même niveau, la salle à l’écran, le bouton qui fait signe');
   /* Le podium de fin de partie a les mêmes médailles */

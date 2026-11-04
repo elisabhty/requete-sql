@@ -155,5 +155,5 @@ test('la progression garde ce qu’il faut au classement, et Mon compte permet d
   const prendre = sql.slice(sql.lastIndexOf('create or replace function public.jeu_pseudo_prendre'));
   assert.match(prendre, /update public\.jeu_joueur set pseudo = v_deja where cle = v_cle;/, 'le pseudo réservé est celui du classement');
   assert.ok(app.includes("if(cle&&typeof clsRpc==='function')clsRpc('jeu_oublier',{p_cle:cle})"), 'effacer la progression efface aussi les scores du classement');
-  assert.ok(app.includes('<div class="perf-block perf-top" id="perf-top">${clsTopHTML()}</div>'), 'le Top 5 dans « Tes performances »');
+  assert.ok(!app.includes('<div class="perf-block perf-top" id="perf-top">') && app.includes('<div id="defis-classement" class="defis-panel"'), 'le classement a son onglet (4 novembre, 19 h 10)');
 });

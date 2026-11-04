@@ -30,7 +30,10 @@
       psAdopter(identity.pseudo);
       localStart(code, host, cid, {...options, secure:true});
     } catch (error) {
-      const text = String(error?.message || 'La salle est indisponible. Vérifie ta connexion et réessaie.');
+      // 4 November, 18:55: offline, Safari says « Load failed » and Chrome « Failed to fetch » — never show those raw strings.
+      const raw = String(error?.message || '');
+      const offline = !raw || error?.name === 'TypeError' || error?.name === 'AbortError' || /failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw);
+      const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;
       // The public name is chosen during onboarding: never ask for it again before a room (2 November, 23:45).
       // The server has no name for this device yet: reserve it silently, then enter once more.
       if (/pseudo/.test(text) && !options.nameRetry && typeof psReserverPourSalle === 'function') needName = true;

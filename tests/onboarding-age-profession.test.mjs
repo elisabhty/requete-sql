@@ -73,7 +73,7 @@ test('profession : six situations en tuiles, avec leur pastille de couleur', () 
   ctx.draft.genre = ''; ctx.state.profile.genre = 'f';
   assert.equal(vm.runInContext("obJobNom('student')", ctx), 'Étudiante', 'après l’onboarding, le profil');
   assert.equal(vm.runInContext("obJobNom('data')", ctx), 'Data ou développement');
-  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), la façon dont tu as connu Requête, ton objectif,'), 'la page Confidentialité le dit');
+  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), ton pays (seul son drapeau accompagne ton pseudo dans les défis, voir plus bas), la liste de tes amis des défis, la façon dont tu as connu Requête, ton objectif,'), 'la page Confidentialité le dit');
 });
 
 test('les tuiles suivent la DA de l’onboarding : cartes blanches à rebord, coche jaune soleil', () => {

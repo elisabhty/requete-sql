@@ -81,7 +81,7 @@ test('femme, homme ou ne pas dire : sur l’écran de l’âge, gardé sur l’a
     "tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;", '  const profileJob=obJobNom(profile.job);'])
     assert.ok(app.includes(k), k);
   /* Rien ne part : la page de confidentialité le dit avec le reste du profil */
-  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), la façon dont tu as connu Requête'));
+  assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), ton pays (seul son drapeau accompagne ton pseudo dans les défis, voir plus bas), la liste de tes amis des défis, la façon dont tu as connu Requête'));
 });
 
 test('le pseudo, obligatoire pendant l’onboarding : pas de « Plus tard », et la page revient tant qu’il n’y en a pas', () => {
@@ -136,7 +136,7 @@ test('réf. 7 : l’objectif sur l’accueil, sous la série, dans une carte com
     'html.lq #home-hero .lq-obj[data-goal="work"] .ob-answer-icon{background:#E3F0FF;color:#2F7BEF}', 'html.lq #home-hero .lq-obj-k::before{content:"";flex:none;width:14px;height:3px;border-radius:3px;background:currentColor}'])
     assert.ok(lq.includes(k), k);
   assert.ok(lire('decouvrir/vitrine.css').includes('.i-e{background:#E3F0FF;color:#2F7BEF}'), 'les couleurs de la vitrine');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=138">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=139">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {

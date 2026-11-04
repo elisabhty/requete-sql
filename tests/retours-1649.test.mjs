@@ -344,11 +344,11 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
 });
 
 test('réf. 4 et 5 — la note de la salle garde sa première phrase ; « Un code reçu ? » respire, sans rappel du pseudo', () => {
-  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Tes amis voient ton pseudo, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';"));
+  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Les joueurs de ta salle voient ton pseudo, ton drapeau, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';"));
   assert.ok(!app.includes('et s’effacent au bout de 24&nbsp;h. Il faut une connexion internet.</p>'));
   /* 3 novembre, 7 h 49 : le code reçu passe dans la carte de la salle, en mode « Rejoindre ». */
   const join = fn('renderDefisRoom');
-  assert.ok(join.includes("['join',JEU_JOIN_SVG+'Rejoindre']") && join.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && join.includes('<p class="jeu-msg" role="status" aria-live="polite"></p>'));
+  assert.ok(join.includes("D.carte==='code'?'join'") && join.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && join.includes('<p class="jeu-msg" role="status" aria-live="polite"></p>'));
   assert.ok(!fn('renderDefisJoin').includes('jeu-code'), 'plus de carte « Un code reçu ? » à part');
   for (const part of ['html.lq .def-join-body{padding:2px 16px 18px!important;gap:10px!important}', 'html.lq .def-join-body>.jeu-msg:empty{display:none}',
     'html.lq:not(.pointer-nav) .def-join>summary:focus-visible{box-shadow:inset 0 0 0 2.5px rgba(106,77,244,.45)!important;'])
@@ -447,7 +447,7 @@ test('Supabase — le pseudo unique (jeu_pseudo), sans ménage : il reste à la 
   assert.ok(s.includes('grant execute on function public.jeu_pseudo_liberer(text) to anon, authenticated;'));
   /* Les règles du site et de l’appli disent la même chose */
   const conf = fs.readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
-  assert.ok(conf.includes('Il ne se change plus ensuite, et il reste à toi&nbsp;; pour le supprimer (avec tes scores), il suffit de nous le demander') && !conf.includes('12&nbsp;mois sans ouvrir'), 'politique de confidentialité');
+  assert.ok(conf.includes('Ton pseudo ne se change plus ensuite, et il reste à toi&nbsp;; pour le supprimer (avec tes scores), il suffit de nous le demander') && !conf.includes('12&nbsp;mois sans ouvrir'), 'politique de confidentialité');
   const ios = fs.readFileSync(new URL('../IOS.md', import.meta.url), 'utf8');
   assert.ok(ios.includes('n’est jamais\n  libéré tout seul (pas de ménage)') && ios.includes("delete from jeu_pseudo where pseudo = '") && !ios.includes('jeu-pseudo-menage'), 'IOS.md');
   assert.equal(app.split('et reste à toi : pour le supprimer, écris-nous depuis Mon compte, «&nbsp;Nous contacter&nbsp;». Ton prénom, lui, reste sur cet appareil.').length - 1, 2, 'les deux textes « Confidentialité » de l’appli');

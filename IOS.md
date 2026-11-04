@@ -188,11 +188,18 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   Déclare-les comme « Contenu utilisateur – Autre », non liés à l’identité et sans pistage.
   Formule gratuite de Supabase : le projet se met en pause après 7 jours sans aucune partie ; il se relance
   depuis le tableau de bord Supabase (ou passer à la formule Pro pour une vraie mise en production).
-- **Classement général (Top 5 de tous les joueurs)** : pseudo, points, nombre de parties et un identifiant tiré
+- **Classement général (tous les joueurs, 5 par page depuis le 4 novembre)** : pseudo, points, nombre de parties et un identifiant tiré
   au hasard par l’appareil (la base n’en garde que l’empreinte), plus la liste des défis réussis (statistiques
   internes, jamais montrées aux joueurs). Dans App Store Connect, déclarer :
   « Contenu de jeu » et « Autre contenu utilisateur » (le pseudo), « Identifiant utilisateur » (l’identifiant
   au hasard) ; usages « Fonctionnalités de l’app » et « Analyses » (les défis trouvés) ; non utilisés pour le pistage.
+- **Défis en trois onglets** (4 novembre, 19 h 10 ; migration `supabase/migrations/…_defis_trois_onglets.sql`) :
+  le pays du profil part avec le pseudo (colonne `jeu_pseudo.pays`, fonction `jeu_pays`) pour le drapeau à côté du pseudo ;
+  il se masque dans Mon compte (« Afficher mon drapeau »). Les salles publiques (le choix par défaut) apparaissent
+  dans « Salles ouvertes » (`jeu_salles_ouvertes`, `jeu_salle_publier`) avec le pseudo et le drapeau de leurs joueurs.
+  Le classement passe à `jeu_classement_v2` (5 par page ; monde, pays ou amis ; depuis toujours ou depuis lundi).
+  La liste d’amis reste sur l’appareil (`jeu_drapeaux` vérifie seulement qu’un pseudo existe). Dans App Store Connect,
+  ajouter « Localisation approximative » (le pays), usage « Fonctionnalités de l’app », non liée à l’identité, sans pistage.
 - **Pseudo unique** : choisi sur une mini-page juste après l’onboarding (le prénom de l’onboarding reste sur l’appareil),
   réservé dans la table `jeu_pseudo` (même identifiant au hasard que le classement), il ne se change plus et n’est jamais
   libéré tout seul (pas de ménage) : la personne le supprime dans l’appli (Mon compte › Données et confidentialité ›

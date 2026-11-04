@@ -39,10 +39,10 @@ test('réf. 3 : le nom d’un projet s’affiche en entier, coupé après ses _ 
 /* 1 h 07 — « Tu joues en tant que » dans la DA du site ; la note sans « jamais tes requêtes » ; les lignes de « Profil et
    objectif » en cartes, cohérentes avec la carte du pseudo. */
 test('1 h 07 : la carte du joueur, la note de la salle, les cartes de « Profil et objectif »', () => {
-  assert.ok(app.includes('<span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span>'));
+  assert.ok(app.includes('<span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${typeof jeuFlag===\'function\'?jeuFlag(nom):\'\'}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span>'), 'avec le drapeau (4 novembre, 18 h 55)');
   assert.ok(app.includes("<b>${at?'<i class=\"jeu-me-at\">@</i>':''}${esc(at?nom.slice(1):nom)}</b>"));
   assert.ok(css.includes('html.lq body .jeu-me .jeu-av{display:grid;place-items:center;width:46px;height:46px;'));
-  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Tes amis voient ton pseudo, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';"));
+  assert.ok(app.includes("const JEU_NOTE_HTML='<p class=\"jeu-note\">🔒 Les joueurs de ta salle voient ton pseudo, ton drapeau, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p>';"));
   assert.ok(!app.includes('sont partagés, jamais tes requêtes'));
   assert.ok(css.includes('html.lq #plus-profile-settings .plus-details-body>.acc-row{width:calc(100% - 36px);margin:0 18px 12px;'));
 });
@@ -100,7 +100,7 @@ test('9 h 19 : pas à pas dans la DA du site, épingle en icône animée partout
   /* L’épingle d’une note : sur sa carte, dans la liste ; plus dans l’éditeur (Elisa, 2 novembre, 18 h 45 : « Il y a trop de bouton »). */
   assert.ok(app.includes(`togglePinFromList('\${n.id}')">\${PUNAISE_SVG}</button>`) && !app.includes('onclick="togglePin()"'), 'l’épingle de la note en icône, sur sa carte');
   assert.ok(css.includes('@keyframes pinSway{'));
-  assert.ok(app.includes("<p class=\"room-sub\">${join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.'}</p>"), 'le sous-titre, et celui du mode Rejoindre (3 novembre, 7 h 49)');
+  assert.ok(app.includes("const tete=join?['J’ai un code','Rejoins une salle','Entre le code que ton ami t’a envoyé.']") && app.includes('<p class="room-sub">${tete[2]}</p>'), 'le sous-titre de chaque carte : créer, code, seul (4 novembre, 19 h 10)');
   assert.ok(app.includes("if(name==='defis')tabScrollPositions.defis=0;"));
 });
 
