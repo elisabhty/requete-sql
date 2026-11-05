@@ -201,7 +201,8 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 - **Défis en trois onglets** (4 novembre, 19 h 10 ; appliquée le 4 novembre à 22 h 52 : `supabase/migrations/20261104215200_defis_trois_onglets.sql`) :
   le pays du profil part avec le pseudo (colonne `jeu_pseudo.pays`, fonction `jeu_pays`) pour le drapeau à côté du pseudo ;
   il se masque dans Mon compte (« Afficher mon drapeau »). Les salles publiques (le choix par défaut) apparaissent
-  dans « Salles ouvertes » (`jeu_salles_ouvertes`, `jeu_salle_publier`) avec le pseudo et le drapeau de leurs joueurs.
+  dans « Rejoins une partie », la liste des salles ouvertes (`jeu_salles_ouvertes`, `jeu_salle_publier`), avec le pseudo et le
+  drapeau de leurs joueurs (5 novembre, 11 h 37 : plus de « Trouver une salle » ; sans salle au niveau choisi, « Créer ma salle »).
   Le classement passe à `jeu_classement_v2` (5 par page ; monde, pays ou amis ; depuis toujours ou depuis lundi).
   La liste d’amis reste sur l’appareil (`jeu_drapeaux` vérifie seulement qu’un pseudo existe). Dans App Store Connect,
   ajouter « Localisation approximative » (le pays), usage « Fonctionnalités de l’app », non liée à l’identité, sans pistage.
