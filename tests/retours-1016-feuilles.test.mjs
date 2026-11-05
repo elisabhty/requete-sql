@@ -25,28 +25,30 @@ function bac(o = {}) {
     jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''},
     document: {getElementById: id => els[id] || null, querySelectorAll: () => [], body: null}
   }, o));
-  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisFeuilleHTML'), ctx);
+  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML'), ctx);
   return {ctx, els};
 }
 
-test('sous la partie rapide : trois boutons, « Créer », « J’ai un code », « Seul » ; plus de grande carte au milieu de la page', () => {
+test('un cadre unique (11 h 11) : la partie rapide, puis « ou » et une rangée « Créer », « J’ai un code », « Seul » ; plus de carte au milieu', () => {
   const {ctx, els} = bac();
-  els['defis-room'] = {innerHTML: ''};
+  els['defis-room'] = {innerHTML: 'ancien'};
   const ouvertes = [];
   ctx.defisFeuilleOuvrir = k => ouvertes.push(k);
-  ctx.renderDefisRoom();
-  const h = els['defis-room'].innerHTML;
+  const h = ctx.defisActionsHTML();
+  assert.ok(h.startsWith('<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">'));
   assert.equal((h.match(/<button type="button" class="dx-act /g) || []).length, 3);
-  assert.ok(h.startsWith('<div class="dx-actions" role="group" aria-label="D’autres façons de jouer">'));
-  for (const [k, stk, titre, sous] of [['creer', 'user', 'Créer', 'une salle entre amis'], ['code', 'rocket', 'J’ai un code', 'rejoindre un ami'], ['seul', 'clock', 'Seul', 'entraînement']])
+  for (const [k, stk, titre, sous] of [['creer', 'user', 'Créer', 'une salle'], ['code', 'rocket', 'J’ai un code', 'rejoindre'], ['seul', 'clock', 'Seul', 'entraînement']])
     assert.ok(h.includes(`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="false" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true"><svg data-stk="${stk}"/></span><b>${titre}</b><small>${sous}</small></button>`), k);
-  assert.ok(!h.includes('room-card') && !h.includes('room-levels'), 'plus de carte, plus de second choix de niveau');
+  assert.ok(fn('defisRapideHTML').includes('<p class="jeu-msg" id="dx-rapide-msg" role="status" aria-live="polite"></p>\n    ${defisActionsHTML()}</section>`;'), 'dans le cadre de la partie rapide');
+  ctx.renderDefisRoom();
+  assert.equal(els['defis-room'].innerHTML, '', 'plus rien entre la partie rapide et les salles ouvertes');
   assert.deepEqual(ouvertes, [], 'rien ne s’ouvre tout seul');
   /* Un lien d’invitation : la feuille du code s’ouvre */
   ctx.jeuInvite = 'XYZ789';
   ctx.renderDefisRoom();
   assert.deepEqual(ouvertes, ['code']);
-  assert.ok(els['defis-room'].innerHTML.includes('data-k="code" aria-haspopup="dialog" aria-expanded="true"'));
+  ctx.DEFIS.carte = 'code';
+  assert.ok(ctx.defisActionsHTML().includes('data-k="code" aria-haspopup="dialog" aria-expanded="true"'));
   const salles = fn('sallesRepeindre');
   assert.ok(!salles.includes('defisCarte(') && !salles.includes('dx-duo') && !salles.includes('t’entraîner seul'), 'Salles ouvertes : les salles en direct seulement');
 });
@@ -76,7 +78,7 @@ test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et
   for (const k of ["el.id='dx-feuille';el.className='dx-feuille';", 'role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1"',
     '<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>',
     '<button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>',
-    "document.addEventListener('keydown',dxFeuilleTouche,true);", "vv.addEventListener('resize',dxFeuilleCaler)", "b.setAttribute('aria-expanded',String(b.dataset.k===k))",
+    "document.addEventListener('keydown',dxFeuilleTouche,true);", "vv.addEventListener('resize',dxFeuilleCaler)", "document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));",
     'if(inp&&!inp.value)inp.focus({preventScroll:true}); else el.querySelector(\'.dx-f-boite\').focus({preventScroll:true});', "bx.classList.toggle('is-defile',"])
     assert.ok(o.includes(k), k);
   const f = fn('defisFeuilleFermer');
@@ -102,10 +104,11 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
   assert.ok(app.includes("document.querySelector('.lq-ask.on,#lesson-video,#dx-feuille'))return false;"));
 });
 
-test('la DA : trois tuiles en relief, la feuille qui monte du bas, son bouton qui reste en bas sur un petit écran', () => {
-  for (const k of ['html.lq #scr-defis .dx-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}',
-    'html.lq #scr-defis .dx-act{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;min-height:112px;',
-    'html.lq #scr-defis .dx-act[aria-expanded="true"]{border-color:var(--accent);background:var(--accent-soft)}',
+test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du bas, son bouton qui reste en bas sur un petit écran', () => {
+  for (const k of ['html.lq #scr-defis .dx-ou{display:flex;align-items:center;gap:12px;', 'html.lq #scr-defis .dx-ou::before,html.lq #scr-defis .dx-ou::after{content:"";flex:1;height:2px;',
+    'html.lq #scr-defis .dx-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px;border:2px solid var(--line);border-radius:18px;',
+    'html.lq #scr-defis .dx-act+.dx-act{box-shadow:inset 2px 0 0 var(--line)}',
+    'html.lq #scr-defis .dx-act:active,html.lq #scr-defis .dx-act[aria-expanded="true"]{background:var(--accent-soft)}',
     '.dx-feuille{position:fixed;inset:0;z-index:2600;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}',
     'transform:translateY(calc(100% + 40px));transition:transform .36s cubic-bezier(.32,.72,0,1)}', 'html.lq .dx-feuille.on .dx-f-boite{transform:none}',
     'html.lq .dx-feuille .dx-f-pied{position:sticky;bottom:0;z-index:2;margin:6px -18px -18px;padding:12px 18px 18px;background:#fff}',
