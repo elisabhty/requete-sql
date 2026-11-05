@@ -125,7 +125,7 @@ test('le pays part avec le pseudo, une fois, et null quand on le masque', async 
   assert.ok(fn('paysChanger', '\n}\n').includes("if(typeof paysSync==='function')paysSync();"), 'quand le pays change');
 });
 
-test('Jouer : la carte du joueur ; les salles chargées sans les invalides ni les pleines ; « Créer ma salle » à la place de la partie rapide', async () => {
+test('Jouer : la carte du joueur ; les salles chargées sans les invalides ni les pleines ; plus de partie rapide', async () => {
   const c = bac();
   c.ev("DEFIS.cls.rangs={monde:12,pays:4,mon_pays:'FR'}");
   const moi = c.ev('defisMoiHTML()');
@@ -139,32 +139,27 @@ test('Jouer : la carte du joueur ; les salles chargées sans les invalides ni le
   const r = bac({ rpc: f => f === 'jeu_salles_ouvertes' ? salles : {} });
   r.ev('sallesCharger(true)'); await attendre(); await attendre();
   assert.deepEqual(J(r.ev('DEFIS.salles.map(s=>s.code)')), ['AAA111', 'BBB222', 'CCC333'], 'les salles invalides ou pleines sont écartées');
-  /* 5 novembre, 11 h 37 : plus de « Trouver une salle » ; « Créer ma salle » ouvre une salle publique à soi, au niveau choisi */
+  /* 5 novembre, 11 h 37 : plus de « Trouver une salle » ; 12 h 52 : plus de « Créer ma salle » non plus, le cadre n’a qu’un « Créer une salle » */
   assert.equal(r.ev('typeof jeuPartieRapide'), 'undefined');
-  const v = bac();
-  v.ev("jeuNiv='d';jeuSalleOuverte()"); await attendre();
-  assert.deepEqual(J(v.appels.find(a => a[0] === 'jeuStart')), ['jeuStart', 'NOUV01', true, null, { nomId: 'jeu-nom', pub: true }], 'sa propre salle, publique');
+  assert.equal(r.ev('typeof jeuSalleOuverte'), 'undefined');
 });
 
-test('« Rejoins une partie » : l’hôte et son drapeau, les places, le niveau, « Rejoindre » ; sans salle, « Créer ma salle »', () => {
+test('« Rejoins une partie » : l’hôte et son drapeau, les places, le niveau, « Rejoindre » ; sans salle, la phrase d’Elisa', () => {
   const c = bac();
   c.ev("DEFIS.salles=[{code:'AAA111',niv:'m',manches:3,nb:2,max:5,hote:'@lea<b>',pays:'BE',joueurs:[]}]");
   c.ev('sallesRepeindre()');
-  const h = c.els['defis-salles'].innerHTML;
-  assert.ok(h.includes('<span class="dx-live">1 en direct</span>') && h.includes('<h2 id="dx-salles-h">Rejoins une partie</h2>'));
+  const h = c.els['dx-rejoindre'].innerHTML;
+  assert.ok(h.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3><span class="dx-live">1 en direct</span>'));
   assert.ok(h.includes('<b>@lea&lt;b&gt; <span class="dx-plp">2/5</span></b>'), 'le pseudo échappé, les places');
   assert.ok(h.includes('<i class="dx-niv is-m">Moyen</i> · 3 manches') && h.includes('<i class="jeu-flag" aria-hidden="true">[BE]</i>'));
   assert.ok(h.includes("onclick=\"sallesRejoindre('AAA111')\""));
-  /* 5 novembre, 10 h 16 : « Créer une salle », « J’ai un code » et « Seul » sont dans le cadre du haut (retours-1016-feuilles) ; ici, les salles seulement. */
-  assert.ok(!h.includes("defisCarte(") && !h.includes('dx-duo') && h.includes('<b>Comment sont calculés les points&nbsp;?</b>'));
-  /* 11 h 37 : plus de « Trouver une salle » ; une salle au niveau choisi (Moyen) : pas de « Créer ma salle » */
-  assert.ok(!h.includes('Trouver une salle') && h.includes('<div class="dx-aucune" id="dx-aucune" hidden>') && h.includes('<div id="dx-salles-liste"><ul class="dx-list">'));
+  /* 12 h 52 : un seul cadre ; la rangée du barème reste dessous */
+  assert.ok(!h.includes('defisCarte(') && !h.includes('Trouver une salle') && !h.includes('Créer ma salle'));
+  assert.ok(c.els['defis-salles'].innerHTML.includes('<b>Comment sont calculés les points&nbsp;?</b>'));
   c.ev('DEFIS.salles=[]'); c.ev('sallesRepeindre()');
-  const v = c.els['defis-salles'].innerHTML;
-  assert.ok(v.includes('<p class="perf-kicker">Salles ouvertes</p>') && v.includes('<div class="dx-aucune" id="dx-aucune">'));
-  assert.ok(v.includes('Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!') && v.includes('onclick="jeuSalleOuverte()"><span>Créer ma salle</span>'));
+  assert.ok(c.els['dx-rejoindre'].innerHTML.endsWith('<p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>'));
   c.ev("DEFIS.salles=null;DEFIS.sallesErr='net'"); c.ev('sallesRepeindre()');
-  assert.ok(c.els['defis-salles'].innerHTML.includes('Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.'));
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.'));
 });
 
 test('une salle créée est publique par défaut ; l’hôte la publie dès que la base la connaît', async () => {
@@ -261,7 +256,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=3"></script>') && sw.includes("'./multiplayer-security.js?v=3',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=153">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=154">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-05-compte-v2535');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-05-cadre-v2536');
 });

@@ -38,6 +38,7 @@ function bac(o = {}) {
     psForme: v => { const h = String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 15); return h ? '@' + h : ''; },
     psLibre: () => Promise.resolve({ ok: false, raison: 'pris' }), lqSay: t => appels.push(['say', t]), buzz() {}, lqAsk: () => Promise.resolve(false),
     prefersReduceMotion: () => true, renderDefisRoom() {}, jeuSavePrefs() {}, renderCompte() {}, jeuPaint() {}, JEU: null, activeTab: 'defis', jeuInvite: '',
+    defisActionsHTML: () => '<p class="dx-ou"></p><div class="dx-actions"></div>', DEFIS_FEUILLE: null,
   });
   if (o.salles !== undefined) ctx.__s = o.salles;
   vm.runInContext(bloc, ctx);
@@ -70,64 +71,50 @@ test('« Mes stats » plus en avant : une pastille lavande, et sa flèche qui bo
     assert.ok(lq.includes(k), k);
 });
 
-test('« Rejoins une partie » : les salles directement, celles du niveau choisi d’abord, plus de « Trouver une salle »', () => {
+test('« Rejoins une partie » : les salles du niveau choisi, directement, plus de « Trouver une salle » (12 h 52 : dans le même cadre)', () => {
   const c = bac({ niv: 'm', salles: [salle('AAA111', 'f', '@kev'), salle('BBB222', 'm', '@lea'), salle('CCC333', 'd', '@tom'), salle('DDD444', 'm', '@noe')] });
-  c.ev('sallesRepeindre()');
-  const h = c.els['defis-salles'].innerHTML;
-  assert.ok(h.includes('<p class="perf-kicker"><span class="dx-live">4 en direct</span></p><h2 id="dx-salles-h">Rejoins une partie</h2><p class="dx-salles-sub">Affronte d’autres joueurs sur des défis adaptés à ton niveau.</p>'));
-  assert.deepEqual(codes(h), ['BBB222', 'DDD444', 'AAA111', 'CCC333'], 'Moyen d’abord, puis les autres niveaux');
-  assert.ok(h.includes('<div class="dx-aucune" id="dx-aucune" hidden>') && !h.includes('Aux autres niveaux'));
-  assert.ok(!h.includes('Trouver une salle') && !h.includes('dx-rapide-go') && !h.includes('dx-trouver'));
-  assert.ok(!app.includes('function jeuPartieRapide(') && !app.includes('function dxTrouverTexte(') && !app.includes('onclick="jeuPartieRapide()"'));
+  const haut = c.ev('defisRapideHTML()');
+  assert.ok(haut.indexOf('id="dx-niv-l"') < haut.indexOf('<div class="dx-rejoindre" id="dx-rejoindre" role="group" aria-labelledby="dx-rejoindre-h">'), 'sous le niveau');
+  assert.ok(haut.indexOf('id="dx-rejoindre"') < haut.indexOf('data-k="creer"') && haut.indexOf('class="dx-actions"') < haut.indexOf('id="dx-autres"'), 'puis « Créer une salle », « ou », et les autres niveaux');
+  const r = haut.slice(haut.indexOf('id="dx-rejoindre"'), haut.indexOf('data-k="creer"'));
+  assert.ok(r.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3><span class="dx-live">2 en direct</span>'), 'deux salles en Moyen');
+  assert.deepEqual(codes(r), ['BBB222', 'DDD444'], 'celles du niveau choisi');
+  const autres = haut.slice(haut.indexOf('id="dx-autres"'));
+  assert.ok(autres.includes('<p class="dx-h3">Aux autres niveaux</p>') && codes(autres).join() === 'AAA111,CCC333', 'les autres niveaux, à la fin du cadre');
+  assert.ok(!haut.includes('Trouver une salle') && !haut.includes('Créer ma salle') && (haut.match(/class="room-go/g) || []).length === 1, 'un seul bouton pour créer');
+  assert.ok(!app.includes('function jeuPartieRapide(') && !app.includes('function dxTrouverTexte(') && !app.includes('function jeuSalleOuverte('));
+  assert.ok(app.includes('<p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Ta salle de défi</h2>'));
 });
 
-test('aucune salle au niveau choisi : la phrase d’Elisa et « Créer ma salle » ; les autres niveaux restent visibles dessous', () => {
+test('aucune salle au niveau choisi : la phrase d’Elisa, juste au-dessus de « Créer une salle » ; les autres niveaux restent à la fin', () => {
   const c = bac({ niv: 'd', salles: [salle('AAA111', 'f', '@kev'), salle('BBB222', 'm', '@lea')] });
-  c.ev('sallesRepeindre()');
-  const h = c.els['defis-salles'].innerHTML;
-  assert.ok(h.includes('<div class="dx-aucune" id="dx-aucune"><p class="dx-vide">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>'));
-  assert.ok(h.includes('<button type="button" class="room-go" id="dx-creer-go" onclick="jeuSalleOuverte()"><span>Créer ma salle</span><svg data-k="chev"></svg></button>'));
-  assert.ok(h.includes('<p class="dx-creer-t" id="dx-creer-t">Niveau <b>Difficile</b>, visible par les autres joueurs.</p>'), 'le niveau choisi en haut');
-  assert.ok(h.includes('<div id="dx-salles-liste"><p class="dx-h3">Aux autres niveaux</p><ul class="dx-list">') && J(codes(h)).join() === 'AAA111,BBB222');
-  assert.ok(h.indexOf('id="dx-aucune"') < h.indexOf('id="dx-salles-liste"'), '« Créer ma salle » avant les autres niveaux');
-  /* Aucune salle du tout : la phrase et le bouton, et la liste vide (masquée en CSS) */
+  const haut = c.ev('defisRapideHTML()');
+  const r = haut.slice(haut.indexOf('id="dx-rejoindre"'), haut.indexOf('data-k="creer"'));
+  assert.ok(r.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3></div><p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p></div>'),
+    'sans compte en direct, la phrase, puis le bouton');
+  assert.ok(codes(haut.slice(haut.indexOf('id="dx-autres"'))).join() === 'AAA111,BBB222');
+  /* Aucune salle du tout : pas de « Aux autres niveaux » ; pendant le chargement, des lignes vides */
   c.ev('DEFIS.salles=[]'); c.ev('sallesRepeindre()');
-  const v = c.els['defis-salles'].innerHTML;
-  assert.ok(v.includes('<p class="perf-kicker">Salles ouvertes</p>') && v.includes('<div class="dx-aucune" id="dx-aucune">') && v.includes('<div id="dx-salles-liste"></div>'));
-  /* Pendant le chargement : ni la phrase ni le bouton */
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && c.els['dx-autres'].innerHTML === '');
   c.ev('DEFIS.salles=null'); c.ev('sallesRepeindre()');
-  assert.ok(c.els['defis-salles'].innerHTML.includes('<div class="dx-aucune" id="dx-aucune" hidden>') && c.els['defis-salles'].innerHTML.includes('class="dx-list is-wait"'));
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('class="dx-list is-wait"') && !c.els['dx-rejoindre'].innerHTML.includes('is-aucune'));
 });
 
-test('déjà dessiné : la liste, son surtitre et « Créer ma salle » suivent, sans redessiner le bouton ; le niveau choisi en haut aussi', () => {
-  const part = () => ({ innerHTML: '', hidden: false });
-  const liste = part(), kick = part(), aucune = part(), t = part();
-  const host = { innerHTML: 'DÉJÀ', querySelector: k => ({ '#dx-salles-liste': liste, '.perf-kicker': kick, '#dx-aucune': aucune, '#dx-creer-t': t })[k] || null };
-  const c = bac({ niv: 'm', salles: [salle('AAA111', 'f', '@kev')], els: { 'defis-salles': host } });
+test('les salles changent ou le niveau change : seules « Rejoins une partie » et les autres niveaux sont redessinées', () => {
+  const c = bac({ niv: 'm', salles: [salle('AAA111', 'f', '@kev')] });
   c.ev('sallesRepeindre()');
-  assert.equal(host.innerHTML, 'DÉJÀ', 'le cadre n’est pas redessiné : le bouton garde son état et son message');
-  assert.equal(aucune.hidden, false, 'aucune salle Moyen : « Créer ma salle » apparaît');
-  assert.ok(liste.innerHTML.startsWith('<p class="dx-h3">Aux autres niveaux</p>') && kick.innerHTML === '<span class="dx-live">1 en direct</span>');
-  assert.equal(t.innerHTML, 'Niveau <b>Moyen</b>, visible par les autres joueurs.');
-  /* Elisa choisit « Facile » en haut : la salle Facile passe en tête, le bouton s’efface */
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && codes(c.els['dx-autres'].innerHTML).join() === 'AAA111');
+  /* Elisa choisit « Facile » : la salle Facile monte dans « Rejoins une partie » */
   c.ev("defisNiv('f')");
-  assert.equal(aucune.hidden, true);
-  assert.ok(liste.innerHTML.startsWith('<ul class="dx-list">') && t.innerHTML === 'Niveau <b>Facile</b>, visible par les autres joueurs.');
+  assert.deepEqual(codes(c.els['dx-rejoindre'].innerHTML), ['AAA111']);
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('<span class="dx-live">1 en direct</span>') && c.els['dx-autres'].innerHTML === '');
   assert.ok(fn('defisNiv').includes('sallesRepeindre();') && !fn('defisNiv').includes('dx-trouver-t'));
-});
-
-test('« Créer ma salle » : une salle publique à soi, au niveau choisi ; le bouton attend la vérification en ligne', async () => {
-  let fini;
-  const c = bac({ niv: 'm', start: () => new Promise(r => { fini = r; }) });
-  c.ev('jeuSalleOuverte()');
-  assert.deepEqual(J(c.appels.filter(a => a[0] === 'jeuStart')), [['jeuStart', 'NOUV01', true, null, { nomId: 'jeu-nom', pub: true }]]);
-  assert.equal(c.els['dx-creer-go'].disabled, true, 'pas de double salle pendant la vérification');
-  fini(); await attendre();
-  assert.equal(c.els['dx-creer-go'].disabled, false);
-  const m = bac({ sansMoteur: true });
-  m.ev('jeuSalleOuverte()');
-  assert.equal(m.els['dx-salles-msg'].textContent, 'Le moteur SQL se charge encore, réessaie dans un instant.');
-  assert.ok(!m.appels.some(a => a[0] === 'jeuStart'));
+  const rep = fn('sallesRepeindre');
+  assert.ok(rep.includes("const r=document.getElementById('dx-rejoindre');if(r)r.innerHTML=sallesSectionHTML();") && rep.includes("if(host&&!(host.querySelector&&host.querySelector('.dx-points')))host.innerHTML=defisPointsHTML();"));
+  for (const k of ['html.lq #scr-defis .dx-rejoindre{margin:18px 0 14px}', 'html.lq #scr-defis .dx-rj-h{margin:0;font:700 16px/1.2 var(--display);',
+    'html.lq #scr-defis .dx-rejoindre .dx-vide.is-aucune{margin:0;padding:12px 14px;border:2px dashed #D6CCFA;', 'html.lq #scr-defis .dx-autres{margin-top:16px;border-top:2px dashed var(--line-2)}'])
+    assert.ok(lq.includes(k), k);
+  assert.ok(!lq.includes('.dx-aucune') && !lq.includes('dx-salles-liste') && !lq.includes('.dx-creer-t') && !lq.includes('.dx-salles-sub'), 'les styles du cadre du bas sont partis');
 });
 
 test('« Comment sont calculés les points ? » : une rangée bien visible sous les cadres, qui ouvre le barème', () => {
@@ -135,7 +122,7 @@ test('« Comment sont calculés les points ? » : une rangée bien visible sous 
   c.ev('sallesRepeindre()');
   const h = c.els['defis-salles'].innerHTML;
   const rangee = '<button type="button" class="dx-points" onclick="defisStats(true)"><span class="dx-points-stk" aria-hidden="true"><svg data-k="trophy"></svg></span><span class="dx-points-t"><b>Comment sont calculés les points&nbsp;?</b><small>Vitesse, premier coup et place dans la salle</small></span><svg data-k="chev"></svg></button>';
-  assert.ok(h.includes('</section>') && h.indexOf(rangee) > h.indexOf('</section>'), 'sous le cadre « Rejoins une partie »');
+  assert.equal(h, rangee, 'sous le cadre, seule (12 h 52 : un seul cadre au-dessus)');
   assert.ok(!h.includes('dx-lien') && !h.includes('dx-regles') && !h.includes('Comment on marque'));
   assert.ok(app.includes('<h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span>Comment sont calculés les points&nbsp;?</h2>'), 'le même titre dans Mes stats');
   assert.ok(!app.includes('Comment on marque des points</'), 'plus l’ancien titre à l’écran');
@@ -183,7 +170,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=153">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=154">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-05-compte-v2535' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-05-cadre-v2536' && app.includes(`const SW_CACHE='${cache}';`));
 });
