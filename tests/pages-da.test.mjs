@@ -60,7 +60,8 @@ test('Mon compte : les chiffres et chaque réglage portent leur autocollant ; la
   /* 18 h 49 : « Nous contacter » (la bulle) remplace l’aide */
   assert.ok(app.includes("const ACCT_STK={account:'user',route:'route',bell:'bell',reading:'eye',privacy:'shield',help:'help',contact:'bubble'};"));
   const acct = app.slice(app.indexOf('function renderCompte(){'), app.indexOf('function openLegal('));
-  assert.equal((acct.match(/<span class="plus-row-icon \w+ is-stk">\$\{lqStkSvg\(ACCT_STK\.\w+\)\}<\/span>/g) || []).length, 7);
+  /* 5 novembre, 21 h 54 : la ligne « Profil et objectif » est partie (l’objectif est sur la carte du profil, retours-2154) */
+  assert.equal((acct.match(/<span class="plus-row-icon \w+ is-stk">\$\{lqStkSvg\(ACCT_STK\.\w+\)\}<\/span>/g) || []).length, 6);
   assert.ok(!acct.includes('${plusIcon(\'account\')}</span><span><b>Profil'), 'plus de pictogramme au trait dans les réglages');
   for (const k of ['flame', 'book', 'target']) assert.ok(acct.includes(`<span class="acct-stat-ico is-stk" aria-hidden="true">\${lqStkSvg('${k}')}</span>`), k);
   assert.ok(acct.includes("<span class=\"acct-data-ico is-stk\" aria-hidden=\"true\">${lqStkSvg('shield')}</span>"));
