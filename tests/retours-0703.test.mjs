@@ -103,7 +103,8 @@ test('une clé unique : 0..1 des deux côtés ; une table de douze colonnes : se
   assert.equal(c.plus, 6);
   assert.deepEqual(pur(c.cols.filter(x => x.b).map(x => x.c)), ['id', 'ville_id', 'pays_id'], 'les clés restent sur la carte');
   verifier(m, p, 'douze colonnes');
-  assert.ok(ctx.umlHtml(p).includes('<span class="umd-c is-plus">+6 colonnes</span>'));
+  /* 5 novembre, 14 h 24 : la ligne est un bouton « Voir › » qui ouvre la table (retours-1424.test.mjs) */
+  assert.ok(ctx.umlHtml(p).includes('aria-label="Voir les 12 colonnes de la table ') && ctx.umlHtml(p).includes('<span>+6 colonnes</span><span class="umd-voir" aria-hidden="true">Voir</span></button>'));
   assert.equal(ctx.umlType('VARCHAR(255)'), 'VARCHAR');
   d.close();
 });
@@ -175,5 +176,5 @@ test('la DA : la pastille jaune soleil, la toile quadrillée, les classes aux co
   /* Les mesures de la page et du dessin sont les mêmes : en-tête 34 px, lignes de 20 px, 7 px autour */
   assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ligneEx:36,ecart:20,voie0:14,voie:8,max:7};'));
   assert.ok(!/\.uml-(?:t|h|cs|toile|plan)\b/.test(css), 'les classes umd- : celles du guide (.uml-c, .uml-l…) restent à lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=154">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=155">'));
 });

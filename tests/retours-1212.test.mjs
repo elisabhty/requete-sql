@@ -46,11 +46,11 @@ test('réf. 1 : « Parcours et rythme » ouvre « Adapte ton rythme » sur Mon c
 test('réf. 2 et 3 : la suppression du compte dit ce qui part, en deux blocs, puis l’encadré « irréversible »', () => {
   const html = vm.runInContext(cut('const DEL_SVG={', 'async function compteSupprimer(){') + ';compteSupprimerHTML("@lea<b>",false)', vm.createContext({ esc }));
   assert.ok(html.startsWith('<p class="lq-del-h">Voici ce qui sera supprimé&nbsp;:</p>'));
-  assert.ok(html.includes('<b>Sur Requête</b><small>Ton pseudo «&nbsp;@lea&lt;b&gt;&nbsp;», tes scores, tes avis, ton vote et tes messages.</small>'), 'le pseudo, échappé');
+  assert.ok(html.includes('<b>Sur Requête</b><small>Ton pseudo «&nbsp;@lea&lt;b&gt;&nbsp;», tes scores et ta place dans les classements, tes avis, ton vote et tes messages.</small>'), 'le pseudo, échappé');
   assert.ok(html.includes('<b>Sur cet appareil</b><small>Tes leçons, tes défis, tes cartes mémo, tes notes, ton planning et tes projets enregistrés.</small>'));
   assert.ok(html.includes('<p class="lq-del-warn"><span class="lq-del-wi"><svg') && html.includes('<span><b>Cette action est irréversible.</b> Tes données ne pourront pas être récupérées.</span></p>'));
   const avecCompte = vm.runInContext(cut('const DEL_SVG={', 'async function compteSupprimer(){') + ';compteSupprimerHTML("",true)', vm.createContext({ esc }));
-  assert.ok(avecCompte.includes('<small>Ton pseudo, tes scores, tes avis, ton vote et tes messages, et ton compte.</small>'));
+  assert.ok(avecCompte.includes('<small>Ton pseudo, tes scores et ta place dans les classements, tes avis, ton vote et tes messages, et ton compte.</small>'));
   const f = cut('async function compteSupprimer(){', '\n}\n');
   assert.ok(f.includes("titre:'Supprimer ton compte ?',texte:'Tu es sur le point de supprimer définitivement ton compte Requête et les données associées.',"));
   assert.ok(f.includes("corps:compteSupprimerHTML(p,compte),oui:'Continuer vers la confirmation',non:'Conserver mon compte',danger:true"));
@@ -209,7 +209,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=154">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=24">') && sw.includes("'./onboarding-vitrine.css?v=24',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=155">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=24">') && sw.includes("'./onboarding-vitrine.css?v=24',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-05-invitation-v2539' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-05-pratiquer-v2540' && app.includes(`const SW_CACHE='${cache}';`));
 });
