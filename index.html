@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=149">
+<link rel="stylesheet" href="ludique.css?v=150">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -21429,10 +21429,18 @@ function renderDefisRoom(){
   const D=typeof DEFIS!=='undefined'?DEFIS:{carte:''};
   if(jeuInvite)D.carte='code';
   const c=D.carte;
-  const tuile=(k,stk,titre,sous)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b><small>${sous}</small></button>`;
-  host.innerHTML=`<div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('creer','user','Créer','une salle entre amis')}${tuile('code','rocket','J’ai un code','rejoindre un ami')}${tuile('seul','clock','Seul','entraînement')}</div>`;
+  /* 11 h 11 : « juste un cadre unique » : les trois boutons sont dans le cadre de la partie rapide (defisActionsHTML). */
+  host.innerHTML='';
+  document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===c)));
   const f=typeof document.getElementById==='function'?document.getElementById('dx-feuille'):null;
   if(c&&(!f||f.dataset.k!==c))defisFeuilleOuvrir(c);
+}
+/* « Créer », « J’ai un code », « Seul » : dans le cadre de la partie rapide, sous « ou », une seule rangée (Elisa, 5 novembre, 11 h 11 :
+   « juste un cadre unique ») ; chacun ouvre sa feuille. */
+function defisActionsHTML(){
+  const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
+  const tuile=(k,stk,titre,sous)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b><small>${sous}</small></button>`;
+  return `<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('creer','user','Créer','une salle')}${tuile('code','rocket','J’ai un code','rejoindre')}${tuile('seul','clock','Seul','entraînement')}</div>`;
 }
 /* Le contenu d’une feuille : le bandeau violet (autocollant, surtitre, titre ; le niveau en pastille), puis, sur blanc, seulement ce
    qu’il faut choisir. Créer : les manches, qui peut entrer, le pseudo ; un code : le code ; seul : les manches. */
@@ -21486,7 +21494,7 @@ function defisFeuilleOuvrir(k){
     </div>`;
   const inp=el.querySelector('#jeu-code');
   if(inp){inp.addEventListener('focus',()=>requestAnimationFrame(dxFeuilleCaler));inp.addEventListener('blur',dxFeuilleCaler);}
-  document.querySelectorAll('#defis-room .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
+  document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
   const bx=el.querySelector('.dx-f-boite');
   if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;}
   const montrer=()=>{
@@ -21500,7 +21508,7 @@ function defisFeuilleFermer(sansRetour){
   if(typeof DEFIS!=='undefined')DEFIS.carte='';
   jeuInvite='';
   if(typeof document==='undefined'||!document.getElementById)return;
-  document.querySelectorAll('#defis-room .dx-act').forEach(b=>b.setAttribute('aria-expanded','false'));
+  document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded','false'));
   const el=document.getElementById('dx-feuille');if(!el)return;
   document.removeEventListener('keydown',dxFeuilleTouche,true);
   const vv=window.visualViewport;if(vv){vv.removeEventListener('resize',dxFeuilleCaler);vv.removeEventListener('scroll',dxFeuilleCaler);}
@@ -22227,7 +22235,8 @@ function defisRapideHTML(){
     <p class="room-sub">On te place dans une salle qui démarre, à ton niveau. Personne&nbsp;? On ouvre la tienne, et les autres la voient.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="dx-niv-l">Niveau</p>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
     <button type="button" class="room-go" id="dx-rapide-go" onclick="jeuPartieRapide()"><span>Trouver une salle</span>${DEF_CHEV_SVG}</button>
-    <p class="jeu-msg" id="dx-rapide-msg" role="status" aria-live="polite"></p></section>`;
+    <p class="jeu-msg" id="dx-rapide-msg" role="status" aria-live="polite"></p>
+    ${defisActionsHTML()}</section>`;
 }
 /* Créer une salle, entrer un code, s’entraîner seul : la feuille demandée (defisFeuilleOuvrir) ; '' la referme. */
 function defisCarte(m){
@@ -38304,7 +38313,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-pastille-v2530';
+  const SW_CACHE='requete-2026-11-05-cadre-v2531';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
