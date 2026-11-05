@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=145">
+<link rel="stylesheet" href="ludique.css?v=146">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -16917,7 +16917,7 @@ function renderDbWorkspace(){
   const tables=database?listTables(database):[];
   /* Elisa, 5 novembre, 7 h 03 : le schéma UML de la base, dessiné à partir de ses tables (importées, créées), dès qu’il y en a deux :
      la pastille jaune ouvre la feuille Schéma sur lui. */
-  const uml=tables.length>1?`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console')">${UML_SVG}<span>Schéma UML</span><i class="db-uml-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></i></button>`:'';
+  const uml=tables.length>1?`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console','__uml__')">${UML_SVG}<span>Schéma UML</span><i class="db-uml-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></i></button>`:'';
   bar.innerHTML=(verrou
     ?`<span class="db-pill is-lock"><span aria-hidden="true">🔒</span><span>Base d’entraînement · lecture seule</span></span>`
     :`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`)+uml;
@@ -16936,7 +16936,7 @@ function renderDbWorkspace(){
   }
   host.innerHTML=tables.map(t=>{
     const n=tableRowCount(database,t);
-    const enc=encodeURIComponent(t);
+    const enc=encodeURIComponent(t).replace(/'/g,'%27');   // « l’atelier d'Anaïs » : l’apostrophe droite fermait le onclick
     const open=openTableSchema===t;
     const resettable=hasTableBaseline(activeDbId,t);
     const cols=open?introspectTable(database,t,tables):[];
@@ -16945,7 +16945,7 @@ function renderDbWorkspace(){
       <div class="db-col">
         <span class="cn">${esc(c.c)}</span>
         ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
-        ${c.b==='fk'?'<span class="badge fk">FK</span>':''}
+        ${c.b==='fk'||c.ref?'<span class="badge fk">FK</span>':''}
         ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
         <span class="ct">${esc(c.t)}</span>
         ${colNote(activeDbId,t,c.c)?`<small class="cd">${esc(colNote(activeDbId,t,c.c))}</small>`:''}
@@ -17006,7 +17006,7 @@ function tablePreviewHTML(name){
     const tot=tableRowCount(db0,name);
     body=renderTable(res,null)+(typeof tot==='number'&&tot>TBL_PREVIEW_N?`<p class="db-tpreview-more">Les ${TBL_PREVIEW_N} premières lignes sur ${tot}.</p>`:'');
   }catch(e){body=errBox(String(e.message||e));}
-  const enc=encodeURIComponent(name);
+  const enc=encodeURIComponent(name).replace(/'/g,'%27');
   return `<div class="db-tpreview">${body}<button type="button" class="db-tpreview-open" onclick="queryTableEditor(decodeURIComponent('${enc}'))">${CONSOLE_EDIT_SVG}<span>Ouvrir dans l’éditeur</span></button></div>`;
 }
 function queryTable(name){
@@ -17052,12 +17052,15 @@ function parseCsv(text){
   return String(text).replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(','));
 }
 function inferSqlType(vals){
-  let allNum=true,allInt=true;
+  let allNum=true,allInt=true,vus=0;
   for(const v of vals){
     if(v==null||String(v).trim()==='')continue;
-    if(!/^-?\d+(\.\d+)?$/.test(String(v).trim())){allNum=false;break;}
-    if(!/^-?\d+$/.test(String(v).trim())) allInt=false;
+    const t=String(v).trim();vus++;
+    /* « 01000 », « 0612345678 » : un code postal, un téléphone, du texte (8 h 13 : ils devenaient 1000 et 612345678) */
+    if(!/^-?\d+(\.\d+)?$/.test(t)||/^-?0\d/.test(t)){allNum=false;break;}
+    if(!/^-?\d+$/.test(t)) allInt=false;
   }
+  if(!vus) return 'TEXT';   // une colonne sans valeur
   if(allNum) return allInt?'INTEGER':'REAL';
   return 'TEXT';
 }
@@ -17084,6 +17087,13 @@ function tableFromMatrix(headers,dataRows){
   while(last>0&&(headers[last]==null||String(headers[last]).trim()==='')&&dataRows.every(r=>r[last]==null||String(r[last]).trim()===''))last--;
   headers=Array.from({length:last+1},(_,i)=>headers[i]==null?'':String(headers[i]).trim());
   dataRows=dataRows.map(r=>Array.from({length:last+1},(_,i)=>r[i]==null?'':r[i]));
+  /* Une colonne sans nom ni valeur, où qu’elle soit (8 h 13 : un tableau posé en B2 donnait une colonne col_1 toute vide) */
+  const garde=headers.map((h,i)=>h!==''||dataRows.some(r=>String(r[i]).trim()!==''));
+  if(garde.some(g=>!g)&&garde.some(g=>g)){
+    headers=headers.filter((_,i)=>garde[i]);
+    dataRows=dataRows.map(r=>r.filter((_,i)=>garde[i]));
+    last=headers.length-1;
+  }
   let dates=0;
   for(let i=0;i<=last;i++){
     const vals=dataRows.map(r=>typeof r[i]==='string'?r[i].trim():r[i]).filter(v=>v!==''&&v!=null);
@@ -17179,15 +17189,19 @@ function runSqlImport(database, sql){
   ensureTablesForSqlImport(database, normalized);
   database.exec(normalized);
 }
+/* Une valeur JSON dans une cellule : un objet ou une liste imbriqués deviennent leur texte JSON (8 h 13 : « ex : [object Object] »). */
+function jsonCellule(v){ return v==null?'':typeof v==='object'?JSON.stringify(v):v; }
+/* Une liste de valeurs simples (« tags » : ["bio", "local"]) : une table d’une colonne, valeur. */
+function jsonLignes(arr){ return arr.map(o=>o!=null&&typeof o==='object'&&!Array.isArray(o)?o:{valeur:o}); }
 function parseJsonImport(data){
   // Base JSON : { clients: [...], produits: [...] }
   if(data && typeof data==='object' && !Array.isArray(data)){
-    const entries=Object.entries(data).filter(([,v])=>Array.isArray(v));
-    if(entries.length>=2 && entries.every(([,arr])=>!arr.length||(typeof arr[0]==='object'&&arr[0]&&!Array.isArray(arr[0])))){
+    const entries=Object.entries(data).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,jsonLignes(v)]);
+    if(entries.length>=2){
       const tables=entries.map(([name,arr])=>{
         const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
         if(!headers.length) headers.push('id');
-        const matrix=arr.map(o=>headers.map(h=>o&&o[h]==null?'':o[h]));
+        const matrix=arr.map(o=>headers.map(h=>jsonCellule(o&&o[h])));
         return {name:safeIdent(name),...tableFromMatrix(headers,matrix)};
       });
       const total=tables.reduce((n,t)=>n+t.rows.length,0);
@@ -17202,7 +17216,7 @@ function parseJsonImport(data){
       if(!arr.length||(typeof arr[0]==='object'&&arr[0]&&!Array.isArray(arr[0]))){
         const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
         if(!headers.length) throw new Error('JSON : table vide sans colonnes.');
-        const matrix=arr.map(o=>headers.map(h=>o&&o[h]==null?'':o[h]));
+        const matrix=arr.map(o=>headers.map(h=>jsonCellule(o&&o[h])));
         const t=tableFromMatrix(headers,matrix);
         return {kind:'table',...t,defaultTable:safeIdent(name),hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
       }
@@ -17211,14 +17225,17 @@ function parseJsonImport(data){
   const arr=Array.isArray(data)?data:(data&&typeof data==='object'?[data]:null);
   if(!arr||!arr.length||typeof arr[0]!=='object'||Array.isArray(arr[0])) throw new Error('JSON : attendu un tableau d’objets, ou un objet { table: [...] }.');
   const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
-  const matrix=arr.map(o=>headers.map(h=>o[h]==null?'':o[h]));
+  const matrix=arr.map(o=>headers.map(h=>jsonCellule(o&&o[h])));
   const t=tableFromMatrix(headers,matrix);
   return {kind:'table',...t,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
 }
 function parseImportFile(name,text,enc){
   const lower=(name||'').toLowerCase();
   const baseName=safeIdent((name||'import').replace(/\.[^.]+$/,''))||'import';
-  if(lower.endsWith('.sql')||/^\s*(CREATE|INSERT|DROP|ALTER|WITH|BEGIN|PRAGMA)\b/i.test(text)){
+  /* Un script SQL : son extension, ou une vraie instruction en tête (un .txt). Un .csv n’en est jamais un (8 h 13 : un en-tête
+     « begin,date,lieu » partait en script, puis en « syntax error »). */
+  const delimite=/\.(csv|tsv|tab)$/.test(lower);
+  if(lower.endsWith('.sql')||!delimite&&/^\s*(CREATE\s+(TEMP\w*\s+)?(TABLE|VIEW|INDEX|UNIQUE|TRIGGER)|INSERT\s+(OR\s+\w+\s+)?INTO|DROP\s+(TABLE|VIEW|INDEX)|ALTER\s+TABLE|WITH\s+\w+\s+AS|BEGIN(\s+TRANSACTION)?\s*;\s*(CREATE|INSERT|DROP|ALTER|PRAGMA)\b|PRAGMA\s+\w+)/i.test(text)){
     const sql=normalizeSqlForSqlite(text);
     const cls=classifySqlImport(sql);
     const named=cls.tableNames.length?cls.tableNames:[];
@@ -17241,13 +17258,13 @@ function parseImportFile(name,text,enc){
       preview:sql.slice(0,280)+(sql.length>280?'…':'')
     };
   }
-  if(/\.(jsonl|ndjson)$/.test(lower)||(/^\s*\{/.test(text)&&/\}\s*\r?\n\s*\{/.test(text))){
+  if(/\.(jsonl|ndjson)$/.test(lower)||!delimite&&(/^\s*\{/.test(text)&&/\}\s*\r?\n\s*\{/.test(text))){
     const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
     const parsed=parseJsonImport(lines.map((l,i)=>{try{return JSON.parse(l);}catch(e){throw new Error('JSON Lines : ligne '+(i+1)+' illisible.');}}));
     if(!parsed.defaultTable) parsed.defaultTable=baseName;
     return parsed;
   }
-  if(lower.endsWith('.json')||/^\s*[\[{]/.test(text)){
+  if(lower.endsWith('.json')||!delimite&&/^\s*[\[{]/.test(text)){
     const data=JSON.parse(text);
     const parsed=parseJsonImport(data);
     if(!parsed.defaultTable) parsed.defaultTable=baseName;
@@ -17263,6 +17280,19 @@ function parseImportFile(name,text,enc){
   const det=[fmt,encTxt,parsedCsv.delimiterName,t.dates?plur(t.dates,'colonne')+' de dates en AAAA‑MM‑JJ':''].filter(Boolean).join(' · ');
   return {kind:'table',...t,encoding:enc&&enc.encoding||'',delimiter:parsedCsv.delimiter||'',defaultTable:baseName,
     hint:`${det} · ${plur(t.rows.length,'ligne')} · ${t.cols.join(', ')}`};
+}
+/* L’en-tête d’une feuille (8 h 13 : « Commandes du 1er trimestre » en A1, l’en-tête en ligne 3) : la première ligne aussi remplie que
+   les suivantes, faite de textes ; un titre ou une ligne d’explication au-dessus n’en sont pas. */
+function ligneEnTete(rows){
+  const plein=r=>(r||[]).filter(c=>c!=null&&String(c).trim()!=='').length;
+  const n=Math.min(rows.length,12),max=Math.max(0,...rows.slice(0,n).map(plein));
+  for(let i=0;i<n;i++){
+    const r=rows[i]||[],k=plein(r),vals=r.filter(c=>c!=null&&String(c).trim()!=='');
+    /* un titre fusionné sur toute la largeur se répète dans chaque cellule : ce n’est pas un en-tête */
+    if(k>=2&&new Set(vals.map(String)).size===1)continue;
+    if(k>=Math.max(2,Math.ceil(max*0.6))&&r.every(c=>c==null||typeof c==='string'||String(c).trim()===''))return i;
+  }
+  return 0;
 }
 /* Un fichier, quel qu’il soit : une base SQLite, un classeur (Excel .xlsx/.xls, OpenDocument .ods ; une feuille = une table), ou du texte. */
 async function parseImportBytes(name,bytes){
@@ -17286,7 +17316,8 @@ async function parseImportBytes(name,bytes){
       let tname=safeIdent(sh.name)||'feuille',k=1;
       while(used.has(tname.toLowerCase()))tname=safeIdent(sh.name)+'_'+(++k);
       used.add(tname.toLowerCase());
-      return {name:tname,sheet:sh.name,...tableFromMatrix(rows[0],rows.slice(1))};
+      const h=ligneEnTete(rows);
+      return {name:tname,sheet:sh.name,...tableFromMatrix(rows[h],rows.slice(h+1))};
     }).filter(Boolean);
     if(!tables.length) throw new Error('le classeur est vide.');
     const fmt={xlsx:'classeur Excel',xls:'classeur Excel 97-2003',ods:'classeur OpenDocument'}[book.format]||'classeur';
@@ -17453,38 +17484,56 @@ async function confirmImport(){
   const chosen=document.getElementById('imp-db').value;
   if(asDb && chosen!=='__new__' && customDbs[chosen]){
     const existing=listTables(customDbs[chosen]);
-    if(existing.length && !await lqAsk({ico:'🗂️',titre:'Remplacer le contenu ?',texte:`Le projet « ${(dbCatalog.find(d=>d.id===chosen)||{}).name||chosen} » contient déjà ${plur(existing.length,'table')} : elles seront remplacées par celles du fichier.`,oui:'Remplacer',non:'Annuler'})){
+    if(existing.length && !await lqAsk({ico:'🗂️',titre:'Remplacer le contenu ?',texte:`Le projet « ${(dbCatalog.find(d=>d.id===chosen)||{}).name||chosen} » contient déjà ${plur(existing.length,'table')} : elles seront remplacées par celles du fichier.`,oui:'Remplacer',non:'Annuler'})){
       return;
     }
   }
+  /* Une table qui porte déjà ce nom dans le projet (5 novembre, 8 h 13 : réimporter un fichier remplaçait la table sans rien dire,
+     avec les lignes ajoutées à la main) : on demande, et « Annuler » laisse changer son nom. */
+  if(p.kind==='table' && chosen!=='__new__' && customDbs[chosen]){
+    const tn=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
+    const deja=listTables(customDbs[chosen]).find(t=>t.toLowerCase()===String(tn).toLowerCase());
+    if(deja && !await lqAsk({ico:'🗂️',titre:`Remplacer la table « ${deja} » ?`,texte:`Elle existe déjà dans ce projet : ses ${plur(+tableRowCount(customDbs[chosen],deja)||0,'ligne')} seront remplacées par celles du fichier. Pour la garder, choisis un autre nom de table.`,oui:'Remplacer',non:'Annuler'})){
+      return;
+    }
+  }
+  const avant=activeDbId,neuf=chosen==='__new__';
   const target=resolveImportTarget();
   if(!target)return;
 
+  /* Un import qui échoue ne laisse rien derrière lui (8 h 13 : un projet vide à chaque essai, et la Console passait en douce sur
+     lui) : l’ancien contenu est gardé jusqu’au bout, le projet créé pour l’import s’en va, et la Console reste où elle était. */
+  let ancienne=null;
   activeDbId=target;
   if(asDb && listTables(customDbs[target]||activeDb()).length){
-    // Replace content for database imports into an existing base
-    try{ customDbs[target].close(); }catch(e){}
+    ancienne=customDbs[target];
     customDbs[target]=attachDateFns(new SQL.Database());
   }
   if(p.format==='sqlite'){
-    try{ customDbs[target].close(); }catch(e){}
+    const vide=customDbs[target];
     customDbs[target]=attachDateFns(new SQL.Database(p.bytes));
+    if(vide!==ancienne)try{ vide.close(); }catch(e){}
   }
   const database=activeDb();
   const beforeTables=p.format==='sqlite'?[]:listTables(database);
+  let point=false;
   try{
     if(p.format==='sqlite'){
       /* rien à créer : les tables sont celles du fichier */
     }else if(p.kind==='database' && p.format==='json-db'){
+      database.run('SAVEPOINT rq_import');point=true;
       createImportedTables(database, p.tables);
     }else if(p.kind==='database' || p.kind==='sql-table'){
       runSqlImport(database, p.sql);
       if(p.primaryTable) pendingImport.importedTable=safeIdent(p.primaryTable);
     }else{
       const tname=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
+      database.run('SAVEPOINT rq_import');point=true;
       createImportedTables(database, [{name:tname, cols:p.cols, types:p.types, rows:p.rows}]);
       pendingImport.importedTable=tname;
     }
+    if(point){ database.run('RELEASE rq_import'); point=false; }
+    if(ancienne){ try{ ancienne.close(); }catch(e){} ancienne=null; }
     const tname=pendingImport.importedTable || (isTableImport(p)?(p.primaryTable||null):null);
     const tabs=listTables(database);
     if(asDb)tableBaselines[target]={};
@@ -17498,22 +17547,47 @@ async function confirmImport(){
     if(activeDbId!=='cours')persistCustomDbs();
     closeImportSheet();
     openConsoleProject(target);
-    if(tname && tabs.map(t=>t.toLowerCase()).includes(String(tname).toLowerCase())){
-      queryTable(tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase())||tname);
-    }else{
-      const out=document.getElementById('console-out');
-      if(out){
-        out.innerHTML=asDb
-          ? `<div class="feedback ok"><div class="fi">✓</div><div><b>Projet importé</b><p>${tabs.length} table${tabs.length>1?'s':''} disponible${tabs.length>1?'s':''}${tabs.length?` : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}`:''}.</p>${tabs.length>1?`<button type="button" class="imp-uml" onclick="openSchemaSheet('console')">${UML_SVG}<span>Voir le schéma UML</span></button>`:''}</div></div>`
-          : `<div class="feedback ok"><div class="fi">✓</div><div><b>Import réussi</b><p>${tabs.length?`Tables : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:'Script exécuté.'}</p></div></div>`;
-      }
+    const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):null;
+    if(tn)queryTable(tn);
+    /* Ce que l’import a fait, et le schéma qui s’est dessiné tout seul (8 h 13 : « si on met un fichier, ça génère
+       automatiquement ») : les liens trouvés, « Voir le schéma UML » dès deux tables. */
+    const out=document.getElementById('console-out');
+    if(out){
+      out.innerHTML=importRetourHtml(database,tabs,tn,asDb);
+      /* Le compte rendu sous les yeux dès qu’il y a un schéma à voir (il restait sous l’éditeur, hors de l’écran) */
+      if(tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));
     }
     lqSay(asDb?'Projet importé':'Table importée');
   }catch(e){
+    if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}
+    if(ancienne){ try{ customDbs[target].close(); }catch(x){} customDbs[target]=ancienne; }
+    if(neuf&&customDbs[target]){
+      try{ customDbs[target].close(); }catch(x){}
+      delete customDbs[target]; delete tableBaselines[target];
+      dbCatalog=dbCatalog.filter(d=>d.id!==target);
+      if(typeof projState!=='undefined'){ delete projState[target]; try{ saveProjState(); }catch(x){} }
+    }
+    activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';
     lqInfo('Import impossible',String(e.message||e));
   }
 }
-
+/* Le compte rendu d’un import, dans la Console : les tables, les liens trouvés avec les autres (le schéma UML s’est dessiné tout seul),
+   et le bouton pour le voir dès deux tables ; une première table : ce qu’il faudra pour que des liens apparaissent. */
+function importRetourHtml(database,tabs,tn,asDb){
+  const codes=a=>a.map(t=>'<code>'+esc(t)+'</code>').join(', ');
+  let liens=[];
+  if(tabs.length>1){ try{ const m=umlModele(database,tabs,true); liens=m.liens.filter((l,i)=>(!tn||l.de===tn||l.vers===tn)&&(!l.grp||m.liens.findIndex(z=>z.grp===l.grp)===i)); }catch(e){} }
+  const voir=tabs.length>1?`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">${UML_SVG}<span>Voir le schéma UML</span></button>`:'';
+  const dits=liens.slice(0,4).map(l=>`<code>${esc(l.de)}.${esc(l.col)}</code> → <code>${esc(l.vers)}</code>`).join(', ')+(liens.length>4?'…':'');
+  const trouves=liens.length?`<p class="imp-liens">${liens.length>1?`${liens.length} liens trouvés`:'Lien trouvé'}&nbsp;: ${dits}.</p>`:'';
+  /* La colonne qui désignerait cette table depuis une autre : clients → client_id, animaux → animal_id */
+  const cle=t=>String(t).toLowerCase().replace(/eaux$/,'eau').replace(/aux$/,'al').replace(/ies$/,'y').replace(/s$/,'')+'_id';
+  const ok=(titre,corps)=>`<div class="feedback ok"><div class="fi">✓</div><div><b>${titre}</b>${corps}</div></div>`;
+  if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${trouves}${voir}`);
+  if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses liens.</p>`);
+  if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucun lien pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait un.`}</p>${trouves}${voir}`);
+  return ok('Import réussi',`<p>${tabs.length?`Tables&nbsp;: ${codes(tabs)}.`:'Script exécuté.'}</p>${trouves}${voir}`);
+}
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE','OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD','FIRST_VALUE','LAST_VALUE','NTILE','ROWS','RANGE','CURRENT','UNBOUNDED','PRECEDING','FOLLOWING','GROUP_CONCAT','STRING_AGG',
   /* Définir, modifier, sécuriser (les chapitres du projet) : GRANT, REVOKE et TO restaient en blanc dans la requête d’une note
      (Elisa, 2 novembre, 18 h 45). */
@@ -18854,7 +18928,9 @@ function schemaTableIcon(){
    Les exemples : sous chaque colonne, son cadre « ex : 4 », pris dans une même ligne de la table (ses valeurs vont ensemble) ; un
    interrupteur « Exemples de données » les plie et les déplie, et l’appareil s’en souvient. */
 const UML_TEINTES=[['#6A4DF4','#EEE9FF','#5335E0'],['#2F80ED','#E6F0FD','#1D5FA8'],['#E8892B','#FFF1E2','#9A5B00'],['#169447','#E2F6EA','#0F7A3A'],
-  ['#0E9F9A','#DDF5F3','#0B6E6A'],['#D9468F','#FCE8F2','#A3216A'],['#D99A0B','#FFF6DA','#8A6200']];
+  ['#0E9F9A','#DDF5F3','#0B6E6A'],['#D9468F','#FCE8F2','#A3216A'],['#D99A0B','#FFF6DA','#8A6200'],
+  /* Trois de plus (8 h 13 : au-delà de sept tables désignées, deux couleurs se répétaient) */
+  ['#E0453A','#FDE9E7','#A82C22'],['#9A6B45','#F5ECE4','#6E4A2D'],['#6BA51B','#EEF6E0','#4A7512']];
 /* Une table que rien ne désigne : la teinte de l’encre, pour que les couleurs ne parlent que des liens. */
 const UML_NEUTRE=['#8E87B8','#F3F1FA','#4A4370'];
 const UML_G={tete:34,pad:7,ligne:20,ligneEx:36,ecart:20,voie0:14,voie:8,max:7};
@@ -18874,7 +18950,8 @@ function schemaExemples(database,name,n){
   const ex={};
   if(!database||!(+n>0))return ex;
   const q=quoteIdent(name),dire=v=>v==null?{v:'NULL',k:'null'}:ArrayBuffer.isView(v)?{v:'(binaire)',k:'bin'}
-    :typeof v==='number'?{v:String(Number.isInteger(v)?v:+v.toFixed(4)),k:'num'}
+    /* 4 décimales au-delà de 1, 4 chiffres significatifs en dessous (8 h 13 : 1e-7 et 1,234e-5 s’affichaient « 0 ») */
+    :typeof v==='number'?{v:String(Number.isInteger(v)?v:Math.abs(v)>=1?+v.toFixed(4):+v.toPrecision(4)),k:'num'}
     :{v:String(v).replace(/\s+/g,' ').trim().slice(0,60)||"''",k:'txt'};
   try{
     const r=database.exec('SELECT * FROM '+q+' LIMIT 1 OFFSET '+Math.min(3,Math.floor(+n)-1))[0];
@@ -18887,24 +18964,51 @@ function schemaExemples(database,name,n){
   }catch(e){}
   return ex;
 }
-/* Les tables, leurs colonnes (avec NOT NULL, UNIQUE, la colonne désignée et un exemple), et les liens d’une clé étrangère à sa table. */
-function umlModele(database,tables){
+/* Les tables, leurs colonnes (avec NOT NULL, UNIQUE, la colonne désignée et un exemple), et les liens d’une clé étrangère à sa table.
+   Les fichiers des agents (5 novembre, 8 h 13 : « si on met un fichier, ça génère automatiquement ») :
+   - SQLite ne regarde pas la casse : « REFERENCES Clients(ID) » désigne la table clients et sa colonne id ;
+   - une clé déclarée compte, même quand elle est aussi la clé primaire (une table d’association, un 1-1 par clé partagée) ;
+   - les colonnes d’une même clé composite vont ensemble (grp : une seule jointure, avec AND) ;
+   - un lien deviné au nom de la colonne ne va jamais vers sa propre table, ni vers une table sans clé primaire ; s’il n’y a pas de
+     NOT NULL (un fichier importé n’en a jamais), sa multiplicité est lue dans les données : aucune clé vide, « 1 ».
+   sansEx : sans les exemples (les requêtes prêtes à lancer de la Console n’en ont pas besoin). */
+function umlModele(database,tables,sansEx){
   const lire=q=>{ try{ const r=database.exec(q); return r[0]?r[0].values:[]; }catch(e){ return []; } };
+  const nomTable=n=>{ const v=String(n==null?'':n).toLowerCase(); return tables.find(t=>String(t).toLowerCase()===v)||null; };
   const T=tables.map(name=>{
-    const q=quoteIdent(name),nn={},uq={},vers={};
+    const q=quoteIdent(name),nn={},uq={},decl={};
     if(database){
-      lire('PRAGMA table_info('+q+')').forEach(v=>{ nn[String(v[1])]=!!(v[3]||v[5]); });
-      lire('PRAGMA foreign_key_list('+q+')').forEach(v=>{ if(v[3])vers[String(v[3])]=v[4]!=null?String(v[4]):null; });
+      const info=lire('PRAGMA table_info('+q+')'),pks=info.filter(v=>v[5]);
+      info.forEach(v=>{ nn[String(v[1])]=!!(v[3]||v[5]); });
+      if(pks.length===1)uq[String(pks[0][1])]=true;   // une clé primaire d’une seule colonne est unique (un 1-1 par clé partagée : 0..1)
+      lire('PRAGMA foreign_key_list('+q+')').forEach(v=>{ if(v[3]!=null)decl[String(v[3])]={t:v[2]!=null?String(v[2]):null,col:v[4]!=null?String(v[4]):null,id:v[0]}; });
       lire('PRAGMA index_list('+q+')').forEach(v=>{ if(!v[2])return; const cs=lire('PRAGMA index_info('+quoteIdent(String(v[1]))+')').map(x=>String(x[2])); if(cs.length===1)uq[cs[0]]=true; });
     }
     const n=database?tableRowCount(database,name):((SCHEMA_META.find(t=>t.table===name)||{}).n);
-    const ex=schemaExemples(database,name,n);
-    return {name,n:n==null?'?':n,cols:introspectTable(database,name,tables).map(c=>Object.assign({},c,{nn:!!nn[c.c],uq:!!uq[c.c],vers:vers[c.c]||null,ex:ex[c.c]||null}))};
+    const ex=sansEx?{}:schemaExemples(database,name,n);
+    return {name,n:n==null?'?':n,cols:introspectTable(database,name,tables).map(c=>{
+      const d=decl[c.c];
+      return Object.assign({},c,{nn:!!nn[c.c],uq:!!uq[c.c],vers:d&&d.col||null,decl:d?d.t:null,fkId:d?d.id:null,ex:ex[c.c]||null});
+    })};
   });
+  const plein=(t,c)=>{ try{ const r=database.exec('SELECT COUNT(*),COUNT('+quoteIdent(c)+') FROM '+quoteIdent(t))[0].values[0]; return r[0]>0&&r[0]===r[1]; }catch(e){ return false; } };
   const liens=[];
-  T.forEach(t=>t.cols.forEach(c=>{
-    if(c.b==='fk'&&c.ref&&tables.includes(c.ref))liens.push({de:t.name,col:c.c,vers:c.ref,versCol:c.vers,un:c.nn?'1':'0..1',plusieurs:c.uq?'0..1':'0..*'});
-  }));
+  T.forEach(t=>{
+    const groupes={};
+    t.cols.forEach(c=>{ if(c.decl!=null)(groupes[c.fkId]=groupes[c.fkId]||[]).push(c.c); });
+    t.cols.forEach(c=>{
+      const declare=c.decl!=null,cible=declare?nomTable(c.decl):c.b==='fk'&&c.ref?nomTable(c.ref):null;
+      if(!cible)return;
+      const tc=T.find(z=>z.name===cible);
+      if(!declare&&(cible===t.name||!tc||!tc.cols.some(z=>z.b==='pk')))return;
+      let vc=null;
+      if(c.vers){ const k=tc&&tc.cols.find(z=>String(z.c).toLowerCase()===c.vers.toLowerCase()); vc=k?k.c:c.vers; }
+      const l={de:t.name,col:c.c,vers:cible,versCol:vc,un:c.nn?'1':'0..1',plusieurs:c.uq?'0..1':'0..*'};
+      if(!declare){ l.devine=true; if(l.un!=='1'&&database&&plein(t.name,c.c))l.un='1'; }
+      if(declare&&groupes[c.fkId].length>1)l.grp=t.name+'\u0001'+c.fkId;
+      liens.push(l);
+    });
+  });
   return {tables:T,liens};
 }
 /* L’ordre des tables : une table ne vient qu’après celles qu’elle désigne, et le plus près possible d’elles. À chaque pas, la table
@@ -18937,22 +19041,31 @@ function umlTeintes(m,ordre){
 }
 /* La mise en page, sans rien mesurer (testée telle quelle) : l’ordre des tables, leurs cartes, les couloirs des liens et leurs
    multiplicités. W : la largeur de la toile ; ex : les exemples dépliés (une ligne de 36 px par colonne au lieu de 20).
-   Retourne {W, H, ex, cartes:[{name,n,x,y,w,h,L,cols,plus,teinte}], arcs:[{i,de,vers,col,c,cs,ci,d,cote,voie,lab}], T}. */
+   Retourne {W, H, ex, cartes:[{name,n,x,y,w,h,L,cols,plus,teinte}], arcs:[{i,de,vers,col,c,cs,ci,d,cote,voie,lab}], T}.
+   Les fichiers des agents (5 novembre, 8 h 13) : une table désignée par dix autres empilait ses pastilles en bas de sa carte, et ses
+   couloirs se serraient à 3 px. Les liens vers une même colonne, avec la même multiplicité, y arrivent maintenant ensemble : un
+   faisceau, un couloir, un bout et une pastille. Deux faisceaux qui arriveraient au même endroit : l’un passe de l’autre côté de la
+   carte s’il y a la place (sinon il descend de 17 px en 17 px) ; et les côtés s’élargissent pour garder 5 px entre deux couloirs.
+   Les clés d’une table ne passent jamais sous « +N colonnes ». */
 function umlPlan(m,W,ex){
   const G=UML_G,{ordre,par}=umlOrdre(m),T=umlTeintes(m,ordre);
   const voisins=(a,b)=>par[a].has(b)||par[b].has(a);
-  /* Les cartes : une colonne au milieu, les couloirs des liens de chaque côté. */
-  const bord=W<420?40:64,cw=Math.round(Math.max(170,Math.min(380,W-2*bord))),x=Math.round((W-cw)/2),cartes={};
+  const part=new Set(m.liens.map(l=>l.de+'\u0001'+l.col)),arrive=new Set(m.liens.map(l=>l.vers+'\u0001'+umlCle(m,l)));
+  const cartes={};
   let y=12,prec=null;
   ordre.forEach(n=>{
     const t=m.tables.find(z=>z.name===n);
     let cols=t.cols,plus=0;
-    if(cols.length>G.max){ const garde=new Set(cols.filter(c=>c.b).concat(cols.filter(c=>!c.b)).slice(0,G.max-1)); cols=t.cols.filter(c=>garde.has(c)); plus=t.cols.length-cols.length; }
+    if(cols.length>G.max){
+      const cle=c=>c.b||part.has(n+'\u0001'+c.c)||arrive.has(n+'\u0001'+c.c),cles=cols.filter(cle);
+      const garde=new Set(cles.concat(cols.filter(c=>!cle(c)).slice(0,Math.max(0,G.max-1-cles.length))));
+      cols=t.cols.filter(c=>garde.has(c)); plus=t.cols.length-cols.length;
+    }
     /* Une table sans ligne n’a pas d’exemple : ses colonnes restent sur une ligne. */
     const L=ex&&cols.some(c=>c.ex)?G.ligneEx:G.ligne;
     const h=G.tete+2*G.pad+(cols.length?cols.length*L:G.ligne)+(plus?G.ligne:0);
     if(prec!=null&&!voisins(prec,n))y+=8;   // un peu plus d’air entre deux tables qui ne se désignent pas
-    cartes[n]={name:n,n:t.n,x,y,w:cw,h,L,cols,plus,teinte:T[n]};
+    cartes[n]={name:n,n:t.n,x:0,y,w:0,h,L,cols,plus,teinte:T[n]};
     y+=h+G.ecart; prec=n;
   });
   const H=Math.max(60,y-G.ecart+12);
@@ -18962,96 +19075,153 @@ function umlPlan(m,W,ex){
     const a=cartes[l.de],b=cartes[l.vers];
     if(!a||!b)return null;
     const i=a.cols.findIndex(c=>c.c===l.col),y1=i>=0?milieu(a,i):a.plus?milieu(a,a.cols.length):a.y+G.tete/2;
-    const j=b.cols.findIndex(c=>l.versCol?c.c===l.versCol:c.b==='pk'),y2=j>=0?milieu(b,j):b.y+G.tete/2;
-    return {l,a,b,y1,y2,auto:l.de===l.vers};
+    const cle=umlCle(m,l),j=b.cols.findIndex(c=>c.c===cle),y2=j>=0?milieu(b,j):b.y+G.tete/2;
+    return {l,a,b,y1,y2,j,auto:l.de===l.vers};
   }).filter(Boolean);
-  /* Les côtés : les liens courts d’abord ; chacun va du côté où il a le plus de place. */
-  const tri=()=>arcs.slice().sort((p,q)=>Math.abs(p.y1-p.y2)-Math.abs(q.y1-q.y2));
+  /* Les faisceaux : les liens qui arrivent sur une même colonne avec la même multiplicité ; une boucle reste seule. */
+  const faisceaux=[],parCle={};
+  arcs.forEach((r,k)=>{
+    const cle=r.auto?'\u0002'+k:r.b.name+'\u0001'+r.j+'\u0001'+r.l.un;
+    let f=parCle[cle];
+    if(!f){ f=parCle[cle]={arcs:[],b:r.b,y2:r.y2,auto:r.auto}; faisceaux.push(f); }
+    f.arcs.push(r); r.f=f;
+  });
+  const etendue=f=>{ const ys=f.arcs.map(r=>r.y1).concat(f.y2); return [Math.min(...ys)-9,Math.max(...ys)+9]; };
+  /* Les côtés : les faisceaux courts d’abord ; chacun va du côté où il a le plus de place. */
   const couloirs=(choisir)=>{
     const pris={g:[],d:[]};
-    tri().forEach(r=>{
-      const lo=Math.min(r.y1,r.y2)-9,hi=Math.max(r.y1,r.y2)+9;
+    faisceaux.slice().sort((p,q)=>{ const a=etendue(p),b=etendue(q); return (a[1]-a[0])-(b[1]-b[0]); }).forEach(f=>{
+      const [lo,hi]=etendue(f);
       const libre=cote=>{ let v=0; while(pris[cote].some(([a,b,w])=>w===v&&a<hi&&lo<b))v++; return v; };
       const vg=libre('g'),vd=libre('d');
-      if(choisir)r.cote=r.auto?'d':vd<vg?'d':vg<vd?'g':(pris.g.length<=pris.d.length?'g':'d');
-      r.voie=r.cote==='g'?vg:vd;
-      pris[r.cote].push([lo,hi,r.voie]);
+      if(choisir)f.cote=f.auto?'d':vd<vg?'d':vg<vd?'g':(pris.g.length<=pris.d.length?'g':'d');
+      f.voie=f.cote==='g'?vg:vd;
+      pris[f.cote].push([lo,hi,f.voie]);
     });
   };
   couloirs(true);
-  /* Les bouts sur une même carte, d’un même côté, ne se touchent pas : ceux des clés étrangères restent sur leur colonne ; ceux qui
-     arrivent sur la clé primaire descendent de 17 px en 17 px jusqu’à une place libre (chaque multiplicité se lit). */
-  const fixes={},bouts={};
-  arcs.forEach(r=>{ const k=r.a.name+'|'+r.cote; (fixes[k]=fixes[k]||[]).push(r.y1); });
-  arcs.forEach(r=>{ const k=r.b.name+'|'+r.cote; (bouts[k]=bouts[k]||[]).push(r); });
-  Object.entries(bouts).forEach(([k,g])=>{
-    const pris=(fixes[k]||[]).slice();
-    g.sort((p,q)=>p.y1-q.y1).forEach(r=>{
-      let y=r.y2;const max=r.b.y+r.b.h-9;
-      while(pris.some(v=>Math.abs(v-y)<16)&&y+17<=max)y+=17;
-      r.y2=y; pris.push(y);
-    });
+  /* Les bouts sur une même carte, d’un même côté, ne se touchent pas (16 px) : ceux des clés étrangères restent sur leur colonne ;
+     un faisceau qui tomberait sur un autre bout passe de l’autre côté de la carte si ses deux bouts y ont la place, sinon il
+     descend de 17 px en 17 px jusqu’à une place libre. */
+  const departs={},bouts={},cote2=c=>c==='g'?'d':'g';
+  const poser=(f,c,signe)=>f.arcs.forEach(r=>{ const k=r.a.name+'|'+c,l=departs[k]=departs[k]||[]; if(signe>0)l.push(r.y1); else{ const i=l.indexOf(r.y1); if(i>=0)l.splice(i,1); } });
+  faisceaux.forEach(f=>poser(f,f.cote,1));
+  const occupe=(k,y)=>(departs[k]||[]).concat(bouts[k]||[]).some(v=>Math.abs(v-y)<16);
+  faisceaux.slice().sort((p,q)=>p.b.y-q.b.y||p.y2-q.y2).forEach(f=>{
+    const k=f.b.name+'|'+f.cote;
+    if(occupe(k,f.y2)){
+      const c2=cote2(f.cote),k2=f.b.name+'|'+c2;
+      poser(f,f.cote,-1);
+      if(!f.auto&&!occupe(k2,f.y2)&&f.arcs.every(r=>!occupe(r.a.name+'|'+c2,r.y1))){ f.cote=c2; poser(f,c2,1); }
+      else{
+        poser(f,f.cote,1);
+        let yy=f.y2;const max=f.b.y+f.b.h-9;
+        while(occupe(k,yy)&&yy+17<=max)yy+=17;
+        f.y2=yy;
+      }
+    }
+    const kk=f.b.name+'|'+f.cote;
+    (bouts[kk]=bouts[kk]||[]).push(f.y2);
   });
-  couloirs(false);   // les couloirs, aux bouts définitifs
+  couloirs(false);   // les couloirs, aux côtés et aux bouts définitifs
+  /* Les cartes : une colonne au milieu ; de chaque côté, la place des couloirs (5 px au moins entre deux). */
+  const vmax={g:0,d:0};
+  faisceaux.forEach(f=>{ vmax[f.cote]=Math.max(vmax[f.cote],f.voie); });
+  const base=W<420?40:64,bg=Math.max(base,6+G.voie0+vmax.g*5),bd=Math.max(base,6+G.voie0+vmax.d*5);
+  const libreW=W-bg-bd,cw=Math.round(Math.max(170,Math.min(380,libreW))),x=Math.round(bg+Math.max(0,(libreW-cw)/2));
+  Object.values(cartes).forEach(c=>{ c.x=x; c.w=cw; });
   const place={g:x,d:W-x-cw};
   const pas={};
-  ['g','d'].forEach(c=>{ const v=Math.max(0,...arcs.filter(r=>r.cote===c).map(r=>r.voie)); pas[c]=v?Math.min(G.voie,(place[c]-6-G.voie0)/v):G.voie; });
+  ['g','d'].forEach(c=>{ const v=vmax[c]; pas[c]=v?Math.min(G.voie,(place[c]-6-G.voie0)/v):G.voie; });
   const chemin=(x0,y1,y2,xl)=>{
     const s=y2>=y1?1:-1,dx=xl<x0?1:-1,rr=Math.max(0,Math.min(8,Math.abs(y2-y1)/2,Math.abs(x0-xl)-1));
     const f=v=>Math.round(v*10)/10;
     return `M${f(x0)} ${f(y1)}H${f(xl+dx*rr)}Q${f(xl)} ${f(y1)} ${f(xl)} ${f(y1+s*rr)}V${f(y2-s*rr)}Q${f(xl)} ${f(y2)} ${f(xl+dx*rr)} ${f(y2)}H${f(x0)}`;
   };
   const sortie=arcs.map(r=>{
-    const g=r.cote==='g',x0=g?x:x+cw,off=G.voie0+r.voie*pas[r.cote],xl=g?x0-off:x0+off,t=T[r.l.vers];
+    const f=r.f,g=f.cote==='g',x0=g?x:x+cw,off=G.voie0+f.voie*pas[f.cote],xl=g?x0-off:x0+off,t=T[r.l.vers];
     /* Les multiplicités : une petite pastille posée au bout du trait, contre la carte, comme dans le cours UML. */
     const pastille=(t,yy)=>{ const w=Math.round(String(t).length*5.8+9); return {t,w,h:15,x:g?x0-3-w:x0+3,y:Math.round((yy-7.5)*10)/10}; };
-    return {i:m.liens.indexOf(r.l),de:r.l.de,vers:r.l.vers,col:r.l.col,c:t[0],cs:t[1],ci:t[2],cote:r.cote,voie:r.voie,xl:Math.round(xl*10)/10,y1:r.y1,y2:r.y2,d:chemin(x0,r.y1,r.y2,xl),
-      lab:[pastille(r.l.plusieurs,r.y1),pastille(r.l.un,r.y2)]};
+    return {i:m.liens.indexOf(r.l),de:r.l.de,vers:r.l.vers,col:r.l.col,c:t[0],cs:t[1],ci:t[2],cote:f.cote,voie:f.voie,xl:Math.round(xl*10)/10,y1:r.y1,y2:f.y2,d:chemin(x0,r.y1,f.y2,xl),
+      lab:[pastille(r.l.plusieurs,r.y1),pastille(r.l.un,f.y2)]};
   });
   return {W,H,cw,x,ex:!!ex,cartes:ordre.map(n=>cartes[n]),arcs:sortie,T};
 }
 /* Un type court sur la carte : VARCHAR(255) → VARCHAR. */
 function umlType(t){ const v=String(t||'').toUpperCase().replace(/\(.*$/,'').trim(); return (v||'TEXT').slice(0,10); }
-/* Un nom dans une requête : tel quel s’il est simple, entre guillemets sinon (une table importée « Ventes 2024 »). */
-function umlId(n){ return /^[A-Za-z_][A-Za-z0-9_]*$/.test(String(n))?String(n):quoteIdent(n); }
-/* La colonne désignée : celle que nomme la clé, sinon la clé primaire de la table désignée. */
-function umlCle(m,l){ if(l.versCol)return l.versCol; const t=m.tables.find(z=>z.name===l.vers),pk=t&&t.cols.find(c=>c.b==='pk'); return pk?pk.c:'id'; }
-/* La jointure toute prête, dans le sens des cours (la clé étrangère = la clé primaire) ; une table qui se désigne : un alias tiré du
-   nom de sa clé (chef_id → chef). */
-function umlJoin(m,l){
-  const k=umlCle(m,l),de=umlId(l.de),vers=umlId(l.vers);
-  if(l.de!==l.vers)return `FROM ${de} JOIN ${vers} ON ${de}.${umlId(l.col)} = ${vers}.${umlId(k)}`;
-  let al=(/^([A-Za-z][A-Za-z0-9]*?)_?id$/i.exec(l.col)||[])[1]||'';
-  if(!al||al===l.de)al=l.vers.replace(/[^A-Za-z0-9_]/g,'')+'2';
-  return `FROM ${de} JOIN ${vers} AS ${al} ON ${de}.${umlId(l.col)} = ${al}.${umlId(k)}`;
+/* Les mots de SQLite : une table « order » ou « group » s’écrit entre guillemets dans une requête (5 novembre, 8 h 13). */
+const UML_MOTS=new Set(('ABORT ACTION ADD AFTER ALL ALTER ALWAYS ANALYZE AND AS ASC ATTACH AUTOINCREMENT BEFORE BEGIN BETWEEN BY CASCADE CASE CAST CHECK '
+  +'COLLATE COLUMN COMMIT CONFLICT CONSTRAINT CREATE CROSS CURRENT CURRENT_DATE CURRENT_TIME CURRENT_TIMESTAMP DATABASE DEFAULT DEFERRABLE DEFERRED DELETE '
+  +'DESC DETACH DISTINCT DO DROP EACH ELSE END ESCAPE EXCEPT EXCLUDE EXCLUSIVE EXISTS EXPLAIN FAIL FILTER FIRST FOLLOWING FOR FOREIGN FROM FULL GENERATED '
+  +'GLOB GROUP GROUPS HAVING IF IGNORE IMMEDIATE IN INDEX INDEXED INITIALLY INNER INSERT INSTEAD INTERSECT INTO IS ISNULL JOIN KEY LAST LEFT LIKE LIMIT '
+  +'MATCH MATERIALIZED NATURAL NO NOT NOTHING NOTNULL NULL NULLS OF OFFSET ON OR ORDER OTHERS OUTER OVER PARTITION PLAN PRAGMA PRECEDING PRIMARY QUERY '
+  +'RAISE RANGE RECURSIVE REFERENCES REGEXP REINDEX RELEASE RENAME REPLACE RESTRICT RETURNING RIGHT ROLLBACK ROW ROWS SAVEPOINT SELECT SET TABLE TEMP '
+  +'TEMPORARY THEN TIES TO TRANSACTION TRIGGER UNBOUNDED UNION UNIQUE UPDATE USING VACUUM VALUES VIEW VIRTUAL WHEN WHERE WINDOW WITH WITHOUT').split(' '));
+/* Un nom dans une requête : tel quel s’il est simple, entre guillemets sinon (une table importée « Ventes 2024 », « order »). */
+function umlId(n){ const v=String(n); return /^[A-Za-z_][A-Za-z0-9_]*$/.test(v)&&!UML_MOTS.has(v.toUpperCase())?v:quoteIdent(v); }
+/* La colonne désignée : celle que nomme la clé, sinon la clé primaire de la table désignée, sinon son id, sinon son rowid (une clé
+   déclarée vers une table sans clé primaire). */
+function umlCle(m,l){
+  if(l.versCol)return l.versCol;
+  const t=m.tables.find(z=>z.name===l.vers),pk=t&&t.cols.find(c=>c.b==='pk'),id=t&&t.cols.find(c=>String(c.c).toLowerCase()==='id');
+  return pk?pk.c:id?id.c:'rowid';
 }
-/* Un lien en deux phrases : ses deux multiplicités dites en mots. */
+/* Les liens d’une même clé (une clé composite : plusieurs colonnes, une seule jointure). */
+function umlGroupe(m,l){ return l.grp?m.liens.filter(z=>z.grp===l.grp):[l]; }
+/* La jointure toute prête, dans le sens des cours (la clé étrangère = la clé primaire, et AND pour une clé composite) ; une table qui
+   se désigne : un alias tiré du nom de sa clé (chef_id → chef). */
+function umlJoin(m,l){
+  const g=umlGroupe(m,l),de=umlId(l.de),vers=umlId(l.vers);
+  let al=vers;
+  if(l.de===l.vers){
+    al=(/^([A-Za-z][A-Za-z0-9]*?)_?id$/i.exec(l.col)||[])[1]||'';
+    if(!al||al===l.de||UML_MOTS.has(al.toUpperCase()))al=String(l.vers).replace(/[^A-Za-z0-9_]/g,'')+'2';
+  }
+  const on=g.map(z=>`${de}.${umlId(z.col)} = ${al}.${umlId(umlCle(m,z))}`).join(' AND ');
+  return `FROM ${de} JOIN ${vers}${l.de===l.vers?' AS '+al:''} ON ${on}`;
+}
+/* Un lien en deux phrases : ses deux multiplicités dites en mots (un lien deviné : « 1 » vient des données, pas d’un NOT NULL). */
 function umlPhrases(l){
   /* « une ligne d’avis », « une ligne de clients » */
   const de=n=>(/^[aeiouhàâéèêëîïôöûü]/i.test(n)?'d’':'de ')+`<code>${esc(n)}</code>`;
-  return [l.un==='1'?`Chaque ligne ${de(l.de)} désigne exactement une ligne ${de(l.vers)}.`:`Chaque ligne ${de(l.de)} désigne une ligne ${de(l.vers)}, ou aucune (sa clé peut être vide).`,
+  return [l.un==='1'?`Chaque ligne ${de(l.de)} désigne exactement une ligne ${de(l.vers)}${l.devine?' (aucune clé vide pour l’instant)':''}.`:`Chaque ligne ${de(l.de)} désigne une ligne ${de(l.vers)}, ou aucune (sa clé peut être vide).`,
     l.plusieurs==='0..1'?`Une ligne ${de(l.vers)} est désignée par une ligne ${de(l.de)} au plus (la clé est unique).`:`Une ligne ${de(l.vers)} peut être désignée par plusieurs lignes ${de(l.de)}, ou par aucune.`];
 }
 function umlLienHtml(m,l){
-  const [a,b]=umlPhrases(l);
-  return `<span class="umd-lt"><code>${esc(l.de)}.${esc(l.col)}</code><span class="umd-fl" aria-hidden="true">→</span><span class="sr">désigne</span><code>${esc(l.vers)}.${esc(umlCle(m,l))}</code></span>`
+  const [a,b]=umlPhrases(l),g=umlGroupe(m,l),cs=v=>g.length>1?'('+v.join(', ')+')':v[0];
+  return `<span class="umd-lt"><code>${esc(l.de)}.${esc(cs(g.map(z=>z.col)))}</code><span class="umd-fl" aria-hidden="true">→</span><span class="sr">désigne</span><code>${esc(l.vers)}.${esc(cs(g.map(z=>umlCle(m,z))))}</code>${l.devine?'<small class="umd-dv">deviné au nom</small>':''}${g.length>1?'<small class="umd-dv">clé composite</small>':''}</span>`
     +`<span class="umd-lp"><b>${esc(l.un)}</b><span>${a}</span></span><span class="umd-lp"><b>${esc(l.plusieurs)}</b><span>${b}</span></span>`
     +`<code class="umd-j">${esc(umlJoin(m,l))}</code>`;
+}
+/* Les liens d’une base, une clé composite comptant pour un. */
+function umlNbLiens(m){ return new Set(m.liens.map((l,i)=>l.grp||'\u0002'+i)).size; }
+/* Les pastilles à dessiner : celles d’un faisceau, posées au même endroit avec la même multiplicité, n’en font qu’une (is : les
+   liens qui l’allument). */
+function umlPastilles(p){
+  const vues={},out=[];
+  p.arcs.forEach((a,k)=>a.lab.forEach(t=>{
+    const cle=t.x+'|'+t.y+'|'+t.t;
+    if(vues[cle]){ vues[cle].is.push(a.i); return; }
+    out.push(vues[cle]={a,k,t,is:[a.i]});
+  }));
+  return out;
 }
 function umlHtml(p){
   const st=a=>`--lc:${a.c};--lcs:${a.cs};--lci:${a.ci}`;
   const svg=`<svg class="umd-l" width="${p.W}" height="${p.H}" viewBox="0 0 ${p.W} ${p.H}" aria-hidden="true">`
     +p.arcs.map((a,k)=>`<path class="umd-a" d="${a.d}" data-i="${a.i}" data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${k};${st(a)}"/>`).join('')
-    +p.arcs.map((a,k)=>a.lab.map(t=>`<g class="umd-m" data-i="${a.i}" data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${k};${st(a)}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" rx="6"/><text x="${t.x+t.w/2}" y="${Math.round((t.y+t.h/2+3.4)*10)/10}" text-anchor="middle">${esc(t.t)}</text></g>`).join('')).join('')
+    +umlPastilles(p).map(({a,k,t,is})=>`<g class="umd-m" data-i="${a.i}"${is.length>1?` data-is="${is.join(' ')}"`:''} data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${k};${st(a)}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" rx="6"/><text x="${t.x+t.w/2}" y="${Math.round((t.y+t.h/2+3.4)*10)/10}" text-anchor="middle">${esc(t.t)}</text></g>`).join('')
     +'</svg>';
   const cartes=p.cartes.map((c,k)=>{
     const nc=c.cols.length+c.plus,ex=c.L>UML_G.ligne;
     /* Une colonne : sa clé, son nom, son type, ou « → la table » qu’elle désigne (dans la couleur du trait) ; dessous, son exemple. */
     const ligne=col=>{
-      const a=col.b==='fk'&&p.arcs.find(z=>z.de===c.name&&z.col===col.c);
+      /* Une clé primaire qui est aussi une clé étrangère (une table d’association) : ses deux badges, et « → sa table » */
+      const a=p.arcs.find(z=>z.de===c.name&&z.col===col.c),fk=col.b==='fk'||!!a;
       const droite=a?`<b class="umd-v">→ ${esc(a.vers)}</b>`:`<em>${esc(umlType(col.t))}</em>`;
       const x=ex&&col.ex?`<span class="umd-x${col.ex.k==='null'?' is-null':''}"><small>ex&nbsp;:</small><b>${esc(col.ex.v)}</b></span>`:'';
-      return `<span class="umd-c${col.b?' is-'+col.b:''}${a?' is-lien':''}" data-c="${escAttr(col.c)}"${a?` style="${st(a)}"`:''}><span class="umd-r">${col.b?`<i>${col.b.toUpperCase()}</i>`:''}<span>${esc(col.c)}</span>${droite}</span>${x}</span>`;
+      const badges=(col.b==='pk'?'<i class="is-pk">PK</i>':'')+(fk?'<i class="is-fk">FK</i>':'');
+      return `<span class="umd-c${col.b==='pk'?' is-pk':fk?' is-fk':''}${a?' is-lien':''}" data-c="${escAttr(col.c)}"${a?` style="${st(a)}"`:''}><span class="umd-r">${badges}<span>${esc(col.c)}</span>${droite}</span>${x}</span>`;
     };
     return `<button type="button" class="umd-t${ex?' is-ex':''}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--c:${c.teinte[0]};--cs:${c.teinte[1]};--ci:${c.teinte[2]};--i:${k}" data-t="${escAttr(c.name)}" aria-pressed="false" onclick="umlCarte(this)" onpointerenter="umlSurligne(this,true,event)" onpointerleave="umlSurligne(this,false,event)" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(nc,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses liens`)}">`
       +`<span class="umd-h"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></span><span class="umd-cs">`
@@ -19066,8 +19236,8 @@ function umlHtml(p){
 function umlListe(m,T){
   const ouvert=umlPref('rq-uml-liens',false);
   return `<details class="umd-liens" id="umd-liens"${ouvert?' open':''} ontoggle="umlListeToggle(this)">
-        <summary><span class="umd-li-i">${UML_SVG}</span><b>Les liens en clair</b><small>${m.liens.length}</small><span class="umd-chev">${UML_CHEV}</span></summary>
-        <ol>${m.liens.map((l,i)=>{ const t=T[l.vers]||UML_NEUTRE; return `<li><button type="button" class="umd-li" data-i="${i}" style="--lc:${t[0]};--lcs:${t[1]};--lci:${t[2]}" onclick="umlFocusLien(${i})">${umlLienHtml(m,l)}</button></li>`; }).join('')}</ol>
+        <summary><span class="umd-li-i">${UML_SVG}</span><b>Les liens en clair</b><small>${umlNbLiens(m)}</small><span class="umd-chev">${UML_CHEV}</span></summary>
+        <ol>${m.liens.map((l,i)=>{ if(l.grp&&m.liens.findIndex(z=>z.grp===l.grp)!==i)return ''; const t=T[l.vers]||UML_NEUTRE; return `<li><button type="button" class="umd-li" data-i="${i}" style="--lc:${t[0]};--lcs:${t[1]};--lci:${t[2]}" onclick="umlFocusLien(${i})">${umlLienHtml(m,l)}</button></li>`; }).join('')}</ol>
       </details>`;
 }
 /* La toile, ses réglages, la bulle d’une table touchée, les liens en clair, la légende et ce que montrent les traits. */
@@ -19076,7 +19246,7 @@ function umlPanneau(m,W,on,ex=umlEx){
   if(umlDernier&&umlDernier.m===m)umlDernier.p=p;
   const aEx=m.tables.some(t=>t.cols.some(c=>c.ex));
   return `<div class="sch-uml" role="tabpanel" data-t="__uml__"${on?'':' hidden'}>
-      <div class="umd-tete"><b>Schéma UML</b><span>${plur(m.tables.length,'table')} · ${plur(m.liens.length,'lien')}</span></div>
+      <div class="umd-tete"><b>Schéma UML</b><span>${plur(m.tables.length,'table')} · ${plur(umlNbLiens(m),'lien')}</span></div>
       ${aEx||m.liens.length?`<div class="umd-outils">${aEx?`<button type="button" class="umd-bt is-ex" aria-pressed="${!!ex}" onclick="umlBasculeEx(this)" aria-label="Exemples de données"><span class="umd-sw" aria-hidden="true"></span>Exemples</button>`:''}${m.liens.length?`<button type="button" class="umd-bt" onclick="umlVersLiens()">${UML_SVG}Les liens en clair</button>`:''}</div>`:''}
       <div class="umd-toile" id="umd-toile" onclick="umlToileClic(event)">${umlHtml(p)}</div>
       <div class="umd-bulle" id="umd-bulle" role="status" aria-live="polite" hidden></div>
@@ -19150,13 +19320,24 @@ function umlFocus(sel,defile){
   umlSel=sel||null;
   umlAppliquer();
   if(defile&&umlSel)umlDefiler();
+  else if(umlSel&&umlSel.t!=null)umlDegager();
+}
+/* La bulle ne cache pas la table qu’on vient de toucher (8 h 13 : jusqu’à 70 % de sa carte) : la feuille la remonte au-dessus,
+   sans la faire passer sous les pastilles. */
+function umlDegager(){
+  const body=document.getElementById('schema-body'),bulle=document.getElementById('umd-bulle'),carte=document.querySelector('#umd-toile .umd-t.is-sel');
+  if(!body||!bulle||bulle.hidden||!carte)return;
+  const b=bulle.getBoundingClientRect(),c=carte.getBoundingClientRect(),haut=body.getBoundingClientRect().top+96;
+  const trop=c.bottom-(b.top-22),marge=Math.max(0,c.top-haut);   // 22 : la bulle arrive encore de 10 px plus bas
+  if(trop>0&&marge>0)body.scrollBy({top:Math.min(trop,marge),behavior:umlDoux()?'smooth':'auto'});
 }
 /* Ce qui s’allume : les traits et les multiplicités des liens choisis, leurs deux tables, et leurs deux colonnes (la clé étrangère
    d’un côté, la clé primaire de l’autre). */
 function umlAllumes(m,s){
   const on=new Set(),tables=new Set(),cols=new Set();
+  const grp=s&&s.i!=null&&m.liens[s.i]&&m.liens[s.i].grp;
   if(s)m.liens.forEach((l,i)=>{
-    if(s.t!=null?(l.de===s.t||l.vers===s.t):s.i===i){ on.add(i); tables.add(l.de); tables.add(l.vers); cols.add(l.de+'\u0001'+l.col); cols.add(l.vers+'\u0001'+umlCle(m,l)); }
+    if(s.t!=null?(l.de===s.t||l.vers===s.t):s.i===i||(grp&&l.grp===grp)){ on.add(i); tables.add(l.de); tables.add(l.vers); cols.add(l.de+'\u0001'+l.col); cols.add(l.vers+'\u0001'+umlCle(m,l)); }
   });
   return {on,tables,cols};
 }
@@ -19167,7 +19348,7 @@ function umlAppliquer(){
   umlSel=s;
   const {on,tables,cols}=umlAllumes(m,s);
   plan.classList.toggle('is-focus',!!s);
-  plan.querySelectorAll('.umd-a,.umd-m').forEach(x=>x.classList.toggle('is-on',on.has(+x.dataset.i)));
+  plan.querySelectorAll('.umd-a,.umd-m').forEach(x=>x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i))));
   plan.querySelectorAll('.umd-t').forEach(b=>{ const t=b.dataset.t,sel=!!s&&s.t===t; b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); b.setAttribute('aria-pressed',String(sel)); });
   plan.querySelectorAll('.umd-c[data-c]').forEach(r=>{ const t=r.closest('.umd-t'); r.classList.toggle('is-on',!!t&&cols.has(t.dataset.t+'\u0001'+r.dataset.c)); });
   document.querySelectorAll('#umd-liens .umd-li').forEach(b=>b.classList.toggle('is-on',on.has(+b.dataset.i)));
@@ -19200,10 +19381,12 @@ function umlDefiler(){
 function schemaOuvrirTable(t){
   const body=document.getElementById('schema-body');
   const btn=body&&[...body.querySelectorAll('.sch-tab')].find(b=>b.dataset.t===t);
-  if(btn)schemaPickTab(btn);
+  if(btn){ schemaPickTab(btn); try{ btn.focus({preventScroll:true}); }catch(e){} }
   if(body)body.scrollTop=0;
 }
 let schCtx=null;   // 'console' : le schéma de la base ouverte dans la Console (sinon : celle du défi, ou celle du cours)
+let schVue=null;   // '__uml__' : ouvrir sur le schéma UML
+let schRetour=null;   // le bouton qui a ouvert la feuille : le focus y revient à la fermeture
 function renderSchemaSheet(){
   const body=document.getElementById('schema-body');
   if(!body)return;
@@ -19220,8 +19403,11 @@ function renderSchemaSheet(){
   const key=cons?'console:'+activeDbId:(dId||'cours');
   const avecUml=tables.length>1;
   let cur=schTabSel[key];if(!tables.includes(cur)&&!(avecUml&&cur==='__uml__'))cur=avecUml?'__uml__':tables[0];
+  /* Ouverte par une pastille « Schéma UML » (la Console, après un import) : le schéma UML d’abord, pas le dernier onglet (8 h 13) */
+  if(schVue==='__uml__'&&avecUml)cur=schTabSel[key]='__uml__';
+  schVue=null;
   const umlPill=avecUml?`<button type="button" role="tab" class="sch-tab is-uml${cur==='__uml__'?' on':''}" aria-selected="${cur==='__uml__'}" data-t="__uml__" onclick="schemaPickTab(this)">${UML_SVG}Schéma UML</button>`:'';
-  const tabs=tables.length>1?`<div class="sch-tabs" role="tablist" aria-label="Tables de la base">${umlPill}${tables.map(name=>`<button type="button" role="tab" class="sch-tab${name===cur?' on':''}" aria-selected="${name===cur}" data-t="${esc(name)}" onclick="schemaPickTab(this)">${esc(name)}</button>`).join('')}</div>`:'';
+  const tabs=tables.length>1?`<div class="sch-tabs" role="tablist" aria-label="Tables de la base">${umlPill}${tables.map(name=>`<button type="button" role="tab" class="sch-tab${name===cur?' on':''}" aria-selected="${name===cur}" data-t="${escAttr(name)}" onclick="schemaPickTab(this)">${esc(name)}</button>`).join('')}</div>`:'';
   const modele=avecUml?umlModele(database,tables):null;
   if(modele)umlDernier={m:modele,W:umlLargeur(),p:null};
   umlSel=null;
@@ -19238,14 +19424,14 @@ function renderSchemaSheet(){
        étrangère y dit où elle va (« ex : 2 → categories »), devant ce que dit la colonne. */
     const mt=modele&&modele.tables.find(t=>t.name===name);
     const exs=mt?Object.fromEntries(mt.cols.map(c=>[c.c,c.ex])):schemaExemples(database,name,n);
-    return `<div class="sch-table" role="tabpanel" data-t="${esc(name)}"${name===cur?'':' hidden'}>
+    return `<div class="sch-table" role="tabpanel" data-t="${escAttr(name)}"${name===cur?'':' hidden'}>
       <div class="sch-head">${schemaTableIcon()}<b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
       ${noteId&&tableNote(noteId,name)?`<p class="sch-tnote">${esc(tableNote(noteId,name))}</p>`:''}
       ${cols.map(c=>{ const x=exs[c.c],nt=noteId&&colNote(noteId,name,c.c),vers=c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:'';
         return `<div class="sch-col">
         <span class="cn">${esc(c.c)}</span>
         ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
-        ${c.b==='fk'?'<span class="badge fk">FK</span>':''}
+        ${c.b==='fk'||c.ref?'<span class="badge fk">FK</span>':''}
         <span class="ct">${esc(c.t)}</span>
         ${x||vers||nt?`<span class="cxl">${x||vers?`<span class="cx${x&&x.k==='null'?' is-null':''}${vers?' is-fk':''}">${x?`<small>ex&nbsp;:</small><b>${esc(x.v)}</b>`:''}${vers}</span>`:''}${nt?`<small class="cd">${esc(nt)}</small>`:''}</span>`:''}
       </div>`; }).join('')||'<div class="sch-col"><span class="cn">—</span></div>'}
@@ -19269,9 +19455,12 @@ function schemaPickTab(btn){
   if(t==='__uml__')umlAjuster();
   btn.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
 }
-function openSchemaSheet(ctx){
+function openSchemaSheet(ctx,vue){
   document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));
   schCtx=ctx==='console'?'console':null;
+  schVue=vue||null;
+  const ae=document.activeElement;
+  if(ae&&ae!==document.body&&!ae.closest('#schema-sheet'))schRetour=ae;
   renderSchemaSheet();
   /* L’en-tête violet des feuilles (Notes, Ajuster mon rythme), l’autocollant de la base : la DA de la vitrine (ludique.css, 41) */
   const cons=schCtx==='console',dId=cons?null:defiBaseId(defiActif());
@@ -19283,14 +19472,30 @@ function openSchemaSheet(ctx){
   document.getElementById('schema-sheet').classList.add('on');
   showKbar(false);
   document.getElementById('fab').classList.add('hide');
-  /* La toile à sa vraie largeur, une fois la feuille ouverte */
-  requestAnimationFrame(umlAjuster);
+  /* La toile à sa vraie largeur, une fois la feuille ouverte ; le focus dans la feuille, sur sa pastille ouverte (au clavier, on
+     reste dedans : Tab en fait le tour) */
+  requestAnimationFrame(()=>{ umlAjuster(); const f=document.querySelector('#schema-body .sch-tab.on')||document.querySelector('#schema-sheet .viz-head button'); if(f)try{ f.focus({preventScroll:true}); }catch(e){} });
 }
 function closeSchemaSheet(){
+  const s=document.getElementById('schema-sheet'),ouverte=s.classList.contains('on');
   document.getElementById('schema-back').classList.remove('on');
-  document.getElementById('schema-sheet').classList.remove('on');
+  s.classList.remove('on');
   document.getElementById('fab').classList.remove('hide');
+  if(ouverte&&s.contains(document.activeElement)&&schRetour&&schRetour.isConnected)try{ schRetour.focus({preventScroll:true}); }catch(e){}
+  schRetour=null;
 }
+/* Tab fait le tour de la feuille Schéma, sans en sortir (8 h 13 : au bout de la feuille, le focus partait derrière). */
+function schemaPiege(e){
+  if(e.key!=='Tab')return;
+  const s=document.getElementById('schema-sheet');
+  if(!s||!s.classList.contains('on'))return;
+  const f=[...s.querySelectorAll('button,summary,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.getClientRects().length&&!x.closest('[hidden],[inert]'));
+  if(!f.length)return;
+  const i=f.indexOf(document.activeElement);
+  if(e.shiftKey&&i<=0){ e.preventDefault(); f[f.length-1].focus(); }
+  else if(!e.shiftKey&&(i<0||i===f.length-1)){ e.preventDefault(); f[0].focus(); }
+}
+if(typeof document!=='undefined'&&document.getElementById('schema-sheet'))document.getElementById('schema-sheet').addEventListener('keydown',schemaPiege);
 function renderViz(){
   const s=vizSteps[vizI];
   if(s.err){
@@ -29918,8 +30123,10 @@ function runLesson(){
   }
 }
 function guessFkTarget(col,tables){
-  if(!col||!/_id$/i.test(col)) return null;
-  const base=String(col).replace(/_id$/i,'');
+  /* client_id, ou à la française id_client (5 novembre, 8 h 13 : « id_client » n’était pas reconnu) */
+  const m=col&&(/^(.+?)_id$/i.exec(String(col))||/^id_(.+)$/i.exec(String(col)));
+  if(!m) return null;
+  const base=m[1];
   if(!base) return null;
   const candidates=[
     base,
@@ -29938,14 +30145,19 @@ function guessFkTarget(col,tables){
 function annotateColumnKeys(tableName,cols,allTables){
   const tLow=String(tableName||'').toLowerCase();
   const singular=tLow.replace(/s$/,'');
+  /* Sa propre clé, au nom de la table : animal_id dans animaux, company_id dans companies, id_client dans clients (8 h 13 : elles
+     devenaient des clés étrangères vers leur propre table) — quand la table n’a pas déjà sa clé primaire ou son id. */
+  const sansCle=!cols.some(o=>o.b==='pk'||String(o.c).toLowerCase()==='id');
+  const soi=n=>sansCle&&guessFkTarget(n,[tableName])===tableName;
   return cols.map(col=>{
     const name=col.c;
     const low=String(name).toLowerCase();
     let b=col.b;
     let ref=col.ref||null;
     if(!b){
-      if(low==='id'||low===tLow+'_id'||low===singular+'_id') b='pk';
-      else if(/_id$/.test(low)) b='fk';
+      if(low==='id'||low===tLow+'_id'||low===singular+'_id'||low==='id_'+tLow||low==='id_'+singular||soi(name)) b='pk';
+      /* Une clé étrangère devinée : seulement si sa table existe (transaction_id, sans table transactions, reste une colonne) */
+      else if((/_id$/.test(low)||/^id_./.test(low))&&(ref=guessFkTarget(name, allTables||[]))) b='fk';
     }
     if(b==='fk' && !ref) ref=guessFkTarget(name, allTables||[]);
     return {c:name,t:col.t||'TEXT',b,ref};
@@ -34349,12 +34561,24 @@ function renderConsoleChips(){
     if(lab) lab.textContent='Requêtes prêtes à lancer';
   }
   /* Chaque exemple montre sa requête, colorée comme dans l’éditeur (Elisa, 30 octobre, 22 h 11 : « dans Exemples, tu ne mets pas SELECT ? »). */
-  const ex=tables.map(t=>({l:'Aperçu de la table',q:`SELECT * FROM ${t}\nLIMIT 50;`}));
-  if(tables.includes('clients')&&tables.includes('commandes')){
+  /* Un nom importé (« order », « Ventes 2024 ») s’écrit entre guillemets ; les deux requêtes du cours, seulement si leurs colonnes sont
+     là ; et les jointures des liens que dessine le schéma UML (5 novembre, 8 h 13 : sur des données importées, « Ventes par client »
+     visait clients.prenom et échouait). */
+  const ex=tables.map(t=>({l:'Aperçu de la table',q:`SELECT * FROM ${umlId(t)}\nLIMIT 50;`}));
+  const colsDe=t=>{ try{ return (database.exec('PRAGMA table_info('+quoteIdent(t)+')')[0]||{values:[]}).values.map(v=>String(v[1])); }catch(e){ return []; } };
+  const aDes=(t,cs)=>{ const have=colsDe(t); return cs.every(c=>have.includes(c)); };
+  if(tables.includes('clients')&&tables.includes('commandes')&&aDes('clients',['id','prenom'])&&aDes('commandes',['id','client_id','quantite'])){
     ex.push(
       {l:"Ventes par client",q:"SELECT clients.prenom, SUM(commandes.quantite) AS total\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.id, clients.prenom\nORDER BY total DESC;"},
       {l:"Clients sans commande",q:"SELECT clients.prenom\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"}
     );
+  }
+  if(activeDbId!=='cours'&&tables.length>1){
+    try{
+      const m=umlModele(database,tables,true);
+      m.liens.filter((l,i)=>!l.grp||m.liens.findIndex(z=>z.grp===l.grp)===i).slice(0,3).forEach(l=>
+        ex.push({l:`Jointure ${l.de} → ${l.vers}`,q:`SELECT *\n${umlJoin(m,l).replace(/ JOIN /,'\nJOIN ')}\nLIMIT 50;`}));
+    }catch(e){}
   }
   host.innerHTML=ex.map((e,i)=>{
     const line=e.q.replace(/;\s*$/,'').replace(/\s+/g,' ').replace(/ LIMIT 50$/,'');
@@ -37869,7 +38093,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-liens-v2526';
+  const SW_CACHE='requete-2026-11-05-import-v2527';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
