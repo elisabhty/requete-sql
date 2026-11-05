@@ -168,7 +168,7 @@ test('salle : chaque essai des autres passe en haut de l’écran, son pseudo et
   assert.ok(mates.includes("${koOn?' is-ko':''}") && mates.includes('${koOn?` style="--ko:-${ko}ms"`:\'\'}'), 'son avatar secoue, même si la rangée se redessine pendant le geste');
   assert.ok(fn('jeuEssaiRate').includes("if(typeof jeuRateSend==='function')jeuRateSend(r);") && line('jeuRateSend').includes("if(!J||J.ranked||J.solo||!r||r.one)return;"), 'sans serveur, le joueur l’annonce lui-même');
   assert.ok(fn('jeuStop').includes("document.getElementById('jeu-evts')?.remove();"), 'on quitte la salle : les pastilles partent');
-  for (const k of ['#jeu-evts{position:fixed;left:50%;top:calc(var(--safe-top,0px) + 70px);', 'html.lq .jeu-evt.is-ko .jeu-evt-i{background:#FFE1E1;color:#B4232C;animation:jeuEvtNon',
+  for (const k of ['#jeu-evts{position:fixed;left:50%;top:calc(var(--safe-top,0px) + 63px);', 'html.lq .jeu-evt.is-ko .jeu-evt-i{background:#FFE1E1;color:#B4232C;animation:jeuEvtNon',
     'html.lq .jeu-mates li.is-ko .jeu-av{animation:jeuMateKo .56s cubic-bezier(.36,.07,.19,.97) var(--ko,0ms) both}', 'html[data-motion="reduce"].lq .jeu-evt,'])
     assert.ok(css.includes(k), k);
 });
@@ -196,5 +196,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=148">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=149">'));
 });
