@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=163">
+<link rel="stylesheet" href="ludique.css?v=164">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=25">
 <style id="lesson-video-css">
@@ -21332,13 +21332,18 @@ function renderHomeHero(){
     ?'<svg viewBox="0 0 14 16"><g class="lq-sab"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M4.9 3.4h4.2L7 7.2z"/><path class="lq-sab-b" d="M7 9.4l2.6 4.4H4.4z"/><path class="lq-sab-s" d="M7 7.4v6"/></g></svg>'
     :sesEtat==='pause'?'<svg viewBox="0 0 14 16"><g class="lq-sab is-couche"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M5.6 4.6h2.8L7 7z"/><path class="lq-sab-b" d="M7 11l1.6 2.8H5.4z"/></g><text class="lq-zz" x="11" y="3">z</text></svg>'
     :'<svg viewBox="0 0 16 16"><circle class="lq-chk-o" cx="8" cy="8" r="6.6"/><path class="lq-chk" d="M4.8 8.3l2.2 2.2 4.2-4.6"/></svg>';
-  const sesTxt=esc(sessionLine).replace(/(\d+) min$/,'<b class="lq-ses-n" data-n="$1">$1</b>\u00a0min');
+  const sesPre=/^(Ta session|À reprendre) · /.exec(sessionLine);
+  const sesTxt=(sesPre?`<span class="lq-ses-pre">${esc(sesPre[0])}</span>`:'')+esc(sessionLine.slice(sesPre?sesPre[0].length:0)).replace(/(\d+) min$/,'<b class="lq-ses-n" data-n="$1">$1</b>\u00a0min');
   /* Elisa, 1er novembre, 19 h 25 : « fusionner les 2 » : le bonjour, le niveau et la séance passent en haut de la carte violette du
      cours (au lieu d’un bloc au-dessus) ; la série vient sous la carte. */
   /* 19 h 36 : « moins de choses, sur une ligne » : le bonjour et la séance du jour sur la même ligne ; 19 h 39 : le niveau
      (« Niv. 2 · Constructeur de requêtes ») se colle sur la mascotte, à la place du mot-clé SQL. */
   const nivC=typeof niveauCompte==='function'?niveauCompte():null;
-  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta"><span class="lq-ses is-${sesEtat}" aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}"><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
+  /* 5 novembre, 21 h 09 : « j’aime pas que ça tienne en deux lignes » (le bonjour, puis « Ta session · Faite » repoussée dessous) : la
+     séance reste à droite du bonjour ; quand elle n’y tient pas, elle perd « Ta session · » (« ✓ Faite », « ⌛ 12 min »), voir
+     lqSesAjuste. */
+  const sesMeta=`<div class="journey-session-meta"><span class="lq-ses is-${sesEtat}" aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}"><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div>`;
+  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
@@ -21348,6 +21353,7 @@ function renderHomeHero(){
     const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
     lqSesCount(host);
+    lqSesAjuste(host);
     return;
   }
   const meta=itemMeta(nxt),defi=isDefiId(nxt),mod=moduleDeLecon(nxt);
@@ -21380,18 +21386,20 @@ function renderHomeHero(){
      À gauche de la mascotte, le parcours SQL : la part déjà faite en grand (les leçons validées sur toutes celles du parcours, le calcul
      de la page Parcours), sa barre, et le nombre de leçons. La leçon (« Leçon 11 sur 12 · ORDER BY ») passe sous le texte du bouton.
      20 h 53 : « Ton parcours, supprime SQL ; non, mettre le % du module » : la part du module en cours (ses leçons validées sur toutes
-     les siennes), sous « Ton module » ; un défi, hors module, garde celle du parcours, sous « Ton parcours ». */
+     les siennes), sous « Ton module » ; un défi, hors module, garde celle du parcours, sous « Ton parcours ». 21 h 09 : « supprime
+     Ton module en vert » : le module est nommé juste au-dessus, et le nombre de leçons dit le reste. */
   const enMod=!!(mod&&Array.isArray(mod.lessons)&&mod.lessons.length);
   const fait=enMod?mod.lessons.filter(l=>state.lessons&&state.lessons[l.id]&&state.lessons[l.id].done).length:(typeof parcoursSqlFaites==='function'?parcoursSqlFaites():0);
   const tot=enMod?mod.lessons.length:(typeof TOTAL!=='undefined'?TOTAL:0);
   const pf=tot?Math.min(100,Math.round(fait/tot*100)):0;
-  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-hero-kicker">${enMod?'Ton module':'Ton parcours'}</p><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot>1?`${tot} leçons t’attendent`:tot?'Une leçon t’attend':'Ton parcours commence'}</p></div>`;
+  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot>1?`${tot} leçons t’attendent`:tot?'Une leçon t’attend':'Ton parcours commence'}</p></div>`;
   const detail=index&&!defi?`${kicker} · ${meta.titre}`:meta.titre;
   const ctaLu=`${ctaLabel} : ${index&&!defi?`leçon ${index} sur ${mod.lessons.length}, `:''}${meta.titre}`;
   const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main">${parc}${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(detail)}</small></span></button></section>${streak}${extras}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesCount(host);
   lqPctAnime(host);
+  lqSesAjuste(host);
 }
 /* Une leçon commencée : sa vidéo arrêtée en route, une réponse donnée pendant l’animation, une étape validée ou un brouillon
    d’exercice ; un défi commencé : son chrono en cours (gardé sur l’appareil). */
@@ -21420,6 +21428,18 @@ function lqSesCount(host){
   const pas=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);n.textContent=String(Math.round(fin*e));if(k<1)requestAnimationFrame(pas);};
   setTimeout(()=>requestAnimationFrame(pas),350);
 }
+/* 21 h 09 : « j’aime pas que ça tienne en deux lignes ». Si la séance passe sous le bonjour, faute de place, elle perd « Ta session · »
+   ou « À reprendre · » (« ✓ Faite », « ⌛ 12 min », le chiffre en rose s’il est en retard) ; si elle ne tient toujours pas (un prénom
+   très long), elle passe dessous, comme avant. Mesuré à chaque rendu de l’accueil et quand l’écran change de taille. */
+function lqSesAjuste(host){
+  const hi=host&&typeof host.querySelector==='function'?host.querySelector('.lq-hero-hi'):null;
+  const t=hi&&hi.querySelector('.lq-hi-title'),m=hi&&hi.querySelector('.journey-session-meta');
+  if(!t||!m||typeof t.getBoundingClientRect!=='function')return;
+  hi.classList.remove('is-court');
+  const bt=t.getBoundingClientRect();if(!bt.width)return;   // accueil caché : mesuré à son prochain rendu
+  if(m.getBoundingClientRect().top>=bt.bottom-2)hi.classList.add('is-court');
+}
+if(typeof window!=='undefined'&&typeof addEventListener==='function'){let lqSesT=0;addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});}
 /* Le pourcentage du parcours (20 h 32) : à la première ouverture de l’accueil, la barre se remplit et le chiffre monte de 0 ; quand il a
    changé depuis (une leçon validée), il part de la valeur déjà vue. Rien ne bouge avec les mouvements réduits. */
 let lqPctVu=null;
@@ -38991,7 +39011,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-profil-v2554';
+  const SW_CACHE='requete-2026-11-05-uneligne-v2555';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
