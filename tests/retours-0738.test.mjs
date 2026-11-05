@@ -216,7 +216,7 @@ test('le panneau : l’interrupteur « Exemples », « Les liens en clair », la
 
 test('les gestes : toucher une table l’allume (encore : tout se rallume), la toile vide éteint, la liste défile jusqu’au lien', () => {
   const ca = cut('function umlCarte(el,e){', '\n');
-  assert.ok(ca.includes('umlFocus(umlSel&&umlSel.t===t?null:{t})') && ca.includes("e.target.closest('.umd-pli'))return;"), 'la flèche « plier » n’allume rien');
+  assert.ok(ca.includes('umlFocus(umlSel&&umlSel.t===t?null:{t})') && ca.includes("e.target.closest('.umd-pli,.is-voir'))return;"), 'la flèche « plier » (et « Voir », 5 novembre) n’allume rien');
   assert.ok(cut('function umlToileClic(e){', '\n').includes("e.target.closest('.umd-t')))umlFocus(null)"));
   assert.ok(cut('function umlFocusLien(i){', '\n').includes('umlFocus({i:+i},true)'));
   const ap = cut('function umlAppliquer(){', '\n}\n');

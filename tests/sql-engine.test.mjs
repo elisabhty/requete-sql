@@ -74,7 +74,7 @@ test('les fonctions natives de SQLite restent celles de SQLite', () => {
 
 test('les fonctions ajoutées sont posées sur toutes les bases, et reposées après export()', () => {
   for (const s of ['buildDb(){ if(db)db.close(); db=new SQL.Database(); attachDateFns(db);', 'const d=new SQL.Database(baseBytes); attachDateFns(d);',
-    'customDbs[item.id]=attachDateFns(new SQL.Database(b64ToU8(item.b64)));', 'const b64=u8ToB64(database.export());\n    attachDateFns(database);'])
+    'try{ customDbs[item.id]=attachDateFns(new SQL.Database(bytes)); }catch(e){ return; }', 'const database=customDbs[d.id],bytes=database.export();attachDateFns(database);'])
     assert.ok(html.includes(s), s);
   assert.equal((html.match(/customDbs\[(?:id|target)\]=attachDateFns\(new SQL\.Database\(\)\);/g) || []).length, 3, 'bases créées ou importées');
 });

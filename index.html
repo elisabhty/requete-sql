@@ -6739,7 +6739,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=154">
+<link rel="stylesheet" href="ludique.css?v=155">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=24">
 <style id="lesson-video-css">
@@ -7564,7 +7564,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     </section>
 
     <section id="scr-practice" class="screen journey-hub" aria-label="Pratiquer">
-      <div class="lgtitle"><div><div class="eyebrow">À ton rythme</div><h1>Pratiquer</h1><p class="sub">Du SQL concret, à chaque essai.</p></div></div>
+      <div class="lgtitle"><div><div class="eyebrow">À ton rythme</div><h1>Pratiquer</h1><p class="sub">Passe de la théorie à la pratique, une requête à la fois.</p></div></div>
       <div id="practice-tools" class="journey-hub-list"></div>
     </section>
     <section id="scr-library" class="screen journey-hub" aria-label="Bibliothèque">
@@ -16183,16 +16183,23 @@ function tableDefinitionSql(database,name){
     return stmt.step()?stmt.get()[0]:null;
   }finally{stmt.free();}
 }
+/* La copie de départ d’une table (« Restaurer les données ») : au-delà de BASELINE_MAX lignes, pas de copie (5 novembre, 14 h 24 : un
+   classeur de 120 594 lignes, dont une feuille de 76 479, était copié ligne à ligne puis gardé deux fois). La copie se fait en une
+   transaction, avec une requête préparée. */
+const BASELINE_MAX=20000;
 function captureTableBaseline(database,name){
   const createSql=tableDefinitionSql(database,name);
   if(!createSql)return null;
+  const n=+tableRowCount(database,name)||0;
+  if(n>BASELINE_MAX)return {name,trop:n};
   const copy=new SQL.Database();
   try{
     copy.run(createSql);
     const data=database.exec('SELECT * FROM '+quoteIdent(name));
     if(data[0]&&data[0].values.length){
-      const insert='INSERT INTO '+quoteIdent(name)+' VALUES ('+data[0].columns.map(()=>'?').join(',')+')';
-      data[0].values.forEach(row=>copy.run(insert,row));
+      const st=copy.prepare('INSERT INTO '+quoteIdent(name)+' VALUES ('+data[0].columns.map(()=>'?').join(',')+')');
+      copy.run('BEGIN');
+      try{data[0].values.forEach(row=>st.run(row));copy.run('COMMIT');}finally{st.free();}
     }
     const extras=database.exec("SELECT sql FROM sqlite_master WHERE tbl_name="+quoteSqlText(name)+" AND type IN ('index','trigger') AND sql IS NOT NULL ORDER BY type");
     (extras[0]?extras[0].values:[]).forEach(row=>{if(row[0])copy.run(row[0]);});
@@ -16206,7 +16213,8 @@ function rememberTableBaseline(database,id,name){
 }
 function hasTableBaseline(id,name){
   if(id==='cours')return SCHEMA_META.some(t=>tableBaselineKey(t.table)===tableBaselineKey(name));
-  return !!(tableBaselines[id]&&tableBaselines[id][tableBaselineKey(name)]);
+  const b=tableBaselines[id]&&tableBaselines[id][tableBaselineKey(name)];
+  return !!(b&&b.b64);
 }
 function getTableBaseline(id,name){
   if(id!=='cours')return tableBaselines[id]&&tableBaselines[id][tableBaselineKey(name)];
@@ -16239,34 +16247,73 @@ function restoreTableBaseline(database,name,snapshot){
     source.close();
   }
 }
-async function persistCustomDbs(){
-  const payload=dbCatalog.filter(d=>!isDemoDb(d.id)).map(d=>{
-    const database=customDbs[d.id]; if(!database)return null;
-    const b64=u8ToB64(database.export());
-    attachDateFns(database);   // export() ferme puis rouvre la base : les fonctions ajoutées au moteur sont à reposer
-    return {id:d.id,name:d.name,b64,baselines:tableBaselines[d.id]||{}};
-  }).filter(Boolean);
-  try{ localStorage.setItem(DBS_KEY,JSON.stringify(payload)); }catch(e){ toast('Bases trop volumineuses pour la sauvegarde locale'); }
+/* Les projets sur l’appareil (Elisa, 5 novembre, 14 h 24 : « Bases trop volumineuses pour la sauvegarde locale » en supprimant une
+   table) : ils étaient dans localStorage (5 Mo environ), en base64 et avec une copie de chaque table ; un gros classeur n’y entrait
+   plus, et chaque modification redisait l’échec. Ils sont maintenant dans IndexedDB, octets tels quels, un enregistrement par projet
+   (seul : le projet modifié, sans réécrire les autres). localStorage reste le secours d’un navigateur sans IndexedDB ; le message,
+   s’il le faut, ne vient qu’une fois et dit ce qui se passe. */
+const DBS_IDB='requete-projets',DBS_STORE='bases';
+let dbsIdbP=null,dbsTropLourd=false;
+function dbsIdb(){
+  if(!dbsIdbP)dbsIdbP=new Promise((ok,ko)=>{
+    if(typeof indexedDB==='undefined'||!indexedDB){ko(new Error('IndexedDB indisponible'));return;}
+    const r=indexedDB.open(DBS_IDB,1);
+    r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains(DBS_STORE))d.createObjectStore(DBS_STORE,{keyPath:'id'});};
+    r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error||new Error('IndexedDB'));r.onblocked=()=>ko(new Error('IndexedDB bloquée'));
+  }).catch(e=>{dbsIdbP=null;throw e;});
+  return dbsIdbP;
+}
+function dbsTrop(){
+  if(dbsTropLourd)return;dbsTropLourd=true;
+  if(typeof lqInfo==='function')lqInfo('Projet trop lourd pour cet appareil','Il reste ouvert jusqu’à la fermeture de l’appli, mais ne pourra pas être retrouvé ensuite. Garde un fichier plus léger (moins de lignes), ou réimporte-le à la prochaine ouverture.','💾');
+}
+async function persistCustomDbs(seul){
+  const metas=dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id]);
+  const exporter=(d,i)=>{const database=customDbs[d.id],bytes=database.export();attachDateFns(database);   // export() ferme puis rouvre la base : les fonctions ajoutées au moteur sont à reposer
+    return {id:d.id,name:d.name,ordre:i,bytes,baselines:tableBaselines[d.id]||{}};};
+  try{
+    const idb=await dbsIdb();
+    const recs=metas.map((d,i)=>(!seul||d.id===seul)?exporter(d,i):null).filter(Boolean);
+    await new Promise((ok,ko)=>{
+      const tx=idb.transaction(DBS_STORE,'readwrite'),st=tx.objectStore(DBS_STORE);
+      if(!seul)st.clear();
+      recs.forEach(r=>st.put(r));
+      tx.oncomplete=()=>ok();tx.onerror=()=>ko(tx.error);tx.onabort=()=>ko(tx.error||new Error('enregistrement annulé'));
+    });
+    try{localStorage.removeItem(DBS_KEY);}catch(e){}
+    return true;
+  }catch(e){
+    const payload=metas.map((d,i)=>{const r=exporter(d,i);return {id:r.id,name:r.name,b64:u8ToB64(r.bytes),baselines:r.baselines};});
+    try{localStorage.setItem(DBS_KEY,JSON.stringify(payload));return true;}catch(x){dbsTrop();return false;}
+  }
 }
 async function loadCustomDbs(){
-  let raw=null;
-  try{ raw=localStorage.getItem(DBS_KEY); }catch(e){}
-  if(!raw)return;
+  let list=null,ancien=false;
   try{
-    const list=JSON.parse(raw)||[];
-    let seeded=false;
-    list.forEach(item=>{
-      if(!item||!item.id||!item.b64||isDemoDb(item.id))return;
-      customDbs[item.id]=attachDateFns(new SQL.Database(b64ToU8(item.b64)));
-      tableBaselines[item.id]=item.baselines&&typeof item.baselines==='object'?item.baselines:{};
-      if(!Object.keys(tableBaselines[item.id]).length){
-        listTables(customDbs[item.id]).forEach(name=>rememberTableBaseline(customDbs[item.id],item.id,name));
-        seeded=true;
-      }
-      if(!dbCatalog.some(d=>d.id===item.id)) dbCatalog.push({id:item.id,name:item.name||'Mon projet'});
-    });
-    if(seeded)await persistCustomDbs();
-  }catch(e){}
+    const idb=await dbsIdb();
+    list=await new Promise((ok,ko)=>{const q=idb.transaction(DBS_STORE,'readonly').objectStore(DBS_STORE).getAll();q.onsuccess=()=>ok(q.result||[]);q.onerror=()=>ko(q.error);});
+    list.sort((a,b)=>(+a.ordre||0)-(+b.ordre||0));
+  }catch(e){list=null;}
+  if(!list||!list.length){
+    let raw=null;
+    try{ raw=localStorage.getItem(DBS_KEY); }catch(e){}
+    try{ list=raw?JSON.parse(raw)||[]:[]; }catch(e){ list=[]; }
+    ancien=list.length>0;   // l’ancienne sauvegarde passe dans IndexedDB
+  }
+  let seeded=false;
+  list.forEach(item=>{
+    if(!item||!item.id||isDemoDb(item.id))return;
+    const bytes=item.bytes?new Uint8Array(item.bytes):item.b64?b64ToU8(item.b64):null;
+    if(!bytes)return;
+    try{ customDbs[item.id]=attachDateFns(new SQL.Database(bytes)); }catch(e){ return; }
+    tableBaselines[item.id]=item.baselines&&typeof item.baselines==='object'?item.baselines:{};
+    if(!Object.keys(tableBaselines[item.id]).length){
+      listTables(customDbs[item.id]).forEach(name=>rememberTableBaseline(customDbs[item.id],item.id,name));
+      seeded=true;
+    }
+    if(!dbCatalog.some(d=>d.id===item.id)) dbCatalog.push({id:item.id,name:item.name||'Mon projet'});
+  });
+  if(seeded||ancien)await persistCustomDbs();
 }
 function loadProjState(){
   let raw=null;
@@ -16528,7 +16575,7 @@ async function renameDb(id){
   const name=await lqPrompt({ico:'✏️',titre:'Renommer le projet',valeur:meta.name,placeholder:'Analyse des ventes',max:40,oui:'Renommer'});
   if(!name||name===meta.name)return;
   meta.name=name.slice(0,40);
-  persistCustomDbs();renderConsoleHome();lqDone(document.querySelector(`#scr-console [data-db="${CSS.escape(id)}"]`)||document.querySelector('#scr-console .console-title-row h1'),'Renommé','Projet renommé');
+  persistCustomDbs(id);renderConsoleHome();lqDone(document.querySelector(`#scr-console [data-db="${CSS.escape(id)}"]`)||document.querySelector('#scr-console .console-title-row h1'),'Renommé','Projet renommé');
 }
 function consoleSchemaStats(){
   const database=activeDb();
@@ -16850,12 +16897,13 @@ function flashTableReset(name){
 async function resetTable(name){
   if(isDemoDb(activeDbId))return;
   const database=activeDb(),snapshot=getTableBaseline(activeDbId,name);
+  if(snapshot&&snapshot.trop){lqInfo('Pas de copie de départ',`Cette table a ${plur(snapshot.trop,'ligne')} : trop pour en garder une copie sur l’appareil. Réimporte le fichier pour retrouver ses données.`,'↺');return;}
   if(!database||!snapshot){toast('Aucun état initial pour cette table');return;}
   const origin=activeDbId==='cours'?'les données d’origine du cours':'les données du fichier importé';
   if(!await lqAsk({ico:'↺',titre:`Restaurer « ${name} » ?`,texte:`La table reprend ${origin} : les effets des INSERT, UPDATE et DELETE seront effacés.`,oui:'Restaurer'}))return;
   try{
     restoreTableBaseline(database,name,snapshot);
-    if(activeDbId!=='cours')persistCustomDbs();
+    if(activeDbId!=='cours')persistCustomDbs(activeDbId);
   }catch(e){lqInfo('Restauration impossible',String(e.message||e));return;}
   kbarSchemaCache=null;
   const out=document.getElementById('console-out');if(out)out.innerHTML='';
@@ -16969,7 +17017,7 @@ function renderDbWorkspace(){
     const colsHtml=open?`<div class="db-cols on">
       ${cols.map(c=>`
       <div class="db-col">
-        <span class="cn">${esc(c.c)}</span>
+        <span class="cn">${esc(c.c).replace(/_/g,'_<wbr>')}</span>
         ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
         ${c.b==='fk'||c.ref?'<span class="badge fk">FK</span>':''}
         ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
@@ -17063,7 +17111,9 @@ async function dropTable(name){
   if(!await lqAsk({ico:'🗑️',titre:`Supprimer la table « ${name} » ?`,texte:'Ses lignes seront supprimées du projet.',oui:'Supprimer',non:'Garder',danger:true}))return;
   try{
     activeDb().run('DROP TABLE IF EXISTS '+quoteIdent(name));
-    if(activeDbId!=='cours') persistCustomDbs();
+    /* Sa copie de départ s’en va avec elle (elle restait enregistrée, et pesait autant que la table) */
+    if(tableBaselines[activeDbId])delete tableBaselines[activeDbId][tableBaselineKey(name)];
+    if(activeDbId!=='cours') persistCustomDbs(activeDbId);
     renderDbWorkspace();
     renderConsoleSchemaSummary();
     const p=projOf(activeDbId); if(p.tdesc&&p.tdesc[name]!=null){delete p.tdesc[name];saveProjState();}
@@ -17309,16 +17359,21 @@ function parseImportFile(name,text,enc){
 }
 /* L’en-tête d’une feuille (8 h 13 : « Commandes du 1er trimestre » en A1, l’en-tête en ligne 3) : la première ligne aussi remplie que
    les suivantes, faite de textes ; un titre ou une ligne d’explication au-dessus n’en sont pas. */
+/* 5 novembre, 14 h 24 (« pb de formatage des noms de colonnes » : generateur_de_code_produit_ameublement_barem, _1, _2…) : un titre
+   fusionné sur toute la largeur se répète dans chaque cellule ; il comptait dans la largeur de référence, si bien que le vrai en-tête,
+   plus étroit, ne passait pas, et le titre devenait l’en-tête. Les titres sont mis de côté avant de mesurer, et, faute d’en-tête net,
+   c’est la première ligne qui n’est pas un titre qui en sert. */
 function ligneEnTete(rows){
-  const plein=r=>(r||[]).filter(c=>c!=null&&String(c).trim()!=='').length;
-  const n=Math.min(rows.length,12),max=Math.max(0,...rows.slice(0,n).map(plein));
-  for(let i=0;i<n;i++){
-    const r=rows[i]||[],k=plein(r),vals=r.filter(c=>c!=null&&String(c).trim()!=='');
-    /* un titre fusionné sur toute la largeur se répète dans chaque cellule : ce n’est pas un en-tête */
-    if(k>=2&&new Set(vals.map(String)).size===1)continue;
+  const valeurs=r=>(r||[]).filter(c=>c!=null&&String(c).trim()!=='');
+  const titre=r=>{const v=valeurs(r);return v.length>=2&&new Set(v.map(String)).size===1;};
+  const n=Math.min(rows.length,12),cand=[];
+  for(let i=0;i<n;i++)if(valeurs(rows[i]).length&&!titre(rows[i]))cand.push(i);
+  const max=Math.max(0,...cand.map(i=>valeurs(rows[i]).length));
+  for(const i of cand){
+    const r=rows[i]||[],k=valeurs(r).length;
     if(k>=Math.max(2,Math.ceil(max*0.6))&&r.every(c=>c==null||typeof c==='string'||String(c).trim()===''))return i;
   }
-  return 0;
+  return cand.length?cand[0]:0;
 }
 /* Un fichier, quel qu’il soit : une base SQLite, un classeur (Excel .xlsx/.xls, OpenDocument .ods ; une feuille = une table), ou du texte. */
 async function parseImportBytes(name,bytes){
@@ -17464,24 +17519,40 @@ function closeImportSheet(){
   const fab=document.getElementById('fab');if(fab)fab.classList.remove('hide');
   pendingImport=null;
 }
-function createImportedTables(database,tables){
-  tables.forEach(t=>{
+/* Les lignes d’un import (5 novembre, 14 h 24 : « le bouton Importer le projet ne fonctionne pas » avec 120 594 lignes) : une requête
+   préparée par table (plus une requête recompilée à chaque ligne), et la main rendue à l’écran toutes les ~100 ms pour que le bouton
+   dise où on en est (suivre, de 0 à 1). */
+async function createImportedTables(database,tables,suivre){
+  const now=()=>typeof performance!=='undefined'&&performance.now?performance.now():Date.now();
+  const total=tables.reduce((n,t)=>n+t.rows.length,0)||1;let fait=0,pause=now();
+  for(const t of tables){
     const tname=safeIdent(t.name);
     database.run('DROP TABLE IF EXISTS '+quoteIdent(tname));
     database.run('CREATE TABLE '+quoteIdent(tname)+' ('+t.cols.map((c,i)=>quoteIdent(c)+' '+t.types[i]).join(', ')+')');
-    if(!t.rows.length) return;
-    const insertSql='INSERT INTO '+quoteIdent(tname)+' VALUES ('+t.cols.map(()=>'?').join(',')+')';
-    t.rows.forEach(r=>{
-      const vals=t.cols.map((_,i)=>{
-        const v=r[i];
-        if(v==null||String(v).trim()==='') return null;
-        if(t.types[i]==='INTEGER'){const n=parseInt(String(v).trim(),10);return Number.isFinite(n)?n:null;}
-        if(t.types[i]==='REAL'){const n=parseFloat(String(v).trim());return Number.isFinite(n)?n:null;}
-        return String(v);
-      });
-      database.run(insertSql, vals);
-    });
-  });
+    if(!t.rows.length) continue;
+    const st=database.prepare('INSERT INTO '+quoteIdent(tname)+' VALUES ('+t.cols.map(()=>'?').join(',')+')');
+    try{
+      for(const r of t.rows){
+        st.run(t.cols.map((_,i)=>{
+          const v=r[i];
+          if(v==null||String(v).trim()==='') return null;
+          if(t.types[i]==='INTEGER'){const n=parseInt(String(v).trim(),10);return Number.isFinite(n)?n:null;}
+          if(t.types[i]==='REAL'){const n=parseFloat(String(v).trim());return Number.isFinite(n)?n:null;}
+          return String(v);
+        }));
+        fait++;
+        if(suivre&&now()-pause>100){suivre(fait/total);await new Promise(ok=>setTimeout(ok,0));pause=now();}
+      }
+    }finally{st.free();}
+  }
+}
+/* Le bouton de la feuille d’import, le temps de l’import : désactivé, « Import en cours… 42 % ». */
+function importOccupe(on,frac){
+  const go=document.getElementById('imp-go');if(!go)return;
+  if(!on){go.disabled=false;go.removeAttribute('aria-busy');go.classList.remove('is-busy');if(go.dataset.lib)go.textContent=go.dataset.lib;delete go.dataset.lib;return;}
+  if(!go.dataset.lib)go.dataset.lib=go.textContent;
+  go.disabled=true;go.setAttribute('aria-busy','true');go.classList.add('is-busy');
+  go.textContent=frac==null?'Import en cours…':`Import en cours… ${Math.min(99,Math.round(frac*100))}\u00a0%`;
 }
 function resolveImportTarget(){
   let target=document.getElementById('imp-db').value;
@@ -17505,6 +17576,7 @@ function resolveImportTarget(){
 }
 async function confirmImport(){
   if(!pendingImport)return;
+  {const go=document.getElementById('imp-go');if(go&&go.getAttribute('aria-busy')==='true')return;}   // déjà en cours : un seul import
   const p=pendingImport.parsed;
   const asDb=isDatabaseImport(p);
   const chosen=document.getElementById('imp-db').value;
@@ -17524,8 +17596,11 @@ async function confirmImport(){
     }
   }
   const avant=activeDbId,neuf=chosen==='__new__';
+  /* Le bouton dit tout de suite que l’import est parti, avant le gros du travail (une image, pour qu’il ait le temps de s’afficher) */
+  importOccupe(true);
+  await new Promise(ok=>setTimeout(ok,40));
   const target=resolveImportTarget();
-  if(!target)return;
+  if(!target){importOccupe(false);return;}
 
   /* Un import qui échoue ne laisse rien derrière lui (8 h 13 : un projet vide à chaque essai, et la Console passait en douce sur
      lui) : l’ancien contenu est gardé jusqu’au bout, le projet créé pour l’import s’en va, et la Console reste où elle était. */
@@ -17548,14 +17623,14 @@ async function confirmImport(){
       /* rien à créer : les tables sont celles du fichier */
     }else if(p.kind==='database' && p.format==='json-db'){
       database.run('SAVEPOINT rq_import');point=true;
-      createImportedTables(database, p.tables);
+      await createImportedTables(database, p.tables, f=>importOccupe(true,f));
     }else if(p.kind==='database' || p.kind==='sql-table'){
       runSqlImport(database, p.sql);
       if(p.primaryTable) pendingImport.importedTable=safeIdent(p.primaryTable);
     }else{
       const tname=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
       database.run('SAVEPOINT rq_import');point=true;
-      createImportedTables(database, [{name:tname, cols:p.cols, types:p.types, rows:p.rows}]);
+      await createImportedTables(database, [{name:tname, cols:p.cols, types:p.types, rows:p.rows}], f=>importOccupe(true,f));
       pendingImport.importedTable=tname;
     }
     if(point){ database.run('RELEASE rq_import'); point=false; }
@@ -17570,7 +17645,8 @@ async function confirmImport(){
     const wanted=declared.length?declared:newTables;
     const affected=[...new Set(wanted.map(name=>tabs.find(t=>t.toLowerCase()===String(name).toLowerCase())).filter(Boolean))];
     affected.forEach(name=>rememberTableBaseline(database,target,name));
-    if(activeDbId!=='cours')persistCustomDbs();
+    if(activeDbId!=='cours')persistCustomDbs(target);
+    importOccupe(false);
     closeImportSheet();
     openConsoleProject(target);
     const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):null;
@@ -17594,6 +17670,7 @@ async function confirmImport(){
       if(typeof projState!=='undefined'){ delete projState[target]; try{ saveProjState(); }catch(x){} }
     }
     activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';
+    importOccupe(false);
     lqInfo('Import impossible',String(e.message||e));
   }
 }
@@ -18053,7 +18130,7 @@ function runConsole(){
       paint(`<div class="console-out-ready result-live">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms)}</div>`);
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
       const moved=touched();
-      if(activeDbId!=='cours'&&moved) persistCustomDbs();
+      if(activeDbId!=='cours'&&moved) persistCustomDbs(activeDbId);
       renderDbWorkspace();
       /* La première table créée ici fait disparaître « Ta base est vide » et montre ses exemples ; la dernière supprimée les retire. */
       if(moved) renderConsoleChips();
@@ -18061,7 +18138,7 @@ function runConsole(){
       fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];
       paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message,sql)}</div>`);
       recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
-      if(touched()){ if(activeDbId!=='cours') persistCustomDbs(); renderDbWorkspace(); renderConsoleChips(); }
+      if(touched()){ if(activeDbId!=='cours') persistCustomDbs(activeDbId); renderDbWorkspace(); renderConsoleChips(); }
     }finally{
       if(verrou)try{database.run('PRAGMA query_only=OFF');}catch(e){}
     }
@@ -19264,7 +19341,10 @@ function umlHtml(p){
       +`<span class="umd-h"><button type="button" class="umd-hb" aria-pressed="false" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(c.cols.length+c.plus-c.caches.length,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses liens`)}"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></button>`
       +`<button type="button" class="umd-pli" aria-expanded="${!c.plie}" aria-label="${escAttr((c.plie?'Déplier':'Plier')+' la table '+c.name)}" onclick="umlPlier(this,event)">${UML_CHEV}</button></span><span class="umd-cs">`
       +(c.cols.map(ligne).join('')||'<span class="umd-c is-plus">Aucune colonne</span>')
-      +`<span class="umd-c is-plus${c.plus?'':' is-vide'}">${c.plus?`+${plur(c.plus,'colonne')}`:''}</span>`
+      /* 5 novembre, 14 h 24 : « mettre Voir avec > animé, iso à ce qu’on a dans les défis, au sein de la table » : la ligne « +2 colonnes »
+         ouvre l’onglet de la table, avec la pastille « Voir › » de « Mes stats ». */
+      +(c.plus?`<button type="button" class="umd-c is-plus is-voir" data-t="${escAttr(c.name)}" onclick="schemaOuvrirTable(this.dataset.t)" aria-label="${escAttr(`Voir les ${plur(nc,'colonne')} de la table ${c.name}`)}"><span>+${plur(c.plus,'colonne')}</span><span class="umd-voir" aria-hidden="true">Voir${typeof DEF_CHEV_SVG==='string'?DEF_CHEV_SVG:''}</span></button>`
+        :'<span class="umd-c is-plus is-vide"></span>')
       +'</span></div>';
   }).join('');
   return `<div class="umd-plan${p.ex?' is-ex':''}" style="width:${p.W}px;height:${p.H}px">${svg}${cartes}</div>`;
@@ -19415,7 +19495,7 @@ function umlSurligne(el,on,e){
 }
 /* Une table touchée (7 h 38) : ses liens s’allument, le reste s’efface, et la bulle dit en clair ce qu’elle désigne et qui la
    désigne ; touchée encore (ou la toile, ou ×), tout se rallume. Un lien de la liste : lui seul, et la toile défile jusqu’à lui. */
-function umlCarte(el,e){ if(e&&e.target&&e.target.closest&&e.target.closest('.umd-pli'))return; const t=el&&el.dataset.t; if(t)umlFocus(umlSel&&umlSel.t===t?null:{t}); }
+function umlCarte(el,e){ if(e&&e.target&&e.target.closest&&e.target.closest('.umd-pli,.is-voir'))return; const t=el&&el.dataset.t; if(t)umlFocus(umlSel&&umlSel.t===t?null:{t}); }
 function umlFocusTable(t,defile){ if(t)umlFocus({t},defile); }
 function umlFocusLien(i){ umlFocus({i:+i},true); }
 function umlToileClic(e){ if(umlSel&&!(e&&e.target&&e.target.closest&&e.target.closest('.umd-t')))umlFocus(null); }
@@ -20195,6 +20275,8 @@ function switchTab(name){
   if(activeTab&&name!==activeTab&&primaryTabFor(name)!==name&&!tabBackNav&&!restoringNav)tabFrom[name]=activeTab;
   /* Défis s’ouvre toujours en haut, sur la salle (Elisa, 1er novembre, 9 h 19 : « quand j’entre dans la salle, être en haut au début »). */
   if(name==='defis')tabScrollPositions.defis=0;
+  /* Mes stats, laissé ouvert, ne revient pas par un autre chemin : seul « Mes défis » de Pratiquer y mène (pratiquerDefis). */
+  if(name==='defis'&&activeTab!=='defis'&&typeof DEFIS!=='undefined'&&DEFIS.onglet==='stats'&&!(typeof defisVersStats!=='undefined'&&defisVersStats))DEFIS.onglet='jouer';
   /* Elisa, 1er novembre, 19 h 32 : « quand on clique sur Console SQL, on passe à la fin de la page ». Une sous-page (Console,
      Selon le SGBD, Entretien, Notes, Cartes mémo, Stickers…) ouverte depuis une carte s’ouvre toujours en haut ; elle ne reprend plus
      la position où on l’avait quittée (le bas, après un résultat). Les onglets du bas et les retours gardent leur position. */
@@ -20834,9 +20916,11 @@ if(typeof document!=='undefined')document.addEventListener('click',e=>{
 },true);
 function renderJourneyHub(tab){
   const stats=compteStats(),kd=salleKpi();
+  /* Elisa, 5 novembre, 14 h 24 (réf. 2 et 3) : la salle de défi lance une partie, « Mes défis » parle de la progression et ouvre Mes
+     stats (plus la page Défis) ; les textes de sa réf. 3. */
   const tools=tab==='practice'?[
-    ['defis','Défis',`${kd.tr}/${kd.ma} manches réussies · ${sallePts(kd.pts)}`,"switchTab('defis')",kd.ma?Math.round(kd.tr/kd.ma*100):null],
-    ['console','Console SQL','Écris et exécute tes propres requêtes.',"switchTab('console')"]
+    ['defis','Mes défis',`${kd.tr}/${kd.ma} manches réussies\u00a0· ${(+kd.pts||0).toLocaleString('fr-FR')} point${kd.pts>1?'s':''}`,"pratiquerDefis('stats')",kd.ma?Math.round(kd.tr/kd.ma*100):null],
+    ['console','Console SQL','Explore les données et teste librement tes requêtes.',"switchTab('console')"]
   ]:[
     ['cards','Cartes mémo',`${stats.cards} débloquée${stats.cards>1?'s':''} · Révise à ton rythme.`,"switchTab('collection')"],
     stkHubEntry(),
@@ -20849,7 +20933,8 @@ function renderJourneyHub(tab){
   let lead='';
   if(tab==='practice'&&typeof CHALLENGES!=='undefined'){
     /* Un défi déjà trouvé se rejoue (17 h 53) : plus de « prochain défi » ni de « tout est réussi » ; la salle, et ses chiffres. */
-    lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('target')}</span><p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2><p>En solo ou entre amis, au niveau que tu choisis. Le chrono part de 00:00.</p><button type="button" class="journey-primary" onclick="switchTab('defis')"><span>Entrer dans la salle</span>${DEF_CHEV_SVG}</button></section>`;
+    /* 14 h 24 : la phrase sur le chrono qui part de zéro quitte cette page (la salle d’attente le dit, juste avant la partie). */
+    lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('target')}</span><p class="journey-kicker">Salle de défi</p><h2>${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} à relever le défi&nbsp;?</h2><p>Un défi surprise, un chrono et des points à gagner. Joue en solo ou affronte d’autres joueurs&nbsp;!</p><button type="button" class="journey-primary" onclick="pratiquerDefis('jouer')"><span>Relever un défi</span>${PRAT_FLECHE}</button></section>`;
   }else if(stats.due){
     lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('restore')}</span><p class="journey-kicker">À réviser</p><h2>${stats.due} leçon${stats.due>1?'s':''} à revoir</h2><p>Quelques minutes pour fixer ce que tu as déjà vu.</p><button type="button" class="journey-primary" onclick="startReview()"><span>Commencer la révision</span>${DEF_CHEV_SVG}</button></section>`;
   }
@@ -20858,12 +20943,21 @@ function renderJourneyHub(tab){
      arrivent l’une après l’autre (--i). */
   document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action,pct],i)=>`<button type="button" class="journey-resource" data-kind="${kind}" style="--i:${i}" onclick="${action}"><span class="journey-tool-icon${JOURNEY_STK[kind]?' is-stk':''}">${JOURNEY_STK[kind]?lqStkSvg(JOURNEY_STK[kind]):journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small>${pct!=null?`<i class="journey-resource-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></i>`:''}</span>${DEF_CHEV_SVG}</button>`).join('');
 }
+/* Pratiquer : « Relever un défi » ouvre Jouer, « Mes défis » ouvre Mes stats (14 h 24). Mes stats ne s’ouvre que demandé : les autres
+   chemins vers Défis (Accueil, Planning) arrivent sur Jouer (switchTab). */
+const PRAT_FLECHE='<span class="prat-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h14M13 6l6 6-6 6"/></svg></span>';
+let defisVersStats=false;
+function pratiquerDefis(k){
+  defisVersStats=k==='stats';
+  if(typeof DEFIS!=='undefined')DEFIS.onglet=defisVersStats?'stats':'jouer';
+  try{switchTab('defis');}finally{defisVersStats=false;}
+}
 /* L’entrée Stickers de la Bibliothèque : combien sont gagnés, et les nouveaux pas encore vus. */
 function stkHubEntry(){
   const list=stkList(),n=list.filter(s=>s.got).length,fresh=Object.keys(stkState().fresh).length;
   return ['stickers',`Stickers${fresh?`<em class="journey-new">${fresh} nouveau${fresh>1?'x':''}</em>`:''}`,`${n} gagné${n>1?'s':''} sur ${list.length} · Colle-les, imprime-les.`,"switchTab('stickers')",Math.round(n/list.length*100)];
 }
-const JOURNEY_STK={defis:'target',console:'term',cards:'cards',stickers:'peel',notes:'note',interview:'mic',sgbd:'db',courses:'book'};
+const JOURNEY_STK={defis:'trophy',console:'term',cards:'cards',stickers:'peel',notes:'note',interview:'mic',sgbd:'db',courses:'book'};
 function journeyIcon(kind){
   if(kind==='notes')return JOURNEY_NOTES_ICON;
   if(kind==='courses')return JOURNEY_COURSES_ICON;
@@ -22093,7 +22187,9 @@ function perfReveal(card){
 /* Le barème, dit simplement : ce qui rapporte des points et qui passe devant à égalité. */
 /* « Comment on marque des points » (Elisa, 31 octobre, 17 h 39 : « mettre à jour le cadre point ») : les paliers de temps en marches
    d’escalier qui descendent, le premier essai, le classement entre amis, l’égalité, et ce que rapporte une manche parfaite. */
-/* 5 novembre, 11 h 37 : « Comment sont calculés les points ? » ; on y arrive par la rangée sous les cadres de Jouer (defisPointsHTML). */
+/* 5 novembre, 11 h 37 : « Comment sont calculés les points ? » ; on y arrive par la rangée sous les cadres de Jouer (defisPointsHTML).
+   14 h 24 : « quand on joue seule (quand il n’y a que nous dans la salle) » : seul dans la salle, la manche se joue comme seul
+   (jeuNextRound, r.one) : le +25 du premier coup reste, le bonus de place (+50 au premier) ne compte pas ; la règle le dit. */
 let roomRulesObs=null;
 function renderDefisRules(){
   const host=document.getElementById('defis-rules');if(!host)return;
@@ -22106,11 +22202,11 @@ function renderDefisRules(){
       <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. La manche s’arrête à ${JEU_ROUND_MS/60000}&nbsp;min.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
-      <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne ; entre amis, si personne n’a trouvé avant toi</small></li>
-      <li><b>🥇 Premier entre amis</b><span>+${JEU_PTS_RANG[0]}</span><small>2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]} · 4e : +${JEU_PTS_RANG[3]}</small></li>
+      <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
+      <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]} · 3e +${JEU_PTS_RANG[2]} · 4e +${JEU_PTS_RANG[3]}. Seul dans la salle, pas de bonus de place</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
-    <p class="room-rules-max"><span>Manche parfaite</span><b>${top+JEU_PTS_ESSAI}</b><small>seul</small><i aria-hidden="true">·</i><b>${top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]}</b><small>entre amis</small></p>
+    <p class="room-rules-max"><span>Manche parfaite</span><b>${top+JEU_PTS_ESSAI}</b><small>seul</small><i aria-hidden="true">·</i><b>${top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]}</b><small>à plusieurs</small></p>
   </section>`;
   /* Les marches montent quand le cadre arrive à l’écran (il est en bas de l’onglet) ; mouvement réduit : tout de suite. */
   const sec=host.firstElementChild;if(!sec)return;
@@ -22425,9 +22521,11 @@ function clsPageCharger(page){
     l.forEach(x=>x&&drapNoter(x.pseudo,x.pays));
     c.pages[page]=l;c.total=Math.max(0,+(d&&d.total)||0);c.moi=d&&d.moi&&typeof d.moi==='object'?d.moi:null;
     if(d&&d.rangs){const avant=JSON.stringify(c.rangs);c.rangs=d.rangs;if(avant!==JSON.stringify(c.rangs)&&DEFIS.onglet==='jouer'){const m=document.getElementById('defis-moi');if(m)m.innerHTML=defisMoiHTML();}}
-    /* Les pages déjà posées (le nombre n’a pas changé) : on remplit sans reconstruire, le défilement en cours n’est pas perdu. */
+    /* Les pages déjà posées (le nombre n’a pas changé) : on remplit sans reconstruire, le défilement en cours n’est pas perdu.
+       Personne de classé (Elisa, 5 novembre, 14 h 24, réf. 4 : « 1 à 0 sur 0 quand on recharge ») : l’onglet rouvert au
+       rechargement a posé sa page d’attente avant la réponse ; on la remplace par le message, plus par une page vide. */
     const sc=document.getElementById('dx-pages');
-    if(sc&&sc.children.length===clsPagesNb())clsPagerRemplir();else clsPagerPeindre();
+    if(sc&&c.total>0&&sc.children.length===clsPagesNb())clsPagerRemplir();else clsPagerPeindre();
   },e=>{
     if(c.cle!==cle)return;
     c.busy[page]=false;
@@ -22526,7 +22624,7 @@ function clsNavPeindre(){
   const c=DEFIS.cls,n=clsPagesNb(),p=Math.max(0,Math.min(c.page,n-1));
   const dots=document.getElementById('dx-dots'),range=document.getElementById('dx-range'),pv=document.getElementById('dx-prev'),nx=document.getElementById('dx-next');
   if(dots){const a=Math.max(0,Math.min(p-2,n-5)),b=Math.min(n,a+5);dots.innerHTML=Array.from({length:b-a},(_,i)=>`<i${a+i===p?' class="on"':''}></i>`).join('');}
-  if(range&&c.total!=null){const de=p*CLS_PAR_PAGE+1,a=Math.min(c.total,de+CLS_PAR_PAGE-1);range.textContent=`${de} à ${a} sur ${clsPts(c.total)}`;}
+  if(range)range.textContent=c.total>0?`${p*CLS_PAR_PAGE+1} à ${Math.min(c.total,(p+1)*CLS_PAR_PAGE)} sur ${clsPts(c.total)}`:'';
   if(pv)pv.disabled=p<=0;if(nx)nx.disabled=p>=n-1;
 }
 function clsPageVue(){
@@ -38270,10 +38368,12 @@ const DEL_SVG={
   tel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6"/><path d="M10.8 17.6h2.4"/></svg>',
   alerte:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.1 2.7 17.3a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 4.1a2 2 0 0 0-3.4 0Z"/><path d="M12 9.3v4.4M12 17h.01"/></svg>'
 };
+/* 5 novembre, 14 h 24 : « la suppression du compte enlève l’utilisateur des classements » : compte_supprimer efface jeu_joueur, et
+   ses parties avec lui (on delete cascade) ; la liste le dit. */
 function compteSupprimerHTML(p,compte){
   return `<p class="lq-del-h">Voici ce qui sera supprimé&nbsp;:</p>
     <ul class="lq-del">
-      <li><span class="lq-del-i">${DEL_SVG.nuage}</span><span><b>Sur Requête</b><small>${p?`Ton pseudo «&nbsp;${esc(p)}&nbsp;»`:'Ton pseudo'}, tes scores, tes avis, ton vote et tes messages${compte?', et ton compte':''}.</small></span></li>
+      <li><span class="lq-del-i">${DEL_SVG.nuage}</span><span><b>Sur Requête</b><small>${p?`Ton pseudo «&nbsp;${esc(p)}&nbsp;»`:'Ton pseudo'}, tes scores et ta place dans les classements, tes avis, ton vote et tes messages${compte?', et ton compte':''}.</small></span></li>
       <li><span class="lq-del-i">${DEL_SVG.tel}</span><span><b>Sur cet appareil</b><small>Tes leçons, tes défis, tes cartes mémo, tes notes, ton planning et tes projets enregistrés.</small></span></li>
     </ul>
     <p class="lq-del-warn"><span class="lq-del-wi">${DEL_SVG.alerte}</span><span><b>Cette action est irréversible.</b> Tes données ne pourront pas être récupérées.</span></p>`;
@@ -38485,7 +38585,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-invitation-v2539';
+  const SW_CACHE='requete-2026-11-05-pratiquer-v2540';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
