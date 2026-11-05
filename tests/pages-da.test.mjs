@@ -42,7 +42,8 @@ test('le haut des pages : rubrique au tiret, titre souligné en jaune, autocolla
 });
 
 test('Pratiquer et Bibliothèque : un autocollant par entrée, les entrées arrivent l’une après l’autre ; la carte du défi en scène violette', () => {
-  assert.ok(app.includes("const JOURNEY_STK={defis:'target',console:'term',cards:'cards',stickers:'peel',notes:'note',interview:'mic',sgbd:'db',courses:'book'};"));
+  /* 5 novembre, 14 h 24 : « Mes défis » prend le trophée (la progression), la salle de défi garde la cible. */
+  assert.ok(app.includes("const JOURNEY_STK={defis:'trophy',console:'term',cards:'cards',stickers:'peel',notes:'note',interview:'mic',sgbd:'db',courses:'book'};"));
   const hub = fn('renderJourneyHub');
   assert.ok(hub.includes('style="--i:${i}"') && hub.includes("<span class=\"journey-tool-icon${JOURNEY_STK[kind]?' is-stk':''}\">${JOURNEY_STK[kind]?lqStkSvg(JOURNEY_STK[kind]):journeyIcon(kind)}</span>"));
   assert.equal((hub.match(/<span class="journey-spot-stk" aria-hidden="true">/g) || []).length, 2, 'la salle de défi (17 h 53 : plus de « prochain défi » ni de « tout réussi »), à réviser');

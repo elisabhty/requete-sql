@@ -62,10 +62,11 @@ test('plier une table : elle garde ses clés (ses liens restent sur leurs colonn
   assert.match(h, /<div class="umd-t is-plie" style="[^"]+" data-t="plats" onclick="umlCarte\(this,event\)"/, 'pliée : sans les exemples');
   assert.ok(h.includes('aria-expanded="false" aria-label="Déplier la table plats" onclick="umlPlier(this,event)">') && h.includes('aria-expanded="true" aria-label="Plier la table categories"'));
   assert.ok(h.includes('<span class="umd-c is-cache" data-c="nom">'), 'la colonne cachée reste dans la page (rien ne saute)');
-  assert.ok(h.includes('<span class="umd-c is-plus">+2 colonnes</span>') && h.includes('<span class="umd-c is-plus is-vide"></span>'));
+  /* « +2 colonnes » est un bouton « Voir › » depuis le 5 novembre, 14 h 24 (retours-1424.test.mjs) */
+  assert.ok(h.includes('<span>+2 colonnes</span><span class="umd-voir" aria-hidden="true">Voir') && h.includes('<span class="umd-c is-plus is-vide"></span>'));
   d.close();
   assert.ok(app.includes('const umlPlies={};') && fn('umlPlier').includes('if(P.has(t))P.delete(t);else P.add(t);'), 'chaque base garde ses tables pliées le temps de la séance');
-  assert.ok(fn('umlCarte').includes("e.target.closest('.umd-pli'))return;"), 'plier n’allume pas les liens');
+  assert.ok(fn('umlCarte').includes("e.target.closest('.umd-pli,.is-voir'))return;"), 'plier (ni « Voir ») n’allume pas les liens');
   for (const k of ['html.lq #schema-sheet .umd-pli{flex:none;display:grid;place-items:center;width:28px;height:28px;', 'html.lq #schema-sheet .umd-t.is-plie .umd-pli svg{transform:rotate(-90deg)}',
     'html.lq #schema-sheet .umd-c.is-cache,html.lq #schema-sheet .umd-c.is-plus.is-vide{height:0!important;opacity:0}'])
     assert.ok(css.includes(k), k);
@@ -131,7 +132,7 @@ test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre ami
   /* Celui qui l’a pris : la pastille « +25 ✨ » saute sur ses points */
   assert.ok(fn('jeuFoundHTML').includes('${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${JEU_PTS_ESSAI} ✨</i>`:\'\'}'));
   for (const k of ['html.lq .jeu-done-b{position:absolute;', '@keyframes jeuDoneB{', '@keyframes jeuDoneEt{']) assert.ok(css.includes(k), k);
-  assert.ok(app.includes('Ta première requête exécutée est la bonne ; entre amis, si personne n’a trouvé avant toi'), 'la règle dite dans « Comment on marque des points »');
+  assert.ok(app.includes('Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi'), 'la règle dite dans « Comment on marque des points »');
 });
 
 test('salle : chaque essai des autres passe en haut de l’écran, son pseudo et une croix ou une coche', () => {
@@ -196,5 +197,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=154">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=155">'));
 });
