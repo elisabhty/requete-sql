@@ -21378,10 +21378,14 @@ function renderHomeHero(){
   /* Elisa, 5 novembre, 20 h 32 : « mettre le % du parcours au total » (20 h 34 : la carte « Ton objectif », qui le donnait sous la série,
      est supprimée) ; 20 h 44 : « la partie de gauche sur la leçon (les détails) fusionnée dans le bouton, pour laisser la place au % ».
      À gauche de la mascotte, le parcours SQL : la part déjà faite en grand (les leçons validées sur toutes celles du parcours, le calcul
-     de la page Parcours), sa barre, et le nombre de leçons. La leçon (« Leçon 11 sur 12 · ORDER BY ») passe sous le texte du bouton. */
-  const fait=typeof parcoursSqlFaites==='function'?parcoursSqlFaites():0,tot=typeof TOTAL!=='undefined'?TOTAL:0;
+     de la page Parcours), sa barre, et le nombre de leçons. La leçon (« Leçon 11 sur 12 · ORDER BY ») passe sous le texte du bouton.
+     20 h 53 : « Ton parcours, supprime SQL ; non, mettre le % du module » : la part du module en cours (ses leçons validées sur toutes
+     les siennes), sous « Ton module » ; un défi, hors module, garde celle du parcours, sous « Ton parcours ». */
+  const enMod=!!(mod&&Array.isArray(mod.lessons)&&mod.lessons.length);
+  const fait=enMod?mod.lessons.filter(l=>state.lessons&&state.lessons[l.id]&&state.lessons[l.id].done).length:(typeof parcoursSqlFaites==='function'?parcoursSqlFaites():0);
+  const tot=enMod?mod.lessons.length:(typeof TOTAL!=='undefined'?TOTAL:0);
   const pf=tot?Math.min(100,Math.round(fait/tot*100)):0;
-  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-hero-kicker">Ton parcours SQL</p><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot?`${tot} leçons t’attendent`:'Ton parcours commence'}</p></div>`;
+  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-hero-kicker">${enMod?'Ton module':'Ton parcours'}</p><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot>1?`${tot} leçons t’attendent`:tot?'Une leçon t’attend':'Ton parcours commence'}</p></div>`;
   const detail=index&&!defi?`${kicker} · ${meta.titre}`:meta.titre;
   const ctaLu=`${ctaLabel} : ${index&&!defi?`leçon ${index} sur ${mod.lessons.length}, `:''}${meta.titre}`;
   const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main">${parc}${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(detail)}</small></span></button></section>${streak}${extras}`;
@@ -38976,7 +38980,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-parcours-v2552';
+  const SW_CACHE='requete-2026-11-05-module-v2553';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

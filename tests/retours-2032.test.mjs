@@ -1,7 +1,8 @@
 /* 5 novembre, 20 h 32 (Elisa, capture de la carte du cours de l’accueil, « Prête pour la suite, Elisa ? ») : « mettre le % du parcours
    au total » ; 20 h 34 (capture de la carte « Ton objectif », « 4 % fait · fin prévue le 9 janvier ») : « supprimer » ; 20 h 44 : « la
-   partie de gauche sur la leçon (les détails) fusionnée dans le bouton, pour laisser la place au % ».
-   À gauche de la mascotte, le parcours SQL en grand ; la leçon passe dans le bouton ; la carte de l’objectif quitte l’accueil
+   partie de gauche sur la leçon (les détails) fusionnée dans le bouton, pour laisser la place au % » ; 20 h 53 : « Ton parcours,
+   supprime SQL ; non, mettre le % du module ».
+   À gauche de la mascotte, la part du module en grand ; la leçon passe dans le bouton ; la carte de l’objectif quitte l’accueil
    (retours-1727). */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,29 +14,37 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const app = lire('index.html'), lq = lire('ludique.css');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
+const NB = ' ';
 
-test('la carte du cours : le parcours en grand à gauche de la mascotte, la leçon dans le bouton', () => {
+test('la carte du cours : le module en grand à gauche de la mascotte, la leçon dans le bouton', () => {
   const calc = cut('  const chip=mod?', '  if(!lqSameHtml(host,html))');
+  /* Le module en cours : 12 leçons, les « faites » premières validées ; le parcours, lui, en compte 71 (20 de plus de validées) */
   const carte = (faites, total, extra = {}) => {
-    const c = vm.createContext({ parcoursSqlFaites: () => faites, TOTAL: total, esc: String, escAttr: s => String(s).replace(/"/g, '&quot;'),
-      mod: { titre: 'Lire une table', lessons: Array(12) }, modIndex: 1, defi: false, niv: '', meta: { titre: 'ORDER BY', sous: '' }, index: 11, kicker: 'Leçon 11 sur 12',
+    const lessons = Array.from({ length: 12 }, (_, i) => ({ id: 100 + i }));
+    const state = { lessons: Object.fromEntries(lessons.slice(0, Math.min(faites, 12)).map(l => [l.id, { done: true }])) };
+    const c = vm.createContext({ state, parcoursSqlFaites: () => faites + 20, TOTAL: total, esc: String, escAttr: s => String(s).replace(/"/g, '&quot;'),
+      mod: { titre: 'Lire une table', lessons }, modIndex: 1, defi: false, niv: '', meta: { titre: 'ORDER BY', sous: '' }, index: 11, kicker: 'Leçon 11 sur 12',
       ctaLabel: 'Reprendre ma leçon', mc: 1, heading: '', mascot: '<i class="m"></i>', pips: '', arg: '11', currentStep: 0, HOME_PLAY_SVG: '▶', streak: '', extras: '', ...extra });
-    vm.runInContext(calc.replace(/const (chip|fait|pf|parc|detail|ctaLu|html)=/g, 'var $1=').replace(/,tot=/, ';var tot='), c);
+    vm.runInContext(calc.replace(/const (chip|enMod|fait|tot|pf|parc|detail|ctaLu|html)=/g, 'var $1='), c);
     return c;
   };
-  let c = carte(3, 71);
-  assert.equal(c.pf, 4, '3 leçons sur 71 : comme la carte « Ton objectif » l’affichait (4 % fait)');
-  assert.equal(c.parc, '<div class="lq-hero-body lq-hero-parc" data-p="4"><p class="lq-hero-kicker">Ton parcours SQL</p><p class="lq-parc-n"><span class="lq-pct-n">4</span><em> %</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:4%"></i></span><p class="lq-hero-sub">3 leçons validées sur 71</p></div>');
-  assert.ok(c.html.includes('<span class="lq-hero-mod"><b>Module 2</b>Lire une table</span><div class="lq-hero-main"><div class="lq-hero-body lq-hero-parc" data-p="4">') && c.html.includes('</div><i class="m"></i></div>'), 'le module, puis le parcours et la mascotte');
+  let c = carte(10, 71);
+  assert.equal(c.pf, 83, '10 leçons sur les 12 du module, pas sur les 71 du parcours');
+  assert.equal(c.parc, `<div class="lq-hero-body lq-hero-parc" data-p="83"><p class="lq-hero-kicker">Ton module</p><p class="lq-parc-n"><span class="lq-pct-n">83</span><em>${NB}%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:83%"></i></span><p class="lq-hero-sub">10 leçons validées sur 12</p></div>`);
+  assert.ok(c.html.includes('<span class="lq-hero-mod"><b>Module 2</b>Lire une table</span><div class="lq-hero-main"><div class="lq-hero-body lq-hero-parc" data-p="83">') && c.html.includes('</div><i class="m"></i></div>'), 'le module, puis sa part et la mascotte');
+  assert.ok(!c.html.includes('Ton parcours SQL'), '« SQL » retiré');
   assert.ok(c.html.includes('<button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="Reprendre ma leçon : leçon 11 sur 12, ORDER BY" onclick="openItem(11,0)"><span class="lq-play" aria-hidden="true">▶</span><span class="lq-cta-t"><b>Reprendre ma leçon</b><small>Leçon 11 sur 12 · ORDER BY</small></span></button></section>'), 'la leçon dans le bouton');
   assert.ok(!c.html.includes('lq-hero-title') && !c.html.includes('lq-hero-pct'), 'plus de titre de leçon à gauche, plus d’anneau');
-  assert.equal(carte(1, 71).parc.match(/<p class="lq-hero-sub">([^<]+)/)[1], '1 leçon validée sur 71');
-  assert.equal(carte(0, 71).parc.match(/<p class="lq-hero-sub">([^<]+)/)[1], '71 leçons t’attendent', 'rien de fait : ce qui attend');
-  assert.equal(carte(80, 71).pf, 100, 'jamais plus de 100 %');
-  assert.equal(carte(5, 71, { parcoursSqlFaites: undefined }).pf, 0, 'sans le calcul (une page de test) : 0 %, sans erreur');
+  assert.equal(carte(1, 71).parc.match(/<p class="lq-hero-sub">([^<]+)/)[1], '1 leçon validée sur 12');
+  assert.equal(carte(0, 71).parc.match(/<p class="lq-hero-sub">([^<]+)/)[1], '12 leçons t’attendent', 'un module tout neuf : ce qui attend');
+  assert.equal(carte(12, 71).pf, 100);
+  /* Un défi, hors module : la part du parcours (25 leçons validées sur 71), sous « Ton parcours » */
   c = carte(5, 71, { mod: null, defi: true, niv: 'Facile', index: 0, kicker: 'Ton prochain défi', ctaLabel: 'Commencer le défi', meta: { titre: 'Le meilleur client' }, arg: '"d3"' });
+  assert.equal(c.pf, 35);
+  assert.ok(c.parc.includes('<p class="lq-hero-kicker">Ton parcours</p>') && c.parc.includes('25 leçons validées sur 71'));
   assert.ok(c.html.includes('<span class="lq-hero-mod"><b>Défi</b>Facile</span>') && c.html.includes('<b>Commencer le défi</b><small>Le meilleur client</small>') && c.html.includes('aria-label="Commencer le défi : Le meilleur client"'), 'un défi');
-  /* Le calcul est celui du parcours SQL (« 3 leçons validées sur 71 ») */
+  assert.equal(carte(5, 71, { mod: null, defi: true, parcoursSqlFaites: undefined }).pf, 0, 'sans le calcul (une page de test) : 0 %, sans erreur');
+  /* Le calcul du parcours est celui de la page Parcours */
   assert.ok(app.includes('function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}'));
   assert.ok(app.includes('  lqSesCount(host);\n  lqPctAnime(host);\n}'));
 });
@@ -53,7 +62,7 @@ test('la barre se remplit à la première ouverture, puis depuis la valeur déj�
     c.lqPctAnime(host);
     return { n, f, vus, c };
   };
-  let x = await monte({ p: 15 });
+  const x = await monte({ p: 15 });
   assert.deepEqual(x.vus[0], ['0', '0.00%'], 'de 0…');
   assert.ok(x.vus.length > 5 && x.vus.every((v, i) => i === 0 || +v[0] >= +x.vus[i - 1][0]), '… en montant');
   assert.equal(x.n.textContent, '15'); assert.equal(x.f.style.width, '15%');
