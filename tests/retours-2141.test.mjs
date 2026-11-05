@@ -73,8 +73,9 @@ test('il suit le planning : séance déplacée, faite (en entier ou en partie), 
   const le6 = h => new Date(2026, 10, 6, h, 0).getTime();
   assert.deepEqual(quand(x, le6(18))[0], [6, 19, 0], 'le jour même, avant l’heure : ce soir');
   assert.deepEqual(quand(x, le6(20))[0], [9, 19, 0], 'après l’heure : la prochaine séance');
+  /* 22 h 04 : commencée (un cours sur deux), elle n’a plus de rappel (retours-2204) */
   x.fait.add(3);
-  assert.deepEqual(quand(x, le6(18))[0], [6, 19, 0], 'à moitié faite : le rappel reste');
+  assert.deepEqual(quand(x, le6(18))[0], [9, 19, 0], 'commencée : son rappel se tait');
   x.fait.add(4);
   assert.deepEqual(quand(x, le6(18))[0], [9, 19, 0], 'faite : son rappel se tait');
   s[2].d = '2026-11-10';
@@ -175,7 +176,7 @@ test('automatique : reprogrammé quand ce qui est prévu change, et seulement al
 test('branché partout : chaque enregistrement, l’ouverture, le retour dans l’appli ; sur le web, la page aussi suit le planning', () => {
   assert.ok(app.includes("function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); }"));
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);"));
-  assert.ok(app.includes("    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ tickRappel(); rappelAuto(400); } });"));
+  assert.ok(app.includes("    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); tickRappel(); rappelAuto(400); } });"));
   /* La page ouverte (web) : la notification de l’heure, seulement un jour de séance pas encore faite */
   const tick = cut('function tickRappel(){', 'function plusIcon(kind){');
   const LE_6 = new Date(2026, 10, 6, 19, 0, 10).getTime();
@@ -208,10 +209,12 @@ test('Mon compte : le prochain rappel, et qu’il suit le planning', () => {
     vm.runInContext('RP=null;rappelBrouillon();rappelPeindre()', ctx);
     return body.innerHTML;
   };
-  assert.ok(feuille([{ d: J(1), lessons: [1] }]).includes('Prochain rappel : demain à 19:00. Il suit ton planning : les jours de séance seulement, et plus une fois la séance faite.'));
+  /* 22 h 04 : la phrase sur le planning est partie (retours-2204) */
+  const h = feuille([{ d: J(1), lessons: [1] }]);
+  assert.ok(h.includes('<span>Prochain rappel : demain à 19:00.</span>') && !h.includes('Il suit ton planning'), h);
   const t = new Date(); t.setDate(t.getDate() + 3);
   const loin = `${t.toLocaleDateString('fr-FR', { weekday: 'long' })} ${t.getDate() === 1 ? '1er' : t.getDate()} ${t.toLocaleDateString('fr-FR', { month: 'long' })} à 19:00`;
   assert.ok(feuille([{ d: J(3), lessons: [1] }]).includes(`Prochain rappel : ${loin}.`), loin);
   assert.ok(feuille([{ d: J(1), lessons: [1] }], [1]).includes('Ton planning ne prévoit plus de séance : pas de rappel pour l’instant.'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-compte-objectif-v2558';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-rappel-commence-v2559';"), 'le cache de l’appli change');
 });

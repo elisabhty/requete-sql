@@ -148,7 +148,7 @@ test('réf. 5 et 6 : le rappel de Mon compte, « Recevoir un rappel », « À qu
   assert.ok(h.includes('<small>Activé · chaque jour à 09:00</small>') && h.includes('class="rp-slot on" data-slot="morning"') && h.includes('class="rp-heure on" data-h="09:00"'));
   /* 21 h 41 : le prochain rappel, et qu’il suit le planning (retours-2141) */
   const quand = new Date().getHours() < 9 ? 'aujourd’hui' : 'demain';
-  assert.ok(h.includes(`Prochain rappel\u00a0: ${quand} à 09:00. Il suit ton planning\u00a0: les jours de séance seulement, et plus une fois la séance faite.`), h);
+  assert.ok(h.includes(`<span>Prochain rappel\u00a0: ${quand} à 09:00.</span>`), h);   // 22 h 04 : sans la phrase sur le planning
   assert.deepEqual(r.store, {}, 'rien ne change avant « Enregistrer »');
   r.ev('rappelEnregistrer()');
   assert.deepEqual(r.store, { 'requete-rappel': '1', 'requete-rappel-heure': '09:00' });
@@ -214,5 +214,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=166">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-05-compte-objectif-v2558' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-05-rappel-commence-v2559' && app.includes(`const SW_CACHE='${cache}';`));
 });
