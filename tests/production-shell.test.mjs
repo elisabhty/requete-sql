@@ -112,7 +112,7 @@ assert(html.includes('Séance validée') && html.includes('dp-session-valid'), '
 assert(!html.includes('${planManageHTML(p)}'), 'réglage de rythme redondant retiré du bas du parcours');
 assert(account.includes('acct-hero') && account.includes('class="acct-id"') && account.includes('Modifier mon profil') && account.includes('Mode local actif'), 'profil, niveau et mode de stockage explicites');
 assert(account.includes('Ma progression') && account.includes('acct-stats') && account.includes('id="acct-progress"'), 'progression réelle regroupée dans une seule carte, atteignable depuis la série de l’accueil');
-assert(html.includes('function accountLevel(acquis,bornes,total)') && account.includes('acct-level-track') && account.includes('Prochain cap') && account.includes('const level=niveauCompte();'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
+assert(html.includes('function accountLevel(acquis,bornes,total)') && account.includes('acct-level-track') && account.includes('Ma progression') && account.includes('const level=niveauCompte();'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
 assert(account.includes('Tes 7 prochains jours') && account.includes('const date=addJ(auj(),i)') && !account.includes('const monday=') && account.includes('acct-week') && account.includes('weekComplete') && account.includes('LQ_MOON_SVG'), 'les 7 jours du planning à partir d’aujourd’hui (Elisa, 30 octobre : « c’est pas cette semaine, c’est aujourd’hui »), repos en lune comme à l’accueil');
 assert(account.includes('Accomplissements') && account.includes('acct-badges') && account.includes('accomplissements()') && html.includes("label:'Première requête'") && !account.includes('<details class="account-subsection'), 'accomplissements visibles d’emblée, débloqués par des actions réelles (la même liste que les stickers)');
 assert(account.includes("<span class=\"acct-stat-ico is-stk\" aria-hidden=\"true\">${lqStkSvg('flame')}</span>") && account.includes("${lqStkSvg('book')}") && account.includes("${lqStkSvg('target')}"), 'les trois chiffres portent leur autocollant : la flamme de la série, le livre des leçons, la cible des défis');
@@ -149,7 +149,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)), 'cadres (dans la vidéo) couverts — le défi NTILE est parti avec les défis de la base du cours (1er novembre, 0 h 55)');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-11-05-console-fluide-v2561') && html.includes('requete-2026-11-05-console-fluide-v2561') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-11-05-compte-progression-v2562') && html.includes('requete-2026-11-05-compte-progression-v2562') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
