@@ -25,7 +25,11 @@ test('preparer.mjs : les vingt cours ont la voix d’Anaïs, les autres modules 
   assert.ok(prep.includes('const AVEC_ANAIS = [...TABLES, ...SOUS_REQUETES, ...DONNEES, ...INTEGRITE, ...TRANSACTIONS, ...PROCEDURES];'));
   for (const id of ['PrwKJdvtTbJVdosRhS1O', 'p43fx6U8afP2xoq1Ai9f', 'QbsdzCokdlo98elkq4Pc', 'i32gAGa2D3T8nPzY1EsZ', 'G7ILShrCNLfmS0A37SXS'])
     assert.ok(!prep.includes(id), 'plus de voix ' + id);
-  assert.ok(read('tools/voix/A-REGENERER.md').includes('node tools/voix/generer.mjs --toutes --cours ' + COURS.join(',') + ',group-by'), 'la commande pour le Mac');
+  assert.ok(read('tools/voix/A-REGENERER.md').includes('node tools/voix/generer.mjs --toutes --cours ' + COURS.join(',') + ',group-by,video-site\n'), 'la commande pour le Mac');
+  /* 6 h 37, « refais stp » : la vidéo du site dit « animés par huit formateurs » (il en reste huit), avec la voix de Louis */
+  const site = JSON.parse(read('tools/voix/video-site.json')), s12 = site.elements.find(e => e.id === 's12');
+  assert.ok(s12.texte.includes('Plus de soixante-dix cours immersifs, animés par huit formateurs, où tu apprends') && site.voix.nom === 'Louis');
+  assert.ok(!JSON.stringify(site).includes('dizaine'), 'le contexte des phrases voisines aussi');
 });
 
 test('generer.mjs : un fichier fait avec une autre voix est refait ; une phrase sans contexte déjà dite par la même voix est reprise', () => {
