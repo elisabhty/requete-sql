@@ -29,15 +29,17 @@ const page = ({ natif = true, plugin = true, onboarded = true, enSeance = false 
   return { ctx, appels, ecoute, vu };
 };
 
-test('les deux raccourcis de Duolingo, version Requête : posés au démarrage de l’app, quatre au plus, avec leur symbole', () => {
+test('les raccourcis de Duolingo, version Requête : posés au démarrage de l’app, quatre au plus, avec leur symbole', () => {
   const { ctx, appels, ecoute } = page();
   ctx.raccourcisBrancher(); ctx.raccourcisBrancher();
   assert.equal(appels.length, 1, 'une seule fois');
   const [p, m, o] = appels[0];
   assert.equal(p, 'RequeteWidget'); assert.equal(m, 'raccourcis');
+  /* 5 novembre, 19 h 41 : les textes d’Elisa, et « Juge-nous (gentiment) 👀 » en troisième */
   assert.deepEqual(JSON.parse(JSON.stringify(o.items)), [
-    { type: 'fr.requete.app.adieu', titre: '😱 Tu supprimes Requête ?', sousTitre: 'On te retrouvera.', icone: 'eyes' },
-    { type: 'fr.requete.app.requete', titre: '⭐ Fais une petite requête !', sousTitre: 'Quelques minutes suffisent.', icone: 'terminal' }]);
+    { type: 'fr.requete.app.adieu', titre: 'C’est un DELETE entre nous\u00a0? 💔', sousTitre: 'Même pas un dernier SELECT\u00a0?', icone: 'heart.slash' },
+    { type: 'fr.requete.app.requete', titre: 'SELECT * FROM motivation 🚀', sousTitre: 'Une petite requête et ça repart\u00a0!', icone: 'terminal' },
+    { type: 'fr.requete.app.avis', titre: 'Juge-nous (gentiment) 👀', sousTitre: 'Tes retours font évoluer Requête.', icone: 'bubble.left.and.bubble.right' }]);
   assert.equal(typeof ecoute['RequeteWidget:raccourci'], 'function', 'la page écoute le raccourci choisi');
   for (const v of [{ natif: false }, { plugin: false }]) { const x = page(v); x.ctx.raccourcisBrancher(); assert.equal(x.appels.length, 0, JSON.stringify(v)); }
   assert.ok(app.includes("    setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône"), 'au démarrage');
@@ -52,16 +54,17 @@ test('9 h 19 : « Fais une petite requête ! » ouvre l’onglet Défis ; « Tu 
   /* L’onboarding d’abord, et en séance on y reste ; depuis 11 h 08 (« le lien ne fonctionne pas vers les défis »), ils le disent */
   for (const r of ['requete', 'adieu']) {
     x = page({ onboarded: false }); x.ctx.obBandeau = t => x.vu.push(['bandeau', t]); x.ctx.raccourciOuvrir('fr.requete.app.' + r);
-    assert.deepEqual(x.vu, [['bandeau', r === 'requete' ? 'Termine ton parcours de bienvenue : les défis t’attendent juste après !' : 'Je t’avais dit que j’allais te retrouver !']], 'onboarding ' + r);
+    assert.deepEqual(x.vu, [['bandeau', r === 'requete' ? 'Termine ton parcours de bienvenue : les défis t’attendent juste après !' : 'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.']], 'onboarding ' + r);
     x = page({ enSeance: true }); x.ctx.toast = t => x.vu.push(['toast', t]); x.ctx.raccourciOuvrir('fr.requete.app.' + r);
     assert.deepEqual(x.vu, r === 'requete' ? [['toast', 'Tu es déjà en séance']] : [], 'en séance ' + r);
   }
-  /* La bulle : « Je t’avais dit que j’allais te retrouver ! », à la place de « Ravi de te revoir ! », tant qu’il la dit */
+  /* La bulle, à la place de « Ravi de te revoir ! », tant qu’il la dit : « Je t’avais dit que j’allais te retrouver ! », puis, depuis
+     19 h 41 (le raccourci demande « Même pas un dernier SELECT ? »), « Ouf, pas de DELETE ! Un petit SELECT ? » */
   const m = vm.createContext({ esc: s => String(s) });
   vm.runInContext(cut('const MASCOT_IMG=', 'function mascotReduced(){'), m);
   assert.ok(vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Ravi de te revoir\\u00a0!'})", m).includes('>Ravi de te revoir\u00a0!</span>'));
   vm.runInContext('mascotRetrouveJusqua=Date.now()+5000', m);
-  assert.ok(vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Ravi de te revoir\\u00a0!'})", m).includes('<span class="mstk-bub" aria-hidden="true">Je t’avais dit que j’allais te retrouver\u00a0!</span>'));
+  assert.ok(vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Ravi de te revoir\\u00a0!'})", m).includes('<span class="mstk-bub" aria-hidden="true">Ouf, pas de DELETE\u00a0! Un petit SELECT\u00a0?</span>'));
   assert.ok(!vm.runInContext('mascotMedalHtml({kw:"SELECT"})', m).includes('mstk-bub'), 'sans bulle : rien');
   const dit = cut('function mascotDitRetrouve(){', 'function mascotGreetOnce(){');
   assert.ok(dit.includes("btn.classList.add('is-retrouve');mascotWave(btn);") && dit.includes('},5800);'), 'plus longtemps que le coucou (2,9 s)');

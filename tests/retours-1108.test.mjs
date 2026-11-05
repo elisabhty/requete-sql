@@ -56,12 +56,27 @@ test('réf. 2 : les notifications ne sonnent que les jours de séance, à l’he
     await new Promise(r => setTimeout(r, 0)); await new Promise(r => setTimeout(r, 0));
     return appels;
   };
+  /* Depuis le 5 novembre, 19 h 41 : plus de rappel qui se répète (il garderait toujours le même texte), mais les séances à venir,
+     une à une, chacune avec son message (tests/retours-1941.test.mjs) */
+  const ids = [1, 11, 12, 13, 14, 15, 16, 17, ...Array.from({ length: 64 }, (_, i) => 100 + i)];
   const trois = await programme(3);
-  assert.deepEqual(trois[0], ['annule', [1, 11, 12, 13, 14, 15, 16, 17]], 'l’ancien rappel quotidien et ceux des jours, d’abord');
-  assert.deepEqual(trois[1][1].map(n => [n.id, n.schedule.on.weekday, n.schedule.on.hour, n.schedule.on.minute, n.schedule.repeats]),
-    [[12, 2, 7, 45, true], [14, 4, 7, 45, true], [16, 6, 7, 45, true]], 'lundi, mercredi, vendredi (weekday : 1 = dimanche), chaque semaine');
-  const sept = await programme(7);
-  assert.deepEqual(sept[1][1].map(n => [n.id, n.schedule.on.weekday, n.schedule.on.hour]), [[1, undefined, 7]], 'tous les jours : un seul rappel quotidien');
+  assert.deepEqual(trois[0], ['annule', ids], 'l’ancien rappel quotidien, ceux des jours et les séances déjà posées, d’abord');
+  const t = trois[1][1], maintenant = Date.now();
+  assert.equal(trois[1][0], 'programme');
+  assert.equal(t.length, 56, '56 séances au plus (iOS en garde 64 par appli)');
+  assert.deepEqual(t.map(n => n.id), Array.from({ length: 56 }, (_, i) => 100 + i));
+  for (const n of t) {
+    const d = new Date(n.schedule.at);
+    assert.ok([1, 3, 5].includes(d.getDay()), 'lundi, mercredi, vendredi : ' + n.schedule.at);
+    assert.deepEqual([d.getHours(), d.getMinutes(), d.getSeconds()], [7, 45, 0], 'à l’heure choisie');
+    assert.ok(d.getTime() > maintenant, 'à venir');
+    assert.equal(n.schedule.allowWhileIdle, true);
+    assert.ok(!('on' in n.schedule) && !('repeats' in n.schedule), 'une seule fois chacune');
+  }
+  assert.ok(t.every((n, i) => i === 0 || new Date(n.schedule.at) > new Date(t[i - 1].schedule.at)), 'dans l’ordre');
+  const sept = (await programme(7))[1][1];
+  assert.equal(sept.length, 56, 'tous les jours : les huit semaines à venir');
+  assert.ok(sept.every((n, i) => i === 0 || new Date(n.schedule.at) - new Date(sept[i - 1].schedule.at) < 26 * 3600e3), 'un par jour');
   assert.equal((await programme(5, false)).length, 1, 'rappel coupé : tout est annulé, rien de programmé');
   /* Sur le web, le rappel de la page : les jours de séance seulement */
   assert.ok(app.includes("  if(!rappelJours().includes(now.getDay())) return;   // les jours de séance seulement (11 h 08)"));
@@ -169,7 +184,7 @@ test('réf. 6 et 7 : la première page parle de tous les appareils, et le bouton
   assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
   /* 4 novembre, 14 h 08 (réf. 3) : « monter encore le bouton jaune » : jusqu’à 58 px au-dessus de la barre d’accueil, 34 px au moins */
   assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + clamp(34px,6.6vh,58px))!important}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=24">') && sw.includes("'./onboarding-vitrine.css?v=24',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=25">') && sw.includes("'./onboarding-vitrine.css?v=25',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   /* Le cache a changé de nom ce jour-là (rappel-jours, v2497), et de nouveau à chaque version qui a suivi */
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2497, cache);

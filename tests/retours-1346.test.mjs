@@ -51,14 +51,15 @@ test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l
   assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
   const ob = cut('function obPlanInfo(){', 'function obRhythmSummary(){');
   assert.ok(ob.includes("const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);"), 'le nombre de jours vient du plan réellement généré');
-  assert.ok(ob.includes("if(ink>40){"), 'une vraie signature, pas un point');
+  /* 5 novembre, 19 h 41 : plus de signature à dessiner, un doigt maintenu 1,5 s sur le bouton à l’empreinte (retours-1941) */
+  assert.ok(app.includes('const OB_TENIR=1500;') && !app.includes('function obSignInit('), 'un vrai engagement : le doigt maintenu jusqu’au bout');
   assert.ok(ob.includes("for(const c of C){") && app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'se resserre par paliers tant que ça déborde');
   /* 4 novembre, 17 h 27 (réf. 8 et 9) : le grand chiffre des jours est passé sur la page des jours (plus de page « 24 jours ») */
   assert.ok(app.includes('<span class="ob-proj-big" aria-hidden="true"><b><i class="ob-apport-n" data-n="${b.days}">${b.days}</i></b><small>jour${b.days>1?\'s\':\'\'}</small></span>'));
   /* 3 novembre, 13 h 25 : « Mon engagement personnel » à la place de « Mon contrat d’apprentissage » (tests/onboarding-age-profession.test.mjs) */
   assert.ok(app.includes('<p class="ob-pact-k">Mon engagement personnel</p>'));
-  assert.ok(app.includes("obSetFooter('Je m’engage',()=>{draft.pacteAt=Date.now();obGoto('practice');},'Plus tard',()=>obGoto('practice'),'',!draft.pacte);"), '« Je m’engage » s’allume une fois signé');
-  assert.ok(app.includes("...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})"), 'la signature reste sur l’appareil, dans le profil');
+  assert.ok(app.includes("    if(draft.pacte)obSetFooter('Continuer',()=>obGoto('practice'),'','','');\n    else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');"), 'le bouton à l’empreinte confirme lui-même ; « Plus tard » reste');
+  assert.ok(app.includes("...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})"), 'l’engagement reste sur l’appareil, dans le profil');
   const v = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
   for (const part of ['html #onboarding.ob-vitrine .ob-big b{font:800 clamp(120px,40vw,168px)/.9 var(--v-display);', 'html #onboarding.ob-vitrine .ob-pact-card{position:relative;',
     'html #onboarding.ob-vitrine .ob-build-path span.is-start{background:var(--v-sun);', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:none!important}'])
@@ -100,7 +101,7 @@ test('15 h 12 : l’onboarding repasse son ajustement une fois polices, images e
   assert.ok(app.includes("[350,900,1800].forEach(t=>setTimeout(again,t));"));
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), '4e palier, puis un 5e pour l’engagement (3 novembre)');
   const ob = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
-  assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-fit-4 .ob-sign{height:78px;margin-top:10px}'));
+  assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-fit-4 .ob-pact .ob-hold{width:82px;height:82px}'), 'le bouton à l’empreinte se resserre au 4e palier');
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-provider{grid-template-columns:28px minmax(0,1fr) auto!important;'));
 });
 
