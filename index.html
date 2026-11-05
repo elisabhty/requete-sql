@@ -6739,7 +6739,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=157">
+<link rel="stylesheet" href="ludique.css?v=158">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=24">
 <style id="lesson-video-css">
@@ -17270,10 +17270,17 @@ function runSqlImport(database, sql){
 function jsonCellule(v){ return v==null?'':typeof v==='object'?JSON.stringify(v):v; }
 /* Une liste de valeurs simples (« tags » : ["bio", "local"]) : une table d’une colonne, valeur. */
 function jsonLignes(arr){ return arr.map(o=>o!=null&&typeof o==='object'&&!Array.isArray(o)?o:{valeur:o}); }
+/* Le titre et la description qu’un fichier JSON porte à côté de ses listes (Elisa, 5 novembre, 16 h 56, son fichier d’entretiens :
+   « title », « description ») : ils nomment et décrivent le nouveau projet au lieu d’être perdus. */
+function jsonInfos(data){
+  const txt=(...ks)=>{ for(const k of ks){ const v=data&&data[k]; if(typeof v==='string'&&v.trim())return v.trim().replace(/\s+/g,' '); } return ''; };
+  return {titre:txt('title','titre','name','nom').slice(0,80),desc:txt('description','desc').slice(0,400)};
+}
 function parseJsonImport(data){
   // Base JSON : { clients: [...], produits: [...] }
   if(data && typeof data==='object' && !Array.isArray(data)){
     const entries=Object.entries(data).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,jsonLignes(v)]);
+    const infos=jsonInfos(data);
     if(entries.length>=2){
       const tables=entries.map(([name,arr])=>{
         const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
@@ -17283,7 +17290,7 @@ function parseJsonImport(data){
       });
       const total=tables.reduce((n,t)=>n+t.rows.length,0);
       return {
-        kind:'database', format:'json-db', tables,
+        kind:'database', format:'json-db', tables, ...infos,
         hint:`${tables.length} tables · ${total} lignes`,
         preview:tables.map(t=>`${t.name} (${t.rows.length})`).join(' · ')
       };
@@ -17295,7 +17302,7 @@ function parseJsonImport(data){
         if(!headers.length) throw new Error('JSON : table vide sans colonnes.');
         const matrix=arr.map(o=>headers.map(h=>jsonCellule(o&&o[h])));
         const t=tableFromMatrix(headers,matrix);
-        return {kind:'table',...t,defaultTable:safeIdent(name),hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+        return {kind:'table',...t,...infos,defaultTable:safeIdent(name),hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
       }
     }
   }
@@ -17424,6 +17431,13 @@ function isDatabaseImport(parsed){
 function isTableImport(parsed){
   return parsed && (parsed.kind==='table' || parsed.kind==='sql-table');
 }
+/* « Requete_Entretiens_Data_Analyst_100_Questions.json » → « Requete Entretiens Data Analyst 100 » : sans extension ni tirets bas, et
+   coupé entre deux mots quand il dépasse 40 caractères (le nom d’un projet ; avant, « …_100_Ques »). */
+function nomDeFichierLisible(nom){
+  let v=String(nom||'').replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').replace(/\s+/g,' ').trim()||'Import';
+  if(v.length>40){ const c=v.slice(0,41),i=c.lastIndexOf(' '); v=(i>=12?c.slice(0,i):v.slice(0,40)).trim(); }
+  return v;
+}
 async function onDataImport(ev){
   /* Choisi depuis « Ajouter une table » (il y a moins de 15 min) : les tables rejoindront le projet ouvert */
   const ajout=importAjout&&Date.now()-importAjout<15*60*1000&&consoleView==='work'&&!isDemoDb(activeDbId)&&customDbs[activeDbId]?activeDbId:null;
@@ -17438,7 +17452,7 @@ async function onDataImport(ev){
       file:file.name,
       parsed,
       defaultTable:parsed.defaultTable||safeIdent(file.name.replace(/\.[^.]+$/,''))||'import',
-      defaultDbName:(file.name.replace(/\.[^.]+$/,'')||'Import').slice(0,40),
+      defaultDbName:parsed.titre?parsed.titre.slice(0,40):nomDeFichierLisible(file.name),
       ajout
     };
     openImportSheet();
@@ -17733,6 +17747,7 @@ async function confirmImport(){
     /* Le nom du fichier reste avec la copie de départ : la carte de la table dit d’où viennent ses colonnes */
     const fichier=pendingImport.file;
     affected.forEach(name=>{const s0=rememberTableBaseline(database,target,name);if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);});
+    if(neuf&&p.desc){ const pj=projOf(target); if(!pj.desc){ pj.desc=p.desc; try{ saveProjState(); }catch(e){} } }
     if(activeDbId!=='cours')persistCustomDbs(target);
     importOccupe(false);
     closeImportSheet();
@@ -17980,8 +17995,14 @@ function execQuery(sql,d){const t0=performance.now();const res=(d||activeDb()||d
 function fmtCell(v){
   if(v===null)return '<td class="null">NULL</td>';
   if(typeof v==='number')return `<td class="num">${Math.round(v*100)/100}</td>`;
+  /* Un long texte (une réponse, une description : 5 novembre, 16 h 56) : la Console le montre sur trois lignes, et un toucher le déplie */
+  if(typeof v==='string'&&v.length>48)return `<td class="is-long"><span>${esc(v)}</span></td>`;
   return `<td>${esc(v)}</td>`;
 }
+if(typeof document!=='undefined')document.addEventListener('click',e=>{
+  const td=e.target&&e.target.closest?e.target.closest('#console-out td.is-long'):null;
+  if(td&&!(window.getSelection&&String(window.getSelection()).length))td.classList.toggle('is-open');
+});
 /* Indication « Glisse » : posée à droite de la ligne « 15 lignes · 3 ms »
    (ou du bandeau ✓ Correct), jamais sur les données. syncTableSwipe l’allume
    tant que le tableau déborde et qu’on n’a pas encore fait glisser. */
@@ -19224,6 +19245,31 @@ function umlModele(database,tables,sansEx){
       liens.push(l);
     });
   });
+  /* Les liens par un nom (Elisa, 5 novembre, 16 h 56 : son fichier d’entretiens, questions.categorie → categories.name, « 0 lien ») :
+     une colonne de texte qui porte le nom d’une autre table (categorie → categories, pays → pays) et dont toutes les valeurs se
+     trouvent dans une colonne sans doublon de cette table — son nom, son libellé ou son code d’abord. Deviné, comme un client_id. */
+  if(database){
+    const lies=new Set(liens.map(l=>l.de+'\u0001'+l.col));
+    const texte=c=>/CHAR|CLOB|TEXT|^$/i.test(String(c.t||''));
+    const formes=n=>{ const b=String(n).toLowerCase(); return [b,b+'s',b+'x',b.replace(/al$/,'aux'),b.replace(/y$/,'ies'),b.replace(/eau$/,'eaux')]; };
+    const pref=n=>/^(nom|name|libelle|label|titre|title|code|cle|key)$/i.test(n)?1:0;
+    const val=q=>{ try{ const r=database.exec(q); return r[0]?r[0].values[0][0]:null; }catch(e){ return null; } };
+    T.forEach(t=>t.cols.forEach(c=>{
+      if(c.b==='pk'||/^id$/i.test(c.c)||!texte(c)||lies.has(t.name+'\u0001'+c.c))return;
+      const cible=T.find(z=>z.name!==t.name&&formes(c.c).includes(String(z.name).toLowerCase()));
+      if(!cible)return;
+      const qt=quoteIdent(t.name),qc=quoteIdent(c.c),qct=quoteIdent(cible.name);
+      if(!val(`SELECT COUNT(${qc}) FROM ${qt}`))return;
+      const cles=cible.cols.filter(texte).sort((a,b)=>pref(b.c)-pref(a.c));
+      for(const k of cles){
+        const qk=quoteIdent(k.c);
+        if(val(`SELECT COUNT(${qk})-COUNT(DISTINCT ${qk}) FROM ${qct}`)!==0)continue;
+        if(val(`SELECT COUNT(*) FROM ${qt} WHERE ${qc} IS NOT NULL AND ${qc} NOT IN (SELECT ${qk} FROM ${qct} WHERE ${qk} IS NOT NULL)`)!==0)continue;
+        liens.push({de:t.name,col:c.c,vers:cible.name,versCol:k.c,un:plein(t.name,c.c)?'1':'0..1',plusieurs:c.uq?'0..1':'0..*',devine:true,parNom:true});
+        break;
+      }
+    }));
+  }
   return {tables:T,liens};
 }
 /* L’ordre des tables : une table ne vient qu’après celles qu’elle désigne, et le plus près possible d’elles. À chaque pas, la table
@@ -38725,7 +38771,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-rattraper-v2542';
+  const SW_CACHE='requete-2026-11-05-json-v2543';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
