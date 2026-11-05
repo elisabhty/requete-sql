@@ -55,7 +55,7 @@ test('pseudos : la même liste dans l’appli et sur le serveur, et les mêmes v
 });
 
 test('le barème du serveur : 50 à 275 points par manche trouvée entre amis, 225 au plus seul ; une partie ne compte qu’une fois', () => {
-  const score = sql.slice(sql.lastIndexOf('create or replace function public.jeu_score'));
+  const score = sql.slice(sql.lastIndexOf('create or replace function public.jeu_score('));
   assert.match(score, /v_pts < v_ok \* 50 or v_pts > v_ok \* \(case when v_solo then 225 else 275 end\)/);
   assert.match(score, /v_n not between 1 and 5/);
   assert.match(score, /on conflict do nothing;\n  if found then/);

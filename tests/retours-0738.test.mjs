@@ -98,7 +98,7 @@ test('exemples dépliés ou pliés : chaque base des défis reste lisible, sur l
     CREATE TABLE commandes(id INTEGER PRIMARY KEY, client_id INTEGER REFERENCES clients(id));`);
   const p = ctx.umlPlan(ctx.umlModele(d, tablesDe(d)), 322, true);
   assert.deepEqual(pur(p.cartes.map(c => [c.name, c.L])), [['clients', 36], ['commandes', 20]]);
-  assert.ok(ctx.umlHtml(p).includes('<button type="button" class="umd-t is-ex"') && ctx.umlHtml(p).includes('<button type="button" class="umd-t"'));
+  assert.ok(ctx.umlHtml(p).includes('<div class="umd-t is-ex"') && ctx.umlHtml(p).includes('<div class="umd-t"'));
   d.close();
 });
 
@@ -127,8 +127,12 @@ test('les cartes : un cadre « ex : » sous chaque colonne, à la couleur du lie
   assert.ok(h.includes('<span class="umd-c is-pk" data-c="id"><span class="umd-r"><i class="is-pk">PK</i><span>id</span><em>INTEGER</em></span><span class="umd-x"><small>ex&nbsp;:</small><b>4</b></span></span>'));
   assert.ok(h.includes('<span class="umd-c" data-c="nom"><span class="umd-r"><span>nom</span><em>VARCHAR</em></span><span class="umd-x"><small>ex&nbsp;:</small><b>Raviolis vapeur</b></span></span>'));
   assert.ok(h.includes('<b class="umd-v">→ categories</b></span><span class="umd-x"><small>ex&nbsp;:</small><b>1</b></span>'));
-  assert.ok(!ctx.umlHtml(ctx.umlPlan(m, 322, false)).includes('class="umd-x'), 'pliés : aucun cadre');
-  assert.ok(h.includes('aria-pressed="false" onclick="umlCarte(this)"') && h.includes('aria-label="Table plats, 5 colonnes, 20 lignes : allumer ses liens"'));
+  /* 9 h 18 (« quand on clique sur Exemples, j’aime pas que ça saute ») : pliés, les cadres restent dans la page, la carte les cache
+     (sa hauteur passe de 36 à 20 px par ligne, en douceur) */
+  const sansEx = ctx.umlHtml(ctx.umlPlan(m, 322, false));
+  assert.ok(!sansEx.includes('class="umd-t is-ex') && sansEx.includes('class="umd-x'), 'pliés : les cadres cachés par la carte');
+  assert.ok(css.includes('html.lq #schema-sheet .umd-t:not(.is-ex) .umd-x{opacity:0}'));
+  assert.ok(h.includes('<button type="button" class="umd-hb" aria-pressed="false"') && h.includes('onclick="umlCarte(this,event)"') && h.includes('aria-label="Table plats, 5 colonnes, 20 lignes : allumer ses liens"'));
   d.close();
   const e = ouvrir(`CREATE TABLE a(id INTEGER PRIMARY KEY, x TEXT); INSERT INTO a VALUES (1,NULL); CREATE TABLE b(id INTEGER PRIMARY KEY, a_id INTEGER REFERENCES a(id)); INSERT INTO b VALUES (1,1);`);
   assert.ok(ctx.umlHtml(ctx.umlPlan(ctx.umlModele(e, tablesDe(e)), 322, true)).includes('<span class="umd-x is-null"><small>ex&nbsp;:</small><b>NULL</b></span>'));
@@ -148,10 +152,16 @@ test('la toile touchée : les liens d’une table ou un seul lien, leurs tables 
   /* La bulle d’une table : ce qu’elle désigne, qui la désigne (chacune à toucher), « Ses colonnes » */
   const b = ctx.umlBulle(m, {t: 'plats'}, p.T);
   assert.ok(b.includes('<span class="umd-bh"><b class="umd-bn">plats</b><button type="button" class="umd-bgo" data-t="plats" onclick="schemaOuvrirTable(this.dataset.t)" aria-label="Voir les colonnes de plats">Ses colonnes'));
-  assert.ok(b.includes('<p class="umd-bl"><span>Désigne</span><button type="button" class="umd-bp" style="--c:#2F80ED;') && b.includes('data-t="categories" onclick="umlFocusTable(this.dataset.t,true)">categories</button></p>'));
-  assert.ok(b.includes('<span>Désignée par</span>') && b.includes('>lignes_commande</button>') && b.includes('>plats_ingredients</button></p>'));
+  /* 9 h 18 (« voir avec une flèche animée plutôt ») : plus de « Désigne » ni de « Désignée par » : la table, une flèche, la table
+     qu’elle désigne (à sa couleur) ; les tables qui la désignent, une flèche, elle. Les mots restent pour les lecteurs d’écran. */
+  const fl = vm.runInContext('UML_FLECHE', ctx);
+  assert.ok(!b.includes('<span>Désigne</span>') && !b.includes('<span>Désignée par</span>'));
+  assert.ok(b.includes('<p class="umd-bl" style="--lc:#2F80ED"><span class="sr">plats désigne categories</span><b class="umd-bme"') && b.includes('>plats</b>' + fl + '<button type="button" class="umd-bp" style="--c:#2F80ED;')
+    && b.includes('data-t="categories" onclick="umlFocusTable(this.dataset.t,true)">categories</button></p>'));
+  assert.match(b, /<span class="sr">(lignes_commande, plats_ingredients|plats_ingredients, lignes_commande) désignent plats<\/span><span class="umd-bps">/);
+  assert.ok(b.includes('>lignes_commande</button>') && b.includes('</button></span>' + fl + '<b class="umd-bme"'));
   assert.ok(b.includes('onclick="umlFocus(null)" aria-label="Tout rallumer"'));
-  assert.ok(ctx.umlBulle(m, {t: 'serveurs'}, p.T).includes('<span>Désignée par</span><button') && !ctx.umlBulle(m, {t: 'serveurs'}, p.T).includes('<span>Désigne</span>'));
+  assert.ok(ctx.umlBulle(m, {t: 'serveurs'}, p.T).includes('désigne serveurs</span><span class="umd-bps">') && !ctx.umlBulle(m, {t: 'serveurs'}, p.T).includes('<span class="sr">serveurs désigne '));
   /* La bulle d’un lien : ses phrases, sa jointure */
   const bl = ctx.umlBulle(m, {i}, p.T);
   assert.ok(bl.startsWith('<div class="umd-bc is-lien" style="--c:') && bl.includes('<code class="umd-j">FROM avis JOIN commandes ON avis.commande_id = commandes.id</code>'));
@@ -191,7 +201,7 @@ test('le panneau : l’interrupteur « Exemples », « Les liens en clair », la
   const d = ouvrir(ctx.DEFI_BASES.zoo.sql), m = ctx.umlModele(d, tablesDe(d));
   const h = ctx.umlPanneau(m, 322, true, true), plie = ctx.umlPanneau(m, 322, true, false);
   assert.ok(h.includes('<div class="umd-outils"><button type="button" class="umd-bt is-ex" aria-pressed="true" onclick="umlBasculeEx(this)" aria-label="Exemples de données"><span class="umd-sw" aria-hidden="true"></span>Exemples</button><button type="button" class="umd-bt" onclick="umlVersLiens()">'));
-  assert.ok(plie.includes('aria-pressed="false" onclick="umlBasculeEx(this)"') && !plie.includes('class="umd-x'));
+  assert.ok(plie.includes('aria-pressed="false" onclick="umlBasculeEx(this)"') && !plie.includes('class="umd-t is-ex'));
   assert.ok(h.includes('<div class="umd-toile" id="umd-toile" onclick="umlToileClic(event)">'));
   assert.ok(h.includes('<div class="umd-bulle" id="umd-bulle" role="status" aria-live="polite" hidden></div>'));
   assert.ok(h.includes('<span class="umd-lg is-v"><b>→</b>la table qu’elle désigne</span>') && h.includes('<span class="umd-lg is-x"><b>ex&nbsp;:</b>une valeur de la table</span>'));
@@ -200,20 +210,21 @@ test('le panneau : l’interrupteur « Exemples », « Les liens en clair », la
   /* Une base sans ligne ni lien : ni interrupteur, ni liste, ni légende des liens */
   const e = ouvrir(`CREATE TABLE a(id INTEGER PRIMARY KEY); CREATE TABLE b(id INTEGER PRIMARY KEY);`);
   const v = ctx.umlPanneau(ctx.umlModele(e, tablesDe(e)), 322, true);
-  assert.ok(!v.includes('umd-outils') && !v.includes('umd-liens') && !v.includes('is-v') && v.includes('<p class="umd-note">Dessiné à partir de la base&nbsp;:'));
+  assert.ok(!v.includes('umd-outils') && !v.includes('umd-liens') && !v.includes('class="umd-lg is-v"') && v.includes('<p class="umd-note">Dessiné à partir de la base&nbsp;:'));
   e.close();
 });
 
 test('les gestes : toucher une table l’allume (encore : tout se rallume), la toile vide éteint, la liste défile jusqu’au lien', () => {
-  assert.ok(cut('function umlCarte(btn){', '\n').includes('umlFocus(umlSel&&umlSel.t===t?null:{t})'));
+  const ca = cut('function umlCarte(el,e){', '\n');
+  assert.ok(ca.includes('umlFocus(umlSel&&umlSel.t===t?null:{t})') && ca.includes("e.target.closest('.umd-pli'))return;"), 'la flèche « plier » n’allume rien');
   assert.ok(cut('function umlToileClic(e){', '\n').includes("e.target.closest('.umd-t')))umlFocus(null)"));
   assert.ok(cut('function umlFocusLien(i){', '\n').includes('umlFocus({i:+i},true)'));
   const ap = cut('function umlAppliquer(){', '\n}\n');
-  for (const k of ["plan.classList.toggle('is-focus',!!s);", "x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i)))", "b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); b.setAttribute('aria-pressed',String(sel));",
+  for (const k of ["plan.classList.toggle('is-focus',!!s);", "x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i)))", "b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); if(hb)hb.setAttribute('aria-pressed',String(sel));",
     "r.classList.toggle('is-on',!!t&&cols.has(t.dataset.t+'\\u0001'+r.dataset.c))", "bulle.hidden=!s;"])
     assert.ok(ap.includes(k), k);
   const bas = cut('function umlBasculeEx(btn){', '\n}\n');
-  assert.ok(bas.includes("localStorage.setItem('rq-uml-ex',umlEx?'1':'0')") && bas.includes('umlDessiner(true);'));
+  assert.ok(bas.includes("localStorage.setItem('rq-uml-ex',umlEx?'1':'0')") && bas.includes('umlMorph(umlPlan(umlDernier.m,umlDernier.W,umlEx,umlPliesDe()));'), '9 h 18 : les cartes changent de taille en douceur');
   assert.ok(app.includes("let umlEx=umlPref('rq-uml-ex',true);") && cut('function umlListeToggle(d){', '\n').includes("localStorage.setItem('rq-uml-liens'"));
   const des = cut('function umlDessiner(maj){', '\n}\n');
   assert.ok(des.includes("t.firstElementChild.classList.add('is-maj')") && des.includes('body.scrollTop+=apres.getBoundingClientRect().top-avant;') && des.includes('umlAppliquer();'));
@@ -244,7 +255,7 @@ test('la DA : les traits en couleur, la table touchée et le reste effacé, la b
     /* « backwards » : après l’arrivée, une carte pressée s’enfonce et l’effacement s’applique */
     'html.lq #schema-sheet.on .umd-t{animation:umdCarte .45s cubic-bezier(.2,.8,.3,1.2) backwards;', 'html.lq #schema-sheet.on .umd-a{animation:umdTrait .5s ease-out backwards;',
     'html.lq #schema-sheet.on .umd-plan.is-maj .umd-t{animation:none}', '@keyframes umdTrait{from{opacity:0}}',
-    'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc){animation:none!important}'])
+    'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc,.umd-f,.umd-ar-l,.umd-ar-p,.umd-bgo-f){animation:none!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(!css.includes('.umd-a{opacity:0;animation') && !css.includes('animation:umdCarte .45s cubic-bezier(.2,.8,.3,1.2) both'), 'plus de remplissage qui fige l’opacité');
   assert.ok(!/:is\([^)]*::after/.test(css), 'pas de pseudo-élément dans :is()');
