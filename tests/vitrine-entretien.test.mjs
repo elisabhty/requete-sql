@@ -110,7 +110,7 @@ test('la question montrée est celle de l’appli : même numéro, niveau, thèm
   }
   const rep = section.match(/<div class="en-open">\s*<small>Réponse attendue<\/small>\s*<p>(.*?)<\/p>/s);
   assert.ok(rep, 'vitrine : réponse attendue présente');
-  assert.equal(texte(rep[1]), texte(x.a), 'vitrine : la réponse est celle de l’appli, mot pour mot');
+  assert.equal(texte(rep[1]), texte(x.a.split('\n\n')[0]), 'vitrine : la réponse est celle de l’appli, mot pour mot (son premier paragraphe : la réponse directe, depuis la réécriture du 5 novembre, 18 h 03)');
   const code = section.match(/<div class="mini-code">(.*?)<\/div>/s);
   assert.ok(code && x.sql, 'vitrine : exemple SQL présent');
   assert.equal(texte(code[1]), x.sql, 'vitrine : l’exemple SQL est celui de l’appli');
