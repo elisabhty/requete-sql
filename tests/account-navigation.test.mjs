@@ -38,5 +38,6 @@ pl.focusPlanningToday();
 assert.equal(pl.semaineOffset,0);assert.equal(pl.jourSel,'2026-09-14');assert.equal(renderCount,1);
 const steps=[];pl.switchTab=name=>steps.push(name);pl.openPlanAdjust=()=>steps.push('dialog');pl.state={plan:null};
 pl.openAccountPlanSettings();assert.deepEqual(steps,['planning']);
-pl.state.plan={};pl.openAccountPlanSettings();assert.deepEqual(steps,['planning','planning','dialog']);
+/* 5 novembre, 12 h 12 : « je veux pas que ça mène vers le planning » : avec un parcours, la feuille s’ouvre sur Mon compte. */
+pl.state.plan={};pl.openAccountPlanSettings();assert.deepEqual(steps,['planning','dialog']);
 console.log('Compte : niveaux, onglet, accès depuis la série, retour à aujourd’hui et accès au rythme : OK.');

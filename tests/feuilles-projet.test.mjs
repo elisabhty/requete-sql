@@ -23,16 +23,16 @@ test('lecteur : la carte de l’intro descend sous la croix de fermeture (dans l
   assert.ok(haut - croix >= 12, `écart : ${Math.round(haut - croix)} px`);
 });
 
-test('feuilles du bas : en-tête violet, autocollant, titre jaune et une ligne d’explication (Notes, Ajuster mon rythme)', () => {
+test('feuilles du bas : en-tête violet, autocollant, titre jaune et une ligne d’explication (Notes, Adapte ton rythme)', () => {
   const cap = cut(app, 'function lqVizCap(id,stk,sub){', 'function openNotesHub(){');
   for (const part of ["head.classList.add('viz-cap'); sheet.classList.add('has-cap');", "b.replaceWith(t); t.appendChild(b);", "s.className='viz-cap-sub'",
     "k.innerHTML=String(stk).startsWith('<svg')?stk:lqStkSvg(stk);", "k.classList.add('is-in');"])
     assert.ok(cap.includes(part), part);
   assert.ok(cut(app, 'function openNotesHub(){', 'function onSearch(').includes("lqVizCap('note-sheet','note',nb?`${plur(nb,'note')} · tes idées et tes requêtes`:'Tes idées et tes requêtes, au même endroit.');"));
   assert.ok(cut(app, 'function openNote(id,pre){', 'function collectNote(){').includes("lqVizCap('note-sheet','pen',"));
-  assert.ok(cut(app, 'function openPlanAdjust(trigger){', 'function togglePlanTools(){').includes("lqVizCap('plan-adjust-sheet',PL_STK_CAL,'Choisis un rythme confortable.');"));
+  assert.ok(cut(app, 'function openPlanAdjust(trigger){', 'function togglePlanTools(){').includes("lqVizCap('plan-adjust-sheet',PL_STK_CAL,'Un programme qui s’adapte à toi, pas l’inverse.');"), 'Elisa, 5 novembre, 12 h 12');
   /* Le titre garde son élément : aria-labelledby et les textes mis à jour (Notes, Note, Nouvelle note) */
-  assert.ok(app.includes('<b id="note-head">Nouvelle note</b>') && app.includes('<b id="plan-adjust-title" tabindex="-1">Ajuster mon rythme</b>'));
+  assert.ok(app.includes('<b id="note-head">Nouvelle note</b>') && app.includes('<b id="plan-adjust-title" tabindex="-1">Adapte ton rythme</b>'));
   for (const part of ['html.lq .viz-head.viz-cap{isolation:isolate;overflow:hidden;', 'background:var(--deep)!important;', 'html.lq .viz-cap-stk.is-in{animation:lqAskSlap',
     'html.lq .viz-head.viz-cap .viz-cap-t b{display:block;color:var(--sun-hi)!important;', 'html.lq .viz-cap-sub{display:block;', 'html.lq #plan-adjust-sheet.has-cap .pl-adjust-lead{display:none}'])
     assert.ok(s39.includes(part), part);

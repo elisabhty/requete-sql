@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=deba54ad">
+<link rel="stylesheet" href="vitrine.css?v=51e414c3">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
@@ -59,7 +59,7 @@
     <a href="#mobile">Requête sur mobile</a>
     <a href="#faq">Questions fréquentes</a>
     <a href="#avis">Donner ton avis</a>
-    <a href="#contact">Nous contacter</a>
+    <a href="#contact">Contacte-nous</a>
     <a class="btn btn-s btn-lg" href="connexion.html">Se connecter</a>
   </nav>
 </header>
@@ -608,7 +608,7 @@
         </div>
         <form class="ct-form" id="ctform" novalidate>
           <fieldset class="ct-topics">
-            <legend>C’est à propos de…</legend>
+            <legend>Quel est le sujet de ton message&nbsp;?</legend>
             <label><input type="radio" name="sujet" value="Une question" checked><span>Une question</span></label>
             <label><input type="radio" name="sujet" value="Une idée"><span>Une idée</span></label>
             <label><input type="radio" name="sujet" value="Donner mon avis"><span>Donner mon avis</span></label>
@@ -625,14 +625,15 @@
             <label class="fld"><input type="text" name="prenom" autocomplete="given-name" placeholder=" "><span>Prénom</span></label>
             <label class="fld"><input type="email" name="email" autocomplete="email" placeholder=" "><span>E-mail (pour te répondre)</span></label>
           </div>
-          <label class="fld area"><textarea name="message" rows="5" maxlength="1000" placeholder=" " required></textarea><span>Ton message</span><small class="cnt-c" id="ctc">0 / 1000</small></label>
+          <label class="fld area"><textarea name="message" rows="5" maxlength="1000" placeholder=" " required aria-describedby="ctex"></textarea><span>Ton message</span><small class="cnt-c" id="ctc">0 / 1000</small></label>
+          <p class="ct-ex" id="ctex">Ex.&nbsp;: Requête marche-t-il sans connexion&nbsp;? Faut-il un compte pour commencer&nbsp;?</p>
           <div class="ct-pj">
             <label class="ct-drop" id="ctdrop"><input type="file" id="ctfile" multiple accept="image/*,.pdf,.txt,.csv,.tsv,.xls,.xlsx,.json,.sql,.sqlite,.sqlite3,.db"><i class="ct-drop-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.6 12.2 20.8a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></i><span><b id="ctdropt">Ajouter une image ou un fichier</b><small id="ctdrops">Capture d’écran, PDF, CSV… jusqu’à 5 fichiers de 10&nbsp;Mo.<span class="ct-drop-pc"> Tu peux aussi les glisser ici ou coller une capture dans ton message.</span></small></span></label>
             <ul class="ct-list" id="ctlist" aria-live="polite"></ul>
           </div>
           <p class="ct-rgpd">Ton prénom, ton e-mail, ton message et tes fichiers servent seulement à te répondre. <a href="confidentialite.html#envoye">Ce qu’on en fait</a>.</p>
           <div class="ct-act">
-            <button type="submit" class="btn btn-p btn-lg" id="ctsend"><span>Envoyer</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4Z"/></svg></button>
+            <button type="submit" class="btn btn-p btn-lg" id="ctsend"><span>Envoyer mon message</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4Z"/></svg></button>
             <p class="ct-note" id="ctnote" role="status" aria-live="polite"></p>
           </div>
         </form>
@@ -657,7 +658,7 @@
         <a href="module.html?m=sql">Parcours SQL</a>
         <a href="#faq">Questions fréquentes</a>
         <a href="#avis">Donner ton avis</a>
-        <a href="#contact">Nous contacter</a>
+        <a href="#contact">Contacte-nous</a>
       </nav>
       <nav class="foot-col" aria-label="L’appli">
         <h4>L’appli</h4>
@@ -973,7 +974,9 @@ var CONTACT_EMAIL='';
     dropT.textContent=n>=5?'5 fichiers sur 5':capt?'Ajouter une autre capture':'Ajouter un autre fichier';
     dropS.textContent=n>=5?'C’est le maximum\u00a0: retire un fichier pour en ajouter un autre.':n+' fichier'+(n>1?'s':'')+' sur 5 ('+poids(tot)+'). Tu peux encore en ajouter '+(5-n)+'.';
   };
-  var majSujet=function(){var a=estAvis();rate.hidden=!a;lbl.textContent=a?'Ton avis, en quelques mots':'Ton message';majDrop();};
+  var majSujet=function(){var a=estAvis(),v=((f.querySelector('input[name=sujet]:checked')||{}).value)||'Une question';rate.hidden=!a;lbl.textContent=a?'Ton avis, en quelques mots':'Ton message';if(ex)ex.textContent='Ex.\u00a0: '+(EX[v]||EX['Une question']);majDrop();};
+  /* L’exemple du message suit le sujet (Elisa, 5 novembre, 12 h 12 : « un champ de message intelligent », comme dans l’appli) */
+  var EX={'Une question':'Requête marche-t-il sans connexion\u00a0? Faut-il un compte pour commencer\u00a0?','Une idée':'un cours sur les fonctions de fenêtrage, ou des défis sur une base de données sportive.','Donner mon avis':'ce qui t’a plu, ce qui t’a manqué, à qui tu conseillerais Requête.','Un bug':'sur quel écran, ce qui s’est passé, ce que tu attendais, et ton appareil.','Un problème de connexion':'ce que tu as essayé, le message affiché, ton appareil et ton navigateur.','Je suis une entreprise':'ton entreprise, le nombre de personnes à former, tes besoins en SQL.','Un partenariat':'qui tu es, ce que tu proposes, et comment on pourrait travailler ensemble.'},ex=document.getElementById('ctex');
   f.addEventListener('change',function(e){
     if(e.target.name==='sujet')majSujet();
     if(e.target.name==='note'){majNote();var l=e.target.closest('label');l.classList.remove('pop');void l.offsetWidth;l.classList.add('pop');}

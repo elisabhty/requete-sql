@@ -77,5 +77,5 @@ test('validation Apple : la suppression de compte côté serveur, la caméra des
   for (const t of ['public.jeu_joueur', 'public.jeu_pseudo', 'public.parcours_vote', 'public.avis_lecon', 'public.onboarding_etape', 'public.contact_message', 'requete_private.membre', 'auth.users'])
     assert.ok(sql.includes('delete from ' + t), t);
   assert.ok(sql.includes('grant execute on function public.compte_supprimer(text) to anon, authenticated;'));
-  assert.ok(widget.includes("['NSCameraUsageDescription', 'Pour joindre une photo à ton message dans « Nous contacter ».']") && widget.includes("'NSPhotoLibraryUsageDescription'"));
+  assert.ok(widget.includes("['NSCameraUsageDescription', 'Pour joindre une photo à ton message dans « Contacte-nous ».']") && widget.includes("'NSPhotoLibraryUsageDescription'"));
 });

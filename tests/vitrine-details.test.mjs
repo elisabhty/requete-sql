@@ -209,7 +209,7 @@ test('« Se connecter » partout à la place de « Ouvrir l’appli », et la ca
   }
   const home = lire('index.html');
   const menu = home.slice(home.indexOf('<nav class="menu" id="menu"'), home.indexOf('</nav>', home.indexOf('<nav class="menu" id="menu"')));
-  assert.ok(menu.includes('>Pourquoi apprendre SQL</a>') && menu.includes('>Requête sur mobile</a>') && menu.includes('>Nous contacter</a>'));
+  assert.ok(menu.includes('>Pourquoi apprendre SQL</a>') && menu.includes('>Requête sur mobile</a>') && menu.includes('>Contacte-nous</a>'));
   /* .avis coupait tout ce qui dépassait, y compris l’ombre de sa dernière carte : on ne coupe plus que sur les côtés */
   assert.match(css, /@supports \(overflow:clip\)\{\.avis\{overflow:visible;overflow-x:clip\}\}/);
 });
@@ -299,7 +299,11 @@ test('contact : « Donner mon avis » affiche les étoiles (pas de « Ma note »
   for (let n = 1; n <= 5; n++)
     assert.ok(fs_[1].includes(`<input type="radio" name="note" value="${n}">`) && fs_[1].includes(`<span class="sr">${n} étoile${n > 1 ? 's' : ''} sur 5</span>`), `étoile ${n}`);
   /* Visibles seulement pour « Donner mon avis », avec un libellé de message adapté */
-  assert.ok(h.includes(`var majSujet=function(){var a=estAvis();rate.hidden=!a;lbl.textContent=a?'Ton avis, en quelques mots':'Ton message';majDrop();};`));
+  assert.ok(h.includes(`var majSujet=function(){var a=estAvis(),v=((f.querySelector('input[name=sujet]:checked')||{}).value)||'Une question';rate.hidden=!a;lbl.textContent=a?'Ton avis, en quelques mots':'Ton message';if(ex)ex.textContent='Ex.\\u00a0: '+(EX[v]||EX['Une question']);majDrop();};`));
+  /* 5 novembre, 12 h 12 : l’exemple du message suit le sujet, comme dans l’appli */
+  for (const k of ['Une question', 'Une idée', 'Donner mon avis', 'Un bug', 'Un problème de connexion', 'Je suis une entreprise', 'Un partenariat'])
+    assert.ok(h.includes(`'${k}':'`), k);
+  assert.ok(h.includes('<p class="ct-ex" id="ctex">Ex.&nbsp;: Requête marche-t-il sans connexion&nbsp;? Faut-il un compte pour commencer&nbsp;?</p>') && h.includes('aria-describedby="ctex"'));
   /* La note touchée dans « Et toi, tu en penses quoi ? » est cochée dans le formulaire, le message reste vide */
   assert.ok(h.includes(`var nr=note&&f.querySelector('input[name=note][value="'+note+'"]');if(nr){nr.checked=true;nr.dispatchEvent(new Event('change',{bubbles:true}));}`));
   assert.doesNotMatch(h, /ta\.value='Ma note/, 'plus de « Ma note » écrit dans la zone de texte');

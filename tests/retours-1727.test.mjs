@@ -26,7 +26,7 @@ test('réf. 4 et 2 : les phrases centrées le sont vraiment (la largeur maximale
     'la cause : « .ob-slides p » écrasait les marges automatiques');
   assert.ok(section.includes('html #onboarding.ob-vitrine .ob-slides p.ob-lead,html #onboarding.ob-vitrine .ob-slides p.ob-legal-note{margin-left:auto!important;margin-right:auto!important}'));
   /* Plus spécifique que « .ob-slides p » (0,1,1) : un identifiant, des classes */
-  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=23">'));
+  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=24">'));
 });
 
 test('réf. 3 : le cadre de la notification s’écarte de la carte de l’heure (son anneau de 9 px compris)', () => {
@@ -136,7 +136,7 @@ test('réf. 7 : l’objectif sur l’accueil, sous la série, dans une carte com
     'html.lq #home-hero .lq-obj[data-goal="work"] .ob-answer-icon{background:#E3F0FF;color:#2F7BEF}', 'html.lq #home-hero .lq-obj-k::before{content:"";flex:none;width:14px;height:3px;border-radius:3px;background:currentColor}'])
     assert.ok(lq.includes(k), k);
   assert.ok(lire('decouvrir/vitrine.css').includes('.i-e{background:#E3F0FF;color:#2F7BEF}'), 'les couleurs de la vitrine');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=152">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=153">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {
