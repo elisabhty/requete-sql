@@ -90,5 +90,6 @@ test('1 h 45 : chaque table et chaque colonne d’Aéroport a sa description, af
   d.close();
   assert.ok(!/utile pour les défis/.test(m[1] + m[2]), 'pas d’indice');
   assert.ok(app.includes('${noteId&&tableNote(noteId,name)?`<p class="sch-tnote">${esc(tableNote(noteId,name))}</p>`:\'\'}'));
-  assert.ok(app.includes('${colNote(activeDbId,t,c.c)?`<small class="cd">${esc(colNote(activeDbId,t,c.c))}</small>`:\'\'}'));
+  /* Dans la carte d’une table de la Console (5 novembre, 15 h 01 : « Structure de la table »), sous le nom de la colonne */
+  assert.ok(app.includes("const d=colNote(activeDbId,t,c.c);") && app.includes('${d?`<small class="tbl-cd">${esc(d)}</small>`:\'\'}'));
 });
