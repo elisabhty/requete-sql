@@ -97,7 +97,7 @@ test('la page d’un projet : carte violette, base en autocollant, pastille du t
   assert.ok(scr.includes("row.classList.toggle('is-project',inWork)") && scr.includes("lqStkSvg('db')"));
   assert.ok(scr.includes("sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b>`;"), 'le nombre de tables est dans la barre Schéma (13 h 46)');
   const chips = cut('function renderConsoleChips(){', '/* Projet vide');
-  assert.ok(chips.includes("l:'Aperçu de la table',q:`SELECT * FROM ${t}\\nLIMIT 50;`") && chips.includes('<code><span>${highlight(line)}</span></code>'));
+  assert.ok(chips.includes("l:'Aperçu de la table',q:`SELECT * FROM ${umlId(t)}\\nLIMIT 50;`") && chips.includes('<code><span>${highlight(line)}</span></code>'));
   const ctx = vm.createContext({ esc, escAttr: esc, highlight: s => `[${s}]` });
   vm.runInContext(`const CONSOLE_EX_PLAY='';` + chips.replace('function renderConsoleChips(){', 'function f(q){').replace(/[\s\S]*?(host\.innerHTML=ex\.map)/, 'function f(ex){const host={};$1').replace(/window\.__chips=ex;[\s\S]*$/, 'return host.innerHTML;}'), ctx);
   const html = ctx.f([{ l: 'Aperçu de la table', q: 'SELECT * FROM clients\nLIMIT 50;' }, { l: 'Ventes par client', q: 'SELECT a\nFROM b\nGROUP BY a;' }]);

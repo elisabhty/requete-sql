@@ -213,6 +213,11 @@
         if (row.length) rows[ri] = row;
         return m;
       });
+      /* Les cellules fusionnées (5 novembre) : la valeur de la première vaut pour toutes (une région sur quatre lignes). */
+      xml.replace(/<mergeCell\b[^>]*\bref="([A-Z]+)(\d+):([A-Z]+)(\d+)"/g, (mm, c0, r0, c1, r1) => {
+        fusionner(rows, +r0 - 1, colIndex(c0 + '1'), +r1 - 1, colIndex(c1 + '1'));
+        return mm;
+      });
       sheets.push({name: a.name || 'Feuille' + (sheets.length + 1), rows: Array.from(rows, r => r || [])});
     }
     return sheets;
@@ -222,6 +227,7 @@
   const odsText = inner => String(inner).replace(/<text:s\b([^>]*)\/>/g, (m, a) => ' '.repeat(+(attrs(a)['text:c'] || 1)))
     .replace(/<text:tab\b[^>]*\/>/g, '\t').replace(/<text:line-break\b[^>]*\/>/g, '\n').replace(/<\/text:p>\s*<text:p\b[^>]*>/g, '\n').replace(/<[^>]+>/g, '');
   function odsValue(a, inner) {
+    if (a['calcext:value-type'] === 'error') return null;   // #DIV/0! : vide, comme en .xlsx
     const t = a['office:value-type'];
     if (t === 'float' || t === 'percentage' || t === 'currency') return +a['office:value'];
     if (t === 'boolean') return a['office:boolean-value'] === 'true' ? 1 : 0;
@@ -234,14 +240,20 @@
     const xml = await z.text('content.xml');
     if (!xml) throw new Error('classeur OpenDocument illisible');
     const sheets = [];
+    /* Une feuille cachée ne s’importe pas, comme en .xlsx (son style de table dit table:display="false") */
+    const cachees = new Set();
+    xml.replace(/<style:style\b([^>]*)>([\s\S]*?)<\/style:style>/g, (m, sa, inner) => { const at = attrs(sa); if (at['style:family'] === 'table' && /table:display="false"/.test(inner)) cachees.add(at['style:name']); return m; });
     xml.replace(/<table:table(\s[^>]*)?>([\s\S]*?)<\/table:table>/g, (m, ta, body) => {
-      const rows = [];
+      if (cachees.has(attrs(ta || '')['table:style-name'])) return m;
+      const rows = [], fus = [];
       body.replace(/<table:table-row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/table:table-row>)/g, (mr, ra, rinner) => {
         const row = [];
         let col = 0;
         String(rinner || '').replace(/<table:(?:covered-)?table-cell\b([^>]*?)(?:\/>|>([\s\S]*?)<\/table:(?:covered-)?table-cell>)/g, (mc, ca, cinner) => {
           const a = attrs(ca), rep = Math.max(1, +(a['table:number-columns-repeated'] || 1)), val = odsValue(a, cinner);
           if (val != null && val !== '') for (let k = 0; k < Math.min(rep, 1024); k++) row[col + k] = val;
+          const rs = +(a['table:number-rows-spanned'] || 1), cs = +(a['table:number-columns-spanned'] || 1);
+          if ((rs > 1 || cs > 1) && val != null && val !== '') fus.push([rows.length, col, rows.length + rs - 1, col + cs - 1]);
           col += rep;
           return mc;
         });
@@ -250,10 +262,20 @@
         else rows.push(...Array(Math.min(rep, 2)).fill([]));
         return mr;
       });
+      fus.forEach(([r0, c0, r1, c1]) => fusionner(rows, r0, c0, r1, c1));
       sheets.push({name: attrs(ta || '')['table:name'] || 'Feuille' + (sheets.length + 1), rows});
       return m;
     });
     return sheets;
+  }
+  /* Une zone fusionnée : la valeur de sa première cellule recopiée dans les autres cellules vides. */
+  function fusionner(rows, r0, c0, r1, c1) {
+    const v = (rows[r0] || [])[c0];
+    if (v == null || v === '' || r1 - r0 > 10000 || c1 - c0 > 1024) return;
+    for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
+      const row = rows[r] = rows[r] || [];
+      if (row[c] == null || row[c] === '') row[c] = v;
+    }
   }
 
   /* ---------- Excel 97-2003 .xls : un fichier composé (CFB) qui contient le flux « Workbook » au format BIFF8 ---------- */
@@ -338,7 +360,7 @@
       if (r.type === 0x0022) d1904 = r.data[0] === 1;
       else if (r.type === 0x041E) { const rd = one(r.data), id = rd.u16(); fmts[id] = rd.unicode(2); }
       else if (r.type === 0x00E0) xfs.push(view(r.data).getUint16(2, true));
-      else if (r.type === 0x0085) { const rd = one(r.data), pos = rd.u32(); rd.u8(); const dt = rd.u8(); sheetsMeta.push({pos, dt, name: rd.unicode(1)}); }
+      else if (r.type === 0x0085) { const rd = one(r.data), pos = rd.u32(), vis = rd.u8() & 3, dt = rd.u8(); sheetsMeta.push({pos, dt, vis, name: rd.unicode(1)}); }
       else if (r.type === 0x00FC) {
         const parts = [r.data];
         while (recs[k + 1] && recs[k + 1].type === 0x003C) parts.push(recs[++k].data);
@@ -357,10 +379,10 @@
     };
     const sheets = [];
     for (const meta of sheetsMeta) {
-      if (meta.dt !== 0) continue;
+      if (meta.dt !== 0 || meta.vis) continue;   // une feuille cachée ne s’importe pas, comme en .xlsx
       let k = recs.findIndex(r => r.off === meta.pos);
       if (k < 0) continue;
-      const rows = [], put = (r, c, val) => { if (val == null || val === '') return; (rows[r] = rows[r] || [])[c] = val; };
+      const rows = [], put = (r, c, val) => { if (val == null || val === '') return; (rows[r] = rows[r] || [])[c] = val; }, fus = [];
       let pendingStr = null;
       for (k++; k < recs.length && recs[k].type !== 0x000A; k++) {
         const {type, data} = recs[k], dv = view(data);
@@ -381,7 +403,9 @@
           } else put(r, c, num(dv.getFloat64(6, true), dv.getUint16(4, true)));
         }
         else if (type === 0x0207 && pendingStr) { put(pendingStr[0], pendingStr[1], one(data).unicode(2)); pendingStr = null; }
+        else if (type === 0x00E5) { const n = dv.getUint16(0, true); for (let j = 0; j < n && 2 + j * 8 + 8 <= data.length; j++) fus.push([dv.getUint16(2 + j * 8, true), dv.getUint16(6 + j * 8, true), dv.getUint16(4 + j * 8, true), dv.getUint16(8 + j * 8, true)]); }
       }
+      fus.forEach(([r0, c0, r1, c1]) => fusionner(rows, r0, c0, r1, c1));
       sheets.push({name: meta.name, rows: Array.from(rows, r => r || [])});
     }
     return sheets;

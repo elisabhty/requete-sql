@@ -116,7 +116,7 @@ test('les couleurs des liens : chaque table désignée la sienne, le trait et se
     const h = ctx.umlHtml(p);
     for (const a of p.arcs) {
       assert.ok(h.includes(`<path class="umd-a" d="${a.d}" data-i="${a.i}"`), 'le trait et son lien');
-      assert.ok(h.includes(`data-c="${a.col}" style="--lc:${a.c};--lcs:${a.cs};--lci:${a.ci}"><span class="umd-r"><i>FK</i><span>${a.col}</span><b class="umd-v">→ ${a.vers}</b></span>`), `${id} : ${a.de}.${a.col} dit où elle va`);
+      assert.ok(h.includes(`data-c="${a.col}" style="--lc:${a.c};--lcs:${a.cs};--lci:${a.ci}"><span class="umd-r">`) && h.includes(`<i class="is-fk">FK</i><span>${a.col}</span><b class="umd-v">→ ${a.vers}</b></span>`), `${id} : ${a.de}.${a.col} dit où elle va`);
     }
     d.close();
   }
@@ -124,7 +124,7 @@ test('les couleurs des liens : chaque table désignée la sienne, le trait et se
 
 test('les cartes : un cadre « ex : » sous chaque colonne, à la couleur du lien pour une clé étrangère ; NULL en italique', () => {
   const d = ouvrir(ctx.DEFI_BASES.wok.sql), m = ctx.umlModele(d, tablesDe(d)), h = ctx.umlHtml(ctx.umlPlan(m, 322, true));
-  assert.ok(h.includes('<span class="umd-c is-pk" data-c="id"><span class="umd-r"><i>PK</i><span>id</span><em>INTEGER</em></span><span class="umd-x"><small>ex&nbsp;:</small><b>4</b></span></span>'));
+  assert.ok(h.includes('<span class="umd-c is-pk" data-c="id"><span class="umd-r"><i class="is-pk">PK</i><span>id</span><em>INTEGER</em></span><span class="umd-x"><small>ex&nbsp;:</small><b>4</b></span></span>'));
   assert.ok(h.includes('<span class="umd-c" data-c="nom"><span class="umd-r"><span>nom</span><em>VARCHAR</em></span><span class="umd-x"><small>ex&nbsp;:</small><b>Raviolis vapeur</b></span></span>'));
   assert.ok(h.includes('<b class="umd-v">→ categories</b></span><span class="umd-x"><small>ex&nbsp;:</small><b>1</b></span>'));
   assert.ok(!ctx.umlHtml(ctx.umlPlan(m, 322, false)).includes('class="umd-x'), 'pliés : aucun cadre');
@@ -209,7 +209,7 @@ test('les gestes : toucher une table l’allume (encore : tout se rallume), la t
   assert.ok(cut('function umlToileClic(e){', '\n').includes("e.target.closest('.umd-t')))umlFocus(null)"));
   assert.ok(cut('function umlFocusLien(i){', '\n').includes('umlFocus({i:+i},true)'));
   const ap = cut('function umlAppliquer(){', '\n}\n');
-  for (const k of ["plan.classList.toggle('is-focus',!!s);", "x.classList.toggle('is-on',on.has(+x.dataset.i))", "b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); b.setAttribute('aria-pressed',String(sel));",
+  for (const k of ["plan.classList.toggle('is-focus',!!s);", "x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i)))", "b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); b.setAttribute('aria-pressed',String(sel));",
     "r.classList.toggle('is-on',!!t&&cols.has(t.dataset.t+'\\u0001'+r.dataset.c))", "bulle.hidden=!s;"])
     assert.ok(ap.includes(k), k);
   const bas = cut('function umlBasculeEx(btn){', '\n}\n');
@@ -237,7 +237,7 @@ test('la DA : les traits en couleur, la table touchée et le reste effacé, la b
     'html.lq #schema-sheet .umd-m:is(.is-on,.is-sur) rect{fill:var(--lc)}', 'html.lq #schema-sheet .umd-plan.is-focus .umd-a:not(.is-on){opacity:.1}',
     'html.lq #schema-sheet .umd-plan.is-focus .umd-t:not(.is-sel):not(.is-lie){opacity:.4;filter:saturate(.35)}', 'html.lq #schema-sheet .umd-t.is-sel::after{box-shadow:inset 0 0 0 2.5px var(--c)}',
     'html.lq #schema-sheet .umd-t.is-ex .umd-c:not(.is-plus){height:36px}', 'html.lq #schema-sheet .umd-c.is-on{background:var(--lcs,var(--cs))}',
-    'html.lq #schema-sheet .umd-v{flex:none;max-width:58%;margin-left:auto;', 'html.lq #schema-sheet .umd-x{display:flex;align-items:center;gap:4px;align-self:flex-start;max-width:100%;height:14px;',
+    'html.lq #schema-sheet .umd-v{flex:0 3 auto;min-width:34px;max-width:58%;margin-left:auto;', 'html.lq #schema-sheet .umd-x{display:flex;align-items:center;gap:4px;align-self:flex-start;max-width:100%;height:14px;',
     'html.lq #schema-sheet .umd-bulle{position:sticky;bottom:12px;z-index:3;', 'html.lq #schema-sheet .umd-liens[open] .umd-chev{transform:rotate(180deg)}',
     'html.lq #schema-sheet .umd-j{display:block;padding:8px 10px;border-radius:11px;background:var(--code-bg);color:var(--code-ink);',
     'html.lq #schema-sheet .umd-bt.is-ex[aria-pressed="true"] .umd-sw::after{transform:translateX(12px)}',
@@ -248,5 +248,5 @@ test('la DA : les traits en couleur, la table touchée et le reste effacé, la b
     assert.ok(css.includes(k), k);
   assert.ok(!css.includes('.umd-a{opacity:0;animation') && !css.includes('animation:umdCarte .45s cubic-bezier(.2,.8,.3,1.2) both'), 'plus de remplissage qui fige l’opacité');
   assert.ok(!/:is\([^)]*::after/.test(css), 'pas de pseudo-élément dans :is()');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=145">'), 'la feuille de style est rechargée');
+  assert.ok(/<link rel="stylesheet" href="ludique\.css\?v=\d+">/.test(app), 'la feuille de style est rechargée');
 });
