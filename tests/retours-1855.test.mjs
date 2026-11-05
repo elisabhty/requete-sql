@@ -155,7 +155,8 @@ test('les salles ouvertes : l’hôte et son drapeau, les places, le niveau, « 
   assert.ok(h.includes('<b>@lea&lt;b&gt; <span class="dx-plp">2/5</span></b>'), 'le pseudo échappé, les places');
   assert.ok(h.includes('<i class="dx-niv is-m">Moyen</i> · 3 manches') && h.includes('<i class="jeu-flag" aria-hidden="true">[BE]</i>'));
   assert.ok(h.includes("onclick=\"sallesRejoindre('AAA111')\""));
-  assert.ok(h.includes("onclick=\"defisCarte('creer')\">+ Créer une salle</button>") && h.includes(">J’ai un code</button>") && h.includes('t’entraîner seul</button>, sans adversaire.'));
+  /* 5 novembre, 10 h 16 : « Créer une salle », « J’ai un code » et « Seul » passent sous la partie rapide (retours-1016-feuilles) ; ici, les salles seulement. */
+  assert.ok(!h.includes("defisCarte(") && !h.includes('dx-duo') && h.includes('Comment on marque des points</button>'));
   c.ev('DEFIS.salles=[]'); c.ev('sallesRepeindre()');
   assert.ok(c.els['defis-salles'].innerHTML.includes('Aucune salle ouverte pour l’instant. Lance une partie rapide&nbsp;: ta salle apparaîtra ici pour les autres.'));
   c.ev("DEFIS.salles=null;DEFIS.sallesErr='net'"); c.ev('sallesRepeindre()');
@@ -164,7 +165,7 @@ test('les salles ouvertes : l’hôte et son drapeau, les places, le niveau, « 
 
 test('une salle créée est publique par défaut ; l’hôte la publie dès que la base la connaît', async () => {
   assert.ok(app.includes("let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo',jeuNivUser=false,jeuVis='pub';"), 'publique par défaut (19 h 10)');
-  assert.ok(fn('renderDefisRoom', '\n}\n').includes("${seg('vis',[['pub','Tout le monde'],['priv','Sur invitation']],jeuVis)}"));
+  assert.ok(fn('defisFeuilleHTML', '\n}\n').includes("${seg('vis',[['pub','Tout le monde'],['priv','Sur invitation']],jeuVis)}"));
   assert.ok(app.includes("else jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom',pub:jeuVis==='pub'}));"));
   assert.ok(app.includes("pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),") && app.includes("if(host&&JEU.pub&&typeof jeuPublier==='function')jeuPublier(JEU,0);"));
   let n = 0;
@@ -256,7 +257,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=3"></script>') && sw.includes("'./multiplayer-security.js?v=3',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=147">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=148">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-05-salle-v2528');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-05-defis-v2529');
 });
