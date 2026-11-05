@@ -70,8 +70,9 @@ test('un défi tourne sur sa base : exécution, correction, pas à pas, schéma 
   assert.ok(app.includes('const dU=defiSandbox(c);const t0=performance.now();') && app.includes('const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}'), 'salle de défi');
   assert.ok(app.includes('const dU=isDefi?defiSandbox(current):sandbox();') && app.includes('const dS=isDefi?defiSandbox(current):sandbox();'), 'défi seul');
   assert.ok(app.includes("tmp=taId==='ed-console'?null:(defiActif()?defiSandbox(defiActif()):sandbox());"), 'pas à pas');
-  assert.ok(app.includes('const database=dId?new SQL.Database(defiBaseBytes(dId)):db;'), 'schéma de la base du défi');
-  assert.ok(app.includes("tt.textContent=dId?`Schéma · base ${DEFI_BASES[dId].nom}`:'Schéma · base du cours';"));
+  /* 5 novembre, 7 h 03 : ouvert depuis la Console, le schéma de la base de la Console (retours-0703) */
+  assert.ok(app.includes('const database=cons?activeDb():dId?new SQL.Database(defiBaseBytes(dId)):db;'), 'schéma de la base du défi');
+  assert.ok(app.includes(":dId?`Schéma · base ${DEFI_BASES[dId].nom}`:'Schéma · base du cours';"));
   assert.ok(app.includes('if(dId){const d=new SQL.Database(defiBaseBytes(dId));try{tabs=listTables(d);}finally{d.close();}}'), 'tables proposées après « no such table »');
   assert.ok(app.includes("const id=dId?'defi:'+dId:(activeDbId||'cours')+':'+(database?schemaVersion(database):'-');"), 'tables et colonnes proposées au clavier');
   assert.ok(app.includes("Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}"), 'la base dans l’en-tête du défi');
@@ -88,6 +89,6 @@ test('1 h 45 : chaque table et chaque colonne d’Aéroport a sa description, af
   }
   d.close();
   assert.ok(!/utile pour les défis/.test(m[1] + m[2]), 'pas d’indice');
-  assert.ok(app.includes('${dId&&tableNote(dId,name)?`<p class="sch-tnote">${esc(tableNote(dId,name))}</p>`:\'\'}'));
+  assert.ok(app.includes('${noteId&&tableNote(noteId,name)?`<p class="sch-tnote">${esc(tableNote(noteId,name))}</p>`:\'\'}'));
   assert.ok(app.includes('${colNote(activeDbId,t,c.c)?`<small class="cd">${esc(colNote(activeDbId,t,c.c))}</small>`:\'\'}'));
 });
