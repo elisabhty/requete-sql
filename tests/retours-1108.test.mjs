@@ -78,8 +78,8 @@ test('réf. 2 : les notifications ne sonnent que les jours de séance, à l’he
   assert.equal(sept.length, 56, 'tous les jours : les huit semaines à venir');
   assert.ok(sept.every((n, i) => i === 0 || new Date(n.schedule.at) - new Date(sept[i - 1].schedule.at) < 26 * 3600e3), 'un par jour');
   assert.equal((await programme(5, false)).length, 1, 'rappel coupé : tout est annulé, rien de programmé');
-  /* Sur le web, le rappel de la page : les jours de séance seulement */
-  assert.ok(app.includes("  if(!rappelJours().includes(now.getDay())) return;   // les jours de séance seulement (11 h 08)"));
+  /* Sur le web, le rappel de la page : les jours de séance seulement ; depuis le 5 novembre, 21 h 41, ceux du planning (retours-2141) */
+  assert.ok(app.includes("  if(rappelJoursPrevus(now,1)[0]!==rappelIso(now)) return;   // les jours où le planning prévoit une séance pas encore faite (11 h 08, 21 h 41)"));
   /* Il suit le parcours : à la fin de l’onboarding, quand on ajuste ou recrée son planning */
   for (const k of ["  try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours créé (11 h 08)",
     "  try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours (11 h 08)",
