@@ -6752,9 +6752,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=164">
+<link rel="stylesheet" href="ludique.css?v=165">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=25">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -35989,6 +35989,8 @@ function startOnboarding(initial='welcome'){
     source:profile.source||'',
     referral:profile.referral||'',
     ...(PAYS_CODES.includes(profile.pays)?{pays:profile.pays,paysAuto:!!profile.paysAuto}:{}),
+    /* 21 h 19 : l’engagement déjà pris le reste quand on refait l’onboarding (finishOnboard réécrit le profil) */
+    ...(profile.pacte&&Number.isFinite(profile.pacte.at)?{pacte:profile.pacte.sig||'empreinte',pacteAt:profile.pacte.at}:{}),
     practiceDone:false,
     practiceRows:[],
     accountMode:state.accountMode||null
@@ -36750,15 +36752,41 @@ function obRunBig(){
 }
 /* L’engagement (Elisa, 5 novembre, 19 h 41, d’après la capture d’une autre appli : « Hold your finger on the button to confirm ») :
    plus de signature, un doigt posé sur le bouton à l’empreinte et gardé 1,5 s. L’anneau se remplit, l’empreinte se colore de bas en
-   haut, le téléphone donne un cran de plus en plus serré ; puis le bouton passe au vert, coche, et la page suivante arrive. Lâché trop
+   haut, le téléphone donne un cran de plus en plus serré ; puis le bouton passe au vert, coche, et « C’est parti ! » mène à la suite (21 h 19 ; avant, la page partait d’elle-même). Lâché trop
    tôt : l’anneau se vide et la phrase le dit. Au clavier : Espace maintenu ; Entrée et VoiceOver (un toucher sans maintien) valident
    d’un coup. L’engagement reste sur l’appareil, dans le profil (draft.pacte, pacteAt). */
 const OB_TENIR=1500;
+/* L’engagement (Elisa, 5 novembre, 21 h 19 : « Un engagement envers toi-même », « 10 minutes par jour peuvent faire toute la
+   différence » selon le rythme choisi, « Mon engagement », « C’est noté : ton engagement est pris en compte », « C’est parti ! ») : ses
+   textes, à l’onboarding et dans Mon compte › Mon engagement. m : les minutes d’une séance, f : les séances par semaine. */
+const PACTE_PRIS='C’est noté&nbsp;: ton engagement est pris en compte.',PACTE_GO='C’est parti\u00a0!';
+function pacteDuree(m,f){const t=`${m} minutes`;return f===7?`<b>${t} par jour</b>`:f===5?`<b>${t} par jour</b> en semaine`:`<b>${t}</b>, <b>${f} jours par semaine</b>,`;}
+function pacteLead(m,f){return f===7?`${m} minutes par jour peuvent faire toute la différence.`:f===5?`${m} minutes par jour en semaine peuvent faire toute la différence.`:`${m} minutes, ${f} jours par semaine, peuvent faire toute la différence.`;}
+function pacteDate(ts){const d=ts?new Date(ts):new Date();return `Le ${d.getDate()===1?'1er':d.getDate()} ${d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}`;}
+function pacteCarteHTML(o){
+  const f=o.f||7;
+  return `<div class="ob-pact-card${o.signe?' is-signed':''}"><p class="ob-pact-k">Mon engagement</p>
+        <p class="ob-pact-txt">Moi, <b>${o.nom?esc(o.nom):accord('future','futur','futur·e')+' pro du SQL'}</b>, je m’engage à consacrer ${pacteDuree(o.m,f)} à mon apprentissage.</p>
+        <p class="ob-pact-txt">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>
+        <p class="ob-pact-date">${esc(pacteDate(o.ts))}</p>
+        <span class="ob-pact-stamp" aria-hidden="true">Validé ✓</span></div>`;
+}
+function holdZoneHTML(id,fait){
+  return `<div class="ob-hold-zone">
+        <p class="ob-hold-hint" id="${id}-hint" aria-live="polite">${fait?PACTE_PRIS:'Maintiens ton doigt sur le bouton pour t’engager'}</p>
+        <button type="button" class="ob-hold${fait?' is-done':''}" id="${id}" aria-describedby="${id}-hint" aria-label="${fait?'Engagement pris':'Maintenir pour m’engager'}">
+          <svg class="ob-hold-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="ob-hold-track" cx="50" cy="50" r="46"/><circle class="ob-hold-fill" cx="50" cy="50" r="46"/></svg>
+          <span class="ob-hold-ico" aria-hidden="true">${OB_EMPREINTE_SVG}<span class="ob-hold-plein">${OB_EMPREINTE_SVG}</span></span>
+          <span class="ob-hold-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.4 4.4L19 7.2"/></svg></span>
+        </button></div>`;
+}
 /* Une empreinte digitale, ses crêtes en arcs (d’après l’icône « fingerprint » de Lucide, licence ISC) */
 const OB_EMPREINTE_SVG='<svg viewBox="0 0 24 24"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/></svg>';
-function obHoldInit(){
-  const b=document.getElementById('ob-hold');if(!b||b.dataset.pret)return;b.dataset.pret='1';
-  const fill=b.querySelector('.ob-hold-fill'),hint=document.getElementById('ob-hold-hint');
+/* Le bouton à l’empreinte, où qu’il soit (l’onboarding ; Mon compte › Mon engagement, 21 h 19) : o.fini quand le tour est fait,
+   o.suite quand on touche de nouveau le bouton déjà pris. */
+function holdBrancher(b,hint,o){
+  if(!b||b.dataset.pret)return;b.dataset.pret='1';o=o||{};
+  const fill=b.querySelector('.ob-hold-fill');
   const TOUR=2*Math.PI*46;
   const C=window.Capacitor,H=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Haptics;
   let t0=0,raf=0,on=false,crans=0,clavier=false,finiA=0,appuiA=-1e9;
@@ -36771,11 +36799,8 @@ function obHoldInit(){
     on=false;cancelAnimationFrame(raf);dessine(1);finiA=performance.now();
     b.classList.remove('is-holding','is-lache');b.classList.add('is-done');b.setAttribute('aria-label','Engagement pris');
     try{if(H){H.selectionEnd&&H.selectionEnd();H.notification&&H.notification({type:'SUCCESS'});}else if(typeof buzz==='function')buzz('success');}catch(e){}
-    draft.pacte='empreinte';draft.pacteAt=Date.now();
-    document.querySelector('#ob-body .ob-pact-card')?.classList.add('is-signed');
-    if(hint){hint.classList.remove('is-relance');hint.innerHTML='C’est noté&nbsp;: ton engagement est pris.';}
-    const ici=OB_SLIDES[obStep];
-    setTimeout(()=>{if(OB_SLIDES[obStep]===ici&&document.getElementById('ob-hold')===b)obGoto('practice');},prefersReduceMotion()?500:1100);
+    if(hint){hint.classList.remove('is-relance');hint.innerHTML=PACTE_PRIS;}
+    if(o.fini)o.fini();
   };
   const pas=()=>{if(!on)return;const p=Math.min(1,(performance.now()-t0)/OB_TENIR);dessine(p);cran(p);if(p>=1){fini();return;}raf=requestAnimationFrame(pas);};
   const part=()=>{
@@ -36800,8 +36825,51 @@ function obHoldInit(){
   /* Un « clic » sans doigt ni souris juste avant (Entrée, VoiceOver, Contrôle de sélection) : l’engagement est pris d’un coup ; celui
      qui suit un toucher trop court, ou l’Espace maintenu, ne compte pas. Déjà pris (revenu sur la page) : le bouton mène à la suite,
      mais pas le clic qui suit le doigt qui vient de finir le tour. */
-  b.addEventListener('click',()=>{if(b.classList.contains('is-done')){if(performance.now()-finiA>1500)obGoto('practice');return;}if(!on&&!clavier&&performance.now()-appuiA>800)fini();clavier=false;});
+  b.addEventListener('click',()=>{if(b.classList.contains('is-done')){if(performance.now()-finiA>1500&&o.suite)o.suite();return;}if(!on&&!clavier&&performance.now()-appuiA>800)fini();clavier=false;});
   if(b.classList.contains('is-done'))dessine(1);
+}
+/* Mon compte › Mon engagement (Elisa, 21 h 19 : « permettre à l’utilisateur de retrouver son engagement dans Mon compte, sous
+   Parcours et rythme ») : le même certificat, au rythme du parcours (il suit « Ajuster mon rythme »), daté du jour où il a été pris.
+   Pas encore pris (« Plus tard » à l’onboarding) : le bouton à l’empreinte le prend ici. */
+function pacteRythme(){
+  const pl=state.plan||{},ryt=RYTHMES.find(r=>r.k===(pl.rythme||'regulier'))||RYTHMES[1];
+  return {m:obRythmeMinutes(ryt),f:pl.freq||7};
+}
+function pactePris(){const p=state.profile&&state.profile.pacte;return p&&typeof p==='object'&&Number.isFinite(p.at)?p:null;}
+function pacteResume(){
+  const p=pactePris();if(!p)return 'Pas encore pris';
+  const {m,f}=pacteRythme(),d=new Date(p.at);
+  const r=f===7?' par jour':f===5?' par jour en semaine':`, ${f}\u00a0jours par semaine`;
+  return `Pris le ${d.getDate()===1?'1er':d.getDate()} ${d.toLocaleDateString('fr-FR',{month:'long'})}\u00a0· ${m}\u00a0min${r}`;
+}
+function pacteFeuilleHTML(){
+  const p=pactePris(),{m,f}=pacteRythme();
+  return `<div class="pc-pacte${p?' is-pris is-deja':''}">
+      ${pacteCarteHTML({nom:(state.name||'').trim(),m,f,ts:p?p.at:0,signe:!!p})}
+      ${holdZoneHTML('pc-hold',!!p)}</div>`;
+}
+function pacteFeuilleBrancher(){
+  holdBrancher(document.getElementById('pc-hold'),document.getElementById('pc-hold-hint'),{
+    fini:()=>{
+      state.profile=state.profile||{};state.profile.pacte={at:Date.now(),sig:'empreinte'};save();
+      document.querySelector('#plus-pacte .ob-pact-card')?.classList.add('is-signed');
+      document.querySelector('#plus-pacte .pc-pacte')?.classList.add('is-pris');
+      const r=document.getElementById('acct-pacte-sum');if(r)r.textContent=pacteResume();
+    }
+  });
+}
+/* L’onboarding (21 h 19) : le tour fait, le tampon se pose, « C’est noté : ton engagement est pris en compte. » reste à lire, et « C’est
+   parti ! » mène à la suite (la page ne part plus toute seule). */
+function obHoldInit(){
+  holdBrancher(document.getElementById('ob-hold'),document.getElementById('ob-hold-hint'),{
+    fini:()=>{
+      draft.pacte='empreinte';draft.pacteAt=Date.now();
+      document.querySelector('#ob-body .ob-pact-card')?.classList.add('is-signed');
+      obSetFooter(PACTE_GO,()=>obGoto('practice'),'','','');
+      const n=document.getElementById('ob-next');if(n&&typeof obCtaWake==='function')obCtaWake(n);
+    },
+    suite:()=>obGoto('practice')
+  });
 }
 /* « Pour l’onboarding, il faut que tout tienne sur une page, il ne faut pas qu’on ait à scroller pour tout voir » (13 h 46). Si
    l’écran déborde, il se resserre par paliers (titres, mascotte, cartes plus compactes, puis textes secondaires retirés). */
@@ -37595,24 +37663,15 @@ function paintOb(){
        à la verticale, entre le titre et le bouton. */
     /* 5 novembre, 19 h 41 : plus de signature à dessiner. Sous le certificat, le doigt maintenu 1,5 s sur le bouton à l’empreinte
        (obHoldInit) prend l’engagement et passe à la suite ; « Plus tard » reste possible. */
-    const b=obPlanInfo(),firstName=(draft.name||'').trim(),f=draft.freq||7,m=`${b.minutes} minutes`;
-    const duree=f===7?`<b>${m} par jour</b>`:f===5?`<b>${m} par jour</b> en semaine`:`<b>${m}</b>, <b>${f} jours par semaine</b>,`;
-    html=`<div class="ob-screen ob-profile ob-pact">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>
-      <p class="ob-lead">Chaque minute compte pour atteindre ton objectif.</p>
-      <div class="ob-pact-card${draft.pacte?' is-signed':''}"><p class="ob-pact-k">Mon engagement personnel</p>
-        <p class="ob-pact-txt">Moi, <b>${firstName?esc(firstName):accord('future','futur','futur·e')+' pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>
-        <p class="ob-pact-txt">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>
-        <p class="ob-pact-date">Le ${new Date().getDate()===1?'1er':new Date().getDate()} ${esc(new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))}</p>
-        <span class="ob-pact-stamp" aria-hidden="true">Validé ✓</span></div>
-      <div class="ob-hold-zone">
-        <p class="ob-hold-hint" id="ob-hold-hint" aria-live="polite">${draft.pacte?'C’est noté&nbsp;: ton engagement est pris.':'Maintiens ton doigt sur le bouton pour t’engager'}</p>
-        <button type="button" class="ob-hold${draft.pacte?' is-done':''}" id="ob-hold" aria-describedby="ob-hold-hint" aria-label="${draft.pacte?'Engagement pris':'Maintenir pour m’engager'}">
-          <svg class="ob-hold-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="ob-hold-track" cx="50" cy="50" r="46"/><circle class="ob-hold-fill" cx="50" cy="50" r="46"/></svg>
-          <span class="ob-hold-ico" aria-hidden="true">${OB_EMPREINTE_SVG}<span class="ob-hold-plein">${OB_EMPREINTE_SVG}</span></span>
-          <span class="ob-hold-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.4 4.4L19 7.2"/></svg></span>
-        </button></div></div>`;
-    /* 19 h 41 : le bouton à l’empreinte confirme lui-même ; revenu sur la page après coup, « Continuer » */
-    if(draft.pacte)obSetFooter('Continuer',()=>obGoto('practice'),'','','');
+    /* 5 novembre, 21 h 19 : « Un engagement envers toi-même », les minutes et les jours choisis (« 10 minutes par jour peuvent faire
+       toute la différence »), « Mon engagement ». Le tour fait, « C’est noté : ton engagement est pris en compte. » reste à lire et
+       « C’est parti ! » mène à la suite. Le certificat et le bouton (pacteCarteHTML, holdZoneHTML) se retrouvent dans Mon compte. */
+    const b=obPlanInfo(),f=draft.freq||7;
+    html=`<div class="ob-screen ob-profile ob-pact">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un <em>engagement</em> envers <span class="ob-nw">toi-même</span>.</h1>
+      <p class="ob-lead">${pacteLead(b.minutes,f)}</p>
+      ${pacteCarteHTML({nom:(draft.name||'').trim(),m:b.minutes,f,ts:draft.pacte?draft.pacteAt:0,signe:!!draft.pacte})}
+      ${holdZoneHTML('ob-hold',!!draft.pacte)}</div>`;
+    if(draft.pacte)obSetFooter(PACTE_GO,()=>obGoto('practice'),'','','');
     else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');
     setTimeout(obHoldInit,0);
   }else{
@@ -38249,6 +38308,7 @@ function renderCompte(){
             <button class="account-setting-row" type="button" onclick="paysChanger()"><span class="plus-row-icon is-drapeau" aria-hidden="true">${paysDuProfil()?paysDrapeau(paysDuProfil()):'🌍'}</span><span><b>Pays</b><small>${paysDuProfil()?esc(paysNom(paysDuProfil())):'Choisir mon pays'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${paysDuProfil()?`<label class="account-setting-row dx-drapeau-row"><span class="plus-row-icon is-stk" aria-hidden="true">${lqStkSvg('target')}</span><span><b>Afficher mon drapeau</b><small>${typeof paysMontre==='function'&&!paysMontre()?'Masqué dans les défis':'Dans les défis, à côté de ton pseudo'}</small></span><input type="checkbox" role="switch" class="pc-switch" ${typeof paysMontre==='function'&&!paysMontre()?'':'checked'} onchange="paysMontrer(this.checked)" aria-label="Afficher mon drapeau dans les défis"></label>`:''}
             <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route is-stk">${lqStkSvg(ACCT_STK.route)}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-pacte')"><span class="plus-row-icon is-stk">${lqStkSvg('pen')}</span><span><b>Mon engagement</b><small id="acct-pacte-sum">${pacteResume()}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
@@ -38280,6 +38340,10 @@ function renderCompte(){
           ${CHEV}</button>
         ${st.due?`<p class="acc-note">${st.due} leçon${st.due>1?'s':''} à réviser aujourd’hui.</p>`:''}
       </div>
+    </details>
+    <details class="plus-details" id="plus-pacte">
+      <summary><span>Un engagement envers <span class="pc-nw">toi-même</span></span><small>${pacteLead(pacteRythme().m,pacteRythme().f)}</small><i aria-hidden="true">×</i></summary>
+      <div class="plus-details-body pc-body">${pacteFeuilleHTML()}</div>
     </details>
     <details class="plus-details" id="plus-reading">
       <summary><span>Confort de lecture</span><small>${readingSummary}</small><i aria-hidden="true">×</i></summary>
@@ -38330,6 +38394,7 @@ function renderCompte(){
     <p class="app-version-note">${esc(appVersionLabel())}</p>
     <button type="button" class="account-sheet-backdrop" onclick="closePlusDetails()" aria-label="Fermer les réglages ouverts"></button>`;
   stkPaint(host.querySelector('.acct-badges'));
+  pacteFeuilleBrancher();
   if(keptId){
     const again=document.getElementById(keptId);
     if(again){
@@ -39011,7 +39076,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-uneligne-v2555';
+  const SW_CACHE='requete-2026-11-05-engagement-v2556';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

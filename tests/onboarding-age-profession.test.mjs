@@ -88,13 +88,16 @@ test('les tuiles suivent la DA de l’onboarding : cartes blanches à rebord, co
 
 test('l’engagement : le nouveau texte, et le certificat au milieu de l’écran', () => {
   const pact = slide('pact', '}else{');
-  assert.ok(pact.includes('<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>\n      <p class="ob-lead">Chaque minute compte pour atteindre ton objectif.</p>'));
-  assert.ok(pact.includes('<p class="ob-pact-k">Mon engagement personnel</p>'));
-  assert.ok(pact.includes("<p class=\"ob-pact-txt\">Moi, <b>${firstName?esc(firstName):accord('future','futur','futur·e')+' pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>"));
-  assert.ok(pact.includes("<p class=\"ob-pact-txt\">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>"));
+  /* 5 novembre, 21 h 19 : « Un engagement envers toi-même », « 10 minutes par jour peuvent faire toute la différence » (les minutes et
+     les jours choisis), « Mon engagement » ; le certificat vient de pacteCarteHTML (retours-2119) */
+  assert.ok(pact.includes('<h1 class="ob-title" id="ob-title">Un <em>engagement</em> envers <span class="ob-nw">toi-même</span>.</h1>\n      <p class="ob-lead">${pacteLead(b.minutes,f)}</p>'));
+  const carte = app.slice(app.indexOf('function pacteCarteHTML(o){'), app.indexOf('function holdZoneHTML('));
+  assert.ok(carte.includes('<p class="ob-pact-k">Mon engagement</p>'));
+  assert.ok(carte.includes("<p class=\"ob-pact-txt\">Moi, <b>${o.nom?esc(o.nom):accord('future','futur','futur·e')+' pro du SQL'}</b>, je m’engage à consacrer ${pacteDuree(o.m,f)} à mon apprentissage.</p>"));
+  assert.ok(carte.includes("<p class=\"ob-pact-txt\">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>"));
   /* La durée dit le vrai rythme choisi : 20 minutes par jour (tous les jours), en semaine, ou n jours par semaine */
-  const ligne = pact.match(/const duree=([^;]+);/)[1];
-  const duree = (f, minutes = 20) => vm.runInNewContext(ligne, { f, m: `${minutes} minutes` });
+  const fn = app.match(/function pacteDuree\(m,f\)\{[^\n]+\}/)[0];
+  const duree = (f, minutes = 20) => vm.runInNewContext(fn + `;pacteDuree(${minutes},${f})`);
   assert.equal(duree(7), '<b>20 minutes par jour</b>');
   assert.equal(duree(5), '<b>20 minutes par jour</b> en semaine');
   assert.equal(duree(3, 10), '<b>10 minutes</b>, <b>3 jours par semaine</b>,');
@@ -102,12 +105,12 @@ test('l’engagement : le nouveau texte, et le certificat au milieu de l’écra
   /* Centré : marges automatiques au-dessus et en dessous du cadre, dans un écran à pleine hauteur */
   assert.ok(css.includes('html #onboarding.ob-vitrine .ob-screen.ob-pact{min-height:100%}'));
   assert.ok(css.includes('html #onboarding.ob-vitrine .ob-pact .ob-pact-card{margin-top:auto;margin-bottom:auto}'));
-  /* « Chaque minute compte » reste sur les téléphones courants ; il ne part qu’au dernier palier (5), sur le plus petit écran */
+  /* La phrase sous le titre reste sur les téléphones courants ; elle ne part qu’au dernier palier (5), sur le plus petit écran */
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-pact .ob-lead{display:block!important;'));
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-5 .ob-pact .ob-lead{display:none!important}'));
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"));
   /* 5 novembre, 19 h 41 : le doigt maintenu sur le bouton à l’empreinte remplace la signature (retours-1941) */
-  assert.ok(pact.includes('<button type="button" class="ob-hold${draft.pacte?\' is-done\':\'\'}" id="ob-hold"') && !pact.includes('ob-sign'));
+  assert.ok(pact.includes("${holdZoneHTML('ob-hold',!!draft.pacte)}") && app.includes('<button type="button" class="ob-hold${fait?\' is-done\':\'\'}" id="${id}"') && !pact.includes('ob-sign'));
 });
 
 test('la promesse ne dit plus « c’est assez pour les entretiens de data analyst » (ni aucune promesse de résultat)', () => {
@@ -151,7 +154,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=25">') && sw.includes("'./onboarding-vitrine.css?v=25',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');
