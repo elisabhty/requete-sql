@@ -28,12 +28,12 @@ test('la carte reprend les couleurs du site : aplat violet du héros, menthe, ja
   assert.ok(/\.acc-pseudo-t small\{[^}]*text-transform:uppercase;color:var\(--mint\)\}/.test(sect), '« Pseudo » en surtitre menthe, comme les surtitres du site');
 });
 
-test('l’avatar est contouré d’encre comme sur les avis du site, le cadenas dans sa pastille', () => {
+test('l’avatar est contouré d’encre comme sur les avis du site ; le drapeau dans sa pastille, à la place du cadenas (5 novembre, 21 h 01)', () => {
   assert.ok(site.includes('border:3px solid #fff;box-shadow:0 0 0 2px var(--ink),0 4px 0 2px var(--ink)'), 'le contour des avis du site');
   assert.ok(/\.acc-pseudo-av\{[^}]*border:3px solid #fff;[^}]*box-shadow:0 0 0 2px var\(--ink\),0 4px 0 2px var\(--ink\)/.test(sect), 'le même contour dans l’appli');
-  assert.ok(/\.acc-pseudo-lock\{position:absolute;right:-10px;bottom:-8px;[^}]*background:var\(--sun\)/.test(sect), 'pastille jaune, comme l’étoile des avis');
+  assert.ok(/\.acc-pseudo-flag\{position:absolute;right:-12px;bottom:-7px;[^}]*background:#fff/.test(sect) && !sect.includes('acc-pseudo-lock'), 'la pastille blanche du drapeau, plus de cadenas');
   const html = rendu('@elisa');
-  assert.ok(html.includes('<span class="acc-pseudo-av"><span aria-hidden="true">E</span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img">'), 'le cadenas reste annoncé');
+  assert.ok(html.includes('<span class="acc-pseudo-av"><span aria-hidden="true">E</span></span>') && !html.includes('Pseudo verrouillé'), 'sans pays connu (ici), pas de pastille');
 });
 
 test('le trait sous le pseudo est celui de « le SQL » sur le site, et se dessine à l’ouverture', () => {
