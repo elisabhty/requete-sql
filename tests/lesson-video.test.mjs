@@ -2754,7 +2754,7 @@ test('bouton verrouillé de la leçon (« Valide la leçon : … ») : il s’en
   assert.ok(css.includes('@media (prefers-reduced-motion:reduce){#lesson-body .ls-nav .ls-next[data-jc-gate],#lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}}')
     && css.includes('html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}'), 'mouvement réduit : ni saut ni élan');
   assert.ok(html.includes("if(!el||el.disabled||(el.getAttribute('aria-disabled')==='true'&&!el.hasAttribute('data-jc-gate')))return;")
-    && html.includes("if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate')))buzz('light');"), 'le bouton verrouillé vibre à l’appui, comme un bouton actif');
+    && html.includes("if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate'))){\n    buzz('light');"), 'le bouton verrouillé vibre à l’appui, comme un bouton actif');
   assert.ok(html.includes("e.target.closest('.ls-next[data-jc-gate]'); if(!b)return;\n  b.classList.remove('is-go'); void b.offsetWidth; b.classList.add('is-go');\n  clearTimeout(b._goT); b._goT=setTimeout(()=>b.classList.remove('is-go'),720);\n},true);"), 'au toucher (ou au clavier), la flèche s’élance, puis la classe est retirée');
   assert.ok(html.includes('class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">'), 'le bouton ouvre toujours la vidéo');
 });

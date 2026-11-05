@@ -6626,18 +6626,31 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
   try{P.StatusBar&&P.StatusBar.setStyle({style:'LIGHT'});}catch(e){}
   var H=P.Haptics;
   if(H){
+    /* Elisa, 5 novembre, 19 h 41 : « je n’ai pas de haptique dans l’application ». Les coups de moins de 10 ms (le toucher de chaque
+       bouton, 6 à 8 ms) passaient par selectionChanged, qui ne fait rien hors d’une sélection commencée (selectionStart) : presque
+       aucun toucher ne vibrait. Chaque coup est maintenant un vrai impact, léger, moyen ou fort selon sa durée.
+       Un seul coup par toucher : le bouton a déjà vibré en s’enfonçant (au pointerdown, voir buzz) ; le petit coup que redonne le même
+       geste (son clic, ou un autre écouteur du même appui) est sauté. */
+    var doublon=function(){
+      var ev=window.event;if(!ev)return false;
+      if(ev===window.__toucheEv)return true;
+      var b=window.__toucheB;
+      return ev.type==='click'&&!!b&&!!ev.target&&!!b.contains&&b.contains(ev.target)&&Date.now()-(window.__toucheA||0)<1500;
+    };
+    window.__toucheDoublon=doublon;
     var tap=function(ms){
       try{
-        if(ms>=25)H.impact({style:'MEDIUM'});
-        else if(ms>=10)H.impact({style:'LIGHT'});
-        else H.selectionChanged?H.selectionChanged():H.impact({style:'LIGHT'});
+        if(ms<12&&doublon())return;
+        if(ms>=22)H.impact({style:'HEAVY'});
+        else if(ms>=12)H.impact({style:'MEDIUM'});
+        else H.impact({style:'LIGHT'});
       }catch(e){}
     };
     try{
       navigator.vibrate=function(p){
         if(Array.isArray(p)){
           /* Motif « tap, pause, tap » : un vrai retour de réussite ou d’erreur. */
-          if(p.length===3&&p[1]>=40&&H.notification){try{H.notification({type:p[0]>=15&&p[2]>=15&&p[0]===p[2]?'ERROR':'SUCCESS'});}catch(e){}return true;}
+          if(p.length===3&&p[1]>=40&&H.notification){try{H.notification({type:p[0]>=15&&p[2]>=15&&p[0]===p[2]?(p[1]>=60&&p[0]<20?'WARNING':'ERROR'):'SUCCESS'});}catch(e){}return true;}
           var t=0;p.forEach(function(d,i){if(i%2===0&&d>0)setTimeout(function(){tap(d);},t);t+=d;});
         }else if(p>0)tap(p);
         return true;
@@ -6741,7 +6754,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=160">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=24">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=25">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -15374,6 +15387,7 @@ async function boot(){
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
     setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
     setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône (appui long, comme Duolingo)
+    setTimeout(()=>{try{if(state.onboarded)rappelNativeSync();}catch(e){}},2200);   // les rappels des huit semaines à venir, reposés (19 h 41)
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
     /* Retour de « Restaurer une sauvegarde » : Mon compte, et la carte « Tes données » dit que c’est fait. */
@@ -21236,7 +21250,8 @@ let mascotWavedThisSession=false;
 /* Elisa, 4 novembre, 9 h 19 : le raccourci « 😱 Tu supprimes Requête ? — On te retrouvera. » ouvre l’accueil, et le chat dit dans sa
    bulle « Je t’avais dit que j’allais te retrouver ! » (raccourciOuvrir, mascotDitRetrouve) ; tant qu’il la dit, l’accueil redessiné
    la garde. */
-const MASCOT_RETROUVE='Je t’avais dit que j’allais te retrouver\u00a0!';
+/* 19 h 41 : le raccourci demande « Même pas un dernier SELECT ? » ; le chat y répond */
+const MASCOT_RETROUVE='Ouf, pas de DELETE\u00a0! Un petit SELECT\u00a0?';
 let mascotRetrouveJusqua=0;
 /* o.kw : mot-clé SQL collé à côté (avec deux étincelles) ; o.hi : texte de la bulle ; o.intro : arrivée collée. */
 function mascotMedalHtml(o){
@@ -36351,10 +36366,14 @@ function ileFin(reussie){
    démarrage (le pont RequeteWidget, UIApplication.shortcutItems) ; le raccourci choisi revient du délégué de scène (SceneDelegate.swift)
    en événement « raccourci », gardé jusqu’à ce que la page l’écoute, même quand l’app était fermée. 9 h 19 : « Tu supprimes Requête ?
    — On te retrouvera. » ouvre l’accueil, où le chat dit dans sa bulle « Je t’avais dit que j’allais te retrouver ! » ; « Fais une
-   petite requête ! » ouvre l’onglet Défis. */
+   petite requête ! » ouvre l’onglet Défis.
+   5 novembre, 19 h 41 : les textes d’Elisa (« C’est un DELETE entre nous ? 💔 », « SELECT * FROM motivation 🚀 »), et un troisième,
+   « Juge-nous (gentiment) 👀 », qui ouvre « Contacte-nous » dans Mon compte. Les symboles d’iOS : le cœur brisé, le terminal, la
+   conversation. */
 const RACCOURCIS=[
-  {type:'fr.requete.app.adieu',titre:'😱 Tu supprimes Requête ?',sousTitre:'On te retrouvera.',icone:'eyes'},
-  {type:'fr.requete.app.requete',titre:'⭐ Fais une petite requête !',sousTitre:'Quelques minutes suffisent.',icone:'terminal'}
+  {type:'fr.requete.app.adieu',titre:'C’est un DELETE entre nous\u00a0? 💔',sousTitre:'Même pas un dernier SELECT\u00a0?',icone:'heart.slash'},
+  {type:'fr.requete.app.requete',titre:'SELECT * FROM motivation 🚀',sousTitre:'Une petite requête et ça repart\u00a0!',icone:'terminal'},
+  {type:'fr.requete.app.avis',titre:'Juge-nous (gentiment) 👀',sousTitre:'Tes retours font évoluer Requête.',icone:'bubble.left.and.bubble.right'}
 ];
 let raccourcisBranches=false;
 function raccourcisBrancher(){
@@ -36368,14 +36387,20 @@ function raccourcisBrancher(){
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
-  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu');
-  if(!requete&&!adieu)return;
-  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':'Je t’avais dit que j’allais te retrouver !');return;}
+  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis');
+  if(!requete&&!adieu&&!avis)return;
+  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
   if(document.querySelector('#scr-lesson.active,#lesson-video')){   // déjà en séance (leçon, vidéo) : on y reste
     if(requete&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, les défis t’attendent juste après.','info');
     return;
   }
   if(requete)switchTab('defis');
+  else if(avis){
+    /* « Juge-nous (gentiment) » : le formulaire « Contacte-nous », sur « Autre chose » (un mot sur Requête), sauf si un sujet est déjà
+       en cours d’écriture */
+    switchTab('compte');
+    setTimeout(()=>{try{if(typeof CT!=='undefined'&&!CT.msg&&typeof ctType==='function')CT.type='autre';openPlusDetails('plus-contact');if(typeof ctType==='function')ctType(CT.type);}catch(e){}},350);
+  }
   else if(adieu){
     mascotRetrouveJusqua=Date.now()+6500;   // l’accueil redessiné garde la phrase
     switchTab('learn');
@@ -36579,7 +36604,7 @@ function brancherObSwipeV2(){
   zone.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse')return;
     /* 15 h 33 : pas depuis la signature, la photo des avis, un champ ou un curseur (un trait n’est pas un balayage) */
-    if(e.target&&e.target.closest&&e.target.closest('.ob-sign,.ob-tv-ph,input,textarea,[role="slider"]')){actif=false;return;}
+    if(e.target&&e.target.closest&&e.target.closest('.ob-hold,.ob-tv-ph,input,textarea,[role="slider"]')){actif=false;return;}
     x0=e.clientX;y0=e.clientY;actif=true;
   });
   zone.addEventListener('pointercancel',()=>{actif=false;});
@@ -36700,45 +36725,60 @@ function obRunBig(){
   const tick=()=>{if(!el.isConnected)return;const k=Math.min(1,(performance.now()-t0)/T),e=1-Math.pow(1-k,3);el.textContent=Math.round(n*e);if(k<1)requestAnimationFrame(tick);};
   el.textContent='0';requestAnimationFrame(tick);
 }
-/* La signature au doigt ou à la souris, dans le cadre. */
-/* 4 novembre, 15 h 33 (capture d’une testeuse, transmise par Elisa : « ici, signer, ça laisse pas de temps non plus ? Genre j’ai dessiné,
-   c’est parti vite ») : un trait tiré de gauche à droite dans le cadre était pris pour le balayage de l’onboarding, et la page repartait
-   en arrière (de droite à gauche, une fois signé : « Je m’engage ») ; et « Signé ✓ » tombait dès la fin du premier trait. Les gestes
-   commencés dans le cadre ne sont plus des balayages, et la signature n’est validée qu’après une pause sans nouveau trait
-   (OB_SIGNE_PAUSE) : le temps de signer en plusieurs traits. */
-const OB_SIGNE_PAUSE=1200;
-function obSignInit(){
-  const cv=document.getElementById('ob-sign-cv');if(!cv)return;
-  const box=cv.parentElement,r=box.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
-  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
-  const g=cv.getContext('2d');g.scale(dpr,dpr);g.lineCap='round';g.lineJoin='round';g.lineWidth=3;g.strokeStyle='#1B1640';
-  if(draft.pacte&&draft.pacte.startsWith('data:')){const im=new Image();im.onload=()=>g.drawImage(im,0,0,r.width,r.height);im.src=draft.pacte;}
-  let on=false,last=null,ink=0,pause=0;
-  /* Coordonnées ramenées à la taille du dessin : si le cadre change de taille après coup (obFit, rotation), le trait reste sous le doigt. */
-  const pt=e=>{const b=cv.getBoundingClientRect();return [(e.clientX-b.left)*r.width/(b.width||r.width),(e.clientY-b.top)*r.height/(b.height||r.height)];};
-  const valider=()=>{
-    if(!cv.isConnected||on)return;
-    try{draft.pacte=cv.toDataURL('image/png');}catch(x){draft.pacte='1';}
-    box.classList.add('is-signed');
-    const btn=document.getElementById('ob-next');if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}
+/* L’engagement (Elisa, 5 novembre, 19 h 41, d’après la capture d’une autre appli : « Hold your finger on the button to confirm ») :
+   plus de signature, un doigt posé sur le bouton à l’empreinte et gardé 1,5 s. L’anneau se remplit, l’empreinte se colore de bas en
+   haut, le téléphone donne un cran de plus en plus serré ; puis le bouton passe au vert, coche, et la page suivante arrive. Lâché trop
+   tôt : l’anneau se vide et la phrase le dit. Au clavier : Espace maintenu ; Entrée et VoiceOver (un toucher sans maintien) valident
+   d’un coup. L’engagement reste sur l’appareil, dans le profil (draft.pacte, pacteAt). */
+const OB_TENIR=1500;
+/* Une empreinte digitale, ses crêtes en arcs (d’après l’icône « fingerprint » de Lucide, licence ISC) */
+const OB_EMPREINTE_SVG='<svg viewBox="0 0 24 24"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/></svg>';
+function obHoldInit(){
+  const b=document.getElementById('ob-hold');if(!b||b.dataset.pret)return;b.dataset.pret='1';
+  const fill=b.querySelector('.ob-hold-fill'),hint=document.getElementById('ob-hold-hint');
+  const TOUR=2*Math.PI*46;
+  const C=window.Capacitor,H=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Haptics;
+  let t0=0,raf=0,on=false,crans=0,clavier=false,finiA=0,appuiA=-1e9;
+  const dessine=p=>{b.style.setProperty('--p',p.toFixed(4));if(fill)fill.style.strokeDashoffset=String(TOUR*(1-p));};
+  /* Un cran tous les 1/12 de tour, de plus en plus serrés en fin de course (l’intervalle se resserre avec la courbe) */
+  const cran=p=>{const n=Math.floor(Math.pow(p,.8)*12);if(n<=crans)return;crans=n;
+    try{if(H){if(n>=10&&H.impact)H.impact({style:'MEDIUM'});else if(H.selectionChanged)H.selectionChanged();}else if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
+  const fini=()=>{
+    if(b.classList.contains('is-done'))return;
+    on=false;cancelAnimationFrame(raf);dessine(1);finiA=performance.now();
+    b.classList.remove('is-holding','is-lache');b.classList.add('is-done');b.setAttribute('aria-label','Engagement pris');
+    try{if(H){H.selectionEnd&&H.selectionEnd();H.notification&&H.notification({type:'SUCCESS'});}else if(typeof buzz==='function')buzz('success');}catch(e){}
+    draft.pacte='empreinte';draft.pacteAt=Date.now();
     document.querySelector('#ob-body .ob-pact-card')?.classList.add('is-signed');
-    if(typeof buzz==='function')buzz('success');
+    if(hint){hint.classList.remove('is-relance');hint.innerHTML='C’est noté&nbsp;: ton engagement est pris.';}
+    const ici=OB_SLIDES[obStep];
+    setTimeout(()=>{if(OB_SLIDES[obStep]===ici&&document.getElementById('ob-hold')===b)obGoto('practice');},prefersReduceMotion()?500:1100);
   };
-  cv.onpointerdown=e=>{e.stopPropagation();clearTimeout(pause);on=true;last=pt(e);try{cv.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();};
-  cv.onpointermove=e=>{if(!on)return;const p=pt(e);g.beginPath();g.moveTo(last[0],last[1]);g.lineTo(p[0],p[1]);g.stroke();ink+=Math.hypot(p[0]-last[0],p[1]-last[1]);last=p;box.classList.add('is-drawing');e.preventDefault();};
-  cv.onpointerup=cv.onpointercancel=e=>{
-    if(e&&e.stopPropagation)e.stopPropagation();
-    if(!on)return;on=false;
-    if(ink>40){clearTimeout(pause);pause=setTimeout(valider,OB_SIGNE_PAUSE);}
+  const pas=()=>{if(!on)return;const p=Math.min(1,(performance.now()-t0)/OB_TENIR);dessine(p);cran(p);if(p>=1){fini();return;}raf=requestAnimationFrame(pas);};
+  const part=()=>{
+    if(on||b.classList.contains('is-done'))return;
+    on=true;t0=performance.now();crans=0;
+    b.classList.remove('is-lache');b.classList.add('is-holding');if(hint)hint.classList.remove('is-relance');
+    try{H&&H.selectionStart&&H.selectionStart();}catch(e){}   // le premier coup léger vient du toucher (buzz, sur tous les boutons)
+    raf=requestAnimationFrame(pas);
   };
-}
-function obSignClear(){
-  draft.pacte=null;
-  const cv=document.getElementById('ob-sign-cv');if(cv)cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
-  document.getElementById('ob-sign')?.classList.remove('is-signed','is-drawing');
-  document.querySelector('#ob-body .ob-pact-card')?.classList.remove('is-signed');
-  const btn=document.getElementById('ob-next');if(btn)btn.disabled=true;
-  obSignInit();
+  const lache=()=>{
+    if(!on)return;
+    on=false;cancelAnimationFrame(raf);
+    b.classList.remove('is-holding');b.classList.add('is-lache');dessine(0);
+    try{H&&H.selectionEnd&&H.selectionEnd();}catch(e){}
+    if(hint){hint.textContent='Garde ton doigt appuyé jusqu’au bout du cercle';hint.classList.remove('is-relance');void hint.offsetWidth;hint.classList.add('is-relance');}
+  };
+  b.addEventListener('pointerdown',e=>{if(e.button>0)return;e.preventDefault();e.stopPropagation();appuiA=performance.now();try{b.setPointerCapture(e.pointerId);}catch(x){}part();});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>b.addEventListener(t,lache));
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+  b.addEventListener('keydown',e=>{if(e.key===' '||e.code==='Space'){e.preventDefault();if(!e.repeat){clavier=true;part();}}});
+  b.addEventListener('keyup',e=>{if(e.key===' '||e.code==='Space'){e.preventDefault();lache();}});
+  /* Un « clic » sans doigt ni souris juste avant (Entrée, VoiceOver, Contrôle de sélection) : l’engagement est pris d’un coup ; celui
+     qui suit un toucher trop court, ou l’Espace maintenu, ne compte pas. Déjà pris (revenu sur la page) : le bouton mène à la suite,
+     mais pas le clic qui suit le doigt qui vient de finir le tour. */
+  b.addEventListener('click',()=>{if(b.classList.contains('is-done')){if(performance.now()-finiA>1500)obGoto('practice');return;}if(!on&&!clavier&&performance.now()-appuiA>800)fini();clavier=false;});
+  if(b.classList.contains('is-done'))dessine(1);
 }
 /* « Pour l’onboarding, il faut que tout tienne sur une page, il ne faut pas qu’on ait à scroller pour tout voir » (13 h 46). Si
    l’écran déborde, il se resserre par paliers (titres, mascotte, cartes plus compactes, puis textes secondaires retirés). */
@@ -37530,6 +37570,8 @@ function paintOb(){
        signé (la signature reste sur l’appareil). */
     /* 3 novembre, 13 h 25 : nouveau texte (« Chaque minute compte… », « Mon engagement personnel ») et le cadre de signature centré
        à la verticale, entre le titre et le bouton. */
+    /* 5 novembre, 19 h 41 : plus de signature à dessiner. Sous le certificat, le doigt maintenu 1,5 s sur le bouton à l’empreinte
+       (obHoldInit) prend l’engagement et passe à la suite ; « Plus tard » reste possible. */
     const b=obPlanInfo(),firstName=(draft.name||'').trim(),f=draft.freq||7,m=`${b.minutes} minutes`;
     const duree=f===7?`<b>${m} par jour</b>`:f===5?`<b>${m} par jour</b> en semaine`:`<b>${m}</b>, <b>${f} jours par semaine</b>,`;
     html=`<div class="ob-screen ob-profile ob-pact">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>
@@ -37537,11 +37579,19 @@ function paintOb(){
       <div class="ob-pact-card${draft.pacte?' is-signed':''}"><p class="ob-pact-k">Mon engagement personnel</p>
         <p class="ob-pact-txt">Moi, <b>${firstName?esc(firstName):accord('future','futur','futur·e')+' pro du SQL'}</b>, je m’engage à consacrer ${duree} à mon apprentissage.</p>
         <p class="ob-pact-txt">À mon rythme, je développe mes compétences, je relève de nouveaux défis et j’avance ${f>=5?'chaque jour':'à chaque séance'} vers mon objectif.</p>
-        <div class="ob-sign${draft.pacte?' is-signed':''}" id="ob-sign"><canvas id="ob-sign-cv" aria-label="Zone de signature : signe avec ton doigt ou ta souris" role="img"></canvas><span class="ob-sign-ph" aria-hidden="true">Signe ici</span><i class="ob-sign-line" aria-hidden="true"></i></div>
-        <div class="ob-pact-foot"><small>Le ${new Date().getDate()===1?'1er':new Date().getDate()} ${esc(new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))}</small><button type="button" class="ob-sign-clear" id="ob-sign-clear" onclick="obSignClear()">Effacer</button></div>
-        <span class="ob-pact-stamp" aria-hidden="true">Signé ✓</span></div></div>`;
-    obSetFooter('Je m’engage',()=>{draft.pacteAt=Date.now();obGoto('practice');},'Plus tard',()=>obGoto('practice'),'',!draft.pacte);
-    setTimeout(obSignInit,0);
+        <p class="ob-pact-date">Le ${new Date().getDate()===1?'1er':new Date().getDate()} ${esc(new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))}</p>
+        <span class="ob-pact-stamp" aria-hidden="true">Validé ✓</span></div>
+      <div class="ob-hold-zone">
+        <p class="ob-hold-hint" id="ob-hold-hint" aria-live="polite">${draft.pacte?'C’est noté&nbsp;: ton engagement est pris.':'Maintiens ton doigt sur le bouton pour t’engager'}</p>
+        <button type="button" class="ob-hold${draft.pacte?' is-done':''}" id="ob-hold" aria-describedby="ob-hold-hint" aria-label="${draft.pacte?'Engagement pris':'Maintenir pour m’engager'}">
+          <svg class="ob-hold-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="ob-hold-track" cx="50" cy="50" r="46"/><circle class="ob-hold-fill" cx="50" cy="50" r="46"/></svg>
+          <span class="ob-hold-ico" aria-hidden="true">${OB_EMPREINTE_SVG}<span class="ob-hold-plein">${OB_EMPREINTE_SVG}</span></span>
+          <span class="ob-hold-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.4 4.4L19 7.2"/></svg></span>
+        </button></div></div>`;
+    /* 19 h 41 : le bouton à l’empreinte confirme lui-même ; revenu sur la page après coup, « Continuer » */
+    if(draft.pacte)obSetFooter('Continuer',()=>obGoto('practice'),'','','');
+    else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');
+    setTimeout(obHoldInit,0);
   }else{
     const p=apercuPlan(draft.niveau||'debutant',draft.rythme||'regulier',draft.freq||7);
     const ryt=RYTHMES.find(r=>r.k===(draft.rythme||'regulier'))||RYTHMES[1];
@@ -37734,6 +37784,13 @@ if(typeof document!=='undefined'){
 }
 function buzz(type='light'){
   try{
+    /* Dans l’appli iOS (19 h 41) : le moteur haptique directement, avec le retour qui correspond (réussite, avertissement, erreur) */
+    const C=window.Capacitor,H=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Haptics;
+    if(H&&typeof type==='string'){
+      if(/^(success|warning|error)$/.test(type)&&H.notification)H.notification({type:type.toUpperCase()});
+      else if(H.impact&&!(/^(light|selection)$/.test(type)&&typeof window.__toucheDoublon==='function'&&window.__toucheDoublon()))H.impact({style:type==='heavy'?'HEAVY':type==='medium'?'MEDIUM':'LIGHT'});
+      return;
+    }
     if(!navigator.vibrate||!navigator.userActivation?.hasBeenActive) return;
     if(typeof type==='number'){ navigator.vibrate(type); return; }
     switch(type){
@@ -37751,7 +37808,10 @@ function buzz(type='light'){
 document.addEventListener('touchstart',()=>{},{passive:true});
 document.addEventListener('pointerdown',e=>{
   const b=e.target&&e.target.closest&&e.target.closest('button,[role="button"]');
-  if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate')))buzz('light');
+  if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate'))){
+    buzz('light');
+    try{window.__toucheEv=e;window.__toucheB=b;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS, 19 h 41)
+  }
 },true);
 /* Bouton verrouillé (data-jc-gate) : il amène à la vidéo ou à l’activité à terminer, au-dessus de lui ; la flèche ↑ s’élance au toucher, puis revient. */
 document.addEventListener('click',e=>{
@@ -37836,19 +37896,46 @@ function rappelJoursTexte(jours){
   const t=n.length>1?`${n.slice(0,-1).join(', ')} et ${n[n.length-1]}`:(n[0]||'');
   return t.charAt(0).toUpperCase()+t.slice(1);
 }
-/* App iOS : le rappel passe par des notifications locales (plugin LocalNotifications), car les notifications web n’y existent pas :
-   une par jour quand on s’entraîne tous les jours, sinon une par jour de séance, chaque semaine (weekday : 1 = dimanche). */
+/* Les messages du rappel (Elisa, 5 novembre, 19 h 41 : « remplace celle actuelle sur mon portable ») : huit, qui changent d’une
+   séance à l’autre, au lieu de « C’est l’heure de ta séance SQL. » à chaque fois. Le message dépend du jour (le nombre de jours depuis
+   1970, modulo 8) : deux séances qui se suivent n’ont jamais le même, et il ne repart pas du premier à chaque reprogrammation. */
+const RAPPEL_MESSAGES=[
+  ['👀 On te voit scroller…','Et si tu faisais un petit SELECT\u00a0?'],
+  ['🚨 Alerte procrastination','5 minutes de SQL et on oublie tout.'],
+  ['🧠 Ton cerveau t’appelle','Il réclame sa dose de SQL.'],
+  ['💔 Tu nous ghostes\u00a0?','Ton prochain cours attend toujours.'],
+  ['☕ SQL ou café\u00a0?','Les deux, c’est encore mieux.'],
+  ['🫣 Encore 5 minutes\u00a0?','Cette fois, on parle de SQL.'],
+  ['🐛 Erreur 404','Motivation introuvable. On relance\u00a0?'],
+  ['😏 Netflix peut attendre','Une petite requête d’abord\u00a0?']
+];
+function rappelMessage(d){
+  const n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  return RAPPEL_MESSAGES[((n%RAPPEL_MESSAGES.length)+RAPPEL_MESSAGES.length)%RAPPEL_MESSAGES.length];
+}
+/* App iOS : le rappel passe par des notifications locales (plugin LocalNotifications), car les notifications web n’y existent pas.
+   Une notification qui se répète garde toujours le même texte : les séances à venir sont donc posées une à une, avec leur message
+   (56 au plus, iOS en garde 64 par appli : huit semaines quand on s’entraîne tous les jours), et reposées à chaque ouverture de l’appli.
+   Les anciens rappels qui se répétaient (1, 11 à 17) sont retirés. */
+const RAPPEL_IDS=[1,11,12,13,14,15,16,17,...Array.from({length:64},(_,i)=>100+i)];
+function rappelSeances(depuis,max){
+  const [h,m]=String(rappelHeure()).split(':').map(Number),jours=rappelJours(),out=[];
+  for(let k=0;k<200&&out.length<max;k++){
+    const d=new Date(depuis.getFullYear(),depuis.getMonth(),depuis.getDate()+k,h||0,m||0,0,0);
+    if(d<=depuis||!jours.includes(d.getDay()))continue;
+    out.push(d);
+  }
+  return out;
+}
 function rappelNativeSync(){
   const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
   if(!LN)return;
   const go=async()=>{
-    try{await LN.cancel({notifications:[1,11,12,13,14,15,16,17].map(id=>({id}))});}catch(e){}
+    try{await LN.cancel({notifications:RAPPEL_IDS.map(id=>({id}))});}catch(e){}
     if(!rappelOn())return;
     try{const p=await LN.requestPermissions();if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
-    const [h,m]=String(rappelHeure()).split(':').map(Number),jours=rappelJours(),corps='C’est l’heure de ta séance SQL.';
-    const notifications=jours.length>=7?[{id:1,title:'Requête',body:corps,schedule:{on:{hour:h||0,minute:m||0},repeats:true,allowWhileIdle:true}}]
-      :jours.map(d=>({id:11+d,title:'Requête',body:corps,schedule:{on:{weekday:d+1,hour:h||0,minute:m||0},repeats:true,allowWhileIdle:true}}));
-    try{await LN.schedule({notifications});}catch(e){}
+    const notifications=rappelSeances(new Date(),56).map((d,i)=>{const [title,body]=rappelMessage(d);return {id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}};});
+    try{if(notifications.length)await LN.schedule({notifications});}catch(e){}
   };
   go();
 }
@@ -37923,7 +38010,7 @@ function tickRappel(){
   if(!rappelJours().includes(now.getDay())) return;   // les jours de séance seulement (11 h 08)
   const day=now.toDateString();
   try{ if(localStorage.getItem('requete-rappel-last')===day) return; localStorage.setItem('requete-rappel-last',day); }catch(e){ return; }
-  try{ new Notification('Requête',{body:'C’est l’heure de ta séance SQL.',tag:'requete-daily'}); }catch(e){}
+  try{ const [t,b]=rappelMessage(now); new Notification(t,{body:b,tag:'requete-daily'}); }catch(e){}
 }
 function plusIcon(kind){
   const paths={
@@ -38890,7 +38977,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-entretien-v2547';
+  const SW_CACHE='requete-2026-11-05-empreinte-v2548';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

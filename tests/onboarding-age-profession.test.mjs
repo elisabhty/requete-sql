@@ -86,7 +86,7 @@ test('les tuiles suivent la DA de l’onboarding : cartes blanches à rebord, co
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-4 .ob-job-tile{min-height:0;gap:4px;padding:7px 6px 8px}'));
 });
 
-test('l’engagement : le nouveau texte, et le cadre de signature au milieu de l’écran', () => {
+test('l’engagement : le nouveau texte, et le certificat au milieu de l’écran', () => {
   const pact = slide('pact', '}else{');
   assert.ok(pact.includes('<h1 class="ob-title" id="ob-title">Ton <em>engagement</em>.</h1>\n      <p class="ob-lead">Chaque minute compte pour atteindre ton objectif.</p>'));
   assert.ok(pact.includes('<p class="ob-pact-k">Mon engagement personnel</p>'));
@@ -106,8 +106,8 @@ test('l’engagement : le nouveau texte, et le cadre de signature au milieu de l
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-pact .ob-lead{display:block!important;'));
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-5 .ob-pact .ob-lead{display:none!important}'));
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"));
-  /* Le trait de la signature reste sous le doigt si le cadre change de taille après coup */
-  assert.ok(fn('obSignInit', 'function obSignClear(').includes('(e.clientX-b.left)*r.width/(b.width||r.width)'));
+  /* 5 novembre, 19 h 41 : le doigt maintenu sur le bouton à l’empreinte remplace la signature (retours-1941) */
+  assert.ok(pact.includes('<button type="button" class="ob-hold${draft.pacte?\' is-done\':\'\'}" id="ob-hold"') && !pact.includes('ob-sign'));
 });
 
 test('la promesse ne dit plus « c’est assez pour les entretiens de data analyst » (ni aucune promesse de résultat)', () => {
@@ -135,7 +135,6 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
   const wake = fn('obCtaWake', 'function obAuthReady(');
   assert.ok(wake.includes("if(!btn||btn.disabled||prefersReduceMotion())return;") && wake.includes("btn.classList.add('is-awake')"));
   assert.ok(fn('obSetFooter', 'function obRythmeMinutes(').includes('if(was&&!btn.disabled&&primary&&!obJustEntered)obCtaWake(btn);'));
-  assert.ok(fn('obSignInit', 'function obSignClear(').includes('if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}'));
   assert.ok(fn('obRunBuild', 'function obRunBig(').includes('if(btn&&btn.disabled){btn.disabled=false;obCtaWake(btn);}'));
   /* 10 h 45 : la première requête réussie ne saute plus de joie ici (sa mascotte n’est plus sur la page du résultat) : la mascotte
      de la connexion le fait, avec les confettis. */
@@ -152,7 +151,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=24">') && sw.includes("'./onboarding-vitrine.css?v=24',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=25">') && sw.includes("'./onboarding-vitrine.css?v=25',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');
