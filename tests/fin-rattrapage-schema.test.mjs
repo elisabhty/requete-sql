@@ -37,9 +37,10 @@ test('écran de fin : en-tête violet, mascotte, une pastille par moment, tampon
   assert.ok(s40.includes('html[data-motion="reduce"].lq .lv.end-in .lv-pip svg path{stroke-dashoffset:0}'));
 });
 
-test('activités à replacer : en-tête violet, autocollant, « Conseillé » en autocollant jaune, entrée en cascade, choix animé', () => {
+test('activités à rattraper : en-tête violet, autocollant, « Recommandé » en autocollant jaune, entrée en cascade, choix animé', () => {
   const html = cut(app, 'function lateRecoveryHTML(){', 'function activitesRestantesAujourdhui(){');
-  assert.ok(html.includes('onclick="lrPick(this,()=>{${o.action}})"'), 'un choix passe par lrPick');
+  /* Depuis le 5 novembre, 15 h 43 : on coche une façon de rattraper, puis « Confirmer mon choix » passe par lrPick */
+  assert.ok(html.includes('onclick="lrChoisir(this)" onkeydown="lrClavier(event)"') && cut(app, 'function lrConfirmer(btn){', '\n}\n').includes('lrPick(btn,()=>lateAppliquer(k),opt||null);'), 'le choix confirmé passe par lrPick');
   assert.ok(app.includes("action:'decalerPlanning()'") && app.includes("action:'etalerRetard()'") && app.includes("action:'rattraper()'"));
   assert.ok(html.includes("const key=d.ids.map(String).join('|'),fresh=key!==lrSeenKey; lrSeenKey=key;") && html.includes("${fresh?' is-fresh':''}"), 'animée quand elle apparaît, pas à chaque mise à jour');
   /* Le choix : étincelles, puis l’action, une seule fois ; tout de suite en mouvement réduit */
