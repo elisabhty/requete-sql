@@ -157,8 +157,10 @@ test('les salles ouvertes : l’hôte et son drapeau, les places, le niveau, « 
   assert.ok(h.includes("onclick=\"sallesRejoindre('AAA111')\""));
   /* 5 novembre, 10 h 16 : « Créer une salle », « J’ai un code » et « Seul » passent sous la partie rapide (retours-1016-feuilles) ; ici, les salles seulement. */
   assert.ok(!h.includes("defisCarte(") && !h.includes('dx-duo') && h.includes('Comment on marque des points</button>'));
+  /* 11 h 19 : « Trouver une salle » est dans ce cadre du bas, au niveau choisi en haut ; la liste se rafraîchit sans toucher au bouton */
+  assert.ok(h.includes('<div class="dx-trouver"><button type="button" class="room-go" id="dx-rapide-go" onclick="jeuPartieRapide()"><span>Trouver une salle</span>') && h.includes('Au niveau <b>Moyen</b>, on te place dans une salle qui démarre.') && h.includes('<div id="dx-salles-liste">'));
   c.ev('DEFIS.salles=[]'); c.ev('sallesRepeindre()');
-  assert.ok(c.els['defis-salles'].innerHTML.includes('Aucune salle ouverte pour l’instant. Lance une partie rapide&nbsp;: ta salle apparaîtra ici pour les autres.'));
+  assert.ok(c.els['defis-salles'].innerHTML.includes('Aucune salle ouverte pour l’instant&nbsp;: «&nbsp;Trouver une salle&nbsp;» ouvre la tienne, elle apparaîtra ici pour les autres.'));
   c.ev("DEFIS.salles=null;DEFIS.sallesErr='net'"); c.ev('sallesRepeindre()');
   assert.ok(c.els['defis-salles'].innerHTML.includes('Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.'));
 });
@@ -257,7 +259,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=3"></script>') && sw.includes("'./multiplayer-security.js?v=3',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=150">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=151">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-05-cadre-v2531');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-05-haut-bas-v2532');
 });
