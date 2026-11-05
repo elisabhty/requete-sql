@@ -118,28 +118,10 @@ test('« Voir les données » : exécutée tout de suite, une seule glissade, et
   assert.ok(lq.includes('html.lq #scr-console .tbl-corps{animation:none}\nhtml.lq #scr-console .tbl-corps.is-ouvre{animation:dbColIn .3s cubic-bezier(.2,.8,.3,1.2) both}'));
 });
 
-test('réf. 2 : des icônes fines en deux tons, dans une tuile de leur couleur, pour les huit lignes', () => {
-  const ctx = vm.createContext({ JOURNEY_STK: {}, lqStkSvg: () => '', journeyIcon: () => '' });
-  vm.runInContext(cut('const JOURNEY_ICO={', '\nfunction journeyToolIcon(') + '\n' + fn('journeyToolIcon') + ';this.I=JOURNEY_ICO;', ctx);
-  const I = ctx.I;
-  assert.deepEqual(Object.keys(I).sort(), ['cards', 'console', 'courses', 'defis', 'interview', 'notes', 'sgbd', 'stickers']);
-  for (const [k, [trait, fond, filet, dessin]] of Object.entries(I)) {
-    for (const c of [trait, fond, filet]) assert.match(c, /^#[0-9A-F]{6}$/, k);
-    assert.ok(/class="d"/.test(dessin), k + ' : une partie teintée');
-    const ouvre = (dessin.match(/<(path|rect|ellipse)\b/g) || []).length, ferme = (dessin.match(/\/>/g) || []).length;
-    assert.equal(ouvre, ferme, k + ' : formes bien fermées');
-    const h = ctx.journeyToolIcon(k);
-    assert.ok(h.startsWith(`<span class="journey-tool-icon is-ico" style="--ico:${trait};--ico-soft:${fond};--ico-ring:${filet}2E" aria-hidden="true"><svg viewBox="0 0 24 24">`), k);
-  }
-  /* Un trait assez sombre sur sa tuile (au moins 3:1, comme une icône doit l’être) */
-  const lum = hex => { const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
-  for (const [k, [trait, fond]] of Object.entries(I)) { const a = lum(trait), b = lum(fond); assert.ok((Math.max(a, b) + .05) / (Math.min(a, b) + .05) >= 3, k); }
-  assert.ok(fn('renderJourneyHub').includes('${journeyToolIcon(kind)}') && !fn('renderJourneyHub').includes('lqStkSvg(JOURNEY_STK[kind])'), 'plus d’autocollant dans les lignes');
-  for (const k of ['html.lq #app .journey-resource .journey-tool-icon.is-ico{flex:none;display:grid;place-items:center;width:52px;height:52px;',
-    'background:linear-gradient(155deg,rgba(255,255,255,.85) 0%,rgba(255,255,255,0) 55%),var(--ico-soft)!important;color:var(--ico)!important;',
-    'box-shadow:inset 0 0 0 1px var(--ico-ring),0 2px 0 var(--ico-ring)!important;',
-    'html.lq #app .journey-resource .journey-tool-icon.is-ico svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.55;',
-    'html.lq #app .journey-resource .journey-tool-icon.is-ico .d{fill:currentColor;fill-opacity:.22}',
-    'html.lq #app .journey-resource:active .journey-tool-icon.is-ico{transform:scale(.94)}'])
-    assert.ok(lq.includes(k), k);
+test('réf. 2 : des icônes fines en deux tons… puis, à 21 h 54, retour aux autocollants (« la même DA que les icônes » de Mon compte)', () => {
+  /* Les icônes fines de 17 h 35 sont parties (retours-2154) : chaque ligne a de nouveau son autocollant */
+  assert.ok(!app.includes('const JOURNEY_ICO={') && !lq.includes('.journey-tool-icon.is-ico'));
+  assert.ok(fn('renderJourneyHub').includes('${journeyToolIcon(kind)}'));
+  assert.ok(fn('journeyToolIcon').includes("return `<span class=\"journey-tool-icon${JOURNEY_STK[kind]?' is-stk':''}\">${JOURNEY_STK[kind]?lqStkSvg(JOURNEY_STK[kind]):journeyIcon(kind)}</span>`;"));
+  assert.ok(lq.includes('html.lq #app .journey-resource .journey-tool-icon.is-stk{width:54px;height:54px;background:none!important;'));
 });

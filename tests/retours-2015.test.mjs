@@ -66,13 +66,9 @@ test('la Bibliothèque : les textes d’Elisa', () => {
   assert.ok(!app.includes('Révise à ton rythme.') && !app.includes('Colle-les, imprime-les.') && !app.includes('Prépare tes réponses et teste tes acquis.'));
 });
 
-test('les icônes : deux bulles et du code pour Entretien SQL, deux bases côte à côte pour Selon le SGBD', () => {
-  const I = vm.runInNewContext('(' + cut('const JOURNEY_ICO={', '\n};').replace('const JOURNEY_ICO=', '') + '\n})');
-  const [, , , entretien] = I.interview, [, , , sgbd] = I.sgbd;
-  assert.ok(!entretien.includes('<rect'), 'plus de micro');
-  assert.equal((entretien.match(/<path class="(d|w)" d="M[^"]+z"\/>/g) || []).length, 2, 'deux bulles : la question (teintée), la réponse (blanche)');
-  assert.ok(entretien.includes('<path d="M8.4 11.3l-2 2 2 2M11.6 11.3l2 2-2 2"/>'), '< > dans la bulle de devant');
-  assert.deepEqual([...sgbd.matchAll(/<ellipse class="d" cx="(\d+)"/g)].map(m => +m[1]), [7, 17], 'deux bases côte à côte');
-  assert.equal((sgbd.match(/<path class="w"/g) || []).length, 2);
-  assert.ok(app.includes('Entretien SQL quitte le micro, qui fait penser à un enregistrement, pour deux'));
+test('les icônes : deux bulles pour Entretien SQL, deux bases pour Selon le SGBD… puis les autocollants reviennent (21 h 54)', () => {
+  /* 21 h 54 : « finalement on reste sur la même DA que les icônes » de Mon compte : les icônes fines (et ces deux-là) sont parties,
+     chaque ligne retrouve son autocollant (retours-2154) */
+  assert.ok(!app.includes('const JOURNEY_ICO={'));
+  assert.ok(app.includes("const JOURNEY_STK={defis:'trophy',console:'term',cards:'cards',stickers:'peel',notes:'note',interview:'mic',sgbd:'db',courses:'book'};"));
 });
