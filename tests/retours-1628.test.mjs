@@ -69,10 +69,11 @@ test('le pont : la couleur de la fenêtre et la fin de la leçon, une valeur par
   const c = entre(pont, 'convenience init?(requeteHex hex: String) {', '\n    }\n');
   assert.ok(c.includes('guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }\n        let rouge: CGFloat'));
   assert.ok(c.includes('self.init(red: rouge, green: vert, blue: bleu, alpha: 1)'));
-  const f = entre(pont, 'static func fin(reussie: Bool, allumee: Bool) async {', '\n    }\n');
+  /* 5 novembre, 6 h 45 : la carte d’une leçon finie garde ses moments réussis (retours-0645) : le bilan part de l’état d’avant */
+  const f = entre(pont, 'static func fin(reussie: Bool, allumee: Bool, reussis: Int?) async {', '\n    }\n');
   for (const k of ['let p: Double = reussie ? 1 : a.content.state.progression',
-    'let bilan = RequeteLecon.ContentState(progression: p, allumee: allumee, fini: reussie)', 'let dernier = ActivityContent(state: bilan, staleDate: nil)',
-    'await a.end(dernier, dismissalPolicy: politique)'])
+    'var bilan: RequeteLecon.ContentState = a.content.state\n            bilan.progression = p\n            bilan.allumee = allumee\n            bilan.fini = reussie',
+    'let dernier = ActivityContent(state: bilan, staleDate: nil)', 'await a.end(dernier, dismissalPolicy: politique)'])
     assert.ok(f.includes(k), k);
   const e = entre(pont, 'static func etat(progression: Double?, allumee: Bool?, fini: Bool) -> RequeteLecon.ContentState {', '\n    }\n');
   assert.ok(e.includes('let brute: Double = progression ?? 0\n        let p: Double = min(1, max(0, brute))\n        return RequeteLecon.ContentState(progression: p, allumee: allumee ?? false, fini: fini)'));

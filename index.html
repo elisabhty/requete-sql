@@ -34959,8 +34959,12 @@ if(typeof document!=='undefined'&&document.addEventListener){
    (RequeteWidget.leconDebut). Dès qu’on quitte l’app en pleine leçon, la flamme et l’avancement sont dans la Dynamic Island, la leçon
    sur l’écran verrouillé, et un appui y ramène. La page envoie l’avancement à chaque dixième de la vidéo, et tout de suite quand on
    quitte l’app (leconMaj) ; leçon réussie, la flamme du jour s’allume et l’activité s’arrête (leconFin), comme quand on ferme la leçon.
-   Le dessin est dans le widget (resources/ios/widget/RequeteWidget/RequeteWidget.swift). Sans le pont natif : rien. */
-let ileEtat=null;   // la leçon suivie (id) et le dernier dixième envoyé (pas)
+   Le dessin est dans le widget (resources/ios/widget/RequeteWidget/RequeteWidget.swift). Sans le pont natif : rien.
+   5 novembre, 6 h 45 (« dans la Dynamic Island, est-ce que tu peux animer, mettre le nombre de moments réussis 2/4 etc. ») : la page
+   envoie aussi les moments « À toi » réussis du premier coup, ceux de la leçon et l’objectif qui la valide (son seuil). Le compte
+   n’avance dans la Dynamic Island que quand on quitte l’app (anime) : elle apparaît avec l’ancien, et le nouveau arrive une seconde
+   après, sous les yeux (le chiffre roule, la case se remplit ; RequeteWidgetPlugin.swift). */
+let ileEtat=null;   // la leçon suivie (id), le dernier dixième envoyé (pas), son seuil, les moments réussis déjà montrés (vus)
 function ilePont(){
   const C=typeof window!=='undefined'?window.Capacitor:null;
   return C&&C.isNativePlatform&&C.isNativePlatform()&&typeof C.nativePromise==='function'&&(!C.isPluginAvailable||C.isPluginAvailable('RequeteWidget'))?C:null;
@@ -34968,23 +34972,37 @@ function ilePont(){
 function ileAppel(m,data){ const C=ilePont(); if(!C)return; try{ Promise.resolve(C.nativePromise('RequeteWidget',m,data)).catch(()=>{}); }catch(e){} }
 function ileProgression(){ const V=LV&&LV.video,d=V&&V.duration||0; return d?Math.max(0,Math.min(1,(V.currentTime||0)/d)):0; }
 function ileAllumee(){ try{ return !!jourActif(dstr(auj())); }catch(e){ return false; } }
+/* Les moments de la leçon, dès que la vidéo les a donnés : { reussis (du premier coup, comme l’écran de fin), moments, objectif }. */
+function ileMoments(){
+  const ps=LV&&LV.video&&LV.video.picks,n=ps&&ps.length||0;
+  if(!n||!ileEtat||typeof lvPkScore!=='function')return null;
+  return {reussis:Math.min(n,lvPkScore(LV.id,n)),moments:n,objectif:Math.min(n,ileEtat.seuil||n)};
+}
 function ileDebut(l){
   if(!l||!ilePont())return;
   const m=typeof moduleDeLecon==='function'?moduleDeLecon(l.id):null,mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
-  ileEtat={id:l.id,pas:-1};
-  ileAppel('leconDebut',{titre:String(l.titre||'Leçon'),module:m?`Module ${mi+1} · ${m.titre}`:'Cours',progression:ileProgression(),allumee:ileAllumee()});
+  ileEtat={id:l.id,pas:-1,seuil:typeof lvSeuil==='function'?lvSeuil(l):0,vus:null};
+  const data={titre:String(l.titre||'Leçon'),module:m?`Module ${mi+1} · ${m.titre}`:'Cours',progression:ileProgression(),allumee:ileAllumee()},mo=ileMoments();
+  if(mo){ ileEtat.vus=mo.reussis; Object.assign(data,mo); }
+  ileAppel('leconDebut',data);
 }
 function ileMaj(force){
   if(!ileEtat||!LV||LV.id!==ileEtat.id||LV.fin)return;
-  const p=ileProgression(),pas=Math.floor(p*10);
-  if(!force&&pas===ileEtat.pas)return;
+  const p=ileProgression(),pas=Math.floor(p*10),mo=ileMoments();
+  /* Les moments arrivent (la vidéo vient de les donner) : tout de suite. Un moment réussi de plus : seulement quand on quitte l’app. */
+  const premier=!!(mo&&ileEtat.vus==null),neuf=!!(force&&mo&&!premier&&mo.reussis!==ileEtat.vus);
+  if(!force&&!premier&&pas===ileEtat.pas)return;
   ileEtat.pas=pas;
-  ileAppel('leconMaj',{progression:p,allumee:ileAllumee()});
+  if(premier||neuf)ileEtat.vus=mo.reussis;
+  const data={progression:p,allumee:ileAllumee()};
+  if(mo)Object.assign(data,{reussis:ileEtat.vus,moments:mo.moments,objectif:mo.objectif},neuf?{anime:true}:{});
+  ileAppel('leconMaj',data);
 }
 function ileFin(reussie){
   if(!ileEtat)return;
+  const mo=ileMoments();
   ileEtat=null;
-  ileAppel('leconFin',{fini:!!reussie,allumee:reussie?true:ileAllumee()});
+  ileAppel('leconFin',Object.assign({fini:!!reussie,allumee:reussie?true:ileAllumee()},mo?{reussis:mo.reussis}:{}));
 }
 /* ---------- Les raccourcis de l’icône de l’app iPhone ----------
    Elisa, 4 novembre, 9 h 02 (capture de l’appui long sur l’icône de Duolingo : « 😱 Tu supprimes Duolingo ? Duo te retrouvera. »,
@@ -37459,7 +37477,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-lecons-v2522';
+  const SW_CACHE='requete-2026-11-05-ile-v2523';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
