@@ -37,7 +37,7 @@ test('réf. 1 : « activités à rattraper », « séances non terminées », «
   assert.ok(html.includes('<button type="button" class="lq-btn lr-confirm" onclick="lrConfirmer(this)">Confirmer mon choix</button>') && html.includes('>Je déciderai plus tard</button>'));
   assert.ok(!html.includes('à replacer') && !html.includes('Conseillé') && !html.includes('>Plus tard<'));
   /* L’accueil dit la même chose */
-  assert.ok(app.includes("<b>${plur(late.count,'activité')} à rattraper</b><small>${plur(late.sessions,'séance')} non terminée${late.sessions>1?'s':''}</small>"));
+  assert.ok(app.includes("<b>${plur(late.count,'activité')} à rattraper</b><small class=\"jp-meta\">${plur(late.sessions,'séance')} non terminée${late.sessions>1?'s':''}</small>"));
 });
 
 test('les trois façons, en boutons radio : la recommandée cochée d’avance et en premier, les mots de la réf. 1', () => {

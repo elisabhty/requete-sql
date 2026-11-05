@@ -39,7 +39,7 @@ test('SQL est le premier parcours ; trois parcours à venir, sans date ni conten
 test('accueil : « Parcours SQL » sous « Tes parcours », la rangée des parcours, la recherche reste', () => {
   const mods = app.slice(app.indexOf('function renderModules(){'), app.indexOf('function toggleCatalogTools('));
   assert.ok(mods.includes('<span>Tes parcours</span><h2>Parcours SQL</h2></div>'));
-  assert.ok(mods.includes('<span>Chercher</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>${parcoursChipsHTML(allDone)}<div id="catalog-tools"'), 'la ligne sous le titre, sur toute la largeur (19 h 48), puis la rangée, avant la recherche');
+  assert.ok(mods.includes('<span>Explorer</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>${parcoursChipsHTML(allDone)}<div id="catalog-tools"'), 'la ligne sous le titre, sur toute la largeur (19 h 48), puis la rangée, avant la recherche');
   const { ctx } = sandbox();
   const chips = ctx.parcoursChipsHTML(1);
   assert.ok(chips.startsWith('<ul class="pc-chips" aria-label="Tes parcours">'));

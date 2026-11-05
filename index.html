@@ -6739,7 +6739,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=158">
+<link rel="stylesheet" href="ludique.css?v=159">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=24">
 <style id="lesson-video-css">
@@ -7622,7 +7622,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <section id="scr-planning" class="screen">
       <button type="button" class="home-back root-home-back" onclick="returnToHome()" aria-label="Retour à l’accueil"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Accueil</span></button>
       <div class="lgtitle"><div class="eyebrow">Ton rythme</div><h1>Planning</h1>
-        <p class="sub" id="pl-sub">Ta semaine, organisée pour toi.</p></div>
+        <p class="sub" id="pl-sub">Ta semaine, organisée rien que pour toi.</p></div>
       <button class="ux-shortcut" id="planning-session-shortcut" type="button" onclick="focusPlanningToday()">Aller à la séance</button>
       <div id="planning-body"></div>
     </section>
@@ -7769,7 +7769,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
       <div class="ent-hero" id="ent-progress"></div>
       <div class="ent-search" id="ent-searchbar" role="search">
         <span class="ent-search-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
-        <input id="ent-search" type="search" aria-label="Chercher une question d’entretien" placeholder="Chercher : LAG, index, NULL…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" oninput="setEntSearch(this.value)" onkeydown="entSearchKey(event)">
+        <input id="ent-search" type="search" aria-label="Explorer les questions d’entretien" placeholder="Explorer : LAG, index, NULL…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" oninput="setEntSearch(this.value)" onkeydown="entSearchKey(event)">
         <button type="button" class="ent-search-clear" id="ent-search-clear" aria-label="Effacer la recherche" onclick="clearEntSearch(true)" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
       </div>
       <p class="ent-search-status" id="ent-search-status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -21195,13 +21195,16 @@ function renderHomeHero(){
   /* Elisa, 31 octobre, 8 h 37 (Réf 5) : « le bouton 2 activités à replacer est-il dans la même DA que le site internet ? » Il l’est
      maintenant : carte blanche en relief, autocollant du calendrier avec sa pastille, séances passées en étiquette jaune soleil, flèche
      dans un rond violet, comme les cartes de la vitrine. */
-  const lateHtml=late?`<button type="button" class="journey-planning" onclick="openLateRecoveryFromHome(this)"><span class="jp-stk" aria-hidden="true">${lqStkSvg('cal')}<i class="jp-badge">${late.count}</i></span><span class="jp-copy"><b>${plur(late.count,'activité')} à rattraper</b><small>${plur(late.sessions,'séance')} non terminée${late.sessions>1?'s':''}</small></span><span class="jp-chev" aria-hidden="true">${LATE_CHEV_RIGHT_SVG}</span></button>`:'';
+  /* Elisa, 5 novembre, 17 h 09 (réf. 3) : « informer sans donner l’impression d’accumuler des obligations » : plus de pastille rouge ni
+     d’étiquette jaune ; le titre, les séances en gris, et ce que la carte permet : « Réorganise ton planning pour reprendre à ton rythme. » */
+  const lateHtml=late?`<button type="button" class="journey-planning is-calme" onclick="openLateRecoveryFromHome(this)"><span class="jp-stk" aria-hidden="true">${lqStkSvg('cal')}</span><span class="jp-copy"><b>${plur(late.count,'activité')} à rattraper</b><small class="jp-meta">${plur(late.sessions,'séance')} non terminée${late.sessions>1?'s':''}</small><small class="jp-desc">Réorganise ton planning pour reprendre à ton rythme.</small></span><span class="jp-chev" aria-hidden="true">${LATE_CHEV_RIGHT_SVG}</span></button>`:'';
   const streak=typeof homeStreakHTML==='function'?homeStreakHTML():'';
   const extras=lateHtml;
   const name=(state.name||'').trim();
-  const hiWord=typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour';
+  const suite=nxt!=null&&typeof salutSuite==='function'?salutSuite():'';
+  const hiWord=suite||(typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour');
   /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. */
-  const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}`;
+  const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}${suite?'\u00a0?':''}`;
   /* 19 h 36 : « Aujourd’hui · 12 min » ; rien de prévu aujourd’hui : « Aujourd’hui · Pause » (ou « Fait » si la séance du jour est
      terminée) ; une séance en retard : « À reprendre · 8 min » ; plus rien du tout : « Parcours terminé ». */
   const todayISO=dstr(auj());
@@ -21252,9 +21255,11 @@ function renderHomeHero(){
     const ico=done?HOME_STEP_OK:locked?HOME_STEP_LOCK:String(step+1);
     return `<li class="lq-step is-${kind}"><button type="button" ${locked?'aria-disabled="true"':`onclick="openItem(${arg},${step})"`} aria-label="${escAttr(label)}"${cur?' aria-current="step"':''}><i aria-hidden="true">${ico}</i><span>${stepNames[step]}</span></button></li>`;
   }).join('')}</ol>`;
+  /* 17 h 09 : « Reprendre ma leçon » convient uniquement si la leçon a déjà été commencée, sinon « Commencer la leçon » (avant, il
+     suffisait qu’une autre activité de la séance soit faite) ; de même pour un défi. */
   const ctaLabel=defi
-    ?(session.started?'Reprendre le défi':'Commencer le défi')
-    :(currentStep===2?'Passer au quiz':currentStep===1?(nbFaites(nxt)>0?"Reprendre l’exercice":"Faire l’exercice"):(session.started?'Reprendre la leçon':'Commencer la leçon'));
+    ?(itemCommence(nxt)?'Reprendre le défi':'Commencer le défi')
+    :(currentStep===2?'Passer au quiz':currentStep===1?(nbFaites(nxt)>0?"Reprendre l’exercice":"Faire l’exercice"):(itemCommence(nxt)?'Reprendre ma leçon':'Commencer la leçon'));
   const ch=defi&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(c=>c.id===nxt):null;
   const niv=ch&&typeof NIV!=='undefined'&&NIV[ch.niv]?NIV[ch.niv].l:'';
   const kicker=defi?'Ton prochain défi':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon';
@@ -21263,6 +21268,15 @@ function renderHomeHero(){
   const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}${objectifAccueilHTML()}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesCount(host);
+}
+/* Une leçon commencée : sa vidéo arrêtée en route, une réponse donnée pendant l’animation, une étape validée ou un brouillon
+   d’exercice ; un défi commencé : son chrono en cours (gardé sur l’appareil). */
+function itemCommence(id){
+  if(typeof isDefiId==='function'&&isDefiId(id)){ const o=typeof defiSesRead==='function'?defiSesRead():null; return !!(o&&o.cid===id); }
+  if(typeof LV_POS!=='undefined'&&LV_POS.has(id))return true;
+  if(typeof LV_ANS!=='undefined'&&LV_ANS[id]&&Object.keys(LV_ANS[id]).length)return true;
+  const s=state.lessons&&state.lessons[id];
+  return (typeof nbFaites==='function'&&nbFaites(id)>0)||!!(s&&typeof s.draft==='string'&&s.draft.trim());
 }
 /* Elisa, 4 novembre, 17 h 27 (réf. 7) : « essayer de mettre l’objectif sur l’accueil, de manière UI/UX (DA du site internet) ». Sous la
    série, l’objectif choisi à l’onboarding dans une carte blanche en relief, comme les objectifs de la vitrine (son pictogramme dans un
@@ -21547,7 +21561,7 @@ function renderModules(){
   const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
   /* « Parcours SQL », le premier d’une série (3 novembre, 19 h 01) : la rangée des parcours vient sous le titre. */
   const nMods=MODULES.filter(m=>m.lessons.length).length;
-  const html=`<div class="home-catalog-head"><div><span>Tes parcours</span><h2>Parcours SQL</h2></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>${parcoursChipsHTML(allDone)}<div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
+  const html=`<div class="home-catalog-head"><div><span>Tes parcours</span><h2>Parcours SQL</h2></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Explorer</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>${parcoursChipsHTML(allDone)}<div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
   /* Rien n’a changé depuis le dernier rendu (3 novembre) : l’accueil garde ses éléments. Les remplacer recalculait tout l’écran et
      relançait la cascade d’ouverture du module à chaque retour sur l’accueil ; la recherche gardait aussi le clavier. */
   if(host.__lqHtml!==html||!host.firstElementChild){
@@ -33316,14 +33330,16 @@ function homeStreakHTML(){
   if(onHome)lqLastStreak=n;
   const todayDone=days.some(d=>d.today&&d.kind==='done');
   const weekDone=days.filter(d=>d.kind==='done').length;
-  const title=n?`${n} jour${n>1?'s':''} de série`:'Allume ta série';
-  const sub=n?(todayDone?'Flamme du jour allumée. À demain !':`Une activité aujourd’hui et tu passes à ${n+1}.`):'Une activité aujourd’hui allume ta première flamme.';
+  /* Elisa, 5 novembre, 17 h 09 : « Garde le rythme ! » plutôt qu’« Allume ta série », et « Une activité aujourd’hui pour prolonger ta
+     série » ; les flammes des jours de la semaine restent, pour voir la régularité d’un coup d’œil. Pas encore de série : « lancer ». */
+  const title=n?`${n} jour${n>1?'s':''} de série`:'Garde le rythme !';
+  const sub=n?(todayDone?'Flamme du jour allumée. À demain !':'Une activité aujourd’hui pour prolonger ta série.'):'Une activité aujourd’hui pour lancer ta série.';
   const kindLabel={done:'fait',today:'à faire aujourd’hui',rest:'repos',missed:'pas fait',future:'à venir'};
   const aria=`${title}. ${sub}${best>n?` Record : ${best} jours.`:''} Cette semaine : ${weekDone} jour${weekDone>1?'s':''} fait${weekDone>1?'s':''}. Voir ma progression.`;
   /* Une seule ligne : la flamme, le compte, puis les 7 jours de la semaine. */
   return `<button type="button" class="lq-streak${n?' is-on':''}${todayDone?' is-today':''}${up?' is-up':''}" onclick="openAccountProgress()" aria-label="${escAttr(aria)}">
     <span class="lq-streak-flame" aria-hidden="true">${LQ_FLAME_SVG}</span>
-    <span class="lq-streak-copy" aria-hidden="true"><b>${n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''}`:'Allume'}</b><small>${n?'de série':'ta série'}</small></span>
+    <span class="lq-streak-copy" aria-hidden="true"><b>${n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''} de série`:esc(title)}</b><small>${esc(sub)}</small></span>
     <span class="lq-week" aria-hidden="true">${days.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
   </button>`;
 }
@@ -33674,7 +33690,7 @@ function renderPlanning(){
   ordonnerPlan();
   const st=statsPlan();
   const sub=document.getElementById('pl-sub');
-  if(sub)sub.textContent='Ta semaine, organisée pour toi.';
+  if(sub)sub.textContent='Ta semaine, organisée rien que pour toi.';
   const h1=document.querySelector('#scr-planning .lgtitle h1');
   if(h1&&h1.textContent!=='Planning') h1.textContent='Planning';
   host.innerHTML=`
@@ -34577,7 +34593,7 @@ function renderEntretien(opts){
     /* Rien dans l’onglet ou la famille choisis : si la recherche trouve ailleurs, un bouton y mène ; sinon on propose d’effacer. */
     const elsewhere=found.length;
     const copy=elsewhere?`${elsewhere} question${elsewhere>1?'s':''} correspond${elsewhere>1?'ent':''} à « ${esc(entSearch.trim())} » dans les autres onglets ou familles.`:`Rien pour « ${esc(entSearch.trim())} ». Essaie un autre mot : LAG, jointure, index…`;
-    const action=elsewhere?`<button type="button" onclick="entSearchEverywhere()">Chercher dans toutes les questions</button>`:`<button type="button" onclick="clearEntSearch(true)">Effacer la recherche</button>`;
+    const action=elsewhere?`<button type="button" onclick="entSearchEverywhere()">Explorer toutes les questions</button>`:`<button type="button" onclick="clearEntSearch(true)">Effacer la recherche</button>`;
     list.innerHTML=intro+`<div class="ent-empty ent-empty-search"><span class="ent-empty-ico" aria-hidden="true">${LQ_SEARCH_SVG}</span><b>Aucune question trouvée</b><span>${copy}</span>${action}</div>`;
     return;
   }
@@ -35207,18 +35223,25 @@ let obSwipeOn = false;
 function greetingForHour(hour){
   return hour<12?'Bonjour':hour<18?'Bon après-midi':'Bonsoir';
 }
+/* Elisa, 5 novembre, 17 h 09 : « Prête pour la suite ? » (selon le genre) à la place de « Bon après-midi », pour mettre l’accent sur
+   l’apprentissage, quand une leçon ou un défi attend ; le parcours terminé, le salut de l’heure revient. */
+function salutSuite(){
+  if(typeof recommendedSession!=='function'||!recommendedSession())return '';
+  return `${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} pour la suite`;
+}
 function renderGreeting(){
   const name=(state.name||'').trim();
-  const hi=greetingForHour(new Date().getHours());
+  const suite=salutSuite();
+  const hi=suite||greetingForHour(new Date().getHours());
   const title=document.querySelector('#scr-learn>.lgtitle h1');
-  if(title)title.textContent=name?`${hi}, ${name}`:hi;
+  if(title)title.textContent=(name?`${hi}, ${name}`:hi)+(suite?'\u00a0?':'');
   /* « après-midi » ne se coupe jamais au trait d’union sur les petits écrans. */
   if(title&&title.nodeType===1&&hi.includes('-')){
     const keep=document.createElement('span');
     keep.style.whiteSpace='nowrap';
     keep.textContent=hi;
     title.textContent='';
-    title.append(keep,name?`, ${name}`:'');
+    title.append(keep,(name?`, ${name}`:'')+(suite?'\u00a0?':''));
   }
   const el=document.getElementById('greeting');
   if(!el)return;
@@ -38771,7 +38794,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-json-v2543';
+  const SW_CACHE='requete-2026-11-05-accueil-v2544';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
