@@ -120,20 +120,22 @@ test('un cycle de clés, une table qui se désigne elle-même : le schéma se de
   d.close();
 });
 
-test('la toile : une carte par table qui ouvre sa table, un trait par lien, ses pastilles, et ce qu’il montre pour les lecteurs d’écran', () => {
+test('la toile : une carte par table (7 h 38 : touchée, elle allume ses liens), un trait par lien, ses pastilles, ses liens en clair', () => {
   const d = ouvrir(ctx.DEFI_BASES.zoo.sql), m = ctx.umlModele(d, tablesDe(d)), h = ctx.umlPanneau(m, 322, true);
-  assert.equal((h.match(/<button type="button" class="umd-t"/g) || []).length, 9);
+  assert.equal((h.match(/<button type="button" class="umd-t[ "]/g) || []).length, 9);
   assert.equal((h.match(/<path class="umd-a"/g) || []).length, 8);
   assert.equal((h.match(/<g class="umd-m"/g) || []).length, 16, 'deux multiplicités par lien');
-  assert.ok(h.includes('onclick="schemaOuvrirTable(this.dataset.t)"') && h.includes('aria-label="Table animaux, 8 colonnes, 35 lignes : voir le détail"'));
+  assert.ok(h.includes('onclick="umlCarte(this)"') && h.includes('aria-label="Table animaux, 8 colonnes, 35 lignes : allumer ses liens"'));
   assert.ok(h.includes('<div class="umd-tete"><b>Schéma UML</b><span>9 tables · 8 liens</span></div>'));
-  assert.ok(h.includes('<span class="umd-lg is-pk"><i>PK</i>clé primaire</span><span class="umd-lg is-fk"><i>FK</i>clé étrangère</span><span class="umd-lg"><b>0..*</b>zéro ou plusieurs</span>'));
-  assert.ok(h.includes('<li>animaux.espece_id → especes.id : 0..* animaux pour 1 especes</li>'));
+  assert.ok(h.includes('<span class="umd-lg is-pk"><i>PK</i>clé primaire</span><span class="umd-lg is-fk"><i>FK</i>clé étrangère</span><span class="umd-lg is-v"><b>→</b>la table qu’elle désigne</span><span class="umd-lg"><b>0..*</b>zéro ou plusieurs</span>'));
+  /* Ce que montrent les traits, en clair (pour les lecteurs d’écran aussi) : la liste pliable, une entrée par lien */
+  assert.ok(h.includes('<code>animaux.espece_id</code><span class="umd-fl" aria-hidden="true">→</span><span class="sr">désigne</span><code>especes.id</code>'));
+  assert.ok(h.includes('Chaque ligne d’<code>animaux</code> désigne exactement une ligne d’<code>especes</code>.'));
   assert.ok(h.includes('<div class="sch-uml" role="tabpanel" data-t="__uml__">') && ctx.umlPanneau(m, 322, false).includes('data-t="__uml__" hidden>'));
   d.close();
 });
 
-test('la feuille : la pastille jaune en premier, ouverte d’abord ; la carte touchée ouvre sa table ; la Console a son schéma', () => {
+test('la feuille : la pastille jaune en premier, ouverte d’abord ; « Ses colonnes » ouvre sa table ; la Console a son schéma', () => {
   const r = cut('function renderSchemaSheet(){', 'const schTabSel={},schBaseOuverte={};');
   for (const k of ["const cons=schCtx==='console';", 'const database=cons?activeDb():dId?new SQL.Database(defiBaseBytes(dId)):db;',
     "const key=cons?'console:'+activeDbId:(dId||'cours');", "let cur=schTabSel[key];if(!tables.includes(cur)&&!(avecUml&&cur==='__uml__'))cur=avecUml?'__uml__':tables[0];",
@@ -152,20 +154,21 @@ test('la feuille : la pastille jaune en premier, ouverte d’abord ; la carte to
   assert.ok(cut('async function confirmImport(){', '\n}\n').includes(`<button type="button" class="imp-uml" onclick="openSchemaSheet('console')">\${UML_SVG}<span>Voir le schéma UML</span></button>`));
   /* Partout où le schéma s’ouvre déjà : la leçon, le défi, la salle de défis */
   for (const k of ['id="nav-schema" onclick="openSchemaSheet()"', 'class="dq-schema${', 'class="ed-schema${schAttn()}" onclick="openSchemaSheet()"']) assert.ok(app.includes(k), k);
-  assert.ok(cut('function umlSurligne(el,on,e){', '\n}\n').includes("e.pointerType!=='mouse'"), 'au doigt, la carte ouvre sa table sans rester allumée');
+  assert.ok(cut('function umlSurligne(el,on,e){', '\n}\n').includes("e.pointerType!=='mouse'"), 'au doigt, rien au survol : la toucher allume ses liens');
 });
 
 test('la DA : la pastille jaune soleil, la toile quadrillée, les classes aux couleurs du cours UML, les multiplicités en pastilles', () => {
   for (const k of ['html.lq #schema-sheet .sch-tab.is-uml{display:inline-flex;align-items:center;gap:7px;border-color:#FFD86B;background:#FFF4CF;',
     'html.lq #schema-sheet .sch-tab.is-uml.on{border-color:var(--sun);background:var(--sun);color:#1B1640;box-shadow:0 3px 0 var(--sun-lip)}',
     'background-image:linear-gradient(rgba(106,77,244,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(106,77,244,.07) 1px,transparent 1px);background-size:22px 22px;',
-    'html.lq #schema-sheet .umd-h{flex:none;display:flex;align-items:center;gap:8px;height:34px;', 'html.lq #schema-sheet .umd-c{display:flex;align-items:center;gap:6px;height:20px;',
-    'html.lq #schema-sheet .umd-cs{display:flex;flex-direction:column;padding:7px 0}', 'html.lq #schema-sheet .umd-m rect{fill:#fff;stroke:var(--line);stroke-width:1.5px}',
+    'html.lq #schema-sheet .umd-h{flex:none;display:flex;align-items:center;gap:8px;height:34px;', 'html.lq #schema-sheet .umd-c{display:flex;flex-direction:column;flex:none;height:20px;',
+    'html.lq #schema-sheet .umd-r{display:flex;align-items:center;gap:6px;flex:none;height:20px;',
+    'html.lq #schema-sheet .umd-cs{display:flex;flex-direction:column;padding:7px 0}', 'html.lq #schema-sheet .umd-m rect{fill:#fff;stroke:var(--lc,var(--line));stroke-width:1.5px;',
     'html.lq #schema-sheet .umd-c.is-pk i{background:var(--sun);color:#1B1640}', 'html.lq #schema-sheet .umd-c.is-fk i{background:var(--mint);color:#0D5B3B}',
-    'html.lq #scr-console .console-schema-panel .db-pill.is-uml{flex:1 1 100%;', 'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m){animation:none!important;opacity:1}'])
+    'html.lq #scr-console .console-schema-panel .db-pill.is-uml{flex:1 1 100%;', 'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc){animation:none!important}'])
     assert.ok(css.includes(k), k);
   /* Les mesures de la page et du dessin sont les mêmes : en-tête 34 px, lignes de 20 px, 7 px autour */
-  assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ecart:20,voie0:14,voie:8,max:7};'));
+  assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ligneEx:36,ecart:20,voie0:14,voie:8,max:7};'));
   assert.ok(!/\.uml-(?:t|h|cs|toile|plan)\b/.test(css), 'les classes umd- : celles du guide (.uml-c, .uml-l…) restent à lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=144">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=145">'));
 });
