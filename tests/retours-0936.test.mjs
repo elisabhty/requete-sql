@@ -162,7 +162,9 @@ test('la phrase de la page des jours et l’engagement suivent les jours choisis
   assert.deepEqual([7, 5, 3, 2].map(f => `Avec 20 minutes${quand(f)}, tu termines`), ['Avec 20 minutes par jour, tu termines', 'Avec 20 minutes par jour en semaine, tu termines',
     'Avec 20 minutes, 3 jours par semaine, tu termines', 'Avec 20 minutes, 2 jours par semaine, tu termines']);
   const pacte = lastCut("}else if(slide==='pact'){", 'obSetFooter(');
-  assert.ok(pacte.includes("const duree=f===7?`<b>${m} par jour</b>`:f===5?`<b>${m} par jour</b> en semaine`:`<b>${m}</b>, <b>${f} jours par semaine</b>,`;"));
+  /* 21 h 19 : la durée de l’engagement vient de pacteDuree, partagée avec Mon compte › Mon engagement (retours-2119) */
+  assert.ok(pacte.includes('const b=obPlanInfo(),f=draft.freq||7;') && pacte.includes('${pacteCarteHTML({nom:(draft.name||\'\').trim(),m:b.minutes,f,'));
+  assert.ok(app.includes("function pacteDuree(m,f){const t=`${m} minutes`;return f===7?`<b>${t} par jour</b>`:f===5?`<b>${t} par jour</b> en semaine`:`<b>${t}</b>, <b>${f} jours par semaine</b>,`;}"));
   /* Le parcours construit et le planning créé à la fin prennent les mêmes jours */
   assert.ok(app.includes('freqLabel:(FREQS.find(f=>f.k===freq)||FREQS[0]).t') && app.includes('state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);'));
 });
@@ -183,7 +185,7 @@ test('l’habillage : tuiles en ligne comme l’âge, carte voilée aux nombres 
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvDotOn{') && css.includes('@keyframes obvNumBump{'));
   /* La feuille est rechargée, et le cache de l’app renouvelé */
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=25">') && sw.includes("'./onboarding-vitrine.css?v=25',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
 });
