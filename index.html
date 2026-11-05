@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=167">
+<link rel="stylesheet" href="ludique.css?v=168">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
@@ -7794,7 +7794,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <!-- MON COMPTE -->
     <section id="scr-compte" class="screen">
       <div class="lgtitle account-title"><div><div class="eyebrow">Ton espace</div><h1>Mon compte</h1>
-        <p class="sub">Ta progression et tes réglages.</p></div></div>
+        <p class="sub">Tes progrès, ton objectif et tes réglages.</p></div></div>
       <div id="compte-body" class="acc-stack"></div>
     </section>
   </div>
@@ -16865,7 +16865,12 @@ function clearConsoleHistory(){
   const p=projOf(activeDbId);if(!p.hist.length)return;
   lqAsk({ico:'🧹',titre:'Effacer l’historique ?',texte:'Les requêtes exécutées dans ce projet ne seront plus listées.',oui:'Effacer',non:'Garder',danger:true}).then(ok=>{
     if(!ok)return;
-    p.hist=[];saveProjState();renderConsoleSide();lqSay('Historique effacé');
+    p.hist=[];saveProjState();
+    /* 22 h 35 : les lignes se froissent l’une après l’autre, puis la coche « Effacé » sur l’onglet */
+    lqAdieu([...document.querySelectorAll('#console-hist .console-query-row')].slice(0,10),()=>{
+      renderConsoleSide();
+      lqDone(document.getElementById('console-tab-history')||document.querySelector('#console-hist'),'Effacé','Historique effacé');
+    },{pas:45});
   });
 }
 function loadHistSql(i){
@@ -16990,6 +16995,16 @@ function deleteDb(id){
 function deleteDbNow(id){
   const meta=dbCatalog.find(d=>d.id===id);
   if(!meta||!customDbs[id]) return;
+  /* 22 h 35 : sa ligne de la liste se froisse et s’en va, puis la coche « Supprimé » sur la liste */
+  const D=typeof document!=='undefined'&&document.querySelector?document:null;
+  const ligne=D&&D.querySelector(`#scr-console .console-project-open[onclick="openConsoleProject('${id}')"]`);
+  lqAdieu([ligne&&ligne.closest('.console-project-row')],()=>{
+    deleteDbFin(id);
+    if(D&&typeof lqDone==='function')lqDone(D.querySelector('#scr-console .console-projects-head h2')||D.querySelector('#scr-console .lgtitle h1'),'Supprimé',`Projet «\u00a0${meta.name}\u00a0» supprimé`);
+  });
+}
+function deleteDbFin(id){
+  if(!customDbs[id]) return;
   try{ customDbs[id].close(); }catch(e){}
   delete customDbs[id];
   delete tableBaselines[id];
@@ -17155,19 +17170,8 @@ function ajouterTable(){
 function dbCartesAdieu(noms,suite){
   const host=document.getElementById('db-tables');
   const cartes=host?noms.map(n=>host.querySelector(`.db-tblock[data-table="${CSS.escape(n)}"]`)).filter(Boolean):[];
-  if(!cartes.length||prefersReduceMotion()||typeof cartes[0].animate!=='function'){suite();return;}
-  const gap=parseFloat(getComputedStyle(host).rowGap)||0;
-  cartes.forEach(c=>{
-    const h=c.offsetHeight,avant=!!c.previousElementSibling;
-    c.style.overflow='hidden';c.style.pointerEvents='none';c.style.transformOrigin='left center';
-    c.animate([
-      {height:h+'px',opacity:1,transform:'none',marginTop:'0px',marginBottom:'0px',backgroundColor:'#fff',offset:0},
-      {height:h+'px',opacity:1,transform:'scale(.97) rotate(-1.4deg)',backgroundColor:'#FFF1F2',offset:.32},
-      {height:'0px',opacity:0,transform:'translateX(-18px) scale(.9) rotate(-2.5deg)',marginTop:avant?-gap+'px':'0px',marginBottom:avant?'0px':-gap+'px',backgroundColor:'#FFE4E6',offset:1}
-    ],{duration:480,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
-  });
-  if(typeof buzz==='function')buzz('medium');
-  setTimeout(suite,480);
+  if(!cartes.length){suite();return;}
+  lqAdieu(cartes,suite,{gap:parseFloat(getComputedStyle(host).rowGap)||0});
 }
 async function dropTable(name){
   if(isDemoDb(activeDbId))return;
@@ -17181,7 +17185,7 @@ async function dropTable(name){
     renderDbWorkspace();
     renderConsoleSchemaSummary();
     const p=projOf(activeDbId); if(p.tdesc&&p.tdesc[name]!=null){delete p.tdesc[name];saveProjState();}
-    lqSay('Table supprimée');
+    lqDone(document.getElementById('console-schema-summary'),'Supprimée',`Table «\u00a0${name}\u00a0» supprimée`);
   }catch(e){ lqInfo('Suppression impossible',String(e.message||e)); }
 }
 /* ---------- Import CSV / JSON / SQL ---------- */
@@ -21042,6 +21046,16 @@ function toggleCourseCatalog(){
   const trigger=document.getElementById('journey-explore');
   trigger?.setAttribute('aria-expanded','false');
   trigger?.focus({preventScroll:true});
+}
+/* « Prochain chapitre » (Mon compte) : le catalogue du parcours, sur ce chapitre, déplié et allumé (22 h 35) */
+function ouvrirChapitre(mi){
+  openCourseCatalog();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const el=document.querySelector(`#modules>.home-module[data-module-index="${mi}"]`);if(!el)return;
+    if(el.tagName==='DETAILS')el.open=true;
+    try{el.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){el.scrollIntoView();}
+    lqFresh(el);
+  }));
 }
 function openCourseCatalog(){
   if(activeTab!=='learn')switchTab('learn');
@@ -33165,6 +33179,29 @@ function lqDone(el,label,say){
   requestAnimationFrame(follow);
   setTimeout(()=>c.remove(),1300);
 }
+/* Ce qu’on supprime s’en va (Elisa, 5 novembre, 22 h 19 puis 22 h 35 : « pareil quand on supprime des notes ou quoi que ce soit, une
+   micro-interaction pour être sûr que l’action s’est bien passée ») : la carte rougit, se froisse et part vers la gauche pendant que la
+   liste se referme sur elle (son écart compris), puis suite() redessine. o.gap : l’écart de la liste (sinon celui de son parent) ;
+   o.pas : le décalage entre deux cartes (une cascade). Sans animation : suite() tout de suite. */
+function lqAdieu(cartes,suite,o){
+  o=o||{};cartes=(cartes||[]).filter(Boolean);
+  if(!cartes.length||(typeof prefersReduceMotion==='function'&&prefersReduceMotion())||typeof cartes[0].animate!=='function'){suite();return;}
+  const pas=+o.pas||0;
+  cartes.forEach((c,k)=>{
+    let gap=o.gap;
+    if(gap==null){try{const cs=c.parentElement&&getComputedStyle(c.parentElement);gap=cs&&/flex|grid/.test(cs.display)?parseFloat(cs.rowGap)||0:0;}catch(e){gap=0;}}
+    let bg='#fff';try{const b=getComputedStyle(c).backgroundColor;if(b&&!/^rgba\(0, 0, 0, 0\)$|transparent/.test(b))bg=b;}catch(e){}
+    const h=c.offsetHeight,avant=!!c.previousElementSibling;
+    c.style.overflow='hidden';c.style.pointerEvents='none';c.style.transformOrigin='left center';
+    c.animate([
+      {height:h+'px',opacity:1,transform:'none',marginTop:'0px',marginBottom:'0px',backgroundColor:bg,offset:0},
+      {height:h+'px',opacity:1,transform:'scale(.97) rotate(-1.4deg)',backgroundColor:'#FFF1F2',offset:.32},
+      {height:'0px',opacity:0,transform:'translateX(-18px) scale(.9) rotate(-2.5deg)',marginTop:avant?-gap+'px':'0px',marginBottom:avant?'0px':-gap+'px',backgroundColor:'#FFE4E6',offset:1}
+    ],{duration:480,delay:k*pas,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+  });
+  if(typeof buzz==='function')buzz('medium');
+  setTimeout(suite,480+(cartes.length-1)*pas);
+}
 /* La chose enregistrée s’allume un instant là où elle s’affiche (un halo jaune soleil qui s’éteint) */
 function lqFresh(el){
   if(!el||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
@@ -35005,9 +35042,13 @@ function mergeDuplicateNotes(){
     const keep=g.slice().sort((a,b)=>(b.pin?1:0)-(a.pin?1:0)||a.ts-b.ts)[0];
     g.forEach(n=>{ if(n!==keep)drop.add(n.id); });
   });
+  /* 22 h 35 : les doubles se froissent et s’en vont, l’un après l’autre */
+  const r=notesRoot();
+  lqAdieu(r?[...drop].map(id=>r.querySelector(`.ncard[data-id="${CSS.escape(String(id))}"]`)):[],()=>{
   state.notes=(state.notes||[]).filter(n=>!drop.has(n.id));
   save(); notesEnter=false; renderNotes();
   lqDone(document.querySelector('#scr-notes .lgtitle h1')||notesRoot(),drop.size>1?`${drop.size} doublons fusionnés`:'Doublon fusionné');
+  },{pas:70});
 }
 /* Le classement change quand on épingle : les cartes glissent à leur nouvelle place. */
 function notesRoot(){
@@ -35255,7 +35296,12 @@ function saveNote(){
   const still=typeof motionOff==='function'&&motionOff();
   if(ok&&b&&!b.disabled){
     b.disabled=true; b.classList.add('is-saved');
-    lqSaved(b,'Enregistrée').then(()=>{backToNotesList();lqSay(wasNew?'Note enregistrée':'Modifications enregistrées');});
+    lqSaved(b,'Enregistrée').then(()=>{
+      backToNotesList();
+      /* 22 h 35 : la carte de la note, dans la liste, reçoit sa coche « Créée » ou « Enregistrée » */
+      const r=notesRoot(),c=r&&e&&r.querySelector(`.ncard[data-id="${CSS.escape(String(e.id))}"]`),dit=wasNew?'Note enregistrée':'Modifications enregistrées';
+      if(c)requestAnimationFrame(()=>lqDone(c,wasNew?'Créée':'Enregistrée',dit));else lqSay(dit);
+    });
     return;
   }
   backToNotesList();
@@ -35291,11 +35337,17 @@ function togglePinFromList(id){
 function deleteNote(id){
   const all=state.notes||[],i=all.findIndex(x=>x.id===id),gone=i>=0?all[i]:null;
   const go=()=>{
-    state.notes=all.filter(x=>x.id!==id);
-    save();
     /* Sans cela, quitter l’éditeur réenregistrait la note : elle réapparaissait aussitôt. */
     editingNote=null; noteView='list';
-    backToNotesList();
+    /* 22 h 35 : la liste revient avec la note, qui s’y froisse et s’en va (lqAdieu), puis « Note supprimée » et « Annuler » */
+    notesEnter=false;backToNotesList();
+    const r=notesRoot(),carte=gone&&r&&r.querySelector(`.ncard[data-id="${CSS.escape(String(id))}"]`);
+    setTimeout(()=>lqAdieu([carte],fin),carte?140:0);
+  };
+  const fin=()=>{
+    state.notes=(state.notes||[]).filter(x=>x.id!==id);
+    save();notesEnter=false;
+    if(typeof renderNotes==='function')renderNotes();
     if(!gone)return;
     toastWithAction('Note supprimée','Tu peux encore l’annuler.','Annuler',()=>{
       state.notes=state.notes||[];
@@ -38286,7 +38338,7 @@ function accountLevel(acquis,bornes,total){
   if(a>=T)i=4;else for(let k=1;k<4;k++)if(a>=b[k])i=k;
   const band=ACCOUNT_LEVELS[i];
   const pct=i===4?100:Math.max(0,Math.min(100,Math.round((a-b[i])/Math.max(1,b[i+1]-b[i])*100)));
-  return {label:band.label,next:band.next,etape:band.etape,pct,rank:i+1};
+  return {label:band.label,next:band.next,etape:band.etape,pct,rank:i+1,reste:i===4?0:Math.max(0,b[i+1]-a)};
 }
 /* Le niveau de l’utilisateur : leçons faites, plus celles d’avant son point de départ (onboarding ou réglage du profil). */
 function niveauCompte(){
@@ -38303,6 +38355,7 @@ function lvlBadgeHTML(level,cls){
 }
 const ACCT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const ACCT_PEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>';
+const ACCT_ALLER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 const ACCT_CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 /* Mon compte : une seule page, sans onglets internes. Profil et niveau en
    tête, puis la progression, les accomplissements, les données et les
@@ -38332,13 +38385,23 @@ function renderCompte(){
   const profileGoalO=OB_GOALS.find(g=>g[0]===profile.goal)||null,profileGoal=(profileGoalO||[])[1]||'';
   /* 21 h 54 : l’objectif sur la carte du profil, à la place de la ligne « Profil et objectif » des réglages (la carte ouvre la même
      feuille) */
-  const objHero=profileGoal?`<span class="acct-obj"><span class="acct-obj-ico" aria-hidden="true">${typeof obOptionIcon==='function'?obOptionIcon(profileGoalO[2]):''}</span><span>Objectif\u00a0: <strong>${esc(profileGoal)}</strong></span></span>`:'';
+  const objHero=profileGoal?`<span class="acct-obj"><span class="acct-obj-ico" aria-hidden="true">${typeof obOptionIcon==='function'?obOptionIcon(profileGoalO[2]):''}</span><span>Mon objectif\u00a0: <strong>${esc(profileGoal)}</strong></span></span>`:'';
   const profileJob=obJobNom(profile.job);
   const profileSummary=[profileGoal,profileJob,nivLab].filter(Boolean).join(' · ')||'Objectif, niveau et rythme';
   const CHEV=ACCT_CHEV;
   const plural=(n,word)=>`${n} ${word}${n>1?'s':''}`;
   const accountTitle=name||(connected?'Mon profil':'Ton espace Requête');
   const level=niveauCompte();
+  /* 5 novembre, 22 h 35 (l’avis qu’Elisa a demandé sur la carte : « la barre semble remplie à 45 % alors que le texte indique 11 % du
+     parcours » ; « Jointures est un chapitre, Constructeur de requêtes un niveau : bien distinguer les deux ») : la barre est celle du
+     parcours, son chiffre à côté ; dessous, le chapitre qui suit dans le parcours (en cours, ou le prochain), qui s’ouvre ; le niveau
+     suivant passe sous le badge, en leçons. */
+  const lvlSuite=level.rank<5&&level.reste?`<span class="acct-niv-suite">Niveau ${level.rank+1} dans ${plural(level.reste,'leçon')}</span>`:'';
+  const chap=(()=>{
+    const suivante=allLessons.find(l=>!itemDone(l.id));
+    const mod=suivante&&moduleDeLecon(suivante.id);if(!mod)return null;
+    return {mi:MODULES.indexOf(mod),titre:mod.titre,k:mod.lessons.some(l=>itemDone(l.id))?'Chapitre en cours':'Prochain chapitre'};
+  })();
   /* Ta semaine : les 7 jours du planning, à partir d’aujourd’hui, comme « Les 7 prochains jours » du Planning (Elisa, 30 octobre,
      22 h 11 : « c’est pas cette semaine, c’est aujourd’hui, du coup pour vendredi » : plus de lundi à jeudi en lunes avant l’inscription). */
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
@@ -38383,12 +38446,12 @@ function renderCompte(){
     <section class="acct-hero" aria-label="Ton profil">
       <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:''}`)}">
         <span class="acct-avatar" aria-hidden="true">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:''}</span>
-        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${lvlBadgeHTML(level,'is-on-deep')}${objHero}</span>
+        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${lvlBadgeHTML(level,'is-on-deep')}${lvlSuite}${objHero}</span>
       </button>
-      <div class="acct-level" role="group" aria-label="${escAttr(`Prochain cap : ${level.next}, atteint à ${level.pct} %. ${progress.percent} % du parcours validé.`)}">
-        <div class="acct-level-head" aria-hidden="true"><small>Prochain cap</small><em>${progress.percent} % du parcours</em></div>
-        <b class="acct-level-next" aria-hidden="true">${esc(level.next)}</b>
-        <div class="acct-level-track" aria-hidden="true"><i style="width:${level.pct}%"></i></div>
+      <div class="acct-level" role="group" aria-label="${escAttr(`Ma progression : ${progress.percent} % du parcours.`)}">
+        <div class="acct-level-head" aria-hidden="true"><small>Ma progression</small><em>${progress.percent}\u00a0%</em></div>
+        <div class="acct-level-track" aria-hidden="true"><i style="width:${progress.percent}%"></i></div>
+        ${chap?`<button type="button" class="acct-chap" onclick="ouvrirChapitre(${chap.mi})" aria-label="${escAttr(`${chap.k} : ${chap.titre}. Ouvrir le chapitre`)}"><span class="acct-chap-t"><small>${chap.k}</small><b>${esc(chap.titre)}</b></span><span class="acct-chap-go" aria-hidden="true">${ACCT_ALLER_SVG}</span></button>`:''}
       </div>
     </section>
     <div class="acct-col acct-col-main">
@@ -38593,7 +38656,7 @@ function accPseudoHTML(name){
   const attr=typeof escAttr==='function'?escAttr:esc;
   const flag=drap?`<span class="acc-pseudo-flag" role="img" aria-label="${attr(typeof paysNom==='function'?paysNom(pays):pays)}">${drap}</span>`:'';
   const nivHtml=niv?`<span class="acc-pseudo-niv" role="img" aria-label="${attr(`Niveau ${niv.rank} : ${niv.label}`)}"><i aria-hidden="true"><span>Niv.</span>${niv.rank}</i><span class="acc-pseudo-niv-l" aria-hidden="true">${esc(niv.label)}</span></span>`:'';
-  const objHtml=o?`<span class="acc-pseudo-obj"><span class="acc-pseudo-obj-ico" aria-hidden="true">${typeof obOptionIcon==='function'?obOptionIcon(o[2]):''}</span><span>Objectif\u00a0: <strong>${esc(o[1])}</strong></span></span>`:'';
+  const objHtml=o?`<span class="acc-pseudo-obj"><span class="acc-pseudo-obj-ico" aria-hidden="true">${typeof obOptionIcon==='function'?obOptionIcon(o[2]):''}</span><span>Mon objectif\u00a0: <strong>${esc(o[1])}</strong></span></span>`:'';
   return `<div class="acc-pseudo" style="--l:${Array.from(n).length}"><span class="acc-pseudo-av"><span aria-hidden="true">${jeuInitial(n)}</span>${flag}</span><span class="acc-pseudo-t"><b>${at?'<i class="acc-pseudo-at">@</i>':''}<span class="acc-pseudo-nm">${esc(nom)}${trait}</span></b>${nivHtml}${objHtml}</span></div>`;
 }
 /* ---------- Comprendre mes données ----------
@@ -39202,7 +39265,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-console-fluide-v2561';
+  const SW_CACHE='requete-2026-11-05-compte-progression-v2562';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

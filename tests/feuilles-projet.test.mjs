@@ -67,7 +67,7 @@ test('enregistrer : le bouton passe au menthe, la coche se dessine, des confetti
   assert.deepEqual([bursts, delays[0]], [1, 0], 'mouvement réduit : ni confettis ni attente');
   /* Partout où l’on enregistre */
   assert.ok(cut(app, 'function lqPrompt(o){', '/* On enregistre').includes("const ok=()=>{ if(fini||el._saving)return; el._saving=1; const v=input.value.replace(/\\s+$/,'').replace(/^\\s+/,''); lqSaved(el.querySelector('.lq-ask-oui'),lqSavedLabel(o.oui||'Enregistrer')).then(()=>fin(v)); };"), 'les feuilles à champ (descriptions, renommer)');
-  assert.ok(cut(app, 'function saveNote(){', 'function togglePinFromList(id){').includes("lqSaved(b,'Enregistrée').then(()=>{backToNotesList();"), 'une note');
+  assert.ok(cut(app, 'function saveNote(){', 'function togglePinFromList(id){').includes("lqSaved(b,'Enregistrée').then(()=>{\n      backToNotesList();"), 'une note');
   assert.ok(cut(app, 'function applyPlanAdjustment(){', 'function planAdjustCommit(preview){').includes("lqSaved(btn,'Rythme appliqué').then(()=>planAdjustCommit(preview));"), 'le rythme');
   assert.ok(cut(app, 'async function editDbNote(id){', 'async function editTableNote(name){').includes("lqFresh(document.querySelector('#scr-console .console-desc'));"));
   assert.ok(cut(app, 'async function editTableNote(name){', 'function projectName(id){').includes('lqFresh(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`));'));
