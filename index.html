@@ -1975,7 +1975,24 @@
   .jeu-players li.is-away{opacity:.55}
   .jeu-players .jeu-tag{padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:11px;font-weight:750}
   .jeu-players em.jeu-state{font-family:inherit;font-size:12.5px;font-weight:700}
-  .jeu-players em.jeu-state.is-ready{color:var(--success)}
+  /* 5 novembre, 13 h 35 : « prête », « prêt » ou « prêt·e » dans une pastille aux couleurs du bouton « Je suis prête » (jetons
+     --success), sa coche dans un rond plein. Quand le joueur passe prêt (is-pret) : la pastille saute, la coche tourne et se trace,
+     une onde part, l’avatar fait un petit bond. */
+  .jeu-players em.jeu-state.is-ready{position:relative;display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 3px;border-radius:999px;background:var(--success-soft);color:var(--success);font-family:var(--display);font-size:13px;font-weight:750;line-height:1;white-space:nowrap}
+  .jeu-pret-ok{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--success-fill,var(--success));color:#fff}
+  .jeu-pret-ok svg{display:block;width:12px;height:12px}
+  .jeu-players li.is-pret em.is-ready{animation:jeuPretIn .5s var(--pop) var(--pret,0ms) both}
+  .jeu-players li.is-pret .jeu-pret-ok{animation:jeuPretOk .46s var(--pop) calc(var(--pret,0ms) + 80ms) both}
+  .jeu-players li.is-pret .jeu-pret-ok path{animation:jeuPretTrait .3s ease-out calc(var(--pret,0ms) + 240ms) both}
+  .jeu-players li.is-pret em.is-ready::after{content:"";position:absolute;inset:-2px;border:2px solid var(--success-fill,var(--success));border-radius:inherit;opacity:0;pointer-events:none;animation:jeuPretOnde .7s ease-out calc(var(--pret,0ms) + 280ms)}
+  .jeu-players li.is-pret .jeu-av{animation:jeuPretBond .5s var(--pop) var(--pret,0ms) both}
+  @keyframes jeuPretIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+  @keyframes jeuPretOk{from{transform:scale(0) rotate(-80deg)}to{transform:none}}
+  @keyframes jeuPretTrait{from{stroke-dasharray:20 30;stroke-dashoffset:22}to{stroke-dasharray:20 30;stroke-dashoffset:0}}
+  @keyframes jeuPretOnde{from{opacity:.6;transform:scale(.94)}to{opacity:0;transform:scale(1.32)}}
+  @keyframes jeuPretBond{40%{transform:translateY(-5px)}}
+  @media (prefers-reduced-motion:reduce){.jeu-players li.is-pret *,.jeu-players li.is-pret *::after{animation:none!important}}
+  html[data-motion="reduce"] .jeu-players li.is-pret *,html[data-motion="reduce"] .jeu-players li.is-pret *::after{animation:none!important}
   .jeu-players li.jeu-slot{border-style:dashed;background:transparent}
   .jeu-players li.jeu-slot > span{font-weight:600;color:var(--ink-3)}
   .jeu-av.is-empty{background:transparent;border:1.5px dashed var(--line)}
@@ -29299,19 +29316,32 @@ let jeuPaintRaf=0;
    un minuteur prend le relais pour que la partie reste à jour. */
 function jeuPaint(){if(jeuPaintRaf)return;const go=()=>{if(!jeuPaintRaf)return;cancelAnimationFrame(jeuPaintRaf.r);clearTimeout(jeuPaintRaf.t);jeuPaintRaf=0;jeuRender();};jeuPaintRaf={r:requestAnimationFrame(go),t:setTimeout(go,150)};}
 function jeuInitial(name){return esc((Array.from(String(name||'?').trim().replace(/^@+/,''))[0]||'?').toUpperCase());}
+/* Elisa, 5 novembre, 13 h 35 : « ne pas mettre c’est bon mais prêt, prête, avec animation, en fonction du genre, sinon prêt·e pour
+   quelqu’un qui n’a pas dit son sexe ». Le genre reste sur l’appareil (page Confidentialité) : ta ligne et ton bouton s’accordent
+   (accord), les autres joueurs gardent « prêt·e ». */
+function jeuPretMot(me){return me&&typeof accord==='function'?accord('prête','prêt','prêt·e'):'prêt·e';}
+function jeuPretBouton(on){return `Je suis ${jeuPretMot(true)}${on?' ✓':''}`;}
+/* Quand un joueur passe prêt, sa pastille saute, la coche se trace et une onde part, une seule fois (is-pret) ; la liste redessinée
+   entre-temps reprend le geste là où il en était (--pret). Redevenu « en attente », il la refera. */
+const JEU_PRET_MS=900;
 /* Liste des joueurs : salle d’attente (prêt), manche (qui a trouvé), résultats. */
 function jeuPlayersHTML(kind){
   const J=JEU,n=jeuCur(),r=kind!=='lobby'&&n>=0?J.rounds[n]:null;
-  const all=jeuOrder();
+  const all=jeuOrder(),pretAt=J.pretAt||(J.pretAt={});
   const list=all.filter(p=>kind==='lobby'?jeuPresent(p):(jeuPresent(p)||(r&&r.found[p]!=null)));
   const rows=list.map(pid=>{
     const p=J.players[pid]||{name:'Joueur'},me=pid===J.me,host=pid===J.hostPid;
     const away=!jeuPresent(pid),found=r&&r.found[pid]!=null,isNew=!J.shown.has(pid);
     J.shown.add(pid);
-    let state='';
-    if(kind==='lobby')state=jeuIsReady(pid)?'<em class="jeu-state is-ready">✓ c’est bon</em>':'<em class="jeu-state">en attente</em>';
+    let state='',pret=-1;
+    if(kind==='lobby'){
+      if(jeuIsReady(pid)){
+        const t=Date.now()-(pretAt[pid]||(pretAt[pid]=Date.now()));if(t<JEU_PRET_MS)pret=Math.max(0,t);
+        state=`<em class="jeu-state is-ready"><i class="jeu-pret-ok" aria-hidden="true">${JEU_ICO.check}</i>${jeuPretMot(me)}</em>`;
+      }else{delete pretAt[pid];state='<em class="jeu-state">en attente</em>';}
+    }
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
-    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}"><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
+    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
   });
   if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un joueur…</span></li>');
   return rows.join('');
@@ -29382,7 +29412,7 @@ function jeuPatch(v){
   const hint=document.getElementById('jeu-lobby-hint');if(hint)hint.innerHTML=jeuLobbyHint();
   const cnt=document.getElementById('jeu-n');if(cnt)cnt.textContent=`${jeuLive().length}/${J.max}`;
   const rd=document.getElementById('jeu-ready');
-  if(rd){const on=!!J.ready[J.me];rd.setAttribute('aria-pressed',on);rd.classList.toggle('on',on);const l=rd.querySelector('span');if(l)l.textContent=on?'C’est bon pour moi ✓':'C’est bon pour moi';}
+  if(rd){const on=!!J.ready[J.me];rd.setAttribute('aria-pressed',on);rd.classList.toggle('on',on);const l=rd.querySelector('span');if(l)l.textContent=jeuPretBouton(on);}
 }
 /* Le tirage : 3, 2, 1 (0,7 s chacun), puis le défi tiré reste 1,2 s à l’écran. À l’heure de la manche, la scène violette s’efface
    en montant pendant que la manche arrive en cascade dessous, un fondu enchaîné sans écran vide (Elisa, 31 octobre, 15 h 52 : « le
@@ -29460,7 +29490,7 @@ function jeuRender(){
       `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuNextRound()"><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button><p class="jeu-hint" id="jeu-lobby-hint">${jeuLobbyHint()}</p>`
-        :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${J.ready[J.me]?'C’est bon pour moi ✓':'C’est bon pour moi'}</span></button>
+        :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span></button>
         <p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente ${jeuQue(hostName)} lance la partie…</p>`}</div>`;
     /* Le cadre et son code en haut, puis les joueurs. */
     html=frame+players+`<div id="jeu-netslot">${jeuNetHTML()}</div>`;
@@ -38395,7 +38425,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-salles-v2537';
+  const SW_CACHE='requete-2026-11-05-pret-v2538';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
