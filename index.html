@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=166">
+<link rel="stylesheet" href="ludique.css?v=167">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
@@ -7872,7 +7872,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <p class="imp-sub" id="imp-sub">Excel, CSV, JSON, SQL ou SQLite</p>
     <div class="imp-kind" id="imp-kind">Table</div>
     <div class="imp-field" id="imp-table-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"><span class="hint" id="imp-table-hint"></span></div>
-    <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Projet cible</label><select id="imp-db" onchange="onImportDbChange()"></select><span class="hint" id="imp-db-hint"></span></div>
+    <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Projet cible</label><select id="imp-db" onchange="onImportDbChange(true)"></select><span class="hint" id="imp-db-hint"></span></div>
     <div class="imp-field" id="imp-newname-field" hidden><label>Nom du nouveau projet</label><input id="imp-newname" autocomplete="off" spellcheck="false" placeholder="Mon projet"></div>
     <div class="imp-prev" id="imp-prev"></div>
     <p class="imp-ou" id="imp-ou" hidden></p>
@@ -15424,7 +15424,7 @@ function initSpotlight(){
 let activeDbId='cours';
 let customDbs={}; // id → SQL.Database
 let tableBaselines={}; // id projet → état initial de chaque table importée
-let dbCatalog=[{id:'cours',name:'Cours'}];
+let dbCatalog=[{id:'cours',name:'NutriBoost'}];   // la base de démo des cours : la boutique NutriBoost (22 h 19)
 let pendingImport=null;
 let consoleView='list';
 const PROJ_KEY='requete-sql-proj-v1';
@@ -16389,7 +16389,7 @@ async function editTableNote(name){
   lqSay(v?'Description enregistrée':'Description retirée');
 }
 function projectName(id){
-  if(id==='cours') return 'Cours';
+  if(id==='cours') return 'NutriBoost';
   return (dbCatalog.find(d=>d.id===id)||{}).name||id;
 }
 function projectStats(id){
@@ -16472,7 +16472,7 @@ function renderConsoleScreen(){
     pill.hidden=true;
     pill.onclick=openProjectCreator;
   }
-  if(fname) fname.textContent=(isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';
+  if(fname) fname.textContent=(activeDbId==='cours'?'nutriboost':isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';   // la base de démo des cours : NutriBoost (22 h 19)
   const desc=document.getElementById('console-desc');
   if(desc){
     const d=inWork?dbNote(activeDbId):'';
@@ -17149,9 +17149,30 @@ function ajouterTable(){
     oui:'Choisir un fichier',non:'Annuler',
     surOui:()=>{importAjout=Date.now();const f=document.getElementById('data-import');if(f)f.click();}});
 }
+/* Une table supprimée (Elisa, 5 novembre, 22 h 19 : « une micro-interaction à la suppression d’une table ») : sa carte rougit, se
+   froisse et s’efface vers la gauche pendant que la liste se referme sur elle, puis les cartes se redessinent. Le bouton de la carte
+   comme un DROP TABLE écrit dans l’éditeur. Sans animation : tout de suite. */
+function dbCartesAdieu(noms,suite){
+  const host=document.getElementById('db-tables');
+  const cartes=host?noms.map(n=>host.querySelector(`.db-tblock[data-table="${CSS.escape(n)}"]`)).filter(Boolean):[];
+  if(!cartes.length||prefersReduceMotion()||typeof cartes[0].animate!=='function'){suite();return;}
+  const gap=parseFloat(getComputedStyle(host).rowGap)||0;
+  cartes.forEach(c=>{
+    const h=c.offsetHeight,avant=!!c.previousElementSibling;
+    c.style.overflow='hidden';c.style.pointerEvents='none';c.style.transformOrigin='left center';
+    c.animate([
+      {height:h+'px',opacity:1,transform:'none',marginTop:'0px',marginBottom:'0px',backgroundColor:'#fff',offset:0},
+      {height:h+'px',opacity:1,transform:'scale(.97) rotate(-1.4deg)',backgroundColor:'#FFF1F2',offset:.32},
+      {height:'0px',opacity:0,transform:'translateX(-18px) scale(.9) rotate(-2.5deg)',marginTop:avant?-gap+'px':'0px',marginBottom:avant?'0px':-gap+'px',backgroundColor:'#FFE4E6',offset:1}
+    ],{duration:480,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+  });
+  if(typeof buzz==='function')buzz('medium');
+  setTimeout(suite,480);
+}
 async function dropTable(name){
   if(isDemoDb(activeDbId))return;
   if(!await lqAsk({ico:'🗑️',titre:`Supprimer la table « ${name} » ?`,texte:'Ses lignes seront supprimées du projet.',oui:'Supprimer',non:'Garder',danger:true}))return;
+  await new Promise(r=>dbCartesAdieu([name],r));
   try{
     activeDb().run('DROP TABLE IF EXISTS '+quoteIdent(name));
     /* Sa copie de départ s’en va avec elle (elle restait enregistrée, et pesait autant que la table) */
@@ -17523,11 +17544,27 @@ async function onDataImport(ev){
       surOui:()=>{importAjout=ajout?Date.now():0;document.getElementById('data-import').click();}});
   }
 }
-function onImportDbChange(){
+function onImportDbChange(anime){
   const sel=document.getElementById('imp-db');
   const nameField=document.getElementById('imp-newname-field');
   if(!sel||!nameField)return;
-  nameField.hidden=sel.value!=='__new__';
+  impBasculer(nameField,sel.value==='__new__',anime);
+}
+/* Un champ de la feuille qui apparaît ou s’en va (Elisa, 5 novembre, 22 h 19 : « ce n’est pas fluide quand on passe de Nouveau projet à
+   un projet déjà créé, ça saute ») : au choix fait dans la liste, sa hauteur glisse et il apparaît ou s’efface en fondu, sans rejouer
+   l’arrivée de la feuille ; à l’ouverture (anime faux), d’un coup. */
+function impBasculer(el,voir,anime){
+  if(!el)return;
+  if(el._bascule){try{el._bascule.cancel();}catch(e){}el._bascule=null;}
+  if(!anime||prefersReduceMotion()||typeof el.animate!=='function'||voir===!el.hidden){el.hidden=!voir;return;}
+  el.hidden=false;el.style.animation='none';
+  const cs=getComputedStyle(el),h=el.offsetHeight;
+  const plein={height:h+'px',opacity:1,marginBottom:cs.marginBottom,transform:'none'},vide={height:'0px',opacity:0,marginBottom:'0px',transform:'translateY(-6px)'};
+  el.style.overflow='hidden';
+  const a=el.animate(voir?[vide,plein]:[plein,vide],{duration:voir?300:240,easing:'cubic-bezier(.2,.8,.2,1)'});
+  el._bascule=a;
+  a.onfinish=()=>{el._bascule=null;el.style.overflow='';if(!voir)el.hidden=true;};
+  a.oncancel=()=>{el.style.overflow='';};
 }
 /* Le projet où « Ajouter une table » envoie le fichier choisi : celui qui était ouvert, s’il peut recevoir des tables */
 function importAjoutCible(){
@@ -17837,7 +17874,16 @@ async function confirmImport(){
       /* Le compte rendu sous les yeux dès qu’il y a un schéma à voir (il restait sous l’éditeur, hors de l’écran) */
       if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));
     }
-    if(!aj)lqSay(asDb?'Projet importé':'Table importée');
+    /* 22 h 19 (réf. 2 : « une micro-interaction en mode validé ») : la carte s’allume, la coche « Importé » s’y pose et ses tables
+       arrivent une à une */
+    if(!aj){
+      const carte=out&&out.querySelector('.feedback.ok');
+      if(carte){
+        carte.classList.add('is-valide');
+        carte.querySelectorAll('code').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,14)));
+        requestAnimationFrame(()=>lqDone(carte,asDb?'Importé':'Importée',asDb?'Projet importé':'Table importée'));
+      }else lqSay(asDb?'Projet importé':'Table importée');
+    }
   }catch(e){
     if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}
     if(ancienne){ try{ customDbs[target].close(); }catch(x){} customDbs[target]=ancienne; }
@@ -18339,9 +18385,14 @@ function runConsole(o){
       if(activeDbId!=='cours'&&moved) persistCustomDbs(activeDbId);
       /* Les cartes des tables ne se redessinent que si la requête a changé quelque chose (17 h 35 : après un SELECT, la carte ouverte
          rejouait son apparition sous le doigt) */
+      /* Une table supprimée par la requête (DROP TABLE) : sa carte s’en va d’abord (22 h 19) */
+      const partis=moved?[...document.querySelectorAll('#db-tables .db-tblock[data-table]')].map(e=>e.dataset.table).filter(n=>!listTables(database).includes(n)):[];
+      if(partis.length)dbCartesAdieu(partis,()=>{renderDbWorkspace();renderConsoleChips();});
+      else{
       if(moved) renderDbWorkspace();
       /* La première table créée ici fait disparaître « Ta base est vide » et montre ses exemples ; la dernière supprimée les retire. */
       if(moved) renderConsoleChips();
+      }
     }catch(e){
       fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];
       paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message,sql)}</div>`);
@@ -19266,9 +19317,18 @@ let umlDernier=null;   // {m, W, p} : le dernier modèle dessiné et sa mise en 
 const umlPref=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:v==='1'; }catch(e){ return d; } };
 let umlEx=umlPref('rq-uml-ex',true);
 let umlSel=null;   // {t} : une table touchée et ses liens ; {i} : un lien de la liste en clair
-/* Les tables pliées (9 h 18 : « pouvoir plier déplier les tables, dépliées par défaut »), base par base, le temps de la visite. */
+/* Les tables pliées (9 h 18 : « pouvoir plier déplier les tables »), base par base, le temps de la visite. 5 novembre, 22 h 19 (réf. 3 :
+   « il n’y a que la première table qui est dépliée, les autres doivent être pliées ») : à la première visite d’une base, seule la
+   première table de la toile est dépliée ; ce qu’on plie ou déplie ensuite reste. m : le modèle, pour ce premier choix. */
 const umlPlies={};
-function umlPliesDe(){ const k=typeof document!=='undefined'&&document.getElementById?(document.getElementById('schema-body')||{dataset:{}}).dataset.base||'cours':'cours'; return umlPlies[k]=umlPlies[k]||new Set(); }
+function umlPliesDe(m){
+  const k=typeof document!=='undefined'&&document.getElementById?(document.getElementById('schema-body')||{dataset:{}}).dataset.base||'cours':'cours';
+  if(umlPlies[k])return umlPlies[k];
+  const s=new Set();
+  if(!m)return s;
+  try{ if(m.tables&&m.tables.length>1)umlOrdre(m).ordre.slice(1).forEach(n=>s.add(n)); }catch(e){}
+  return umlPlies[k]=s;
+}
 /* Un exemple par colonne (7 h 38) : les valeurs d’une même ligne, la quatrième (ou la dernière), pour qu’elles aillent ensemble : le
    plat 4, sa catégorie, son prix. Une valeur vide : la première valeur non vide de la colonne ; une colonne toujours vide : NULL. */
 function schemaExemples(database,name,n){
@@ -19604,7 +19664,7 @@ function umlListe(m,T){
 }
 /* La toile, ses réglages, la bulle d’une table touchée, les liens en clair, la légende et ce que montrent les traits. */
 function umlPanneau(m,W,on,ex=umlEx){
-  const p=umlPlan(m,W,ex,umlPliesDe()),mult=[...new Set(m.liens.flatMap(l=>[l.un,l.plusieurs]))].filter(k=>UML_MULT[k]).sort();
+  const p=umlPlan(m,W,ex,umlPliesDe(m)),mult=[...new Set(m.liens.flatMap(l=>[l.un,l.plusieurs]))].filter(k=>UML_MULT[k]).sort();
   if(umlDernier&&umlDernier.m===m)umlDernier.p=p;
   const aEx=m.tables.some(t=>t.cols.some(c=>c.ex));
   return `<div class="sch-uml" role="tabpanel" data-t="__uml__"${on?'':' hidden'}>
@@ -19845,8 +19905,8 @@ function renderSchemaSheet(){
   const modele=avecUml?umlModele(database,tables):null;
   if(modele)umlDernier={m:modele,W:umlLargeur(),p:null};
   umlSel=null;
+  body.dataset.base=key;   // avant la toile : ses tables pliées sont celles de cette base (22 h 19)
   const umlBloc=modele?umlPanneau(modele,umlDernier.W,cur==='__uml__'):'';
-  body.dataset.base=key;
   /* La présentation de la base, pliable (3 novembre, 21 h 03) : fermée d’abord, elle reste comme on l’a laissée pendant la visite. */
   const baseOuverte=!!schBaseOuverte[key];
   const baseCarte=dId?`<div class="sch-base${baseOuverte?' open':''}"><button type="button" class="sch-base-h" aria-expanded="${baseOuverte}" aria-controls="sch-base-txt" onclick="schemaBaseToggle(this)"><b>Base ${esc(DEFI_BASES[dId].nom)}</b><span class="sch-base-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button><div class="sch-base-body" id="sch-base-txt"><div><p>${esc(DEFI_BASES[dId].desc)}</p></div></div></div>`:'';
@@ -39142,7 +39202,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-deconnexion-v2560';
+  const SW_CACHE='requete-2026-11-05-console-fluide-v2561';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
