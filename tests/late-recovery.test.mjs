@@ -30,7 +30,8 @@ assert.equal(ctx.latePlanShiftPreview(),null,'rien à décaler quand tout est fa
 
 /* La carte propose les trois choix, le conseillé en premier, sans l’ancienne mention. */
 assert(html.includes("action:'decalerPlanning()'") && html.includes("action:'etalerRetard()'") && html.includes("action:'rattraper()'"), 'trois façons de rattraper');
-assert(html.includes("<em>Conseillé</em>") && html.includes('Rien n’est perdu. Choisis comment les rattraper'), 'choix conseillé mis en avant');
+/* Depuis le 5 novembre, 15 h 43 : « Comment veux-tu reprendre ? », le choix recommandé coché d’avance, « Confirmer mon choix » */
+assert(html.includes("<em>Recommandé</em>") && html.includes('Comment veux-tu reprendre') && html.includes('Confirmer mon choix'), 'choix recommandé mis en avant');
 assert(!html.includes('Fais ton choix'), 'ancienne mention retirée');
 assert(html.includes('class="lr-head" aria-expanded') && html.includes('<h2 class="lr-heading">'), 'en-tête pliable accessible (titre + bouton)');
 assert(html.includes('class="journey-planning" onclick="openLateRecoveryFromHome(this)"'), 'carte de l’accueil entièrement cliquable');
