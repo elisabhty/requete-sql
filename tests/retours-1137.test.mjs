@@ -80,7 +80,8 @@ test('« Rejoins une partie » : les salles du niveau choisi, directement, plus 
   assert.ok(r.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3><span class="dx-live">2 en direct</span>'), 'deux salles en Moyen');
   assert.deepEqual(codes(r), ['BBB222', 'DDD444'], 'celles du niveau choisi');
   const autres = haut.slice(haut.indexOf('id="dx-autres"'));
-  assert.ok(autres.includes('<p class="dx-h3">Aux autres niveaux</p>') && codes(autres).join() === 'AAA111,CCC333', 'les autres niveaux, à la fin du cadre');
+  assert.ok(autres.includes('<p class="dx-h3">Salles disponibles</p>') && codes(autres).join() === 'AAA111,CCC333', 'les autres niveaux, à la fin du cadre (13 h 04 : « Salles disponibles »)');
+  assert.ok(!app.includes('>Aux autres niveaux<'), 'plus « Aux autres niveaux »');
   assert.ok(!haut.includes('Trouver une salle') && !haut.includes('Créer ma salle') && (haut.match(/class="room-go/g) || []).length === 1, 'un seul bouton pour créer');
   assert.ok(!app.includes('function jeuPartieRapide(') && !app.includes('function dxTrouverTexte(') && !app.includes('function jeuSalleOuverte('));
   assert.ok(app.includes('<p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Ta salle de défi</h2>'));
@@ -93,11 +94,11 @@ test('aucune salle au niveau choisi : la phrase d’Elisa, juste au-dessus de «
   assert.ok(r.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3></div><p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p></div>'),
     'sans compte en direct, la phrase, puis le bouton');
   assert.ok(codes(haut.slice(haut.indexOf('id="dx-autres"'))).join() === 'AAA111,BBB222');
-  /* Aucune salle du tout : pas de « Aux autres niveaux » ; pendant le chargement, des lignes vides */
+  /* Aucune salle du tout : « Aucune salle disponible » (13 h 04) ; pendant le chargement, des lignes vides et rien en bas */
   c.ev('DEFIS.salles=[]'); c.ev('sallesRepeindre()');
-  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && c.els['dx-autres'].innerHTML === '');
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && c.els['dx-autres'].innerHTML === '<p class="dx-h3">Aucune salle disponible</p>');
   c.ev('DEFIS.salles=null'); c.ev('sallesRepeindre()');
-  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('class="dx-list is-wait"') && !c.els['dx-rejoindre'].innerHTML.includes('is-aucune'));
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('class="dx-list is-wait"') && !c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && c.els['dx-autres'].innerHTML === '');
 });
 
 test('les salles changent ou le niveau change : seules « Rejoins une partie » et les autres niveaux sont redessinées', () => {
@@ -107,7 +108,7 @@ test('les salles changent ou le niveau change : seules « Rejoins une partie » 
   /* Elisa choisit « Facile » : la salle Facile monte dans « Rejoins une partie » */
   c.ev("defisNiv('f')");
   assert.deepEqual(codes(c.els['dx-rejoindre'].innerHTML), ['AAA111']);
-  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('<span class="dx-live">1 en direct</span>') && c.els['dx-autres'].innerHTML === '');
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('<span class="dx-live">1 en direct</span>') && c.els['dx-autres'].innerHTML === '', 'la seule salle est au niveau choisi : rien en bas');
   assert.ok(fn('defisNiv').includes('sallesRepeindre();') && !fn('defisNiv').includes('dx-trouver-t'));
   const rep = fn('sallesRepeindre');
   assert.ok(rep.includes("const r=document.getElementById('dx-rejoindre');if(r)r.innerHTML=sallesSectionHTML();") && rep.includes("if(host&&!(host.querySelector&&host.querySelector('.dx-points')))host.innerHTML=defisPointsHTML();"));
@@ -172,5 +173,5 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 test('les versions : la feuille de style et le cache', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=154">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-05-cadre-v2536' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-05-salles-v2537' && app.includes(`const SW_CACHE='${cache}';`));
 });

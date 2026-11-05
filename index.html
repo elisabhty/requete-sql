@@ -22310,10 +22310,15 @@ function sallesSectionHTML(){
     :'<p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>';
   return `<div class="dx-rj-tete"><h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3>${ici.length?`<span class="dx-live">${ici.length} en direct</span>`:''}</div>${corps}`;
 }
-/* Les salles des autres niveaux, à la fin du cadre : personne n’attend au sien, elles restent à portée. */
+/* Les salles des autres niveaux, à la fin du cadre : personne n’attend au sien, elles restent à portée. Elisa, 5 novembre, 13 h 04 :
+   « Salles disponibles », ou « Aucune salle disponible » quand il n’y en a aucune (plus « Aux autres niveaux »). Seulement au niveau
+   choisi, elles sont déjà dans « Rejoins une partie » : rien ici. */
 function sallesAutresHTML(){
-  const D=typeof DEFIS!=='undefined'?DEFIS:{},autres=(D.salles||[]).filter(s=>s.niv!==jeuNiv);
-  return autres.length?`<p class="dx-h3">Aux autres niveaux</p><ul class="dx-list">${autres.map(s=>salleLigneHTML(s)).join('')}</ul>`:'';
+  const D=typeof DEFIS!=='undefined'?DEFIS:{},l=D.salles;
+  if(!l)return '';
+  const autres=l.filter(s=>s.niv!==jeuNiv);
+  if(autres.length)return `<p class="dx-h3">Salles disponibles</p><ul class="dx-list">${autres.map(s=>salleLigneHTML(s)).join('')}</ul>`;
+  return l.length?'':'<p class="dx-h3">Aucune salle disponible</p>';
 }
 /* Les salles changent (toutes les 10 s, ou le niveau choisi) : la partie « Rejoins une partie » et les autres niveaux, sans toucher au
    reste du cadre. Sous le cadre : « Comment sont calculés les points ? », bien visible. */
@@ -38390,7 +38395,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-cadre-v2536';
+  const SW_CACHE='requete-2026-11-05-salles-v2537';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
