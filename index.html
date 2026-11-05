@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=142">
+<link rel="stylesheet" href="ludique.css?v=143">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -16913,17 +16913,20 @@ function renderDbWorkspace(){
      lecture seule : pas d’import ni de bouton qui les modifie, et les requêtes qui écriraient sont refusées (PRAGMA query_only). */
   /* Plus de « Créer un projet » sous le cadenas (Elisa, 2 novembre, 22 h 03, Réf 2) : on crée un projet depuis le choix de la base. */
   const verrou=isDemoDb(activeDbId);
-  bar.innerHTML=verrou
-    ?`<span class="db-pill is-lock"><span aria-hidden="true">🔒</span><span>Base d’entraînement · lecture seule</span></span>`
-    :`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`;
   const database=activeDb();
+  const tables=database?listTables(database):[];
+  /* Elisa, 5 novembre, 7 h 03 : le schéma UML de la base, dessiné à partir de ses tables (importées, créées), dès qu’il y en a deux :
+     la pastille jaune ouvre la feuille Schéma sur lui. */
+  const uml=tables.length>1?`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console')">${UML_SVG}<span>Schéma UML</span><i class="db-uml-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></i></button>`:'';
+  bar.innerHTML=(verrou
+    ?`<span class="db-pill is-lock"><span aria-hidden="true">🔒</span><span>Base d’entraînement · lecture seule</span></span>`
+    :`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`)+uml;
   renderConsoleSchemaSummary();
   if(!database){
     if(lab) lab.textContent='Aucune base active';
     host.innerHTML='<div class="db-empty">Aucune base active.</div>';
     return;
   }
-  const tables=listTables(database);
   const fresh=dbWsDiff(database,tables);
   if(openTableSchema && !tables.includes(openTableSchema)) openTableSchema=null;
   if(lab) lab.textContent=`Dans « ${activeName} » · ${tables.length} table${tables.length>1?'s':''}`;
@@ -17501,7 +17504,7 @@ async function confirmImport(){
       const out=document.getElementById('console-out');
       if(out){
         out.innerHTML=asDb
-          ? `<div class="feedback ok"><div class="fi">✓</div><div><b>Projet importé</b><p>${tabs.length} table${tabs.length>1?'s':''} disponible${tabs.length>1?'s':''}${tabs.length?` : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}`:''}.</p></div></div>`
+          ? `<div class="feedback ok"><div class="fi">✓</div><div><b>Projet importé</b><p>${tabs.length} table${tabs.length>1?'s':''} disponible${tabs.length>1?'s':''}${tabs.length?` : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}`:''}.</p>${tabs.length>1?`<button type="button" class="imp-uml" onclick="openSchemaSheet('console')">${UML_SVG}<span>Voir le schéma UML</span></button>`:''}</div></div>`
           : `<div class="feedback ok"><div class="fi">✓</div><div><b>Import réussi</b><p>${tabs.length?`Tables : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:'Script exécuté.'}</p></div></div>`;
       }
     }
@@ -18831,36 +18834,231 @@ function closeViz(){document.getElementById('viz-back').classList.remove('on');d
 function schemaTableIcon(){
   return `<svg class="ti" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M9 10v9" stroke="currentColor" stroke-width="1.8"/></svg>`;
 }
+/* ---------- Le schéma UML d’une base, dessiné à partir de ses tables ----------
+   Elisa, 5 novembre, 7 h 03 (capture du schéma de la base Zoo) : « Comment on peut générer un schéma UML pour tous ? Comment
+   l’intégrer partout, générer automatiquement quand on met des données ? De manière UI/UX, DA du site internet. Au niveau de la
+   console ou défis ? Peut-être faire une première pill en jaune ? »
+   La feuille Schéma s’ouvre sur une première pastille jaune, « Schéma UML » : une carte par table, à la couleur d’une classe du cours
+   UML (son nom, ses lignes, ses colonnes avec PK et FK), et ses liens, tirés de chaque clé étrangère jusqu’à la clé primaire qu’elle
+   désigne, avec leurs multiplicités, comme dans le cours (1 ou 0..1 du côté de la table désignée, selon que la clé peut être vide ;
+   0..* de l’autre côté, 0..1 si la clé est unique). Tout est lu dans la base elle-même : une table importée, un CREATE TABLE, un ALTER
+   apparaissent aussitôt ; une clé étrangère déclarée, ou devinée à son nom (client_id → clients, comme partout dans l’appli).
+   Les tables désignées viennent d’abord, celles qui les désignent en dessous (la plus longue chaîne de clés), chacune près de ses
+   voisines ; les liens passent sur les côtés, chacun dans son couloir : jamais sur une carte. Une carte touchée ouvre sa table.
+   Partout où s’ouvre le schéma : les cours, les défis, la salle de défis, et la Console (openSchemaSheet('console')). */
+const UML_TEINTES=[['#6A4DF4','#EEE9FF','#5335E0'],['#2F80ED','#E6F0FD','#1D5FA8'],['#E8892B','#FFF1E2','#9A5B00'],['#169447','#E2F6EA','#0F7A3A'],
+  ['#0E9F9A','#DDF5F3','#0B6E6A'],['#D9468F','#FCE8F2','#A3216A'],['#D99A0B','#FFF6DA','#8A6200']];
+const UML_G={tete:34,pad:7,ligne:20,ecart:20,voie0:14,voie:8,max:7};
+const UML_MULT={'1':'exactement un','0..1':'zéro ou un','0..*':'zéro ou plusieurs'};
+/* L’icône de la pastille : deux classes et leur lien. */
+const UML_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3.5" width="7.5" height="6" rx="1.8" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="14.5" width="7.5" height="6" rx="1.8" stroke="currentColor" stroke-width="2"/><path d="M6.75 9.5v4.5a3 3 0 0 0 3 3h3.75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+let umlDernier=null;   // le dernier modèle dessiné, pour le redessiner à la bonne largeur
+/* Les tables, leurs colonnes (avec NOT NULL, UNIQUE et la colonne désignée), et les liens d’une clé étrangère à sa table. */
+function umlModele(database,tables){
+  const lire=q=>{ try{ const r=database.exec(q); return r[0]?r[0].values:[]; }catch(e){ return []; } };
+  const T=tables.map(name=>{
+    const q=quoteIdent(name),nn={},uq={},vers={};
+    if(database){
+      lire('PRAGMA table_info('+q+')').forEach(v=>{ nn[String(v[1])]=!!(v[3]||v[5]); });
+      lire('PRAGMA foreign_key_list('+q+')').forEach(v=>{ if(v[3])vers[String(v[3])]=v[4]!=null?String(v[4]):null; });
+      lire('PRAGMA index_list('+q+')').forEach(v=>{ if(!v[2])return; const cs=lire('PRAGMA index_info('+quoteIdent(String(v[1]))+')').map(x=>String(x[2])); if(cs.length===1)uq[cs[0]]=true; });
+    }
+    const n=database?tableRowCount(database,name):((SCHEMA_META.find(t=>t.table===name)||{}).n);
+    return {name,n:n==null?'?':n,cols:introspectTable(database,name,tables).map(c=>Object.assign({},c,{nn:!!nn[c.c],uq:!!uq[c.c],vers:vers[c.c]||null}))};
+  });
+  const liens=[];
+  T.forEach(t=>t.cols.forEach(c=>{
+    if(c.b==='fk'&&c.ref&&tables.includes(c.ref))liens.push({de:t.name,col:c.c,vers:c.ref,versCol:c.vers,un:c.nn?'1':'0..1',plusieurs:c.uq?'0..1':'0..*'});
+  }));
+  return {tables:T,liens};
+}
+/* La mise en page, sans rien mesurer (testée telle quelle) : l’ordre des tables, leurs cartes, les couloirs des liens et leurs multiplicités.
+   W : la largeur de la toile. Retourne {W, H, cartes:[{name,n,x,y,w,h,cols,plus,teinte}], arcs:[{de,vers,col,d,cote,voie,lab}]}. */
+function umlPlan(m,W){
+  const G=UML_G,noms=m.tables.map(t=>t.name),par={},enf={};
+  noms.forEach(n=>{par[n]=new Set();enf[n]=new Set();});
+  m.liens.forEach(l=>{ if(l.de!==l.vers&&par[l.de]&&enf[l.vers]){par[l.de].add(l.vers);enf[l.vers].add(l.de);} });
+  /* L’ordre : une table ne vient qu’après celles qu’elle désigne, et le plus près possible d’elles. À chaque pas, la table dont un
+     parent vient d’être posé ; sinon, la table désignée qui en libère d’autres reliées à ce qui précède (puis celle qui a le plus
+     d’enfants). Un cycle de clés est coupé là où il reste le moins à attendre. Les tables sans lien ferment la marche. */
+  const liees=noms.filter(n=>par[n].size||enf[n].size),seules=noms.filter(n=>!par[n].size&&!enf[n].size);
+  const rang={},ordre=[];
+  const attend=n=>[...par[n]].filter(x=>rang[x]==null);
+  const recent=n=>{ const r=[...par[n]].map(x=>rang[x]).filter(x=>x!=null); return r.length?Math.max(...r):-1; };
+  const libere=n=>[...enf[n]].filter(c=>rang[c]==null&&attend(c).every(x=>x===n)).reduce((s,c)=>s+1+Math.max(-1,...[...par[c]].filter(x=>x!==n).map(x=>rang[x]??-1)),0);
+  while(ordre.length<liees.length){
+    let dispo=liees.filter(n=>rang[n]==null&&!attend(n).length);
+    if(!dispo.length){ const reste=liees.filter(n=>rang[n]==null); const m=Math.min(...reste.map(n=>attend(n).length)); dispo=reste.filter(n=>attend(n).length===m); }
+    dispo.sort((a,b)=>recent(b)-recent(a)||libere(b)-libere(a)||enf[b].size-enf[a].size||a.localeCompare(b));
+    rang[dispo[0]]=ordre.length; ordre.push(dispo[0]);
+  }
+  ordre.push(...seules);
+  const voisins=(a,b)=>par[a].has(b)||par[b].has(a);
+  /* Les cartes : une colonne au milieu, les couloirs des liens de chaque côté. */
+  const bord=W<420?40:64,cw=Math.round(Math.max(170,Math.min(380,W-2*bord))),x=Math.round((W-cw)/2),cartes={};
+  let y=12,prec=null;
+  ordre.forEach((n,k)=>{
+    const t=m.tables.find(z=>z.name===n);
+    let cols=t.cols,plus=0;
+    if(cols.length>G.max){ const garde=new Set(cols.filter(c=>c.b).concat(cols.filter(c=>!c.b)).slice(0,G.max-1)); cols=t.cols.filter(c=>garde.has(c)); plus=t.cols.length-cols.length; }
+    const r=Math.max(1,cols.length+(plus?1:0)),h=G.tete+2*G.pad+r*G.ligne;
+    if(prec!=null&&!voisins(prec,n))y+=8;   // un peu plus d’air entre deux tables qui ne se désignent pas
+    cartes[n]={name:n,n:t.n,x,y,w:cw,h,cols,plus,teinte:UML_TEINTES[k%UML_TEINTES.length]};
+    y+=h+G.ecart; prec=n;
+  });
+  const H=Math.max(60,y-G.ecart+12);
+  const milieu=(c,i)=>c.y+G.tete+G.pad+i*G.ligne+G.ligne/2;
+  const arcs=m.liens.map(l=>{
+    const a=cartes[l.de],b=cartes[l.vers];
+    if(!a||!b)return null;
+    const i=a.cols.findIndex(c=>c.c===l.col),y1=i>=0?milieu(a,i):a.plus?milieu(a,a.cols.length):a.y+G.tete/2;
+    const j=b.cols.findIndex(c=>l.versCol?c.c===l.versCol:c.b==='pk'),y2=j>=0?milieu(b,j):b.y+G.tete/2;
+    return {l,a,b,y1,y2,auto:l.de===l.vers};
+  }).filter(Boolean);
+  /* Les côtés : les liens courts d’abord ; chacun va du côté où il a le plus de place. */
+  const tri=()=>arcs.slice().sort((p,q)=>Math.abs(p.y1-p.y2)-Math.abs(q.y1-q.y2));
+  const couloirs=(choisir)=>{
+    const pris={g:[],d:[]};
+    tri().forEach(r=>{
+      const lo=Math.min(r.y1,r.y2)-9,hi=Math.max(r.y1,r.y2)+9;
+      const libre=cote=>{ let v=0; while(pris[cote].some(([a,b,w])=>w===v&&a<hi&&lo<b))v++; return v; };
+      const vg=libre('g'),vd=libre('d');
+      if(choisir)r.cote=r.auto?'d':vd<vg?'d':vg<vd?'g':(pris.g.length<=pris.d.length?'g':'d');
+      r.voie=r.cote==='g'?vg:vd;
+      pris[r.cote].push([lo,hi,r.voie]);
+    });
+  };
+  couloirs(true);
+  /* Les bouts sur une même carte, d’un même côté, ne se touchent pas : ceux des clés étrangères restent sur leur colonne ; ceux qui
+     arrivent sur la clé primaire descendent de 17 px en 17 px jusqu’à une place libre (chaque multiplicité se lit). */
+  const fixes={},bouts={};
+  arcs.forEach(r=>{ const k=r.a.name+'|'+r.cote; (fixes[k]=fixes[k]||[]).push(r.y1); });
+  arcs.forEach(r=>{ const k=r.b.name+'|'+r.cote; (bouts[k]=bouts[k]||[]).push(r); });
+  Object.entries(bouts).forEach(([k,g])=>{
+    const pris=(fixes[k]||[]).slice();
+    g.sort((p,q)=>p.y1-q.y1).forEach(r=>{
+      let y=r.y2;const max=r.b.y+r.b.h-9;
+      while(pris.some(v=>Math.abs(v-y)<16)&&y+17<=max)y+=17;
+      r.y2=y; pris.push(y);
+    });
+  });
+  couloirs(false);   // les couloirs, aux bouts définitifs
+  const place={g:x,d:W-x-cw};
+  const pas={};
+  ['g','d'].forEach(c=>{ const v=Math.max(0,...arcs.filter(r=>r.cote===c).map(r=>r.voie)); pas[c]=v?Math.min(G.voie,(place[c]-6-G.voie0)/v):G.voie; });
+  const chemin=(x0,y1,y2,xl)=>{
+    const s=y2>=y1?1:-1,dx=xl<x0?1:-1,rr=Math.max(0,Math.min(8,Math.abs(y2-y1)/2,Math.abs(x0-xl)-1));
+    const f=v=>Math.round(v*10)/10;
+    return `M${f(x0)} ${f(y1)}H${f(xl+dx*rr)}Q${f(xl)} ${f(y1)} ${f(xl)} ${f(y1+s*rr)}V${f(y2-s*rr)}Q${f(xl)} ${f(y2)} ${f(xl+dx*rr)} ${f(y2)}H${f(x0)}`;
+  };
+  const sortie=arcs.map(r=>{
+    const g=r.cote==='g',x0=g?x:x+cw,off=G.voie0+r.voie*pas[r.cote],xl=g?x0-off:x0+off;
+    /* Les multiplicités : une petite pastille posée au bout du trait, contre la carte, comme dans le cours UML. */
+    const pastille=(t,yy)=>{ const w=Math.round(String(t).length*5.8+9); return {t,w,h:15,x:g?x0-3-w:x0+3,y:Math.round((yy-7.5)*10)/10}; };
+    return {de:r.l.de,vers:r.l.vers,col:r.l.col,cote:r.cote,voie:r.voie,xl:Math.round(xl*10)/10,y1:r.y1,y2:r.y2,d:chemin(x0,r.y1,r.y2,xl),
+      lab:[pastille(r.l.plusieurs,r.y1),pastille(r.l.un,r.y2)]};
+  });
+  return {W,H,cw,x,cartes:ordre.map(n=>cartes[n]),arcs:sortie};
+}
+/* Un type court sur la carte : VARCHAR(255) → VARCHAR. */
+function umlType(t){ const v=String(t||'').toUpperCase().replace(/\(.*$/,'').trim(); return (v||'TEXT').slice(0,10); }
+function umlHtml(p){
+  const svg=`<svg class="umd-l" width="${p.W}" height="${p.H}" viewBox="0 0 ${p.W} ${p.H}" aria-hidden="true">`
+    +p.arcs.map((a,i)=>`<path class="umd-a" d="${a.d}" data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${i}"/>`).join('')
+    +p.arcs.map((a,i)=>a.lab.map(t=>`<g class="umd-m" data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${i}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" rx="6"/><text x="${t.x+t.w/2}" y="${Math.round((t.y+t.h/2+3.4)*10)/10}" text-anchor="middle">${esc(t.t)}</text></g>`).join('')).join('')
+    +'</svg>';
+  const cartes=p.cartes.map((c,k)=>{
+    const nc=c.cols.length+c.plus;
+    return `<button type="button" class="umd-t" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--c:${c.teinte[0]};--cs:${c.teinte[1]};--ci:${c.teinte[2]};--i:${k}" data-t="${escAttr(c.name)}" onclick="schemaOuvrirTable(this.dataset.t)" onpointerenter="umlSurligne(this,true,event)" onpointerleave="umlSurligne(this,false,event)" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(nc,'colonne')}, ${plur(+c.n||0,'ligne')} : voir le détail`)}">`
+      +`<span class="umd-h"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></span><span class="umd-cs">`
+      +(c.cols.map(col=>`<span class="umd-c${col.b?' is-'+col.b:''}">${col.b?`<i>${col.b.toUpperCase()}</i>`:''}<span>${esc(col.c)}</span><em>${esc(umlType(col.t))}</em></span>`).join('')||'<span class="umd-c is-plus">Aucune colonne</span>')
+      +(c.plus?`<span class="umd-c is-plus">+${plur(c.plus,'colonne')}</span>`:'')
+      +'</span></button>';
+  }).join('');
+  return `<div class="umd-plan" style="width:${p.W}px;height:${p.H}px">${svg}${cartes}</div>`;
+}
+/* La toile, la légende des multiplicités et ce que montrent les traits (aussi pour les lecteurs d’écran). */
+function umlPanneau(m,W,on){
+  const p=umlPlan(m,W),mult=[...new Set(m.liens.flatMap(l=>[l.un,l.plusieurs]))].filter(k=>UML_MULT[k]).sort();
+  const dire=l=>`${l.de}.${l.col} → ${l.vers}${l.versCol?'.'+l.versCol:''} : ${l.plusieurs} ${l.de} pour ${l.un} ${l.vers}`;
+  return `<div class="sch-uml" role="tabpanel" data-t="__uml__"${on?'':' hidden'}>
+      <div class="umd-tete"><b>Schéma UML</b><span>${plur(m.tables.length,'table')} · ${plur(m.liens.length,'lien')}</span></div>
+      <div class="umd-toile" id="umd-toile">${umlHtml(p)}</div>
+      <div class="umd-leg" aria-hidden="true"><span class="umd-lg is-pk"><i>PK</i>clé primaire</span><span class="umd-lg is-fk"><i>FK</i>clé étrangère</span>${mult.map(k=>`<span class="umd-lg"><b>${k}</b>${UML_MULT[k]}</span>`).join('')}</div>
+      <p class="umd-note">Dessiné à partir de la base&nbsp;: une table importée ou créée, une colonne ajoutée y apparaissent aussitôt. Touche une table pour voir ses colonnes.</p>
+      ${m.liens.length?`<ul class="sr">${m.liens.map(l=>`<li>${esc(dire(l))}</li>`).join('')}</ul>`:''}
+    </div>`;
+}
+/* La largeur de la toile avant que la feuille soit ouverte : celle de la feuille (720 px au plus), moins ses marges. */
+function umlLargeur(){
+  const t=document.getElementById('umd-toile');
+  if(t&&t.clientWidth)return Math.floor(t.clientWidth);
+  const app=document.getElementById('app'),aw=(app&&app.clientWidth)||window.innerWidth||390;
+  return Math.max(260,Math.min(aw,720)-36-32);
+}
+/* Redessine la toile à sa vraie largeur (à l’ouverture de la feuille, en tournant l’écran). */
+function umlAjuster(){
+  const t=document.getElementById('umd-toile');
+  if(!t||!umlDernier||!t.clientWidth)return;
+  const W=Math.floor(t.clientWidth);
+  if(Math.abs(W-umlDernier.W)<4)return;
+  umlDernier.W=W;
+  t.innerHTML=umlHtml(umlPlan(umlDernier.m,W));
+}
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('resize',()=>{ const s=document.getElementById('schema-sheet'); if(s&&s.classList.contains('on'))umlAjuster(); });
+/* Une table survolée (à la souris) ou atteinte au clavier : ses liens s’allument. Au doigt, rien : la carte ouvre sa table. */
+function umlSurligne(el,on,e){
+  const plan=el&&el.closest('.umd-plan'),t=el&&el.dataset.t;
+  if(!plan||!t||(e&&e.pointerType&&e.pointerType!=='mouse'))return;
+  plan.querySelectorAll('.umd-a,.umd-m').forEach(x=>{ if(x.dataset.de===t||x.dataset.vers===t)x.classList.toggle('is-on',!!on); });
+}
+/* Une carte touchée : sa pastille, et sa table en détail. */
+function schemaOuvrirTable(t){
+  const body=document.getElementById('schema-body');
+  const btn=body&&[...body.querySelectorAll('.sch-tab')].find(b=>b.dataset.t===t);
+  if(btn)schemaPickTab(btn);
+  if(body)body.scrollTop=0;
+}
+let schCtx=null;   // 'console' : le schéma de la base ouverte dans la Console (sinon : celle du défi, ou celle du cours)
 function renderSchemaSheet(){
   const body=document.getElementById('schema-body');
   if(!body)return;
-  /* Pendant un défi sur une autre base (Aéroport…), le schéma est celui de cette base. */
-  const dId=defiBaseId(defiActif());
-  const database=dId?new SQL.Database(defiBaseBytes(dId)):db;
+  /* Pendant un défi sur une autre base (Aéroport…), le schéma est celui de cette base ; ouvert depuis la Console, celui de la base
+     ouverte dans la Console (ses tables importées ou créées comprises). */
+  const cons=schCtx==='console';
+  const dId=cons?null:defiBaseId(defiActif());
+  const database=cons?activeDb():dId?new SQL.Database(defiBaseBytes(dId)):db;
+  const noteId=cons?activeDbId:dId;
   try{
-  const tables=dId?listTables(database):courseTableNames();
-  /* Une table à la fois : des onglets en haut, la dernière table choisie reste ouverte (par base). */
-  const key=dId||'cours';
-  let cur=schTabSel[key];if(!tables.includes(cur))cur=tables[0];
-  const tabs=tables.length>1?`<div class="sch-tabs" role="tablist" aria-label="Tables de la base">${tables.map(name=>`<button type="button" role="tab" class="sch-tab${name===cur?' on':''}" aria-selected="${name===cur}" data-t="${esc(name)}" onclick="schemaPickTab(this)">${esc(name)}</button>`).join('')}</div>`:'';
+  const tables=cons?(database?listTables(database):[]):dId?listTables(database):courseTableNames();
+  /* Une table à la fois : des onglets en haut, la dernière table choisie reste ouverte (par base). La première pastille, jaune :
+     le schéma UML de toute la base (7 h 03), ouvert d’abord. */
+  const key=cons?'console:'+activeDbId:(dId||'cours');
+  const avecUml=tables.length>1;
+  let cur=schTabSel[key];if(!tables.includes(cur)&&!(avecUml&&cur==='__uml__'))cur=avecUml?'__uml__':tables[0];
+  const umlPill=avecUml?`<button type="button" role="tab" class="sch-tab is-uml${cur==='__uml__'?' on':''}" aria-selected="${cur==='__uml__'}" data-t="__uml__" onclick="schemaPickTab(this)">${UML_SVG}Schéma UML</button>`:'';
+  const tabs=tables.length>1?`<div class="sch-tabs" role="tablist" aria-label="Tables de la base">${umlPill}${tables.map(name=>`<button type="button" role="tab" class="sch-tab${name===cur?' on':''}" aria-selected="${name===cur}" data-t="${esc(name)}" onclick="schemaPickTab(this)">${esc(name)}</button>`).join('')}</div>`:'';
+  const modele=avecUml?umlModele(database,tables):null;
+  if(modele)umlDernier={m:modele,W:umlLargeur()};
+  const umlBloc=modele?umlPanneau(modele,umlDernier.W,cur==='__uml__'):'';
   body.dataset.base=key;
   /* La présentation de la base, pliable (3 novembre, 21 h 03) : fermée d’abord, elle reste comme on l’a laissée pendant la visite. */
   const baseOuverte=!!schBaseOuverte[key];
   const baseCarte=dId?`<div class="sch-base${baseOuverte?' open':''}"><button type="button" class="sch-base-h" aria-expanded="${baseOuverte}" aria-controls="sch-base-txt" onclick="schemaBaseToggle(this)"><b>Base ${esc(DEFI_BASES[dId].nom)}</b><span class="sch-base-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button><div class="sch-base-body" id="sch-base-txt"><div><p>${esc(DEFI_BASES[dId].desc)}</p></div></div></div>`:'';
-  body.innerHTML=baseCarte+tabs+(tables.map(name=>{
+  body.innerHTML=baseCarte+tabs+umlBloc+(tables.map(name=>{
     const meta=SCHEMA_META.find(t=>t.table===name);
     const n=database?tableRowCount(database,name):(meta?meta.n:'?');
     const cols=introspectTable(database,name,tables);
     return `<div class="sch-table" role="tabpanel" data-t="${esc(name)}"${name===cur?'':' hidden'}>
       <div class="sch-head">${schemaTableIcon()}<b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
-      ${dId&&tableNote(dId,name)?`<p class="sch-tnote">${esc(tableNote(dId,name))}</p>`:''}
+      ${noteId&&tableNote(noteId,name)?`<p class="sch-tnote">${esc(tableNote(noteId,name))}</p>`:''}
       ${cols.map(c=>`<div class="sch-col">
         <span class="cn">${esc(c.c)}</span>
         ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
         ${c.b==='fk'?'<span class="badge fk">FK</span>':''}
         ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
         <span class="ct">${esc(c.t)}</span>
-        ${dId&&colNote(dId,name,c.c)?`<small class="cd">${esc(colNote(dId,name,c.c))}</small>`:''}
+        ${noteId&&colNote(noteId,name,c.c)?`<small class="cd">${esc(colNote(noteId,name,c.c))}</small>`:''}
       </div>`).join('')||'<div class="sch-col"><span class="cn">—</span></div>'}
     </div>`;
   }).join('')||'<p class="viz-e">Aucune table disponible.</p>');
@@ -18878,21 +19076,26 @@ function schemaPickTab(btn){
   const body=document.getElementById('schema-body'),t=btn.dataset.t;
   schTabSel[body.dataset.base||'cours']=t;
   body.querySelectorAll('.sch-tab').forEach(b=>{const on=b===btn;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
-  body.querySelectorAll('.sch-table').forEach(p=>{p.hidden=p.dataset.t!==t;});
+  body.querySelectorAll('.sch-table,.sch-uml').forEach(p=>{p.hidden=p.dataset.t!==t;});
+  if(t==='__uml__')umlAjuster();
   btn.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
 }
-function openSchemaSheet(){
+function openSchemaSheet(ctx){
   document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));
+  schCtx=ctx==='console'?'console':null;
   renderSchemaSheet();
   /* L’en-tête violet des feuilles (Notes, Ajuster mon rythme), l’autocollant de la base : la DA de la vitrine (ludique.css, 41) */
-  const dId=defiBaseId(defiActif());
-  const n=dId?document.querySelectorAll('#schema-body .sch-table').length:courseTableNames().length;
-  const tt=document.getElementById('schema-head-title');if(tt)tt.textContent=dId?`Schéma · base ${DEFI_BASES[dId].nom}`:'Schéma · base du cours';
+  const cons=schCtx==='console',dId=cons?null:defiBaseId(defiActif());
+  const n=cons||dId?document.querySelectorAll('#schema-body .sch-table').length:courseTableNames().length;
+  const tt=document.getElementById('schema-head-title');
+  if(tt)tt.textContent=cons?(activeDbId==='cours'?'Schéma · base du cours':`Schéma · ${projectName(activeDbId)}`):dId?`Schéma · base ${DEFI_BASES[dId].nom}`:'Schéma · base du cours';
   lqVizCap('schema-sheet','db',`${plur(n,'table')}, leurs colonnes et leurs clés.`);
   document.getElementById('schema-back').classList.add('on');
   document.getElementById('schema-sheet').classList.add('on');
   showKbar(false);
   document.getElementById('fab').classList.add('hide');
+  /* La toile à sa vraie largeur, une fois la feuille ouverte */
+  requestAnimationFrame(umlAjuster);
 }
 function closeSchemaSheet(){
   document.getElementById('schema-back').classList.remove('on');
@@ -37477,7 +37680,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-ile-v2523';
+  const SW_CACHE='requete-2026-11-05-uml-v2524';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
