@@ -136,7 +136,7 @@ test('réf. 7 : l’objectif sur l’accueil, sous la série, dans une carte com
     'html.lq #home-hero .lq-obj[data-goal="work"] .ob-answer-icon{background:#E3F0FF;color:#2F7BEF}', 'html.lq #home-hero .lq-obj-k::before{content:"";flex:none;width:14px;height:3px;border-radius:3px;background:currentColor}'])
     assert.ok(lq.includes(k), k);
   assert.ok(lire('decouvrir/vitrine.css').includes('.i-e{background:#E3F0FF;color:#2F7BEF}'), 'les couleurs de la vitrine');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=150">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=151">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {
