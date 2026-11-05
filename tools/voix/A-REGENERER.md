@@ -4,10 +4,10 @@ _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Rien n’est g
 
 Déjà corrigé sans régénérer : les 60 débuts de phrase coupés (tables VOICE, et la cause dans `integrer.mjs`), et le « Bravo » final trop fort (27 cours, ramené au niveau de leur cours).
 
-**5 novembre, 0 h 38 : les 20 cours de Miya (Mia), Emily, Coralie (Koraly), Arthur et Sam passent à la voix d’Anaïs** et sont refaits en entier, avec les règles de prononciation d’aujourd’hui, ainsi qu’un chapitre de GROUP BY (Antoine) qui ne nomme plus SQLite : environ 68 400 crédits.
+**5 novembre, 0 h 38 : les 20 cours de Miya (Mia), Emily, Coralie (Koraly), Arthur et Sam passent à la voix d’Anaïs** et sont refaits en entier, avec les règles de prononciation d’aujourd’hui, ainsi qu’un chapitre de GROUP BY (Antoine) qui ne nomme plus SQLite et, à 6 h 37, la phrase de la vidéo du site « animés par huit formateurs » (Louis, au lieu d’« une dizaine ») : environ 68 600 crédits.
 
 ```
-cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours sous-requete-in,sous-requete-select,sous-requete-from,insert-select,exists,any-all,with-cte,union,intersect-except,with-recursive,projet-insert,projet-update,projet-merge,projet-delete,projet-ondelete,projet-transaction,projet-savepoint,projet-concurrence,projet-procedures,projet-trigger,group-by
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours sous-requete-in,sous-requete-select,sous-requete-from,insert-select,exists,any-all,with-cte,union,intersect-except,with-recursive,projet-insert,projet-update,projet-merge,projet-delete,projet-ondelete,projet-transaction,projet-savepoint,projet-concurrence,projet-procedures,projet-trigger,group-by,video-site
 ```
 
 Dans les listes ci-dessous, les lignes de ces 20 cours sont donc caduques (Mia, Emily, Koraly, Sam : leurs fichiers seront dits par Anaïs).
