@@ -97,16 +97,18 @@ test('pas encore inscrite : l’accueil annonce l’invitation, « Je m’inscri
   assert.equal(accueil({ code: 'PRET02', de: '<i>' }).includes('<i>'), false, 'échappé');
   assert.equal(accueil(null), '');
   assert.equal(accueil({ code: 'PRET02', de: '@x' }, true), '', 'déjà inscrit : rien à annoncer');
-  /* Sous le titre, à la place de la démo de la console ; le bouton dit « Je m’inscris » ; la vidéo du métier ne passe pas devant */
+  /* Sous le titre, à la place de la démo de la console ; le bouton dit « Je m’inscris » ; la vidéo du métier passe d’abord, comme pour
+     tout nouveau venu (15 h 01 : « l’onboarding depuis le début ») */
   assert.ok(app.includes('Choisis ton parcours en quelques étapes.</p>${invite}\n      <div class="ob-welcome-demo'));
   assert.ok(app.includes("    obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('name'),"));
   assert.ok(app.includes('  #onboarding .ob-screen.welcome.has-invite .ob-welcome-demo{display:none!important}'));
   const video = cut('function obVideoVoulue(){', '\n}\n') + '\n}\n';
   const vctx = vm.createContext({ obVideoSite: false, OB_VIDEO_VUE: 'v', localStorage: memoire(), jeuInvitation: () => ({ code: 'PRET02', de: '' }) });
   vm.runInContext(video, vctx);
-  assert.equal(vctx.obVideoVoulue(), false);
+  assert.equal(vctx.obVideoVoulue(), true, 'invité : la vidéo aussi');
   vctx.jeuInvitation = () => null;
   assert.equal(vctx.obVideoVoulue(), true, 'sans invitation : la vidéo comme avant');
+  assert.ok(!video.includes('jeuInvitation'));
   /* La dernière page */
   assert.ok(app.includes("    const inv=!state.onboarded&&typeof jeuInvitation==='function'?jeuInvitation():null;"));
   assert.ok(app.includes("<p class=\"ob-lead\">${inv?`${inv.de?`<b>${esc(inv.de)}</b> t’attend dans sa salle de défi`:'Ta salle de défi t’attend'}. Ta première leçon sera là à ton retour.`:'Commence par ta première leçon et avance jusqu’à ton objectif.'}</p>"));
@@ -163,5 +165,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-pratiquer-v2540';") && app.includes("const SW_CACHE='requete-2026-11-05-pratiquer-v2540';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-projet-v2541';") && app.includes("const SW_CACHE='requete-2026-11-05-projet-v2541';"));
 });

@@ -73,5 +73,5 @@ test('cartes DELETE, UPDATE et GROUP BY : la requête tient sur une ligne par cl
   assert.equal(run.f(CARTES[28]), 'DELETE FROM commandes\nWHERE id = 15;');
   const essayer = cut('function cardToConsole(id){', '\n}\n');
   assert.ok(essayer.includes('fillConsoleSql(cardRunnableSql(CARTES[id]));'), '« Essayer » : l’exemple de la carte, tel quel');
-  assert.ok(cut('function fillConsoleSql(sql){', 'function clearConsoleEditor(){').includes("ta.value=sql||'';"), 'la console garde les retours à la ligne');
+  assert.ok(cut('function fillConsoleSql(sql,o){', 'function clearConsoleEditor(){').includes("ta.value=sql||'';"), 'la console garde les retours à la ligne');
 });
