@@ -158,7 +158,7 @@ test('la feuille : la pastille jaune en premier, ouverte d’abord ; « Ses colo
   /* 8 h 13 : la pastille ouvre le schéma UML, pas le dernier onglet de table ; le compte rendu de l’import propose de le voir */
   assert.ok(ws.includes(`const uml=tables.length>1?\`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Schéma UML</span>`));
   /* 15 h 01 : « Schéma UML » plutôt que « Voir le schéma UML », comme la pastille jaune */
-  assert.ok(cut('function importRetourHtml(database,tabs,tn,asDb,ajoutees){', '\n}\n').includes(`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Schéma UML</span></button>`));
+  assert.ok(cut('function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){', '\n}\n').includes(`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Schéma UML</span></button>`));
   /* Partout où le schéma s’ouvre déjà : la leçon, le défi, la salle de défis */
   for (const k of ['id="nav-schema" onclick="openSchemaSheet()"', 'class="dq-schema${', 'class="ed-schema${schAttn()}" onclick="openSchemaSheet()"']) assert.ok(app.includes(k), k);
   assert.ok(cut('function umlSurligne(el,on,e){', '\n}\n').includes("e.pointerType!=='mouse'"), 'au doigt, rien au survol : la toucher allume ses liens');

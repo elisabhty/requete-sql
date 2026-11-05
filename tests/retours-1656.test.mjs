@@ -40,7 +40,7 @@ const FICHIER = JSON.stringify({ title: 'Requête — Entretiens Data Analyst', 
 test('le titre et la description du fichier nomment et décrivent le projet ; sinon, un nom de fichier lisible', () => {
   const p = pur(ctx.parseImportFile('Requete_Entretiens_Data_Analyst_100_Questions.json', FICHIER));
   assert.equal(p.kind, 'database');
-  assert.deepEqual(p.tables.map(t => [t.name, t.rows.length]), [['levels', 3], ['categories', 2], ['questions', 2]]);
+  assert.deepEqual(p.tables.map(t => [t.name, t.rows.length]), [['levels', 3], ['categories', 2], ['questions', 2], ['infos', 1]], 'et, depuis 17 h 22, la table infos');
   assert.equal(p.titre, 'Requête — Entretiens Data Analyst');
   assert.equal(p.desc, '100 questions orales avec réponse attendue et exemple métier.');
   assert.deepEqual(pur(ctx.jsonInfos({ titre: '  Mes  ventes ', items: [] })), { titre: 'Mes ventes', desc: '' });
