@@ -300,5 +300,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   }
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelNativeSync();}catch(e){}},2200);   // les rappels des huit semaines à venir, reposés (19 h 41)"),
     'à l’ouverture de l’appli : les huit semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-05-je-v2549"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-05-parcours-v2550"), 'le cache de l’appli change');
 });

@@ -110,33 +110,14 @@ test('réf. 8 et 9 : la page « 24 jours » rejoint celle des jours, sans le bil
   assert.ok(sql.includes('revoke all on public.onboarding_entonnoir from public, anon, authenticated;'));
 });
 
-test('réf. 7 : l’objectif sur l’accueil, sous la série, dans une carte comme celles de la vitrine', () => {
-  const ctx = vm.createContext({
-    state: { profile: { goal: 'work' }, lessons: {}, plan: { sessions: [{ d: '2026-11-05', lessons: [1] }, { d: '2026-11-27', lessons: [2] }, { d: '2026-11-28', lessons: [] }] } },
-    MODULES: [], moduleProgressData: () => [{ done: 3, total: 50 }, { done: 0, total: 21 }],
-    parseD: s => new Date(s + 'T12:00:00'), esc: s => String(s), escAttr: s => String(s).replace(/"/g, '&quot;'),
-    obOptionIcon: t => `<span class="ob-answer-icon" data-t="${t}"></span>`
-  });
-  vm.runInContext(app.match(/const OB_GOALS=\[[\s\S]*?\];/)[0].replace('const OB_GOALS', 'var OB_GOALS') + app.match(/const LQ_OBJ_PHRASES=[^\n]+\n/)[0] + fn('objectifAccueilHTML', 'function objectifModifier('), ctx);
-  const html = vm.runInContext('objectifAccueilHTML()', ctx);
-  assert.ok(html.includes('<button type="button" class="lq-obj" data-goal="work" onclick="objectifModifier()"'));
-  assert.ok(html.includes('<small class="lq-obj-k">Ton objectif</small><b>Être plus efficace au travail</b><small class="lq-obj-p">Analyse tes propres données avec SQL</small>'));
-  assert.ok(html.includes('<span class="lq-obj-bar" style="--p:4%"><i></i></span><small class="lq-obj-meta">4 % fait · fin prévue le 27 novembre</small>'), '3 leçons sur 71, la dernière séance du planning');
-  assert.ok(html.includes('aria-label="Ton objectif : Être plus efficace au travail. 3 leçons validées sur 71, fin prévue le 27 novembre. Modifier mon objectif."'));
-  assert.ok(html.includes('<span class="ob-answer-icon" data-t="chart"></span>'), 'le pictogramme de l’objectif, comme à l’onboarding');
-  ctx.moduleProgressData = () => [{ done: 71, total: 71 }];
-  assert.ok(vm.runInContext('objectifAccueilHTML()', ctx).includes('class="lq-obj is-atteint"') && vm.runInContext('objectifAccueilHTML()', ctx).includes('Objectif atteint, bravo !'));
-  ctx.state.profile = {};
-  assert.equal(vm.runInContext('objectifAccueilHTML()', ctx), '', 'sans objectif, pas de carte');
-  /* À sa place : sous la série (et le rattrapage s’il y en a), dans les deux cartes du cours */
-  assert.equal((app.match(/\$\{streak\}\$\{extras\}\$\{objectifAccueilHTML\(\)\}`;/g) || []).length, 2);
-  assert.ok(fn('objectifModifier', '/* Même HTML').includes("switchTab('compte');") && fn('objectifModifier', '/* Même HTML').includes("openPlusDetails('plus-profile-settings')"), 'un appui : Profil et objectif');
-  /* La DA du site : carte blanche en relief, carré pastel de l’objectif (couleurs de la vitrine), trait devant l’étiquette */
-  for (const k of ['html.lq #home-hero .lq-obj{display:flex;align-items:center;gap:12px;', 'border:2px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 4px 0 var(--lip);',
-    'html.lq #home-hero .lq-obj[data-goal="work"] .ob-answer-icon{background:#E3F0FF;color:#2F7BEF}', 'html.lq #home-hero .lq-obj-k::before{content:"";flex:none;width:14px;height:3px;border-radius:3px;background:currentColor}'])
-    assert.ok(lq.includes(k), k);
-  assert.ok(lire('decouvrir/vitrine.css').includes('.i-e{background:#E3F0FF;color:#2F7BEF}'), 'les couleurs de la vitrine');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=160">'));
+test('réf. 7 : l’objectif sur l’accueil… puis supprimé (5 novembre, 20 h 34 : « supprimer »), son pourcentage passe sur la carte du cours', () => {
+  /* La carte « Ton objectif », sa fonction, ses phrases, son ouverture du profil et ses styles sont partis (retours-2032) */
+  for (const k of ['objectifAccueilHTML', 'LQ_OBJ_PHRASES', 'function objectifModifier(', 'class="lq-obj']) assert.ok(!app.includes(k), k);
+  assert.ok(!lq.includes('.lq-obj'), 'plus de styles');
+  assert.equal((app.match(/\$\{streak\}\$\{extras\}`;/g) || []).length, 2, 'sous les deux cartes du cours : la série, puis le rattrapage s’il y en a');
+  /* L’objectif reste modifiable dans Mon compte, Profil et objectif */
+  assert.ok(app.includes("openPlusDetails('plus-profile-settings')"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=161">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {
