@@ -11,14 +11,14 @@ const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 
-test('« Profil et objectif » : « Pseudo », le pseudo et le cadenas — ni « Unique dans l’appli » ni « Il ne se change pas »', () => {
+test('« Profil et objectif » : le pseudo (le cadenas a laissé sa place au drapeau, 5 novembre, 21 h 01) — ni « Unique dans l’appli » ni « Il ne se change pas »', () => {
   assert.ok(!app.includes('Unique dans l’appli') && !app.includes('unique dans l’appli'), 'nulle part dans l’appli');
   const ctx = vm.createContext({ PS_LOCK_SVG: '<svg data-k="lock"></svg>', ACCT_CHEV: '<svg data-k="chev"></svg>', esc: v => String(v) });
   vm.runInContext(cut('function jeuNom(v)', '\n') + cut('function jeuInitial(name){', '\n') + cut('function accPseudoHTML(name){', 'function replayOnboarding(){'), ctx);
   const html = vm.runInContext("accPseudoHTML('@elisa')", ctx);
   /* 1er novembre, 0 h 06 : la carte prend la DA du site (le @ à part pour le colorer, le trait sous le pseudo, le cadenas
      dans la pastille de l’avatar) — le texte reste « Pseudo », le pseudo et le cadenas. */
-  assert.equal(html, '<div class="acc-pseudo" style="--l:6"><span class="acc-pseudo-av"><span aria-hidden="true">E</span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img"><svg data-k="lock"></svg></span></span><span class="acc-pseudo-t"><small>Pseudo</small><b><i class="acc-pseudo-at">@</i><span class="acc-pseudo-nm">elisa<svg class="acc-pseudo-sw" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20C70 8 170 6 296 14"/></svg></span></b></span></div>');
+  assert.equal(html, '<div class="acc-pseudo" style="--l:6"><span class="acc-pseudo-av"><span aria-hidden="true">E</span></span><span class="acc-pseudo-t"><b><i class="acc-pseudo-at">@</i><span class="acc-pseudo-nm">elisa<svg class="acc-pseudo-sw" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20C70 8 170 6 296 14"/></svg></span></b></span></div>');
   assert.ok(!html.includes('<em>') && !/se change/.test(html) && !/unique/i.test(html), 'pas de sous-titre ni « Unique »');
   /* Ni après la vérification du jour, ni dans la bulle du cadenas des salles */
   assert.ok(app.includes("psPrendre(mien).then(r=>{\n      if(r&&r.ok)return;"));
