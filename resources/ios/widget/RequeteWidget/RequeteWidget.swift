@@ -426,6 +426,11 @@ struct RequeteWidget: Widget {
 // (RequeteWidgetPlugin.swift : leconDebut, leconMaj, leconFin). On quitte l’app en pleine leçon : la flamme et l’avancement dans la
 // Dynamic Island, la leçon sur l’écran verrouillé, et un appui y ramène. Leçon réussie : la flamme du jour s’allume, dorée, sur l’écran
 // verrouillé, un quart d’heure.
+//
+// 5 novembre, 6 h 45 (« dans la Dynamic Island, est-ce que tu peux animer, mettre le nombre de moments réussis 2/4 etc. ») : à droite,
+// les moments « À toi » réussis sur ceux de la leçon (« 2/4 ») ; appui long et écran verrouillé, une case par moment, le contour doré
+// sur celle qui valide la leçon. Le compte part quand on quitte l’app : la Dynamic Island apparaît avec l’ancien, le nouveau arrive
+// une seconde après (RequeteWidgetPlugin.swift) : le chiffre roule (iOS 17), la case se remplit et sa coche se pose.
 
 /// Le même type, au même nom et aux mêmes champs, est déclaré dans l’app (RequeteWidgetPlugin.swift) : iOS relie la Live Activity
 /// lancée par l’app à son dessin ici par ce nom.
@@ -435,6 +440,9 @@ struct RequeteLecon: ActivityAttributes {
         var progression: Double   // de 0 à 1 : l’avancement de la vidéo
         var allumee: Bool         // la flamme du jour est déjà allumée (une séance faite aujourd’hui)
         var fini: Bool            // la leçon est réussie
+        var reussis: Int? = nil   // les moments « À toi » réussis du premier coup (5 novembre, 6 h 45 : « 2/4 »)
+        var moments: Int? = nil   // les moments de la leçon
+        var objectif: Int? = nil  // les moments à réussir pour valider la leçon
     }
 
     var titre: String
@@ -444,6 +452,14 @@ struct RequeteLecon: ActivityAttributes {
 @available(iOS 16.1, *)
 func leconPhrase(_ e: RequeteLecon.ContentState) -> String {
     if e.fini { return "Leçon terminée\u{202F}! Ta flamme du jour est allumée." }
+    let n: Int = e.moments ?? 0
+    if n > 0 {
+        let r: Int = min(n, max(0, e.reussis ?? 0))
+        let but: Int = min(n, max(1, e.objectif ?? n))
+        let reste: Int = but - r
+        if reste <= 0 { return "Moments réussis\u{202F}: \(r)/\(n) · objectif atteint\u{202F}!" }
+        return "Moments réussis\u{202F}: \(r)/\(n) · encore \(reste) pour valider"
+    }
     let pct = Int((min(1, max(0, e.progression)) * 100).rounded())
     return e.allumee ? "\(pct)\u{202F}% de la leçon" : "\(pct)\u{202F}% · termine-la pour allumer ta flamme"
 }
@@ -501,6 +517,100 @@ struct LeconPourcent: View {
     }
 }
 
+/// Les moments réussis, à droite de la Dynamic Island (5 novembre, 6 h 45) : « 2/4 », comme « Tu as réussi 2 exercices sur 4 » à la
+/// fin de la vidéo, le « /4 » plus petit, comme « 0/1 » dans le widget. Le chiffre roule quand il change (iOS 17) ; braise, puis menthe
+/// une fois l’objectif de la leçon atteint. Leçon réussie, ou sans moments connus : le pour cent (la coche dorée à la fin).
+@available(iOS 16.1, *)
+struct LeconMoments: View {
+    let etat: RequeteLecon.ContentState
+
+    var body: some View {
+        let n: Int = etat.moments ?? 0
+        let r: Int = min(n, max(0, etat.reussis ?? 0))
+        let but: Int = min(n, max(1, etat.objectif ?? n))
+        let teinte: Color = r >= but ? menthe : braise
+        let grand: Font = Font.system(size: 15, weight: .heavy, design: .rounded)
+        let petit: Font = Font.system(size: 11, weight: .bold, design: .rounded)
+        return Group {
+            if etat.fini || n <= 0 {
+                LeconPourcent(etat: etat)
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text("\(r)")
+                        .font(grand)
+                        .monospacedDigit()
+                        .chiffreQuiRoule(r)
+                    Text("/\(n)")
+                        .font(petit)
+                        .monospacedDigit()
+                        .opacity(0.8)
+                }
+                .foregroundColor(teinte)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            }
+        }
+    }
+}
+
+/// Une case de la jauge des moments : menthe avec sa coche une fois le moment réussi (la coche se pose d’un rebond), le contour doré
+/// sur la case qui valide la leçon.
+struct LeconCase: View {
+    let pleine: Bool
+    let objectif: Bool
+
+    var body: some View {
+        let fond: Color = pleine ? menthe : Color.white.opacity(0.22)
+        let contour: Color = objectif ? dore : Color.clear
+        return ZStack {
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(fond)
+            if pleine {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 8, weight: .black))
+                    .foregroundColor(encre)
+                    .transition(.scale(scale: 0.2).combined(with: .opacity))
+            }
+        }
+        .frame(height: 14)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .stroke(contour, lineWidth: 2)
+        )
+    }
+}
+
+/// Les moments de la leçon, une case par moment, comme la jauge de l’écran de fin dans l’app.
+@available(iOS 16.1, *)
+struct LeconJauge: View {
+    let etat: RequeteLecon.ContentState
+
+    var body: some View {
+        let n: Int = min(12, max(0, etat.moments ?? 0))
+        let r: Int = min(n, max(0, etat.reussis ?? 0))
+        let but: Int = min(n, max(1, etat.objectif ?? n))
+        return HStack(spacing: 5) {
+            ForEach(0..<n, id: \.self) { i in
+                LeconCase(pleine: i < r, objectif: i == but - 1)
+            }
+        }
+    }
+}
+
+/// L’avancement : la jauge des moments quand la leçon en a, sinon la barre de la vidéo.
+@available(iOS 16.1, *)
+struct LeconAvance: View {
+    let etat: RequeteLecon.ContentState
+
+    var body: some View {
+        if (etat.moments ?? 0) > 0 {
+            LeconJauge(etat: etat)
+        } else {
+            LeconBarre(progression: etat.fini ? 1 : etat.progression, fini: etat.fini)
+        }
+    }
+}
+
 /// L’écran verrouillé : le chat, le module et la leçon, l’avancement, et la flamme du jour.
 @available(iOS 16.1, *)
 struct LeconVerrouille: View {
@@ -523,7 +633,7 @@ struct LeconVerrouille: View {
                     .foregroundColor(Color.white)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
-                LeconBarre(progression: etat.fini ? 1 : etat.progression, fini: etat.fini)
+                LeconAvance(etat: etat)
                     .padding(.top, 2)
                 Text(leconPhrase(etat))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -571,7 +681,7 @@ struct RequeteLeconActivite: Widget {
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(spacing: 7) {
-                        LeconBarre(progression: context.state.fini ? 1 : context.state.progression, fini: context.state.fini)
+                        LeconAvance(etat: context.state)
                         Text(leconPhrase(context.state))
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundColor(Color.white.opacity(0.85))
@@ -584,7 +694,7 @@ struct RequeteLeconActivite: Widget {
             } compactLeading: {
                 LeconFlamme(etat: context.state, taille: 15)
             } compactTrailing: {
-                LeconPourcent(etat: context.state)
+                LeconMoments(etat: context.state)
             } minimal: {
                 LeconFlamme(etat: context.state, taille: 14)
             }

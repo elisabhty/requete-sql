@@ -115,10 +115,15 @@ Une Live Activity suit la leçon en vidéo : la page la lance à l’ouverture d
 (`RequeteWidget.leconDebut`, `leconMaj`, `leconFin`, dans `RequeteWidgetPlugin.swift`). Son dessin est dans le widget
 (`RequeteLeconActivite`, dans `RequeteWidget.swift`) :
 
-- **Dynamic Island** (iPhone 14 Pro et plus récents, dès qu’on quitte l’app en pleine leçon) : la flamme à gauche, l’avancement en
+- **Dynamic Island** (iPhone 14 Pro et plus récents, dès qu’on quitte l’app en pleine leçon) : la flamme à gauche, les moments
+  « À toi » réussis à droite (« 2/4 », le « /4 » plus petit, braise puis menthe une fois l’objectif de la leçon atteint ; 5 novembre,
+  6 h 45). Avant que la vidéo ait donné ses moments, et une fois la leçon réussie, le
   pour cent à droite (« 12 % », une coche dorée une fois réussie ; 4 novembre, 17 h 27 : l’anneau d’avant ressemblait à une roue qui
-  charge et iOS en coupait un bord) ; appui long : le chat, le module et la leçon, la barre d’avancement, « 40 % · termine-la pour
-  allumer ta flamme » ;
+  charge et iOS en coupait un bord). Appui long : le chat, le module et la leçon, une case par moment (menthe et sa coche une fois
+  réussi, le contour doré sur celle qui valide la leçon), « Moments réussis : 2/4 · encore 2 pour valider » ;
+- **l’animation** : le compte n’avance dans la Dynamic Island que quand on quitte l’app. Elle apparaît avec l’ancien compte, et le
+  nouveau arrive une seconde après (`leconMaj` avec `anime`, une tâche de fond le temps de cette seconde) : le chiffre roule (iOS 17),
+  la case se remplit et sa coche se pose ;
 - **écran verrouillé** (tous les iPhone en iOS 16.2 et plus) : la même chose sur le violet de l’app ;
 - un appui ramène dans l’app, sur la leçon. **Leçon réussie** : la flamme du jour s’allume, dorée (« Leçon terminée ! Ta flamme
   du jour est allumée. »), et l’activité reste un quart d’heure sur l’écran verrouillé. **Leçon fermée avant la fin** : elle s’en va.

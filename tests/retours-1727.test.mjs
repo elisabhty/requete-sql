@@ -146,7 +146,9 @@ test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’an
     'let texte: String = etat.fini ? "✓" : "\\(pct)\\u{202F}%"', 'let teinte: Color = etat.fini ? dore : braise', 'return Text(texte)\n            .font(police)\n            .monospacedDigit()'])
     assert.ok(v.includes(k), k);
   assert.ok(swift.includes('@available(iOS 16.1, *)\nstruct LeconPourcent: View {'));
-  assert.ok(swift.includes('} compactTrailing: {\n                LeconPourcent(etat: context.state)\n            } minimal: {'));
+  /* 5 novembre, 6 h 45 : à droite, les moments réussis (« 2/4 ») ; le pour cent reste pour une leçon réussie ou sans moments (retours-0645) */
+  assert.ok(swift.includes('} compactTrailing: {\n                LeconMoments(etat: context.state)\n            } minimal: {'));
+  assert.ok(swift.includes('            if etat.fini || n <= 0 {\n                LeconPourcent(etat: etat)'));
   assert.ok(lire('IOS.md').includes('pour cent à droite (« 12 % », une coche dorée une fois réussie ; 4 novembre, 17 h 27 :'));
   const code = swift.replace(/\/\/.*$/gm, '').replace(/"(?:[^"\\]|\\.)*"/g, '""');
   for (const [o, f] of [['{', '}'], ['(', ')'], ['[', ']']]) assert.equal(code.split(o).length, code.split(f).length, `${o}${f} équilibrées`);
