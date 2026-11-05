@@ -29,7 +29,7 @@ test('la carte du pseudo : le drapeau au coin de l’avatar, le pseudo, le nivea
   assert.equal(carte('@elisa_sql'), '<div class="acc-pseudo" style="--l:10"><span class="acc-pseudo-av"><span aria-hidden="true">E</span>'
     + '<span class="acc-pseudo-flag" role="img" aria-label="France">🇫🇷</span></span><span class="acc-pseudo-t"><b><i class="acc-pseudo-at">@</i><span class="acc-pseudo-nm">elisa_sql' + SW + '</span></b>'
     + '<span class="acc-pseudo-niv" role="img" aria-label="Niveau 2 : Constructeur de requêtes"><i aria-hidden="true"><span>Niv.</span>2</i><span class="acc-pseudo-niv-l" aria-hidden="true">Constructeur de requêtes</span></span>'
-    + '<span class="acc-pseudo-obj"><span class="acc-pseudo-obj-ico" aria-hidden="true"><span class="ob-answer-icon" data-t="person"></span></span><span>Objectif : <strong>Réussir un entretien</strong></span></span></span></div>');
+    + '<span class="acc-pseudo-obj"><span class="acc-pseudo-obj-ico" aria-hidden="true"><span class="ob-answer-icon" data-t="person"></span></span><span>Mon objectif : <strong>Réussir un entretien</strong></span></span></span></div>');
   const h = carte('@elisa_sql', { goal: 'work' });
   assert.ok(h.includes('data-t="chart"') && h.includes('<strong>Être plus efficace au travail</strong>'), 'l’objectif choisi à l’onboarding, son pictogramme');
   assert.ok(!carte('@elisa_sql', { goal: '' }).includes('acc-pseudo-obj'), 'sans objectif : rien');
@@ -56,5 +56,5 @@ test('le style : la pastille du drapeau, l’étiquette du niveau de la mascotte
   /* Les couleurs de l’étiquette de la mascotte de l’accueil */
   assert.ok(lq.includes('html.lq .mstk-niv>b{display:block;padding:9px 9px 6px;border-radius:10px;background:#1E1A3B;color:var(--mint);'));
   assert.ok(!lq.includes('acc-pseudo-lock'), 'le cadenas est parti');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=167">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=168">'));
 });
