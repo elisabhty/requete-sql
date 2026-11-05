@@ -115,7 +115,8 @@ test('l’onboarding : la page « Tu vis où ? » juste après le prénom, dans 
 
 test('le pays se garde dans le profil, et revient quand l’onboarding se rouvre', () => {
   assert.ok(app.includes("    ...(PAYS_CODES.includes(draft.pays)?{pays:draft.pays,paysAuto:!!draft.paysAuto}:{}),\n    ...(draft.pacte?"), 'finishOnboard');
-  assert.ok(app.includes("    ...(PAYS_CODES.includes(profile.pays)?{pays:profile.pays,paysAuto:!!profile.paysAuto}:{}),\n    practiceDone:false,"), 'startOnboarding');
+  /* 5 novembre, 21 h 19 : l’engagement déjà pris revient aussi (retours-2119) */
+  assert.ok(app.includes("    ...(PAYS_CODES.includes(profile.pays)?{pays:profile.pays,paysAuto:!!profile.paysAuto}:{}),\n    /* 21 h 19 : l’engagement déjà pris le reste"), 'startOnboarding');
 });
 
 test('le drapeau sur le rond du compte : l’onglet Compte, Mon compte, et la ligne « Pays » des réglages', () => {
@@ -161,8 +162,8 @@ test('la liste en feuille : recherche sans accents, pays proches en tête, le pa
 });
 
 test('les feuilles de style : la page (rechargée, v19) et ses animations, la feuille des pays et les pastilles (v136)', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=25">') && sw.includes("'./onboarding-vitrine.css?v=25',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=164">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=165">'));
   for (const k of ['html #onboarding.ob-vitrine .ob-pays-carte.is-on{border-color:var(--v-sun);background:#FFFBEB;box-shadow:0 5px 0 var(--v-sun-lip)}',
     'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-radar{display:flex}', 'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-trouve{display:none}',
     'html #onboarding.ob-vitrine .ob-pays-globe i:first-child{opacity:1}', '@keyframes obvPaysGlobe{', '@keyframes obvPaysPose{'])

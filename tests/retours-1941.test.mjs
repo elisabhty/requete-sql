@@ -5,6 +5,8 @@
    FROM motivation 🚀 / Une petite requête et ça repart ! — et « Juge-nous (gentiment) 👀 » / Tes retours font évoluer Requête. » ;
    « pour la notification : remplace celle actuelle sur mon portable », par huit messages qui changent.
    - L’engagement : un bouton à l’empreinte, maintenu 1,5 s (anneau, crans haptiques, coche menthe, page suivante).
+     21 h 19 : la page ne part plus toute seule ; « C’est noté : ton engagement est pris en compte. » reste à lire et « C’est parti ! »
+     mène à la suite (retours-2119).
    - L’haptique : les touchers (6 à 8 ms) passaient par selectionChanged, qui ne fait rien hors d’une sélection commencée ; ce sont
      maintenant de vrais impacts, un seul par toucher, et buzz() parle directement au moteur haptique d’iOS.
    - Les raccourcis de l’icône : les textes d’Elisa ; le troisième ouvre « Contacte-nous » sur « Autre chose ».
@@ -44,38 +46,43 @@ const bouton = ({ natif = true, fait = false } = {}) => {
   let nRaf = 0;
   const haptics = { impact: o => H.push(['impact', o.style]), notification: o => H.push(['notification', o.type]),
     selectionStart: () => H.push(['start']), selectionChanged: () => H.push(['cran']), selectionEnd: () => H.push(['fin']) };
-  const draft = {};
+  const draft = {}, pied = [], reveils = [], suivant = el('ob-cta');
   const ctx = vm.createContext({
     window: { Capacitor: natif ? { isNativePlatform: () => true, Plugins: { Haptics: haptics } } : undefined },
-    document: { getElementById: id => (id === 'ob-hold' ? b : id === 'ob-hold-hint' ? hint : null), querySelector: s => (s === '#ob-body .ob-pact-card' ? carte : null) },
+    document: { getElementById: id => (id === 'ob-hold' ? b : id === 'ob-hold-hint' ? hint : id === 'ob-next' ? suivant : null), querySelector: s => (s === '#ob-body .ob-pact-card' ? carte : null) },
     navigator: { vibrate: ms => H.push(['vibre', ms]) },
     performance: { now: () => horloge.t },
     requestAnimationFrame: f => { images.set(++nRaf, f); return nRaf; }, cancelAnimationFrame: id => images.delete(id),
     setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; },
     prefersReduceMotion: () => false, buzz: t => H.push(['buzz', t]),
     draft, OB_SLIDES: ['pact', 'practice'], obStep: 0, obGoto: s => vu.push(s),
+    obSetFooter: (...a) => pied.push(a), obCtaWake: btn => reveils.push(btn),
   });
   vm.runInContext(cut('const OB_TENIR=1500;', '/* « Pour l’onboarding, il faut que tout tienne sur une page'), ctx);
   /* Les images de l’animation, toutes les 16 ms, jusqu’à t */
   const jusqua = t => { while (horloge.t < t) { horloge.t = Math.min(t, horloge.t + 16); const f = [...images.entries()]; images.clear(); f.forEach(([, g]) => g()); } };
-  return { b, fill, hint, carte, H, vu, timers, horloge, draft, ctx, jusqua, init: () => vm.runInContext('obHoldInit()', ctx) };
+  return { b, fill, hint, carte, H, vu, timers, horloge, draft, ctx, jusqua, pied, reveils, suivant, init: () => vm.runInContext('obHoldInit()', ctx) };
 };
 
 test('l’engagement : la page, un bouton à l’empreinte et sa phrase, plus de signature à dessiner', () => {
   const p = cut("}else if(slide==='pact'){", "  }else{\n    const p=apercuPlan(");
-  assert.ok(p.includes('<p class="ob-hold-hint" id="ob-hold-hint" aria-live="polite">${draft.pacte?\'C’est noté&nbsp;: ton engagement est pris.\':\'Maintiens ton doigt sur le bouton pour t’engager\'}</p>'));
-  assert.ok(p.includes('<button type="button" class="ob-hold${draft.pacte?\' is-done\':\'\'}" id="ob-hold" aria-describedby="ob-hold-hint" aria-label="${draft.pacte?\'Engagement pris\':\'Maintenir pour m’engager\'}">'));
-  assert.ok(p.includes('<circle class="ob-hold-track" cx="50" cy="50" r="46"/><circle class="ob-hold-fill" cx="50" cy="50" r="46"/>'), 'l’anneau');
-  assert.ok(p.includes('<span class="ob-hold-ico" aria-hidden="true">${OB_EMPREINTE_SVG}<span class="ob-hold-plein">${OB_EMPREINTE_SVG}</span></span>'), 'l’empreinte, et sa copie qui se colore');
-  assert.ok(p.includes('<span class="ob-pact-stamp" aria-hidden="true">Validé ✓</span>') && p.includes('<p class="ob-pact-date">Le '));
-  assert.ok(p.includes("    if(draft.pacte)obSetFooter('Continuer',()=>obGoto('practice'),'','','');\n    else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');\n    setTimeout(obHoldInit,0);"));
+  /* 21 h 19 : le certificat et le bouton viennent de pacteCarteHTML et holdZoneHTML, repris dans Mon compte (retours-2119) */
+  assert.ok(p.includes("${holdZoneHTML('ob-hold',!!draft.pacte)}"));
+  const z = cut('function holdZoneHTML(id,fait){', '\n}\n');
+  assert.ok(z.includes('<p class="ob-hold-hint" id="${id}-hint" aria-live="polite">${fait?PACTE_PRIS:\'Maintiens ton doigt sur le bouton pour t’engager\'}</p>'));
+  assert.ok(z.includes('<button type="button" class="ob-hold${fait?\' is-done\':\'\'}" id="${id}" aria-describedby="${id}-hint" aria-label="${fait?\'Engagement pris\':\'Maintenir pour m’engager\'}">'));
+  assert.ok(z.includes('<circle class="ob-hold-track" cx="50" cy="50" r="46"/><circle class="ob-hold-fill" cx="50" cy="50" r="46"/>'), 'l’anneau');
+  assert.ok(z.includes('<span class="ob-hold-ico" aria-hidden="true">${OB_EMPREINTE_SVG}<span class="ob-hold-plein">${OB_EMPREINTE_SVG}</span></span>'), 'l’empreinte, et sa copie qui se colore');
+  const c = cut('function pacteCarteHTML(o){', '\n}\n');
+  assert.ok(c.includes('<span class="ob-pact-stamp" aria-hidden="true">Validé ✓</span>') && c.includes('<p class="ob-pact-date">${esc(pacteDate(o.ts))}</p>'));
+  assert.ok(p.includes("    if(draft.pacte)obSetFooter(PACTE_GO,()=>obGoto('practice'),'','','');\n    else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');\n    setTimeout(obHoldInit,0);"));
   assert.ok(!app.includes('ob-sign') && !app.includes('function obSignInit(') && !app.includes('OB_SIGNE_PAUSE'), 'la signature est partie');
   assert.ok(app.includes("e.target.closest('.ob-hold,.ob-tv-ph,input,textarea,[role=\"slider\"]')"), 'le doigt sur le bouton ne fait pas changer d’étape');
-  const svg = vm.runInNewContext(cut('const OB_EMPREINTE_SVG=', ';\nfunction obHoldInit(){').replace('const OB_EMPREINTE_SVG=', ''));
+  const svg = vm.runInNewContext(cut('const OB_EMPREINTE_SVG=', ';\n/* Le bouton à l’empreinte, où qu’il soit').replace('const OB_EMPREINTE_SVG=', ''));
   assert.equal((svg.match(/<path /g) || []).length, 9, 'l’empreinte de Lucide, neuf crêtes');
 });
 
-test('maintenu 1,5 s : l’anneau se remplit, un cran de plus en plus serré, puis la coche et la page suivante', () => {
+test('maintenu 1,5 s : l’anneau se remplit, un cran de plus en plus serré, puis la coche et « C’est parti ! »', () => {
   const x = bouton();
   x.init(); x.init();
   assert.equal(x.b.on.pointerdown.length, 1, 'branché une seule fois');
@@ -104,16 +111,17 @@ test('maintenu 1,5 s : l’anneau se remplit, un cran de plus en plus serré, pu
   assert.equal(x.b.attrs['aria-label'], 'Engagement pris');
   assert.equal(x.draft.pacte, 'empreinte'); assert.equal(typeof x.draft.pacteAt, 'number');
   assert.ok(x.carte.classes.has('is-signed'), 'le tampon « Validé ✓ » se pose');
-  assert.equal(x.hint.innerHTML, 'C’est noté&nbsp;: ton engagement est pris.');
+  assert.equal(x.hint.innerHTML, 'C’est noté&nbsp;: ton engagement est pris en compte.');
   x.b.fire('pointerup'); x.b.fire('click');
   assert.equal(x.H.length, 15, 'lâcher après coup ne redonne rien');
-  assert.deepEqual(x.timers.map(t => t[1]), [1100], 'la page suivante, le temps de voir la coche');
   assert.deepEqual(x.vu, [], 'pas le clic qui suit le doigt');
-  x.timers[0][0]();
+  /* 21 h 19 : la page reste (la phrase à lire) ; « C’est parti ! » arrive en bas, d’un petit rebond, et mène à la suite */
+  assert.deepEqual(x.timers, [], 'plus de départ automatique');
+  assert.equal(x.pied.length, 1);
+  assert.deepEqual([x.pied[0][0], ...x.pied[0].slice(2)], ['C’est parti\u00a0!', '', '', '']);
+  assert.deepEqual(x.reveils, [x.suivant], 'le bouton se réveille');
+  x.pied[0][1]();
   assert.deepEqual(x.vu, ['practice']);
-  /* Revenu sur la page entre-temps : la suite ne part pas toute seule */
-  const y = bouton(); y.init(); y.b.fire('pointerdown'); y.jusqua(2600); y.ctx.obStep = 1; y.timers[0][0]();
-  assert.deepEqual(y.vu, []);
 });
 
 test('au clavier et avec VoiceOver : Entrée (ou un toucher sans maintien) valide ; l’Espace se maintient', () => {
@@ -159,7 +167,7 @@ test('le bouton : jaune soleil, anneau blanc, empreinte qui se colore, menthe un
     assert.ok(media.includes('  html:not([data-motion="reduce"]) #onboarding.ob-vitrine ' + r), r);
   assert.ok(css.includes('stroke-dasharray:24;stroke-dashoffset:0}') && css.includes('@keyframes obvHoldCoche{from{stroke-dashoffset:24}}'));
   assert.ok(!/\.ob-sign/.test(css) && !css.includes('.ob-pact-foot'), 'plus de cadre à signer');
-  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=25'), f);
+  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=26'), f);
 });
 
 /* ---------- L’haptique dans l’appli ---------- */
@@ -300,5 +308,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   }
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelNativeSync();}catch(e){}},2200);   // les rappels des huit semaines à venir, reposés (19 h 41)"),
     'à l’ouverture de l’appli : les huit semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-05-uneligne-v2555"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-05-engagement-v2556"), 'le cache de l’appli change');
 });
