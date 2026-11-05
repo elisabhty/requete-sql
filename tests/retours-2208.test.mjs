@@ -35,7 +35,8 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 test('Mon compte : noter l’appli sur l’App Store, se déconnecter, supprimer son compte', () => {
   assert.ok(app.includes("${appliNative()?`<button class=\"account-setting-row\" type=\"button\" onclick=\"noterAppli()\">"), 'noter : dans l’app iPhone');
   assert.ok(app.includes("const APP_STORE_ID='6830361256';") && app.includes('itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review'), 'la page « Écrire un avis » de la fiche');
-  assert.ok(app.includes("${connected?`<button class=\"account-setting-row\" type=\"button\" onclick=\"seDeconnecter()\">"), 'se déconnecter : avec un compte connecté');
+  /* 5 novembre, 22 h 14 : la ligne est toujours là ; sans compte, elle le dit (retours-2214) */
+  assert.ok(app.includes('<button class="account-setting-row" type="button" onclick="seDeconnecter()">'), 'se déconnecter : toujours');
   assert.ok(app.includes('<button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()">'), 'supprimer : toujours là');
   const f = cut('async function compteSupprimer(){', '\n}\n');
   assert.ok(f.includes("clsRpc('compte_supprimer',{p_cle:cle})") && f.includes("clsRpc('jeu_pseudo_liberer',{p_cle:cle})"), 'le serveur d’abord, l’ancienne fonction en secours');

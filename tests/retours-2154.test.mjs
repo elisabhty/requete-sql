@@ -54,7 +54,8 @@ test('réf. 3 : Contacte-nous sans la phrase sur le serveur', () => {
 
 test('« pas de bouton de déconnexion ? » : il n’apparaît qu’une fois connecté, et l’appli n’a pas encore de connexion', () => {
   assert.ok(compte.includes("const connected=state.accountMode==='connected';"));
-  assert.ok(compte.includes("${connected?`<button class=\"account-setting-row\" type=\"button\" onclick=\"seDeconnecter()\">"), 'Se déconnecter, une fois connecté');
+  /* 22 h 14 : « mets le bouton déconnexion même s’il ne fonctionne pas » : la ligne est toujours là (retours-2214) */
+  assert.ok(compte.includes('<button class="account-setting-row" type="button" onclick="seDeconnecter()">') && !compte.includes('${connected?`<button class="account-setting-row" type="button" onclick="seDeconnecter()">'), 'Se déconnecter, toujours');
   assert.ok(/async function seDeconnecter\(\)\{/.test(app));
   /* Aucun fournisseur de connexion n’est branché (window.REQUETE_AUTH) : tout est sur l’appareil, rien à déconnecter */
   assert.ok(!/window\.REQUETE_AUTH\s*=/.test(app) && app.includes("function obAuthReady(){return !!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signIn==='function');}"));
@@ -78,5 +79,5 @@ test('réf. 4 : la Bibliothèque et Pratiquer retrouvent leurs autocollants, com
     assert.ok(lq.includes(k), k);
   /* Les feuilles et le cache rafraîchis */
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=166">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-rappel-commence-v2559';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-deconnexion-v2560';"));
 });
