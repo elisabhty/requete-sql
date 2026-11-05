@@ -43,7 +43,8 @@ test('le bandeau vert n’est plus pixelisé : une fois posé, l’animation ne 
 
 test('« Commencer la première leçon » a la flèche animée du bouton de la construction', () => {
   /* 14 h 08 (réf. 3) : obSetFooter pose la même flèche sur chaque bouton jaune, après le libellé (plus d’ajout à la main ici) */
-  assert.ok(app.includes("    obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),"));
+  /* Invité par un ami, « Rejoindre la salle » à la place (5 novembre, 14 h, retours-1400.test.mjs). */
+  assert.ok(app.includes("    else obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),"));
   const fleche = "const OB_CTA_FLECHE='<span class=\"ob-cta-arrow\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 12h14M13 6l6 6-6 6\"/></svg></span>';";
   assert.ok(app.includes(fleche) && app.includes("  if(btn){const was=btn.disabled;obCtaLibelle(btn,primary);"), 'la même flèche, posée après le libellé');
   assert.ok(!app.includes("?.insertAdjacentHTML('beforeend','<span class=\"ob-cta-arrow\""), 'une seule flèche par bouton');
