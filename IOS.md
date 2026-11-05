@@ -206,6 +206,13 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   Le classement passe à `jeu_classement_v2` (5 par page ; monde, pays ou amis ; depuis toujours ou depuis lundi).
   La liste d’amis reste sur l’appareil (`jeu_drapeaux` vérifie seulement qu’un pseudo existe). Dans App Store Connect,
   ajouter « Localisation approximative » (le pays), usage « Fonctionnalités de l’app », non liée à l’identité, sans pistage.
+- **Invitation à une salle** (5 novembre, 14 h) : « Partager l’invitation » ouvre la feuille de partage d’iOS (`navigator.share`,
+  pris en charge par la vue web de l’app) avec « Rejoins-moi… », le code et le lien public
+  `https://elisabhty.github.io/requete-sql/?partie=CODE&de=pseudo`. Ce lien ouvre Safari, pas l’app installée : pour qu’il
+  ouvre l’app, il faudra des liens universels (le fichier `apple-app-site-association` à la racine du domaine, donc un
+  domaine à soi ou le dépôt `elisabhty.github.io`, et la capacité « Associated Domains » de l’App ID). Sur le site, qui
+  n’est pas encore inscrit s’inscrit d’abord (tout le parcours de bienvenue), puis entre dans la salle ; un inscrit y entre
+  directement.
 - **Pseudo unique** : choisi sur une mini-page juste après l’onboarding (le prénom de l’onboarding reste sur l’appareil),
   réservé dans la table `jeu_pseudo` (même identifiant au hasard que le classement), il ne se change plus et n’est jamais
   libéré tout seul (pas de ménage) : seul « Supprimer mon compte » le libère, avec les scores. Pour libérer un pseudo sur
