@@ -157,7 +157,8 @@ test('la feuille : la pastille jaune en premier, ouverte d’abord ; « Ses colo
   const ws = cut('function renderDbWorkspace(){', '\n}\n');
   /* 8 h 13 : la pastille ouvre le schéma UML, pas le dernier onglet de table ; le compte rendu de l’import propose de le voir */
   assert.ok(ws.includes(`const uml=tables.length>1?\`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Schéma UML</span>`));
-  assert.ok(cut('function importRetourHtml(database,tabs,tn,asDb){', '\n}\n').includes(`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Voir le schéma UML</span></button>`));
+  /* 15 h 01 : « Schéma UML » plutôt que « Voir le schéma UML », comme la pastille jaune */
+  assert.ok(cut('function importRetourHtml(database,tabs,tn,asDb,ajoutees){', '\n}\n').includes(`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Schéma UML</span></button>`));
   /* Partout où le schéma s’ouvre déjà : la leçon, le défi, la salle de défis */
   for (const k of ['id="nav-schema" onclick="openSchemaSheet()"', 'class="dq-schema${', 'class="ed-schema${schAttn()}" onclick="openSchemaSheet()"']) assert.ok(app.includes(k), k);
   assert.ok(cut('function umlSurligne(el,on,e){', '\n}\n').includes("e.pointerType!=='mouse'"), 'au doigt, rien au survol : la toucher allume ses liens');
@@ -176,5 +177,5 @@ test('la DA : la pastille jaune soleil, la toile quadrillée, les classes aux co
   /* Les mesures de la page et du dessin sont les mêmes : en-tête 34 px, lignes de 20 px, 7 px autour */
   assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ligneEx:36,ecart:20,voie0:14,voie:8,max:7};'));
   assert.ok(!/\.uml-(?:t|h|cs|toile|plan)\b/.test(css), 'les classes umd- : celles du guide (.uml-c, .uml-l…) restent à lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=155">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=156">'));
 });

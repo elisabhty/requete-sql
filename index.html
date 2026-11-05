@@ -6739,7 +6739,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=155">
+<link rel="stylesheet" href="ludique.css?v=156">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=24">
 <style id="lesson-video-css">
@@ -7668,7 +7668,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         <button type="button" class="title-pill" id="console-pill" onclick="openProjectCreator()" hidden>Nouveau</button>
       </div>
       <div id="console-home" class="proj-list"></div>
-      <input id="data-import" type="file" accept=".xlsx,.xlsm,.xls,.ods,.csv,.tsv,.tab,.txt,.json,.jsonl,.ndjson,.sql,.db,.sqlite,.sqlite3,.db3,text/csv,text/tab-separated-values,text/plain,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.oasis.opendocument.spreadsheet,application/x-sqlite3,application/vnd.sqlite3,application/octet-stream" hidden onchange="onDataImport(event)">
+      <input id="data-import" type="file" accept=".xlsx,.xlsm,.xls,.ods,.csv,.tsv,.tab,.txt,.json,.jsonl,.ndjson,.sql,.db,.sqlite,.sqlite3,.db3,text/csv,text/tab-separated-values,text/plain,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.oasis.opendocument.spreadsheet,application/x-sqlite3,application/vnd.sqlite3,application/octet-stream" hidden onchange="onDataImport(event)" oncancel="importAjout=0">
       <div id="console-work" class="console-work-pad" hidden>
         <div class="console-project-tabs" role="tablist" aria-label="Sections du projet" onkeydown="onConsoleTabsKey(event)">
           <button type="button" class="console-project-tab on" id="console-tab-editor" role="tab" aria-selected="true" aria-controls="console-panel-editor" onclick="setConsoleProjectPanel('editor')">Éditeur</button>
@@ -7684,9 +7684,12 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
             <span class="console-schema-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
           </button>
           <div class="db-workspace console-schema-panel" id="console-schema-panel" hidden>
+            <div class="tbl-entete">
+              <div class="tbl-entete-l"><h2 class="tbl-titre" id="db-tables-titre">Tables du projet</h2><span class="tbl-compte" id="db-tables-n">0 table</span></div>
+              <p class="tbl-sous" id="db-tables-lab">Explore les tables de ton projet et leurs colonnes.</p>
+            </div>
             <div class="db-bar" id="db-bar"></div>
             <div class="db-sec">
-              <div class="db-lab"><span>Tables</span><small id="db-tables-lab">Dans le projet</small></div>
               <div class="db-tables" id="db-tables"></div>
             </div>
           </div>
@@ -7696,12 +7699,12 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
             <b>Ta base est vide</b>
             <p>Importe un fichier (Excel, CSV, JSON, SQL ou SQLite) ou crée ta première table en SQL.</p>
             <div class="console-empty-btns">
-              <button type="button" class="lq-btn" onclick="document.getElementById('data-import').click()">Importer un fichier</button>
+              <button type="button" class="lq-btn" onclick="importAjout=Date.now();document.getElementById('data-import').click()">Importer un fichier</button>
               <button type="button" class="lq-btn-2" onclick="startFirstTable()">Créer une table</button>
             </div>
           </div>
-          <div class="chips-wrap">
-            <div class="db-lab"><span>Exemples</span><small>Requêtes prêtes à lancer</small></div>
+          <div class="chips-wrap ex-cadre">
+            <div class="ex-tete"><h2 class="ex-titre">Requêtes prêtes à tester</h2><p class="ex-sous">Choisis un exemple pour le charger dans l’éditeur, puis exécute-le pour découvrir les résultats.</p></div>
             <div class="chips" id="console-chips"></div>
           </div>
 
@@ -7859,6 +7862,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Projet cible</label><select id="imp-db" onchange="onImportDbChange()"></select><span class="hint" id="imp-db-hint"></span></div>
     <div class="imp-field" id="imp-newname-field" hidden><label>Nom du nouveau projet</label><input id="imp-newname" autocomplete="off" spellcheck="false" placeholder="Mon projet"></div>
     <div class="imp-prev" id="imp-prev"></div>
+    <p class="imp-ou" id="imp-ou" hidden></p>
     <button class="imp-go" id="imp-go" type="button" onclick="confirmImport()">Importer</button>
   </div>
 
@@ -16528,7 +16532,7 @@ function openConsoleProject(id){
   consoleSchemaOpen=false;
   consoleQuerySearch='';
   const out=document.getElementById('console-out');
-  if(out) out.innerHTML='';
+  if(out){ out.innerHTML=''; out.style.minHeight=''; }
   if(activeTab!=='console') switchTab('console');
   else renderConsoleScreen();
   const scr=document.getElementById('scr-console');
@@ -16855,7 +16859,7 @@ function loadPinnedSql(i){
   const it=projOf(activeDbId).pins[i]; if(!it)return;
   fillConsoleSql(it.sql);
 }
-function fillConsoleSql(sql){
+function fillConsoleSql(sql,o){
   consoleProjectPanel='editor';
   syncConsoleProjectPanels();
   const ta=document.getElementById('ed-console');
@@ -16865,7 +16869,15 @@ function fillConsoleSql(sql){
   fitSqlEditor(ta);
   persistEditor('ed-console');
   updateConsolePinButton();
-  requestAnimationFrame(()=>{const sh=document.querySelector('#scr-console .console-editor-shell');sh?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'});lqDone(sh,'Prête','Requête ouverte dans l’éditeur');});
+  /* o.haut (« Voir les données ») : l’éditeur monte en haut de l’écran, sous la barre, pour que le résultat tienne dessous */
+  requestAnimationFrame(()=>{const sh=document.querySelector('#scr-console .console-editor-shell');if(o&&o.haut)ecranVers(sh);else sh?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'});lqDone(sh,'Prête','Requête ouverte dans l’éditeur');});
+}
+/* Un seul défilement de l’écran, jusqu’à ce que el soit en haut, juste sous la barre du haut */
+function ecranVers(el){
+  const scr=el&&el.closest('.screen');if(!scr)return;
+  const sr=scr.getBoundingClientRect(),bar=scr.querySelector(':scope>.p-bar,:scope>.navbar');
+  const top=Math.max(sr.top,bar?bar.getBoundingClientRect().bottom:sr.top)+12;
+  scr.scrollTo({top:Math.max(0,scr.scrollTop+(el.getBoundingClientRect().top-top)),behavior:prefersReduceMotion()?'auto':'smooth'});
 }
 function clearConsoleEditor(){
   const ta=document.getElementById('ed-console');
@@ -16879,18 +16891,18 @@ function clearConsoleEditor(){
 function clearConsolePane(){
   clearConsoleEditor();
   const out=document.getElementById('console-out');
-  if(out) out.innerHTML='';
+  if(out){ out.innerHTML=''; out.style.minHeight=''; }
 }
 function flashTableReset(name){
   const btn=[...document.querySelectorAll('.reset-table')].find(b=>b.dataset.table===name);
   if(!btn)return;
   btn.classList.add('ok');
-  btn.innerHTML=CONSOLE_OK_SVG+'<span>Restaurée</span>';
+  btn.innerHTML=CONSOLE_OK_SVG+'<span>Réinitialisée</span>';
   btn.setAttribute('aria-label',`Table ${name} réinitialisée`);
   setTimeout(()=>{
     if(!btn.isConnected)return;
     btn.classList.remove('ok');
-    btn.innerHTML=CONSOLE_RESET_SVG+'<span>Restaurer</span>';
+    btn.innerHTML=CONSOLE_RESET_SVG+'<span>Réinitialiser</span>';
     btn.setAttribute('aria-label',`Réinitialiser la table ${name}`);
   },prefersReduceMotion()?450:1000);
 }
@@ -16899,8 +16911,13 @@ async function resetTable(name){
   const database=activeDb(),snapshot=getTableBaseline(activeDbId,name);
   if(snapshot&&snapshot.trop){lqInfo('Pas de copie de départ',`Cette table a ${plur(snapshot.trop,'ligne')} : trop pour en garder une copie sur l’appareil. Réimporte le fichier pour retrouver ses données.`,'↺');return;}
   if(!database||!snapshot){toast('Aucun état initial pour cette table');return;}
-  const origin=activeDbId==='cours'?'les données d’origine du cours':'les données du fichier importé';
-  if(!await lqAsk({ico:'↺',titre:`Restaurer « ${name} » ?`,texte:`La table reprend ${origin} : les effets des INSERT, UPDATE et DELETE seront effacés.`,oui:'Restaurer'}))return;
+  /* Elisa, 5 novembre, 15 h 01 (réf. 2 pour la réf. 3) : « Réinitialiser cette table ? », le nom en gras, l’encadré qui prévient que les
+     modifications seront perdues, « Réinitialiser la table » et « Conserver mes modifications ». */
+  const cours=activeDbId==='cours',alerte=typeof DEL_SVG!=='undefined'?DEL_SVG.alerte:'';
+  if(!await lqAsk({ico:'↺',titre:'Réinitialiser cette table ?',
+    texteHtml:`La table <b>${esc(name)}</b> retrouvera ${cours?'les données d’origine du cours':'les données de son fichier d’origine'}.`,
+    corps:`<p class="lq-del-warn is-attention"><span class="lq-del-wi">${alerte}</span><span><b>Attention, tes modifications seront perdues.</b>Les lignes ajoutées, modifiées ou supprimées ${cours?'':'depuis l’importation '}seront remises dans leur état initial.</span></p>`,
+    oui:'Réinitialiser la table',non:'Conserver mes modifications'}))return;
   try{
     restoreTableBaseline(database,name,snapshot);
     if(activeDbId!=='cours')persistCustomDbs(activeDbId);
@@ -16911,7 +16928,7 @@ async function resetTable(name){
   renderConsoleChips();
   renderConsoleSchemaSummary();
   requestAnimationFrame(()=>flashTableReset(name));
-  lqDone(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`),'Restaurée',`Table « ${name} » restaurée : ${activeDbId==='cours'?'données du cours rétablies':'état initial du fichier rétabli'}`);
+  lqDone(document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`),'Réinitialisée',`Table « ${name} » réinitialisée : ${activeDbId==='cours'?'données du cours rétablies':'état initial du fichier rétabli'}`);
 }
 function switchDb(id){
   if(id!=='cours'&&!customDbs[id]&&!demoDb(id))return;
@@ -16967,6 +16984,11 @@ let dbWsSnap=null;
 function dbTableSig(database,name){
   try{ const r=database.exec(`PRAGMA table_info(${quoteIdent(name)})`); return r[0]?r[0].values.map(v=>v[1]+':'+v[2]+':'+v[5]).join(','):''; }catch(e){ return ''; }
 }
+/* Les icônes de la carte d’une table (5 novembre, 15 h 01) : une grille, une feuille, « Voir les données », le chevron. */
+const TBL_GRILLE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.6"/><path d="M3.5 9.6h17M3.5 14.6h17M9.6 9.6v9.9"/></svg>';
+const TBL_DOC_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h6.8l4.7 4.7V19a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M13.5 3.7v4.8h4.8M8.8 12.6h6.4M8.8 16.1h4.2"/></svg>';
+const TBL_VOIR_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.6" stroke="currentColor" stroke-width="1.9"/><path d="M10.3 8.7v6.6l5.5-3.3z" fill="currentColor"/></svg>';
+const TBL_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function dbWsDiff(database,tables){
   const prev=dbWsSnap&&dbWsSnap.id===activeDbId?dbWsSnap:null, v=schemaVersion(database), snap={id:activeDbId,v,t:{}}, out={};
   tables.forEach(t=>{
@@ -16982,7 +17004,6 @@ function renderDbWorkspace(){
   const host=document.getElementById('db-tables');
   const lab=document.getElementById('db-tables-lab');
   if(!bar||!host)return;
-  const activeName=projectName(activeDbId);
   /* 18 h 42 : « ne pas pouvoir importer, modifier, supprimer les bases d’entraînement (toutes), même par requête ». Elles sont en
      lecture seule : pas d’import ni de bouton qui les modifie, et les requêtes qui écriraient sont refusées (PRAGMA query_only). */
   /* Plus de « Créer un projet » sous le cadenas (Elisa, 2 novembre, 22 h 03, Réf 2) : on crée un projet depuis le choix de la base. */
@@ -16992,10 +17013,17 @@ function renderDbWorkspace(){
   /* Elisa, 5 novembre, 7 h 03 : le schéma UML de la base, dessiné à partir de ses tables (importées, créées), dès qu’il y en a deux :
      la pastille jaune ouvre la feuille Schéma sur lui. */
   const uml=tables.length>1?`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console','__uml__')">${UML_SVG}<span>Schéma UML</span><i class="db-uml-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></i></button>`:'';
+  /* Elisa, 5 novembre, 15 h 01 (réf. 8 et 9) : « Ajouter une table » plutôt qu’« Importer » ; une fenêtre dit ce qui va se passer, puis
+     on choisit un fichier, on vérifie ses données et on crée la table (ajouterTable). « Schéma UML » garde son nom et son jaune. */
   bar.innerHTML=(verrou
     ?`<span class="db-pill is-lock"><span aria-hidden="true">🔒</span><span>Base d’entraînement · lecture seule</span></span>`
-    :`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`)+uml;
+    :`<button type="button" class="db-pill add is-plus" onclick="ajouterTable()">${NOTE_PLUS_SVG}<span>Ajouter une table</span></button>`)+uml;
   renderConsoleSchemaSummary();
+  /* « Tables du projet », leur nombre dans une pastille, et ce qu’on fait ici (réf. 8) */
+  const titre=document.getElementById('db-tables-titre'),compte=document.getElementById('db-tables-n');
+  if(titre)titre.textContent=verrou?'Tables de la base':'Tables du projet';
+  if(compte){compte.textContent=plur(tables.length,'table');compte.hidden=!database;}
+  if(lab)lab.textContent=verrou?'Explore les tables de la base et leurs colonnes.':'Explore les tables de ton projet et leurs colonnes.';
   if(!database){
     if(lab) lab.textContent='Aucune base active';
     host.innerHTML='<div class="db-empty">Aucune base active.</div>';
@@ -17003,108 +17031,81 @@ function renderDbWorkspace(){
   }
   const fresh=dbWsDiff(database,tables);
   if(openTableSchema && !tables.includes(openTableSchema)) openTableSchema=null;
-  if(lab) lab.textContent=`Dans « ${activeName} » · ${tables.length} table${tables.length>1?'s':''}`;
   if(!tables.length){
-    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table disponible.':'Cette base est vide : importe un fichier Excel, CSV, JSON, SQL ou SQLite.'}</div>`;
+    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table disponible.':'Cette base est vide : ajoute une table depuis un fichier Excel, CSV, JSON, SQL ou SQLite.'}</div>`;
     return;
   }
+  /* La carte d’une table. Les retours qui la dessinent encore : pas d’autocollant au niveau des tables (31 octobre, 8 h 37) ; la
+     description seulement quand on déplie, au-dessus des actions, et pas d’actions sur la ligne du nom (31 octobre, 1 h 34 et 8 h 37) ;
+     un long nom passe à la ligne après un « _ » plutôt qu’au milieu d’un mot.
+     Elisa, 5 novembre, 15 h 01 (réf. 5 pour la réf. 4, réf. 8) : repliée, l’icône de la table, son nom, ses lignes et un chevron à
+     droite ; dépliée, sa description (ou « Aucune description ajoutée » et « Décrire cette table »), « Voir les données », restaurer et
+     supprimer en ronds, puis « Structure de la table » : ses colonnes, leurs types, et d’où ils viennent. */
   host.innerHTML=tables.map(t=>{
     const n=tableRowCount(database,t);
     const enc=encodeURIComponent(t).replace(/'/g,'%27');   // « l’atelier d'Anaïs » : l’apostrophe droite fermait le onclick
     const open=openTableSchema===t;
     const resettable=hasTableBaseline(activeDbId,t);
     const cols=open?introspectTable(database,t,tables):[];
-    const colsHtml=open?`<div class="db-cols on">
-      ${cols.map(c=>`
-      <div class="db-col">
-        <span class="cn">${esc(c.c).replace(/_/g,'_<wbr>')}</span>
-        ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
-        ${c.b==='fk'||c.ref?'<span class="badge fk">FK</span>':''}
-        ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
-        <span class="ct">${esc(c.t)}</span>
-        ${colNote(activeDbId,t,c.c)?`<small class="cd">${esc(colNote(activeDbId,t,c.c))}</small>`:''}
-      </div>`).join('')||'<div class="db-empty">Aucune colonne.</div>'}
-    </div>`:'';
-    const note=tableNote(activeDbId,t);
-    /* La description dit ce qu’elle est (Elisa, 31 octobre, 0 h 19 : « on ne comprend pas c’est la description de quoi ») : une petite
-       fiche dans la carte de sa table, « Description de la table » au-dessus du texte, le crayon pour la modifier. */
-    /* Elisa, 31 octobre, 1 h 34 : « mettre la description en haut de SELECT etc. plutôt, et qu’elle ne s’affiche que quand on déplie » :
-       la fiche se glisse dans la ligne de la table, entre son nom et ses actions, seulement quand la table est dépliée. */
-    /* Elisa, 31 octobre, 8 h 37 (Réf 9) : « ne pas mettre de stickers au niveau des tables ; la description de la table quand on déplie ;
-       ne pas garder le SELECT etc. en haut, sur la ligne du nom de table ». Repliée, la table n’a que son nom et son nombre de lignes ;
-       dépliée, sa description, puis ses actions (SELECT, restaurer, supprimer), puis ses colonnes. */
-    const noteHtml=!open?'':note?`<button type="button" class="db-tnote" onclick="editTableNote(decodeURIComponent('${enc}'))" aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"><span><small>Description de la table</small>${esc(note)}</span><i aria-hidden="true">${CONSOLE_EDIT_SVG}</i></button>`
-      :open?`<button type="button" class="db-tnote is-empty" onclick="editTableNote(decodeURIComponent('${enc}'))"><i aria-hidden="true">${NOTE_PLUS_SVG}</i><span>Ajouter une description de la table</span></button>`:'';
-    /* Le nom prend toute la ligne (il ne se coupe plus en « conta… »), le nombre de lignes dessous ; les actions se rangent à droite, ou
-       sous le nom quand la carte est étroite (Elisa : « ce n’est pas responsive »). Un long nom passe à la ligne après un « _ » plutôt
-       qu’au milieu d’un mot (« requete_sql_progression__ / 4_ », et non un « _ » seul en bas). */
-    return `<div class="db-tblock" data-table="${escAttr(t)}">
-      <div class="db-trow ${open?'open':''}">
-        <button type="button" class="db-tmain" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" title="${open?'Masquer les colonnes':'Voir les colonnes, PK et FK'}">
-          <span class="db-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <span class="tk">table</span>
-          <span class="db-tname"><span class="tn">${esc(t).replace(/_/g,'_<wbr>')}</span><span class="tc">${typeof n==='number'?plur(n,'ligne'):`${n}\u00a0lig.`}</span></span>
-          <span class="db-thint">${open?'Masquer':'Colonnes ›'}</span>
-        </button>
-      </div>
-      ${open?`<div class="db-tdetail">
-        ${noteHtml}
-        <span class="db-tacts">
-        <button type="button" class="tb db-tsel${tblPreview.has(t)?' on':''}" onclick="queryTable(decodeURIComponent('${enc}'))" aria-expanded="${tblPreview.has(t)?'true':'false'}">${tblPreview.has(t)?'Masquer les lignes':'SELECT'}</button>
-        ${verrou?'':`<button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
-        <button type="button" class="tb danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}</button>`}
-        </span>
-        ${tblPreview.has(t)?tablePreviewHTML(t):''}
-        ${colsHtml}
-      </div>`:''}
+    const lignes=typeof n==='number'?plur(n,'ligne'):`${n} lig.`;
+    const nom=esc(t).replace(/_/g,'_<wbr>');
+    const note=open?tableNote(activeDbId,t):'';
+    const desc=!open?'':note
+      ?`<button type="button" class="tbl-desc is-on" onclick="editTableNote(decodeURIComponent('${enc}'))" aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"><span class="tbl-desc-i" aria-hidden="true">${TBL_DOC_SVG}</span><span class="tbl-desc-t"><small>Description</small>${esc(note)}</span><i class="tbl-desc-e" aria-hidden="true">${CONSOLE_EDIT_SVG}</i></button>`
+      :`<div class="tbl-desc"><p class="tbl-desc-vide"><span class="tbl-desc-i" aria-hidden="true">${TBL_DOC_SVG}</span>Aucune description ajoutée</p><button type="button" class="tbl-decrire" onclick="editTableNote(decodeURIComponent('${enc}'))">${NOTE_PLUS_SVG}<span>Décrire cette table</span></button></div>`;
+    const acts=!open?'':`<div class="tbl-acts">
+        <button type="button" class="tbl-voir" onclick="voirDonneesTable(decodeURIComponent('${enc}'))">${TBL_VOIR_SVG}<span>Voir les données</span></button>
+        ${verrou?'':`<button type="button" class="tbl-rond reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Réinitialiser la table':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Réinitialiser</span></button>
+        <button type="button" class="tbl-rond is-danger drop-table" onclick="dropTable(decodeURIComponent('${enc}'))" aria-label="Supprimer la table ${escAttr(t)}" title="Supprimer la table">${CONSOLE_TRASH_SVG}<span>Supprimer</span></button>`}
+      </div>`;
+    /* D’où viennent ses colonnes : le fichier importé (son nom, pour les imports d’après le 5 novembre), ou son CREATE TABLE */
+    const base=open&&!verrou&&tableBaselines[activeDbId]?tableBaselines[activeDbId][tableBaselineKey(t)]:null;
+    const origine=!open||verrou?'':base?`Les noms et types des colonnes proviennent du fichier importé${base.fichier?` (${esc(base.fichier)})`:''}.`:'Les noms et types des colonnes viennent de son <code>CREATE TABLE</code>.';
+    const struct=!open?'':`<div class="tbl-struct">
+        <div class="tbl-struct-t"><b>Structure de la table</b><small>${plur(cols.length,'colonne')}</small></div>
+        <div class="tbl-cols">${cols.map(c=>{
+          const d=colNote(activeDbId,t,c.c);
+          return `<div class="tbl-col"><span class="tbl-cn">${esc(c.c).replace(/_/g,'_<wbr>')}</span>${c.b==='pk'?'<span class="badge pk">PK</span>':''}${c.b==='fk'||c.ref?'<span class="badge fk">FK</span>':''}<span class="tbl-ct">${esc(c.t)}</span>${c.ref?`<small class="tbl-cref">→ ${esc(c.ref)}</small>`:''}${d?`<small class="tbl-cd">${esc(d)}</small>`:''}</div>`;
+        }).join('')||'<p class="tbl-vide">Aucune colonne.</p>'}</div>
+        ${origine?`<p class="tbl-orig">${typeof INFO_SVG!=='undefined'?INFO_SVG:''}<span>${origine}</span></p>`:''}
+      </div>`;
+    return `<div class="db-tblock${open?' is-open':''}" data-table="${escAttr(t)}">
+      <button type="button" class="tbl-tete" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}">
+        <span class="tbl-ico" aria-hidden="true">${TBL_GRILLE_SVG}</span>
+        <span class="tbl-nom"><b class="tn">${nom}</b><small class="tc">${lignes}${open?` · ${plur(cols.length,'colonne')}`:''}</small></span>
+        <span class="tbl-chev" aria-hidden="true">${TBL_CHEV_SVG}</span>
+      </button>
+      ${open?`<div class="tbl-corps">${desc}${acts}${struct}</div>`:''}
     </div>`;
   }).join('');
   /* Ce qui vient de changer s’anime une fois (ludique.css, 41) : rien en mouvement réduit */
   if(!prefersReduceMotion())tables.forEach(t=>{ if(!fresh[t])return; const el=host.querySelector(`.db-tblock[data-table="${CSS.escape(t)}"]`); if(el)el.classList.add(fresh[t]); });
 }
 function toggleTableSchema(name){
-  if(openTableSchema===name)tblPreview.delete(name);
   openTableSchema=openTableSchema===name?null:name;
   renderDbWorkspace();
 }
-/* SELECT sur une table (Elisa, 3 novembre, 7 h 58 : « le SELECT fait sauter la page ») : avant, la requête partait dans l’éditeur, la
-   page remontait jusqu’à lui, puis redescendait au résultat. Les lignes s’affichent maintenant sur place, sous les boutons de la table,
-   et la page ne bouge pas ; « Ouvrir dans l’éditeur » garde l’ancien chemin, quand on veut retravailler la requête. */
-const tblPreview=new Set();
-const TBL_PREVIEW_N=20;
-function tablePreviewHTML(name){
-  let body='';
-  try{
-    const db0=activeDb(),q=quoteIdent(name);
-    const res=db0.exec(`SELECT * FROM ${q} LIMIT ${TBL_PREVIEW_N}`);
-    const tot=tableRowCount(db0,name);
-    body=renderTable(res,null)+(typeof tot==='number'&&tot>TBL_PREVIEW_N?`<p class="db-tpreview-more">Les ${TBL_PREVIEW_N} premières lignes sur ${tot}.</p>`:'');
-  }catch(e){body=errBox(String(e.message||e));}
-  const enc=encodeURIComponent(name).replace(/'/g,'%27');
-  return `<div class="db-tpreview">${body}<button type="button" class="db-tpreview-open" onclick="queryTableEditor(decodeURIComponent('${enc}'))">${CONSOLE_EDIT_SVG}<span>Ouvrir dans l’éditeur</span></button></div>`;
+/* Elisa, 5 novembre, 15 h 01 : « quand on appuie sur Select, ça nous emmène vers le moteur SQL ». « Voir les données » écrit la requête
+   dans l’éditeur et l’exécute ; la page descend une seule fois, jusqu’à l’éditeur, et le résultat s’affiche juste dessous (sans le
+   va-et-vient du 3 novembre, 7 h 58 : « le SELECT fait sauter la page » ; avant, les lignes s’affichaient dans la carte). */
+function voirDonneesTable(name){
+  /* La place du résultat est gardée sous l’éditeur le temps du calcul : la page descend d’un seul mouvement jusqu’à lui */
+  const out=document.getElementById('console-out');
+  if(out)out.style.minHeight=Math.round((window.innerHeight||800)*.8)+'px';
+  fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`,{haut:true});
+  runConsole({surEditeur:true});
 }
-function queryTable(name){
-  const host=document.querySelector(`#scr-console .db-tblock[data-table="${CSS.escape(name)}"]`);
-  const on=!tblPreview.has(name);
-  if(on)tblPreview.add(name);else tblPreview.delete(name);
-  if(!host)return renderDbWorkspace();
-  const btn=host.querySelector('.db-tsel');
-  if(btn){btn.classList.toggle('on',on);btn.setAttribute('aria-expanded',on?'true':'false');btn.textContent=on?'Masquer les lignes':'SELECT';}
-  const old=host.querySelector('.db-tpreview');
-  if(old)old.remove();
-  if(on){
-    const acts=host.querySelector('.db-tacts');
-    const wrap=document.createElement('div');wrap.innerHTML=tablePreviewHTML(name);
-    const node=wrap.firstElementChild;
-    if(acts)acts.after(node);else host.querySelector('.db-tdetail')?.prepend(node);
-    bindTableSwipe(node);
-    if(!prefersReduceMotion())node.classList.add('is-in');
-  }
-  if(navigator.vibrate)navigator.vibrate(6);
-}
-function queryTableEditor(name){
-  fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`);
-  runConsole();
+/* « Ajouter une table » (réf. 8 et 9 : « Ajouter une table → Choisir un fichier → Vérifier les données → Créer la table ») : la fenêtre
+   « Ajouter une table au projet » ; « Choisir un fichier » ouvre le sélecteur dans le geste même du toucher, puis la feuille d’import
+   s’ouvre en « Vérifier les données » pour le projet ouvert (importAjout). */
+let importAjout=0;
+function ajouterTable(){
+  if(isDemoDb(activeDbId)||!customDbs[activeDbId])return;
+  importAjout=0;
+  lqAsk({ico:'🗂️',titre:'Ajouter une table au projet',texte:'Importe un fichier Excel ou CSV pour créer une nouvelle table dans ta base de données.',
+    corps:'<p class="lq-ask-formats">Aussi : TSV, JSON, SQL ou SQLite. Un classeur de plusieurs feuilles donne une table par feuille.</p>',
+    oui:'Choisir un fichier',non:'Annuler',
+    surOui:()=>{importAjout=Date.now();const f=document.getElementById('data-import');if(f)f.click();}});
 }
 async function dropTable(name){
   if(isDemoDb(activeDbId))return;
@@ -17385,7 +17386,7 @@ async function parseImportBytes(name,bytes){
     const tabs=listTables(tmp), counts=tabs.map(t=>tableRowCount(tmp,t));
     tmp.close();
     if(!tabs.length) throw new Error('cette base SQLite ne contient aucune table.');
-    return {kind:'database',format:'sqlite',bytes,defaultTable:baseName,
+    return {kind:'database',format:'sqlite',bytes,defaultTable:baseName,noms:tabs,nbs:counts,
       hint:`${plur(tabs.length,'table')} · base SQLite`,preview:tabs.map((t,i)=>`${t} (${counts[i]})`).join(' · ')};
   }
   if(kind==='zip'||kind==='cfb'){
@@ -17424,6 +17425,9 @@ function isTableImport(parsed){
   return parsed && (parsed.kind==='table' || parsed.kind==='sql-table');
 }
 async function onDataImport(ev){
+  /* Choisi depuis « Ajouter une table » (il y a moins de 15 min) : les tables rejoindront le projet ouvert */
+  const ajout=importAjout&&Date.now()-importAjout<15*60*1000&&consoleView==='work'&&!isDemoDb(activeDbId)&&customDbs[activeDbId]?activeDbId:null;
+  importAjout=0;
   const file=ev.target.files&&ev.target.files[0];
   ev.target.value='';
   if(!file)return;
@@ -17434,13 +17438,14 @@ async function onDataImport(ev){
       file:file.name,
       parsed,
       defaultTable:parsed.defaultTable||safeIdent(file.name.replace(/\.[^.]+$/,''))||'import',
-      defaultDbName:(file.name.replace(/\.[^.]+$/,'')||'Import').slice(0,40)
+      defaultDbName:(file.name.replace(/\.[^.]+$/,'')||'Import').slice(0,40),
+      ajout
     };
     openImportSheet();
   }catch(e){
     const msg=String(e&&e.message||e).replace(/^\w/,c=>c.toUpperCase());
-    lqAsk({ico:'📄',titre:'Import impossible',texte:msg.endsWith('.')?msg:msg+'.',oui:'Choisir un autre fichier',non:'Fermer'})
-      .then(ok=>{if(ok)document.getElementById('data-import').click();});
+    lqAsk({ico:'📄',titre:'Import impossible',texte:msg.endsWith('.')?msg:msg+'.',oui:'Choisir un autre fichier',non:'Fermer',
+      surOui:()=>{importAjout=ajout?Date.now():0;document.getElementById('data-import').click();}});
   }
 }
 function onImportDbChange(){
@@ -17449,9 +17454,43 @@ function onImportDbChange(){
   if(!sel||!nameField)return;
   nameField.hidden=sel.value!=='__new__';
 }
+/* Le projet où « Ajouter une table » envoie le fichier choisi : celui qui était ouvert, s’il peut recevoir des tables */
+function importAjoutCible(){
+  const id=pendingImport&&pendingImport.ajout;
+  return id&&customDbs[id]&&!isDemoDb(id)?id:null;
+}
+/* Les tables qu’un classeur de plusieurs feuilles ou une base SQLite ajoutent au projet */
+function importNoms(p){
+  if(p&&p.format==='json-db')return (p.tables||[]).map(t=>safeIdent(t.name));
+  if(p&&p.format==='sqlite')return (p.noms||[]).slice();
+  return [];
+}
+/* « Vérifier les données » (réf. 9 : « un aperçu des colonnes, des types détectés et du nom de la future table ») : les colonnes, leur
+   type et un exemple pris dans le fichier ; ou les tables d’un classeur ou d’une base, avec leurs lignes et leurs colonnes. Celles qui
+   remplaceraient une table du projet ouvert le disent. */
+function importApercuHtml(p,aj){
+  const deja=aj&&customDbs[aj]?new Set(listTables(customDbs[aj]).map(t=>t.toLowerCase())):new Set();
+  const coupe=(v,n)=>v.length>n?v.slice(0,n-1)+'…':v;
+  if(p.kind==='table'&&Array.isArray(p.cols)){
+    const rows=(p.rows||[]).slice(0,40);
+    const ex=i=>{for(const r of rows){const v=r&&r[i];if(v!=null&&String(v).trim()!=='')return String(v).trim();}return '';};
+    const items=p.cols.map((c,i)=>{const e=ex(i);return `<li class="iv-col"><span class="iv-cn">${esc(c).replace(/_/g,'_<wbr>')}</span><span class="iv-ct">${esc(p.types&&p.types[i]||'TEXT')}</span>${e?`<small class="iv-ex">ex. ${esc(coupe(e,40))}</small>`:''}</li>`;}).join('');
+    return `<div class="iv-t"><b>Colonnes détectées</b><small>${plur(p.cols.length,'colonne')} · ${plur((p.rows||[]).length,'ligne')}</small></div><ul class="iv-cols">${items}</ul>`;
+  }
+  const tabs=p.format==='json-db'?(p.tables||[]).map(t=>({n:safeIdent(t.name),l:t.rows.length,c:t.cols}))
+    :p.format==='sqlite'?(p.noms||[]).map((n,i)=>({n,l:(p.nbs||[])[i],c:null})):null;
+  if(!tabs)return '';
+  const items=tabs.map(t=>`<li class="iv-tab"><span class="iv-ico" aria-hidden="true">${TBL_GRILLE_SVG}</span><span class="iv-tx"><b>${esc(t.n).replace(/_/g,'_<wbr>')}</b><small>${[typeof t.l==='number'?plur(t.l,'ligne'):'',t.c?plur(t.c.length,'colonne'):''].filter(Boolean).join(' · ')}</small>${t.c?`<small class="iv-tc">${esc(coupe(t.c.join(', '),70))}</small>`:''}${deja.has(t.n.toLowerCase())?'<em class="iv-deja">Remplacera la table du même nom</em>':''}</span></li>`).join('');
+  return `<div class="iv-t"><b>Tables détectées</b><small>${plur(tabs.length,'table')}</small></div><ul class="iv-tabs">${items}</ul>`;
+}
 function openImportSheet(){
   if(!pendingImport)return;
   const p=pendingImport.parsed;
+  /* « Ajouter une table » (Elisa, 5 novembre, 15 h 01, réf. 8 et 9) : la feuille devient « Vérifier les données » ; elle montre le nom de
+     la future table, ses colonnes et les types détectés (ou les tables du classeur), et se valide par « Créer la table ». Tout rejoint le
+     projet ouvert : un classeur de plusieurs feuilles s’y ajoute au lieu de le remplacer. */
+  const aj=importAjoutCible();
+  const nAj=aj?listTables(customDbs[aj]).length:0;
   const asDb=isDatabaseImport(p);
   const title=document.getElementById('imp-title');
   const kind=document.getElementById('imp-kind');
@@ -17463,8 +17502,10 @@ function openImportSheet(){
   const newName=document.getElementById('imp-newname');
   const go=document.getElementById('imp-go');
 
-  title.textContent=asDb?'Importer une base':'Importer une table';
-  kind.textContent=asDb?'Base détectée':'Table détectée';
+  const noms=importNoms(p);
+  document.getElementById('imp-sheet').classList.toggle('is-ajout',!!aj);
+  title.textContent=aj?'Vérifier les données':asDb?'Importer une base':'Importer une table';
+  kind.textContent=!asDb?'Table détectée':!aj?'Base détectée':noms.length?`${plur(noms.length,'table')} détectée${noms.length>1?'s':''}`:'Script SQL détecté';
   kind.className='imp-kind '+(asDb?'database':'table');
   document.getElementById('imp-sub').textContent=pendingImport.file+' · '+p.hint;
 
@@ -17476,15 +17517,15 @@ function openImportSheet(){
       ? (p.insertOnly
         ? 'INSERT sans CREATE : la table sera créée automatiquement dans SQLite.'
         : (p.primaryTable?'Le script crée déjà cette table.':'Le script sera exécuté dans la base choisie.'))
-      : 'Le fichier devient une table dans le projet choisi.';
+      : aj?`Elle rejoindra « ${projectName(aj)} »${nAj?`, à côté de ${nAj>1?`ses ${nAj} tables`:'sa table'}`:''}.`:'Le fichier devient une table dans le projet choisi.';
   }
 
   const customs=dbCatalog.filter(d=>!isDemoDb(d.id));
   /* Depuis un projet ouvert : une table y va directement ; une base aussi, si le projet est encore vide. */
   const inProject=consoleView==='work' && !isDemoDb(activeDbId) && customDbs[activeDbId];
-  const preferred=(inProject && (!asDb || !listTables(customDbs[activeDbId]).length))
+  const preferred=aj||((inProject && (!asDb || !listTables(customDbs[activeDbId]).length))
     ? activeDbId
-    : '__new__';
+    : '__new__');
   const sel=document.getElementById('imp-db');
   sel.innerHTML=customs.map(d=>{
     const n=customDbs[d.id]?listTables(customDbs[d.id]).length:0;
@@ -17497,12 +17538,23 @@ function openImportSheet(){
     ? 'Un projet = une base. Choisis un projet existant (remplacé s’il n’est pas vide) ou crée-en un.'
     : 'Ajoute la table dans un projet existant, ou crée un projet pour l’accueillir.';
   newName.value=pendingImport.defaultDbName||pendingImport.defaultTable||'Mon projet';
+  document.getElementById('imp-db-field').hidden=!!aj;
   onImportDbChange();
 
-  document.getElementById('imp-prev').textContent=p.preview
+  const prev=document.getElementById('imp-prev');
+  const riche=importApercuHtml(p,aj);
+  prev.classList.toggle('is-riche',!!riche);
+  if(riche)prev.innerHTML=riche;
+  else prev.textContent=p.preview
     || (p.kind==='table'?p.cols.map((c,i)=>c+' '+p.types[i]).join(' · '):p.hint);
+  /* Où vont les tables d’un classeur, d’une base ou d’un script ajoutés au projet ouvert */
+  const ou=document.getElementById('imp-ou');
+  if(ou){
+    ou.textContent=aj&&asDb?(noms.length?`${noms.length>1?'Elles rejoindront':'Elle rejoindra'} « ${projectName(aj)} »${nAj?`, à côté de ${nAj>1?`ses ${nAj} tables`:'sa table'}`:''}.`:`Le script sera exécuté dans « ${projectName(aj)} ».`):'';
+    ou.hidden=!ou.textContent;
+  }
 
-  go.textContent=asDb?'Importer le projet':'Importer la table';
+  go.textContent=aj?(!asDb||noms.length===1?'Créer la table':noms.length>1?`Créer les ${noms.length} tables`:'Créer les tables'):(asDb?'Importer le projet':'Importer la table');
 
   const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
   back.hidden=false; sheet.hidden=false; back.setAttribute('aria-hidden','false'); sheet.setAttribute('aria-hidden','false'); sheet.inert=false;
@@ -17546,6 +17598,27 @@ async function createImportedTables(database,tables,suivre){
     }finally{st.free();}
   }
 }
+/* Les tables d’une base SQLite ajoutées à un projet (« Ajouter une table », 15 h 01) : leur CREATE, leurs lignes, leurs index. */
+function copierTablesSqlite(bytes,dest){
+  const src=new SQL.Database(bytes),noms=[];
+  try{
+    for(const t of listTables(src)){
+      const def=tableDefinitionSql(src,t);
+      if(!def)continue;
+      dest.run('DROP TABLE IF EXISTS '+quoteIdent(t));
+      dest.run(def);
+      const data=src.exec('SELECT * FROM '+quoteIdent(t));
+      if(data[0]&&data[0].values.length){
+        const st=dest.prepare('INSERT INTO '+quoteIdent(t)+' VALUES ('+data[0].columns.map(()=>'?').join(',')+')');
+        try{ data[0].values.forEach(r=>st.run(r)); }finally{ st.free(); }
+      }
+      const extras=src.exec("SELECT sql FROM sqlite_master WHERE tbl_name="+quoteSqlText(t)+" AND type IN ('index','trigger') AND sql IS NOT NULL ORDER BY type");
+      (extras[0]?extras[0].values:[]).forEach(r=>{ if(r[0])try{ dest.run(r[0]); }catch(e){} });
+      noms.push(t);
+    }
+  }finally{ src.close(); }
+  return noms;
+}
 /* Le bouton de la feuille d’import, le temps de l’import : désactivé, « Import en cours… 42 % ». */
 function importOccupe(on,frac){
   const go=document.getElementById('imp-go');if(!go)return;
@@ -17578,8 +17651,10 @@ async function confirmImport(){
   if(!pendingImport)return;
   {const go=document.getElementById('imp-go');if(go&&go.getAttribute('aria-busy')==='true')return;}   // déjà en cours : un seul import
   const p=pendingImport.parsed;
-  const asDb=isDatabaseImport(p);
-  const chosen=document.getElementById('imp-db').value;
+  /* « Ajouter une table » (5 novembre, 15 h 01) : ce que le fichier apporte rejoint le projet ouvert, sans le remplacer */
+  const aj=importAjoutCible();
+  const asDb=isDatabaseImport(p)&&!aj;
+  const chosen=aj||document.getElementById('imp-db').value;
   if(asDb && chosen!=='__new__' && customDbs[chosen]){
     const existing=listTables(customDbs[chosen]);
     if(existing.length && !await lqAsk({ico:'🗂️',titre:'Remplacer le contenu ?',texte:`Le projet « ${(dbCatalog.find(d=>d.id===chosen)||{}).name||chosen} » contient déjà ${plur(existing.length,'table')} : elles seront remplacées par celles du fichier.`,oui:'Remplacer',non:'Annuler'})){
@@ -17591,15 +17666,21 @@ async function confirmImport(){
   if(p.kind==='table' && chosen!=='__new__' && customDbs[chosen]){
     const tn=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
     const deja=listTables(customDbs[chosen]).find(t=>t.toLowerCase()===String(tn).toLowerCase());
-    if(deja && !await lqAsk({ico:'🗂️',titre:`Remplacer la table « ${deja} » ?`,texte:`Elle existe déjà dans ce projet : ses ${plur(+tableRowCount(customDbs[chosen],deja)||0,'ligne')} seront remplacées par celles du fichier. Pour la garder, choisis un autre nom de table.`,oui:'Remplacer',non:'Annuler'})){
+    if(deja && !await lqAsk({ico:'🗂️',titre:`Remplacer la table « ${deja} » ?`,texte:`Elle existe déjà dans ce projet : ses ${plur(+tableRowCount(customDbs[chosen],deja)||0,'ligne')} seront remplacées par celles du fichier. Pour la garder, choisis un autre nom de table.`,oui:'Remplacer',non:'Annuler'})){
       return;
     }
+  }
+  /* Les feuilles d’un classeur ou les tables d’une base qui portent le nom d’une table du projet : on demande avant de les remplacer */
+  const ajoutees=aj?importNoms(p):[];
+  const dejaLa=ajoutees.length?listTables(customDbs[aj]).filter(t=>ajoutees.some(n=>n.toLowerCase()===t.toLowerCase())):[];
+  if(dejaLa.length && !await lqAsk({ico:'🗂️',titre:dejaLa.length>1?`Remplacer ${dejaLa.length} tables ?`:`Remplacer la table « ${dejaLa[0]} » ?`,texte:dejaLa.length>1?`${dejaLa.join(', ')} existent déjà dans ce projet : leurs lignes seront remplacées par celles du fichier.`:`Elle existe déjà dans ce projet : ses ${plur(+tableRowCount(customDbs[aj],dejaLa[0])||0,'ligne')} seront remplacées par celles du fichier.`,oui:'Remplacer',non:'Annuler'})){
+    return;
   }
   const avant=activeDbId,neuf=chosen==='__new__';
   /* Le bouton dit tout de suite que l’import est parti, avant le gros du travail (une image, pour qu’il ait le temps de s’afficher) */
   importOccupe(true);
   await new Promise(ok=>setTimeout(ok,40));
-  const target=resolveImportTarget();
+  const target=aj||resolveImportTarget();
   if(!target){importOccupe(false);return;}
 
   /* Un import qui échoue ne laisse rien derrière lui (8 h 13 : un projet vide à chaque essai, et la Console passait en douce sur
@@ -17610,17 +17691,22 @@ async function confirmImport(){
     ancienne=customDbs[target];
     customDbs[target]=attachDateFns(new SQL.Database());
   }
-  if(p.format==='sqlite'){
+  /* Une base SQLite devient le projet ; ajoutée à un projet, ses tables y sont copiées */
+  const remplace=p.format==='sqlite'&&!aj;
+  if(remplace){
     const vide=customDbs[target];
     customDbs[target]=attachDateFns(new SQL.Database(p.bytes));
     if(vide!==ancienne)try{ vide.close(); }catch(e){}
   }
   const database=activeDb();
-  const beforeTables=p.format==='sqlite'?[]:listTables(database);
+  const beforeTables=remplace?[]:listTables(database);
   let point=false;
   try{
-    if(p.format==='sqlite'){
+    if(remplace){
       /* rien à créer : les tables sont celles du fichier */
+    }else if(p.format==='sqlite'){
+      database.run('SAVEPOINT rq_import');point=true;
+      copierTablesSqlite(p.bytes,database);
     }else if(p.kind==='database' && p.format==='json-db'){
       database.run('SAVEPOINT rq_import');point=true;
       await createImportedTables(database, p.tables, f=>importOccupe(true,f));
@@ -17640,26 +17726,38 @@ async function confirmImport(){
     if(asDb)tableBaselines[target]={};
     const declared=asDb
       ? tabs
-      : [pendingImport.importedTable,p.primaryTable,...(p.tableNames||[])].filter(Boolean);
+      : [pendingImport.importedTable,p.primaryTable,...(p.tableNames||[]),...ajoutees].filter(Boolean);
     const newTables=tabs.filter(name=>!beforeTables.some(old=>old.toLowerCase()===name.toLowerCase()));
     const wanted=declared.length?declared:newTables;
     const affected=[...new Set(wanted.map(name=>tabs.find(t=>t.toLowerCase()===String(name).toLowerCase())).filter(Boolean))];
-    affected.forEach(name=>rememberTableBaseline(database,target,name));
+    /* Le nom du fichier reste avec la copie de départ : la carte de la table dit d’où viennent ses colonnes */
+    const fichier=pendingImport.file;
+    affected.forEach(name=>{const s0=rememberTableBaseline(database,target,name);if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);});
     if(activeDbId!=='cours')persistCustomDbs(target);
     importOccupe(false);
     closeImportSheet();
-    openConsoleProject(target);
-    const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):null;
-    if(tn)queryTable(tn);
+    const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):ajoutees.length===1?tabs.find(t=>t.toLowerCase()===ajoutees[0].toLowerCase())||null:null;
+    /* Ajoutée depuis la page du projet : on y reste, le panneau des tables ouvert, et la page descend jusqu’à la nouvelle table */
+    if(aj){
+      kbarSchemaCache=null;
+      consoleSchemaOpen=true;
+      renderDbWorkspace();
+      renderConsoleChips();
+      renderConsoleSchemaSummary();
+      const premiere=tn||affected[0];
+      const carte=premiere?document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(premiere)}"]`):null;
+      if(carte)requestAnimationFrame(()=>{carte.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});lqDone(carte,affected.length>1?'Ajoutées':'Ajoutée',affected.length>1?`${plur(affected.length,'table')} ajoutées au projet`:`Table « ${premiere} » ajoutée au projet`);});
+    }else openConsoleProject(target);
     /* Ce que l’import a fait, et le schéma qui s’est dessiné tout seul (8 h 13 : « si on met un fichier, ça génère
        automatiquement ») : les liens trouvés, « Voir le schéma UML » dès deux tables. */
     const out=document.getElementById('console-out');
     if(out){
-      out.innerHTML=importRetourHtml(database,tabs,tn,asDb);
+      out.style.minHeight='';
+      out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null);
       /* Le compte rendu sous les yeux dès qu’il y a un schéma à voir (il restait sous l’éditeur, hors de l’écran) */
-      if(tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));
+      if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));
     }
-    lqSay(asDb?'Projet importé':'Table importée');
+    if(!aj)lqSay(asDb?'Projet importé':'Table importée');
   }catch(e){
     if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}
     if(ancienne){ try{ customDbs[target].close(); }catch(x){} customDbs[target]=ancienne; }
@@ -17676,16 +17774,21 @@ async function confirmImport(){
 }
 /* Le compte rendu d’un import, dans la Console : les tables, les liens trouvés avec les autres (le schéma UML s’est dessiné tout seul),
    et le bouton pour le voir dès deux tables ; une première table : ce qu’il faudra pour que des liens apparaissent. */
-function importRetourHtml(database,tabs,tn,asDb){
+function importRetourHtml(database,tabs,tn,asDb,ajoutees){
   const codes=a=>a.map(t=>'<code>'+esc(t)+'</code>').join(', ');
   let liens=[];
   if(tabs.length>1){ try{ const m=umlModele(database,tabs,true); liens=m.liens.filter((l,i)=>(!tn||l.de===tn||l.vers===tn)&&(!l.grp||m.liens.findIndex(z=>z.grp===l.grp)===i)); }catch(e){} }
-  const voir=tabs.length>1?`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">${UML_SVG}<span>Voir le schéma UML</span></button>`:'';
+  /* « Schéma UML », comme la pastille jaune du projet (5 novembre, 15 h 01 : « je garderais Schéma UML plutôt que Voir le schéma UML ») */
+  const voir=tabs.length>1?`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">${UML_SVG}<span>Schéma UML</span></button>`:'';
   const dits=liens.slice(0,4).map(l=>`<code>${esc(l.de)}.${esc(l.col)}</code> → <code>${esc(l.vers)}</code>`).join(', ')+(liens.length>4?'…':'');
   const trouves=liens.length?`<p class="imp-liens">${liens.length>1?`${liens.length} liens trouvés`:'Lien trouvé'}&nbsp;: ${dits}.</p>`:'';
   /* La colonne qui désignerait cette table depuis une autre : clients → client_id, animaux → animal_id */
   const cle=t=>String(t).toLowerCase().replace(/eaux$/,'eau').replace(/aux$/,'al').replace(/ies$/,'y').replace(/s$/,'')+'_id';
   const ok=(titre,corps)=>`<div class="feedback ok"><div class="fi">✓</div><div><b>${titre}</b>${corps}</div></div>`;
+  if(ajoutees&&ajoutees.length>1){
+    const autres=tabs.filter(t=>!ajoutees.some(a=>a.toLowerCase()===t.toLowerCase()));
+    return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`rejoignent ${codes(autres)}`:`sont les ${ajoutees.length} tables du projet`}.</p>${trouves}${voir}`);
+  }
   if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${trouves}${voir}`);
   if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses liens.</p>`);
   if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucun lien pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait un.`}</p>${trouves}${voir}`);
@@ -18095,9 +18198,12 @@ function consoleLockBox(){
     `<p>Tu peux tout lire avec <code>SELECT</code>, mais pas modifier ses données ni sa structure (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>CREATE</code>, <code>DROP</code>…). Pour t’entraîner à écrire, crée ton propre projet.</p>`+
     `<button type="button" class="console-lock-go" onclick="openProjectCreator()">Créer un projet</button></div></div>`;
 }
-function runConsole(){
+function runConsole(o){
+  /* o.surEditeur (« Voir les données ») : la page est déjà descendue jusqu’à l’éditeur ; elle ne repart pas vers le résultat */
+  const surEditeur=!!(o&&o.surEditeur);
   const sql=document.getElementById('ed-console').value.trim();
   const out=document.getElementById('console-out');
+  if(out&&!surEditeur)out.style.minHeight='';
   const btn=document.getElementById('btn-run-console')||document.querySelector('#scr-console .btn-run');
   if(!sql){out.innerHTML='';return;}
   persistEditor('ed-console');
@@ -18107,7 +18213,10 @@ function runConsole(){
   let fb=null;
   const paint=(html)=>{
     const loading=out.querySelector('.query-loading');
-    const show=()=>{ out.innerHTML=html; setRunLoading(btn,false); bindTableSwipe(out); if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>scrollToResult(out)); };
+    const show=()=>{ out.innerHTML=html; setRunLoading(btn,false); bindTableSwipe(out); if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>{if(!surEditeur)return scrollToResult(out);
+      /* La place gardée reste seulement si le résultat est plus court qu’elle (sinon la page remonterait d’un coup) */
+      const garde=out.style.minHeight;out.style.minHeight='';if(garde&&out.offsetHeight<parseFloat(garde))out.style.minHeight=garde;
+      ecranVers(document.querySelector('#scr-console .console-editor-shell'));}); };
     if(loading&&!prefersReduceMotion()){
       loading.classList.add('out');
       setTimeout(show,180);
@@ -32641,7 +32750,8 @@ function toast(msg,sub,tone){
 }
 /* Une question en feuille, dans le style de l’app, à la place de la boîte du navigateur (qui affiche l’adresse du site et
    « OK ») : lqAsk({ico, titre, texte, oui, non}) rend une promesse, vraie si l’on confirme. o.corps : du HTML écrit par l’app (jamais
-   un texte saisi sans esc), sous le bandeau, pour une liste (la suppression du compte, 5 novembre, 12 h 12). Le fond, « Annuler » et Échap
+   un texte saisi sans esc), sous le bandeau, pour une liste (la suppression du compte, 5 novembre, 12 h 12). o.texteHtml : le texte du
+   bandeau en HTML écrit par l’app (un nom en gras, 15 h 01). Le fond, « Annuler » et Échap
    referment ; le doigt est d’abord sur « Annuler ». */
 function lqAsk(o){
   return new Promise(res=>{
@@ -32653,7 +32763,7 @@ function lqAsk(o){
         <button type="button" class="lq-x lq-ask-x" aria-label="Fermer">${LQ_X_SVG}</button>
         <div class="lq-ask-cap${o.danger?' is-danger':''}${o.ico?'':' is-nostk'}">${o.ico?lqAskStk(o.ico):''}
         <h2 id="lq-ask-t">${esc(o.titre)}</h2>
-        ${o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}</div>
+        ${o.texteHtml?`<p id="lq-ask-p">${o.texteHtml}</p>`:o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}</div>
         ${o.corps?`<div class="lq-ask-corps" id="lq-ask-c">${o.corps}</div>`:''}
         <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui${o.danger?' is-danger':''}">${esc(o.oui||'OK')}</button>${o.non===null?'':`<button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button>`}</div>
       </div>`;
@@ -32675,7 +32785,8 @@ function lqAsk(o){
     const xb=el.querySelector('.lq-ask-x');if(xb)xb.onclick=()=>fin(false);
     const non=el.querySelector('.lq-ask-non');
     if(non)non.onclick=()=>fin(false);
-    el.querySelector('.lq-ask-oui').onclick=()=>fin(true);
+    /* o.surOui : ce qui doit partir dans le geste même du toucher (ouvrir le choix d’un fichier : iOS le refuse après coup) */
+    el.querySelector('.lq-ask-oui').onclick=()=>{if(typeof o.surOui==='function')try{o.surOui();}catch(e){}fin(true);};
     document.addEventListener('keydown',key,true);
     document.body.appendChild(el);
     if(navigator.vibrate)navigator.vibrate(8);
@@ -34965,10 +35076,7 @@ function renderConsoleChips(){
   }
   if(wrap)wrap.hidden=false;
   {const empty=document.getElementById('console-empty');if(empty)empty.hidden=true;}
-  if(wrap){
-    const lab=wrap.querySelector('.db-lab small');
-    if(lab) lab.textContent='Requêtes prêtes à lancer';
-  }
+  /* Les exemples sont dans un cadre, « Requêtes prêtes à tester » et ce qu’on en fait (Elisa, 5 novembre, 15 h 01, réf. 6) */
   /* Chaque exemple montre sa requête, colorée comme dans l’éditeur (Elisa, 30 octobre, 22 h 11 : « dans Exemples, tu ne mets pas SELECT ? »). */
   /* Un nom importé (« order », « Ventes 2024 ») s’écrit entre guillemets ; les deux requêtes du cours, seulement si leurs colonnes sont
      là ; et les jointures des liens que dessine le schéma UML (5 novembre, 8 h 13 : sur des données importées, « Ventes par client »
@@ -35580,9 +35688,10 @@ function obBarreEtat(){
    Un retour arrière (balayage) depuis l’accueil y ramène, comme le bouton Précédent du navigateur sur le site. */
 let obVideoSite=false,obVideoMontree=false;
 const OB_VIDEO_VUE='rq-video-vue';
+/* 5 novembre, 15 h 01 : invité par un ami, on passe « bien sûr par l’onboarding depuis le début » : la vidéo aussi (l’invitation
+   attend sous elle, sur l’accueil). */
 function obVideoVoulue(){
   if(obVideoSite)return false;
-  if(typeof jeuInvitation==='function'&&jeuInvitation())return false;   // invité par un ami : l’invitation d’abord (5 novembre, 14 h)
   try{ return !localStorage.getItem(OB_VIDEO_VUE); }catch(e){ return true; }
 }
 function obVideoOn(){ const v=document.getElementById('ob-video'); return !!(v&&v.classList.contains('on')); }
@@ -38585,7 +38694,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-pratiquer-v2540';
+  const SW_CACHE='requete-2026-11-05-projet-v2541';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

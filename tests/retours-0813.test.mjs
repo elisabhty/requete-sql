@@ -229,10 +229,10 @@ test('les classeurs : les cellules fusionnées, l’en-tête sous un titre, la f
 
 test('l’import : un échec ne laisse rien, un nom déjà pris se demande, et le compte rendu montre le schéma qui s’est dessiné', () => {
   const c = cut('async function confirmImport(){', 'function importRetourHtml(');
-  for (const k of ["titre:`Remplacer la table « ${deja} » ?`", "database.run('SAVEPOINT rq_import');point=true;", "if(point){ database.run('RELEASE rq_import'); point=false; }",
+  for (const k of ["titre:`Remplacer la table « ${deja} » ?`", "database.run('SAVEPOINT rq_import');point=true;", "if(point){ database.run('RELEASE rq_import'); point=false; }",
     "if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}",
     'if(ancienne){ try{ customDbs[target].close(); }catch(x){} customDbs[target]=ancienne; }', 'dbCatalog=dbCatalog.filter(d=>d.id!==target);',
-    "activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';", 'out.innerHTML=importRetourHtml(database,tabs,tn,asDb);', "if(tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));"])
+    "activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';", 'out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null);', "if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));"])
     assert.ok(c.includes(k), k);
   assert.ok(c.indexOf('const avant=activeDbId,neuf=chosen===') < c.indexOf('activeDbId=target;'));
   const d = ouvrir(`CREATE TABLE clients(id INTEGER PRIMARY KEY, nom TEXT); INSERT INTO clients VALUES (1,'Ana');`);
@@ -260,7 +260,8 @@ test('les noms à guillemet ou apostrophe, la pastille UML, le clavier, la bulle
   const r = cut('function renderSchemaSheet(){', 'const schTabSel={},schBaseOuverte={};');
   assert.ok(r.includes('data-t="${escAttr(name)}" onclick="schemaPickTab(this)">') && r.includes('<div class="sch-table" role="tabpanel" data-t="${escAttr(name)}"'));
   assert.ok(!r.includes('data-t="${esc(name)}"'));
-  assert.equal((app.match(/encodeURIComponent\((?:t|name)\)\.replace\(\/'\/g,'%27'\)/g) || []).length, 2, 'l’apostrophe ne ferme plus le onclick de la Console');
+  /* Une seule depuis le 5 novembre, 15 h 01 : les lignes d’une table ne s’affichent plus dans sa carte (« Voir les données » va à l’éditeur) */
+  assert.equal((app.match(/encodeURIComponent\((?:t|name)\)\.replace\(\/'\/g,'%27'\)/g) || []).length, 1, 'l’apostrophe ne ferme plus le onclick de la Console');
   assert.ok(r.includes("if(schVue==='__uml__'&&avecUml)cur=schTabSel[key]='__uml__';"), 'la pastille jaune ouvre le schéma, pas le dernier onglet');
   const o = cut('function openSchemaSheet(ctx,vue){', 'function closeSchemaSheet(){');
   assert.ok(o.includes("if(ae&&ae!==document.body&&!ae.closest('#schema-sheet'))schRetour=ae;") && o.includes("document.querySelector('#schema-body .sch-tab.on')||document.querySelector('#schema-sheet .viz-head button'); if(f)try{ f.focus({preventScroll:true}); }"));
@@ -282,5 +283,5 @@ test('la DA : les accents entiers, « → table » qui rétrécit d’abord, les
     'html.lq #schema-sheet .umd-dv{padding:2px 7px;border-radius:99px;', 'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);',
     'html.lq #schema-sheet .sch-col .cxl{flex-basis:100%;order:9;min-width:0;', 'html.lq #schema-sheet .sch-col .cx{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow:hidden;'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=155">'), 'la feuille de style est rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=156">'), 'la feuille de style est rechargée');
 });
