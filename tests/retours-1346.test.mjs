@@ -56,9 +56,10 @@ test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l
   assert.ok(ob.includes("for(const c of C){") && app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'se resserre par paliers tant que ça déborde');
   /* 4 novembre, 17 h 27 (réf. 8 et 9) : le grand chiffre des jours est passé sur la page des jours (plus de page « 24 jours ») */
   assert.ok(app.includes('<span class="ob-proj-big" aria-hidden="true"><b><i class="ob-apport-n" data-n="${b.days}">${b.days}</i></b><small>jour${b.days>1?\'s\':\'\'}</small></span>'));
-  /* 3 novembre, 13 h 25 : « Mon engagement personnel » à la place de « Mon contrat d’apprentissage » (tests/onboarding-age-profession.test.mjs) */
-  assert.ok(app.includes('<p class="ob-pact-k">Mon engagement personnel</p>'));
-  assert.ok(app.includes("    if(draft.pacte)obSetFooter('Continuer',()=>obGoto('practice'),'','','');\n    else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');"), 'le bouton à l’empreinte confirme lui-même ; « Plus tard » reste');
+  /* 3 novembre, 13 h 25 : « Mon engagement personnel » à la place de « Mon contrat d’apprentissage » ; 5 novembre, 21 h 19 : « Mon
+     engagement », et « C’est parti ! » à la place de « Continuer » (retours-2119) */
+  assert.ok(app.includes('<p class="ob-pact-k">Mon engagement</p>') && !app.includes('Mon engagement personnel</p>'));
+  assert.ok(app.includes("    if(draft.pacte)obSetFooter(PACTE_GO,()=>obGoto('practice'),'','','');\n    else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');"), 'le bouton à l’empreinte confirme lui-même ; « Plus tard » reste');
   assert.ok(app.includes("...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})"), 'l’engagement reste sur l’appareil, dans le profil');
   const v = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
   for (const part of ['html #onboarding.ob-vitrine .ob-big b{font:800 clamp(120px,40vw,168px)/.9 var(--v-display);', 'html #onboarding.ob-vitrine .ob-pact-card{position:relative;',
