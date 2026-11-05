@@ -1,4 +1,4 @@
--- Salle de défi (Elisa, 5 novembre, 9 h 18). Préparée, à appliquer avec son accord.
+-- Salle de défi (Elisa, 5 novembre, 9 h 18 ; appliquée avec son accord à 10 h 16).
 -- 1. Un essai manqué est annoncé à la salle (message « rate ») : pendant qu’ils cherchent, les autres voient passer le pseudo et une
 --    croix. Seulement pendant la manche, entre amis, tant que le joueur n’a pas trouvé ; rien n’est dit de la requête elle-même. Si la
 --    salle a trop de messages, l’annonce est perdue, mais l’essai est bien enregistré.

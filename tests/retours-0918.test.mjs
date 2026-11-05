@@ -173,8 +173,8 @@ test('salle : chaque essai des autres passe en haut de l’écran, son pseudo et
     assert.ok(css.includes(k), k);
 });
 
-test('serveur : l’essai manqué annoncé à la salle, le +25 au seul premier (migration préparée)', () => {
-  const f = path.join(ROOT, 'supabase/migrations/20261105091800_salle_essais_rates_et_premier_essai.sql');
+test('serveur : l’essai manqué annoncé à la salle, le +25 au seul premier (migration appliquée le 5 novembre)', () => {
+  const f = path.join(ROOT, 'supabase/migrations/20261105092028_salle_essais_rates_et_premier_essai.sql');
   const sql = fs.readFileSync(f, 'utf8');
   assert.ok(sql.includes("elsif ouverte and not deja and not coalesce(rd.solo,false) then") && sql.includes("jsonb_build_object('v',1,'t','rate','pid',e.pid,'name',mb.pseudo,'u',replace(e.id::text,'-',''),'g',e.generation,'n',e.numero)"));
   assert.ok(sql.includes('exception when others then null;'), 'un relais saturé ne fait pas perdre l’essai');
@@ -196,5 +196,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=147">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=148">'));
 });

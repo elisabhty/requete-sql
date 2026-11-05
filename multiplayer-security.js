@@ -16,7 +16,8 @@
     const entryScreen = document.querySelector('.screen.active');
     const controller = new AbortController();
     const deadline = setTimeout(() => controller.abort(), 10000);
-    const button = document.querySelector('.screen.active .room-go');
+    // 5 November, 10:16: rooms open from a sheet above the screen; its button waits too.
+    const button = document.querySelector('#dx-feuille .room-go') || document.querySelector('.screen.active .room-go');
     if (button) button.disabled = true;
     try {
       const before = Date.now();

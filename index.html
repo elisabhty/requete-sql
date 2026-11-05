@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=147">
+<link rel="stylesheet" href="ludique.css?v=148">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -20154,6 +20154,7 @@ function switchTab(name){
   if(activeTab==='console'&&name!=='console') persistEditor('ed-console');
   if(activeTab==='compte'&&name!=='compte')document.querySelectorAll('#scr-compte .plus-details[open]').forEach(d=>{d.open=false;});
   if(activeTab==='stickers'&&name!=='stickers'){stkClose();stkSeen();}
+  if(name!=='defis'&&typeof defisFeuilleFermer==='function'&&document.getElementById('dx-feuille'))defisFeuilleFermer(true);
   if(name==='console'&&activeTab==='console'&&consoleView==='work'){
     closeConsoleProject();
     return;
@@ -21414,48 +21415,119 @@ function salleKpi(){
    Planning : réussies sur jouées, la jauge, « à jouer » au début, et les points dans une pièce jaune qui tient dans la tuile. */
 const KPI_COIN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFC83D" stroke="#1B1640" stroke-width="2"/><path d="M12 7.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff" stroke="#1B1640" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 function sallePts(n){return `${(+n||0).toLocaleString('fr-FR')} pt${n>1?'s':''}`;}
-/* Entrée « Salle de défi » : la carte d’une salle (4 novembre, 19 h 10). Elle s’ouvre sous la partie rapide quand on la demande, « Créer une salle »
-   (niveau, manches, qui peut entrer : tout le monde par défaut, ou sur invitation), « J’ai un code » ou « t’entraîner seul ».
-   Le défi est tiré au sort au dernier moment, le même pour tous. */
+/* Entrée « Salle de défi » (Elisa, 5 novembre, 10 h 16 : « au niveau UI/UX des défis, ça me bloque pour la mise en prod, pas trop
+   pratique : créer une salle ouvre un autre cadre » ; elle a choisi les feuilles). Sous la partie rapide, trois boutons : « Créer une
+   salle », « J’ai un code », « Seul ». Chacun ouvre une feuille par-dessus l’écran, sans rien déplacer dans la page ; le niveau reste
+   celui de la partie rapide, choisi une seule fois, et la feuille le rappelle. Le défi est tiré au sort au dernier moment, le même
+   pour tous. */
 function renderDefisRoom(){
   const host=document.getElementById('defis-room');if(!host)return;
   /* Un niveau sans défi est grisé et la salle se replace sur le premier niveau disponible. */
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
-  const auto=jeuNivAuto();
-  /* Un code reçu par lien : la carte s’ouvre sur « J’ai un code », le code déjà posé. */
-  const D=typeof DEFIS!=='undefined'?DEFIS:{carte:'creer'};
+  /* Un code reçu par lien : la feuille « J’ai un code » s’ouvre, le code déjà posé. */
+  const D=typeof DEFIS!=='undefined'?DEFIS:{carte:''};
   if(jeuInvite)D.carte='code';
-  if(!D.carte){host.innerHTML='';return;}
-  jeuMode=D.carte==='code'?'join':D.carte==='seul'?'solo':'friends';
-  const friends=jeuMode==='friends',join=jeuMode==='join';
+  const c=D.carte;
+  const tuile=(k,stk,titre,sous)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b><small>${sous}</small></button>`;
+  host.innerHTML=`<div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('creer','user','Créer','une salle entre amis')}${tuile('code','rocket','J’ai un code','rejoindre un ami')}${tuile('seul','clock','Seul','entraînement')}</div>`;
+  const f=typeof document.getElementById==='function'?document.getElementById('dx-feuille'):null;
+  if(c&&(!f||f.dataset.k!==c))defisFeuilleOuvrir(c);
+}
+/* Le contenu d’une feuille : le bandeau violet (autocollant, surtitre, titre ; le niveau en pastille), puis, sur blanc, seulement ce
+   qu’il faut choisir. Créer : les manches, qui peut entrer, le pseudo ; un code : le code ; seul : les manches. */
+function defisFeuilleHTML(k){
+  const join=k==='code',friends=k==='creer';
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
-  const tete=join?['J’ai un code','Rejoins une salle','Entre le code que ton ami t’a envoyé.']
-    :friends?['Créer une salle','Ta salle de défi','Le niveau et les manches, puis qui peut entrer.']
-    :['Entraînement','Joue seul','Un défi tiré au sort, sans adversaire.'];
-  /* L’en-tête violet quadrillé de la vitrine, l’autocollant ; dessous, sur blanc, les réglages (ludique.css, 42), et × pour refermer. */
-  host.innerHTML=`<section class="room-card dx-carte is-${D.carte}" aria-labelledby="room-h">
-    <div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'target':'clock')}</span><div>
+  const niv=`<span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span>`;
+  const tete=join?['J’ai un code','Rejoins une salle','Entre le code que ton ami t’a envoyé. Il a choisi le niveau et les manches.']
+    :friends?['Créer une salle','Ta salle de défi',`${niv}<span>Le défi est tiré au sort au dernier moment, le même pour tous.</span>`]
+    :['Entraînement','Joue seul',`${niv}<span>Un défi tiré au sort, sans adversaire.</span>`];
+  return `<div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span><div>
     <p class="room-kicker">${tete[0]}</p>
-    <h2 id="room-h">${tete[1]}</h2>
-    <p class="room-sub">${tete[2]}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i>
-    <button type="button" class="dx-fermer" onclick="defisCarte('')" aria-label="Fermer">×</button></div>
+    <h2 id="dx-f-t">${tete[1]}</h2>
+    <p class="room-sub" id="dx-f-p">${tete[2]}</p></div><i class="room-sp s2" aria-hidden="true"></i></div>
+    <div class="dx-f-corps" data-k="${k}">
     ${join?`<div class="room-field room-join" data-join>
       ${jeuInvite?`<p class="room-invite">Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'} dans la salle <b class="jeu-code-inline">${jeuInvite}</b></p>`:''}
       <label class="jeu-lab" for="jeu-code">Code de la salle</label>
       <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${jeuInvite||''}" oninput="this.value=jeuCleanCode(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go">
-      <small class="room-hint">Les 6 caractères que ton ami t’a envoyés. Il choisit le niveau et les manches.</small></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-niv-l">Niveau</p>
-      <div class="room-levels" role="radiogroup" aria-labelledby="room-niv-l">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="jeuRoomSet('niv','${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':''}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div></div>
-    <div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
+      <small class="room-hint">Les 6 caractères que ton ami t’a envoyés.</small></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-nb-l">${seg('nb',[[1,'1'],[3,'3'],[5,'5']].map(([v,l])=>[v,l,v>jeuChallenges(jeuNiv).length?' disabled':'']),jeuNb)}</div></div>`}
     ${friends?`<div class="room-field" data-vis><p class="jeu-lab" id="room-vis-l">Qui peut entrer&nbsp;?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-vis-l">${seg('vis',[['pub','Tout le monde'],['priv','Sur invitation']],jeuVis)}</div>
-      <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small></div>`:''}
-    ${friends||join?`<div class="room-field" data-friends>${jeuNomField('jeu-nom')}</div>`:''}
-    <button type="button" class="room-go" onclick="jeuEnterRoom()"><span>${join?'Rejoindre la salle':friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button>
-    <p class="jeu-msg" role="status" aria-live="polite"></p>
+      <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small></div>
+    <div class="room-field" data-friends>${jeuNomField('jeu-nom')}</div>`:''}
     ${friends||join?`<div data-friends>${JEU_NOTE_HTML}</div>`:''}
-  </section>`;
+    <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite"></p>
+    <button type="button" class="room-go" onclick="jeuEnterRoom()"><span>${join?'Rejoindre la salle':friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button></div>
+    </div>`;
+}
+/* La feuille : elle monte du bas, le fond se voile ; × , le voile ou Échap la referment, le focus revient au bouton qui l’a ouverte.
+   Le code à taper : la feuille reste au-dessus du clavier (comme les feuilles de saisie, lqPrompt). */
+let dxFeuilleRetour=null;
+function defisFeuilleOuvrir(k){
+  if(typeof document==='undefined'||!document.body||!['creer','code','seul'].includes(k))return;
+  jeuMode=k==='code'?'join':k==='seul'?'solo':'friends';
+  if(typeof DEFIS!=='undefined')DEFIS.carte=k;
+  let el=document.getElementById('dx-feuille');
+  const neuf=!el;
+  if(neuf){
+    el=document.createElement('div');el.id='dx-feuille';el.className='dx-feuille';
+    const a=document.activeElement;dxFeuilleRetour=a&&a.closest&&a.closest('.dx-act')?a:null;
+    document.addEventListener('keydown',dxFeuilleTouche,true);
+    const vv=window.visualViewport;if(vv){vv.addEventListener('resize',dxFeuilleCaler);vv.addEventListener('scroll',dxFeuilleCaler);}
+  }
+  el.dataset.k=k;
+  el.innerHTML=`<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>
+    <div class="dx-f-boite" role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1">
+      <button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>
+      ${defisFeuilleHTML(k)}
+    </div>`;
+  const inp=el.querySelector('#jeu-code');
+  if(inp){inp.addEventListener('focus',()=>requestAnimationFrame(dxFeuilleCaler));inp.addEventListener('blur',dxFeuilleCaler);}
+  document.querySelectorAll('#defis-room .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
+  const bx=el.querySelector('.dx-f-boite');
+  if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;}
+  const montrer=()=>{
+    el.classList.add('on');
+    try{ if(inp&&!inp.value)inp.focus({preventScroll:true}); else el.querySelector('.dx-f-boite').focus({preventScroll:true}); }catch(e){}
+    dxFeuilleCaler();
+  };
+  if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
+}
+function defisFeuilleFermer(sansRetour){
+  if(typeof DEFIS!=='undefined')DEFIS.carte='';
+  jeuInvite='';
+  if(typeof document==='undefined'||!document.getElementById)return;
+  document.querySelectorAll('#defis-room .dx-act').forEach(b=>b.setAttribute('aria-expanded','false'));
+  const el=document.getElementById('dx-feuille');if(!el)return;
+  document.removeEventListener('keydown',dxFeuilleTouche,true);
+  const vv=window.visualViewport;if(vv){vv.removeEventListener('resize',dxFeuilleCaler);vv.removeEventListener('scroll',dxFeuilleCaler);}
+  const inp=el.querySelector('#jeu-code');if(inp)inp.blur();
+  el.removeAttribute('id');
+  el.classList.remove('on');el.classList.add('off');
+  setTimeout(()=>el.remove(),prefersReduceMotion()?0:260);
+  const r=dxFeuilleRetour;dxFeuilleRetour=null;
+  if(!sansRetour&&r&&r.isConnected)try{ r.focus({preventScroll:true}); }catch(e){}
+}
+/* Échap referme ; Tab reste dans la feuille. */
+function dxFeuilleTouche(e){
+  const el=document.getElementById('dx-feuille');if(!el)return;
+  if(e.key==='Escape'){e.preventDefault();e.stopPropagation();defisFeuilleFermer();return;}
+  if(e.key!=='Tab')return;
+  const f=[...el.querySelectorAll('.dx-f-boite button:not([disabled]),.dx-f-boite input')].filter(x=>x.offsetParent!==null||x===document.activeElement);
+  if(!f.length)return;
+  const i=f.indexOf(document.activeElement);
+  e.preventDefault();
+  f[i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length].focus();
+}
+/* Clavier ouvert sur le code : la feuille se pose au-dessus ; refermé, elle rejoint le bas de l’écran d’un seul glissé. */
+function dxFeuilleCaler(){
+  const el=document.getElementById('dx-feuille'),vv=window.visualViewport;if(!el||!vv)return;
+  const inp=el.querySelector('#jeu-code'),open=!!inp&&document.activeElement===inp;
+  el.style.top=(open?vv.offsetTop:0)+'px';el.style.height=(open?vv.height:window.innerHeight)+'px';el.style.bottom='auto';
+  if(el._marque)requestAnimationFrame(el._marque);
 }
 function jeuVisTexte(){return jeuVis==='priv'?'Seuls ceux qui ont le code peuvent entrer.':'Ta salle apparaît dans «\u00a0Salles ouvertes\u00a0». Tes amis peuvent aussi entrer avec le code.';}
 /* L’écran Défis : la salle de défi seule (Elisa, 31 octobre, 1 h 34 : « pas de défis libres ni d’entraînement libre, que la salle de
@@ -21520,8 +21592,14 @@ function perfMateHTML(m,i){
 /* « Les redéfier » : la salle passe en « Entre amis », au niveau de la dernière partie, et l’écran remonte jusqu’à elle. */
 function perfRematch(niv){
   if(niv&&JEU_NIVL[niv]&&jeuChallenges(niv).length){jeuNiv=niv;jeuNivUser=true;jeuSavePrefs();}
-  if(typeof DEFIS!=='undefined'){DEFIS.onglet='jouer';DEFIS.carte='creer';jeuSavePrefs();defisPeindre();}
-  else{jeuRoomSet('mode','friends');if(niv&&JEU_NIVL[niv])jeuRoomSet('niv',niv);}
+  if(typeof DEFIS!=='undefined'){
+    DEFIS.onglet='jouer';DEFIS.carte='creer';jeuSavePrefs();defisPeindre();
+    setTimeout(()=>{const go=document.querySelector('#dx-feuille .room-go');
+      if(go){go.classList.remove('is-nudge');void go.offsetWidth;go.classList.add('is-nudge');setTimeout(()=>go.classList.remove('is-nudge'),1400);}},prefersReduceMotion()?0:380);
+    if(typeof buzz==='function')buzz('light');
+    return;
+  }
+  jeuRoomSet('mode','friends');if(niv&&JEU_NIVL[niv])jeuRoomSet('niv',niv);
   const card=document.getElementById('defis-room'),scr=card&&card.closest('.screen');
   if(scr){const top=scr.scrollTop+card.getBoundingClientRect().top-scr.getBoundingClientRect().top-64;
     try{scr.scrollTo({top:Math.max(0,top),behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){scr.scrollTop=Math.max(0,top);}}
@@ -22151,17 +22229,12 @@ function defisRapideHTML(){
     <button type="button" class="room-go" id="dx-rapide-go" onclick="jeuPartieRapide()"><span>Trouver une salle</span>${DEF_CHEV_SVG}</button>
     <p class="jeu-msg" id="dx-rapide-msg" role="status" aria-live="polite"></p></section>`;
 }
-/* Créer une salle, entrer un code, s’entraîner seul : la carte de la salle s’ouvre sous la partie rapide (renderDefisRoom). */
+/* Créer une salle, entrer un code, s’entraîner seul : la feuille demandée (defisFeuilleOuvrir) ; '' la referme. */
 function defisCarte(m){
-  DEFIS.carte=['creer','code','seul'].includes(m)&&DEFIS.carte!==m?m:'';
-  if(DEFIS.carte!=='code')jeuInvite='';
-  renderDefisRoom();sallesRepeindre();
-  const card=document.querySelector('#defis-room .room-card');
-  if(card){
-    const scr=card.closest('.screen');
-    if(scr){const top=scr.scrollTop+card.getBoundingClientRect().top-scr.getBoundingClientRect().top-70;try{scr.scrollTo({top:Math.max(0,top),behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){scr.scrollTop=Math.max(0,top);}}
-    if(DEFIS.carte==='code'){const inp=card.querySelector('#jeu-code');if(inp&&!inp.value)setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},80);}
-  }
+  const k=['creer','code','seul'].includes(m)?m:'';
+  if(!k){defisFeuilleFermer();return;}
+  if(k!=='code')jeuInvite='';
+  defisFeuilleOuvrir(k);
   if(typeof buzz==='function')buzz('light');
 }
 /* La partie rapide : la salle publique la plus remplie qui attend au niveau choisi ; sinon, une salle publique à soi, au même
@@ -22242,11 +22315,9 @@ function sallesRepeindre(){
   else if(!l)corps=`<ul class="dx-list is-wait" aria-label="Chargement des salles ouvertes">${[0,1].map(i=>`<li style="--i:${i}"><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('')}</ul>`;
   else if(!l.length)corps=`<p class="dx-vide">Aucune salle ouverte pour l’instant. Lance une partie rapide&nbsp;: ta salle apparaîtra ici pour les autres.</p>`;
   else corps=`<ul class="dx-list">${l.map(s=>salleLigneHTML(s)).join('')}</ul>`;
-  const c=DEFIS.carte;
+  /* 10 h 16 : « Créer une salle », « J’ai un code » et « Seul » sont sous la partie rapide ; ici, les salles en direct seulement. */
   host.innerHTML=`<section class="perf-card dx-salles" aria-labelledby="dx-salles-h"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('bubble')}</span><div><p class="perf-kicker">${kicker}</p><h2 id="dx-salles-h">Salles ouvertes</h2></div></div>
     ${corps}
-    <div class="dx-duo"><button type="button" class="dx-sec${c==='creer'?' on':''}" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')">+ Créer une salle</button><button type="button" class="dx-sec${c==='code'?' on':''}" aria-expanded="${c==='code'}" onclick="defisCarte('code')">J’ai un code</button></div>
-    <p class="dx-solo">Ou <button type="button" class="dx-lien" aria-expanded="${c==='seul'}" onclick="defisCarte('seul')">t’entraîner seul</button>, sans adversaire.</p>
     <p class="dx-regles"><button type="button" class="dx-lien" onclick="defisStats(true)">Comment on marque des points</button></p></section>`;
 }
 /* L’hôte d’une salle publique la publie (jeu_salle_publier) dès que la base la connaît : quelques essais, de plus en plus espacés. */
@@ -28694,7 +28765,6 @@ function openJeu(code){
   if(document.body.classList.contains('in-lesson'))leaveLessonScreen('defis');
   else if(activeTab==='defis')renderDefis();
   else switchTab('defis');
-  if(jeuInvite)setTimeout(()=>{const j=document.getElementById('defis-room');if(j&&j.scrollIntoView)j.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});},380);
 }
 function jeuSetOpt(k,v,btn){
   if(k==='niv'){jeuNiv=v;jeuNivUser=true;}else jeuNb=v;
@@ -28702,6 +28772,7 @@ function jeuSetOpt(k,v,btn){
   btn.parentElement.querySelectorAll('button').forEach(b=>{const on=b===btn;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
 }
 function jeuMsgEl(id){
+  if((id||'jeu-nom')==='jeu-nom'){const f=document.querySelector('#dx-feuille .jeu-msg');if(f)return f;}
   const zone={'jeu-nom':'#defis-room','jeu-nom-join':'#defis-join','jeu-nom-defi':'#defi-friends-block'}[id||'jeu-nom'];
   const ici=zone&&document.querySelector('.screen.active '+zone+' .jeu-msg');if(ici)return ici;
   const inp=document.querySelector('.screen.active #'+(id||'jeu-nom'));
@@ -28717,7 +28788,7 @@ function jeuAskNom(id){
 }
 /* Écran Défis : les choix de la salle se changent sur place (rien n’est redessiné). */
 function jeuRoomSet(k,v){
-  const card=document.getElementById('defis-room');if(!card)return;
+  const card=document.querySelector('#dx-feuille .dx-f-corps')||document.getElementById('defis-room');if(!card)return;
   if(k==='niv'&&!(JEU_NIVL[v]&&jeuChallenges(v).length))return;
   if(k==='niv'){jeuNiv=v;jeuNivUser=true;}
   else if(k==='nb'&&[1,3,5].includes(v))jeuNb=v;
@@ -28730,7 +28801,7 @@ function jeuRoomSet(k,v){
   card.querySelectorAll('[data-friends]').forEach(el=>{el.hidden=!(friends||join);});
   card.querySelectorAll('[data-create]').forEach(el=>{el.hidden=join;});
   card.querySelectorAll('[data-join]').forEach(el=>{el.hidden=!join;});
-  const sub=card.querySelector('.room-sub');if(sub)sub.textContent=join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.';
+  if(k==='mode'){const sub=card.querySelector('.room-sub');if(sub)sub.textContent=join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.';}
   const go=card.querySelector('.room-go span');if(go)go.textContent=join?'Rejoindre la salle':friends?'Ouvrir la salle':'Tirer un défi';
   if(k==='mode'&&join){const inp=card.querySelector('#jeu-code');if(inp&&!inp.value)setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},60);}
   const msg=card.querySelector('.jeu-msg');if(msg)msg.textContent='';
@@ -28751,6 +28822,7 @@ function jeuStart(code,host,cid,opts){
   const nom=solo?(jeuSavedNom()||'Toi'):jeuAskNom(opts.nomId);if(!nom)return;
   if(typeof CHALLENGES==='undefined'||!SQL){const m=jeuMsgEl(opts.nomId);if(m)m.textContent='Le moteur SQL se charge encore, réessaie dans un instant.';return;}
   if(JEU)jeuStop();
+  if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
   const picked=host&&cid?CHALLENGES.find(x=>x.id===cid):null;
   const niv=picked?picked.niv:jeuNiv;
   const nb=Math.max(1,Math.min(jeuNb,jeuChallenges(niv).length||1));
@@ -35555,7 +35627,7 @@ function obWidgetProposer(){
     if(!state.onboarded||!obWidgetPossible()||localStorage.getItem(OB_WIDGET_VU))return false;
     if(!allLessons.some(l=>lecCompletee(l.id)))return false;
     const root=document.getElementById('onboarding');
-    if(document.body.classList.contains('in-lesson')||(root&&root.classList.contains('on'))||document.getElementById('pays-feuille')||document.querySelector('.lq-ask.on,#lesson-video'))return false;
+    if(document.body.classList.contains('in-lesson')||(root&&root.classList.contains('on'))||document.getElementById('pays-feuille')||document.querySelector('.lq-ask.on,#lesson-video,#dx-feuille'))return false;
     localStorage.setItem(OB_WIDGET_VU,'1');
   }catch(e){return false;}
   startOnboarding('widget');
@@ -38232,7 +38304,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-salle-v2528';
+  const SW_CACHE='requete-2026-11-05-defis-v2529';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
