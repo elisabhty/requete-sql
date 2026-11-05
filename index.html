@@ -38378,7 +38378,7 @@ function renderCompte(){
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
             ${appliNative()?`<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('trophy')}</span><span><b>Noter Requête</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
-            ${connected?`<button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>Ta progression reste sur ton compte</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+            <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Ta progression reste sur cet appareil'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>Supprimer mon compte</b><small>Ton pseudo, tes scores et toutes tes données</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>
@@ -38904,7 +38904,16 @@ function noterAppli(){
   if(C){Promise.resolve(C.nativePromise('RequeteWidget','ouvrir',{url})).catch(()=>{location.href=url;});return;}
   window.open(`https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`,'_blank','noopener');
 }
+/* Se déconnecter (Elisa, 5 novembre, 22 h 14 : « mets le bouton déconnexion même s’il ne fonctionne pas ») : la ligne est toujours
+   là. Sans compte connecté (aucune connexion n’est encore branchée), elle dit où est la progression et propose d’en garder une
+   sauvegarde, plutôt que de ne rien faire. */
 async function seDeconnecter(){
+  if(state.accountMode!=='connected'){
+    if(await lqAsk({ico:'👋',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter. Garde-en une sauvegarde pour la retrouver ailleurs.',oui:'Sauvegarder ma progression',non:'OK'})){
+      if(typeof exportProgress==='function')exportProgress();
+    }
+    return;
+  }
   if(!await lqAsk({ico:'👋',titre:'Te déconnecter ?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
@@ -39133,7 +39142,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-rappel-commence-v2559';
+  const SW_CACHE='requete-2026-11-05-deconnexion-v2560';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
