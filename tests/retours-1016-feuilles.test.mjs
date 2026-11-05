@@ -42,7 +42,7 @@ test('le cadre du haut (11 h 11, 11 h 19) : le niveau, « Créer une salle », p
   const haut = fn('defisRapideHTML');
   assert.ok(haut.includes('<p class="room-kicker">Créer une salle</p><h2 id="dx-rapide-h">Ta salle de défi</h2>') && haut.includes("${jeuNiveauxHTML('dx-niv-l','defisNiv')}"), 'le niveau dans le cadre de « Créer une salle »');
   assert.ok(haut.includes('<button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c===\'creer\'}" onclick="defisCarte(\'creer\')"><span>Créer une salle</span>${DEF_CHEV_SVG}</button>\n    ${defisActionsHTML()}</section>`;'), '« Créer une salle » ouvre sa feuille ; la rangée dessous');
-  assert.ok(!haut.includes('jeuPartieRapide') && fn('sallesRepeindre').includes('onclick="jeuPartieRapide()"><span>Trouver une salle</span>'), '« Trouver une salle » dans le cadre du bas');
+  assert.ok(!haut.includes('jeuPartieRapide') && fn('sallesRepeindre').includes('<h2 id="dx-salles-h">Rejoins une partie</h2>') && !app.includes('function jeuPartieRapide('), '11 h 37 : le cadre du bas, « Rejoins une partie », sans « Trouver une salle »');
   ctx.renderDefisRoom();
   assert.equal(els['defis-room'].innerHTML, '', 'plus rien entre la partie rapide et les salles ouvertes');
   assert.deepEqual(ouvertes, [], 'rien ne s’ouvre tout seul');
@@ -110,7 +110,7 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
 test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du bas, son bouton qui reste en bas sur un petit écran', () => {
   for (const k of ['html.lq #scr-defis .dx-ou{display:flex;align-items:center;gap:12px;', 'html.lq #scr-defis .dx-ou::before,html.lq #scr-defis .dx-ou::after{content:"";flex:1;height:2px;',
     'html.lq #scr-defis .dx-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px;border:2px solid var(--line);border-radius:18px;',
-    'html.lq #scr-defis .dx-trouver{margin:14px 0 4px}', 'html.lq #scr-defis #dx-salles-liste{margin-top:12px;padding-top:12px;border-top:2px dashed var(--line-2)}',
+    'html.lq #scr-defis .dx-aucune{margin:0;padding:14px 14px 12px;border:2px dashed #D6CCFA;border-radius:18px;background:#FAF8FF}', 'html.lq #scr-defis #dx-salles-liste:empty{display:none}',
     'html.lq #scr-defis .dx-act+.dx-act{box-shadow:inset 2px 0 0 var(--line)}',
     'html.lq #scr-defis .dx-act:active,html.lq #scr-defis .dx-act[aria-expanded="true"]{background:var(--accent-soft)}',
     '.dx-feuille{position:fixed;inset:0;z-index:2600;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}',
@@ -119,5 +119,6 @@ test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du 
     'html.lq .dx-feuille .dx-f-boite.is-defile .dx-f-pied::before{opacity:1}', 'html.lq .dx-f-niv{display:inline-flex;align-items:center;gap:7px;',
     '@media (max-height:720px),(max-width:360px){', 'html[data-motion="reduce"] .dx-feuille,html[data-motion="reduce"] .dx-feuille .dx-f-fond,html[data-motion="reduce"].lq .dx-feuille .dx-f-boite{transition:none!important}'])
     assert.ok(css.includes(k), k);
-  for (const gone of ['.dx-duo{', '.dx-sec{', '.dx-fermer{', '.dx-carte .room-head']) assert.ok(!css.includes(gone), 'retiré : ' + gone);
+  /* .dx-duo et .dx-sec restent : l’onglet Joueurs s’en sert encore (« Ajouter un joueur », « Inviter par lien » ; retours-1137). */
+  for (const gone of ['.dx-fermer{', '.dx-carte .room-head']) assert.ok(!css.includes(gone), 'retiré : ' + gone);
 });
