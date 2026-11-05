@@ -30,7 +30,8 @@ test('la carte du cours : le module en grand à gauche de la mascotte, la leçon
   };
   let c = carte(10, 71);
   assert.equal(c.pf, 83, '10 leçons sur les 12 du module, pas sur les 71 du parcours');
-  assert.equal(c.parc, `<div class="lq-hero-body lq-hero-parc" data-p="83"><p class="lq-hero-kicker">Ton module</p><p class="lq-parc-n"><span class="lq-pct-n">83</span><em>${NB}%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:83%"></i></span><p class="lq-hero-sub">10 leçons validées sur 12</p></div>`);
+  /* 21 h 09 : plus de « Ton module » en menthe au-dessus (retours-2109) */
+  assert.equal(c.parc, `<div class="lq-hero-body lq-hero-parc" data-p="83"><p class="lq-parc-n"><span class="lq-pct-n">83</span><em>${NB}%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:83%"></i></span><p class="lq-hero-sub">10 leçons validées sur 12</p></div>`);
   assert.ok(c.html.includes('<span class="lq-hero-mod"><b>Module 2</b>Lire une table</span><div class="lq-hero-main"><div class="lq-hero-body lq-hero-parc" data-p="83">') && c.html.includes('</div><i class="m"></i></div>'), 'le module, puis sa part et la mascotte');
   assert.ok(!c.html.includes('Ton parcours SQL'), '« SQL » retiré');
   assert.ok(c.html.includes('<button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="Reprendre ma leçon : leçon 11 sur 12, ORDER BY" onclick="openItem(11,0)"><span class="lq-play" aria-hidden="true">▶</span><span class="lq-cta-t"><b>Reprendre ma leçon</b><small>Leçon 11 sur 12 · ORDER BY</small></span></button></section>'), 'la leçon dans le bouton');
@@ -41,12 +42,12 @@ test('la carte du cours : le module en grand à gauche de la mascotte, la leçon
   /* Un défi, hors module : la part du parcours (25 leçons validées sur 71), sous « Ton parcours » */
   c = carte(5, 71, { mod: null, defi: true, niv: 'Facile', index: 0, kicker: 'Ton prochain défi', ctaLabel: 'Commencer le défi', meta: { titre: 'Le meilleur client' }, arg: '"d3"' });
   assert.equal(c.pf, 35);
-  assert.ok(c.parc.includes('<p class="lq-hero-kicker">Ton parcours</p>') && c.parc.includes('25 leçons validées sur 71'));
+  assert.ok(!c.parc.includes('lq-hero-kicker') && c.parc.includes('25 leçons validées sur 71'));
   assert.ok(c.html.includes('<span class="lq-hero-mod"><b>Défi</b>Facile</span>') && c.html.includes('<b>Commencer le défi</b><small>Le meilleur client</small>') && c.html.includes('aria-label="Commencer le défi : Le meilleur client"'), 'un défi');
   assert.equal(carte(5, 71, { mod: null, defi: true, parcoursSqlFaites: undefined }).pf, 0, 'sans le calcul (une page de test) : 0 %, sans erreur');
   /* Le calcul du parcours est celui de la page Parcours */
   assert.ok(app.includes('function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}'));
-  assert.ok(app.includes('  lqSesCount(host);\n  lqPctAnime(host);\n}'));
+  assert.ok(app.includes('  lqSesCount(host);\n  lqPctAnime(host);\n  lqSesAjuste(host);\n}'));
 });
 
 test('la barre se remplit à la première ouverture, puis depuis la valeur déjà vue ; immobile avec les mouvements réduits', async () => {
@@ -85,5 +86,5 @@ test('le style : grand chiffre jaune et sa barre, le bouton sur deux lignes ; ri
     '@media (max-width:360px){\n  html.lq .lq-parc-n{font-size:40px}\n  html.lq .lq-parc-bar,html.lq .lq-hero-parc .lq-hero-sub{max-width:calc(100% - 48px)}'])
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-hero-pct') && !lq.includes('.lq-pct-ring'), 'plus d’anneau');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=163">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=164">'));
 });
