@@ -122,7 +122,7 @@ test('micro-interactions au lieu des notifications : l’action se voit là où 
 test('ref 6 — la description d’une table : seulement dépliée, au-dessus de « Voir les données », Réinitialiser et Supprimer', () => {
   const ws = fn('renderDbWorkspace');
   assert.ok(ws.includes("const desc=!open?'':note"), 'repliée : pas de description');
-  assert.ok(ws.indexOf('<span class="tbl-nom">') < ws.indexOf('${open?`<div class="tbl-corps">${desc}${acts}${struct}</div>`'), 'sous le nom, avant les actions et les colonnes');
+  assert.ok(ws.indexOf('<span class="tbl-nom">') < ws.indexOf('${open?`<div class="tbl-corps${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}${struct}</div>`'), 'sous le nom, avant les actions et les colonnes');
   assert.ok(ws.includes("const nom=esc(t).replace(/_/g,'_<wbr>');") && ws.includes('<b class="tn">${nom}</b>'), 'un long nom passe à la ligne après un « _ »');
 });
 

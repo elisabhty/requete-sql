@@ -6739,7 +6739,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=159">
+<link rel="stylesheet" href="ludique.css?v=160">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=24">
 <style id="lesson-video-css">
@@ -15135,6 +15135,8 @@ const NAV_KEY='requete-nav-v1';
 const NAV_KEY_LONG='requete-nav-long-v1';
 const NAV_REPRISE_MS=6*60*60*1000;
 let openTableSchema=null;
+/* La carte qu’on vient d’ouvrir : seule elle s’anime en s’ouvrant ; redessinée (une requête qui modifie la table), elle reste immobile (17 h 35) */
+let tblOuvre=null;
 const DBS_KEY='requete-sql-dbs-v1';
 const memStore={};
 const Store={
@@ -16869,15 +16871,33 @@ function fillConsoleSql(sql,o){
   fitSqlEditor(ta);
   persistEditor('ed-console');
   updateConsolePinButton();
-  /* o.haut (« Voir les données ») : l’éditeur monte en haut de l’écran, sous la barre, pour que le résultat tienne dessous */
-  requestAnimationFrame(()=>{const sh=document.querySelector('#scr-console .console-editor-shell');if(o&&o.haut)ecranVers(sh);else sh?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'});lqDone(sh,'Prête','Requête ouverte dans l’éditeur');});
+  /* o.reste (« Voir les données ») : l’écran ne bouge pas encore ; il glissera une seule fois jusqu’à l’éditeur, le résultat déjà affiché */
+  requestAnimationFrame(()=>{const sh=document.querySelector('#scr-console .console-editor-shell');if(!(o&&o.reste))sh?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'});lqDone(sh,'Prête','Requête ouverte dans l’éditeur');});
+}
+/* Un défilement mené par l’appli (Elisa, 5 novembre, 17 h 35 : « quand on appuie sur Voir les données, ça saute ») : une seule glissade,
+   qui part et s’arrête en douceur (le défilement natif part d’un coup, même sur 1 500 px) et qui suit sa cible image par image : si la
+   page bouge en route, elle ne repart pas une deuxième fois. Un doigt posé sur l’écran l’arrête ; sans animation, d’un coup. */
+function glisserEcran(scr,cible){
+  if(!scr)return;
+  const but=()=>{const v=typeof cible==='function'?cible():cible;return Math.max(0,Math.min(v,scr.scrollHeight-scr.clientHeight));};
+  if(scr._glisse)scr._glisse();
+  if(prefersReduceMotion()||typeof requestAnimationFrame!=='function'){scr.scrollTop=but();return;}
+  const y0=scr.scrollTop,d=Math.abs(but()-y0);
+  if(d<2)return;
+  const duree=Math.min(720,320+d*.22),t0=performance.now(),doux=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  let id=0;
+  const fin=()=>{cancelAnimationFrame(id);scr.removeEventListener('touchstart',fin);scr.removeEventListener('wheel',fin);if(scr._glisse===fin)scr._glisse=null;};
+  scr._glisse=fin;
+  scr.addEventListener('touchstart',fin,{passive:true});
+  scr.addEventListener('wheel',fin,{passive:true});
+  const pas=now=>{const t=Math.min(1,Math.max(0,(now-t0)/duree));scr.scrollTop=y0+(but()-y0)*doux(t);if(t<1)id=requestAnimationFrame(pas);else fin();};
+  id=requestAnimationFrame(pas);
 }
 /* Un seul défilement de l’écran, jusqu’à ce que el soit en haut, juste sous la barre du haut */
 function ecranVers(el){
   const scr=el&&el.closest('.screen');if(!scr)return;
-  const sr=scr.getBoundingClientRect(),bar=scr.querySelector(':scope>.p-bar,:scope>.navbar');
-  const top=Math.max(sr.top,bar?bar.getBoundingClientRect().bottom:sr.top)+12;
-  scr.scrollTo({top:Math.max(0,scr.scrollTop+(el.getBoundingClientRect().top-top)),behavior:prefersReduceMotion()?'auto':'smooth'});
+  const haut=()=>{const sr=scr.getBoundingClientRect(),bar=scr.querySelector(':scope>.p-bar,:scope>.navbar');return Math.max(sr.top,bar?bar.getBoundingClientRect().bottom:sr.top)+12;};
+  glisserEcran(scr,()=>scr.scrollTop+(el.getBoundingClientRect().top-haut()));
 }
 function clearConsoleEditor(){
   const ta=document.getElementById('ed-console');
@@ -17041,6 +17061,7 @@ function renderDbWorkspace(){
      Elisa, 5 novembre, 15 h 01 (réf. 5 pour la réf. 4, réf. 8) : repliée, l’icône de la table, son nom, ses lignes et un chevron à
      droite ; dépliée, sa description (ou « Aucune description ajoutée » et « Décrire cette table »), « Voir les données », restaurer et
      supprimer en ronds, puis « Structure de la table » : ses colonnes, leurs types, et d’où ils viennent. */
+  const ouvre=typeof tblOuvre==='undefined'?null:tblOuvre;
   host.innerHTML=tables.map(t=>{
     const n=tableRowCount(database,t);
     const enc=encodeURIComponent(t).replace(/'/g,'%27');   // « l’atelier d'Anaïs » : l’apostrophe droite fermait le onclick
@@ -17075,25 +17096,31 @@ function renderDbWorkspace(){
         <span class="tbl-nom"><b class="tn">${nom}</b><small class="tc">${lignes}${open?` · ${plur(cols.length,'colonne')}`:''}</small></span>
         <span class="tbl-chev" aria-hidden="true">${TBL_CHEV_SVG}</span>
       </button>
-      ${open?`<div class="tbl-corps">${desc}${acts}${struct}</div>`:''}
+      ${open?`<div class="tbl-corps${ouvre===t?' is-ouvre':''}">${desc}${acts}${struct}</div>`:''}
     </div>`;
   }).join('');
+  tblOuvre=null;
   /* Ce qui vient de changer s’anime une fois (ludique.css, 41) : rien en mouvement réduit */
   if(!prefersReduceMotion())tables.forEach(t=>{ if(!fresh[t])return; const el=host.querySelector(`.db-tblock[data-table="${CSS.escape(t)}"]`); if(el)el.classList.add(fresh[t]); });
 }
 function toggleTableSchema(name){
   openTableSchema=openTableSchema===name?null:name;
+  tblOuvre=openTableSchema;
   renderDbWorkspace();
 }
 /* Elisa, 5 novembre, 15 h 01 : « quand on appuie sur Select, ça nous emmène vers le moteur SQL ». « Voir les données » écrit la requête
    dans l’éditeur et l’exécute ; la page descend une seule fois, jusqu’à l’éditeur, et le résultat s’affiche juste dessous (sans le
-   va-et-vient du 3 novembre, 7 h 58 : « le SELECT fait sauter la page » ; avant, les lignes s’affichaient dans la carte). */
+   va-et-vient du 3 novembre, 7 h 58 : « le SELECT fait sauter la page » ; avant, les lignes s’affichaient dans la carte).
+   17 h 35, « ça saute » encore : la descente native partait d’un coup, deux fois (avant, puis après le résultat), et la carte ouverte
+   rejouait son apparition. */
 function voirDonneesTable(name){
   /* La place du résultat est gardée sous l’éditeur le temps du calcul : la page descend d’un seul mouvement jusqu’à lui */
   const out=document.getElementById('console-out');
   if(out)out.style.minHeight=Math.round((window.innerHeight||800)*.8)+'px';
-  fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`,{haut:true});
-  runConsole({surEditeur:true});
+  /* 17 h 35 (« ça saute ») : la requête s’exécute tout de suite, son résultat est déjà là sous l’éditeur quand l’écran part ; rien ne
+     change plus en route, et une seule glissade, douce, l’amène en haut */
+  fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`,{reste:true});
+  runConsole({surEditeur:true,direct:true});
 }
 /* « Ajouter une table » (réf. 8 et 9 : « Ajouter une table → Choisir un fichier → Vérifier les données → Créer la table ») : la fenêtre
    « Ajouter une table au projet » ; « Choisir un fichier » ouvre le sélecteur dans le geste même du toucher, puis la feuille d’import
@@ -18226,9 +18253,10 @@ function runFeedback(btn,ok,label){
   const lab=btn.querySelector('.run-label');
   if(lab)lab.innerHTML=`<span class="run-fb-ico" aria-hidden="true">${ok?CHECK_SVG:'!'}</span>${esc(label)}`;
   if(typeof buzz==='function')buzz(ok?'success':'warning');
-  btn._fb=setTimeout(()=>{if(!btn.classList.contains('running'))setRunLoading(btn,false);},prefersReduceMotion()?900:1400);
+  /* 17 h 35 : « il faut que l’animation du validé dure un peu plus longtemps » : 2,6 s (1,4 s avant) */
+  btn._fb=setTimeout(()=>{if(!btn.classList.contains('running'))setRunLoading(btn,false);},prefersReduceMotion()?1800:2600);
 }
-function scrollToResult(out){
+function scrollToResult(out,o){
   const scr=out&&out.closest('.screen');if(!scr||!out.firstElementChild)return;
   const target=out.querySelector('.result-meta,.feedback')||out.firstElementChild;
   const sr=scr.getBoundingClientRect(),bar=scr.querySelector(':scope>.p-bar,:scope>.navbar');
@@ -18236,7 +18264,15 @@ function scrollToResult(out){
   const r=target.getBoundingClientRect();
   /* Déjà dans la moitié haute de l’écran : on ne bouge pas. */
   if(r.top>=top-4&&r.top<=top+(sr.bottom-top)*.42)return;
-  scr.scrollTo({top:Math.max(0,scr.scrollTop+(r.top-top)),behavior:prefersReduceMotion()?'auto':'smooth'});
+  let d=r.top-top;
+  /* o.garde (la Console, 17 h 35) : le bouton Exécuter passé au vert reste en haut de l’écran quand le résultat tient alors dans ses
+     deux premiers tiers ; la glissade est celle de l’appli. */
+  if(o&&o.garde){
+    const g=o.garde.getBoundingClientRect(),dg=g.top-top,y=r.top-dg;
+    if(g.height&&y>=top&&y<=top+(sr.bottom-top)*.62)d=dg;
+    return glisserEcran(scr,scr.scrollTop+d);
+  }
+  scr.scrollTo({top:Math.max(0,scr.scrollTop+d),behavior:prefersReduceMotion()?'auto':'smooth'});
 }
 /* Une requête qui écrirait dans une base d’entraînement : ce qu’on peut faire, et où s’entraîner à écrire. */
 function consoleLockBox(){
@@ -18246,7 +18282,7 @@ function consoleLockBox(){
 }
 function runConsole(o){
   /* o.surEditeur (« Voir les données ») : la page est déjà descendue jusqu’à l’éditeur ; elle ne repart pas vers le résultat */
-  const surEditeur=!!(o&&o.surEditeur);
+  const surEditeur=!!(o&&o.surEditeur),direct=!!(o&&o.direct);
   const sql=document.getElementById('ed-console').value.trim();
   const out=document.getElementById('console-out');
   if(out&&!surEditeur)out.style.minHeight='';
@@ -18255,11 +18291,11 @@ function runConsole(o){
   persistEditor('ed-console');
   if(btn&&btn.disabled)return;
   setRunLoading(btn,true);
-  out.innerHTML=`<div class="query-loading" aria-live="polite"><span class="ql-spin" aria-hidden="true"></span><span>Exécution de la requête…</span></div>`;
+  if(!direct)out.innerHTML=`<div class="query-loading" aria-live="polite"><span class="ql-spin" aria-hidden="true"></span><span>Exécution de la requête…</span></div>`;
   let fb=null;
   const paint=(html)=>{
     const loading=out.querySelector('.query-loading');
-    const show=()=>{ out.innerHTML=html; setRunLoading(btn,false); bindTableSwipe(out); if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>{if(!surEditeur)return scrollToResult(out);
+    const show=()=>{ out.innerHTML=html; setRunLoading(btn,false); bindTableSwipe(out); if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>{if(!surEditeur)return descendreApresValide(out,btn);
       /* La place gardée reste seulement si le résultat est plus court qu’elle (sinon la page remonterait d’un coup) */
       const garde=out.style.minHeight;out.style.minHeight='';if(garde&&out.offsetHeight<parseFloat(garde))out.style.minHeight=garde;
       ecranVers(document.querySelector('#scr-console .console-editor-shell'));}); };
@@ -18286,7 +18322,9 @@ function runConsole(o){
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
       const moved=touched();
       if(activeDbId!=='cours'&&moved) persistCustomDbs(activeDbId);
-      renderDbWorkspace();
+      /* Les cartes des tables ne se redessinent que si la requête a changé quelque chose (17 h 35 : après un SELECT, la carte ouverte
+         rejouait son apparition sous le doigt) */
+      if(moved) renderDbWorkspace();
       /* La première table créée ici fait disparaître « Ta base est vide » et montre ses exemples ; la dernière supprimée les retire. */
       if(moved) renderConsoleChips();
     }catch(e){
@@ -18298,8 +18336,19 @@ function runConsole(o){
       if(verrou)try{database.run('PRAGMA query_only=OFF');}catch(e){}
     }
   };
-  if(prefersReduceMotion())finish();
+  if(prefersReduceMotion()||direct)finish();
   else setTimeout(finish,380);
+}
+/* Après Exécuter (Elisa, 5 novembre, 17 h 35 : « l’animation du validé, on la voit pas, on est basculé direct vers le bas ») : le bouton
+   passé au vert reste un instant sous les yeux, puis l’écran glisse jusqu’au résultat en le gardant en haut. Un doigt posé sur l’écran
+   entre-temps annule la descente. */
+function descendreApresValide(out,btn){
+  const scr=out&&out.closest('.screen');
+  clearTimeout(out._vers);
+  if(out._annule&&scr){scr.removeEventListener('touchstart',out._annule);scr.removeEventListener('wheel',out._annule);}
+  const annule=out._annule=()=>{clearTimeout(out._vers);if(scr){scr.removeEventListener('touchstart',annule);scr.removeEventListener('wheel',annule);}};
+  if(scr){scr.addEventListener('touchstart',annule,{passive:true});scr.addEventListener('wheel',annule,{passive:true});}
+  out._vers=setTimeout(()=>{annule();scrollToResult(out,{garde:btn});},prefersReduceMotion()?0:650);
 }
 function normalizeState(raw){
   const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
@@ -21121,7 +21170,7 @@ function renderJourneyHub(tab){
   /* Un cinquième élément optionnel : un pourcentage, dessiné en barre de progression. */
   /* Chaque entrée a son autocollant (Elisa, 31 octobre, 2 h 18 : « la DA du site, stickers, animation, micro-interactions ») ; elles
      arrivent l’une après l’autre (--i). */
-  document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action,pct],i)=>`<button type="button" class="journey-resource" data-kind="${kind}" style="--i:${i}" onclick="${action}"><span class="journey-tool-icon${JOURNEY_STK[kind]?' is-stk':''}">${JOURNEY_STK[kind]?lqStkSvg(JOURNEY_STK[kind]):journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small>${pct!=null?`<i class="journey-resource-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></i>`:''}</span>${DEF_CHEV_SVG}</button>`).join('');
+  document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action,pct],i)=>`<button type="button" class="journey-resource" data-kind="${kind}" style="--i:${i}" onclick="${action}">${journeyToolIcon(kind)}<span><b>${title}</b><small>${esc(detail)}</small>${pct!=null?`<i class="journey-resource-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></i>`:''}</span>${DEF_CHEV_SVG}</button>`).join('');
 }
 /* Pratiquer : « Relever un défi » ouvre Jouer, « Mes défis » ouvre Mes stats (14 h 24). Mes stats ne s’ouvre que demandé : les autres
    chemins vers Défis (Accueil, Planning) arrivent sur Jouer (switchTab). */
@@ -21141,6 +21190,25 @@ function stkHubEntry(){
   return ['stickers',`Stickers${fresh?`<em class="journey-new">${fresh} nouveau${fresh>1?'x':''}</em>`:''}`,`${n} gagné${n>1?'s':''} sur ${list.length} · Colle-les, imprime-les.`,"switchTab('stickers')",Math.round(n/list.length*100)];
 }
 const JOURNEY_STK={defis:'trophy',console:'term',cards:'cards',stickers:'peel',notes:'note',interview:'mic',sgbd:'db',courses:'book'};
+/* Elisa, 5 novembre, 17 h 35 (réf. 2) : « est-ce possible d’avoir des icônes plus classe ? » : les lignes de la Bibliothèque et de
+   Pratiquer quittent leurs autocollants pour une icône fine en deux tons (.d : la teinte, .w : le papier), dans une tuile douce de sa
+   couleur, comme les cartes des tables de la Console. Les teintes sont celles des classes du schéma UML ; le trait, un peu plus
+   sombre que la teinte quand elle est claire (ambre, orange, sarcelle), pour rester lisible. [trait, fond, filet, dessin] */
+const JOURNEY_ICO={
+  defis:['#C56A10','#FFF0DF','#E8892B','<path class="d" d="M7.6 3.9h8.8v5.3a4.4 4.4 0 0 1-8.8 0z"/><path d="M7.6 5.8H5.5a2.2 2.2 0 0 0 0 4.4h2.6M16.4 5.8h2.1a2.2 2.2 0 0 1 0 4.4h-2.6M12 13.6v3.4"/><path class="w" d="M8.4 20.4l.8-3.4h5.6l.8 3.4z"/>'],
+  console:['#5B3FE6','#EEE9FF','#6A4DF4','<rect class="w" x="3.4" y="4.4" width="17.2" height="15.2" rx="2.8"/><path class="d" d="M3.4 7.2a2.8 2.8 0 0 1 2.8-2.8h11.6a2.8 2.8 0 0 1 2.8 2.8v1.6H3.4z"/><path d="M7.4 12.3l2.6 2.1-2.6 2.1M12.6 16.5h4"/>'],
+  cards:['#5B3FE6','#EEE9FF','#6A4DF4','<rect class="d" x="7.4" y="2.9" width="12.4" height="15.4" rx="2.6" transform="rotate(10 13.6 10.6)"/><rect class="w" x="4.2" y="5.7" width="12.4" height="15.4" rx="2.6"/><path d="M7.6 11h5.6M7.6 14.5h3.6"/>'],
+  stickers:['#B07A00','#FFF4D2','#D99A0B','<path class="w" d="M6.2 3.8h11.6a2.4 2.4 0 0 1 2.4 2.4v8.3l-5.7 5.7H6.2a2.4 2.4 0 0 1-2.4-2.4V6.2a2.4 2.4 0 0 1 2.4-2.4z"/><path class="d" d="M20.2 14.5h-3.3a2.4 2.4 0 0 0-2.4 2.4v3.3z"/><path class="d" d="M11.5 6.8L12.73 9.7L15.87 9.98L13.5 12.05L14.2 15.12L11.5 13.5L8.8 15.12L9.5 12.05L7.13 9.98L10.27 9.7z"/>'],
+  notes:['#138A42','#E2F6EA','#169447','<rect class="w" x="3.8" y="3.6" width="12.2" height="16.8" rx="2.4"/><path d="M7.2 8.4h5.4M7.2 11.8h5.4M7.2 15.2h2.8"/><path class="d" d="M21.46 9.66L19.34 7.54L13.11 13.77L12.4 16.6L15.23 15.89Z"/><path d="M20.26 10.86L18.14 8.74"/>'],
+  interview:['#C93A80','#FCE8F2','#D9468F','<rect class="d" x="8.6" y="2.9" width="6.8" height="11.6" rx="3.4"/><path d="M5.5 11.3a6.5 6.5 0 0 0 13 0"/><path d="M12 17.8v3.1M8.9 20.9h6.2"/>'],
+  sgbd:['#2471DC','#E6F0FD','#2F80ED','<path class="w" d="M4.8 6.2v11.6c0 1.5 3.22 2.7 7.2 2.7s7.2-1.2 7.2-2.7V6.2"/><path d="M4.8 12c0 1.5 3.22 2.7 7.2 2.7s7.2-1.2 7.2-2.7"/><ellipse class="d" cx="12" cy="6.2" rx="7.2" ry="2.7"/>'],
+  courses:['#0A8A85','#DDF5F3','#0E9F9A','<path class="w" d="M12 6.4C10.3 5 7.7 4.4 3.8 4.4v13.8c3.9 0 6.5.6 8.2 2 1.7-1.4 4.3-2 8.2-2V4.4c-3.9 0-6.5.6-8.2 2z"/><path d="M12 6.4v13.8M6.6 8.6c1.5.1 2.6.4 3.4.9M6.6 12c1.5.1 2.6.4 3.4.9"/><path class="d" d="M15 5.2v5.4l1.7-1.2 1.7 1.2V4.7"/>']
+};
+function journeyToolIcon(kind){
+  const ic=JOURNEY_ICO[kind];
+  if(ic)return `<span class="journey-tool-icon is-ico" style="--ico:${ic[0]};--ico-soft:${ic[1]};--ico-ring:${ic[2]}2E" aria-hidden="true"><svg viewBox="0 0 24 24">${ic[3]}</svg></span>`;
+  return `<span class="journey-tool-icon${JOURNEY_STK[kind]?' is-stk':''}">${JOURNEY_STK[kind]?lqStkSvg(JOURNEY_STK[kind]):journeyIcon(kind)}</span>`;
+}
 function journeyIcon(kind){
   if(kind==='notes')return JOURNEY_NOTES_ICON;
   if(kind==='courses')return JOURNEY_COURSES_ICON;
@@ -38819,7 +38887,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-json-infos-v2545';
+  const SW_CACHE='requete-2026-11-05-console-icones-v2546';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
