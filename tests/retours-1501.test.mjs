@@ -113,19 +113,19 @@ test('réf. 5 : dépliée, la description, « Voir les données » et deux ronds
 
 test('« Voir les données » : la requête dans l’éditeur, exécutée, et une seule descente jusqu’à l’éditeur', () => {
   const v = fn('voirDonneesTable');
-  assert.ok(v.includes("fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\\nLIMIT 50;`,{haut:true});") && v.includes('runConsole({surEditeur:true});'));
+  assert.ok(v.includes("fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\\nLIMIT 50;`,{reste:true});") && v.includes('runConsole({surEditeur:true,direct:true});'), '17 h 35 : exécutée tout de suite, puis une glissade');
   assert.ok(v.includes("out.style.minHeight=Math.round((window.innerHeight||800)*.8)+'px';"), 'la place du résultat est gardée : la page peut descendre jusqu’à l’éditeur');
-  assert.ok(fn('fillConsoleSql').includes('if(o&&o.haut)ecranVers(sh);else sh?.scrollIntoView('));
+  assert.ok(fn('fillConsoleSql').includes('if(!(o&&o.reste))sh?.scrollIntoView('));
   const run = fn('runConsole');
   assert.ok(run.includes("if(out&&!surEditeur)out.style.minHeight='';") && run.includes("const garde=out.style.minHeight;out.style.minHeight='';if(garde&&out.offsetHeight<parseFloat(garde))out.style.minHeight=garde;"));
   assert.ok(!app.includes('function tablePreviewHTML(') && !app.includes('const tblPreview=') && !app.includes('function queryTable('), 'plus de lignes affichées dans la carte');
-  /* ecranVers : l’élément juste sous la barre du haut, en un seul défilement */
-  const appels = [];
-  const scr = { scrollTop: 700, getBoundingClientRect: () => ({ top: 0 }), querySelector: () => ({ getBoundingClientRect: () => ({ bottom: 56 }) }), scrollTo: o => appels.push(o) };
-  const ctx = vm.createContext({ prefersReduceMotion: () => false });
-  vm.runInContext(fn('ecranVers'), ctx);
-  ctx.ecranVers({ closest: () => scr, getBoundingClientRect: () => ({ top: 940 }) });
-  assert.deepEqual(JSON.parse(JSON.stringify(appels)), [{ top: 700 + 940 - 68, behavior: 'smooth' }]);
+  /* ecranVers : l’élément juste sous la barre du haut, en un seul défilement (sans animation : d’un coup ; la glissade, dans
+     retours-1735) */
+  const scr = { scrollTop: 700, scrollHeight: 5000, clientHeight: 800, getBoundingClientRect: () => ({ top: 0 }), querySelector: () => ({ getBoundingClientRect: () => ({ bottom: 56 }) }) };
+  const ctx = vm.createContext({ prefersReduceMotion: () => true });
+  vm.runInContext(fn('glisserEcran') + fn('ecranVers'), ctx);
+  ctx.ecranVers({ closest: () => scr, getBoundingClientRect: () => ({ top: 940 - (scr.scrollTop - 700) }) });
+  assert.equal(scr.scrollTop, 700 + 940 - 68);
 });
 
 test('réf. 6 : les exemples dans un cadre, « Requêtes prêtes à tester » et ce qu’on en fait', () => {
