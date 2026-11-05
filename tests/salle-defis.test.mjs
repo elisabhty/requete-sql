@@ -307,12 +307,14 @@ test('manche : les paliers de temps, +25 du premier coup, +50 / +30 / +20 aux pr
   assert.deepEqual(rk.map(x => x.place), [1, 2, 3]);
   assert.ok(rk[0].ms < rk[1].ms && rk[1].ms < rk[2].ms, 'du plus rapide au plus lent');
   assert.deepEqual(rk.map(x => x.val), [200, 200, 175], 'trouvé en moins d’une minute : 200 ; après 1 min : 175');
-  assert.deepEqual(rk.map(x => x.essai), [25, 0, 25], 'l’hôte s’est trompé une fois : pas de +25');
+  /* Elisa, 5 novembre, 9 h 18 : « quand une personne a mis la bonne requête, enlever les +25 aux autres » : entre amis, le +25 du
+     premier coup ne va qu’au premier à trouver ; Ami1 trouve du premier coup, mais après Ami2 : pas de +25. */
+  assert.deepEqual(rk.map(x => x.essai), [25, 0, 0], 'l’hôte s’est trompé une fois, Ami1 arrive après Ami2 : pas de +25');
   for (const x of rk) {
     assert.equal(x.val, valeur(x.ms), x.name + ' : le palier');
     assert.equal(x.pts, x.val + x.essai + x.rang, x.name + ' : le total');
   }
-  assert.deepEqual(rk.map(x => x.pts), [275, 230, 220]);
+  assert.deepEqual(rk.map(x => x.pts), [275, 230, 195]);
   for (const x of rk) assert.ok(host.html.includes(`<small>+${x.pts}</small>`), 'les points gagnés dans le classement : ' + x.pts);
   /* Le détail des points sur sa seule ligne (Elisa, 31 octobre, 16 h 29 : « il y a trop de trucs ») : l’hôte est 2e ; ce que
      valait le défi quand il l’a trouvé, puis son bonus de 2e */
@@ -621,7 +623,7 @@ test('un ami arrive pendant une manche commencée seul : la bande des joueurs ap
   assert.equal(h.ev('jeuRanking(0)[0].rang'), 0, 'commencée seule : pas de bonus de rang, le même chez tous');
   assert.equal(g.ev('jeuRanking(0)[0].rang'), 0);
   assert.match(g.html, /class="jeu-done"/); assert.match(g.html, /Hôte cherche encore/);
-  assert.match(h.ev('jeuMatesHTML(0)'), /class="is-found[^"]*"><b class="jeu-av" data-c="1" aria-hidden="true">A<i class="jeu-mate-ok">/, 'la coche de l’ami dans la bande (mise à jour sur place)');
+  assert.match(h.ev('jeuMatesHTML(0)'), /class="is-found[^"]*" data-pid="[\w-]+"><b class="jeu-av" data-c="1" aria-hidden="true">A<i class="jeu-mate-ok">/, 'la coche de l’ami dans la bande (mise à jour sur place)');
   assert.match(h.ev('jeuMatesHTML(0)'), /<span class="jeu-sr">Ami : trouvé en 00:0\d<\/span>/, 'dit au lecteur d’écran');
 });
 

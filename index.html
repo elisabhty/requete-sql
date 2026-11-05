@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=146">
+<link rel="stylesheet" href="ludique.css?v=147">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -18944,6 +18944,9 @@ let umlDernier=null;   // {m, W, p} : le dernier modèle dessiné et sa mise en 
 const umlPref=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:v==='1'; }catch(e){ return d; } };
 let umlEx=umlPref('rq-uml-ex',true);
 let umlSel=null;   // {t} : une table touchée et ses liens ; {i} : un lien de la liste en clair
+/* Les tables pliées (9 h 18 : « pouvoir plier déplier les tables, dépliées par défaut »), base par base, le temps de la visite. */
+const umlPlies={};
+function umlPliesDe(){ const k=typeof document!=='undefined'&&document.getElementById?(document.getElementById('schema-body')||{dataset:{}}).dataset.base||'cours':'cours'; return umlPlies[k]=umlPlies[k]||new Set(); }
 /* Un exemple par colonne (7 h 38) : les valeurs d’une même ligne, la quatrième (ou la dernière), pour qu’elles aillent ensemble : le
    plat 4, sa catégorie, son prix. Une valeur vide : la première valeur non vide de la colonne ; une colonne toujours vide : NULL. */
 function schemaExemples(database,name,n){
@@ -19047,7 +19050,7 @@ function umlTeintes(m,ordre){
    faisceau, un couloir, un bout et une pastille. Deux faisceaux qui arriveraient au même endroit : l’un passe de l’autre côté de la
    carte s’il y a la place (sinon il descend de 17 px en 17 px) ; et les côtés s’élargissent pour garder 5 px entre deux couloirs.
    Les clés d’une table ne passent jamais sous « +N colonnes ». */
-function umlPlan(m,W,ex){
+function umlPlan(m,W,ex,plies){
   const G=UML_G,{ordre,par}=umlOrdre(m),T=umlTeintes(m,ordre);
   const voisins=(a,b)=>par[a].has(b)||par[b].has(a);
   const part=new Set(m.liens.map(l=>l.de+'\u0001'+l.col)),arrive=new Set(m.liens.map(l=>l.vers+'\u0001'+umlCle(m,l)));
@@ -19056,21 +19059,25 @@ function umlPlan(m,W,ex){
   ordre.forEach(n=>{
     const t=m.tables.find(z=>z.name===n);
     let cols=t.cols,plus=0;
+    const cle=c=>c.b||part.has(n+'\u0001'+c.c)||arrive.has(n+'\u0001'+c.c);
     if(cols.length>G.max){
-      const cle=c=>c.b||part.has(n+'\u0001'+c.c)||arrive.has(n+'\u0001'+c.c),cles=cols.filter(cle);
+      const cles=cols.filter(cle);
       const garde=new Set(cles.concat(cols.filter(c=>!cle(c)).slice(0,Math.max(0,G.max-1-cles.length))));
       cols=t.cols.filter(c=>garde.has(c)); plus=t.cols.length-cols.length;
     }
-    /* Une table sans ligne n’a pas d’exemple : ses colonnes restent sur une ligne. */
-    const L=ex&&cols.some(c=>c.ex)?G.ligneEx:G.ligne;
-    const h=G.tete+2*G.pad+(cols.length?cols.length*L:G.ligne)+(plus?G.ligne:0);
+    /* Une table pliée ne garde que ses clés (ses liens restent sur leurs colonnes) ; le reste passe dans « +N colonnes ». */
+    const plie=!!(plies&&plies.has(n)),caches=plie?cols.filter(c=>!cle(c)).map(c=>c.c):[],vis=cols.length-caches.length;
+    plus+=caches.length;
+    /* Une table sans ligne n’a pas d’exemple : ses colonnes restent sur une ligne (une table pliée aussi). */
+    const L=ex&&!plie&&cols.some(c=>c.ex)?G.ligneEx:G.ligne;
+    const h=G.tete+2*G.pad+(vis?vis*L:cols.length?0:G.ligne)+(plus?G.ligne:0);
     if(prec!=null&&!voisins(prec,n))y+=8;   // un peu plus d’air entre deux tables qui ne se désignent pas
-    cartes[n]={name:n,n:t.n,x:0,y,w:0,h,L,cols,plus,teinte:T[n]};
+    cartes[n]={name:n,n:t.n,x:0,y,w:0,h,L,cols,caches,plie,plus,teinte:T[n]};
     y+=h+G.ecart; prec=n;
   });
   const H=Math.max(60,y-G.ecart+12);
   /* Un trait arrive au milieu du nom de sa colonne (la première ligne, quand l’exemple est en dessous). */
-  const milieu=(c,i)=>c.y+G.tete+G.pad+i*c.L+G.ligne/2;
+  const milieu=(c,i)=>c.y+G.tete+G.pad+c.cols.slice(0,i).filter(z=>!c.caches.includes(z.c)).length*c.L+G.ligne/2;
   const arcs=m.liens.map(l=>{
     const a=cartes[l.de],b=cartes[l.vers];
     if(!a||!b)return null;
@@ -19199,35 +19206,40 @@ function umlNbLiens(m){ return new Set(m.liens.map((l,i)=>l.grp||'\u0002'+i)).si
    liens qui l’allument). */
 function umlPastilles(p){
   const vues={},out=[];
-  p.arcs.forEach((a,k)=>a.lab.forEach(t=>{
+  p.arcs.forEach((a,k)=>a.lab.forEach((t,j)=>{
     const cle=t.x+'|'+t.y+'|'+t.t;
     if(vues[cle]){ vues[cle].is.push(a.i); return; }
-    out.push(vues[cle]={a,k,t,is:[a.i]});
+    out.push(vues[cle]={a,k,t,j,is:[a.i]});
   }));
   return out;
 }
 function umlHtml(p){
   const st=a=>`--lc:${a.c};--lcs:${a.cs};--lci:${a.ci}`;
+  /* Par-dessus les traits allumés, des points qui coulent de la clé étrangère vers la clé primaire (9 h 18 : « avec une flèche animée »). */
   const svg=`<svg class="umd-l" width="${p.W}" height="${p.H}" viewBox="0 0 ${p.W} ${p.H}" aria-hidden="true">`
     +p.arcs.map((a,k)=>`<path class="umd-a" d="${a.d}" data-i="${a.i}" data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${k};${st(a)}"/>`).join('')
-    +umlPastilles(p).map(({a,k,t,is})=>`<g class="umd-m" data-i="${a.i}"${is.length>1?` data-is="${is.join(' ')}"`:''} data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${k};${st(a)}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" rx="6"/><text x="${t.x+t.w/2}" y="${Math.round((t.y+t.h/2+3.4)*10)/10}" text-anchor="middle">${esc(t.t)}</text></g>`).join('')
+    +p.arcs.map(a=>`<path class="umd-f" d="${a.d}" data-i="${a.i}" data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}"/>`).join('')
+    +umlPastilles(p).map(({a,k,t,j,is})=>`<g class="umd-m" data-i="${a.i}"${is.length>1?` data-is="${is.join(' ')}"`:''} data-k="${a.i}|${j}" data-de="${escAttr(a.de)}" data-vers="${escAttr(a.vers)}" style="--i:${k};${st(a)}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" rx="6"/><text x="${t.x+t.w/2}" y="${Math.round((t.y+t.h/2+3.4)*10)/10}" text-anchor="middle">${esc(t.t)}</text></g>`).join('')
     +'</svg>';
   const cartes=p.cartes.map((c,k)=>{
-    const nc=c.cols.length+c.plus,ex=c.L>UML_G.ligne;
-    /* Une colonne : sa clé, son nom, son type, ou « → la table » qu’elle désigne (dans la couleur du trait) ; dessous, son exemple. */
+    const nc=c.cols.length+c.plus-c.caches.length,ex=c.L>UML_G.ligne;
+    /* Une colonne : sa clé, son nom, son type, ou « → la table » qu’elle désigne (dans la couleur du trait) ; dessous, son exemple
+       (toujours là, montré quand les exemples sont dépliés : rien ne saute quand on bascule). */
     const ligne=col=>{
       /* Une clé primaire qui est aussi une clé étrangère (une table d’association) : ses deux badges, et « → sa table » */
       const a=p.arcs.find(z=>z.de===c.name&&z.col===col.c),fk=col.b==='fk'||!!a;
       const droite=a?`<b class="umd-v">→ ${esc(a.vers)}</b>`:`<em>${esc(umlType(col.t))}</em>`;
-      const x=ex&&col.ex?`<span class="umd-x${col.ex.k==='null'?' is-null':''}"><small>ex&nbsp;:</small><b>${esc(col.ex.v)}</b></span>`:'';
+      const x=col.ex?`<span class="umd-x${col.ex.k==='null'?' is-null':''}"><small>ex&nbsp;:</small><b>${esc(col.ex.v)}</b></span>`:'';
       const badges=(col.b==='pk'?'<i class="is-pk">PK</i>':'')+(fk?'<i class="is-fk">FK</i>':'');
-      return `<span class="umd-c${col.b==='pk'?' is-pk':fk?' is-fk':''}${a?' is-lien':''}" data-c="${escAttr(col.c)}"${a?` style="${st(a)}"`:''}><span class="umd-r">${badges}<span>${esc(col.c)}</span>${droite}</span>${x}</span>`;
+      return `<span class="umd-c${col.b==='pk'?' is-pk':fk?' is-fk':''}${a?' is-lien':''}${c.caches.includes(col.c)?' is-cache':''}" data-c="${escAttr(col.c)}"${a?` style="${st(a)}"`:''}><span class="umd-r">${badges}<span>${esc(col.c)}</span>${droite}</span>${x}</span>`;
     };
-    return `<button type="button" class="umd-t${ex?' is-ex':''}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--c:${c.teinte[0]};--cs:${c.teinte[1]};--ci:${c.teinte[2]};--i:${k}" data-t="${escAttr(c.name)}" aria-pressed="false" onclick="umlCarte(this)" onpointerenter="umlSurligne(this,true,event)" onpointerleave="umlSurligne(this,false,event)" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(nc,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses liens`)}">`
-      +`<span class="umd-h"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></span><span class="umd-cs">`
+    /* Une carte : son en-tête (toucher allume ses liens), la flèche qui plie ou déplie la table, ses colonnes. */
+    return `<div class="umd-t${ex?' is-ex':''}${c.plie?' is-plie':''}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--c:${c.teinte[0]};--cs:${c.teinte[1]};--ci:${c.teinte[2]};--i:${k}" data-t="${escAttr(c.name)}" onclick="umlCarte(this,event)" onpointerenter="umlSurligne(this,true,event)" onpointerleave="umlSurligne(this,false,event)">`
+      +`<span class="umd-h"><button type="button" class="umd-hb" aria-pressed="false" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(c.cols.length+c.plus-c.caches.length,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses liens`)}"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></button>`
+      +`<button type="button" class="umd-pli" aria-expanded="${!c.plie}" aria-label="${escAttr((c.plie?'Déplier':'Plier')+' la table '+c.name)}" onclick="umlPlier(this,event)">${UML_CHEV}</button></span><span class="umd-cs">`
       +(c.cols.map(ligne).join('')||'<span class="umd-c is-plus">Aucune colonne</span>')
-      +(c.plus?`<span class="umd-c is-plus">+${plur(c.plus,'colonne')}</span>`:'')
-      +'</span></button>';
+      +`<span class="umd-c is-plus${c.plus?'':' is-vide'}">${c.plus?`+${plur(c.plus,'colonne')}`:''}</span>`
+      +'</span></div>';
   }).join('');
   return `<div class="umd-plan${p.ex?' is-ex':''}" style="width:${p.W}px;height:${p.H}px">${svg}${cartes}</div>`;
 }
@@ -19242,7 +19254,7 @@ function umlListe(m,T){
 }
 /* La toile, ses réglages, la bulle d’une table touchée, les liens en clair, la légende et ce que montrent les traits. */
 function umlPanneau(m,W,on,ex=umlEx){
-  const p=umlPlan(m,W,ex),mult=[...new Set(m.liens.flatMap(l=>[l.un,l.plusieurs]))].filter(k=>UML_MULT[k]).sort();
+  const p=umlPlan(m,W,ex,umlPliesDe()),mult=[...new Set(m.liens.flatMap(l=>[l.un,l.plusieurs]))].filter(k=>UML_MULT[k]).sort();
   if(umlDernier&&umlDernier.m===m)umlDernier.p=p;
   const aEx=m.tables.some(t=>t.cols.some(c=>c.ex));
   return `<div class="sch-uml" role="tabpanel" data-t="__uml__"${on?'':' hidden'}>
@@ -19270,7 +19282,7 @@ function umlDessiner(maj){
   const haut=body?body.getBoundingClientRect().top+96:0;
   const ancre=body&&[...t.querySelectorAll('.umd-t')].find(c=>c.getBoundingClientRect().bottom>haut);
   const avant=ancre&&ancre.getBoundingClientRect().top,nom=ancre&&ancre.dataset.t;
-  const p=umlPlan(umlDernier.m,umlDernier.W,umlEx);
+  const p=umlPlan(umlDernier.m,umlDernier.W,umlEx,umlPliesDe());
   umlDernier.p=p;
   t.innerHTML=umlHtml(p);
   if(maj&&t.firstElementChild)t.firstElementChild.classList.add('is-maj');
@@ -19293,7 +19305,72 @@ function umlBasculeEx(btn){
   umlEx=!umlEx;
   try{ localStorage.setItem('rq-uml-ex',umlEx?'1':'0'); }catch(e){}
   if(btn)btn.setAttribute('aria-pressed',String(umlEx));
-  umlDessiner(true);
+  if(umlDernier)umlMorph(umlPlan(umlDernier.m,umlDernier.W,umlEx,umlPliesDe()));
+}
+/* Plier ou déplier une table (9 h 18) : sa flèche, dans son en-tête ; la toile glisse vers la nouvelle mise en page. */
+function umlPlier(btn,e){
+  if(e)e.stopPropagation();
+  const c=btn&&btn.closest('.umd-t'),t=c&&c.dataset.t,P=umlPliesDe();
+  if(!t||!umlDernier)return;
+  if(P.has(t))P.delete(t);else P.add(t);
+  umlMorph(umlPlan(umlDernier.m,umlDernier.W,umlEx,P));
+  const b=document.querySelector(`#umd-toile .umd-t[data-t="${CSS.escape(t)}"] .umd-pli`);
+  if(b)try{ b.focus({preventScroll:true}); }catch(x){}
+}
+/* D’une mise en page à l’autre, sans saut (9 h 18 : « quand on clique sur Exemples, j’aime pas que ça saute ») : la nouvelle toile est
+   posée à l’état de l’ancienne (cartes, lignes, exemples, traits, pastilles), puis tout glisse ensemble en 320 ms — les cartes et les
+   lignes par leurs transitions, les traits et les pastilles point par point. La carte en haut de l’écran ne bouge pas. Mouvement
+   réduit : la nouvelle toile, tout de suite. */
+const UML_DUREE=320;
+function umlMorph(apres){
+  const toile=document.getElementById('umd-toile'),plan=toile&&toile.querySelector('.umd-plan'),avant=umlDernier&&umlDernier.p,body=document.getElementById('schema-body');
+  if(!toile||!umlDernier)return;
+  umlDernier.p=apres;
+  if(!plan||!avant||!umlDoux()||avant.arcs.length!==apres.arcs.length){ toile.innerHTML=umlHtml(apres); toile.firstElementChild.classList.add('is-fixe'); umlAppliquer(); return; }
+  const haut=body?body.getBoundingClientRect().top+96:0;
+  const ancre=body&&[...plan.querySelectorAll('.umd-t')].find(c=>c.getBoundingClientRect().bottom>haut),nomAncre=ancre&&ancre.dataset.t,yAncre=ancre&&ancre.getBoundingClientRect().top;
+  const vieux={};
+  plan.querySelectorAll('.umd-t').forEach(el=>{ vieux[el.dataset.t]={top:el.style.top,height:el.style.height,ex:el.classList.contains('is-ex'),plie:el.classList.contains('is-plie'),
+    caches:[...el.querySelectorAll('.umd-c.is-cache')].map(r=>r.dataset.c),vide:!!el.querySelector('.umd-cs>.umd-c.is-plus.is-vide')}; });
+  const dAv={},pAv={};
+  avant.arcs.forEach(a=>{ dAv[a.i]=a.d; });
+  umlPastilles(avant).forEach(x=>{ pAv[x.a.i+'|'+x.j]=x.t; });
+  toile.innerHTML=umlHtml(apres);
+  const np=toile.firstElementChild,svg=np.querySelector('svg.umd-l');
+  np.classList.add('is-fixe');
+  const etat=(el,ex,plie,caches,vide)=>{
+    el.classList.toggle('is-ex',ex);el.classList.toggle('is-plie',plie);
+    el.querySelectorAll('.umd-c[data-c]').forEach(r=>r.classList.toggle('is-cache',caches.includes(r.dataset.c)));
+    const pr=el.querySelector('.umd-cs>.umd-c.is-plus:last-child');if(pr)pr.classList.toggle('is-vide',vide);
+  };
+  /* 1. L’ancien état */
+  np.style.height=avant.H+'px';
+  np.querySelectorAll('.umd-t').forEach(el=>{ const o=vieux[el.dataset.t];if(!o)return; el.style.top=o.top;el.style.height=o.height;etat(el,o.ex,o.plie,o.caches,o.vide); });
+  const nums=d=>(String(d).match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
+  const chemins=[...svg.querySelectorAll('.umd-a,.umd-f')].map(el=>{ const fin=el.getAttribute('d'),a=nums(dAv[el.dataset.i]||fin),b=nums(fin); return a.length===b.length?{el,tpl:fin.split(/-?\d+(?:\.\d+)?/),a,b}:null; }).filter(Boolean);
+  const pastilles=[...svg.querySelectorAll('.umd-m')].map(g=>{ const o=pAv[g.dataset.k],r=g.querySelector('rect'),t=g.querySelector('text'); if(!o||!r||!t)return null; return {r,t,x0:o.x,y0:o.y,x1:+r.getAttribute('x'),y1:+r.getAttribute('y'),w:+r.getAttribute('width'),h:+r.getAttribute('height')}; }).filter(Boolean);
+  const r1=v=>Math.round(v*10)/10;
+  const poser=e=>{
+    chemins.forEach(c=>{ let d=c.tpl[0]; for(let k=0;k<c.b.length;k++)d+=r1(c.a[k]+(c.b[k]-c.a[k])*e)+c.tpl[k+1]; c.el.setAttribute('d',d); });
+    pastilles.forEach(q=>{ const x=r1(q.x0+(q.x1-q.x0)*e),y=r1(q.y0+(q.y1-q.y0)*e); q.r.setAttribute('x',x);q.r.setAttribute('y',y);q.t.setAttribute('x',x+q.w/2);q.t.setAttribute('y',r1(y+q.h/2+3.4)); });
+    const H=r1(avant.H+(apres.H-avant.H)*e); svg.setAttribute('height',H); svg.setAttribute('viewBox',`0 0 ${apres.W} ${H}`);
+  };
+  poser(0);
+  void np.offsetHeight;
+  /* 2. Le nouvel état, par les transitions (cartes, lignes, exemples) et image par image (traits, pastilles) */
+  np.classList.add('is-anim');
+  np.style.height=apres.H+'px';
+  apres.cartes.forEach(c=>{ const el=np.querySelector(`.umd-t[data-t="${CSS.escape(c.name)}"]`);if(!el)return; el.style.top=c.y+'px';el.style.height=c.h+'px';etat(el,c.L>UML_G.ligne,c.plie,c.caches,!c.plus); });
+  umlAppliquer();
+  const t0=performance.now(),el0=nomAncre&&np.querySelector(`.umd-t[data-t="${CSS.escape(nomAncre)}"]`);
+  const pas=now=>{
+    const k=Math.min(1,(now-t0)/UML_DUREE);
+    poser(1-Math.pow(1-k,3));
+    if(el0&&body&&yAncre!=null){ const dy=el0.getBoundingClientRect().top-yAncre; if(Math.abs(dy)>0.5)body.scrollTop+=dy; }
+    if(k<1&&np.isConnected)requestAnimationFrame(pas);
+    else np.classList.remove('is-anim');
+  };
+  requestAnimationFrame(pas);
 }
 function umlListeToggle(d){ try{ localStorage.setItem('rq-uml-liens',d&&d.open?'1':'0'); }catch(e){} }
 const umlDoux=()=>!(typeof motionOff==='function'&&motionOff());
@@ -19306,13 +19383,13 @@ function umlVersLiens(){
 }
 /* Une table survolée (à la souris) ou atteinte au clavier : ses liens s’épaississent. Au doigt, rien : la toucher les allume. */
 function umlSurligne(el,on,e){
-  const plan=el&&el.closest('.umd-plan'),t=el&&el.dataset.t;
+  const plan=el&&el.closest('.umd-plan'),c=el&&el.closest('.umd-t'),t=c&&c.dataset.t;
   if(!plan||!t||(e&&e.pointerType&&e.pointerType!=='mouse'))return;
-  plan.querySelectorAll('.umd-a,.umd-m').forEach(x=>{ if(x.dataset.de===t||x.dataset.vers===t)x.classList.toggle('is-sur',!!on); });
+  plan.querySelectorAll('.umd-a,.umd-m,.umd-f').forEach(x=>{ if(x.dataset.de===t||x.dataset.vers===t)x.classList.toggle('is-sur',!!on); });
 }
 /* Une table touchée (7 h 38) : ses liens s’allument, le reste s’efface, et la bulle dit en clair ce qu’elle désigne et qui la
    désigne ; touchée encore (ou la toile, ou ×), tout se rallume. Un lien de la liste : lui seul, et la toile défile jusqu’à lui. */
-function umlCarte(btn){ const t=btn&&btn.dataset.t; if(t)umlFocus(umlSel&&umlSel.t===t?null:{t}); }
+function umlCarte(el,e){ if(e&&e.target&&e.target.closest&&e.target.closest('.umd-pli'))return; const t=el&&el.dataset.t; if(t)umlFocus(umlSel&&umlSel.t===t?null:{t}); }
 function umlFocusTable(t,defile){ if(t)umlFocus({t},defile); }
 function umlFocusLien(i){ umlFocus({i:+i},true); }
 function umlToileClic(e){ if(umlSel&&!(e&&e.target&&e.target.closest&&e.target.closest('.umd-t')))umlFocus(null); }
@@ -19348,13 +19425,18 @@ function umlAppliquer(){
   umlSel=s;
   const {on,tables,cols}=umlAllumes(m,s);
   plan.classList.toggle('is-focus',!!s);
-  plan.querySelectorAll('.umd-a,.umd-m').forEach(x=>x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i))));
-  plan.querySelectorAll('.umd-t').forEach(b=>{ const t=b.dataset.t,sel=!!s&&s.t===t; b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); b.setAttribute('aria-pressed',String(sel)); });
+  plan.querySelectorAll('.umd-a,.umd-m,.umd-f').forEach(x=>x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i))));
+  plan.querySelectorAll('.umd-t').forEach(b=>{ const t=b.dataset.t,sel=!!s&&s.t===t,hb=b.querySelector('.umd-hb'); b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); if(hb)hb.setAttribute('aria-pressed',String(sel)); });
   plan.querySelectorAll('.umd-c[data-c]').forEach(r=>{ const t=r.closest('.umd-t'); r.classList.toggle('is-on',!!t&&cols.has(t.dataset.t+'\u0001'+r.dataset.c)); });
   document.querySelectorAll('#umd-liens .umd-li').forEach(b=>b.classList.toggle('is-on',on.has(+b.dataset.i)));
   if(bulle){ bulle.innerHTML=s?umlBulle(m,s,(umlDernier.p&&umlDernier.p.T)||{}):''; bulle.hidden=!s; }
 }
 /* La bulle : une table (ce qu’elle désigne, qui la désigne, chacune à toucher pour y aller ; « Voir ses colonnes ») ou un lien. */
+/* La flèche animée de la bulle (9 h 18 : « voir avec une flèche animée plutôt ») : un trait qui coule vers sa pointe, dans la couleur du
+   lien (la couleur de la table désignée). */
+const UML_FLECHE='<span class="umd-ar" aria-hidden="true"><svg viewBox="0 0 46 14"><path class="umd-ar-l" d="M3 7H37"/><path class="umd-ar-p" d="M33 2.5L40 7L33 11.5"/></svg></span>';
+/* La bulle : une table et ses liens, chacun en flèche (« avions ⟶ compagnies », « vols ⟶ avions », chaque table à toucher pour y
+   aller ; « Ses colonnes ») ; ou un lien de la liste. */
 function umlBulle(m,s,T){
   const st=n=>{ const t=T[n]||UML_NEUTRE; return `--c:${t[0]};--cs:${t[1]};--ci:${t[2]};--lc:${t[0]};--lcs:${t[1]};--lci:${t[2]}`; };
   const x=`<button type="button" class="umd-bx" onclick="umlFocus(null)" aria-label="Tout rallumer">${UML_X}</button>`;
@@ -19362,10 +19444,12 @@ function umlBulle(m,s,T){
   const t=s.t,uniq=a=>[...new Set(a)];
   const vers=uniq(m.liens.filter(l=>l.de===t&&l.vers!==t).map(l=>l.vers)),par=uniq(m.liens.filter(l=>l.vers===t&&l.de!==t).map(l=>l.de)),auto=m.liens.filter(l=>l.de===t&&l.vers===t);
   const puce=n=>`<button type="button" class="umd-bp" style="${st(n)}" data-t="${escAttr(n)}" onclick="umlFocusTable(this.dataset.t,true)">${esc(n)}</button>`;
-  const lignes=(vers.length?`<p class="umd-bl"><span>Désigne</span>${vers.map(puce).join('')}</p>`:'')
-    +(par.length?`<p class="umd-bl"><span>Désignée par</span>${par.map(puce).join('')}</p>`:'')
-    +(auto.length?`<p class="umd-bl"><span>Se désigne</span>${auto.map(l=>`<code>${esc(l.col)}</code>`).join('')}</p>`:'');
-  return `<div class="umd-bc" style="${st(t)}">${x}<span class="umd-bh"><b class="umd-bn">${esc(t)}</b><button type="button" class="umd-bgo" data-t="${escAttr(t)}" onclick="schemaOuvrirTable(this.dataset.t)" aria-label="${escAttr('Voir les colonnes de '+t)}">Ses colonnes${UML_CHEV}</button></span>${lignes||'<p class="umd-bl is-vide">Aucun lien&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'}</div>`;
+  const moi=`<b class="umd-bme" style="${st(t)}">${esc(t)}</b>`;
+  /* Ce qu’elle désigne : une flèche par table, à la couleur de chacune ; qui la désigne : ces tables, une flèche, elle. */
+  const lignes=vers.map(v=>`<p class="umd-bl" style="--lc:${(T[v]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} désigne ${esc(v)}</span>${moi}${UML_FLECHE}${puce(v)}</p>`).join('')
+    +(par.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(par.join(', '))} ${par.length>1?'désignent':'désigne'} ${esc(t)}</span><span class="umd-bps">${par.map(puce).join('')}</span>${UML_FLECHE}${moi}</p>`:'')
+    +(auto.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} se désigne elle-même</span>${moi}<span class="umd-ar is-boucle" aria-hidden="true"><svg viewBox="0 0 30 18"><path class="umd-ar-l" d="M4 13C4 2 26 2 26 11"/><path class="umd-ar-p" d="M21.5 8.5L26 13.5L30 8"/></svg></span>${auto.map(l=>`<code>${esc(l.col)}</code>`).join('')}</p>`:'');
+  return `<div class="umd-bc" style="${st(t)}">${x}<span class="umd-bh"><b class="umd-bn">${esc(t)}</b><button type="button" class="umd-bgo" data-t="${escAttr(t)}" onclick="schemaOuvrirTable(this.dataset.t)" aria-label="${escAttr('Voir les colonnes de '+t)}">Ses colonnes<span class="umd-bgo-f" aria-hidden="true">${UML_CHEV}</span></button></span>${lignes||'<p class="umd-bl is-vide">Aucun lien&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'}</div>`;
 }
 /* La toile défile jusqu’à la table ou au lien allumés : sous les pastilles, au-dessus de la bulle. */
 function umlDefiler(){
@@ -21905,7 +21989,7 @@ function renderDefisRules(){
       <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. La manche s’arrête à ${JEU_ROUND_MS/60000}&nbsp;min.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
-      <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne</small></li>
+      <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne ; entre amis, si personne n’a trouvé avant toi</small></li>
       <li><b>🥇 Premier entre amis</b><span>+${JEU_PTS_RANG[0]}</span><small>2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]} · 4e : +${JEU_PTS_RANG[3]}</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
@@ -28890,16 +28974,33 @@ function jeuOnMsg(m){
       if(r.found[m.pid]!=null)return;
       if(!addP())return;
       r.found[m.pid]=Math.max(0,Math.min(JEU_ROUND_MS,+m.ms||0));
-      /* Trouvé du premier essai (p1) : +25 pour tout le monde, puisque chacun compte les points de chacun. */
+      /* Trouvé du premier essai (p1) : noté pour chacun, puisque chacun compte les points de chacun ; entre amis, le +25 ne va qu’au
+         premier à trouver (jeuRanking). */
       if(m.p1===1)(r.first=r.first||{})[m.pid]=1;
       if(m.pid===J.me){J.played=true;if(J.ranked){const c=CHALLENGES.find(c=>c.id===r.cid);if(c)jeuCredit(c.id);}}
-      if(m.pid!==J.me&&!J.solo&&J.synced&&!replay)jeuToast(`${name} a trouvé ✓`);
+      if(m.pid!==J.me&&!J.solo&&J.synced&&!replay){
+        jeuToast(`${name} a trouvé ✓`);
+        const premier=Object.values(r.found).every(v=>v>=r.found[m.pid]);
+        jeuEvt(true,m.pid,name,m.p1===1&&(premier||r.one));
+        if(r.found[J.me]==null&&!r.one)jeuBonusOut();
+      }
       /* Un temps qui arrive pendant l’écran de résultats : le classement se met à jour. */
       if(J.view==='res'+(+m.n))jeuRedraw();
       break;}
     case 'react':
       if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine)jeuToast(`${name} ${m.e}`);
       return;
+    case 'rate':{
+      /* Un essai manqué d’un autre joueur (9 h 18) : annoncé par le serveur en salle classée, par le joueur lui-même sinon. Seulement
+         en direct, pendant la manche, et s’il est récent (une salle relue après une coupure ne rejoue pas les essais d’avant). */
+      if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;
+      const n=+m.n,r=J.rounds[n];if(!r||r.one||r.found[m.pid]!=null||J.view!=='play'+n)return;
+      if(m.at&&Date.now()-(m.at-(J.skew||0))>10000)return;
+      jeuToast(`${name} : pas encore`);
+      jeuEvt(false,m.pid,name);
+      (J.koAt=J.koAt||{})[m.pid]=Date.now();
+      const pl=document.getElementById('jeu-players');if(pl)pl.innerHTML=jeuMatesHTML(n);
+      return;}
     case 'close':{
       if(m.pid!==J.hostPid)return;
       if((m.g|0)>J.g)return jeuLater(m);
@@ -28991,7 +29092,10 @@ function jeuRanking(n){
   /* À temps égal, l’ordre des identifiants range la liste : la même chez tout le monde. Mais le même temps, à la milliseconde près,
      vaut la même place et le même bonus : deux premiers ex æquo prennent chacun +50, le suivant est 3e (+15). */
   const rows=Object.entries(r.found).sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:a[0]>b[0]?1:0));
-  return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one,!!(r.first&&r.first[pid])));});
+  /* Le +25 du premier essai, entre amis, ne va qu’au premier à trouver (Elisa, 5 novembre, 9 h 18 : « quand une personne a mis la bonne
+     requête, enlever les +25 aux autres ») ; seul, à chaque premier essai juste, comme avant. */
+  const seul=J.solo||r.one;
+  return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,seul,!!(r.first&&r.first[pid])&&(seul||i===0)));});
 }
 /* Les scores : points de toutes les manches terminées ; à égalité, le temps total (une manche non trouvée compte toute la manche). */
 function jeuScores(){
@@ -29093,6 +29197,7 @@ const JEU_ICO={
   quit:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5H7.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2H14M10.5 12h9M16.5 8.5 20 12l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   level:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18.5v-4M12 18.5v-8M18 18.5V5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
   check:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  cross:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>',
   wifi:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2a12.5 12.5 0 0 1 17 0M6.6 12.6a8 8 0 0 1 10.8 0M9.8 15.9a3.4 3.4 0 0 1 4.4 0" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>'
 };
 function jeuBtn2(ico,label,on){return `<button type="button" class="jeu-close" onclick="${on}">${JEU_ICO[ico]}<span>${label}</span></button>`;}
@@ -29136,8 +29241,10 @@ function jeuMatesHTML(n){
   return all.filter(p=>jeuPresent(p)||r.found[p]!=null).map(pid=>{
     const p=J.players[pid]||{name:'Joueur'},me=pid===J.me,ok=r.found[pid]!=null,away=!jeuPresent(pid);
     const key=n+':'+pid,fresh=ok&&!J.okSeen.has(key);if(ok)J.okSeen.add(key);
+    /* Son essai vient de manquer : son avatar secoue ; redessinée entre-temps, la liste reprend le geste là où il en était. */
+    const ko=!ok&&J.koAt&&J.koAt[pid]?Date.now()-J.koAt[pid]:-1,koOn=ko>=0&&ko<JEU_KO_MS;
     const nom=me?'Toi':esc(p.name),etat=ok?`trouvé en ${jeuChrono(r.found[pid])}`:away?'parti·e':'cherche';
-    return `<li class="${ok?'is-found':'is-wait'}${away?' is-away':''}${fresh?' is-fresh':''}"><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${ok?`<i class="jeu-mate-ok">${JEU_ICO.check}</i>`:''}</b><span class="jeu-mate-l" aria-hidden="true">${ok?jeuChrono(r.found[pid]):nom}</span><span class="jeu-sr">${nom} : ${etat}</span></li>`;
+    return `<li class="${ok?'is-found':'is-wait'}${away?' is-away':''}${fresh?' is-fresh':''}${koOn?' is-ko':''}" data-pid="${String(pid).replace(/[^\w-]/g,'')}"${koOn?` style="--ko:-${ko}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${ok?`<i class="jeu-mate-ok">${JEU_ICO.check}</i>`:''}</b><span class="jeu-mate-l" aria-hidden="true">${ok?jeuChrono(r.found[pid]):nom}</span><span class="jeu-sr">${nom} : ${etat}</span></li>`;
   }).join('');
 }
 function jeuWaitLine(n){
@@ -29291,7 +29398,7 @@ function jeuRender(){
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
     /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150…), et +25 tant que la première requête peut être la
        bonne (il tombe au premier essai manqué). */
-    const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small>${r.tries?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;
+    const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0))}</span><small>pts</small>${r.tries||jeuBonusPris(r)?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;
     html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Chrono de la manche">${jeuChrono(took0)}</b></span></div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
@@ -29532,7 +29639,7 @@ function jeuFoundHTML(r,pid){
   const place=(sl||pos<0?'Bien joué !':pos===0?'1er à trouver':`${pos+1}e à trouver`)+(x.essai?' · du premier coup ✨':'');
   const stk=!sl&&pos>=0&&pos<3?lqStkSvg('medal'+(pos+1)):JEU_OK_STK;
   return `<section class="jeu-done" id="jeu-done" aria-label="Trouvé">
-      <div class="jeu-done-head"><span class="jeu-done-stk" aria-hidden="true">${stk}</span><span class="jeu-done-t"><b>Trouvé en ${jeuChrono(x.ms)}</b><small>${place}</small></span><strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts</strong></div>
+      <div class="jeu-done-head"><span class="jeu-done-stk" aria-hidden="true">${stk}</span><span class="jeu-done-t"><b>Trouvé en ${jeuChrono(x.ms)}</b><small>${place}</small></span><strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${JEU_PTS_ESSAI} ✨</i>`:''}</strong></div>
       ${sl?'':`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}')" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div><div id="jeu-hostbar">${jeuHostBarHTML()}</div>`}
       ${r.mine?`<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>`:''}
     </section>`;
@@ -29637,13 +29744,44 @@ function jeuRun(){
   coachRoomTick();
   coachKo(diag);
 }
+
 /* En salle, les indices ne dépendent plus des essais : ils arrivent à la même minute pour tout le monde (coachRoomTick, 14 h 33). */
 /* Le premier essai manqué : le « +25 » de la barre s’envole. */
 function jeuEssaiRate(r){
+  if(typeof jeuRateSend==='function')jeuRateSend(r);
   if(!r||r.tries!==1)return;
   const b=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-val-b'):null;if(!b)return;
   if(prefersReduceMotion()){b.remove();return;}
   b.classList.add('is-out');setTimeout(()=>{try{b.remove();}catch(e){}},360);
+}
+/* Un essai manqué, entre amis, sans le serveur des salles classées : le joueur l’annonce lui-même aux autres (les salles classées
+   l’apprennent du serveur, qui vérifie la requête). */
+function jeuRateSend(r){ const J=JEU; if(!J||J.ranked||J.solo||!r||r.one)return; const n=J.rounds.indexOf(r); if(n>=0)jeuSend({t:'rate',n}); }
+/* Un autre a trouvé (9 h 18) : le +25 s’envole de la même façon. */
+function jeuBonusOut(){
+  const b=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-val-b'):null;if(!b)return;
+  if(prefersReduceMotion()){b.remove();return;}
+  b.classList.add('is-out');setTimeout(()=>{try{b.remove();}catch(e){}},360);
+}
+/* Un autre a déjà trouvé : le +25 du premier essai n’est plus à prendre (9 h 18). */
+function jeuBonusPris(r){ const J=JEU; return !!(J&&r&&!(J.solo||r.one)&&Object.keys(r.found||{}).some(p=>p!==J.me)); }
+/* Les essais des autres, pendant qu’on cherche (9 h 18 : « si quelqu’un a fait une requête fausse, une animation avec son pseudo, comme
+   une croix, et pareil quand c’est validé ») : une pastille en haut de l’écran, son initiale à sa couleur, ✓ ou ✗ ; le +25 de celui qui
+   l’a pris du premier coup. Elle s’en va d’elle-même ; trois au plus à la fois. */
+const JEU_KO_MS=560;
+function jeuEvt(ok,pid,name,bonus){
+  if(typeof document==='undefined'||!document.body||!document.createElement)return;
+  let box=document.getElementById('jeu-evts');
+  if(!box){box=document.createElement('div');box.id='jeu-evts';box.className='jeu-evts';box.setAttribute('aria-hidden','true');document.body.appendChild(box);}
+  const J=JEU,i=J?Math.max(0,jeuOrder().indexOf(pid)):0,el=document.createElement('p');
+  el.className='jeu-evt '+(ok?'is-ok':'is-ko');
+  el.innerHTML=`<b class="jeu-av" data-c="${i%6}">${jeuInitial(name)}</b><span class="jeu-evt-t"><b>${esc(name)}</b><small>${ok?'a trouvé':'pas encore'}</small></span><i class="jeu-evt-i">${ok?JEU_ICO.check:JEU_ICO.cross}</i>${ok&&bonus?`<em class="jeu-evt-b">+${JEU_PTS_ESSAI} ✨</em>`:''}`;
+  const pp=document.getElementById('jeu-pts-pop'),low=pp&&pp.classList.contains('on')?Math.round(pp.getBoundingClientRect().bottom+8):0;
+  if(low)box.style.top=low+'px';else box.style.removeProperty('top');
+  box.prepend(el);
+  while(box.children.length>3)box.lastElementChild.remove();
+  const out=()=>{el.classList.add('is-out');setTimeout(()=>el.remove(),prefersReduceMotion()?0:320);};
+  setTimeout(out,ok?3400:2600);
 }
 function jeuStop(){
   const J=JEU;if(!J)return;
@@ -29655,6 +29793,7 @@ function jeuStop(){
   setTimeout(()=>{try{J.t&&J.t.close();}catch(e){}},600);
   JEU=null;
   document.getElementById('jeu-toasts')?.remove();
+  document.getElementById('jeu-evts')?.remove();
 }
 /* Quitter une salle en cours : on confirme (la manche en cours serait perdue). */
 /* Quitter une salle : une question seulement quand il y a quelque chose à perdre, posée par l’app (lqAsk) et non par une boîte du
@@ -32247,7 +32386,7 @@ function lqAsk(o){
     el.innerHTML=`<button type="button" class="lq-ask-back" tabindex="-1" aria-label="${escAttr(o.non||'Annuler')}"></button>
       <div class="lq-ask-sheet" role="alertdialog" aria-modal="true" aria-labelledby="lq-ask-t" aria-describedby="lq-ask-p">
         <button type="button" class="lq-x lq-ask-x" aria-label="Fermer">${LQ_X_SVG}</button>
-        <div class="lq-ask-cap${o.danger?' is-danger':''}">${o.ico?lqAskStk(o.ico):''}
+        <div class="lq-ask-cap${o.danger?' is-danger':''}${o.ico?'':' is-nostk'}">${o.ico?lqAskStk(o.ico):''}
         <h2 id="lq-ask-t">${esc(o.titre)}</h2>
         ${o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}</div>
         <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui${o.danger?' is-danger':''}">${esc(o.oui||'OK')}</button>${o.non===null?'':`<button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button>`}</div>
@@ -38093,7 +38232,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-import-v2527';
+  const SW_CACHE='requete-2026-11-05-salle-v2528';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

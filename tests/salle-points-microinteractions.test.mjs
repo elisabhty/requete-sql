@@ -44,7 +44,7 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
   const rules = fn('renderDefisRules');
   /* 17 h 39 : les paliers de temps, +25 du premier coup, le classement entre amis jusqu’au 4e */
   for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. La manche s’arrête à ${JEU_ROUND_MS/60000}&nbsp;min.</small>',
-    '<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne</small></li>',
+    '<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne ; entre amis, si personne n’a trouvé avant toi</small></li>',
     '<li><b>🥇 Premier entre amis</b><span>+${JEU_PTS_RANG[0]}</span><small>2e : +${JEU_PTS_RANG[1]} · 3e : +${JEU_PTS_RANG[2]} · 4e : +${JEU_PTS_RANG[3]}</small></li>',
     '<small>Le plus rapide au total passe devant ; même temps : ex æquo</small>'])
     assert.ok(rules.includes(part), part);
@@ -66,7 +66,8 @@ test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25
   assert.deepEqual(ev('jeuPts(270000,0,true,false)'), { val: 100, essai: 0, rang: 0, pts: 100 }, '4 à 5 min : encore 100 points');
   assert.deepEqual(ev('[0,1,2,3,4].map(i=>jeuPts(91000,i,false).rang)'), [50, 30, 20, 10, 0], '5e : +0');
   /* Même temps, même place et même bonus ; à points égaux, le temps total départage */
-  assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,J.solo||r.one,!!(r.first&&r.first[pid])));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29) ; le premier essai de chacun');
+  /* 5 novembre, 9 h 18 : entre amis, le +25 du premier coup ne va qu’au premier à trouver (retours-0918) */
+  assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1},jeuPts(ms,i,seul,!!(r.first&&r.first[pid])&&(seul||i===0)));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29) ; le premier essai du premier à trouver');
   assert.ok(fn('jeuScores').includes('.sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.name.localeCompare(b.name));'));
   assert.ok(fn('jeuScores').includes('J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+JEU_ROUND_MS;});'), 'une manche non trouvée compte 3 min');
   assert.ok(line('jeuPlaces').includes('if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;'));
