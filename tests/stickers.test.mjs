@@ -139,7 +139,7 @@ test('écran : une rubrique de la Bibliothèque, avec son entrée, sa fiche et s
   assert.equal((html.match(/stickers:'scr-stickers'/g) || []).length, 2, 'connu de switchTab et de screenForTab');
   assert.ok(html.includes("if(['notes','collection','stickers','entretien','sgbd','library'].includes(tab))return 'library';"), 'onglet Bibliothèque allumé');
   assert.ok(html.includes("else if(tab==='stickers') renderStickers();"));
-  assert.ok(html.includes('stkHubEntry(),') && html.includes("Colle-les, imprime-les.`,\"switchTab('stickers')\""), 'entrée de la Bibliothèque, après les cartes mémo');
+  assert.ok(html.includes('stkHubEntry(),') && html.includes("collectionné${n>1?'s':''}\\u00a0· À toi de jouer\\u00a0!`,\"switchTab('stickers')\""), 'entrée de la Bibliothèque, après les cartes mémo');
   assert.ok(html.includes('<em class="journey-new">${fresh} nouveau${fresh>1?\'x\':\'\'}</em>'), 'les nouveaux pas encore vus');
   assert.ok(html.includes("if(activeTab==='stickers'&&name!=='stickers'){stkClose();stkSeen();}"), 'en quittant l’écran, les nouveaux ont été vus');
   assert.ok(html.includes('<div class="viz" id="stk-sheet" role="dialog" aria-modal="true" aria-labelledby="stk-name">'));
