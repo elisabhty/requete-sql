@@ -36,7 +36,8 @@ test('vidéo → appli : l’écran passe au violet de l’écran de chargement,
 
 test('arrivée dans l’appli depuis la vidéo : le site n’est pas reproposé, l’onboarding s’ouvre', () => {
   /* Le script de tête retient qu’on vient du site (?depuis=…) : la prochaine ouverture de l’adresse reste dans l’appli. */
-  assert.ok(app.includes("if(/[?&]depuis=/.test(q))ls.setItem('rq-vu-appli','1');"));
+  /* 5 novembre, 14 h : une invitation (?partie=…) aussi (retours-1400.test.mjs). */
+  assert.ok(app.includes("if(/[?&](depuis|partie)=/.test(q))ls.setItem('rq-vu-appli','1');"));
   const src = app.slice(app.indexOf('function maybeOnboard(){'), app.indexOf('function startOnboarding(){', app.indexOf('function maybeOnboard(){')));
   const arrive = (search, { onboarded = false, comptes = false, lecons = {} } = {}) => {
     const appels = [];

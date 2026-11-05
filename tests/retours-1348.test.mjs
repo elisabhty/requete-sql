@@ -87,7 +87,7 @@ test('l’onboarding repris là où on l’a quitté : l’étape et les répons
   /* Branché : gardé à chaque page, repris à l’ouverture (sans la vidéo, avec un bandeau), oublié à la fin */
   const start = cut('function startOnboarding(initial=', 'let obApercu=false;');
   assert.ok(start.includes("const reprise=obEntry==='welcome'&&!state.onboarded&&!obApercu?obRepriseLire():null;"));
-  assert.ok(start.includes("Object.assign(draft,reprise.draft);\n    obStep=OB_SLIDES.indexOf(reprise.slide);") && start.includes("obBandeau('On reprend là où tu en étais.')"));
+  assert.ok(start.includes("Object.assign(draft,reprise.draft);\n    obStep=OB_SLIDES.indexOf(reprise.slide);") && start.includes("'On reprend là où tu en étais. La salle t’attend à la fin.':'On reprend là où tu en étais.');"));
   assert.ok(app.includes("  obRepriseGarder(slide);\n  if(obJustEntered&&!state.onboarded&&!obLegalMode)obCompter(slide);"));
   assert.ok(cut('function finishOnboard(action){', 'function obTerminer(action){').includes('obRepriseOublier();'));
   assert.ok(cut('function obApercuOuvrir(){', 'function obApercuFermer(').includes("obStep=OB_SLIDES.indexOf('welcome');obEntry='welcome';"), 'l’aperçu repart de l’accueil');
