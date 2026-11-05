@@ -17276,22 +17276,41 @@ function jsonInfos(data){
   const txt=(...ks)=>{ for(const k of ks){ const v=data&&data[k]; if(typeof v==='string'&&v.trim())return v.trim().replace(/\s+/g,' '); } return ''; };
   return {titre:txt('title','titre','name','nom').slice(0,80),desc:txt('description','desc').slice(0,400)};
 }
+/* Tout ce qu’un fichier JSON porte à côté de ses listes (Elisa, 5 novembre, 17 h 22 : « les autres infos du fichier (version,
+   language, question_count) ne sont pas importées ») : une table infos d’une seule ligne, une colonne par information, dans l’ordre
+   du fichier. Chaque valeur garde son type JSON : « 1.0 » reste le texte d’une version (deviné, il serait devenu 1), 100 un nombre ;
+   un objet imbriqué devient son texte JSON. Si une liste du fichier s’appelle déjà infos, la table s’appelle infos_fichier. */
+const JSON_INFOS_NOTE='Les informations du fichier qui ne sont pas des listes, sur une seule ligne.';
+function jsonTableInfos(data,pris){
+  const ks=Object.keys(data||{}).filter(k=>!Array.isArray(data[k]));
+  if(!ks.length)return null;
+  const deja=new Set((pris||[]).map(n=>String(n).toLowerCase()));
+  let name='infos';
+  for(let k=1;deja.has(name);k++)name=k===1?'infos_fichier':'infos_fichier_'+k;
+  const cols=ks.map((c,i)=>cleanColName(c,i)),vus={};
+  cols.forEach((c,i)=>{let n=c,k=0;while(vus[n]){k++;n=c+'_'+k;}vus[n]=1;cols[i]=n;});
+  const types=ks.map(k=>typeof data[k]==='number'?(Number.isSafeInteger(data[k])?'INTEGER':'REAL'):'TEXT');
+  return {name,cols,types,rows:[ks.map(k=>jsonCellule(data[k]))],dates:0,infos:true,note:JSON_INFOS_NOTE};
+}
 function parseJsonImport(data){
   // Base JSON : { clients: [...], produits: [...] }
   if(data && typeof data==='object' && !Array.isArray(data)){
     const entries=Object.entries(data).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,jsonLignes(v)]);
     const infos=jsonInfos(data);
-    if(entries.length>=2){
+    /* Une liste et des informations autour (« total », « version ») : deux tables, comme un classeur de deux feuilles */
+    const autour=entries.length?jsonTableInfos(data,entries.map(([k])=>safeIdent(k))):null;
+    if(entries.length>=2||autour){
       const tables=entries.map(([name,arr])=>{
         const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
         if(!headers.length) headers.push('id');
         const matrix=arr.map(o=>headers.map(h=>jsonCellule(o&&o[h])));
         return {name:safeIdent(name),...tableFromMatrix(headers,matrix)};
       });
+      if(autour)tables.push(autour);
       const total=tables.reduce((n,t)=>n+t.rows.length,0);
       return {
         kind:'database', format:'json-db', tables, ...infos,
-        hint:`${tables.length} tables · ${total} lignes`,
+        hint:`${tables.length} tables · ${total} ligne${total>1?'s':''}`,
         preview:tables.map(t=>`${t.name} (${t.rows.length})`).join(' · ')
       };
     }
@@ -17302,7 +17321,7 @@ function parseJsonImport(data){
         if(!headers.length) throw new Error('JSON : table vide sans colonnes.');
         const matrix=arr.map(o=>headers.map(h=>jsonCellule(o&&o[h])));
         const t=tableFromMatrix(headers,matrix);
-        return {kind:'table',...t,...infos,defaultTable:safeIdent(name),hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+        return {kind:'table',...t,...infos,defaultTable:safeIdent(name),hint:`${t.rows.length} ligne${t.rows.length>1?'s':''} · ${t.cols.join(', ')}`};
       }
     }
   }
@@ -17311,7 +17330,7 @@ function parseJsonImport(data){
   const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
   const matrix=arr.map(o=>headers.map(h=>jsonCellule(o&&o[h])));
   const t=tableFromMatrix(headers,matrix);
-  return {kind:'table',...t,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+  return {kind:'table',...t,hint:`${t.rows.length} ligne${t.rows.length>1?'s':''} · ${t.cols.join(', ')}`};
 }
 function parseImportFile(name,text,enc){
   const lower=(name||'').toLowerCase();
@@ -17748,6 +17767,10 @@ async function confirmImport(){
     const fichier=pendingImport.file;
     affected.forEach(name=>{const s0=rememberTableBaseline(database,target,name);if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);});
     if(neuf&&p.desc){ const pj=projOf(target); if(!pj.desc){ pj.desc=p.desc; try{ saveProjState(); }catch(e){} } }
+    /* La table infos d’un fichier JSON (17 h 22) dit d’elle-même ce qu’elle garde, si elle n’a pas déjà une description */
+    const infosT=p.format==='json-db'?(p.tables||[]).find(t=>t.infos):null;
+    const infosN=infosT?tabs.find(t=>t.toLowerCase()===safeIdent(infosT.name).toLowerCase()):null;
+    if(infosN&&infosT.note){ const pj=projOf(target); pj.tdesc=pj.tdesc||{}; if(!pj.tdesc[infosN]){ pj.tdesc[infosN]=infosT.note; try{ saveProjState(); }catch(e){} } }
     if(activeDbId!=='cours')persistCustomDbs(target);
     importOccupe(false);
     closeImportSheet();
@@ -17768,7 +17791,7 @@ async function confirmImport(){
     const out=document.getElementById('console-out');
     if(out){
       out.style.minHeight='';
-      out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null);
+      out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null,infosN?{n:infosN,c:infosT.cols}:null);
       /* Le compte rendu sous les yeux dès qu’il y a un schéma à voir (il restait sous l’éditeur, hors de l’écran) */
       if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));
     }
@@ -17789,8 +17812,10 @@ async function confirmImport(){
 }
 /* Le compte rendu d’un import, dans la Console : les tables, les liens trouvés avec les autres (le schéma UML s’est dessiné tout seul),
    et le bouton pour le voir dès deux tables ; une première table : ce qu’il faudra pour que des liens apparaissent. */
-function importRetourHtml(database,tabs,tn,asDb,ajoutees){
+function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){
   const codes=a=>a.map(t=>'<code>'+esc(t)+'</code>').join(', ');
+  /* La table infos d’un fichier JSON : ce qu’elle garde, pour qu’on voie que rien ne s’est perdu (17 h 22) */
+  const garde=infos&&infos.c&&infos.c.length?`<p class="imp-infos"><code>${esc(infos.n)}</code> garde sur une ligne les autres informations du fichier&nbsp;: ${codes(infos.c.slice(0,6))}${infos.c.length>6?'…':''}.</p>`:'';
   let liens=[];
   if(tabs.length>1){ try{ const m=umlModele(database,tabs,true); liens=m.liens.filter((l,i)=>(!tn||l.de===tn||l.vers===tn)&&(!l.grp||m.liens.findIndex(z=>z.grp===l.grp)===i)); }catch(e){} }
   /* « Schéma UML », comme la pastille jaune du projet (5 novembre, 15 h 01 : « je garderais Schéma UML plutôt que Voir le schéma UML ») */
@@ -17802,9 +17827,9 @@ function importRetourHtml(database,tabs,tn,asDb,ajoutees){
   const ok=(titre,corps)=>`<div class="feedback ok"><div class="fi">✓</div><div><b>${titre}</b>${corps}</div></div>`;
   if(ajoutees&&ajoutees.length>1){
     const autres=tabs.filter(t=>!ajoutees.some(a=>a.toLowerCase()===t.toLowerCase()));
-    return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`rejoignent ${codes(autres)}`:`sont les ${ajoutees.length} tables du projet`}.</p>${trouves}${voir}`);
+    return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`rejoignent ${codes(autres)}`:`sont les ${ajoutees.length} tables du projet`}.</p>${garde}${trouves}${voir}`);
   }
-  if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${trouves}${voir}`);
+  if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${garde}${trouves}${voir}`);
   if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses liens.</p>`);
   if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucun lien pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait un.`}</p>${trouves}${voir}`);
   return ok('Import réussi',`<p>${tabs.length?`Tables&nbsp;: ${codes(tabs)}.`:'Script exécuté.'}</p>${trouves}${voir}`);
@@ -38794,7 +38819,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-accueil-v2544';
+  const SW_CACHE='requete-2026-11-05-json-infos-v2545';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

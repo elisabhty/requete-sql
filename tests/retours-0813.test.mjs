@@ -196,7 +196,7 @@ test('les fichiers texte : un .csv n’est jamais du SQL, le JSON imbriqué en t
   assert.deepEqual(pur(j.rows[0]), [1, '{"ville":"Lyon","cp":"69001"}', '["a","b"]'], 'du JSON, pas « [object Object] »');
   const b = ctx.parseImportFile('base.json', JSON.stringify({produits: [{id: 1, nom: 'Thé'}], tags: ['bio', 'local'], notes: [1, 2, 3], titre: 'x'}));
   assert.equal(b.kind, 'database');
-  assert.deepEqual(pur(b.tables.map(t => [t.name, t.cols, t.rows.length])), [['produits', ['id', 'nom'], 1], ['tags', ['valeur'], 2], ['notes', ['valeur'], 3]]);
+  assert.deepEqual(pur(b.tables.map(t => [t.name, t.cols, t.rows.length])), [['produits', ['id', 'nom'], 1], ['tags', ['valeur'], 2], ['notes', ['valeur'], 3], ['infos', ['titre'], 1]], 'le titre aussi, dans infos (17 h 22)');
   assert.equal(ctx.inferSqlType(['01000', '75001']), 'TEXT', 'un code postal');
   assert.equal(ctx.inferSqlType(['0612345678']), 'TEXT', 'un téléphone');
   assert.equal(ctx.inferSqlType(['0', '0.5', '12']), 'REAL');
@@ -232,7 +232,7 @@ test('l’import : un échec ne laisse rien, un nom déjà pris se demande, et l
   for (const k of ["titre:`Remplacer la table « ${deja} » ?`", "database.run('SAVEPOINT rq_import');point=true;", "if(point){ database.run('RELEASE rq_import'); point=false; }",
     "if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}",
     'if(ancienne){ try{ customDbs[target].close(); }catch(x){} customDbs[target]=ancienne; }', 'dbCatalog=dbCatalog.filter(d=>d.id!==target);',
-    "activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';", 'out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null);', "if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));"])
+    "activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';", 'out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null,infosN?{n:infosN,c:infosT.cols}:null);', "if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));"])
     assert.ok(c.includes(k), k);
   assert.ok(c.indexOf('const avant=activeDbId,neuf=chosen===') < c.indexOf('activeDbId=target;'));
   const d = ouvrir(`CREATE TABLE clients(id INTEGER PRIMARY KEY, nom TEXT); INSERT INTO clients VALUES (1,'Ana');`);
