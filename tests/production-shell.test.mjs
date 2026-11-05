@@ -118,7 +118,7 @@ assert(account.includes('Accomplissements') && account.includes('acct-badges') &
 assert(account.includes("<span class=\"acct-stat-ico is-stk\" aria-hidden=\"true\">${lqStkSvg('flame')}</span>") && account.includes("${lqStkSvg('book')}") && account.includes("${lqStkSvg('target')}"), 'les trois chiffres portent leur autocollant : la flamme de la série, le livre des leçons, la cible des défis');
 assert(!account.includes('🔥') && !account.includes("?'🔥':'○'"), 'aucun emoji dans Mon compte : pictogrammes SVG uniquement');
 assert(!account.includes('account-goal-ring') && !account.includes('role="tablist"') && !html.includes('function setAccountSection('), 'une seule page : plus d’onglets internes ni d’anneau d’objectif en double avec l’accueil');
-assert(account.includes('Apprentissage') && account.includes('Compte et assistance') && account.includes('Profil et objectif') && account.includes('Données et confidentialité') && account.includes('<b>Nous contacter</b>') && !account.includes('Aide et prise en main'), 'réglages essentiels regroupés en catégories explicites (l’aide devient « Nous contacter », Elisa, 31 octobre, 18 h 49)');
+assert(account.includes('Apprentissage') && account.includes('Compte et assistance') && account.includes('Profil et objectif') && account.includes('Données et confidentialité') && account.includes('<b>Contacte-nous</b>') && !account.includes('Aide et prise en main'), 'réglages essentiels regroupés en catégories explicites (l’aide devient « Nous contacter », Elisa, 31 octobre, 18 h 49)');
 assert(html.includes('function closePlusDetails()') && account.includes('account-sheet-backdrop') && html.includes("querySelectorAll('#scr-compte .plus-details[open]')"), 'réglages détaillés ouverts dans un seul panneau focalisé et refermable');
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle') && account.includes("action:'exportProgress()'"), 'stockage local expliqué clairement, export de la progression en un appui');
 assert(!account.includes('acc-premium') && !account.includes('4,99 €'), 'fausse offre Premium retirée du parcours de production');
@@ -149,7 +149,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)), 'cadres (dans la vidéo) couverts — le défi NTILE est parti avec les défis de la base du cours (1er novembre, 0 h 55)');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-11-05-joueurs-v2534') && html.includes('requete-2026-11-05-joueurs-v2534') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-11-05-compte-v2535') && html.includes('requete-2026-11-05-compte-v2535') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

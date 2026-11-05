@@ -216,10 +216,10 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   depuis l’appli.
 - **Règle 1.2 (contenu créé par les utilisateurs)** : les pseudos sont filtrés (appli et serveur, jeu_pseudo_ok),
   chaque ligne du classement a « Signaler » (le joueur est aussitôt masqué pour soi ; 3 signalements le masquent
-  pour tous), « Nous contacter » dans l’app (l’adresse du site reste à remplir : `CONTACT_EMAIL` dans decouvrir/index.html). À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
+  pour tous), « Contacte-nous » dans l’app (l’adresse du site reste à remplir : `CONTACT_EMAIL` dans decouvrir/index.html). À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
   Supabase liste les pseudos signalés (Apple demande d’agir vite, sous 24 h) ; `update jeu_joueur set masque = true
   where id = '…'` masque un joueur.
-- **Nous contacter** (Mon compte, à la place de l’ancienne aide) : le sujet (bug, idée, question, autre), le message,
+- **Contacte-nous** (avant « Nous contacter ») (Mon compte, à la place de l’ancienne aide) : le sujet (bug, idée, question, autre), le message,
   l’e-mail s’il est donné et, pour un bug, des infos techniques décochables (version, appareil, navigateur, mode, écran,
   langue) partent dans la table `contact_message` (fonction `contact_envoyer`, 3 messages en 10 min et 20 par jour par
   appareil ; effacés au bout de 3 ans). **Pour lire les messages** : tableau de bord Supabase, Table Editor, vue
@@ -254,10 +254,10 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
   Store Connect, déclarer « Interactions avec le produit » ; usage « Analyses » ; non lié à l’identité, sans pistage.
 - **Supprimer mon compte** (4 novembre, 22 h 08 ; règle 5.1.1 v) : Mon compte › Compte et assistance › « Supprimer mon compte »,
   deux confirmations, puis `compte_supprimer` (appliquée le 4 novembre à 23 h 49 : `supabase/migrations/20261104224931_compte_supprimer.sql`) efface tout ce que le
-  serveur garde pour l’appareil (pseudo et pays, classement et parties, vote, avis, écrans de l’accueil vus, messages de « Nous
-  contacter », places dans les salles) et, avec un compte connecté, le compte (ses tables privées suivent par cascade, l’identifiant
+  serveur garde pour l’appareil (pseudo et pays, classement et parties, vote, avis, écrans de l’accueil vus, messages de
+  « Contacte-nous », places dans les salles) et, avec un compte connecté, le compte (ses tables privées suivent par cascade, l’identifiant
   de l’appareil est révoqué) ; puis l’appareil est vidé et l’appli repart de zéro. Si la fonction manquait (ancien serveur), l’appli
-  se rabattrait sur `jeu_pseudo_liberer` (pseudo et scores). Les pièces jointes de « Nous contacter » restent à effacer à la main
+  se rabattrait sur `jeu_pseudo_liberer` (pseudo et scores). Les pièces jointes de « Contacte-nous » restent à effacer à la main
   (Storage) : la politique de confidentialité promet « dans le mois ». Celles qui n’ont plus de message (compte supprimé, ou envoi
   raté) : `select name from storage.objects o where bucket_id = 'contact-pieces' and not exists (select 1 from public.contact_message m
   where o.name = any(m.pieces));` dans l’éditeur SQL, puis les supprimer dans Storage › contact-pieces.
@@ -278,7 +278,7 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 - **iPhone seulement** (4 novembre, 22 h 50) : `scripts/ios-widget.mjs` passe toutes les cibles du projet Xcode à
   `TARGETED_DEVICE_FAMILY = 1`, à chaque envoi. Sur iPad, l’app tourne en mode iPhone ; App Store Connect ne demande pas de captures
   d’iPad. À faire avant la première publication : une fois une version publiée pour l’iPad, Apple n’accepte plus de la retirer.
-- **Pièces jointes de « Nous contacter »** : `scripts/ios-widget.mjs` ajoute `NSCameraUsageDescription` et
+- **Pièces jointes de « Contacte-nous »** : `scripts/ios-widget.mjs` ajoute `NSCameraUsageDescription` et
   `NSPhotoLibraryUsageDescription` à l’Info.plist (sans elles, « Prendre une photo » fermerait l’app).
 - **Politique de confidentialité** : Apple demande une URL publique (decouvrir/confidentialite.html). Dans l’app,
   Compte › Données et confidentialité › « Comprendre mes données » la résume.
