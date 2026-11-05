@@ -154,7 +154,7 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
   assert.ok(sw.includes("if (url.pathname.includes('/decouvrir/')) {"));
 });
 
-test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 10+ formateurs te feront progresser »', () => {
+test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 8 formateurs te feront progresser »', () => {
   const { ctx } = lecteur('career');
   const html = ctx.obTemoinsHtml();
   assert.ok(!html.includes('ob-tv-stat') && !html.includes('ob-tv-badge'), 'le chiffre est dans le titre (obTemoinsTitre, 16 h 09)');
@@ -166,12 +166,12 @@ test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 10+ f
     '<audio id="ob-tv-audio" preload="none"></audio>', '<p class="ob-sr" id="ob-tv-tx"></p>'])
     assert.ok(html.includes(k), k);
   assert.ok(!/Ils recommandent/.test(html), 'la barre ne redit pas le titre : la note et la date à la place');
-  /* Les formateurs : treize, comme sur le site ; quatre visages et « +9 » */
-  assert.equal(ctx.OB_FORMATEURS.length, 13);
+  /* Les formateurs : huit, comme sur le site (5 novembre, 0 h 38 : Anaïs remplace Arthur, Miya, Emily, Coralie et Sam) ; quatre visages et « +4 » */
+  assert.equal(ctx.OB_FORMATEURS.length, 8);
   for (const [f] of ctx.OB_FORMATEURS) { assert.ok(fs.existsSync(path.join(ROOT, `assets/anim/${f}.webp`)), f); assert.ok(sw.includes(`'./assets/anim/${f}.webp',`), f + ' hors ligne'); }
-  assert.ok(site.includes('13 formateurs <em>pour t’accompagner jusqu’au bout</em>'), 'le site en annonce treize : « 10+ » est vrai');
+  assert.ok(site.includes('8 formateurs <em>pour t’accompagner jusqu’au bout</em>'), 'le site en annonce huit, comme l’appli');
   assert.equal((html.match(/<img src="assets\/anim\/[a-z-]+\.webp" width="420" height="420" alt=""/g) || []).length, 4);
-  assert.ok(html.includes('<b style="--i:4">+9</b></span><p><b>10+ formateurs</b> te feront progresser</p></div>'));
+  assert.ok(html.includes('<b style="--i:4">+4</b></span><p><b>8 formateurs</b> te feront progresser</p></div>'));
   /* Un chiffre vérifié s’affiche en badge, à la place du titre (14 h 50 : « vrai chiffre, 1000+ » ; 16 h 09 : le badge) */
   assert.ok(bloc.includes('const OB_COMMUNAUTE=1000;'));
   assert.ok(ctx.obTemoinsTitre().includes('<b><i data-n="1000">1\u202f000</i>+</b><span>personnes apprécient Requête</span>'));

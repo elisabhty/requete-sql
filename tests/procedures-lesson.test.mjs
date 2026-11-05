@@ -98,7 +98,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   assert.equal(val('DURATION'), 169.02);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
-  assert.deepEqual(chaps.map(c => c.label), ['Les commandes affluent', 'Action ou calcul ?', 'Une procédure stockée', 'Une fonction stockée', 'Le duel', 'Les quatre tickets', 'Selon le SGBD', 'À retenir']);
+  assert.deepEqual(chaps.map(c => c.label), ['Les commandes affluent', 'Action ou résultat ?', 'Une procédure stockée', 'Une fonction stockée', 'Le duel', 'Les quatre tickets', 'Selon le SGBD', 'À retenir']);
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
     assert.ok(/^[A-ZÀ-ÖØ-Þ0-9«]/.test(txt) || /^(<b[^>]*>)?<code>/.test(t), `légende ${k + 1} : une phrase qui commence (« ${txt.slice(0, 50)} »)`);
@@ -178,7 +178,7 @@ test('chapitre 15 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAV
   assert.equal(eg.length, 10, 'dix lignes, commentaire compris');
   assert.ok(eg.includes('CREATE PROCEDURE expedier_commande(id_commande INT)') && eg.includes('CREATE FUNCTION calculer_points(montant NUMERIC)') && eg.includes('  SELECT montant * 2;'), 'la création, dans PostgreSQL');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('Dans SQLite, la base de l’app,<br>elles n’existent pas.'), 'SQLite n’en a pas');
+  assert.ok(caps.includes('Dans la base de l’app,<br>elles n’existent pas.'), 'la base de l’app n’en a pas (sans nommer SQLite : Elisa, 5 novembre, 0 h 30)');
   assert.throws(() => base().run('CREATE PROCEDURE expedier_commande(id_commande INT) AS SELECT 1;'), /syntax error/, 'SQLite refuse CREATE PROCEDURE');
   const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-concurrence.html'), 'utf8');
   assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'Concurrence et isolation annonce celle-ci');

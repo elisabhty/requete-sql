@@ -95,7 +95,7 @@ test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajo
   assert.equal(val('DURATION'), 172.5);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
-  assert.deepEqual(chaps.map(c => c.label), ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Et dans SQLite ?', 'À retenir']);
+  assert.deepEqual(chaps.map(c => c.label), ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Une autre écriture', 'À retenir']);
   /* Une seule phrase complète par bulle (Elisa, 23 octobre) ; aucune bulle de plus de trois lignes. */
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
