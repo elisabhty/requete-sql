@@ -74,7 +74,8 @@ test('le formulaire : quatre sujets, le message (1000 caractères), l’e-mail f
   assert.ok(h.includes('<label class="ct-infos" id="ct-infos"><input type="checkbox" checked'), 'cochées pour un bug');
   assert.ok(h.includes('<small>v2223 · iPhone · Safari · navigateur · 390×844</small>'), 'ce qui part, montré avant l’envoi');
   assert.ok(h.includes('<div class="ct-pied"><p class="ct-etat" id="ct-etat" role="status" aria-live="polite"></p>\n        <button type="button" class="lq-btn ct-go" id="ct-go" onclick="ctEnvoyer()">Envoyer mon message</button></div>'), 'en bas de la feuille, toujours visible');
-  assert.ok(h.includes('Ton message part sur le serveur de l’appli, à Paris, seulement pour te répondre et améliorer Requête.'));
+  /* 5 novembre, 21 h 54 : « supprimer » la phrase sur le serveur (retours-2154) */
+  assert.ok(!h.includes('Ton message part sur le serveur') && !h.includes('class="ct-note"'));
   /* Une idée : pas d’infos techniques */
   t.ev("CT.type='idee'");
   assert.ok(t.ev('ctHTML()').includes('<label class="ct-infos" id="ct-infos" hidden>'));

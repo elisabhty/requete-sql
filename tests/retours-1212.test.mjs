@@ -90,7 +90,8 @@ test('réf. 7 : « Contacte-nous », le sujet, un exemple qui suit le sujet, « 
   const h = t.ev('ctHTML()');
   assert.ok(h.includes('<p class="ct-l" id="ct-sujet-l">Quel est le sujet de ton message&nbsp;?</p>'));
   assert.ok(h.includes('<b>Inclure les informations techniques</b><small>v2535 · iPhone · Safari · navigateur · 430×932</small>'));
-  assert.ok(h.indexOf('class="ct-note"') < h.indexOf('<div class="ct-pied">') && h.includes('onclick="ctEnvoyer()">Envoyer mon message</button></div>'), 'la note, puis le pied avec le bouton');
+  /* 21 h 54 : la note sur le serveur est partie (retours-2154) ; le pied avec le bouton reste */
+  assert.ok(!h.includes('class="ct-note"') && h.includes('<div class="ct-pied">') && h.includes('onclick="ctEnvoyer()">Envoyer mon message</button></div>'), 'le pied avec le bouton');
   /* L’exemple change avec le sujet */
   const ex = {};
   for (const k of ['bug', 'idee', 'question', 'autre']) { t.ev(`ctType('${k}')`); ex[k] = t.el('ct-msg').placeholder; }
@@ -211,7 +212,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=165">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=166">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-05-rappel-planning-v2557' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-05-compte-objectif-v2558' && app.includes(`const SW_CACHE='${cache}';`));
 });
