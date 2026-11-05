@@ -32,7 +32,8 @@ test('le widget : la flamme du jour seule, plus de nombre de jours', () => {
 test('la Live Activity : le même type dans l’app et dans le widget, iOS les relie par son nom', () => {
   const type = t => sansCommentaires(cut(t, 'struct RequeteLecon: ActivityAttributes {', '\n}\n')).replace(/\s+/g, ' ').trim();
   assert.equal(type(widget), type(pont));
-  assert.ok(type(widget).includes('public struct ContentState: Codable, Hashable { var progression: Double var allumee: Bool var fini: Bool } var titre: String var module: String'));
+  /* 5 novembre, 6 h 45 : les moments réussis (« 2/4 »), facultatifs (une activité d’avant les ignore) ; retours-0645 */
+  assert.ok(type(widget).includes('public struct ContentState: Codable, Hashable { var progression: Double var allumee: Bool var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil } var titre: String var module: String'));
   for (const t of [widget, pont]) {
     assert.ok(t.includes('import ActivityKit\n'));
     assert.ok(t.includes('@available(iOS 16.1, *)\nstruct RequeteLecon: ActivityAttributes {'), 'iOS 16.1 : l’app reste installable en iOS 15');
@@ -44,7 +45,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
   for (const k of ['ActivityConfiguration(for: RequeteLecon.self) { context in', 'LeconVerrouille(lecon: context.attributes, etat: context.state)',
     '.activityBackgroundTint(violetTexte)', '} dynamicIsland: { context in', 'DynamicIsland {',
     'DynamicIslandExpandedRegion(.leading) {', 'DynamicIslandExpandedRegion(.trailing) {', 'DynamicIslandExpandedRegion(.center) {', 'DynamicIslandExpandedRegion(.bottom) {',
-    '} compactLeading: {\n                LeconFlamme(etat: context.state, taille: 15)', '} compactTrailing: {\n                LeconPourcent(etat: context.state)', '} minimal: {\n                LeconFlamme(etat: context.state, taille: 14)',
+    '} compactLeading: {\n                LeconFlamme(etat: context.state, taille: 15)', '} compactTrailing: {\n                LeconMoments(etat: context.state)', '} minimal: {\n                LeconFlamme(etat: context.state, taille: 14)',
     '.keylineTint(braise)', 'Image("Mascotte")'])
     assert.ok(act.includes(k), k);
   for (const k of ['@available(iOS 16.1, *)\nstruct RequeteLeconActivite: Widget {', '@available(iOS 16.1, *)\nstruct LeconVerrouille: View {',

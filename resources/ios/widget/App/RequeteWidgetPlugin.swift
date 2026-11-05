@@ -14,7 +14,9 @@ import ActivityKit
 //   (fond), avant que le clavier s’ouvre ;
 // - la Dynamic Island (12 h 35, « tu peux faire une Dynamic Island ») : la leçon en cours, en Live Activity. La page la lance à
 //   l’ouverture d’une leçon en vidéo (leconDebut), la met à jour quand la vidéo avance et quand on quitte l’app (leconMaj), et
-//   l’arrête à la fin (leconFin) ; son dessin est dans le widget (RequeteWidget.swift, RequeteLeconActivite).
+//   l’arrête à la fin (leconFin) ; son dessin est dans le widget (RequeteWidget.swift, RequeteLeconActivite). 5 novembre, 6 h 45 :
+//   les moments réussis (« 2/4 ») ; un moment réussi de plus, le nouveau compte arrive une seconde après qu’on a quitté l’app,
+//   quand la Dynamic Island est à l’écran : le chiffre roule sous les yeux (anime).
 // - la sauvegarde (22 h 08, « une interaction qui dit fichier exporté alors qu’on a juste cliqué ») : partager écrit le fichier de
 //   sauvegarde et ouvre la feuille de partage d’iOS ; la page n’annonce la sauvegarde qu’une fois le fichier parti ;
 // - « Noter Requête » (22 h 08) : ouvrir passe la page « Écrire un avis » de l’App Store au système.
@@ -100,7 +102,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    /// La leçon s’ouvre : { titre, module, progression (0 à 1), allumee }. Répond { ok } (faux si les Live Activities sont coupées).
+    /// La leçon s’ouvre : { titre, module, progression (0 à 1), allumee, reussis, moments, objectif }. Répond { ok } (faux si les
+    /// Live Activities sont coupées).
     @objc func leconDebut(_ call: CAPPluginCall) {
         guard #available(iOS 16.2, *) else {
             call.resolve(["ok": false])
@@ -108,28 +111,32 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         let titre = call.getString("titre") ?? "Leçon"
         let module = call.getString("module") ?? ""
-        let etat = RequeteLeconPont.etat(progression: call.getDouble("progression"), allumee: call.getBool("allumee"), fini: false)
+        let base = RequeteLeconPont.etat(progression: call.getDouble("progression"), allumee: call.getBool("allumee"), fini: false)
+        let etat: RequeteLecon.ContentState = RequeteLeconPont.moments(base, call)
         Task {
             let ok = await RequeteLeconPont.debut(titre: titre, module: module, etat: etat)
             call.resolve(["ok": ok])
         }
     }
 
-    /// La leçon avance : { progression, allumee }.
+    /// La leçon avance : { progression, allumee, reussis, moments, objectif, anime }. anime : on vient de quitter l’app avec un moment
+    /// réussi de plus (RequeteLeconPont.maj).
     @objc func leconMaj(_ call: CAPPluginCall) {
         guard #available(iOS 16.2, *) else {
             call.resolve()
             return
         }
-        let etat = RequeteLeconPont.etat(progression: call.getDouble("progression"), allumee: call.getBool("allumee"), fini: false)
+        let base = RequeteLeconPont.etat(progression: call.getDouble("progression"), allumee: call.getBool("allumee"), fini: false)
+        let etat: RequeteLecon.ContentState = RequeteLeconPont.moments(base, call)
+        let anime: Bool = call.getBool("anime") ?? false
         Task {
-            await RequeteLeconPont.maj(etat)
+            await RequeteLeconPont.maj(etat, anime: anime)
             call.resolve()
         }
     }
 
-    /// La leçon se ferme : { fini, allumee }. Réussie, elle reste un quart d’heure sur l’écran verrouillé, la flamme dorée ;
-    /// sinon, elle s’en va tout de suite.
+    /// La leçon se ferme : { fini, allumee, reussis }. Réussie, elle reste un quart d’heure sur l’écran verrouillé, la flamme dorée,
+    /// avec ses moments réussis ; sinon, elle s’en va tout de suite.
     @objc func leconFin(_ call: CAPPluginCall) {
         guard #available(iOS 16.2, *) else {
             call.resolve()
@@ -137,8 +144,9 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         let fini = call.getBool("fini") ?? false
         let allumee = call.getBool("allumee") ?? fini
+        let reussis: Int? = call.getInt("reussis")
         Task {
-            await RequeteLeconPont.fin(reussie: fini, allumee: allumee)
+            await RequeteLeconPont.fin(reussie: fini, allumee: allumee, reussis: reussis)
             call.resolve()
         }
     }
@@ -200,10 +208,36 @@ struct RequeteLecon: ActivityAttributes {
         var progression: Double   // de 0 à 1 : l’avancement de la vidéo
         var allumee: Bool         // la flamme du jour est déjà allumée (une séance faite aujourd’hui)
         var fini: Bool            // la leçon est réussie
+        var reussis: Int? = nil   // les moments « À toi » réussis du premier coup (5 novembre, 6 h 45 : « 2/4 »)
+        var moments: Int? = nil   // les moments de la leçon
+        var objectif: Int? = nil  // les moments à réussir pour valider la leçon
     }
 
     var titre: String
     var module: String
+}
+
+/// Une tâche de fond, le temps d’une mise à jour : l’app vient de passer en arrière-plan, iOS la laisse finir (une seconde, au
+/// plus quelques-unes ; à l’expiration, elle s’arrête d’elle-même).
+final class RequeteTacheDeFond {
+    private var id: UIBackgroundTaskIdentifier = .invalid
+
+    func debut() {
+        DispatchQueue.main.async {
+            guard self.id == .invalid else { return }
+            self.id = UIApplication.shared.beginBackgroundTask(withName: "RequeteLecon") { [weak self] in
+                self?.fin()
+            }
+        }
+    }
+
+    func fin() {
+        DispatchQueue.main.async {
+            guard self.id != .invalid else { return }
+            UIApplication.shared.endBackgroundTask(self.id)
+            self.id = .invalid
+        }
+    }
 }
 
 /// Une seule leçon à la fois ; une heure sans nouvelles et iOS la montre comme passée.
@@ -213,6 +247,18 @@ enum RequeteLeconPont {
         let brute: Double = progression ?? 0
         let p: Double = min(1, max(0, brute))
         return RequeteLecon.ContentState(progression: p, allumee: allumee ?? false, fini: fini)
+    }
+
+    /// Les moments de la leçon, quand la page les donne : { reussis, moments, objectif }.
+    static func moments(_ etat: RequeteLecon.ContentState, _ call: CAPPluginCall) -> RequeteLecon.ContentState {
+        guard let n = call.getInt("moments"), n > 0 else { return etat }
+        let r: Int = call.getInt("reussis") ?? 0
+        let but: Int = call.getInt("objectif") ?? n
+        var e: RequeteLecon.ContentState = etat
+        e.moments = n
+        e.reussis = min(n, max(0, r))
+        e.objectif = min(n, max(1, but))
+        return e
     }
 
     static func debut(titre: String, module: String, etat: RequeteLecon.ContentState) async -> Bool {
@@ -230,16 +276,33 @@ enum RequeteLeconPont {
         }
     }
 
-    static func maj(_ etat: RequeteLecon.ContentState) async {
+    /// 5 novembre, 6 h 45 : on quitte l’app avec un moment réussi de plus (anime). La Dynamic Island apparaît d’abord avec l’ancien
+    /// compte ; le nouveau arrive une seconde après, quand elle est à l’écran : le chiffre roule, la case se remplit. Une tâche de fond
+    /// garde l’app éveillée le temps de cette seconde.
+    static func maj(_ etat: RequeteLecon.ContentState, anime: Bool) async {
+        let fond = RequeteTacheDeFond()
+        if anime { fond.debut() }
         for a in Activity<RequeteLecon>.activities {
+            let avant: Int? = a.content.state.reussis
+            if anime, let ancien = avant, ancien != etat.reussis {
+                var attente: RequeteLecon.ContentState = etat
+                attente.reussis = ancien
+                await a.update(ActivityContent(state: attente, staleDate: Date().addingTimeInterval(3600)))
+                try? await Task.sleep(nanoseconds: 1_100_000_000)
+            }
             await a.update(ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)))
         }
+        if anime { fond.fin() }
     }
 
-    static func fin(reussie: Bool, allumee: Bool) async {
+    static func fin(reussie: Bool, allumee: Bool, reussis: Int?) async {
         for a in Activity<RequeteLecon>.activities {
             let p: Double = reussie ? 1 : a.content.state.progression
-            let bilan = RequeteLecon.ContentState(progression: p, allumee: allumee, fini: reussie)
+            var bilan: RequeteLecon.ContentState = a.content.state
+            bilan.progression = p
+            bilan.allumee = allumee
+            bilan.fini = reussie
+            if let r = reussis, let n = bilan.moments { bilan.reussis = min(n, max(0, r)) }
             let dernier = ActivityContent(state: bilan, staleDate: nil)
             let politique: ActivityUIDismissalPolicy = reussie ? .after(Date().addingTimeInterval(15 * 60)) : .immediate
             await a.end(dernier, dismissalPolicy: politique)
