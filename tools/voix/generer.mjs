@@ -6,9 +6,11 @@
 
    Il lit tools/voix/<cours>.json (voix, modèle, textes) et range chaque fichier dans tools/voix/sortie/<cours>/ (hors Git) :
    <id>.mp3 et <id>.json (le texte et le minutage de chaque caractère, qui sert à caler les légendes sur la voix).
-   Un fichier déjà généré n’est pas refait (sauf si son texte a changé) : relancer le script ne dépense rien de plus.
+   Un fichier déjà généré n’est pas refait (sauf si son texte ou sa voix a changé) : relancer le script ne dépense rien de plus.
+   Une phrase sans contexte (« Bien vu ! », une consigne) déjà dite par la même voix pour un autre cours est reprise, sans rien dépenser.
 
-   Options : <cours> (par défaut le seul fichier .json du dossier), --toutes (toutes les leçons qui ont un fichier manquant ou changé),
+   Options : <cours> (par défaut le seul fichier .json du dossier), --toutes (toutes les leçons qui ont un fichier manquant ou changé ;
+   avec --cours a,b,c : seulement ces leçons-là),
    --refaire ch06,at2 (regénère ces fichiers),
    --tout (regénère tout), --oui (ne demande pas de confirmation), --cle (redemande la clé API). */
 import fs from 'node:fs';
@@ -54,6 +56,41 @@ async function apiKey(){
   return k;
 }
 
+/* Un fichier est fait quand son .mp3 et son .json sont là, avec le même texte et la même voix (Elisa, 5 novembre, 0 h 38 : vingt cours
+   passent à la voix d’Anaïs ; leurs textes ne changent pas, leurs fichiers sont refaits). */
+function fait(job, out, el){
+  try {
+    if (!fs.existsSync(path.join(out, el.id + '.mp3'))) return false;
+    const j = JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8'));
+    return j.texte === el.texte && (!j.voix || !job.voix || j.voix.id === job.voix.id);
+  } catch (e) { return false; }
+}
+
+/* Une phrase sans contexte (ni texte d’avant ni texte d’après : « Bien vu ! », « Bravo ! Tu as validé la leçon. », une consigne) que la
+   même voix a déjà dite, mot pour mot, pour un autre cours : ses deux fichiers sont copiés, rien n’est dépensé. Les chapitres, dits
+   avec leur contexte, sont toujours générés. */
+function reprendre(job, out){
+  const sortie = path.join(DIR, 'sortie');
+  const autres = fs.existsSync(sortie) ? fs.readdirSync(sortie).filter(c => c !== job.cours) : [];
+  let n = 0;
+  for (const el of job.elements || []) {
+    if (el.avant || el.apres || fait(job, out, el)) continue;
+    for (const c of autres) {
+      const a = path.join(sortie, c);
+      if (!fait(job, a, el)) continue;
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(a, el.id + '.json'), 'utf8'));
+        if (!j.voix || !job.voix || j.voix.id !== job.voix.id) continue;   // la même voix, sûrement
+        fs.mkdirSync(out, {recursive: true});
+        for (const x of ['.mp3', '.json']) fs.copyFileSync(path.join(a, el.id + x), path.join(out, el.id + x));
+        n++;
+        break;
+      } catch (e) {}
+    }
+  }
+  return n;
+}
+
 /* La musique est faite quand son fichier est là et que sa consigne n’a pas changé. */
 function musiqueFaite(job, out){ try { return fs.existsSync(path.join(out, 'musique.mp3')) && JSON.parse(fs.readFileSync(path.join(out, 'musique.json'), 'utf8')).prompt === job.musique.prompt; } catch (e) { return false; } }
 
@@ -83,10 +120,16 @@ async function main(){
   /* --toutes (Elisa, 2 novembre, 10 h 44 : « une commande qui regroupe tout ce que j’ai oublié ») : chaque cours dont un fichier
      manque ou dont le texte a changé, l’un après l’autre ; les cours déjà complets sont sautés sans rien dépenser. */
   if (flag('--toutes')) {
-    const reste = jobs.map(f => { const job = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')), out = path.join(DIR, 'sortie', job.cours);
-      const ok = el => { try { return fs.existsSync(path.join(out, el.id + '.mp3')) && JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8')).texte === el.texte; } catch (e) { return false; } };
-      const todo = (job.elements || []).filter(el => !ok(el)), mus = job.musique && !musiqueFaite(job, out) ? 1 : 0;
+    /* --cours a,b,c (Elisa, 5 novembre : les vingt cours qui passent à la voix d’Anaïs, et GROUP BY) : seulement ces leçons. */
+    const seuls = (opt('--cours') || '').split(',').map(s => s.trim().replace(/\.json$/, '')).filter(Boolean);
+    const inconnus = seuls.filter(c => !jobs.includes(c + '.json'));
+    if (inconnus.length) { console.log('Leçon inconnue : ' + inconnus.join(', ') + '. Rien n’est fait.'); process.exit(1); }
+    let repris = 0;
+    const reste = jobs.filter(f => !seuls.length || seuls.includes(f.replace(/\.json$/, ''))).map(f => { const job = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')), out = path.join(DIR, 'sortie', job.cours);
+      repris += reprendre(job, out);
+      const todo = (job.elements || []).filter(el => !fait(job, out, el)), mus = job.musique && !musiqueFaite(job, out) ? 1 : 0;
       return {cours: f.replace(/\.json$/, ''), voix: job.voix && job.voix.nom, n: todo.length + mus, mus, cost: todo.reduce((a, el) => a + el.texte.length, 0)}; }).filter(x => x.n);
+    if (repris) console.log(`\n${repris} phrase${repris > 1 ? 's' : ''} déjà dite${repris > 1 ? 's' : ''} par la même voix pour un autre cours : reprise${repris > 1 ? 's' : ''}, sans rien dépenser.`);
     if (!reste.length) { console.log('\nToutes les leçons sont déjà générées. Rien à faire.'); return; }
     console.log('\nÀ générer :');
     for (const x of reste) console.log(`  ${x.cours.padEnd(24)} ${String(x.n).padStart(2)} fichier${x.n > 1 ? 's' : ' '}  (${x.voix})${x.mus ? ' + la musique' : ''}`);
@@ -109,9 +152,9 @@ async function main(){
   fs.mkdirSync(out, {recursive: true});
 
   const redo = new Set((opt('--refaire') || '').split(',').map(s => s.trim()).filter(Boolean));
-  /* Un fichier dont le texte a changé depuis (une prononciation corrigée dans preparer.mjs) est refait, lui seul. */
-  const same = el => { try { return JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8')).texte === el.texte; } catch (e) { return false; } };
-  const done = el => fs.existsSync(path.join(out, el.id + '.mp3')) && fs.existsSync(path.join(out, el.id + '.json')) && same(el);
+  /* Un fichier dont le texte a changé depuis (une prononciation corrigée dans preparer.mjs), ou fait avec une autre voix, est refait, lui seul. */
+  reprendre(job, out);
+  const done = el => fait(job, out, el);
   const todo = job.elements.filter(el => flag('--tout') || redo.has(el.id) || !done(el));
   const musTodo = !!job.musique && (flag('--tout') || redo.has('musique') || !musiqueFaite(job, out));
   console.log(`\nVoix off · ${job.titre} · voix ${job.voix.nom} (${job.modele})`);
