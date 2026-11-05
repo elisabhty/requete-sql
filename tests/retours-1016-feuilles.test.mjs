@@ -29,17 +29,20 @@ function bac(o = {}) {
   return {ctx, els};
 }
 
-test('un cadre unique (11 h 11) : la partie rapide, puis « ou » et une rangée « Créer », « J’ai un code », « Seul » ; plus de carte au milieu', () => {
+test('le cadre du haut (11 h 11, 11 h 19) : le niveau, « Créer une salle », puis « ou » et une rangée « J’ai un code », « Seul » ; plus de carte au milieu', () => {
   const {ctx, els} = bac();
   els['defis-room'] = {innerHTML: 'ancien'};
   const ouvertes = [];
   ctx.defisFeuilleOuvrir = k => ouvertes.push(k);
   const h = ctx.defisActionsHTML();
   assert.ok(h.startsWith('<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">'));
-  assert.equal((h.match(/<button type="button" class="dx-act /g) || []).length, 3);
-  for (const [k, stk, titre, sous] of [['creer', 'user', 'Créer', 'une salle'], ['code', 'rocket', 'J’ai un code', 'rejoindre'], ['seul', 'clock', 'Seul', 'entraînement']])
+  assert.equal((h.match(/<button type="button" class="dx-act /g) || []).length, 2);
+  for (const [k, stk, titre, sous] of [['code', 'rocket', 'J’ai un code', 'rejoindre un ami'], ['seul', 'clock', 'Seul', 'entraînement']])
     assert.ok(h.includes(`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="false" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true"><svg data-stk="${stk}"/></span><b>${titre}</b><small>${sous}</small></button>`), k);
-  assert.ok(fn('defisRapideHTML').includes('<p class="jeu-msg" id="dx-rapide-msg" role="status" aria-live="polite"></p>\n    ${defisActionsHTML()}</section>`;'), 'dans le cadre de la partie rapide');
+  const haut = fn('defisRapideHTML');
+  assert.ok(haut.includes('<p class="room-kicker">Créer une salle</p><h2 id="dx-rapide-h">Ta salle de défi</h2>') && haut.includes("${jeuNiveauxHTML('dx-niv-l','defisNiv')}"), 'le niveau dans le cadre de « Créer une salle »');
+  assert.ok(haut.includes('<button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c===\'creer\'}" onclick="defisCarte(\'creer\')"><span>Créer une salle</span>${DEF_CHEV_SVG}</button>\n    ${defisActionsHTML()}</section>`;'), '« Créer une salle » ouvre sa feuille ; la rangée dessous');
+  assert.ok(!haut.includes('jeuPartieRapide') && fn('sallesRepeindre').includes('onclick="jeuPartieRapide()"><span>Trouver une salle</span>'), '« Trouver une salle » dans le cadre du bas');
   ctx.renderDefisRoom();
   assert.equal(els['defis-room'].innerHTML, '', 'plus rien entre la partie rapide et les salles ouvertes');
   assert.deepEqual(ouvertes, [], 'rien ne s’ouvre tout seul');
@@ -78,7 +81,7 @@ test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et
   for (const k of ["el.id='dx-feuille';el.className='dx-feuille';", 'role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1"',
     '<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>',
     '<button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>',
-    "document.addEventListener('keydown',dxFeuilleTouche,true);", "vv.addEventListener('resize',dxFeuilleCaler)", "document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));",
+    "document.addEventListener('keydown',dxFeuilleTouche,true);", "vv.addEventListener('resize',dxFeuilleCaler)", "document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));",
     'if(inp&&!inp.value)inp.focus({preventScroll:true}); else el.querySelector(\'.dx-f-boite\').focus({preventScroll:true});', "bx.classList.toggle('is-defile',"])
     assert.ok(o.includes(k), k);
   const f = fn('defisFeuilleFermer');
@@ -106,7 +109,8 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
 
 test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du bas, son bouton qui reste en bas sur un petit écran', () => {
   for (const k of ['html.lq #scr-defis .dx-ou{display:flex;align-items:center;gap:12px;', 'html.lq #scr-defis .dx-ou::before,html.lq #scr-defis .dx-ou::after{content:"";flex:1;height:2px;',
-    'html.lq #scr-defis .dx-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px;border:2px solid var(--line);border-radius:18px;',
+    'html.lq #scr-defis .dx-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px;border:2px solid var(--line);border-radius:18px;',
+    'html.lq #scr-defis .dx-trouver{margin:14px 0 4px}', 'html.lq #scr-defis #dx-salles-liste{margin-top:12px;padding-top:12px;border-top:2px dashed var(--line-2)}',
     'html.lq #scr-defis .dx-act+.dx-act{box-shadow:inset 2px 0 0 var(--line)}',
     'html.lq #scr-defis .dx-act:active,html.lq #scr-defis .dx-act[aria-expanded="true"]{background:var(--accent-soft)}',
     '.dx-feuille{position:fixed;inset:0;z-index:2600;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}',

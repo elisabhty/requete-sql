@@ -6713,7 +6713,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=150">
+<link rel="stylesheet" href="ludique.css?v=151">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=23">
 <style id="lesson-video-css">
@@ -21431,16 +21431,16 @@ function renderDefisRoom(){
   const c=D.carte;
   /* 11 h 11 : « juste un cadre unique » : les trois boutons sont dans le cadre de la partie rapide (defisActionsHTML). */
   host.innerHTML='';
-  document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===c)));
+  document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===c)));
   const f=typeof document.getElementById==='function'?document.getElementById('dx-feuille'):null;
   if(c&&(!f||f.dataset.k!==c))defisFeuilleOuvrir(c);
 }
-/* « Créer », « J’ai un code », « Seul » : dans le cadre de la partie rapide, sous « ou », une seule rangée (Elisa, 5 novembre, 11 h 11 :
-   « juste un cadre unique ») ; chacun ouvre sa feuille. */
+/* « J’ai un code », « Seul » : dans le cadre du haut, sous « ou », une seule rangée (Elisa, 5 novembre, 11 h 11 : « juste un cadre
+   unique ») ; chacun ouvre sa feuille. */
 function defisActionsHTML(){
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
   const tuile=(k,stk,titre,sous)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b><small>${sous}</small></button>`;
-  return `<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('creer','user','Créer','une salle')}${tuile('code','rocket','J’ai un code','rejoindre')}${tuile('seul','clock','Seul','entraînement')}</div>`;
+  return `<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('code','rocket','J’ai un code','rejoindre un ami')}${tuile('seul','clock','Seul','entraînement')}</div>`;
 }
 /* Le contenu d’une feuille : le bandeau violet (autocollant, surtitre, titre ; le niveau en pastille), puis, sur blanc, seulement ce
    qu’il faut choisir. Créer : les manches, qui peut entrer, le pseudo ; un code : le code ; seul : les manches. */
@@ -21482,7 +21482,7 @@ function defisFeuilleOuvrir(k){
   const neuf=!el;
   if(neuf){
     el=document.createElement('div');el.id='dx-feuille';el.className='dx-feuille';
-    const a=document.activeElement;dxFeuilleRetour=a&&a.closest&&a.closest('.dx-act')?a:null;
+    const a=document.activeElement;dxFeuilleRetour=a&&a.closest&&a.closest('.dx-act,.dx-act-go')?a:null;
     document.addEventListener('keydown',dxFeuilleTouche,true);
     const vv=window.visualViewport;if(vv){vv.addEventListener('resize',dxFeuilleCaler);vv.addEventListener('scroll',dxFeuilleCaler);}
   }
@@ -21494,7 +21494,7 @@ function defisFeuilleOuvrir(k){
     </div>`;
   const inp=el.querySelector('#jeu-code');
   if(inp){inp.addEventListener('focus',()=>requestAnimationFrame(dxFeuilleCaler));inp.addEventListener('blur',dxFeuilleCaler);}
-  document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
+  document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
   const bx=el.querySelector('.dx-f-boite');
   if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;}
   const montrer=()=>{
@@ -21508,7 +21508,7 @@ function defisFeuilleFermer(sansRetour){
   if(typeof DEFIS!=='undefined')DEFIS.carte='';
   jeuInvite='';
   if(typeof document==='undefined'||!document.getElementById)return;
-  document.querySelectorAll('#scr-defis .dx-act').forEach(b=>b.setAttribute('aria-expanded','false'));
+  document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded','false'));
   const el=document.getElementById('dx-feuille');if(!el)return;
   document.removeEventListener('keydown',dxFeuilleTouche,true);
   const vv=window.visualViewport;if(vv){vv.removeEventListener('resize',dxFeuilleCaler);vv.removeEventListener('scroll',dxFeuilleCaler);}
@@ -22225,17 +22225,23 @@ function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
   jeuNiv=k;jeuNivUser=true;jeuSavePrefs();
   document.querySelectorAll('#scr-defis [data-set="niv"]').forEach(b=>{const on=b.dataset.v===k;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
+  const t=document.getElementById('dx-trouver-t');if(t)t.innerHTML=dxTrouverTexte();
   if(navigator.vibrate)navigator.vibrate(6);
 }
+/* Sous « Trouver une salle » : le niveau choisi en haut, et ce que fait le bouton. */
+function dxTrouverTexte(){return `Au niveau <b>${esc(JEU_NIVL[jeuNiv]||'Facile')}</b>, on te place dans une salle qui démarre. Personne&nbsp;? On ouvre la tienne, et les autres la voient.`;}
+/* Le cadre du haut : créer sa salle (Elisa, 5 novembre, 11 h 19 : « le haut, c’est la partie Créer une salle, et Trouver une salle
+   c’est en bas, dans le cadre du bas ») : le niveau, « Créer une salle » qui ouvre sa feuille (les manches, qui peut entrer), puis,
+   sous « ou », « J’ai un code » et « Seul ». Le niveau vaut aussi pour « Seul » et pour « Trouver une salle ». */
 function defisRapideHTML(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
+  const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
   return `<section class="room-card dx-rapide" aria-labelledby="dx-rapide-h"><div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('target')}</span><div>
-    <p class="room-kicker">Partie rapide</p><h2 id="dx-rapide-h">Joue maintenant</h2>
-    <p class="room-sub">On te place dans une salle qui démarre, à ton niveau. Personne&nbsp;? On ouvre la tienne, et les autres la voient.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
+    <p class="room-kicker">Créer une salle</p><h2 id="dx-rapide-h">Ta salle de défi</h2>
+    <p class="room-sub">Choisis le niveau, puis invite tes amis ou laisse entrer tout le monde. Le défi est tiré au sort, le même pour tous.</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="dx-niv-l">Niveau</p>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
-    <button type="button" class="room-go" id="dx-rapide-go" onclick="jeuPartieRapide()"><span>Trouver une salle</span>${DEF_CHEV_SVG}</button>
-    <p class="jeu-msg" id="dx-rapide-msg" role="status" aria-live="polite"></p>
+    <button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')"><span>Créer une salle</span>${DEF_CHEV_SVG}</button>
     ${defisActionsHTML()}</section>`;
 }
 /* Créer une salle, entrer un code, s’entraîner seul : la feuille demandée (defisFeuilleOuvrir) ; '' la referme. */
@@ -22322,11 +22328,16 @@ function sallesRepeindre(){
   let corps;
   if(err==='net'&&!l)corps=`<p class="dx-vide">Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.</p><button type="button" class="perf-top-btn" onclick="sallesCharger(true).catch(()=>{})">Réessayer</button>`;
   else if(!l)corps=`<ul class="dx-list is-wait" aria-label="Chargement des salles ouvertes">${[0,1].map(i=>`<li style="--i:${i}"><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('')}</ul>`;
-  else if(!l.length)corps=`<p class="dx-vide">Aucune salle ouverte pour l’instant. Lance une partie rapide&nbsp;: ta salle apparaîtra ici pour les autres.</p>`;
+  else if(!l.length)corps=`<p class="dx-vide">Aucune salle ouverte pour l’instant&nbsp;: «&nbsp;Trouver une salle&nbsp;» ouvre la tienne, elle apparaîtra ici pour les autres.</p>`;
   else corps=`<ul class="dx-list">${l.map(s=>salleLigneHTML(s)).join('')}</ul>`;
-  /* 10 h 16 : « Créer une salle », « J’ai un code » et « Seul » sont sous la partie rapide ; ici, les salles en direct seulement. */
+  /* Déjà dessiné : seules la liste et son surtitre changent (le bouton garde son état et son message pendant une recherche). */
+  const liste=host.querySelector&&host.querySelector('#dx-salles-liste'),kick=host.querySelector&&host.querySelector('.perf-kicker');
+  if(liste&&kick){liste.innerHTML=corps;kick.innerHTML=kicker;return;}
+  /* 11 h 19 : « Trouver une salle » est dans le cadre du bas, avec les salles en direct ; créer, un code, seul : le cadre du haut. */
   host.innerHTML=`<section class="perf-card dx-salles" aria-labelledby="dx-salles-h"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('bubble')}</span><div><p class="perf-kicker">${kicker}</p><h2 id="dx-salles-h">Salles ouvertes</h2></div></div>
-    ${corps}
+    <div class="dx-trouver"><button type="button" class="room-go" id="dx-rapide-go" onclick="jeuPartieRapide()"><span>Trouver une salle</span>${DEF_CHEV_SVG}</button>
+    <p class="dx-trouver-t" id="dx-trouver-t">${dxTrouverTexte()}</p><p class="jeu-msg" id="dx-rapide-msg" role="status" aria-live="polite"></p></div>
+    <div id="dx-salles-liste">${corps}</div>
     <p class="dx-regles"><button type="button" class="dx-lien" onclick="defisStats(true)">Comment on marque des points</button></p></section>`;
 }
 /* L’hôte d’une salle publique la publie (jeu_salle_publier) dès que la base la connaît : quelques essais, de plus en plus espacés. */
@@ -38313,7 +38324,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-cadre-v2531';
+  const SW_CACHE='requete-2026-11-05-haut-bas-v2532';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
