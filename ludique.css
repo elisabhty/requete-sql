@@ -5987,7 +5987,10 @@ html.lq .coach-peek.is-out{opacity:0}
 @keyframes coachPeekIn{from{opacity:0;transform:translate(-50%,16px) scale(.9)}to{opacity:1;transform:translateX(-50%)}}
 html.lq .coach-peek span{animation:coachUp 1.2s ease-in-out infinite}
 /* coachGo retiré : l’animation infinie (scale) forçait un calque rastérisé, le texte devenait flou sur iPhone. */
-@keyframes coachCaret{50%{opacity:0}}
+/* 5 novembre, 14 h 24 (réf. 1, « la pill violette est pixelisée ») : le curseur clignotait en opacité, une animation que Safari
+   confie à un calque à part ; l’étiquette penchée qui le contient passait alors en calque elle aussi, rastérisée flou sur iPhone.
+   Le curseur clignote maintenant par sa couleur : rien ne sort de la page, le texte de l’étiquette reste net. */
+@keyframes coachCaret{50%{background-color:transparent}}
 @keyframes coachFlip{0%{transform:perspective(300px) rotateX(-90deg) scale(.9);background:var(--accent)}55%{transform:perspective(300px) rotateX(12deg) scale(1.08)}100%{transform:none}}
 @keyframes coachUp{0%,100%{transform:none}50%{transform:translateY(-3px)}}
 @media (prefers-reduced-motion:reduce){html.lq .coach-peek,html.lq .coach-peek span{animation:none!important}}
@@ -7355,3 +7358,25 @@ html.lq #scr-compte .rp-note-i svg{display:block;width:100%;height:100%}
 html.lq #scr-compte .rp-pied{position:sticky;bottom:0;z-index:2;margin-top:10px;padding:12px 18px calc(var(--safe-bottom,0px) + 14px);background:#fff;box-shadow:0 -2px 0 var(--line-2)}
 html.lq #scr-compte .rp-go{display:block;width:100%;margin:0}
 @media (prefers-reduced-motion:reduce){html.lq #scr-compte .rp-slot,html.lq #scr-compte .rp-heure{transition:none}}
+
+/* ---------- Retours du 5 novembre, 14 h 24 ----------
+   Pratiquer (réf. 3) : « Relever un défi », avec la flèche qui avance des boutons jaunes de l’onboarding. */
+html.lq .journey-spotlight .journey-primary .prat-fleche{display:inline-flex;margin-left:8px;vertical-align:-3px}
+html.lq .journey-spotlight .journey-primary .prat-fleche svg{width:19px;height:19px}
+@keyframes pratFleche{0%,100%{transform:none}50%{transform:translateX(5px)}}
+html.lq:not([data-motion="reduce"]) .journey-spotlight .journey-primary .prat-fleche{animation:pratFleche 1.1s ease-in-out .4s infinite}
+@media (prefers-reduced-motion:reduce){html.lq .journey-spotlight .journey-primary .prat-fleche{animation:none}}
+
+/* Projets de la Console (14 h 24, « pb de formatage des noms de colonnes ») : un long nom de colonne passe à la ligne après un « _ »,
+   comme les noms de tables, au lieu de sortir de la carte. */
+html.lq #scr-console .db-col .cn{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+
+/* Schéma UML (14 h 24, « mettre Voir avec > animé, iso à ce qu’on a dans les défis, au sein de la table ») : la ligne « +2 colonnes »
+   est un bouton ; à droite, la pastille « Voir › » de « Mes stats » (Défis), sa flèche qui avance ; il ouvre l’onglet de la table. */
+html.lq #schema-sheet button.umd-c.is-voir{width:100%;margin:0;border:0;background:none;cursor:pointer;text-align:left;gap:8px;padding-right:8px;-webkit-tap-highlight-color:transparent}
+html.lq #schema-sheet .umd-voir{flex:none;margin-left:auto;display:inline-flex;align-items:center;gap:1px;height:18px;padding:0 3px 0 8px;border-radius:999px;background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px #DDD3FF;color:var(--accent-ink);font:800 10.5px/1 var(--display)}
+html.lq #schema-sheet .umd-voir svg{display:block;flex:none;width:12px;height:12px;animation:dxMeFleche 2.6s ease-in-out infinite}
+html.lq #schema-sheet button.umd-c.is-voir:active .umd-voir{background:#E2D9FF}
+html.lq #schema-sheet button.umd-c.is-voir:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){html.lq #schema-sheet .umd-voir svg{animation:none}}
+html[data-motion="reduce"].lq #schema-sheet .umd-voir svg{animation:none}

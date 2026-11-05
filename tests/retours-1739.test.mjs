@@ -39,10 +39,11 @@ test('le cadre « Comment on marque des points » : les paliers en marches, le p
   assert.deepEqual(steps.map(s => s[3]), [52, 46, 39, 33, 26, 20, 13], 'des marches qui descendent');
   assert.ok(h.includes('<ol class="room-paliers" aria-label="Points selon le temps pour trouver">') && h.includes('<p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p>'));
   /* 5 novembre, 9 h 18 : entre amis, le +25 ne va qu’au premier à trouver. */
-  assert.ok(h.includes('<li><b>✨ Du premier coup</b><span>+25</span><small>Ta première requête exécutée est la bonne ; entre amis, si personne n’a trouvé avant toi</small></li>'));
-  assert.ok(h.includes('<li><b>🥇 Premier entre amis</b><span>+50</span><small>2e : +30 · 3e : +20 · 4e : +10</small></li>'));
+  /* 5 novembre, 14 h 24 : seul dans la salle, le +25 reste et le bonus de place ne compte pas (retours-1424.test.mjs). */
+  assert.ok(h.includes('<li><b>✨ Du premier coup</b><span>+25</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
+  assert.ok(h.includes('<li><b>🥇 Premier à trouver</b><span>+50</span><small>À plusieurs : 2e +30 · 3e +20 · 4e +10. Seul dans la salle, pas de bonus de place</small></li>'));
   assert.ok(h.includes('<li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>'));
-  assert.ok(h.includes('<p class="room-rules-max"><span>Manche parfaite</span><b>225</b><small>seul</small><i aria-hidden="true">·</i><b>275</b><small>entre amis</small></p>'));
+  assert.ok(h.includes('<p class="room-rules-max"><span>Manche parfaite</span><b>225</b><small>seul</small><i aria-hidden="true">·</i><b>275</b><small>à plusieurs</small></p>'));
   assert.ok(!h.includes('Rapidité') && !h.includes('baisse doucement'), 'l’ancien barème est parti');
   assert.ok(sec.cls.has('is-in'), 'sans IntersectionObserver : tout de suite');
   /* Les marches montent quand le cadre arrive à l’écran */

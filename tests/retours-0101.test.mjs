@@ -58,7 +58,8 @@ test('1 h 32 : la base Aéroport dans « Tes projets », de l’espace sous les 
   assert.ok(app.includes("function isDemoDb(id){return id==='cours'||(typeof DEFI_BASES!=='undefined'&&Object.prototype.hasOwnProperty.call(DEFI_BASES,id));}"));
   assert.ok(app.includes("dbCatalog.splice(at,0,...ids.map(id=>({id,name:DEFI_BASES[id].nom})));"));
   assert.ok(app.includes('    await loadCustomDbs();\n    ensureDemoDbs();'), 'recréées à chaque ouverture');
-  assert.ok(app.includes('  const payload=dbCatalog.filter(d=>!isDemoDb(d.id)).map(d=>{'), 'jamais enregistrée avec les projets');
+  /* 5 novembre, 14 h 24 : les projets passent dans IndexedDB (retours-1424.test.mjs) ; les bases de démo n’y vont toujours pas */
+  assert.ok(app.includes('  const metas=dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id]);'), 'jamais enregistrée avec les projets');
   assert.ok(app.includes("async function renameDb(id){\n  if(isDemoDb(id))return;") && app.includes("function deleteDb(id){\n  if(isDemoDb(id)) return;"), 'ni renommée ni supprimée');
   assert.ok(app.includes("function demoLabel(id){return id==='cours'?'Base NutriBoost':'Base '+DEFI_BASES[id].nom;}"));
   assert.ok(css.includes('html.lq #app .p-bar{height:calc(var(--safe-top) + 52px);padding-bottom:8px;box-sizing:border-box;margin-bottom:calc(-1 * (var(--safe-top) + 52px))}'));

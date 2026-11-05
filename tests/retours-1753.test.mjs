@@ -36,8 +36,9 @@ test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveau
   const compte = cut('function renderCompte(){', 'function accPseudoHTML(');
   assert.ok(compte.includes(`<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">\${lqStkSvg('target')}</span><b>\${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point\${kd.pts>1?'s':''} en défis</small><span class="kpi-chip\${kd.ma?'':' is-vide'}">\${kd.ma?\`\${kd.tr}/\${kd.ma} réussie\${kd.tr>1?'s':''}\`:'À jouer'}</span></div>`), 'Mon compte');
   const hub = fn('renderJourneyHub');
-  assert.ok(hub.includes("['defis','Défis',`${kd.tr}/${kd.ma} manches réussies · ${sallePts(kd.pts)}`,\"switchTab('defis')\",kd.ma?Math.round(kd.tr/kd.ma*100):null],"), 'Pratiquer');
-  assert.ok(hub.includes('<p class="journey-kicker">Salle de défi</p><h2>Un défi tiré au sort</h2>'), 'le cadre du haut de Pratiquer');
+  /* 5 novembre, 14 h 24 : « Mes défis » ouvre Mes stats ; le cadre du haut, d’après la réf. 3 d’Elisa (retours-1424.test.mjs). */
+  assert.ok(hub.includes("['defis','Mes défis',`${kd.tr}/${kd.ma} manches réussies\\u00a0· ${(+kd.pts||0).toLocaleString('fr-FR')} point${kd.pts>1?'s':''}`,\"pratiquerDefis('stats')\",kd.ma?Math.round(kd.tr/kd.ma*100):null],"), 'Pratiquer');
+  assert.ok(hub.includes('<p class="journey-kicker">Salle de défi</p><h2>${typeof accord===\'function\'?accord(\'Prête\',\'Prêt\',\'Prêt·e\'):\'Prêt·e\'} à relever le défi&nbsp;?</h2>'), 'le cadre du haut de Pratiquer');
   const room = fn('renderDefisRoom');
   assert.ok(!room.includes("réussie${ok>1?'s':''}") && !room.includes('stat(k)'), 'plus de sous-texte sous les niveaux (15 h 54)');
   /* 5 novembre, 11 h 32 : le sous-titre d’Elisa */
