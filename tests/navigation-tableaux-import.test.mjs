@@ -60,7 +60,8 @@ test('réf 11 — le retour d’une sous-page ramène là d’où l’on vient, 
 });
 
 test('réf 5 — « activités à replacer » dans la DA du site', () => {
-  assert.ok(app.includes('<span class="jp-stk" aria-hidden="true">${lqStkSvg(\'cal\')}<i class="jp-badge">${late.count}</i></span>'), 'l’autocollant du calendrier et sa pastille');
+  /* Depuis le 5 novembre, 17 h 09 (réf. 3) : l’autocollant reste, sans pastille rouge (« informer sans accumuler des obligations ») */
+  assert.ok(app.includes('<span class="jp-stk" aria-hidden="true">${lqStkSvg(\'cal\')}</span>') && !app.includes('<i class="jp-badge">'), 'l’autocollant du calendrier, sans pastille');
   for (const part of ['html.lq #home-hero .journey-planning{border:2px solid var(--line)!important;background:#fff!important;box-shadow:0 4px 0 var(--lip)!important}',
     'html.lq #home-hero .jp-copy small{align-self:flex-start;padding:3px 10px;border-radius:99px;background:var(--sun);',
     'html.lq #home-hero .jp-chev{background:var(--accent)!important;'])
