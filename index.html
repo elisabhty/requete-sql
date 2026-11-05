@@ -6702,7 +6702,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=153">
+<link rel="stylesheet" href="ludique.css?v=154">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=24">
 <style id="lesson-video-css">
@@ -22096,8 +22096,8 @@ function renderDefisRules(){
    score entre vous, « Défier » (une salle privée dont on partage le code). La base : supabase/migrations/…_defis_trois_onglets.sql
    (jeu_salles_ouvertes, jeu_salle_publier, jeu_classement_v2, jeu_drapeaux, jeu_pays). Sans elle (pas encore appliquée, ou hors
    ligne), chaque onglet le dit et le classement retombe sur l’ancien Top 12. */
-/* 5 novembre, 11 h 37 (Elisa) : l’onglet Amis s’appelle Joueurs ; Jouer n’a plus de partie rapide : le cadre du bas, « Rejoins une
-   partie », montre directement les salles (celles du niveau choisi d’abord) et, sans salle à ce niveau, « Créer ma salle ». */
+/* 5 novembre, 11 h 37 (Elisa) : l’onglet Amis s’appelle Joueurs ; Jouer n’a plus de partie rapide : « Rejoins une partie » montre
+   directement les salles du niveau choisi. 12 h 52 : un seul cadre, un seul « Créer une salle » (defisRapideHTML). */
 const DEFIS={onglet:'jouer',carte:'',portee:'monde',periode:'tout',salles:null,sallesAt:0,sallesErr:'',sallesBusy:null,sallesT:0,
   cls:{cle:'',pages:{},total:null,moi:null,rangs:null,err:'',busy:{},page:0,v1:false},amisForm:false,amisMsg:''};
 const CLS_PAR_PAGE=5,CLS_PAGES_MAX=200,DEFIS_ONGLETS=[['jouer','Jouer'],['classement','Classement'],['amis','Joueurs']];
@@ -22222,7 +22222,7 @@ function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
   jeuNiv=k;jeuNivUser=true;jeuSavePrefs();
   document.querySelectorAll('#scr-defis [data-set="niv"]').forEach(b=>{const on=b.dataset.v===k;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
-  /* Le cadre du bas suit le niveau (11 h 37) : ses salles d’abord ; aucune à ce niveau : « Créer ma salle ». */
+  /* « Rejoins une partie » suit le niveau (11 h 37, 12 h 52) : ses salles ; aucune : « Crée la tienne », au-dessus de « Créer une salle ». */
   sallesRepeindre();
   if(navigator.vibrate)navigator.vibrate(6);
 }
@@ -22230,17 +22230,22 @@ function defisNiv(k){
    c’est en bas, dans le cadre du bas ») : le niveau, « Créer une salle » qui ouvre sa feuille (les manches, qui peut entrer), puis,
    sous « ou », « J’ai un code » et « Seul ». Le niveau vaut aussi pour « Seul » et pour le cadre du bas.
    11 h 37 : « Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi ! » (une
-   salle tient JEU_MAX = 5 joueurs : l’hôte et 4 invités). */
+   salle tient JEU_MAX = 5 joueurs : l’hôte et 4 invités).
+   12 h 52 : « tu peux fusionner les deux cadres, car même bouton dans les deux » : un seul cadre. Sous le niveau, « Rejoins une partie »
+   (les salles ouvertes à ce niveau ; aucune : « Aucune salle à ton niveau ? Crée la tienne et laisse les autres te rejoindre ! »), puis
+   le seul « Créer une salle », « ou » « J’ai un code » et « Seul » ; les salles des autres niveaux à la fin du cadre. */
 function defisRapideHTML(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
   return `<section class="room-card dx-rapide" aria-labelledby="dx-rapide-h"><div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('target')}</span><div>
-    <p class="room-kicker">Créer une salle</p><h2 id="dx-rapide-h">Ta salle de défi</h2>
+    <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Ta salle de défi</h2>
     <p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="dx-niv-l">Niveau</p>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
+    <div class="dx-rejoindre" id="dx-rejoindre" role="group" aria-labelledby="dx-rejoindre-h">${sallesSectionHTML()}</div>
     <button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')"><span>Créer une salle</span>${DEF_CHEV_SVG}</button>
-    ${defisActionsHTML()}</section>`;
+    ${defisActionsHTML()}
+    <div class="dx-autres" id="dx-autres">${sallesAutresHTML()}</div></section>`;
 }
 /* Créer une salle, entrer un code, s’entraîner seul : la feuille demandée (defisFeuilleOuvrir) ; '' la referme. */
 function defisCarte(m){
@@ -22249,20 +22254,6 @@ function defisCarte(m){
   if(k!=='code')jeuInvite='';
   defisFeuilleOuvrir(k);
   if(typeof buzz==='function')buzz('light');
-}
-/* « Créer ma salle » (Elisa, 5 novembre, 11 h 37 : « les salles s’affichent directement dans le cadre du bas, sinon “pas de salle
-   disponible, crée la tienne” et un bouton créer plutôt que trouver ») : aucune salle au niveau choisi ; une salle publique à soi, à ce
-   niveau et au nombre de manches habituel, que les autres voient aussitôt dans « Rejoins une partie ». Le bouton attend pendant la
-   vérification en ligne (multiplayer-security.js). */
-function jeuSalleOuverte(){
-  const msg=document.getElementById('dx-salles-msg'),go=document.getElementById('dx-creer-go');
-  if(typeof CHALLENGES==='undefined'||!SQL){if(msg)msg.textContent='Le moteur SQL se charge encore, réessaie dans un instant.';return;}
-  if(msg)msg.textContent='';
-  jeuPseudoPuis(()=>{
-    if(go)go.disabled=true;
-    const fin=()=>{if(go&&go.isConnected!==false)go.disabled=false;};
-    try{Promise.resolve(jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom',pub:true})).then(fin,fin);}catch(e){fin();throw e;}
-  });
 }
 /* Les salles ouvertes : chargées en arrivant sur Jouer ou Amis, puis toutes les 10 s tant que l’onglet est à l’écran. */
 function sallesValide(s){
@@ -22308,37 +22299,29 @@ function sallesRejoindre(code){
   if(typeof CHALLENGES==='undefined'||!SQL){if(typeof lqSay==='function')lqSay('Le moteur SQL se charge encore, réessaie dans un instant.');return;}
   jeuPseudoPuis(()=>jeuStart(code,false,null,{nomId:'jeu-nom',pub:true}));
 }
-/* La liste du cadre du bas : les salles du niveau choisi en haut d’abord, puis les autres ; aucune à ce niveau : les autres restent
-   visibles, sous « Aux autres niveaux ». */
-function sallesCorpsHTML(l,err){
-  if(err==='net'&&!l)return `<p class="dx-vide">Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.</p><button type="button" class="perf-top-btn" onclick="sallesCharger(true).catch(()=>{})">Réessayer</button>`;
-  if(!l)return `<ul class="dx-list is-wait" aria-label="Chargement des salles ouvertes">${[0,1].map(i=>`<li style="--i:${i}"><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('')}</ul>`;
-  const ici=l.filter(s=>s.niv===jeuNiv),autres=l.filter(s=>s.niv!==jeuNiv),li=a=>a.map(s=>salleLigneHTML(s)).join('');
-  if(ici.length)return `<ul class="dx-list">${li(ici)}${li(autres)}</ul>`;
-  return autres.length?`<p class="dx-h3">Aux autres niveaux</p><ul class="dx-list">${li(autres)}</ul>`:'';
+/* « Rejoins une partie », dans le cadre (12 h 52) : les salles ouvertes au niveau choisi, et combien ; aucune : la phrase d’Elisa, que
+   suit « Créer une salle ». */
+function sallesSectionHTML(){
+  const D=typeof DEFIS!=='undefined'?DEFIS:{},l=D.salles,err=D.sallesErr,ici=(l||[]).filter(s=>s.niv===jeuNiv);
+  let corps;
+  if(err==='net'&&!l)corps=`<p class="dx-vide">Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.</p><button type="button" class="perf-top-btn" onclick="sallesCharger(true).catch(()=>{})">Réessayer</button>`;
+  else if(!l)corps=`<ul class="dx-list is-wait" aria-label="Chargement des salles ouvertes">${[0,1].map(i=>`<li style="--i:${i}"><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('')}</ul>`;
+  else corps=ici.length?`<ul class="dx-list">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`
+    :'<p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>';
+  return `<div class="dx-rj-tete"><h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3>${ici.length?`<span class="dx-live">${ici.length} en direct</span>`:''}</div>${corps}`;
 }
-function sallesCreerTexte(){return `Niveau <b>${esc(JEU_NIVL[jeuNiv]||'Facile')}</b>, visible par les autres joueurs.`;}
-/* 5 novembre, 11 h 37 (Elisa) : « Rejoins une partie ». Les salles s’affichent directement (plus de « Trouver une salle ») ; sans salle
-   au niveau choisi : « Aucune salle à ton niveau ? Crée la tienne et laisse les autres te rejoindre ! » et « Créer ma salle ». Dessous,
-   « Comment sont calculés les points ? », bien visible. */
+/* Les salles des autres niveaux, à la fin du cadre : personne n’attend au sien, elles restent à portée. */
+function sallesAutresHTML(){
+  const D=typeof DEFIS!=='undefined'?DEFIS:{},autres=(D.salles||[]).filter(s=>s.niv!==jeuNiv);
+  return autres.length?`<p class="dx-h3">Aux autres niveaux</p><ul class="dx-list">${autres.map(s=>salleLigneHTML(s)).join('')}</ul>`:'';
+}
+/* Les salles changent (toutes les 10 s, ou le niveau choisi) : la partie « Rejoins une partie » et les autres niveaux, sans toucher au
+   reste du cadre. Sous le cadre : « Comment sont calculés les points ? », bien visible. */
 function sallesRepeindre(){
-  const host=document.getElementById('defis-salles');if(!host)return;
-  const l=DEFIS.salles,err=DEFIS.sallesErr;
-  const kicker=l&&l.length?`<span class="dx-live">${l.length} en direct</span>`:'Salles ouvertes';
-  const corps=sallesCorpsHTML(l,err),vide=!!l&&!l.some(s=>s.niv===jeuNiv);
-  /* Déjà dessiné : la liste, son surtitre et « Aucune salle à ton niveau » changent ; « Créer ma salle » garde son état et son message. */
-  const q=k=>host.querySelector?host.querySelector(k):null,liste=q('#dx-salles-liste'),kick=q('.perf-kicker'),aucune=q('#dx-aucune');
-  if(liste&&kick&&aucune){
-    liste.innerHTML=corps;kick.innerHTML=kicker;aucune.hidden=!vide;
-    const t=q('#dx-creer-t');if(t)t.innerHTML=sallesCreerTexte();
-    return;
-  }
-  host.innerHTML=`<section class="perf-card dx-salles" aria-labelledby="dx-salles-h"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('bubble')}</span><div><p class="perf-kicker">${kicker}</p><h2 id="dx-salles-h">Rejoins une partie</h2><p class="dx-salles-sub">Affronte d’autres joueurs sur des défis adaptés à ton niveau.</p></div></div>
-    <div class="dx-aucune" id="dx-aucune"${vide?'':' hidden'}><p class="dx-vide">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>
-      <button type="button" class="room-go" id="dx-creer-go" onclick="jeuSalleOuverte()"><span>Créer ma salle</span>${DEF_CHEV_SVG}</button>
-      <p class="dx-creer-t" id="dx-creer-t">${sallesCreerTexte()}</p><p class="jeu-msg" id="dx-salles-msg" role="status" aria-live="polite"></p></div>
-    <div id="dx-salles-liste">${corps}</div></section>
-    ${defisPointsHTML()}`;
+  const r=document.getElementById('dx-rejoindre');if(r)r.innerHTML=sallesSectionHTML();
+  const a=document.getElementById('dx-autres');if(a)a.innerHTML=sallesAutresHTML();
+  const host=document.getElementById('defis-salles');
+  if(host&&!(host.querySelector&&host.querySelector('.dx-points')))host.innerHTML=defisPointsHTML();
 }
 /* « Comment sont calculés les points ? » (Elisa, 5 novembre, 11 h 37 : « de façon visible stp ») : une vraie rangée sous les cadres,
    à la place du petit lien souligné ; elle ouvre le barème, dans Mes stats. */
@@ -38407,7 +38390,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-compte-v2535';
+  const SW_CACHE='requete-2026-11-05-cadre-v2536';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
