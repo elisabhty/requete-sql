@@ -15392,9 +15392,10 @@ async function boot(){
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
     /* Retour de « Restaurer une sauvegarde » : Mon compte, et la carte « Tes données » dit que c’est fait. */
     try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');setTimeout(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Restaurée','Sauvegarde restaurée : ta progression est de retour'),500);}}catch(e){}
+    if(document.visibilityState!=='hidden')rappelVu();   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)
     tickRappel();
     setInterval(tickRappel,30000);
-    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ tickRappel(); rappelAuto(400); } });   // un nouveau jour : les rappels glissent (21 h 41)
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); tickRappel(); rappelAuto(400); } });   // un nouveau jour : les rappels glissent (21 h 41) ; l’appli ouverte : pas de rappel ce jour-là (22 h 04)
     initSpotlight();
     initStudyClock();
   }catch(e){
@@ -37987,8 +37988,9 @@ function rappelMessage(d){
 const RAPPEL_IDS=[1,11,12,13,14,15,16,17,...Array.from({length:64},(_,i)=>100+i)];
 /* Les jours du rappel, pris dans le planning (Elisa, 5 novembre, 21 h 41 : « mettre à jour automatiquement avec le planning,
    récupérer les infos de quel jour il y a des cours ou pas pour y mettre les notifs à l’heure définie par l’user ») : les jours où le
-   planning prévoit une séance qui n’est pas encore faite, à partir d’aujourd’hui (« AAAA-MM-JJ »). Une séance déplacée, rattrapée ou
-   ajoutée déplace son rappel ; une séance faite fait taire le sien. Pendant l’onboarding (le planning n’existe pas encore), sans
+   planning prévoit une séance qui n’est pas encore commencée, à partir d’aujourd’hui (« AAAA-MM-JJ »). Une séance déplacée, rattrapée,
+   ajoutée ou recalculée (« Adapter mon rythme ») déplace son rappel ; une séance commencée fait taire le sien, l’appli ouverte celui
+   du jour. Pendant l’onboarding (le planning n’existe pas encore), sans
    planning, ou quand il ne prévoit plus rien alors que des activités sont en retard : les jours du rythme (rappelJours). Un planning
    entièrement fait : plus de rappel. */
 function rappelIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -37999,19 +38001,30 @@ function rappelJoursPrevus(depuis,max){
   const enOb=!!(ob&&ob.classList&&ob.classList.contains('on')),pl=typeof state!=='undefined'&&state?state.plan:null;
   const brouillon=enOb&&!(pl&&typeof draft!=='undefined'&&draft&&pl.freq===draft.freq);
   const p=brouillon?null:pl,ses=p&&Array.isArray(p.sessions)?p.sessions:null;
+  /* 22 h 04 (Elisa : « le rappel, c’est si la personne n’a pas commencé sa séance : elle peut faire un cours sur deux, alors ne pas
+     envoyer de rappel ; pareil si elle est allée sur l’application ») : un jour dont la séance est commencée (une activité faite, ou
+     une étape d’une leçon), ou aujourd’hui si l’appli a déjà été ouverte, n’a pas de rappel. */
+  const vu=rappelVuLe()===t0;
   if(ses&&ses.length){
     const fait=id=>typeof itemDone==='function'&&itemDone(id);
-    const reste=x=>!!(x&&typeof x.d==='string'&&Array.isArray(x.lessons)&&x.lessons.length&&!x.lessons.every(fait));
-    const jours=[...new Set(ses.filter(x=>reste(x)&&x.d>=t0).map(x=>x.d))].sort().slice(0,max);
-    if(jours.length||!ses.some(x=>reste(x)&&x.d<t0))return jours;
+    const entame=id=>{if(fait(id))return true;try{const e=state.lessons&&state.lessons[id]&&state.lessons[id].etapes;return !!(e&&Object.keys(e).length);}catch(x){return false;}};
+    const ok=x=>!!(x&&typeof x.d==='string'&&Array.isArray(x.lessons)&&x.lessons.length);
+    const reste=x=>ok(x)&&!x.lessons.every(fait);
+    const parJour=new Map();
+    ses.forEach(x=>{if(ok(x)&&x.d>=t0)parJour.set(x.d,(parJour.get(x.d)||[]).concat(x.lessons));});
+    const jours=[...parJour].filter(([d,ids])=>!ids.some(entame)&&!(d===t0&&vu)).map(([d])=>d).sort().slice(0,max);
+    if(jours.length||ses.some(x=>reste(x)&&x.d>=t0)||!ses.some(x=>reste(x)&&x.d<t0))return jours;
   }
   const motif=rappelJours(),out=[];
   for(let k=0;k<200&&out.length<max;k++){
-    const d=new Date(depuis.getFullYear(),depuis.getMonth(),depuis.getDate()+k);
-    if(motif.includes(d.getDay()))out.push(rappelIso(d));
+    const d=new Date(depuis.getFullYear(),depuis.getMonth(),depuis.getDate()+k),j=rappelIso(d);
+    if(motif.includes(d.getDay())&&!(j===t0&&vu))out.push(j);
   }
   return out;
 }
+/* Le dernier jour où l’appli est passée au premier plan (« AAAA-MM-JJ ») : ce jour-là, plus de rappel */
+function rappelVu(){try{localStorage.setItem('requete-rappel-vu',rappelIso(new Date()));}catch(e){}}
+function rappelVuLe(){try{return typeof localStorage!=='undefined'&&localStorage.getItem('requete-rappel-vu')||'';}catch(e){return '';}}
 /* Les rappels à venir, à l’heure choisie (à l’onboarding ou dans Mon compte ; heure : celle de la feuille, pas encore enregistrée) */
 function rappelSeances(depuis,max,heure){
   const [h,m]=String(heure||rappelHeure()).split(':').map(Number),out=[];
@@ -38090,7 +38103,7 @@ function rappelFeuilleHTML(){
   const prochain=d.on?rappelSeances(new Date(),1,d.heure)[0]:null;
   const note=bloque?'Les notifications sont bloquées pour ce site\u00a0: autorise-les dans les réglages de ton navigateur.'
     :absent?'Ce navigateur n’affiche pas de notifications\u00a0: ton rappel ne pourra pas sonner ici.'
-    :d.on?(prochain?`Prochain rappel\u00a0: ${rappelQuand(prochain)}. Il suit ton planning\u00a0: les jours de séance seulement, et plus une fois la séance faite.`
+    :d.on?(prochain?`Prochain rappel\u00a0: ${rappelQuand(prochain)}.`
       :'Ton planning ne prévoit plus de séance\u00a0: pas de rappel pour l’instant.')
     :'Active les rappels pour recevoir une notification à l’heure choisie, sous réserve des autorisations de ton appareil.';
   return `<button class="acc-row rp-switch" type="button" role="switch" aria-checked="${d.on}" onclick="rappelBasculer()">
@@ -39120,7 +39133,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-compte-objectif-v2558';
+  const SW_CACHE='requete-2026-11-05-rappel-commence-v2559';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
