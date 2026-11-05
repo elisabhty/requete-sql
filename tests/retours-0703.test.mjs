@@ -124,7 +124,10 @@ test('la toile : une carte par table (7 h 38 : touchée, elle allume ses liens),
   const d = ouvrir(ctx.DEFI_BASES.zoo.sql), m = ctx.umlModele(d, tablesDe(d)), h = ctx.umlPanneau(m, 322, true);
   assert.equal((h.match(/<button type="button" class="umd-t[ "]/g) || []).length, 9);
   assert.equal((h.match(/<path class="umd-a"/g) || []).length, 8);
-  assert.equal((h.match(/<g class="umd-m"/g) || []).length, 16, 'deux multiplicités par lien');
+  /* Deux multiplicités par lien ; celles d’un faisceau (8 h 13 : des liens vers une même colonne, avec la même multiplicité) n’en font qu’une */
+  const pp = ctx.umlPlan(m, 322, true), uniques = new Set(pp.arcs.flatMap(a => a.lab.map(t => t.x + '|' + t.y + '|' + t.t))).size;
+  assert.equal((h.match(/<g class="umd-m"/g) || []).length, uniques, 'deux multiplicités par lien, une par bout de faisceau');
+  assert.ok(uniques > 8 && uniques <= 16);
   assert.ok(h.includes('onclick="umlCarte(this)"') && h.includes('aria-label="Table animaux, 8 colonnes, 35 lignes : allumer ses liens"'));
   assert.ok(h.includes('<div class="umd-tete"><b>Schéma UML</b><span>9 tables · 8 liens</span></div>'));
   assert.ok(h.includes('<span class="umd-lg is-pk"><i>PK</i>clé primaire</span><span class="umd-lg is-fk"><i>FK</i>clé étrangère</span><span class="umd-lg is-v"><b>→</b>la table qu’elle désigne</span><span class="umd-lg"><b>0..*</b>zéro ou plusieurs</span>'));
@@ -145,13 +148,14 @@ test('la feuille : la pastille jaune en premier, ouverte d’abord ; « Ses colo
     assert.ok(r.includes(k), k);
   const pick = cut('function schemaPickTab(btn){', '\n}\n');
   assert.ok(pick.includes("body.querySelectorAll('.sch-table,.sch-uml').forEach(p=>{p.hidden=p.dataset.t!==t;});") && pick.includes("if(t==='__uml__')umlAjuster();"));
-  const open = cut('function openSchemaSheet(ctx){', 'function closeSchemaSheet(){');
-  assert.ok(open.includes("schCtx=ctx==='console'?'console':null;") && open.includes('requestAnimationFrame(umlAjuster);'));
+  const open = cut('function openSchemaSheet(ctx,vue){', 'function closeSchemaSheet(){');
+  assert.ok(open.includes("schCtx=ctx==='console'?'console':null;") && open.includes('requestAnimationFrame(()=>{ umlAjuster();'));
   assert.ok(open.includes("`Schéma · ${projectName(activeDbId)}`"), 'le nom du projet de la Console');
   /* La Console : la pastille jaune dès deux tables, et après l’import d’un projet */
   const ws = cut('function renderDbWorkspace(){', '\n}\n');
-  assert.ok(ws.includes(`const uml=tables.length>1?\`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console')">\${UML_SVG}<span>Schéma UML</span>`));
-  assert.ok(cut('async function confirmImport(){', '\n}\n').includes(`<button type="button" class="imp-uml" onclick="openSchemaSheet('console')">\${UML_SVG}<span>Voir le schéma UML</span></button>`));
+  /* 8 h 13 : la pastille ouvre le schéma UML, pas le dernier onglet de table ; le compte rendu de l’import propose de le voir */
+  assert.ok(ws.includes(`const uml=tables.length>1?\`<button type="button" class="db-pill is-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Schéma UML</span>`));
+  assert.ok(cut('function importRetourHtml(database,tabs,tn,asDb){', '\n}\n').includes(`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">\${UML_SVG}<span>Voir le schéma UML</span></button>`));
   /* Partout où le schéma s’ouvre déjà : la leçon, le défi, la salle de défis */
   for (const k of ['id="nav-schema" onclick="openSchemaSheet()"', 'class="dq-schema${', 'class="ed-schema${schAttn()}" onclick="openSchemaSheet()"']) assert.ok(app.includes(k), k);
   assert.ok(cut('function umlSurligne(el,on,e){', '\n}\n').includes("e.pointerType!=='mouse'"), 'au doigt, rien au survol : la toucher allume ses liens');
@@ -164,11 +168,11 @@ test('la DA : la pastille jaune soleil, la toile quadrillée, les classes aux co
     'html.lq #schema-sheet .umd-h{flex:none;display:flex;align-items:center;gap:8px;height:34px;', 'html.lq #schema-sheet .umd-c{display:flex;flex-direction:column;flex:none;height:20px;',
     'html.lq #schema-sheet .umd-r{display:flex;align-items:center;gap:6px;flex:none;height:20px;',
     'html.lq #schema-sheet .umd-cs{display:flex;flex-direction:column;padding:7px 0}', 'html.lq #schema-sheet .umd-m rect{fill:#fff;stroke:var(--lc,var(--line));stroke-width:1.5px;',
-    'html.lq #schema-sheet .umd-c.is-pk i{background:var(--sun);color:#1B1640}', 'html.lq #schema-sheet .umd-c.is-fk i{background:var(--mint);color:#0D5B3B}',
+    'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);color:#1B1640}', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);color:#0D5B3B}',
     'html.lq #scr-console .console-schema-panel .db-pill.is-uml{flex:1 1 100%;', 'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc){animation:none!important}'])
     assert.ok(css.includes(k), k);
   /* Les mesures de la page et du dessin sont les mêmes : en-tête 34 px, lignes de 20 px, 7 px autour */
   assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ligneEx:36,ecart:20,voie0:14,voie:8,max:7};'));
   assert.ok(!/\.uml-(?:t|h|cs|toile|plan)\b/.test(css), 'les classes umd- : celles du guide (.uml-c, .uml-l…) restent à lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=145">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=146">'));
 });

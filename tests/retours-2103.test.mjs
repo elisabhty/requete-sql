@@ -25,7 +25,7 @@ test('Schéma : seulement la croix en haut à droite, plus de flèche de retour'
 });
 
 test('Schéma : la présentation de la base se plie, fermée d’abord', () => {
-  const r = cut(app, 'function renderSchemaSheet(){', 'function openSchemaSheet(ctx){');
+  const r = cut(app, 'function renderSchemaSheet(){', 'function openSchemaSheet(ctx,vue){');
   assert.ok(r.includes('const baseOuverte=!!schBaseOuverte[key];'));
   assert.ok(r.includes('<div class="sch-base${baseOuverte?\' open\':\'\'}"><button type="button" class="sch-base-h" aria-expanded="${baseOuverte}" aria-controls="sch-base-txt" onclick="schemaBaseToggle(this)"><b>Base ${esc(DEFI_BASES[dId].nom)}</b>'));
   assert.ok(r.includes('<div class="sch-base-body" id="sch-base-txt"><div><p>${esc(DEFI_BASES[dId].desc)}</p></div></div></div>'));

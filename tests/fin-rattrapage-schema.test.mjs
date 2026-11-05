@@ -118,9 +118,9 @@ test('schéma de la console : ce qui vient de changer s’anime (nouvelle table,
 });
 
 test('feuille « Schéma » : l’en-tête violet des feuilles et les cartes des tables', () => {
-  assert.ok(cut(app, 'function openSchemaSheet(ctx){', 'function closeSchemaSheet(){').includes("lqVizCap('schema-sheet','db',`${plur(n,'table')}, leurs colonnes et leurs clés.`);"));
+  assert.ok(cut(app, 'function openSchemaSheet(ctx,vue){', 'function closeSchemaSheet(){').includes("lqVizCap('schema-sheet','db',`${plur(n,'table')}, leurs colonnes et leurs clés.`);"));
   /* 1er novembre, 1 h 26 : « enlever les stickers sur les tables » */
-  assert.ok(!cut(app, 'function renderSchemaSheet(){', 'function openSchemaSheet(ctx){').includes('sch-stk') && !app.includes("lqStkSvg('table')"));
+  assert.ok(!cut(app, 'function renderSchemaSheet(){', 'function openSchemaSheet(ctx,vue){').includes('sch-stk') && !app.includes("lqStkSvg('table')"));
   for (const part of ['html.lq #schema-sheet .sch-table{margin:0 16px 14px;border:2px solid var(--line);', 'html.lq #schema-sheet .sch-col .badge.pk{background:var(--sun);', 'html.lq #schema-sheet.on .sch-table{animation:dbColIn'])
     assert.ok(s41.includes(part), part);
 });
@@ -128,7 +128,7 @@ test('feuille « Schéma » : l’en-tête violet des feuilles et les cartes des
 test('Schéma : une table à la fois choisie dans des onglets en haut, et la croix en haut à droite', () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
-  const r = app.slice(app.indexOf('function renderSchemaSheet(){'), app.indexOf('function openSchemaSheet(ctx){'));
+  const r = app.slice(app.indexOf('function renderSchemaSheet(){'), app.indexOf('function openSchemaSheet(ctx,vue){'));
   assert.ok(r.includes('class="sch-tabs" role="tablist"') && r.includes('role="tabpanel"') && r.includes("onclick=\"schemaPickTab(this)\""));
   assert.ok(app.includes('<b id="schema-head-title">Schéma · base du cours</b><button type="button" onclick="closeSchemaSheet()" aria-label="Fermer">✕</button>')
     && !app.includes('class="sch-back"') && !app.includes('class="sch-ret"'), 'la croix en haut à droite, plus de flèche (3 novembre, 21 h 03)');
