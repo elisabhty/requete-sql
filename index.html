@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=161">
+<link rel="stylesheet" href="ludique.css?v=162">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=25">
 <style id="lesson-video-css">
@@ -21374,14 +21374,17 @@ function renderHomeHero(){
   const ch=defi&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(c=>c.id===nxt):null;
   const niv=ch&&typeof NIV!=='undefined'&&NIV[ch.niv]?NIV[ch.niv].l:'';
   const kicker=defi?'Ton prochain défi':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon';
+  const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`;
   /* Elisa, 5 novembre, 20 h 32 : « mettre le % du parcours au total » (20 h 34 : la carte « Ton objectif », qui le donnait sous la série,
-     est supprimée). À droite du module : la part du parcours SQL déjà faite (les leçons validées sur toutes celles du parcours), en
-     anneau, avec « du parcours » dessous. */
-  const pf=typeof parcoursSqlFaites==='function'&&typeof TOTAL!=='undefined'&&TOTAL?Math.min(100,Math.round(parcoursSqlFaites()/TOTAL*100)):null;
-  const pctHtml=pf==null?'':`<span class="lq-hero-pct" data-p="${pf}"><svg class="lq-pct-ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="lq-pct-t" cx="18" cy="18" r="15"/>${pf?`<circle class="lq-pct-f" cx="18" cy="18" r="15" pathLength="100" stroke-dashoffset="${100-pf}"/>`:''}</svg><span class="lq-pct-txt"><b><span class="lq-pct-n">${pf}</span>\u00a0%</b><small>du parcours</small></span></span>`;
-  const chip=`<div class="lq-hero-row">${mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`}${pctHtml}</div>`;
-  const sub=defi?(ch?.q||'Mets tes acquis à l’épreuve.'):(lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.');
-  const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${streak}${extras}`;
+     est supprimée) ; 20 h 44 : « la partie de gauche sur la leçon (les détails) fusionnée dans le bouton, pour laisser la place au % ».
+     À gauche de la mascotte, le parcours SQL : la part déjà faite en grand (les leçons validées sur toutes celles du parcours, le calcul
+     de la page Parcours), sa barre, et le nombre de leçons. La leçon (« Leçon 11 sur 12 · ORDER BY ») passe sous le texte du bouton. */
+  const fait=typeof parcoursSqlFaites==='function'?parcoursSqlFaites():0,tot=typeof TOTAL!=='undefined'?TOTAL:0;
+  const pf=tot?Math.min(100,Math.round(fait/tot*100)):0;
+  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-hero-kicker">Ton parcours SQL</p><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot?`${tot} leçons t’attendent`:'Ton parcours commence'}</p></div>`;
+  const detail=index&&!defi?`${kicker} · ${meta.titre}`:meta.titre;
+  const ctaLu=`${ctaLabel} : ${index&&!defi?`leçon ${index} sur ${mod.lessons.length}, `:''}${meta.titre}`;
+  const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main">${parc}${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(detail)}</small></span></button></section>${streak}${extras}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesCount(host);
   lqPctAnime(host);
@@ -21413,20 +21416,20 @@ function lqSesCount(host){
   const pas=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);n.textContent=String(Math.round(fin*e));if(k<1)requestAnimationFrame(pas);};
   setTimeout(()=>requestAnimationFrame(pas),350);
 }
-/* Le pourcentage du parcours (20 h 32) : à la première ouverture de l’accueil, l’anneau se remplit et le chiffre monte de 0 ; quand il a
+/* Le pourcentage du parcours (20 h 32) : à la première ouverture de l’accueil, la barre se remplit et le chiffre monte de 0 ; quand il a
    changé depuis (une leçon validée), il part de la valeur déjà vue. Rien ne bouge avec les mouvements réduits. */
 let lqPctVu=null;
 function lqPctAnime(host){
-  const el=host&&typeof host.querySelector==='function'?host.querySelector('.lq-hero-pct[data-p]'):null;
+  const el=host&&typeof host.querySelector==='function'?host.querySelector('.lq-hero-parc[data-p]'):null;
   if(!el||!document.querySelector('#scr-learn.active'))return;
   const fin=+el.dataset.p||0,de=lqPctVu==null?0:Math.min(lqPctVu,fin);
   lqPctVu=fin;
   if(de===fin||(typeof mascotReduced==='function'&&mascotReduced()))return;
-  const n=el.querySelector('.lq-pct-n'),f=el.querySelector('.lq-pct-f'),D=900;
-  const peint=v=>{if(n)n.textContent=String(Math.round(v));if(f)f.style.strokeDashoffset=String(100-v);};
+  const n=el.querySelector('.lq-pct-n'),f=el.querySelector('.lq-parc-bar i'),D=900;
+  const peint=v=>{if(n)n.textContent=String(Math.round(v));if(f)f.style.width=v.toFixed(2)+'%';};
   peint(de);
   let t0=0;
-  const pas=t=>{if(!el.isConnected)return;if(!t0)t0=t;const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);peint(de+(fin-de)*e);if(k<1)requestAnimationFrame(pas);else if(f)f.style.strokeDashoffset='';};
+  const pas=t=>{if(!el.isConnected)return;if(!t0)t0=t;const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);peint(de+(fin-de)*e);if(k<1)requestAnimationFrame(pas);else if(f)f.style.width=fin+'%';};
   setTimeout(()=>requestAnimationFrame(pas),350);
 }
 /* L’autocollant de la mascotte est gardé d’un rendu de l’accueil à l’autre : le recréer relançait son
@@ -38973,7 +38976,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-ajouer-v2551';
+  const SW_CACHE='requete-2026-11-05-parcours-v2552';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
