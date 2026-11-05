@@ -354,7 +354,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.ok(s8.includes('<h2 class="ttl"><span class="mask"><span>Apprends le SQL</span></span><span class="mask"><span><em>maintenant</em>.</span></span></h2>'), 'titre');
   /* 2 novembre, 17 h 10 : sous le titre, « 70+ cours » et les formateurs (la voix les annonce), à la place du sous-titre et de l’accroche */
   assert.ok(s8.includes('<div class="abs" id="crs"><span class="crs-n"><b id="crs-n">0</b><i>+</i></span><span class="crs-t">cours</span></div>'), '70+ cours');
-  assert.ok(s8.includes('<span class="trs-t">animés par une dizaine<br>de formateurs</span>') && s8.includes('<div class="stk" id="stk-int">Immersif<svg'), 'formateurs, Immersif');
+  assert.ok(s8.includes('<span class="trs-t">animés par<br>8 formateurs</span>') && s8.includes('<div class="stk" id="stk-int">Immersif<svg'), 'formateurs, Immersif');
   assert.doesNotMatch(video, /1<sup>re<\/sup> application|1re application/, 'plus de « 1re application des data analysts »');
   assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
@@ -382,7 +382,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a::after\{animation:ctaShine /);
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
-  assert.ok(video.includes("'Apprends le SQL maintenant avec Requête : plus de 70 cours, animés par une dizaine de formateurs. Des cours immersifs"));
+  assert.ok(video.includes("'Apprends le SQL maintenant avec Requête : plus de 70 cours, animés par 8 formateurs. Des cours immersifs"));
   assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 71 cours immersifs, un labo SQL interactif, 267 cas pratiques et 142 questions d’entretien"));
 });
 
