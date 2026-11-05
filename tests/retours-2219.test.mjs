@@ -94,7 +94,7 @@ test('une table supprimée : sa carte rougit, se froisse et s’efface ; la list
       document: { getElementById: id => (id === 'db-tables' && !sans ? host : null) }, CSS: { escape: s => s }, prefersReduceMotion: () => reduit,
       getComputedStyle: () => ({ rowGap: '10px' }), buzz: k => appels.push(['buzz', k]), setTimeout: (f, ms) => { timers.push([f, ms]); },
     });
-    vm.runInContext(fn('dbCartesAdieu'), ctx);
+    vm.runInContext(fn('lqAdieu') + fn('dbCartesAdieu'), ctx);   // 22 h 35 : le geste commun (retours-2235)
     return { ctx, appels, timers, a, b };
   };
   let x = essai(), fini = 0;
@@ -131,5 +131,5 @@ test('la base de démo des cours s’appelle NutriBoost', () => {
   assert.equal(ctx.projectName('cours'), 'NutriBoost');
   assert.ok(!app.includes("name:'Cours'") && !app.includes("return 'Cours';"));
   assert.ok(app.includes("fname.textContent=(activeDbId==='cours'?'nutriboost':isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';"), 'son brouillon : nutriboost.sql');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=167">') && sw.includes("const CACHE = 'requete-2026-11-05-console-fluide-v2561';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=168">') && sw.includes("const CACHE = 'requete-2026-11-05-compte-progression-v2562';"));
 });

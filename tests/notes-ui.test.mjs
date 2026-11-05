@@ -59,7 +59,7 @@ test('liste « Toutes » : une seule section, dont le nombre est celui du filtre
 test('éditeur de note : Supprimer supprime vraiment, et peut être annulé', () => {
   const del = fnSrc('deleteNote');
   /* Avant, quitter l'éditeur réenregistrait la note qu'on venait de supprimer. */
-  assert.ok(/editingNote=null; noteView='list';\s*backToNotesList\(\);/.test(del), 'l’éditeur est vidé avant le retour à la liste');
+  assert.ok(/editingNote=null; noteView='list';[^]*?backToNotesList\(\);/.test(del), 'l’éditeur est vidé avant le retour à la liste');
   assert.ok(/toastWithAction\('Note supprimée','Tu peux encore l’annuler\.','Annuler',/.test(del), 'toast avec « Annuler »');
   assert.ok(/state\.notes\.splice\(Math\.min\(i,state\.notes\.length\),0,gone\)/.test(del), 'Annuler remet la note à sa place');
   assert.ok(/toastAction\)\{ const f=toastAction; toastAction=null; f\(\); return; \}/.test(fnSrc('toastGo')), 'le bouton du toast lance l’action');
@@ -80,6 +80,7 @@ test('éditeur de note : Enregistrer donne un retour visible ; l’épingle est 
   assert.ok(/lqSaved\(b,'Enregistrée'\)\.then\(/.test(save) && /btn\.innerHTML=`<span class="lq-saved-ico" aria-hidden="true">\$\{CHECK_SVG\}<\/span><span>\$\{esc\(label\|\|'Enregistré'\)\}<\/span>`/.test(html), 'le bouton passe à « ✓ Enregistrée »');
   /* 31 octobre, 1 h 34 (« ne pas mettre de notification mais des micro-interactions ») : le bouton qui passe à « ✓ Enregistrée » suffit ;
      la phrase reste annoncée au lecteur d’écran (lqSay), sans notification à l’écran */
-  assert.ok(/lqSay\(wasNew\?'Note enregistrée':'Modifications enregistrées'\)/.test(save) && !/toast\(wasNew\?'Note enregistrée'/.test(save), 'annoncé, sans notification');
+  /* 5 novembre, 22 h 35 : la coche « Créée » ou « Enregistrée » sur la carte de la note, qui l’annonce (lqDone), toujours sans notification */
+  assert.ok(/dit=wasNew\?'Note enregistrée':'Modifications enregistrées'/.test(save) && /lqDone\(c,wasNew\?'Créée':'Enregistrée',dit\)/.test(save) && !/toast\(wasNew\?'Note enregistrée'/.test(save), 'annoncé, sans notification');
   assert.ok(/lqSay\(n\.pin\?'Note épinglée/.test(fnSrc('togglePinFromList')) && /lqPinFx\(/.test(fnSrc('togglePinFromList')), 'l’épingle de la carte : la coche qui se plante, annoncée sans notification');
 });

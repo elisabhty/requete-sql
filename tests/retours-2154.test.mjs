@@ -27,14 +27,14 @@ test('réf. 1 et 2 : plus de ligne « Profil et objectif » ; l’objectif sur l
   /* La carte du profil ouvre toujours la feuille (pseudo, personnalisation, revoir l’intro) */
   assert.ok(compte.includes(`<button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')"`));
   assert.ok(compte.includes('<details class="plus-details" id="plus-profile-settings">\n      <summary><span>Profil et objectif</span>'));
-  assert.ok(compte.includes("${lvlBadgeHTML(level,'is-on-deep')}${objHero}</span>"), 'sous le niveau');
+  assert.ok(compte.includes("${lvlBadgeHTML(level,'is-on-deep')}${lvlSuite}${objHero}</span>"), 'sous le niveau (et le niveau suivant, 22 h 35)');
   assert.ok(compte.includes(', niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:\'\'}'), 'VoiceOver le lit aussi');
   /* L’objectif, rendu */
   const decl = compte.match(/  const objHero=(profileGoal\?`[^\n]+`:'');/)[1];
   const rendu = (goal, icone = 'person') => vm.runInNewContext(decl, {
     profileGoal: goal, profileGoalO: ['interview', goal, icone], esc: s => String(s).replace(/</g, '&lt;'), obOptionIcon: t => `<span class="ob-answer-icon">${t}</span>`,
   });
-  assert.equal(rendu('Réussir un entretien'), '<span class="acct-obj"><span class="acct-obj-ico" aria-hidden="true"><span class="ob-answer-icon">person</span></span><span>Objectif : <strong>Réussir un entretien</strong></span></span>');
+  assert.equal(rendu('Réussir un entretien'), '<span class="acct-obj"><span class="acct-obj-ico" aria-hidden="true"><span class="ob-answer-icon">person</span></span><span>Mon objectif : <strong>Réussir un entretien</strong></span></span>');
   assert.equal(rendu(''), '', 'sans objectif (un profil d’avant) : rien');
   assert.ok(compte.includes("const profileGoalO=OB_GOALS.find(g=>g[0]===profile.goal)||null,profileGoal=(profileGoalO||[])[1]||'';"));
   /* Le style : une tuile claire, « Objectif : » puis l’objectif en gras, en blanc sur le violet */
@@ -78,6 +78,6 @@ test('réf. 4 : la Bibliothèque et Pratiquer retrouvent leurs autocollants, com
     'html.lq #scr-compte .account-setting-row:nth-child(even) .plus-row-icon.is-stk{rotate:6deg}'])
     assert.ok(lq.includes(k), k);
   /* Les feuilles et le cache rafraîchis */
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=167">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-console-fluide-v2561';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=168">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-compte-progression-v2562';"));
 });
