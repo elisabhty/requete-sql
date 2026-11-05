@@ -15172,7 +15172,7 @@ const Store={
 let state={lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:'',profile:{},accountMode:null,entretien:{}};
 const INTERVALS=[1,3,7,21,60];
 const DAY=86400000;
-function save(){ state=normalizeState(state); Store.set(KEY,state); }
+function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); }   // le rappel suit le planning (21 h 41)
 async function wipeStorageIfUpdated(){
   const force=/#fresh\b|\bfresh=1\b/.test(location.href);
   let prev=null;
@@ -15387,14 +15387,14 @@ async function boot(){
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
     setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
     setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône (appui long, comme Duolingo)
-    setTimeout(()=>{try{if(state.onboarded)rappelNativeSync();}catch(e){}},2200);   // les rappels des huit semaines à venir, reposés (19 h 41)
+    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
     /* Retour de « Restaurer une sauvegarde » : Mon compte, et la carte « Tes données » dit que c’est fait. */
     try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');setTimeout(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Restaurée','Sauvegarde restaurée : ta progression est de retour'),500);}}catch(e){}
     tickRappel();
     setInterval(tickRappel,30000);
-    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tickRappel(); });
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ tickRappel(); rappelAuto(400); } });   // un nouveau jour : les rappels glissent (21 h 41)
     initSpotlight();
     initStudyClock();
   }catch(e){
@@ -38000,26 +38000,82 @@ function rappelMessage(d){
    (56 au plus, iOS en garde 64 par appli : huit semaines quand on s’entraîne tous les jours), et reposées à chaque ouverture de l’appli.
    Les anciens rappels qui se répétaient (1, 11 à 17) sont retirés. */
 const RAPPEL_IDS=[1,11,12,13,14,15,16,17,...Array.from({length:64},(_,i)=>100+i)];
-function rappelSeances(depuis,max){
-  const [h,m]=String(rappelHeure()).split(':').map(Number),jours=rappelJours(),out=[];
+/* Les jours du rappel, pris dans le planning (Elisa, 5 novembre, 21 h 41 : « mettre à jour automatiquement avec le planning,
+   récupérer les infos de quel jour il y a des cours ou pas pour y mettre les notifs à l’heure définie par l’user ») : les jours où le
+   planning prévoit une séance qui n’est pas encore faite, à partir d’aujourd’hui (« AAAA-MM-JJ »). Une séance déplacée, rattrapée ou
+   ajoutée déplace son rappel ; une séance faite fait taire le sien. Pendant l’onboarding (le planning n’existe pas encore), sans
+   planning, ou quand il ne prévoit plus rien alors que des activités sont en retard : les jours du rythme (rappelJours). Un planning
+   entièrement fait : plus de rappel. */
+function rappelIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function rappelJoursPrevus(depuis,max){
+  const t0=rappelIso(depuis),ob=typeof document!=='undefined'&&document.getElementById?document.getElementById('onboarding'):null;
+  /* L’onboarding ouvert : les jours choisis, tant que le planning n’est pas celui de ces choix (la fin de l’onboarding le crée, puis
+     programme le rappel, avant que la page ne se ferme) */
+  const enOb=!!(ob&&ob.classList&&ob.classList.contains('on')),pl=typeof state!=='undefined'&&state?state.plan:null;
+  const brouillon=enOb&&!(pl&&typeof draft!=='undefined'&&draft&&pl.freq===draft.freq);
+  const p=brouillon?null:pl,ses=p&&Array.isArray(p.sessions)?p.sessions:null;
+  if(ses&&ses.length){
+    const fait=id=>typeof itemDone==='function'&&itemDone(id);
+    const reste=x=>!!(x&&typeof x.d==='string'&&Array.isArray(x.lessons)&&x.lessons.length&&!x.lessons.every(fait));
+    const jours=[...new Set(ses.filter(x=>reste(x)&&x.d>=t0).map(x=>x.d))].sort().slice(0,max);
+    if(jours.length||!ses.some(x=>reste(x)&&x.d<t0))return jours;
+  }
+  const motif=rappelJours(),out=[];
   for(let k=0;k<200&&out.length<max;k++){
-    const d=new Date(depuis.getFullYear(),depuis.getMonth(),depuis.getDate()+k,h||0,m||0,0,0);
-    if(d<=depuis||!jours.includes(d.getDay()))continue;
-    out.push(d);
+    const d=new Date(depuis.getFullYear(),depuis.getMonth(),depuis.getDate()+k);
+    if(motif.includes(d.getDay()))out.push(rappelIso(d));
   }
   return out;
 }
-function rappelNativeSync(){
+/* Les rappels à venir, à l’heure choisie (à l’onboarding ou dans Mon compte ; heure : celle de la feuille, pas encore enregistrée) */
+function rappelSeances(depuis,max,heure){
+  const [h,m]=String(heure||rappelHeure()).split(':').map(Number),out=[];
+  for(const j of rappelJoursPrevus(depuis,max+1)){
+    const [a,mo,d]=j.split('-').map(Number),t=new Date(a,mo-1,d,h||0,m||0,0,0);
+    if(t>depuis)out.push(t);
+    if(out.length>=max)break;
+  }
+  return out;
+}
+/* Ce qui est programmé, en une ligne : quand elle change (le planning, une séance faite, l’heure, un nouveau jour), on reprogramme. */
+function rappelSignature(){return [rappelOn()?1:0,rappelHeure(),...rappelJoursPrevus(new Date(),56)].join('|');}
+let rappelSig='',rappelFile=null,rappelAutoT=0;
+/* demander : l’autorisation d’iOS est demandée (l’onboarding, « Enregistrer mes préférences ») ; sinon elle est seulement lue, pour
+   qu’une reprogrammation automatique ne fasse jamais surgir la demande en pleine leçon. Les reprogrammations passent l’une après
+   l’autre (une annulation ne tombe pas au milieu d’une autre). */
+function rappelNativeSync(demander){
   const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
   if(!LN)return;
+  try{rappelSig=rappelSignature();}catch(e){rappelSig='';}
   const go=async()=>{
     try{await LN.cancel({notifications:RAPPEL_IDS.map(id=>({id}))});}catch(e){}
     if(!rappelOn())return;
-    try{const p=await LN.requestPermissions();if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
+    try{const p=await(demander||typeof LN.checkPermissions!=='function'?LN.requestPermissions():LN.checkPermissions());if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
     const notifications=rappelSeances(new Date(),56).map((d,i)=>{const [title,body]=rappelMessage(d);return {id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}};});
     try{if(notifications.length)await LN.schedule({notifications});}catch(e){}
   };
-  go();
+  rappelFile=(rappelFile||Promise.resolve()).then(go,go);
+}
+/* Automatique (21 h 41) : après chaque enregistrement (save), au retour dans l’appli et à l’ouverture, on reprogramme si ce qui
+   est prévu a changé. Rien pendant l’onboarding : sa fin programme le rappel d’après le planning créé. */
+function rappelAuto(ms){
+  try{
+    clearTimeout(rappelAutoT);
+    rappelAutoT=setTimeout(()=>{
+      try{
+        const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications))return;
+        const ob=document.getElementById('onboarding');
+        if(!state.onboarded||(ob&&ob.classList.contains('on')))return;
+        if(rappelSignature()!==rappelSig)rappelNativeSync();
+      }catch(e){}
+    },ms==null?800:ms);
+  }catch(e){}
+}
+/* « Prochain rappel : demain à 19:00 » (Mon compte) */
+function rappelQuand(t){
+  const j=new Date(),n=Math.round((new Date(t.getFullYear(),t.getMonth(),t.getDate())-new Date(j.getFullYear(),j.getMonth(),j.getDate()))/864e5);
+  const jour=n===0?'aujourd’hui':n===1?'demain':`${t.toLocaleDateString('fr-FR',{weekday:'long'})} ${t.getDate()===1?'1er':t.getDate()} ${t.toLocaleDateString('fr-FR',{month:'long'})}`;
+  return `${jour} à ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
 }
 /* Le rappel dans Mon compte (Elisa, 5 novembre, 12 h 12, réf. 5 et 6) : « Recevoir un rappel » (Désactivé, ou les jours et l’heure),
    « À quel moment ? » (Matin, Après-midi, Soir, puis les heures), une note sur l’autorisation de l’appareil, et « Enregistrer mes
@@ -38046,9 +38102,11 @@ function rappelFeuilleHTML(){
   const bloque=d.on&&!natif&&typeof Notification!=='undefined'&&Notification.permission==='denied';
   /* Safari d’iPhone, hors écran d’accueil : pas de notifications du tout ; on le dit plutôt que de promettre un rappel. */
   const absent=d.on&&!natif&&typeof Notification==='undefined';
+  const prochain=d.on?rappelSeances(new Date(),1,d.heure)[0]:null;
   const note=bloque?'Les notifications sont bloquées pour ce site\u00a0: autorise-les dans les réglages de ton navigateur.'
     :absent?'Ce navigateur n’affiche pas de notifications\u00a0: ton rappel ne pourra pas sonner ici.'
-    :d.on?`Une notification à ${d.heure}, ${rappelJoursTexte().toLowerCase()}, les jours de ton parcours, si ton appareil l’autorise.`
+    :d.on?(prochain?`Prochain rappel\u00a0: ${rappelQuand(prochain)}. Il suit ton planning\u00a0: les jours de séance seulement, et plus une fois la séance faite.`
+      :'Ton planning ne prévoit plus de séance\u00a0: pas de rappel pour l’instant.')
     :'Active les rappels pour recevoir une notification à l’heure choisie, sous réserve des autorisations de ton appareil.';
   return `<button class="acc-row rp-switch" type="button" role="switch" aria-checked="${d.on}" onclick="rappelBasculer()">
           <div class="at"><b>Recevoir un rappel</b><small>${d.on?`Activé · ${rappelJoursTexte().toLowerCase()} à ${d.heure}`:'Désactivé'}</small></div>
@@ -38075,7 +38133,7 @@ function rappelEnregistrer(){
   const d=rappelBrouillon();
   try{localStorage.setItem('requete-rappel',d.on?'1':'0');localStorage.setItem('requete-rappel-heure',d.heure);}catch(e){}
   if(d.on&&typeof Notification!=='undefined'&&Notification.permission==='default'&&!document.documentElement.classList.contains('is-native')){try{Notification.requestPermission();}catch(e){}}
-  rappelNativeSync();
+  rappelNativeSync(true);
   RP=null;
   if(typeof closePlusDetails==='function')closePlusDetails();
   renderCompte();
@@ -38089,7 +38147,7 @@ function tickRappel(){
   const hh=String(now.getHours()).padStart(2,'0');
   const mm=String(now.getMinutes()).padStart(2,'0');
   if(`${hh}:${mm}`!==rappelHeure()) return;
-  if(!rappelJours().includes(now.getDay())) return;   // les jours de séance seulement (11 h 08)
+  if(rappelJoursPrevus(now,1)[0]!==rappelIso(now)) return;   // les jours où le planning prévoit une séance pas encore faite (11 h 08, 21 h 41)
   const day=now.toDateString();
   try{ if(localStorage.getItem('requete-rappel-last')===day) return; localStorage.setItem('requete-rappel-last',day); }catch(e){ return; }
   try{ const [t,b]=rappelMessage(now); new Notification(t,{body:b,tag:'requete-daily'}); }catch(e){}
@@ -39076,7 +39134,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-engagement-v2556';
+  const SW_CACHE='requete-2026-11-05-rappel-planning-v2557';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
