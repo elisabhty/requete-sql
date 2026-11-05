@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=162">
+<link rel="stylesheet" href="ludique.css?v=163">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=25">
 <style id="lesson-video-css">
@@ -38380,7 +38380,18 @@ function accPseudoHTML(name){
   if(!n)return `<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b><span class="acc-pseudo-nm">Choisis ton pseudo</span></b></span><span class="acc-pseudo-go" aria-hidden="true">${ACCT_CHEV}</span></button>`;
   const at=n.charAt(0)==='@',nom=at?n.slice(1):n;
   const trait='<svg class="acc-pseudo-sw" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20C70 8 170 6 296 14"/></svg>';
-  return `<div class="acc-pseudo" style="--l:${Array.from(n).length}"><span class="acc-pseudo-av"><span aria-hidden="true">${jeuInitial(n)}</span><span class="acc-pseudo-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="acc-pseudo-t"><small>Pseudo</small><b>${at?'<i class="acc-pseudo-at">@</i>':''}<span class="acc-pseudo-nm">${esc(nom)}${trait}</span></b></span></div>`;
+  /* Elisa, 5 novembre, 21 h 01 : « mettre que le pseudo avec le drapeau, le niveau actuel (comme sur l’accueil) et l’objectif défini
+     dans l’onboarding ». Le drapeau du pays prend la place du cadenas, au coin de l’avatar ; sous le pseudo, l’étiquette du niveau de
+     la mascotte de l’accueil (« Niv. 2 », « Constructeur de requêtes »), puis l’objectif avec son pictogramme de l’onboarding. */
+  const pays=typeof paysDuProfil==='function'?paysDuProfil():'',drap=pays&&typeof paysDrapeau==='function'?paysDrapeau(pays):'';
+  const niv=typeof niveauCompte==='function'?niveauCompte():null;
+  const g=typeof state!=='undefined'&&state&&state.profile&&typeof state.profile.goal==='string'?state.profile.goal:'';
+  const o=g&&typeof OB_GOALS!=='undefined'?OB_GOALS.find(x=>x[0]===g):null;
+  const attr=typeof escAttr==='function'?escAttr:esc;
+  const flag=drap?`<span class="acc-pseudo-flag" role="img" aria-label="${attr(typeof paysNom==='function'?paysNom(pays):pays)}">${drap}</span>`:'';
+  const nivHtml=niv?`<span class="acc-pseudo-niv" role="img" aria-label="${attr(`Niveau ${niv.rank} : ${niv.label}`)}"><i aria-hidden="true"><span>Niv.</span>${niv.rank}</i><span class="acc-pseudo-niv-l" aria-hidden="true">${esc(niv.label)}</span></span>`:'';
+  const objHtml=o?`<span class="acc-pseudo-obj"><span class="acc-pseudo-obj-ico" aria-hidden="true">${typeof obOptionIcon==='function'?obOptionIcon(o[2]):''}</span><span>Objectif\u00a0: <strong>${esc(o[1])}</strong></span></span>`:'';
+  return `<div class="acc-pseudo" style="--l:${Array.from(n).length}"><span class="acc-pseudo-av"><span aria-hidden="true">${jeuInitial(n)}</span>${flag}</span><span class="acc-pseudo-t"><b>${at?'<i class="acc-pseudo-at">@</i>':''}<span class="acc-pseudo-nm">${esc(nom)}${trait}</span></b>${nivHtml}${objHtml}</span></div>`;
 }
 /* ---------- Comprendre mes données ----------
    Elisa, 31 octobre, 18 h 49 : « comprendre mes données dans Données et confidentialité ». En tête de la feuille, un bloc qui
@@ -38980,7 +38991,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-05-module-v2553';
+  const SW_CACHE='requete-2026-11-05-profil-v2554';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
