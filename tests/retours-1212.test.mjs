@@ -145,7 +145,9 @@ test('réf. 5 et 6 : le rappel de Mon compte, « Recevoir un rappel », « À qu
   r.ev("rappelBasculer();rappelMoment('morning');rappelChoisirHeure('09:00')");
   h = r.body.innerHTML;
   assert.ok(h.includes('<small>Activé · chaque jour à 09:00</small>') && h.includes('class="rp-slot on" data-slot="morning"') && h.includes('class="rp-heure on" data-h="09:00"'));
-  assert.ok(h.includes('Une notification à 09:00, chaque jour, les jours de ton parcours, si ton appareil l’autorise.'));
+  /* 21 h 41 : le prochain rappel, et qu’il suit le planning (retours-2141) */
+  const quand = new Date().getHours() < 9 ? 'aujourd’hui' : 'demain';
+  assert.ok(h.includes(`Prochain rappel\u00a0: ${quand} à 09:00. Il suit ton planning\u00a0: les jours de séance seulement, et plus une fois la séance faite.`), h);
   assert.deepEqual(r.store, {}, 'rien ne change avant « Enregistrer »');
   r.ev('rappelEnregistrer()');
   assert.deepEqual(r.store, { 'requete-rappel': '1', 'requete-rappel-heure': '09:00' });
@@ -211,5 +213,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=165">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-05-engagement-v2556' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-05-rappel-planning-v2557' && app.includes(`const SW_CACHE='${cache}';`));
 });
