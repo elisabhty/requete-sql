@@ -1470,16 +1470,6 @@ html.lq #scr-compte .acc-save:active{transform:translateY(4px)!important;box-sha
 /* Rappel : interrupteur violet, créneaux en relief */
 html.lq #scr-compte .acc-toggle{background:var(--lip)!important;box-shadow:none!important}
 html.lq #scr-compte .acc-toggle.on{background:var(--accent)!important}
-html.lq #scr-compte .acc-remind-now{font-family:var(--mono);color:var(--accent-ink)!important}
-html.lq #scr-compte .acc-remind{padding:6px 18px 16px!important}
-html.lq #scr-compte .acc-remind-slot,html.lq #scr-compte .acc-remind-hour{
-  min-height:44px!important;padding:0 14px!important;border:2px solid var(--line)!important;border-radius:14px!important;
-  background:#fff!important;color:var(--ink-2)!important;font:700 14.5px/1 var(--display)!important;
-  box-shadow:0 3px 0 var(--lip)!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
-}
-html.lq #scr-compte .acc-remind-slot:active,html.lq #scr-compte .acc-remind-hour:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
-html.lq #scr-compte .acc-remind-slot.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important}
-html.lq #scr-compte .acc-remind-hour.on{background:var(--accent-soft)!important;border-color:var(--accent)!important;color:var(--accent-ink)!important;box-shadow:0 3px 0 #C9BCFF!important}
 html.lq .screen:has(.plus-details[open]) .account-sheet-backdrop{background:rgba(34,28,70,.4)!important}
 /* Confort de lecture : de vrais interrupteurs (comme le rappel), pas des cases */
 html.lq .reading-option{gap:16px!important;border-top:2px solid var(--line-2)!important}
@@ -7248,7 +7238,9 @@ html.lq .dx-feuille .dx-f-x{top:14px;right:14px}
 html.lq .dx-feuille .room-sp.s2{right:74px}
 html.lq .dx-feuille .room-field:first-child{margin-top:14px}
 /* Le bouton de la feuille reste en bas quand elle défile (petits téléphones), son message juste au-dessus. */
-html.lq .dx-feuille .dx-f-pied{position:sticky;bottom:0;z-index:2;margin:6px -18px -18px;padding:12px 18px 18px;background:#fff}
+/* bottom:-18px (5 novembre, 12 h 12) : le pied descend dans la marge du bas de la feuille (-18 px) ; avec bottom:0, sticky le remontait de
+   18 px et il couvrait le bas des manches de « Joue seul ». */
+html.lq .dx-feuille .dx-f-pied{position:sticky;bottom:-18px;z-index:2;margin:6px -18px -18px;padding:12px 18px 18px;background:#fff}
 html.lq .dx-feuille .dx-f-pied::before{content:"";position:absolute;left:0;right:0;top:-18px;height:18px;background:linear-gradient(rgba(255,255,255,0),#fff);opacity:0;transition:opacity .2s;pointer-events:none}
 html.lq .dx-feuille .dx-f-boite.is-defile .dx-f-pied::before{opacity:1}
 html.lq .dx-feuille .dx-f-pied .room-go{margin-top:0}
@@ -7297,3 +7289,72 @@ html.lq #scr-defis .dx-sec.on{border-color:var(--accent);background:var(--accent
 html.lq #scr-defis .dx-sec:active{transform:translateY(2px);box-shadow:0 1px 0 var(--lip)}
 @media (prefers-reduced-motion:reduce){html.lq #scr-defis .dx-me-go svg{animation:none}}
 html[data-motion="reduce"].lq #scr-defis .dx-me-go svg{animation:none}
+
+/* ---------- Mon compte, 5 novembre, 12 h 12 (Elisa) : supprimer ton compte, Contacte-nous, ton rappel d’entraînement ---------- */
+/* Supprimer ton compte (réf. 2 et 3) : sous le bandeau, ce qui sera supprimé (sur Requête, sur cet appareil), puis l’encadré rouge
+   « irréversible ». La feuille défile si l’écran est petit. */
+html.lq .lq-ask-sheet.has-corps{max-height:calc(100% - var(--safe-top,0px) - 16px - env(safe-area-inset-bottom,0px));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+html.lq .lq-ask-corps{margin:0 2px 18px;text-align:left}
+html.lq .lq-ask.on .lq-ask-corps{animation:lqAskUp .42s ease-out .22s both}
+@media (prefers-reduced-motion:reduce){html.lq .lq-ask.on .lq-ask-corps{animation:none}}
+html[data-motion="reduce"].lq .lq-ask.on .lq-ask-corps{animation:none}
+html.lq .lq-del-h{margin:0 0 4px;font:700 15.5px/1.3 var(--display);color:var(--ink)}
+html.lq .lq-del{margin:0;padding:0;list-style:none}
+html.lq .lq-del li{display:flex;align-items:flex-start;gap:12px;padding:12px 0}
+html.lq .lq-del li+li{border-top:2px solid var(--line-2)}
+html.lq .lq-del-i{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink)}
+html.lq .lq-del-i svg{display:block;width:21px;height:21px}
+html.lq .lq-del li>span:last-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+html.lq .lq-del b{font:700 15px/1.25 var(--display);color:var(--ink)}
+html.lq .lq-del small{font:500 13.5px/1.45 var(--ui);color:var(--ink-2);text-wrap:pretty}
+html.lq .lq-del-warn{display:flex;align-items:flex-start;gap:10px;margin:6px 0 0;padding:12px 14px;border-radius:16px;background:#FDEEEE;color:#8E1F25;font:600 13.5px/1.45 var(--ui);text-wrap:pretty}
+html.lq .lq-del-wi{flex:none;width:20px;height:20px;margin-top:1px;color:#C2323A}
+html.lq .lq-del-wi svg{display:block;width:100%;height:100%}
+html.lq .lq-del-warn>span:last-child{flex:1;min-width:0}
+html.lq .lq-del-warn b{font-weight:800;color:#7A1A20}
+/* Les deux boutons restent au bas de la fenêtre quand elle défile (iPhone SE, Safari et ses barres) ; sur un écran bas, le bandeau
+   se resserre. bottom:-20px : le pied descend dans la marge du bas de la fenêtre, sans remonter sur l’encadré. */
+html.lq .lq-ask-sheet.has-corps .lq-ask-btns{position:sticky;bottom:-20px;z-index:2;margin:0 -20px -20px;padding:12px 20px 20px;background:#fff}
+html.lq .lq-ask-sheet.has-corps .lq-ask-btns::before{content:"";position:absolute;left:0;right:0;top:-18px;height:18px;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none}
+@media (max-height:760px){
+  html.lq .lq-ask-sheet.has-corps .lq-ask-cap{padding:16px 20px 16px}
+  html.lq .lq-ask-sheet.has-corps .lq-ask-stk{width:52px;height:52px;margin-bottom:8px}
+  html.lq .lq-ask-sheet.has-corps .lq-ask-cap h2{font-size:21px}
+  html.lq .lq-ask-sheet.has-corps .lq-ask-cap p{margin-top:5px;font-size:14px;line-height:1.4}
+  html.lq .lq-ask-sheet.has-corps .lq-ask-cap{margin-bottom:14px}
+  html.lq .lq-del li{padding:9px 0}html.lq .lq-del-i{width:34px;height:34px}html.lq .lq-del small{font-size:13px}
+  html.lq .lq-del-warn{padding:10px 12px;font-size:13px}
+  html.lq .lq-ask-corps{margin-bottom:12px}}
+/* Contacte-nous (réf. 7) : « Envoyer mon message » reste au bas de la feuille, visible sans faire défiler (le bouton était coupé), le
+   message d’erreur juste au-dessus. */
+html.lq #scr-compte .ct-body:has(.ct-pied){padding-bottom:0!important}
+html.lq #scr-compte .ct-form{padding-bottom:0}
+html.lq #scr-compte .ct-note{margin:14px 2px 0}
+html.lq #scr-compte .ct-pied{position:sticky;bottom:0;z-index:2;margin:14px -18px 0;padding:12px 18px calc(var(--safe-bottom,0px) + 14px);background:#fff;box-shadow:0 -2px 0 var(--line-2)}
+html.lq #scr-compte .ct-pied .ct-etat{margin:0 2px 10px}
+html.lq #scr-compte .ct-pied .ct-go{margin:0}
+/* Ton rappel d’entraînement (réf. 5 et 6) : l’interrupteur, « À quel moment ? » (trois moments en un bloc, puis les heures), la note sur
+   l’autorisation, et « Enregistrer mes préférences » au bas de la feuille. */
+html.lq #scr-compte .rp-body:has(.rp-pied){padding-bottom:0!important}
+html.lq #scr-compte .rp-quand{padding:8px 18px 2px}
+html.lq #scr-compte .rp-l{margin:4px 2px 10px;font:700 15px/1.25 var(--display);color:var(--ink)}
+html.lq #scr-compte .rp-seg{display:flex;gap:4px;padding:4px;border-radius:16px;background:#F1EEFB}
+html.lq #scr-compte .rp-slot{flex:1 1 0;min-width:0;min-height:44px;margin:0;padding:0 6px;border:0;border-radius:12px;background:transparent;color:var(--ink-2);
+  font:700 14.5px/1 var(--display);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background-color .15s,color .15s,box-shadow .15s}
+html.lq #scr-compte .rp-slot{white-space:nowrap}
+html.lq #scr-compte .rp-slot.on{background:#fff;color:var(--accent-ink);box-shadow:0 2px 0 #DCD5F2,0 1px 6px rgba(34,28,70,.1)}
+@media (max-width:360px){html.lq #scr-compte .rp-slot{padding:0 2px;font-size:13.5px}html.lq #scr-compte .rp-heure{font-size:14px}}
+html.lq #scr-compte .rp-heures{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:8px;margin-top:12px}
+html.lq #scr-compte .rp-heure{min-width:0;min-height:46px;margin:0;padding:0 4px;border:2px solid var(--line);border-radius:14px;background:#fff;color:var(--ink-2);
+  font:700 15px/1 var(--display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 var(--lip);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  transition:transform .12s var(--press),box-shadow .12s var(--press),background-color .15s,color .15s}
+html.lq #scr-compte .rp-heure:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+html.lq #scr-compte .rp-heure.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);box-shadow:0 3px 0 #C9BCFF}
+html.lq #scr-compte .rp-note{display:flex;align-items:flex-start;gap:10px;margin:16px 2px 6px;color:var(--ink-2);font:500 13.5px/1.45 var(--ui);text-wrap:pretty}
+html.lq #scr-compte .rp-note.is-ko{color:var(--danger)}
+html.lq #scr-compte .rp-note-i{flex:none;width:20px;height:20px;margin-top:1px;color:var(--ink-3)}
+html.lq #scr-compte .rp-note.is-ko .rp-note-i{color:var(--danger)}
+html.lq #scr-compte .rp-note-i svg{display:block;width:100%;height:100%}
+html.lq #scr-compte .rp-pied{position:sticky;bottom:0;z-index:2;margin-top:10px;padding:12px 18px calc(var(--safe-bottom,0px) + 14px);background:#fff;box-shadow:0 -2px 0 var(--line-2)}
+html.lq #scr-compte .rp-go{display:block;width:100%;margin:0}
+@media (prefers-reduced-motion:reduce){html.lq #scr-compte .rp-slot,html.lq #scr-compte .rp-heure{transition:none}}

@@ -153,7 +153,7 @@ test('Supabase : un espace privé, où l’appli dépose sans jamais lire ; cont
 });
 
 test('la confidentialité et la DA', () => {
-  assert.ok(app.includes('<li><b>Tes messages</b> envoyés depuis «&nbsp;Nous contacter&nbsp;», avec ce que tu joins et ton e-mail si tu le donnes, pour te répondre.</li>'));
+  assert.ok(app.includes('<li><b>Tes messages</b> envoyés depuis «&nbsp;Contacte-nous&nbsp;», avec ce que tu joins et ton e-mail si tu le donnes, pour te répondre.</li>'));
   assert.ok(site.includes('les captures ou fichiers que tu y joins (3 au plus, 5&nbsp;Mo chacun, dans un espace de stockage privé)'));
   for (const part of [
     'html.lq #scr-compte .ct-ajout{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;',

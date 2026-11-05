@@ -24,7 +24,7 @@ const sansCommentaires = s => s.replace(/\/\*[\s\S]*?\*\//g, '');
 const media = css.slice(css.indexOf('@media (prefers-reduced-motion:no-preference){'), css.indexOf('@media (prefers-reduced-motion:reduce){', css.indexOf('@media (prefers-reduced-motion:no-preference){')));
 const PATTERN = vm.runInNewContext('(' + cut('const PATTERN=', 'const JOURS=').replace('const PATTERN=', '').trim().replace(/;$/, '') + ')');
 const JOURS = vm.runInNewContext(cut('const JOURS=', 'const MIN_PAR_ACTIVITE').replace('const JOURS=', '').trim().replace(/;$/, ''));
-const rappel = cut('/* Les jours du rappel (Elisa, 4 novembre, 11 h 08, réf. 2)', 'function setRappelHeure(h){');
+const rappel = cut('/* Les jours du rappel (Elisa, 4 novembre, 11 h 08, réf. 2)', '/* Le rappel dans Mon compte (Elisa, 5 novembre, 12 h 12');
 
 test('réf. 1 : choisir une source ne fait plus rejouer l’entrée de toutes les tuiles', () => {
   assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-source-tile{animation:obvTileIn .34s var(--v-pop) var(--d,0ms) both}'));
@@ -74,39 +74,50 @@ test('réf. 2 : les notifications ne sonnent que les jours de séance, à l’he
   assert.ok(app.includes("<span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span>") && !app.includes('Rappel quotidien'));
 });
 
-test('réf. 2 : la page du rappel, l’heure en grand, quatre moments, les jours de séance, et tout change sur place', () => {
+test('réf. 2 : la page du rappel, « À quel moment ? » comme dans Mon compte (5 novembre, 12 h 12), les jours de séance, et tout change sur place', () => {
   const p = lastCut("}else if(slide==='rappel'){", "}else if(slide==='widget'){");
   assert.ok(p.includes("const fq=draft.freq||7,quand=fq===7?'chaque jour':fq===5?'en semaine':'tes jours de séance';") && p.includes('Un petit <em>rappel</em><br>${quand}&nbsp;?</h1>'));
   assert.ok(p.includes('${obRappelCarte()}') && p.includes('<p class="ob-rappel-note">Modifiable à tout moment dans Mon compte.</p>'));
   assert.ok(p.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');"));
-  const aides = cut('const OB_RAPPEL_MOMENTS=', '/* La fenêtre en aperçu au centre de l’écran');
-  const el = () => { const c = new Set(); return { textContent: '', value: '', dataset: {}, offsetWidth: 1, attrs: {}, setAttribute(k, v) { this.attrs[k] = v; },
-    classList: { add: x => c.add(x), remove: x => c.delete(x), toggle: (x, on) => (on ? c.add(x) : c.delete(x)), has: x => c.has(x) } }; };
-  const moments = ['08:00', '12:30', '19:00', '21:30'].map(h => Object.assign(el(), { dataset: { h } }));
-  const h = el(), inp = el(), cta = el(), appels = [];
-  const ctx = vm.createContext({ PATTERN, JOURS, OB_ICO_HEURES: '<svg/>', OB_SLIDES: ['rappel'], obStep: 0, draft: { freq: 3, rappelHeure: '19:00' },
-    rappelHeure: () => '19:00', escAttr: s => String(s), rappelJoursTexte: j => j.join('-'), prefersReduceMotion: () => false, buzz: k => appels.push(k), obCtaLibelle: (b, t) => { b.textContent = t; },
-    document: { getElementById: id => ({ 'ob-rappel-h': h, 'ob-rappel-input': inp, 'ob-next': cta })[id], querySelectorAll: () => moments } });
-  vm.runInContext(aides.replace('const OB_RAPPEL_MOMENTS=', 'var OB_RAPPEL_MOMENTS='), ctx);
+  const aides = cut('function obHeureTexte(h){', '/* La fenêtre en aperçu au centre de l’écran');
+  const choix = cut('/* Les heures d’un moment ;', 'const RP_INFO_SVG=');
+  const slots = cut('const RAPPEL_SLOTS=[', 'function rappelHeure(){');
+  const slotId = cut('function rappelSlotId(h){', '/* Les jours du rappel');
+  const conteneur = { innerHTML: '', contains: () => false, querySelector: () => null };
+  const cta = { textContent: '' }, appels = [];
+  const ctx = vm.createContext({ PATTERN, JOURS, OB_SLIDES: ['rappel'], obStep: 0, draft: { freq: 3, rappelHeure: '19:00' },
+    rappelHeure: () => '19:00', escAttr: s => String(s), rappelJoursTexte: j => j.join('-'), buzz: k => appels.push(k), obCtaLibelle: (b, t) => { b.textContent = t; },
+    document: { activeElement: null, getElementById: id => ({ 'ob-rappel-choix': conteneur, 'ob-next': cta })[id] } });
+  vm.runInContext((slots + slotId + choix + aides).replace('const RAPPEL_SLOTS=', 'var RAPPEL_SLOTS='), ctx);
   assert.deepEqual(['19:00', '08:00', '12:30', '21:30'].map(x => vm.runInContext(`obHeureTexte('${x}')`, ctx)), ['19\u00a0h', '8\u00a0h', '12\u00a0h\u00a030', '21\u00a0h\u00a030']);
   const carte = vm.runInContext('obRappelCarte()', ctx);
-  assert.ok(carte.includes('<input type="time" id="ob-rappel-input" value="19:00" aria-label="Heure du rappel" onchange="obRappelHeure(this.value)" onclick="try{this.showPicker&&this.showPicker();}catch(e){}">'), 'la roue d’iOS au toucher de l’heure (et le sélecteur d’un ordinateur)');
-  assert.deepEqual([...carte.matchAll(/class="ob-rappel-moment( on)?" data-h="([\d:]+)" aria-pressed="(true|false)"/g)].map(m => [m[2], !!m[1], m[3]]),
-    [['08:00', false, 'false'], ['12:30', false, 'false'], ['19:00', true, 'true'], ['21:30', false, 'false']]);
+  assert.ok(carte.includes('<p class="ob-rappel-k" id="ob-rappel-l">À quel moment&nbsp;?</p>') && carte.includes('<div class="ob-rappel-choix" id="ob-rappel-choix">'));
+  assert.deepEqual([...carte.matchAll(/class="rp-slot( on)?" data-slot="(\w+)"/g)].map(m => [m[2], !!m[1]]), [['morning', false], ['afternoon', false], ['evening', true]], 'Matin, Après-midi, Soir');
+  assert.deepEqual([...carte.matchAll(/class="rp-heure( on)?" data-h="([\d:]+)"/g)].map(m => (m[1] ? `[${m[2]}]` : m[2])).join(' '), '18:00 [19:00] 20:00 21:00 22:00');
+  assert.ok(!carte.includes('type="time"') && !carte.includes('ob-rappel-moment'), 'plus de roue ni de quatre moments');
   assert.deepEqual([...carte.matchAll(/<i class="(on)?" style="--i:\d">(\w)<\/i>/g)].map(m => (m[1] ? m[2] : '.')).join(''), 'L.M.V..', 'du lundi au dimanche, ceux du parcours allumés');
   assert.ok(carte.includes('role="img" aria-label="1-3-5"'), 'lus en clair par un lecteur d’écran');
-  vm.runInContext("obRappelHeure('08:00')", ctx);
-  assert.equal(ctx.draft.rappelHeure, '08:00');
-  assert.equal(h.textContent, '8\u00a0h'); assert.equal(inp.value, '08:00'); assert.equal(cta.textContent, 'Me rappeler à 8\u00a0h');
-  assert.deepEqual(moments.map(m => m.classList.has('on')), [true, false, false, false]);
-  assert.ok(h.classList.has('is-new') && appels.join() === 'selection', 'l’heure saute, un petit retour haptique');
+  /* Une heure, puis un moment : l’heure change sur place, le bouton la dit */
+  vm.runInContext("obRappelHeure('21:00')", ctx);
+  assert.equal(ctx.draft.rappelHeure, '21:00'); assert.equal(cta.textContent, 'Me rappeler à 21\u00a0h');
+  assert.ok(conteneur.innerHTML.includes('class="rp-heure on" data-h="21:00"') && appels.join() === 'selection');
+  vm.runInContext("obRappelSlot('morning')", ctx);
+  assert.equal(ctx.draft.rappelHeure, '08:00', 'le matin : 8 h');
+  assert.ok(conteneur.innerHTML.includes('class="rp-slot on" data-slot="morning"') && conteneur.innerHTML.includes('data-h="07:00"') && conteneur.innerHTML.includes('class="rp-heure on" data-h="08:00"'));
+  vm.runInContext("obRappelSlot('morning')", ctx);
+  assert.equal(ctx.draft.rappelHeure, '08:00', 'le même moment : l’heure reste');
+  /* Une heure d’avant hors de la liste (Midi, 12 h 30) garde sa place parmi celles de l’après-midi */
+  ctx.draft.rappelHeure = '12:30';
+  assert.ok(/data-h="12:00"[^]*data-h="12:30"[^]*data-h="13:00"/.test(vm.runInContext('obRappelCarte()', ctx)) && vm.runInContext('obRappelCarte()', ctx).includes('class="rp-slot on" data-slot="afternoon"'));
   vm.runInContext("obRappelHeure('7:5')", ctx);
-  assert.equal(ctx.draft.rappelHeure, '08:00', 'une heure mal formée est ignorée');
+  assert.equal(ctx.draft.rappelHeure, '12:30', 'une heure mal formée est ignorée');
   /* L’heure choisie est gardée avant la demande d’iOS */
   assert.ok(cut('async function obRappelDemander(){', '/* L’heure et les jours du rappel').includes("const h=(typeof draft!=='undefined'&&draft&&draft.rappelHeure)||rappelHeure();\n  try{localStorage.setItem('requete-rappel-heure',h);}catch(e){}"));
-  for (const k of ['html #onboarding.ob-vitrine .ob-rappel-carte{', 'html #onboarding.ob-vitrine .ob-rappel-moment.on{border-color:var(--v-sun);',
-    'html #onboarding.ob-vitrine .ob-rappel-semaine i.on{background:var(--v-accent);color:#fff}', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{display:none}'])
+  for (const k of ['html #onboarding.ob-vitrine .ob-rappel-carte{', 'html #onboarding.ob-vitrine .ob-rappel-choix .rp-heure.on{border-color:var(--v-sun);',
+    'html #onboarding.ob-vitrine .ob-rappel-choix .rp-slot.on{background:#fff;', 'html #onboarding.ob-vitrine .ob-rappel-semaine i.on{background:var(--v-accent);color:#fff}',
+    'html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{display:none}'])
     assert.ok(css.includes(k), k);
+  assert.ok(!css.includes('.ob-rappel-moment') && !css.includes('.ob-rappel-heure'), 'les anciens styles sont partis');
 });
 
 test('réf. 3 : un raccourci de l’icône pendant l’onboarding le dit dans un bandeau', () => {
@@ -116,7 +127,8 @@ test('réf. 3 : un raccourci de l’icône pendant l’onboarding le dit dans un
 });
 
 test('réf. 4 : « pas de stress, tu pourras le changer dans ton planning », sous les jours et sous la durée', () => {
-  assert.ok(app.includes('<span>Pas de stress&nbsp;: tu pourras le changer à tout moment dans ton planning.</span></p>'));
+  /* 5 novembre, 12 h 12 : « adapte ton rythme » ; Mon compte l’ouvre aussi, sur place */
+  assert.ok(app.includes('<span>Pas de stress&nbsp;: tu pourras l’adapter à tout moment, dans ton planning ou dans Mon compte.</span></p>'));
   assert.ok(lastCut("}else if(slide==='jours'){", "}else if(slide==='build'){").includes('</div>${obModifiable()}</div>`;'));
   assert.ok(lastCut("}else if(slide==='rhythm'){", "}else if(slide==='jours'){").includes('${obRhythmSummary()}${obModifiable()}</div>`;'));
   assert.ok(!cut('function obRhythmSummary(){', 'function obModifiable(){').includes('modifiable à tout moment'), 'dit une seule fois');
@@ -157,7 +169,7 @@ test('réf. 6 et 7 : la première page parle de tous les appareils, et le bouton
   assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
   /* 4 novembre, 14 h 08 (réf. 3) : « monter encore le bouton jaune » : jusqu’à 58 px au-dessus de la barre d’accueil, 34 px au moins */
   assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + clamp(34px,6.6vh,58px))!important}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=23">') && sw.includes("'./onboarding-vitrine.css?v=23',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=24">') && sw.includes("'./onboarding-vitrine.css?v=24',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   /* Le cache a changé de nom ce jour-là (rappel-jours, v2497), et de nouveau à chaque version qui a suivi */
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2497, cache);

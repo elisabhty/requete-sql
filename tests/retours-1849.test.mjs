@@ -47,12 +47,12 @@ function ctx({ ua = IPHONE, touch = 5, store = {}, reply = () => ({ ok: true }),
   return { c, ev: s => vm.runInContext(s, c), el: get, calls, buzzes, store };
 }
 
-test('Mon compte : « Aide et prise en main » devient « Nous contacter », dans sa feuille', () => {
+test('Mon compte : « Aide et prise en main » devient « Nous contacter » (« Contacte-nous » depuis le 5 novembre), dans sa feuille', () => {
   assert.ok(!app.includes('Aide et prise en main') && !app.includes("openLegal('help')") && !app.includes('account-help'), 'plus d’aide');
-  assert.ok(app.includes(`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">\${lqStkSvg(ACCT_STK.contact)}</span><span><b>Nous contacter</b><small>Un bug, une idée, une question</small></span>`));
+  assert.ok(app.includes(`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">\${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span>`));
   assert.ok(app.includes("const ACCT_STK={account:'user',route:'route',bell:'bell',reading:'eye',privacy:'shield',help:'help',contact:'bubble'};"), 'la bulle de discussion');
   assert.ok(app.includes(`<details class="plus-details" id="plus-contact">
-      <summary><span>Nous contacter</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>
+      <summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body ct-body" id="ct-body">\${ctHTML()}</div>
     </details>`));
   assert.ok(app.includes("const titles={privacy:'Confidentialité',terms:'Conditions'};"), 'la feuille Aide n’existe plus');
@@ -67,12 +67,13 @@ test('le formulaire : quatre sujets, le message (1000 caractères), l’e-mail f
   const h = t.ev('ctHTML()');
   for (const s of ['Un bug', 'Une idée', 'Une question', 'Autre chose']) assert.ok(h.includes(`>${s}</button>`), s);
   assert.ok(h.includes('class="ct-type on" role="radio" aria-checked="true" data-k="bug"'), 'un bug par défaut');
-  assert.ok(h.includes('<textarea id="ct-msg" maxlength="1000" rows="4" placeholder="Ce qui s’est passé, sur quel écran, ce que tu attendais…"'));
+  /* 5 novembre, 12 h 12 : un exemple qui suit le sujet */
+  assert.ok(h.includes('<textarea id="ct-msg" maxlength="1000" rows="4" placeholder="Ex.\u00a0: sur l’écran Défis, «\u00a0Rejoindre\u00a0» ne réagit pas. Je m’attendais à entrer dans la salle."'));
   assert.ok(h.includes('<label class="ct-l" for="ct-mail">Ton e-mail <small>facultatif, pour te répondre</small></label>'));
   assert.ok(h.includes('type="email" inputmode="email" autocomplete="email"'));
   assert.ok(h.includes('<label class="ct-infos" id="ct-infos"><input type="checkbox" checked'), 'cochées pour un bug');
   assert.ok(h.includes('<small>v2223 · iPhone · Safari · navigateur · 390×844</small>'), 'ce qui part, montré avant l’envoi');
-  assert.ok(h.includes('<button type="button" class="lq-btn ct-go" id="ct-go" onclick="ctEnvoyer()">Envoyer</button>'));
+  assert.ok(h.includes('<div class="ct-pied"><p class="ct-etat" id="ct-etat" role="status" aria-live="polite"></p>\n        <button type="button" class="lq-btn ct-go" id="ct-go" onclick="ctEnvoyer()">Envoyer mon message</button></div>'), 'en bas de la feuille, toujours visible');
   assert.ok(h.includes('Ton message part sur le serveur de l’appli, à Paris, seulement pour te répondre et améliorer Requête.'));
   /* Une idée : pas d’infos techniques */
   t.ev("CT.type='idee'");
@@ -114,7 +115,7 @@ test('l’envoi : vérifié, envoyé à contact_envoyer, puis merci ; les refus 
   assert.deepEqual(t.calls, [{ fn: 'contact_envoyer', body: { p_cle: 'K'.repeat(32), p_type: 'bug', p_message: 'Le défi 12 refuse un alias.', p_email: 'Lea@Exemple.fr',
     p_infos: { version: 'v2223', appareil: 'iPhone', navigateur: 'Safari', mode: 'navigateur', ecran: '390×844', langue: 'fr-FR' } } }]);
   assert.equal(t.ev('CT.fini'), true); assert.deepEqual(t.buzzes.slice(-1), ['success']);
-  assert.ok(t.el('ct-body').innerHTML.includes('Merci, c’est envoyé&nbsp;!') && t.el('ct-body').innerHTML.includes('On te répond à <b>Lea@Exemple.fr</b>.'));
+  assert.ok(t.el('ct-body').innerHTML.includes('Message envoyé&nbsp;!') && t.el('ct-body').innerHTML.includes('Merci pour ton signalement. On te répond à <b>Lea@Exemple.fr</b>.'));
   assert.deepEqual(JSON.parse(t.store['rq-contact']), { type: 'bug', msg: '', mail: 'Lea@Exemple.fr', infos: true }, 'le brouillon est vidé, l’e-mail gardé pour la prochaine fois');
   /* Rouvrir la feuille : le formulaire */
   t.ev('ctAvant()'); assert.equal(t.ev('CT.fini'), false); assert.ok(t.el('ct-body').innerHTML.includes('id="ct-msg"'));
@@ -128,7 +129,7 @@ test('l’envoi : vérifié, envoyé à contact_envoyer, puis merci ; les refus 
   trop.ev("ctHTML();CT.msg='Encore un message'");
   await trop.ev('ctEnvoyer()');
   assert.equal(trop.el('ct-etat').textContent, 'Tu as envoyé plusieurs messages d’affilée : réessaie dans quelques minutes.');
-  assert.equal(trop.ev('CT.fini'), false); assert.equal(trop.el('ct-go').textContent, 'Envoyer'); assert.equal(trop.el('ct-go').disabled, false);
+  assert.equal(trop.ev('CT.fini'), false); assert.equal(trop.el('ct-go').textContent, 'Envoyer mon message'); assert.equal(trop.el('ct-go').disabled, false);
   const panne = ctx({ reply: () => new Error('réseau') });
   panne.ev("ctHTML();CT.msg='Un bug'");
   await panne.ev('ctEnvoyer()');
@@ -152,7 +153,7 @@ test('Données et confidentialité : « Comprendre mes données » en tête, qui
   assert.ok(h.includes('<b>Comprendre mes données</b><small>Sans compte, ton apprentissage reste sur cet appareil</small>'));
   assert.ok(h.includes('<div class="acc-donnees-c" id="acc-donnees" hidden>'), 'replié au départ');
   for (const part of ['<h4>Sur cet appareil</h4>', 'les requêtes de ta console, de tes leçons et de tes défis en solo restent sur ton appareil', '<h4>Sur le serveur de l’appli <small>Supabase, à Paris</small></h4>',
-    '<b>Ton pseudo</b>', '<b>Le classement</b>', '<b>La salle entre amis</b>', 'effacés au bout de 24&nbsp;h', '<b>Tes messages</b> envoyés depuis «&nbsp;Nous contacter&nbsp;»',
+    '<b>Ton pseudo</b>', '<b>Le classement</b>', '<b>La salle entre amis</b>', 'effacés au bout de 24&nbsp;h', '<b>Tes messages</b> envoyés depuis «&nbsp;Contacte-nous&nbsp;»',
     '<h4>Tu gardes la main</h4>'])
     assert.ok(h.includes(part), part);
   const p = t.el('acc-donnees'); p.hidden = true;
@@ -163,10 +164,10 @@ test('Données et confidentialité : « Comprendre mes données » en tête, qui
 });
 
 test('la confidentialité dit où partent les messages (appli, site, notes App Store)', () => {
-  const li = '<li>Les messages envoyés depuis <b>Nous contacter</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li>';
+  const li = '<li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li>';
   assert.equal(app.split(li).length - 1, 2, 'dans la confidentialité de l’appli et dans le choix « sans compte »');
-  assert.ok(site.includes('<li><b>Messages de contact.</b> Depuis l’appli (Mon compte, «&nbsp;Nous contacter&nbsp;»), ton message, son sujet'));
-  assert.ok(site.includes('ou depuis l’appli (Mon compte, «&nbsp;Nous contacter&nbsp;»)&nbsp;; «&nbsp;Supprimer mon compte&nbsp;» efface tout d’un coup.'), 'les droits s’exercent aussi depuis l’appli');
+  assert.ok(site.includes('<li><b>Messages de contact.</b> Depuis l’appli (Mon compte, «&nbsp;Contacte-nous&nbsp;»), ton message, son sujet'));
+  assert.ok(site.includes('ou depuis l’appli (Mon compte, «&nbsp;Contacte-nous&nbsp;»)&nbsp;; «&nbsp;Supprimer mon compte&nbsp;» efface tout d’un coup.'), 'les droits s’exercent aussi depuis l’appli');
   assert.ok(ios.includes('vue\n  `contact_boite`') || ios.includes('`contact_boite`'), 'où lire les messages');
   assert.ok(ios.includes('« Adresse e-mail » (facultative), « Autre contenu utilisateur » (le message et les fichiers joints),\n  « Photos ou vidéos » (les captures jointes) et « Autres données de\n  diagnostic »'));
 });
