@@ -101,7 +101,7 @@ test('scripts/ios-widget.mjs : NSSupportsLiveActivities ajouté une fois à l’
     fs.writeFileSync(info, avant);
     execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
     const apres = fs.readFileSync(info, 'utf8');
-    assert.equal(apres, avant.replace('\t</dict>\n</dict>\n</plist>\n', '\t</dict>\n\t<key>NSSupportsLiveActivities</key>\n\t<true/>\n\t<key>NSCameraUsageDescription</key>\n\t<string>Pour joindre une photo à ton message dans « Nous contacter ».</string>\n\t<key>NSPhotoLibraryUsageDescription</key>\n\t<string>Pour joindre une capture d’écran à ton message dans « Nous contacter ».</string>\n</dict>\n</plist>\n'), 'dans le dictionnaire principal, pas dans le dernier sous-dictionnaire ; puis l’appareil photo et les photos (4 novembre, 22 h 08)');
+    assert.equal(apres, avant.replace('\t</dict>\n</dict>\n</plist>\n', '\t</dict>\n\t<key>NSSupportsLiveActivities</key>\n\t<true/>\n\t<key>NSCameraUsageDescription</key>\n\t<string>Pour joindre une photo à ton message dans « Contacte-nous ».</string>\n\t<key>NSPhotoLibraryUsageDescription</key>\n\t<string>Pour joindre une capture d’écran à ton message dans « Contacte-nous ».</string>\n</dict>\n</plist>\n'), 'dans le dictionnaire principal, pas dans le dernier sous-dictionnaire ; puis l’appareil photo et les photos (4 novembre, 22 h 08)');
     execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
     assert.equal(fs.readFileSync(info, 'utf8'), apres, 'relancé : une seule fois');
     /* Une Info.plist illisible n’est pas touchée */
@@ -266,7 +266,7 @@ test('la note se garde dans la progression (normalizeState), sans rien d’autre
 });
 
 test('les étoiles en CSS : la fiche du bilan, leur arrivée, leur ondulation, le rebond, les étincelles, et le mouvement réduit', () => {
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=152">'));
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=153">'));
   for (const k of ['html.lq #scr-lesson .bravo-avis{', 'html.lq #scr-lesson .bravo-avis .av-star.on path{fill:var(--sun);stroke:var(--sun-lip)}',
     'html.lq #scr-lesson .bravo-avis .av-star input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
     'html.lq #scr-lesson .bravo-avis .av-star{animation:avStarIn .5s var(--pop) calc(.42s + var(--i) * .07s) backwards}',

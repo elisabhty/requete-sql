@@ -32,14 +32,14 @@ if (existsSync(infoApp)) {
   else if (k > 0 && t.indexOf('</plist>', k) > k) writeFileSync(infoApp, t.slice(0, k) + '\t<key>NSSupportsLiveActivities</key>\n\t<true/>\n' + t.slice(k));
   else console.warn('⚠️  Info.plist inattendu : NSSupportsLiveActivities n’y est pas (la leçon n’apparaîtra pas dans la Dynamic Island).');
 }
-/* 1 ter. Les pièces jointes de « Nous contacter » (Elisa, 4 novembre, 22 h 08 : « toutes les choses obligatoires pour passer la
+/* 1 ter. Les pièces jointes de « Contacte-nous » (anciennement « Nous contacter ») (Elisa, 4 novembre, 22 h 08 : « toutes les choses obligatoires pour passer la
    validation Apple ») : choisir une image propose « Prendre une photo » et la photothèque ; sans ces deux phrases, iOS ferme l’app
    à ce moment-là, et l’App Review le voit. Ajoutées une fois, avant la fin du dictionnaire principal. */
 if (existsSync(infoApp)) {
   const t = readFileSync(infoApp, 'utf8'), k = t.lastIndexOf('</dict>');
   const ajout = [
-    ['NSCameraUsageDescription', 'Pour joindre une photo à ton message dans « Nous contacter ».'],
-    ['NSPhotoLibraryUsageDescription', 'Pour joindre une capture d’écran à ton message dans « Nous contacter ».'],
+    ['NSCameraUsageDescription', 'Pour joindre une photo à ton message dans « Contacte-nous ».'],
+    ['NSPhotoLibraryUsageDescription', 'Pour joindre une capture d’écran à ton message dans « Contacte-nous ».'],
   ].filter(([cle]) => !t.includes(`<key>${cle}</key>`));
   if (ajout.length && k > 0 && t.indexOf('</plist>', k) > k)
     writeFileSync(infoApp, t.slice(0, k) + ajout.map(([cle, texte]) => `\t<key>${cle}</key>\n\t<string>${texte}</string>\n`).join('') + t.slice(k));

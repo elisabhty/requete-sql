@@ -115,7 +115,7 @@ test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du 
     'html.lq #scr-defis .dx-act:active,html.lq #scr-defis .dx-act[aria-expanded="true"]{background:var(--accent-soft)}',
     '.dx-feuille{position:fixed;inset:0;z-index:2600;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}',
     'transform:translateY(calc(100% + 40px));transition:transform .36s cubic-bezier(.32,.72,0,1)}', 'html.lq .dx-feuille.on .dx-f-boite{transform:none}',
-    'html.lq .dx-feuille .dx-f-pied{position:sticky;bottom:0;z-index:2;margin:6px -18px -18px;padding:12px 18px 18px;background:#fff}',
+    'html.lq .dx-feuille .dx-f-pied{position:sticky;bottom:-18px;z-index:2;margin:6px -18px -18px;padding:12px 18px 18px;background:#fff}',
     'html.lq .dx-feuille .dx-f-boite.is-defile .dx-f-pied::before{opacity:1}', 'html.lq .dx-f-niv{display:inline-flex;align-items:center;gap:7px;',
     '@media (max-height:720px),(max-width:360px){', 'html[data-motion="reduce"] .dx-feuille,html[data-motion="reduce"] .dx-feuille .dx-f-fond,html[data-motion="reduce"].lq .dx-feuille .dx-f-boite{transition:none!important}'])
     assert.ok(css.includes(k), k);
