@@ -104,13 +104,16 @@ test('épingler : une punaise micro-animée partout, sans notification (Elisa, 4
   assert.ok(!lq.includes('.pin-ck'), 'la coche est partie de la feuille de style');
 });
 
-test('tables d’un projet : le nom en entier, « 1 ligne » dessous, les actions groupées ; la description se dit « Description de la table »', () => {
+test('tables d’un projet : le nom en entier, « 1 ligne » dessous, les actions groupées ; la description se dit « Description »', () => {
+  /* Depuis le 5 novembre, 15 h 01 (réf. 5 et 8) : l’icône, le nom, « 27 lignes · 11 colonnes », un chevron à droite ; dépliée, la
+     description ou « Aucune description ajoutée » et « Décrire cette table », puis les actions, puis la structure. */
   const w = cut(app, 'function renderDbWorkspace(){', 'function toggleTableSchema(name){');
-  for (const part of ['<div class="db-tblock" data-table="${escAttr(t)}">', '<span class="db-tname"><span class="tn">${esc(t).replace(/_/g,\'_<wbr>\')}</span><span class="tc">${typeof n===\'number\'?plur(n,\'ligne\'):',
-    '<span class="db-tacts">', '<span><small>Description de la table</small>${esc(note)}</span>',
-    'aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"', '<span>Ajouter une description de la table</span>'])
+  for (const part of ['<div class="db-tblock${open?\' is-open\':\'\'}" data-table="${escAttr(t)}">', "const lignes=typeof n==='number'?plur(n,'ligne'):",
+    '<span class="tbl-nom"><b class="tn">${nom}</b><small class="tc">${lignes}${open?` · ${plur(cols.length,\'colonne\')}`:\'\'}</small></span>',
+    '<div class="tbl-acts">', '<span class="tbl-desc-t"><small>Description</small>${esc(note)}</span>',
+    'aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"', 'Aucune description ajoutée</p>', '<span>Décrire cette table</span>'])
     assert.ok(w.includes(part), part);
-  assert.ok(!w.includes('lig.</span>\n          <span class="db-thint">'), 'plus de « 1 lig. » collé au nom');
+  assert.ok(!w.includes('db-thint'), 'plus d’indice « Colonnes › » collé au nom');
   for (const part of ['.db-tblock{container-type:inline-size;', '.db-trow{display:flex;flex-wrap:wrap;', '.db-trow .tn{display:block;margin:0;font:700 14.5px/1.25 var(--mono);color:var(--ink);white-space:normal;overflow-wrap:anywhere;',
     '@container (max-width:330px){', '.db-tacts{width:100%;justify-content:flex-end;', '.db-tnote small{display:block;margin-bottom:2px;color:var(--accent-ink);'])
     assert.ok(s39.includes(part), part);

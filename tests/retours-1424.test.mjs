@@ -104,7 +104,7 @@ test('import : l’en-tête sous un titre fusionné, les lignes par requête pr�
   assert.ok(conf.includes('await createImportedTables(database, p.tables, f=>importOccupe(true,f));') && conf.includes('importOccupe(false);\n    closeImportSheet();') && conf.includes('importOccupe(false);\n    lqInfo(\'Import impossible\''));
   assert.ok(fn('importOccupe').includes("go.textContent=frac==null?'Import en cours…':`Import en cours… ${Math.min(99,Math.round(frac*100))}\\u00a0%`;"));
   /* Les noms longs passent à la ligne dans la carte du projet */
-  assert.ok(app.includes('<span class="cn">${esc(c.c).replace(/_/g,\'_<wbr>\')}</span>') && lq.includes('html.lq #scr-console .db-col .cn{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}'));
+  assert.ok(app.includes('<span class="tbl-cn">${esc(c.c).replace(/_/g,\'_<wbr>\')}</span>') && lq.includes('html.lq #scr-console .tbl-cn{flex:1 1 auto;min-width:0;color:var(--ink);font:600 15px/1.3 var(--ui);overflow-wrap:anywhere}'));
 });
 
 test('les projets dans IndexedDB : un gros projet s’enregistre, se recharge, et supprimer une table ne dit plus « trop volumineuse »', async () => {
@@ -157,6 +157,6 @@ test('schéma UML : « +2 colonnes » est un bouton, avec la pastille « Voir �
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=155">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-pratiquer-v2540';") && app.includes("const SW_CACHE='requete-2026-11-05-pratiquer-v2540';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=156">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-05-projet-v2541';") && app.includes("const SW_CACHE='requete-2026-11-05-projet-v2541';"));
 });

@@ -83,7 +83,9 @@ test('réf 6 — les pages légales ouvrent celles du site', () => {
 test('réf 7 — Exécuter répond, puis l’écran va au résultat', () => {
   const run = fn('runConsole');
   assert.ok(run.includes("fb=[true,n==null?'Exécutée':plur(n,'ligne')];") && run.includes("fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];"));
-  assert.ok(run.includes('if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>scrollToResult(out));'));
+  assert.ok(run.includes('if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>{if(!surEditeur)return scrollToResult(out);'));
+  /* « Voir les données » (5 novembre, 15 h 01) : la page est déjà descendue à l’éditeur ; elle n’en repart pas */
+  assert.ok(run.includes('ecranVers(document.querySelector(\'#scr-console .console-editor-shell\'));') && fn('voirDonneesTable').includes('runConsole({surEditeur:true});'));
   assert.ok(fn('setLessonOut').includes("if(html&&typeof scrollToResult==='function')scrollToResult(out);"), 'aussi dans un cours ou un défi');
   assert.ok(fn('setRunLoading').includes("clearTimeout(btn._fb);btn.classList.remove('is-ok','is-ko');"), 'une nouvelle exécution efface le retour précédent');
   /* L’écran glisse jusqu’au résultat, sous la barre du haut, sauf s’il est déjà dans la moitié haute */
@@ -121,12 +123,12 @@ test('réf 8 — le tableau de résultat comme le labo de la vitrine', () => {
 test('réf 9 — les tables d’un projet : ni autocollant, ni actions sur la ligne du nom ; dépliée, la description, les actions, les colonnes', () => {
   const w = cut('function renderDbWorkspace(){', 'function toggleTableSchema(name){');
   assert.ok(!w.includes('db-tico') && !w.includes("lqStkSvg('table')") && !w.includes('db-tnote-k'), 'aucun autocollant');
-  const row = w.slice(w.indexOf('<div class="db-trow'), w.indexOf('${open?`<div class="db-tdetail">'));
-  assert.ok(!row.includes('db-tacts') && !row.includes('${noteHtml}'), 'la ligne du nom ne porte ni actions ni description');
-  const det = w.slice(w.indexOf('${open?`<div class="db-tdetail">'));
-  assert.ok(det.indexOf('${noteHtml}') < det.indexOf('<span class="db-tacts">') && det.indexOf('<span class="db-tacts">') < det.indexOf('${colsHtml}'), 'description, actions, colonnes');
-  assert.ok(css.includes(':is(.db-trow,.db-tdetail) .tb') && app.includes(':is(.db-trow,.db-tdetail) .tb{'), 'les boutons gardent leur style hors de la ligne');
-  assert.ok(s47.includes('html.lq #scr-console .console-schema-panel .db-tdetail .tb:not(.reset-table):not(.drop-table){flex:1;'), 'SELECT en grand');
+  /* Depuis le 5 novembre, 15 h 01 (réf. 5 et 8) : la ligne du nom est un bouton (icône, nom, lignes, chevron) ; dépliée, la carte
+     montre la description, puis « Voir les données » et ses deux ronds, puis la structure de la table. */
+  const row = w.slice(w.indexOf('<button type="button" class="tbl-tete"'), w.indexOf('${open?`<div class="tbl-corps">'));
+  assert.ok(row.includes('<span class="tbl-chev" aria-hidden="true">${TBL_CHEV_SVG}</span>') && !row.includes('tbl-acts') && !row.includes('${desc}'), 'la ligne du nom ne porte ni actions ni description');
+  assert.ok(w.includes('${open?`<div class="tbl-corps">${desc}${acts}${struct}</div>`:\'\'}'), 'description, actions, colonnes');
+  assert.ok(css.includes('html.lq #scr-console .tbl-voir{flex:1;min-width:0;'), '« Voir les données » en grand');
 });
 
 test('réf 10 — une croix en haut à droite : questions, saisies et import', () => {

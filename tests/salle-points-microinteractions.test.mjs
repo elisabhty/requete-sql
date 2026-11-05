@@ -112,20 +112,18 @@ test('micro-interactions au lieu des notifications : l’action se voit là où 
   assert.ok(done.includes("c.className='lq-done';c.setAttribute('aria-hidden','true');"), 'la coche est décorative ; le lecteur d’écran entend lqSay');
   assert.ok(fn('lqSay').includes("s.setAttribute('role','status');s.setAttribute('aria-live','polite');"));
   assert.ok(fn('lqPlanDone').includes("'À jour'"));
-  assert.ok(app.includes("lqDone(document.querySelector(`#db-tables .db-tblock[data-table=\"${CSS.escape(name)}\"]`),'Restaurée',"));
+  assert.ok(app.includes("lqDone(document.querySelector(`#db-tables .db-tblock[data-table=\"${CSS.escape(name)}\"]`),'Réinitialisée',"), 'Réinitialiser cette table (15 h 01) : « Réinitialisée » là où la table est');
   /* Depuis le 31 octobre, 8 h 06, le prénom est un pseudo ; depuis 16 h 49, il est réservé une fois pour toutes : la feuille se
      ferme et le lecteur d’écran l’entend. */
   assert.ok(fn('obPseudoSuivant').includes("lqSay('Pseudo réservé : '+(r.pseudo||n));"), 'la mini-page du pseudo (17 h 53)');
   assert.ok(css.includes('.lq-say{position:absolute;width:1px;height:1px;') && css.includes('html.lq .lq-done{position:fixed;') && css.includes('@keyframes lqDone{'));
 });
 
-test('ref 6 — la description d’une table : seulement dépliée, au-dessus de SELECT, Restaurer et Supprimer', () => {
+test('ref 6 — la description d’une table : seulement dépliée, au-dessus de « Voir les données », Réinitialiser et Supprimer', () => {
   const ws = fn('renderDbWorkspace');
-  assert.ok(ws.includes("const noteHtml=!open?'':note?"), 'repliée : pas de description');
-  assert.ok(ws.indexOf('${noteHtml}') > ws.indexOf('<span class="db-thint">') && ws.indexOf('${noteHtml}') < ws.indexOf('<span class="db-tacts">'), 'entre le nom et les actions');
-  assert.ok(ws.indexOf('${noteHtml}') < ws.indexOf('${colsHtml}'), 'avant les colonnes');
-  assert.ok(s43.includes('html.lq #scr-console .console-schema-panel .db-trow>.db-tnote{flex:1 1 100%;min-width:0;margin:2px 2px 2px 4px!important;animation:dbColIn'));
-  assert.ok(ws.includes("<span class=\"tn\">${esc(t).replace(/_/g,'_<wbr>')}</span>"), 'un long nom passe à la ligne après un « _ »');
+  assert.ok(ws.includes("const desc=!open?'':note"), 'repliée : pas de description');
+  assert.ok(ws.indexOf('<span class="tbl-nom">') < ws.indexOf('${open?`<div class="tbl-corps">${desc}${acts}${struct}</div>`'), 'sous le nom, avant les actions et les colonnes');
+  assert.ok(ws.includes("const nom=esc(t).replace(/_/g,'_<wbr>');") && ws.includes('<b class="tn">${nom}</b>'), 'un long nom passe à la ligne après un « _ »');
 });
 
 test('ref 7 — console : le même souffle entre schéma, exemples, éditeur, Exécuter, Épingler et résultat', () => {
@@ -158,7 +156,7 @@ test('ref 8 — une seule barre sous un tableau : la native masquée, la barre d
 });
 
 test('console : la première table créée retire « Ta base est vide » et montre ses exemples', () => {
-  const run = app.slice(app.indexOf('function runConsole(){'), app.indexOf('function normalizeState(raw){'));
+  const run = app.slice(app.indexOf('function runConsole(o){'), app.indexOf('function normalizeState(raw){'));
   assert.ok(run.includes('if(moved) renderConsoleChips();'));
   assert.ok(run.includes("if(touched()){ if(activeDbId!=='cours') persistCustomDbs(activeDbId); renderDbWorkspace(); renderConsoleChips(); }"));
   const chips = fn('renderConsoleChips');
