@@ -210,8 +210,8 @@ const ANTOINE = {id: 'nbiTBaMRdSobTQJDzIWm', nom: 'Antoine'}, AGREGATS = ['count
 /* 9 h 02 : le module « Jointures » avec Perle (« Perle | Premium French Corporate Voice »), la formatrice. */
 const PERLE = {id: 'UaGvaD7NWzU5mJNoUqoY', nom: 'Perle'}, JOINTURES = ['inner-join', 'left-join', 'right-join', 'full-outer-join', 'cross-join',
   'jointure-3-tables', 'join-group-by', 'self-join', 'plusieurs-conditions-on', 'quel-join-choisir'];
-/* 9 h 06 : le module « Sous-requêtes et ensembles » avec Mia (« Mia García – Cálida instructora e-learning »), la formatrice. */
-const MIA = {id: 'PrwKJdvtTbJVdosRhS1O', nom: 'Mia'}, SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'insert-select', 'exists', 'any-all',
+/* 9 h 06 : le module « Sous-requêtes et ensembles » (la voix de Mia, puis celle d’Anaïs : voir plus bas). */
+const SOUS_REQUETES = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'insert-select', 'exists', 'any-all',
   'with-cte', 'union', 'intersect-except', 'with-recursive'];
 /* 9 h 14 : le module « Fonctions de fenêtre » avec Dorian (« Dorian – Jeune homme calme français sans accent »), le formateur. */
 const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes', 'first-last-ntile'];
@@ -219,20 +219,19 @@ const DORIAN = {id: 'vp2FCFmQCE4NzuQj9QNe', nom: 'Dorian'}, FENETRES = ['over', 
 const MODELISER = ['projet-normaliser', 'projet-cles', 'projet-uml'];
 /* 9 h 33 : le module « Créer et faire évoluer les tables » avec Anaïs (« Anaïs – News, podcasting and e-learning »), la formatrice. */
 const ANAIS = {id: '5OnMHwgTFgvPVwE8jP6B', nom: 'Anaïs'}, TABLES = ['projet-create', 'projet-alter', 'projet-drop', 'projet-schemas'];
-/* 9 h 42 : le module « Écrire et modifier les données » avec Emily (« Emily – Australian Female »), la formatrice. */
-const EMILY = {id: 'p43fx6U8afP2xoq1Ai9f', nom: 'Emily'}, DONNEES = ['projet-insert', 'projet-update', 'projet-merge', 'projet-delete'];
-/* 9 h 59 : le module « Intégrité des tables liées » avec Koraly (« Koraly – E-learning Instructor »), la formatrice. */
-const KORALY = {id: 'QbsdzCokdlo98elkq4Pc', nom: 'Koraly'}, INTEGRITE = ['projet-ondelete'];
-/* 10 h 07 : le module « Transactions et concurrence » avec Arthur (« Arthur – Chill Gen Z American Male »), le formateur. */
-const ARTHUR = {id: 'i32gAGa2D3T8nPzY1EsZ', nom: 'Arthur'}, TRANSACTIONS = ['projet-transaction', 'projet-savepoint', 'projet-concurrence'];
-/* 10 h 22 : le module « Procédures et triggers » avec Sam (« Sam – British Male – Warm, Articulate Non-Fiction Narrator »), le formateur. */
-const SAM = {id: 'G7ILShrCNLfmS0A37SXS', nom: 'Sam'}, PROCEDURES = ['projet-procedures', 'projet-trigger'];
+/* 9 h 42, 9 h 59, 10 h 07, 10 h 22 : les modules « Écrire et modifier les données » (la voix d’Emily), « Intégrité des tables liées »
+   (Koraly), « Transactions et concurrence » (Arthur), « Procédures et triggers » (Sam). */
+const DONNEES = ['projet-insert', 'projet-update', 'projet-merge', 'projet-delete'], INTEGRITE = ['projet-ondelete'];
+const TRANSACTIONS = ['projet-transaction', 'projet-savepoint', 'projet-concurrence'], PROCEDURES = ['projet-procedures', 'projet-trigger'];
+/* Elisa, 5 novembre, 0 h 30 et 0 h 38 : « je veux remplacer arthur miya emily coralie et sam par Anais ». Ces cinq modules passent à la voix
+   d’Anaïs, comme « Créer et faire évoluer les tables » ; Mia, Emily, Koraly, Arthur et Sam ne sont plus des formateurs de l’appli. */
+const AVEC_ANAIS = [...TABLES, ...SOUS_REQUETES, ...DONNEES, ...INTEGRITE, ...TRANSACTIONS, ...PROCEDURES];
 /* 10 h 27 : le module « Vues, index et optimisation » avec Abraham (« Abraham – Casual Narrator »), le formateur. */
 const ABRAHAM = {id: 'coQWS9nJLPoZCZPQu6km', nom: 'Abraham'}, VUES = ['projet-vue', 'projet-index'];
 /* 10 h 32 : le module « Sécurité et droits » avec Anna (« Anna – Customer Service & Training »), la formatrice. */
 const ANNA = {id: '0VPW6YsfGkzxile59Ueo', nom: 'Anna'}, DROITS = ['projet-droits'];
 const voix = AGATHE.includes(cours) || MODELISER.includes(cours) ? base.voix : AGREGATS.includes(cours) ? ANTOINE : JOINTURES.includes(cours) ? PERLE
-  : SOUS_REQUETES.includes(cours) ? MIA : FENETRES.includes(cours) ? DORIAN : TABLES.includes(cours) ? ANAIS : DONNEES.includes(cours) ? EMILY : INTEGRITE.includes(cours) ? KORALY : TRANSACTIONS.includes(cours) ? ARTHUR : PROCEDURES.includes(cours) ? SAM : VUES.includes(cours) ? ABRAHAM : DROITS.includes(cours) ? ANNA : ADAM;
+  : FENETRES.includes(cours) ? DORIAN : AVEC_ANAIS.includes(cours) ? ANAIS : VUES.includes(cours) ? ABRAHAM : DROITS.includes(cours) ? ANNA : ADAM;
 const job = {cours, titre: intro.sub, voix, modele: base.modele, langue: base.langue, format: base.format, elements: out};
 fs.writeFileSync(path.join(DIR, cours + '.json'), JSON.stringify(job, null, 2) + '\n');
 /* Les phrases communes : copiées depuis le premier cours (si ses fichiers bruts sont là). */
