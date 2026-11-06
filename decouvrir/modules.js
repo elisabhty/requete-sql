@@ -84,8 +84,8 @@ window.MODULES=[
       ["CROSS JOIN", "Créer toutes les combinaisons", 159],
       ["Jointure de 3 tables", "Relier toute l’histoire", 228],
       ["JOIN + GROUP BY", "Compter les commandes par ville", 169],
-      ["SELF JOIN", "Retrouver les clients qui habitent dans la même ville", 191],
-      ["Plusieurs conditions dans ON", "Relier seulement les produits encore en stock", 206],
+      ["SELF JOIN", "Comparer les lignes d’une même table", 191],
+      ["Plusieurs conditions dans ON", "Relier seulement les commandes à livrer à Paris", 206],
       ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 211]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[

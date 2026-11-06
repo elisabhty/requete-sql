@@ -50,7 +50,7 @@ const moments = mSrc.split(/\{\s*at:/).slice(1).map(seg => ({prompt: str(seg, 'p
 
 const plain = h => String(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 /* Le code, dit à voix haute. */
-const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore $2'], [/« Prix \(€\) »/g, '« Prix en euros »'], [/\(€\)/g, 'le symbole euro'],
+const DIRE = [[/\bSELECT \*/g, 'SELECT étoile'], [/(\w)_(\w)/g, '$1 underscore $2'], [/« Prix \(€\) »/g, '« Prix en euros »'], [/\(€\)/g, 'l’euro entre parenthèses'],
   [/ = /g, ' égale '], [/ \+ /g, ' plus '], [/'([^']+)'/g, '$1'], [/\s*;\s*$/g, '.']];
 /* Elisa, 2 novembre, 1 h 06 : « c’est pas A-S c’est AS (attaché comme en anglais) » ; « quantité qu’elle a prononcé quantite ».
    Les mots-clés courts, écrits en capitales, que la voix épelait : écrits comme ils se disent (à l’anglaise, d’un seul mot). */
@@ -155,9 +155,13 @@ const PHRASES = {
   'Le + 1 permet de commencer juste après le premier espace.': 'Le plus 1 permet de commencer juste après le premier espace.',
   'Et avec + à la place de ||, que renvoie UPPER(nom) + \' \' + prenom ?': 'Et avec le signe plus à la place des deux barres verticales, que renvoie appeur de nom, plus espace, plus prénom ?',
   'Dans une requête, +, -, * et / calculent comme sur une calculatrice.': 'Dans une requête, plus, moins, fois et divisé calculent comme sur une calculatrice.',
+  '+, -, * et / calculent comme sur une calculatrice, sauf entre deux entiers : 7 / 2 donne 3.': 'Plus, moins, fois et divisé calculent comme sur une calculatrice, sauf entre deux entiers : 7 divisé par 2 donne 3.',
   'Et % donne le reste d’une division : 80 % 6 donne 2.': 'Et le signe pourcent donne le reste d’une division : 80 modulo 6 donne 2.',
   'FLOOR(prix) retire les centimes, puis × 2 calcule les points gagnés.': 'flôr de prix retire les centimes, puis fois 2 calcule les points gagnés.',
   'Les dates s’affichent au format année-mois-jour : 2026-07-02.': 'Les dates s’affichent au format année, mois, jour : 2026, tiret, 07, tiret, 02.',
+  /* 6 novembre (contrôle des cours) : une date montrée pour son format se dit chiffre par chiffre, pas « 1er mars 2023 ». */
+  'Ici, la date s’écrit au format année-mois-jour : \'2023-03-01\' correspond au 1er mars 2023.': 'Ici, la date s’écrit au format année, mois, jour : 2023, tiret, 03, tiret, 01 correspond au 1er mars 2023.',
+  'Une date a son propre type : DATE, au format année-mois-jour, comme \'2026-09-12\'.': 'Une date a son propre type : date, au format année, mois, jour, comme 2026, tiret, 09, tiret, 12.',
   'Le format \'%d/%m/%Y\' affiche la date 2026-07-02 en 02/07/2026.': 'Le format pourcent d, barre, pourcent m, barre, pourcent Y affiche le 2 juillet 2026 sous la forme 02/07/2026.',
   'Chaque format récupère une partie de la date. Ici, \'%d\' renvoie 02, le numéro du jour dans le mois.': 'Chaque format récupère une partie de la date. Ici, pourcent d renvoie 02, le numéro du jour dans le mois.',
   'car le texte commence par CMD-, et non par des chiffres.': 'car le texte commence par C M D tiret, et non par des chiffres.',
