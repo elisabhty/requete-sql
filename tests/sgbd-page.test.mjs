@@ -32,7 +32,9 @@ test('la page compare SQLite à quatre SGBD, besoin par besoin', () => {
 
 test('chaque renvoi des cours mène à un thème de la page, et s’ouvre dans une feuille', () => {
   const ids = new Set(page.map(s => s.id));
-  const links = [...html.matchAll(/<button type='button' class='sgbd-link' data-sgbd='(\w+)'>Selon le SGBD<\/button>/g)].map(m => m[1]);
+  /* 6 novembre (cartes mémo, direction A) : les cartes portent leur thème (sgbd:"dates"), le verso écrit le renvoi sous la syntaxe */
+  const links = [...html.matchAll(/<button type='button' class='sgbd-link' data-sgbd='(\w+)'>Selon le SGBD<\/button>/g), ...html.matchAll(/,sgbd:"(\w+)"\}/g)].map(m => m[1]);
+  assert.ok(html.includes("${c.sgbd?`<p class=\"mc-sgbd\">Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='${c.sgbd}'>Selon le SGBD</button> de la Bibliothèque.</p>`:''}"), 'le renvoi de la carte');
   assert.ok(links.length >= 4, `${links.length} renvois`);   // cours texte et cartes mémo (les cours en vidéo n’ont plus de texte : 65 ALTER TABLE, 66 DROP et 71 Concurrence et isolation le sont devenus)
   for (const id of links) assert.ok(ids.has(id), `thème inconnu : ${id}`);
   // « tables » et « transactions » n’ont plus de renvoi : le premier était dans l’ancien cours texte DROP (TRUNCATE), le second dans l’ancien cours texte
