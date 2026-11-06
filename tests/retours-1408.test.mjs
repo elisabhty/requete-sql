@@ -64,8 +64,9 @@ test('réf. 1 : « avec Google aussi » : entre Apple et l’e-mail, « Bientôt
 
 test('réf. 2 : le cadre de la notification, plus grand, blanc, sur un halo qui respire ; il tombe d’un rebond et « Autoriser » se touche', () => {
   const r = lastCut("}else if(slide==='rappel'){", "}else if(slide==='widget'){");
-  assert.ok(r.includes('<div class="ob-notif" id="ob-notif" aria-hidden="true"><div class="ob-notif-cadre"><div class="ob-notif-alert">'));
-  assert.ok(r.includes('<span class="is-ok">Autoriser</span></span></div></div>\n        <svg class="ob-notif-arrow"'), 'le cadre autour de la fenêtre, la flèche dessous');
+  /* 6 novembre, 23 h 08 : ses deux boutons se touchent pour de vrai (tests/retours-2308.test.mjs) */
+  assert.ok(r.includes('<div class="ob-notif" id="ob-notif"><div class="ob-notif-cadre"><div class="ob-notif-alert">'));
+  assert.ok(r.includes('aria-label="Autoriser les rappels">Autoriser</button></span></div></div>\n        <svg class="ob-notif-arrow"'), 'le cadre autour de la fenêtre, la flèche dessous');
   assert.ok(cut(app, 'function obNotifCaler(){', '/* Le widget, tel qu’il est').includes("z.querySelector('.ob-notif-alert')"), 'toujours centrée sur l’écran');
   const s = sansCommentaires(css);
   for (const k of ['html #onboarding.ob-vitrine .ob-rappel-step .ob-notif{width:min(286px,100%);margin-top:18px}',
@@ -228,7 +229,7 @@ test('le style : la carte du site, qui prend la hauteur qui reste ; ses animatio
   for (const k of ['.ob-enter .ob-tv-ph{animation:obvTvIn .6s var(--v-pop) .08s backwards}', '.ob-enter .ob-tv-faces>*{animation:obvTvFace .42s var(--v-pop) calc(.74s + var(--i,0) * 70ms) backwards}',
     ' .ob-tv:not(.is-lecture) .ob-tv-play::after{animation:obvTvRing 2.4s ease-out 1.4s infinite}', ' .ob-tv-wave i.cur{animation:obvTvCur .45s ease-in-out infinite alternate}'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=27">') && sw.includes("'./onboarding-vitrine.css?v=27',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=28">') && sw.includes("'./onboarding-vitrine.css?v=28',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2501, cache);
 });

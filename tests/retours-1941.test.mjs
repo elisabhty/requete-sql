@@ -167,7 +167,7 @@ test('le bouton : jaune soleil, anneau blanc, empreinte qui se colore, menthe un
     assert.ok(media.includes('  html:not([data-motion="reduce"]) #onboarding.ob-vitrine ' + r), r);
   assert.ok(css.includes('stroke-dasharray:24;stroke-dashoffset:0}') && css.includes('@keyframes obvHoldCoche{from{stroke-dashoffset:24}}'));
   assert.ok(!/\.ob-sign/.test(css) && !css.includes('.ob-pact-foot'), 'plus de cadre à signer');
-  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=27'), f);
+  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=28'), f);
 });
 
 /* ---------- L’haptique dans l’appli ---------- */

@@ -25,7 +25,7 @@ const PRECACHE = [
   './onboarding-focus.js',
   './multiplayer-security.js?v=3',
   './memo-collection.css?v=5',
-  './onboarding-vitrine.css?v=27',
+  './onboarding-vitrine.css?v=28',
   './',
   './index.html',
   './home-journey.css',
