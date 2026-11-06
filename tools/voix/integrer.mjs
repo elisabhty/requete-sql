@@ -36,7 +36,18 @@ vm.runInContext(fs.readFileSync(path.join(ROOT, 'assets', 'anim', 'core.js'), 'u
 const vkey = vm.runInContext('vkey', ctx);
 
 /* Les légendes de la page, telles que l’app les voit (APP). */
-const page = fs.readFileSync(PAGE, 'utf8');
+let page = fs.readFileSync(PAGE, 'utf8');
+/* Les retouches (tools/voix/<cours>-retouches.json, intégrées avec --garder depuis tools/voix/sortie/<cours>-retouches) : les légendes
+   (legendes) et les textes dits de la page (remplacements : une consigne « À toi ») qui changent avec leur voix sont posés ici, au
+   moment où la voix refaite arrive, jamais avant : jusque-là, la page garde ses textes et la voix qui les dit (Elisa, 6 novembre,
+   19 h 56 : « il faut que le son reste homogène »). Chaque texte doit s’y trouver une fois, ou être déjà posé. */
+const RET_F = path.join(DIR, cours + '-retouches.json');
+const RET = GARDER && path.basename(RAW) === cours + '-retouches' && fs.existsSync(RET_F) ? JSON.parse(fs.readFileSync(RET_F, 'utf8')) : null;
+for (const [a, b] of RET ? [].concat(RET.legendes || [], RET.remplacements || []) : []) {
+  const n = page.split(a).length - 1;
+  if (n === 1) page = page.replace(a, () => b);
+  else if (!(n === 0 && page.includes(b))) { console.log(`Retouche introuvable dans la page (${n} fois) : ${a}`); process.exit(1); }
+}
 /* Les cours qui posent leurs légendes avec cap(…) (DROP, schémas) : CAPTIONS = SCH.caps, rejoué depuis « const SCH = {». */
 const CAPTIONS = page.includes('const CAPTIONS = [') ? (() => {
   const capSrc = page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('\n];', page.indexOf('const CAPTIONS = [')) + 3);

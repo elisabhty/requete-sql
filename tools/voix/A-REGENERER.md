@@ -9,16 +9,28 @@ _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Rien n’est g
 - Les index et EXPLAIN (leçon 57) : la consigne du 2e moment ne dit plus « Bientôt » (« La table va passer à un million de commandes. ») ; une phrase, avec la voix d’Abraham.
 - MERGE (leçon 82, 19 h) : la vidéo ne dit plus que MERGE n’existe pas dans l’app. Le chapitre 7 d’Anaïs (`ch07`, fait le 5 novembre) commençait par cette phrase : il est refait sans elle, lui seul (les 21 autres fichiers du cours, sur le Mac, ont le même texte et la même voix : vérifié le 6 novembre).
 - Procédures et fonctions stockées (leçon 83, 19 h 56) : de même, plus de « Dans la base de l’app, elles n’existent pas. » ; son chapitre 7 d’Anaïs est refait sans la phrase, lui seul (les 22 autres fichiers : vérifiés).
+- **Les erreurs trouvées par la relecture des cours (6 novembre, 20 h 30)**, chacune avec la voix de son cours ; la page garde ses textes tant que la voix n’est pas refaite (les retouches, `tools/voix/<cours>-retouches.json`, les posent à l’intégration) :
+  - BETWEEN : « Ces 4 commandes reçoivent… » (la base n’a que 3 clients pour ces 4 commandes) ;
+  - Renommer avec AS : la voix dit « l’euro entre parenthèses donne une erreur » (c’est la parenthèse qui en donne une) ;
+  - NOT : le compte des 3 clients (age > 35 écarte aussi les plus jeunes), et la date dite chiffre par chiffre ;
+  - Comparer des valeurs : le Shaker Inox, un accessoire, reste à écarter (« il faudra combiner deux conditions ») ;
+  - Fonctions numériques : « sauf entre deux entiers : 7 / 2 donne 3 » ;
+  - GROUP BY sur plusieurs colonnes : « La date et le statut… » (la table n’a pas de colonne mois) ;
+  - Plusieurs conditions dans ON : la consigne du 3e moment, « OR à la place de AND » (la requête du piège n’en remplace qu’un : 72 lignes) ;
+  - LAG et LEAD : le piège, « rangées par client puis par date » (seule cette suite donne −23 jours), dans la légende et la consigne du 3e moment ;
+  - Quel JOIN choisir ? : « même vides, et seulement eux » (3e moment) et « elle n’apparaît pas comme salariée » (Nadia Benali) ;
+  - CREATE TABLE : la date dite chiffre par chiffre (« comme 2026, tiret, 09, tiret, 12 ») ;
+  - INSERT … SELECT (voix d’Anaïs, avec les 20 cours) : la consigne du 2e moment, « pour que chaque valeur arrive dans la bonne colonne » (ville aussi rendait la requête acceptée).
 
-  Les cinq fichiers d’un coup, environ 1 050 crédits :
+  Tout d’un coup, environ 5 600 crédits :
 
 ```
-cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours video-site-retouches,projet-index-retouches,projet-merge,projet-procedures --oui
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours video-site-retouches,projet-index-retouches,projet-merge,projet-procedures,insert-select,between-retouches,as-retouches,not-retouches,comparer-retouches,fonctions-numeriques-retouches,group-by-colonnes-retouches,plusieurs-conditions-on-retouches,lag-lead-retouches,quel-join-choisir-retouches,projet-create-retouches --oui
 ```
 
-  Puis dire « fini » à Claude, qui les intègre : `node tools/voix/integrer-site.mjs tools/voix/sortie/video-site-retouches` (les quinze autres phrases et la musique restent) et `node tools/voix/integrer.mjs projet-index tools/voix/sortie/projet-index-retouches --garder` (les vingt autres fichiers du cours restent). MERGE et Procédures passent à Anaïs avec les 18 autres cours (voir ci-dessous) ; en attendant, l’appli garde leurs voix d’avant, sans les phrases retirées. **Ne pas lancer `video-site` ni `projet-index` en entier** : le Mac n’a pas leurs fichiers d’origine, toute la voix (et la musique de la vidéo) serait refaite.
+  Puis dire « fini » à Claude, qui les intègre : `node tools/voix/integrer-site.mjs tools/voix/sortie/video-site-retouches` (les quinze autres phrases et la musique restent) et, pour chaque cours retouché, `node tools/voix/integrer.mjs <cours> tools/voix/sortie/<cours>-retouches --garder` (les autres fichiers du cours restent ; les légendes et les consignes changent avec leur voix). MERGE, Procédures et INSERT … SELECT passent à Anaïs avec les 17 autres cours (voir ci-dessous) ; en attendant, l’appli garde leurs voix d’avant, sans les phrases retirées. **Ne pas lancer `video-site`, `projet-index`, ni `--toutes` sans `--cours`** : le Mac n’a pas les fichiers d’origine de la plupart des cours, toute leur voix serait refaite.
 
-Déjà corrigé sans régénérer : les 60 débuts de phrase coupés (tables VOICE, et la cause dans `integrer.mjs`), et le « Bravo » final trop fort (27 cours, ramené au niveau de leur cours).
+Déjà corrigé sans régénérer : les 60 débuts de phrase coupés (tables VOICE, et la cause dans `integrer.mjs`), le « Bravo » final trop fort (27 cours, ramené au niveau de leur cours) et, le 6 novembre, le volume de toutes les voix (1 089 fichiers ramenés au niveau de leur cours et des premiers cours, sans réencodage : `tools/voix/volume.mjs`, que `integrer.mjs` applique aussi à chaque nouvelle voix).
 
 **5 novembre, 0 h 38 : les 20 cours de Miya (Mia), Emily, Coralie (Koraly), Arthur et Sam passent à la voix d’Anaïs** et sont refaits en entier, avec les règles de prononciation d’aujourd’hui, ainsi qu’un chapitre de GROUP BY (Antoine) qui ne nomme plus SQLite et, à 6 h 37, la phrase de la vidéo du site « animés par huit formateurs » (Louis, au lieu d’« une dizaine ») : environ 68 600 crédits.
 
