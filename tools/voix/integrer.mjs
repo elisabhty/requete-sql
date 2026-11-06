@@ -8,13 +8,16 @@
    - les fichiers sont réencodés en mono 64 kb/s dans assets/voix/<cours>/ ;
    - la page reçoit VOICE (entre les repères « Voix off » du fichier) et voice: VOICE dans Course({…}).
    --garder (6 novembre : une phrase refaite à part, tools/voix/<cours>-retouches.json) : un fichier absent du dossier garde ce que la
-   page a déjà pour lui (ses phrases calées, sa consigne), et son .mp3 reste dans assets/voix/<cours>/. */
+   page a déjà pour lui (ses phrases calées, sa consigne), et son .mp3 reste dans assets/voix/<cours>/.
+   - enfin, le volume : chaque fichier ramené au niveau des chapitres du cours (tools/voix/volume.mjs, sans réencodage ; Elisa,
+     6 novembre, 19 h 56 : « il faut que le son reste homogène avec le reste »). */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {aToi} from './atoi-lib.mjs';
+import {mesureFichier, planifier, regler} from './volume.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '..', '..');
@@ -238,3 +241,16 @@ fs.writeFileSync(PAGE, out);
 console.log(`${caps.length} phrases calées sur ${CAPTIONS.length} légendes, intro ${intro ? r3(intro[2] - intro[1]) + ' s' : 'absente'}, ${Object.keys(say).length} phrases à part`);
 console.log(`audio : ${Math.round(total)} s, ${Math.round(bytes / 1024)} Ko dans assets/voix/${cours}${gardes ? ` ; ${gardes} fichier${gardes > 1 ? 's' : ''} gardé${gardes > 1 ? 's' : ''} tel${gardes > 1 ? 's' : ''} quel${gardes > 1 ? 's' : ''}` : ''}`);
 report.forEach(l => console.log('  · ' + l));
+
+/* Le volume du cours : les phrases et les chapitres qui s’écartent de plus de 1,5 LU de la voix qui explique y sont ramenés, sans
+   réencodage (gain global des trames MP3) ; deux passes au plus, la référence bougeant à peine quand un chapitre est réglé. */
+let regles = 0, refVol = null;
+for (let passe = 0; passe < 3; passe++) {
+  const mes = {};
+  for (const f of fs.readdirSync(OUT).filter(f => f.endsWith('.mp3'))) mes[f.slice(0, -4)] = mesureFichier(path.join(OUT, f));
+  const {ref, plan} = planifier(mes), aFaire = plan.filter(p => p.crans);
+  refVol = ref;
+  if (!aFaire.length) break;
+  for (const p of aFaire) { const f = path.join(OUT, p.id + '.mp3'); fs.writeFileSync(f, regler(fs.readFileSync(f), p.crans).buf); regles++; }
+}
+console.log(`volume : référence ${refVol.toFixed(1)} LUFS, ${regles} fichier${regles > 1 ? 's' : ''} ramené${regles > 1 ? 's' : ''} au niveau du cours`);
