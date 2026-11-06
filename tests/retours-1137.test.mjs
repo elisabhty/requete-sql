@@ -32,7 +32,7 @@ function bac(o = {}) {
     clsRpc: (f, b) => { appels.push([f, b]); return Promise.resolve(o.rpc ? o.rpc(f, b) : {}); },
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     jeuInitial: n => String(n || '?').replace(/^@+/, '').charAt(0).toUpperCase(), perfColor: () => 2, lqStkSvg: k => `<svg data-k="${k}"></svg>`,
-    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: o.niv || 'm', jeuNivUser: true,
+    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: o.niv || 'm', jeuNivUser: true,
     DEF_CHEV_SVG: '<svg data-k="chev"></svg>', CLS_FLAG_SVG: '<svg data-k="flag"></svg>', perfDay: () => 'Hier', CHALLENGES: o.sansMoteur ? undefined : [1], SQL: o.sansMoteur ? null : {},
     jeuStart: (...a) => { appels.push(['jeuStart', ...a]); return o.start ? o.start() : undefined; }, jeuPseudoPuis: f => f(), jeuRand: () => 'NOUV01', jeuNom: v => String(v || '').trim(),
     psForme: v => { const h = String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 15); return h ? '@' + h : ''; },
@@ -171,7 +171,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=182">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=183">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-06-multiplicateur-v2582' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-06-pratiquer-v2583' && app.includes(`const SW_CACHE='${cache}';`));
 });
