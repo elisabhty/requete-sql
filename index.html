@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=189">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=27">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=28">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -41338,13 +41338,15 @@ function obWidgetPossible(){
 }
 /* « Me rappeler de m’entraîner » : la vraie demande d’iOS (ou du navigateur), puis le rappel programmé si c’est oui. Rien en aperçu. */
 async function obRappelDemander(){
-  if(obLock)return;
+  if(obLock||obRappelEnCours)return;
   const suite=()=>obGoto(obFinSuivante('rappel'));
   if(typeof obApercu!=='undefined'&&obApercu){suite();return;}
   /* 11 h 08 : l’heure choisie sur la page (les jours sont ceux du parcours, rappelJours) */
   const h=(typeof draft!=='undefined'&&draft&&draft.rappelHeure)||rappelHeure();
   try{localStorage.setItem('requete-rappel-heure',h);}catch(e){}
   const btn=document.getElementById('ob-next');if(btn)btn.disabled=true;
+  /* Une seule demande à la fois : le bouton du bas et « Autoriser », dans la fenêtre en aperçu, font la même chose */
+  obRappelEnCours=true;
   let ok=false;
   try{
     const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
@@ -41352,8 +41354,23 @@ async function obRappelDemander(){
     else if(typeof Notification!=='undefined'){const r=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;ok=r==='granted';}
   }catch(e){}
   try{localStorage.setItem('requete-rappel',ok?'1':'0');}catch(e){}
-  if(ok){rappelNativeSync();buzz('success');}
+  try{if(ok){rappelNativeSync();buzz('success');}}catch(e){}
+  obRappelEnCours=false;
   if(btn)btn.disabled=false;
+  suite();
+}
+/* Les boutons de la fenêtre en aperçu (Elisa, 6 novembre, 23 h 08 : « Les boutons ne marchent pas quand on clique ; je veux que ça
+   fasse l’action ou que ça ouvre la pop-up si c’est pas possible d’autoriser sans »). « Autoriser » ouvre la vraie demande d’iOS (on
+   ne peut pas autoriser sans elle), comme le bouton du bas, puis programme le rappel. « Ne pas autoriser » passe à la suite, sans
+   rappel et sans ouvrir la demande d’iOS : elle reste possible plus tard, dans Mon compte. */
+let obRappelEnCours=false;
+function obRappelRefuser(){
+  if(obLock||obRappelEnCours)return;
+  const suite=()=>obGoto(obFinSuivante('rappel'));
+  if(typeof obApercu!=='undefined'&&obApercu){suite();return;}
+  const h=(typeof draft!=='undefined'&&draft&&draft.rappelHeure)||rappelHeure();
+  try{localStorage.setItem('requete-rappel-heure',h);localStorage.setItem('requete-rappel','0');}catch(e){}
+  buzz('light');
   suite();
 }
 /* L’heure et les jours du rappel (11 h 08, réf. 2). Les moments : un toucher ; l’heure exacte : la roue d’iOS (un champ « time »
@@ -42914,7 +42931,7 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-rappel-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un petit <em>rappel</em><br>${quand}&nbsp;?</h1>
       ${obMascotQuestion('Avec moi, tu n’oublieras pas ta séance !')}
       ${obRappelCarte()}
-      <div class="ob-notif" id="ob-notif" aria-hidden="true"><div class="ob-notif-cadre"><div class="ob-notif-alert"><b>«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small>Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><span>Ne pas autoriser</span><span class="is-ok">Autoriser</span></span></div></div>
+      <div class="ob-notif" id="ob-notif"><div class="ob-notif-cadre"><div class="ob-notif-alert"><b aria-hidden="true">«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small aria-hidden="true">Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button><button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button></span></div></div>
         <svg class="ob-notif-arrow" viewBox="0 0 40 70" aria-hidden="true"><path d="M20 66V8M6 22 20 7l14 15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <p class="ob-rappel-note">Modifiable à tout moment dans Mon compte.</p></div>`;
     obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');
