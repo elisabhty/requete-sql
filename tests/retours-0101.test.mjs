@@ -28,7 +28,8 @@ test('réf. 2 : ni « Supprimer mon pseudo » ni « Retirer mes scores » ; les 
   const data = app.slice(app.indexOf('<details class="plus-details" id="plus-data">'), app.indexOf('</details>', app.indexOf('<details class="plus-details" id="plus-data">')));
   assert.ok(!data.includes('psSupprimer()') && !data.includes('Retirer mes scores'));
   /* 4 novembre, 22 h 08 : « Suppression du compte » — le seul chemin, qui efface tout (pseudo, scores, et l’appareil) */
-  assert.ok(app.includes('Dans Mon compte, «&nbsp;Supprimer mon compte&nbsp;» efface ce que le serveur garde pour toi et tout ce qui est sur cet appareil.'));
+  /* 6 novembre, 10 h 16 : dans « Tes données, tes choix », rubrique « Gérer mes données » (retours-1016) */
+  assert.ok(app.includes("'<b>Supprimer mon compte</b> (en bas de Mon compte)\\u00a0: efface tout ce que le serveur garde pour toi et tout ce qui est sur cet appareil.',"));
   assert.ok(conf.includes('<section id="suppression"><h2>Supprimer ton compte</h2>'));
   assert.ok(!conf.includes('«&nbsp;Supprimer mon pseudo&nbsp;»') && !conf.includes('«&nbsp;Retirer mes scores du classement&nbsp;»'));
 });
