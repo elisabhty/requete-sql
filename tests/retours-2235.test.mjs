@@ -80,7 +80,7 @@ test('partout où l’on supprime ou crée : la carte s’en va, la coche dit qu
 });
 
 test('la carte de Mon compte : la barre au chiffre du parcours, le chapitre qui suit ; plus de niveau suivant (6 novembre, 6 h 10)', () => {
-  assert.ok(compte.includes('<div class="acct-level-head" aria-hidden="true"><small>Ma progression</small><em>${progress.percent}\\u00a0%</em></div>'));
+  assert.ok(compte.includes('<div class="acct-level-head" aria-hidden="true"><small>Ma progression du parcours</small><em>${progress.percent}\\u00a0%</em></div>'));   // 6 novembre, 7 h 29
   assert.ok(compte.includes('<div class="acct-level-track" aria-hidden="true"><i style="width:${progress.percent}%"></i></div>'), 'la barre : le même chiffre');
   assert.ok(!compte.includes('Prochain cap') && !compte.includes('width:${level.pct}%'), 'plus la barre du palier sous le chiffre du parcours');
   assert.ok(compte.includes('<button type="button" class="acct-chap" onclick="ouvrirChapitre(${chap.mi})"'));
@@ -115,5 +115,5 @@ test('la carte de Mon compte : la barre au chiffre du parcours, le chapitre qui 
   for (const k of ['html.lq .acct-hero .acct-chap{display:flex;align-items:center;gap:12px;width:100%;', 'html.lq .acct-hero .acct-chap-go{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);',
     'html.lq .acct-hero .acct-level-head em{font:800 19px/1 var(--display);color:var(--sun-hi)}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=170">') && sw.includes("const CACHE = 'requete-2026-11-06-compte-faq-v2565';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=171">') && sw.includes("const CACHE = 'requete-2026-11-06-progression-parcours-v2566';"));
 });
