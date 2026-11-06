@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=177">
+<link rel="stylesheet" href="ludique.css?v=178">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
@@ -18494,6 +18494,9 @@ function normalizeState(raw){
   const name=typeof source.name==='string'?source.name:'';
   const profile=source.profile&&typeof source.profile==='object'&&!Array.isArray(source.profile)?source.profile:{};
   const accountMode=typeof source.accountMode==='string'?source.accountMode:null;
+  /* Le compte nommé (audit de Mon compte, 6 novembre) : sans ces deux champs, chaque save() effaçait l’e-mail posé à la connexion
+     (« Compte connecté · elisa@… », l’e-mail prérempli de « Contacte-nous »). */
+  const accountProvider=typeof source.accountProvider==='string'?source.accountProvider.slice(0,40):'',accountLabel=typeof source.accountLabel==='string'?source.accountLabel.slice(0,120):'';
   const entretien=source.entretien&&typeof source.entretien==='object'&&!Array.isArray(source.entretien)?source.entretien:{};
   const preferences={largeText:source.preferences?.largeText===true,reduceMotion:source.preferences?.reduceMotion===true};
   /* Jours d'activité (série) : AAAA-MM-JJ → nombre de validations ce jour-là. */
@@ -18606,7 +18609,7 @@ function normalizeState(raw){
     const c=typeof a.c==='string'?a.c.replace(/\s+/g,' ').trim().slice(0,500):'';
     if(n>=1&&n<=5)avis[k]=Object.assign({n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false},c?{c}:{});
   });
-  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
+  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,...(accountProvider?{accountProvider}:{}),...(accountLabel?{accountLabel}:{}),entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
@@ -21029,7 +21032,7 @@ function progressContinuer(){
 }
 function renderLearnAvatar(){
   try{paysCompleter();}catch(e){}
-  const name=(state.name||'').trim(),ini=name?name.charAt(0).toUpperCase():'R';
+  const name=(state.name||'').trim(),ini=name?(Array.from(name)[0]||'R').toUpperCase():'R';
   /* 13 h 18 (« mettre le drapeau au niveau du rond compte ») : le drapeau du pays, en pastille, au coin du rond */
   const pays=typeof paysDuProfil==='function'?paysDuProfil():'',drapeau=pays?paysDrapeau(pays):'';
   document.querySelectorAll('#learn-avatar,[data-account-avatar]').forEach(el=>{el.innerHTML=esc(ini)+(drapeau?`<i class="av-drapeau">${drapeau}</i>`:'');});
@@ -38134,6 +38137,8 @@ function paintOb(){
       <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes 7 prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
     /* Invité par un ami (5 novembre, 14 h) : l’inscription finie, on rejoint sa salle ; le parcours attend le retour. */
     if(inv)obSetFooter('Rejoindre la salle',()=>finishOnboard('salle'),'','',(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
+    /* Revenu de Mon compte (« Personnalisation ») : on enregistre et on y revient (audit de Mon compte, 6 novembre) */
+    else if(state.onboarded&&obEntry!=='welcome')obSetFooter('Enregistrer',()=>finishOnboard('compte'),'Voir mon parcours',()=>finishOnboard('plan-ready'),'');
     else obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* 4 novembre, 2 h 13 : « Commencer la première leçon avec la flèche animée », la même que sur le bouton de la construction
        (obSetFooter la pose, comme sur tous les boutons jaunes depuis 14 h 08). */
@@ -38174,7 +38179,19 @@ function finishOnboard(action){
   if(!draft.niveau)draft.niveau='debutant';
   if(!draft.rythme)draft.rythme='regulier';
   if(!draft.freq)draft.freq=7;
-  state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);
+  /* Refaire l’onboarding depuis Mon compte (« Personnalisation », « Revoir l’intro ») ne refait plus le planning pour rien (audit de
+     Mon compte, 6 novembre, bug 1). Niveau, rythme et jours inchangés : il reste tel quel. Changés : seules les leçons pas encore
+     validées sont replacées, à partir d’aujourd’hui ; les validées restent à leur jour, comme avec « Adapter mon rythme ». Avant, il
+     repartait d’aujourd’hui avec les leçons déjà validées en tête : des jours « faits » d’avance, la vraie leçon suivante repoussée
+     d’autant, les jours passés vidés et le retard effacé. */
+  const ancien=state.plan&&Array.isArray(state.plan.sessions)&&state.plan.sessions.length?state.plan:null;
+  if(!ancien)state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);
+  else if(ancien.niveau!==draft.niveau||ancien.rythme!==draft.rythme||+ancien.freq!==+draft.freq){
+    const neuf=apercuPlan(draft.niveau,draft.rythme,draft.freq),pool=neuf.sessions.reduce((a,x)=>a.concat(x.lessons),[]);
+    const reste=pool.filter(id=>!itemDone(id)),per=(RYTHMES.find(r=>r.k===draft.rythme)||RYTHMES[1]).per;
+    neuf.sessions=planMergeSessions(planAnchorDone(ancien,pool.filter(id=>itemDone(id))),distribuerSessions(reste,reste.length?datesMotif(auj(),draft.freq,Math.ceil(reste.length/per)):[]));
+    state.plan=neuf;
+  }
   state.name=String(draft.name||state.name||'').trim().slice(0,32);
   state.profile={
     goal:draft.goal||'',
@@ -38207,9 +38224,12 @@ function obTerminer(action){
     switchTab('defis');
   }else if(action==='plan-ready'){
     switchTab('planning');
+  }else if(action==='compte'){
+    switchTab('compte');   // « Enregistrer » au bout de « Personnalisation » : retour à Mon compte, sans ouvrir de leçon
   }else{
     switchTab('learn');
-    const firstId=state.plan.sessions[0]&&state.plan.sessions[0].lessons.find(id=>!isDefiId(id));
+    /* La leçon à faire, pas la première du planning (déjà validée quand on refait l’onboarding) */
+    const firstId=state.plan.sessions.map(x=>x.lessons.find(id=>!isDefiId(id)&&!(typeof itemDone==='function'&&itemDone(id)))).find(id=>id!=null);
     if(firstId!=null)requestAnimationFrame(()=>openLesson(firstId));
   }
   setTimeout(jeuFromUrl,450);
@@ -38662,9 +38682,9 @@ function closePlusDetails(){
    acquis compte comme acquis : « Je débute » part du palier 1, « Je connais les bases » du palier 2, « Je pratique déjà » du
    palier 4 (Elisa, 1er novembre, 9 h 43 : « prendre en compte ce qu’on a mis dans l’onboarding »). */
 const ACCOUNT_LEVELS=[
-  {label:'Explorateur SQL',etape:'SELECT',next:'Filtres et tris'},
-  {label:'Constructeur de requêtes',etape:'Filtres & tris',next:'Jointures'},
-  {label:'Analyste relationnel',etape:'Jointures',next:'Analyses'},
+  {label:'Explorateur SQL',f:'Exploratrice SQL',n:'Explorateur·rice SQL',etape:'SELECT',next:'Filtres et tris'},
+  {label:'Constructeur de requêtes',f:'Constructrice de requêtes',n:'Constructeur·rice de requêtes',etape:'Filtres & tris',next:'Jointures'},
+  {label:'Analyste relationnel',f:'Analyste relationnelle',n:'Analyste relationnel·le',etape:'Jointures',next:'Analyses'},
   {label:'Analyste SQL',etape:'Analyses',next:'Parcours maîtrisé'},
   {label:'Parcours maîtrisé',etape:'Tout le parcours',next:'Entretenir tes acquis'}
 ];
@@ -38677,7 +38697,9 @@ function accountLevel(acquis,bornes,total){
   if(a>=T)i=4;else for(let k=1;k<4;k++)if(a>=b[k])i=k;
   const band=ACCOUNT_LEVELS[i];
   const pct=i===4?100:Math.max(0,Math.min(100,Math.round((a-b[i])/Math.max(1,b[i+1]-b[i])*100)));
-  return {label:band.label,next:band.next,etape:band.etape,pct,rank:i+1,reste:i===4?0:Math.max(0,b[i+1]-a)};
+  /* Accordé comme le reste de l’appli (« Prête », « Étudiante ») : audit de Mon compte, 6 novembre, bug 8 */
+  const label=band.f&&typeof accord==='function'?accord(band.f,band.label,band.n||band.label):band.label;
+  return {label,next:band.next,etape:band.etape,pct,rank:i+1,reste:i===4?0:Math.max(0,b[i+1]-a)};
 }
 /* Le niveau de l’utilisateur : leçons faites, plus celles d’avant son point de départ (onboarding ou réglage du profil). */
 function niveauCompte(){
@@ -38704,6 +38726,58 @@ const ACCT_CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="curre
    réglages. Chaque réglage s’ouvre dans une feuille. */
 /* Les réglages de Mon compte, chacun son autocollant (Elisa, 31 octobre, 2 h 18) */
 const ACCT_STK={account:'user',route:'route',bell:'bell',reading:'eye',privacy:'shield',help:'help',contact:'bubble'};
+/* ---------- La carte de Mon compte (audit UI/UX du 6 novembre, direction B « Le parcours dans l’ordre ») ----------
+   Le parcours : les leçons validées sur toutes les leçons, comme le catalogue (« 8 leçons validées sur 71 ») ; avant, les activités du
+   planning (60 pour un planning créé avant le 3 novembre : 13 % ici, 8 sur 71 au catalogue). 99 % au plus tant qu’une leçon reste. */
+function parcoursCompte(){
+  const T=allLessons.length,faites=allLessons.filter(l=>itemDone(l.id)).length;
+  return {faites,total:T,pct:T?(faites>=T?100:Math.min(99,Math.round(faites/T*100))):0};
+}
+/* Le module : celui de la leçon que propose l’accueil (pathCurrentLessonId, comme la carte « Reprendre » et le catalogue, « Module 1 ·
+   en cours ») ; avant, la première leçon pas validée du parcours, que le planning ne propose pas toujours (planning créé avant le
+   3 novembre : « Introduction » ici, le module 4 à l’accueil). « En cours » dès qu’une de ses leçons est validée ou que sa leçon est
+   commencée (l’accueil dit alors « Reprendre ma leçon ») ; sinon « À commencer ». Plus rien de proposé : le planning est fini et des
+   leçons restent hors planning (« hors planning »), ou tout le parcours est fait (null). */
+function moduleCompte(){
+  const cur=typeof pathCurrentLessonId==='function'?pathCurrentLessonId():null,mod=cur!=null?moduleDeLecon(cur):null;
+  if(mod)return {mi:MODULES.indexOf(mod),titre:mod.titre,cur,etat:mod.lessons.some(l=>itemDone(l.id))||itemCommence(cur)?'en cours':'à commencer'};
+  const reste=allLessons.filter(l=>!itemDone(l.id)),m=reste.length?moduleDeLecon(reste[0].id):null;
+  return m?{mi:MODULES.indexOf(m),titre:m.titre,cur:null,etat:'hors planning',reste:reste.length}:null;
+}
+/* Le point de départ du niveau choisi (onboarding ou profil) : les leçons d’avant comptent comme acquises pour le niveau
+   (niveauCompte). Direction C (Elisa, 6 novembre, 11 h 12) : la tuile « Ton niveau » le dit, la barre le montre en hachures. */
+function departCompte(){
+  const ids=allLessons.map(l=>l.id),choisi=(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau);
+  const n=NIVEAUX.find(x=>x.k===choisi)||NIVEAUX[0];
+  return {n:Math.max(0,ids.indexOf(n.from)),choix:n.t};
+}
+/* La barre, leçon par leçon dans l’ordre du parcours : la part remplie est le %, et l’on voit où sont les leçons validées (8 leçons des
+   modules 2 et 3, le module 1 encore ouvert : la barre ne dit plus « tu es à 11 % du chemin ») ; un trait fin entre deux modules ; la
+   leçon en cours a son repère, remplie de ce qui est vu de sa vidéo. acquis (direction C) : les leçons d’avant le point de départ du
+   niveau, pas encore validées, en hachures. */
+function acctParcoursHTML(cur,acquis){
+  const ids=allLessons.map(l=>l.id),T=ids.length||1,pc=x=>(x/T*100).toFixed(2)+'%',r=cur!=null?ids.indexOf(cur):-1;
+  const etat=i=>itemDone(ids[i])?'v':acquis&&i<acquis&&i!==r?'a':'';
+  let runs='';
+  for(let i=0;i<ids.length;){const e=etat(i);if(!e){i++;continue;}let j=i;while(j<ids.length&&etat(j)===e)j++;runs+=`<i${e==='a'?' class="is-a"':''} style="left:${pc(i)};width:${pc(j-i)}"></i>`;i=j;}
+  let k=0;const traits=MODULES.slice(0,-1).map(m=>{k+=m.lessons.length;return `<b style="left:${pc(k)}"></b>`;}).join('');
+  let ici='';
+  if(r>=0){
+    const l=allLessons[r],v=dureeVideoS(l),mo=(l.video&&l.video.moments)||0,pos=typeof LV_POS!=='undefined'&&LV_POS.has(cur)?Math.min(v,LV_POS.get(cur)||0):0;
+    const vu=Math.round(Math.min(.95,Math.max(v?pos/v:0,mo?exercicesFaits(cur)/mo*.95:0))*100);
+    ici=`<i class="is-ici" style="left:${pc(r)};width:${pc(1)};--vu:${vu}%"></i>`;
+  }
+  return `<span class="acct-parc" aria-hidden="true"><span class="acct-parc-in"><span class="acct-parc-z">${runs}${ici}${traits}</span></span>${r>=0?`<span class="acct-parc-y"><span class="acct-parc-ici" style="left:${pc(r+.5)}"></span></span>`:''}</span>`;
+}
+/* La ligne du module, sous la barre : « En cours · Module 1 » ou « À commencer · Module 3 », le titre, le rond jaune qui ouvre le module
+   dans le parcours (ouvrirChapitre) ; planning fini : les leçons qui restent ; tout est fait : « Parcours terminé ». */
+function acctModuleHTML(c){
+  if(!c)return `<p class="acct-fini"><span class="acct-fini-ok" aria-hidden="true">${ACCT_OK_SVG}</span><span><b>Parcours terminé</b><small>Bravo\u00a0! Revois une notion quand tu veux.</small></span></p>`;
+  const hors=c.etat==='hors planning',n=c.reste||0;
+  const k=hors?`Planning terminé · ${n}\u00a0leçon${n>1?'s':''} hors planning`:`<span class="acct-chap-k">${c.etat==='en cours'?'En cours':'À commencer'}</span> · Module ${c.mi+1}`;
+  const lu=hors?`Ton planning est terminé. ${n} leçon${n>1?'s':''} hors planning, à partir du module ${c.mi+1}, ${c.titre}. Ouvrir le module`:`Module ${c.mi+1}, ${c.titre}, ${c.etat}. Ouvrir le module dans le parcours`;
+  return `<button type="button" class="acct-chap" onclick="ouvrirChapitre(${c.mi})" data-etat="${c.etat==='en cours'?'cours':'neuf'}" aria-label="${escAttr(lu)}"><span class="acct-chap-t"><small>${k}</small><b>${esc(c.titre)}</b></span><span class="acct-chap-go" aria-hidden="true">${ACCT_ALLER_SVG}</span></button>`;
+}
 function renderCompte(){
   const host=document.getElementById('compte-body');
   if(!host)return;
@@ -38716,7 +38790,7 @@ function renderCompte(){
   const keyOf=el=>el.getAttribute('onclick')||el.getAttribute('onchange')||el.id||'';
   const focusKey=focused?keyOf(focused):'';
   const name=(state.name||'').trim();
-  const initial=(name?name[0]:'R').toUpperCase();
+  const initial=((Array.from(name)[0]||Array.from(String(psMien()||'').replace(/^@+/,''))[0]||'R')).toUpperCase();   // sans prénom : la lettre du pseudo, comme la feuille du profil
   const st=compteStats(),kd=salleKpi();
   const progress=progressContinuer();
   const nivLab={debutant:'Niveau débutant',bases:'Quelques bases',inter:'Niveau analyste'}[(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau)]||null;
@@ -38747,11 +38821,11 @@ function renderCompte(){
      reste sous le prénom ; la date d’inscription suit l’objectif, sur le même modèle. 7 h 29 (« Ma progression du parcours ») : la
      barre dit ce qu’elle mesure, le parcours ; « Ma progression », plus bas, reste le titre des chiffres (série, leçons, défis). */
   const depuisHero=`<span class="acct-obj acct-depuis"><span class="acct-obj-ico" aria-hidden="true">${ACCT_CAL_SVG}</span><span>Membre depuis le <strong>${esc(inscriptionTexte())}</strong></span></span>`;
-  const chap=(()=>{
-    const suivante=allLessons.find(l=>!itemDone(l.id));
-    const mod=suivante&&moduleDeLecon(suivante.id);if(!mod)return null;
-    return {mi:MODULES.indexOf(mod),titre:mod.titre,k:mod.lessons.some(l=>itemDone(l.id))?'Chapitre en cours':'Prochain chapitre'};
-  })();
+  const parc=parcoursCompte(),chap=moduleCompte();   // audit du 6 novembre : le % et le module de l’accueil et du catalogue
+  /* Direction C (« Niveau et parcours, deux mesures », Elisa, 6 novembre, 11 h 12) : le niveau quitte le rond et le dessous du prénom
+     pour sa tuile, à côté de celle du parcours ; « 11 leçons acquises au départ » explique un niveau plus haut que le parcours. */
+  const depart=departCompte(),acqN=depart.n,acqT=`${acqN}\u00a0leçon${acqN>1?'s':''} acquise${acqN>1?'s':''} au départ`;
+  const nivLu=`Ton niveau : niveau ${level.rank}, ${level.label}.`+(acqN?` ${acqN} leçon${acqN>1?'s':''} comptée${acqN>1?'s':''} comme acquise${acqN>1?'s':''} d’après ton choix «\u00a0${depart.choix}\u00a0».`:'');
   /* Ta semaine : les 7 jours du planning, à partir d’aujourd’hui, comme « Les 7 prochains jours » du Planning (Elisa, 30 octobre,
      22 h 11 : « c’est pas cette semaine, c’est aujourd’hui, du coup pour vendredi » : plus de lundi à jeudi en lunes avant l’inscription). */
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
@@ -38794,14 +38868,17 @@ function renderCompte(){
   const planSummary=state.plan?`${plural(state.plan.freq||7,'séance')} par semaine · ${plural(state.plan.per||3,'activité')}`:'Créer un parcours sur mesure';
   host.innerHTML=`
     <section class="acct-hero" aria-label="Ton profil">
-      <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:''}, membre depuis le ${inscriptionTexte()}`)}">
-        <span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:''}</span><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span>
-        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span><span class="acct-rang" aria-hidden="true">${esc(level.label)}</span>${objHero}${depuisHero}</span>
+      <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}${profileGoal?`, objectif : ${profileGoal}`:''}, membre depuis le ${inscriptionTexte()}`)}">
+        <span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:''}</span></span>
+        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${objHero}${depuisHero}</span>
       </button>
-      <div class="acct-level" role="group" aria-label="${escAttr(`Ma progression du parcours : ${progress.percent} %.`)}">
-        <div class="acct-level-head" aria-hidden="true"><small>Ma progression du parcours</small><em>${progress.percent}\u00a0%</em></div>
-        <div class="acct-level-track" aria-hidden="true"><i style="width:${progress.percent}%"></i></div>
-        ${chap?`<button type="button" class="acct-chap" onclick="ouvrirChapitre(${chap.mi})" aria-label="${escAttr(`${chap.k} : ${chap.titre}. Ouvrir le chapitre`)}"><span class="acct-chap-t"><small>${chap.k}</small><b>${esc(chap.titre)}</b></span><span class="acct-chap-go" aria-hidden="true">${ACCT_ALLER_SVG}</span></button>`:''}
+      <div class="acct-duo">
+        <div class="acct-tuile acct-t-niv"><span class="acct-sr">${esc(nivLu)}</span><span aria-hidden="true"><small>Ton niveau</small><span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b><em>${acqN?`<i class="acct-sw is-a"></i>${acqT}`:level.rank>=5?'Le plus haut niveau':'Il monte avec tes leçons validées'}</em></span></div>
+        <div class="acct-tuile acct-t-parc"><span class="acct-sr">${esc(`Ton parcours : ${parcoursValidees(parc.faites)}, soit ${parc.pct} %.`)}</span><span aria-hidden="true"><small>Ton parcours</small><span class="acct-t-l"><b class="acct-t-n">${parc.pct}<i>\u00a0%</i></b></span><em>${parc.faites?'<i class="acct-sw is-v"></i>':''}${esc(parcoursValidees(parc.faites))}</em></span></div>
+      </div>
+      <div class="acct-level acct-level-c">
+        ${acctParcoursHTML(chap&&chap.cur,acqN)}
+        ${acctModuleHTML(chap)}
       </div>
     </section>
     <div class="acct-col acct-col-main">
@@ -38859,8 +38936,10 @@ function renderCompte(){
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, sauvegarde, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
-            <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Ta progression reste sur cet appareil'}</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>Supprimer mon compte</b><small>Ton pseudo, tes scores et toutes tes données</small></span><span class="account-setting-end">${CHEV}</span></button>
+          </div>
+          <div class="account-settings-list acct-compte-actions">
+            <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}</small></span></button>
+            <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>Supprimer mon compte</b><small>Ton pseudo, tes scores et toutes tes données</small></span></button>
           </div>
         </div>
       </section>
@@ -39655,7 +39734,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-widgets-pas-a-pas-v2575';
+  const SW_CACHE='requete-2026-11-06-compte-c-v2576';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

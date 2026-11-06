@@ -15,7 +15,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 
 test('la ligne « Se déconnecter » est toujours là, avant « Supprimer mon compte »', () => {
   const c = cut('function renderCompte(){', '\nfunction ');
-  const ligne = "<button class=\"account-setting-row\" type=\"button\" onclick=\"seDeconnecter()\"><span class=\"plus-row-icon is-stk\">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Ta progression reste sur cet appareil'}</small></span><span class=\"account-setting-end\">${CHEV}</span></button>";
+  const ligne = "<button class=\"account-setting-row\" type=\"button\" onclick=\"seDeconnecter()\"><span class=\"plus-row-icon is-stk\">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}</small></span></button>";
   assert.ok(c.includes('            ' + ligne + '\n'), 'sans condition');
   assert.ok(c.indexOf(ligne) < c.indexOf('onclick="compteSupprimer()"') && c.indexOf(ligne) > c.indexOf('<p class="account-settings-group-title">Compte et assistance</p>'));
 });
@@ -51,5 +51,5 @@ test('connecté : la vraie déconnexion (confirmée), puis l’étape du compte'
   assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Te déconnecter ?', 'signOut', 'enregistre', 'ferme', 'onboarding']);
   assert.equal(x.ctx.state.accountMode, 'guest');
   assert.ok(!('accountProvider' in x.ctx.state) && !('accountLabel' in x.ctx.state));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-widgets-pas-a-pas-v2575';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-compte-c-v2576';"), 'le cache de l’appli change');
 });

@@ -79,11 +79,13 @@ test('partout où l’on supprime ou crée : la carte s’en va, la coche dit qu
   assert.equal(vm.runInContext('dbCatalog.length+"|"+activeDbId+"|"+consoleView+"|"+vus.join()', ctx), '0|cours|list|rendu');
 });
 
-test('la carte de Mon compte : la barre au chiffre du parcours, le chapitre qui suit ; plus de niveau suivant (6 novembre, 6 h 10)', () => {
-  assert.ok(compte.includes('<div class="acct-level-head" aria-hidden="true"><small>Ma progression du parcours</small><em>${progress.percent}\\u00a0%</em></div>'));   // 6 novembre, 7 h 29
-  assert.ok(compte.includes('<div class="acct-level-track" aria-hidden="true"><i style="width:${progress.percent}%"></i></div>'), 'la barre : le même chiffre');
+test('la carte de Mon compte : la barre au chiffre du parcours, le module qui suit ; plus de niveau suivant (6 novembre, 6 h 10)', () => {
+  /* 6 novembre, audit de la carte : le chiffre et la barre sont ceux du parcours entier, la barre leçon par leçon (retours-1013-compte) */
+  /* 11 h 12, direction C : « Ton parcours » dans sa tuile, à côté de « Ton niveau » ; la barre montre aussi les acquis (retours-1013-compte) */
+  assert.ok(compte.includes('<small>Ton parcours</small><span class="acct-t-l"><b class="acct-t-n">${parc.pct}<i>\\u00a0%</i></b></span>'));
+  assert.ok(compte.includes('${acctParcoursHTML(chap&&chap.cur,acqN)}'), 'la barre : le même chiffre');
   assert.ok(!compte.includes('Prochain cap') && !compte.includes('width:${level.pct}%'), 'plus la barre du palier sous le chiffre du parcours');
-  assert.ok(compte.includes('<button type="button" class="acct-chap" onclick="ouvrirChapitre(${chap.mi})"'));
+  assert.ok(compte.includes('${acctModuleHTML(chap)}') && app.includes('<button type="button" class="acct-chap" onclick="ouvrirChapitre(${c.mi})"'));
   /* 6 novembre, 6 h 10 (Elisa : « enlève niveau 3 dans 8 leçons dans compte ») : le niveau suivant n’est plus affiché (retours-0610) */
   assert.ok(!compte.includes('lvlSuite') && !compte.includes('acct-niv-suite') && !lq.includes('.acct-niv-suite'));
   assert.ok(app.includes('<p class="sub">Tes progrès, ton objectif et tes réglages.</p>'));
@@ -93,16 +95,7 @@ test('la carte de Mon compte : la barre au chiffre du parcours, le chapitre qui 
   vm.runInContext(cut('const ACCOUNT_LEVELS=[', 'const ACCT_OK_SVG='), lv);
   const reste = n => lv.accountLevel(n, [11, 23, 33], 65).reste;
   assert.deepEqual([reste(0), reste(10), reste(11), reste(30), reste(64), reste(65)], [11, 1, 12, 3, 1, 0]);
-  /* Le chapitre : celui de la première leçon pas faite ; en cours s’il y en a déjà une de faite */
-  const decl = compte.match(/  const chap=\(\(\)=>\{[\s\S]*?\}\)\(\);/)[0];
-  const chap = faits => {
-    const MODULES = [{ titre: 'Introduction', lessons: [{ id: 1 }, { id: 2 }] }, { titre: 'Lire une table', lessons: [{ id: 3 }, { id: 4 }] }, { titre: 'Jointures', lessons: [{ id: 5 }] }];
-    const allLessons = MODULES.flatMap(m => m.lessons), f = new Set(faits);
-    return vm.runInNewContext(decl + ';chap', { MODULES, allLessons, itemDone: id => f.has(id), moduleDeLecon: id => MODULES.find(m => m.lessons.some(l => l.id === id)) || null });
-  };
-  assert.deepEqual(JSON.parse(JSON.stringify(chap([1, 2, 3]))), { mi: 1, titre: 'Lire une table', k: 'Chapitre en cours' });
-  assert.deepEqual(JSON.parse(JSON.stringify(chap([1, 2]))), { mi: 1, titre: 'Lire une table', k: 'Prochain chapitre' });
-  assert.equal(chap([1, 2, 3, 4, 5]), null, 'tout est fait : pas de chapitre');
+  /* Le module : celui de l’accueil (retours-1013-compte) */
   /* Il s’ouvre : le catalogue, ce chapitre déplié et allumé */
   const vus = [], el = { tagName: 'DETAILS', open: false, scrollIntoView: o => vus.push(['vue', o.block]) };
   const ctx = vm.createContext({ openCourseCatalog: () => vus.push(['catalogue']), requestAnimationFrame: f => f(), prefersReduceMotion: () => false, lqFresh: e => vus.push(['allume', e === el]),
@@ -115,5 +108,5 @@ test('la carte de Mon compte : la barre au chiffre du parcours, le chapitre qui 
   for (const k of ['html.lq .acct-hero .acct-chap{display:flex;align-items:center;gap:12px;width:100%;', 'html.lq .acct-hero .acct-chap-go{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);',
     'html.lq .acct-hero .acct-level-head em{font:800 19px/1 var(--display);color:var(--sun-hi)}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=177">') && sw.includes("const CACHE = 'requete-2026-11-06-widgets-pas-a-pas-v2575';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=178">') && sw.includes("const CACHE = 'requete-2026-11-06-compte-c-v2576';"));
 });
