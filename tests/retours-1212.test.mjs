@@ -203,16 +203,17 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
   const v = crypto.createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'decouvrir/vitrine.css'))).digest('hex').slice(0, 8);
   for (const f of ['index.html', 'conditions.html', 'confidentialite.html', 'mentions-legales.html', 'module.html', 'connexion.html'])
     assert.ok(lire('decouvrir/' + f).includes(`vitrine.css?v=${v}`), `${f} : la feuille du site à jour`);
-  for (const f of ['conditions.html', 'mentions-legales.html', 'confidentialite.html']) {
+  /* 6 novembre : les conditions (l’app pour iPhone, plus « bientôt ») et la confidentialité (les durées de conservation) changent */
+  for (const [f, jour] of [['conditions.html', 6], ['mentions-legales.html', 5], ['confidentialite.html', 6]]) {
     const p = lire('decouvrir/' + f);
-    assert.ok(p.includes('«&nbsp;Contacte-nous&nbsp;»') && !p.includes('Nous contacter') && p.includes('Dernière mise à jour&nbsp;: 5 novembre 2026'), f);
+    assert.ok(p.includes('«&nbsp;Contacte-nous&nbsp;»') && !p.includes('Nous contacter') && p.includes(`Dernière mise à jour&nbsp;: ${jour} novembre 2026`), f);
   }
   const ios = lire('scripts/ios-widget.mjs');
   assert.ok(ios.includes("['NSCameraUsageDescription', 'Pour joindre une photo à ton message dans « Contacte-nous ».']"));
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=177">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=27">') && sw.includes("'./onboarding-vitrine.css?v=27',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=178">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=27">') && sw.includes("'./onboarding-vitrine.css?v=27',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-06-widgets-pas-a-pas-v2575' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-06-compte-c-v2576' && app.includes(`const SW_CACHE='${cache}';`));
 });
