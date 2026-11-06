@@ -110,8 +110,8 @@ test('« Les liens en clair » : plus de trait de couleur sur le côté des cadr
 });
 
 test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre amis) ; seul, comme avant', () => {
-  const c = vm.createContext({JEU_PALIERS: [[60, 200], [120, 175], [180, 150], [240, 125], [300, 100], [420, 75]], JEU_PTS_MIN: 50, JEU_PTS_ESSAI: 25, JEU_PTS_RANG: [50, 30, 20, 10]});
-  vm.runInContext(line('jeuValeur') + line('jeuPts') + fn('jeuRanking') + line('jeuBonusPris'), c);
+  const c = vm.createContext({JEU_PALIERS: [[60, 200], [120, 175], [180, 150], [240, 125], [300, 100], [420, 75]], JEU_PTS_MIN: 50, JEU_PTS_ESSAI: 25, JEU_PTS_RANG: [50, 30, 20, 10], JEU_PTS_NIV: {f: 0, m: 25, d: 50}});
+  vm.runInContext(line('jeuValeur') + line('jeuPts') + line('jeuNivManche') + fn('jeuRanking') + line('jeuBonusPris'), c);
   c.JEU = {solo: false, me: 'a', rounds: [{found: {a: 30000, b: 20000, c: 40000}, first: {a: 1, b: 1, c: 1}, one: false}]};
   const pur = x => JSON.parse(JSON.stringify(x));
   const rk = pur(vm.runInContext('jeuRanking(0)', c));
@@ -199,5 +199,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=180">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=181">'));
 });

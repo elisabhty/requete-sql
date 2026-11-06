@@ -122,7 +122,7 @@ test('« Comment sont calculés les points ? » : une rangée bien visible sous 
   const c = bac({ salles: [] });
   c.ev('sallesRepeindre()');
   const h = c.els['defis-salles'].innerHTML;
-  const rangee = '<button type="button" class="dx-points" onclick="defisStats(true)"><span class="dx-points-stk" aria-hidden="true"><svg data-k="trophy"></svg></span><span class="dx-points-t"><b>Comment sont calculés les points&nbsp;?</b><small>Vitesse, premier coup et place dans la salle</small></span><svg data-k="chev"></svg></button>';
+  const rangee = '<button type="button" class="dx-points" onclick="defisStats(true)"><span class="dx-points-stk" aria-hidden="true"><svg data-k="trophy"></svg></span><span class="dx-points-t"><b>Comment sont calculés les points&nbsp;?</b><small>Vitesse, niveau, premier coup et place dans la salle</small></span><svg data-k="chev"></svg></button>';
   assert.equal(h, rangee, 'sous le cadre, seule (12 h 52 : un seul cadre au-dessus)');
   assert.ok(!h.includes('dx-lien') && !h.includes('dx-regles') && !h.includes('Comment on marque'));
   assert.ok(app.includes('<h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span>Comment sont calculés les points&nbsp;?</h2>'), 'le même titre dans Mes stats');
@@ -171,7 +171,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=180">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=181">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-06-niveau-depart-v2579' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-06-bonus-niveau-v2580' && app.includes(`const SW_CACHE='${cache}';`));
 });
