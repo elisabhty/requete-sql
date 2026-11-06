@@ -131,7 +131,7 @@ test('le drapeau sur le rond du compte : l’onglet Compte, Mon compte, et la li
   assert.equal(el.innerHTML, 'E<i class="av-drapeau">🇨🇦</i>');
   ctx.paysDuProfil = () => ''; ctx.renderLearnAvatar();
   assert.equal(el.innerHTML, 'E', 'sans pays : l’initiale seule');
-  assert.ok(app.includes('<span class="acct-avatar" aria-hidden="true">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:\'\'}</span>'));
+  assert.ok(app.includes('<span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:\'\'}</span>'));   // 6 novembre, 6 h 10 : l’avatar et son « Niv. 2 » dessous
   assert.ok(app.includes('<button class="account-setting-row" type="button" onclick="paysChanger()"><span class="plus-row-icon is-drapeau" aria-hidden="true">${paysDuProfil()?paysDrapeau(paysDuProfil()):\'🌍\'}</span><span><b>Pays</b><small>${paysDuProfil()?esc(paysNom(paysDuProfil())):\'Choisir mon pays\'}</small></span>'));
   const ch = cut('function paysChanger(){', '\n}\n');
   assert.ok(ch.includes('state.profile=Object.assign({},state.profile||{},{pays:code,paysAuto:false});save();') && ch.includes('renderCompte();'));
@@ -163,7 +163,7 @@ test('la liste en feuille : recherche sans accents, pays proches en tête, le pa
 
 test('les feuilles de style : la page (rechargée, v19) et ses animations, la feuille des pays et les pastilles (v136)', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=169">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=170">'));
   for (const k of ['html #onboarding.ob-vitrine .ob-pays-carte.is-on{border-color:var(--v-sun);background:#FFFBEB;box-shadow:0 5px 0 var(--v-sun-lip)}',
     'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-radar{display:flex}', 'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-trouve{display:none}',
     'html #onboarding.ob-vitrine .ob-pays-globe i:first-child{opacity:1}', '@keyframes obvPaysGlobe{', '@keyframes obvPaysPose{'])
