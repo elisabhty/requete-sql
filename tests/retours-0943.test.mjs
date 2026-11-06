@@ -1,6 +1,7 @@
 /* Elisa, 1er novembre, 9 h 43 : « quels sont les différents niveaux ? prendre en compte ce qu’on a mis dans l’onboarding, le
    mettre en dessous du prénom » ; à l’accueil « mettre le badge niveau » (garder la DA du site) ; Selon le SGBD : « problème
-   d’espace » ; Nous contacter : « animer l’icône ». */
+   d’espace » ; Nous contacter : « animer l’icône ». 6 novembre, 12 h 28 : « tout le monde commence au même endroit, c’est juste les
+   défis qui vont être recommandés comme facile, difficile etc. » : le choix de l’onboarding ne fait plus partir d’un palier plus haut. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -31,17 +32,19 @@ test('les cinq paliers suivent les quatre étapes de l’onboarding, puis le par
   assert.ok(app.includes("const stages=['SELECT','Filtres & tris','Jointures','Analyses'];"), 'les mêmes étapes que l’onboarding');
 });
 
-test('le niveau choisi à l’onboarding compte : « Je débute » palier 1, « Je connais les bases » palier 2, « Je pratique déjà » palier 4', () => {
-  assert.deepEqual([niveau('debutant').lv.rank, niveau('bases').lv.rank, niveau('inter').lv.rank, niveau(null).lv.rank], [1, 2, 4, 1]);
-  assert.equal(niveau('bases').lv.next, 'Jointures');
+test('tout le monde part du palier 1, quel que soit le choix de l’onboarding ; les leçons validées font monter', () => {
+  assert.deepEqual([niveau('debutant').lv.rank, niveau('bases').lv.rank, niveau('inter').lv.rank, niveau(null).lv.rank], [1, 1, 1, 1]);
+  assert.equal(niveau('bases').lv.next, 'Filtres et tris');
   /* Les leçons faites font avancer dans le palier, puis monter */
   assert.equal(niveau('debutant', lessons.slice(0, 5).map(l => l.id)).lv.pct, 45);
-  assert.equal(niveau('bases', lessons.slice(11, 23).map(l => l.id)).lv.rank, 3, 'jointures commencées : analyste relationnel');
-  assert.equal(niveau('inter', lessons.slice(33).map(l => l.id)).lv.label, 'Parcours maîtrisé');
+  assert.equal(niveau('bases', lessons.slice(11, 23).map(l => l.id)).lv.rank, 2, 'les leçons d’avant ne comptent plus : 12 validées, constructeur');
+  assert.equal(niveau('bases', lessons.slice(0, 23).map(l => l.id)).lv.rank, 3, 'jointures commencées : analyste relationnel');
+  assert.equal(niveau('inter', lessons.slice(33).map(l => l.id)).lv.rank, 3, 'les 32 dernières seulement : analyste relationnel, plus « parcours maîtrisé »');
+  assert.equal(niveau('inter', lessons.map(l => l.id)).lv.label, 'Parcours maîtrisé');
 });
 
 test('le badge : la pastille jaune « Niv. 2 », puis le nom ; sous le prénom dans Mon compte et à l’accueil', () => {
-  const { lv, badge } = niveau('bases');
+  const { lv, badge } = niveau('debutant', lessons.slice(0, 11).map(l => l.id));
   assert.equal(badge(lv), '<span class="lvl-badge is-home" role="img" aria-label="Niveau 2 : Constructeur de requêtes"><i aria-hidden="true"><span class="lvl-k">Niv.</span>2</i><span aria-hidden="true">Constructeur de requêtes</span></span>');
   assert.ok(app.includes("<span class=\"acct-identity-line\"><b>${esc(accountTitle)}</b>") && app.includes('<span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b>'), 'Mon compte : la pastille « Niv. 2 » puis le nom du niveau, dans la tuile « Ton niveau » (6 novembre, 11 h 12, direction C, retours-1013-compte)');
   /* 1er novembre, 19 h 39 : « le Niv. 2 Constructeur… : le mettre sur le chat » — à l’accueil, l’étiquette est collée sur la mascotte ;
