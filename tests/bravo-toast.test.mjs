@@ -20,10 +20,10 @@ const cut = (from, to) => {
 
 test('bilan « Bravo ! » d’une leçon seule : « Leçon au complet », jamais « Leçon interactive »', () => {
   const ctx = vm.createContext({
-    esc: s => s, stkBravoHtml: () => '', bravoRecapHtml: () => '', bravoUnlockHtml: () => '', bravoNextHtml: () => '', bravoActionsHtml: () => '',
+    esc: s => s, stkBravoHtml: () => '', bravoRecapHtml: () => '', bravoUnlockHtml: () => '', bravoNextHtml: () => '', bravoActionsHtml: () => '', CARTES: {},
     lvPkScore: () => 6, lvPkErrs: () => 0, lvErreursMax: () => null,
   });
-  vm.runInContext(cut('function bravoStepsHtml(l){', 'function bravoCardHtml(l){') + cut('/* Elisa, 2 novembre, 8 h 01 : « cette page est encore', '/* ---------- Blocs de cours enrichis'), ctx);
+  vm.runInContext(cut('function bravoStepsHtml(l){', 'function bravoRecapHtml(l){') + cut('/* Elisa, 2 novembre, 8 h 01 : « cette page est encore', '/* ---------- Blocs de cours enrichis'), ctx);
   const seule = {id: 28, titre: 'DELETE', leconSeule: true, video: {moments: 6}};
   const slide = ctx.renderBravoSlide(seule);
   assert.ok(slide.includes('<small>Leçon au complet</small>'), 'sous le titre : « Leçon au complet »');
@@ -67,9 +67,10 @@ test('notification : au ras du bas de l’écran quand aucun bouton collant n’
 });
 
 test('feuille « Carte » : la note rejoint « Essayer » en bas (21 h 58, Réf 3 : « remplacer le bouton partager par note »)', () => {
-  const open = cut('function openCard(id){', 'function closeCard(){');
-  const ordre = ['class="cd-memo"', '${syntaxHead}', '${cardSyntaxHtml(c)}', 'class="cd-actions"', 'class="cd-note-btn"', 'class="cd-try-btn"'].map(s => open.indexOf(s));
-  assert.ok(ordre.every(i => i > 0) && ordre.every((i, k) => !k || i > ordre[k - 1]), 'ordre : À retenir, Syntaxe, code, puis Noter et Essayer côte à côte');
+  /* 6 novembre (direction A) : le recto, puis le verso (À retenir, Syntaxe, le piège), puis Noter et Essayer côte à côte */
+  const open = cut('function openCard(id){', '\n}\n');
+  const ordre = ['class="mc-fiche"', 'class="mc mc--big"', '<div class="mc-verso">${memoVerso(id)}</div>', 'class="cd-actions"', 'class="cd-note-btn"', 'class="cd-try-btn"'].map(s => open.indexOf(s));
+  assert.ok(ordre.every(i => i > 0) && ordre.every((i, k) => !k || i > ordre[k - 1]), 'ordre : le recto, À retenir, Syntaxe, le piège, puis Noter et Essayer côte à côte');
   assert.ok(!open.includes('coda-note') && !open.includes('shareCard('), 'plus de bandeau vert ni de « Partager » sur la carte');
-  assert.ok(html.includes('<div class="cd-syntaxes">'), 'le bloc de plusieurs syntaxes existe toujours');
+  assert.ok(!html.includes('<div class="cd-syntaxes">'), 'une seule syntaxe par carte (le CASE simple n’est pas enseigné)');
 });

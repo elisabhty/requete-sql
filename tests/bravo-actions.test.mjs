@@ -32,10 +32,9 @@ function bilan({session = null, plan = true, card = false, video = true} = {}) {
     itemMeta: id => ({titre: id === 'd1' ? 'Le meilleur client' : 'Sous-requête dans WHERE avec IN'}),
     lessonHasVideo: () => video,
     gradOf: () => 'linear-gradient(#7C5CFF,#5335E0)',
-    collectibleFace: () => '<span class="memo-copy"><b>Normalisation</b><span>Répartir les données</span></span>',
     esc: s => String(s), escAttr: s => String(s)
   });
-  vm.runInContext(cut('function bravoCardHtml(l){', 'function bravoRevealCard(') + cut('function bravoNextHtml(l){', 'function renderBravoSlide(l){'), ctx);
+  vm.runInContext(cut('function bravoNextHtml(l){', 'function renderBravoSlide(l){'), ctx);
   return ctx;
 }
 const SEANCE = {id: 45, label: 'Ta séance du jour', summary: '2 activités restantes · environ 12 min'};
@@ -97,24 +96,26 @@ test('les autres actions : des tuiles égales, chacune avec son icône', () => {
     assert.ok(!/bravo-sec|bravo-row|bn-arrow|bravoArrow|bravo-actions-stack|bravo-unlock-row|Mon parcours<\/button>/.test(src), `${name} : plus d’anciens boutons`);
 });
 
-test('la carte mémo débloquée : sa ligne, avant la suite du parcours ; son titre tient dans la carte', () => {
-  const ctx = bilan({session: SEANCE, card: true});
+test('la carte mémo débloquée : sa ligne, avant la suite du parcours ; on la retourne sur place (6 novembre, direction A)', () => {
+  const ctx = vm.createContext({
+    CARTES: {4: {k: 'WHERE', t: 'Filtrer les lignes', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 1;', piege: 'Le piège.'}, 56: {k: 'Normalisation', t: 'Répartir les données', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 1;', piege: 'Le piège.'}},
+    allLessons: [{id: 4}, {id: 56}, {id: 70}], lastUnlockedId: 56, TOTAL_CARTES: 53, isUnlocked: () => true, moduleOf: () => 0, MODULES: [{titre: 'Lire une table'}],
+    esc: s => String(s), escAttr: s => String(s), highlight: s => s, lqStkSvg: k => `<svg data-k="${k}"></svg>`, cardMemoPoints: () => []
+  });
+  vm.runInContext(cut('const MEMO_LOCK_STK=', 'function memoEtat(l){') + cut('function bravoUnlockHtml(l){', '/* Retourner : la face cachée'), ctx);
   const row = ctx.bravoUnlockHtml({id: 56});
-  assert.ok(row.startsWith('<div class="bravo-unlock">') && row.includes('class="bravo-gcard collectible"') && row.includes('onclick="bravoRevealCard(56,event)"'));
-  assert.ok(row.includes('<div class="bravo-unlock-copy"><small>Carte débloquée</small><b>Touche-la pour la retourner</b><p>L’essentiel de la leçon, rangé dans tes cartes mémo.</p></div>'));
-  assert.equal(bilan({session: SEANCE}).bravoUnlockHtml({id: 70}), '', 'pas de carte, pas de ligne');
-  assert.ok(!ctx.bravoActionsHtml({id: 56}).includes('bravo-gcard'), 'la carte n’est plus mêlée aux boutons');
+  assert.ok(row.startsWith('<section class="bravo-unlock mc-reveal is-new" aria-labelledby="mc-reveal-h">'), 'la classe bravo-unlock reste : la suite garde sa scène');
+  assert.ok(row.includes('<h2 class="mc-reveal-h" id="mc-reveal-h">Nouvelle carte <em>mémo</em>&nbsp;!</h2>'));
+  assert.ok(row.includes('onclick="memoFlip(this,true)" aria-label="Carte 02, Normalisation\u00a0: Répartir les données. Retourner la carte"'), 'on la retourne d’un geste, le lecteur d’écran le dit');
+  assert.ok(row.includes('<div class="mc-side is-verso" aria-hidden="true" inert>'), 'le verso reste inerte tant qu’on ne l’a pas retournée');
+  assert.ok(row.includes('<span class="mc-seal" aria-hidden="true"><b>2</b><small>sur 53</small></span>'), 'combien de cartes gagnées');
+  assert.equal(ctx.bravoUnlockHtml({id: 70}), '', 'pas de carte, pas de ligne');
+  ctx.lastUnlockedId = null;
+  assert.ok(ctx.bravoUnlockHtml({id: 56}).includes('Ta carte <em>mémo</em>'), 'en revenant sur le bilan : « Ta carte mémo »');
   const slide = cut('function renderBravoSlide(l){', '/* ---------- Blocs de cours enrichis');
   const order = ['bravoRecapHtml(l)}', '${bravoUnlockHtml(l)}', '${bravoNextHtml(l)}', '${bravoActionsHtml(l)}'].map(s => slide.indexOf(s));
   assert.ok(order.every((v, i) => v > 0 && (!i || v > order[i - 1])), 'récapitulatif, carte, suite du parcours, autres actions');
-  /* « Normalisation » débordait de la carte : le titre rétrécit jusqu’à tenir dans sa largeur. */
-  const fit = vm.createContext({getComputedStyle: e => ({fontSize: e.style.fontSize || '16.4px'})});
-  vm.runInContext(cut('function bravoFitCard(card){', 'function revealBravoCard(){'), fit);
-  const gk = {style: {fontSize: ''}, clientWidth: 110, get scrollWidth() { const f = parseFloat(this.style.fontSize || '16.4'); return Math.max(110, 13 * (0.6 * f - 0.6)); }};
-  fit.bravoFitCard({querySelector: () => gk});
-  const f = parseFloat(gk.style.fontSize);
-  assert.ok(f <= 15.1 && f >= 14.5, `taille du titre : ${f}`);
-  assert.ok(cut('function revealBravoCard(){', 'function bravoRecapHtml(l){').includes('bravoFitCard(card);\n  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>bravoFitCard(card));'), 'refait une fois les polices chargées');
+  assert.ok(slide.includes("CARTES[l.id]?'':bravoRecapHtml(l)"), 'le verso de la carte tient lieu de « Ce que tu retiens »');
 });
 
 test('« Recommencer cette leçon ? » : une feuille dans le style de l’app, plus la boîte du navigateur', async () => {

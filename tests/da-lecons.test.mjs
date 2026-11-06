@@ -15,7 +15,7 @@ const bloc = (src, debut) => { const i = src.indexOf(debut); assert.ok(i >= 0, d
 
 test('page du cours : la carte violette de l’accueil, pastille du module, titre jaune, vignette collée dessus', () => {
   const slide = cut('function lessonVideoSlide(l){', 'function openLessonVideo(fin){');
-  assert.ok(slide.includes('<div class="lesson-rich lv-lesson lv-hero">'), 'la carte du cours');
+  assert.ok(slide.includes('<div class="lesson-rich lv-lesson lv-hero${prize?\' has-prize\':\'\'}">${prize}'), 'la carte du cours, et la carte mémo à gagner dans son coin');
   assert.ok(slide.includes("<div class=\"l-kicker\"><b>${mi>=0?`Module ${mi+1}`:'Cours'}</b>${m?`<span class=\"l-kicker-mod\">${m.titre}</span>`:''}</div><h1>${l.titre}</h1>"), 'pastille du module, comme sur l’accueil');
   const css = bloc(lq, '/* ---------- 34. Cours en vidéo');
   assert.match(css, /html\.lq #scr-lesson \.lv-hero\{[^}]*background:var\(--deep\);[^}]*animation:lvHeroIn \.5s [^}]*backwards\}/, 'violet profond ; entrée sans état final gardé');
@@ -36,21 +36,20 @@ test('page du cours : la carte violette de l’accueil, pastille du module, titr
   assert.ok(cut('function lvCardSync(id){', 'function lvCardFit(){').includes('requestAnimationFrame(lvCardFit);'));
 });
 
-test('page du cours : la carte mémo à gagner, collée dans le coin de la vignette (cadenas, puis son mot-clé une fois gagnée)', () => {
-  const src = cut('function lvPrizeHtml(l){', '/* La vignette du cours.');
-  const ctx = vm.createContext({CARTES: {0: {k: 'Modèle relationnel'}, 4: {k: 'WHERE'}}, allLessons: [{id: 0}, {id: 2}, {id: 4}], MEMO_LOCK: '<svg/>',
-    esc: s => s, won: false});
-  vm.runInContext(src + ';this.prize=lvPrizeHtml;this.isUnlocked=()=>this.won;', ctx);
-  vm.runInContext('isUnlocked=this.isUnlocked;', ctx);
-  let h = ctx.prize({id: 4});
-  assert.equal(h, '<span class="lv-prize" aria-hidden="true"><span class="lv-prize-c"><b>02</b><i><svg/></i></span><span class="lv-prize-t">Carte à gagner</span></span>', 'numéro dans la collection, cadenas');
+test('page du cours : la carte mémo à gagner, collée dans le coin du héros (son numéro et un cadenas, puis une coche une fois gagnée)', () => {
+  /* 6 novembre (direction A) : la même carte que dans l’album, en miniature ; elle ne cache plus la vignette de la vidéo. */
+  const src = cut('function lvPrizeHtml(l){', '/* La note d');
+  const ctx = vm.createContext({CARTES: {0: {k: 'Modèle relationnel'}, 4: {k: 'WHERE'}}, allLessons: [{id: 0}, {id: 2}, {id: 4}], MEMO_LOCK_STK: '<svg lock/>', MEMO_CHECK_SVG: '<svg ok/>',
+    memoSerial: id => id === 4 ? '02' : '01', won: false});
+  vm.runInContext(src + ';this.prize=lvPrizeHtml;isUnlocked=()=>this.won;', ctx);
+  assert.equal(ctx.prize({id: 4}), '<span class="mc-prize" aria-hidden="true"><span class="mc-prize-card"><b class="mc-num">02</b><i class="mc-prize-ico"><svg lock/></i></span><span class="mc-prize-t">À gagner</span></span>', 'numéro dans la collection, cadenas');
   ctx.won = true;
-  h = ctx.prize({id: 4});
-  assert.ok(h.includes('class="lv-prize is-won"') && h.includes('<em>WHERE</em>') && h.includes('Carte gagnée'), 'gagnée : son mot-clé');
+  const h = ctx.prize({id: 4});
+  assert.ok(h.includes('class="mc-prize is-won"') && h.includes('<svg ok/>') && h.includes('Gagnée'), 'gagnée : la coche');
   assert.equal(ctx.prize({id: 2}), '', 'sans carte mémo, rien');
-  assert.ok(html.includes('<img src="${v.thumb||v.poster}" alt="" decoding="async">${lvPrizeHtml(l)}'), 'dans la vignette, décor seulement');
-  const css = bloc(lq, '/* ---------- 34. Cours en vidéo');
-  assert.match(css, /html\.lq #scr-lesson \.lv-prize\{[^}]*pointer-events:none;rotate:9deg;animation:lvPrizeF 4\.8s/, 'penchée, elle flotte');
+  assert.ok(!cut('function lvCardHtml(l){', '\n}\n').includes('lvPrizeHtml'), 'la vignette de la vidéo reste dégagée');
+  assert.ok(lq.includes('html.lq .mc-prize{position:absolute;z-index:3;top:10px;right:12px;display:grid;justify-items:end;pointer-events:none;rotate:8deg;animation:mcFloat 5s ease-in-out 1s infinite}'), 'penchée, elle flotte');
+  assert.ok(lq.includes('html.lq #scr-lesson .lv-hero.has-prize>h1{padding-right:64px}'), 'le titre lui laisse sa place');
 });
 
 test('vidéos : le lecteur peint le violet de la vitrine, ses boutons sont blancs, le ▶ jaune, la barre d’état claire', () => {
