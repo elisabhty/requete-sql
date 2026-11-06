@@ -11,7 +11,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { lireEntretien, chargerSqlJs, verifierQuestion, blocs, autreSgbd, BOUTIQUE } from './helpers/entretien-exemples.mjs';
+import { lireEntretien, chargerSqlJs, verifierQuestion, blocs, autreSgbd, BOUTIQUE, sansFauxAmis } from './helpers/entretien-exemples.mjs';
 import { DONNEES } from './fixtures/entretien-donnees.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -37,14 +37,14 @@ test('chaque question a ses données, et un univers', { skip: Object.keys(DONNEE
 test('plus de clients, de commandes ni de produits de la boutique dans les exemples', () => {
   assert.ok(CLIENTS.length >= 10 && PRODUITS.length >= 8, 'les clients et les produits de la base de l’app sont lus');
   for (const q of reecrites) {
-    const exemple = [JSON.stringify(q.ex || {}), q.sql, JSON.stringify(q.etoile || {})].join('\n');
+    const exemple = sansFauxAmis([JSON.stringify(q.ex || {}), q.sql, JSON.stringify(q.etoile || {})].join('\n'));
     const m = exemple.match(new RegExp(BOUTIQUE.source, 'gi'));
     assert.ok(!m, `${q.id} : l’exemple utilise encore la boutique (${[...new Set(m || [])].join(', ')})`);
     const code = [...(q.a + (q.apres || '')).matchAll(/<code>([\s\S]*?)<\/code>/g)].map(x => x[1]).join(' ');
     assert.doesNotMatch(code, BOUTIQUE, `${q.id} : le code cité dans la réponse utilise encore la boutique`);
     /* La réponse ne parle de clients, de commandes ou de produits que si la question elle-même en parle. */
     if (!/client|command|produit/i.test(q.q)) {
-      const prose = (q.a + ' ' + (q.apres || '')).replace(/<code>[\s\S]*?<\/code>/g, ' ');
+      const prose = sansFauxAmis((q.a + ' ' + (q.apres || '')).replace(/<code>[\s\S]*?<\/code>/g, ' '));
       assert.doesNotMatch(prose, /\b(clients?|commandes?|produits?)\b/i, `${q.id} : la réponse illustre encore avec la boutique`);
     }
     const tout = [exemple, q.a, q.apres || ''].join('\n');

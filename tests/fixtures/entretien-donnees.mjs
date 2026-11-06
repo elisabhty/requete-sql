@@ -832,4 +832,202 @@ export const DONNEES = {
     ex: [{ sql: 'SELECT titre, genre, reduction FROM films ORDER BY id' }],
     verif: ({ db }) => (db.exec('SELECT COUNT(*) FROM films WHERE reduction = 20')[0].values[0][0] === 2 ? null : 'l’UPDATE ne modifie pas 2 lignes'),
   },
+  'ent-v2-81': {
+    u: 'location de vélos',
+    erreurs: [2],
+    res: { 3: [['Bastille']] },
+    ex: [{ sql: 'SELECT email, quartier FROM abonnes ORDER BY id', cols: [0, 1], lignes: acceptee }],
+  },
+  'ent-v2-82': {
+    u: 'entreprise', garde: true,
+    avant: `CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, salaire INTEGER, responsable_id INTEGER REFERENCES employes(id));
+      INSERT INTO employes VALUES (1, 'Sophie', 5200, NULL), (2, 'Lucas', 3900, 1), (3, 'Emma', 4100, 1), (4, 'Nathan', 3200, 2);`,
+    res: { 0: [['Sophie', 'NULL'], ['Lucas', 'Sophie'], ['Emma', 'Sophie'], ['Nathan', 'Lucas']] },
+    ex: [{ sql: 'SELECT e.nom, e.id, e.responsable_id, r.nom FROM employes e LEFT JOIN employes r ON r.id = e.responsable_id ORDER BY e.id' }],
+  },
+  'ent-v2-83': {
+    u: 'musée',
+    avant: `CREATE TABLE oeuvres (id INTEGER PRIMARY KEY, titre TEXT);
+      INSERT INTO oeuvres VALUES (1, 'La Pie'), (2, 'Les Meules'), (3, 'L’Absinthe'), (4, 'Le Berceau');
+      CREATE TABLE prets (id INTEGER PRIMARY KEY, oeuvre_id INTEGER REFERENCES oeuvres(id), date_pret TEXT);
+      INSERT INTO prets VALUES (10, 1, '2026-01-05'), (11, 1, '2026-01-12'), (12, 2, '2026-01-08'), (13, 3, '2026-01-20');`,
+    res: { 0: [['La Pie'], ['Les Meules'], ['L’Absinthe']], 1: [['La Pie', '10', '2026-01-05'], ['La Pie', '11', '2026-01-12'], ['Les Meules', '12', '2026-01-08'], ['L’Absinthe', '13', '2026-01-20']] },
+    ex: [{ sql: `SELECT o.titre, p.id, strftime('%d/%m', p.date_pret) FROM oeuvres o JOIN prets p ON p.oeuvre_id = o.id ORDER BY p.id` }],
+  },
+  'ent-v2-84': {
+    u: 'service d’urgences',
+    autres: [0, 1],
+    exLibre: 'un tableau de notions (les deux index de SQL Server)',
+  },
+  'ent-v2-85': {
+    u: 'compagnie aérienne',
+    avant: `CREATE TABLE reservations (id INTEGER PRIMARY KEY, passager_id INTEGER, prix NUMERIC);
+      WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 2000)
+      INSERT INTO reservations SELECT i, i % 500, 50 + i % 300 FROM n;`,
+    res: { 0: { cols: [3], rows: [['SCAN reservations']] } },
+    verif: ({ db, rows }) => {
+      const plan = db.exec('EXPLAIN QUERY PLAN SELECT id, prix FROM reservations WHERE passager_id = 42')[0].values.map(v => v[3]).join(' ');
+      return /^SEARCH reservations USING INDEX idx_resa_passager/.test(plan) && rows[0][1] === 'SCAN' && rows[1][1] === 'SEARCH' ? null : `plan après l’index : ${plan}`;
+    },
+  },
+  'ent-v2-86': {
+    u: 'aquarium',
+    avant: `CREATE TABLE soigneurs (id INTEGER PRIMARY KEY, nom TEXT, email TEXT);
+      INSERT INTO soigneurs VALUES (1, 'Maya', 'maya@mail.fr'), (2, 'Théo', 'theo@mail.com');
+      CREATE TABLE bassins (id INTEGER PRIMARY KEY, code TEXT);
+      INSERT INTO bassins VALUES (1, 'A01'), (2, 'A001'), (3, 'A1'), (4, 'B_12');`,
+    res: { 0: [['Maya', 'maya@mail.fr']], 1: [['A01']], 2: [['B_12']] },
+    ex: [{ rcols: [2, 3, 4], sql: `SELECT k, id, v, m, CASE WHEN v LIKE m THEN 'vrai' ELSE 'faux' END
+      FROM (SELECT 1 k, id, email v, '%@mail.fr' m FROM soigneurs UNION ALL SELECT 2, id, code, 'A_1' FROM bassins WHERE code <> 'B_12')
+      ORDER BY k, id` }],
+  },
+  'ent-v2-87': {
+    u: 'ferme apicole',
+    avant: `CREATE TABLE rucher_nord (miel TEXT PRIMARY KEY, kg INTEGER);
+      INSERT INTO rucher_nord VALUES ('Acacia', 12), ('Châtaignier', 8);
+      CREATE TABLE rucher_sud (miel TEXT PRIMARY KEY, kg INTEGER);
+      INSERT INTO rucher_sud VALUES ('Acacia', 5), ('Lavande', 3);`,
+    res: { 0: [['Acacia', '12', '5'], ['Lavande', 'NULL', '3']], 1: [['Acacia', '12', '5'], ['Châtaignier', '8', 'NULL'], ['Lavande', 'NULL', '3']] },
+    ex: [{ sql: `SELECT COALESCE(n.miel, s.miel), n.kg, s.kg, CASE WHEN s.miel IS NULL THEN 'perdu' ELSE 'gardé' END
+      FROM rucher_nord n FULL OUTER JOIN rucher_sud s ON s.miel = n.miel ORDER BY 1` }],
+  },
+  'ent-v2-88': {
+    u: 'théâtre',
+    avant: `CREATE TABLE pieces (id INTEGER PRIMARY KEY, titre TEXT);
+      INSERT INTO pieces VALUES (1, 'Antigone'), (2, 'Tartuffe');
+      CREATE TABLE mois (mois TEXT PRIMARY KEY);
+      INSERT INTO mois VALUES ('2026-01'), ('2026-02');
+      CREATE TABLE representations_mois (piece_id INTEGER REFERENCES pieces(id), mois TEXT, seances INTEGER);
+      INSERT INTO representations_mois VALUES (1, '2026-01', 3), (2, '2026-01', 5), (2, '2026-02', 2);`,
+    res: { 0: [['Antigone', '2026-01'], ['Antigone', '2026-02'], ['Tartuffe', '2026-01'], ['Tartuffe', '2026-02']], 1: [['Antigone', '2026-01', '3'], ['Antigone', '2026-02', '0'], ['Tartuffe', '2026-01', '5'], ['Tartuffe', '2026-02', '2']] },
+    ex: [{ instr: 1 }],
+  },
+  'ent-v2-89': {
+    u: 'refuge animalier',
+    avant: `CREATE TABLE animaux (id INTEGER PRIMARY KEY, nom TEXT, espece TEXT);
+      INSERT INTO animaux VALUES (1, 'Moka', 'chat'), (2, 'Rex', 'chien'), (3, 'Pixel', 'chat'), (4, 'Caramel', 'lapin'), (5, 'Mia', 'chat'), (6, 'Filou', 'chien');`,
+    autres: [1, 2, 3],
+    res: { 0: [['chat', 'Mia, Moka, Pixel'], ['chien', 'Filou, Rex'], ['lapin', 'Caramel']] },
+    ex: [{ instr: 0 }],
+  },
+  'ent-v2-90': {
+    u: 'escape game',
+    avant: `CREATE TABLE parties (id INTEGER PRIMARY KEY, equipe_id INTEGER);
+      INSERT INTO parties VALUES (1, 1), (2, 1), (3, 2), (4, 2), (5, 2), (6, 3), (7, 4);
+      CREATE TABLE retours (id INTEGER PRIMARY KEY, equipe_id INTEGER, note INTEGER);
+      INSERT INTO retours VALUES (1, 1, 5), (2, 3, 4);`,
+    res: { 0: [['2'], ['4']], 1: [['1'], ['3']] },
+    ex: [{ sql: `SELECT e, (SELECT COUNT(*) FROM parties WHERE equipe_id = e), (SELECT COUNT(*) FROM retours WHERE equipe_id = e),
+        CASE WHEN e IN (SELECT equipe_id FROM retours) THEN 'INTERSECT' ELSE 'EXCEPT' END
+      FROM (SELECT DISTINCT equipe_id e FROM parties) ORDER BY e` }],
+  },
+  'ent-v2-91': {
+    u: 'course à pied',
+    avant: `CREATE TABLE coureurs (id INTEGER PRIMARY KEY, nom TEXT, dossard TEXT);
+      INSERT INTO coureurs VALUES (1, 'Ada', '100'), (2, 'Nils', '25'), (3, 'Rémi', '9');`,
+    res: { 0: [['Rémi', '9'], ['Nils', '25'], ['Ada', '100']], 1: [['43']] },
+    ex: [{ sql: `SELECT a.r, a.d, b.d FROM (SELECT ROW_NUMBER() OVER (ORDER BY dossard) r, dossard d FROM coureurs) a
+      JOIN (SELECT ROW_NUMBER() OVER (ORDER BY CAST(dossard AS INTEGER)) r, dossard d FROM coureurs) b ON b.r = a.r ORDER BY a.r` }],
+    verif: ({ db }) => (db.exec("SELECT CAST('abc' AS INTEGER)")[0].values[0][0] === 0 ? null : "CAST('abc' AS INTEGER) ne donne pas 0 en SQLite"),
+  },
+  'ent-v2-92': {
+    u: 'auto-école',
+    avant: `CREATE TABLE eleves (id INTEGER PRIMARY KEY, prenom TEXT, nom TEXT, telephone TEXT);
+      INSERT INTO eleves VALUES (1, '  Zoé ', 'roux', '06 12 34 56 78');`,
+    res: { 0: [['Zoé ROUX', '0612345678', '3']] },
+    ex: [{ sql: `SELECT 'UPPER', 'zoe', UPPER('zoe') UNION ALL SELECT 'LOWER', 'ROUX', LOWER('ROUX')
+      UNION ALL SELECT 'TRIM', '␣␣Zoé␣␣', TRIM('  Zoé  ') UNION ALL SELECT 'SUBSTR', '0612345678', SUBSTR('0612345678', 1, 2)
+      UNION ALL SELECT 'REPLACE', '06 12 34', REPLACE('06 12 34', ' ', '') UNION ALL SELECT 'LENGTH', 'Zoé', LENGTH('Zoé')
+      UNION ALL SELECT '||', 'Zoé + Roux', 'Zoé' || ' ' || 'Roux'` }],
+    verif: ({ db }) => (db.exec("SELECT UPPER('zoé')")[0].values[0][0] === 'ZOé' ? null : 'UPPER des lettres accentuées a changé'),
+  },
+  'ent-v2-93': {
+    u: 'camping',
+    avant: `CREATE TABLE sejours (id INTEGER PRIMARY KEY, arrivee TEXT, depart TEXT);
+      INSERT INTO sejours VALUES (1, '2026-07-01', '2026-07-15');`,
+    res: { 0: [['14']], 1: [['1', '14']] },
+    ex: [{ sql: `SELECT arrivee, depart, (JULIANDAY(depart) - JULIANDAY(arrivee)) || ' nuits' FROM sejours` }],
+  },
+  'ent-v2-94': {
+    u: 'escape game',
+    avant: `CREATE TABLE salles (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO salles VALUES (1, 'Le Manoir'), (2, 'La Crypte'), (3, 'Le Labo');`,
+    /* Les deux options, rejouées sur les quatre créneaux de l’exemple. */
+    verif: ({ ouvrir, rows }) => {
+      const jouer = option => {
+        const b = ouvrir(); b.run('PRAGMA foreign_keys = ON');
+        b.exec(`CREATE TABLE creneaux (id INTEGER PRIMARY KEY, salle_id INTEGER, FOREIGN KEY (salle_id) REFERENCES salles(id) ON DELETE ${option});
+          INSERT INTO creneaux VALUES (101, 1), (102, 2), (103, 1), (104, 3); DELETE FROM salles WHERE id = 1;`);
+        const reste = Object.fromEntries(b.exec('SELECT id, salle_id FROM creneaux')[0].values);
+        b.close();
+        return reste;
+      };
+      const cascade = jouer('CASCADE'), setNull = jouer('SET NULL');
+      for (const r of rows) {
+        const c = r[0] in cascade ? 'Gardé' : 'Supprimé';
+        const n = !(r[0] in setNull) ? 'Supprimé' : setNull[r[0]] === null ? 'Sans salle' : 'Gardé';
+        if (c !== r[2] || n !== r[3]) return `créneau ${r[0]} : ${c} / ${n}`;
+      }
+      return null;
+    },
+  },
+  'ent-v2-95': {
+    u: 'club de sport',
+    erreurs: [2],
+    verif: ({ db, rows }) => {
+      const r = db.exec('SELECT nom, places, inscrits FROM cours')[0].values;
+      if (JSON.stringify(r) !== JSON.stringify([['Boxe', 12, 0]]) || !rows[0][3].includes('inscrits = 0')) return `après les insertions : ${JSON.stringify(r)}`;
+      db.exec('CREATE TABLE sans_not_null (nom TEXT, places INTEGER CHECK (places > 0), inscrits INTEGER DEFAULT 0)');
+      try { db.exec("INSERT INTO sans_not_null (nom, places) VALUES ('Zumba', NULL)"); } catch (e) { return 'sans NOT NULL, un nombre de places NULL est refusé'; }
+      try { db.exec("INSERT INTO sans_not_null (nom, places) VALUES ('Erreur', -5)"); return 'CHECK laisse passer -5'; } catch (e) { return null; }
+    },
+  },
+  'ent-v2-96': {
+    u: 'plateforme de musique',
+    avant: `CREATE TABLE compteurs (titre_id INTEGER PRIMARY KEY, ecoutes INTEGER);
+      INSERT INTO compteurs VALUES (7, 25), (8, 40);
+      CREATE TABLE avant_upsert AS SELECT * FROM compteurs;`,
+    autres: [1],
+    ex: [{ sql: `SELECT c.titre_id, COALESCE(a.ecoutes, '—'), CASE WHEN c.titre_id IN (7, 9) THEN 10 ELSE '—' END, c.ecoutes
+      FROM compteurs c LEFT JOIN avant_upsert a ON a.titre_id = c.titre_id ORDER BY 1` }],
+  },
+  'ent-v2-97': {
+    u: 'service d’urgences',
+    autres: [0],
+    exLibre: 'des droits d’accès, que SQLite ne gère pas',
+  },
+  'ent-v2-98': {
+    u: 'festival de musique',
+    /* SQLite n’a pas de schémas nommés : une base attachée sous le nom billetterie en tient lieu. */
+    avant: `ATTACH DATABASE ':memory:' AS billetterie;`,
+    autres: [0, 3],
+    res: { 1: [] },
+    exLibre: 'l’organisation de deux schémas (un tableau de notions)',
+  },
+  'ent-v2-99': {
+    u: 'station de ski',
+    avant: `CREATE TABLE forfaits_vendus (id INTEGER PRIMARY KEY, date_achat TEXT, prix NUMERIC);
+      INSERT INTO forfaits_vendus VALUES (1, '2025-12-20', 4000), (2, '2025-12-27', 6000), (3, '2026-01-04', 7000), (4, '2026-01-18', 5000),
+        (5, '2026-02-08', 9000), (6, '2026-03-01', 6000), (7, '2026-03-15', 7500);`,
+    res: { 0: [['2025-12', '10000', 'NULL'], ['2026-01', '12000', '20'], ['2026-02', '9000', '-25'], ['2026-03', '13500', '50']] },
+    ex: [{ sql: `WITH m AS (SELECT strftime('%Y-%m', date_achat) mois, SUM(prix) ca FROM forfaits_vendus GROUP BY mois),
+        c AS (SELECT mois, ca, LAG(ca) OVER (ORDER BY mois) p FROM m)
+      SELECT CASE substr(mois, 6) WHEN '12' THEN 'Décembre' WHEN '01' THEN 'Janvier' WHEN '02' THEN 'Février' ELSE 'Mars' END,
+        ca / 1000.0, COALESCE(p / 1000.0, '—'), COALESCE(ROUND(100.0 * (ca - p) / p, 1), '—') FROM c ORDER BY mois` }],
+  },
+  'ent-v2-100': {
+    u: 'location de vélos',
+    avant: `CREATE TABLE locations (id INTEGER PRIMARY KEY, minutes INTEGER);
+      INSERT INTO locations VALUES (1, 30), (2, 10), (3, 200), (4, 40), (5, 20);`,
+    autres: [0, 1],
+    res: { 0: [['30']] },
+    ex: [{ sql: `SELECT CASE WHEN r = 3 THEN '3 (milieu)' ELSE r END, minutes || ' min' FROM (SELECT ROW_NUMBER() OVER (ORDER BY minutes) r, minutes FROM locations) ORDER BY r` }],
+    verif: ({ db }) => {
+      const moyenne = db.exec('SELECT AVG(minutes) FROM locations')[0].values[0][0];
+      db.exec('DELETE FROM locations WHERE minutes = 200');
+      const pair = db.exec(`WITH v AS (SELECT minutes, ROW_NUMBER() OVER (ORDER BY minutes) AS p, COUNT(*) OVER () AS nb FROM locations)
+        SELECT AVG(minutes) FROM v WHERE p IN ((nb + 1) / 2, (nb + 2) / 2)`)[0].values[0][0];
+      return moyenne === 60 && pair === 25 ? null : `moyenne ${moyenne}, médiane paire ${pair}`;
+    },
+  },
 };
