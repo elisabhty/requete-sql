@@ -57,8 +57,8 @@ test('la mini-page : le @ dans le champ, sans « unique dans l’appli » ni tex
 test('Mon compte : le pseudo sous le prénom ; « manches réussies » partout au lieu de « trouvées »', () => {
   /* Elisa, 1er novembre (« Aligne le pseudo avec le prénom ») : le pseudo sur la ligne du prénom, le niveau dessous. */
   /* 5 novembre, 21 h 54 : l’objectif sous le niveau (retours-2154) */
-  assert.ok(app.includes('<span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:\'\'}</span>${lvlBadgeHTML(level,\'is-on-deep\')}${lvlSuite}${objHero}</span>'));
-  assert.ok(app.includes("aria-label=\"${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:''}`)}\""));
+  assert.ok(app.includes('<span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:\'\'}</span><span class="acct-rang" aria-hidden="true">${esc(level.label)}</span>${objHero}${depuisHero}</span>'));   // 6 novembre, 6 h 10 (retours-0610)
+  assert.ok(app.includes("aria-label=\"${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:''}, membre depuis le ${inscriptionTexte()}`)}\""));
   assert.ok(css.includes('html.lq .acct-id-copy .acct-id-pseudo{align-self:flex-start;'));
   for (const part of ["`réussie${kd.tr>1?'s':''}`:'à jouer'", "${kd.tr}/${kd.ma} réussie${kd.tr>1?'s':''}",
     /* Pratiquer, 5 novembre, 14 h 24 : « Mes défis », les points en toutes lettres (retours-1424.test.mjs) */

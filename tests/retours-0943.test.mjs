@@ -43,7 +43,7 @@ test('le niveau choisi à l’onboarding compte : « Je débute » palier 1, « 
 test('le badge : la pastille jaune « Niv. 2 », puis le nom ; sous le prénom dans Mon compte et à l’accueil', () => {
   const { lv, badge } = niveau('bases');
   assert.equal(badge(lv), '<span class="lvl-badge is-home" role="img" aria-label="Niveau 2 : Constructeur de requêtes"><i aria-hidden="true"><span class="lvl-k">Niv.</span>2</i><span aria-hidden="true">Constructeur de requêtes</span></span>');
-  assert.ok(app.includes("<span class=\"acct-identity-line\"><b>${esc(accountTitle)}</b>") && app.includes("</span>${lvlBadgeHTML(level,'is-on-deep')}${lvlSuite}${objHero}</span>"), 'Mon compte : sous la ligne du prénom (et du pseudo), puis l’objectif (21 h 54)');
+  assert.ok(app.includes("<span class=\"acct-identity-line\"><b>${esc(accountTitle)}</b>") && app.includes("</span><span class=\"acct-rang\" aria-hidden=\"true\">${esc(level.label)}</span>${objHero}${depuisHero}</span>") && app.includes('<span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span>'), 'Mon compte : le nom du niveau sous la ligne du prénom (et du pseudo), puis l’objectif (21 h 54) ; « Niv. 2 » sous l’avatar (6 novembre, 6 h 10, retours-0610)');
   /* 1er novembre, 19 h 39 : « le Niv. 2 Constructeur… : le mettre sur le chat » — à l’accueil, l’étiquette est collée sur la mascotte */
   assert.ok(app.includes('const kw=o.niv?`<span class="mstk-niv" role="img" aria-label="${escAttr(`Niveau ${o.niv.rank} : ${o.niv.label}`)}"><i><span>Niv.</span>${o.niv.rank}</i><b>${esc(o.niv.label)}</b></span>`'), 'accueil : sur le chat');
   assert.ok(!app.includes("lvlBadgeHTML(niveauCompte(),'is-home is-on-deep')"), 'plus dans la ligne du bonjour');
