@@ -3,7 +3,8 @@
 
    Par question :
      u        l’univers de l’exemple (une bibliothèque, un festival…), le même dans toute la question
-     garde    l’exemple n’utilisait ni clients, ni commandes, ni produits : il est resté tel quel
+     garde    l’exemple n’utilisait ni clients, ni commandes, ni produits : il est resté tel quel (sauf les prénoms des
+              clients de l’app, remplacés le 6 novembre)
      avant    les tables et les lignes montrées par l’exemple, créées avant d’exécuter sa requête
      autres   les blocs de la requête propres à un autre SGBD (leur commentaire de tête le dit), non exécutés
      erreurs  les instructions qui doivent échouer (une insertion refusée…), numérotées à partir de 0
@@ -232,10 +233,10 @@ export const DONNEES = {
   'ent-v2-23': {
     u: 'club de sport',
     avant: `CREATE TABLE membres (id INTEGER PRIMARY KEY, email TEXT);
-      INSERT INTO membres VALUES (1, 'ines@club.fr'), (2, 'marc@club.fr');
+      INSERT INTO membres VALUES (1, 'lina@club.fr'), (2, 'marc@club.fr');
       CREATE TABLE essais (id INTEGER PRIMARY KEY, email TEXT);
       INSERT INTO essais VALUES (1, 'marc@club.fr'), (2, 'zoe@club.fr');`,
-    res: { 0: [['ines@club.fr'], ['marc@club.fr'], ['marc@club.fr'], ['zoe@club.fr']], 1: [['ines@club.fr'], ['marc@club.fr'], ['zoe@club.fr']] },
+    res: { 0: [['lina@club.fr'], ['marc@club.fr'], ['marc@club.fr'], ['zoe@club.fr']], 1: [['lina@club.fr'], ['marc@club.fr'], ['zoe@club.fr']] },
     ex: [{ sql: `SELECT email, t, 'gardé', CASE WHEN ROW_NUMBER() OVER (PARTITION BY email ORDER BY o, id) = 1 THEN 'gardé' ELSE 'retiré' END
       FROM (SELECT email, 'membres' t, 1 o, id FROM membres UNION ALL SELECT email, 'essais', 2, id FROM essais) ORDER BY o, id` }],
   },
@@ -269,8 +270,8 @@ export const DONNEES = {
     avant: `CREATE TABLE services (id INTEGER PRIMARY KEY, nom TEXT);
       INSERT INTO services VALUES (1, 'Marketing'), (2, 'Finance'), (3, 'Juridique');
       CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, service_id INTEGER REFERENCES services(id));
-      INSERT INTO employes VALUES (1, 'Sophie', 1), (2, 'Lucas', 2), (3, 'Emma', NULL);`,
-    res: { 0: [['Sophie', 'Marketing'], ['Lucas', 'Finance'], ['Emma', 'NULL']] },
+      INSERT INTO employes VALUES (1, 'Karim', 1), (2, 'Julie', 2), (3, 'Maya', NULL);`,
+    res: { 0: [['Karim', 'Marketing'], ['Julie', 'Finance'], ['Maya', 'NULL']] },
     ex: [{ cols: [0, 1], sql: `SELECT 'INNER JOIN', COUNT(*) FROM employes e JOIN services s ON s.id = e.service_id
       UNION ALL SELECT 'LEFT JOIN', COUNT(*) FROM employes e LEFT JOIN services s ON s.id = e.service_id
       UNION ALL SELECT 'RIGHT JOIN', COUNT(*) FROM employes e RIGHT JOIN services s ON s.id = e.service_id
@@ -536,10 +537,10 @@ export const DONNEES = {
   'ent-v2-52': {
     u: 'magasins', garde: true,
     avant: `CREATE TABLE ventes (id INTEGER PRIMARY KEY, magasin TEXT, vendeur TEXT, chiffre_affaires INTEGER);
-      INSERT INTO ventes VALUES (1, 'Paris', 'Sophie', 8000), (2, 'Paris', 'Lucas', 6500), (3, 'Paris', 'Emma', 5000),
-        (4, 'Paris', 'Nathan', 3000), (5, 'Bordeaux', 'Léa', 9000), (6, 'Bordeaux', 'Hugo', 7000),
-        (7, 'Bordeaux', 'Inès', 4500), (8, 'Bordeaux', 'Chloé', 2000);`,
-    res: { 0: [['Bordeaux', 'Léa', '9000', '1'], ['Bordeaux', 'Hugo', '7000', '2'], ['Bordeaux', 'Inès', '4500', '3'], ['Paris', 'Sophie', '8000', '1'], ['Paris', 'Lucas', '6500', '2'], ['Paris', 'Emma', '5000', '3']] },
+      INSERT INTO ventes VALUES (1, 'Paris', 'Margot', 8000), (2, 'Paris', 'Bastien', 6500), (3, 'Paris', 'Jade', 5000),
+        (4, 'Paris', 'Ryan', 3000), (5, 'Bordeaux', 'Yasmine', 9000), (6, 'Bordeaux', 'Antoine', 7000),
+        (7, 'Bordeaux', 'Clara', 4500), (8, 'Bordeaux', 'Malik', 2000);`,
+    res: { 0: [['Bordeaux', 'Yasmine', '9000', '1'], ['Bordeaux', 'Antoine', '7000', '2'], ['Bordeaux', 'Clara', '4500', '3'], ['Paris', 'Margot', '8000', '1'], ['Paris', 'Bastien', '6500', '2'], ['Paris', 'Jade', '5000', '3']] },
     ex: [{ sql: `SELECT magasin, vendeur, chiffre_affaires, ROW_NUMBER() OVER (PARTITION BY magasin ORDER BY chiffre_affaires DESC, id)
       FROM ventes ORDER BY magasin DESC, 4` }],
   },
@@ -555,7 +556,7 @@ export const DONNEES = {
   'ent-v2-54': {
     u: 'entreprise', garde: true,
     avant: `CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, manager_id INTEGER);
-      INSERT INTO employes VALUES (1, 'Sophie', NULL), (2, 'Lucas', 1), (3, 'Emma', 1), (4, 'Nathan', 2), (5, 'Léa', 4);`,
+      INSERT INTO employes VALUES (1, 'Hélène', NULL), (2, 'Omar', 1), (3, 'Jeanne', 1), (4, 'Rémi', 2), (5, 'Lou', 4);`,
     ex: [{ sql: `WITH RECURSIVE o AS (SELECT id, nom, 1 AS niveau FROM employes WHERE manager_id IS NULL
         UNION ALL SELECT e.id, e.nom, o.niveau + 1 FROM employes e JOIN o ON e.manager_id = o.id WHERE o.niveau < 10)
       SELECT o.nom, COALESCE(m.nom, '—'), o.niveau, 'passage ' || o.niveau
@@ -644,18 +645,18 @@ export const DONNEES = {
   'ent-v2-63': {
     u: 'bibliothèque',
     avant: `CREATE TABLE livres (id INTEGER PRIMARY KEY, titre TEXT, auteur TEXT, disponible INTEGER);
-      INSERT INTO livres VALUES (1, 'Les Misérables', 'Hugo', 1), (2, 'Germinal', 'Zola', 1), (3, 'Nana', 'Zola', 0), (4, 'Notre-Dame de Paris', 'HUGO', 1);`,
+      INSERT INTO livres VALUES (1, 'Indiana', 'Sand', 1), (2, 'Germinal', 'Zola', 1), (3, 'Nana', 'Zola', 0), (4, 'La Mare au diable', 'SAND', 1);`,
     verif: ({ ouvrir, db, rows }) => {
       const plan = (b, s) => b.exec('EXPLAIN QUERY PLAN ' + s)[0].values.map(v => v[3]).join(' ');
       const b = ouvrir(); b.exec('CREATE INDEX idx_livres_auteur ON livres(auteur)');
-      const vu = ["SELECT * FROM livres WHERE auteur = 'Hugo'", "SELECT * FROM livres WHERE UPPER(auteur) = 'HUGO'", 'SELECT * FROM livres WHERE disponible = 1']
+      const vu = ["SELECT * FROM livres WHERE auteur = 'Sand'", "SELECT * FROM livres WHERE UPPER(auteur) = 'SAND'", 'SELECT * FROM livres WHERE disponible = 1']
         .map(s => plan(b, s).split(' ')[0]);
       b.close();
       if (JSON.stringify(vu) !== JSON.stringify(rows.map(r => r[1]))) return `plans : ${vu.join(', ')}`;
-      const apres = plan(db, "SELECT * FROM livres WHERE UPPER(auteur) = 'HUGO'");
+      const apres = plan(db, "SELECT * FROM livres WHERE UPPER(auteur) = 'SAND'");
       if (!/^SEARCH livres USING INDEX idx_livres_auteur_upper/.test(apres)) return `avec l’index sur l’expression : ${apres}`;
-      const n = db.exec("SELECT COUNT(*) FROM livres WHERE UPPER(auteur) = 'HUGO'")[0].values[0][0];
-      return n === 2 ? null : `UPPER(auteur) = 'HUGO' trouve ${n} livres`;
+      const n = db.exec("SELECT COUNT(*) FROM livres WHERE UPPER(auteur) = 'SAND'")[0].values[0][0];
+      return n === 2 ? null : `UPPER(auteur) = 'SAND' trouve ${n} livres`;
     },
   },
   'ent-v2-64': {
@@ -681,13 +682,13 @@ export const DONNEES = {
     exLibre: 'deux sessions qui s’attendent l’une l’autre : une base sql.js n’a qu’une connexion, chaque session est jouée à part',
   },
   'ent-v2-67': {
-    u: 'banque', garde: true, sessions: true,
-    avant: `CREATE TABLE comptes (id INTEGER PRIMARY KEY, solde NUMERIC);
-      INSERT INTO comptes VALUES (1, 1000);`,
+    u: 'compagnie aérienne', sessions: true,
+    avant: `CREATE TABLE vols (id INTEGER PRIMARY KEY, trajet TEXT, places INTEGER);
+      INSERT INTO vols VALUES (1, 'Paris – Nice', 12), (2, 'Paris – Lisbonne', 1);`,
     /* SET TRANSACTION ISOLATION LEVEL n’existe pas dans SQLite, qui ne fait pas de lecture sale. */
     erreurs: [2],
     exLibre: 'deux transactions en parallèle : une base sql.js n’a qu’une connexion, chaque session est jouée à part',
-    verif: ({ db }) => (db.exec('SELECT solde FROM comptes WHERE id = 1')[0].values[0][0] === 1000 ? null : 'après le ROLLBACK, le solde n’est plus 1000'),
+    verif: ({ db }) => (db.exec('SELECT places FROM vols WHERE id = 2')[0].values[0][0] === 1 ? null : 'après le ROLLBACK, la dernière place du vol 2 n’est plus libre'),
   },
   'ent-v2-68': {
     u: 'musée',
@@ -792,7 +793,7 @@ export const DONNEES = {
   'ent-v2-75': {
     u: 'entreprise', garde: true,
     avant: `CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, salaire INTEGER);
-      INSERT INTO employes VALUES (1, 'Hugo', 5000), (2, 'Léa', 5000), (3, 'Sara', 4200), (4, 'Tom', 3800);`,
+      INSERT INTO employes VALUES (1, 'Yanis', 5000), (2, 'Elsa', 5000), (3, 'Sara', 4200), (4, 'Tom', 3800);`,
     res: { 0: [['4200']] },
     ex: [{ sql: `SELECT nom, salaire, DENSE_RANK() OVER (ORDER BY salaire DESC), ROW_NUMBER() OVER (ORDER BY salaire DESC, id)
       FROM employes ORDER BY salaire DESC, id` }],
@@ -843,8 +844,8 @@ export const DONNEES = {
   'ent-v2-82': {
     u: 'entreprise', garde: true,
     avant: `CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, salaire INTEGER, responsable_id INTEGER REFERENCES employes(id));
-      INSERT INTO employes VALUES (1, 'Sophie', 5200, NULL), (2, 'Lucas', 3900, 1), (3, 'Emma', 4100, 1), (4, 'Nathan', 3200, 2);`,
-    res: { 0: [['Sophie', 'NULL'], ['Lucas', 'Sophie'], ['Emma', 'Sophie'], ['Nathan', 'Lucas']] },
+      INSERT INTO employes VALUES (1, 'Claire', 5200, NULL), (2, 'Bruno', 3900, 1), (3, 'Nadia', 4100, 1), (4, 'Théo', 3200, 2);`,
+    res: { 0: [['Claire', 'NULL'], ['Bruno', 'Claire'], ['Nadia', 'Claire'], ['Théo', 'Bruno']] },
     ex: [{ sql: 'SELECT e.nom, e.id, e.responsable_id, r.nom FROM employes e LEFT JOIN employes r ON r.id = e.responsable_id ORDER BY e.id' }],
   },
   'ent-v2-83': {
@@ -1254,8 +1255,8 @@ export const DONNEES = {
   'ent-v2-123': {
     u: 'entreprise', garde: true,
     avant: `CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, service TEXT, salaire INTEGER);
-      INSERT INTO employes VALUES (1, 'Sophie', 'Ventes', 3000), (2, 'Lucas', 'Ventes', 2400), (3, 'Emma', 'Informatique', 4200), (4, 'Nathan', 'Informatique', 3800);`,
-    res: { 0: [['Sophie', 'Ventes', '3000'], ['Emma', 'Informatique', '4200']], 1: [['Sophie', 'Ventes', '3000'], ['Emma', 'Informatique', '4200']] },
+      INSERT INTO employes VALUES (1, 'Aline', 'Ventes', 3000), (2, 'Yann', 'Ventes', 2400), (3, 'Samia', 'Informatique', 4200), (4, 'Félix', 'Informatique', 3800);`,
+    res: { 0: [['Aline', 'Ventes', '3000'], ['Samia', 'Informatique', '4200']], 1: [['Aline', 'Ventes', '3000'], ['Samia', 'Informatique', '4200']] },
     ex: [{ sql: 'SELECT nom, service, salaire, AVG(salaire) OVER (PARTITION BY service) FROM employes ORDER BY id' }],
     verif: ({ db }) => (db.exec('SELECT AVG(salaire) FROM employes')[0].values[0][0] === 3350 ? null : 'la moyenne de l’entreprise ne vaut pas 3 350'),
   },
@@ -1410,9 +1411,9 @@ export const DONNEES = {
     ex: [{ instr: 0 }],
   },
   'ent-v2-138': {
-    u: 'application mobile', garde: true,
+    u: 'location de vélos',
     avant: `CREATE TABLE evenements (user_id INTEGER, etape TEXT);
-      INSERT INTO evenements VALUES (1, 'inscription'), (1, 'achat'), (1, 'achat'), (2, 'inscription'), (3, 'inscription'), (4, 'inscription');`,
+      INSERT INTO evenements VALUES (1, 'inscription'), (1, 'trajet'), (1, 'trajet'), (2, 'inscription'), (3, 'inscription'), (4, 'inscription');`,
     res: { 0: [['4', '1', '25']] },
     ex: [{ sql: 'SELECT user_id, etape FROM evenements ORDER BY rowid' }],
   },
