@@ -35,7 +35,7 @@ test('Entretien SQL : toutes les réponses à la première personne, comme le ca
   assert.ok(E.filter(q => /(?<![A-Za-zÀ-ÿ])([Jj]e |[Jj]’)/.test(texte(q))).length >= 110, 'presque toutes les cartes parlent en « je » (les autres sont des définitions)');
   /* Quelques réponses, telles que le candidat les dit */
   assert.ok(carte('ent-v2-121').a.includes('Je choisis le plus souvent une clé artificielle comme clé primaire'));
-  assert.ok(carte('ent-v2-06').a.includes('j’écarte les inactifs dans <code>WHERE</code>, puis je filtre sur <code>COUNT(*)</code> dans <code>HAVING</code>.'));
+  assert.ok(carte('ent-v2-06').a.includes('j’écarte les vélos en réparation dans <code>WHERE</code>, puis je filtre sur <code>COUNT(*)</code> dans <code>HAVING</code>.'));
   assert.ok(carte('ent-v2-88').a.includes('Je m’en sers pour générer toutes les combinaisons') && carte('ent-v2-89').a.includes('ou le séparateur de mon choix'));
   assert.ok(carte('ent-v2-66').a.includes('Pour les limiter, j’accède aux lignes toujours dans le même ordre'), 'les conseils aussi');
   assert.ok(carte('ent-v2-112').a.includes('En entretien, je précise le dialecte que j’utilise') && carte('ent-v2-112').apres.startsWith('Deux noms reviennent souvent : T-SQL et PL/SQL.'));
