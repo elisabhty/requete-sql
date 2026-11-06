@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=169">
+<link rel="stylesheet" href="ludique.css?v=170">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
@@ -15370,6 +15370,7 @@ async function boot(){
     if(!state.profile||typeof state.profile!=='object') state.profile={};
     if(state.accountMode==null) state.accountMode=state.onboarded?'guest':null;
     if(!state.entretien||typeof state.entretien!=='object') state.entretien={};
+    if(state.onboarded&&!state.inscritLe){ try{ state.inscritLe=inscriptionIso(); setTimeout(()=>{try{save();}catch(e){}},2500); }catch(e){} }   // inscrit avant le 6 novembre
     migrerEtapes();
     normaliserPlan();
     /* Un cours fusionné ou retiré ne doit pas rester dans le parcours enregistré : l'accueil s'en sert avant l'affichage du planning. */
@@ -18467,6 +18468,7 @@ function normalizeState(raw){
   const notes=Array.isArray(source.notes)?source.notes:[];
   const plan=source.plan&&typeof source.plan==='object'&&!Array.isArray(source.plan)?source.plan:null;
   const onboarded=!!source.onboarded;
+  const inscritLe=typeof source.inscritLe==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(source.inscritLe)?source.inscritLe:null;
   const name=typeof source.name==='string'?source.name:'';
   const profile=source.profile&&typeof source.profile==='object'&&!Array.isArray(source.profile)?source.profile:{};
   const accountMode=typeof source.accountMode==='string'?source.accountMode:null;
@@ -18582,7 +18584,7 @@ function normalizeState(raw){
     const c=typeof a.c==='string'?a.c.replace(/\s+/g,' ').trim().slice(0,500):'';
     if(n>=1&&n<=5)avis[k]=Object.assign({n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false},c?{c}:{});
   });
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
+  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
@@ -33294,6 +33296,9 @@ function lqStkSvg(k){
       `<path d="M27.5 6.5A17.5 17.5 0 1 0 42 33.5 14.5 14.5 0 0 1 27.5 6.5z" fill="#FFC83D" ${W} ${J}/><path d="M11.2 22.4a12.6 12.6 0 0 0 8.4 14.2" fill="none" stroke="#fff" stroke-width="2.6" ${R} opacity=".8"/><circle cx="17.5" cy="16.8" r="2.4" fill="#E0A100"/><circle cx="23.5" cy="33.5" r="1.9" fill="#E0A100"/><circle cx="14.5" cy="29" r="1.4" fill="#E0A100"/><g class="stk-twk"><path d="M39 5.5l1.5 3.4 3.4 1.5-3.4 1.5L39 15.3l-1.5-3.4-3.4-1.5 3.4-1.5z" fill="#9FF0C6" stroke="${I}" stroke-width="1.8" ${J}/></g>`],
     export:['<path d="M8 22h32v16a5 5 0 0 1-5 5H13a5 5 0 0 1-5-5z"/><path d="M24 30V6M14 14l10-10 10 10" fill="none" stroke-width="13"/>',
       `<path d="M8 22h32v16a5 5 0 0 1-5 5H13a5 5 0 0 1-5-5z" fill="#DDD4FF" ${W} ${J}/><path d="M14 30h20" stroke="#fff" stroke-width="2.6" ${R}/><path d="M24 31V7.5M15.5 15.5l8.5-8.5 8.5 8.5" fill="none" stroke="${I}" stroke-width="8.4" ${R} ${J}/><path d="M24 31V7.5M15.5 15.5l8.5-8.5 8.5 8.5" fill="none" stroke="#6A4DF4" stroke-width="3.8" ${R} ${J}/>`],
+    /* 6 novembre, 6 h 10 : la FAQ de Mon compte — une bulle, son point d’interrogation, une étincelle. */
+    faq:['<path d="M10 9h25a6 6 0 0 1 6 6v13a6 6 0 0 1-6 6H22l-8 7v-7h-4a6 6 0 0 1-6-6V15a6 6 0 0 1 6-6z"/>',
+      `<path d="M10 9h25a6 6 0 0 1 6 6v13a6 6 0 0 1-6 6H22l-8 7v-7h-4a6 6 0 0 1-6-6V15a6 6 0 0 1 6-6z" fill="#C9BEFF" ${W}/><path d="M17.8 18.4a5 5 0 0 1 9.8 1.2c0 3.2-4.6 3.8-4.6 6.6" fill="none" stroke="#6A4DF4" stroke-width="3.6" ${R}/><circle cx="23" cy="30.6" r="2.2" fill="#6A4DF4"/><path d="M43.5 2.5l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#FFC83D" stroke="${I}" stroke-width="1.3" ${J}/>`],
     /* 6 novembre, 0 h 40 : les widgets de Mon compte — une grande tuile et deux petites ; deux tuiles et un cadenas. */
     widgets:['<rect x="5" y="6" width="38" height="17" rx="6"/><rect x="5" y="26" width="17" height="16" rx="6"/><rect x="26" y="26" width="17" height="16" rx="6"/>',
       `<rect x="5" y="6" width="38" height="17" rx="6" fill="#6A4DF4" ${W}/><path d="M11.5 14.5h13" stroke="#fff" stroke-width="2.8" ${R}/><path d="M35.2 9.6c.3 1.5 1.2 2.4 2.1 3.5 1 1.2 1.8 2.3 1.8 3.9a3.9 3.9 0 0 1-7.8 0c0-1.4.7-2.5 1.5-3.4.2.7.5 1.2 1.1 1.6-.1-2 .5-3.6 1.3-5.6z" fill="#FFC83D" stroke="${I}" stroke-width="1.6" ${J}/><rect x="5" y="26" width="17" height="16" rx="6" fill="#FFC83D" ${W}/><rect x="26" y="26" width="17" height="16" rx="6" fill="#9FF0C6" ${W}/><path d="M10 34h7M31 34h7" stroke="#fff" stroke-width="2.6" ${R} opacity=".9"/>`],
@@ -37326,9 +37331,35 @@ async function obStartAuth(provider,btn){
    vers le site internet ». Confidentialité, conditions et mentions légales ouvrent les pages du site (decouvrir/), dans un nouvel
    onglet : l’app reste ouverte où l’on était. */
 const LEGAL_PAGES={privacy:'decouvrir/confidentialite.html',terms:'decouvrir/conditions.html',mentions:'decouvrir/mentions-legales.html'};
+/* 6 novembre, 6 h 10 (Elisa : « mettre aussi un élément FAQ vers le site internet ») : le site (decouvrir/) n’est pas dans l’app
+   iPhone (scripts/build-www.mjs n’en garde que la vidéo et les avis) ; là, ses pages s’ouvrent dans Safari, à leur adresse en ligne
+   — les pages légales aussi, qui menaient jusqu’ici à une page absente de l’app. Sur le web, l’adresse reste celle du site à côté. */
+const SITE_URL='https://elisabhty.github.io/requete-sql/';
+function siteUrl(chemin){
+  if(typeof appliNative==='function'&&appliNative())return SITE_URL+chemin;
+  try{return new URL(chemin,location.href).href;}catch(e){return chemin;}
+}
 function legalUrl(kind){
   const f=LEGAL_PAGES[kind];if(!f)return '';
-  try{return new URL(f,location.href).href;}catch(e){return f;}
+  return siteUrl(f);
+}
+/* La date d’inscription (6 novembre, 6 h 10 : « mets la date d’inscription sur la partie compte ») : posée à la fin du premier
+   onboarding (state.inscritLe). Pour qui s’est inscrit avant, le plus ancien jour connu : premier jour d’activité, première leçon
+   validée, engagement signé ; sinon aujourd’hui. Elle est ensuite gardée telle quelle, même si l’on efface sa progression. */
+function inscriptionIso(){
+  if(state.inscritLe)return state.inscritLe;
+  const jours=[];
+  if(state.actSince)jours.push(state.actSince);
+  Object.keys(state.actDays||{}).forEach(k=>jours.push(k));
+  Object.values(state.lessons||{}).forEach(e=>{if(e&&e.done&&Number.isFinite(e.at)&&e.at>0)jours.push(dstr(new Date(e.at)));});
+  const pa=state.profile&&state.profile.pacte;if(pa&&Number.isFinite(pa.at))jours.push(dstr(new Date(pa.at)));
+  jours.sort();
+  return jours[0]||dstr(auj());
+}
+function inscriptionTexte(){
+  const d=new Date(inscriptionIso()+'T12:00:00'),j=d.getDate();
+  let mois='';try{mois=new Intl.DateTimeFormat('fr-FR',{month:'long',year:'numeric'}).format(d);}catch(e){mois=String(d.getFullYear());}
+  return `${j===1?'1er':j}\u00a0${mois}`;
 }
 const LEGAL_EXT_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>';
 function openLegalSite(kind){
@@ -37980,6 +38011,7 @@ function finishOnboard(action){
     ...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})
   };
   state.accountMode=draft.accountMode||state.accountMode||'guest';
+  if(!state.inscritLe)state.inscritLe=inscriptionIso();   // la date d’inscription : le premier onboarding (6 novembre, 6 h 10)
   state.onboarded=true;
   save();
   try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours créé (11 h 08)
@@ -38484,6 +38516,7 @@ function lvlBadgeHTML(level,cls){
 }
 const ACCT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const ACCT_PEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>';
+const ACCT_CAL_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="3"/><path d="M4 10.2h16M8.5 3.5v4M15.5 3.5v4"/></svg>';
 const ACCT_ALLER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 const ACCT_CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 /* Mon compte : une seule page, sans onglets internes. Profil et niveau en
@@ -38524,9 +38557,11 @@ function renderCompte(){
   const level=niveauCompte();
   /* 5 novembre, 22 h 35 (l’avis qu’Elisa a demandé sur la carte : « la barre semble remplie à 45 % alors que le texte indique 11 % du
      parcours » ; « Jointures est un chapitre, Constructeur de requêtes un niveau : bien distinguer les deux ») : la barre est celle du
-     parcours, son chiffre à côté ; dessous, le chapitre qui suit dans le parcours (en cours, ou le prochain), qui s’ouvre ; le niveau
-     suivant passe sous le badge, en leçons. */
-  const lvlSuite=level.rank<5&&level.reste?`<span class="acct-niv-suite">Niveau ${level.rank+1} dans ${plural(level.reste,'leçon')}</span>`:'';
+     parcours, son chiffre à côté ; dessous, le chapitre qui suit dans le parcours (en cours, ou le prochain), qui s’ouvre.
+     6 novembre, 6 h 10 (Elisa : « enlève niveau 3 dans 8 leçons dans compte », « Niv 2 mets-le juste en bas de son icône ronde »,
+     « mets la date d’inscription sur la partie compte ») : plus de niveau suivant ; « Niv. 2 » passe sous l’avatar, le nom du niveau
+     reste sous le prénom ; la date d’inscription suit l’objectif, sur le même modèle. */
+  const depuisHero=`<span class="acct-obj acct-depuis"><span class="acct-obj-ico" aria-hidden="true">${ACCT_CAL_SVG}</span><span>Membre depuis le <strong>${esc(inscriptionTexte())}</strong></span></span>`;
   const chap=(()=>{
     const suivante=allLessons.find(l=>!itemDone(l.id));
     const mod=suivante&&moduleDeLecon(suivante.id);if(!mod)return null;
@@ -38574,9 +38609,9 @@ function renderCompte(){
   const planSummary=state.plan?`${plural(state.plan.freq||7,'séance')} par semaine · ${plural(state.plan.per||3,'activité')}`:'Créer un parcours sur mesure';
   host.innerHTML=`
     <section class="acct-hero" aria-label="Ton profil">
-      <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:''}`)}">
-        <span class="acct-avatar" aria-hidden="true">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:''}</span>
-        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${lvlBadgeHTML(level,'is-on-deep')}${lvlSuite}${objHero}</span>
+      <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}, niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:''}, membre depuis le ${inscriptionTexte()}`)}">
+        <span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:''}</span><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span>
+        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span><span class="acct-rang" aria-hidden="true">${esc(level.label)}</span>${objHero}${depuisHero}</span>
       </button>
       <div class="acct-level" role="group" aria-label="${escAttr(`Ma progression : ${progress.percent} % du parcours.`)}">
         <div class="acct-level-head" aria-hidden="true"><small>Ma progression</small><em>${progress.percent}\u00a0%</em></div>
@@ -38634,6 +38669,7 @@ function renderCompte(){
         </div>`:''}
         <div class="account-settings-group">
           <p class="account-settings-group-title">Compte et assistance</p>
+          <a class="acct-faq" href="${escAttr(siteUrl('decouvrir/#faq'))}" target="_blank" rel="noopener"><span class="acct-faq-t"><b>Questions fréquentes</b><small>Toutes les réponses, sur le site de Requête.</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg('faq')}</span></a>
           <div class="account-settings-list">
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Données et confidentialité</b><small>Sauvegarde, effacement, ce qui est gardé</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="account-setting-end">${CHEV}</span></button>
@@ -39238,7 +39274,7 @@ async function resetAllProgress(){
   closePlusDetails();
   try{const cle=state.salle&&state.salle.cle;if(cle&&typeof clsRpc==='function')clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});}catch(e){}
   const id=state.salle&&state.salle.cle?{cle:state.salle.cle,pseudo:state.salle.pseudo,pseudoVu:state.salle.pseudoVu}:null;
-  state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,name:state.name||'',profile:state.profile||{},accountMode:state.accountMode||'guest',accountProvider:state.accountProvider,accountLabel:state.accountLabel,entretien:state.entretien||{}};
+  state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,inscritLe:state.inscritLe||null,name:state.name||'',profile:state.profile||{},accountMode:state.accountMode||'guest',accountProvider:state.accountProvider,accountLabel:state.accountLabel,entretien:state.entretien||{}};
   if(id)state.salle=id;
   save(); stkSync(); buildDb(); baseBytes=db.export(); attachDateFns(db); /* voir boot : export() perd les fonctions ajoutées au moteur */
   renderModules(); renderDefis(); renderProgress();
@@ -39410,7 +39446,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-widgets-compte-v2564';
+  const SW_CACHE='requete-2026-11-06-compte-faq-v2565';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

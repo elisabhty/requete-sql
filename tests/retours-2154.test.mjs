@@ -27,7 +27,7 @@ test('réf. 1 et 2 : plus de ligne « Profil et objectif » ; l’objectif sur l
   /* La carte du profil ouvre toujours la feuille (pseudo, personnalisation, revoir l’intro) */
   assert.ok(compte.includes(`<button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')"`));
   assert.ok(compte.includes('<details class="plus-details" id="plus-profile-settings">\n      <summary><span>Profil et objectif</span>'));
-  assert.ok(compte.includes("${lvlBadgeHTML(level,'is-on-deep')}${lvlSuite}${objHero}</span>"), 'sous le niveau (et le niveau suivant, 22 h 35)');
+  assert.ok(compte.includes("<span class=\"acct-rang\" aria-hidden=\"true\">${esc(level.label)}</span>${objHero}${depuisHero}</span>"), 'sous le nom du niveau (6 novembre, 6 h 10 : plus de niveau suivant, retours-0610)');
   assert.ok(compte.includes(', niveau ${level.rank} : ${level.label}${profileGoal?`, objectif : ${profileGoal}`:\'\'}'), 'VoiceOver le lit aussi');
   /* L’objectif, rendu */
   const decl = compte.match(/  const objHero=(profileGoal\?`[^\n]+`:'');/)[1];
@@ -78,6 +78,6 @@ test('réf. 4 : la Bibliothèque et Pratiquer retrouvent leurs autocollants, com
     'html.lq #scr-compte .account-setting-row:nth-child(even) .plus-row-icon.is-stk{rotate:6deg}'])
     assert.ok(lq.includes(k), k);
   /* Les feuilles et le cache rafraîchis */
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=169">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-widgets-compte-v2564';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=170">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-compte-faq-v2565';"));
 });
