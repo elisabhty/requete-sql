@@ -25,7 +25,7 @@ function carte(count = 6) {
   vm.runInContext('var lateRecoveryCollapsed=false;' + cut('const LATE_BANNER_ICO=', 'function activitesRestantesAujourdhui(){'), ctx);
   /* Depuis le 6 novembre, la durée suit les vraies activités (minutesDe) : ici 6 minutes chacune, le retard et les deux du jour */
   ctx.minutesDe = ids => ids.length * 6; ctx.itemDone = () => false;
-  ctx.latePlanDetails = () => ({ info: { today: { lessons: [count, count + 1] } }, ids: Array.from({ length: count }, (_, i) => i), count, sessions: 3, todayAfter: count + 2 });
+  ctx.latePlanDetails = () => ({ info: { today: { lessons: [count, count + 1] } }, ids: Array.from({ length: count }, (_, i) => i), count, sessions: 3, todayCount: 2, todayAfter: count + 2 });
   ctx.latePlanShiftPreview = () => ({ end: '2026-12-01' });
   return { ctx, html: ctx.lateRecoveryHTML() };
 }
@@ -34,7 +34,9 @@ test('réf. 1 : « activités à rattraper », « séances non terminées », «
   const { html } = carte();
   assert.ok(html.includes('<span class="lr-title" id="late-recovery-title">6 activités à rattraper</span><span class="lr-meta">3 séances non terminées</span>'));
   assert.ok(html.includes('<ul class="lr-chips" aria-label="Activités à rattraper"><li>DISTINCT</li><li>ORDER BY</li><li>Fonctions de dates et heures</li><li class="more">+ 3 autres</li></ul>'));
-  assert.ok(html.includes(`<h3 class="lr-q-t" id="lr-q-t">Comment veux-tu reprendre${N}?</h3><p class="lr-lead">Rien n’est perdu, pas besoin de tout faire d’un coup. Choisis ce qui te convient.</p>`));
+  /* 6 novembre, 11 h 57 : la phrase dit pourquoi le choix est recommandé (le nombre d’activités, le temps, ton rythme ; late-recovery) */
+  assert.ok(html.includes(`<h3 class="lr-q-t" id="lr-q-t">Comment veux-tu reprendre${N}?</h3><p class="lr-lead">Rien n’est perdu, pas besoin de tout faire d’un coup${N}: sur tes 3${N}prochaines séances, ça fait 2 activités de plus chacune.</p>`));
+  assert.ok(carte(2).html.includes(`<p class="lr-lead">Rien n’est perdu${N}: avec ta séance du jour, ça fait environ${N}24${N}min. Tu peux tout rattraper aujourd’hui.</p>`), 'peu de retard : aujourd’hui, et pourquoi');
   assert.ok(html.includes('<div class="lr-actions" role="radiogroup" aria-labelledby="lr-q-t">'));
   assert.ok(html.includes('<button type="button" class="lq-btn lr-confirm" onclick="lrConfirmer(this)">Confirmer mon choix</button>') && html.includes('>Je déciderai plus tard</button>'));
   assert.ok(!html.includes('à replacer') && !html.includes('Conseillé') && !html.includes('>Plus tard<'));
