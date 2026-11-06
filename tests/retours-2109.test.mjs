@@ -49,5 +49,5 @@ test('si la séance passe sous le bonjour, elle se resserre ; sinon elle garde �
 test('plus de « Ton module » en menthe au-dessus du pourcentage', () => {
   const parc = cut('  const parc=`', '\n');
   assert.ok(parc.startsWith('  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-parc-n">') && !parc.includes('lq-hero-kicker') && !app.includes("'Ton module'"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=171">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=172">'));
 });

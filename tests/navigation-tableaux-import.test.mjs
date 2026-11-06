@@ -124,11 +124,11 @@ test('réf 8 — le tableau de résultat comme le labo de la vitrine', () => {
 test('réf 9 — les tables d’un projet : ni autocollant, ni actions sur la ligne du nom ; dépliée, la description, les actions, les colonnes', () => {
   const w = cut('function renderDbWorkspace(){', 'function toggleTableSchema(name){');
   assert.ok(!w.includes('db-tico') && !w.includes("lqStkSvg('table')") && !w.includes('db-tnote-k'), 'aucun autocollant');
-  /* Depuis le 5 novembre, 15 h 01 (réf. 5 et 8) : la ligne du nom est un bouton (icône, nom, lignes, chevron) ; dépliée, la carte
-     montre la description, puis « Voir les données » et ses deux ronds, puis la structure de la table. */
-  const row = w.slice(w.indexOf('<button type="button" class="tbl-tete"'), w.indexOf('${open?`<div class="tbl-corps'));
-  assert.ok(row.includes('<span class="tbl-chev" aria-hidden="true">${TBL_CHEV_SVG}</span>') && !row.includes('tbl-acts') && !row.includes('${desc}'), 'la ligne du nom ne porte ni actions ni description');
-  assert.ok(w.includes('${open?`<div class="tbl-corps${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}${struct}</div>`:\'\'}'), 'description, actions, colonnes ; l’apparition seulement à l’ouverture (17 h 35)');
+  /* Depuis le 6 novembre, 7 h 52 (la carte d’une table du schéma UML) : l’en-tête est un bouton (nom, lignes, flèche ronde) ; dessous,
+     ses colonnes ; dépliée, la description, puis « Voir les données » et ses deux ronds. */
+  const row = w.slice(w.indexOf('<button type="button" class="tbu-h"'), w.indexOf('<div class="tbu-cs">'));
+  assert.ok(row.includes('<span class="tbu-pli" aria-hidden="true">${UML_CHEV}</span>') && !row.includes('tbl-acts') && !row.includes('${desc}'), 'la ligne du nom ne porte ni actions ni description');
+  assert.ok(w.includes('${open?`<div class="tbl-corps tbu-pied${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}'), 'les colonnes, puis la description et les actions ; l’apparition seulement à l’ouverture (17 h 35)');
   assert.ok(css.includes('html.lq #scr-console .tbl-voir{flex:1;min-width:0;'), '« Voir les données » en grand');
 });
 
