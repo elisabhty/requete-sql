@@ -419,6 +419,143 @@ struct RequeteWidget: Widget {
     }
 }
 
+// MARK: - La flamme sur l’écran verrouillé
+//
+// Elisa, 6 novembre, 0 h 40 (« dans compte mettre ça (widget) avec les animations de comment procéder », sur une capture « Widgets
+// de l’écran d’accueil », « Widgets de l’écran verrouillé ») : Mon compte montre comment poser le widget sur l’écran d’accueil et sur
+// l’écran verrouillé. Sur l’écran verrouillé, iOS dessine les widgets d’une seule teinte, par-dessus le fond d’écran : la flamme du
+// jour (pleine quand la séance est faite, en contour sinon) et la séance du jour, « 0/1 » puis « 1/1 » — en rond, en bandeau, ou sur
+// la ligne de la date. Même fournisseur que le widget de l’écran d’accueil (minuit, 5 h, midi, 18 h, et l’app qui recharge tous les
+// widgets en partant, RequeteWidgetPlugin.swift). Comme pour la bulle du matin (IOS.md) : la phrase, les polices et les mesures
+// d’abord, chacune avec son type, puis de courtes suites de modificateurs.
+
+@available(iOS 16.1, *)
+struct VerrouVue: View {
+    let entree: SerieEntree
+    @Environment(\.widgetFamily) private var famille
+
+    private var fait: Bool { entree.faitAujourdhui }
+
+    /// Pleine quand la séance du jour est faite, en contour sinon.
+    private var symbole: String { fait ? "flame.fill" : "flame" }
+
+    private var compte: String { fait ? "1/1" : "0/1" }
+
+    /// La phrase du bandeau : celle du widget de l’écran d’accueil, selon le moment de la journée.
+    private var phrase: String {
+        if fait { return "Séance du jour validée" }
+        if entree.repos { return "Jour de repos" }
+        switch entree.humeur {
+        case .matin:
+            return "Une petite requête\u{202F}?"
+        case .soir:
+            return entree.serie > 0 ? "Ta flamme t’attend\u{202F}!" : "Allume ta flamme\u{202F}!"
+        default:
+            return "Séance du jour\u{00A0}: 0/1"
+        }
+    }
+
+    private var libelle: String {
+        if fait { return "Séance du jour validée : 1 sur 1. Ta flamme est allumée." }
+        return entree.repos ? "Jour de repos." : "Séance du jour : 0 sur 1."
+    }
+
+    var body: some View {
+        Group {
+            switch famille {
+            case .accessoryRectangular:
+                bandeau
+            case .accessoryInline:
+                ligne
+            default:
+                rond
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(libelle))
+    }
+
+    /// Le rond : la flamme, et « 0/1 » dessous (un jour de repos, la flamme seule).
+    private var rond: some View {
+        let flamme: Font = Font.system(size: 20, weight: .bold)
+        let chiffre: Font = Font.system(size: 12, weight: .heavy, design: .rounded)
+        return ZStack {
+            AccessoryWidgetBackground()
+            VStack(spacing: 1) {
+                Image(systemName: symbole)
+                    .font(flamme)
+                    .widgetAccentable()
+                if !entree.repos {
+                    Text(compte)
+                        .font(chiffre)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+            }
+        }
+    }
+
+    /// Le bandeau : la flamme, « Requête » et la phrase du moment.
+    private var bandeau: some View {
+        let flamme: Font = Font.system(size: 28, weight: .bold)
+        let titre: Font = Font.system(size: 15, weight: .heavy, design: .rounded)
+        let texte: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
+        let ecart: CGFloat = 8
+        return HStack(alignment: .center, spacing: ecart) {
+            Image(systemName: symbole)
+                .font(flamme)
+                .widgetAccentable()
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Requête")
+                    .font(titre)
+                    .widgetAccentable()
+                Text(phrase)
+                    .font(texte)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    /// La ligne de la date : la flamme et la séance du jour (un seul choix par ligne, retours-1628).
+    private var ligne: some View {
+        let texte: String = texteLigne
+        return Label(texte, systemImage: symbole)
+    }
+
+    private var texteLigne: String {
+        if fait { return "Séance du jour validée" }
+        return entree.repos ? "Jour de repos" : "Séance du jour 0/1"
+    }
+}
+
+extension View {
+    /// iOS 17 et plus : l’écran verrouillé attend aussi containerBackground ; le fond reste transparent (le rond dessine son disque).
+    @ViewBuilder
+    func fondVerrou() -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(for: .widget) { Color.clear }
+        } else {
+            self
+        }
+    }
+}
+
+@available(iOS 16.1, *)
+struct RequeteFlammeVerrou: Widget {
+    let kind = "RequeteSerieVerrou"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: SerieFournisseur()) { entree in
+            VerrouVue(entree: entree).fondVerrou()
+        }
+        .configurationDisplayName("Ta flamme")
+        .description("La flamme et la séance du jour, sur l’écran verrouillé.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
+    }
+}
+
 // MARK: - La leçon en cours, dans la Dynamic Island
 //
 // Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une Live Activity : la page (index.html, ileDebut, ileMaj, ileFin)
@@ -703,13 +840,16 @@ struct RequeteLeconActivite: Widget {
     }
 }
 
-/// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus).
+/// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé.
 @main
 struct RequeteWidgets: WidgetBundle {
     var body: some Widget {
         RequeteWidget()
         if #available(iOS 16.1, *) {
             RequeteLeconActivite()
+        }
+        if #available(iOS 16.1, *) {
+            RequeteFlammeVerrou()
         }
     }
 }
