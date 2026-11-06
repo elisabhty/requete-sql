@@ -2,13 +2,26 @@
 
 _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Rien n’est généré : Elisa décide._
 
+**6 novembre, 17 h 16 : où on en est.**
+
+- Les 20 cours qui passent à la voix d’Anaïs et le chapitre de GROUP BY **sont générés** (sur le Mac, le 5 novembre entre 1 h 25 et 1 h 41, dans `tools/voix/sortie/`), **mais pas encore intégrés** : l’appli joue toujours les anciennes voix de ces cours. Pour les intégrer, dire « fini » à Claude.
+- La vidéo du site : seules **deux phrases** sont à refaire, avec la voix de Louis : s12 « animés par huit formateurs » (au lieu d’« une dizaine ») et s16 « cent quarante-deux questions » (l’appli en a 142 ; la voix en dit 141). Environ 370 crédits :
+
+```
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs video-site-retouches
+```
+
+  Puis dire « fini » à Claude, qui les intègre (`node tools/voix/integrer-site.mjs tools/voix/sortie/video-site-retouches` : les quinze autres phrases et la musique restent). **Ne pas lancer `video-site` en entier** : le Mac n’a pas les fichiers d’origine de la vidéo, toute la voix et la musique seraient refaites.
+
 Déjà corrigé sans régénérer : les 60 débuts de phrase coupés (tables VOICE, et la cause dans `integrer.mjs`), et le « Bravo » final trop fort (27 cours, ramené au niveau de leur cours).
 
 **5 novembre, 0 h 38 : les 20 cours de Miya (Mia), Emily, Coralie (Koraly), Arthur et Sam passent à la voix d’Anaïs** et sont refaits en entier, avec les règles de prononciation d’aujourd’hui, ainsi qu’un chapitre de GROUP BY (Antoine) qui ne nomme plus SQLite et, à 6 h 37, la phrase de la vidéo du site « animés par huit formateurs » (Louis, au lieu d’« une dizaine ») : environ 68 600 crédits.
 
 ```
-cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours sous-requete-in,sous-requete-select,sous-requete-from,insert-select,exists,any-all,with-cte,union,intersect-except,with-recursive,projet-insert,projet-update,projet-merge,projet-delete,projet-ondelete,projet-transaction,projet-savepoint,projet-concurrence,projet-procedures,projet-trigger,group-by,video-site
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours sous-requete-in,sous-requete-select,sous-requete-from,insert-select,exists,any-all,with-cte,union,intersect-except,with-recursive,projet-insert,projet-update,projet-merge,projet-delete,projet-ondelete,projet-transaction,projet-savepoint,projet-concurrence,projet-procedures,projet-trigger,group-by
 ```
+
+(Lancée le 5 novembre à 1 h 25 : ces cours sont faits. La phrase de la vidéo du site est passée dans `video-site-retouches`, ci-dessus.)
 
 Dans les listes ci-dessous, les lignes de ces 20 cours sont donc caduques (Mia, Emily, Koraly, Sam : leurs fichiers seront dits par Anaïs).
 

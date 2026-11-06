@@ -89,7 +89,7 @@ window.MODULES=[
       ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 211]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
-      ["Sous-requête dans WHERE avec IN", "Quels clients ont déjà commandé du Magnésium ?", 245],
+      ["Sous-requête dans WHERE avec IN", "Filtrer avec la liste renvoyée par une sous-requête", 245],
       ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 209],
       ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 208],
       ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 199],
