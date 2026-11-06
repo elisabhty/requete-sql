@@ -1,8 +1,18 @@
 # Voix off : la liste exacte à régénérer (ElevenLabs)
 
-_5 novembre 2026, d’après le contrôle des voix du 4 novembre. Rien n’est généré : Elisa décide._
+_5 novembre 2026, d’après le contrôle des voix du 4 novembre. Elisa décide de ce qui est généré._
 
-**6 novembre, 17 h 16 : où on en est.**
+**6 novembre, 21 h 45 : tout est intégré.** Les deux commandes du 6 novembre ont tourné ; l’appli joue maintenant la voix d’Anaïs dans les 20 cours (et le chapitre refait de GROUP BY), les corrections de la relecture, les moments expliqués avant d’être posés, les deux phrases de la vidéo du site et la phrase des index. Chaque voix intégrée est ramenée au niveau de son cours (`tools/voix/volume.mjs`).
+
+Il reste **une seule consigne** à refaire, avec la voix d’Anaïs : le 3e moment de « Sous-requête dans WHERE avec IN » disait « ici, la base ne lit que la première de la liste » ; la règle d’Elisa ne fait jamais parler la base, la consigne devient « ici, seule la première de la liste compte ». Environ 155 crédits :
+
+```
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours sous-requete-in-retouches --oui
+```
+
+Puis « fini » : `node tools/voix/integrer.mjs sous-requete-in tools/voix/sortie/sous-requete-in-retouches --garder` (la consigne change avec sa voix ; les autres fichiers du cours restent).
+
+**6 novembre, 17 h 16 : où on en était.** (Tout ce qui suit jusqu’aux « Déjà corrigé » est fait et intégré.)
 
 _Décisions d’Elisa, 6 novembre, 21 h 05 : la voix garde « identifiant » pour id ; la Console reste telle quelle pour les commandes de serveur (MERGE, CREATE SCHEMA, FOR UPDATE, GRANT, REVOKE) ; les moments « À toi » qui demandent avant d’expliquer : la vidéo explique d’abord (en cours, une deuxième commande suivra) ; les 20 cours d’Anaïs sont intégrés avec le reste, au « fini »._
 

@@ -89,16 +89,16 @@ window.MODULES=[
       ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 211]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
-      ["Sous-requête dans WHERE avec IN", "Filtrer avec la liste renvoyée par une sous-requête", 245],
-      ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 209],
-      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 208],
-      ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 199],
-      ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 243],
-      ["ANY et ALL", "Comparer à toute une liste", 225],
-      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 249],
-      ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 232],
-      ["INTERSECT et EXCEPT", "Comparer deux résultats", 182],
-      ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 216]
+      ["Sous-requête dans WHERE avec IN", "Filtrer avec la liste renvoyée par une sous-requête", 237],
+      ["Sous-requête dans SELECT", "Calculer une valeur pour chaque ligne", 205],
+      ["Sous-requête dans FROM", "Utiliser une sous-requête comme table", 201],
+      ["INSERT … SELECT et CREATE TABLE AS", "Enregistrer le résultat d’une requête", 196],
+      ["EXISTS et NOT EXISTS", "Tester la présence ou l’absence d’une ligne liée", 235],
+      ["ANY et ALL", "Comparer à toute une liste", 215],
+      ["WITH (CTE)", "Créer et réutiliser un résultat intermédiaire", 237],
+      ["UNION et UNION ALL", "Empiler deux résultats, avec ou sans doublons", 223],
+      ["INTERSECT et EXCEPT", "Comparer deux résultats", 179],
+      ["WITH RECURSIVE (CTE RECURSIVE)", "Créer une suite automatiquement", 208]
     ]},
     {titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lecons:[
       ["OVER()", "Calculer sans regrouper les lignes", 202],
@@ -119,22 +119,22 @@ window.MODULES=[
       ["Les schémas", "Ranger les tables par espace", 144]
     ]},
     {titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lecons:[
-      ["INSERT", "Ajouter des lignes", 248],
-      ["UPDATE", "Modifier des lignes", 202],
-      ["MERGE", "Synchroniser deux tables", 197],
-      ["DELETE", "Supprimer des lignes", 187]
+      ["INSERT", "Ajouter des lignes", 243],
+      ["UPDATE", "Modifier des lignes", 192],
+      ["MERGE", "Synchroniser deux tables", 191],
+      ["DELETE", "Supprimer des lignes", 183]
     ]},
     {titre:"Intégrité des tables liées", sous:"Ce que deviennent les lignes liées", lecons:[
-      ["ON DELETE", "Décider du sort des lignes liées", 266]
+      ["ON DELETE", "Décider du sort des lignes liées", 256]
     ]},
     {titre:"Transactions et concurrence", sous:"Tout valider, tout annuler, sans conflit", lecons:[
-      ["Transactions", "Valider les modifications ensemble", 294],
-      ["SAVEPOINT", "Annuler une partie des modifications", 263],
-      ["Concurrence et isolation", "Gérer les accès simultanés", 261]
+      ["Transactions", "Valider les modifications ensemble", 283],
+      ["SAVEPOINT", "Annuler une partie des modifications", 259],
+      ["Concurrence et isolation", "Gérer les accès simultanés", 255]
     ]},
     {titre:"Procédures et triggers", sous:"Automatiser les traitements", lecons:[
-      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 194],
-      ["Les triggers", "Déclencher une action automatiquement", 263]
+      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 197],
+      ["Les triggers", "Déclencher une action automatiquement", 262]
     ]},
     {titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lecons:[
       ["CREATE VIEW", "Enregistrer une requête sous un nom", 244],

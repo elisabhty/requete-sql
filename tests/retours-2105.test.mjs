@@ -40,7 +40,8 @@ test('ce que la vidéo explique avant de demander', () => {
   assert.ok(dit('projet-create', 'at3').texte.includes('Une date a son propre type, date.'));
   assert.ok(dit('projet-droits', 'at5').texte.includes('Grant donne un droit à un compte, avec tou ; revoke le lui retire, avec FROM.'));
   const at3 = c => JSON.parse(read(`tools/voix/${c}.json`)).elements.find(e => e.id === 'at3').texte;
-  assert.ok(at3('sous-requete-in').includes('Le signe égale n’attend qu’une seule valeur : ici, la base ne lit que la première de la liste.'));
+  /* 6 novembre, 21 h 45 : « la base ne lit » personnifiait la base ; la consigne est refaite (tools/voix/sous-requete-in-retouches.json). */
+  assert.ok(at3('sous-requete-in').includes('Le signe égale n’attend qu’une seule valeur : ici, seule la première de la liste compte.'));
   assert.ok(at3('projet-transaction').includes('Commit valide une transaction, rollback l’annule.'));
 });
 
@@ -48,5 +49,6 @@ test('la deuxième commande, et ce qui ne change pas (LIKE, Comparer)', () => {
   const md = read('tools/voix/A-REGENERER.md');
   assert.ok(md.includes('--cours sous-requete-in,projet-transaction,distinct-moments,and-or-moments,inner-join-moments,self-join-moments,first-last-ntile-moments,fenetres-glissantes-moments,projet-uml-moments,projet-create-moments,projet-droits-moments --oui\n'));
   assert.ok(md.includes('LIKE et Comparer ne changent pas'));
+  assert.ok(md.includes('node tools/voix/generer.mjs --toutes --cours sous-requete-in-retouches --oui\n'), 'la consigne de IN, refaite sans faire parler la base');
   assert.ok(read('assets/anim/comparer.html').includes("['NE', '!=', 'différent de', '']"), 'la carte des six opérateurs dit ce que veut dire !=');
 });

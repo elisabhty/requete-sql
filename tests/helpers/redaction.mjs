@@ -690,7 +690,7 @@ export const DETTE = {
     'right-join': {'legende-phrase': 12, identifiant: 3, 'table-gras': 3},
     'self-join': {'table-gras': 1, 'legende-phrase': 3, typographie: 1},
     'sous-requete-from': {'legende-phrase': 10, 'table-gras': 2},
-    'sous-requete-in': {'table-gras': 3, 'legende-phrase': 8, identifiant: 1},
+    'sous-requete-in': {'table-gras': 3, 'legende-phrase': 8, identifiant: 1, 'sans-personnification': 1},   // 6 nov., 21 h 45 : « la base ne lit », dit par la voix ; tools/voix/sous-requete-in-retouches.json l’enlève, puis ce 1 aussi
     'sous-requete-select': {'legende-phrase': 4, relation: 4},
     'union': {coupes: 5, 'legende-phrase': 8},
     'with-cte': {'legende-phrase': 12},

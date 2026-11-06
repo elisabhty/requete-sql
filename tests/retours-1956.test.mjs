@@ -15,16 +15,17 @@ const RET = fs.readdirSync(path.join(ROOT, 'tools/voix')).filter(f => f.endsWith
 
 test('chaque retouche : la voix du cours, ses phrases telles que dans le cours, et ses textes posés dans la page avec sa voix (intégrée le 6 novembre, 21 h 30)', () => {
   assert.deepEqual(RET.map(f => f.replace('-retouches.json', '')), ['as', 'between', 'comparer', 'fonctions-numeriques', 'group-by-colonnes',
-    'lag-lead', 'not', 'plusieurs-conditions-on', 'projet-create', 'projet-index', 'quel-join-choisir']);
+    'lag-lead', 'not', 'plusieurs-conditions-on', 'projet-create', 'projet-index', 'quel-join-choisir', 'sous-requete-in']);
   for (const f of RET) {
     const r = JSON.parse(read('tools/voix/' + f)), c = f.replace('-retouches.json', ''), job = JSON.parse(read(`tools/voix/${c}.json`));
     const page = read(`assets/anim/${c}.html`);
     assert.equal(r.cours, c + '-retouches');
     assert.deepEqual([r.voix, r.modele], [job.voix, job.modele], `${c} : la voix du cours`);
     for (const e of r.elements) assert.deepEqual(e, job.elements.find(x => x.id === e.id), `${c}/${e.id} : le même texte que le cours`);
+    /* Intégrée : le nouveau texte est posé une fois, l’ancien a disparu ; en attente de sa voix : l’ancien est encore là, une fois. */
     for (const [a, b] of [].concat(r.legendes || [], r.remplacements || [])) {
-      assert.ok(!page.includes(a), `${c} : l’ancien texte n’est plus dans la page`);
-      assert.equal(page.split(b).length - 1, 1, `${c} : le nouveau texte, posé une fois, avec sa voix`);
+      if (page.includes(b)) { assert.ok(!page.includes(a), `${c} : l’ancien texte n’est plus dans la page`); assert.equal(page.split(b).length - 1, 1, `${c} : posé une fois`); }
+      else assert.equal(page.split(a).length - 1, 1, `${c} : en attente de sa voix, le texte d’aujourd’hui une fois`);
     }
   }
 });
