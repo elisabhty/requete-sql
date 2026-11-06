@@ -45,7 +45,7 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
   /* 17 h 39 : les paliers de temps, +25 du premier coup, le classement entre amis jusqu’au 4e */
   for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${JEU_ROUND_MS/60000}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>',
     '<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI*x}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>',
-    '<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul dans la salle, pas de bonus de place</small></li>',
+    '<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>',
     '<small>Le plus rapide au total passe devant ; même temps : ex æquo</small>'])
     assert.ok(rules.includes(part), part);
   assert.ok(!rules.includes('Rapidité') && !rules.includes('moins toutes les'), 'plus de ligne « Rapidité » à part');

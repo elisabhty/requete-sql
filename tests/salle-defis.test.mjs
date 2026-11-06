@@ -174,7 +174,7 @@ function makeClient(world, name, { skew = 0 } = {}) {
     execChallengeResult: (database,sql) => database.exec(sql),
     performance: { now: () => world.now }, confirm: () => true, toast() {},
     /* La fenêtre de l’appli (lqAsk) répond tout de suite « oui » ; un test peut la remplacer pour compter ou refuser. */
-    lqAsk: () => ({ then: f => f(true) }),
+    lqAsk: () => ({ then: f => f(true) }), lqInfo: () => {},
     mode: '', current: null, exoFails: 0,
   };
   Object.assign(ctx, stubs);
@@ -580,6 +580,7 @@ test('un défi trouvé dans la salle peut revenir après « Rejouer »', () => {
   const x = h.ev('JEU.rounds[0].cid');
   g.found(); sec(w, 2);
   assert.equal(g.ev(`state.defis['${x}']`), true, 'trouvé par l’ami (sa progression le garde)');
+  sec(w, 120);   // 6 novembre : l’hôte clôt 2 min après le premier qui a trouvé
   h.ev('jeuClose()'); sec(w, 1); h.ev('jeuFinish()'); sec(w, 1); h.ev('jeuAgain()'); sec(w, 1);
   h.ev('JEU.recent.clear()');
   const seen = new Set(h.ev(`(()=>{const original=Math.random,picks=[];try{for(let k=0,total=jeuChallenges('f').length;k<total;k++){Math.random=()=> (k+.5)/total;picks.push(jeuPick());}}finally{Math.random=original;}return picks;})()`));
@@ -675,7 +676,7 @@ test('toutes les vues se dessinent sans erreur (échappement des pseudos compris
   host.ev('jeuNextRound()'); sec(w, 1); grab();
   sec(w, 4); const play = grab(); assert.match(play, /class="jeu-mates"/); assert.doesNotMatch(play, /jeu-reacts|jeu-mini/, 'pendant qu’on cherche : rien que la manche');
   assert.doesNotMatch(play, /<img/);
-  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="jeu-done"/); assert.match(wait, /cherche encore/); assert.match(wait, /jeu-reacts/); assert.match(wait, /Clore la manche pour tous/);
+  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="jeu-done"/); assert.match(wait, /cherche encore/); assert.match(wait, /jeu-reacts/); assert.match(wait, /Clore la manche dans <b id="jeu-clore-t">0[12]:\d\d<\/b>/, '6 novembre : 2 min après le premier qui a trouvé');
   assert.doesNotMatch(wait, /id="ed-lesson"/, 'la carte « Trouvé » remplace l’éditeur');
   evil.found(); sec(w, 2); const res = grab(); assert.match(res, /Classement de la manche/); assert.doesNotMatch(res, /<img/);
   host.ev('jeuClose()'); host.ev('jeuNextRound()'); sec(w, 5); host.ev('jeuClose()'); sec(w, 1);
@@ -850,7 +851,7 @@ test('tableau de performance : une partie entre amis notée pour chacun, avec sa
     host.found(); sec(w, 3);
     if (n < 2) guests[0].found();
     sec(w, 1.5);
-    if (n === 2) { host.ev('jeuClose()'); sec(w, 1.5); }
+    if (n === 2) { sec(w, 120); host.ev('jeuClose()'); sec(w, 1.5); }   // 2 min après le premier qui a trouvé
   }
   host.ev('jeuFinish()'); sec(w, 1.5);
   const h = host.ev('state.salle'), g = guests[0].ev('state.salle');

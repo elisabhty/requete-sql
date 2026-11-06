@@ -100,3 +100,39 @@ test('Supabase — le serveur note les défis joués et trouvés, et tire un dé
   const gen = ['k', 't', 'q', 'b', 'r', 'e', 'g'].flatMap(p => ['f', 'm', 'd'].flatMap(n => Array.from({ length: 10 }, (_, i) => p + n + (i + 1)))).sort();
   assert.deepEqual(ids, gen);
 });
+
+/* 6 novembre, 16 h : Elisa choisit « Les deux » dernières règles de l’expert, et « Entraîne-toi » au-dessus de Pratiquer. */
+test('Pratiquer : « Entraîne-toi » au-dessus du titre, la carte garde « À toi de jouer »', () => {
+  assert.ok(app.includes('<div class="lgtitle"><div><div class="eyebrow">Entraîne-toi</div><h1>Pratiquer</h1>'));
+  assert.ok(fn('renderJourneyHub').includes('<p class="journey-kicker">À toi de jouer</p>'));
+});
+
+test('celui qui ne joue pas ne compte pas : moins de deux joueurs ont essayé, la manche se compte comme seul', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_NIV_X=', '\n') + '\n' + fn('jeuValeur') + fn('jeuPts') + fn('jeuNivManche') + fn('jeuRanking') + 'var JEU={solo:false,rounds:[]};', ctx);
+  vm.runInContext("JEU.rounds[0]={one:false,found:{a:30000},first:{a:1}};JEU.rounds[1]={one:false,found:{a:30000},first:{a:1},tried:{b:1}};", ctx);
+  const r = n => JSON.parse(JSON.stringify(ctx.jeuRanking(n))).map(x => [x.pid, x.essai, x.rang, x.pts]);
+  assert.deepEqual(r(0), [['a', 25, 0, 225]], 'l’autre téléphone n’a rien tenté : pas de bonus de place');
+  assert.deepEqual(r(1), [['a', 25, 50, 275]], 'l’autre a essayé (manqué) : la place compte');
+  assert.ok(app.includes("if((m.g|0)===J.g){const rt=J.rounds[+m.n];if(rt)(rt.tried=rt.tried||{})[m.pid]=1;}"), 'un essai manqué est noté pour sa manche');
+  assert.ok(fn('renderDefisRules').includes('Seul à jouer la manche, pas de bonus de place</small></li>'), 'le cadre des points le dit');
+  const m = mig('_defis_anti_triche.sql');
+  assert.ok(m.includes('(select count(distinct x.pid) from requete_private.essai x where x.code=rd.code and x.generation=rd.generation and x.numero=rd.numero)<2) as seul,'), 'le serveur compte de même');
+  assert.ok(m.includes("'+case when premier and (seul or rang=0) then 25 else 0 end+case when seul then 0 when rang=0'"));
+});
+
+test('« Clore la manche » : 2 minutes après le premier qui a trouvé, le bouton compte jusque-là', () => {
+  const bar = cut('function jeuHostBarHTML(){', '\nfunction jeuRedraw(){');
+  assert.ok(bar.includes('Clore la manche dans <b id="jeu-clore-t">${jeuRebours(a)}</b>') && bar.includes('class="jeu-mini is-attente" disabled'));
+  const ctx = vm.createContext({ Date: { now: () => 1000000 + ctx.__t }, Math, Number, Object, __t: 0, jeuRoundDone: () => false });
+  vm.runInContext(cut('const JEU_CLORE_MS=', '\nfunction jeuHostBarHTML(){') + ';var JEU={solo:false,rounds:[{t1:1000000,found:{}}]};', ctx);
+  assert.equal(ctx.jeuCloreAttente(0), 0, 'personne n’a trouvé : on peut clore');
+  vm.runInContext('JEU.rounds[0].found={a:30000,b:50000}', ctx);
+  ctx.__t = 40000; assert.equal(ctx.jeuCloreAttente(0), 110000, 'le premier a trouvé à 30 s : encore 1 min 50');
+  ctx.__t = 150000; assert.equal(ctx.jeuCloreAttente(0), 0, '2 min plus tard : c’est possible');
+  assert.ok(fn('jeuClose').includes("if(att>0){lqInfo('Encore un instant','Après le premier qui a trouvé, les autres ont 2 minutes pour finir. Tu pourras clore la manche dans '+jeuRebours(att)+'.','⏱');return;}"));
+  assert.ok(fn('jeuTick').includes("const ct=document.getElementById('jeu-clore-t');"), 'le compte à rebours avance chaque seconde');
+  assert.ok(lq.includes('html.lq .jeu-mini.is-attente{cursor:default;'));
+  const m = mig('_defis_anti_triche.sql');
+  assert.ok(m.includes("raise exception 'clore la manche : 2 minutes après le premier qui a trouvé' using errcode='P0001';") && m.includes("raise exception 'fin de partie : 2 minutes après le premier qui a trouvé' using errcode='P0001';"), 'le serveur refuse aussi');
+});
