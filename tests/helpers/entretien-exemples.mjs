@@ -171,4 +171,7 @@ export function verifierQuestion(SQL, q, d) {
 }
 
 /* Les tables et les données de la boutique NutriBoost (la base de l’app) : leurs noms ne doivent plus servir d’exemple. */
+/* « produit cartésien », « le produit des deux tailles », « se produit » : des mots de la boutique qui n’en parlent pas. */
+export const sansFauxAmis = t => String(t).replace(/produits? cartésiens?/gi, ' ').replace(/\ble produit des\b/gi, ' ')
+  .replace(/\bse produi\w*/gi, ' ').replace(/\bproduit (une|un|des|aussi|alors)\b/gi, ' ');
 export const BOUTIQUE = /\b(clients?|commandes?|produits?|lignes?_commandes?|details?_commandes?|client_id|commande_id|produit_id|date_commande|numero_commande|fidelite|nutriboost)\b/i;
