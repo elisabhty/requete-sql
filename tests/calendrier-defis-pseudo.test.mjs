@@ -60,7 +60,8 @@ test('réf 3 — un glissement vertical sur la barre d’onglets fait défiler l
   assert.ok(cut('async function boot(){', 'function initSpotlight(){').includes('try{lqTabbarScroll();}catch(e){}'), 'branché au démarrage');
   let now = 0; const rafs = [];
   const handlers = {}, screen = { scrollTop: 0 };
-  const bar = { dataset: {}, addEventListener: (t, f, o) => { handlers[t] = { f, o }; } };
+  const bar = { dataset: {}, addEventListener: (t, f, o) => { handlers[t] = { f, o }; },
+    getBoundingClientRect: () => ({ top: 742, bottom: 844 }), querySelectorAll: () => [{ getBoundingClientRect: () => ({ bottom: 806 }) }] };
   const ctx = vm.createContext({
     document: { querySelector: sel => sel === '#app>.tabbar' ? bar : sel === '#app>.stage .screen.active' ? screen : null },
     performance: { now: () => now }, Date: { now: () => now }, requestAnimationFrame: f => { rafs.push(f); return rafs.length; }, cancelAnimationFrame() {},
