@@ -6362,7 +6362,8 @@ html[data-motion="reduce"] .sq-list .sq-row{animation:none}
 .reading-option input{flex-shrink:0;width:24px;height:24px;accent-color:var(--accent);cursor:pointer}
 .reading-option input:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
 .reading-preferences #reading-preferences-status:empty{display:none}
-html[data-reading="large"] .screen p:not(.eyebrow),html[data-reading="large"] .screen .sub,html[data-reading="large"] .screen .tip{font-size:17px;line-height:1.75}
+/* 6 novembre (audit de la carte d’accueil, bug 1) : le grand « 0 % » de l’accueil garde sa taille (17 px l’écrasaient). */
+html[data-reading="large"] .screen p:not(.eyebrow):not(.lq-parc-n),html[data-reading="large"] .screen .sub,html[data-reading="large"] .screen .tip{font-size:17px;line-height:1.75}
 html[data-reading="large"] .editor-area textarea,html[data-reading="large"] .editor-area pre{font-size:17px!important;line-height:1.65!important}
 html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 @media(max-width:360px){.plan-next-session{padding:18px}.plan-next-actions button{width:100%}.plan-module-row{flex-wrap:wrap}.plan-module-row>div{flex-basis:100%}.plan-module-row button{width:100%}}
@@ -21331,10 +21332,11 @@ let mascotRetrouveJusqua=0;
 function mascotMedalHtml(o){
   o=o||{};
   const sp=o.kw?'<i class="mstk-sp mstk-sp-a" aria-hidden="true"></i><i class="mstk-sp mstk-sp-b" aria-hidden="true"></i>':'';
-  const kw=o.niv?`<span class="mstk-niv" role="img" aria-label="${escAttr(`Niveau ${o.niv.rank} : ${o.niv.label}`)}"><i><span>Niv.</span>${o.niv.rank}</i><b>${esc(o.niv.label)}</b></span>`
+  /* Le niveau se lit avec le bouton (audit du 6 novembre, bug 4 : dans un bouton nommé, son role="img" n’était jamais annoncé). */
+  const kw=o.niv?`<span class="mstk-niv" aria-hidden="true"><i><span>Niv.</span>${o.niv.rank}</i><b>${esc(o.niv.label)}</b></span>`
     :o.kw?`<span class="mstk-kw" aria-hidden="true">${esc(o.kw)}</span>`:'';
   const hi=o.hi?`<span class="mstk-bub" aria-hidden="true">${esc(mascotRetrouveJusqua>Date.now()?MASCOT_RETROUVE:o.hi)}</span>`:'';
-  return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="La mascotte Requête te fait coucou">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">${kw}${hi}</button>`;
+  return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:'La mascotte Requête te fait coucou')}">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">${kw}${hi}</button>`;
 }
 function mascotReduced(){
   return (window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||document.documentElement.dataset.motion==='reduce';
@@ -21413,7 +21415,9 @@ function renderHomeHero(){
   /* 5 novembre, 21 h 09 : « j’aime pas que ça tienne en deux lignes » (le bonjour, puis « Ta session · Faite » repoussée dessous) : la
      séance reste à droite du bonjour ; quand elle n’y tient pas, elle perd « Ta session · » (« ✓ Faite », « ⌛ 12 min »), voir
      lqSesAjuste. */
-  const sesMeta=`<div class="journey-session-meta"><span class="lq-ses is-${sesEtat}" aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}"><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div>`;
+  /* 6 novembre (audit de la carte, bugs 3 et 4) : l’étiquette se lit enfin (un aria-label sur un simple <span> n’était pas lu), et dit
+     ce que l’écran montre : la séance que le bouton ouvre et ses minutes, puis, s’il y en a plus, tout ce qui reste à rattraper. */
+  const sesMeta=`<div class="journey-session-meta"><span class="lq-ses is-${sesEtat}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div>`;
   const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
@@ -21423,8 +21427,8 @@ function renderHomeHero(){
   if(nxt==null){
     const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
+    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
     lqSesCount(host);
-    lqSesAjuste(host);
     return;
   }
   const meta=itemMeta(nxt),defi=isDefiId(nxt),mod=moduleDeLecon(nxt);
@@ -21463,14 +21467,31 @@ function renderHomeHero(){
   const fait=enMod?mod.lessons.filter(l=>state.lessons&&state.lessons[l.id]&&state.lessons[l.id].done).length:(typeof parcoursSqlFaites==='function'?parcoursSqlFaites():0);
   const tot=enMod?mod.lessons.length:(typeof TOTAL!=='undefined'?TOTAL:0);
   const pf=tot?Math.min(100,Math.round(fait/tot*100)):0;
-  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot>1?`${tot} leçons t’attendent`:tot?'Une leçon t’attend':'Ton parcours commence'}</p></div>`;
+  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em><span class="lq-sr">${enMod?' du module':' du parcours'}</span></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot>1?`${tot} leçons t’attendent`:tot?'Une leçon t’attend':'Ton parcours commence'}</p></div>`;
   const detail=index&&!defi?`${kicker} · ${meta.titre}`:meta.titre;
   const ctaLu=`${ctaLabel} : ${index&&!defi?`leçon ${index} sur ${mod.lessons.length}, `:''}${meta.titre}`;
   const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main">${parc}${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(detail)}</small></span></button></section>${streak}${extras}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
+  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
   lqSesCount(host);
   lqPctAnime(host);
-  lqSesAjuste(host);
+}
+/* Ce que l’étiquette de la séance dit à VoiceOver : le même résumé que le bilan et le planning (session.summary), avec les minutes que
+   l’écran montre et, en retard, la séance qu’elles comptent : « Séance d’hier à reprendre : 2 activités à rattraper, environ
+   12 minutes. » ; « Séance du mardi 3 novembre à reprendre : 2 activités, environ 12 minutes. En tout, 9 activités à rattraper. » ;
+   « 2 activités restantes aujourd’hui, environ 12 minutes. ». */
+function seanceLue(session,etat){
+  if(!session||etat==='end')return 'Toutes tes activités sont validées.';
+  const resume=String(session.summary||''),Resume=resume.charAt(0).toUpperCase()+resume.slice(1),suite=resume?` ${Resume}.`:'';
+  const mn=`environ ${session.minutes} minute${session.minutes>1?'s':''}`;
+  if(etat==='done')return 'Ta séance du jour est faite.'+suite;
+  if(etat==='pause')return 'Pas de séance prévue aujourd’hui.'+suite;
+  if(etat!=='late')return /environ/.test(resume)?`${Resume}.`:`${Resume}, ${mn}.`;
+  const today=dstr(auj()),h=parseD(today);h.setDate(h.getDate()-1);const hier=dstr(h);
+  const quand=session.d===hier?'d’hier':'du '+parseD(session.d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}).replace(/ 1 /,' 1er ');
+  const n=session.remaining.length;
+  const tout=state.plan&&Array.isArray(state.plan.sessions)?state.plan.sessions.filter(x=>Array.isArray(x.lessons)&&x.d<today).reduce((k,x)=>k+x.lessons.filter(id=>!itemDone(id)).length,0):n;
+  return tout>n?`Séance ${quand} à reprendre\u00a0: ${n} activité${n>1?'s':''}, ${mn}. En tout, ${resume}.`:`Séance ${quand} à reprendre\u00a0: ${resume}, ${mn}.`;
 }
 /* Une leçon commencée : sa vidéo arrêtée en route, une réponse donnée pendant l’animation, une étape validée ou un brouillon
    d’exercice ; un défi commencé : son chrono en cours (gardé sur l’appareil). */
@@ -21510,7 +21531,9 @@ function lqSesAjuste(host){
   const bt=t.getBoundingClientRect();if(!bt.width)return;   // accueil caché : mesuré à son prochain rendu
   if(m.getBoundingClientRect().top>=bt.bottom-2)hi.classList.add('is-court');
 }
-if(typeof window!=='undefined'&&typeof addEventListener==='function'){let lqSesT=0;addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});}
+if(typeof window!=='undefined'&&typeof addEventListener==='function'){let lqSesT=0;addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});
+  /* Les polices arrivent après la première mesure (Inter en « swap ») : on remesure une fois qu’elles sont là. */
+  try{if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>lqSesAjuste(document.getElementById('home-hero')));}catch(e){}}
 /* Le pourcentage du parcours (20 h 32) : à la première ouverture de l’accueil, la barre se remplit et le chiffre monte de 0 ; quand il a
    changé depuis (une leçon validée), il part de la valeur déjà vue. Rien ne bouge avec les mouvements réduits. */
 let lqPctVu=null;
@@ -21536,6 +21559,7 @@ function lqKeepMascot(host,old){
   if(old&&fresh&&old!==fresh){
     for(const sel of ['.mstk-kw','.mstk-bub']){const a=old.querySelector(sel),b=fresh.querySelector(sel);if(a&&b&&a.textContent!==b.textContent)a.textContent=b.textContent;}
     {const a=old.querySelector('.mstk-niv'),b=fresh.querySelector('.mstk-niv');if(a&&b&&a.outerHTML!==b.outerHTML)a.replaceWith(b.cloneNode(true));}
+    {const l=fresh.getAttribute('aria-label');if(l!=null&&old.getAttribute('aria-label')!==l)old.setAttribute('aria-label',l);}   // le niveau qu’elle annonce (6 novembre)
     fresh.replaceWith(old);
   }
   return null;
@@ -32819,6 +32843,7 @@ function apercuPlan(niveau,rythme,freq){
 function validerPlan(){
   if(!(draft.niveau&&draft.rythme&&draft.freq))return;
   state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);
+  state.profile=Object.assign({},state.profile||{},{niveau:draft.niveau});
   semaineOffset=0;jourSel=null;save();renderPlanning();
   try{rappelNativeSync();}catch(e){}
   requestAnimationFrame(()=>{const sc=document.getElementById('scr-planning');if(sc)sc.scrollTop=0;});
@@ -32826,6 +32851,7 @@ function validerPlan(){
 function refairePlan(){
   const p=state.plan;
   draft={niveau:p?p.niveau:null,rythme:p?p.rythme:null,freq:p?p.freq:null};
+  if(p&&p.niveau)state.profile=Object.assign({},state.profile||{},{niveau:p.niveau});   // le niveau du compte ne retombe pas à 1
   state.plan=null;save();renderPlanning();
   requestAnimationFrame(()=>{const sc=document.getElementById('scr-planning');if(sc)sc.scrollTop=0;});
 }
@@ -38029,6 +38055,7 @@ function finishOnboard(action){
     job:draft.job||'',
     source:draft.source||'',
     referral:draft.source==='referral'?(draft.referral||''):'',
+    niveau:draft.niveau,
     ...(PAYS_CODES.includes(draft.pays)?{pays:draft.pays,paysAuto:!!draft.paysAuto}:{}),
     ...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})
   };
@@ -38528,7 +38555,9 @@ function niveauCompte(){
   const ids=allLessons.map(l=>l.id),rang=id=>Math.max(0,ids.indexOf(id));
   const jointures=(MODULES.find(m=>m.titre==='Jointures')||{lessons:[]}).lessons[0];
   const bornes=[rang(NIVEAUX[1].from),jointures?rang(jointures.id):rang(NIVEAUX[2].from),rang(NIVEAUX[2].from)];
-  const depart=rang((NIVEAUX.find(n=>n.k===(state.plan&&state.plan.niveau))||NIVEAUX[0]).from);
+  /* Le niveau choisi : celui du planning, sinon celui gardé dans le profil (pendant « Refaire mon planning », audit du 6 novembre, bug 7) */
+  const choisi=(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau);
+  const depart=rang((NIVEAUX.find(n=>n.k===choisi)||NIVEAUX[0]).from);
   const acquis=ids.filter((id,i)=>i<depart||itemDone(id)).length;
   return accountLevel(acquis,bornes,ids.length);
 }
@@ -38561,7 +38590,7 @@ function renderCompte(){
   const initial=(name?name[0]:'R').toUpperCase();
   const st=compteStats(),kd=salleKpi();
   const progress=progressContinuer();
-  const nivLab={debutant:'Niveau débutant',bases:'Quelques bases',inter:'Niveau analyste'}[state.plan&&state.plan.niveau]||null;
+  const nivLab={debutant:'Niveau débutant',bases:'Quelques bases',inter:'Niveau analyste'}[(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau)]||null;
   const remind=rappelOn();
   const hour=rappelHeure();
   const connected=state.accountMode==='connected';
@@ -39469,7 +39498,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-chrono-salle-v2568';
+  const SW_CACHE='requete-2026-11-06-accueil-calculs-v2569';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

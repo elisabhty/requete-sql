@@ -60,7 +60,7 @@ test('9 h 19 : « Fais une petite requête ! » ouvre l’onglet Défis ; « Tu 
   }
   /* La bulle, à la place de « Ravi de te revoir ! », tant qu’il la dit : « Je t’avais dit que j’allais te retrouver ! », puis, depuis
      19 h 41 (le raccourci demande « Même pas un dernier SELECT ? »), « Ouf, pas de DELETE ! Un petit SELECT ? » */
-  const m = vm.createContext({ esc: s => String(s) });
+  const m = vm.createContext({ esc: s => String(s), escAttr: s => String(s) });
   vm.runInContext(cut('const MASCOT_IMG=', 'function mascotReduced(){'), m);
   assert.ok(vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Ravi de te revoir\\u00a0!'})", m).includes('>Ravi de te revoir\u00a0!</span>'));
   vm.runInContext('mascotRetrouveJusqua=Date.now()+5000', m);
