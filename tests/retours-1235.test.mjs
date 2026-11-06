@@ -50,7 +50,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
     assert.ok(act.includes(k), k);
   for (const k of ['@available(iOS 16.1, *)\nstruct RequeteLeconActivite: Widget {', '@available(iOS 16.1, *)\nstruct LeconVerrouille: View {',
     '@available(iOS 16.1, *)\nstruct LeconFlamme: View {', '@available(iOS 16.1, *)\nfunc leconPhrase(_ e: RequeteLecon.ContentState) -> String {',
-    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n    }\n}'])
+    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n    }\n}'])   // 6 novembre, 0 h 40 : la flamme de l’écran verrouillé rejoint le paquet (retours-0040)
     assert.ok(widget.includes(k), k);
   /* Les phrases : l’espace fine avant « ! » et « % » */
   const phrase = cut(widget, 'func leconPhrase(', '\n}\n');
@@ -266,7 +266,7 @@ test('la note se garde dans la progression (normalizeState), sans rien d’autre
 });
 
 test('les étoiles en CSS : la fiche du bilan, leur arrivée, leur ondulation, le rebond, les étincelles, et le mouvement réduit', () => {
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=168">'));
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=169">'));
   for (const k of ['html.lq #scr-lesson .bravo-avis{', 'html.lq #scr-lesson .bravo-avis .av-star.on path{fill:var(--sun);stroke:var(--sun-lip)}',
     'html.lq #scr-lesson .bravo-avis .av-star input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
     'html.lq #scr-lesson .bravo-avis .av-star{animation:avStarIn .5s var(--pop) calc(.42s + var(--i) * .07s) backwards}',
