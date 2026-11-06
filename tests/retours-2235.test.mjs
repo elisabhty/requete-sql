@@ -81,9 +81,9 @@ test('partout où l’on supprime ou crée : la carte s’en va, la coche dit qu
 
 test('la carte de Mon compte : la barre au chiffre du parcours, le module qui suit ; plus de niveau suivant (6 novembre, 6 h 10)', () => {
   /* 6 novembre, audit de la carte : le chiffre et la barre sont ceux du parcours entier, la barre leçon par leçon (retours-1013-compte) */
-  /* 11 h 12, direction C : « Ton parcours » dans sa tuile, à côté de « Ton niveau » ; la barre montre aussi les acquis (retours-1013-compte) */
+  /* 11 h 12, direction C : « Ton parcours » dans sa tuile, à côté de « Ton niveau » ; 12 h 28, plus d’acquis au départ sur la barre (retours-1013-compte) */
   assert.ok(compte.includes('<small>Ton parcours</small><span class="acct-t-l"><b class="acct-t-n">${parc.pct}<i>\\u00a0%</i></b></span>'));
-  assert.ok(compte.includes('${acctParcoursHTML(chap&&chap.cur,acqN)}'), 'la barre : le même chiffre');
+  assert.ok(compte.includes('${acctParcoursHTML(chap&&chap.cur)}'), 'la barre : le même chiffre');
   assert.ok(!compte.includes('Prochain cap') && !compte.includes('width:${level.pct}%'), 'plus la barre du palier sous le chiffre du parcours');
   assert.ok(compte.includes('${acctModuleHTML(chap)}') && app.includes('<button type="button" class="acct-chap" onclick="ouvrirChapitre(${c.mi})"'));
   /* 6 novembre, 6 h 10 (Elisa : « enlève niveau 3 dans 8 leçons dans compte ») : le niveau suivant n’est plus affiché (retours-0610) */
@@ -108,5 +108,5 @@ test('la carte de Mon compte : la barre au chiffre du parcours, le module qui su
   for (const k of ['html.lq .acct-hero .acct-chap{display:flex;align-items:center;gap:12px;width:100%;', 'html.lq .acct-hero .acct-chap-go{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);',
     'html.lq .acct-hero .acct-level-head em{font:800 19px/1 var(--display);color:var(--sun-hi)}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=179">') && sw.includes("const CACHE = 'requete-2026-11-06-reco-bord-v2578';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=180">') && sw.includes("const CACHE = 'requete-2026-11-06-niveau-depart-v2579';"));
 });

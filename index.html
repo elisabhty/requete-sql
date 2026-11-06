@@ -4501,8 +4501,8 @@
   .ob-level-hint{margin-top:13px;display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:var(--accent-soft);color:#4545A9;font-size:12.5px;font-weight:620;line-height:1.4;text-align:left;animation:obMessageIn .3s var(--spring-ios) both}
   .ob-level-hint b{font-weight:800}
   .ob-level-hint>span{flex:none;font-size:15px}
-  /* Chemin compact : ce qui est considéré acquis, le point de départ, la suite.
-     Il réagit au niveau choisi et tient sur un écran sans défiler. */
+  /* Chemin compact : le départ (le même pour tout le monde), la suite et le niveau de
+     défis recommandé. Il réagit au niveau choisi et tient sur un écran sans défiler. */
   .ob-path{margin-top:14px;padding:13px 12px 11px;border:1px solid rgba(91,91,214,.13);border-radius:17px;background:#fff;box-shadow:0 12px 28px -26px rgba(35,32,110,.5)}
   .ob-path-track{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
   .ob-path-track::before{content:'';position:absolute;left:12.5%;right:12.5%;top:11px;height:2px;background:#E4E4EE;border-radius:2px}
@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=179">
+<link rel="stylesheet" href="ludique.css?v=180">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
@@ -29135,12 +29135,16 @@ let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo',jeuNivUser=false,jeuVis='pub';
 })();
 function jeuSavePrefs(){try{localStorage.setItem('rq-jeu-prefs',JSON.stringify(Object.assign({niv:jeuNiv,nb:jeuNb,mode:jeuMode,nivUser:jeuNivUser,vis:jeuVis},typeof DEFIS!=='undefined'?{onglet:DEFIS.onglet==='stats'?'jouer':DEFIS.onglet,portee:DEFIS.portee,periode:DEFIS.periode}:{})));}catch(e){}}
 /* Le niveau de défi de la personne (Elisa, 1er novembre, 13 h 46 : « filtrer en premier en fonction du niveau de la personne, pas
-   tout le monde sur Facile ; c’est juste filtrer, pas enlever ») : celui de Mon compte, qui tient compte de l’onboarding — Explorateur
-   SQL → Facile, Constructeur et Analyste relationnel → Moyen, Analyste SQL et au-delà → Difficile. La salle s’y place tant qu’on n’a
-   pas choisi soi-même un niveau ; les trois restent choisissables, seul ou entre amis. */
+   tout le monde sur Facile ; c’est juste filtrer, pas enlever »). 6 novembre, 12 h 28 (« c’est juste les défis qui vont être
+   recommandés comme facile, difficile etc. ») : le niveau choisi à l’onboarding — « Je pars de zéro » → Facile, « J’ai quelques
+   bases » → Moyen, « Je vise le niveau analyste » → Difficile —, et celui de Mon compte, qui monte avec les leçons validées
+   (Constructeur et Analyste relationnel → Moyen, Analyste SQL et au-delà → Difficile) : le plus haut des deux. La salle s’y place tant
+   qu’on n’a pas choisi soi-même un niveau ; les trois restent choisissables, seul ou entre amis. */
 function jeuNivAuto(){
   let rank=1;try{if(typeof niveauCompte==='function')rank=niveauCompte().rank;}catch(e){}
-  const k=rank>=4?'d':rank>=2?'m':'f';
+  let choisi='';try{choisi=(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau)||'';}catch(e){}
+  const ordre=['f','m','d'],parChoix={bases:'m',inter:'d'}[choisi]||'f',parNiveau=rank>=4?'d':rank>=2?'m':'f';
+  const k=ordre[Math.max(ordre.indexOf(parChoix),ordre.indexOf(parNiveau))];
   if(typeof jeuChallenges!=='function'||jeuChallenges(k).length)return k;
   return ['m','f','d'].find(x=>jeuChallenges(x).length)||'f';
 }
@@ -32439,7 +32443,8 @@ const NIVEAUX=[
   {k:'inter',i:'●',t:"Je vise le niveau analyste",d:"Agrégations et jointures acquises · défis difficiles",from:45}
 ];
 /* 3 novembre, 17 h 32 : tout nouveau parcours part de la première leçon (buildMixPool). `from` reste le point de départ des parcours
-   créés avant, et la part du parcours comptée comme acquise pour le niveau du compte et des défis (niveauCompte). */
+   créés avant, et marque les paliers du niveau du compte (niveauCompte). 6 novembre, 12 h 28 : le niveau choisi ne compte plus de
+   leçons comme acquises ; il donne le niveau de défi conseillé (jeuNivAuto, comme le promet « défis faciles », « moyens », « difficiles »). */
 const RYTHMES=[
   {k:'calme',i:'10',t:"10 minutes",d:"~2 activités · rythme tranquille",per:2,min:12},
   {k:'regulier',i:'20',t:"20 minutes",d:"~3 activités · rythme régulier",per:3,min:18},
@@ -37079,15 +37084,15 @@ function brancherObSwipeV2(){
 }
 /* 3 novembre, 23 h 21 (Elisa) : « ne parle pas de commencer par Les bases de données relationnelles, mets juste le cadre du bas » :
    plus d’encadré « Tu commenceras par la leçon… » sous les réponses ; le chemin (obLevelPath) reste seul. */
-/* Chemin en quatre étapes : ce que le niveau choisi considère acquis, le
-   point de départ, la suite. Remplace un graphique décoratif par une
-   information qui réagit au choix. */
+/* Chemin en quatre étapes : le départ, à la première pour tout le monde, la
+   suite, et le niveau de défis recommandé. Remplace un graphique décoratif
+   par une information qui réagit au choix. */
 /* 3 novembre, 17 h 32 (Elisa) : « commencer toujours par la même leçon, car c’est le début ». Quel que soit le niveau, le parcours
-   part de la première étape ; le niveau choisi règle la difficulté des défis (niveauCompte, jeuNivAuto). */
+   part de la première étape ; le niveau choisi règle la difficulté des défis (jeuNivAuto). */
 function obLevelPath(){
   const stages=['SELECT','Filtres & tris','Jointures','Analyses'];
   /* 23 h 21 : « mets pas "comme tout le monde" ; défis recommandés en Moyen, et pareil, débutant niveau Facile » : la note dit le
-     niveau de défis recommandé, pour chaque réponse (Facile, Moyen, Difficile, comme niveauCompte et la salle de défi). */
+     niveau de défis recommandé, pour chaque réponse (Facile, Moyen, Difficile, comme jeuNivAuto et la salle de défi). */
   const start=0,defi={debutant:'Facile',bases:'Moyen',inter:'Difficile'}[draft.niveau]||'Facile';
   const steps=stages.map((s,i)=>`<div class="ob-path-step ${i===start?'start':''}"><i aria-hidden="true">${i===start?'▶':''}</i><span>${s}</span></div>`).join('');
   const note=`Défis recommandés : niveau <b>${defi}</b>`;
@@ -38702,9 +38707,8 @@ function closePlusDetails(){
   vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);fit();
 })();
 /* Niveau SQL : cinq paliers. Les quatre premiers sont les quatre étapes de l’onboarding (« Où en es-tu avec SQL ? » : SELECT,
-   Filtres & tris, Jointures, Analyses), le cinquième le parcours maîtrisé. Ce que le niveau choisi à l’onboarding considère comme
-   acquis compte comme acquis : « Je débute » part du palier 1, « Je connais les bases » du palier 2, « Je pratique déjà » du
-   palier 4 (Elisa, 1er novembre, 9 h 43 : « prendre en compte ce qu’on a mis dans l’onboarding »). */
+   Filtres & tris, Jointures, Analyses), le cinquième le parcours maîtrisé. On y monte avec ses leçons validées, tout le monde à
+   partir du palier 1 (Elisa, 6 novembre, 12 h 28) ; le niveau choisi à l’onboarding donne le niveau de défi conseillé (jeuNivAuto). */
 const ACCOUNT_LEVELS=[
   {label:'Explorateur SQL',f:'Exploratrice SQL',n:'Explorateur·rice SQL',etape:'SELECT',next:'Filtres et tris'},
   {label:'Constructeur de requêtes',f:'Constructrice de requêtes',n:'Constructeur·rice de requêtes',etape:'Filtres & tris',next:'Jointures'},
@@ -38725,15 +38729,14 @@ function accountLevel(acquis,bornes,total){
   const label=band.f&&typeof accord==='function'?accord(band.f,band.label,band.n||band.label):band.label;
   return {label,next:band.next,etape:band.etape,pct,rank:i+1,reste:i===4?0:Math.max(0,b[i+1]-a)};
 }
-/* Le niveau de l’utilisateur : leçons faites, plus celles d’avant son point de départ (onboarding ou réglage du profil). */
+/* Le niveau de l’utilisateur : ses leçons validées. Elisa, 6 novembre, 12 h 28 : « tout le monde commence au même endroit, c’est juste
+   les défis qui vont être recommandés comme facile, difficile etc. » : le niveau choisi à l’onboarding ne compte plus de leçons comme
+   acquises (1er novembre, 9 h 43) ; il donne seulement le niveau de défi conseillé (jeuNivAuto). Les paliers restent les mêmes. */
 function niveauCompte(){
   const ids=allLessons.map(l=>l.id),rang=id=>Math.max(0,ids.indexOf(id));
   const jointures=(MODULES.find(m=>m.titre==='Jointures')||{lessons:[]}).lessons[0];
   const bornes=[rang(NIVEAUX[1].from),jointures?rang(jointures.id):rang(NIVEAUX[2].from),rang(NIVEAUX[2].from)];
-  /* Le niveau choisi : celui du planning, sinon celui gardé dans le profil (pendant « Refaire mon planning », audit du 6 novembre, bug 7) */
-  const choisi=(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau);
-  const depart=rang((NIVEAUX.find(n=>n.k===choisi)||NIVEAUX[0]).from);
-  const acquis=ids.filter((id,i)=>i<depart||itemDone(id)).length;
+  const acquis=ids.filter(id=>itemDone(id)).length;
   return accountLevel(acquis,bornes,ids.length);
 }
 /* Le badge de niveau, au style de la vitrine : une pastille jaune soleil avec le numéro du palier, puis son nom. */
@@ -38768,22 +38771,13 @@ function moduleCompte(){
   const reste=allLessons.filter(l=>!itemDone(l.id)),m=reste.length?moduleDeLecon(reste[0].id):null;
   return m?{mi:MODULES.indexOf(m),titre:m.titre,cur:null,etat:'hors planning',reste:reste.length}:null;
 }
-/* Le point de départ du niveau choisi (onboarding ou profil) : les leçons d’avant comptent comme acquises pour le niveau
-   (niveauCompte). Direction C (Elisa, 6 novembre, 11 h 12) : la tuile « Ton niveau » le dit, la barre le montre en hachures. */
-function departCompte(){
-  const ids=allLessons.map(l=>l.id),choisi=(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau);
-  const n=NIVEAUX.find(x=>x.k===choisi)||NIVEAUX[0];
-  return {n:Math.max(0,ids.indexOf(n.from)),choix:n.t};
-}
 /* La barre, leçon par leçon dans l’ordre du parcours : la part remplie est le %, et l’on voit où sont les leçons validées (8 leçons des
    modules 2 et 3, le module 1 encore ouvert : la barre ne dit plus « tu es à 11 % du chemin ») ; un trait fin entre deux modules ; la
-   leçon en cours a son repère, remplie de ce qui est vu de sa vidéo. acquis (direction C) : les leçons d’avant le point de départ du
-   niveau, pas encore validées, en hachures. */
-function acctParcoursHTML(cur,acquis){
+   leçon en cours a son repère, remplie de ce qui est vu de sa vidéo. */
+function acctParcoursHTML(cur){
   const ids=allLessons.map(l=>l.id),T=ids.length||1,pc=x=>(x/T*100).toFixed(2)+'%',r=cur!=null?ids.indexOf(cur):-1;
-  const etat=i=>itemDone(ids[i])?'v':acquis&&i<acquis&&i!==r?'a':'';
   let runs='';
-  for(let i=0;i<ids.length;){const e=etat(i);if(!e){i++;continue;}let j=i;while(j<ids.length&&etat(j)===e)j++;runs+=`<i${e==='a'?' class="is-a"':''} style="left:${pc(i)};width:${pc(j-i)}"></i>`;i=j;}
+  for(let i=0;i<ids.length;){if(!itemDone(ids[i])){i++;continue;}let j=i;while(j<ids.length&&itemDone(ids[j]))j++;runs+=`<i style="left:${pc(i)};width:${pc(j-i)}"></i>`;i=j;}
   let k=0;const traits=MODULES.slice(0,-1).map(m=>{k+=m.lessons.length;return `<b style="left:${pc(k)}"></b>`;}).join('');
   let ici='';
   if(r>=0){
@@ -38847,9 +38841,10 @@ function renderCompte(){
   const depuisHero=`<span class="acct-obj acct-depuis"><span class="acct-obj-ico" aria-hidden="true">${ACCT_CAL_SVG}</span><span>Membre depuis le <strong>${esc(inscriptionTexte())}</strong></span></span>`;
   const parc=parcoursCompte(),chap=moduleCompte();   // audit du 6 novembre : le % et le module de l’accueil et du catalogue
   /* Direction C (« Niveau et parcours, deux mesures », Elisa, 6 novembre, 11 h 12) : le niveau quitte le rond et le dessous du prénom
-     pour sa tuile, à côté de celle du parcours ; « 11 leçons acquises au départ » explique un niveau plus haut que le parcours. */
-  const depart=departCompte(),acqN=depart.n,acqT=`${acqN}\u00a0leçon${acqN>1?'s':''} acquise${acqN>1?'s':''} au départ`;
-  const nivLu=`Ton niveau : niveau ${level.rank}, ${level.label}.`+(acqN?` ${acqN} leçon${acqN>1?'s':''} comptée${acqN>1?'s':''} comme acquise${acqN>1?'s':''} d’après ton choix «\u00a0${depart.choix}\u00a0».`:'');
+     pour sa tuile, à côté de celle du parcours. 12 h 28 (« tout le monde commence au même endroit ») : il monte avec les leçons
+     validées, pour tout le monde ; plus de leçons « acquises au départ ». */
+  const nivDit=level.rank>=5?'Le plus haut niveau':'Il monte avec tes leçons validées';
+  const nivLu=`Ton niveau : niveau ${level.rank}, ${level.label}. ${nivDit}.`;
   /* Ta semaine : les 7 jours du planning, à partir d’aujourd’hui, comme « Les 7 prochains jours » du Planning (Elisa, 30 octobre,
      22 h 11 : « c’est pas cette semaine, c’est aujourd’hui, du coup pour vendredi » : plus de lundi à jeudi en lunes avant l’inscription). */
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
@@ -38897,11 +38892,11 @@ function renderCompte(){
         <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${objHero}${depuisHero}</span>
       </button>
       <div class="acct-duo">
-        <div class="acct-tuile acct-t-niv"><span class="acct-sr">${esc(nivLu)}</span><span aria-hidden="true"><small>Ton niveau</small><span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b><em>${acqN?`<i class="acct-sw is-a"></i>${acqT}`:level.rank>=5?'Le plus haut niveau':'Il monte avec tes leçons validées'}</em></span></div>
+        <div class="acct-tuile acct-t-niv"><span class="acct-sr">${esc(nivLu)}</span><span aria-hidden="true"><small>Ton niveau</small><span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b><em>${nivDit}</em></span></div>
         <div class="acct-tuile acct-t-parc"><span class="acct-sr">${esc(`Ton parcours : ${parcoursValidees(parc.faites)}, soit ${parc.pct} %.`)}</span><span aria-hidden="true"><small>Ton parcours</small><span class="acct-t-l"><b class="acct-t-n">${parc.pct}<i>\u00a0%</i></b></span><em>${parc.faites?'<i class="acct-sw is-v"></i>':''}${esc(parcoursValidees(parc.faites))}</em></span></div>
       </div>
       <div class="acct-level acct-level-c">
-        ${acctParcoursHTML(chap&&chap.cur,acqN)}
+        ${acctParcoursHTML(chap&&chap.cur)}
         ${acctModuleHTML(chap)}
       </div>
     </section>
@@ -39758,7 +39753,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-reco-bord-v2578';
+  const SW_CACHE='requete-2026-11-06-niveau-depart-v2579';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

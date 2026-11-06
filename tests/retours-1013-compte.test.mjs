@@ -1,7 +1,7 @@
 /* 6 novembre, 10 h 13 (Elisa : « reconstruise le petit cadre […] sur la partie Mon compte. Donc peut-être faut le bouton déconnexion, je
    sais pas trop, mais je te laisse choisir ») : l’audit UI/UX de la carte de Mon compte. 11 h 12 : Elisa choisit la direction C,
-   « Niveau et parcours, deux mesures » : deux tuiles, « Ton niveau » (et les leçons acquises au départ) et « Ton parcours » ; la barre
-   montre en hachures ce que le niveau compte comme acquis.
+   « Niveau et parcours, deux mesures » : deux tuiles, « Ton niveau » et « Ton parcours ». 12 h 28 (« tout le monde commence au même
+   endroit ») : plus de leçons « acquises au départ » dans la tuile du niveau, ni de hachures sur la barre.
    - Le % et la barre comptent les leçons validées sur toutes les leçons, comme le catalogue ; la barre montre chaque leçon à sa place.
    - Le module est celui que propose l’accueil ; « En cours » dès qu’une leçon y est validée ou commencée, sinon « À commencer ».
    - Le nom du niveau s’accorde ; l’initiale d’un prénom qui commence par un emoji reste entière.
@@ -69,11 +69,11 @@ test('le module : celui de l’accueil, « En cours » ou « À commencer » ; l
   assert.ok(parcours({ cur: 51 }).acctModuleHTML(parcours({ cur: 51 }).moduleCompte()).includes('data-etat="neuf"') && parcours({ cur: 51 }).acctModuleHTML(parcours({ cur: 51 }).moduleCompte()).includes('À commencer</span> · Module 3'));
   assert.ok(x.acctModuleHTML({ mi: 0, titre: 'Introduction', cur: null, etat: 'hors planning', reste: 11 }).includes('<small>Planning terminé · 11 leçons hors planning</small>'));
   assert.ok(x.acctModuleHTML(null).startsWith('<p class="acct-fini">') && x.acctModuleHTML(null).includes('<b>Parcours terminé</b>'));
-  /* Dans la carte (direction C) : deux tuiles, chacune sa phrase lue par VoiceOver ; puis la barre, avec les acquis, et le module */
+  /* Dans la carte (direction C) : deux tuiles, chacune sa phrase lue par VoiceOver ; puis la barre et le module */
   assert.ok(compte.includes('const parc=parcoursCompte(),chap=moduleCompte();'));
   assert.ok(compte.includes('<div class="acct-tuile acct-t-niv"><span class="acct-sr">${esc(nivLu)}</span><span aria-hidden="true"><small>Ton niveau</small><span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b>'), 'la tuile du niveau');
   assert.ok(compte.includes('<div class="acct-tuile acct-t-parc"><span class="acct-sr">${esc(`Ton parcours : ${parcoursValidees(parc.faites)}, soit ${parc.pct} %.`)}</span><span aria-hidden="true"><small>Ton parcours</small><span class="acct-t-l"><b class="acct-t-n">${parc.pct}<i>\\u00a0%</i></b></span>'), 'la tuile du parcours');
-  assert.ok(compte.includes('<div class="acct-level acct-level-c">\n        ${acctParcoursHTML(chap&&chap.cur,acqN)}\n        ${acctModuleHTML(chap)}'), 'la barre, avec les acquis, puis le module');
+  assert.ok(compte.includes('<div class="acct-level acct-level-c">\n        ${acctParcoursHTML(chap&&chap.cur)}\n        ${acctModuleHTML(chap)}'), 'la barre, puis le module');
   assert.ok(!compte.includes('acct-level-head') && !compte.includes('acct-level-leg'), 'les tuiles remplacent le titre et la légende');
   assert.ok(!compte.includes('Prochain chapitre') && !compte.includes('role="group" aria-label="${escAttr(`Ma progression'));
 });
@@ -152,21 +152,20 @@ test('le style : contraste, barre, module, bloc du compte, « Texte plus grand �
     assert.ok(lq.includes(k), k);
 });
 
-test('direction C : les leçons acquises au départ, en hachures sur la barre, et dans la tuile du niveau', () => {
+test('direction C, puis 12 h 28 (« tout le monde commence au même endroit ») : ni hachures, ni leçons « acquises au départ »', () => {
   const x = parcours({ faites: [13], cur: 0 });
-  const h = x.acctParcoursHTML(0, 3);   // les trois premières leçons acquises au départ : 0 (en cours), 2, puis 13 (validée)
-  assert.ok(h.includes('<i class="is-a" style="left:16.67%;width:16.67%"></i>'), 'la leçon 2, acquise et pas validée : hachurée');
-  assert.ok(h.includes('<i style="left:33.33%;width:16.67%"></i>'), 'la 13, validée : en jaune, même dans la zone acquise');
-  assert.ok(!/is-a" style="left:0\.00%/.test(h), 'la leçon en cours garde son repère, pas de hachures');
-  assert.equal(x.acctParcoursHTML(0), parcours({ faites: [13], cur: 0 }).acctParcoursHTML(0, 0), 'sans acquis : la barre de toujours');
-  const d = cut('function departCompte(){', '\n}\n');
-  assert.ok(d.includes('const n=NIVEAUX.find(x=>x.k===choisi)||NIVEAUX[0];') && d.includes('return {n:Math.max(0,ids.indexOf(n.from)),choix:n.t};'), 'le point de départ de niveauCompte');
-  assert.ok(compte.includes("<em>${acqN?`<i class=\"acct-sw is-a\"></i>${acqT}`:level.rank>=5?'Le plus haut niveau':'Il monte avec tes leçons validées'}</em>"), '« 11 leçons acquises au départ »');
-  assert.ok(compte.includes('const depart=departCompte(),acqN=depart.n,acqT=`${acqN}\\u00a0leçon${acqN>1?\'s\':\'\'} acquise${acqN>1?\'s\':\'\'} au départ`;'));
+  const h = x.acctParcoursHTML(0);
+  assert.ok(h.includes('<i style="left:33.33%;width:16.67%"></i>'), 'la 13, validée : en jaune');
+  assert.ok(!h.includes('is-a'), 'les leçons d’avant ne sont plus hachurées');
+  assert.equal(x.acctParcoursHTML(0, 3), h, 'plus de « point de départ » qui change la barre');
+  assert.ok(!app.includes('function departCompte(') && !compte.includes('acqN') && !compte.includes('acct-sw is-a'), 'plus de leçons acquises au départ dans la carte');
+  assert.ok(compte.includes("const nivDit=level.rank>=5?'Le plus haut niveau':'Il monte avec tes leçons validées';") && compte.includes('<b>${esc(level.label)}</b><em>${nivDit}</em>'), 'la tuile du niveau dit qu’il monte avec les leçons validées');
+  assert.ok(compte.includes('const nivLu=`Ton niveau : niveau ${level.rank}, ${level.label}. ${nivDit}.`;'), 'VoiceOver lit la même chose');
   /* Le niveau quitte le rond et le dessous du prénom : il est dans sa tuile */
   assert.ok(compte.includes('<span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:\'\'}</span></span>'));
   assert.ok(!compte.includes('<span class="acct-rang"'), 'plus le nom du niveau sous le prénom');
-  for (const r of ['html.lq .acct-duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}', 'html.lq .acct-parc-z>i.is-a{background:repeating-linear-gradient(135deg,',
+  assert.ok(!lq.includes('.acct-parc-z>i.is-a') && !lq.includes('.acct-sw.is-a'), 'plus de style de hachures');
+  for (const r of ['html.lq .acct-duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}', 'html.lq .acct-sw.is-v{background:var(--sun)}',
     'html.lq[data-reading="large"] .acct-tuile b:not(.acct-t-n){font-size:17px}', '@media (max-width:400px){html.lq[data-reading="large"] .acct-duo{grid-template-columns:1fr}}'])
     assert.ok(lq.includes(r), r);
 });

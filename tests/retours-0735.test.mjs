@@ -77,19 +77,20 @@ test('6 — l’étiquette se mesure avec son vrai nombre, puis quand les police
   assert.ok(app.includes("try{if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>lqSesAjuste(document.getElementById('home-hero')));}catch(e){}"));
 });
 
-test('7 — le niveau choisi reste pendant « Refaire mon planning » (gardé dans le profil)', () => {
-  const nc = fn('niveauCompte');
-  assert.ok(nc.includes('const choisi=(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau);') && nc.includes('const depart=rang((NIVEAUX.find(n=>n.k===choisi)||NIVEAUX[0]).from);'));
+test('7 — le niveau choisi reste pendant « Refaire mon planning » (gardé dans le profil) ; depuis le 6 novembre, 12 h 28, il donne le niveau de défi conseillé', () => {
+  assert.ok(fn('jeuNivAuto').includes("let choisi='';try{choisi=(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau)||'';}catch(e){}"));
   assert.ok(fn('refairePlan').includes('if(p&&p.niveau)state.profile=Object.assign({},state.profile||{},{niveau:p.niveau});'));
   assert.ok(fn('validerPlan').includes('state.profile=Object.assign({},state.profile||{},{niveau:draft.niveau});'));
   /* La dernière définition de finishOnboard est celle qui sert (la première est remplacée). */
   const fo = app.slice(app.lastIndexOf('function finishOnboard('), app.indexOf('\n}\n', app.lastIndexOf('function finishOnboard(')));
   assert.ok(fo.includes("referral:draft.source==='referral'?(draft.referral||''):'',\n    niveau:draft.niveau,"));
-  /* Sur une vraie base de leçons : « J’ai quelques bases » sans planning reste au niveau 2 */
+  /* Sur une vraie base de leçons : « J’ai quelques bases » sans planning : le niveau 1, comme tout le monde (« tout le monde commence
+     au même endroit »), et les défis conseillés en Moyen */
   const ctx = vm.createContext({ state: { plan: null, profile: { niveau: 'bases' }, lessons: {} }, isDefiId: () => false });
-  vm.runInContext(cut('const NIVEAUX=[', '\nconst RYTHMES=') + '\n' + cut('const ACCOUNT_LEVELS=[', 'function lvlBadgeHTML(') + ligne('itemDone')
+  vm.runInContext(cut('const NIVEAUX=[', '\nconst RYTHMES=') + '\n' + cut('const ACCOUNT_LEVELS=[', 'function lvlBadgeHTML(') + ligne('itemDone') + fn('jeuNivAuto')
     + 'const allLessons=Array.from({length:71},(_,i)=>({id:i}));const MODULES=[{titre:"Jointures",lessons:[{id:30}]}];', ctx);
-  assert.equal(vm.runInContext('niveauCompte().rank', ctx), 2);
+  assert.equal(vm.runInContext('niveauCompte().rank', ctx), 1);
+  assert.equal(vm.runInContext('jeuNivAuto()', ctx), 'm');
   vm.runInContext('state.profile={}', ctx);
-  assert.equal(vm.runInContext('niveauCompte().rank', ctx), 1, 'sans rien : le premier niveau, comme avant');
+  assert.equal(vm.runInContext('jeuNivAuto()', ctx), 'f', 'sans rien : Facile, comme avant');
 });
