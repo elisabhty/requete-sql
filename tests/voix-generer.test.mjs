@@ -25,7 +25,7 @@ test('preparer.mjs : les vingt cours ont la voix d’Anaïs, les autres modules 
   assert.ok(prep.includes('const AVEC_ANAIS = [...TABLES, ...SOUS_REQUETES, ...DONNEES, ...INTEGRITE, ...TRANSACTIONS, ...PROCEDURES];'));
   for (const id of ['PrwKJdvtTbJVdosRhS1O', 'p43fx6U8afP2xoq1Ai9f', 'QbsdzCokdlo98elkq4Pc', 'i32gAGa2D3T8nPzY1EsZ', 'G7ILShrCNLfmS0A37SXS'])
     assert.ok(!prep.includes(id), 'plus de voix ' + id);
-  assert.ok(read('tools/voix/A-REGENERER.md').includes('node tools/voix/generer.mjs --toutes --cours ' + COURS.join(',') + ',group-by,video-site\n'), 'la commande pour le Mac');
+  assert.ok(read('tools/voix/A-REGENERER.md').includes('node tools/voix/generer.mjs --toutes --cours ' + COURS.join(',') + ',group-by\n'), 'la commande pour le Mac (lancée le 5 novembre)');
   /* 6 h 37, « refais stp » : la vidéo du site dit « animés par huit formateurs » (il en reste huit), avec la voix de Louis */
   const site = JSON.parse(read('tools/voix/video-site.json')), s12 = site.elements.find(e => e.id === 's12');
   assert.ok(s12.texte.includes('Plus de soixante-dix cours immersifs, animés par huit formateurs, où tu apprends') && site.voix.nom === 'Louis');
@@ -56,4 +56,21 @@ test('generer.mjs : un fichier fait avec une autre voix est refait ; une phrase 
   assert.ok(src.includes('repris += reprendre(job, out);') && src.includes('const todo = (job.elements || []).filter(el => !fait(job, out, el))'), '--toutes compte après la reprise');
   assert.ok(src.includes("const reste = jobs.filter(f => !seuls.length || seuls.includes(f.replace(/\\.json$/, ''))).map(f => {"), '--cours : seulement ces leçons');
   fs.rmSync(tmp, {recursive: true, force: true});
+});
+
+/* Elisa, 6 novembre, 17 h 16 : la vidéo du site dit les nombres de l’appli. Deux phrases seulement sont à refaire (Louis) : « huit formateurs »
+   et « cent quarante-deux questions » ; le Mac n’a pas les fichiers d’origine de la vidéo, la relancer en entier referait tout, musique comprise. */
+test('vidéo du site : les deux phrases à refaire, et seulement elles ; l’intégration garde les autres et la musique', () => {
+  const site = JSON.parse(read('tools/voix/video-site.json')), job = JSON.parse(read('tools/voix/video-site-retouches.json'));
+  const app = read('index.html'), questions = (app.match(/\{id:'ent-v2-\d+'/g) || []).length;
+  assert.equal(questions, 142, 'les questions d’entretien de l’appli');
+  const s16 = site.elements.find(e => e.id === 's16');
+  assert.ok(s16.texte.includes('avec cent quarante-deux questions :') && !JSON.stringify(site).includes('quarante et une'), 'la voix dit 142, le contexte des voisines aussi');
+  assert.deepEqual(job.elements.map(e => e.id), ['s12', 's16']);
+  for (const e of job.elements) assert.deepEqual(e, site.elements.find(x => x.id === e.id), `${e.id} : le même texte et le même contexte`);
+  assert.deepEqual([job.voix, job.modele, job.format, job.musique], [site.voix, site.modele, site.format, undefined], 'Louis, le même modèle, sans musique');
+  const md = read('tools/voix/A-REGENERER.md');
+  assert.ok(md.includes('cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs video-site-retouches\n') && md.includes('**Ne pas lancer `video-site` en entier**'));
+  const integ = read('tools/voix/integrer-site.mjs');
+  assert.ok(integ.includes("if (!neuf && !fs.existsSync(garde)) { manque.push(e.id); return; }") && integ.includes("else if (fs.existsSync(mGarde)) { out.musique = {d: avant.musique && avant.musique.d || +dur(mGarde).toFixed(2)};"), 'une phrase absente garde son fichier, la musique aussi');
 });

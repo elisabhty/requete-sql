@@ -284,8 +284,10 @@ test('« cas pratiques » à la place de « défis métier » sur la vitrine, la
   const v = lire('video.html');
   assert.ok(v.includes('<span>Des <em>cas pratiques</em>,</span>'), 'titre de la scène');
   assert.ok(v.includes("[101.5, 'Cas pratiques']"), 'chapitre');
-  assert.ok(v.includes('<div class="stk sun" id="stk-df">267 cas pratiques<svg'), 'autocollant de la vidéo');
-  assert.ok(v.includes('<b>267 cas pratiques</b>'), 'tuile des fonctionnalités');
+  /* 6 novembre, 17 h 16 : la vidéo compte aussi 477 cas pratiques (la voix ne dit pas ce nombre : l’autocollant, la tuile, le texte de VoiceOver) */
+  assert.ok(v.includes('<div class="stk sun" id="stk-df">477 cas pratiques<svg'), 'autocollant de la vidéo');
+  assert.ok(v.includes('<b>477 cas pratiques</b>'), 'tuile des fonctionnalités');
+  assert.ok(!/\b267\b/.test(v) && !/\b267\b/.test(lire('index.html')) && !/\b267\b/.test(lire('connexion.html')), 'plus aucun 267 sur le site');
   assert.ok(v.includes('<div class="df-stamp" id="df-stamp">Cas résolu&nbsp;!</div>'));
   /* Le défi entre amis est une autre fonction de l’appli : il garde son nom */
   assert.match(lire('index.html'), /lancer des défis entre amis/);
@@ -363,7 +365,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.ok(s9.includes('<span>Du premier <code>SELECT</code></span>') && s9.includes('<span>aux requêtes <em>avancées</em>,</span>'), 'titre');
   assert.ok(s9.includes('<p class="abs sub">progresse à ton rythme.</p>'), 'la phrase continue sous le titre');
   const tuiles = [...s9.matchAll(/<div class="ft(?: more)?">.*?<b>(.*?)<\/b><\/div>/g)].map(m => m[1]);
-  assert.deepEqual(tuiles, ['71 cours immersifs', 'Un labo&nbsp;SQL interactif', '267 cas pratiques', 'Importe tes propres données',
+  assert.deepEqual(tuiles, ['71 cours immersifs', 'Un labo&nbsp;SQL interactif', '477 cas pratiques', 'Importe tes propres données',
     '142 questions d’entretien', 'Cartes mémo &amp; stickers', 'Défie tes amis', 'Ta série de jours',
     'Et bien plus encore<small>Découvre-les maintenant&nbsp;!</small>']);
   /* Quatre rangées de deux, puis « Et bien plus encore » sur toute la largeur (Elisa, 20 h 01 : « tout est tassé »).
@@ -387,7 +389,7 @@ test('vidéo : « Apprends le SQL maintenant. » puis les neuf tuiles des foncti
   assert.match(video, /#end\.on a,#end\.on button\{animation:endPop [^}]*backwards\}/, 'l’entrée ne bloque pas le survol');
   /* Texte lu par VoiceOver */
   assert.ok(video.includes("'Apprends le SQL maintenant avec Requête : plus de 70 cours, animés par 8 formateurs. Des cours immersifs"));
-  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 71 cours immersifs, un labo SQL interactif, 267 cas pratiques et 142 questions d’entretien"));
+  assert.ok(video.includes("'Du premier SELECT aux requêtes avancées, progresse à ton rythme. 71 cours immersifs, un labo SQL interactif, 477 cas pratiques et 142 questions d’entretien"));
 });
 
 /* Elisa, 30 octobre, 17 h 31 : un écran d’onboarding avec des logos de Harvard, Stanford et Emory (« est-ce qu’on peut
