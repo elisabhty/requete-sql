@@ -5187,14 +5187,6 @@
   .ent-assessment .estat svg{width:15px;height:15px;flex:none;display:block}
   .ent-assessment .estat.on{border-color:rgba(88,86,214,.43);background:#F0EFFF;color:var(--accent);box-shadow:inset 0 0 0 1px rgba(88,86,214,.08)}
   .ent-assessment .estat.on.ok{border-color:rgba(12,128,100,.28);background:var(--success-soft);color:var(--success)}
-  .ent-next{
-    width:100%;min-height:54px;margin-top:13px;padding:0 16px 0 18px;border:0;border-radius:17px;
-    display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(145deg,#6965E9,#4D49CE);color:#fff;
-    font-family:var(--ui);font-size:15px;font-weight:760;box-shadow:0 13px 27px -13px rgba(76,72,204,.75),inset 0 1px 0 rgba(255,255,255,.24);
-    cursor:pointer;touch-action:manipulation;transition:transform .16s var(--spring-ios);
-  }
-  .ent-next:active{transform:scale(.98)}
-  .ent-next svg{width:18px;height:18px}
 
   @media (max-width:370px){
     #scr-entretien .ent-hero{padding:16px}
@@ -5871,8 +5863,8 @@
   #scr-entretien.active>.fbar{animation:iosItemIn .35s var(--spring-ios) .16s both}
   #scr-entretien.active .ent-list-title{animation:iosItemIn .35s var(--spring-ios) .18s both}
   .ent-status-btn.on,.ent-assessment .estat.on{animation:iosSelectedPop .32s var(--bounce-ios)}
-  .ent-hero-cta svg,.ent-next svg,.ent-reveal-primary svg{transition:transform .2s var(--spring-ios)}
-  .ent-hero-cta:active svg,.ent-next:active svg{transform:translateX(3px)}
+  .ent-hero-cta svg,.ent-reveal-primary svg{transition:transform .2s var(--spring-ios)}
+  .ent-hero-cta:active svg{transform:translateX(3px)}
   .ent-reveal-primary:active svg{transform:scale(.88)}
   #scr-entretien .ecard.open .eno{transform:scale(1.06)}
 
@@ -6188,7 +6180,7 @@
     #scr-lesson.active .lesson-wrap>.ls-bars,#scr-lesson.active .lesson-rich>.l-kicker,#scr-lesson.active .lesson-rich>h1,.qopt.sel .ql,.qopt.bon .ql,.vstep.ok .vs-dot,.valid-done-ico,
     .viz.on>.viz-head,.viz.on>.viz-body>*,.viz.on .viz-nav,#card-sheet.viz.on .cd-share,#card-sheet.viz.on .cd-actions,.imp-sheet.on>*,.ob-slide.on>*,#scr-compte.active .plus-profile-card,#scr-compte.active .plus-fast-sec,#scr-compte.active .plus-local-proof,.plus-details-body{animation:none!important;opacity:1;transform:none}
     #scr-compte .plus-details[open]{animation:none!important;opacity:1;transform:translateX(-50%)!important}
-    .home-back svg,.cp-ico,.cp-chev,.pl-chip .cn,.pl-chip .cgo svg,.lr-option-icon,.console-quick-icon,.console-quick-chev,.console-project-icon,.console-project-chev,.console-schema-icon,.ent-hero-cta svg,.ent-next svg,.ent-reveal-primary svg,.acc-row .chev,.som-item .som-arrow{transition:none!important}
+    .home-back svg,.cp-ico,.cp-chev,.pl-chip .cn,.pl-chip .cgo svg,.lr-option-icon,.console-quick-icon,.console-quick-chev,.console-project-icon,.console-project-chev,.console-schema-icon,.ent-hero-cta svg,.ent-step svg,.ent-reveal-primary svg,.acc-row .chev,.som-item .som-arrow{transition:none!important}
     .acc-toggle.on i{animation:none!important;transform:translateX(20px)}
     .pl-manage-body,.late-recovery,#scr-planning .pl-manage--editor{animation:none}
     .pl-overview-track i,.pl-manage-chev{transition:none}
@@ -6493,7 +6485,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
     .ux-shortcut:hover::after{transform:translateX(4px);animation:none}
     .home-back:hover svg{transform:translateX(-3px)}
     .btn-run:hover .run-ico,.xf-run:hover .xf-run-ico{transform:scale(1.12)}
-    .ent-hero-cta:hover svg,.ent-next:hover svg,.def-focus-cta:hover svg{transform:translateX(3px)}
+    .ent-hero-cta:hover svg,.ent-step-next:hover svg,.def-focus-cta:hover svg{transform:translateX(3px)}
     .cp-cta:hover .cp-chev{transform:translateX(3px)}
     .fab:hover{animation:fabWiggle .5s ease}
   }
@@ -6752,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=187">
+<link rel="stylesheet" href="ludique.css?v=188">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
@@ -39752,6 +39744,14 @@ function entEtoile(et){
     <div class="ent-star-g">${et.dims.map((d,i)=>carte(d,'is-dim '+pos[i])).join('')}<i class="ent-star-l is-v" aria-hidden="true"></i><i class="ent-star-l is-h" aria-hidden="true"></i>${carte(et.faits,'is-fait')}</div>
     ${et.legende?`<figcaption>${esc(et.legende)}</figcaption>`:''}</figure>`;
 }
+/* Précédente et suivante dans la carte violette, sous la consigne (Elisa, 6 novembre, 22 h 20 : « Met le suivant précédent plutôt à
+   l’intérieur du cadre bleu de manière ui ux »). La navigation reste avant la réponse (3 novembre, 6 h 23 : « dès cette page ») et ne
+   descend plus sous elle. À l’écran, les mots courts (« Précédente », « Suivante ») ; le lecteur d’écran entend « Question précédente ».
+   Plus aucune autre question dans l’onglet : un seul bouton, « Retour aux questions », sur toute la largeur. */
+function entStepHtml(id){
+  const prev=entPrevTarget(id),next=entNextTarget(id);
+  return `<nav class="ent-step" aria-label="Changer de question">${prev?`<button type="button" class="ent-step-prev" onclick="prevEntretien('${id}')" aria-label="Question précédente">${ENT_CHEV_SVG}<span>Précédente</span></button>`:''}<button type="button" class="ent-step-next" onclick="nextEntretien('${id}')"${next?' aria-label="Question suivante"':''}><span>${next?'Suivante':'Retour aux questions'}</span>${ENT_CHEV_SVG}</button></nav>`;
+}
 function renderEntretienFocus(x){
   const revealed=!!entRevealed[x.id]||entOk(x.id);
   /* La question sur la carte violette de l’accueil, le micro en autocollant, l’onde qui parle (Elisa, 30 octobre, 22 h 11 :
@@ -39762,6 +39762,7 @@ function renderEntretienFocus(x){
     <div class="ent-focus-meta"><span>Question <b>${x.i+1}</b> sur ${ENTRETIEN.length}</span><i aria-hidden="true"></i><span>${x.q.niveau} · ${x.q.cat}</span></div>
     <h1 id="ent-focus-title">${entNbsp(x.q.q)}</h1>
     <div class="ent-coach"><span class="ent-coach-ico ent-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Réponds à voix haute, puis compare.</span></div>
+    ${entStepHtml(x.id)}
     </header>
     <section class="ent-answer-card" aria-live="polite">
       ${revealed?`<span class="ent-answer-label">Réponse attendue</span>
@@ -39775,8 +39776,6 @@ function renderEntretienFocus(x){
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
     </section>
     ${revealed?`<div class="ent-assessment"><p>Comment évalues-tu ta réponse ?</p>${entFoot(x.id)}</div>`:''}
-    <!-- 3 novembre, 6 h 23 : « mettre question suivante / précédente dès cette page » : la navigation est là avant la réponse. -->
-    <div class="ent-nav">${entPrevTarget(x.id)?`<button type="button" class="ent-prev" onclick="prevEntretien('${x.id}')">${ENT_CHEV_SVG}<span>Question précédente</span></button>`:''}<button type="button" class="ent-next" onclick="nextEntretien('${x.id}')"><span>${entNextTarget(x.id)?'Question suivante':'Retour aux questions'}</span>${ENT_CHEV_SVG}</button></div>
   </article>`;
 }
 function renderEntretien(opts){
@@ -44596,7 +44595,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-stickers-fiche-v2596';
+  const SW_CACHE='requete-2026-11-06-entretien-nav-v2597';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -154,10 +154,12 @@ test('la feuille de style : coche, signet, anneau, confettis, flèche, œil, ré
     'html.lq .ent-focus .ent-assessment .estat.is-just::after{content:"";position:absolute;inset:-2px;',
     '.estat.ok.is-just::after{--lq-ring:98,214,160}', '.estat.review.is-just::after{--lq-ring:242,194,75}',
     'html.lq .lq-burst{position:absolute;', 'animation:lqBurst .66s', '@keyframes lqBurst{0%{scale:.2;opacity:1}',
-    'html.lq .ent-focus .ent-next:active svg{transform:translateX(6px)}', 'html.lq .ent-reveal-primary:active svg{animation:lqBlink',
+    'html.lq .ent-focus .ent-step-next:active svg{transform:translateX(6px)}', 'html.lq .ent-focus .ent-step-prev:active svg{transform:scaleX(-1) translateX(6px)}',
+    'html.lq .ent-reveal-primary:active svg{animation:lqBlink',
     'html.lq .ent-focus.is-reveal .ent-answer-card>.ent-answer-label{animation:lqLabelPop', 'html.lq .ent-focus.is-reveal .ent-assessment{animation:lqRevealIn',
-    'html.lq .ent-focus.is-reveal .ent-next{animation:lqRevealIn'])
+    'html.lq .ent-focus.is-reveal .ent-assessment{animation:lqRevealIn .46s cubic-bezier(.2,.9,.3,1.1) .2s both}'])
     assert.ok(s38.includes(part), part);
+  assert.ok(!/is-reveal \.ent-(step|next|prev)/.test(s38), '6 novembre, 22 h 20 : la navigation est dans la carte violette, elle ne bouge pas quand la réponse se déplie');
   assert.match(s38, /@media \(prefers-reduced-motion:reduce\)\{[^}]*html\.lq \.lq-burst,[^}]*\{animation:none!important\}/);
   assert.ok(s38.includes('html[data-motion="reduce"].lq .lq-burst'), 'réglage de l’appli');
   /* Le check fait 21,2 de long (5,12 → 10,17 → 20,7) : un tiret de 23 le cache entièrement avant de le dessiner */
