@@ -25,7 +25,7 @@ const seed = html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('CREATE
 const CLIENTS = [...seed.matchAll(/\(\d+,'([^']+)','([^']+)'/g)].map(m => `${m[1]} ${m[2]}`);
 const PRODUITS = [...seed.matchAll(/\(\d+,'([^']+)','[^']*',[\d.]+,\d+\)/g)].map(m => m[1]);
 
-test('chaque question a ses données, et un univers', { skip: Object.keys(DONNEES).length < E.length && 'réécriture en cours, par lots' }, () => {
+test('chaque question a ses données, et un univers', () => {
   for (const q of E) {
     const d = DONNEES[q.id];
     assert.ok(d, `${q.id} : ses données dans tests/fixtures/entretien-donnees.mjs`);
@@ -65,7 +65,7 @@ test('chaque requête d’exemple s’exécute dans sql.js, et le tableau est ce
 });
 
 test('lisible sur iPhone : 30 caractères au plus par ligne de requête', () => {
-  for (const q of E.filter(q => DONNEES[q.id])) for (const l of q.sql.split('\n')) assert.ok(l.length <= 30, `${q.id} : ligne de ${l.length} caractères (${l})`);
+  for (const q of E) for (const l of q.sql.split('\n')) assert.ok(l.length <= 30, `${q.id} : ligne de ${l.length} caractères (${l})`);
 });
 
 test('des univers variés : 8 questions au plus par univers, et deux questions voisines n’ont pas le même', () => {
@@ -73,7 +73,7 @@ test('des univers variés : 8 questions au plus par univers, et deux questions v
   const parUnivers = {};
   for (const q of avec) (parUnivers[DONNEES[q.id].u] ||= []).push(q.id);
   for (const [u, ids] of Object.entries(parUnivers)) assert.ok(ids.length <= 8, `${u} : ${ids.length} questions (${ids.join(', ')})`);
-  if (avec.length === E.length) assert.ok(Object.keys(parUnivers).length >= 20, `${Object.keys(parUnivers).length} univers seulement`);
+  assert.ok(Object.keys(parUnivers).length >= 20, `${Object.keys(parUnivers).length} univers seulement`);
   /* Voisines : dans l’ordre des questions (« Question suivante »), et dans chaque thème de la liste. Deux exemples
      gardés tels quels peuvent se suivre (les comptes en banque des questions 66 et 67, l’application des 138 et 139). */
   const suites = [avec, ...[...new Set(E.map(q => q.cat))].map(c => avec.filter(q => q.cat === c))];

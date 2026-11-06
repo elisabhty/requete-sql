@@ -9,9 +9,11 @@
      erreurs  les instructions qui doivent échouer (une insertion refusée…), numérotées à partir de 0
      res      le résultat attendu d’une instruction : des lignes, ou { cols, rows } pour quelques colonnes
      colonnes les colonnes attendues d’une instruction
-     ex       ce qui rejoue le tableau de l’exemple : { sql } ou { instr }, sur les colonnes cols, pour les lignes
-              que garde lignes (par défaut, toutes)
+     ex       ce qui rejoue le tableau de l’exemple : { sql } ou { instr }, sur les colonnes cols du tableau (rcols :
+              du résultat), pour les lignes que garde lignes (par défaut, toutes) ; avant : true rejoue le tableau
+              sur les données d’origine (un tableau montré avant une suppression)
      exLibre  pourquoi le tableau ne se rejoue pas (un tableau de notions, une sortie propre à un autre SGBD…)
+     sessions l’exemple joue deux sessions en parallèle (« -- Session A », « -- Session B ») : chacune a sa base
      verif    un contrôle sur mesure, qui renvoie un problème ou rien */
 const acceptee = r => r[r.length - 1] === 'Acceptée';
 
@@ -113,9 +115,9 @@ export const DONNEES = {
   'ent-v2-12': {
     u: 'camping',
     avant: `CREATE TABLE campeurs (id INTEGER PRIMARY KEY, nom TEXT, pays TEXT);
-      INSERT INTO campeurs VALUES (1, 'Janssens', 'Belgique'), (2, 'Moreau', 'France'), (3, 'Peeters', 'Belgique'),
+      INSERT INTO campeurs VALUES (1, 'Janssens', 'Belgique'), (2, 'Garnier', 'France'), (3, 'Peeters', 'Belgique'),
         (4, 'Weber', NULL), (5, 'Silva', NULL);`,
-    res: { 0: [['Belgique'], ['France'], ['NULL']], 1: [['Belgique', 'Janssens'], ['France', 'Moreau'], ['Belgique', 'Peeters'], ['NULL', 'Weber'], ['NULL', 'Silva']] },
+    res: { 0: [['Belgique'], ['France'], ['NULL']], 1: [['Belgique', 'Janssens'], ['France', 'Garnier'], ['Belgique', 'Peeters'], ['NULL', 'Weber'], ['NULL', 'Silva']] },
     ex: [{ sql: `SELECT nom, pays,
         CASE WHEN id = (SELECT MIN(id) FROM campeurs c2 WHERE c2.pays IS c.pays) THEN COALESCE(pays, 'NULL') ELSE '—' END
       FROM campeurs c ORDER BY id` }],
@@ -312,9 +314,9 @@ export const DONNEES = {
     u: 'course à pied',
     avant: `CREATE TABLE coureurs (id INTEGER PRIMARY KEY, nom TEXT, club TEXT, km INTEGER);
       INSERT INTO coureurs VALUES (1, 'Nils', 'Lille', 10), (2, 'Ada', 'Lille', 25), (3, 'Rémi', 'Lille', 30),
-        (4, 'Inès', 'Lyon', 42), (5, 'Malo', 'Lyon', 28), (6, 'Zoé', 'Lyon', 8);`,
+        (4, 'Nour', 'Lyon', 42), (5, 'Malo', 'Lyon', 28), (6, 'Zoé', 'Lyon', 8);`,
     autres: [0],
-    res: { 0: [['Inès', '42']] },
+    res: { 0: [['Nour', '42']] },
     ex: [{ sql: `SELECT nom, km, CASE WHEN km > (SELECT MIN(km) FROM coureurs WHERE club = 'Lille') THEN 'vrai' ELSE 'faux' END,
         CASE WHEN km > (SELECT MAX(km) FROM coureurs WHERE club = 'Lille') THEN 'vrai' ELSE 'faux' END
       FROM coureurs WHERE club = 'Lyon' ORDER BY id` }],
@@ -625,7 +627,7 @@ export const DONNEES = {
   'ent-v2-61': {
     u: 'compagnie aérienne',
     avant: `CREATE TABLE passagers_json (id INTEGER PRIMARY KEY, data TEXT);
-      INSERT INTO passagers_json VALUES (1, '{"nom": "Inès", "bagage": {"poids": 23}, "vols": [101, 102, 103]}');`,
+      INSERT INTO passagers_json VALUES (1, '{"nom": "Selma", "bagage": {"poids": 23}, "vols": [101, 102, 103]}');`,
     autres: [0, 1, 2],
     /* Les équivalents SQLite de JSON_VALUE, JSON_QUERY et OPENJSON donnent les mêmes valeurs. */
     ex: [{ sql: `SELECT 'JSON_VALUE', json_extract(data, '$.nom') FROM passagers_json
@@ -1055,8 +1057,8 @@ export const DONNEES = {
   'ent-v2-103': {
     u: 'course à pied',
     avant: `CREATE TABLE coureurs (id INTEGER PRIMARY KEY, nom TEXT, temps TEXT);
-      INSERT INTO coureurs VALUES (1, 'Ada', '41:05'), (2, 'Nils', NULL), (3, 'Rémi', '38:12'), (4, 'Inès', '44:50');`,
-    res: { 0: [['Rémi', '38:12'], ['Ada', '41:05'], ['Inès', '44:50'], ['Nils', 'NULL']], 1: [['Rémi', '38:12'], ['Ada', '41:05'], ['Inès', '44:50'], ['Nils', 'NULL']], 2: [['Rémi', '38:12'], ['Ada', '41:05'], ['Inès', '44:50'], ['Nils', 'NULL']] },
+      INSERT INTO coureurs VALUES (1, 'Ada', '41:05'), (2, 'Nils', NULL), (3, 'Rémi', '38:12'), (4, 'Nour', '44:50');`,
+    res: { 0: [['Rémi', '38:12'], ['Ada', '41:05'], ['Nour', '44:50'], ['Nils', 'NULL']], 1: [['Rémi', '38:12'], ['Ada', '41:05'], ['Nour', '44:50'], ['Nils', 'NULL']], 2: [['Rémi', '38:12'], ['Ada', '41:05'], ['Nour', '44:50'], ['Nils', 'NULL']] },
     ex: [{ sql: `SELECT a.r, a.t, b.t FROM (SELECT ROW_NUMBER() OVER (ORDER BY temps) r, COALESCE(temps, 'NULL') t FROM coureurs) a
       JOIN (SELECT ROW_NUMBER() OVER (ORDER BY temps NULLS LAST) r, COALESCE(temps, 'NULL') t FROM coureurs) b ON b.r = a.r ORDER BY a.r` }],
   },
@@ -1171,10 +1173,10 @@ export const DONNEES = {
   'ent-v2-116': {
     u: 'course à pied',
     avant: `CREATE TABLE coureurs (id INTEGER PRIMARY KEY, nom TEXT, licencie INTEGER);
-      INSERT INTO coureurs VALUES (1, 'Inès', 1), (2, 'Malo', 0), (3, 'Zoé', 1);
+      INSERT INTO coureurs VALUES (1, 'Nour', 1), (2, 'Malo', 0), (3, 'Zoé', 1);
       CREATE TABLE courses (id INTEGER PRIMARY KEY, coureur_id INTEGER REFERENCES coureurs(id), km INTEGER);
       INSERT INTO courses VALUES (101, 1, 21), (102, 1, 5), (103, 2, 10);`,
-    res: { 0: [['Inès', '101'], ['Malo', 'NULL'], ['Zoé', 'NULL']], 1: [['Inès', '101']] },
+    res: { 0: [['Nour', '101'], ['Malo', 'NULL'], ['Zoé', 'NULL']], 1: [['Nour', '101']] },
     ex: [{ sql: `SELECT r.nom, c1.id, COALESCE(c2.id, CASE r.id WHEN 3 THEN 'retirée' ELSE 'retiré' END)
       FROM coureurs r LEFT JOIN courses c1 ON c1.coureur_id = r.id AND c1.km > 15
       LEFT JOIN (SELECT c.coureur_id, c.id FROM coureurs r2 LEFT JOIN courses c ON c.coureur_id = r2.id WHERE c.km > 15) c2 ON c2.coureur_id = r.id
@@ -1220,5 +1222,237 @@ export const DONNEES = {
     res: { 0: [['1', '2026-01-05', '40'], ['2', '2026-01-12', '60'], ['3', '2026-03-03', '90']] },
     ex: [{ sql: `SELECT spectateur_id, strftime('%d/%m', date_achat), montant, ROW_NUMBER() OVER (PARTITION BY spectateur_id ORDER BY date_achat, id)
       FROM achats ORDER BY spectateur_id, date_achat, id` }],
+  },
+  'ent-v2-121': {
+    u: 'auto-école',
+    verif: ({ db, ouvrir, rows }) => {
+      db.exec(`INSERT INTO eleves VALUES (1, 'lou@mail.fr'), (2, 'sam@mail.fr'); INSERT INTO lecons VALUES (101, 1), (102, 1), (103, 2);
+        UPDATE eleves SET email = 'lou@pro.fr' WHERE id = 1;`);
+      const parId = db.exec('SELECT eleve_id FROM lecons ORDER BY id')[0].values.map(v => String(v[0]));
+      if (JSON.stringify(parId) !== JSON.stringify(rows.map(r => r[2]))) return `avec l’id : ${parId.join(', ')}`;
+      /* Avec l’e-mail comme clé : sans cascade, le changement est refusé ; avec ON UPDATE CASCADE, les leçons suivent. */
+      const b = ouvrir(); b.run('PRAGMA foreign_keys = ON');
+      b.exec(`CREATE TABLE el (email TEXT PRIMARY KEY); CREATE TABLE le (id INTEGER PRIMARY KEY, email TEXT REFERENCES el(email));
+        CREATE TABLE el2 (email TEXT PRIMARY KEY); CREATE TABLE le2 (id INTEGER PRIMARY KEY, email TEXT REFERENCES el2(email) ON UPDATE CASCADE);
+        INSERT INTO el VALUES ('lou@mail.fr'), ('sam@mail.fr'); INSERT INTO le VALUES (101, 'lou@mail.fr'), (102, 'lou@mail.fr'), (103, 'sam@mail.fr');
+        INSERT INTO el2 SELECT * FROM el; INSERT INTO le2 SELECT * FROM le;`);
+      const avant = b.exec('SELECT email FROM le ORDER BY id')[0].values.map(v => v[0]);
+      let refuse = false; try { b.exec("UPDATE el SET email = 'lou@pro.fr' WHERE email = 'lou@mail.fr'"); } catch (e) { refuse = true; }
+      b.exec("UPDATE el2 SET email = 'lou@pro.fr' WHERE email = 'lou@mail.fr'");
+      const cascade = b.exec('SELECT email FROM le2 ORDER BY id')[0].values.map(v => v[0]).join();
+      b.close();
+      return JSON.stringify(avant) === JSON.stringify(rows.map(r => r[1])) && refuse && cascade === 'lou@pro.fr,lou@pro.fr,sam@mail.fr' ? null : `avec l’e-mail : refus ${refuse}, cascade ${cascade}`;
+    },
+  },
+  'ent-v2-122': {
+    u: 'plateforme de musique',
+    avant: `CREATE TABLE ecoutes (id INTEGER PRIMARY KEY, auditeur_id INTEGER, minutes INTEGER);
+      INSERT INTO ecoutes VALUES (1, 1, 500), (2, 1, 450), (3, 2, 600), (4, 3, 300), (5, 3, 300), (6, 4, 420), (7, 5, 180);`,
+    res: { 0: [['1', '950', '1'], ['2', '600', '1'], ['3', '600', '2'], ['4', '420', '3'], ['5', '180', '4']] },
+    ex: [{ instr: 0 }],
+  },
+  'ent-v2-123': {
+    u: 'entreprise', garde: true,
+    avant: `CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, service TEXT, salaire INTEGER);
+      INSERT INTO employes VALUES (1, 'Sophie', 'Ventes', 3000), (2, 'Lucas', 'Ventes', 2400), (3, 'Emma', 'Informatique', 4200), (4, 'Nathan', 'Informatique', 3800);`,
+    res: { 0: [['Sophie', 'Ventes', '3000'], ['Emma', 'Informatique', '4200']], 1: [['Sophie', 'Ventes', '3000'], ['Emma', 'Informatique', '4200']] },
+    ex: [{ sql: 'SELECT nom, service, salaire, AVG(salaire) OVER (PARTITION BY service) FROM employes ORDER BY id' }],
+    verif: ({ db }) => (db.exec('SELECT AVG(salaire) FROM employes')[0].values[0][0] === 3350 ? null : 'la moyenne de l’entreprise ne vaut pas 3 350'),
+  },
+  'ent-v2-124': {
+    u: 'food truck',
+    avant: `CREATE TABLE tickets (id INTEGER PRIMARY KEY, carte_id INTEGER, date_ticket TEXT);
+      INSERT INTO tickets VALUES (1, 1, '2026-01-06'), (2, 1, '2026-01-20'), (3, 1, '2026-02-03'), (4, 2, '2026-01-14'),
+        (5, 3, '2026-02-10'), (6, 3, '2026-02-24'), (7, 4, '2026-01-09'), (8, 4, '2026-02-17');`,
+    res: { 0: [['1'], ['4']], 1: [['1'], ['4']] },
+    ex: [{ sql: `SELECT carte_id, SUM(date_ticket < '2026-02-01'), SUM(date_ticket >= '2026-02-01'),
+        CASE WHEN COUNT(DISTINCT strftime('%m', date_ticket)) = 2 THEN 'oui' ELSE 'non' END
+      FROM tickets GROUP BY carte_id ORDER BY carte_id` }],
+    verif: ({ db }) => {
+      const r = db.exec(`SELECT carte_id FROM tickets WHERE date_ticket < '2026-02-01' EXCEPT SELECT carte_id FROM tickets WHERE date_ticket >= '2026-02-01' AND date_ticket < '2026-03-01'`)[0].values.join();
+      return r === '2' ? null : `EXCEPT donne ${r}`;
+    },
+  },
+  'ent-v2-125': {
+    u: 'camping',
+    avant: `CREATE TABLE adresses (id INTEGER PRIMARY KEY, campeur_id INTEGER, ville TEXT, date_maj TEXT);
+      INSERT INTO adresses VALUES (1, 1, 'Paris', '2025-06-15'), (2, 1, 'Lyon', '2026-03-01'), (3, 2, 'Lille', '2026-01-10'),
+        (4, 3, 'Rennes', '2024-09-20'), (5, 3, 'Nantes', '2025-11-02');`,
+    res: { 0: [['1', 'Lyon', '2026-03-01'], ['2', 'Lille', '2026-01-10'], ['3', 'Nantes', '2025-11-02']], 1: [['1', 'Lyon', '2026-03-01'], ['2', 'Lille', '2026-01-10'], ['3', 'Nantes', '2025-11-02']] },
+    ex: [{ sql: `SELECT a.campeur_id, a.ville, strftime('%d/%m/%Y', a.date_maj),
+        COALESCE((SELECT b.ville FROM adresses b WHERE b.campeur_id = a.campeur_id AND b.date_maj > a.date_maj ORDER BY b.date_maj DESC LIMIT 1), 'aucune')
+      FROM adresses a ORDER BY a.campeur_id, a.date_maj DESC` }],
+  },
+  'ent-v2-126': {
+    u: 'station de ski',
+    avant: `CREATE TABLE forfaits (id INTEGER PRIMARY KEY, nom TEXT, prix INTEGER);
+      INSERT INTO forfaits VALUES (1, 'Journée', 45), (2, 'Matin', 25), (3, 'Semaine', 220);
+      CREATE TABLE forfaits_avant AS SELECT * FROM forfaits;
+      CREATE TABLE nouveaux_tarifs (forfait_id INTEGER, prix INTEGER);
+      INSERT INTO nouveaux_tarifs VALUES (1, 48), (3, 210);`,
+    autres: [1, 2],
+    ex: [{ sql: `SELECT f.nom, a.prix, COALESCE(n.prix, '—'), f.prix FROM forfaits f JOIN forfaits_avant a ON a.id = f.id
+      LEFT JOIN nouveaux_tarifs n ON n.forfait_id = f.id ORDER BY f.id` }],
+    verif: ({ ouvrir }) => {
+      const b = ouvrir();
+      b.exec('UPDATE forfaits SET prix = (SELECT prix FROM nouveaux_tarifs WHERE forfait_id = forfaits.id)');
+      const matin = b.exec('SELECT prix FROM forfaits WHERE id = 2')[0].values[0][0];
+      b.close();
+      return matin === null ? null : 'sans filtre, le forfait matin ne passe pas à NULL';
+    },
+  },
+  'ent-v2-127': {
+    u: 'jardin partagé',
+    avant: `CREATE TABLE recoltes (id INTEGER PRIMARY KEY, parcelle_id INTEGER, kg REAL);
+      INSERT INTO recoltes VALUES (1, 1, 30), (2, 1, 25), (3, 2, 12), (4, 3, 60);`,
+    erreurs: [3],
+    verif: ({ db, rows }) => {
+      const objets = Object.fromEntries(db.exec("SELECT name, type FROM sqlite_master")[0].values);
+      let erreur = false; try { db.exec('SELECT * FROM kilos_parcelles'); } catch (e) { erreur = /no such table/.test(e.message); }
+      const vu = rows.map(r => (objets[r[0]] ? (objets[r[0]] === 'view' ? 'vue' : 'table') : 'supprimée'));
+      return !objets.recoltes && objets.kilos_parcelles === 'view' && objets.grosses_parcelles === 'view' && erreur && rows[0][2] === 'supprimée'
+        && rows.slice(1).every(r => r[1] === 'vue' && r[2] === 'lecture en erreur') ? null : `après le DROP : ${vu.join(', ')}`;
+    },
+  },
+  'ent-v2-128': {
+    u: 'cinéma',
+    avant: `CREATE TABLE films (id INTEGER PRIMARY KEY, titre TEXT);
+      INSERT INTO films VALUES (1, 'La Fugue'), (2, 'Éclipse');
+      CREATE TABLE seances (id INTEGER PRIMARY KEY, film_id INTEGER REFERENCES films(id), recette NUMERIC);
+      INSERT INTO seances VALUES (101, 1, 100), (102, 1, 200), (103, 2, 80);
+      CREATE TABLE critiques (id INTEGER PRIMARY KEY, film_id INTEGER REFERENCES films(id), note INTEGER);
+      INSERT INTO critiques VALUES (11, 1, 4), (12, 1, 3);`,
+    res: { 0: [['La Fugue', '600', '4']], 1: [['La Fugue', '300', '2'], ['Éclipse', '80', '0']] },
+    ex: [{ sql: 'SELECT f.titre, s.id, s.recette, c.id FROM films f JOIN seances s ON s.film_id = f.id JOIN critiques c ON c.film_id = f.id ORDER BY s.id, c.id' }],
+  },
+  'ent-v2-129': {
+    u: 'magasins', garde: true,
+    avant: `CREATE TABLE ventes (annee INTEGER, mois INTEGER, ca NUMERIC);
+      INSERT INTO ventes VALUES (2025, 1, 100), (2025, 2, 150), (2026, 1, 200);`,
+    autres: [0, 1],
+    res: { 0: [['2025', '1', '100'], ['2025', '2', '150'], ['2026', '1', '200'], ['2025', 'NULL', '250'], ['2026', 'NULL', '200'], ['NULL', 'NULL', '450']] },
+    ex: [{ sql: `SELECT annee, mois, total FROM (SELECT annee, mois, SUM(ca) total, 0 g FROM ventes GROUP BY annee, mois
+        UNION ALL SELECT annee, NULL, SUM(ca), 1 FROM ventes GROUP BY annee UNION ALL SELECT NULL, NULL, SUM(ca), 2 FROM ventes)
+      ORDER BY annee IS NULL, annee, g, mois` }],
+    verif: ({ db }) => (db.exec('SELECT mois, SUM(ca) FROM ventes GROUP BY mois ORDER BY mois')[0].values.map(v => v.join(':')).join() === '1:300,2:150' ? null : 'les totaux par mois de CUBE ne sont pas 300 et 150'),
+  },
+  'ent-v2-130': {
+    u: 'plateforme de musique',
+    avant: `CREATE TABLE auditeurs (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO auditeurs VALUES (1, 'Lina'), (2, 'Yann'), (3, 'Pia');
+      CREATE TABLE ecoutes (id INTEGER PRIMARY KEY, auditeur_id INTEGER REFERENCES auditeurs(id), date_ecoute TEXT);
+      INSERT INTO ecoutes VALUES (101, 1, '2026-01-15'), (102, 1, '2026-02-02'), (103, 1, '2026-03-02'), (104, 1, '2026-03-10'), (105, 2, '2026-02-15');`,
+    autres: [0, 1],
+    /* La réécriture sans LATERAL (ROW_NUMBER), celle qu’on utilise en SQLite, donne les lignes de l’exemple. */
+    ex: [{ sql: `WITH r AS (SELECT a.nom, e.id, e.date_ecoute, ROW_NUMBER() OVER (PARTITION BY e.auditeur_id ORDER BY e.date_ecoute DESC) AS rang
+        FROM auditeurs a JOIN ecoutes e ON e.auditeur_id = a.id)
+      SELECT nom, id, strftime('%d/%m', date_ecoute) FROM r WHERE rang <= 3 ORDER BY nom, date_ecoute DESC` }],
+  },
+  'ent-v2-131': {
+    u: 'club de sport',
+    avant: `CREATE TABLE presences (adherent_id INTEGER, date_seance TEXT);
+      INSERT INTO presences VALUES (1, '2026-01-05'), (2, '2026-01-07'), (3, '2026-01-12'), (1, '2026-02-02'), (2, '2026-02-09'), (2, '2026-02-16'),
+        (1, '2026-03-02'), (4, '2026-02-04'), (5, '2026-02-11'), (4, '2026-03-04');`,
+    res: { 0: [['2026-01', '2026-01', '3', '100'], ['2026-01', '2026-02', '2', '67'], ['2026-01', '2026-03', '1', '33'], ['2026-02', '2026-02', '2', '100'], ['2026-02', '2026-03', '1', '50']] },
+    ex: [{ instr: 0 }],
+  },
+  'ent-v2-132': {
+    u: 'application mobile', garde: true,
+    avant: `CREATE TABLE connexions (id INTEGER PRIMARY KEY, user_id INTEGER, connexion TEXT);
+      INSERT INTO connexions VALUES (1, 1, '2026-03-03 08:10'), (2, 1, '2026-03-04 09:00'), (3, 1, '2026-03-04 21:30'), (4, 1, '2026-03-05 07:45'),
+        (5, 1, '2026-03-08 12:00'), (6, 1, '2026-03-09 18:20');`,
+    res: { 0: [['1', '2026-03-03', '2026-03-05', '3'], ['1', '2026-03-08', '2026-03-09', '2']] },
+    ex: [{ sql: `WITH j AS (SELECT DISTINCT date(connexion) jour FROM connexions WHERE user_id = 1)
+      SELECT strftime('%d/%m', jour), ROW_NUMBER() OVER (ORDER BY jour), strftime('%d/%m', date(jour, '-' || ROW_NUMBER() OVER (ORDER BY jour) || ' days'))
+      FROM j ORDER BY jour` }],
+  },
+  'ent-v2-133': {
+    u: 'camping',
+    avant: `CREATE TABLE hebergements (id INTEGER PRIMARY KEY, type TEXT, libres INTEGER, version INTEGER);
+      INSERT INTO hebergements VALUES (7, 'mobil-home', 1, 12);`,
+    exLibre: 'un tableau de notions (verrou pessimiste et verrou optimiste)',
+    /* Le premier UPDATE réussit et passe la version à 13 ; le même, rejoué, ne modifie plus rien : c’est le conflit. */
+    verif: ({ db }) => {
+      const etat = db.exec('SELECT libres, version FROM hebergements WHERE id = 7')[0].values[0].join();
+      db.exec('UPDATE hebergements SET libres = libres - 1, version = version + 1 WHERE id = 7 AND version = 12');
+      const n = db.getRowsModified();
+      return etat === '0,13' && n === 0 ? null : `après la réservation : ${etat}, puis ${n} ligne modifiée`;
+    },
+  },
+  'ent-v2-134': {
+    u: 'stations météo',
+    avant: `CREATE TABLE releves (id INTEGER PRIMARY KEY, jour TEXT, temp NUMERIC);
+      INSERT INTO releves VALUES (1, '2026-01-15', 4), (2, '2026-01-28', 6), (3, '2026-02-03', 7), (4, '2026-02-14', 9), (5, '2026-02-27', 8), (6, '2026-03-05', 12);`,
+    autres: [0, 1, 3],
+    res: { 0: [['8']] },
+    exLibre: 'les partitions de PostgreSQL et leur élagage, que SQLite n’a pas',
+  },
+  'ent-v2-135': {
+    u: 'location de vélos',
+    avant: `CREATE TABLE dim_abonne (cle INTEGER PRIMARY KEY, abonne_id INTEGER, quartier TEXT, date_debut TEXT, date_fin TEXT);
+      INSERT INTO dim_abonne VALUES (1, 42, 'Opéra', '2023-05-02', '2024-01-09'), (2, 42, 'Bastille', '2024-01-10', NULL);`,
+    res: { 2: [['3', 'Nation']] },
+    ex: [{ sql: 'SELECT cle, quartier, date_debut, date_fin FROM dim_abonne WHERE abonne_id = 42 ORDER BY cle' }],
+  },
+  'ent-v2-136': {
+    u: 'magasins', garde: true,
+    avant: `CREATE TABLE ventes_jour (jour TEXT PRIMARY KEY, ventes INTEGER);
+      INSERT INTO ventes_jour VALUES ('2026-03-01', 220), ('2026-03-02', 300), ('2026-03-05', 80), ('2026-03-06', 160), ('2026-03-09', 120), ('2026-03-10', 200);`,
+    res: { 0: [['2026-03-01', '220', '220', '220'], ['2026-03-02', '300', '260', '260'], ['2026-03-05', '80', '200', '200'], ['2026-03-06', '160', '190', '190'], ['2026-03-09', '120', '176', '120'], ['2026-03-10', '200', '180', '140']] },
+    ex: [{ sql: `SELECT strftime('%d/%m', jour), ventes, AVG(ventes) OVER (ORDER BY jour ROWS BETWEEN 6 PRECEDING AND CURRENT ROW),
+        AVG(ventes) OVER (ORDER BY julianday(jour) RANGE BETWEEN 6 PRECEDING AND CURRENT ROW) FROM ventes_jour ORDER BY jour` }],
+  },
+  'ent-v2-137': {
+    u: 'escape game',
+    avant: `CREATE TABLE ca_salles (salle TEXT PRIMARY KEY, ca INTEGER);
+      INSERT INTO ca_salles VALUES ('Le Labo', 1000), ('Le Manoir', 4800), ('Le Phare', 300), ('La Crypte', 3400), ('Le Train', 500);`,
+    res: { 0: [['Le Manoir', '4800', '4800', '48'], ['La Crypte', '3400', '8200', '82'], ['Le Labo', '1000', '9200', '92'], ['Le Train', '500', '9700', '97'], ['Le Phare', '300', '10000', '100']] },
+    ex: [{ instr: 0 }],
+  },
+  'ent-v2-138': {
+    u: 'application mobile', garde: true,
+    avant: `CREATE TABLE evenements (user_id INTEGER, etape TEXT);
+      INSERT INTO evenements VALUES (1, 'inscription'), (1, 'achat'), (1, 'achat'), (2, 'inscription'), (3, 'inscription'), (4, 'inscription');`,
+    res: { 0: [['4', '1', '25']] },
+    ex: [{ sql: 'SELECT user_id, etape FROM evenements ORDER BY rowid' }],
+  },
+  'ent-v2-139': {
+    u: 'application mobile', garde: true,
+    avant: `CREATE TABLE evenements (user_id INTEGER, t TEXT, action TEXT);
+      INSERT INTO evenements VALUES (1, '2026-03-02 10:00', 'Connexion'), (1, '2026-03-02 10:15', 'Consultation d’un cours'),
+        (1, '2026-03-02 10:50', 'Réalisation d’un exercice'), (1, '2026-03-02 11:05', 'Consultation d’un cours');`,
+    res: { 0: { cols: [3], rows: [['1'], ['1'], ['2'], ['2']] } },
+    ex: [{ sql: `WITH e AS (SELECT t, action, LAG(t) OVER (ORDER BY t) p FROM evenements WHERE user_id = 1),
+        d AS (SELECT *, CASE WHEN p IS NULL OR (julianday(t) - julianday(p)) * 1440 > 30 THEN 1 ELSE 0 END n FROM e)
+      SELECT strftime('%H:%M', t), action, COALESCE(CAST(ROUND((julianday(t) - julianday(p)) * 1440) AS INTEGER) || ' min', '—'), SUM(n) OVER (ORDER BY t)
+      FROM d ORDER BY t` }],
+  },
+  'ent-v2-140': {
+    u: 'food truck',
+    avant: `CREATE TABLE plats (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO plats VALUES (1, 'Burger'), (2, 'Frites'), (3, 'Limonade');
+      CREATE TABLE lignes_ticket (ticket_id INTEGER, plat_id INTEGER REFERENCES plats(id));
+      INSERT INTO lignes_ticket VALUES (1, 1), (1, 2), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (4, 2), (4, 3), (5, 1);`,
+    res: { 0: [['Burger', 'Frites', '3'], ['Frites', 'Limonade', '2'], ['Burger', 'Limonade', '1']] },
+    ex: [{ instr: 0 }],
+    verif: ({ db }) => (db.exec('SELECT COUNT(DISTINCT ticket_id) FROM lignes_ticket WHERE plat_id = 1')[0].values[0][0] === 4 ? null : 'le burger n’est pas sur 4 tickets'),
+  },
+  'ent-v2-141': {
+    u: 'application mobile', garde: true,
+    avant: `CREATE TABLE test_ab (user_id INTEGER PRIMARY KEY, groupe TEXT, converti INTEGER);
+      WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 400)
+      INSERT INTO test_ab SELECT i, CASE WHEN i <= 200 THEN 'A' ELSE 'B' END,
+        CASE WHEN i <= 30 OR (i > 200 AND i <= 250) THEN 1 ELSE 0 END FROM n;`,
+    res: { 0: [['A', '200', '30', '15'], ['B', '200', '50', '25']] },
+    ex: [{ instr: 0 }],
+  },
+  'ent-v2-142': {
+    u: 'ferme apicole',
+    avant: `CREATE TABLE epiceries (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO epiceries VALUES (1, 'Épicerie Lou'), (2, 'Au Bon Miel');
+      CREATE TABLE livraisons (id INTEGER PRIMARY KEY, epicerie_id INTEGER REFERENCES epiceries(id), montant NUMERIC, statut TEXT);
+      INSERT INTO livraisons VALUES (101, 1, 120, 'Payée'), (102, 1, 80, 'Payée'), (103, 2, 100, 'Annulée'), (104, 2, 40, 'Payée');`,
+    res: { 0: [['Épicerie Lou', '200'], ['Au Bon Miel', '40']] },
+    ex: [{ sql: 'SELECT id, epicerie_id, montant, statut FROM livraisons ORDER BY id' }],
   },
 };
