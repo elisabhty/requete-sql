@@ -70,7 +70,7 @@ test('vidéo du site : les deux phrases à refaire, et seulement elles ; l’int
   for (const e of job.elements) assert.deepEqual(e, site.elements.find(x => x.id === e.id), `${e.id} : le même texte et le même contexte`);
   assert.deepEqual([job.voix, job.modele, job.format, job.musique], [site.voix, site.modele, site.format, undefined], 'Louis, le même modèle, sans musique');
   const md = read('tools/voix/A-REGENERER.md');
-  assert.ok(md.includes('cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours video-site-retouches,projet-index-retouches,projet-merge --oui\n') && md.includes('**Ne pas lancer `video-site` ni `projet-index` en entier**'));
+  assert.ok(md.includes('cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours video-site-retouches,projet-index-retouches,projet-merge,projet-procedures --oui\n') && md.includes('**Ne pas lancer `video-site` ni `projet-index` en entier**'));
   /* 17 h 48 : la leçon 57 ne dit plus « Bientôt » (règle d’Elisa) ; sa consigne refaite à part, intégrée avec --garder */
   const idx = JSON.parse(read('tools/voix/projet-index.json')), r = JSON.parse(read('tools/voix/projet-index-retouches.json'));
   assert.ok(!/[Bb]ientôt/.test(JSON.stringify(idx)) && !/[Bb]ientôt/.test(read('assets/anim/projet-index.html')), 'plus de « Bientôt » dans la leçon 57');

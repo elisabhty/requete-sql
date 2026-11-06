@@ -1257,7 +1257,7 @@ const COURSES = [
       "{at: atp('p6'), from: A.g1, kind: 'sort',", "const Q_RT = [['-- Revenir au point de retour'], ['ROLLBACK TO SAVEPOINT avant_cadeau;']]", 'Prochaine leçon · Concurrence et isolation']},
   /* Le chapitre 15, ajouté le 30 octobre (le scénario d’Elisa : 18 h 02, les commandes affluent) : une action ou une valeur, la procédure
      expedier_commande et son paramètre, la fonction calculer_points et son réglage, le duel, les quatre tickets, puis leur création dans PostgreSQL. */
-  {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 18', notesAt: 161.82,
+  {id: 83, next: 70, titre: 'Procédures et fonctions stockées', page: 'projet-procedures.html', thumb: 'projet-procedures-thumb.webp', duree: '3 min 14', notesAt: 158.32,
     table: 'commandes',
     bubble: 'Enregistre&nbsp;des actions et des calculs dans la base pour pouvoir les réutiliser.',
     chapters: ['Les commandes affluent', 'Action ou résultat ?', 'Une procédure stockée', 'Une fonction stockée', 'Le duel', 'Les quatre tickets', 'Selon le SGBD', 'À retenir'],
