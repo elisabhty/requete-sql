@@ -44,8 +44,8 @@ test('réf. 2 — « Question suivante » reste dans l’onglet : à revoir, tou
   assert.equal(next(ids[4]), 'liste');
   set('review', ids.slice(1));
   assert.equal(next(ids[0]), 'liste', 'la dernière à revoir : retour à la liste');
-  /* 6 novembre, 22 h 20 : dans la carte violette, « Suivante » (le lecteur d’écran entend « Question suivante »). */
-  assert.ok(app.includes(`onclick="nextEntretien('\${id}')"\${next?' aria-label="Question suivante"':''}><span>\${next?'Suivante':'Retour aux questions'}</span>`), 'le bouton le dit');
+  /* 6 novembre, 22 h 56 : « Question suivante » est revenue sous l’évaluation. */
+  assert.ok(app.includes(`<button type="button" class="ent-suite" onclick="nextEntretien('\${id}')"><span>\${entNextTarget(id)?'Question suivante':'Retour aux questions'}</span>`), 'le bouton le dit');
 });
 
 test('réf. 3 — l’export contient toute la progression, et le même fichier se réimporte', () => {
