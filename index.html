@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=183">
+<link rel="stylesheet" href="ludique.css?v=184">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
@@ -7577,7 +7577,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     </section>
 
     <section id="scr-practice" class="screen journey-hub" aria-label="Pratiquer">
-      <div class="lgtitle"><div><div class="eyebrow">À toi de jouer</div><h1>Pratiquer</h1><p class="sub">Passe de la théorie à la pratique, une requête à la fois.</p></div></div>
+      <div class="lgtitle"><div><div class="eyebrow">Entraîne-toi</div><h1>Pratiquer</h1><p class="sub">Passe de la théorie à la pratique, une requête à la fois.</p></div></div>
       <div id="practice-tools" class="journey-hub-list"></div>
     </section>
     <section id="scr-library" class="screen journey-hub" aria-label="Bibliothèque">
@@ -27318,7 +27318,7 @@ function renderDefisRules(){
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
       <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base.</small></li>
       <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI*x}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
-      <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul dans la salle, pas de bonus de place</small></li>
+      <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
     <p class="room-rules-max"><span>Manche parfaite en ${JEU_NIVL[k]}</span><b>${(top+JEU_PTS_ESSAI*x).toLocaleString('fr-FR')}</b><small>seul</small><i aria-hidden="true">·</i><b>${(top+(JEU_PTS_ESSAI+JEU_PTS_RANG[0])*x).toLocaleString('fr-FR')}</b><small>à plusieurs</small></p>
@@ -34349,6 +34349,9 @@ function jeuOnMsg(m){
       if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine)jeuToast(`${name} ${m.e}`);
       return;
     case 'rate':{
+      /* 6 novembre, 16 h (règle de l’expert choisie par Elisa) : un essai, même manqué, fait de lui un joueur de la manche ; la place ne
+         se gagne que face à quelqu’un qui joue (jeuRanking). Noté même relu, même le sien. */
+      if((m.g|0)===J.g){const rt=J.rounds[+m.n];if(rt)(rt.tried=rt.tried||{})[m.pid]=1;}
       /* Un essai manqué d’un autre joueur (9 h 18) : annoncé par le serveur en salle classée, par le joueur lui-même sinon. Seulement
          en direct, pendant la manche, et s’il est récent (une salle relue après une coupure ne rejoue pas les essais d’avant). */
       if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;
@@ -34463,8 +34466,10 @@ function jeuRanking(n){
      vaut la même place et le même bonus : deux premiers ex æquo prennent chacun +50, le suivant est 3e (+15). */
   const rows=Object.entries(r.found).sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:a[0]>b[0]?1:0));
   /* Le +25 du premier essai, entre amis, ne va qu’au premier à trouver (Elisa, 5 novembre, 9 h 18 : « quand une personne a mis la bonne
-     requête, enlever les +25 aux autres ») ; seul, à chaque premier essai juste, comme avant. */
-  const seul=J.solo||r.one,k=jeuNivManche(n);
+     requête, enlever les +25 aux autres ») ; seul, à chaque premier essai juste, comme avant. 6 novembre, 16 h : moins de deux joueurs
+     ont essayé (trouvé ou manqué) : la manche se compte comme seul, comme sur le serveur (jeu_score_v2). */
+  const actifs=new Set([...Object.keys(r.found),...Object.keys(r.tried||{})]);
+  const seul=J.solo||r.one||actifs.size<2,k=jeuNivManche(n);
   return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1,k},jeuPts(ms,i,seul,!!(r.first&&r.first[pid])&&(seul||i===0),k));});
 }
 /* Les scores : points de toutes les manches terminées ; à égalité, le temps total (une manche non trouvée compte toute la manche). */
@@ -34556,6 +34561,9 @@ function jeuTick(){
   if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuRebours(JEU_ROUND_MS-took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
     /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
     const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
+  /* « Clore la manche dans 01:42 » : le compte à rebours de l’hôte, puis le bouton */
+  const ct=document.getElementById('jeu-clore-t');
+  if(ct&&n>=0){const a=jeuCloreAttente(n);if(a>0)ct.textContent=jeuRebours(a);else{const bar=document.getElementById('jeu-hostbar');if(bar)bar.innerHTML=jeuHostBarHTML();}}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
   else coachRoomTick();
 }
@@ -34574,7 +34582,20 @@ const JEU_ICO={
   wifi:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2a12.5 12.5 0 0 1 17 0M6.6 12.6a8 8 0 0 1 10.8 0M9.8 15.9a3.4 3.4 0 0 1 4.4 0" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>'
 };
 function jeuBtn2(ico,label,on){return `<button type="button" class="jeu-close" onclick="${on}">${JEU_ICO[ico]}<span>${label}</span></button>`;}
-function jeuHostBarHTML(){return jeuIsHost()&&!jeuSoloLike(jeuCur())?`<button type="button" class="jeu-mini" onclick="jeuClose()">${JEU_ICO.flag}<span>Clore la manche pour tous</span></button>`:'';}
+/* 6 novembre, 16 h (règle de l’expert choisie par Elisa) : entre amis, l’hôte ne clôt une manche que 2 min après le premier qui a
+   trouvé (le serveur le vérifie aussi) ; avant que quelqu’un ait trouvé, il peut toujours clore. Jusque-là, le bouton compte. */
+const JEU_CLORE_MS=120000;
+function jeuCloreAttente(n){
+  const J=JEU,r=J&&n>=0?J.rounds[n]:null;if(!r||J.solo||jeuRoundDone(n))return 0;
+  const t=Object.values(r.found).map(Number).filter(Number.isFinite);
+  return t.length?Math.max(0,r.t1+Math.min(...t)+JEU_CLORE_MS-Date.now()):0;
+}
+function jeuHostBarHTML(){
+  if(!jeuIsHost()||jeuSoloLike(jeuCur()))return '';
+  const a=jeuCloreAttente(jeuCur());
+  return a>0?`<button type="button" class="jeu-mini is-attente" disabled>${JEU_ICO.flag}<span>Clore la manche dans <b id="jeu-clore-t">${jeuRebours(a)}</b></span></button>`
+    :`<button type="button" class="jeu-mini" onclick="jeuClose()">${JEU_ICO.flag}<span>Clore la manche pour tous</span></button>`;
+}
 function jeuRedraw(){
   const J=JEU;if(!J)return;
   /* En manche : seul le bouton de l’hôte change, l’éditeur n’est pas touché. */
@@ -34924,6 +34945,8 @@ function jeuNextRound(){
 function jeuClose(){
   const n=jeuCur(),J=JEU;
   if(!J||!jeuIsHost()||n<0)return;
+  const att=jeuCloreAttente(n);
+  if(att>0){lqInfo('Encore un instant','Après le premier qui a trouvé, les autres ont 2 minutes pour finir. Tu pourras clore la manche dans '+jeuRebours(att)+'.','⏱');return;}
   lqAsk(J.solo?{ico:'🏁',titre:'Voir la solution ?',texte:'La manche s’arrête : elle ne rapporte pas de point.',oui:'Voir la solution',non:'Continuer'}
     :{ico:'⏱',titre:'Clore la manche pour tout le monde ?',texte:'Ceux qui n’ont pas encore trouvé ne marquent pas de point.',oui:'Clore la manche',non:'Continuer'})
     .then(ok=>{if(ok&&JEU===J&&jeuCur()===n)jeuSend({t:'close',n});});
@@ -44427,7 +44450,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-sept-bases-v2584';
+  const SW_CACHE='requete-2026-11-06-anti-triche-v2585';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

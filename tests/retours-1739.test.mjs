@@ -41,7 +41,7 @@ test('le cadre « Comment on marque des points » : les paliers en marches, le p
   /* 5 novembre, 9 h 18 : entre amis, le +25 ne va qu’au premier à trouver. */
   /* 5 novembre, 14 h 24 : seul dans la salle, le +25 reste et le bonus de place ne compte pas (retours-1424.test.mjs). */
   assert.ok(h.includes('<li><b>✨ Du premier coup</b><span>+25</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
-  assert.ok(h.includes('<li><b>🥇 Premier à trouver</b><span>+50</span><small>À plusieurs : 2e +30 · 3e +20 · 4e +10. Seul dans la salle, pas de bonus de place</small></li>'));
+  assert.ok(h.includes('<li><b>🥇 Premier à trouver</b><span>+50</span><small>À plusieurs : 2e +30 · 3e +20 · 4e +10. Seul à jouer la manche, pas de bonus de place</small></li>'));
   assert.ok(h.includes('<li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>'));
   /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la ligne du niveau ; le cadre montre le Facile au départ (retours-1242 : les autres) */
   assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base.</small></li>'));
