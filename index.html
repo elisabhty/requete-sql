@@ -36232,7 +36232,7 @@ function toastWithAction(msg,sub,label,fn){
    Un sticker par module terminé, et un par accomplissement (la même liste que dans Mon compte) ; un sticker gagné le
    reste. Dans la Bibliothèque, on les colle sur un tableau (déplacer, tourner, agrandir) et on les télécharge en PNG
    détouré : fond transparent et bord blanc de découpe, prêt pour Photos, Fichiers ou une imprimante à stickers.
-   Les trois plus rares sont holographiques à l’écran.
+   Les trois plus rares sont holographiques à l’écran, avec leur étiquette sur la planche : Rare ou Légendaire.
    Chaque dessin est une liste de calques dans un carré de 200 : tracés SVG (Path2D) et textes en Bricolage. Le même
    rendu sert à l’écran (canvas) et au fichier, où le bord de découpe suit la silhouette comme sur une planche
    prédécoupée. */
@@ -36524,6 +36524,10 @@ function stkShadow(ctx,id,px,mode,pad,dpr,n){
 const STK_MODULE_IDS=['intro','lire','fonctions','agregats','jointures','sousreq','fenetre','modeliser','creer','ecrire','contraintes','transactions','triggers','index','securite'];
 /* Les plus rares sont holographiques à l’écran (2 : avec des paillettes). */
 const STK_HOLO={defis10:1,serie7:2,parcours:2};
+/* Leur rareté, en étiquette sous la planche et dans la fiche (Elisa, 6 novembre : « rare » ou « de collection » pour ceux difficiles
+   à avoir, « Légendaire » avec des étoiles et des paillettes). Elle suit l’holographie : 1 → Rare, 2 → Légendaire. */
+const STK_RARETE=['','Rare','Légendaire'];
+function stkRarete(id){return STK_RARETE[STK_HOLO[id]||0]||'';}
 /* Accomplissements : une seule liste, pour Mon compte et pour les stickers. now et goal mesurent l’avancée ; une série
    compte dès qu’elle a été atteinte une fois (le record), même si elle s’est arrêtée depuis. */
 function accomplissements(){
@@ -36614,6 +36618,15 @@ function stkArtHtml(id,mode,cls){
   const veils=holo?`<i class="stk-v1"></i><i class="stk-v2"></i>${holo>1?'<i class="stk-v3"></i>':''}<i class="stk-v4"></i>`:'';
   return `<span class="stk-art${holo?' is-holo':''}${cls?' '+cls:''}"${holo?` data-holo="${id}"`:''}><canvas data-stk="${id}"${mode!=='art'?` data-mode="${mode}"`:''} aria-hidden="true"></canvas>${veils}</span>`;
 }
+/* L’étiquette de rareté (rien pour un sticker ordinaire). Légendaire : des paillettes (la tuile de stkGlitter, posée par stkPaint) et
+   deux petites étoiles d’autocollant, comme celles du dessin de la série de 7 jours ; elles scintillent une fois le sticker gagné.
+   À gagner (got faux), l’étiquette est là aussi, plus sobre : immobile, sans paillettes. Son texte est déjà dans l’aria-label. */
+const STK_RAR_STAR='<svg viewBox="0 0 30 30" width="13" height="13" aria-hidden="true"><path d="M15 4 18.1 11.9 26 15 18.1 18.1 15 26 11.9 18.1 4 15 11.9 11.9Z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M15 4 18.1 11.9 26 15 18.1 18.1 15 26 11.9 18.1 4 15 11.9 11.9Z" fill="#FFD23F" stroke="#221C46" stroke-width="2.4" stroke-linejoin="round"/></svg>';
+function stkRarHtml(id,got){
+  const r=stkRarete(id);if(!r)return '';
+  const leg=STK_HOLO[id]>1;
+  return `<span class="stk-rar ${leg?'is-leg':'is-rare'}${got?'':' is-lock'}" aria-hidden="true">${r}${leg?`<i class="stk-rar-sp">${STK_RAR_STAR}</i><i class="stk-rar-sp">${STK_RAR_STAR}</i>`:''}</span>`;
+}
 const stkMasks={};
 function stkMask(id){
   if(!stkMasks[id]){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');if(!x)return '';stkDraw(x,id,256,'lock');stkMasks[id]=c.toDataURL();}
@@ -36665,6 +36678,7 @@ function stkPaint(root){
     el.style.setProperty('--m',`url(${m})`);
     if(STK_HOLO[el.dataset.holo]>1)el.style.setProperty('--glit',`url(${stkGlitter()})`);
   });
+  root.querySelectorAll('.stk-rar.is-leg').forEach(el=>el.style.setProperty('--glit',`url(${stkGlitter()})`));
   stkFontWatch();
 }
 /* ---------- Écran Stickers ---------- */
@@ -36697,11 +36711,13 @@ function renderStickers(){
   const empty=!won.length
     ?`<div class="stk-empty"><b>Ton tableau t’attend</b><span>Ton premier sticker arrive avec ta première activité validée.</span></div>`
     :!S.board.length?`<div class="stk-empty"><b>Colle tes stickers ici</b><span>Touche un sticker de ta planche${STK_TACTILE?', ou maintiens-le et fais-le glisser jusqu’ici':', ou fais-le glisser jusqu’ici'}.</span></div>`:'';
-  /* 19 h 02 : « dans le tableau, un sous-texte (petit) pour dire ce pour quoi on le gagne (ex. : 1ʳᵉ requête) ». */
+  /* 19 h 02 : « dans le tableau, un sous-texte (petit) pour dire ce pour quoi on le gagne (ex. : 1ʳᵉ requête) ».
+     6 novembre : plus de pastille « Sur le tableau » (« Ne pas mettre sur le tableau mais « rare » ») : un sticker posé reste seulement
+     estompé. Sous la légende, l’étiquette de rareté, gagné ou pas (« Série de 7 jours, légendaire, à gagner »). */
   const cell=s=>{
-    const placed=onBoard.has(s.id),state=!s.got?'lock':placed?'placed':'got';
-    const label=(!s.got?`${s.name}, à gagner`:placed?`${s.name}, sur le tableau`:s.name)+(S.fresh[s.id]?', nouveau':'');
-    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${placed?'<em class="stk-on" aria-hidden="true">Sur le tableau</em>':''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button>${s.cap?`<small class="stk-cap">${esc(s.cap)}</small>`:''}</li>`;
+    const placed=onBoard.has(s.id),state=!s.got?'lock':placed?'placed':'got',rar=stkRarete(s.id);
+    const label=s.name+(rar?`, ${rar.toLowerCase()}`:'')+(!s.got?', à gagner':placed?', sur le tableau':'')+(S.fresh[s.id]?', nouveau':'');
+    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button>${s.cap?`<small class="stk-cap">${esc(s.cap)}</small>`:''}${stkRarHtml(s.id,s.got)}</li>`;
   };
   const group=(title,items)=>`<div class="stk-group"><h3>${title}</h3><span>${items.filter(s=>s.got).length} sur ${items.length}</span></div><ul class="stk-grid">${items.map(cell).join('')}</ul>`;
   host.innerHTML=`
@@ -37106,7 +37122,9 @@ function stkOpen(id){
   stkReturn=document.activeElement;
   const S=stkState(),placed=S.board.some(b=>b.id===id);
   if(S.fresh[id]){delete S.fresh[id];save();document.querySelector(`.stk-cell[data-id="${id}"] .stk-new`)?.remove();}
-  const kicker=(s.kind==='module'?`Module ${s.num}`:'Accomplissement')+(s.holo?' · Holo':'');
+  /* La rareté prend la place de « Holo » (6 novembre), en toutes lettres : la fiche reste sobre, le sticker brille assez. */
+  const rar=stkRarete(id);
+  const kicker=(s.kind==='module'?`Module ${s.num}`:'Accomplissement')+(rar?` · ${rar}`:'');
   const unit=n=>`${n} ${s.unit}${n>1?'s':''}`;
   if(s.got){
     const when=s.got>1?`Gagné le ${new Date(s.got).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}).replace(/^1 /,'1er ')}`:s.kind==='module'?'Module terminé':'Accomplissement atteint';
