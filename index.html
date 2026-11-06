@@ -6362,8 +6362,7 @@ html[data-motion="reduce"] .sq-list .sq-row{animation:none}
 .reading-option input{flex-shrink:0;width:24px;height:24px;accent-color:var(--accent);cursor:pointer}
 .reading-option input:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
 .reading-preferences #reading-preferences-status:empty{display:none}
-/* 6 novembre (audit de la carte d’accueil, bug 1) : le grand « 0 % » de l’accueil garde sa taille (17 px l’écrasaient). */
-html[data-reading="large"] .screen p:not(.eyebrow):not(.lq-parc-n),html[data-reading="large"] .screen .sub,html[data-reading="large"] .screen .tip{font-size:17px;line-height:1.75}
+html[data-reading="large"] .screen p:not(.eyebrow),html[data-reading="large"] .screen .sub,html[data-reading="large"] .screen .tip{font-size:17px;line-height:1.75}
 html[data-reading="large"] .editor-area textarea,html[data-reading="large"] .editor-area pre{font-size:17px!important;line-height:1.65!important}
 html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 @media(max-width:360px){.plan-next-session{padding:18px}.plan-next-actions button{width:100%}.plan-module-row{flex-wrap:wrap}.plan-module-row>div{flex-basis:100%}.plan-module-row button{width:100%}}
@@ -6753,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=173">
+<link rel="stylesheet" href="ludique.css?v=174">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
@@ -20792,6 +20791,31 @@ function nextScheduledSession(sessions,today,done){
   return (sessions||[]).filter(s=>s.d>=today&&Array.isArray(s.lessons)).slice().sort((a,b)=>a.d.localeCompare(b.d)).map(s=>({...s,remaining:s.lessons.filter(id=>!done(id))})).find(s=>s.remaining.length)||null;
 }
 // Source commune pour les recommandations : ne modifie jamais les dates du plan.
+/* Les minutes d’une activité (6 novembre, 8 h 49 : la carte « La leçon d’abord » d’Elisa, qui dit « Encore ~3 min ») : une leçon,
+   la durée de sa vidéo et 30 s par exercice « À toi » ; une leçon commencée, ce qui reste (la vidéo depuis la position gardée, les
+   exercices pas encore faits) ; un défi, 6 min. Le planning, l’accueil et le bilan comptent avec elles (avant : 6 min par activité,
+   de −26 % à +53 % des vraies durées). */
+const S_PAR_EXERCICE=30;
+function dureeVideoS(l){const m=/(\d+)\s*min(?:\s*(\d+))?/.exec(l&&l.video&&l.video.duree||'');return m?(+m[1])*60+(+(m[2]||0)):0;}
+function dureeActiviteS(id){
+  if(isDefiId(id))return MIN_PAR_ACTIVITE*60;
+  const l=allLessons.find(x=>x.id===id),v=dureeVideoS(l);
+  return v?v+((l.video&&l.video.moments)||0)*S_PAR_EXERCICE:MIN_PAR_ACTIVITE*60;
+}
+function exercicesFaits(id){return typeof LV_ANS!=='undefined'&&LV_ANS&&LV_ANS[id]?Object.keys(LV_ANS[id]).length:0;}
+function resteActiviteS(id){
+  if(itemDone(id))return 0;
+  if(isDefiId(id))return MIN_PAR_ACTIVITE*60;
+  const l=allLessons.find(x=>x.id===id),v=dureeVideoS(l);
+  if(!v)return MIN_PAR_ACTIVITE*60;
+  const mo=(l.video&&l.video.moments)||0,faits=exercicesFaits(id),garde=typeof LV_POS!=='undefined'&&LV_POS&&LV_POS.has(id);
+  /* La vidéo finie, sa position n’est plus gardée, ses réponses si : il ne reste qu’à rejouer les moments ratés (« Vidéo vue ») ;
+     une leçon pas validée garde au moins un exercice à faire. */
+  const pos=garde?Math.min(v,LV_POS.get(id)||0):faits?v:0;
+  return Math.max(S_PAR_EXERCICE,Math.max(0,v-pos)+Math.max(0,mo-faits)*S_PAR_EXERCICE);
+}
+/* Les minutes d’une liste d’activités : leur durée (reste : seulement ce qui reste à faire), arrondie, une minute au moins. */
+function minutesDe(ids,reste){const t=(ids||[]).reduce((a,id)=>a+(reste?resteActiviteS(id):dureeActiviteS(id)),0);return t?Math.max(1,Math.round(t/60)):0;}
 function recommendedSession(){
   const today=dstr(auj());
   let session;
@@ -20810,9 +20834,10 @@ function recommendedSession(){
   const label=session.d<today?'Séance à reprendre':session.d===today?'Ta séance du jour'
     :'Prochaine séance · '+parseD(session.d).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}).replace(/ /g,'\u00a0');
   const count=session.remaining.length;
-  return {...session,id,started,label,minutes:count*MIN_PAR_ACTIVITE,
+  const minutes=minutesDe(session.remaining,true);
+  return {...session,id,started,label,minutes,
     summary:state.plan?resteJour(session,today,state.plan.sessions)
-      :`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${count*MIN_PAR_ACTIVITE} min`};
+      :`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${minutes} min`};
 }
 /* Le résumé de la séance, avec un planning : ce qu’il reste à faire le jour même, et quel jour (Elisa, 27 octobre, 10 h 31 :
    « finalement le nombre d’activités le jour même ») : « 2 activités restantes aujourd’hui », « 1 activité prévue demain »,
@@ -21303,15 +21328,6 @@ function journeyIcon(kind){
   if(kind==='courses')return JOURNEY_COURSES_ICON;
   return homeToolIcon(kind);
 }
-function homeLessonSteps(id){
-  const e=etapesDe(id),done=lecCompletee(id);
-  if(leconSeule(id))return [{step:0,done,locked:false}];
-  return [
-    {step:0,done:!!e.exo||done,locked:false},
-    {step:1,done:!!e.exo,locked:false},
-    {step:2,done,locked:!e.exo}
-  ];
-}
 /* ---------- Mascotte en autocollant (coucou) ----------
    Elisa, 30 octobre : plus de médaillon gris (la vidéo du coucou avait un fond gris). La mascotte devient un
    autocollant découpé, comme les stickers de la vitrine : contour blanc, petite ombre à rebord, étincelles et
@@ -21333,7 +21349,8 @@ function mascotMedalHtml(o){
   o=o||{};
   const sp=o.kw?'<i class="mstk-sp mstk-sp-a" aria-hidden="true"></i><i class="mstk-sp mstk-sp-b" aria-hidden="true"></i>':'';
   /* Le niveau se lit avec le bouton (audit du 6 novembre, bug 4 : dans un bouton nommé, son role="img" n’était jamais annoncé). */
-  const kw=o.niv?`<span class="mstk-niv" aria-hidden="true"><i><span>Niv.</span>${o.niv.rank}</i><b>${esc(o.niv.label)}</b></span>`
+  /* nivCourt (6 novembre, piste A) : la pastille « Niv. 2 » seule, au pied du chat, sans le nom du niveau. */
+  const kw=o.niv?`<span class="mstk-niv${o.nivCourt?' is-court':''}" aria-hidden="true"><i><span>Niv.</span>${o.niv.rank}</i>${o.nivCourt?'':`<b>${esc(o.niv.label)}</b>`}</span>`
     :o.kw?`<span class="mstk-kw" aria-hidden="true">${esc(o.kw)}</span>`:'';
   const hi=o.hi?`<span class="mstk-bub" aria-hidden="true">${esc(mascotRetrouveJusqua>Date.now()?MASCOT_RETROUVE:o.hi)}</span>`:'';
   return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:'La mascotte Requête te fait coucou')}">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">${kw}${hi}</button>`;
@@ -21388,7 +21405,7 @@ function renderHomeHero(){
   const suite=nxt!=null&&typeof salutSuite==='function'?salutSuite():'';
   const hiWord=suite||(typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour');
   /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. */
-  const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}${suite?'\u00a0?':''}`;
+  const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, <span class="lq-hi-nom">${esc(name)}</span>`:''}${suite?'\u00a0?':''}`;
   /* 19 h 36 : « Aujourd’hui · 12 min » ; rien de prévu aujourd’hui : « Aujourd’hui · Pause » (ou « Fait » si la séance du jour est
      terminée) ; une séance en retard : « À reprendre · 8 min » ; plus rien du tout : « Parcours terminé ». */
   const todayISO=dstr(auj());
@@ -21401,7 +21418,10 @@ function renderHomeHero(){
     :sesEtat==='late'?`À reprendre · ${session.minutes} min`
     :sesEtat==='run'?`Ta session · ${session.minutes} min`
     :sesEtat==='done'?'Ta session · Faite':'Ta session · Pause';
-  const sesIc=sesEtat==='run'||sesEtat==='late'
+  /* Une séance en retard : la flèche de reprise ↻ à la place du sablier (6 novembre, piste A : le retard ne se dit plus seulement par
+     la couleur du chiffre). */
+  const sesIc=sesEtat==='late'?'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.6a5 5 0 1 0 1.5-4.4"/><path d="M4.4 1.6v3h3"/></svg>'
+    :sesEtat==='run'
     ?'<svg viewBox="0 0 14 16"><g class="lq-sab"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M4.9 3.4h4.2L7 7.2z"/><path class="lq-sab-b" d="M7 9.4l2.6 4.4H4.4z"/><path class="lq-sab-s" d="M7 7.4v6"/></g></svg>'
     :sesEtat==='pause'?'<svg viewBox="0 0 14 16"><g class="lq-sab is-couche"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M5.6 4.6h2.8L7 7z"/><path class="lq-sab-b" d="M7 11l1.6 2.8H5.4z"/></g><text class="lq-zz" x="11" y="3">z</text></svg>'
     :'<svg viewBox="0 0 16 16"><circle class="lq-chk-o" cx="8" cy="8" r="6.6"/><path class="lq-chk" d="M4.8 8.3l2.2 2.2 4.2-4.6"/></svg>';
@@ -21423,7 +21443,7 @@ function renderHomeHero(){
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
-  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
+  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
   if(nxt==null){
     const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
@@ -21431,46 +21451,50 @@ function renderHomeHero(){
     lqSesCount(host);
     return;
   }
+  /* Elisa, 6 novembre, 8 h 47 – 8 h 49 (après l’audit UI/UX de la carte) : la piste A, « La leçon d’abord », sans la pastille « Rappel »
+     (« finalement je préfère ça »). La carte parle de la leçon : le module, le titre de la leçon en grand, sa vidéo (« 1:15 sur 2:50 »)
+     et les points du module (« Leçon 3 sur 6 »), le chat avec sa pastille « Niv. 2 » (le nom du niveau se lit avec lui), puis le
+     bouton et le temps qui reste (« Encore ~3 min »). Elle remplace le grand % du module (5 novembre, 20 h 32 – 21 h 09) et la leçon
+     dans le bouton (20 h 44). Les étapes Leçon · Exercice · Quiz n’existent plus : toutes les leçons sont des vidéos. */
   const meta=itemMeta(nxt),defi=isDefiId(nxt),mod=moduleDeLecon(nxt);
   const lesson=defi?null:allLessons.find(l=>l.id===nxt);
   const modIndex=mod&&typeof MODULES!=='undefined'?MODULES.indexOf(mod):-1;
   const mc=defi?4:modIndex>=0?modIndex%8:0;
   const index=mod?mod.lessons.findIndex(l=>l.id===nxt)+1:0;
   const arg=escAttr(JSON.stringify(nxt));
-  const steps=defi?[{step:0,done:false,locked:false}]:homeLessonSteps(nxt);
-  const currentStep=defi||steps.length<2?0:steps[1].done?2:nbFaites(nxt)>0?1:0;
-  const stepNames=['Leçon','Exercice','Quiz'];
-  const pips=defi||steps.length<2?'':`<ol class="lq-steps" aria-label="Les étapes de ta prochaine leçon">${steps.map(({step,done,locked})=>{
-    const cur=step===currentStep;
-    const kind=done?'done':cur?'current':locked?'locked':'todo';
-    const label=`${stepNames[step]} : ${done?'validé':locked?'après l’exercice':cur?'à faire maintenant':'à faire'}`;
-    const ico=done?HOME_STEP_OK:locked?HOME_STEP_LOCK:String(step+1);
-    return `<li class="lq-step is-${kind}"><button type="button" ${locked?'aria-disabled="true"':`onclick="openItem(${arg},${step})"`} aria-label="${escAttr(label)}"${cur?' aria-current="step"':''}><i aria-hidden="true">${ico}</i><span>${stepNames[step]}</span></button></li>`;
-  }).join('')}</ol>`;
   /* 17 h 09 : « Reprendre ma leçon » convient uniquement si la leçon a déjà été commencée, sinon « Commencer la leçon » (avant, il
      suffisait qu’une autre activité de la séance soit faite) ; de même pour un défi. */
-  const ctaLabel=defi
-    ?(itemCommence(nxt)?'Reprendre le défi':'Commencer le défi')
-    :(currentStep===2?'Passer au quiz':currentStep===1?(nbFaites(nxt)>0?"Reprendre l’exercice":"Faire l’exercice"):(itemCommence(nxt)?'Reprendre ma leçon':'Commencer la leçon'));
+  const commence=itemCommence(nxt);
+  const ctaLabel=defi?(commence?'Reprendre le défi':'Commencer le défi'):(commence?'Reprendre ma leçon':'Commencer la leçon');
   const ch=defi&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(c=>c.id===nxt):null;
   const niv=ch&&typeof NIV!=='undefined'&&NIV[ch.niv]?NIV[ch.niv].l:'';
-  const kicker=defi?'Ton prochain défi':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon';
   const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`;
-  /* Elisa, 5 novembre, 20 h 32 : « mettre le % du parcours au total » (20 h 34 : la carte « Ton objectif », qui le donnait sous la série,
-     est supprimée) ; 20 h 44 : « la partie de gauche sur la leçon (les détails) fusionnée dans le bouton, pour laisser la place au % ».
-     À gauche de la mascotte, le parcours SQL : la part déjà faite en grand (les leçons validées sur toutes celles du parcours, le calcul
-     de la page Parcours), sa barre, et le nombre de leçons. La leçon (« Leçon 11 sur 12 · ORDER BY ») passe sous le texte du bouton.
-     20 h 53 : « Ton parcours, supprime SQL ; non, mettre le % du module » : la part du module en cours (ses leçons validées sur toutes
-     les siennes), sous « Ton module » ; un défi, hors module, garde celle du parcours, sous « Ton parcours ». 21 h 09 : « supprime
-     Ton module en vert » : le module est nommé juste au-dessus, et le nombre de leçons dit le reste. */
-  const enMod=!!(mod&&Array.isArray(mod.lessons)&&mod.lessons.length);
-  const fait=enMod?mod.lessons.filter(l=>state.lessons&&state.lessons[l.id]&&state.lessons[l.id].done).length:(typeof parcoursSqlFaites==='function'?parcoursSqlFaites():0);
-  const tot=enMod?mod.lessons.length:(typeof TOTAL!=='undefined'?TOTAL:0);
-  const pf=tot?Math.min(100,Math.round(fait/tot*100)):0;
-  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-parc-n"><span class="lq-pct-n">${pf}</span><em>\u00a0%</em><span class="lq-sr">${enMod?' du module':' du parcours'}</span></p><span class="lq-parc-bar" aria-hidden="true"><i style="width:${pf}%"></i></span><p class="lq-hero-sub">${fait?`${fait} leçon${fait>1?'s':''} validée${fait>1?'s':''} sur ${tot}`:tot>1?`${tot} leçons t’attendent`:tot?'Une leçon t’attend':'Ton parcours commence'}</p></div>`;
-  const detail=index&&!defi?`${kicker} · ${meta.titre}`:meta.titre;
-  const ctaLu=`${ctaLabel} : ${index&&!defi?`leçon ${index} sur ${mod.lessons.length}, `:''}${meta.titre}`;
-  const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}${chip}<div class="lq-hero-main">${parc}${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(detail)}</small></span></button></section>${streak}${extras}`;
+  /* Sous le titre : où on en est. Une leçon jamais ouverte : sa vidéo et ses exercices ; commencée : la vidéo vue (« 1:15 sur 2:50 »,
+     et les exercices faits) ; vidéo finie mais leçon pas validée : les exercices faits. Un défi : sa base, ou son chrono en cours. */
+  let prog='',sub='',part=0;
+  if(defi){
+    const o=typeof defiSesRead==='function'?defiSesRead():null,pris=o&&o.cid===nxt&&o.t0>0?Math.max(0,Date.now()-o.t0):-1,enCours=pris>=0&&pris<JEU_ROUND_MS;
+    const base=ch&&typeof defiBaseId==='function'&&defiBaseId(ch)?`Base ${DEFI_BASES[defiBaseId(ch)].nom}`:'';
+    part=enCours?pris/JEU_ROUND_MS:0;
+    prog=enCours?`<span class="lq-a-bar" aria-hidden="true" data-p="${Math.round(part*100)}"><i style="width:${Math.round(part*100)}%"></i></span><p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(JEU_ROUND_MS)}</span></p>`
+      :`<p class="lq-a-meta is-ico">${LQ_CHRONO_SVG}<span>${JEU_ROUND_MS/60000}\u00a0min au chrono${base?` · ${esc(base)}`:''}</span></p>`;
+    sub=enCours?`Encore ${Math.max(1,Math.ceil((JEU_ROUND_MS-pris)/60000))}\u00a0min au chrono`:`${JEU_ROUND_MS/60000}\u00a0min au plus`;
+  }else{
+    const v=dureeVideoS(lesson),pos=Math.min(v,(typeof LV_POS!=='undefined'&&LV_POS.get(nxt))||0),mo=(lesson&&lesson.video&&lesson.video.moments)||0,faits=exercicesFaits(nxt);
+    part=Math.min(.95,Math.max(v?pos/v:0,mo?faits/mo*.95:0));
+    const ex=mo?`${faits}/${mo} exercice${mo>1?'s':''}`:'';
+    const barre=`<span class="lq-a-bar" aria-hidden="true" data-p="${Math.round(part*100)}"><i style="width:${Math.round(part*100)}%"></i></span>`;
+    prog=commence&&pos>0?`${barre}<p class="lq-a-meta"><span class="lq-sr">Vidéo : </span><span>${lvFmt(pos)} sur ${lvFmt(v)}</span>${faits?`<span class="lq-a-pt" aria-hidden="true">·</span><span>${ex}</span>`:''}</p>`
+      :commence&&faits?`${barre}<p class="lq-a-meta"><span>Vidéo vue · ${ex}</span></p>`
+      :v?`<p class="lq-a-meta is-ico">${LQ_VIDEO_SVG}<span>Vidéo de ${esc(lesson.video.duree)}${mo?` · ${mo}\u00a0exercice${mo>1?'s':''}`:''}</span></p>`:'';
+    sub=commence?`Encore ~${minutesDe([nxt],true)}\u00a0min`:`~${minutesDe([nxt])}\u00a0min`;
+  }
+  /* Les points du module (●●◐○○○ « Leçon 3 sur 6 ») : validées en menthe, la leçon en cours remplie de ce qui est vu. */
+  const n=mod?mod.lessons.length:0;
+  const points=n>1?`<p class="lq-a-meta lq-a-pos"><span class="lq-a-dots" aria-hidden="true">${mod.lessons.map(l=>{const d=itemDone(l.id),c=l.id===nxt;return `<i class="${d?'is-done':c?'is-cur':''}"${c?` style="--pv:${Math.round(part*100)}%"`:''}></i>`;}).join('')}</span><span>Leçon ${index} sur ${n}</span></p>`:'';
+  const ctaLu=`${ctaLabel} : ${meta.titre}, ${sub.replace(/~/g,'environ ').replace(/\u00a0/g,' ')}`;
+  const sesCopie=`<span class="lq-ses lq-ses-copie is-${sesEtat}" aria-hidden="true"><i class="lq-ses-ic">${sesIc}</i><span>${sesTxt}</span></span>`;
+  const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${streak}${extras}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
   lqSesCount(host);
@@ -21508,43 +21532,69 @@ function lqSameHtml(host,html){
   if(host.__lqHtml===html&&host.firstElementChild)return true;
   host.__lqHtml=html;return false;
 }
-/* « Ta session · 12 min » : les minutes défilent de 0 jusqu’à la durée, une fois par ouverture de l’appli (pas à chaque rendu). */
+/* « Ta session · 12 min » : les minutes défilent de 0 jusqu’à la durée, une fois par ouverture de l’appli (pas à chaque rendu). Sur
+   petit écran, la carte d’une leçon montre la copie de l’étiquette, à côté du module (6 novembre) : les deux défilent ensemble. */
 let lqSesCounted=false;
 function lqSesCount(host){
-  const n=host&&typeof host.querySelector==='function'?host.querySelector('.lq-ses-n[data-n]'):null;
+  const ns=host&&typeof host.querySelectorAll==='function'?[...host.querySelectorAll('.lq-ses-n[data-n]')]:host&&typeof host.querySelector==='function'?[host.querySelector('.lq-ses-n[data-n]')].filter(Boolean):[];
+  const n=ns[0];
   if(!n||lqSesCounted||!document.querySelector('#scr-learn.active'))return;
   lqSesCounted=true;
   if(typeof mascotReduced==='function'&&mascotReduced())return;
   const fin=+n.dataset.n||0,t0=performance.now(),D=900;
-  n.textContent='0';
-  const pas=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);n.textContent=String(Math.round(fin*e));if(k<1)requestAnimationFrame(pas);};
+  const ecrit=v=>ns.forEach(x=>{x.textContent=v;});
+  ecrit('0');
+  const pas=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);ecrit(String(Math.round(fin*e)));if(k<1)requestAnimationFrame(pas);};
   setTimeout(()=>requestAnimationFrame(pas),350);
 }
-/* 21 h 09 : « j’aime pas que ça tienne en deux lignes ». Si la séance passe sous le bonjour, faute de place, elle perd « Ta session · »
-   ou « À reprendre · » (« ✓ Faite », « ⌛ 12 min », le chiffre en rose s’il est en retard) ; si elle ne tient toujours pas (un prénom
-   très long), elle passe dessous, comme avant. Mesuré à chaque rendu de l’accueil et quand l’écran change de taille. */
+/* 21 h 09 : « j’aime pas que ça tienne en deux lignes ». Le bonjour et la séance restent sur une ligne (audit du 6 novembre, bug 5 :
+   à 390 px, « Prête pour la suite, Manon ? » passait déjà dessous, et un long prénom était coupé avec son « ? »). Mesuré une fois,
+   bonjour à 20 px, la suite se déduit par proportion :
+   1. tout tient ;  2. l’étiquette perd « Ta session · » ou « À reprendre · » (« ⌛ 12 min ») ;  3. le bonjour rapetisse, jusqu’à
+   17 px ;  4. sur la carte d’une leçon, l’étiquette descend à côté du module et le bonjour reprend toute la ligne, jusqu’à 16 px ;
+   5. en dernier recours, le prénom s’abrège (« Marie-Charl… ? »), jamais le « ? ». Sur la carte de fin, l’étiquette passe dessous,
+   comme avant. Mesuré à chaque rendu de l’accueil, quand l’écran change de taille et quand les polices sont arrivées. */
 function lqSesAjuste(host){
   const hi=host&&typeof host.querySelector==='function'?host.querySelector('.lq-hero-hi'):null;
   const t=hi&&hi.querySelector('.lq-hi-title'),m=hi&&hi.querySelector('.journey-session-meta');
   if(!t||!m||typeof t.getBoundingClientRect!=='function')return;
-  hi.classList.remove('is-court');
-  const bt=t.getBoundingClientRect();if(!bt.width)return;   // accueil caché : mesuré à son prochain rendu
-  if(m.getBoundingClientRect().top>=bt.bottom-2)hi.classList.add('is-court');
+  const card=hi.closest('.lq-hero'),nom=t.querySelector('.lq-hi-nom');
+  hi.classList.remove('is-court','is-serre');if(card)card.classList.remove('is-ses-bas');
+  t.style.removeProperty('--hi-fs');if(nom)nom.style.removeProperty('max-width');
+  const W=hi.clientWidth-1;if(!(W>0))return;   // accueil caché : mesuré à son prochain rendu
+  const gap=8,nat=t.scrollWidth,full=m.offsetWidth,pre=m.querySelector('.lq-ses-pre'),court=full-(pre?pre.offsetWidth:0);
+  if(!nat)return;
+  const taille=d=>Math.floor(20*d/nat*2)/2;
+  if(nat+gap+full<=W)return;
+  hi.classList.add('is-court');
+  const d=W-gap-court;
+  if(nat<=d)return;
+  if(taille(d)>=17){t.style.setProperty('--hi-fs',taille(d)+'px');return;}
+  if(!card||!card.classList.contains('is-lecon'))return;   // la carte de fin : l’étiquette passe dessous
+  card.classList.add('is-ses-bas');hi.classList.remove('is-court');
+  if(nat<=W)return;
+  const fs=Math.max(16,taille(W));
+  t.style.setProperty('--hi-fs',fs+'px');
+  if(taille(W)<16&&nom){
+    const reste=W-(nat-nom.offsetWidth)*fs/20-2;
+    hi.classList.add('is-serre');nom.style.maxWidth=Math.max(24,Math.floor(reste))+'px';
+  }
 }
 if(typeof window!=='undefined'&&typeof addEventListener==='function'){let lqSesT=0;addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});
   /* Les polices arrivent après la première mesure (Inter en « swap ») : on remesure une fois qu’elles sont là. */
   try{if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>lqSesAjuste(document.getElementById('home-hero')));}catch(e){}}
-/* Le pourcentage du parcours (20 h 32) : à la première ouverture de l’accueil, la barre se remplit et le chiffre monte de 0 ; quand il a
-   changé depuis (une leçon validée), il part de la valeur déjà vue. Rien ne bouge avec les mouvements réduits. */
+/* La barre de la leçon (6 novembre, piste A ; avant, le % du module, 20 h 32) : à la première ouverture de l’accueil, elle se remplit
+   depuis 0 ; quand elle a changé depuis (la vidéo a avancé), elle part de la valeur déjà vue. Rien ne bouge avec les mouvements
+   réduits. */
 let lqPctVu=null;
 function lqPctAnime(host){
-  const el=host&&typeof host.querySelector==='function'?host.querySelector('.lq-hero-parc[data-p]'):null;
+  const el=host&&typeof host.querySelector==='function'?host.querySelector('.lq-a-bar[data-p]'):null;
   if(!el||!document.querySelector('#scr-learn.active'))return;
   const fin=+el.dataset.p||0,de=lqPctVu==null?0:Math.min(lqPctVu,fin);
   lqPctVu=fin;
   if(de===fin||(typeof mascotReduced==='function'&&mascotReduced()))return;
-  const n=el.querySelector('.lq-pct-n'),f=el.querySelector('.lq-parc-bar i'),D=900;
-  const peint=v=>{if(n)n.textContent=String(Math.round(v));if(f)f.style.width=v.toFixed(2)+'%';};
+  const f=el.querySelector('i'),D=900;
+  const peint=v=>{if(f)f.style.width=v.toFixed(2)+'%';};
   peint(de);
   let t0=0;
   const pas=t=>{if(!el.isConnected)return;if(!t0)t0=t;const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);peint(de+(fin-de)*e);if(k<1)requestAnimationFrame(pas);else if(f)f.style.width=fin+'%';};
@@ -21564,8 +21614,10 @@ function lqKeepMascot(host,old){
   }
   return null;
 }
-const HOME_STEP_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const HOME_STEP_LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
+/* La vidéo d’une leçon pas encore commencée (6 novembre, piste A : « Vidéo de 2 min 50 · 3 exercices »). */
+const LQ_VIDEO_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/></svg>';
+/* Le chrono d’un défi pas encore commencé (« 20 min au chrono · Base Aéroport »), du même trait que la vidéo. */
+const LQ_CHRONO_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 1.8M9.5 2.8h5M12 2.8V6"/></svg>';
 const HOME_PLAY_SVG='<svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.6v12.8c0 .9 1 1.4 1.7.9l9.4-6.4c.6-.4.6-1.4 0-1.8L9.7 4.7C9 4.2 8 4.7 8 5.6Z"/></svg>';
 function lessonListRow(l){
   const st=state.lessons[l.id],ok=st&&st.done,due=isDue(l.id)&&revisable(l);
@@ -32384,6 +32436,7 @@ const FREQS=[
 ];
 const PATTERN={2:[1,4],3:[1,3,5],5:[1,2,3,4,5],7:[0,1,2,3,4,5,6]};
 const JOURS=['D','L','M','M','J','V','S'];
+/* Un défi : environ 6 minutes ; c’est aussi la durée d’une leçon sans vidéo connue (dureeActiviteS). */
 const MIN_PAR_ACTIVITE=6;
 let draft={niveau:null,rythme:null,freq:null};
 let semaineOffset=0,jourSel=null;
@@ -32592,7 +32645,7 @@ function statsPlan(){
   const resteL=remaining.filter(id=>!isDefiId(id)).length,resteD=remaining.filter(isDefiId).length;
   const fin=p.sessions.length?p.sessions[p.sessions.length-1].d:null;
   return {total:all.length,done,reste:remaining.length,seances:p.sessions.length,fin,nL,nD,resteL,resteD,
-    moy:p.sessions.length?Math.round(toutesActivites().length/p.sessions.length*MIN_PAR_ACTIVITE):0};
+    moy:p.sessions.length?Math.round(toutesActivites().reduce((a,id)=>a+dureeActiviteS(id),0)/60/p.sessions.length):0};
 }
 function infoJour(){
   normaliserPlan();
@@ -32743,7 +32796,7 @@ function lateRecoveryHTML(){
   const options={
     shift:shift?{icon:LATE_SHIFT_ICO,title:'Reprendre à mon rythme',copy:`Décale ton planning sans ajouter d’activités. Fin le\u00a0${dateCourte(shift.end).replace(/ /g,'\u00a0')}.`,action:'decalerPlanning()'}:null,
     spread:{icon:LATE_SPLIT_ICO,title:spreadN===1?'Placer sur la prochaine séance':`Répartir sur ${spreadN} séances`,copy:spreadN===1?'Sans alourdir aujourd’hui':`${plur(perSession,'activité')} de plus par séance`,action:'etalerRetard()'},
-    today:{icon:LATE_TODAY_ICO,title:'Tout rattraper aujourd’hui',copy:`${plur(d.todayAfter,'activité')} au total · environ\u00a0${dureeCourte(d.todayAfter*MIN_PAR_ACTIVITE).replace(/ /g,'\u00a0')}`,action:'rattraper()'}
+    today:{icon:LATE_TODAY_ICO,title:'Tout rattraper aujourd’hui',copy:`${plur(d.todayAfter,'activité')} au total · environ\u00a0${dureeCourte(minutesDe(d.ids.concat(d.info&&d.info.today?d.info.today.lessons.filter(id=>!itemDone(id)):[]),true)).replace(/ /g,'\u00a0')}`,action:'rattraper()'}
   };
   const rec=options[lateRecommendation(d.count)]?lateRecommendation(d.count):'spread';
   const order=[rec,...['shift','spread','today'].filter(k=>k!==rec)].filter(k=>options[k]);
@@ -32789,7 +32842,7 @@ function parcoursInsightHTML(st){
   }else if(info.today&&resteDe(info.today)){
     const left=resteDe(info.today);
     icon='🎯';tone='go';
-    body=`Aujourd’hui : ${plur(left,'activité')} · ~${left*MIN_PAR_ACTIVITE} min. ${sk>0?`Garde ta série de ${sk} jour${sk>1?'s':''} !`:'Lance ta première séance !'}`;
+    body=`Aujourd’hui : ${plur(left,'activité')} · ~${minutesDe(info.today.lessons.filter(id=>!itemDone(id)),true)} min. ${sk>0?`Garde ta série de ${sk} jour${sk>1?'s':''} !`:'Lance ta première séance !'}`;
   }else if(info.today){
     icon='✓';tone='ok';
     body=info.suivante?`Séance du jour terminée. Prochaine étape ${libelleJour(info.suivante.d).toLowerCase()}.`:'Séance du jour terminée.';
@@ -33451,7 +33504,7 @@ function renderTodayHero(){
       ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
     return retard+`<div class="today-hero"><div class="th-tag">Aujourd’hui · Parcours progressif</div>
       <h3>${left} à faire</h3>
-      <p>${plur(left,'leçon')} · ~${left*MIN_PAR_ACTIVITE} min.${faites?` Déjà ${faites}/${tot}.`:''}</p>
+      <p>${plur(left,'leçon')} · ~${minutesDe(s.lessons.filter(id=>!itemDone(id)),true)} min.${faites?` Déjà ${faites}/${tot}.`:''}</p>
       <div class="th-bar"><i style="width:${pct}%"></i></div>
       <div class="hero-list">${heroRows(s)}</div>
       <button class="th-go" onclick="demarrerSeance('${s.d}')">${faites?'Continuer':'Commencer'} la séance</button></div>`;
@@ -33704,7 +33757,7 @@ function renderSemaine(){
     <div class="day-panel ${ret?'late':''} ${fait?'done':''}" data-date="${jourSel}">
       <div class="dp-head">
         <div><b>${libelleJour(jourSel)}</b>
-        <small>${sess?`${nL} leçon${nL>1?'s':''}${nD?` · ${nD} défi${nD>1?'s':''}`:''} · ~${sess.lessons.length*MIN_PAR_ACTIVITE} min${ret?' · en retard':(faitN&&!fait?` · ${faitN}/${sess.lessons.length}`:'')}`:jourSel<t?'Jour passé':'Pas de séance prévue'}</small></div>
+        <small>${sess?`${nL} leçon${nL>1?'s':''}${nD?` · ${nD} défi${nD>1?'s':''}`:''} · ~${minutesDe(sess.lessons)} min${ret?' · en retard':(faitN&&!fait?` · ${faitN}/${sess.lessons.length}`:'')}`:jourSel<t?'Jour passé':'Pas de séance prévue'}</small></div>
         ${fait?'<span class="dp-session-valid"><i aria-hidden="true">✓</i>Séance validée</span>':''}
       </div>
       ${started?`<div class="dp-prog" aria-hidden="true"><i style="width:${pctSess}%"></i></div>`:''}
@@ -33767,7 +33820,7 @@ function nextDayPreviewHTML(){
       const m=itemMeta(id),ok=itemDone(id),arg=isDefiId(id)?`'${id}'`:id;
       return `<button type="button" class="pl-next-row${ok?' ok':''}" onclick="openItem(${arg})"><span class="cn" aria-hidden="true">${ok?PL_OK_SVG:i+1}</span><span class="ct"><span>${esc(m.titre)}</span><small>${esc(m.sous)}</small></span>${ok?'<span class="pl-chip-valid"><i aria-hidden="true">✓</i>Validé</span>':''}</button>`;
     }).join('');
-    return `<section class="pl-next-day" aria-label="${escAttr(title)}"><div class="pl-next-head"><h3>${esc(title)}</h3><small>${plur(n,'activité')} · ~${n*MIN_PAR_ACTIVITE} min</small></div><div class="pl-next-list">${rows}</div></section>`;
+    return `<section class="pl-next-day" aria-label="${escAttr(title)}"><div class="pl-next-head"><h3>${esc(title)}</h3><small>${plur(n,'activité')} · ~${minutesDe(sess.lessons)} min</small></div><div class="pl-next-list">${rows}</div></section>`;
   }
   return '';
 }
@@ -34231,7 +34284,7 @@ function openMoveSheet(id){
     const iso=dstr(d),sess=sessionDe(iso),n=sess?sess.lessons.length:0;
     return `<button class="mv-row ${iso===actuelle?'on':''}" onclick="moveTo('${iso}')">
       <span class="mv-d"><b>${libelleJour(iso)}</b>
-      <small>${n?`${plur(n,'activité')} · ~${n*MIN_PAR_ACTIVITE} min`:'Pause'}</small></span>
+      <small>${n?`${plur(n,'activité')} · ~${minutesDe(sess.lessons)} min`:'Pause'}</small></span>
       ${iso===actuelle?'<span class="mv-tag">Actuel</span>':''}</button>`;
   }).join('');
   document.getElementById('move-head').textContent=`Déplacer « ${m.titre} »`;
@@ -35782,7 +35835,7 @@ function paintOb(){
   }else if(slide==='rythme'){
     html=`${back}<div class="ob-kicker">Question 2 / 2</div>
       <h2>Combien de minutes<br>par séance ?</h2>
-      <p>Une leçon prend environ ${MIN_PAR_ACTIVITE} minutes. Les jours se règlent ensuite dans Planning.</p>
+      <p>Une leçon prend environ ${Math.round(allLessons.reduce((a,l)=>a+dureeActiviteS(l.id),0)/Math.max(1,allLessons.length)/60)}\u00a0minutes. Les jours se règlent ensuite dans Planning.</p>
       ${obOptsHtml('rythme',RYTHMES,o=>o.k)}`;
   }else if(slide==='build'){
     html=`<div class="ob-kicker">Personnalisation</div>
@@ -39498,7 +39551,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-accueil-calculs-v2569';
+  const SW_CACHE='requete-2026-11-06-carte-lecon-v2570';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

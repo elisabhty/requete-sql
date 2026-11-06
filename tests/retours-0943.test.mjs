@@ -44,8 +44,9 @@ test('le badge : la pastille jaune « Niv. 2 », puis le nom ; sous le prénom d
   const { lv, badge } = niveau('bases');
   assert.equal(badge(lv), '<span class="lvl-badge is-home" role="img" aria-label="Niveau 2 : Constructeur de requêtes"><i aria-hidden="true"><span class="lvl-k">Niv.</span>2</i><span aria-hidden="true">Constructeur de requêtes</span></span>');
   assert.ok(app.includes("<span class=\"acct-identity-line\"><b>${esc(accountTitle)}</b>") && app.includes("</span><span class=\"acct-rang\" aria-hidden=\"true\">${esc(level.label)}</span>${objHero}${depuisHero}</span>") && app.includes('<span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span>'), 'Mon compte : le nom du niveau sous la ligne du prénom (et du pseudo), puis l’objectif (21 h 54) ; « Niv. 2 » sous l’avatar (6 novembre, 6 h 10, retours-0610)');
-  /* 1er novembre, 19 h 39 : « le Niv. 2 Constructeur… : le mettre sur le chat » — à l’accueil, l’étiquette est collée sur la mascotte */
-  assert.ok(app.includes('const kw=o.niv?`<span class="mstk-niv" aria-hidden="true"><i><span>Niv.</span>${o.niv.rank}</i><b>${esc(o.niv.label)}</b></span>`') && app.includes('aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:\'La mascotte Requête te fait coucou\')}"'), 'accueil : sur le chat');
+  /* 1er novembre, 19 h 39 : « le Niv. 2 Constructeur… : le mettre sur le chat » — à l’accueil, l’étiquette est collée sur la mascotte ;
+     depuis le 6 novembre (la carte « La leçon d’abord »), la pastille « Niv. 2 » seule, le nom du niveau se lit avec le bouton */
+  assert.ok(app.includes('const kw=o.niv?`<span class="mstk-niv${o.nivCourt?\' is-court\':\'\'}" aria-hidden="true"><i><span>Niv.</span>${o.niv.rank}</i>${o.nivCourt?\'\':`<b>${esc(o.niv.label)}</b>`}</span>`') && app.includes('aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:\'La mascotte Requête te fait coucou\')}"'), 'accueil : sur le chat');
   assert.ok(!app.includes("lvlBadgeHTML(niveauCompte(),'is-home is-on-deep')"), 'plus dans la ligne du bonjour');
   for (const part of [
     'html.lq .lvl-badge>i{flex:none;display:inline-flex;align-items:baseline;gap:3px;height:24px;padding:0 9px;border-radius:999px;background:var(--sun);',

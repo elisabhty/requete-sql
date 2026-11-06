@@ -16,14 +16,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), lq = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 const fn = nom => cut(`function ${nom}(`, '\n}\n') + '\n}\n';
 const ligne = nom => cut(`function ${nom}(`, '\n') + '\n';
 
-test('1 — « Texte plus grand » laisse au grand pourcentage de l’accueil sa taille', () => {
-  assert.ok(app.includes('html[data-reading="large"] .screen p:not(.eyebrow):not(.lq-parc-n),html[data-reading="large"] .screen .sub,html[data-reading="large"] .screen .tip{font-size:17px;line-height:1.75}'));
-  assert.ok(!app.includes('html[data-reading="large"] .screen p:not(.eyebrow),'), 'plus l’ancienne règle');
+test('1 — « Texte plus grand » : la carte grandit d’un cran sans casser ses titres', () => {
+  /* Le grand « 0 % » a laissé la place à la carte « La leçon d’abord » (8 h 49) : la règle générale redevient celle d’avant (avec
+     « :not(.lq-parc-n) », elle passait devant les règles de la carte), et la carte a ses propres tailles */
+  assert.ok(app.includes('html[data-reading="large"] .screen p:not(.eyebrow),html[data-reading="large"] .screen .sub,html[data-reading="large"] .screen .tip{font-size:17px;line-height:1.75}'));
+  assert.ok(!app.includes('lq-parc-n') && !lq.includes('lq-parc-n'), 'plus de grand pourcentage');
+  for (const k of ['html.lq[data-reading="large"] .lq-hero.is-lecon .lq-a-meta{font-size:15px;line-height:1.35}', 'html.lq[data-reading="large"] .lq-hero.has-hi p.lq-hi-title{line-height:1.2}',
+    'html.lq[data-reading="large"] .lq-hero.is-lecon .lq-cta-t small{font-size:15px!important}', 'html.lq .lq-hero.has-hi .lq-hi-title{font-size:var(--hi-fs,20px)}'])
+    assert.ok(lq.includes(k), k);
 });
 
 function seances(sessions, done = []) {
@@ -50,7 +55,8 @@ test('3 et 4 — l’étiquette de la séance se lit, et dit ce que l’écran m
   const h = fn('renderHomeHero');
   assert.ok(h.includes('<span class="lq-ses is-${sesEtat}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">'), 'un texte masqué, lu par VoiceOver');
   assert.ok(!h.includes('aria-label="${escAttr(session?.summary'), 'plus d’aria-label sur un simple <span>');
-  assert.ok(h.includes('<em>\\u00a0%</em><span class="lq-sr">${enMod?\' du module\':\' du parcours\'}</span></p>'), '« 0 % du module » pour VoiceOver');
+  /* Depuis 8 h 49, plus de « 0 % » : la barre de la leçon se lit (« Vidéo : 1:15 sur 2:50 », « Chrono : 05:48 sur 20:00 ») */
+  assert.ok(h.includes('<span class="lq-sr">Vidéo : </span><span>${lvFmt(pos)} sur ${lvFmt(v)}</span>') && h.includes('<span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(JEU_ROUND_MS)}</span>'), 'la barre de la leçon pour VoiceOver');
 });
 
 test('4 — le niveau se lit avec la mascotte, et reste à jour quand l’autocollant est gardé d’un rendu à l’autre', () => {
