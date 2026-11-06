@@ -61,8 +61,6 @@ test('Mon compte : le pseudo sous le prénom ; « manches réussies » partout a
   assert.ok(app.includes("aria-label=\"${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}${profileGoal?`, objectif : ${profileGoal}`:''}, membre depuis le ${inscriptionTexte()}`)}\""), 'le niveau se lit dans sa tuile');
   assert.ok(css.includes('html.lq .acct-id-copy .acct-id-pseudo{align-self:flex-start;'));
   for (const part of ["`réussie${kd.tr>1?'s':''}`:'à jouer'", "${kd.tr}/${kd.ma} réussie${kd.tr>1?'s':''}",
-    /* Pratiquer, 5 novembre, 14 h 24 : « Mes défis », les points en toutes lettres (retours-1424.test.mjs) */
-    "`${kd.tr}/${kd.ma} manches réussies\\u00a0· ${(+kd.pts||0).toLocaleString('fr-FR')} point${kd.pts>1?'s':''}`",
     "${trouves} ${plur(trouves,'manche')} ${plur(trouves,'réussie')} sur ${manches}", "${h.ok}/${h.n} ${plur(h.ok,'réussie')}"])
     assert.ok(app.includes(part), part);
   assert.ok(!app.includes('manches trouvées') && !app.includes("plur(trouves,'trouvée')") && !app.includes("plur(h.ok,'trouvé')"));

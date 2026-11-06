@@ -43,15 +43,16 @@ test('réf. 1 : le curseur de « À toi de jouer » clignote par sa couleur, plu
   assert.ok(lq.includes('animation:coachCaret 1s steps(1) infinite') && lq.includes('html.lq .coach-tag.is-go{background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-ink);rotate:-2deg}'));
 });
 
-test('réf. 2 et 3 : Pratiquer, la salle de défi lance une partie, « Mes défis » ouvre Mes stats', () => {
+test('réf. 2 et 3 : Pratiquer, la salle de défi lance une partie ; Mes stats s’ouvre seulement si on le demande', () => {
   assert.ok(app.includes('<h1>Pratiquer</h1><p class="sub">Passe de la théorie à la pratique, une requête à la fois.</p>'));
   const hub = fn('renderJourneyHub');
   assert.ok(hub.includes("<h2>${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} à relever le défi&nbsp;?</h2><p>Un défi surprise, un chrono et des points à gagner. Joue en solo ou affronte d’autres joueurs&nbsp;!</p><button type=\"button\" class=\"journey-primary\" onclick=\"pratiquerDefis('jouer')\"><span>Relever un défi</span>${PRAT_FLECHE}</button>"));
   assert.ok(!app.includes('Le chrono part de 00:00') && !hub.includes('Entrer dans la salle'), '« Le chrono part de 00:00 » quitte la page');
-  assert.ok(hub.includes("['defis','Mes défis',`${kd.tr}/${kd.ma} manches réussies\\u00a0· ${(+kd.pts||0).toLocaleString('fr-FR')} point${kd.pts>1?'s':''}`,\"pratiquerDefis('stats')\","));
+  /* 6 novembre, 15 h 20 : « supprimer le bandeau Mes défis » (retours-1520-pratiquer) */
+  assert.ok(!hub.includes("'Mes défis'") && !hub.includes("pratiquerDefis('stats')"), 'plus de « Mes défis » sur Pratiquer');
   assert.ok(hub.includes("['console','Console SQL','Explore les données et teste librement tes requêtes.',\"switchTab('console')\"]"));
   assert.ok(app.includes("const JOURNEY_STK={defis:'trophy',"), 'le trophée pour la progression');
-  /* « Mes défis » : Mes stats ; « Relever un défi » : Jouer, même si Mes stats était resté ouvert */
+  /* pratiquerDefis('stats') : Mes stats ; « Relever un défi » : Jouer, même si Mes stats était resté ouvert */
   const vus = [];
   const ctx = vm.createContext({ DEFIS: { onglet: 'jouer' }, switchTab: t => vus.push([t, ctx.DEFIS.onglet, vm.runInContext('defisVersStats', ctx)]) });
   vm.runInContext(cut('let defisVersStats=false;', '/* L’entrée Stickers'), ctx);
@@ -156,6 +157,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=182">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-multiplicateur-v2582';") && app.includes("const SW_CACHE='requete-2026-11-06-multiplicateur-v2582';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=183">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-pratiquer-v2583';") && app.includes("const SW_CACHE='requete-2026-11-06-pratiquer-v2583';"));
 });
