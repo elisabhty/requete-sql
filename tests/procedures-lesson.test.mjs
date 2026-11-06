@@ -93,9 +93,9 @@ test('recherche, carte mémo, et leçon seule sans texte de secours ni exercice'
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 161.82);
-  assert.ok(page.includes('notesAt: 161.82,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 169.02);
+  assert.equal(val('NOTES'), 158.32);
+  assert.ok(page.includes('notesAt: 158.32,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 165.52);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
   assert.deepEqual(chaps.map(c => c.label), ['Les commandes affluent', 'Action ou calcul ?', 'Une procédure stockée', 'Une fonction stockée', 'Le duel', 'Les quatre tickets', 'Selon le SGBD', 'À retenir']);
@@ -171,14 +171,15 @@ test('les demandes et les tickets : une action va avec la procédure, une valeur
   for (const x of [...val('DEMANDES'), ...val('TICKETS')]) assert.ok(strip(x[2]).length > 40, `${x[0]} : une correction qui explique`);
 });
 
-test('chapitre 15 : écran titre, la carte PostgreSQL, SQLite ; annoncé par SAVEPOINT, il annonce Les triggers, qui s’ouvrent sur lui', () => {
+test('chapitre 15 : écran titre, la carte PostgreSQL ; annoncé par SAVEPOINT, il annonce Les triggers, qui s’ouvrent sur lui', () => {
   assert.ok(page.includes('<title>Requête · Projet : Procédures et fonctions stockées</title>') && page.includes('<div class="tagpill">Projet · Module 13</div>')
     && page.includes('<div class="abs sub">et fonctions stockées</div>'));
   const eg = [...page.matchAll(/\['eg\d', (?:'([^']*)'|"([^"]*)")\]/g)].map(m => (m[1] ?? m[2]).replace(/\{\w+\|([^}]*)\}/g, '$1'));
   assert.equal(eg.length, 10, 'dix lignes, commentaire compris');
   assert.ok(eg.includes('CREATE PROCEDURE expedier_commande(id_commande INT)') && eg.includes('CREATE FUNCTION calculer_points(montant NUMERIC)') && eg.includes('  SELECT montant * 2;'), 'la création, dans PostgreSQL');
   const caps = val('CAPTIONS').map(c => c[2]);
-  assert.ok(caps.includes('Dans SQLite, la base de l’app,<br>elles n’existent pas.'), 'SQLite n’en a pas');
+  /* Elisa, 6 novembre, 19 h 56 : comme pour MERGE, la leçon ne dit pas que la base de l’app ne les a pas. */
+  assert.ok(!caps.some(c => /n’existent pas|n’en a pas/.test(c)) && caps.includes('<code>CREATE PROCEDURE</code> enregistre<br>le traitement, <code>CREATE FUNCTION</code><br>le calcul.'), 'la carte PostgreSQL, sans « elles n’existent pas »');
   assert.throws(() => base().run('CREATE PROCEDURE expedier_commande(id_commande INT) AS SELECT 1;'), /syntax error/, 'SQLite refuse CREATE PROCEDURE');
   const sp = fs.readFileSync(path.join(root, 'assets/anim/projet-concurrence.html'), 'utf8');
   assert.ok(sp.includes('Prochaine leçon · Procédures et fonctions stockées</span>'), 'Concurrence et isolation annonce celle-ci');

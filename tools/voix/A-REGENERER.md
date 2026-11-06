@@ -8,14 +8,15 @@ _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Rien n’est g
 - La vidéo du site : seules **deux phrases** sont à refaire, avec la voix de Louis : s12 « animés par huit formateurs » (au lieu d’« une dizaine ») et s16 « cent quarante-deux questions » (l’appli en a 142 ; la voix en dit 141).
 - Les index et EXPLAIN (leçon 57) : la consigne du 2e moment ne dit plus « Bientôt » (« La table va passer à un million de commandes. ») ; une phrase, avec la voix d’Abraham.
 - MERGE (leçon 82, 19 h) : la vidéo ne dit plus que MERGE n’existe pas dans l’app. Le chapitre 7 d’Anaïs (`ch07`, fait le 5 novembre) commençait par cette phrase : il est refait sans elle, lui seul (les 21 autres fichiers du cours, sur le Mac, ont le même texte et la même voix : vérifié le 6 novembre).
+- Procédures et fonctions stockées (leçon 83, 19 h 56) : de même, plus de « Dans la base de l’app, elles n’existent pas. » ; son chapitre 7 d’Anaïs est refait sans la phrase, lui seul (les 22 autres fichiers : vérifiés).
 
-  Les quatre fichiers d’un coup, environ 740 crédits :
+  Les cinq fichiers d’un coup, environ 1 050 crédits :
 
 ```
-cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours video-site-retouches,projet-index-retouches,projet-merge --oui
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours video-site-retouches,projet-index-retouches,projet-merge,projet-procedures --oui
 ```
 
-  Puis dire « fini » à Claude, qui les intègre : `node tools/voix/integrer-site.mjs tools/voix/sortie/video-site-retouches` (les quinze autres phrases et la musique restent) et `node tools/voix/integrer.mjs projet-index tools/voix/sortie/projet-index-retouches --garder` (les vingt autres fichiers du cours restent). MERGE passe à Anaïs avec les 19 autres cours (voir ci-dessous) ; en attendant, l’appli garde la voix d’Emily, sans la phrase retirée. **Ne pas lancer `video-site` ni `projet-index` en entier** : le Mac n’a pas leurs fichiers d’origine, toute la voix (et la musique de la vidéo) serait refaite.
+  Puis dire « fini » à Claude, qui les intègre : `node tools/voix/integrer-site.mjs tools/voix/sortie/video-site-retouches` (les quinze autres phrases et la musique restent) et `node tools/voix/integrer.mjs projet-index tools/voix/sortie/projet-index-retouches --garder` (les vingt autres fichiers du cours restent). MERGE et Procédures passent à Anaïs avec les 18 autres cours (voir ci-dessous) ; en attendant, l’appli garde leurs voix d’avant, sans les phrases retirées. **Ne pas lancer `video-site` ni `projet-index` en entier** : le Mac n’a pas leurs fichiers d’origine, toute la voix (et la musique de la vidéo) serait refaite.
 
 Déjà corrigé sans régénérer : les 60 débuts de phrase coupés (tables VOICE, et la cause dans `integrer.mjs`), et le « Bravo » final trop fort (27 cours, ramené au niveau de leur cours).
 

@@ -37,6 +37,18 @@ test('la voix : plus de phrase pour la légende retirée ; celle d’Anaïs refa
   assert.equal(job.voix.nom, 'Anaïs');
 });
 
+test('Procédures et fonctions stockées (19 h 56) : pas non plus de « elles n’existent pas » dans la base de l’app', () => {
+  const p = read('assets/anim/projet-procedures.html'), pj = JSON.parse(read('tools/voix/projet-procedures.json'));
+  assert.ok(!/n’existent pas|n’en a pas/.test(sansCommentaires(p)), 'ni légende ni récapitulatif');
+  assert.ok(!p.includes('"vfhdepi"'), 'la voix de la phrase retirée ne joue plus');
+  assert.ok(p.includes("  hide('#eg', B.c29 - 0.1, {y: -30}, 0.4);"), 'la carte PostgreSQL s’en va avec la dernière légende qui la montre');
+  assert.ok(!/existent pas/.test(JSON.stringify(pj)), 'le chapitre 7 d’Anaïs, refait sans la phrase');
+  const l83 = cut('guide({ id:83, titre:"Procédures et fonctions stockées"', 'guide({ id:70,');
+  assert.ok(!/n’en a pas|n’existent pas/.test(sansCommentaires(l83)) && l83.includes("duree:'3 min 14'"));
+  const carte = cut(' 83:{k:"PROCÉDURE', '\n 57:{k:"INDEX');
+  assert.ok(!carte.includes('base de l’app') && carte.includes('une procédure écrite pour PostgreSQL ne se recopie pas telle quelle ailleurs.'));
+});
+
 test('la fiche de la leçon et la carte mémo disent l’autre écriture, sans dire que MERGE manque', () => {
   const l82 = cut('guide({ id:82, titre:"MERGE"', 'guide({ id:28,');
   assert.ok(!nExistePas.test(sansCommentaires(l82)));

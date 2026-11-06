@@ -20,9 +20,9 @@ test('réf. 6 : les fiches des leçons, les cartes mémo et les indices des déf
   }
   /* 6 novembre (cartes mémo, direction A) : les cartes réécrites disent « la base de l’app » dans leurs points et leurs pièges. */
   /* 6 novembre, 19 h : MERGE ne dit plus qu’il n’existe pas dans l’app (tests/retours-1900.test.mjs). */
-  for (const t of ['La synchronisation peut aussi s’écrire <b>autrement</b>.', 'Les deux reçoivent des paramètres. La base de l’app n’en a pas.',
+  for (const t of ['La synchronisation peut aussi s’écrire <b>autrement</b>.', 'Dans PostgreSQL, par exemple : <code>CREATE PROCEDURE</code> et <code>CREATE FUNCTION</code>.',
     "Dans la base de l’app, <code>CAST('CMD-2026-1002481' AS INTEGER)</code> donne 0, sans erreur.",
-    'Le même résultat s’obtient aussi avec <code>INSERT … ON CONFLICT DO UPDATE</code>.', 'Leur syntaxe dépend du SGBD\\u00a0: la base de l’app n’en a pas.',
+    'Le même résultat s’obtient aussi avec <code>INSERT … ON CONFLICT DO UPDATE</code>.', 'Leur syntaxe dépend du SGBD\\u00a0: une procédure écrite pour PostgreSQL ne se recopie pas telle quelle ailleurs.',
     'vaut 1 si le plat peut être commandé et 0 sinon', 'Les dates AAAA-MM-JJ se comparent comme du texte\\u00a0:']) {
     /* 6 novembre : les pistes de wf1 et ff8, réécrites avec les 267 défis, ne nomment toujours pas SQLite. */
     assert.ok(app.includes(t), t);
@@ -46,7 +46,7 @@ test('réf. 6 : les notes « SQL serveur », les messages d’erreur et les piè
 
 test('réf. 6 : les récapitulatifs des vidéos MERGE et Procédures disent la même chose que leur fiche', () => {
   assert.ok(page('projet-merge.html').includes('<div class="rtxt">La synchronisation peut<br>aussi s’écrire <b>autrement</b>.'));
-  assert.ok(page('projet-procedures.html').includes('<span class="rs">Les deux reçoivent des paramètres.<br>La base de l’app n’en a pas.</span>'));
+  assert.ok(page('projet-procedures.html').includes('<span class="rs">Dans PostgreSQL, par exemple :<br><code>CREATE PROCEDURE</code> et <code>CREATE FUNCTION</code>.</span>'));
 });
 
 test('réf. 4 : dans le duel, la demande reste à côté de son numéro et passe à la ligne en dessous', () => {
