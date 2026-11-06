@@ -63,5 +63,5 @@ test('le style : la barre jaune de la leçon, le bouton sur deux lignes ; plus d
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-parc-n') && !lq.includes('.lq-hero-parc') && !lq.includes('.lq-parc-bar'), 'le style du grand chiffre est parti avec lui');
   assert.ok(!lq.includes('.lq-hero-pct') && !lq.includes('.lq-pct-ring'), 'plus d’anneau');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=183">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=184">'));
 });

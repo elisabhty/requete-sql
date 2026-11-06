@@ -6,8 +6,10 @@ import test from 'node:test';
 
 const app = fs.readFileSync(path.join(path.resolve(import.meta.dirname, '..'), 'index.html'), 'utf8');
 
-test('Pratiquer : « À toi de jouer » au-dessus du titre', () => {
+test('Pratiquer : un sur-titre au-dessus du titre (« Entraîne-toi » depuis le 6 novembre)', () => {
   const page = app.slice(app.indexOf('<section id="scr-practice"'), app.indexOf('</section>', app.indexOf('<section id="scr-practice"')));
-  assert.ok(page.includes('<div class="eyebrow">À toi de jouer</div><h1>Pratiquer</h1>'));
+  /* 6 novembre, 16 h : la carte du haut dit désormais « À toi de jouer » ; Elisa choisit « Entraîne-toi » pour la page
+     (retours-1520-pratiquer) */
+  assert.ok(page.includes('<div class="eyebrow">Entraîne-toi</div><h1>Pratiquer</h1>'));
   assert.ok(!page.includes('À ton rythme'));
 });
