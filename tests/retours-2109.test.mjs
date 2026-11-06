@@ -22,23 +22,31 @@ test('la séance : « Ta session · » à part, pour pouvoir le retirer quand la
   assert.ok(lq.includes('html.lq .lq-hero.has-hi .lq-hero-hi.is-court .lq-ses-pre{display:none}'));
 });
 
-test('si la séance passe sous le bonjour, elle se resserre ; sinon elle garde « Ta session · »', () => {
+test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon elle garde « Ta session · »', () => {
+  /* Depuis le 6 novembre (audit, bug 5), la place se mesure une fois et la suite se déduit (lqSesAjuste) : la largeur du bonjour à
+     20 px (nat), celle de l’étiquette entière (full) et de « Ta session · » (pre) */
   const f = cut('function lqSesAjuste(host){', '\nif(typeof window');
-  const essai = ({ largeur = 230, dessous }) => {
-    const classes = new Set(['lq-hero-hi']);
-    let court = false;
-    const t = { getBoundingClientRect: () => ({ width: largeur, top: 78, bottom: 100 }) };
-    const m = { getBoundingClientRect: () => ({ top: dessous(court) ? 106 : 81 }) };
-    const hi = { classList: { add: c => { classes.add(c); court = classes.has('is-court'); }, remove: c => { classes.delete(c); court = classes.has('is-court'); } },
-      querySelector: s => (s === '.lq-hi-title' ? t : s === '.journey-session-meta' ? m : null) };
+  const essai = ({ W = 342, nat, full = 120, pre = 70, lecon = true, nomW = 60 }) => {
+    const cls = () => { const s = new Set(); return { s, add: (...c) => c.forEach(x => s.add(x)), remove: (...c) => c.forEach(x => s.delete(x)), contains: c => s.has(c) }; };
+    const hiC = cls(), cardC = cls(); if (lecon) cardC.add('is-lecon');
+    const css = {}, nomCss = {};
+    const nom = { offsetWidth: nomW, style: { removeProperty: k => { delete nomCss[k]; }, set maxWidth(v) { nomCss['max-width'] = v; } } };
+    const t = { getBoundingClientRect: () => ({}), scrollWidth: nat, style: { setProperty: (k, v) => { css[k] = v; }, removeProperty: k => { delete css[k]; } }, querySelector: s => (s === '.lq-hi-nom' ? nom : null) };
+    const m = { offsetWidth: full, querySelector: s => (s === '.lq-ses-pre' && pre ? { offsetWidth: pre } : null) };
+    const hi = { clientWidth: W + 1, classList: hiC, closest: s => (s === '.lq-hero' ? { classList: cardC } : null), querySelector: s => (s === '.lq-hi-title' ? t : s === '.journey-session-meta' ? m : null) };
     const c = vm.createContext({});
     vm.runInContext(f, c);
     c.lqSesAjuste({ querySelector: s => (s === '.lq-hero-hi' ? hi : null) });
-    return classes.has('is-court');
+    return { court: hiC.s.has('is-court'), serre: hiC.s.has('is-serre'), bas: cardC.s.has('is-ses-bas'), fs: css['--hi-fs'], nom: nomCss['max-width'] };
   };
-  assert.equal(essai({ dessous: court => !court }), true, '« Ta session · Faite » ne tient pas : « ✓ Faite »');
-  assert.equal(essai({ dessous: () => false }), false, 'tout tient sur la ligne : rien ne change');
-  assert.equal(essai({ largeur: 0, dessous: () => true }), false, 'accueil caché : rien n’est décidé');
+  assert.deepEqual(essai({ nat: 230, full: 100 }), { court: false, serre: false, bas: false, fs: undefined, nom: undefined }, 'tout tient sur la ligne : rien ne change');
+  assert.deepEqual(essai({ nat: 250 }), { court: true, serre: false, bas: false, fs: undefined, nom: undefined }, '1 : « Ta session · Faite » ne tient pas : « ✓ Faite »');
+  assert.deepEqual(essai({ nat: 300 }), { court: true, serre: false, bas: false, fs: '18.5px', nom: undefined }, '2 : le bonjour rapetisse un peu (jamais sous 17 px)');
+  assert.deepEqual(essai({ nat: 340 }), { court: false, serre: false, bas: true, fs: undefined, nom: undefined }, '3 : l’étiquette descend à côté du module, le bonjour garde ses 20 px');
+  assert.deepEqual(essai({ nat: 360 }), { court: false, serre: false, bas: true, fs: '19px', nom: undefined }, '4 : … et rapetisse si besoin');
+  assert.deepEqual(essai({ nat: 360, lecon: false }), { court: true, serre: false, bas: false, fs: undefined, nom: undefined }, 'la carte de fin : l’étiquette passe dessous, comme avant');
+  assert.deepEqual(essai({ W: 290, nat: 420, nomW: 200 }), { court: false, serre: true, bas: true, fs: '16px', nom: '112px' }, '5 : en dernier recours, le prénom s’abrège (jamais le « ? »)');
+  assert.deepEqual(essai({ W: 0, nat: 420 }), { court: false, serre: false, bas: false, fs: undefined, nom: undefined }, 'accueil caché : rien n’est décidé');
   /* Après chaque rendu des deux cartes, et quand l’écran change de taille */
   /* 6 novembre (audit, bug 6) : mesuré avec le vrai nombre, avant que le compteur parte de 0 */
   assert.ok(app.includes('    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n    lqSesCount(host);\n    return;\n  }') && app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n}'));
@@ -47,8 +55,8 @@ test('si la séance passe sous le bonjour, elle se resserre ; sinon elle garde �
   assert.ok(app.includes('const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>`;') && !app.includes('lq-hero-row') && !lq.includes('.lq-hero-row'));
 });
 
-test('plus de « Ton module » en menthe au-dessus du pourcentage', () => {
-  const parc = cut('  const parc=`', '\n');
-  assert.ok(parc.startsWith('  const parc=`<div class="lq-hero-body lq-hero-parc" data-p="${pf}"><p class="lq-parc-n">') && !parc.includes('lq-hero-kicker') && !app.includes("'Ton module'"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=173">'));
+test('plus de « Ton module » en menthe au-dessus du pourcentage (et, depuis le 6 novembre, plus de grand pourcentage du tout)', () => {
+  assert.ok(!app.includes('const parc=`') && !app.includes('lq-hero-kicker') && !app.includes("'Ton module'"));
+  assert.ok(!lq.includes('lq-hero-kicker'), 'son style est parti avec lui');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=174">'));
 });
