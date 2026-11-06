@@ -12,7 +12,7 @@ const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
 const s52 = css.slice(css.indexOf('/* ---------- 52. Retours du 31 octobre, 17 h 39'));
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
-const consts = cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_PTS_NIV=', '\n') + '\n' + cut('const JEU_ROUND_MS=', '\n') + '\n';
+const consts = cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_NIV_X=', '\n') + '\n' + cut('const JEU_NIVL=', '\n') + '\n' + cut('const JEU_ROUND_MS=', '\n') + '\n';
 
 function rulesHTML({ io = false } = {}) {
   const host = { innerHTML: '', get firstElementChild() { return this._sec; } };
@@ -43,9 +43,9 @@ test('le cadre « Comment on marque des points » : les paliers en marches, le p
   assert.ok(h.includes('<li><b>✨ Du premier coup</b><span>+25</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
   assert.ok(h.includes('<li><b>🥇 Premier à trouver</b><span>+50</span><small>À plusieurs : 2e +30 · 3e +20 · 4e +10. Seul dans la salle, pas de bonus de place</small></li>'));
   assert.ok(h.includes('<li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>'));
-  /* 6 novembre, 12 h 42 (« Bonus de niveau ») : la ligne du niveau, et la manche parfaite en Difficile (retours-1242) */
-  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>jusqu’à +50</span><small>À chaque défi trouvé : Moyen +25, Difficile +50 ; en Facile, pas de bonus</small></li>'));
-  assert.ok(h.includes('<p class="room-rules-max"><span>Manche parfaite en Difficile</span><b>275</b><small>seul</small><i aria-hidden="true">·</i><b>325</b><small>à plusieurs</small></p>'));
+  /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la ligne du niveau ; le cadre montre le Facile au départ (retours-1242 : les autres) */
+  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base.</small></li>'));
+  assert.ok(h.includes('<p class="room-rules-max"><span>Manche parfaite en Facile</span><b>225</b><small>seul</small><i aria-hidden="true">·</i><b>275</b><small>à plusieurs</small></p>'));
   assert.ok(!h.includes('Rapidité') && !h.includes('baisse doucement'), 'l’ancien barème est parti');
   assert.ok(sec.cls.has('is-in'), 'sans IntersectionObserver : tout de suite');
   /* Les marches montent quand le cadre arrive à l’écran */

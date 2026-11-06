@@ -110,7 +110,7 @@ test('« Les liens en clair » : plus de trait de couleur sur le côté des cadr
 });
 
 test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre amis) ; seul, comme avant', () => {
-  const c = vm.createContext({JEU_PALIERS: [[60, 200], [120, 175], [180, 150], [240, 125], [300, 100], [420, 75]], JEU_PTS_MIN: 50, JEU_PTS_ESSAI: 25, JEU_PTS_RANG: [50, 30, 20, 10], JEU_PTS_NIV: {f: 0, m: 25, d: 50}});
+  const c = vm.createContext({JEU_PALIERS: [[60, 200], [120, 175], [180, 150], [240, 125], [300, 100], [420, 75]], JEU_PTS_MIN: 50, JEU_PTS_ESSAI: 25, JEU_PTS_RANG: [50, 30, 20, 10], JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_DUREE: {f: 1, m: 3, d: 5}});
   vm.runInContext(line('jeuValeur') + line('jeuPts') + line('jeuNivManche') + fn('jeuRanking') + line('jeuBonusPris'), c);
   c.JEU = {solo: false, me: 'a', rounds: [{found: {a: 30000, b: 20000, c: 40000}, first: {a: 1, b: 1, c: 1}, one: false}]};
   const pur = x => JSON.parse(JSON.stringify(x));
@@ -132,7 +132,7 @@ test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre ami
   const found = cut("    case 'found':{", "    case 'react':");
   assert.ok(found.includes('jeuEvt(true,m.pid,name,m.p1===1&&(premier||r.one));') && found.includes('if(r.found[J.me]==null&&!r.one)jeuBonusOut();'), 'il s’envole chez les autres');
   /* Celui qui l’a pris : la pastille « +25 ✨ » saute sur ses points */
-  assert.ok(fn('jeuFoundHTML').includes('${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${JEU_PTS_ESSAI} ✨</i>`:\'\'}'));
+  assert.ok(fn('jeuFoundHTML').includes('${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${x.essai} ✨</i>`:\'\'}'), 'le premier coup du niveau : +25, +50 ou +100 (6 novembre, 15 h)');
   for (const k of ['html.lq .jeu-done-b{position:absolute;', '@keyframes jeuDoneB{', '@keyframes jeuDoneEt{']) assert.ok(css.includes(k), k);
   assert.ok(app.includes('Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi'), 'la règle dite dans « Comment on marque des points »');
 });
@@ -146,7 +146,8 @@ test('salle : chaque essai des autres passe en haut de l’écran, son pseudo et
   const timers = [];
   const c = vm.createContext({document: {body, createElement: el, getElementById: id => (id === 'jeu-evts' ? body.box || null : null)}, setTimeout: (f, ms) => timers.push([f, ms]),
     prefersReduceMotion: () => false, esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), JEU_PTS_ESSAI: 25,
-    JEU_ICO: {check: '<svg class="ok"/>', cross: '<svg class="ko"/>'}, JEU: {me: 'z'}, jeuOrder: () => ['h', 'b', 'c'], jeuInitial: n => String(n)[0].toUpperCase()});
+    JEU_ICO: {check: '<svg class="ok"/>', cross: '<svg class="ko"/>'}, JEU: {me: 'z'}, jeuOrder: () => ['h', 'b', 'c'], jeuInitial: n => String(n)[0].toUpperCase(),
+    JEU_NIV_X: {f: 1, m: 2, d: 4}, jeuNivManche: () => 'f', jeuCur: () => 0});
   vm.runInContext(cut('const JEU_KO_MS=', '\nfunction jeuStop(){'), c);
   c.jeuEvt(false, 'b', 'Léa<3');
   const box = body.box;
@@ -199,5 +200,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=181">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=182">'));
 });
