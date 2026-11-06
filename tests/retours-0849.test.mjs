@@ -59,7 +59,7 @@ test('le planning, l’accueil et le bilan comptent avec les vraies minutes (plu
   assert.ok(fn('recommendedSession').includes('const minutes=minutesDe(session.remaining,true);'), '« Ta session · 12 min »');
   for (const k of ['<small>${plur(n,\'activité\')} · ~${minutesDe(sess.lessons)} min</small>', '· ~${minutesDe(sess.lessons)} min${ret?',
     'body=`Aujourd’hui : ${plur(left,\'activité\')} · ~${minutesDe(info.today.lessons.filter(id=>!itemDone(id)),true)} min.',
-    'environ\\u00a0${dureeCourte(minutesDe(d.ids.concat(d.info&&d.info.today?d.info.today.lessons.filter(id=>!itemDone(id)):[]),true))',
+    'd.minutes=minutesDe(d.ids.concat(d.info&&d.info.today?d.info.today.lessons.filter(id=>!itemDone(id)):[]),true);', 'environ\\u00a0${dureeCourte(d.minutes)',   // 6 novembre, 11 h 57 : une fois, pour le choix conseillé aussi
     'moy:p.sessions.length?Math.round(toutesActivites().reduce((a,id)=>a+dureeActiviteS(id),0)/60/p.sessions.length):0',
     'Une leçon prend environ ${Math.round(allLessons.reduce((a,l)=>a+dureeActiviteS(l.id),0)/Math.max(1,allLessons.length)/60)}\\u00a0minutes.'])
     assert.ok(app.includes(k), k);
@@ -160,5 +160,5 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=178">'));
-  assert.ok(sw.includes("'requete-2026-11-06-compte-c-v2576'"));
+  assert.ok(sw.includes("'requete-2026-11-06-reco-retard-v2577'"));
 });

@@ -32798,9 +32798,31 @@ function lrConfirmer(btn){
   const opt=btn&&btn.closest('.late-recovery')?.querySelector(`.lr-option[data-option="${k}"]`);
   lrPick(btn,()=>lateAppliquer(k),opt||null);
 }
-/* Le choix conseillé dépend du retard : peu → aujourd’hui, quelques-unes →
-   réparties, beaucoup → tout le planning décalé. */
-function lateRecommendation(count){return count<=3?'today':count<=9?'spread':'shift';}
+/* Le choix conseillé dépend de ce qui reste à rattraper, rapporté à ton rythme (Elisa, 6 novembre, 11 h 57 : « faire les
+   recommandations par rapport aux nombres de cours restants ») ; avant, des seuils fixes (3 et 9 activités) pour tous les rythmes :
+   - le retard et la séance du jour tiennent dans deux séances, en activités comme en minutes → « Tout rattraper aujourd’hui » ;
+   - sinon, réparti sur les prochaines séances sans plus que doubler chacune → « Répartir » ;
+   - au-delà → « Reprendre à mon rythme » (le planning décalé).
+   d : latePlanDetails(), avec minutes, la durée de ce qui reste du retard et du jour. Sans rythme connu : celui de « 20 minutes ». */
+function lateRythme(){
+  const p=(typeof state!=='undefined'&&state&&state.plan)||{},R=typeof RYTHMES!=='undefined'?RYTHMES:[];
+  const r=R.find(x=>x.k===p.rythme)||R.find(x=>x.k==='regulier')||{per:3,min:18};
+  return {per:Math.max(1,Math.round(+p.per||r.per||3)),min:r.min||18};
+}
+function lateRecommendation(d){
+  const {per,min}=lateRythme(),n=d.count,spreadN=Math.min(n,3);
+  if(d.todayAfter<=2*per&&(d.minutes||0)<=2*min)return 'today';
+  if(Math.ceil(n/spreadN)<=per)return 'spread';
+  return 'shift';
+}
+/* Ce qui conseille ce choix, sous « Comment veux-tu reprendre ? » : le nombre d’activités et le temps, dits simplement. */
+function lateRaison(rec,d,spreadN,perSession){
+  if(rec==='today')return d.minutes?`Rien n’est perdu\u00a0: ${d.todayCount?'avec ta séance du jour, ':''}ça fait environ\u00a0${dureeCourte(d.minutes).replace(/ /g,'\u00a0')}. Tu peux tout rattraper aujourd’hui.`
+    :'Rien n’est perdu\u00a0: tu peux tout rattraper aujourd’hui.';
+  if(rec==='spread')return spreadN===1?'Rien n’est perdu\u00a0: elle trouve sa place dans ta prochaine séance, sans alourdir aujourd’hui.'
+    :`Rien n’est perdu, pas besoin de tout faire d’un coup\u00a0: sur tes ${spreadN}\u00a0prochaines séances, ça fait ${plur(perSession,'activité')} de plus chacune.`;
+  return `Rien n’est perdu, pas besoin de tout faire d’un coup\u00a0: avec ${plur(d.count,'activité')} en retard, décaler ton planning garde des séances à ton rythme.`;
+}
 function lateRecoveryHTML(){
   const d=latePlanDetails(); if(!d)return '';
   const names=d.ids.slice(0,3).map(id=>itemMeta(id).titre);
@@ -32810,12 +32832,14 @@ function lateRecoveryHTML(){
   const spreadN=Math.min(d.count,3);
   const perSession=Math.ceil(d.count/spreadN);
   const shift=latePlanShiftPreview();
+  /* Ce que ferait « Tout rattraper aujourd’hui » : le retard et ce qui reste du jour, en minutes (ce qui est déjà vu ne compte pas) */
+  d.minutes=minutesDe(d.ids.concat(d.info&&d.info.today?d.info.today.lessons.filter(id=>!itemDone(id)):[]),true);
   const options={
     shift:shift?{icon:LATE_SHIFT_ICO,title:'Reprendre à mon rythme',copy:`Décale ton planning sans ajouter d’activités. Fin le\u00a0${dateCourte(shift.end).replace(/ /g,'\u00a0')}.`,action:'decalerPlanning()'}:null,
     spread:{icon:LATE_SPLIT_ICO,title:spreadN===1?'Placer sur la prochaine séance':`Répartir sur ${spreadN} séances`,copy:spreadN===1?'Sans alourdir aujourd’hui':`${plur(perSession,'activité')} de plus par séance`,action:'etalerRetard()'},
-    today:{icon:LATE_TODAY_ICO,title:'Tout rattraper aujourd’hui',copy:`${plur(d.todayAfter,'activité')} au total · environ\u00a0${dureeCourte(minutesDe(d.ids.concat(d.info&&d.info.today?d.info.today.lessons.filter(id=>!itemDone(id)):[]),true)).replace(/ /g,'\u00a0')}`,action:'rattraper()'}
+    today:{icon:LATE_TODAY_ICO,title:'Tout rattraper aujourd’hui',copy:`${plur(d.todayAfter,'activité')} au total · environ\u00a0${dureeCourte(d.minutes).replace(/ /g,'\u00a0')}`,action:'rattraper()'}
   };
-  const rec=options[lateRecommendation(d.count)]?lateRecommendation(d.count):'spread';
+  const rec=options[lateRecommendation(d)]?lateRecommendation(d):'spread';
   const order=[rec,...['shift','spread','today'].filter(k=>k!==rec)].filter(k=>options[k]);
   /* La carte s’anime quand elle apparaît (de nouvelles activités à rattraper), pas à chaque mise à jour du planning (ludique.css, 14 bis). */
   const key=d.ids.map(String).join('|'),fresh=key!==lrSeenKey; lrSeenKey=key;
@@ -32837,7 +32861,7 @@ function lateRecoveryHTML(){
     <div class="lr-details" id="late-recovery-details" aria-hidden="${lateRecoveryCollapsed?'true':'false'}" ${lateRecoveryCollapsed?'inert':''}>
       <div class="lr-details-inner">
         <ul class="lr-chips" aria-label="Activités à rattraper">${chips}</ul>
-        <div class="lr-q"><h3 class="lr-q-t" id="lr-q-t">Comment veux-tu reprendre ?</h3><p class="lr-lead">Rien n’est perdu, pas besoin de tout faire d’un coup. Choisis ce qui te convient.</p></div>
+        <div class="lr-q"><h3 class="lr-q-t" id="lr-q-t">Comment veux-tu reprendre ?</h3><p class="lr-lead">${lateRaison(rec,d,spreadN,perSession)}</p></div>
         <div class="lr-actions" role="radiogroup" aria-labelledby="lr-q-t">${optionsHTML}</div>
         <button type="button" class="lq-btn lr-confirm" onclick="lrConfirmer(this)">Confirmer mon choix</button>
         <button type="button" class="lr-later" onclick="setLateRecoveryCollapsed(true,this)">Je déciderai plus tard</button>
@@ -39734,7 +39758,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-compte-c-v2576';
+  const SW_CACHE='requete-2026-11-06-reco-retard-v2577';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
