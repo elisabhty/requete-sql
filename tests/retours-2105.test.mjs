@@ -22,8 +22,8 @@ test('douze moments dans onze cours (neuf ici, deux avec la voix d’Anaïs) : l
     assert.deepEqual([r.voix, r.modele], [job.voix, job.modele]);
     for (const e of r.elements) assert.deepEqual(e, job.elements.find(x => x.id === e.id), `${c}/${e.id}`);
     for (const [a, b] of [].concat(r.legendes || [], r.remplacements || [])) {
-      assert.equal(page.split(a).length - 1, 1, `${c} : le texte d’aujourd’hui, une fois`);
-      assert.ok(!page.includes(b), `${c} : posé seulement avec sa voix`);
+      assert.ok(!page.includes(a), `${c} : l’ancien texte n’est plus dans la page`);
+      assert.equal(page.split(b).length - 1, 1, `${c} : posé une fois, avec sa voix (intégrée le 6 novembre, 21 h 30)`);
     }
   }
 });

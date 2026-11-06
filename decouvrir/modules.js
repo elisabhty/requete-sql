@@ -47,11 +47,11 @@ window.MODULES=[
     ]},
     {titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lecons:[
       ["Renommer avec AS", "Donner un nom lisible à une colonne du résultat", 107],
-      ["DISTINCT", "Valeurs uniques", 151],
+      ["DISTINCT", "Valeurs uniques", 153],
       ["WHERE", "Filtrer les lignes", 126],
-      ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 159],
+      ["Comparer des valeurs", "Filtrer avec =, !=, >, <, >=, <=", 162],
       ["AND et OR", "Combiner plusieurs conditions", 156],
-      ["NOT", "Exclure selon une condition", 165],
+      ["NOT", "Exclure selon une condition", 171],
       ["NULL", "La valeur absente", 130],
       ["LIKE", "Chercher un motif", 191],
       ["IN", "Filtrer avec une liste", 160],
@@ -61,7 +61,7 @@ window.MODULES=[
     ]},
     {titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lecons:[
       ["Fonctions de texte", "Transformer, nettoyer et découper du texte", 217],
-      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 166],
+      ["Fonctions numériques", "Calculer, arrondir et manipuler des nombres", 169],
       ["Fonctions de dates et heures", "Obtenir, extraire et calculer avec une date", 170],
       ["Fonctions de conversion de types", "Passer d’un type à un autre", 185],
       ["CASE", "Afficher une valeur selon une condition", 165],
@@ -71,21 +71,21 @@ window.MODULES=[
       ["COUNT", "Compter les lignes", 145],
       ["SUM, AVG, MIN et MAX", "Somme, moyenne, minimum et maximum", 180],
       ["GROUP BY", "Un calcul par groupe", 150],
-      ["GROUP BY sur plusieurs colonnes", "Un groupe par combinaison de valeurs", 203],
+      ["GROUP BY sur plusieurs colonnes", "Un groupe par combinaison de valeurs", 204],
       ["HAVING", "Filtrer après regroupement", 155],
       ["L’ordre d’exécution", "Dans quel ordre une requête est exécutée", 204],
       ["GROUP_CONCAT", "Rassembler les textes d’un groupe", 173]
     ]},
     {titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lecons:[
-      ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 151],
+      ["INNER JOIN", "Associer les lignes correspondantes de deux tables", 152],
       ["LEFT JOIN", "Garder même sans correspondance", 167],
       ["RIGHT JOIN", "Tout garder à droite", 204],
       ["FULL OUTER JOIN", "Tout garder des deux côtés", 196],
       ["CROSS JOIN", "Créer toutes les combinaisons", 159],
       ["Jointure de 3 tables", "Relier toute l’histoire", 228],
       ["JOIN + GROUP BY", "Compter les commandes par ville", 169],
-      ["SELF JOIN", "Comparer les lignes d’une même table", 191],
-      ["Plusieurs conditions dans ON", "Relier seulement les commandes à livrer à Paris", 206],
+      ["SELF JOIN", "Comparer les lignes d’une même table", 193],
+      ["Plusieurs conditions dans ON", "Relier seulement les commandes à livrer à Paris", 205],
       ["Quel JOIN choisir ?", "Choisir la bonne jointure selon les lignes à garder", 211]
     ]},
     {titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lecons:[
@@ -105,15 +105,15 @@ window.MODULES=[
       ["Fonctions de rang", "Classer les lignes, ex æquo compris", 178],
       ["LAG et LEAD", "Comparer une ligne à la précédente ou à la suivante", 203],
       ["Fenêtres glissantes", "Suivre l’évolution des commandes", 185],
-      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 217]
+      ["FIRST_VALUE, LAST_VALUE et NTILE", "Première et dernière valeur, groupes égaux", 219]
     ]},
     {titre:"Modéliser", sous:"Normalisation, cardinalités et UML", lecons:[
       ["Normaliser les inscriptions", "Du fichier Excel des ateliers aux tables", 238],
       ["Clés et relations", "Relier les tables entre elles", 307],
-      ["Modéliser avec UML", "Du diagramme de classes aux tables", 323]
+      ["Modéliser avec UML", "Du diagramme de classes aux tables", 322]
     ]},
     {titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lecons:[
-      ["CREATE TABLE", "Créer la structure d’une table", 274],
+      ["CREATE TABLE", "Créer la structure d’une table", 276],
       ["ALTER TABLE", "Faire évoluer la structure d’une table", 298],
       ["DROP", "Supprimer une table de la base", 160],
       ["Les schémas", "Ranger les tables par espace", 144]
