@@ -86,5 +86,5 @@ test('le style : grand chiffre jaune et sa barre, le bouton sur deux lignes ; ri
     '@media (max-width:360px){\n  html.lq .lq-parc-n{font-size:40px}\n  html.lq .lq-parc-bar,html.lq .lq-hero-parc .lq-hero-sub{max-width:calc(100% - 48px)}'])
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-hero-pct') && !lq.includes('.lq-pct-ring'), 'plus d’anneau');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=171">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=172">'));
 });

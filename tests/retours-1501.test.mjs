@@ -60,15 +60,16 @@ function rendre({ ouverte, note = '', verrou = false, base = null } = {}) {
     tableRowCount: (d, t) => d.exec(`SELECT COUNT(*) FROM "${t}"`)[0].values[0][0], hasTableBaseline: () => !!base,
     introspectTable: (d, t) => d.exec(`PRAGMA table_info("${t}")`)[0].values.map(r => ({ c: r[1], t: r[2], b: r[5] ? 'pk' : '' })),
     tableNote: () => note, colNote: () => '', renderConsoleSchemaSummary() {}, dbWsDiff: () => ({}), prefersReduceMotion: () => true,
-    UML_SVG: '<svg/>', NOTE_PLUS_SVG: '<svg class="plus"/>', CONSOLE_EDIT_SVG: '<svg/>', CONSOLE_RESET_SVG: '<svg/>', CONSOLE_TRASH_SVG: '<svg/>', INFO_SVG: '<svg/>'
+    NOTE_PLUS_SVG: '<svg class="plus"/>', CONSOLE_EDIT_SVG: '<svg/>', CONSOLE_RESET_SVG: '<svg/>', CONSOLE_TRASH_SVG: '<svg/>', INFO_SVG: '<svg/>', SCHEMA_META: []
   });
-  vm.runInContext(cut('const TBL_GRILLE_SVG=', 'function dbWsDiff(') + fn('renderDbWorkspace'), ctx);
+  /* 6 novembre, 7 h 52 : la carte d’une table est celle du schéma UML (son modèle, ses couleurs, ses exemples) */
+  vm.runInContext(cut('function quoteIdent(name){', '\n') + '\n' + cut('const UML_TEINTES=', 'let schCtx=null;') + cut('const TBL_GRILLE_SVG=', 'function dbWsDiff(') + fn('renderDbWorkspace'), ctx);
   ctx.renderDbWorkspace();
   db.close();
   return els;
 }
 
-test('réf. 8 : « Tables du projet », leur nombre, une phrase ; « Ajouter une table » et « Schéma UML » ; repliée, icône · nom · lignes · chevron', () => {
+test('réf. 8 : « Tables du projet », leur nombre, une phrase ; « Ajouter une table » et « Schéma UML » ; repliée, la carte du schéma UML', () => {
   const els = rendre();
   assert.equal(els['db-tables-titre'].textContent, 'Tables du projet');
   assert.equal(els['db-tables-n'].textContent, '2 tables');
@@ -77,8 +78,12 @@ test('réf. 8 : « Tables du projet », leur nombre, une phrase ; « Ajouter une
   assert.ok(bar.includes('<button type="button" class="db-pill add is-plus" onclick="ajouterTable()"><svg class="plus"/><span>Ajouter une table</span></button>'));
   assert.ok(bar.includes('<span>Schéma UML</span>') && !bar.includes('Importer'), '« Schéma UML » garde son nom');
   const h = els['db-tables'].innerHTML;
-  assert.ok(h.includes('<span class="tbl-ico" aria-hidden="true"><svg') && h.includes('<b class="tn">Synthese_<wbr>entretiens</b><small class="tc">2 lignes</small>'));
-  assert.ok(h.includes('<span class="tbl-chev" aria-hidden="true">') && h.includes('aria-expanded="false"') && !h.includes('tbl-corps'), 'repliée : ni description ni actions');
+  /* 6 novembre, 7 h 52 (« reprendre exactement ce format dans base ») : l’en-tête de la carte du schéma (le nom, ses lignes dans une
+     pastille, la flèche ronde), puis les clés seulement et « +N colonnes », qui déplie la table. */
+  assert.ok(h.includes('aria-label="Table Synthese_entretiens, 2 lignes, 3 colonnes">') && h.includes('<b class="tbu-n">Synthese_<wbr>entretiens</b><small class="tbu-k" aria-hidden="true">2</small><span class="tbu-pli" aria-hidden="true"><svg'));
+  assert.ok(h.includes('aria-expanded="false"') && !h.includes('tbl-corps'), 'repliée : ni description ni actions');
+  assert.ok(h.includes('aria-label="Déplier la table Synthese_entretiens : ses 3 colonnes">+3 colonnes</button>'), 'sans clé : toutes ses colonnes dans « +3 colonnes »');
+  assert.ok(h.includes('<div class="tbu-c is-pk"><span class="tbu-r"><i class="is-pk">PK</i><span class="tbu-cn">id</span><em>INTEGER</em></span></div>') && h.includes('>+1 colonne</button>'), 'fournisseurs : sa clé, puis « +1 colonne »');
   assert.ok(app.includes('<h2 class="tbl-titre" id="db-tables-titre">Tables du projet</h2><span class="tbl-compte" id="db-tables-n">0 table</span>'));
   /* Une base d’entraînement : « Tables de la base », lecture seule */
   const v = rendre({ verrou: true });
@@ -86,29 +91,33 @@ test('réf. 8 : « Tables du projet », leur nombre, une phrase ; « Ajouter une
   assert.ok(v['db-bar'].innerHTML.includes('lecture seule') && !v['db-bar'].innerHTML.includes('ajouterTable'));
 });
 
-test('réf. 5 : dépliée, la description, « Voir les données » et deux ronds, puis « Structure de la table » et d’où viennent les colonnes', () => {
+test('réf. 5 : dépliée, ses colonnes (et leurs exemples), puis la description, « Voir les données », deux ronds et d’où viennent les colonnes', () => {
   const h = rendre({ ouverte: 'Synthese_entretiens', base: { name: 'Synthese_entretiens', b64: 'x', fichier: 'in-audit.xlsx' } })['db-tables'].innerHTML;
-  assert.ok(h.includes('<small class="tc">2 lignes · 3 colonnes</small>') && h.includes('aria-expanded="true"') && h.includes('class="db-tblock is-open"'));
-  const corps = h.slice(h.indexOf('<div class="tbl-corps">'));
+  assert.ok(h.includes('aria-label="Table Synthese_entretiens, 2 lignes, 3 colonnes">') && h.includes('aria-expanded="true"') && h.includes('class="db-tblock tbu is-open"'));
+  /* Ses colonnes d’abord, comme sur le schéma : le nom, le type, le cadre « ex : » (la deuxième ligne, comme la quatrième d’une plus grande) */
+  assert.ok(h.includes('<div class="tbu-c"><span class="tbu-r"><span class="tbu-cn">n</span><em>INTEGER</em></span><span class="tbu-xl"><span class="tbu-x"><small>ex&nbsp;:</small><b>2</b></span></span></div>'));
+  assert.ok(h.includes('<span class="tbu-cn">risque</span><em>TEXT</em></span><span class="tbu-xl"><span class="tbu-x"><small>ex&nbsp;:</small><b>faible</b></span></span></div>'));
+  assert.ok(h.indexOf('<span class="tbu-cn">risque</span>') < h.indexOf('<div class="tbl-corps tbu-pied">') && !h.includes('+3 colonnes'), 'dépliée : toutes ses colonnes, puis le reste');
+  const corps = h.slice(h.indexOf('<div class="tbl-corps tbu-pied">'));
   const i = k => { const n = corps.indexOf(k); assert.ok(n >= 0, k); return n; };
   assert.ok(i('Aucune description ajoutée') < i('<span>Décrire cette table</span>') && i('<span>Décrire cette table</span>') < i('<span>Voir les données</span>'));
   assert.ok(i('<span>Voir les données</span>') < i('class="tbl-rond reset-table"') && i('class="tbl-rond reset-table"') < i('class="tbl-rond is-danger drop-table"'));
-  assert.ok(i('class="tbl-rond is-danger drop-table"') < i('<b>Structure de la table</b><small>3 colonnes</small>'));
-  assert.ok(corps.includes('onclick="voirDonneesTable(decodeURIComponent(\'Synthese_entretiens\'))"'));
-  assert.ok(corps.includes('<div class="tbl-col"><span class="tbl-cn">n</span><span class="tbl-ct">INTEGER</span></div>') && corps.includes('<span class="tbl-cn">risque</span><span class="tbl-ct">TEXT</span>'));
-  assert.ok(corps.includes('Les noms et types des colonnes proviennent du fichier importé (in-audit.xlsx).'));
+  assert.ok(i('class="tbl-rond is-danger drop-table"') < i('Les noms et types des colonnes proviennent du fichier importé (in-audit.xlsx).'));
+  assert.ok(corps.includes('onclick="voirDonneesTable(decodeURIComponent(\'Synthese_entretiens\'))"') && !corps.includes('Structure de la table'));
   /* Une description : elle se lit et se modifie ; une table créée en SQL : son CREATE TABLE */
   const d = rendre({ ouverte: 'Synthese_entretiens', note: 'Les entretiens <b>RH</b>' })['db-tables'].innerHTML;
   assert.ok(d.includes('<span class="tbl-desc-t"><small>Description</small>Les entretiens &lt;b&gt;RH&lt;/b&gt;</span>') && !d.includes('Aucune description ajoutée'));
   assert.ok(d.includes('viennent de son <code>CREATE TABLE</code>.') && d.includes('disabled>'), 'sans copie de départ : rien à réinitialiser');
   const pk = rendre({ ouverte: 'fournisseurs' })['db-tables'].innerHTML;
-  assert.ok(pk.includes('<span class="tbl-cn">id</span><span class="badge pk">PK</span><span class="tbl-ct">INTEGER</span>'));
-  /* Les styles : le nom n’est plus en chasse fixe, « Voir les données » en grand, deux pastilles nommées sur une carte étroite */
-  for (const k of ['html.lq #scr-console .tbl-nom .tn{color:var(--ink);font:750 16px/1.25 var(--display);overflow-wrap:anywhere}',
-    'html.lq #scr-console .db-tblock.is-open .tbl-chev{transform:rotate(90deg);', 'html.lq #scr-console .tbl-voir{flex:1;min-width:0;',
-    '@container (max-width:336px){', 'html.lq #scr-console .tbl-rond span{position:static;width:auto;height:auto;overflow:visible;clip:auto}',
-    'html.lq #scr-console .tbl-col:nth-child(odd){background:#F7F6FC}', 'html.lq #scr-console .tbl-ct{flex:none;margin-left:auto;'])
+  assert.ok(pk.includes('<div class="tbu-c is-pk"><span class="tbu-r"><i class="is-pk">PK</i><span class="tbu-cn">id</span><em>INTEGER</em></span></div>'), 'une table sans ligne : pas de cadre « ex : »');
+  /* Les styles : ceux des cartes du schéma (le nom en mono à la couleur de la table, la flèche couchée quand elle est pliée),
+     « Voir les données » en grand, deux pastilles nommées sur une carte étroite */
+  for (const k of ['html.lq #scr-console .tbu-n{flex:1;min-width:0;color:var(--ci);font:800 14.5px/1.25 var(--mono);overflow-wrap:anywhere}',
+    'html.lq #scr-console .tbu-pli svg{width:16px;height:16px;transform:rotate(-90deg);', 'html.lq #scr-console .db-tblock.tbu.is-open .tbu-pli svg{transform:none}',
+    'html.lq #scr-console .tbl-voir{flex:1;min-width:0;', '@container (max-width:336px){', 'html.lq #scr-console .tbl-rond span{position:static;width:auto;height:auto;overflow:visible;clip:auto}',
+    'html.lq #scr-console .tbu-c.is-on .tbu-v{background:var(--lc);color:#fff}', 'html.lq #scr-console .tbu-r em{flex:none;margin-left:auto;'])
     assert.ok(lq.includes(k), k);
+  assert.ok(!lq.includes('.tbl-col{') && !lq.includes('.tbl-chev{') && !lq.includes('.tbl-struct{'), 'plus de règles pour l’ancienne carte');
 });
 
 test('« Voir les données » : la requête dans l’éditeur, exécutée, et une seule descente jusqu’à l’éditeur', () => {
