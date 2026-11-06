@@ -171,7 +171,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=177">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=178">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-06-widgets-pas-a-pas-v2575' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-06-compte-c-v2576' && app.includes(`const SW_CACHE='${cache}';`));
 });
