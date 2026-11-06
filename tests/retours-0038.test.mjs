@@ -78,7 +78,8 @@ test('réf. 6 : les phrases dites des cours ne nomment plus SQLite', () => {
     assert.ok(job.elements.every(e => !/S Q L light|SQLite/.test(e.texte)), c);
   }
   const m = read('assets/anim/projet-merge.html'), g = read('assets/anim/group-by.html');
-  assert.ok(m.includes("chap({label:'Une autre écriture'});") && m.includes(`cap('c29', "Dans la base de l’app,<br><code>MERGE</code> n’existe pas.", 3.4);`)
+  /* 6 novembre, 19 h : la phrase « MERGE n’existe pas » est retirée (tests/retours-1900.test.mjs). */
+  assert.ok(m.includes("chap({label:'Une autre écriture'});") && !m.includes(`cap('c29',`)
     && m.includes("editor('eq', 'sans-merge.sql', [\n    ['eq0', '-- Le même résultat, sans MERGE'],"));
   assert.ok(g.includes('"L’app en choisit un, mais la plupart des autres bases refusent la requête."') && g.includes('<span class="ok">Dans l’app&nbsp;: un prénom au choix</span>'));
   for (const f of fs.readdirSync(path.join(ROOT, 'assets/anim')).filter(f => f.endsWith('.html'))) {

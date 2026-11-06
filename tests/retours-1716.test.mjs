@@ -12,7 +12,7 @@ const lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 test('leçon 45 : le même résumé dans l’appli et sur le site, celui de sa vidéo', () => {
   const app = lire('index.html'), site = lire('decouvrir/modules.js');
   assert.ok(app.includes('guide({ id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Filtrer avec la liste renvoyée par une sous-requête",'));
-  assert.ok(site.includes('["Sous-requête dans WHERE avec IN", "Filtrer avec la liste renvoyée par une sous-requête", 245]'));
+  assert.ok(site.includes('["Sous-requête dans WHERE avec IN", "Filtrer avec la liste renvoyée par une sous-requête", 237]'), 'la durée avec la voix d’Anaïs (6 novembre, 21 h 45)');
   assert.ok(!app.includes('déjà commandé du Magnésium') && !site.includes('déjà commandé du Magnésium'));
   assert.ok(lire('assets/anim/sous-requete-in.html').includes('Sont concernés : les clients dont une commande est <b>en préparation</b>.'), 'la vidéo : les commandes en préparation');
 });

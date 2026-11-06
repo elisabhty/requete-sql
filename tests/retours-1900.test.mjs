@@ -1,7 +1,8 @@
 /* Elisa, 6 novembre, 19 h : « Ne pas dire que le merge n’existe pas dans l’appli ». La leçon MERGE (82) ne le dit plus nulle part :
    ni la vidéo (la phrase du chapitre 7 est retirée, le chapitre s’appelle « Une autre écriture » et commence par « On obtient le même
    résultat avec ON CONFLICT »), ni son récapitulatif, ni la fiche, ni la carte mémo. La voix d’Anaïs de ce chapitre est refaite sans
-   la phrase ; en attendant, la voix d’Emily joue les autres phrases du chapitre, et la phrase retirée n’a plus de légende. */
+   la phrase ; en attendant, la voix d’Emily joue les autres phrases du chapitre, et la phrase retirée n’a plus de légende.
+   6 novembre, 21 h 45 : la voix d’Anaïs est intégrée (les 20 cours), avec ce chapitre refait. */
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -28,7 +29,9 @@ test('la vidéo MERGE ne dit plus que MERGE n’existe pas dans l’app', () => 
 test('la voix : plus de phrase pour la légende retirée ; celle d’Anaïs refaite sans elle', () => {
   const voice = page.slice(page.indexOf('const VOICE = {'), page.indexOf('/* Fin de la voix off */'));
   assert.ok(!voice.includes('"v78wglr"'), 'l’ancienne phrase n’a plus de légende : elle ne joue plus');
-  assert.ok(voice.includes('["v1qy1taq","ch07",4.32,8.74]'), 'la phrase suivante garde la sienne');
+  /* 6 novembre, 21 h 45 : la voix d’Anaïs est intégrée ; la première légende du chapitre 7 a sa phrase, refaite sans « MERGE n’existe pas ». */
+  assert.ok(voice.includes('["v1qy1taq","ch07",'), 'la légende qui ouvre le chapitre 7 a sa phrase');
+  assert.ok(page.includes('<html lang="fr" class="tr-f tr-anais">') && page.includes('voix Anaïs d’ElevenLabs'), 'la voix d’Anaïs');
   const ch07 = job.elements.find(e => e.id === 'ch07'), ch06 = job.elements.find(e => e.id === 'ch06');
   assert.ok(!nExistePas.test(JSON.stringify(job)), 'ni dite, ni en contexte');
   assert.equal(ch07.phrases[0], 'On obtient le même résultat avec onne konnflikte, vu dans la leçon innseurte.');
@@ -44,7 +47,7 @@ test('Procédures et fonctions stockées (19 h 56) : pas non plus de « elles n�
   assert.ok(p.includes("  hide('#eg', B.c29 - 0.1, {y: -30}, 0.4);"), 'la carte PostgreSQL s’en va avec la dernière légende qui la montre');
   assert.ok(!/existent pas/.test(JSON.stringify(pj)), 'le chapitre 7 d’Anaïs, refait sans la phrase');
   const l83 = cut('guide({ id:83, titre:"Procédures et fonctions stockées"', 'guide({ id:70,');
-  assert.ok(!/n’en a pas|n’existent pas/.test(sansCommentaires(l83)) && l83.includes("duree:'3 min 14'"));
+  assert.ok(!/n’en a pas|n’existent pas/.test(sansCommentaires(l83)) && l83.includes("duree:'3 min 17'"), 'la durée avec la voix d’Anaïs');
   const carte = cut(' 83:{k:"PROCÉDURE', '\n 57:{k:"INDEX');
   assert.ok(!carte.includes('base de l’app') && carte.includes('une procédure écrite pour PostgreSQL ne se recopie pas telle quelle ailleurs.'));
 });
@@ -53,8 +56,8 @@ test('la fiche de la leçon et la carte mémo disent l’autre écriture, sans d
   const l82 = cut('guide({ id:82, titre:"MERGE"', 'guide({ id:28,');
   assert.ok(!nExistePas.test(sansCommentaires(l82)));
   assert.ok(l82.includes('["🔁","La synchronisation peut aussi s’écrire <b>autrement</b>.","On obtient le même résultat avec <code>INSERT … ON CONFLICT DO UPDATE</code>."]'));
-  assert.ok(l82.includes("duree:'3 min 17'"), 'la durée remesurée avec la voix (201 → 197 s)');
+  assert.ok(l82.includes("duree:'3 min 11'"), 'la durée remesurée avec la voix d’Anaïs (201 → 197 s sans la phrase, 191 s avec Anaïs)');
   const carte = cut(' 82:{k:"MERGE"', '\n 28:{k:"DELETE"');
   assert.ok(carte.includes('"Le même résultat s’obtient aussi avec <code>INSERT … ON CONFLICT DO UPDATE</code>."') && !carte.includes('base de l’app'));
-  assert.ok(read('decouvrir/modules.js').includes('["MERGE", "Synchroniser deux tables", 197],'), 'la vitrine suit');
+  assert.ok(read('decouvrir/modules.js').includes('["MERGE", "Synchroniser deux tables", 191],'), 'la vitrine suit');
 });
