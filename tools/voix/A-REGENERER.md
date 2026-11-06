@@ -4,6 +4,8 @@ _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Rien n’est g
 
 **6 novembre, 17 h 16 : où on en est.**
 
+_Décisions d’Elisa, 6 novembre, 21 h 05 : la voix garde « identifiant » pour id ; la Console reste telle quelle pour les commandes de serveur (MERGE, CREATE SCHEMA, FOR UPDATE, GRANT, REVOKE) ; les moments « À toi » qui demandent avant d’expliquer : la vidéo explique d’abord (en cours, une deuxième commande suivra) ; les 20 cours d’Anaïs sont intégrés avec le reste, au « fini »._
+
 - Les 20 cours qui passent à la voix d’Anaïs et le chapitre de GROUP BY **sont générés** (sur le Mac, le 5 novembre entre 1 h 25 et 1 h 41, dans `tools/voix/sortie/`), **mais pas encore intégrés** : l’appli joue toujours les anciennes voix de ces cours. Pour les intégrer, dire « fini » à Claude.
 - La vidéo du site : seules **deux phrases** sont à refaire, avec la voix de Louis : s12 « animés par huit formateurs » (au lieu d’« une dizaine ») et s16 « cent quarante-deux questions » (l’appli en a 142 ; la voix en dit 141).
 - Les index et EXPLAIN (leçon 57) : la consigne du 2e moment ne dit plus « Bientôt » (« La table va passer à un million de commandes. ») ; une phrase, avec la voix d’Abraham.
