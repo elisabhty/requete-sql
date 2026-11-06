@@ -15,13 +15,15 @@
 -- 4. Deux vues pour le tableau de bord (Table Editor ou SQL Editor), fermées à l’appli : stats_defis_joues (un joueur par ligne :
 --    défis joués, trouvés, faits sur le total par niveau, restants) et stats_defis_restants (une ligne par niveau : combien de défis,
 --    le joueur à qui il en reste le moins, combien de joueurs en ont moins de 10 ou plus du tout).
--- 5. « Retirer mes scores du classement », « Effacer la progression » et « Supprimer mon compte » effacent aussi cette liste.
+-- 5. La liste suit le pseudo du classement (clé étrangère, en cascade) : « Supprimer mon compte », qui libère le pseudo, l’efface
+--    avec lui. « Retirer mes scores du classement » et « Effacer la progression » l’effacent aussi (jeu_oublier, migration
+--    defis_deja_joues_oubli, juste après).
 
 alter table requete_private.catalogue add column if not exists depuis smallint not null default 1;
 alter table requete_private.membre add column if not exists cat smallint;
 
 create table if not exists requete_private.defi_joue (
-  cle text not null,
+  cle text not null references public.jeu_pseudo (cle) on delete cascade,
   defi text not null,
   niv text not null check (niv in ('f', 'm', 'd')),
   vu timestamptz not null default clock_timestamp(),
@@ -41,7 +43,7 @@ from requete_private.manche rd
 join requete_private.membre mb on mb.code = rd.code and rd.joueurs ? mb.pid
 join requete_private.catalogue c on c.id = rd.defi
 left join requete_private.essai e on e.code = rd.code and e.generation = rd.generation and e.numero = rd.numero and e.pid = mb.pid
-where mb.cle is not null
+where mb.cle is not null and exists (select 1 from public.jeu_pseudo p where p.cle = mb.cle)
 group by mb.cle, rd.defi, c.niv
 on conflict (cle, defi) do nothing;
 
@@ -176,7 +178,7 @@ begin
    if selected is null then raise exception 'défi invalide'; end if;
    insert into requete_private.manche(code,generation,numero,defi,debut,joueurs,solo) values(p_salle,r.generation,n,selected,now_at+interval '3300 milliseconds',players,r.solo or jsonb_array_length(players)=1);
    insert into requete_private.defi_joue(cle,defi,niv)
-   select x.cle,selected,r.niv from unnest(cles) as x(cle) where x.cle is not null
+   select x.cle,selected,r.niv from unnest(cles) as x(cle) where x.cle is not null and exists(select 1 from public.jeu_pseudo p where p.cle=x.cle)
    on conflict (cle,defi) do update set dernier=excluded.dernier,fois=requete_private.defi_joue.fois+1;
    m:=m||jsonb_build_object('n',n,'cid',selected,'one',case when r.solo or jsonb_array_length(players)=1 then 1 else 0 end,'startAt',cv+3300);
  when 'close' then
@@ -239,7 +241,7 @@ begin
  if p_juste then
    -- trouvé : noté pour ce joueur, pour ne plus le lui tirer (ni à ceux qui jouent avec lui)
    insert into requete_private.defi_joue(cle,defi,niv,trouve)
-   select mb.cle,rd.defi,c.niv,clock_timestamp() from requete_private.catalogue c where c.id=rd.defi and mb.cle is not null
+   select mb.cle,rd.defi,c.niv,clock_timestamp() from requete_private.catalogue c where c.id=rd.defi and mb.cle is not null and exists(select 1 from public.jeu_pseudo p where p.cle=mb.cle)
    on conflict (cle,defi) do update set trouve=coalesce(requete_private.defi_joue.trouve,excluded.trouve);
    m:=jsonb_build_object('v',1,'t','found','pid',e.pid,'name',mb.pseudo,'u',replace(e.id::text,'-',''),'g',e.generation,'n',e.numero,'ms',t,'p1',case when e.premier then 1 else 0 end);
    perform public.jeu_envoyer(e.code,m);
@@ -253,89 +255,6 @@ begin
  end if;
  return jsonb_build_object('ok',p_juste,'ms',case when p_juste then t end);
 end $function$;
-
--- « Retirer mes scores du classement » et « Effacer la progression » : la liste des défis joués part avec les scores.
-create or replace function public.jeu_oublier(p_cle text)
-returns jsonb
-language plpgsql
-security definer
-set search_path to ''
-as $function$
-declare
-  v_cle text := public.jeu_cle(p_cle);
-begin
-  if v_cle is null then raise exception 'clé invalide' using errcode = '22023'; end if;
-  delete from public.jeu_joueur where cle = v_cle;
-  delete from requete_private.defi_joue where cle = v_cle;
-  return jsonb_build_object('ok', true);
-end;
-$function$;
-
--- « Supprimer mon compte » (et sa solution de repli, qui libère le pseudo et les scores) : la liste aussi.
-create or replace function public.compte_supprimer(p_cle text)
-returns jsonb
-language plpgsql
-security definer
-set search_path to ''
-as $function$
-declare
-  v_cle text := public.jeu_cle(p_cle);
-  v_uid uuid := auth.uid();
-begin
-  if v_cle is null then raise exception 'clé invalide' using errcode = '22023'; end if;
-  delete from public.jeu_joueur where cle = v_cle;
-  delete from public.jeu_pseudo where cle = v_cle;
-  delete from public.parcours_vote where cle = v_cle;
-  delete from public.avis_lecon where cle = v_cle;
-  delete from public.onboarding_etape where cle = v_cle;
-  delete from public.contact_message where cle = v_cle;
-  delete from requete_private.defi_joue where cle = v_cle;
-  delete from requete_private.essai e using requete_private.membre m where m.cle = v_cle and e.code = m.code and e.pid = m.pid;
-  delete from requete_private.membre where cle = v_cle;
-  if v_uid is not null and coalesce(auth.jwt()->>'is_anonymous', 'false') <> 'true' then
-    delete from auth.users where id = v_uid;
-  end if;
-  return jsonb_build_object('ok', true);
-end;
-$function$;
-
-create or replace function public.jeu_pseudo_liberer(p_cle text)
-returns jsonb
-language plpgsql
-security definer
-set search_path to ''
-as $function$
-declare
-  v_cle text := public.jeu_cle(p_cle);
-begin
-  if v_cle is null then raise exception 'clé invalide' using errcode = '22023'; end if;
-  delete from public.jeu_joueur where cle = v_cle;
-  delete from public.jeu_pseudo where cle = v_cle;
-  delete from requete_private.defi_joue where cle = v_cle;
-  return jsonb_build_object('ok', true);
-end;
-$function$;
-
--- La suppression d’un compte connecté (déclencheur compte_jeu_effacement, sur requete_private.compte_jeu) : la liste aussi.
-create or replace function requete_private.jeu_compte_supprimer()
-returns trigger
-language plpgsql
-security definer
-set search_path to ''
-as $function$
-declare v_pid text:=left(old.empreinte,24);
-begin
- perform pg_advisory_xact_lock(hashtextextended('jeu-key:'||old.empreinte,0));
- insert into requete_private.compte_jeu_revoquee(empreinte) values(old.empreinte) on conflict do nothing;
- delete from public.jeu_joueur where cle=old.empreinte; -- parties/signals cascade
- delete from public.jeu_pseudo where cle=old.empreinte;
- delete from requete_private.defi_joue where cle=old.empreinte;
- delete from public.jeu_msg where m->>'pid'=v_pid;
- delete from requete_private.essai where essai.pid=v_pid;
- delete from requete_private.membre where membre.pid=v_pid;
- update requete_private.manche set joueurs=joueurs-v_pid where joueurs?v_pid;
- return old;
-end; $function$;
 
 -- Pour toi, dans le tableau de bord : un joueur par ligne (pseudo du classement), du plus avancé au moins avancé. « Faits » : joués
 -- ou trouvés (dans une salle, ou ailleurs dans l’appli d’après la liste qu’elle envoie) ; ce sont ceux qui ne lui sont plus tirés.
