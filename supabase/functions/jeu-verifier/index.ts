@@ -1,5 +1,9 @@
-import catalog from './catalog.json' with {type:'json'};
-import {verify} from './verifier.mjs';
+// Le catalogue (défis, solutions, bases) et le moteur de vérification sont pris dans le dépôt, figés à un commit (GitHub sert
+// le dépôt public tel qu’il était à ce commit, sans changement possible) : le déploiement n’envoie que ce fichier et deno.json.
+// Après un changement de catalog.json ou d’un module (node scripts/build-secure-catalog.cjs), pousser, mettre ici le nouveau
+// commit et redéployer ; tests/serveur-synchro.test.mjs vérifie que ce commit a les mêmes fichiers que le dépôt.
+import catalog from 'https://raw.githubusercontent.com/elisabhty/requete-sql/9b8d3cd86408425cf1f78c0f89f31de64e68a877/supabase/functions/jeu-verifier/catalog.json' with {type:'json'};
+import {verify} from 'https://raw.githubusercontent.com/elisabhty/requete-sql/9b8d3cd86408425cf1f78c0f89f31de64e68a877/supabase/functions/jeu-verifier/verifier.mjs';
 const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'apikey,authorization,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Content-Type':'application/json','Cache-Control':'no-store'};
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers});
 async function rpc(name:string,args:unknown){

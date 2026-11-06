@@ -19,7 +19,7 @@ const seed = seedBlock.slice(seedBlock.indexOf('sql:`') + 5);
 const base = () => { const db = new SQL.Database(); db.run(seed); return db; };
 
 test('la Salle de sport a dix défis par niveau, du Facile 1 au Difficile 10', () => {
-  assert.equal(challenges.length, 267);
+  assert.equal(challenges.length, 477);
   assert.equal(sport.length, 30);
   assert.deepEqual(sport.map(c => c.id), [
     ...Array.from({ length: 10 }, (_, i) => `sf${i + 1}`),

@@ -49,7 +49,7 @@ test('les niveaux de la salle portent leur coefficient : ×1, ×2, ×4', () => {
 });
 
 test('le tirage : la version du catalogue part avec chaque message, un défi choisi exprès le dit', () => {
-  assert.ok(app.includes('const JEU_CAT=1;'), '1 : les 267 défis du 6 novembre');
+  assert.ok(app.includes('const JEU_CAT=2;'), '2 : les 267 défis, puis les 210 des sept bases du 6 novembre');
   assert.ok(fn('jeuSend').includes('m.u=jeuRand(8);m.cat=JEU_CAT;'));
   assert.ok(app.includes("const impose=!!J.plan[n];\n  jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});"));
 });
@@ -70,4 +70,33 @@ test('seul ou hors ligne : un défi déjà trouvé n’est plus tiré tant qu’
   const ctx = vm.createContext({ Math, JEU: { niv: 'f', rounds: [], recent: new Set() }, jeuChallenges: () => [{ id: 'a' }] });
   vm.runInContext(pick, ctx);
   assert.equal(ctx.jeuPick(), 'a');
+});
+
+/* Le serveur (migrations appliquées le 6 novembre, avec l’accord d’Elisa : « Tout mettre en ligne ») */
+const mig = suffixe => { const d = path.join(ROOT, 'supabase/migrations'); const f = fs.readdirSync(d).find(x => x.endsWith(suffixe)); assert.ok(f, suffixe); return fs.readFileSync(path.join(d, f), 'utf8'); };
+
+test('Supabase — le serveur note les défis joués et trouvés, et tire un défi qu’aucun joueur présent n’a fait', () => {
+  const m = mig('_defis_deja_joues.sql');
+  assert.ok(m.includes('create table if not exists requete_private.defi_joue (\n  cle text not null references public.jeu_pseudo (cle) on delete cascade,'), 'la liste suit le pseudo');
+  assert.ok(m.includes('revoke all on table requete_private.defi_joue from public, anon, authenticated;') && m.includes('alter table requete_private.defi_joue enable row level security;'));
+  assert.ok(m.includes("order by coalesce(p.joueurs, 0), (c.id is not distinct from p_cid) desc, coalesce(p.trouveurs, 0), p.dernier nulls first, random()"),
+    'd’abord personne de présent ne l’a fait ; le défi proposé par l’hôte s’il en fait partie ; puis le moins trouvé, le plus ancien');
+  assert.ok(m.includes('where c.niv = p_niv and c.depuis <= p_cat'), 'seulement des défis que tous les téléphones connaissent');
+  assert.ok(m.includes("selected:=requete_private.defi_tirer(p_salle,r.generation,r.niv,v_cat,cles,p_m->>'cid',coalesce(p_m->>'imp','')='1');"), 'le tirage par le serveur');
+  assert.ok(m.includes("coalesce(min(coalesce(mb.cat,1)),1)"), 'une appli d’avant (sans cat) connaît les 267 premiers');
+  assert.ok(m.includes('on conflict (cle,defi) do update set trouve=coalesce(requete_private.defi_joue.trouve,excluded.trouve);'), 'trouvé : noté par le serveur');
+  for (const v of ['stats_defis_joues', 'stats_defis_restants']) assert.ok(m.includes(`create or replace view public.${v} with (security_invoker = true) as`), v);
+  assert.ok(m.includes('revoke all on public.stats_defis_joues, public.stats_defis_restants from anon, authenticated;'), 'fermées à l’appli');
+  const c = mig('_defis_deja_joues_classement.sql');
+  assert.ok(c.includes('add constraint defi_joue_classement_fkey foreign key (cle) references public.jeu_joueur (cle) on delete cascade not valid;'),
+    '« Retirer mes scores » et « Effacer la progression » (jeu_oublier) effacent la liste avec la place au classement');
+  assert.ok(c.includes("'v_x integer; v_d integer; res jsonb;'") && c.includes('-- les défis de la partie, notés pour ce joueur maintenant qu’il est au classement (sa première partie comprise)'));
+  assert.equal((c.match(/and exists\(select 1 from public\.jeu_joueur j where j\.cle=/g) || []).length, 4, 'les trois endroits qui notent, et la fin de partie : seulement un joueur du classement');
+  const b = mig('_defis_sept_bases.sql');
+  assert.ok(b.includes("from unnest(array['k', 't', 'q', 'b', 'r', 'e', 'g']) as b (p)") && b.includes('select b.p || n.n || i.i, n.n, 2'), 'les 210 défis, en version 2');
+  assert.ok(b.includes("if (select count(*) from requete_private.catalogue) <> 477 then raise exception"));
+  /* Les identifiants générés sont bien ceux des 210 défis de l’appli */
+  const ids = [...app.matchAll(/\{id:'([a-z]{2}\d+)',apres:\d+,titre:[^\n]+,base:'(ski|foodtruck|aquarium|velos|apiculture|escape|festival)'/g)].map(m => m[1]).sort();
+  const gen = ['k', 't', 'q', 'b', 'r', 'e', 'g'].flatMap(p => ['f', 'm', 'd'].flatMap(n => Array.from({ length: 10 }, (_, i) => p + n + (i + 1)))).sort();
+  assert.deepEqual(ids, gen);
 });
