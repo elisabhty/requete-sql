@@ -24,7 +24,7 @@ const ctx = vm.createContext({SCHEMA_META: [], esc: s => String(s).replace(/&/g,
   plur: (n, mot, pl) => n + ' ' + (Math.abs(n) > 1 ? (pl || mot + 's') : mot)});
 vm.runInContext(cut('function quoteIdent(name){', '\n') + '\n' + cut('function tableRowCount(database,name){', '\n}\n') + '\n}\n'
   + cut('function guessFkTarget(col,tables){', 'function courseTableNames(){')
-  + cut('const UML_TEINTES=', '/* « Voir ses colonnes » : sa pastille')
+  + cut('const UML_TEINTES=', 'let schCtx=null;')
   + ';this.umlModele=umlModele;this.umlPlan=umlPlan;this.umlHtml=umlHtml;this.umlPanneau=umlPanneau;this.schemaExemples=schemaExemples;'
   + 'this.umlBulle=umlBulle;this.umlAllumes=umlAllumes;this.umlJoin=umlJoin;this.umlPhrases=umlPhrases;this.umlCle=umlCle;this.UML_G=UML_G;'
   + 'this.UML_TEINTES=UML_TEINTES;this.UML_NEUTRE=UML_NEUTRE;this.umlEx=umlEx;', ctx);
@@ -58,7 +58,8 @@ test('les exemples : les valeurs d’une même ligne (la quatrième), la premiè
   e.close(); f.close();
 });
 
-/* Les mêmes règles qu’au 7 h 03 (rien ne se touche), exemples dépliés : chaque colonne sur 36 px, le trait au milieu de son nom. */
+/* Les mêmes règles qu’au 7 h 03 (rien ne se touche), exemples dépliés : chaque colonne sur 40 px (6 novembre, 7 h 52), le trait au
+   milieu de son nom, 2 px sous le haut de sa ligne. */
 function verifier(m, p, nom) {
   assert.equal(p.cartes.length, m.tables.length, nom);
   assert.equal(p.arcs.length, m.liens.length, nom);
@@ -72,7 +73,7 @@ function verifier(m, p, nom) {
   for (const a of p.arcs) {
     assert.ok(a.xl < carte[a.de].x || a.xl > carte[a.de].x + carte[a.de].w, `${nom} : ${a.de} → ${a.vers}, hors des cartes`);
     const c = carte[a.de], i = c.cols.findIndex(x => x.c === a.col);
-    if (i >= 0) assert.equal(a.y1, c.y + 34 + 7 + i * c.L + 10, `${nom} : ${a.de}.${a.col}, le trait au milieu du nom`);
+    if (i >= 0) assert.equal(a.y1, c.y + 34 + 7 + i * c.L + (c.L > 20 ? 2 : 0) + 10, `${nom} : ${a.de}.${a.col}, le trait au milieu du nom`);
   }
   for (const cote of ['g', 'd']) {
     const ps = p.arcs.filter(a => a.cote === cote).flatMap(a => a.lab).sort((a, b) => a.y - b.y);
@@ -81,14 +82,16 @@ function verifier(m, p, nom) {
 }
 
 test('exemples dépliés ou pliés : chaque base des défis reste lisible, sur l’iPhone comme sur l’ordinateur', () => {
-  assert.equal(ctx.UML_G.ligneEx, 36);
+  /* 6 novembre, 7 h 52 (réf. 3 : « l’espace avant la colonne est un peu faible ») : 40 px par colonne et son exemple, dont 2 au-dessus. */
+  assert.equal(ctx.UML_G.ligneEx, 40);
+  assert.equal(ctx.UML_G.haut, 2);
   assert.equal(ctx.umlEx, true, 'les exemples sont dépliés d’abord');
   for (const [id, b] of Object.entries(ctx.DEFI_BASES)) {
     const d = ouvrir(b.sql), m = ctx.umlModele(d, tablesDe(d));
     for (const W of [322, 622]) for (const ex of [true, false]) {
       const p = ctx.umlPlan(m, W, ex);
       assert.equal(p.ex, ex);
-      for (const c of p.cartes) assert.equal(c.L, ex && c.cols.some(x => x.ex) ? 36 : 20, `${id} : ${c.name}`);
+      for (const c of p.cartes) assert.equal(c.L, ex && c.cols.some(x => x.ex) ? 40 : 20, `${id} : ${c.name}`);
       verifier(m, p, `${id} (${W} px, exemples ${ex ? 'dépliés' : 'pliés'})`);
     }
     d.close();
@@ -97,7 +100,7 @@ test('exemples dépliés ou pliés : chaque base des défis reste lisible, sur l
   const d = ouvrir(`CREATE TABLE clients(id INTEGER PRIMARY KEY, nom TEXT); INSERT INTO clients VALUES (1,'Ana');
     CREATE TABLE commandes(id INTEGER PRIMARY KEY, client_id INTEGER REFERENCES clients(id));`);
   const p = ctx.umlPlan(ctx.umlModele(d, tablesDe(d)), 322, true);
-  assert.deepEqual(pur(p.cartes.map(c => [c.name, c.L])), [['clients', 36], ['commandes', 20]]);
+  assert.deepEqual(pur(p.cartes.map(c => [c.name, c.L])), [['clients', 40], ['commandes', 20]]);
   assert.ok(ctx.umlHtml(p).includes('<div class="umd-t is-ex"') && ctx.umlHtml(p).includes('<div class="umd-t"'));
   d.close();
 });
@@ -149,9 +152,9 @@ test('la toile touchée : les liens d’une table ou un seul lien, leurs tables 
   const i = m.liens.findIndex(l => l.de === 'avis' && l.col === 'commande_id'), un = ctx.umlAllumes(m, {i});
   assert.deepEqual(pur([...un.on]), [i]);
   assert.deepEqual(pur([...un.tables]).sort(), ['avis', 'commandes']);
-  /* La bulle d’une table : ce qu’elle désigne, qui la désigne (chacune à toucher), « Ses colonnes » */
+  /* La bulle d’une table : ce qu’elle désigne, qui la désigne (chacune à toucher) ; plus de « Ses colonnes » (6 novembre, 7 h 52) */
   const b = ctx.umlBulle(m, {t: 'plats'}, p.T);
-  assert.ok(b.includes('<span class="umd-bh"><b class="umd-bn">plats</b><button type="button" class="umd-bgo" data-t="plats" onclick="schemaOuvrirTable(this.dataset.t)" aria-label="Voir les colonnes de plats">Ses colonnes'));
+  assert.ok(b.includes('<span class="umd-bh"><b class="umd-bn">plats</b></span>') && !b.includes('Ses colonnes') && !b.includes('umd-bgo'));
   /* 9 h 18 (« voir avec une flèche animée plutôt ») : plus de « Désigne » ni de « Désignée par » : la table, une flèche, la table
      qu’elle désigne (à sa couleur) ; les tables qui la désignent, une flèche, elle. Les mots restent pour les lecteurs d’écran. */
   const fl = vm.runInContext('UML_FLECHE', ctx);
@@ -216,7 +219,7 @@ test('le panneau : l’interrupteur « Exemples », « Les liens en clair », la
 
 test('les gestes : toucher une table l’allume (encore : tout se rallume), la toile vide éteint, la liste défile jusqu’au lien', () => {
   const ca = cut('function umlCarte(el,e){', '\n');
-  assert.ok(ca.includes('umlFocus(umlSel&&umlSel.t===t?null:{t})') && ca.includes("e.target.closest('.umd-pli,.is-voir'))return;"), 'la flèche « plier » (et « Voir », 5 novembre) n’allume rien');
+  assert.ok(ca.includes('umlFocus(umlSel&&umlSel.t===t?null:{t})') && ca.includes("e.target.closest('.umd-pli,.is-deplier'))return;"), 'la flèche « plier » (et « +4 colonnes », qui déplie) n’allume rien');
   assert.ok(cut('function umlToileClic(e){', '\n').includes("e.target.closest('.umd-t')))umlFocus(null)"));
   assert.ok(cut('function umlFocusLien(i){', '\n').includes('umlFocus({i:+i},true)'));
   const ap = cut('function umlAppliquer(){', '\n}\n');
@@ -247,7 +250,7 @@ test('la DA : les traits en couleur, la table touchée et le reste effacé, la b
   for (const k of ['html.lq #schema-sheet .umd-a{fill:none;stroke:var(--lc,#9A92C9);stroke-width:2.4;', 'html.lq #schema-sheet .umd-a:is(.is-on,.is-sur){stroke-width:3.4;opacity:1}',
     'html.lq #schema-sheet .umd-m:is(.is-on,.is-sur) rect{fill:var(--lc)}', 'html.lq #schema-sheet .umd-plan.is-focus .umd-a:not(.is-on){opacity:.1}',
     'html.lq #schema-sheet .umd-plan.is-focus .umd-t:not(.is-sel):not(.is-lie){opacity:.4;filter:saturate(.35)}', 'html.lq #schema-sheet .umd-t.is-sel::after{box-shadow:inset 0 0 0 2.5px var(--c)}',
-    'html.lq #schema-sheet .umd-t.is-ex .umd-c:not(.is-plus){height:36px}', 'html.lq #schema-sheet .umd-c.is-on{background:var(--lcs,var(--cs))}',
+    'html.lq #schema-sheet .umd-t.is-ex .umd-c:not(.is-plus){height:40px;padding-top:2px}', 'html.lq #schema-sheet .umd-c.is-on{background:var(--lcs,var(--cs))}',
     'html.lq #schema-sheet .umd-v{flex:0 3 auto;min-width:34px;max-width:58%;margin-left:auto;', 'html.lq #schema-sheet .umd-x{display:flex;align-items:center;gap:4px;align-self:flex-start;max-width:100%;height:14px;',
     'html.lq #schema-sheet .umd-bulle{position:sticky;bottom:12px;z-index:3;', 'html.lq #schema-sheet .umd-liens[open] .umd-chev{transform:rotate(180deg)}',
     'html.lq #schema-sheet .umd-j{display:block;padding:8px 10px;border-radius:11px;background:var(--code-bg);color:var(--code-ink);',
@@ -255,7 +258,7 @@ test('la DA : les traits en couleur, la table touchée et le reste effacé, la b
     /* « backwards » : après l’arrivée, une carte pressée s’enfonce et l’effacement s’applique */
     'html.lq #schema-sheet.on .umd-t{animation:umdCarte .45s cubic-bezier(.2,.8,.3,1.2) backwards;', 'html.lq #schema-sheet.on .umd-a{animation:umdTrait .5s ease-out backwards;',
     'html.lq #schema-sheet.on .umd-plan.is-maj .umd-t{animation:none}', '@keyframes umdTrait{from{opacity:0}}',
-    'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc,.umd-f,.umd-ar-l,.umd-ar-p,.umd-bgo-f){animation:none!important}'])
+    'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc,.umd-f,.umd-ar-l,.umd-ar-p){animation:none!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(!css.includes('.umd-a{opacity:0;animation') && !css.includes('animation:umdCarte .45s cubic-bezier(.2,.8,.3,1.2) both'), 'plus de remplissage qui fige l’opacité');
   assert.ok(!/:is\([^)]*::after/.test(css), 'pas de pseudo-élément dans :is()');

@@ -122,8 +122,9 @@ test('micro-interactions au lieu des notifications : l’action se voit là où 
 test('ref 6 — la description d’une table : seulement dépliée, au-dessus de « Voir les données », Réinitialiser et Supprimer', () => {
   const ws = fn('renderDbWorkspace');
   assert.ok(ws.includes("const desc=!open?'':note"), 'repliée : pas de description');
-  assert.ok(ws.indexOf('<span class="tbl-nom">') < ws.indexOf('${open?`<div class="tbl-corps${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}${struct}</div>`'), 'sous le nom, avant les actions et les colonnes');
-  assert.ok(ws.includes("const nom=esc(t).replace(/_/g,'_<wbr>');") && ws.includes('<b class="tn">${nom}</b>'), 'un long nom passe à la ligne après un « _ »');
+  /* Depuis le 6 novembre, 7 h 52 (la carte du schéma UML) : sous ses colonnes, avant les actions */
+  assert.ok(ws.indexOf('<div class="tbu-cs">') < ws.indexOf('${open?`<div class="tbl-corps tbu-pied${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}'), 'sous les colonnes, avant les actions');
+  assert.ok(ws.includes("const nom=esc(t).replace(/_/g,'_<wbr>');") && ws.includes('<b class="tbu-n">${nom}</b>'), 'un long nom passe à la ligne après un « _ »');
 });
 
 test('ref 7 — console : le même souffle entre schéma, exemples, éditeur, Exécuter, Épingler et résultat', () => {

@@ -26,7 +26,7 @@ const ctx = vm.createContext({SCHEMA_META: [], esc: s => String(s).replace(/&/g,
   plur: (n, mot, pl) => n + ' ' + (Math.abs(n) > 1 ? (pl || mot + 's') : mot)});
 vm.runInContext(cut('function quoteIdent(name){', '\n') + '\n' + cut('function tableRowCount(database,name){', '\n}\n') + '\n}\n'
   + cut('function guessFkTarget(col,tables){', 'function courseTableNames(){')
-  + cut('const UML_TEINTES=', '/* « Voir ses colonnes » : sa pastille')
+  + cut('const UML_TEINTES=', 'let schCtx=null;')
   + ';this.umlModele=umlModele;this.umlPlan=umlPlan;this.umlHtml=umlHtml;this.umlBulle=umlBulle;this.UML_G=UML_G;this.UML_FLECHE=UML_FLECHE;', ctx);
 vm.runInContext(cut('const DEFI_BASES={', '\nconst ').replace('const DEFI_BASES=', 'DEFI_BASES='), ctx);
 const tablesDe = d => d.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")[0].values.map(v => v[0]);
@@ -62,11 +62,12 @@ test('plier une table : elle garde ses clés (ses liens restent sur leurs colonn
   assert.match(h, /<div class="umd-t is-plie" style="[^"]+" data-t="plats" onclick="umlCarte\(this,event\)"/, 'pliée : sans les exemples');
   assert.ok(h.includes('aria-expanded="false" aria-label="Déplier la table plats" onclick="umlPlier(this,event)">') && h.includes('aria-expanded="true" aria-label="Plier la table categories"'));
   assert.ok(h.includes('<span class="umd-c is-cache" data-c="nom">'), 'la colonne cachée reste dans la page (rien ne saute)');
-  /* « +2 colonnes » est un bouton « Voir › » depuis le 5 novembre, 14 h 24 (retours-1424.test.mjs) */
-  assert.ok(h.includes('<span>+2 colonnes</span><span class="umd-voir" aria-hidden="true">Voir') && h.includes('<span class="umd-c is-plus is-vide"></span>'));
+  /* « +2 colonnes » : un bouton qui déplie la table, sans « Voir » (6 novembre, 7 h 52 : « efface les Voir ») */
+  assert.ok(h.includes('<button type="button" class="umd-c is-plus is-deplier" aria-label="Déplier la table plats : ses 5 colonnes" onclick="umlPlier(this,event)"><span>+3 colonnes</span></button>') && h.includes('<span class="umd-c is-plus is-vide"></span>') && !h.includes('Voir'));
+  assert.equal((h.match(/is-deplier/g) || []).length, 1, 'dépliées, les autres tables montrent toutes leurs colonnes (commandes et ses huit)');
   d.close();
   assert.ok(app.includes('const umlPlies={};') && fn('umlPlier').includes('if(P.has(t))P.delete(t);else P.add(t);'), 'chaque base garde ses tables pliées le temps de la séance');
-  assert.ok(fn('umlCarte').includes("e.target.closest('.umd-pli,.is-voir'))return;"), 'plier (ni « Voir ») n’allume pas les liens');
+  assert.ok(fn('umlCarte').includes("e.target.closest('.umd-pli,.is-deplier'))return;"), 'plier (ni « +2 colonnes ») n’allume pas les liens');
   for (const k of ['html.lq #schema-sheet .umd-pli{flex:none;display:grid;place-items:center;width:28px;height:28px;', 'html.lq #schema-sheet .umd-t.is-plie .umd-pli svg{transform:rotate(-90deg)}',
     'html.lq #schema-sheet .umd-c.is-cache,html.lq #schema-sheet .umd-c.is-plus.is-vide{height:0!important;opacity:0}'])
     assert.ok(css.includes(k), k);
@@ -92,12 +93,13 @@ test('une flèche animée : des points qui coulent sur les liens allumés, la bu
   assert.ok(ctx.UML_FLECHE.includes('class="umd-ar-l"') && ctx.UML_FLECHE.includes('class="umd-ar-p"') && ctx.UML_FLECHE.includes('aria-hidden="true"'));
   const b = ctx.umlBulle(m, {t: 'plats'}, p.T);
   assert.ok(b.includes(ctx.UML_FLECHE) && !b.includes('Désigne') && b.includes('<span class="sr">plats désigne categories</span>'));
-  assert.ok(b.includes('Ses colonnes<span class="umd-bgo-f" aria-hidden="true">'), '« Ses colonnes » a sa flèche qui avance');
+  assert.ok(!b.includes('Ses colonnes'), 'plus de « Ses colonnes » (6 novembre, 7 h 52)');
   const auto = ouvrir(`CREATE TABLE employes(id INTEGER PRIMARY KEY, chef_id INTEGER REFERENCES employes(id)); INSERT INTO employes VALUES (1,NULL);`);
   assert.ok(ctx.umlBulle(ctx.umlModele(auto, ['employes']), {t: 'employes'}, {}).includes('<span class="sr">employes se désigne elle-même</span>'));
   auto.close(); d.close();
-  for (const k of ['@keyframes umdArL', '@keyframes umdArP', '@keyframes umdGo'])
+  for (const k of ['@keyframes umdArL', '@keyframes umdArP'])
     assert.ok(css.includes(k), k);
+  assert.ok(!css.includes('@keyframes umdGo') && !css.includes('.umd-bgo'), 'la flèche de « Ses colonnes » est partie avec lui');
 });
 
 test('« Les liens en clair » : plus de trait de couleur sur le côté des cadres', () => {
@@ -197,5 +199,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=171">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=172">'));
 });

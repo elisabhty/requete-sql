@@ -98,13 +98,16 @@ test('une clé unique : 0..1 des deux côtés ; une table de douze colonnes : se
     CREATE TABLE cartes(id INTEGER PRIMARY KEY, client_id INTEGER UNIQUE REFERENCES clients(id), points INTEGER);`);
   const m = ctx.umlModele(d, tablesDe(d)), p = ctx.umlPlan(m, 322);
   assert.deepEqual(pur(m.liens.find(l => l.de === 'cartes')), {de: 'cartes', col: 'client_id', vers: 'clients', versCol: 'id', un: '0..1', plusieurs: '0..1'});
+  /* 6 novembre, 7 h 52 (« efface les Voir ») : dépliée, la table montre ses douze colonnes ; pliée, ses clés et « +9 colonnes », qui la
+     déplie. */
   const c = p.cartes.find(x => x.name === 'clients');
-  assert.equal(c.cols.length, 6);
-  assert.equal(c.plus, 6);
-  assert.deepEqual(pur(c.cols.filter(x => x.b).map(x => x.c)), ['id', 'ville_id', 'pays_id'], 'les clés restent sur la carte');
+  assert.equal(c.cols.length, 12);
+  assert.equal(c.plus, 0);
   verifier(m, p, 'douze colonnes');
-  /* 5 novembre, 14 h 24 : la ligne est un bouton « Voir › » qui ouvre la table (retours-1424.test.mjs) */
-  assert.ok(ctx.umlHtml(p).includes('aria-label="Voir les 12 colonnes de la table ') && ctx.umlHtml(p).includes('<span>+6 colonnes</span><span class="umd-voir" aria-hidden="true">Voir</span></button>'));
+  const pl = ctx.umlPlan(m, 322, false, new Set(['clients'])), cp = pl.cartes.find(x => x.name === 'clients');
+  assert.deepEqual(pur(cp.cols.filter(x => !cp.caches.includes(x.c)).map(x => x.c)), ['id', 'ville_id', 'pays_id'], 'pliée : les clés restent sur la carte');
+  assert.equal(cp.plus, 9);
+  assert.ok(ctx.umlHtml(pl).includes('aria-label="Déplier la table clients : ses 12 colonnes" onclick="umlPlier(this,event)"><span>+9 colonnes</span></button>'));
   assert.equal(ctx.umlType('VARCHAR(255)'), 'VARCHAR');
   d.close();
 });
@@ -172,10 +175,10 @@ test('la DA : la pastille jaune soleil, la toile quadrillée, les classes aux co
     'html.lq #schema-sheet .umd-r{display:flex;align-items:center;gap:6px;flex:none;height:20px;',
     'html.lq #schema-sheet .umd-cs{display:flex;flex-direction:column;padding:7px 0}', 'html.lq #schema-sheet .umd-m rect{fill:#fff;stroke:var(--lc,var(--line));stroke-width:1.5px;',
     'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);color:#1B1640}', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);color:#0D5B3B}',
-    'html.lq #scr-console .console-schema-panel .db-pill.is-uml{flex:1 1 100%;', 'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc,.umd-f,.umd-ar-l,.umd-ar-p,.umd-bgo-f){animation:none!important}'])
+    'html.lq #scr-console .console-schema-panel .db-pill.is-uml{flex:1 1 100%;', 'html[data-motion="reduce"].lq #schema-sheet :is(.umd-t,.umd-a,.umd-m,.umd-x,.umd-bc,.umd-f,.umd-ar-l,.umd-ar-p){animation:none!important}'])
     assert.ok(css.includes(k), k);
   /* Les mesures de la page et du dessin sont les mêmes : en-tête 34 px, lignes de 20 px, 7 px autour */
-  assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ligneEx:36,ecart:20,voie0:14,voie:8,max:7};'));
+  assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ligneEx:40,haut:2,ecart:20,voie0:14,voie:8};'));
   assert.ok(!/\.uml-(?:t|h|cs|toile|plan)\b/.test(css), 'les classes umd- : celles du guide (.uml-c, .uml-l…) restent à lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=171">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=172">'));
 });

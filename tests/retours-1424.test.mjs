@@ -103,8 +103,8 @@ test('import : l’en-tête sous un titre fusionné, les lignes par requête pr�
   assert.ok(conf.includes("if(go&&go.getAttribute('aria-busy')==='true')return;}") && conf.includes('importOccupe(true);\n  await new Promise(ok=>setTimeout(ok,40));'));
   assert.ok(conf.includes('await createImportedTables(database, p.tables, f=>importOccupe(true,f));') && conf.includes('importOccupe(false);\n    closeImportSheet();') && conf.includes('importOccupe(false);\n    lqInfo(\'Import impossible\''));
   assert.ok(fn('importOccupe').includes("go.textContent=frac==null?'Import en cours…':`Import en cours… ${Math.min(99,Math.round(frac*100))}\\u00a0%`;"));
-  /* Les noms longs passent à la ligne dans la carte du projet */
-  assert.ok(app.includes('<span class="tbl-cn">${esc(c.c).replace(/_/g,\'_<wbr>\')}</span>') && lq.includes('html.lq #scr-console .tbl-cn{flex:1 1 auto;min-width:0;color:var(--ink);font:600 15px/1.3 var(--ui);overflow-wrap:anywhere}'));
+  /* Les noms longs passent à la ligne dans la carte du projet (depuis le 6 novembre, 7 h 52 : la carte du schéma UML) */
+  assert.ok(app.includes('<span class="tbu-cn">${esc(c.c).replace(/_/g,\'_<wbr>\')}</span>') && lq.includes('html.lq #scr-console .tbu-cn{min-width:0;line-height:1.3;overflow-wrap:anywhere}'));
 });
 
 test('les projets dans IndexedDB : un gros projet s’enregistre, se recharge, et supprimer une table ne dit plus « trop volumineuse »', async () => {
@@ -146,17 +146,16 @@ test('les projets dans IndexedDB : un gros projet s’enregistre, se recharge, e
   assert.ok(fn('resetTable').includes("if(snapshot&&snapshot.trop){lqInfo('Pas de copie de départ',"));
 });
 
-test('schéma UML : « +2 colonnes » est un bouton, avec la pastille « Voir › » animée de Mes stats, qui ouvre l’onglet de la table', () => {
+test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre, 7 h 52 : « efface les Voir ») : il déplie la table', () => {
   const html = fn('umlHtml');
-  assert.ok(html.includes('<button type="button" class="umd-c is-plus is-voir" data-t="${escAttr(c.name)}" onclick="schemaOuvrirTable(this.dataset.t)"'));
-  assert.ok(html.includes('<span>+${plur(c.plus,\'colonne\')}</span><span class="umd-voir" aria-hidden="true">Voir${typeof DEF_CHEV_SVG===\'string\'?DEF_CHEV_SVG:\'\'}</span></button>`'));
+  assert.ok(html.includes('<button type="button" class="umd-c is-plus is-deplier" aria-label="${escAttr(`Déplier la table ${c.name} : ses ${plur(nc,\'colonne\')}`)}" onclick="umlPlier(this,event)"><span>+${plur(c.plus,\'colonne\')}</span></button>`'));
   assert.ok(html.includes(":'<span class=\"umd-c is-plus is-vide\"></span>')"), 'sans colonne de plus : la ligne vide, comme avant');
-  assert.ok(app.includes("e.target.closest('.umd-pli,.is-voir'))return;"), 'toucher « Voir » ouvre la table sans allumer la carte');
-  assert.ok(lq.includes('html.lq #schema-sheet .umd-voir svg{display:block;flex:none;width:12px;height:12px;animation:dxMeFleche 2.6s ease-in-out infinite}'));
-  assert.ok(lq.includes('@media (prefers-reduced-motion:reduce){html.lq #schema-sheet .umd-voir svg{animation:none}}'));
+  assert.ok(!html.includes('umd-voir') && !html.includes('schemaOuvrirTable') && !lq.includes('.umd-voir'), 'plus de pastille « Voir »');
+  assert.ok(app.includes("e.target.closest('.umd-pli,.is-deplier'))return;"), 'toucher « +2 colonnes » déplie la table sans allumer la carte');
+  assert.ok(lq.includes('html.lq #schema-sheet button.umd-c.is-deplier{width:100%;margin:0;border:0;background:none;cursor:pointer;'));
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=171">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-progression-parcours-v2566';") && app.includes("const SW_CACHE='requete-2026-11-06-progression-parcours-v2566';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=172">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-schema-console-v2567';") && app.includes("const SW_CACHE='requete-2026-11-06-schema-console-v2567';"));
 });
