@@ -237,7 +237,8 @@ test('19 h 00 : la ligne de notre moteur n’est plus surlignée en jaune (et, d
 test('19 h 02 : sur la planche, sous chaque sticker, en petit, ce qui le fait gagner', () => {
   assert.ok(app.includes("{id:'requete',label:'Première requête',cap:'1ʳᵉ requête'"));
   assert.ok(app.includes("cap:`Module ${i+1} terminé`"));
-  assert.ok(app.includes("${s.cap?`<small class=\"stk-cap\">${esc(s.cap)}</small>`:''}</li>`;"));
+  /* 6 novembre : l’étiquette de rareté (Rare, Légendaire) se colle juste sous la légende (stickers-rarete.test.mjs). */
+  assert.ok(app.includes("</button>${s.cap?`<small class=\"stk-cap\">${esc(s.cap)}</small>`:''}${stkRarHtml(s.id,s.got)}</li>`;"));
 });
 
 test('19 h 04 : les polices du site dans l’app (Inter, JetBrains Mono, Bricolage), plus de polices Google ; note du classement retirée', () => {
