@@ -75,7 +75,8 @@ test('les boutons : « Bientôt » et vifs sans fournisseur, de vrais boutons av
   assert.ok(boutons[0][5].includes('<svg viewBox="0 0 24 24"><path fill="currentColor" d="M16.37 12.62') && !app.includes(''), 'la pomme est dessinée (le caractère U+F8FF ne s’affichait que sur les appareils Apple)');
   assert.ok(html.includes('<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>'), 'le message des boutons, qu’un lecteur d’écran entend aussi');
   assert.ok(!html.includes('ob-local-proof') && !html.includes('Mode local') && !html.includes('sans compte'), 'plus de mode local (10 h 29)');
-  assert.ok(html.includes('En continuant, tu acceptes les <a class="ob-legal-link" href="decouvrir/terms.html" target="_blank" rel="noopener">Conditions d’utilisation</a>'));
+  /* 6 novembre, 23 h 16 : la phrase des conditions est sous le bouton jaune, dans le pied de page */
+  assert.ok(!html.includes('En continuant') && pied[0][4].html.startsWith('En continuant, tu acceptes les <a class="ob-legal-link" href="decouvrir/terms.html" target="_blank" rel="noopener">Conditions d’utilisation</a>'));
   assert.ok(!html.includes('ob-divider') && !html.includes('ob-auth-availability'));
   assert.deepEqual(pied.map(a => a[0]), ['Continuer'], 'tant que la connexion n’est pas branchée');
   /* Avec un fournisseur : les vrais boutons, et le compte seul */
