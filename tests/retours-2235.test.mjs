@@ -115,5 +115,5 @@ test('la carte de Mon compte : la barre au chiffre du parcours, le chapitre qui 
   for (const k of ['html.lq .acct-hero .acct-chap{display:flex;align-items:center;gap:12px;width:100%;', 'html.lq .acct-hero .acct-chap-go{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);',
     'html.lq .acct-hero .acct-niv-suite{display:inline-flex;align-items:center;gap:7px;min-width:0;color:var(--mint);', 'html.lq .acct-hero .acct-level-head em{font:800 19px/1 var(--display);color:var(--sun-hi)}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=168">') && sw.includes("const CACHE = 'requete-2026-11-06-defis-reecrits-v2563';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=169">') && sw.includes("const CACHE = 'requete-2026-11-06-widgets-compte-v2564';"));
 });

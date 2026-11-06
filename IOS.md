@@ -85,6 +85,20 @@ L’app y range la série (index.html, `widgetMaj`) chaque fois qu’elle passe 
 Si l’archive refuse la signature du groupe d’apps : dans Xcode, cible App puis cible RequeteWidgetExtension › Signing &
 Capabilities, vérifier l’équipe, et cocher `group.fr.requete.app` sous App Groups (Xcode l’enregistre), puis relancer.
 
+
+### Le widget de l’écran verrouillé (6 novembre)
+
+Elisa, 6 novembre, 0 h 40 (« dans compte mettre ça (widget) avec les animations de comment procéder ») : Mon compte a un groupe
+« Sur ton iPhone » (dans l’app iPhone seulement, quand le pont `RequeteWidget` est là) avec « Widgets de l’écran d’accueil »,
+« Widgets de l’écran verrouillé » et « Noter Requête ». Chaque ligne ouvre une feuille où un iPhone dessiné rejoue les gestes
+d’Apple, étape par étape (index.html, `WTU`, `wtuJouer`).
+
+Le widget de l’écran verrouillé est `RequeteFlammeVerrou` (genre `RequeteSerieVerrou`, dans `RequeteWidget.swift`, iOS 16.1 et
+plus) : la flamme du jour, pleine quand la séance est faite, et la séance du jour, « 0/1 » puis « 1/1 », en rond
+(`accessoryCircular`), en bandeau (`accessoryRectangular`, avec la phrase du moment) ou sur la ligne de la date
+(`accessoryInline`). Il lit les mêmes données que le widget de l’écran d’accueil (même fournisseur), et l’app le recharge avec
+lui (`reloadAllTimelines`). Rien à ajouter au projet Xcode : il vit dans la même extension.
+
 ### Le chat change dans la journée (4 novembre, 12 h 14)
 
 Un widget ne joue ni vidéo ni boucle (iOS ne le permet pas) : il anime le passage d’un état à l’autre, à partir d’iOS 17. Le chat
