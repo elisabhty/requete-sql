@@ -40,7 +40,8 @@ test('si la séance passe sous le bonjour, elle se resserre ; sinon elle garde �
   assert.equal(essai({ dessous: () => false }), false, 'tout tient sur la ligne : rien ne change');
   assert.equal(essai({ largeur: 0, dessous: () => true }), false, 'accueil caché : rien n’est décidé');
   /* Après chaque rendu des deux cartes, et quand l’écran change de taille */
-  assert.ok(app.includes('  lqSesCount(host);\n    lqSesAjuste(host);\n    return;\n  }') && app.includes('  lqPctAnime(host);\n  lqSesAjuste(host);\n}'));
+  /* 6 novembre (audit, bug 6) : mesuré avec le vrai nombre, avant que le compteur parte de 0 */
+  assert.ok(app.includes('    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n    lqSesCount(host);\n    return;\n  }') && app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n}'));
   assert.ok(app.includes("addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});"));
   /* La séance est revenue à droite du bonjour (l’essai sur la ligne du module, abandonné, ne reste pas) */
   assert.ok(app.includes('const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>`;') && !app.includes('lq-hero-row') && !lq.includes('.lq-hero-row'));

@@ -91,7 +91,7 @@ assert(!html.includes('function homeToolsHTML()') && !html.includes('class="jour
 assert(html.includes("['console','Console SQL'") && html.includes("['cards','Cartes mémo'"), 'Console dans Pratiquer, Cartes mémo dans Bibliothèque');
 assert(html.includes("switchTab('defis')") && html.includes("switchTab('entretien')"), 'Défis et Entretien restent accessibles depuis les outils');
 assert(html.includes('function homePathPreviewHTML(') && html.includes('home-path-progress'), 'aperçu compact du parcours présent');
-assert(html.includes('const session=recommendedSession();') && html.includes('session?.summary'), 'accueil fondé sur la séance et la durée communes');
+assert(html.includes('const session=recommendedSession();') && html.includes('${esc(seanceLue(session,sesEtat))}') && html.includes("const resume=String(session.summary||'')"), 'accueil fondé sur la séance et la durée communes');
 assert(html.includes('class="module home-module ${complete') && html.includes('<summary class="home-module-summary">') && html.includes('Tous les cours'), 'long catalogue remplacé par des modules compacts consultables à la demande');
 assert(html.includes('class="lesson-validation"') && html.includes('<em>Validé</em>'), 'chaque leçon terminée porte un libellé Validé explicite');
 assert(html.includes("complete?'Toutes les leçons sont validées'") && html.includes('class="home-module-valid">Validé</em>'), 'un module porte Validé uniquement lorsque toutes ses leçons le sont');
@@ -149,7 +149,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 const glissantes = fs.readFileSync(path.join(ROOT, 'assets/anim/fenetres-glissantes.html'), 'utf8');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && ['UNBOUNDED PRECEDING', '2 PRECEDING', '2 FOLLOWING', 'CURRENT ROW'].every(c => glissantes.includes(c)), 'cadres (dans la vidéo) couverts — le défi NTILE est parti avec les défis de la base du cours (1er novembre, 0 h 55)');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-11-06-chrono-salle-v2568') && html.includes('requete-2026-11-06-chrono-salle-v2568') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-11-06-accueil-calculs-v2569') && html.includes('requete-2026-11-06-accueil-calculs-v2569') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

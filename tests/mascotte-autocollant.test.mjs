@@ -44,7 +44,8 @@ test('plus aucun médaillon gris ni vidéo de la mascotte', () => {
 });
 
 test('mascotMedalHtml : un bouton avec l’autocollant, son mot-clé, ses étincelles et sa bulle', () => {
-  const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') });
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const ctx = vm.createContext({ esc, escAttr: s => esc(s).replace(/"/g, '&quot;') });
   vm.runInContext(entre("const MASCOT_IMG=", 'function mascotReduced(){'), ctx);
   const plein = vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Coucou !',intro:true})", ctx);
   assert.match(plein, /^<button type="button" class="mascot-stk is-intro" onclick="mascotWave\(this\)" aria-label="La mascotte Requête te fait coucou">/);
