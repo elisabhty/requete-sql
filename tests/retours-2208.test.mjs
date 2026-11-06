@@ -52,7 +52,7 @@ test('validation Apple : dans l’app iPhone sans connexion branchée, le bravo 
   const s = cut("}else if(slide==='account'){", "}else if(slide==='name'){");
   assert.ok(s.includes("const reussie=!!draft.practiceDone,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee();"));
   assert.ok(s.includes("${masquee?'':`<div class=\"ob-provider-list\">"), 'pas de boutons');
-  assert.ok(s.includes("${masquee?'':'<p class=\"ob-compte-sub\">Tu pourras sauvegarder ta progression et reprendre tes cours sur tous tes appareils.</p>'}"), 'pas de promesse');
+  assert.ok(s.includes("${masquee?'':obCompteCarteHTML()}"), 'pas de promesse (la carte « Sauvegarde ta progression » non plus, 7 novembre, 0 h 29)');
   assert.ok(s.includes('Ta première requête est <em>réussie</em>&nbsp;!'), 'le bravo reste');
 });
 
