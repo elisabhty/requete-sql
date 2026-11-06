@@ -6180,7 +6180,7 @@
     #scr-lesson.active .lesson-wrap>.ls-bars,#scr-lesson.active .lesson-rich>.l-kicker,#scr-lesson.active .lesson-rich>h1,.qopt.sel .ql,.qopt.bon .ql,.vstep.ok .vs-dot,.valid-done-ico,
     .viz.on>.viz-head,.viz.on>.viz-body>*,.viz.on .viz-nav,#card-sheet.viz.on .cd-share,#card-sheet.viz.on .cd-actions,.imp-sheet.on>*,.ob-slide.on>*,#scr-compte.active .plus-profile-card,#scr-compte.active .plus-fast-sec,#scr-compte.active .plus-local-proof,.plus-details-body{animation:none!important;opacity:1;transform:none}
     #scr-compte .plus-details[open]{animation:none!important;opacity:1;transform:translateX(-50%)!important}
-    .home-back svg,.cp-ico,.cp-chev,.pl-chip .cn,.pl-chip .cgo svg,.lr-option-icon,.console-quick-icon,.console-quick-chev,.console-project-icon,.console-project-chev,.console-schema-icon,.ent-hero-cta svg,.ent-step svg,.ent-reveal-primary svg,.acc-row .chev,.som-item .som-arrow{transition:none!important}
+    .home-back svg,.cp-ico,.cp-chev,.pl-chip .cn,.pl-chip .cgo svg,.lr-option-icon,.console-quick-icon,.console-quick-chev,.console-project-icon,.console-project-chev,.console-schema-icon,.ent-hero-cta svg,.ent-suite svg,.ent-reveal-primary svg,.acc-row .chev,.som-item .som-arrow{transition:none!important}
     .acc-toggle.on i{animation:none!important;transform:translateX(20px)}
     .pl-manage-body,.late-recovery,#scr-planning .pl-manage--editor{animation:none}
     .pl-overview-track i,.pl-manage-chev{transition:none}
@@ -6485,7 +6485,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
     .ux-shortcut:hover::after{transform:translateX(4px);animation:none}
     .home-back:hover svg{transform:translateX(-3px)}
     .btn-run:hover .run-ico,.xf-run:hover .xf-run-ico{transform:scale(1.12)}
-    .ent-hero-cta:hover svg,.ent-step-next:hover svg,.def-focus-cta:hover svg{transform:translateX(3px)}
+    .ent-hero-cta:hover svg,.ent-suite:hover svg,.def-focus-cta:hover svg{transform:translateX(3px)}
     .cp-cta:hover .cp-chev{transform:translateX(3px)}
     .fab:hover{animation:fabWiggle .5s ease}
   }
@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=188">
+<link rel="stylesheet" href="ludique.css?v=189">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
@@ -39754,13 +39754,21 @@ function entEtoile(et){
     <div class="ent-star-g">${et.dims.map((d,i)=>carte(d,'is-dim '+pos[i])).join('')}<i class="ent-star-l is-v" aria-hidden="true"></i><i class="ent-star-l is-h" aria-hidden="true"></i>${carte(et.faits,'is-fait')}</div>
     ${et.legende?`<figcaption>${esc(et.legende)}</figcaption>`:''}</figure>`;
 }
-/* Précédente et suivante dans la carte violette, sous la consigne (Elisa, 6 novembre, 22 h 20 : « Met le suivant précédent plutôt à
-   l’intérieur du cadre bleu de manière ui ux »). La navigation reste avant la réponse (3 novembre, 6 h 23 : « dès cette page ») et ne
-   descend plus sous elle. À l’écran, les mots courts (« Précédente », « Suivante ») ; le lecteur d’écran entend « Question précédente ».
-   Plus aucune autre question dans l’onglet : un seul bouton, « Retour aux questions », sur toute la largeur. */
-function entStepHtml(id){
-  const prev=entPrevTarget(id),next=entNextTarget(id);
-  return `<nav class="ent-step" aria-label="Changer de question">${prev?`<button type="button" class="ent-step-prev" onclick="prevEntretien('${id}')" aria-label="Question précédente">${ENT_CHEV_SVG}<span>Précédente</span></button>`:''}<button type="button" class="ent-step-next" onclick="nextEntretien('${id}')"${next?' aria-label="Question suivante"':''}><span>${next?'Suivante':'Retour aux questions'}</span>${ENT_CHEV_SVG}</button></nav>`;
+/* La navigation d’une question (Elisa, 6 novembre). 22 h 20 : « Met le suivant précédent plutôt à l’intérieur du cadre bleu de
+   manière ui ux » ; 22 h 56 : « Oui » à « Question suivante » sous l’évaluation, « et en haut juste des flèches animées vers la gauche
+   et droite ». En haut de la carte violette, deux flèches encadrent « Question 5 sur 142 » : la précédente à gauche, en verre comme la
+   pastille, la suivante à droite, blanche à rebord ; chacune fait signe vers son côté, de temps en temps. La navigation reste avant la
+   réponse (3 novembre, 6 h 23 : « dès cette page »). Plus aucune autre question dans l’onglet : pas de flèches. */
+const ENT_FL_G='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
+const ENT_FL_D='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+function entPagerHtml(x){
+  const n=`<span class="ent-pager-n"><span class="ent-pager-q">Question </span><b>${x.i+1}</b> sur ${ENTRETIEN.length}</span>`;
+  if(!entPrevTarget(x.id)&&!entNextTarget(x.id))return `<div class="ent-pager">${n}</div>`;
+  return `<nav class="ent-pager" aria-label="Changer de question"><button type="button" class="ent-pager-prev" onclick="prevEntretien('${x.id}')" aria-label="Question précédente">${ENT_FL_G}</button>${n}<button type="button" class="ent-pager-next" onclick="nextEntretien('${x.id}')" aria-label="Question suivante">${ENT_FL_D}</button></nav>`;
+}
+/* Sous l’évaluation, la suite : après « Je maîtrise » ou « À revoir », plus besoin de remonter jusqu’à la carte (22 h 56). */
+function entSuiteHtml(id){
+  return `<button type="button" class="ent-suite" onclick="nextEntretien('${id}')"><span>${entNextTarget(id)?'Question suivante':'Retour aux questions'}</span>${ENT_FL_D}</button>`;
 }
 function renderEntretienFocus(x){
   const revealed=!!entRevealed[x.id]||entOk(x.id);
@@ -39769,10 +39777,9 @@ function renderEntretienFocus(x){
   return `<article class="ent-focus" data-id="${x.id}" aria-labelledby="ent-focus-title">
     <header class="ent-focus-hero">
     <span class="ent-focus-stk" aria-hidden="true">${lqStkSvg('bulb')}</span>
-    <div class="ent-focus-meta"><span>Question <b>${x.i+1}</b> sur ${ENTRETIEN.length}</span><i aria-hidden="true"></i><span>${x.q.niveau} · ${x.q.cat}</span></div>
+    <div class="ent-focus-meta">${entPagerHtml(x)}<i aria-hidden="true"></i><span>${x.q.niveau} · ${x.q.cat}</span></div>
     <h1 id="ent-focus-title">${entNbsp(x.q.q)}</h1>
     <div class="ent-coach"><span class="ent-coach-ico ent-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Réponds à voix haute, puis compare.</span></div>
-    ${entStepHtml(x.id)}
     </header>
     <section class="ent-answer-card" aria-live="polite">
       ${revealed?`<span class="ent-answer-label">Réponse attendue</span>
@@ -39785,7 +39792,7 @@ function renderEntretienFocus(x){
         ${entSgbdTheme(x.q)?`<button type="button" class="ent-sgbd" onclick="entVoirSgbd('${x.id}','${entSgbdTheme(x.q)}')"><span class="ent-sgbd-ico" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span><span><b>Voir selon le SGBD</b><small>${esc((SGBD_PAGE.find(s=>s.id===entSgbdTheme(x.q))||{}).t||'')} · SQLite, PostgreSQL, MySQL…</small></span>${ENT_CHEV_SVG}</button>`:''}`:
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
     </section>
-    ${revealed?`<div class="ent-assessment"><p>Comment évalues-tu ta réponse ?</p>${entFoot(x.id)}</div>`:''}
+    ${revealed?`<div class="ent-assessment"><p>Comment évalues-tu ta réponse ?</p>${entFoot(x.id)}</div>${entSuiteHtml(x.id)}`:''}
   </article>`;
 }
 function renderEntretien(opts){
@@ -44605,7 +44612,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-entretien-univers-v2599';
+  const SW_CACHE='requete-2026-11-06-entretien-fleches-v2600';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

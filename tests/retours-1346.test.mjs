@@ -201,10 +201,10 @@ test('18 h 38 : entretien — familles de notions, « Voir selon le SGBD », pr�
   assert.ok(app.includes("fbar.innerHTML=ENT_FAMILLES.map(([k,l])=>{"));
   assert.ok(app.includes(`onclick="entVoirSgbd('\${x.id}','\${entSgbdTheme(x.q)}')"`));
   assert.ok(app.includes("entOpen=parent==='entretien'&&activeTab==='sgbd'&&entSgbdRetour?entSgbdRetour:null;"), 'le retour ramène à la question');
-  /* 6 novembre, 22 h 20 : précédente et suivante, toujours côte à côte, passent dans la carte violette (tests/retours-2220.test.mjs). */
-  assert.ok(app.includes('<nav class="ent-step" aria-label="Changer de question">${prev?`<button type="button" class="ent-step-prev" onclick="prevEntretien('));
+  /* 6 novembre, 22 h 20 puis 22 h 56 : précédente et suivante, des flèches autour du numéro, en haut de la carte violette (tests/retours-2220.test.mjs). */
+  assert.ok(app.includes('<nav class="ent-pager" aria-label="Changer de question"><button type="button" class="ent-pager-prev" onclick="prevEntretien('));
   assert.ok(app.includes('J’utilise <code>-&gt;</code> pour extraire une valeur JSON, <code>-&gt;&gt;</code> pour la récupérer sous forme de texte, et <code>@&gt;</code> pour vérifier qu’un document contient une structure ou des valeurs précises.'), 'réponse JSONB (3 novembre, 6 h 50 : reprise d’Elisa, avec l’exemple de Sophie et l’index GIN)');
-  assert.ok(css.includes('html.lq .ent-focus .ent-step{display:flex;gap:10px;margin:16px 0 0}'));
+  assert.ok(css.includes('html.lq .ent-focus .ent-pager{display:flex;align-items:center;gap:6px}'));
 });
 
 test('18 h 42 : « Base NutriBoost » ; les bases d’entraînement en lecture seule (ni import, ni bouton qui modifie, ni requête qui écrit)', () => {
