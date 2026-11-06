@@ -3,8 +3,9 @@
    Le groupe « Sur ton iPhone » n’existait que dans l’app iPhone ; dans Safari, il manquait tout entier.
    - sur un iPhone, le groupe se voit aussi dans Safari : les deux widgets, puis « Évaluer l’application » (une étoile) ;
    - dans Safari, les feuilles des widgets disent qu’ils viennent avec l’app, bientôt sur l’App Store ;
-   - « Évaluer l’application » : dans l’app, la page « Écrire un avis » ; sur le web, tant que l’app n’est pas sortie, un mot
-     « Bientôt sur l’App Store » (le jour de la sortie, appStoreEnLigne() renvoie true) ;
+   - « Évaluer l’application » : dans l’app, la page « Écrire un avis » ; sur le web, la fiche de l’App Store ;
+   - 11 h 12 (« ne mets jamais “prochainement”, l’app sera publiée et j’oublierai de les enlever ») : plus de « Bientôt sur l’App
+     Store » ni d’interrupteur appStoreEnLigne() à basculer le jour de la sortie ; les textes sont ceux de l’app publiée ;
    - une app sans le widget n’affiche pas de mode d’emploi qui n’y marcherait pas ; un ordinateur n’a pas le groupe. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -21,7 +22,7 @@ const MAC = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.1
 const ANDROID = 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Mobile Safari/537.36';
 
 /* Les fonctions de « Évaluer l’application », exécutées : un iPhone ou non, l’app ou Safari, sortie ou pas. */
-function monde({ ua = IPHONE, natif = false, pont = null, enLigne = false } = {}) {
+function monde({ ua = IPHONE, natif = false, pont = null } = {}) {
   const vu = { info: [], ouvert: [], natif: [], href: null };
   const ctx = vm.createContext({
     navigator: ua == null ? undefined : { userAgent: ua },
@@ -31,7 +32,7 @@ function monde({ ua = IPHONE, natif = false, pont = null, enLigne = false } = {}
     window: { open: (u, c, f) => vu.ouvert.push([u, c, f]) },
     location: { set href(u) { vu.href = u; } },
   });
-  vm.runInContext(enLigne ? noter.replace('function appStoreEnLigne(){return false;}', 'function appStoreEnLigne(){return true;}') : noter, ctx);
+  vm.runInContext(noter, ctx);
   return { ctx, vu };
 }
 
@@ -51,17 +52,20 @@ test('Mon compte : le groupe « Sur ton iPhone » se voit aussi dans Safari sur 
   assert.deepEqual(decide(false, false, false), { groupe: false, widgets: false }, 'un ordinateur : rien');
 });
 
-test('« Évaluer l’application » : une étoile, toujours dans le groupe, et ce qu’elle fait selon l’endroit', () => {
+test('« Évaluer l’application » : une étoile, toujours dans le groupe, le texte de l’app publiée', () => {
   const g = compte.slice(compte.indexOf('Sur ton iPhone</p>'), compte.indexOf('Compte et assistance</p>'));
-  const ligne = '<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg(\'etoile\')}</span><span><b>Évaluer l’application</b><small>${appliNative()||appStoreEnLigne()?\'Ton avis sur l’App Store aide d’autres à nous trouver\':\'Bientôt sur l’App Store\'}</small></span>';
-  assert.ok(g.includes(ligne), 'la ligne, avec son étoile et son sous-titre');
+  const ligne = '<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg(\'etoile\')}</span><span><b>Évaluer l’application</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span>';
+  assert.ok(g.includes(ligne), 'la ligne, avec son étoile et son sous-titre, partout pareille');
   assert.ok(g.indexOf("openPlusDetails('plus-widget-verrou')") < g.indexOf('onclick="noterAppli()"'), 'après les deux widgets');
   assert.ok(!app.includes('<b>Noter Requête</b>'), 'le nom de la capture de référence');
   assert.ok(app.includes("    etoile:['<path d=\"M24 4.6l5.7 11.5"), 'l’autocollant étoile, en deux couches comme les autres');
-  assert.ok(app.includes("const LQ_ASK_STK={'⭐':'etoile',"), 'le mot « Bientôt » porte la même étoile');
+  /* 11 h 12 : jamais « bientôt » ; rien à basculer le jour de la sortie */
+  assert.doesNotMatch(app, /Bientôt sur l’App Store|arrive bientôt sur l’App Store|appStoreEnLigne/);
+  assert.ok(!app.includes("'⭐':'etoile'"), 'plus de mot « Bientôt » à illustrer');
   /* des fonctions, pas des constantes : Mon compte peut se dessiner avant que le script n’arrive à leur ligne */
-  assert.ok(app.includes('function appStoreEnLigne(){return false;}') && app.includes('function iphoneWeb(){'), 'hissées');
-  assert.ok(!/const (APP_STORE_EN_LIGNE|appStoreEnLigne|iphoneWeb)\b/.test(app));
+  assert.ok(app.includes("function appStoreFiche(){return 'https://apps.apple.com/app/id6830361256';}") && app.includes('function iphoneWeb(){'), 'hissées');
+  assert.ok(app.includes("const APP_STORE_ID='6830361256';"), 'la fiche et « Écrire un avis » : le même identifiant');
+  assert.ok(!/const (appStoreFiche|iphoneWeb)\b/.test(app));
 });
 
 test('iphoneWeb : un iPhone, et rien d’autre ; sans navigator, pas d’erreur', () => {
@@ -72,27 +76,20 @@ test('iphoneWeb : un iPhone, et rien d’autre ; sans navigator, pas d’erreur'
   assert.equal(ok(null), false, 'aucun navigateur');
 });
 
-test('noterAppli : l’app ouvre « Écrire un avis » ; Safari dit « Bientôt » ; après la sortie, la fiche de l’App Store', async () => {
+test('noterAppli : l’app ouvre « Écrire un avis » ; Safari, la fiche de l’App Store, sans attendre de sortie', async () => {
   { const { ctx, vu } = monde({ natif: true, pont: true }); ctx.noterAppli(); await new Promise(r => setTimeout(r, 0));
     assert.deepEqual(vu.natif, [['RequeteWidget', 'ouvrir', 'itms-apps://itunes.apple.com/app/id6830361256?action=write-review']], 'l’app : la page « Écrire un avis »');
     assert.equal(vu.info.length + vu.ouvert.length, 0); }
   { const { ctx, vu } = monde(); ctx.noterAppli();
-    assert.equal(vu.info.length, 1, 'Safari, avant la sortie : un mot');
-    const [t, x, i] = vu.info[0];
-    assert.equal(t, 'Bientôt sur l’App Store'); assert.equal(i, '⭐');
-    assert.ok(x.includes('Tu pourras l’évaluer dès sa sortie :'), 'une espace insécable avant les deux-points');
-    assert.equal(vu.ouvert.length, 0, 'pas de page vide de l’App Store'); }
-  { const { ctx, vu } = monde({ enLigne: true }); ctx.noterAppli();
-    assert.deepEqual(vu.ouvert, [['https://apps.apple.com/app/id6830361256?action=write-review', '_blank', 'noopener']], 'après la sortie : la fiche');
-    assert.equal(vu.info.length, 0); }
+    assert.deepEqual(vu.ouvert, [['https://apps.apple.com/app/id6830361256?action=write-review', '_blank', 'noopener']], 'Safari : la fiche, « Écrire un avis »');
+    assert.equal(vu.info.length, 0, 'pas de mot « Bientôt »'); }
 });
 
-test('Les feuilles des widgets, dans Safari : un mot pour dire qu’ils viennent avec l’app', () => {
+test('Les feuilles des widgets, dans Safari : une ligne pour dire qu’ils viennent avec l’app, et sa fiche', () => {
   const f = cut('function wtuFeuilleHTML(k){', '\n}\n');
   assert.ok(f.includes("const web=!(typeof appliNative==='function'&&appliNative());"), 'seulement hors de l’app');
-  assert.ok(f.includes('<p class="wtu-web"><b>Avec l’app Requête pour iPhone</b>'), 'le titre du mot');
-  assert.ok(f.includes('Les widgets viennent avec l’app, bientôt sur l’App Store. Voici comment les ajouter.'), 'avant la sortie');
-  assert.ok(f.includes('Installe-la depuis l’App Store, puis suis ces étapes.'), 'après la sortie');
-  assert.ok(f.indexOf('wtu-web') < f.indexOf("k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()"), 'avant le tutoriel');
-  assert.ok(/html\.lq \.wtu-web\{[^}]+\}/.test(lq) && /html\.lq \.wtu-web b\{[^}]+\}/.test(lq), 'son style');
+  assert.ok(f.includes('<p class="wtu-web">Les widgets viennent avec l’app Requête pour iPhone. <a href="${appStoreFiche()}" target="_blank" rel="noopener">Voir sur l’App Store</a></p>'), 'le texte de l’app publiée, et la fiche');
+  assert.doesNotMatch(f, /[Bb]ientôt|[Pp]rochainement/);
+  assert.ok(f.indexOf("k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()") < f.indexOf('wtu-web'), 'sous le pas-à-pas, avec la note');
+  assert.ok(/html\.lq \.wtu-web\{[^}]+\}/.test(lq) && /html\.lq \.wtu-web a\{[^}]+\}/.test(lq), 'son style');
 });

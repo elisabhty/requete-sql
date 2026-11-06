@@ -29,89 +29,137 @@ test('Mon compte : « Sur ton iPhone », les deux widgets puis « Évaluer l’a
   assert.ok(compte.includes('${widgetsVus?`<details class="plus-details plus-widget" id="plus-widget-accueil"'), 'les feuilles, avec leurs lignes');
 });
 
-/* Le module, exécuté : les dessins, les cibles du doigt, la boucle des étapes. */
+/* Le module, exécuté : les dessins, les cibles du doigt, le pas-à-pas.
+   6 novembre, 11 h 12 (les captures de l’iPhone d’Elisa : « + » en haut à gauche, « OK », le menu « Ajouter un widget »,
+   « Personnaliser », « Modifier le fond d’écran », « Modifier les pages ») : « t’es sûr pour la mise en place des widgets ? »,
+   « améliore les pages pour que ça soit plus clair ». Cinq étapes, une action chacune, une à la fois. */
+const NB = ' ';
 function moteur() {
   const minuteurs = [];
   const ctx = vm.createContext({
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'), FLAME_SVG: '<svg data-k="flamme"></svg>', MASCOT_IMG: 'chat.webp',
     jourActif: () => false, dstr: d => '2026-11-06', auj: () => new Date(2026, 10, 6), buzz: () => {}, Intl, requestAnimationFrame: f => f(),
+    appStoreFiche: () => 'https://apps.apple.com/app/id6830361256',
     setTimeout: (f, ms) => { minuteurs.push({ f, ms }); return minuteurs.length; }, clearTimeout: () => {}, document: { body: { contains: () => true } }
   });
   vm.runInContext(cut('/* ---------- Les widgets, dans Mon compte ----------', '/* ---------- La Dynamic Island'), ctx);
   return { ctx, minuteurs, ev: x => vm.runInContext(x, ctx) };
 }
 
-test('les deux tutoriels : quatre étapes, les boutons d’Apple, le doigt qui vise des cibles mesurées', () => {
+test('les deux pas-à-pas : cinq étapes, une action chacune, les boutons de l’iPhone, le doigt qui vise des cibles mesurées', () => {
   const { ctx, ev } = moteur();
   const W = JSON.parse(JSON.stringify(ev('WTU')));
   assert.deepEqual(Object.keys(W), ['accueil', 'verrou']);
   assert.equal(W.accueil.titre, 'Widgets de l’écran d’accueil');
   assert.equal(W.verrou.titre, 'Widgets de l’écran verrouillé');
-  const tout = k => W[k].etapes.join(' ');
-  for (const b of ['Modifier', 'Ajouter un widget', 'Requête', 'Ajouter le widget', 'OK']) assert.ok(tout('accueil').includes(`« ${b} »`), 'accueil : ' + b);
-  for (const b of ['Personnaliser', 'Ajouter des widgets', 'Requête', 'OK']) assert.ok(tout('verrou').includes(`« ${b} »`), 'verrouillé : ' + b);
+  const g = b => `«${NB}${b}${NB}»`;
+  const attendus = { accueil: ['+', 'Ajouter un widget', 'Rechercher des widgets', 'Requête', 'Ajouter le widget', 'OK'], verrou: ['Personnaliser', 'Écran verrouillé', 'Ajouter des widgets', 'Requête', 'OK'] };
   for (const k of ['accueil', 'verrou']) {
-    assert.equal(W[k].etapes.length, 4); assert.equal(W[k].durees.length, 4);
-    for (const t of W[k].etapes) assert.doesNotMatch(t, / [?!;:»]|« /, 'espaces insécables');
+    const tout = W[k].etapes.join(' ');
+    for (const b of attendus[k]) assert.ok(tout.includes(g(b)), k + ' : ' + b);
+    for (const champ of ['etapes', 'astuces', 'durees', 'cles']) assert.equal(W[k][champ].length, 5, k + ' : ' + champ);
+    for (const t of [...W[k].etapes, ...W[k].astuces]) assert.doesNotMatch(t, / [?!;:»]|« /, 'espaces insécables');
+    for (const c of W[k].cles) assert.ok(c > 0 && c < 1, 'le moment de l’image fixe');
   }
+  assert.ok(!W.accueil.etapes.join(' ').includes(g('Modifier')), 'le bouton de son iPhone : « + »');
+  assert.ok(W.accueil.astuces[1].includes(g('Modifier')), '« Modifier » sur d’autres versions d’iOS : dans l’astuce');
+  assert.ok(W.verrou.astuces[2].includes('en bas de l’écran'), 'iOS 26 : la zone des widgets peut être en bas');
   const a = ctx.wtuAccueilHTML();
-  assert.equal((a.match(/class="wtu-app t\d+"/g) || []).length, 16, 'seize apps');
+  assert.equal((a.match(/class="wtu-app t\d+"/g) || []).length, 20, 'vingt apps, comme un écran d’accueil');
   assert.ok(a.includes('style="--i:5;grid-area:2/2"'), 'chaque app à sa case : le widget passe par-dessus sans pousser les autres');
-  for (const c of ['mod', 'ok', 'ajout', 'valider']) assert.ok(a.includes(`data-cible="${c}"`), 'cible ' + c);
+  for (const c of ['plus', 'ok', 'ajout', 'cherche', 'res', 'valider']) assert.ok(a.includes(`data-cible="${c}"`), 'cible ' + c);
+  assert.ok(a.includes('<span class="wtu-pill wtu-pplus" data-cible="plus">+</span>'), 'le « + » en haut à gauche');
+  const menu = [...a.matchAll(/<span class="wtu-mi"(?: data-cible="ajout")?><svg[^]*?<\/svg>([^<]+)<\/span>/g)].map(m => m[1]);
+  assert.deepEqual(menu, ['Ajouter un widget', 'Personnaliser', 'Modifier le fond d’écran', 'Modifier les pages'], 'le menu de son iPhone');
+  assert.ok(a.includes('<span class="wtu-ph">Rechercher des widgets</span><b class="wtu-tape">Requête</b>') && a.includes('<b class="wtu-fiche-t">Ta flamme</b>'), 'la galerie');
   assert.ok(a.includes('<b>0<small>/1</small></b>') && a.includes('src="chat.webp"'), 'le widget de l’iPhone : la flamme, « 0/1 », le chat');
   const v = ctx.wtuVerrouHTML();
   for (const c of ['perso', 'choix', 'zone', 'rq', 'rond', 'bande', 'ok']) assert.ok(v.includes(`data-cible="${c}"`), 'cible ' + c);
   assert.ok(v.includes('<span class="wtu-date">Vendredi 6 novembre</span>') || /<span class="wtu-date">[A-ZÀ-Ý][a-zà-ÿ]+ \d+ [a-zéû]+<\/span>/.test(v), 'la date du jour, comme sur l’écran verrouillé');
-  assert.ok(v.includes('Séance du jour : 0/1') && v.includes('<b>0/1</b>'), 'le bandeau et le rond');
-  const e = ctx.wtuEtapesHTML('accueil');
-  assert.equal((e.match(/<button type="button" class="wtu-etape/g) || []).length, 4);
-  assert.ok(e.includes('class="wtu-etape is-on" data-i="1" onclick="wtuAller(\'accueil\',1)" aria-current="step"'), 'la première éclairée');
-  assert.ok(ctx.wtuFeuilleHTML('verrou').includes('<p class="acc-note wtu-note">'), 'une note sous les étapes');
+  assert.ok(v.includes(`Séance du jour${NB}: 0/1`) && v.includes('<b>0/1</b>'), 'le bandeau et le rond');
+  const e = ctx.wtuGuideHTML('accueil');
+  assert.equal((e.match(/<button type="button" class="wtu-etape/g) || []).length, 5, 'la barre des étapes');
+  assert.ok(e.includes('class="wtu-etape is-on" data-i="1" onclick="wtuAller(\'accueil\',1)" aria-label="Étape 1 sur 5" aria-current="step"'), 'la première éclairée');
+  assert.equal((e.match(/<div class="wtu-pas/g) || []).length, 5);
+  assert.ok(e.includes('<div class="wtu-pas is-on" data-i="1"><span class="wtu-num">Étape 1 sur 5</span>') && e.includes('<div class="wtu-pas" data-i="2" aria-hidden="true">'), 'une étape à la fois');
+  assert.ok(e.includes(`Touche <b>«${NB}+${NB}»</b>, en haut à gauche, puis <b>«${NB}Ajouter un widget${NB}»</b>.`), 'les mots des boutons en gras');
+  assert.ok(e.includes(`<p class="wtu-astuce">Pas de <b>«${NB}+${NB}»</b>${NB}? Selon ta version d’iOS, le bouton s’appelle <b>«${NB}Modifier${NB}»</b>.</p>`), 'l’astuce sous l’étape 2');
+  assert.ok(e.includes('<button type="button" class="lq-btn-2 wtu-prec" onclick="wtuPas(\'accueil\',-1)" disabled>Précédent</button><button type="button" class="lq-btn wtu-suiv" onclick="wtuPas(\'accueil\',1)">Suivant</button>'), '« Précédent » et « Suivant »');
+  const f = ctx.wtuFeuilleHTML('verrou');
+  assert.ok(f.includes('<p class="acc-note wtu-note">'), 'une note sous le pas-à-pas');
+  assert.ok(f.includes('<p class="wtu-web">Les widgets viennent avec l’app Requête pour iPhone. <a href="https://apps.apple.com/app/id6830361256" target="_blank" rel="noopener">Voir sur l’App Store</a></p>'), 'hors de l’app : d’où viennent les widgets');
+  assert.doesNotMatch(f, /[Bb]ientôt|[Pp]rochainement/, 'jamais « bientôt » (11 h 12)');
+  ctx.appliNative = () => true;
+  assert.ok(!ctx.wtuFeuilleHTML('accueil').includes('wtu-web'), 'dans l’app, pas besoin');
 });
 
-test('la boucle : chaque étape relance son animation, la suivante vient après sa durée, et tout s’arrête à la fermeture', () => {
+test('le pas-à-pas : l’étape se rejoue tant qu’on y reste, on avance d’un toucher, tout s’arrête à la fermeture', () => {
   const { ctx, minuteurs, ev } = moteur();
   const classes = () => { const s = new Set(); return { toggle: (c, on) => on ? s.add(c) : s.delete(c), has: c => s.has(c) }; };
-  const boutons = [1, 2, 3, 4].map(i => ({ dataset: { i: String(i) }, classList: classes(), attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; } }));
-  const details = { open: true };
-  const props = {};
+  const el = i => ({ dataset: { i: String(i) }, classList: classes(), attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; } });
+  const boutons = [1, 2, 3, 4, 5].map(el), pas = [1, 2, 3, 4, 5].map(el);
+  const prec = { disabled: false }, suiv = { textContent: '' };
+  const details = { open: true }, props = {};
   const box = { dataset: {}, offsetWidth: 1, style: { setProperty: (k, v) => { props[k] = v; } }, removeAttribute(k) { if (k === 'data-step') delete this.dataset.step; },
-    querySelectorAll: s => s === '.wtu-etape' ? boutons : [], querySelector: () => null, closest: () => details };
+    querySelectorAll: s => s === '.wtu-etape' ? boutons : s === '.wtu-pas' ? pas : [], querySelector: s => s === '.wtu-prec' ? prec : s === '.wtu-suiv' ? suiv : null, closest: () => details };
   ctx.document.getElementById = id => id === 'wtu-accueil' ? box : null;
   ctx.wtuJouer('accueil', 1);
-  assert.equal(box.dataset.step, '1'); assert.equal(props['--wtu-d'], '3200ms');
+  assert.equal(box.dataset.step, '1'); assert.equal(props['--wtu-d'], '3400ms'); assert.equal(props['--wtu-cle'], '0.62');
   assert.ok(boutons[0].classList.has('is-on') && boutons[0].attrs['aria-current'] === 'step');
-  assert.equal(minuteurs.at(-1).ms, 3200);
+  assert.ok(pas[0].classList.has('is-on') && !('aria-hidden' in pas[0].attrs) && pas[1].attrs['aria-hidden'] === 'true', 'le texte de l’étape 1, seul');
+  assert.equal(prec.disabled, true, '« Précédent » éteint à la première');
+  assert.equal(suiv.textContent, 'Suivant');
+  assert.equal(minuteurs.at(-1).ms, 3400 + 1200, 'un temps de pause avant de rejouer');
   minuteurs.at(-1).f();
-  assert.equal(box.dataset.step, '2', 'étape suivante');
+  assert.equal(box.dataset.step, '1', 'on reste sur l’étape : son geste se rejoue');
+  ctx.wtuPas('accueil', 1);
+  assert.equal(box.dataset.step, '2', '« Suivant »');
   assert.ok(boutons[0].classList.has('is-fait') && boutons[1].classList.has('is-on') && !boutons[0].attrs['aria-current']);
-  minuteurs.at(-1).f(); minuteurs.at(-1).f();
-  assert.equal(box.dataset.step, '4');
-  assert.equal(minuteurs.at(-1).ms, 3600 + 1400, 'un temps de pause à la fin');
-  minuteurs.at(-1).f();
-  assert.equal(box.dataset.step, '1', 'en boucle');
+  assert.ok(pas[1].classList.has('is-on') && !pas[0].classList.has('is-on') && pas[0].attrs['aria-hidden'] === 'true');
+  assert.equal(prec.disabled, false);
+  assert.equal(props['--wtu-d'], '3800ms');
+  ctx.wtuPas('accueil', -1);
+  assert.equal(box.dataset.step, '1', '« Précédent »');
+  ctx.wtuPas('accueil', -1);
+  assert.equal(box.dataset.step, '1', 'pas avant la première');
+  ctx.wtuAller('accueil', 5);
+  assert.equal(box.dataset.step, '5', 'une étape de la barre, d’un toucher');
+  assert.equal(suiv.textContent, 'Revoir depuis le début', 'à la dernière');
+  assert.equal(props['--wtu-cle'], '0.44');
+  ctx.wtuPas('accueil', 1);
+  assert.equal(box.dataset.step, '1', 'on revient au début');
+  ctx.wtuAller('accueil', 3);
+  ctx.wtuRejouer('accueil');
+  assert.equal(box.dataset.step, '3', 'un toucher sur l’iPhone rejoue l’étape');
   details.open = false;
   const n = minuteurs.length;
   minuteurs.at(-1).f();
-  assert.equal(box.dataset.step, '1', 'feuille fermée : plus rien ne bouge');
+  assert.equal(box.dataset.step, '3', 'feuille fermée : plus rien ne bouge');
   assert.equal(minuteurs.length, n);
   assert.equal(ev('WTU_K'), '', 'arrêté');
   ctx.wtuToggle({ id: 'plus-widget-accueil', open: true });
-  assert.equal(ev('WTU_K'), 'accueil', 'la feuille s’ouvre : le tutoriel repart');
+  assert.equal(ev('WTU_K'), 'accueil', 'la feuille s’ouvre : le pas-à-pas repart');
+  assert.equal(box.dataset.step, '1', 'de la première étape');
   ctx.wtuToggle({ id: 'plus-widget-accueil', open: false });
   assert.equal(ev('WTU_K'), '');
 });
 
-test('les gestes : une animation par étape, le doigt sur les cibles mesurées, une image fixe si on réduit les animations', () => {
-  for (const s of [1, 2, 3, 4]) {
+test('les gestes : une animation par étape, le doigt sur les cibles mesurées, un iPhone plus grand, une image fixe si on réduit les animations', () => {
+  for (const s of [1, 2, 3, 4, 5]) {
     assert.ok(lq.includes(`html.lq .wtu[data-wtu="accueil"][data-step="${s}"] .wtu-doigt{animation:wtuA${s}Doigt`), 'accueil ' + s);
     assert.ok(lq.includes(`html.lq .wtu[data-wtu="verrou"][data-step="${s}"] .wtu-doigt{animation:wtuV${s}Doigt`), 'verrouillé ' + s);
+    assert.equal(lq.split(`@keyframes wtuA${s}Doigt{`).length - 1, 1, `wtuA${s}Doigt : une seule définition`);
+    assert.equal(lq.split(`@keyframes wtuV${s}Doigt{`).length - 1, 1, `wtuV${s}Doigt : une seule définition`);
   }
-  for (const v of ['--mod-x', '--ajout-y', '--valider-x', '--ok-y', '--perso-x', '--choix-y', '--zone-x', '--rq-y', '--rond-x', '--bande-y']) assert.ok(lq.includes(`var(${v},`), v);
-  assert.ok(lq.includes('animation:wtuBarre var(--wtu-d,3s) linear both'), 'la barre de l’étape se remplit pendant sa durée');
-  assert.ok(lq.includes('html[data-motion="reduce"].lq .wtu *,html[data-motion="reduce"].lq .wtu *::after{animation-play-state:paused!important;animation-delay:calc(var(--wtu-d,3s) * -.62)!important}'));
+  for (const v of ['--plus-x', '--ajout-y', '--cherche-x', '--res-y', '--valider-x', '--ok-y', '--perso-x', '--choix-y', '--zone-x', '--rq-y', '--rond-x', '--bande-y']) assert.ok(lq.includes(`var(${v},`), v);
+  assert.ok(lq.includes('html.lq .wtu-tel{position:relative;display:block;width:min(212px,56vw);'), 'un iPhone plus grand');
+  assert.ok(/html\.lq \.wtu-ecran\{[^}]*container-type:inline-size/.test(lq), 'des libellés à l’échelle de l’écran dessiné (cqw)');
+  assert.ok(lq.includes('html.lq .wtu-pas{grid-area:1/1;') && lq.includes('html.lq .wtu-pas.is-on{visibility:visible;'), 'les étapes au même endroit : la feuille ne saute pas d’une étape à l’autre');
+  assert.ok(lq.includes('animation:wtuBarre var(--wtu-d,3s) linear both'), 'la barre de l’étape se remplit pendant son geste');
+  assert.ok(lq.includes('html[data-motion="reduce"].lq .wtu *,html[data-motion="reduce"].lq .wtu *::after{animation-play-state:paused!important;animation-delay:calc(var(--wtu-d,3s) * var(--wtu-cle,.62) * -1)!important}'));
   assert.ok(lq.includes('@media (prefers-reduced-motion:reduce){\n  html.lq .wtu *'));
   assert.ok(!/\.wtu-(ajout|perso)\{[^}]*translateX\(-50%\)/.test(lq), 'centrés sans transformation : offsetLeft donne leur vraie place');
+  assert.ok(!/@keyframes wtuA[1-4](Mod|Ok)\{/.test(lq), 'plus d’animation du bouton « Modifier »');
   const stk = cut('function lqStkSvg(k){', '\n}');
   assert.ok(/\n    widgets:\['/.test(stk) && /\n    verrou:\['/.test(stk), 'deux autocollants');
 });
