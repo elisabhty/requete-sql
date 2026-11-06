@@ -27,7 +27,7 @@ test('Wok Chinois : dix défis par niveau, tous rattachés à la bonne base', ()
     assert.ok(group.every(c => c.niv === level && c.base === 'wok'), prefix);
   }
   assert.ok(app.includes("wok:{nom:'Wok Chinois',"));
-  assert.ok(app.includes('Bienvenue dans un restaurant chinois spécialisé dans la cuisine au wok.'));
+  assert.ok(app.includes('Bienvenue à La Perle du Wok, un restaurant chinois spécialisé dans la cuisine au wok.'));
 });
 
 test('les commandes pédagogiques respectent les clés et couvrent septembre, octobre, novembre', () => {

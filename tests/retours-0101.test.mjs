@@ -68,7 +68,8 @@ test('1 h 32 : la base Aéroport dans « Tes projets », de l’espace sous les 
 
 test('1 h 44 : la description de la base Aéroport est celle du fichier d’Elisa', () => {
   assert.ok(app.includes("isDemoDb(id)?DEFI_BASES[id].desc:''"));
-  assert.ok(app.includes("desc:'Bienvenue dans les coulisses d’un aéroport international. Vols, passagers, compagnies, avions et bagages : toutes les données nécessaires au fonctionnement de l’aéroport sont réunies ici. Explore la base pour résoudre les différentes missions.'"));
+  /* 6 novembre, 9 h 37 : l’aéroport a un nom et une équipe (retours-0937) */
+  assert.ok(app.includes("desc:'Bienvenue dans les coulisses de l’aéroport Paris-Charles-de-Gaulle. Vols, passagers, compagnies, avions et bagages : sa base suit les vols de ses six compagnies partenaires, à Paris et dans toute l’Europe.") && app.includes("Explore la base pour résoudre les différentes missions.'"));
 });
 
 test('1 h 48 : la barre Schéma de la Console sans autocollant', () => {
