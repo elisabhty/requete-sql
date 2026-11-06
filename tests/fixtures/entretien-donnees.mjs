@@ -195,4 +195,213 @@ export const DONNEES = {
     res: { 0: [['Léon Garnier', '8', 'Enfant'], ['Maëlle Roux', '12', 'Adulte'], ['Samir Haddou', '34', 'Adulte'], ['Odile Brun', '70', 'Senior']] },
     ex: [{ instr: 0 }],
   },
+  'ent-v2-21': {
+    u: 'stations météo',
+    avant: `CREATE TABLE releves (id INTEGER PRIMARY KEY, station TEXT, jour TEXT, temp REAL);
+      INSERT INTO releves VALUES (10, 'Brest', '2026-03-01', 9.5), (11, 'Brest', '2026-03-02', 11),
+        (12, 'Nice', '2026-03-01', 15), (13, 'Nice', '2026-03-02', 16.5);`,
+    autres: [2],
+    verif: ({ rows, ouvrir }) => {
+      const db = ouvrir(), n = () => db.exec('SELECT COUNT(*) FROM releves')[0].values[0][0];
+      db.exec('DELETE FROM releves WHERE id = 10'); const a = n();
+      db.exec('DELETE FROM releves'); const b = n();
+      db.exec('DROP TABLE releves'); let erreur = false; try { n(); } catch (e) { erreur = true; }
+      db.close();
+      return String(a) === rows[0][1] && String(b) === rows[1][1] && erreur && rows[3][2] === 'supprimée' ? null : `après les instructions : ${a}, ${b}, erreur ${erreur}`;
+    },
+  },
+  'ent-v2-22': {
+    u: 'escape game',
+    avant: `CREATE TABLE salles (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO salles VALUES (1, 'Le Manoir'), (2, 'La Crypte');`,
+    erreurs: [1],
+    verif: ({ db, rows }) => {
+      db.exec("INSERT INTO parties VALUES (1, 'P-001', 1, 90)");
+      const essais = ["(1, 'P-002', 1, 90)", "(2, 'P-001', 1, 90)", "(3, NULL, 1, 90)", "(4, 'P-004', 9, 90)", "(5, 'P-005', 1, -10)"];
+      const motifs = ['UNIQUE constraint failed: parties.id', 'UNIQUE constraint failed: parties.code', 'NOT NULL constraint failed', 'FOREIGN KEY constraint failed', 'CHECK constraint failed: montant_positif'];
+      const contraintes = ['PRIMARY KEY', 'UNIQUE', 'NOT NULL', 'FOREIGN KEY', 'CHECK'];
+      for (let k = 0; k < essais.length; k++) {
+        if (rows[k][2] !== contraintes[k]) return `ligne ${k} : ${rows[k][2]}`;
+        try { db.exec('INSERT INTO parties VALUES ' + essais[k]); return `acceptée : ${essais[k]}`; } catch (e) { if (!e.message.includes(motifs[k])) return `${essais[k]} : ${e.message}`; }
+      }
+      return null;
+    },
+  },
+  'ent-v2-23': {
+    u: 'club de sport',
+    avant: `CREATE TABLE membres (id INTEGER PRIMARY KEY, email TEXT);
+      INSERT INTO membres VALUES (1, 'ines@club.fr'), (2, 'marc@club.fr');
+      CREATE TABLE essais (id INTEGER PRIMARY KEY, email TEXT);
+      INSERT INTO essais VALUES (1, 'marc@club.fr'), (2, 'zoe@club.fr');`,
+    res: { 0: [['ines@club.fr'], ['marc@club.fr'], ['marc@club.fr'], ['zoe@club.fr']], 1: [['ines@club.fr'], ['marc@club.fr'], ['zoe@club.fr']] },
+    ex: [{ sql: `SELECT email, t, 'gardé', CASE WHEN ROW_NUMBER() OVER (PARTITION BY email ORDER BY o, id) = 1 THEN 'gardé' ELSE 'retiré' END
+      FROM (SELECT email, 'membres' t, 1 o, id FROM membres UNION ALL SELECT email, 'essais', 2, id FROM essais) ORDER BY o, id` }],
+  },
+  'ent-v2-24': {
+    u: 'food truck',
+    avant: `CREATE TABLE plats (id INTEGER PRIMARY KEY, nom TEXT, categorie TEXT, prix REAL);
+      INSERT INTO plats VALUES (1, 'Classique', 'Burgers', 11), (2, 'Végé', 'Burgers', 13), (3, 'César', 'Salades', 10),
+        (4, 'Niçoise', 'Salades', 9), (5, 'Quinoa', 'Salades', 8), (6, 'Cookie', 'Desserts', 4), (7, 'Tiramisu', 'Desserts', 6);
+      CREATE TABLE ventes (id INTEGER PRIMARY KEY, plat_id INTEGER REFERENCES plats(id), quantite INTEGER);
+      INSERT INTO ventes VALUES (1, 1, 3), (2, 4, 2);`,
+    res: { 0: [['Burgers', '2', '12'], ['Salades', '3', '9'], ['Desserts', '2', '5']], 1: [['Classique', '3'], ['Niçoise', '2']] },
+    ex: [{ instr: 0 }],
+    verif: ({ db }) => {
+      try { db.exec('SELECT categorie, AVG(prix) AS prix_moyen FROM plats WHERE prix_moyen > 10 GROUP BY categorie'); return 'WHERE sur l’alias d’un agrégat est accepté'; } catch (e) { return null; }
+    },
+  },
+  'ent-v2-25': {
+    u: 'auto-école',
+    avant: `CREATE TABLE lecons (id INTEGER PRIMARY KEY, eleve_id INTEGER, minutes INTEGER, statut TEXT);
+      INSERT INTO lecons VALUES (1, 1, 60, 'faite'), (2, 1, 80, 'faite'), (3, 2, 90, 'faite'), (4, 2, 90, 'faite'),
+        (5, 3, 60, 'faite'), (6, 4, 120, 'faite'), (7, 3, 60, 'annulée'), (8, 1, 60, 'annulée');`,
+    res: { 0: [['2', '180'], ['1', '140'], ['4', '120']] },
+    ex: [{ cols: [2], rcols: [1], sql: `SELECT 1, COUNT(*) FROM lecons
+      UNION ALL SELECT 2, COUNT(*) FROM lecons WHERE statut = 'faite'
+      UNION ALL SELECT 3, COUNT(DISTINCT eleve_id) FROM lecons WHERE statut = 'faite'
+      UNION ALL SELECT k, COUNT(*) FROM (SELECT eleve_id FROM lecons WHERE statut = 'faite' GROUP BY eleve_id HAVING SUM(minutes) > 100), (SELECT 4 k UNION ALL SELECT 5 UNION ALL SELECT 6) GROUP BY k
+      ORDER BY 1` }],
+  },
+  'ent-v2-26': {
+    u: 'entreprise', garde: true,
+    avant: `CREATE TABLE services (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO services VALUES (1, 'Marketing'), (2, 'Finance'), (3, 'Juridique');
+      CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, service_id INTEGER REFERENCES services(id));
+      INSERT INTO employes VALUES (1, 'Sophie', 1), (2, 'Lucas', 2), (3, 'Emma', NULL);`,
+    res: { 0: [['Sophie', 'Marketing'], ['Lucas', 'Finance'], ['Emma', 'NULL']] },
+    ex: [{ cols: [0, 1], sql: `SELECT 'INNER JOIN', COUNT(*) FROM employes e JOIN services s ON s.id = e.service_id
+      UNION ALL SELECT 'LEFT JOIN', COUNT(*) FROM employes e LEFT JOIN services s ON s.id = e.service_id
+      UNION ALL SELECT 'RIGHT JOIN', COUNT(*) FROM employes e RIGHT JOIN services s ON s.id = e.service_id
+      UNION ALL SELECT 'FULL OUTER JOIN', COUNT(*) FROM employes e FULL OUTER JOIN services s ON s.id = e.service_id
+      UNION ALL SELECT 'CROSS JOIN', COUNT(*) FROM employes CROSS JOIN services` }],
+    verif: ({ resultats }) => (resultats[1].values.length === 9 ? null : `CROSS JOIN : ${resultats[1].values.length} lignes`),
+  },
+  'ent-v2-27': {
+    u: 'bibliothèque',
+    avant: `CREATE TABLE livres (id INTEGER PRIMARY KEY, titre TEXT);
+      INSERT INTO livres VALUES (1, 'Dune'), (2, 'Germinal'), (3, 'Le Horla'), (4, 'Nana');
+      CREATE TABLE emprunts (id INTEGER PRIMARY KEY, livre_id INTEGER REFERENCES livres(id), date_emprunt TEXT, date_retour TEXT);
+      INSERT INTO emprunts VALUES (10, 1, '2026-01-05', '2026-01-20'), (11, 1, '2026-02-02', NULL),
+        (12, 2, '2026-01-12', '2026-01-30'), (13, 4, '2026-02-10', NULL);`,
+    res: { 0: [['Le Horla']], 1: [['Le Horla']] },
+    ex: [{ sql: `SELECT l.titre, e.id, CASE WHEN e.id IS NULL THEN 'gardé' ELSE 'écarté' END
+      FROM livres l LEFT JOIN emprunts e ON e.livre_id = l.id ORDER BY l.id, e.id` }],
+  },
+  'ent-v2-28': {
+    u: 'escape game',
+    avant: `CREATE TABLE salles (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO salles VALUES (1, 'Le Manoir'), (2, 'La Crypte');
+      CREATE TABLE parties (id INTEGER PRIMARY KEY, salle_id INTEGER REFERENCES salles(id), duree INTEGER);
+      INSERT INTO parties VALUES (1, 1, 75), (2, 1, 45), (3, 2, 48), (4, 2, 32);`,
+    res: { 0: [['1', '1', '75']], 1: [['1', '1', '75'], ['3', '2', '48']] },
+    ex: [{ sql: `SELECT CASE salle_id WHEN 1 THEN 'Manoir' ELSE 'Crypte' END, duree, (SELECT AVG(duree) FROM parties),
+        (SELECT AVG(p2.duree) FROM parties p2 WHERE p2.salle_id = p.salle_id) FROM parties p ORDER BY id` }],
+  },
+  'ent-v2-29': {
+    u: 'refuge animalier',
+    avant: `CREATE TABLE familles (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO familles VALUES (1, 'Lambert'), (2, 'Diallo'), (3, 'Rossi');
+      CREATE TABLE adoptions (id INTEGER PRIMARY KEY, animal TEXT, famille_id INTEGER REFERENCES familles(id));
+      INSERT INTO adoptions VALUES (1, 'Moka', 1), (2, 'Pixel', 1), (3, 'Filou', 2);`,
+    res: { 0: [['Lambert'], ['Diallo']], 1: [['Lambert'], ['Diallo']] },
+    ex: [{ sql: `SELECT nom, id, CASE WHEN id IN (SELECT famille_id FROM adoptions) THEN 'vrai' ELSE 'faux' END,
+        CASE WHEN EXISTS (SELECT 1 FROM adoptions a WHERE a.famille_id = f.id) THEN 'vrai' ELSE 'faux' END
+      FROM familles f ORDER BY id` }],
+  },
+  'ent-v2-30': {
+    u: 'course à pied',
+    avant: `CREATE TABLE coureurs (id INTEGER PRIMARY KEY, nom TEXT, club TEXT, km INTEGER);
+      INSERT INTO coureurs VALUES (1, 'Nils', 'Lille', 10), (2, 'Ada', 'Lille', 25), (3, 'Rémi', 'Lille', 30),
+        (4, 'Inès', 'Lyon', 42), (5, 'Malo', 'Lyon', 28), (6, 'Zoé', 'Lyon', 8);`,
+    autres: [0],
+    res: { 0: [['Inès', '42']] },
+    ex: [{ sql: `SELECT nom, km, CASE WHEN km > (SELECT MIN(km) FROM coureurs WHERE club = 'Lille') THEN 'vrai' ELSE 'faux' END,
+        CASE WHEN km > (SELECT MAX(km) FROM coureurs WHERE club = 'Lille') THEN 'vrai' ELSE 'faux' END
+      FROM coureurs WHERE club = 'Lyon' ORDER BY id` }],
+  },
+  'ent-v2-31': {
+    u: 'ferme apicole',
+    avant: `CREATE TABLE recoltes (id INTEGER PRIMARY KEY, ruche_id INTEGER, kg INTEGER);
+      INSERT INTO recoltes VALUES (1, 1, 30), (2, 1, 25), (3, 2, 40), (4, 3, 20), (5, 4, 45), (6, 4, 25);`,
+    res: { 0: [['1', '55'], ['4', '70']] },
+    ex: [{ sql: `SELECT ruche_id, SUM(kg), CASE WHEN SUM(kg) > 50 THEN 'gardée' ELSE 'écartée' END FROM recoltes GROUP BY ruche_id ORDER BY ruche_id` }],
+  },
+  'ent-v2-32': {
+    u: 'plateforme de musique',
+    avant: `CREATE TABLE titres (id INTEGER PRIMARY KEY, titre TEXT, genre TEXT);
+      INSERT INTO titres VALUES (1, 'Minuit', 'pop'), (2, 'Orage', 'jazz'), (3, 'Sirocco', 'pop'), (4, 'Brume', 'rap'),
+        (5, 'Écume', 'pop'), (6, 'Givre', 'rock'), (7, 'Lagune', 'jazz'), (8, 'Comète', 'pop');`,
+    res: { 0: [['pop', '4', '50'], ['jazz', '2', '25'], ['rap', '1', '12.5'], ['rock', '1', '12.5']] },
+    ex: [{ instr: 0 }],
+    verif: ({ db }) => {
+      const r = db.exec("SELECT p FROM (SELECT genre, COUNT(*) * 100 / SUM(COUNT(*)) OVER () AS p FROM titres GROUP BY genre) WHERE genre = 'rap'")[0].values[0][0];
+      return r === 12 ? null : `avec 100, le rap pèse ${r}`;
+    },
+  },
+  'ent-v2-33': {
+    u: 'refuge animalier',
+    avant: `CREATE TABLE animaux (id INTEGER PRIMARY KEY, nom TEXT, espece TEXT, age INTEGER);
+      INSERT INTO animaux VALUES (1, 'Moka', 'chat', 3), (2, 'Pixel', 'chat', 5), (3, 'Tigrou', 'chat', 4),
+        (4, 'Rex', 'chien', 8), (5, 'Filou', 'chien', 4), (6, 'Caramel', 'lapin', 2);`,
+    res: { 1: [['chat', '4', '3'], ['chien', '6', '2'], ['lapin', '2', '1']] },
+    ex: [{ sql: `SELECT espece, AVG(age), COUNT(nom) || CASE WHEN COUNT(nom) > 1 THEN ' noms' ELSE ' nom' END FROM animaux GROUP BY espece ORDER BY espece` }],
+  },
+  'ent-v2-34': {
+    u: 'auto-école',
+    avant: `CREATE TABLE eleves (id INTEGER PRIMARY KEY, nom TEXT, telephone TEXT, email TEXT);
+      INSERT INTO eleves VALUES (1, 'Lou', '0612345678', 'lou@mail.fr'), (2, 'Sam', NULL, 'sam@mail.fr'), (3, 'Noé', NULL, NULL);`,
+    res: { 0: [['0612345678', 'lou@mail.fr', '0612345678'], ['NULL', 'sam@mail.fr', 'sam@mail.fr'], ['NULL', 'NULL', 'Aucun contact']] },
+    ex: [{ instr: 0 }],
+  },
+  'ent-v2-35': {
+    u: 'food truck',
+    avant: `CREATE TABLE statistiques (emplacement TEXT, recette INTEGER, nb_tickets INTEGER);
+      INSERT INTO statistiques VALUES ('Marché', 960, 80), ('Gare', 450, 50), ('Port', 0, 0);`,
+    res: { 0: [['Marché', '12'], ['Gare', '9'], ['Port', 'NULL']] },
+    ex: [{ sql: 'SELECT emplacement, recette, nb_tickets, recette / NULLIF(nb_tickets, 0) FROM statistiques ORDER BY rowid' }],
+    verif: ({ db }) => (db.exec('SELECT 450 / 40')[0].values[0][0] === 11 ? null : '450 / 40 ne donne pas 11'),
+  },
+  'ent-v2-36': {
+    u: 'location de vélos',
+    avant: `CREATE TABLE abonnes (id INTEGER PRIMARY KEY, nom TEXT, email TEXT);
+      INSERT INTO abonnes VALUES (1, 'Anna', 'anna@mail.fr'), (2, 'Bilal', 'bilal@mail.fr'), (3, 'Chen', NULL),
+        (4, 'Anna', 'anna@mail.fr'), (5, 'Dario', NULL);`,
+    res: { 0: [['anna@mail.fr', '2']], 1: [['1', 'Anna', 'anna@mail.fr'], ['4', 'Anna', 'anna@mail.fr']] },
+    ex: [{ sql: 'SELECT id, nom, email FROM abonnes ORDER BY id' }],
+    verif: ({ db }) => (db.exec('SELECT COUNT(*) FROM (SELECT email FROM abonnes GROUP BY email HAVING COUNT(*) > 1)')[0].values[0][0] === 2 ? null : 'sans le filtre, les NULL ne forment pas un faux doublon'),
+  },
+  'ent-v2-37': {
+    u: 'théâtre',
+    avant: `CREATE TABLE spectateurs (id INTEGER PRIMARY KEY, nom TEXT, email TEXT);
+      INSERT INTO spectateurs VALUES (1, 'Alix', 'alix@mail.fr'), (2, 'Bo', 'bo@mail.fr'), (3, 'Cléo', NULL),
+        (4, 'Alix', 'alix@mail.fr'), (5, 'Dan', NULL), (6, 'Alix', 'alix@mail.fr');`,
+    ex: [{ avant: true, sql: `SELECT id, email, ROW_NUMBER() OVER (PARTITION BY email ORDER BY id),
+        CASE WHEN ROW_NUMBER() OVER (PARTITION BY email ORDER BY id) = 1 THEN 'gardée' ELSE 'supprimée' END
+      FROM spectateurs WHERE email IS NOT NULL ORDER BY email, id` }],
+    verif: ({ db }) => {
+      const r = db.exec('SELECT id FROM spectateurs ORDER BY id')[0].values.map(v => v[0]).join(',');
+      return r === '1,2,3,5' ? null : `il reste les spectateurs ${r}`;
+    },
+  },
+  'ent-v2-38': {
+    u: 'ferme apicole',
+    avant: `CREATE TABLE recoltes (id INTEGER PRIMARY KEY, ruche_id INTEGER, kg INTEGER);
+      INSERT INTO recoltes VALUES (1, 1, 10), (2, 1, 30), (3, 2, 6), (4, 2, 9), (5, 2, 15);`,
+    res: { 0: [['1', '10', '40', '25'], ['1', '30', '40', '75'], ['2', '6', '30', '20'], ['2', '9', '30', '30'], ['2', '15', '30', '50']] },
+    ex: [{ instr: 0 }],
+  },
+  'ent-v2-39': {
+    u: 'stations météo',
+    avant: `CREATE TABLE releves (id INTEGER PRIMARY KEY, station TEXT, temp REAL);
+      INSERT INTO releves VALUES (1, 'Brest', 10), (2, 'Brest', 16), (3, 'Nice', 18), (4, 'Nice', 20), (5, 'Nice', 25);`,
+    res: { 0: [['Brest', '13'], ['Nice', '21']] },
+    ex: [{ instr: 1 }],
+    verif: ({ db }) => (db.exec('SELECT AVG(AVG(temp)) OVER () FROM releves GROUP BY station')[0].values[0][0] === 17 ? null : 'la moyenne des stations ne vaut pas 17'),
+  },
+  'ent-v2-40': {
+    u: 'jeu vidéo', garde: true,
+    avant: `CREATE TABLE joueurs (id INTEGER PRIMARY KEY, nom TEXT, score INTEGER);
+      INSERT INTO joueurs VALUES (1, 'Nox', 950), (2, 'Kira', 870), (3, 'Zed', 870), (4, 'Lumi', 820), (5, 'Taro', 760);`,
+    ex: [{ instr: 0, rcols: [1, 2, 3, 4] }],
+  },
 };

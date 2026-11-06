@@ -132,7 +132,13 @@ export function verifierQuestion(SQL, q, d) {
     for (const c of d.ex || []) {
       let values;
       if (c.sql) {
-        try { const r = db.exec(c.sql); values = r.length ? r[r.length - 1].values : []; } catch (e) { pbs.push(`la requête qui rejoue le tableau échoue : ${e.message}`); continue; }
+        /* avant : le tableau montre les données d’origine (avant une suppression, une mise à jour…). */
+        const base = c.avant ? new SQL.Database() : db;
+        try {
+          if (c.avant) { base.run('PRAGMA foreign_keys = ON'); if (d.avant) base.exec(d.avant); }
+          const r = base.exec(c.sql); values = r.length ? r[r.length - 1].values : [];
+        } catch (e) { pbs.push(`la requête qui rejoue le tableau échoue : ${e.message}`); continue; }
+        finally { if (c.avant) base.close(); }
       } else {
         const r = resultats[c.instr];
         if (!r) { pbs.push(`le tableau rejoue l’instruction ${c.instr}, sans résultat`); continue; }
@@ -141,7 +147,7 @@ export function verifierQuestion(SQL, q, d) {
       const rows = (q.ex.rows || []).filter(c.lignes || (() => true));
       const cols = c.cols || rows[0].map((_, j) => j);
       const range = l => (c.sql || /ORDER\s+BY/i.test((journal[c.instr] || {}).sql || '') ? l : [...l].sort());
-      const voulu = range(rows.map(r => cols.map(j => r[j])).map(ligne)), eu = range(values.map(ligne));
+      const voulu = range(rows.map(r => cols.map(j => r[j])).map(ligne)), eu = range(values.map(r => (c.rcols ? c.rcols.map(j => r[j]) : r)).map(ligne));
       if (JSON.stringify(voulu) !== JSON.stringify(eu)) pbs.push(`le tableau de l’exemple montre ${JSON.stringify(voulu)}, la base donne ${JSON.stringify(eu)}`);
     }
     /* Un contrôle sur mesure (des colonnes, un plan d’exécution…) : renvoie un problème, ou rien. */
