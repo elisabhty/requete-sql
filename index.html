@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=184">
+<link rel="stylesheet" href="ludique.css?v=185">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
@@ -7817,7 +7817,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   <!-- Détail d'une carte -->
   <div class="viz-back" id="card-back" onclick="closeCard()"></div>
   <div class="viz" id="card-sheet" role="dialog" aria-modal="true" aria-labelledby="card-sheet-title">
-    <div class="viz-head"><div class="grab"></div><b id="card-sheet-title">Carte</b><button type="button" onclick="closeCard()" aria-label="Fermer">✕</button></div>
+    <div class="viz-head"><div class="grab"></div><b id="card-sheet-title">Carte mémo</b><button type="button" onclick="closeCard()" aria-label="Fermer">✕</button></div>
     <div class="viz-body" id="card-body"></div>
   </div>
 
@@ -19648,125 +19648,280 @@ const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
 /* ============================================================
    3bis. LES CARTES
    ============================================================ */
+/* Les cartes mémo (Elisa, 6 novembre, direction A « Scène à collectionner ») : pour chaque leçon qui en donne une, le mot-clé (k),
+   l’idée (t), les trois points à retenir, la syntaxe (s, une requête complète qu’« Essayer » envoie dans la Console) et le piège que la
+   leçon montre. dialecte : une syntaxe que la base de l’appli n’exécute pas (PostgreSQL). */
 const CARTES={
- 0:{k:"Modèle relationnel",t:"Tables, clés et lecture avec SELECT",s:"SELECT prenom, nom FROM clients;",
-    m:"Une base relationnelle, gérée par un <b>SGBD</b> comme PostgreSQL ou MySQL, range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Chaque ligne a une clé primaire unique et jamais vide (<code>clients.id</code>, déclarée avec <code>PRIMARY KEY</code>) ; une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code> (<code>FOREIGN KEY … REFERENCES</code>). Formellement : relation, attribut, tuple. <code>SELECT</code> lit une table sans la modifier : il dresse la liste des <b>colonnes</b>, séparées par une virgule ; <code>*</code> les prend toutes. Toutes les lignes sortent : ce n’est pas un filtre."},
- 4:{k:"WHERE",t:"Filtrer les lignes",s:"WHERE ville = 'Paris'",
-    m:"<code>WHERE</code> choisit les <b>lignes</b> qui restent dans le résultat. Texte entre guillemets simples : <code>'Paris'</code>. Rien n’est effacé de la table."},
- 5:{k:"> < >= <=",t:"Seuils numériques",s:"WHERE prix > 25",
-    m:"Pas de guillemets sur les nombres. <code>&gt;</code> exclut la borne ; <code>&gt;=</code> l’inclut."},
- 6:{k:"AND · OR",t:"Combiner des conditions",s:"WHERE (ville = 'Paris' OR ville = 'Lyon')\n  AND age > 30",
-    m:"<code>AND</code> : toutes les conditions doivent être vraies. <code>OR</code> : une seule suffit. <code>AND</code> passe avant <code>OR</code> : regroupe avec des parenthèses."},
-  7:{k:"NULL",t:"La valeur absente",s:"WHERE email IS NULL",
-    m:"<code>NULL</code> = valeur absente, pas 0 ni <code>''</code>. Jamais <code>=</code> : <code>IS NULL</code> / <code>IS NOT NULL</code>."},
- 8:{k:"LIKE",t:"Chercher un motif",s:"WHERE prenom LIKE 'L%'",
-    m:"<code>%</code> = n’importe quelle suite. <code>'L%'</code> commence par L · <code>'%mot%'</code> contient. Sans <code>%</code>, <code>LIKE</code> vaut presque <code>=</code>."},
- 9:{k:"IN",t:"Filtrer avec une liste",s:"WHERE ville IN ('Paris','Lyon')",
-    m:"<code>IN</code> = la valeur est <b>dans la liste</b>. Même résultat que des <code>OR</code> sur la même colonne, plus lisible. Pas pour des colonnes différentes."},
- 10:{k:"BETWEEN",t:"Filtrer un intervalle",s:"WHERE prix BETWEEN 15 AND 30",
-    m:"<code>BETWEEN 15 AND 30</code> = <code>&gt;= 15 AND &lt;= 30</code>. Les deux bornes sont incluses. Plus lisible, pas plus rapide."},
- 11:{k:"ORDER BY",t:"Ordonner le résultat",s:"ORDER BY categorie, prix DESC",
-    m:"Range les lignes, n’en retire aucune. <code>ASC</code> (croissant) est le défaut. <code>DESC</code> inverse. Avec plusieurs colonnes, la suivante départage les égalités. Sans lui, aucun ordre n’est garanti."},
- 12:{k:"LIMIT · OFFSET",t:"Limiter et paginer",s:"ORDER BY prix DESC, id\nLIMIT 3 OFFSET 3",
-    m:"<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières ; <code>OFFSET</code> saute celles déjà vues. Page n : décalage = (n − 1) × taille. Termine le tri par une clé unique pour stabiliser les pages."},
- 13:{k:"DISTINCT",t:"Valeurs uniques",s:"SELECT DISTINCT ville FROM clients;",
-    m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
- 51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"LOWER(prenom) || '-' || LOWER(nom)",
-    m:"Demande-toi ce que tu veux faire au texte. Forme → <code>UPPER</code> / <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Ces fonctions changent l’affichage, pas la table."},
-  52:{k:"Fonctions numériques",t:"Calculer, arrondir, manipuler",s:"ROUND(AVG(prix))",
-    m:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. Choisis d’abord le calcul : arrondir, valeur absolue, reste, moyenne… Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='nombres'>Selon le SGBD</button> de la Bibliothèque."},
- 53:{k:"Dates",t:"Obtenir, extraire, calculer",s:"STRFTIME('%d/%m/%Y', date_commande)",
-    m:"Demande-toi ce que tu veux faire avec la date : obtenir, extraire, formater, décaler, mesurer, filtrer. <code>STRFTIME()</code> change l’affichage d’une date. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='dates'>Selon le SGBD</button> de la Bibliothèque."},
- 54:{k:"CAST",t:"Passer d’un type à un autre",s:"CAST(expression AS type)",
-    m:"<code>CAST(expression AS type)</code> convertit explicitement une valeur. Convertir change le type ; formater change la présentation. Une conversion peut échouer. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='conversion'>Selon le SGBD</button> de la Bibliothèque."},
- 14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
-    m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les <code>NULL</code>. <code>COUNT(DISTINCT colonne)</code> compte les valeurs différentes."},
- 85:{k:"SUM · AVG · MIN · MAX",t:"Somme, moyenne, minimum et maximum",s:"SELECT SUM(stock),\n  ROUND(AVG(prix), 2),\n  MIN(prix), MAX(prix)\nFROM produits;",
-    m:"<code>SUM</code> additionne, <code>AVG</code> fait la moyenne, <code>MIN</code> et <code>MAX</code> donnent la plus petite et la plus grande valeur. Le résultat tient en une ligne ; les <code>NULL</code> sont ignorés."},
+ 0:{k:"Base relationnelle",t:"Tables, clés et SELECT",s:"SELECT prenom, nom, email\nFROM clients;",
+    points:["Une table range un seul sujet\u00a0: une colonne par caractéristique, une ligne par élément.",
+      "La <b>clé primaire</b> identifie une ligne\u00a0; une <b>clé étrangère</b> renvoie à celle d’une autre table.",
+      "<code>SELECT</code> liste les colonnes à afficher, séparées par une virgule\u00a0; <code>*</code> les prend toutes."],
+    piege:"Sans virgule, <code>SELECT prenom email</code> affiche les prénoms sous le titre «\u00a0email\u00a0»."},
+ 13:{k:"DISTINCT",t:"Valeurs uniques",s:"SELECT DISTINCT ville\nFROM clients;",
+    points:["Il s’écrit juste après <code>SELECT</code> et vaut pour toutes les colonnes qui suivent.",
+      "Avec plusieurs colonnes, une ligne n’est écartée que si toute sa <b>combinaison</b> se répète.",
+      "Seul le résultat change\u00a0: la table\u00a0clients garde ses 10\u00a0clients."],
+    piege:"Entre deux colonnes, comme dans <code>SELECT ville, DISTINCT prenom</code>, il provoque une erreur."},
+ 4:{k:"WHERE",t:"Filtrer les lignes",s:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris';",
+    points:["Il se place après <code>FROM</code>, suivi d’une condition vérifiée sur chaque ligne.",
+      "Seules les lignes où la condition est <b>vraie</b> sont gardées\u00a0; la table ne change pas.",
+      "Un texte s’écrit entre guillemets simples, tel qu’il figure dans la table\u00a0: <code>'Paris'</code>."],
+    piege:"Sans guillemets, <code>Paris</code> est lu comme un nom de colonne\u00a0: la requête provoque une erreur."},
+ 5:{k:"=\u00a0!= > < >= <=",t:"Comparer des valeurs",s:"SELECT nom, stock\nFROM produits\nWHERE stock <= 60;",
+    points:["<code>&lt;</code> et <code>&gt;</code> <b>excluent</b> la limite\u00a0; <code>&lt;=</code> et <code>&gt;=</code> l’incluent.",
+      "<code>!=</code> signifie «\u00a0différent de\u00a0»\u00a0: <code>categorie != 'Accessoire'</code> écarte les accessoires.",
+      "Un nombre s’écrit tel quel\u00a0; un texte s’écrit entre guillemets simples."],
+    piege:"«\u00a060\u00a0unités ou moins\u00a0» s’écrit <code>&lt;= 60</code>\u00a0: avec <code>&lt; 60</code>, un stock de 60\u00a0est écarté."},
+ 6:{k:"AND\u00a0· OR",t:"Combiner des conditions",s:"SELECT prenom, ville, age\nFROM clients\nWHERE (ville = 'Paris'\n  OR ville = 'Lyon')\n  AND age > 30;",
+    points:["Avec <code>AND</code>, une ligne est gardée seulement si toutes les conditions sont vraies.",
+      "Avec <code>OR</code>, une seule condition vraie suffit pour garder la ligne.",
+      "<code>AND</code> est calculé avant <code>OR</code>\u00a0: des parenthèses imposent l’ordre voulu."],
+    piege:"<code>ville = 'Paris' AND ville = 'Lyon'</code> ne garde aucune ligne\u00a0: il faut <code>OR</code>."},
+ 7:{k:"NULL",t:"La valeur absente",s:"SELECT prenom, telephone\nFROM clients\nWHERE email IS NULL;",
+    points:["<code>NULL</code> n’est ni zéro ni un texte vide\u00a0: aucune valeur n’est enregistrée.",
+      "<code>IS NULL</code> garde les lignes sans valeur\u00a0; <code>IS NOT NULL</code>, celles qui en ont une.",
+      "Comparer à <code>NULL</code> donne un résultat <b>inconnu</b>, jamais vrai\u00a0: la ligne est écartée."],
+    piege:"<code>WHERE email = NULL</code> ne renvoie aucune ligne, sans erreur\u00a0: écris <code>IS NULL</code>."},
+ 8:{k:"LIKE",t:"Chercher un motif",s:"SELECT prenom, nom\nFROM clients\nWHERE prenom LIKE 'L%';",
+    points:["<code>%</code> remplace n’importe quelle suite de caractères, même vide.",
+      "<code>'L%'</code> commence par L, <code>'%d'</code> finit par d, <code>'%ie%'</code> contient «\u00a0ie\u00a0».",
+      "<code>_</code> remplace exactement un caractère\u00a0: <code>'_a%'</code> veut un a en deuxième lettre."],
+    piege:"Sans <code>%</code>, <code>LIKE 'L'</code> ne garde que le texte exact «\u00a0L\u00a0»\u00a0: aucune ligne."},
+ 9:{k:"IN",t:"Filtrer avec une liste",s:"SELECT prenom, nom, adresse\nFROM clients\nWHERE id IN (2, 5, 9);",
+    points:["Il remplace plusieurs <code>OR</code> sur la même colonne, en plus court et plus lisible.",
+      "Les valeurs s’écrivent entre parenthèses, séparées par des virgules.",
+      "Une condition sur une autre colonne s’ajoute avec <code>AND</code> ou <code>OR</code>."],
+    piege:"Sans guillemets, <code>IN (Paris, Nantes)</code> lit deux noms de colonnes\u00a0: la requête provoque une erreur."},
+ 10:{k:"BETWEEN",t:"Filtrer un intervalle",s:"SELECT nom, prix\nFROM produits\nWHERE prix BETWEEN 15 AND 30;",
+    points:["Les deux limites sont <b>incluses</b>\u00a0: c’est l’équivalent de <code>&gt;=</code> et <code>&lt;=</code>.",
+      "Il sert aussi pour des dates, entre guillemets simples\u00a0: <code>'2026-07-14'</code>.",
+      "La colonne n’est écrite qu’une fois, au lieu de deux comparaisons reliées par <code>AND</code>."],
+    piege:"La limite basse vient en premier\u00a0: <code>BETWEEN 30 AND 15</code> ne renvoie aucune ligne."},
+ 11:{k:"ORDER BY",t:"Ordonner le résultat",s:"SELECT nom, stock\nFROM produits\nORDER BY stock DESC;",
+    points:["Il se place à la fin de la requête et ne retire aucune ligne.",
+      "<code>ASC</code>, le sens par défaut, va du plus petit au plus grand\u00a0; <code>DESC</code> inverse.",
+      "Une deuxième colonne départage les égalités\u00a0: <code>ORDER BY categorie, prix</code>."],
+    piege:"<code>DESC</code> ne vaut que pour la colonne qui le précède\u00a0: <code>categorie, prix DESC</code> garde les catégories de A à Z."},
+ 12:{k:"LIMIT\u00a0· OFFSET",t:"Limiter et paginer",s:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id\nLIMIT 3 OFFSET 3;",
+    points:["<code>LIMIT 3</code> garde les 3\u00a0premières lignes du classement\u00a0; il s’écrit en dernier.",
+      "<code>OFFSET</code> saute des lignes\u00a0: pour la page n, il vaut (n\u00a0−\u00a01)\u00a0×\u00a0la taille d’une page.",
+      "Un tri qui finit par une colonne unique, comme <code>id</code>, évite les doublons entre les pages."],
+    piege:"Sans <code>ORDER BY</code>, <code>LIMIT</code> garde des lignes dans un ordre non garanti."},
+ 51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"SELECT UPPER(nom) || ' '\n  || prenom AS etiquette\nFROM clients;",
+    points:["<code>UPPER(nom)</code> affiche MARTIN, mais la table\u00a0clients garde Martin.",
+      "<code>TRIM</code> retire les espaces autour, <code>SUBSTR</code> découpe, <code>INSTR</code> donne une position.",
+      "<code>||</code> assemble des textes, fonctions comprises\u00a0: <code>UPPER(nom) || ' ' || prenom</code>."],
+    piege:"Avec <code>+</code> à la place de <code>||</code>, chaque texte compte pour 0\u00a0: la requête renvoie 0."},
+ 52:{k:"Fonctions numériques",t:"Calculer, arrondir, manipuler",s:"SELECT nom, prix,\n  FLOOR(prix) AS points\nFROM produits;",
+    points:["<code>FLOOR</code> arrondit toujours vers le bas, <code>CEIL</code> toujours vers le haut.",
+      "<code>+</code>, <code>-</code>, <code>*</code> et <code>/</code> calculent\u00a0; <code>%</code> donne le reste\u00a0: <code>80 % 6</code> vaut 2.",
+      "<code>FLOOR(prix) * 2</code> calcule dans le résultat\u00a0; la table\u00a0produits garde ses prix."],
+    piege:"<code>ROUND</code> arrondit au plus proche\u00a0: 29,90 € donne 30\u00a0points, un de trop.",sgbd:"nombres"},
+ 53:{k:"DATE\u00a0· STRFTIME",t:"Calculer et afficher une date",s:"SELECT date_commande,\n  DATE(date_commande,\n    '+7 days') AS suivi\nFROM commandes;",
+    points:["<code>DATE</code> ajoute une durée écrite entre guillemets\u00a0: <code>'+7 days'</code>, <code>'+1 month'</code>.",
+      "Le calendrier est respecté\u00a0: le 28\u00a0juillet plus 7\u00a0jours donne le 4\u00a0août.",
+      "<code>STRFTIME('%d/%m/%Y', date_commande)</code> affiche <span class=\"mc-nw\">2026-07-02</span>\u00a0en 02/07/2026."],
+    piege:"<code>date_commande + 7</code> donne 2033\u00a0: la date est lue comme le nombre 2026.",sgbd:"dates"},
+ 54:{k:"CAST",t:"D’un type à un autre",s:"SELECT CAST(\n  SUBSTR(numero_commande, 10)\n  AS INTEGER) AS numero\nFROM commandes;",
+    points:["On écrit la valeur, puis le type après <code>AS</code>\u00a0: <code>CAST('1002481' AS INTEGER)</code>.",
+      "<code>typeof()</code> donne le type d’une valeur\u00a0: integer, real ou text.",
+      "Vers <code>INTEGER</code>, <code>29.9</code> devient <code>29</code>\u00a0: les décimales sont supprimées, sans arrondi."],
+    piege:"Dans la base de l’app, <code>CAST('CMD-2026-1002481' AS INTEGER)</code> donne 0, sans erreur.",sgbd:"conversion"},
+ 21:{k:"CASE",t:"Une valeur selon des conditions",s:"SELECT nom, stock,\n  CASE\n    WHEN stock < 50\n      THEN 'À commander'\n    WHEN stock < 100\n      THEN 'À surveiller'\n    ELSE 'OK'\n  END AS alerte\nFROM produits;",
+    points:["<code>WHEN</code> donne la condition, <code>THEN</code> la valeur, <code>ELSE</code> les autres cas\u00a0; <code>END</code> ferme le <code>CASE</code>.",
+      "Les conditions sont testées de haut en bas\u00a0: la première condition vraie l’emporte.",
+      "Sans <code>ELSE</code>, une ligne qui ne remplit aucune condition reçoit <code>NULL</code>."],
+    piege:"Mets la condition la plus stricte d’abord\u00a0: <code>stock &lt; 50</code> avant <code>stock &lt; 100</code>."},
+ 23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"SELECT prenom,\n  COALESCE(email,\n    'Non renseigné') AS email\nFROM clients;",
+    points:["Les valeurs sont lues dans l’ordre\u00a0: la première qui n’est pas <code>NULL</code> est renvoyée.",
+      "Plusieurs valeurs de secours se suivent\u00a0: <code>COALESCE(email, telephone, 'Non renseigné')</code>.",
+      "Seul l’affichage change\u00a0: dans la table\u00a0clients, l’e-mail d’Hugo\u00a0Laurent reste <code>NULL</code>."],
+    piege:"Un texte vide <code>''</code> n’est pas <code>NULL</code>\u00a0: <code>COALESCE</code> le garde tel quel."},
+ 14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) AS produits,\n  COUNT(DISTINCT categorie)\n  AS categories\nFROM produits;",
+    points:["<code>COUNT(*)</code> donne 10\u00a0clients, mais <code>COUNT(email)</code> 8\u00a0: les <code>NULL</code> sont ignorés.",
+      "<code>COUNT(DISTINCT categorie)</code> compte chaque catégorie une seule fois\u00a0: 5\u00a0et non 8.",
+      "Avec <code>WHERE</code>, les lignes sont filtrées d’abord, puis comptées\u00a0: 2\u00a0produits à commander."],
+    piege:"<code>DISTINCT COUNT(categorie)</code> donne encore 8\u00a0: <code>DISTINCT</code> va dans les parenthèses."},
+ 85:{k:"SUM\u00a0· AVG\u00a0· MIN\u00a0· MAX",t:"Résumer une colonne",s:"SELECT SUM(stock),\n  ROUND(AVG(prix), 2),\n  MIN(prix), MAX(prix)\nFROM produits;",
+    points:["<code>SUM</code> additionne les valeurs, <code>AVG</code> en fait la moyenne, à arrondir avec <code>ROUND</code>.",
+      "<code>MIN</code> et <code>MAX</code> donnent la plus petite et la plus grande valeur de la colonne.",
+      "Le résultat tient en une seule ligne\u00a0; les <code>NULL</code> sont ignorés."],
+    piege:"<code>MAX(prix)</code> donne 39,90 €, et non le nom du produit le plus cher."},
  16:{k:"GROUP BY",t:"Un calcul par groupe",s:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
-    m:"<code>GROUP BY</code> rassemble les lignes qui partagent la même valeur, puis permet de calculer sur chaque groupe."},
- 87:{k:"GROUP BY a, b",t:"Un groupe par combinaison",s:"SELECT mois, statut, COUNT(*)\nFROM commandes\nGROUP BY mois, statut;",
-    m:"Avec plusieurs colonnes dans le <code>GROUP BY</code>, chaque <b>combinaison</b> de valeurs forme un groupe. Une combinaison absente de la table ne donne aucune ligne (pas de ligne à 0). Mets chaque colonne du <code>GROUP BY</code> dans le <code>SELECT</code>."},
- 17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
-    run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
-    m:"<code>WHERE</code> choisit les lignes avant la création des groupes. <code>HAVING</code> choisit les groupes après leur création par <code>GROUP BY</code>."},
- 88:{k:"Ordre d’exécution",t:"FROM d’abord, SELECT presque en dernier",s:"FROM\nWHERE\nGROUP BY\nHAVING\nSELECT\nORDER BY\nLIMIT",
-    m:"Une requête n’est pas exécutée dans l’ordre où on l’écrit : <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, puis <code>SELECT</code>, <code>ORDER BY</code> et <code>LIMIT</code>. Un comptage se filtre donc avec <code>HAVING</code>, et un alias du <code>SELECT</code> s’utilise dans <code>ORDER BY</code>, pas dans <code>WHERE</code>."},
- 76:{k:"GROUP_CONCAT",t:"Agréger du texte",s:"GROUP_CONCAT(nom, ', ')",
-    m:"<code>GROUP_CONCAT</code> assemble les textes non nuls d’un groupe. Le séparateur est le second argument. Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='agregats'>Selon le SGBD</button> de la Bibliothèque."},
- 18:{k:"INNER JOIN",t:"L’enquête de satisfaction",s:"FROM commandes\nINNER JOIN clients\nON commandes.client_id = clients.id",
-    m:"Une jointure réunit des informations de plusieurs tables. <code>INNER JOIN</code> ne garde que les correspondances. <code>ON</code> dit quelles lignes vont ensemble ; <code>WHERE</code> filtre le résultat."},
- 19:{k:"3 tables",t:"Relier plusieurs tables",s:"FROM clients\nJOIN commandes ON …\nJOIN produits ON …",
-    m:"Deux JOIN pour 3 tables. La table <code>commandes</code> est le pont. Suis clé primaire ↔ clé étrangère. <code>AS</code> si deux colonnes <code>nom</code>."},
- 20:{k:"LEFT JOIN",t:"Garder toute la gauche",s:"FROM clients\nLEFT JOIN fidelite ON clients.id = fidelite.client_id",
-    m:"Conserve <b>toutes</b> les lignes de la table de gauche. Sans match à droite → <code>NULL</code>. L’ordre après <code>FROM</code> compte : toutes les lignes de gauche sont conservées."},
- 43:{k:"ON vs WHERE",t:"Filtrer avant ou après",s:"LEFT JOIN … ON … AND quantite > 2",
-    m:"<code>ON</code> filtre les commandes <b>avant</b> de les rattacher : le client reste, avec <code>NULL</code>. <code>WHERE</code> filtre <b>après</b> : <code>NULL &gt; 2</code> n’est pas vrai, le client disparaît."},
- 38:{k:"RIGHT JOIN",t:"Garder toute la droite",s:"FROM clients\nRIGHT JOIN commandes ON clients.id = commandes.client_id",
-    m:"Conserve <b>toutes</b> les lignes de la table de droite. Sans match à gauche → <code>NULL</code>. L’ordre après <code>FROM</code> compte : toutes les lignes de droite sont conservées."},
- 39:{k:"FULL OUTER",t:"Garder les deux côtés",s:"FROM clients\nFULL OUTER JOIN commandes ON clients.id = commandes.client_id",
-    m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et la commande n°16 restent."},
- 44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
-    m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Toute la droite → <code>RIGHT JOIN</code>, le miroir du <code>LEFT JOIN</code>."},
- 21:{k:"CASE",t:"Afficher une valeur selon une condition",
-    s:"-- CASE simple\nCASE expression\n    WHEN valeur THEN resultat\n    ELSE resultat_defaut\nEND\n\n-- CASE recherché\nCASE\n    WHEN condition THEN resultat\n    ELSE resultat_defaut\nEND",
-    ss:[
-      {lab:"CASE simple",s:"CASE expression\n    WHEN valeur THEN resultat\n    ELSE resultat_defaut\nEND"},
-      {lab:"CASE recherché",s:"CASE\n    WHEN condition THEN resultat\n    ELSE resultat_defaut\nEND"}
-    ],
-    run:"SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-    m:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : une valeur comparée à plusieurs valeurs. <b>CASE recherché</b> : plusieurs conditions à tester.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>."},
-
- 23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
-    m:"Renvoie la première valeur non nulle. Habillage d’affichage uniquement. Utile en calcul : toute opération avec NULL donne NULL."},
-
- 45:{k:"IN + sous-requête",t:"Filtrer avec une liste",s:"WHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n)",
-    m:"La sous-requête fabrique une <b>liste</b>. <code>IN</code> cherche ensuite si <code>clients.id</code> y figure. Une seule colonne dans la sous-requête. Pas <code>=</code> : plusieurs valeurs sont possibles."},
- 47:{k:"Sous-requête SELECT",t:"Une valeur par ligne",s:"SELECT nom, (SELECT COUNT(*)\n  FROM commandes\n  WHERE produit_id = produits.id)\nFROM produits;",
-    m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>produits.id</code>. Sans ce lien, chaque ligne affiche le même total."},
- 48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT prix * quantite AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS commandes_montants",
-    m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : donne-lui toujours un alias."},
- 92:{k:"AS SELECT · INTO",t:"Enregistrer un résultat",s:"CREATE TABLE invites AS\nSELECT prenom, nom, email\nFROM clients\nWHERE ville = 'Paris';",
-    m:"<code>CREATE TABLE … AS SELECT</code> crée une table avec le résultat d’une requête. <code>INSERT INTO table SELECT …</code> ajoute les lignes d’un résultat dans une table existante : mêmes colonnes, dans le même ordre. La table obtenue est une copie : elle ne suit pas les changements de la table d’origine."},
- 55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"WHERE EXISTS (\n  SELECT 1 FROM commandes\n  WHERE client_id = clients.id\n)",
-    m:"Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe. Vérifie toujours que la sous-requête est bien reliée à la ligne en cours."},
- 86:{k:"ANY · ALL",t:"Comparer à toute une liste",s:"WHERE prix > ALL (\n  SELECT prix FROM produits\n  WHERE categorie = 'Bien-être'\n)",
-    m:"<code>ALL</code> : la comparaison doit être vraie pour <b>toutes</b> les valeurs de la sous-requête ; <code>ANY</code> : pour <b>au moins une</b>. Autre écriture : <code>&gt; ALL</code> revient à <code>&gt; (SELECT MAX(…))</code>, <code>&gt; ANY</code> à <code>&gt; (SELECT MIN(…))</code>, et <code>= ANY</code> à <code>IN</code>."},
- 56:{k:"Normalisation",t:"Répartir les données",s:"ateliers · coachs · inscriptions",
-    m:"Chaque information est écrite <b>une seule fois</b>, dans la table de ce qu’elle décrit : l’atelier, le coach ou le client. La date d’inscription décrit un <b>lien</b> : elle va dans la table <code>inscriptions</code>. Les trois <b>formes normales</b> : une valeur par cellule (1FN), chaque colonne dépend de toute la clé (2FN), et de rien d’autre que la clé (3FN)."},
- 57:{k:"INDEX · EXPLAIN",t:"Retrouver plus vite, et vérifier",s:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT * FROM clients\nWHERE ville = 'Paris';",
-    m:"Un index est un chemin d’accès supplémentaire. Il n’ajoute pas de colonne. Utile sur les colonnes souvent cherchées ou reliées — pas partout, car il occupe de l’espace et doit être maintenu. <code>EXPLAIN QUERY PLAN</code> montre la méthode choisie : <code>SCAN</code> lit toute la table, <code>SEARCH … USING INDEX</code> passe par l’index. On observe d’abord, on optimise, puis on relance le plan."},
- 59:{k:"WITH (CTE)",t:"Créer et réutiliser un résultat intermédiaire",s:"WITH totaux AS (\n  SELECT client_id, COUNT(*) AS nb_commandes\n  FROM commandes\n  GROUP BY client_id\n)\nSELECT * FROM totaux;",
-    m:"<code>WITH</code> prépare, <code>AS</code> nomme, le <code>SELECT</code> final utilise. Une CTE n’est pas une table : elle n’existe que dans l’instruction."},
- 60:{k:"OVER()",t:"Calculer sans regrouper",s:"AVG(prix) OVER (\n  PARTITION BY categorie\n)",
-    m:"<code>GROUP BY</code> → une ligne par groupe. <code>OVER()</code> → chaque ligne reste, avec le calcul à côté. <code>PARTITION BY</code> fait le calcul groupe par groupe."},
- 77:{k:"WITH RECURSIVE (CTE RECURSIVE)",t:"Créer une suite automatiquement",s:"WITH RECURSIVE n(x) AS (\n  SELECT 1\n  UNION ALL\n  SELECT x + 1 FROM n WHERE x < 10\n)",
-   m:"Une CTE récursive combine une ancre et une partie qui relit la CTE. La condition d’arrêt est obligatoire pour borner la répétition."},
- 80:{k:"INTERSECT / EXCEPT",t:"Comparer deux résultats",s:"SELECT nom FROM liste_1\nEXCEPT\nSELECT nom FROM liste_2;",
-   m:"<code>INTERSECT</code> garde les lignes présentes dans les deux résultats, <code>EXCEPT</code> garde celles du premier qui ne sont pas dans le second. Mêmes règles que <code>UNION</code> : même nombre de colonnes, doublons écartés."},
- 74:{k:"RANK / DENSE_RANK",t:"Classer les lignes",s:"RANK() OVER (\n  ORDER BY total DESC\n)",
-   m:"<code>ROW_NUMBER</code> départage toujours. <code>RANK</code> : ex æquo puis saut (3, 3, 3, 6). <code>DENSE_RANK</code> : ex æquo sans saut (3, 3, 3, 4)."},
- 78:{k:"LAG / LEAD",t:"Lire la ligne d’avant ou d’après",s:"LAG(date_commande) OVER (\n  PARTITION BY client_id\n  ORDER BY date_commande\n)",
-   m:"<code>LAG</code> lit la ligne précédente, <code>LEAD</code> la suivante. <code>PARTITION BY</code> sépare les groupes ; au bord de la fenêtre, le résultat vaut <code>NULL</code>."},
- 79:{k:"Cadres de fenêtre",t:"Cumuls et moyennes mobiles",s:"SUM(montant) OVER (\n  ORDER BY date_commande\n  ROWS BETWEEN UNBOUNDED PRECEDING\n  AND CURRENT ROW\n)",
-   m:"Le cadre délimite les lignes utilisées pour chaque ligne : <code>UNBOUNDED PRECEDING … CURRENT ROW</code> → cumul ; <code>2 PRECEDING</code> → moyenne mobile. <code>NTILE(n)</code> forme n groupes."},
-
- 89:{k:"FIRST_VALUE · NTILE",t:"Première valeur, groupes égaux",s:"FIRST_VALUE(nom) OVER (\n  PARTITION BY categorie\n  ORDER BY prix DESC\n)",
-    m:"<code>FIRST_VALUE</code> et <code>LAST_VALUE</code> renvoient la première et la dernière valeur de la fenêtre. Avec <code>ORDER BY</code>, le cadre s’arrête à la ligne actuelle : pour <code>LAST_VALUE</code>, ajoute <code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>. <code>NTILE(n)</code> répartit les lignes triées en n groupes presque égaux."},
- 26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (prenom, ville)\nVALUES ('Théo', 'Lille');",
-    m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
- 27:{k:"UPDATE",t:"Modifier des lignes",s:"UPDATE clients\nSET email = '…'\nWHERE id = 6;",
-    m:"<b>Sans WHERE, toute la table est écrasée</b>, sans avertissement. Réflexe : un <code>SELECT</code> avec le même WHERE d’abord."},
+    points:["Les lignes qui ont la même valeur forment un groupe\u00a0: 10\u00a0clients, 6\u00a0villes, 6\u00a0groupes.",
+      "Chaque groupe donne une ligne du résultat, avec <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code> ou <code>MAX</code>.",
+      "Le <code>SELECT</code> n’affiche que les colonnes du <code>GROUP BY</code> et des calculs."],
+    piege:"Avec le prénom en plus, Paris n’affiche qu’un prénom sur 4\u00a0; la plupart des SGBD refusent la requête."},
+ 87:{k:"GROUP BY a, b",t:"Un groupe par combinaison",s:"SELECT STRFTIME('%m',\n  date_commande) AS mois,\n  statut, COUNT(*)\nFROM commandes\nGROUP BY mois, statut;",
+    points:["Deux lignes vont dans le même groupe si elles ont le même mois <b>et</b> le même statut.",
+      "Une combinaison absente de la table ne forme aucun groupe\u00a0: aucune ligne à 0\u00a0n’apparaît.",
+      "Pour regrouper par mois, on l’extrait de la date\u00a0: <code>STRFTIME('%m', date_commande)</code>."],
+    piege:"Sans le statut dans le <code>SELECT</code>, deux lignes «\u00a007\u00a0» s’affichent\u00a0: impossible de les distinguer."},
+ 17:{k:"HAVING",t:"Filtrer les groupes",s:"SELECT ville, COUNT(*)\n  AS nb_clients\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;",
+    points:["Il se place après <code>GROUP BY</code>\u00a0: <code>HAVING COUNT(*) &gt;= 2</code> écarte les villes d’un seul client.",
+      "<code>WHERE</code> écarte d’abord des lignes, puis <code>HAVING</code> écarte des groupes.",
+      "Un <code>WHERE</code> change les groupes\u00a0: sans les moins de 30\u00a0ans, Lyon n’a plus qu’un client."],
+    piege:"<code>WHERE COUNT(*) &gt;= 2</code> provoque une erreur\u00a0: les groupes ne sont pas encore formés."},
+ 88:{k:"Ordre d’exécution",t:"FROM d’abord, SELECT après",s:"SELECT produit_id,\n  COUNT(*) AS nb_envois\nFROM commandes\nWHERE statut = 'expédiée'\nGROUP BY produit_id\nHAVING COUNT(*) >= 2\nORDER BY nb_envois DESC;",
+    points:["L’exécution suit <code>FROM</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>SELECT</code>, <code>ORDER BY</code>, <code>LIMIT</code>.",
+      "Un comptage se teste dans <code>HAVING</code>\u00a0: au moment du <code>WHERE</code>, aucun groupe n’existe.",
+      "Un alias du <code>SELECT</code> s’utilise dans <code>ORDER BY</code>, exécuté après lui."],
+    piege:"Un alias dans <code>WHERE</code> est refusé par la plupart des SGBD\u00a0: il n’existe pas encore."},
+ 76:{k:"GROUP_CONCAT",t:"Une liste par groupe",s:"SELECT statut,\n  GROUP_CONCAT(id, ', ')\n  AS commandes\nFROM commandes\nGROUP BY statut;",
+    points:["Le séparateur suit la colonne\u00a0; par défaut, c’est une virgule, sans espace.",
+      "Les valeurs <code>NULL</code> sont ignorées\u00a0: ni texte, ni séparateur en trop.",
+      "Pour trier une liste, <code>ORDER BY</code> se place dans la fonction, après le séparateur."],
+    piege:"Un <code>ORDER BY</code> en fin de requête trie les lignes, pas les valeurs d’une cellule.",sgbd:"agregats"},
+ 18:{k:"INNER JOIN",t:"Garder les correspondances",s:"SELECT commandes.id,\n  prenom, nom, ville\nFROM commandes\nINNER JOIN clients\n  ON commandes.client_id =\n     clients.id;",
+    points:["Avec <code>ON commandes.client_id = clients.id</code>, chaque commande est associée à son client.",
+      "Chaque paire associée donne une ligne\u00a0; une commande sans client est écartée du résultat.",
+      "<code>WHERE</code> filtre ensuite le résultat de la jointure, comme les commandes en préparation."],
+    piege:"Les deux tables ont une colonne <code>id</code>\u00a0: écris <code>commandes.id</code>, sinon elle est ambiguë."},
+ 20:{k:"LEFT JOIN",t:"Garder toute la gauche",s:"SELECT prenom, nom, points\nFROM clients\nLEFT JOIN fidelite\n  ON clients.id =\n     fidelite.client_id;",
+    points:["La table de gauche est celle écrite après <code>FROM</code>\u00a0: ses 10\u00a0clients donnent 10\u00a0lignes.",
+      "Sans correspondance, les colonnes de la table de droite valent <code>NULL</code>.",
+      "<code>WHERE fidelite.id IS NULL</code> isole les clients qui n’ont pas de carte de fidélité."],
+    piege:"Avec <code>FROM fidelite LEFT JOIN clients</code>, les clients sans carte disparaissent du résultat."},
+ 38:{k:"RIGHT JOIN",t:"Garder toute la droite",s:"SELECT commandes.id, prenom\nFROM clients\nRIGHT JOIN commandes\n  ON clients.id =\n     commandes.client_id;",
+    points:["La table de droite est celle écrite après <code>RIGHT JOIN</code>\u00a0: ses 16\u00a0commandes restent.",
+      "Sans correspondance, les colonnes de la table de gauche valent <code>NULL</code>.",
+      "<code>WHERE clients.id IS NULL</code> isole les commandes passées sans compte client."],
+    piege:"Les clients sans commande, comme Inès\u00a0Lefebvre, n’apparaissent pas\u00a0: seule la droite est complète."},
+ 39:{k:"FULL OUTER JOIN",t:"Garder les deux côtés",s:"SELECT prenom, nom,\n  commandes.id\nFROM clients\nFULL OUTER JOIN commandes\n  ON clients.id =\n     commandes.client_id;",
+    points:["Une correspondance réunit un client et sa commande sur une seule ligne.",
+      "Une ligne sans correspondance reste, avec <code>NULL</code> dans les colonnes de l’autre table.",
+      "<code>LEFT JOIN</code> perdrait la commande sans client\u00a0; <code>RIGHT JOIN</code>, les clients sans commande."],
+    piege:"Le résultat n’est pas la somme des deux tables\u00a0: 18\u00a0lignes, et non 10\u00a0+\u00a016\u00a0=\u00a026."},
+ 19:{k:"Jointure de 3\u00a0tables",t:"Deux JOIN, chacun son ON",s:"SELECT prenom, email\nFROM commandes\nINNER JOIN clients\n  ON commandes.client_id =\n     clients.id\nINNER JOIN produits\n  ON commandes.produit_id =\n     produits.id\nWHERE produits.nom =\n  'Magnésium';",
+    points:["La table\u00a0commandes fait le pont\u00a0: <code>client_id</code> mène au client, <code>produit_id</code> au produit.",
+      "Les jointures se suivent dans le <code>FROM</code>\u00a0: <code>WHERE</code> vient après le dernier <code>ON</code>.",
+      "Les tables\u00a0clients et produits ont une colonne <code>nom</code>\u00a0: <code>produits.nom</code> précise laquelle."],
+    piege:"<code>ON clients.id = produits.id</code> s’exécute sans erreur, mais associe la cliente 3\u00a0au produit 3, sans rapport."},
+ 44:{k:"Quel JOIN\u00a0?",t:"Quelles lignes garder\u00a0?",s:"SELECT prenom, points\nFROM clients -- gauche\nLEFT JOIN fidelite -- droite\n  ON clients.id =\n     fidelite.client_id;",
+    points:["<code>INNER</code> garde les correspondances, <code>LEFT</code> ou <code>RIGHT</code> tout un côté, <code>FULL</code> les deux.",
+      "La table après <code>FROM</code> est à gauche, celle après <code>JOIN</code> à droite.",
+      "<code>CROSS JOIN</code> associe chaque ligne à chaque ligne\u00a0; <code>SELF JOIN</code> relie une table à elle-même."],
+    piege:"Inverser les colonnes dans <code>ON</code> ne change rien\u00a0: seul l’ordre des tables fixe la gauche."},
+ 45:{k:"IN (SELECT …)",t:"Filtrer avec une liste calculée",s:"SELECT prenom, nom, telephone\nFROM clients\nWHERE id IN (\n  SELECT client_id\n  FROM commandes\n  WHERE statut =\n    'en_preparation'\n);",
+    points:["La sous-requête renvoie une liste\u00a0: les identifiants des clients concernés.",
+      "Elle s’écrit entre parenthèses, juste après <code>IN</code>, avec une seule colonne dans son <code>SELECT</code>.",
+      "Chaque ligne dont la valeur figure dans la liste est gardée\u00a0: 4\u00a0clients sur 10."],
+    piege:"Avec <code>=</code> au lieu de <code>IN</code>, une seule valeur compte\u00a0: 1\u00a0client au lieu de 4, sans erreur."},
+ 47:{k:"Sous-requête dans SELECT",t:"Une valeur par ligne",s:"SELECT nom,\n  (SELECT MAX(date_commande)\n   FROM commandes\n   WHERE commandes.produit_id\n     = produits.id)\n  AS derniere_commande\nFROM produits;",
+    points:["La sous-requête s’écrit entre parenthèses dans le <code>SELECT</code>\u00a0; <code>AS</code> nomme la colonne.",
+      "Elle est <b>corrélée</b>\u00a0: <code>produits.id</code> y désigne le produit de la ligne en cours.",
+      "Un identifiant écrit en dur, comme 5, ne vaudrait que pour un seul produit."],
+    piege:"Sans la condition sur <code>produits.id</code>, chaque produit affiche la même date, sans erreur."},
+ 48:{k:"Sous-requête dans FROM",t:"Calculer sur un résultat",s:"SELECT ROUND(AVG(montant), 2)\nFROM (\n  SELECT prix * quantite\n    AS montant\n  FROM commandes\n  INNER JOIN produits\n    ON produits.id =\n       commandes.produit_id\n) AS commandes_montants;",
+    points:["Entre parenthèses dans le <code>FROM</code>, un résultat se lit comme une table\u00a0: une <b>table dérivée</b>.",
+      "La table dérivée reçoit un nom avec un alias\u00a0: <code>AS commandes_montants</code>.",
+      "La sous-requête calcule les montants, puis la requête principale en fait la moyenne."],
+    piege:"Seules les colonnes de son <code>SELECT</code> existent\u00a0: <code>AVG(quantite)</code> provoque une erreur."},
+ 92:{k:"CREATE TABLE AS",t:"Enregistrer un résultat",s:"CREATE TABLE invites AS\nSELECT prenom, nom, email\nFROM clients\nWHERE ville = 'Paris';\n\nINSERT INTO invites\nSELECT prenom, nom, email\nFROM clients\nWHERE ville = 'Lyon';",
+    points:["<code>CREATE TABLE … AS</code> crée une table avec les colonnes et les lignes d’un <code>SELECT</code>.",
+      "<code>INSERT INTO … SELECT</code> ajoute les lignes d’un résultat à une table qui existe déjà.",
+      "Le <code>SELECT</code> fournit autant de colonnes que la table, dans le même ordre."],
+    piege:"La table créée est une copie\u00a0: un e-mail changé dans la table\u00a0clients n’y change pas."},
+ 55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"SELECT prenom, nom\nFROM clients\nWHERE EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id\n    = clients.id\n  AND commandes.produit_id = 1\n);",
+    points:["<code>EXISTS</code> est vrai si la sous-requête trouve au moins une ligne\u00a0; <code>NOT EXISTS</code>, si aucune.",
+      "<code>SELECT 1</code> suffit\u00a0: seule l’existence d’une ligne compte, pas son contenu.",
+      "<code>commandes.client_id = clients.id</code> relie la recherche au client de la ligne en cours."],
+    piege:"Sans cette condition, une seule commande du produit rend <code>EXISTS</code> vrai pour les 10\u00a0clients."},
+ 86:{k:"ANY\u00a0· ALL",t:"Comparer à toute une liste",s:"SELECT nom, prix\nFROM produits\nWHERE prix > ALL (\n  SELECT prix\n  FROM produits\n  WHERE categorie =\n    'Bien-être'\n);",
+    points:["Avec <code>&gt; ALL</code>, il faut dépasser chaque valeur de la liste\u00a0; avec <code>&gt; ANY</code>, au moins une.",
+      "<code>&gt; ALL</code> revient à dépasser le <code>MAX</code>\u00a0; <code>&gt; ANY</code>, à dépasser le <code>MIN</code>.",
+      "<code>= ANY (…)</code> revient à <code>IN (…)</code>\u00a0: égal à au moins une valeur."],
+    piege:"Une valeur égale ne dépasse pas\u00a0: la Fibre Prébiotique, à 29,90 €, ne passe pas <code>&gt; ALL</code>."},
+ 59:{k:"WITH (CTE)",t:"Nommer un résultat intermédiaire",s:"WITH totaux AS (\n  SELECT client_id,\n    COUNT(*) AS nb_commandes\n  FROM commandes\n  GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
+    points:["<code>WITH totaux AS (…)</code> se place avant le <code>SELECT</code> principal, où <code>totaux</code> sert de table.",
+      "Dans <code>totaux</code>, le comptage est déjà une colonne\u00a0: <code>WHERE nb_commandes &gt;= 2</code> le teste.",
+      "Une CTE se joint aussi à une table\u00a0: <code>ON clients.id = totaux.client_id</code>."],
+    piege:"Une CTE n’existe que dans sa requête\u00a0: seul, <code>SELECT * FROM totaux</code> provoque une erreur."},
+ 80:{k:"INTERSECT\u00a0· EXCEPT",t:"Comparer deux résultats",s:"SELECT id FROM produits\nWHERE stock < 100\nINTERSECT\nSELECT produit_id\nFROM commandes\nWHERE date_commande\n  >= '2026-07-20';",
+    points:["<code>INTERSECT</code> garde les lignes présentes dans les deux résultats.",
+      "<code>EXCEPT</code> garde les lignes du premier résultat qui sont absentes du second.",
+      "Les requêtes ont autant de colonnes, de types compatibles\u00a0; les doublons sont écartés."],
+    piege:"Avec <code>EXCEPT</code>, l’ordre des requêtes compte\u00a0: les inverser change le résultat."},
+ 77:{k:"WITH RECURSIVE",t:"Créer une suite automatiquement",s:"WITH RECURSIVE jours AS (\n  SELECT '2026-07-01' AS jour\n  UNION ALL\n  SELECT DATE(jour, '+1 day')\n  FROM jours\n  WHERE jour < '2026-07-31'\n)\nSELECT jour FROM jours;",
+    points:["L’<b>ancre</b> donne la première ligne\u00a0; après <code>UNION ALL</code>, la partie récursive ajoute la suite.",
+      "Le <code>WHERE</code> de la partie récursive arrête la suite\u00a0: <code>jour &lt; '2026-07-31'</code>.",
+      "Une CTE récursive génère des suites de dates ou de nombres, ou parcourt une hiérarchie."],
+    piege:"Sans condition d’arrêt, la requête ne s’arrête jamais\u00a0: un jour de plus est toujours possible."},
+ 60:{k:"OVER()",t:"Calculer sans regrouper",s:"SELECT nom, categorie,\n  COUNT(*) OVER (\n    PARTITION BY categorie\n  ) AS nb_produits\nFROM produits;",
+    points:["Avec <code>COUNT(*) OVER ()</code>, chaque produit garde sa ligne et affiche le total\u00a0: 8.",
+      "<code>PARTITION BY categorie</code> refait le calcul catégorie par catégorie, sans retirer de ligne.",
+      "Pour filtrer sur ce calcul, on le prépare d’abord dans un <code>WITH</code>."],
+    piege:"Une fonction de fenêtre dans <code>WHERE</code> est refusée\u00a0: <code>WHERE</code> passe avant le calcul."},
+ 74:{k:"Fonctions de rang",t:"Classer, ex æquo compris",s:"SELECT client_id,\n  date_commande,\n  RANK() OVER (\n    PARTITION BY client_id\n    ORDER BY date_commande\n  ) AS rang\nFROM commandes\nWHERE client_id IS NOT NULL;",
+    points:["L’ordre du classement se donne dans <code>OVER (ORDER BY date_commande)</code>.",
+      "À égalité\u00a0: <code>ROW_NUMBER</code> donne 1, 2, 3\u00a0; <code>RANK</code> 1, 1, 3\u00a0; <code>DENSE_RANK</code> 1, 1, 2.",
+      "<code>PARTITION BY</code> fait repartir la numérotation de 1\u00a0dans chaque groupe."],
+    piege:"<code>ROW_NUMBER</code> sépare même deux ex æquo\u00a0: l’un des deux premiers achats passe au rang 2."},
+ 78:{k:"LAG\u00a0· LEAD",t:"La ligne d’avant ou d’après",s:"SELECT client_id,\n  date_commande,\n  LAG(date_commande) OVER (\n    PARTITION BY client_id\n    ORDER BY date_commande, id\n  ) AS precedente\nFROM commandes;",
+    points:["Dans <code>OVER</code>, <code>PARTITION BY client_id</code> sépare les clients, <code>ORDER BY</code> range leurs commandes.",
+      "<code>LAG</code> renvoie <code>NULL</code> sur la première ligne du groupe\u00a0; <code>LEAD</code>, sur la dernière.",
+      "Pour un délai, <code>julianday</code> convertit les dates en jours, puis on soustrait."],
+    piege:"Sans <code>PARTITION BY</code>, la première commande d’un client reçoit la date d’un autre client."},
+ 79:{k:"ROWS BETWEEN",t:"Cumuls et moyennes mobiles",s:"SELECT id, date_commande,\n  SUM(quantite) OVER (\n    ORDER BY date_commande, id\n    ROWS BETWEEN\n      UNBOUNDED PRECEDING\n      AND CURRENT ROW\n  ) AS cumul\nFROM commandes;",
+    points:["Le cadre définit, pour chaque ligne, les lignes du calcul\u00a0: <code>ROWS BETWEEN début AND fin</code>.",
+      "Avec <code>SUM()</code>, <code>UNBOUNDED PRECEDING AND CURRENT ROW</code> donne un cumul depuis la première ligne.",
+      "Avec <code>AVG()</code>, <code>2 PRECEDING AND CURRENT ROW</code> fait une moyenne sur 3\u00a0lignes, moins au début."],
+    piege:"Triées par date seule, sans <code>ROWS</code>, deux commandes du même jour reçoivent le même cumul."},
+ 89:{k:"FIRST_VALUE\u00a0· NTILE",t:"Première valeur, groupes égaux",s:"SELECT nom,\n  NTILE(3) OVER (\n    ORDER BY prix DESC\n  ) AS gamme,\n  FIRST_VALUE(nom) OVER (\n    PARTITION BY categorie\n    ORDER BY prix DESC\n  ) AS plus_cher\nFROM produits;",
+    points:["<code>FIRST_VALUE(nom)</code> affiche, sur chaque ligne, le nom de la première ligne de la fenêtre.",
+      "<code>PARTITION BY</code> fait une fenêtre par catégorie\u00a0; <code>ORDER BY prix DESC</code> met le plus cher en tête.",
+      "<code>NTILE(3)</code> répartit les lignes triées en 3\u00a0groupes\u00a0; les premiers ont une ligne de plus."],
+    piege:"Avec <code>ORDER BY</code>, le cadre s’arrête à la ligne actuelle\u00a0: <code>LAST_VALUE</code> doit l’étendre avec <code>ROWS BETWEEN</code>."},
+ 56:{k:"Normalisation",t:"Une information, une table",s:"CREATE TABLE inscriptions (\n  client_id INTEGER,\n  atelier_id INTEGER,\n  date_inscription DATE\n);",
+    points:["Tout regrouper dans une table crée des répétitions, et des erreurs à chaque modification.",
+      "Une cellule ne contient qu’une valeur (<b>1FN</b>)\u00a0: chaque inscription a sa propre ligne.",
+      "Chaque colonne dépend de toute la clé (<b>2FN</b>) et de rien d’autre que la clé (<b>3FN</b>)."],
+    piege:"La date d’inscription ne décrit ni le client ni l’atelier\u00a0: elle va dans la table\u00a0inscriptions."},
+ 84:{k:"CREATE SCHEMA",t:"Ranger les tables par espace",s:"CREATE SCHEMA boutique;\n\nALTER TABLE commandes\n  SET SCHEMA boutique;\n\nSELECT *\nFROM boutique.commandes;",dialecte:"PostgreSQL",
+    points:["<code>ALTER TABLE … SET SCHEMA</code> déplace une table dans un schéma, sans la recréer.",
+      "Une table se lit avec son adresse, le schéma puis la table\u00a0: <code>boutique.commandes</code>.",
+      "Deux schémas peuvent contenir chacun une table du même nom, comme une table\u00a0clients."],
+    piege:"<code>CREATE DATABASE</code> créerait une autre base, séparée\u00a0: un espace dans la base, c’est un schéma."},
+ 26:{k:"INSERT",t:"Ajouter des lignes",s:"INSERT INTO clients\n  (prenom, ville)\nVALUES\n  ('Théo', 'Lille'),\n  ('Zoé', 'Nice');",
+    points:["Une colonne non citée reçoit sa valeur par défaut ou <code>NULL</code>, sauf si elle est obligatoire.",
+      "Après <code>VALUES</code>, chaque ligne a sa parenthèse\u00a0; une virgule sépare les lignes.",
+      "<code>ON CONFLICT</code> traite un doublon\u00a0: <code>DO UPDATE</code> met à jour, <code>DO NOTHING</code> ignore l’ajout."],
+    piege:"Les valeurs suivent l’ordre des colonnes\u00a0: deux valeurs inversées passent sans aucune erreur."},
+ 27:{k:"UPDATE",t:"Modifier des lignes",s:"UPDATE produits\nSET stock = stock + 10\nWHERE id = 8;",
+    points:["<code>SET</code> précise la colonne et sa nouvelle valeur\u00a0; <code>WHERE</code> sélectionne les lignes concernées.",
+      "Un <code>SELECT</code> avec le même <code>WHERE</code> montre d’abord les lignes qui vont changer.",
+      "<code>stock + 10</code> part de la valeur actuelle\u00a0; un résultat contraire à <code>CHECK</code> est refusé."],
+    piege:"Sans <code>WHERE</code>, toute la table est modifiée, sans aucune erreur."},
+ 82:{k:"MERGE",t:"Synchroniser deux tables",s:"MERGE INTO produits\nUSING entrepot\nON produits.id = entrepot.id\nWHEN MATCHED THEN\n  UPDATE\n  SET stock = entrepot.stock\nWHEN NOT MATCHED THEN\n  INSERT (id, nom, stock)\n  VALUES (entrepot.id,\n    entrepot.nom,\n    entrepot.stock);",dialecte:"PostgreSQL",
+    points:["Avec <code>ON</code>, le même produit est reconnu dans les deux tables, en général par son identifiant.",
+      "<code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> ajoute\u00a0; le reste ne change pas.",
+      "Dans la base de l’app, le même résultat s’obtient avec <code>INSERT … ON CONFLICT DO UPDATE</code>."],
+    piege:"Chaque action a sa branche\u00a0: un <code>INSERT</code> d’un produit qui existe déjà est refusé."},
  28:{k:"DELETE",t:"Supprimer des lignes",s:"DELETE FROM commandes\nWHERE id = 15;",
-    m:"Définitif. Même garde-fou que UPDATE. Attention aux orphelins dans les tables liées."},
- 82:{k:"MERGE",t:"Synchroniser deux tables",s:"MERGE INTO produits\nUSING entrepot\nON produits.id = entrepot.id\nWHEN MATCHED THEN\n  UPDATE\n  SET stock = entrepot.stock\nWHEN NOT MATCHED THEN\n  INSERT (id, nom, stock)\n  VALUES (entrepot.id, entrepot.nom, entrepot.stock);",
-    m:"<code>ON</code> reconnaît la même ligne. <code>WHEN MATCHED</code> met à jour, <code>WHEN NOT MATCHED</code> ajoute ; une ligne absente de la source ne change pas. Dans la base de l’app : <code>INSERT … ON CONFLICT DO UPDATE</code>."},
- 83:{k:"PROCÉDURE · FONCTION",t:"Réutiliser un traitement ou un calcul",s:"CALL expedier_commande(13);\n\nSELECT calculer_points(80);",
-    m:"Une <b>procédure</b> exécute un traitement (<code>CALL</code>) ; une <b>fonction</b> renvoie une valeur, utilisable dans une requête. Les deux reçoivent des paramètres. Leur syntaxe dépend du SGBD ; la base de l’app n’en a pas."},
- 84:{k:"SCHÉMA",t:"Ranger les tables par espace",s:"CREATE SCHEMA boutique;\n\nSELECT *\nFROM boutique.commandes;",
-    m:"Un <b>schéma</b> regroupe des tables. <code>schéma.table</code> est leur adresse : deux schémas peuvent avoir une table du même nom. Leur syntaxe dépend du SGBD ; la base de l’app range tout dans <code>main</code>."},
- 50:{k:"GRANT / REVOKE",t:"Accorder uniquement les accès nécessaires",s:"GRANT SELECT ON commandes_expedition TO lina;\nGRANT UPDATE (statut) ON commandes TO lina;\n\nREVOKE SELECT ON commandes_expedition FROM lina;",
-    m:"<code>GRANT</code> accorde un droit, <code>REVOKE</code> le retire (le compte se place après <code>FROM</code>). Un droit porte sur une vue, une table ou certaines colonnes. Principe : uniquement les accès nécessaires, revus quand une mission change ou se termine. Un SGBD serveur gère des comptes ; la base de l’app, non."}
+    points:["Une ligne est supprimée en entier\u00a0: pour changer une valeur, c’est <code>UPDATE</code>.",
+      "<code>id = 10</code> vise une seule ligne\u00a0; <code>client_id = 6</code>, toutes celles d’un même client.",
+      "Un <code>SELECT</code> avec le même <code>WHERE</code> montre d’abord les lignes qui seront supprimées."],
+    piege:"Sans <code>WHERE</code>, la table est vidée, sans erreur\u00a0: elle existe encore, mais sans aucune ligne."},
+ 83:{k:"PROCÉDURE\u00a0· FONCTION",t:"Écrire une fois, réutiliser",s:"CALL expedier_commande(13);\n\nSELECT calculer_points(80);",dialecte:"PostgreSQL",
+    points:["Une procédure exécute une action, comme expédier une commande\u00a0: on l’appelle avec <code>CALL</code>.",
+      "Une fonction renvoie une valeur, utilisable dans un <code>SELECT</code>, comme un nombre de points.",
+      "Un paramètre, comme l’identifiant de la commande, change à chaque appel."],
+    piege:"Leur syntaxe dépend du SGBD\u00a0: la base de l’app n’en a pas."},
+ 57:{k:"INDEX\u00a0· EXPLAIN",t:"Retrouver plus vite, et vérifier",s:"CREATE INDEX\n  idx_commandes_numero\nON commandes(numero_commande);\n\nEXPLAIN QUERY PLAN\nSELECT * FROM commandes\nWHERE numero_commande =\n  'CMD-2026-1002481';",
+    points:["<code>EXPLAIN QUERY PLAN</code>, devant la requête, montre comment elle sera exécutée.",
+      "<code>SCAN</code>\u00a0: toute la table est lue\u00a0; <code>SEARCH … USING INDEX</code>\u00a0: l’index est utilisé.",
+      "Chaque index prend de la place et se met à jour à chaque modification\u00a0: crée-le s’il sert."],
+    piege:"Le plan dit comment la requête s’exécute, pas en combien de temps\u00a0: seule une mesure le dit."},
+ 50:{k:"GRANT\u00a0· REVOKE",t:"Accorder uniquement les accès nécessaires",s:"GRANT SELECT\nON commandes_expedition\nTO lina;\n\nGRANT UPDATE (statut)\nON commandes TO lina;\n\nREVOKE SELECT\nON commandes_expedition\nFROM lina;",dialecte:"PostgreSQL",
+    points:["<code>GRANT</code> accorde un droit\u00a0: <code>ON</code> précise la vue ou la table, <code>TO</code> le compte.",
+      "Un droit peut se limiter à une colonne\u00a0: <code>GRANT UPDATE (statut) ON commandes</code>.",
+      "<code>REVOKE</code> retire un droit, avec le compte après <code>FROM</code>, quand une mission se termine."],
+    piege:"Un droit ne vaut que pour son action\u00a0: <code>SELECT</code> n’autorise ni <code>UPDATE</code> ni <code>DELETE</code>."},
+ 43:{k:"ON ou WHERE",t:"Filtrer avant ou après",s:"SELECT prenom, commandes.id\nFROM clients\nLEFT JOIN commandes\n  ON clients.id =\n     commandes.client_id\n  AND quantite > 2;",
+    points:["Avec <code>LEFT JOIN</code>, une condition dans <code>ON</code> filtre la table de droite avant le rattachement.",
+      "Un client sans commande retenue reste, avec <code>NULL</code> dans les colonnes de droite.",
+      "Avec <code>INNER JOIN</code>, la condition donne le même résultat dans <code>ON</code> ou dans <code>WHERE</code>."],
+    piege:"Dans <code>WHERE</code>, <code>quantite &gt; 2</code> écarte les clients sans commande\u00a0: <code>NULL &gt; 2</code> n’est pas vrai."}
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#0EA5A0','#2DD4BF'],['#B45309','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
@@ -28714,15 +28869,6 @@ function lessonVideoMeta(l){
   if(pos>2)return `Reprendre · ${lvFmt(pos)}`;
   return (jcPassed(l.id)||etapesDe(l.id).exo?'Revoir la vidéo':'Regarder la vidéo')+(v.duree?` · ${v.duree}`:'');
 }
-/* La carte mémo que la leçon fait gagner, collée dans le coin de la vignette (Elisa, 30 octobre, 21 h 33 : « passe la page à un
-   niveau supérieur : stickers, animation, DA du site ») : son numéro et un cadenas tant que la leçon n’est pas validée (le bilan
-   la dévoile), son mot-clé une fois gagnée. Décor seulement : la vignette garde son étiquette pour les lecteurs d’écran. */
-function lvPrizeHtml(l){
-  if(typeof CARTES==='undefined'||!l||!CARTES[l.id]||typeof allLessons==='undefined')return '';
-  const won=typeof isUnlocked==='function'&&isUnlocked(l.id);
-  const serial=String(allLessons.filter(x=>CARTES[x.id]).findIndex(x=>x.id===l.id)+1).padStart(2,'0');
-  return `<span class="lv-prize${won?' is-won':''}" aria-hidden="true"><span class="lv-prize-c"><b>${serial}</b>${won?`<em>${esc(CARTES[l.id].k)}</em>`:`<i>${typeof MEMO_LOCK==='string'?MEMO_LOCK:''}</i>`}</span><span class="lv-prize-t">${won?'Carte gagnée':'Carte à gagner'}</span></span>`;
-}
 /* La vignette du cours. La vidéo n’a pas pu se charger : la carte le dit, et la toucher la recharge (openLessonVideo). */
 function lvCardHtml(l){
   const v=l.video;
@@ -28733,7 +28879,7 @@ function lvCardHtml(l){
             <span class="lv-card-bar" aria-hidden="true"><span class="lv-card-meta">Réessayer</span><span class="lv-card-play">${LV_ICO.replay}</span></span>
           </button>`
     :`<button type="button" class="lv-card" onclick="openLessonVideo()" aria-label="${lessonVideoMeta(l)} : cours ${l.titre} en plein écran">
-            <img src="${v.thumb||v.poster}" alt="" decoding="async">${lvPrizeHtml(l)}
+            <img src="${v.thumb||v.poster}" alt="" decoding="async">
             <span class="lv-card-bar" aria-hidden="true"><span class="lv-card-meta">${lessonVideoMeta(l)}</span><span class="lv-card-play">${LV_ICO.play}</span></span>
           </button>`;
 }
@@ -28778,8 +28924,9 @@ function lvGatePips(l){
 }
 function lvGateDeco(l){ return `<i class="ls-gate-x" aria-hidden="true"><i class="ls-gate-stk">${typeof lqStkSvg==='function'?lqStkSvg('target'):''}</i>${l?lvGatePips(l):''}</i>`; }
 function lessonVideoSlide(l){
-  const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l), card=lvCardHtml(l);
-  /* La carte du cours reprend celle de l’accueil (DA de la vitrine) : pastille du module, titre jaune, vignette collée dessus. */
+  const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l), prize=lvPrizeHtml(l), card=lvCardHtml(l);
+  /* La carte du cours reprend celle de l’accueil (DA de la vitrine) : pastille du module, titre jaune, vignette collée dessus ;
+     la carte mémo à gagner, collée dans le coin (6 novembre, direction A). */
   const mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
   return `
       <div class="ls-nav">
@@ -28787,7 +28934,7 @@ function lessonVideoSlide(l){
           :locked?`<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer${lvGateDeco(null)}</button>`:'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main lv-main">
-        <div class="lesson-rich lv-lesson lv-hero">
+        <div class="lesson-rich lv-lesson lv-hero${prize?' has-prize':''}">${prize}
           <div class="l-kicker"><b>${mi>=0?`Module ${mi+1}`:'Cours'}</b>${m?`<span class="l-kicker-mod">${m.titre}</span>`:''}</div><h1>${l.titre}</h1>${l.résumé?`<p class="l-sub">${l.résumé}</p>`:''}
           ${card}
         </div>
@@ -30945,79 +31092,6 @@ function bravoStepsHtml(l){
     <span class="bravo-step"><i>✓</i> Quiz</span>
   </div>`;
 }
-function bravoCardHtml(l){
-  const c=CARTES[l.id]; if(!c)return '';
-  const n=String(l.id).padStart(2,'0');
-  return `<div class="bravo-card-col">
-      <div class="bravo-gcard-stage">
-        <button type="button" class="bravo-gcard collectible" onclick="bravoRevealCard(${l.id},event)" aria-label="Dévoiler la carte ${esc(c.k)}">${collectibleFace(l.id)}</button>
-      </div>
-    </div>`;
-}
-function bravoRevealCard(id,ev){
-  if(ev){ev.preventDefault();ev.stopPropagation();}
-  const stage=document.querySelector('#lesson-body .bravo-gcard-stage');
-  const card=stage&&stage.querySelector('.bravo-gcard');
-  if(!card||stage.dataset.revealed==='1')return;
-  if(prefersReduceMotion()){ stage.dataset.revealed='1'; card.disabled=true; openCard(id); return; }
-  if(!card.classList.contains('shown'))return;
-  if(stage.dataset.flipping==='1')return;
-  stage.dataset.flipping='1';
-  stage.dataset.revealed='1';
-  card.disabled=true;
-  stage.classList.add('flip');
-  if(navigator.vibrate)navigator.vibrate(12);
-  setTimeout(()=>{
-    stage.classList.remove('flip');
-    stage.classList.add('revealed');
-    stage.dataset.flipping='0';
-    openCard(id);
-  },520);
-}
-function resetBravoCardStage(){
-  const stage=document.querySelector('#lesson-body .bravo-gcard-stage');
-  if(!stage)return;
-  stage.classList.remove('flip','revealed');
-  stage.dataset.flipping='0';
-  stage.dataset.revealed='0';
-  const card=stage.querySelector('.bravo-gcard');
-  if(card){card.disabled=false;card.style.pointerEvents='';}
-}
-let bravoCardObs=null;
-function bravoCardArrived(card){
-  if(!card||card.classList.contains('shown'))return;
-  card.classList.add('shown');
-  card.classList.remove('in');
-}
-/* Le titre de la carte tient dans sa largeur : un mot plus long que la carte (« Normalisation », « GROUP_CONCAT ») réduit la
-   taille du titre au lieu de déborder du bord. Refait une fois les polices chargées. */
-function bravoFitCard(card){
-  const gk=card&&card.querySelector('.memo-copy>b'); if(!gk)return;
-  gk.style.fontSize='';
-  let f=parseFloat(getComputedStyle(gk).fontSize)||16;
-  while(f>11&&gk.scrollWidth>gk.clientWidth+.5){ f-=.5; gk.style.fontSize=f+'px'; }
-}
-function revealBravoCard(){
-  if(bravoCardObs){bravoCardObs.disconnect();bravoCardObs=null;}
-  const card=document.querySelector('#lesson-body .bravo-gcard');
-  if(!card)return;
-  bravoFitCard(card);
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>bravoFitCard(card));
-  card.classList.remove('shown');
-  if(prefersReduceMotion()){ bravoCardArrived(card); return; }
-  const scr=document.getElementById('scr-lesson');
-  if(!scr||typeof IntersectionObserver==='undefined'){ card.classList.add('in'); bravoCardArrived(card); return; }
-  const onIn=()=>{
-    card.classList.add('in');
-    const done=()=>bravoCardArrived(card);
-    card.addEventListener('animationend',e=>{ if(e.animationName==='bravoCardIn') done(); },{once:true});
-    setTimeout(done,900);
-  };
-  bravoCardObs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ bravoCardObs.unobserve(e.target); onIn(); } });
-  },{root:scr,threshold:.4});
-  bravoCardObs.observe(card);
-}
 function bravoRecapHtml(l){
   let body = '';
   if(l.id === 17){
@@ -31435,14 +31509,6 @@ function bravoActionsHtml(l){
     <div class="bravo-tools" role="group" aria-label="Autres actions">${tools}</div>
   </div>`;
 }
-/* La carte mémo débloquée : sa propre ligne, avant la suite du parcours, avec ce qu’elle est et où la retrouver. */
-function bravoUnlockHtml(l){
-  if(!CARTES[l.id])return '';
-  return `<div class="bravo-unlock">
-    ${bravoCardHtml(l)}
-    <div class="bravo-unlock-copy"><small>Carte débloquée</small><b>Touche-la pour la retourner</b><p>${carteRetenirHtml(l.id)?'Ce qu’il faut retenir de la leçon est dans la carte, rangée dans ta collection.':'L’essentiel de la leçon, rangé dans tes cartes mémo.'}</p></div>
-  </div>`;
-}
 /* Elisa, 2 novembre, 8 h 01 : « cette page est encore de l’ancienne DA (je préférais la DA du site internet) ». Le haut du bilan reprend
    la carte de la page de départ du cours (lessonStartShow) : la scène violette quadrillée de la vitrine, le module en menthe et la place
    dans le module, « Bravo ! » en jaune soleil, le titre de la leçon, les pastilles de verre (la première blanche), l’étiquette menthe
@@ -31472,7 +31538,7 @@ function renderBravoSlide(l){
     <div class="ls-main bravo-wrap">
       ${bravoHeroHtml(l)}
       ${stkBravoHtml()}
-      ${typeof CARTES!=='undefined'&&CARTES[l.id]&&carteRetenirHtml(l.id)?'':bravoRecapHtml(l)}
+      ${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
       ${bravoAvisHtml(l)}
       ${bravoNextHtml(l)}
@@ -35799,13 +35865,143 @@ function setFilter(f){ collFilter=f;document.getElementById('scr-collection')?.c
 const MEMO_LOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>`;
 /* « Voir la leçon » d’une carte à débloquer : une pastille et sa flèche qui avance (Elisa, 31 octobre, 15 h 52, réf. 4 ; ludique.css, 49e). */
 const MEMO_GO_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function collectibleFace(id,locked=false){
-  const c=CARTES[id],mod=MODULES[moduleOf(id)];
-  const cards=allLessons.filter(l=>CARTES[l.id]);
-  const serial=String(cards.findIndex(l=>l.id===id)+1).padStart(2,'0');
-  const top=`<span class="memo-top"><span class="memo-num">${serial}</span><span class="memo-mod">${esc(mod.titre)}</span></span>`;
-  if(locked)return `<span class="memo-top"><span class="memo-num">${serial}</span><span class="memo-lock">${MEMO_LOCK}</span></span>`;
-  return `${top}<span class="memo-copy"><b>${esc(c.k)}</b><span>${esc(c.t)}</span></span>`;
+/* ---------- Cartes mémo : « Scène à collectionner » (Elisa, 6 novembre : la direction A du designer) ----------
+   Une carte, deux faces, la même partout : l’album, la fiche, le bilan de la leçon (on la retourne pour lire son verso) et la
+   récompense dans le héros de la leçon. Le recto : la scène violette quadrillée du site, le numéro en autocollant, le mot-clé jaune.
+   Le verso : les trois points à retenir, la syntaxe, le piège.
+   Données : CARTES[id] = { k, t, points (3), s, piege } ; dialecte : une syntaxe que la Console n’exécute pas (pas d’« Essayer ») ;
+   sgbd : le thème de la page « Selon le SGBD » où la même écriture est comparée d’un moteur à l’autre (renvoi sous la syntaxe). */
+const MEMO_LOCK_STK='<svg viewBox="0 0 48 48" aria-hidden="true"><g opacity=".26" transform="translate(0 2.6)"><path d="M15 21v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#1B1640" stroke-width="13" stroke-linecap="round"/><rect x="8.5" y="19.5" width="31" height="24" rx="7" fill="#1B1640" stroke="#1B1640" stroke-width="7"/></g><path d="M15 21v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round"/><rect x="8.5" y="19.5" width="31" height="24" rx="7" fill="#fff" stroke="#fff" stroke-width="7"/><path d="M15 21v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#1B1640" stroke-width="7.4" stroke-linecap="round"/><path d="M15 21v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#C9BEFF" stroke-width="3" stroke-linecap="round"/><rect x="8.5" y="19.5" width="31" height="24" rx="7" fill="#6A4DF4" stroke="#1B1640" stroke-width="2.6"/><path d="M13 25.5h22" stroke="#8B6CFF" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="30.5" r="3.6" fill="#FFC83D" stroke="#1B1640" stroke-width="1.8"/><path d="M24 33.6v4.2" stroke="#1B1640" stroke-width="2.6" stroke-linecap="round"/></svg>';
+const MEMO_TRAP_STK='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5.5 44 41H4Z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M24 5.5 44 41H4Z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.8" stroke-linejoin="round"/><path d="M24 18v11" stroke="#1B1640" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="35" r="2.6" fill="#1B1640"/></svg>';
+const MEMO_TURN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3L19.5 9M19.5 4.5V9H15M19.5 12a7.5 7.5 0 0 1-12.8 5.3L4.5 15M4.5 19.5V15H9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const MEMO_CHECK_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* Le numéro de collection (01 à 53), le même partout : album, fiche, bilan, récompense, annonce de déblocage. */
+function memoSerial(id){ return String(allLessons.filter(l=>CARTES[l.id]).findIndex(l=>l.id===id)+1).padStart(2,'0'); }
+/* Le mot le plus long d'un texte : la taille s'y ajuste (--kn). */
+function memoKn(s){ return Math.max(...String(s||'').split(/\s+/).map(w=>w.length),1); }
+/* Le mot-clé : jamais coupé dans un mot ; « · », « / », « + » restent collés au mot qui les précède ; GROUP BY, INNER JOIN… ne se
+   séparent pas. --kn : les signes que la ligne la plus longue doit tenir (une ligne jusqu'à 11 signes, deux jusqu'à 22, trois au-delà).
+   Une notion qui n'est pas du code (« Ordre d'exécution ») passe en Bricolage (is-mot). */
+function memoKw(k,cls=''){
+  const mot=/[a-zà-ÿ]{3,}/.test(k);
+  let t=String(k).replace(/\s+([·\/+])\s+/g,' $1 ').replace(/\b(GROUP|ORDER|PARTITION) BY\b/g,'$1 BY').replace(/\b(INNER|LEFT|RIGHT|CROSS) JOIN\b/g,'$1 JOIN').replace(/\ba, b\b/,'a, b');
+  const kl=t.length,kc=kl<=11?kl:kl<=22?Math.ceil(kl/2):Math.ceil(kl/3);
+  return `<b class="mc-k${mot?' is-mot':''}${cls}" style="--kn:${Math.max(memoKn(t.replace(/ /g,'_')),kc)}">${esc(t)}</b>`;
+}
+/* Le recto. o.mod : la pastille du module (fiche seulement : ailleurs, le module est déjà écrit au-dessus). o.shine : le reflet. */
+function memoFace(id,o={}){
+  const c=CARTES[id],mi=moduleOf(id);
+  return `<span class="mc-face"><span class="mc-top"><b class="mc-num">${memoSerial(id)}</b>${o.mod?`<span class="mc-mod"><b>Module ${mi+1}</b><span>${esc(MODULES[mi].titre)}</span></span>`:''}</span>${memoKw(c.k)}<span class="mc-t">${esc(c.t)}</span>${o.shine?'<i class="mc-shine" aria-hidden="true"></i>':''}</span>`;
+}
+/* Le verso : « À retenir » (les trois points), la syntaxe, le piège. o.head : rappel du numéro et du mot-clé (carte retournée au bilan). */
+function memoVerso(id,o={}){
+  const c=CARTES[id],pts=(c.points&&c.points.length?c.points:cardMemoPoints(c.m||'')).slice(0,3);
+  return `${o.head?`<p class="mc-verso-top" aria-hidden="true"><b class="mc-num">${memoSerial(id)}</b>${memoKw(c.k,' is-mini')}</p>`:''}
+    <h3 class="mc-h"${o.head?' tabindex="-1" data-focus':''}><span class="mc-h-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="mc-h-tag">À retenir</span></h3>
+    <ol class="mc-pts">${pts.map((p,i)=>`<li style="--i:${i}">${p}</li>`).join('')}</ol>
+    ${c.s?`<div class="mc-syn"><p class="mc-lab">Syntaxe${c.dialecte?` <span class="mc-dial">${esc(c.dialecte)}</span>`:''}</p><div class="ex-code mc-code">${highlight(c.s)}</div></div>`:''}
+    ${c.sgbd?`<p class="mc-sgbd">Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='${c.sgbd}'>Selon le SGBD</button> de la Bibliothèque.</p>`:''}
+    ${c.piege?`<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i>${MEMO_TRAP_STK}</i>Le piège</p><p>${c.piege}</p></aside>`:''}`;
+}
+/* L'état d'une carte débloquée dans l'album : nouvelle (vient d'être gagnée), à revoir, acquise, ou rien. */
+function memoEtat(l){
+  if(lastUnlockedId===l.id)return 'new';
+  if(revisable(l)&&isDue(l.id))return 'due';
+  const s=state.lessons[l.id];
+  return s&&s.level>=2?'ok':'';
+}
+/* Une carte de l'album : débloquée (elle ouvre sa fiche) ou à débloquer (elle ouvre la leçon qui la donne). */
+function memoAlbumCard(l){
+  const c=CARTES[l.id],n=memoSerial(l.id);
+  if(!isUnlocked(l.id))return `<button type="button" class="mc mc--album is-lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte ${n} à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}"><span class="mc-back"><span class="mc-top"><b class="mc-num">${n}</b></span><span class="mc-lock">${MEMO_LOCK_STK}</span><span class="mc-lesson" style="--kn:${memoKn(l.titre)}">${esc(l.titre)}</span><span class="mc-go">Voir la leçon${MEMO_GO_SVG}</span></span></button>`;
+  const e=memoEtat(l),lab={due:'. À revoir',ok:'. Acquise',new:'. Nouvelle'}[e]||'';
+  return `<button type="button" class="mc mc--album${e?' is-'+e:''}" onclick="openCard(${l.id})" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}${lab}`)}">${e==='due'?`<span class="mc-flag" aria-hidden="true">${MEMO_TURN_SVG}À revoir</span>`:e==='new'?'<span class="mc-flag is-new" aria-hidden="true">Nouvelle</span>':''}${memoFace(l.id,{shine:e==='new'})}${e==='ok'?`<span class="mc-ok" aria-hidden="true">${MEMO_CHECK_SVG}</span>`:''}</button>`;
+}
+/* La fiche : le recto (il s'incline sous le doigt), le verso dessous, puis « Noter » et « Essayer » (inchangés). */
+function openCard(id){
+  if(!isUnlocked(id)||!CARTES[id])return;
+  openCardId=id;
+  const c=CARTES[id],mi=moduleOf(id);
+  document.getElementById('card-back').classList.add('on');
+  document.getElementById('card-sheet').classList.add('on');
+  document.getElementById('fab').classList.add('hide');
+  const tryIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z" fill="currentColor"/></svg>`;
+  const had=!!cardNoteExisting(id);
+  document.getElementById('card-body').innerHTML=`
+    <div class="mc-fiche">
+      <div class="mc mc--big" role="img" aria-label="${escAttr(`Carte ${memoSerial(id)}, ${c.k}\u00a0: ${c.t}. Module ${mi+1}, ${MODULES[mi].titre}`)}">${memoFace(id,{mod:true,shine:true})}</div>
+      <div class="mc-verso">${memoVerso(id)}</div>
+    </div>
+    <div class="cd-actions">
+      ${had?`<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>`:`<button type="button" class="cd-note-btn" onclick="noteFromCard(${id})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Noter</button>`}
+      ${c.dialecte?'':`<button type="button" class="cd-try-btn" onclick="cardToConsole(${id})">${tryIco}Essayer</button>`}
+    </div>`;
+  document.getElementById('card-body').scrollTop=0;
+  mountSqlCopyButtons(document.getElementById('card-body'));
+  cardTilt(document.querySelector('#card-body .mc--big'));
+}
+/* Le bilan : la carte gagnée, qu'on retourne pour lire son verso, sur place. À sa première réussite (lastUnlockedId), « Nouvelle carte
+   mémo ! » et la carte arrive ; en revenant sur le bilan, « Ta carte mémo », sans arrivée. */
+function bravoUnlockHtml(l){
+  if(!CARTES[l.id])return '';
+  const c=CARTES[l.id],n=memoSerial(l.id),neuve=lastUnlockedId===l.id;
+  const owned=allLessons.filter(x=>CARTES[x.id]&&isUnlocked(x.id)).length;
+  return `<section class="bravo-unlock mc-reveal${neuve?' is-new':''}" aria-labelledby="mc-reveal-h">
+    <h2 class="mc-reveal-h" id="mc-reveal-h">${neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>'}</h2>
+    <div class="mc-flip">
+      <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(l.id,{shine:true})}</button>
+      <div class="mc-side is-verso" aria-hidden="true" inert><div class="mc-verso is-card">${memoVerso(l.id,{head:true})}<button type="button" class="mc-recto-btn" onclick="memoFlip(this,false)">${MEMO_TURN_SVG}Recto</button></div></div>
+      <span class="mc-seal" aria-hidden="true"><b>${owned}</b><small>sur ${TOTAL_CARTES}</small></span>
+    </div>
+    <p class="mc-hint" aria-hidden="true"><span class="mc-hint-ico">${MEMO_TURN_SVG}</span><span class="when-recto">Touche la carte pour la retourner</span><span class="when-verso">Elle t’attend dans tes cartes mémo</span></p>
+  </section>`;
+}
+/* Retourner : la face cachée devient inerte, le focus suit (le titre du verso, ou la carte). Sans animation : d'un coup. */
+function memoFlip(el,toVerso){
+  const root=el&&el.closest('.mc-reveal'); if(!root)return;
+  const r=root.querySelector('.is-recto'),v=root.querySelector('.is-verso');
+  root.classList.toggle('is-flipped',toVerso);
+  r.toggleAttribute('inert',toVerso); r.setAttribute('aria-hidden',String(toVerso));
+  v.toggleAttribute('inert',!toVerso); v.setAttribute('aria-hidden',String(!toVerso));
+  memoFlipFit(root);
+  const still=prefersReduceMotion(),go=()=>{const f=toVerso?v.querySelector('[data-focus]'):r;if(f)try{f.focus({preventScroll:true});}catch(e){f.focus();}};
+  /* Le focus va sur la face visible : après son apparition (visibility, à .35 s du retournement) ; en mouvement réduit, d’un coup, juste
+     après que le navigateur a rendu le focus perdu par la face devenue inerte. */
+  setTimeout(go,still?40:420);
+  if(!still&&navigator.vibrate)navigator.vibrate(12);
+}
+/* La boîte des deux faces prend la hauteur de la face visible (la hauteur glisse pendant le retournement). */
+function memoFlipFit(root){
+  const box=root&&root.querySelector('.mc-flip'); if(!box)return;
+  const face=box.querySelector(root.classList.contains('is-flipped')?'.is-verso':'.is-recto');
+  if(face)box.style.setProperty('--mc-h',face.offsetHeight+'px');
+}
+addEventListener('resize',()=>document.querySelectorAll('.mc-reveal').forEach(memoFlipFit));
+/* Appelée après le rendu du bilan (renderLessonFlow) : la hauteur, puis l'arrivée de la carte quand elle entre à l'écran. */
+function revealBravoCard(){
+  const root=document.querySelector('#lesson-body .mc-reveal'); if(!root)return;
+  memoFlipFit(root);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>memoFlipFit(root));
+  if(!root.classList.contains('is-new')||prefersReduceMotion()){root.classList.add('is-in');return;}
+  const scr=document.getElementById('scr-lesson');
+  if(typeof IntersectionObserver==='undefined'){root.classList.add('is-in');return;}
+  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){root.classList.add('is-in');io.disconnect();}},{root:scr,threshold:.3});
+  io.observe(root);
+}
+/* La fiche ne s'ouvre plus depuis le bilan : rien à remettre en place en la fermant. */
+function resetBravoCardStage(){}
+/* La récompense, collée dans le coin du héros de la leçon : son numéro et un cadenas tant qu'elle est à gagner, une coche une fois gagnée.
+   Décor (aria-hidden) : la page dit déjà comment valider la leçon. */
+function lvPrizeHtml(l){
+  if(typeof CARTES==='undefined'||!l||!CARTES[l.id]||typeof allLessons==='undefined')return '';
+  const won=typeof isUnlocked==='function'&&isUnlocked(l.id);
+  return `<span class="mc-prize${won?' is-won':''}" aria-hidden="true"><span class="mc-prize-card"><b class="mc-num">${memoSerial(l.id)}</b><i class="mc-prize-ico">${won?MEMO_CHECK_SVG:MEMO_LOCK_STK}</i></span><span class="mc-prize-t">${won?'Gagnée':'À gagner'}</span></span>`;
+}
+/* La note d'une carte (« Noter ») : son numéro de collection et son mot-clé, sa syntaxe, ses trois points en texte. */
+function cardNotePre(id){
+  const c=CARTES[id];
+  const txt=(c.points||[]).map(p=>{const d=document.createElement('div');d.innerHTML=p;return '• '+d.textContent.trim();}).join('\n');
+  return {ctx:`Carte ${memoSerial(id)} · ${c.k}`,sql:c.s,txt:txt||noteTextFromHtml(c.m||'')};
 }
 function renderCollection(){
   const n=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;
@@ -35855,32 +36051,21 @@ function renderCollection(){
     const rest=avecCarte.length-openN;
     /* Une vraie carte mémo : la notion en grand, son rôle, et la syntaxe en une ligne colorée comme dans l’éditeur.
        Une carte à débloquer dit quelle leçon la donne, et l’ouvre. Une carte seule sur sa ligne prend toute la largeur. */
-    const cards=items.map((l,i)=>{
-      const u=isUnlocked(l.id);
-      const c=CARTES[l.id];
-      if(!u) return `<button type="button" class="coll-card collectible lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}">${collectibleFace(l.id,true)}<span class="memo-copy"><b>${esc(l.titre)}</b><span class="memo-go">Voir la leçon${MEMO_GO_SVG}</span></span></button>`;
-      const due=revisable(l)&&isDue(l.id),level=(state.lessons[l.id]&&state.lessons[l.id].level)||0;
-      const badge=due?'<em class="coll-badge is-due">À revoir</em>':level>=2?'<em class="coll-badge is-ok">Acquise</em>':'';
-      const unlock=lastUnlockedId===l.id?' unlocking':'';
-      return `<button type="button" class="coll-card collectible${unlock}${due?' is-due':''}" onclick="openCard(${l.id})" aria-label="${escAttr(`${c.k} : ${c.t}${due?'. À revoir':level>=2?'. Acquise':''}`)}">${badge}${collectibleFace(l.id)}</button>`;
-    }).join('');
+    const cards=items.map(l=>memoAlbumCard(l)).join('');
     /* Ouvert d’office : tous les modules dans « Débloquées » ; ailleurs, celui de la prochaine carte. */
     const ouvert=collFilter==='open'||(!!nextLesson&&avecCarte.some(l=>l.id===nextLesson.id));
-    return `<details class="coll-module ${complete?'complete':''}"${ouvert?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':`${plur(rest,'carte')} à obtenir`}</small></span><span class="coll-module-side"><em aria-label="${openN} sur ${avecCarte.length}">${count}</em><i aria-hidden="true">⌄</i></span></summary><div class="coll-grid">${cards}</div></details>`;
+    return `<details class="coll-module ${complete?'complete':''}"${ouvert?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':`${plur(rest,'carte')} à obtenir`}</small></span><span class="coll-module-side"><em aria-label="${openN} sur ${avecCarte.length}">${count}</em><i aria-hidden="true">⌄</i></span></summary><div class="coll-grid mc-grid">${cards}</div></details>`;
   }).filter(Boolean);
   if(!groups.length){
     host.innerHTML=`<div class="coll-empty">Aucune carte dans ce filtre. Termine une leçon pour débloquer sa fiche mémo.</div>`;
     return;
   }
   host.innerHTML=groups.join('');
-  host.querySelectorAll('.coll-module').forEach(m=>m.querySelectorAll('.coll-card').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,11))));
+  host.querySelectorAll('.coll-module').forEach(m=>m.querySelectorAll('.mc').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,11))));
+  /* La carte tout juste gagnée porte « Nouvelle » (memoEtat) le temps de cet affichage. */
   if(lastUnlockedId!=null){
     const id=lastUnlockedId;
-    setTimeout(()=>{
-      if(lastUnlockedId===id) lastUnlockedId=null;
-      const el=document.querySelector('.coll-card.unlocking');
-      if(el) el.classList.remove('unlocking');
-    },700);
+    setTimeout(()=>{ if(lastUnlockedId===id) lastUnlockedId=null; },700);
   }
 }
 /* La syntaxe d’une carte sur une ligne, sans les commentaires : « SELECT ville, COUNT(*) FROM clients GROUP BY ville ». */
@@ -35900,58 +36085,12 @@ function startCardReview(){
 }
 let openCardId=null;
 let lastUnlockedId=null;
-/** Affiche une syntaxe-modèle (GROUP BY … / HAVING …) plutôt qu’un exemple figé. */
-function cardIsPattern(c){
-  return /…|\.\.\./.test((c&&c.s)||'');
-}
 function cardPosterSql(c){
   return ((c&&c.s)||'').trim();
-}
-function cardPatternHtml(c, cls){
-  const lines=((c&&c.s)||'').trim().split(/\n+/).filter(Boolean);
-  const body=lines.map(line=>{
-    const m=line.match(/^([A-Za-z][A-Za-z\s]*?)\s*(…|\.\.\.)\s*$/);
-    if(m) return `<div class="cd-pattern-line"><span class="cd-kw">${esc(m[1].trim())}</span><span class="cd-dots">…</span></div>`;
-    return `<div class="cd-pattern-line">${esc(line)}</div>`;
-  }).join('');
-  return `<div class="cd-pattern ${cls||''}">${body}</div>`;
 }
 function cardRunnableSql(c){
   if(c&&c.run) return c.run;
   return (c&&c.s)||'';
-}
-function cardSyntaxHtml(c){
-  if(c&&c.ss&&c.ss.length){
-    return `<div class="cd-syntaxes">${c.ss.map(b=>`<p class="cd-lab">${esc(b.lab)}</p><div class="ex-code">${highlight(b.s)}</div>`).join('')}</div>`;
-  }
-  return cardIsPattern(c)?cardPatternHtml(c,'cd-syntax pattern'):`<div class="ex-code">${highlight(c.s)}</div>`;
-}
-function openCard(id){
-  if(!isUnlocked(id)||!CARTES[id])return;
-  openCardId=id;
-  const c=CARTES[id];
-  document.getElementById('card-back').classList.add('on');
-  document.getElementById('card-sheet').classList.add('on');
-  document.getElementById('fab').classList.add('hide');
-  const tryIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z" fill="currentColor"/></svg>`;
-  const syntaxHead=c.ss&&c.ss.length?'':`<p class="cd-lab">Syntaxe</p>`;
-  /* La note prend la place de « Partager », à côté d’« Essayer » (Elisa, 2 novembre, 21 h 58, Réf 3 : « la couleur verte ne va pas
-     avec la page ; remplacer le bouton partager par note »). Déjà notée : « Dans mes notes », coche violette, ce n’est pas un bouton
-     (19 h 00 : « Quand c’est déjà dans note c’est pas un bouton »). */
-  const had=!!cardNoteExisting(id);
-  document.getElementById('card-body').innerHTML=`
-    <div class="cd-share collectible">${collectibleFace(id)}<i class="cd-shine" aria-hidden="true"></i></div>
-    <p class="cd-lab memo"><span class="cd-memo-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="cd-memo-tag">À retenir</span></p>
-    <div class="cd-memo">${carteRetenirHtml(id)||cardMemoHtml(c.m)}</div>
-    ${syntaxHead}
-    ${cardSyntaxHtml(c)}
-    <div class="cd-actions">
-      ${had?`<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>`:`<button type="button" class="cd-note-btn" onclick="noteFromCard(${id})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Noter</button>`}
-      <button type="button" class="cd-try-btn" onclick="cardToConsole(${id})">${tryIco}Essayer</button>
-    </div>`;
-  document.getElementById('card-body').scrollTop=0;
-  mountSqlCopyButtons(document.getElementById('card-body'));
-  cardTilt(document.querySelector('#card-body .cd-share'));
 }
 /* « À retenir » en points (Elisa, 31 octobre, 7 h 57 : « pareil, élève d’un niveau, surtout le À retenir, DA du site ») : le mémo est
    coupé en phrases, une par ligne, chacune cochée d’une pastille jaune ; jamais à l’intérieur du code ni d’un renvoi (« Selon le SGBD »).
@@ -35979,10 +36118,6 @@ function cardMemoPoints(html){
   push();
   return pts;
 }
-function cardMemoHtml(html){
-  const pts=cardMemoPoints(html);
-  return pts.length>1?`<ul class="cd-pts">${pts.map((t,i)=>`<li style="--i:${i}">${t}</li>`).join('')}</ul>`:String(html||'').replace(/→/g,'<span class="cd-arr">→</span>');
-}
 /* La carte s’incline sous le doigt ou la souris, et son reflet suit (comme une carte qu’on tient) ; elle revient à plat en partant. */
 function cardTilt(el){
   if(!el||el.dataset.tilt||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
@@ -36001,7 +36136,7 @@ function closeCard(){
   document.getElementById('card-back').classList.remove('on');
   document.getElementById('card-sheet').classList.remove('on');
   document.getElementById('fab').classList.remove('hide');
-  const t=document.querySelector('#card-sheet .viz-head b'); if(t) t.textContent='Carte';
+  const t=document.querySelector('#card-sheet .viz-head b'); if(t) t.textContent='Carte mémo';
   openCardId=null;
   resetBravoCardStage();
 }
@@ -36069,7 +36204,7 @@ function showUnlock(id){
   const mini=document.getElementById('toast-mini');
   mini.className='tmini card';
   mini.style.background=gradOf(id);
-  mini.textContent=String(id).padStart(2,'0');
+  mini.textContent=memoSerial(id);
   t.classList.remove('warn','info');
   t.classList.add('has-sub','is-action');
   const k=document.getElementById('toast-kicker');
@@ -38190,7 +38325,7 @@ function lqHeadPoke(el){
   clearTimeout(el._pokeT);el._pokeT=setTimeout(()=>el.classList.remove('is-poke'),700);
 }
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('click',e=>{
-  const st=e.target&&e.target.closest&&e.target.closest('.lq-head-stk,.cd-memo-stk,.perf-stk,.room-stk');
+  const st=e.target&&e.target.closest&&e.target.closest('.lq-head-stk,.mc-h-stk,.perf-stk,.room-stk');
   if(st)lqHeadPoke(st);
 });
 /* L’icône d’une feuille (un émoji, ou le pictogramme de « Recommencer ») devient son autocollant ; une icône inconnue se pose sur une
@@ -40068,12 +40203,6 @@ function startNoteHere(txt){
   if(act&&act.id==='scr-console')sql=document.getElementById('ed-console').value.trim();
   else if(act&&act.id==='scr-lesson'){const t=document.getElementById('ed-lesson');if(t)sql=t.value.trim();}
   openNote(null,{ctx:currentContext(),sql,txt:txt||''});
-}
-/* La note d’une carte : son contexte, sa syntaxe et son « À retenir ». Déjà dans les notes (la même, mot pour mot) : la carte
-   affiche « Déjà dans mes notes », et le bouton ouvre cette note. */
-function cardNotePre(id){
-  const c=CARTES[id], l=allLessons.find(x=>x.id===id);
-  return {ctx:`Carte ${id} · ${c.k}`,sql:c.s,txt:carteRetenirHtml(id)?lessonReflexText(l):noteTextFromHtml(c.m)};
 }
 function cardNoteExisting(id){
   if(!CARTES[id])return null;
@@ -44450,7 +44579,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-anti-triche-v2585';
+  const SW_CACHE='requete-2026-11-06-cartes-memo-v2586';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

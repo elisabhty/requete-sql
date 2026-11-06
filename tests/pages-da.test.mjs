@@ -104,9 +104,11 @@ test('Selon le SGBD : la barre des thèmes accrochée en haut allume le thème l
 });
 
 test('Cartes mémo et Accueil : les cartes arrivent à leur tour et se retournent d’un rien à l’appui ; « Tous les cours » en rubrique au tiret', () => {
-  assert.ok(fn('renderCollection').includes("host.querySelectorAll('.coll-module').forEach(m=>m.querySelectorAll('.coll-card').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,11))));"));
-  for (const part of ['html.lq #scr-collection.active .coll-module[open] .coll-card{animation:lqHubIn', 'html.lq #scr-collection .coll-card:active{transform:perspective(600px) rotateY(-12deg) scale(.97)}',
-    'html.lq .coll-overview-next button,html.lq .ent-hero .ent-hero-cta{background:var(--sun)!important;', 'html.lq #scr-learn .home-catalog-head>div>span{display:flex;',
+  /* 6 novembre (cartes mémo, direction A) : les cartes de l’album sont les nouvelles cartes (.mc, ludique.css, 62e) */
+  assert.ok(fn('renderCollection').includes("host.querySelectorAll('.coll-module').forEach(m=>m.querySelectorAll('.mc').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,11))));"));
+  for (const part of ['html.lq #scr-collection.active .coll-module[open] .mc{animation:lqHubIn', 'html.lq button.mc--album:active :is(.mc-face,.mc-back){transform:perspective(600px) translateY(4px) rotateY(-10deg)}'])
+    assert.ok(css.includes(part), part);
+  for (const part of ['html.lq .coll-overview-next button,html.lq .ent-hero .ent-hero-cta{background:var(--sun)!important;', 'html.lq #scr-learn .home-catalog-head>div>span{display:flex;',
     'html.lq #scr-learn .home-catalog-head h2{width:fit-content;', 'html.lq #scr-learn.active #modules>.home-module{animation:lqHubIn'])
     assert.ok(s44.includes(part), part);
   assert.ok(!s44.includes('.home-catalog-head span{'), 'le bouton « Chercher » ne prend pas le style de la rubrique');

@@ -18,10 +18,10 @@ test('réf. 6 : les fiches des leçons, les cartes mémo et les indices des déf
     ['function errBox(msg,sql){', 'const RUN_ICO=']]) {
     assert.ok(!sansCommentaires(cut(a, b)).includes('SQLite'), a);
   }
+  /* 6 novembre (cartes mémo, direction A) : les cartes réécrites disent « la base de l’app » dans leurs points et leurs pièges. */
   for (const t of ['Dans la base de l’app, <code>MERGE</code> <b>n’existe pas</b>.', 'Les deux reçoivent des paramètres. La base de l’app n’en a pas.',
-    'gérée par un <b>SGBD</b> comme PostgreSQL ou MySQL', '"<code>GROUP_CONCAT</code> assemble les textes non nuls d’un groupe.',
-    'Dans la base de l’app : <code>INSERT … ON CONFLICT DO UPDATE</code>.', 'Leur syntaxe dépend du SGBD ; la base de l’app n’en a pas.',
-    'la base de l’app range tout dans <code>main</code>.', 'Un SGBD serveur gère des comptes\u00a0; la base de l’app, non.',
+    "Dans la base de l’app, <code>CAST('CMD-2026-1002481' AS INTEGER)</code> donne 0, sans erreur.",
+    'Dans la base de l’app, le même résultat s’obtient avec <code>INSERT … ON CONFLICT DO UPDATE</code>.', 'Leur syntaxe dépend du SGBD\\u00a0: la base de l’app n’en a pas.',
     'vaut 1 si le plat peut être commandé et 0 sinon', 'Les dates AAAA-MM-JJ se comparent comme du texte\\u00a0:']) {
     /* 6 novembre : les pistes de wf1 et ff8, réécrites avec les 267 défis, ne nomment toujours pas SQLite. */
     assert.ok(app.includes(t), t);
