@@ -27,15 +27,15 @@ const SQL = await createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/s
 test('seule dans la salle : le +25 du premier coup reste, le bonus de place ne compte pas, et la règle le dit', () => {
   /* Le calcul, inchangé : seul (Joue seul, ou seul dans la salle au lancement de la manche) */
   const ctx = vm.createContext({});
-  vm.runInContext(cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_PTS_NIV=', '\n') + '\n' + fn('jeuValeur') + fn('jeuPts') + fn('jeuRanking') + 'var JEU={solo:false,rounds:[]};', ctx);
+  vm.runInContext(cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_NIV_X=', '\n') + '\n' + fn('jeuValeur') + fn('jeuPts') + fn('jeuRanking') + 'var JEU={solo:false,rounds:[]};', ctx);
   vm.runInContext("JEU.rounds[0]={one:true,found:{a:30000},first:{a:1}};JEU.rounds[1]={one:false,found:{a:30000,b:40000},first:{a:1,b:1}};", ctx);
-  assert.deepEqual(JSON.parse(JSON.stringify(ctx.jeuRanking(0))), [{ pid: 'a', ms: 30000, place: 1, k: 'f', val: 200, niv: 0, essai: 25, rang: 0, pts: 225 }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(ctx.jeuRanking(0))), [{ pid: 'a', ms: 30000, place: 1, k: 'f', val: 200, x: 1, essai: 25, rang: 0, pts: 225 }]);
   const deux = JSON.parse(JSON.stringify(ctx.jeuRanking(1)));
   assert.deepEqual(deux.map(x => [x.pid, x.essai, x.rang, x.pts]), [['a', 25, 50, 275], ['b', 0, 30, 230]], 'à plusieurs : le +25 au premier, le bonus de place à chacun');
   const regles = fn('renderDefisRules');
-  assert.ok(regles.includes('<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
-  assert.ok(regles.includes('<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]} · 3e +${JEU_PTS_RANG[2]} · 4e +${JEU_PTS_RANG[3]}. Seul dans la salle, pas de bonus de place</small></li>'));
-  assert.ok(regles.includes('<small>seul</small><i aria-hidden="true">·</i><b>${top+JEU_PTS_NIV.d+JEU_PTS_ESSAI+JEU_PTS_RANG[0]}</b><small>à plusieurs</small>'));
+  assert.ok(regles.includes('<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI*x}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
+  assert.ok(regles.includes('<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul dans la salle, pas de bonus de place</small></li>'));
+  assert.ok(regles.includes('<small>seul</small><i aria-hidden="true">·</i><b>${(top+(JEU_PTS_ESSAI+JEU_PTS_RANG[0])*x).toLocaleString(\'fr-FR\')}</b><small>à plusieurs</small>'));
 });
 
 test('réf. 1 : le curseur de « À toi de jouer » clignote par sa couleur, plus en opacité (l’étiquette penchée reste nette)', () => {
@@ -156,6 +156,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=181">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-bibliotheque-v2581';") && app.includes("const SW_CACHE='requete-2026-11-06-bibliotheque-v2581';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=182">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-06-multiplicateur-v2582';") && app.includes("const SW_CACHE='requete-2026-11-06-multiplicateur-v2582';"));
 });
