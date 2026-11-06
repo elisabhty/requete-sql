@@ -4,7 +4,9 @@
    « Rare » pour 10 défis trouvés, « Légendaire » pour la série de 7 jours et le parcours terminé, les trois holographiques.
    On vérifie : plus de pastille « Sur le tableau » (un sticker posé est seulement estompé) ; l’étiquette sous la légende de ces trois-là
    seulement, gagnés ou pas, hors du bouton (ni sur le dessin, ni sur le cadenas, ni sur « Nouveau ») ; la rareté dans l’aria-label et
-   dans la fiche ; « Légendaire » à paillettes et petites étoiles qui scintillent une fois gagné, immobile à gagner et en mouvement réduit. */
+   dans la fiche ; « Légendaire » à paillettes et petites étoiles qui scintillent une fois gagné, immobile à gagner et en mouvement réduit.
+   22 h, pour la fiche : « Étiquette à paillettes » (plutôt que la rareté en toutes lettres dans le texte) : la même étiquette, sous le
+   grand sticker. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -32,7 +34,8 @@ function world(stickers) {
   ctx.renderStickers();
   const cells = Object.fromEntries([...host.innerHTML.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(m => [/data-id="([^"]+)"/.exec(m[1])[1], m[1]]));
   const kicker = id => { ctx.stkOpen(id); return /<p class="stk-kicker">([^<]*)<\/p>/.exec(body.innerHTML)[1]; };
-  return { ctx, out: host.innerHTML, cells, kicker, paint };
+  const fiche = id => { ctx.stkOpen(id); return body.innerHTML; };
+  return { ctx, out: host.innerHTML, cells, kicker, fiche, paint };
 }
 const rar = cell => (/<span class="stk-rar ([^"]+)" aria-hidden="true">([^<]*)/.exec(cell) || []).slice(1);
 
@@ -90,13 +93,21 @@ test('l’aria-label dit la rareté : « Série de 7 jours, légendaire, à gagn
   assert.ok(/<span class="stk-rar [^"]+" aria-hidden="true">/.test(fresh.defis10), 'l’étiquette elle-même est muette : son texte est déjà dans l’aria-label');
 });
 
-test('la fiche : la rareté en toutes lettres, à la place de « Holo »', () => {
-  const { kicker } = world({ got: { serie7: 1700000000000, defis10: 1 }, fresh: {}, board: [], since: 1 });
-  assert.equal(kicker('serie7'), 'Accomplissement · Légendaire');
-  assert.equal(kicker('defis10'), 'Accomplissement · Rare');
-  assert.equal(kicker('parcours'), 'Accomplissement · Légendaire · À gagner');
+test('la fiche : l’étiquette à paillettes sous le grand sticker, à la place de « Holo » (22 h)', () => {
+  const { kicker, fiche } = world({ got: { serie7: 1700000000000, defis10: 1 }, fresh: {}, board: [], since: 1 });
+  assert.equal(kicker('serie7'), 'Accomplissement', 'le texte ne la répète pas');
+  assert.equal(kicker('defis10'), 'Accomplissement');
+  assert.equal(kicker('parcours'), 'Accomplissement · À gagner');
   assert.equal(kicker('serie3'), 'Accomplissement · À gagner');
   assert.equal(kicker('intro'), 'Module 1 · À gagner');
+  const tag = id => (/<\/div><p class="stk-rar-fiche"><span class="stk-rar ([^"]+)">([^<]*)<i class="stk-rar-sp">|<\/div><p class="stk-rar-fiche"><span class="stk-rar ([^"]+)">([^<]*)<\/span><\/p>\s*<p class="stk-kicker">/.exec(fiche(id)) || []).filter(Boolean).slice(1);
+  assert.deepEqual(tag('serie7'), ['is-leg', 'Légendaire'], 'juste après la scène du grand sticker, avec ses étoiles');
+  assert.deepEqual(tag('defis10'), ['is-rare', 'Rare']);
+  assert.deepEqual(tag('parcours'), ['is-leg is-lock', 'Légendaire'], 'à gagner : l’étiquette sobre');
+  assert.ok(!fiche('serie3').includes('stk-rar') && !fiche('intro').includes('stk-rar'), 'un sticker ordinaire : rien');
+  assert.ok(!/stk-rar-fiche"><span[^>]*aria-hidden/.test(fiche('serie7')), 'dans la fiche, l’étiquette se lit : le texte ne la dit plus');
+  assert.ok(/<div class="stk-stage is-lock">[\s\S]*?<\/div><p class="stk-rar-fiche">/.test(fiche('parcours')), 'hors de la scène : le cadenas reste au centre du dessin');
+  assert.ok(code.includes('html.lq .stk-rar-fiche{position:relative;margin:-30px 0 18px;line-height:1;pointer-events:none}'), 'remontée dans le bas de la scène, le doigt passe au travers');
   assert.ok(!take('function stkOpen(', 'function stkClose(').includes("' · Holo'"), 'plus de « Holo » affiché');
 });
 
