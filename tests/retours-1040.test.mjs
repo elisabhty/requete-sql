@@ -85,11 +85,10 @@ test('noterAppli : l’app ouvre « Écrire un avis » ; Safari, la fiche de l�
     assert.equal(vu.info.length, 0, 'pas de mot « Bientôt »'); }
 });
 
-test('Les feuilles des widgets, dans Safari : une ligne pour dire qu’ils viennent avec l’app, et sa fiche', () => {
+test('Les feuilles des widgets, dans Safari comme dans l’app : plus de ligne sur l’app pour iPhone (7 novembre, 0 h 03, retours-0003)', () => {
   const f = cut('function wtuFeuilleHTML(k){', '\n}\n');
-  assert.ok(f.includes("const web=!(typeof appliNative==='function'&&appliNative());"), 'seulement hors de l’app');
-  assert.ok(f.includes('<p class="wtu-web">Les widgets viennent avec l’app Requête pour iPhone. <a href="${appStoreFiche()}" target="_blank" rel="noopener">Voir sur l’App Store</a></p>'), 'le texte de l’app publiée, et la fiche');
+  assert.ok(f.includes("return k==='verrou'?wtuVerrouHTML():wtuAccueilHTML();"), 'le pas-à-pas seul');
+  assert.ok(!/wtu-web|appliNative|appStoreFiche|acc-note/.test(f), 'ni la ligne, ni la fiche de l’App Store, ni la note');
   assert.doesNotMatch(f, /[Bb]ientôt|[Pp]rochainement/);
-  assert.ok(f.indexOf("k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()") < f.indexOf('wtu-web'), 'sous le pas-à-pas, avec la note');
-  assert.ok(/html\.lq \.wtu-web\{[^}]+\}/.test(lq) && /html\.lq \.wtu-web a\{[^}]+\}/.test(lq), 'son style');
+  assert.ok(!/\.wtu-(web|note|nav)\b/.test(lq), 'leurs styles sont partis');
 });

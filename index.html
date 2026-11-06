@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=189">
+<link rel="stylesheet" href="ludique.css?v=190">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=29">
 <style id="lesson-video-css">
@@ -41500,7 +41500,12 @@ if(typeof document!=='undefined'&&document.addEventListener){
    (cinq), le texte de l’étape juste dessous, « Précédent » et « Suivant ». Le geste de l’étape se rejoue tant qu’on y reste ; on
    avance à son rythme. L’écran verrouillé suit l’assistance Apple : « Personnaliser », « Écran verrouillé », « Ajouter des widgets »
    (sous l’heure, ou en bas de l’écran depuis iOS 26), « OK ». Le doigt vise les boutons mesurés dans le dessin (wtuCibles), pas des
-   positions écrites à la main. Le widget de l’écran verrouillé : RequeteFlammeVerrou (RequeteWidget.swift), en rond ou en bandeau. */
+   positions écrites à la main. Le widget de l’écran verrouillé : RequeteFlammeVerrou (RequeteWidget.swift), en rond ou en bandeau.
+   7 novembre, 0 h 03 (captures des deux feuilles) : « pour les deux widgets, ne pas mettre les suivant précédent, ne pas mettre les
+   cadres violets, supprimer la dernière phrase pour iPhone dans les deux, et il faut que du coup ça fasse étape 1 → étape 2 tout
+   seul ». Plus de « Précédent » ni de « Suivant », plus de note dans un cadre violet, plus de ligne « Les widgets viennent avec l’app
+   Requête pour iPhone » : les étapes s’enchaînent seules, comme des stories (la barre de l’étape se remplit, puis vient la suivante ;
+   après la cinquième, on repart de la première). Une barre touchée y mène, et l’enchaînement repart de là. */
 const WTU={
   accueil:{
     titre:'Widgets de l’écran d’accueil',sous:'Ta flamme du jour, d’un coup d’œil',
@@ -41511,8 +41516,7 @@ const WTU={
       'Place-le où tu veux, puis touche « OK », en haut à droite.'],
     astuces:['','Pas de « + » ? Selon ta version d’iOS, le bouton s’appelle « Modifier ».','','Le widget « Ta flamme » : ta flamme du jour et le chat.',''],
     durees:[3400,3800,4600,3800,3400],
-    cles:[.62,.62,.62,.36,.44],   // le moment de chaque geste qui le montre le mieux : l’image fixe quand on réduit les animations
-    note:'Ta flamme s’allume sur le widget dès que ta séance du jour est faite, et le chat change avec la journée.'
+    cles:[.62,.62,.62,.36,.44]   // le moment de chaque geste qui le montre le mieux : l’image fixe quand on réduit les animations
   },
   verrou:{
     titre:'Widgets de l’écran verrouillé',sous:'Ta séance du jour, sans déverrouiller',
@@ -41523,8 +41527,7 @@ const WTU={
       'Ferme la liste, puis touche « OK », en haut à droite.'],
     astuces:['Rien ne se passe ? Déverrouille d’abord avec Face ID, sans glisser vers le haut.','','Selon ton écran verrouillé, cette zone peut aussi être en bas de l’écran.','',''],
     durees:[3600,3400,2800,5200,3400],
-    cles:[.7,.44,.52,.5,.54],
-    note:'Le rond et le bandeau montrent ta flamme et ta séance du jour : « 0/1 », puis « 1/1 » quand elle est faite.'
+    cles:[.7,.44,.52,.5,.54]
   }
 };
 function wtuFait(){ try{ return !!jourActif(dstr(auj())); }catch(e){ return false; } }
@@ -41549,9 +41552,9 @@ function wtuGuideHTML(k){
   const W=WTU[k],n=W.etapes.length;
   const barres=W.etapes.map((t,i)=>`<li><button type="button" class="wtu-etape${i?'':' is-on'}" data-i="${i+1}" onclick="wtuAller('${k}',${i+1})" aria-label="Étape ${i+1} sur ${n}"${i?'':' aria-current="step"'}><b class="wtu-barre" aria-hidden="true"></b></button></li>`).join('');
   const pas=W.etapes.map((t,i)=>`<div class="wtu-pas${i?'':' is-on'}" data-i="${i+1}"${i?' aria-hidden="true"':''}><span class="wtu-num">Étape ${i+1} sur ${n}</span><p class="wtu-txt">${wtuTexteHTML(t)}</p>${W.astuces[i]?`<p class="wtu-astuce">${wtuTexteHTML(W.astuces[i])}</p>`:''}</div>`).join('');
+  /* Les étapes s’enchaînent seules : le lecteur d’écran ne les annonce que quand on en touche une (wtuAller) */
   return `<ol class="wtu-etapes" aria-label="Les étapes">${barres}</ol>
-        <div class="wtu-guide" aria-live="polite">${pas}</div>
-        <div class="wtu-nav"><button type="button" class="lq-btn-2 wtu-prec" onclick="wtuPas('${k}',-1)" disabled>Précédent</button><button type="button" class="lq-btn wtu-suiv" onclick="wtuPas('${k}',1)">Suivant</button></div>`;
+        <div class="wtu-guide" aria-live="off">${pas}</div>`;
 }
 /* Les icônes du menu du « + » (celles de l’iPhone, en trait) et de la barre d’état. */
 const WTU_ICO={
@@ -41605,11 +41608,9 @@ function wtuVerrouHTML(){
         ${wtuGuideHTML('verrou')}
       </div>`;
 }
-/* Hors de l’app (Safari sur iPhone), une ligne dit d’où viennent les widgets, avec la fiche de l’App Store. Jamais « bientôt » (Elisa,
-   11 h 12) : le texte est déjà celui de l’app publiée. */
+/* La feuille : l’iPhone dessiné et ses étapes, rien d’autre (7 novembre, 0 h 03 : ni cadre violet, ni ligne sur l’app pour iPhone). */
 function wtuFeuilleHTML(k){
-  const web=!(typeof appliNative==='function'&&appliNative());
-  return `${k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()}<p class="acc-note wtu-note">${esc(WTU[k].note)}</p>${web?`<p class="wtu-web">Les widgets viennent avec l’app Requête pour iPhone. <a href="${appStoreFiche()}" target="_blank" rel="noopener">Voir sur l’App Store</a></p>`:''}`;
+  return k==='verrou'?wtuVerrouHTML():wtuAccueilHTML();
 }
 /* Les cibles du doigt, en part de l’écran dessiné (offsetLeft / offsetTop : la place sans les transformations des animations). */
 function wtuCibles(box){
@@ -41625,7 +41626,8 @@ function wtuCibles(box){
 }
 let WTU_T=0,WTU_K='';
 function wtuStop(){ clearTimeout(WTU_T);WTU_T=0;WTU_K=''; }
-/* Une étape : son geste se joue, puis se rejoue après un temps de pause, tant que la feuille reste ouverte et qu’on y reste. */
+/* Une étape : son geste se joue, puis, après un temps de pause, vient l’étape suivante ; après la dernière, la première (7 novembre,
+   0 h 03 : « étape 1 → étape 2 tout seul »). Tant que la feuille reste ouverte. */
 function wtuJouer(k,i){
   clearTimeout(WTU_T);
   const box=document.getElementById('wtu-'+k),W=WTU[k];if(!box||!W){wtuStop();return;}
@@ -41636,24 +41638,21 @@ function wtuJouer(k,i){
   box.dataset.step=String(i);box.style.setProperty('--wtu-d',W.durees[i-1]+'ms');box.style.setProperty('--wtu-cle',String(W.cles[i-1]));
   box.querySelectorAll('.wtu-etape').forEach(b=>{const j=+b.dataset.i,on=j===i;b.classList.toggle('is-on',on);b.classList.toggle('is-fait',j<i);if(on)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});
   box.querySelectorAll('.wtu-pas').forEach(p=>{const on=+p.dataset.i===i;p.classList.toggle('is-on',on);if(on)p.removeAttribute('aria-hidden');else p.setAttribute('aria-hidden','true');});
-  const prec=box.querySelector('.wtu-prec'),suiv=box.querySelector('.wtu-suiv');
-  if(prec)prec.disabled=i===1;
-  if(suiv)suiv.textContent=i===n?'Revoir depuis le début':'Suivant';
-  WTU_T=setTimeout(()=>{ const d=box.closest('details'); if(!d||!d.open||!document.body.contains(box)){wtuStop();return;} wtuJouer(k,i); },W.durees[i-1]+1200);
+  const suite=i===n?1:i+1;
+  WTU_T=setTimeout(()=>{ const d=box.closest('details'); if(!d||!d.open||!document.body.contains(box)){wtuStop();return;} wtuJouer(k,suite); },W.durees[i-1]+(i===n?1800:1200));
 }
-function wtuAller(k,i){ if(typeof buzz==='function')buzz('selection'); wtuJouer(k,i); }
-/* « Précédent » et « Suivant » ; après la dernière étape, on revient à la première. */
-function wtuPas(k,d){
-  const box=document.getElementById('wtu-'+k),W=WTU[k];if(!box||!W)return;
-  const n=W.etapes.length,i=+box.dataset.step||1;
-  wtuAller(k,d>0&&i===n?1:Math.max(1,Math.min(n,i+d)));
+/* Une barre touchée : son étape tout de suite, annoncée au lecteur d’écran ; l’enchaînement repart de là. */
+function wtuAller(k,i){
+  if(typeof buzz==='function')buzz('selection');
+  const g=document.getElementById('wtu-'+k)?.querySelector('.wtu-guide');if(g)g.setAttribute('aria-live','polite');
+  wtuJouer(k,i);
 }
 /* Un toucher sur l’iPhone dessiné rejoue le geste de l’étape. */
 function wtuRejouer(k){ const box=document.getElementById('wtu-'+k); if(box)wtuJouer(k,+box.dataset.step||1); }
 /* La feuille s’ouvre : le pas-à-pas part de la première étape ; elle se ferme : il s’arrête. */
 function wtuToggle(el){
   const k=el&&el.id==='plus-widget-verrou'?'verrou':'accueil';
-  if(el&&el.open)requestAnimationFrame(()=>wtuJouer(k,1));
+  if(el&&el.open){ const g=document.getElementById('wtu-'+k)?.querySelector('.wtu-guide');if(g)g.setAttribute('aria-live','off'); requestAnimationFrame(()=>wtuJouer(k,1)); }
   else if(WTU_K===k)wtuStop();
 }
 /* ---------- La Dynamic Island : la leçon en cours ----------
@@ -44639,7 +44638,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-onboarding-calme-v2602';
+  const SW_CACHE='requete-2026-11-07-widgets-auto-v2603';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
