@@ -234,7 +234,17 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 - **Statistiques des défis** (savoir quand en ajouter) : dans le tableau de bord Supabase, Table Editor, les vues
   `stats_defis_resume` (en une ligne : joueurs, moyenne, combien ont tout fini, par niveau), `stats_defis_joueurs`
   (un joueur par ligne) et `stats_defis_par_defi` (combien de joueurs ont réussi chaque défi). Rien n’est lisible
-  depuis l’appli.
+  depuis l’appli. Depuis le 6 novembre, le serveur note aussi les défis **joués** (`requete_private.defi_joue`, pour
+  chaque joueur du classement) : `stats_defis_joues` (un joueur par ligne : joués, trouvés, faits sur le total et
+  restants par niveau) et `stats_defis_restants` (une ligne par niveau : ce qu’il reste au joueur le plus avancé,
+  combien de joueurs en ont moins de 10). À chaque manche, le serveur tire un défi qu’aucun joueur présent n’a joué
+  ni trouvé (`requete_private.defi_tirer`).
+- **Ajouter des défis** : les écrire dans index.html (CHALLENGES, DEFI_BASES), monter `JEU_CAT` (la version du
+  catalogue que l’appli connaît), lancer `node scripts/build-secure-catalog.cjs`, pousser ; mettre ce commit dans les
+  deux imports de `supabase/functions/jeu-verifier/index.ts`, redéployer jeu-verifier (seuls index.ts et deno.json
+  partent), puis ajouter les nouveaux identifiants à `requete_private.catalogue` avec `depuis` = la nouvelle version
+  (exemple : `supabase/migrations/20261106152605_defis_sept_bases.sql`). Le serveur ne tire un défi que si tous les
+  téléphones de la salle le connaissent.
 - **Règle 1.2 (contenu créé par les utilisateurs)** : les pseudos sont filtrés (appli et serveur, jeu_pseudo_ok),
   chaque ligne du classement a « Signaler » (le joueur est aussitôt masqué pour soi ; 3 signalements le masquent
   pour tous), « Contacte-nous » dans l’app (l’adresse du site reste à remplir : `CONTACT_EMAIL` dans decouvrir/index.html). À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de

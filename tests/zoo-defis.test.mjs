@@ -20,7 +20,7 @@ const base = () => { const db = new SQL.Database(); db.run(seed); return db; };
 const challenge = id => zoo.find(c => c.id === id);
 
 test('le Zoo a dix défis par niveau, du Facile 1 au Difficile 10', () => {
-  assert.equal(challenges.length, 267);
+  assert.equal(challenges.length, 477);
   assert.equal(zoo.length, 30);
   const niveau = { f: 0, m: 1, d: 2 };
   const tries = [...zoo].sort((a, b) => niveau[a.niv] - niveau[b.niv] || Number(a.id.slice(2)) - Number(b.id.slice(2)));

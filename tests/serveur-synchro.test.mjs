@@ -33,3 +33,24 @@ test('le catalogue du serveur a les solutions de l’appli', async () => {
     assert.equal(s.base, c.base, `${c.id} : base différente`);
   }
 });
+
+/* 6 novembre : jeu-verifier ne part plus avec ses gros fichiers (le catalogue de 477 défis ne tenait plus dans un envoi). index.ts
+   les prend dans le dépôt public, figés à un commit (raw.githubusercontent.com) : ce commit doit avoir exactement les fichiers du
+   dépôt, sinon le serveur vérifie avec un autre catalogue que l’appli. Après un changement : pousser, mettre le commit dans
+   index.ts, redéployer. */
+test('jeu-verifier : index.ts prend le catalogue et le moteur au commit qui a les mêmes fichiers que le dépôt', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const idx = lire('supabase/functions/jeu-verifier/index.ts');
+  const imports = [...idx.matchAll(/from 'https:\/\/raw\.githubusercontent\.com\/elisabhty\/requete-sql\/([0-9a-f]{40})\/supabase\/functions\/jeu-verifier\/([\w.-]+)'/g)];
+  assert.deepEqual(imports.map(m => m[2]), ['catalog.json', 'verifier.mjs'], 'le catalogue et le vérificateur, rien d’autre de distant');
+  assert.equal(new Set(imports.map(m => m[1])).size, 1, 'un seul commit pour les deux');
+  assert.ok(idx.includes("/catalog.json' with {type:'json'};"), 'le catalogue en module JSON');
+  assert.ok(!/from '\.\//.test(idx), 'plus d’import local : le déploiement n’envoie que index.ts et deno.json');
+  const sha = imports[0][1];
+  for (const f of ['catalog.json', 'verifier.mjs', 'sqlite.mjs', 'sql-compat.mjs', 'matcher.mjs']) {
+    let fige;
+    try { fige = execFileSync('git', ['-C', root, 'show', `${sha}:supabase/functions/jeu-verifier/${f}`], { encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { assert.fail(`le commit ${sha.slice(0, 7)} est introuvable ici (git fetch) : ${f}`); }
+    assert.equal(fige, lire(`supabase/functions/jeu-verifier/${f}`), `${f} a changé depuis le commit ${sha.slice(0, 7)} : pousser, mettre le nouveau commit dans index.ts, redéployer jeu-verifier`);
+  }
+});

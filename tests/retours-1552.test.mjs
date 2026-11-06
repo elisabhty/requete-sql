@@ -191,6 +191,7 @@ test('la base : jeu_defis ne crée personne, vérifie ce qu’elle reçoit ; tro
   assert.match(sql, /count\(\*\) filter \(where total > 0 and n >= total\) as ont_tout_fini/);
   /* Dit dans les textes de confidentialité (site et appli) */
   /* 17 h 53 : un défi se rejoue, on ne parle plus de défis « réussis » */
-  assert.ok(priv.includes('La liste des défis que tu as déjà trouvés l’accompagne (jamais tes requêtes)'));
-  assert.equal(app.split('La liste des défis que tu as déjà trouvés l’accompagne, sans être montrée à personne').length - 1, 2);
+  /* 6 novembre, 15 h 20 : le serveur garde aussi les défis joués, pour ne plus les tirer (retours-1520-pratiquer) */
+  assert.ok(priv.includes('La liste des défis que tu as déjà joués et trouvés l’accompagne (jamais tes requêtes)&nbsp;: elle n’est montrée à personne et nous sert seulement à ne plus te les tirer au sort, à toi comme à ceux qui jouent avec toi,'));
+  assert.equal(app.split('La liste des défis que tu as déjà joués et trouvés l’accompagne, sans être montrée à personne&nbsp;: elle évite de te les tirer au sort à nouveau, à toi comme à ceux qui jouent avec toi,').length - 1, 2);
 });

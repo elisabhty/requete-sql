@@ -23,8 +23,11 @@ const SPORT = DEFIS.filter(c => c.base === 'salle_sport');
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
 
-test('les défis comptent 57 Aéroport et sept bases de 30 défis', () => {
-  assert.equal(DEFIS.length, 267);
+test('les défis comptent 57 Aéroport et quatorze bases de 30 défis', () => {
+  /* 6 novembre : les sept bases ajoutées (station de ski, food truck, aquarium, vélos, ferme apicole, escape game, festival) */
+  assert.equal(DEFIS.length, 477);
+  for (const b of ['ski', 'foodtruck', 'aquarium', 'velos', 'apiculture', 'escape', 'festival'])
+    assert.deepEqual(['f', 'm', 'd'].map(n => DEFIS.filter(c => c.base === b && c.niv === n).length), [10, 10, 10], b);
   assert.equal(AERO.length, 57);
   assert.equal(DEFIS.filter(c => c.base === 'hopital').length, 30);
   assert.equal(WOK.length, 30);
@@ -44,7 +47,7 @@ test('les défis comptent 57 Aéroport et sept bases de 30 défis', () => {
     ...Array.from({ length: 10 }, (_, i) => 'zd' + (i + 1)),
   ]);
   for (const c of DEFIS) {
-    assert.ok(['aeroport', 'hopital', 'wok', 'fromagerie', 'voyages', 'labo', 'zoo', 'salle_sport'].includes(c.base), c.id);
+    assert.ok(['aeroport', 'hopital', 'wok', 'fromagerie', 'voyages', 'labo', 'zoo', 'salle_sport', 'ski', 'foodtruck', 'aquarium', 'velos', 'apiculture', 'escape', 'festival'].includes(c.base), c.id);
     assert.equal(c.niv, ({ f: 'f', m: 'm', d: 'd' })[c.id[1]], c.id);
     assert.ok((c.situation && c.affiche.length) && c.indice && c.sol && c.titre && Number.isInteger(c.apres), c.id);
   }

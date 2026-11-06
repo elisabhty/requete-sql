@@ -21,7 +21,7 @@ test('les huit défis refaits reviennent dans les salles : le serveur a leur nou
     assert.ok(ids.includes(id), id + ' : tiré en salle');
     assert.equal(vm.runInContext(`jeuEligible(CHALLENGES.find(c=>c.id==='${id}'))`, ctx), true, id);
   }
-  assert.equal(ids.length, 267);
+  assert.equal(ids.length, 477);   // 6 novembre : 267, puis les 210 des sept bases ajoutées
   for (const id of HUIT) assert.equal(catalog.challenges.find(c => c.id === id).sol, vm.runInContext(`CHALLENGES.find(c=>c.id==='${id}').sol`, ctx), id + ' : le catalogue du serveur a la nouvelle solution');
 });
 

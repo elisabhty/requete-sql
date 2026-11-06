@@ -10,8 +10,8 @@ const D = JSON.parse(JSON.stringify(vm.runInNewContext(app.slice(app.indexOf('co
 const defi = id => D.find(c => c.id === id);
 const texte = c => [c.titre, c.situation, ...c.affiche, ...c.garde, c.tri || '', ...c.precis].join(' ');
 
-test('les 267 défis : chaque point se lit après son verbe, la piste donne le raisonnement sans la requête', () => {
-  assert.equal(D.length, 267);
+test('les 477 défis : chaque point se lit après son verbe, la piste donne le raisonnement sans la requête', () => {
+  assert.equal(D.length, 477);   // 6 novembre : les 210 des sept bases ajoutées suivent les mêmes règles
   for (const c of D) {
     assert.doesNotMatch(c.titre, /\b[A-Z_]{3,}\s*\(\s*\)/, c.id + ' : pas de fonction SQL dans le titre, la notion va dans la piste');
     for (const t of [...c.affiche, ...c.garde]) assert.match(t, /^[a-zàâçéèêîïôûœ0-9«(]/, `${c.id} : « Affiche … », « Garde … » se lisent à la suite du verbe (${t})`);
