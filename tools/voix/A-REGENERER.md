@@ -32,6 +32,16 @@ cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours v
 
   Puis dire « fini » à Claude, qui les intègre : `node tools/voix/integrer-site.mjs tools/voix/sortie/video-site-retouches` (les quinze autres phrases et la musique restent) et, pour chaque cours retouché, `node tools/voix/integrer.mjs <cours> tools/voix/sortie/<cours>-retouches --garder` (les autres fichiers du cours restent ; les légendes et les consignes changent avec leur voix). MERGE, Procédures et INSERT … SELECT passent à Anaïs avec les 17 autres cours (voir ci-dessous) ; en attendant, l’appli garde leurs voix d’avant, sans les phrases retirées. **Ne pas lancer `video-site`, `projet-index`, ni `--toutes` sans `--cours`** : le Mac n’a pas les fichiers d’origine de la plupart des cours, toute leur voix serait refaite.
 
+**6 novembre, 21 h 30 : les moments expliqués avant d’être posés** (décision d’Elisa, 21 h 05 : « Expliquer avant le moment »). Pour 12 moments (dans 11 cours), la vidéo donne d’abord ce qu’il faut savoir, dans la légende juste avant ou dans la consigne : DISTINCT (sa place), AND et OR (les parenthèses), INNER JOIN (ON), SELF JOIN (le signe <>), NTILE (la ligne en plus), fenêtres glissantes (le cadre par défaut), UML (les multiplicités, 2 moments), CREATE TABLE (le type DATE), les droits (GRANT … TO, REVOKE … FROM), et, avec la voix d’Anaïs, IN (le signe = devant une sous-requête) et les transactions (COMMIT et ROLLBACK). Les retouches s’appellent `tools/voix/<cours>-moments.json` ; la page garde ses textes jusqu’à l’intégration. LIKE et Comparer ne changent pas : le moment de LIKE montre le résultat à chaque essai, et la carte des six opérateurs de Comparer dit déjà ce que veut dire `!=`.
+
+  La deuxième commande, environ 3 000 crédits (elle peut suivre la première, ou partir en même temps) :
+
+```
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours sous-requete-in,projet-transaction,distinct-moments,and-or-moments,inner-join-moments,self-join-moments,first-last-ntile-moments,fenetres-glissantes-moments,projet-uml-moments,projet-create-moments,projet-droits-moments --oui
+```
+
+  Puis « fini » : `node tools/voix/integrer.mjs <cours> tools/voix/sortie/<cours>-moments --garder` pour chacun ; IN et les transactions passent à Anaïs avec les 18 autres cours.
+
 Déjà corrigé sans régénérer : les 60 débuts de phrase coupés (tables VOICE, et la cause dans `integrer.mjs`), le « Bravo » final trop fort (27 cours, ramené au niveau de leur cours) et, le 6 novembre, le volume de toutes les voix (1 089 fichiers ramenés au niveau de leur cours et des premiers cours, sans réencodage : `tools/voix/volume.mjs`, que `integrer.mjs` applique aussi à chaque nouvelle voix).
 
 **5 novembre, 0 h 38 : les 20 cours de Miya (Mia), Emily, Coralie (Koraly), Arthur et Sam passent à la voix d’Anaïs** et sont refaits en entier, avec les règles de prononciation d’aujourd’hui, ainsi qu’un chapitre de GROUP BY (Antoine) qui ne nomme plus SQLite et, à 6 h 37, la phrase de la vidéo du site « animés par huit formateurs » (Louis, au lieu d’« une dizaine ») : environ 68 600 crédits.

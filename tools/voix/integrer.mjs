@@ -37,12 +37,14 @@ const vkey = vm.runInContext('vkey', ctx);
 
 /* Les légendes de la page, telles que l’app les voit (APP). */
 let page = fs.readFileSync(PAGE, 'utf8');
-/* Les retouches (tools/voix/<cours>-retouches.json, intégrées avec --garder depuis tools/voix/sortie/<cours>-retouches) : les légendes
+/* Les retouches (tools/voix/<cours>-retouches.json, intégrées avec --garder depuis tools/voix/sortie/<cours>-retouches ; de même
+   <cours>-moments) : les légendes
    (legendes) et les textes dits de la page (remplacements : une consigne « À toi ») qui changent avec leur voix sont posés ici, au
    moment où la voix refaite arrive, jamais avant : jusque-là, la page garde ses textes et la voix qui les dit (Elisa, 6 novembre,
    19 h 56 : « il faut que le son reste homogène »). Chaque texte doit s’y trouver une fois, ou être déjà posé. */
-const RET_F = path.join(DIR, cours + '-retouches.json');
-const RET = GARDER && path.basename(RAW) === cours + '-retouches' && fs.existsSync(RET_F) ? JSON.parse(fs.readFileSync(RET_F, 'utf8')) : null;
+/* Le nom du dossier dit la retouche : <cours>-retouches, <cours>-moments (6 novembre, 21 h 05 : la vidéo explique avant le moment)… */
+const RET_F = path.join(DIR, path.basename(RAW) + '.json');
+const RET = GARDER && path.basename(RAW).startsWith(cours + '-') && fs.existsSync(RET_F) ? JSON.parse(fs.readFileSync(RET_F, 'utf8')) : null;
 for (const [a, b] of RET ? [].concat(RET.legendes || [], RET.remplacements || []) : []) {
   const n = page.split(a).length - 1;
   if (n === 1) page = page.replace(a, () => b);
