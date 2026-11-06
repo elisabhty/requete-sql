@@ -622,4 +622,214 @@ export const DONNEES = {
     ex: [{ cols: [0, 1], lignes: r => r[0] !== 'JSON_EXTRACT(…)', sql: `SELECT '->', data -> '$.nom' FROM animaux_json WHERE id = 1 UNION ALL SELECT '->>', data ->> '$.nom' FROM animaux_json WHERE id = 1` }],
     verif: ({ rows }) => (rows[0][1] === rows[1][1] ? null : 'JSON_EXTRACT et -> ne renvoient pas la même valeur'),
   },
+  'ent-v2-61': {
+    u: 'compagnie aérienne',
+    avant: `CREATE TABLE passagers_json (id INTEGER PRIMARY KEY, data TEXT);
+      INSERT INTO passagers_json VALUES (1, '{"nom": "Inès", "bagage": {"poids": 23}, "vols": [101, 102, 103]}');`,
+    autres: [0, 1, 2],
+    /* Les équivalents SQLite de JSON_VALUE, JSON_QUERY et OPENJSON donnent les mêmes valeurs. */
+    ex: [{ sql: `SELECT 'JSON_VALUE', json_extract(data, '$.nom') FROM passagers_json
+      UNION ALL SELECT 'JSON_QUERY', json_extract(data, '$.bagage') FROM passagers_json
+      UNION ALL SELECT 'OPENJSON', (SELECT GROUP_CONCAT(value, ' · ') FROM json_each(p.data, '$.vols')) FROM passagers_json p` }],
+  },
+  'ent-v2-62': {
+    u: 'service d’urgences',
+    avant: `CREATE TABLE passages (id INTEGER PRIMARY KEY, patient_id INTEGER, arrivee TEXT);
+      INSERT INTO passages VALUES (1, 10, '2026-03-01 08:10'), (2, 7, '2026-03-01 09:30'), (3, 10, '2026-03-04 22:45');`,
+    autres: [1],
+    exLibre: 'les éléments de la sortie d’EXPLAIN ANALYZE de PostgreSQL, que SQLite n’a pas',
+  },
+  'ent-v2-63': {
+    u: 'bibliothèque',
+    avant: `CREATE TABLE livres (id INTEGER PRIMARY KEY, titre TEXT, auteur TEXT, disponible INTEGER);
+      INSERT INTO livres VALUES (1, 'Les Misérables', 'Hugo', 1), (2, 'Germinal', 'Zola', 1), (3, 'Nana', 'Zola', 0), (4, 'Notre-Dame de Paris', 'HUGO', 1);`,
+    verif: ({ ouvrir, db, rows }) => {
+      const plan = (b, s) => b.exec('EXPLAIN QUERY PLAN ' + s)[0].values.map(v => v[3]).join(' ');
+      const b = ouvrir(); b.exec('CREATE INDEX idx_livres_auteur ON livres(auteur)');
+      const vu = ["SELECT * FROM livres WHERE auteur = 'Hugo'", "SELECT * FROM livres WHERE UPPER(auteur) = 'HUGO'", 'SELECT * FROM livres WHERE disponible = 1']
+        .map(s => plan(b, s).split(' ')[0]);
+      b.close();
+      if (JSON.stringify(vu) !== JSON.stringify(rows.map(r => r[1]))) return `plans : ${vu.join(', ')}`;
+      const apres = plan(db, "SELECT * FROM livres WHERE UPPER(auteur) = 'HUGO'");
+      if (!/^SEARCH livres USING INDEX idx_livres_auteur_upper/.test(apres)) return `avec l’index sur l’expression : ${apres}`;
+      const n = db.exec("SELECT COUNT(*) FROM livres WHERE UPPER(auteur) = 'HUGO'")[0].values[0][0];
+      return n === 2 ? null : `UPPER(auteur) = 'HUGO' trouve ${n} livres`;
+    },
+  },
+  'ent-v2-64': {
+    u: 'festival de musique',
+    avant: `CREATE TABLE festivaliers (id INTEGER PRIMARY KEY, nom TEXT, email TEXT, pass TEXT);
+      WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 1000)
+      INSERT INTO festivaliers SELECT i, 'Festivalier ' || i, CASE WHEN i = 1 THEN 'jade@mail.fr' ELSE 'f' || i || '@mail.fr' END,
+        CASE WHEN i % 2 = 0 THEN '3 jours' ELSE '1 jour' END FROM n;`,
+    res: { 0: { cols: [2], rows: [['jade@mail.fr']] } },
+    ex: [{ sql: `SELECT 'email', COUNT(DISTINCT email), (SELECT COUNT(*) FROM festivaliers WHERE email = 'jade@mail.fr') FROM festivaliers
+      UNION ALL SELECT 'pass', COUNT(DISTINCT pass) || ' (1 jour, 3 jours)', (SELECT COUNT(*) FROM festivaliers WHERE pass = '3 jours') FROM festivaliers` }],
+    verif: ({ resultats }) => (resultats[1].values.length === 500 ? null : `pass 3 jours : ${resultats[1].values.length} lignes`),
+  },
+  'ent-v2-65': {
+    u: 'cinéma',
+    autres: [0],
+    exLibre: 'les anomalies que chaque niveau d’isolation laisse passer, d’après le standard',
+  },
+  'ent-v2-66': {
+    u: 'banque', garde: true, sessions: true,
+    avant: `CREATE TABLE comptes (id INTEGER PRIMARY KEY, solde NUMERIC);
+      INSERT INTO comptes VALUES (1, 500), (2, 200);`,
+    exLibre: 'deux sessions qui s’attendent l’une l’autre : une base sql.js n’a qu’une connexion, chaque session est jouée à part',
+  },
+  'ent-v2-67': {
+    u: 'banque', garde: true, sessions: true,
+    avant: `CREATE TABLE comptes (id INTEGER PRIMARY KEY, solde NUMERIC);
+      INSERT INTO comptes VALUES (1, 1000);`,
+    /* SET TRANSACTION ISOLATION LEVEL n’existe pas dans SQLite, qui ne fait pas de lecture sale. */
+    erreurs: [2],
+    exLibre: 'deux transactions en parallèle : une base sql.js n’a qu’une connexion, chaque session est jouée à part',
+    verif: ({ db }) => (db.exec('SELECT solde FROM comptes WHERE id = 1')[0].values[0][0] === 1000 ? null : 'après le ROLLBACK, le solde n’est plus 1000'),
+  },
+  'ent-v2-68': {
+    u: 'musée',
+    avant: `CREATE TABLE oeuvres (id INTEGER PRIMARY KEY, titre TEXT, salle TEXT);
+      INSERT INTO oeuvres VALUES (1, 'La Pie', 'Salle 2'), (2, 'Les Meules', 'Salle 5');
+      CREATE TABLE inventaire (id INTEGER PRIMARY KEY, titre TEXT, salle TEXT);
+      INSERT INTO inventaire VALUES (2, 'Les Meules', 'Réserve'), (3, 'L’Absinthe', 'Salle 1');`,
+    autres: [0],
+    ex: [{ sql: `SELECT COALESCE(o.id, i.id), COALESCE(o.salle, '—'), COALESCE(i.salle, '—'),
+        CASE WHEN o.id IS NULL THEN 'INSERT' WHEN i.id IS NULL THEN 'aucune' ELSE 'UPDATE' END
+      FROM oeuvres o FULL OUTER JOIN inventaire i ON i.id = o.id ORDER BY 1` }],
+    /* Le même effet que MERGE, écrit en SQLite : la cible finale garde l’œuvre 1, met à jour la 2, ajoute la 3. */
+    verif: ({ db }) => {
+      db.exec('INSERT INTO oeuvres (id, titre, salle) SELECT id, titre, salle FROM inventaire WHERE true ON CONFLICT (id) DO UPDATE SET salle = excluded.salle');
+      const r = db.exec('SELECT id, salle FROM oeuvres ORDER BY id')[0].values.map(v => v.join(' ')).join(', ');
+      return r === '1 Salle 2, 2 Réserve, 3 Salle 1' ? null : `après la synchronisation : ${r}`;
+    },
+  },
+  'ent-v2-69': {
+    u: 'food truck',
+    avant: `CREATE TABLE tickets (id INTEGER PRIMARY KEY, statut TEXT);
+      INSERT INTO tickets VALUES (1, 'payé'), (2, 'servi'), (3, 'payé');
+      CREATE TABLE plats (id INTEGER PRIMARY KEY, nom TEXT, prix NUMERIC);
+      INSERT INTO plats VALUES (1, 'Classique', 12), (2, 'César', 9.5);`,
+    autres: [0, 1, 2, 3],
+    exLibre: 'un tableau de notions (procédure et fonction)',
+    /* Le corps des deux traitements, lui, s’exécute aussi dans SQLite. */
+    verif: ({ db }) => {
+      db.exec("UPDATE tickets SET statut = 'servi' WHERE statut = 'payé'");
+      const n = db.exec("SELECT COUNT(*) FROM tickets WHERE statut = 'servi'")[0].values[0][0];
+      const ttc = db.exec('SELECT ROUND(12 * 1.1, 2)')[0].values[0][0];
+      return n === 3 && ttc === 13.2 ? null : `après la clôture : ${n} tickets servis, TTC ${ttc}`;
+    },
+  },
+  'ent-v2-70': {
+    u: 'station de ski',
+    avant: `CREATE TABLE forfaits (id INTEGER PRIMARY KEY, nom TEXT, prix INTEGER);
+      INSERT INTO forfaits VALUES (1, 'Journée', 45), (2, 'Matin', 25);
+      CREATE TABLE historique_tarifs (forfait_id INTEGER, ancien INTEGER, nouveau INTEGER);`,
+    verif: ({ db, rows, cellule }) => {
+      db.exec("UPDATE forfaits SET prix = 27 WHERE id = 2; UPDATE forfaits SET prix = 47 WHERE id = 1; UPDATE forfaits SET nom = 'Journée ski' WHERE id = 1;");
+      const vu = db.exec('SELECT forfait_id, ancien, nouveau FROM historique_tarifs ORDER BY rowid')[0].values.map(r => r.map(cellule).join(' | '));
+      return JSON.stringify(vu) === JSON.stringify(rows.map(r => r.map(cellule).join(' | '))) ? null : `historique : ${vu.join(' ; ')}`;
+    },
+  },
+  'ent-v2-71': {
+    u: 'plateforme de musique',
+    avant: `CREATE TABLE abonnements (id INTEGER PRIMARY KEY, date_paiement TEXT, montant NUMERIC);
+      INSERT INTO abonnements VALUES (1, '2026-06-03', 50), (2, '2026-06-18', 100), (3, '2026-05-30', 70);`,
+    autres: [1, 2],
+    /* La vue matérialisée de PostgreSQL, imitée par une table copiée : elle garde le résultat jusqu’à ce qu’on la recrée. */
+    verif: ({ db, rows, cellule }) => {
+      const lire = t => db.exec(`SELECT recette FROM ${t} WHERE mois = '2026-06'`)[0].values[0][0];
+      db.exec('CREATE TABLE mv AS SELECT * FROM recettes_mensuelles');
+      const avant = [lire('recettes_mensuelles'), lire('mv')];
+      db.exec("INSERT INTO abonnements VALUES (4, '2026-06-25', 30)");
+      const apres = [lire('recettes_mensuelles'), lire('mv')];
+      db.exec('DROP TABLE mv; CREATE TABLE mv AS SELECT * FROM recettes_mensuelles');
+      const vu = [avant, apres, [lire('recettes_mensuelles'), lire('mv')]].map(r => r.map(cellule));
+      return JSON.stringify(vu) === JSON.stringify(rows.map(r => [cellule(r[1]), cellule(r[2])])) ? null : `recettes : ${JSON.stringify(vu)}`;
+    },
+  },
+  'ent-v2-72': {
+    u: 'camping',
+    avant: `CREATE TABLE sejours (id INTEGER PRIMARY KEY, campeur TEXT);
+      INSERT INTO sejours VALUES (1, 'Janssens');
+      CREATE TABLE lignes_sejour (id INTEGER PRIMARY KEY, sejour_id INTEGER REFERENCES sejours(id), libelle TEXT, quantite INTEGER, prix NUMERIC);
+      INSERT INTO lignes_sejour VALUES (1, 1, 'Emplacement', 3, 20), (2, 1, 'Électricité', 3, 5);`,
+    ex: [{ rcols: [1, 2, 3, 4], sql: `SELECT 1 k, libelle, quantite, prix, quantite * prix, id FROM lignes_sejour WHERE sejour_id = 1
+      UNION ALL SELECT 2, 'Total stocké', '', '', total, 0 FROM sejours WHERE id = 1 ORDER BY k, 6` }],
+  },
+  'ent-v2-73': {
+    u: 'auto-école',
+    avant: `CREATE TABLE eleves (id INTEGER PRIMARY KEY, nom TEXT);
+      INSERT INTO eleves VALUES (1, 'Lemaire'), (2, 'N''Diaye'), (3, 'Roussel');`,
+    res: { 0: [['1', 'Lemaire'], ['2', "N'Diaye"], ['3', 'Roussel']], 1: [] },
+    /* La saisie collée dans la requête, puis passée en paramètre. */
+    verif: ({ db, rows }) => {
+      const colle = saisie => { try { return String(db.exec(`SELECT COUNT(*) FROM eleves WHERE nom = '${saisie}'`)[0].values[0][0]); } catch (e) { return 'erreur'; } };
+      const param = saisie => { const st = db.prepare('SELECT COUNT(*) FROM eleves WHERE nom = ?'); st.bind([saisie]); st.step(); const n = st.get()[0]; st.free(); return String(n); };
+      for (const r of rows) {
+        const c = colle(r[0]), p = param(r[0]);
+        if ((c === 'erreur' ? 'erreur SQL' : c) !== (r[1] === 'erreur SQL' ? 'erreur SQL' : String(parseInt(r[1], 10))) || p !== String(parseInt(r[2], 10))) return `saisie ${r[0]} : ${c} / ${p}`;
+      }
+      return null;
+    },
+  },
+  'ent-v2-74': {
+    u: 'bibliothèque',
+    avant: `CREATE TABLE livres (id INTEGER PRIMARY KEY, titre TEXT);
+      WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 100) INSERT INTO livres SELECT i, 'Livre ' || i FROM n;`,
+    autres: [1],
+    res: { 0: { cols: [0], rows: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30].map(String).map(x => [x]) }, 1: { cols: [0], rows: [31, 32, 33, 34, 35, 36, 37, 38, 39, 40].map(String).map(x => [x]) } },
+    verif: ({ db, rows }) => {
+      for (const r of rows) {
+        const [a, b] = db.exec(`SELECT MIN(id), MAX(id) FROM (SELECT id FROM livres ORDER BY id LIMIT 10 OFFSET ${+r[1]})`)[0].values[0];
+        if (`${a} à ${b}` !== r[2].replace(/ /g, ' ') || +r[1] !== (+r[0] - 1) * 10) return `page ${r[0]} : ${a} à ${b}`;
+      }
+      return null;
+    },
+  },
+  'ent-v2-75': {
+    u: 'entreprise', garde: true,
+    avant: `CREATE TABLE employes (id INTEGER PRIMARY KEY, nom TEXT, salaire INTEGER);
+      INSERT INTO employes VALUES (1, 'Hugo', 5000), (2, 'Léa', 5000), (3, 'Sara', 4200), (4, 'Tom', 3800);`,
+    res: { 0: [['4200']] },
+    ex: [{ sql: `SELECT nom, salaire, DENSE_RANK() OVER (ORDER BY salaire DESC), ROW_NUMBER() OVER (ORDER BY salaire DESC, id)
+      FROM employes ORDER BY salaire DESC, id` }],
+  },
+  'ent-v2-76': {
+    u: 'aquarium',
+    res: { 2: [['Bulle']] },
+    exLibre: 'les instructions de base et leur rôle',
+  },
+  'ent-v2-77': {
+    u: 'bibliothèque',
+    avant: `CREATE TABLE lecteurs (id INTEGER PRIMARY KEY, nom TEXT, ville TEXT);
+      INSERT INTO lecteurs VALUES (1, 'Clara Viguier', 'Rouen'), (2, 'Omar Haddad', 'Caen');
+      CREATE TABLE livres (id INTEGER PRIMARY KEY, titre TEXT, auteur TEXT);
+      INSERT INTO livres VALUES (1, 'Dune', 'Herbert'), (2, 'Nana', 'Zola');
+      CREATE TABLE emprunts (id INTEGER PRIMARY KEY, lecteur_id INTEGER REFERENCES lecteurs(id), livre_id INTEGER REFERENCES livres(id), date_emprunt TEXT);
+      INSERT INTO emprunts VALUES (101, 1, 1, '2026-03-02'), (102, 1, 2, '2026-03-09'), (103, 2, 1, '2026-03-11');`,
+    res: { 0: [['101', 'Clara Viguier', 'Dune'], ['102', 'Clara Viguier', 'Nana'], ['103', 'Omar Haddad', 'Dune']] },
+    ex: [{ instr: 0 }],
+    verif: ({ db }) => { try { db.exec("INSERT INTO emprunts VALUES (104, 9, 1, '2026-03-12')"); return 'un emprunt pour un lecteur inconnu est accepté'; } catch (e) { return null; } },
+  },
+  'ent-v2-78': {
+    u: 'jardin partagé',
+    avant: `CREATE TABLE jardiniers (id INTEGER PRIMARY KEY, nom TEXT, parcelle TEXT);
+      INSERT INTO jardiniers VALUES (1, 'Arnaud', 'A3'), (2, 'Bérénice', 'B1'), (3, 'Cyril', 'C2');`,
+    res: { 0: [['Arnaud', 'A3']], 1: [['A3'], ['B1'], ['C2']] },
+    ex: [{ sql: 'SELECT id, nom, parcelle FROM jardiniers ORDER BY id' }],
+  },
+  'ent-v2-79': {
+    u: 'club de sport',
+    autres: [2, 3],
+    res: { 2: [['Jeanne Royer', 'Rennes']] },
+    exLibre: 'les familles d’instructions (DDL, DML, DCL)',
+  },
+  'ent-v2-80': {
+    u: 'cinéma',
+    avant: `CREATE TABLE films (id INTEGER PRIMARY KEY, titre TEXT, genre TEXT);
+      INSERT INTO films VALUES (1, 'Pompon', 'Animation'), (2, 'Le Phare', 'Animation'), (3, 'La Fugue', 'Drame'), (4, 'Vertiges', 'Thriller');`,
+    ex: [{ sql: 'SELECT titre, genre, reduction FROM films ORDER BY id' }],
+    verif: ({ db }) => (db.exec('SELECT COUNT(*) FROM films WHERE reduction = 20')[0].values[0][0] === 2 ? null : 'l’UPDATE ne modifie pas 2 lignes'),
+  },
 };

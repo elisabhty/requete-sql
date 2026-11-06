@@ -94,7 +94,7 @@ const ligne = r => r.map(cellule).join(' | ');
 
 /* Exécute l’exemple d’une question. Renvoie la liste des problèmes (vide si tout est juste) et ce qui a été exécuté. */
 export function verifierQuestion(SQL, q, d) {
-  const pbs = [], journal = [];
+  const pbs = [], journal = [], ouvertes = [];
   const db = new SQL.Database();
   try {
     if (d.fk !== false) db.run('PRAGMA foreign_keys = ON');
@@ -108,9 +108,19 @@ export function verifierQuestion(SQL, q, d) {
     }
     const liste = aExecuter(q.sql, d.autres);
     const resultats = [];
+    /* Deux sessions en parallèle (« -- Session A », « -- Session B ») : chacune a sa base, avec les mêmes données. */
+    const bases = { A: db }, sessionDe = {};
+    if (d.sessions) {
+      let cur = 'A';
+      bl.forEach((b, k) => { const m = /Session\s+(\w+)/.exec(b.tete); if (m) cur = m[1]; sessionDe[k] = cur; });
+      for (const nom of new Set(Object.values(sessionDe))) if (!bases[nom]) {
+        const b = new SQL.Database(); ouvertes.push(b); if (d.fk !== false) b.run('PRAGMA foreign_keys = ON'); if (d.avant) b.exec(d.avant); bases[nom] = b;
+      }
+    }
     liste.forEach((ins, i) => {
       let res = null, err = null;
-      try { const r = db.exec(ins.sql); res = r.length ? r[r.length - 1] : { columns: [], values: [] }; } catch (e) { err = e.message; }
+      const base = d.sessions ? bases[sessionDe[ins.bloc]] : db;
+      try { const r = base.exec(ins.sql); res = r.length ? r[r.length - 1] : { columns: [], values: [] }; } catch (e) { err = e.message; }
       resultats.push(res);
       journal.push({ i, bloc: ins.bloc, sql: ins.sql, err, res: res && res.values.length ? res.values.map(ligne) : [] });
       const attendue = (d.erreurs || []).includes(i);
@@ -156,7 +166,7 @@ export function verifierQuestion(SQL, q, d) {
       const p = d.verif({ rows: (q.ex || {}).rows || [], resultats, db, ouvrir, cellule });
       if (p) pbs.push(p);
     }
-  } finally { db.close(); }
+  } finally { db.close(); ouvertes.forEach(b => b.close()); }
   return { pbs, journal };
 }
 
