@@ -26,7 +26,7 @@ test('page du résultat : le titre et l’explication voulus, avec les espaces i
   assert.ok(p.includes("<p class=\"ob-lead\">${rowsN>1?`Les <b>${rowsN}</b> clients qui habitent`:'Le client qui habite'} à Paris, trouvés dans la table clients.</p>"),
     'le nombre vient toujours du vrai résultat, en jaune');
   assert.ok(!p.includes('Premier succès débloqué') && !p.includes('ob-practice-reward'), 'plus de bandeau');
-  assert.ok(app.includes('<p class="ob-compte-lead">Tu viens de franchir une première étape. Et ce n’est que le début&nbsp;!</p>'), 'la suite du bravo, sur la connexion');
+  assert.ok(app.includes('<p class="ob-compte-lead"><span>Tu viens de franchir une première étape.</span> <span>Et ce n’est que le début&nbsp;!</span></p>'), 'la suite du bravo, sur la connexion');
   for (const ancien of ['ta première requête fonctionne', 'SQL a retrouvé, dans la table clients', 'tu apprendras toujours en pratiquant'])
     assert.ok(!app.includes(ancien), `plus de « ${ancien} »`);
 });
@@ -38,7 +38,7 @@ test('le bandeau vert n’est plus pixelisé : une fois posé, l’animation ne 
   assert.ok(css.includes('@keyframes obvStampIn{0%{opacity:0;transform:scale(.4) rotate(-12deg)}60%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{opacity:1;transform:rotate(-1.5deg)}}'));
   const base = css.match(/html #onboarding\.ob-vitrine \.ob-practice-reward\{[^}]+\}/)[0];
   assert.ok(base.includes('transform:rotate(-1.5deg)') && !/will-change/.test(base), 'penché, sans calque gardé exprès');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=29">') && sw.includes("'./onboarding-vitrine.css?v=29',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=30">') && sw.includes("'./onboarding-vitrine.css?v=30',"), 'feuille rechargée');
 });
 
 test('« Commencer la première leçon » a la flèche animée du bouton de la construction', () => {

@@ -36,11 +36,11 @@ test('les petits écrans : la mascotte se fait petite au palier 3, part au palie
   for (const k of ['html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:grid!important;grid-template-columns:40px 1fr!important;align-items:center!important;gap:10px!important;margin:8px 0 10px!important}',
     'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat img{width:40px!important}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-chat{display:none!important}',
     'html #onboarding.ob-vitrine.ob-fit-4 .ob-rappel-step .ob-notif{display:flex}', 'html #onboarding.ob-vitrine.ob-fit-5 .ob-rappel-step .ob-notif{display:none}',
-    '@media (max-height:700px){html #onboarding.ob-vitrine .ob-tv-ph{min-height:200px}}', 'html #onboarding.ob-vitrine.ob-fit-1 .ob-account .ob-compte-stk{width:64px}'])
+    '@media (max-height:700px){html #onboarding.ob-vitrine .ob-tv-ph{min-height:200px}}', 'html #onboarding.ob-vitrine.ob-fit-2 .ob-account{--stk-k:.87}'])
     assert.ok(rythme.includes(k), k);
   /* Les anciennes règles restent plus haut : celles-ci viennent après, avec la même précision */
   const avant = css.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:none!important}'), apres = css.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:grid!important;');
   assert.ok(avant > 0 && apres > avant);
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'cinq paliers, comme avant');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=29">') && sw.includes("'./onboarding-vitrine.css?v=29',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=30">') && sw.includes("'./onboarding-vitrine.css?v=30',"), 'feuille rechargée');
 });
