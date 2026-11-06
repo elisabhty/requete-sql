@@ -114,7 +114,7 @@ test('« Voir les données » : exécutée tout de suite, une seule glissade, et
   /* La carte : l’apparition seulement quand on l’ouvre */
   assert.ok(fn('toggleTableSchema').includes('tblOuvre=openTableSchema;'));
   const w = cut('function renderDbWorkspace(){', 'function toggleTableSchema(name){');
-  assert.ok(w.includes("const ouvre=typeof tblOuvre==='undefined'?null:tblOuvre;") && w.includes("<div class=\"tbl-corps${ouvre===t?' is-ouvre':''}\">") && w.includes('  tblOuvre=null;'));
+  assert.ok(w.includes("const ouvre=typeof tblOuvre==='undefined'?null:tblOuvre;") && w.includes("<div class=\"tbl-corps tbu-pied${ouvre===t?' is-ouvre':''}\">") && w.includes('  tblOuvre=null;'));
   assert.ok(lq.includes('html.lq #scr-console .tbl-corps{animation:none}\nhtml.lq #scr-console .tbl-corps.is-ouvre{animation:dbColIn .3s cubic-bezier(.2,.8,.3,1.2) both}'));
 });
 

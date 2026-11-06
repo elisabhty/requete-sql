@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=171">
+<link rel="stylesheet" href="ludique.css?v=172">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
@@ -17043,11 +17043,10 @@ let dbWsSnap=null;
 function dbTableSig(database,name){
   try{ const r=database.exec(`PRAGMA table_info(${quoteIdent(name)})`); return r[0]?r[0].values.map(v=>v[1]+':'+v[2]+':'+v[5]).join(','):''; }catch(e){ return ''; }
 }
-/* Les icônes de la carte d’une table (5 novembre, 15 h 01) : une grille, une feuille, « Voir les données », le chevron. */
+/* Les icônes de la carte d’une table (5 novembre, 15 h 01) : une grille (l’aperçu d’un import), une feuille, « Voir les données ». */
 const TBL_GRILLE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.6"/><path d="M3.5 9.6h17M3.5 14.6h17M9.6 9.6v9.9"/></svg>';
 const TBL_DOC_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h6.8l4.7 4.7V19a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M13.5 3.7v4.8h4.8M8.8 12.6h6.4M8.8 16.1h4.2"/></svg>';
 const TBL_VOIR_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.6" stroke="currentColor" stroke-width="1.9"/><path d="M10.3 8.7v6.6l5.5-3.3z" fill="currentColor"/></svg>';
-const TBL_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function dbWsDiff(database,tables){
   const prev=dbWsSnap&&dbWsSnap.id===activeDbId?dbWsSnap:null, v=schemaVersion(database), snap={id:activeDbId,v,t:{}}, out={};
   tables.forEach(t=>{
@@ -17095,19 +17094,26 @@ function renderDbWorkspace(){
     return;
   }
   /* La carte d’une table. Les retours qui la dessinent encore : pas d’autocollant au niveau des tables (31 octobre, 8 h 37) ; la
-     description seulement quand on déplie, au-dessus des actions, et pas d’actions sur la ligne du nom (31 octobre, 1 h 34 et 8 h 37) ;
-     un long nom passe à la ligne après un « _ » plutôt qu’au milieu d’un mot.
-     Elisa, 5 novembre, 15 h 01 (réf. 5 pour la réf. 4, réf. 8) : repliée, l’icône de la table, son nom, ses lignes et un chevron à
-     droite ; dépliée, sa description (ou « Aucune description ajoutée » et « Décrire cette table »), « Voir les données », restaurer et
-     supprimer en ronds, puis « Structure de la table » : ses colonnes, leurs types, et d’où ils viennent. */
+     description seulement quand on déplie, et pas d’actions sur la ligne du nom (31 octobre, 1 h 34 et 8 h 37) ; un long nom passe à
+     la ligne après un « _ » plutôt qu’au milieu d’un mot. Elisa, 5 novembre, 15 h 01 (réf. 5 pour la réf. 4, réf. 8) : dépliée, sa
+     description (ou « Aucune description ajoutée » et « Décrire cette table »), « Voir les données », restaurer et supprimer en ronds,
+     et ses colonnes, leurs types, et d’où ils viennent.
+     6 novembre, 7 h 52 : « reprendre exactement ce format dans base » : la carte d’une table du schéma UML. L’en-tête à la couleur de la
+     table dans le schéma (son nom, ses lignes dans une pastille, la flèche ronde qui la plie ou la déplie) ; ses colonnes : PK ou FK
+     devant le nom, le type à droite, ou « → la table » qu’elle désigne, dans la couleur de cette table. Repliée : ses clés seulement et
+     « +N colonnes » (qui la déplie) ; dépliée : toutes ses colonnes, chacune avec son cadre « ex : » et ce qu’elle veut dire, ses liens
+     allumés comme une table touchée du schéma, puis sa description, « Voir les données » et les ronds. */
   const ouvre=typeof tblOuvre==='undefined'?null:tblOuvre;
+  const modele=umlModele(database,tables),teintes=umlTeintes(modele,umlOrdre(modele).ordre);
+  const st=c=>`--lc:${c[0]};--lcs:${c[1]};--lci:${c[2]}`;
   host.innerHTML=tables.map(t=>{
     const n=tableRowCount(database,t);
     const enc=encodeURIComponent(t).replace(/'/g,'%27');   // « l’atelier d'Anaïs » : l’apostrophe droite fermait le onclick
     const open=openTableSchema===t;
     const resettable=hasTableBaseline(activeDbId,t);
-    const cols=open?introspectTable(database,t,tables):[];
-    const lignes=typeof n==='number'?plur(n,'ligne'):`${n} lig.`;
+    const mt=modele.tables.find(z=>z.name===t)||{cols:[]},cols=mt.cols;
+    const teinte=teintes[t]||UML_NEUTRE;
+    const lignes=typeof n==='number'?plur(n,'ligne'):`${n} lig.`;
     const nom=esc(t).replace(/_/g,'_<wbr>');
     const note=open?tableNote(activeDbId,t):'';
     const desc=!open?'':note
@@ -17121,21 +17127,25 @@ function renderDbWorkspace(){
     /* D’où viennent ses colonnes : le fichier importé (son nom, pour les imports d’après le 5 novembre), ou son CREATE TABLE */
     const base=open&&!verrou&&tableBaselines[activeDbId]?tableBaselines[activeDbId][tableBaselineKey(t)]:null;
     const origine=!open||verrou?'':base?`Les noms et types des colonnes proviennent du fichier importé${base.fichier?` (${esc(base.fichier)})`:''}.`:'Les noms et types des colonnes viennent de son <code>CREATE TABLE</code>.';
-    const struct=!open?'':`<div class="tbl-struct">
-        <div class="tbl-struct-t"><b>Structure de la table</b><small>${plur(cols.length,'colonne')}</small></div>
-        <div class="tbl-cols">${cols.map(c=>{
-          const d=colNote(activeDbId,t,c.c);
-          return `<div class="tbl-col"><span class="tbl-cn">${esc(c.c).replace(/_/g,'_<wbr>')}</span>${c.b==='pk'?'<span class="badge pk">PK</span>':''}${c.b==='fk'||c.ref?'<span class="badge fk">FK</span>':''}<span class="tbl-ct">${esc(c.t)}</span>${c.ref?`<small class="tbl-cref">→ ${esc(c.ref)}</small>`:''}${d?`<small class="tbl-cd">${esc(d)}</small>`:''}</div>`;
-        }).join('')||'<p class="tbl-vide">Aucune colonne.</p>'}</div>
-        ${origine?`<p class="tbl-orig">${typeof INFO_SVG!=='undefined'?INFO_SVG:''}<span>${origine}</span></p>`:''}
-      </div>`;
-    return `<div class="db-tblock${open?' is-open':''}" data-table="${escAttr(t)}">
-      <button type="button" class="tbl-tete" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}">
-        <span class="tbl-ico" aria-hidden="true">${TBL_GRILLE_SVG}</span>
-        <span class="tbl-nom"><b class="tn">${nom}</b><small class="tc">${lignes}${open?` · ${plur(cols.length,'colonne')}`:''}</small></span>
-        <span class="tbl-chev" aria-hidden="true">${TBL_CHEV_SVG}</span>
+    /* Ses clés, comme sur le schéma : sa clé primaire, ses clés étrangères, et les colonnes que d’autres tables désignent. */
+    const sortants=modele.liens.filter(l=>l.de===t),vise=new Set(modele.liens.filter(l=>l.vers===t).map(l=>umlCle(modele,l)));
+    const cle=c=>c.b==='pk'||c.b==='fk'||sortants.some(l=>l.col===c.c)||vise.has(c.c);
+    const vis=open?cols:cols.filter(cle),caches=cols.length-vis.length;
+    const ligne=c=>{
+      const a=sortants.find(l=>l.col===c.c),fk=c.b==='fk'||!!a,on=open&&(!!a||vise.has(c.c));
+      const droite=a?`<b class="tbu-v">→ ${esc(a.vers)}</b>`:`<em>${esc(umlType(c.t))}</em>`;
+      const badges=(c.b==='pk'?'<i class="is-pk">PK</i>':'')+(fk?'<i class="is-fk">FK</i>':'');
+      const x=open&&c.ex?`<span class="tbu-x${c.ex.k==='null'?' is-null':''}"><small>ex&nbsp;:</small><b>${esc(c.ex.v)}</b></span>`:'';
+      const d=open?colNote(activeDbId,t,c.c):'';
+      return `<div class="tbu-c${c.b==='pk'?' is-pk':fk?' is-fk':''}${a?' is-lien':''}${on?' is-on':''}"${a?` style="${st(teintes[a.vers]||UML_NEUTRE)}"`:''}><span class="tbu-r">${badges}<span class="tbu-cn">${esc(c.c).replace(/_/g,'_<wbr>')}</span>${droite}</span>${x||d?`<span class="tbu-xl">${x}${d?`<small class="tbu-d">${esc(d)}</small>`:''}</span>`:''}</div>`;
+    };
+    const plus=caches?`<button type="button" class="tbu-c is-plus" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-label="${escAttr(`Déplier la table ${t} : ses ${plur(cols.length,'colonne')}`)}">+${plur(caches,'colonne')}</button>`:'';
+    return `<div class="db-tblock tbu${open?' is-open':''}" data-table="${escAttr(t)}" style="--c:${teinte[0]};--cs:${teinte[1]};--ci:${teinte[2]}">
+      <button type="button" class="tbu-h" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" aria-label="${escAttr(`Table ${t}, ${lignes}, ${plur(cols.length,'colonne')}`)}">
+        <b class="tbu-n">${nom}</b><small class="tbu-k" aria-hidden="true">${typeof n==='number'?n.toLocaleString('fr-FR'):esc(String(n))}</small><span class="tbu-pli" aria-hidden="true">${UML_CHEV}</span>
       </button>
-      ${open?`<div class="tbl-corps${ouvre===t?' is-ouvre':''}">${desc}${acts}${struct}</div>`:''}
+      <div class="tbu-cs">${vis.map(ligne).join('')||(cols.length?'':'<p class="tbu-c is-plus">Aucune colonne</p>')}${plus}</div>
+      ${open?`<div class="tbl-corps tbu-pied${ouvre===t?' is-ouvre':''}">${desc}${acts}${origine?`<p class="tbl-orig">${typeof INFO_SVG!=='undefined'?INFO_SVG:''}<span>${origine}</span></p>`:''}</div>`:''}
     </div>`;
   }).join('');
   tblOuvre=null;
@@ -19320,7 +19330,9 @@ const UML_TEINTES=[['#6A4DF4','#EEE9FF','#5335E0'],['#2F80ED','#E6F0FD','#1D5FA8
   ['#E0453A','#FDE9E7','#A82C22'],['#9A6B45','#F5ECE4','#6E4A2D'],['#6BA51B','#EEF6E0','#4A7512']];
 /* Une table que rien ne désigne : la teinte de l’encre, pour que les couleurs ne parlent que des liens. */
 const UML_NEUTRE=['#8E87B8','#F3F1FA','#4A4370'];
-const UML_G={tete:34,pad:7,ligne:20,ligneEx:36,ecart:20,voie0:14,voie:8,max:7};
+/* Elisa, 6 novembre, 7 h 52 (réf. 3) : « l’espace avant la colonne est un peu faible, augmente juste un tout petit peu » : une
+   colonne et son exemple tiennent 40 px au lieu de 36, dont 2 au-dessus du nom (haut) ; 6 px séparent un exemple du nom suivant. */
+const UML_G={tete:34,pad:7,ligne:20,ligneEx:40,haut:2,ecart:20,voie0:14,voie:8};
 const UML_MULT={'1':'exactement un','0..1':'zéro ou un','0..*':'zéro ou plusieurs'};
 /* L’icône de la pastille : deux classes et leur lien. */
 const UML_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3.5" width="7.5" height="6" rx="1.8" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="14.5" width="7.5" height="6" rx="1.8" stroke="currentColor" stroke-width="2"/><path d="M6.75 9.5v4.5a3 3 0 0 0 3 3h3.75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -19464,13 +19476,15 @@ function umlTeintes(m,ordre){
   return T;
 }
 /* La mise en page, sans rien mesurer (testée telle quelle) : l’ordre des tables, leurs cartes, les couloirs des liens et leurs
-   multiplicités. W : la largeur de la toile ; ex : les exemples dépliés (une ligne de 36 px par colonne au lieu de 20).
+   multiplicités. W : la largeur de la toile ; ex : les exemples dépliés (une ligne de 40 px par colonne au lieu de 20).
    Retourne {W, H, ex, cartes:[{name,n,x,y,w,h,L,cols,plus,teinte}], arcs:[{i,de,vers,col,c,cs,ci,d,cote,voie,lab}], T}.
    Les fichiers des agents (5 novembre, 8 h 13) : une table désignée par dix autres empilait ses pastilles en bas de sa carte, et ses
    couloirs se serraient à 3 px. Les liens vers une même colonne, avec la même multiplicité, y arrivent maintenant ensemble : un
    faisceau, un couloir, un bout et une pastille. Deux faisceaux qui arriveraient au même endroit : l’un passe de l’autre côté de la
    carte s’il y a la place (sinon il descend de 17 px en 17 px) ; et les côtés s’élargissent pour garder 5 px entre deux couloirs.
-   Les clés d’une table ne passent jamais sous « +N colonnes ». */
+   Les clés d’une table ne passent jamais sous « +N colonnes ».
+   6 novembre, 7 h 52 (« efface les Voir ») : une table dépliée montre toutes ses colonnes (plus de plafond de sept, ni de « Voir » vers
+   son onglet) ; seule une table pliée garde « +N colonnes », qui la déplie. */
 function umlPlan(m,W,ex,plies){
   const G=UML_G,{ordre,par}=umlOrdre(m),T=umlTeintes(m,ordre);
   const voisins=(a,b)=>par[a].has(b)||par[b].has(a);
@@ -19479,13 +19493,9 @@ function umlPlan(m,W,ex,plies){
   let y=12,prec=null;
   ordre.forEach(n=>{
     const t=m.tables.find(z=>z.name===n);
-    let cols=t.cols,plus=0;
+    const cols=t.cols;
+    let plus=0;
     const cle=c=>c.b||part.has(n+'\u0001'+c.c)||arrive.has(n+'\u0001'+c.c);
-    if(cols.length>G.max){
-      const cles=cols.filter(cle);
-      const garde=new Set(cles.concat(cols.filter(c=>!cle(c)).slice(0,Math.max(0,G.max-1-cles.length))));
-      cols=t.cols.filter(c=>garde.has(c)); plus=t.cols.length-cols.length;
-    }
     /* Une table pliée ne garde que ses clés (ses liens restent sur leurs colonnes) ; le reste passe dans « +N colonnes ». */
     const plie=!!(plies&&plies.has(n)),caches=plie?cols.filter(c=>!cle(c)).map(c=>c.c):[],vis=cols.length-caches.length;
     plus+=caches.length;
@@ -19497,8 +19507,8 @@ function umlPlan(m,W,ex,plies){
     y+=h+G.ecart; prec=n;
   });
   const H=Math.max(60,y-G.ecart+12);
-  /* Un trait arrive au milieu du nom de sa colonne (la première ligne, quand l’exemple est en dessous). */
-  const milieu=(c,i)=>c.y+G.tete+G.pad+c.cols.slice(0,i).filter(z=>!c.caches.includes(z.c)).length*c.L+G.ligne/2;
+  /* Un trait arrive au milieu du nom de sa colonne (la première ligne, quand l’exemple est en dessous, 2 px sous le haut de la ligne). */
+  const milieu=(c,i)=>c.y+G.tete+G.pad+c.cols.slice(0,i).filter(z=>!c.caches.includes(z.c)).length*c.L+(c.L>G.ligne?G.haut:0)+G.ligne/2;
   const arcs=m.liens.map(l=>{
     const a=cartes[l.de],b=cartes[l.vers];
     if(!a||!b)return null;
@@ -19659,9 +19669,8 @@ function umlHtml(p){
       +`<span class="umd-h"><button type="button" class="umd-hb" aria-pressed="false" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(c.cols.length+c.plus-c.caches.length,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses liens`)}"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></button>`
       +`<button type="button" class="umd-pli" aria-expanded="${!c.plie}" aria-label="${escAttr((c.plie?'Déplier':'Plier')+' la table '+c.name)}" onclick="umlPlier(this,event)">${UML_CHEV}</button></span><span class="umd-cs">`
       +(c.cols.map(ligne).join('')||'<span class="umd-c is-plus">Aucune colonne</span>')
-      /* 5 novembre, 14 h 24 : « mettre Voir avec > animé, iso à ce qu’on a dans les défis, au sein de la table » : la ligne « +2 colonnes »
-         ouvre l’onglet de la table, avec la pastille « Voir › » de « Mes stats ». */
-      +(c.plus?`<button type="button" class="umd-c is-plus is-voir" data-t="${escAttr(c.name)}" onclick="schemaOuvrirTable(this.dataset.t)" aria-label="${escAttr(`Voir les ${plur(nc,'colonne')} de la table ${c.name}`)}"><span>+${plur(c.plus,'colonne')}</span><span class="umd-voir" aria-hidden="true">Voir${typeof DEF_CHEV_SVG==='string'?DEF_CHEV_SVG:''}</span></button>`
+      /* 6 novembre, 7 h 52 : « efface les Voir » : la ligne « +4 colonnes » d’une table pliée, sans pastille, la déplie (comme sa flèche). */
+      +(c.plus?`<button type="button" class="umd-c is-plus is-deplier" aria-label="${escAttr(`Déplier la table ${c.name} : ses ${plur(nc,'colonne')}`)}" onclick="umlPlier(this,event)"><span>+${plur(c.plus,'colonne')}</span></button>`
         :'<span class="umd-c is-plus is-vide"></span>')
       +'</span></div>';
   }).join('');
@@ -19813,7 +19822,7 @@ function umlSurligne(el,on,e){
 }
 /* Une table touchée (7 h 38) : ses liens s’allument, le reste s’efface, et la bulle dit en clair ce qu’elle désigne et qui la
    désigne ; touchée encore (ou la toile, ou ×), tout se rallume. Un lien de la liste : lui seul, et la toile défile jusqu’à lui. */
-function umlCarte(el,e){ if(e&&e.target&&e.target.closest&&e.target.closest('.umd-pli,.is-voir'))return; const t=el&&el.dataset.t; if(t)umlFocus(umlSel&&umlSel.t===t?null:{t}); }
+function umlCarte(el,e){ if(e&&e.target&&e.target.closest&&e.target.closest('.umd-pli,.is-deplier'))return; const t=el&&el.dataset.t; if(t)umlFocus(umlSel&&umlSel.t===t?null:{t}); }
 function umlFocusTable(t,defile){ if(t)umlFocus({t},defile); }
 function umlFocusLien(i){ umlFocus({i:+i},true); }
 function umlToileClic(e){ if(umlSel&&!(e&&e.target&&e.target.closest&&e.target.closest('.umd-t')))umlFocus(null); }
@@ -19855,12 +19864,11 @@ function umlAppliquer(){
   document.querySelectorAll('#umd-liens .umd-li').forEach(b=>b.classList.toggle('is-on',on.has(+b.dataset.i)));
   if(bulle){ bulle.innerHTML=s?umlBulle(m,s,(umlDernier.p&&umlDernier.p.T)||{}):''; bulle.hidden=!s; }
 }
-/* La bulle : une table (ce qu’elle désigne, qui la désigne, chacune à toucher pour y aller ; « Voir ses colonnes ») ou un lien. */
 /* La flèche animée de la bulle (9 h 18 : « voir avec une flèche animée plutôt ») : un trait qui coule vers sa pointe, dans la couleur du
    lien (la couleur de la table désignée). */
 const UML_FLECHE='<span class="umd-ar" aria-hidden="true"><svg viewBox="0 0 46 14"><path class="umd-ar-l" d="M3 7H37"/><path class="umd-ar-p" d="M33 2.5L40 7L33 11.5"/></svg></span>';
 /* La bulle : une table et ses liens, chacun en flèche (« avions ⟶ compagnies », « vols ⟶ avions », chaque table à toucher pour y
-   aller ; « Ses colonnes ») ; ou un lien de la liste. */
+   aller) ; ou un lien de la liste. 6 novembre, 7 h 52 : « enlève Ses colonnes » (ses colonnes sont sur sa carte, qui se déplie). */
 function umlBulle(m,s,T){
   const st=n=>{ const t=T[n]||UML_NEUTRE; return `--c:${t[0]};--cs:${t[1]};--ci:${t[2]};--lc:${t[0]};--lcs:${t[1]};--lci:${t[2]}`; };
   const x=`<button type="button" class="umd-bx" onclick="umlFocus(null)" aria-label="Tout rallumer">${UML_X}</button>`;
@@ -19873,7 +19881,7 @@ function umlBulle(m,s,T){
   const lignes=vers.map(v=>`<p class="umd-bl" style="--lc:${(T[v]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} désigne ${esc(v)}</span>${moi}${UML_FLECHE}${puce(v)}</p>`).join('')
     +(par.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(par.join(', '))} ${par.length>1?'désignent':'désigne'} ${esc(t)}</span><span class="umd-bps">${par.map(puce).join('')}</span>${UML_FLECHE}${moi}</p>`:'')
     +(auto.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} se désigne elle-même</span>${moi}<span class="umd-ar is-boucle" aria-hidden="true"><svg viewBox="0 0 30 18"><path class="umd-ar-l" d="M4 13C4 2 26 2 26 11"/><path class="umd-ar-p" d="M21.5 8.5L26 13.5L30 8"/></svg></span>${auto.map(l=>`<code>${esc(l.col)}</code>`).join('')}</p>`:'');
-  return `<div class="umd-bc" style="${st(t)}">${x}<span class="umd-bh"><b class="umd-bn">${esc(t)}</b><button type="button" class="umd-bgo" data-t="${escAttr(t)}" onclick="schemaOuvrirTable(this.dataset.t)" aria-label="${escAttr('Voir les colonnes de '+t)}">Ses colonnes<span class="umd-bgo-f" aria-hidden="true">${UML_CHEV}</span></button></span>${lignes||'<p class="umd-bl is-vide">Aucun lien&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'}</div>`;
+  return `<div class="umd-bc" style="${st(t)}">${x}<span class="umd-bh"><b class="umd-bn">${esc(t)}</b></span>${lignes||'<p class="umd-bl is-vide">Aucun lien&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'}</div>`;
 }
 /* La toile défile jusqu’à la table ou au lien allumés : sous les pastilles, au-dessus de la bulle. */
 function umlDefiler(){
@@ -19884,13 +19892,6 @@ function umlDefiler(){
   else{ const a=p.arcs.find(z=>z.i===umlSel.i); if(!a)return; y0=Math.min(a.y1,a.y2)-40; y1=Math.max(a.y1,a.y2)+24; }
   const haut=plan.getBoundingClientRect().top-body.getBoundingClientRect().top+body.scrollTop,vu=Math.max(120,body.clientHeight-96-150);
   body.scrollTo({top:Math.max(0,haut+y0-96-Math.max(0,(vu-(y1-y0))/2)),behavior:umlDoux()?'smooth':'auto'});
-}
-/* « Voir ses colonnes » : sa pastille, et sa table en détail. */
-function schemaOuvrirTable(t){
-  const body=document.getElementById('schema-body');
-  const btn=body&&[...body.querySelectorAll('.sch-tab')].find(b=>b.dataset.t===t);
-  if(btn){ schemaPickTab(btn); try{ btn.focus({preventScroll:true}); }catch(e){} }
-  if(body)body.scrollTop=0;
 }
 let schCtx=null;   // 'console' : le schéma de la base ouverte dans la Console (sinon : celle du défi, ou celle du cours)
 let schVue=null;   // '__uml__' : ouvrir sur le schéma UML
@@ -39447,7 +39448,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-progression-parcours-v2566';
+  const SW_CACHE='requete-2026-11-06-schema-console-v2567';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

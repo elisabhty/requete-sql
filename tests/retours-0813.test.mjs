@@ -31,7 +31,7 @@ const ctx = vm.createContext({SCHEMA_META: [], esc, window: {},
   plur: (n, mot, pl) => n + ' ' + (Math.abs(n) > 1 ? (pl || mot + 's') : mot)});
 vm.runInContext(cut('function quoteIdent(name){', '\n') + '\n' + cut('function tableRowCount(database,name){', '\n}\n') + '\n}\n'
   + fn('safeIdent') + cut('function guessFkTarget(col,tables){', 'function courseTableNames(){')
-  + cut('const UML_TEINTES=', '/* « Voir ses colonnes » : sa pastille')
+  + cut('const UML_TEINTES=', 'let schCtx=null;')
   + cut('/* ---------- Import CSV / JSON / SQL ---------- */', '/* Un fichier, quel qu’il soit :') + fn('importRetourHtml')
   + ';Object.assign(this,{umlModele,umlPlan,umlHtml,umlPanneau,umlPastilles,umlNbLiens,umlJoin,umlCle,umlId,umlBulle,umlAllumes,schemaExemples,'
   + 'annotateColumnKeys,guessFkTarget,parseImportFile,parseJsonImport,tableFromMatrix,inferSqlType,ligneEnTete,importRetourHtml,UML_TEINTES,UML_NEUTRE});', ctx);
@@ -155,9 +155,13 @@ test('l’étoile : dix tables vers une même colonne arrivent en un faisceau (u
     assert.equal(new Set(versHub.map(a => a.xl + '|' + a.y2)).size, 1, 'vers hub : un seul couloir, un seul bout');
     const xs = [...new Set(p.arcs.filter(a => a.cote === 'd').map(a => a.xl))].sort((a, b) => a - b);
     for (let k = 1; k < xs.length; k++) assert.ok(xs[k] - xs[k - 1] >= 4.9, `deux couloirs à ${xs[k] - xs[k - 1]} px`);
+    /* 6 novembre, 7 h 52 (« efface les Voir ») : dépliée, une table montre toutes ses colonnes ; pliée, ses clés restent sur la carte. */
     const car = p.cartes.find(c => c.name === 'carrefour');
-    assert.equal(car.cols.filter(c => /^b\d+_id$/.test(c.c)).length, 10, 'les dix clés restent sur la carte');
-    assert.equal(car.plus, 2, '« +2 colonnes » : a et b');
+    assert.equal(car.cols.length, 13, 'dépliée : toutes ses colonnes');
+    assert.equal(car.plus, 0, 'dépliée : pas de « +N colonnes »');
+    const pl = ctx.umlPlan(m, W, ex, new Set(['carrefour'])).cartes.find(c => c.name === 'carrefour');
+    assert.equal(pl.cols.filter(c => /^b\d+_id$/.test(c.c) && !pl.caches.includes(c.c)).length, 10, 'pliée : les dix clés restent sur la carte');
+    assert.equal(pl.plus, 2, 'pliée : « +2 colonnes » (a et b)');
   }
   const pp = ctx.umlPlan(m, 322, true), h = ctx.umlHtml(pp);
   const pHub = ctx.umlPastilles(pp).filter(x => x.a.vers === 'hub' && x.t.t === '1');
@@ -268,7 +272,7 @@ test('les noms à guillemet ou apostrophe, la pastille UML, le clavier, la bulle
   assert.ok(cut('function closeSchemaSheet(){', '\n}\n').includes('schRetour.focus({preventScroll:true})'));
   const piege = fn('schemaPiege');
   assert.ok(piege.includes("if(e.shiftKey&&i<=0){ e.preventDefault(); f[f.length-1].focus(); }") && app.includes("document.getElementById('schema-sheet').addEventListener('keydown',schemaPiege);"));
-  assert.ok(fn('schemaOuvrirTable').includes('schemaPickTab(btn); try{ btn.focus({preventScroll:true}); }catch(e){}'), '« Ses colonnes » : le focus sur la pastille de la table');
+  assert.ok(!app.includes('function schemaOuvrirTable('), 'plus de « Ses colonnes » ni de « Voir » vers l’onglet de la table (6 novembre, 7 h 52)');
   const dg = fn('umlDegager');
   assert.ok(dg.includes('const trop=c.bottom-(b.top-22),marge=Math.max(0,c.top-haut);') && fn('umlFocus').includes('else if(umlSel&&umlSel.t!=null)umlDegager();'));
 });
@@ -283,5 +287,5 @@ test('la DA : les accents entiers, « → table » qui rétrécit d’abord, les
     'html.lq #schema-sheet .umd-dv{padding:2px 7px;border-radius:99px;', 'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);',
     'html.lq #schema-sheet .sch-col .cxl{flex-basis:100%;order:9;min-width:0;', 'html.lq #schema-sheet .sch-col .cx{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow:hidden;'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=171">'), 'la feuille de style est rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=172">'), 'la feuille de style est rechargée');
 });

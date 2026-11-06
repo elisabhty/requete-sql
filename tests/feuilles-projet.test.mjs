@@ -105,11 +105,12 @@ test('épingler : une punaise micro-animée partout, sans notification (Elisa, 4
 });
 
 test('tables d’un projet : le nom en entier, « 1 ligne » dessous, les actions groupées ; la description se dit « Description »', () => {
-  /* Depuis le 5 novembre, 15 h 01 (réf. 5 et 8) : l’icône, le nom, « 27 lignes · 11 colonnes », un chevron à droite ; dépliée, la
-     description ou « Aucune description ajoutée » et « Décrire cette table », puis les actions, puis la structure. */
+  /* Depuis le 6 novembre, 7 h 52 (« reprendre exactement ce format dans base ») : la carte d’une table du schéma UML, à la couleur de
+     la table (son nom, ses lignes dans une pastille, la flèche ronde ; l’aide vocale dit « Table clients, 27 lignes, 11 colonnes ») ;
+     dépliée, ses colonnes, puis la description ou « Aucune description ajoutée » et « Décrire cette table », puis les actions. */
   const w = cut(app, 'function renderDbWorkspace(){', 'function toggleTableSchema(name){');
-  for (const part of ['<div class="db-tblock${open?\' is-open\':\'\'}" data-table="${escAttr(t)}">', "const lignes=typeof n==='number'?plur(n,'ligne'):",
-    '<span class="tbl-nom"><b class="tn">${nom}</b><small class="tc">${lignes}${open?` · ${plur(cols.length,\'colonne\')}`:\'\'}</small></span>',
+  for (const part of ['<div class="db-tblock tbu${open?\' is-open\':\'\'}" data-table="${escAttr(t)}" style="--c:${teinte[0]};--cs:${teinte[1]};--ci:${teinte[2]}">', "const lignes=typeof n==='number'?plur(n,'ligne'):",
+    'aria-label="${escAttr(`Table ${t}, ${lignes}, ${plur(cols.length,\'colonne\')}`)}">', '<b class="tbu-n">${nom}</b><small class="tbu-k" aria-hidden="true">',
     '<div class="tbl-acts">', '<span class="tbl-desc-t"><small>Description</small>${esc(note)}</span>',
     'aria-label="Description de ${escAttr(t)} : ${escAttr(note)}. Modifier"', 'Aucune description ajoutée</p>', '<span>Décrire cette table</span>'])
     assert.ok(w.includes(part), part);
