@@ -2801,7 +2801,6 @@ html.lq .stk-cell:focus{outline:none}
 html.lq:not(.pointer-nav) .stk-cell:focus-visible{box-shadow:inset 0 0 0 3px var(--accent)}
 html.lq .stk-cell.is-got{cursor:grab}
 html.lq .stk-cell.is-placed .stk-art{opacity:.42}
-html.lq .stk-on{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);padding:4px 8px;border-radius:99px;background:#fff;color:var(--ink-2);font:700 11px/1 var(--display);font-style:normal;white-space:nowrap;box-shadow:0 2px 0 var(--lip);pointer-events:none}
 html.lq .stk-cell.is-peeling{transform:none}
 html.lq .stk-lock{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;display:grid;place-items:center;
   background:#fff;color:#8C85B3;box-shadow:0 2px 0 var(--lip);pointer-events:none}
@@ -8397,3 +8396,38 @@ html[data-motion="reduce"].lq .mc-shine{display:none}
 html[data-motion="reduce"].lq .mc--big .mc-face{transform:none}
 html[data-motion="reduce"].lq .mc-reveal.is-new:not(.is-in) .mc-flip{opacity:1}
 html.lq .mc-lab .mc-dial{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--surface-2);color:var(--ink-2);font:700 11px/1.5 var(--ui);letter-spacing:0;text-transform:none;vertical-align:1px}
+
+/* ---------- 63. Stickers : l’étiquette de rareté (Elisa, 6 novembre) ----------
+   Sur sa capture de la planche : « Ne pas mettre sur le tableau mais « rare » ou « de collection » pour ceux difficile à avoir /
+   Pour les stickers difficile à obtenir mettre : Légendaire (étiquette) qui gêne paa avec des étoile peut être sur l’étiquette en
+   mode paillette ». Elle a choisi « Rare » (10 défis trouvés) et « Légendaire » (7 jours de suite, tous les modules).
+   L’étiquette se colle sous la légende, un peu de travers comme « Nouveau » : jamais sur le dessin, le cadenas ni « Nouveau ».
+   Rare : l’irisation des stickers holo. Légendaire : la scène violette, le jaune soleil des titres, les paillettes des stickers holo
+   à paillettes et deux étoiles d’autocollant. Une fois le sticker gagné, paillettes et étoiles scintillent doucement (opacité et
+   transformation seulement : rien à repeindre à chaque image) ; à gagner, elle est là aussi, immobile et sans paillettes. */
+html.lq .stk-rar{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;margin:-3px 0 10px;padding:3px 7px;
+  border:2px solid #fff;border-radius:99px;font:800 11px/1 var(--display);font-style:normal;letter-spacing:.01em;white-space:nowrap;pointer-events:none;rotate:-3deg}
+html.lq .stk-rar.is-rare{background:linear-gradient(115deg,#FFB3D1 0%,#FFE7A3 28%,#B8F5CF 52%,#AEE4FF 76%,#D4C2FF 100%);color:#1B1640;box-shadow:0 2px 0 var(--lip)}
+/* Le violet de la scène, sans son haut le plus clair : le jaune soleil y garde un contraste d’au moins 4,9:1 */
+html.lq .stk-rar.is-leg{background:linear-gradient(165deg,#5538E6 0%,#4528CA 100%);color:var(--sun-hi);box-shadow:0 2px 0 #3A22B0;text-shadow:0 1px 0 rgba(27,22,64,.45)}
+/* Les paillettes : deux couches de la même tuile, décalées, qui s’allument tour à tour */
+html.lq .stk-rar.is-leg::before,html.lq .stk-rar.is-leg::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:var(--glit) 0 0/64px 64px;mix-blend-mode:screen;opacity:.8;pointer-events:none}
+html.lq .stk-rar.is-leg::after{background-position:29px 13px;background-size:52px 52px;opacity:.45}
+html.lq .stk-rar.is-leg.is-lock::before,html.lq .stk-rar.is-leg.is-lock::after{display:none}
+/* Deux étiquettes voisines ne scintillent pas en même temps : chaque case a son rang (--i, posé par renderStickers) */
+html.lq .stk-rar.is-leg:not(.is-lock)::before{animation:stkRarGlit 2.6s ease-in-out calc(var(--i,0) * -.9s) infinite}
+html.lq .stk-rar.is-leg:not(.is-lock)::after{animation:stkRarGlit 2.6s ease-in-out calc(var(--i,0) * -.9s - 1.3s) infinite}
+@keyframes stkRarGlit{0%,100%{opacity:.15}50%{opacity:1}}
+/* Les étoiles, à cheval sur deux coins de l’étiquette */
+html.lq .stk-rar-sp{position:absolute;z-index:1;display:block;width:13px;height:13px;pointer-events:none}
+html.lq .stk-rar-sp svg{display:block;width:100%;height:100%}
+html.lq .stk-rar-sp:first-of-type{left:-6px;top:-7px}
+html.lq .stk-rar-sp+.stk-rar-sp{right:-5px;bottom:-6px;width:10px;height:10px}
+html.lq .stk-rar.is-leg:not(.is-lock) .stk-rar-sp{animation:stkRarStar 2.8s ease-in-out calc(var(--i,0) * -.9s) infinite}
+html.lq .stk-rar.is-leg:not(.is-lock) .stk-rar-sp+.stk-rar-sp{animation-delay:calc(var(--i,0) * -.9s - 1.4s)}
+@keyframes stkRarStar{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(.6) rotate(24deg)}}
+/* iPhone SE (320 px) : trois étiquettes côte à côte, un peu plus fines, pour que les étoiles voisines ne se touchent pas */
+@media (max-width:359px){html.lq .stk-rar{padding:3px 6px;font-size:10.5px}html.lq .stk-rar-sp:first-of-type{left:-5px}html.lq .stk-rar-sp+.stk-rar-sp{right:-4px}}
+/* Mouvement réduit : l’étiquette reste telle quelle, immobile */
+@media (prefers-reduced-motion:reduce){html.lq .stk-rar::before,html.lq .stk-rar::after,html.lq .stk-rar-sp{animation:none!important}}
+html.lq[data-motion="reduce"] .stk-rar::before,html.lq[data-motion="reduce"] .stk-rar::after,html.lq[data-motion="reduce"] .stk-rar-sp{animation:none!important}
