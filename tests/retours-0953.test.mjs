@@ -588,7 +588,8 @@ for (const id of Object.keys(NOMS)) {
     const m = e.match(/\n[ \t]+tables:(\{[^\n]+\}),\n[ \t]+cols:(\{[^\n]+\}),\n[ \t]+desc:'([^']+)',/);
     assert.ok(m, 'tables, colonnes, description');
     const tables = JSON.parse(m[1]), cols = JSON.parse(m[2]);
-    assert.ok(m[3].startsWith('Bienvenue dans ') && m[3].endsWith('Explore la base pour résoudre les différentes missions.'));
+    /* 6 novembre, 9 h 37 : chaque base a son lieu et son équipe (« Bienvenue au club Pulsar… », retours-0937) */
+    assert.ok(/^Bienvenue (?:dans|à|au|chez) /.test(m[3]) && m[3].endsWith('Explore la base pour résoudre les différentes missions.'));
     const noms = d.exec("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")[0].values.map(v => v[0]);
     assert.deepEqual(Object.keys(tables).sort(), noms);
     for (const t of noms) assert.deepEqual(Object.keys(cols[t]).sort(), d.exec(`PRAGMA table_info(${t})`)[0].values.map(v => v[1]).sort(), t);
@@ -628,9 +629,9 @@ test('la Console : huit bases d’entraînement en plus de celle du cours, const
   assert.ok(app.includes("const n=database?listTables(database).length:isDemoDb(id)?Object.keys(DEFI_BASES[id].tables||{}).length:0;"), 'le nombre de tables sans construire la base');
   assert.ok(app.includes('<div class="console-projects-head"><h2>Bases d’entraînement</h2><span>${plur(demos.length,\'base\')}</span></div>'));
   assert.ok(app.includes("wok:{nom:'Wok Chinois',"), 'la Console nomme la base comme un restaurant chinois');
-  assert.ok(app.includes('Bienvenue dans un restaurant chinois spécialisé dans la cuisine au wok.'), 'description de la base Wok');
+  assert.ok(app.includes('Bienvenue à La Perle du Wok, un restaurant chinois spécialisé dans la cuisine au wok.'), 'description de la base Wok');
   assert.ok(app.includes("salle_sport:{nom:'Salle de sport',"), 'la Console nomme la nouvelle base');
-  assert.ok(app.includes('Bienvenue dans une salle de sport. Adhérents, coachs, cours collectifs, abonnements et inscriptions :'), 'description sans « urbaine »');
+  assert.ok(app.includes('Bienvenue au club Pulsar, une salle de sport de quartier. Adhérents, coachs, cours collectifs, abonnements et inscriptions :'), 'description sans « urbaine »');
   assert.ok(app.includes("${mine.length?`<div class=\"console-projects-head\"><h2>Tes projets</h2>"), 'tes projets d’abord, s’il y en a');
   for (const id of Object.keys(NOMS)) assert.ok(new RegExp(`\\n  ${id}:'SELECT `).test(cut('const DEMO_SQL={', '\n};')), `requête de départ : ${id}`);
   assert.ok(app.includes("  if(isDemoDb(target)){toast(`La ${demoLabel(target).replace(/^Base/,'base')} est protégée`);return null;}"));
