@@ -13,7 +13,7 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const RET = fs.readdirSync(path.join(ROOT, 'tools/voix')).filter(f => f.endsWith('-retouches.json') && f !== 'video-site-retouches.json').sort();
 
-test('chaque retouche : la voix du cours, ses phrases telles que dans le cours, et des textes de page qui s’y trouvent une fois', () => {
+test('chaque retouche : la voix du cours, ses phrases telles que dans le cours, et ses textes posés dans la page avec sa voix (intégrée le 6 novembre, 21 h 30)', () => {
   assert.deepEqual(RET.map(f => f.replace('-retouches.json', '')), ['as', 'between', 'comparer', 'fonctions-numeriques', 'group-by-colonnes',
     'lag-lead', 'not', 'plusieurs-conditions-on', 'projet-create', 'projet-index', 'quel-join-choisir']);
   for (const f of RET) {
@@ -23,8 +23,8 @@ test('chaque retouche : la voix du cours, ses phrases telles que dans le cours, 
     assert.deepEqual([r.voix, r.modele], [job.voix, job.modele], `${c} : la voix du cours`);
     for (const e of r.elements) assert.deepEqual(e, job.elements.find(x => x.id === e.id), `${c}/${e.id} : le même texte que le cours`);
     for (const [a, b] of [].concat(r.legendes || [], r.remplacements || [])) {
-      assert.equal(page.split(a).length - 1, 1, `${c} : le texte d’aujourd’hui, une fois dans la page`);
-      assert.ok(!page.includes(b), `${c} : pas encore posé (il arrive avec sa voix)`);
+      assert.ok(!page.includes(a), `${c} : l’ancien texte n’est plus dans la page`);
+      assert.equal(page.split(b).length - 1, 1, `${c} : le nouveau texte, posé une fois, avec sa voix`);
     }
   }
 });
