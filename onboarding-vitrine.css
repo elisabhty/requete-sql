@@ -55,7 +55,10 @@ html #onboarding.ob-vitrine .ob-mini-progress i::after{display:none!important}
    bulle de BD comme sur la vitrine */
 html #onboarding.ob-vitrine .ob-chat{grid-template-columns:72px 1fr!important;gap:12px!important;margin:16px 0 18px!important}
 html #onboarding.ob-vitrine .ob-chat img{width:72px!important;height:auto!important;aspect-ratio:450/674;border-radius:0!important;object-fit:contain!important;object-position:50% 50%!important;background:none!important;border:0!important;box-shadow:none!important;
-  filter:none!important;rotate:-5deg;transform-origin:50% 92%;-webkit-user-drag:none;animation:obvStkIn .6s var(--v-pop) .05s both,obvStkBob 3.8s ease-in-out .7s infinite}
+  filter:none!important;rotate:-5deg;transform-origin:50% 92%;-webkit-user-drag:none;animation:obvApparait .24s ease-out both,obvStkBob 3.8s ease-in-out .7s infinite}
+/* 6 novembre, 23 h 16 (« la page bouge ») : la mascotte arrive en fondu, déjà à sa taille, puis se balance ; le résumé du rythme et
+   l’aide du niveau, redessinés à chaque choix, changent en fondu, sans glisser */
+html #onboarding.ob-vitrine :is(.ob-rhythm-summary,.ob-level-hint){animation-name:obvApparait}
 html #onboarding.ob-vitrine .ob-bubble{min-height:0!important;padding:13px 15px!important;border:3px solid var(--v-ink)!important;border-radius:18px!important;background:#fff!important;box-shadow:0 4px 0 var(--v-ink)!important;color:var(--v-ink)!important;font:800 16px/1.28 var(--v-display)!important;letter-spacing:-.01em!important}
 html #onboarding.ob-vitrine .ob-bubble::before{left:-10px!important;top:calc(50% - 8px)!important;width:15px!important;height:15px!important;background:#fff!important;border:0!important;border-left:3px solid var(--v-ink)!important;border-bottom:3px solid var(--v-ink)!important;border-radius:0 0 0 3px!important}
 
@@ -449,29 +452,35 @@ html #onboarding.ob-vitrine.ob-fit-5 .ob-practice .ob-title{font-size:19px!impor
 
 /* Changer d’étape : l’en-tête (retour, progression) reste en place ; le contenu glisse dans le sens du parcours (vers la gauche en
    avançant, vers la droite en revenant), sans flou : plus net et plus léger pour le téléphone. Les éléments qui ont leur propre
-   entrée (mascotte, coche de fin, aides) la gardent. */
+   entrée (mascotte, coche de fin, aides) la gardent.
+   6 novembre, 23 h 16 (Elisa, captures des étapes 6 et 5 : « Il y a des pages qui sautent » ; à la question, « La page bouge » :
+   elle apparaît puis se décale ou change de taille juste après) : le contenu ne glisse plus, les réponses et les tuiles ne
+   rebondissent plus en arrivant (elles grossissaient en descendant de 8 px, puis dépassaient leur taille), la bulle ne s’ouvre plus
+   en grandissant. La page apparaît en fondu, déjà à sa place : un fondu court, les blocs l’un après l’autre, puis plus rien ne bouge.
+   Le rebond reste au toucher d’une réponse (ob-selection-update), là où c’est le doigt qui le provoque. */
 html #onboarding.ob-vitrine .ob-screen{animation:none!important}
 html #onboarding.ob-vitrine .ob-slide.out{animation:none!important}
-html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .17s cubic-bezier(.4,0,1,1) both!important}
+html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .14s ease-in both!important}
 html #onboarding.ob-vitrine[data-ob-dir="back"] .ob-slide.out .ob-screen>:not(.ob-flow-top){animation-name:obvOutBack!important}
 html #onboarding.ob-vitrine.ob-enter .ob-screen>:not(.ob-flow-top):not(.ob-promise-stk):not(.ob-success):not(.mascot-stk):not(.ob-name-preview):not(.ob-level-hint):not(.ob-rhythm-summary):not(.ob-practice-reward):not(.ob-auth-message){
-  animation:obvRise .46s cubic-bezier(.2,.85,.25,1) backwards}
+  animation:obvApparait .26s ease-out backwards}
 html #onboarding.ob-vitrine.ob-enter[data-ob-dir="fwd"] .ob-screen>:not(.ob-flow-top):not(.ob-promise-stk):not(.ob-success):not(.mascot-stk):not(.ob-name-preview):not(.ob-level-hint):not(.ob-rhythm-summary):not(.ob-practice-reward):not(.ob-auth-message){
-  animation-name:obvInFwd;animation-duration:.42s}
+  animation-name:obvInFwd;animation-duration:.26s}
 html #onboarding.ob-vitrine.ob-enter[data-ob-dir="back"] .ob-screen>:not(.ob-flow-top):not(.ob-promise-stk):not(.ob-success):not(.mascot-stk):not(.ob-name-preview):not(.ob-level-hint):not(.ob-rhythm-summary):not(.ob-practice-reward):not(.ob-auth-message){
-  animation-name:obvInBack;animation-duration:.42s}
+  animation-name:obvInBack;animation-duration:.26s}
 html #onboarding.ob-vitrine.ob-enter .ob-screen>:nth-child(2){animation-delay:.03s}
 html #onboarding.ob-vitrine.ob-enter .ob-screen>:nth-child(3){animation-delay:.06s}
 html #onboarding.ob-vitrine.ob-enter .ob-screen>:nth-child(4){animation-delay:.09s}
 html #onboarding.ob-vitrine.ob-enter .ob-screen>:nth-child(n+5){animation-delay:.12s}
-@keyframes obvOutFwd{to{opacity:0;transform:translateX(-26px)}}
-@keyframes obvOutBack{to{opacity:0;transform:translateX(26px)}}
-@keyframes obvInFwd{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
-@keyframes obvInBack{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+@keyframes obvOutFwd{to{opacity:0}}
+@keyframes obvOutBack{to{opacity:0}}
+@keyframes obvInFwd{from{opacity:0}to{opacity:1}}
+@keyframes obvInBack{from{opacity:0}to{opacity:1}}
+@keyframes obvApparait{from{opacity:0}to{opacity:1}}
 @keyframes obvRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* Les réponses et les tuiles arrivent l’une après l’autre, après le titre */
-html #onboarding.ob-vitrine.ob-enter :is(.ob-answer,.ob-tile){animation:obPop .4s cubic-bezier(.34,1.4,.64,1) backwards;animation-delay:calc(var(--d,0ms) + .12s)}
+/* Les réponses et les tuiles arrivent l’une après l’autre, après le titre : en fondu, à leur place (23 h 16) */
+html #onboarding.ob-vitrine.ob-enter :is(.ob-answer,.ob-tile){animation:obvApparait .24s ease-out backwards;animation-delay:calc(var(--d,0ms) * .5 + .06s)}
 /* Un choix : la carte rebondit, sa pastille (ou son chiffre) fait un petit saut */
 html #onboarding.ob-vitrine.ob-selection-update .ob-tile.on{animation:iosSelectedPop .28s var(--spring-ios,cubic-bezier(.2,.9,.3,1)) both}
 html #onboarding.ob-vitrine.ob-selection-update :is(.ob-answer,.ob-tile).on :is(.ob-answer-icon,.ob-radio),
@@ -486,7 +495,7 @@ html #onboarding.ob-vitrine.ob-selection-update .ob-age-tile.on b{animation:obvJ
 /* La mascotte : elle arrive d’un rebond en entrant sur l’étape, plus à chaque choix (l’écran est redessiné) ; sa bulle s’ouvre juste
    après elle ; quand la première requête réussit, elle saute de joie. */
 html #onboarding.ob-vitrine:not(.ob-enter) .ob-chat img{animation:obvStkBob 3.8s ease-in-out infinite}
-html #onboarding.ob-vitrine.ob-enter .ob-bubble{transform-origin:0 50%;animation:obvBubbleIn .45s var(--v-pop) .2s both}
+html #onboarding.ob-vitrine.ob-enter .ob-bubble{animation:obvApparait .24s ease-out .06s both}
 html #onboarding.ob-vitrine.ob-cheer .ob-chat img{animation:obvJoy .8s var(--v-pop) both}
 @keyframes obvBubbleIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes obvJoy{0%{transform:none}28%{transform:translateY(-14px) rotate(-10deg) scale(1.06)}52%{transform:translateY(0) rotate(4deg)}74%{transform:translateY(-5px) rotate(-3deg)}100%{transform:none}}
@@ -747,7 +756,7 @@ html #onboarding.ob-vitrine .ob-success>i{position:absolute;inset:0;border-radiu
      les trois temps du tutoriel (voir plus bas, « La fin de l’onboarding ») */
   /* 11 h 08 (réf. 1, « la page bug à l’appui des trucs ») : l’entrée des tuiles rejouait à chaque choix (la page est redessinée) ;
      elle ne joue plus qu’à l’arrivée sur l’étape. */
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-source-tile{animation:obvTileIn .34s var(--v-pop) var(--d,0ms) both}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-source-tile{animation:obvApparait .24s ease-out calc(var(--d,0ms) * .5) both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-notif-alert{animation:obvNotifIn .5s var(--v-pop) .2s both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-notif-btns .is-ok{animation:obvNotifOk 1.1s ease-in-out 1.1s infinite}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-notif-arrow{animation:obvNotifFleche .4s var(--v-pop) .7s both,obvNotifBond 1.1s ease-in-out 1.1s infinite}
@@ -1058,7 +1067,10 @@ html #onboarding.ob-vitrine .ob-provider-icon svg{display:block;width:21px;heigh
 html #onboarding.ob-vitrine .ob-provider.is-apple .ob-provider-icon{color:#fff}
 html #onboarding.ob-vitrine .ob-provider.is-apple .ob-provider-icon svg{width:22px;height:22px;margin-top:-3px}
 html #onboarding.ob-vitrine .ob-provider.is-email .ob-provider-icon{color:var(--v-accent)}
-html #onboarding.ob-vitrine .ob-account .ob-legal-note{margin-top:16px!important;margin-bottom:auto!important;font-size:11px!important;line-height:1.45!important}
+/* 6 novembre, 23 h 16 : la phrase des conditions est sous le bouton jaune (.ob-foot-note.is-legal) ; le dernier bloc de la page garde
+   la marge du bas qui centre tout à la verticale */
+html #onboarding.ob-vitrine .ob-screen.ob-account>:last-child{margin-bottom:auto!important}
+html #onboarding.ob-vitrine .ob-foot-note.is-legal{max-width:340px;margin:0 auto!important;font-size:11.5px!important;line-height:1.45!important;text-align:center;text-wrap:balance}
 /* 10 h 45 (« Ta première requête est réussie ! 🎉 », son texte) : tout centré à la verticale entre l’en-tête et le bouton, comme la
    promesse : la mascotte (celle de la promesse, qui flotte) au-dessus du titre, puis les deux phrases, les deux boutons, le message
    quand on en touche un, et les pages légales. Les confettis sont dans le calque de l’onboarding (obFeteConnexion). */
@@ -1079,7 +1091,6 @@ html #onboarding.ob-vitrine.ob-fit-4 .ob-account .ob-provider-list{margin-top:12
 /* 14 h 08 : avec Google, trois boutons ; au dernier palier, ils se resserrent encore (iPhone SE). */
 html #onboarding.ob-vitrine.ob-fit-5 .ob-account .ob-provider{min-height:42px!important}
 html #onboarding.ob-vitrine.ob-fit-5 .ob-account .ob-provider-list{margin-top:10px!important;gap:6px!important}
-html #onboarding.ob-vitrine.ob-fit-5 .ob-account .ob-legal-note{margin-top:10px!important}
 /* Écrans étroits (moins de 360 px) : « Bientôt » passe en pastille sur le coin du bouton, le texte garde toute sa ligne. */
 @media (max-width:359px){
   html #onboarding.ob-vitrine .ob-provider{position:relative;grid-template-columns:24px minmax(0,1fr) 24px!important;column-gap:8px!important;padding:0 12px!important;font-size:14.5px!important}

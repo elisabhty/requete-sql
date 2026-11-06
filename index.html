@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=189">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=28">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=29">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -7164,6 +7164,12 @@ html[data-motion="reduce"] .lv-op-spot.is-nudge,html[data-motion="reduce"] .lv-o
 .lv-end{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(244,242,252,.84);opacity:0;transition:opacity .3s ease;cursor:default}
 .lv-end[hidden]{display:none}
 .lv.end-in .lv-end{opacity:1}
+/* Sur téléphone, le voile de fin couvre tout l’écran, jusque sous l’heure et sous la barre d’accueil (Elisa, 6 novembre, 23 h 16,
+   réf. 5, « Encore un effort ! » : « il y a des barres en haut et en bas que je veux homogénéiser avec le reste »). Il ne couvrait que
+   la scène : les marges du lecteur (l’heure, la barre d’accueil) restaient claires autour. La carte reste centrée, hors de ces zones. */
+@media (max-width:599.98px){
+  .lv-end{position:fixed;inset:0;padding:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 16px) calc(env(safe-area-inset-left,0px) + 16px)}
+}
 .lv-end-card{width:min(100%,420px);padding:22px 20px 18px;background:#fff;border:2px solid var(--line,#E6E1F6);border-radius:26px;box-shadow:0 5px 0 var(--lip,#DCD5F2);transform:translateY(26px) scale(.97);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
 .lv.end-in .lv-end-card{transform:none}
 .lv-end-top{display:flex;align-items:center;gap:14px;margin-bottom:20px}
@@ -42724,7 +42730,8 @@ function obSetFooter(primary,primaryAction,secondary,secondaryAction,note,disabl
   if(btn){const was=btn.disabled;obCtaLibelle(btn,primary);btn.style.display=primary?'':'none';btn.disabled=!!disabled;btn.onclick=primaryAction||null;
     if(was&&!btn.disabled&&primary&&!obJustEntered)obCtaWake(btn);}
   if(skip){skip.textContent=secondary||'';skip.style.display=secondary?'':'none';skip.onclick=secondaryAction||null;}
-  if(footNote)footNote.textContent=note||'';
+  /* La note sous les boutons : du texte, ou du HTML pour la phrase des conditions et ses liens (compte, 6 novembre, 23 h 16) */
+  if(footNote){const h=!!note&&typeof note==='object';if(h)footNote.innerHTML=note.html||'';else footNote.textContent=note||'';footNote.classList.toggle('is-legal',h);}
 }
 function obRythmeMinutes(rythme){
   return parseInt(String(rythme&&rythme.t||''),10)||(rythme&&rythme.min)||20;
@@ -42800,8 +42807,11 @@ function paintOb(){
       ${masquee?'':`<div class="ob-provider-list">
         ${OB_PROVIDERS.map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
       </div>`}${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
-      <p class="ob-legal-note">En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.</p></div>`;
-    obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','','');
+      </div>`;
+    /* Elisa, 6 novembre, 23 h 16 (réf. 4) : « Met le en continuant… juste en bas du bouton jaune » : la phrase des conditions passe
+       sous le bouton, dans le pied de page. */
+    const legal=`En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
+    obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
   }else if(slide==='name'){
     /* Le prénom (Elisa, 31 octobre, 17 h 53 : « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour
        le choix du pseudo ») : il sert à saluer ; le pseudo, unique et public, se choisit après l’onboarding (étape « pseudo »). */
@@ -44629,7 +44639,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-rappel-boutons-v2601';
+  const SW_CACHE='requete-2026-11-06-onboarding-calme-v2602';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

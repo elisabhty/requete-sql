@@ -127,12 +127,13 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
   /* Le sens : en avant le contenu part à gauche et le suivant arrive de droite ; en arrière, l’inverse ; une nouvelle ouverture monte */
   assert.ok(fn('obGoto', 'function obCtaWake(').includes("if(root)root.dataset.obDir=cible>obStep?'fwd':'back';"));
   assert.ok(fn('startOnboarding', 'function closeOnboardingAuth(').includes('delete root.dataset.obDir;'));
-  for (const k of ['@keyframes obvOutFwd{to{opacity:0;transform:translateX(-26px)}}', '@keyframes obvInFwd{from{opacity:0;transform:translateX(30px)}',
-    '@keyframes obvInBack{from{opacity:0;transform:translateX(-30px)}', '@keyframes obvRise{from{opacity:0;transform:translateY(14px)}'])
+  /* 6 novembre, 23 h 16 (« la page bouge ») : le sens reste, mais en fondu, sans glisser (tests/retours-2316.test.mjs) */
+  for (const k of ['@keyframes obvOutFwd{to{opacity:0}}', '@keyframes obvInFwd{from{opacity:0}to{opacity:1}}',
+    '@keyframes obvInBack{from{opacity:0}to{opacity:1}}', '@keyframes obvApparait{from{opacity:0}to{opacity:1}}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.includes('html #onboarding.ob-vitrine[data-ob-dir="back"] .ob-slide.out .ob-screen>:not(.ob-flow-top){animation-name:obvOutBack!important}'), 'l’en-tête reste en place');
   /* Les cartes entrent sans garder de style d’animation : le premier appui les enfonce bien */
-  assert.ok(css.includes('html #onboarding.ob-vitrine.ob-enter :is(.ob-answer,.ob-tile){animation:obPop .4s cubic-bezier(.34,1.4,.64,1) backwards;'));
+  assert.ok(css.includes('html #onboarding.ob-vitrine.ob-enter :is(.ob-answer,.ob-tile){animation:obvApparait .24s ease-out backwards;'));
   assert.ok(app.includes("items.map(([key,label,icon],i)=>") && app.includes('class="ob-answer ${value===key?\'on\':\'\'}" style="--d:${i*45}ms"'), 'les réponses en cascade, à chaque étape');
   /* Le bouton se réveille quand il devient utilisable : choix, signature, parcours construit, première requête réussie */
   const wake = fn('obCtaWake', 'function obAuthReady(');
@@ -154,7 +155,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=28">') && sw.includes("'./onboarding-vitrine.css?v=28',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=29">') && sw.includes("'./onboarding-vitrine.css?v=29',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');
