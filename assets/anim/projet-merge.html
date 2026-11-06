@@ -178,7 +178,7 @@
   <section class="scene" id="sb"></section>
   <!-- La requête du collègue : les deux actions à remettre en place -->
   <section class="scene" id="sx"></section>
-  <!-- Le même résultat dans SQLite -->
+  <!-- Une autre écriture : le même résultat sans MERGE -->
   <section class="scene" id="sl"></section>
   <!-- La suite : la prochaine leçon -->
   <section class="scene" id="sk"></section>
@@ -189,7 +189,7 @@
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt"><code>MERGE</code> compare deux tables<br>et choisit l’action <b>ligne par ligne</b>.<span class="rs"><code>ON</code> indique comment reconnaître<br>la même ligne : en général, l’identifiant.</span></div></div>
       <div class="rrow"><div class="rico emo">🧭</div><div class="rtxt"><code>WHEN MATCHED</code> met à jour,<br><code>WHEN NOT MATCHED</code> <b>ajoute</b>.<span class="rs">Les lignes absentes de la source ne changent pas :<br>rien n’est supprimé sans action <code>DELETE</code>.</span></div></div>
-      <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt">Dans la base de l’app,<br><code>MERGE</code> <b>n’existe pas</b>.<span class="rs">On obtient le même résultat<br>avec <code>INSERT … ON CONFLICT DO UPDATE</code>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔁</div><div class="rtxt">La synchronisation peut<br>aussi s’écrire <b>autrement</b>.<span class="rs">On obtient le même résultat<br>avec <code>INSERT … ON CONFLICT DO UPDATE</code>.</span></div></div>
     </div>
   </section>
 
@@ -280,10 +280,10 @@ cap('c26', "Un collègue a préparé<br>la même synchronisation pour demain.", 
 cap('c27', "Mais il a inversé les deux actions.", 3.0);
 toi('p6');
 cap('c28', "Une action par branche : <code>UPDATE</code><br>quand le produit existe,<br><code>INSERT</code> quand il est nouveau.", 4.6);
-/* 7 · Et dans SQLite ? */
-chap({label:'Et dans SQLite ?'});
-cap('c29', "Dans SQLite, la base de l’app,<br><code>MERGE</code> n’existe pas.", 3.4);
-cap('c30', "On obtient le même résultat<br>avec <code>ON CONFLICT</code>, vu dans la leçon INSERT.", 4.6);   // la requête s’écrit pendant la bulle
+/* 7 · Une autre écriture (Elisa, 5 novembre, 0 h 30 : ne pas parler de SQLite dans les leçons ; 6 novembre, 19 h : ne pas dire que
+   MERGE n’existe pas dans l’appli, la phrase est retirée). L’éditeur arrive pendant les 0,6 s d’avant la légende. */
+chap({label:'Une autre écriture'});
+cap('c30', "On obtient le même résultat<br>avec <code>ON CONFLICT</code>, vu dans la leçon INSERT.", 4.6, 0.6);   // la requête s’écrit pendant la bulle
 cap('c31', "<code>excluded</code> désigne la ligne<br>que l’on voulait ajouter.", 3.6);
 cap('c32', "Ici, <code>WHERE true</code> garde<br>toutes les lignes de l’inventaire.", 3.6);
 /* la suite : la prochaine leçon */
@@ -466,9 +466,9 @@ function dom(){
     BRANCHES.map(([k, n, d], q) => `<div class="abs dbn" id="dx-${k}" data-k="${k}" style="top:${716 + q * 232}px"><div class="hh"><span class="dn">${n}</span><span class="dd">${d}</span></div>` +
       `<div class="cs">${ACTIONS.map((x, i) => x[1] === k ? `<div class="rc cd" id="sxa${i}">${x[0]}</div>` : '').join('')}</div></div>`).join('') +
     '<div class="abs pack" id="xpack" style="top:1224px"><span><span class="emo">🧩</span>2 actions à remettre en place</span></div>';
-  /* Le même résultat dans SQLite : INSERT … ON CONFLICT (chapitre 8) */
-  $('#sl').innerHTML = editor('eq', 'sqlite.sql', [
-    ['eq0', '-- Le même résultat dans SQLite'],
+  /* Une autre écriture : INSERT … ON CONFLICT (chapitre 8) */
+  $('#sl').innerHTML = editor('eq', 'sans-merge.sql', [
+    ['eq0', '-- Le même résultat, sans MERGE'],
     ['eq1', '{qi|INSERT INTO} produits'],
     ['eq2', 'SELECT * FROM entrepot {qw|WHERE true}'],
     ['eq3', '{qc|ON CONFLICT (id) DO UPDATE}'],
@@ -721,9 +721,9 @@ function build(){
   hide(['#ec', '#sx .dbn'], B.c28 - 0.1, {y: -40}, 0.4);
   sceneOff('#sx', B.c28 + 0.4);
 
-  /* ===== 7 · Et dans SQLite ? ===== */
-  sceneOn('#sl', A.c29);
-  show('#eq', A.c29 + 0.6, {y: 40}, 0.5); cue(A.c29 + 0.6, 'whoosh', 0.45, 1);
+  /* ===== 7 · Une autre écriture ===== */
+  sceneOn('#sl', A.c30 - 0.5);
+  show('#eq', A.c30 - 0.3, {y: 40}, 0.5); cue(A.c30 - 0.3, 'whoosh', 0.45, 1);
   let tq = sqType('eq1', A.c30 + 0.3, 32);
   tq = sqType('eq2', tq + 0.15, 34); tq = sqType('eq3', tq + 0.15, 34); sqType('eq4', tq + 0.15, 34);
   pulse('#qc', A.c30 + 2.9, 1, GLOW);
@@ -892,7 +892,6 @@ const VOICE = {dir: '../voix/projet-merge/', intro: ["ch00",0.08,8.58],
     ["v7yb78s","ch06",3.22,5.33],
     ["v454daq","ch06",5.5,6.09],
     ["v98hnq1","ch06",6.31,11.82],
-    ["v78wglr","ch07",0,4.11],
     ["v1qy1taq","ch07",4.32,8.74],
     ["vc49f1c","ch07",9.25,12.62],
     ["vqac2b0","ch07",12.91,16.53],
@@ -901,7 +900,7 @@ const VOICE = {dir: '../voix/projet-merge/', intro: ["ch00",0.08,8.58],
     ["v157lrmh","ch08",3.1,6.14]],
   say: {"at1":["at1",0.95,3.69],"at2":["at2",0.99,3.97],"at3":["at3",0.93,4.23],"at4":["at4",0.97,5.31],"at5":["at5",0.8,4],"at6":["at6",0.84,3.16],"indice1":["indice1",0.14,5.86],"indice6":["indice6",0.15,6.09],"bienvu":["bienvu",0.14,0.96],"rattrape":["rattrape",0.13,1.24],"presque":["presque",0.06,3.58],"finbravo":["finbravo",0,2.45],"fineffort":["fineffort",0.04,4.02]}};
 /* Fin de la voix off */
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 165.3, picks: PICKS, opens: OPENS, voice: VOICE,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 162.3, picks: PICKS, opens: OPENS, voice: VOICE,
   glyphs: '🗄️🧑‍🏫📅👥🛒⭐📦💳📝🔑🏭🚨🔀🧭🔁🧩🔗👆✓!…«»·−→🗑️',
   dom, build, beforeRender: t => IX.tick(t)});
 </script>

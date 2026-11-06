@@ -3,8 +3,8 @@
    L’équipe logistique envoie une alerte : l’inventaire de l’entrepôt ne correspond plus aux stocks du site, les ventes du soir commencent
    dans 5 minutes. L’élève décide d’une action par produit, construit MERGE pas à pas (ON, WHEN MATCHED, WHEN NOT MATCHED), évite le piège
    du Magnésium, puis répare la requête d’un collègue. Quatrième cours du module « Écrire et modifier les données ». Leçon seule.
-   MERGE n’existe pas dans SQLite, la base de l’app : ce que la vidéo affirme est rejoué ici avec son équivalent, INSERT … ON CONFLICT,
-   que la vidéo montre à la fin. */
+   SQLite, qui fait tourner ces tests, ne lit pas MERGE : ce que la vidéo affirme est rejoué ici avec l’autre écriture qu’elle montre à la
+   fin, INSERT … ON CONFLICT (la vidéo, elle, ne dit pas que MERGE n’existe pas dans l’app : Elisa, 6 novembre, 19 h). */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -90,12 +90,12 @@ test('recherche, carte mémo, et leçon seule sans texte de secours ni exercice'
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {
   const caps = val('CAPTIONS'), chaps = val('SCH.chaps'), picks = val('PICKS');
-  assert.equal(val('NOTES'), 165.3);
-  assert.ok(page.includes('notesAt: 165.3,'), 'notesAt écrit en clair, comme dans les autres vidéos');
-  assert.equal(val('DURATION'), 172.5);
+  assert.equal(val('NOTES'), 162.3);
+  assert.ok(page.includes('notesAt: 162.3,'), 'notesAt écrit en clair, comme dans les autres vidéos');
+  assert.equal(val('DURATION'), 169.5);
   for (let k = 1; k < caps.length; k++) assert.ok(caps[k][0] >= caps[k - 1][1] - 1e-9 || caps[k][1] === 999, `légende ${k + 1} : après la précédente`);
   chaps.forEach((c, k) => { if (k) assert.ok(c.a >= caps.filter(x => x[1] < c.a + 1e-9).slice(-1)[0][1] + 0.4 - 1e-9, `chapitre ${k + 1} : 0,4 s après la légende précédente`); });
-  assert.deepEqual(chaps.map(c => c.label), ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Et dans SQLite ?', 'À retenir']);
+  assert.deepEqual(chaps.map(c => c.label), ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Une autre écriture', 'À retenir']);
   /* Une seule phrase complète par bulle (Elisa, 23 octobre) ; aucune bulle de plus de trois lignes. */
   caps.forEach(([, , t, lines], k) => {
     const txt = strip(t);
