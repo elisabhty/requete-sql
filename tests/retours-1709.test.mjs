@@ -38,7 +38,8 @@ test('réf. 2 : « Prête pour la suite, Elisa ? », selon le genre ; le salut d
   suite = false; ctx.state.name = 'Elisa'; ctx.renderGreeting(); assert.equal(title.textContent, 'Bon après-midi, Elisa', 'plus de suite : le salut de l’heure');
   const hero = fn('renderHomeHero');
   assert.ok(hero.includes("const suite=nxt!=null&&typeof salutSuite==='function'?salutSuite():'';"));
-  assert.ok(hero.includes("const hiHtml=`<span class=\"lq-nw\">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}${suite?'\\u00a0?':''}`;"));
+  /* Depuis le 6 novembre, le prénom a sa propre balise (la carte le resserre sur petit écran) */
+  assert.ok(hero.includes("const hiHtml=`<span class=\"lq-nw\">${esc(hiWord)}</span>${name?`, <span class=\"lq-hi-nom\">${esc(name)}</span>`:''}${suite?'\\u00a0?':''}`;"));
 });
 
 test('réf. 2 : « Reprendre ma leçon » seulement si la leçon a été commencée, sinon « Commencer la leçon »', () => {
@@ -56,7 +57,7 @@ test('réf. 2 : « Reprendre ma leçon » seulement si la leçon a été commenc
   ses = { cid: 'd1' }; assert.equal(ctx.itemCommence('d1'), true, 'un défi au chrono en cours');
   assert.equal(ctx.itemCommence('d2'), false, 'pas un autre défi');
   const hero = fn('renderHomeHero');
-  assert.ok(hero.includes(":(itemCommence(nxt)?'Reprendre ma leçon':'Commencer la leçon'));") && hero.includes("?(itemCommence(nxt)?'Reprendre le défi':'Commencer le défi')"));
+  assert.ok(hero.includes("const commence=itemCommence(nxt);") && hero.includes("const ctaLabel=defi?(commence?'Reprendre le défi':'Commencer le défi'):(commence?'Reprendre ma leçon':'Commencer la leçon');"));
   assert.ok(!hero.includes('session.started?'), 'une autre activité faite dans la séance ne suffit plus');
 });
 

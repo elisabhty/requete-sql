@@ -256,8 +256,9 @@ test('19 h 22 : l’icône de chargement (tirer pour recharger) descend moins ba
 });
 
 test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la carte du cours ; la série dessous', () => {
-  assert.ok(app.includes('const html=`<section class="lq-hero journey-session has-hi" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}${chip}'));
-  assert.ok(app.includes('<span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(detail)}</small></span></button></section>${streak}${extras}`;'), 'la série dessous (l’objectif du 4 novembre, 17 h 27, est supprimé le 5 à 20 h 34)');
+  /* Depuis le 6 novembre : la carte « La leçon d’abord » (le bonjour et la séance, puis le module, la leçon, le bouton) */
+  assert.ok(app.includes('const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div>'));
+  assert.ok(app.includes('<span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${streak}${extras}`;'), 'la série dessous (l’objectif du 4 novembre, 17 h 27, est supprimé le 5 à 20 h 34)');
   assert.ok(css.includes('html.lq .lq-hero.has-hi .lq-hero-hi{position:relative;z-index:1;margin:0 0 14px;padding:0 0 14px;border-bottom:1.5px solid rgba(255,255,255,.18)}'));
 });
 
