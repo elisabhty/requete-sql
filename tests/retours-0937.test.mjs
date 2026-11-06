@@ -29,6 +29,14 @@ const UNIVERS = {
   labo: ['laboratoire Hélix', ['Véronique', 'Mathis', 'Clémence', 'Rose', 'Gaspard', 'Patrice', 'Sandrine'], ['Véronique', 'Mathis', 'Clémence', 'Rose', 'Gaspard', 'Patrice']],
   voyages: ['Cap Ailleurs', ['Bérénice', 'Samuel', 'Joëlle', 'Florent', 'Maëlle'], ['Bérénice', 'Samuel', 'Joëlle', 'Florent', 'Maëlle']],
   salle_sport: ['club Pulsar', ['Inès', 'Bastien', 'Yanis', 'Mathilde'], ['Inès', 'Bastien', 'Yanis', 'Mathilde']],
+  /* 6 novembre : les sept bases ajoutées, chacune avec son lieu et son équipe */
+  ski: ['Blanchecombe', ['Hélène', 'Cyril', 'Bruno', 'Fanny', 'Diane'], ['Hélène', 'Cyril', 'Bruno', 'Fanny', 'Diane']],
+  foodtruck: ['Popote & Pistons', ['Octave', 'Prune', 'Killian', 'Nolwenn', 'Léonie'], ['Octave', 'Prune', 'Killian', 'Nolwenn', 'Léonie']],
+  aquarium: ['aquarium des Trois Marées', ['Victoire', 'Quentin', 'Sacha', 'Ulysse', 'Romane'], ['Victoire', 'Quentin', 'Sacha', 'Ulysse', 'Romane']],
+  velos: ['Cyclavel', ['Nina', 'Élodie', 'Corentin', 'Karim', 'Tristan'], ['Nina', 'Élodie', 'Corentin', 'Karim', 'Tristan']],
+  apiculture: ['Coteaux Blonds', ['Noémie', 'Rémi', 'Salomé', 'Capucine', 'Hervé'], ['Noémie', 'Rémi', 'Salomé', 'Capucine', 'Hervé']],
+  escape: ['Cadran Fêlé', ['Bérangère', 'Jade', 'Malik', 'Théo', 'Zoé'], ['Bérangère', 'Jade', 'Malik', 'Théo', 'Zoé']],
+  festival: ['festival des Hautes Herbes', ['Apolline', 'Éliott', 'Lucile', 'Moussa', 'Iris'], ['Apolline', 'Éliott', 'Lucile', 'Moussa', 'Iris']],
 };
 const AUTRES = /Camille Moreau|Oliver Smith|Sophie Martin|Manon Lambert|Simba|AlphaJet|cardiologue|client|voyageur|entreprise|agence|adhérent/;
 
@@ -41,7 +49,7 @@ test('le défi de la capture : Inès, à l’accueil du club Pulsar, et ce qu’
 });
 
 test('chaque situation nomme son lieu et qui demande, sans sujet flou, et reste courte', () => {
-  assert.equal(C.length, 267);
+  assert.equal(C.length, 477);
   for (const c of C) {
     const [lieu, equipe] = UNIVERS[c.base];
     const s = c.situation;
