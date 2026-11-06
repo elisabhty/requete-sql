@@ -1211,10 +1211,10 @@ const COURSES = [
       "b += out('o-8', 'warn', 'Requête exécutée', '8 lignes supprimées.');", "c += out('o-2', 'ok', 'Requête exécutée', '1 ligne supprimée.');", 'Prochaine leçon · ON DELETE']},
   /* Le chapitre 10, ajouté le 30 octobre (Elisa : le mini-jeu de synchronisation d’urgence) : l’alerte stock, l’inventaire de l’entrepôt,
      MERGE par étapes, le piège du Magnésium, la requête du collègue aux actions inversées, puis l’équivalent SQLite. */
-  {id: 82, next: 28, titre: 'MERGE', page: 'projet-merge.html', thumb: 'projet-merge-thumb.webp', duree: '3 min 21', notesAt: 165.3,
+  {id: 82, next: 28, titre: 'MERGE', page: 'projet-merge.html', thumb: 'projet-merge-thumb.webp', duree: '3 min 17', notesAt: 162.3,
     table: 'produits',
     bubble: 'Utilise <span class="ic">MERGE</span> pour mettre à jour les lignes&nbsp;existantes et ajouter les nouvelles en une seule&nbsp;requête.',
-    chapters: ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Et dans SQLite ?', 'À retenir'],
+    chapters: ['L’alerte stock', 'Une action par produit', 'La clé de comparaison', 'MATCHED ou NOT MATCHED', 'Le piège', 'La requête du collègue', 'Une autre écriture', 'À retenir'],
     traps: ["const BINS = [['up', 'UPDATE', 'mettre à jour le stock'], ['in', 'INSERT', 'ajouter le produit'], ['no', 'Ne rien faire', 'garder la ligne telle quelle']];",
       // Les six moments : les quatre produits à ranger, la condition ON, l’action de WHEN MATCHED, la ligne sans correspondance, le piège du Magnésium, les deux actions du collègue
       "{at: atp('p1'), from: A.c3, kind: 'sort',", "{label: 'ON produits.id = entrepot.id', ok: true},", "{label: 'UPDATE SET stock = entrepot.stock', ok: true},",
