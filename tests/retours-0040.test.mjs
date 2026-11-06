@@ -1,6 +1,7 @@
 /* Elisa, 6 novembre, 0 h 40 : « Dans compte mettre ça (widget) avec les animations de comment procéder », sur une capture
    « Widgets de l’écran d’accueil », « Widgets de l’écran verrouillé », « Évaluer l’application ».
-   - Mon compte, dans l’app iPhone : le groupe « Sur ton iPhone » (les deux widgets, puis « Noter Requête ») ;
+   - Mon compte, dans l’app iPhone : le groupe « Sur ton iPhone » (les deux widgets, puis « Évaluer l’application ») ; depuis 10 h 40,
+     aussi dans Safari sur iPhone (retours-1040) ;
    - chaque ligne ouvre une feuille : un iPhone dessiné rejoue les gestes d’Apple, étape par étape, en boucle ; les étapes dessous ;
    - le widget de l’écran verrouillé existe vraiment (RequeteWidget.swift) : la flamme et la séance du jour, en rond ou en bandeau. */
 import test from 'node:test';
@@ -12,18 +13,20 @@ const app = lire('index.html'), lq = lire('ludique.css'), swift = lire('resource
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 const compte = cut('function renderCompte(){', '\nfunction ');
 
-test('Mon compte : « Sur ton iPhone », les deux widgets puis « Noter Requête », seulement dans l’app iPhone', () => {
+test('Mon compte : « Sur ton iPhone », les deux widgets puis « Évaluer l’application », sur iPhone (app ou Safari)', () => {
   assert.ok(compte.includes("const widgetsIci=typeof obWidgetPossible==='function'&&obWidgetPossible();"), 'le pont RequeteWidget de l’app iPhone');
   const g = compte.slice(compte.indexOf('<p class="account-settings-group-title">Sur ton iPhone</p>'), compte.indexOf('<p class="account-settings-group-title">Compte et assistance</p>'));
   assert.ok(g.length > 0 && compte.indexOf('Apprentissage</p>') < compte.indexOf('Sur ton iPhone</p>'), 'entre « Apprentissage » et « Compte et assistance »');
   const a = g.indexOf("openPlusDetails('plus-widget-accueil')"), v = g.indexOf("openPlusDetails('plus-widget-verrou')"), n = g.indexOf('onclick="noterAppli()"');
   assert.ok(a > 0 && v > a && n > v, 'accueil, verrouillé, puis noter');
   assert.ok(g.includes("${lqStkSvg('widgets')}") && g.includes("${lqStkSvg('verrou')}"), 'des autocollants, comme les autres lignes');
-  assert.ok(compte.includes('${widgetsIci||appliNative()?`<div class="account-settings-group">'), 'pas de groupe vide sur le web');
+  assert.ok(compte.includes('const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());') && compte.includes('const surIphone=widgetsVus||appliNative();'), 'l’app, ou Safari sur iPhone');
+  assert.ok(compte.includes('${surIphone?`<div class="account-settings-group">'), 'pas de groupe sur un ordinateur');
   const assistance = compte.slice(compte.indexOf('Compte et assistance</p>'));
-  assert.ok(!assistance.slice(0, assistance.indexOf('</section>')).includes('noterAppli()'), '« Noter Requête » a quitté « Compte et assistance »');
+  assert.ok(!assistance.slice(0, assistance.indexOf('</section>')).includes('noterAppli()'), '« Évaluer l’application » a quitté « Compte et assistance »');
   for (const k of ['accueil', 'verrou'])
     assert.ok(compte.includes(`<details class="plus-details plus-widget" id="plus-widget-${k}" ontoggle="wtuToggle(this)">`), k + ' : une feuille qui lance et arrête son tutoriel');
+  assert.ok(compte.includes('${widgetsVus?`<details class="plus-details plus-widget" id="plus-widget-accueil"'), 'les feuilles, avec leurs lignes');
 });
 
 /* Le module, exécuté : les dessins, les cibles du doigt, la boucle des étapes. */
