@@ -35,9 +35,9 @@ const nb = k => ctx.ENTRETIEN.filter(q => q.niveau === k).length;
 assert(vitrine.includes(`<li>Débutant · ${nb('Débutant')}</li><li>Intermédiaire · ${nb('Intermédiaire')}</li><li>Avancé · ${nb('Avancé')}</li>`), 'la vitrine compte les niveaux de l’appli');
 /* 3 novembre, 6 h 07 : « supprimer les À retenir dans Entretien SQL ». */
 assert(ctx.ENTRETIEN.every(q => !('retenir' in q)) && !html.includes('class="ent-retenir"'), 'plus de « À retenir » dans l’entretien');
-/* 3 novembre, 6 h 19 : le schéma en étoile est dessiné (faits au centre, quatre dimensions). */
+/* 3 novembre, 6 h 19 : le schéma en étoile est dessiné (faits au centre, quatre dimensions) ; depuis le 6 novembre, ceux d’un festival. */
 const etoile = ctx.ENTRETIEN.find(q => q.id === 'ent-v2-102').etoile;
-assert(etoile && etoile.faits.t === 'faits_ventes' && etoile.dims.length === 4 && html.includes('${x.q.etoile?entEtoile(x.q.etoile):\'\'}'), 'schéma en étoile dessiné');
+assert(etoile && etoile.faits.t === 'faits_billets' && etoile.dims.length === 4 && html.includes('${x.q.etoile?entEtoile(x.q.etoile):\'\'}'), 'schéma en étoile dessiné');
 console.log(`  ${n} exemples vérifiés`);
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
