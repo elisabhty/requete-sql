@@ -257,7 +257,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   assert.deepEqual(W.ORDRE_WHY, {in: 'La table inscriptions fait référence à la table ateliers, qui n’est pas encore écrite.',
     co: 'La table coachs est déjà écrite : c’est la première du fichier.', cl: 'La table clients existe déjà : il ne faut pas la recréer.'}, 'une correction par mauvaise table');
   /* 3 · ranger les colonnes de la table ateliers selon leur type (la case REAL reste vide) */
-  assert.ok(P[2].prompt === 'Range chaque colonne de la table ateliers selon son type : une case peut rester vide.'
+  assert.ok(P[2].prompt === 'Une date a son propre type, DATE. Range chaque colonne de la table ateliers selon son type : une case peut rester vide.'
     && P[2].hint === 'Sélectionne une colonne, puis appuie sur le type qui lui correspond. Tu peux aussi la faire glisser directement.' && P[2].next === '{x} : appuie maintenant sur son type.');
   assert.deepEqual(W.TYPES.map(t => [t[0], t[1]]), [['int', 'INTEGER'], ['real', 'REAL'], ['text', 'TEXT']], 'les trois types du chapitre 2 : INTEGER, REAL, TEXT');
   assert.deepEqual(W.TYPES3.map(t => [t[0], t[1], t[2], t[3]]), [['int', 'INTEGER', 'nombre entier', '10'], ['real', 'REAL', 'nombre à virgule', '29.90'], ['text', 'TEXT', 'texte', '\'Salma\''],

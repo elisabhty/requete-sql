@@ -566,7 +566,7 @@ const COURSES = [
        ni chapitre « Le problème » pour la redire ; les guillemets : deux erreurs, puis un alias qui s’en passe. */
     chapters: ['Situation', 'Renommer une colonne', 'Avec ou sans guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"', 'Sans espace ni symbole']},
-  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 31', notesAt: 109.05,
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 33', notesAt: 109.05,
     table: 'clients',
     bubble: 'Utilise <span class="ic">DISTINCT</span> pour afficher chaque valeur une seule fois.',
     chapters: ['Situation', 'Le problème', 'À la main', 'DISTINCT', 'Plusieurs colonnes', 'Le piège', 'Le résultat', 'À retenir'],
@@ -575,12 +575,12 @@ const COURSES = [
        le piège, la chasse aux doublons au résultat, sans redire la place de DISTINCT ni la table intacte. */
     traps: ['near "DISTINCT": syntax error', 'Paris + Sophie et Paris + Léa sont différentes', "prompt: 'Garde une seule étiquette par ville.'",
       "hint: 'Touche les étiquettes répétées pour les retirer du résultat.'", 'Tu viens de retirer<br>les répétitions <b>à la main</b>.',
-      'Avec SQL, <code>DISTINCT</code> le fait pour toi !', "{label: 'DISTINCT', to: 'h1',",
+      'Avec SQL, <code>DISTINCT</code> le fait pour toi : il s’écrit juste après <code>SELECT</code>.', "{label: 'DISTINCT', to: 'h1',",
       "prompt: 'Deux clients vivent à Lyon. Après <code>SELECT DISTINCT ville</code>, combien de clients restent dans la <b>table clients</b> ?'",
       "{label: 'Les deux', ok: true, why: '<code>DISTINCT</code> enlève les doublons du résultat, sans modifier les données de départ.'}",
       '<div class="vpill"><span>${v}</span></div>', 'Il porte sur la ligne entière : sa place est <b>juste après</b> le <code>SELECT</code>.',
       'Revenons à la <b>demande de l’équipe</b>.', '<span id="s6pr">, prenom</span>']},
-  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 39', notesAt: 102.2,
+  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 42', notesAt: 102.2,
     table: 'produits',
     bubble: 'Utilise les opérateurs de comparaison pour comparer une colonne à une valeur.',
     chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
@@ -597,7 +597,7 @@ const COURSES = [
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND est prioritaire sur OR', 'entre parenthèses : calculé en premier', 'Ne remplit pas<br>le critère d’âge',
       'Nathan Dupont, 30 ans, est ainsi invité alors qu’il ne devrait pas l’être.',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
-  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 45', notesAt: 109.7,
+  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 51', notesAt: 109.7,
     table: 'clients',
     bubble: 'Utilise <span class="ic">NOT</span> pour exclure les lignes qui respectent une condition.',
     chapters: ['Situation', 'Le problème', 'NOT en action', 'NOT ou l’inverse', 'Les parenthèses', 'Le résultat', 'À retenir'],
@@ -695,7 +695,7 @@ const COURSES = [
       '<span class="fi"><span class="ic">SUBSTR</span>récupère une partie du texte</span>', '<span class="fi"><span class="ic">REPLACE</span>remplace des caractères</span>',
       'hold(2.3, 4.6);', '<meta name="format-detection" content="telephone=no">', '✓ 10 étiquettes prêtes',
       'function ean13Svg(code){', "const bar = ean13Svg('3760123456784');", '.lb-bar svg{display:block;width:100%;height:100%}']},
-  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 46', notesAt: 132.6,
+  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 49', notesAt: 132.6,
     table: 'produits',
     bubble: 'Effectue des calculs et transforme des valeurs numériques avec les fonctions numériques.',
     chapters: ['Situation', 'Le problème', 'FLOOR en action', 'Calculer', 'Trois façons d’arrondir', 'Le résultat', 'À retenir'],
@@ -790,7 +790,7 @@ const COURSES = [
       '<span class="glow" id="pn5">prenom</span>, ville, <span class="kw">COUNT</span>(*)', '<span class="vv" id="so5">Sophie</span>',
       '<span class="ok">SQLite&nbsp;: un prénom au choix</span><span class="ko">Autres bases&nbsp;: une erreur</span>', '<span class="cv">✕ ni l’un ni l’autre</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ Paris en tête avec 4 clients']},
-  {id: 87, next: 17, titre: 'GROUP BY sur plusieurs colonnes', page: 'group-by-colonnes.html', thumb: 'group-by-colonnes-thumb.jpg', duree: '3 min 23', notesAt: 180.3,
+  {id: 87, next: 17, titre: 'GROUP BY sur plusieurs colonnes', page: 'group-by-colonnes.html', thumb: 'group-by-colonnes-thumb.jpg', duree: '3 min 24', notesAt: 180.3,
     table: 'commandes',
     bubble: 'Regroupe les lignes selon plusieurs colonnes à la fois&nbsp;: un groupe par combinaison de valeurs.',
     chapters: ['Situation', 'Le problème', 'Deux colonnes', 'Le groupe absent', 'Le piège', 'Le résultat', 'À retenir'],
@@ -834,7 +834,7 @@ const COURSES = [
       '<span class="snote" id="sn4">une virgule sans espace</span>', '<span class="vc nul" id="vn4"><small>commande n°16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
       '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
-  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 31', notesAt: 120.9,
+  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 32', notesAt: 120.9,
     table: 'commandes',
     bubble: 'Relie deux tables et conserve uniquement les lignes qui ont une correspondance.',
     chapters: ['Situation', 'Le problème', 'INNER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
@@ -901,7 +901,7 @@ const COURSES = [
       '<span class="glow" id="j3"><span class="kw">INNER JOIN</span> commandes</span>', '<span class="sw" id="tt3"><span class="a">Après le JOIN</span><span class="b">Après GROUP BY et COUNT()</span></span>',
       '<span class="m">near "INNER": syntax error</span>', '<span class="nt rd" id="nt5b">↑ les 15 commandes d’un coup</span>',
       '<span>Nantes&nbsp;: aucune commande, donc aucune ligne</span>', '✓ Paris en tête, devant Lyon']},
-  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '3 min 11', notesAt: 158.4,
+  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '3 min 13', notesAt: 158.4,
     table: 'commandes',
     bubble: 'Relie une table à elle-même pour comparer ou associer ses propres lignes.',
     chapters: ['Situation', 'Le problème', 'SELF JOIN en action', 'Avec elle-même', 'Le piège', 'Le résultat', 'À retenir'],
@@ -910,7 +910,7 @@ const COURSES = [
       '<span class="glow" id="d3"><span class="kw">AND</span> c1.date_commande = c2.date_commande</span>', '<span class="dp rd">elle-même</span>',
       '<span class="sw" id="op5"><span class="a">&lt;&gt;</span><span class="b">&lt;</span></span>',
       '<span class="glow" id="w6"><span class="kw">AND</span> c1.id &lt; c2.id</span>', '✓ 2 colis au lieu de 4']},
-  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '3 min 26', notesAt: 177.6,
+  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '3 min 25', notesAt: 177.6,
     table: 'commandes',
     bubble: 'Ajoute plusieurs conditions dans <span class="ic">ON</span> pour rendre une jointure plus précise.',
     chapters: ['Situation', 'Le problème', 'AND en action', 'Une troisième condition', 'Le piège', 'Le résultat', 'À retenir'],
@@ -1072,7 +1072,7 @@ const COURSES = [
       '<span class="b"><span class="glow" id="p4"><span class="kw">2 PRECEDING</span></span></span>', '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> date_commande</span>',
       '✕ Les deux commandes du 2 juillet ont le même cumul', '<div class="lim" id="lim6"><span>Palier&nbsp;: 700&nbsp;€</span></div>',
       '✓ Palier franchi le 1er&nbsp;août']},
-  {id: 89, next: 56, titre: 'FIRST_VALUE, LAST_VALUE et NTILE', page: 'first-last-ntile.html', thumb: 'first-last-ntile-thumb.jpg', duree: '3 min 37', notesAt: 183.1,
+  {id: 89, next: 56, titre: 'FIRST_VALUE, LAST_VALUE et NTILE', page: 'first-last-ntile.html', thumb: 'first-last-ntile-thumb.jpg', duree: '3 min 39', notesAt: 183.1,
     table: 'produits',
     bubble: 'Lis la première ou la dernière valeur d’une fenêtre, et répartis les lignes en groupes égaux.',
     chapters: ['Situation', 'FIRST_VALUE', 'LAST_VALUE', 'Le cadre', 'NTILE', 'Le résultat', 'À retenir'],
@@ -1108,7 +1108,7 @@ const COURSES = [
       "const RELS = [['11', '1 ↔ 1', 'un à un', 2], ['1n', '1 → N', 'un à plusieurs', 0], ['nn', 'N ↔ N', 'plusieurs à plusieurs', 1]];",
       '<i class="two">2, 5</i>', '<i class="two hid" id="two14">1, 4</i>', '<b class="uq" id="uq">unique</b>', '<div class="abs stamp warn refus" id="td-st">Refusé</div>',
       "tl.to('#tc-co', {'--w4': '170px', duration: 0.45, ease: 'power2.inOut'}, 83.9);", 'Prochaine leçon · Modéliser avec UML']},
-  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 23', notesAt: 224.15,
+  {id: 81, next: 61, titre: 'Modéliser avec UML', page: 'projet-uml.html', thumb: 'projet-uml-thumb.jpg', duree: '5 min 22', notesAt: 224.15,
     table: 'ateliers',
     bubble: 'Représente les tables et leurs relations avant de construire la base de données.',
     chapters: ['Le plan', 'Les classes', 'Les multiplicités', 'Lire le diagramme', 'Du diagramme aux tables', 'À retenir'],
@@ -1123,7 +1123,7 @@ const COURSES = [
       "const SHOP_ASSOCS = ASSOCS.concat([['pa', 'passe', '▾', 'cl', '0..1', 'cm', '0..*'], ['ce', 'concerne', '◂', 'cm', '0..*', 'pr', '1']]);",
       '<line id="ln-an"/><line id="ln-po"/><line id="ln-in"/><line id="ln-cx" class="dash"/>', "tl.to('#sb .mp:not(.ask) .mn', {opacity: 0.28,",
       'Prochaine leçon · CREATE TABLE']},
-  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 34', notesAt: 198.9,
+  {id: 61, next: 65, titre: 'CREATE TABLE', page: 'projet-create.html', thumb: 'projet-create-thumb.webp', duree: '4 min 36', notesAt: 198.9,
     table: 'coachs',
     bubble: 'Crée une nouvelle table en définissant ses colonnes, leurs types et leurs règles.',
     chapters: ['Le plan', 'La table coachs', 'L’ordre des tables', 'La table ateliers', 'La carte de membre', 'Exécuter', 'À retenir'],
@@ -2213,7 +2213,7 @@ test('« Identifiant », jamais « numéro », pour la valeur d’une clé : vid
 
 test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des tables du chapitre 2, chaque multiplicité et chaque traduction vérifiées', async () => {
   const l81 = cut('guide({ id:81, titre:"Modéliser avec UML"', 'guide({ id:61,');
-  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 23',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
+  assert.ok(l81.includes('leconSeule:true,') && l81.includes(",duree:'5 min 22',moments:6,seuil:4}"), 'leçon seule, 6 moments, validée avec 4 exercices réussis du premier coup');
   const load = (file, names) => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', file), 'utf8');
     const a = page.indexOf('const DURATION = '), b = page.indexOf('/* ---------- Gabarits');
@@ -2324,7 +2324,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
      entre les tables ; 0..* corrige « 0.. » et « Atelier* ». */
   assert.equal(said('Chaque élément à gérer', 3), 'Chaque élément à gérer est représenté par une classe. Elle porte un nom et contient des attributs. Les attributs sont les informations qui la décrivent, comme le prénom, le nom et l’e-mail d’un client.');
   assert.equal(said('La multiplicité indique', 3), 'La multiplicité indique combien d’éléments d’une classe peuvent être liés à un seul élément de l’autre. Par exemple, combien d’ateliers un même coach peut-il animer ? On écrit la réponse du côté de la classe Atelier.');
-  assert.equal(D.PICKS[1].prompt, 'Place les multiplicités 1 et 0..* aux bonnes extrémités de l’association « anime ».');
+  assert.equal(D.PICKS[1].prompt, 'La multiplicité 1 veut dire « un seul », 0..* « zéro, un ou plusieurs » : place-les aux bonnes extrémités de l’association « anime ».');
   assert.equal(D.PICKS[1].hint, 'Sélectionne une multiplicité, puis appuie sur la classe à côté de laquelle tu veux la placer. Tu peux aussi la faire glisser directement.');
   assert.equal(said('Chaque atelier est animé', 2), 'Chaque atelier est animé par un seul coach : on place 1 du côté de la classe Coach. Un coach peut animer zéro, un ou plusieurs ateliers : on place 0..* du côté de la classe Atelier.');
   assert.equal(flat(idx('Chaque atelier est animé') + 2), 'Pour s’inscrit à : un client suit zéro, un ou plusieurs ateliers, donc 0..* du côté de la classe Atelier.');
@@ -2513,7 +2513,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   D.PICKS.forEach((p, i) => assert.ok(p.from < p.at && (i === 0 || p.from > D.PICKS[i - 1].at), `moment ${i + 1} : « Revoir » repart après le moment précédent`));
   assert.deepEqual(D.PLACE.map(p => [p[0], p[1]]), [[assocs.an[4], assocs.an[3]], [assocs.an[6], assocs.an[5]]], 'moment 2 : chaque multiplicité d’anime, du côté de la classe qu’elle compte');
   assert.equal(D.PICKS[2].options.find(o => o.ok).label, assocs.in[4], 'moment 3 : la multiplicité du côté de la classe Client');
-  assert.equal(D.PICKS[2].prompt, 'Combien de clients peuvent s’inscrire à un même atelier ?', 'moment 3 : la question d’Elisa (23 octobre, 11:02), mot pour mot');
+  assert.equal(D.PICKS[2].prompt, 'De même, 1..* veut dire « au moins un » et 0..1 « zéro ou un ». Combien de clients peuvent s’inscrire à un même atelier ?', 'moment 3 : la question d’Elisa (23 octobre, 11:02), mot pour mot');
   assert.equal(assocs.po[5], 'ca', 'moment 4 : la multiplicité qui interdit deux cartes est écrite du côté de la classe Carte (zone po-ca)');
   /* Moment 3 : pas de correction écrite pour les deux mauvaises multiplicités, la légende qui suit explique le minimum et le maximum. */
   const c3 = D.CAPTIONS.find(c => c[0] > D.PICKS[2].at);
