@@ -46,7 +46,7 @@ test('activités à rattraper : en-tête violet, autocollant, « Recommandé » 
   /* Le choix : étincelles, puis l’action, une seule fois ; tout de suite en mouvement réduit */
   const calls = [];
   const ctx = vm.createContext({ prefersReduceMotion: () => false, buzz: t => calls.push('buzz:' + t), lqBurst: () => calls.push('burst'), setTimeout: (f, ms) => { calls.push('wait:' + ms); f(); } });
-  vm.runInContext(cut(app, "let lrSeenKey='';", '/* Le choix conseillé dépend du retard') + ';this.lrPick=lrPick;', ctx);
+  vm.runInContext(cut(app, "let lrSeenKey='';", '/* Le choix conseillé dépend de ce qui reste à rattraper') + ';this.lrPick=lrPick;', ctx);   // 6 novembre, 11 h 57 : le choix suit le rythme (late-recovery)
   const btn = { dataset: {}, classList: { add: c => calls.push('class:' + c) }, querySelector: () => ({}) };
   ctx.lrPick(btn, () => calls.push('action'));
   ctx.lrPick(btn, () => calls.push('action'));
