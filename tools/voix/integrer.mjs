@@ -6,7 +6,9 @@
      (la phrase commence et finit dans un silence, sans mordre sur la voisine, sans garder toute la pause qui suit) ;
    - chaque phrase va à sa légende (même texte, dans l’ordre), la clé de la légende est celle du moteur (vkey de core.js) ;
    - les fichiers sont réencodés en mono 64 kb/s dans assets/voix/<cours>/ ;
-   - la page reçoit VOICE (entre les repères « Voix off » du fichier) et voice: VOICE dans Course({…}). */
+   - la page reçoit VOICE (entre les repères « Voix off » du fichier) et voice: VOICE dans Course({…}).
+   --garder (6 novembre : une phrase refaite à part, tools/voix/<cours>-retouches.json) : un fichier absent du dossier garde ce que la
+   page a déjà pour lui (ses phrases calées, sa consigne), et son .mp3 reste dans assets/voix/<cours>/. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -16,10 +18,11 @@ import {aToi} from './atoi-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '..', '..');
-const cours = process.argv[2];
-if (!cours) { console.log('Usage : node tools/voix/integrer.mjs <cours> [dossier brut]'); process.exit(1); }
+const ARGS = process.argv.slice(2).filter(a => !a.startsWith('--')), GARDER = process.argv.includes('--garder');
+const cours = ARGS[0];
+if (!cours) { console.log('Usage : node tools/voix/integrer.mjs <cours> [dossier brut] [--garder]'); process.exit(1); }
 const job = JSON.parse(fs.readFileSync(path.join(DIR, cours + '.json'), 'utf8'));
-const RAW = path.resolve(process.argv[3] || path.join(DIR, 'sortie', cours));
+const RAW = path.resolve(ARGS[1] || path.join(DIR, 'sortie', cours));
 const OUT = path.join(ROOT, 'assets', 'voix', cours);
 const PAGE = path.join(ROOT, 'assets', 'anim', cours + '.html');
 const r3 = x => Math.round(x * 1000) / 1000;
@@ -158,11 +161,28 @@ const MOMENTS_JS = page.includes('src="moments.js"');
 const ATOI_DIT = job.elements.some(el => /^ch\d/.test(el.id) && (el.phrases || []).some(ph => /^À toi\s*!$/.test(ph.trim())));
 fs.mkdirSync(OUT, {recursive: true});
 const caps = [], say = {}, toi = {}, report = [];
-let intro = null, ci = 0, total = 0, bytes = 0;
+let intro = null, ci = 0, total = 0, bytes = 0, gardes = 0;
+/* --garder : la voix off déjà dans la page (VOICE), pour les fichiers qui ne sont pas refaits */
+const ANCIEN = GARDER && page.includes('/* Voix off (tools/voix/integrer.mjs') ? vm.runInContext(page.slice(page.indexOf('const VOICE = {'),
+  page.indexOf('/* Fin de la voix off */')).replace('const VOICE =', 'VOICE =') + ';VOICE', vm.createContext({})) : null;
+if (GARDER && !ANCIEN) { console.log('--garder : la page n’a pas encore de voix off ; rien n’est écrit.'); process.exit(1); }
+function garde(el){
+  if (!el.phrases) {
+    if (!ANCIEN.say || !ANCIEN.say[el.id]) return false;
+    say[el.id] = ANCIEN.say[el.id]; if (ANCIEN.toi && ANCIEN.toi[el.id]) toi[el.id] = ANCIEN.toi[el.id]; return true;
+  }
+  if (el.id === 'ch00') { intro = ANCIEN.intro; return !!intro; }
+  const kept = (ANCIEN.caps || []).filter(c => c[1] === el.id);
+  kept.forEach(c => { caps.push(c); const j = CAPTIONS.findIndex((x, k) => k >= ci && vkey(x[2]) === c[0]); if (j >= 0) ci = j + 1; });
+  return kept.length > 0;
+}
 const capN = CAPTIONS.map(c => norm(plainCap(c[2])));
 for (const el of job.elements) {
   const src = path.join(RAW, el.id + '.mp3'), recf = path.join(RAW, el.id + '.json');
-  if (!fs.existsSync(src)) { report.push(`${el.id} : fichier absent`); continue; }
+  if (!fs.existsSync(src)) {
+    if (ANCIEN && fs.existsSync(path.join(OUT, el.id + '.mp3')) && garde(el)) { gardes++; continue; }
+    report.push(`${el.id} : fichier absent`); continue;
+  }
   const rec = fs.existsSync(recf) ? JSON.parse(fs.readFileSync(recf, 'utf8')) : {};
   const dst = path.join(OUT, el.id + '.mp3');
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', src, '-ac', '1', '-ar', '44100', '-codec:a', 'libmp3lame', '-b:a', '64k', '-map_metadata', '-1', dst]);
@@ -216,5 +236,5 @@ else {
 if (!/\bvoice: VOICE\b/.test(out)) out = out.replace(/(\nCourse\(\{[^\n]*,)\n/, '$1 voice: VOICE,\n');
 fs.writeFileSync(PAGE, out);
 console.log(`${caps.length} phrases calées sur ${CAPTIONS.length} légendes, intro ${intro ? r3(intro[2] - intro[1]) + ' s' : 'absente'}, ${Object.keys(say).length} phrases à part`);
-console.log(`audio : ${Math.round(total)} s, ${Math.round(bytes / 1024)} Ko dans assets/voix/${cours}`);
+console.log(`audio : ${Math.round(total)} s, ${Math.round(bytes / 1024)} Ko dans assets/voix/${cours}${gardes ? ` ; ${gardes} fichier${gardes > 1 ? 's' : ''} gardé${gardes > 1 ? 's' : ''} tel${gardes > 1 ? 's' : ''} quel${gardes > 1 ? 's' : ''}` : ''}`);
 report.forEach(l => console.log('  · ' + l));

@@ -16,8 +16,8 @@ const steps = html.slice(start, end);
   assert.match(steps, /<h3>Regarde le cours<\/h3>/);
   assert.match(steps, /Avance à ton rythme et mets la vidéo en pause quand tu veux\./);
   assert.match(steps, /<span class="hw-l">Étape 2 sur 3<\/span>/);
-  assert.match(steps, /<h3>Réponds aux moments « À toi »<\/h3>/);
-  assert.match(steps, /La vidéo s’arrête à chaque moment : réponds à la consigne pour continuer\./);
+  assert.match(steps, /<h3>Réponds aux moments «&nbsp;À toi&nbsp;»<\/h3>/);   // 6 novembre : espaces insécables (vitrine-responsive)
+  assert.match(steps, /La vidéo s’arrête à chaque moment&nbsp;: réponds à la consigne pour continuer\./);
   assert.match(steps, /<h3>Passe aux vrais cas<\/h3>/, 'la troisième étape de pratique reste présente');
   assert.doesNotMatch(app, /class="lv-steps"/, 'les consignes ne sont pas ajoutées à chaque fiche de cours');
 });
