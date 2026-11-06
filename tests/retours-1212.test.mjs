@@ -212,7 +212,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=176">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=26">') && sw.includes("'./onboarding-vitrine.css?v=26',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=177">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=27">') && sw.includes("'./onboarding-vitrine.css?v=27',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-06-widgets-web-v2574' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-06-widgets-pas-a-pas-v2575' && app.includes(`const SW_CACHE='${cache}';`));
 });
