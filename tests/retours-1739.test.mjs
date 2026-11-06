@@ -30,7 +30,7 @@ function rulesHTML({ io = false } = {}) {
 
 test('le cadre « Comment on marque des points » : les paliers en marches, le premier coup, le classement, la manche parfaite', () => {
   const { h, sec } = rulesHTML();
-  assert.ok(h.includes('<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à 200</span><small>Plus tu trouves vite, plus le défi rapporte. La manche s’arrête à 10&nbsp;min.</small>'));
+  assert.ok(h.includes('<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à 200</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de 20&nbsp;min&nbsp;; à 0, la salle se ferme.</small>'));
   const steps = [...h.matchAll(/<li style="--h:(\d+)px;--i:(\d)"><b>(\d+)<\/b><i aria-hidden="true"><\/i><small aria-hidden="true">([^<]+)<\/small><em class="lq-sr"> points ([^<]+)<\/em><\/li>/g)]
     .map(m => [+m[3], m[4], m[5], +m[1]]);
   assert.deepEqual(steps.map(s => s.slice(0, 3)), [
@@ -82,6 +82,6 @@ test('Supabase — jeu_score accepte le nouveau barème : de 50 à 225 points pa
   /* Vérifié sur la vraie base (31 octobre, 17 h 46, sans rien garder) : 225 seul accepté, 226 refusé ; 50 accepté, 49 refusé ;
      3 manches entre amis : 825 accepté, 826 refusé */
   assert.ok(app.includes("const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];"));
-  assert.ok(app.includes('const JEU_ROUND_MS=600000;'), 'la manche s’arrête à 10 min');
+  assert.ok(app.includes('const JEU_ROUND_MS=1200000;'), 'la manche s’arrête à 20 min (6 novembre, 7 h 52)');
   assert.ok(app.includes('(une manche non trouvée compte ${JEU_ROUND_MS/60000} min)'));
 });
