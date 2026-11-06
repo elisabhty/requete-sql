@@ -107,7 +107,9 @@ test('le widget : l’écran d’accueil avec la série, puis le tutoriel en tro
   assert.ok(t.includes('<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>') && t.includes('<div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>'));
   assert.ok(t.includes('<ol class="ob-sr-steps">'), 'les trois étapes, lues par VoiceOver');
   const textes = vm.runInNewContext(app.match(/const OB_WT_TEXTES=(\[[^\]]+\]);/)[1]);
-  assert.deepEqual(Array.from(textes), ['D’abord, maintiens appuyé sur ton écran d’accueil…', 'Appuie ensuite sur « Modifier », puis sur « Ajouter un widget ».', 'Cherche « Requête » et ajoute mon widget !']);
+  assert.deepEqual(Array.from(textes), ['D’abord, maintiens appuyé sur ton écran d’accueil…', 'Appuie ensuite sur « + », en haut à gauche, puis sur « Ajouter un widget ».', 'Cherche « Requête » et ajoute mon widget !']);
+  /* 6 novembre, 11 h 12 (les captures de l’iPhone d’Elisa) : le bouton est « + », et son menu a ses quatre lignes */
+  assert.ok(app.includes('<span class="ob-ph-edit">+</span><span class="ob-ph-ok">OK</span>') && app.includes('<span class="ob-ph-menu"><span>Ajouter un widget</span><span>Personnaliser</span><span>Modifier le fond d’écran</span><span>Modifier les pages</span></span>'));
   /* La boucle, exécutée seule avec des minuteries factices */
   const timers = [], box = {dataset: {}}, bulle = {textContent: ''};
   const ctx = vm.createContext({OB_SLIDES: ['widgetTuto'], obStep: 0, obDemoTimers: [], OB_WT_TEXTES: textes,

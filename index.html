@@ -6752,9 +6752,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=176">
+<link rel="stylesheet" href="ludique.css?v=177">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=26">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -33466,7 +33466,7 @@ if(typeof document!=='undefined'&&document.addEventListener)document.addEventLis
 });
 /* L’icône d’une feuille (un émoji, ou le pictogramme de « Recommencer ») devient son autocollant ; une icône inconnue se pose sur une
    pastille découpée, violette à bord blanc. */
-const LQ_ASK_STK={'⭐':'etoile','📝':'note','🗂️':'table','✏️':'pen','🧹':'broom','↺':'restore','🗑️':'trash','📄':'file','ℹ️':'info'};
+const LQ_ASK_STK={'📝':'note','🗂️':'table','✏️':'pen','🧹':'broom','↺':'restore','🗑️':'trash','📄':'file','ℹ️':'info'};
 function lqAskStk(ico){
   const k=LQ_ASK_STK[ico]||(typeof BRAVO_ICO!=='undefined'&&BRAVO_ICO&&ico===BRAVO_ICO.restart?'restore':'');
   return k?`<span class="lq-ask-stk" aria-hidden="true">${lqStkSvg(k)}</span>`:`<span class="lq-ask-stk is-badge" aria-hidden="true"><i>${ico}</i></span>`;
@@ -36522,13 +36522,13 @@ function obWidgetSerie(){ try{ return Math.max(1,streakJours()); }catch(e){ retu
 function obTelPromo(){
   return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span><span class="ob-ph-home">${obWidgetTuile(obWidgetSerie())}<i class="ob-ph-app a1"></i><i class="ob-ph-app a2"></i><i class="ob-ph-app a3"></i><i class="ob-ph-app a4"></i><i class="ob-ph-app a5"></i></span></span></span>`;
 }
-const OB_WT_TEXTES=['D’abord, maintiens appuyé sur ton écran d’accueil…','Appuie ensuite sur « Modifier », puis sur « Ajouter un widget ».','Cherche « Requête » et ajoute mon widget !'];
+const OB_WT_TEXTES=['D’abord, maintiens appuyé sur ton écran d’accueil…','Appuie ensuite sur « + », en haut à gauche, puis sur « Ajouter un widget ».','Cherche « Requête » et ajoute mon widget !'];
 function obTelTuto(){
   /* Chaque app à sa case : le widget posé à la fin (2 × 2) passe par-dessus les quatre premières, sans pousser les autres. */
   const apps=Array.from({length:9},(_,i)=>`<i class="ob-ph-app t${i}" style="--i:${i};grid-area:${Math.floor(i/3)+1}/${i%3+1}"><em></em></i>`).join('');
   return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span>
-    <span class="ob-ph-edit">Modifier</span><span class="ob-ph-ok">OK</span>
-    <span class="ob-ph-menu"><span>Ajouter un widget</span><span>Modifier les pages</span></span>
+    <span class="ob-ph-edit">+</span><span class="ob-ph-ok">OK</span>
+    <span class="ob-ph-menu"><span>Ajouter un widget</span><span>Personnaliser</span><span>Modifier le fond d’écran</span><span>Modifier les pages</span></span>
     <span class="ob-ph-grid">${apps}<span class="ob-ph-placed">${obWidgetTuile(obWidgetSerie())}</span></span>
     <span class="ob-ph-sheet"><span class="ob-ph-search"><i></i><b>Requête</b></span><span class="ob-ph-preview">${obWidgetTuile(obWidgetSerie())}</span><span class="ob-ph-add">Ajouter le widget</span></span>
     <b class="ob-ph-doigt"></b></span></span>`;
@@ -36575,41 +36575,51 @@ if(typeof document!=='undefined'&&document.addEventListener){
   addEventListener('pagehide',widgetMaj);
 }
 /* ---------- Les widgets, dans Mon compte ----------
-   Elisa, 6 novembre, 0 h 40 (« dans compte mettre ça (widget) avec les animations de comment procéder », sur une capture « Widgets
-   de l’écran d’accueil », « Widgets de l’écran verrouillé », « Évaluer l’application ») : dans l’app iPhone, Mon compte a son groupe
-   « Sur ton iPhone » : les deux widgets, puis « Noter Requête ». Chaque ligne ouvre une feuille où un iPhone dessiné rejoue les gestes,
-   étape par étape, en boucle ; dessous, les étapes : celle du moment s’éclaire et sa barre se remplit, et on peut en toucher une.
-   Les gestes et les boutons sont ceux de l’assistance Apple (« Ajouter et modifier des widgets sur votre iPhone ») : écran d’accueil,
-   « Modifier », « Ajouter un widget », « Ajouter le widget », « OK » ; écran verrouillé, « Personnaliser », « Ajouter des widgets »,
-   « OK ». Le doigt vise les boutons mesurés dans le dessin (wtuCibles), pas des positions écrites à la main. Le widget de l’écran
-   verrouillé : RequeteFlammeVerrou (RequeteWidget.swift), la flamme et la séance du jour, en rond ou en bandeau. */
+   Elisa, 6 novembre, 0 h 40 (« dans compte mettre ça (widget) avec les animations de comment procéder », sur une capture « Widgets
+   de l’écran d’accueil », « Widgets de l’écran verrouillé », « Évaluer l’application ») : Mon compte a son groupe « Sur ton iPhone » :
+   les deux widgets, puis « Évaluer l’application ». Chaque ligne de widget ouvre une feuille où un iPhone dessiné montre les gestes.
+   11 h 12 (deux captures de son iPhone, l’écran d’accueil en mode modification : « + » en haut à gauche, « OK » à droite, et le menu
+   « Ajouter un widget », « Personnaliser », « Modifier le fond d’écran », « Modifier les pages ») : « t’es sûr pour la mise en place
+   des widgets ? » ; « améliore les pages pour que ça soit plus clair » ; « ne mets jamais “prochainement” : l’app sera publiée et
+   j’oublierai de les enlever ». Les boutons sont ceux de son iPhone (« + » ; « Modifier » sur d’autres versions d’iOS, dit l’astuce),
+   et la feuille devient un pas-à-pas : une seule étape à la fois, un iPhone plus grand aux libellés lisibles, une action par étape
+   (cinq), le texte de l’étape juste dessous, « Précédent » et « Suivant ». Le geste de l’étape se rejoue tant qu’on y reste ; on
+   avance à son rythme. L’écran verrouillé suit l’assistance Apple : « Personnaliser », « Écran verrouillé », « Ajouter des widgets »
+   (sous l’heure, ou en bas de l’écran depuis iOS 26), « OK ». Le doigt vise les boutons mesurés dans le dessin (wtuCibles), pas des
+   positions écrites à la main. Le widget de l’écran verrouillé : RequeteFlammeVerrou (RequeteWidget.swift), en rond ou en bandeau. */
 const WTU={
   accueil:{
     titre:'Widgets de l’écran d’accueil',sous:'Ta flamme du jour, d’un coup d’œil',
-    etapes:['Sur ton écran d’accueil, maintiens le doigt sur un espace vide jusqu’à ce que les apps bougent.',
-      'Touche « Modifier », en haut à gauche, puis « Ajouter un widget ».',
-      'Cherche « Requête », choisis « Ta flamme », puis touche « Ajouter le widget ».',
+    etapes:['Maintiens le doigt sur un espace vide de ton écran d’accueil, jusqu’à ce que les apps bougent.',
+      'Touche « + », en haut à gauche, puis « Ajouter un widget ».',
+      'Touche « Rechercher des widgets », tape « Requête », puis touche l’app.',
+      'Touche « Ajouter le widget ».',
       'Place-le où tu veux, puis touche « OK », en haut à droite.'],
-    durees:[3200,3400,4600,3600],
+    astuces:['','Pas de « + » ? Selon ta version d’iOS, le bouton s’appelle « Modifier ».','','Le widget « Ta flamme » : ta flamme du jour et le chat.',''],
+    durees:[3400,3800,4600,3800,3400],
+    cles:[.62,.62,.62,.36,.44],   // le moment de chaque geste qui le montre le mieux : l’image fixe quand on réduit les animations
     note:'Ta flamme s’allume sur le widget dès que ta séance du jour est faite, et le chat change avec la journée.'
   },
   verrou:{
     titre:'Widgets de l’écran verrouillé',sous:'Ta séance du jour, sans déverrouiller',
-    etapes:['Maintiens le doigt sur l’écran verrouillé, touche « Personnaliser », puis l’écran verrouillé.',
-      'Touche la zone sous l’heure, « Ajouter des widgets ».',
-      'Dans la liste, touche « Requête », puis le rond ou le bandeau de ta flamme.',
-      'Fais glisser la liste vers le bas, puis touche « OK ».'],
-    durees:[4200,2600,5200,3400],
+    etapes:['Maintiens le doigt sur ton écran verrouillé, puis touche « Personnaliser ».',
+      'Touche « Écran verrouillé ».',
+      'Touche « Ajouter des widgets », sous l’heure.',
+      'Touche « Requête », puis le rond ou le bandeau de ta flamme.',
+      'Ferme la liste, puis touche « OK », en haut à droite.'],
+    astuces:['Rien ne se passe ? Déverrouille d’abord avec Face ID, sans glisser vers le haut.','','Selon ton écran verrouillé, cette zone peut aussi être en bas de l’écran.','',''],
+    durees:[3600,3400,2800,5200,3400],
+    cles:[.7,.44,.52,.5,.54],
     note:'Le rond et le bandeau montrent ta flamme et ta séance du jour : « 0/1 », puis « 1/1 » quand elle est faite.'
   }
 };
 function wtuFait(){ try{ return !!jourActif(dstr(auj())); }catch(e){ return false; } }
-/* Le widget de l’écran d’accueil tel qu’il est sur l’iPhone (RequeteWidget.swift) : la flamme du jour, « 0/1 », le chat qui dépasse. */
+/* Le widget de l’écran d’accueil tel qu’il est sur l’iPhone (RequeteWidget.swift) : la flamme du jour, « 0/1 », le chat qui dépasse. */
 function wtuTuile(){
   const fait=wtuFait();
   return `<span class="wtu-wg${fait?' is-fait':''}"><span class="wtu-wg-top"><span class="wtu-wg-fl">${FLAME_SVG}</span><b>${fait?'1':'0'}<small>/1</small></b></span><img class="wtu-wg-chat" src="${MASCOT_IMG}" alt="" draggable="false"></span>`;
 }
-/* Ceux de l’écran verrouillé, d’une seule teinte : le rond (la flamme, « 0/1 ») et le bandeau (« Requête », la séance du jour). */
+/* Ceux de l’écran verrouillé, d’une seule teinte : le rond (la flamme, « 0/1 ») et le bandeau (« Requête », la séance du jour). */
 function wtuVerrouWidgets(){
   const fait=wtuFait(),compte=fait?'1/1':'0/1';
   return {
@@ -36617,21 +36627,47 @@ function wtuVerrouWidgets(){
     bande:`<span class="wtu-lw wtu-lw-bande${fait?' is-fait':''}">${FLAME_SVG}<span><b>Requête</b><small>${fait?'Séance du jour validée':'Séance du jour : 0/1'}</small></span></span>`
   };
 }
-function wtuEtapesHTML(k){
-  return `<ol class="wtu-etapes">${WTU[k].etapes.map((t,i)=>`<li><button type="button" class="wtu-etape${i?'':' is-on'}" data-i="${i+1}" onclick="wtuAller('${k}',${i+1})"${i?'':' aria-current="step"'}><i aria-hidden="true">${i+1}</i><span>${esc(t)}</span><b class="wtu-barre" aria-hidden="true"></b></button></li>`).join('')}</ol>`;
+/* Le texte d’une étape : les mots des boutons, entre guillemets, en gras. */
+function wtuTexteHTML(t){ return esc(t).replace(/«\u00a0(.+?)\u00a0»/g,'<b>«\u00a0$1\u00a0»</b>'); }
+/* Sous l’iPhone : la barre des étapes (on peut en toucher une), l’étape du moment (son numéro, son texte, son astuce), puis
+   « Précédent » et « Suivant » (à la dernière : « Revoir depuis le début »). */
+function wtuGuideHTML(k){
+  const W=WTU[k],n=W.etapes.length;
+  const barres=W.etapes.map((t,i)=>`<li><button type="button" class="wtu-etape${i?'':' is-on'}" data-i="${i+1}" onclick="wtuAller('${k}',${i+1})" aria-label="Étape ${i+1} sur ${n}"${i?'':' aria-current="step"'}><b class="wtu-barre" aria-hidden="true"></b></button></li>`).join('');
+  const pas=W.etapes.map((t,i)=>`<div class="wtu-pas${i?'':' is-on'}" data-i="${i+1}"${i?' aria-hidden="true"':''}><span class="wtu-num">Étape ${i+1} sur ${n}</span><p class="wtu-txt">${wtuTexteHTML(t)}</p>${W.astuces[i]?`<p class="wtu-astuce">${wtuTexteHTML(W.astuces[i])}</p>`:''}</div>`).join('');
+  return `<ol class="wtu-etapes" aria-label="Les étapes">${barres}</ol>
+        <div class="wtu-guide" aria-live="polite">${pas}</div>
+        <div class="wtu-nav"><button type="button" class="lq-btn-2 wtu-prec" onclick="wtuPas('${k}',-1)" disabled>Précédent</button><button type="button" class="lq-btn wtu-suiv" onclick="wtuPas('${k}',1)">Suivant</button></div>`;
 }
+/* Les icônes du menu du « + » (celles de l’iPhone, en trait) et de la barre d’état. */
+const WTU_ICO={
+  widget:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="14" height="14" rx="3.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6.8 11.5h4.4M6.8 15.5h6.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="18.6" cy="5.4" r="4.4" fill="currentColor"/><path d="M18.6 3.4v4M16.6 5.4h4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  pinceau:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11.5v3.2M9.6 14.7h4.8l-.9 6.2a1.5 1.5 0 0 1-3 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  fleur:'<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.4"/><ellipse cx="12" cy="6" rx="2.6" ry="3.6"/><ellipse cx="12" cy="18" rx="2.6" ry="3.6"/><ellipse cx="6" cy="12" rx="3.6" ry="2.6"/><ellipse cx="18" cy="12" rx="3.6" ry="2.6"/></g></svg>',
+  pages:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.5" width="11" height="16" rx="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18.6 6.8v10.8a3.4 3.4 0 0 1-3.4 3.4H8.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  etat:'<svg viewBox="0 0 40 12" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/><rect x="22.6" y=".6" width="15" height="10.8" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".5"/><rect x="24.4" y="2.4" width="10.4" height="7.2" rx="1.8" fill="currentColor"/></svg>'
+};
 function wtuAccueilHTML(){
-  const apps=Array.from({length:16},(_,i)=>`<i class="wtu-app t${i}" style="--i:${i};grid-area:${Math.floor(i/4)+1}/${i%4+1}"><em></em></i>`).join('');
+  const app=(i,r,c)=>`<span class="wtu-app t${i}" style="--i:${i};grid-area:${r}/${c}"><i></i><em></em><u></u></span>`;
+  const apps=Array.from({length:20},(_,i)=>app(i,Math.floor(i/4)+1,i%4+1)).join('');
   return `<div class="wtu" id="wtu-accueil" data-wtu="accueil" data-step="1">
-        <div class="wtu-scene" aria-hidden="true"><span class="wtu-tel"><span class="wtu-ecran">
-          <span class="wtu-ile"></span>
-          <span class="wtu-pill wtu-modifier" data-cible="mod">Modifier</span><span class="wtu-pill wtu-ok" data-cible="ok">OK</span>
-          <span class="wtu-menu"><span data-cible="ajout">Ajouter un widget</span><span>Personnaliser</span><span>Modifier les pages</span></span>
+        <div class="wtu-scene" aria-hidden="true" onclick="wtuRejouer('accueil')"><span class="wtu-tel"><span class="wtu-ecran">
+          <span class="wtu-ile"></span><span class="wtu-statut"><b>9:41</b>${WTU_ICO.etat}</span>
+          <span class="wtu-pill wtu-pplus" data-cible="plus">+</span><span class="wtu-pill wtu-ok" data-cible="ok">OK</span>
           <span class="wtu-grille">${apps}<span class="wtu-pose">${wtuTuile()}</span></span>
-          <span class="wtu-galerie"><span class="wtu-poignee"></span><span class="wtu-cherche"><i></i><b>Requête</b></span><span class="wtu-apercu">${wtuTuile()}<small>Ta flamme</small></span><span class="wtu-ajout" data-cible="valider">Ajouter le widget</span></span>
+          <span class="wtu-points"><i></i><i></i><i></i></span>
+          <span class="wtu-dock"><i></i><i></i><i></i><i></i></span>
+          <span class="wtu-menu"><span class="wtu-mi" data-cible="ajout">${WTU_ICO.widget}Ajouter un widget</span><span class="wtu-mi">${WTU_ICO.pinceau}Personnaliser</span><span class="wtu-mi">${WTU_ICO.fleur}Modifier le fond d’écran</span><span class="wtu-mi">${WTU_ICO.pages}Modifier les pages</span></span>
+          <span class="wtu-galerie"><span class="wtu-poignee"></span>
+            <span class="wtu-cherche" data-cible="cherche"><i class="wtu-loupe"></i><span class="wtu-ph">Rechercher des widgets</span><b class="wtu-tape">Requête</b></span>
+            <span class="wtu-res" data-cible="res"><i class="wtu-res-ic">${FLAME_SVG}</i><b>Requête</b><em></em></span>
+            <span class="wtu-fiche"><span class="wtu-fiche-app"><i class="wtu-res-ic">${FLAME_SVG}</i><b>Requête</b></span>
+              <span class="wtu-fiche-wg">${wtuTuile()}</span><b class="wtu-fiche-t">Ta flamme</b><small class="wtu-fiche-d">La flamme du jour et le chat</small>
+              <span class="wtu-ajout" data-cible="valider">+ Ajouter le widget</span></span>
+          </span>
           <b class="wtu-doigt"></b>
         </span></span></div>
-        ${wtuEtapesHTML('accueil')}
+        ${wtuGuideHTML('accueil')}
       </div>`;
 }
 function wtuVerrouHTML(){
@@ -36639,7 +36675,7 @@ function wtuVerrouHTML(){
   try{ const d=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long'}).format(new Date()); date=d.charAt(0).toUpperCase()+d.slice(1); }catch(e){}
   const w=wtuVerrouWidgets();
   return `<div class="wtu" id="wtu-verrou" data-wtu="verrou" data-step="1">
-        <div class="wtu-scene" aria-hidden="true"><span class="wtu-tel"><span class="wtu-ecran is-nuit">
+        <div class="wtu-scene" aria-hidden="true" onclick="wtuRejouer('verrou')"><span class="wtu-tel"><span class="wtu-ecran is-nuit">
           <span class="wtu-carte"><span class="wtu-date">${esc(date)}</span><span class="wtu-heure">9:41</span>
             <span class="wtu-zone" data-cible="zone"><span class="wtu-plus">+</span><span class="wtu-pose-r">${w.rond}</span><span class="wtu-pose-b">${w.bande}</span></span></span>
           <span class="wtu-ile"></span>
@@ -36647,19 +36683,21 @@ function wtuVerrouHTML(){
           <span class="wtu-perso" data-cible="perso">Personnaliser</span>
           <span class="wtu-choix"><span class="wtu-choix-v" data-cible="choix"><i><b>9:41</b></i>Écran verrouillé</span><span class="wtu-choix-a"><i></i>Écran d’accueil</span></span>
           <span class="wtu-liste"><span class="wtu-poignee"></span><b class="wtu-liste-t">Ajouter des widgets</b>
-            <span class="wtu-apps"><span><i class="a1"></i>Batterie</span><span><i class="a2"></i>Météo</span><span class="wtu-app-rq"><i class="rq" data-cible="rq">${FLAME_SVG}</i>Requête</span></span>
+            <span class="wtu-apps"><span><i class="a1"></i>Batterie</span><span><i class="a2"></i>Météo</span><span class="wtu-app-rq" data-cible="rq"><i class="rq">${FLAME_SVG}</i>Requête</span></span>
             <span class="wtu-choixw"><span class="wtu-cw-rond" data-cible="rond">${w.rond}</span><span class="wtu-cw-bande" data-cible="bande">${w.bande}</span></span>
           </span>
           <b class="wtu-doigt"></b>
         </span></span></div>
-        ${wtuEtapesHTML('verrou')}
+        ${wtuGuideHTML('verrou')}
       </div>`;
 }
+/* Hors de l’app (Safari sur iPhone), une ligne dit d’où viennent les widgets, avec la fiche de l’App Store. Jamais « bientôt » (Elisa,
+   11 h 12) : le texte est déjà celui de l’app publiée. */
 function wtuFeuilleHTML(k){
   const web=!(typeof appliNative==='function'&&appliNative());
-  return `${web?`<p class="wtu-web"><b>Avec l’app Requête pour iPhone</b>${typeof appStoreEnLigne==='function'&&appStoreEnLigne()?'Installe-la depuis l’App Store, puis suis ces étapes.':'Les widgets viennent avec l’app, bientôt sur l’App Store. Voici comment les ajouter.'}</p>`:''}${k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()}<p class="acc-note wtu-note">${esc(WTU[k].note)}</p>`;
+  return `${k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()}<p class="acc-note wtu-note">${esc(WTU[k].note)}</p>${web?`<p class="wtu-web">Les widgets viennent avec l’app Requête pour iPhone. <a href="${appStoreFiche()}" target="_blank" rel="noopener">Voir sur l’App Store</a></p>`:''}`;
 }
-/* Les cibles du doigt, en part de l’écran dessiné (offsetLeft / offsetTop : la place sans les transformations des animations). */
+/* Les cibles du doigt, en part de l’écran dessiné (offsetLeft / offsetTop : la place sans les transformations des animations). */
 function wtuCibles(box){
   const ecran=box.querySelector('.wtu-ecran');if(!ecran||!ecran.offsetWidth)return;
   const W=ecran.offsetWidth,H=ecran.offsetHeight;
@@ -36673,19 +36711,32 @@ function wtuCibles(box){
 }
 let WTU_T=0,WTU_K='';
 function wtuStop(){ clearTimeout(WTU_T);WTU_T=0;WTU_K=''; }
+/* Une étape : son geste se joue, puis se rejoue après un temps de pause, tant que la feuille reste ouverte et qu’on y reste. */
 function wtuJouer(k,i){
   clearTimeout(WTU_T);
   const box=document.getElementById('wtu-'+k),W=WTU[k];if(!box||!W){wtuStop();return;}
   WTU_K=k;
   const n=W.etapes.length;i=((i-1)%n+n)%n+1;
-  if(i===1)wtuCibles(box);
+  wtuCibles(box);
   box.removeAttribute('data-step');void box.offsetWidth;   // la même étape touchée deux fois rejoue son animation
-  box.dataset.step=String(i);box.style.setProperty('--wtu-d',W.durees[i-1]+'ms');
+  box.dataset.step=String(i);box.style.setProperty('--wtu-d',W.durees[i-1]+'ms');box.style.setProperty('--wtu-cle',String(W.cles[i-1]));
   box.querySelectorAll('.wtu-etape').forEach(b=>{const j=+b.dataset.i,on=j===i;b.classList.toggle('is-on',on);b.classList.toggle('is-fait',j<i);if(on)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});
-  WTU_T=setTimeout(()=>{ const d=box.closest('details'); if(!d||!d.open||!document.body.contains(box)){wtuStop();return;} wtuJouer(k,i+1); },W.durees[i-1]+(i===n?1400:0));
+  box.querySelectorAll('.wtu-pas').forEach(p=>{const on=+p.dataset.i===i;p.classList.toggle('is-on',on);if(on)p.removeAttribute('aria-hidden');else p.setAttribute('aria-hidden','true');});
+  const prec=box.querySelector('.wtu-prec'),suiv=box.querySelector('.wtu-suiv');
+  if(prec)prec.disabled=i===1;
+  if(suiv)suiv.textContent=i===n?'Revoir depuis le début':'Suivant';
+  WTU_T=setTimeout(()=>{ const d=box.closest('details'); if(!d||!d.open||!document.body.contains(box)){wtuStop();return;} wtuJouer(k,i); },W.durees[i-1]+1200);
 }
 function wtuAller(k,i){ if(typeof buzz==='function')buzz('selection'); wtuJouer(k,i); }
-/* La feuille s’ouvre : le tutoriel part de la première étape ; elle se ferme : il s’arrête. */
+/* « Précédent » et « Suivant » ; après la dernière étape, on revient à la première. */
+function wtuPas(k,d){
+  const box=document.getElementById('wtu-'+k),W=WTU[k];if(!box||!W)return;
+  const n=W.etapes.length,i=+box.dataset.step||1;
+  wtuAller(k,d>0&&i===n?1:Math.max(1,Math.min(n,i+d)));
+}
+/* Un toucher sur l’iPhone dessiné rejoue le geste de l’étape. */
+function wtuRejouer(k){ const box=document.getElementById('wtu-'+k); if(box)wtuJouer(k,+box.dataset.step||1); }
+/* La feuille s’ouvre : le pas-à-pas part de la première étape ; elle se ferme : il s’arrête. */
 function wtuToggle(el){
   const k=el&&el.id==='plus-widget-verrou'?'verrou':'accueil';
   if(el&&el.open)requestAnimationFrame(()=>wtuJouer(k,1));
@@ -37983,7 +38034,8 @@ function paintOb(){
       <div class="ob-ph ob-ph-promo" aria-hidden="true">${obTelPromo()}</div></div>`;
     obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');
   }else if(slide==='widgetTuto'){
-    /* Le tutoriel animé (d’après Duolingo) : appui long sur l’écran d’accueil, les apps tremblent ; « Modifier », « Ajouter un widget » ;
+    /* Le tutoriel animé (d’après Duolingo) : appui long sur l’écran d’accueil, les apps tremblent ; « + » (6 novembre, 11 h 12 : le
+       bouton de l’iPhone d’Elisa), « Ajouter un widget » ;
        la recherche « Requête », le widget, « Ajouter le widget ». La bulle de la mascotte suit chaque étape (obWidgetTutoJouer). */
     html=`<div class="ob-screen ob-profile ob-widget-step ob-wtuto">${obFlowHeader(slide)}<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>
       ${obMascotQuestion(OB_WT_TEXTES[0]).replace('class="ob-bubble"','class="ob-bubble" id="ob-wt-bulle"')}
@@ -38673,7 +38725,7 @@ function renderCompte(){
   const connected=state.accountMode==='connected';
   const widgetsIci=typeof obWidgetPossible==='function'&&obWidgetPossible();   // l’app iPhone et son widget (6 novembre, 0 h 40)
   /* 10 h 40 (« tu n’as pas mis le bouton widget et évaluer l’application ») : sur un iPhone, le groupe se voit aussi dans Safari ; les
-     feuilles des widgets y disent qu’ils viennent avec l’app, et « Évaluer l’application » attend la sortie sur l’App Store. */
+     feuilles des widgets y disent qu’ils viennent avec l’app. 11 h 12 : jamais « bientôt », le texte est celui de l’app publiée. */
   const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());   // une app sans le widget : pas de mode d’emploi qui n’y marcherait pas
   const surIphone=widgetsVus||appliNative();
   const profile=state.profile||{};
@@ -38797,7 +38849,7 @@ function renderCompte(){
           <div class="account-settings-list">
             ${widgetsVus?`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-accueil')"><span class="plus-row-icon is-stk">${lqStkSvg('widgets')}</span><span><b>${WTU.accueil.titre}</b><small>${WTU.accueil.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-verrou')"><span class="plus-row-icon is-stk">${lqStkSvg('verrou')}</span><span><b>${WTU.verrou.titre}</b><small>${WTU.verrou.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
-            <button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Évaluer l’application</b><small>${appliNative()||appStoreEnLigne()?'Ton avis sur l’App Store aide d’autres à nous trouver':'Bientôt sur l’App Store'}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Évaluer l’application</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>`:''}
         <div class="account-settings-group">
@@ -39353,9 +39405,9 @@ function importProgress(){
    d’Apple) : tout ce que le serveur garde pour cet appareil (compte_supprimer : pseudo, scores, avis, vote, messages, écrans vus,
    et le compte s’il est connecté), puis tout ce qui est sur l’appareil ; l’appli repart de zéro. */
 const APP_STORE_ID='6830361256';
-/* Requête est-elle sur l’App Store ? Le jour de sa sortie, renvoyer true (le site dit encore « Bientôt sur l’App Store »).
-   Une fonction plutôt qu’une constante : Mon compte peut se dessiner avant que le script n’arrive ici. */
-function appStoreEnLigne(){return false;}
+/* La fiche de Requête sur l’App Store (le même identifiant). Une fonction plutôt qu’une constante : Mon compte peut se dessiner avant
+   que le script n’arrive ici. 11 h 12 (« ne mets jamais “prochainement” ») : pas d’interrupteur à basculer le jour de la sortie. */
+function appStoreFiche(){return 'https://apps.apple.com/app/id6830361256';}
 function appliNative(){return document.documentElement.classList.contains('is-native');}
 /* Un iPhone, dans Safari (l’app, elle, se reconnaît à appliNative). */
 function iphoneWeb(){try{return /iPhone|iPod/.test(navigator.userAgent||'');}catch(e){return false;}}
@@ -39363,8 +39415,7 @@ function noterAppli(){
   const url=`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`;
   const C=typeof ilePont==='function'?ilePont():null;
   if(C){Promise.resolve(C.nativePromise('RequeteWidget','ouvrir',{url})).catch(()=>{location.href=url;});return;}
-  if(!appStoreEnLigne()&&typeof lqInfo==='function'){lqInfo('Bientôt sur l’App Store','Requête arrive bientôt sur l’App Store. Tu pourras l’évaluer dès sa sortie\u00a0: ton avis aidera d’autres à nous trouver.','⭐');return;}
-  window.open(`https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`,'_blank','noopener');
+  window.open(appStoreFiche()+'?action=write-review','_blank','noopener');
 }
 /* Se déconnecter (Elisa, 5 novembre, 22 h 14 : « mets le bouton déconnexion même s’il ne fonctionne pas ») : la ligne est toujours
    là. Sans compte connecté (aucune connexion n’est encore branchée), elle dit où est la progression et propose d’en garder une
@@ -39604,7 +39655,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-widgets-web-v2574';
+  const SW_CACHE='requete-2026-11-06-widgets-pas-a-pas-v2575';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
