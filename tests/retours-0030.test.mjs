@@ -19,9 +19,10 @@ test('réf. 6 : les fiches des leçons, les cartes mémo et les indices des déf
     assert.ok(!sansCommentaires(cut(a, b)).includes('SQLite'), a);
   }
   /* 6 novembre (cartes mémo, direction A) : les cartes réécrites disent « la base de l’app » dans leurs points et leurs pièges. */
-  for (const t of ['Dans la base de l’app, <code>MERGE</code> <b>n’existe pas</b>.', 'Les deux reçoivent des paramètres. La base de l’app n’en a pas.',
+  /* 6 novembre, 19 h : MERGE ne dit plus qu’il n’existe pas dans l’app (tests/retours-1900.test.mjs). */
+  for (const t of ['La synchronisation peut aussi s’écrire <b>autrement</b>.', 'Les deux reçoivent des paramètres. La base de l’app n’en a pas.',
     "Dans la base de l’app, <code>CAST('CMD-2026-1002481' AS INTEGER)</code> donne 0, sans erreur.",
-    'Dans la base de l’app, le même résultat s’obtient avec <code>INSERT … ON CONFLICT DO UPDATE</code>.', 'Leur syntaxe dépend du SGBD\\u00a0: la base de l’app n’en a pas.',
+    'Le même résultat s’obtient aussi avec <code>INSERT … ON CONFLICT DO UPDATE</code>.', 'Leur syntaxe dépend du SGBD\\u00a0: la base de l’app n’en a pas.',
     'vaut 1 si le plat peut être commandé et 0 sinon', 'Les dates AAAA-MM-JJ se comparent comme du texte\\u00a0:']) {
     /* 6 novembre : les pistes de wf1 et ff8, réécrites avec les 267 défis, ne nomment toujours pas SQLite. */
     assert.ok(app.includes(t), t);
@@ -43,8 +44,8 @@ test('réf. 6 : les notes « SQL serveur », les messages d’erreur et les piè
   }
 });
 
-test('réf. 6 : les récapitulatifs des vidéos MERGE et Procédures disent « la base de l’app »', () => {
-  assert.ok(page('projet-merge.html').includes('<div class="rtxt">Dans la base de l’app,<br><code>MERGE</code> <b>n’existe pas</b>.'));
+test('réf. 6 : les récapitulatifs des vidéos MERGE et Procédures disent la même chose que leur fiche', () => {
+  assert.ok(page('projet-merge.html').includes('<div class="rtxt">La synchronisation peut<br>aussi s’écrire <b>autrement</b>.'));
   assert.ok(page('projet-procedures.html').includes('<span class="rs">Les deux reçoivent des paramètres.<br>La base de l’app n’en a pas.</span>'));
 });
 

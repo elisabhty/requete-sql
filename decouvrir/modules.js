@@ -121,7 +121,7 @@ window.MODULES=[
     {titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lecons:[
       ["INSERT", "Ajouter des lignes", 248],
       ["UPDATE", "Modifier des lignes", 202],
-      ["MERGE", "Synchroniser deux tables", 201],
+      ["MERGE", "Synchroniser deux tables", 197],
       ["DELETE", "Supprimer des lignes", 187]
     ]},
     {titre:"Intégrité des tables liées", sous:"Ce que deviennent les lignes liées", lecons:[
