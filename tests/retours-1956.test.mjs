@@ -31,7 +31,7 @@ test('chaque retouche : la voix du cours, ses phrases telles que dans le cours, 
 
 test('integrer.mjs pose les textes d’une retouche avec sa voix, et seulement depuis son dossier', () => {
   const integ = read('tools/voix/integrer.mjs');
-  assert.ok(integ.includes("const RET = GARDER && path.basename(RAW) === cours + '-retouches' && fs.existsSync(RET_F)"));
+  assert.ok(integ.includes("const RET_F = path.join(DIR, path.basename(RAW) + '.json');") && integ.includes("const RET = GARDER && path.basename(RAW).startsWith(cours + '-') && fs.existsSync(RET_F)"));
   assert.ok(integ.includes('if (n === 1) page = page.replace(a, () => b);'));
   assert.ok(integ.includes("else if (!(n === 0 && page.includes(b))) { console.log(`Retouche introuvable dans la page (${n} fois) : ${a}`); process.exit(1); }"));
 });

@@ -160,6 +160,7 @@ const PHRASES = {
   'FLOOR(prix) retire les centimes, puis × 2 calcule les points gagnés.': 'flôr de prix retire les centimes, puis fois 2 calcule les points gagnés.',
   'Les dates s’affichent au format année-mois-jour : 2026-07-02.': 'Les dates s’affichent au format année, mois, jour : 2026, tiret, 07, tiret, 02.',
   /* 6 novembre (contrôle des cours) : une date montrée pour son format se dit chiffre par chiffre, pas « 1er mars 2023 ». */
+  'Parmi elles, 15 lignes associent une commande à elle-même ; le signe <> veut dire « différent de ».': 'Parmi elles, 15 lignes associent une commande à elle-même ; le signe inférieur-supérieur veut dire « différent de ».',
   'Ici, la date s’écrit au format année-mois-jour : \'2023-03-01\' correspond au 1er mars 2023.': 'Ici, la date s’écrit au format année, mois, jour : 2023, tiret, 03, tiret, 01 correspond au 1er mars 2023.',
   'Une date a son propre type : DATE, au format année-mois-jour, comme \'2026-09-12\'.': 'Une date a son propre type : date, au format année, mois, jour, comme 2026, tiret, 09, tiret, 12.',
   'Le format \'%d/%m/%Y\' affiche la date 2026-07-02 en 02/07/2026.': 'Le format pourcent d, barre, pourcent m, barre, pourcent Y affiche le 2 juillet 2026 sous la forme 02/07/2026.',
