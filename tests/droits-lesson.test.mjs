@@ -110,8 +110,9 @@ test('recherche et leçon seule : ni texte de secours, ni exercice, ni quiz', ()
   const recap = l50.studio.reflex.extra;
   assert.ok(recap.includes('Les trois idées à retenir') && ['🔐', '✅', '🚪'].every(e => recap.includes(e)), 'les trois idées à retenir, comme à la fin de la vidéo');
   assert.equal(vm.runInContext('QCM', ctx)[50], undefined, 'plus de quiz : la vidéo et ses moments valident la leçon (Elisa, 28 octobre)');
-  const carte = html.match(/\n 50:\{k:"GRANT \/ REVOKE",t:"([^"]+)",s:"([^"]+)"/);
-  assert.ok(carte && carte[1] === 'Accorder uniquement les accès nécessaires' && carte[2].includes('GRANT UPDATE (statut) ON commandes TO lina;'), 'la carte mémo suit le chapitre');
+  /* 6 novembre (cartes mémo, direction A) : 30 signes par ligne au plus, la syntaxe passe à la ligne avant ON */
+  const carte = html.match(/\n 50:\{k:"GRANT\\u00a0· REVOKE",t:"([^"]+)",s:"([^"]+)",dialecte:"PostgreSQL"/);
+  assert.ok(carte && carte[1] === 'Accorder uniquement les accès nécessaires' && carte[2].includes('GRANT UPDATE (statut)\\nON commandes TO lina;'), 'la carte mémo suit le chapitre');
 });
 
 test('le déroulé : légendes, chapitres, moments « À toi » et bouton « Ajouter à mes notes »', () => {

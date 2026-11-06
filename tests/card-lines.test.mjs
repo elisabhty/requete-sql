@@ -64,12 +64,13 @@ test('cartes : chaque exemple qui arrive dans la console met WHERE, SET, VALUES,
 
 test('cartes DELETE, UPDATE et GROUP BY : la requête tient sur une ligne par clause, dans la carte comme dans la console', () => {
   assert.equal(CARTES[28].s, 'DELETE FROM commandes\nWHERE id = 15;');
-  assert.equal(CARTES[27].s, "UPDATE clients\nSET email = '…'\nWHERE id = 6;");
+  /* 6 novembre (cartes mémo, direction A) : des requêtes complètes, qu’« Essayer » exécute telles quelles */
+  assert.equal(CARTES[27].s, 'UPDATE produits\nSET stock = stock + 10\nWHERE id = 8;');
   assert.equal(CARTES[16].s, 'SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;');
-  assert.equal(CARTES[26].s, "INSERT INTO clients (prenom, ville)\nVALUES ('Théo', 'Lille');", 'INSERT l’était déjà : les quatre requêtes d’écriture et de regroupement suivent la même forme');
+  assert.equal(CARTES[26].s, "INSERT INTO clients\n  (prenom, ville)\nVALUES\n  ('Théo', 'Lille'),\n  ('Zoé', 'Nice');", 'les quatre requêtes d’écriture et de regroupement suivent la même forme (30 caractères par ligne au plus)');
   /* « Essayer » envoie à la console l’exemple tel qu’il est écrit (ou sa version « run »), sans le remettre sur une ligne. */
   const run = vm.createContext({});
-  vm.runInContext(cut('function cardRunnableSql(c){', 'function cardSyntaxHtml(c){') + ';this.f = cardRunnableSql;', run);
+  vm.runInContext(cut('function cardRunnableSql(c){', '\n}\n') + '\n}\n;this.f = cardRunnableSql;', run);
   assert.equal(run.f(CARTES[28]), 'DELETE FROM commandes\nWHERE id = 15;');
   const essayer = cut('function cardToConsole(id){', '\n}\n');
   assert.ok(essayer.includes('fillConsoleSql(cardRunnableSql(CARTES[id]));'), '« Essayer » : l’exemple de la carte, tel quel');
