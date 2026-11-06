@@ -117,7 +117,9 @@ test('rendu : chaque dessin se trace (silhouette de découpe, puis couleurs), le
   }
   assert.ok(block.includes("if(mode==='lock')one('#DCD5F2',STK_B);") && block.includes("one('#CBC2EC',STK_B);one('#EEEAFB',STK_B-1.6)"), 'silhouette à gagner, découpe vide pendant qu’on le décolle');
   assert.ok(block.includes('if(cv.width!==n||cv.height!==n){cv.width=n;cv.height=n;}'), 'les deux côtés du canvas : un canvas neuf mesure 300 × 150 (100 px affichés sur un écran ×3)');
-  assert.ok(block.includes("${stkArtHtml(s.id,s.got?'art':'lock')}") && block.includes('<em class="stk-on" aria-hidden="true">Sur le tableau</em>') && css.includes('html.lq .stk-cell.is-placed .stk-art{opacity:.42}'), 'sur la planche, un sticker collé reste visible, estompé');
+  assert.ok(block.includes("${stkArtHtml(s.id,s.got?'art':'lock')}") && css.includes('html.lq .stk-cell.is-placed .stk-art{opacity:.42}'), 'sur la planche, un sticker collé reste visible, estompé');
+  /* Elisa, 6 novembre : « Ne pas mettre sur le tableau » : plus de pastille sur un sticker posé (voir stickers-rarete.test.mjs). */
+  assert.ok(!block.includes('stk-on') && !css.includes('.stk-on'), 'plus de pastille « Sur le tableau » sur la planche');
 });
 
 test('tableau : le sticker, même tourné, reste sur le tableau ; la rotation s’aimante à l’horizontale', () => {
