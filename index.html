@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=174">
+<link rel="stylesheet" href="ludique.css?v=175">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
@@ -33403,6 +33403,11 @@ function lqStkSvg(k){
     /* 6 novembre, 0 h 40 : les widgets de Mon compte — une grande tuile et deux petites ; deux tuiles et un cadenas. */
     widgets:['<rect x="5" y="6" width="38" height="17" rx="6"/><rect x="5" y="26" width="17" height="16" rx="6"/><rect x="26" y="26" width="17" height="16" rx="6"/>',
       `<rect x="5" y="6" width="38" height="17" rx="6" fill="#6A4DF4" ${W}/><path d="M11.5 14.5h13" stroke="#fff" stroke-width="2.8" ${R}/><path d="M35.2 9.6c.3 1.5 1.2 2.4 2.1 3.5 1 1.2 1.8 2.3 1.8 3.9a3.9 3.9 0 0 1-7.8 0c0-1.4.7-2.5 1.5-3.4.2.7.5 1.2 1.1 1.6-.1-2 .5-3.6 1.3-5.6z" fill="#FFC83D" stroke="${I}" stroke-width="1.6" ${J}/><rect x="5" y="26" width="17" height="16" rx="6" fill="#FFC83D" ${W}/><rect x="26" y="26" width="17" height="16" rx="6" fill="#9FF0C6" ${W}/><path d="M10 34h7M31 34h7" stroke="#fff" stroke-width="2.6" ${R} opacity=".9"/>`],
+    /* 6 novembre : « Sur ton appareil » et « En ligne » (Tes données, tes choix) */
+    tel:['<rect x="12" y="3.5" width="24" height="41" rx="6.5"/>',
+      `<rect x="12" y="3.5" width="24" height="41" rx="6.5" fill="#6A4DF4" ${W}/><rect x="15.6" y="8.6" width="16.8" height="27.4" rx="3" fill="#fff"/><rect x="18.4" y="12" width="11.2" height="5.4" rx="2.2" fill="#9FF0C6"/><rect x="18.4" y="20.2" width="7.6" height="5.4" rx="2.2" fill="#FFC83D"/><path d="M18.6 30.6h10.8" stroke="#C9BEFF" stroke-width="2.4" ${R}/><circle cx="24" cy="40" r="1.8" fill="#fff"/>`],
+    nuage:['<path d="M14.5 39h20a9 9 0 0 0 1.4-17.9A12.2 12.2 0 0 0 13 19.3 9.9 9.9 0 0 0 14.5 39z"/>',
+      `<path d="M14.5 39h20a9 9 0 0 0 1.4-17.9A12.2 12.2 0 0 0 13 19.3 9.9 9.9 0 0 0 14.5 39z" fill="#C9BEFF" ${W} ${J}/><path d="M17.6 21.4a8.4 8.4 0 0 1 7.6-4.9" stroke="#fff" stroke-width="2.4" ${R} opacity=".9"/><path d="M24 34.5v-9M20.2 28.7 24 24.9l3.8 3.8" fill="none" stroke="#6A4DF4" stroke-width="2.8" ${R} ${J}/>`],
     verrou:['<rect x="5" y="28" width="38" height="14" rx="5.5"/><rect x="5" y="6" width="17" height="17" rx="6"/><rect x="27" y="15" width="15" height="10.5" rx="3"/><path d="M30 15v-3.2a4.5 4.5 0 0 1 9 0V15" fill="none" stroke-width="10"/>',
       `<rect x="5" y="28" width="38" height="14" rx="5.5" fill="#6A4DF4" ${W}/><path d="M11 35h16" stroke="#fff" stroke-width="2.8" ${R}/><rect x="5" y="6" width="17" height="17" rx="6" fill="#9FF0C6" ${W}/><path d="M10.5 14.5h6" stroke="#fff" stroke-width="2.6" ${R} opacity=".9"/><path d="M30 15v-3.2a4.5 4.5 0 0 1 9 0V15" fill="none" ${W} ${R}/><rect x="27" y="15" width="15" height="10.5" rx="3" fill="#FFC83D" ${W}/><circle cx="34.5" cy="20.2" r="1.7" fill="${I}"/>`]
   };
@@ -38558,6 +38563,7 @@ function openPlusDetails(id){
   const el=document.getElementById(id);if(!el)return;
   if(id==='plus-contact'&&typeof ctAvant==='function')ctAvant();
   if(id==='plus-reminders'){RP=null;rappelBrouillon();rappelPeindre();}
+  if(id==='plus-data'&&typeof accDonneesFermer==='function')accDonneesFermer(el);
   document.querySelectorAll('#scr-compte .plus-details[open]').forEach(item=>{if(item!==el)item.open=false;});
   el.open=true;
   requestAnimationFrame(()=>el.querySelector('summary')?.focus({preventScroll:true}));
@@ -38776,7 +38782,7 @@ function renderCompte(){
           <p class="account-settings-group-title">Compte et assistance</p>
           <a class="acct-faq" href="${escAttr(siteUrl('decouvrir/#faq'))}" target="_blank" rel="noopener"><span class="acct-faq-t"><b>Questions fréquentes</b><small>Toutes les réponses, sur le site de Requête.</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg('faq')}</span></a>
           <div class="account-settings-list">
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Données et confidentialité</b><small>Sauvegarde, effacement, ce qui est gardé</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, sauvegarde, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
             <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Ta progression reste sur cet appareil'}</small></span><span class="account-setting-end">${CHEV}</span></button>
@@ -38821,10 +38827,9 @@ function renderCompte(){
       <div class="plus-details-body rp-body" id="rp-body">${rappelFeuilleHTML()}</div>
     </details>
     <details class="plus-details" id="plus-data">
-      <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations.</small><i aria-hidden="true">×</i></summary>
+      <summary><span>Tes données, tes choix</span><small>Tu sais ce qui est enregistré et tu gardes le contrôle.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
-        ${accDonneesHTML()}
-        <button class="acc-row" type="button" onclick="exportProgress()">
+        ${accDonneesHTML(`<button class="acc-row" type="button" onclick="exportProgress()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('export')}</span>
           <div class="at"><b>Sauvegarder ma progression</b><small>Un fichier de sauvegarde, à restaurer ici ou sur un autre appareil</small></div>
           ${CHEV}</button>
@@ -38839,10 +38844,11 @@ function renderCompte(){
         <button class="acc-row danger" type="button" onclick="resetAllProgress()">
           <span class="acc-row-ico danger" aria-hidden="true">${plusIcon('trash')}</span>
           <div class="at"><b>Effacer la progression</b><small>Leçons, défis, notes et planning</small></div>
-          ${CHEV}</button>
+          ${CHEV}</button>`)}
+        <p class="dc-legal-t">Pour tout lire</p>
         <a class="acc-row is-ext" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('privacy')}</span>
-          <div class="at"><b>Politique de confidentialité</b><small>Sur le site de Requête</small></div>
+          <div class="at"><b>Politique de confidentialité</b><small>Les durées de conservation, tes droits, les services utilisés</small></div>
           <span class="acc-ext" aria-hidden="true">${LEGAL_EXT_SVG}</span></a>
         <a class="acc-row is-ext" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('notes')}</span>
@@ -38946,32 +38952,51 @@ function accPseudoHTML(name){
   return `<div class="acc-pseudo" style="--l:${Array.from(n).length}"><span class="acc-pseudo-av"><span aria-hidden="true">${jeuInitial(n)}</span>${flag}</span><span class="acc-pseudo-t"><b>${at?'<i class="acc-pseudo-at">@</i>':''}<span class="acc-pseudo-nm">${esc(nom)}${trait}</span></b>${nivHtml}${objHtml}</span></div>`;
 }
 /* ---------- Comprendre mes données ----------
-   Elisa, 31 octobre, 18 h 49 : « comprendre mes données dans Données et confidentialité ». En tête de la feuille, un bloc qui
-   se déplie : ce qui reste sur l’appareil, ce qui passe par le serveur de l’appli, et ce qu’on peut faire (juste en dessous). */
-function accDonneesHTML(){
-  return `<div class="acc-donnees">
-          <button type="button" class="acc-donnees-t" aria-expanded="false" aria-controls="acc-donnees" onclick="accDonnees(this)"><span class="acc-donnees-ico is-stk" aria-hidden="true">${lqStkSvg('shield')}</span><span class="acc-donnees-tt"><b>Comprendre mes données</b><small>Sans compte, ton apprentissage reste sur cet appareil</small></span><svg class="acc-donnees-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-          <div class="acc-donnees-c" id="acc-donnees" hidden>
-            <h4>Sur cet appareil</h4>
-            <p>Ton prénom, tes leçons, défis, cartes, notes, planning et bases importées. Le moteur SQL tourne dans l’appli&nbsp;: les requêtes de ta console, de tes leçons et de tes défis en solo restent sur ton appareil.</p>
-            <h4>Sur le serveur de l’appli <small>Supabase, à Paris</small></h4>
-            <ul>
-              <li><b>Ton pseudo</b>, réservé avec un identifiant tiré au hasard&nbsp;: ni ton nom, ni ton e-mail.</li>
-              <li><b>Le classement</b>&nbsp;: ton pseudo, tes points, tes parties et les défis réussis, jamais tes requêtes.</li>
-              <li><b>La salle entre amis</b>&nbsp;: ton pseudo, tes temps et tes réactions, effacés au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, jamais montrées aux autres.</li>
-              <li><b>Tes messages</b> envoyés depuis «&nbsp;Contacte-nous&nbsp;», avec ce que tu joins et ton e-mail si tu le donnes, pour te répondre.</li>
-              <li><b>Tes avis</b> sur les leçons, <b>ton vote</b> pour le prochain parcours et les écrans de l’accueil que tu as vus (ni ton prénom, ni tes réponses).</li>
-            </ul>
-            <h4>Tu gardes la main</h4>
-            <p>Juste en dessous&nbsp;: sauvegarder ta progression ou tout effacer. Dans Mon compte, «&nbsp;Supprimer mon compte&nbsp;» efface ce que le serveur garde pour toi et tout ce qui est sur cet appareil.</p>
-          </div>
-        </div>`;
+   Elisa, 31 octobre, 18 h 49 : « comprendre mes données dans Données et confidentialité ». 6 novembre, 10 h 16 (la proposition de texte
+   qu’elle a fait relire) : « le texte est beaucoup trop dense pour une application mobile » ; la feuille devient « Tes données, tes
+   choix », en quatre rubriques fermées au départ, chacune avec sa phrase de résumé, puis des phrases courtes : sur ton appareil, en
+   ligne, ta confidentialité, gérer mes données (les actions y sont rangées). Les faits sont vérifiés sur le serveur : Supabase à
+   Paris (eu-west-3) ; les salles et leurs messages effacés au bout de 24 heures (jeu_menage, requete_private.menage, toutes les
+   heures) ; d’une requête vérifiée en salle, seule l’empreinte est gardée (jeu_essai_v2), avec la salle ; les messages de « Contacte-nous » au bout de 3 ans (contact_menage) ; le pays ne
+   part que s’il est affiché (paysSync). */
+const DC_CHEV='<svg class="dc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+const DC_RUBRIQUES=[
+  {k:'appareil',stk:'tel',t:'Sur ton appareil',r:'Tes cours, ta progression et tes bases importées.',c:['Ton prénom, ton objectif, tes leçons, tes défis, tes cartes, tes notes, ton planning et tes bases importées restent sur cet appareil.',
+    'Le moteur SQL tourne dans l’appli\u00a0: tes requêtes ne quittent pas ton appareil, sauf celles des parties en salle, vérifiées en ligne.']},
+  {k:'ligne',stk:'nuage',t:'En ligne',r:'Seulement ce qu’il faut pour jouer à plusieurs et te répondre.',c:['<b>Ton pseudo</b>, avec un identifiant tiré au hasard\u00a0: ni ton nom, ni ton e-mail. Ton pays aussi, si tu choisis de l’afficher.',
+    '<b>Le classement</b>\u00a0: tes points, tes parties et les défis réussis.',
+    '<b>Les salles</b>\u00a0: tes temps, tes réactions et tes messages, effacés au bout de 24\u00a0heures.',
+    '<b>«\u00a0Contacte-nous\u00a0»</b>\u00a0: ton message, ce que tu y joins et ton e-mail si tu le donnes, pour te répondre. Le message est effacé au bout de 3\u00a0ans.',
+    '<b>Tes avis</b> sur les leçons, ton vote pour le prochain parcours et les écrans de l’accueil que tu as vus, sans ton prénom ni tes réponses.'],
+    note:'Tout est hébergé chez Supabase, à Paris.'},
+  {k:'confid',stk:'shield',t:'Ta confidentialité',r:'Personne ne voit tes requêtes.',c:['Dans une salle, les autres joueurs voient ton pseudo, ton drapeau, tes temps et tes réactions. Jamais tes requêtes.',
+    'En salle, ta requête part en ligne pour être vérifiée. Seule son empreinte, un code qui ne permet pas de la relire, est gardée 24\u00a0heures au plus.',
+    'Ni publicité, ni traceur\u00a0: l’appli compte seulement les écrans de l’accueil vus, sans savoir qui tu es.']},
+  {k:'gerer',stk:'export',t:'Gérer mes données',r:'Sauvegarder ta progression ou effacer tes informations.',c:['<b>Effacer la progression</b>\u00a0: tes leçons, défis, cartes, notes et planning sont vidés sur cet appareil, et tes scores quittent le classement. Ton pseudo reste à toi.',
+    '<b>Supprimer mon compte</b> (en bas de Mon compte)\u00a0: efface tout ce que le serveur garde pour toi et tout ce qui est sur cet appareil.',
+    'Supprimer l’appli efface aussi ce qui est sur cet appareil\u00a0: sauvegarde ta progression avant.'],actions:true},
+];
+const DC_OUVERTES=new Set();
+function accDonneesHTML(actions){
+  return `<div class="dc">${DC_RUBRIQUES.map(r=>{const on=DC_OUVERTES.has(r.k);
+    const liste=`<ul class="dc-l">${r.c.map(x=>`<li>${x}</li>`).join('')}</ul>${r.note?`<p class="dc-note">${r.note}</p>`:''}`;
+    return `<section class="dc-r${on?' is-open':''}"><button type="button" class="dc-t${on?' is-open':''}" id="dc-t-${r.k}" aria-expanded="${on}" aria-controls="dc-${r.k}" onclick="accDonnees(this)"><span class="dc-ico is-stk" aria-hidden="true">${lqStkSvg(r.stk)}</span><span class="dc-tt"><b>${r.t}</b><small>${r.r}</small></span>${DC_CHEV}</button><div class="dc-c" id="dc-${r.k}" role="region" aria-labelledby="dc-t-${r.k}"${on?'':' hidden'}>${r.actions&&actions?`<div class="dc-actions">${actions}</div>`:''}${liste}</div></section>`;}).join('')}</div>`;
 }
 function accDonnees(btn){
-  const p=document.getElementById('acc-donnees');if(!p||!btn)return;
+  if(!btn)return;
+  const id=(typeof btn.getAttribute==='function'&&btn.getAttribute('aria-controls'))||'',p=id&&document.getElementById(id);if(!p)return;
   const on=p.hidden;p.hidden=!on;
   btn.setAttribute('aria-expanded',String(on));btn.classList.toggle('is-open',on);
+  const sec=typeof btn.closest==='function'?btn.closest('.dc-r'):null;if(sec)sec.classList.toggle('is-open',on);
+  const k=id.replace(/^dc-/,'');if(on)DC_OUVERTES.add(k);else DC_OUVERTES.delete(k);
   if(typeof buzz==='function')buzz('selection');
+}
+/* À chaque ouverture de la feuille, les quatre rubriques repartent fermées : l’essentiel se lit d’un coup d’œil. */
+function accDonneesFermer(host){
+  DC_OUVERTES.clear();
+  if(!host||typeof host.querySelectorAll!=='function')return;
+  host.querySelectorAll('.dc-c').forEach(p=>{p.hidden=true;});
+  host.querySelectorAll('.dc-t,.dc-r').forEach(b=>{b.classList.remove('is-open');if(b.classList.contains('dc-t'))b.setAttribute('aria-expanded','false');});
 }
 /* ---------- Nous contacter ----------
    Elisa, 31 octobre, 18 h 49 : « pour aide, fais plutôt l’onglet pour contacter, reporter un bug, etc. ». Mon compte › Nous
@@ -39551,7 +39576,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-defis-contexte-v2571';
+  const SW_CACHE='requete-2026-11-06-donnees-choix-v2572';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

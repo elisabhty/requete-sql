@@ -142,25 +142,28 @@ test('l’envoi : vérifié, envoyé à contact_envoyer, puis merci ; les refus 
   assert.deepEqual(horsLigne.calls, []); assert.equal(horsLigne.el('ct-etat').textContent, 'Pas de connexion : ton message est gardé, envoie-le dès que tu es en ligne.');
 });
 
-test('Données et confidentialité : « Comprendre mes données » en tête, qui se déplie', () => {
-  assert.ok(app.includes(`      <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations.</small><i aria-hidden="true">×</i></summary>
+test('Tes données, tes choix (6 novembre, 10 h 16) : quatre rubriques fermées au départ, qui se déplient', () => {
+  assert.ok(app.includes(`      <summary><span>Tes données, tes choix</span><small>Tu sais ce qui est enregistré et tu gardes le contrôle.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
-        \${accDonneesHTML()}
-        <button class="acc-row" type="button" onclick="exportProgress()">`), 'à la place de l’ancien paragraphe, avant « Exporter »');
-  assert.ok(!app.includes('class="account-data-note"'));
+        \${accDonneesHTML(\`<button class="acc-row" type="button" onclick="exportProgress()">`), 'les actions sont rangées dans « Gérer mes données »');
+  assert.ok(!app.includes('class="account-data-note"') && !app.includes('Comprendre mes données</b>'));
   const t = ctx();
-  const h = t.ev('accDonneesHTML()');
-  assert.ok(h.includes('<button type="button" class="acc-donnees-t" aria-expanded="false" aria-controls="acc-donnees" onclick="accDonnees(this)">'));
-  assert.ok(h.includes('<b>Comprendre mes données</b><small>Sans compte, ton apprentissage reste sur cet appareil</small>'));
-  assert.ok(h.includes('<div class="acc-donnees-c" id="acc-donnees" hidden>'), 'replié au départ');
-  for (const part of ['<h4>Sur cet appareil</h4>', 'les requêtes de ta console, de tes leçons et de tes défis en solo restent sur ton appareil', '<h4>Sur le serveur de l’appli <small>Supabase, à Paris</small></h4>',
-    '<b>Ton pseudo</b>', '<b>Le classement</b>', '<b>La salle entre amis</b>', 'effacés au bout de 24&nbsp;h', '<b>Tes messages</b> envoyés depuis «&nbsp;Contacte-nous&nbsp;»',
-    '<h4>Tu gardes la main</h4>'])
+  const h = t.ev("accDonneesHTML('<i>actions</i>')");
+  assert.equal((h.match(/<section class="dc-r">/g) || []).length, 4, 'quatre rubriques');
+  for (const [k, titre] of [['appareil', 'Sur ton appareil'], ['ligne', 'En ligne'], ['confid', 'Ta confidentialité'], ['gerer', 'Gérer mes données']]) {
+    assert.ok(h.includes(`<button type="button" class="dc-t" id="dc-t-${k}" aria-expanded="false" aria-controls="dc-${k}" onclick="accDonnees(this)">`), k);
+    assert.ok(h.includes(`<b>${titre}</b>`), titre);
+    assert.ok(h.includes(`<div class="dc-c" id="dc-${k}" role="region" aria-labelledby="dc-t-${k}" hidden>`), `${k} : fermée au départ`);
+  }
+  assert.ok(h.includes('<div class="dc-actions"><i>actions</i></div>'), 'les actions dans « Gérer mes données »');
+  for (const part of ['tes requêtes ne quittent pas ton appareil, sauf celles des parties en salle, vérifiées en ligne', '<p class="dc-note">Tout est hébergé chez Supabase, à Paris.</p>',
+    '<b>Ton pseudo</b>', '<b>Le classement</b>', '<b>Les salles</b>', 'effacés au bout de 24\u00a0heures', 'Le message est effacé au bout de 3\u00a0ans.', 'Seule son empreinte'])
     assert.ok(h.includes(part), part);
-  const p = t.el('acc-donnees'); p.hidden = true;
-  const btn = mkEl('btn');
+  const p = t.el('dc-ligne'); p.hidden = true;
+  const btn = mkEl('btn'); btn.getAttribute = k => (k === 'aria-controls' ? 'dc-ligne' : null);
   t.c.btn = btn; t.ev('accDonnees(btn)');
   assert.equal(p.hidden, false); assert.equal(btn.attrs['aria-expanded'], 'true'); assert.ok(btn.classList.contains('is-open'));
+  assert.ok(t.ev("accDonneesHTML('')").includes('<div class="dc-c" id="dc-ligne" role="region" aria-labelledby="dc-t-ligne">'), 'ouverte, elle le reste si Mon compte se redessine');
   t.ev('accDonnees(btn)'); assert.equal(p.hidden, true); assert.equal(btn.attrs['aria-expanded'], 'false');
 });
 
@@ -202,9 +205,10 @@ test('la DA : pastilles en relief comme le rappel, champs lilas, carte lilas qui
     'html.lq #scr-compte .ct-msg textarea,html.lq #scr-compte .ct-mail{display:block;width:100%;box-sizing:border-box;',
     'html.lq #scr-compte .ct-infos[hidden]{display:none}',
     'html.lq #scr-compte .ct-go{display:block;width:100%;margin:16px 0 0}',
-    'html.lq #scr-compte .acc-donnees{margin:16px 18px 8px;border-radius:18px;background:var(--accent-soft);overflow:hidden}',
-    'html.lq #scr-compte .acc-donnees-t.is-open .acc-donnees-chev{transform:rotate(180deg)}',
-    'html.lq #scr-compte .acc-donnees-c[hidden]{display:none}'])
+    'html.lq #scr-compte .dc-r{border-radius:18px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line);overflow:hidden}',
+    'html.lq #scr-compte .dc-r.is-open .dc-t{background:var(--accent-soft)}',
+    'html.lq #scr-compte .dc-t.is-open .dc-chev{transform:rotate(180deg)}',
+    'html.lq #scr-compte .dc-c[hidden]{display:none}'])
     assert.ok(css.includes(part), part);
   assert.ok(!css.includes('account-help-copy'), 'les styles de l’ancienne aide sont partis');
 });
