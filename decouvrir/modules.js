@@ -133,7 +133,7 @@ window.MODULES=[
       ["Concurrence et isolation", "Gérer les accès simultanés", 261]
     ]},
     {titre:"Procédures et triggers", sous:"Automatiser les traitements", lecons:[
-      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 198],
+      ["Procédures et fonctions stockées", "Réutiliser un traitement ou un calcul", 194],
       ["Les triggers", "Déclencher une action automatiquement", 263]
     ]},
     {titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lecons:[
