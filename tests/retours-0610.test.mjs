@@ -20,13 +20,15 @@ test('« Noter Requête » mène à la page « Écrire un avis » de la fiche Ap
   assert.ok(compte.includes('onclick="noterAppli()"'));
 });
 
-test('la carte du profil : « Niv. 2 » sous l’avatar, le nom du niveau sous le prénom, plus de niveau suivant', () => {
+/* 6 novembre, 11 h 12 : Elisa choisit la direction C de l’audit de la carte (retours-1013-compte) : « Niv. 2 » et le nom du niveau
+   quittent le rond et le dessous du prénom pour la tuile « Ton niveau » ; toujours pas de niveau suivant. */
+test('la carte du profil : « Niv. 2 » et le nom du niveau dans la tuile « Ton niveau », plus de niveau suivant', () => {
   assert.ok(compte.includes('<span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>'));
-  assert.ok(compte.includes('</span><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span>'), 'la pastille juste sous le rond');
-  assert.ok(compte.includes('</span><span class="acct-rang" aria-hidden="true">${esc(level.label)}</span>${objHero}${depuisHero}</span>'), 'le nom du niveau, l’objectif, la date');
+  assert.ok(compte.includes('<small>Ton niveau</small><span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b>'), 'la pastille, puis le nom du niveau, dans leur tuile');
+  assert.ok(compte.includes('</span>${objHero}${depuisHero}</span>'), 'sous le prénom : l’objectif, la date');
   assert.ok(!compte.includes('lvlBadgeHTML(level') && !compte.includes('Niveau ${level.rank+1} dans'), 'plus de « Niveau 3 dans 8 leçons »');
   assert.ok(compte.includes(', membre depuis le ${inscriptionTexte()}`)}">'), 'VoiceOver lit aussi la date');
-  for (const k of ['html.lq .acct-pic{flex:none;display:flex;flex-direction:column;align-items:center;gap:10px}', 'html.lq .acct-hero .acct-niv{display:inline-flex;', 'html.lq .acct-hero .acct-rang{color:var(--mint);'])
+  for (const k of ['html.lq .acct-pic{flex:none;display:flex;flex-direction:column;align-items:center;gap:10px}', 'html.lq .acct-hero .acct-niv{display:inline-flex;', 'html.lq .acct-hero .acct-tuile .acct-niv{height:28px;'])
     assert.ok(lq.includes(k), k);
 });
 
