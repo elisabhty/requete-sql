@@ -278,9 +278,9 @@ test('témoignages : « Ils recommandent » dans le lecteur, pour montrer que ce
 test('« cas pratiques » à la place de « défis métier » sur la vitrine, la vidéo et les pages légales', () => {
   const pages = ['index.html', 'module.html', 'connexion.html', 'video.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html', 'modules.js'];
   for (const f of pages) assert.doesNotMatch(lire(f), /[Dd]éfis? métier/, `${f} : plus de « défis métier »`);
-  assert.match(lire('index.html'), /<li>267 cas pratiques<\/li>/, 'ce qui est inclus');
+  assert.match(lire('index.html'), /<li>477 cas pratiques<\/li>/, 'ce qui est inclus (6 novembre : 267, puis les sept bases ajoutées)');
   assert.match(lire('index.html'), /<h3>Cas pratiques et révisions<\/h3>/);
-  assert.match(lire('connexion.html'), /<span class="sticker sun">267 cas pratiques<svg/, 'autocollant de la page de connexion');
+  assert.match(lire('connexion.html'), /<span class="sticker sun">477 cas pratiques<svg/, 'autocollant de la page de connexion');
   const v = lire('video.html');
   assert.ok(v.includes('<span>Des <em>cas pratiques</em>,</span>'), 'titre de la scène');
   assert.ok(v.includes("[101.5, 'Cas pratiques']"), 'chapitre');

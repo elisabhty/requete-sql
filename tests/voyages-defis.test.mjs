@@ -20,7 +20,7 @@ const base = () => { const db = new SQL.Database(); db.run(seed); return db; };
 const challenge = id => voyages.find(c => c.id === id);
 
 test('le catalogue contient trente défis Agence de voyages, dix par niveau', () => {
-  assert.equal(challenges.length, 267);
+  assert.equal(challenges.length, 477);
   assert.equal(voyages.length, 30);
   for (const [prefix, level] of [['vf', 'f'], ['vm', 'm'], ['vd', 'd']]) {
     const group = voyages.filter(c => c.id.startsWith(prefix));
