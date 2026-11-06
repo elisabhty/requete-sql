@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=175">
+<link rel="stylesheet" href="ludique.css?v=176">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=26">
 <style id="lesson-video-css">
@@ -33417,6 +33417,9 @@ function lqStkSvg(k){
     /* 6 novembre, 0 h 40 : les widgets de Mon compte — une grande tuile et deux petites ; deux tuiles et un cadenas. */
     widgets:['<rect x="5" y="6" width="38" height="17" rx="6"/><rect x="5" y="26" width="17" height="16" rx="6"/><rect x="26" y="26" width="17" height="16" rx="6"/>',
       `<rect x="5" y="6" width="38" height="17" rx="6" fill="#6A4DF4" ${W}/><path d="M11.5 14.5h13" stroke="#fff" stroke-width="2.8" ${R}/><path d="M35.2 9.6c.3 1.5 1.2 2.4 2.1 3.5 1 1.2 1.8 2.3 1.8 3.9a3.9 3.9 0 0 1-7.8 0c0-1.4.7-2.5 1.5-3.4.2.7.5 1.2 1.1 1.6-.1-2 .5-3.6 1.3-5.6z" fill="#FFC83D" stroke="${I}" stroke-width="1.6" ${J}/><rect x="5" y="26" width="17" height="16" rx="6" fill="#FFC83D" ${W}/><rect x="26" y="26" width="17" height="16" rx="6" fill="#9FF0C6" ${W}/><path d="M10 34h7M31 34h7" stroke="#fff" stroke-width="2.6" ${R} opacity=".9"/>`],
+    /* 6 novembre, 10 h 40 : « Évaluer l’application » */
+    etoile:['<path d="M24 4.6l5.7 11.5 12.7 1.9-9.2 8.9 2.2 12.6L24 33.6l-11.4 5.9 2.2-12.6-9.2-8.9 12.7-1.9z"/>',
+      `<path d="M24 4.6l5.7 11.5 12.7 1.9-9.2 8.9 2.2 12.6L24 33.6l-11.4 5.9 2.2-12.6-9.2-8.9 12.7-1.9z" fill="#FFC83D" ${W} ${J}/><path d="M24 11.5l3.2 6.6 7.2 1.1" fill="none" stroke="#fff" stroke-width="2.4" ${R} ${J} opacity=".85"/><circle cx="38.5" cy="8.5" r="2.4" fill="#9FF0C6" ${W}/>`],
     /* 6 novembre : « Sur ton appareil » et « En ligne » (Tes données, tes choix) */
     tel:['<rect x="12" y="3.5" width="24" height="41" rx="6.5"/>',
       `<rect x="12" y="3.5" width="24" height="41" rx="6.5" fill="#6A4DF4" ${W}/><rect x="15.6" y="8.6" width="16.8" height="27.4" rx="3" fill="#fff"/><rect x="18.4" y="12" width="11.2" height="5.4" rx="2.2" fill="#9FF0C6"/><rect x="18.4" y="20.2" width="7.6" height="5.4" rx="2.2" fill="#FFC83D"/><path d="M18.6 30.6h10.8" stroke="#C9BEFF" stroke-width="2.4" ${R}/><circle cx="24" cy="40" r="1.8" fill="#fff"/>`],
@@ -33463,7 +33466,7 @@ if(typeof document!=='undefined'&&document.addEventListener)document.addEventLis
 });
 /* L’icône d’une feuille (un émoji, ou le pictogramme de « Recommencer ») devient son autocollant ; une icône inconnue se pose sur une
    pastille découpée, violette à bord blanc. */
-const LQ_ASK_STK={'📝':'note','🗂️':'table','✏️':'pen','🧹':'broom','↺':'restore','🗑️':'trash','📄':'file','ℹ️':'info'};
+const LQ_ASK_STK={'⭐':'etoile','📝':'note','🗂️':'table','✏️':'pen','🧹':'broom','↺':'restore','🗑️':'trash','📄':'file','ℹ️':'info'};
 function lqAskStk(ico){
   const k=LQ_ASK_STK[ico]||(typeof BRAVO_ICO!=='undefined'&&BRAVO_ICO&&ico===BRAVO_ICO.restart?'restore':'');
   return k?`<span class="lq-ask-stk" aria-hidden="true">${lqStkSvg(k)}</span>`:`<span class="lq-ask-stk is-badge" aria-hidden="true"><i>${ico}</i></span>`;
@@ -36653,7 +36656,8 @@ function wtuVerrouHTML(){
       </div>`;
 }
 function wtuFeuilleHTML(k){
-  return `${k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()}<p class="acc-note wtu-note">${esc(WTU[k].note)}</p>`;
+  const web=!(typeof appliNative==='function'&&appliNative());
+  return `${web?`<p class="wtu-web"><b>Avec l’app Requête pour iPhone</b>${typeof appStoreEnLigne==='function'&&appStoreEnLigne()?'Installe-la depuis l’App Store, puis suis ces étapes.':'Les widgets viennent avec l’app, bientôt sur l’App Store. Voici comment les ajouter.'}</p>`:''}${k==='verrou'?wtuVerrouHTML():wtuAccueilHTML()}<p class="acc-note wtu-note">${esc(WTU[k].note)}</p>`;
 }
 /* Les cibles du doigt, en part de l’écran dessiné (offsetLeft / offsetTop : la place sans les transformations des animations). */
 function wtuCibles(box){
@@ -38668,6 +38672,10 @@ function renderCompte(){
   const hour=rappelHeure();
   const connected=state.accountMode==='connected';
   const widgetsIci=typeof obWidgetPossible==='function'&&obWidgetPossible();   // l’app iPhone et son widget (6 novembre, 0 h 40)
+  /* 10 h 40 (« tu n’as pas mis le bouton widget et évaluer l’application ») : sur un iPhone, le groupe se voit aussi dans Safari ; les
+     feuilles des widgets y disent qu’ils viennent avec l’app, et « Évaluer l’application » attend la sortie sur l’App Store. */
+  const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());   // une app sans le widget : pas de mode d’emploi qui n’y marcherait pas
+  const surIphone=widgetsVus||appliNative();
   const profile=state.profile||{};
   const profileGoalO=OB_GOALS.find(g=>g[0]===profile.goal)||null,profileGoal=(profileGoalO||[])[1]||'';
   /* 21 h 54 : l’objectif sur la carte du profil, à la place de la ligne « Profil et objectif » des réglages (la carte ouvre la même
@@ -38784,12 +38792,12 @@ function renderCompte(){
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>
-        ${widgetsIci||appliNative()?`<div class="account-settings-group">
+        ${surIphone?`<div class="account-settings-group">
           <p class="account-settings-group-title">Sur ton iPhone</p>
           <div class="account-settings-list">
-            ${widgetsIci?`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-accueil')"><span class="plus-row-icon is-stk">${lqStkSvg('widgets')}</span><span><b>${WTU.accueil.titre}</b><small>${WTU.accueil.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            ${widgetsVus?`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-accueil')"><span class="plus-row-icon is-stk">${lqStkSvg('widgets')}</span><span><b>${WTU.accueil.titre}</b><small>${WTU.accueil.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-verrou')"><span class="plus-row-icon is-stk">${lqStkSvg('verrou')}</span><span><b>${WTU.verrou.titre}</b><small>${WTU.verrou.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
-            ${appliNative()?`<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('trophy')}</span><span><b>Noter Requête</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+            <button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Évaluer l’application</b><small>${appliNative()||appStoreEnLigne()?'Ton avis sur l’App Store aide d’autres à nous trouver':'Bientôt sur l’App Store'}</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>`:''}
         <div class="account-settings-group">
@@ -38824,7 +38832,7 @@ function renderCompte(){
       <summary><span>Un engagement envers <span class="pc-nw">toi-même</span></span><small>${pacteLead(pacteRythme().m,pacteRythme().f)}</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body pc-body">${pacteFeuilleHTML()}</div>
     </details>
-    ${widgetsIci?`<details class="plus-details plus-widget" id="plus-widget-accueil" ontoggle="wtuToggle(this)">
+    ${widgetsVus?`<details class="plus-details plus-widget" id="plus-widget-accueil" ontoggle="wtuToggle(this)">
       <summary><span>${WTU.accueil.titre}</span><small>${WTU.accueil.sous}</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">${wtuFeuilleHTML('accueil')}</div>
     </details>
@@ -39345,11 +39353,17 @@ function importProgress(){
    d’Apple) : tout ce que le serveur garde pour cet appareil (compte_supprimer : pseudo, scores, avis, vote, messages, écrans vus,
    et le compte s’il est connecté), puis tout ce qui est sur l’appareil ; l’appli repart de zéro. */
 const APP_STORE_ID='6830361256';
+/* Requête est-elle sur l’App Store ? Le jour de sa sortie, renvoyer true (le site dit encore « Bientôt sur l’App Store »).
+   Une fonction plutôt qu’une constante : Mon compte peut se dessiner avant que le script n’arrive ici. */
+function appStoreEnLigne(){return false;}
 function appliNative(){return document.documentElement.classList.contains('is-native');}
+/* Un iPhone, dans Safari (l’app, elle, se reconnaît à appliNative). */
+function iphoneWeb(){try{return /iPhone|iPod/.test(navigator.userAgent||'');}catch(e){return false;}}
 function noterAppli(){
   const url=`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`;
   const C=typeof ilePont==='function'?ilePont():null;
   if(C){Promise.resolve(C.nativePromise('RequeteWidget','ouvrir',{url})).catch(()=>{location.href=url;});return;}
+  if(!appStoreEnLigne()&&typeof lqInfo==='function'){lqInfo('Bientôt sur l’App Store','Requête arrive bientôt sur l’App Store. Tu pourras l’évaluer dès sa sortie\u00a0: ton avis aidera d’autres à nous trouver.','⭐');return;}
   window.open(`https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`,'_blank','noopener');
 }
 /* Se déconnecter (Elisa, 5 novembre, 22 h 14 : « mets le bouton déconnexion même s’il ne fonctionne pas ») : la ligne est toujours
@@ -39590,7 +39604,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-indice-ferme-v2573';
+  const SW_CACHE='requete-2026-11-06-widgets-web-v2574';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
