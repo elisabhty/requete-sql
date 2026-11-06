@@ -12136,20 +12136,32 @@ function coachPaint(){
   if(card&&(COACH.fx==='is-new-ko'||COACH.fx==='is-new-hint'))coachPeek(card,COACH.fx==='is-new-hint');
   COACH.fx='';
 }
+/* Elisa, 6 novembre, 10 h 31 (capture du bilan « Ton bilan », la manche close) : « on a une notification d’indice alors que la salle
+   est fermée ». La pastille ne surveillait que la case de l’indice : quand la salle passait au bilan, tout l’écran était remplacé, la
+   carte partait sans que la case change, et la pastille restait jusqu’à 6 secondes (l’IntersectionObserver la montrait même, la carte
+   n’étant plus à l’écran). Elle part maintenant dès que la carte quitte la page, que la salle n’est plus en jeu ou que la manche est
+   close, et elle ne naît pas sans partie en cours. */
+function coachEnJeu(){
+  if(!COACH||COACH.kind!=='room')return true;
+  if(typeof JEU==='undefined'||!JEU||JEU.ferme||!String(JEU.view||'').startsWith('play'))return false;
+  const r=JEU.rounds&&JEU.rounds[COACH.round];
+  return !!r&&!r.closed&&!r.done;
+}
+function coachPeekOff(){document.getElementById('coach-peek')?.remove();}
 function coachPeek(card,hint){
-  document.getElementById('coach-peek')?.remove();
-  if(typeof IntersectionObserver==='undefined')return;
+  coachPeekOff();
+  if(typeof IntersectionObserver==='undefined'||!card||!card.isConnected||!coachEnJeu())return;
   const b=document.createElement('button');
   b.type='button';b.id='coach-peek';b.className='coach-peek';b.hidden=true;
   b.innerHTML=`<span aria-hidden="true">↑</span>${COACH.diag?(hint?'Pas encore · voir l’indice':'Pas encore · voir pourquoi'):'Nouvel indice · le voir'}`;
-  const io=new IntersectionObserver(([e])=>{b.hidden=e.isIntersecting;});
-  const bye=()=>{io.disconnect();b.remove();};
+  let mo=null;
+  const io=new IntersectionObserver(([e])=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=e.isIntersecting;});
+  const bye=()=>{io.disconnect();if(mo)mo.disconnect();b.remove();};
   b.onclick=()=>{bye();card.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'center'});};
   document.body.appendChild(b);io.observe(card);
-  /* Elle disparaît d’elle-même au bout de quelques secondes, ou dès qu’on quitte le défi. */
+  /* Elle disparaît d’elle-même au bout de quelques secondes, ou dès qu’on quitte le défi (la carte quitte la page). */
   setTimeout(()=>{if(b.isConnected)b.classList.add('is-out');setTimeout(()=>{if(b.isConnected)bye();},300);},6000);
-  const sl=document.getElementById('hint-slot');
-  const mo=new MutationObserver(()=>{if(!card.isConnected){mo.disconnect();bye();}});if(sl)mo.observe(sl,{childList:true});
+  mo=new MutationObserver(()=>{if(!card.isConnected||!coachEnJeu())bye();});mo.observe(document.body,{childList:true,subtree:true});
 }
 function coachVoir(i){if(!COACH||i<1||i>COACH.n)return;COACH.view=i;coachPaint();const t=document.querySelector('#hint-slot .coach-hint');if(t&&!prefersReduceMotion()){t.classList.add('is-swap');}}
 /* Un essai raté : ce qui cloche en haut de la carte, qui secoue d’un rien. */
@@ -30024,6 +30036,7 @@ function jeuRender(){
   const prevEd=keep&&document.getElementById('ed-lesson'),typed=prevEd?prevEd.value:null;
   const focusKey=keep&&document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.fk:null;
   J.view=v;J.sig=sig;
+  if(!/^play/.test(v)&&typeof coachPeekOff==='function')coachPeekOff();   // le bilan, l’attente, le tirage : pas de pastille d’indice (10 h 31)
   J.drawT.forEach(clearTimeout);J.drawT=[];
   const head=(k,t,s)=>`<div class="l-kicker">${k}</div><h1>${t}</h1>${s?`<p class="l-sub" id="jeu-sub">${s}</p>`:''}`;
   /* Les réglages de la partie en autocollants : le niveau et ses barres, les manches, le chrono (Elisa, 31 octobre, 15 h 52, réf. 1 :
@@ -30497,6 +30510,7 @@ function jeuEvt(ok,pid,name,bonus){
 }
 function jeuStop(){
   const J=JEU;if(!J)return;
+  if(typeof coachPeekOff==='function')coachPeekOff();
   /* On quitte avant le podium : les points déjà gagnés ne sont pas perdus. */
   try{if(!J.scored&&J.played){const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
   /* Prévenir les autres tout de suite : l’hôte qui part passe la main sans attendre. */
@@ -39576,7 +39590,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-donnees-choix-v2572';
+  const SW_CACHE='requete-2026-11-06-indice-ferme-v2573';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
