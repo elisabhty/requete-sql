@@ -6752,7 +6752,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=182">
+<link rel="stylesheet" href="ludique.css?v=183">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=27">
 <style id="lesson-video-css">
@@ -20609,7 +20609,7 @@ function switchTab(name){
   if(activeTab&&name!==activeTab&&primaryTabFor(name)!==name&&!tabBackNav&&!restoringNav)tabFrom[name]=activeTab;
   /* Défis s’ouvre toujours en haut, sur la salle (Elisa, 1er novembre, 9 h 19 : « quand j’entre dans la salle, être en haut au début »). */
   if(name==='defis')tabScrollPositions.defis=0;
-  /* Mes stats, laissé ouvert, ne revient pas par un autre chemin : seul « Mes défis » de Pratiquer y mène (pratiquerDefis). */
+  /* Mes stats, laissé ouvert, ne revient pas par un autre chemin : on l’ouvre depuis la carte du joueur (defisOnglet('stats')). */
   if(name==='defis'&&activeTab!=='defis'&&typeof DEFIS!=='undefined'&&DEFIS.onglet==='stats'&&!(typeof defisVersStats!=='undefined'&&defisVersStats))DEFIS.onglet='jouer';
   /* Elisa, 1er novembre, 19 h 32 : « quand on clique sur Console SQL, on passe à la fin de la page ». Une sous-page (Console,
      Selon le SGBD, Entretien, Notes, Cartes mémo, Stickers…) ouverte depuis une carte s’ouvre toujours en haut ; elle ne reprend plus
@@ -21285,11 +21285,10 @@ if(typeof document!=='undefined')document.addEventListener('click',e=>{
   if(jump){e.preventDefault();sgbdJump(jump.closest('.sg-wrap'),jump.dataset.sgbdJump,true);}
 },true);
 function renderJourneyHub(tab){
-  const stats=compteStats(),kd=salleKpi();
-  /* Elisa, 5 novembre, 14 h 24 (réf. 2 et 3) : la salle de défi lance une partie, « Mes défis » parle de la progression et ouvre Mes
-     stats (plus la page Défis) ; les textes de sa réf. 3. */
+  const stats=compteStats();
+  /* Elisa, 5 novembre, 14 h 24 (réf. 2 et 3) : la salle de défi lance une partie ; les textes de sa réf. 3. 6 novembre, 15 h 20 :
+     « supprimer le bandeau Mes défis » ; Mes stats s’ouvre depuis la carte du joueur, dans Défis. */
   const tools=tab==='practice'?[
-    ['defis','Mes défis',`${kd.tr}/${kd.ma} manches réussies\u00a0· ${(+kd.pts||0).toLocaleString('fr-FR')} point${kd.pts>1?'s':''}`,"pratiquerDefis('stats')",kd.ma?Math.round(kd.tr/kd.ma*100):null],
     ['console','Console SQL','Explore les données et teste librement tes requêtes.',"switchTab('console')"]
   ]:[
     /* Les textes d’Elisa (5 novembre, 20 h 15). L’ordre, 6 novembre, 13 h 34 : « mettre Entretien SQL en premier, ensuite Notes et
@@ -21306,7 +21305,8 @@ function renderJourneyHub(tab){
   if(tab==='practice'&&typeof CHALLENGES!=='undefined'){
     /* Un défi déjà trouvé se rejoue (17 h 53) : plus de « prochain défi » ni de « tout est réussi » ; la salle, et ses chiffres. */
     /* 14 h 24 : la phrase sur le chrono qui part de zéro quitte cette page (la salle d’attente le dit, juste avant la partie). */
-    lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('target')}</span><p class="journey-kicker">Salle de défi</p><h2>${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} à relever le défi&nbsp;?</h2><p>Un défi surprise, un chrono et des points à gagner. Joue en solo ou affronte d’autres joueurs&nbsp;!</p><button type="button" class="journey-primary" onclick="pratiquerDefis('jouer')"><span>Relever un défi</span>${PRAT_FLECHE}</button></section>`;
+    /* 6 novembre, 15 h 20 : « remplace Salle de défi par À toi de jouer ». */
+    lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('target')}</span><p class="journey-kicker">À toi de jouer</p><h2>${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} à relever le défi&nbsp;?</h2><p>Un défi surprise, un chrono et des points à gagner. Joue en solo ou affronte d’autres joueurs&nbsp;!</p><button type="button" class="journey-primary" onclick="pratiquerDefis('jouer')"><span>Relever un défi</span>${PRAT_FLECHE}</button></section>`;
   }else if(stats.due){
     lead=`<section class="journey-spotlight"><span class="journey-spot-stk" aria-hidden="true">${lqStkSvg('restore')}</span><p class="journey-kicker">À réviser</p><h2>${stats.due} leçon${stats.due>1?'s':''} à revoir</h2><p>Quelques minutes pour fixer ce que tu as déjà vu.</p><button type="button" class="journey-primary" onclick="startReview()"><span>Commencer la révision</span>${DEF_CHEV_SVG}</button></section>`;
   }
@@ -21315,7 +21315,8 @@ function renderJourneyHub(tab){
      arrivent l’une après l’autre (--i). */
   document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action,pct],i)=>`<button type="button" class="journey-resource" data-kind="${kind}" style="--i:${i}" onclick="${action}">${journeyToolIcon(kind)}<span><b>${title}</b><small>${esc(detail)}</small>${pct!=null?`<i class="journey-resource-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></i>`:''}</span>${DEF_CHEV_SVG}</button>`).join('');
 }
-/* Pratiquer : « Relever un défi » ouvre Jouer, « Mes défis » ouvre Mes stats (14 h 24). Mes stats ne s’ouvre que demandé : les autres
+/* Pratiquer : « Relever un défi » ouvre Jouer (14 h 24 ; « Mes défis » a quitté la page le 6 novembre, 15 h 20, pratiquerDefis('stats')
+   reste pour un lien direct vers Mes stats). Mes stats ne s’ouvre que demandé : les autres
    chemins vers Défis (Accueil, Planning) arrivent sur Jouer (switchTab). */
 const PRAT_FLECHE='<span class="prat-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h14M13 6l6 6-6 6"/></svg></span>';
 let defisVersStats=false;
@@ -22823,10 +22824,11 @@ function defisMoiHTML(){
     `<b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom||'?')}${jeuFlag(nom,pays)}</b>`+
     `<span class="dx-me-t"><b>${esc(nom||'Toi')}</b><small>${ligne}</small></span><span class="dx-me-go" aria-hidden="true">Mes stats${DEF_CHEV_SVG}</span></button>`;
 }
-/* Les niveaux (Facile, Moyen, Difficile) : les mêmes boutons que dans la carte d’une salle, pour la partie rapide. */
+/* Les niveaux (Facile, Moyen, Difficile) : les mêmes boutons que dans la carte d’une salle, pour la partie rapide. Elisa, 6 novembre,
+   15 h 20 : « mettre également le coefficient multiplicateur au niveau » : ×1, ×2, ×4 sous le nom (JEU_NIV_X), lu en toutes lettres. */
 function jeuNiveauxHTML(lab,fn){
   const auto=jeuNivAuto();
-  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':''}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':''}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
+  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':`<span class="room-lv-x" aria-hidden="true">×${x}</span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
 }
 function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
@@ -29120,6 +29122,10 @@ const JEU_ROUND_MS=1200000;
 const JEU_DRAW_MS=3300;
 /* Cinq joueurs par salle au plus (Elisa, 31 octobre, 16 h 49). */
 const JEU_MAX=5;
+/* La version du catalogue de défis que cette appli connaît (1 : les 267 défis du 6 novembre). Elle part avec chaque message de la
+   salle : le serveur ne tire que des défis que tous les téléphones présents connaissent, pour qu’un défi ajouté plus tard ne bloque
+   pas une appli pas encore mise à jour (requete_private.catalogue.depuis). À augmenter à chaque ajout de défis. */
+const JEU_CAT=1;
 const JEU_PING_MS=20000;
 const JEU_AWAY_MS=55000;
 const JEU_HOST_WAIT=25000;
@@ -29521,7 +29527,7 @@ function jeuJoin(code){
 }
 function jeuSend(m){
   if(!JEU)return '';
-  m.v=1;m.pid=JEU.me;m.s=JEU.sid;m.name=JEU.nom;m.u=jeuRand(8);
+  m.v=1;m.pid=JEU.me;m.s=JEU.sid;m.name=JEU.nom;m.u=jeuRand(8);m.cat=JEU_CAT;
   /* Le relais rejoue un historique dont l’ordre, à la seconde près, n’est pas garanti : un horodatage
      d’émetteur départage les réglages, les « prêt » et les prises de main. */
   if(m.t==='cfg'||m.t==='ready'||m.t==='host')m.cv=Date.now();
@@ -29785,6 +29791,10 @@ function jeuPick(){
     fresh=pool.filter(id=>id!==last);
     if(!fresh.length)fresh=pool;
   }
+  /* Elisa, 6 novembre, 15 h 20 : « le défi est retiré » : un défi déjà trouvé n’est plus tiré tant qu’il en reste d’autres (seul et
+     hors ligne ; en ligne, le serveur écarte aussi ceux que chaque joueur de la salle a déjà joués). */
+  const trouves=typeof state!=='undefined'&&state&&state.defis||{},neufs=fresh.filter(id=>!trouves[id]);
+  if(neufs.length)fresh=neufs;
   return fresh[Math.floor(Math.random()*fresh.length)]||all[0];
 }
 function jeuCur(){const J=JEU;for(let i=J.rounds.length-1;i>=0;i--)if(J.rounds[i])return i;return -1;}
@@ -30267,8 +30277,11 @@ function jeuNextRound(){
   const n=jeuCur()+1;if(n>=J.nb)return;
   const btn=document.getElementById('jeu-go');if(btn)btn.disabled=true;
   /* Personne d’autre dans la salle : la manche se joue comme seul (pas de bonus de rang, Elisa, 31 octobre, 16 h 29 : « si personne
-     ne rejoint la salle, alors c’est comme si on est seule »). Le drapeau voyage avec la manche : le même chez tous. */
-  jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),one:jeuLive().length<2?1:0});
+     ne rejoint la salle, alors c’est comme si on est seule »). Le drapeau voyage avec la manche : le même chez tous.
+     6 novembre, 15 h 20 : en ligne, le serveur tire le défi parmi ceux qu’aucun joueur présent n’a joués ni trouvés ; celui proposé
+     ici est gardé s’il en fait partie, et un défi choisi exprès (« Avec des amis » sur la page d’un défi : imp) reste. */
+  const impose=!!J.plan[n];
+  jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});
 }
 function jeuClose(){
   const n=jeuCur(),J=JEU;
@@ -39776,7 +39789,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-06-multiplicateur-v2582';
+  const SW_CACHE='requete-2026-11-06-pratiquer-v2583';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

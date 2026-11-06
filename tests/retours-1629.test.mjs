@@ -59,7 +59,8 @@ test('trouvé : une carte blanche à la place de l’éditeur (plus le grand cad
 test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », ni annonce), sans bonus de rang', () => {
   const sl = cut('function jeuSoloLike(n){', '\nfunction jeuRoomEmpty(){');
   assert.ok(sl.includes('return jeuLive().length<2&&(!r||Object.keys(r.found).every(p=>p===J.me));'));
-  assert.ok(app.includes("jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),one:jeuLive().length<2?1:0});"), 'la manche dit si elle commence seule, le même drapeau chez tous');
+  /* 6 novembre, 15 h 20 : le défi choisi exprès le dit (imp), le serveur tire les autres (retours-1520-pratiquer) */
+  assert.ok(app.includes("jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});"), 'la manche dit si elle commence seule, le même drapeau chez tous');
   /* 5 novembre, 9 h 18 : entre amis, le +25 du premier coup ne va qu’au premier à trouver ; seul, comme avant. */
   assert.ok(app.includes('const seul=J.solo||r.one,k=jeuNivManche(n);') && app.includes('Object.assign({pid,ms,place:i+1,k},jeuPts(ms,i,seul,!!(r.first&&r.first[pid])&&(seul||i===0),k))'));
   assert.ok(app.includes("if(jeuSoloLike(n)!==J.slShown){J.keep=v;J.view='';jeuPaint();return;}"), 'quelqu’un arrive ou part : la manche se redessine (la requête tapée reste)');
