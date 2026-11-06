@@ -23,7 +23,9 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 function carte(count = 6) {
   const ctx = vm.createContext({ esc, MIN_PAR_ACTIVITE: 6, parseD: s => new Date(s + 'T00:00:00'), itemMeta: id => ({ titre: ['DISTINCT', 'ORDER BY', 'Fonctions de dates et heures', 'A', 'B', 'C', 'D', 'E', 'F', 'G'][id] }) });
   vm.runInContext('var lateRecoveryCollapsed=false;' + cut('const LATE_BANNER_ICO=', 'function activitesRestantesAujourdhui(){'), ctx);
-  ctx.latePlanDetails = () => ({ ids: Array.from({ length: count }, (_, i) => i), count, sessions: 3, todayAfter: count + 2 });
+  /* Depuis le 6 novembre, la durée suit les vraies activités (minutesDe) : ici 6 minutes chacune, le retard et les deux du jour */
+  ctx.minutesDe = ids => ids.length * 6; ctx.itemDone = () => false;
+  ctx.latePlanDetails = () => ({ info: { today: { lessons: [count, count + 1] } }, ids: Array.from({ length: count }, (_, i) => i), count, sessions: 3, todayAfter: count + 2 });
   ctx.latePlanShiftPreview = () => ({ end: '2026-12-01' });
   return { ctx, html: ctx.lateRecoveryHTML() };
 }
