@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=213">
+<link rel="stylesheet" href="ludique.css?v=214">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27944,7 +27944,10 @@ function sallesSectionHTML(){
   else if(!l)corps=`<ul class="dx-list is-wait" aria-label="Chargement des salles ouvertes">${[0,1].map(i=>`<li style="--i:${i}"><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('')}</ul>`;
   else corps=ici.length?`<ul class="dx-list">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`
     :'<p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>';
-  return `<div class="dx-rj-tete"><h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3>${ici.length?`<span class="dx-live">${ici.length} en direct</span>`:''}</div>${corps}`;
+  /* Aucune salle nulle part (Elisa, 7 novembre, 22 h 29 : « monte le "aucune salle disponible" ») : à côté de « Rejoins une partie »,
+     là où s’affiche « 2 en direct », plus tout en bas du cadre. */
+  const aucune=Array.isArray(l)&&!l.length&&err!=='net';
+  return `<div class="dx-rj-tete"><h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3>${ici.length?`<span class="dx-live">${ici.length} en direct</span>`:aucune?'<span class="dx-live is-off">Aucune salle disponible</span>':''}</div>${corps}`;
 }
 /* Les salles des autres niveaux, à la fin du cadre : personne n’attend au sien, elles restent à portée. Elisa, 5 novembre, 13 h 04 :
    « Salles disponibles », ou « Aucune salle disponible » quand il n’y en a aucune (plus « Aux autres niveaux »). Seulement au niveau
@@ -27954,7 +27957,7 @@ function sallesAutresHTML(){
   if(!l)return '';
   const autres=l.filter(s=>s.niv!==jeuNiv);
   if(autres.length)return `<p class="dx-h3">Salles disponibles</p><ul class="dx-list">${autres.map(s=>salleLigneHTML(s)).join('')}</ul>`;
-  return l.length?'':'<p class="dx-h3">Aucune salle disponible</p>';
+  return '';   // aucune salle du tout : c’est dit en haut, à côté de « Rejoins une partie » (22 h 29)
 }
 /* Les salles changent (toutes les 10 s, ou le niveau choisi) : la partie « Rejoins une partie » et les autres niveaux, sans toucher au
    reste du cadre. Sous le cadre : « Comment sont calculés les points ? », bien visible. */
@@ -45813,7 +45816,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-profil-joueur-v2647';
+  const SW_CACHE='requete-2026-11-07-aucune-salle-v2648';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

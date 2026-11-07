@@ -94,9 +94,14 @@ test('aucune salle au niveau choisi : la phrase d’Elisa, juste au-dessus de «
   assert.ok(r.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3></div><p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p></div>'),
     'sans compte en direct, la phrase, puis le bouton');
   assert.ok(codes(haut.slice(haut.indexOf('id="dx-autres"'))).join() === 'AAA111,BBB222');
-  /* Aucune salle du tout : « Aucune salle disponible » (13 h 04) ; pendant le chargement, des lignes vides et rien en bas */
+  /* Aucune salle du tout : « Aucune salle disponible » (13 h 04), remonté à côté de « Rejoins une partie » (7 novembre, 22 h 29) ;
+     pendant le chargement, des lignes vides et rien en bas */
   c.ev('DEFIS.salles=[]'); c.ev('sallesRepeindre()');
-  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && c.els['dx-autres'].innerHTML === '<p class="dx-h3">Aucune salle disponible</p>');
+  assert.ok(c.els['dx-rejoindre'].innerHTML.startsWith('<div class="dx-rj-tete"><h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3><span class="dx-live is-off">Aucune salle disponible</span></div>'));
+  assert.ok(c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && c.els['dx-autres'].innerHTML === '', 'plus rien tout en bas du cadre');
+  c.ev("DEFIS.salles=null;DEFIS.sallesErr='net'"); c.ev('sallesRepeindre()');
+  assert.ok(!c.els['dx-rejoindre'].innerHTML.includes('Aucune salle disponible'), 'sans connexion : on ne sait pas');
+  c.ev("DEFIS.sallesErr=''");
   c.ev('DEFIS.salles=null'); c.ev('sallesRepeindre()');
   assert.ok(c.els['dx-rejoindre'].innerHTML.includes('class="dx-list is-wait"') && !c.els['dx-rejoindre'].innerHTML.includes('is-aucune') && c.els['dx-autres'].innerHTML === '');
 });
@@ -174,7 +179,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=213">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=214">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-07-profil-joueur-v2647' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-07-aucune-salle-v2648' && app.includes(`const SW_CACHE='${cache}';`));
 });
