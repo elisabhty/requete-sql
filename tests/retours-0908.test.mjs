@@ -26,16 +26,16 @@ function carte(n, kinds, reposAuj = false) {
 
 test('toute la semaine faite : « Ta semaine est en feu 🔥 », « 7 jours sur 7, bravo ! »', () => {
   const c = carte(12, Array(7).fill('done'));
-  assert.equal(c.texte, `Ta semaine est en feu 🔥 | 7 jours sur 7, bravo${N}!`, 'le titre remplace « 12 jours de série »');
-  assert.ok(c.aria.startsWith(`Ta semaine est en feu 🔥. 7 jours sur 7, bravo${N}! Cette semaine : 7 jours faits.`), c.aria);
+  assert.equal(c.texte, `Ta semaine est en feu | 7 jours sur 7, bravo${N}!`, 'le titre remplace « 12 jours de série »');
+  assert.ok(c.aria.startsWith(`Ta semaine est en feu. 7 jours sur 7, bravo${N}! Cette semaine : 7 jours faits.`), c.aria);
 });
 
 test('les jours de repos ne comptent pas', () => {
-  assert.equal(carte(5, ['done', 'done', 'rest', 'done', 'done', 'rest', 'done']).texte, `Ta semaine est en feu 🔥 | 5 jours sur 5, bravo${N}!`);
-  assert.equal(carte(1, ['rest', 'rest', 'rest', 'rest', 'rest', 'rest', 'done']).texte, `Ta semaine est en feu 🔥 | 1 jour sur 1, bravo${N}!`, 'au singulier');
+  assert.equal(carte(5, ['done', 'done', 'rest', 'done', 'done', 'rest', 'done']).texte, `Ta semaine est en feu | 5 jours sur 5, bravo${N}!`);
+  assert.equal(carte(1, ['rest', 'rest', 'rest', 'rest', 'rest', 'rest', 'done']).texte, `Ta semaine est en feu | 1 jour sur 1, bravo${N}!`, 'au singulier');
   /* 3 jours par semaine : lundi, mercredi, vendredi faits ; on est dimanche, sans séance */
   const trois = carte(3, ['done', 'rest', 'done', 'rest', 'done', 'rest', 'today'], true);
-  assert.equal(trois.texte, `Ta semaine est en feu 🔥 | 3 jours sur 3, bravo${N}!`);
+  assert.equal(trois.texte, `Ta semaine est en feu | 3 jours sur 3, bravo${N}!`);
   assert.equal(trois.jours, 'done rest done rest done rest rest', 'aujourd’hui sans séance : une lune, plus la flamme pointillée');
   assert.equal(carte(2, ['done', 'rest', 'done', 'rest', 'rest', 'rest', 'today'], false).texte, '<span class="lq-count" data-count="2">2</span> jours de série | Une activité aujourd’hui pour prolonger ta série.', 'aujourd’hui a une séance : la semaine n’est pas finie');
 });
