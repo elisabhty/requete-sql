@@ -98,7 +98,8 @@ test('Classement vide : « Le classement n’attend que toi ! 🏆 », puis la p
   assert.ok((await phrase('', 'tout', 'pays')).pager.includes('Marque les premiers points dans ton pays.'));
   assert.ok((await phrase('f', 'tout', 'pays')).pager.includes('Sois la première à marquer des points dans ton pays.'));
   r = await phrase('', 'tout', 'amis');
-  assert.ok(r.pager.includes('Aucun de tes adversaires n’est encore classé. Joue avec eux, ou ajoute-les dans l’onglet Joueurs.') && !r.pager.includes('dx-vide-t'), 'tes adversaires : la phrase qui dit quoi faire');
+  /* 22 h 09 : la pastille dit « Mes amis », la phrase aussi */
+  assert.ok(r.pager.includes('Aucun de tes amis n’est encore classé. Joue avec eux, ou ajoute-les dans l’onglet Joueurs.') && !r.pager.includes('dx-vide-t'), 'Mes amis : la phrase qui dit quoi faire');
   assert.ok(!app.includes("'Depuis lundi'") && !app.includes('Personne n’a encore marqué de points cette semaine'));
   for (const k of ['html.lq #scr-defis .dx-vide-t{margin:0 0 4px;color:var(--ink);font:800 16px/1.3 var(--display);', 'html.lq #scr-defis .dx-vide-bloc{'])
     assert.ok(lq.includes(k), k);

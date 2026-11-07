@@ -149,8 +149,9 @@ test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient
   c.ev("amisRetirer('@lea')");
   assert.ok(c.appels.some(x => x[0] === 'say' && x[1] === '@lea n’est plus dans ta liste.'));
   assert.ok(c.els['dx-amis-liste'].innerHTML.includes('Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.'));
-  assert.ok(app.includes("${chip('amis','Mes joueurs')}") && app.includes('ajoute-les dans l’onglet Joueurs.'), 'le classement nomme l’onglet Joueurs');
-  for (const k of ['<h2 id="dx-amis-h">Tes amis</h2>', 'Ajouter un ami</button>', "chip('amis','Mes amis')", 'dans l’onglet Amis', 'dans tes amis'])
+  /* 7 novembre, 22 h 09 (Elisa) : « remplace la pills "mes joueurs" par "mes amis" » ; l’onglet reste Joueurs. */
+  assert.ok(app.includes("${chip('amis','Mes amis')}") && app.includes('ajoute-les dans l’onglet Joueurs.'), 'le classement nomme l’onglet Joueurs');
+  for (const k of ['<h2 id="dx-amis-h">Tes amis</h2>', 'Ajouter un ami</button>', "chip('amis','Mes joueurs')", 'dans l’onglet Amis', 'dans tes amis'])
     assert.ok(!app.includes(k), k);
 });
 
@@ -174,5 +175,5 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 test('les versions : la feuille de style et le cache', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=211">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-07-defis-relecture-v2644' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-07-mes-amis-v2645' && app.includes(`const SW_CACHE='${cache}';`));
 });
