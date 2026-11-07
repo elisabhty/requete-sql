@@ -77,6 +77,6 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=33">') && sw.includes("'./onboarding-vitrine.css?v=33',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-chat-bravo-v2623';") && app.includes("const SW_CACHE='requete-2026-11-07-chat-bravo-v2623';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=34">') && sw.includes("'./onboarding-vitrine.css?v=34',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-chat-question-v2624';") && app.includes("const SW_CACHE='requete-2026-11-07-chat-question-v2624';"));
 });
