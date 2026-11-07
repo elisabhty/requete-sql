@@ -317,7 +317,7 @@ test('refonte — Jouer : le bandeau court, les salles du niveau puis « Créer 
   const c = bac({ niv: 'd' });
   c.ev("DEFIS.salles=[{code:'AAA111',niv:'f',manches:1,nb:2,max:5,hote:'@kev',joueurs:[]},{code:'BBB222',niv:'m',manches:3,nb:3,max:5,hote:'@lea',joueurs:[]}];jeuNiv='d'");
   const h = c.ev('defisRapideHTML()');
-  assert.ok(h.includes('<p class="room-sub">Tout le monde relève le même défi&nbsp;!</p>'), 'une ligne de sous-titre');
+  assert.ok(h.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p>'), '8 novembre, 0 h 17 : « je veux garder ça », la phrase entière');
   const i = k => h.indexOf(k);
   assert.ok(i('id="dx-niv-l"') < i('id="dx-rejoindre"') && i('id="dx-rejoindre"') < i('data-k="creer"') && i('data-k="creer"') < i('class="dx-actions"') && i('class="dx-actions"') < i('id="dx-autres"'),
     'l’ordre d’Elisa (5 novembre, 12 h 52) : le niveau, les salles du niveau, « Créer ma partie », les deux boutons, les autres niveaux');
@@ -385,12 +385,13 @@ test('refonte — la feuille de style : la DA du site sur la nouvelle structure,
   const regles = v2.replace(/\/\*[\s\S]*?\*\//g, '').split('}').map(r => r.trim()).filter(r => r.includes('{') && !r.startsWith('@'));
   assert.ok(regles.every(r => /html\.lq(\[[^\]]+\])?(:not\([^)]*\))? (body )?(#scr-defis|\.dx-feuille|:is\(#scr-defis,\.dx-feuille\))/.test(r.split('{')[0].trim().replace(/^@media[^{]*\{/, ''))), 'rien hors des Défis');
   for (const k of ['html.lq #scr-defis #defis-tabs[hidden]{display:none}', 'html.lq #scr-defis .dx-nav[hidden]{display:none}',
-    'html.lq #scr-defis .dx-rapide.is-v2>.room-head>.room-chat{position:absolute;float:none;z-index:1;right:4px;top:2px;width:76px;margin:0}',
     'html.lq #scr-defis .dx-rapide.is-v2 .dx-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;',
     'html.lq #scr-defis .dx-ancre{display:inline-flex;align-items:center;gap:4px;min-height:44px;', 'html.lq .dx-feuille .dx-fiche-signal{display:block;min-height:44px;',
     'html.lq #scr-defis .dx-chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;', '--dx-swoosh:url(', '--dx-vague:url('])
     assert.ok(v2.includes(k), k);
   assert.ok(!v2.includes('Tu joues en tant que » passe en'), 'Elisa garde l’aplat violet de « Tu joues en tant que »');
+  /* 8 novembre, 0 h 17 (« je veux garder ça ») : le bandeau de Jouer garde son dessin d’avant (chat à gauche, sans vague ni souligné). */
+  assert.ok(!v2.includes('.dx-rapide>.room-head') && !v2.includes('.dx-rapide.is-v2>.room-head') && v2.includes('html.lq :is(#scr-defis,.dx-feuille) :not(.dx-rapide)>.room-head::after{content:"";'));
   assert.ok(fn('defisPeindre').includes("tabs.hidden=DEFIS.onglet==='stats';") && fn('defisStatsPeindre').includes('<h2 class="dx-stats-h" id="dx-stats-h">Mes stats</h2>') && !fn('defisStatsPeindre').includes('dx-retour'));
   assert.ok(app.includes("function dxParties(n){n=Math.max(0,Math.floor(+n||0));return `${n.toLocaleString('fr-FR')}\\u00a0partie${n>1?'s':''}`;}") && app.includes("d.getDate()+'\\u00a0'+['janv.',"), '« 4 parties », « 4 nov. » ne se coupent plus');
 });
