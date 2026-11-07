@@ -28807,12 +28807,21 @@ const LvSfx=(()=>{
    une copie en mémoire (adresse blob:capacitor://…), sans le dire (ni son, ni erreur), et l’app répond aux téléchargements de sons
    sans code HTTP (statut 0) : chaque fichier passait pour introuvable et la voix était sautée. Les fichiers y sont dans l’app
    elle-même : la voix les lit directement, sans copie. Ailleurs, une copie qui ne démarre pas en 2 s fait de même, et seul un
-   fichier que le serveur dit absent (code 400 ou plus) est sauté. */
+   fichier que le serveur dit absent (code 400 ou plus) est sauté.
+   Elisa, 7 novembre, 20 h 50 : « parfois il y a des coupures ». Sur iPhone, la voix met 0,2 à 0,6 s à vraiment partir après un
+   départ ou un saut dans le fichier. La voix était recalée sur l’image dès 0,3 s d’écart : un saut, qui la faisait repartir avec le
+   même retard, donc un autre saut… une phrase hachée, parfois perdue. Et une consigne (« À toi »), ou la phrase suivante, coupait le
+   dernier mot d’une phrase encore en retard. Maintenant l’image suit la voix (clock, LvAnim._vFollow), la voix n’est recalée qu’au-delà
+   d’une seconde d’écart (ECART), et ce qui suit une phrase attend qu’elle ait fini son dernier mot (pend, sayNext). */
 const LvVoice=(()=>{
   const app=(()=>{ try{ const C=typeof window!=='undefined'?window.Capacitor:null;
     return !!(C&&C.isNativePlatform&&C.isNativePlatform())||(typeof location!=='undefined'&&location.protocol==='capacitor:'); }catch(e){ return false; } })();
   let el=null, muted=false, rate=1, src='', seekTo=null, sayClip=null, sayRaf=0, playT=-1e9, onBlock=null, noBlob=app, endClip=null, endRaf=0, wd=0,
-    want=false, gardeAt=0, gardeT=-1, reprises=0, derniere='';
+    want=false, gardeAt=0, gardeT=-1, reprises=0, derniere='',
+    /* pend : la phrase de la vidéo qui attend la fin de la précédente ; held : celle qu’une pause a interrompue dans cette attente ;
+       sayNext : la phrase dite à part qui attend ; clkT, clkAt : la dernière position de la voix vue, et quand (clock). */
+    pend=null, held=null, sayNext=null, clkT=-1, clkAt=0;
+  const ECART=1;   // s (plus en lecture rapide) : au-delà, la voix est recalée sur l’image ; en deçà, c’est l’image qui la rejoint
   const blobs=new Map(), loading=new Map(), bad=new Set(), echecs=new Map();
   /* Copie en mémoire illisible : on repasse par l’adresse du fichier, pour tout le reste du cours, à la même position. */
   function direct(){
@@ -28898,8 +28907,12 @@ const LvVoice=(()=>{
       if(!src&&first)load(first.src,first.o);
       try{ const p=a.play(); if(p&&p.catch)p.catch(()=>{}); a.pause(); }catch(e){}
     },
-    /* Phrase de la timeline, à off s de son début. */
-    start(c,off){ this.stopSay(); this.stopEnd(); load(c.src,c.o+Math.max(0,off)); playT=-1e9; want=true; gardeAt=performance.now(); gardeT=-1; go(); },
+    /* Phrase de la timeline, à off s de son début. La phrase d’avant finit encore son dernier mot (finish) : celle-ci part juste après,
+       et l’image l’attend (ready), au lieu de couper ce mot (l’intro et le lien avec la leçon d’avant ne sont qu’à 0,15 s l’une de l’autre). */
+    start(c,off){
+      if(endClip&&endClip!==c&&el&&!el.paused&&!muted){ sayNext=null; pend={c,off}; held=null; want=true; return; }
+      pend=null; held=null; this.stopSay(); this.stopEnd(); load(c.src,c.o+Math.max(0,off)); playT=-1e9; want=true; gardeAt=performance.now(); gardeT=-1; clkT=-1; clkAt=gardeAt; go();
+    },
     /* La vidéo a passé la fin de la phrase : le son, qui suit l’image avec un léger retard (le temps que la balise parte), finit son
        dernier mot, jusqu’à la fin du passage dans le fichier, puis s’arrête (Elisa, 31 octobre, 13 h 20 : « le dernier mot est coupé »). */
     finish(c){
@@ -28908,26 +28921,46 @@ const LvVoice=(()=>{
       if(!a||a.paused||sayClip){ if(!sayClip)want=false; return; }
       if(src!==c.src){ a.pause(); want=false; return; }
       const end=c.o+c.d, t0=performance.now(); endClip=c;
-      const tick=()=>{ if(endClip!==c)return; if(a.paused||a.ended||a.currentTime>=end-.01||performance.now()-t0>1500){ if(!a.paused)a.pause(); endClip=null; want=false; return; } endRaf=requestAnimationFrame(tick); };
+      const tick=()=>{ if(endClip!==c)return; if(a.paused||a.ended||a.currentTime>=end-.01||performance.now()-t0>1500){ if(!a.paused)a.pause(); endClip=null; want=false; this.next(); return; } endRaf=requestAnimationFrame(tick); };
       endRaf=requestAnimationFrame(tick);
     },
     stopEnd(){ if(!endClip)return; cancelAnimationFrame(endRaf); endClip=null; },
-    /* À chaque image : la voix suit la vidéo (relancée si elle s’est arrêtée, recalée si elle a dérivé de plus de 0,3 s). */
+    /* Ce qui attendait la fin d’une phrase : la phrase suivante de la vidéo, ou une phrase dite à part. */
+    next(){ if(pend){ const p=pend; pend=null; this.start(p.c,p.off); } else if(sayNext){ const s=sayNext; sayNext=null; this.say(s); } },
+    /* À chaque image : la voix suit la vidéo, relancée si elle s’est arrêtée. L’image la suit aussi (clock) : un léger retard de la voix
+       (son départ sur iPhone, une interruption) se rattrape sans saut ; elle n’est recalée qu’au-delà d’ECART. Une phrase finie avant
+       l’image attend celle-ci, sans entamer la suivante du même fichier, ni repartir du début d’un fichier fini. */
     keep(c,off){
-      if(muted)return;
-      if(sayClip||src!==c.src){ this.start(c,off); return; }
-      const a=audio(); if(!want)gardeAt=0; want=true;   // reprise après un arrêt (question, moment) : la garde repart de zéro
-      if(a.readyState>=2&&seekTo==null&&!a.seeking&&Math.abs((a.currentTime-c.o)-off)>.3*Math.max(1,rate))try{ a.currentTime=c.o+off; gardeT=a.currentTime; }catch(e){}   // un recalage n’est pas une avancée
+      if(muted||pend)return;
+      if(sayClip||src!==c.src||held===c){ this.start(c,off); return; }
+      const a=audio(); if(!want){ gardeAt=0; clkT=-1; } want=true;   // reprise après un arrêt (question, moment) : la garde repart de zéro
+      const sur=a.readyState>=2&&seekTo==null&&!a.seeking;
+      if(sur&&Math.abs((a.currentTime-c.o)-off)>ECART*Math.max(1,rate)){ try{ a.currentTime=c.o+off; gardeT=a.currentTime; }catch(e){} }   // un recalage n’est pas une avancée
+      else if(a.ended||(sur&&a.currentTime>=c.o+c.d-.01)){ if(!a.paused)a.pause(); gardeAt=0; return; }
       go(); garde();
     },
-    /* La phrase peut-elle partir (fichier chargé, position atteinte) ? Un fichier en échec ne fait jamais attendre. */
-    ready(){ const a=el; return !a||muted||bad.has(src)||(a.readyState>=3&&seekTo==null&&!a.seeking); },
-    pause(){ this.stopEnd(); want=false; gardeAt=0; if(el&&!el.paused)el.pause(); },
-    stop(){ this.stopSay(); this.stopEnd(); want=false; gardeAt=0; if(el&&!el.paused)el.pause(); },
-    /* Phrase dite à part (consigne, réaction, indice) : jouée jusqu’à la fin de son passage, puis la balise s’arrête. */
+    /* Où en est la voix dans la phrase c (s, depuis son début), pour que l’image la suive (LvAnim._vFollow) ; null quand elle ne la dit
+       pas (autre fichier ou autre passage, chargement, saut, pause, fin de phrase ou phrase en attente) ou n’avance plus depuis 0,8 s (lecteur bloqué :
+       l’image ne l’attend plus, la garde la relance). */
+    clock(c){
+      const a=el;
+      if(!a||!c||muted||!want||pend||sayClip||endClip||src!==c.src||bad.has(src)||seekTo!=null||a.seeking||a.paused||a.ended||a.readyState<2)return null;
+      const now=performance.now(), ct=a.currentTime;
+      if(ct<c.o-.05||ct>c.o+c.d+.05)return null;   // ailleurs dans le fichier : pas dans cette phrase
+      if(ct!==clkT){ clkT=ct; clkAt=now; } else if(now-clkAt>800)return null;
+      return ct-c.o;
+    },
+    ecart:ECART,
+    /* La phrase peut-elle partir (fichier chargé, position atteinte, la phrase d’avant finie) ? Un fichier en échec ne fait jamais attendre. */
+    ready(){ const a=el; return !pend&&(!a||muted||bad.has(src)||(a.readyState>=3&&seekTo==null&&!a.seeking)); },
+    pause(){ this.stopEnd(); if(pend){ held=pend.c; pend=null; } sayNext=null; want=false; gardeAt=0; if(el&&!el.paused)el.pause(); },
+    stop(){ this.stopSay(); this.stopEnd(); pend=null; held=null; want=false; gardeAt=0; if(el&&!el.paused)el.pause(); },
+    /* Phrase dite à part (consigne, réaction, indice) : jouée jusqu’à la fin de son passage, puis la balise s’arrête. Une phrase de la
+       vidéo finit encore son dernier mot (l’arrêt tombe juste après elle, à 0,3 s le plus souvent) : celle-ci part juste après. */
     say(c){
       if(!c||muted)return;
-      audio(); this.stopSay(); this.stopEnd(); sayClip=c; load(c.src,c.o); playT=-1e9; want=true; gardeAt=performance.now(); gardeT=-1; go();
+      if(endClip&&el&&!el.paused){ sayNext=c; return; }
+      pend=null; audio(); this.stopSay(); this.stopEnd(); sayClip=c; load(c.src,c.o); playT=-1e9; want=true; gardeAt=performance.now(); gardeT=-1; go();
       const end=c.o+c.d;
       /* La balise du moment (une reprise a pu la remplacer en cours de phrase). */
       const tick=()=>{ if(sayClip!==c)return; const a=audio();
@@ -28935,13 +28968,14 @@ const LvVoice=(()=>{
         go(); garde(); sayRaf=requestAnimationFrame(tick); };
       sayRaf=requestAnimationFrame(tick);
     },
-    stopSay(){ if(!sayClip)return; cancelAnimationFrame(sayRaf); sayClip=null; want=false; if(el&&!el.paused)el.pause(); },
+    stopSay(){ sayNext=null; if(!sayClip)return; cancelAnimationFrame(sayRaf); sayClip=null; want=false; if(el&&!el.paused)el.pause(); },
     setRate(r){ rate=+r||1; if(el){ el.defaultPlaybackRate=rate; el.playbackRate=rate; } },
     setMuted(m){ muted=!!m; if(el)el.muted=muted; if(muted)this.stop(); },
     onBlocked(fn){ onBlock=fn; },
     /* Fermeture du cours : la mémoire est rendue. */
     release(){ this.stop(); clearTimeout(wd); if(el){ try{ el.removeAttribute('src'); el.load(); }catch(e){} el=null; } src=''; seekTo=null; blobs.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); blobs.clear(); bad.clear(); echecs.clear(); },
-    stats(){ return {src,state:el?el.readyState:-1,paused:!el||el.paused,t:el?+el.currentTime.toFixed(2):0,rate:el?el.playbackRate:rate,cached:blobs.size,saying:!!sayClip,muted,direct:noBlob,reprises,derniere,sautes:bad.size}; }
+    stats(){ return {src,state:el?el.readyState:-1,paused:!el||el.paused,t:el?+el.currentTime.toFixed(2):0,rate:el?el.playbackRate:rate,cached:blobs.size,saying:!!sayClip,muted,direct:noBlob,reprises,derniere,sautes:bad.size,
+      attend:pend?'phrase':sayNext?'consigne':''}; }
   };
 })();
 /* ---------- Animation jouée comme une vidéo ----------
@@ -29017,7 +29051,17 @@ class LvAnim{
   /* La phrase de la voix à l’instant t (indice dans voice.clips), -1 entre deux phrases. */
   _vAt(t){ const cs=this.voice?this.voice.clips:[]; for(let i=0;i<cs.length;i++){ const c=cs[i]; if(t<c.t)break; if(t<c.t+c.d)return i; } return -1; }
   /* La voix suit la vidéo : une phrase qui commence part (l’image l’attend si son fichier n’est pas prêt, 2,5 s au plus), celle en cours
-     est tenue calée (à 0,3 s près, plus en lecture rapide), et la voix se tait entre deux phrases, une fois son dernier mot fini. */
+     reste calée (l’image la suit : _vFollow ; la voix n’est recalée qu’au-delà d’une seconde d’écart), et la voix se tait entre deux
+     phrases, une fois son dernier mot fini. */
+  /* L’image au pas de la voix (Elisa, 7 novembre, 20 h 50 : « parfois il y a des coupures ») : pendant une phrase, quand la voix a plus de
+     0,2 s de retard (son départ sur iPhone, une interruption), l’image ralentit, et quand elle a plus de 0,2 s d’avance (image à la peine),
+     l’image accélère, entre la moitié et une fois et demie de sa vitesse, jusqu’à revenir à 0,2 s d’elle. En deçà, rien ne change ; au-delà
+     de LvVoice.ecart, l’image va son train : c’est la voix qui est recalée (keep). */
+  _vFollow(t,dt,ta){
+    const step=t-this.t, e=ta-t, db=.2*this._rate;
+    if(!(step>0)||!(Math.abs(e)<=LvVoice.ecart*Math.max(1,this._rate))||Math.abs(e)<=db)return t;
+    return t+Math.max(-.5*step,Math.min(.5*step,(e>0?e-db:e+db)*Math.min(1,dt/.25)));
+  }
   /* Une phrase en cours quand l’image s’arrête (un bouton à toucher, un moment) est dite jusqu’au bout pendant l’arrêt (finish) ; à la
      reprise, l’image est encore dans son passage : elle n’est pas relancée (Elisa, 2 novembre, 19 h 31 : après « Exécuter » touché, la
      voix redisait la fin de « clique sur Exécuter »). vSkip : la phrase ainsi finie ; un retour en arrière (currentTime) la rend. */
@@ -29042,6 +29086,7 @@ class LvAnim{
       if(this.vwait){ if(LvVoice.ready()||now-this.vwait>2500)this.vwait=0; else{ this.last=now; this._loop(); return; } }
       const dt=Math.min(.25,Math.max(0,(now-this.last)/1000)); this.last=now;
       let t=this.t+dt*this._rate, q=-1, pk=-1, op=-1;
+      if(this.vc>=0&&this.vc!==this.vSkip&&this.voice&&!this._muted){ const c=this.voice.clips[this.vc], p=LvVoice.clock(c); if(p!=null)t=this._vFollow(t,dt,c.t+p); }
       for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(qt>this.t&&qt<=t){ t=qt; q=i; break; } }
       for(let i=0;i<this.picks.length;i++){ const pt=this.picks[i].t; if(pt>this.t&&pt<=t){ if(this.skip&&this.skip(i))continue; if(q<0||pt<t){ t=pt; pk=i; q=-1; } break; } }
       /* Mail reçu : l’image s’arrête sur la notification, à chaque visionnage, jusqu’à ce que l’élève la touche. */
@@ -45595,7 +45640,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-salle-ile-v2642';
+  const SW_CACHE='requete-2026-11-07-voix-sans-coupure-v2643';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
