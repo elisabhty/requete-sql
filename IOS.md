@@ -31,6 +31,13 @@ Dans Xcode : choisis ton équipe (Signing & Capabilities), puis lance sur un iPh
 npm run ios
 ```
 
+## Vérifier que le Swift compile, sans rien envoyer
+
+`cd ~/SQL && git pull --ff-only && npm run ios:verif` : la même préparation que `ios:testflight` (la page, Capacitor, l’écran de
+lancement, le widget), puis une fabrication pour iPhone **sans signature** (`scripts/ios-verif.sh`, `CODE_SIGNING_ALLOWED=NO`) :
+ni compte Apple, ni profil, rien d’envoyé à TestFlight. Les erreurs s’affichent ; le journal complet va dans `ios/verif-swift.log`
+(hors de Git), que Claude lit par le dossier connecté du Mac.
+
 ## TestFlight (l’appli sur un vrai iPhone)
 
 La première fois :
