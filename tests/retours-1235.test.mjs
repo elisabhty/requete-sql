@@ -52,7 +52,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
     assert.ok(act.includes(k), k);
   for (const k of ['@available(iOS 16.1, *)\nstruct RequeteLeconActivite: Widget {', '@available(iOS 16.1, *)\nstruct LeconVerrouille: View {',
     '@available(iOS 16.1, *)\nstruct LeconFlamme: View {', '@available(iOS 16.1, *)\nfunc leconPhrase(_ e: RequeteLecon.ContentState) -> String {',
-    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        RequeteCheminee()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()\n        }\n    }\n}'])   // 6 novembre, 0 h 40 : la flamme de l’écran verrouillé rejoint le paquet (retours-0040)
+    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        RequeteCheminee()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()\n        }\n        if #available(iOS 17.0, *) {\n            RequeteCarte()\n        }\n    }\n}'])   // 6 novembre, 0 h 40 : la flamme de l’écran verrouillé rejoint le paquet (retours-0040)
     assert.ok(widget.includes(k), k);
   /* Les phrases : l’espace fine avant « ! » et « % » */
   const phrase = cut(widget, 'func leconPhrase(', '\n}\n');

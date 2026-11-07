@@ -41999,7 +41999,7 @@ const POCHE=[
    et le dernier jour où une activité la garde (les jours de repos du planning sont sautés). Envoyée au démarrage et chaque fois que
    l’app passe en arrière-plan ; sans le pont natif (web, ancienne version de l’app), rien ne se passe.
    7 novembre (« Cheminée + lunettes ») : le widget La cheminée y lit aussi ce qui décore la pièce (widgetCheminee) ; la requête de
-   poche, ses questions du jour (widgetPoche). */
+   poche, ses questions du jour (widgetPoche) ; la carte mémo, les cartes gagnées (widgetCartes). */
 let widgetDernier='';
 function widgetMaj(){
   try{
@@ -42008,7 +42008,7 @@ function widgetMaj(){
     const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
     let d=fait?addJ(t,1):t;
     for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
-    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche())},k=JSON.stringify(data);
+    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),cartes:JSON.stringify(widgetCartes())},k=JSON.stringify(data);
     if(k===widgetDernier)return;
     widgetDernier=k;
     Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
@@ -42054,6 +42054,18 @@ function widgetPoche(){
       .sort((x,y)=>x.rang-y.rang||x.h-y.h)
       .slice(0,20)
       .map(({p})=>({titre:module[p.l]||'',code:p.q,choix:p.c,bon:p.b,oui:p.oui,non:p.non}));
+  }catch(e){return [];}
+}
+/* La carte mémo qui se retourne (le widget de l’app iPhone : RequeteWidget.swift, RequeteCarte) : les cartes gagnées, dans l’ordre
+   du parcours ; de chacune, le mot-clé, le titre et la première idée, en texte simple (sans balises). Le rythme des révisions
+   (« Je savais » l’éloigne, « À revoir » la ramène demain) vit dans le widget. */
+function widgetCartes(){
+  try{
+    const texte=h=>String(h||'').replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&');
+    return allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).map(l=>{
+      const c=CARTES[l.id];
+      return {id:l.id,k:texte(c.k),t:texte(c.t),p:texte((c.points||[])[0])};
+    });
   }catch(e){return [];}
 }
 if(typeof document!=='undefined'&&document.addEventListener){
@@ -42304,12 +42316,13 @@ function raccourcisBrancher(){
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
-  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance');
-  if(!requete&&!adieu&&!avis&&!seance)return;
-  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
+  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance'),cartes=type.endsWith('.cartes');
+  if(!requete&&!adieu&&!avis&&!seance&&!cartes)return;
+  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
   if(document.querySelector('#scr-lesson.active,#lesson-video')){   // déjà en séance (leçon, vidéo) : on y reste
     if(requete&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, les défis t’attendent juste après.','info');
     else if(seance&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la\u00a0: ta flamme s’allume à la fin.','info');
+    else if(cartes&&typeof toast==='function')toast('Tu es déjà en séance','Tes cartes mémo t’attendent juste après.','info');
     return;
   }
   if(seance){
@@ -42320,6 +42333,7 @@ function raccourciOuvrir(type){
     switchTab('learn');
     if(id!=null)setTimeout(()=>{try{openItem(id,0);}catch(e){}},350);
   }
+  else if(cartes)switchTab('collection');   // l’album des cartes mémo (le widget La carte mémo, tout à jour)
   else if(requete)switchTab('defis');
   else if(avis){
     /* « Juge-nous (gentiment) » : le formulaire « Contacte-nous », sur « Autre chose » (un mot sur Requête), sauf si un sujet est déjà
@@ -45297,7 +45311,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-poche-v2638';
+  const SW_CACHE='requete-2026-11-07-carte-v2639';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
