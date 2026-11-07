@@ -15,7 +15,9 @@ import test from 'node:test';
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
 const take = (a, b) => { const i = html.indexOf(a); assert.ok(i >= 0, a); const j = html.indexOf(b, i); assert.ok(j > i, b); return html.slice(i, j); };
-const sec = css.slice(css.indexOf('/* ---------- 63. Stickers : l’étiquette de rareté'));
+/* La section des stickers seule : elle s’arrête où commencent les ajouts des Défis (7 novembre), posés après elle. */
+const debut63 = css.indexOf('/* ---------- 63. Stickers : l’étiquette de rareté'), fin63 = css.indexOf('/* Défis, relecture d’Elisa', debut63);
+const sec = css.slice(debut63, fin63 > debut63 ? fin63 : undefined);
 const code = sec.replace(/\/\*[\s\S]*?\*\//g, '');
 
 /* La planche et la fiche dans un faux DOM : 3 modules, les accomplissements, l’état des stickers au choix. */

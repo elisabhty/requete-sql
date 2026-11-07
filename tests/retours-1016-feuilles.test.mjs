@@ -29,13 +29,14 @@ function bac(o = {}) {
   return {ctx, els};
 }
 
-test('le cadre du haut (11 h 11, 11 h 19) : le niveau, « Créer une salle », puis « ou » et une rangée « J’ai un code », « Seul » ; plus de carte au milieu', () => {
+test('le cadre du haut (11 h 11, 11 h 19) : le niveau, « Créer une salle », puis une rangée « J’ai un code », « Seul » ; plus de carte au milieu', () => {
   const {ctx, els} = bac();
   els['defis-room'] = {innerHTML: 'ancien'};
   const ouvertes = [];
   ctx.defisFeuilleOuvrir = k => ouvertes.push(k);
   const h = ctx.defisActionsHTML();
-  assert.ok(h.startsWith('<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">'));
+  /* Refonte du 7 novembre (designer produit) : deux boutons secondaires sous « Créer ma partie », plus de « ou » ni de tuiles. */
+  assert.ok(h.startsWith('<div class="dx-actions" role="group" aria-label="D’autres façons de jouer">') && !h.includes('dx-ou'));
   assert.equal((h.match(/<button type="button" class="dx-act /g) || []).length, 2);
   /* 7 novembre, 21 h 44 : un libellé explicite chacun, plus de petite ligne dessous (retours-2144-defis). */
   for (const [k, stk, titre] of [['code', 'rocket', 'Rejoindre avec un code'], ['seul', 'clock', 'Jouer en solo']])

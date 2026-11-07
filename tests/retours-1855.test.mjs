@@ -85,7 +85,14 @@ test('l’écran : trois onglets, et « Mes stats » garde le tableau de bord et
   assert.equal(c.els['defis-classement'].hidden, false);
   c.ev("defisOnglet('stats')");
   assert.match(c.els['defis-tabs'].innerHTML, /id="dx-tab-jouer" class="room-opt on"/, '« Mes stats » fait partie de Jouer');
-  assert.match(c.els['defis-stats-tete'].innerHTML, /onclick="defisOnglet\('jouer'\)"/);
+  /* Refonte du 7 novembre : Mes stats est une page à part. Les onglets se cachent ; un seul retour, celui du haut, qui dit « Jouer »
+     et y ramène (plus de pastille « ‹ Jouer » dans la page). */
+  assert.equal(c.els['defis-tabs'].hidden, true);
+  assert.equal(c.els['defis-stats-tete'].innerHTML, '<h2 class="dx-stats-h" id="dx-stats-h">Mes stats</h2>');
+  c.ev("defisOnglet('classement')");
+  assert.equal(c.els['defis-tabs'].hidden, false);
+  assert.ok(fn('returnToParent', '\n}\n').includes("if(activeTab==='defis'&&typeof DEFIS!=='undefined'&&DEFIS.onglet==='stats'){defisOnglet('jouer');return;}"));
+  assert.ok(fn('syncTabBack', '\n}\n').includes("tab==='defis'&&typeof DEFIS!=='undefined'&&DEFIS.onglet==='stats'?['Jouer','à l’onglet Jouer']:tabBackName(tab)"));
 });
 
 test('les drapeaux : le sien (masquable), ceux des autres demandés par lots, puis gardés', async () => {
@@ -150,8 +157,8 @@ test('« Rejoins une partie » : l’hôte et son drapeau, les places, le niveau
   c.ev('sallesRepeindre()');
   const h = c.els['dx-rejoindre'].innerHTML;
   assert.ok(h.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3><span class="dx-live">1 en direct</span>'));
-  assert.ok(h.includes('<b>@lea&lt;b&gt; <span class="dx-plp">2/5</span></b>'), 'le pseudo échappé, les places');
-  assert.ok(h.includes('<i class="dx-niv is-m">Moyen</i> · 3 manches') && h.includes('<i class="jeu-flag" aria-hidden="true">[BE]</i>'));
+  assert.ok(h.includes('<b><span class="dx-nom">@lea&lt;b&gt;</span><span class="dx-plp">2/5</span></b>'), 'le pseudo échappé, les places');
+  assert.ok(h.includes('<i class="dx-niv is-m">Moyen</i> · 3\u00a0manches') && h.includes('<i class="jeu-flag" aria-hidden="true">[BE]</i>'));
   assert.ok(h.includes("onclick=\"sallesRejoindre('AAA111')\""));
   /* 12 h 52 : un seul cadre ; la rangée du barème reste dessous */
   assert.ok(!h.includes('defisCarte(') && !h.includes('Trouver une salle') && !h.includes('Créer ma salle'));
@@ -224,9 +231,11 @@ test('Amis : les adversaires et ceux qu’on ajoute par leur pseudo ; qui est da
     rpc: (f, b) => f === 'jeu_drapeaux' ? (b.p_pseudos[0] === '@noe' ? [{ q: '@noe', pseudo: '@noe', pays: 'CH' }] : []) : {} });
   assert.deepEqual(J(c.ev('amisListe().map(a=>a.n+":"+a.g+(a.ajout?"+":""))')), ['@lea:0+', '@tom:4']);
   c.ev("DEFIS.salles=[{code:'AAA111',niv:'f',manches:1,nb:2,max:5,hote:'@kev',joueurs:[{pseudo:'@kev'},{pseudo:'@tom'}]}];defisAmisPeindre()");
-  const s = c.els['dx-amis-salles'].innerHTML, l = c.els['dx-amis-liste'].innerHTML;
-  assert.ok(s.includes('Dans une salle maintenant') && s.includes('<b>@tom <span class="dx-plp">2/5</span></b>') && s.includes("sallesRejoindre('AAA111')"));
-  assert.ok(l.includes('<em>3–1</em><small>tu mènes</small>') && l.includes("onclick=\"jeuDefier('@tom')\"") && l.includes("onclick=\"amisRetirer('@lea')\""));
+  /* Refonte du 7 novembre : une seule ligne par joueur. @tom attend dans une salle : sa ligne le dit, « Rejoindre », et passe en tête. */
+  const l = c.els['dx-amis-liste'].innerHTML;
+  assert.ok(!app.includes('dx-amis-salles') && !l.includes('Dans une salle maintenant'), 'plus de section en double');
+  assert.ok(l.includes('<span class="dx-score is-up" aria-hidden="true">3–1</span>') && l.includes('En salle · Facile') && l.includes("sallesRejoindre('AAA111')"));
+  assert.ok(l.indexOf('@tom') < l.indexOf('@lea') && l.includes("onclick=\"amisRetirer('@lea')\"") && l.includes("onclick=\"jeuDefier('@lea')\""));
   /* Ajouter : il doit exister */
   c.el('dx-ajout-in').value = 'Noé!'; c.ev('amisAjouter()'); await attendre();
   assert.equal(c.els['dx-ajout-msg'].textContent, 'Aucun joueur ne s’appelle @no.');
@@ -256,7 +265,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=3"></script>') && sw.includes("'./multiplayer-security.js?v=3',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=214">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=215">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-07-aucune-salle-v2648');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-08-defis-design-v2649');
 });

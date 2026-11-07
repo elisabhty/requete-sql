@@ -69,7 +69,7 @@ test('réf. 4 : personne de classé → le message, plus « 1 à 0 sur 0 »', ()
   assert.ok(charger.includes('if(sc&&c.total>0&&sc.children.length===clsPagesNb())clsPagerRemplir();else clsPagerPeindre();'));
   const el = { textContent: '' }, ctx = vm.createContext({ DEFIS: { cls: { total: 0, page: 0 } }, CLS_PAR_PAGE: 5, CLS_PAGES_MAX: 20, clsPts: n => String(n),
     document: { getElementById: id => (id === 'dx-range' ? el : null) } });
-  vm.runInContext(fn('clsPagesNb') + fn('clsNavPeindre'), ctx);
+  vm.runInContext(fn('clsPagesNb') + fn('clsCompteEcrire') + fn('clsNavPeindre'), ctx);   // le compte « 5 joueurs classés » s’écrit avec (refonte du 7 novembre)
   ctx.clsNavPeindre();
   assert.equal(el.textContent, '');
   ctx.DEFIS.cls.total = 12; ctx.DEFIS.cls.page = 2; ctx.clsNavPeindre();
@@ -157,6 +157,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=214">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-aucune-salle-v2648';") && app.includes("const SW_CACHE='requete-2026-11-07-aucune-salle-v2648';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=215">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-defis-design-v2649';") && app.includes("const SW_CACHE='requete-2026-11-08-defis-design-v2649';"));
 });
