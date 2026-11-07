@@ -108,8 +108,8 @@ test('micro-interactions au lieu des notifications : l’action se voit là où 
     "toast(e.pin?'Note épinglée'", "toast(n.pin?'Note épinglée'"])
     assert.ok(!app.includes(gone), 'plus de notification : ' + gone);
   const done = fn('lqDone');
-  assert.ok(done.includes('lqSay(say||label);') && done.includes('lqFresh(el);') && done.includes("buzz('success')") && done.includes('if(prefersReduceMotion())return;'));
-  assert.ok(done.includes("c.className='lq-done';c.setAttribute('aria-hidden','true');"), 'la coche est décorative ; le lecteur d’écran entend lqSay');
+  assert.ok(done.includes('lqSay(say||label);') && done.includes('if(!suppr)lqFresh(el);') && done.includes("buzz(suppr?'medium':'success')") && done.includes('if(prefersReduceMotion())return;'));
+  assert.ok(done.includes("c.className=suppr?'lq-done is-suppr':'lq-done';c.setAttribute('aria-hidden','true');"), 'la coche est décorative ; le lecteur d’écran entend lqSay (7 novembre, 8 h 08 : sans mot, au centre, retours-0808)');
   assert.ok(fn('lqSay').includes("s.setAttribute('role','status');s.setAttribute('aria-live','polite');"));
   assert.ok(fn('lqPlanDone').includes("'À jour'"));
   assert.ok(app.includes("lqDone(document.querySelector(`#db-tables .db-tblock[data-table=\"${CSS.escape(name)}\"]`),'Réinitialisée',"), 'Réinitialiser cette table (15 h 01) : « Réinitialisée » là où la table est');

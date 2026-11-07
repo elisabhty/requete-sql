@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=193">
+<link rel="stylesheet" href="ludique.css?v=194">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=31">
 <style id="lesson-video-css">
@@ -25331,7 +25331,7 @@ if(typeof document!=='undefined'&&typeof document.addEventListener==='function')
   e.preventDefault();
   const tools=document.getElementById('catalog-tools');
   if(tools&&tools.hidden){const btn=document.querySelector('.lq-search-toggle');if(btn)toggleCatalogTools(btn);}
-  const input=document.getElementById('course-search');if(input){input.focus();input.select();}
+  const input=document.getElementById('course-search');if(input){lqVersRecherche(tools,input);input.select();}
 });
 /* Mon compte est une destination de la barre du bas (onglet « Compte »). */
 function primaryTabFor(tab){
@@ -26671,12 +26671,26 @@ function renderModules(){
   }
   lqAfterModules(host);
 }
+/* « Explorer » (Elisa, 7 novembre, 8 h 08 : « quand on clique sur explorer il faut que ça nous ramène dans la barre ») : la barre de
+   recherche qui s’ouvre remonte en haut de l’écran, sous la barre d’état, au lieu de rester sous le clavier ; le curseur y est déjà
+   (le focus se pose dans le geste, sans défilement du navigateur : c’est l’écran qui défile, en douceur). */
+function lqHautSur(){
+  const p=document.createElement('div');p.style.cssText='position:fixed;top:0;left:0;width:1px;height:var(--safe-top,0px);visibility:hidden;pointer-events:none';
+  document.body.appendChild(p);const h=p.offsetHeight;p.remove();return h;
+}
+function lqVersRecherche(boite,input){
+  if(!boite)return;
+  if(input)input.focus({preventScroll:true});
+  const sc=boite.closest('.screen');if(!sc)return;
+  const y=sc.scrollTop+boite.getBoundingClientRect().top-sc.getBoundingClientRect().top-lqHautSur()-14;
+  sc.scrollTo({top:Math.max(0,Math.round(y)),behavior:typeof prefersReduceMotion==='function'&&prefersReduceMotion()?'auto':'smooth'});
+}
 function toggleCatalogTools(btn){
   const tools=document.getElementById('catalog-tools');if(!tools)return;
   const open=tools.hidden;
   tools.hidden=!open;catalogToolsOpen=open;
   btn?.setAttribute('aria-expanded',String(open));
-  if(open){document.getElementById('course-search')?.focus({preventScroll:true});return;}
+  if(open){lqVersRecherche(tools,document.getElementById('course-search'));return;}
   if(courseSearch||courseFilter!=='all'){
     courseFilter='all';
     const input=document.getElementById('course-search');if(input)input.value='';
@@ -38292,21 +38306,39 @@ function lqSay(t){
   if(!s){s=document.createElement('p');s.id='lq-say';s.className='lq-say';s.setAttribute('role','status');s.setAttribute('aria-live','polite');document.body.appendChild(s);}
   s.textContent='';setTimeout(()=>{s.textContent=t;},40);
 }
+/* 7 novembre, 8 h 08 puis 8 h 09 (Elisa, sur une capture de cette coche : « j’aime pas ce genre de notification, déjà pas centré, puis
+   je préfère juste une petite micro interaction sans texte en mode « validé » ; pareil pour le supprimer, je préfère quand l’icône fait
+   juste une petite micro interaction », puis « comme l’épinglé ») : plus de mot à côté de la coche, plus de pastille au coin. Au centre
+   de la chose touchée (du texte d’un titre), une coche ronde se plante d’un rebond, une onde en part et quatre éclats jaillissent,
+   comme la punaise d’une requête épinglée ; pour une suppression (« Supprimé », « Effacé »…), une petite poubelle rose dont le couvercle
+   saute. label ne s’affiche plus : il dit si c’est une suppression, et ce qu’entend le lecteur d’écran quand say manque (lqSay). */
+const LQ_POUBELLE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="lq-pb-couv" d="M4.5 7h15M9.6 7V5.3c0-.7.5-1.3 1.2-1.3h2.4c.7 0 1.2.6 1.2 1.3V7"/><path d="M6.6 7.2l.8 11.6c.1.9.8 1.6 1.7 1.6h5.8c.9 0 1.6-.7 1.7-1.6l.8-11.6M10.2 11v5.6M13.8 11v5.6"/></svg>';
+function lqEstSuppr(label){return /^(Supprim|Effac|Retir|Vid|Décoll)/i.test(String(label||''));}
+/* Le centre de ce qu’on voit d’une chose : le texte d’un titre (une ligne pleine largeur dont le mot est à gauche), sinon sa boîte, dans
+   la partie visible de l’écran. */
+function lqCentreDe(el){
+  let b=el.getBoundingClientRect();
+  if(/^H[1-6]$/.test(el.tagName)&&typeof document.createRange==='function'){try{const rg=document.createRange();rg.selectNodeContents(el);const t=rg.getBoundingClientRect();if(t.width)b=t;}catch(e){}}
+  if(!b.width&&!b.height)return null;
+  const h=typeof innerHeight==='number'?innerHeight:b.bottom,top=Math.max(b.top,0),bottom=Math.min(b.bottom,h);
+  return {x:b.left+b.width/2,y:bottom>top?(top+bottom)/2:b.top+b.height/2};
+}
 function lqDone(el,label,say){
   lqSay(say||label);
   if(!el)return;
-  lqFresh(el);
-  if(typeof buzz==='function')buzz('success');
+  const suppr=lqEstSuppr(label);
+  if(!suppr)lqFresh(el);
+  if(typeof buzz==='function')buzz(suppr?'medium':'success');
   if(prefersReduceMotion())return;
-  const r=el.getBoundingClientRect();if(!r.width)return;
-  const c=document.createElement('span');c.className='lq-done';c.setAttribute('aria-hidden','true');
-  c.innerHTML=`<i>${CHECK_SVG}</i>${label?`<b>${esc(label)}</b>`:''}`;
+  const p0=lqCentreDe(el);if(!p0)return;
+  const c=document.createElement('span');c.className=suppr?'lq-done is-suppr':'lq-done';c.setAttribute('aria-hidden','true');
+  c.innerHTML=`<i class="lq-done-onde"></i><i class="lq-done-eclats"><b></b><b></b><b></b><b></b></i><span class="lq-done-pastille">${suppr?LQ_POUBELLE_SVG:CHECK_SVG}</span>`;
   /* La coche suit sa chose pendant qu’elle vit (l’écran défile souvent au même moment, vers l’éditeur par exemple). */
-  const at=b=>{c.style.left=Math.round(Math.min(innerWidth-10,Math.max(10,b.right-6)))+'px';c.style.top=Math.round(Math.max(10,b.top+4))+'px';};
-  at(r);document.body.appendChild(c);
-  const follow=()=>{if(!c.isConnected||!el.isConnected)return;at(el.getBoundingClientRect());requestAnimationFrame(follow);};
+  const at=p=>{c.style.left=Math.round(Math.min(innerWidth-28,Math.max(28,p.x)))+'px';c.style.top=Math.round(Math.min(innerHeight-28,Math.max(28,p.y)))+'px';};
+  at(p0);document.body.appendChild(c);
+  const follow=()=>{if(!c.isConnected||!el.isConnected)return;const p=lqCentreDe(el);if(p)at(p);requestAnimationFrame(follow);};
   requestAnimationFrame(follow);
-  setTimeout(()=>c.remove(),1300);
+  setTimeout(()=>c.remove(),1100);
 }
 /* Ce qu’on supprime s’en va (Elisa, 5 novembre, 22 h 19 puis 22 h 35 : « pareil quand on supprime des notes ou quoi que ce soit, une
    micro-interaction pour être sûr que l’action s’est bien passée ») : la carte rougit, se froisse et part vers la gauche pendant que la
@@ -44780,7 +44812,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-stickers-titres-v2610';
+  const SW_CACHE='requete-2026-11-07-micro-explorer-v2611';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
