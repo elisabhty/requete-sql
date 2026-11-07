@@ -28,14 +28,14 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
   /* Depuis le 6 novembre (audit, bug 5), la place se mesure une fois et la suite se déduit (lqSesAjuste) : la largeur du bonjour à
      20 px (nat), celle de l’étiquette entière (full) et de « Ta session · » (pre) */
   const f = cut('function lqSesAjuste(host){', '\nif(typeof window');
-  const essai = ({ W = 342, nat, full = 120, pre = 70, lecon = true, nomW = 60 }) => {
+  const essai = ({ W = 342, nat, full = 120, pre = 70, lecon = true, nomW = 60, sans = false }) => {
     const cls = () => { const s = new Set(); return { s, add: (...c) => c.forEach(x => s.add(x)), remove: (...c) => c.forEach(x => s.delete(x)), contains: c => s.has(c) }; };
     const hiC = cls(), cardC = cls(); if (lecon) cardC.add('is-lecon');
     const css = {}, nomCss = {};
     const nom = { offsetWidth: nomW, style: { removeProperty: k => { delete nomCss[k]; }, set maxWidth(v) { nomCss['max-width'] = v; } } };
     const t = { getBoundingClientRect: () => ({}), scrollWidth: nat, style: { setProperty: (k, v) => { css[k] = v; }, removeProperty: k => { delete css[k]; } }, querySelector: s => (s === '.lq-hi-nom' ? nom : null) };
     const m = { offsetWidth: full, querySelector: s => (s === '.lq-ses-suf' && pre ? { offsetWidth: pre } : null) };
-    const hi = { clientWidth: W + 1, classList: hiC, closest: s => (s === '.lq-hero' ? { classList: cardC } : null), querySelector: s => (s === '.lq-hi-title' ? t : s === '.journey-session-meta' ? m : null) };
+    const hi = { clientWidth: W + 1, classList: hiC, closest: s => (s === '.lq-hero' ? { classList: cardC } : null), querySelector: s => (s === '.lq-hi-title' ? t : s === '.journey-session-meta' && !sans ? m : null) };
     const c = vm.createContext({});
     vm.runInContext(f, c);
     c.lqSesAjuste({ querySelector: s => (s === '.lq-hero-hi' ? hi : null) });
@@ -51,13 +51,17 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
   assert.deepEqual(essai({ nat: 360, lecon: false }), { court: true, serre: false, bas: false, fs: undefined, nom: undefined }, 'la carte de fin : l’étiquette passe dessous, comme avant');
   assert.deepEqual(essai({ W: 290, nat: 420, nomW: 200 }), { court: false, serre: true, bas: true, fs: '16px', nom: '112px' }, '5 : en dernier recours, le prénom s’abrège (jamais le « ? »)');
   assert.deepEqual(essai({ W: 0, nat: 420 }), { court: false, serre: false, bas: false, fs: undefined, nom: undefined }, 'accueil caché : rien n’est décidé');
+  /* 7 novembre, 10 h 10 : la carte d’une leçon n’a plus d’étiquette ; le bonjour a toute la ligne */
+  assert.deepEqual(essai({ nat: 300, sans: true }), { court: false, serre: false, bas: false, fs: undefined, nom: undefined }, 'sans étiquette : il tient');
+  assert.deepEqual(essai({ nat: 400, sans: true }), { court: false, serre: false, bas: false, fs: '17px', nom: undefined }, 'sans étiquette : il rapetisse');
+  assert.deepEqual(essai({ nat: 460, nomW: 200, sans: true }), { court: false, serre: true, bas: false, fs: '16px', nom: '132px' }, 'sans étiquette : à 16 px, le prénom s’abrège');
   /* Après chaque rendu des deux cartes, et quand l’écran change de taille */
   /* 6 novembre (audit, bug 6) : mesuré avec le vrai nombre, avant que le compteur parte de 0 */
   assert.ok(app.includes('    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n    lqSesCount(host);\n    if(typeof lqSemaineFeu===\'function\')lqSemaineFeu(host);\n    return;\n  }') && app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n  if(typeof lqSemaineFeu===\'function\')lqSemaineFeu(host);\n}'));
   assert.ok(app.includes("addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});"));
   /* La séance est revenue à droite du bonjour (l’essai sur la ligne du module, abandonné, ne reste pas) */
   /* 7 novembre, 8 h 38 : la phrase de heroSousTitre vient sous la ligne du bonjour */
-  assert.ok(app.includes('const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>${sousT?`<p class="lq-hi-sub">${sousT}</p>`:\'\'}`;') && !app.includes('lq-hero-row') && !lq.includes('.lq-hero-row'));
+  assert.ok(app.includes('const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${nxt==null?sesMeta:`<span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span>`}</div>${sousT?`<p class="lq-hi-sub">${sousT}</p>`:\'\'}`;') && !app.includes('lq-hero-row') && !lq.includes('.lq-hero-row'));
 });
 
 test('plus de « Ton module » en menthe au-dessus du pourcentage (et, depuis le 6 novembre, plus de grand pourcentage du tout)', () => {

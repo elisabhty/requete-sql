@@ -26245,7 +26245,10 @@ function renderHomeHero(){
      ce que l’écran montre : la séance que le bouton ouvre et ses minutes, puis, s’il y en a plus, tout ce qui reste à rattraper. */
   const sesMeta=`<div class="journey-session-meta"><span class="lq-ses is-${sesVue}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div>`;
   const sousT=typeof heroSousTitre==='function'?heroSousTitre(nxt):'';
-  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>${sousT?`<p class="lq-hi-sub">${sousT}</p>`:''}`;
+  /* Elisa, 7 novembre, 10 h 10 : « Enlève le badge en haut, à part quand le parcours est terminé (3 min aujourd’hui) » : l’étiquette
+     de la séance ne reste que sur la carte de fin (« ✓ Parcours terminé ») ; la carte d’une leçon dit déjà son temps (« Plus que
+     3 min »). VoiceOver lit toujours la séance du jour (le même résumé que le planning et le bilan). */
+  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${nxt==null?sesMeta:`<span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span>`}</div>${sousT?`<p class="lq-hi-sub">${sousT}</p>`:''}`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
@@ -26302,8 +26305,7 @@ function renderHomeHero(){
   const n=mod?mod.lessons.length:0;
   const points=n>1?`<p class="lq-a-meta lq-a-pos"><span class="lq-a-dots" aria-hidden="true">${mod.lessons.map(l=>{const d=itemDone(l.id),c=l.id===nxt;return `<i class="${d?'is-done':c?'is-cur':''}"${c?` style="--pv:${Math.round(part*100)}%"`:''}></i>`;}).join('')}</span><span>Leçon ${index} sur ${n}</span></p>`:'';
   const ctaLu=`${ctaLabel} : ${meta.titre}, ${(sub.charAt(0).toLowerCase()+sub.slice(1)).replace(/~/g,'environ ').replace(/\u00a0/g,' ')}`;
-  const sesCopie=`<span class="lq-ses lq-ses-copie is-${sesVue}" aria-hidden="true"><i class="lq-ses-ic">${sesIc}</i><span>${sesTxt}</span></span>`;
-  const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;
+  const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
   lqSesCount(host);
@@ -26408,14 +26410,23 @@ function lqSesCount(host){
 function lqSesAjuste(host){
   const hi=host&&typeof host.querySelector==='function'?host.querySelector('.lq-hero-hi'):null;
   const t=hi&&hi.querySelector('.lq-hi-title'),m=hi&&hi.querySelector('.journey-session-meta');
-  if(!t||!m||typeof t.getBoundingClientRect!=='function')return;
+  if(!t||typeof t.getBoundingClientRect!=='function')return;
   const card=hi.closest('.lq-hero'),nom=t.querySelector('.lq-hi-nom');
   hi.classList.remove('is-court','is-serre');if(card)card.classList.remove('is-ses-bas');
   t.style.removeProperty('--hi-fs');if(nom)nom.style.removeProperty('max-width');
   const W=hi.clientWidth-1;if(!(W>0))return;   // accueil caché : mesuré à son prochain rendu
-  const gap=8,nat=t.scrollWidth,full=m.offsetWidth,pre=m.querySelector('.lq-ses-suf'),court=full-(pre?pre.offsetWidth:0);
+  const gap=8,nat=t.scrollWidth;
   if(!nat)return;
   const taille=d=>Math.floor(20*d/nat*2)/2;
+  /* 7 novembre, 10 h 10 : la carte d’une leçon n’a plus d’étiquette ; le bonjour a toute la ligne, il rapetisse (16 px au plus
+     petit), puis le prénom s’abrège */
+  if(!m){
+    if(nat<=W)return;
+    const fs=Math.max(16,taille(W));t.style.setProperty('--hi-fs',fs+'px');
+    if(taille(W)<16&&nom){hi.classList.add('is-serre');nom.style.maxWidth=Math.max(24,Math.floor(W-(nat-nom.offsetWidth)*fs/20-2))+'px';}
+    return;
+  }
+  const full=m.offsetWidth,pre=m.querySelector('.lq-ses-suf'),court=full-(pre?pre.offsetWidth:0);
   if(nat+gap+full<=W)return;
   /* 7 novembre, 8 h 38 : « 14 min aujourd’hui » garde son « aujourd’hui » tant que le bonjour peut rapetisser d’un rien (18 px). */
   if(taille(W-gap-full)>=18){t.style.setProperty('--hi-fs',taille(W-gap-full)+'px');return;}
@@ -44896,7 +44907,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-feu-v2616';
+  const SW_CACHE='requete-2026-11-07-sans-badge-v2617';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
