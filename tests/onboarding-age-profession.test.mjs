@@ -155,7 +155,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=30">') && sw.includes("'./onboarding-vitrine.css?v=30',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=31">') && sw.includes("'./onboarding-vitrine.css?v=31',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');
