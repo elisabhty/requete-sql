@@ -37,11 +37,12 @@ test('le cadre du haut (11 h 11, 11 h 19) : le niveau, « Créer une salle », p
   const h = ctx.defisActionsHTML();
   assert.ok(h.startsWith('<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">'));
   assert.equal((h.match(/<button type="button" class="dx-act /g) || []).length, 2);
-  for (const [k, stk, titre, sous] of [['code', 'rocket', 'J’ai un code', 'rejoindre un ami'], ['seul', 'clock', 'Seul', 'entraînement']])
-    assert.ok(h.includes(`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="false" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true"><svg data-stk="${stk}"/></span><b>${titre}</b><small>${sous}</small></button>`), k);
+  /* 7 novembre, 21 h 44 : un libellé explicite chacun, plus de petite ligne dessous (retours-2144-defis). */
+  for (const [k, stk, titre] of [['code', 'rocket', 'Rejoindre avec un code'], ['seul', 'clock', 'Jouer en solo']])
+    assert.ok(h.includes(`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="false" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true"><svg data-stk="${stk}"/></span><b>${titre}</b></button>`), k);
   const haut = fn('defisRapideHTML');
-  assert.ok(haut.includes('<p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Ta salle de défi</h2>') && haut.includes("${jeuNiveauxHTML('dx-niv-l','defisNiv')}"), 'le niveau dans le cadre de « Créer une salle »');
-  assert.ok(haut.includes('<button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c===\'creer\'}" onclick="defisCarte(\'creer\')"><span>Créer une salle</span>${DEF_CHEV_SVG}</button>\n    ${defisActionsHTML()}\n    <div class="dx-autres" id="dx-autres">${sallesAutresHTML()}</div></section>`;'), '« Créer une salle » ouvre sa feuille ; la rangée dessous, puis les autres niveaux');
+  assert.ok(haut.includes('<p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>') && haut.includes("${jeuNiveauxHTML('dx-niv-l','defisNiv')}"), 'le niveau dans le cadre de « Créer ma partie »');
+  assert.ok(haut.includes('<button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c===\'creer\'}" onclick="defisCarte(\'creer\')"><span>Créer ma partie</span>${DEF_CHEV_SVG}</button>\n    ${defisActionsHTML()}\n    <div class="dx-autres" id="dx-autres">${sallesAutresHTML()}</div></section>`;'), '« Créer une salle » ouvre sa feuille ; la rangée dessous, puis les autres niveaux');
   assert.ok(!haut.includes('jeuPartieRapide') && haut.includes('${sallesSectionHTML()}') && !app.includes('function jeuPartieRapide('), '11 h 37 puis 12 h 52 : « Rejoins une partie » dans le même cadre, sans « Trouver une salle »');
   ctx.renderDefisRoom();
   assert.equal(els['defis-room'].innerHTML, '', 'plus rien entre la partie rapide et les salles ouvertes');
@@ -59,7 +60,7 @@ test('le cadre du haut (11 h 11, 11 h 19) : le niveau, « Créer une salle », p
 test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’il faut choisir ; le bouton en bas', () => {
   const {ctx} = bac();
   const creer = ctx.defisFeuilleHTML('creer'), code = ctx.defisFeuilleHTML('code'), seul = ctx.defisFeuilleHTML('seul');
-  assert.ok(creer.includes('<p class="room-kicker">Créer une salle</p>') && creer.includes('<h2 id="dx-f-t">Ta salle de défi</h2>'));
+  assert.ok(creer.includes('<p class="room-kicker">Créer ma partie</p>') && creer.includes('<h2 id="dx-f-t">Ta salle de défi</h2>'), 'le surtitre : le bouton touché (7 novembre, 21 h 44)');
   assert.ok(creer.includes('<span class="dx-f-niv is-d"><i class="jeu-bars is-d" aria-hidden="true"><b></b><b></b><b></b></i>Difficile</span><span>Le défi est tiré au sort au dernier moment, le même pour tous.</span>'), 'le niveau de la partie rapide');
   for (const h of [creer, code, seul]) assert.ok(!h.includes('room-levels') && !h.includes('data-set="niv"'), 'pas de second choix de niveau');
   assert.ok(creer.includes('<p class="jeu-lab" id="room-nb-l">Nombre de manches</p>') && creer.includes('data-set="nb" data-v="3"') && creer.includes('aria-checked="true" class="room-opt on" data-set="nb" data-v="3"'));
