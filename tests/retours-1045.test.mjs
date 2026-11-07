@@ -149,7 +149,7 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
     ' .ob-account.is-fete .ob-fete-emoji{animation:obvFeteEmoji 1.2s var(--v-pop) .4s both}', ' .ob-compte-msg.is-new{transform-origin:50% 0;animation:obvBubbleIn'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvFeteEmoji{'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=31">') && sw.includes("'./onboarding-vitrine.css?v=31',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=32">') && sw.includes("'./onboarding-vitrine.css?v=32',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
 });
