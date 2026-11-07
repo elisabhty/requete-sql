@@ -40,8 +40,9 @@ test('chaque bulle de l’onboarding : le chat qui pose la question ; l’image 
     assert.equal(vm.runInContext("obMascotQuestion('Salut ! Comment dois-je t’appeler ?')", ctx),
       `<div class="ob-chat"><img class="ob-chat-stk is-question" src="${reduit ? FIXE : ANIM}" width="287" height="362" alt="La mascotte Requête" draggable="false"><div class="ob-bubble">Salut ! Comment dois-je t’appeler ?</div></div>`);
   }
-  const n = (app.match(/obMascotQuestion\(/g) || []).length;
-  assert.ok(n >= 14, `les questions de l’onboarding passent toutes par obMascotQuestion (${n})`);
+  /* 14 h 04 : quelques bulles ont un autre chat (obMascotDit : coucou, « C’est parti ! », le présentateur, retours-1404) */
+  const n = (app.match(/obMascot(?:Question|Dit)\(/g) || []).length;
+  assert.ok(n >= 18, `les bulles de l’onboarding passent toutes par obMascotQuestion ou obMascotDit (${n})`);
 });
 
 test('à la largeur de l’autocollant, sans balancement par-dessus', () => {

@@ -97,7 +97,7 @@ test('onboarding : scène d’autocollants à la bienvenue, autocollant dans les
   assert.ok(entre("html=`<div class=\"ob-screen ready\">", 'obSetFooter(').includes("${mascotMedalHtml({hi:'C’est parti\\u00a0!',intro:!mascotReduced(),anim:'parti'})}"), 'écran final');
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-chat img{width:72px!important;height:auto!important;aspect-ratio:450/674;border-radius:0!important;') && ob.includes('filter:none!important;rotate:-5deg;'), 'plus d’avatar rond, ombre dans l’image');
   assert.ok(ob.includes('@media (max-height:740px){\n  html #onboarding.ob-vitrine .ob-hello-stage{height:152px;'), 'scène plus basse sur les petits écrans');
-  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=36">') && sw.includes("'./onboarding-vitrine.css?v=36'"), 'feuille rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=37">') && sw.includes("'./onboarding-vitrine.css?v=37'"), 'feuille rechargée');
 });
 
 test('fin de leçon et fin de parcours : l’autocollant, qui danse tant que la réussite est affichée', () => {

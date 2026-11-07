@@ -102,7 +102,7 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
 
 test('le widget : l’écran d’accueil avec la série, puis le tutoriel en trois temps qui tournent avec la bulle', () => {
   const w = slide('widget', "}else if(slide==='widgetTuto'){");
-  assert.ok(w.includes("obMascotQuestion('Je t’encouragerai directement depuis ton écran d’accueil !')") && w.includes('${obTelPromo()}'));
+  assert.ok(w.includes("obMascotDit('Je t’encouragerai directement depuis ton écran d’accueil !','parti')") && w.includes('${obTelPromo()}'));
   assert.ok(w.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');"), '« Pas maintenant » rend la main à l’app (13 h 48 : après la première leçon)');
   const t = slide('widgetTuto', "}else if(slide==='rhythm'){");
   assert.ok(t.includes('<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>') && t.includes('<div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>'));
