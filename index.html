@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=207">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=36">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=37">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -34988,8 +34988,9 @@ function jeuRender(){
      dessous, le code de la salle en tuiles, puis le bouton violet. */
   /* Les tuiles du code ; « codeEnBas » : la salle d’attente les met en bas de la carte, juste au-dessus de « Copier le code ». */
   const codeTuiles=()=>`<div class="jeu-etat-code" id="jeu-code-tuiles"><small>Code de la salle</small><span aria-label="${esc(J.code.split('').join(' '))}">${J.code.split('').map((ch,i)=>`<b style="--i:${i}" aria-hidden="true">${esc(ch)}</b>`).join('')}</span></div>`;
+  /* stk « chat:loupe » : un GIF d’Elisa à la place de l’autocollant (7 novembre, 14 h 04 : « Salle introuvable », la loupe) */
   const etat=(stk,titre,sub,corps,cls,codeEnBas)=>`<section class="room-card jeu-etat${cls?' '+cls:''}" aria-labelledby="jeu-etat-h">
-      <div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(stk)}</span><div>
+      <div class="room-head">${String(stk).startsWith('chat:')&&typeof chatBonusHtml==='function'?chatBonusHtml(String(stk).slice(5),'room-chat'):`<span class="room-stk" aria-hidden="true">${lqStkSvg(stk==='chat:loupe'?'help':stk)}</span>`}<div>
       <p class="room-kicker">Salle de défi</p><h1 id="jeu-etat-h">${titre}</h1><p class="room-sub" id="jeu-sub">${sub}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
       ${codeEnBas?'':codeTuiles()}
       ${corps}</section>`;
@@ -34997,7 +34998,7 @@ function jeuRender(){
   if(v==='join'){
     html=etat('rocket','Tu rejoins la salle…','La salle de ton ami s’ouvre dans un instant.',`<p class="jeu-etat-wait" role="status"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span>Connexion en cours</span></p><div id="jeu-netslot">${jeuNetHTML()}</div>`,'is-join');
   }else if(v==='lost'){
-    html=etat('help','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
+    html=etat('chat:loupe','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
     html=etat('user','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.',retour,'is-lost');
   }else if(v==='full'){
@@ -42921,6 +42922,17 @@ function obPaysListe(){
    tapote le menton. 12 images de 420 ms, détourées et adoucies au bord, en boucle tant que la question est là ; en mouvement réduit,
    l’image où il réfléchit, la patte au menton (chat-question-fixe.webp). */
 const MASCOT_QUESTION='assets/chat-question.webp',MASCOT_QUESTION_FIXE='assets/chat-question-fixe.webp';
+/* 7 novembre, 14 h 04 (Elisa : « oui » à la liste des GIF déjà prêts) : d’autres chats dans les bulles, selon ce qu’elles disent :
+   « Salut ! » fait coucou ; « Je t’encouragerai… » lève le pouce et te montre (C’est parti !) ; la première requête et le tutoriel du
+   widget, il les présente. Le présentateur tend la patte vers la gauche : il se met à droite de sa bulle (droite), pour la montrer
+   (la mettre en miroir retournerait le « SQL » de son sweat). Mouvement réduit : leur image fixe. */
+function obMascotDit(text,anim,droite){
+  const T={coucou:['chat-coucou',289,352],presente:['chat-presente',315,362],parti:['chat-parti',302,359]};
+  const g=Object.prototype.hasOwnProperty.call(T,anim)?T[anim]:null;
+  if(!g)return obMascotQuestion(text);
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  return `<div class="ob-chat${droite?' is-droite':''}"><img class="ob-chat-stk is-gif is-${anim}" src="assets/${g[0]}${fixe?'-fixe':''}.webp" width="${g[1]}" height="${g[2]}" alt="La mascotte Requête" draggable="false"><div class="ob-bubble">${esc(text)}</div></div>`;
+}
 /* Elisa, 7 novembre, 12 h 06 : son GIF « Il tape sur son ordi » pour « On construit ton parcours… » : il tape vite, l’écran
    s’illumine. 12 images de 420 ms, en boucle pendant la construction ; en mouvement réduit, l’écran allumé (chat-ordi-fixe.webp). */
 const MASCOT_ORDI='assets/chat-ordi.webp',MASCOT_ORDI_FIXE='assets/chat-ordi-fixe.webp';
@@ -43227,7 +43239,7 @@ function paintOb(){
     const nameValue=esc(draft.name||'').replace(/"/g,'&quot;');
     html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
-      ${obMascotQuestion('Salut ! Comment dois-je t’appeler ?')}
+      ${obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou')}
       <label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32" value="${nameValue}" placeholder="Ex. Léa" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obNameNext();}"></label>
       <div class="ob-name-preview" id="ob-name-preview" aria-hidden="true" hidden><span class="ob-name-initial" id="ob-name-initial"></span><span class="ob-name-msg"><b id="ob-name-greet"></b><span class="ob-name-sub">J’ai hâte d’en savoir plus sur toi.</span></span><i class="ob-name-spark"></i><i class="ob-name-spark"></i></div></div>`;
     obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());
@@ -43322,7 +43334,7 @@ function paintOb(){
       <p class="ob-lead">${rowsN>1?`Les <b>${rowsN}</b> clients qui habitent`:'Le client qui habite'} à Paris, trouvés dans la table clients.</p>`
       :`<h1 class="ob-title" id="ob-title">À toi de lancer ta première requête&nbsp;!</h1>
       <p class="ob-lead">Une seule action suffit pour découvrir comment SQL retrouve les données.</p>
-      ${obMascotQuestion(draft.practiceFailed?'Le moteur SQL n’a pas pu démarrer ici : tu essaieras dans ta première leçon.':'Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.')}`;
+      ${draft.practiceFailed?obMascotQuestion('Le moteur SQL n’a pas pu démarrer ici : tu essaieras dans ta première leçon.'):obMascotDit('Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.','presente',true)}`;
     html=`<div class="ob-screen ob-profile ob-practice${done?' is-result':''}${fresh?' is-fresh':''}">${obFlowHeader(slide)}${head}
       <div class="ob-practice-card${typing?' is-typing':''}${fresh?' is-flip-in':''}"><div class="ob-practice-head"><span>requete.sql</span><span>base du cours</span></div><pre class="ob-practice-code"><span class="ob-tl" style="--n:24;--t:.53s;--dl:.32s"><span class="kw">SELECT</span> <span class="field">id, prenom, ville</span></span>
 <span class="ob-tl" style="--n:12;--t:.27s;--dl:.92s"><span class="kw">FROM</span> clients</span>
@@ -43353,7 +43365,7 @@ function paintOb(){
   }else if(slide==='widget'){
     /* L’écran d’accueil (d’après Duolingo) : le widget de la série, la flamme et le chat, posé parmi les apps. App iPhone seulement. */
     html=`<div class="ob-screen ob-profile ob-widget-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ta série sur ton<br><em>écran d’accueil</em></h1>
-      ${obMascotQuestion('Je t’encouragerai directement depuis ton écran d’accueil !')}
+      ${obMascotDit('Je t’encouragerai directement depuis ton écran d’accueil !','parti')}
       <div class="ob-ph ob-ph-promo" aria-hidden="true">${obTelPromo()}</div></div>`;
     obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');
   }else if(slide==='widgetTuto'){
@@ -43361,7 +43373,7 @@ function paintOb(){
        bouton de l’iPhone d’Elisa), « Ajouter un widget » ;
        la recherche « Requête », le widget, « Ajouter le widget ». La bulle de la mascotte suit chaque étape (obWidgetTutoJouer). */
     html=`<div class="ob-screen ob-profile ob-widget-step ob-wtuto">${obFlowHeader(slide)}<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>
-      ${obMascotQuestion(OB_WT_TEXTES[0]).replace('class="ob-bubble"','class="ob-bubble" id="ob-wt-bulle"')}
+      ${obMascotDit(OB_WT_TEXTES[0],'presente',true).replace('class="ob-bubble"','class="ob-bubble" id="ob-wt-bulle"')}
       <div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>
       <ol class="ob-sr-steps">${OB_WT_TEXTES.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`;
     obSetFooter('C’est fait\u00a0!',obWidgetFin,'','','');
@@ -45064,7 +45076,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-jongle-v2632';
+  const SW_CACHE='requete-2026-11-07-chat-reemploi-v2633';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

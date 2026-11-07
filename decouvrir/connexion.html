@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="vitrine.css?v=5b6e697f">
+<link rel="stylesheet" href="vitrine.css?v=fd5a7d40">
 <style>
 /* Page de connexion de la vitrine : pour l’instant un aperçu. Aucun compte n’existe encore (pas de compte en v1) :
    chaque bouton ouvre l’appli (../), rien n’est envoyé ni gardé, le mot de passe est effacé avant de partir.
@@ -50,6 +50,10 @@ body.cx.cx-leave::after{opacity:1}
 .cx-bubble{position:absolute;right:5%;bottom:8px;padding:10px 14px;border-radius:18px;background:#fff;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);font:800 15px/1.1 var(--display);color:var(--accent-ink);white-space:nowrap;transform:rotate(-4deg);animation:cxBub .55s cubic-bezier(.34,1.56,.64,1) .5s both}
 .cx-bubble::after{content:'';position:absolute;right:16px;bottom:-12px;width:16px;height:16px;background:#fff;border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:rotate(45deg) skew(8deg,8deg);border-radius:0 0 4px 0}
 .cx-bubble.pop{animation:cxBub .5s cubic-bezier(.34,1.56,.64,1) both}
+/* Le chat qui dit « Re-bonjour ! » (Elisa, 7 novembre, 14 h 04) : au pied de sa bulle, qui part de lui */
+.cx-chat{position:absolute;z-index:2;right:-6px;bottom:-14px;width:var(--chat);height:auto;pointer-events:none;-webkit-user-drag:none;user-select:none;filter:drop-shadow(0 10px 14px rgba(10,4,60,.35));animation:cxIn .6s cubic-bezier(.34,1.56,.64,1) .3s both}
+.cx-stage{--chat:72px}
+.cx-stage:has(.cx-chat) .cx-bubble{right:calc(var(--chat) - 10px)!important;bottom:calc(var(--chat) * .82)!important}
 
 /* Autocollants qui arrivent puis flottent */
 .cx-s{position:absolute;z-index:2;opacity:0;animation:cxPop .7s cubic-bezier(.34,1.56,.64,1) var(--d,0s) forwards,cxFloat var(--f,5s) ease-in-out calc(var(--d,0s) + .7s) infinite}
@@ -194,6 +198,11 @@ body.cx.cx-leave::after{opacity:1}
 }
 /* Décor étroit (petit ordinateur) : « GROUP BY » cède sa place à la bulle */
 @container (max-width:499px){.k3{display:none}}
+/* Le chat de la bulle : sur téléphone, « SELECT » lui laisse le coin ; tout petit écran, comme les autocollants, il s'efface */
+@media (max-width:959px){.cx-stage:has(.cx-chat) .k1{display:none}.cx-stage:has(.cx-chat) .cx-bubble{bottom:30px!important}}
+@media (max-width:359px){.cx-chat{display:none}.cx-stage:has(.cx-chat) .cx-bubble{right:0!important;bottom:18px!important}}
+@media (min-width:960px){.cx-stage{--chat:clamp(112px,23cqw,156px)}.cx-chat{right:1%;bottom:-2%}.cx-stage:has(.cx-chat) .k4{right:auto;left:46%}}
+@media (prefers-reduced-motion:reduce){.cx-chat{animation:none}}
 
 @keyframes cxRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 @keyframes cxIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
@@ -235,6 +244,8 @@ body.cx.cx-leave::after{opacity:1}
       <span class="cx-k k3">GROUP BY</span>
       <span class="cx-k k4">JOIN</span>
       <span class="cx-bubble" id="cx-bubble">Re-bonjour&nbsp;!</span>
+      <!-- Elisa, 7 novembre, 14 h 04 : c’est le chat qui dit « Re-bonjour ! » (son GIF du coucou ; mouvement réduit : son image fixe) -->
+      <picture class="cx-chat-p"><source media="(prefers-reduced-motion: reduce)" srcset="../assets/chat-coucou-fixe.webp"><img class="cx-chat" src="../assets/chat-coucou.webp" width="289" height="352" alt="" loading="lazy"></picture>
     </div>
   </section>
 

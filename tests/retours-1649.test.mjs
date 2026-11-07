@@ -239,7 +239,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   const name = cut("}else if(slide==='name'){", "}else if(slide==='pseudo'){");
   assert.ok(name.includes('<label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32"') && name.includes('autocomplete="given-name"'));
   /* 3 novembre, 17 h 32 : la mascotte dit « Salut ! » (« Enchantée » passe dans l’accueil au prénom) ; plus de « Passer pour le moment » */
-  assert.ok(name.includes("obMascotQuestion('Salut ! Comment dois-je t’appeler ?')") && name.includes("obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());"), 'puis l’âge (3 novembre, 13 h 25)');
+  assert.ok(name.includes("obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou')") && name.includes("obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());"), 'puis l’âge (3 novembre, 13 h 25)');
   assert.ok(!name.includes('psVerif') && !name.includes('ob-ps-etat'), 'le prénom ne passe plus par la base');
   assert.ok(fn('obInput').includes("if(champ==='name'){draft.name=String(val||'').slice(0,32);obNamePreview();obNameCta();}"));
   const page = cut("}else if(slide==='pseudo'){", "}else if(slide==='goal'){");
