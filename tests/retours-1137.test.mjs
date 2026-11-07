@@ -139,7 +139,8 @@ test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient
   assert.ok(c.els['defis-tabs'].innerHTML.includes('id="dx-tab-amis" class="room-opt on" aria-selected="true" aria-controls="defis-amis" onclick="defisOnglet(\'amis\')">Joueurs</button>'));
   const a = c.els['defis-amis'].innerHTML;
   /* 7 novembre, 21 h 44 : l’onglet reste « Joueurs », la carte s’appelle « Tes adversaires » ; « Ajouter par pseudo » (retours-2144-defis). */
-  assert.ok(a.includes('<p class="perf-kicker">Ceux que tu as affrontés</p><h2 id="dx-amis-h">Tes adversaires</h2>') && a.includes('onclick="amisFormBasculer()">Ajouter par pseudo</button>'));
+  /* 22 h 13 : le surtitre « Tes adversaires », le titre dit combien (retours-2144-defis). */
+  assert.ok(a.includes('<p class="perf-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">1 adversaire</h2>') && a.includes('onclick="amisFormBasculer()">Ajouter par pseudo</button>'));
   assert.ok(a.includes('<label class="jeu-lab" for="dx-ajout-in">Le pseudo du joueur</label>'));
   assert.ok(c.els['dx-amis-liste'].innerHTML.includes('aria-label="Retirer @lea de ta liste"'));
   c.el('dx-ajout-in').value = '@lea'; c.ev('amisAjouter()');
@@ -173,7 +174,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=211">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=212">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-07-mes-amis-v2645' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-07-adversaires-v2646' && app.includes(`const SW_CACHE='${cache}';`));
 });

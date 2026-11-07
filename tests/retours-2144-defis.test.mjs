@@ -122,19 +122,30 @@ test('Classement : « Ta place dans le classement », et « Jouer un défi » d�
   assert.ok(lq.includes('html.lq #scr-defis .dx-cls-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px}'));
 });
 
-test('Joueurs : « Tes adversaires », « Pas encore d’adversaire ! », « Ajouter par pseudo », « Partager une invitation », plus la note technique', () => {
+test('Joueurs : « Tes adversaires », « Pas encore d’adversaire ! », « Ajouter par pseudo », « Inviter un joueur », plus la note technique', () => {
   const c = bac();
   c.ev("DEFIS.onglet='amis';defisPeindre()");
   assert.ok(c.els['defis-tabs'].innerHTML.includes('onclick="defisOnglet(\'amis\')">Joueurs</button>'), 'l’onglet garde son nom');
   const a = c.els['defis-amis'].innerHTML;
-  assert.ok(a.includes('<h2 id="dx-amis-h">Tes adversaires</h2>'));
-  assert.ok(a.includes('<button type="button" class="dx-sec is-main" aria-expanded="false" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Partager une invitation</button>'));
+  /* 22 h 13 : le surtitre « Tes adversaires » (plus « Ceux que tu as affrontés » : on en ajoute aussi par pseudo) ; vide, le titre est
+     « Pas encore d’adversaire ! » ; « Inviter un joueur », plus court que « Partager une invitation ». */
+  assert.ok(a.includes('<section class="perf-card dx-amis" aria-labelledby="dx-amis-k">') && a.includes('<p class="perf-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">Pas encore d’adversaire&nbsp;!</h2>'));
+  assert.ok(!app.includes('Ceux que tu as affrontés</p>'));
+  assert.ok(a.includes('<button type="button" class="dx-sec is-main" aria-expanded="false" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Inviter un joueur</button>'));
   assert.ok(!a.includes('dx-note') && !app.includes('Un adversaire s’ajoute tout seul après une partie.'), 'plus l’explication sur l’ajout automatique et le code de salle');
-  assert.equal(c.els['dx-amis-liste'].innerHTML, '<div class="dx-vide-bloc"><p class="dx-vide-t">Pas encore d’adversaire&nbsp;!</p><p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>');
+  /* La mascotte qui salue, dans l’espace vide de la carte (22 h 13), puis la phrase */
+  assert.equal(c.els['dx-amis-liste'].innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="salut"><p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>');
+  assert.ok(fn('amisListesPeindre').includes("chatBonusHtml('salut','is-vide dx-amis-chat')"));
+  for (const k of ['html.lq #scr-defis .dx-vide-bloc.is-amis{margin:2px 2px 0;text-align:center}', 'html.lq #scr-defis .dx-vide-bloc.is-amis .chat-bonus{display:block;width:96px;'])
+    assert.ok(lq.includes(k), k);
   /* La liste n’a plus son propre titre « Tes adversaires » : c’est celui de la carte */
-  const d = bac({ salle: { mates: { tom: { n: '@tom', g: 4, w: 3, l: 1, at: 5 } } } });
+  const d = bac({ salle: { mates: { tom: { n: '@tom', g: 4, w: 3, l: 1, at: 5 } }, amisAjoutes: [{ n: '@lea', at: 9 }] } });
   d.ev("DEFIS.onglet='amis';defisPeindre()");
   assert.ok(d.els['dx-amis-liste'].innerHTML.startsWith('<ul class="dx-list">'));
+  assert.ok(d.els['defis-amis'].innerHTML.includes('<h2 id="dx-amis-h">2 adversaires</h2>'), 'remplie : le titre dit combien');
+  /* Le titre suit la liste : un retrait le met à jour sans redessiner la carte */
+  d.ev("amisRetirer('@lea')");
+  assert.equal(d.els['dx-amis-h'].innerHTML, '1 adversaire');
   for (const k of ['html.lq #scr-defis .dx-amis .dx-duo{flex-direction:column;gap:10px}', 'html.lq #scr-defis .dx-sec.is-main{border-color:var(--accent);background:var(--accent);'])
     assert.ok(lq.includes(k), k);
 });
