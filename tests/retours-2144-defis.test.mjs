@@ -53,23 +53,24 @@ function bac(o = {}) {
 const attendre = () => new Promise(r => setImmediate(r));
 const J = v => JSON.parse(JSON.stringify(v));
 
-test('Jouer : « Lance un défi ! », « Créer ma partie », « Rejoindre avec un code », « Jouer en solo » ; les feuilles reprennent le bouton touché', () => {
+test('Jouer : « Lance un défi ! », « Créer ma partie », « Rejoindre avec un code », « Jouer en solo » ; les feuilles reprennent le bouton touché (le code : « Rejoindre une partie »)', () => {
   const haut = fn('defisRapideHTML');
   assert.ok(haut.includes('<h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>') && haut.includes('<span>Créer ma partie</span>'));
   const tuiles = fn('defisActionsHTML');
   /* Refonte du 7 novembre (designers) : deux boutons secondaires sous « Créer ma partie », plus de « ou » ni de tuiles. */
   assert.ok(tuiles.includes("${b('code','rocket','Rejoindre avec un code')}${b('seul','clock','Jouer en solo')}") && !tuiles.includes('<small>') && !tuiles.includes('dx-ou'), 'un libellé chacune, sans petite ligne');
-  assert.ok(app.includes("const tete=join?['Rejoindre avec un code',") && app.includes(":friends?['Créer ma partie','Ta salle de défi',") && app.includes(":['Jouer en solo','Joue seul',"));
+  assert.ok(app.includes("const tete=join?['Rejoindre une partie',") && app.includes(":friends?['Créer ma partie','Ta salle de défi',") && app.includes(":['Jouer en solo','Joue seul',"));
   for (const vieux of ["'J’ai un code','rejoindre un ami'", "'Seul','entraînement'", '<span>Créer une salle</span>', '<h2 id="dx-rapide-h">Ta salle de défi</h2>', "['Entraînement','Joue seul',"])
     assert.ok(!app.includes(vieux), vieux);
   /* « Aucune salle à ton niveau ? » : seulement quand il n’y en a aucune à ce niveau (déjà le cas) */
   assert.ok(fn('sallesSectionHTML').includes("corps=ici.length?`<ul class=\"dx-list\">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`\n      :`<p class=\"dx-vide is-aucune\">Aucune salle à ton niveau&nbsp;?"));
 });
 
-test('Jouer : ce que rapporte un niveau, plus visible : « Plus c’est dur, plus ça rapporte » et « ×2 pts »', () => {
+test('Jouer : ce que rapporte un niveau, plus visible : « ×2 pts » (plus « Plus c’est dur, plus ça rapporte » depuis le 8 novembre)', () => {
   const c = bac();
   const haut = c.ev('defisRapideHTML()');
-  assert.ok(haut.includes('<div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p><span class="dx-niv-plus">Plus c’est dur, plus ça rapporte</span></div>'));
+  /* 8 novembre, 0 h 23 : « enlever le plus c’est dur plus ça rapporte » ; ×1, ×2, ×4 le disent sous chaque niveau. */
+  assert.ok(haut.includes('<div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p></div>') && !app.includes('<span class="dx-niv-plus">'));
   assert.deepEqual([...haut.matchAll(/<span class="room-lv-x" aria-hidden="true">(×\d)<small>pts<\/small><\/span>/g)].map(m => m[1]), ['×1', '×2', '×4']);
   assert.ok(haut.includes('aria-label="Difficile, points multipliés par 4"'), 'toujours lu en toutes lettres');
   for (const k of ['html.lq #scr-defis .dx-niv-tete{display:flex;align-items:baseline;justify-content:space-between;', 'html.lq #scr-defis .dx-niv-plus{color:var(--accent-ink);',

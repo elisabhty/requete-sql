@@ -106,7 +106,8 @@ test('9 h 19 : pas à pas dans la DA du site, épingle en icône animée partout
   assert.ok(app.includes(`togglePinFromList('\${n.id}')">\${PUNAISE_SVG}</button>`) && !app.includes('onclick="togglePin()"'), 'l’épingle de la note en icône, sur sa carte');
   assert.ok(css.includes('@keyframes pinSway{'));
   /* 5 novembre, 10 h 16 : les cartes deviennent des feuilles (defisFeuilleHTML), chacune son sous-titre. */
-  assert.ok(app.includes("const tete=join?['Rejoindre avec un code','Rejoins une salle','Entre le code que ton ami t’a envoyé. Il a choisi le niveau et les manches.']") && app.includes('<p class="room-sub" id="dx-f-p">${tete[2]}</p>'), 'le sous-titre de chaque feuille : créer, code, seul (4 novembre, 19 h 10 ; 5 novembre, 10 h 16)');
+  /* 8 novembre, 0 h 23 : la feuille du code, plus courte (« Rejoindre une partie », « Entre ton code ! »). */
+  assert.ok(app.includes("const tete=join?['Rejoindre une partie','Entre ton code&nbsp;!','Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.']") && app.includes('<p class="room-sub" id="dx-f-p">${tete[2]}</p>'), 'le sous-titre de chaque feuille : créer, code, seul (4 novembre, 19 h 10 ; 5 novembre, 10 h 16)');
   assert.ok(app.includes("if(name==='defis')tabScrollPositions.defis=0;"));
 });
 

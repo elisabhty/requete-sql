@@ -80,7 +80,9 @@ test('entrer : Défis passe derrière (la carte au code rempli si ça échoue), 
   assert.deepEqual(lancer({ lecon: true }), ['rejoint PRET02']);
   assert.deepEqual(lancer({ lecon: true, salle: { code: 'PRET02' } }), [], 'déjà dans cette salle (rechargement) : rien');
   /* La salle se rejoint comme d’habitude : le pseudo réservé sans rien demander, puis la salle (jeuJoin) */
-  assert.ok(app.includes('  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:\'jeu-nom\'}));'));
+  assert.ok(app.includes('  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:\'jeu-nom\',parCode:true}));'));
+  /* 8 novembre, 0 h 23 : personne dans la salle d’un code tapé (ou d’un lien) : retour à sa feuille, « Code introuvable. Vérifie-le et réessaie. » */
+  assert.ok(app.includes("if(J.parCode&&typeof jeuCodeIntrouvable==='function'){jeuCodeIntrouvable(code);return;}") && app.includes("jeuCodeKo=jeuCleanCode(code);jeuInvite='';"));
 });
 
 test('pas encore inscrite : l’accueil annonce l’invitation, « Je m’inscris », tout le parcours, puis « Rejoindre la salle »', () => {
@@ -165,5 +167,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-bandeau-garde-v2650';") && app.includes("const SW_CACHE='requete-2026-11-08-bandeau-garde-v2650';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-code-v2651';") && app.includes("const SW_CACHE='requete-2026-11-08-code-v2651';"));
 });
