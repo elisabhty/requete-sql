@@ -63,12 +63,12 @@ test('où il saute : la fin d’une leçon réussie, le bilan, la connexion apr�
   assert.ok(show.includes("if(cat&&cat.classList)cat.classList.toggle('is-party',win);\n  if(typeof mascotBravo==='function')mascotBravo(cat,win);"), 'réussie, ou pas');
   assert.ok(cut('function lvEndHide(){', '\n/* « Revoir la vidéo »').includes("if(typeof mascotBravo==='function')mascotBravo(cat,false);"), 'l’écran quitté : l’autocollant (le GIF repartira du début)');
   assert.ok(cut('function bravoHeroHtml(l){', '\nfunction carteRetenirHtml(id){').includes("${typeof mascotBravoImg==='function'?mascotBravoImg('lst-stk bv-stk'):"), 'le bilan');
-  /* La connexion : avec la réussite, le chat qui saute ; sans, l’autocollant */
+  /* La connexion : avec la réussite, le chat qui saute ; sans, la clé qui ouvre la porte (14 h 27, retours-1427) */
   const ctx = monde();
   vm.runInContext(cut('function obCompteHautHTML(reussie){', '\nconst OB_ICO_NUAGE='), ctx);
   const oui = vm.runInContext('obCompteHautHTML(true)', ctx), non = vm.runInContext('obCompteHautHTML(false)', ctx);
   assert.ok(oui.includes(`<img class="ob-promise-stk ob-compte-stk is-bravo" src="${ANIM}" width="325" height="362" alt="" draggable="false">`) && oui.includes('ob-compte-bravo'));
-  assert.ok(non.includes(`<img class="ob-promise-stk ob-compte-stk" src="${STK}" width="450" height="674" alt="" draggable="false">`) && !non.includes('is-bravo'));
+  assert.ok(non.includes('<img class="chat-bonus is-cle ob-promise-stk ob-compte-stk" src="assets/chat-cle.webp" width="309" height="302" alt="" draggable="false">') && !non.includes('is-bravo'));
   /* La fin du parcours (lvFinEndHtml) a son diplômé (12 h 38, retours-1238) : mascotBravo n’y touche pas (un GIF choisi par l’écran) */
   assert.ok(cut('function lvFinEndHtml(){', '</span>').includes("${mascotMedalHtml({anim:'diplome'})}"));
   assert.ok(cut('function mascotBravo(btn,on){', '\n}').includes("if(img.hasAttribute&&img.hasAttribute('data-anim'))return;"));

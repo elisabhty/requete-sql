@@ -75,7 +75,7 @@ test('« Comment as-tu connu Requête ? » : dix réponses en tuiles, « Continu
 
 test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la flèche vers « Autoriser », puis la vraie demande', async () => {
   const s = slide('rappel', "}else if(slide==='widget'){");
-  assert.ok(s.includes("obMascotQuestion('Avec moi, tu n’oublieras pas ta séance !')"), '14 h 48 : sans « SQL »');
+  assert.ok(s.includes("obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil')"), '14 h 48 : sans « SQL » ; 7 novembre, 14 h 27 : le réveil qui sonne');
   /* 6 novembre, 23 h 08 : les deux boutons de l’aperçu se touchent pour de vrai (tests/retours-2308.test.mjs) */
   assert.ok(s.includes('<b aria-hidden="true">«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b>') && s.includes('<span class="ob-notif-btns"><button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button><button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button></span>'));
   assert.ok(s.includes('<svg class="ob-notif-arrow"') && s.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');"), 'à l’heure choisie (11 h 08)');

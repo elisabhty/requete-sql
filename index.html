@@ -6744,9 +6744,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=207">
+<link rel="stylesheet" href="ludique.css?v=208">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=37">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=38">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -26166,7 +26166,7 @@ function mascotMedalHtml(o){
   const kw=o.niv?`<span class="mstk-niv${o.nivCourt?' is-court':''}" aria-hidden="true"><i><span>Niv.</span>${o.niv.rank}</i>${o.nivCourt?'':`<b>${esc(o.niv.label)}</b>`}</span>`
     :o.kw?`<span class="mstk-kw" aria-hidden="true">${esc(o.kw)}</span>`:'';
   const hi=o.hi?`<span class="mstk-bub" aria-hidden="true">${esc(mascotRetrouveJusqua>Date.now()?MASCOT_RETROUVE:o.hi)}</span>`:'';
-  return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:'La mascotte Requête te fait coucou')}">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>${mascotChatHtml(o)}${kw}${hi}</button>`;
+  return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotToucher(this)" aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:'La mascotte Requête te fait coucou')}">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>${mascotChatHtml(o)}${kw}${hi}</button>`;
 }
 /* Elisa, 7 novembre, 11 h 04 : son GIF du coucou (« il agite la patte, sourit, cligne des yeux ») pour l’accueil et la bienvenue.
    12 images de 420 ms (5 s), détourées et adoucies au bord : assets/chat-coucou.webp ; sa dernière image, le chat au repos, fixe :
@@ -26182,6 +26182,9 @@ const MASCOT_PARTI='assets/chat-parti.webp',MASCOT_PARTI_FIXE='assets/chat-parti
    sert de repos et de mouvement réduit. À la fin du parcours, il fête en boucle ; sur l’accueil, comme le coucou, il fête quand il dit
    bonjour, puis se pose. */
 const MASCOT_DIPLOME='assets/chat-diplome.webp',MASCOT_DIPLOME_FIXE='assets/chat-diplome-fixe.webp';
+/* Elisa, 7 novembre, 14 h 27 : son GIF du fou rire (il pouffe, se roule sur le dos, essuie une larme), quand on touche le chat de
+   l’accueil, comme des chatouilles. 16 images de 380 ms, une fois ; en mouvement réduit, l’image où il rit, un instant. */
+const MASCOT_RIRE='assets/chat-rire.webp',MASCOT_RIRE_FIXE='assets/chat-rire-fixe.webp',MASCOT_RIRE_MS=6080;
 /* Les GIF de l’autocollant : leur image animée, leur image fixe, leur taille. o.uneFois : joué quand il dit bonjour (o.joue : tout de
    suite), au repos sinon (mascotCoucouJoue) ; sans : en boucle. */
 const MASCOT_ANIMS={
@@ -26209,6 +26212,7 @@ function mascotCoucouPose(img){
 }
 function mascotCoucouJoue(img){
   if(!img||!img.hasAttribute||!img.hasAttribute('data-une-fois'))return;
+  if(img._rireT&&typeof mascotRireFin==='function')mascotRireFin(img.closest?img.closest('.mascot-stk'):null,img);   // en plein fou rire
   if(typeof mascotReduced==='function'&&mascotReduced())return;
   clearTimeout(img._coucouT);
   const a=mascotAnimDe(img);
@@ -26237,8 +26241,13 @@ function mascotBravo(btn,on){
    13 h 02, ses deux autres GIF, à la place qu’elle a choisie : il salue puis s’en va (« Se déconnecter » : salut, la patte qui salue en
    boucle dans la question ; aurevoir, le GIF entier, une fois, après la déconnexion) ; il jongle avec des tables (jongle : la base
    vide de la console, où l’on importe un fichier ou crée sa première table). */
+/* 14 h 27, six GIF de plus (16 images de 380 ms), aux places de la liste : la clé ouvre la porte (la page de connexion, ouverte sans
+   première requête : « Garde ta progression »), le réveil sonne (le rappel de l’onboarding), le trophée levé sous les confettis (un
+   défi tout trouvé, un nouveau record, une partie gagnée entre amis), l’avion en papier (« Message envoyé ! », une fois), le
+   téléphone levé qui cherche le réseau (« Pas de réseau »), et le fou rire, quand on touche le chat de l’accueil (une fois ; la
+   place qu’elle a choisie). L’avion avait gardé des plaques de fond blanc autour du chat : retirées avant la conversion. */
 function chatBonusHtml(k,cls){
-  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
+  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311],cle:[309,302],avion:[313,311],reveil:[272,311],trophee:[290,311],reseau:[300,310],rire:[315,305]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   return `<img class="chat-bonus is-${k}${cls?' '+cls:''}" src="assets/chat-${k}${fixe?'-fixe':''}.webp" width="${t[0]}" height="${t[1]}" alt="" draggable="false">`;
 }
@@ -26254,6 +26263,36 @@ function mascotWave(btn){
   btn.classList.add('is-hello');
   clearTimeout(btn._mstkT);
   btn._mstkT=setTimeout(()=>btn.classList.remove('is-hello'),2900);
+}
+/* Le toucher (14 h 27, le choix d’Elisa) : sur l’accueil, le chat éclate de rire, comme si on le chatouillait, avec sa bulle ;
+   ailleurs (la bienvenue, la fin d’une leçon), le coucou d’avant. */
+function mascotToucher(btn){
+  const img=btn&&btn.querySelector?btn.querySelector('.mstk-cat[data-une-fois]'):null;
+  if(img)mascotRire(btn,img);else mascotWave(btn);
+}
+/* Le fou rire, en entier, une fois : le cadre de l’autocollant ne bouge pas (le GIF y tient, posé en bas), puis son image fixe
+   reprend. Retouché en plein rire, il recommence au début. */
+function mascotRire(btn,img){
+  if(!btn||!img||!btn.classList)return;
+  const a=mascotAnimDe(img),calme=typeof mascotReduced==='function'&&mascotReduced();
+  clearTimeout(img._coucouT);clearTimeout(img._rireT);clearTimeout(btn._mstkT);
+  btn.classList.remove('is-intro','is-hello','is-rire');
+  if(btn.querySelector&&!btn.querySelector('.mstk-bub.is-chatouille')){
+    const bub=document.createElement('span');bub.className='mstk-bub is-chatouille';bub.setAttribute('aria-hidden','true');bub.textContent='Hi hi, ça chatouille\u00a0!';
+    btn.appendChild(bub);
+  }
+  img.style.aspectRatio=a.w+' / '+a.h;img.classList.add('is-rire');
+  void btn.offsetWidth;   // relance la bulle, même en plein rire
+  btn.classList.add('is-rire');
+  if(typeof buzz==='function')buzz('light');
+  const joue=()=>{img.src=calme?MASCOT_RIRE_FIXE:MASCOT_RIRE;};
+  if(img.getAttribute('src')===MASCOT_RIRE){img.src=a.fixe;requestAnimationFrame(()=>requestAnimationFrame(joue));}else joue();
+  img._rireT=setTimeout(()=>mascotRireFin(btn,img),calme?2400:MASCOT_RIRE_MS-140);
+}
+function mascotRireFin(btn,img){
+  clearTimeout(img._rireT);img._rireT=0;
+  if(img.classList.contains('is-rire')){img.classList.remove('is-rire');img.style.aspectRatio='';if(img.isConnected)img.src=mascotAnimDe(img).fixe;}
+  if(btn&&btn.classList){btn.classList.remove('is-rire');const b=btn.querySelector&&btn.querySelector('.mstk-bub.is-chatouille');if(b)b.remove();}
 }
 /* La phrase des retrouvailles : le chat fait coucou et la bulle, plus large, reste le temps de la lire ; puis l’accueil reprend
    « Ravi de te revoir ! ». */
@@ -35122,7 +35161,10 @@ function jeuRender(){
           <b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b></li>`;
       }).join('');
       const nextNiv={f:'m',m:'d'}[J.niv];
-      html=head('Fin de la partie',all?'Tout trouvé ! 🏆':'Ton bilan',verdict)+
+      /* 14 h 27 : tout trouvé, ou un nouveau record, le chat lève son trophée sous les confettis (son GIF), à droite du titre ; il
+         remplace la coupe du titre */
+      const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`:'';
+      html=trophee+head('Fin de la partie',all?(trophee?'Tout trouvé\u00a0!':'Tout trouvé ! 🏆'):'Ton bilan',verdict)+
         `${fermeHTML}${lastMiss}<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>trouvé${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${avg}</b><small>temps moyen</small></div></div>
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rounds">${recap}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
@@ -35135,7 +35177,9 @@ function jeuRender(){
       const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
       const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));
       const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte ${JEU_ROUND_MS/60000} min).</p>`:'';
-      html=head('Salle de défi · Fin de partie',winner?'Tu as gagné ! 🏆':'Le podium',`${jouees} manche${jouees>1?'s':''} jouée${jouees>1?'s':''}.`)+
+      /* Gagnée entre amis : le trophée aussi (14 h 27) */
+      const trophee=winner&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`:'';
+      html=trophee+head('Salle de défi · Fin de partie',winner?(trophee?'Tu as gagné\u00a0!':'Tu as gagné ! 🏆'):'Le podium',`${jouees} manche${jouees>1?'s':''} jouée${jouees>1?'s':''}.`)+
         `${fermeHTML}<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
         ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>${tie}</div>`:tie}
         ${ferme?`<button type="button" class="journey-primary" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`
@@ -38369,7 +38413,8 @@ function lqAsk(o){
    (la description d’une table…) et d’import ont leur croix, comme les autres feuilles de l’app. */
 const LQ_X_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
 /* Une information, un seul bouton (à la place de alert()). */
-const lqInfo=(titre,texte,ico)=>lqAsk({ico:ico||'ℹ️',titre,texte,oui:'OK',non:null});
+/* 14 h 27 : sans réseau (le picto 📶), le chat lève son téléphone pour chercher le réseau (son GIF), à la place du picto */
+const lqInfo=(titre,texte,ico)=>lqAsk({ico:ico||'ℹ️',chat:ico==='📶'&&typeof chatBonusHtml==='function'?chatBonusHtml('reseau'):'',titre,texte,oui:'OK',non:null});
 /* Une question avec un champ, dans le style de l’app, à la place de prompt() (Elisa, 29 octobre, 18 h 19 : « améliorer l’UI/UX ») :
    lqPrompt({ico, titre, texte, valeur, placeholder, max, multi, oui}) rend le texte saisi, ou null si l’on annule. La feuille reste
    au-dessus du clavier (partie visible de la page). */
@@ -42714,8 +42759,11 @@ function obCompteHautHTML(reussie){
     +'<rect x="262" y="123" width="11" height="6" rx="2" fill="#9FF0C6" transform="rotate(24 267.5 126)"/>'
     +'<circle cx="236" cy="22" r="3" fill="#fff" opacity=".75"/></svg>':'';
   const bravo=reussie?'<p class="ob-compte-bravo"><svg class="ob-compte-rayons" viewBox="0 0 26 26" width="26" height="26" aria-hidden="true" focusable="false"><path d="M20 4 10 2M19 10 6 14M22 15l-6 9"/></svg>Bravo\u00a0!</p>':'';
-  /* Le chat saute de joie avec son « Bravo ! » (le GIF d’Elisa, 7 novembre, 11 h 31) ; ouverte sans réussite, l’autocollant */
-  const chat=reussie&&typeof mascotBravoImg==='function'?mascotBravoImg('ob-promise-stk ob-compte-stk'):`<img class="ob-promise-stk ob-compte-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">`;
+  /* Le chat saute de joie avec son « Bravo ! » (le GIF d’Elisa, 7 novembre, 11 h 31) ; ouverte sans réussite (depuis Mon compte,
+     après une déconnexion), la clé ouvre la porte (14 h 27) */
+  const chat=reussie&&typeof mascotBravoImg==='function'?mascotBravoImg('ob-promise-stk ob-compte-stk')
+    :!reussie&&typeof chatBonusHtml==='function'?chatBonusHtml('cle','ob-promise-stk ob-compte-stk')
+    :`<img class="ob-promise-stk ob-compte-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">`;
   return `<div class="ob-compte-haut">${fond}${fete}${chat}${bravo}</div>`;
 }
 const OB_ICO_NUAGE='<svg viewBox="0 0 32 32" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 24.5H9a6.5 6.5 0 0 1-.9-12.94A8.5 8.5 0 0 1 24.4 10.2 7 7 0 0 1 23.5 24.5H21.5"/><path d="M16 26.5v-10m-4 4 4-4 4 4"/></svg>';
@@ -42927,7 +42975,7 @@ const MASCOT_QUESTION='assets/chat-question.webp',MASCOT_QUESTION_FIXE='assets/c
    widget, il les présente. Le présentateur tend la patte vers la gauche : il se met à droite de sa bulle (droite), pour la montrer
    (la mettre en miroir retournerait le « SQL » de son sweat). Mouvement réduit : leur image fixe. */
 function obMascotDit(text,anim,droite){
-  const T={coucou:['chat-coucou',289,352],presente:['chat-presente',315,362],parti:['chat-parti',302,359]};
+  const T={coucou:['chat-coucou',289,352],presente:['chat-presente',315,362],parti:['chat-parti',302,359],reveil:['chat-reveil',272,311]};
   const g=Object.prototype.hasOwnProperty.call(T,anim)?T[anim]:null;
   if(!g)return obMascotQuestion(text);
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
@@ -43356,7 +43404,7 @@ function paintOb(){
     if(!draft.rappelHeure)draft.rappelHeure=rappelHeure();
     const fq=draft.freq||7,quand=fq===7?'chaque jour':fq===5?'en semaine':'tes jours de séance';
     html=`<div class="ob-screen ob-profile ob-rappel-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un petit <em>rappel</em><br>${quand}&nbsp;?</h1>
-      ${obMascotQuestion('Avec moi, tu n’oublieras pas ta séance !')}
+      ${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil')}
       ${obRappelCarte()}
       <div class="ob-notif" id="ob-notif"><div class="ob-notif-cadre"><div class="ob-notif-alert"><b aria-hidden="true">«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small aria-hidden="true">Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button><button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button></span></div></div>
         <svg class="ob-notif-arrow" viewBox="0 0 40 70" aria-hidden="true"><path d="M20 66V8M6 22 20 7l14 15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -44540,7 +44588,7 @@ function ctInfosTexte(i){return [i.version,i.appareil,i.navigateur,i.mode,i.ecra
 function ctHTML(){
   ctCharger();
   if(CT.fini)return `<div class="ct-merci" role="status">
-        <span class="ct-merci-stk is-stk" aria-hidden="true">${lqStkSvg('rocket')}</span>
+        ${typeof chatBonusHtml==='function'?`<span class="ct-merci-stk is-chat" aria-hidden="true">${chatBonusHtml('avion')}</span>`:`<span class="ct-merci-stk is-stk" aria-hidden="true">${lqStkSvg('rocket')}</span>`}
         <b>Message envoyé&nbsp;!</b>
         <p>Merci pour ${(CT_TYPES.find(x=>x.k===CT.type)||CT_TYPES[3]).merci}. ${CT.finiMail?`On te répond à <b>${esc(CT.finiMail)}</b>.`:'On lit chaque message.'}</p>
         ${CT.finiPj?`<p class="ct-merci-pj">${CT.finiPj>1?`${CT.finiPj} pièces jointes n’ont`:'Une pièce jointe n’a'} pas pu partir&nbsp;: renvoie-${CT.finiPj>1?'les':'la'} dans un nouveau message.</p>`:''}
@@ -45076,7 +45124,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-reemploi-v2633';
+  const SW_CACHE='requete-2026-11-07-chat-trophee-v2634';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

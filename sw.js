@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-07-chat-reemploi-v2633';
+const CACHE = 'requete-2026-11-07-chat-trophee-v2634';
 
 const PRECACHE = [
   './safari-surface.css?v=13',
@@ -25,7 +25,7 @@ const PRECACHE = [
   './onboarding-focus.js',
   './multiplayer-security.js?v=3',
   './memo-collection.css?v=5',
-  './onboarding-vitrine.css?v=37',
+  './onboarding-vitrine.css?v=38',
   './',
   './index.html',
   './home-journey.css',
@@ -78,6 +78,18 @@ const PRECACHE = [
   './assets/chat-aurevoir-fixe.webp',
   './assets/chat-jongle.webp',
   './assets/chat-jongle-fixe.webp',
+  './assets/chat-cle.webp',
+  './assets/chat-cle-fixe.webp',
+  './assets/chat-avion.webp',
+  './assets/chat-avion-fixe.webp',
+  './assets/chat-reveil.webp',
+  './assets/chat-reveil-fixe.webp',
+  './assets/chat-trophee.webp',
+  './assets/chat-trophee-fixe.webp',
+  './assets/chat-reseau.webp',
+  './assets/chat-reseau-fixe.webp',
+  './assets/chat-rire.webp',
+  './assets/chat-rire-fixe.webp',
   './assets/apple-touch-icon.png',
   './assets/icon-192.png',
   './assets/nutriboost-accueil.png',

@@ -185,7 +185,7 @@ test('l’habillage : tuiles en ligne comme l’âge, carte voilée aux nombres 
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvDotOn{') && css.includes('@keyframes obvNumBump{'));
   /* La feuille est rechargée, et le cache de l’app renouvelé */
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=37">') && sw.includes("'./onboarding-vitrine.css?v=37',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">') && sw.includes("'./onboarding-vitrine.css?v=38',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
 });
