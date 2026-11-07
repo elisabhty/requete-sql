@@ -41999,7 +41999,8 @@ const POCHE=[
    et le dernier jour où une activité la garde (les jours de repos du planning sont sautés). Envoyée au démarrage et chaque fois que
    l’app passe en arrière-plan ; sans le pont natif (web, ancienne version de l’app), rien ne se passe.
    7 novembre (« Cheminée + lunettes ») : le widget La cheminée y lit aussi ce qui décore la pièce (widgetCheminee) ; la requête de
-   poche, ses questions du jour (widgetPoche) ; la carte mémo, les cartes gagnées (widgetCartes). */
+   poche, ses questions du jour (widgetPoche) ; la carte mémo, les cartes gagnées (widgetCartes) ; ta semaine, ses jours
+   (widgetSemaine). */
 let widgetDernier='';
 function widgetMaj(){
   try{
@@ -42008,7 +42009,7 @@ function widgetMaj(){
     const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
     let d=fait?addJ(t,1):t;
     for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
-    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),cartes:JSON.stringify(widgetCartes())},k=JSON.stringify(data);
+    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),cartes:JSON.stringify(widgetCartes()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);
     if(k===widgetDernier)return;
     widgetDernier=k;
     Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
@@ -42067,6 +42068,22 @@ function widgetCartes(){
       return {id:l.id,k:texte(c.k),t:texte(c.t),p:texte((c.points||[])[0])};
     });
   }catch(e){return [];}
+}
+/* Ta semaine, en résultat de requête (le widget de l’app iPhone : RequeteWidget.swift, RequeteSemaine) : les jours actifs des trois
+   dernières semaines, les jours de repos du planning (de trois semaines avant à deux semaines après), et le premier jour qui compte
+   (le début du planning ou la première activité : avant lui, pas de NULL). Le widget en tire la semaine du lundi au dimanche, même
+   si l’app n’a pas été ouverte depuis. Tout ou rien : une donnée qui manque laisse la semaine vide. */
+function widgetSemaine(){
+  try{
+    const t=auj(),start=debutPlan(),actifs=[],repos=[];
+    for(let i=-21;i<=14;i++){
+      const iso=dstr(addJ(t,i));
+      if(i<=0&&jourActif(iso))actifs.push(iso);
+      if(jourRepos(iso,start))repos.push(iso);
+    }
+    const premiers=[start,state.actSince].filter(Boolean).sort();
+    return {actifs,repos,debut:premiers[0]||dstr(t)};
+  }catch(e){return {actifs:[],repos:[],debut:''};}
 }
 if(typeof document!=='undefined'&&document.addEventListener){
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
@@ -45311,7 +45328,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-carte-v2639';
+  const SW_CACHE='requete-2026-11-07-semaine-v2640';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

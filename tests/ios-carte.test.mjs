@@ -35,7 +35,7 @@ test('la page range les cartes gagnées, dans l’ordre du parcours, en texte si
   assert.equal(ici(ctx.widgetCartes())[2].p, '< et > excluent la limite.', 'les entités redeviennent des signes');
   /* Sans les données de l’app (le bac à sable de la série, retours-0354) : aucune carte, la série part quand même */
   assert.deepEqual(ici(vm.runInNewContext(src + ';widgetCartes()', {})), []);
-  assert.ok(app.includes(',cartes:JSON.stringify(widgetCartes())},k=JSON.stringify(data);'), 'avec la série (widgetMaj)');
+  assert.ok(app.includes(',cartes:JSON.stringify(widgetCartes()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);'), 'avec la série (widgetMaj)');
   /* Les vraies cartes : un mot-clé, un titre, une idée, chacun court pour un petit widget */
   const C = vm.runInNewContext('(' + entre(app, 'const CARTES={', '\n};\n').slice('const CARTES='.length) + '\n})');
   for (const [id, c] of Object.entries(C)) {

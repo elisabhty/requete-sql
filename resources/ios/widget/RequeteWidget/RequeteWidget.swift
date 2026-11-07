@@ -2686,6 +2686,429 @@ struct RequeteCarte: Widget {
     }
 }
 
+// MARK: - Ta semaine, en résultat de requête (widget moyen)
+//
+// Elisa, 7 novembre (« Ta semaine, en résultat de requête », d’après la planche : « Le widget parle SQL : ta semaine sort comme
+// un tableau de résultats. ») : « SELECT jour, flamme FROM ma_semaine; », puis la semaine du lundi au dimanche, une colonne par
+// jour : la flamme dorée un jour actif, la lune un jour de repos du planning, la flamme en contour aujourd’hui tant que la séance
+// attend, NULL un jour passé sans activité, « · » à venir. Dessous, comme sous un résultat : « 7 lignes · 4 flammes », et où en est
+// aujourd’hui. Sombre façon terminal quand l’iPhone est en mode sombre, clair façon tableau de résultats sinon (les deux versions
+// de la planche). L’app range les jours (index.html, widgetSemaine) ; le widget en tire la semaine du jour, même si l’app n’a pas
+// été ouverte depuis (une entrée chaque minuit). Aujourd’hui en attente : un appui ouvre la séance du jour.
+
+/// Ce que range l’app : les jours actifs (trois dernières semaines), les jours de repos du planning (trois semaines avant, deux
+/// après), et le premier jour qui compte (début du planning ou première activité : avant lui, pas de NULL).
+struct SemaineDonnees: Codable {
+    var actifs: [String] = []
+    var repos: [String] = []
+    var debut: String = ""
+}
+
+enum JourSemaine {
+    case fait      // un jour actif : la flamme dorée
+    case attente   // aujourd’hui, la séance attend : la flamme en contour
+    case repos     // un jour de repos du planning : la lune
+    case manque    // un jour passé sans activité : NULL
+    case avenir    // à venir (ou avant le premier jour) : « · »
+}
+
+struct CaseSemaine: Hashable {
+    let cle: String
+    let rang: Int        // 0 : lundi … 6 : dimanche
+    let etat: JourSemaine
+    let aujourdhui: Bool
+}
+
+struct SemaineEntree: TimelineEntry {
+    let date: Date
+    let jours: [CaseSemaine]
+}
+
+enum SemaineRangement {
+    static let noms: [String] = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"]
+    static let nomsLongs: [String] = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+
+    static func donnees() -> SemaineDonnees {
+        let d = UserDefaults(suiteName: groupe)
+        guard let texte = d?.string(forKey: "semaine"), let donnees = texte.data(using: .utf8) else { return SemaineDonnees() }
+        return (try? JSONDecoder().decode(SemaineDonnees.self, from: donnees)) ?? SemaineDonnees()
+    }
+
+    /// La place du jour dans sa semaine, du lundi (0) au dimanche (6) ; Calendar compte du dimanche (1) au samedi (7).
+    static func rang(_ date: Date) -> Int {
+        let jour: Int = Calendar.current.component(.weekday, from: date)
+        return (jour + 5) % 7
+    }
+
+    static func etatDu(_ cle: String, _ aujourdhui: String, _ s: SemaineDonnees) -> JourSemaine {
+        if s.actifs.contains(cle) { return .fait }
+        if s.repos.contains(cle) { return .repos }
+        if cle == aujourdhui { return .attente }
+        if cle > aujourdhui { return .avenir }
+        if s.debut.isEmpty || cle < s.debut { return .avenir }
+        return .manque
+    }
+
+    static func entree(_ date: Date) -> SemaineEntree {
+        let s: SemaineDonnees = donnees()
+        let aujourdhui: String = CartesRangement.cle(date)
+        let lundi: Int = -rang(date)
+        var jours: [CaseSemaine] = []
+        for i in 0..<7 {
+            let cle: String = CartesRangement.jourDans(lundi + i, apres: date)
+            let etat: JourSemaine = etatDu(cle, aujourdhui, s)
+            jours.append(CaseSemaine(cle: cle, rang: i, etat: etat, aujourdhui: cle == aujourdhui))
+        }
+        return SemaineEntree(date: date, jours: jours)
+    }
+
+    /// La semaine de la planche : trois flammes, un jour de repos, une flamme, aujourd’hui en attente, demain à venir.
+    static func exemple(_ date: Date) -> SemaineEntree {
+        let etats: [JourSemaine] = [.fait, .fait, .fait, .repos, .fait, .attente, .avenir]
+        var jours: [CaseSemaine] = []
+        for (i, e) in etats.enumerated() {
+            jours.append(CaseSemaine(cle: "", rang: i, etat: e, aujourdhui: i == 5))
+        }
+        return SemaineEntree(date: date, jours: jours)
+    }
+
+    /// Sous le tableau, comme sous un résultat : « 7 lignes · 4 flammes ».
+    static func lignes(_ jours: [CaseSemaine]) -> String {
+        let n: Int = jours.filter { $0.etat == .fait }.count
+        if n == 0 { return "7\u{00A0}lignes" }
+        if n == 1 { return "7\u{00A0}lignes · 1\u{00A0}flamme" }
+        return "7\u{00A0}lignes · \(n)\u{00A0}flammes"
+    }
+
+    /// « samedi : en attente », « samedi : flamme allumée », « samedi : repos ».
+    static func duJour(_ jours: [CaseSemaine]) -> String {
+        guard let j = jours.first(where: { $0.aujourdhui }) else { return "" }
+        let nom: String = nomsLongs[j.rang]
+        switch j.etat {
+        case .fait: return nom + "\u{00A0}: flamme allumée"
+        case .attente: return nom + "\u{00A0}: en attente"
+        case .repos: return nom + "\u{00A0}: repos"
+        case .manque, .avenir: return nom
+        }
+    }
+
+    static func libelle(_ jours: [CaseSemaine]) -> String {
+        var morceaux: [String] = ["Ta semaine."]
+        for j in jours {
+            let nom: String = nomsLongs[j.rang].capitalized
+            morceaux.append(nom + "\u{00A0}: " + dit(j.etat) + ".")
+        }
+        return morceaux.joined(separator: " ")
+    }
+
+    static func dit(_ e: JourSemaine) -> String {
+        switch e {
+        case .fait: return "flamme allumée"
+        case .attente: return "en attente"
+        case .repos: return "repos"
+        case .manque: return "pas de séance"
+        case .avenir: return "à venir"
+        }
+    }
+}
+
+/// Les couleurs des deux versions de la planche : sombre façon terminal, clair façon tableau de résultats.
+struct PaletteSemaine {
+    let texte: Color
+    let motCle: Color
+    let entete: Color
+    let enteteFond: Color
+    let ligne: Color
+    let separation: Color
+    let jourTexte: Color
+    let jourEntete: Color
+    let jourCase: Color
+    let lune: Color
+    let pale: Color
+    let pied: Color
+    let attente: Color
+    let allumee: Color
+
+    static let sombre = PaletteSemaine(
+        texte: Color.white, motCle: Color(red: 0.725, green: 0.651, blue: 1.0), entete: Color(red: 0.725, green: 0.682, blue: 0.91),
+        enteteFond: Color.clear, ligne: Color.white.opacity(0.16), separation: Color.white.opacity(0.1),
+        jourTexte: Color(red: 1.0, green: 0.725, blue: 0.541), jourEntete: braise.opacity(0.14), jourCase: braise.opacity(0.14),
+        lune: Color(red: 0.557, green: 0.525, blue: 0.722), pale: Color(red: 0.431, green: 0.4, blue: 0.639),
+        pied: Color(red: 0.725, green: 0.682, blue: 0.91), attente: Color(red: 1.0, green: 0.725, blue: 0.541), allumee: dore
+    )
+
+    static let claire = PaletteSemaine(
+        texte: encre, motCle: violetTexte, entete: Color(red: 0.373, green: 0.341, blue: 0.569),
+        enteteFond: Color(red: 0.953, green: 0.937, blue: 1.0), ligne: Color(red: 0.902, green: 0.878, blue: 1.0),
+        separation: Color(red: 0.902, green: 0.878, blue: 1.0),
+        jourTexte: Color(red: 0.604, green: 0.227, blue: 0.0), jourEntete: Color(red: 1.0, green: 0.914, blue: 0.859),
+        jourCase: Color(red: 1.0, green: 0.957, blue: 0.925),
+        lune: Color(red: 0.655, green: 0.624, blue: 0.816), pale: Color(red: 0.71, green: 0.678, blue: 0.851),
+        pied: Color(red: 0.373, green: 0.341, blue: 0.569), attente: Color(red: 0.604, green: 0.227, blue: 0.0),
+        allumee: Color(red: 0.718, green: 0.475, blue: 0.122)
+    )
+}
+
+/// Les polices, posées une fois par dessin (la taille suit la largeur du widget).
+struct PolicesSemaine {
+    let ligneSQL: Font
+    let jour: Font
+    let flamme: Font
+    let lune: Font
+    let repos: Font
+    let null: Font
+    let point: Font
+    let pied: Font
+    let etat: Font
+
+    init(_ u: CGFloat) {
+        ligneSQL = Font.system(size: 12 * u, weight: .bold, design: .monospaced)
+        jour = Font.system(size: 10.5 * u, weight: .heavy, design: .monospaced)
+        flamme = Font.system(size: 21 * u, weight: .bold)
+        lune = Font.system(size: 15 * u, weight: .bold)
+        repos = Font.system(size: 9 * u, weight: .heavy, design: .rounded)
+        null = Font.system(size: 9.5 * u, weight: .bold, design: .monospaced)
+        point = Font.system(size: 16 * u, weight: .heavy)
+        pied = Font.system(size: 11 * u, weight: .medium, design: .monospaced)
+        etat = Font.system(size: 12 * u, weight: .heavy, design: .rounded)
+    }
+}
+
+/// Le fond : le dégradé nuit du terminal en mode sombre, blanc en mode clair.
+struct FondSemaine: View {
+    @Environment(\.colorScheme) private var mode
+
+    var body: some View {
+        if mode == .dark {
+            LinearGradient(gradient: Gradient(colors: [Color(red: 0.165, green: 0.129, blue: 0.376), encre]), startPoint: UnitPoint(x: 0.33, y: 0), endPoint: UnitPoint(x: 0.67, y: 1))
+        } else {
+            Color.white
+        }
+    }
+}
+
+extension View {
+    /// iOS 17 et plus : le fond passe par containerBackground ; avant, en fond.
+    @ViewBuilder
+    func fondSemaine() -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(for: .widget) { FondSemaine() }
+        } else {
+            self.background(FondSemaine())
+        }
+    }
+}
+
+struct SemaineFournisseur: TimelineProvider {
+    func placeholder(in context: Context) -> SemaineEntree {
+        SemaineRangement.exemple(Date())
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (SemaineEntree) -> Void) {
+        let e = SemaineRangement.entree(Date())
+        // Dans la galerie des widgets, une semaine vide ne dirait rien : la semaine de la planche.
+        let vide: Bool = !e.jours.contains { $0.etat == .fait || $0.etat == .repos }
+        if context.isPreview && vide {
+            completion(SemaineRangement.exemple(Date()))
+        } else {
+            completion(e)
+        }
+    }
+
+    /// Maintenant, puis chaque minuit sur sept jours : aujourd’hui avance, et le lundi, une nouvelle semaine commence.
+    func getTimeline(in context: Context, completion: @escaping (Timeline<SemaineEntree>) -> Void) {
+        let cal = Calendar.current
+        let maintenant = Date()
+        let debut: Date = cal.startOfDay(for: maintenant)
+        var dates = [maintenant]
+        for j in 1...7 {
+            if let d = cal.date(byAdding: .day, value: j, to: debut) {
+                dates.append(d)
+            }
+        }
+        completion(Timeline(entries: dates.map { SemaineRangement.entree($0) }, policy: .atEnd))
+    }
+}
+
+struct SemaineVue: View {
+    let entree: SemaineEntree
+    @Environment(\.colorScheme) private var mode
+
+    var body: some View {
+        GeometryReader { g in
+            contenu(g.size)
+        }
+    }
+
+    private var palette: PaletteSemaine {
+        mode == .dark ? PaletteSemaine.sombre : PaletteSemaine.claire
+    }
+
+    /// Aujourd’hui en attente : un appui ouvre la séance du jour.
+    private var lien: URL? {
+        let attend: Bool = entree.jours.contains { $0.aujourdhui && $0.etat == .attente }
+        return attend ? lienSeance : nil
+    }
+
+    private func contenu(_ taille: CGSize) -> some View {
+        let u: CGFloat = taille.width / 364
+        let v: CGFloat = taille.height / 170
+        let p: PaletteSemaine = palette
+        let f = PolicesSemaine(u)
+        let marge: CGFloat = 18 * u
+        let haut: CGFloat = 16 * v
+        let ecart: CGFloat = 10 * v
+        let bas: CGFloat = 13 * v
+        let lu: String = SemaineRangement.libelle(entree.jours)
+        return VStack(alignment: .leading, spacing: 0) {
+            requete(f, p)
+            grille(u, v, f, p)
+                .padding(.top, ecart)
+            Spacer(minLength: 0)
+            pied(u, f, p)
+        }
+        .padding(.horizontal, marge)
+        .padding(.top, haut)
+        .padding(.bottom, bas)
+        .frame(width: taille.width, height: taille.height, alignment: .topLeading)
+        .widgetURL(lien)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: lu))
+    }
+
+    /// « SELECT jour, flamme FROM ma_semaine; »
+    private func requete(_ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
+        var ligne: Text = Text(verbatim: "SELECT").foregroundColor(p.motCle)
+        ligne = ligne + Text(verbatim: " jour, flamme ").foregroundColor(p.texte)
+        ligne = ligne + Text(verbatim: "FROM").foregroundColor(p.motCle)
+        ligne = ligne + Text(verbatim: " ma_semaine;").foregroundColor(p.texte)
+        return ligne
+            .font(f.ligneSQL)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+    }
+
+    private func grille(_ u: CGFloat, _ v: CGFloat, _ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
+        let coin: CGFloat = 10 * u
+        let forme = RoundedRectangle(cornerRadius: coin, style: .continuous)
+        let derniere: Int = entree.jours.count - 1
+        return HStack(spacing: 0) {
+            ForEach(entree.jours, id: \.self) { j in
+                colonne(j, j.rang == derniere, v, f, p)
+            }
+        }
+        .clipShape(forme)
+        .overlay(forme.stroke(p.ligne, lineWidth: 1))
+    }
+
+    /// Une colonne : le nom du jour, puis sa case ; aujourd’hui en braise.
+    private func colonne(_ j: CaseSemaine, _ derniere: Bool, _ v: CGFloat, _ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
+        let nom: String = SemaineRangement.noms[j.rang]
+        let couleur: Color = j.aujourdhui ? p.jourTexte : p.entete
+        let fondNom: Color = j.aujourdhui ? p.jourEntete : p.enteteFond
+        let fondCase: Color = j.aujourdhui ? p.jourCase : Color.clear
+        let hautNom: CGFloat = 22 * v
+        let hautCase: CGFloat = 50 * v
+        let trait: CGFloat = derniere ? 0 : 1
+        return VStack(spacing: 0) {
+            Text(verbatim: nom)
+                .font(f.jour)
+                .foregroundColor(couleur)
+                .frame(maxWidth: .infinity)
+                .frame(height: hautNom)
+                .background(fondNom)
+            Rectangle()
+                .fill(p.ligne)
+                .frame(height: 1)
+            valeur(j.etat, f, p)
+                .frame(maxWidth: .infinity)
+                .frame(height: hautCase)
+                .background(fondCase)
+        }
+        .overlay(alignment: .trailing) {
+            Rectangle()
+                .fill(p.separation)
+                .frame(width: trait)
+        }
+    }
+
+    @ViewBuilder
+    private func valeur(_ e: JourSemaine, _ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
+        switch e {
+        case .fait:
+            Image(systemName: "flame.fill")
+                .font(f.flamme)
+                .foregroundColor(dore)
+        case .attente:
+            Image(systemName: "flame")
+                .font(f.flamme)
+                .foregroundColor(braise)
+        case .repos:
+            VStack(spacing: 2) {
+                Image(systemName: "moon.fill")
+                    .font(f.lune)
+                    .foregroundColor(p.lune)
+                Text("repos")
+                    .font(f.repos)
+                    .foregroundColor(p.entete)
+            }
+        case .manque:
+            Text(verbatim: "NULL")
+                .font(f.null)
+                .italic()
+                .foregroundColor(p.pale)
+        case .avenir:
+            Text(verbatim: "·")
+                .font(f.point)
+                .foregroundColor(p.pale)
+        }
+    }
+
+    /// « 7 lignes · 4 flammes », et où en est aujourd’hui.
+    private func pied(_ u: CGFloat, _ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
+        let gauche: String = SemaineRangement.lignes(entree.jours)
+        let droite: String = SemaineRangement.duJour(entree.jours)
+        let couleur: Color = couleurDuJour(p)
+        let ecart: CGFloat = 8 * u
+        return HStack(alignment: .firstTextBaseline, spacing: ecart) {
+            Text(verbatim: gauche)
+                .font(f.pied)
+                .foregroundColor(p.pied)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Spacer(minLength: 0)
+            Text(verbatim: droite)
+                .font(f.etat)
+                .foregroundColor(couleur)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+    }
+
+    private func couleurDuJour(_ p: PaletteSemaine) -> Color {
+        guard let j = entree.jours.first(where: { $0.aujourdhui }) else { return p.pied }
+        switch j.etat {
+        case .fait: return p.allumee
+        case .attente: return p.attente
+        case .repos, .manque, .avenir: return p.pied
+        }
+    }
+}
+
+struct RequeteSemaine: Widget {
+    let kind = "RequeteSemaine"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: SemaineFournisseur()) { entree in
+            SemaineVue(entree: entree).fondSemaine()
+        }
+        .configurationDisplayName("Ta semaine")
+        .description("Ta semaine en résultat de requête\u{00A0}: une flamme par jour actif, la lune les jours de repos.")
+        .supportedFamilies([.systemMedium])
+        .sansMarges()
+    }
+}
+
 // MARK: - La leçon en cours, dans la Dynamic Island
 //
 // Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une Live Activity : la page (index.html, ileDebut, ileMaj, ileFin)
@@ -3134,12 +3557,14 @@ struct RequeteLeconActivite: Widget {
 }
 
 /// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé ;
-/// depuis le 7 novembre, la cheminée, la requête de poche et la carte mémo (ces deux-là à partir d’iOS 17 : leurs boutons).
+/// depuis le 7 novembre, la cheminée, ta semaine, la requête de poche et la carte mémo (ces deux-là à partir d’iOS 17 : leurs
+/// boutons).
 @main
 struct RequeteWidgets: WidgetBundle {
     var body: some Widget {
         RequeteWidget()
         RequeteCheminee()
+        RequeteSemaine()
         if #available(iOS 16.1, *) {
             RequeteLeconActivite()
         }
