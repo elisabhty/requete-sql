@@ -45,12 +45,14 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
   for (const k of ['ActivityConfiguration(for: RequeteLecon.self) { context in', 'LeconVerrouille(lecon: context.attributes, etat: context.state)',
     '.activityBackgroundTint(violetTexte)', '} dynamicIsland: { context in', 'DynamicIsland {',
     'DynamicIslandExpandedRegion(.leading) {', 'DynamicIslandExpandedRegion(.trailing) {', 'DynamicIslandExpandedRegion(.center) {', 'DynamicIslandExpandedRegion(.bottom) {',
-    '} compactLeading: {\n                LeconFlamme(etat: context.state, taille: 15)', '} compactTrailing: {\n                LeconMoments(etat: context.state)', '} minimal: {\n                LeconFlamme(etat: context.state, taille: 14)',
-    '.keylineTint(braise)', 'Image("Mascotte")'])
+    /* 7 novembre (« Cheminée + lunettes ») : à gauche et en tout petit, les lunettes du chat ; appui long, le chat qui sort du noir
+       (ios-cheminee.test.mjs) */
+    '} compactLeading: {\n                LunettesChat(regard: leconRegard(context.state, perime: leconPerimee(context)), largeur: 30)', '} compactTrailing: {\n                LeconMoments(etat: context.state)', '} minimal: {\n                LunettesChat(regard: leconRegard(context.state, perime: leconPerimee(context)), largeur: 24)',
+    '.keylineTint(braise)', 'Image("ChatNoir")'])
     assert.ok(act.includes(k), k);
   for (const k of ['@available(iOS 16.1, *)\nstruct RequeteLeconActivite: Widget {', '@available(iOS 16.1, *)\nstruct LeconVerrouille: View {',
     '@available(iOS 16.1, *)\nstruct LeconFlamme: View {', '@available(iOS 16.1, *)\nfunc leconPhrase(_ e: RequeteLecon.ContentState) -> String {',
-    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n    }\n}'])   // 6 novembre, 0 h 40 : la flamme de l’écran verrouillé rejoint le paquet (retours-0040)
+    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        RequeteCheminee()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n    }\n}'])   // 6 novembre, 0 h 40 : la flamme de l’écran verrouillé rejoint le paquet (retours-0040)
     assert.ok(widget.includes(k), k);
   /* Les phrases : l’espace fine avant « ! » et « % » */
   const phrase = cut(widget, 'func leconPhrase(', '\n}\n');
@@ -101,7 +103,9 @@ test('scripts/ios-widget.mjs : NSSupportsLiveActivities ajouté une fois à l’
     fs.writeFileSync(info, avant);
     execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
     const apres = fs.readFileSync(info, 'utf8');
-    assert.equal(apres, avant.replace('\t</dict>\n</dict>\n</plist>\n', '\t</dict>\n\t<key>NSSupportsLiveActivities</key>\n\t<true/>\n\t<key>NSCameraUsageDescription</key>\n\t<string>Pour joindre une photo à ton message dans « Contacte-nous ».</string>\n\t<key>NSPhotoLibraryUsageDescription</key>\n\t<string>Pour joindre une capture d’écran à ton message dans « Contacte-nous ».</string>\n</dict>\n</plist>\n'), 'dans le dictionnaire principal, pas dans le dernier sous-dictionnaire ; puis l’appareil photo et les photos (4 novembre, 22 h 08)');
+    assert.equal(apres, avant.replace('\t</dict>\n</dict>\n</plist>\n', '\t</dict>\n\t<key>NSSupportsLiveActivities</key>\n\t<true/>\n\t<key>NSCameraUsageDescription</key>\n\t<string>Pour joindre une photo à ton message dans « Contacte-nous ».</string>\n\t<key>NSPhotoLibraryUsageDescription</key>\n\t<string>Pour joindre une capture d’écran à ton message dans « Contacte-nous ».</string>\n'
+      + '\t<key>CFBundleURLTypes</key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>fr.requete.app</string>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>requete</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n</dict>\n</plist>\n'),
+      'dans le dictionnaire principal, pas dans le dernier sous-dictionnaire ; puis l’appareil photo et les photos (4 novembre, 22 h 08), puis le schéma « requete » du widget La cheminée (7 novembre)');
     execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
     assert.equal(fs.readFileSync(info, 'utf8'), apres, 'relancé : une seule fois');
     /* Une Info.plist illisible n’est pas touchée */

@@ -6,7 +6,9 @@ import ActivityKit
 
 // Le pont entre l’app web et l’iPhone (Elisa, 4 novembre) :
 // - le widget (3 h 54) : index.html (widgetMaj) appelle Capacitor.nativePromise('RequeteWidget', 'maj', { serie, jour, fait, limite }) ;
-//   la série est rangée dans le groupe d’apps, que le widget (RequeteWidget.swift) relit, puis le widget est redessiné ;
+//   la série est rangée dans le groupe d’apps, que le widget (RequeteWidget.swift) relit, puis le widget est redessiné. 7 novembre
+//   (« Cheminée + lunettes ») : la cheminée y lit aussi les stickers gagnés, les défis réussis, les modules finis, la prochaine
+//   activité (titre, mot-clé de sa carte mémo, défi ou non) et la dernière carte mémo gagnée ;
 // - les raccourcis de l’icône (9 h 02, « comment avoir ça », d’après Duolingo) : la page les pose (raccourcis), et le raccourci
 //   choisi lui revient en événement « raccourci », gardé jusqu’à ce qu’elle l’écoute, même si l’app était fermée ;
 // - sous le clavier (11 h 08, « en bas, tu vois du noir sur les deux côtés, je préfère du transparent ») : la page rétrécit au-dessus
@@ -30,6 +32,13 @@ enum RequeteRaccourci {
     static func recevoir(_ type: String) {
         enAttente = type
         NotificationCenter.default.post(name: annonce, object: nil)
+    }
+
+    /// Un lien de Requête (le bouton « Allumer ma flamme » du widget La cheminée, 7 novembre) : son hôte devient un raccourci,
+    /// « seance » donne « fr.requete.app.seance ». La page ignore ce qu’elle ne connaît pas (index.html, raccourciOuvrir).
+    static func ouvrir(_ lien: URL) {
+        guard lien.scheme == "requete", let hote = lien.host, !hote.isEmpty else { return }
+        recevoir("fr.requete.app." + hote)
     }
 }
 
@@ -73,6 +82,14 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         d.set(call.getString("jour") ?? "", forKey: "jour")
         d.set(call.getBool("fait") ?? false, forKey: "fait")
         d.set(call.getString("limite") ?? "", forKey: "limite")
+        // La cheminée (RequeteWidget.swift, ChemineeFournisseur)
+        d.set(max(0, call.getInt("stickers") ?? 0), forKey: "stickers")
+        d.set(max(0, call.getInt("trophees") ?? 0), forKey: "trophees")
+        d.set(max(0, call.getInt("diplomes") ?? 0), forKey: "diplomes")
+        d.set(call.getString("prochaine") ?? "", forKey: "prochaine")
+        d.set(call.getString("cle") ?? "", forKey: "cle")
+        d.set(call.getBool("defi") ?? false, forKey: "defi")
+        d.set(call.getString("carte") ?? "", forKey: "carte")
         WidgetCenter.shared.reloadAllTimelines()
         call.resolve()
     }

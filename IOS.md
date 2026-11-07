@@ -99,6 +99,42 @@ plus) : la flamme du jour, pleine quand la séance est faite, et la séance du j
 (`accessoryInline`). Il lit les mêmes données que le widget de l’écran d’accueil (même fournisseur), et l’app le recharge avec
 lui (`reloadAllTimelines`). Rien à ajouter au projet Xcode : il vit dans la même extension.
 
+### La cheminée (7 novembre)
+
+Elisa, 7 novembre (16 h 03 : « des supers widgets et live activity et dynamique island créatifs, à un niveau plus que
+élevé » ; de 17 h 01 à 17 h 38, les images qu’elle a générées pour la planche ; son choix : « Cheminée + lunettes »). Le widget
+**La cheminée** (`RequeteCheminee`, dans `RequeteWidget.swift`) est la pièce du chat, en grand widget (`systemLarge`) :
+
+- **le feu** raconte la séance du jour : froid ; des braises le soir (de 18 h à minuit : « Ta flamme t’attend ! », le temps
+  qu’il reste avant minuit, qui défile tout seul, et le bouton « Allumer ma flamme ») ; une belle flambée quand elle est faite
+  (« Flamme allumée ! »). Un jour de repos du planning, la cheminée reste froide, sans presser ;
+- **le ciel**, par la fenêtre, suit l’heure : l’aurore (5 h – midi), le jour, le crépuscule (18 h – 21 h), la nuit. Le
+  fournisseur pose une entrée à minuit, 5 h, midi, 18 h et 21 h ; la séance du jour suit les règles du widget de la flamme ;
+- **le chat** change de pose : il dort la nuit, se réveille le matin, travaille l’après-midi, tient sa bougie le soir, saute de
+  joie quand la séance est faite, salue un jour de repos ;
+- **la pièce se décore** : au mur, les stickers gagnés (trois au plus) ; sur la cheminée, la plante, un trophée dès le premier
+  défi réussi, un diplôme dès le premier module fini. L’app les range avec la série (index.html, `widgetCheminee`, dans
+  `widgetMaj` ; pont `maj`).
+
+**Le très grand widget** (`systemExtraLargePortrait`, iOS 27, en portrait) ajoute le liège (la dernière carte mémo gagnée, et le
+post-it du chat, une phrase par jour) et l’écran de l’ordinateur (la prochaine leçon, ou le prochain défi). Il n’existe que
+compilé avec **Xcode 27** (Swift 6.4) : avec Xcode 26, le code le saute (`#if compiler(>=6.4)`) et le widget reste en grand.
+
+**« Allumer ma flamme »** ouvre `requete://seance` : le délégué de scène le reçoit (l’app ouverte, ou lancée par lui),
+`RequeteRaccourci.ouvrir` en fait le raccourci `fr.requete.app.seance`, et la page ouvre la séance recommandée, comme la carte de
+l’accueil (`raccourciOuvrir` ; pendant l’onboarding, un bandeau le dit ; en pleine séance, on y reste). `scripts/ios-widget.mjs`
+déclare le schéma `requete` (`CFBundleURLTypes`) une fois dans l’Info.plist de l’app ; un Info.plist qui a déjà ses schémas d’URL
+n’est pas touché (un avertissement le dit : y ajouter `requete` sous `CFBundleURLSchemes`). Sans délégué de scène (modèles plus
+anciens de Capacitor), le bouton ouvre l’app sans la séance.
+
+La pièce est le fond du widget (`containerBackground`) : quand iOS teinte l’écran d’accueil, il l’enlève, et la phrase, le chat
+et le bouton restent. Ses images (`Assets.xcassets` : `PieceGrand…` et `PieceTresGrand…` pour les quatre moments, le ciel peint
+derrière les vitres ; `Feu…`, `Chat…`, `Trophee`, `Plante`, `Diplome`, `Autocollant`) restent petites : WidgetKit refuse une
+image plus grande que ce que le widget peut montrer (« Widget archival failed due to image being too large », dans la console),
+et le widget reste vide. La pièce existe en 2x et en 3x, chacune sous la surface d’un grand widget de l’iPhone le plus petit de
+son échelle (un test le vérifie). Les places des objets sont relevées sur la planche, en pixels de l’image d’origine
+(`Agencement`) : une nouvelle image de la pièce garde les mêmes proportions, ou les places sont à relever de nouveau.
+
 ### Le chat change dans la journée (4 novembre, 12 h 14)
 
 Un widget ne joue ni vidéo ni boucle (iOS ne le permet pas) : il anime le passage d’un état à l’autre, à partir d’iOS 17. Le chat
@@ -145,6 +181,15 @@ Une Live Activity suit la leçon en vidéo : la page la lance à l’ouverture d
 
 iOS ne montre les Live Activities que si l’Info.plist de l’app a `NSSupportsLiveActivities` : `scripts/ios-widget.mjs` l’ajoute
 une fois (à chaque `npm run ios`, `ios:add` ou `ios:testflight`). Réglages › Requête › Activités en direct permet de les couper.
+
+### Les lunettes du chat dans la Dynamic Island (7 novembre)
+
+Sur la planche « Le chat se cache dans l’île » (son choix : « Cheminée + lunettes ») : l’île est noire, on n’y voit que les
+lunettes du chat (`LunettesChat`, dessinées en formes dans `RequeteWidget.swift`), à gauche et en tout petit ; à droite, les
+moments réussis, comme avant. Ses yeux suivent la leçon (`leconRegard`) : il regarde ; il sourit, l’objectif de la leçon
+atteint ; il s’endort quand la leçon est en pause depuis une heure (la Live Activity est alors périmée, `isStale`, à partir
+d’iOS 16.2 : le pont la met à jour avec une `staleDate` d’une heure) ; leçon réussie, des étoiles plein les yeux. Appui long : le
+chat sort du noir (`ChatNoir`, sur fond noir, comme l’île). L’écran verrouillé ne change pas.
 
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 

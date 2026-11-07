@@ -2,12 +2,14 @@ import UIKit
 import Capacitor
 
 // Le délégué de scène du modèle de Capacitor 8.6, recopié à sa place par scripts/ios-widget.mjs (l’original est gardé à côté :
-// SceneDelegate.swift.avant-requete), avec deux changements :
+// SceneDelegate.swift.avant-requete), avec trois changements :
 // - le contrôleur de l’app est RequeteViewController, qui enregistre le pont du widget et des raccourcis (RequeteWidgetPlugin).
 //   Capacitor crée ici même un CAPBridgeViewController, sans passer par Main.storyboard : sans ce changement, le pont n’existait pas ;
 // - les raccourcis de l’icône (appui long sur l’icône de l’app, comme Duolingo : « Tu supprimes Requête ? », « Fais une petite
 //   requête ! ») arrivent ici, l’app déjà ouverte (windowScene(_:performActionFor:)) ou lancée par le raccourci (connectionOptions).
-//   RequeteRaccourci les passe à la page (RequeteWidgetPlugin.swift).
+//   RequeteRaccourci les passe à la page (RequeteWidgetPlugin.swift) ;
+// - les liens de Requête (le bouton « Allumer ma flamme » du widget La cheminée, 7 novembre) arrivent ici aussi, l’app déjà
+//   ouverte (scene(_:openURLContexts:)) ou lancée par le lien (connectionOptions) : RequeteRaccourci.ouvrir en fait un raccourci.
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
@@ -24,6 +26,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if let raccourci = connectionOptions.shortcutItem {
             RequeteRaccourci.recevoir(raccourci.type)
         }
+        if let lien = connectionOptions.urlContexts.first?.url {
+            RequeteRaccourci.ouvrir(lien)
+        }
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
@@ -34,6 +39,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        for contexte in URLContexts {
+            RequeteRaccourci.ouvrir(contexte.url)
+        }
         SceneDelegateProxy.shared.scene(scene, openURLContexts: URLContexts)
     }
 
