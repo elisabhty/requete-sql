@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=212">
+<link rel="stylesheet" href="ludique.css?v=213">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27738,6 +27738,12 @@ const CLS_PAR_PAGE=5,CLS_PAGES_MAX=200,DEFIS_ONGLETS=[['jouer','Jouer'],['classe
 })();
 function dxRang(n,txt){n=Math.max(1,Math.floor(+n||1));return txt?(n===1?'1er':n+'e'):(n===1?'1<sup>er</sup>':`${n}<sup>e</sup>`);}
 function dxParties(n){n=Math.max(0,Math.floor(+n||0));return `${n.toLocaleString('fr-FR')} partie${n>1?'s':''}`;}
+/* « en France », « au Canada », « aux États-Unis », « à Singapour » : la préposition du pays (7 novembre, 22 h 19 : la fiche d’un joueur
+   dit « N° 4 en France » ; la carte du joueur aussi). */
+const PAYS_AU=new Set('BD BF BI BJ BR BT BW BZ CA CD CG CL CM CR CV DK EH GA GB GH GT GY HN JP KE KG KH KW KZ LA LB LI LR LS LU MA ME ML MM MW MX MZ NE NG NI NP PA PE PK PT PY QA RW SD SL SN SR SS SV TD TG TJ TL TM VA VE VN VU XK YE ZW'.split(' '));
+const PAYS_AUX=new Set('AE AX BM BQ BS CK FJ FK FO KM KY MH MV NL PH PW SB SC TC TO US VG VI WS'.split(' '));
+const PAYS_A=new Set('AG AI AW BH BL CU CW CY DJ GG GI GU HK JE KI KN LC MC MF MG MO MT MU NR PM RE SG SM ST SX TT TV TW VC WF YT'.split(' '));
+function paysEn(code){return `${PAYS_AUX.has(code)?'aux':PAYS_AU.has(code)?'au':PAYS_A.has(code)?'à':'en'} ${paysNom(code)}`;}
 
 /* Les drapeaux : celui du joueur (son profil, s’il ne l’a pas masqué) et ceux des autres (jeu_drapeaux, par lots de 50 pseudos,
    gardés le temps de la session ; le classement et les salles ouvertes les donnent aussi). Un pseudo inconnu n’a pas de drapeau. */
@@ -27833,7 +27839,7 @@ function defisMoiHTML(){
   const nom=jeuSavedNom(),k=salleKpi(),r=DEFIS.cls.rangs,pays=paysMontre()?paysDuProfil():'';
   let ligne,lt;
   if(!clsOn()){ligne=`${sallePts(k.pts)} · hors classement`;lt=ligne;}
-  else if(r&&r.pays&&r.mon_pays){ligne=`${sallePts(k.pts)} · ${dxRang(r.pays)} en ${esc(paysNom(r.mon_pays))}`;lt=`${sallePts(k.pts)}, ${dxRang(r.pays,1)} en ${paysNom(r.mon_pays)}`;}
+  else if(r&&r.pays&&r.mon_pays){ligne=`${sallePts(k.pts)} · ${dxRang(r.pays)} ${esc(paysEn(r.mon_pays))}`;lt=`${sallePts(k.pts)}, ${dxRang(r.pays,1)} ${paysEn(r.mon_pays)}`;}
   else if(r&&r.monde){ligne=`${sallePts(k.pts)} · ${dxRang(r.monde)} au classement`;lt=`${sallePts(k.pts)}, ${dxRang(r.monde,1)} au classement`;}
   else{ligne=k.pts?sallePts(k.pts):'Joue une partie pour entrer au classement';lt=ligne;}
   return `<button type="button" class="dx-me" onclick="defisOnglet('stats')" aria-label="${escAttr(`${nom||'Toi'}\u00a0: ${lt}. Voir mes stats`)}">`+
@@ -28276,8 +28282,12 @@ function dxFicheCls(id){
 function dxFiche(n,x){
   n=jeuNom(n);if(!n||drapCle(n)===drapCle(jeuSavedNom()))return;
   if(typeof document==='undefined'||!document.body)return;
-  const D=typeof DEFIS!=='undefined'?DEFIS:{},tout=!!x&&D.periode!=='semaine',rk=x&&D.portee!=='amis'?Math.max(0,Math.floor(+x.rang||0)):0;
-  const lieu=!rk?'':D.periode==='semaine'?`${dxRang(rk,1)} cette semaine`:D.portee==='pays'?`${dxRang(rk,1)} dans ton pays`:`${dxRang(rk,1)} au classement`;
+  const D=typeof DEFIS!=='undefined'?DEFIS:{},tout=!!x&&D.periode!=='semaine',rk=x?Math.max(0,Math.floor(+x.rang||0)):0;
+  /* Sa place dans le classement d’où l’on vient (22 h 19 : « premier en France n’est pas forcément premier au monde ») : « 🥇 N° 1
+     mondial », « N° 4 en France », « N° 2 parmi tes amis », et « cette semaine » s’il le faut. */
+  const pays=D.portee==='pays'&&typeof paysDuProfil==='function'?paysDuProfil():'';
+  const ou=D.portee==='amis'?'parmi tes amis':pays?paysEn(pays):'mondial';
+  const lieu=!rk?'':`${rk<=3?['🥇','🥈','🥉'][rk-1]+' ':''}N°\u00a0${rk} ${ou}${D.periode==='semaine'?' cette semaine':''}`;
   dxFicheEtat={n,pays:x&&x.pays||'',lieu,pts:tout?Math.max(0,+x.pts||0):null,parties:tout?Math.max(0,+x.parties||0):null,err:false};
   const a=document.activeElement;
   dxFicheOuvrir(a&&a.closest&&a.closest('#scr-defis li')?a:null);
@@ -28298,29 +28308,60 @@ function dxFicheCharger(e){
 /* Les chiffres : « … » le temps de la réponse, « — » sans connexion. */
 function dxFicheKpiHTML(){
   const e=dxFicheEtat;if(!e)return '';
-  const m=amisListe().find(a=>drapCle(a.n)===drapCle(e.n)),v=x=>x==null?(e.err?'—':'…'):clsPts(x),pl=x=>x>1?'s':'';
-  const lead=m&&m.g?(m.w>m.l?'is-up':m.w<m.l?'is-down':'is-eq'):'';
-  return `<div><b>${v(e.pts)}</b><small>point${pl(e.pts)}</small></div><div><b>${v(e.parties)}</b><small>partie${pl(e.parties)}</small></div>`+
-    (m&&m.g?`<div class="${lead}"><b>${m.w}–${m.l}</b><small>face à toi</small></div>`:'')+
+  const v=x=>x==null?(e.err?'—':'…'):clsPts(x),pl=x=>x>1?'s':'';
+  return `<div><b>${v(e.pts)}</b><small>point${pl(e.pts)}</small></div><div><b>${v(e.parties)}</b><small>partie${pl(e.parties)} jouée${pl(e.parties)}</small></div>`+
     (e.err?'<p class="dx-fiche-err">Pas de connexion&nbsp;: ses points reviennent avec internet.</p>':'');
 }
 function dxFicheChiffres(){
   const k=typeof document!=='undefined'&&document.getElementById?document.getElementById('dx-fiche-kpi'):null;
   if(k)k.innerHTML=dxFicheKpiHTML();
 }
+/* Vos parties ensemble, les plus récentes d’abord (l’historique des 12 dernières parties, gardé sur l’appareil) : la date, le niveau,
+   les manches, ta place et la sienne, tes points et les siens. */
+function dxDuels(n){
+  const k=drapCle(n),h=Array.isArray((state.salle||{}).hist)?state.salle.hist:[];
+  return h.filter(x=>x&&Array.isArray(x.ppl)&&x.ppl.some(p=>p&&p.me)&&x.ppl.some(p=>p&&!p.me&&drapCle(p.n)===k)).map(x=>{
+    const a=x.ppl.find(p=>p&&p.me),b=x.ppl.find(p=>p&&!p.me&&drapCle(p.n)===k);
+    return {at:+x.at||0,niv:x.niv,n:Math.max(1,Math.floor(+x.n||1)),moi:Math.max(0,+a.pts||0),lui:Math.max(0,+b.pts||0),res:a.place<b.place?'w':a.place>b.place?'l':'e'};
+  });
+}
+/* Le face-à-face (22 h 19 : « 3–1 peut être ambigu : est-ce que lea_data a gagné trois fois, ou est-ce toi ? ») : ses victoires sous
+   son pseudo, les tiennes sous « Toi », puis « 4 confrontations », qui déplie vos dernières parties. */
+function dxFicheDuelHTML(m,e){
+  const d=dxDuels(e.n),pl=x=>x>1?'s':'',vic=x=>`${x} victoire${pl(x)}`;
+  const lu=`Face à face\u00a0: ${e.n} ${vic(m.l)}, toi ${vic(m.w)}, en ${m.g} confrontation${pl(m.g)}`;
+  const conf=`${m.g} confrontation${pl(m.g)}`;
+  const liste=d.length?`<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste">${d.map(x=>`<li class="is-${x.res}"><b>${x.res==='w'?'Gagnée':x.res==='l'?'Perdue':'Égalité'}</b><span>${clsPts(x.moi)}&nbsp;pts contre ${clsPts(x.lui)}</span><small>${esc(perfDay(x.at))} · ${esc((typeof JEU_NIVL!=='undefined'&&JEU_NIVL[x.niv])||'Facile')} · ${x.n} manche${pl(x.n)}</small></li>`).join('')}</ol>`+
+    (d.length<m.g?'<p class="dx-duel-note">Seules tes 12 dernières parties sont gardées.</p>':'')+'</div>':'';
+  return `<div class="dx-fiche-duel${m.w>m.l?' is-up':m.w<m.l?' is-down':''}" role="group" aria-label="${escAttr(lu)}">
+    <div class="dx-duel-score" aria-hidden="true"><span${m.l>m.w?' class="is-tete"':''}><b>${m.l}</b><small>${esc(e.n)}</small></span><i>–</i><span${m.w>m.l?' class="is-tete"':''}><b>${m.w}</b><small>Toi</small></span></div>
+    ${d.length?`<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>${conf}</span>${DEF_CHEV_SVG}</button>`:`<p class="dx-duel-voir">${conf}</p>`}
+    ${liste}</div>`;
+}
+function dxFicheDuels(b){
+  const l=document.getElementById('dx-fiche-duels');if(!l||!b)return;
+  const on=l.hidden;l.hidden=!on;b.setAttribute('aria-expanded',String(on));
+  const f=document.getElementById('dx-feuille');if(f&&typeof f._marque==='function')f._marque();
+}
+/* « Prendre ta revanche ⚡ » (22 h 19) quand ta dernière partie contre lui est perdue (sans elle, quand il mène) ; sinon « Défier ». */
+function dxFicheRevanche(m,e){
+  if(!m||!m.g)return false;
+  const d=dxDuels(e.n);
+  return d.length?d[0].res==='l':m.l>m.w;
+}
 function dxFicheHTML(){
   const e=dxFicheEtat;if(!e)return '';
   const m=amisListe().find(a=>drapCle(a.n)===drapCle(e.n));
   const sous=e.lieu||(m?'Ton adversaire':'');
   return `<div class="room-head"><span class="room-stk dx-fiche-av" aria-hidden="true"><b class="jeu-av" data-c="${perfColor(e.n)}">${jeuInitial(e.n)}${jeuFlag(e.n,e.pays||undefined)}</b></span><div>
-    <p class="room-kicker">Fiche joueur</p>
+    <p class="room-kicker">Profil du joueur</p>
     <h2 id="dx-f-t">${esc(e.n)}</h2>
     <p class="room-sub" id="dx-f-p">${esc(sous)}</p></div><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="dx-f-corps" data-k="joueur">
     <div class="dx-fiche-kpi" id="dx-fiche-kpi" aria-live="polite">${dxFicheKpiHTML()}</div>
-    ${m&&m.g?`<p class="dx-fiche-h2h">${dxParties(m.g)} ensemble · ${esc(perfDay(m.at).toLowerCase())}</p>`:''}
+    ${m&&m.g?dxFicheDuelHTML(m,e)+`<p class="dx-fiche-h2h">Dernier duel&nbsp;: ${esc(perfDay(m.at).toLowerCase())}</p>`:''}
     <div class="dx-f-pied">
-    <button type="button" class="room-go" onclick="dxFicheDefier()"><span>Défier ${esc(e.n)}</span>${DEF_CHEV_SVG}</button>
+    <button type="button" class="room-go" onclick="dxFicheDefier()"><span>${dxFicheRevanche(m,e)?'Prendre ta revanche ⚡':`Défier ${esc(e.n)}`}</span>${DEF_CHEV_SVG}</button>
     ${m?'':'<button type="button" class="dx-sec dx-fiche-ajout" onclick="dxFicheAjouter()">Ajouter à mes adversaires</button>'}</div>
     </div>`;
 }
@@ -28339,6 +28380,9 @@ function dxFicheOuvrir(retour){
       <button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>
       ${dxFicheHTML()}
     </div>`;
+  /* Plus haute que l’écran (l’historique déplié, petits téléphones) : elle défile, le dégradé du pied le dit (comme les feuilles de Jouer). */
+  const bx=el.querySelector('.dx-f-boite');
+  if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;setTimeout(marque,typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:720);}
   const montrer=()=>{el.classList.add('on');try{el.querySelector('.dx-f-boite').focus({preventScroll:true});}catch(e){}dxFeuilleCaler();};
   if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
 }
@@ -45769,7 +45813,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-adversaires-v2646';
+  const SW_CACHE='requete-2026-11-07-profil-joueur-v2647';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

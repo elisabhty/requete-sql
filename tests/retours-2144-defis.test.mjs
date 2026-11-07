@@ -162,10 +162,14 @@ test('depuis le classement : une ligne se touche (ou son nom au clavier) et ouvr
   c.ev("dxFicheCls('a1')");
   const n = c.appels.length;
   const h = c.ev('dxFicheHTML()');
-  assert.ok(h.includes('<p class="room-kicker">Fiche joueur</p>') && h.includes('<h2 id="dx-f-t">@lea</h2>') && h.includes('<p class="room-sub" id="dx-f-p">1er au classement</p>'));
-  assert.ok(h.includes('<div><b>1240</b><small>points</small></div><div><b>37</b><small>parties</small></div><div class="is-up"><b>3–1</b><small>face à toi</small></div>'), 'depuis toujours : ses chiffres déjà là, et votre face-à-face');
-  assert.ok(h.includes('<p class="dx-fiche-h2h">4 parties ensemble · hier</p>'));
-  assert.ok(h.includes('onclick="dxFicheDefier()"><span>Défier @lea</span>') && !h.includes('dx-fiche-ajout'), 'déjà dans tes adversaires : pas de « Ajouter »');
+  /* 22 h 19 : « Profil du joueur », « 🥇 N° 1 mondial », « parties jouées », « Dernier duel : hier » */
+  assert.ok(h.includes('<p class="room-kicker">Profil du joueur</p>') && h.includes('<h2 id="dx-f-t">@lea</h2>') && h.includes('<p class="room-sub" id="dx-f-p">🥇 N°\u00a01 mondial</p>'));
+  assert.ok(h.includes('<div><b>1240</b><small>points</small></div><div><b>37</b><small>parties jouées</small></div>'), 'depuis toujours : ses chiffres déjà là');
+  assert.ok(h.includes('<div class="dx-duel-score" aria-hidden="true"><span><b>1</b><small>@lea</small></span><i>–</i><span class="is-tete"><b>3</b><small>Toi</small></span></div>'), 'ses victoires sous son pseudo, les tiennes sous « Toi »');
+  assert.ok(h.includes('aria-label="Face à face\u00a0: @lea 1 victoire, toi 3 victoires, en 4 confrontations"') && h.includes('<div class="dx-fiche-duel is-up"'));
+  assert.ok(h.includes('<p class="dx-duel-voir">4 confrontations</p>'), 'sans parties gardées avec lui : le nombre, sans liste à déplier');
+  assert.ok(h.includes('<p class="dx-fiche-h2h">Dernier duel&nbsp;: hier</p>'));
+  assert.ok(h.includes('onclick="dxFicheDefier()"><span>Défier @lea</span>') && !h.includes('dx-fiche-ajout'), 'il mène pas : « Défier » ; déjà dans tes adversaires : pas de « Ajouter »');
   assert.equal(c.appels.filter(x => x[0] === 'jeu_classement_v2').length, 1, 'rien de plus à demander');
   assert.equal(c.appels.length, n);
   c.ev('dxFicheDefier()');
@@ -181,10 +185,13 @@ test('la fiche d’un adversaire : ses points demandés à la base (lui seul), v
   assert.ok(l.includes("onclick=\"jeuDefier('@tom')\""), '« Défier » reste sur la ligne');
   c.ev("dxFiche('@tom')");
   assert.deepEqual(J(c.appels.find(x => x[0] === 'jeu_classement_v2')[1]), { p_cle: 'K'.repeat(32), p_portee: 'amis', p_periode: 'tout', p_page: 0, p_pays: null, p_pseudos: ['@tom'] });
-  assert.ok(c.ev('dxFicheHTML()').includes('<div><b>…</b><small>point</small></div>'), 'le temps de la réponse');
+  assert.ok(c.ev('dxFicheHTML()').includes('<div><b>…</b><small>point</small></div><div><b>…</b><small>partie jouée</small></div>'), 'le temps de la réponse');
   await attendre();
-  assert.ok(c.els['dx-fiche-kpi'].innerHTML.startsWith('<div><b>980</b><small>points</small></div><div><b>22</b><small>parties</small></div><div class="is-down"><b>0–2</b><small>face à toi</small></div>'));
-  assert.ok(c.ev('dxFicheHTML()').includes('<p class="room-sub" id="dx-f-p">Ton adversaire</p>'));
+  assert.equal(c.els['dx-fiche-kpi'].innerHTML, '<div><b>980</b><small>points</small></div><div><b>22</b><small>parties jouées</small></div>');
+  const h = c.ev('dxFicheHTML()');
+  assert.ok(h.includes('<p class="room-sub" id="dx-f-p">Ton adversaire</p>'), 'pas de place sans classement d’où l’on vient');
+  assert.ok(h.includes('<span class="is-tete"><b>2</b><small>@tom</small></span><i>–</i><span><b>0</b><small>Toi</small></span>') && h.includes('<div class="dx-fiche-duel is-down"'));
+  assert.ok(h.includes('<span>Prendre ta revanche ⚡</span>'), 'il mène (pas de partie gardée pour savoir la dernière) : la revanche');
   /* Sans connexion */
   const k = bac({ rpcKo: true });
   k.ev("dxFiche('@noe')"); await attendre();
@@ -199,7 +206,7 @@ test('la fiche d’un joueur qui n’est pas encore dans ta liste : « Ajouter �
   c.ev("DEFIS.periode='semaine';DEFIS.portee='monde';defisClassementPeindre()"); await attendre();
   c.ev("dxFicheCls('z')");
   const h = c.ev('dxFicheHTML()');
-  assert.ok(h.includes('<p class="room-sub" id="dx-f-p">3e cette semaine</p>'), 'sa place, dans le classement d’où l’on vient');
+  assert.ok(h.includes('<p class="room-sub" id="dx-f-p">🥉 N°\u00a03 mondial cette semaine</p>'), 'sa place, dans le classement d’où l’on vient');
   assert.ok(h.includes('<button type="button" class="dx-sec dx-fiche-ajout" onclick="dxFicheAjouter()">Ajouter à mes adversaires</button>'));
   assert.equal(c.appels.filter(x => x[0] === 'jeu_classement_v2' && x[1].p_portee === 'amis').length, 1, 'la semaine : ses points depuis toujours sont demandés');
   c.ev('dxFicheAjouter()');
@@ -208,7 +215,7 @@ test('la fiche d’un joueur qui n’est pas encore dans ta liste : « Ajouter �
   assert.equal(c.els['dx-f-p'].textContent, 'Ton adversaire');
   /* Le formulaire passe par la même mise en liste */
   assert.ok(fn('amisAjouter').includes('const garder=n=>{DEFIS.amisMsg=\'\';DEFIS.amisForm=false;amisGarder(n);defisAmisPeindre();};'));
-  for (const k of ['html.lq .dx-feuille .dx-fiche-kpi{display:grid;', 'html.lq .dx-feuille .dx-fiche-kpi>div.is-up{', 'html.lq .dx-feuille .dx-fiche-ajout{display:block;width:100%;',
+  for (const k of ['html.lq .dx-feuille .dx-fiche-kpi{display:grid;', 'html.lq .dx-feuille .dx-fiche-duel{', 'html.lq .dx-feuille .dx-fiche-ajout{display:block;width:100%;',
     'html.lq .dx-feuille .dx-fiche-av>.jeu-av{', 'html.lq #scr-defis button.dx-t-btn{margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;'])
     assert.ok(lq.includes(k), k);
 });
@@ -231,4 +238,54 @@ test('après une partie à plusieurs : « Retrouver mes adversaires » mène à 
   vm.runInContext(vers + '\n}', c2);
   c2.jeuVersAdversaires();
   assert.equal(ask.length, 1); assert.equal(c2.DEFIS.onglet, 'jouer');
+});
+
+test('la fiche (22 h 19) : sa place suit le classement d’où l’on vient ; la préposition de chaque pays', async () => {
+  const ligne = rang => ({ lignes: [{ id: 'q', pseudo: '@quentin', pays: 'FR', pts: 50, parties: 2, rang, moi: false }], total: 9, moi: null });
+  const lieu = async (portee, periode, rang, profilPays = 'FR') => {
+    const c = bac({ rpc: f => f === 'jeu_classement_v2' ? ligne(rang) : {} });
+    c.ctx.paysDuProfil = () => profilPays;
+    c.ctx.paysNom = k => ({ FR: 'France', CA: 'Canada', US: 'États-Unis', SG: 'Singapour', BE: 'Belgique' })[k] || k;
+    c.ev(`DEFIS.portee='${portee}';DEFIS.periode='${periode}';defisClassementPeindre()`); await attendre();
+    c.ev("dxFicheCls('q')");
+    return c.ev('dxFicheEtat.lieu');
+  };
+  assert.equal(await lieu('pays', 'tout', 4), 'N°\u00a04 en France', 'premier en France n’est pas premier au monde');
+  assert.equal(await lieu('pays', 'semaine', 2, 'CA'), '🥈 N°\u00a02 au Canada cette semaine');
+  assert.equal(await lieu('pays', 'tout', 7, 'US'), 'N°\u00a07 aux États-Unis');
+  assert.equal(await lieu('pays', 'tout', 5, 'SG'), 'N°\u00a05 à Singapour');
+  assert.equal(await lieu('amis', 'tout', 2), '🥈 N°\u00a02 parmi tes amis');
+  assert.equal(await lieu('monde', 'tout', 12), 'N°\u00a012 mondial');
+  /* La carte du joueur (Jouer) prend la même préposition */
+  assert.ok(fn('defisMoiHTML').includes('${dxRang(r.pays)} ${esc(paysEn(r.mon_pays))}'));
+});
+
+test('la fiche : « 4 confrontations » déplie vos dernières parties ; la revanche suit la dernière', () => {
+  const N = 1_800_000_000_000, h = (at, mien, sien, res, niv = 'm', n = 3) => ({ at, pts: mien, n, niv, solo: 0, place: res === 'w' ? 1 : 2, players: 2,
+    ppl: res === 'w' ? [{ n: '@elisa_sql', pts: mien, place: 1, me: 1 }, { n: '@lea', pts: sien, place: 2 }] : res === 'l' ? [{ n: '@lea', pts: sien, place: 1 }, { n: '@elisa_sql', pts: mien, place: 2, me: 1 }]
+      : [{ n: '@elisa_sql', pts: mien, place: 1, me: 1 }, { n: '@lea', pts: sien, place: 1 }] });
+  const hist = [h(N, 120, 200, 'l', 'f', 1), h(N - 9e7, 230, 195, 'w'), { at: N - 1e8, pts: 50, n: 1, niv: 'f', solo: 1, place: 0, players: 1 }, h(N - 2e8, 80, 80, 'e', 'd', 5)];
+  const c = bac({ salle: { mates: { lea: { n: '@lea', g: 4, w: 2, l: 1, at: N } }, hist } });
+  assert.deepEqual(J(c.ev("dxDuels('@lea').map(d=>d.res+d.moi+'-'+d.lui)")), ['l120-200', 'w230-195', 'e80-80'], 'les parties avec lui seulement, les plus récentes d’abord');
+  c.ev("dxFiche('@lea')");
+  const f = c.ev('dxFicheHTML()');
+  assert.ok(f.includes('<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>4 confrontations</span>'));
+  assert.ok(f.includes('<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste"><li class="is-l"><b>Perdue</b><span>120&nbsp;pts contre 200</span><small>Hier · Facile · 1 manche</small></li><li class="is-w"><b>Gagnée</b><span>230&nbsp;pts contre 195</span>'));
+  assert.ok(f.includes('<li class="is-e"><b>Égalité</b>') && f.includes('<p class="dx-duel-note">Seules tes 12 dernières parties sont gardées.</p></div>'), 'trois parties gardées pour quatre jouées : on le dit');
+  assert.ok(f.includes('<span>Prendre ta revanche ⚡</span>'), 'la dernière est perdue : la revanche, même s’il est derrière au total');
+  /* Déplier, replier */
+  const l = { hidden: true }, b = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
+  c.ctx.document.getElementById = id => id === 'dx-fiche-duels' ? l : null;
+  c.ev('dxFicheDuels')(b); assert.equal(l.hidden, false); assert.equal(b.attrs['aria-expanded'], 'true');
+  c.ev('dxFicheDuels')(b); assert.equal(l.hidden, true); assert.equal(b.attrs['aria-expanded'], 'false');
+  /* La dernière gagnée : « Défier », même s’il mène au total */
+  const d = bac({ salle: { mates: { lea: { n: '@lea', g: 3, w: 1, l: 2, at: N } }, hist: [h(N, 300, 100, 'w'), h(N - 1e7, 10, 90, 'l'), h(N - 2e7, 10, 90, 'l')] } });
+  d.ev("dxFiche('@lea')");
+  assert.ok(d.ev('dxFicheHTML()').includes('<span>Défier @lea</span>') && !d.ev('dxFicheHTML()').includes('dx-duel-note'), 'toutes gardées : pas de note');
+  /* Jamais affronté : « Défier », pas de face-à-face */
+  const e = bac(); e.ev("dxFiche('@noe')");
+  assert.ok(e.ev('dxFicheHTML()').includes('<span>Défier @noe</span>') && !e.ev('dxFicheHTML()').includes('dx-fiche-duel'));
+  for (const k of ['html.lq .dx-feuille .dx-duel-score{display:grid;', 'html.lq .dx-feuille .dx-duel-plus[hidden]{display:none}', 'html.lq .dx-feuille .dx-duel-liste li.is-l b{color:#C2323A}',
+    'html.lq .dx-feuille button.dx-duel-voir[aria-expanded="true"] svg{rotate:90deg}'])
+    assert.ok(lq.includes(k), k);
 });
