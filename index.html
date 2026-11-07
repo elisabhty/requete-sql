@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=214">
+<link rel="stylesheet" href="ludique.css?v=215">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -25551,7 +25551,8 @@ function tabBackName(tab){return TAB_BACK_NAME[tabBackDest(tab)]||TAB_BACK_NAME.
 /* Le libellé du retour d’une sous-page : la page d’où l’on vient. */
 function syncTabBack(tab){
   if(primaryTabFor(tab)===tab)return;
-  const [lab,to]=tabBackName(tab);
+  /* Défis › Mes stats : le retour ramène à l’onglet Jouer (refonte du 7 novembre, un seul bouton retour). */
+  const [lab,to]=tab==='defis'&&typeof DEFIS!=='undefined'&&DEFIS.onglet==='stats'?['Jouer','à l’onglet Jouer']:tabBackName(tab);
   const btn=screenForTab(tab)?.querySelector(':scope>.home-back.root-home-back');
   if(btn){const sp=btn.querySelector('span');if(sp&&sp.textContent!==lab)sp.textContent=lab;btn.setAttribute('aria-label','Retour '+to);}
   if(tab==='console'&&consoleView!=='work'){
@@ -25561,6 +25562,7 @@ function syncTabBack(tab){
   if(tab==='entretien'&&typeof syncEntretienChrome==='function')syncEntretienChrome();
 }
 function returnToParent(){
+  if(activeTab==='defis'&&typeof DEFIS!=='undefined'&&DEFIS.onglet==='stats'){defisOnglet('jouer');return;}
   window.pNavBack?.();
   const parent=tabBackDest(activeTab);
   delete tabFrom[activeTab];
@@ -27037,11 +27039,13 @@ function renderDefisRoom(){
 }
 /* « Rejoindre avec un code », « Jouer en solo » : dans le cadre du haut, sous « ou », une seule rangée (Elisa, 5 novembre, 11 h 11 :
    « juste un cadre unique ») ; chacun ouvre sa feuille. 7 novembre, 21 h 44 : un libellé explicite chacun, plus « J’ai un code ·
-   rejoindre un ami » ni « Seul · entraînement ». */
+   rejoindre un ami » ni « Seul · entraînement ».
+   Refonte du 7 novembre : deux boutons secondaires côte à côte sous « Créer ma partie » (l’autocollant à gauche du libellé), à la place
+   de « ou » et des deux tuiles de 92 px. Mêmes classes, data-k et aria qu’avant (defisFeuilleOuvrir y rend le focus). */
 function defisActionsHTML(){
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
-  const tuile=(k,stk,titre)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b></button>`;
-  return `<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('code','rocket','Rejoindre avec un code')}${tuile('seul','clock','Jouer en solo')}</div>`;
+  const b=(k,stk,titre)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b></button>`;
+  return `<div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${b('code','rocket','Rejoindre avec un code')}${b('seul','clock','Jouer en solo')}</div>`;
 }
 /* Le contenu d’une feuille : le bandeau violet (autocollant, surtitre, titre ; le niveau en pastille), puis, sur blanc, seulement ce
    qu’il faut choisir. Créer : les manches, qui peut entrer, le pseudo ; un code : le code ; seul : les manches. */
@@ -27164,7 +27168,7 @@ function renderDefis(){
 function perfDay(at){
   const d=new Date(at),t=new Date();t.setHours(0,0,0,0);
   const k=Math.round((t-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5);
-  return k<=0?'Aujourd’hui':k===1?'Hier':d.getDate()+' '+['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][d.getMonth()];
+  return k<=0?'Aujourd’hui':k===1?'Hier':d.getDate()+'\u00a0'+['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][d.getMonth()];
 }
 /* Avec qui : les pseudos des autres joueurs (« avec Léa et Tom », « avec Léa, Tom +2 ») ; une partie notée avant qu’on garde les
    pseudos dit seulement combien ils étaient. */
@@ -27737,7 +27741,7 @@ const CLS_PAR_PAGE=5,CLS_PAGES_MAX=200,DEFIS_ONGLETS=[['jouer','Jouer'],['classe
   }catch(e){}
 })();
 function dxRang(n,txt){n=Math.max(1,Math.floor(+n||1));return txt?(n===1?'1er':n+'e'):(n===1?'1<sup>er</sup>':`${n}<sup>e</sup>`);}
-function dxParties(n){n=Math.max(0,Math.floor(+n||0));return `${n.toLocaleString('fr-FR')} partie${n>1?'s':''}`;}
+function dxParties(n){n=Math.max(0,Math.floor(+n||0));return `${n.toLocaleString('fr-FR')}\u00a0partie${n>1?'s':''}`;}   // « 4 parties » ne se coupe plus
 /* « en France », « au Canada », « aux États-Unis », « à Singapour » : la préposition du pays (7 novembre, 22 h 19 : la fiche d’un joueur
    dit « N° 4 en France » ; la carte du joueur aussi). */
 const PAYS_AU=new Set('BD BF BI BJ BR BT BW BZ CA CD CG CL CM CR CV DK EH GA GB GH GT GY HN JP KE KG KH KW KZ LA LB LI LR LS LU MA ME ML MM MW MX MZ NE NG NI NP PA PE PK PT PY QA RW SD SL SN SR SS SV TD TG TJ TL TM VA VE VN VU XK YE ZW'.split(' '));
@@ -27802,7 +27806,10 @@ function defisOnglet(k){
   DEFIS.onglet=k;if(k!=='stats')jeuSavePrefs();
   defisPeindre();
   const scr=document.getElementById('scr-defis'),tabs=document.getElementById('defis-tabs');
-  if(scr&&tabs){const top=scr.scrollTop+tabs.getBoundingClientRect().top-scr.getBoundingClientRect().top-12;if(scr.scrollTop>top)scr.scrollTop=Math.max(0,top);}
+  /* Mes stats est une page à part (les onglets se cachent) : elle s’ouvre en haut. */
+  if(scr&&tabs&&tabs.hidden)scr.scrollTop=0;
+  else if(scr&&tabs){const top=scr.scrollTop+tabs.getBoundingClientRect().top-scr.getBoundingClientRect().top-12;if(scr.scrollTop>top)scr.scrollTop=Math.max(0,top);}
+  if(typeof syncTabBack==='function')syncTabBack('defis');
   if(typeof buzz==='function')buzz('light');
 }
 function defisPeindre(){
@@ -27810,6 +27817,9 @@ function defisPeindre(){
   if(jeuInvite){DEFIS.onglet='jouer';DEFIS.carte='code';}
   const o=DEFIS.onglet==='stats'?'jouer':DEFIS.onglet;
   tabs.innerHTML=`<div class="room-seg is-3 dx-tabs" role="tablist" aria-label="Défis">${DEFIS_ONGLETS.map(([k,l])=>`<button type="button" role="tab" id="dx-tab-${k}" class="room-opt${o===k?' on':''}" aria-selected="${o===k}" aria-controls="defis-${k}" onclick="defisOnglet('${k}')">${l}</button>`).join('')}</div>`;
+  /* Refonte du 7 novembre (designer produit) : Mes stats n’est plus un 4e onglet caché derrière « Jouer » allumé. Les onglets se
+     cachent tant qu’elle est ouverte, et le retour du haut dit « Jouer » (syncTabBack, returnToParent) : un seul retour. */
+  tabs.hidden=DEFIS.onglet==='stats';
   ['jouer','classement','amis','stats'].forEach(k=>{const p=document.getElementById('defis-'+k);if(p)p.hidden=DEFIS.onglet!==k;});
   if(DEFIS.onglet==='jouer')defisJouerPeindre();
   else if(DEFIS.onglet==='classement')defisClassementPeindre();
@@ -27841,7 +27851,7 @@ function defisMoiHTML(){
   if(!clsOn()){ligne=`${sallePts(k.pts)} · hors classement`;lt=ligne;}
   else if(r&&r.pays&&r.mon_pays){ligne=`${sallePts(k.pts)} · ${dxRang(r.pays)} ${esc(paysEn(r.mon_pays))}`;lt=`${sallePts(k.pts)}, ${dxRang(r.pays,1)} ${paysEn(r.mon_pays)}`;}
   else if(r&&r.monde){ligne=`${sallePts(k.pts)} · ${dxRang(r.monde)} au classement`;lt=`${sallePts(k.pts)}, ${dxRang(r.monde,1)} au classement`;}
-  else{ligne=k.pts?sallePts(k.pts):'Joue une partie pour entrer au classement';lt=ligne;}
+  else{ligne=k.pts?sallePts(k.pts):'Joue pour entrer au classement';lt=ligne;}   // plus court (7 novembre) : 4 lignes à 320 px avant
   return `<button type="button" class="dx-me" onclick="defisOnglet('stats')" aria-label="${escAttr(`${nom||'Toi'}\u00a0: ${lt}. Voir mes stats`)}">`+
     `<b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom||'?')}${jeuFlag(nom,pays)}</b>`+
     `<span class="dx-me-t"><b>${esc(nom||'Toi')}</b><small>${ligne}</small></span><span class="dx-me-go" aria-hidden="true">Mes stats${DEF_CHEV_SVG}</span></button>`;
@@ -27850,7 +27860,7 @@ function defisMoiHTML(){
    15 h 20 : « mettre également le coefficient multiplicateur au niveau » : ×1, ×2, ×4 sous le nom (JEU_NIV_X), lu en toutes lettres. */
 function jeuNiveauxHTML(lab,fn){
   const auto=jeuNivAuto();
-  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':`<span class="room-lv-x" aria-hidden="true">×${x}<small>pts</small></span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
+  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'':`<span class="room-lv-x" aria-hidden="true">×${x}<small>pts</small></span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
 }
 function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
@@ -27869,15 +27879,21 @@ function defisNiv(k){
    (les salles ouvertes à ce niveau ; aucune : « Aucune salle à ton niveau ? Crée la tienne et laisse les autres te rejoindre ! »), puis
    le seul « Créer une salle », « ou » « J’ai un code » et « Seul » ; les salles des autres niveaux à la fin du cadre.
    7 novembre, 21 h 44 (sa relecture) : « Lance un défi ! », « Créer ma partie », « Rejoindre avec un code », « Jouer en solo » ;
-   et ce que rapporte chaque niveau, plus visible : « Plus c’est dur, plus ça rapporte » à côté de « Niveau ». */
+   et ce que rapporte chaque niveau, plus visible : « Plus c’est dur, plus ça rapporte » à côté de « Niveau ».
+   7 novembre, 22 h 30 (« il faut que quelqu’un m’aide pour la partie design », designers produit et visuel) : « Créer ma partie »
+   n’était visible sans défiler sur aucun téléphone. Le bandeau se resserre : son sous-titre garde la dernière phrase d’Elisa (« inviter
+   jusqu’à 4 joueurs, ouvrir à tous » est dit dans la feuille Créer) ; « ou » et les deux tuiles deviennent deux boutons secondaires
+   (defisActionsHTML) ; le cadre en pointillés devient une phrase. 23 h 46, Elisa (« ok ») : le sous-titre court, et son ordre du
+   5 novembre reste (le designer produit proposait « Créer ma partie » avant les salles) : les salles du niveau, puis « Créer ma
+   partie » ; sans salle à son niveau, « Voir les N autres salles » descend à celles des autres niveaux (sallesSectionHTML). */
 function defisRapideHTML(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
-  return `<section class="room-card dx-rapide" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
+  return `<section class="room-card dx-rapide is-v2" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
     <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>
-    <p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
-    <div class="room-field"><div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p><span class="dx-niv-plus">Plus c’est dur, plus ça rapporte</span></div>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
+    <p class="room-sub">Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
+    <div class="room-field dx-r-niv"><div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p><span class="dx-niv-plus">Plus c’est dur, plus ça rapporte</span></div>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
     <div class="dx-rejoindre" id="dx-rejoindre" role="group" aria-labelledby="dx-rejoindre-h">${sallesSectionHTML()}</div>
     <button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')"><span>Créer ma partie</span>${DEF_CHEV_SVG}</button>
     ${defisActionsHTML()}
@@ -27924,10 +27940,12 @@ function sallesSuivre(){
     },10000);
   }else if(!on&&DEFIS.sallesT){clearInterval(DEFIS.sallesT);DEFIS.sallesT=0;}
 }
+/* Une salle ouverte (7 novembre, refonte) : deux lignes au plus, à plat dans la liste (un trait les sépare, plus un cadre par
+   ligne) ; « 3 manches » ne se coupe plus entre le nombre et le mot. */
 function salleLigneHTML(s,qui){
-  const n=qui||s.hote,pays=qui?undefined:s.pays,niv=JEU_NIVL[s.niv]||'Facile',m=`${s.manches} manche${s.manches>1?'s':''}`;
+  const n=qui||s.hote,pays=qui?undefined:s.pays,niv=JEU_NIVL[s.niv]||'Facile',m=`${s.manches} manche${s.manches>1?'s':''}`;
   return `<li><b class="jeu-av" data-c="${perfColor(n)}" aria-hidden="true">${jeuInitial(n)}${jeuFlag(n,pays)}</b>`+
-    `<span class="dx-t"><b>${esc(n)} <span class="dx-plp">${s.nb}/${s.max}</span></b><small><i class="dx-niv is-${s.niv}">${niv}</i> · ${qui?'salle ouverte':m}</small></span>`+
+    `<span class="dx-t"><b><span class="dx-nom">${esc(n)}</span><span class="dx-plp">${s.nb}/${s.max}</span></b><small><i class="dx-niv is-${s.niv}">${niv}</i> · ${qui?'salle ouverte':m}</small></span>`+
     `<button type="button" class="dx-join" onclick="sallesRejoindre('${s.code}')" aria-label="${escAttr(`Rejoindre la salle de ${s.hote}\u00a0: ${niv}, ${m}, ${s.nb} joueur${s.nb>1?'s':''} sur ${s.max}`)}">Rejoindre</button></li>`;
 }
 function sallesRejoindre(code){
@@ -27938,12 +27956,18 @@ function sallesRejoindre(code){
 /* « Rejoins une partie », dans le cadre (12 h 52) : les salles ouvertes au niveau choisi, et combien ; aucune : la phrase d’Elisa, que
    suit « Créer une salle ». */
 function sallesSectionHTML(){
-  const D=typeof DEFIS!=='undefined'?DEFIS:{},l=D.salles,err=D.sallesErr,ici=(l||[]).filter(s=>s.niv===jeuNiv);
+  const D=typeof DEFIS!=='undefined'?DEFIS:{},l=D.salles,err=D.sallesErr,ici=(l||[]).filter(s=>s.niv===jeuNiv),autres=(l||[]).filter(s=>s.niv!==jeuNiv);
   let corps;
   if(err==='net'&&!l)corps=`<p class="dx-vide">Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.</p><button type="button" class="perf-top-btn" onclick="sallesCharger(true).catch(()=>{})">Réessayer</button>`;
   else if(!l)corps=`<ul class="dx-list is-wait" aria-label="Chargement des salles ouvertes">${[0,1].map(i=>`<li style="--i:${i}"><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('')}</ul>`;
-  else corps=ici.length?`<ul class="dx-list">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`
-    :'<p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>';
+  else{
+    /* Rien à son niveau mais des salles ailleurs (refonte du 7 novembre) : elles attendent tout en bas du cadre, sous les boutons ;
+       « Voir les 2 autres salles » y descend (dxVoirAutres). */
+    const n=autres.length,ancre=n
+      ?`<button type="button" class="dx-ancre" onclick="dxVoirAutres()">${n>1?`Voir les ${n} autres salles`:'Voir l’autre salle'}${DEF_CHEV_SVG}</button>`:'';
+    corps=ici.length?`<ul class="dx-list">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`
+      :`<p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>${ancre}`;
+  }
   /* Aucune salle nulle part (Elisa, 7 novembre, 22 h 29 : « monte le "aucune salle disponible" ») : à côté de « Rejoins une partie »,
      là où s’affiche « 2 en direct », plus tout en bas du cadre. */
   const aucune=Array.isArray(l)&&!l.length&&err!=='net';
@@ -27960,12 +27984,22 @@ function sallesAutresHTML(){
   return '';   // aucune salle du tout : c’est dit en haut, à côté de « Rejoins une partie » (22 h 29)
 }
 /* Les salles changent (toutes les 10 s, ou le niveau choisi) : la partie « Rejoins une partie » et les autres niveaux, sans toucher au
-   reste du cadre. Sous le cadre : « Comment sont calculés les points ? », bien visible. */
+   reste du cadre. Sous le cadre : « Comment sont calculés les points ? », bien visible.
+   Refonte du 7 novembre : réécrites seulement si leur contenu a changé. Avant, la liste était réécrite à chaque rafraîchissement, même
+   identique : le focus du clavier ou de VoiceOver posé sur « Rejoindre » repartait en haut, et le bas du cadre pouvait sauter. */
 function sallesRepeindre(){
-  const r=document.getElementById('dx-rejoindre');if(r)r.innerHTML=sallesSectionHTML();
-  const a=document.getElementById('dx-autres');if(a)a.innerHTML=sallesAutresHTML();
+  const poser=(el,h)=>{if(el&&el._dxH!==h){el.innerHTML=h;el._dxH=h;}};
+  poser(document.getElementById('dx-rejoindre'),sallesSectionHTML());
+  poser(document.getElementById('dx-autres'),sallesAutresHTML());
   const host=document.getElementById('defis-salles');
   if(host&&!(host.querySelector&&host.querySelector('.dx-points')))host.innerHTML=defisPointsHTML();
+}
+/* « Voir les N autres salles » : descend aux salles des autres niveaux (« Salles disponibles », à la fin du cadre) et y pose le focus. */
+function dxVoirAutres(){
+  const a=document.getElementById('dx-autres');if(!a)return;
+  try{a.scrollIntoView({block:'start',behavior:typeof prefersReduceMotion==='function'&&prefersReduceMotion()?'auto':'smooth'});}catch(e){a.scrollIntoView();}
+  const h=a.querySelector('.dx-h3');if(h){h.setAttribute('tabindex','-1');try{h.focus({preventScroll:true});}catch(e){}}
+  if(typeof buzz==='function')buzz('light');
 }
 /* « Comment sont calculés les points ? » (Elisa, 5 novembre, 11 h 37 : « de façon visible stp ») : une vraie rangée sous les cadres,
    à la place du petit lien souligné ; elle ouvre le barème, dans Mes stats. */
@@ -27992,9 +28026,11 @@ function defisStats(regles){
   defisOnglet('stats');
   if(regles){const r=document.getElementById('defis-rules');if(r)setTimeout(()=>{try{r.scrollIntoView({block:'start',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){}},60);}
 }
+/* Refonte du 7 novembre : un seul retour, celui du haut (« ‹ Jouer », syncTabBack) ; la pastille « ‹ Jouer » de la page s’en va, et
+   « Mes stats » reste le seul titre (« Tableau de bord · Tes performances » n’est plus montré, il reste pour le lecteur d’écran). */
 function defisStatsPeindre(){
   const t=document.getElementById('defis-stats-tete');
-  if(t)t.innerHTML=`<button type="button" class="dx-retour" onclick="defisOnglet('jouer')"><span aria-hidden="true">‹</span> Jouer</button><h2 class="dx-stats-h">Mes stats</h2>`;
+  if(t)t.innerHTML=`<h2 class="dx-stats-h" id="dx-stats-h">Mes stats</h2>`;
 }
 
 /* ---- Classement : 5 par page, qu’on fait glisser ---- */
@@ -28076,24 +28112,28 @@ function defisClassementPeindre(){
   if(DEFIS.portee==='pays'&&!pays)DEFIS.portee='monde';
   const chip=(k,l)=>`<button type="button" class="dx-chip${DEFIS.portee===k?' on':''}" aria-pressed="${DEFIS.portee===k}" onclick="defisPortee('${k}')">${l}</button>`;
   const per=(k,l)=>`<button type="button" role="radio" aria-checked="${DEFIS.periode===k}" class="room-opt${DEFIS.periode===k?' on':''}" onclick="defisPeriode('${k}')">${l}</button>`;
-  host.innerHTML=`<section class="perf-card dx-cls" aria-labelledby="dx-cls-h"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('trophy')}</span><div><p class="perf-kicker" id="dx-cls-k">Tous les joueurs</p><h2 id="dx-cls-h">Classement</h2></div></div>
-    <div class="dx-filters" role="group" aria-label="Qui">${chip('monde','🌍 Monde')}${pays?chip('pays',`${paysDrapeau(pays)} ${esc(paysNom(pays))}`):''}${chip('amis','Mes amis')}</div>
-    <div class="room-seg dx-periode" role="radiogroup" aria-label="Période">${per('tout','Depuis toujours')}${per('semaine','Cette semaine')}</div>
+  /* Refonte du 7 novembre (designer produit) : plus de carte autour de l’onglet (son titre « Classement » répétait l’onglet ; il reste
+     pour le lecteur d’écran) ; les filtres sur le fond ; « 5 joueurs classés » en légende, écrit dès la première réponse. */
+  host.innerHTML=`<section class="dx-cls is-v2" aria-labelledby="dx-cls-h"><h2 class="lq-sr" id="dx-cls-h">Classement</h2>
+    <div class="dx-filtres"><div class="dx-filters" role="group" aria-label="Qui">${chip('monde','🌍 Monde')}${pays?chip('pays',`${paysDrapeau(pays)} ${esc(paysNom(pays))}`):''}${chip('amis','Mes amis')}</div>
+    <div class="room-seg dx-periode" role="radiogroup" aria-label="Période">${per('tout','Depuis toujours')}${per('semaine','Cette semaine')}</div></div>
+    <p class="dx-cls-compte" id="dx-cls-k" aria-live="polite"></p>
     <div class="dx-pager" id="dx-pager"></div>
-    <p class="dx-h3">Ta place dans le classement</p><div id="dx-place"></div>
+    <p class="dx-h3" id="dx-place-h">Ta place dans le classement</p><div id="dx-place"></div>
     <p class="perf-top-note dx-cls-note" id="dx-cls-note"></p></section>`;
   clsPagerPeindre();
   clsPageCharger(0);
 }
 /* Un autre joueur se touche (la ligne, ou son nom au clavier) : sa fiche, pour le défier (7 novembre, 21 h 44). */
 function clsLigneHTML(x,i){
-  const s=state.salle||{},rk=Math.max(1,+x.rang||1),me=!!x.moi,fiche=`dxFicheCls('${escAttr(x.id)}')`;
+  /* Refonte du 7 novembre : une flèche discrète dit que la ligne s’ouvre ; le drapeau « Signaler » de chaque ligne (il ressemblait
+     à « défier » ou à un pays, et un toucher raté le déclenchait) passe dans la fiche : « Signaler ce pseudo ». */
+  const rk=Math.max(1,+x.rang||1),me=!!x.moi,fiche=`dxFicheCls('${escAttr(x.id)}')`;
   return `<li class="${me?'is-me ':'is-tap '}is-r${Math.min(rk,4)}" style="--i:${i}"${me?'':` onclick="if(!event.target.closest('button'))${fiche}"`}><span class="dx-rk">${rk<=3?lqStkSvg('medal'+rk):rk}</span>`+
     `<b class="jeu-av" data-c="${me?0:perfColor(x.pseudo)}" aria-hidden="true">${jeuInitial(x.pseudo)}${jeuFlag(x.pseudo,x.pays||'')}</b>`+
     (me?`<span class="dx-t"><b>${esc(x.pseudo)}</b><small><i>Toi</i> · ${dxParties(x.parties)}</small></span>`
-      :`<button type="button" class="dx-t dx-t-btn" onclick="${fiche}" aria-label="${escAttr(`${x.pseudo}, ${dxRang(rk,1)}, ${clsPts(x.pts)} points\u00a0: voir sa fiche`)}"><b>${esc(x.pseudo)}</b><small>${dxParties(x.parties)}</small></button>`)+
-    `<span class="dx-pts">${clsPts(x.pts)}<small> pts</small></span>`+
-    (me?'':`<button type="button" class="perf-top-flag" onclick="clsSignalerV2('${escAttr(x.id)}')" aria-label="${escAttr(`Signaler le pseudo ${x.pseudo}`)}">${CLS_FLAG_SVG}</button>`)+`</li>`;
+      :`<button type="button" class="dx-t dx-t-btn" onclick="${fiche}" aria-label="${escAttr(`${x.pseudo}, ${dxRang(rk,1)}, ${clsPts(x.pts)} points : voir sa fiche`)}"><b>${esc(x.pseudo)}</b><small>${dxParties(x.parties)}</small></button>`)+
+    `<span class="dx-pts">${clsPts(x.pts)}<small> pts</small></span>`+(me?'':`<span class="dx-go" aria-hidden="true">${DEF_CHEV_SVG}</span>`)+`</li>`;
 }
 function clsPagesNb(){const t=DEFIS.cls.total;return t==null?1:Math.max(1,Math.min(CLS_PAGES_MAX,Math.ceil(t/CLS_PAR_PAGE)));}
 /* Personne de classé (Elisa, 7 novembre, 21 h 44 : « l’état vide pourrait être plus motivant ») : « Le classement n’attend que toi ! »,
@@ -28103,18 +28143,22 @@ function clsVideHTML(){
   const ou=DEFIS.periode==='semaine'?' cette semaine':DEFIS.portee==='pays'?' dans ton pays':'';
   const dire=typeof accord==='function'?accord(`Sois la première à marquer des points${ou}.`,`Sois le premier à marquer des points${ou}.`,`Marque les premiers points${DEFIS.periode==='semaine'?' de la semaine':ou}.`)
     :`Marque les premiers points${ou}.`;
-  return `<div class="dx-vide-bloc"><p class="dx-vide-t">Le classement n’attend que toi&nbsp;! <span aria-hidden="true">🏆</span></p><p class="perf-top-msg">${dire}</p></div>`;
+  /* Refonte du 7 novembre : la mascotte au trophée au-dessus (le seul état vide sans image), et un seul bloc (« Ta place… » se tait). */
+  return `<div class="dx-vide-bloc is-cls">${typeof chatBonusHtml==='function'?chatBonusHtml('trophee','is-vide dx-cls-chat'):''}<p class="dx-vide-t">Le classement n’attend que toi&nbsp;! <span aria-hidden="true">🏆</span></p><p class="perf-top-msg">${dire}</p></div>`;
 }
 /* Le pager : une page par écran (défilement horizontal aimanté), les flèches, les points et « 6 à 10 sur 87 ». */
 function clsPagerPeindre(){
   const host=document.getElementById('dx-pager');if(!host)return;
   const c=DEFIS.cls,n=clsPagesNb();
-  const k=document.getElementById('dx-cls-k');
-  if(k)k.textContent=c.total?`${clsPts(c.total)} joueur${c.total>1?'s':''} classé${c.total>1?'s':''}${DEFIS.periode==='semaine'?' cette semaine':''}`:'Tous les joueurs';
-  if(c.err==='net'&&!c.pages[0]){host.innerHTML=`<p class="perf-top-msg">Classement indisponible pour le moment&nbsp;: il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle='';clsPageCharger(0)">Réessayer</button>`;clsPlacePeindre();return;}
-  if(c.err==='bientot'){host.innerHTML='<p class="perf-top-msg">Ce classement arrive avec la prochaine mise à jour.</p>';clsPlacePeindre();return;}
-  if(c.total===0){host.innerHTML=DEFIS.portee==='amis'?'<p class="perf-top-msg">Aucun de tes amis n’est encore classé. Joue avec eux, ou ajoute-les dans l’onglet Joueurs.</p>':clsVideHTML();clsPlacePeindre();return;}
-  host.innerHTML=`<div class="dx-pages" id="dx-pages" tabindex="0" aria-label="Classement, ${n} page${n>1?'s':''}\u00a0: glisse pour changer de page">${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="Page ${i+1} sur ${n}"></ul>`).join('')}</div>
+  clsCompteEcrire();
+  /* Refonte du 7 novembre : chaque message garde son action (« Réessayer », « Ouvrir l’onglet Joueurs », « Voir le classement
+     mondial ») ; un filtre pas encore servi par la base ne promet plus de mise à jour. */
+  if(c.err==='net'&&!c.pages[0]){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Classement indisponible pour le moment&nbsp;: il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle='';clsPageCharger(0)">Réessayer</button></div>`;clsPlacePeindre();return;}
+  if(c.err==='bientot'){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Ce classement n’est pas disponible pour le moment.</p><button type="button" class="perf-top-btn" onclick="DEFIS.periode='tout';defisPortee('monde')">Voir le classement mondial</button></div>`;clsPlacePeindre();return;}
+  if(c.total===0){host.innerHTML=DEFIS.portee==='amis'
+    ?'<div class="dx-cls-msg"><p class="perf-top-msg">Aucun de tes amis n’est encore classé. Joue avec eux, ou ajoute-les dans l’onglet Joueurs.</p><button type="button" class="perf-top-btn" onclick="defisOnglet(\'amis\')">Ouvrir l’onglet Joueurs</button></div>'
+    :clsVideHTML();clsPlacePeindre();return;}
+  host.innerHTML=`<div class="dx-pages" id="dx-pages" tabindex="0" aria-label="Classement, ${n} page${n>1?'s':''} : glisse pour changer de page">${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="Page ${i+1} sur ${n}"></ul>`).join('')}</div>
     <div class="dx-nav"><button type="button" class="dx-arrow" id="dx-prev" aria-label="Page précédente" onclick="clsAllerPage(DEFIS.cls.page-1)">‹</button><span class="dx-dots" id="dx-dots" aria-hidden="true"></span><small id="dx-range" aria-live="polite"></small><button type="button" class="dx-arrow" id="dx-next" aria-label="Page suivante" onclick="clsAllerPage(DEFIS.cls.page+1)">›</button></div>`;
   const sc=document.getElementById('dx-pages');
   if(sc){
@@ -28137,12 +28181,23 @@ function clsPagerRemplir(){
   }
   clsNavPeindre();clsPlacePeindre();
 }
+/* « 5 joueurs classés » : écrit à chaque remplissage (avant, seulement quand le pager était reconstruit : la première page arrivée par
+   clsPagerRemplir laissait l’ancien surtitre jusqu’au rendu suivant). Rien tant que personne n’est classé. */
+function clsCompteEcrire(){
+  const c=DEFIS.cls,k=document.getElementById('dx-cls-k');
+  if(k)k.textContent=c.total?`${clsPts(c.total)} joueur${c.total>1?'s':''} classé${c.total>1?'s':''}${DEFIS.periode==='semaine'?' cette semaine':''}`:'';
+}
+/* Les points, les flèches et « 6 à 10 sur 87 ». Une seule page (ou le chargement) : la navigation se cache et la page prend toute la
+   largeur (plus d’amorce d’une page suivante qui n’existe pas). */
 function clsNavPeindre(){
-  const c=DEFIS.cls,n=clsPagesNb(),p=Math.max(0,Math.min(c.page,n-1));
+  clsCompteEcrire();
+  const c=DEFIS.cls,n=clsPagesNb(),p=Math.max(0,Math.min(c.page,n-1)),seule=n<=1;
   const dots=document.getElementById('dx-dots'),range=document.getElementById('dx-range'),pv=document.getElementById('dx-prev'),nx=document.getElementById('dx-next');
   if(dots){const a=Math.max(0,Math.min(p-2,n-5)),b=Math.min(n,a+5);dots.innerHTML=Array.from({length:b-a},(_,i)=>`<i${a+i===p?' class="on"':''}></i>`).join('');}
   if(range)range.textContent=c.total>0?`${p*CLS_PAR_PAGE+1} à ${Math.min(c.total,(p+1)*CLS_PAR_PAGE)} sur ${clsPts(c.total)}`:'';
   if(pv)pv.disabled=p<=0;if(nx)nx.disabled=p>=n-1;
+  const nav=pv&&pv.closest&&pv.closest('.dx-nav');if(nav)nav.hidden=seule;
+  const sc=document.getElementById('dx-pages');if(sc&&sc.classList)sc.classList.toggle('is-seule',seule);
 }
 function clsPageVue(){
   const sc=document.getElementById('dx-pages');if(!sc||!sc.children.length)return;
@@ -28160,21 +28215,38 @@ function clsAllerPage(p){
 }
 /* Ta place, toujours visible sous les pages ; un toucher ramène à sa page. */
 function clsPlacePeindre(){
-  const host=document.getElementById('dx-place'),note=document.getElementById('dx-cls-note');if(!host)return;
+  const host=document.getElementById('dx-place'),note=document.getElementById('dx-cls-note'),tete=document.getElementById('dx-place-h');if(!host)return;
   const c=DEFIS.cls,m=c.moi,nom=jeuSavedNom();
   if(note)note.innerHTML=clsOn()?`Tu y apparais avec ton pseudo${paysMontre()&&paysDuProfil()?' et ton drapeau':''}. <button type="button" onclick="clsQuitter()">Ne plus apparaître</button>`:'';
+  /* Refonte du 7 novembre : personne de classé, ou classement injoignable : le bloc du dessus dit déjà tout ; ici, seulement
+     « Jouer un défi » (le titre « Ta place… » se cache). */
+  const horsLigne=(c.err==='net'||c.err==='bientot')&&!c.pages[0];
+  if(tete)tete.hidden=(c.total===0||horsLigne)&&clsOn()&&!!nom;
   if(!clsOn()){host.innerHTML='<p class="perf-top-msg">Tu n’apparais pas au classement.</p><button type="button" class="perf-top-btn" onclick="clsQuitter()">Y apparaître avec mon pseudo</button>';return;}
   if(!nom){host.innerHTML='<p class="perf-top-msg">Choisis ton pseudo pour entrer au classement.</p><button type="button" class="perf-top-btn" onclick="psPage({})">Choisir mon pseudo</button>';return;}
   /* « Jouer un défi » (Elisa, 7 novembre, 21 h 44) : d’ici, sans revenir à la main sur l’onglet Jouer. */
   const jouer=`<button type="button" class="room-go dx-cls-go" onclick="defisOnglet('jouer')"><span>Jouer un défi</span>${DEF_CHEV_SVG}</button>`;
+  if(horsLigne){host.innerHTML=jouer;return;}
+  if(c.total==null){host.innerHTML=`<ul class="dx-list is-wait" aria-label="Chargement de ta place"><li><span class="dx-rk"></span><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li></ul>${jouer}`;return;}
+  if(c.total===0){host.innerHTML=jouer;return;}
   if(!m){
-    host.innerHTML=`<p class="perf-top-msg">${c.total==null?'…':DEFIS.portee==='pays'&&!paysMontre()?'Ton drapeau est masqué\u00a0: tu n’apparais pas dans le classement de ton pays.':DEFIS.periode==='semaine'?'Termine un défi cette semaine pour décrocher ta place.':'Termine un défi pour décrocher ta place.'}</p>${jouer}`;
+    host.innerHTML=`<p class="perf-top-msg">${DEFIS.portee==='pays'&&!paysMontre()?'Ton drapeau est masqué : tu n’apparais pas dans le classement de ton pays.':DEFIS.periode==='semaine'?'Termine un défi cette semaine pour décrocher ta place.':'Termine un défi pour décrocher ta place.'}</p>${jouer}`;
     return;
   }
-  const page=Number.isInteger(+m.page)?+m.page:-1,go=page>=0&&page<clsPagesNb();
-  host.innerHTML=`<ul class="dx-list"><li class="is-me${go?' is-tap':''}"${go?` role="button" tabindex="0" onclick="clsAllerPage(${page})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();clsAllerPage(${page});}" aria-label="${escAttr(`Ta place\u00a0: ${dxRang(m.rang,1)}, ${clsPts(m.pts)} points. Aller à la page ${page+1}`)}"`:''}>`+
-    `<span class="dx-rk">${Math.max(1,+m.rang||1)}</span><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${jeuFlag(nom,paysMontre()?paysDuProfil():'')}</b>`+
-    `<span class="dx-t"><b>${esc(nom)}</b><small><i>Toi</i>${go?` · page ${page+1} ›`:''}</small></span><span class="dx-pts">${clsPts(m.pts)}<small> pts</small></span></li></ul>${jouer}`;
+  /* Classé : ta place et l’écart avec le joueur juste devant (« 110 pts te séparent de nora, 4e »), pour donner envie de grimper.
+     Tout tient sur une page : ta ligne est déjà dans la liste, on ne la répète pas. Plusieurs pages : ta ligne (un toucher ramène à
+     ta page), puis l’écart. */
+  const rk=Math.max(1,+m.rang||1),pts=Math.max(0,+m.pts||0),tous=Object.values(c.pages||{}).flat().filter(y=>y&&!y.moi);
+  const devant=rk>1?tous.find(y=>+y.rang===rk-1):null,suivant=rk===1?tous.find(y=>+y.rang===2):null;
+  let ecart='';
+  if(devant){const d=Math.max(0,(+devant.pts||0)-pts);ecart=d?`${clsPts(d)}&nbsp;pts te séparent de ${esc(devant.pseudo)}, ${dxRang(rk-1)}.`:`À égalité avec ${esc(devant.pseudo)}&nbsp;: le chrono vous départage.`;}
+  else if(rk===1)ecart=suivant&&pts>(+suivant.pts||0)?`Tu es en tête, ${clsPts(pts-(+suivant.pts||0))}&nbsp;pts devant ${esc(suivant.pseudo)}.`:'Tu es en tête du classement.';
+  const page=Number.isInteger(+m.page)?+m.page:-1,go=page>=0&&page<clsPagesNb(),uneSeule=clsPagesNb()<=1&&page===0;
+  const ligne=uneSeule?'':`<ul class="dx-list"><li class="is-me${go?' is-tap':''}"${go?` role="button" tabindex="0" onclick="clsAllerPage(${page})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();clsAllerPage(${page});}" aria-label="${escAttr(`Ta place : ${dxRang(rk,1)}, ${clsPts(pts)} points. Aller à la page ${page+1}`)}"`:''}>`+
+    `<span class="dx-rk">${rk}</span><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${jeuFlag(nom,paysMontre()?paysDuProfil():'')}</b>`+
+    `<span class="dx-t"><b>${esc(nom)}</b><small><i>Toi</i>${go?` · page ${page+1} ›`:''}</small></span><span class="dx-pts">${clsPts(pts)}<small> pts</small></span></li></ul>`;
+  const resume=uneSeule&&rk>1?`<b>Tu es ${dxRang(rk)} avec ${clsPts(pts)}&nbsp;pts.</b> `:'';
+  host.innerHTML=`${ligne}${resume||ecart?`<p class="dx-ecart"><span class="dx-ecart-ico" aria-hidden="true">↑</span><span>${resume}${ecart}</span></p>`:''}${jouer}`;
 }
 /* Signaler depuis une page du classement : comme clsSignaler (masqué pour soi tout de suite, compté par la base). */
 function clsSignalerV2(id){
@@ -28200,35 +28272,49 @@ function amisListe(){
 function amisTitre(n){return n?`${n} adversaire${n>1?'s':''}`:'Pas encore d’adversaire&nbsp;!';}
 function defisAmisPeindre(){
   const host=document.getElementById('defis-amis');if(!host)return;
-  host.innerHTML=`<section class="perf-card dx-amis" aria-labelledby="dx-amis-k"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('user')}</span><div><p class="perf-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(amisListe().length)}</h2></div></div>
-    <div id="dx-amis-salles"></div><div id="dx-amis-liste"></div>
-    <div class="dx-duo"><button type="button" class="dx-sec is-main${DEFIS.amisForm?' on':''}" aria-expanded="${DEFIS.amisForm}" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Inviter un joueur</button></div>
+  const n=amisListe().length;
+  /* Refonte du 7 novembre (designer produit) : plus de carte autour de l’onglet, le haut posé sur le fond. Liste remplie : « Ajouter
+     par pseudo » et « Inviter un joueur » au-dessus de la liste (à portée même à 30 joueurs ; avant, ils descendaient sous la liste) ;
+     liste vide : la mascotte, la phrase, puis les deux boutons (l’état vide du 7 novembre, 22 h 13). */
+  const boutons=`<div class="dx-duo"><button type="button" class="dx-sec is-main${DEFIS.amisForm?' on':''}" aria-expanded="${DEFIS.amisForm}" aria-controls="dx-ajout" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Inviter un joueur</button></div>
     <form class="dx-ajout" id="dx-ajout"${DEFIS.amisForm?'':' hidden'} onsubmit="event.preventDefault();amisAjouter()">
       <label class="jeu-lab" for="dx-ajout-in">Le pseudo du joueur</label>
       <div class="dx-ajout-l"><input id="dx-ajout-in" class="jeu-input" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="16" placeholder="@lea_data" enterkeyhint="done" oninput="this.value=psForme(this.value)||(this.value.startsWith('@')?'@':'');document.getElementById('dx-ajout-msg').textContent=''"><button type="submit" class="dx-join">Ajouter</button></div>
-      <p class="jeu-msg" id="dx-ajout-msg" role="status" aria-live="polite">${esc(DEFIS.amisMsg)}</p></form></section>`;
+      <p class="jeu-msg" id="dx-ajout-msg" role="status" aria-live="polite">${esc(DEFIS.amisMsg)}</p></form>`;
+  host.innerHTML=`<section class="dx-amis is-v2${n?'':' is-vide'}" aria-labelledby="dx-amis-k">
+    <div class="dx-amis-tete"><span class="perf-stk" aria-hidden="true">${lqStkSvg('user')}</span><div><p class="perf-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(n)}</h2></div></div>
+    ${n?`<div class="dx-amis-actions">${boutons}</div><div id="dx-amis-liste"></div>`
+      :`<div class="dx-amis-vide"><div id="dx-amis-liste"></div>${boutons}</div>`}</section>`;
   amisListesPeindre();
 }
 function amisListesPeindre(){
-  const ls=document.getElementById('dx-amis-liste'),sa=document.getElementById('dx-amis-salles');if(!ls)return;
-  const amis=amisListe(),cles=new Set(amis.map(a=>drapCle(a.n)));
-  /* Dans une salle ouverte maintenant : un ami parmi les joueurs d’une salle publique qui attend. */
-  const dans=[];
-  (DEFIS.salles||[]).forEach(s=>(Array.isArray(s.joueurs)?s.joueurs:[]).forEach(j=>{if(j&&cles.has(drapCle(j.pseudo))&&!dans.some(d=>drapCle(d.qui)===drapCle(j.pseudo)))dans.push({s,qui:j.pseudo});}));
-  if(sa)sa.innerHTML=dans.length?`<p class="dx-h3">Dans une salle maintenant</p><ul class="dx-list">${dans.slice(0,5).map(d=>salleLigneHTML(d.s,d.qui)).join('')}</ul>`:'';
+  const ls=document.getElementById('dx-amis-liste');if(!ls)return;
+  const amis=amisListe();
+  /* La liste change de nature (le premier ajouté, le dernier retiré) : les boutons changent de place, on repeint l’onglet. */
+  const sec=typeof ls.closest==='function'?ls.closest('.dx-amis'):null;
+  if(sec&&sec.classList&&typeof sec.classList.contains==='function'&&sec.classList.contains('is-vide')===!!amis.length){defisAmisPeindre();return;}
   /* Le titre suit la liste (une partie finie, un ajout, un retrait). */
   const h=document.getElementById('dx-amis-h'),t=amisTitre(amis.length);if(h&&h.innerHTML!==t)h.innerHTML=t;
-  /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! » (le titre de la carte), puis ce qu’on y gagne ; 22 h 13 : la mascotte qui salue,
-     dans l’espace vide de la carte. */
+  /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! » (le titre), puis ce qu’on y gagne ; 22 h 13 : la mascotte qui salue. */
   if(!amis.length){ls.innerHTML=`<div class="dx-vide-bloc is-amis">${typeof chatBonusHtml==='function'?chatBonusHtml('salut','is-vide dx-amis-chat'):''}<p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>`;return;}
-  ls.innerHTML=`<ul class="dx-list">${amis.slice(0,30).map((m,i)=>{
+  /* Refonte du 7 novembre : une seule ligne par joueur (plus de section « Dans une salle maintenant » qui répétait les mêmes joueurs).
+     S’il attend dans une salle ouverte (hôte ou déjà entré), sa ligne le dit (« En salle · Moyen · 2/5 »), son bouton devient
+     « Rejoindre », et ces lignes passent en tête. Le face-à-face en pastille à côté du pseudo (tes victoires d’abord), « tu mènes ·
+     hier » dessous. */
+  const salle=new Map();
+  (DEFIS.salles||[]).forEach(s=>[s.hote,...(Array.isArray(s.joueurs)?s.joueurs.map(j=>j&&j.pseudo):[])].forEach(p=>{const k=p&&drapCle(p);if(k&&!salle.has(k))salle.set(k,s);}));
+  const rangs=amis.slice(0,30).map((m,i)=>({m,i,s:salle.get(drapCle(m.n))||null})).sort((a,b)=>(b.s?1:0)-(a.s?1:0)||a.i-b.i);
+  ls.innerHTML=`<ul class="dx-list dx-adv">${rangs.map(({m,s},i)=>{
     const lead=m.w>m.l?'is-up':m.w<m.l?'is-down':'is-eq',lab=m.w>m.l?'tu mènes':m.w<m.l?'à rattraper':'égalité';
-    const sous=m.g?`${dxParties(m.g)} · ${esc(perfDay(m.at).toLowerCase())}`:`ajouté ${esc(perfDay(m.at).toLowerCase())}`;
+    const niv=s?(JEU_NIVL[s.niv]||'Facile'):'';
+    const sous=s?`<span class="dx-dot" aria-hidden="true"></span>En salle · ${niv}<span class="dx-large"> · ${s.nb}/${s.max}</span>`
+      :m.g?`<em class="${lead}">${lab}</em> · ${esc(perfDay(m.at).toLowerCase())}`:`ajouté ${esc(perfDay(m.at).toLowerCase())}`;
+    const lu=`${m.n}${m.g?`, ${m.w} fois devant, ${m.l} fois derrière`:''}${s?`, dans une salle ouverte (${niv})`:''} : voir sa fiche`;
     const fiche=`dxFiche('${escAttr(m.n)}')`;
-    return `<li class="is-tap" style="--i:${i}" onclick="if(!event.target.closest('button'))${fiche}"><b class="jeu-av" data-c="${perfColor(m.n)}" aria-hidden="true">${jeuInitial(m.n)}${jeuFlag(m.n)}</b>`+
-      `<button type="button" class="dx-t dx-t-btn" onclick="${fiche}" aria-label="${escAttr(`${m.n}\u00a0: voir sa fiche`)}"><b>${esc(m.n)}</b><small>${sous}</small></button>`+
-      (m.g?`<span class="dx-h2h ${lead}" role="img" aria-label="${escAttr(`${m.w} fois devant, ${m.l} fois derrière`)}"><em>${m.w}–${m.l}</em><small>${lab}</small></span>`:'')+
-      `<button type="button" class="dx-join is-ghost" onclick="jeuDefier('${escAttr(m.n)}')" aria-label="${escAttr(`Défier ${m.n}`)}">Défier</button>`+
+    return `<li class="is-tap${s?' is-live':''}" style="--i:${i}" onclick="if(!event.target.closest('button'))${fiche}"><b class="jeu-av" data-c="${perfColor(m.n)}" aria-hidden="true">${jeuInitial(m.n)}${jeuFlag(m.n)}</b>`+
+      `<button type="button" class="dx-t dx-t-btn" onclick="${fiche}" aria-label="${escAttr(lu)}"><b><span class="dx-nom">${esc(m.n)}</span>${m.g?`<span class="dx-score ${lead}" aria-hidden="true">${m.w}–${m.l}</span>`:''}</b><small>${sous}</small></button>`+
+      (s?`<button type="button" class="dx-join" onclick="sallesRejoindre('${s.code}')" aria-label="${escAttr(`Rejoindre la salle de ${s.hote} : ${niv}, ${s.nb} joueur${s.nb>1?'s':''} sur ${s.max}`)}">Rejoindre</button>`
+        :`<button type="button" class="dx-join is-ghost" onclick="jeuDefier('${escAttr(m.n)}')" aria-label="${escAttr(`Défier ${m.n}`)}">Défier</button>`)+
       (m.ajout&&!m.g?`<button type="button" class="dx-retirer" onclick="amisRetirer('${escAttr(m.n)}')" aria-label="${escAttr(`Retirer ${m.n} de ta liste`)}">×</button>`:'')+`</li>`;
   }).join('')}</ul>`;
 }
@@ -28356,17 +28442,41 @@ function dxFicheHTML(){
   const e=dxFicheEtat;if(!e)return '';
   const m=amisListe().find(a=>drapCle(a.n)===drapCle(e.n));
   const sous=e.lieu||(m?'Ton adversaire':'');
+  /* Refonte du 7 novembre (designer produit), sans rien changer au haut, aux chiffres, au face-à-face ni au bouton validés :
+     s’il attend dans une salle ouverte, « En salle maintenant » et « Rejoindre » sous le bandeau ; ouverte depuis le classement,
+     « Signaler ce pseudo » en petit sous les boutons (il quitte chaque ligne du classement). */
+  const s=dxFicheSalle(e.n),niv=s?(JEU_NIVL[s.niv]||'Facile'):'';
+  const c=typeof DEFIS!=='undefined'&&DEFIS.cls?DEFIS.cls:null;
+  const x=c?Object.values(c.pages||{}).flat().find(y=>y&&!y.moi&&drapCle(y.pseudo)===drapCle(e.n)):null;
   return `<div class="room-head"><span class="room-stk dx-fiche-av" aria-hidden="true"><b class="jeu-av" data-c="${perfColor(e.n)}">${jeuInitial(e.n)}${jeuFlag(e.n,e.pays||undefined)}</b></span><div>
     <p class="room-kicker">Profil du joueur</p>
     <h2 id="dx-f-t">${esc(e.n)}</h2>
     <p class="room-sub" id="dx-f-p">${esc(sous)}</p></div><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="dx-f-corps" data-k="joueur">
+    ${s?`<div class="dx-fiche-live"><span class="dx-dot" aria-hidden="true"></span><p><b>En salle maintenant</b><small><i class="dx-niv is-${s.niv}">${niv}</i> · ${s.nb}/${s.max}</small></p>`+
+      `<button type="button" class="dx-join" onclick="dxFicheRejoindre('${s.code}')" aria-label="${escAttr(`Rejoindre la salle de ${s.hote} : ${niv}, ${s.nb} joueur${s.nb>1?'s':''} sur ${s.max}`)}">Rejoindre</button></div>`:''}
     <div class="dx-fiche-kpi" id="dx-fiche-kpi" aria-live="polite">${dxFicheKpiHTML()}</div>
     ${m&&m.g?dxFicheDuelHTML(m,e)+`<p class="dx-fiche-h2h">Dernier duel&nbsp;: ${esc(perfDay(m.at).toLowerCase())}</p>`:''}
     <div class="dx-f-pied">
     <button type="button" class="room-go" onclick="dxFicheDefier()"><span>${dxFicheRevanche(m,e)?'Prendre ta revanche ⚡':`Défier ${esc(e.n)}`}</span>${DEF_CHEV_SVG}</button>
-    ${m?'':'<button type="button" class="dx-sec dx-fiche-ajout" onclick="dxFicheAjouter()">Ajouter à mes adversaires</button>'}</div>
+    ${m?'':'<button type="button" class="dx-sec dx-fiche-ajout" onclick="dxFicheAjouter()">Ajouter à mes adversaires</button>'}
+    ${x?`<button type="button" class="dx-fiche-signal" onclick="dxFicheSignaler('${escAttr(x.id)}')">Signaler ce pseudo</button>`:''}</div>
     </div>`;
+}
+/* La salle ouverte où il attend (hôte ou déjà entré), d’après la liste rafraîchie toutes les 10 s ; sinon null. */
+function dxFicheSalle(n){
+  const k=drapCle(n);
+  return (typeof DEFIS!=='undefined'&&Array.isArray(DEFIS.salles)?DEFIS.salles:[]).find(s=>s&&(drapCle(s.hote)===k||(Array.isArray(s.joueurs)?s.joueurs:[]).some(j=>j&&drapCle(j.pseudo)===k)))||null;
+}
+/* « Rejoindre » dans la fiche : la feuille se ferme sans rendre le focus (on part jouer), puis la salle s’ouvre. */
+function dxFicheRejoindre(code){
+  defisFeuilleFermer(true);dxFicheEtat=null;
+  sallesRejoindre(code);
+}
+/* « Signaler ce pseudo » : la fiche se ferme, puis la question de toujours (clsSignalerV2 : masqué pour toi, compté par la base). */
+function dxFicheSignaler(id){
+  defisFeuilleFermer(true);dxFicheEtat=null;
+  setTimeout(()=>clsSignalerV2(id),typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:260);
 }
 function dxFicheOuvrir(retour){
   let el=document.getElementById('dx-feuille');
@@ -45816,7 +45926,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-aucune-salle-v2648';
+  const SW_CACHE='requete-2026-11-08-defis-design-v2649';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

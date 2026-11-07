@@ -52,7 +52,9 @@ const codes = h => [...h.matchAll(/sallesRejoindre\('([A-Z0-9]{6})'\)/g)].map(m 
 
 test('le cadre du haut : la phrase d’Elisa, et « 4 joueurs » tient avec une salle de 5 (l’hôte et 4 invités)', () => {
   const haut = fn('defisRapideHTML');
-  assert.ok(haut.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p>'));
+  /* Refonte du 7 novembre, 23 h 46 (Elisa : « ok ») : le bandeau garde la dernière phrase ; « invite jusqu’à 4 joueurs, ouvre ta salle
+     à tous » se règle dans la feuille Créer (« Qui peut entrer ? »). */
+  assert.ok(haut.includes('<p class="room-sub">Tout le monde relève le même défi&nbsp;!</p>') && !haut.includes('Choisis ton niveau et invite'));
   assert.ok(!haut.includes('invite tes amis'));
   assert.ok(app.includes('const JEU_MAX=5;') && app.includes('max:solo?1:JEU_MAX'), 'une salle : 5 joueurs au plus');
   const mig = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).find(f => f.endsWith('_defis_trois_onglets.sql'));
@@ -91,8 +93,9 @@ test('aucune salle au niveau choisi : la phrase d’Elisa, juste au-dessus de «
   const c = bac({ niv: 'd', salles: [salle('AAA111', 'f', '@kev'), salle('BBB222', 'm', '@lea')] });
   const haut = c.ev('defisRapideHTML()');
   const r = haut.slice(haut.indexOf('id="dx-rejoindre"'), haut.indexOf('data-k="creer"'));
-  assert.ok(r.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3></div><p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p></div>'),
-    'sans compte en direct, la phrase, puis le bouton');
+  /* Refonte du 7 novembre : sous la phrase, « Voir les 2 autres salles » descend à celles des autres niveaux (dxVoirAutres). */
+  assert.ok(r.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3></div><p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p><button type="button" class="dx-ancre" onclick="dxVoirAutres()">Voir les 2 autres salles<svg data-k="chev"></svg></button></div>'),
+    'sans compte en direct, la phrase, le lien vers les autres niveaux, puis le bouton');
   assert.ok(codes(haut.slice(haut.indexOf('id="dx-autres"'))).join() === 'AAA111,BBB222');
   /* Aucune salle du tout : « Aucune salle disponible » (13 h 04), remonté à côté de « Rejoins une partie » (7 novembre, 22 h 29) ;
      pendant le chargement, des lignes vides et rien en bas */
@@ -116,7 +119,12 @@ test('les salles changent ou le niveau change : seules « Rejoins une partie » 
   assert.ok(c.els['dx-rejoindre'].innerHTML.includes('<span class="dx-live">1 en direct</span>') && c.els['dx-autres'].innerHTML === '', 'la seule salle est au niveau choisi : rien en bas');
   assert.ok(fn('defisNiv').includes('sallesRepeindre();') && !fn('defisNiv').includes('dx-trouver-t'));
   const rep = fn('sallesRepeindre');
-  assert.ok(rep.includes("const r=document.getElementById('dx-rejoindre');if(r)r.innerHTML=sallesSectionHTML();") && rep.includes("if(host&&!(host.querySelector&&host.querySelector('.dx-points')))host.innerHTML=defisPointsHTML();"));
+  /* Refonte du 7 novembre : réécrites seulement si leur contenu a changé (le focus posé sur « Rejoindre » ne repart plus en haut). */
+  assert.ok(rep.includes("const poser=(el,h)=>{if(el&&el._dxH!==h){el.innerHTML=h;el._dxH=h;}};") && rep.includes("poser(document.getElementById('dx-rejoindre'),sallesSectionHTML());")
+    && rep.includes("if(host&&!(host.querySelector&&host.querySelector('.dx-points')))host.innerHTML=defisPointsHTML();"));
+  c.els['dx-rejoindre'].innerHTML = 'posé à la main'; c.ev('sallesRepeindre()');
+  assert.equal(c.els['dx-rejoindre'].innerHTML, 'posé à la main', 'rien n’a changé dans les salles : rien n’est réécrit');
+  assert.ok(lq.includes('html.lq #scr-defis .dx-rapide.is-v2 .dx-rejoindre .dx-vide.is-aucune{margin:0;padding:0 2px;border:0;border-radius:0;background:none;'), 'la phrase en texte simple, plus de pointillés');
   for (const k of ['html.lq #scr-defis .dx-rejoindre{margin:18px 0 14px}', 'html.lq #scr-defis .dx-rj-h{margin:0;font:700 16px/1.2 var(--display);',
     'html.lq #scr-defis .dx-rejoindre .dx-vide.is-aucune{margin:0;padding:12px 14px;border:2px dashed #D6CCFA;', 'html.lq #scr-defis .dx-autres{margin-top:16px;border-top:2px dashed var(--line-2)}'])
     assert.ok(lq.includes(k), k);
@@ -164,7 +172,7 @@ test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient
 test('chaque classe des défis a son style : l’onglet Joueurs avait perdu ses deux boutons à 10 h 16', () => {
   const classes = new Set([...app.matchAll(/class="([^"]*)"/g)].flatMap(m => m[1].split(/[\s$]+/)).map(k => (k.match(/^dx-[a-z0-9-]+/) || [''])[0]).filter(Boolean));
   const sans = [...classes].filter(k => !new RegExp(`\\.${k}(?![a-z0-9-])`).test(lq)).sort();
-  assert.deepEqual(sans, ['dx-act-go', 'dx-drapeau-row', 'dx-pager'], 'seuls des repères pour le script restent sans style à eux');
+  assert.deepEqual(sans, ['dx-drapeau-row', 'dx-pager'], 'seuls des repères pour le script restent sans style à eux');
   for (const k of ['html.lq #scr-defis .dx-duo{display:flex;gap:10px;margin-top:14px}', 'html.lq #scr-defis .dx-sec{flex:1;min-height:46px;padding:10px 8px;border:2px solid var(--card-border);',
     'html.lq #scr-defis .dx-sec.on{border-color:var(--accent);background:var(--accent-soft)}', '@media (max-width:350px){html.lq #scr-defis .dx-me{gap:10px;padding:12px}'])
     assert.ok(lq.includes(k), k);
@@ -179,7 +187,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=214">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=215">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-07-aucune-salle-v2648' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-08-defis-design-v2649' && app.includes(`const SW_CACHE='${cache}';`));
 });

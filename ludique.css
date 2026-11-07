@@ -8753,3 +8753,637 @@ html.lq .dx-feuille .dx-duel-note{margin:2px 2px 4px;color:var(--ink-3);font:600
 html.lq #scr-defis .dx-rj-tete{flex-wrap:wrap;row-gap:6px}
 html.lq #scr-defis .dx-live.is-off{background:#F1EEFB;color:var(--ink-2)}
 html.lq #scr-defis .dx-live.is-off::before{content:none}
+
+/* ==========================================================================
+   Défis — la refonte du 7 novembre (« il faut que quelqu’un m’aide pour la partie design/product design sur la partie défi »).
+   Deux designers : le produit (structure, parcours, états : les fonctions de rendu de index.html) et le visuel (la DA du site en un
+   seul jeu de composants : sections 1 à 19), réunis en une feuille (section 20 : la nouvelle structure habillée de la DA).
+   Portée : html.lq #scr-defis (les trois onglets et Mes stats) et html.lq .dx-feuille (les feuilles et la fiche d’un joueur).
+
+   Le système, en bref (détails dans DA.md) :
+   - Trois surfaces seulement. La carte blanche en relief (bord 2 px lilas, coins 24 px, lèvre 4 px). Dedans, des tuiles
+     lilas à plat (coins 18 px, ni bord ni lèvre) pour regrouper : listes, chiffres, messages. Les objets qu’on touche
+     gardent seuls leur lèvre (boutons, choix, pastilles de filtre) : « ce qui a du relief s’enfonce ».
+   - Une échelle de coins : 28 (feuille) · 24 (carte) · 18 (tuile, choix, grand bouton) · 14 (petit bouton, champ) · pastille.
+   - Deux lèvres : 4 px (cartes, grands boutons), 3 px (tout le reste).
+   - Titres : Bricolage Grotesque (titre de carte 22 px, intertitre 17 px, nom 15,5 px) ; texte : Inter. Capitales réservées aux
+     surtitres (comme le site) ; les étiquettes passent en casse normale (règle de ludique.css, « pas de sur-titres en capitales »).
+   - Couleurs : violet = agir et « toi » ; jaune = points et récompenses ; menthe = en direct, tu mènes ; pêche = à rattraper ;
+     rouge = Difficile et erreurs seulement. Le vert « bonne réponse » ne sert plus dans les défis.
+   ========================================================================== */
+
+/* ---------- Défis v2 · 1. Jetons ---------- */
+html.lq #scr-defis,html.lq .dx-feuille{
+  --dx-r-feuille:28px;--dx-r-carte:24px;--dx-r-tuile:18px;--dx-r-ctl:14px;
+  --dx-bord:2px solid var(--line);
+  --dx-relief:0 4px 0 var(--lip);--dx-relief-s:0 3px 0 var(--lip);
+  --dx-relief-v:0 4px 0 var(--accent-lip);--dx-relief-vs:0 3px 0 var(--accent-lip);
+  --dx-tuile:#F2EFFC;--dx-filet:#fff;
+  --dx-lav:var(--accent-soft);--dx-lav-bord:#DDD3FF;--dx-lav-relief:0 4px 0 #D2C6FA;
+  --dx-mene:#9FF0C6;--dx-mene-ink:#0E4A2E;--dx-mene-t:#1E7A4F;--dx-mene-lip:#5FC99A;
+  --dx-retard:#FFE1D1;--dx-retard-ink:#8A3A12;--dx-retard-t:#A24A1E;--dx-retard-lip:#F4A86A;
+  --dx-f:var(--accent-ink);--dx-f-soft:var(--accent-soft);
+  --dx-m:#B45309;--dx-m-soft:#FFF3DC;
+  --dx-d:#C2323A;--dx-d-soft:#FDEBEC;
+  --dx-marge:18px;
+  --dx-vague:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80' preserveAspectRatio='none'%3E%3Cpath d='M0 46C240 86 520 86 760 58S1220 6 1440 34V80H0Z' fill='%23fff'/%3E%3C/svg%3E");
+  --dx-swoosh:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 30' preserveAspectRatio='none'%3E%3Cpath d='M4 20C70 8 170 6 296 14' fill='none' stroke='%239FF0C6' stroke-width='9' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* ---------- Défis v2 · 2. Rythme de la page : une gouttière, un écart entre cartes ---------- */
+html.lq #scr-defis #defis-tabs{margin-top:16px}
+html.lq #scr-defis .dx-tabs{margin:0 0 16px}
+html.lq #scr-defis :is(.dx-me,.dx-rapide,.dx-points,.dx-cls,.dx-amis,.dx-salles){margin-bottom:14px}
+html.lq #scr-defis #defis-room:not(:empty){margin-bottom:14px}
+
+/* ---------- Défis v2 · 3. Cartes : une seule recette ---------- */
+html.lq #scr-defis .room-card{border-radius:var(--dx-r-carte)!important;padding:0 var(--dx-marge) var(--dx-marge)!important;box-shadow:inset 0 0 0 2px var(--line),var(--dx-relief)!important}
+html.lq #scr-defis .room-card>.room-head{margin:0 calc(-1 * var(--dx-marge))}
+html.lq #scr-defis .perf-card{padding:var(--dx-marge);border:var(--dx-bord);border-radius:var(--dx-r-carte);box-shadow:var(--dx-relief)}
+html.lq #scr-defis .room-rules{padding:var(--dx-marge) var(--dx-marge) 10px;border:var(--dx-bord);border-radius:var(--dx-r-carte);box-shadow:var(--dx-relief)}
+/* La carte du joueur et la rangée du barème : des cartes qu’on touche, la même lèvre qui s’écrase. */
+html.lq #scr-defis :is(.dx-me,.dx-points){min-height:72px;padding:12px 14px 12px 16px;border:var(--dx-bord);border-radius:var(--dx-r-carte);box-shadow:var(--dx-relief);
+  transition:transform .12s var(--press),box-shadow .12s var(--press),background-color .15s}
+html.lq #scr-defis :is(.dx-me,.dx-points):active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq #scr-defis .dx-points{border-color:var(--dx-lav-bord);background:var(--dx-lav);box-shadow:var(--dx-lav-relief)}
+html.lq #scr-defis .dx-points:active{box-shadow:0 0 0 #D2C6FA}
+html.lq #scr-defis .dx-me>.jeu-av{width:44px;height:44px;font-size:19px}
+html.lq #scr-defis .dx-me-t{gap:2px}
+html.lq #scr-defis .dx-me-t>b{font:700 17px/1.2 var(--display);letter-spacing:-.01em}
+html.lq #scr-defis .dx-me-t small{color:var(--ink-2);font:600 13px/1.35 var(--ui)}
+html.lq #scr-defis .dx-me{gap:12px}
+html.lq #scr-defis .dx-me-go{min-height:36px;padding:0 7px 0 12px;box-shadow:none;background:var(--accent-soft);font:700 13.5px/1 var(--display)}
+html.lq #scr-defis .dx-points-stk{width:44px;height:44px}
+html.lq #scr-defis .dx-points-t{gap:3px}
+html.lq #scr-defis .dx-points-t b{font:700 16px/1.2 var(--display)}
+html.lq #scr-defis .dx-points-t small{color:var(--ink-2);font:600 13px/1.35 var(--ui)}
+
+/* ---------- Défis v2 · 4. En-tête violet : la famille du héros du site (quadrillage, lueur, vague blanche en bas) ---------- */
+html.lq #scr-defis .room-head{padding-bottom:30px}
+html.lq :is(#scr-defis,.dx-feuille) .room-head::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:14px;background:var(--dx-vague) center bottom/100% 100% no-repeat;pointer-events:none}
+html.lq :is(#scr-defis,.dx-feuille) .room-kicker{font:800 12px/1.2 var(--ui)!important;letter-spacing:.07em!important}
+html.lq :is(#scr-defis,.dx-feuille) .room-head .room-sub{margin-top:8px;font:500 14.5px/1.45 var(--ui);text-wrap:pretty}
+/* Le cadre « Lance un défi ! » est le seul héros de l’écran : titre plus grand, souligné menthe comme « le SQL » du site, et le chat
+   qui flotte à droite (le texte part du même bord que le contenu de la carte, et passe sous le chat). */
+html.lq #scr-defis .dx-rapide>.room-head{display:block;padding:18px var(--dx-marge) 28px}
+/* La vague passe sur le bord lilas de la carte : on le redessine sous la courbe (2 px de chaque côté). */
+html.lq #scr-defis .room-card>.room-head::after{background:linear-gradient(var(--line),var(--line)) left bottom/2px 46% no-repeat,linear-gradient(var(--line),var(--line)) right bottom/2px 60% no-repeat,var(--dx-vague) center bottom/100% 100% no-repeat}
+html.lq #scr-defis .dx-rapide>.room-head>.room-chat{float:right;position:relative;z-index:1;width:100px;margin:-8px -10px 0 8px}
+html.lq #scr-defis .dx-rapide>.room-head h2{display:inline-block;margin-top:6px;padding-bottom:.1em;font-size:26px!important;line-height:1.08!important;letter-spacing:-.03em!important;
+  background:var(--dx-swoosh) no-repeat 0 100%/100% .26em}
+html.lq #scr-defis .dx-rapide>.room-head .room-sub{max-width:34em;margin-top:6px;color:rgba(255,255,255,.88)!important}
+html.lq #scr-defis .dx-rapide>.room-head .room-sp.s1{right:auto;left:62%;top:14px}
+html.lq #scr-defis .dx-rapide>.room-head .room-sp.s2{right:auto;left:calc(var(--dx-marge) + 2px);bottom:24px}
+/* Feuilles et fiche : le même bandeau, plus compact ; la croix à 44 px. */
+html.lq .dx-feuille .room-head{margin-bottom:0;padding-bottom:30px}
+html.lq .dx-feuille .dx-f-x{top:12px;right:12px;width:44px;height:44px}
+@media (max-height:720px),(max-width:360px){html.lq .dx-feuille .room-head{padding-bottom:26px}}
+
+/* ---------- Défis v2 · 5. Titres : surtitre, titre de carte, intertitre, libellé ---------- */
+html.lq #scr-defis .perf-head{gap:12px;margin:0 0 16px}
+html.lq #scr-defis .perf-kicker{gap:8px;font:800 12px/1.2 var(--ui);letter-spacing:.07em}
+html.lq #scr-defis .perf-kicker::before{width:16px}
+html.lq #scr-defis .perf-head h2,html.lq #scr-defis .room-rules h2,html.lq #scr-defis .dx-stats-h{margin-top:4px;font:700 22px/1.12 var(--display);letter-spacing:-.02em;color:var(--ink)}
+html.lq #scr-defis .room-rules h2{margin:0 0 12px}
+/* Intertitre : chaque partie d’une carte (« Niveau », « Rejoins une partie », « Salles disponibles », « Tes dernières parties »…),
+   en casse normale, au lieu de trois styles (gris 13,5 px, capitales 12 px, titre 16 px). */
+html.lq #scr-defis :is(.dx-rj-h,.dx-h3,.perf-block>h3,.perf-friends>h4),
+html.lq #scr-defis .dx-niv-tete>.jeu-lab{margin:0 0 10px;color:var(--ink)!important;font:700 17px/1.2 var(--display)!important;letter-spacing:-.01em!important;text-transform:none!important}
+html.lq #scr-defis .dx-h3{margin:22px 0 10px}
+html.lq #scr-defis .perf-block{margin-top:24px}
+html.lq #scr-defis .perf-friends>h4{margin-top:20px}
+html.lq #scr-defis .dx-niv-tete{align-items:baseline;margin:0 0 14px}
+html.lq #scr-defis .dx-niv-tete>.jeu-lab{margin:0}
+/* « Plus c’est dur, plus ça rapporte » : une note, pas un lien (le violet gras se lisait comme un lien). */
+html.lq #scr-defis .dx-niv-plus{color:var(--ink-3);font:600 13px/1.3 var(--ui)}
+html.lq #scr-defis .dx-rejoindre{margin:24px 0 0}
+html.lq #scr-defis .dx-rj-tete{gap:8px 10px;margin:0 0 10px}
+html.lq #scr-defis .dx-rj-tete .dx-rj-h{margin:0}
+/* Libellé de champ (feuilles) : le nom de la question, en titre court. */
+html.lq .dx-feuille .jeu-lab{margin:0 0 10px!important;color:var(--ink)!important;font:700 15.5px/1.25 var(--display)!important;letter-spacing:-.005em}
+html.lq .dx-feuille .room-field{margin-top:20px}
+html.lq .dx-feuille .room-field:first-child{margin-top:20px}
+/* « ou » entre « Créer ma partie » et les deux tuiles : en casse normale. */
+
+/* ---------- Défis v2 · 6. Contrôle segmenté : celui de toute l’appli (piste lilas, pastille blanche en relief) ----------
+   Onglets Jouer · Classement · Joueurs, période, manches, « Qui peut entrer ? », barème : un seul dessin. Le violet plein reste aux
+   boutons d’action. */
+html.lq :is(#scr-defis,.dx-feuille) .room-seg,html.lq #scr-defis .room-rules-niv{gap:4px;padding:4px!important;border-radius:var(--dx-r-tuile);background:#E9E5F8;box-shadow:inset 0 2px 0 rgba(34,28,70,.05)}
+html.lq :is(#scr-defis,.dx-feuille) .room-seg .room-opt,html.lq #scr-defis .room-rules-niv button{min-height:44px;border:0;border-radius:var(--dx-r-ctl);background:transparent;color:var(--ink-2);
+  font:700 14.5px/1.15 var(--display)!important;box-shadow:none;transition:background-color .15s,color .15s,transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq :is(#scr-defis,.dx-feuille) .room-seg .room-opt.on,html.lq #scr-defis .room-rules-niv button.is-on{background:#fff;color:var(--accent-ink);box-shadow:var(--dx-relief-s)}
+html.lq :is(#scr-defis,.dx-feuille) .room-seg .room-opt.on:active{transform:translateY(2px);box-shadow:0 1px 0 var(--lip)}
+html.lq #scr-defis .room-rules-niv{margin:0 0 10px}
+html.lq #scr-defis .room-rules-niv button small{color:inherit;opacity:.75}
+html.lq #scr-defis .dx-periode{margin:0 0 16px}
+
+/* ---------- Défis v2 · 7. Pastilles de filtre (Monde, pays, Mes amis) : les pastilles .fchip de l’appli ---------- */
+html.lq #scr-defis .dx-filters{gap:8px;margin:0 0 12px}
+html.lq #scr-defis .dx-chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 13px;border:var(--dx-bord);border-radius:999px;background:#fff;
+  box-shadow:var(--dx-relief-s);color:var(--ink-2);font:700 13.5px/1 var(--display);transition:transform .12s var(--press),box-shadow .12s var(--press),background-color .15s}
+html.lq #scr-defis .dx-chip.on{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:var(--dx-relief-vs)}
+html.lq #scr-defis .dx-chip:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+html.lq #scr-defis .dx-chip.on:active{box-shadow:0 0 0 var(--accent-lip)}
+
+/* ---------- Défis v2 · 8. Choix du niveau : les cartes de choix du site (.g), le coefficient dans la couleur du niveau ---------- */
+html.lq #scr-defis .room-levels{gap:10px}
+html.lq #scr-defis .room-level{gap:7px;padding:16px 6px 13px!important}
+html.lq #scr-defis .room-level b{font:700 15.5px/1.1 var(--display)!important}
+html.lq #scr-defis .room-level.on b{color:var(--accent-ink)}
+html.lq #scr-defis .room-level .room-lv-auto{top:-11px;padding:3px 7px;background:var(--mint);color:var(--ink);font:800 10.5px/1.2 var(--ui);letter-spacing:0;text-transform:none;
+  rotate:-2deg;box-shadow:0 2px 0 rgba(27,22,64,.18)}
+/* Les barres et les coefficients : Facile violet (plus de vert dans la feuille), Moyen orange, Difficile rouge, partout pareil. */
+html.lq #scr-defis .room-level.is-f .room-bars i:nth-child(-n+1),html.lq .dx-feuille .jeu-bars.is-f b:nth-child(1){background:var(--accent)}
+html.lq #scr-defis .room-level.is-m .room-bars i:nth-child(-n+2),html.lq .dx-feuille .jeu-bars.is-m b:nth-child(-n+2){background:var(--dx-m)}
+html.lq #scr-defis .room-level.is-d .room-bars i,html.lq .dx-feuille .jeu-bars.is-d b{background:var(--dx-d)}
+
+/* ---------- Défis v2 · 9. Pastilles d’information ---------- */
+html.lq :is(#scr-defis,.dx-feuille) :is(.dx-plp,.dx-niv,.dx-live){display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:999px;font:800 11.5px/1.4 var(--ui);font-style:normal;letter-spacing:0;vertical-align:1px}
+html.lq #scr-defis .dx-plp{margin-left:6px;background:var(--accent-soft);color:var(--accent-ink)}
+html.lq #scr-defis .dx-niv.is-f{background:var(--dx-f-soft);color:var(--dx-f)}
+html.lq #scr-defis .dx-niv.is-m{background:var(--dx-m-soft);color:var(--dx-m)}
+html.lq #scr-defis .dx-niv.is-d{background:var(--dx-d-soft);color:var(--dx-d)}
+/* « 2 en direct » : la pastille « Disponible » du site (menthe, point vert) ; « Aucune salle disponible » en gris. */
+html.lq #scr-defis .dx-live{padding:3px 10px;background:var(--mint);color:var(--ink);font-size:12px}
+html.lq #scr-defis .dx-live::before{width:7px;height:7px;background:#14955A}
+html.lq #scr-defis .dx-live.is-off{background:#F1EEFB;color:var(--ink-2)}
+
+/* ---------- Défis v2 · 10. Listes : une tuile lilas, des rangées à plat séparées d’un filet blanc ----------
+   Salles, classement, ta place, adversaires : la même liste. Plus de cadre par rangée (des cartes dans la carte). */
+html.lq #scr-defis :is(.dx-list,.perf-mates,.perf-hist){gap:0;margin:0;padding:2px 10px;border-radius:var(--dx-r-tuile);background:var(--dx-tuile);list-style:none}
+html.lq #scr-defis .dx-list>li,html.lq #scr-defis :is(.perf-mates,.perf-hist)>li{position:relative;gap:10px;min-height:64px;margin:0 -8px;padding:10px 8px;border:0!important;border-radius:var(--dx-r-ctl);
+  background:transparent;box-shadow:none;transition:background-color .15s}
+html.lq #scr-defis .dx-list>li+li::before,html.lq #scr-defis :is(.perf-mates,.perf-hist)>li+li::before{content:"";position:absolute;left:8px;right:8px;top:-1px;height:2px;border-radius:2px;background:var(--dx-filet)}
+html.lq #scr-defis .dx-list>li.is-tap:active{transform:none;background:rgba(255,255,255,.7)}
+/* Toi : la rangée lilas cerclée de violet (le violet reste à « Toi », comme dans les barres de Mes stats). */
+html.lq #scr-defis .dx-list>li.is-me{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+html.lq #scr-defis .dx-list>li.is-me::before,html.lq #scr-defis .dx-list>li.is-me+li::before{display:none}
+html.lq #scr-defis #dx-place .dx-list{padding:0;background:none}
+html.lq #scr-defis #dx-place .dx-list>li{margin:0}
+/* Chargement : des barres grises, sans pointillés. */
+html.lq #scr-defis .dx-list.is-wait>li,html.lq #scr-defis .dx-list>li.is-wait{border-style:none}
+html.lq #scr-defis :is(.dx-list.is-wait,.dx-list>li.is-wait) .dx-t :is(b,small){background:#E3DEF5}
+html.lq #scr-defis :is(.dx-list.is-wait,.dx-list>li.is-wait) .jeu-av.is-empty{border:0;background:#E3DEF5!important}
+/* Le contenu d’une rangée */
+html.lq #scr-defis :is(.dx-list,.perf-mates)>li>.jeu-av,html.lq #scr-defis .dx-me>.jeu-av,html.lq .dx-feuille .dx-fiche-av>.jeu-av{box-shadow:0 2px 0 rgba(27,22,64,.22)!important}
+html.lq #scr-defis .dx-list>li>.jeu-av{width:40px;height:40px;font-size:17px}
+html.lq #scr-defis .dx-t{gap:3px}
+/* Le pseudo d’une rangée est un bouton (clavier, lecteur d’écran) : 44 px de haut, centré dans la rangée qu’on touche. */
+html.lq #scr-defis button.dx-t-btn{min-height:44px;justify-content:center}
+html.lq #scr-defis .dx-t>b{font:700 15.5px/1.2 var(--display);letter-spacing:-.005em}
+html.lq #scr-defis .dx-t small{color:var(--ink-3);font:600 12.5px/1.35 var(--ui);text-wrap:pretty}
+html.lq #scr-defis .dx-t small i{color:var(--accent-ink)}
+html.lq #scr-defis .dx-rk{width:26px;color:var(--ink-2);font:800 15px/1 var(--display);font-variant-numeric:tabular-nums}
+html.lq #scr-defis .dx-rk svg{width:28px;height:28px}
+html.lq #scr-defis .dx-pts{color:var(--ink);font:800 16px/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+html.lq #scr-defis .dx-pts small{color:var(--ink-3);font:700 11.5px/1 var(--ui);letter-spacing:0}
+/* Le classement en pages : une page = une tuile ; la page suivante dépasse à droite comme une carte qu’on fait glisser.
+   min-width:0 : sans lui, une page s’élargissait à la taille de son plus long pseudo et la rangée sortait du cadre (320 px). */
+html.lq #scr-defis .dx-pages{gap:12px}
+html.lq #scr-defis .dx-page{min-width:0}
+html.lq #scr-defis .dx-nav{margin-top:12px}
+html.lq #scr-defis .dx-nav small{color:var(--ink-3);font:600 13px/1.2 var(--ui);font-variant-numeric:tabular-nums}
+/* Signaler, retirer : l’icône reste discrète, la zone de toucher fait 44 px. */
+html.lq #scr-defis :is(.perf-top-flag,.dx-retirer){position:relative;width:32px;height:32px}
+html.lq #scr-defis :is(.perf-top-flag,.dx-retirer)::after{content:"";position:absolute;inset:-6px}
+
+/* ---------- Défis v2 · 11. Boutons : deux tailles, deux tons ---------- */
+/* Grand (56 px) : « Créer ma partie », « Jouer un défi », « Ajouter par pseudo », les boutons des feuilles. */
+html.lq :is(#scr-defis,.dx-feuille) .room-go{min-height:56px!important;border-radius:var(--dx-r-tuile)!important;box-shadow:var(--dx-relief-v)!important;font:700 17px/1.1 var(--display)!important}
+html.lq :is(#scr-defis,.dx-feuille) .room-go:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--accent-lip)!important}
+html.lq #scr-defis .dx-rapide .room-go{margin-top:16px}
+html.lq #scr-defis .dx-cls-go{margin-top:14px}
+html.lq #scr-defis .dx-sec,html.lq #scr-defis .perf-top-btn,html.lq #scr-defis .perf-rematch,html.lq .dx-feuille .dx-fiche-ajout{display:flex;align-items:center;justify-content:center;gap:9px;
+  min-height:56px;padding:0 16px;border:var(--dx-bord);border-radius:var(--dx-r-tuile);background:#fff;box-shadow:var(--dx-relief);color:var(--accent-ink);font:700 16.5px/1.15 var(--display);
+  transition:transform .12s var(--press),box-shadow .12s var(--press),background-color .15s}
+html.lq #scr-defis :is(.dx-sec,.perf-top-btn,.perf-rematch):active,html.lq .dx-feuille .dx-fiche-ajout:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq #scr-defis .dx-sec.is-main{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:var(--dx-relief-v);font-size:17px}
+html.lq #scr-defis .dx-sec.is-main:active{box-shadow:0 0 0 var(--accent-lip)}
+html.lq #scr-defis .dx-sec.is-main.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);box-shadow:var(--dx-relief-v)}
+html.lq #scr-defis .dx-amis .dx-duo{gap:12px;margin-top:18px}
+/* Petit (44 px) : « Rejoindre », « Défier », les flèches des pages, « ‹ Jouer ». */
+html.lq #scr-defis .dx-join{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border-radius:var(--dx-r-ctl);box-shadow:var(--dx-relief-vs);font:700 14px/1 var(--display);
+  transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq #scr-defis .dx-join:active{transform:translateY(3px);box-shadow:0 0 0 var(--accent-lip)}
+html.lq #scr-defis .dx-join.is-ghost{padding:0 12px;border:var(--dx-bord);box-shadow:var(--dx-relief-s)}
+html.lq #scr-defis .dx-join.is-ghost:active{box-shadow:0 0 0 var(--lip)}
+html.lq #scr-defis .dx-arrow{width:44px;height:44px;border:var(--dx-bord);border-radius:var(--dx-r-ctl);box-shadow:var(--dx-relief-s)}
+html.lq #scr-defis .dx-arrow:not([disabled]):active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+html.lq #scr-defis .dx-arrow[disabled]{border-color:var(--line-2);box-shadow:none}
+html.lq #scr-defis .dx-stats-tete{gap:14px;margin-bottom:14px}
+/* Lien dans une phrase (« Ne plus apparaître ») : 44 px de zone de toucher, sans agrandir la ligne. */
+html.lq #scr-defis .perf-top-note button{position:relative;font-size:inherit}
+html.lq #scr-defis .perf-top-note button::after{content:"";position:absolute;inset:-14px -6px}
+html.lq #scr-defis .perf-top-note{margin:12px 0 0;color:var(--ink-3);font:500 13px/1.5 var(--ui)}
+
+/* ---------- Défis v2 · 12. « Rejoindre avec un code » · « Jouer en solo » : une rangée de deux tuiles, du même relief que les choix ---------- */
+/* Les salles des autres niveaux, à la fin du cadre : de l’air, plus de pointillés (le pointillé dit « à venir », pas « séparé »). */
+html.lq #scr-defis .dx-autres{margin-top:22px;border-top:2px solid var(--line-2)}
+html.lq #scr-defis .dx-autres>.dx-h3{margin-top:20px}
+
+/* ---------- Défis v2 · 13. États vides : un titre, une phrase, et la mascotte quand la carte est vide ---------- */
+/* « Aucune salle à ton niveau ? … » prend la place de la liste, dans la même tuile (plus de cadre pointillé). */
+html.lq #scr-defis .dx-rejoindre .dx-vide.is-aucune{padding:14px 16px;border:0;border-radius:var(--dx-r-tuile);background:var(--dx-tuile);color:var(--ink-2);font:600 14.5px/1.45 var(--ui)}
+html.lq #scr-defis .dx-vide{color:var(--ink-2);font:500 14.5px/1.5 var(--ui)}
+html.lq #scr-defis .dx-vide-bloc{margin:0 0 4px;text-align:center}
+html.lq #scr-defis .dx-vide-t{margin:0 0 6px;font:700 18px/1.25 var(--display)}
+html.lq #scr-defis .perf-top-msg{margin:0;color:var(--ink-2);font:500 14.5px/1.5 var(--ui)}
+html.lq #scr-defis #dx-place .perf-top-msg{margin:0 0 2px}
+/* Le classement vide : le chat au trophée (une pose existante, posée par clsVideHTML) au-dessus de « Le classement n’attend que toi ! ». */
+html.lq #scr-defis .dx-vide-bloc .chat-bonus.dx-cls-chat{display:block;width:100px;height:auto;margin:-2px auto 8px}
+html.lq #scr-defis .dx-vide-bloc.is-amis{margin:4px 0 0}
+html.lq #scr-defis .dx-vide-bloc.is-amis .chat-bonus{width:104px;margin-bottom:10px}
+html.lq #scr-defis .dx-vide-bloc.is-amis .dx-vide{max-width:290px}
+html.lq #scr-defis .dx-cls>.dx-h3{margin-top:22px}
+
+/* ---------- Défis v2 · 14. Tuiles de chiffres : à plat (on les lit, on ne les touche pas) ---------- */
+html.lq #scr-defis :is(.perf-kpi,.perf-times>div,.perf-pods>span),html.lq .dx-feuille .dx-fiche-kpi>div{border:0;border-radius:var(--dx-r-tuile);background:var(--dx-tuile);box-shadow:none}
+html.lq #scr-defis .perf-kpis{gap:8px}
+html.lq #scr-defis .perf-kpi{gap:5px;padding:13px 12px 12px}
+html.lq #scr-defis .perf-kpi b{font:800 26px/1 var(--display);letter-spacing:-.025em}
+html.lq #scr-defis .perf-kpi.is-long b{font-size:20px}
+html.lq #scr-defis .perf-kpi small{color:var(--ink-2);font:600 12.5px/1.25 var(--ui)}
+html.lq #scr-defis .perf-kpi small em{display:block;color:var(--ink-3);font-style:normal}
+/* Les points : la tuile jaune soleil, à plat comme les autres. */
+html.lq #scr-defis .perf-kpi.is-sun{background:var(--sun)}
+html.lq #scr-defis .perf-kpi.is-sun small{color:rgba(27,22,64,.78)}
+html.lq #scr-defis .perf-duo{gap:8px;margin-top:8px}
+html.lq #scr-defis .perf-ratebox{border-radius:var(--dx-r-tuile);background:var(--dx-tuile);padding:12px 14px 12px 12px}
+html.lq #scr-defis .perf-rate-t b{font:700 16px/1.2 var(--display)}
+html.lq #scr-defis .perf-rate-t small{color:var(--ink-2);font:500 13.5px/1.4 var(--ui)}
+html.lq #scr-defis .perf-times>div{gap:6px;padding:12px 13px}
+html.lq #scr-defis .perf-times small{color:var(--ink-2);font:600 12.5px/1.2 var(--ui)}
+html.lq #scr-defis .perf-times b{font-size:20px}
+html.lq #scr-defis .perf-pods span{padding:12px 6px 10px}
+html.lq #scr-defis .perf-pods small{color:var(--ink-2);font:600 12px/1.2 var(--ui)}
+html.lq #scr-defis :is(.perf-cap,.perf-note,.perf-legend){color:var(--ink-3);font:500 13px/1.45 var(--ui)}
+html.lq #scr-defis .perf-pod-cap{color:var(--ink-2);font:500 13.5px/1.45 var(--ui)}
+html.lq #scr-defis .perf-lv b{font:700 14px/1.2 var(--display)}
+html.lq #scr-defis .perf-lv .is-f .perf-lvbar i{background:var(--accent)}
+html.lq #scr-defis .perf-lv .is-m .perf-lvbar i{background:var(--dx-m)}
+html.lq #scr-defis .perf-lv .is-d .perf-lvbar i{background:var(--dx-d)}
+html.lq #scr-defis .perf-lvbar{background:var(--dx-tuile)}
+html.lq #scr-defis .perf-lv em{color:var(--ink-2)}
+/* Les listes de Mes stats (tes derniers adversaires, l’historique) : la liste commune. */
+html.lq #scr-defis :is(.perf-mates,.perf-hist)>li{min-height:60px}
+html.lq #scr-defis .perf-mate b,html.lq #scr-defis .perf-g b{font:700 15px/1.2 var(--display)}
+html.lq #scr-defis .perf-mate small,html.lq #scr-defis .perf-g small{color:var(--ink-3);font:600 12.5px/1.35 var(--ui)}
+html.lq #scr-defis .perf-rk{background:#fff;box-shadow:0 2px 0 var(--lip)}
+html.lq #scr-defis .perf-rematch{margin-top:14px}
+
+/* ---------- Défis v2 · 15. Le face-à-face : un seul code, de la liste des joueurs à la fiche ----------
+   Le score dans une pastille ; menthe quand tu mènes, pêche quand il faut rattraper (l’orange des retards), blanche à égalité.
+   Le rouge ne sert plus ici : perdre un duel n’est pas une erreur (le site met aussi une tendance qui baisse en gris, pas en rouge). */
+html.lq #scr-defis :is(.dx-h2h,.perf-h2h){display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+html.lq #scr-defis :is(.dx-h2h,.perf-h2h) em{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:999px;background:#fff;box-shadow:0 2px 0 var(--lip);
+  color:var(--ink);font:800 14px/1.2 var(--display);font-style:normal;font-variant-numeric:tabular-nums}
+html.lq #scr-defis :is(.dx-h2h,.perf-h2h) small{color:var(--ink-3);font:700 11.5px/1.2 var(--ui);white-space:nowrap}
+html.lq #scr-defis :is(.dx-h2h.is-up,.perf-mates li.is-up .perf-h2h) em{background:var(--dx-mene);box-shadow:0 2px 0 var(--dx-mene-lip);color:var(--dx-mene-ink)}
+html.lq #scr-defis :is(.dx-h2h.is-up,.perf-mates li.is-up .perf-h2h) small{color:var(--dx-mene-t)}
+html.lq #scr-defis :is(.dx-h2h.is-down,.perf-mates li.is-down .perf-h2h) em{background:var(--dx-retard);box-shadow:0 2px 0 var(--dx-retard-lip);color:var(--dx-retard-ink)}
+html.lq #scr-defis :is(.dx-h2h.is-down,.perf-mates li.is-down .perf-h2h) small{color:var(--dx-retard-t)}
+/* La rangée d’un adversaire : son nom garde toute la largeur ; le score passe sous le nom, « Défier » à droite.
+   (Avant, à 320 px, le nom tombait à « l… » et « 4 parties · hier » sur trois lignes.) */
+/* La fiche : le tableau du face-à-face, une tuile ; le chiffre de celui qui mène dans sa pastille. */
+html.lq .dx-feuille .dx-fiche-kpi{gap:8px;margin:18px 0 0}
+html.lq .dx-feuille .dx-fiche-kpi>div{gap:4px;padding:14px 8px 12px}
+html.lq .dx-feuille .dx-fiche-kpi b{font:800 24px/1.05 var(--display);letter-spacing:-.02em}
+html.lq .dx-feuille .dx-fiche-kpi small{color:var(--ink-2);font:600 12.5px/1.2 var(--ui)}
+html.lq .dx-feuille .dx-fiche-duel{margin:8px 0 0;padding:16px 14px 8px;border:0!important;border-radius:var(--dx-r-tuile);background:var(--dx-tuile)!important;box-shadow:none}
+html.lq .dx-feuille .dx-duel-score{gap:4px 8px;align-items:center}
+html.lq .dx-feuille .dx-duel-score>span{gap:6px}
+html.lq .dx-feuille .dx-duel-score b{min-width:58px;padding:5px 12px;border-radius:16px;color:var(--ink-3);font:800 38px/1 var(--display);letter-spacing:-.02em}
+html.lq .dx-feuille .dx-duel-score .is-tete b{background:#fff;box-shadow:var(--dx-relief-s);color:var(--ink)!important}
+html.lq .dx-feuille .dx-fiche-duel.is-up .dx-duel-score .is-tete b{background:var(--dx-mene);box-shadow:0 3px 0 var(--dx-mene-lip);color:var(--dx-mene-ink)!important}
+html.lq .dx-feuille .dx-fiche-duel.is-down .dx-duel-score .is-tete b{background:var(--dx-retard);box-shadow:0 3px 0 var(--dx-retard-lip);color:var(--dx-retard-ink)!important}
+html.lq .dx-feuille .dx-fiche-duel:not(.is-up):not(.is-down) .dx-duel-score b{color:var(--ink)}
+html.lq .dx-feuille .dx-duel-score small{color:var(--ink-2);font:700 13.5px/1.2 var(--ui)}
+html.lq .dx-feuille .dx-duel-score>span:last-child small{color:var(--accent-ink);font-weight:800}
+html.lq .dx-feuille .dx-duel-score>i{padding:0;color:var(--ink-3);font:800 24px/1 var(--display);align-self:center;margin-top:-22px}
+html.lq .dx-feuille .dx-duel-voir{min-height:44px;margin-top:8px;font:700 14px/1.2 var(--display)}
+html.lq .dx-feuille .dx-duel-liste{gap:0;margin:2px 0 2px}
+html.lq .dx-feuille .dx-duel-liste li{position:relative;padding:10px 4px;border-radius:0;background:transparent}
+html.lq .dx-feuille .dx-duel-liste li+li::before{content:"";position:absolute;left:4px;right:4px;top:-1px;height:2px;border-radius:2px;background:#fff}
+html.lq .dx-feuille .dx-duel-liste b{font:800 14px/1.2 var(--display)}
+html.lq .dx-feuille .dx-duel-liste li.is-w b{color:var(--dx-mene-t)}
+html.lq .dx-feuille .dx-duel-liste li.is-l b{color:var(--dx-retard-t)}
+html.lq .dx-feuille .dx-duel-liste li.is-e b{color:var(--ink-3)}
+html.lq .dx-feuille .dx-duel-liste span{color:var(--ink);font:700 13.5px/1.3 var(--ui);font-variant-numeric:tabular-nums}
+html.lq .dx-feuille .dx-duel-liste small{color:var(--ink-3);font:600 12.5px/1.35 var(--ui)}
+html.lq .dx-feuille .dx-duel-note{margin:6px 4px 8px;color:var(--ink-3);font:500 12.5px/1.4 var(--ui);text-align:center}
+html.lq .dx-feuille .dx-fiche-h2h{margin:14px 0 0;color:var(--ink-3);font:600 13px/1.4 var(--ui)}
+html.lq .dx-feuille .dx-fiche-av{border-radius:20px}
+
+/* ---------- Défis v2 · 16. Feuilles ---------- */
+html.lq .dx-feuille .dx-f-boite{border-radius:var(--dx-r-feuille)}
+html.lq .dx-feuille .room-hint{display:block;margin-top:10px;color:var(--ink-3);font:500 13.5px/1.45 var(--ui)}
+html.lq .dx-feuille .jeu-note{margin:16px 2px 0!important;color:var(--ink-3);font:500 13px/1.5 var(--ui)}
+html.lq .dx-feuille .dx-f-pied{margin-top:12px}
+html.lq .dx-feuille .room-join .jeu-input.is-code{border-radius:var(--dx-r-ctl);box-shadow:var(--dx-relief-s)}
+html.lq .dx-feuille .room-join .jeu-input.is-code::placeholder{color:#8E8AA8}
+html.lq .dx-feuille .dx-f-niv{gap:6px;padding:4px 11px 4px 8px;font:800 13px/1.2 var(--display)}
+/* ---------- Défis v2 · 16 bis. Clavier, souris, formulaire ---------- */
+/* Focus clavier : l’anneau du site (3 px violet encre, 3 px d’écart), sur tout ce qui se touche. Les tuiles sous « ou » gardent leur
+   anneau intérieur (leur rangée coupe ce qui dépasse) ; le champ du code garde son halo. */
+html.lq :is(#scr-defis,.dx-feuille) :is(button,[role="button"]):not(.dx-act):focus-visible{outline:3px solid var(--accent-ink);outline-offset:3px}
+html.lq #scr-defis .dx-list>li[role="button"]:focus-visible{outline-offset:-2px}
+/* Souris (ordinateur) : les bords foncent d’un ton, le violet s’éclaircit, comme les boutons du site. */
+@media (hover:hover) and (pointer:fine){
+  html.lq #scr-defis :is(.dx-me,.dx-chip:not(.on),.dx-sec:not(.is-main),.perf-top-btn,.perf-rematch,.dx-join.is-ghost,.dx-arrow:not([disabled]),.dx-retour):hover,
+  html.lq .dx-feuille .dx-fiche-ajout:hover{border-color:#D6CEF3}
+  html.lq :is(#scr-defis,.dx-feuille) .room-go:hover{background:#7457FF!important}
+  html.lq #scr-defis :is(.dx-join:not(.is-ghost),.dx-sec.is-main:not(.on),.dx-chip.on):hover{background:#7457FF;border-color:#7457FF}
+  html.lq #scr-defis .dx-list>li.is-tap:hover{background:rgba(255,255,255,.6)}
+  html.lq #scr-defis .dx-points:hover{background:#E8E1FF}
+}
+/* « Ajouter par pseudo » ouvert : le libellé et le champ des feuilles. */
+html.lq #scr-defis .dx-ajout{margin-top:16px}
+html.lq #scr-defis .dx-ajout .jeu-lab{margin:0 0 10px;color:var(--ink)!important;font:700 15.5px/1.25 var(--display)!important}
+html.lq #scr-defis .dx-ajout-l{gap:8px;margin-top:0}
+html.lq #scr-defis .dx-ajout .jeu-input{min-height:48px;border-radius:var(--dx-r-ctl)!important}
+html.lq #scr-defis .dx-ajout .dx-join{min-height:48px;padding:0 16px}
+html.lq #scr-defis .dx-ajout .jeu-msg:not(:empty){margin:8px 2px 0;font:600 13.5px/1.4 var(--ui)}
+
+/* ---------- Défis v2 · 17. Téléphones étroits (jusqu’à 380 px : iPhone SE, mini, 320) ---------- */
+@media (max-width:380px){
+  /* Les trois pastilles tiennent sur une ligne à 375 px. */
+  html.lq #scr-defis .dx-filters{gap:6px}
+  html.lq #scr-defis .dx-chip{padding:0 10px;font-size:13px}
+  /* Classement : le rang, l’avatar et les points se serrent pour laisser la place au pseudo (48 px avant, à 320 px). */
+  html.lq #scr-defis .dx-list>li:has(>.dx-rk){gap:6px}
+  html.lq #scr-defis .dx-list>li:has(>.dx-rk)>.jeu-av{width:34px;height:34px;font-size:14.5px}
+  html.lq #scr-defis .dx-rk{width:20px;font-size:14px}
+  html.lq #scr-defis .dx-rk svg{width:24px;height:24px}
+  html.lq #scr-defis .dx-pts{font-size:14.5px}
+  html.lq #scr-defis .dx-pts small{font-size:10.5px}
+  /* « Depuis toujours » tient sur une ligne. */
+  html.lq #scr-defis .dx-periode .room-opt{padding:0 4px!important;font-size:13.5px!important}
+}
+/* ---------- Défis v2 · 17 bis. Petits écrans (320 à 360 px) : marges plus serrées, les rangées gardent les pseudos ---------- */
+@media (max-width:360px){
+  html.lq #scr-defis,html.lq .dx-feuille{--dx-marge:14px}
+  html.lq #scr-defis .dx-rapide>.room-head>.room-chat{width:80px;margin:-6px -8px 0 6px}
+  html.lq #scr-defis .dx-rapide>.room-head h2{font-size:23px!important}
+  html.lq :is(#scr-defis,.dx-feuille) .room-kicker{font-size:11.5px!important;letter-spacing:.05em!important}
+  html.lq #scr-defis :is(.dx-list,.perf-mates,.perf-hist){padding:2px 8px}
+  html.lq #scr-defis .dx-list>li,html.lq #scr-defis :is(.perf-mates,.perf-hist)>li{gap:8px;margin:0 -6px;padding:10px 6px}
+  html.lq #scr-defis .dx-list>li>.jeu-av{width:36px;height:36px;font-size:15px}
+  html.lq #scr-defis .dx-t>b{font-size:15px}
+  html.lq #scr-defis .dx-join{padding:0 11px;font-size:14px}
+  html.lq #scr-defis .dx-join.is-ghost{padding:0 10px}
+  html.lq #scr-defis .dx-list>li:has(>.dx-rk)>.jeu-av{width:32px;height:32px;font-size:14px}
+  html.lq #scr-defis .dx-pts{font-size:14px}
+  html.lq #scr-defis .dx-periode .room-opt{font-size:13px!important}
+  /* « Niveau recommandé » sur deux lignes, pour rester dans la largeur de sa carte (coupé par le bord du cadre avant). */
+  html.lq #scr-defis .dx-niv-tete{margin-bottom:24px}
+  html.lq #scr-defis .room-level .room-lv-auto{top:-18px;width:max-content;max-width:76px;padding:3px 6px;white-space:normal;text-align:center;line-height:1.05}
+  /* Pas de page qui dépasse : la largeur va aux pseudos ; les flèches et les points disent qu’il y a d’autres pages. */
+  html.lq #scr-defis .dx-page{flex-basis:100%}
+  html.lq #scr-defis .perf-kpi b{font-size:22px}
+  html.lq #scr-defis .perf-kpi{padding:11px 10px 10px}
+  html.lq .dx-feuille .dx-duel-score b{font-size:34px}
+}
+
+/* ---------- Défis v2 · 18. Confort de lecture « grand texte » : les textes grandissent, les surtitres et pastilles restent mesurés ----------
+   (la règle générale de l’appli passe chaque <p> à 17 px : les surtitres en capitales dépassaient alors les titres). */
+html.lq[data-reading="large"] #scr-defis .perf-kicker,html.lq[data-reading="large"] :is(#scr-defis,.dx-feuille) .room-kicker{font-size:13.5px!important;line-height:1.2!important}
+html.lq[data-reading="large"] :is(#scr-defis,.dx-feuille) .room-head .room-sub{font-size:16.5px;line-height:1.5}
+html.lq[data-reading="large"] #scr-defis :is(.dx-rj-h,.dx-h3,.perf-block>h3,.perf-friends>h4),html.lq[data-reading="large"] #scr-defis .dx-niv-tete>.jeu-lab{font-size:19px!important;line-height:1.2!important}
+html.lq[data-reading="large"] .dx-feuille .jeu-lab{font-size:17px!important;line-height:1.25!important}
+html.lq[data-reading="large"] #scr-defis :is(.dx-vide,.perf-top-msg,.dx-rejoindre .dx-vide.is-aucune){font-size:16.5px;line-height:1.5}
+html.lq[data-reading="large"] #scr-defis .dx-vide-t{font-size:20px;line-height:1.25}
+html.lq[data-reading="large"] #scr-defis .dx-t>b,html.lq[data-reading="large"] #scr-defis .dx-me-t>b{font-size:17px}
+html.lq[data-reading="large"] #scr-defis :is(.dx-t small,.dx-me-t small,.dx-points-t small,.perf-mate small,.perf-g small,.perf-rate-t small){font-size:15px}
+html.lq[data-reading="large"] #scr-defis :is(.perf-cap,.perf-note,.perf-legend,.perf-pod-cap,.perf-top-note,.dx-niv-plus){font-size:15px;line-height:1.5}
+html.lq[data-reading="large"] #scr-defis :is(.perf-kpi small,.perf-times small,.perf-pods small),html.lq[data-reading="large"] .dx-feuille .dx-fiche-kpi small{font-size:14px}
+html.lq[data-reading="large"] :is(#scr-defis,.dx-feuille) :is(.dx-plp,.dx-niv,.dx-live){font-size:13.5px}
+html.lq[data-reading="large"] .dx-feuille :is(.room-hint,.jeu-note,.dx-fiche-h2h,.dx-duel-note,.dx-duel-liste small){font-size:15px;line-height:1.5}
+html.lq[data-reading="large"] .dx-feuille :is(.dx-duel-liste span,.dx-duel-voir){font-size:15.5px}
+/* Grand texte : pas de page qui dépasse dans le classement, la largeur va aux pseudos. */
+html.lq[data-reading="large"] #scr-defis .dx-page{flex-basis:100%}
+
+/* ---------- Défis v2 · 19. Mouvement réduit : rien ne bouge, l’appui se voit par la couleur ---------- */
+@media (prefers-reduced-motion:reduce){
+  html.lq #scr-defis :is(.dx-me,.dx-points,.dx-chip,.dx-join,.dx-sec,.dx-arrow,.dx-retour,.perf-top-btn,.perf-rematch,.dx-list>li,.room-opt,.room-rules-niv button),
+  html.lq .dx-feuille :is(.room-opt,.dx-fiche-ajout){transition:none!important}
+  html.lq #scr-defis :is(.dx-me,.dx-points,.dx-chip,.dx-join,.dx-sec,.dx-arrow,.dx-retour,.perf-top-btn,.perf-rematch):active,
+  html.lq :is(#scr-defis,.dx-feuille) .room-go:active,html.lq .dx-feuille .dx-fiche-ajout:active{transform:none!important}
+}
+html.lq[data-motion="reduce"] #scr-defis :is(.dx-me,.dx-points,.dx-chip,.dx-join,.dx-sec,.dx-arrow,.dx-retour,.perf-top-btn,.perf-rematch,.dx-list>li,.room-opt,.room-rules-niv button),
+html.lq[data-motion="reduce"] .dx-feuille :is(.room-opt,.dx-fiche-ajout){transition:none!important}
+html.lq[data-motion="reduce"] #scr-defis :is(.dx-me,.dx-points,.dx-chip,.dx-join,.dx-sec,.dx-arrow,.dx-retour,.perf-top-btn,.perf-rematch):active,
+html.lq[data-motion="reduce"] :is(#scr-defis,.dx-feuille) .room-go:active,html.lq[data-motion="reduce"] .dx-feuille .dx-fiche-ajout:active{transform:none!important}
+
+
+
+
+
+
+
+/* ==========================================================================
+   Défis v2 · 20. La nouvelle structure (designer produit, 7 novembre), habillée de la DA ci-dessus
+   Jouer : un bandeau court, « Créer ma partie » visible sans défiler, deux boutons secondaires, des salles à plat.
+   Classement et Joueurs : plus de carte autour de l’onglet ; une surface blanche par liste ; une ligne par joueur.
+   ========================================================================== */
+
+/* ---------- Défis v2 · 20.1 Jouer : la carte du joueur, un peu plus basse ---------- */
+html.lq #scr-defis .dx-me{min-height:62px;gap:10px;padding:8px 10px 8px 12px}
+html.lq #scr-defis .dx-me>.jeu-av{width:42px;height:42px;font-size:18px}
+html.lq #scr-defis .dx-me-t small{font-size:12.5px}
+
+/* ---------- Défis v2 · 20.2 Jouer : le héros court ---------- 
+   Le chat se pose en haut à droite (le surtitre et le titre s’arrêtent avant lui) ; le sous-titre, sous lui, garde toute la largeur
+   et tient sur une ligne : le bandeau perd 27 px, et « Créer ma partie » se voit sans défiler. */
+html.lq #scr-defis .dx-rapide.is-v2>.room-head{position:relative;display:block;min-height:0;padding:14px 16px 24px}
+html.lq #scr-defis .dx-rapide.is-v2>.room-head>.room-chat{position:absolute;float:none;z-index:1;right:4px;top:2px;width:76px;margin:0}
+html.lq #scr-defis .dx-rapide.is-v2>.room-head :is(.room-kicker,h2){margin-right:78px}
+html.lq #scr-defis .dx-rapide.is-v2>.room-head h2{margin-top:5px}
+html.lq #scr-defis .dx-rapide.is-v2>.room-head .room-sub{margin-top:5px;font-size:14px}
+html.lq #scr-defis .dx-rapide.is-v2>.room-head .room-sp.s1{left:auto;right:112px;top:12px}
+html.lq #scr-defis .dx-rapide.is-v2>.room-head .room-sp.s2{left:auto;right:18px;bottom:22px}
+
+/* ---------- Défis v2 · 20.3 Jouer : le niveau, des cartes de choix un peu moins hautes ---------- */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-r-niv{margin-top:16px}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-niv-tete{margin-bottom:13px}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-niv-tete .jeu-lab{margin:0!important}
+html.lq #scr-defis .dx-rapide.is-v2 .room-level{gap:4px;padding:10px 6px 8px!important}
+html.lq #scr-defis .dx-rapide.is-v2 .room-level .room-bars{height:16px}
+
+/* ---------- Défis v2 · 20.4 Jouer : « Rejoins une partie », puis « Créer ma partie » ---------- */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-rejoindre{margin:18px 0 0}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-rj-tete{min-height:28px;gap:6px 8px;margin-bottom:8px}
+/* « Aucune salle disponible » tient à côté de « Rejoins une partie » à 390 px (Elisa, 22 h 29 : « monte le "aucune salle disponible" »). */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-live.is-off{padding:3px 8px;font-weight:700;font-size:11.5px}
+html.lq #scr-defis .dx-live.is-off::before{display:none}   /* pas de point « en direct » quand rien ne l’est */
+/* Rien à son niveau : la phrase d’Elisa en texte simple, à la place de la liste (ni cadre ni pointillés). */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-rejoindre .dx-vide.is-aucune{margin:0;padding:0 2px;border:0;border-radius:0;background:none;color:var(--ink-2);font:500 14.5px/1.45 var(--ui);text-wrap:pretty}
+/* « Voir les 2 autres salles » : un lien de 44 px, sa flèche vers le bas. */
+html.lq #scr-defis .dx-ancre{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:0 0 -8px;padding:0 2px;border:0;background:none;color:var(--accent-ink);font:800 14px/1.2 var(--ui);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.lq #scr-defis .dx-ancre svg{flex:none;width:16px;height:16px;rotate:90deg}
+html.lq #scr-defis .dx-ancre:focus-visible{border-radius:8px}
+/* Une salle : deux lignes de texte au plus ; le pseudo se coupe avant la pastille « 2/5 ». */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-t>b{display:flex;align-items:center;gap:6px;min-width:0}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-nom{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-plp{flex:none;margin-left:0}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-t small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act-go svg{width:20px;height:20px}
+
+/* ---------- Défis v2 · 20.5 Jouer : « Rejoindre avec un code » · « Jouer en solo », deux boutons secondaires (plus de « ou » ni de tuiles) ---------- */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act{flex-direction:row;justify-content:center;gap:6px;min-height:52px;padding:6px 8px;border:var(--dx-bord);border-radius:var(--dx-r-tuile);background:#fff;
+  box-shadow:var(--dx-relief-s);transition:transform .12s var(--press),box-shadow .12s var(--press),background-color .15s}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act+.dx-act{box-shadow:var(--dx-relief-s)}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip);background:#fff}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act[aria-expanded="true"]{background:var(--accent-soft)}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act:focus-visible{outline:3px solid var(--accent-ink);outline-offset:3px;border-radius:var(--dx-r-tuile)}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act-stk{width:26px;height:26px;margin:0}
+/* Deux lignes au plus (« Rejoindre / avec un code ») : le retour à la ligne normal, pas l’équilibré (qui en faisait trois). */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-act b{color:var(--accent-ink);font:700 14.5px/1.15 var(--display)!important;text-align:left;text-wrap:wrap}
+
+/* ---------- Défis v2 · 20.6 Jouer : les salles des autres niveaux, à la fin du cadre (le lien y descend sans passer sous l’en-tête collant) ---------- */
+html.lq #scr-defis .dx-rapide.is-v2 .dx-autres{scroll-margin-top:76px}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-autres:empty{margin:0;border:0}
+html.lq #scr-defis .dx-rapide.is-v2 .dx-autres>.dx-h3{outline:none}
+
+/* ---------- Défis v2 · 20.7 Classement : les filtres sur le fond, une légende, une carte blanche par page ---------- */
+html.lq #scr-defis .dx-cls.is-v2{margin:0 0 14px}
+html.lq #scr-defis .dx-cls.is-v2 .dx-filtres{display:flex;flex-direction:column;gap:10px;margin:0 0 14px}
+html.lq #scr-defis .dx-cls.is-v2 .dx-filters,html.lq #scr-defis .dx-cls.is-v2 .dx-periode{margin:0}
+html.lq #scr-defis .dx-cls.is-v2 .dx-cls-compte{margin:0 4px 8px;color:var(--ink-2);font:700 13px/1.3 var(--ui)}
+html.lq #scr-defis .dx-cls.is-v2 .dx-cls-compte:empty{display:none}
+html.lq #scr-defis .dx-cls.is-v2 .dx-pages{padding-bottom:6px}
+/* Une page : la carte blanche (sur le fond lavande, une tuile lilas ne se verrait pas) ; ses rangées à plat, un filet lilas entre elles. */
+html.lq #scr-defis .dx-cls.is-v2 .dx-page{padding:4px 12px;border:var(--dx-bord);border-radius:var(--dx-r-carte);background:#fff;box-shadow:var(--dx-relief);box-sizing:border-box}
+html.lq #scr-defis .dx-cls.is-v2 .dx-pages.is-seule .dx-page{flex-basis:100%}
+html.lq #scr-defis :is(.dx-cls.is-v2 .dx-page,.dx-amis.is-v2 .dx-adv)>li+li::before{background:var(--line-2)}
+html.lq #scr-defis :is(.dx-cls.is-v2 .dx-page,.dx-amis.is-v2 .dx-adv)>li.is-tap:active{background:var(--dx-tuile)}
+html.lq #scr-defis .dx-cls.is-v2 .dx-page>li.is-me{margin:4px -6px}
+html.lq #scr-defis .dx-cls.is-v2 .dx-go{flex:none;display:grid;place-items:center;width:16px;margin-left:-4px;color:var(--ink-3)}
+html.lq #scr-defis .dx-cls.is-v2 .dx-go svg{width:16px;height:16px}
+html.lq #scr-defis .dx-nav[hidden]{display:none}
+/* Les messages (hors ligne, filtre indisponible, aucun ami classé) et l’état vide : la même carte que la liste. */
+html.lq #scr-defis .dx-cls.is-v2 :is(.dx-cls-msg,#dx-pager>.dx-vide-bloc){margin:0;padding:18px 16px;border:var(--dx-bord);border-radius:var(--dx-r-carte);background:#fff;box-shadow:var(--dx-relief)}
+html.lq #scr-defis .dx-cls.is-v2 .dx-cls-msg .perf-top-btn{margin-top:14px}
+html.lq #scr-defis .dx-cls.is-v2 .dx-vide-bloc.is-cls{text-align:center}
+html.lq #scr-defis .dx-cls.is-v2 .dx-vide-bloc.is-cls .perf-top-msg{max-width:290px;margin:0 auto}
+/* « Ta place dans le classement » : le titre, (ta ligne), l’écart avec le joueur devant, puis « Jouer un défi ». */
+html.lq #scr-defis .dx-cls.is-v2 #dx-place-h{margin:20px 4px 10px}
+html.lq #scr-defis .dx-cls.is-v2 #dx-place-h[hidden]{display:none}
+html.lq #scr-defis .dx-cls.is-v2 #dx-pager>.dx-vide-bloc~*,html.lq #scr-defis .dx-cls.is-v2 #dx-place:has(>.dx-cls-go:only-child){margin-top:4px}
+html.lq #scr-defis .dx-cls.is-v2 .dx-ecart{display:flex;align-items:flex-start;gap:10px;margin:0 4px;color:var(--ink);font:600 14.5px/1.45 var(--ui);text-wrap:pretty}
+html.lq #scr-defis .dx-cls.is-v2 #dx-place>.dx-list+.dx-ecart{margin-top:12px}
+html.lq #scr-defis .dx-cls.is-v2 .dx-ecart b{font-weight:800}
+html.lq #scr-defis .dx-cls.is-v2 .dx-ecart-ico{flex:none;display:grid;place-items:center;width:24px;height:24px;margin-top:-1px;border-radius:50%;background:var(--sun);box-shadow:0 2px 0 #E0A100;color:#1B1640;font:800 13px/1 var(--ui)}
+html.lq #scr-defis .dx-cls.is-v2 #dx-place>.perf-top-msg{margin:0 4px}
+html.lq #scr-defis .dx-cls.is-v2 .dx-cls-note{margin:12px 4px 0}
+
+/* ---------- Défis v2 · 20.8 Joueurs : le titre sur le fond, les deux boutons, puis la liste dans sa carte ---------- */
+html.lq #scr-defis .dx-amis.is-v2{margin:0 0 14px}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-tete{display:flex;align-items:center;gap:12px;margin:2px 4px 14px}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-tete .perf-stk{flex:none;width:44px;height:44px}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-tete h2{margin:4px 0 0;color:var(--ink);font:700 22px/1.12 var(--display);letter-spacing:-.02em}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions{margin:0 0 14px}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-sec{width:auto;min-height:52px;padding:0 10px;font-size:15px;text-align:center}
+/* Le champ « Le pseudo du joueur », ouvert sous les boutons : dans une carte. */
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-ajout{margin:12px 0 0;padding:14px;border:var(--dx-bord);border-radius:var(--dx-r-carte);background:#fff;box-shadow:var(--dx-relief)}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-ajout[hidden]{display:none}
+/* La liste : une carte blanche, une ligne par joueur ; le score du face-à-face en pastille à côté du pseudo. */
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv{padding:4px 12px;border:var(--dx-bord);border-radius:var(--dx-r-carte);background:#fff;box-shadow:var(--dx-relief)}
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv .dx-t>b{display:flex;align-items:center;gap:7px;min-width:0}
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv .dx-nom{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv .dx-t small{display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;white-space:nowrap}
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv .dx-t small em{font-style:normal;font-weight:800}
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv .dx-t small em.is-up{color:var(--dx-mene-t)}
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv .dx-t small em.is-down{color:var(--dx-retard-t)}
+html.lq #scr-defis .dx-amis.is-v2 .dx-score{flex:none;padding:2px 8px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line),0 2px 0 var(--lip);color:var(--ink);
+  font:800 13px/1.3 var(--display);font-variant-numeric:tabular-nums}
+html.lq #scr-defis .dx-amis.is-v2 .dx-score.is-up{background:var(--dx-mene);box-shadow:0 2px 0 var(--dx-mene-lip);color:var(--dx-mene-ink)}
+html.lq #scr-defis .dx-amis.is-v2 .dx-score.is-down{background:var(--dx-retard);box-shadow:0 2px 0 var(--dx-retard-lip);color:var(--dx-retard-ink)}
+/* En salle maintenant : le point vert (le « Disponible » du site), le texte en vert foncé. */
+html.lq #scr-defis .dx-amis.is-v2 .dx-adv li.is-live .dx-t small{color:var(--dx-mene-t);font-weight:800}
+html.lq :is(#scr-defis,.dx-feuille) .dx-dot{flex:none;width:8px;height:8px;border-radius:50%;background:#14955A;box-shadow:0 0 0 3px rgba(20,149,90,.18)}
+/* Liste vide : une carte, la mascotte, la phrase, puis les deux boutons l’un sous l’autre (l’état validé). */
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-vide{padding:18px 16px 16px;border:var(--dx-bord);border-radius:var(--dx-r-carte);background:#fff;box-shadow:var(--dx-relief)}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-vide .dx-duo{display:flex;flex-direction:column;margin-top:16px;gap:12px}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-vide .dx-duo .dx-sec{flex:none;width:100%}
+html.lq #scr-defis .dx-amis.is-v2 .dx-amis-vide .dx-ajout{margin-top:14px}
+
+/* ---------- Défis v2 · 20.9 La fiche : « En salle maintenant » et « Signaler ce pseudo » ---------- */
+html.lq .dx-feuille .dx-fiche-live{display:flex;align-items:center;gap:10px;margin:16px 0 0;padding:8px 8px 8px 14px;border-radius:var(--dx-r-tuile);background:#E6FAF0}
+html.lq .dx-feuille .dx-fiche-live p{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;margin:0}
+html.lq .dx-feuille .dx-fiche-live b{color:var(--dx-mene-t);font:700 15px/1.2 var(--display)}
+html.lq .dx-feuille .dx-fiche-live small{color:var(--ink-2);font:600 12.5px/1.3 var(--ui);white-space:nowrap}
+html.lq .dx-feuille .dx-fiche-live .dx-niv{display:inline-flex;padding:1px 7px;border-radius:999px;font:800 11.5px/1.4 var(--ui);font-style:normal}
+html.lq .dx-feuille .dx-fiche-live .dx-niv.is-f{background:var(--dx-f-soft);color:var(--dx-f)}
+html.lq .dx-feuille .dx-fiche-live .dx-niv.is-m{background:var(--dx-m-soft);color:var(--dx-m)}
+html.lq .dx-feuille .dx-fiche-live .dx-niv.is-d{background:var(--dx-d-soft);color:var(--dx-d)}
+html.lq .dx-feuille .dx-fiche-live .dx-join{flex:none;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border:0;border-radius:var(--dx-r-ctl);
+  background:var(--accent);box-shadow:var(--dx-relief-vs);color:#fff;font:700 14px/1 var(--display);cursor:pointer;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .dx-feuille .dx-fiche-live .dx-join:active{transform:translateY(3px);box-shadow:0 0 0 var(--accent-lip)}
+html.lq .dx-feuille .dx-fiche-live+.dx-fiche-kpi{margin-top:10px}
+html.lq .dx-feuille .dx-fiche-signal{display:block;min-height:44px;margin:4px auto -10px;padding:0 12px;border:0;background:none;color:var(--ink-3);font:600 13px/1.2 var(--ui);
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+html.lq .dx-feuille .dx-fiche-signal:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px;border-radius:8px}
+
+/* ---------- Défis v2 · 20.10 Les feuilles Créer, Code, Solo : le bandeau plus bas, les réglages montent ; « Tu joues en tant que » reste violet ---------- */
+html.lq .dx-feuille:not([data-k="joueur"]) .room-head{gap:12px;padding:16px 62px 28px 16px}
+html.lq .dx-feuille:not([data-k="joueur"]) .room-stk{width:46px;height:46px;padding:6px;border-radius:15px}
+html.lq .dx-feuille:not([data-k="joueur"]) .room-head h2{margin-top:3px;font-size:20px!important}
+html.lq .dx-feuille:not([data-k="joueur"]) .room-head .room-sub{margin-top:5px;font-size:13.5px;line-height:1.4}
+html.lq .dx-feuille:not([data-k="joueur"]) .room-field:first-child{margin-top:16px}
+html.lq body .dx-feuille .jeu-me{gap:12px;padding:10px 12px}
+html.lq body .dx-feuille .jeu-me .jeu-av{width:38px;height:38px}
+
+/* ---------- Défis v2 · 20.11 Mes stats : une page à part (les onglets se cachent, defisPeindre) ; un seul titre ---------- */
+html.lq #scr-defis #defis-tabs[hidden]{display:none}
+html.lq #scr-defis #defis-stats .dx-stats-tete{margin:18px 0 14px}
+html.lq #scr-defis #defis-perf>.perf-card>.perf-head{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%)}
+
+/* ---------- Défis v2 · 20.12 Écrans bas (iPhone SE, 8 : 667 px de haut) : le bandeau sans sous-titre, tout se resserre un peu ---------- */
+@media (max-height:700px){
+  html.lq #scr-defis .dx-me{min-height:58px;padding:7px 12px}
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head{padding:12px 16px 22px}
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head .room-sub{display:none}
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head>.room-chat{width:58px;top:0}
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head :is(.room-kicker,h2){margin-right:60px}
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-r-niv{margin-top:14px}
+  html.lq #scr-defis .dx-rapide.is-v2 .room-level{padding:9px 4px 8px!important}
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-act-go{margin-top:14px}
+}
+
+/* ---------- Défis v2 · 20.13 Téléphones étroits ---------- */
+@media (max-width:385px){
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head>.room-chat{width:68px}
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head :is(.room-kicker,h2){margin-right:70px}
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head .room-sub{font-size:13.5px}
+}
+@media (max-width:360px){
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head>.room-chat{width:62px;right:2px}
+  html.lq #scr-defis .dx-rapide.is-v2>.room-head :is(.room-kicker,h2){margin-right:62px}
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-act{padding:6px 8px}
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-act-stk{display:none}
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-act b{font-size:14px!important;text-align:center}
+  html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-sec{font-size:14px;padding:0 8px}
+  html.lq #scr-defis .dx-amis.is-v2 .dx-adv>li>.jeu-av{width:36px;height:36px;font-size:15px}
+  html.lq #scr-defis .dx-amis.is-v2 .dx-large{display:none}
+  html.lq #scr-defis .dx-amis.is-v2 .dx-adv>li{gap:8px}
+  html.lq #scr-defis .dx-amis.is-v2 .dx-adv .dx-join{padding:0 10px;font-size:13.5px}
+  html.lq #scr-defis .dx-amis.is-v2 .dx-score{padding:2px 6px;font-size:12px}
+  html.lq #scr-defis .dx-cls.is-v2 .dx-page,html.lq #scr-defis .dx-amis.is-v2 .dx-adv{padding:4px 10px}
+}
+
+/* ---------- Défis v2 · 20.14 Grand texte et mouvement réduit, pour les nouveaux éléments ---------- */
+html.lq[data-reading="large"] #scr-defis :is(.dx-ecart,.dx-rapide.is-v2 .dx-rejoindre .dx-vide.is-aucune){font-size:16.5px;line-height:1.5}
+html.lq[data-reading="large"] #scr-defis :is(.dx-cls-compte,.dx-ancre){font-size:15px}
+html.lq[data-reading="large"] #scr-defis .dx-rapide.is-v2 .dx-act b{font-size:15.5px!important}
+html.lq[data-reading="large"] .dx-feuille :is(.dx-fiche-live small,.dx-fiche-signal){font-size:15px}
+html.lq[data-reading="large"] #scr-defis .dx-amis.is-v2 .dx-large{display:none}
+@media (prefers-reduced-motion:reduce){
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-act,html.lq .dx-feuille .dx-fiche-live .dx-join{transition:none!important}
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-act:active,html.lq .dx-feuille .dx-fiche-live .dx-join:active{transform:none!important}
+  html.lq #scr-defis .dx-rapide.is-v2 .dx-autres{scroll-behavior:auto}
+}
+html.lq[data-motion="reduce"] #scr-defis .dx-rapide.is-v2 .dx-act,html.lq[data-motion="reduce"] .dx-feuille .dx-fiche-live .dx-join{transition:none!important}
+html.lq[data-motion="reduce"] #scr-defis .dx-rapide.is-v2 .dx-act:active,html.lq[data-motion="reduce"] .dx-feuille .dx-fiche-live .dx-join:active{transform:none!important}
