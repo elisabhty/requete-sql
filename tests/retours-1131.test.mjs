@@ -69,8 +69,9 @@ test('où il saute : la fin d’une leçon réussie, le bilan, la connexion apr�
   const oui = vm.runInContext('obCompteHautHTML(true)', ctx), non = vm.runInContext('obCompteHautHTML(false)', ctx);
   assert.ok(oui.includes(`<img class="ob-promise-stk ob-compte-stk is-bravo" src="${ANIM}" width="325" height="362" alt="" draggable="false">`) && oui.includes('ob-compte-bravo'));
   assert.ok(non.includes(`<img class="ob-promise-stk ob-compte-stk" src="${STK}" width="450" height="674" alt="" draggable="false">`) && !non.includes('is-bravo'));
-  /* La fin du parcours (lvFinEndHtml) garde l’autocollant : ce n’était pas dans la liste */
-  assert.ok(cut('function lvFinEndHtml(){', '</span>').includes('${mascotMedalHtml()}'));
+  /* La fin du parcours (lvFinEndHtml) a son diplômé (12 h 38, retours-1238) : mascotBravo n’y touche pas (un GIF choisi par l’écran) */
+  assert.ok(cut('function lvFinEndHtml(){', '</span>').includes("${mascotMedalHtml({anim:'diplome'})}"));
+  assert.ok(cut('function mascotBravo(btn,on){', '\n}').includes("if(img.hasAttribute&&img.hasAttribute('data-anim'))return;"));
 });
 
 test('le GIF porte la joie, à peu près à la hauteur de l’autocollant', () => {
