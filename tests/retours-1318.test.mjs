@@ -89,7 +89,7 @@ test('l’onboarding : la page « Tu vis où ? » juste après le prénom, dans 
   assert.ok(app.includes("  if((draft.name||'').trim()){obGoto('pays');return;}"), '« Continuer » et Entrée au prénom');
   const page = cut("}else if(slide==='pays'){", "}else if(slide==='age'){");
   for (const k of ["if(draft.pays===undefined){const p=paysDetecte();draft.pays=p||'';draft.paysAuto=!!p;draft.paysCherche=!!p;}",
-    'Tu vis <em>où</em>${prenom?`, ${esc(prenom)}`:\'\'}&nbsp;?', "obMascotQuestion('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.')",
+    'Tu vis <em>où</em>${prenom?`, ${esc(prenom)}`:\'\'}&nbsp;?', "obMascotDit('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.',obMascotOui(code))",
     'const cherche=!!(draft.paysCherche&&obJustEntered&&!prefersReduceMotion())', '<b>Je cherche où tu es…</b>',
     "${draft.paysAuto?'📍 Deviné grâce à ton téléphone':'✓ Choisi par toi'}", 'Je n’ai pas réussi à le deviner.',
     '<button type="button" class="ob-pays-trouve is-vide" onclick="obPaysListe()">',
@@ -162,8 +162,8 @@ test('la liste en feuille : recherche sans accents, pays proches en tête, le pa
 });
 
 test('les feuilles de style : la page (rechargée, v19) et ses animations, la feuille des pays et les pastilles (v136)', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">') && sw.includes("'./onboarding-vitrine.css?v=38',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=209">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=39">') && sw.includes("'./onboarding-vitrine.css?v=39',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=210">'));
   for (const k of ['html #onboarding.ob-vitrine .ob-pays-carte.is-on{border-color:var(--v-sun);background:#FFFBEB;box-shadow:0 5px 0 var(--v-sun-lip)}',
     'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-radar{display:flex}', 'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-trouve{display:none}',
     'html #onboarding.ob-vitrine .ob-pays-globe i:first-child{opacity:1}', '@keyframes obvPaysGlobe{', '@keyframes obvPaysPose{'])

@@ -67,8 +67,8 @@ const bouton = ({ natif = true, fait = false } = {}) => {
 test('l’engagement : la page, un bouton à l’empreinte et sa phrase, plus de signature à dessiner', () => {
   const p = cut("}else if(slide==='pact'){", "  }else{\n    const p=apercuPlan(");
   /* 21 h 19 : le certificat et le bouton viennent de pacteCarteHTML et holdZoneHTML, repris dans Mon compte (retours-2119) */
-  assert.ok(p.includes("${holdZoneHTML('ob-hold',!!draft.pacte)}"));
-  const z = cut('function holdZoneHTML(id,fait){', '\n}\n');
+  assert.ok(p.includes("${holdZoneHTML('ob-hold',!!draft.pacte,typeof chatBonusHtml==='function'?chatBonusHtml('serment','ob-hold-chat'):'')}"));
+  const z = cut('function holdZoneHTML(id,fait,chat){', '\n}\n');   // 7 novembre, 15 h 38 : le chat du serment, à côté du bouton (retours-1538)
   assert.ok(z.includes('<p class="ob-hold-hint" id="${id}-hint" aria-live="polite">${fait?PACTE_PRIS:\'Maintiens ton doigt sur le bouton pour t’engager\'}</p>'));
   assert.ok(z.includes('<button type="button" class="ob-hold${fait?\' is-done\':\'\'}" id="${id}" aria-describedby="${id}-hint" aria-label="${fait?\'Engagement pris\':\'Maintenir pour m’engager\'}">'));
   assert.ok(z.includes('<circle class="ob-hold-track" cx="50" cy="50" r="46"/><circle class="ob-hold-fill" cx="50" cy="50" r="46"/>'), 'l’anneau');
@@ -167,7 +167,7 @@ test('le bouton : jaune soleil, anneau blanc, empreinte qui se colore, menthe un
     assert.ok(media.includes('  html:not([data-motion="reduce"]) #onboarding.ob-vitrine ' + r), r);
   assert.ok(css.includes('stroke-dasharray:24;stroke-dashoffset:0}') && css.includes('@keyframes obvHoldCoche{from{stroke-dashoffset:24}}'));
   assert.ok(!/\.ob-sign/.test(css) && !css.includes('.ob-pact-foot'), 'plus de cadre à signer');
-  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=38'), f);
+  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=39'), f);
 });
 
 /* ---------- L’haptique dans l’appli ---------- */
@@ -309,5 +309,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-07-noms-en-code-v2635"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-07-chat-eureka-v2636"), 'le cache de l’appli change');
 });

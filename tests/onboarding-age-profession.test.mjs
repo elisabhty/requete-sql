@@ -42,7 +42,7 @@ test('âge : six tranches en tuiles, choix unique (obligatoire depuis 17 h 32)',
   assert.deepEqual(Array.from(ages, a => a[2]), ['Moins de 18 ans', '18 à 24 ans', '25 à 34 ans', '35 à 44 ans', '45 à 54 ans', '55 ans et plus'], 'ce que lit un lecteur d’écran');
   const age = slide('age', "}else if(slide==='job'){");
   assert.ok(age.includes('<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>'));
-  assert.ok(age.includes("obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')"), 'la mascotte pose la question, comme aux autres étapes');
+  assert.ok(age.includes("obMascotDit('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !',obMascotOui(draft.ageRange||draft.genre))"), 'la mascotte pose la question, comme aux autres étapes ; répondu, il hoche la tête (7 novembre, 15 h 38)');
   assert.ok(age.includes('role="radiogroup" aria-label="Ta tranche d’âge"') && age.includes('role="radio" aria-checked="${draft.ageRange===k?\'true\':\'false\'}" aria-label="${escAttr(label)}"'));
   assert.ok(age.includes("onclick=\"obPick('ageRange','${k}')\"") && age.includes('style="--d:${i*45}ms"'), 'les tuiles arrivent l’une après l’autre');
   assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange||!draft.genre);"), '« Continuer » après les deux choix ; ni « Passer » ni « Facultatif » (17 h 32)');
@@ -110,7 +110,7 @@ test('l’engagement : le nouveau texte, et le certificat au milieu de l’écra
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-5 .ob-pact .ob-lead{display:none!important}'));
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"));
   /* 5 novembre, 19 h 41 : le doigt maintenu sur le bouton à l’empreinte remplace la signature (retours-1941) */
-  assert.ok(pact.includes("${holdZoneHTML('ob-hold',!!draft.pacte)}") && app.includes('<button type="button" class="ob-hold${fait?\' is-done\':\'\'}" id="${id}"') && !pact.includes('ob-sign'));
+  assert.ok(pact.includes("${holdZoneHTML('ob-hold',!!draft.pacte,typeof chatBonusHtml==='function'?chatBonusHtml('serment','ob-hold-chat'):'')}") && app.includes('<button type="button" class="ob-hold${fait?\' is-done\':\'\'}" id="${id}"') && !pact.includes('ob-sign'));
 });
 
 test('la promesse ne dit plus « c’est assez pour les entretiens de data analyst » (ni aucune promesse de résultat)', () => {
@@ -155,7 +155,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">') && sw.includes("'./onboarding-vitrine.css?v=38',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=39">') && sw.includes("'./onboarding-vitrine.css?v=39',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');

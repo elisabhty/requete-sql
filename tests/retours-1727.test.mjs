@@ -26,7 +26,7 @@ test('réf. 4 et 2 : les phrases centrées le sont vraiment (la largeur maximale
     'la cause : « .ob-slides p » écrasait les marges automatiques');
   assert.ok(section.includes('html #onboarding.ob-vitrine .ob-slides p.ob-lead,html #onboarding.ob-vitrine .ob-slides p.ob-legal-note{margin-left:auto!important;margin-right:auto!important}'));
   /* Plus spécifique que « .ob-slides p » (0,1,1) : un identifiant, des classes */
-  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">'));
+  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=39">'));
 });
 
 test('réf. 3 : le cadre de la notification s’écarte de la carte de l’heure (son anneau de 9 px compris)', () => {
@@ -76,7 +76,7 @@ test('femme, homme ou ne pas dire : sur l’écran de l’âge, gardé sur l’a
   const dire = (g, f, h, n) => { ctx.draft.genre = g; return vm.runInContext(`accord(${JSON.stringify(f)},${JSON.stringify(h)},${JSON.stringify(n)})`, ctx); };
   assert.deepEqual(['f', 'h', 'n', '', 'x'].map(g => dire(g, 'seule', 'seul', 'seul·e')), ['seule', 'seul', 'seul·e', 'seul·e', 'seul·e']);
   /* Les mots qui parlent de la personne */
-  for (const k of ["${obMascotQuestion(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.')}",
+  for (const k of ["${obMascotDit(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.',obMascotOui(draft.job))}",
     "accord('future','futur','futur·e')+' pro du SQL'", "Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'} dans la salle",
     "tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;", '  const profileJob=obJobNom(profile.job);'])
     assert.ok(app.includes(k), k);
@@ -118,7 +118,7 @@ test('réf. 7 : l’objectif sur l’accueil… puis supprimé (5 novembre, 20 h
   assert.equal((app.match(/\$\{stats\}\$\{streak\}`;/g) || []).length, 2, 'sous les deux cartes du cours : les chiffres, puis la série');
   /* L’objectif reste modifiable dans Mon compte, Profil et objectif */
   assert.ok(app.includes("openPlusDetails('plus-profile-settings')"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=209">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=210">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {
