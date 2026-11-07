@@ -6,7 +6,7 @@
 // ios:add et ios:testflight, après « cap sync ». Relancé, il met les fichiers à jour et ne touche plus au projet.
 // Rien n’est changé si le projet ne ressemble pas à celui de Capacitor : un avertissement le dit, et la fabrication de l’app
 // continue sans widget (l’onboarding ne le propose alors pas : il n’apparaît qu’avec le pont natif).
-import {cpSync, existsSync, readFileSync, writeFileSync, copyFileSync} from 'node:fs';
+import {cpSync, existsSync, readFileSync, writeFileSync, copyFileSync, readdirSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
 
 const racine = new URL('..', import.meta.url).pathname;
@@ -19,6 +19,13 @@ if (!existsSync(projet) || !existsSync(story)) arret('projet iOS introuvable (io
 
 /* 1. Les fichiers : le widget (dossier RequeteWidget), le pont et le contrôleur (dans App), les droits du groupe d’apps. */
 cpSync(join(src, 'RequeteWidget'), join(ios, 'RequeteWidget'), {recursive: true});
+/* Les poses du chat passées en @2x et @3x (7 novembre, Ta flamme en direct : une Live Activity refuse une image plus grande qu’elle) :
+   l’ancien fichier sans échelle, resté dans ios/, n’est plus dans son Contents.json ; il part, pour qu’Xcode ne le signale pas. */
+const catSrc = join(src, 'RequeteWidget', 'Assets.xcassets'), catIos = join(ios, 'RequeteWidget', 'Assets.xcassets');
+for (const d of readdirSync(catSrc).filter(n => n.endsWith('.imageset'))) {
+  const gardes = new Set(readdirSync(join(catSrc, d)));
+  for (const f of readdirSync(join(catIos, d))) if (!gardes.has(f)) rmSync(join(catIos, d, f), {force: true});
+}
 for (const f of ['RequeteWidgetPlugin.swift', 'RequeteViewController.swift', 'App.entitlements']) copyFileSync(join(src, 'App', f), join(ios, 'App', f));
 /* Le manifeste de confidentialité de l’app : le nôtre, sauf s’il y en a déjà un autre (ajouté à la main dans Xcode). */
 const privApp = join(ios, 'App', 'PrivacyInfo.xcprivacy');

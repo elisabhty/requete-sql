@@ -55,7 +55,10 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "leconMaj", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "leconFin", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "partager", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "ouvrir", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "ouvrir", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "flammeProgrammer", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "flammeAllumee", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "flammeArreter", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -65,6 +68,10 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         // d’une leçon réussie (la flamme dorée, un quart d’heure sur l’écran verrouillé) reste jusqu’au bout.
         if #available(iOS 16.2, *) {
             Task { await RequeteLeconPont.arreterEnCours() }
+        }
+        // Ta flamme en direct d’un soir passé (minuit est passé, l’app n’a pas été ouverte depuis) : elle s’en va.
+        if #available(iOS 16.2, *) {
+            Task { await RequeteFlammePont.nettoyer() }
         }
     }
 
@@ -227,6 +234,52 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             }
         }
     }
+
+    /// Ta flamme en direct (7 novembre) : { jours: [{ jour, debut, minuit (en millisecondes), titre, action, nouvelle, alerteTitre,
+    /// alerteTexte }] }, les prochains soirs de séance pas encore faits (index.html, flammeDirectJours). Répond { ok, auto, jours } :
+    /// ok est faux si les Live Activities sont coupées ; auto, iOS 26 et plus (iOS la démarre tout seul à l’heure dite, l’app
+    /// fermée) ; jours, les soirs qui ont leur flamme, programmée ou en cours.
+    @objc func flammeProgrammer(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve(["ok": false, "auto": false, "jours": [String]()])
+            return
+        }
+        let brutes: [JSObject] = call.getArray("jours", JSObject.self) ?? []
+        let demandes: [RequeteFlammeDemande] = brutes.compactMap { (r: JSObject) -> RequeteFlammeDemande? in
+            RequeteFlammeDemande(r)
+        }
+        Task {
+            let jours: [String] = await RequeteFlammePont.programmer(demandes)
+            let ok: Bool = ActivityAuthorizationInfo().areActivitiesEnabled
+            call.resolve(["ok": ok, "auto": RequeteFlammePont.auto, "jours": jours])
+        }
+    }
+
+    /// La flamme du jour vient de s’allumer : { jour, discret } (discret : une leçon est dans la Dynamic Island, elle le dit déjà).
+    @objc func flammeAllumee(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve()
+            return
+        }
+        let jour: String = call.getString("jour") ?? ""
+        let discret: Bool = call.getBool("discret") ?? false
+        Task {
+            await RequeteFlammePont.allumee(jour: jour, discret: discret)
+            call.resolve()
+        }
+    }
+
+    /// Coupée dans Mon compte : plus rien, ni en cours ni programmé. Répond comme flammeProgrammer, sans soir.
+    @objc func flammeArreter(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve(["ok": true, "auto": false, "jours": [String]()])
+            return
+        }
+        Task {
+            await RequeteFlammePont.toutArreter()
+            call.resolve(["ok": true, "auto": RequeteFlammePont.auto, "jours": [String]()])
+        }
+    }
 }
 
 // MARK: - La leçon en cours (Live Activity)
@@ -348,6 +401,157 @@ enum RequeteLeconPont {
 
     static func arreterEnCours() async {
         for a in Activity<RequeteLecon>.activities where !a.content.state.fini {
+            await a.end(nil, dismissalPolicy: .immediate)
+        }
+    }
+}
+
+// MARK: - Ta flamme en direct, jusqu’à minuit (Live Activity)
+//
+// Elisa, 7 novembre, 19 h 26 (« Oui », pour la planche « Ta flamme, en direct jusqu’à minuit ») : les soirs de séance, à l’heure
+// du rappel (au plus tôt 18 h), si la flamme du jour n’est pas encore allumée, un compte à rebours jusqu’à minuit. Sans serveur : la
+// page demande les deux prochains soirs à chaque ouverture (flammeProgrammer). À partir d’iOS 26, iOS démarre une Live Activity
+// programmée à l’heure dite, même l’app fermée (Activity.request(…, start:), avec une alerte obligatoire) ; avant, elle démarre
+// quand on ouvre l’app ce soir-là. Son dessin est dans le widget (RequeteWidget.swift, RequeteFlammeDirecte).
+
+/// Le même type, au même nom et aux mêmes champs, est déclaré dans le widget (RequeteWidget.swift) : iOS relie la Live Activity
+/// programmée par l’app à son dessin là-bas par ce nom.
+@available(iOS 16.1, *)
+struct RequeteFlammeDirect: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var fait: Bool   // la flamme du jour est allumée
+    }
+
+    var jour: String     // « AAAA-MM-JJ »
+    var debut: Date      // l’heure du rappel, au plus tôt 18 h
+    var minuit: Date     // la fin du jour
+    var titre: String    // la prochaine activité : « Leçon 4 · LEFT JOIN »
+    var action: String   // « Leçon express · 3 min »
+}
+
+/// Un soir demandé par la page.
+@available(iOS 16.1, *)
+struct RequeteFlammeDemande {
+    let flamme: RequeteFlammeDirect
+    let nouvelle: Bool       // l’heure passée, elle peut démarrer tout de suite (pas si elle a déjà démarré ce soir-là)
+    let alerteTitre: String  // l’alerte d’iOS quand elle démarre toute seule (iOS 26)
+    let alerteTexte: String
+
+    init?(_ r: JSObject) {
+        guard let jour = r["jour"] as? String, let debut = RequeteFlammeDemande.date(r["debut"]), let minuit = RequeteFlammeDemande.date(r["minuit"]) else {
+            return nil
+        }
+        let titre: String = (r["titre"] as? String) ?? ""
+        let action: String = (r["action"] as? String) ?? ""
+        flamme = RequeteFlammeDirect(jour: jour, debut: min(debut, minuit), minuit: minuit, titre: titre, action: action)
+        nouvelle = (r["nouvelle"] as? Bool) ?? true
+        alerteTitre = (r["alerteTitre"] as? String) ?? "Ta flamme t’attend\u{202F}!"
+        alerteTexte = (r["alerteTexte"] as? String) ?? "Il te reste jusqu’à minuit pour l’allumer."
+    }
+
+    /// Des millisecondes depuis 1970 (le getTime() d’une date de la page).
+    private static func date(_ v: Any?) -> Date? {
+        if let n = v as? NSNumber { return Date(timeIntervalSince1970: n.doubleValue / 1000) }
+        if let d = v as? Double { return Date(timeIntervalSince1970: d / 1000) }
+        if let i = v as? Int { return Date(timeIntervalSince1970: Double(i) / 1000) }
+        return nil
+    }
+}
+
+@available(iOS 16.2, *)
+enum RequeteFlammePont {
+    /// iOS 26 et plus : la flamme programmée démarre toute seule à l’heure dite.
+    static var auto: Bool {
+        if #available(iOS 26.0, *) {
+            return true
+        }
+        return false
+    }
+
+    /// D’abord les flammes déjà là : une flamme finie garde sa carte (« Flamme allumée ! », un quart d’heure) ; une flamme d’un soir
+    /// passé, plus demandée, ou programmée autrement (son heure, sa leçon) s’en va ; une flamme commencée, ou programmée telle quelle,
+    /// reste. Puis les soirs qui manquent (lancer). Répond les soirs qui ont leur flamme.
+    static func programmer(_ demandes: [RequeteFlammeDemande]) async -> [String] {
+        let maintenant = Date()
+        var gardes: Set<String> = []
+        for a in Activity<RequeteFlammeDirect>.activities {
+            if a.activityState == .ended || a.activityState == .dismissed { continue }
+            let x: RequeteFlammeDirect = a.attributes
+            let voulue: RequeteFlammeDemande? = demandes.first { $0.flamme.jour == x.jour }
+            if let d = voulue, x.minuit > maintenant, garder(x, d.flamme, maintenant) {
+                gardes.insert(x.jour)
+            } else {
+                await a.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return gardes.sorted() }
+        var jours: Set<String> = gardes
+        for d in demandes where !gardes.contains(d.flamme.jour) {
+            if lancer(d, maintenant) { jours.insert(d.flamme.jour) }
+        }
+        return jours.sorted()
+    }
+
+    /// Une flamme déjà là reste : commencée (son compte à rebours défile), ou programmée à la même heure, avec la même leçon.
+    static func garder(_ x: RequeteFlammeDirect, _ voulue: RequeteFlammeDirect, _ maintenant: Date) -> Bool {
+        if x.debut <= maintenant { return true }
+        return x.debut == voulue.debut && x.titre == voulue.titre && x.action == voulue.action
+    }
+
+    /// L’heure passée : tout de suite (l’app est ouverte), sauf si elle a déjà démarré ce soir-là (balayée, elle ne revient pas). Sinon,
+    /// à partir d’iOS 26, programmée : iOS la démarre tout seul à l’heure dite, avec son alerte, le message du rappel quand il tombe à
+    /// la même heure (la page ne le programme pas en plus). Minuit la rend périmée (staleDate) : le chat s’endort.
+    static func lancer(_ d: RequeteFlammeDemande, _ maintenant: Date) -> Bool {
+        let x: RequeteFlammeDirect = d.flamme
+        guard x.minuit > maintenant else { return false }
+        let contenu = ActivityContent(state: RequeteFlammeDirect.ContentState(fait: false), staleDate: x.minuit)
+        if x.debut <= maintenant {
+            guard d.nouvelle else { return false }
+            do {
+                _ = try Activity<RequeteFlammeDirect>.request(attributes: x, content: contenu, pushType: nil)
+                return true
+            } catch {
+                return false
+            }
+        }
+        guard #available(iOS 26.0, *) else { return false }
+        let titre: LocalizedStringResource = "\(d.alerteTitre)"
+        let texte: LocalizedStringResource = "\(d.alerteTexte)"
+        let alerte = AlertConfiguration(title: titre, body: texte, sound: .default)
+        do {
+            _ = try Activity<RequeteFlammeDirect>.request(attributes: x, content: contenu, pushType: nil, style: .standard, alertConfiguration: alerte, start: x.debut)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// La flamme du jour est allumée. Commencée : « Flamme allumée ! », un quart d’heure sur l’écran verrouillé (discret : tout de
+    /// suite partie) ; programmée, pas encore commencée : annulée.
+    static func allumee(jour: String, discret: Bool) async {
+        let maintenant = Date()
+        for a in Activity<RequeteFlammeDirect>.activities where a.attributes.jour == jour {
+            if a.activityState == .ended || a.activityState == .dismissed { continue }
+            let commencee: Bool = a.attributes.debut <= maintenant
+            if discret || !commencee {
+                await a.end(nil, dismissalPolicy: .immediate)
+                continue
+            }
+            let fin = ActivityContent(state: RequeteFlammeDirect.ContentState(fait: true), staleDate: nil)
+            await a.end(fin, dismissalPolicy: .after(maintenant.addingTimeInterval(15 * 60)))
+        }
+    }
+
+    static func toutArreter() async {
+        for a in Activity<RequeteFlammeDirect>.activities {
+            await a.end(nil, dismissalPolicy: .immediate)
+        }
+    }
+
+    /// À l’ouverture de l’app : une flamme d’un soir passé s’en va.
+    static func nettoyer() async {
+        let maintenant = Date()
+        for a in Activity<RequeteFlammeDirect>.activities where a.attributes.minuit <= maintenant {
             await a.end(nil, dismissalPolicy: .immediate)
         }
     }
