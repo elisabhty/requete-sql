@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=201">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=34">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=35">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -42872,6 +42872,13 @@ function obPaysListe(){
    tapote le menton. 12 images de 420 ms, détourées et adoucies au bord, en boucle tant que la question est là ; en mouvement réduit,
    l’image où il réfléchit, la patte au menton (chat-question-fixe.webp). */
 const MASCOT_QUESTION='assets/chat-question.webp',MASCOT_QUESTION_FIXE='assets/chat-question-fixe.webp';
+/* Elisa, 7 novembre, 12 h 06 : son GIF « Il tape sur son ordi » pour « On construit ton parcours… » : il tape vite, l’écran
+   s’illumine. 12 images de 420 ms, en boucle pendant la construction ; en mouvement réduit, l’écran allumé (chat-ordi-fixe.webp). */
+const MASCOT_ORDI='assets/chat-ordi.webp',MASCOT_ORDI_FIXE='assets/chat-ordi-fixe.webp';
+function obChatOrdiHtml(){
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  return `<img class="ob-build-stk is-ordi" src="${fixe?MASCOT_ORDI_FIXE:MASCOT_ORDI}" width="314" height="358" alt="" draggable="false">`;
+}
 function obMascotQuestion(text){
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   return `<div class="ob-chat"><img class="ob-chat-stk is-question" src="${fixe?MASCOT_QUESTION_FIXE:MASCOT_QUESTION}" width="287" height="362" alt="La mascotte Requête" draggable="false"><div class="ob-bubble">${esc(text)}</div></div>`;
@@ -43347,7 +43354,7 @@ function paintOb(){
     const anim=!draft.buildDone&&!prefersReduceMotion(),nb=(n,txt)=>`<span class="ob-n" data-n="${n}">${anim?0:n}</span>${txt}`;
     const rows=[['◎','Ton objectif',esc(b.goal)],['▶','Ton point de départ',esc(b.first)],['≡',nb(b.lessons,' leçons'),'dans le bon ordre, pour toi'],
       ['◷',nb(b.sessions,` séance${b.sessions>1?'s':''} de ${b.minutes} min`),esc(b.freqLabel)],['⚑','Tes défis',`niveau ${esc(b.defiNiv)} recommandé`]];
-    html=`<div class="ob-screen ob-profile ob-build">${obFlowHeader(slide)}<div class="ob-build-hero"><h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1><img class="ob-build-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false"><i class="ob-build-spark" aria-hidden="true"></i><i class="ob-build-spark" aria-hidden="true"></i><i class="ob-build-spark" aria-hidden="true"></i></div>
+    html=`<div class="ob-screen ob-profile ob-build">${obFlowHeader(slide)}<div class="ob-build-hero"><h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1>${obChatOrdiHtml()}<i class="ob-build-spark" aria-hidden="true"></i><i class="ob-build-spark" aria-hidden="true"></i><i class="ob-build-spark" aria-hidden="true"></i></div>
       <div class="ob-build-card"><div class="ob-build-top"><span class="ob-build-k" id="ob-build-k" role="status">Construction en cours…</span><b class="ob-build-pct" id="ob-build-pct" aria-hidden="true">0 %</b></div>
         <div class="ob-build-track" aria-hidden="true"><div class="ob-build-bar"><i id="ob-build-fill"></i></div><b class="ob-build-head"></b><span class="ob-build-burst">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--a:${i*45+22}deg"></i>`).join('')}</span></div>
         <ul class="ob-build-list">${rows.map(([ico,t,d],i)=>`<li style="--i:${i}"><span class="ob-build-ico" aria-hidden="true">${ico}</span><span><b>${t}</b><small>${d}</small></span><i class="ob-build-ok" aria-hidden="true"></i></li>`).join('')}</ul>
@@ -44988,7 +44995,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-question-v2624';
+  const SW_CACHE='requete-2026-11-07-chat-ordi-v2625';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -125,7 +125,7 @@ test('Réf. 8 et première page : plus de « Mode sans compte » ni de « Aucun 
 
 test('« On construit ton parcours » : l’effet waouh', () => {
   const b = slide('build', "}else if(slide==='pact'){");
-  assert.ok(b.includes('<div class="ob-build-hero"><h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1><img class="ob-build-stk" src="${MASCOT_IMG}"'), 'la mascotte au travail');
+  assert.ok(b.includes('<div class="ob-build-hero"><h1 class="ob-title" id="ob-title">On construit<br><em>ton parcours</em>…</h1>${obChatOrdiHtml()}'), 'la mascotte au travail');
   assert.ok(b.includes('<span class="ob-build-k" id="ob-build-k" role="status">Construction en cours…</span><b class="ob-build-pct" id="ob-build-pct" aria-hidden="true">0 %</b>'), 'un seul message pour les lecteurs d’écran, pas chaque pourcentage');
   assert.ok(b.includes('<span class="ob-build-burst">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--a:${i*45+22}deg"></i>`).join(\'\')}</span>'));
   const run = fn('obRunBuild', 'function obRunBig(');
@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=34']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=35']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
