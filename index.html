@@ -7662,7 +7662,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <!-- STICKERS -->
     <section id="scr-stickers" class="screen">
       <button type="button" class="home-back root-home-back" onclick="returnToParent()" aria-label="Retour à la bibliothèque"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Bibliothèque</span></button>
-      <div class="lgtitle"><div class="eyebrow">Tes récompenses</div><h1>Stickers</h1>
+      <div class="lgtitle"><div class="eyebrow">Ta collection</div><h1>Stickers</h1>
         <p class="sub">Débloque des stickers au fil de tes progrès. Collectionne-les, amuse-toi à les placer et imprime tes créations&nbsp;!</p></div>
       <div id="stk-body"></div>
     </section>
@@ -37288,13 +37288,90 @@ function stkBlob(cv){
   for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);
   return new Blob([a],{type:'image/png'});
 }
+/* 7 novembre, 7 h 56 (Elisa : « quand on télécharge un sticker avec halo il perd ses paillettes, j’avais envie d’un effet waouh ») :
+   un sticker holographique se télécharge avec les voiles de l’écran peints dans le PNG (irisation, arc-en-ciel, paillettes du
+   légendaire, reflet), figés sous une lumière venue d’en haut à gauche, plus un éclat en diagonale et des scintillements sur le film.
+   Les voiles suivent la silhouette de découpe, bord blanc compris, comme à l’écran (le masque --m) ; autour, des étoiles
+   d’autocollant (bord blanc, jaune soleil, trait encre, comme sur l’étiquette « Légendaire ») débordent du sticker : deux pour un
+   rare, trois pour un légendaire. Le fond reste transparent. */
+const STK_EXP_LUMIERE=[.3,.2];
+function stkHoloVoiles(ctx,id,px){
+  const holo=STK_HOLO[id]||0;if(!holo)return;
+  const sil=document.createElement('canvas'),v=document.createElement('canvas');
+  sil.width=sil.height=v.width=v.height=px;
+  const sx=sil.getContext('2d'),x=v.getContext('2d');if(!sx||!x)return;
+  stkDraw(sx,id,px,'lock');
+  const [PX,PY]=STK_EXP_LUMIERE,A=115*Math.PI/180,dx=Math.sin(A),dy=-Math.cos(A);
+  /* Un dégradé à 115°, sur une boîte k fois plus grande que le sticker, posée à PX/PY (le background-size et le background-position du CSS) */
+  const lineaire=(k,stops)=>{const b=px*k,cx=-(b-px)*PX+b/2,cy=-(b-px)*PY+b/2,L=b*(Math.abs(dx)+Math.abs(dy));
+    const g=x.createLinearGradient(cx-dx*L/2,cy-dy*L/2,cx+dx*L/2,cy+dy*L/2);for(const [o,c] of stops)if(o<=1)g.addColorStop(o,c);return g;};
+  const voile=(mode,alpha,peindre)=>{
+    x.save();x.clearRect(0,0,px,px);peindre();x.shadowBlur=0;x.shadowColor='transparent';x.globalCompositeOperation='destination-in';x.drawImage(sil,0,0);x.restore();
+    ctx.save();ctx.globalCompositeOperation=mode;ctx.globalAlpha=alpha;ctx.drawImage(v,0,0);ctx.restore();
+  };
+  /* stk-v1 : l’irisation pastel */
+  voile('multiply',.55,()=>{x.fillStyle=lineaire(3,[[0,'#FFB3D1'],[.16,'#FFE7A3'],[.32,'#B8F5CF'],[.48,'#AEE4FF'],[.64,'#D4C2FF'],[.8,'#FFB3D1'],[1,'#FFE7A3']]);x.fillRect(0,0,px,px);});
+  /* stk-v2 : l’arc-en-ciel qui se répète tous les 30 % */
+  const arc=['#FF4FA3','#FFC94F','#4FFFA0','#4FC8FF','#A34FFF'],bandes=[];
+  for(let k=0;k<4;k++)arc.forEach((c,i)=>bandes.push([+(k*.3+i*.06).toFixed(3),c]));
+  voile('color-dodge',.32,()=>{x.fillStyle=lineaire(2.5,bandes);x.fillRect(0,0,px,px);});
+  /* stk-v3 : les paillettes du légendaire, à la même densité qu’à l’écran (la tuile de stkGlitter, 90 px pour un sticker d’environ 135 px) */
+  if(holo>1)voile('screen',.85,()=>{
+    let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647,u=px/135;
+    for(let i=0;i<585;i++){
+      const r=(rnd()<.85?.3+rnd()*.45:.7+rnd()*.6)*u;
+      x.fillStyle=`hsla(${[0,45,160,200,270][Math.floor(rnd()*5)]},100%,${80+rnd()*20}%,${.35+rnd()*.65})`;
+      x.beginPath();x.arc(rnd()*px,rnd()*px,r,0,7);x.fill();
+    }
+    x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=.5*u;
+    for(let i=0;i<31;i++){const cx=rnd()*px,cy=rnd()*px,L=(1.5+rnd()*2)*u;x.beginPath();x.moveTo(cx-L,cy);x.lineTo(cx+L,cy);x.moveTo(cx,cy-L);x.lineTo(cx,cy+L);x.stroke();}
+  });
+  /* stk-v4 : le reflet de la lumière */
+  voile('soft-light',1,()=>{const g=x.createRadialGradient(px*PX,px*PY,0,px*PX,px*PY,Math.hypot(px*(1-PX),px*(1-PY)));
+    g.addColorStop(0,'rgba(255,255,255,.75)');g.addColorStop(.22,'rgba(255,255,255,.18)');g.addColorStop(.48,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,px,px);});
+  /* L’éclat : une bande de lumière en diagonale, comme un film holographique qu’on incline */
+  voile('screen',.55,()=>{const g=x.createLinearGradient(px*.1,px*.06,px*.62,px*.58);
+    g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.4,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.9)');g.addColorStop(.6,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=g;x.fillRect(0,0,px,px);});
+  /* Les scintillements : de petites étoiles de lumière sur le film */
+  voile('screen',1,()=>{
+    x.fillStyle='#fff';x.shadowColor='rgba(255,255,255,.95)';
+    for(const [cx,cy,R] of (holo>1?[[.3,.3,.05],[.68,.44,.035],[.44,.72,.03],[.74,.68,.025]]:[[.32,.32,.045],[.66,.6,.03]])){
+      x.shadowBlur=R*px*.9;x.fill(new Path2D(STK_P.star(cx*px,cy*px,R*px,R*px*.22,4)));
+    }
+  });
+  sil.width=sil.height=v.width=v.height=0;
+}
+/* Les étoiles d’autocollant autour d’un sticker holographique, en partie hors du sticker */
+function stkHoloEtoiles(ctx,id,px){
+  const holo=STK_HOLO[id]||0;if(!holo)return;
+  ctx.save();ctx.lineJoin='round';
+  for(const [cx,cy,R] of (holo>1?[[.9,.1,.085],[.07,.3,.06],[.88,.84,.05]]:[[.9,.12,.07],[.09,.8,.05]])){
+    const p=new Path2D(STK_P.star(cx*px,cy*px,R*px,R*px*.42,4));
+    ctx.strokeStyle='#fff';ctx.lineWidth=R*px*.55;ctx.stroke(p);
+    ctx.fillStyle='#FFD23F';ctx.fill(p);
+    ctx.strokeStyle=STK_INK;ctx.lineWidth=R*px*.16;ctx.stroke(p);
+  }
+  ctx.restore();
+}
+/* Un sticker prêt à télécharger : son dessin et, s’il est holographique, ses voiles et ses étoiles ; m : la marge autour (fraction de px),
+   pour que les étoiles ne soient pas coupées. */
+function stkCanvasExport(id,px,m){
+  const pad=Math.round(px*(m||0)),cv=document.createElement('canvas');cv.width=cv.height=px+2*pad;
+  const ctx=cv.getContext('2d');ctx.translate(pad,pad);
+  stkDraw(ctx,id,px,'art');
+  stkHoloVoiles(ctx,id,px);
+  stkHoloEtoiles(ctx,id,px);
+  return cv;
+}
+const STK_EXP_MARGE=.1;
 function stkSlug(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
 async function stkDownload(id){
   const s=stkInfo(id);
   if(!s||!s.got)return;
   const name=`requete-sticker-${stkSlug(s.name)}.png`;
   let blob;
-  try{const cv=document.createElement('canvas');cv.width=cv.height=1200;stkDraw(cv.getContext('2d'),id,1200,'art');blob=stkBlob(stkTrim(cv,12));}
+  try{const cv=stkCanvasExport(id,1200,STK_HOLO[id]?STK_EXP_MARGE:0);blob=stkBlob(stkTrim(cv,12));}
   catch(e){toast('Téléchargement impossible','Réessaie dans un instant.');return;}
   const how=await saveFile(blob,name,`Sticker ${s.name}`);
   if(how==='download')toast('Sticker téléchargé',name);
@@ -37307,15 +37384,16 @@ async function stkExportBoard(){
   const W=2000,H=Math.round(W*R.height/R.width),base=W*.26;
   let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
   const items=S.board.map(b=>{
-    const size=base*b.s,a=b.r*Math.PI/180,half=size/2*(Math.abs(Math.cos(a))+Math.abs(Math.sin(a))),cx=b.x*W,cy=b.y*H;
+    const size=base*b.s,a=b.r*Math.PI/180,m=STK_HOLO[b.id]?STK_EXP_MARGE:0,half=size*(1+2*m)/2*(Math.abs(Math.cos(a))+Math.abs(Math.sin(a))),cx=b.x*W,cy=b.y*H;
     x0=Math.min(x0,cx-half);y0=Math.min(y0,cy-half);x1=Math.max(x1,cx+half);y1=Math.max(y1,cy+half);
-    return {b,size,a,cx,cy};
+    return {b,size,a,cx,cy,m};
   });
   let blob;
   try{
     const cv=document.createElement('canvas');cv.width=Math.ceil(x1-x0);cv.height=Math.ceil(y1-y0);
     const ctx=cv.getContext('2d');
-    items.forEach(({b,size,a,cx,cy})=>{ctx.save();ctx.translate(cx-x0,cy-y0);ctx.rotate(a);ctx.translate(-size/2,-size/2);stkDraw(ctx,b.id,size,'art');ctx.restore();});
+    /* Les holographiques gardent leurs voiles et leurs étoiles sur la planche téléchargée aussi */
+    items.forEach(({b,size,a,cx,cy,m})=>{const sc=stkCanvasExport(b.id,Math.round(size),m),e=sc.width;ctx.save();ctx.translate(cx-x0,cy-y0);ctx.rotate(a);ctx.drawImage(sc,-e/2,-e/2);ctx.restore();sc.width=sc.height=0;});
     blob=stkBlob(stkTrim(cv,16));
   }catch(e){toast('Téléchargement impossible','Réessaie dans un instant.');return;}
   const how=await saveFile(blob,'requete-stickers.png','Mes stickers Requête');
@@ -44701,7 +44779,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-memo-espace-v2608';
+  const SW_CACHE='requete-2026-11-07-stickers-waouh-v2609';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
