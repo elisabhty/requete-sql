@@ -157,7 +157,8 @@ test('les images du widget : chacune a son catalogue et ses fichiers, et reste s
 });
 
 test('les lunettes du chat dans la Dynamic Island : il regarde, sourit, s’endort, a des étoiles plein les yeux', () => {
-  assert.deepEqual([...entre(swift, 'enum Regard {', '}').matchAll(/case (\w+)/g)].map(m => m[1]), ['ouvert', 'rieur', 'endormi', 'etoiles']);
+  /* 7 novembre, 20 h 16 : le clin d’œil, quand un ami entre dans la salle (la salle dans l’île, ios-salle-ile) */
+  assert.deepEqual([...entre(swift, 'enum Regard {', '}').matchAll(/case (\w+)/g)].map(m => m[1]), ['ouvert', 'rieur', 'endormi', 'etoiles', 'clin']);
   const r = entre(swift, 'func leconRegard(_ e: RequeteLecon.ContentState, perime: Bool) -> Regard {', '\n}\n');
   for (const k of ['if e.fini { return .etoiles }\n    if perime { return .endormi }', 'if n > 0 && r >= but { return .rieur }\n    return .ouvert'])
     assert.ok(r.includes(k), k);
@@ -167,7 +168,7 @@ test('les lunettes du chat dans la Dynamic Island : il regarde, sourit, s’endo
   assert.ok(pont.includes('staleDate: Date().addingTimeInterval(3600)'), 'la Live Activity devient périmée au bout d’une heure');
   /* Les yeux du moment, sur les montures */
   const y = entre(swift, 'private func yeux(_ e: CGFloat, _ paupiere: StrokeStyle) -> some View {', '\n    }\n}');
-  for (const c of ['ouvert', 'rieur', 'endormi', 'etoiles']) assert.ok(y.includes(`case .${c}:`), c);
+  for (const c of ['ouvert', 'rieur', 'endormi', 'etoiles', 'clin']) assert.ok(y.includes(`case .${c}:`), c);
   for (const k of ['case .yeuxFermes:', 'case .grandZ:', 'case .petitZ:', 'case .montures:', 'case .pont:']) assert.ok(swift.includes(k), k);
   /* Dans l’île : les lunettes à gauche et en tout petit ; appui long, le chat qui sort du noir ; à droite, les moments, comme avant */
   const act = entre(swift, 'struct RequeteLeconActivite: Widget {', '/// Le widget de la flamme, et la Live Activity');

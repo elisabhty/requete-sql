@@ -44,7 +44,7 @@ test('le widget : l’écran verrouillé, l’île (ouverte, compacte, minimale)
     assert.ok(act.includes(k), k);
   assert.equal(act.split('.widgetURL(lienDirect(momentDirect(context)))').length, 3, 'l’écran verrouillé et l’île mènent à la séance');
   /* Le paquet : après la flamme de l’écran verrouillé, iOS 16.1 comme la leçon */
-  assert.ok(swift.includes('        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeDirecte()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()'));
+  assert.ok(swift.includes('        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeDirecte()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteSalleIle()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()'), 'puis la salle dans l’île (ios-salle-ile)');
   assert.ok(swift.includes('@available(iOS 16.1, *)\nstruct RequeteFlammeDirecte: Widget {'));
 });
 
@@ -100,7 +100,8 @@ test('les images du chat qu’elle montre : en @2x et @3x, plus petites que la p
 
 test('le pont : programmer (iOS 26 à l’heure dite, sinon tout de suite), allumée, arrêter ; le soir passé retiré au lancement', () => {
   const noms = [...pont.matchAll(/CAPPluginMethod\(name: "(\w+)", returnType: CAPPluginReturnPromise\)/g)].map(x => x[1]);
-  assert.deepEqual(noms.slice(-3), ['flammeProgrammer', 'flammeAllumee', 'flammeArreter']);
+  const i = noms.indexOf('flammeProgrammer');
+  assert.deepEqual(noms.slice(i, i + 3), ['flammeProgrammer', 'flammeAllumee', 'flammeArreter']);
   for (const n of ['flammeProgrammer', 'flammeAllumee', 'flammeArreter']) {
     const f = entre(pont, `@objc func ${n}(_ call: CAPPluginCall) {`, '\n    }\n');
     assert.ok(f.includes('guard #available(iOS 16.2, *) else {') && f.includes('Task {') && f.includes('call.resolve('), n);

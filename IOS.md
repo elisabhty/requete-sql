@@ -270,6 +270,49 @@ que sa présentation, et une image sans échelle compte ses pixels en points. Co
 Mon compte le dit. Le « 23 h 40, les yeux grands ouverts » de la planche demanderait un serveur (une mise à jour poussée) : sans,
 rien ne change entre l’heure dite et minuit, sauf le chiffre et la barre.
 
+### La salle dans l’île (7 novembre)
+
+Sur la planche « Ta salle vit dans l’île » (« Une seule activité, du code de la salle jusqu’au podium. Tu pars envoyer le code sur
+WhatsApp : tu vois tes amis arriver. ») : une troisième Live Activity (`RequeteSalleIle`, dans `RequeteWidget.swift`), pour chaque
+salle entre amis (pas pour une partie seule). Elle démarre quand la salle s’ouvre (la page, `ileSalleMaintenant` ; le pont,
+`salleDebut`) et la suit en trois temps :
+
+- **on attend les amis** : dans l’île, les lunettes du chat et « 2/5 » ; appui long, le code de la salle, les joueurs en pastilles,
+  et pour l’hôte **Partager** (la feuille de partage d’iOS, `partagerTexte`) et **Lancer** ; sur l’écran verrouillé, « Salle K7P2QX »,
+  « 2/5 · on attend Max ». Un ami qui entre : l’île s’ouvre un instant, un clin d’œil du chat et un petit **miaou**
+  (`assets/sons/miaou.wav`, synthétisé par `tools/sons/miaou.py`, recopié dans Library/Sounds au lancement, où iOS cherche les sons
+  des alertes) ;
+- **la partie** : le chrono de la manche descend tout seul (`Text(timerInterval:)`), ma place (« 2e sur 4 »), le défi, la manche,
+  les scores (« @lea 240 · Toi 210 · @max 150 ») ; entre deux manches, une coche ;
+- **le podium** : « Victoire ! » (des étoiles dans les yeux) ou « 2e sur 4 », le classement, et pour l’hôte **Rejouer** (« Revanche »
+  s’il n’a pas gagné) ; il reste un quart d’heure sur l’écran verrouillé. Quitter la salle avant l’arrête.
+
+L’état est le même pour tous (`RequeteSalle.ContentState` : la phase, les joueurs et leurs points, l’hôte, la manche, le défi, la fin
+du chrono en secondes depuis 1970) ; chaque téléphone s’y retrouve par son identifiant. **L’app ouverte**, la page met l’activité à
+jour elle-même (`salleMaj`). **L’app fermée**, c’est le serveur : l’activité demande à Apple un jeton de push (`pushType: .token`),
+que la page confie au serveur (`jeu_ile_jeton_v2`, avec la clé de l’appareil : seulement pour une salle dont il est membre) ; le
+téléphone dont la salle vient de changer (il arrive, se dit prêt, trouve ; la manche ou la phase change ; pour l’hôte, quelqu’un
+arrive ou part) envoie le nouvel état à la fonction **jeu-ile** (`supabase/functions/jeu-ile`), qui vérifie qu’il est dans la salle et
+que l’état est nouveau (`jeu_ile_cibles_v2`), puis le pousse par Apple (APNs, « liveactivity ») aux autres joueurs ; les jetons
+refusés sont oubliés (`jeu_ile_suivi_v2`). Les jetons et le dernier état partent avec la salle (ménage de 24 h).
+
+**La clé d’Apple, une seule fois (Elisa)** — sans elle, la fonction répond « veille » et l’île ne suit la salle que l’app ouverte :
+
+1. developer.apple.com › Account › Certificates, Identifiers & Profiles › **Keys** › « + ».
+2. Un nom (« Requête push »), coche **Apple Push Notifications service (APNs)** › Configure : « Sandbox & Production »,
+   « Team Scoped (All Topics) » › Save › Continue › Register.
+3. **Download** : le fichier `AuthKey_XXXXXXXXXX.p8` (Apple ne le donne qu’une fois : garde-le en lieu sûr). Note le **Key ID**
+   (10 caractères, sur la même page) et ton **Team ID** (Membership details).
+4. supabase.com › projet requete-sql › **Edge Functions** › **Secrets** › trois secrets : `APNS_KEY` (tout le contenu du fichier
+   .p8, lignes BEGIN et END comprises), `APNS_KEY_ID`, `APNS_TEAM_ID`. Save. La fonction les lit au prochain appel.
+
+**Le droit des push** : l’app déclare `aps-environment` (`App.entitlements`). La signature automatique d’Xcode
+(`-allowProvisioningUpdates`, dans `scripts/ios-testflight.sh`) ajoute la capacité **Push Notifications** à l’identifiant
+fr.requete.app. Si l’archive s’arrête sur « Provisioning profile … doesn’t include the aps-environment entitlement » :
+developer.apple.com › Identifiers › fr.requete.app › coche Push Notifications › Save, puis relance `npm run ios:testflight`. Une
+version installée depuis Xcode (développement) a un jeton du bac à sable d’Apple : la fonction le reconnaît (refusé en production,
+elle essaie le bac à sable) et s’en souvient.
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre

@@ -35022,6 +35022,7 @@ function jeuDrawNote(cid){
 }
 function jeuRender(){
   const J=JEU,root=document.getElementById('jeu-root');if(!J||!root)return;
+  if(typeof ileSalleSuivre==='function')ileSalleSuivre();   // la salle dans l’île (7 novembre)
   const v=jeuView();
   const sig=jeuSig();
   if(v===J.view){J.sig=sig;jeuPatch(v);return;}
@@ -35525,6 +35526,7 @@ function jeuStop(){
   if((!J.solo||J.ranked)&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
   clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);J.drawT.forEach(clearTimeout);
   setTimeout(()=>{try{J.t&&J.t.close();}catch(e){}},600);
+  if(typeof ileSalleQuitter==='function')ileSalleQuitter();   // la salle dans l’île s’en va (sauf le podium)
   JEU=null;
   document.getElementById('jeu-toasts')?.remove();
   document.getElementById('jeu-evts')?.remove();
@@ -42090,6 +42092,119 @@ if(typeof document!=='undefined'&&document.addEventListener){
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
   addEventListener('pagehide',widgetMaj);
 }
+/* ---------- La salle dans l’île (la Live Activity d’une salle entre amis, app iPhone) ----------
+   Elisa, 7 novembre, 20 h 16 (« Oui », pour la planche « Ta salle vit dans l’île » : « Une seule activité, du code de la salle
+   jusqu’au podium. Tu pars envoyer le code sur WhatsApp : tu vois tes amis arriver. »). Une salle entre amis s’ouvre : sa Live
+   Activity démarre (RequeteWidget.salleDebut) et suit la salle tant que l’app est ouverte (salleMaj) : qui est là, les points, la
+   manche, le chrono, le podium. L’état est le même pour tous (ileSalleEtat) ; chaque téléphone s’y retrouve par son identifiant.
+   L’app fermée, c’est le serveur qui la met à jour : chaque téléphone confie le jeton de push de son activité (jeu_ile_jeton_v2), et
+   celui dont la salle vient de changer (il arrive, se dit prêt, trouve ; la manche ou la phase change ; pour l’hôte, quelqu’un
+   arrive ou part) envoie le nouvel état à la fonction jeu-ile, qui le pousse aux autres par Apple. Qui arrive y joint son
+   identifiant (nouveau) : chez les autres, l’île s’ouvre, avec un clin d’œil et un petit miaou. Le podium reste un quart d’heure sur
+   l’écran verrouillé ; quitter la salle avant l’arrête. Dans l’île, pour l’hôte : Partager, Lancer, Rejouer (ileSalleAction, par
+   raccourciOuvrir). Le dessin : RequeteWidget.swift, RequeteSalleIle. */
+let ileSalle=null,ileSalleT=0,ileSalleBranche=false;
+/* L’état de la salle pour l’île : rien tant qu’on entre, salle pleine ou perdue, ni pour une partie seule. */
+function ileSalleEtat(){
+  const J=JEU;if(!J||J.solo||!J.synced||J.full)return null;
+  const v=jeuView();
+  const phase=v==='final'?'fin':/^(draw|play)\d/.test(v)?'partie':/^res\d/.test(v)?'pause':v==='lobby'||v==='empty'?'attente':'';
+  if(!phase)return null;
+  const n=jeuCur(),r=n>=0?J.rounds[n]:null,c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;
+  const nom=x=>jeuNom(x)||'Joueur';
+  const joueurs=phase==='attente'
+    ?jeuLive().map(p=>({p,n:nom((J.players[p]||{}).name),pts:0,r:0,ok:jeuIsReady(p)}))
+    :jeuPlaces(jeuScores()).map(x=>({p:x.pid,n:nom(x.name),pts:Math.max(0,Math.round(+x.pts||0)),r:x.place|0,ok:!!(r&&r.found[x.pid]!=null)}));
+  return {phase,joueurs:joueurs.slice(0,JEU_MAX),hote:J.hostPid||'',manche:phase==='attente'?0:n+1,nb:J.nb|0,
+    defi:c?String(c.titre||'').slice(0,80):'',fin:phase==='partie'&&r?Math.round((r.t1+JEU_ROUND_MS)/1000):0,nouveau:''};
+}
+/* Après chaque dessin de la salle (jeuRender), un peu plus tard : les messages du moment sont tous passés. */
+function ileSalleSuivre(){
+  if(typeof ilePont!=='function'||!ilePont())return;
+  clearTimeout(ileSalleT);
+  ileSalleT=setTimeout(ileSalleMaintenant,350);
+}
+function ileSalleMaintenant(){
+  clearTimeout(ileSalleT);ileSalleT=0;
+  const C=typeof ilePont==='function'?ilePont():null,J=JEU;if(!C||!J)return;
+  let e=null;try{e=ileSalleEtat();}catch(x){e=null;}
+  if(!e)return;
+  if(!ileSalleBranche&&typeof C.addListener==='function'){ileSalleBranche=true;try{C.addListener('RequeteWidget','salleJeton',ileSalleJeton);}catch(x){}}
+  const etat=JSON.stringify(e);
+  /* Une nouvelle salle (ou la même rouverte après le podium, « Rejouer ») : son activité démarre ; l’ancienne s’en va. Une salle
+     retrouvée sur son podium (l’app rechargée) : plus rien à suivre, pas d’activité. */
+  if(!ileSalle||ileSalle.code!==J.code||ileSalle.me!==J.me||(ileSalle.fini&&e.phase!=='fin')){
+    const meme=ileSalle&&ileSalle.code===J.code&&ileSalle.me===J.me,fini=e.phase==='fin';
+    ileSalle={code:J.code,me:J.me,sig:etat,poste:meme?ileSalle.poste:'',fini,vuMoi:meme?ileSalle.vuMoi:false,moi:meme?ileSalle.moi:'',phase:'',manche:-1,liste:''};
+    if(!fini)ileAppel('salleDebut',{code:J.code,moi:J.me,max:(J.max|0)||JEU_MAX,etat});
+  }else if(etat!==ileSalle.sig){
+    ileSalle.sig=etat;
+    if(e.phase==='fin'){if(!ileSalle.fini){ileSalle.fini=true;ileAppel('salleFin',{etat,garder:true});}}
+    else ileAppel('salleMaj',{etat});
+  }
+  /* Le serveur, pour les autres (l’app fermée chez eux) : mon arrivée, ce qui m’a changé (prêt, trouvé), une nouvelle manche ou phase ;
+     pour l’hôte, aussi qui arrive ou part. Le serveur ne repousse pas un état déjà envoyé (par moi ou par un autre). */
+  const moi=e.joueurs.find(j=>j.p===J.me),sigMoi=moi?JSON.stringify(moi):'',liste=e.joueurs.map(j=>j.p).join(','),hote=e.hote===J.me;
+  const arrive=!ileSalle.vuMoi&&!!moi&&e.phase==='attente'&&!hote;
+  const raison=arrive||(ileSalle.vuMoi&&sigMoi!==ileSalle.moi)||e.phase!==ileSalle.phase||e.manche!==ileSalle.manche||(hote&&liste!==ileSalle.liste);
+  if(moi)ileSalle.vuMoi=true;
+  ileSalle.moi=sigMoi;
+  if(!raison||etat===ileSalle.poste)return;
+  ileSalle.poste=etat;ileSalle.phase=e.phase;ileSalle.manche=e.manche;ileSalle.liste=liste;
+  const premier=e.joueurs[0];
+  const alerte=arrive?{titre:`${jeuNom(J.nom)||'Un ami'} entre dans la salle`,texte:`Salle ${J.code} · ${e.joueurs.length}/${(J.max|0)||JEU_MAX}`,son:'miaou.wav'}
+    :e.phase==='fin'&&premier?{titre:'Fin de la partie',texte:`1er : ${premier.n} · ${premier.pts} pts`,son:'default'}:null;
+  ileSallePoster(arrive?Object.assign({},e,{nouveau:J.me}):e,alerte);
+}
+/* L’état part à la fonction jeu-ile (supabase/functions/jeu-ile), avec la clé de l’appareil : le serveur vérifie que je suis dans
+   la salle. keepalive : il part même si l’app passe en arrière-plan juste après. */
+function ileSallePoster(etat,alerte){
+  const J=JEU;if(!J||typeof fetch!=='function'||typeof clsCle!=='function')return;
+  try{
+    Promise.resolve(fetch(JEU_SB+'/functions/v1/jeu-ile?forceFunctionRegion=eu-west-3',{method:'POST',keepalive:true,
+      headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({cle:clsCle(),salle:J.code,etat,alerte})})).catch(()=>{});
+  }catch(e){}
+}
+/* Le jeton de push de l’activité (événement « salleJeton » du pont) : confié au serveur. Le téléphone n’est membre de la salle qu’une
+   fois son « hello » passé par le serveur : un refus est retenté (cinq fois, toutes les 3 s). */
+function ileSalleJeton(ev,essai){
+  if(!ev||!/^[A-Z0-9]{6}$/.test(ev.code||'')||!/^[0-9a-f]{16,400}$/.test(ev.jeton||'')||typeof clsRpc!=='function')return;
+  if(!ileSalle||ileSalle.code!==ev.code)return;
+  clsRpc('jeu_ile_jeton_v2',{p_cle:clsCle(),p_salle:ev.code,p_jeton:ev.jeton}).catch(()=>{
+    if((essai|0)<5)setTimeout(()=>ileSalleJeton(ev,(essai|0)+1),3000);
+  });
+}
+/* On quitte la salle (jeuStop) : l’activité s’en va, sauf le podium (un quart d’heure sur l’écran verrouillé) ; le jeton est oublié. */
+function ileSalleQuitter(){
+  const s=ileSalle;ileSalle=null;clearTimeout(ileSalleT);ileSalleT=0;
+  if(!s)return;
+  if(!s.fini)ileAppel('salleFin',{garder:false});
+  if(typeof clsRpc==='function')clsRpc('jeu_ile_jeton_v2',{p_cle:clsCle(),p_salle:s.code,p_jeton:null}).catch(()=>{});
+}
+/* Les boutons de l’île (raccourciOuvrir : « salle-partager », « salle-lancer », « salle-rejouer »). L’app vient de revenir au
+   premier plan : la salle relit ce qu’elle a manqué quelques secondes avant de rendre la main à l’hôte (jeuIsHost) ; on attend. */
+function ileSalleAction(quoi){
+  const J=JEU;if(!J)return;
+  if(quoi==='partager'){
+    const C=typeof ilePont==='function'?ilePont():null;
+    if(C)Promise.resolve(C.nativePromise('RequeteWidget','partagerTexte',{texte:jeuTexteInvitation(J),url:jeuLienInvitation(J)})).catch(()=>{});
+    return;
+  }
+  const essai=k=>{
+    if(JEU!==J)return;
+    if(jeuIsHost()){
+      if(quoi==='lancer'&&jeuCur()<0&&!J.over)jeuNextRound();
+      if(quoi==='rejouer'&&J.over)jeuAgain();
+      return;
+    }
+    if(k<16)setTimeout(()=>essai(k+1),500);
+  };
+  essai(0);
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  /* On quitte l’app : l’île reçoit tout de suite le dernier état (pas dans 350 ms : l’app serait déjà figée). */
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&ileSalleT)ileSalleMaintenant(); });
+}
 /* ---------- Ta flamme en direct, jusqu’à minuit (la Live Activity de l’app iPhone) ----------
    Elisa, 7 novembre, 19 h 26 (« Oui », pour la planche « Ta flamme, en direct jusqu’à minuit » : « À l’heure de ton planning, si ta
    flamme n’est pas encore allumée, une barre se vide toute seule jusqu’à minuit. Un tap : une leçon express. ») : à activer dans
@@ -42477,6 +42592,9 @@ function raccourcisBrancher(){
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
+  /* Les boutons de la salle dans l’île (7 novembre) : Partager, Lancer, Rejouer agissent sur la salle ouverte (ileSalleAction). */
+  const salle=/\.salle-(partager|lancer|rejouer)$/.exec(type);
+  if(salle){if(typeof ileSalleAction==='function')ileSalleAction(salle[1]);return;}
   const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance'),cartes=type.endsWith('.cartes');
   if(!requete&&!adieu&&!avis&&!seance&&!cartes)return;
   if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
@@ -45477,7 +45595,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-flamme-direct-v2641';
+  const SW_CACHE='requete-2026-11-07-salle-ile-v2642';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
