@@ -35,7 +35,9 @@ test('les trois chiffres sous la carte : jamais un zéro, selon où on en est', 
   assert.equal(chiffres(), 'barres 1 leçon lancée · coche 1 exercice fait · cible 6 leçons au total', 'avant la première leçon validée : les exercices faits');
   delete ans[1];
   assert.equal(chiffres(), 'barres 1 leçon lancée · cartes 4 cartes à gagner · cible 6 leçons au total', 'ni exercice ni leçon validée : les cartes à gagner');
-  faits.add(1); faits.add(2); commencees.add(3);
+  faits.add(1); faits.add(2);
+  assert.equal(chiffres(), 'coche 2 leçons validées · cartes 2 cartes gagnées · cible 6 leçons au total', 'rien en cours : pas deux fois « 2 »');
+  commencees.add(3);
   assert.equal(chiffres(), 'barres 3 leçons lancées · coche 2 leçons validées · cible 6 leçons au total', 'la maquette, sans son « 0 leçon validée »');
   lecons.forEach(l => faits.add(l.id));
   assert.equal(chiffres(), 'coche 6 leçons validées · cartes 4 cartes gagnées · cible 2 modules terminés', 'tout validé : ce qui est gagné');
@@ -76,5 +78,5 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=196">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-accueil-positif-v2613';") && app.includes("const SW_CACHE='requete-2026-11-07-accueil-positif-v2613';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-semaine-feu-v2614';") && app.includes("const SW_CACHE='requete-2026-11-07-semaine-feu-v2614';"));
 });
