@@ -52,9 +52,8 @@ const codes = h => [...h.matchAll(/sallesRejoindre\('([A-Z0-9]{6})'\)/g)].map(m 
 
 test('le cadre du haut : la phrase d’Elisa, et « 4 joueurs » tient avec une salle de 5 (l’hôte et 4 invités)', () => {
   const haut = fn('defisRapideHTML');
-  /* Refonte du 7 novembre, 23 h 46 (Elisa : « ok ») : le bandeau garde la dernière phrase ; « invite jusqu’à 4 joueurs, ouvre ta salle
-     à tous » se règle dans la feuille Créer (« Qui peut entrer ? »). */
-  assert.ok(haut.includes('<p class="room-sub">Tout le monde relève le même défi&nbsp;!</p>') && !haut.includes('Choisis ton niveau et invite'));
+  /* 8 novembre, 0 h 17 (Elisa, « je veux garder ça ») : après la refonte, le bandeau garde sa phrase entière. */
+  assert.ok(haut.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p>'));
   assert.ok(!haut.includes('invite tes amis'));
   assert.ok(app.includes('const JEU_MAX=5;') && app.includes('max:solo?1:JEU_MAX'), 'une salle : 5 joueurs au plus');
   const mig = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).find(f => f.endsWith('_defis_trois_onglets.sql'));
@@ -124,7 +123,9 @@ test('les salles changent ou le niveau change : seules « Rejoins une partie » 
     && rep.includes("if(host&&!(host.querySelector&&host.querySelector('.dx-points')))host.innerHTML=defisPointsHTML();"));
   c.els['dx-rejoindre'].innerHTML = 'posé à la main'; c.ev('sallesRepeindre()');
   assert.equal(c.els['dx-rejoindre'].innerHTML, 'posé à la main', 'rien n’a changé dans les salles : rien n’est réécrit');
-  assert.ok(lq.includes('html.lq #scr-defis .dx-rapide.is-v2 .dx-rejoindre .dx-vide.is-aucune{margin:0;padding:0 2px;border:0;border-radius:0;background:none;'), 'la phrase en texte simple, plus de pointillés');
+  /* 8 novembre, 0 h 17 (« je veux garder ça ») : la phrase garde son cadre en pointillés ; rien dans la refonte ne l’efface. */
+  const v2 = lq.slice(lq.indexOf('Défis — la refonte du 7 novembre'));
+  assert.ok(!/\.dx-vide\.is-aucune\{[^}]*border:0/.test(v2) && v2.includes('html.lq #scr-defis .dx-rapide.is-v2 .dx-rejoindre .dx-vide.is-aucune+.dx-ancre{margin-top:4px}'), 'le cadre en pointillés reste');
   for (const k of ['html.lq #scr-defis .dx-rejoindre{margin:18px 0 14px}', 'html.lq #scr-defis .dx-rj-h{margin:0;font:700 16px/1.2 var(--display);',
     'html.lq #scr-defis .dx-rejoindre .dx-vide.is-aucune{margin:0;padding:12px 14px;border:2px dashed #D6CCFA;', 'html.lq #scr-defis .dx-autres{margin-top:16px;border-top:2px dashed var(--line-2)}'])
     assert.ok(lq.includes(k), k);
@@ -187,7 +188,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=215">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=216">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-08-defis-design-v2649' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-08-bandeau-garde-v2650' && app.includes(`const SW_CACHE='${cache}';`));
 });
