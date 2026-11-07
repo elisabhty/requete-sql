@@ -104,14 +104,16 @@ test('un défi : 20 min au chrono et sa base ; son chrono en cours, ce qui reste
 
 test('la carte : le bonjour et la séance, le module, la leçon, le chat, puis le bouton ; plus de « Rappel »', () => {
   const h = fn('renderHomeHero');
-  assert.ok(h.includes('const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div>'));
+  assert.ok(h.includes('const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}<div class="lq-a-kick">${chip}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div>'));
   assert.ok(h.includes('onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;'), '7 novembre, 8 h 38 : les trois chiffres, puis la série ; plus de carte de rattrapage');
   assert.ok(h.includes("const ctaLu=`${ctaLabel} : ${meta.titre}, ${(sub.charAt(0).toLowerCase()+sub.slice(1)).replace(/~/g,'environ ').replace(/\\u00a0/g,' ')}`;"), 'VoiceOver : « Continuer ma leçon : ORDER BY, plus que 3 min »');
   assert.ok(!/Rappel/.test(h.replace(/\/\*[\s\S]*?\*\//g, '')), 'sans la pastille « Rappel » (8 h 47)');
   assert.ok(!app.includes('function homeLessonSteps(') && !app.includes('HOME_STEP_OK'), 'plus d’étapes Leçon · Exercice · Quiz');
-  /* La séance : une copie, montrée à côté du module quand la ligne du bonjour est trop courte (lqSesAjuste). Depuis le 7 novembre,
-     8 h 38 (« plus positif »), la séance d’un jour passé a le sablier de celle du jour : plus de flèche de retard ↻ */
-  assert.ok(h.includes('const sesCopie=`<span class="lq-ses lq-ses-copie is-${sesVue}" aria-hidden="true"><i class="lq-ses-ic">${sesIc}</i><span>${sesTxt}</span></span>`;'));
+  /* La séance : une copie, montrée à côté du module quand la ligne du bonjour était trop courte (lqSesAjuste) ; depuis le 7 novembre,
+     10 h 10 (« Enlève le badge en haut, à part quand le parcours est terminé »), plus d’étiquette sur la carte d’une leçon, ni de copie.
+     8 h 38 (« plus positif ») : la séance d’un jour passé a le sablier de celle du jour, plus de flèche de retard ↻ */
+  assert.ok(!h.includes('const sesCopie=') && !h.includes('lq-ses-copie'));
+  assert.ok(h.includes('${nxt==null?sesMeta:`<span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span>`}'), 'l’étiquette sur la carte de fin seulement ; ailleurs, VoiceOver lit la séance');
   assert.ok(h.includes("const sesVue=sesEtat==='late'?'run':sesEtat;") && h.includes("const sesIc=sesVue==='run'") && !h.includes('M3.2 8.6a5 5 0 1 0 1.5-4.4'));
   /* 7 novembre, 8 h 38 (maquette) : « 👋 Bonjour, Elisa ! », puis la phrase de heroSousTitre */
   assert.ok(h.includes('const hiHtml=`<span class="lq-hi-wave">👋</span> <span class="lq-hi-mot">${esc(hiWord)}</span>${name?`, <span class="lq-hi-nom">${esc(name)}</span>`:\'\'}\\u00a0!`;'));
@@ -162,5 +164,5 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=197">'));
-  assert.ok(sw.includes("'requete-2026-11-07-chat-feu-v2616'"));
+  assert.ok(sw.includes("'requete-2026-11-07-sans-badge-v2617'"));
 });
