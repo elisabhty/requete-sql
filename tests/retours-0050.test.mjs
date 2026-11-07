@@ -89,7 +89,7 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
   assert.equal(compte(7, 21, 'débloqué'), '<span><b aria-hidden="true">7/21 débloqués</b><b class="acct-sr">7 sur 21 débloqués</b></span>', 'le lecteur d’écran entend « 7 sur 21 »');
   assert.equal(compte(1, 21, 'débloqué'), '<span><b aria-hidden="true">1/21 débloqué</b><b class="acct-sr">1 sur 21 débloqué</b></span>');
   assert.equal(compte(3, 15), '<span><b aria-hidden="true">3/15</b><b class="acct-sr">3 sur 15</b></span>', 'les groupes aussi');
-  assert.ok(r.includes(`<div class="acct-head"><h2 id="stk-sheet-t">Ta collection</h2>\${compte(won.length,list.length,'débloqué')}</div>`));
+  assert.ok(r.includes(`<div class="acct-head"><h2 id="stk-sheet-t">Tous tes stickers</h2>\${compte(won.length,list.length,'débloqué')}</div>`), '7 h 56 : « Ta collection » passe en surtitre, la grille devient « Tous tes stickers »');
   assert.ok(r.includes('<div class="stk-group"><h3>${title}</h3>${compte(items.filter(s=>s.got).length,items.length)}</div>'));
   for (const t of ["'Ajouté à ta collection','Voir'", '`${s.name} · revenu dans ta collection`', "'Tes stickers sont revenus dans ta collection.'",
     '<span>Ta collection</span><b class="mu-album-n">', "'Ton sticker est dans ta collection&nbsp;!'", "'Sticker ajouté à ta collection.'"])
@@ -103,5 +103,5 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=193">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-stickers-waouh-v2609';") && app.includes("const SW_CACHE='requete-2026-11-07-stickers-waouh-v2609';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-stickers-titres-v2610';") && app.includes("const SW_CACHE='requete-2026-11-07-stickers-titres-v2610';"));
 });
