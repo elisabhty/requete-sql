@@ -74,6 +74,10 @@ test('le chat du GIF : huit images détourées (WebP animé ; 10 h 48 : son deux
   assert.ok(anim.includes('ANIM') && anim.includes('ALPH'), 'animé, avec sa transparence');
   let n = 0, i = -1; while ((i = anim.indexOf('ANMF', i + 1)) >= 0) n++;
   assert.equal(n, 8, 'les huit images du GIF');
+  /* 10 h 58 : « ralentis un peu » : un tiers de seconde par image, le cœur de la fin tenu 0,9 s */
+  const durees = []; let j = 12;
+  while (j < anim.length) { const id = anim.subarray(j, j + 4).toString(), taille = anim.readUInt32LE(j + 4); if (id === 'ANMF') durees.push(anim.readUIntLE(j + 8 + 12, 3)); j += 8 + taille + (taille & 1); }
+  assert.deepEqual(durees, [340, 340, 340, 380, 340, 340, 360, 900]);
   assert.ok(anim.length < 300000 && fixe.length < 60000, 'léger');
   assert.ok(sw.includes("  './assets/chat-allumette.webp',\n  './assets/chat-allumette-fixe.webp',"));
 });
