@@ -14,13 +14,14 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const N = ' ';
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-function carte(n, kinds) {
-  const ctx = vm.createContext({ esc, escAttr: esc, document: { querySelector: () => null }, LQ_FLAME_SVG: '<svg/>', LQ_MOON_SVG: '<svg/>',
-    streakJours: () => n, streakRecord: () => n,
+function carte(n, kinds, reposAuj = false) {
+  const ctx = vm.createContext({ esc, escAttr: esc, document: { querySelector: () => null }, LQ_FLAME_SVG: '<svg/>', LQ_MOON_SVG: '<svg class="lune"/>',
+    streakJours: () => n, streakRecord: () => n, jourRepos: () => reposAuj,
     semaineSerie: () => kinds.map((kind, i) => ({ letter: 'LMMJVSD'[i], today: i === 6, kind })) });
   vm.runInContext('var lqLastStreak=null;' + cut('function homeStreakHTML(', '\nfunction openAccountProgress('), ctx);
   const h = ctx.homeStreakHTML();
-  return { texte: /<b>([^]*?)<\/b><small>([^<]*)<\/small>/.exec(h).slice(1).join(' | '), aria: /aria-label="([^"]*)"/.exec(h)[1] };
+  return { texte: /<b>([^]*?)<\/b><small>([^<]*)<\/small>/.exec(h).slice(1).join(' | '), aria: /aria-label="([^"]*)"/.exec(h)[1],
+    jours: [...h.matchAll(/<span class="lq-day is-(\w+)/g)].map(m => m[1]).join(' ') };
 }
 
 test('toute la semaine faite : « Ta semaine est en feu 🔥 », « 7 jours sur 7, bravo ! »', () => {
@@ -32,6 +33,11 @@ test('toute la semaine faite : « Ta semaine est en feu 🔥 », « 7 jours sur 
 test('les jours de repos ne comptent pas', () => {
   assert.equal(carte(5, ['done', 'done', 'rest', 'done', 'done', 'rest', 'done']).texte, `Ta semaine est en feu 🔥 | 5 jours sur 5, bravo${N}!`);
   assert.equal(carte(1, ['rest', 'rest', 'rest', 'rest', 'rest', 'rest', 'done']).texte, `Ta semaine est en feu 🔥 | 1 jour sur 1, bravo${N}!`, 'au singulier');
+  /* 3 jours par semaine : lundi, mercredi, vendredi faits ; on est dimanche, sans séance */
+  const trois = carte(3, ['done', 'rest', 'done', 'rest', 'done', 'rest', 'today'], true);
+  assert.equal(trois.texte, `Ta semaine est en feu 🔥 | 3 jours sur 3, bravo${N}!`);
+  assert.equal(trois.jours, 'done rest done rest done rest rest', 'aujourd’hui sans séance : une lune, plus la flamme pointillée');
+  assert.equal(carte(2, ['done', 'rest', 'done', 'rest', 'rest', 'rest', 'today'], false).texte, '<span class="lq-count" data-count="2">2</span> jours de série | Une activité aujourd’hui pour prolonger ta série.', 'aujourd’hui a une séance : la semaine n’est pas finie');
 });
 
 test('une semaine pas encore finie, ou un jour manqué : la série comme avant', () => {
