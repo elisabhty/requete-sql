@@ -169,6 +169,21 @@ dans l’ordre du parcours. Tout est à jour : le widget dit quand revient la pr
 - **Les boutons** passent par App Intents (`RetournerCarte`, `NoterCarte`, `CarteSuivante`, cachés de Raccourcis) : ils n’existent
   qu’à partir d’**iOS 17**, comme le widget.
 
+### Ta semaine, en résultat de requête (7 novembre)
+
+Elisa, 7 novembre (« Ta semaine, en résultat de requête », d’après la planche : « Le widget parle SQL : ta semaine sort comme un
+tableau de résultats. »). Le widget **Ta semaine** (`RequeteSemaine`, dans `RequeteWidget.swift`, moyen) affiche
+`SELECT jour, flamme FROM ma_semaine;`, puis une colonne par jour, du lundi au dimanche : la flamme dorée un jour actif, la lune
+un jour de repos du planning, la flamme en contour aujourd’hui tant que la séance attend, `NULL` un jour passé sans activité,
+« · » à venir (et avant le premier jour qui compte). Dessous, comme sous un résultat : « 7 lignes · 4 flammes », et où en est
+aujourd’hui (« samedi : en attente »). Sombre façon terminal quand l’iPhone est en **mode sombre**, clair façon tableau de
+résultats sinon : les deux versions de la planche. Aujourd’hui en attente, un appui ouvre la séance du jour.
+
+L’app range les jours avec la série (`widgetSemaine`, dans `widgetMaj` ; pont `maj`, clé `semaine`) : les jours actifs des trois
+dernières semaines, les jours de repos du planning (trois semaines avant, deux après) et le premier jour qui compte (le début du
+planning ou la première activité). Le widget en tire la semaine du jour, une entrée chaque minuit : la semaine change le lundi,
+même si l’app n’a pas été ouverte. Sans bouton, il marche dès iOS 15.
+
 ### Le chat change dans la journée (4 novembre, 12 h 14)
 
 Un widget ne joue ni vidéo ni boucle (iOS ne le permet pas) : il anime le passage d’un état à l’autre, à partir d’iOS 17. Le chat
