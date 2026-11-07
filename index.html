@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=195">
+<link rel="stylesheet" href="ludique.css?v=196">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=31">
 <style id="lesson-video-css">
@@ -26203,43 +26203,36 @@ function renderHomeHero(){
   majBadgePlanning();renderLearnAvatar();renderHomeStreak();renderGreeting();
   const session=recommendedSession();
   const nxt=session?.id??null;
-  const late=state.plan?latePlanDetails():null;
   const date=auj().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
   const dateISO=dstr(auj());
-  /* Elisa, 31 octobre, 8 h 37 (Réf 5) : « le bouton 2 activités à replacer est-il dans la même DA que le site internet ? » Il l’est
-     maintenant : carte blanche en relief, autocollant du calendrier avec sa pastille, séances passées en étiquette jaune soleil, flèche
-     dans un rond violet, comme les cartes de la vitrine. */
-  /* Elisa, 5 novembre, 17 h 09 (réf. 3) : « informer sans donner l’impression d’accumuler des obligations » : plus de pastille rouge ni
-     d’étiquette jaune ; le titre, les séances en gris, et ce que la carte permet : « Réorganise ton planning pour reprendre à ton rythme. » */
-  const lateHtml=late?`<button type="button" class="journey-planning is-calme" onclick="openLateRecoveryFromHome(this)"><span class="jp-stk" aria-hidden="true">${lqStkSvg('cal')}</span><span class="jp-copy"><b>${plur(late.count,'activité')} à rattraper</b><small class="jp-meta">${plur(late.sessions,'séance')} non terminée${late.sessions>1?'s':''}</small><small class="jp-desc">Réorganise ton planning pour reprendre à ton rythme.</small></span><span class="jp-chev" aria-hidden="true">${LATE_CHEV_RIGHT_SVG}</span></button>`:'';
+  /* Elisa, 7 novembre, 8 h 38 (sa maquette de l’accueil) : « On va essayer d’être plus positif pour cet écran. Supprime la carte
+     1 séance à terminer. » La carte des activités à rattraper quitte l’accueil (le planning garde son rattrapage). Sous la carte de la
+     leçon, trois chiffres sans zéro (homeStatsHTML), puis la série. */
   const streak=typeof homeStreakHTML==='function'?homeStreakHTML():'';
-  const extras=lateHtml;
+  const stats=typeof homeStatsHTML==='function'?homeStatsHTML():'';
   const name=(state.name||'').trim();
-  const suite=nxt!=null&&typeof salutSuite==='function'?salutSuite():'';
-  const hiWord=suite||(typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour');
-  /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. */
-  const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, <span class="lq-hi-nom">${esc(name)}</span>`:''}${suite?'\u00a0?':''}`;
-  /* 19 h 36 : « Aujourd’hui · 12 min » ; rien de prévu aujourd’hui : « Aujourd’hui · Pause » (ou « Fait » si la séance du jour est
-     terminée) ; une séance en retard : « À reprendre · 8 min » ; plus rien du tout : « Parcours terminé ». */
+  const hiWord=typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour';
+  /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. « 👋 Bonjour, Elisa ! », puis la phrase qui dit où on en
+     est (heroSousTitre). */
+  const hiHtml=`<span class="lq-hi-wave">👋</span> <span class="lq-hi-mot">${esc(hiWord)}</span>${name?`, <span class="lq-hi-nom">${esc(name)}</span>`:''}\u00a0!`;
   const todayISO=dstr(auj());
   const seanceJour=state.plan&&Array.isArray(state.plan.sessions)?state.plan.sessions.find(x=>x.d===todayISO&&Array.isArray(x.lessons)&&x.lessons.length):null;
-  /* 19 h 48 : « Ta session » à la place d’« Aujourd’hui », avec une animation à elle : un petit sablier dont le sable coule puis qui
-     se retourne (séance à faire), arrêté et qui somnole quand c’est la pause, une coche qui se trace quand c’est fait ; les minutes défilent de 0
-     jusqu’à la durée à la première ouverture. */
+  /* L’étiquette de la séance (1er novembre, 19 h 36 et 19 h 48) : un petit sablier dont le sable coule puis qui se retourne (séance
+     à faire), arrêté et qui somnole quand c’est la pause, une coche qui se trace quand c’est fait ; les minutes défilent de 0 jusqu’à
+     la durée à la première ouverture. 7 novembre, 8 h 38 (maquette) : « ⌛ 14 min aujourd’hui », « ✓ Fait aujourd’hui », « Pause
+     aujourd’hui », « Parcours terminé » ; la séance d’un jour passé se reprend aujourd’hui comme les autres, sans pastille rose ni
+     flèche de retard (VoiceOver dit toujours de quel jour elle est : seanceLue). Faute de place, « aujourd’hui » tombe
+     (lqSesAjuste : « ⌛ 14 min »). */
   const sesEtat=!session?'end':session.d<todayISO?'late':session.d===todayISO?'run':seanceJour&&seanceJour.lessons.every(itemDone)?'done':'pause';
-  const sessionLine=sesEtat==='end'?'Parcours terminé'
-    :sesEtat==='late'?`À reprendre · ${session.minutes} min`
-    :sesEtat==='run'?`Ta session · ${session.minutes} min`
-    :sesEtat==='done'?'Ta session · Faite':'Ta session · Pause';
-  /* Une séance en retard : la flèche de reprise ↻ à la place du sablier (6 novembre, piste A : le retard ne se dit plus seulement par
-     la couleur du chiffre). */
-  const sesIc=sesEtat==='late'?'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.6a5 5 0 1 0 1.5-4.4"/><path d="M4.4 1.6v3h3"/></svg>'
-    :sesEtat==='run'
+  const sesVue=sesEtat==='late'?'run':sesEtat;
+  const sesIc=sesVue==='run'
     ?'<svg viewBox="0 0 14 16"><g class="lq-sab"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M4.9 3.4h4.2L7 7.2z"/><path class="lq-sab-b" d="M7 9.4l2.6 4.4H4.4z"/><path class="lq-sab-s" d="M7 7.4v6"/></g></svg>'
-    :sesEtat==='pause'?'<svg viewBox="0 0 14 16"><g class="lq-sab is-couche"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M5.6 4.6h2.8L7 7z"/><path class="lq-sab-b" d="M7 11l1.6 2.8H5.4z"/></g><text class="lq-zz" x="11" y="3">z</text></svg>'
+    :sesVue==='pause'?'<svg viewBox="0 0 14 16"><g class="lq-sab is-couche"><path class="lq-sab-f" d="M2.5 1.2h9M2.5 14.8h9M4 1.2c0 3.6 2.6 4.6 2.6 6.8S4 11.2 4 14.8M10 1.2c0 3.6-2.6 4.6-2.6 6.8s2.6 3.2 2.6 6.8"/><path class="lq-sab-t" d="M5.6 4.6h2.8L7 7z"/><path class="lq-sab-b" d="M7 11l1.6 2.8H5.4z"/></g><text class="lq-zz" x="11" y="3">z</text></svg>'
     :'<svg viewBox="0 0 16 16"><circle class="lq-chk-o" cx="8" cy="8" r="6.6"/><path class="lq-chk" d="M4.8 8.3l2.2 2.2 4.2-4.6"/></svg>';
-  const sesPre=/^(Ta session|À reprendre) · /.exec(sessionLine);
-  const sesTxt=(sesPre?`<span class="lq-ses-pre">${esc(sesPre[0])}</span>`:'')+esc(sessionLine.slice(sesPre?sesPre[0].length:0)).replace(/(\d+) min$/,'<b class="lq-ses-n" data-n="$1">$1</b>\u00a0min');
+  const sesSuf='<span class="lq-ses-suf"> aujourd’hui</span>';
+  const sesTxt=sesVue==='end'?'Parcours terminé'
+    :sesVue==='run'?`<b class="lq-ses-n" data-n="${session.minutes}">${session.minutes}</b>\u00a0min${sesSuf}`
+    :sesVue==='done'?`Fait${sesSuf}`:`Pause${sesSuf}`;
   /* Elisa, 1er novembre, 19 h 25 : « fusionner les 2 » : le bonjour, le niveau et la séance passent en haut de la carte violette du
      cours (au lieu d’un bloc au-dessus) ; la série vient sous la carte. */
   /* 19 h 36 : « moins de choses, sur une ligne » : le bonjour et la séance du jour sur la même ligne ; 19 h 39 : le niveau
@@ -26250,15 +26243,16 @@ function renderHomeHero(){
      lqSesAjuste. */
   /* 6 novembre (audit de la carte, bugs 3 et 4) : l’étiquette se lit enfin (un aria-label sur un simple <span> n’était pas lu), et dit
      ce que l’écran montre : la séance que le bouton ouvre et ses minutes, puis, s’il y en a plus, tout ce qui reste à rattraper. */
-  const sesMeta=`<div class="journey-session-meta"><span class="lq-ses is-${sesEtat}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div>`;
-  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>`;
+  const sesMeta=`<div class="journey-session-meta"><span class="lq-ses is-${sesVue}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">${sesIc}</i><span aria-hidden="true">${sesTxt}</span></span><time datetime="${dateISO}">${esc(date)}</time></div>`;
+  const sousT=typeof heroSousTitre==='function'?heroSousTitre(nxt):'';
+  const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${sesMeta}</div>${sousT?`<p class="lq-hi-sub">${sousT}</p>`:''}`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
   const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
   if(nxt==null){
-    const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${streak}${extras}`;
+    const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${stats}${streak}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
     lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
     lqSesCount(host);
@@ -26275,10 +26269,11 @@ function renderHomeHero(){
   const mc=defi?4:modIndex>=0?modIndex%8:0;
   const index=mod?mod.lessons.findIndex(l=>l.id===nxt)+1:0;
   const arg=escAttr(JSON.stringify(nxt));
-  /* 17 h 09 : « Reprendre ma leçon » convient uniquement si la leçon a déjà été commencée, sinon « Commencer la leçon » (avant, il
+  /* 7 novembre, 8 h 38 (maquette) : « Continuer ma leçon » et « Plus que 5 min », à la place de « Reprendre ma leçon » et
+     « Encore ~5 min ». 5 novembre, 17 h 09 : « Reprendre ma leçon » convient uniquement si la leçon a déjà été commencée, sinon « Commencer la leçon » (avant, il
      suffisait qu’une autre activité de la séance soit faite) ; de même pour un défi. */
   const commence=itemCommence(nxt);
-  const ctaLabel=defi?(commence?'Reprendre le défi':'Commencer le défi'):(commence?'Reprendre ma leçon':'Commencer la leçon');
+  const ctaLabel=defi?(commence?'Continuer le défi':'Commencer le défi'):(commence?'Continuer ma leçon':'Commencer la leçon');
   const ch=defi&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(c=>c.id===nxt):null;
   const niv=ch&&typeof NIV!=='undefined'&&NIV[ch.niv]?NIV[ch.niv].l:'';
   const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`;
@@ -26291,7 +26286,7 @@ function renderHomeHero(){
     part=enCours?pris/JEU_ROUND_MS:0;
     prog=enCours?`<span class="lq-a-bar" aria-hidden="true" data-p="${Math.round(part*100)}"><i style="width:${Math.round(part*100)}%"></i></span><p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(JEU_ROUND_MS)}</span></p>`
       :`<p class="lq-a-meta is-ico">${LQ_CHRONO_SVG}<span>${JEU_ROUND_MS/60000}\u00a0min au chrono${base?` · ${esc(base)}`:''}</span></p>`;
-    sub=enCours?`Encore ${Math.max(1,Math.ceil((JEU_ROUND_MS-pris)/60000))}\u00a0min au chrono`:`${JEU_ROUND_MS/60000}\u00a0min au plus`;
+    sub=enCours?`Plus que ${Math.max(1,Math.ceil((JEU_ROUND_MS-pris)/60000))}\u00a0min au chrono`:`${JEU_ROUND_MS/60000}\u00a0min au plus`;
   }else{
     const v=dureeVideoS(lesson),pos=Math.min(v,(typeof LV_POS!=='undefined'&&LV_POS.get(nxt))||0),mo=(lesson&&lesson.video&&lesson.video.moments)||0,faits=exercicesFaits(nxt);
     part=Math.min(.95,Math.max(v?pos/v:0,mo?faits/mo*.95:0));
@@ -26300,19 +26295,58 @@ function renderHomeHero(){
     prog=commence&&pos>0?`${barre}<p class="lq-a-meta"><span class="lq-sr">Vidéo : </span><span>${lvFmt(pos)} sur ${lvFmt(v)}</span>${faits?`<span class="lq-a-pt" aria-hidden="true">·</span><span>${ex}</span>`:''}</p>`
       :commence&&faits?`${barre}<p class="lq-a-meta"><span>Vidéo vue · ${ex}</span></p>`
       :v?`<p class="lq-a-meta is-ico">${LQ_VIDEO_SVG}<span>Vidéo de ${esc(lesson.video.duree)}${mo?` · ${mo}\u00a0exercice${mo>1?'s':''}`:''}</span></p>`:'';
-    sub=commence?`Encore ~${minutesDe([nxt],true)}\u00a0min`:`~${minutesDe([nxt])}\u00a0min`;
+    sub=commence?`Plus que ${minutesDe([nxt],true)}\u00a0min`:`~${minutesDe([nxt])}\u00a0min`;
   }
   /* Les points du module (●●◐○○○ « Leçon 3 sur 6 ») : validées en menthe, la leçon en cours remplie de ce qui est vu. */
   const n=mod?mod.lessons.length:0;
   const points=n>1?`<p class="lq-a-meta lq-a-pos"><span class="lq-a-dots" aria-hidden="true">${mod.lessons.map(l=>{const d=itemDone(l.id),c=l.id===nxt;return `<i class="${d?'is-done':c?'is-cur':''}"${c?` style="--pv:${Math.round(part*100)}%"`:''}></i>`;}).join('')}</span><span>Leçon ${index} sur ${n}</span></p>`:'';
-  const ctaLu=`${ctaLabel} : ${meta.titre}, ${sub.replace(/~/g,'environ ').replace(/\u00a0/g,' ')}`;
-  const sesCopie=`<span class="lq-ses lq-ses-copie is-${sesEtat}" aria-hidden="true"><i class="lq-ses-ic">${sesIc}</i><span>${sesTxt}</span></span>`;
-  const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${streak}${extras}`;
+  const ctaLu=`${ctaLabel} : ${meta.titre}, ${(sub.charAt(0).toLowerCase()+sub.slice(1)).replace(/~/g,'environ ').replace(/\u00a0/g,' ')}`;
+  const sesCopie=`<span class="lq-ses lq-ses-copie is-${sesVue}" aria-hidden="true"><i class="lq-ses-ic">${sesIc}</i><span>${sesTxt}</span></span>`;
+  const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
   lqSesCount(host);
   lqPctAnime(host);
 }
+/* La phrase sous le bonjour (Elisa, 7 novembre, 8 h 38, d’après sa maquette « On reprend là où tu en étais ? »), le bout souligné
+   en jaune : une leçon commencée, « On reprend là où tu en étais ? » (un défi : « On reprend ton défi ? ») ; rien de commencé,
+   « Prête pour ta première leçon ? » ; la leçon suivante, « Prête pour la suite ? » ; un défi, « Prête pour un défi ? » ; tout validé,
+   « Tu peux être fière de toi ! ». Selon le genre (accord). */
+function heroSousTitre(nxt){try{
+  const ac=(f,m,n)=>typeof accord==='function'?accord(f,m,n):n;
+  const u=t=>`<span class="lq-hi-u">${t}</span>`;
+  if(nxt==null)return `Tu peux être ${u(`${ac('fière','fier','fier·e')} de toi`)}\u00a0!`;
+  const pret=ac('Prête','Prêt','Prêt·e'),defi=typeof isDefiId==='function'&&isDefiId(nxt);
+  if(typeof itemCommence==='function'&&itemCommence(nxt))return defi?`On reprend ${u('ton défi')}\u00a0?`:`On reprend là ${u('où tu en étais')}\u00a0?`;
+  if(defi)return `${pret} pour ${u('un défi')}\u00a0?`;
+  const rien=!allLessons.some(l=>itemDone(l.id)||(typeof itemCommence==='function'&&itemCommence(l.id)));
+  return `${pret} pour ${u(rien?'ta première leçon':'la suite')}\u00a0?`;
+}catch(e){return '';}}
+/* Sous la carte de la leçon, trois chiffres et jamais un zéro (maquette du 7 novembre, 8 h 38 : « 5 leçons lancées · 0 leçon validée ·
+   71 leçons au total », rendue plus positive). Rien de commencé : ce que le parcours réserve (71 leçons à découvrir, 15 modules,
+   53 cartes à gagner) ; en route : les leçons lancées, les leçons validées (avant la première : les exercices faits, sinon les cartes à
+   gagner), le total ; tout validé : les leçons, les cartes gagnées, les modules terminés. */
+const HOME_STAT_SVG={
+  barres:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="12.5" width="4.4" height="8" rx="1.6"/><rect x="9.8" y="8" width="4.4" height="12.5" rx="1.6"/><rect x="16.1" y="3.5" width="4.4" height="17" rx="1.6"/></svg>',
+  coche:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.6l4.4 4.4L19 7.4"/></svg>',
+  cible:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="3.8"/><path d="M11 13 19.5 4.5M16.4 4.5h3.1v3.1"/></svg>',
+  cartes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="8.6" y="3.2" width="11.4" height="15.4" rx="2.6"/><path d="M6.2 6.4 5 6.8a2.3 2.3 0 0 0-1.5 2.8l2.7 9.6a2.3 2.3 0 0 0 2.8 1.6l6.3-1.8"/></svg>'
+};
+function homeStatsHTML(){try{
+  if(typeof allLessons==='undefined'||!allLessons.length)return '';
+  const ls=allLessons,nL=ls.length,fait=l=>itemDone(l.id);
+  const faites=ls.filter(fait).length,lancees=ls.filter(l=>fait(l)||itemCommence(l.id)).length;
+  const exos=ls.reduce((k,l)=>k+(fait(l)?((l.video&&l.video.moments)||0):exercicesFaits(l.id)),0);
+  const nMods=MODULES.filter(m=>m.lessons.length).length,avecCarte=ls.filter(l=>CARTES[l.id]),gagnees=avecCarte.filter(fait).length;
+  const t=(ico,n,un,plus)=>({ico,n,mot:n>1?plus:un});
+  const aGagner=t('cartes',avecCarte.length-gagnees,'carte à gagner','cartes à gagner');
+  const tuiles=!lancees?[t('cible',nL,'leçon à découvrir','leçons à découvrir'),t('barres',nMods,'module','modules'),aGagner]
+    :faites>=nL?[t('coche',nL,'leçon validée','leçons validées'),t('cartes',gagnees,'carte gagnée','cartes gagnées'),t('cible',nMods,'module terminé','modules terminés')]
+    :[t('barres',lancees,'leçon lancée','leçons lancées'),faites?t('coche',faites,'leçon validée','leçons validées'):exos?t('coche',exos,'exercice fait','exercices faits'):aGagner,t('cible',nL,'leçon au total','leçons au total')];
+  const vues=tuiles.filter(x=>x.n>0);
+  if(!vues.length)return '';
+  return `<ul class="lq-stats" aria-label="Tes chiffres">${vues.map(x=>`<li class="lq-stat is-${x.ico}"><span class="lq-stat-ic" aria-hidden="true">${HOME_STAT_SVG[x.ico]}</span><b>${x.n}</b><span>${x.mot}</span></li>`).join('')}</ul>`;
+}catch(e){return '';}}
 /* Ce que l’étiquette de la séance dit à VoiceOver : le même résumé que le bilan et le planning (session.summary), avec les minutes que
    l’écran montre et, en retard, la séance qu’elles comptent : « Séance d’hier à reprendre : 2 activités à rattraper, environ
    12 minutes. » ; « Séance du mardi 3 novembre à reprendre : 2 activités, environ 12 minutes. En tout, 9 activités à rattraper. » ;
@@ -26363,7 +26397,7 @@ function lqSesCount(host){
 /* 21 h 09 : « j’aime pas que ça tienne en deux lignes ». Le bonjour et la séance restent sur une ligne (audit du 6 novembre, bug 5 :
    à 390 px, « Prête pour la suite, Manon ? » passait déjà dessous, et un long prénom était coupé avec son « ? »). Mesuré une fois,
    bonjour à 20 px, la suite se déduit par proportion :
-   1. tout tient ;  2. l’étiquette perd « Ta session · » ou « À reprendre · » (« ⌛ 12 min ») ;  3. le bonjour rapetisse, jusqu’à
+   1. tout tient (le bonjour peut descendre à 18 px) ;  2. l’étiquette perd « aujourd’hui » (« ⌛ 12 min ») ;  3. le bonjour rapetisse, jusqu’à
    17 px ;  4. sur la carte d’une leçon, l’étiquette descend à côté du module et le bonjour reprend toute la ligne, jusqu’à 16 px ;
    5. en dernier recours, le prénom s’abrège (« Marie-Charl… ? »), jamais le « ? ». Sur la carte de fin, l’étiquette passe dessous,
    comme avant. Mesuré à chaque rendu de l’accueil, quand l’écran change de taille et quand les polices sont arrivées. */
@@ -26375,10 +26409,12 @@ function lqSesAjuste(host){
   hi.classList.remove('is-court','is-serre');if(card)card.classList.remove('is-ses-bas');
   t.style.removeProperty('--hi-fs');if(nom)nom.style.removeProperty('max-width');
   const W=hi.clientWidth-1;if(!(W>0))return;   // accueil caché : mesuré à son prochain rendu
-  const gap=8,nat=t.scrollWidth,full=m.offsetWidth,pre=m.querySelector('.lq-ses-pre'),court=full-(pre?pre.offsetWidth:0);
+  const gap=8,nat=t.scrollWidth,full=m.offsetWidth,pre=m.querySelector('.lq-ses-suf'),court=full-(pre?pre.offsetWidth:0);
   if(!nat)return;
   const taille=d=>Math.floor(20*d/nat*2)/2;
   if(nat+gap+full<=W)return;
+  /* 7 novembre, 8 h 38 : « 14 min aujourd’hui » garde son « aujourd’hui » tant que le bonjour peut rapetisser d’un rien (18 px). */
+  if(taille(W-gap-full)>=18){t.style.setProperty('--hi-fs',taille(W-gap-full)+'px');return;}
   hi.classList.add('is-court');
   const d=W-gap-court;
   if(nat<=d)return;
@@ -26492,7 +26528,9 @@ function parcoursAlertes(){return Array.isArray(state.parcoursAlertes)?state.par
 function parcoursVote(){const v=state.parcoursVote;return v&&PARCOURS.some(p=>p.id===v.id&&!p.dispo)?v:null;}
 function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}
 function parcoursSqlEtat(done){return done>=TOTAL?'Terminé':done?'En cours':'Disponible';}
-function parcoursValidees(done){return `${done} leçon${done>1?'s':''} validée${done>1?'s':''} sur ${TOTAL}`;}
+/* 7 novembre, 8 h 38 (« plus positif ») : jamais « 0 leçon validée sur 71 ». Rien de validé : « 71 leçons » ; tout : « 71 leçons
+   validées » ; entre les deux : « 5 leçons validées sur 71 ». */
+function parcoursValidees(done){return !done?`${TOTAL} leçons`:done>=TOTAL?`${TOTAL} leçons validées`:`${done} leçon${done>1?'s':''} validée${done>1?'s':''} sur ${TOTAL}`;}
 /* Accueil, sous « Parcours SQL » : la rangée des parcours (elle défile à l’horizontale sur un téléphone). Chaque pastille sur
    deux lignes, le nom puis l’état (19 h 48 : « les écritures et tout ça font tassé »). */
 function parcoursChipsHTML(done){
@@ -37724,18 +37762,6 @@ function decalerPlanning(){
   trierSessions();semaineOffset=0;jourSel=dstr(auj());lateRecoveryCollapsed=false;save();renderPlanning();
   lqPlanDone(`Planning décalé : tout reprend aujourd’hui, fin le ${dateCourte(prev.end)}`);
 }
-function openLateRecoveryFromHome(el){
-  lateRecoveryCollapsed=false;
-  const go=()=>{
-    tabScrollPositions.planning=0;
-    switchTab('planning');
-    setTimeout(()=>document.getElementById('late-recovery')?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'}),40);
-  };
-  if(el&&!prefersReduceMotion()){
-    el.classList.add('is-routing');
-    setTimeout(go,170);
-  }else go();
-}
 function setLateRecoveryCollapsed(collapsed,source){
   const card=source?.closest?.('.late-recovery')||document.getElementById('late-recovery');
   if(!card)return;
@@ -38722,9 +38748,10 @@ function homeStreakHTML(){
   const todayDone=days.some(d=>d.today&&d.kind==='done');
   const weekDone=days.filter(d=>d.kind==='done').length;
   /* Elisa, 5 novembre, 17 h 09 : « Garde le rythme ! » plutôt qu’« Allume ta série », et « Une activité aujourd’hui pour prolonger ta
-     série » ; les flammes des jours de la semaine restent, pour voir la régularité d’un coup d’œil. Pas encore de série : « lancer ». */
-  const title=n?`${n} jour${n>1?'s':''} de série`:'Garde le rythme !';
-  const sub=n?(todayDone?'Flamme du jour allumée. À demain !':'Une activité aujourd’hui pour prolonger ta série.'):'Une activité aujourd’hui pour lancer ta série.';
+     série » ; les flammes des jours de la semaine restent, pour voir la régularité d’un coup d’œil. 7 novembre, 8 h 38 (maquette, « plus
+     positif ») : pas encore de série, « Ta série commence aujourd’hui ! » et « Une activité par jour pour progresser. » */
+  const title=n?`${n} jour${n>1?'s':''} de série`:'Ta série commence aujourd’hui\u00a0!';
+  const sub=n?(todayDone?'Flamme du jour allumée. À demain !':'Une activité aujourd’hui pour prolonger ta série.'):'Une activité par jour pour progresser.';
   const kindLabel={done:'fait',today:'à faire aujourd’hui',rest:'repos',missed:'pas fait',future:'à venir'};
   const aria=`${title}. ${sub}${best>n?` Record : ${best} jours.`:''} Cette semaine : ${weekDone} jour${weekDone>1?'s':''} fait${weekDone>1?'s':''}. Voir ma progression.`;
   /* Une seule ligne : la flamme, le compte, puis les 7 jours de la semaine. */
@@ -40640,25 +40667,21 @@ let obSwipeOn = false;
 function greetingForHour(hour){
   return hour<12?'Bonjour':hour<18?'Bon après-midi':'Bonsoir';
 }
-/* Elisa, 5 novembre, 17 h 09 : « Prête pour la suite ? » (selon le genre) à la place de « Bon après-midi », pour mettre l’accent sur
-   l’apprentissage, quand une leçon ou un défi attend ; le parcours terminé, le salut de l’heure revient. */
-function salutSuite(){
-  if(typeof recommendedSession!=='function'||!recommendedSession())return '';
-  return `${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} pour la suite`;
-}
+/* Le titre de l’écran, lu par VoiceOver : le bonjour de l’heure (« Bonjour, Elisa »). Depuis le 7 novembre, 8 h 38 (maquette),
+   « Prête pour la suite ? » (5 novembre, 17 h 09, selon le genre) n’est plus le bonjour : c’est l’une des phrases dessous
+   (heroSousTitre). */
 function renderGreeting(){
   const name=(state.name||'').trim();
-  const suite=salutSuite();
-  const hi=suite||greetingForHour(new Date().getHours());
+  const hi=greetingForHour(new Date().getHours());
   const title=document.querySelector('#scr-learn>.lgtitle h1');
-  if(title)title.textContent=(name?`${hi}, ${name}`:hi)+(suite?'\u00a0?':'');
+  if(title)title.textContent=name?`${hi}, ${name}`:hi;
   /* « après-midi » ne se coupe jamais au trait d’union sur les petits écrans. */
   if(title&&title.nodeType===1&&hi.includes('-')){
     const keep=document.createElement('span');
     keep.style.whiteSpace='nowrap';
     keep.textContent=hi;
     title.textContent='';
-    title.append(keep,(name?`, ${name}`:'')+(suite?'\u00a0?':''));
+    title.append(keep,name?`, ${name}`:'');
   }
   const el=document.getElementById('greeting');
   if(!el)return;
@@ -44812,7 +44835,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-carte-voir-v2612';
+  const SW_CACHE='requete-2026-11-07-accueil-positif-v2613';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

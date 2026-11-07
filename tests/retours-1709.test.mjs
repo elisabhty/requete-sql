@@ -25,21 +25,31 @@ test('réf. 1 : « Ta semaine, organisée rien que pour toi. »', () => {
   assert.ok(!app.includes('Ta semaine, organisée pour toi.'));
 });
 
-test('réf. 2 : « Prête pour la suite, Elisa ? », selon le genre ; le salut de l’heure quand le parcours est terminé', () => {
+test('réf. 2 : « Prête pour la suite ? », selon le genre… devenue, le 7 novembre, la phrase sous « 👋 Bonjour, Elisa ! »', () => {
+  /* Elisa, 7 novembre, 8 h 38 (sa maquette) : le bonjour de l’heure, et dessous une phrase qui dit où on en est */
   const title = {}, sous = {};
-  let suite = true, genre = 'f';
-  const ctx = vm.createContext({ state: { name: 'Elisa' }, Date: class { getHours() { return 15; } }, recommendedSession: () => suite ? { id: 1 } : null,
-    accord: (f, h, n) => genre === 'f' ? f : genre === 'h' ? h : n, document: { querySelector: () => title, getElementById: () => sous, createElement: () => ({ style: {} }) } });
+  const ctx = vm.createContext({ state: { name: 'Elisa' }, Date: class { getHours() { return 15; } },
+    document: { querySelector: () => title, getElementById: () => sous, createElement: () => ({ style: {} }) } });
   vm.runInContext(cut('function greetingForHour(', 'function renderStartCta('), ctx);
-  ctx.renderGreeting();
-  assert.equal(title.textContent, `Prête pour la suite, Elisa${N}?`);
-  genre = 'h'; ctx.renderGreeting(); assert.equal(title.textContent, `Prêt pour la suite, Elisa${N}?`);
-  genre = 'n'; ctx.state.name = ''; ctx.renderGreeting(); assert.equal(title.textContent, `Prêt·e pour la suite${N}?`);
-  suite = false; ctx.state.name = 'Elisa'; ctx.renderGreeting(); assert.equal(title.textContent, 'Bon après-midi, Elisa', 'plus de suite : le salut de l’heure');
+  ctx.renderGreeting(); assert.equal(title.textContent, 'Bon après-midi, Elisa');
+  ctx.state.name = ''; ctx.renderGreeting(); assert.equal(title.textContent, 'Bon après-midi');
+  let genre = 'f';
+  const faits = new Set(), commencees = new Set();
+  const phr = vm.createContext({ accord: (f, h, n) => genre === 'f' ? f : genre === 'h' ? h : n, isDefiId: id => typeof id === 'string',
+    itemCommence: id => commencees.has(id), itemDone: id => faits.has(id), allLessons: [{ id: 7 }, { id: 8 }] });
+  vm.runInContext(fn('heroSousTitre'), phr);
+  const u = t => `<span class="lq-hi-u">${t}</span>`;
+  assert.equal(phr.heroSousTitre(7), `Prête pour ${u('ta première leçon')}${N}?`, 'rien de commencé');
+  commencees.add(7); assert.equal(phr.heroSousTitre(7), `On reprend là ${u('où tu en étais')}${N}?`, 'la leçon est commencée');
+  commencees.clear(); faits.add(7); assert.equal(phr.heroSousTitre(8), `Prête pour ${u('la suite')}${N}?`);
+  genre = 'h'; assert.equal(phr.heroSousTitre(8), `Prêt pour ${u('la suite')}${N}?`);
+  genre = 'n'; assert.equal(phr.heroSousTitre('d1'), `Prêt·e pour ${u('un défi')}${N}?`);
+  commencees.add('d1'); assert.equal(phr.heroSousTitre('d1'), `On reprend ${u('ton défi')}${N}?`);
+  genre = 'f'; assert.equal(phr.heroSousTitre(null), `Tu peux être ${u('fière de toi')}${N}!`, 'tout est validé');
+  genre = 'h'; assert.equal(phr.heroSousTitre(null), `Tu peux être ${u('fier de toi')}${N}!`);
   const hero = fn('renderHomeHero');
-  assert.ok(hero.includes("const suite=nxt!=null&&typeof salutSuite==='function'?salutSuite():'';"));
-  /* Depuis le 6 novembre, le prénom a sa propre balise (la carte le resserre sur petit écran) */
-  assert.ok(hero.includes("const hiHtml=`<span class=\"lq-nw\">${esc(hiWord)}</span>${name?`, <span class=\"lq-hi-nom\">${esc(name)}</span>`:''}${suite?'\\u00a0?':''}`;"));
+  assert.ok(hero.includes("const hiWord=typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour';") && !app.includes('function salutSuite('));
+  assert.ok(hero.includes("const sousT=typeof heroSousTitre==='function'?heroSousTitre(nxt):'';") && hero.includes('${sousT?`<p class="lq-hi-sub">${sousT}</p>`:\'\'}'));
 });
 
 test('réf. 2 : « Reprendre ma leçon » seulement si la leçon a été commencée, sinon « Commencer la leçon »', () => {
@@ -57,18 +67,18 @@ test('réf. 2 : « Reprendre ma leçon » seulement si la leçon a été commenc
   ses = { cid: 'd1' }; assert.equal(ctx.itemCommence('d1'), true, 'un défi au chrono en cours');
   assert.equal(ctx.itemCommence('d2'), false, 'pas un autre défi');
   const hero = fn('renderHomeHero');
-  assert.ok(hero.includes("const commence=itemCommence(nxt);") && hero.includes("const ctaLabel=defi?(commence?'Reprendre le défi':'Commencer le défi'):(commence?'Reprendre ma leçon':'Commencer la leçon');"));
+  /* 7 novembre, 8 h 38 (maquette) : « Continuer ma leçon » plutôt que « Reprendre ma leçon » */
+  assert.ok(hero.includes("const commence=itemCommence(nxt);") && hero.includes("const ctaLabel=defi?(commence?'Continuer le défi':'Commencer le défi'):(commence?'Continuer ma leçon':'Commencer la leçon');"));
   assert.ok(!hero.includes('session.started?'), 'une autre activité faite dans la séance ne suffit plus');
 });
 
-test('réf. 3 : les activités à rattraper, sur l’accueil, sans pastille rouge ni étiquette jaune, avec ce qu’on y fait', () => {
+test('réf. 3 : les activités à rattraper, sur l’accueil… jusqu’au 7 novembre, 8 h 38 (« Supprime la carte 1 séance à terminer »)', () => {
   const hero = fn('renderHomeHero');
-  assert.ok(hero.includes('<button type="button" class="journey-planning is-calme" onclick="openLateRecoveryFromHome(this)"><span class="jp-stk" aria-hidden="true">${lqStkSvg(\'cal\')}</span>'));
-  assert.ok(hero.includes('<small class="jp-desc">Réorganise ton planning pour reprendre à ton rythme.</small>') && !hero.includes('jp-badge'));
-  assert.ok(lq.includes('html.lq #home-hero .journey-planning.is-calme .jp-copy small.jp-meta{align-self:auto;padding:0;border-radius:0;background:none;box-shadow:none;color:var(--ink-3)!important;'));
+  assert.ok(!hero.includes('journey-planning') && !hero.includes('latePlanDetails()'), 'plus de carte de rattrapage sur l’accueil');
+  assert.ok(app.includes('const late=lateRecoveryHTML();'), 'le planning garde la sienne');
 });
 
-test('la série : « Garde le rythme ! » et sa phrase au-dessus des sept flammes de la semaine', () => {
+test('la série : « Garde le rythme ! » (puis « Ta série commence aujourd’hui ! ») et sa phrase au-dessus des sept flammes de la semaine', () => {
   const etat = { n: 0, jours: [] };
   const ctx = vm.createContext({ esc, escAttr: esc, document: { querySelector: () => null }, lqLastStreak: null, LQ_FLAME_SVG: '<svg/>', LQ_MOON_SVG: '<svg/>',
     streakJours: () => etat.n, streakRecord: () => etat.n, semaineSerie: () => etat.jours });
@@ -76,7 +86,8 @@ test('la série : « Garde le rythme ! » et sa phrase au-dessus des sept flamme
   const sem = done => ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((letter, i) => ({ letter, today: i === 3, kind: i === 3 ? (done ? 'done' : 'today') : i < 3 ? 'done' : 'future' }));
   etat.jours = sem(false);
   let h = ctx.homeStreakHTML();
-  assert.ok(h.includes(`<b>Garde le rythme${N}!</b><small>Une activité aujourd’hui pour lancer ta série.</small>`), 'pas encore de série');
+  /* 7 novembre, 8 h 38 (maquette, « plus positif ») : « Ta série commence aujourd’hui ! » à la place de « Garde le rythme ! » */
+  assert.ok(h.includes(`<b>Ta série commence aujourd’hui${N}!</b><small>Une activité par jour pour progresser.</small>`), 'pas encore de série');
   assert.equal((h.match(/class="lq-day /g) || []).length, 7, 'les sept flammes restent');
   etat.n = 2; h = ctx.homeStreakHTML();
   assert.ok(h.includes('<b><span class="lq-count" data-count="2">2</span> jours de série</b><small>Une activité aujourd’hui pour prolonger ta série.</small>'));

@@ -59,13 +59,10 @@ test('réf 11 — le retour d’une sous-page ramène là d’où l’on vient, 
   assert.ok(fn('renderConsoleScreen').includes("if(lab) lab.textContent=inWork?'Projets':backTo[0];") && fn('syncEntretienChrome').includes("label.textContent=focused?'Questions':backTo[0];"));
 });
 
-test('réf 5 — « activités à replacer » dans la DA du site', () => {
-  /* Depuis le 5 novembre, 17 h 09 (réf. 3) : l’autocollant reste, sans pastille rouge (« informer sans accumuler des obligations ») */
-  assert.ok(app.includes('<span class="jp-stk" aria-hidden="true">${lqStkSvg(\'cal\')}</span>') && !app.includes('<i class="jp-badge">'), 'l’autocollant du calendrier, sans pastille');
-  for (const part of ['html.lq #home-hero .journey-planning{border:2px solid var(--line)!important;background:#fff!important;box-shadow:0 4px 0 var(--lip)!important}',
-    'html.lq #home-hero .jp-copy small{align-self:flex-start;padding:3px 10px;border-radius:99px;background:var(--sun);',
-    'html.lq #home-hero .jp-chev{background:var(--accent)!important;'])
-    assert.ok(s47.includes(part), part);
+test('réf 5 — « activités à replacer » dans la DA du site… puis retirée de l’accueil', () => {
+  /* Elisa, 7 novembre, 8 h 38 : « Supprime la carte 1 séance à terminer » : l’accueil n’a plus de carte de rattrapage (le planning
+     garde le sien, tests/late-recovery) */
+  assert.ok(!app.includes('<span class="jp-stk" aria-hidden="true">') && !app.includes('openLateRecoveryFromHome'), 'plus de carte sur l’accueil');
 });
 
 test('réf 6 — les pages légales ouvrent celles du site', () => {

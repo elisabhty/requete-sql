@@ -260,8 +260,10 @@ test('19 h 22 : l’icône de chargement (tirer pour recharger) descend moins ba
 test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la carte du cours ; la série dessous', () => {
   /* Depuis le 6 novembre : la carte « La leçon d’abord » (le bonjour et la séance, puis le module, la leçon, le bouton) */
   assert.ok(app.includes('const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div>'));
-  assert.ok(app.includes('<span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${streak}${extras}`;'), 'la série dessous (l’objectif du 4 novembre, 17 h 27, est supprimé le 5 à 20 h 34)');
+  /* 7 novembre, 8 h 38 (maquette) : les trois chiffres entre la carte et la série ; plus de trait sous le bonjour, la phrase vient dessous */
+  assert.ok(app.includes('<span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;'), 'la série dessous (l’objectif du 4 novembre, 17 h 27, est supprimé le 5 à 20 h 34)');
   assert.ok(css.includes('html.lq .lq-hero.has-hi .lq-hero-hi{position:relative;z-index:1;margin:0 0 14px;padding:0 0 14px;border-bottom:1.5px solid rgba(255,255,255,.18)}'));
+  assert.ok(css.includes('html.lq .lq-hero.has-hi .lq-hero-hi{margin-bottom:4px;padding-bottom:0;border-bottom:0}'));
 });
 
 test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une carte s’ouvre en haut', () => {
@@ -269,9 +271,11 @@ test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une car
 });
 
 test('19 h 36 – 19 h 39 : le haut de la carte sur une ligne (bonjour + séance du jour), le niveau collé sur le chat', () => {
-  assert.ok(app.includes("const sessionLine=sesEtat==='end'?'Parcours terminé'"), 'parcours terminé');
-  /* 19 h 48 : « Ta session » à la place d’« Aujourd’hui » */
-  assert.ok(app.includes(":sesEtat==='run'?`Ta session · ${session.minutes} min`") && app.includes(":sesEtat==='done'?'Ta session · Faite':'Ta session · Pause';"), 'Ta session · 12 min / Faite / Pause');
+  assert.ok(app.includes("const sesTxt=sesVue==='end'?'Parcours terminé'"), 'parcours terminé');
+  /* 19 h 48 : « Ta session » à la place d’« Aujourd’hui » ; 7 novembre, 8 h 38 (maquette) : « 14 min aujourd’hui », « Fait aujourd’hui »,
+     « Pause aujourd’hui » */
+  assert.ok(app.includes(":sesVue==='run'?`<b class=\"lq-ses-n\" data-n=\"${session.minutes}\">${session.minutes}</b>\\u00a0min${sesSuf}`") && app.includes(":sesVue==='done'?`Fait${sesSuf}`:`Pause${sesSuf}`;") && app.includes("const sesSuf='<span class=\"lq-ses-suf\"> aujourd’hui</span>';"), '14 min aujourd’hui / Fait / Pause');
+  assert.ok(!app.replace(/\/\*[^]*?\*\//g, '').includes('Ta session ·'), 'plus de « Ta session · » (hors commentaires)');
   assert.ok(!app.includes('`Aujourd’hui · ${session.minutes} min`'), 'plus d’« Aujourd’hui »');
   assert.ok(app.includes("{const a=old.querySelector('.mstk-niv'),b=fresh.querySelector('.mstk-niv');if(a&&b&&a.outerHTML!==b.outerHTML)a.replaceWith(b.cloneNode(true));}"), 'étiquette remise à jour quand la mascotte est gardée');
   assert.ok(css.includes('html.lq .mstk-niv{left:auto;right:-2px;translate:none;max-width:118px}'), 'reste dans la carte à 360 px');
@@ -279,9 +283,9 @@ test('19 h 36 – 19 h 39 : le haut de la carte sur une ligne (bonjour + séance
 });
 
 test('19 h 48 : « Ta session » a son animation (sablier qui coule et se retourne, somnole en pause, coche qui se trace ; minutes qui défilent)', () => {
-  assert.ok(app.includes('<span class="lq-ses is-${sesEtat}"') && app.includes('<i class="lq-ses-ic" aria-hidden="true">${sesIc}</i>'));
+  assert.ok(app.includes('<span class="lq-ses is-${sesVue}"') && app.includes('<i class="lq-ses-ic" aria-hidden="true">${sesIc}</i>'));
   assert.ok(app.includes('<g class="lq-sab">') && app.includes('<g class="lq-sab is-couche">') && app.includes('<path class="lq-chk"'), 'les trois icônes');
-  assert.ok(app.includes("replace(/(\\d+) min$/,'<b class=\"lq-ses-n\" data-n=\"$1\">$1</b>\\u00a0min')"), 'le nombre de minutes balisé');
+  assert.ok(app.includes('<b class="lq-ses-n" data-n="${session.minutes}">${session.minutes}</b>'), 'le nombre de minutes balisé');
   assert.ok(app.includes("if(!n||lqSesCounted||!document.querySelector('#scr-learn.active'))return;") && app.includes("if(typeof mascotReduced==='function'&&mascotReduced())return;"), 'une fois, accueil visible, mouvement non réduit');
   assert.equal((app.match(/lqSesCount\(host\);/g) || []).length, 2, 'les deux rendus de la carte');
   for (const k of ['@keyframes lqSabFlip{0%,80%{rotate:0deg}100%{rotate:180deg}}', '@keyframes lqSabHaut{0%{scale:1 1}78%,100%{scale:0 0}}', '@keyframes lqSabDort{0%,100%{rotate:-9deg}50%{rotate:9deg}}', '@keyframes lqChk{to{stroke-dashoffset:0}}', 'html.lq[data-motion="reduce"] .lq-ses-ic *{animation:none!important}'])

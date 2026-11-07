@@ -53,7 +53,8 @@ test('3 et 4 — l’étiquette de la séance se lit, et dit ce que l’écran m
   assert.equal(lu2({ d: s0.jour(1), lessons: [9], remaining: [9], minutes: 6, summary: '1 activité prévue demain' }, 'done'), 'Ta séance du jour est faite. 1 activité prévue demain.');
   assert.equal(lu2({ d: s0.jour(1), lessons: [9], remaining: [9], minutes: 6, summary: '1 activité prévue demain' }, 'pause'), 'Pas de séance prévue aujourd’hui. 1 activité prévue demain.');
   const h = fn('renderHomeHero');
-  assert.ok(h.includes('<span class="lq-ses is-${sesEtat}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">'), 'un texte masqué, lu par VoiceOver');
+  /* 7 novembre, 8 h 38 : la séance d’un jour passé a l’air de celle du jour (sesVue) ; VoiceOver dit toujours de quel jour elle est */
+  assert.ok(h.includes('<span class="lq-ses is-${sesVue}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">'), 'un texte masqué, lu par VoiceOver');
   assert.ok(!h.includes('aria-label="${escAttr(session?.summary'), 'plus d’aria-label sur un simple <span>');
   /* Depuis 8 h 49, plus de « 0 % » : la barre de la leçon se lit (« Vidéo : 1:15 sur 2:50 », « Chrono : 05:48 sur 20:00 ») */
   assert.ok(h.includes('<span class="lq-sr">Vidéo : </span><span>${lvFmt(pos)} sur ${lvFmt(v)}</span>') && h.includes('<span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(JEU_ROUND_MS)}</span>'), 'la barre de la leçon pour VoiceOver');

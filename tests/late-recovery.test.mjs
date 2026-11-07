@@ -50,5 +50,7 @@ assert(html.includes("action:'decalerPlanning()'") && html.includes("action:'eta
 assert(html.includes("<em>Recommandé</em>") && html.includes('Comment veux-tu reprendre') && html.includes('Confirmer mon choix'), 'choix recommandé mis en avant');
 assert(!html.includes('Fais ton choix'), 'ancienne mention retirée');
 assert(html.includes('class="lr-head" aria-expanded') && html.includes('<h2 class="lr-heading">'), 'en-tête pliable accessible (titre + bouton)');
-assert(html.includes('class="journey-planning is-calme" onclick="openLateRecoveryFromHome(this)"'), 'carte de l’accueil entièrement cliquable');
+/* 7 novembre, 8 h 38 (Elisa : « Supprime la carte 1 séance à terminer ») : la carte a quitté l’accueil ; le planning garde le rattrapage. */
+assert(!html.includes('onclick="openLateRecoveryFromHome(this)"'), 'plus de carte de rattrapage sur l’accueil');
+assert(html.includes('const late=lateRecoveryHTML();'), 'le planning garde son rattrapage');
 console.log('Activités à replacer : durées, choix conseillé, décalage du planning et carte : OK.');

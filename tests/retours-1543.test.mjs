@@ -40,8 +40,9 @@ test('réf. 1 : « activités à rattraper », « séances non terminées », «
   assert.ok(html.includes('<div class="lr-actions" role="radiogroup" aria-labelledby="lr-q-t">'));
   assert.ok(html.includes('<button type="button" class="lq-btn lr-confirm" onclick="lrConfirmer(this)">Confirmer mon choix</button>') && html.includes('>Je déciderai plus tard</button>'));
   assert.ok(!html.includes('à replacer') && !html.includes('Conseillé') && !html.includes('>Plus tard<'));
-  /* L’accueil dit la même chose */
-  assert.ok(app.includes("<b>${plur(late.count,'activité')} à rattraper</b><small class=\"jp-meta\">${plur(late.sessions,'séance')} non terminée${late.sessions>1?'s':''}</small>"));
+  /* L’accueil le disait aussi, jusqu’au 7 novembre, 8 h 38 (Elisa : « Supprime la carte 1 séance à terminer ») : le rattrapage ne
+     se montre plus que dans le planning */
+  assert.ok(!app.includes("à rattraper</b><small class=\"jp-meta\">"));
 });
 
 test('les trois façons, en boutons radio : la recommandée cochée d’avance et en premier, les mots de la réf. 1', () => {

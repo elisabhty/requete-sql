@@ -114,10 +114,11 @@ test('réf. 7 : l’objectif sur l’accueil… puis supprimé (5 novembre, 20 h
   /* La carte « Ton objectif », sa fonction, ses phrases, son ouverture du profil et ses styles sont partis (retours-2032) */
   for (const k of ['objectifAccueilHTML', 'LQ_OBJ_PHRASES', 'function objectifModifier(', 'class="lq-obj']) assert.ok(!app.includes(k), k);
   assert.ok(!lq.includes('.lq-obj'), 'plus de styles');
-  assert.equal((app.match(/\$\{streak\}\$\{extras\}`;/g) || []).length, 2, 'sous les deux cartes du cours : la série, puis le rattrapage s’il y en a');
+  /* 7 novembre, 8 h 38 : sous les deux cartes du cours, les trois chiffres puis la série ; plus de rattrapage sur l’accueil */
+  assert.equal((app.match(/\$\{stats\}\$\{streak\}`;/g) || []).length, 2, 'sous les deux cartes du cours : les chiffres, puis la série');
   /* L’objectif reste modifiable dans Mon compte, Profil et objectif */
   assert.ok(app.includes("openPlusDetails('plus-profile-settings')"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=195">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=196">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {
