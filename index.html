@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=206">
+<link rel="stylesheet" href="ludique.css?v=207">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=36">
 <style id="lesson-video-css">
@@ -7706,7 +7706,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
           </div>
 
           <div class="console-empty" id="console-empty" hidden>
-            <span class="console-empty-ico" aria-hidden="true">🗂️</span>
+            <span class="console-empty-ico is-chat" aria-hidden="true"></span>
             <b>Ta base est vide</b>
             <p>Importe un fichier (Excel, CSV, JSON, SQL ou SQLite) ou crée ta première table en SQL.</p>
             <div class="console-empty-btns">
@@ -26233,9 +26233,12 @@ function mascotBravo(btn,on){
 /* Elisa, 7 novembre, 12 h 54 : ses GIF « bonus », pour de nouveaux endroits : il cherche avec une loupe (une recherche sans
    résultat), il dort avec des « zzz » (un jour de repos), il tient un chrono (les défis). 12 images de 420 ms, détourées et adoucies au
    bord, en boucle ; en mouvement réduit, l’image qui le dit le mieux (la loupe à l’œil, les « zzz », le chrono levé avec un clin
-   d’œil). Une fonction (pas de constante) : elle sert dès les premiers rendus. */
+   d’œil). Une fonction (pas de constante) : elle sert dès les premiers rendus.
+   13 h 02, ses deux autres GIF, à la place qu’elle a choisie : il salue puis s’en va (« Se déconnecter » : salut, la patte qui salue en
+   boucle dans la question ; aurevoir, le GIF entier, une fois, après la déconnexion) ; il jongle avec des tables (jongle : la base
+   vide de la console, où l’on importe un fichier ou crée sa première table). */
 function chatBonusHtml(k,cls){
-  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
+  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   return `<img class="chat-bonus is-${k}${cls?' '+cls:''}" src="assets/chat-${k}${fixe?'-fixe':''}.webp" width="${t[0]}" height="${t[1]}" alt="" draggable="false">`;
 }
@@ -38329,7 +38332,7 @@ function lqAsk(o){
     el.innerHTML=`<button type="button" class="lq-ask-back" tabindex="-1" aria-label="${escAttr(o.non||'Annuler')}"></button>
       <div class="lq-ask-sheet${o.corps?' has-corps':''}" role="alertdialog" aria-modal="true" aria-labelledby="lq-ask-t" aria-describedby="lq-ask-p${o.corps?' lq-ask-c':''}">
         <button type="button" class="lq-x lq-ask-x" aria-label="Fermer">${LQ_X_SVG}</button>
-        <div class="lq-ask-cap${o.danger?' is-danger':''}${o.ico?'':' is-nostk'}">${o.ico?lqAskStk(o.ico):''}
+        <div class="lq-ask-cap${o.danger?' is-danger':''}${o.ico||o.chat?'':' is-nostk'}">${o.chat?`<span class="lq-ask-stk is-chat" aria-hidden="true">${o.chat}</span>`:o.ico?lqAskStk(o.ico):''}
         <h2 id="lq-ask-t">${esc(o.titre)}</h2>
         ${o.texteHtml?`<p id="lq-ask-p">${o.texteHtml}</p>`:o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}</div>
         ${o.corps?`<div class="lq-ask-corps" id="lq-ask-c">${o.corps}</div>`:''}
@@ -40795,7 +40798,12 @@ function renderConsoleChips(){
     window.__chips=[];
     if(wrap)wrap.hidden=true;
     const empty=document.getElementById('console-empty');
-    if(empty)empty.hidden=false;
+    if(empty){
+      empty.hidden=false;
+      /* Il jongle avec des tables (le GIF d’Elisa, 7 novembre, 13 h 02) ; redessiné seulement s’il change (mouvement réduit) */
+      const ico=empty.querySelector('.console-empty-ico'),img=ico&&ico.querySelector('img'),src=`assets/chat-jongle${typeof mascotReduced==='function'&&mascotReduced()?'-fixe':''}.webp`;
+      if(ico&&typeof chatBonusHtml==='function'&&(!img||img.getAttribute('src')!==src))ico.innerHTML=chatBonusHtml('jongle');
+    }
     return;
   }
   if(wrap)wrap.hidden=false;
@@ -44803,16 +44811,36 @@ function noterAppli(){
    sauvegarde, plutôt que de ne rien faire. */
 async function seDeconnecter(){
   if(state.accountMode!=='connected'){
-    if(await lqAsk({ico:'👋',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter. Garde-en une sauvegarde pour la retrouver ailleurs.',oui:'Sauvegarder ma progression',non:'OK'})){
+    if(await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter. Garde-en une sauvegarde pour la retrouver ailleurs.',oui:'Sauvegarder ma progression',non:'OK'})){
       if(typeof exportProgress==='function')exportProgress();
     }
     return;
   }
-  if(!await lqAsk({ico:'👋',titre:'Te déconnecter ?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
+  if(!await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Te déconnecter ?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
   if(typeof closePlusDetails==='function')closePlusDetails();
   startOnboarding('account');
+  if(typeof lqAuRevoir==='function')lqAuRevoir();   // il salue et s’en va, par-dessus la page de connexion (7 novembre, 13 h 02)
+}
+/* Après la déconnexion (Elisa, 7 novembre, 13 h 02 : son GIF, il salue de la patte, se retourne et s’en va) : une page comme celle du
+   « Bravo » de la flamme, le temps qu’il parte (6 s, le GIF joué une fois ; il s’efface en sortant du cadre), puis la page de
+   connexion, déjà ouverte dessous. Un toucher ou Échap la ferme plus tôt. Mouvement réduit : il salue, immobile, 2,4 s. */
+function lqAuRevoir(){
+  if(typeof document==='undefined')return;
+  const old=document.getElementById('lq-aurevoir');if(old)old.remove();
+  const calme=typeof mascotReduced==='function'&&mascotReduced();
+  const t=typeof accord==='function'?accord('Tu es déconnectée','Tu es déconnecté','Tu es déconnecté·e'):'Tu es déconnecté·e';
+  const el=document.createElement('div');
+  el.id='lq-aurevoir';el.className='lq-flamme lq-aurevoir';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  el.innerHTML=`<div class="lq-flamme-in"><div class="lq-flamme-scene">${chatBonusHtml('aurevoir','lq-flamme-chat')}</div><p class="lq-flamme-bravo">À bientôt\u00a0!</p><h2 class="lq-flamme-t">${t}</h2><p class="lq-flamme-d">Ta progression t’attend sur ton compte.</p></div>`;
+  let tm=0,fini=false;
+  const key=e=>{if(e.key==='Escape'){e.preventDefault();fin();}};
+  const fin=()=>{if(fini)return;fini=true;clearTimeout(tm);document.removeEventListener('keydown',key,true);el.classList.add('is-sort');setTimeout(()=>el.remove(),calme?0:220);};
+  el.addEventListener('click',fin);
+  document.addEventListener('keydown',key,true);
+  document.body.appendChild(el);
+  tm=setTimeout(fin,calme?2400:6100);
 }
 const DEL_SVG={
   nuage:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 18.5h9.6a4.4 4.4 0 0 0 .5-8.77A6 6 0 0 0 6.2 11.1a3.7 3.7 0 0 0 1.3 7.4Z"/></svg>',
@@ -45036,7 +45064,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-bonus-v2631';
+  const SW_CACHE='requete-2026-11-07-chat-jongle-v2632';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

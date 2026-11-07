@@ -36,7 +36,7 @@ test('les autocollants : contour blanc et ombre peints dans le dessin (pas de fi
 test('les feuilles : bandeau violet en tête (titre, texte, autocollant), champ et boutons sur le blanc', () => {
   const ask = cut('function lqAsk(o){', 'const lqInfo=');
   /* 5 novembre, 9 h 18 : « is-nostk » quand il n’y a pas d’autocollant (le titre est alors à hauteur de la croix, voir retours-0918). */
-  assert.ok(ask.includes("<div class=\"lq-ask-cap${o.danger?' is-danger':''}${o.ico?'':' is-nostk'}\">${o.ico?lqAskStk(o.ico):''}"), 'bandeau, rouge sous le jaune pour une suppression');
+  assert.ok(ask.includes("<div class=\"lq-ask-cap${o.danger?' is-danger':''}${o.ico||o.chat?'':' is-nostk'}\">${o.chat?`<span class=\"lq-ask-stk is-chat\" aria-hidden=\"true\">${o.chat}</span>`:o.ico?lqAskStk(o.ico):''}"), 'bandeau, rouge sous le jaune pour une suppression');   // 7 novembre, 13 h 02 : ou le chat (o.chat) à la place de l’autocollant
   const prompt = cut('function lqPrompt(o){', '/* Autocollants des feuilles');
   assert.ok(prompt.includes('<div class="lq-ask-cap">${o.ico?lqAskStk(o.ico):\'\'}<div class="lq-ask-cap-t">'), 'bandeau compact avec un champ');
   assert.ok(prompt.includes("count.className=n>=max?'is-max':n>=max*.9?'is-near':'';"), 'le compteur prévient près de la limite');
