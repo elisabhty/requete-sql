@@ -6744,9 +6744,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=201">
+<link rel="stylesheet" href="ludique.css?v=202">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=35">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=36">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -26174,7 +26174,14 @@ function mascotMedalHtml(o){
    l’arrivée (o.joue, l’autocollant qui se colle), au coucou de la séance, au toucher et aux retrouvailles (mascotWave) ; le reste
    du temps, il est au repos (l’image fixe). Mouvement réduit : l’image fixe. */
 const MASCOT_COUCOU='assets/chat-coucou.webp',MASCOT_COUCOU_FIXE='assets/chat-coucou-fixe.webp',MASCOT_COUCOU_MS=5040;
+/* Elisa, 7 novembre, 12 h 13 : son GIF « C’est parti ! » pour « Ton parcours est prêt » (la dernière page de l’onboarding) : pouce
+   levé, puis il pointe devant lui. 12 images de 420 ms, en boucle ; en mouvement réduit, le pouce levé et le clin d’œil. */
+const MASCOT_PARTI='assets/chat-parti.webp',MASCOT_PARTI_FIXE='assets/chat-parti-fixe.webp';
 function mascotChatHtml(o){
+  if(o&&o.anim==='parti'){
+    const fixe=typeof mascotReduced==='function'&&mascotReduced();
+    return `<img class="mstk-cat is-parti" src="${fixe?MASCOT_PARTI_FIXE:MASCOT_PARTI}" width="302" height="359" alt="" draggable="false" data-anim="parti">`;
+  }
   if(o&&o.anim==='coucou'){
     const fixe=(typeof mascotReduced==='function'&&mascotReduced())||(!!o.uneFois&&!o.joue);
     return `<img class="mstk-cat is-coucou" src="${fixe?MASCOT_COUCOU_FIXE:MASCOT_COUCOU}" width="289" height="352" alt="" draggable="false" data-anim="coucou"${o.uneFois?' data-une-fois=""':''}>`;
@@ -43401,7 +43408,7 @@ function paintOb(){
        justement ») : plus de « Mode sans compte · sauvegardé sur cet appareil » sous les boutons. */
     html=`<div class="ob-screen ready"><div class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path class="ob-success-tick" pathLength="1" d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><i></i><i></i></div>
       <h1 class="ob-title" id="ob-title">Ton parcours est prêt${firstName?', <em>'+esc(firstName)+'</em>':''}.</h1><p class="ob-lead">${inv?`${inv.de?`<b>${esc(inv.de)}</b> t’attend dans sa salle de défi`:'Ta salle de défi t’attend'}. Ta première leçon sera là à ton retour.`:'Commence par ta première leçon et avance jusqu’à ton objectif.'}</p>
-      ${mascotMedalHtml({hi:'C’est parti\u00a0!',intro:!mascotReduced()})}
+      ${mascotMedalHtml({hi:'C’est parti\u00a0!',intro:!mascotReduced(),anim:'parti'})}
       <div class="ob-ready-summary"><div class="ob-ready-row" style="--i:0"><span class="ob-ready-ico">◎</span><div><small>Ton objectif</small><b>${esc(goalLabel)}</b></div></div>
         <div class="ob-ready-row" style="--i:1"><span class="ob-ready-ico">✓</span><div><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
         <div class="ob-ready-row" style="--i:2"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
@@ -44995,7 +45002,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-ordi-v2625';
+  const SW_CACHE='requete-2026-11-07-chat-parti-v2626';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
