@@ -38755,7 +38755,11 @@ function homeStreakHTML(){
   /* Elisa, 7 novembre, 9 h 08 (« quand on a fait une semaine complète : bravo… laisse-moi choisir » ; son choix) : toutes les
      flammes de la semaine allumées (les jours de repos ne comptent pas), « Ta semaine est en feu 🔥 » et « 7 jours sur 7, bravo ! »
      (« 5 jours sur 5 » avec deux jours de repos). Le lundi, une nouvelle semaine commence. */
-  const semaineFaite=weekDone>0&&days.every(d=>d.kind==='done'||d.kind==='rest');
+  /* Aujourd’hui sans séance prévue compte comme un jour de repos (le soir d’un vendredi fait, samedi et dimanche de repos : « 3 jours
+     sur 3 ») ; la semaine faite, sa flamme pointillée devient une lune. */
+  const repos=d=>d.kind==='rest'||(d.kind==='today'&&typeof jourRepos==='function'&&jourRepos(d.iso));
+  const semaineFaite=weekDone>0&&days.every(d=>d.kind==='done'||repos(d));
+  const jours=semaineFaite?days.map(d=>d.kind==='today'?Object.assign({},d,{kind:'rest'}):d):days;
   const title=semaineFaite?'Ta semaine est en feu 🔥':n?`${n} jour${n>1?'s':''} de série`:'Ta série commence aujourd’hui\u00a0!';
   const sub=semaineFaite?`${weekDone} jour${weekDone>1?'s':''} sur ${weekDone}, bravo\u00a0!`:n?(todayDone?'Flamme du jour allumée. À demain !':'Une activité aujourd’hui pour prolonger ta série.'):'Une activité par jour pour progresser.';
   const kindLabel={done:'fait',today:'à faire aujourd’hui',rest:'repos',missed:'pas fait',future:'à venir'};
@@ -38764,7 +38768,7 @@ function homeStreakHTML(){
   return `<button type="button" class="lq-streak${n?' is-on':''}${todayDone?' is-today':''}${up?' is-up':''}" onclick="openAccountProgress()" aria-label="${escAttr(aria)}">
     <span class="lq-streak-flame" aria-hidden="true">${LQ_FLAME_SVG}</span>
     <span class="lq-streak-copy" aria-hidden="true"><b>${!semaineFaite&&n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''} de série`:esc(title)}</b><small>${esc(sub)}</small></span>
-    <span class="lq-week" aria-hidden="true">${days.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
+    <span class="lq-week" aria-hidden="true">${jours.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
   </button>`;
 }
 function openAccountProgress(){
@@ -44841,7 +44845,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-semaine-feu-v2614';
+  const SW_CACHE='requete-2026-11-07-semaine-repos-v2615';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
