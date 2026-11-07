@@ -161,5 +161,6 @@ test('console : la première table créée retire « Ta base est vide » et mont
   assert.ok(run.includes('if(moved) renderConsoleChips();'));
   assert.ok(run.includes("if(touched()){ if(activeDbId!=='cours') persistCustomDbs(activeDbId); renderDbWorkspace(); renderConsoleChips(); }"));
   const chips = fn('renderConsoleChips');
-  assert.ok(chips.includes('if(empty)empty.hidden=false;') && chips.includes('{const empty=document.getElementById(\'console-empty\');if(empty)empty.hidden=true;}'));
+  /* 7 novembre, 13 h 02 : la base vide montre aussi le chat qui jongle avec des tables (retours-1302) */
+  assert.ok(chips.includes('    if(empty){\n      empty.hidden=false;') && chips.includes('{const empty=document.getElementById(\'console-empty\');if(empty)empty.hidden=true;}'));
 });

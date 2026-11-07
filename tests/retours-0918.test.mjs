@@ -194,11 +194,11 @@ test('les indices : les mêmes, à la même minute, pour tous (depuis le début 
 });
 
 test('« Quitter la salle ? » centré ; la question respire sous les badges du haut', () => {
-  assert.ok(app.includes("<div class=\"lq-ask-cap${o.danger?' is-danger':''}${o.ico?'':' is-nostk'}\">"));
+  assert.ok(app.includes("<div class=\"lq-ask-cap${o.danger?' is-danger':''}${o.ico||o.chat?'':' is-nostk'}\">"));   // 7 novembre : ou le chat (o.chat)
   for (const k of ['html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px!important;padding-right:24px!important}',
     'html.lq .lq-ask:not(.has-field) .lq-ask-cap.is-nostk{padding-left:62px!important;padding-right:62px!important}',
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=206">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=207">'));
 });
