@@ -240,6 +240,36 @@ atteint ; il s’endort quand la leçon est en pause depuis une heure (la Live A
 d’iOS 16.2 : le pont la met à jour avec une `staleDate` d’une heure) ; leçon réussie, des étoiles plein les yeux. Appui long : le
 chat sort du noir (`ChatNoir`, sur fond noir, comme l’île). L’écran verrouillé ne change pas.
 
+### Ta flamme en direct, jusqu’à minuit (7 novembre)
+
+Sur la planche « Ta flamme, en direct jusqu’à minuit » (« À l’heure de ton planning, si ta flamme n’est pas encore allumée, une
+barre se vide toute seule jusqu’à minuit. Un tap : une leçon express. ») : une seconde Live Activity (`RequeteFlammeDirecte`, dans
+`RequeteWidget.swift`), à activer dans **Mon compte › Sur ton iPhone › Ta flamme en direct** (coupée par défaut). Les soirs de
+séance (pas les jours de repos du planning), à l’heure du rappel, au plus tôt 18 h (une Live Activity vit huit heures au plus), si
+la flamme du jour n’est pas encore allumée :
+
+- **Dynamic Island** : les lunettes du chat à gauche, la flamme et le temps qui reste à droite (« 3:12:45 »). Appui long : le chat
+  à l’allumette, « 3:12:45 avant minuit », « Ta flamme t’attend ! », la prochaine activité (« Leçon 4 · LEFT JOIN »), la barre qui
+  se vide et « Leçon express · 3 min ». Le chiffre et la barre avancent seuls (`Text(timerInterval:)`, `ProgressView(timerInterval:)`) ;
+- **écran verrouillé** (tous les iPhone) : « Ta flamme t’attend ! », « Il te reste 3 h 12 min », la barre, la leçon express ;
+- un appui ouvre la séance du jour (`requete://seance`, comme le bouton de La cheminée) ;
+- **flamme allumée** (la première activité du jour, `noteActivityDay` → `flammeDirectAllumee`) : « Flamme allumée ! À demain. »,
+  le chat en l’air, un quart d’heure sur l’écran verrouillé (tout de suite partie si la leçon est déjà dans la Dynamic Island :
+  elle le dit) ; programmée pour plus tard ce soir-là, elle est annulée ;
+- **minuit passé** sans séance : la Live Activity est périmée (`staleDate` à minuit, `isStale`) : le chat s’endort, « Minuit est
+  passé », « Ta prochaine séance rallumera ta flamme. ». À la prochaine ouverture, l’app la retire.
+
+Sans serveur : la page (`flammeDirectSync`, dans index.html) demande les deux prochains soirs à l’iPhone
+(`RequeteWidget.flammeProgrammer`, dans `RequeteWidgetPlugin.swift`) à l’ouverture, au retour dans l’app et après chaque
+enregistrement, si ce qui est prévu a changé. **À partir d’iOS 26**, iOS démarre une Live Activity programmée à l’heure dite, même
+l’app fermée (`Activity.request(…, start:)`, avec une alerte obligatoire) ; **avant iOS 26**, elle démarre quand on ouvre l’app ce
+soir-là sans avoir fait sa séance. Balayée, elle ne revient pas le même soir. Quand le rappel tombe à la même heure, il ne sonne pas
+en plus : l’alerte de la Live Activity prend son message (`rappelMessage`). Les images du chat qu’elle montre sont en @2x et @3x
+(`ChatAllumette`, `ChatBravo`, `ChatDodo`, `ChatNoir`) : iOS refuse de démarrer une Live Activity dont une image est plus grande
+que sa présentation, et une image sans échelle compte ses pixels en points. Coupée dans Réglages › Requête › Activités en direct,
+Mon compte le dit. Le « 23 h 40, les yeux grands ouverts » de la planche demanderait un serveur (une mise à jour poussée) : sans,
+rien ne change entre l’heure dite et minuit, sauf le chiffre et la barre.
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre

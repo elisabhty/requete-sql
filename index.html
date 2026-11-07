@@ -38826,6 +38826,7 @@ function noteActivityDay(){
     if(!state.actSince)state.actSince=iso;
     if(first&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
     if(first&&typeof lqFlammeAttendue==='function')lqFlammeAttendue(iso);   // la page « Bravo », à l’accueil (10 h 30)
+    if(first&&typeof flammeDirectAllumee==='function')flammeDirectAllumee(iso);   // ta flamme en direct : « Flamme allumée ! » (7 novembre)
   }catch(e){}
   try{stkAfterProgress();}catch(e){}
 }
@@ -42089,6 +42090,149 @@ if(typeof document!=='undefined'&&document.addEventListener){
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
   addEventListener('pagehide',widgetMaj);
 }
+/* ---------- Ta flamme en direct, jusqu’à minuit (la Live Activity de l’app iPhone) ----------
+   Elisa, 7 novembre, 19 h 26 (« Oui », pour la planche « Ta flamme, en direct jusqu’à minuit » : « À l’heure de ton planning, si ta
+   flamme n’est pas encore allumée, une barre se vide toute seule jusqu’à minuit. Un tap : une leçon express. ») : à activer dans
+   Mon compte (« Sur ton iPhone »). Sans serveur : la page demande les deux prochains soirs de séance pas encore faits
+   (RequeteWidget.flammeProgrammer) : l’heure du rappel, au plus tôt 18 h (une Live Activity vit huit heures au plus), minuit, la
+   prochaine activité et sa durée. À partir d’iOS 26, iOS la démarre tout seul à l’heure dite, l’app fermée ; avant, elle démarre
+   quand on ouvre l’app ce soir-là sans avoir fait sa séance. Balayée, elle ne revient pas le même soir. À l’ouverture, au retour
+   dans l’app et après chaque enregistrement (rappelAuto), on redemande si ce qui est prévu a changé. La flamme allumée (la première
+   activité du jour, noteActivityDay) : « Flamme allumée ! », un quart d’heure sur l’écran verrouillé, tout de suite partie si une
+   leçon est dans la Dynamic Island (elle le dit déjà). Les jours de repos, rien. Le rappel du même soir, à la même heure, ne sonne
+   pas en plus : la Live Activity arrive avec son message (rappelMessage, rappelNativeSync). Le dessin : RequeteWidget.swift,
+   RequeteFlammeDirecte. */
+function flammeDirectOn(){try{return localStorage.getItem('requete-flamme-direct')==='1';}catch(e){return false;}}
+/* L’heure du compte à rebours : celle du rappel, au plus tôt 18:00 */
+function flammeDirectHeure(){const h=rappelHeure();return h<'18:00'?'18:00':h;}
+/* La prochaine activité, pour l’île : « Leçon 4 · LEFT JOIN » et « Leçon express · 3 min » ; tout est fait : « Allumer ma flamme ». */
+function flammeDirectQuoi(){
+  try{
+    const s=recommendedSession(),id=s?s.id:null;
+    if(id==null)return {titre:'',action:'Allumer ma flamme'};
+    const n=Math.max(1,minutesDe([id],true)||1);
+    if(isDefiId(id)){const c=CHALLENGES.find(x=>x.id===id);return {titre:c?`Défi · ${c.titre}`:'Défi',action:`Défi express · ${n} min`};}
+    const l=allLessons.find(x=>x.id===id);
+    return {titre:l?`Leçon ${l.id} · ${l.titre}`:'',action:`Leçon express · ${n} min`};
+  }catch(e){return {titre:'',action:'Allumer ma flamme'};}
+}
+function flammeDirectListe(k,type){try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v.filter(x=>typeof x===type):[];}catch(e){return [];}}
+/* Les soirs dont la flamme a déjà démarré ou été programmée (balayée, elle ne revient pas), et les heures que la Live Activity
+   programmée prend au rappel (iOS 26) */
+function flammeDirectLancees(){return flammeDirectListe('requete-flamme-lancees','string');}
+function flammeDirectPrevus(){return flammeDirectOn()?flammeDirectListe('requete-flamme-prevus','number'):[];}
+/* Le rappel de ce moment-là est remplacé par la Live Activity programmée, qui arrive avec son message (rappelNativeSync) */
+function flammeDirectCouvre(d){return flammeDirectPrevus().includes(+d);}
+/* Les prochains soirs de séance pas encore faits (deux au plus) : { jour, debut, minuit (en millisecondes), titre, action, nouvelle,
+   alerteTitre, alerteTexte }. Un jour de repos du planning n’en a pas ; aujourd’hui non plus, la flamme déjà allumée. nouvelle :
+   l’heure passée, elle peut démarrer tout de suite, sauf si elle a déjà démarré ce soir-là. L’alerte d’iOS quand elle démarre toute
+   seule : le message du rappel du jour s’il tombe à la même heure (il ne sonne pas en plus), sinon « Ta flamme t’attend ! ». */
+function flammeDirectJours(max){
+  const out=[],now=Date.now(),t=auj(),start=debutPlan(),[h,m]=flammeDirectHeure().split(':').map(Number),q=flammeDirectQuoi(),vus=flammeDirectLancees();
+  const meme=rappelOn()&&rappelHeure()===flammeDirectHeure();
+  for(let k=0;k<14&&out.length<(max||2);k++){
+    const d=addJ(t,k),iso=dstr(d);
+    if(jourRepos(iso,start)||jourActif(iso))continue;
+    const debut=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h||0,m||0,0,0).getTime(),minuit=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime();
+    if(minuit<=now)continue;
+    const [alerteTitre,alerteTexte]=meme?rappelMessage(new Date(debut)):['Ta flamme t’attend !','Il te reste jusqu’à minuit pour l’allumer.'];
+    out.push({jour:iso,debut,minuit,titre:q.titre,action:q.action,nouvelle:!(debut<=now&&vus.includes(iso)),alerteTitre,alerteTexte});
+  }
+  return out;
+}
+/* Ce qui est demandé à l’iPhone, en une ligne : quand elle change (l’interrupteur, l’heure, le planning, la séance faite, la
+   prochaine activité, un nouveau jour, l’heure passée ce soir), on redemande. */
+function flammeDirectSignature(){
+  if(!flammeDirectOn())return 'off';
+  const now=Date.now();
+  return JSON.stringify(flammeDirectJours().map(j=>[j.jour,j.debut,j.titre,j.action,j.nouvelle,j.debut<=now,j.alerteTitre]));
+}
+let flammeDirectSig='',flammeDirectT=0,flammeDirectRdv=0;
+function flammeDirectPont(){
+  const C=typeof window!=='undefined'?window.Capacitor:null;
+  return C&&C.isNativePlatform&&C.isNativePlatform()&&typeof C.nativePromise==='function'&&(!C.getPlatform||C.getPlatform()==='ios')&&(!C.isPluginAvailable||C.isPluginAvailable('RequeteWidget'))?C:null;
+}
+/* Automatique (rappelAuto : l’ouverture, le retour dans l’app, chaque enregistrement) : l’app à l’écran seulement (iOS ne démarre ni
+   ne programme une Live Activity depuis l’arrière-plan), et rien pendant l’onboarding. */
+function flammeDirectAuto(ms){
+  try{
+    clearTimeout(flammeDirectT);
+    flammeDirectT=setTimeout(()=>{
+      try{
+        const ob=document.getElementById('onboarding');
+        if(document.visibilityState==='hidden'||!state.onboarded||(ob&&ob.classList.contains('on')))return;
+        flammeDirectSync();
+      }catch(e){}
+    },(ms==null?800:ms)+100);
+  }catch(e){}
+}
+/* force : même sans changement (l’interrupteur) ; fin : reçoit la réponse { ok, auto, jours } (null : l’app ne connaît pas ce pont) */
+function flammeDirectSync(force,fin){
+  const C=flammeDirectPont();
+  if(!C)return;
+  let sig='';
+  try{sig=flammeDirectSignature();}catch(e){return;}
+  if(!force&&sig===flammeDirectSig)return;
+  flammeDirectSig=sig;
+  const on=sig!=='off',jours=on?flammeDirectJours():[];
+  /* L’app restée ouverte jusqu’à l’heure dite : on redemande à cette heure-là (avant iOS 26, c’est elle qui démarre la flamme) */
+  clearTimeout(flammeDirectRdv);
+  const ensuite=jours.find(j=>j.debut>Date.now());
+  if(ensuite&&ensuite.debut-Date.now()<864e5)flammeDirectRdv=setTimeout(()=>flammeDirectAuto(0),ensuite.debut-Date.now()+1000);
+  let p;
+  try{p=Promise.resolve(C.nativePromise('RequeteWidget',on?'flammeProgrammer':'flammeArreter',on?{jours}:{}));}catch(e){p=Promise.reject(e);}
+  p.then(r=>{
+    r=r||{};
+    flammeDirectRetenir(on,jours,r);
+    try{flammeDirectSig=flammeDirectSignature();}catch(e){}
+    if(typeof rappelAuto==='function')rappelAuto(0);   // le rappel des soirs pris par la Live Activity se tait, ou revient
+    if(fin)fin(r);
+  },()=>{flammeDirectSig='';if(fin)fin(null);});
+}
+/* Ce que l’iPhone a répondu : les soirs lancés ou programmés, les heures prises au rappel (celles à venir seulement : iOS 26), et
+   l’état pour Mon compte (les Activités en direct coupées dans les Réglages) */
+function flammeDirectRetenir(on,jours,r){
+  try{
+    const faits=on&&Array.isArray(r.jours)?r.jours.filter(x=>typeof x==='string'):[],now=Date.now();
+    const vus=[...new Set(flammeDirectLancees().concat(faits))].sort().slice(-6);
+    localStorage.setItem('requete-flamme-lancees',JSON.stringify(vus));
+    localStorage.setItem('requete-flamme-prevus',JSON.stringify(jours.filter(j=>faits.includes(j.jour)&&j.debut>now).map(j=>j.debut)));
+    localStorage.setItem('requete-flamme-etat',JSON.stringify({ok:r.ok!==false,auto:!!r.auto}));
+  }catch(e){}
+}
+/* La flamme du jour vient de s’allumer (noteActivityDay) : la Live Activity de ce soir dit « Flamme allumée ! », ou s’annule si elle
+   n’a pas encore démarré ; la prochaine reste programmée. */
+function flammeDirectAllumee(iso){
+  const C=flammeDirectPont();
+  if(!C||!flammeDirectOn())return;
+  const discret=typeof ileEtat!=='undefined'&&!!ileEtat;
+  try{Promise.resolve(C.nativePromise('RequeteWidget','flammeAllumee',{jour:iso,discret})).then(()=>flammeDirectAuto(0),()=>{});}catch(e){}
+}
+/* La ligne de Mon compte : ce qu’elle fait ; activée, dès quelle heure ; coupée dans les Réglages de l’iPhone, le dire. */
+function flammeDirectResume(){
+  if(!flammeDirectOn())return 'Un compte à rebours jusqu’à minuit, les soirs de séance';
+  let e={};
+  try{e=JSON.parse(localStorage.getItem('requete-flamme-etat')||'{}')||{};}catch(x){}
+  if(e.ok===false)return 'Activités en direct coupées dans les Réglages de l’iPhone';
+  return `Activée · les soirs de séance, dès ${flammeDirectHeure()}`;
+}
+/* L’interrupteur (« Sur ton iPhone ») : enregistré tout de suite, puis l’iPhone répond, et la bulle dit ce qui va se passer. Une app
+   qui ne connaît pas ce pont (une version d’avant) : il se remet sur « non ». */
+function flammeDirectBasculer(){
+  const on=!flammeDirectOn();
+  try{localStorage.setItem('requete-flamme-direct',on?'1':'0');}catch(e){}
+  if(navigator.vibrate)navigator.vibrate(8);
+  renderCompte();
+  flammeDirectSync(true,r=>{
+    if(!r&&on){try{localStorage.setItem('requete-flamme-direct','0');}catch(e){}}
+    renderCompte();
+    const h=flammeDirectHeure();
+    if(!r)toast('Flamme en direct indisponible','Mets l’app à jour pour l’activer.','info');
+    else if(!on)toast('Flamme en direct désactivée','Tu pourras la réactiver ici.');
+    else if(r.ok===false)toast('Activités en direct coupées','Autorise-les pour Requête dans les Réglages de l’iPhone.','info');
+    else toast('Flamme en direct activée',r.auto?`Les soirs de séance, dès ${h}, si ta flamme n’est pas encore allumée.`:`Dès ${h} les soirs de séance, quand tu ouvres l’app (toute seule avec iOS 26).`);
+  });
+}
 /* ---------- Les widgets, dans Mon compte ----------
    Elisa, 6 novembre, 0 h 40 (« dans compte mettre ça (widget) avec les animations de comment procéder », sur une capture « Widgets
    de l’écran d’accueil », « Widgets de l’écran verrouillé », « Évaluer l’application ») : Mon compte a son groupe « Sur ton iPhone » :
@@ -44090,7 +44234,7 @@ function rappelSeances(depuis,max,heure){
   return out;
 }
 /* Ce qui est programmé, en une ligne : quand elle change (le planning, une séance faite, l’heure, un nouveau jour), on reprogramme. */
-function rappelSignature(){return [rappelOn()?1:0,rappelHeure(),...rappelJoursPrevus(new Date(),56)].join('|');}
+function rappelSignature(){return [rappelOn()?1:0,rappelHeure(),...rappelJoursPrevus(new Date(),56),typeof flammeDirectPrevus==='function'?flammeDirectPrevus().join(','):''].join('|');}
 let rappelSig='',rappelFile=null,rappelAutoT=0;
 /* demander : l’autorisation d’iOS est demandée (l’onboarding, « Enregistrer mes préférences ») ; sinon elle est seulement lue, pour
    qu’une reprogrammation automatique ne fasse jamais surgir la demande en pleine leçon. Les reprogrammations passent l’une après
@@ -44103,7 +44247,7 @@ function rappelNativeSync(demander){
     try{await LN.cancel({notifications:RAPPEL_IDS.map(id=>({id}))});}catch(e){}
     if(!rappelOn())return;
     try{const p=await(demander||typeof LN.checkPermissions!=='function'?LN.requestPermissions():LN.checkPermissions());if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
-    const notifications=rappelSeances(new Date(),56).map((d,i)=>{const [title,body]=rappelMessage(d);return {id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}};});
+    const notifications=rappelSeances(new Date(),56).filter(d=>!(typeof flammeDirectCouvre==='function'&&flammeDirectCouvre(d))).map((d,i)=>{const [title,body]=rappelMessage(d);return {id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}};});
     try{if(notifications.length)await LN.schedule({notifications});}catch(e){}
   };
   rappelFile=(rappelFile||Promise.resolve()).then(go,go);
@@ -44112,6 +44256,7 @@ function rappelNativeSync(demander){
    est prévu a changé. Rien pendant l’onboarding : sa fin programme le rappel d’après le planning créé. */
 function rappelAuto(ms){
   try{
+    if(typeof flammeDirectAuto==='function')flammeDirectAuto(ms);   // ta flamme en direct suit les mêmes changements (7 novembre)
     clearTimeout(rappelAutoT);
     rappelAutoT=setTimeout(()=>{
       try{
@@ -44187,6 +44332,7 @@ function rappelEnregistrer(){
   if(d.on&&typeof Notification!=='undefined'&&Notification.permission==='default'&&!document.documentElement.classList.contains('is-native')){try{Notification.requestPermission();}catch(e){}}
   rappelNativeSync(true);
   RP=null;
+  if(typeof flammeDirectAuto==='function')flammeDirectAuto(0);   // ta flamme en direct démarre à l’heure du rappel
   if(typeof closePlusDetails==='function')closePlusDetails();
   renderCompte();
   if(typeof toast==='function')toast(d.on?'Rappel enregistré':'Rappel désactivé',d.on?`${rappelJoursTexte()} à ${d.heure}`:'Tu pourras le réactiver ici.');
@@ -44375,6 +44521,7 @@ function renderCompte(){
      feuilles des widgets y disent qu’ils viennent avec l’app. 11 h 12 : jamais « bientôt », le texte est celui de l’app publiée. */
   const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());   // une app sans le widget : pas de mode d’emploi qui n’y marcherait pas
   const surIphone=widgetsVus||appliNative();
+  /* 7 novembre (« Ta flamme en direct ») : son interrupteur, dans l’app iPhone qui a le pont (elle y est programmée) */
   const profile=state.profile||{};
   const profileGoalO=OB_GOALS.find(g=>g[0]===profile.goal)||null,profileGoal=(profileGoalO||[])[1]||'';
   /* 21 h 54 : l’objectif sur la carte du profil, à la place de la ligne « Profil et objectif » des réglages (la carte ouvre la même
@@ -44500,6 +44647,7 @@ function renderCompte(){
           <div class="account-settings-list">
             ${widgetsVus?`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-accueil')"><span class="plus-row-icon is-stk">${lqStkSvg('widgets')}</span><span><b>${WTU.accueil.titre}</b><small>${WTU.accueil.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-verrou')"><span class="plus-row-icon is-stk">${lqStkSvg('verrou')}</span><span><b>${WTU.verrou.titre}</b><small>${WTU.verrou.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+            ${widgetsIci?`<button class="account-setting-row acct-flamme-direct" type="button" role="switch" aria-checked="${flammeDirectOn()}" onclick="flammeDirectBasculer()"><span class="plus-row-icon is-stk">${lqStkSvg('flame')}</span><span><b>Ta flamme en direct</b><small>${flammeDirectResume()}</small></span><span class="account-setting-end"><span class="acc-toggle${flammeDirectOn()?' on':''}" aria-hidden="true"><i></i></span></span></button>`:''}
             <button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Évaluer l’application</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>`:''}
@@ -45143,6 +45291,7 @@ async function compteSupprimer(){
   }
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   try{const LN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications;if(LN)await LN.cancel({notifications:[1,11,12,13,14,15,16,17].map(id=>({id}))});}catch(e){}
+  try{const C=typeof flammeDirectPont==='function'&&flammeDirectPont();if(C)await C.nativePromise('RequeteWidget','flammeArreter',{});}catch(e){}   // ta flamme en direct, programmée : partie aussi
   try{localStorage.clear();}catch(e){}
   try{sessionStorage.clear();}catch(e){}
   location.reload();
@@ -45328,7 +45477,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-semaine-v2640';
+  const SW_CACHE='requete-2026-11-07-flamme-direct-v2641';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -3556,9 +3556,414 @@ struct RequeteLeconActivite: Widget {
     }
 }
 
+// MARK: - Ta flamme en direct, jusqu’à minuit (Live Activity)
+//
+// Elisa, 7 novembre, 19 h 26 (« Oui », pour la planche « Ta flamme, en direct jusqu’à minuit » : « À l’heure de ton planning, si ta
+// flamme n’est pas encore allumée, une barre se vide toute seule jusqu’à minuit. Un tap : une leçon express. »). À activer dans Mon
+// compte (« Sur ton iPhone »). La page programme les prochains soirs de séance (index.html, flammeDirectSync ; RequeteWidgetPlugin.swift,
+// flammeProgrammer) : à partir d’iOS 26, iOS la démarre tout seul à l’heure du rappel (au plus tôt 18 h : une Live Activity vit huit
+// heures au plus), l’app fermée ; avant, elle démarre quand on ouvre l’app ce soir-là sans avoir fait sa séance. Le compte à rebours et
+// la barre avancent sans rien recevoir (timerInterval). À minuit, elle est périmée (staleDate) : le chat s’endort. La flamme allumée :
+// « Flamme allumée ! À demain. », les yeux rieurs, un quart d’heure sur l’écran verrouillé. Un appui pendant le compte à rebours : la
+// séance du jour (lienSeance). Comme ailleurs : les valeurs d’abord, chacune avec son type, puis de courtes suites de modificateurs.
+
+/// Le même type, au même nom et aux mêmes champs, est déclaré dans l’app (RequeteWidgetPlugin.swift) : iOS relie la Live Activity
+/// programmée par l’app à son dessin ici par ce nom.
+@available(iOS 16.1, *)
+struct RequeteFlammeDirect: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var fait: Bool   // la flamme du jour est allumée
+    }
+
+    var jour: String     // « AAAA-MM-JJ »
+    var debut: Date      // l’heure du rappel, au plus tôt 18 h
+    var minuit: Date     // la fin du jour
+    var titre: String    // la prochaine activité : « Leçon 4 · LEFT JOIN »
+    var action: String   // « Leçon express · 3 min »
+}
+
+private let fondDirect = Color(red: 0.149, green: 0.106, blue: 0.42)
+private let orangeClair = Color(red: 1.0, green: 0.725, blue: 0.541)
+
+/// Où en est la flamme en direct : elle attend, elle est allumée, ou minuit est passé.
+enum MomentDirect {
+    case attend
+    case allumee
+    case passee
+}
+
+/// Allumée (la page l’a dit) ; minuit passé : la Live Activity est périmée (iOS 16.2 et plus), ou son heure est passée.
+@available(iOS 16.1, *)
+func momentDirect(_ context: ActivityViewContext<RequeteFlammeDirect>) -> MomentDirect {
+    if context.state.fait { return .allumee }
+    if #available(iOSApplicationExtension 16.2, *) {
+        if context.isStale { return .passee }
+    }
+    if Date() >= context.attributes.minuit { return .passee }
+    return .attend
+}
+
+/// Les yeux du chat : il attend avec toi, il sourit la flamme allumée, il dort après minuit.
+func regardDirect(_ m: MomentDirect) -> Regard {
+    switch m {
+    case .attend:
+        return .ouvert
+    case .allumee:
+        return .rieur
+    case .passee:
+        return .endormi
+    }
+}
+
+/// Le chat de la planche : l’allumette (il attend), le saut de joie (allumée), le dodo (minuit passé).
+func chatDirect(_ m: MomentDirect) -> String {
+    switch m {
+    case .attend:
+        return "ChatAllumette"
+    case .allumee:
+        return "ChatBravo"
+    case .passee:
+        return "ChatDodo"
+    }
+}
+
+/// La grande phrase.
+func titreDirect(_ m: MomentDirect) -> String {
+    switch m {
+    case .attend:
+        return "Ta flamme t’attend\u{202F}!"
+    case .allumee:
+        return "Flamme allumée\u{202F}!"
+    case .passee:
+        return "Minuit est passé"
+    }
+}
+
+/// Sous la phrase, dans l’île ouverte : la prochaine activité, « À demain. », ou la prochaine séance.
+func sousTitreDirect(_ m: MomentDirect, _ titre: String) -> String {
+    switch m {
+    case .attend:
+        return titre
+    case .allumee:
+        return "À demain."
+    case .passee:
+        return "À ta prochaine séance\u{202F}!"
+    }
+}
+
+/// Un appui pendant le compte à rebours : la séance du jour ; après, l’app.
+func lienDirect(_ m: MomentDirect) -> URL? {
+    if m == .attend { return lienSeance }
+    return nil
+}
+
+/// De l’heure du rappel à minuit (jamais à l’envers).
+@available(iOS 16.1, *)
+func periodeDirect(_ flamme: RequeteFlammeDirect) -> ClosedRange<Date> {
+    let debut: Date = min(flamme.debut, flamme.minuit)
+    return debut...flamme.minuit
+}
+
+/// Le temps qui reste avant minuit, « 3:12:45 » : iOS le fait défiler tout seul.
+@available(iOS 16.1, *)
+struct DirectCompte: View {
+    let flamme: RequeteFlammeDirect
+    let taille: CGFloat
+
+    var body: some View {
+        let periode: ClosedRange<Date> = periodeDirect(flamme)
+        let police: Font = Font.system(size: taille, weight: .heavy, design: .rounded)
+        return Text(timerInterval: periode, countsDown: true)
+            .font(police)
+            .monospacedDigit()
+            .foregroundColor(braise)
+            .multilineTextAlignment(.trailing)
+            .lineLimit(1)
+    }
+}
+
+/// La barre qui se vide toute seule jusqu’à minuit.
+@available(iOS 16.1, *)
+struct DirectBarre: View {
+    let flamme: RequeteFlammeDirect
+
+    var body: some View {
+        let periode: ClosedRange<Date> = periodeDirect(flamme)
+        return ProgressView(timerInterval: periode, countsDown: true) {
+            EmptyView()
+        } currentValueLabel: {
+            EmptyView()
+        }
+        .progressViewStyle(.linear)
+        .tint(braise)
+    }
+}
+
+/// La leçon express, en pastille braise (toute la Live Activity mène à la séance).
+struct DirectBouton: View {
+    let texte: String
+
+    var body: some View {
+        let police: Font = Font.system(size: 13, weight: .heavy, design: .rounded)
+        return Text(texte)
+            .font(police)
+            .foregroundColor(encre)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(Capsule().fill(braise))
+    }
+}
+
+/// Sous la phrase, sur l’écran verrouillé : « Il te reste 3 h 12 min » (iOS fait défiler le temps), ou la suite.
+@available(iOS 16.1, *)
+struct DirectSousTitre: View {
+    let flamme: RequeteFlammeDirect
+    let moment: MomentDirect
+
+    var body: some View {
+        let police: Font = Font.system(size: 13, weight: .bold, design: .rounded)
+        return Group {
+            switch moment {
+            case .attend:
+                (Text("Il te reste ") + Text(flamme.minuit, style: .relative))
+                    .foregroundColor(orangeClair)
+            case .allumee:
+                Text("À demain.")
+                    .foregroundColor(lilasClair)
+            case .passee:
+                Text("Ta prochaine séance rallumera ta flamme.")
+                    .foregroundColor(lilasClair)
+            }
+        }
+        .font(police)
+        .lineLimit(2)
+        .minimumScaleFactor(0.85)
+    }
+}
+
+/// L’écran verrouillé (tous les iPhone, même sans Dynamic Island) : le chat, la phrase et ses lunettes, le temps qui reste, la barre
+/// qui se vide, la leçon express.
+@available(iOS 16.1, *)
+struct DirectVerrouille: View {
+    let flamme: RequeteFlammeDirect
+    let moment: MomentDirect
+
+    var body: some View {
+        let chat: String = chatDirect(moment)
+        let titre: String = titreDirect(moment)
+        let teinte: Color = moment == .allumee ? dore : Color.white
+        let police: Font = Font.system(size: 19, weight: .heavy, design: .rounded)
+        return HStack(alignment: .center, spacing: 12) {
+            Image(chat)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 88)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 6) {
+                    Text(titre)
+                        .font(police)
+                        .foregroundColor(teinte)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    Spacer(minLength: 0)
+                    LunettesChat(regard: regardDirect(moment), largeur: 26)
+                }
+                DirectSousTitre(flamme: flamme, moment: moment)
+                if moment == .attend {
+                    DirectBarre(flamme: flamme)
+                        .padding(.top, 2)
+                    DirectBouton(texte: flamme.action)
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+}
+
+/// À droite de l’île : la flamme et « 3:12:45 » ; allumée, la flamme dorée ; minuit passé, la lune.
+@available(iOS 16.1, *)
+struct DirectDroite: View {
+    let flamme: RequeteFlammeDirect
+    let moment: MomentDirect
+
+    var body: some View {
+        let petite: Font = Font.system(size: 11, weight: .bold)
+        let grande: Font = Font.system(size: 15, weight: .bold)
+        return Group {
+            switch moment {
+            case .attend:
+                HStack(spacing: 3) {
+                    Image(systemName: "flame.fill")
+                        .font(petite)
+                        .foregroundColor(braise)
+                    DirectCompte(flamme: flamme, taille: 14)
+                        .frame(maxWidth: 54)
+                }
+            case .allumee:
+                Image(systemName: "flame.fill")
+                    .font(grande)
+                    .foregroundColor(dore)
+            case .passee:
+                Image(systemName: "moon.fill")
+                    .font(petite)
+                    .foregroundColor(lilas)
+            }
+        }
+    }
+}
+
+/// Tout petit (une leçon aussi dans l’île : ses lunettes sont à elle) : la flamme braise, dorée une fois allumée ; minuit passé, la
+/// lune.
+struct DirectMinimal: View {
+    let moment: MomentDirect
+
+    private var symbole: String {
+        if moment == .passee { return "moon.fill" }
+        return "flame.fill"
+    }
+
+    private var teinte: Color {
+        switch moment {
+        case .attend:
+            return braise
+        case .allumee:
+            return dore
+        case .passee:
+            return lilas
+        }
+    }
+
+    var body: some View {
+        let police: Font = Font.system(size: 14, weight: .bold)
+        return Image(systemName: symbole)
+            .font(police)
+            .foregroundColor(teinte)
+    }
+}
+
+/// L’île ouverte, à droite : « 3:12:45 » en grand et « avant minuit » ; allumée, la flamme dorée ; minuit passé, la lune.
+@available(iOS 16.1, *)
+struct DirectFin: View {
+    let flamme: RequeteFlammeDirect
+    let moment: MomentDirect
+
+    var body: some View {
+        let legende: Font = Font.system(size: 11, weight: .bold, design: .rounded)
+        let grande: Font = Font.system(size: 28, weight: .bold)
+        return Group {
+            switch moment {
+            case .attend:
+                VStack(alignment: .trailing, spacing: 0) {
+                    DirectCompte(flamme: flamme, taille: 22)
+                        .frame(maxWidth: 96, alignment: .trailing)
+                    Text("avant minuit")
+                        .font(legende)
+                        .foregroundColor(lilasPale)
+                }
+            case .allumee:
+                Image(systemName: "flame.fill")
+                    .font(grande)
+                    .foregroundColor(dore)
+            case .passee:
+                Image(systemName: "moon.fill")
+                    .font(grande)
+                    .foregroundColor(lilas)
+            }
+        }
+    }
+}
+
+/// L’île ouverte, au milieu : la phrase, puis la prochaine activité (« Leçon 4 · LEFT JOIN »), ou la suite.
+@available(iOS 16.1, *)
+struct DirectCentre: View {
+    let flamme: RequeteFlammeDirect
+    let moment: MomentDirect
+
+    var body: some View {
+        let titre: String = titreDirect(moment)
+        let sous: String = sousTitreDirect(moment, flamme.titre)
+        let teinte: Color = moment == .allumee ? dore : Color.white
+        let grande: Font = Font.system(size: 16, weight: .heavy, design: .rounded)
+        let petite: Font = Font.system(size: 12, weight: .bold, design: .rounded)
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(titre)
+                .font(grande)
+                .foregroundColor(teinte)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            if !sous.isEmpty {
+                Text(sous)
+                    .font(petite)
+                    .foregroundColor(lilasPale)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+    }
+}
+
+/// L’île ouverte, en bas : la barre qui se vide et la leçon express (seulement pendant le compte à rebours).
+@available(iOS 16.1, *)
+struct DirectBas: View {
+    let flamme: RequeteFlammeDirect
+    let moment: MomentDirect
+
+    var body: some View {
+        if moment == .attend {
+            HStack(alignment: .center, spacing: 10) {
+                DirectBarre(flamme: flamme)
+                DirectBouton(texte: flamme.action)
+            }
+            .padding(.horizontal, 4)
+            .padding(.top, 2)
+        }
+    }
+}
+
+@available(iOS 16.1, *)
+struct RequeteFlammeDirecte: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: RequeteFlammeDirect.self) { context in
+            DirectVerrouille(flamme: context.attributes, moment: momentDirect(context))
+                .activityBackgroundTint(fondDirect)
+                .activitySystemActionForegroundColor(Color.white)
+                .widgetURL(lienDirect(momentDirect(context)))
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Image(chatDirect(momentDirect(context)))
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 58)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    DirectFin(flamme: context.attributes, moment: momentDirect(context))
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    DirectCentre(flamme: context.attributes, moment: momentDirect(context))
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    DirectBas(flamme: context.attributes, moment: momentDirect(context))
+                }
+            } compactLeading: {
+                LunettesChat(regard: regardDirect(momentDirect(context)), largeur: 30)
+            } compactTrailing: {
+                DirectDroite(flamme: context.attributes, moment: momentDirect(context))
+            } minimal: {
+                DirectMinimal(moment: momentDirect(context))
+            }
+            .widgetURL(lienDirect(momentDirect(context)))
+            .keylineTint(braise)
+        }
+    }
+}
+
 /// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé ;
 /// depuis le 7 novembre, la cheminée, ta semaine, la requête de poche et la carte mémo (ces deux-là à partir d’iOS 17 : leurs
-/// boutons).
+/// boutons), et ta flamme en direct jusqu’à minuit (une Live Activity).
 @main
 struct RequeteWidgets: WidgetBundle {
     var body: some Widget {
@@ -3570,6 +3975,9 @@ struct RequeteWidgets: WidgetBundle {
         }
         if #available(iOS 16.1, *) {
             RequeteFlammeVerrou()
+        }
+        if #available(iOS 16.1, *) {
+            RequeteFlammeDirecte()
         }
         if #available(iOS 17.0, *) {
             RequetePoche()
