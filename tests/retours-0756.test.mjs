@@ -18,6 +18,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 test('le surtitre de l’écran Stickers : « Ta collection »', () => {
   assert.ok(app.includes('<div class="lgtitle"><div class="eyebrow">Ta collection</div><h1>Stickers</h1>'));
   assert.ok(!app.includes('Tes récompenses'));
+  assert.ok(app.includes('<h2 id="stk-sheet-t">Tous tes stickers</h2>') && !app.includes('<h2 id="stk-sheet-t">Ta collection</h2>'), 'pas deux fois « Ta collection » : la grille devient « Tous tes stickers » (choix d’Elisa)');
 });
 
 /* Un contexte 2D qui note ce qu’on lui demande (node n’a pas de canvas) */
@@ -90,5 +91,5 @@ test('le téléchargement et la planche passent par le même dessin', () => {
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-stickers-waouh-v2609';") && app.includes("const SW_CACHE='requete-2026-11-07-stickers-waouh-v2609';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-stickers-titres-v2610';") && app.includes("const SW_CACHE='requete-2026-11-07-stickers-titres-v2610';"));
 });
