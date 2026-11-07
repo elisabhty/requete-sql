@@ -98,5 +98,5 @@ test('le style : une carte blanche par rubrique, le lilas sur le titre ouvert ; 
   assert.ok(!css.includes('.acc-donnees'), 'le style de l’ancienne carte est parti');
   const stk = cut('function lqStkSvg(k){', '\n}');
   assert.ok(stk.includes("    tel:['<rect x=\"12\" y=\"3.5\" width=\"24\" height=\"41\" rx=\"6.5\"/>',") && stk.includes("    nuage:['<path d=\"M14.5 39h20"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=211">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=212">'));
 });

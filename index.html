@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=211">
+<link rel="stylesheet" href="ludique.css?v=212">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -28186,11 +28186,14 @@ function amisListe(){
   (Array.isArray(s.amisAjoutes)?s.amisAjoutes:[]).forEach(a=>{if(!a||!a.n)return;const k=drapCle(a.n);if(!out.has(k))out.set(k,{n:a.n,g:0,w:0,l:0,at:num(a.at),ajout:1});else out.get(k).ajout=1;});
   return [...out.values()].sort((a,b)=>b.at-a.at||b.g-a.g);
 }
+/* Le haut de la carte (Elisa, 7 novembre, 22 h 13) : le surtitre « Tes adversaires » (plus « Ceux que tu as affrontés » : on en ajoute
+   aussi par pseudo, sans les avoir affrontés) ; le titre : « Pas encore d’adversaire ! » tant que la liste est vide, sinon combien. */
+function amisTitre(n){return n?`${n} adversaire${n>1?'s':''}`:'Pas encore d’adversaire&nbsp;!';}
 function defisAmisPeindre(){
   const host=document.getElementById('defis-amis');if(!host)return;
-  host.innerHTML=`<section class="perf-card dx-amis" aria-labelledby="dx-amis-h"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('user')}</span><div><p class="perf-kicker">Ceux que tu as affrontés</p><h2 id="dx-amis-h">Tes adversaires</h2></div></div>
+  host.innerHTML=`<section class="perf-card dx-amis" aria-labelledby="dx-amis-k"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('user')}</span><div><p class="perf-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(amisListe().length)}</h2></div></div>
     <div id="dx-amis-salles"></div><div id="dx-amis-liste"></div>
-    <div class="dx-duo"><button type="button" class="dx-sec is-main${DEFIS.amisForm?' on':''}" aria-expanded="${DEFIS.amisForm}" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Partager une invitation</button></div>
+    <div class="dx-duo"><button type="button" class="dx-sec is-main${DEFIS.amisForm?' on':''}" aria-expanded="${DEFIS.amisForm}" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Inviter un joueur</button></div>
     <form class="dx-ajout" id="dx-ajout"${DEFIS.amisForm?'':' hidden'} onsubmit="event.preventDefault();amisAjouter()">
       <label class="jeu-lab" for="dx-ajout-in">Le pseudo du joueur</label>
       <div class="dx-ajout-l"><input id="dx-ajout-in" class="jeu-input" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="16" placeholder="@lea_data" enterkeyhint="done" oninput="this.value=psForme(this.value)||(this.value.startsWith('@')?'@':'');document.getElementById('dx-ajout-msg').textContent=''"><button type="submit" class="dx-join">Ajouter</button></div>
@@ -28204,8 +28207,11 @@ function amisListesPeindre(){
   const dans=[];
   (DEFIS.salles||[]).forEach(s=>(Array.isArray(s.joueurs)?s.joueurs:[]).forEach(j=>{if(j&&cles.has(drapCle(j.pseudo))&&!dans.some(d=>drapCle(d.qui)===drapCle(j.pseudo)))dans.push({s,qui:j.pseudo});}));
   if(sa)sa.innerHTML=dans.length?`<p class="dx-h3">Dans une salle maintenant</p><ul class="dx-list">${dans.slice(0,5).map(d=>salleLigneHTML(d.s,d.qui)).join('')}</ul>`:'';
-  /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! », puis ce qu’on y gagne ; la carte s’appelle déjà « Tes adversaires ». */
-  if(!amis.length){ls.innerHTML='<div class="dx-vide-bloc"><p class="dx-vide-t">Pas encore d’adversaire&nbsp;!</p><p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>';return;}
+  /* Le titre suit la liste (une partie finie, un ajout, un retrait). */
+  const h=document.getElementById('dx-amis-h'),t=amisTitre(amis.length);if(h&&h.innerHTML!==t)h.innerHTML=t;
+  /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! » (le titre de la carte), puis ce qu’on y gagne ; 22 h 13 : la mascotte qui salue,
+     dans l’espace vide de la carte. */
+  if(!amis.length){ls.innerHTML=`<div class="dx-vide-bloc is-amis">${typeof chatBonusHtml==='function'?chatBonusHtml('salut','is-vide dx-amis-chat'):''}<p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>`;return;}
   ls.innerHTML=`<ul class="dx-list">${amis.slice(0,30).map((m,i)=>{
     const lead=m.w>m.l?'is-up':m.w<m.l?'is-down':'is-eq',lab=m.w>m.l?'tu mènes':m.w<m.l?'à rattraper':'égalité';
     const sous=m.g?`${dxParties(m.g)} · ${esc(perfDay(m.at).toLowerCase())}`:`ajouté ${esc(perfDay(m.at).toLowerCase())}`;
@@ -45763,7 +45769,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-mes-amis-v2645';
+  const SW_CACHE='requete-2026-11-07-adversaires-v2646';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
