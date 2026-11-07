@@ -112,8 +112,8 @@ test('lecteur : LvVoice charge, cale, recale, suit la vitesse, se tait, dit à p
   assert.equal(el.currentTime, 2.5, 'position atteinte une fois le fichier ouvert'); assert.equal(el.paused, false, 'la phrase part');
   el.readyState = 4; assert.equal(V.ready(), true);
   el.currentTime = 4.2; now = 1000; V.keep(c1, 1.0);
-  assert.equal(el.currentTime, 3, 'dérive de plus de 0,3 s : recalée');
-  el.currentTime = 3.2; V.keep(c1, 1.0); assert.equal(el.currentTime, 3.2, 'petite dérive : laissée');
+  assert.equal(el.currentTime, 3, 'dérive de plus d’une seconde : recalée');
+  el.currentTime = 3.6; V.keep(c1, 1.0); assert.equal(el.currentTime, 3.6, 'retard de 0,6 s (voix lente à partir) : laissée, l’image la rejoint');
   V.setRate(2); assert.equal(el.playbackRate, 2); assert.equal(el.defaultPlaybackRate, 2);
   el.currentTime = 3.5; V.keep(c1, 1.0); assert.equal(el.currentTime, 3.5, 'en lecture rapide, la marge grandit avec la vitesse');
   V.setRate(1);
