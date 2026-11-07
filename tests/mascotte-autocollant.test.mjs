@@ -48,7 +48,7 @@ test('mascotMedalHtml : un bouton avec l’autocollant, son mot-clé, ses étinc
   const ctx = vm.createContext({ esc, escAttr: s => esc(s).replace(/"/g, '&quot;') });
   vm.runInContext(entre("const MASCOT_IMG=", 'function mascotReduced(){'), ctx);
   const plein = vm.runInContext("mascotMedalHtml({kw:'SELECT',hi:'Coucou !',intro:true})", ctx);
-  assert.match(plein, /^<button type="button" class="mascot-stk is-intro" onclick="mascotWave\(this\)" aria-label="La mascotte Requête te fait coucou">/);
+  assert.match(plein, /^<button type="button" class="mascot-stk is-intro" onclick="mascotToucher\(this\)" aria-label="La mascotte Requête te fait coucou">/);
   assert.ok(plein.includes('<img class="mstk-cat" src="assets/mascotte-autocollant.webp" width="450" height="674" alt="" draggable="false">'));
   assert.ok(plein.includes('<span class="mstk-kw" aria-hidden="true">SELECT</span>') && plein.includes('<span class="mstk-bub" aria-hidden="true">Coucou !</span>'));
   assert.equal((plein.match(/class="mstk-sp /g) || []).length, 2, 'deux étincelles');
@@ -97,7 +97,7 @@ test('onboarding : scène d’autocollants à la bienvenue, autocollant dans les
   assert.ok(entre("html=`<div class=\"ob-screen ready\">", 'obSetFooter(').includes("${mascotMedalHtml({hi:'C’est parti\\u00a0!',intro:!mascotReduced(),anim:'parti'})}"), 'écran final');
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-chat img{width:72px!important;height:auto!important;aspect-ratio:450/674;border-radius:0!important;') && ob.includes('filter:none!important;rotate:-5deg;'), 'plus d’avatar rond, ombre dans l’image');
   assert.ok(ob.includes('@media (max-height:740px){\n  html #onboarding.ob-vitrine .ob-hello-stage{height:152px;'), 'scène plus basse sur les petits écrans');
-  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=37">') && sw.includes("'./onboarding-vitrine.css?v=37'"), 'feuille rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">') && sw.includes("'./onboarding-vitrine.css?v=38'"), 'feuille rechargée');
 });
 
 test('fin de leçon et fin de parcours : l’autocollant, qui danse tant que la réussite est affichée', () => {
