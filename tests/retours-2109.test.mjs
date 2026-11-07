@@ -53,7 +53,7 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
   assert.deepEqual(essai({ W: 0, nat: 420 }), { court: false, serre: false, bas: false, fs: undefined, nom: undefined }, 'accueil caché : rien n’est décidé');
   /* Après chaque rendu des deux cartes, et quand l’écran change de taille */
   /* 6 novembre (audit, bug 6) : mesuré avec le vrai nombre, avant que le compteur parte de 0 */
-  assert.ok(app.includes('    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n    lqSesCount(host);\n    return;\n  }') && app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n}'));
+  assert.ok(app.includes('    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n    lqSesCount(host);\n    if(typeof lqSemaineFeu===\'function\')lqSemaineFeu(host);\n    return;\n  }') && app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n  if(typeof lqSemaineFeu===\'function\')lqSemaineFeu(host);\n}'));
   assert.ok(app.includes("addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});"));
   /* La séance est revenue à droite du bonjour (l’essai sur la ligne du module, abandonné, ne reste pas) */
   /* 7 novembre, 8 h 38 : la phrase de heroSousTitre vient sous la ligne du bonjour */
@@ -63,5 +63,5 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
 test('plus de « Ton module » en menthe au-dessus du pourcentage (et, depuis le 6 novembre, plus de grand pourcentage du tout)', () => {
   assert.ok(!app.includes('const parc=`') && !app.includes('lq-hero-kicker') && !app.includes("'Ton module'"));
   assert.ok(!lq.includes('lq-hero-kicker'), 'son style est parti avec lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=196">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=197">'));
 });
