@@ -137,7 +137,7 @@ test('tableau : le sticker, même tourné, reste sur le tableau ; la rotation s�
 });
 
 test('écran : une rubrique de la Bibliothèque, avec son entrée, sa fiche et son retour', () => {
-  assert.ok(html.includes('<section id="scr-stickers" class="screen">') && html.includes('<h1>Stickers</h1>') && html.includes('Gagne-les en avançant, colle-les où tu veux et imprime-les.'));
+  assert.ok(html.includes('<section id="scr-stickers" class="screen">') && html.includes('<h1>Stickers</h1>') && html.includes('Débloque des stickers au fil de tes progrès. Collectionne-les, amuse-toi à les placer et imprime tes créations&nbsp;!'), '7 novembre, 0 h 50 : son texte (retours-0050)');
   assert.equal((html.match(/stickers:'scr-stickers'/g) || []).length, 2, 'connu de switchTab et de screenForTab');
   assert.ok(html.includes("if(['notes','collection','stickers','entretien','sgbd','library'].includes(tab))return 'library';"), 'onglet Bibliothèque allumé');
   assert.ok(html.includes("else if(tab==='stickers') renderStickers();"));
@@ -175,7 +175,7 @@ test('gagner pendant une leçon ou une partie : le bilan le montre, ou un toast 
   assert.ok(take('function openStickers(', '\n}\n').includes("if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(()=>openStickers(id));return;}"), 'partir d’une partie demande confirmation (une vraie fenêtre, puis on y va)');
   assert.ok(take('function noteActivityDay(', '\n}\n').includes('try{stkAfterProgress();}catch(e){}'), 'un dessin qui échoue ne casse pas la validation');
   assert.ok(block.includes("if(t.classList.contains('on')&&tries<6)"), 'le toast attend que le précédent soit parti');
-  assert.ok(block.includes("k.textContent='Nouveau sticker'") && block.includes("'Ajouté à ta planche','Voir',()=>openStickers(items[0].id)"));
+  assert.ok(block.includes("k.textContent='Nouveau sticker'") && block.includes("'Ajouté à ta collection','Voir',()=>openStickers(items[0].id)"));
 });
 
 test('télécharger : PNG détouré, partagé sur téléphone (Photos, Fichiers, imprimante), téléchargé sur ordinateur', () => {
