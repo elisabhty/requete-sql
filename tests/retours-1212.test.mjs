@@ -213,7 +213,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=208">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">') && sw.includes("'./onboarding-vitrine.css?v=38',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=209">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">') && sw.includes("'./onboarding-vitrine.css?v=38',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-07-chat-trophee-v2634' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-07-noms-en-code-v2635' && app.includes(`const SW_CACHE='${cache}';`));
 });

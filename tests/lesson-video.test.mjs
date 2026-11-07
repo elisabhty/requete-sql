@@ -1147,7 +1147,7 @@ const COURSES = [
       // Les six moments : DEFAULT 12 dans le trou, la table des numéros, NULL, l’ancien et le nouveau nom, DROP COLUMN, structure ou valeurs
       "{at: 51.95, from: 22.9, kind: 'pick', prompt:", "{label: 'DEFAULT 12', ok: true},", "{at: 70.7, from: 64.0, kind: 'tap', need: 1,", "if (a === 'co') {",
       "{at: 89.35, from: 81.9, kind: 'pick', text: true,", "{label: 'NULL\\u00a0: aucune valeur', ok: true},", "{at: 114.35, from: 103.7, kind: 'sort',",
-      "const NOMS = [['seances_restantes', 'new', 'seances_restantes est le nouveau nom : il vient après TO.'],",
+      "const NOMS = [['seances_restantes', 'new', '<code>seances_restantes</code> est le nouveau nom : il vient après <code>TO</code>.'],",
       "{at: 171.15, from: 163.12, kind: 'pick', text: true,", "{label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]},", "{at: 200.15, from: 181.3, kind: 'sort',",
       "const OPS = [['add', 'ALTER TABLE', 'ADD COLUMN'], ['ren', 'ALTER TABLE', 'RENAME COLUMN'], ['drop', 'ALTER TABLE', 'DROP COLUMN'], ['upd', '', 'UPDATE']];",
       "  ['Passer l’atelier Pilates à 10 places', 'upd', 'Aucune colonne ne change : seule une valeur change.'],",
@@ -1299,7 +1299,7 @@ const COURSES = [
     traps: ["const BINS = [['vu', 'Dans la vue', 'l’agence la voit'], ['ho', 'Hors de la vue', 'elle reste interne']];",
       // Les six moments : les produits sélectionnés, les colonnes à présenter, ce qu’affiche la vue, faut-il la recréer, la valeur qui fait
       // entrer le magnésium, les six informations à ranger
-      "{at: atp('p1'), from: A.a1, kind: 'tap', need: 3,", "{label: 'nom, categorie et prix', ok: true,", "{label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true,",
+      "{at: atp('p1'), from: A.a1, kind: 'tap', need: 3,", "{label: 'nom, catégorie et prix', ok: true,", "{label: 'Les 3 produits de la box : nom, catégorie et prix', ok: true,",
       "{label: 'Non, il suffit de consulter à nouveau la vue', ok: true,", "{at: atp('p5'), from: A.e3, kind: 'tap', need: 1,", "{at: atp('p6'), from: A.g1, kind: 'sort',",
       "['{vwh|WHERE selection_box = 1};']", 'Prochaine leçon · Les index et EXPLAIN']},
   {id: 57, next: 50, titre: 'Les index et EXPLAIN', page: 'projet-index.html', thumb: 'projet-index-thumb.webp', duree: '3 min 37', notesAt: 203.49,
@@ -3008,7 +3008,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=208">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=209">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {

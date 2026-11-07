@@ -105,11 +105,12 @@ test('chaque solution Aéroport s’exécute et son ordre reste stable', () => {
    que tous les défis soient très très bien expliqués point par point ». */
 test('la consigne autonome d’un défi, point par point, avec l’accès au schéma, seul comme en salle', () => {
   const NOMS = Object.fromEntries([...app.matchAll(/\n  ([a-z_]+):\{nom:'([^']+)',/g)].map(m => [m[1], { nom: m[2] }]));
-  vm.runInContext(cut('function defiConsigneHTML(c){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;'), DEFI_BASES: NOMS }));
+  vm.runInContext(cut('function defiConsigneHTML(c){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;'), escCode: s => String(s).replace(/</g, '&lt;').replace(/`([^`\n]+)`/g, '<code>$1</code>'), DEFI_BASES: NOMS }));
   for (const c of [DEFIS[8], DEFIS.find(x => !x.ordered && x.affiche), DEFIS.find(x => x.garde && x.garde.length && x.precis && x.precis.length)]) {
     ctx.c = c;
     const html = vm.runInContext('defiConsigneHTML(c)', ctx);
-    for (const t of [c.situation, ...c.affiche, ...c.garde, ...c.precis]) assert.ok(html.includes(t), c.id + ' : ' + t);
+    /* 7 novembre, 15 h 12 : les noms de tables et de colonnes, entre accents graves, s’affichent en code (retours-1512) */
+    for (const t of [c.situation, ...c.affiche, ...c.garde, ...c.precis]) assert.ok(html.includes(t.replace(/`([^`\n]+)`/g, '<code>$1</code>')), c.id + ' : ' + t);
     assert.ok(html.includes('<b>Affiche</b>') && (html.match(/<ol class="dq-l is-num">/g) || []).length >= 1, c.id + ' : une pastille numérotée par colonne');
     assert.equal(html.includes('<b>Garde</b>'), c.garde.length > 0, c.id + ' : les lignes gardées, s’il y en a');
     assert.equal(html.includes('<b>À savoir</b>'), c.precis.length > 0, c.id);

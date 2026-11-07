@@ -12,7 +12,7 @@ const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({ locateFile: f => path.join(root, 'vendor/sqljs', f) });
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
-const ctx = vm.createContext({ esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s });
+const ctx = vm.createContext({ esc: s => String(s).replace(/</g, '&lt;'), escCode: s => String(s).replace(/</g, '&lt;').replace(/`([^`\n]+)`/g, '<code>$1</code>'), highlight: s => s });
 vm.runInContext(cut('const CHALLENGES=[', '\n/* La consigne d’un défi').replace('const CHALLENGES=', 'CHALLENGES='), ctx);
 vm.runInContext(cut('function defiTables(sol){', 'function defisParProgression(){'), ctx);
 vm.runInContext(cut('function normCell(v)', 'function fmtLignes(n)'), ctx);
