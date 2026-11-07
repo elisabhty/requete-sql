@@ -41902,7 +41902,8 @@ function obWidgetTutoJouer(){
 /* ---------- Le widget de l’app iPhone : la série, mise à jour en partant ----------
    Le widget (RequeteWidget.swift) lit la série dans le groupe d’apps : la série, le jour où elle a été comptée, si ce jour est fait,
    et le dernier jour où une activité la garde (les jours de repos du planning sont sautés). Envoyée au démarrage et chaque fois que
-   l’app passe en arrière-plan ; sans le pont natif (web, ancienne version de l’app), rien ne se passe. */
+   l’app passe en arrière-plan ; sans le pont natif (web, ancienne version de l’app), rien ne se passe.
+   7 novembre (« Cheminée + lunettes ») : le widget La cheminée y lit aussi ce qui décore la pièce (widgetCheminee). */
 let widgetDernier='';
 function widgetMaj(){
   try{
@@ -41911,11 +41912,34 @@ function widgetMaj(){
     const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
     let d=fait?addJ(t,1):t;
     for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
-    const data={serie,jour,fait,limite:dstr(d)},k=JSON.stringify(data);
+    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee()},k=JSON.stringify(data);
     if(k===widgetDernier)return;
     widgetDernier=k;
     Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
   }catch(e){}
+}
+/* La pièce du widget La cheminée : les stickers gagnés (au mur, trois au plus), les défis réussis (le trophée), les modules finis
+   (le diplôme), la prochaine activité (son titre, le mot-clé de sa carte mémo, un défi ou non : l’écran de l’ordinateur) et le mot-clé
+   de la dernière carte mémo gagnée (le liège). Chaque valeur à part : une donnée qui manque laisse la sienne à zéro, ou vide. */
+function widgetCheminee(){
+  const v={stickers:0,trophees:0,diplomes:0,prochaine:'',cle:'',defi:false,carte:''};
+  try{v.stickers=stkList().filter(s=>s.got).length;}catch(e){}
+  try{v.trophees=Object.keys(state.defis||{}).filter(id=>state.defis[id]).length;}catch(e){}
+  try{v.diplomes=MODULES.filter(m=>m.lessons.length&&m.lessons.every(l=>itemDone(l.id))).length;}catch(e){}
+  try{
+    const s=recommendedSession(),id=s?s.id:null;
+    if(id!=null&&isDefiId(id)){const c=CHALLENGES.find(x=>x.id===id);v.defi=true;v.prochaine=c?c.titre:'';}
+    else if(id!=null){const l=allLessons.find(x=>x.id===id);v.prochaine=l?l.titre:'';v.cle=CARTES[id]?CARTES[id].k:'';}
+  }catch(e){}
+  try{
+    let der=null,quand=-1;
+    for(const l of allLessons){
+      const s=state.lessons&&state.lessons[l.id];
+      if(s&&s.done&&CARTES[l.id]&&(s.at||0)>=quand){der=l.id;quand=s.at||0;}
+    }
+    if(der!=null)v.carte=CARTES[der].k;
+  }catch(e){}
+  return v;
 }
 if(typeof document!=='undefined'&&document.addEventListener){
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
@@ -42165,14 +42189,23 @@ function raccourcisBrancher(){
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
-  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis');
-  if(!requete&&!adieu&&!avis)return;
-  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
+  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance');
+  if(!requete&&!adieu&&!avis&&!seance)return;
+  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
   if(document.querySelector('#scr-lesson.active,#lesson-video')){   // déjà en séance (leçon, vidéo) : on y reste
     if(requete&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, les défis t’attendent juste après.','info');
+    else if(seance&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la\u00a0: ta flamme s’allume à la fin.','info');
     return;
   }
-  if(requete)switchTab('defis');
+  if(seance){
+    /* « Allumer ma flamme », le soir, sur le widget La cheminée (7 novembre) : la séance du jour, comme la carte de l’accueil
+       (openItem de la séance recommandée) ; tout est fait, l’accueil. */
+    let id=null;
+    try{const s=recommendedSession();id=s?s.id:null;}catch(e){}
+    switchTab('learn');
+    if(id!=null)setTimeout(()=>{try{openItem(id,0);}catch(e){}},350);
+  }
+  else if(requete)switchTab('defis');
   else if(avis){
     /* « Juge-nous (gentiment) » : le formulaire « Contacte-nous », sur « Autre chose » (un mot sur Requête), sauf si un sujet est déjà
        en cours d’écriture */
@@ -45149,7 +45182,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-eureka-v2636';
+  const SW_CACHE='requete-2026-11-07-cheminee-v2637';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -556,6 +556,944 @@ struct RequeteFlammeVerrou: Widget {
     }
 }
 
+// MARK: - La cheminée : le grand widget, et le très grand d’iOS 27
+//
+// Elisa, 7 novembre, 16 h 03 (des captures de Tolan, Lightly et Airlearn : « des supers widgets […] créatifs, à un niveau plus
+// qu’élevé ») ; de 17 h 01 à 17 h 38, les images qu’elle a générées pour la planche : la pièce (carrée, et en portrait), les trois
+// feux, le trophée, la plante, le diplôme. Son choix : « Cheminée + lunettes ». La pièce du chat : le feu raconte la séance du jour
+// (froid ; des braises le soir, quand elle attend ; une belle flambée quand elle est faite) et le ciel, par la fenêtre, suit l’heure
+// (l’aurore, le jour, le crépuscule, la nuit). Au mur, les stickers gagnés (trois au plus) ; sur la cheminée, la plante, un trophée
+// dès le premier défi réussi, un diplôme dès le premier module fini. Le très grand widget (iOS 27, en portrait) ajoute le liège (la
+// dernière carte mémo gagnée et le post-it du chat, une phrase par jour) et l’écran de l’ordinateur (la prochaine leçon). Le soir,
+// « Allumer ma flamme » ouvre la séance du jour (le lien requete://seance : SceneDelegate.swift, puis index.html, raccourciOuvrir).
+// La pièce est le fond du widget (containerBackground) : quand iOS teinte l’écran d’accueil, il l’enlève, et la phrase, le chat et
+// le bouton restent. Ses images restent sous la surface du widget (WidgetKit refuse les plus grandes) : en 2x et en 3x.
+
+/// La lumière de la pièce, à l’heure de l’entrée : le ciel par la fenêtre et la teinte du mur.
+enum Lumiere {
+    case aurore       // de 5 h à midi : le soleil se lève
+    case jour         // de midi à 18 h : le ciel bleu
+    case crepuscule   // de 18 h à 21 h : le couchant et la lune
+    case nocturne     // de 21 h à 5 h : la nuit étoilée
+
+    init(heure: Int) {
+        switch heure {
+        case 5..<12: self = .aurore
+        case 12..<18: self = .jour
+        case 18..<21: self = .crepuscule
+        default: self = .nocturne
+        }
+    }
+
+    /// Le soir et la nuit, la pièce est sombre : le texte passe en blanc, sous un voile.
+    var sombre: Bool {
+        switch self {
+        case .crepuscule, .nocturne: return true
+        case .aurore, .jour: return false
+        }
+    }
+
+    /// La fin du nom de l’image de la pièce (Assets.xcassets : PieceGrandMatin, PieceTresGrandNuit…).
+    var nom: String {
+        switch self {
+        case .aurore: return "Matin"
+        case .jour: return "Jour"
+        case .crepuscule: return "Soir"
+        case .nocturne: return "Nuit"
+        }
+    }
+}
+
+/// Le feu dans la cheminée : il raconte la séance du jour.
+enum Feu {
+    case froid     // pas encore de séance, ou un jour de repos
+    case braises   // le soir, la séance attend : des braises rougeoient
+    case vif       // la séance du jour est faite : une belle flambée
+
+    var image: String {
+        switch self {
+        case .froid: return "FeuFroid"
+        case .braises: return "FeuBraises"
+        case .vif: return "FeuVif"
+        }
+    }
+}
+
+struct ChemineeEntree: TimelineEntry {
+    let date: Date
+    /// La séance du jour, avec les règles du widget de la flamme (le jour de repos du planning compris).
+    let flamme: SerieEntree
+    var stickers: Int = 0    // les stickers gagnés
+    var trophees: Int = 0    // les défis réussis
+    var diplomes: Int = 0    // les modules finis
+    var prochaine: String = ""   // le titre de la prochaine activité
+    var cle: String = ""         // le mot-clé de sa carte mémo (« LEFT JOIN ») ; vide pour un défi
+    var defi: Bool = false       // la prochaine activité est un défi
+    var carte: String = ""       // le mot-clé de la dernière carte mémo gagnée
+
+    var heure: Int { Calendar.current.component(.hour, from: date) }
+    var lumiere: Lumiere { Lumiere(heure: heure) }
+    var fait: Bool { flamme.faitAujourdhui }
+    var repos: Bool { flamme.repos }
+
+    var feu: Feu {
+        if fait { return .vif }
+        if repos { return .froid }
+        return heure >= 18 ? .braises : .froid
+    }
+
+    /// De 18 h à minuit, un jour de séance pas encore faite : les braises, « Ta flamme t’attend ! », le bouton.
+    var attendLeSoir: Bool { !fait && !repos && heure >= 18 }
+
+    var minuit: Date {
+        let cal = Calendar.current
+        let debut: Date = cal.startOfDay(for: date)
+        return cal.date(byAdding: .day, value: 1, to: debut) ?? date
+    }
+
+    var titre: String {
+        if fait { return "Flamme allumée\u{202F}!" }
+        if repos { return "Jour de repos\u{202F}!" }
+        if heure < 5 { return "Chut, le chat dort…" }
+        if heure < 18 { return "Une petite requête\u{202F}?" }
+        return flamme.serie > 0 ? "Ta flamme t’attend\u{202F}!" : "Allume ta flamme\u{202F}!"
+    }
+
+    /// Sous le titre ; le soir, le temps qu’il reste avant minuit le remplace (ChemineeVue).
+    var sousTitre: String {
+        if fait { return lumiere == .nocturne ? "Bonne nuit." : "Bien joué, à demain." }
+        if repos { return "Ta flamme tient sans séance aujourd’hui." }
+        if heure < 12 { return "La cheminée est froide." }
+        return "Quelques minutes suffisent."
+    }
+
+    /// La pose du chat : il dort la nuit, se réveille le matin, travaille l’après-midi et tient sa bougie le soir ; il saute de joie
+    /// quand la séance est faite, et salue un jour de repos.
+    var chat: String {
+        let dort: Bool = lumiere == .nocturne
+        if fait { return dort ? "ChatDodo" : "ChatBravo" }
+        if repos { return dort ? "ChatDodo" : "ChatSalut" }
+        if heure < 5 { return "ChatDodo" }
+        if heure < 12 { return "ChatReveil" }
+        if heure < 18 { return "ChatOrdi" }
+        return "ChatAllumette"
+    }
+
+    /// L’écran de l’ordinateur (très grand widget) : la prochaine activité, en mot-clé SQL quand sa carte mémo en a un.
+    var ecranMot: String { cle.isEmpty ? prochaine : cle }
+
+    var ecranEtiquette: String { defi ? "Prochain défi" : "Prochaine leçon" }
+
+    var libelle: String {
+        if fait { return "La cheminée flambe\u{00A0}: séance du jour validée, ta flamme est allumée." }
+        if repos { return "La cheminée\u{00A0}: jour de repos." }
+        return attendLeSoir ? "La cheminée\u{00A0}: ta flamme t’attend, séance du jour 0 sur 1." : "La cheminée\u{00A0}: séance du jour 0 sur 1."
+    }
+}
+
+extension SerieFournisseur {
+    /// Le jour de la flamme pour la cheminée : les mêmes règles que le widget de la flamme (entree(pour:)).
+    func flammeDu(_ date: Date) -> SerieEntree {
+        entree(pour: date)
+    }
+}
+
+struct ChemineeFournisseur: TimelineProvider {
+    func placeholder(in context: Context) -> ChemineeEntree {
+        ChemineeFournisseur.exemple(Date())
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (ChemineeEntree) -> Void) {
+        let e = entree(pour: Date())
+        // Dans la galerie des widgets, une pièce vide ne dirait rien : la flambée du soir, avec ses objets.
+        if context.isPreview && e.flamme.serie == 0 && !e.fait {
+            completion(ChemineeFournisseur.exemple(Date()))
+        } else {
+            completion(e)
+        }
+    }
+
+    /// Une entrée maintenant, puis à chaque changement de la pièce (minuit, 5 h, midi, 18 h, 21 h) sur sept jours.
+    func getTimeline(in context: Context, completion: @escaping (Timeline<ChemineeEntree>) -> Void) {
+        let cal = Calendar.current
+        let maintenant = Date()
+        let aujourdhui = cal.startOfDay(for: maintenant)
+        var dates = [maintenant]
+        for j in 0...7 {
+            guard let jour = cal.date(byAdding: .day, value: j, to: aujourdhui) else { break }
+            for heure in [0, 5, 12, 18, 21] {
+                guard let d = cal.date(bySettingHour: heure, minute: 0, second: 0, of: jour), d > maintenant else { continue }
+                dates.append(d)
+            }
+        }
+        completion(Timeline(entries: dates.map { entree(pour: $0) }, policy: .atEnd))
+    }
+
+    /// La séance du jour (comme le widget de la flamme), et ce que l’app range pour la pièce (RequeteWidgetPlugin.swift, maj).
+    private func entree(pour date: Date) -> ChemineeEntree {
+        let d = UserDefaults(suiteName: groupe)
+        let flamme: SerieEntree = SerieFournisseur().flammeDu(date)
+        var e = ChemineeEntree(date: date, flamme: flamme)
+        e.stickers = max(0, d?.integer(forKey: "stickers") ?? 0)
+        e.trophees = max(0, d?.integer(forKey: "trophees") ?? 0)
+        e.diplomes = max(0, d?.integer(forKey: "diplomes") ?? 0)
+        e.prochaine = d?.string(forKey: "prochaine") ?? ""
+        e.cle = d?.string(forKey: "cle") ?? ""
+        e.defi = d?.bool(forKey: "defi") ?? false
+        e.carte = d?.string(forKey: "carte") ?? ""
+        return e
+    }
+
+    /// La galerie des widgets : la flambée de 21 h 30, trois stickers, le trophée, le diplôme.
+    static func exemple(_ date: Date) -> ChemineeEntree {
+        let soir: Date = Calendar.current.date(bySettingHour: 21, minute: 30, second: 0, of: date) ?? date
+        var e = ChemineeEntree(date: soir, flamme: SerieEntree(date: soir, serie: 5, faitAujourdhui: true))
+        e.stickers = 3
+        e.trophees = 1
+        e.diplomes = 1
+        e.prochaine = "LEFT JOIN"
+        e.cle = "LEFT JOIN"
+        e.carte = "GROUP BY"
+        return e
+    }
+}
+
+private let lavande = Color(red: 0.894, green: 0.851, blue: 1.0)
+private let violetVif = Color(red: 0.478, green: 0.361, blue: 1.0)
+private let lilas = Color(red: 0.643, green: 0.545, blue: 1.0)
+private let lilasClair = Color(red: 0.839, green: 0.8, blue: 1.0)
+private let lilasPale = Color(red: 0.725, green: 0.682, blue: 0.91)
+private let sousClair = Color(red: 0.294, green: 0.247, blue: 0.549)
+private let jauneNote = Color(red: 1.0, green: 0.957, blue: 0.722)
+private let encreNote = Color(red: 0.231, green: 0.18, blue: 0.102)
+private let ombreObjet: Color = encre.opacity(0.25)
+
+/// La lueur du feu dans la pièce : dorée au cœur d’une flambée, orangée autour ; orangée seule, des braises.
+private let haloVifArrets: [Gradient.Stop] = [
+    Gradient.Stop(color: dore.opacity(0.42), location: 0),
+    Gradient.Stop(color: braise.opacity(0.18), location: 0.5),
+    Gradient.Stop(color: braise.opacity(0), location: 1)
+]
+private let haloBraisesArrets: [Gradient.Stop] = [
+    Gradient.Stop(color: braise.opacity(0.3), location: 0),
+    Gradient.Stop(color: braise.opacity(0), location: 1)
+]
+
+/// Le voile du haut : plus sombre au crépuscule (le couchant est clair), plus léger la nuit.
+private let voileSoirArrets: [Gradient.Stop] = [
+    Gradient.Stop(color: encre.opacity(0.5), location: 0),
+    Gradient.Stop(color: encre.opacity(0.34), location: 0.55),
+    Gradient.Stop(color: encre.opacity(0), location: 1)
+]
+private let voileNuitArrets: [Gradient.Stop] = [
+    Gradient.Stop(color: encre.opacity(0.3), location: 0),
+    Gradient.Stop(color: encre.opacity(0), location: 1)
+]
+
+/// L’étoile du deuxième sticker (dans un carré de 40, comme la planche) et celle de la carte mémo (dans un carré de 24).
+private let etoileSticker: [CGPoint] = [
+    CGPoint(x: 20, y: 9), CGPoint(x: 23.2, y: 16.4), CGPoint(x: 31, y: 17.2), CGPoint(x: 25.2, y: 22.4), CGPoint(x: 26.8, y: 30),
+    CGPoint(x: 20, y: 26), CGPoint(x: 13.2, y: 30), CGPoint(x: 14.8, y: 22.4), CGPoint(x: 9, y: 17.2), CGPoint(x: 16.8, y: 16.4)
+]
+private let etoileCarte: [CGPoint] = [
+    CGPoint(x: 12, y: 3), CGPoint(x: 14.6, y: 8.9), CGPoint(x: 21, y: 9.6), CGPoint(x: 16.2, y: 13.9), CGPoint(x: 17.6, y: 20.2),
+    CGPoint(x: 12, y: 16.9), CGPoint(x: 6.4, y: 20.2), CGPoint(x: 7.8, y: 13.9), CGPoint(x: 3, y: 9.6), CGPoint(x: 9.4, y: 8.9)
+]
+
+/// Le post-it du chat (très grand widget) : une phrase par jour, à tour de rôle.
+private let notesDuChat: [String] = [
+    "WHERE avant DELETE\u{202F}!",
+    "Un JOIN par jour.",
+    "GROUP BY, puis HAVING.",
+    "SELECT * FROM croquettes",
+    "Ranger avec ORDER BY.",
+    "Une requête ce soir\u{202F}?",
+    "Penser à la virgule\u{202F}!"
+]
+
+private func noteDuChat(_ date: Date) -> String {
+    let jour: Int = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+    return notesDuChat[jour % notesDuChat.count]
+}
+
+/// « requete://seance » : le bouton du soir ouvre la séance du jour. Construit par morceaux : les tests lisent ce fichier sans ses
+/// commentaires, et deux barres obliques écrites dans le code y passeraient pour un commentaire.
+private let lienSeance: URL = {
+    var c = URLComponents()
+    c.scheme = "requete"
+    c.host = "seance"
+    return c.url ?? URL(fileURLWithPath: "/")
+}()
+
+/// Où sont les choses dans la pièce, en pixels de l’image d’origine (1254 × 1254 pour le grand widget, 1024 × 1536 pour le très
+/// grand), relevées sur la planche du 7 novembre. `reference` est l’échelle de la planche (un widget de 364 points de large) : les
+/// textes posés dans la pièce en partent.
+struct Agencement {
+    let tresGrand: Bool
+    let image: CGSize
+    let reference: CGFloat
+    let piece: String
+    let foyer: CGRect        // l’ouverture de la cheminée, en arche
+    let feu: CGRect          // le feu (son image carrée a des bords transparents)
+    let haloBraises: CGPoint
+    let rayonBraises: CGFloat
+    let haloVif: CGPoint
+    let rayonVif: CGFloat
+    let autocollant: CGRect  // les stickers, au mur
+    let etoile: CGRect
+    let sql: CGRect
+    let trophee: CGRect      // sur la cheminée
+    let plante: CGRect
+    let diplome: CGRect
+    let carte: CGRect        // le liège et l’écran : très grand widget seulement
+    let note: CGRect
+    let ecran: CGRect
+
+    static let grand = Agencement(
+        tresGrand: false, image: CGSize(width: 1254, height: 1254), reference: 0.30463, piece: "PieceGrand",
+        foyer: CGRect(x: 689.4, y: 590.9, width: 315.1, height: 370.9),
+        feu: CGRect(x: 676.2, y: 630.3, width: 341.4, height: 341.4),
+        haloBraises: CGPoint(x: 847, y: 925.7), rayonBraises: 444.6,
+        haloVif: CGPoint(x: 847, y: 820.7), rayonVif: 694.9,
+        autocollant: CGRect(x: 548.2, y: 190.4, width: 87.7, height: 131.3),
+        etoile: CGRect(x: 732, y: 210.1, width: 98.5, height: 98.5),
+        sql: CGRect(x: 889.6, y: 210.1, width: 164.1, height: 78.8),
+        trophee: CGRect(x: 595.5, y: 342.4, width: 117.2, height: 117.2),
+        plante: CGRect(x: 800.3, y: 359.1, width: 97.8, height: 97.8),
+        diplome: CGRect(x: 986.5, y: 331.2, width: 125.7, height: 125.7),
+        carte: CGRect.zero, note: CGRect.zero, ecran: CGRect.zero
+    )
+
+    static let portrait = Agencement(
+        tresGrand: true, image: CGSize(width: 1024, height: 1536), reference: 0.38672, piece: "PieceTresGrand",
+        foyer: CGRect(x: 548.2, y: 853.3, width: 287, height: 343.9),
+        feu: CGRect(x: 536.6, y: 896.3, width: 310.3, height: 310.3),
+        haloBraises: CGPoint(x: 693, y: 1137.8), rayonBraises: 472,
+        haloVif: CGPoint(x: 693, y: 1034.3), rayonVif: 733.5,
+        autocollant: CGRect(x: 475.8, y: 170.7, width: 69, height: 103.4),
+        etoile: CGRect(x: 630.9, y: 186.2, width: 77.6, height: 77.6),
+        sql: CGRect(x: 770.6, y: 186.2, width: 129.3, height: 62.1),
+        trophee: CGRect(x: 487.2, y: 647.2, width: 92.3, height: 92.3),
+        plante: CGRect(x: 648.5, y: 660.4, width: 77.1, height: 77.1),
+        diplome: CGRect(x: 795.2, y: 638.5, width: 99, height: 99),
+        carte: CGRect(x: 486.1, y: 377.5, width: 165.5, height: 212),
+        note: CGRect(x: 713.7, y: 382.7, width: 181, height: 206.9),
+        ecran: CGRect(x: 77.6, y: 708.5, width: 268.9, height: 160)
+    )
+
+    /// Le très grand widget est en portrait : bien plus haut que large.
+    static func pour(_ taille: CGSize) -> Agencement {
+        taille.height > taille.width * 1.25 ? portrait : grand
+    }
+}
+
+/// La pièce posée sur le widget comme un fond qui le remplit (centrée, rognée sur les bords) : un point de l’image d’origine, ramené
+/// au widget.
+struct PlanPiece {
+    let s: CGFloat
+    let ox: CGFloat
+    let oy: CGFloat
+
+    init(_ taille: CGSize, image: CGSize) {
+        let e: CGFloat = max(taille.width / image.width, taille.height / image.height)
+        s = e
+        ox = (taille.width - image.width * e) / 2
+        oy = (taille.height - image.height * e) / 2
+    }
+
+    func x(_ v: CGFloat) -> CGFloat { ox + v * s }
+    func y(_ v: CGFloat) -> CGFloat { oy + v * s }
+    func l(_ v: CGFloat) -> CGFloat { v * s }
+}
+
+extension View {
+    /// Posée dans la pièce : un cadre en pixels de l’image d’origine, ramené au widget.
+    func dansPiece(_ r: CGRect, _ p: PlanPiece) -> some View {
+        let largeur: CGFloat = p.l(r.width)
+        let hauteur: CGFloat = p.l(r.height)
+        let cx: CGFloat = p.x(r.midX)
+        let cy: CGFloat = p.y(r.midY)
+        return self
+            .frame(width: largeur, height: hauteur)
+            .position(x: cx, y: cy)
+    }
+}
+
+/// L’ouverture de la cheminée : un rectangle au haut arrondi en demi-cercle (deux quarts de cercle, en courbes de Bézier : pas de
+/// sens de rotation à deviner dans le repère de SwiftUI, dont l’axe vertical descend).
+struct Arche: Shape {
+    func path(in r: CGRect) -> Path {
+        let rayon: CGFloat = min(r.width / 2, r.height)
+        let k: CGFloat = rayon * 0.5523
+        let epaule: CGFloat = r.minY + rayon
+        var p = Path()
+        p.move(to: CGPoint(x: r.minX, y: r.maxY))
+        p.addLine(to: CGPoint(x: r.minX, y: epaule))
+        p.addCurve(to: CGPoint(x: r.midX, y: r.minY), control1: CGPoint(x: r.minX, y: epaule - k), control2: CGPoint(x: r.midX - k, y: r.minY))
+        p.addCurve(to: CGPoint(x: r.maxX, y: epaule), control1: CGPoint(x: r.midX + k, y: r.minY), control2: CGPoint(x: r.maxX, y: epaule - k))
+        p.addLine(to: CGPoint(x: r.maxX, y: r.maxY))
+        p.closeSubpath()
+        return p
+    }
+}
+
+/// Un tracé de la planche (des points dans un carré de côté `cote`), mis à l’échelle de son cadre.
+struct Trace: Shape {
+    let points: [CGPoint]
+    let cote: CGFloat
+
+    func path(in r: CGRect) -> Path {
+        let e: CGFloat = min(r.width, r.height) / cote
+        var p = Path()
+        guard let premier = points.first else { return p }
+        p.move(to: CGPoint(x: r.minX + premier.x * e, y: r.minY + premier.y * e))
+        for q in points.dropFirst() {
+            p.addLine(to: CGPoint(x: r.minX + q.x * e, y: r.minY + q.y * e))
+        }
+        p.closeSubpath()
+        return p
+    }
+}
+
+/// Le deuxième sticker : un rond violet cerclé de blanc, et son étoile dorée.
+struct EtoileAutocollant: View {
+    var body: some View {
+        GeometryReader { g in
+            dessin(min(g.size.width, g.size.height))
+        }
+    }
+
+    private func dessin(_ c: CGFloat) -> some View {
+        let rond: CGFloat = c * 34 / 40
+        let trait: CGFloat = c * 3 / 40
+        return ZStack {
+            Circle()
+                .fill(violetVif)
+                .frame(width: rond, height: rond)
+            Circle()
+                .stroke(Color.white, lineWidth: trait)
+                .frame(width: rond, height: rond)
+            Trace(points: etoileSticker, cote: 40)
+                .fill(dore)
+                .frame(width: c, height: c)
+        }
+        .frame(width: c, height: c)
+    }
+}
+
+/// La pièce : le mur et la fenêtre (le ciel est peint dans l’image), le feu dans l’arche de la cheminée, la lueur du feu, puis les
+/// stickers et les objets ; dans le très grand widget, le liège et l’écran. C’est le fond du widget (fondCheminee).
+struct PieceVue: View {
+    let entree: ChemineeEntree
+
+    var body: some View {
+        GeometryReader { g in
+            contenu(g.size)
+        }
+    }
+
+    private func contenu(_ taille: CGSize) -> some View {
+        let ag: Agencement = Agencement.pour(taille)
+        let p: PlanPiece = PlanPiece(taille, image: ag.image)
+        let nom: String = ag.piece + entree.lumiere.nom
+        let largeur: CGFloat = p.l(ag.image.width)
+        let hauteur: CGFloat = p.l(ag.image.height)
+        let cx: CGFloat = taille.width / 2
+        let cy: CGFloat = taille.height / 2
+        return ZStack(alignment: .topLeading) {
+            Image(nom)
+                .resizable()
+                .frame(width: largeur, height: hauteur)
+                .position(x: cx, y: cy)
+            foyer(ag, p)
+            halo(ag, p, taille)
+            voile(taille)
+            murEtCheminee(ag, p)
+            if ag.tresGrand {
+                liege(ag, p)
+                ecran(ag, p)
+            }
+        }
+        .frame(width: taille.width, height: taille.height)
+        .clipped()
+    }
+
+    /// Le feu dans l’arche, sur sa lueur : il passe de l’un à l’autre en fondu quand la séance du jour est faite.
+    private func foyer(_ ag: Agencement, _ p: PlanPiece) -> some View {
+        let arche: CGRect = ag.foyer
+        let largeur: CGFloat = p.l(arche.width)
+        let hauteur: CGFloat = p.l(arche.height)
+        let cote: CGFloat = p.l(ag.feu.width)
+        let decalX: CGFloat = p.l(ag.feu.minX - arche.minX)
+        let decalY: CGFloat = p.l(ag.feu.minY - arche.minY)
+        let cx: CGFloat = p.x(arche.midX)
+        let cy: CGFloat = p.y(arche.midY)
+        let feu: Feu = entree.feu
+        let fondu: Animation = .easeInOut(duration: 0.6)
+        return ZStack(alignment: .topLeading) {
+            lueur(largeur)
+            Image(feu.image)
+                .resizable()
+                .frame(width: cote, height: cote)
+                .offset(x: decalX, y: decalY)
+                .id(feu)
+                .transition(.opacity)
+        }
+        .frame(width: largeur, height: hauteur, alignment: .topLeading)
+        .clipShape(Arche())
+        .position(x: cx, y: cy)
+        .animation(fondu, value: feu)
+    }
+
+    /// La lueur au fond de l’arche : orangée sous des braises, dorée sous une flambée ; rien, la cheminée froide.
+    private func lueur(_ largeur: CGFloat) -> some View {
+        let vif: Bool = entree.feu == .vif
+        let coeur: Color = vif ? dore : braise
+        let force: Double = vif ? 0.62 : 0.55
+        let visible: Double = entree.feu == .froid ? 0 : 1
+        let bas: CGFloat = vif ? 0.76 : 0.885
+        let part: CGFloat = vif ? 0.74 : 0.72
+        let rayon: CGFloat = largeur * part
+        let couleurs: [Color] = [coeur.opacity(force), braise.opacity(0)]
+        let centre = UnitPoint(x: 0.5, y: bas)
+        return RadialGradient(gradient: Gradient(colors: couleurs), center: centre, startRadius: 0, endRadius: rayon)
+            .opacity(visible)
+    }
+
+    /// La lueur du feu dans toute la pièce.
+    private func halo(_ ag: Agencement, _ p: PlanPiece, _ taille: CGSize) -> some View {
+        let vif: Bool = entree.feu == .vif
+        let point: CGPoint = vif ? ag.haloVif : ag.haloBraises
+        let rayonImage: CGFloat = vif ? ag.rayonVif : ag.rayonBraises
+        let rayon: CGFloat = p.l(rayonImage)
+        let centre = UnitPoint(x: p.x(point.x) / taille.width, y: p.y(point.y) / taille.height)
+        let arrets: [Gradient.Stop] = vif ? haloVifArrets : haloBraisesArrets
+        let visible: Double = entree.feu == .froid ? 0 : 1
+        return RadialGradient(gradient: Gradient(stops: arrets), center: centre, startRadius: 0, endRadius: rayon)
+            .opacity(visible)
+            .frame(width: taille.width, height: taille.height)
+    }
+
+    /// En haut, le soir et la nuit, un voile sombre : le texte blanc se lit sur le mur.
+    private func voile(_ taille: CGSize) -> some View {
+        let u: CGFloat = taille.width / 364
+        let hauteur: CGFloat = 96 * u
+        let arrets: [Gradient.Stop] = entree.lumiere == .crepuscule ? voileSoirArrets : voileNuitArrets
+        let visible: Double = entree.lumiere.sombre ? 1 : 0
+        let cx: CGFloat = taille.width / 2
+        let cy: CGFloat = hauteur / 2
+        return LinearGradient(gradient: Gradient(stops: arrets), startPoint: .top, endPoint: .bottom)
+            .frame(width: taille.width, height: hauteur)
+            .opacity(visible)
+            .position(x: cx, y: cy)
+    }
+
+    /// Au mur, les stickers gagnés (trois au plus : la mascotte, l’étoile, « <SQL> ») ; sur la cheminée, le trophée dès le premier
+    /// défi réussi, la plante, le diplôme dès le premier module fini.
+    private func murEtCheminee(_ ag: Agencement, _ p: PlanPiece) -> some View {
+        let k: CGFloat = p.s / ag.reference
+        let flou: CGFloat = 2.5 * k
+        let chute: CGFloat = 3 * k
+        return ZStack(alignment: .topLeading) {
+            if entree.stickers >= 1 {
+                Image("Autocollant")
+                    .resizable()
+                    .rotationEffect(.degrees(-8))
+                    .shadow(color: ombreObjet, radius: flou, x: 0, y: chute)
+                    .dansPiece(ag.autocollant, p)
+            }
+            if entree.stickers >= 2 {
+                EtoileAutocollant()
+                    .rotationEffect(.degrees(10))
+                    .shadow(color: ombreObjet, radius: flou, x: 0, y: chute)
+                    .dansPiece(ag.etoile, p)
+            }
+            if entree.stickers >= 3 {
+                etiquetteSQL(k)
+                    .rotationEffect(.degrees(-6))
+                    .dansPiece(ag.sql, p)
+            }
+            if entree.trophees > 0 {
+                objet("Trophee", ag.trophee, p, k)
+            }
+            objet("Plante", ag.plante, p, k)
+            if entree.diplomes > 0 {
+                objet("Diplome", ag.diplome, p, k)
+            }
+        }
+    }
+
+    private func objet(_ nom: String, _ r: CGRect, _ p: PlanPiece, _ k: CGFloat) -> some View {
+        let flou: CGFloat = 1.5 * k
+        let chute: CGFloat = 2 * k
+        return Image(nom)
+            .resizable()
+            .shadow(color: ombreObjet, radius: flou, x: 0, y: chute)
+            .dansPiece(r, p)
+    }
+
+    /// Le troisième sticker : « <SQL> » sur une étiquette blanche.
+    private func etiquetteSQL(_ k: CGFloat) -> some View {
+        let police: Font = Font.system(size: 10.5 * k, weight: .heavy, design: .monospaced)
+        let coin: CGFloat = 8 * k
+        let flou: CGFloat = 3 * k
+        let chute: CGFloat = 3 * k
+        let fond = RoundedRectangle(cornerRadius: coin, style: .continuous).fill(Color.white)
+        let texte: Text = Text("<SQL>").font(police).foregroundColor(violetTexte)
+        return texte
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(fond)
+            .shadow(color: ombreObjet, radius: flou, x: 0, y: chute)
+    }
+
+    /// Sur le liège (très grand widget) : la dernière carte mémo gagnée, punaisée, et le post-it du chat.
+    private func liege(_ ag: Agencement, _ p: PlanPiece) -> some View {
+        let k: CGFloat = p.s / ag.reference
+        return ZStack(alignment: .topLeading) {
+            if !entree.carte.isEmpty {
+                carteMemo(k)
+                    .rotationEffect(.degrees(-5))
+                    .dansPiece(ag.carte, p)
+                punaise(braise, ag.carte, p)
+            }
+            postIt(k)
+                .rotationEffect(.degrees(4))
+                .dansPiece(ag.note, p)
+            punaise(violetVif, ag.note, p)
+        }
+    }
+
+    /// La punaise, au milieu du haut.
+    private func punaise(_ couleur: Color, _ r: CGRect, _ p: PlanPiece) -> some View {
+        let tete = CGRect(x: r.midX - 11.65, y: r.minY - 7.65, width: 23.3, height: 23.3)
+        let flou: CGFloat = p.l(3)
+        let chute: CGFloat = p.l(3)
+        let ombre: Color = Color.black.opacity(0.3)
+        return Circle()
+            .fill(couleur)
+            .shadow(color: ombre, radius: flou, x: 0, y: chute)
+            .dansPiece(tete, p)
+    }
+
+    /// La carte mémo : l’étoile dorée et le mot-clé, sur le violet des cartes de l’app.
+    private func carteMemo(_ k: CGFloat) -> some View {
+        let coin: CGFloat = 8 * k
+        let etoile: CGFloat = 20 * k
+        let police: Font = Font.system(size: 9.5 * k, weight: .heavy, design: .monospaced)
+        let haut: CGFloat = 12 * k
+        let bas: CGFloat = 10 * k
+        let cote: CGFloat = 4 * k
+        let flou: CGFloat = 4 * k
+        let chute: CGFloat = 4 * k
+        let degrade = LinearGradient(gradient: Gradient(colors: [violetVif, violetTexte]), startPoint: UnitPoint(x: 0.33, y: 0), endPoint: UnitPoint(x: 0.67, y: 1))
+        let fond = RoundedRectangle(cornerRadius: coin, style: .continuous).fill(degrade)
+        let ombre: Color = encre.opacity(0.3)
+        let mot: String = entree.carte
+        return VStack(spacing: 0) {
+            Trace(points: etoileCarte, cote: 24)
+                .fill(dore)
+                .frame(width: etoile, height: etoile)
+            Spacer(minLength: 0)
+            Text(mot)
+                .font(police)
+                .foregroundColor(Color.white)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.6)
+        }
+        .padding(.top, haut)
+        .padding(.bottom, bas)
+        .padding(.horizontal, cote)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(fond)
+        .shadow(color: ombre, radius: flou, x: 0, y: chute)
+    }
+
+    /// Le post-it du chat, écrit à la main : une phrase par jour (notesDuChat).
+    private func postIt(_ k: CGFloat) -> some View {
+        let police: Font = Font.custom("Noteworthy-Bold", size: 14 * k)
+        let haut: CGFloat = 10 * k
+        let cote: CGFloat = 7 * k
+        let bas: CGFloat = 6 * k
+        let flou: CGFloat = 4 * k
+        let chute: CGFloat = 4 * k
+        let mot: String = noteDuChat(entree.date)
+        return Text(mot)
+            .font(police)
+            .foregroundColor(encreNote)
+            .multilineTextAlignment(.leading)
+            .lineLimit(4)
+            .minimumScaleFactor(0.6)
+            .padding(.top, haut)
+            .padding(.horizontal, cote)
+            .padding(.bottom, bas)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(jauneNote)
+            .shadow(color: ombreObjet, radius: flou, x: 0, y: chute)
+    }
+
+    /// L’écran de l’ordinateur (très grand widget) : « >_ », puis la prochaine leçon ou le prochain défi ; rien d’autre une fois le
+    /// parcours fini.
+    private func ecran(_ ag: Agencement, _ p: PlanPiece) -> some View {
+        let k: CGFloat = p.s / ag.reference
+        let invite: Font = Font.system(size: 14 * k, weight: .heavy, design: .monospaced)
+        let etiquette: Font = Font.system(size: 10 * k, weight: .heavy, design: .rounded)
+        let code: Font = Font.system(size: 14 * k, weight: .heavy, design: .monospaced)
+        let titre: Font = Font.system(size: 12 * k, weight: .bold, design: .rounded)
+        let enCode: Bool = !entree.cle.isEmpty
+        let police: Font = enCode ? code : titre
+        let quoi: String = entree.ecranEtiquette
+        let mot: String = entree.ecranMot
+        let ecart: CGFloat = 2 * k
+        return VStack(alignment: .leading, spacing: ecart) {
+            Text(">_")
+                .font(invite)
+                .foregroundColor(lilas)
+            if !mot.isEmpty {
+                Text(quoi)
+                    .font(etiquette)
+                    .foregroundColor(lilasPale)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text(mot)
+                    .font(police)
+                    .foregroundColor(Color.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.6)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .dansPiece(ag.ecran, p)
+    }
+}
+
+/// Par-dessus la pièce : la phrase du moment et la séance du jour (« 0/1 », puis la coche et « 1/1 » sur l’or), le chat dans sa pose
+/// du moment, et le soir, « Allumer ma flamme ». Le soir, le temps qu’il reste avant minuit défile tout seul (en français).
+struct ChemineeVue: View {
+    let entree: ChemineeEntree
+
+    var body: some View {
+        GeometryReader { g in
+            contenu(g.size)
+        }
+    }
+
+    private var ressort: Animation { .spring(response: 0.55, dampingFraction: 0.62) }
+
+    private func contenu(_ taille: CGSize) -> some View {
+        let u: CGFloat = taille.width / 364
+        let tresGrand: Bool = Agencement.pour(taille).tresGrand
+        let hautTexte: CGFloat = (tresGrand ? 16 : 13) * u
+        let marge: CGFloat = 18 * u
+        let hautChat: CGFloat = (tresGrand ? 196 : 178) * u
+        let bas: CGFloat = 4 * u
+        let gauche: CGFloat = 6 * u
+        let droite: CGFloat = 16 * u
+        let basBouton: CGFloat = 14 * u
+        let nomChat: String = entree.chat
+        let fr = Locale(identifier: "fr_FR")
+        return ZStack(alignment: .topLeading) {
+            Image(nomChat)
+                .resizable()
+                .scaledToFit()
+                .frame(height: hautChat)
+                .padding(.leading, gauche)
+                .padding(.bottom, bas)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .id(nomChat)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .accessibilityHidden(true)
+            bandeau(u)
+                .padding(.horizontal, marge)
+                .padding(.top, hautTexte)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            if entree.attendLeSoir {
+                bouton(u)
+                    .padding(.trailing, droite)
+                    .padding(.bottom, basBouton)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            }
+        }
+        .frame(width: taille.width, height: taille.height)
+        .animation(ressort, value: nomChat)
+        .environment(\.locale, fr)
+    }
+
+    /// La phrase et la séance du jour (un jour de repos du planning, pas d’objectif : la phrase seule).
+    private func bandeau(_ u: CGFloat) -> some View {
+        let ecart: CGFloat = 12 * u
+        let lu: String = entree.libelle
+        return HStack(alignment: .top, spacing: ecart) {
+            phrases(u)
+            Spacer(minLength: 0)
+            if !entree.repos {
+                puce(u)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(lu))
+    }
+
+    private func phrases(_ u: CGFloat) -> some View {
+        let grand: Font = Font.system(size: 18 * u, weight: .black, design: .rounded)
+        let petit: Font = Font.system(size: 13 * u, weight: .heavy, design: .rounded)
+        let clair: Bool = !entree.lumiere.sombre
+        let couleurTitre: Color = clair ? encre : Color.white
+        let couleurSous: Color = clair ? sousClair : Color.white.opacity(0.9)
+        let ombre: Color = clair ? Color.clear : encre.opacity(0.45)
+        let flou: CGFloat = 3 * u
+        let ecart: CGFloat = 2 * u
+        let titre: String = entree.titre
+        return VStack(alignment: .leading, spacing: ecart) {
+            Text(titre)
+                .font(grand)
+                .foregroundColor(couleurTitre)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            sousTitre
+                .font(petit)
+                .foregroundColor(couleurSous)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+        }
+        .shadow(color: ombre, radius: flou, x: 0, y: 1)
+    }
+
+    /// Le soir, « Encore 3 h 12 min avant minuit. » : iOS fait défiler le temps qui reste.
+    private var sousTitre: Text {
+        if entree.attendLeSoir {
+            let minuit: Date = entree.minuit
+            return Text("Encore ") + Text(minuit, style: .relative) + Text(" avant minuit.")
+        }
+        let phrase: String = entree.sousTitre
+        return Text(phrase)
+    }
+
+    private var puceFond: Color {
+        if entree.fait { return dore }
+        return entree.lumiere.sombre ? Color.white.opacity(0.2) : Color.white
+    }
+
+    private var puceBord: Color {
+        if entree.fait { return dore }
+        return entree.lumiere.sombre ? Color.white.opacity(0.65) : Color.white
+    }
+
+    private var puceTexte: Color {
+        if entree.fait { return encre }
+        return entree.lumiere.sombre ? Color.white : violetTexte
+    }
+
+    /// La séance du jour : « 0/1 », puis la coche menthe et « 1/1 » sur l’or (le chiffre roule, iOS 17).
+    private func puce(_ u: CGFloat) -> some View {
+        let fait: Bool = entree.fait
+        let compte: String = fait ? "1/1" : "0/1"
+        let valeur: Int = fait ? 1 : 0
+        let police: Font = Font.system(size: 15 * u, weight: .black, design: .rounded)
+        let haut: CGFloat = 5 * u
+        let cote: CGFloat = 11 * u
+        let ecart: CGFloat = 5 * u
+        let trait: CGFloat = 1.5 * u
+        let fond = Capsule().fill(puceFond)
+        let bord = Capsule().stroke(puceBord, lineWidth: trait)
+        return HStack(alignment: .center, spacing: ecart) {
+            if fait {
+                coche(u)
+            }
+            Text(compte)
+                .font(police)
+                .monospacedDigit()
+                .chiffreQuiRoule(valeur)
+        }
+        .foregroundColor(puceTexte)
+        .padding(.vertical, haut)
+        .padding(.horizontal, cote)
+        .background(fond)
+        .overlay(bord)
+    }
+
+    private func coche(_ u: CGFloat) -> some View {
+        let cote: CGFloat = 15 * u
+        let police: Font = Font.system(size: 8 * u, weight: .black)
+        return Image(systemName: "checkmark")
+            .font(police)
+            .foregroundColor(encre)
+            .frame(width: cote, height: cote)
+            .background(Circle().fill(menthe))
+    }
+
+    /// « Allumer ma flamme » : un appui ouvre l’app sur la séance recommandée (lienSeance).
+    private func bouton(_ u: CGFloat) -> some View {
+        let police: Font = Font.system(size: 13 * u, weight: .black, design: .rounded)
+        let symbole: Font = Font.system(size: 14 * u, weight: .bold)
+        let ecart: CGFloat = 6 * u
+        let haut: CGFloat = 9 * u
+        let gauche: CGFloat = 11 * u
+        let droite: CGFloat = 14 * u
+        let flou: CGFloat = 7 * u
+        let chute: CGFloat = 6 * u
+        let ombre: Color = Color(red: 0.157, green: 0.078, blue: 0.471).opacity(0.25)
+        let fond = Capsule().fill(Color.white)
+        return Link(destination: lienSeance) {
+            HStack(alignment: .center, spacing: ecart) {
+                Image(systemName: "flame.fill")
+                    .font(symbole)
+                    .foregroundColor(braise)
+                Text("Allumer ma flamme")
+                    .font(police)
+                    .foregroundColor(violetTexte)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .padding(.vertical, haut)
+            .padding(.leading, gauche)
+            .padding(.trailing, droite)
+            .background(fond)
+            .shadow(color: ombre, radius: flou, x: 0, y: chute)
+        }
+    }
+}
+
+extension View {
+    /// iOS 17 et plus : la pièce passe par containerBackground (iOS l’enlève quand il teinte l’écran d’accueil) ; avant, en fond.
+    @ViewBuilder
+    func fondCheminee<Fond: View>(_ fond: Fond) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(for: .widget) { fond }
+        } else {
+            self.background(fond)
+        }
+    }
+}
+
+/// Le grand widget ; compilé avec Xcode 27 (Swift 6.4) et sur iOS 27, aussi le très grand, en portrait. Avec un Xcode plus ancien,
+/// le très grand n’existe pas encore : le grand seul.
+private var famillesCheminee: [WidgetFamily] {
+    #if compiler(>=6.4)
+    if #available(iOSApplicationExtension 27.0, *) {
+        return [.systemLarge, .systemExtraLargePortrait]
+    }
+    #endif
+    return [.systemLarge]
+}
+
+struct RequeteCheminee: Widget {
+    let kind = "RequeteCheminee"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: ChemineeFournisseur()) { entree in
+            ChemineeVue(entree: entree)
+                .fondCheminee(PieceVue(entree: entree))
+        }
+        .configurationDisplayName("La cheminée")
+        .description("La pièce du chat : le feu de la séance du jour, le ciel de l’heure, tes stickers, tes trophées et tes diplômes.")
+        .supportedFamilies(famillesCheminee)
+        .sansMarges()
+    }
+}
+
 // MARK: - La leçon en cours, dans la Dynamic Island
 //
 // Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une Live Activity : la page (index.html, ileDebut, ileMaj, ileFin)
@@ -785,6 +1723,169 @@ struct LeconVerrouille: View {
     }
 }
 
+// Les lunettes du chat (Elisa, 7 novembre, sur la planche « Le chat se cache dans l’île » ; son choix : « Cheminée + lunettes ») :
+// l’île est noire, on n’y voit que les lunettes du chat, et ses yeux suivent la leçon. Il regarde ; il sourit, l’objectif de la leçon
+// atteint ; il s’endort quand la leçon est en pause depuis une heure (la Live Activity est périmée : RequeteWidgetPlugin.swift,
+// staleDate) ; leçon réussie, des étoiles plein les yeux. Appui long : le chat sort du noir (ChatNoir, sur fond noir).
+
+/// Ce que disent les yeux du chat, dans la Dynamic Island.
+enum Regard {
+    case ouvert    // il suit ta leçon
+    case rieur     // l’objectif de la leçon est atteint
+    case endormi   // la leçon est en pause : il garde ta place
+    case etoiles   // leçon réussie
+}
+
+/// Un morceau des lunettes, tracé dans le cadre de 46 × 24 de la planche, puis mis à l’échelle de son cadre.
+struct MorceauLunettes: Shape {
+    enum Quoi {
+        case montures, pont, iris, pupilles, reflets, yeuxRieurs, yeuxFermes, grandZ, petitZ, etoiles
+    }
+
+    let quoi: Quoi
+
+    func path(in r: CGRect) -> Path {
+        let e: CGFloat = r.width / 46
+        let o: CGPoint = r.origin
+        var p = Path()
+        switch quoi {
+        case .montures:
+            MorceauLunettes.rond(&p, o, e, 12, 13, 9)
+            MorceauLunettes.rond(&p, o, e, 34, 13, 9)
+        case .pont:
+            MorceauLunettes.courbe(&p, o, e, [21, 12, 23, 10, 25, 12])
+        case .iris:
+            MorceauLunettes.rond(&p, o, e, 13, 13.5, 5.2)
+            MorceauLunettes.rond(&p, o, e, 35, 13.5, 5.2)
+        case .pupilles:
+            MorceauLunettes.rond(&p, o, e, 14.6, 13.8, 2.7)
+            MorceauLunettes.rond(&p, o, e, 36.6, 13.8, 2.7)
+        case .reflets:
+            MorceauLunettes.rond(&p, o, e, 12.3, 11.3, 1.3)
+            MorceauLunettes.rond(&p, o, e, 34.3, 11.3, 1.3)
+        case .yeuxRieurs:
+            MorceauLunettes.courbe(&p, o, e, [7, 14.5, 12, 9, 17, 14.5])
+            MorceauLunettes.courbe(&p, o, e, [29, 14.5, 34, 9, 39, 14.5])
+        case .yeuxFermes:
+            MorceauLunettes.courbe(&p, o, e, [7, 12, 12, 16.8, 17, 12])
+            MorceauLunettes.courbe(&p, o, e, [29, 12, 34, 16.8, 39, 12])
+        case .grandZ:
+            MorceauLunettes.ligne(&p, o, e, [41, -3, 46, -3, 41, 3, 46, 3])
+        case .petitZ:
+            MorceauLunettes.ligne(&p, o, e, [47.5, -8, 50.5, -8, 47.5, -4.5, 50.5, -4.5])
+        case .etoiles:
+            MorceauLunettes.etoile(&p, o, e, 12)
+            MorceauLunettes.etoile(&p, o, e, 34)
+        }
+        return p
+    }
+
+    private static func point(_ o: CGPoint, _ e: CGFloat, _ x: CGFloat, _ y: CGFloat) -> CGPoint {
+        CGPoint(x: o.x + x * e, y: o.y + y * e)
+    }
+
+    private static func rond(_ p: inout Path, _ o: CGPoint, _ e: CGFloat, _ x: CGFloat, _ y: CGFloat, _ rayon: CGFloat) {
+        let cadre = CGRect(x: o.x + (x - rayon) * e, y: o.y + (y - rayon) * e, width: 2 * rayon * e, height: 2 * rayon * e)
+        p.addEllipse(in: cadre)
+    }
+
+    /// Une courbe : départ, point de contrôle, arrivée.
+    private static func courbe(_ p: inout Path, _ o: CGPoint, _ e: CGFloat, _ v: [CGFloat]) {
+        p.move(to: point(o, e, v[0], v[1]))
+        p.addQuadCurve(to: point(o, e, v[4], v[5]), control: point(o, e, v[2], v[3]))
+    }
+
+    /// Une ligne brisée (les « z » du chat qui dort).
+    private static func ligne(_ p: inout Path, _ o: CGPoint, _ e: CGFloat, _ v: [CGFloat]) {
+        p.move(to: point(o, e, v[0], v[1]))
+        var i = 2
+        while i + 1 < v.count {
+            p.addLine(to: point(o, e, v[i], v[i + 1]))
+            i += 2
+        }
+    }
+
+    /// Une étoile à quatre branches, au centre d’un verre.
+    private static func etoile(_ p: inout Path, _ o: CGPoint, _ e: CGFloat, _ cx: CGFloat) {
+        let branches: [CGFloat] = [0, -6.4, 1.6, -1.6, 6.4, 0, 1.6, 1.6, 0, 6.4, -1.6, 1.6, -6.4, 0, -1.6, -1.6]
+        p.move(to: point(o, e, cx + branches[0], 13 + branches[1]))
+        var i = 2
+        while i + 1 < branches.count {
+            p.addLine(to: point(o, e, cx + branches[i], 13 + branches[i + 1]))
+            i += 2
+        }
+        p.closeSubpath()
+    }
+}
+
+/// Les lunettes du chat : les montures lilas sur le noir de l’île, et les yeux du moment.
+struct LunettesChat: View {
+    let regard: Regard
+    let largeur: CGFloat
+
+    var body: some View {
+        let e: CGFloat = largeur / 46
+        let hauteur: CGFloat = largeur * 24 / 46
+        let etoile: Bool = regard == .etoiles
+        let verre: Color = etoile ? dore.opacity(0.14) : lilas.opacity(0.14)
+        let lueur: Color = etoile ? dore.opacity(0.55) : lilas.opacity(0.6)
+        let flou: CGFloat = etoile ? 2 * e : 1.5 * e
+        let monture = StrokeStyle(lineWidth: 2.2 * e, lineCap: .round)
+        let paupiere = StrokeStyle(lineWidth: 2.4 * e, lineCap: .round, lineJoin: .round)
+        return ZStack {
+            MorceauLunettes(quoi: .montures).fill(verre)
+            MorceauLunettes(quoi: .montures).stroke(lilas, style: monture)
+            MorceauLunettes(quoi: .pont).stroke(lilas, style: monture)
+            yeux(e, paupiere)
+        }
+        .frame(width: largeur, height: hauteur)
+        .shadow(color: lueur, radius: flou)
+    }
+
+    @ViewBuilder
+    private func yeux(_ e: CGFloat, _ paupiere: StrokeStyle) -> some View {
+        switch regard {
+        case .ouvert:
+            ZStack {
+                MorceauLunettes(quoi: .iris).fill(lilasClair)
+                MorceauLunettes(quoi: .pupilles).fill(encre)
+                MorceauLunettes(quoi: .reflets).fill(Color.white)
+            }
+        case .rieur:
+            MorceauLunettes(quoi: .yeuxRieurs).stroke(lilasClair, style: paupiere)
+        case .endormi:
+            ZStack {
+                MorceauLunettes(quoi: .yeuxFermes).stroke(lilasClair, style: paupiere)
+                MorceauLunettes(quoi: .grandZ).stroke(lilasClair, style: StrokeStyle(lineWidth: 1.6 * e, lineCap: .round, lineJoin: .round))
+                MorceauLunettes(quoi: .petitZ).stroke(lilasClair.opacity(0.7), style: StrokeStyle(lineWidth: 1.3 * e, lineCap: .round, lineJoin: .round))
+            }
+        case .etoiles:
+            MorceauLunettes(quoi: .etoiles).fill(dore)
+        }
+    }
+}
+
+/// Les yeux du chat pendant la leçon : des étoiles une fois réussie, endormis quand elle est en pause, rieurs l’objectif atteint.
+@available(iOS 16.1, *)
+func leconRegard(_ e: RequeteLecon.ContentState, perime: Bool) -> Regard {
+    if e.fini { return .etoiles }
+    if perime { return .endormi }
+    let n: Int = e.moments ?? 0
+    let r: Int = min(n, max(0, e.reussis ?? 0))
+    let but: Int = min(n, max(1, e.objectif ?? n))
+    if n > 0 && r >= but { return .rieur }
+    return .ouvert
+}
+
+/// La leçon n’a plus bougé depuis une heure : iOS marque la Live Activity périmée (iOS 16.2 et plus).
+@available(iOS 16.1, *)
+func leconPerimee(_ context: ActivityViewContext<RequeteLecon>) -> Bool {
+    if #available(iOSApplicationExtension 16.2, *) {
+        return context.isStale
+    }
+    return false
+}
+
 @available(iOS 16.1, *)
 struct RequeteLeconActivite: Widget {
     var body: some WidgetConfiguration {
@@ -795,10 +1896,10 @@ struct RequeteLeconActivite: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Image("Mascotte")
+                    Image("ChatNoir")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 40)
+                        .frame(width: 52)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     LeconFlamme(etat: context.state, taille: 30)
@@ -829,22 +1930,24 @@ struct RequeteLeconActivite: Widget {
                     .padding(.top, 2)
                 }
             } compactLeading: {
-                LeconFlamme(etat: context.state, taille: 15)
+                LunettesChat(regard: leconRegard(context.state, perime: leconPerimee(context)), largeur: 30)
             } compactTrailing: {
                 LeconMoments(etat: context.state)
             } minimal: {
-                LeconFlamme(etat: context.state, taille: 14)
+                LunettesChat(regard: leconRegard(context.state, perime: leconPerimee(context)), largeur: 24)
             }
             .keylineTint(braise)
         }
     }
 }
 
-/// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé.
+/// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé ;
+/// depuis le 7 novembre, la cheminée.
 @main
 struct RequeteWidgets: WidgetBundle {
     var body: some Widget {
         RequeteWidget()
+        RequeteCheminee()
         if #available(iOS 16.1, *) {
             RequeteLeconActivite()
         }

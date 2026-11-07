@@ -44,6 +44,17 @@ if (existsSync(infoApp)) {
   if (ajout.length && k > 0 && t.indexOf('</plist>', k) > k)
     writeFileSync(infoApp, t.slice(0, k) + ajout.map(([cle, texte]) => `\t<key>${cle}</key>\n\t<string>${texte}</string>\n`).join('') + t.slice(k));
 }
+/* 1 quater. Le lien du widget La cheminée (Elisa, 7 novembre, « Cheminée + lunettes ») : le soir, « Allumer ma flamme » ouvre
+   requete://seance, que le délégué de scène passe à la page (la séance du jour). Le schéma « requete » est déclaré une fois, avant
+   la fin du dictionnaire principal ; un Info.plist qui a déjà ses schémas d’URL n’est pas touché (un avertissement le dit). */
+if (existsSync(infoApp)) {
+  const t = readFileSync(infoApp, 'utf8'), k = t.lastIndexOf('</dict>');
+  const schema = '\t<key>CFBundleURLTypes</key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>fr.requete.app</string>\n'
+    + '\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>requete</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n';
+  if (t.includes('<string>requete</string>')) {}
+  else if (t.includes('<key>CFBundleURLTypes</key>')) console.warn('⚠️  Info.plist a déjà des schémas d’URL : ajoute « requete » dans CFBundleURLSchemes (voir IOS.md), sinon « Allumer ma flamme » ouvre l’app sans la séance.');
+  else if (k > 0 && t.indexOf('</plist>', k) > k) writeFileSync(infoApp, t.slice(0, k) + schema + t.slice(k));
+}
 
 /* 2. Main.storyboard : le contrôleur de l’app, qui enregistre le pont du widget. Seulement une fois le projet prêt (étape 3) :
    un storyboard qui désignerait un contrôleur absent du projet ouvrirait l’app sur un écran vide. */
