@@ -40,8 +40,8 @@ test('le haut de la page : la mascotte sur sa tache, les confettis, « Bravo ! �
   assert.ok(h.includes(`<p class="ob-compte-lead"><span>Tu viens de franchir une première étape.</span> <span>Et ce n’est que le début&nbsp;!</span></p>`), 'une phrase par ligne');
   const carte = h.slice(h.indexOf('<div class="ob-compte-carte">'), h.indexOf('<div class="ob-provider-list">'));
   assert.ok(carte.includes('<span class="ob-compte-carte-ico" aria-hidden="true"><svg viewBox="0 0 32 32"'), 'le nuage dans sa pastille');
-  assert.ok(carte.includes('<b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, tes exercices et tes stickers sur tous tes appareils.</small>'));
-  assert.ok(!/badges|[Bb]ientôt|[Pp]rochainement/.test(carte), '« stickers », le mot de l’app ; jamais « bientôt »');
+  assert.ok(carte.includes('<b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, exercices, défis et ta collection sur tous tes appareils.</small>'));
+  assert.ok(!/badges|[Bb]ientôt|[Pp]rochainement/.test(carte), 'les mots de l’app (1 h 05 : « cours, exercices, défis et ta collection ») ; jamais « bientôt »');
   assert.ok(!h.includes('ob-compte-sub'), 'la carte remplace la phrase');
   const ordre = ['ob-compte-fond', 'ob-compte-stk', 'ob-compte-bravo', 'ob-title', 'ob-compte-lead', 'ob-compte-carte', 'ob-provider-list'].map(k => h.indexOf(k));
   assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, 'dans l’ordre de la réf.');
@@ -64,7 +64,7 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
     'background:var(--v-sun);color:var(--v-ink);font:800 clamp(14px,calc(var(--stk) * .245),21px)/1.1 var(--v-display);letter-spacing:-.02em;white-space:nowrap;rotate:-6deg;',
     '@media (max-width:359px){html #onboarding.ob-vitrine .ob-compte-rayons{display:none}}',
     'html #onboarding.ob-vitrine .ob-compte-lead span{display:block;text-wrap:balance}',
-    'html #onboarding.ob-vitrine .ob-compte-carte{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:13px;margin:16px 0 0;padding:13px 15px 13px 13px;border-radius:22px;background:rgba(255,255,255,.13);text-align:left}',
+    'html #onboarding.ob-vitrine .ob-compte-carte{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:13px;margin:24px 0 0;padding:13px 15px 13px 13px;border-radius:22px;background:rgba(255,255,255,.13);text-align:left}',
     'html #onboarding.ob-vitrine.ob-fit-2 .ob-account{--stk-k:.87}', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-account{--stk-k:.76}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-account{--stk-k:.66}',
     'html #onboarding.ob-vitrine.ob-fit-2 .ob-account .ob-compte-stk{display:block}',
     'html #onboarding.ob-vitrine.ob-fit-5 .ob-compte-haut{display:none}', 'html #onboarding.ob-vitrine.ob-fit-5 .ob-compte-carte-txt small{display:none}'])
@@ -77,6 +77,6 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=30">') && sw.includes("'./onboarding-vitrine.css?v=30',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-stickers-v2605';") && app.includes("const SW_CACHE='requete-2026-11-07-stickers-v2605';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=31">') && sw.includes("'./onboarding-vitrine.css?v=31',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-connexion-espaces-v2606';") && app.includes("const SW_CACHE='requete-2026-11-07-connexion-espaces-v2606';"));
 });

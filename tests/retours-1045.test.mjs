@@ -83,7 +83,7 @@ test('la page de connexion : son texte, Apple et l’e-mail, et la fête seuleme
   assert.ok(html.includes('<div class="ob-compte-haut">') && html.includes('Bravo\u00a0!</p></div>'), '7 novembre, 0 h 29 : dans le haut de la page, avec son « Bravo ! » (retours-0029-connexion)');
   assert.ok(html.includes('<h1 class="ob-title" id="ob-title">Ta première requête est <em>réussie</em>&nbsp;!<span class="ob-fete-emoji" aria-hidden="true"> 🎉</span></h1>'));
   assert.ok(html.includes('<p class="ob-compte-lead"><span>Tu viens de franchir une première étape.</span> <span>Et ce n’est que le début&nbsp;!</span></p>'));
-  assert.ok(html.includes('<b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, tes exercices et tes stickers sur tous tes appareils.</small>'), '7 novembre, 0 h 29 : la carte à la place de la phrase');
+  assert.ok(html.includes('<b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, exercices, défis et ta collection sur tous tes appareils.</small>'), '7 novembre, 0 h 29 : la carte à la place de la phrase');
   /* 6 novembre, 23 h 16 : la phrase des conditions est passée sous le bouton jaune */
   const ordre = ['ob-compte-stk', 'ob-title', 'ob-compte-lead', 'ob-compte-carte', 'ob-provider-list', 'ob-compte-msg'].map(k => html.indexOf(k));
   assert.deepEqual([...ordre].sort((x, y) => x - y), ordre, 'dans l’ordre de son texte');
@@ -138,7 +138,7 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
   for (const r of ['html #onboarding.ob-vitrine .ob-screen.ob-account{min-height:100%}',
     'html #onboarding.ob-vitrine .ob-compte-haut{position:relative;display:grid;place-items:center;flex:none;width:calc(var(--stk) * 3.3);max-width:100%;height:calc(var(--stk) * 1.5);margin:auto auto 0}',
     'html #onboarding.ob-vitrine .ob-screen.ob-account>:last-child{margin-bottom:auto!important}',
-    'html #onboarding.ob-vitrine.ob-fit-5 .ob-account .ob-compte-haut+.ob-title{margin-top:auto!important;font-size:20px!important}',
+    'html #onboarding.ob-vitrine.ob-fit-5 .ob-account .ob-compte-haut+.ob-title{margin-top:auto!important}',
     'html #onboarding.ob-vitrine .ob-compte-msg:empty{margin:0;padding:0;border:0}',
     'html #onboarding.ob-vitrine>.ob-build-confetti{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden}'])
     assert.ok(s.includes(r), r);
@@ -149,7 +149,7 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
     ' .ob-account.is-fete .ob-fete-emoji{animation:obvFeteEmoji 1.2s var(--v-pop) .4s both}', ' .ob-compte-msg.is-new{transform-origin:50% 0;animation:obvBubbleIn'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvFeteEmoji{'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=30">') && sw.includes("'./onboarding-vitrine.css?v=30',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=31">') && sw.includes("'./onboarding-vitrine.css?v=31',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
 });
