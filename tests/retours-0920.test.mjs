@@ -21,7 +21,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 test('la carte de la semaine faite : le chat à la place de la flamme, le titre sans 🔥', () => {
   const h = cut('function homeStreakHTML(', '\nfunction openAccountProgress(');
   assert.ok(h.includes("const title=semaineFaite?'Ta semaine est en feu':n?"));
-  assert.ok(h.includes('<img class="lq-streak-chat" src="${typeof MASCOT_IMG!==\'undefined\'?MASCOT_IMG:\'assets/mascotte-autocollant.webp\'}" width="450" height="674" alt="" draggable="false">'));
+  assert.ok(h.includes('<img class="lq-streak-chat is-trophee" src="assets/${typeof mascotReduced===\'function\'&&mascotReduced()?\'chat-flamme-fixe\':\'chat-flamme\'}.webp" width="160" height="152" alt="" draggable="false">'), '12 h 47 : le chat qui tient sa flamme comme un trophée (retours-1247)');
   assert.ok(h.includes('<span class="lq-streak-flame" aria-hidden="true">${chat||LQ_FLAME_SVG}</span>') && h.includes("${semaineFaite?' is-semaine':''}"));
 });
 
