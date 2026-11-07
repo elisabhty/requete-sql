@@ -20,7 +20,7 @@ test('la séance : « aujourd’hui » à part, pour pouvoir le retirer quand la
   assert.equal(txt('late', 8), `run|<b class="lq-ses-n" data-n="8">8</b>${N}min${suf}`, 'la séance d’un jour passé se reprend aujourd’hui, comme les autres');
   assert.equal(txt('done'), `done|Fait${suf}`);
   assert.equal(txt('pause'), `pause|Pause${suf}`);
-  assert.equal(txt('end'), 'end|Parcours terminé', 'rien à retirer');
+  assert.equal(txt('end'), 'end|Parcours<br>terminé', 'rien à retirer (sur deux lignes : 7 novembre, 10 h 25)');
   assert.ok(lq.includes('html.lq .lq-hero.has-hi .lq-hero-hi.is-court .lq-ses-suf{display:none}') && !lq.includes('.lq-ses-pre'));
 });
 
@@ -67,5 +67,5 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
 test('plus de « Ton module » en menthe au-dessus du pourcentage (et, depuis le 6 novembre, plus de grand pourcentage du tout)', () => {
   assert.ok(!app.includes('const parc=`') && !app.includes('lq-hero-kicker') && !app.includes("'Ton module'"));
   assert.ok(!lq.includes('lq-hero-kicker'), 'son style est parti avec lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=197">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=198">'));
 });

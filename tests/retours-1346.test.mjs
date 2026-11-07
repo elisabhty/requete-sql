@@ -271,7 +271,7 @@ test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une car
 });
 
 test('19 h 36 – 19 h 39 : le haut de la carte sur une ligne (bonjour + séance du jour), le niveau collé sur le chat', () => {
-  assert.ok(app.includes("const sesTxt=sesVue==='end'?'Parcours terminé'"), 'parcours terminé');
+  assert.ok(app.includes("const sesTxt=sesVue==='end'?'Parcours<br>terminé'"), 'parcours terminé (7 novembre, 10 h 25 : sur deux lignes)');
   /* 19 h 48 : « Ta session » à la place d’« Aujourd’hui » ; 7 novembre, 8 h 38 (maquette) : « 14 min aujourd’hui », « Fait aujourd’hui »,
      « Pause aujourd’hui » */
   assert.ok(app.includes(":sesVue==='run'?`<b class=\"lq-ses-n\" data-n=\"${session.minutes}\">${session.minutes}</b>\\u00a0min${sesSuf}`") && app.includes(":sesVue==='done'?`Fait${sesSuf}`:`Pause${sesSuf}`;") && app.includes("const sesSuf='<span class=\"lq-ses-suf\"> aujourd’hui</span>';"), '14 min aujourd’hui / Fait / Pause');
