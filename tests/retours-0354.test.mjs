@@ -144,7 +144,7 @@ test('la série part vers le widget : au démarrage et en passant en arrière-pl
   };
   /* Fait le samedi 7 ; dimanche 8 est un jour de repos : la série tient jusqu’au lundi 9 */
   /* 7 novembre : la pièce de la cheminée suit (widgetCheminee, à zéro ici : le bac à sable n’a ni stickers ni parcours) */
-  const piece = {stickers: 0, trophees: 0, diplomes: 0, prochaine: '', cle: '', defi: false, carte: ''};
+  const piece = {stickers: 0, trophees: 0, diplomes: 0, prochaine: '', cle: '', defi: false, carte: '', poche: '[]'};   // et la requête de poche, vide
   assert.deepEqual(essai(), [['RequeteWidget', 'maj', JSON.stringify({serie: 12, jour: '2026-11-07', fait: true, limite: '2026-11-09', ...piece})]], 'une fois : le même état n’est pas renvoyé');
   assert.equal(JSON.parse(essai({actif: false})[0][2]).limite, '2026-11-07', 'pas encore fait : aujourd’hui');
   assert.deepEqual(essai({plugin: false}), [], 'ancienne app : rien');

@@ -135,6 +135,24 @@ et le widget reste vide. La pièce existe en 2x et en 3x, chacune sous la surfac
 son échelle (un test le vérifie). Les places des objets sont relevées sur la planche, en pixels de l’image d’origine
 (`Agencement`) : une nouvelle image de la pièce garde les mêmes proportions, ou les places sont à relever de nouveau.
 
+### La requête de poche (7 novembre)
+
+Elisa, 7 novembre (« Requête de poche », d’après la planche : « Une question tirée de tes leçons. Tu réponds dans le widget, sans
+ouvrir l’app. »). Le widget **La requête de poche** (`RequetePoche`, dans `RequeteWidget.swift`, moyen) montre une requête à trou
+et trois réponses, dont une seule marche. On touche une réponse dans le widget : « Bien vu ! », le chat hoche la tête et le trou
+se remplit ; sinon « Presque ! », la bonne réponse s’allume, avec le pourquoi en une ligne. La flèche passe à la question
+suivante. Son choix pour la flamme : « la séance seule » — répondre dans le widget n’allume pas la flamme du jour.
+
+- **Les questions** : une par leçon, dans index.html (`POCHE`), chacune avec son commentaire SQL quand plusieurs réponses
+  s’exécutent (« -- 60 unités ou moins »). `tests/ios-poche.test.mjs` exécute chaque requête sur la base de l’app : la bonne
+  réponse marche, chaque autre échoue ou donne autre chose. Une question à changer : la modifier là, le test dit si elle tient.
+- **Ce que range l’app** : jusqu’à vingt questions des leçons faites, celles à revoir d’abord, dans le même ordre toute la
+  journée (`widgetPoche`, avec la série, dans `widgetMaj`). Le pont les garde (`maj`) ; une nouvelle série repart de la première
+  question, la même laisse le widget où il en est.
+- **Les boutons** passent par **App Intents** (`RepondrePoche`, `SuivantePoche`, cachés de Raccourcis) : ils écrivent la réponse
+  touchée et la question du moment dans le groupe d’apps, puis iOS redessine le widget. Les widgets n’ont de boutons qu’à partir
+  d’**iOS 17** : le widget n’existe qu’à partir de là. Sans leçon faite, il le dit, et un appui ouvre la séance du jour.
+
 ### Le chat change dans la journée (4 novembre, 12 h 14)
 
 Un widget ne joue ni vidéo ni boucle (iOS ne le permet pas) : il anime le passage d’un état à l’autre, à partir d’iOS 17. Le chat
