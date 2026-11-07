@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-07-chat-ordi-v2625';
+const CACHE = 'requete-2026-11-07-chat-parti-v2626';
 
 const PRECACHE = [
   './safari-surface.css?v=13',
@@ -25,7 +25,7 @@ const PRECACHE = [
   './onboarding-focus.js',
   './multiplayer-security.js?v=3',
   './memo-collection.css?v=5',
-  './onboarding-vitrine.css?v=35',
+  './onboarding-vitrine.css?v=36',
   './',
   './index.html',
   './home-journey.css',
@@ -58,6 +58,8 @@ const PRECACHE = [
   './assets/chat-question-fixe.webp',
   './assets/chat-ordi.webp',
   './assets/chat-ordi-fixe.webp',
+  './assets/chat-parti.webp',
+  './assets/chat-parti-fixe.webp',
   './assets/apple-touch-icon.png',
   './assets/icon-192.png',
   './assets/nutriboost-accueil.png',
