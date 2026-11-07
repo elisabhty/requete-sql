@@ -167,5 +167,5 @@ test('la feuille : la DA de la vitrine, le bouton qui ne fait pas défiler, tout
   assert.ok(ov.includes('@keyframes obvHoldOk{') && ov.includes('@keyframes obvHoldHalo{'), 'les mêmes mouvements que l’onboarding');
   /* Les feuilles et le cache rafraîchis */
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=199">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=31">'));
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=31'") && sw.includes("const CACHE = 'requete-2026-11-07-flamme-bravo-v2619';"));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=31'") && sw.includes("const CACHE = 'requete-2026-11-07-chat-confettis-v2620';"));
 });
