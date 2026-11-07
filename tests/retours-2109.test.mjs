@@ -57,7 +57,7 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
   assert.deepEqual(essai({ nat: 460, nomW: 200, sans: true }), { court: false, serre: true, bas: false, fs: '16px', nom: '132px' }, 'sans étiquette : à 16 px, le prénom s’abrège');
   /* Après chaque rendu des deux cartes, et quand l’écran change de taille */
   /* 6 novembre (audit, bug 6) : mesuré avec le vrai nombre, avant que le compteur parte de 0 */
-  assert.ok(app.includes('    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n    lqSesCount(host);\n    if(typeof lqSemaineFeu===\'function\')lqSemaineFeu(host);\n    return;\n  }') && app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n  if(typeof lqSemaineFeu===\'function\')lqSemaineFeu(host);\n}'));
+  assert.ok(app.includes('    lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n    lqSesCount(host);\n    if(typeof lqFlammeBravo===\'function\')lqFlammeBravo();\n    return;\n  }') && app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n  if(typeof lqFlammeBravo===\'function\')lqFlammeBravo();\n}'));
   assert.ok(app.includes("addEventListener('resize',()=>{clearTimeout(lqSesT);lqSesT=setTimeout(()=>lqSesAjuste(document.getElementById('home-hero')),150);});"));
   /* La séance est revenue à droite du bonjour (l’essai sur la ligne du module, abandonné, ne reste pas) */
   /* 7 novembre, 8 h 38 : la phrase de heroSousTitre vient sous la ligne du bonjour */
@@ -67,5 +67,5 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
 test('plus de « Ton module » en menthe au-dessus du pourcentage (et, depuis le 6 novembre, plus de grand pourcentage du tout)', () => {
   assert.ok(!app.includes('const parc=`') && !app.includes('lq-hero-kicker') && !app.includes("'Ton module'"));
   assert.ok(!lq.includes('lq-hero-kicker'), 'son style est parti avec lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=198">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=199">'));
 });

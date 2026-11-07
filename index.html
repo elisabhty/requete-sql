@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=198">
+<link rel="stylesheet" href="ludique.css?v=199">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=31">
 <style id="lesson-video-css">
@@ -26259,7 +26259,7 @@ function renderHomeHero(){
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
     lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
     lqSesCount(host);
-    if(typeof lqSemaineFeu==='function')lqSemaineFeu(host);
+    if(typeof lqFlammeBravo==='function')lqFlammeBravo();
     return;
   }
   /* Elisa, 6 novembre, 8 h 47 – 8 h 49 (après l’audit UI/UX de la carte) : la piste A, « La leçon d’abord », sans la pastille « Rappel »
@@ -26310,7 +26310,7 @@ function renderHomeHero(){
   lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
   lqSesCount(host);
   lqPctAnime(host);
-  if(typeof lqSemaineFeu==='function')lqSemaineFeu(host);
+  if(typeof lqFlammeBravo==='function')lqFlammeBravo();
 }
 /* La phrase sous le bonjour (Elisa, 7 novembre, 8 h 38, d’après sa maquette « On reprend là où tu en étais ? »), le bout souligné
    en jaune : une leçon commencée, « On reprend là où tu en étais ? » (un défi : « On reprend ton défi ? ») ; rien de commencé,
@@ -38652,6 +38652,7 @@ function noteActivityDay(){
     state.actDays[iso]=(state.actDays[iso]||0)+1;
     if(!state.actSince)state.actSince=iso;
     if(first&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
+    if(first&&typeof lqFlammeAttendue==='function')lqFlammeAttendue(iso);   // la page « Bravo », à l’accueil (10 h 30)
   }catch(e){}
   try{stkAfterProgress();}catch(e){}
 }
@@ -38773,8 +38774,8 @@ function homeStreakHTML(){
   const repos=d=>d.kind==='rest'||(d.kind==='today'&&typeof jourRepos==='function'&&jourRepos(d.iso));
   const semaineFaite=weekDone>0&&days.every(d=>d.kind==='done'||repos(d));
   const jours=semaineFaite?days.map(d=>d.kind==='today'?Object.assign({},d,{kind:'rest'}):d):days;
-  /* 9 h 20 : « Il y a trop d’icônes feu » : le titre perd son 🔥 et le chat prend la place de la flamme (il allume celles de la
-     semaine, lqSemaineFeu). */
+  /* 9 h 20 : « Il y a trop d’icônes feu » : le titre perd son 🔥 et le chat prend la place de la flamme. 10 h 30 : plus d’animation
+     sur la carte ; c’est la page « Bravo » de la flamme du jour qui fête (lqFlammeBravo). */
   const title=semaineFaite?'Ta semaine est en feu':n?`${n} jour${n>1?'s':''} de série`:'Ta série commence aujourd’hui\u00a0!';
   const sub=semaineFaite?`${weekDone} jour${weekDone>1?'s':''} sur ${weekDone}, bravo\u00a0!`:n?(todayDone?'Flamme du jour allumée. À demain !':'Une activité aujourd’hui pour prolonger ta série.'):'Une activité par jour pour progresser.';
   const kindLabel={done:'fait',today:'à faire aujourd’hui',rest:'repos',missed:'pas fait',future:'à venir'};
@@ -38787,51 +38788,57 @@ function homeStreakHTML(){
     <span class="lq-week" aria-hidden="true">${jours.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
   </button>`;
 }
-/* Elisa, 7 novembre, 9 h 20 : « est-ce qu’on peut faire une animation avec le chat qui enflamme chaque flamme ? » La semaine faite,
-   une fois par ouverture de l’appli, quand l’accueil se montre : les flammes de la semaine sont éteintes, le chat saute de sa place
-   sur chacune, et elle s’allume quand il s’y pose (un petit bond et une onde) ; puis il revient à sa place, fier. Mouvement réduit :
-   tout est déjà allumé. Les jours de repos gardent leur lune : il saute par-dessus. */
-let lqFeuJoue=false;
-function lqSemaineFeu(host){
-  if(lqFeuJoue||!host||typeof host.querySelector!=='function')return;
-  const c0=host.querySelector('.lq-streak.is-semaine');
-  if(!c0||(typeof mascotReduced==='function'&&mascotReduced()))return;
-  c0.classList.add('is-allumage');   // éteintes avant que l’accueil se montre : pas d’allumé-éteint-allumé
-  setTimeout(()=>{
-    if(lqFeuJoue)return;
-    const carte=host.querySelector('.lq-streak.is-semaine');
-    if(!carte)return;
-    if(!document.querySelector('#scr-learn.active')){carte.classList.remove('is-allumage');return;}
-    lqFeuJoue=true;
-    lqChatAllume(carte);
-  },450);
+/* ---------- La flamme du jour : une page « Bravo » (Elisa, 7 novembre, 10 h 30) ----------
+   « J’ai réussi à faire des GIF avec ChatGPT : intègre plutôt ce GIF avec une page « Bravo, ta flamme du jour s’est allumée, il en
+   reste 2 à enflammer cette semaine » (DA du site internet) ; comme ça, on ne met pas d’animation au niveau de la série du haut. »
+   La première activité validée du jour allume la flamme (noteActivityDay) ; la page attend d’être sur l’accueil (elle ne coupe pas
+   une leçon), une seule fois, le jour même. Le chat de son GIF, détouré (le fond était noir) : assets/chat-allumette.webp, 6 images
+   de 240 ms ; en mouvement réduit, sa dernière image, fixe. La semaine faite : « Ta semaine est en feu » et « 7 jours sur 7,
+   bravo ! », comme la carte. */
+const LQ_FLAMME_CLE='rq-flamme-bravo';
+function lqFlammeAttendue(iso){try{localStorage.setItem(LQ_FLAMME_CLE,iso);}catch(e){}}
+function lqFlammeBravo(){
+  if(typeof document==='undefined'||!document.documentElement.classList.contains('lq'))return;
+  let iso=null;try{iso=localStorage.getItem(LQ_FLAMME_CLE);}catch(e){}
+  if(!iso)return;
+  if(iso!==dstr(auj())){try{localStorage.removeItem(LQ_FLAMME_CLE);}catch(e){}return;}   // d’un autre jour : c’est passé
+  clearTimeout(lqFlammeBravo.t);
+  lqFlammeBravo.t=setTimeout(()=>{
+    if(!document.querySelector('#scr-learn.active')||document.getElementById('lq-flamme'))return;
+    try{localStorage.removeItem(LQ_FLAMME_CLE);}catch(e){}
+    lqFlammeOuvrir();
+  },700);
 }
-function lqChatAllume(carte){
-  carte.classList.add('is-allumage');
-  const chat=carte.querySelector('.lq-streak-chat'),jours=[...carte.querySelectorAll('.lq-day.is-done')];
-  if(!chat||!jours.length||typeof chat.animate!=='function'){carte.classList.remove('is-allumage');return;}
-  const r0=chat.getBoundingClientRect(),S=.85,cx=r0.left+r0.width/2;
-  /* Le chat se pose debout sur le haut de chaque rond (ses pattes 5 px dedans ; il est mesuré par le bas : transform-origin en bas) */
-  const pts=jours.map(j=>{const r=(j.querySelector('i')||j).getBoundingClientRect();return [r.left+r.width/2-cx,r.top+5-r0.bottom];});
-  const T0=440,TH=290,TENU=110,TR=560,tot=T0+TENU+(TH+TENU)*(pts.length-1)+TR,ease='cubic-bezier(.33,.62,.45,1)';
-  const tr=(x,y,sx,sy=sx)=>`translate(${Math.round(x)}px,${Math.round(y)}px) scale(${sx},${sy})`;
-  const k=[{transform:tr(0,0,1),offset:0,easing:ease}];
-  let t=0,px=0,py=0,ps=1;
-  pts.forEach(([x,y],i)=>{
-    const d=i?TH:T0;
-    k.push({transform:tr((px+x)/2,Math.min(py,y)-(i?20:36),(ps+S)/2),offset:(t+d/2)/tot,easing:ease});
-    t+=d;k.push({transform:tr(x,y,S*1.08,S*.88),offset:t/tot,easing:ease});   // il atterrit (et s’écrase un peu) : la flamme s’allume
-    const feu=t;setTimeout(()=>jours[i].classList.add('is-feu'),feu);
-    t+=TENU;k.push({transform:tr(x,y,S),offset:t/tot,easing:ease});
-    px=x;py=y;ps=S;
-  });
-  k.push({transform:tr(px/2,Math.min(py,0)-36,(S+1)/2),offset:(t+TR/2)/tot,easing:ease});
-  k.push({transform:tr(0,0,1),offset:1});
-  chat.animate(k,{duration:tot,fill:'none'});
-  setTimeout(()=>{
-    carte.classList.remove('is-allumage');jours.forEach(j=>j.classList.remove('is-feu'));
-    chat.classList.add('is-fier');setTimeout(()=>chat.classList.remove('is-fier'),800);
-  },tot+60);
+/* Ce que la page dit : la semaine faite, ou combien de flammes restent à allumer (les jours prévus qui viennent) */
+function lqFlammeTexte(jours){
+  const faits=jours.filter(d=>d.kind==='done').length,reste=jours.filter(d=>d.kind==='future').length;
+  const repos=d=>d.kind==='rest'||(d.kind==='today'&&typeof jourRepos==='function'&&jourRepos(d.iso));
+  if(faits&&jours.every(d=>d.kind==='done'||repos(d)))return {titre:'Ta semaine est en feu',phrase:`${faits} jour${faits>1?'s':''} sur ${faits}, bravo\u00a0!`};
+  return {titre:'Ta flamme\u00a0du\u00a0jour s’est allumée',phrase:reste?`Il en reste <b>${reste}</b> à enflammer cette semaine.`:'C’était la dernière de la semaine. Rendez-vous lundi\u00a0!'};
+}
+function lqFlammeOuvrir(){
+  const jours=typeof semaineSerie==='function'?semaineSerie():[],{titre,phrase}=lqFlammeTexte(jours);
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  const sem=jours.map((d,i)=>`<li class="is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></li>`).join('');
+  const el=document.createElement('div');
+  el.id='lq-flamme';el.className='lq-flamme';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+  el.setAttribute('aria-labelledby','lq-flamme-t');el.setAttribute('aria-describedby','lq-flamme-d');
+  el.innerHTML=`<div class="lq-flamme-in"><div class="lq-flamme-scene" aria-hidden="true"><img class="lq-flamme-chat" src="assets/${fixe?'chat-allumette-fixe':'chat-allumette'}.webp" width="437" height="506" alt="" draggable="false"></div>`
+    +`<p class="lq-flamme-bravo" aria-hidden="true">Bravo\u00a0!</p><h2 class="lq-flamme-t" id="lq-flamme-t"><span class="lq-sr">Bravo\u00a0! </span>${titre}</h2>`
+    +`${sem?`<ol class="lq-flamme-sem" aria-hidden="true">${sem}</ol>`:''}<p class="lq-flamme-d" id="lq-flamme-d">${phrase}</p>`
+    +`<button type="button" class="lq-flamme-ok" onclick="lqFlammeFermer()">Continuer</button></div>`;
+  lqFlammeOuvrir.avant=document.activeElement;
+  document.body.appendChild(el);
+  el.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();lqFlammeFermer();}});
+  const ok=el.querySelector('.lq-flamme-ok');try{ok.focus({preventScroll:true});}catch(e){ok.focus();}
+  if(typeof buzz==='function')buzz('success');
+  if(typeof lqConfetti==='function')setTimeout(()=>lqConfetti({n:40}),380);
+}
+function lqFlammeFermer(){
+  const el=document.getElementById('lq-flamme');if(!el||el.classList.contains('is-sort'))return;
+  el.classList.add('is-sort');
+  const fin=()=>{el.remove();const a=lqFlammeOuvrir.avant;if(a&&a.isConnected&&typeof a.focus==='function')try{a.focus({preventScroll:true});}catch(e){}};
+  if(typeof mascotReduced==='function'&&mascotReduced())fin();else setTimeout(fin,220);
 }
 function openAccountProgress(){
   openAccount();
@@ -44907,7 +44914,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-termine-deux-lignes-v2618';
+  const SW_CACHE='requete-2026-11-07-flamme-bravo-v2619';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
