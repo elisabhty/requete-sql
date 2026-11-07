@@ -167,7 +167,7 @@ test('le bouton : jaune soleil, anneau blanc, empreinte qui se colore, menthe un
     assert.ok(media.includes('  html:not([data-motion="reduce"]) #onboarding.ob-vitrine ' + r), r);
   assert.ok(css.includes('stroke-dasharray:24;stroke-dashoffset:0}') && css.includes('@keyframes obvHoldCoche{from{stroke-dashoffset:24}}'));
   assert.ok(!/\.ob-sign/.test(css) && !css.includes('.ob-pact-foot'), 'plus de cadre à signer');
-  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=31'), f);
+  for (const [f, s] of [['index.html', app], ['sw.js', sw]]) assert.ok(s.includes('onboarding-vitrine.css?v=32'), f);
 });
 
 /* ---------- L’haptique dans l’appli ---------- */
@@ -309,5 +309,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-07-chat-ralenti-v2621"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-07-chat-coucou-v2622"), 'le cache de l’appli change');
 });

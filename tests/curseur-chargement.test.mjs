@@ -66,7 +66,7 @@ test('le curseur : ordinateur seulement, flèche et main en autocollant, étince
 test('accueil : « Ravi de te revoir ! » à la place de « Coucou ! », en deux lignes au-dessus du chat ; le titre se coupe en français', () => {
   const hero = cut('function renderHomeHero(', 'function lqKeepMascot(');
   assert.ok(hero.includes("hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!'") && !hero.includes("'Coucou\\u00a0!'"));
-  assert.ok(app.includes("${mascotMedalHtml({hi:'Coucou\\u00a0!',intro:!mascotReduced()})}"), 'le tout premier écran de bienvenue garde « Coucou ! »');
+  assert.ok(app.includes("${mascotMedalHtml({hi:'Coucou\\u00a0!',intro:!mascotReduced(),anim:'coucou'})}"), 'le tout premier écran de bienvenue garde « Coucou ! » (et, depuis le 7 novembre, le coucou d’Elisa)');
   assert.ok(lq.includes('html.lq .lq-hero .mstk-bub{white-space:normal;width:max-content;max-width:106px;'));
   assert.ok(lq.includes('html.lq .lq-hero-title{-webkit-hyphens:auto;hyphens:auto}') && app.includes('<html lang="fr" class="lq">'));
 });

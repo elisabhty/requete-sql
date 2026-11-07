@@ -6744,9 +6744,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=199">
+<link rel="stylesheet" href="ludique.css?v=200">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=31">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=32">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -26166,7 +26166,36 @@ function mascotMedalHtml(o){
   const kw=o.niv?`<span class="mstk-niv${o.nivCourt?' is-court':''}" aria-hidden="true"><i><span>Niv.</span>${o.niv.rank}</i>${o.nivCourt?'':`<b>${esc(o.niv.label)}</b>`}</span>`
     :o.kw?`<span class="mstk-kw" aria-hidden="true">${esc(o.kw)}</span>`:'';
   const hi=o.hi?`<span class="mstk-bub" aria-hidden="true">${esc(mascotRetrouveJusqua>Date.now()?MASCOT_RETROUVE:o.hi)}</span>`:'';
-  return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:'La mascotte Requête te fait coucou')}">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">${kw}${hi}</button>`;
+  return `<button type="button" class="mascot-stk${o.intro?' is-intro':''}" onclick="mascotWave(this)" aria-label="${escAttr(o.niv?`Niveau ${o.niv.rank} : ${o.niv.label}. La mascotte Requête te fait coucou`:'La mascotte Requête te fait coucou')}">${sp}<span class="mstk-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>${mascotChatHtml(o)}${kw}${hi}</button>`;
+}
+/* Elisa, 7 novembre, 11 h 04 : son GIF du coucou (« il agite la patte, sourit, cligne des yeux ») pour l’accueil et la bienvenue.
+   12 images de 420 ms (5 s), détourées et adoucies au bord : assets/chat-coucou.webp ; sa dernière image, le chat au repos, fixe :
+   chat-coucou-fixe.webp. À la bienvenue, il salue en boucle. Sur l’accueil (o.uneFois), il fait coucou quand il dit bonjour : à
+   l’arrivée (o.joue, l’autocollant qui se colle), au coucou de la séance, au toucher et aux retrouvailles (mascotWave) ; le reste
+   du temps, il est au repos (l’image fixe). Mouvement réduit : l’image fixe. */
+const MASCOT_COUCOU='assets/chat-coucou.webp',MASCOT_COUCOU_FIXE='assets/chat-coucou-fixe.webp',MASCOT_COUCOU_MS=5040;
+function mascotChatHtml(o){
+  if(o&&o.anim==='coucou'){
+    const fixe=(typeof mascotReduced==='function'&&mascotReduced())||(!!o.uneFois&&!o.joue);
+    return `<img class="mstk-cat is-coucou" src="${fixe?MASCOT_COUCOU_FIXE:MASCOT_COUCOU}" width="289" height="352" alt="" draggable="false" data-anim="coucou"${o.uneFois?' data-une-fois=""':''}>`;
+  }
+  return `<img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">`;
+}
+/* Le coucou joué une fois : quand il a fini (5 s), l’image fixe (sa dernière pose) prend le relais. L’image animée qui n’est plus
+   affichée nulle part repart de sa première image (WebKit et Chromium remettent l’animation à zéro) : en plein coucou, on repasse
+   par l’image fixe le temps d’une image pour qu’il recommence au début. */
+function mascotCoucouPose(img){
+  clearTimeout(img._coucouT);
+  const t=()=>{clearTimeout(img._coucouT);img._coucouT=setTimeout(()=>{if(img.isConnected&&img.getAttribute('src')===MASCOT_COUCOU)img.src=MASCOT_COUCOU_FIXE;},MASCOT_COUCOU_MS-140);};
+  if(img.complete)t();else img.addEventListener('load',t,{once:true});
+}
+function mascotCoucouJoue(img){
+  if(!img||!img.hasAttribute||!img.hasAttribute('data-une-fois'))return;
+  if(typeof mascotReduced==='function'&&mascotReduced())return;
+  clearTimeout(img._coucouT);
+  const joue=()=>{img.src=MASCOT_COUCOU;mascotCoucouPose(img);};
+  if(img.getAttribute('src')===MASCOT_COUCOU){img.src=MASCOT_COUCOU_FIXE;requestAnimationFrame(()=>requestAnimationFrame(joue));}
+  else joue();
 }
 function mascotReduced(){
   return (window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||document.documentElement.dataset.motion==='reduce';
@@ -26174,6 +26203,7 @@ function mascotReduced(){
 /* Coucou : l’autocollant se balance et sautille, les confettis partent, la bulle arrive (CSS, .is-hello). */
 function mascotWave(btn){
   if(!btn||!btn.classList)return;
+  if(btn.querySelector)mascotCoucouJoue(btn.querySelector('.mstk-cat[data-une-fois]'));   // le coucou d’Elisa (7 novembre)
   btn.classList.remove('is-intro','is-hello');
   void btn.offsetWidth;   // relance l’animation, même en plein coucou
   btn.classList.add('is-hello');
@@ -26192,10 +26222,28 @@ function mascotDitRetrouve(){
 }
 function mascotGreetOnce(){
   if(mascotWavedThisSession||mascotReduced())return;
+  clearTimeout(mascotGreetOnce.t);
+  if(mascotChargement()){mascotGreetOnce.n=(mascotGreetOnce.n||0)+1;if(mascotGreetOnce.n<60)mascotGreetOnce.t=setTimeout(mascotGreetOnce,300);return;}   // l’écran de lancement : le coucou quand il est parti
+  if(!mascotAccueilLibre())return;
   const btn=document.querySelector('#scr-learn.active .mascot-stk');
   if(!btn)return;
   mascotWavedThisSession=true;
-  setTimeout(()=>mascotWave(btn),500);
+  /* L’accueil n’est plus à l’écran quand vient le coucou (la première leçon s’ouvre au bout de l’onboarding, la page « Bravo »
+     arrive) : il attend le prochain passage sur l’accueil. */
+  setTimeout(()=>{if(!btn.isConnected||!mascotAccueilLibre()){mascotWavedThisSession=false;return;}mascotWave(btn);},500);
+}
+/* L’accueil bien là, rien par-dessus (7 novembre : le coucou d’Elisa se jouait derrière l’écran de lancement, l’onboarding ou la
+   page « Bravo ») */
+function mascotChargement(){
+  const l=typeof document!=='undefined'&&document.getElementById('loader');
+  return !!(l&&l.getClientRects&&l.getClientRects().length&&!l.classList.contains('fade-out')&&!l.classList.contains('fatal'));
+}
+function mascotAccueilLibre(){
+  if(typeof document==='undefined'||!document.querySelector('#scr-learn.active')||mascotChargement())return false;
+  const ob=document.getElementById('onboarding');if(ob&&ob.classList&&ob.classList.contains('on'))return false;
+  if(document.getElementById('lq-flamme'))return false;
+  let iso=null;try{iso=localStorage.getItem('rq-flamme-bravo');}catch(e){}
+  return !(iso&&typeof dstr==='function'&&typeof auj==='function'&&iso===dstr(auj()));   // la page « Bravo » va s’ouvrir
 }
 function renderHomeHero(){
   if(typeof setTimeout==='function'&&typeof mascotGreetOnce==='function')setTimeout(mascotGreetOnce,0);
@@ -26250,10 +26298,10 @@ function renderHomeHero(){
      3 min »). VoiceOver lit toujours la séance du jour (le même résumé que le planning et le bilan). */
   const heading=`<div class="lq-hero-hi"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p>${nxt==null?sesMeta:`<span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span>`}</div>${sousT?`<p class="lq-hi-sub">${sousT}</p>`:''}`;
   /* Première ouverture de l’accueil dans la séance : l’autocollant se colle sur la carte (une seule fois). */
-  const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');
+  const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&mascotAccueilLibre();
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
-  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro}):'';
+  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro,anim:nxt==null?'':'coucou',uneFois:true,joue:intro}):'';
   if(nxt==null){
     const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${stats}${streak}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
@@ -26307,6 +26355,7 @@ function renderHomeHero(){
   const ctaLu=`${ctaLabel} : ${meta.titre}, ${(sub.charAt(0).toLowerCase()+sub.slice(1)).replace(/~/g,'environ ').replace(/\u00a0/g,' ')}`;
   const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
+  {const img=host.querySelector&&host.querySelector('.mstk-cat[data-une-fois]');if(img&&!img._coucouVu&&img.getAttribute('src')===MASCOT_COUCOU){img._coucouVu=true;mascotCoucouPose(img);}}   // l’arrivée : le coucou, puis le repos
   lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
   lqSesCount(host);
   lqPctAnime(host);
@@ -26473,6 +26522,7 @@ function lqKeepMascot(host,old){
   if(old&&fresh&&old!==fresh){
     for(const sel of ['.mstk-kw','.mstk-bub']){const a=old.querySelector(sel),b=fresh.querySelector(sel);if(a&&b&&a.textContent!==b.textContent)a.textContent=b.textContent;}
     {const a=old.querySelector('.mstk-niv'),b=fresh.querySelector('.mstk-niv');if(a&&b&&a.outerHTML!==b.outerHTML)a.replaceWith(b.cloneNode(true));}
+    {const a=old.querySelector('.mstk-cat'),b=fresh.querySelector('.mstk-cat');if(a&&b&&a.getAttribute('data-anim')!==b.getAttribute('data-anim'))a.replaceWith(b.cloneNode(true));}   // 7 novembre : le coucou
     {const l=fresh.getAttribute('aria-label');if(l!=null&&old.getAttribute('aria-label')!==l)old.setAttribute('aria-label',l);}   // le niveau qu’elle annonce (6 novembre)
     fresh.replaceWith(old);
   }
@@ -38838,7 +38888,8 @@ function lqFlammeOuvrir(){
 function lqFlammeFermer(){
   const el=document.getElementById('lq-flamme');if(!el||el.classList.contains('is-sort'))return;
   el.classList.add('is-sort');
-  const fin=()=>{el.remove();const a=lqFlammeOuvrir.avant;if(a&&a.isConnected&&typeof a.focus==='function')try{a.focus({preventScroll:true});}catch(e){}};
+  const fin=()=>{el.remove();const a=lqFlammeOuvrir.avant;if(a&&a.isConnected&&typeof a.focus==='function')try{a.focus({preventScroll:true});}catch(e){}
+    if(typeof mascotGreetOnce==='function')mascotGreetOnce();};   // le chat dit bonjour, s’il ne l’a pas encore fait (7 novembre)
   if(typeof mascotReduced==='function'&&mascotReduced())fin();else setTimeout(fin,220);
 }
 function openAccountProgress(){
@@ -43054,7 +43105,7 @@ function paintOb(){
         <span class="ob-hk ob-hk-1" aria-hidden="true">SELECT</span><span class="ob-hk ob-hk-2" aria-hidden="true">JOIN</span>
         <span class="ob-hs ob-hs-1" aria-hidden="true"><span class="ob-stk sun">Comme un jeu${OB_STK_JEU}</span></span>
         <span class="ob-hs ob-hs-2" aria-hidden="true"><span class="ob-stk lav">Cartes mémo${OB_STK_MEMO}</span></span>
-        ${mascotMedalHtml({hi:'Coucou\u00a0!',intro:!mascotReduced()})}
+        ${mascotMedalHtml({hi:'Coucou\u00a0!',intro:!mascotReduced(),anim:'coucou'})}
       </div>
       <h1 class="ob-title" id="ob-title">Apprends le SQL<br><em>en pratiquant</em>.</h1>
       <p class="ob-lead">Écris tes requêtes sur une vraie base SQLite, exécute-les dans ton navigateur et vois aussitôt le résultat. Rien à installer. Choisis ton parcours en quelques étapes.</p>${invite}
@@ -44915,7 +44966,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-ralenti-v2621';
+  const SW_CACHE='requete-2026-11-07-chat-coucou-v2622';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

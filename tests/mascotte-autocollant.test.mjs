@@ -59,10 +59,11 @@ test('mascotMedalHtml : un bouton avec l’autocollant, son mot-clé, ses étinc
 
 test('accueil : arrivée collée une fois par séance, coucou au toucher, autocollant gardé d’un rendu à l’autre', () => {
   const hero = entre('function renderHomeHero(){', 'const LQ_VIDEO_SVG=');
-  assert.ok(hero.includes("const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&!!document.querySelector('#scr-learn.active');"));
+  /* 7 novembre : l’accueil vraiment à l’écran (mascotAccueilLibre : plus derrière l’écran de lancement ni l’onboarding) */
+  assert.ok(hero.includes("const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&mascotAccueilLibre();"));
   assert.ok(hero.includes('if(intro){mascotWavedThisSession=true;'), 'une seule arrivée par séance');
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » sur l’accueil (Elisa, 30 octobre, 22 h 58) ; l’écran de bienvenue garde « Coucou ! » */
-  assert.ok(hero.includes("mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!',intro})"));
+  assert.ok(hero.includes("mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!',intro,anim:nxt==null?'':'coucou',uneFois:true,joue:intro})"), 'le coucou d’Elisa (7 novembre) sur la carte d’une leçon');
   assert.ok(hero.includes("for(const sel of ['.mstk-kw','.mstk-bub'])") && hero.includes('fresh.replaceWith(old);'), 'gardé, textes remis à jour');
   const wave = entre('function mascotWave(btn){', 'function mascotGreetOnce(){');
   assert.ok(wave.includes("btn.classList.add('is-hello');") && wave.includes('void btn.offsetWidth;') && wave.includes("setTimeout(()=>btn.classList.remove('is-hello'),2900)"));
@@ -91,12 +92,12 @@ test('onboarding : scène d’autocollants à la bienvenue, autocollant dans les
   assert.ok(accueil.includes('<div class="ob-hello-stage">'));
   assert.ok(accueil.includes('<span class="ob-stk sun">Comme un jeu${OB_STK_JEU}</span>') && accueil.includes('<span class="ob-stk lav">Cartes mémo${OB_STK_MEMO}</span>'), 'les deux stickers de la vitrine');
   assert.ok(accueil.includes('>SELECT</span>') && accueil.includes('>JOIN</span>'), 'mots-clés qui flottent');
-  assert.ok(accueil.includes("${mascotMedalHtml({hi:'Coucou\\u00a0!',intro:!mascotReduced()})}"));
+  assert.ok(accueil.includes("${mascotMedalHtml({hi:'Coucou\\u00a0!',intro:!mascotReduced(),anim:'coucou'})}"), 'le coucou d’Elisa en boucle (7 novembre)');
   assert.ok(html.includes('return `<div class="ob-chat"><img class="ob-chat-stk" src="${MASCOT_IMG}" width="450" height="674" alt="La mascotte Requête" draggable="false">'), 'bulles : l’autocollant');
   assert.ok(entre("html=`<div class=\"ob-screen ready\">", 'obSetFooter(').includes("${mascotMedalHtml({hi:'C’est parti\\u00a0!',intro:!mascotReduced()})}"), 'écran final');
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-chat img{width:72px!important;height:auto!important;aspect-ratio:450/674;border-radius:0!important;') && ob.includes('filter:none!important;rotate:-5deg;'), 'plus d’avatar rond, ombre dans l’image');
   assert.ok(ob.includes('@media (max-height:740px){\n  html #onboarding.ob-vitrine .ob-hello-stage{height:152px;'), 'scène plus basse sur les petits écrans');
-  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=31">') && sw.includes("'./onboarding-vitrine.css?v=31'"), 'feuille rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=32">') && sw.includes("'./onboarding-vitrine.css?v=32'"), 'feuille rechargée');
 });
 
 test('fin de leçon et fin de parcours : l’autocollant, qui danse tant que la réussite est affichée', () => {
