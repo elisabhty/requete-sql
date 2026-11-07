@@ -93,11 +93,11 @@ test('onboarding : scène d’autocollants à la bienvenue, autocollant dans les
   assert.ok(accueil.includes('<span class="ob-stk sun">Comme un jeu${OB_STK_JEU}</span>') && accueil.includes('<span class="ob-stk lav">Cartes mémo${OB_STK_MEMO}</span>'), 'les deux stickers de la vitrine');
   assert.ok(accueil.includes('>SELECT</span>') && accueil.includes('>JOIN</span>'), 'mots-clés qui flottent');
   assert.ok(accueil.includes("${mascotMedalHtml({hi:'Coucou\\u00a0!',intro:!mascotReduced(),anim:'coucou'})}"), 'le coucou d’Elisa en boucle (7 novembre)');
-  assert.ok(html.includes('return `<div class="ob-chat"><img class="ob-chat-stk" src="${MASCOT_IMG}" width="450" height="674" alt="La mascotte Requête" draggable="false">'), 'bulles : l’autocollant');
+  assert.ok(html.includes('return `<div class="ob-chat"><img class="ob-chat-stk is-question" src="${fixe?MASCOT_QUESTION_FIXE:MASCOT_QUESTION}" width="287" height="362" alt="La mascotte Requête" draggable="false">'), 'bulles : le chat qui pose la question (GIF d’Elisa, 7 novembre, 11 h 45)');
   assert.ok(entre("html=`<div class=\"ob-screen ready\">", 'obSetFooter(').includes("${mascotMedalHtml({hi:'C’est parti\\u00a0!',intro:!mascotReduced()})}"), 'écran final');
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-chat img{width:72px!important;height:auto!important;aspect-ratio:450/674;border-radius:0!important;') && ob.includes('filter:none!important;rotate:-5deg;'), 'plus d’avatar rond, ombre dans l’image');
   assert.ok(ob.includes('@media (max-height:740px){\n  html #onboarding.ob-vitrine .ob-hello-stage{height:152px;'), 'scène plus basse sur les petits écrans');
-  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=33">') && sw.includes("'./onboarding-vitrine.css?v=33'"), 'feuille rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=34">') && sw.includes("'./onboarding-vitrine.css?v=34'"), 'feuille rechargée');
 });
 
 test('fin de leçon et fin de parcours : l’autocollant, qui danse tant que la réussite est affichée', () => {
