@@ -41899,11 +41899,107 @@ function obWidgetTutoJouer(){
   };
   etape();
 }
+/* ---------- La requête de poche (le widget de l’app iPhone : RequeteWidget.swift, RequetePoche) ----------
+   Elisa, 7 novembre (« Requête de poche ») : une question par leçon, une requête à trou et trois réponses, dont une seule marche ;
+   on répond dans le widget, sans ouvrir l’app. Son choix pour la flamme : « la séance seule » (une bonne réponse dans le widget ne
+   l’allume pas). l : la leçon ; q : les lignes de la requête, « ___ » à la place du trou (quatre lignes au plus) ; c : les trois
+   réponses ; b : la bonne ; oui, non : le pourquoi d’une bonne et d’une mauvaise réponse, les mots de SQL entre accents graves (le
+   widget les écrit en code). Un commentaire SQL dit ce qu’on cherche quand plusieurs réponses s’exécutent. tests/ios-poche.test.mjs
+   exécute chaque requête sur la base de l’app : la bonne réponse marche, chaque autre échoue ou donne autre chose. */
+const POCHE=[
+ /* Introduction */
+ {l:0,q:['-- le prénom et le nom','SELECT prenom___ nom','FROM clients;'],c:[',','AND','+'],b:0,oui:'La virgule sépare les colonnes.',non:'Sans virgule, pas de seconde colonne.'},
+ /* Lire une table */
+ {l:2,q:['SELECT prenom ___ client','FROM clients;'],c:['IS','AS','TO'],b:1,oui:'`AS` renomme la colonne du résultat.',non:'Pour renommer une colonne, c’est `AS`.'},
+ {l:13,q:['-- chaque ville une fois','SELECT ___ ville','FROM clients;'],c:['UNIQUE','SINGLE','DISTINCT'],b:2,oui:'`DISTINCT` retire les doublons.',non:'Des valeurs uniques\u00a0: `DISTINCT`.'},
+ {l:4,q:['SELECT prenom FROM clients','WHERE ville = ___;'],c:['\'Paris\'','Paris','(Paris)'],b:0,oui:'Un texte s’écrit entre guillemets.',non:'Sans guillemets, c’est une colonne.'},
+ {l:5,q:['-- 60 unités ou moins','SELECT nom FROM produits','WHERE stock ___ 60;'],c:['<','<=','=<'],b:1,oui:'`<=` garde aussi le stock de 60.',non:'«\u00a0Ou moins\u00a0» s’écrit `<=`.'},
+ {l:6,q:['SELECT prenom FROM clients','WHERE ville = \'Paris\'','   ___ ville = \'Lyon\';'],c:['AND','NOR','OR'],b:2,oui:'`OR` garde les deux villes.',non:'Une seule ville par client\u00a0: `OR`.'},
+ {l:22,q:['-- tous, sauf ceux de Paris','SELECT prenom FROM clients','WHERE ___ ville = \'Paris\';'],c:['NOT','NO','EXCEPT'],b:0,oui:'`NOT` inverse la condition.',non:'Pour exclure\u00a0: `NOT`.'},
+ {l:7,q:['-- les clients sans e-mail','SELECT prenom FROM clients','WHERE email ___ NULL;'],c:['=','IS','=='],b:1,oui:'`IS NULL` trouve les valeurs absentes.',non:'Avec `= NULL`, aucune ligne.'},
+ {l:8,q:['-- les prénoms en L','SELECT prenom FROM clients','WHERE prenom LIKE ___;'],c:['\'L\'','\'%L\'','\'L%\''],b:2,oui:'`%` remplace la suite du prénom.',non:'Commence par L\u00a0: `\'L%\'`.'},
+ {l:9,q:['SELECT prenom FROM clients','WHERE id ___ (2, 5, 9);'],c:['IN','=','ON'],b:0,oui:'`IN` compare à toute la liste.',non:'Pour une liste de valeurs\u00a0: `IN`.'},
+ {l:10,q:['SELECT nom FROM produits','WHERE prix BETWEEN 15','  ___ 30;'],c:['TO','AND',','],b:1,oui:'Les deux bornes sont comprises.',non:'On écrit `BETWEEN 15 AND 30`.'},
+ {l:11,q:['-- le plus gros stock d’abord','SELECT nom FROM produits','ORDER BY stock ___;'],c:['DOWN','ASC','DESC'],b:2,oui:'`DESC` trie du plus grand au plus petit.',non:'Du plus grand au plus petit\u00a0: `DESC`.'},
+ {l:12,q:['-- la 2e page de 3 produits','SELECT nom FROM produits','ORDER BY id LIMIT 3 ___ 3;'],c:['OFFSET','FROM','SKIP'],b:0,oui:'`OFFSET` saute les 3 premiers.',non:'Pour sauter des lignes\u00a0: `OFFSET`.'},
+ /* Fonctions et expressions */
+ {l:51,q:['SELECT UPPER(nom) ___ \' \'','  || prenom AS etiquette','FROM clients;'],c:['+','||','&'],b:1,oui:'`||` met les textes bout à bout.',non:'Pour assembler du texte\u00a0: `||`.'},
+ {l:52,q:['-- 1 point par euro entier','SELECT nom, ___(prix)','FROM produits;'],c:['ROUND','CEIL','FLOOR'],b:2,oui:'`FLOOR` arrondit à l’entier inférieur.',non:'Vers l’entier inférieur\u00a0: `FLOOR`.'},
+ {l:53,q:['-- 7 jours après la commande','SELECT DATE(date_commande,','  ___) FROM commandes;'],c:['\'+7 days\'','7','+7'],b:0,oui:'Le décalage s’écrit en texte.',non:'7 jours de plus\u00a0: `\'+7 days\'`.'},
+ {l:54,q:['SELECT CAST(stock','  ___ TEXT)','FROM produits;'],c:['TO','AS','IN'],b:1,oui:'`CAST(… AS type)` change le type.',non:'Dans `CAST`, le type suit `AS`.'},
+ {l:21,q:['SELECT nom, CASE WHEN stock < 50','  ___ \'À commander\' ELSE \'OK\'','  END FROM produits;'],c:['SO','DO','THEN'],b:2,oui:'`THEN` donne la valeur du cas.',non:'Après `WHEN`, la valeur suit `THEN`.'},
+ {l:23,q:['SELECT prenom,','  ___(email, \'Inconnu\')','FROM clients;'],c:['COALESCE','IFEMPTY','REPLACE'],b:0,oui:'`COALESCE` remplace les `NULL`.',non:'Pour remplacer un `NULL`\u00a0: `COALESCE`.'},
+ /* Agrégats et regroupements */
+ {l:14,q:['-- le nombre de catégories','SELECT COUNT(___ categorie)','FROM produits;'],c:['ALL','DISTINCT','UNIQUE'],b:1,oui:'Chaque catégorie compte une fois.',non:'Sans doublons\u00a0: `COUNT(DISTINCT …)`.'},
+ {l:85,q:['-- le prix moyen','SELECT ROUND(___(prix), 2)','FROM produits;'],c:['SUM','MEAN','AVG'],b:2,oui:'`AVG` calcule la moyenne.',non:'La moyenne, c’est `AVG`.'},
+ {l:16,q:['SELECT ville, COUNT(*)','FROM clients','___ ville;'],c:['GROUP BY','PER','ORDER BY'],b:0,oui:'`GROUP BY` fait un groupe par ville.',non:'Un calcul par groupe\u00a0: `GROUP BY`.'},
+ {l:87,q:['SELECT ville, age, COUNT(*)','FROM clients','GROUP BY ville___ age;'],c:['AND',',','THEN'],b:1,oui:'Un groupe par ville et par âge.',non:'Une virgule entre les colonnes.'},
+ {l:17,q:['SELECT ville, COUNT(*)','FROM clients GROUP BY ville','___ COUNT(*) >= 2;'],c:['WHERE','ON','HAVING'],b:2,oui:'`HAVING` filtre les groupes.',non:'Après `GROUP BY`, c’est `HAVING`.'},
+ {l:88,q:['SELECT ville, COUNT(*) AS nb','FROM clients GROUP BY ville','___ nb DESC;'],c:['ORDER BY','HAVING','WHERE'],b:0,oui:'L’alias existe déjà pour `ORDER BY`.',non:'Trier, c’est `ORDER BY`, à la fin.'},
+ {l:76,q:['SELECT ville,','  ___(prenom, \', \')','FROM clients GROUP BY ville;'],c:['CONCAT','GROUP_CONCAT','JOIN'],b:1,oui:'Une liste de prénoms par ville.',non:'La liste d’un groupe\u00a0: `GROUP_CONCAT`.'},
+ /* Jointures */
+ {l:18,q:['SELECT prenom FROM commandes','INNER JOIN clients','  ___ clients.id = client_id;'],c:['BY','AS','ON'],b:2,oui:'`ON` définit comment relier les lignes.',non:'La condition de jointure suit `ON`.'},
+ {l:20,q:['-- tous, même sans carte','FROM clients ___ JOIN fidelite','  ON clients.id = client_id'],c:['LEFT','INNER','RIGHT'],b:0,oui:'`LEFT JOIN` garde toute la gauche.',non:'Toute la gauche\u00a0: `LEFT JOIN`.'},
+ {l:38,q:['-- toutes les commandes','FROM clients ___ JOIN commandes','  ON clients.id = client_id'],c:['LEFT','RIGHT','INNER'],b:1,oui:'`RIGHT JOIN` garde toute la droite.',non:'Toute la droite\u00a0: `RIGHT JOIN`.'},
+ {l:39,q:['-- les deux côtés en entier','FROM clients ___ OUTER JOIN','commandes ON clients.id = client_id'],c:['CROSS','LEFT','FULL'],b:2,oui:'`FULL OUTER JOIN` garde les deux côtés.',non:'Les deux côtés\u00a0: `FULL OUTER JOIN`.'},
+ {l:40,q:['-- toutes les combinaisons','SELECT prenom, produits.nom','FROM clients ___ JOIN produits;'],c:['CROSS','OUTER','ALL'],b:0,oui:'Chaque client avec chaque produit.',non:'Toutes les combinaisons\u00a0: `CROSS JOIN`.'},
+ {l:19,q:['-- chaque commande, son produit','FROM commandes JOIN produits','  ON ___ = produits.id'],c:['client_id','produit_id','id'],b:1,oui:'Le lien passe par `produit_id`.',non:'`produit_id` désigne le produit commandé.'},
+ {l:41,q:['SELECT ville, COUNT(*)','FROM commandes JOIN clients','  ON client_id = clients.id','___ ville;'],c:['HAVING','ORDER BY','GROUP BY'],b:2,oui:'Un compte par ville, après la jointure.',non:'Un compte par ville\u00a0: `GROUP BY`.'},
+ {l:42,q:['SELECT a.prenom, b.prenom','FROM clients AS a JOIN ___','  AS b ON a.ville = b.ville;'],c:['clients','commandes','villes'],b:0,oui:'La même table, sous deux noms.',non:'On joint la table à elle-même.'},
+ {l:49,q:['SELECT statut FROM commandes','JOIN clients ON clients.id =','  client_id ___ ville = \'Paris\';'],c:['OR','AND','WITH'],b:1,oui:'`AND` ajoute une condition dans `ON`.',non:'Une 2e condition dans `ON`\u00a0: `AND`.'},
+ {l:44,q:['-- seulement avec une carte','FROM clients ___ JOIN fidelite','  ON clients.id = client_id'],c:['LEFT','FULL','INNER'],b:2,oui:'`INNER` ne garde que les correspondances.',non:'Sans carte, pas de ligne\u00a0: `INNER`.'},
+ /* Sous-requêtes et ensembles */
+ {l:45,q:['SELECT prenom FROM clients','WHERE id ___ (SELECT client_id','  FROM commandes);'],c:['IN','=','LIKE'],b:0,oui:'`IN` compare à toute la liste renvoyée.',non:'Avec `=`, une seule valeur compte.'},
+ {l:47,q:['SELECT nom, (SELECT COUNT(*)','  FROM commandes WHERE produit_id','  = ___) FROM produits;'],c:['id','produits.id','nom'],b:1,oui:'Un compte pour chaque produit.',non:'Sans `produits.id`, le lien est perdu.'},
+ {l:48,q:['SELECT AVG(___) FROM (','  SELECT stock * prix AS valeur','  FROM produits);'],c:['prix','stock','valeur'],b:2,oui:'Seul l’alias `valeur` existe dehors.',non:'Seule `valeur` sort de la sous-requête.'},
+ {l:92,q:['CREATE TABLE invites ___','SELECT prenom, email','FROM clients;'],c:['AS','FROM','INTO'],b:0,oui:'Le résultat est copié dans la table.',non:'On écrit `CREATE TABLE invites AS`.'},
+ {l:55,q:['SELECT prenom FROM clients WHERE','  ___ (SELECT 1 FROM commandes','  WHERE client_id = clients.id);'],c:['IN','EXISTS','ANY'],b:1,oui:'Vrai s’il existe une ligne liée.',non:'Tester une présence\u00a0: `EXISTS`.'},
+ {l:86,q:['-- plus cher que chacun d’eux','WHERE prix > ___ (SELECT prix','  FROM produits WHERE stock < 50)'],c:['ANY','EACH','ALL'],b:2,oui:'`ALL`\u00a0: plus grand que chaque valeur.',non:'Plus que tous, c’est `ALL`.'},
+ {l:59,q:['___ totaux AS (','  SELECT * FROM commandes)','SELECT * FROM totaux;'],c:['WITH','CREATE','AS'],b:0,oui:'`WITH` nomme un résultat pour la suite.',non:'Une CTE commence par `WITH`.'},
+ {l:73,q:['SELECT client_id FROM commandes','___ -- doublons compris','SELECT client_id FROM fidelite;'],c:['UNION','UNION ALL','AND'],b:1,oui:'`UNION ALL` garde tous les doublons.',non:'`UNION` seul retire les doublons.'},
+ {l:80,q:['-- les clients sans commande','SELECT id FROM clients ___','SELECT client_id FROM commandes;'],c:['INTERSECT','UNION','EXCEPT'],b:2,oui:'`EXCEPT` retire ce que la 2e renvoie.',non:'Sans ceux de la 2e requête\u00a0: `EXCEPT`.'},
+ {l:77,q:['WITH ___ n(x) AS (','  SELECT 1 UNION ALL','  SELECT x + 1 FROM n WHERE x < 5)','SELECT x FROM n;'],c:['RECURSIVE','LOOP','REPEAT'],b:0,oui:'`WHERE x < 5` arrête la suite.',non:'Une suite\u00a0: `WITH RECURSIVE`.'},
+ /* Fonctions de fenêtre */
+ {l:60,q:['SELECT nom, COUNT(*) ___ (','  PARTITION BY categorie)','FROM produits;'],c:['BY','OVER','IN'],b:1,oui:'`OVER` calcule sans regrouper.',non:'Une fenêtre s’ouvre avec `OVER`.'},
+ {l:74,q:['-- même rang pour les ex æquo','SELECT ___() OVER (ORDER BY','  categorie) FROM produits;'],c:['ROW_NUMBER','SUM','RANK'],b:2,oui:'`RANK` met les ex æquo au même rang.',non:'`ROW_NUMBER` sépare les ex æquo.'},
+ {l:78,q:['-- la commande d’avant','SELECT ___(date_commande) OVER (','  ORDER BY id) FROM commandes;'],c:['LAG','LEAD','PREV'],b:0,oui:'`LAG` renvoie la valeur d’avant.',non:'Avant\u00a0: `LAG`\u00a0; après\u00a0: `LEAD`.'},
+ {l:79,q:['SELECT SUM(quantite) OVER (','  ORDER BY id ROWS ___','  PRECEDING) FROM commandes;'],c:['ALL','UNBOUNDED','FIRST'],b:1,oui:'Depuis la 1re ligne\u00a0: un cumul.',non:'Un cumul\u00a0: `UNBOUNDED PRECEDING`.'},
+ {l:89,q:['-- 3 gammes de prix égales','SELECT nom, ___(3) OVER (','  ORDER BY prix) FROM produits;'],c:['SPLIT','RANK','NTILE'],b:2,oui:'`NTILE(3)` fait 3 groupes égaux.',non:'Des groupes égaux\u00a0: `NTILE`.'},
+ /* Modéliser */
+ {l:56,q:['CREATE TABLE inscriptions (','  client_id INTEGER,','  ___ INTEGER);'],c:['atelier_id','titre','tarif'],b:0,oui:'L’atelier est relié par sa clé.',non:'Titre et tarif vont dans `ateliers`.'},
+ {l:72,q:['CREATE TABLE avis (id INTEGER,','  client_id INTEGER','  ___ clients(id));'],c:['LINKS','REFERENCES','JOIN'],b:1,oui:'La clé étrangère renvoie à `clients`.',non:'Une clé étrangère\u00a0: `REFERENCES`.'},
+ {l:81,q:['-- 1 client, n commandes','ALTER TABLE ___','  ADD client_id INTEGER;'],c:['clients','produits','commandes'],b:2,oui:'La clé étrangère va du côté «\u00a0n\u00a0».',non:'Côté «\u00a0plusieurs\u00a0»\u00a0: `commandes`.'},
+ /* Créer et faire évoluer les tables */
+ {l:61,q:['___ TABLE ateliers (','  id INTEGER PRIMARY KEY,','  titre TEXT);'],c:['CREATE','NEW','MAKE'],b:0,oui:'`CREATE TABLE` crée la structure.',non:'Une table se crée avec `CREATE`.'},
+ {l:65,q:['-- une colonne de plus','ALTER TABLE clients','  ___ COLUMN pays TEXT;'],c:['SET','ADD','NEW'],b:1,oui:'`ADD COLUMN` ajoute une colonne.',non:'Ajouter une colonne\u00a0: `ADD COLUMN`.'},
+ {l:66,q:['-- supprimer la table entière','___ TABLE fidelite;'],c:['DELETE','REMOVE','DROP'],b:2,oui:'`DROP TABLE` supprime la table.',non:'`DELETE` agit sur les lignes.'},
+ {l:84,q:['CREATE ___ boutique;','SELECT *','FROM boutique.commandes;'],c:['SCHEMA','DATABASE','FOLDER'],b:0,oui:'Un schéma range les tables de la base.',non:'`DATABASE` créerait une autre base.'},
+ /* Écrire et modifier les données */
+ {l:26,q:['INSERT INTO clients','  (prenom, ville)','___ (\'Théo\', \'Lille\');'],c:['SET','VALUES','WITH'],b:1,oui:'`VALUES` suit l’ordre des colonnes.',non:'Après les colonnes, `VALUES`.'},
+ {l:27,q:['UPDATE produits','___ stock = stock + 10','WHERE id = 8;'],c:['VALUES','TO','SET'],b:2,oui:'`SET` donne la nouvelle valeur.',non:'Dans `UPDATE`, on écrit `SET`.'},
+ {l:82,q:['MERGE INTO produits','USING entrepot','  ___ produits.id = entrepot.id'],c:['ON','WHERE','BY'],b:0,oui:'`ON` relie les deux tables.',non:'Dans `MERGE`, la condition suit `ON`.'},
+ {l:28,q:['-- seulement la commande 15','DELETE FROM commandes','___ id = 15;'],c:['AND','WHERE','ON'],b:1,oui:'`WHERE` limite la suppression.',non:'Sans `WHERE`, la table est vidée.'},
+ /* Intégrité des tables liées */
+ {l:68,q:['CREATE TABLE avis (id INTEGER,','  client_id INTEGER REFERENCES','  clients(id) ON DELETE ___);'],c:['ALL','DROP','CASCADE'],b:2,oui:'Les lignes liées partent avec.',non:'Par exemple `CASCADE` ou `SET NULL`.'},
+ /* Transactions et concurrence */
+ {l:62,q:['BEGIN;','UPDATE produits SET stock = 50','  WHERE id = 3; ___;'],c:['COMMIT','SAVE','STOP'],b:0,oui:'`COMMIT` valide tout d’un coup.',non:'Pour valider\u00a0: `COMMIT`.'},
+ {l:63,q:['SAVEPOINT avant_prix;','UPDATE produits SET prix = 0;','ROLLBACK ___ avant_prix;'],c:['AT','TO','FROM'],b:1,oui:'Retour au point de sauvegarde.',non:'On écrit `ROLLBACK TO` et son nom.'},
+ {l:71,q:['SET TRANSACTION','  ISOLATION ___','  SERIALIZABLE;'],c:['MODE','TYPE','LEVEL'],b:2,oui:'Le niveau d’isolation le plus strict.',non:'On écrit `ISOLATION LEVEL`.'},
+ /* Procédures et triggers */
+ {l:83,q:['-- lancer la procédure','___ expedier_commande(13);'],c:['CALL','START','RUN'],b:0,oui:'`CALL` lance une procédure stockée.',non:'Une procédure se lance avec `CALL`.'},
+ {l:70,q:['-- après chaque commande','CREATE TRIGGER stock_moins','  ___ INSERT ON commandes'],c:['WHEN','AFTER','THEN'],b:1,oui:'`AFTER INSERT`\u00a0: juste après l’ajout.',non:'Après l’ajout, c’est `AFTER`.'},
+ /* Vues, index et optimisation */
+ {l:64,q:['-- une requête enregistrée','CREATE ___ villes AS SELECT','  DISTINCT ville FROM clients;'],c:['TABLE','QUERY','VIEW'],b:2,oui:'Une vue, c’est une requête nommée.',non:'Une requête enregistrée\u00a0: `CREATE VIEW`.'},
+ {l:57,q:['-- retrouver plus vite','CREATE ___ idx_numero','  ON commandes(numero_commande);'],c:['INDEX','KEY','SEARCH'],b:0,oui:'Un index accélère la recherche.',non:'Pour aller plus vite\u00a0: `CREATE INDEX`.'},
+ /* Sécurité et droits */
+ {l:50,q:['___ SELECT','ON commandes','TO lina;'],c:['GIVE','GRANT','ALLOW'],b:1,oui:'`GRANT` accorde un droit.',non:'Un droit s’accorde avec `GRANT`.'}
+];
 /* ---------- Le widget de l’app iPhone : la série, mise à jour en partant ----------
    Le widget (RequeteWidget.swift) lit la série dans le groupe d’apps : la série, le jour où elle a été comptée, si ce jour est fait,
    et le dernier jour où une activité la garde (les jours de repos du planning sont sautés). Envoyée au démarrage et chaque fois que
    l’app passe en arrière-plan ; sans le pont natif (web, ancienne version de l’app), rien ne se passe.
-   7 novembre (« Cheminée + lunettes ») : le widget La cheminée y lit aussi ce qui décore la pièce (widgetCheminee). */
+   7 novembre (« Cheminée + lunettes ») : le widget La cheminée y lit aussi ce qui décore la pièce (widgetCheminee) ; la requête de
+   poche, ses questions du jour (widgetPoche). */
 let widgetDernier='';
 function widgetMaj(){
   try{
@@ -41912,7 +42008,7 @@ function widgetMaj(){
     const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
     let d=fait?addJ(t,1):t;
     for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
-    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee()},k=JSON.stringify(data);
+    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche())},k=JSON.stringify(data);
     if(k===widgetDernier)return;
     widgetDernier=k;
     Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
@@ -41940,6 +42036,25 @@ function widgetCheminee(){
     if(der!=null)v.carte=CARTES[der].k;
   }catch(e){}
   return v;
+}
+/* La requête de poche : jusqu’à vingt questions des leçons faites (POCHE), celles à revoir d’abord, avec le nom de leur module.
+   Le même ordre toute la journée (la date sert de graine), un autre le lendemain : le widget repart alors de la première. */
+function widgetPoche(){
+  try{
+    const faites=new Set(allLessons.filter(l=>itemDone(l.id)).map(l=>l.id));
+    if(!faites.size)return [];
+    const module={};
+    MODULES.forEach(m=>m.lessons.forEach(l=>{module[l.id]=m.titre;}));
+    let aRevoir=new Set();
+    try{aRevoir=new Set(dueList().map(l=>l.id));}catch(e){}
+    const graine=dstr(auj());
+    const hache=s=>{let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h;};
+    return POCHE.filter(p=>faites.has(p.l))
+      .map(p=>({p,rang:aRevoir.has(p.l)?0:1,h:hache(graine+':'+p.l)}))
+      .sort((x,y)=>x.rang-y.rang||x.h-y.h)
+      .slice(0,20)
+      .map(({p})=>({titre:module[p.l]||'',code:p.q,choix:p.c,bon:p.b,oui:p.oui,non:p.non}));
+  }catch(e){return [];}
 }
 if(typeof document!=='undefined'&&document.addEventListener){
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')widgetMaj(); });
@@ -45182,7 +45297,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-cheminee-v2637';
+  const SW_CACHE='requete-2026-11-07-poche-v2638';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

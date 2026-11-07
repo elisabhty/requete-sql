@@ -237,7 +237,7 @@ test('la page range la pièce : stickers gagnés, défis réussis, modules finis
   const vide = vm.createContext({});
   vm.runInContext(src, vide);
   assert.deepEqual(JSON.parse(JSON.stringify(vide.widgetCheminee())), { stickers: 0, trophees: 0, diplomes: 0, prochaine: '', cle: '', defi: false, carte: '' });
-  assert.ok(app.includes('const data={serie,jour,fait,limite:dstr(d),...widgetCheminee()},k=JSON.stringify(data);'), 'avec la série, en une fois');
+  assert.ok(app.includes('const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche())},k=JSON.stringify(data);'), 'avec la série, en une fois (et la requête de poche)');
 });
 
 test('« Allumer ma flamme » ouvre la séance du jour ; pendant l’onboarding, un bandeau le dit ; en séance, on y reste', () => {

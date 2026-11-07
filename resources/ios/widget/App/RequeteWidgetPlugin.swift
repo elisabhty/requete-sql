@@ -8,7 +8,8 @@ import ActivityKit
 // - le widget (3 h 54) : index.html (widgetMaj) appelle Capacitor.nativePromise('RequeteWidget', 'maj', { serie, jour, fait, limite }) ;
 //   la série est rangée dans le groupe d’apps, que le widget (RequeteWidget.swift) relit, puis le widget est redessiné. 7 novembre
 //   (« Cheminée + lunettes ») : la cheminée y lit aussi les stickers gagnés, les défis réussis, les modules finis, la prochaine
-//   activité (titre, mot-clé de sa carte mémo, défi ou non) et la dernière carte mémo gagnée ;
+//   activité (titre, mot-clé de sa carte mémo, défi ou non) et la dernière carte mémo gagnée ; la requête de poche, ses questions
+//   du jour ;
 // - les raccourcis de l’icône (9 h 02, « comment avoir ça », d’après Duolingo) : la page les pose (raccourcis), et le raccourci
 //   choisi lui revient en événement « raccourci », gardé jusqu’à ce qu’elle l’écoute, même si l’app était fermée ;
 // - sous le clavier (11 h 08, « en bas, tu vois du noir sur les deux côtés, je préfère du transparent ») : la page rétrécit au-dessus
@@ -90,6 +91,14 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         d.set(call.getString("cle") ?? "", forKey: "cle")
         d.set(call.getBool("defi") ?? false, forKey: "defi")
         d.set(call.getString("carte") ?? "", forKey: "carte")
+        // La requête de poche (RequeteWidget.swift, PocheRangement) : les questions du jour, en JSON. Une nouvelle série repart de
+        // sa première question ; la même (l’app la renvoie en partant) laisse le widget où il en est.
+        let poche: String = call.getString("poche") ?? "[]"
+        if poche != (d.string(forKey: "poche") ?? "") {
+            d.set(poche, forKey: "poche")
+            d.set(0, forKey: "pocheIndex")
+            d.set(-1, forKey: "pocheChoix")
+        }
         WidgetCenter.shared.reloadAllTimelines()
         call.resolve()
     }

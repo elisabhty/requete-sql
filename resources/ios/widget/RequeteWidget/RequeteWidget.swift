@@ -1,6 +1,7 @@
 import WidgetKit
 import SwiftUI
 import ActivityKit
+import AppIntents
 
 // Le widget de Requête (Elisa, 4 novembre, 3 h 54, d’après l’onboarding de Duolingo) : la flamme du jour et le chat qui dépasse
 // du bas, sur le violet de l’app (12 h 35 : « pourquoi 12 ? non, je veux que la flamme du jour ! » : plus de nombre de jours). L’app (index.html, widgetMaj) range la série dans le groupe d’apps
@@ -1494,6 +1495,640 @@ struct RequeteCheminee: Widget {
     }
 }
 
+// MARK: - La requête de poche (widget moyen, interactif à partir d’iOS 17)
+//
+// Elisa, 7 novembre (« Requête de poche », d’après la planche : « Une question tirée de tes leçons. Tu réponds dans le widget, sans
+// ouvrir l’app. ») : une requête à trou et trois réponses, dont une seule marche. Bonne réponse : « Bien vu ! », le chat hoche la
+// tête et le trou se remplit ; sinon « Presque ! », la bonne réponse s’allume, avec le pourquoi en une ligne. La flèche passe à la
+// question suivante. L’app range une vingtaine de questions des leçons faites (index.html, POCHE et widgetPoche ; le pont les
+// garde, RequeteWidgetPlugin.swift). Son choix pour la flamme : « la séance seule » ; répondre ici n’allume pas la flamme du jour.
+// Les boutons passent par App Intents (RepondrePoche, SuivantePoche) : ils écrivent dans le groupe d’apps, puis iOS redessine le
+// widget. Avant iOS 17, les widgets n’ont pas de boutons : le widget n’existe qu’à partir d’iOS 17 (le paquet le garde derrière).
+
+/// Une question, telle que l’app la range : le nom du module, les lignes de la requête (« ___ » à la place du trou), les trois
+/// réponses, la bonne, et le pourquoi d’une bonne et d’une mauvaise réponse (les mots de SQL entre accents graves).
+struct QuestionPoche: Codable, Hashable {
+    let titre: String
+    let code: [String]
+    let choix: [String]
+    let bon: Int
+    let oui: String
+    let non: String
+}
+
+enum EtatPoche {
+    case question   // rien de touché
+    case juste      // la bonne réponse
+    case presque    // une autre
+}
+
+struct PocheEntree: TimelineEntry {
+    let date: Date
+    let question: QuestionPoche?
+    var touchee: Int? = nil
+
+    var etat: EtatPoche {
+        guard let t = touchee, let q = question else { return .question }
+        return t == q.bon ? .juste : .presque
+    }
+}
+
+/// Ce que le widget garde dans le groupe d’apps : « poche » (les questions, rangées par l’app), « pocheIndex » (la question du
+/// moment), « pocheChoix » (la réponse touchée, -1 avant).
+enum PocheRangement {
+    static let exemple = QuestionPoche(
+        titre: "Agrégats et regroupements",
+        code: ["SELECT ville, COUNT(*)", "FROM clients GROUP BY ville", "___ COUNT(*) >= 2;"],
+        choix: ["WHERE", "HAVING", "ON"],
+        bon: 1,
+        oui: "`HAVING` filtre les groupes.",
+        non: "Après `GROUP BY`, c’est `HAVING`."
+    )
+
+    static func questions() -> [QuestionPoche] {
+        let d = UserDefaults(suiteName: groupe)
+        guard let texte = d?.string(forKey: "poche"), let donnees = texte.data(using: .utf8) else { return [] }
+        let liste: [QuestionPoche] = (try? JSONDecoder().decode([QuestionPoche].self, from: donnees)) ?? []
+        return liste.filter { q in
+            q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && !q.code.isEmpty
+        }
+    }
+
+    static func entree(_ date: Date) -> PocheEntree {
+        let d = UserDefaults(suiteName: groupe)
+        let liste: [QuestionPoche] = questions()
+        guard !liste.isEmpty else { return PocheEntree(date: date, question: nil) }
+        let rang: Int = max(0, d?.integer(forKey: "pocheIndex") ?? 0) % liste.count
+        let q: QuestionPoche = liste[rang]
+        let touchee: Int = (d?.object(forKey: "pocheChoix") as? Int) ?? -1
+        let valide: Bool = touchee >= 0 && touchee < q.choix.count
+        var e = PocheEntree(date: date, question: q)
+        if valide {
+            e.touchee = touchee
+        }
+        return e
+    }
+
+    /// La réponse touchée : une seule fois par question (la suivante remet à zéro).
+    static func repondre(_ choix: Int) {
+        let d = UserDefaults(suiteName: groupe)
+        let deja: Int = (d?.object(forKey: "pocheChoix") as? Int) ?? -1
+        if deja < 0 {
+            d?.set(choix, forKey: "pocheChoix")
+        }
+    }
+
+    /// La question suivante ; après la dernière, la première revient.
+    static func suivante() {
+        let d = UserDefaults(suiteName: groupe)
+        let n: Int = questions().count
+        let i: Int = d?.integer(forKey: "pocheIndex") ?? 0
+        let apres: Int = n > 0 ? (i + 1) % n : 0
+        d?.set(apres, forKey: "pocheIndex")
+        d?.set(-1, forKey: "pocheChoix")
+    }
+
+    static func bonne(_ q: QuestionPoche) -> String {
+        q.bon >= 0 && q.bon < q.choix.count ? q.choix[q.bon] : ""
+    }
+
+    static func chat(_ etat: EtatPoche) -> String {
+        switch etat {
+        case .question: return "ChatQuestion"
+        case .juste: return "ChatOui"
+        case .presque: return "ChatEffort"
+        }
+    }
+
+    static func hauteurChat(_ etat: EtatPoche) -> CGFloat {
+        switch etat {
+        case .question: return 130
+        case .juste: return 126
+        case .presque: return 114
+        }
+    }
+
+    /// Une ligne de code, colorée comme la console de l’app : mots-clés lilas, fonctions menthe, nombres et textes dorés,
+    /// commentaires gris.
+    static func code(_ ligne: String) -> Text {
+        var t = Text(verbatim: "")
+        for b in BoutCode.decouper(ligne) {
+            t = t + b.texte
+        }
+        return t
+    }
+
+    /// Le pourquoi : les mots entre accents graves s’écrivent en code.
+    static func explication(_ s: String, _ police: Font, _ code: Font) -> Text {
+        let morceaux: [String] = s.components(separatedBy: "`")
+        var t = Text(verbatim: "")
+        for (i, m) in morceaux.enumerated() {
+            let enCode: Bool = i % 2 == 1
+            let f: Font = enCode ? code : police
+            t = t + Text(verbatim: m).font(f)
+        }
+        return t
+    }
+
+    /// La taille du code : 11,5 points au plus ; moins pour une ligne longue (le trou compte pour la plus longue réponse) ou une
+    /// requête de quatre lignes.
+    static func policeCode(_ q: QuestionPoche, u: CGFloat, v: CGFloat) -> CGFloat {
+        let trou: Int = (q.choix.map { $0.count }.max() ?? 3) + 1
+        let longueurs: [Int] = q.code.map { $0.replacingOccurrences(of: "___", with: String(repeating: "x", count: trou)).count }
+        let plusLongue: Int = max(1, longueurs.max() ?? 1)
+        let parLargeur: CGFloat = 222 * u / (0.61 * CGFloat(plusLongue))
+        let parHauteur: CGFloat = 54 * v / (1.3 * CGFloat(max(3, q.code.count)))
+        return min(11.5 * u, parLargeur, parHauteur)
+    }
+}
+
+/// Un morceau de code et sa couleur.
+struct BoutCode {
+    let texte: Text
+
+    private static let motsCles: Set<String> = [
+        "SELECT", "FROM", "WHERE", "AND", "OR", "NOT", "IN", "IS", "NULL", "LIKE", "BETWEEN", "ORDER", "BY", "GROUP", "HAVING",
+        "LIMIT", "OFFSET", "AS", "DISTINCT", "JOIN", "INNER", "LEFT", "RIGHT", "FULL", "OUTER", "CROSS", "ON", "UNION", "ALL",
+        "INTERSECT", "EXCEPT", "WITH", "RECURSIVE", "CASE", "WHEN", "THEN", "ELSE", "END", "INSERT", "INTO", "VALUES", "UPDATE",
+        "SET", "DELETE", "CREATE", "TABLE", "VIEW", "INDEX", "DROP", "ALTER", "ADD", "COLUMN", "PRIMARY", "KEY", "REFERENCES",
+        "CASCADE", "BEGIN", "COMMIT", "ROLLBACK", "SAVEPOINT", "TO", "TRANSACTION", "ISOLATION", "SERIALIZABLE", "GRANT", "REVOKE",
+        "CALL", "TRIGGER", "AFTER", "BEFORE", "EACH", "ROW", "ROWS", "OVER", "PARTITION", "PRECEDING", "FOLLOWING", "UNBOUNDED",
+        "CURRENT", "DESC", "ASC", "EXISTS", "ANY", "SCHEMA", "MERGE", "USING", "MATCHED", "INTEGER", "TEXT", "REAL", "DATE"
+    ]
+
+    private static func morceau(_ s: String, _ couleur: Color, gras: Bool = false) -> BoutCode {
+        let t: Text = Text(verbatim: s).foregroundColor(couleur)
+        if gras {
+            return BoutCode(texte: t.fontWeight(.bold))
+        }
+        return BoutCode(texte: t)
+    }
+
+    static func decouper(_ ligne: String) -> [BoutCode] {
+        let c: [Character] = Array(ligne)
+        var bouts: [BoutCode] = []
+        var i = 0
+        while i < c.count {
+            let x: Character = c[i]
+            if x == "-" && i + 1 < c.count && c[i + 1] == "-" {
+                bouts.append(morceau(String(c[i...]), commentaireCode))
+                break
+            }
+            if x == "'" {
+                var j = i + 1
+                while j < c.count && c[j] != "'" { j += 1 }
+                let fin: Int = min(j + 1, c.count)
+                bouts.append(morceau(String(c[i..<fin]), dore))
+                i = fin
+                continue
+            }
+            if x.isLetter || x == "_" {
+                var j = i
+                while j < c.count && (c[j].isLetter || c[j].isNumber || c[j] == "_") { j += 1 }
+                let mot = String(c[i..<j])
+                let appel: Bool = j < c.count && c[j] == "("
+                let capitales: Bool = mot == mot.uppercased()
+                if appel && capitales {
+                    bouts.append(morceau(mot, menthe))
+                } else if capitales && motsCles.contains(mot) {
+                    bouts.append(morceau(mot, motCleCode, gras: true))
+                } else {
+                    bouts.append(morceau(mot, Color.white))
+                }
+                i = j
+                continue
+            }
+            if x.isNumber {
+                var j = i
+                while j < c.count && (c[j].isNumber || c[j] == ".") { j += 1 }
+                bouts.append(morceau(String(c[i..<j]), dore))
+                i = j
+                continue
+            }
+            bouts.append(morceau(String(x), Color.white))
+            i += 1
+        }
+        return bouts
+    }
+}
+
+private let motCleCode = Color(red: 0.725, green: 0.651, blue: 1.0)
+private let commentaireCode = Color(red: 0.557, green: 0.529, blue: 0.722)
+private let gristexte = Color(red: 0.416, green: 0.376, blue: 0.651)
+private let encrePoche = Color(red: 0.231, green: 0.18, blue: 0.549)
+private let sousPoche = Color(red: 0.31, green: 0.282, blue: 0.502)
+private let vertBord = Color(red: 0.298, green: 0.788, blue: 0.549)
+private let vertFonce = Color(red: 0.059, green: 0.239, blue: 0.161)
+private let vertTexte = Color(red: 0.059, green: 0.42, blue: 0.263)
+private let braiseFond = Color(red: 1.0, green: 0.882, blue: 0.8)
+private let braiseTexte = Color(red: 0.478, green: 0.18, blue: 0.0)
+private let presqueTexte = Color(red: 0.604, green: 0.227, blue: 0.0)
+private let fondPoche = LinearGradient(gradient: Gradient(colors: [Color.white, Color(red: 0.953, green: 0.937, blue: 1.0)]), startPoint: UnitPoint(x: 0.33, y: 0), endPoint: UnitPoint(x: 0.67, y: 1))
+
+/// L’allure d’une réponse : au repos ; la bonne (menthe, sa coche) ; celle qu’on attendait (cerclée de vert) ; la mauvaise touchée
+/// (braise, sa croix) ; les autres, pâlies.
+struct StylePuce {
+    let fond: Color
+    let bord: Color
+    let texte: Color
+    let opacite: Double
+    let symbole: String?
+
+    static let repos = StylePuce(fond: Color(red: 0.965, green: 0.953, blue: 1.0), bord: Color(red: 0.882, green: 0.855, blue: 1.0), texte: encrePoche, opacite: 1, symbole: nil)
+    static let pale = StylePuce(fond: Color(red: 0.965, green: 0.953, blue: 1.0), bord: Color(red: 0.882, green: 0.855, blue: 1.0), texte: encrePoche, opacite: 0.45, symbole: nil)
+    static let bonne = StylePuce(fond: menthe, bord: vertBord, texte: vertFonce, opacite: 1, symbole: "checkmark")
+    static let attendue = StylePuce(fond: Color.white, bord: vertBord, texte: vertTexte, opacite: 1, symbole: nil)
+    static let ratee = StylePuce(fond: braiseFond, bord: braise, texte: braiseTexte, opacite: 1, symbole: "xmark")
+
+    static func pour(_ i: Int, _ e: PocheEntree, _ q: QuestionPoche) -> StylePuce {
+        switch e.etat {
+        case .question:
+            return repos
+        case .juste:
+            return i == q.bon ? bonne : pale
+        case .presque:
+            if i == q.bon { return attendue }
+            return i == e.touchee ? ratee : pale
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+struct RepondrePoche: AppIntent {
+    static let title: LocalizedStringResource = "Répondre à la requête de poche"
+    static let isDiscoverable: Bool = false
+
+    @Parameter(title: "Réponse")
+    var choix: Int
+
+    init() {}
+
+    init(choix: Int) {
+        self.choix = choix
+    }
+
+    func perform() async throws -> some IntentResult {
+        PocheRangement.repondre(choix)
+        return .result()
+    }
+}
+
+@available(iOS 17.0, *)
+struct SuivantePoche: AppIntent {
+    static let title: LocalizedStringResource = "Question suivante de la requête de poche"
+    static let isDiscoverable: Bool = false
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        PocheRangement.suivante()
+        return .result()
+    }
+}
+
+struct PocheFournisseur: TimelineProvider {
+    func placeholder(in context: Context) -> PocheEntree {
+        PocheEntree(date: Date(), question: PocheRangement.exemple)
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (PocheEntree) -> Void) {
+        let e = PocheRangement.entree(Date())
+        // Dans la galerie des widgets, sans leçon faite : la question de la planche (HAVING).
+        if context.isPreview && e.question == nil {
+            completion(PocheEntree(date: Date(), question: PocheRangement.exemple))
+        } else {
+            completion(e)
+        }
+    }
+
+    /// Une seule entrée : le widget change quand on y répond (App Intents) ou quand l’app range de nouvelles questions.
+    func getTimeline(in context: Context, completion: @escaping (Timeline<PocheEntree>) -> Void) {
+        completion(Timeline(entries: [PocheRangement.entree(Date())], policy: .never))
+    }
+}
+
+/// Le widget : le chat à gauche, et à droite le module, la requête à trou, les trois réponses, puis le verdict et la flèche.
+@available(iOS 17.0, *)
+struct PocheVue: View {
+    let entree: PocheEntree
+
+    var body: some View {
+        GeometryReader { g in
+            contenu(g.size)
+        }
+    }
+
+    private var ressort: Animation { .spring(response: 0.5, dampingFraction: 0.65) }
+
+    @ViewBuilder
+    private func contenu(_ taille: CGSize) -> some View {
+        if let q = entree.question {
+            avecQuestion(taille, q)
+        } else {
+            sansQuestion(taille)
+        }
+    }
+
+    private func avecQuestion(_ taille: CGSize, _ q: QuestionPoche) -> some View {
+        let u: CGFloat = taille.width / 364
+        let v: CGFloat = taille.height / 170
+        let repondu: Bool = entree.etat != .question
+        return ZStack(alignment: .topLeading) {
+            chat(v)
+            colonne(u, v, q)
+            if repondu {
+                suivante(u, v)
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
+            }
+        }
+        .frame(width: taille.width, height: taille.height)
+        .animation(ressort, value: repondu)
+    }
+
+    private func chat(_ v: CGFloat) -> some View {
+        let nom: String = PocheRangement.chat(entree.etat)
+        let hauteur: CGFloat = PocheRangement.hauteurChat(entree.etat) * v
+        let bas: CGFloat = 2 * v
+        return Image(nom)
+            .resizable()
+            .scaledToFit()
+            .frame(height: hauteur)
+            .offset(y: bas)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            .id(nom)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .accessibilityHidden(true)
+    }
+
+    private func colonne(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
+        let gauche: CGFloat = 108 * u
+        let haut: CGFloat = 10 * v
+        let largeur: CGFloat = 242 * u
+        let apresTitre: CGFloat = 4 * v
+        let apresCode: CGFloat = 6 * v
+        return VStack(alignment: .leading, spacing: 0) {
+            etiquette(u, q)
+            code(u, v, q)
+                .padding(.top, apresTitre)
+            reponses(u, v, q)
+                .padding(.top, apresCode)
+            retour(u, q)
+                .padding(.top, apresCode)
+        }
+        .frame(width: largeur, alignment: .leading)
+        .padding(.leading, gauche)
+        .padding(.top, haut)
+    }
+
+    /// « Révision · Agrégats et regroupements » : le module, pas la leçon (son nom donnerait souvent la réponse).
+    private func etiquette(_ u: CGFloat, _ q: QuestionPoche) -> some View {
+        let police: Font = Font.system(size: 11 * u, weight: .heavy, design: .rounded)
+        let ecart: CGFloat = 0.5 * u
+        let texte: String = "Révision · " + q.titre
+        return Text(verbatim: texte)
+            .font(police)
+            .tracking(ecart)
+            .textCase(.uppercase)
+            .foregroundColor(gristexte)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+    }
+
+    private func code(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
+        let lignes: [String] = Array(q.code.prefix(4))
+        let taille: CGFloat = PocheRangement.policeCode(q, u: u, v: v)
+        let police: Font = Font.system(size: taille, weight: .medium, design: .monospaced)
+        let ecart: CGFloat = taille * 0.16
+        let marge: CGFloat = 10 * u
+        let margeV: CGFloat = 7 * v
+        let coin: CGFloat = 12 * u
+        let largeur: CGFloat = 242 * u
+        let fond = RoundedRectangle(cornerRadius: coin, style: .continuous).fill(encre)
+        return VStack(alignment: .leading, spacing: ecart) {
+            ForEach(Array(lignes.enumerated()), id: \.offset) { item in
+                ligne(item.element, q, police, taille)
+            }
+        }
+        .padding(.horizontal, marge)
+        .padding(.vertical, margeV)
+        .frame(width: largeur, alignment: .leading)
+        .background(fond)
+    }
+
+    private func ligne(_ s: String, _ q: QuestionPoche, _ police: Font, _ taille: CGFloat) -> some View {
+        let morceaux: [String] = s.components(separatedBy: "___")
+        let avant: String = morceaux.first ?? s
+        let aTrou: Bool = morceaux.count > 1
+        let apres: String = aTrou ? morceaux[1] : ""
+        return HStack(alignment: .center, spacing: 0) {
+            PocheRangement.code(avant)
+                .font(police)
+            if aTrou {
+                trou(q, police, taille)
+                PocheRangement.code(apres)
+                    .font(police)
+            }
+        }
+        .lineLimit(1)
+        .fixedSize()
+    }
+
+    /// Le trou : en pointillés dorés tant qu’on n’a pas répondu ; ensuite, la bonne réponse sur la menthe.
+    @ViewBuilder
+    private func trou(_ q: QuestionPoche, _ police: Font, _ taille: CGFloat) -> some View {
+        if entree.etat == .question {
+            trouVide(q, taille)
+        } else {
+            trouRempli(q, police, taille)
+        }
+    }
+
+    private func trouVide(_ q: QuestionPoche, _ taille: CGFloat) -> some View {
+        let lettres: Int = q.choix.map { $0.count }.max() ?? 3
+        let largeur: CGFloat = CGFloat(lettres) * taille * 0.61 + taille * 0.4
+        let hauteur: CGFloat = taille * 1.3
+        let trait = StrokeStyle(lineWidth: 1.5, dash: [3, 2])
+        return RoundedRectangle(cornerRadius: 4, style: .continuous)
+            .strokeBorder(dore, style: trait)
+            .frame(width: largeur, height: hauteur)
+    }
+
+    private func trouRempli(_ q: QuestionPoche, _ police: Font, _ taille: CGFloat) -> some View {
+        let mot: String = PocheRangement.bonne(q)
+        let marge: CGFloat = taille * 0.3
+        let fond = RoundedRectangle(cornerRadius: 4, style: .continuous).fill(menthe)
+        return Text(verbatim: mot)
+            .font(police)
+            .fontWeight(.heavy)
+            .foregroundColor(vertFonce)
+            .padding(.horizontal, marge)
+            .background(fond)
+    }
+
+    /// Les trois réponses : des boutons tant qu’on n’a pas répondu (App Intents, iOS 17).
+    private func reponses(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
+        let total: Int = q.choix.reduce(0) { $0 + $1.count }
+        let place: CGFloat = 134 * u
+        let ajuste: CGFloat = place / (0.61 * CGFloat(max(total, 1)))
+        let taille: CGFloat = min(12 * u, ajuste)
+        let ecart: CGFloat = 7 * u
+        return HStack(spacing: ecart) {
+            ForEach(Array(q.choix.enumerated()), id: \.offset) { item in
+                reponse(item.offset, item.element, q, taille, u, v)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func reponse(_ i: Int, _ texte: String, _ q: QuestionPoche, _ taille: CGFloat, _ u: CGFloat, _ v: CGFloat) -> some View {
+        if entree.etat == .question {
+            Button(intent: RepondrePoche(choix: i)) {
+                puce(i, texte, q, taille, u, v)
+            }
+            .buttonStyle(.plain)
+        } else {
+            puce(i, texte, q, taille, u, v)
+        }
+    }
+
+    private func puce(_ i: Int, _ texte: String, _ q: QuestionPoche, _ taille: CGFloat, _ u: CGFloat, _ v: CGFloat) -> some View {
+        let style: StylePuce = StylePuce.pour(i, entree, q)
+        let police: Font = Font.system(size: taille, weight: .heavy, design: .monospaced)
+        let icone: Font = Font.system(size: taille * 0.8, weight: .black)
+        let hauteur: CGFloat = 28 * v
+        let marge: CGFloat = 11 * u
+        let coin: CGFloat = 10 * u
+        let trait: CGFloat = 2 * u
+        let ecart: CGFloat = 4 * u
+        let fond = RoundedRectangle(cornerRadius: coin, style: .continuous).fill(style.fond)
+        let bord = RoundedRectangle(cornerRadius: coin, style: .continuous).strokeBorder(style.bord, lineWidth: trait)
+        return HStack(spacing: ecart) {
+            if let symbole = style.symbole {
+                Image(systemName: symbole)
+                    .font(icone)
+            }
+            Text(verbatim: texte)
+                .font(police)
+                .lineLimit(1)
+        }
+        .foregroundColor(style.texte)
+        .padding(.horizontal, marge)
+        .frame(height: hauteur)
+        .background(fond)
+        .overlay(bord)
+        .opacity(style.opacite)
+    }
+
+    /// Sous les réponses : la consigne, puis le verdict et son pourquoi.
+    @ViewBuilder
+    private func retour(_ u: CGFloat, _ q: QuestionPoche) -> some View {
+        switch entree.etat {
+        case .question:
+            consigne(u)
+        case .juste:
+            verdict("Bien vu\u{202F}!", q.oui, vertTexte, u)
+        case .presque:
+            verdict("Presque\u{202F}!", q.non, presqueTexte, u)
+        }
+    }
+
+    private func consigne(_ u: CGFloat) -> some View {
+        let police: Font = Font.system(size: 11.5 * u, weight: .bold, design: .rounded)
+        return Text("Touche la bonne réponse")
+            .font(police)
+            .foregroundColor(gristexte)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+    }
+
+    private func verdict(_ titre: String, _ pourquoi: String, _ couleur: Color, _ u: CGFloat) -> some View {
+        let grand: Font = Font.system(size: 12.5 * u, weight: .black, design: .rounded)
+        let petit: Font = Font.system(size: 11 * u, weight: .bold, design: .rounded)
+        let code: Font = Font.system(size: 10.5 * u, weight: .bold, design: .monospaced)
+        let explication: Text = PocheRangement.explication(pourquoi, petit, code)
+        let place: CGFloat = 36 * u
+        return VStack(alignment: .leading, spacing: 1) {
+            Text(verbatim: titre)
+                .font(grand)
+                .foregroundColor(couleur)
+            explication
+                .foregroundColor(sousPoche)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.trailing, place)
+    }
+
+    /// La flèche : la question suivante.
+    private func suivante(_ u: CGFloat, _ v: CGFloat) -> some View {
+        let cote: CGFloat = 28 * u
+        let symbole: Font = Font.system(size: 13 * u, weight: .heavy)
+        let droite: CGFloat = 14 * u
+        let bas: CGFloat = 12 * v
+        return Button(intent: SuivantePoche()) {
+            Image(systemName: "arrow.right")
+                .font(symbole)
+                .foregroundColor(Color.white)
+                .frame(width: cote, height: cote)
+                .background(Circle().fill(violetTexte))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Question suivante"))
+        .padding(.trailing, droite)
+        .padding(.bottom, bas)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+    }
+
+    /// Aucune leçon faite : le chat se pose la question, et un appui ouvre la séance du jour.
+    private func sansQuestion(_ taille: CGSize) -> some View {
+        let u: CGFloat = taille.width / 364
+        let v: CGFloat = taille.height / 170
+        let grand: Font = Font.system(size: 14 * u, weight: .black, design: .rounded)
+        let petit: Font = Font.system(size: 12 * u, weight: .bold, design: .rounded)
+        let gauche: CGFloat = 116 * u
+        let droite: CGFloat = 16 * u
+        let hauteurChat: CGFloat = 130 * v
+        return ZStack(alignment: .leading) {
+            Image("ChatQuestion")
+                .resizable()
+                .scaledToFit()
+                .frame(height: hauteurChat)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Rien à réviser pour l’instant")
+                    .font(grand)
+                    .foregroundColor(encrePoche)
+                Text("Termine une leçon\u{00A0}: ses questions viendront ici.")
+                    .font(petit)
+                    .foregroundColor(sousPoche)
+            }
+            .lineLimit(2)
+            .minimumScaleFactor(0.8)
+            .padding(.leading, gauche)
+            .padding(.trailing, droite)
+        }
+        .frame(width: taille.width, height: taille.height)
+        .widgetURL(lienSeance)
+    }
+}
+
+@available(iOS 17.0, *)
+struct RequetePoche: Widget {
+    let kind = "RequetePoche"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: PocheFournisseur()) { entree in
+            PocheVue(entree: entree)
+                .containerBackground(for: .widget) { fondPoche }
+        }
+        .configurationDisplayName("La requête de poche")
+        .description("Une question SQL de tes leçons\u{00A0}: tu réponds dans le widget, sans ouvrir l’app.")
+        .supportedFamilies([.systemMedium])
+        .contentMarginsDisabled()
+    }
+}
+
 // MARK: - La leçon en cours, dans la Dynamic Island
 //
 // Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une Live Activity : la page (index.html, ileDebut, ileMaj, ileFin)
@@ -1942,7 +2577,7 @@ struct RequeteLeconActivite: Widget {
 }
 
 /// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé ;
-/// depuis le 7 novembre, la cheminée.
+/// depuis le 7 novembre, la cheminée, et la requête de poche (iOS 17 et plus : ses boutons).
 @main
 struct RequeteWidgets: WidgetBundle {
     var body: some Widget {
@@ -1953,6 +2588,9 @@ struct RequeteWidgets: WidgetBundle {
         }
         if #available(iOS 16.1, *) {
             RequeteFlammeVerrou()
+        }
+        if #available(iOS 17.0, *) {
+            RequetePoche()
         }
     }
 }
