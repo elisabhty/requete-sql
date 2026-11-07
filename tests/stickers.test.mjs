@@ -183,7 +183,8 @@ test('télécharger : PNG détouré, partagé sur téléphone (Photos, Fichiers,
   assert.ok(save.includes('navigator.canShare({files:[file]})') && save.includes("return 'share';") && save.includes("a.download=fileName;") && save.includes("return 'download';"));
   assert.ok(take('async function exportProgress(', '\n}\n').includes("await saveFile(new Blob("), 'la progression passe par le même chemin');
   const dl = take('async function stkDownload(', '\n}\n');
-  assert.ok(dl.includes("stkDraw(cv.getContext('2d'),id,1200,'art')") && dl.includes('stkBlob(stkTrim(cv,12))') && dl.includes('`requete-sticker-${stkSlug(s.name)}.png`'));
+  assert.ok(dl.includes("const cv=stkCanvasExport(id,1200,STK_HOLO[id]?STK_EXP_MARGE:0);") && dl.includes('stkBlob(stkTrim(cv,12))') && dl.includes('`requete-sticker-${stkSlug(s.name)}.png`'), '7 novembre, 7 h 56 : le dessin, et ses voiles s’il est holographique (retours-0756)');
+  assert.ok(take('function stkCanvasExport(', '\n}\n').includes("stkDraw(ctx,id,px,'art');"), 'le dessin du sticker, comme avant');
   assert.ok(!dl.slice(0, dl.indexOf('await saveFile')).includes('await'), 'aucune attente avant la feuille de partage (Safari exige le geste)');
   assert.ok(take('function stkBlob(', '\n}\n').includes("cv.toDataURL('image/png')"), 'image produite sans attente');
   assert.ok(take('async function stkExportBoard(', '\n}\n').includes("'requete-stickers.png'"), 'le tableau entier, sans le fond');
