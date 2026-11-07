@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=203">
+<link rel="stylesheet" href="ludique.css?v=204">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=36">
 <style id="lesson-video-css">
@@ -26177,14 +26177,24 @@ const MASCOT_COUCOU='assets/chat-coucou.webp',MASCOT_COUCOU_FIXE='assets/chat-co
 /* Elisa, 7 novembre, 12 h 13 : son GIF « C’est parti ! » pour « Ton parcours est prêt » (la dernière page de l’onboarding) : pouce
    levé, puis il pointe devant lui. 12 images de 420 ms, en boucle ; en mouvement réduit, le pouce levé et le clin d’œil. */
 const MASCOT_PARTI='assets/chat-parti.webp',MASCOT_PARTI_FIXE='assets/chat-parti-fixe.webp';
+/* Elisa, 7 novembre, 12 h 38 : son GIF « Diplômé » pour la fin du parcours et l’accueil du parcours terminé : il lance sa toque et
+   brandit son diplôme. 12 images de 420 ms (5 s, comme le coucou) ; sa dernière image, la toque sur la tête et le diplôme en main,
+   sert de repos et de mouvement réduit. À la fin du parcours, il fête en boucle ; sur l’accueil, comme le coucou, il fête quand il dit
+   bonjour, puis se pose. */
+const MASCOT_DIPLOME='assets/chat-diplome.webp',MASCOT_DIPLOME_FIXE='assets/chat-diplome-fixe.webp';
+/* Les GIF de l’autocollant : leur image animée, leur image fixe, leur taille. o.uneFois : joué quand il dit bonjour (o.joue : tout de
+   suite), au repos sinon (mascotCoucouJoue) ; sans : en boucle. */
+const MASCOT_ANIMS={
+  coucou:{src:MASCOT_COUCOU,fixe:MASCOT_COUCOU_FIXE,w:289,h:352},
+  parti:{src:MASCOT_PARTI,fixe:MASCOT_PARTI_FIXE,w:302,h:359},
+  diplome:{src:MASCOT_DIPLOME,fixe:MASCOT_DIPLOME_FIXE,w:304,h:367}
+};
+function mascotAnimDe(img){return MASCOT_ANIMS[img&&img.getAttribute?img.getAttribute('data-anim'):'']||MASCOT_ANIMS.coucou;}
 function mascotChatHtml(o){
-  if(o&&o.anim==='parti'){
-    const fixe=typeof mascotReduced==='function'&&mascotReduced();
-    return `<img class="mstk-cat is-parti" src="${fixe?MASCOT_PARTI_FIXE:MASCOT_PARTI}" width="302" height="359" alt="" draggable="false" data-anim="parti">`;
-  }
-  if(o&&o.anim==='coucou'){
+  const a=o&&o.anim&&Object.prototype.hasOwnProperty.call(MASCOT_ANIMS,o.anim)?MASCOT_ANIMS[o.anim]:null;
+  if(a){
     const fixe=(typeof mascotReduced==='function'&&mascotReduced())||(!!o.uneFois&&!o.joue);
-    return `<img class="mstk-cat is-coucou" src="${fixe?MASCOT_COUCOU_FIXE:MASCOT_COUCOU}" width="289" height="352" alt="" draggable="false" data-anim="coucou"${o.uneFois?' data-une-fois=""':''}>`;
+    return `<img class="mstk-cat is-${o.anim}" src="${fixe?a.fixe:a.src}" width="${a.w}" height="${a.h}" alt="" draggable="false" data-anim="${o.anim}"${o.uneFois?' data-une-fois=""':''}>`;
   }
   return `<img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">`;
 }
@@ -26192,16 +26202,18 @@ function mascotChatHtml(o){
    affichée nulle part repart de sa première image (WebKit et Chromium remettent l’animation à zéro) : en plein coucou, on repasse
    par l’image fixe le temps d’une image pour qu’il recommence au début. */
 function mascotCoucouPose(img){
+  const a=mascotAnimDe(img);
   clearTimeout(img._coucouT);
-  const t=()=>{clearTimeout(img._coucouT);img._coucouT=setTimeout(()=>{if(img.isConnected&&img.getAttribute('src')===MASCOT_COUCOU)img.src=MASCOT_COUCOU_FIXE;},MASCOT_COUCOU_MS-140);};
+  const t=()=>{clearTimeout(img._coucouT);img._coucouT=setTimeout(()=>{if(img.isConnected&&img.getAttribute('src')===a.src)img.src=a.fixe;},MASCOT_COUCOU_MS-140);};
   if(img.complete)t();else img.addEventListener('load',t,{once:true});
 }
 function mascotCoucouJoue(img){
   if(!img||!img.hasAttribute||!img.hasAttribute('data-une-fois'))return;
   if(typeof mascotReduced==='function'&&mascotReduced())return;
   clearTimeout(img._coucouT);
-  const joue=()=>{img.src=MASCOT_COUCOU;mascotCoucouPose(img);};
-  if(img.getAttribute('src')===MASCOT_COUCOU){img.src=MASCOT_COUCOU_FIXE;requestAnimationFrame(()=>requestAnimationFrame(joue));}
+  const a=mascotAnimDe(img);
+  const joue=()=>{img.src=a.src;mascotCoucouPose(img);};
+  if(img.getAttribute('src')===a.src){img.src=a.fixe;requestAnimationFrame(()=>requestAnimationFrame(joue));}
   else joue();
 }
 /* Elisa, 7 novembre, 11 h 31 : son GIF « Bravo » (« il saute de joie, les bras en l’air ») pour la fin d’une leçon réussie, le bilan
@@ -26214,6 +26226,7 @@ function mascotBravoImg(cls){return `<img class="${cls} is-bravo" src="${mascotB
 /* L’écran de fin d’une leçon : réussie, le chat saute de joie ; « Encore un effort ! », l’autocollant. */
 function mascotBravo(btn,on){
   const img=btn&&btn.querySelector?btn.querySelector('.mstk-cat'):null;if(!img)return;
+  if(img.hasAttribute&&img.hasAttribute('data-anim'))return;   // la fin du parcours : le diplômé (7 novembre, 12 h 38)
   if(on){img.classList.add('is-bravo');img.setAttribute('width','325');img.setAttribute('height','362');img.src=mascotBravoSrc();}
   else if(img.classList.contains('is-bravo')){img.classList.remove('is-bravo');img.setAttribute('width','450');img.setAttribute('height','674');img.src=MASCOT_IMG;}
 }
@@ -26321,7 +26334,7 @@ function renderHomeHero(){
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&mascotAccueilLibre();
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
-  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro,anim:nxt==null?'':'coucou',uneFois:true,joue:intro}):'';
+  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro,anim:nxt==null?'diplome':'coucou',uneFois:true,joue:intro}):'';
   if(nxt==null){
     const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${stats}${streak}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
@@ -26375,7 +26388,7 @@ function renderHomeHero(){
   const ctaLu=`${ctaLabel} : ${meta.titre}, ${(sub.charAt(0).toLowerCase()+sub.slice(1)).replace(/~/g,'environ ').replace(/\u00a0/g,' ')}`;
   const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
-  {const img=host.querySelector&&host.querySelector('.mstk-cat[data-une-fois]');if(img&&!img._coucouVu&&img.getAttribute('src')===MASCOT_COUCOU){img._coucouVu=true;mascotCoucouPose(img);}}   // l’arrivée : le coucou, puis le repos
+  {const img=host.querySelector&&host.querySelector('.mstk-cat[data-une-fois]');if(img&&!img._coucouVu&&img.getAttribute('src')===mascotAnimDe(img).src){img._coucouVu=true;mascotCoucouPose(img);}}   // l’arrivée : le coucou, puis le repos
   lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
   lqSesCount(host);
   lqPctAnime(host);
@@ -29485,7 +29498,7 @@ function lvFinEndHtml(){
   const n=[[MODULES.length,'modules'],[TOTAL,'cours'],[SQL_REQUETES,'requêtes']];
   return `<div class="lv-fe" role="group" aria-labelledby="lv-fe-h">
     <i class="lv-fe-sky" aria-hidden="true"></i>
-    <span class="lv-end-cat">${mascotMedalHtml()}<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span></span>
+    <span class="lv-end-cat">${mascotMedalHtml({anim:'diplome'})}<span class="lv-end-bravo" aria-hidden="true">Bravo&nbsp;!</span></span>
     <span class="lv-fe-tag">🎓 Parcours SQL terminé</span>
     <h2 id="lv-fe-h">Quel chemin parcouru&nbsp;!</h2>
     <p>Tu as terminé ton parcours SQL. Prends un instant pour découvrir tout ce que tu as appris.</p>
@@ -45010,7 +45023,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-parle-v2628';
+  const SW_CACHE='requete-2026-11-07-chat-diplome-v2629';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

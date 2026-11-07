@@ -72,7 +72,7 @@ test('l’image du chat : le coucou à la bienvenue et sur la carte de la leçon
   assert.ok(vm.runInContext(`mascotMedalHtml({hi:'Coucou !',anim:'coucou'})`, ctx).includes(`<img class="mstk-cat is-coucou" src="${ANIM}"`), 'dans l’autocollant');
   /* Où */
   const hero = cut('function renderHomeHero(){', 'const LQ_VIDEO_SVG=');
-  assert.ok(hero.includes("hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!',intro,anim:nxt==null?'':'coucou',uneFois:true,joue:intro})"), 'la carte de la leçon ; le parcours terminé garde l’autocollant');
+  assert.ok(hero.includes("hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!',intro,anim:nxt==null?'diplome':'coucou',uneFois:true,joue:intro})"), 'la carte de la leçon ; le parcours terminé a le diplômé (12 h 38)');
   assert.ok(app.includes("${mascotMedalHtml({hi:'Coucou\\u00a0!',intro:!mascotReduced(),anim:'coucou'})}"), 'la bienvenue');
 });
 
@@ -108,7 +108,7 @@ test('sur l’accueil, il fait coucou une fois, se pose, et recommence au touche
   vm.runInContext('mascotWave(btn)', ctx);
   assert.equal(ctx.img.src, ANIM); assert.ok(cls.has('is-hello'), 'avec les confettis et la bulle');
   /* L’arrivée : l’image animée est dans la carte ; le repos est programmé après le rendu */
-  assert.ok(app.includes("{const img=host.querySelector&&host.querySelector('.mstk-cat[data-une-fois]');if(img&&!img._coucouVu&&img.getAttribute('src')===MASCOT_COUCOU){img._coucouVu=true;mascotCoucouPose(img);}}"));
+  assert.ok(app.includes("{const img=host.querySelector&&host.querySelector('.mstk-cat[data-une-fois]');if(img&&!img._coucouVu&&img.getAttribute('src')===mascotAnimDe(img).src){img._coucouVu=true;mascotCoucouPose(img);}}"), 'l’image animée de la carte : le coucou, ou le diplômé du parcours terminé (12 h 38)');
 });
 
 test('le coucou de la séance attend que l’accueil soit vraiment à l’écran', () => {
