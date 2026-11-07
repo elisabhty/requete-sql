@@ -10,13 +10,14 @@ const modules=Array.from({length:16},()=>({hidden:false}));
 ctx.document={getElementById:id=>nodes[id],querySelectorAll:selector=>selector==='[data-course-filter]'?[]:modules};
 ctx.state={lessons:{}};ctx.isDue=id=>!!ctx.state.lessons[id]?.due;ctx.esc=text=>text;
 ctx.lessonListRow=l=>`<button>${l.titre}</button>`;
+ctx.chatBonusHtml=k=>`<img data-k="${k}">`;   // la loupe d’une recherche sans résultat (7 novembre, retours-1254)
 vm.runInContext(html.slice(html.indexOf('let courseSearch='),html.indexOf('function syncTabUI(')),ctx);
 ctx.filterCourseCatalog('jointure');
 assert.match(nodes['course-search-status'].textContent,/^\d+ cours trouvés$/);assert.ok(parseInt(nodes['course-search-status'].textContent)>=10,'les 10 leçons de jointure au moins');
 assert.ok(nodes['course-search-results'].innerHTML.includes('INNER JOIN'));
 assert.ok(modules.every(m=>m.hidden));
 ctx.filterCourseCatalog('numeriques');assert.ok(nodes['course-search-results'].innerHTML.includes('Fonctions numériques'),'recherche sans accents');
-ctx.filterCourseCatalog('zzzz');assert.ok(nodes['course-search-results'].innerHTML.includes('Aucun cours'));
+ctx.filterCourseCatalog('zzzz');assert.ok(nodes['course-search-results'].innerHTML.includes('Aucun cours'));assert.ok(nodes['course-search-results'].innerHTML.includes('<img data-k="loupe">'),'le chat à la loupe');
 ctx.clearCourseSearch();assert.ok(modules.every(m=>!m.hidden));assert.equal(nodes['course-search-results'].hidden,true);assert.equal(nodes['course-search'].focused,true);
 /* Depuis le 28 octobre, chaque cours est une leçon seule (ni exercice ni quiz) : aucun ne revient « à réviser », et le filtre
    « À réviser » n’est proposé que s’il existe une leçon à exercice (revisable). */

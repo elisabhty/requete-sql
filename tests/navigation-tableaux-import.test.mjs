@@ -139,10 +139,11 @@ test('réf 10 — une croix en haut à droite : questions, saisies et import', (
 
 test('réf 12 et 13 — la journée libre a son autocollant ; « Démarrer la séance » a sa flèche', () => {
   const ctx = vm.createContext({ DEF_CHEV_SVG: '<svg></svg>' });
-  vm.runInContext(fn('lqStkSvg') + fn('dayPauseHTML'), ctx);
+  vm.runInContext(fn('lqStkSvg') + fn('chatBonusHtml') + fn('dayPauseHTML'), ctx);
   const libre = ctx.dayPauseHTML(false), passe = ctx.dayPauseHTML(true);
-  assert.ok(libre.includes('<span class="dp-stk" aria-hidden="true"><svg class="lq-stk"') && libre.includes('class="stk-steam"') && !libre.includes('☕'), 'la tasse qui fume');
-  assert.ok(passe.includes('class="stk-twk"') && !passe.includes('🌙'), 'la lune');
+  /* 7 novembre, 12 h 54 : la tasse et la lune laissent la place au chat qui dort, le GIF d’Elisa (retours-1254) */
+  assert.ok(libre.includes('<span class="dp-stk is-dodo" aria-hidden="true"><img class="chat-bonus is-dodo" src="assets/chat-dodo.webp"') && !libre.includes('☕'), 'le chat qui dort');
+  assert.ok(passe.includes('<img class="chat-bonus is-dodo" src="assets/chat-dodo.webp"') && !passe.includes('🌙'), 'le chat qui dort, un jour passé aussi');
   assert.ok(app.includes('<i class="dp-go-arr" aria-hidden="true">${DP_GO_ARR_SVG}</i></button>'));
   for (const part of ['@keyframes dpSteam{', '@keyframes dpArrow{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}', 'html.lq .dp-pause .dp-stk{position:relative;display:block;width:78px;height:78px;'])
     assert.ok(s47.includes(part), part);
