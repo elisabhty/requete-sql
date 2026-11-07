@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=205">
+<link rel="stylesheet" href="ludique.css?v=206">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=36">
 <style id="lesson-video-css">
@@ -21579,7 +21579,7 @@ function renderConsoleSide(){
           </button>
           <button type="button" class="console-query-pin on" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${PUNAISE_SVG}</button>
         </div>`).join('')
-      : `<p class="console-query-empty">${q?'':`<span class="console-query-stk" aria-hidden="true">${lqStkSvg('pin')}</span>`}<b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête depuis l’éditeur ou l’historique pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
+      : `<p class="console-query-empty">${q?chatBonusHtml('loupe','is-vide is-petit'):`<span class="console-query-stk" aria-hidden="true">${lqStkSvg('pin')}</span>`}<b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête depuis l’éditeur ou l’historique pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
     if(qTok.length)SQ.mark(pins.querySelectorAll('code'),qTok);
   }
   if(hist){
@@ -21597,7 +21597,7 @@ function renderConsoleSide(){
             <button type="button" class="console-query-pin ${on?'on':''}" data-pin-key="${escAttr(consoleSqlKey(it.sql))}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${PUNAISE_SVG}</button>
           </div>`;
         }).join('')
-      : `<p class="console-query-empty"><b>${q?'Aucun résultat':consoleHistFilter==='err'?'Aucune erreur':consoleHistFilter==='ok'?'Aucune exécution réussie':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
+      : `<p class="console-query-empty">${q?chatBonusHtml('loupe','is-vide is-petit'):''}<b>${q?'Aucun résultat':consoleHistFilter==='err'?'Aucune erreur':consoleHistFilter==='ok'?'Aucune exécution réussie':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
     if(qTok.length)SQ.mark(hist.querySelectorAll('code'),qTok);
   }
   const hf=document.getElementById('console-hist-filter');
@@ -25299,7 +25299,7 @@ function filterCourseCatalog(value){
   }
   status.textContent=!filtered?'':count?`${count} cours trouvé${count>1?'s':''}${courseFilter!=='all'?' · '+courseFilterLabels[courseFilter]:''}`:'';
   host.hidden=!filtered;
-  host.innerHTML=!filtered?'':count?html:`<div class="catalog-no-results"><div class="sq-empty-ico" aria-hidden="true">🔎</div><h3>${emptyTitle}</h3><p>${emptyDetail}</p><button type="button" onclick="resetCourseCatalog()">${searching&&courseFilter==='all'?'Effacer la recherche':'Voir tous les cours'}</button></div>`;
+  host.innerHTML=!filtered?'':count?html:`<div class="catalog-no-results">${searching?chatBonusHtml('loupe','is-vide'):'<div class="sq-empty-ico" aria-hidden="true">🔎</div>'}<h3>${emptyTitle}</h3><p>${emptyDetail}</p><button type="button" onclick="resetCourseCatalog()">${searching&&courseFilter==='all'?'Effacer la recherche':'Voir tous les cours'}</button></div>`;
   if(searching&&count&&typeof host.querySelectorAll==='function'){
     SQ.mark(host.querySelectorAll('.lz-body b,.lz-body small'),tokens);
     host.querySelectorAll('.sq-mod,.sq-why').forEach(el=>{if(el.classList.contains('sq-mod'))SQ.mark(el,tokens);});
@@ -26229,6 +26229,15 @@ function mascotBravo(btn,on){
   if(img.hasAttribute&&img.hasAttribute('data-anim'))return;   // la fin du parcours : le diplômé (7 novembre, 12 h 38)
   if(on){img.classList.add('is-bravo');img.setAttribute('width','325');img.setAttribute('height','362');img.src=mascotBravoSrc();}
   else if(img.classList.contains('is-bravo')){img.classList.remove('is-bravo');img.setAttribute('width','450');img.setAttribute('height','674');img.src=MASCOT_IMG;}
+}
+/* Elisa, 7 novembre, 12 h 54 : ses GIF « bonus », pour de nouveaux endroits : il cherche avec une loupe (une recherche sans
+   résultat), il dort avec des « zzz » (un jour de repos), il tient un chrono (les défis). 12 images de 420 ms, détourées et adoucies au
+   bord, en boucle ; en mouvement réduit, l’image qui le dit le mieux (la loupe à l’œil, les « zzz », le chrono levé avec un clin
+   d’œil). Une fonction (pas de constante) : elle sert dès les premiers rendus. */
+function chatBonusHtml(k,cls){
+  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  return `<img class="chat-bonus is-${k}${cls?' '+cls:''}" src="assets/chat-${k}${fixe?'-fixe':''}.webp" width="${t[0]}" height="${t[1]}" alt="" draggable="false">`;
 }
 function mascotReduced(){
   return (window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||document.documentElement.dataset.motion==='reduce';
@@ -27796,7 +27805,7 @@ function defisRapideHTML(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
-  return `<section class="room-card dx-rapide" aria-labelledby="dx-rapide-h"><div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('target')}</span><div>
+  return `<section class="room-card dx-rapide" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
     <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Ta salle de défi</h2>
     <p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field"><p class="jeu-lab" id="dx-niv-l">Niveau</p>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
@@ -39037,8 +39046,9 @@ const PL_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const DP_GO_ARR_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"/></svg>';
 function dayPauseHTML(passe){
   const stk=k=>typeof lqStkSvg==='function'?lqStkSvg(k):'';
-  if(passe)return `<div class="dp-pause is-past"><span class="dp-stk" aria-hidden="true">${stk('moon')}</span><b>Pas de séance ce jour-là</b><small>Rien n’était prévu dans ton planning.</small></div>`;
-  return `<div class="dp-pause"><span class="dp-stk" aria-hidden="true">${stk('mug')}<i class="dp-sp s1"></i><i class="dp-sp s2"></i></span><b>Journée libre</b><small>Profites-en pour revoir tes cartes mémo ou faire un défi.</small>
+  /* Un jour de repos : le chat qui dort (le GIF d’Elisa, 7 novembre, 12 h 54), à la place de la lune et de la tasse */
+  if(passe)return `<div class="dp-pause is-past"><span class="dp-stk is-dodo" aria-hidden="true">${chatBonusHtml('dodo')}</span><b>Pas de séance ce jour-là</b><small>Rien n’était prévu dans ton planning.</small></div>`;
+  return `<div class="dp-pause"><span class="dp-stk is-dodo" aria-hidden="true">${chatBonusHtml('dodo')}<i class="dp-sp s1"></i><i class="dp-sp s2"></i></span><b>Journée libre</b><small>Profites-en pour revoir tes cartes mémo ou faire un défi.</small>
     <button type="button" class="dp-defis" onclick="switchTab('defis')"><span>Envie d’un défi ? Ils t’attendent dans Pratiquer</span>${DEF_CHEV_SVG}</button></div>`;
 }
 /* Liste du jour : au-delà de 8 activités, on n'affiche que les 6 prochaines
@@ -40203,7 +40213,7 @@ function renderEntretien(opts){
     const elsewhere=found.length;
     const copy=elsewhere?`${elsewhere} question${elsewhere>1?'s':''} correspond${elsewhere>1?'ent':''} à « ${esc(entSearch.trim())} » dans les autres onglets ou familles.`:`Rien pour « ${esc(entSearch.trim())} ». Essaie un autre mot : LAG, jointure, index…`;
     const action=elsewhere?`<button type="button" onclick="entSearchEverywhere()">Explorer toutes les questions</button>`:`<button type="button" onclick="clearEntSearch(true)">Effacer la recherche</button>`;
-    list.innerHTML=intro+`<div class="ent-empty ent-empty-search"><span class="ent-empty-ico" aria-hidden="true">${LQ_SEARCH_SVG}</span><b>Aucune question trouvée</b><span>${copy}</span>${action}</div>`;
+    list.innerHTML=intro+`<div class="ent-empty ent-empty-search">${chatBonusHtml('loupe','is-vide')}<b>Aucune question trouvée</b><span>${copy}</span>${action}</div>`;
     return;
   }
   if(!items.length){
@@ -40512,7 +40522,7 @@ function renderNotesSurface(wrap,prefix,opts){
     html=`<div class="notes-empty"><div class="ne-i is-stk" aria-hidden="true">${lqStkSvg('note')}</div><b>Aucune note</b>
       <span>Commence par une idée, une requête à revoir ou une question.</span><div class="notes-starters"><button type="button" onclick="${go}('Ce que je retiens : ')">Ce que je retiens</button><button type="button" onclick="${go}('Requête à revoir : ')">Requête à revoir</button><button type="button" onclick="${go}('Question : ')">Une question</button></div></div>`;
   }else if(!list.length){
-    html=notesFilterChips(fCount)+`<div class="notes-empty"><div class="ne-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></div><b>Aucun résultat</b>
+    html=notesFilterChips(fCount)+`<div class="notes-empty">${chatBonusHtml('loupe','is-vide')}<b>Aucun résultat</b>
       <span>Rien pour « ${esc(searchQ)} » dans ${all.length>1?`tes ${all.length} notes`:'ta note'}.</span><button type="button" class="sq-reset" onclick="clearSearch('${isScreen?'screen':'sheet'}')">Effacer la recherche</button></div>`;
   }else if(searchQ){
     html=notesFilterChips(fCount)+notesSectionHtml('Résultats',list);
@@ -45026,7 +45036,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-flamme-v2630';
+  const SW_CACHE='requete-2026-11-07-chat-bonus-v2631';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
