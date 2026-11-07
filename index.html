@@ -26325,7 +26325,8 @@ function heroSousTitre(nxt){try{
 /* Sous la carte de la leçon, trois chiffres et jamais un zéro (maquette du 7 novembre, 8 h 38 : « 5 leçons lancées · 0 leçon validée ·
    71 leçons au total », rendue plus positive). Rien de commencé : ce que le parcours réserve (71 leçons à découvrir, 15 modules,
    53 cartes à gagner) ; en route : les leçons lancées, les leçons validées (avant la première : les exercices faits, sinon les cartes à
-   gagner), le total ; tout validé : les leçons, les cartes gagnées, les modules terminés. */
+   gagner), le total ; rien en cours entre deux leçons : les leçons validées, les cartes gagnées, le total (pas deux fois le même
+   nombre) ; tout validé : les leçons, les cartes gagnées, les modules terminés. */
 const HOME_STAT_SVG={
   barres:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="12.5" width="4.4" height="8" rx="1.6"/><rect x="9.8" y="8" width="4.4" height="12.5" rx="1.6"/><rect x="16.1" y="3.5" width="4.4" height="17" rx="1.6"/></svg>',
   coche:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.6l4.4 4.4L19 7.4"/></svg>',
@@ -26342,6 +26343,7 @@ function homeStatsHTML(){try{
   const aGagner=t('cartes',avecCarte.length-gagnees,'carte à gagner','cartes à gagner');
   const tuiles=!lancees?[t('cible',nL,'leçon à découvrir','leçons à découvrir'),t('barres',nMods,'module','modules'),aGagner]
     :faites>=nL?[t('coche',nL,'leçon validée','leçons validées'),t('cartes',gagnees,'carte gagnée','cartes gagnées'),t('cible',nMods,'module terminé','modules terminés')]
+    :lancees===faites?[t('coche',faites,'leçon validée','leçons validées'),gagnees?t('cartes',gagnees,'carte gagnée','cartes gagnées'):t('barres',exos,'exercice fait','exercices faits'),t('cible',nL,'leçon au total','leçons au total')]
     :[t('barres',lancees,'leçon lancée','leçons lancées'),faites?t('coche',faites,'leçon validée','leçons validées'):exos?t('coche',exos,'exercice fait','exercices faits'):aGagner,t('cible',nL,'leçon au total','leçons au total')];
   const vues=tuiles.filter(x=>x.n>0);
   if(!vues.length)return '';
@@ -38750,14 +38752,18 @@ function homeStreakHTML(){
   /* Elisa, 5 novembre, 17 h 09 : « Garde le rythme ! » plutôt qu’« Allume ta série », et « Une activité aujourd’hui pour prolonger ta
      série » ; les flammes des jours de la semaine restent, pour voir la régularité d’un coup d’œil. 7 novembre, 8 h 38 (maquette, « plus
      positif ») : pas encore de série, « Ta série commence aujourd’hui ! » et « Une activité par jour pour progresser. » */
-  const title=n?`${n} jour${n>1?'s':''} de série`:'Ta série commence aujourd’hui\u00a0!';
-  const sub=n?(todayDone?'Flamme du jour allumée. À demain !':'Une activité aujourd’hui pour prolonger ta série.'):'Une activité par jour pour progresser.';
+  /* Elisa, 7 novembre, 9 h 08 (« quand on a fait une semaine complète : bravo… laisse-moi choisir » ; son choix) : toutes les
+     flammes de la semaine allumées (les jours de repos ne comptent pas), « Ta semaine est en feu 🔥 » et « 7 jours sur 7, bravo ! »
+     (« 5 jours sur 5 » avec deux jours de repos). Le lundi, une nouvelle semaine commence. */
+  const semaineFaite=weekDone>0&&days.every(d=>d.kind==='done'||d.kind==='rest');
+  const title=semaineFaite?'Ta semaine est en feu 🔥':n?`${n} jour${n>1?'s':''} de série`:'Ta série commence aujourd’hui\u00a0!';
+  const sub=semaineFaite?`${weekDone} jour${weekDone>1?'s':''} sur ${weekDone}, bravo\u00a0!`:n?(todayDone?'Flamme du jour allumée. À demain !':'Une activité aujourd’hui pour prolonger ta série.'):'Une activité par jour pour progresser.';
   const kindLabel={done:'fait',today:'à faire aujourd’hui',rest:'repos',missed:'pas fait',future:'à venir'};
   const aria=`${title}. ${sub}${best>n?` Record : ${best} jours.`:''} Cette semaine : ${weekDone} jour${weekDone>1?'s':''} fait${weekDone>1?'s':''}. Voir ma progression.`;
   /* Une seule ligne : la flamme, le compte, puis les 7 jours de la semaine. */
   return `<button type="button" class="lq-streak${n?' is-on':''}${todayDone?' is-today':''}${up?' is-up':''}" onclick="openAccountProgress()" aria-label="${escAttr(aria)}">
     <span class="lq-streak-flame" aria-hidden="true">${LQ_FLAME_SVG}</span>
-    <span class="lq-streak-copy" aria-hidden="true"><b>${n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''} de série`:esc(title)}</b><small>${esc(sub)}</small></span>
+    <span class="lq-streak-copy" aria-hidden="true"><b>${!semaineFaite&&n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''} de série`:esc(title)}</b><small>${esc(sub)}</small></span>
     <span class="lq-week" aria-hidden="true">${days.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
   </button>`;
 }
@@ -44835,7 +44841,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-accueil-positif-v2613';
+  const SW_CACHE='requete-2026-11-07-semaine-feu-v2614';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
