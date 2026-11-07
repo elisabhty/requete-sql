@@ -10,6 +10,8 @@ Le navigateur ne constitue pas une preuve de réussite. Les fonctions `*_v2` son
 - `jeu_score_v2` ignore les points, le temps et le niveau annoncés par le client. Il recalcule les points depuis les réussites vérifiées et produit un reçu unique par partie. `jeu_defis_v2` ignore les listes de réussites annoncées par le navigateur.
 - Le solo hors ligne conserve ses points sur l'appareil. Seules les parties vérifiées en ligne entrent au classement public. Les anciens totaux locaux ne sont jamais importés dans ce classement.
 
+- La salle dans l’île (7 novembre) : `jeu_ile_jeton_v2` (ouverte à `anon`) ne garde le jeton de push d’une Live Activity que pour un membre de la salle, identifié par la clé de son appareil ; `jeu_ile_cibles_v2` et `jeu_ile_suivi_v2` ne sont exécutables que par `service_role`, depuis la fonction `jeu-ile` (`verify_jwt=false` : elle authentifie l’appareil par sa clé). Les jetons ne sont jamais rendus à un client. Le serveur ne pousse qu’aux autres membres encore présents, un état nouveau à la fois, cinq au plus. Alertes attendues du conseiller : « RLS Enabled No Policy » sur `requete_private.ile` et `ile_etat`, « Public Can Execute SECURITY DEFINER Function » sur `jeu_ile_jeton_v2` (voulu, comme les autres portes d’entrée).
+
 Les tables de vérification sont dans un schéma privé, avec RLS et sans droits directs pour `anon` et `authenticated`. Le ménage horaire supprime les salles et preuves après 24 heures. Seule une empreinte de la requête est conservée, pas son texte. Les anciens points déjà publiés sont conservés ; ils ne sont pas certifiés rétroactivement.
 
 ## Vérifier les changements

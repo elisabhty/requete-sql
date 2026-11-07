@@ -58,7 +58,11 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "ouvrir", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "flammeProgrammer", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "flammeAllumee", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "flammeArreter", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "flammeArreter", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "salleDebut", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "salleMaj", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "salleFin", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "partagerTexte", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -73,6 +77,12 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         if #available(iOS 16.2, *) {
             Task { await RequeteFlammePont.nettoyer() }
         }
+        // La salle dans l’île restée d’avant (l’app relancée) : la page la rouvre si elle reprend la salle. Le podium reste.
+        if #available(iOS 16.2, *) {
+            Task { await RequeteSallePont.arreterEnCours() }
+        }
+        // Le petit miaou de la salle dans l’île (les alertes poussées par le serveur), rangé là où iOS le cherche.
+        RequeteSon.installer()
     }
 
     @objc private func raccourciRecu() {
@@ -278,6 +288,85 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         Task {
             await RequeteFlammePont.toutArreter()
             call.resolve(["ok": true, "auto": RequeteFlammePont.auto, "jours": [String]()])
+        }
+    }
+
+    /// La salle dans l’île (7 novembre) : une salle entre amis s’ouvre, { code, moi, max, etat (JSON) }. Répond { ok } (faux si les
+    /// Live Activities sont coupées). Le jeton de push de l’activité arrive ensuite, en événement « salleJeton » : { code, jeton }.
+    @objc func salleDebut(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve(["ok": false])
+            return
+        }
+        guard let code = call.getString("code"), let moi = call.getString("moi"), let etat = RequeteSallePont.etat(call.getString("etat")) else {
+            call.reject("Salle incomplète")
+            return
+        }
+        let places: Int = call.getInt("max") ?? 5
+        Task {
+            let ok: Bool = await RequeteSallePont.debut(code: code, moi: moi, max: places, etat: etat) { [weak self] jeton in
+                DispatchQueue.main.async {
+                    self?.notifyListeners("salleJeton", data: ["code": code, "jeton": jeton], retainUntilConsumed: true)
+                }
+            }
+            call.resolve(["ok": ok])
+        }
+    }
+
+    /// La salle change, l’app ouverte : { etat (JSON) }.
+    @objc func salleMaj(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve()
+            return
+        }
+        guard let etat = RequeteSallePont.etat(call.getString("etat")) else {
+            call.reject("État illisible")
+            return
+        }
+        Task {
+            await RequeteSallePont.maj(etat)
+            call.resolve()
+        }
+    }
+
+    /// Le podium, ou on quitte la salle : { etat (JSON, facultatif), garder }. garder : le podium reste un quart d’heure sur l’écran
+    /// verrouillé ; sinon, l’activité s’en va tout de suite.
+    @objc func salleFin(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve()
+            return
+        }
+        let etat: RequeteSalle.ContentState? = RequeteSallePont.etat(call.getString("etat"))
+        let garder: Bool = call.getBool("garder") ?? false
+        Task {
+            await RequeteSallePont.fin(etat, garder: garder)
+            call.resolve()
+        }
+    }
+
+    /// « Partager », depuis l’île : { texte, url }. La feuille de partage d’iOS (la page, ouverte par un lien et non par un geste,
+    /// ne peut pas appeler navigator.share). Répond { ok }.
+    @objc func partagerTexte(_ call: CAPPluginCall) {
+        let texte: String = call.getString("texte") ?? ""
+        var objets: [Any] = [texte]
+        if let lien = call.getString("url"), let url = URL(string: lien) {
+            objets.append(url)
+        }
+        DispatchQueue.main.async {
+            guard let vc = self.bridge?.viewController else {
+                call.reject("Aucune fenêtre pour partager")
+                return
+            }
+            let feuille = UIActivityViewController(activityItems: objets, applicationActivities: nil)
+            feuille.completionWithItemsHandler = { _, fait, _, _ in
+                call.resolve(["ok": fait])
+            }
+            if let pop = feuille.popoverPresentationController {
+                pop.sourceView = vc.view
+                pop.sourceRect = CGRect(x: vc.view.bounds.midX, y: vc.view.bounds.maxY - 80, width: 1, height: 1)
+                pop.permittedArrowDirections = []
+            }
+            vc.present(feuille, animated: true)
         }
     }
 }
@@ -554,6 +643,123 @@ enum RequeteFlammePont {
         for a in Activity<RequeteFlammeDirect>.activities where a.attributes.minuit <= maintenant {
             await a.end(nil, dismissalPolicy: .immediate)
         }
+    }
+}
+
+// MARK: - La salle dans l’île (Live Activity)
+//
+// Elisa, 7 novembre, 20 h 16 (« Oui », pour la planche « Ta salle vit dans l’île » : « Une seule activité, du code de la salle
+// jusqu’au podium. Tu pars envoyer le code sur WhatsApp : tu vois tes amis arriver. »). La page la lance en ouvrant une salle entre
+// amis (salleDebut), la tient à jour tant que l’app est ouverte (salleMaj), et l’arrête en quittant la salle, ou garde le podium un
+// quart d’heure (salleFin). Elle demande à Apple un jeton de push pour l’activité : la page le confie au serveur
+// (jeu_ile_jeton_v2), qui la met à jour l’app fermée (supabase/functions/jeu-ile). Son dessin est dans le widget
+// (RequeteWidget.swift, RequeteSalleIle).
+
+/// Les mêmes types, aux mêmes noms et aux mêmes champs, sont déclarés dans le widget (RequeteWidget.swift) ; le serveur envoie
+/// le même état, en JSON (supabase/functions/jeu-ile).
+@available(iOS 16.1, *)
+struct RequeteSalle: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var phase: String            // « attente », « partie », « pause » (entre deux manches), « fin »
+        var joueurs: [JoueurSalle]   // dans l’ordre de la salle en attente, du classement ensuite
+        var hote: String             // l’identifiant de l’hôte
+        var manche: Int              // de 1 à nb (0 en attente)
+        var nb: Int                  // les manches de la partie
+        var defi: String             // le titre du défi de la manche
+        var fin: Double              // la fin du chrono de la manche, en secondes depuis 1970 (0 : pas de chrono)
+        var nouveau: String          // l’identifiant de qui vient d’arriver (un clin d’œil), sinon vide
+    }
+
+    var code: String   // le code de la salle
+    var moi: String    // mon identifiant dans la salle
+    var max: Int       // les joueurs au plus
+}
+
+/// Un joueur de la salle, tel que l’île le montre.
+struct JoueurSalle: Codable, Hashable {
+    var p: String   // son identifiant
+    var n: String   // son pseudo
+    var pts: Int    // ses points
+    var r: Int      // sa place (0 en attente)
+    var ok: Bool    // prêt (en attente) ; a trouvé la manche (en partie)
+}
+
+/// Une seule salle à la fois.
+@available(iOS 16.2, *)
+enum RequeteSallePont {
+    /// L’état envoyé par la page, en JSON : le même que celui que le serveur pousse.
+    static func etat(_ texte: String?) -> RequeteSalle.ContentState? {
+        guard let t = texte, let donnees = t.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(RequeteSalle.ContentState.self, from: donnees)
+    }
+
+    /// La salle s’ouvre : l’ancienne activité s’en va, la nouvelle demande un jeton de push (sans la permission des push, elle
+    /// démarre sans : elle suit alors la salle seulement l’app ouverte). Chaque jeton reçu part à la page (jetons).
+    static func debut(code: String, moi: String, max: Int, etat: RequeteSalle.ContentState, jetons: @escaping (String) -> Void) async -> Bool {
+        for a in Activity<RequeteSalle>.activities {
+            await a.end(nil, dismissalPolicy: .immediate)
+        }
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }
+        let salle = RequeteSalle(code: code, moi: moi, max: max)
+        let contenu = ActivityContent(state: etat, staleDate: nil)
+        let activite: Activity<RequeteSalle>
+        do {
+            activite = try Activity<RequeteSalle>.request(attributes: salle, content: contenu, pushType: .token)
+        } catch {
+            do {
+                activite = try Activity<RequeteSalle>.request(attributes: salle, content: contenu, pushType: nil)
+            } catch {
+                return false
+            }
+        }
+        Task {
+            for await jeton in activite.pushTokenUpdates {
+                let hex: String = jeton.map { String(format: "%02x", $0) }.joined()
+                jetons(hex)
+            }
+        }
+        return true
+    }
+
+    static func maj(_ etat: RequeteSalle.ContentState) async {
+        for a in Activity<RequeteSalle>.activities where a.activityState == .active || a.activityState == .stale {
+            await a.update(ActivityContent(state: etat, staleDate: nil))
+        }
+    }
+
+    static func arreterEnCours() async {
+        for a in Activity<RequeteSalle>.activities where a.activityState == .active || a.activityState == .stale {
+            await a.end(nil, dismissalPolicy: .immediate)
+        }
+    }
+
+    /// garder : le podium reste un quart d’heure sur l’écran verrouillé. Sinon, tout s’en va, même un podium déjà affiché.
+    static func fin(_ etat: RequeteSalle.ContentState?, garder: Bool) async {
+        for a in Activity<RequeteSalle>.activities {
+            if a.activityState == .ended || a.activityState == .dismissed {
+                if !garder { await a.end(nil, dismissalPolicy: .immediate) }
+                continue
+            }
+            let dernier: ActivityContent<RequeteSalle.ContentState>? = etat.map { ActivityContent(state: $0, staleDate: nil) }
+            let politique: ActivityUIDismissalPolicy = garder ? .after(Date().addingTimeInterval(15 * 60)) : .immediate
+            await a.end(dernier, dismissalPolicy: politique)
+        }
+    }
+}
+
+/// « Quand Léa entre, l’île s’ouvre un instant, avec un petit miaou » (la planche) : l’alerte poussée par le serveur joue un son de
+/// l’app, que iOS cherche dans Library/Sounds. Il voyage avec la page (public/assets/sons/miaou.wav, synthétisé par
+/// tools/sons/miaou.py) : recopié là à chaque lancement (une version plus récente remplace l’ancienne).
+enum RequeteSon {
+    static func installer() {
+        let fm = FileManager.default
+        guard let source = Bundle.main.url(forResource: "miaou", withExtension: "wav", subdirectory: "public/assets/sons"),
+              let bibliotheque = fm.urls(for: .libraryDirectory, in: .userDomainMask).first else { return }
+        let dossier = bibliotheque.appendingPathComponent("Sounds", isDirectory: true)
+        let cible = dossier.appendingPathComponent("miaou.wav")
+        try? fm.createDirectory(at: dossier, withIntermediateDirectories: true)
+        try? fm.removeItem(at: cible)
+        try? fm.copyItem(at: source, to: cible)
     }
 }
 

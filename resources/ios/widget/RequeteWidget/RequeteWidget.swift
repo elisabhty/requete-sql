@@ -3349,12 +3349,14 @@ enum Regard {
     case rieur     // l’objectif de la leçon est atteint
     case endormi   // la leçon est en pause : il garde ta place
     case etoiles   // leçon réussie
+    case clin      // un ami vient d’entrer dans ta salle (la salle dans l’île, 7 novembre)
 }
 
 /// Un morceau des lunettes, tracé dans le cadre de 46 × 24 de la planche, puis mis à l’échelle de son cadre.
 struct MorceauLunettes: Shape {
     enum Quoi {
         case montures, pont, iris, pupilles, reflets, yeuxRieurs, yeuxFermes, grandZ, petitZ, etoiles
+        case clinFerme, irisDroit, pupilleDroite, refletDroit
     }
 
     let quoi: Quoi
@@ -3391,6 +3393,14 @@ struct MorceauLunettes: Shape {
         case .etoiles:
             MorceauLunettes.etoile(&p, o, e, 12)
             MorceauLunettes.etoile(&p, o, e, 34)
+        case .clinFerme:
+            MorceauLunettes.courbe(&p, o, e, [7, 14.5, 12, 9, 17, 14.5])
+        case .irisDroit:
+            MorceauLunettes.rond(&p, o, e, 35, 13.5, 5.2)
+        case .pupilleDroite:
+            MorceauLunettes.rond(&p, o, e, 36.6, 13.8, 2.7)
+        case .refletDroit:
+            MorceauLunettes.rond(&p, o, e, 34.3, 11.3, 1.3)
         }
         return p
     }
@@ -3476,6 +3486,13 @@ struct LunettesChat: View {
             }
         case .etoiles:
             MorceauLunettes(quoi: .etoiles).fill(dore)
+        case .clin:
+            ZStack {
+                MorceauLunettes(quoi: .clinFerme).stroke(lilasClair, style: paupiere)
+                MorceauLunettes(quoi: .irisDroit).fill(lilasClair)
+                MorceauLunettes(quoi: .pupilleDroite).fill(encre)
+                MorceauLunettes(quoi: .refletDroit).fill(Color.white)
+            }
         }
     }
 }
@@ -3961,9 +3978,610 @@ struct RequeteFlammeDirecte: Widget {
     }
 }
 
+// MARK: - La salle dans l’île (Live Activity)
+//
+// Elisa, 7 novembre, 20 h 16 (« Oui », pour la planche « Ta salle vit dans l’île » : « Une seule activité, du code de la salle
+// jusqu’au podium. Tu pars envoyer le code sur WhatsApp : tu vois tes amis arriver. »). La page la lance en ouvrant une salle
+// entre amis (index.html, ileSalleSuivre ; RequeteWidgetPlugin.swift, salleDebut) et la tient à jour tant que l’app est
+// ouverte ; l’app fermée, c’est le serveur qui la met à jour (la fonction jeu-ile pousse l’état de la salle, par Apple, aux
+// téléphones des autres joueurs). L’état est le même pour tous (les joueurs, leurs points, la manche) : chacun s’y retrouve par
+// son identifiant (moi). Trois temps : on attend les amis (le code, qui est là ; pour l’hôte, Partager et Lancer) ; la partie (le
+// chrono qui descend tout seul, ta place, le défi, les scores) ; le podium (Victoire !, le classement ; pour l’hôte, Rejouer), un
+// quart d’heure sur l’écran verrouillé. Un ami qui arrive : un clin d’œil dans l’île.
+
+/// Les mêmes types, aux mêmes noms et aux mêmes champs, sont déclarés dans l’app (RequeteWidgetPlugin.swift) ; le serveur envoie
+/// le même état, en JSON (supabase/functions/jeu-ile).
+@available(iOS 16.1, *)
+struct RequeteSalle: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var phase: String            // « attente », « partie », « pause » (entre deux manches), « fin »
+        var joueurs: [JoueurSalle]   // dans l’ordre de la salle en attente, du classement ensuite
+        var hote: String             // l’identifiant de l’hôte
+        var manche: Int              // de 1 à nb (0 en attente)
+        var nb: Int                  // les manches de la partie
+        var defi: String             // le titre du défi de la manche
+        var fin: Double              // la fin du chrono de la manche, en secondes depuis 1970 (0 : pas de chrono)
+        var nouveau: String          // l’identifiant de qui vient d’arriver (un clin d’œil), sinon vide
+    }
+
+    var code: String   // le code de la salle
+    var moi: String    // mon identifiant dans la salle
+    var max: Int       // les joueurs au plus
+}
+
+/// Un joueur de la salle, tel que l’île le montre.
+struct JoueurSalle: Codable, Hashable {
+    var p: String   // son identifiant
+    var n: String   // son pseudo
+    var pts: Int    // ses points
+    var r: Int      // sa place (0 en attente)
+    var ok: Bool    // prêt (en attente) ; a trouvé la manche (en partie)
+}
+
+/// Ce que l’île tire de l’état de la salle, pour ce téléphone (moi).
+@available(iOS 16.1, *)
+enum LectureSalle {
+    static func moi(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> JoueurSalle? {
+        return e.joueurs.first { $0.p == a.moi }
+    }
+
+    /// Ma place (la dernière si je n’y suis pas).
+    static func place(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Int {
+        let j: JoueurSalle? = moi(e, a)
+        let r: Int = j?.r ?? e.joueurs.count
+        return max(1, r)
+    }
+
+    /// « 1er », « 2e », « 3e »…
+    static func rang(_ n: Int) -> String {
+        if n == 1 { return "1er" }
+        return "\(n)e"
+    }
+
+    static func hote(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Bool {
+        return e.hote == a.moi
+    }
+
+    /// Le pseudo d’un joueur ; « Toi » pour moi.
+    static func nom(_ j: JoueurSalle, _ a: RequeteSalle) -> String {
+        if j.p == a.moi { return "Toi" }
+        return j.n
+    }
+
+    /// « 2/5 » : les joueurs dans la salle, sur le maximum.
+    static func compte(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        return "\(e.joueurs.count)/\(a.max)"
+    }
+
+    /// Qui vient d’arriver (pas moi) : son pseudo, sinon vide.
+    static func arrivee(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if e.nouveau.isEmpty || e.nouveau == a.moi { return "" }
+        let j: JoueurSalle? = e.joueurs.first { $0.p == e.nouveau }
+        return j?.n ?? ""
+    }
+
+    /// « que Léa », « qu’Anne ».
+    static func que(_ n: String) -> String {
+        let voyelles: String = "aeiouyàâäéèêëîïôöùûüœæAEIOUYÀÂÄÉÈÊËÎÏÔÖÙÛÜŒÆ"
+        let initiale: Character = n.first ?? "x"
+        if voyelles.contains(initiale) { return "qu’" + n }
+        return "que " + n
+    }
+
+    /// En attente : pour l’hôte, qui n’est pas encore prêt ; pour les autres, l’hôte qui lance.
+    static func attente(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if !hote(e, a) {
+            let h: JoueurSalle? = e.joueurs.first { $0.p == e.hote }
+            let n: String = h?.n ?? "l’hôte"
+            let qui: String = que(n)
+            return "on attend \(qui) lance"
+        }
+        if e.joueurs.count < 2 { return "on attend tes amis" }
+        let attendus: [String] = e.joueurs.filter { !$0.ok && $0.p != a.moi }.map { $0.n }
+        if attendus.isEmpty { return "tout le monde est prêt" }
+        return "on attend " + attendus.joined(separator: ", ")
+    }
+
+    /// « Léa 240 · Toi 210 · Max 150 »
+    static func scores(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        let morceaux: [String] = e.joueurs.prefix(4).map { (j: JoueurSalle) -> String in "\(nom(j, a)) \(j.pts)" }
+        return morceaux.joined(separator: " · ")
+    }
+
+    /// Le podium : « 1. Toi 320 », « 2. Léa 290 », « 3. Max 150 ».
+    static func podium(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> [String] {
+        return e.joueurs.prefix(3).map { (j: JoueurSalle) -> String in
+            let r: Int = max(1, j.r)
+            return "\(r). \(nom(j, a)) \(j.pts)"
+        }
+    }
+
+    /// La fin : « Victoire ! » à la première place (à plusieurs), sinon « 2e sur 4 ».
+    static func titreFin(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if e.joueurs.count < 2 { return "Partie terminée\u{202F}!" }
+        let p: Int = place(e, a)
+        let n: Int = e.joueurs.count
+        if p == 1 { return "Victoire\u{202F}!" }
+        return "\(rang(p)) sur \(n)"
+    }
+
+    /// « Manche 3 sur 5 » ; entre deux manches, « Manche 2 sur 5 terminée ».
+    static func manche(_ e: RequeteSalle.ContentState) -> String {
+        let m: Int = max(1, e.manche)
+        let nb: Int = max(1, e.nb)
+        let texte: String = "Manche \(m) sur \(nb)"
+        if e.phase == "pause" { return texte + " terminée" }
+        return texte
+    }
+
+    /// « Rejouer » pour l’hôte à la première place, « Revanche » sinon.
+    static func rejouer(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if place(e, a) == 1 { return "Rejouer" }
+        return "Revanche"
+    }
+
+    /// Le chrono de la manche tourne encore.
+    static func enCours(_ e: RequeteSalle.ContentState) -> Bool {
+        return e.phase == "partie" && e.fin > Date().timeIntervalSince1970
+    }
+
+    /// De maintenant à la fin du chrono (jamais à l’envers).
+    static func chrono(_ e: RequeteSalle.ContentState) -> ClosedRange<Date> {
+        let fin: Date = Date(timeIntervalSince1970: e.fin)
+        let debut: Date = min(Date(), fin)
+        return debut...fin
+    }
+
+    /// Les yeux du chat : un clin d’œil quand un ami arrive ; sur le podium, des étoiles à la première place, rieurs sinon ; il suit
+    /// la salle le reste du temps.
+    static func regard(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Regard {
+        if e.phase == "fin" {
+            if place(e, a) == 1 { return .etoiles }
+            return .rieur
+        }
+        if e.phase == "attente" && !arrivee(e, a).isEmpty { return .clin }
+        return .ouvert
+    }
+
+    /// Le chat de l’écran verrouillé : il salue en attente, il code pendant la partie, il saute de joie à la première place.
+    static func chat(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if e.phase == "attente" { return "ChatSalut" }
+        if e.phase == "fin" && place(e, a) == 1 { return "ChatBravo" }
+        if e.phase == "fin" { return "ChatSalut" }
+        return "ChatOrdi"
+    }
+}
+
+/// Les liens de l’île vers la salle : « salle-partager », « salle-lancer », « salle-rejouer » (index.html, raccourciOuvrir).
+/// Construits par morceaux : deux barres obliques écrites dans le code passeraient pour un commentaire aux yeux des tests.
+func lienSalle(_ action: String) -> URL {
+    var c = URLComponents()
+    c.scheme = "requete"
+    c.host = action
+    return c.url ?? URL(fileURLWithPath: "/")
+}
+
+/// Un bouton de l’île : une pastille, un lien vers la salle dans l’app.
+struct BoutonSalle: View {
+    let texte: String
+    let action: String
+    let plein: Bool
+
+    var body: some View {
+        let police: Font = Font.system(size: 13, weight: .heavy, design: .rounded)
+        let fond: Color = plein ? braise : Color.white.opacity(0.16)
+        let teinte: Color = plein ? encre : Color.white
+        return Link(destination: lienSalle(action)) {
+            Text(texte)
+                .font(police)
+                .foregroundColor(teinte)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Capsule().fill(fond))
+        }
+    }
+}
+
+/// Les joueurs en pastilles : l’initiale de chacun, sur sa couleur.
+struct AvatarsSalle: View {
+    let joueurs: [JoueurSalle]
+    let taille: CGFloat
+
+    private static let teintes: [Color] = [violetVif, braise, menthe, dore, lilas]
+
+    static func initiale(_ n: String) -> String {
+        let sans: String = n.hasPrefix("@") ? String(n.dropFirst()) : n
+        let premiere: Character = sans.first ?? "?"
+        return String(premiere).uppercased()
+    }
+
+    var body: some View {
+        let police: Font = Font.system(size: taille * 0.46, weight: .heavy, design: .rounded)
+        let ecart: CGFloat = taille * -0.18
+        let liste: [JoueurSalle] = Array(joueurs.prefix(5))
+        return HStack(spacing: ecart) {
+            ForEach(0..<liste.count, id: \.self) { i in
+                Text(AvatarsSalle.initiale(liste[i].n))
+                    .font(police)
+                    .foregroundColor(encre)
+                    .frame(width: taille, height: taille)
+                    .background(Circle().fill(AvatarsSalle.teintes[i % 5]))
+                    .overlay(Circle().stroke(Color.black, lineWidth: 2))
+            }
+        }
+    }
+}
+
+/// À droite de l’île : « 2/5 » en attente, le chrono pendant la manche, la place ensuite (dorée à la première).
+@available(iOS 16.1, *)
+struct SalleDroite: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let police: Font = Font.system(size: 14, weight: .heavy, design: .rounded)
+        let place: Int = LectureSalle.place(etat, salle)
+        let teinte: Color = place == 1 ? dore : lilasClair
+        return Group {
+            if etat.phase == "attente" {
+                Text(LectureSalle.compte(etat, salle))
+                    .foregroundColor(lilasClair)
+            } else if LectureSalle.enCours(etat) {
+                Text(timerInterval: LectureSalle.chrono(etat), countsDown: true)
+                    .monospacedDigit()
+                    .foregroundColor(braise)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 50)
+            } else {
+                Text(LectureSalle.rang(place))
+                    .foregroundColor(teinte)
+            }
+        }
+        .font(police)
+        .lineLimit(1)
+    }
+}
+
+/// Tout petit (une autre activité dans l’île) : « 2/5 », puis la place.
+@available(iOS 16.1, *)
+struct SalleMinimale: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let police: Font = Font.system(size: 12, weight: .heavy, design: .rounded)
+        let place: Int = LectureSalle.place(etat, salle)
+        let attente: Bool = etat.phase == "attente"
+        let texte: String = attente ? LectureSalle.compte(etat, salle) : LectureSalle.rang(place)
+        let teinte: Color = place == 1 ? dore : lilasClair
+        return Text(texte)
+            .font(police)
+            .foregroundColor(teinte)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+    }
+}
+
+/// L’île ouverte, à gauche : le code de la salle en attente ; ensuite, ma place, « sur 4 ».
+@available(iOS 16.1, *)
+struct SalleGauche: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let petite: Font = Font.system(size: 11, weight: .bold, design: .rounded)
+        let code: Font = Font.system(size: 17, weight: .heavy, design: .monospaced)
+        let grande: Font = Font.system(size: 26, weight: .heavy, design: .rounded)
+        let place: Int = LectureSalle.place(etat, salle)
+        let teinte: Color = place == 1 ? dore : Color.white
+        return VStack(alignment: .leading, spacing: 0) {
+            if etat.phase == "attente" {
+                Text("Salle")
+                    .font(petite)
+                    .foregroundColor(lilasPale)
+                Text(salle.code)
+                    .font(code)
+                    .foregroundColor(Color.white)
+            } else {
+                Text(LectureSalle.rang(place))
+                    .font(grande)
+                    .foregroundColor(teinte)
+                Text("sur \(etat.joueurs.count)")
+                    .font(petite)
+                    .foregroundColor(lilasPale)
+            }
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+    }
+}
+
+/// L’île ouverte, à droite : combien on est en attente ; le chrono pendant la manche ; la manche finie, une coche ; sur le
+/// podium, le trophée (doré à la première place).
+@available(iOS 16.1, *)
+struct SalleTemps: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let grande: Font = Font.system(size: 22, weight: .heavy, design: .rounded)
+        let petite: Font = Font.system(size: 11, weight: .bold, design: .rounded)
+        let symbole: Font = Font.system(size: 26, weight: .bold)
+        let place: Int = LectureSalle.place(etat, salle)
+        let teinte: Color = place == 1 ? dore : lilas
+        return Group {
+            if etat.phase == "attente" {
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(LectureSalle.compte(etat, salle))
+                        .font(grande)
+                        .foregroundColor(lilasClair)
+                    Text("joueurs")
+                        .font(petite)
+                        .foregroundColor(lilasPale)
+                }
+            } else if LectureSalle.enCours(etat) {
+                Text(timerInterval: LectureSalle.chrono(etat), countsDown: true)
+                    .font(grande)
+                    .monospacedDigit()
+                    .foregroundColor(braise)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 90, alignment: .trailing)
+            } else if etat.phase == "fin" {
+                Image(systemName: "trophy.fill")
+                    .font(symbole)
+                    .foregroundColor(teinte)
+            } else {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(symbole)
+                    .foregroundColor(menthe)
+            }
+        }
+        .lineLimit(1)
+    }
+}
+
+/// L’île ouverte, au milieu : qui arrive, ou « On attend les amis » et les pastilles ; le défi et la manche ; sur le podium,
+/// « Victoire ! » et le défi.
+@available(iOS 16.1, *)
+struct SalleCentre: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let grande: Font = Font.system(size: 16, weight: .heavy, design: .rounded)
+        let petite: Font = Font.system(size: 12, weight: .bold, design: .rounded)
+        let arrivee: String = LectureSalle.arrivee(etat, salle)
+        let fin: Bool = etat.phase == "fin"
+        let teinte: Color = fin && LectureSalle.place(etat, salle) == 1 ? dore : Color.white
+        let accueil: String = arrivee.isEmpty ? "On attend les amis" : arrivee + " arrive\u{202F}!"
+        let haut: String = fin ? LectureSalle.titreFin(etat, salle) : etat.defi
+        let bas: String = fin ? etat.defi : LectureSalle.manche(etat)
+        return VStack(alignment: .leading, spacing: 3) {
+            if etat.phase == "attente" {
+                Text(accueil)
+                    .font(grande)
+                    .foregroundColor(Color.white)
+                AvatarsSalle(joueurs: etat.joueurs, taille: 20)
+            } else {
+                Text(haut)
+                    .font(grande)
+                    .foregroundColor(teinte)
+                Text(bas)
+                    .font(petite)
+                    .foregroundColor(lilasPale)
+            }
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+    }
+}
+
+/// L’île ouverte, en bas : en attente, Partager et Lancer pour l’hôte, sinon qui doit lancer ; pendant la partie, les scores ; sur
+/// le podium, le classement et, pour l’hôte, Rejouer.
+@available(iOS 16.1, *)
+struct SalleBas: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let police: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
+        let hote: Bool = LectureSalle.hote(etat, salle)
+        let podium: String = LectureSalle.podium(etat, salle).joined(separator: "   ")
+        return Group {
+            if etat.phase == "attente" && hote {
+                HStack(spacing: 10) {
+                    BoutonSalle(texte: "Partager", action: "salle-partager", plein: false)
+                    BoutonSalle(texte: "Lancer", action: "salle-lancer", plein: true)
+                }
+            } else if etat.phase == "attente" {
+                Text(LectureSalle.attente(etat, salle))
+                    .font(police)
+                    .foregroundColor(lilasClair)
+            } else if etat.phase == "fin" {
+                HStack(alignment: .center, spacing: 10) {
+                    Text(podium)
+                        .font(police)
+                        .foregroundColor(Color.white)
+                        .minimumScaleFactor(0.7)
+                    if hote {
+                        BoutonSalle(texte: LectureSalle.rejouer(etat, salle), action: "salle-rejouer", plein: true)
+                    }
+                }
+            } else {
+                Text(LectureSalle.scores(etat, salle))
+                    .font(police)
+                    .foregroundColor(lilasClair)
+                    .minimumScaleFactor(0.75)
+            }
+        }
+        .lineLimit(1)
+        .padding(.horizontal, 4)
+        .padding(.top, 2)
+    }
+}
+
+/// L’écran verrouillé, en haut à droite : les lunettes du chat ; pendant la manche, le chrono.
+@available(iOS 16.1, *)
+struct SalleCoin: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let police: Font = Font.system(size: 17, weight: .heavy, design: .rounded)
+        return Group {
+            if LectureSalle.enCours(etat) {
+                Text(timerInterval: LectureSalle.chrono(etat), countsDown: true)
+                    .font(police)
+                    .monospacedDigit()
+                    .foregroundColor(braise)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 70, alignment: .trailing)
+            } else {
+                LunettesChat(regard: LectureSalle.regard(etat, salle), largeur: 26)
+            }
+        }
+    }
+}
+
+/// L’écran verrouillé, sous la phrase : les pastilles des joueurs en attente ; les scores pendant la partie ; le podium.
+@available(iOS 16.1, *)
+struct SalleDetail: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    var body: some View {
+        let police: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
+        let podium: String = LectureSalle.podium(etat, salle).joined(separator: "   ")
+        return Group {
+            if etat.phase == "attente" {
+                AvatarsSalle(joueurs: etat.joueurs, taille: 24)
+            } else if etat.phase == "fin" {
+                Text(podium)
+                    .font(police)
+                    .foregroundColor(Color.white)
+            } else {
+                Text(LectureSalle.scores(etat, salle))
+                    .font(police)
+                    .foregroundColor(lilasClair)
+            }
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+    }
+}
+
+/// L’écran verrouillé (tous les iPhone) : le chat, la salle et ce qui s’y passe ; pour l’hôte, Partager et Lancer, puis Rejouer.
+@available(iOS 16.1, *)
+struct SalleVerrouille: View {
+    let salle: RequeteSalle
+    let etat: RequeteSalle.ContentState
+
+    /// « Salle K7P2QX » ; « 2e sur 4 » ; « Victoire ! ».
+    static func titre(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if e.phase == "attente" { return "Salle " + a.code }
+        if e.phase == "fin" { return LectureSalle.titreFin(e, a) }
+        let rang: String = LectureSalle.rang(LectureSalle.place(e, a))
+        return "\(rang) sur \(e.joueurs.count)"
+    }
+
+    /// « 2/5 · on attend Max » ; « Le meilleur client · Manche 3 sur 5 » ; « Le meilleur client · 1er sur 4 ».
+    static func sous(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if e.phase == "attente" {
+            let compte: String = LectureSalle.compte(e, a)
+            let qui: String = LectureSalle.attente(e, a)
+            return "\(compte) · \(qui)"
+        }
+        if e.phase == "fin" && e.joueurs.count < 2 { return e.defi }
+        let rang: String = LectureSalle.rang(LectureSalle.place(e, a))
+        if e.phase == "fin" { return "\(e.defi) · \(rang) sur \(e.joueurs.count)" }
+        let manche: String = LectureSalle.manche(e)
+        return "\(e.defi) · \(manche)"
+    }
+
+    var body: some View {
+        let chat: String = LectureSalle.chat(etat, salle)
+        let titre: String = SalleVerrouille.titre(etat, salle)
+        let sous: String = SalleVerrouille.sous(etat, salle)
+        let place: Int = LectureSalle.place(etat, salle)
+        let teinte: Color = etat.phase == "fin" && place == 1 ? dore : Color.white
+        let grande: Font = Font.system(size: 19, weight: .heavy, design: .rounded)
+        let petite: Font = Font.system(size: 13, weight: .bold, design: .rounded)
+        let hote: Bool = LectureSalle.hote(etat, salle)
+        return HStack(alignment: .center, spacing: 12) {
+            Image(chat)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 80)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 6) {
+                    Text(titre)
+                        .font(grande)
+                        .foregroundColor(teinte)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    Spacer(minLength: 0)
+                    SalleCoin(salle: salle, etat: etat)
+                }
+                Text(sous)
+                    .font(petite)
+                    .foregroundColor(orangeClair)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                SalleDetail(salle: salle, etat: etat)
+                if hote && etat.phase == "attente" {
+                    HStack(spacing: 8) {
+                        BoutonSalle(texte: "Partager", action: "salle-partager", plein: false)
+                        BoutonSalle(texte: "Lancer", action: "salle-lancer", plein: true)
+                    }
+                }
+                if hote && etat.phase == "fin" {
+                    BoutonSalle(texte: LectureSalle.rejouer(etat, salle), action: "salle-rejouer", plein: true)
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+}
+
+@available(iOS 16.1, *)
+struct RequeteSalleIle: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: RequeteSalle.self) { context in
+            SalleVerrouille(salle: context.attributes, etat: context.state)
+                .activityBackgroundTint(fondDirect)
+                .activitySystemActionForegroundColor(Color.white)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    SalleGauche(salle: context.attributes, etat: context.state)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    SalleTemps(salle: context.attributes, etat: context.state)
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    SalleCentre(salle: context.attributes, etat: context.state)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    SalleBas(salle: context.attributes, etat: context.state)
+                }
+            } compactLeading: {
+                LunettesChat(regard: LectureSalle.regard(context.state, context.attributes), largeur: 30)
+            } compactTrailing: {
+                SalleDroite(salle: context.attributes, etat: context.state)
+            } minimal: {
+                SalleMinimale(salle: context.attributes, etat: context.state)
+            }
+            .keylineTint(braise)
+        }
+    }
+}
+
 /// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé ;
 /// depuis le 7 novembre, la cheminée, ta semaine, la requête de poche et la carte mémo (ces deux-là à partir d’iOS 17 : leurs
-/// boutons), et ta flamme en direct jusqu’à minuit (une Live Activity).
+/// boutons), ta flamme en direct jusqu’à minuit et la salle dans l’île (deux Live Activities).
 @main
 struct RequeteWidgets: WidgetBundle {
     var body: some Widget {
@@ -3978,6 +4596,9 @@ struct RequeteWidgets: WidgetBundle {
         }
         if #available(iOS 16.1, *) {
             RequeteFlammeDirecte()
+        }
+        if #available(iOS 16.1, *) {
+            RequeteSalleIle()
         }
         if #available(iOS 17.0, *) {
             RequetePoche()
