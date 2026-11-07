@@ -86,6 +86,7 @@ test('la récompense dans le cours, et « Noter » : le numéro et le mot-clé d
 
 test('Texte plus grand, petits écrans : le mot-clé et « Voir la leçon » s’ajustent à la carte, la syntaxe ne défile pas', () => {
   assert.ok(css.includes('html.lq[data-reading="large"]{--mc-fs:1.15}'));
-  assert.ok(css.includes('@media (max-width:360px){html.lq .mc-go{gap:4px;padding:5px 6px 5px 9px;font-size:min(calc(12.5px * var(--mc-fs)),calc((100cqi - 50px) / 6.6))}}'), '« Voir la leçon » tient à 320 px');
+  /* 7 novembre, 8 h 17 : la taille suit l’écran (vw) et non plus la carte (cqi), que Safari mesurait trop tôt (retours-0817) */
+  assert.ok(css.includes('@media (max-width:360px){html.lq .mc-go{gap:4px;padding:5px 6px 5px 9px;font-size:min(calc(12.5px * var(--mc-fs)),calc((50vw - var(--gut,20px) - 79px) / 6))}}'), '« Voir la leçon » tient à 320 px');
   assert.ok(css.includes('container-type:inline-size') && css.includes('font-size:min(calc(14px * var(--mc-fs)),calc((100cqi - 30px) / 18.3))'), 'la syntaxe : 30 signes par ligne, sans défilement');
 });
