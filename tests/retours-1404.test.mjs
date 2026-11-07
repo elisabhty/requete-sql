@@ -55,9 +55,9 @@ test('leur forme, les mêmes mouvements que la question, et le présentateur à 
 
 test('« Salle introuvable » : la loupe', () => {
   const etat = cut('  const etat=(stk,titre,sub,corps,cls,codeEnBas)=>', '\n  const retour=');
-  assert.ok(etat.includes("${String(stk).startsWith('chat:')&&typeof chatBonusHtml==='function'?chatBonusHtml(String(stk).slice(5),'room-chat'):`<span class=\"room-stk\" aria-hidden=\"true\">${lqStkSvg(stk==='chat:loupe'?'help':stk)}</span>`}"));
+  assert.ok(etat.includes("${String(stk).startsWith('chat:')&&typeof chatBonusHtml==='function'?chatBonusHtml(String(stk).slice(5),'room-chat'):`<span class=\"room-stk\" aria-hidden=\"true\">${lqStkSvg(String(stk).startsWith('chat:')?'help':stk)}</span>`}"));
   assert.ok(app.includes("html=etat('chat:loupe','Salle introuvable',"));
-  assert.ok(app.includes("html=etat('user','Cette salle est vide',") && app.includes("html=etat('rocket','Tu rejoins la salle…',"), 'les autres gardent leur autocollant');
+  assert.ok(app.includes("html=etat('user','Cette salle est vide',") && app.includes("html=etat('chat:pied','Tu rejoins la salle…',"), 'les autres gardent leur autocollant');
 });
 
 test('le site : les GIF du chat, leur image fixe en mouvement réduit', () => {

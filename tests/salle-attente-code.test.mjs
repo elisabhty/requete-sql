@@ -11,7 +11,7 @@ const assert = (c, l) => { if (c) { passed++; console.log(`  ✓ ${l}`); } else 
 console.log('\n=== Salle d’attente ===');
 const i = html.indexOf("}else if(v==='lobby'){"), lobby = html.slice(i, html.indexOf("}else if(v.startsWith('draw')){", i));
 assert(!lobby.includes('jeu-set') && !lobby.includes('jeuLobbySet('), 'pas de carte Niveau / Nombre de manches dans la salle');
-assert(lobby.includes("const frame=etat('target',") && lobby.includes('html=frame+players+'), 'le code d’abord, dans la carte violette, puis les joueurs');
+assert(lobby.includes("const frame=etat(host?'target':'chat:pied',") && lobby.includes('html=frame+players+'), 'le code d’abord, dans la carte violette, puis les joueurs');
 assert(lobby.includes('${chips()}${codeTuiles()}<button') && lobby.includes('onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button>'), 'pastilles, puis le code et « Copier le code » en bas de la carte');
 assert(!/psPage\(/.test(sec), 'la salle sécurisée n’ouvre plus la page du pseudo');
 assert(sec.includes('psReserverPourSalle()') && sec.includes('nameRetry:true'), 'pseudo inconnu de la base : réservé sans rien demander, puis on entre');

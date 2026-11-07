@@ -67,7 +67,7 @@ test('les quatre tuiles : les rythmes du planning, du plus léger à tous les jo
   const rendu = (freq, rythme = 'regulier') => {
     const pied = [];
     const c = etape({ freq, rythme }).ctx;
-    Object.assign(c, { slide: 'jours', obFlowHeader: s => `<header data-s="${s}"></header>`, obMascotQuestion: t => `<div class="ob-chat">${t}</div>`,
+    Object.assign(c, { slide: 'jours', obFlowHeader: s => `<header data-s="${s}"></header>`, obMascotQuestion: t => `<div class="ob-chat">${t}</div>`, obMascotDit: t => `<div class="ob-chat">${t}</div>`, obMascotOui: () => '',
       esc: s => String(s), escAttr: s => String(s).replace(/"/g, '&quot;'), obSetFooter: (...a) => pied.push(a), obGoto: () => {}, obModifiable: () => '<p class="ob-modifiable"></p>' });
     vm.runInContext('var html="";if(slide===\'x\'){' + j + '}', c);
     return { html: c.html, pied };
@@ -185,7 +185,7 @@ test('l’habillage : tuiles en ligne comme l’âge, carte voilée aux nombres 
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvDotOn{') && css.includes('@keyframes obvNumBump{'));
   /* La feuille est rechargée, et le cache de l’app renouvelé */
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=38">') && sw.includes("'./onboarding-vitrine.css?v=38',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=39">') && sw.includes("'./onboarding-vitrine.css?v=39',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
 });

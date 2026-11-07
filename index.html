@@ -6744,9 +6744,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=209">
+<link rel="stylesheet" href="ludique.css?v=210">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=38">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -13782,12 +13782,14 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   const I=defiIndices(c),v=Math.min(n,Math.max(1,view||n)),room=kind==='room';
   const tag=n?`<span class="coach-tag is-hint">Indice ${v}/3</span>`:`<span class="coach-tag is-go">À toi de jouer<i class="coach-caret" aria-hidden="true"></i></span>`;
   const dots=n?`<span class="coach-dots" role="group" aria-label="Indices">${[1,2,3].map(i=>`<button type="button" class="coach-dot${i<=n?' is-on':''}${i===v?' is-cur':''}"${i>n?' disabled':''} onclick="coachVoir(${i})" aria-label="Indice ${i}${i>n?', pas encore donné':''}" aria-pressed="${i===v}"></button>`).join('')}</span>`:'';
-  const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}</div>`;
+  /* Un indice à l’écran : eurêka, l’ampoule s’allume (Elisa, 7 novembre, 15 h 38 : son GIF, une fois), au bout de la ligne de l’indice */
+  const chat=n&&typeof chatBonusHtml==='function'?`<span class="coach-chat" aria-hidden="true">${chatBonusHtml('eureka')}</span>`:'';
+  const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}${chat}</div>`;
   const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?'<p class="coach-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`
     :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
   const st=diag?`<div class="coach-st"><span class="coach-st-k">Pas encore</span><p>${diag}</p></div>`:'';
   const nx=next!=null&&n<3?`<p class="coach-next"><i aria-hidden="true"></i>${n?'Indice suivant':'Premier indice'} pour tout le monde dans <b id="coach-cd">${jeuChrono(next)}</b></p>`:'';
-  return `<section class="coach${n?' has-hint':' is-go'}${diag?' has-ko':''}" aria-live="polite">${head}${body}${st}${nx}</section>`;
+  return `<section class="coach${n?' has-hint':' is-go'}${diag?' has-ko':''}${chat?' has-chat':''}" aria-live="polite">${head}${body}${st}${nx}</section>`;
 }
 function coachNext(){
   if(!COACH||COACH.kind!=='room'||typeof JEU==='undefined'||!JEU)return null;
@@ -26237,6 +26239,9 @@ function mascotBravoImg(cls){return `<img class="${cls} is-bravo" src="${mascotB
 function mascotBravo(btn,on){
   const img=btn&&btn.querySelector?btn.querySelector('.mstk-cat'):null;if(!img)return;
   if(img.hasAttribute&&img.hasAttribute('data-anim'))return;   // la fin du parcours : le diplômé (7 novembre, 12 h 38)
+  /* « Encore un effort ! » (15 h 38, son GIF) : déçu, puis le poing levé, une fois ; l’écran quitté, l’autocollant revient */
+  if(on==='effort'){img.classList.remove('is-bravo');img.classList.add('is-effort');img.setAttribute('width','286');img.setAttribute('height','304');img.src=typeof mascotReduced==='function'&&mascotReduced()?'assets/chat-effort-fixe.webp':'assets/chat-effort.webp';return;}
+  if(img.classList.contains('is-effort')){img.classList.remove('is-effort');img.setAttribute('width','450');img.setAttribute('height','674');img.src=MASCOT_IMG;}
   if(on){img.classList.add('is-bravo');img.setAttribute('width','325');img.setAttribute('height','362');img.src=mascotBravoSrc();}
   else if(img.classList.contains('is-bravo')){img.classList.remove('is-bravo');img.setAttribute('width','450');img.setAttribute('height','674');img.src=MASCOT_IMG;}
 }
@@ -26252,8 +26257,13 @@ function mascotBravo(btn,on){
    défi tout trouvé, un nouveau record, une partie gagnée entre amis), l’avion en papier (« Message envoyé ! », une fois), le
    téléphone levé qui cherche le réseau (« Pas de réseau »), et le fou rire, quand on touche le chat de l’accueil (une fois ; la
    place qu’elle a choisie). L’avion avait gardé des plaques de fond blanc autour du chat : retirées avant la conversion. */
+/* 15 h 38, huit autres : il attend en tapotant du pied (« Tu rejoins la salle… », la salle d’attente d’un ami), il hoche la tête (les
+   questions de l’onboarding, une fois répondues), il lève la patte pour un serment (l’engagement), il écrit son pseudo sur un badge
+   (le choix du pseudo), « Encore un effort ! » (déçu, puis le poing levé : une leçon à refaire, un défi sans rien trouvé), il colle un
+   sticker (le tableau vide), il retourne une carte (« Nouvelle carte mémo ! »), eurêka (l’ampoule : les indices des défis, « Ce que tu
+   retiens »). Ceux d’une seule réaction (le poing levé, la carte, l’ampoule) se jouent une fois et s’arrêtent sur leur meilleure image. */
 function chatBonusHtml(k,cls){
-  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311],cle:[309,302],avion:[313,311],reveil:[272,311],trophee:[290,311],reseau:[300,310],rire:[315,305]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
+  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311],cle:[309,302],avion:[313,311],reveil:[272,311],trophee:[290,311],reseau:[300,310],rire:[315,305],pied:[319,362],oui:[294,351],serment:[302,362],pseudo:[298,305],effort:[286,304],stickers:[309,291],carte:[270,311],eureka:[294,311]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   return `<img class="chat-bonus is-${k}${cls?' '+cls:''}" src="assets/chat-${k}${fixe?'-fixe':''}.webp" width="${t[0]}" height="${t[1]}" alt="" draggable="false">`;
 }
@@ -29610,7 +29620,7 @@ function lvEndShow(root,id,win){
   try{root.querySelector('.lv-go').focus({preventScroll:true});}catch(e){}
   const cat=root.querySelector('.lv-end .mascot-stk');
   if(cat&&cat.classList)cat.classList.toggle('is-party',win);
-  if(typeof mascotBravo==='function')mascotBravo(cat,win);   // réussie : le chat saute de joie (le GIF d’Elisa, 7 novembre)
+  if(typeof mascotBravo==='function')mascotBravo(cat,win?true:LV.retry?'effort':false);   // réussie : le chat saute de joie ; à refaire, « Encore un effort ! » (les GIF d’Elisa, 7 novembre)
   if(!mascotReduced())mascotWave(cat);
   if(win)lvWin(root);
   else if(navigator.vibrate)navigator.vibrate(12);
@@ -31329,7 +31339,7 @@ function bravoRecapHtml(l){
   }
   if(!body) return '';
   return `<div class="bravo-recap">
-    <div class="bravo-recap-head bv-lab"><span class="bv-bulb" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('bulb'):''}</span><span class="bv-tag"><b>Ce que tu retiens</b></span></div>
+    <div class="bravo-recap-head bv-lab"><span class="bv-bulb${typeof chatBonusHtml==='function'?' is-chat':''}" aria-hidden="true">${typeof chatBonusHtml==='function'?chatBonusHtml('eureka'):typeof lqStkSvg==='function'?lqStkSvg('bulb'):''}</span><span class="bv-tag"><b>Ce que tu retiens</b></span></div>
     ${body}
     ${lessonHasVideo(l)&&lessonReflexText(l)?bravoNoteHtml(l):''}
   </div>`;
@@ -35035,13 +35045,13 @@ function jeuRender(){
   const codeTuiles=()=>`<div class="jeu-etat-code" id="jeu-code-tuiles"><small>Code de la salle</small><span aria-label="${esc(J.code.split('').join(' '))}">${J.code.split('').map((ch,i)=>`<b style="--i:${i}" aria-hidden="true">${esc(ch)}</b>`).join('')}</span></div>`;
   /* stk « chat:loupe » : un GIF d’Elisa à la place de l’autocollant (7 novembre, 14 h 04 : « Salle introuvable », la loupe) */
   const etat=(stk,titre,sub,corps,cls,codeEnBas)=>`<section class="room-card jeu-etat${cls?' '+cls:''}" aria-labelledby="jeu-etat-h">
-      <div class="room-head">${String(stk).startsWith('chat:')&&typeof chatBonusHtml==='function'?chatBonusHtml(String(stk).slice(5),'room-chat'):`<span class="room-stk" aria-hidden="true">${lqStkSvg(stk==='chat:loupe'?'help':stk)}</span>`}<div>
+      <div class="room-head">${String(stk).startsWith('chat:')&&typeof chatBonusHtml==='function'?chatBonusHtml(String(stk).slice(5),'room-chat'):`<span class="room-stk" aria-hidden="true">${lqStkSvg(String(stk).startsWith('chat:')?'help':stk)}</span>`}<div>
       <p class="room-kicker">Salle de défi</p><h1 id="jeu-etat-h">${titre}</h1><p class="room-sub" id="jeu-sub">${sub}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
       ${codeEnBas?'':codeTuiles()}
       ${corps}</section>`;
   const retour=`<button type="button" class="room-go" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`;
   if(v==='join'){
-    html=etat('rocket','Tu rejoins la salle…','La salle de ton ami s’ouvre dans un instant.',`<p class="jeu-etat-wait" role="status"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span>Connexion en cours</span></p><div id="jeu-netslot">${jeuNetHTML()}</div>`,'is-join');
+    html=etat('chat:pied','Tu rejoins la salle…','La salle de ton ami s’ouvre dans un instant.',`<p class="jeu-etat-wait" role="status"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span>Connexion en cours</span></p><div id="jeu-netslot">${jeuNetHTML()}</div>`,'is-join');
   }else if(v==='lost'){
     html=etat('chat:loupe','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
@@ -35065,7 +35075,7 @@ function jeuRender(){
        manches dans la salle d’attente, les réglages se choisissent avant d’entrer (ils restent lisibles en pastilles) ; « le code
        reçu, monte-le en haut dans le cadre Entre dans la salle » : le code est en tête, en tuiles, dans la carte violette de la salle
        de défi, avec « Partager l’invitation ». */
-    const frame=etat('target',host?(J.pub?'Ta salle est ouverte':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis'):`Salle ${jeuDe(hostName)}`,
+    const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle est ouverte':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis'):`Salle ${jeuDe(hostName)}`,
       host&&J.pub?'Elle est visible par les autres joueurs, qui peuvent entrer. Tu peux aussi partager ce code.':host&&J.pour?`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`:'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
       `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
@@ -35169,7 +35179,8 @@ function jeuRender(){
       const nextNiv={f:'m',m:'d'}[J.niv];
       /* 14 h 27 : tout trouvé, ou un nouveau record, le chat lève son trophée sous les confettis (son GIF), à droite du titre ; il
          remplace la coupe du titre */
-      const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`:'';
+      const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`
+        :!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat is-effort" aria-hidden="true">${chatBonusHtml('effort')}</div>`:'';   // rien trouvé : « Encore un effort ! » (15 h 38)
       html=trophee+head('Fin de la partie',all?(trophee?'Tout trouvé\u00a0!':'Tout trouvé ! 🏆'):'Ton bilan',verdict)+
         `${fermeHTML}${lastMiss}<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>trouvé${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${avg}</b><small>temps moyen</small></div></div>
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rounds">${recap}</ol></div>
@@ -36173,9 +36184,11 @@ function bravoUnlockHtml(l){
   if(!CARTES[l.id])return '';
   const c=CARTES[l.id],n=memoSerial(l.id),neuve=lastUnlockedId===l.id;
   const owned=allLessons.filter(x=>CARTES[x.id]&&isUnlocked(x.id)).length;
+  /* La carte toute neuve : le chat retourne la sienne, à côté (Elisa, 7 novembre, 15 h 38 : son GIF, une fois) */
+  const chat=neuve&&typeof chatBonusHtml==='function'?`<span class="mc-reveal-chat" aria-hidden="true">${chatBonusHtml('carte')}</span>`:'';
   return `<section class="bravo-unlock mc-reveal${neuve?' is-new':''}" aria-labelledby="mc-reveal-h">
     <h2 class="mc-reveal-h" id="mc-reveal-h">${neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>'}</h2>
-    <div class="mc-flip">
+    <div class="mc-flip">${chat}
       <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(l.id,{shine:true})}</button>
       <div class="mc-side is-verso" aria-hidden="true" inert><div class="mc-verso is-card">${memoVerso(l.id,{head:true})}<button type="button" class="mc-recto-btn" onclick="memoFlip(this,false)">${MEMO_TURN_SVG}Recto</button></div></div>
       <span class="mc-seal" aria-hidden="true"><b>${owned}</b><small>sur ${TOTAL_CARTES}</small></span>
@@ -36950,9 +36963,12 @@ function renderStickers(){
      premier sticker. « Ta planche » devient « Ta collection », et son compteur « 7/21 débloqués » ; à 7 h 56, « Ta collection » passe
      en surtitre de l’écran et la grille devient « Tous tes stickers » (pas deux fois le même titre). */
   const ajout=won.some(s=>!onBoard.has(s.id))?`<button type="button" class="stk-ajout" onclick="stkChoisir()">Ajouter un sticker${STK_PLUS_SVG}</button>`:'';
+  /* Le tableau vide : le chat y colle un sticker (Elisa, 7 novembre, 15 h 38 : son GIF), à gauche du texte */
+  const chatVide=typeof chatBonusHtml==='function'?chatBonusHtml('stickers','stk-empty-chat'):'';
+  const vide=(t,p,x)=>chatVide?`<div class="stk-empty is-chat">${chatVide}<div class="stk-empty-t"><b>${t}</b><span>${p}</span>${x}</div></div>`:`<div class="stk-empty"><b>${t}</b><span>${p}</span>${x}</div>`;
   const empty=!won.length
-    ?`<div class="stk-empty"><b>Ton tableau t’attend</b><span>Ton premier sticker arrive avec ta première activité validée.</span></div>`
-    :!S.board.length?`<div class="stk-empty"><b>À toi de créer&nbsp;! ✨</b><span>Choisis un sticker dans ta collection et place-le ici.</span>${ajout}</div>`:'';
+    ?vide('Ton tableau t’attend','Ton premier sticker arrive avec ta première activité validée.','')
+    :!S.board.length?vide('À toi de créer&nbsp;! ✨','Choisis un sticker dans ta collection et place-le ici.',ajout):'';
   /* 19 h 02 : « dans le tableau, un sous-texte (petit) pour dire ce pour quoi on le gagne (ex. : 1ʳᵉ requête) ».
      6 novembre : plus de pastille « Sur le tableau » (« Ne pas mettre sur le tableau mais « rare » ») : un sticker posé reste seulement
      estompé. Sous la légende, l’étiquette de rareté, gagné ou pas (« Série de 7 jours, légendaire, à gagner »). */
@@ -42508,8 +42524,8 @@ function pacteCarteHTML(o){
         <p class="ob-pact-date">${esc(pacteDate(o.ts))}</p>
         <span class="ob-pact-stamp" aria-hidden="true">Validé ✓</span></div>`;
 }
-function holdZoneHTML(id,fait){
-  return `<div class="ob-hold-zone">
+function holdZoneHTML(id,fait,chat){
+  return `<div class="ob-hold-zone${chat?' has-chat':''}">${chat||''}
         <p class="ob-hold-hint" id="${id}-hint" aria-live="polite">${fait?PACTE_PRIS:'Maintiens ton doigt sur le bouton pour t’engager'}</p>
         <button type="button" class="ob-hold${fait?' is-done':''}" id="${id}" aria-describedby="${id}-hint" aria-label="${fait?'Engagement pris':'Maintenir pour m’engager'}">
           <svg class="ob-hold-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="ob-hold-track" cx="50" cy="50" r="46"/><circle class="ob-hold-fill" cx="50" cy="50" r="46"/></svg>
@@ -42980,8 +42996,11 @@ const MASCOT_QUESTION='assets/chat-question.webp',MASCOT_QUESTION_FIXE='assets/c
    « Salut ! » fait coucou ; « Je t’encouragerai… » lève le pouce et te montre (C’est parti !) ; la première requête et le tutoriel du
    widget, il les présente. Le présentateur tend la patte vers la gauche : il se met à droite de sa bulle (droite), pour la montrer
    (la mettre en miroir retournerait le « SQL » de son sweat). Mouvement réduit : leur image fixe. */
+/* Les questions de l’onboarding (âge, métier, pays, rythme, jours) : le chat se pose la question en arrivant ; une fois répondu (la page
+   redessinée par un choix), il hoche la tête (Elisa, 7 novembre, 15 h 38 : son GIF). */
+function obMascotOui(rep){return !obJustEntered&&rep!=null&&rep!==''?'oui':'';}
 function obMascotDit(text,anim,droite){
-  const T={coucou:['chat-coucou',289,352],presente:['chat-presente',315,362],parti:['chat-parti',302,359],reveil:['chat-reveil',272,311]};
+  const T={coucou:['chat-coucou',289,352],presente:['chat-presente',315,362],parti:['chat-parti',302,359],reveil:['chat-reveil',272,311],oui:['chat-oui',294,351],pseudo:['chat-pseudo',298,305]};
   const g=Object.prototype.hasOwnProperty.call(T,anim)?T[anim]:null;
   if(!g)return obMascotQuestion(text);
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
@@ -43303,7 +43322,7 @@ function paintOb(){
     const v=psForme(draft.pseudo||'');
     html=`<div class="ob-screen ob-profile ob-pseudo"><div class="ob-flow-top ob-flow-solo"></div><h1 class="ob-title" id="ob-title">Choisis ton<br> <em>pseudo</em>.</h1>
       <p class="ob-lead">C’est ton nom dans les salles de défi et au classement.</p>
-      ${obMascotQuestion('Comment tes adversaires vont-ils t’appeler ?')}
+      ${obMascotDit('Comment tes adversaires vont-ils t’appeler ?','pseudo')}
       <label class="ob-field ob-field-at"><span>Ton pseudo</span><span class="ob-at-box"><b class="ob-at" aria-hidden="true">@</b><input id="ob-pseudo" type="text" maxlength="15" value="${escAttr(psHandle(v))}" placeholder="lea_sql" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" required aria-required="true" aria-describedby="ob-ps-etat" oninput="obPseudoTape(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();obPseudoSuivant();}"></span></label>
       <p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>
       <div class="ps-idees" id="ob-ps-idees"></div></div>`;
@@ -43320,7 +43339,7 @@ function paintOb(){
     const cherche=!!(draft.paysCherche&&obJustEntered&&!prefersReduceMotion()),pop=!!draft.paysPop;
     draft.paysCherche=false;draft.paysPop=false;
     html=`<div class="ob-screen ob-profile ob-pays-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Tu vis <em>où</em>${prenom?`, ${esc(prenom)}`:''}&nbsp;?</h1>
-      ${obMascotQuestion('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.')}
+      ${obMascotDit('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.',obMascotOui(code))}
       <div class="ob-pays-carte${code?' is-on':''}${cherche?' is-cherche':''}${pop?' is-trouve':''}" role="status" aria-live="polite">
         <span class="ob-pays-radar" aria-hidden="true"><span class="ob-pays-globe"><i style="--k:0">🌍</i><i style="--k:2">🌎</i><i style="--k:1">🌏</i></span><b>Je cherche où tu es…</b></span>
         ${code?`<span class="ob-pays-trouve"><span class="ob-pays-drapeau" aria-hidden="true">${paysDrapeau(code)}</span><span class="ob-pays-copy"><b>${esc(paysNom(code))}</b><small>${draft.paysAuto?'📍 Deviné grâce à ton téléphone':'✓ Choisi par toi'}</small></span></span>`
@@ -43330,7 +43349,7 @@ function paintOb(){
     obSetFooter(code&&draft.paysAuto?'Oui, c’est ça':'Continuer',()=>obGoto('age'),'','','',!code);
   }else if(slide==='age'){
     html=`<div class="ob-screen ob-profile ob-age-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>
-      ${obMascotQuestion('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !')}
+      ${obMascotDit('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !',obMascotOui(draft.ageRange||draft.genre))}
       <div class="ob-tiles ob-age-grid" role="radiogroup" aria-label="Ta tranche d’âge">${OB_AGES.map(([k,big,label],i)=>`<button type="button" role="radio" aria-checked="${draft.ageRange===k?'true':'false'}" aria-label="${escAttr(label)}" class="ob-tile ob-age-tile ${draft.ageRange===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('ageRange','${k}')"><b aria-hidden="true">${esc(big)}</b><small aria-hidden="true">ans</small></button>`).join('')}</div>
       <div class="ob-genre"><p class="ob-genre-q" id="ob-genre-q">Et tu es…</p><div class="ob-tiles ob-genre-row" role="radiogroup" aria-labelledby="ob-genre-q">${OB_GENRES.map(([k,label,aria],i)=>`<button type="button" role="radio" aria-checked="${draft.genre===k?'true':'false'}"${aria?` aria-label="${escAttr(aria)}"`:''} class="ob-tile ob-genre-c ${draft.genre===k?'on':''}" style="--d:${(6+i)*45}ms" onclick="obPick('genre','${k}')">${esc(label)}</button>`).join('')}</div></div></div>`;
     /* 17 h 32 : « enlève les notions de facultatif » : ni « Passer » ni « Facultatif » ; « Continuer » s’allume au choix.
@@ -43339,7 +43358,7 @@ function paintOb(){
     obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange||!draft.genre);
   }else if(slide==='job'){
     html=`<div class="ob-screen ob-profile ob-job-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>
-      ${obMascotQuestion(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.')}
+      ${obMascotDit(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.',obMascotOui(draft.job))}
       <div class="ob-tiles ob-job-grid" role="radiogroup" aria-label="Ta situation">${OB_JOBS.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.job===k?'true':'false'}" class="ob-tile ob-job-tile ${draft.job===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('job','${k}')">${obOptionIcon(icon)}<span>${esc(obJobNom(k)||label)}</span></button>`).join('')}</div></div>`;
     obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);
   }else if(slide==='goal'){
@@ -43434,7 +43453,7 @@ function paintOb(){
   }else if(slide==='rhythm'){
     const subtitles={calme:'Pour garder le rythme',regulier:'Le bon équilibre',intensif:'Pour progresser plus vite'};
     html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>rythme</em> te convient&nbsp;?</h1>
-      ${obMascotQuestion('Même dix minutes suffisent pour avancer.')}
+      ${obMascotDit('Même dix minutes suffisent pour avancer.',obMascotOui(draft.rythme))}
       <div class="ob-answer-list ob-rhythm-list" role="radiogroup" aria-label="Temps par séance">${RYTHMES.map((r,i)=>`<button type="button" role="radio" aria-checked="${draft.rythme===r.k?'true':'false'}" class="ob-answer ${draft.rythme===r.k?'on':''}" style="--d:${i*60}ms" onclick="obPick('rythme','${r.k}')"><span class="ob-radio" aria-hidden="true"></span><span><b>${obRythmeMinutes(r)} minutes</b><small>${subtitles[r.k]||''}</small></span><span class="ob-rhythm-min">${r.k==='regulier'?'Conseillé':''}</span></button>`).join('')}</div>
       ${obRhythmSummary()}${obModifiable()}</div>`;
     obSetFooter('Continuer',()=>obGoto('jours'),'','','');
@@ -43449,7 +43468,7 @@ function paintOb(){
        sont finies, et à quelle date. Le chiffre défile à l’arrivée et à chaque choix, la phrase suit les jours et la durée choisis. */
     const f=OB_JOURS.includes(draft.freq)?draft.freq:7,b=obPlanInfo(),quand=f===7?' par jour':f===5?' par jour en semaine':`, ${f}&nbsp;jours par semaine`;
     html=`<div class="ob-screen ob-profile ob-jours-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Combien de <em>jours</em> par semaine&nbsp;?</h1>
-      ${obMascotQuestion('Même deux jours par semaine, ça fait avancer !')}
+      ${obMascotDit('Même deux jours par semaine, ça fait avancer !',obMascotOui(draft.freq))}
       <div class="ob-tiles ob-jours-grid" role="radiogroup" aria-label="Jours d’entraînement par semaine">${OB_JOURS.map((k,i)=>{const x=FREQS.find(y=>y.k===k);return `<button type="button" role="radio" aria-checked="${f===k?'true':'false'}" class="ob-tile ob-jour-tile ${f===k?'on':''}" style="--d:${i*60}ms" onclick="obPick('freq',${k})" aria-label="${escAttr(x.t+' : '+x.d)}"><b>${k}</b><small>jours</small><span class="ob-jour-dots" aria-hidden="true">${obJoursPoints(k)}</span></button>`;}).join('')}</div>
       <div class="ob-apport ob-proj"><p class="ob-apport-k">À ce rythme</p>
         <div class="ob-proj-row"><span class="ob-proj-big" aria-hidden="true"><b><i class="ob-apport-n" data-n="${b.days}">${b.days}</i></b><small>jour${b.days>1?'s':''}</small></span>
@@ -43493,7 +43512,7 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-pact">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un <em>engagement</em> envers <span class="ob-nw">toi-même</span>.</h1>
       <p class="ob-lead">${pacteLead(b.minutes,f)}</p>
       ${pacteCarteHTML({nom:(draft.name||'').trim(),m:b.minutes,f,ts:draft.pacte?draft.pacteAt:0,signe:!!draft.pacte})}
-      ${holdZoneHTML('ob-hold',!!draft.pacte)}</div>`;
+      ${holdZoneHTML('ob-hold',!!draft.pacte,typeof chatBonusHtml==='function'?chatBonusHtml('serment','ob-hold-chat'):'')}</div>`;
     if(draft.pacte)obSetFooter(PACTE_GO,()=>obGoto('practice'),'','','');
     else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');
     setTimeout(obHoldInit,0);
@@ -45130,7 +45149,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-noms-en-code-v2635';
+  const SW_CACHE='requete-2026-11-07-chat-eureka-v2636';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

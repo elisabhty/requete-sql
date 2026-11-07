@@ -26,9 +26,11 @@ test('1. le texte d’accroche', () => {
 test('2. le tableau vide : « À toi de créer ! ✨ », sa phrase et « Ajouter un sticker + » ; le même bouton sous le tableau', () => {
   const r = cut('function renderStickers(){', '\n/* En quittant l’écran');
   assert.ok(r.includes("const ajout=won.some(s=>!onBoard.has(s.id))?`<button type=\"button\" class=\"stk-ajout\" onclick=\"stkChoisir()\">Ajouter un sticker${STK_PLUS_SVG}</button>`:'';"), 'tant qu’il reste un sticker débloqué à coller');
-  assert.ok(r.includes('`<div class="stk-empty"><b>À toi de créer&nbsp;! ✨</b><span>Choisis un sticker dans ta collection et place-le ici.</span>${ajout}</div>`'));
+  /* 7 novembre, 15 h 38 : le chat y colle un sticker (son GIF), à gauche du texte ; sans le GIF, le texte seul */
+  assert.ok(r.includes(":!S.board.length?vide('À toi de créer&nbsp;! ✨','Choisis un sticker dans ta collection et place-le ici.',ajout):'';"));
+  assert.ok(r.includes('`<div class="stk-empty is-chat">${chatVide}<div class="stk-empty-t"><b>${t}</b><span>${p}</span>${x}</div></div>`:`<div class="stk-empty"><b>${t}</b><span>${p}</span>${x}</div>`'));
   assert.ok(r.includes("<p>${STK_TACTILE?'Glisse pour déplacer, pince ou tire la poignée pour tourner et agrandir.':'Glisse pour déplacer, tire la poignée pour tourner et agrandir.'}</p>\n        ${ajout}\n        <div class=\"stk-board-actions\">"), 'avec des stickers collés : sous le tableau');
-  assert.ok(r.includes('<b>Ton tableau t’attend</b>'), 'sans sticker gagné : pas de bouton, le tableau attend');
+  assert.ok(r.includes("?vide('Ton tableau t’attend','Ton premier sticker arrive avec ta première activité validée.','')"), 'sans sticker gagné : pas de bouton, le tableau attend');
   assert.ok(app.includes(`const STK_PLUS_SVG='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';`));
   for (const k of ['html.lq .stk-board.is-empty{aspect-ratio:16/9}', '@media (max-width:359px){html.lq .stk-board.is-empty{aspect-ratio:3/2}}', 'html.lq .stk-empty span{text-wrap:balance}',
     'background:var(--sun);color:#1B1640;font:800 15.5px/1.1 var(--display);letter-spacing:-.01em;cursor:pointer;box-shadow:0 4px 0 var(--sun-lip);',
@@ -102,6 +104,6 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=209">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-noms-en-code-v2635';") && app.includes("const SW_CACHE='requete-2026-11-07-noms-en-code-v2635';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=210">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-chat-eureka-v2636';") && app.includes("const SW_CACHE='requete-2026-11-07-chat-eureka-v2636';"));
 });

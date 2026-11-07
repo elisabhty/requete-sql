@@ -105,7 +105,7 @@ test('« Message envoyé ! » : l’avion en papier, une fois, à la place de la
 });
 
 test('la fin d’un défi : le trophée pour tout trouvé, un nouveau record ou une partie gagnée ; le titre perd sa coupe', () => {
-  assert.ok(app.includes("const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class=\"jeu-fin-chat\" aria-hidden=\"true\">${chatBonusHtml('trophee')}</div>`:'';\n      html=trophee+head('Fin de la partie',all?(trophee?'Tout trouvé\\u00a0!':'Tout trouvé ! 🏆'):'Ton bilan',verdict)+"), 'seul');
+  assert.ok(app.includes("const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class=\"jeu-fin-chat\" aria-hidden=\"true\">${chatBonusHtml('trophee')}</div>`\n        :!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class=\"jeu-fin-chat is-effort\" aria-hidden=\"true\">${chatBonusHtml('effort')}</div>`:'';   // rien trouvé : « Encore un effort ! » (15 h 38)\n      html=trophee+head('Fin de la partie',all?(trophee?'Tout trouvé\\u00a0!':'Tout trouvé ! 🏆'):'Ton bilan',verdict)+"), 'seul');
   assert.ok(app.includes("const trophee=winner&&typeof chatBonusHtml==='function'?`<div class=\"jeu-fin-chat\" aria-hidden=\"true\">${chatBonusHtml('trophee')}</div>`:'';\n      html=trophee+head('Salle de défi · Fin de partie',winner?(trophee?'Tu as gagné\\u00a0!':'Tu as gagné ! 🏆'):'Le podium',"), 'entre amis');
   for (const r of ['html.lq #jeu-root>.jeu-fin-chat{position:absolute;top:-12px;right:-10px;z-index:1;width:116px;pointer-events:none}', 'html.lq #jeu-root>.jeu-fin-chat .chat-bonus{width:100%}',
     'html.lq #jeu-root:has(>.jeu-fin-chat)>:is(h1,.l-sub){margin-right:100px}', '@media (max-width:360px){html.lq #jeu-root>.jeu-fin-chat{width:96px}html.lq #jeu-root:has(>.jeu-fin-chat)>:is(h1,.l-sub){margin-right:82px}}'])

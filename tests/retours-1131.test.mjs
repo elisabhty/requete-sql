@@ -60,7 +60,7 @@ test('le chat qui saute de joie, et l’image fixe en mouvement réduit', () => 
 
 test('où il saute : la fin d’une leçon réussie, le bilan, la connexion après la première requête', () => {
   const show = cut('function lvEndShow(root,id,win){', '\nfunction lvWin(root){');
-  assert.ok(show.includes("if(cat&&cat.classList)cat.classList.toggle('is-party',win);\n  if(typeof mascotBravo==='function')mascotBravo(cat,win);"), 'réussie, ou pas');
+  assert.ok(show.includes("if(cat&&cat.classList)cat.classList.toggle('is-party',win);\n  if(typeof mascotBravo==='function')mascotBravo(cat,win?true:LV.retry?'effort':false);"), 'réussie, ou pas');
   assert.ok(cut('function lvEndHide(){', '\n/* « Revoir la vidéo »').includes("if(typeof mascotBravo==='function')mascotBravo(cat,false);"), 'l’écran quitté : l’autocollant (le GIF repartira du début)');
   assert.ok(cut('function bravoHeroHtml(l){', '\nfunction carteRetenirHtml(id){').includes("${typeof mascotBravoImg==='function'?mascotBravoImg('lst-stk bv-stk'):"), 'le bilan');
   /* La connexion : avec la réussite, le chat qui saute ; sans, la clé qui ouvre la porte (14 h 27, retours-1427) */

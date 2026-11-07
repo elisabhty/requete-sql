@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-07-noms-en-code-v2635';
+const CACHE = 'requete-2026-11-07-chat-eureka-v2636';
 
 const PRECACHE = [
   './safari-surface.css?v=13',
@@ -25,7 +25,7 @@ const PRECACHE = [
   './onboarding-focus.js',
   './multiplayer-security.js?v=3',
   './memo-collection.css?v=5',
-  './onboarding-vitrine.css?v=38',
+  './onboarding-vitrine.css?v=39',
   './',
   './index.html',
   './home-journey.css',
@@ -90,6 +90,22 @@ const PRECACHE = [
   './assets/chat-reseau-fixe.webp',
   './assets/chat-rire.webp',
   './assets/chat-rire-fixe.webp',
+  './assets/chat-pied.webp',
+  './assets/chat-pied-fixe.webp',
+  './assets/chat-oui.webp',
+  './assets/chat-oui-fixe.webp',
+  './assets/chat-serment.webp',
+  './assets/chat-serment-fixe.webp',
+  './assets/chat-pseudo.webp',
+  './assets/chat-pseudo-fixe.webp',
+  './assets/chat-effort.webp',
+  './assets/chat-effort-fixe.webp',
+  './assets/chat-stickers.webp',
+  './assets/chat-stickers-fixe.webp',
+  './assets/chat-carte.webp',
+  './assets/chat-carte-fixe.webp',
+  './assets/chat-eureka.webp',
+  './assets/chat-eureka-fixe.webp',
   './assets/apple-touch-icon.png',
   './assets/icon-192.png',
   './assets/nutriboost-accueil.png',
