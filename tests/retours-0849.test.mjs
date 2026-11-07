@@ -84,35 +84,37 @@ test('tous les cas d’une leçon : jamais ouverte, ouverte à 0:05, en cours, v
   /* Jamais ouverte (la vidéo n’est gardée qu’après 2 s : ouverte puis refermée à 0:01, elle est « pas commencée ») */
   assert.deepEqual(carte(1), { commence: false, prog: `<p class="lq-a-meta is-ico"><svg v/><span>Vidéo de 2 min 50 · 3${N}exercices</span></p>`, sub: `~4${N}min`, points: dots(0) });
   /* Ouverte, arrêtée à 0:05 */
-  assert.deepEqual(carte(1, { pos: { 1: 5 } }), { commence: true, prog: `${barre(3)}<p class="lq-a-meta"><span class="lq-sr">Vidéo : </span><span>0:05 sur 2:50</span></p>`, sub: `Encore ~4${N}min`, points: dots(3) });
+  assert.deepEqual(carte(1, { pos: { 1: 5 } }), { commence: true, prog: `${barre(3)}<p class="lq-a-meta"><span class="lq-sr">Vidéo : </span><span>0:05 sur 2:50</span></p>`, sub: `Plus que 4${N}min`, points: dots(3) });
   /* 8 h 49 : « 1:15 sur 2:50 · 1/3 exercices », « Encore ~3 min » */
   assert.deepEqual(carte(1, { pos: { 1: 75 }, ans: { 1: { 0: { k: 1 } } } }), { commence: true,
-    prog: `${barre(44)}<p class="lq-a-meta"><span class="lq-sr">Vidéo : </span><span>1:15 sur 2:50</span><span class="lq-a-pt" aria-hidden="true">·</span><span>1/3 exercices</span></p>`, sub: `Encore ~3${N}min`, points: dots(44) });
+    prog: `${barre(44)}<p class="lq-a-meta"><span class="lq-sr">Vidéo : </span><span>1:15 sur 2:50</span><span class="lq-a-pt" aria-hidden="true">·</span><span>1/3 exercices</span></p>`, sub: `Plus que 3${N}min`, points: dots(44) });
   /* La vidéo finie (sa position n’est plus gardée), deux exercices sur trois : la barre ne dépasse jamais 95 % avant la validation */
-  assert.deepEqual(carte(1, { ans: { 1: { 0: {}, 1: {} } } }), { commence: true, prog: `${barre(63)}<p class="lq-a-meta"><span>Vidéo vue · 2/3 exercices</span></p>`, sub: `Encore ~1${N}min`, points: dots(63) });
+  assert.deepEqual(carte(1, { ans: { 1: { 0: {}, 1: {} } } }), { commence: true, prog: `${barre(63)}<p class="lq-a-meta"><span>Vidéo vue · 2/3 exercices</span></p>`, sub: `Plus que 1${N}min`, points: dots(63) });
   assert.equal(carte(1, { ans: { 1: { 0: {}, 1: {}, 2: {} } } }).prog.slice(0, barre(95).length), barre(95));
   /* Commencée autrement (un brouillon d’exercice) : la vidéo entière reste à voir */
-  assert.deepEqual(carte(1, { lecons: { 1: { draft: 'SELECT *' } } }), { commence: true, prog: `<p class="lq-a-meta is-ico"><svg v/><span>Vidéo de 2 min 50 · 3${N}exercices</span></p>`, sub: `Encore ~4${N}min`, points: dots(0) });
+  assert.deepEqual(carte(1, { lecons: { 1: { draft: 'SELECT *' } } }), { commence: true, prog: `<p class="lq-a-meta is-ico"><svg v/><span>Vidéo de 2 min 50 · 3${N}exercices</span></p>`, sub: `Plus que 4${N}min`, points: dots(0) });
 });
 
 test('un défi : 20 min au chrono et sa base ; son chrono en cours, ce qui reste', () => {
   assert.deepEqual(carte('d1'), { commence: false, prog: `<p class="lq-a-meta is-ico"><svg c/><span>20${N}min au chrono · Base Aéroport</span></p>`, sub: `20${N}min au plus`, points: '' });
   const enCours = carte('d1', { ses: { cid: 'd1', t0: Date.now() - 348000 } });
-  assert.deepEqual(enCours, { commence: true, prog: `${barre(29)}<p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>05:48 sur 20:00</span></p>`, sub: `Encore 15${N}min au chrono`, points: '' });
+  assert.deepEqual(enCours, { commence: true, prog: `${barre(29)}<p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>05:48 sur 20:00</span></p>`, sub: `Plus que 15${N}min au chrono`, points: '' });
   assert.equal(carte('d1', { ses: { cid: 'd2', t0: Date.now() - 348000 } }).commence, false, 'le chrono d’un autre défi');
 });
 
 test('la carte : le bonjour et la séance, le module, la leçon, le chat, puis le bouton ; plus de « Rappel »', () => {
   const h = fn('renderHomeHero');
   assert.ok(h.includes('const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?\'Prochain défi\':\'Ta prochaine leçon\'}">${heading}<div class="lq-a-kick">${chip}${sesCopie}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div>'));
-  assert.ok(h.includes('onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${streak}${extras}`;'));
-  assert.ok(h.includes("const ctaLu=`${ctaLabel} : ${meta.titre}, ${sub.replace(/~/g,'environ ').replace(/\\u00a0/g,' ')}`;"), 'VoiceOver : « Reprendre ma leçon : ORDER BY, Encore environ 3 min »');
+  assert.ok(h.includes('onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;'), '7 novembre, 8 h 38 : les trois chiffres, puis la série ; plus de carte de rattrapage');
+  assert.ok(h.includes("const ctaLu=`${ctaLabel} : ${meta.titre}, ${(sub.charAt(0).toLowerCase()+sub.slice(1)).replace(/~/g,'environ ').replace(/\\u00a0/g,' ')}`;"), 'VoiceOver : « Continuer ma leçon : ORDER BY, plus que 3 min »');
   assert.ok(!/Rappel/.test(h.replace(/\/\*[\s\S]*?\*\//g, '')), 'sans la pastille « Rappel » (8 h 47)');
   assert.ok(!app.includes('function homeLessonSteps(') && !app.includes('HOME_STEP_OK'), 'plus d’étapes Leçon · Exercice · Quiz');
-  /* La séance : une copie, montrée à côté du module quand la ligne du bonjour est trop courte (lqSesAjuste) ; le retard a sa flèche ↻ */
-  assert.ok(h.includes('const sesCopie=`<span class="lq-ses lq-ses-copie is-${sesEtat}" aria-hidden="true"><i class="lq-ses-ic">${sesIc}</i><span>${sesTxt}</span></span>`;'));
-  assert.ok(h.includes("const sesIc=sesEtat==='late'?'<svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\""));
-  assert.ok(h.includes('const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, <span class="lq-hi-nom">${esc(name)}</span>`:\'\'}${suite?\'\\u00a0?\':\'\'}`;'));
+  /* La séance : une copie, montrée à côté du module quand la ligne du bonjour est trop courte (lqSesAjuste). Depuis le 7 novembre,
+     8 h 38 (« plus positif »), la séance d’un jour passé a le sablier de celle du jour : plus de flèche de retard ↻ */
+  assert.ok(h.includes('const sesCopie=`<span class="lq-ses lq-ses-copie is-${sesVue}" aria-hidden="true"><i class="lq-ses-ic">${sesIc}</i><span>${sesTxt}</span></span>`;'));
+  assert.ok(h.includes("const sesVue=sesEtat==='late'?'run':sesEtat;") && h.includes("const sesIc=sesVue==='run'") && !h.includes('M3.2 8.6a5 5 0 1 0 1.5-4.4'));
+  /* 7 novembre, 8 h 38 (maquette) : « 👋 Bonjour, Elisa ! », puis la phrase de heroSousTitre */
+  assert.ok(h.includes('const hiHtml=`<span class="lq-hi-wave">👋</span> <span class="lq-hi-mot">${esc(hiWord)}</span>${name?`, <span class="lq-hi-nom">${esc(name)}</span>`:\'\'}\\u00a0!`;'));
   assert.ok(h.includes("mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,"));
 });
 
@@ -159,6 +161,6 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     '@media (max-width:360px){\n  html.lq .lq-a-titre{font-size:22px}'])
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=195">'));
-  assert.ok(sw.includes("'requete-2026-11-07-carte-voir-v2612'"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=196">'));
+  assert.ok(sw.includes("'requete-2026-11-07-accueil-positif-v2613'"));
 });
