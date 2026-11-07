@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=190">
+<link rel="stylesheet" href="ludique.css?v=191">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=30">
 <style id="lesson-video-css">
@@ -7663,7 +7663,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <section id="scr-stickers" class="screen">
       <button type="button" class="home-back root-home-back" onclick="returnToParent()" aria-label="Retour à la bibliothèque"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Bibliothèque</span></button>
       <div class="lgtitle"><div class="eyebrow">Tes récompenses</div><h1>Stickers</h1>
-        <p class="sub">Gagne-les en avançant, colle-les où tu veux et imprime-les.</p></div>
+        <p class="sub">Débloque des stickers au fil de tes progrès. Collectionne-les, amuse-toi à les placer et imprime tes créations&nbsp;!</p></div>
       <div id="stk-body"></div>
     </section>
 
@@ -31314,7 +31314,7 @@ function moduleUpHtml(i,n){
   const secs=typeof moduleStudySecs==='function'?moduleStudySecs(M):0;
   return `<div class="mu" role="dialog" aria-modal="true" aria-labelledby="mu-h">
     <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
-    <div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${MU_STK}</span><span>Ta planche</span><b class="mu-album-n"><span>${after-1}</span><span>${after}</span></b></div>
+    <div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${MU_STK}</span><span>Ta collection</span><b class="mu-album-n"><span>${after-1}</span><span>${after}</span></b></div>
     <button type="button" class="mu-x" aria-label="Fermer et voir mon bilan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="mu-in">
       <span class="mu-kick" id="mu-k">Module ${i+1} terminé</span>
@@ -31426,8 +31426,8 @@ function moduleUpCollect(){
   },860);
   T(()=>{ el.classList.add('is-card'); muSound([[0,'pop',1,.55]]); },920);
   T(()=>{
-    muSet(el.querySelector('#mu-p'),'Ton sticker est dans ta planche&nbsp;!');
-    el.querySelector('.mu-sr').textContent='Sticker ajouté à ta planche.';
+    muSet(el.querySelector('#mu-p'),'Ton sticker est dans ta collection&nbsp;!');
+    el.querySelector('.mu-sr').textContent='Sticker ajouté à ta collection.';
   },1000);
   /* Puis le module suivant se débloque tout seul (Elisa, 27 octobre, 13 h 33 : trois appuis, « c’est long ») : le son suit, l’appui l’a lancé. */
   T(moduleUpUnlock,1650);
@@ -36601,7 +36601,7 @@ function stkAnnounce(ids,tries=0){
   if(t.classList.contains('on')&&tries<6){clearTimeout(stkAnnounce.t);stkAnnounce.t=setTimeout(()=>stkAnnounce(ids,tries+1),1500);return;}
   const items=ids.map(stkInfo).filter(Boolean);
   if(!items.length)return;
-  toastWithAction(items.length>1?`${items.length} nouveaux stickers`:items[0].name,'Ajouté à ta planche','Voir',()=>openStickers(items[0].id));
+  toastWithAction(items.length>1?`${items.length} nouveaux stickers`:items[0].name,'Ajouté à ta collection','Voir',()=>openStickers(items[0].id));
   const k=document.getElementById('toast-kicker');
   if(k){k.textContent='Nouveau sticker';k.classList.add('on');}
   const mini=document.getElementById('toast-mini');
@@ -36696,6 +36696,9 @@ const STK_DL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const STK_LOCK_SVG='<span class="stk-lock" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.6"/><path d="M8.5 11V8.2a3.5 3.5 0 0 1 7 0V11"/></svg></span>';
 const STK_HANDLES='<span class="stk-hd stk-hd-del" data-h="del" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></span><span class="stk-hd stk-hd-rot" data-h="rot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12.5A7 7 0 1 1 16.9 7.5M19 4.5V8h-3.5"/></svg></span>';
 const STK_TACTILE=typeof window!=='undefined'&&'ontouchstart' in window;
+const STK_PLUS_SVG='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+/* Le titre de la feuille des stickers : « Sticker » pour une fiche, « Ajouter un sticker » pour le choix (stkChoisir) */
+function stkTitreFeuille(t){const b=document.querySelector('#stk-sheet .viz-head b');if(b)b.textContent=t;}
 let stkSel=null,stkJust=null,stkFocus=null,stkOpenId=null,stkReturn=null;
 /* Ouvrir l’espace Stickers, éventuellement sur la fiche d’un sticker. */
 function openStickers(id){
@@ -36718,9 +36721,14 @@ function renderStickers(){
   const S=stkState(),list=stkList();
   const won=list.filter(s=>s.got),onBoard=new Set(S.board.map(b=>b.id)),names=Object.fromEntries(list.map(s=>[s.id,s.name]));
   if(stkSel&&!onBoard.has(stkSel))stkSel=null;
+  /* Elisa, 7 novembre, 0 h 50 (capture de l’écran Stickers) : le tableau vide dit « À toi de créer ! ✨ » et propose « Ajouter un
+     sticker + » : la liste des stickers débloqués s’ouvre ici, sans faire défiler la page (stkChoisir). Avec des stickers collés, le
+     même bouton est sous le tableau, tant qu’il en reste à coller. Vide, le tableau est moins haut (16/9) : il reprend sa taille au
+     premier sticker. « Ta planche » devient « Ta collection », et son compteur « 7/21 débloqués ». */
+  const ajout=won.some(s=>!onBoard.has(s.id))?`<button type="button" class="stk-ajout" onclick="stkChoisir()">Ajouter un sticker${STK_PLUS_SVG}</button>`:'';
   const empty=!won.length
     ?`<div class="stk-empty"><b>Ton tableau t’attend</b><span>Ton premier sticker arrive avec ta première activité validée.</span></div>`
-    :!S.board.length?`<div class="stk-empty"><b>Colle tes stickers ici</b><span>Touche un sticker de ta planche${STK_TACTILE?', ou maintiens-le et fais-le glisser jusqu’ici':', ou fais-le glisser jusqu’ici'}.</span></div>`:'';
+    :!S.board.length?`<div class="stk-empty"><b>À toi de créer&nbsp;! ✨</b><span>Choisis un sticker dans ta collection et place-le ici.</span>${ajout}</div>`:'';
   /* 19 h 02 : « dans le tableau, un sous-texte (petit) pour dire ce pour quoi on le gagne (ex. : 1ʳᵉ requête) ».
      6 novembre : plus de pastille « Sur le tableau » (« Ne pas mettre sur le tableau mais « rare » ») : un sticker posé reste seulement
      estompé. Sous la légende, l’étiquette de rareté, gagné ou pas (« Série de 7 jours, légendaire, à gagner »). */
@@ -36729,7 +36737,9 @@ function renderStickers(){
     const label=s.name+(rar?`, ${rar.toLowerCase()}`:'')+(!s.got?', à gagner':placed?', sur le tableau':'')+(S.fresh[s.id]?', nouveau':'');
     return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button>${s.cap?`<small class="stk-cap">${esc(s.cap)}</small>`:''}${stkRarHtml(s.id,s.got)}</li>`;
   };
-  const group=(title,items)=>`<div class="stk-group"><h3>${title}</h3><span>${items.filter(s=>s.got).length} sur ${items.length}</span></div><ul class="stk-grid">${items.map(cell).join('')}</ul>`;
+  /* Les compteurs en « 7/21 » ; le lecteur d’écran entend « 7 sur 21 » */
+  const compte=(n,t,mot)=>`<span><b aria-hidden="true">${n}/${t}${mot?` ${mot}${n>1?'s':''}`:''}</b><b class="acct-sr">${n} sur ${t}${mot?` ${mot}${n>1?'s':''}`:''}</b></span>`;
+  const group=(title,items)=>`<div class="stk-group"><h3>${title}</h3>${compte(items.filter(s=>s.got).length,items.length)}</div><ul class="stk-grid">${items.map(cell).join('')}</ul>`;
   host.innerHTML=`
     <section class="stk-board-sec" aria-label="Ton tableau">
       <div class="stk-board${S.board.length?'':' is-empty'}" id="stk-board" role="group" aria-label="Ton tableau de stickers">
@@ -36739,6 +36749,7 @@ function renderStickers(){
       <p class="acct-sr" id="stk-kbd">Au clavier : les flèches déplacent, [ et ] tournent, + et − changent la taille, Suppr décolle.</p>
       ${S.board.length?`<div class="stk-board-bar">
         <p>${STK_TACTILE?'Glisse pour déplacer, pince ou tire la poignée pour tourner et agrandir.':'Glisse pour déplacer, tire la poignée pour tourner et agrandir.'}</p>
+        ${ajout}
         <div class="stk-board-actions">
           <button type="button" class="lq-btn-2 stk-btn" onclick="stkClearBoard()">Tout décoller</button>
           <button type="button" class="lq-btn stk-btn" onclick="stkExportBoard()">${STK_DL_SVG}<span>Télécharger</span></button>
@@ -36746,7 +36757,7 @@ function renderStickers(){
       </div>`:''}
     </section>
     <section class="stk-sheet-sec" aria-labelledby="stk-sheet-t">
-      <div class="acct-head"><h2 id="stk-sheet-t">Ta planche</h2><span>${won.length} sur ${list.length}</span></div>
+      <div class="acct-head"><h2 id="stk-sheet-t">Ta collection</h2>${compte(won.length,list.length,'débloqué')}</div>
       <div class="stk-sheet" id="stk-sheet-grid">
         ${group('Modules',list.filter(s=>s.kind==='module'))}
         ${group('Accomplissements',list.filter(s=>s.kind==='acc'))}
@@ -36990,7 +37001,10 @@ function stkFreeSpot(R){
 function stkPlace(id,x,y){
   const S=stkState();
   if(!S.got[id]||S.board.some(b=>b.id===id))return;
-  const board=document.getElementById('stk-board'),R=board?board.getBoundingClientRect():{width:4,height:3};
+  const board=document.getElementById('stk-board');
+  let R=board?board.getBoundingClientRect():{width:4,height:3};
+  /* Vide, le tableau est moins haut (16/9) ; il reprend sa taille (4/3) avec ce sticker : un sticker lâché garde sa place à l’écran. */
+  if(board&&board.classList.contains('is-empty')&&R.width>0&&R.height>0){const H=R.width*.75;if(y!=null)y=y*R.height/H;R={width:R.width,height:H};}
   const r=Math.round(Math.random()*24-12);
   if(x==null)[x,y]=stkFreeSpot(R);
   [x,y]=stkClampPos(x,y,1,R,r);
@@ -37008,7 +37022,7 @@ function stkRemove(id){
   save();renderStickers();
   document.querySelector(`.stk-cell[data-id="${id}"]`)?.focus({preventScroll:true});
   const s=stkInfo(id);
-  toastWithAction('Sticker décollé',s?`${s.name} · revenu sur ta planche`:'','Annuler',()=>{
+  toastWithAction('Sticker décollé',s?`${s.name} · revenu dans ta collection`:'','Annuler',()=>{
     const T=stkState();
     if(T.board.some(q=>q.id===id))return;
     T.board.splice(Math.min(i,T.board.length),0,b);save();renderStickers();
@@ -37020,7 +37034,7 @@ function stkClearBoard(){
   const prev=S.board.slice();
   S.board=[];stkSel=null;save();renderStickers();
   document.querySelector('.stk-cell.is-got')?.focus({preventScroll:true});
-  toastWithAction('Tableau vidé','Tes stickers sont revenus sur ta planche.','Annuler',()=>{
+  toastWithAction('Tableau vidé','Tes stickers sont revenus dans ta collection.','Annuler',()=>{
     const T=stkState();
     T.board=prev.filter(b=>!T.board.some(q=>q.id===b.id)).concat(T.board);
     save();renderStickers();
@@ -37130,6 +37144,7 @@ function stkOpen(id){
   if(!s||!body)return;
   stkOpenId=id;
   stkReturn=document.activeElement;
+  stkTitreFeuille('Sticker');
   const S=stkState(),placed=S.board.some(b=>b.id===id);
   if(S.fresh[id]){delete S.fresh[id];save();document.querySelector(`.stk-cell[data-id="${id}"] .stk-new`)?.remove();}
   /* La rareté prend la place de « Holo » (6 novembre) : sous le grand sticker, la même étiquette que sur la planche, un peu plus grande
@@ -37195,6 +37210,27 @@ function stkTilt(stage){
   stage.addEventListener('pointercancel',reset);
   stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')reset();});
   if(art.classList.contains('is-holo')){art.classList.add('is-sweep');setTimeout(()=>art.classList.remove('is-sweep'),1400);}
+}
+/* « Ajouter un sticker + » (7 novembre, 0 h 50) : la feuille des stickers montre ceux qui sont débloqués et pas encore collés ; en
+   toucher un le colle sur le tableau (stkTogglePlace : la feuille se ferme, le tableau revient en vue, le sticker s’y colle). */
+function stkChoisir(){
+  const body=document.getElementById('stk-sheet-body');
+  if(!body)return;
+  const S=stkState(),libres=stkList().filter(s=>s.got&&!S.board.some(b=>b.id===s.id));
+  if(!libres.length)return;
+  buzz('selection');
+  stkOpenId=null;
+  stkReturn=document.activeElement;
+  stkTitreFeuille('Ajouter un sticker');
+  body.innerHTML=`<h2 class="acct-sr" id="stk-name">Ajouter un sticker</h2>
+      <p class="stk-choix-t">Touche un sticker pour le coller sur ton tableau.</p>
+      <ul class="stk-grid stk-choix">${libres.map(s=>`<li><button type="button" class="stk-cell is-got" data-id="${s.id}" aria-label="${escAttr(s.name+(stkRarete(s.id)?', '+stkRarete(s.id).toLowerCase():'')+', le coller sur le tableau')}" onclick="stkTogglePlace('${s.id}')">${stkArtHtml(s.id,'art')}</button>${s.cap?`<small class="stk-cap">${esc(s.cap)}</small>`:''}${stkRarHtml(s.id,true)}</li>`).join('')}</ul>`;
+  document.getElementById('stk-back').classList.add('on');
+  document.getElementById('stk-sheet').classList.add('on');
+  document.getElementById('fab')?.classList.add('hide');
+  body.scrollTop=0;
+  stkPaint(body);
+  requestAnimationFrame(()=>document.querySelector('#stk-sheet .viz-head button')?.focus({preventScroll:true}));
 }
 /* « Coller sur le tableau » depuis la planche : on remonte d’abord jusqu’au tableau, puis le sticker s’y colle, sous les yeux.
    Avant, il se collait pendant que l’écran remontait encore : l’animation se jouait hors de la vue (Elisa, 26 octobre, 23 h 06 :
@@ -44665,7 +44701,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-connexion-haut-v2604';
+  const SW_CACHE='requete-2026-11-07-stickers-v2605';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

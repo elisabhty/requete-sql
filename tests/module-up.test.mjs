@@ -52,7 +52,7 @@ test('l’écran : la récompense du module terminé, le chemin des modules, la 
   assert.ok(h.includes('<div class="mu-st mu-done"><span class="stk-art" data-id="agregats" data-mode="art"></span></div>'), 'le sticker gagné, en couleur');
   assert.ok(h.includes('<span class="mu-tag">Nouveau sticker</span>'), 'on voit bien que c’est un sticker');
   assert.ok(h.includes('<h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>') && h.includes('Tu as terminé le module <b>Agrégats et regroupements</b>. Voici ton sticker&nbsp;!'));
-  assert.ok(h.includes('<span>Ta planche</span><b class="mu-album-n"><span>0</span><span>1</span></b>'), 'ta planche, qui comptera un sticker de plus');
+  assert.ok(h.includes('<span>Ta collection</span><b class="mu-album-n"><span>0</span><span>1</span></b>'), 'ta collection (7 novembre, 0 h 50 : plus « ta planche »), qui comptera un sticker de plus');
   assert.ok(h.includes('<span class="mu-pips"><i class="on"></i><i class="on"></i><i class="cur"></i><i class="nx"></i></span>'), 'les modules faits, celui qui vient d’être terminé, le suivant');
   assert.ok(h.includes('aria-label="3 modules terminés sur 4"') && h.includes('<small><b>3</b> / 4 modules</small>'));
   assert.ok(h.includes('<div class="mu-back"><span class="mu-lock">') && h.includes('<b>Module 4</b></div>'), 'le dos : verrouillé');
@@ -81,7 +81,7 @@ test('le déroulé : impact à l’arrivée ; récupérer le sticker (le son par
   const collect = cut('function moduleUpCollect(){', '/* 3. Le module suivant se débloque');
   assert.ok(collect.includes("muSound([[0,'pop',3,.7],[180,'whoosh',0,.4],[760,'true',0,.6]],true);"), 'les sons de l’appui, forcés (on est dans l’appui)');
   for (const part of ["el.classList.add('is-got','is-album');", "alb.querySelector('.mu-album-ico')", "alb.classList.add('is-hit')", "c.className='mu-comet'", "nx.classList.add('is-on')", "el.classList.add('is-card')",
-    "'Ton sticker est dans ta planche&nbsp;!'", 'T(moduleUpUnlock,1650);'])
+    "'Ton sticker est dans ta collection&nbsp;!'", 'T(moduleUpUnlock,1650);'])
     assert.ok(collect.includes(part), part);
   const unlock = cut('function moduleUpUnlock(){', '/* 4. L’écran final');
   for (const part of ["el.classList.add('is-b','is-unlock');", "[250,'success',0,.65]", "el.classList.add('is-open');", 'muImpact(el,true);', 'lqConfetti({n:90});', 'moduleUpFinal(false)'])

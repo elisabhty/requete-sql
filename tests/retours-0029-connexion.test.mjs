@@ -78,5 +78,5 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=30">') && sw.includes("'./onboarding-vitrine.css?v=30',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-connexion-haut-v2604';") && app.includes("const SW_CACHE='requete-2026-11-07-connexion-haut-v2604';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-stickers-v2605';") && app.includes("const SW_CACHE='requete-2026-11-07-stickers-v2605';"));
 });
