@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=202">
+<link rel="stylesheet" href="ludique.css?v=203">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=36">
 <style id="lesson-video-css">
@@ -28394,6 +28394,14 @@ function openLesson(id, restoreStep){
 }
 /* La page de départ d’un cours, dans la DA du site : la carte violette quadrillée, le module en menthe, le titre en jaune soleil,
    ce que contient le cours en pastilles, la mascotte, et un seul bouton, « Commencer » (« Voir le bilan », coché, une fois la leçon validée). */
+/* Elisa, 7 novembre, 12 h 20 : son GIF « Il présente » pour l’ouverture des cours : il tend la patte vers le titre, comme un
+   présentateur. 12 images de 420 ms, détourées et adoucies au bord, en boucle ; en mouvement réduit, la patte tendue
+   (chat-presente-fixe.webp). */
+const MASCOT_PRESENTE='assets/chat-presente.webp',MASCOT_PRESENTE_FIXE='assets/chat-presente-fixe.webp';
+function lstChatHtml(){
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  return `<img class="lst-stk is-presente" src="${fixe?MASCOT_PRESENTE_FIXE:MASCOT_PRESENTE}" width="315" height="362" alt="" draggable="false">`;
+}
 function lessonStartShow(l,go){
   document.getElementById('lesson-start')?.remove();
   const m=moduleDeLecon(l.id),mi=m?MODULES.indexOf(m):-1,pos=m?m.lessons.findIndex(x=>x.id===l.id)+1:0;
@@ -28423,7 +28431,7 @@ function lessonStartShow(l,go){
       <h1 class="lst-title" id="lst-t">${esc(l.titre)}</h1>
       ${l.résumé?`<p class="lst-sub">${esc(l.résumé)}</p>`:''}
       <div class="lst-chips">${chips.join('')}</div>
-      <img class="lst-stk" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">
+      ${lstChatHtml()}
     </div>
     <ol class="lst-plan">${plan.map(([t,d],i)=>`<li style="--i:${i}"><b class="lst-n">${i+1}</b><span><b>${t}</b><small>${d}</small></span></li>`).join('')}</ol>
     <button type="button" class="lst-go${done?' is-done':''}">${done?'<i class="lst-ok" aria-hidden="true">✓</i>':''}<span>${done?'Voir le bilan':started?'Continuer':'Commencer'}</span>${DEF_CHEV_SVG}</button>`;
@@ -45002,7 +45010,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-chat-parti-v2626';
+  const SW_CACHE='requete-2026-11-07-chat-presente-v2627';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
