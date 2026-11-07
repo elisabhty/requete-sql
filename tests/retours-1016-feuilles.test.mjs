@@ -25,7 +25,7 @@ function bac(o = {}) {
     jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''},
     document: {getElementById: id => els[id] || null, querySelectorAll: () => [], body: null}
   }, o));
-  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML'), ctx);
+  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + fn('dxConfHTML'), ctx);
   return {ctx, els};
 }
 
@@ -66,14 +66,24 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   for (const h of [creer, code, seul]) assert.ok(!h.includes('room-levels') && !h.includes('data-set="niv"'), 'pas de second choix de niveau');
   assert.ok(creer.includes('<p class="jeu-lab" id="room-nb-l">Nombre de manches</p>') && creer.includes('data-set="nb" data-v="3"') && creer.includes('aria-checked="true" class="room-opt on" data-set="nb" data-v="3"'));
   assert.ok(creer.includes('<p class="jeu-lab" id="room-vis-l">Qui peut entrer&nbsp;?</p>') && creer.includes('<div class="jeu-me" data-nom="jeu-nom"></div>'));
-  assert.ok(creer.includes('<p class="jeu-note">🔒 note</p></div>\n    <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite"></p>'), 'la note, puis le message et le bouton en pied de feuille');
+  /* 8 novembre, 0 h 23 : la confidentialité repliée derrière « Confidentialité des parties » (« utile, mais trop visible »). */
+  assert.ok(creer.includes('<details class="dx-conf"><summary><span aria-hidden="true">🔒</span> Confidentialité des parties</summary><p class="jeu-note">Les joueurs de ta salle voient ton pseudo, ton drapeau, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p></details></div>\n    <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite"></p>'), 'la confidentialité repliée, puis le message et le bouton en pied de feuille');
   assert.ok(creer.includes('onclick="jeuEnterRoom()"><span>Ouvrir la salle</span>'));
-  assert.ok(code.includes('<h2 id="dx-f-t">Rejoins une salle</h2>') && code.includes('<input id="jeu-code" class="jeu-input is-code"') && code.includes('<span>Rejoindre la salle</span>'));
+  /* 8 novembre, 0 h 23 (la relecture d’Elisa) : « Rejoindre une partie », « Entre ton code ! », « Code à 6 caractères », plus « Les 6
+     caractères que ton ami t’a envoyés » ; « Rejoindre la partie », éteint tant que le code n’a pas ses 6 caractères. */
+  assert.ok(code.includes('<p class="room-kicker">Rejoindre une partie</p>') && code.includes('<h2 id="dx-f-t">Entre ton code&nbsp;!</h2>') && code.includes('<p class="room-sub" id="dx-f-p">Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.</p>'));
+  assert.ok(code.includes('<label class="jeu-lab" for="jeu-code">Code à 6 caractères</label>') && code.includes('oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)"') && !code.includes('room-hint') && !code.includes('Les 6 caractères'));
+  assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" disabled onclick="jeuEnterRoom()"><span>Rejoindre la partie</span>') && code.includes('dx-conf'));
   assert.ok(!code.includes('jeu-me') && !code.includes('data-set="nb"'), 'un code : pas de pseudo, pas de manches (l’hôte choisit)');
   assert.ok(seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<span>Tirer un défi</span>') && seul.includes('data-set="nb"') && !seul.includes('jeu-note') && !seul.includes('data-vis'));
   ctx.jeuInvite = 'ABC123';
   const inv = ctx.defisFeuilleHTML('code');
-  assert.ok(inv.includes('<p class="room-invite">Tu es invitée dans la salle <b class="jeu-code-inline">ABC123</b></p>') && inv.includes('value="ABC123"'));
+  assert.ok(inv.includes('<p class="room-invite">Tu es invitée dans la salle <b class="jeu-code-inline">ABC123</b></p>') && inv.includes('value="ABC123"') && inv.includes('id="jeu-code-go" onclick='), 'le code d’un lien : le bouton allumé');
+  /* Code introuvable (personne dans la salle) : la feuille revient, le code gardé, le message dessous */
+  ctx.jeuInvite = ''; ctx.jeuCodeKo = 'ZZZ999';
+  const ko = ctx.defisFeuilleHTML('code');
+  assert.ok(ko.includes('value="ZZZ999"') && ko.includes('aria-live="polite">Code introuvable. Vérifie-le et réessaie.</p>') && !ko.includes('room-invite'));
+  ctx.jeuCodeKo = '';
   ctx.jeuChallenges = () => [1, 2];
   assert.ok(ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="3" disabled') && ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="5" disabled'), 'pas plus de manches que de défis');
 });
@@ -84,7 +94,7 @@ test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et
     '<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>',
     '<button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>',
     "document.addEventListener('keydown',dxFeuilleTouche,true);", "vv.addEventListener('resize',dxFeuilleCaler)", "document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));",
-    'if(inp&&!inp.value)inp.focus({preventScroll:true}); else el.querySelector(\'.dx-f-boite\').focus({preventScroll:true});', "bx.classList.toggle('is-defile',"])
+    'if(inp&&(!inp.value||ko)){inp.focus({preventScroll:true});if(ko)inp.select();} else el.querySelector(\'.dx-f-boite\').focus({preventScroll:true});', "bx.classList.toggle('is-defile',"])
     assert.ok(o.includes(k), k);
   const f = fn('defisFeuilleFermer');
   for (const k of ["DEFIS.carte='';", "document.removeEventListener('keydown',dxFeuilleTouche,true);", "el.removeAttribute('id');", "el.classList.remove('on');el.classList.add('off');",

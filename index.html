@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=216">
+<link rel="stylesheet" href="ludique.css?v=217">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27053,8 +27053,10 @@ function defisFeuilleHTML(k){
   const join=k==='code',friends=k==='creer';
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
   const niv=`<span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span>`;
-  /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44). */
-  const tete=join?['Rejoindre avec un code','Rejoins une salle','Entre le code que ton ami t’a envoyé. Il a choisi le niveau et les manches.']
+  /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44). Le code (8 novembre, 0 h 23, sa relecture : « il y a un peu trop
+     d’explications pour une action aussi simple que saisir un code ») : « Rejoindre une partie », « Entre ton code ! ». */
+  const ko=join&&typeof jeuCodeKo!=='undefined'?jeuCodeKo:'',code=jeuInvite||ko||'';
+  const tete=join?['Rejoindre une partie','Entre ton code&nbsp;!','Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.']
     :friends?['Créer ma partie','Ta salle de défi',`${niv}<span>Le défi est tiré au sort au dernier moment, le même pour tous.</span>`]
     :['Jouer en solo','Joue seul',`${niv}<span>Un défi tiré au sort, pour t’entraîner.</span>`];
   return `<div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span><div>
@@ -27064,18 +27066,38 @@ function defisFeuilleHTML(k){
     <div class="dx-f-corps" data-k="${k}">
     ${join?`<div class="room-field room-join" data-join>
       ${jeuInvite?`<p class="room-invite">Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'} dans la salle <b class="jeu-code-inline">${jeuInvite}</b></p>`:''}
-      <label class="jeu-lab" for="jeu-code">Code de la salle</label>
-      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${jeuInvite||''}" oninput="this.value=jeuCleanCode(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go">
-      <small class="room-hint">Les 6 caractères que ton ami t’a envoyés.</small></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
+      <label class="jeu-lab" for="jeu-code">Code à 6 caractères</label>
+      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${code}" oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go"></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-nb-l">${seg('nb',[[1,'1'],[3,'3'],[5,'5']].map(([v,l])=>[v,l,v>jeuChallenges(jeuNiv).length?' disabled':'']),jeuNb)}</div></div>`}
     ${friends?`<div class="room-field" data-vis><p class="jeu-lab" id="room-vis-l">Qui peut entrer&nbsp;?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-vis-l">${seg('vis',[['pub','Tout le monde'],['priv','Sur invitation']],jeuVis)}</div>
       <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small></div>
     <div class="room-field" data-friends>${jeuNomField('jeu-nom')}</div>`:''}
-    ${friends||join?`<div data-friends>${JEU_NOTE_HTML}</div>`:''}
-    <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite"></p>
-    <button type="button" class="room-go" onclick="jeuEnterRoom()"><span>${join?'Rejoindre la salle':friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button></div>
+    ${friends||join?`<div data-friends>${dxConfHTML()}</div>`:''}
+    <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite">${ko?'Code introuvable. Vérifie-le et réessaie.':''}</p>
+    <button type="button" class="room-go"${join?` id="jeu-code-go"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()"><span>${join?'Rejoindre la partie':friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button></div>
     </div>`;
+}
+/* La confidentialité d’une partie (8 novembre, 0 h 23 : « utile, mais trop visible ») : repliée derrière « Confidentialité des
+   parties » ; la feuille se concentre sur le code, la saisie et le bouton. */
+function dxConfHTML(){
+  return `<details class="dx-conf"><summary><span aria-hidden="true">🔒</span> Confidentialité des parties</summary><p class="jeu-note">Les joueurs de ta salle voient ton pseudo, ton drapeau, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p></details>`;
+}
+/* « Rejoindre la partie » ne s’allume qu’avec 6 caractères (8 novembre, 0 h 23) ; taper efface le message d’erreur. */
+let jeuCodeKo='';
+function dxCodePret(inp){
+  const b=document.getElementById('jeu-code-go');if(b)b.disabled=jeuCleanCode(inp&&inp.value).length!==6;
+  const m=document.querySelector('#dx-feuille .jeu-msg');if(m&&m.textContent)m.textContent='';
+}
+/* « Code introuvable. Vérifie-le et réessaie. » (8 novembre, 0 h 23) : personne ne répond dans la salle d’un code tapé (ou d’un lien
+   d’invitation) : retour à la feuille du code, le code gardé et choisi, le message dessous. Avant : un écran « Salle introuvable ». */
+function jeuCodeIntrouvable(code){
+  jeuStop();
+  jeuCodeKo=jeuCleanCode(code);jeuInvite='';
+  if(typeof DEFIS!=='undefined'){DEFIS.onglet='jouer';DEFIS.carte='code';}
+  if(document.body.classList.contains('in-lesson'))leaveLessonScreen('defis');
+  else if(activeTab==='defis')renderDefis();
+  else switchTab('defis');
 }
 /* La feuille : elle monte du bas, le fond se voile ; × , le voile ou Échap la referment, le focus revient au bouton qui l’a ouverte.
    Le code à taper : la feuille reste au-dessus du clavier (comme les feuilles de saisie, lqPrompt). */
@@ -27098,7 +27120,8 @@ function defisFeuilleOuvrir(k){
       <button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>
       ${defisFeuilleHTML(k)}
     </div>`;
-  const inp=el.querySelector('#jeu-code');
+  const inp=el.querySelector('#jeu-code'),ko=k==='code'&&typeof jeuCodeKo!=='undefined'&&!!jeuCodeKo;
+  if(ko){jeuCodeKo='';if(inp)inp.classList.add('is-shake');}
   if(inp){inp.addEventListener('focus',()=>requestAnimationFrame(dxFeuilleCaler));inp.addEventListener('blur',dxFeuilleCaler);}
   document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
   const bx=el.querySelector('.dx-f-boite');
@@ -27108,7 +27131,7 @@ function defisFeuilleOuvrir(k){
     setTimeout(marque,typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:720);}
   const montrer=()=>{
     el.classList.add('on');
-    try{ if(inp&&!inp.value)inp.focus({preventScroll:true}); else el.querySelector('.dx-f-boite').focus({preventScroll:true}); }catch(e){}
+    try{ if(inp&&(!inp.value||ko)){inp.focus({preventScroll:true});if(ko)inp.select();} else el.querySelector('.dx-f-boite').focus({preventScroll:true}); }catch(e){}
     dxFeuilleCaler();
   };
   if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
@@ -27884,7 +27907,7 @@ function defisNiv(k){
    tuiles deviennent deux boutons secondaires (defisActionsHTML) ; sans salle à son niveau, « Voir les N autres salles » descend à
    celles des autres niveaux (sallesSectionHTML). 23 h 46 (« ok ») : son ordre du 5 novembre reste (le designer produit proposait
    « Créer ma partie » avant les salles). 8 novembre, 0 h 17 (« je veux garder ça ») : le bandeau d’avant, sa phrase entière, et le
-   cadre en pointillés de « Aucune salle à ton niveau ? ». */
+   cadre en pointillés de « Aucune salle à ton niveau ? ». 0 h 23 : plus « Plus c’est dur, plus ça rapporte » (×1, ×2, ×4 le disent). */
 function defisRapideHTML(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
@@ -27892,7 +27915,7 @@ function defisRapideHTML(){
   return `<section class="room-card dx-rapide is-v2" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
     <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>
     <p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
-    <div class="room-field dx-r-niv"><div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p><span class="dx-niv-plus">Plus c’est dur, plus ça rapporte</span></div>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
+    <div class="room-field dx-r-niv"><div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p></div>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
     <div class="dx-rejoindre" id="dx-rejoindre" role="group" aria-labelledby="dx-rejoindre-h">${sallesSectionHTML()}</div>
     <button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')"><span>Créer ma partie</span>${DEF_CHEV_SVG}</button>
     ${defisActionsHTML()}
@@ -34728,7 +34751,7 @@ function jeuStart(code,host,cid,opts){
   const niv=picked?picked.niv:jeuNiv;
   const nb=Math.max(1,Math.min(jeuNb,jeuChallenges(niv).length||1));
   const me=jeuPid();
-  JEU={code,solo,ranked:!!opts.secure,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),
+  JEU={code,solo,ranked:!!opts.secure,parCode:!!opts.parCode,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),
     players:{},order:[],rounds:[],over:false,net:solo?true:null,view:'',sig:'',
     seenU:new Set(),seenR:new Set(),seq:[],seen:{},ready:{},left:{},denied:{},helloOf:{},
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
@@ -34757,6 +34780,7 @@ function jeuStart(code,host,cid,opts){
     const J=JEU,wait=()=>{if(JEU!==J||J.hostPid)return;
       if(rep){jeuStart(code,true,null,{nomId:opts.nomId});return;}
       if(J.net===false){J.waitCfg=setTimeout(wait,3000);return;}
+      if(J.parCode&&typeof jeuCodeIntrouvable==='function'){jeuCodeIntrouvable(code);return;}   // le code tapé : retour à sa feuille (8 novembre)
       J.view='';J.lost=true;jeuPaint();};
     J.waitCfg=setTimeout(wait,rep?3000:7000);
   }
@@ -34775,8 +34799,8 @@ function jeuReprendre(nav){
 }
 function jeuJoin(code){
   const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom');
-  if(c.length!==6){if(msg)msg.textContent=c.length?'Le code fait 6 caractères.':'Entre le code que ton ami t’a envoyé.';const inp=document.getElementById('jeu-code');if(inp){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}return;}
-  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom'}));
+  if(c.length!==6){if(msg)msg.textContent=c.length?'Le code fait 6 caractères.':'Entre le code que tu as reçu.';const inp=document.getElementById('jeu-code');if(inp){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}return;}
+  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom',parCode:true}));
 }
 function jeuSend(m){
   if(!JEU)return '';
@@ -45925,7 +45949,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-bandeau-garde-v2650';
+  const SW_CACHE='requete-2026-11-08-code-v2651';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
