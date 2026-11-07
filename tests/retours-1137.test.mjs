@@ -84,7 +84,7 @@ test('« Rejoins une partie » : les salles du niveau choisi, directement, plus 
   assert.ok(!app.includes('>Aux autres niveaux<'), 'plus « Aux autres niveaux »');
   assert.ok(!haut.includes('Trouver une salle') && !haut.includes('Créer ma salle') && (haut.match(/class="room-go/g) || []).length === 1, 'un seul bouton pour créer');
   assert.ok(!app.includes('function jeuPartieRapide(') && !app.includes('function dxTrouverTexte(') && !app.includes('function jeuSalleOuverte('));
-  assert.ok(app.includes('<p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Ta salle de défi</h2>'));
+  assert.ok(app.includes('<p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>'), '7 novembre, 21 h 44 : « Lance un défi ! »');
 });
 
 test('aucune salle au niveau choisi : la phrase d’Elisa, juste au-dessus de « Créer une salle » ; les autres niveaux restent à la fin', () => {
@@ -138,7 +138,8 @@ test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient
   c.ev("DEFIS.onglet='amis';defisPeindre()");
   assert.ok(c.els['defis-tabs'].innerHTML.includes('id="dx-tab-amis" class="room-opt on" aria-selected="true" aria-controls="defis-amis" onclick="defisOnglet(\'amis\')">Joueurs</button>'));
   const a = c.els['defis-amis'].innerHTML;
-  assert.ok(a.includes('<p class="perf-kicker">Ceux que tu as affrontés</p><h2 id="dx-amis-h">Joueurs</h2>') && a.includes('onclick="amisFormBasculer()">Ajouter un joueur</button>'));
+  /* 7 novembre, 21 h 44 : l’onglet reste « Joueurs », la carte s’appelle « Tes adversaires » ; « Ajouter par pseudo » (retours-2144-defis). */
+  assert.ok(a.includes('<p class="perf-kicker">Ceux que tu as affrontés</p><h2 id="dx-amis-h">Tes adversaires</h2>') && a.includes('onclick="amisFormBasculer()">Ajouter par pseudo</button>'));
   assert.ok(a.includes('<label class="jeu-lab" for="dx-ajout-in">Le pseudo du joueur</label>'));
   assert.ok(c.els['dx-amis-liste'].innerHTML.includes('aria-label="Retirer @lea de ta liste"'));
   c.el('dx-ajout-in').value = '@lea'; c.ev('amisAjouter()');
@@ -147,7 +148,7 @@ test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient
   assert.equal(c.els['dx-ajout-msg'].textContent, 'Écris le pseudo du joueur, avec ou sans @.');
   c.ev("amisRetirer('@lea')");
   assert.ok(c.appels.some(x => x[0] === 'say' && x[1] === '@lea n’est plus dans ta liste.'));
-  assert.ok(c.els['dx-amis-liste'].innerHTML.includes('Tu peux aussi ajouter un joueur avec son pseudo.'));
+  assert.ok(c.els['dx-amis-liste'].innerHTML.includes('Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.'));
   assert.ok(app.includes("${chip('amis','Mes joueurs')}") && app.includes('ajoute-les dans l’onglet Joueurs.'), 'le classement nomme l’onglet Joueurs');
   for (const k of ['<h2 id="dx-amis-h">Tes amis</h2>', 'Ajouter un ami</button>', "chip('amis','Mes amis')", 'dans l’onglet Amis', 'dans tes amis'])
     assert.ok(!app.includes(k), k);
@@ -171,7 +172,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=210">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=211">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-07-voix-sans-coupure-v2643' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-07-defis-relecture-v2644' && app.includes(`const SW_CACHE='${cache}';`));
 });

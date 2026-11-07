@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=210">
+<link rel="stylesheet" href="ludique.css?v=211">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -7590,7 +7590,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         <div>
           <div class="eyebrow">Salle de défi</div>
           <h1>Défis</h1>
-          <p class="sub" id="defis-sub">Des défis pour te tester. Joue en solo, défie d’autres joueurs et grimpe dans le classement.</p>
+          <p class="sub" id="defis-sub">Des défis. Des adversaires. Une place à décrocher.</p>
         </div>
       </div>
       <!-- 4 novembre, 18 h 55 – 19 h 10 : trois onglets, Jouer, Classement et Amis ; « Mes stats » s’ouvre depuis la carte du joueur. -->
@@ -27035,12 +27035,13 @@ function renderDefisRoom(){
   const f=typeof document.getElementById==='function'?document.getElementById('dx-feuille'):null;
   if(c&&(!f||f.dataset.k!==c))defisFeuilleOuvrir(c);
 }
-/* « J’ai un code », « Seul » : dans le cadre du haut, sous « ou », une seule rangée (Elisa, 5 novembre, 11 h 11 : « juste un cadre
-   unique ») ; chacun ouvre sa feuille. */
+/* « Rejoindre avec un code », « Jouer en solo » : dans le cadre du haut, sous « ou », une seule rangée (Elisa, 5 novembre, 11 h 11 :
+   « juste un cadre unique ») ; chacun ouvre sa feuille. 7 novembre, 21 h 44 : un libellé explicite chacun, plus « J’ai un code ·
+   rejoindre un ami » ni « Seul · entraînement ». */
 function defisActionsHTML(){
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
-  const tuile=(k,stk,titre,sous)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b><small>${sous}</small></button>`;
-  return `<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('code','rocket','J’ai un code','rejoindre un ami')}${tuile('seul','clock','Seul','entraînement')}</div>`;
+  const tuile=(k,stk,titre)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b></button>`;
+  return `<p class="dx-ou" aria-hidden="true"><span>ou</span></p><div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${tuile('code','rocket','Rejoindre avec un code')}${tuile('seul','clock','Jouer en solo')}</div>`;
 }
 /* Le contenu d’une feuille : le bandeau violet (autocollant, surtitre, titre ; le niveau en pastille), puis, sur blanc, seulement ce
    qu’il faut choisir. Créer : les manches, qui peut entrer, le pseudo ; un code : le code ; seul : les manches. */
@@ -27048,9 +27049,10 @@ function defisFeuilleHTML(k){
   const join=k==='code',friends=k==='creer';
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
   const niv=`<span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span>`;
-  const tete=join?['J’ai un code','Rejoins une salle','Entre le code que ton ami t’a envoyé. Il a choisi le niveau et les manches.']
-    :friends?['Créer une salle','Ta salle de défi',`${niv}<span>Le défi est tiré au sort au dernier moment, le même pour tous.</span>`]
-    :['Entraînement','Joue seul',`${niv}<span>Un défi tiré au sort, pour t’entraîner.</span>`];
+  /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44). */
+  const tete=join?['Rejoindre avec un code','Rejoins une salle','Entre le code que ton ami t’a envoyé. Il a choisi le niveau et les manches.']
+    :friends?['Créer ma partie','Ta salle de défi',`${niv}<span>Le défi est tiré au sort au dernier moment, le même pour tous.</span>`]
+    :['Jouer en solo','Joue seul',`${niv}<span>Un défi tiré au sort, pour t’entraîner.</span>`];
   return `<div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span><div>
     <p class="room-kicker">${tete[0]}</p>
     <h2 id="dx-f-t">${tete[1]}</h2>
@@ -27150,8 +27152,9 @@ function renderDefis(){
   renderDefisRoom();renderDefisPerf();renderDefisJoin();renderDefisRules();
   const all=CHALLENGES.filter(jeuEligible);
   const sub=document.getElementById('defis-sub');
-  /* Elisa, 5 novembre, 11 h 32 : « 267 défis pour te tester. Joue en solo, défie d’autres joueurs et grimpe dans le classement. » */
-  if(sub)sub.textContent=`${all.length} défis pour te tester. Joue en solo, défie d’autres joueurs et grimpe dans le classement.`;
+  /* Elisa, 5 novembre, 11 h 32 : « 267 défis pour te tester. Joue en solo, défie d’autres joueurs et grimpe dans le classement. »
+     7 novembre, 21 h 44 (sa relecture des trois écrans) : plus court, plus orienté jeu. */
+  if(sub)sub.textContent=`${all.length} défis. Des adversaires. Une place à décrocher.`;
   if(typeof defisPeindre==='function')defisPeindre();
 }
 /* « Tes performances » (Elisa, 31 octobre, 8 h 06 : « avoir un tableau de performance pour la page défis ») : les points, les parties
@@ -27841,7 +27844,7 @@ function defisMoiHTML(){
    15 h 20 : « mettre également le coefficient multiplicateur au niveau » : ×1, ×2, ×4 sous le nom (JEU_NIV_X), lu en toutes lettres. */
 function jeuNiveauxHTML(lab,fn){
   const auto=jeuNivAuto();
-  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':`<span class="room-lv-x" aria-hidden="true">×${x}</span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
+  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'<small>Bientôt</small>':`<span class="room-lv-x" aria-hidden="true">×${x}<small>pts</small></span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
 }
 function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
@@ -27858,17 +27861,19 @@ function defisNiv(k){
    salle tient JEU_MAX = 5 joueurs : l’hôte et 4 invités).
    12 h 52 : « tu peux fusionner les deux cadres, car même bouton dans les deux » : un seul cadre. Sous le niveau, « Rejoins une partie »
    (les salles ouvertes à ce niveau ; aucune : « Aucune salle à ton niveau ? Crée la tienne et laisse les autres te rejoindre ! »), puis
-   le seul « Créer une salle », « ou » « J’ai un code » et « Seul » ; les salles des autres niveaux à la fin du cadre. */
+   le seul « Créer une salle », « ou » « J’ai un code » et « Seul » ; les salles des autres niveaux à la fin du cadre.
+   7 novembre, 21 h 44 (sa relecture) : « Lance un défi ! », « Créer ma partie », « Rejoindre avec un code », « Jouer en solo » ;
+   et ce que rapporte chaque niveau, plus visible : « Plus c’est dur, plus ça rapporte » à côté de « Niveau ». */
 function defisRapideHTML(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
   return `<section class="room-card dx-rapide" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
-    <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Ta salle de défi</h2>
+    <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>
     <p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
-    <div class="room-field"><p class="jeu-lab" id="dx-niv-l">Niveau</p>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
+    <div class="room-field"><div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p><span class="dx-niv-plus">Plus c’est dur, plus ça rapporte</span></div>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
     <div class="dx-rejoindre" id="dx-rejoindre" role="group" aria-labelledby="dx-rejoindre-h">${sallesSectionHTML()}</div>
-    <button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')"><span>Créer une salle</span>${DEF_CHEV_SVG}</button>
+    <button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')"><span>Créer ma partie</span>${DEF_CHEV_SVG}</button>
     ${defisActionsHTML()}
     <div class="dx-autres" id="dx-autres">${sallesAutresHTML()}</div></section>`;
 }
@@ -28066,29 +28071,40 @@ function defisClassementPeindre(){
     <div class="dx-filters" role="group" aria-label="Qui">${chip('monde','🌍 Monde')}${pays?chip('pays',`${paysDrapeau(pays)} ${esc(paysNom(pays))}`):''}${chip('amis','Mes joueurs')}</div>
     <div class="room-seg dx-periode" role="radiogroup" aria-label="Période">${per('tout','Depuis toujours')}${per('semaine','Cette semaine')}</div>
     <div class="dx-pager" id="dx-pager"></div>
-    <p class="dx-h3">Ta place</p><div id="dx-place"></div>
+    <p class="dx-h3">Ta place dans le classement</p><div id="dx-place"></div>
     <p class="perf-top-note dx-cls-note" id="dx-cls-note"></p></section>`;
   clsPagerPeindre();
   clsPageCharger(0);
 }
+/* Un autre joueur se touche (la ligne, ou son nom au clavier) : sa fiche, pour le défier (7 novembre, 21 h 44). */
 function clsLigneHTML(x,i){
-  const s=state.salle||{},rk=Math.max(1,+x.rang||1),me=!!x.moi;
-  return `<li class="${me?'is-me ':''}is-r${Math.min(rk,4)}" style="--i:${i}"><span class="dx-rk">${rk<=3?lqStkSvg('medal'+rk):rk}</span>`+
+  const s=state.salle||{},rk=Math.max(1,+x.rang||1),me=!!x.moi,fiche=`dxFicheCls('${escAttr(x.id)}')`;
+  return `<li class="${me?'is-me ':'is-tap '}is-r${Math.min(rk,4)}" style="--i:${i}"${me?'':` onclick="if(!event.target.closest('button'))${fiche}"`}><span class="dx-rk">${rk<=3?lqStkSvg('medal'+rk):rk}</span>`+
     `<b class="jeu-av" data-c="${me?0:perfColor(x.pseudo)}" aria-hidden="true">${jeuInitial(x.pseudo)}${jeuFlag(x.pseudo,x.pays||'')}</b>`+
-    `<span class="dx-t"><b>${esc(x.pseudo)}</b><small>${me?'<i>Toi</i> · ':''}${dxParties(x.parties)}</small></span>`+
+    (me?`<span class="dx-t"><b>${esc(x.pseudo)}</b><small><i>Toi</i> · ${dxParties(x.parties)}</small></span>`
+      :`<button type="button" class="dx-t dx-t-btn" onclick="${fiche}" aria-label="${escAttr(`${x.pseudo}, ${dxRang(rk,1)}, ${clsPts(x.pts)} points\u00a0: voir sa fiche`)}"><b>${esc(x.pseudo)}</b><small>${dxParties(x.parties)}</small></button>`)+
     `<span class="dx-pts">${clsPts(x.pts)}<small> pts</small></span>`+
     (me?'':`<button type="button" class="perf-top-flag" onclick="clsSignalerV2('${escAttr(x.id)}')" aria-label="${escAttr(`Signaler le pseudo ${x.pseudo}`)}">${CLS_FLAG_SVG}</button>`)+`</li>`;
 }
 function clsPagesNb(){const t=DEFIS.cls.total;return t==null?1:Math.max(1,Math.min(CLS_PAGES_MAX,Math.ceil(t/CLS_PAR_PAGE)));}
+/* Personne de classé (Elisa, 7 novembre, 21 h 44 : « l’état vide pourrait être plus motivant ») : « Le classement n’attend que toi ! »,
+   puis la phrase de la période et du pays, accordée (« Sois la première », « Sois le premier ») ; sans genre connu, une phrase qui
+   n’en a pas besoin. */
+function clsVideHTML(){
+  const ou=DEFIS.periode==='semaine'?' cette semaine':DEFIS.portee==='pays'?' dans ton pays':'';
+  const dire=typeof accord==='function'?accord(`Sois la première à marquer des points${ou}.`,`Sois le premier à marquer des points${ou}.`,`Marque les premiers points${DEFIS.periode==='semaine'?' de la semaine':ou}.`)
+    :`Marque les premiers points${ou}.`;
+  return `<div class="dx-vide-bloc"><p class="dx-vide-t">Le classement n’attend que toi&nbsp;! <span aria-hidden="true">🏆</span></p><p class="perf-top-msg">${dire}</p></div>`;
+}
 /* Le pager : une page par écran (défilement horizontal aimanté), les flèches, les points et « 6 à 10 sur 87 ». */
 function clsPagerPeindre(){
   const host=document.getElementById('dx-pager');if(!host)return;
   const c=DEFIS.cls,n=clsPagesNb();
   const k=document.getElementById('dx-cls-k');
-  if(k)k.textContent=c.total?`${clsPts(c.total)} joueur${c.total>1?'s':''} classé${c.total>1?'s':''}${DEFIS.periode==='semaine'?' cette semaine':''}`:DEFIS.periode==='semaine'?'Depuis lundi':'Tous les joueurs';
+  if(k)k.textContent=c.total?`${clsPts(c.total)} joueur${c.total>1?'s':''} classé${c.total>1?'s':''}${DEFIS.periode==='semaine'?' cette semaine':''}`:'Tous les joueurs';
   if(c.err==='net'&&!c.pages[0]){host.innerHTML=`<p class="perf-top-msg">Classement indisponible pour le moment&nbsp;: il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle='';clsPageCharger(0)">Réessayer</button>`;clsPlacePeindre();return;}
   if(c.err==='bientot'){host.innerHTML='<p class="perf-top-msg">Ce classement arrive avec la prochaine mise à jour.</p>';clsPlacePeindre();return;}
-  if(c.total===0){host.innerHTML=`<p class="perf-top-msg">${DEFIS.portee==='amis'?'Aucun de tes joueurs n’est encore classé. Joue avec eux, ou ajoute-les dans l’onglet Joueurs.':DEFIS.periode==='semaine'?'Personne n’a encore marqué de points cette semaine\u00a0: à toi de commencer.':DEFIS.portee==='pays'?'Personne n’est encore classé dans ton pays.':'Personne n’est encore classé : termine une partie pour ouvrir le classement.'}</p>`;clsPlacePeindre();return;}
+  if(c.total===0){host.innerHTML=DEFIS.portee==='amis'?'<p class="perf-top-msg">Aucun de tes adversaires n’est encore classé. Joue avec eux, ou ajoute-les dans l’onglet Joueurs.</p>':clsVideHTML();clsPlacePeindre();return;}
   host.innerHTML=`<div class="dx-pages" id="dx-pages" tabindex="0" aria-label="Classement, ${n} page${n>1?'s':''}\u00a0: glisse pour changer de page">${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="Page ${i+1} sur ${n}"></ul>`).join('')}</div>
     <div class="dx-nav"><button type="button" class="dx-arrow" id="dx-prev" aria-label="Page précédente" onclick="clsAllerPage(DEFIS.cls.page-1)">‹</button><span class="dx-dots" id="dx-dots" aria-hidden="true"></span><small id="dx-range" aria-live="polite"></small><button type="button" class="dx-arrow" id="dx-next" aria-label="Page suivante" onclick="clsAllerPage(DEFIS.cls.page+1)">›</button></div>`;
   const sc=document.getElementById('dx-pages');
@@ -28140,14 +28156,16 @@ function clsPlacePeindre(){
   if(note)note.innerHTML=clsOn()?`Tu y apparais avec ton pseudo${paysMontre()&&paysDuProfil()?' et ton drapeau':''}. <button type="button" onclick="clsQuitter()">Ne plus apparaître</button>`:'';
   if(!clsOn()){host.innerHTML='<p class="perf-top-msg">Tu n’apparais pas au classement.</p><button type="button" class="perf-top-btn" onclick="clsQuitter()">Y apparaître avec mon pseudo</button>';return;}
   if(!nom){host.innerHTML='<p class="perf-top-msg">Choisis ton pseudo pour entrer au classement.</p><button type="button" class="perf-top-btn" onclick="psPage({})">Choisir mon pseudo</button>';return;}
+  /* « Jouer un défi » (Elisa, 7 novembre, 21 h 44) : d’ici, sans revenir à la main sur l’onglet Jouer. */
+  const jouer=`<button type="button" class="room-go dx-cls-go" onclick="defisOnglet('jouer')"><span>Jouer un défi</span>${DEF_CHEV_SVG}</button>`;
   if(!m){
-    host.innerHTML=`<p class="perf-top-msg">${c.total==null?'…':DEFIS.portee==='pays'&&!paysMontre()?'Ton drapeau est masqué\u00a0: tu n’apparais pas dans le classement de ton pays.':DEFIS.periode==='semaine'?'Termine une partie cette semaine pour y entrer.':'Termine une partie pour entrer au classement.'}</p>`;
+    host.innerHTML=`<p class="perf-top-msg">${c.total==null?'…':DEFIS.portee==='pays'&&!paysMontre()?'Ton drapeau est masqué\u00a0: tu n’apparais pas dans le classement de ton pays.':DEFIS.periode==='semaine'?'Termine un défi cette semaine pour décrocher ta place.':'Termine un défi pour décrocher ta place.'}</p>${jouer}`;
     return;
   }
   const page=Number.isInteger(+m.page)?+m.page:-1,go=page>=0&&page<clsPagesNb();
   host.innerHTML=`<ul class="dx-list"><li class="is-me${go?' is-tap':''}"${go?` role="button" tabindex="0" onclick="clsAllerPage(${page})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();clsAllerPage(${page});}" aria-label="${escAttr(`Ta place\u00a0: ${dxRang(m.rang,1)}, ${clsPts(m.pts)} points. Aller à la page ${page+1}`)}"`:''}>`+
     `<span class="dx-rk">${Math.max(1,+m.rang||1)}</span><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${jeuFlag(nom,paysMontre()?paysDuProfil():'')}</b>`+
-    `<span class="dx-t"><b>${esc(nom)}</b><small><i>Toi</i>${go?` · page ${page+1} ›`:''}</small></span><span class="dx-pts">${clsPts(m.pts)}<small> pts</small></span></li></ul>`;
+    `<span class="dx-t"><b>${esc(nom)}</b><small><i>Toi</i>${go?` · page ${page+1} ›`:''}</small></span><span class="dx-pts">${clsPts(m.pts)}<small> pts</small></span></li></ul>${jouer}`;
 }
 /* Signaler depuis une page du classement : comme clsSignaler (masqué pour soi tout de suite, compté par la base). */
 function clsSignalerV2(id){
@@ -28170,14 +28188,13 @@ function amisListe(){
 }
 function defisAmisPeindre(){
   const host=document.getElementById('defis-amis');if(!host)return;
-  host.innerHTML=`<section class="perf-card dx-amis" aria-labelledby="dx-amis-h"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('user')}</span><div><p class="perf-kicker">Ceux que tu as affrontés</p><h2 id="dx-amis-h">Joueurs</h2></div></div>
+  host.innerHTML=`<section class="perf-card dx-amis" aria-labelledby="dx-amis-h"><div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('user')}</span><div><p class="perf-kicker">Ceux que tu as affrontés</p><h2 id="dx-amis-h">Tes adversaires</h2></div></div>
     <div id="dx-amis-salles"></div><div id="dx-amis-liste"></div>
-    <div class="dx-duo"><button type="button" class="dx-sec${DEFIS.amisForm?' on':''}" aria-expanded="${DEFIS.amisForm}" onclick="amisFormBasculer()">Ajouter un joueur</button><button type="button" class="dx-sec" onclick="jeuDefier()">Inviter par lien</button></div>
+    <div class="dx-duo"><button type="button" class="dx-sec is-main${DEFIS.amisForm?' on':''}" aria-expanded="${DEFIS.amisForm}" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Partager une invitation</button></div>
     <form class="dx-ajout" id="dx-ajout"${DEFIS.amisForm?'':' hidden'} onsubmit="event.preventDefault();amisAjouter()">
       <label class="jeu-lab" for="dx-ajout-in">Le pseudo du joueur</label>
       <div class="dx-ajout-l"><input id="dx-ajout-in" class="jeu-input" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="16" placeholder="@lea_data" enterkeyhint="done" oninput="this.value=psForme(this.value)||(this.value.startsWith('@')?'@':'');document.getElementById('dx-ajout-msg').textContent=''"><button type="submit" class="dx-join">Ajouter</button></div>
-      <p class="jeu-msg" id="dx-ajout-msg" role="status" aria-live="polite">${esc(DEFIS.amisMsg)}</p></form>
-    <p class="dx-note">Un adversaire s’ajoute tout seul après une partie. «&nbsp;Défier&nbsp;» lui envoie le code d’une salle privée.</p></section>`;
+      <p class="jeu-msg" id="dx-ajout-msg" role="status" aria-live="polite">${esc(DEFIS.amisMsg)}</p></form></section>`;
   amisListesPeindre();
 }
 function amisListesPeindre(){
@@ -28187,12 +28204,14 @@ function amisListesPeindre(){
   const dans=[];
   (DEFIS.salles||[]).forEach(s=>(Array.isArray(s.joueurs)?s.joueurs:[]).forEach(j=>{if(j&&cles.has(drapCle(j.pseudo))&&!dans.some(d=>drapCle(d.qui)===drapCle(j.pseudo)))dans.push({s,qui:j.pseudo});}));
   if(sa)sa.innerHTML=dans.length?`<p class="dx-h3">Dans une salle maintenant</p><ul class="dx-list">${dans.slice(0,5).map(d=>salleLigneHTML(d.s,d.qui)).join('')}</ul>`:'';
-  if(!amis.length){ls.innerHTML='<p class="dx-vide">Pas encore d’adversaire. Joue une partie à plusieurs&nbsp;: tes adversaires s’ajouteront ici tout seuls. Tu peux aussi ajouter un joueur avec son pseudo.</p>';return;}
-  ls.innerHTML=`<p class="dx-h3">Tes adversaires</p><ul class="dx-list">${amis.slice(0,30).map((m,i)=>{
+  /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! », puis ce qu’on y gagne ; la carte s’appelle déjà « Tes adversaires ». */
+  if(!amis.length){ls.innerHTML='<div class="dx-vide-bloc"><p class="dx-vide-t">Pas encore d’adversaire&nbsp;!</p><p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>';return;}
+  ls.innerHTML=`<ul class="dx-list">${amis.slice(0,30).map((m,i)=>{
     const lead=m.w>m.l?'is-up':m.w<m.l?'is-down':'is-eq',lab=m.w>m.l?'tu mènes':m.w<m.l?'à rattraper':'égalité';
     const sous=m.g?`${dxParties(m.g)} · ${esc(perfDay(m.at).toLowerCase())}`:`ajouté ${esc(perfDay(m.at).toLowerCase())}`;
-    return `<li style="--i:${i}"><b class="jeu-av" data-c="${perfColor(m.n)}" aria-hidden="true">${jeuInitial(m.n)}${jeuFlag(m.n)}</b>`+
-      `<span class="dx-t"><b>${esc(m.n)}</b><small>${sous}</small></span>`+
+    const fiche=`dxFiche('${escAttr(m.n)}')`;
+    return `<li class="is-tap" style="--i:${i}" onclick="if(!event.target.closest('button'))${fiche}"><b class="jeu-av" data-c="${perfColor(m.n)}" aria-hidden="true">${jeuInitial(m.n)}${jeuFlag(m.n)}</b>`+
+      `<button type="button" class="dx-t dx-t-btn" onclick="${fiche}" aria-label="${escAttr(`${m.n}\u00a0: voir sa fiche`)}"><b>${esc(m.n)}</b><small>${sous}</small></button>`+
       (m.g?`<span class="dx-h2h ${lead}" role="img" aria-label="${escAttr(`${m.w} fois devant, ${m.l} fois derrière`)}"><em>${m.w}–${m.l}</em><small>${lab}</small></span>`:'')+
       `<button type="button" class="dx-join is-ghost" onclick="jeuDefier('${escAttr(m.n)}')" aria-label="${escAttr(`Défier ${m.n}`)}">Défier</button>`+
       (m.ajout&&!m.g?`<button type="button" class="dx-retirer" onclick="amisRetirer('${escAttr(m.n)}')" aria-label="${escAttr(`Retirer ${m.n} de ta liste`)}">×</button>`:'')+`</li>`;
@@ -28211,11 +28230,7 @@ function amisAjouter(){
   if(drapCle(p)===drapCle(jeuSavedNom())){dire('C’est ton pseudo à toi.');return;}
   if(amisListe().some(a=>drapCle(a.n)===drapCle(p))){dire(`${p} est déjà dans ta liste.`);return;}
   dire('Recherche…');
-  const garder=n=>{
-    const s=clsSalle();s.amisAjoutes=(Array.isArray(s.amisAjoutes)?s.amisAjoutes:[]).filter(a=>a&&drapCle(a.n)!==drapCle(n)).concat([{n,at:Date.now()}]).slice(-50);save();
-    DEFIS.amisMsg='';DEFIS.amisForm=false;defisAmisPeindre();
-    if(typeof lqSay==='function')lqSay(`${n} est dans ta liste.`);if(typeof buzz==='function')buzz('success');
-  };
+  const garder=n=>{DEFIS.amisMsg='';DEFIS.amisForm=false;amisGarder(n);defisAmisPeindre();};
   clsRpc('jeu_drapeaux',{p_pseudos:[p]}).then(l=>{
     const x=(Array.isArray(l)?l:[])[0];
     if(x&&x.pseudo){drapNoter(x.pseudo,x.pays);garder(x.pseudo);}else dire(`Aucun joueur ne s’appelle ${p}.`);
@@ -28227,6 +28242,11 @@ function amisAjouter(){
     dire('Pas de connexion\u00a0: réessaie dans un instant.');
   });
 }
+/* Un adversaire de plus dans ta liste (le formulaire, ou la fiche d’un joueur du classement). */
+function amisGarder(n){
+  const s=clsSalle();s.amisAjoutes=(Array.isArray(s.amisAjoutes)?s.amisAjoutes:[]).filter(a=>a&&drapCle(a.n)!==drapCle(n)).concat([{n,at:Date.now()}]).slice(-50);save();
+  if(typeof lqSay==='function')lqSay(`${n} est dans ta liste.`);if(typeof buzz==='function')buzz('success');
+}
 function amisRetirer(n){
   const s=clsSalle();s.amisAjoutes=(Array.isArray(s.amisAjoutes)?s.amisAjoutes:[]).filter(a=>a&&drapCle(a.n)!==drapCle(n));if(!s.amisAjoutes.length)delete s.amisAjoutes;save();
   amisListesPeindre();if(typeof lqSay==='function')lqSay(`${n} n’est plus dans ta liste.`);
@@ -28236,6 +28256,97 @@ function amisRetirer(n){
 function jeuDefier(n){
   if(typeof CHALLENGES==='undefined'||!SQL){if(typeof lqSay==='function')lqSay('Le moteur SQL se charge encore, réessaie dans un instant.');return;}
   jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom',pub:false,pour:n?jeuNom(n):''}));
+}
+/* La fiche d’un joueur (Elisa, 7 novembre, 21 h 44 : « depuis un classement, pouvoir défier quelqu’un ; depuis une fiche joueur, pouvoir
+   voir ses scores ») : elle s’ouvre d’une ligne du classement ou de tes adversaires. Sa place (dans le classement d’où l’on vient), ses
+   points et ses parties depuis toujours (jeu_classement_v2, portée « amis » réduite à lui : la base n’en donne pas plus), votre
+   face-à-face (tes parties avec lui, gardées sur l’appareil), puis « Défier » et, s’il n’y est pas, « Ajouter à mes adversaires ».
+   La même feuille que celles de Jouer (dx-feuille) : × , le voile ou Échap la referment. */
+let dxFicheEtat=null;
+function dxFicheCls(id){
+  const c=typeof DEFIS!=='undefined'&&DEFIS.cls?DEFIS.cls:null,x=c?Object.values(c.pages||{}).flat().find(y=>y&&y.id===id):null;
+  if(x&&!x.moi)dxFiche(x.pseudo,x);
+}
+function dxFiche(n,x){
+  n=jeuNom(n);if(!n||drapCle(n)===drapCle(jeuSavedNom()))return;
+  if(typeof document==='undefined'||!document.body)return;
+  const D=typeof DEFIS!=='undefined'?DEFIS:{},tout=!!x&&D.periode!=='semaine',rk=x&&D.portee!=='amis'?Math.max(0,Math.floor(+x.rang||0)):0;
+  const lieu=!rk?'':D.periode==='semaine'?`${dxRang(rk,1)} cette semaine`:D.portee==='pays'?`${dxRang(rk,1)} dans ton pays`:`${dxRang(rk,1)} au classement`;
+  dxFicheEtat={n,pays:x&&x.pays||'',lieu,pts:tout?Math.max(0,+x.pts||0):null,parties:tout?Math.max(0,+x.parties||0):null,err:false};
+  const a=document.activeElement;
+  dxFicheOuvrir(a&&a.closest&&a.closest('#scr-defis li')?a:null);
+  /* Depuis le classement « depuis toujours », ses chiffres sont déjà là ; sinon (la semaine, tes adversaires), on les demande. */
+  if(!tout)dxFicheCharger(dxFicheEtat);
+  if(typeof buzz==='function')buzz('light');
+}
+function dxFicheCharger(e){
+  if(typeof clsRpc!=='function'){e.err=true;dxFicheChiffres();return;}
+  clsRpc('jeu_classement_v2',{p_cle:clsCle(),p_portee:'amis',p_periode:'tout',p_page:0,p_pays:null,p_pseudos:[e.n]}).then(d=>{
+    if(dxFicheEtat!==e)return;
+    const l=(d&&Array.isArray(d.lignes)?d.lignes:[]).find(y=>y&&!y.moi&&drapCle(y.pseudo)===drapCle(e.n));
+    e.pts=l?Math.max(0,+l.pts||0):0;e.parties=l?Math.max(0,+l.parties||0):0;
+    if(l&&l.pays&&!e.pays){e.pays=l.pays;if(typeof drapNoter==='function')drapNoter(l.pseudo,l.pays);}
+    dxFicheChiffres();
+  },()=>{if(dxFicheEtat!==e)return;e.err=true;dxFicheChiffres();});
+}
+/* Les chiffres : « … » le temps de la réponse, « — » sans connexion. */
+function dxFicheKpiHTML(){
+  const e=dxFicheEtat;if(!e)return '';
+  const m=amisListe().find(a=>drapCle(a.n)===drapCle(e.n)),v=x=>x==null?(e.err?'—':'…'):clsPts(x),pl=x=>x>1?'s':'';
+  const lead=m&&m.g?(m.w>m.l?'is-up':m.w<m.l?'is-down':'is-eq'):'';
+  return `<div><b>${v(e.pts)}</b><small>point${pl(e.pts)}</small></div><div><b>${v(e.parties)}</b><small>partie${pl(e.parties)}</small></div>`+
+    (m&&m.g?`<div class="${lead}"><b>${m.w}–${m.l}</b><small>face à toi</small></div>`:'')+
+    (e.err?'<p class="dx-fiche-err">Pas de connexion&nbsp;: ses points reviennent avec internet.</p>':'');
+}
+function dxFicheChiffres(){
+  const k=typeof document!=='undefined'&&document.getElementById?document.getElementById('dx-fiche-kpi'):null;
+  if(k)k.innerHTML=dxFicheKpiHTML();
+}
+function dxFicheHTML(){
+  const e=dxFicheEtat;if(!e)return '';
+  const m=amisListe().find(a=>drapCle(a.n)===drapCle(e.n));
+  const sous=e.lieu||(m?'Ton adversaire':'');
+  return `<div class="room-head"><span class="room-stk dx-fiche-av" aria-hidden="true"><b class="jeu-av" data-c="${perfColor(e.n)}">${jeuInitial(e.n)}${jeuFlag(e.n,e.pays||undefined)}</b></span><div>
+    <p class="room-kicker">Fiche joueur</p>
+    <h2 id="dx-f-t">${esc(e.n)}</h2>
+    <p class="room-sub" id="dx-f-p">${esc(sous)}</p></div><i class="room-sp s2" aria-hidden="true"></i></div>
+    <div class="dx-f-corps" data-k="joueur">
+    <div class="dx-fiche-kpi" id="dx-fiche-kpi" aria-live="polite">${dxFicheKpiHTML()}</div>
+    ${m&&m.g?`<p class="dx-fiche-h2h">${dxParties(m.g)} ensemble · ${esc(perfDay(m.at).toLowerCase())}</p>`:''}
+    <div class="dx-f-pied">
+    <button type="button" class="room-go" onclick="dxFicheDefier()"><span>Défier ${esc(e.n)}</span>${DEF_CHEV_SVG}</button>
+    ${m?'':'<button type="button" class="dx-sec dx-fiche-ajout" onclick="dxFicheAjouter()">Ajouter à mes adversaires</button>'}</div>
+    </div>`;
+}
+function dxFicheOuvrir(retour){
+  let el=document.getElementById('dx-feuille');
+  const neuf=!el;
+  if(neuf){
+    el=document.createElement('div');el.id='dx-feuille';el.className='dx-feuille';
+    document.addEventListener('keydown',dxFeuilleTouche,true);
+    const vv=window.visualViewport;if(vv){vv.addEventListener('resize',dxFeuilleCaler);vv.addEventListener('scroll',dxFeuilleCaler);}
+  }
+  dxFeuilleRetour=retour||null;
+  el.dataset.k='joueur';
+  el.innerHTML=`<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>
+    <div class="dx-f-boite" role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1">
+      <button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>
+      ${dxFicheHTML()}
+    </div>`;
+  const montrer=()=>{el.classList.add('on');try{el.querySelector('.dx-f-boite').focus({preventScroll:true});}catch(e){}dxFeuilleCaler();};
+  if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
+}
+function dxFicheDefier(){
+  const e=dxFicheEtat;if(!e)return;
+  defisFeuilleFermer(true);dxFicheEtat=null;
+  jeuDefier(e.n);
+}
+function dxFicheAjouter(){
+  const e=dxFicheEtat;if(!e)return;
+  amisGarder(e.n);
+  const b=document.querySelector('#dx-feuille .dx-fiche-ajout');if(b)b.remove();
+  const p=document.getElementById('dx-f-p');if(p&&!p.textContent)p.textContent='Ton adversaire';
+  if(DEFIS.onglet==='amis')amisListesPeindre();
 }
 function showScreen(){
   const scr=document.getElementById('scr-lesson');
@@ -34921,6 +35032,7 @@ const JEU_ICO={
   level:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18.5v-4M12 18.5v-8M18 18.5V5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
   check:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   cross:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>',
+  amis:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM3 19.6c.4-3.3 2.8-5.4 6-5.4s5.6 2.1 6 5.4M15.6 4.6a3.2 3.2 0 0 1 0 6.3M17.4 14.4c2 .6 3.3 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   wifi:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2a12.5 12.5 0 0 1 17 0M6.6 12.6a8 8 0 0 1 10.8 0M9.8 15.9a3.4 3.4 0 0 1 4.4 0" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>'
 };
 function jeuBtn2(ico,label,on){return `<button type="button" class="jeu-close" onclick="${on}">${JEU_ICO[ico]}<span>${label}</span></button>`;}
@@ -35248,6 +35360,7 @@ function jeuRender(){
         ${ferme?`<button type="button" class="journey-primary" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`
           :`${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
         ${jeuBtn2('quit','Quitter la salle','goBack()')}`}
+        ${jeuBtn2('amis','Retrouver mes adversaires','jeuVersAdversaires()')}
         <div id="jeu-netslot">${jeuNetHTML()}</div>`;
       if(winner)setTimeout(celebrate,300);
     }
@@ -35589,6 +35702,16 @@ function jeuLeaveQuestion(){
   return null;
 }
 function jeuLeaveOk(){return !jeuLeaveQuestion();}
+/* Après une partie à plusieurs (Elisa, 7 novembre, 21 h 44 : « après une partie, pouvoir retrouver immédiatement son adversaire ») :
+   on quitte la salle pour l’onglet Joueurs, où ils viennent d’arriver avec votre face-à-face, prêts à être défiés de nouveau. */
+function jeuVersAdversaires(){
+  if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(jeuVersAdversaires);return;}
+  if(typeof DEFIS!=='undefined'){DEFIS.onglet='amis';DEFIS.carte='';}
+  jeuInvite='';
+  if(typeof closeSchemaSheet==='function')closeSchemaSheet();
+  if(typeof closeLessonWhere==='function')closeLessonWhere(true);
+  leaveLessonScreen('defis');
+}
 function jeuLeaveAsk(suite){
   const q=jeuLeaveQuestion(),J=JEU;
   if(!q){suite();return;}
@@ -45640,7 +45763,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-07-voix-sans-coupure-v2643';
+  const SW_CACHE='requete-2026-11-07-defis-relecture-v2644';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

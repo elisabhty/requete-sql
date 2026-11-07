@@ -42,8 +42,8 @@ test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveau
   assert.ok(hub.includes('<p class="journey-kicker">À toi de jouer</p><h2>${typeof accord===\'function\'?accord(\'Prête\',\'Prêt\',\'Prêt·e\'):\'Prêt·e\'} à relever le défi&nbsp;?</h2>'), 'le cadre du haut de Pratiquer');
   const room = fn('renderDefisRoom');
   assert.ok(!room.includes("réussie${ok>1?'s':''}") && !room.includes('stat(k)'), 'plus de sous-texte sous les niveaux (15 h 54)');
-  /* 5 novembre, 11 h 32 : le sous-titre d’Elisa */
-  assert.ok(fn('renderDefis').includes('sub.textContent=`${all.length} défis pour te tester. Joue en solo, défie d’autres joueurs et grimpe dans le classement.`;'));
+  /* 5 novembre, 11 h 32 : le sous-titre d’Elisa ; 7 novembre, 21 h 44 : plus court (retours-2144-defis) */
+  assert.ok(fn('renderDefis').includes('sub.textContent=`${all.length} défis. Des adversaires. Une place à décrocher.`;'));
   for (const gone of ['réussis sur ${nDefis}', 'Tout est réussi', 'Prochain défi · ${nOk}', "/${l.length} réussis", 'défi${nOk>1?\'s\':\'\'} réussi', 'Réussis 10 défis.', 'que tu n’as pas encore réussi', 'qu’aucun de vous n’a encore réussi'])
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
   assert.ok(app.includes("how:'Trouve 10 défis différents.'"));
