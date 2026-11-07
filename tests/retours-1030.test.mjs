@@ -55,7 +55,7 @@ test('la page attend l’accueil, une fois, le jour même', () => {
 
 test('la page : le chat du GIF, « Bravo ! », le titre, la semaine, ce qui reste, « Continuer »', () => {
   const o = cut('function lqFlammeOuvrir(){', '\nfunction lqFlammeFermer(');
-  assert.ok(o.includes('<img class="lq-flamme-chat" src="assets/${fixe?\'chat-allumette-fixe\':\'chat-allumette\'}.webp" width="437" height="506" alt="" draggable="false">'), 'le GIF détouré ; fixe en mouvement réduit');
+  assert.ok(o.includes('<img class="lq-flamme-chat" src="assets/${fixe?\'chat-allumette-fixe\':\'chat-allumette\'}.webp" width="374" height="436" alt="" draggable="false">'), 'le GIF détouré ; fixe en mouvement réduit');
   assert.ok(o.includes("el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');") && o.includes("ok.focus({preventScroll:true})"), 'une vraie fenêtre, le bouton prêt');
   assert.ok(o.includes('<p class="lq-flamme-bravo" aria-hidden="true">Bravo\\u00a0!</p><h2 class="lq-flamme-t" id="lq-flamme-t"><span class="lq-sr">Bravo\\u00a0! </span>${titre}</h2>'));
   assert.ok(o.includes('<button type="button" class="lq-flamme-ok" onclick="lqFlammeFermer()">Continuer</button>') && o.includes("if(e.key==='Escape')"));
@@ -68,12 +68,12 @@ test('la page : le chat du GIF, « Bravo ! », le titre, la semaine, ce qui rest
     assert.ok(lq.includes(k), k);
 });
 
-test('le chat du GIF : six images détourées (WebP animé), hors ligne', () => {
+test('le chat du GIF : huit images détourées (WebP animé ; 10 h 48 : son deuxième GIF), hors ligne', () => {
   const anim = fs.readFileSync(path.join(ROOT, 'assets/chat-allumette.webp')), fixe = fs.readFileSync(path.join(ROOT, 'assets/chat-allumette-fixe.webp'));
   assert.equal(anim.subarray(0, 4).toString(), 'RIFF'); assert.equal(anim.subarray(8, 12).toString(), 'WEBP');
   assert.ok(anim.includes('ANIM') && anim.includes('ALPH'), 'animé, avec sa transparence');
   let n = 0, i = -1; while ((i = anim.indexOf('ANMF', i + 1)) >= 0) n++;
-  assert.equal(n, 6, 'les six images du GIF');
-  assert.ok(anim.length < 260000 && fixe.length < 60000, 'léger');
+  assert.equal(n, 8, 'les huit images du GIF');
+  assert.ok(anim.length < 300000 && fixe.length < 60000, 'léger');
   assert.ok(sw.includes("  './assets/chat-allumette.webp',\n  './assets/chat-allumette-fixe.webp',"));
 });
