@@ -1332,6 +1332,19 @@ function Course(cfg){
     notesAt = null;
   }
   let out = 0;
+  /* La mascotte de la bulle parle (Elisa, 7 novembre, 12 h 25 : son GIF « Il parle », tête seule : sa bouche s’ouvre et se ferme).
+     Pendant une légende, ses images défilent toutes les 0,14 s, dans un ordre qui fait parler (la bouche s’ouvre, s’arrondit, se
+     ferme, un clignement de temps en temps), réglées sur le temps de la vidéo : en pause, elle se tait sur l’image du moment ; en
+     reculant, elle reprend au même endroit. Entre deux phrases, la bouche fermée (image 0). */
+  const PARLE_SEQ = [1, 2, 3, 4, 0, 8, 9, 10, 4, 2, 1, 0, 3, 4, 9, 8, 2, 10, 1, 0, 5, 6, 4, 2, 3, 9, 8, 0], PARLE_PAS = 0.14;
+  let parleStk = null;
+  function capParle(t){
+    if (!parleStk || !parleStk.isConnected) parleStk = document.querySelector('#cap .cap-stk');
+    if (!parleStk) return;
+    const c = captions.find(x => t >= x[0] && t < x[1]);
+    const f = c ? PARLE_SEQ[Math.floor((t - c[0]) / PARLE_PAS) % PARLE_SEQ.length] : 0;
+    if (parleStk._parle !== f) { parleStk._parle = f; parleStk.style.setProperty('--parle', f); }
+  }
   function renderAt(T){
     const t = warp(T);
     /* Avant de dessiner l’image, la page retire l’aperçu d’un moment « À toi » que la timeline va montrer (sinon la réponse réapparaîtrait en reculant). */
@@ -1340,6 +1353,7 @@ function Course(cfg){
     CAM.lastT = T; CAM.rt = performance.now(); camRender(t);
     const stage = document.getElementById('stage');
     stage.style.setProperty('--blink', Math.floor(T * 1.9) % 2 === 0 ? 1 : 0);
+    capParle(t);
     if (!EMBED) {
       const b1 = $('.b1'), b2 = $('.b2');
       if (b1) b1.style.transform = `translate(${Math.sin(T * 0.21) * 60}px, ${Math.cos(T * 0.17) * 40}px)`;

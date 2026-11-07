@@ -87,7 +87,7 @@ test('bulles : les mots arrivent l’un après l’autre, le gras passe au surli
 test('bulles : la mascotte en autocollant rond sous le coin gauche, une pointe de BD, le surligneur jaune ; jamais sur le texte', () => {
   const b = cut(coreCss, '/* ---------- Bulles : la mascotte parle ----------', '\n#cap .c b{') + '\n';
   const stk = b.match(/#cap \.cap-stk\{([^}]*)\}/)[1];
-  for (const part of ['position:absolute;', 'left:-49px;bottom:-118px;width:150px;height:150px;', 'border-radius:50%;', 'background:url(mascotte.webp) -6px 12px/146px auto no-repeat,radial-gradient(circle at 50% 34%,#FFE08A,#FFC83D 72%);',
+  for (const part of ['position:absolute;', 'left:-49px;bottom:-118px;width:150px;height:150px;', 'border-radius:50%;', 'background:url(chat-parle.webp) calc(var(--parle, 0) * 100% / 11) 0/1200% 100% no-repeat,radial-gradient(circle at 50% 34%,#FFE08A,#FFC83D 72%);',   // 7 novembre : la tête qui parle (GIF d’Elisa)
     'border:8px solid #fff;', 'box-shadow:0 9px 0 var(--rebord)'])
     assert.ok(stk.includes(part), part);
   /* L’autocollant n’entre dans la carte que de (hauteur − débord) px : moins que la marge sous la dernière ligne (carte de 262 px,
