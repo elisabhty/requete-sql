@@ -256,7 +256,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=3"></script>') && sw.includes("'./multiplayer-security.js?v=3',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=191">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=192">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-07-connexion-espaces-v2606');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-07-stickers-espaces-v2607');
 });

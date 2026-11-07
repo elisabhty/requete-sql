@@ -33,7 +33,7 @@ test('2. le tableau vide : « À toi de créer ! ✨ », sa phrase et « Ajouter
   for (const k of ['html.lq .stk-board.is-empty{aspect-ratio:16/9}', '@media (max-width:359px){html.lq .stk-board.is-empty{aspect-ratio:3/2}}', 'html.lq .stk-empty span{text-wrap:balance}',
     'background:var(--sun);color:#1B1640;font:800 15.5px/1.1 var(--display);letter-spacing:-.01em;cursor:pointer;box-shadow:0 4px 0 var(--sun-lip);',
     'html.lq .stk-ajout:active{transform:translateY(4px);box-shadow:0 0 0 var(--sun-lip)}', 'html.lq .stk-empty .stk-ajout{margin-top:10px;pointer-events:auto}',
-    'html.lq .stk-board-bar>.stk-ajout{width:100%;min-height:50px}', 'html.lq .stk-choix .stk-cell{cursor:pointer}'])
+    'html.lq .stk-board-bar>.stk-ajout{width:100%;min-height:52px}', 'html.lq .stk-choix .stk-cell{cursor:pointer}'])
     assert.ok(lq.includes(k), k);
   assert.ok(!/\.stk-board\.is-empty\{[^}]*min-height/.test(lq), 'pas de hauteur minimale : avec le ratio, elle élargirait le tableau au-delà de l’écran');
 });
@@ -46,7 +46,7 @@ test('« Ajouter un sticker + » : la feuille liste les stickers débloqués pas
   const vus = [];
   const ctx = vm.createContext({
     document: { getElementById: id => ({ 'stk-sheet-body': body, 'stk-back': back, 'stk-sheet': sheet, fab })[id] || null, querySelector: s => (s === '#stk-sheet .viz-head b' ? titre : null), activeElement: 'bouton' },
-    stkState: () => S, stkList: () => [{ id: 'a', got: 1, name: 'A', cap: 'Module 1 terminé' }, { id: 'b', got: 1, name: 'B', cap: '' }, { id: 'c', got: 1, name: 'C', cap: '' }, { id: 'd', got: 0, name: 'D' }],
+    stkState: () => S, stkList: () => [{ id: 'a', got: 1, name: 'A', cap: 'Module 1' }, { id: 'b', got: 1, name: 'B', cap: '' }, { id: 'c', got: 1, name: 'C', cap: '' }, { id: 'd', got: 0, name: 'D' }],
     stkArtHtml: id => `<i data-art="${id}"></i>`, stkRarHtml: id => (id === 'c' ? '<span class="stk-rar">Rare</span>' : ''), stkRarete: id => (id === 'c' ? 'Rare' : ''),
     esc: s => s, escAttr: s => s, buzz: k => vus.push('buzz ' + k), stkPaint: r => vus.push(r === body ? 'peint' : '?'), requestAnimationFrame: f => f(),
     stkOpenId: 'x', stkReturn: null,
@@ -59,7 +59,7 @@ test('« Ajouter un sticker + » : la feuille liste les stickers débloqués pas
   assert.deepEqual(ids, ['a', 'c'], 'débloqués et pas encore sur le tableau');
   assert.ok(body.innerHTML.includes('<h2 class="acct-sr" id="stk-name">Ajouter un sticker</h2>'), 'le nom de la feuille pour le lecteur d’écran (aria-labelledby="stk-name")');
   assert.ok(body.innerHTML.includes(`onclick="stkTogglePlace('a')"`) && body.innerHTML.includes('aria-label="C, rare, le coller sur le tableau"'));
-  assert.ok(body.innerHTML.includes('<small class="stk-cap">Module 1 terminé</small>'));
+  assert.ok(body.innerHTML.includes('<small class="stk-cap">Module 1</small>'));
   assert.equal(body.scrollTop, 0);
   assert.deepEqual(vus, ['buzz selection', 'peint']);
   assert.ok(cut('function stkOpen(id){', 'const S=stkState(),placed=').includes("stkTitreFeuille('Sticker');"), 'la fiche d’un sticker garde son titre');
@@ -102,6 +102,6 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=191">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-connexion-espaces-v2606';") && app.includes("const SW_CACHE='requete-2026-11-07-connexion-espaces-v2606';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=192">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-07-stickers-espaces-v2607';") && app.includes("const SW_CACHE='requete-2026-11-07-stickers-espaces-v2607';"));
 });
