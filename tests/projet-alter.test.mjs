@@ -209,8 +209,8 @@ test(`${FILE} : intro, bulles du scénario mot pour mot, mails, annonce du chapi
   assert.deepEqual(D.MAILS.map(m => m[4]), [
     ['Je suis Julie, la coach de l’atelier Cuisine saine.', 'Nos salles accueillent au maximum 12 personnes. Peux-tu enregistrer le nombre de places de chaque atelier ?'],
     ['Je suis Diego, le coach de l’atelier Méditation.', 'Les clients aimeraient pouvoir appeler leur coach avant la séance. Peux-tu ajouter nos numéros de téléphone dans la base ?'],
-    ['La colonne seances indique le nombre de séances qu’un client peut encore utiliser. Son nom prête à confusion : le service client pense parfois qu’il s’agit des séances déjà suivies.',
-      'Peux-tu la renommer seances_restantes, en conservant les valeurs actuelles ?'],
+    ['La colonne <code>seances</code> indique le nombre de séances qu’un client peut encore utiliser. Son nom prête à confusion : le service client pense parfois qu’il s’agit des séances déjà suivies.',
+      'Peux-tu la renommer <code>seances_restantes</code>, en conservant les valeurs actuelles ?'],
     ['Désormais, le service client centralise les demandes des clients. Nous ne souhaitons plus conserver les numéros personnels des coachs dans cette base.']], 'demandes, mot pour mot');
   assert.ok(page.includes("['<span class=\"sn2\">Merci !</span>', `<span class=\"sn2 s\">${sign}</span>`]).join('');") && !page.includes('sign ? ['), 'chaque mail : « Merci ! » et sa signature');
   /* Chaque mail arrive avant le moment qui s’en sert ; le quatrième, juste avant le moment 5 (la requête qui retire les numéros),
@@ -244,19 +244,19 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* 2 · la table où ranger les numéros : coachs */
   assert.ok(P[1].prompt === 'Touche la table où ajouter ces numéros de téléphone.' && P[1].need === 1);
   const W = load(FILE, 'TAP_WHY, NOMS, OPS, DEMANDES, TABLES');
-  assert.deepEqual(W.TAP_WHY, {cl: 'La table clients a déjà une colonne telephone : ce sont les numéros des clients.',
+  assert.deepEqual(W.TAP_WHY, {cl: 'La table <code>clients</code> a déjà une colonne <code>telephone</code> : ce sont les numéros des clients.',
     at: 'Moussa Diallo anime deux ateliers : son numéro serait écrit deux fois.', in: 'Une inscription relie un client à un atelier : elle ne décrit pas un coach.',
     ca: 'Une carte appartient à un client, pas à un coach.'}, 'une correction par mauvaise table');
   assert.deepEqual(W.TABLES.map(t => t[0]).sort(), ['ca', 'cl', 'co', 'in', 'at'].sort(), 'cinq tables à toucher');
   assert.ok(page.includes("if (a === 'co') {") && page.includes("const M2_ANS = ['#sr-co .rg'];"), 'réponse : coachs');
   /* 3 · ce que contient la colonne : NULL */
-  assert.ok(P[2].text && P[2].prompt === 'Que contient la colonne telephone pour les quatre coachs, juste après son ajout ?');
+  assert.ok(P[2].text && P[2].prompt === 'Que contient la colonne <code>telephone</code> pour les quatre coachs, juste après son ajout ?');
   assert.deepEqual(P[2].options, [{label: 'NULL\u00a0: aucune valeur', ok: true}, {label: 'Une chaîne vide \'\'', why: 'Une chaîne vide est déjà une valeur : sans DEFAULT, la base n’en donne aucune.'},
     {label: 'Le numéro de chaque coach', why: 'Ces numéros ne sont pas encore dans la base : personne ne les a saisis.'}]);
   /* 4 · l’ancien nom, puis le nouveau */
   assert.ok(P[3].prompt === 'Place chaque nom au bon endroit de la requête.' && P[3].hint === 'Sélectionne un nom, puis appuie sur l’emplacement où tu veux le placer dans la requête. Tu peux aussi le faire glisser directement.'
     && P[3].next === '{x} : appuie sur l’emplacement où tu veux le placer dans la requête.');
-  assert.deepEqual(W.NOMS, [['seances_restantes', 'new', 'seances_restantes est le nouveau nom : il vient après TO.'], ['seances', 'old', 'seances est l’ancien nom : il vient juste après RENAME COLUMN.']]);
+  assert.deepEqual(W.NOMS, [['seances_restantes', 'new', '<code>seances_restantes</code> est le nouveau nom : il vient après <code>TO</code>.'], ['seances', 'old', '<code>seances</code> est l’ancien nom : il vient juste après <code>RENAME COLUMN</code>.']]);
   assert.deepEqual(P[3].options.map(o => o.label), ['seances_restantes', 'seances'], 'le nouveau nom d’abord : pas l’ordre des deux trous');
   /* Deux zones de toute la largeur de la requête, l’une sous l’autre, sans chevauchement (et non deux bandes de la taille des trous). */
   assert.ok(page.includes("return [{k: 'old', label: 'Après RENAME COLUMN', x: q.x, y: a.y, w: q.w, h: c.y - a.y}, {k: 'new', label: 'Après TO', x: q.x, y: c.y, w: q.w, h: q.y + q.h + 9 - c.y}];"), 'moment 4 : zones larges');
@@ -265,7 +265,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* 5 · la requête qui retire les numéros et leur colonne */
   assert.ok(P[4].text && P[4].prompt === 'Quelle requête retire les numéros et leur colonne de la table coachs ?');
   assert.deepEqual(P[4].options, [{label: 'ALTER TABLE coachs RENAME COLUMN telephone TO ancien_telephone', why: 'Renommer garde la colonne et ses numéros : seul son nom changerait.'},
-    {label: 'ALTER TABLE coachs ADD COLUMN telephone TEXT', why: 'ADD COLUMN ajoute une colonne : telephone existe déjà, la requête serait refusée et les numéros resteraient.'}, {label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]);
+    {label: 'ALTER TABLE coachs ADD COLUMN telephone TEXT', why: '<code>ADD COLUMN</code> ajoute une colonne : <code>telephone</code> existe déjà, la requête serait refusée et les numéros resteraient.'}, {label: 'ALTER TABLE coachs DROP COLUMN telephone', ok: true}]);
   /* 6 · structure ou valeurs */
   assert.ok(P[5].prompt === 'Range chaque demande selon la requête qui la réalise.' && P[5].next === '« {x} » : quelle requête ?');
   assert.deepEqual(W.OPS.map(o => o[2]), ['ADD COLUMN', 'RENAME COLUMN', 'DROP COLUMN', 'UPDATE'], 'les quatre cases');

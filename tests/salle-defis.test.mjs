@@ -164,7 +164,7 @@ function makeClient(world, name, { skew = 0 } = {}) {
       throw new Error('fonction inconnue : ' + fn);
     },
     /* Le pseudo des salles : celui réservé (state.salle.pseudo, 17 h 53), jamais le prénom */
-    state: { defis: {}, name, salle: { pseudo: name } }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '', lqStkSvg: k => `<svg data-k="${k}"></svg>`,
+    state: { defis: {}, name, salle: { pseudo: name } }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), escCode: s => String(s).replace(/</g, '&lt;').replace(/`([^`\n]+)`/g, '<code>$1</code>'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '', lqStkSvg: k => `<svg data-k="${k}"></svg>`,
     editorBlock: () => '<textarea id="ed-lesson"></textarea>', setupEditor() {}, celebrate() {}, annulerBilanAuto() {}, showScreen() {},
     prefersReduceMotion: () => false, lessonBackLabel: () => 'Défis', leaveLessonScreen() {}, switchTab() {}, renderDefis() {}, activeTab: 'defis',
     noteActivityDay() { c.acts = (c.acts || 0) + 1; }, save() {}, renderProgress() {}, renderPlanning() {}, setLessonOut: h => { c.out = h; }, renderTable: () => '', errBox: m => m,
