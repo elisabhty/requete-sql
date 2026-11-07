@@ -2129,6 +2129,563 @@ struct RequetePoche: Widget {
     }
 }
 
+// MARK: - La carte mémo qui se retourne (petit widget, interactif à partir d’iOS 17)
+//
+// Elisa, 7 novembre (« La carte mémo qui se retourne », d’après la planche : « Touche la carte, elle se retourne. Tu dis si tu
+// savais : elle revient au bon moment. ») : au recto, le mot-clé d’une carte gagnée ; un appui la retourne : son titre, sa
+// première idée, et deux boutons. « Je savais » l’éloigne (3 jours, puis 7, 21 et 60, comme les révisions de l’app, INTERVALS),
+// « À revoir » la ramène demain. Le rythme vit dans le widget (groupe d’apps, « cartesRythme ») ; l’app range les cartes gagnées
+// (index.html, widgetCartes). Comme pour la requête de poche (son choix : « la séance seule »), réviser ici n’allume pas la
+// flamme du jour. Tout est à jour : un appui ouvre l’album des cartes (requete://cartes).
+
+/// Une carte gagnée, telle que l’app la range : le mot-clé, le titre et la première idée, en texte simple.
+struct CarteWidget: Codable, Hashable {
+    let id: Int
+    let k: String
+    let t: String
+    let p: String
+}
+
+/// Le rythme d’une carte : son cran (0 à 4) et le jour où elle revient (« AAAA-MM-JJ »).
+struct RythmeCarte: Codable {
+    var niveau: Int
+    var jour: String
+}
+
+/// La dernière carte notée, pour « Noté ! Elle revient dans 3 jours. », jusqu’au prochain appui ou jusqu’au lendemain.
+struct CarteNotee: Codable {
+    let id: Int
+    let jours: Int
+    let le: String
+}
+
+enum FaceCarte {
+    case recto   // le mot-clé : un appui la retourne
+    case verso   // la réponse, « Je savais » et « À revoir »
+    case notee   // « Noté ! » : un appui, la suivante
+    case aJour   // rien à revoir aujourd’hui
+    case vide    // aucune carte gagnée
+}
+
+struct CarteEntree: TimelineEntry {
+    let date: Date
+    let face: FaceCarte
+    var carte: CarteWidget? = nil
+    var jours: Int = 0   // notée : dans combien de jours elle revient ; à jour : la prochaine
+}
+
+/// Ce que le widget garde dans le groupe d’apps : « cartes » (rangées par l’app), « cartesRythme », « carteRetournee » (la carte
+/// montrée au verso, -1 sinon) et « carteNotee ».
+enum CartesRangement {
+    /// Comme les révisions de l’app (index.html, INTERVALS) : 1, 3, 7, 21 et 60 jours.
+    static let intervalles: [Int] = [1, 3, 7, 21, 60]
+
+    static let exemple = CarteWidget(id: 20, k: "LEFT JOIN", t: "Garder toute la gauche", p: "La table de gauche est celle écrite après FROM\u{00A0}: ses 10 clients donnent 10 lignes.")
+
+    static func cle(_ date: Date) -> String {
+        let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+    }
+
+    static func jourDans(_ n: Int, apres date: Date) -> String {
+        let cal = Calendar.current
+        let debut: Date = cal.startOfDay(for: date)
+        let d: Date = cal.date(byAdding: .day, value: n, to: debut) ?? debut
+        return cle(d)
+    }
+
+    static func date(_ cle: String) -> Date? {
+        let morceaux: [Int] = cle.split(separator: "-").compactMap { Int($0) }
+        guard morceaux.count == 3 else { return nil }
+        var c = DateComponents()
+        c.year = morceaux[0]
+        c.month = morceaux[1]
+        c.day = morceaux[2]
+        return Calendar.current.date(from: c)
+    }
+
+    /// Le nombre de jours d’une date à l’autre.
+    static func ecart(_ de: String, _ a: String) -> Int {
+        guard let x = date(de), let y = date(a) else { return 0 }
+        return Calendar.current.dateComponents([.day], from: x, to: y).day ?? 0
+    }
+
+    static func cartes() -> [CarteWidget] {
+        let d = UserDefaults(suiteName: groupe)
+        guard let texte = d?.string(forKey: "cartes"), let donnees = texte.data(using: .utf8) else { return [] }
+        return (try? JSONDecoder().decode([CarteWidget].self, from: donnees)) ?? []
+    }
+
+    static func rythmes() -> [String: RythmeCarte] {
+        let d = UserDefaults(suiteName: groupe)
+        guard let texte = d?.string(forKey: "cartesRythme"), let donnees = texte.data(using: .utf8) else { return [:] }
+        return (try? JSONDecoder().decode([String: RythmeCarte].self, from: donnees)) ?? [:]
+    }
+
+    static func ecrire(_ r: [String: RythmeCarte]) {
+        guard let donnees = try? JSONEncoder().encode(r), let texte = String(data: donnees, encoding: .utf8) else { return }
+        UserDefaults(suiteName: groupe)?.set(texte, forKey: "cartesRythme")
+    }
+
+    static func notee() -> CarteNotee? {
+        let d = UserDefaults(suiteName: groupe)
+        guard let texte = d?.string(forKey: "carteNotee"), let donnees = texte.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(CarteNotee.self, from: donnees)
+    }
+
+    /// La carte du moment : d’abord celles qui reviennent aujourd’hui (la plus en retard en premier), puis les nouvelles, dans
+    /// l’ordre du parcours.
+    static func courante(_ liste: [CarteWidget], _ r: [String: RythmeCarte], _ aujourdhui: String) -> CarteWidget? {
+        let dues: [CarteWidget] = liste.filter { c in
+            guard let x = r[String(c.id)] else { return false }
+            return x.jour <= aujourdhui
+        }
+        let enRetard: [CarteWidget] = dues.sorted { a, b in
+            (r[String(a.id)]?.jour ?? "") < (r[String(b.id)]?.jour ?? "")
+        }
+        if let premiere = enRetard.first {
+            return premiere
+        }
+        return liste.first { c in r[String(c.id)] == nil }
+    }
+
+    /// Tout est à jour : dans combien de jours revient la prochaine.
+    static func prochaine(_ liste: [CarteWidget], _ r: [String: RythmeCarte], _ aujourdhui: String) -> Int {
+        let jours: [String] = liste.compactMap { c in r[String(c.id)]?.jour }
+        guard let plusTot = jours.min() else { return 1 }
+        return max(1, ecart(aujourdhui, plusTot))
+    }
+
+    static func entree(_ date: Date) -> CarteEntree {
+        let liste: [CarteWidget] = cartes()
+        guard !liste.isEmpty else { return CarteEntree(date: date, face: .vide) }
+        let aujourdhui: String = cle(date)
+        if let n = notee(), n.le == aujourdhui, let c = liste.first(where: { $0.id == n.id }) {
+            return CarteEntree(date: date, face: .notee, carte: c, jours: n.jours)
+        }
+        let r: [String: RythmeCarte] = rythmes()
+        guard let c = courante(liste, r, aujourdhui) else {
+            return CarteEntree(date: date, face: .aJour, jours: prochaine(liste, r, aujourdhui))
+        }
+        let retournee: Int = (UserDefaults(suiteName: groupe)?.object(forKey: "carteRetournee") as? Int) ?? -1
+        let face: FaceCarte = retournee == c.id ? .verso : .recto
+        return CarteEntree(date: date, face: face, carte: c)
+    }
+
+    static func retourner(_ id: Int) {
+        UserDefaults(suiteName: groupe)?.set(id, forKey: "carteRetournee")
+    }
+
+    /// « Je savais » : un cran plus loin ; « À revoir » : demain, et elle repart du premier cran.
+    static func noter(_ id: Int, savais: Bool) {
+        let maintenant = Date()
+        var r: [String: RythmeCarte] = rythmes()
+        let avant: Int = r[String(id)]?.niveau ?? 0
+        let niveau: Int = savais ? min(avant + 1, intervalles.count - 1) : 0
+        let jours: Int = savais ? intervalles[niveau] : 1
+        r[String(id)] = RythmeCarte(niveau: niveau, jour: jourDans(jours, apres: maintenant))
+        ecrire(r)
+        let d = UserDefaults(suiteName: groupe)
+        d?.set(-1, forKey: "carteRetournee")
+        let n = CarteNotee(id: id, jours: jours, le: cle(maintenant))
+        if let donnees = try? JSONEncoder().encode(n), let texte = String(data: donnees, encoding: .utf8) {
+            d?.set(texte, forKey: "carteNotee")
+        }
+    }
+
+    static func suivante() {
+        let d = UserDefaults(suiteName: groupe)
+        d?.set("", forKey: "carteNotee")
+        d?.set(-1, forKey: "carteRetournee")
+    }
+
+    /// « demain », « dans 3 jours », « dans 3 semaines », « dans 2 mois ».
+    static func dans(_ jours: Int) -> String {
+        if jours <= 1 { return "demain" }
+        if jours < 14 { return "dans \(jours)\u{00A0}jours" }
+        if jours < 56 { return "dans \(jours / 7)\u{00A0}semaines" }
+        return "dans \(jours / 30)\u{00A0}mois"
+    }
+}
+
+/// « requete://cartes » : l’album des cartes mémo (index.html, raccourciOuvrir).
+private let lienCartes: URL = {
+    var c = URLComponents()
+    c.scheme = "requete"
+    c.host = "cartes"
+    return c.url ?? URL(fileURLWithPath: "/")
+}()
+
+private let vertNote = Color(red: 0.157, green: 0.361, blue: 0.271)
+private let fondNote = LinearGradient(gradient: Gradient(colors: [Color(red: 0.937, green: 1.0, blue: 0.965), Color(red: 0.788, green: 0.961, blue: 0.875)]), startPoint: UnitPoint(x: 0.33, y: 0), endPoint: UnitPoint(x: 0.67, y: 1))
+private let fondRecto = LinearGradient(gradient: Gradient(colors: [violetVif, violetTexte, Color(red: 0.271, green: 0.161, blue: 0.8)]), startPoint: UnitPoint(x: 0.33, y: 0), endPoint: UnitPoint(x: 0.67, y: 1))
+private let fondCalme = Color(red: 0.957, green: 0.949, blue: 0.988)
+
+/// Le fond de la carte : violet au recto, blanc au verso, menthe une fois notée, lavande sinon.
+struct FondCarte: View {
+    let face: FaceCarte
+
+    var body: some View {
+        switch face {
+        case .recto:
+            fondRecto
+        case .verso:
+            Color.white
+        case .notee:
+            fondNote
+        case .aJour, .vide:
+            fondCalme
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+struct RetournerCarte: AppIntent {
+    static let title: LocalizedStringResource = "Retourner la carte mémo"
+    static let isDiscoverable: Bool = false
+
+    @Parameter(title: "Carte")
+    var carte: Int
+
+    init() {}
+
+    init(carte: Int) {
+        self.carte = carte
+    }
+
+    func perform() async throws -> some IntentResult {
+        CartesRangement.retourner(carte)
+        return .result()
+    }
+}
+
+@available(iOS 17.0, *)
+struct NoterCarte: AppIntent {
+    static let title: LocalizedStringResource = "Noter la carte mémo"
+    static let isDiscoverable: Bool = false
+
+    @Parameter(title: "Carte")
+    var carte: Int
+
+    @Parameter(title: "Je savais")
+    var savais: Bool
+
+    init() {}
+
+    init(carte: Int, savais: Bool) {
+        self.carte = carte
+        self.savais = savais
+    }
+
+    func perform() async throws -> some IntentResult {
+        CartesRangement.noter(carte, savais: savais)
+        return .result()
+    }
+}
+
+@available(iOS 17.0, *)
+struct CarteSuivante: AppIntent {
+    static let title: LocalizedStringResource = "Carte mémo suivante"
+    static let isDiscoverable: Bool = false
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        CartesRangement.suivante()
+        return .result()
+    }
+}
+
+struct CarteFournisseur: TimelineProvider {
+    func placeholder(in context: Context) -> CarteEntree {
+        CarteEntree(date: Date(), face: .recto, carte: CartesRangement.exemple)
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (CarteEntree) -> Void) {
+        let e = CartesRangement.entree(Date())
+        // Dans la galerie des widgets, sans carte gagnée : la carte de la planche (LEFT JOIN).
+        if context.isPreview && e.face == .vide {
+            completion(CarteEntree(date: Date(), face: .recto, carte: CartesRangement.exemple))
+        } else {
+            completion(e)
+        }
+    }
+
+    /// Maintenant, puis chaque minuit sur sept jours : une carte revient le jour dit.
+    func getTimeline(in context: Context, completion: @escaping (Timeline<CarteEntree>) -> Void) {
+        let cal = Calendar.current
+        let maintenant = Date()
+        let debut: Date = cal.startOfDay(for: maintenant)
+        var dates = [maintenant]
+        for j in 1...7 {
+            if let d = cal.date(byAdding: .day, value: j, to: debut) {
+                dates.append(d)
+            }
+        }
+        completion(Timeline(entries: dates.map { CartesRangement.entree($0) }, policy: .atEnd))
+    }
+}
+
+/// La carte, face par face. Un appui la retourne, la note, ou passe à la suivante (App Intents, iOS 17).
+@available(iOS 17.0, *)
+struct CarteVue: View {
+    let entree: CarteEntree
+
+    var body: some View {
+        GeometryReader { g in
+            contenu(g.size)
+        }
+    }
+
+    @ViewBuilder
+    private func contenu(_ taille: CGSize) -> some View {
+        switch entree.face {
+        case .recto:
+            recto(taille)
+        case .verso:
+            verso(taille)
+        case .notee:
+            notee(taille)
+        case .aJour:
+            calme(taille, "Cartes à jour\u{202F}!", "La prochaine revient " + CartesRangement.dans(entree.jours) + ".", "ChatBravo", lienCartes)
+        case .vide:
+            calme(taille, "Pas encore de carte", "Termine une leçon\u{00A0}: sa carte mémo viendra ici.", "ChatQuestion", lienSeance)
+        }
+    }
+
+    private var carte: CarteWidget { entree.carte ?? CartesRangement.exemple }
+
+    /// Le recto : « Carte mémo », le mot-clé, « Tu t’en souviens ? » ; tout le widget la retourne.
+    private func recto(_ taille: CGSize) -> some View {
+        let u: CGFloat = taille.width / 170
+        let c: CarteWidget = carte
+        let etiquette: Font = Font.system(size: 10 * u, weight: .black, design: .rounded)
+        let mot: Font = Font.system(size: 20 * u, weight: .heavy, design: .monospaced)
+        let question: Font = Font.system(size: 15 * u, weight: .heavy, design: .rounded)
+        let indice: Font = Font.system(size: 10.5 * u, weight: .heavy, design: .rounded)
+        let etoile: CGFloat = 20 * u
+        let marge: CGFloat = 14 * u
+        let ecart: CGFloat = 0.8 * u
+        let apresMot: CGFloat = 4 * u
+        let blanc: Color = Color.white.opacity(0.85)
+        return Button(intent: RetournerCarte(carte: c.id)) {
+            ZStack(alignment: .topLeading) {
+                grandeEtoile(u)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .center, spacing: 0) {
+                        Text("Carte mémo")
+                            .font(etiquette)
+                            .tracking(ecart)
+                            .textCase(.uppercase)
+                            .foregroundColor(blanc)
+                        Spacer(minLength: 0)
+                        Trace(points: etoileCarte, cote: 24)
+                            .fill(dore)
+                            .frame(width: etoile, height: etoile)
+                    }
+                    Spacer(minLength: 0)
+                    Text(verbatim: c.k)
+                        .font(mot)
+                        .foregroundColor(Color.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.5)
+                    Text("Tu t’en souviens\u{202F}?")
+                        .font(question)
+                        .foregroundColor(Color.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .padding(.top, apresMot)
+                    Spacer(minLength: 0)
+                    Label("Touche pour la retourner", systemImage: "arrow.clockwise")
+                        .font(indice)
+                        .foregroundColor(blanc)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .padding(marge)
+            }
+            .frame(width: taille.width, height: taille.height)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// La grande étoile pâle, qui dépasse du coin, comme sur les cartes de l’app.
+    private func grandeEtoile(_ u: CGFloat) -> some View {
+        let cote: CGFloat = 120 * u
+        let dx: CGFloat = 26 * u
+        let dy: CGFloat = 30 * u
+        let pale: Color = Color.white.opacity(0.13)
+        return Trace(points: etoileCarte, cote: 24)
+            .fill(pale)
+            .frame(width: cote, height: cote)
+            .offset(x: dx, y: dy)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            .accessibilityHidden(true)
+    }
+
+    /// Le verso : le mot-clé, le titre de la carte, sa première idée, puis « Je savais » et « À revoir ».
+    private func verso(_ taille: CGSize) -> some View {
+        let u: CGFloat = taille.width / 170
+        let c: CarteWidget = carte
+        let mot: Font = Font.system(size: 12 * u, weight: .heavy, design: .monospaced)
+        let titre: Font = Font.system(size: 14 * u, weight: .black, design: .rounded)
+        let idee: Font = Font.system(size: 11 * u, weight: .bold, design: .rounded)
+        let marge: CGFloat = 14 * u
+        let bas: CGFloat = 12 * u
+        let ecart: CGFloat = 6 * u
+        let apresMot: CGFloat = 4 * u
+        let apresTitre: CGFloat = 3 * u
+        return VStack(alignment: .leading, spacing: 0) {
+            Text(verbatim: c.k)
+                .font(mot)
+                .foregroundColor(violetTexte)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(verbatim: c.t)
+                .font(titre)
+                .foregroundColor(encre)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .padding(.top, apresMot)
+            Text(verbatim: c.p)
+                .font(idee)
+                .foregroundColor(sousPoche)
+                .lineLimit(3)
+                .minimumScaleFactor(0.75)
+                .padding(.top, apresTitre)
+            Spacer(minLength: 0)
+            HStack(spacing: ecart) {
+                noter("Je savais", true, c, u)
+                noter("À revoir", false, c, u)
+            }
+        }
+        .padding(.horizontal, marge)
+        .padding(.top, marge)
+        .padding(.bottom, bas)
+        .frame(width: taille.width, height: taille.height, alignment: .topLeading)
+    }
+
+    private func noter(_ titre: String, _ savais: Bool, _ c: CarteWidget, _ u: CGFloat) -> some View {
+        let police: Font = Font.system(size: 12 * u, weight: .black, design: .rounded)
+        let fond: Color = savais ? menthe : braiseFond
+        let texte: Color = savais ? vertFonce : braiseTexte
+        let hauteur: CGFloat = 32 * u
+        let coin: CGFloat = 11 * u
+        let forme = RoundedRectangle(cornerRadius: coin, style: .continuous).fill(fond)
+        return Button(intent: NoterCarte(carte: c.id, savais: savais)) {
+            Text(verbatim: titre)
+                .font(police)
+                .foregroundColor(texte)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+                .frame(height: hauteur)
+                .background(forme)
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Notée : « Noté ! », quand elle revient, et le chat qui retourne une carte ; un appui, la suivante.
+    private func notee(_ taille: CGSize) -> some View {
+        let u: CGFloat = taille.width / 170
+        let titre: Font = Font.system(size: 19 * u, weight: .black, design: .rounded)
+        let phrase: Font = Font.system(size: 12 * u, weight: .heavy, design: .rounded)
+        let indice: Font = Font.system(size: 10.5 * u, weight: .heavy, design: .rounded)
+        let quand: String = "Elle revient " + CartesRangement.dans(entree.jours) + "."
+        let marge: CGFloat = 14 * u
+        let largeur: CGFloat = 140 * u
+        let hauteurChat: CGFloat = 100 * u
+        let chute: CGFloat = 4 * u
+        let apresTitre: CGFloat = 4 * u
+        return Button(intent: CarteSuivante()) {
+            ZStack(alignment: .topLeading) {
+                Image("ChatCarte")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: hauteurChat)
+                    .offset(y: chute)
+                    .padding(.trailing, chute)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Noté\u{202F}!")
+                        .font(titre)
+                        .foregroundColor(vertTexte)
+                    Text(verbatim: quand)
+                        .font(phrase)
+                        .foregroundColor(vertNote)
+                        .lineLimit(2)
+                        .padding(.top, apresTitre)
+                    Text("Touche pour la suivante")
+                        .font(indice)
+                        .foregroundColor(vertNote.opacity(0.75))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .padding(.top, apresTitre)
+                }
+                .frame(width: largeur, alignment: .leading)
+                .padding(marge)
+            }
+            .frame(width: taille.width, height: taille.height)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// À jour, ou sans carte : une phrase, le chat, et un appui qui ouvre l’app (l’album, ou la séance du jour).
+    private func calme(_ taille: CGSize, _ titre: String, _ phrase: String, _ chat: String, _ lien: URL) -> some View {
+        let u: CGFloat = taille.width / 170
+        let grand: Font = Font.system(size: 16 * u, weight: .black, design: .rounded)
+        let petit: Font = Font.system(size: 11.5 * u, weight: .bold, design: .rounded)
+        let marge: CGFloat = 14 * u
+        let hauteurChat: CGFloat = 92 * u
+        let chute: CGFloat = 4 * u
+        let apresTitre: CGFloat = 4 * u
+        return ZStack(alignment: .topLeading) {
+            Image(chat)
+                .resizable()
+                .scaledToFit()
+                .frame(height: hauteurChat)
+                .offset(y: chute)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: titre)
+                    .font(grand)
+                    .foregroundColor(violetTexte)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                Text(verbatim: phrase)
+                    .font(petit)
+                    .foregroundColor(sousPoche)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.8)
+                    .padding(.top, apresTitre)
+            }
+            .padding(marge)
+        }
+        .frame(width: taille.width, height: taille.height)
+        .widgetURL(lien)
+    }
+}
+
+@available(iOS 17.0, *)
+struct RequeteCarte: Widget {
+    let kind = "RequeteCarte"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: CarteFournisseur()) { entree in
+            CarteVue(entree: entree)
+                .containerBackground(for: .widget) { FondCarte(face: entree.face) }
+        }
+        .configurationDisplayName("La carte mémo")
+        .description("Tes cartes mémo, à retourner d’un appui. «\u{00A0}Je savais\u{00A0}» l’éloigne, «\u{00A0}À revoir\u{00A0}» la ramène demain.")
+        .supportedFamilies([.systemSmall])
+        .contentMarginsDisabled()
+    }
+}
+
 // MARK: - La leçon en cours, dans la Dynamic Island
 //
 // Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une Live Activity : la page (index.html, ileDebut, ileMaj, ileFin)
@@ -2577,7 +3134,7 @@ struct RequeteLeconActivite: Widget {
 }
 
 /// Le widget de la flamme, et la Live Activity de la leçon (iOS 16.1 et plus) ; depuis le 6 novembre, la flamme de l’écran verrouillé ;
-/// depuis le 7 novembre, la cheminée, et la requête de poche (iOS 17 et plus : ses boutons).
+/// depuis le 7 novembre, la cheminée, la requête de poche et la carte mémo (ces deux-là à partir d’iOS 17 : leurs boutons).
 @main
 struct RequeteWidgets: WidgetBundle {
     var body: some Widget {
@@ -2591,6 +3148,9 @@ struct RequeteWidgets: WidgetBundle {
         }
         if #available(iOS 17.0, *) {
             RequetePoche()
+        }
+        if #available(iOS 17.0, *) {
+            RequeteCarte()
         }
     }
 }
