@@ -263,7 +263,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=5"></script>') && sw.includes("'./multiplayer-security.js?v=5',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=251">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=252">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-08-atoi-clair-v2698');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-08-schema-bouton-v2699');
 });

@@ -113,7 +113,7 @@ test('la consigne autonome d’un défi, point par point, avec l’accès au sch
     /* 8 novembre, 19 h 57 : la situation s’arrête avant « À toi de jouer ! », qui passe dessous dans son cadre gris (reactions-direct) */
     const seule = c.situation.replace(/\s*À toi de jouer\s*!$/, '');
     for (const t of [seule, ...c.affiche, ...c.garde, ...c.precis]) assert.ok(html.includes(t.replace(/`([^`\n]+)`/g, '<code>$1</code>')), c.id + ' : ' + t);
-    assert.ok(html.includes('</p><div class="dq-atoi"><b>À toi de jouer\u00a0!</b> Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.</div>'), c.id + ' : l’appel dans son cadre');
+    assert.ok(html.includes('</p><div class="dq-atoi"><b>À toi de jouer\u00a0!</b> Tu peux consulter le <button type="button" class="dq-lien" onclick="openSchemaSheet()">') && html.includes('schéma</button> de la base à tout moment pour explorer les tables et leurs colonnes.</div>'), c.id + ' : l’appel dans son cadre, « schéma » ouvre le schéma');
     assert.ok(html.includes('<b>Affiche</b>') && (html.match(/<ol class="dq-l is-num">/g) || []).length >= 1, c.id + ' : une pastille numérotée par colonne');
     assert.equal(html.includes('<b>Garde</b>'), c.garde.length > 0, c.id + ' : les lignes gardées, s’il y en a');
     assert.equal(html.includes('<b>À savoir</b>'), c.precis.length > 0, c.id);
