@@ -127,7 +127,9 @@ test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et
     assert.ok(f.includes(k), k);
   const t = fn('dxFeuilleTouche');
   assert.ok(t.includes("if(e.key==='Escape'){e.preventDefault();e.stopPropagation();defisFeuilleFermer();return;}") && t.includes('f[i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length].focus();'), 'Échap, et Tab qui reste dans la feuille');
-  assert.ok(fn('dxFeuilleCaler').includes("el.style.top=(open?vv.offsetTop:0)+'px';el.style.height=(open?vv.height:window.innerHeight)+'px';"), 'au-dessus du clavier');
+  /* 8 novembre, 14 h 59 (« Cette page saute avec le clavier ») : elle ne suit plus le clavier ; le code se tape en haut de l’écran
+     (feuille-code-clavier) */
+  assert.ok(fn('dxFeuilleCaler').includes("el.style.top='0px';el.style.height=window.innerHeight+'px';") && !fn('dxFeuilleCaler').includes('offsetTop'), 'plus de suivi du clavier');
   assert.ok(fn('defisCarte').includes('if(!k){defisFeuilleFermer();return;}') && fn('defisCarte').includes('defisFeuilleOuvrir(k);'));
 });
 

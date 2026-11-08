@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=232">
+<link rel="stylesheet" href="ludique.css?v=233">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27125,7 +27125,8 @@ function jeuCodeIntrouvable(code){
   else switchTab('defis');
 }
 /* La feuille : elle monte du bas, le fond se voile ; × , le voile ou Échap la referment, le focus revient au bouton qui l’a ouverte.
-   Le code à taper : la feuille reste au-dessus du clavier (comme les feuilles de saisie, lqPrompt). */
+   Le code à taper (8 novembre, 14 h 59, « Cette page saute avec le clavier ») : sa feuille descend du haut de l’écran, et le clavier
+   monte dessous sans rien déplacer (ludique.css, [data-k="code"]). */
 let dxFeuilleRetour=null;
 function defisFeuilleOuvrir(k){
   if(typeof document==='undefined'||!document.body||!['creer','code','seul'].includes(k))return;
@@ -27147,7 +27148,6 @@ function defisFeuilleOuvrir(k){
     </div>`;
   const inp=el.querySelector('#jeu-code'),ko=k==='code'&&typeof jeuCodeKo!=='undefined'&&!!jeuCodeKo;
   if(ko){jeuCodeKo='';if(inp)inp.classList.add('is-shake');}
-  if(inp){inp.addEventListener('focus',()=>requestAnimationFrame(dxFeuilleCaler));inp.addEventListener('blur',dxFeuilleCaler);}
   document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
   const bx=el.querySelector('.dx-f-boite');
   if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;
@@ -27187,11 +27187,12 @@ function dxFeuilleTouche(e){
   e.preventDefault();
   f[i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length].focus();
 }
-/* Clavier ouvert sur le code : la feuille se pose au-dessus ; refermé, elle rejoint le bas de l’écran d’un seul glissé. */
+/* La feuille couvre l’écran (la barre de Safari qui se replie change sa hauteur). Elle ne suit plus le clavier (8 novembre, 14 h 59) :
+   le code à taper est en haut de l’écran, le clavier monte dessous ; avant, la feuille posée en bas suivait le visualViewport, et Safari
+   faisait d’abord défiler la page pour montrer le champ, puis la feuille remontait : elle sautait deux fois. */
 function dxFeuilleCaler(){
-  const el=document.getElementById('dx-feuille'),vv=window.visualViewport;if(!el||!vv)return;
-  const inp=el.querySelector('#jeu-code'),open=!!inp&&document.activeElement===inp;
-  el.style.top=(open?vv.offsetTop:0)+'px';el.style.height=(open?vv.height:window.innerHeight)+'px';el.style.bottom='auto';
+  const el=document.getElementById('dx-feuille');if(!el)return;
+  el.style.top='0px';el.style.height=window.innerHeight+'px';el.style.bottom='auto';
   if(el._marque)requestAnimationFrame(el._marque);
 }
 function jeuVisTexte(){return jeuVis==='priv'?'Seuls les joueurs à qui tu donnes le code peuvent rejoindre ta salle.':'Tous les joueurs peuvent voir et rejoindre ta salle. Tu peux aussi partager son code.';}
@@ -46292,7 +46293,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-joueurs-code-v2675';
+  const SW_CACHE='requete-2026-11-08-code-clavier-v2676';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

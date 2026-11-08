@@ -181,5 +181,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=232">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=233">'));
 });
