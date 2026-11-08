@@ -13788,7 +13788,8 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}${chat}</div>`;
   const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?'<p class="coach-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`
     :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
-  const st=diag?`<div class="coach-st"><span class="coach-st-k">Pas encore</span><p>${diag}</p></div>`:'';
+  /* 8 novembre, 18 h 18 : « mettre Un coup de patte ? au lieu de Pas encore » : ce qui cloche dans l’essai, dit comme un coup de main. */
+  const st=diag?`<div class="coach-st"><span class="coach-st-k">Un coup de patte&nbsp;?</span><p>${diag}</p></div>`:'';
   const nx=next!=null&&n<3?`<p class="coach-next"><i aria-hidden="true"></i>${n?'Indice suivant':'Premier indice'} pour tout le monde dans <b id="coach-cd">${jeuChrono(next)}</b></p>`:'';
   return `<section class="coach${n?' has-hint':' is-go'}${diag?' has-ko':''}${chat?' has-chat':''}" aria-live="polite">${head}${body}${st}${nx}</section>`;
 }
@@ -13824,7 +13825,7 @@ function coachPeek(card,hint){
   if(typeof IntersectionObserver==='undefined'||!card||!card.isConnected||!coachEnJeu())return;
   const b=document.createElement('button');
   b.type='button';b.id='coach-peek';b.className='coach-peek';b.hidden=true;
-  b.innerHTML=`<span aria-hidden="true">↑</span>${COACH.diag?(hint?'Pas encore · voir l’indice':'Pas encore · voir pourquoi'):'Nouvel indice · le voir'}`;
+  b.innerHTML=`<span aria-hidden="true">↑</span>${COACH.diag?(hint?'Un coup de patte\u00a0? · voir l’indice':'Un coup de patte\u00a0? · voir pourquoi'):'Nouvel indice · le voir'}`;
   let mo=null;
   const io=new IntersectionObserver(([e])=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=e.isIntersecting;});
   const bye=()=>{io.disconnect();if(mo)mo.disconnect();b.remove();};
@@ -35577,7 +35578,9 @@ function jeuDirectJoueurs(n){
   const l=ordre.filter(p=>jeuPresent(p)||r.found[p]!=null||tot[p]>0||(r.tried&&r.tried[p])).map((pid,i)=>{
     const me=pid===J.me,ok=r.found[pid]!=null,vrai=(J.players[pid]||{}).name||'Joueur';
     const essais=Math.max(me?(r.tries||0):0,((r.ko&&r.ko[pid])||0)+(ok?1:0));
-    const t=!me&&J.koAt&&J.koAt[pid]?now-J.koAt[pid]:-1,w=!me&&J.ecritAt&&J.ecritAt[pid]?now-J.ecritAt[pid]:-1;
+    /* La sienne aussi (Elisa, 8 novembre, 18 h 18 : « les détails des actions ne fonctionnent pas, c’est toujours en réflexion ») :
+       taper dans l’éditeur, c’est « Écrit sa requête » ; une requête manquée, « Teste sa requête ». Rien ne part pour soi. */
+    const t=J.koAt&&J.koAt[pid]?now-J.koAt[pid]:-1,w=J.ecritAt&&J.ecritAt[pid]?now-J.ecritAt[pid]:-1;
     const etat=ok?'ok':!jeuPresent(pid)?'parti':t>=0&&t<JEU_TEST_MS?'test':w>=0&&w<JEU_ECRIT_MS?'ecrit':'pense';
     return {pid,me,vrai,nom:me?'Toi':vrai,c:ordre.indexOf(pid)%6,ok,ms:ok?+r.found[pid]:Infinity,essais,etat,quitte:!!(J.left&&J.left[pid]),pts:tot[pid]||0,gain:gain[pid]||0,serie:jeuDirectSerie(rk,pid,n),i};
   });
@@ -35770,7 +35773,7 @@ function jeuReactPop(pid,e){
 function jeuEcritVeille(n){
   const J=JEU,ed=typeof document!=='undefined'&&document.getElementById?document.getElementById('ed-lesson'):null;if(!J||!ed)return;
   const v=String(ed.value||''),avant=J.edVu;J.edVu={n,v};
-  if(avant&&avant.n===n&&avant.v!==v)jeuEcritSignal(n);
+  if(avant&&avant.n===n&&avant.v!==v){(J.ecritAt=J.ecritAt||{})[J.me]=Date.now();jeuEcritSignal(n);}
 }
 function jeuEcritSignal(n){
   const J=JEU,r=J&&J.rounds[n];
@@ -36404,7 +36407,7 @@ function jeuRun(){
 /* Le premier essai manqué : le « +25 » de la barre s’envole. */
 function jeuEssaiRate(r){
   if(typeof jeuRateSend==='function')jeuRateSend(r);
-  {const J=typeof JEU!=='undefined'?JEU:null,n=J&&r?J.rounds.indexOf(r):-1;if(n>=0&&typeof jeuDirectPeindre==='function')jeuDirectPeindre(n);}   // son compteur d’essais, aussitôt
+  {const J=typeof JEU!=='undefined'?JEU:null,n=J&&r?J.rounds.indexOf(r):-1;if(J)(J.koAt=J.koAt||{})[J.me]=Date.now();if(n>=0&&typeof jeuDirectPeindre==='function')jeuDirectPeindre(n);}   // son compteur d’essais et « Teste sa requête », aussitôt
   if(!r||r.tries!==1)return;
   const b=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-val-b'):null;if(!b)return;
   if(prefersReduceMotion()){b.remove();return;}
@@ -46524,7 +46527,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-ouvrir-score-v2687';
+  const SW_CACHE='requete-2026-11-08-coup-de-patte-v2688';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -46563,6 +46566,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
-<script src="multiplayer-security.js?v=4"></script>
+<script src="multiplayer-security.js?v=5"></script>
 </body>
 </html>
