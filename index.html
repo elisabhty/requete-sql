@@ -26266,8 +26266,12 @@ function mascotBravo(btn,on){
    (le choix du pseudo), « Encore un effort ! » (déçu, puis le poing levé : une leçon à refaire, un défi sans rien trouvé), il colle un
    sticker (le tableau vide), il retourne une carte (« Nouvelle carte mémo ! »), eurêka (l’ampoule : les indices des défis, « Ce que tu
    retiens »). Ceux d’une seule réaction (le poing levé, la carte, l’ampoule) se jouent une fois et s’arrêtent sur leur meilleure image. */
+/* 8 novembre, 14 h 27 (capture de l’onglet Joueurs, « Pas encore d’adversaire ! ») : « Remplace par ce gif et le faire tourner qu’une
+   fois ». Le duel : il cherche du regard, la main en visière, sort sa pancarte « VS », fait un clin d’œil, salue, puis s’arrête sur son
+   sourire (12 images de 500 ms, une seule fois). Son image fixe (mouvements réduits) : la pancarte « VS ». Le faux damier du GIF a des
+   pixels rosés (247, 238, 246) : effacés eux aussi ; l’oreille touche le haut du GIF (images 4 à 8) : sa découpe y est refermée. */
 function chatBonusHtml(k,cls){
-  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311],cle:[309,302],avion:[313,311],reveil:[272,311],trophee:[290,311],reseau:[300,310],rire:[315,305],pied:[319,362],oui:[294,351],serment:[302,362],pseudo:[298,305],effort:[340,365],stickers:[309,291],carte:[270,311],eureka:[294,311]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
+  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311],cle:[309,302],avion:[313,311],reveil:[272,311],trophee:[290,311],reseau:[300,310],rire:[315,305],pied:[319,362],oui:[294,351],serment:[302,362],pseudo:[298,305],effort:[340,365],stickers:[309,291],carte:[270,311],eureka:[294,311],duel:[300,308]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   return `<img class="chat-bonus is-${k}${cls?' '+cls:''}" src="assets/chat-${k}${fixe?'-fixe':''}.webp" width="${t[0]}" height="${t[1]}" alt="" draggable="false">`;
 }
@@ -28402,7 +28406,8 @@ function amisListesPeindre(){
   const h=document.getElementById('dx-amis-h'),t=amisTitre(amis.length);if(h&&h.innerHTML!==t)h.innerHTML=t;
   const pc=document.getElementById('dx-amis-pcs'),ph=amisPcsHTML(amis);if(pc&&pc.innerHTML!==ph)pc.innerHTML=ph;
   /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! » (le titre), puis ce qu’on y gagne ; 22 h 13 : la mascotte qui salue. */
-  if(!amis.length){ls.innerHTML=`<div class="dx-vide-bloc is-amis">${typeof chatBonusHtml==='function'?chatBonusHtml('salut','is-vide dx-amis-chat'):''}<p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>`;return;}
+  /* 8 novembre, 14 h 27 : le duel, joué une fois. Déjà affiché, il n’est pas redessiné (les salles qui se rafraîchissent le relanceraient). */
+  if(!amis.length){const v=ls.firstElementChild;if(!(v&&v.classList&&typeof v.classList.contains==='function'&&v.classList.contains('is-amis')))ls.innerHTML=`<div class="dx-vide-bloc is-amis">${typeof chatBonusHtml==='function'?chatBonusHtml('duel','is-vide dx-amis-chat'):''}<p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>`;return;}
   /* Refonte du 7 novembre : une seule ligne par joueur (plus de section « Dans une salle maintenant » qui répétait les mêmes joueurs).
      S’il attend dans une salle ouverte (hôte ou déjà entré), sa ligne le dit (« En salle · Moyen · 2/5 »), son bouton devient
      « Rejoindre », et ces lignes passent en tête. Le face-à-face en pastille à côté du pseudo (tes victoires d’abord), « tu mènes ·
@@ -46329,7 +46334,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-situations-v2673';
+  const SW_CACHE='requete-2026-11-08-duel-v2674';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
