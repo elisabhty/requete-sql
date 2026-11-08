@@ -18,6 +18,6 @@ test('la fiche : un petit espace entre le recto et l’ampoule', () => {
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=243">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-reactions-direct-v2690';") && app.includes("const SW_CACHE='requete-2026-11-08-reactions-direct-v2690';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=244">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-reagir-seule-v2691';") && app.includes("const SW_CACHE='requete-2026-11-08-reagir-seule-v2691';"));
 });

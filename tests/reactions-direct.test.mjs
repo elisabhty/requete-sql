@@ -3,9 +3,10 @@
    pseudo / Mettre toujours : « À toi de jouer ! Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs
    colonnes. » ».
    - La base : une pastille posée à cheval sur le bord du cadre de « La situation », en haut à droite.
-   - Réagir : avant, les quatre réactions n’apparaissaient qu’une fois la réponse trouvée, et à plusieurs. Maintenant, à plusieurs,
+   - Réagir : avant, les quatre réactions n’apparaissaient qu’une fois la réponse trouvée, et à plusieurs. Maintenant, en salle,
      « Réagir » au bout de la ligne du niveau, dans le cadre de la manche, un seul bouton (31 octobre : « trop de boutons ») qui ouvre
-     les quatre ; chaque réaction, la sienne comme celles des autres, monte le long du bord de l’écran avec le pseudo.
+     les quatre ; chaque réaction, la sienne comme celles des autres, monte le long du bord de l’écran avec le pseudo. 19 h 12 (capture
+     d’une salle où elle est seule, sans « Réagir ») : « visible même seule » ; pas en partie seule (« Joue seul »).
    - La situation finit toujours sur la phrase du schéma. */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -89,7 +90,7 @@ function monde({ reduit = false, live = ['a', 'b'], solo = false } = {}) {
   return { ctx, J, section, bouton, focus, later, cleared, els, sent, dits, body, ev: c => vm.runInContext(c, ctx), avance: ms => { T += ms; } };
 }
 
-test('« Réagir » : un seul bouton dans la ligne du niveau, à plusieurs ; il ouvre les quatre réactions', () => {
+test('« Réagir » : un seul bouton dans la ligne du niveau, en salle (même seule) ; il ouvre les quatre réactions', () => {
   const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
   assert.ok(play.includes("`<span class=\"jeu-hud-niv\"><span class=\"dx-f-niv is-${c.niv}\">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${J.solo?'':jeuReagirHTML()}</span></div>`"), 'au bout de la ligne du niveau ; pas en partie seule');
   const m = monde(), h = m.ev('jeuReagirHTML()');
@@ -97,13 +98,14 @@ test('« Réagir » : un seul bouton dans la ligne du niveau, à plusieurs ; il 
   assert.ok(h.includes('<span>Réagir</span>') && h.includes('class="jeu-reagir-x"'), 'le sourire et « Réagir » ; la croix, cachée tant que c’est fermé');
   assert.equal((h.match(/onclick="jeuReact\('/g) || []).length, 4, 'les quatre réactions');
   assert.ok(h.includes('<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions"><button type="button" style="--i:0" onclick="jeuReact(\'👏\',this)" aria-label="Réagir 👏">👏</button>'));
-  /* Le cadre ne le montre qu’à plusieurs ; la première fois de la partie, son sourire se balance */
+  /* Le cadre le montre dans toute salle ; la première fois de la partie, son sourire se balance */
   const d = cut('function jeuDirectHTML(n,hud){', '\n}\n');
   assert.ok(d.includes('const reagir=jeuReagirLa(),neuf=reagir&&!J.reagirVu;if(neuf)J.reagirVu=1;'));
   assert.ok(d.includes("${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}\" id=\"jeu-direct\""));
+  assert.ok(app.includes('function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo);}'));
   assert.equal(m.ev('jeuReagirLa()'), true);
-  assert.equal(monde({ live: ['a'] }).ev('jeuReagirLa()'), false, 'seul dans la salle : personne pour voir');
-  assert.equal(monde({ solo: true }).ev('jeuReagirLa()'), false, 'partie seule');
+  assert.equal(monde({ live: ['a'] }).ev('jeuReagirLa()'), true, 'seule dans la salle aussi (19 h 12 : « visible même seule »)');
+  assert.equal(monde({ solo: true }).ev('jeuReagirLa()'), false, 'pas en partie seule (« Joue seul »)');
 });
 
 test('« Réagir » : touché, il s’ouvre ; une réaction part ; seul, il se referme au bout de 4,5 s ; la croix le referme', () => {
@@ -131,18 +133,18 @@ test('« Réagir » : touché, il s’ouvre ; une réaction part ; seul, il se r
   assert.equal(typeof ferme, 'function');
 });
 
-test('« Réagir » suit la salle : il apparaît quand quelqu’un arrive (son sourire salue une fois), disparaît quand on reste seul', () => {
+test('« Réagir » dans toute salle, même seule : son sourire salue une fois par partie ; jamais en partie seule', () => {
   const m = monde({ live: ['a'] });
-  m.ev('jeuReagirMaj()'); assert.ok(!m.section.classList.contains('has-reagir'));
-  m.ctx.jeuLive = () => ['a', 'b'];
   m.ev('jeuReagirMaj()');
-  assert.ok(m.section.classList.contains('has-reagir') && m.section.classList.contains('is-reagir-neuf'));
+  assert.ok(m.section.classList.contains('has-reagir') && m.section.classList.contains('is-reagir-neuf'), 'seule dans la salle : là, et il salue');
   m.section.classList.set.delete('is-reagir-neuf');
-  m.ev('jeuReagirBasculer({detail:1})');
+  m.ctx.jeuLive = () => ['a', 'b'];
+  m.ev('jeuReagirMaj()'); assert.ok(m.section.classList.contains('has-reagir') && !m.section.classList.contains('is-reagir-neuf'), 'quelqu’un arrive : il reste, sans resaluer');
+  /* Seule, une réaction part quand même, et monte avec « Toi » */
   m.ctx.jeuLive = () => ['a'];
-  m.ev('jeuReagirMaj()'); assert.ok(!m.section.classList.contains('has-reagir') && !m.section.classList.contains('is-reagir'), 'seul : caché et refermé');
-  m.ctx.jeuLive = () => ['a', 'c'];
-  m.ev('jeuReagirMaj()'); assert.ok(m.section.classList.contains('has-reagir') && !m.section.classList.contains('is-reagir-neuf'), 'une fois par partie');
+  m.ev("jeuReact('👏')"); assert.equal(m.sent.length, 1);
+  const s = monde({ solo: true });
+  s.ev('jeuReagirMaj()'); assert.ok(!s.section.classList.contains('has-reagir'), 'partie seule : jamais');
   assert.ok(cut('function jeuDirectPeindre(n){', '\n}\n').includes('const J=JEU;if(!J)return;\n  jeuReagirMaj();'), 'à chaque tour d’horloge');
 });
 
