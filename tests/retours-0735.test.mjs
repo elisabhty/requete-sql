@@ -57,7 +57,7 @@ test('3 et 4 — l’étiquette de la séance se lit, et dit ce que l’écran m
   assert.ok(h.includes('<span class="lq-ses is-${sesVue}"><span class="lq-sr">${esc(seanceLue(session,sesEtat))}</span><i class="lq-ses-ic" aria-hidden="true">'), 'un texte masqué, lu par VoiceOver');
   assert.ok(!h.includes('aria-label="${escAttr(session?.summary'), 'plus d’aria-label sur un simple <span>');
   /* Depuis 8 h 49, plus de « 0 % » : la barre de la leçon se lit (« Vidéo : 1:15 sur 2:50 », « Chrono : 05:48 sur 20:00 ») */
-  assert.ok(h.includes('<span class="lq-sr">Vidéo : </span><span>${lvFmt(pos)} sur ${lvFmt(v)}</span>') && h.includes('<span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(JEU_ROUND_MS)}</span>'), 'la barre de la leçon pour VoiceOver');
+  assert.ok(h.includes('<span class="lq-sr">Vidéo : </span><span>${lvFmt(pos)} sur ${lvFmt(v)}</span>') && h.includes('<span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(dur)}</span>'), 'la barre de la leçon pour VoiceOver');
 });
 
 test('4 — le niveau se lit avec la mascotte, et reste à jour quand l’autocollant est gardé d’un rendu à l’autre', () => {

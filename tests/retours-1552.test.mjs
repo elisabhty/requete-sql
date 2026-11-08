@@ -17,11 +17,11 @@ const sql = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort().map(f => 
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i); assert.ok(j > i, b); return app.slice(i, j); };
 const flush = () => new Promise(r => setImmediate(r));
 
-test('réf. 1 — la salle d’attente : le niveau et ses barres, les manches, « 10 min par manche » (8 novembre, 8 h 21 ; 20 min le 6 novembre), en autocollants', () => {
+test('réf. 1 — la salle d’attente : le niveau et ses barres, les manches, « 10, 15 ou 20 min par manche » selon le niveau (8 novembre, 8 h 52), en autocollants', () => {
   assert.ok(!app.includes('3 min max par manche'), 'plus de « 3 min max par manche »');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes('<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li>'));
-  assert.ok(r.includes("${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li>") && r.includes("${lqStkSvg('clock')}${JEU_ROUND_MS/60000}\\u00a0min par manche</li></ul>") && !r.includes('Chrono dès 00:00'));
+  assert.ok(r.includes("${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li>") && r.includes("${lqStkSvg('clock')}${jeuDureeMs(J.niv)/60000}\\u00a0min par manche</li></ul>") && !r.includes('Chrono dès 00:00'));
   assert.ok(app.includes('function jeuNivBars(k){return `<i class="jeu-bars is-${k}" aria-hidden="true"><b></b><b></b><b></b></i>`;}'));
   assert.ok(r.includes('<span class="jeu-chip is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>'), 'le défi tiré garde la même pastille de niveau');
   for (const k of ['html.lq .jeu-chip{display:inline-flex;align-items:center;gap:7px;min-height:36px;', 'box-shadow:0 3px 0 var(--lip);font:700 14px/1 var(--display)!important',

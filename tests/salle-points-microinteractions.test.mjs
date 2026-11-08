@@ -43,7 +43,7 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
   const rules = fn('renderDefisRules');
   /* 17 h 39 : les paliers de temps, +25 du premier coup, le classement entre amis jusqu’au 4e */
-  for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${JEU_ROUND_MS/60000}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>',
+  for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>',
     '<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI*x}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>',
     '<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>',
     '<small>Le plus rapide au total passe devant ; même temps : ex æquo</small>'])
@@ -54,8 +54,8 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
 
 test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25 du premier coup, +50 / +30 / +20 / +10 ; les temps en 00:00', () => {
   const ctx = vm.createContext({});
-  vm.runInContext(['const JEU_ROUND_MS=600000;', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
-  assert.ok(app.includes('const JEU_ROUND_MS=600000;') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));
+  vm.runInContext(['const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
+  assert.ok(app.includes('const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));
   const ev = c => JSON.parse(JSON.stringify(vm.runInContext(c, ctx)));
   assert.deepEqual(ev("[0,999,72000,179999].map(jeuChrono)"), ['00:00', '00:00', '01:12', '02:59']);
   assert.deepEqual(ev('[0,59000,60999,61000,120999,121000,180999,181000,240999,241000,300999,301000,420999,421000,599999].map(jeuValeur)'),
@@ -69,16 +69,16 @@ test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25
   /* 5 novembre, 9 h 18 : entre amis, le +25 du premier coup ne va qu’au premier à trouver (retours-0918) */
   assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1,k},jeuPts(ms,i,seul,!!(r.first&&r.first[pid])&&(seul||i===0),k));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29) ; le premier essai du premier à trouver');
   assert.ok(fn('jeuScores').includes('.sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.name.localeCompare(b.name));'));
-  assert.ok(fn('jeuScores').includes('J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+JEU_ROUND_MS;});'), 'une manche non trouvée compte 3 min');
+  assert.ok(fn('jeuScores').includes('J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+jeuDureeMs(jeuNivManche(n));});'), 'une manche non trouvée compte toute la manche (10, 15 ou 20 min)');
   assert.ok(line('jeuPlaces').includes('if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;'));
 });
 
-test('ref 4 — le chrono descend jusqu’à 00:00 (6 novembre, 7 h 52 ; depuis 10:00 le 8 novembre ; sans barre de temps), le podium a trois marches', () => {
+test('ref 4 — le chrono descend jusqu’à 00:00 (6 novembre, 7 h 52 ; depuis 10:00, 15:00 ou 20:00 selon le niveau le 8 novembre ; sans barre de temps), le podium a trois marches', () => {
   const tick = fn('jeuTick');
-  assert.ok(tick.includes('const took=Date.now()-J.rounds[n].t1;el.textContent=jeuRebours(JEU_ROUND_MS-took);'), 'le temps restant');
+  assert.ok(tick.includes('const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);'), 'le temps restant, d’après la durée de la manche');
   /* Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono » */
   assert.ok(!tick.includes('jeu-tbar') && !app.includes('<i class="jeu-tbar"'), 'plus de barre de temps');
-  assert.ok(app.includes('id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(JEU_ROUND_MS-took0)}</b>'));
+  assert.ok(app.includes('id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>'));
   assert.ok(app.includes('`${fermeHTML}<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];'), 'argent, or, bronze (sous « la salle est fermée » quand le chrono est arrivé à 0)');
   assert.ok(app.includes("<em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>"), 'chaque ligne : le temps et les points gagnés');
   assert.ok(app.includes("<span class=\"jeu-rk\">${sl?'✓':(medal[x.place-1]||x.place)}</span>"), 'les ex æquo partagent la médaille');
