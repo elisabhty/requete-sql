@@ -29,13 +29,13 @@ function feuille() {
   const t = { textContent: 'Rejoindre la salle' };
   const go = { disabled: true, classList: classes('room-go'), attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, querySelector: s => s === 'span' ? t : null };
   const msg = { innerHTML: '', classList: classes('jeu-msg'), get textContent() { return this.innerHTML; }, set textContent(v) { this.innerHTML = v; } };
-  const el = { dataset: { k: 'code' }, querySelector: s => ({ '#jeu-code': inp, '#jeu-code-go': go, '.jeu-msg': msg })[s] || null };
+  const el = { dataset: { k: 'code' }, classList: classes('dx-feuille'), querySelector: s => ({ '#jeu-code': inp, '#jeu-code-go': go, '.jeu-msg': msg })[s] || null };
   const buzz = [], stops = [];
   const ctx = vm.createContext({
     document: { getElementById: id => id === 'dx-feuille' ? el : id === 'jeu-code-go' ? go : null, querySelector: s => s === '#dx-feuille .jeu-msg' ? msg : null },
     buzz: k => buzz.push(k), JEU: null, jeuStop() { stops.push(ctx.JEU && ctx.JEU.code); ctx.JEU = null; },
   });
-  vm.runInContext(fn('jeuCleanCode') + cut('const DX_CODE_MSG=', '};') + '};\n' + fn('dxCodePret') + fn('dxCodeEtat') + fn('dxCodeColle'), ctx);
+  vm.runInContext(fn('jeuCleanCode') + cut('const DX_CODE_MSG=', '\nfunction dxCodeEtat(') + '\n' + fn('dxCodePret') + fn('dxCodeEtat') + fn('dxCodeColle'), ctx);
   return { ctx, inp, go, t, msg, el, buzz, stops };
 }
 
@@ -77,32 +77,43 @@ test('au 6e caractère : le contour s’illumine, le bouton s’allume, le tél�
   assert.deepEqual([msg.innerHTML, msg.classList.contains('is-ko'), inp.classList.contains('is-ko'), go.disabled], ['', false, false, true]);
 });
 
-test('la recherche dans la feuille : « On cherche ta salle… », puis le message ; changer le code arrête la recherche', () => {
-  const { ctx, inp, go, t, msg, buzz, stops } = feuille();
+test('la recherche dans la feuille : « On cherche ta salle… », la coche, ou le message à sa place et « Réessayer » (16 h 34)', () => {
+  const { ctx, inp, go, t, msg, el, buzz, stops } = feuille();
   inp.value = 'NENEKE';
   ctx.dxCodeEtat('cherche', 'NENEKE');
-  assert.deepEqual([go.classList.contains('is-cherche'), go.attrs['aria-busy'], t.textContent, go.disabled, msg.innerHTML], [true, 'true', 'On cherche ta salle…', true, '']);
-  /* Personne dans la salle : le champ rougit et tremble, le code reste tel quel */
-  ctx.dxCodeEtat('introuvable', 'NENEKE');
-  assert.deepEqual([go.classList.contains('is-cherche'), go.attrs['aria-busy'], t.textContent, go.disabled], [false, 'false', 'Rejoindre la salle', false]);
-  assert.equal(msg.innerHTML, 'Aucune salle ne correspond à ce code. Vérifie-le et réessaie&nbsp;!');
-  assert.ok(msg.classList.contains('is-ko') && inp.classList.contains('is-ko') && inp.classList.contains('is-shake') && !inp.classList.contains('is-pret'));
-  assert.equal(inp.value, 'NENEKE');
-  assert.deepEqual(buzz, ['error']);
-  /* Complète, sans réseau : le message seul, le champ n’est pas en faute */
-  for (const [e, texte] of [['complete', 'Cette salle est déjà complète&nbsp;!'], ['commencee', 'Trop tard, la partie a déjà commencé&nbsp;!'], ['reseau', 'Connexion perdue. Réessaie&nbsp;!'], ['horsligne', 'Pas de connexion internet. Réessaie&nbsp;!']]) {
-    inp.classList.remove('is-ko', 'is-shake');
-    ctx.dxCodeEtat(e, 'NENEKE');
-    assert.equal(msg.innerHTML, texte, e);
-    assert.ok(!inp.classList.contains('is-ko'), e);
-  }
-  assert.deepEqual(buzz.slice(1), ['warning', 'warning', 'warning', 'warning']);
-  /* On retape pendant une recherche : elle s’arrête, le bouton revient */
-  ctx.dxCodeEtat('cherche', 'NENEKE');
+  assert.deepEqual([go.classList.contains('is-cherche'), go.attrs['aria-busy'], t.textContent, go.disabled, msg.innerHTML, el.classList.contains('is-cherche')], [true, 'true', 'On cherche ta salle…', true, '', true]);
+  /* Pendant qu’on cherche, le code ne change pas */
   ctx.JEU = { verif: true, code: 'NENEKE' };
   inp.value = 'NENEKA'; ctx.dxCodePret(inp);
-  assert.deepEqual(stops, ['NENEKE']);
-  assert.deepEqual([go.classList.contains('is-cherche'), t.textContent, go.disabled], [false, 'Rejoindre la salle', false]);
+  assert.deepEqual([inp.value, stops], ['NENEKE', []]);
+  /* Trouvée : la coche verte, « Salle trouvée ! » */
+  ctx.dxCodeEtat('trouvee', 'NENEKE');
+  assert.deepEqual([go.classList.contains('is-trouvee'), go.classList.contains('is-cherche'), t.textContent, go.disabled, inp.classList.contains('is-trouvee'), el.classList.contains('is-cherche')], [true, false, 'Salle trouvée\u00a0!', true, true, false]);
+  assert.deepEqual(buzz, ['success']);
+  ctx.JEU = null;
+  /* Personne dans la salle : le champ rougit et tremble, le code reste tel quel ; le message à sa place ; « Réessayer » */
+  ctx.dxCodeEtat('introuvable', 'NENEKE');
+  assert.deepEqual([go.classList.contains('is-cherche'), go.classList.contains('is-trouvee'), go.attrs['aria-busy'], t.textContent, go.disabled], [false, false, 'false', 'Réessayer', false]);
+  assert.ok(msg.innerHTML.startsWith('<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">') && msg.innerHTML.endsWith('<span><b>Salle introuvable&nbsp;!</b> Vérifie le code.</span>'));
+  assert.ok(msg.classList.contains('is-ko') && inp.classList.contains('is-ko') && inp.classList.contains('is-shake') && !inp.classList.contains('is-pret') && !inp.classList.contains('is-trouvee'));
+  assert.equal(inp.value, 'NENEKE');
+  assert.deepEqual(buzz, ['success', 'error']);
+  /* Complète, commencée, sans réseau : le message seul, le champ n’est pas en faute */
+  for (const [e, texte] of [['complete', '<b>Salle complète&nbsp;!</b> 5 joueurs au maximum.'], ['commencee', '<b>Trop tard, la partie a commencé&nbsp;!</b>'], ['reseau', '<b>Connexion impossible.</b> Réessaie&nbsp;!'], ['horsligne', '<b>Pas de connexion internet.</b>']]) {
+    ctx.dxCodeEtat(e, 'NENEKE');   // même juste après « introuvable » : le champ n’est plus rouge
+    assert.ok(msg.innerHTML.endsWith(`<span>${texte}</span>`), e);
+    assert.ok(!inp.classList.contains('is-ko'), e);
+    assert.equal(t.textContent, 'Réessayer', e);
+  }
+  assert.deepEqual(buzz.slice(2), ['warning', 'warning', 'warning', 'warning']);
+  /* Code incomplet (Entrée avant 6 caractères) : le champ tremble, le bouton ne dit pas « Réessayer » */
+  inp.value = 'NEN'; inp.classList.remove('is-ko', 'is-shake');
+  ctx.dxCodeEtat('incomplet', 'NEN');
+  assert.ok(msg.innerHTML.endsWith('<span><b>Entre les 6 caractères du code.</b></span>') && inp.classList.contains('is-shake'));
+  assert.deepEqual([t.textContent, go.disabled], ['Rejoindre la salle', true]);
+  /* Le code corrigé : le message s’efface, le bord redevient violet, « Rejoindre la salle » */
+  ctx.dxCodeEtat('introuvable', 'NENEKE'); inp.value = 'NENEKA'; ctx.dxCodePret(inp);
+  assert.deepEqual([msg.innerHTML, msg.classList.contains('is-ko'), inp.classList.contains('is-ko'), t.textContent, go.disabled], ['', false, false, 'Rejoindre la salle', false]);
   /* Une autre feuille ouverte : rien ne bouge */
   const autre = feuille(); autre.el.dataset.k = 'creer';
   autre.ctx.dxCodeEtat('introuvable', 'X');
@@ -141,7 +152,10 @@ test('le pseudo à réserver : son échec revient dans la feuille, plus de fenê
 test('la feuille de style : l’onde violette au 6e caractère, la roue dans le bouton violet, le rouge de l’erreur', () => {
   for (const k of ['html.lq .dx-feuille .room-join .jeu-input.is-code.is-pret{border-color:var(--accent)!important;animation:dxCodeOnde .6s ease-out}',
     '@keyframes dxCodeOnde{0%{outline:3px solid rgba(106,77,244,.5);outline-offset:0}100%{outline:3px solid rgba(106,77,244,0);outline-offset:10px}}',
-    'html.lq .dx-feuille .room-join .jeu-input.is-code.is-ko{border-color:#E5484D!important;', 'html.lq .dx-feuille .jeu-msg.is-ko{color:#C2323A;font-weight:700}',
+    'html.lq .dx-feuille .room-join .jeu-input.is-code.is-ko{border-color:#E5484D!important;',
+    'html.lq .dx-feuille[data-k="code"] .jeu-msg,html.lq .dx-feuille[data-k="code"] .jeu-msg:empty{display:flex;align-items:flex-start;gap:7px;min-height:21px;',
+    'html.lq .dx-feuille[data-k="code"] .jeu-msg b{color:#C2323A;font-weight:800}', 'html.lq .dx-feuille.is-cherche .room-join .jeu-input.is-code{color:var(--ink-3);caret-color:transparent}',
+    'html.lq :is(#scr-defis,.dx-feuille) .room-go.is-trouvee:disabled{background:#17A35E!important;', 'html.lq .dx-feuille .room-go.is-trouvee .dx-go-ok{display:flex;',
     'html.lq :is(#scr-defis,.dx-feuille) .room-go.is-cherche:disabled{background:var(--accent)!important;', 'html.lq .dx-feuille .room-go.is-cherche .dx-go-roue{display:block;',
     'html.lq .dx-feuille .room-go.is-cherche>svg{display:none}', 'html.lq[data-motion="reduce"] .dx-feuille .room-join .jeu-input.is-code.is-pret,'])
     assert.ok(lq.includes(k), k);

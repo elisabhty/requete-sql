@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=236">
+<link rel="stylesheet" href="ludique.css?v=237">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27103,47 +27103,56 @@ function defisFeuilleHTML(k){
       <div class="room-seg" role="radiogroup" aria-labelledby="room-vis-l">${seg('vis',[['pub','<span aria-hidden="true">🌍</span> Publique'],['priv','<span aria-hidden="true">🔒</span> Privée']],jeuVis)}</div>
       <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small></div>
     <div class="room-field dx-f-moi" data-friends>${jeuNomField('jeu-nom')}</div>`:''}
-    <div class="dx-f-pied"><p class="jeu-msg${ko?' is-ko':''}" role="status" aria-live="polite">${ko?DX_CODE_MSG.introuvable:''}</p>
-    <button type="button" class="room-go"${join?` id="jeu-code-go" onmousedown="event.preventDefault()"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()">${join?'<i class="dx-go-roue" aria-hidden="true"></i>':''}<span>${join?'Rejoindre la salle':friends?'Ouvrir la salle':'Lancer la partie'}</span>${DEF_CHEV_SVG}</button>${friends?'<p class="dx-f-note">Le défi démarre quand tu le décides.</p>':''}</div>
+    <div class="dx-f-pied"><p class="jeu-msg${ko?' is-ko':''}" role="status" aria-live="polite">${ko?dxCodeMsgHTML('introuvable'):''}</p>
+    <button type="button" class="room-go"${join?` id="jeu-code-go" onmousedown="event.preventDefault()"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()">${join?`<i class="dx-go-roue" aria-hidden="true"></i><i class="dx-go-ok" aria-hidden="true">${DX_OK_SVG}</i>`:''}<span>${join?(ko?'Réessayer':'Rejoindre la salle'):friends?'Ouvrir la salle':'Lancer la partie'}</span>${DEF_CHEV_SVG}</button>${friends?'<p class="dx-f-note">Le défi démarre quand tu le décides.</p>':''}</div>
     </div>`;
 }
 /* La durée d’une partie au plus, sur chaque carte de manches (8 novembre, 9 h 42 ; avant, « Jusqu’à 30 min de jeu » sous les cartes) :
    la manche dure 10 min en Facile, 15 en Moyen, 20 en Difficile (jeuDureeMs) ; en heures dès une heure (« 1 h 15 max »). */
 function dxDureeMax(n,k){const m=(+n||1)*jeuDureeMs(k||jeuNiv)/60000,h=Math.floor(m/60),r=m%60;return `${h?`${h}\u00a0h${r?`\u00a0${String(r).padStart(2,'0')}`:''}`:`${m}\u00a0min`}\u00a0max`;}
-/* « Rejoindre la salle » ne s’allume qu’avec 6 caractères (8 novembre, 0 h 23) ; taper efface le message d’erreur. 15 h 27 (la
-   relecture qu’Elisa a fait faire) : au 6e caractère, le contour du champ s’illumine, une seule fois, avec un petit retour du
-   téléphone ; changer le code arrête une recherche en cours. */
+/* « Rejoindre la salle » ne s’allume qu’avec 6 caractères (8 novembre, 0 h 23). 15 h 27 (la relecture qu’Elisa a fait faire) : au
+   6e caractère, le contour du champ s’illumine, une seule fois, avec un petit retour du téléphone. 16 h 34 (la suivante) : pendant
+   qu’on cherche la salle, le code ne change pas ; après une erreur, le corriger efface le message, le bord redevient violet et
+   « Réessayer » redevient « Rejoindre la salle ». */
 let jeuCodeKo='';
 function dxCodePret(inp){
   if(!inp)return;
+  if(typeof JEU!=='undefined'&&JEU&&JEU.verif){if(inp.value!==JEU.code)inp.value=JEU.code;return;}   // on cherche : le code ne bouge pas
   const c=jeuCleanCode(inp.value),pret=c.length===6;
-  if(typeof JEU!=='undefined'&&JEU&&JEU.verif&&JEU.code!==c){jeuStop();dxCodeEtat('');}
-  const b=document.getElementById('jeu-code-go');if(b&&!b.classList.contains('is-cherche'))b.disabled=!pret;
+  const b=document.getElementById('jeu-code-go');
+  if(b){b.disabled=!pret;const t=b.querySelector('span');if(t&&t.textContent!=='Rejoindre la salle')t.textContent='Rejoindre la salle';}
   if(pret&&!inp.classList.contains('is-pret')&&typeof buzz==='function')buzz('light');
   inp.classList.toggle('is-pret',pret);inp.classList.remove('is-ko');
   const m=document.querySelector('#dx-feuille .jeu-msg');if(m&&m.textContent){m.textContent='';m.classList.remove('is-ko');}
 }
 /* La salle se cherche dans la feuille (8 novembre, 15 h 27 : la page « Tu rejoins la salle… » s’ouvrait, puis renvoyait à la feuille
-   quand le code ne menait nulle part). « On cherche ta salle… » et sa roue dans le bouton ; l’hôte répond : la feuille se referme sur
-   la salle d’attente (jeuVerifSuivre) ; sinon le message sous le champ, le code gardé tel quel (rien n’est sélectionné). Un code qui
-   ne mène nulle part : le champ rougit et tremble. */
-const DX_CODE_MSG={introuvable:'Aucune salle ne correspond à ce code. Vérifie-le et réessaie&nbsp;!',complete:'Cette salle est déjà complète&nbsp;!',
-  commencee:'Trop tard, la partie a déjà commencé&nbsp;!',
-  reseau:'Connexion perdue. Réessaie&nbsp;!',horsligne:'Pas de connexion internet. Réessaie&nbsp;!',pseudo:'Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.',
-  moteur:'Le moteur SQL se charge encore, réessaie dans un instant.',indispo:'La salle est indisponible pour le moment. Réessaie dans un instant.'};
+   quand le code ne menait nulle part). « On cherche ta salle… » et sa roue dans le bouton ; trouvée (16 h 34, la relecture) : une coche
+   verte, « Salle trouvée ! », un court instant, puis la salle d’attente (jeuVerifSuivre). Sinon, sous le champ, à une place gardée
+   pour lui (rien ne bouge quand il apparaît) : un pictogramme, ce qui se passe en gras, quoi faire ; le bouton dit « Réessayer ».
+   Un code qui ne mène nulle part : le champ rougit et tremble. */
+const DX_CODE_MSG={introuvable:['Salle introuvable&nbsp;!','Vérifie le code.'],complete:['Salle complète&nbsp;!','5 joueurs au maximum.'],
+  commencee:['Trop tard, la partie a commencé&nbsp;!',''],reseau:['Connexion impossible.','Réessaie&nbsp;!'],horsligne:['Pas de connexion internet.',''],
+  pseudo:['Pseudo non réservé.','Réessaie dans un instant.'],moteur:['Le moteur SQL se charge.','Réessaie dans un instant.'],
+  indispo:['Salle indisponible.','Réessaie dans un instant.'],incomplet:['Entre les 6 caractères du code.','']};
+const DX_ALERTE_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2.2"/><path d="M12 7.4v5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.4" fill="currentColor"/></svg>';
+const DX_OK_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function dxCodeMsgHTML(etat){const m=DX_CODE_MSG[etat];return m?`${DX_ALERTE_SVG}<span><b>${m[0]}</b>${m[1]?` ${m[1]}`:''}</span>`:'';}
 function dxCodeEtat(etat,code){
   const el=document.getElementById('dx-feuille');if(!el||el.dataset.k!=='code')return;
   const inp=el.querySelector('#jeu-code'),go=el.querySelector('#jeu-code-go'),m=el.querySelector('.jeu-msg');
-  const cherche=etat==='cherche',msg=DX_CODE_MSG[etat]||'';
+  const cherche=etat==='cherche',trouvee=etat==='trouvee',ko=!!DX_CODE_MSG[etat];
+  el.classList.toggle('is-cherche',cherche);
   if(go){
-    go.classList.toggle('is-cherche',cherche);go.setAttribute('aria-busy',cherche?'true':'false');
-    const t=go.querySelector('span');if(t)t.textContent=cherche?'On cherche ta salle…':'Rejoindre la salle';
-    go.disabled=cherche||jeuCleanCode(inp&&inp.value).length!==6;
+    go.classList.toggle('is-cherche',cherche);go.classList.toggle('is-trouvee',trouvee);go.setAttribute('aria-busy',cherche?'true':'false');
+    const t=go.querySelector('span');if(t)t.textContent=cherche?'On cherche ta salle…':trouvee?'Salle trouvée\u00a0!':ko&&etat!=='incomplet'?'Réessayer':'Rejoindre la salle';
+    go.disabled=cherche||trouvee||jeuCleanCode(inp&&inp.value).length!==6;
   }
-  if(m){m.innerHTML=msg;m.classList.toggle('is-ko',!!msg);}
-  if(!msg)return;
+  if(inp){inp.classList.toggle('is-trouvee',trouvee);if(trouvee)inp.classList.remove('is-pret');if(etat!=='introuvable'&&etat!=='incomplet')inp.classList.remove('is-ko');}   // le champ n’est en faute que si le code l’est
+  if(m){m.innerHTML=dxCodeMsgHTML(etat);m.classList.toggle('is-ko',ko);}
+  if(trouvee&&typeof buzz==='function')buzz('success');
+  if(!ko)return;
   if(typeof buzz==='function')buzz(etat==='introuvable'?'error':'warning');
-  if(inp&&etat==='introuvable'){inp.classList.remove('is-pret','is-shake');void inp.offsetWidth;inp.classList.add('is-ko','is-shake');}
+  if(inp&&(etat==='introuvable'||etat==='incomplet')){inp.classList.remove('is-pret','is-shake');void inp.offsetWidth;inp.classList.add('is-ko','is-shake');}
 }
 /* Coller un code, son lien ou toute l’invitation (« Rejoins-moi sur Requête… Code de la salle : … ») : le code seul arrive dans le
    champ. Un morceau de code se colle normalement. */
@@ -34811,7 +34820,7 @@ function jeuSupabase(code,onMsg,onNet){
     signal(m){if(!S.closed&&S.ws&&S.joined)put(S.ws,{topic,event:'broadcast',payload:{type:'broadcast',event:'ecrit',payload:m},ref:String(++S.ref),join_ref:S.joinRef});},
     send(m){
       const send=()=>rpc('jeu_envoyer',{p_salle:code,p_m:m}).then(r=>{
-        if(!r.ok){if(secure)r.clone().json().then(e=>{if(JEU&&JEU.code===code){if(/salle pleine/.test(e.message||''))JEU.full=true;JEU.securityError=e.message||'';jeuPaint();}},()=>{});return false;}
+        if(!r.ok){if(secure)r.clone().json().then(e=>{if(JEU&&JEU.code===code){if(/salle pleine/.test(e.message||''))JEU.full=true;if(/salle introuvable/.test(e.message||''))JEU.introuvable=true;JEU.securityError=e.message||'';jeuPaint();}},()=>{});return false;}
         if(secure&&(m.t==='cfg'||m.t==='hello')){enrolled=true;catchUp();}
         /* Son propre message doit revenir par le direct : sinon, on relit la salle (le direct a pu en perdre). */
         r.json().then(x=>{const n=x&&+x.n;if(n>0)setTimeout(()=>{if(!S.closed&&S.joined&&S.last<n)catchUp();},3000);},()=>{});
@@ -34979,12 +34988,20 @@ function jeuEcran(){
 function jeuVerifSuivre(J){
   if(J.full){jeuVerifEchec('complete');return false;}
   if(J.tard){jeuVerifEchec('commencee');return false;}
-  if(!J.hostPid||!J.synced)return false;
-  J.verif=false;
-  if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
-  jeuEcran();
-  try{saveNav();}catch(e){}
-  return true;
+  if(J.introuvable&&!J.hostPid){jeuVerifEchec('introuvable');return false;}   // la base n’a pas cette salle : inutile d’attendre
+  if(!J.hostPid||!J.synced||J.verifOk)return false;
+  /* 16 h 34 (la relecture) : la coche verte, « Salle trouvée ! », un court instant, puis la salle d’attente. */
+  J.verifOk=true;
+  if(typeof dxCodeEtat==='function')dxCodeEtat('trouvee',J.code);
+  setTimeout(()=>{
+    if(JEU!==J||!J.verif)return;
+    J.verif=false;
+    if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
+    jeuEcran();
+    try{saveNav();}catch(e){}
+    jeuPaint();
+  },typeof prefersReduceMotion==='function'&&prefersReduceMotion()?150:550);
+  return false;
 }
 function jeuVerifEchec(r){
   const J=JEU;if(!J||!J.verif)return;
@@ -35002,6 +35019,7 @@ function jeuReprendre(nav){
 }
 function jeuJoin(code){
   const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom');
+  if(c.length!==6&&typeof dxCodeEtat==='function'&&document.querySelector('#dx-feuille #jeu-code')){dxCodeEtat('incomplet',c);return;}
   if(c.length!==6){if(msg)msg.textContent=c.length?'Le code fait 6 caractères.':'Entre le code que tu as reçu.';const inp=document.getElementById('jeu-code');if(inp){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}return;}
   /* La feuille du code reste ouverte pendant qu’on cherche la salle (Elisa, 8 novembre, 15 h 27, la relecture qu’elle a fait faire :
      « Tu rejoins la salle… » ouvrait une page, qui renvoyait à la feuille quand le code ne menait nulle part). « On cherche ta salle… »
@@ -46460,7 +46478,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-code-carte-v2680';
+  const SW_CACHE='requete-2026-11-08-code-etats-v2681';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

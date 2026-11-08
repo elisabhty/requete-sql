@@ -1376,12 +1376,12 @@ test('8 novembre, 15 h 27 : la salle trouvée depuis la feuille du code, on y en
   g.join('ROOM42');
   assert.deepEqual(g.etats, [['cherche', 'ROOM42']], 'touché deux fois : une seule recherche');
   sec(w, 3);
-  assert.deepEqual([g.J('verif'), g.ecrans, g.fermee], [false, 1, [true]], 'l’hôte a répondu : la feuille se referme sur la salle');
+  assert.deepEqual([g.J('verif'), g.ecrans, g.fermee], [false, 1, [true]], 'l’hôte a répondu : la coche verte, puis la feuille se referme sur la salle');
   assert.equal(g.view(), 'lobby');
   assert.match(g.html, /Salle de Hôte/);
   assert.doesNotMatch(g.html, /Tu rejoins la salle/);
   assert.deepEqual(host.live(), ['Hôte', 'Ami1']);
-  assert.deepEqual(g.etats, [['cherche', 'ROOM42']]);
+  assert.deepEqual(g.etats, [['cherche', 'ROOM42'], ['trouvee', 'ROOM42']], '16 h 34 : « Salle trouvée ! », un court instant');
 });
 
 test('8 novembre, 15 h 27 : personne derrière le code, salle complète, plus de réseau : la feuille le dit, on reste où l’on est', () => {

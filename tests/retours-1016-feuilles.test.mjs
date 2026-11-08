@@ -25,7 +25,7 @@ function bac(o = {}) {
     jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''}, JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}, JEU_MAX: 5,
     document: {getElementById: id => els[id] || null, querySelectorAll: () => [], body: null}
   }, o));
-  vm.runInContext(cut('const DX_CODE_MSG=', '};') + '};\n' + line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
+  vm.runInContext(cut('const DX_CODE_MSG=', '\nfunction dxCodeEtat(') + '\n' + line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
   return {ctx, els};
 }
 
@@ -92,7 +92,7 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(code.includes('<p class="room-kicker">Rejoindre une partie</p>') && code.includes('<h2 id="dx-f-t">Entre ton code&nbsp;!</h2>') && code.includes('<p class="room-sub" id="dx-f-p">Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.</p>'));
   assert.ok(code.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && code.includes('oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)" onpaste="dxCodeColle(event)"') && !code.includes('room-hint') && !code.includes('Les 6 caractères'));
   assert.ok(code.includes('<input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="ABC123" value=""') && !code.includes('maxlength'));
-  assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" onmousedown="event.preventDefault()" disabled onclick="jeuEnterRoom()"><i class="dx-go-roue" aria-hidden="true"></i><span>Rejoindre la salle</span>'));
+  assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" onmousedown="event.preventDefault()" disabled onclick="jeuEnterRoom()"><i class="dx-go-roue" aria-hidden="true"></i><i class="dx-go-ok" aria-hidden="true"><svg viewBox="0 0 24 24"') && code.includes('</svg></i><span>Rejoindre la salle</span>'));
   assert.ok(!code.includes('jeu-me') && !code.includes('data-set="nb"'), 'un code : pas de pseudo, pas de manches (l’hôte choisit)');
   assert.ok(seul.includes('<p class="room-kicker">Mode solo</p>') && seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<p class="room-sub" id="dx-f-p">Relève des défis à ton rythme.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d">'));
   assert.ok(seul.includes('<span class="dx-f-chip is-pts">') && seul.includes('<span><b>×4</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span></p>') && !seul.includes('is-max') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('<small class="dx-m-duree">1\u00a0h\u00a0max</small>') && !seul.includes('jeu-note') && !seul.includes('data-vis') && !seul.includes('dx-f-note') && !seul.includes('joueurs max'));
@@ -109,7 +109,8 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   /* Code introuvable (personne dans la salle) : la feuille revient, le code gardé, le message dessous */
   ctx.jeuInvite = ''; ctx.jeuCodeKo = 'ZZZ999';
   const ko = ctx.defisFeuilleHTML('code');
-  assert.ok(ko.includes('value="ZZZ999"') && ko.includes('class="jeu-input is-code is-ko"') && ko.includes('<p class="jeu-msg is-ko" role="status" aria-live="polite">Aucune salle ne correspond à ce code. Vérifie-le et réessaie&nbsp;!</p>') && !ko.includes('room-invite'));
+  assert.ok(ko.includes('value="ZZZ999"') && ko.includes('class="jeu-input is-code is-ko"') && ko.includes('<p class="jeu-msg is-ko" role="status" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">') && ko.includes('<span><b>Salle introuvable&nbsp;!</b> Vérifie le code.</span></p>') && !ko.includes('room-invite'));
+  assert.ok(ko.includes('<span>Réessayer</span>'), '16 h 34 (la relecture) : « Réessayer » après un échec');
   ctx.jeuCodeKo = '';
   ctx.jeuChallenges = () => [1, 2];
   assert.ok(ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="3" disabled') && ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="5" disabled'), 'pas plus de manches que de défis');
