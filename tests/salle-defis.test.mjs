@@ -637,14 +637,14 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   assert.match(g.html, /class="jeu-done"/); assert.match(g.html, /Hôte cherche encore/);
   const d = h.ev('jeuDirectHTML(0)'), rows = d.split('<li ').slice(1);
   assert.equal(rows.length, 2, 'une ligne par joueur');
-  assert.match(rows[0], /^class="jd is-ok is-chef" data-pid="[\w-]+" data-s="[^"]+"><b class="jeu-av" data-c="1" aria-hidden="true">A/, 'l’ami en premier, en tête (même couleur qu’en salle d’attente)');
+  assert.match(rows[0], /^class="jd is-ok is-chef" data-pid="[\w-]+" data-s="[^"]+"><span class="jd-rang is-m1" aria-hidden="true">1<\/span><b class="jeu-av" data-c="1" aria-hidden="true">A/, 'l’ami en premier, en tête (même couleur qu’en salle d’attente)');
   assert.match(rows[0], /<span class="jd-monte"><svg[^]*?<\/svg><b>1<\/b>/, 'il vient de gagner une place : la flèche (4 s)');
   assert.equal(h.ev('JEU.dit.cur.html'), '<b>Ami</b> ouvre le score\u00a0!', 'le commentateur l’a dit, même pendant que la liste n’était pas redessinée');
   assert.match(rows[0], /<i class="jd-couronne">/); assert.match(rows[0], /Ami<span class="jeu-sr">, en tête<\/span>/);
   assert.match(rows[0], /A trouvé&nbsp;!<em class="jd-gain">\+[\d\u202f\u00a0]+<\/em>/, '« A trouvé ! » et ce que la manche lui rapporte');
   assert.match(rows[0], /<small>1&nbsp;essai<\/small>/);
   assert.match(rows[1], /^class="jd is-pense is-moi"/); assert.match(rows[1], /<span class="jd-l1"><b>Toi<\/b><\/span><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>En réflexion<\/small>/);
-  assert.match(rows[1], /<b>0<small>&nbsp;pt<\/small><\/b><small>0&nbsp;essai<\/small>/);
+  assert.match(rows[1], /<b><span class="jd-pts" data-n="0" data-fmt="fr">0<\/span><small>&nbsp;pt<\/small><\/b><small>0&nbsp;essai<\/small>/);
   assert.match(d, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true">.*?<\/i>1\/2<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/, 'combien ont trouvé, dans la barre');
   assert.doesNotMatch(d, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
 });
@@ -669,7 +669,7 @@ test('« En direct » : les essais manqués des autres comptent chez tous, la li
   assert.equal(host.ev('jeuDirectJoueurs(0).filter(x=>x.chef).length'), 1);
   const d = host.ev('jeuDirectHTML(0)');
   assert.doesNotMatch(d, /faux|SELECT/, 'jamais sa requête'); assert.match(d, /1\/3<span class="jeu-sr"> : 1 joueur a trouvé/);
-  assert.match(d, /<span class="jeu-direct-nb" id="jeu-direct-nb">3&nbsp;joueurs<\/span>/);
+  assert.match(d, /<span class="jeu-direct-nb"><span id="jeu-direct-nb">3&nbsp;joueurs<\/span><\/span>/);
 });
 
 /* 8 novembre, 12 h 25 : le commentateur, la série, les réactions, de bout en bout */

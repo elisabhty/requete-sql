@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=229">
+<link rel="stylesheet" href="ludique.css?v=230">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35399,7 +35399,6 @@ const JEU_CHRONO_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12
 const JEU_LOUPE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.8"/><path d="M15.2 15.2l4.8 4.8" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
 const JEU_RUN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2v9.6l7.6-4.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const JEU_COURONNE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.6 8.8l4.5 3.4L12 5.6l3.9 6.6 4.5-3.4-1.6 9.6H5.2z" fill="#FFC83D" stroke="#1B1640" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="5.4" r="1.4" fill="#fff" stroke="#1B1640" stroke-width="1.2"/></svg>';
-const JEU_ONDE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M8.1 8.1a5.5 5.5 0 0 0 0 7.8M15.9 8.1a5.5 5.5 0 0 1 0 7.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="jd-onde2" d="M5 5a9.9 9.9 0 0 0 0 14M19 5a9.9 9.9 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 function jeuDirectPlie(){try{return localStorage.getItem('rq-jeu-direct')==='plie';}catch(e){return false;}}
 function jeuDirectJoueurs(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;if(!r)return [];
@@ -35420,7 +35419,8 @@ function jeuDirectJoueurs(n){
   /* En tête d’abord (les points de la partie), puis qui a trouvé le plus vite, puis l’ordre de la salle ; sa place, et la flèche
      s’il vient d’en gagner (4 s) */
   l.sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.i-b.i);
-  l.forEach((x,i)=>{x.place=i+1;const m=J.directMonte&&J.directMonte[x.pid];x.monte=m&&m.n===n&&now-m.at<JEU_MONTE_MS?m.d:0;});
+  l.forEach((x,i)=>{x.place=i+1;const m=J.directMonte&&J.directMonte[x.pid];x.monte=m&&m.n===n&&now-m.at<JEU_MONTE_MS?m.d:0;
+    x.rang=x.pts>0?1+l.filter(y=>y.pts>x.pts).length:0;});   // le rang (ex æquo : le même), dès qu’il a des points
   return l;
 }
 /* La série (12 h 25) : premier à trouver plusieurs manches de suite ; la manche en cours compte dès qu’elle a un premier, une manche
@@ -35442,13 +35442,14 @@ function jeuDirectLigne(x,avant){
     :x.etat==='parti'?`<i class="jd-rond" aria-hidden="true"></i>${x.quitte?'A quitté la salle':'Hors ligne'}`:'<i class="jd-rond" aria-hidden="true"></i>En réflexion';
   /* Ce qui vient de changer, et seulement ça, se joue une fois (le premier dessin de la manche ne rejoue rien) */
   const plus=avant&&x.essais>avant.essais,trouve=avant&&avant.etat!=='ok'&&x.etat==='ok',sacre=avant&&!avant.chef&&x.chef;
-  const pts=x.pts.toLocaleString('fr-FR'),neufS=avant&&x.serie>(avant.serie||0),neufM=avant&&avant.place&&x.place<avant.place;
+  const pts=x.pts.toLocaleString('fr-FR'),neufS=avant&&x.serie>(avant.serie||0),neufM=avant&&avant.place&&x.place<avant.place,monte=avant&&avant.pts!=null&&x.pts>avant.pts;
+  const rang=x.rang?`<span class="jd-rang${x.rang<4?' is-m'+x.rang:''}" aria-hidden="true">${x.rang}</span>`:'<span class="jd-rang is-vide" aria-hidden="true">–</span>';
   const marques=(x.serie>=2?`<span class="jd-serie${neufS?' is-neuf':''}">${JEU_FLAMME_SVG}<b>${x.serie}</b><span class="jeu-sr">, ${x.serie} manches d’affilée en premier</span></span>`:'')
     +(x.monte?`<span class="jd-monte${neufM?' is-neuf':''}">${JEU_MONTE_SVG}<b>${x.monte}</b><span class="jeu-sr">, gagne ${x.monte} place${x.monte>1?'s':''}</span></span>`:'');
   return `<li class="jd is-${x.etat}${x.me?' is-moi':''}${x.chef?' is-chef':''}${plus?' is-plus':''}${trouve?' is-trouve':''}${sacre?' is-sacre':''}" data-pid="${jeuDirectPid(x.pid)}" data-s="${jeuDirectSig([x])}">`+
-    `<b class="jeu-av" data-c="${x.c}" aria-hidden="true">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai):''}${x.chef?`<i class="jd-couronne">${JEU_COURONNE_SVG}</i>`:''}${trouve?'<i class="jd-fete"><i></i><i></i><i></i><i></i><i></i><i></i></i>':''}</b>`+
-    `<span class="jd-t"><span class="jd-l1"><b>${esc(x.nom)}${x.chef?'<span class="jeu-sr">, en tête</span>':''}</b>${marques}</span><small class="jd-etat">${etat}</small></span>`+
-    `<span class="jd-n"><b>${pts}<small>&nbsp;pt${x.pts>1?'s':''}</small></b><small>${x.essais}&nbsp;essai${x.essais>1?'s':''}</small></span></li>`;
+    rang+`<b class="jeu-av" data-c="${x.c}" aria-hidden="true">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai):''}${x.chef?`<i class="jd-couronne">${JEU_COURONNE_SVG}</i>`:''}${trouve?'<i class="jd-fete"><i></i><i></i><i></i><i></i><i></i><i></i></i>':''}</b>`+
+    `<span class="jd-t"><span class="jd-l1"><b>${esc(x.nom)}${x.chef?'<span class="jeu-sr">, en tête</span>':x.rang?`<span class="jeu-sr">, ${jeuOrdinal(x.rang)}</span>`:''}</b>${marques}</span><small class="jd-etat">${etat}</small></span>`+
+    `<span class="jd-n"><b><span class="jd-pts${monte?' is-compte':''}" data-n="${x.pts}"${monte?` data-from="${avant.pts}"`:''} data-fmt="fr">${pts}</span><small>&nbsp;pt${x.pts>1?'s':''}</small></b><small>${x.essais}&nbsp;essai${x.essais>1?'s':''}</small></span></li>`;
 }
 function jeuDirectTete(xs){
   const la=xs.filter(x=>x.etat!=='parti'),ok=la.filter(x=>x.ok).length,nb=la.length;   // ceux de la manche, sans ceux partis avant d’avoir trouvé
@@ -35456,8 +35457,8 @@ function jeuDirectTete(xs){
     av:xs.map(x=>`<b class="jeu-av is-${x.etat}" data-c="${x.c}" data-pid="${jeuDirectPid(x.pid)}">${jeuInitial(x.vrai)}</b>`).join(''),nb:`${nb}&nbsp;joueur${nb>1?'s':''}`};
 }
 function jeuDirectPid(p){return String(p).replace(/[^\w-]/g,'');}
-function jeuDirectEtats(xs){return Object.fromEntries(xs.map(x=>[jeuDirectPid(x.pid),{etat:x.etat,essais:x.essais,chef:x.chef,place:x.place,serie:x.serie}]));}
-function jeuDirectSig(xs){return xs.map(x=>[jeuDirectPid(x.pid),x.etat+(x.quitte?'-q':''),x.essais,x.pts,x.chef?1:0,x.gain,x.serie,x.monte].join(':')).join('|');}
+function jeuDirectEtats(xs){return Object.fromEntries(xs.map(x=>[jeuDirectPid(x.pid),{etat:x.etat,essais:x.essais,chef:x.chef,place:x.place,serie:x.serie,pts:x.pts}]));}
+function jeuDirectSig(xs){return xs.map(x=>[jeuDirectPid(x.pid),x.etat+(x.quitte?'-q':''),x.essais,x.pts,x.chef?1:0,x.gain,x.serie,x.monte,x.rang].join(':')).join('|');}
 function jeuDirectHTML(n){
   const J=JEU,xs=jeuDirectJoueurs(n);if(!xs.length)return '';
   const avant=J.directVu&&J.directVu.n===n?J.directVu.m:{};
@@ -35465,12 +35466,12 @@ function jeuDirectHTML(n){
   J.directVu={n,m:jeuDirectEtats(xs),sig:jeuDirectSig(xs)};
   const plie=jeuDirectPlie(),t=jeuDirectTete(xs);
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
-  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t">`+
+  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">`+
     `<button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="${!plie}" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer()">`+
-    `<span class="jeu-direct-onde" aria-hidden="true">${JEU_ONDE_SVG}</span><b id="jeu-direct-t">En direct</b>`+
-    `<span class="jeu-direct-nb" id="jeu-direct-nb">${t.nb}</span><span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span>`+
+    `<span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b>`+
+    `<span class="jeu-direct-nb">${typeof DX_GENS_SVG!=='undefined'?DX_GENS_SVG:''}<span id="jeu-direct-nb">${t.nb}</span></span><span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span>`+
     `<span class="jeu-direct-ok" id="jeu-direct-ok">${t.ok}</span><span class="jeu-direct-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button>`+
-    `<p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">${jeuDitHTML(f.cur,Date.now()-f.at<600)}</p>`+
+    `<p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">${jeuDitHTML(f.cur,Date.now()-f.at<600)}</p></div>`+
     `<ol class="jeu-direct-l" id="jeu-direct-l" data-sig="${jeuDirectSig(xs)}">${xs.map(x=>jeuDirectLigne(x,avant[jeuDirectPid(x.pid)]||null)).join('')}</ol></section>`;
 }
 /* Sur place, sans toucher à l’éditeur, et seulement si quelque chose a changé. Ce qui a changé est noté même quand la liste n’est
@@ -35499,6 +35500,8 @@ function jeuDirectPeindre(n){
     voulu.forEach((li,i)=>{const la=l.children[i];if(la!==li)l.insertBefore(li,la||null);});
   }
   if(l.dataset)l.dataset.sig=sig;
+  /* Ses points montent : ils défilent jusqu’au nouveau total (0,7 s) */
+  if(l.querySelectorAll&&typeof jeuCountUp==='function')l.querySelectorAll('.jd-pts.is-compte').forEach(e=>{e.classList.remove('is-compte');jeuCountUp(e);});
   const t=jeuDirectTete(xs);
   [['jeu-direct-ok',t.ok],['jeu-direct-av',t.av],['jeu-direct-nb',t.nb]].forEach(([id,h])=>{const e=document.getElementById(id);if(e&&e.innerHTML!==h)e.innerHTML=h;});
   if(typeof prefersReduceMotion==='function'&&prefersReduceMotion())return;
@@ -46325,7 +46328,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-commentateur-v2667';
+  const SW_CACHE='requete-2026-11-08-direct-premium-v2668';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

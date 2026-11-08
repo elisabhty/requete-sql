@@ -77,6 +77,6 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     'background:#fff;box-shadow:0 3px 0 var(--lip)}', 'html.lq .lq-stat.is-coche .lq-stat-ic{background:#DCF6E9;color:#14935A}',
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=229">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-commentateur-v2667';") && app.includes("const SW_CACHE='requete-2026-11-08-commentateur-v2667';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=230">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-direct-premium-v2668';") && app.includes("const SW_CACHE='requete-2026-11-08-direct-premium-v2668';"));
 });
