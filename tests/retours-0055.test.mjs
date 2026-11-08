@@ -127,7 +127,7 @@ test('la consigne autonome d’un défi, point par point, avec l’accès au sch
   const ancien = vm.runInContext('defiConsigneHTML(c)', ctx);
   assert.ok(!ancien.includes('<script>') && ancien.includes('Tu as accès au <em>schéma</em>'), 'un ancien défi garde son texte, et le schéma');
   assert.ok(!app.includes('<summary>Un indice</summary>'), 'pas d’indice');
-  assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length + (app.match(/\$\{defiConsigneHTML\(c,\{base:true\}\)\}/g) || []).length, 2, 'défi seul et manche en salle (la base en pastille, 8 novembre, 18 h 28)');
+  assert.equal((app.match(/\$\{defiConsigneHTML\(c,\{titre:true\}\)\}/g) || []).length + (app.match(/\$\{defiConsigneHTML\(c,\{base:true,titre:true\}\)\}/g) || []).length, 2, 'défi seul et manche en salle (la base en pastille, 8 novembre, 18 h 28 ; le titre dans le cadre, 21 h 51)');
   ctx.c = DEFIS[8];
   assert.ok(vm.runInContext('defiConsigneHTML(c,{base:true})', ctx).startsWith('<div class="consigne dq has-base"><span class="dq-chip is-base">Base ' + NOMS[DEFIS[8].base].nom + '</span><span class="tag">La situation</span>'), 'en salle : la base posée sur le bord du cadre, puis « La situation » (18 h 36)');
 });

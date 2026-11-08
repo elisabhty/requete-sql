@@ -21,8 +21,9 @@ test('la tête du cadre : à gauche la manche et le niveau ; à droite un seul c
   assert.ok(play.includes('`<span class="jeu-hud-box${val?\'\':\' is-seul\'}">${val}${chrono}</span></div>`;'), 'un seul cadre : ce que vaut le défi | le chrono');
   assert.ok(!play.includes('class="jeu-bar"'), 'plus de barre au-dessus du titre');
   /* 18 h 28 : « la base, on ne la met pas dans le premier bloc mais en pill de La situation » */
-  assert.ok(!play.includes('jeu-hud-base') && play.includes('${defiConsigneHTML(c,{base:true})}'), 'la base à côté de « La situation »');
-  assert.ok(play.indexOf('<div id="jeu-netslot">') < play.indexOf('<h1>${esc(c.titre)}</h1>') && play.indexOf('<h1>${esc(c.titre)}</h1>') < play.indexOf('jeuDirectHTML(n,hud)'), 'le titre, puis le cadre');
+  assert.ok(!play.includes('jeu-hud-base') && play.includes('${defiConsigneHTML(c,{base:true,titre:true})}'), 'la base à côté de « La situation »');
+  /* 21 h 51 (« mettre le titre dans le cadre blanc avant la situation ») : le bandeau en tête, puis le cadre blanc et son titre */
+  assert.ok(play.indexOf('<div id="jeu-netslot">') < play.indexOf('jeuDirectHTML(n,hud)') && play.indexOf('jeuDirectHTML(n,hud)') < play.indexOf('defiConsigneHTML(c,{base:true,titre:true})') && !play.includes('<h1>'), 'le cadre de la manche, puis la question');
   assert.ok(play.includes('${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}'), 'seul : la tête seulement');
   const d = cut('function jeuDirectHTML(n,hud){', '\n}\n');
   assert.ok(d.includes('id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||\'\'}`+'), 'en tête du bandeau, avant « En direct »');

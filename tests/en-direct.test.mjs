@@ -355,9 +355,10 @@ test('21 h 13 : plus de tableau des scores ni de flèche ; la rangée des avatar
   assert.ok(!/jeu-direct-l(?!ive)|jeu-direct-chev|jeu-direct-nb|jeu-direct-ok|\.jd[{ .:+>]|jd-couronne|jd-fete|jd-rang|jd-l1|jd-pts|jdConfetti|jdRebond|jdTourne|is-plie \.jeu/.test(css), 'les règles du tableau et de la flèche sont parties');
 });
 
-test('branché à la manche : sous le titre, avant la question ; chaque essai, chaque trouvaille, chaque seconde le tiennent à jour', () => {
+test('branché à la manche : en tête, puis le cadre blanc et son titre (21 h 51) ; chaque essai, chaque trouvaille, chaque seconde le tiennent à jour', () => {
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${J.solo?`<section class=\"jeu-direct is-seul\" aria-label=\"Manche ${n+1} sur ${J.nb}\"><div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud)}\n      ${defiConsigneHTML(c,{base:true})}"), 'dans toute salle, même seul (17 h 08) ; en solo, le bandeau avec sa tête seulement (17 h 48)');
+  assert.ok(r.includes("${J.solo?`<section class=\"jeu-direct is-seul\" aria-label=\"Manche ${n+1} sur ${J.nb}\"><div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud)}\n      ${defiConsigneHTML(c,{base:true,titre:true})}"), 'dans toute salle, même seul (17 h 08) ; en solo, le bandeau avec sa tête seulement (17 h 48) ; le titre dans le cadre blanc (21 h 51)');
+  assert.ok(!r.includes('<h1>${esc(c.titre)}</h1>'), 'plus de titre au-dessus du bandeau');
   assert.ok(!app.includes('jeuMatesHTML'), 'la bande d’avatars est partie');
   const rate = cut("    case 'rate':{", "    case 'close':{");
   const compte = rate.indexOf('(rt.ko=rt.ko||{})[m.pid]=(rt.ko[m.pid]||0)+1;'), sortie = rate.indexOf('if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;');

@@ -15,8 +15,8 @@ const mots = s => String(s || '').split(/[\s ]+/).filter(Boolean).length;
 
 test('la consigne s’ouvre sur « La situation » ; l’ancien format (une question seule) garde « La question »', () => {
   const i = app.indexOf('function defiConsigneHTML(c,o){'), f = app.slice(i, app.indexOf('\n}\n', i));
-  assert.ok(f.includes('<div class="consigne dq${base?\' has-base\':\'\'}">${base}<span class="tag">La situation</span>${c.situation?'), 'en salle, la base en pastille posée sur le bord du cadre (8 novembre, 18 h 36)');
-  assert.ok(f.includes('<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||\'\')'));
+  assert.ok(f.includes('<div class="consigne dq${base?\' has-base\':\'\'}${titre?\' has-titre\':\'\'}">${base}${titre}<span class="tag">La situation</span>${c.situation?'), 'en salle, la base en pastille posée sur le bord du cadre (8 novembre, 18 h 36), puis le titre (21 h 51)');
+  assert.ok(f.includes('${titre}<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||\'\')'));
 });
 
 test('ed2, le modèle : l’escape game, le maître du jeu, les avis, le besoin de Malik, puis le défi', () => {
@@ -50,4 +50,25 @@ test('le contexte reprend les vraies données de chaque base', () => {
   assert.ok(S('tf2').includes('des burgers pour La Bielle'), 'les trois cartes');
   assert.ok(S('vd6').includes('l’Afrique, l’Amérique, l’Asie, l’Europe et l’Océanie'), 'les cinq continents');
   for (const id of ['ed2', 'ef1', 'em3']) assert.ok(!S(id).includes('braquage'), `${id} : la Chambre Forte n’est pas ouverte`);
+});
+
+/* Elisa, 8 novembre, 21 h 51 : « mettre le titre dans le cadre blanc avant la situation, de la manière la plus UI UX possible » */
+test('le titre du défi en tête du cadre blanc, avant « La situation » ; en salle comme sur la page d’un défi', () => {
+  const src = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  const fn = src.slice(src.indexOf('function defiConsigneHTML(c,o){'), src.indexOf('\n}\n', src.indexOf('function defiConsigneHTML(c,o){')) + 3);
+  const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'), escCode: s => String(s), DEFI_BASES: { wok: { nom: 'Wok Chinois' } },
+    defiSituationSeule: s => s, defiAToiHTML: () => '<div class="dq-atoi"></div>', ED_SCHEMA_SVG: '', schAttn: () => '' });
+  vm.runInContext(fn, ctx);
+  ctx.c = { titre: 'Comment se répartissent les notes ?', base: 'wok', situation: 'À La Perle du Wok…', affiche: ['la note'], ordered: false };
+  const salle = vm.runInContext('defiConsigneHTML(c,{base:true,titre:true})', ctx);
+  assert.ok(salle.startsWith('<div class="consigne dq has-base has-titre"><span class="dq-chip is-base">Base Wok Chinois</span><h1 class="dq-titre">Comment se répartissent les notes ?</h1><span class="tag">La situation</span>'), salle.slice(0, 200));
+  assert.ok(vm.runInContext('defiConsigneHTML(c,{titre:true})', ctx).startsWith('<div class="consigne dq has-titre"><h1 class="dq-titre">'), 'la page d’un défi : sans la pastille, avec le titre');
+  assert.ok(!vm.runInContext('defiConsigneHTML(c)', ctx).includes('dq-titre'), 'sans titre demandé : comme avant');
+  ctx.c.titre = 'A <b>&'; assert.ok(vm.runInContext('defiConsigneHTML(c,{titre:true})', ctx).includes('<h1 class="dq-titre">A &lt;b>&amp;</h1>'), 'échappé');
+  const ouvre = src.slice(src.indexOf('function openChallenge(cid){'), src.indexOf('\n}\n', src.indexOf('function openChallenge(cid){')));
+  assert.ok(ouvre.includes('</b></div>\n    ${defiConsigneHTML(c,{titre:true})}') && !ouvre.includes('<h1>${c.titre}</h1>'), 'la page d’un défi : le titre entre dans le cadre');
+  for (const k of ['html.lq .consigne.dq>.dq-titre{margin:0 0 14px;padding:0 0 14px;border-bottom:2px solid var(--line-2);color:var(--ink);',
+    'font:800 23px/1.16 var(--display);letter-spacing:-.022em;text-wrap:balance}', 'html.lq .consigne.dq.has-base>.dq-titre{margin-top:6px}'])
+    assert.ok(css.includes(k), k);
 });
