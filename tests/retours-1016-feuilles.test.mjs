@@ -25,7 +25,7 @@ function bac(o = {}) {
     jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''}, JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}, JEU_MAX: 5,
     document: {getElementById: id => els[id] || null, querySelectorAll: () => [], body: null}
   }, o));
-  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs') + fn('dxConfHTML'), ctx);
+  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
   return {ctx, els};
 }
 
@@ -73,20 +73,20 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(creer.includes('<button type="button" role="radio" aria-checked="true" class="dx-manche on" data-set="nb" data-v="3" onclick="jeuRoomSet(\'nb\',3)"><b>3</b> <span>manches</span> <small class="dx-m-duree">1\u00a0h\u00a0max</small></button>')
     && creer.includes('<button type="button" role="radio" aria-checked="false" class="dx-manche" data-set="nb" data-v="1" onclick="jeuRoomSet(\'nb\',1)"><b>1</b> <span>manche</span> <small class="dx-m-duree">20\u00a0min\u00a0max</small></button>')
     && creer.includes('<small class="dx-m-duree">1\u00a0h\u00a040\u00a0max</small>') && !creer.includes('dx-duree') && !creer.includes('Jusqu’à'), 'les manches en cartes, « manche » au singulier, la durée sur chacune');
-  /* « Qui peut rejoindre ? », Publique ou Privée ; la confidentialité sous ce réglage ; « Tu joues en tant que » en ligne simple */
+  /* « Qui peut rejoindre ? », Publique ou Privée ; « Tu joues en tant que » en ligne simple. 9 h 57 : « Confidentialité des parties »
+     quitte la feuille pour Mon compte (retours-0957). */
   assert.ok(creer.includes('<p class="jeu-lab" id="room-vis-l">Qui peut rejoindre&nbsp;?</p>') && creer.includes('<span aria-hidden="true">🌍</span> Publique</button>') && creer.includes('<span aria-hidden="true">🔒</span> Privée</button>'));
-  assert.ok(creer.includes('<small class="room-hint" id="room-vis-hint">visible</small>\n      <div data-friends><details class="dx-conf">') && creer.includes('<div class="room-field dx-f-moi" data-friends><div class="jeu-me" data-nom="jeu-nom"></div></div>'));
-  assert.ok(creer.indexOf('dx-conf') < creer.indexOf('dx-f-moi') && creer.indexOf('dx-f-moi') < creer.indexOf('dx-f-pied'), 'la confidentialité ne coupe plus le chemin juste avant le bouton');
+  assert.ok(creer.includes('<small class="room-hint" id="room-vis-hint">visible</small></div>\n    <div class="room-field dx-f-moi" data-friends><div class="jeu-me" data-nom="jeu-nom"></div></div>'));
+  assert.ok(creer.indexOf('dx-f-moi') < creer.indexOf('dx-f-pied'), 'le pseudo, puis le bouton');
+  for (const h of [creer, code, seul]) assert.ok(!h.includes('dx-conf') && !h.includes('Confidentialité des parties'), 'plus de confidentialité dans les feuilles (9 h 57)');
   assert.ok(creer.includes('<span>Ouvrir la salle</span><svg class="chev"/></button><p class="dx-f-note">Le défi démarre quand tu le décides.</p></div>'));
-  /* 8 novembre, 0 h 23 : la confidentialité repliée derrière « Confidentialité des parties » (« utile, mais trop visible »). */
-  assert.ok(creer.includes('<details class="dx-conf"><summary><span aria-hidden="true">🔒</span> Confidentialité des parties</summary><p class="jeu-note">Les joueurs de ta salle voient ton pseudo, ton drapeau, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p></details></div></div>'), 'la confidentialité repliée, sous « Qui peut rejoindre ? » (8 novembre, 9 h 42)');
   assert.ok(creer.includes('<div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite"></p>'), 'le message et le bouton en pied de feuille');
   assert.ok(creer.includes('onclick="jeuEnterRoom()"><span>Ouvrir la salle</span>'));
   /* 8 novembre, 0 h 23 (la relecture d’Elisa) : « Rejoindre une partie », « Entre ton code ! », « Code à 6 caractères », plus « Les 6
      caractères que ton ami t’a envoyés » ; « Rejoindre la partie », éteint tant que le code n’a pas ses 6 caractères. */
   assert.ok(code.includes('<p class="room-kicker">Rejoindre une partie</p>') && code.includes('<h2 id="dx-f-t">Entre ton code&nbsp;!</h2>') && code.includes('<p class="room-sub" id="dx-f-p">Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.</p>'));
   assert.ok(code.includes('<label class="jeu-lab" for="jeu-code">Code à 6 caractères</label>') && code.includes('oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)"') && !code.includes('room-hint') && !code.includes('Les 6 caractères'));
-  assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" disabled onclick="jeuEnterRoom()"><span>Rejoindre la partie</span>') && code.includes('dx-conf'));
+  assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" disabled onclick="jeuEnterRoom()"><span>Rejoindre la partie</span>'));
   assert.ok(!code.includes('jeu-me') && !code.includes('data-set="nb"'), 'un code : pas de pseudo, pas de manches (l’hôte choisit)');
   assert.ok(seul.includes('<p class="room-kicker">Mode solo</p>') && seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<p class="room-sub" id="dx-f-p">Relève des défis à ton rythme.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d">'));
   assert.ok(seul.includes('<span class="dx-f-pts">Points ×4</span>') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('<small class="dx-m-duree">1\u00a0h\u00a0max</small>') && !seul.includes('jeu-note') && !seul.includes('data-vis') && !seul.includes('dx-f-note') && !seul.includes('joueurs max'));

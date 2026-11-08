@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=221">
+<link rel="stylesheet" href="ludique.css?v=222">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27059,9 +27059,10 @@ function defisActionsHTML(){
    8 novembre, 9 h 42 (la relecture de « Ta salle de défi » qu’Elisa a fait faire) : la durée sur chaque carte de manches (« 30 min
    max », la vraie durée au plus, dxDureeMax), à la place de la ligne dessous, pour comparer avant de choisir ; « Choisis les règles.
    Le défi sera révélé au lancement de la partie. » ; « 5 joueurs max » à côté des points ; « Qui peut rejoindre ? », Publique ou
-   Privée ; « Confidentialité des parties » remonte sous ce réglage, au lieu de couper le chemin juste avant le bouton ; « Tu joues en
-   tant que » devient une ligne simple (le pseudo ne se change pas ici) ; « Le défi démarre quand tu le décides. » sous « Ouvrir la
-   salle ». */
+   Privée ; « Tu joues en tant que » devient une ligne simple (le pseudo ne se change pas ici) ; « Le défi démarre quand tu le
+   décides. » sous « Ouvrir la salle ». 9 h 57 : « met confidentialité des parties dans le compte, pas ici, et met la coche valide à
+   côté du pseudo » : la confidentialité quitte les feuilles (Mon compte › Confidentialité des parties, acctConfidParties) ; une
+   coche verte suit le pseudo (jeuNomField). */
 function defisFeuilleHTML(k){
   const join=k==='code',friends=k==='creer';
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
@@ -27086,10 +27087,8 @@ function defisFeuilleHTML(k){
       <div class="dx-manches" role="radiogroup" aria-labelledby="room-nb-l">${manches}</div></div>`}
     ${friends?`<div class="room-field" data-vis><p class="jeu-lab" id="room-vis-l">Qui peut rejoindre&nbsp;?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-vis-l">${seg('vis',[['pub','<span aria-hidden="true">🌍</span> Publique'],['priv','<span aria-hidden="true">🔒</span> Privée']],jeuVis)}</div>
-      <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small>
-      <div data-friends>${dxConfHTML()}</div></div>
+      <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small></div>
     <div class="room-field dx-f-moi" data-friends>${jeuNomField('jeu-nom')}</div>`:''}
-    ${join?`<div data-friends>${dxConfHTML()}</div>`:''}
     <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite">${ko?'Code introuvable. Vérifie-le et réessaie.':''}</p>
     <button type="button" class="room-go"${join?` id="jeu-code-go"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()"><span>${join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie'}</span>${DEF_CHEV_SVG}</button>${friends?'<p class="dx-f-note">Le défi démarre quand tu le décides.</p>':''}</div>
     </div>`;
@@ -27097,11 +27096,6 @@ function defisFeuilleHTML(k){
 /* La durée d’une partie au plus, sur chaque carte de manches (8 novembre, 9 h 42 ; avant, « Jusqu’à 30 min de jeu » sous les cartes) :
    la manche dure 10 min en Facile, 15 en Moyen, 20 en Difficile (jeuDureeMs) ; en heures dès une heure (« 1 h 15 max »). */
 function dxDureeMax(n,k){const m=(+n||1)*jeuDureeMs(k||jeuNiv)/60000,h=Math.floor(m/60),r=m%60;return `${h?`${h}\u00a0h${r?`\u00a0${String(r).padStart(2,'0')}`:''}`:`${m}\u00a0min`}\u00a0max`;}
-/* La confidentialité d’une partie (8 novembre, 0 h 23 : « utile, mais trop visible ») : repliée derrière « Confidentialité des
-   parties » ; la feuille se concentre sur le code, la saisie et le bouton. */
-function dxConfHTML(){
-  return `<details class="dx-conf"><summary><span aria-hidden="true">🔒</span> Confidentialité des parties</summary><p class="jeu-note">Les joueurs de ta salle voient ton pseudo, ton drapeau, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p></details>`;
-}
 /* « Rejoindre la partie » ne s’allume qu’avec 6 caractères (8 novembre, 0 h 23) ; taper efface le message d’erreur. */
 let jeuCodeKo='';
 function dxCodePret(inp){
@@ -34518,8 +34512,9 @@ function jeuNomField(id){
      salle ne montre plus de carte « Choisis ton pseudo » : « Ouvrir la salle » réserve celui de l’onboarding sans rien demander
      (jeuAvecPseudo). */
   if(!nom)return '';
+  /* 8 novembre, 9 h 57 : « met la coche valide à côté du pseudo » : une coche verte juste après, le pseudo est réservé et à toi. */
   const at=nom.charAt(0)==='@';
-  return `<div class="jeu-me" data-nom="${id}"><span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${typeof jeuFlag==='function'?jeuFlag(nom):''}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="jeu-me-t"><small>Tu joues en tant que</small><b>${at?'<i class="jeu-me-at">@</i>':''}${esc(at?nom.slice(1):nom)}</b></span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
+  return `<div class="jeu-me" data-nom="${id}"><span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${typeof jeuFlag==='function'?jeuFlag(nom):''}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="jeu-me-t"><small>Tu joues en tant que</small><span class="jeu-me-nom"><b>${at?'<i class="jeu-me-at">@</i>':''}${esc(at?nom.slice(1):nom)}</b><span class="jeu-me-ok" role="img" aria-label="Pseudo validé"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.4l3.3 3.3L17 9.2" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
 }
 function jeuCleanCode(v){
   v=String(v||'');
@@ -45178,6 +45173,7 @@ function renderCompte(){
           <a class="acct-faq" href="${escAttr(siteUrl('decouvrir/#faq'))}" target="_blank" rel="noopener"><span class="acct-faq-t"><b>Questions fréquentes</b><small>Toutes les réponses, sur le site de Requête.</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg('faq')}</span></a>
           <div class="account-settings-list">
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, sauvegarde, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg('user')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
           </div>
@@ -45378,6 +45374,16 @@ function accDonneesHTML(actions){
   return `<div class="dc">${DC_RUBRIQUES.map(r=>{const on=DC_OUVERTES.has(r.k);
     const liste=`<ul class="dc-l">${r.c.map(x=>`<li>${x}</li>`).join('')}</ul>${r.note?`<p class="dc-note">${r.note}</p>`:''}`;
     return `<section class="dc-r${on?' is-open':''}"><button type="button" class="dc-t${on?' is-open':''}" id="dc-t-${r.k}" aria-expanded="${on}" aria-controls="dc-${r.k}" onclick="accDonnees(this)"><span class="dc-ico is-stk" aria-hidden="true">${lqStkSvg(r.stk)}</span><span class="dc-tt"><b>${r.t}</b><small>${r.r}</small></span>${DC_CHEV}</button><div class="dc-c" id="dc-${r.k}" role="region" aria-labelledby="dc-t-${r.k}"${on?'':' hidden'}>${r.actions&&actions?`<div class="dc-actions">${actions}</div>`:''}${liste}</div></section>`;}).join('')}</div>`;
+}
+/* « Confidentialité des parties » (Elisa, 8 novembre, 9 h 57 : « met confidentialité des parties dans le compte, pas ici ») : quittée
+   des feuilles de Défis, elle s’ouvre depuis Mon compte, sur la rubrique « Ta confidentialité » de « Tes données, tes choix », déjà
+   ouverte et montrée (ce que les autres joueurs voient de toi en salle, jamais tes requêtes). */
+function acctConfidParties(){
+  openPlusDetails('plus-data');
+  const b=document.getElementById('dc-t-confid');if(!b)return;
+  if(b.getAttribute('aria-expanded')!=='true')accDonnees(b);
+  const sec=b.closest('.dc-r')||b;
+  requestAnimationFrame(()=>{try{sec.scrollIntoView({block:'start',behavior:typeof prefersReduceMotion==='function'&&prefersReduceMotion()?'auto':'smooth'});}catch(e){}});
 }
 function accDonnees(btn){
   if(!btn)return;
@@ -45999,7 +46005,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-salle-relue-v2658';
+  const SW_CACHE='requete-2026-11-08-confidentialite-compte-v2659';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
