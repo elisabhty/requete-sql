@@ -27059,7 +27059,7 @@ function defisActionsHTML(){
    code : le code ; seul : les manches.
    « Joue seul », d’après la maquette d’Elisa (8 novembre, 8 h 21, avec « 10 min de jeu stp par manche ») : « Mode solo », « Relève des
    défis à ton rythme. » (8 h 48 : « Enlève sql »), le niveau suivi de « Points ×2 », « Combien de manches ? » en trois cartes (1 manche, 3 manches,
-   5 manches), « Jusqu’à 30 min de jeu » dessous, qui suit le choix, et « Lancer la partie ». Le violet de l’appli reste au bouton
+   5 manches ; 1, 2 ou 3 depuis le 8 novembre, 17 h 08 : « 5 ça fait trop »), « Jusqu’à 30 min de jeu » dessous, qui suit le choix, et « Lancer la partie ». Le violet de l’appli reste au bouton
    (la maquette le dessinait en noir). « Créer ma partie » reprend le même bandeau et les cartes ; le code garde son bandeau et sa
    fusée (8 novembre, 0 h 23).
    8 novembre, 9 h 42 (la relecture de « Ta salle de défi » qu’Elisa a fait faire) : la durée sur chaque carte de manches (« 30 min
@@ -27088,7 +27088,7 @@ function defisFeuilleHTML(k){
   const tete=join?['Rejoindre une partie','Entre ton code&nbsp;!','Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.']
     :friends?['Créer ma partie','Ta salle de défi','Choisis les règles. Le défi sera révélé au lancement de la partie.']
     :['Mode solo','Joue seul','Relève des défis à ton rythme.'];
-  const manches=[1,3,5].map(v=>`<button type="button" role="radio" aria-checked="${jeuNb===v}" class="dx-manche${jeuNb===v?' on':''}" data-set="nb" data-v="${v}"${v>jeuChallenges(jeuNiv).length?' disabled':''} onclick="jeuRoomSet('nb',${v})"><b>${v}</b> <span>manche${v>1?'s':''}</span> <small class="dx-m-duree">${dxDureeMax(v)}</small></button>`).join('');
+  const manches=[1,2,3].map(v=>`<button type="button" role="radio" aria-checked="${jeuNb===v}" class="dx-manche${jeuNb===v?' on':''}" data-set="nb" data-v="${v}"${v>jeuChallenges(jeuNiv).length?' disabled':''} onclick="jeuRoomSet('nb',${v})"><b>${v}</b> <span>manche${v>1?'s':''}</span> <small class="dx-m-duree">${dxDureeMax(v)}</small></button>`).join('');
   return `<div class="room-head dx-f-tete"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span>
     <div class="dx-f-titres"><p class="room-kicker">${tete[0]}</p>
     <h2 id="dx-f-t">${tete[1]}</h2></div>
@@ -34613,7 +34613,7 @@ let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo',jeuNivUser=false,jeuVis='pub';
     const p=JSON.parse(localStorage.getItem('rq-jeu-prefs')||'{}');
     if(['f','m','d'].includes(p.niv))jeuNiv=p.niv;
     jeuNivUser=p.nivUser===true;
-    if([1,3,5].includes(p.nb))jeuNb=p.nb;
+    if([1,2,3,5].includes(p.nb))jeuNb=Math.min(3,p.nb);   // 5 manches n’existe plus (8 novembre, 17 h 08) : 3
     if(p.mode==='solo'||p.mode==='friends')jeuMode=p.mode;
     if(p.vis==='priv')jeuVis='priv';
   }catch(e){}
@@ -34909,7 +34909,7 @@ function jeuRoomSet(k,v){
   const card=document.querySelector('#dx-feuille .dx-f-corps')||document.getElementById('defis-room');if(!card)return;
   if(k==='niv'&&!(JEU_NIVL[v]&&jeuChallenges(v).length))return;
   if(k==='niv'){jeuNiv=v;jeuNivUser=true;}
-  else if(k==='nb'&&[1,3,5].includes(v))jeuNb=v;
+  else if(k==='nb'&&[1,2,3].includes(v))jeuNb=v;
   else if(k==='mode'&&(v==='solo'||v==='friends'||v==='join'))jeuMode=v;
   else if(k==='vis'&&(v==='pub'||v==='priv'))jeuVis=v;
   else return;
@@ -35025,7 +35025,7 @@ function jeuVerifEchec(r){
 function jeuReprendre(nav){
   if(!nav||!/^[A-Z0-9]{6}$/.test(nav.code||''))return;
   if(['f','m','d'].includes(nav.niv))jeuNiv=nav.niv;
-  if([1,3,5].includes(nav.nb))jeuNb=nav.nb;
+  if([1,2,3,5].includes(nav.nb))jeuNb=nav.nb;   // une salle de 5 manches ouverte avant le 8 novembre garde ses 5 manches
   jeuPseudoPuis(()=>jeuStart(nav.code,false,null,{nomId:'jeu-nom',reprise:{host:!!nav.host}}));
 }
 function jeuJoin(code){
@@ -35536,7 +35536,9 @@ function jeuPlayersHTML(kind){
 /* Les annonces de la salle (réseau coupé, seul dans la salle) : une carte de l’appli, son pictogramme, une phrase courte. */
 function jeuNoteHTML(cls,ico,titre,texte){return `<div class="jeu-net ${cls}" role="status"><span class="jeu-net-ico" aria-hidden="true">${ico}</span><span class="jeu-net-tx"><b>${titre}</b><small>${texte}</small></span></div>`;}
 /* « En direct » (Elisa, 8 novembre, 11 h 33, la proposition qu’elle a fait faire : « un mini-tableau de bord multijoueur ») : pendant
-   la manche, à plusieurs, sous le titre du défi et avant la question, chaque joueur : son avatar, son pseudo, ce qu’il fait (en
+   la manche, dans une salle, sous le titre du défi et avant la question (17 h 08, « pourquoi j’ai pas le truc du haut avec les présents
+   et toi » : il reste là quand on est seul dans la salle, ou que les autres sont partis ; ce qui ne vaut qu’à plusieurs, les réactions,
+   le bonus de place, « Clore la manche pour tous », reste caché), chaque joueur : son avatar, son pseudo, ce qu’il fait (en
    réflexion, teste sa requête, a trouvé), ses essais et ses points de la partie ; jamais ses requêtes ni ses résultats. Un essai, c’est
    une requête exécutée : celles qui manquent arrivent par « rate » (annoncées par le joueur entre amis, par le serveur en salle classée),
    la bonne par « found ». Il se replie d’un toucher (le choix reste, rq-jeu-direct), pour laisser la place à l’éditeur ; replié, les
@@ -35722,7 +35724,7 @@ function jeuDitTexte(h){return String(h).replace(/<[^>]+>/g,'').replace(/&lt;/g,
 function jeuDitDepart(n,xs){
   const ok=(xs||[]).filter(x=>x.ok&&!x.me);
   if(ok.length)return {k:'go',ico:JEU_RUN_SVG,html:ok.length>1?`${ok.length} joueurs ont déjà trouvé`:`<b>${esc(ok[0].vrai)}</b> a déjà trouvé`};
-  return {k:'go',ico:JEU_RUN_SVG,html:n>0?`Manche ${n+1}, c’est reparti\u00a0!`:'C’est parti\u00a0! Qui ouvrira le score\u00a0?'};
+  return {k:'go',ico:JEU_RUN_SVG,html:n>0?`Manche ${n+1}, c’est reparti\u00a0!`:jeuSoloLike(n)?'C’est parti\u00a0!':'C’est parti\u00a0! Qui ouvrira le score\u00a0?'};
 }
 /* La dernière minute (12 h 25) : le cadre bat en rouge, « Plus qu’une minute ! » une fois, et le téléphone vibre si on cherche encore. */
 function jeuDirectUrgent(n){
@@ -35730,7 +35732,7 @@ function jeuDirectUrgent(n){
   const reste=jeuDureeMs(jeuNivManche(n))-(Date.now()-r.t1);return reste>0&&reste<=60000;
 }
 function jeuDirectMinute(n){
-  const J=JEU,r=J&&J.rounds[n];if(!r||jeuSoloLike(n))return;
+  const J=JEU,r=J&&J.rounds[n];if(!r||J.solo)return;
   const urgent=jeuDirectUrgent(n),s=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-direct'):null;
   if(s&&s.classList&&s.classList.contains('is-urgent')!==urgent)s.classList.toggle('is-urgent',urgent);
   if(urgent&&!r.minuteDite){
@@ -35974,7 +35976,7 @@ function jeuRender(){
     html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b></span></div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       <h1>${esc(c.titre)}</h1>
-      ${sl?'':jeuDirectHTML(n)}
+      ${J.solo?'':jeuDirectHTML(n)}
       ${defiConsigneHTML(c)}
       ${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
@@ -36167,7 +36169,7 @@ function jeuAgain(){
 function jeuLobbySet(k,v){
   const J=JEU;if(!J||!jeuIsHost()||J.rounds.length||J.over)return;
   if(k==='niv'&&JEU_NIVL[v]&&jeuChallenges(v).length)J.niv=v;
-  else if(k==='nb'&&[1,3,5].includes(v))J.nb=v;
+  else if(k==='nb'&&[1,2,3].includes(v))J.nb=v;
   else return;
   J.nb=Math.min(J.nb,jeuChallenges(J.niv).length||1);
   /* Un défi imposé au départ ne reste que s’il est du niveau choisi. */
@@ -36472,7 +36474,7 @@ function challengeHowHTML(c){
         <p class="jeu-hint">Tu reçois un code à partager : chacun résout ce défi au même moment, le plus rapide gagne.</p>
         ${jeuNomField('jeu-nom-defi')}
         <p class="jeu-lab">Nombre de manches</p>
-        <div class="jeu-seg" role="radiogroup" aria-label="Nombre de manches">${[[1,'Ce défi'],[3,'3 manches'],[5,'5 manches']].map(([n,l])=>`<button type="button" role="radio" aria-checked="${jeuNb===n}" class="${jeuNb===n?'on':''}" onclick="jeuSetOpt('nb',${n},this)">${l}</button>`).join('')}</div>
+        <div class="jeu-seg" role="radiogroup" aria-label="Nombre de manches">${[[1,'Ce défi'],[2,'2 manches'],[3,'3 manches']].map(([n,l])=>`<button type="button" role="radio" aria-checked="${jeuNb===n}" class="${jeuNb===n?'on':''}" onclick="jeuSetOpt('nb',${n},this)">${l}</button>`).join('')}</div>
         <p class="jeu-hint">Les manches en plus sont des défis du même niveau.</p>
         <button type="button" class="journey-primary" onclick="jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,'${c.id}',{nomId:'jeu-nom-defi'}))"><span>Ouvrir la salle</span>${DEF_CHEV_SVG}</button>
         <p class="jeu-msg" role="status" aria-live="polite"></p>
@@ -46489,7 +46491,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-code-bulle-v2682';
+  const SW_CACHE='requete-2026-11-08-manches-v2683';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -46516,10 +46518,14 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
      éclair de l’écran de chargement (Elisa, 30 octobre, 21 h 33 : « il y a un bug dans l’animation »). On ne recharge
      donc que si un ancien worker contrôlait déjà la page, c’est-à-dire pour une vraie nouvelle version. */
   const _swHadController=!!navigator.serviceWorker.controller;
+  /* En pleine partie, recharger faisait quitter la salle : la page envoyait « bye », puis revenait (Elisa, 8 novembre, 16 h 51, seule
+     dans sa salle : sa première manche s’est fermée, « Manche abandonnée » ; hôte avec des amis, elle aurait passé la main). La
+     nouvelle version attend donc que la partie soit quittée (JEU vide), puis recharge. */
+  const _swRecharger=()=>{if(typeof JEU!=='undefined'&&JEU){setTimeout(_swRecharger,2000);return;}window.location.reload();};
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     if(_swRefreshing||!_swHadController)return;
     _swRefreshing=true;
-    window.location.reload();
+    _swRecharger();
   });
 }
 </script>

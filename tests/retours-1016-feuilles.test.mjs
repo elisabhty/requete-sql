@@ -76,7 +76,7 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   /* 8 novembre, 9 h 42 : la durée au plus sur chaque carte (Difficile : 20 min la manche), plus de ligne dessous */
   assert.ok(creer.includes('<button type="button" role="radio" aria-checked="true" class="dx-manche on" data-set="nb" data-v="3" onclick="jeuRoomSet(\'nb\',3)"><b>3</b> <span>manches</span> <small class="dx-m-duree">1\u00a0h\u00a0max</small></button>')
     && creer.includes('<button type="button" role="radio" aria-checked="false" class="dx-manche" data-set="nb" data-v="1" onclick="jeuRoomSet(\'nb\',1)"><b>1</b> <span>manche</span> <small class="dx-m-duree">20\u00a0min\u00a0max</small></button>')
-    && creer.includes('<small class="dx-m-duree">1\u00a0h\u00a040\u00a0max</small>') && !creer.includes('dx-duree') && !creer.includes('Jusqu’à'), 'les manches en cartes, « manche » au singulier, la durée sur chacune');
+    && creer.includes('data-v="2" onclick="jeuRoomSet(\'nb\',2)"><b>2</b> <span>manches</span> <small class="dx-m-duree">40\u00a0min\u00a0max</small>') && !creer.includes('data-v="5"') && !creer.includes('dx-duree') && !creer.includes('Jusqu’à'), 'les manches en cartes, « manche » au singulier, la durée sur chacune');
   /* « Qui peut rejoindre ? », Publique ou Privée ; « Tu joues en tant que » en ligne simple. 9 h 57 : « Confidentialité des parties »
      quitte la feuille pour Mon compte (retours-0957). */
   assert.ok(creer.includes('<p class="jeu-lab" id="room-vis-l">Qui peut rejoindre&nbsp;?</p>') && creer.includes('<span aria-hidden="true">🌍</span> Publique</button>') && creer.includes('<span aria-hidden="true">🔒</span> Privée</button>'));
@@ -112,8 +112,11 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(ko.includes('value="ZZZ999"') && ko.includes('class="jeu-input is-code is-ko"') && ko.includes('<p class="jeu-msg is-ko" role="status" aria-live="polite"><span class="dx-alerte-plie"><span class="dx-alerte"><i class="dx-alerte-ico"><svg viewBox="0 0 32 32" aria-hidden="true">') && ko.includes('<span class="dx-alerte-t"><b>Salle introuvable&nbsp;!</b><small>Ce code ne correspond à aucune salle. Vérifie-le et réessaie.</small></span></span></span></p>') && !ko.includes('room-invite'));
   assert.ok(ko.includes('<span>Réessayer</span>'), '16 h 34 (la relecture) : « Réessayer » après un échec');
   ctx.jeuCodeKo = '';
-  ctx.jeuChallenges = () => [1, 2];
-  assert.ok(ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="3" disabled') && ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="5" disabled'), 'pas plus de manches que de défis');
+  ctx.jeuChallenges = () => [1];
+  assert.ok(ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="2" disabled') && ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="3" disabled'), 'pas plus de manches que de défis');
+  /* 8 novembre, 17 h 08 : « on va partir sur 1 / 2 / 3 manches car 5 ça fait trop » */
+  ctx.jeuChallenges = () => [1, 2, 3, 4, 5];
+  assert.deepEqual([...ctx.defisFeuilleHTML('seul').matchAll(/data-set="nb" data-v="(\d)"/g)].map(m => +m[1]), [1, 2, 3]);
 });
 
 test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et rend le focus au bouton touché', () => {
@@ -168,24 +171,26 @@ test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du 
 
 /* Elisa, 8 novembre, 8 h 21 (sa maquette de « Joue seul ») puis 9 h 42 (la durée sur chaque carte) : toucher une carte de manches
    l’allume ; le niveau change la durée de chaque carte ; le bouton reste « Lancer la partie ». */
-test('8 novembre : choisir 5 manches allume la carte ; le niveau change la durée de chaque carte ; le bouton reste « Lancer la partie »', () => {
+test('8 novembre : choisir 3 manches allume la carte ; le niveau change la durée de chaque carte ; le bouton reste « Lancer la partie »', () => {
   const go = {textContent: 'Lancer la partie'};
   const carte = v => { const d = {textContent: ''}; const b = {dataset: {v: String(v)}, disabled: false, attrs: {}, on: false, d,
     classList: {toggle(c, on) { if (c === 'on') b.on = !!on; }}, setAttribute(k, x) { b.attrs[k] = String(x); }, querySelector: q => (q === '.dx-m-duree' ? d : null)}; return b; };
-  const nbs = [1, 3, 5].map(carte);
+  const nbs = [1, 2, 3].map(carte);
   const card = {querySelector: q => q === '.room-go span' ? go : null, querySelectorAll: q => q.includes('data-set="nb"') || q === '.dx-manche' ? nbs : []};
   const ctx = vm.createContext({document: {querySelector: q => q === '#dx-feuille .dx-f-corps' ? card : null, getElementById: () => null},
     JEU_NIVL: {f: 'Facile', m: 'Moyen', d: 'Difficile'}, jeuChallenges: () => [1, 2, 3, 4, 5], jeuNiv: 'm', jeuNb: 1, jeuMode: 'solo', jeuVis: 'pub', jeuNivUser: false,
     jeuSavePrefs() {}, navigator: {}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}});
   vm.runInContext(fn('jeuRoomSet') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
   ctx.jeuRoomSet('nb', 5);
+  assert.equal(ctx.jeuNb, 1, '5 manches n’existe plus (17 h 08)');
+  ctx.jeuRoomSet('nb', 3);
   assert.equal(go.textContent, 'Lancer la partie');
   assert.deepEqual(nbs.map(b => [b.attrs['aria-checked'], b.on]), [['false', false], ['false', false], ['true', true]]);
-  assert.equal(ctx.jeuNb, 5);
+  assert.equal(ctx.jeuNb, 3);
   ctx.jeuRoomSet('niv', 'd');
-  assert.deepEqual(nbs.map(b => b.d.textContent), ['20\u00a0min\u00a0max', '1\u00a0h\u00a0max', '1\u00a0h\u00a040\u00a0max'], 'en Difficile, 20 min par manche');
+  assert.deepEqual(nbs.map(b => b.d.textContent), ['20\u00a0min\u00a0max', '40\u00a0min\u00a0max', '1\u00a0h\u00a0max'], 'en Difficile, 20 min par manche');
   ctx.jeuRoomSet('niv', 'm');
-  assert.deepEqual(nbs.map(b => b.d.textContent), ['15\u00a0min\u00a0max', '45\u00a0min\u00a0max', '1\u00a0h\u00a015\u00a0max'], 'en Moyen, 15 min');
+  assert.deepEqual(nbs.map(b => b.d.textContent), ['15\u00a0min\u00a0max', '30\u00a0min\u00a0max', '45\u00a0min\u00a0max'], 'en Moyen, 15 min');
 });
 
 test('10 h 38 : le coefficient et « 5 joueurs max » en pastilles de la hauteur du niveau, le coefficient en jaune', () => {
