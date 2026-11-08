@@ -24,7 +24,7 @@ const PHRASE = `À toi de jouer${NB}! Tu peux consulter le schéma de la base à
 test('la base : une pastille posée à cheval sur le bord du cadre, en haut à droite (en salle seulement)', () => {
   const f = cut('function defiConsigneHTML(c,o){', '\n}\n');
   assert.ok(f.includes("const base=o&&o.base&&nom?`<span class=\"dq-chip is-base\">Base ${esc(nom)}</span>`:'';"));
-  assert.ok(f.includes('return `<div class="consigne dq${base?\' has-base\':\'\'}">${base}<span class="tag">La situation</span>'));
+  assert.ok(f.includes('return `<div class="consigne dq${base?\' has-base\':\'\'}${titre?\' has-titre\':\'\'}">${base}${titre}<span class="tag">La situation</span>'), 'puis le titre (21 h 51)');
   assert.ok(!app.includes('dq-tete'), 'plus de rangée « La situation » + base');
   for (const r of ['html.lq .consigne.dq.has-base{position:relative;margin-top:30px}',
     'html.lq .consigne.dq .dq-chip.is-base{position:absolute;top:-14px;right:16px;z-index:1;box-sizing:border-box;height:26px;max-width:calc(100% - 32px);overflow:hidden;',

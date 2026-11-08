@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=256">
+<link rel="stylesheet" href="ludique.css?v=257">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13719,14 +13719,18 @@ function defiConsigneHTML(c,o){
      situation »), posée à cheval sur le bord du cadre, en haut à droite (18 h 36 : « entre l’intérieur et l’extérieur du cadre, genre
      posée en haut à droite ») ; la page d’un défi la garde dans sa barre du haut. */
   const base=o&&o.base&&nom?`<span class="dq-chip is-base">Base ${esc(nom)}</span>`:'';
+  /* 21 h 51 (« mettre le titre dans le cadre blanc avant la situation, de la manière la plus UI UX possible ») : la question du défi
+     en tête du cadre, puis « La situation » : le cadre dit tout le défi, de sa question à ce qu’il faut afficher. En salle comme
+     sur la page d’un défi. */
+  const titre=o&&o.titre&&c&&c.titre?`<h1 class="dq-titre">${esc(c.titre)}</h1>`:'';
   const schema=`<button type="button" class="dq-schema${typeof schAttn==='function'?schAttn():''}" onclick="openSchemaSheet()"><i class="dq-ico" aria-hidden="true">${typeof ED_SCHEMA_SVG==='string'?ED_SCHEMA_SVG:''}</i><span><b>Tu as accès au <em>schéma</em></b><small>${nom?`Tables, colonnes et liens de la base ${esc(nom)}`:'Tables, colonnes et liens de la base'}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  if(!c||!Array.isArray(c.affiche)||!c.affiche.length)return `<div class="consigne dq"><span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||'')}</p>${schema}</div>`;
+  if(!c||!Array.isArray(c.affiche)||!c.affiche.length)return `<div class="consigne dq${titre?' has-titre':''}">${titre}<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||'')}</p>${schema}</div>`;
   const sec=(cls,titre,chip,corps)=>`<section class="dq-sec ${cls}"><div class="dq-h"><b>${titre}</b>${chip?`<span class="dq-chip">${chip}</span>`:''}</div>${corps}</section>`;
   const liste=(l,num)=>`<${num?'ol':'ul'} class="dq-l${num?' is-num':''}">${l.map(x=>`<li>${escCode(x)}</li>`).join('')}</${num?'ol':'ul'}>`;
   const n=c.affiche.length,garde=Array.isArray(c.garde)?c.garde:[],precis=Array.isArray(c.precis)?c.precis:[];
   const tri=c.ordered&&c.tri?String(c.tri).split(/,\s*puis\s+/).map(x=>x.trim()).filter(Boolean):null;
   /* « La situation » (Elisa, 8 novembre, 13 h 15) : le paragraphe raconte le lieu et le besoin ; la question, c’est le titre. */
-  return `<div class="consigne dq${base?' has-base':''}">${base}<span class="tag">La situation</span>${c.situation?`<p class="defi-ctx">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}`:''}`
+  return `<div class="consigne dq${base?' has-base':''}${titre?' has-titre':''}">${base}${titre}<span class="tag">La situation</span>${c.situation?`<p class="defi-ctx">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}`:''}`
     +sec('is-cols','Affiche',`${n}\u00a0colonne${n>1?'s':''}`,liste(c.affiche,true))
     +(garde.length?sec('is-garde','Garde','',liste(garde,false)):'')
     +(tri?sec('is-tri','Trie','l’ordre compte',tri.length>1?liste(tri,true):`<p class="dq-t">${escCode(tri[0])}</p>`)
@@ -36214,9 +36218,8 @@ function jeuRender(){
       `<span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span>`+
       `<span class="jeu-hud-box${val?'':' is-seul'}">${val}${chrono}</span></div>`;
     html=`${jeuNetSlot()}
-      <h1>${esc(c.titre)}</h1>
       ${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
-      ${defiConsigneHTML(c,{base:true})}
+      ${defiConsigneHTML(c,{base:true,titre:true})}
       ${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
     const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1,sl=jeuSoloLike(n);
@@ -36804,8 +36807,8 @@ function openChallenge(cid){
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
-    <div class="defi-top"><div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><b class="jeu-timer" id="defi-timer" role="timer" aria-label="Temps restant du défi, ${jeuDureeMs(c.niv)/60000} minutes au plus">${jeuRebours(jeuDureeMs(c.niv),jeuDureeMs(c.niv))}</b></div><h1>${c.titre}</h1>
-    ${defiConsigneHTML(c)}
+    <div class="defi-top"><div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><b class="jeu-timer" id="defi-timer" role="timer" aria-label="Temps restant du défi, ${jeuDureeMs(c.niv)/60000} minutes au plus">${jeuRebours(jeuDureeMs(c.niv),jeuDureeMs(c.niv))}</b></div>
+    ${defiConsigneHTML(c,{titre:true})}
     ${jeuEligible(c)?challengeHowHTML(c):''}
     <div id="defi-solo-block">
     ${editorBlock(true,'defi.sql',{coach:1})}
@@ -46757,7 +46760,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-presents-points-v2703';
+  const SW_CACHE='requete-2026-11-08-titre-cadre-v2704';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
