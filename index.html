@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=233">
+<link rel="stylesheet" href="ludique.css?v=234">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27389,7 +27389,7 @@ function clsTopHTML(){
   const meLine=!jeuSavedNom()?`<p class="perf-top-me">Choisis ton pseudo pour entrer au classement. <button type="button" class="perf-top-pick" onclick="psPage({})">Choisir mon pseudo</button></p>`
     :d.moi&&!meIn&&d.moi.pts>0?`<p class="perf-top-me"><b>Toi : ${d.moi.rang}<sup>e</sup></b> sur ${clsPts(d.total)} · ${clsPts(d.moi.pts)} points</p>`
     :!d.moi&&!((s.envoi||[]).length)?`<p class="perf-top-me">Termine une partie pour entrer au classement.</p>`:'';
-  return head+refus+`<ol class="perf-top-list">${rows}</ol>${meLine}<p class="perf-top-note">${esc(d.total>5?`${clsPts(d.total)} joueurs classés. `:'')}Tu y apparais avec ton pseudo. <button type="button" onclick="clsQuitter()">Ne plus apparaître</button></p>`;
+  return head+refus+`<ol class="perf-top-list">${rows}</ol>${meLine}<p class="perf-top-note">${esc(d.total>5?`${clsPts(d.total)} joueurs classés. `:'')}Tu y apparais avec ton pseudo.</p>`;
 }
 const CLS_FLAG_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 21V4"/><path d="M5.5 4.5h11l-2 3.5 2 3.5h-11"/></svg>';
 function clsPaint(){
@@ -27780,11 +27780,14 @@ function renderDefisRules(){
    directement les salles du niveau choisi. 12 h 52 : un seul cadre, un seul « Créer une salle » (defisRapideHTML). */
 const DEFIS={onglet:'jouer',carte:'',portee:'monde',periode:'tout',salles:null,sallesAt:0,sallesErr:'',sallesBusy:null,sallesT:0,
   cls:{cle:'',pages:{},total:null,moi:null,rangs:null,err:'',busy:{},page:0,v1:false}};
-const CLS_PAR_PAGE=5,CLS_PAGES_MAX=200,DEFIS_ONGLETS=[['jouer','Jouer'],['classement','Classement'],['amis','Joueurs']];
+const CLS_PAR_PAGE=5,CLS_PAGES_MAX=200,DEFIS_ONGLETS=[['jouer','Jouer'],['classement','Classement'],['amis','Adversaires']];
 /* Les pastilles de « Ta salle de défi », dans toutes les pages Défis (Elisa, 8 novembre, 11 h 08, sur la feuille : « voilà parfait, c’est
    le niveau que j’attends ; modifie donc les pages défis pour ce niveau premium ») : le niveau en blanc avec ses barres, les points en
    jaune après la pièce, les joueurs avec leurs deux silhouettes ; sur le violet des bandeaux, en verre clair. */
 const DX_PIECE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.6" fill="#fff" stroke="#1B1640" stroke-width="2"/><path d="M12 6.9l1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z" fill="#FFC83D" stroke="#1B1640" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+/* Les deux boutons de l’onglet Adversaires (8 novembre, 15 h 09, d’après la maquette d’Elisa) : créer une partie, rejoindre avec un code. */
+const DX_AJOUT_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9.5" cy="8" r="3.6" stroke="currentColor" stroke-width="2.2"/><path d="M3.2 19.5c.5-3.4 3-5.6 6.3-5.6s5.8 2.2 6.3 5.6M18.6 7.6v6.4M15.4 10.8h6.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+const DX_LIEN_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.3 13.7a4.4 4.4 0 0 0 6.2 0l3-3a4.4 4.4 0 0 0-6.2-6.2l-1.1 1.1M13.7 10.3a4.4 4.4 0 0 0-6.2 0l-3 3a4.4 4.4 0 0 0 6.2 6.2l1.1-1.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const DX_GENS_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM3 19.6c.4-3.3 2.8-5.4 6-5.4s5.6 2.1 6 5.4M15.6 4.6a3.2 3.2 0 0 1 0 6.3M17.4 14.4c2 .6 3.3 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function dxBarres(k){return `<i class="jeu-bars is-${k}" aria-hidden="true"><b></b><b></b><b></b></i>`;}
 function dxPc(cls,txt,ico){return `<span class="dx-pc ${cls}">${ico||''}<span>${txt}</span></span>`;}   // le texte d’un tenant (« 3<sup>e</sup> en France »)
@@ -28244,12 +28247,12 @@ function clsPagerPeindre(){
   const host=document.getElementById('dx-pager');if(!host)return;
   const c=DEFIS.cls,n=clsPagesNb();
   clsCompteEcrire();
-  /* Refonte du 7 novembre : chaque message garde son action (« Réessayer », « Ouvrir l’onglet Joueurs », « Voir le classement
+  /* Refonte du 7 novembre : chaque message garde son action (« Réessayer », « Ouvrir l’onglet Adversaires », « Voir le classement
      mondial ») ; un filtre pas encore servi par la base ne promet plus de mise à jour. */
   if(c.err==='net'&&!c.pages[0]){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Classement indisponible pour le moment&nbsp;: il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle='';clsPageCharger(0)">Réessayer</button></div>`;clsPlacePeindre();return;}
   if(c.err==='bientot'){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Ce classement n’est pas disponible pour le moment.</p><button type="button" class="perf-top-btn" onclick="DEFIS.periode='tout';defisPortee('monde')">Voir le classement mondial</button></div>`;clsPlacePeindre();return;}
   if(c.total===0){host.innerHTML=DEFIS.portee==='amis'
-    ?'<div class="dx-cls-msg"><p class="perf-top-msg">Aucun de tes amis n’est encore classé. Joue avec eux&nbsp;: invite-les avec un code depuis l’onglet Joueurs.</p><button type="button" class="perf-top-btn" onclick="defisOnglet(\'amis\')">Ouvrir l’onglet Joueurs</button></div>'
+    ?'<div class="dx-cls-msg"><p class="perf-top-msg">Aucun de tes amis n’est encore classé. Joue avec eux&nbsp;: invite-les avec un code depuis l’onglet Adversaires.</p><button type="button" class="perf-top-btn" onclick="defisOnglet(\'amis\')">Ouvrir l’onglet Adversaires</button></div>'
     :clsVideHTML();clsPlacePeindre();return;}
   host.innerHTML=`<div class="dx-pages" id="dx-pages" tabindex="0" aria-label="Classement, ${n} page${n>1?'s':''} : glisse pour changer de page">${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="Page ${i+1} sur ${n}"></ul>`).join('')}</div>
     <div class="dx-nav"><button type="button" class="dx-arrow" id="dx-prev" aria-label="Page précédente" onclick="clsAllerPage(DEFIS.cls.page-1)">‹</button><span class="dx-dots" id="dx-dots" aria-hidden="true"></span><small id="dx-range" aria-live="polite"></small><button type="button" class="dx-arrow" id="dx-next" aria-label="Page suivante" onclick="clsAllerPage(DEFIS.cls.page+1)">›</button></div>`;
@@ -28310,7 +28313,9 @@ function clsAllerPage(p){
 function clsPlacePeindre(){
   const host=document.getElementById('dx-place'),note=document.getElementById('dx-cls-note'),tete=document.getElementById('dx-place-h');if(!host)return;
   const c=DEFIS.cls,m=c.moi,nom=jeuSavedNom();
-  if(note)note.innerHTML=clsOn()?`Tu y apparais avec ton pseudo${paysMontre()&&paysDuProfil()?' et ton drapeau':''}. <button type="button" onclick="clsQuitter()">Ne plus apparaître</button>`:'';
+  /* 8 novembre, 15 h 09 (Elisa) : « Supprimer les boutons masquer mon profil » : plus de « Ne plus apparaître » (ici et sous le Top 5) ;
+     qui s’était retiré avant garde « Y apparaître avec mon pseudo ». */
+  if(note)note.innerHTML=clsOn()?`Tu y apparais avec ton pseudo${paysMontre()&&paysDuProfil()?' et ton drapeau':''}.`:'';
   /* Refonte du 7 novembre : personne de classé, ou classement injoignable : le bloc du dessus dit déjà tout ; ici, seulement
      « Jouer un défi » (le titre « Ta place… » se cache). */
   const horsLigne=(c.err==='net'||c.err==='bientot')&&!c.pages[0];
@@ -28386,13 +28391,15 @@ function defisAmisPeindre(){
   /* Refonte du 7 novembre (designer produit) : plus de carte autour de l’onglet, le haut posé sur le fond. Liste remplie : « Ajouter
      par pseudo » et « Inviter un joueur » au-dessus de la liste (à portée même à 30 joueurs ; avant, ils descendaient sous la liste) ;
      liste vide : la mascotte, la phrase, puis les deux boutons (l’état vide du 7 novembre, 22 h 13).
-     8 novembre, 14 h 48 (« je veux marcher qu’avec code ») : un seul bouton, « Inviter un ami » (une salle privée, son code). */
-  const boutons=`<div class="dx-duo is-un"><button type="button" class="dx-sec is-main" onclick="jeuDefier()">Inviter un ami</button></div>`;
+     8 novembre, 14 h 48 (« je veux marcher qu’avec code ») : un seul bouton, « Inviter un ami » (une salle privée, son code).
+     15 h 09 (sa maquette « Adversaires », avec ses corrections) : « Créer une partie » (la feuille de Jouer) et « Rejoindre avec un
+     code » (la feuille du code), l’un sous l’autre ; le bandeau prend les deux épées. */
+  const boutons=`<div class="dx-duo"><button type="button" class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte('creer')">${DX_AJOUT_SVG}Créer une partie</button><button type="button" class="dx-sec" aria-haspopup="dialog" onclick="defisCarte('code')">${DX_LIEN_SVG}Rejoindre avec un code</button></div>`;
   /* 8 novembre, 11 h 08 (« modifie les pages défis pour ce niveau premium ») : le haut prend le bandeau violet de « Ta salle de défi »
      (l’autocollant, le surtitre menthe, le titre jaune, une phrase, les pastilles) ; le reste ne bouge pas. */
   const amis=amisListe();
   host.innerHTML=`<section class="dx-amis is-v2${n?'':' is-vide'}" aria-labelledby="dx-amis-k">
-    <div class="dx-amis-tete dx-bande"><span class="room-stk" aria-hidden="true">${lqStkSvg('user')}</span><div><p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(n)}</h2>
+    <div class="dx-amis-tete dx-bande"><span class="room-stk" aria-hidden="true">${lqStkSvg('epees')}</span><div><p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(n)}</h2>
     ${n?'<p class="room-sub">Défie-les, rejoins leurs salles, prends ta revanche.</p>':''}<p class="dx-bande-pcs" id="dx-amis-pcs">${amisPcsHTML(amis)}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     ${n?`<div class="dx-amis-actions">${boutons}</div><div id="dx-amis-liste"></div>`
       :`<div class="dx-amis-vide"><div id="dx-amis-liste"></div>${boutons}</div>`}</section>`;
@@ -28409,7 +28416,7 @@ function amisListesPeindre(){
   const pc=document.getElementById('dx-amis-pcs'),ph=amisPcsHTML(amis);if(pc&&pc.innerHTML!==ph)pc.innerHTML=ph;
   /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! » (le titre), puis ce qu’on y gagne ; 22 h 13 : la mascotte qui salue. */
   /* 8 novembre, 14 h 27 : le duel, joué une fois. Déjà affiché, il n’est pas redessiné (les salles qui se rafraîchissent le relanceraient). */
-  if(!amis.length){const v=ls.firstElementChild;if(!(v&&v.classList&&typeof v.classList.contains==='function'&&v.classList.contains('is-amis')))ls.innerHTML=`<div class="dx-vide-bloc is-amis">${typeof chatBonusHtml==='function'?chatBonusHtml('duel','is-vide dx-amis-chat'):''}<p class="dx-vide">Chaque joueur affronté en salle arrive ici. Invite un ami&nbsp;: il te rejoint avec ton code.</p></div>`;return;}
+  if(!amis.length){const v=ls.firstElementChild;if(!(v&&v.classList&&typeof v.classList.contains==='function'&&v.classList.contains('is-amis')))ls.innerHTML=`<div class="dx-vide-bloc is-amis">${typeof chatBonusHtml==='function'?chatBonusHtml('duel','is-vide dx-amis-chat'):''}<p class="dx-vide-t">Aucun adversaire pour l’instant&nbsp;!</p><p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p></div>`;return;}
   /* Refonte du 7 novembre : une seule ligne par joueur (plus de section « Dans une salle maintenant » qui répétait les mêmes joueurs).
      S’il attend dans une salle ouverte (hôte ou déjà entré), sa ligne le dit (« En salle · Moyen · 2/5 »), son bouton devient
      « Rejoindre », et ces lignes passent en tête. Le face-à-face en pastille à côté du pseudo (tes victoires d’abord), « tu mènes ·
@@ -39365,7 +39372,10 @@ function lqStkSvg(k){
     nuage:['<path d="M14.5 39h20a9 9 0 0 0 1.4-17.9A12.2 12.2 0 0 0 13 19.3 9.9 9.9 0 0 0 14.5 39z"/>',
       `<path d="M14.5 39h20a9 9 0 0 0 1.4-17.9A12.2 12.2 0 0 0 13 19.3 9.9 9.9 0 0 0 14.5 39z" fill="#C9BEFF" ${W} ${J}/><path d="M17.6 21.4a8.4 8.4 0 0 1 7.6-4.9" stroke="#fff" stroke-width="2.4" ${R} opacity=".9"/><path d="M24 34.5v-9M20.2 28.7 24 24.9l3.8 3.8" fill="none" stroke="#6A4DF4" stroke-width="2.8" ${R} ${J}/>`],
     verrou:['<rect x="5" y="28" width="38" height="14" rx="5.5"/><rect x="5" y="6" width="17" height="17" rx="6"/><rect x="27" y="15" width="15" height="10.5" rx="3"/><path d="M30 15v-3.2a4.5 4.5 0 0 1 9 0V15" fill="none" stroke-width="10"/>',
-      `<rect x="5" y="28" width="38" height="14" rx="5.5" fill="#6A4DF4" ${W}/><path d="M11 35h16" stroke="#fff" stroke-width="2.8" ${R}/><rect x="5" y="6" width="17" height="17" rx="6" fill="#9FF0C6" ${W}/><path d="M10.5 14.5h6" stroke="#fff" stroke-width="2.6" ${R} opacity=".9"/><path d="M30 15v-3.2a4.5 4.5 0 0 1 9 0V15" fill="none" ${W} ${R}/><rect x="27" y="15" width="15" height="10.5" rx="3" fill="#FFC83D" ${W}/><circle cx="34.5" cy="20.2" r="1.7" fill="${I}"/>`]
+      `<rect x="5" y="28" width="38" height="14" rx="5.5" fill="#6A4DF4" ${W}/><path d="M11 35h16" stroke="#fff" stroke-width="2.8" ${R}/><rect x="5" y="6" width="17" height="17" rx="6" fill="#9FF0C6" ${W}/><path d="M10.5 14.5h6" stroke="#fff" stroke-width="2.6" ${R} opacity=".9"/><path d="M30 15v-3.2a4.5 4.5 0 0 1 9 0V15" fill="none" ${W} ${R}/><rect x="27" y="15" width="15" height="10.5" rx="3" fill="#FFC83D" ${W}/><circle cx="34.5" cy="20.2" r="1.7" fill="${I}"/>`],
+    /* 8 novembre, 15 h 09 : l’onglet Adversaires (la maquette d’Elisa) — deux épées croisées. */
+    epees:['<g transform="rotate(-45 24 24)"><path d="M24-1l4 7V35h-8V6z"/><rect x="16" y="35" width="16" height="5" rx="2.5"/><rect x="21.8" y="40" width="4.4" height="4"/><circle cx="24" cy="44.8" r="3.1"/></g><g transform="rotate(45 24 24)"><path d="M24-1l4 7V35h-8V6z"/><rect x="16" y="35" width="16" height="5" rx="2.5"/><rect x="21.8" y="40" width="4.4" height="4"/><circle cx="24" cy="44.8" r="3.1"/></g>',
+      `<g transform="rotate(-45 24 24)"><path d="M24-1l4 7V35h-8V6z" fill="#C9BEFF" ${W} ${J}/><path d="M24 9V32" stroke="#fff" stroke-width="2" ${R} opacity=".9"/><rect x="21.8" y="39.5" width="4.4" height="5" fill="${I}"/><circle cx="24" cy="44.8" r="3.1" fill="#FFC83D" stroke="${I}" stroke-width="2"/><rect x="16" y="35" width="16" height="5" rx="2.5" fill="#6A4DF4" ${W}/></g><g transform="rotate(45 24 24)"><path d="M24-1l4 7V35h-8V6z" fill="#C9BEFF" ${W} ${J}/><path d="M24 9V32" stroke="#fff" stroke-width="2" ${R} opacity=".9"/><rect x="21.8" y="39.5" width="4.4" height="5" fill="${I}"/><circle cx="24" cy="44.8" r="3.1" fill="#FFC83D" stroke="${I}" stroke-width="2"/><rect x="16" y="35" width="16" height="5" rx="2.5" fill="#6A4DF4" ${W}/></g>`]
   };
   /* Médailles du podium (Elisa, 31 octobre, 9 h 24) : deux rubans, la médaille or, argent ou bronze, sa place gravée. */
   const MED={medal1:'#FFC83D',medal2:'#DCE0EE',medal3:'#F4A86A'};
@@ -46293,7 +46303,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-code-clavier-v2676';
+  const SW_CACHE='requete-2026-11-08-adversaires-v2677';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

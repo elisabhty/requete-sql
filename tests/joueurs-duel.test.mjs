@@ -45,7 +45,7 @@ test('chatBonusHtml le connaît, et donne l’image fixe quand les mouvements so
   assert.ok(ctx.chatBonusHtml('duel').includes('src="assets/chat-duel-fixe.webp"'));
 });
 
-test('l’onglet Joueurs vide montre le duel ; déjà affiché, il n’est pas redessiné (le GIF ne repart pas) ; le classement garde son trophée', () => {
+test('l’onglet Adversaires vide montre le duel ; déjà affiché, il n’est pas redessiné (le GIF ne repart pas) ; le classement garde son trophée', () => {
   const fn = cut('function amisListesPeindre(){', '\n  /* Refonte du 7 novembre : une seule ligne par joueur') + '\n}';
   const ls = { innerHTML: '', firstElementChild: null, closest: () => null };
   const ctx = vm.createContext({
@@ -55,7 +55,8 @@ test('l’onglet Joueurs vide montre le duel ; déjà affiché, il n’est pas r
   });
   vm.runInContext(fn, ctx);
   ctx.amisListesPeindre();
-  assert.equal(ls.innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="duel" data-cls="is-vide dx-amis-chat"><p class="dx-vide">Chaque joueur affronté en salle arrive ici. Invite un ami&nbsp;: il te rejoint avec ton code.</p></div>');
+  /* 15 h 09 (sa maquette) : le titre « Aucun adversaire pour l’instant ! », puis sa phrase */
+  assert.equal(ls.innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="duel" data-cls="is-vide dx-amis-chat"><p class="dx-vide-t">Aucun adversaire pour l’instant&nbsp;!</p><p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p></div>');
   /* l’état vide est à l’écran : les salles rafraîchies (defisListes) rappellent la fonction, l’image reste la même */
   ls.innerHTML = 'déjà là';
   ls.firstElementChild = { classList: { contains: c => c === 'is-amis' } };

@@ -118,7 +118,8 @@ test('le Top 5 : médailles, ta ligne, ta place si tu n’y es pas, signaler, et
   assert.ok(h.includes('<span class="perf-top-rk"><svg data-k="medal1"></svg></span>') && h.includes('<span class="perf-top-rk">4</span>'), 'médailles puis numéros');
   assert.ok(h.includes('<li class="is-me is-r2"') && h.includes('<b>Joueur2</b><small><i>Toi</i> · 2 parties</small>'), 'ta ligne (« Toi » sous le pseudo : jamais coupé)');
   assert.equal((h.match(/class="perf-top-flag"/g) || []).length, 4, '« Signaler » sur les autres lignes seulement');
-  assert.ok(h.includes('42 joueurs classés.') && h.includes('onclick="clsQuitter()">Ne plus apparaître</button>'));
+  /* 8 novembre, 15 h 09 (Elisa) : « Supprimer les boutons masquer mon profil » : la phrase reste, sans bouton */
+  assert.ok(h.includes('42 joueurs classés. Tu y apparais avec ton pseudo.</p>') && !h.includes('Ne plus apparaître'));
   /* Hors du Top 5 : ta place dessous */
   c.ev(`CLS.data.moi={id:'99999999-0000-4000-8000-000000000000',pts:120,parties:1,rang:37}`);
   assert.ok(c.ev('clsTopHTML()').includes('<p class="perf-top-me"><b>Toi : 37<sup>e</sup></b> sur 42 · 120 points</p>'));

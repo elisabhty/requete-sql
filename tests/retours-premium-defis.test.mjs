@@ -50,7 +50,7 @@ test('Jouer : la carte du joueur (la pastille jaune et le rang), le coefficient 
 
 test('Joueurs, Mes stats, ta place : le bandeau violet de la feuille, ses pastilles en verre ; la fiche aussi', () => {
   const amis = fn('defisAmisPeindre');
-  assert.ok(amis.includes('<div class="dx-amis-tete dx-bande"><span class="room-stk" aria-hidden="true">${lqStkSvg(\'user\')}</span><div><p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(n)}</h2>'));
+  assert.ok(amis.includes('<div class="dx-amis-tete dx-bande"><span class="room-stk" aria-hidden="true">${lqStkSvg(\'epees\')}</span><div><p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(n)}</h2>'));
   assert.ok(amis.includes("${n?'<p class=\"room-sub\">Défie-les, rejoins leurs salles, prends ta revanche.</p>':''}<p class=\"dx-bande-pcs\" id=\"dx-amis-pcs\">${amisPcsHTML(amis)}</p>"));
   /* Les pastilles du bandeau : qui attend dans une salle ouverte (le point vert), combien de duels */
   const c = bac({ drapCle: n => String(n).replace(/^@/, '').toLowerCase(), DEFIS: { salles: [{ hote: '@kev', joueurs: [{ pseudo: '@tom' }] }] } });
