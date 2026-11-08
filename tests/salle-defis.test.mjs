@@ -328,8 +328,9 @@ test('manche : les paliers de temps, +25 du premier coup, +50 / +30 / +20 aux pr
   assert.doesNotMatch(host.html, /rapidité<\/i>/);
   assert.equal((host.html.match(/class="jeu-pd"/g) || []).length, 1, 'seulement sur sa propre ligne');
   assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
-  assert.match(host.html, /Manche suivante/);
-  assert.match(guests[0].html, /La manche suivante arrive/);
+  /* 17 h 31 : « il faut que ça continue seul sans interruption » : le même compte à rebours chez tous, plus de bouton */
+  for (const c of [host, ...guests]) assert.match(c.html, /<p class="jeu-auto" id="jeu-auto"><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/, c.name);
+  assert.doesNotMatch(host.html, /id="jeu-go"|<span>Manche suivante<\/span>/);
   assert.equal(host.ev('state.defis[JEU.rounds[0].cid]'), true, 'réussi en salle : compte dans la progression');
 });
 
@@ -857,10 +858,12 @@ test('une manche terminée le reste : un arrivant ne rouvre rien, les scores gar
   const lpid = avant.pid(); avant.ev('jeuStop()'); sec(w, 2);
   host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); guests[0].found(); guests[1].found(); sec(w, 1.5);
   assert.equal(host.view(), 'res0');
-  const late = samePid(w, 'Retard', lpid); late.join('ROOM42'); sec(w, 6);
+  const late = samePid(w, 'Retard', lpid); late.join('ROOM42'); sec(w, 2);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' reste sur les résultats');
-  assert.match(host.html, /Manche suivante/);
-  host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); late.found(); guests[0].found(); guests[1].found(); sec(w, 2);
+  assert.match(host.html, /La manche suivante démarre dans/);
+  sec(w, 8);   // 17 h 31 : la suite part toute seule, 5 s après
+  for (const c of [host, ...guests, late]) assert.equal(c.view(), 'play1', c.name);
+  host.found(); late.found(); guests[0].found(); guests[1].found(); sec(w, 2);
   const sc = host.ev('jeuScores().map(x=>x.name+":"+x.pts)');
   assert.ok(sc.length === 4 && sc.every(x => !/:0$/.test(x)), 'les points des deux manches : ' + sc);
 });
@@ -1215,7 +1218,7 @@ test('8 novembre, 9 h 31 : à 0, la manche s’arrête, 0 point pour qui n’a p
   sec(w, 28);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' : les résultats de la manche');
   assert.ok(guests[0].html.includes('Temps écoulé') && guests[0].html.includes('Le chrono est arrivé à 0 avant que tu valides ta réponse.'), 'l’ami : 0 point, « Temps écoulé »');
-  assert.ok(host.html.includes('<span>Manche suivante</span>') && !host.html.includes('la salle est fermée') && !host.html.includes('Revenir aux défis'), 'l’hôte peut lancer la suivante');
+  assert.ok(host.html.includes('La manche suivante démarre dans') && !host.html.includes('la salle est fermée') && !host.html.includes('Revenir aux défis'), 'la suite part toute seule');
   assert.equal(host.J('over'), false, 'la partie continue');
   assert.ok(host.ev('jeuAttenteFin(0)') > 0, 'juste après 0 : le serveur tient encore la manche quelques instants');
   host.ev('jeuNextRound()'); sec(w, 0.5);
@@ -1225,32 +1228,32 @@ test('8 novembre, 9 h 31 : à 0, la manche s’arrête, 0 point pour qui n’a p
   assert.deepEqual(host.ev('jeuRanking(0).map(x=>x.pid===JEU.me)'), [true], 'la manche 1 : seul l’hôte marque des points');
 });
 
-test('6 novembre, 7 h 52 : tout le monde a trouvé avant 0 : rien ne se ferme, même 11 minutes plus tard', () => {
+test('6 novembre, 7 h 52 : tout le monde a trouvé avant 0 : rien ne se ferme ; 17 h 31 : la suite part toute seule', () => {
   const { w, host, guests } = room({ n: 2, nb: 3 });
   host.ev('jeuNextRound()'); sec(w, 4.5);
   host.found(); sec(w, 2); guests[0].found(); sec(w, 2);
   assert.equal(host.view(), 'res0');
-  sec(w, 11 * 60);
-  assert.equal(host.view(), 'res0', 'les résultats attendent la manche suivante');
   assert.equal(host.ev('jeuAttenteFin(0)'), 0, 'tout le monde a trouvé : rien à attendre');
-  host.ev('jeuNextRound()'); sec(w, 4.5);
-  assert.equal(guests[0].view(), 'play1');
+  sec(w, 8);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name);
+  assert.equal(host.J('over'), false, 'la salle ne se ferme pas');
 });
 
-test('8 novembre, 9 h 31 : seul, à 0, la manche s’arrête et « Manche suivante » mène à la suivante ; à 0 à la dernière, le bilan ; « Rejouer » repart à neuf', () => {
+test('8 novembre, 9 h 31 : seul, à 0, la manche s’arrête et la suite part toute seule (17 h 31) ; à 0 à la dernière, le bilan ; « Rejouer » repart à neuf', () => {
   const w = new World();
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=3;jeuNiv='f'");
   s.ev("jeuStart('SOLO52',true,null,{solo:true})"); sec(w, 4);
   assert.equal(s.view(), 'play0');
   sec(w, 10 * 60 + 2);
   assert.equal(s.view(), 'res0', 'la première manche arrivée à 0 : ses résultats, la partie continue');
-  assert.ok(s.html.includes('Temps écoulé') && s.html.includes('Le chrono est arrivé à 0 avant que tu valides ta réponse.') && s.html.includes('<span>Manche suivante</span>'));
-  assert.ok(!s.html.includes('la salle est fermée'));
-  s.ev('jeuNextRound()'); sec(w, 4.5);
-  assert.equal(s.view(), 'play1', 'la deuxième manche');
+  assert.ok(s.html.includes('Temps écoulé') && s.html.includes('Le chrono est arrivé à 0 avant que tu valides ta réponse.') && s.html.includes('La manche suivante démarre dans'));
+  assert.ok(!s.html.includes('la salle est fermée') && !s.html.includes('id="jeu-go"'));
+  sec(w, 8);
+  assert.equal(s.view(), 'play1', 'la deuxième manche, toute seule');
   s.found(); sec(w, 1);
   assert.equal(s.view(), 'res1');
-  s.ev('jeuNextRound()'); sec(w, 4.5);
+  assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/, 'trouvée : la suite part aussi toute seule');
+  sec(w, 9);
   assert.equal(s.view(), 'play2');
   sec(w, 10 * 60 + 2);
   assert.equal(s.view(), 'final', 'la dernière manche arrivée à 0 : le bilan');
@@ -1323,8 +1326,8 @@ test('8 novembre, 10 h 10 : entre amis, à 0, la manche suivante part toute seul
   host.found(); sec(w, 2);
   sec(w, 9.5 * 60); sec(w, 28);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name);
-  assert.match(guests[0].html, /<p class="jeu-auto"><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b> s<\/span><\/p>/, 'le compte à rebours');
-  assert.match(host.html, /<p class="jeu-auto">[\s\S]*<span>Manche suivante<\/span>/, 'au-dessus du bouton, qui reste là pour ne pas attendre');
+  for (const c of [host, ...guests]) assert.match(c.html, /<p class="jeu-auto" id="jeu-auto"><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b> s<\/span><\/p>/, c.name + ' : le compte à rebours');
+  assert.doesNotMatch(host.html, /<span>Manche suivante<\/span>/, '17 h 31 : plus de bouton');
   sec(w, 5);
   for (const c of [host, ...guests]) assert.ok(/^(draw1|play1)$/.test(c.view()), c.name + ' : la manche 2 est partie toute seule');
   sec(w, 4);
@@ -1352,14 +1355,26 @@ test('8 novembre, 10 h 10 : seul, à 0, la manche suivante part toute seule 5 s 
   assert.equal(s.view(), 'final', 'la dernière manche à 0 : le bilan tout de suite');
 });
 
-test('8 novembre, 10 h 10 : une manche trouvée par tout le monde attend toujours l’hôte', () => {
+/* Elisa, 8 novembre, 17 h 31 : « pourquoi on doit cliquer sur le bouton pour la manche ? il faut que ça continue seul sans
+   interruption » : une manche trouvée par tout le monde, close par l’hôte ou abandonnée enchaîne aussi toute seule, 5 s après. */
+test('8 novembre, 17 h 31 : trouvée par tout le monde, close ou abandonnée, la manche suivante part toute seule 5 s après', () => {
   const { w, host, guests } = room({ n: 2, nb: 3 });
   host.ev('jeuNextRound()'); sec(w, 4.5);
-  host.found(); sec(w, 2); guests[0].found(); sec(w, 2);
-  sec(w, 11 * 60);
-  assert.equal(host.view(), 'res0', 'pas de suite toute seule');
-  assert.doesNotMatch(host.html, /jeu-auto/);
-  assert.equal(host.ev('jeuFinAuto(0)'), 0);
+  host.found(); sec(w, 2); guests[0].found(); sec(w, 1);
+  assert.equal(host.view(), 'res0');
+  assert.match(guests[0].html, /La manche suivante démarre dans <b id="jeu-auto-n">[45]<\/b>/);
+  sec(w, 3);
+  assert.equal(host.view(), 'res0', 'les 5 s pour voir le résultat');
+  sec(w, 5.5);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name + ' : la manche 2');
+  /* Close par l’hôte : la suite part aussi toute seule ; les 5 s passées sans la suite, la ligne le dit */
+  host.ev('jeuClose()'); sec(w, 1);
+  assert.equal(guests[0].view(), 'res1');
+  assert.match(guests[0].html, /Manche close par l’hôte/);
+  guests[0].ev('JEU.rounds[1].finVu=Date.now()-6000'); guests[0].ev("JEU.view='';jeuRender()");
+  assert.match(guests[0].html, /<p class="jeu-auto" id="jeu-auto"><span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"><\/i>La manche suivante arrive…<\/span><\/p>/, 'les 5 s passées : la suite arrive');
+  sec(w, 9);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'play2', c.name + ' : la manche 3');
 });
 
 /* Elisa, 8 novembre, 15 h 27 (la relecture de « Rejoindre une partie » qu’elle a fait faire) : la salle se cherche dans la feuille du
