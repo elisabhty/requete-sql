@@ -373,11 +373,13 @@ test('« Rejouer dans cette salle » : même code, retour en salle d’attente, 
 
 test('l’hôte change le niveau et le nombre de manches dans la salle d’attente', () => {
   const { w, host, guests } = room({ n: 2, nb: 3 });
-  host.ev("jeuLobbySet('niv','d')"); host.ev('jeuLobbySet("nb",5)'); sec(w, 1.5);
-  assert.equal(guests[0].J('niv'), 'd'); assert.equal(guests[0].J('nb'), 5);
+  host.ev("jeuLobbySet('niv','d')"); host.ev('jeuLobbySet("nb",5)'); sec(w, 1);
+  assert.equal(host.J('nb'), 3, '5 manches n’existe plus (8 novembre, 17 h 08)');
+  host.ev('jeuLobbySet("nb",2)'); sec(w, 1.5);
+  assert.equal(guests[0].J('niv'), 'd'); assert.equal(guests[0].J('nb'), 2);
   assert.match(guests[0].html, /Difficile/);
   host.ev("jeuLobbySet('niv','f')"); sec(w, 1);
-  assert.equal(host.J('nb'), 5, 'facile : 5 défis, donc 5 manches possibles');
+  assert.equal(host.J('nb'), 2, 'le niveau change, le nombre de manches reste');
   assert.equal(guests[0].ev("jeuLobbySet('niv','m')"), undefined, 'un ami ne règle rien');
   assert.equal(host.J('niv'), 'f');
 });
@@ -570,14 +572,14 @@ test('solo : en Moyen, la manche dure 15 min au plus (8 novembre, 8 h 52) ; trou
 test('un défi déjà trouvé peut revenir au tirage : seul, tous les défis faciles déjà trouvés, la partie se joue', () => {
   const w = new World();
   const s = makeClient(w, 'Seul');
-  s.ev("jeuNiv='f';jeuNb=5");
+  s.ev("jeuNiv='f';jeuNb=3");
   s.ev("jeuChallenges('f').forEach(c=>state.defis[c.id]=true)");
   s.ev("jeuStart('SOLO33',true,null,{solo:true})"); sec(w, 1);
   assert.match(s.html, /Un défi au hasard, au niveau choisi\./);
   assert.doesNotMatch(s.html, /réussi/, 'plus de « pas encore réussi »');
   sec(w, 3);
-  for (let n = 1; n < 5; n++) { s.ev('jeuClose()'); sec(w, 1); s.ev('jeuNextRound()'); sec(w, 4); }
-  assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 5, '5 manches faciles = les 5 défis, tous déjà trouvés, sans doublon');
+  for (let n = 1; n < 3; n++) { s.ev('jeuClose()'); sec(w, 1); s.ev('jeuNextRound()'); sec(w, 4); }
+  assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 3, '3 manches faciles, tous les défis déjà trouvés, sans doublon');
 });
 
 test('entre amis : le tirage ignore ce que chacun a déjà trouvé ; l’arrivée ne transporte plus de liste', () => {
@@ -623,7 +625,13 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   h.ev('jeuNextRound()'); sec(w, 4.5);
   assert.equal(h.view(), 'play0');
   assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
-  assert.doesNotMatch(h.html, /jeu-direct|jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien des écrans à plusieurs (ni « En direct »)');
+  /* 8 novembre, 17 h 08 (« pourquoi j’ai pas le truc du haut avec les présents et toi ») : « En direct » reste en haut, même seul */
+  assert.match(h.html, /<section class="jeu-direct" id="jeu-direct"/);
+  const d0 = h.ev('jeuDirectHTML(0)');
+  assert.equal(d0.split('<li ').length - 1, 1, 'une ligne : toi'); assert.match(d0, /<span class="jd-l1"><b>Toi<\/b><\/span>/);
+  assert.match(d0, /<span id="jeu-direct-nb">1&nbsp;joueur<\/span>/);
+  assert.equal(h.ev('JEU.dit.cur.html'), 'C’est parti\u00a0!', 'seul : pas de « Qui ouvrira le score ? »');
+  assert.doesNotMatch(h.html, /jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien d’autre des écrans à plusieurs (réactions, « Clore la manche pour tous »)');
   h.found(); sec(w, 1);
   assert.ok(!h.toasts.some(t => /tête|course|affilée|minute|Remontée/.test(t)), 'seul : le commentateur se tait');
   assert.equal(h.view(), 'res0', 'seul : les résultats tout de suite');
@@ -647,10 +655,10 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   const avant = makeClient(w, 'Ami'); avant.join('ALONE2'); sec(w, 2);
   const gpid = avant.pid(); avant.ev('jeuStop()'); sec(w, 40);
   h.ev('jeuNextRound()'); sec(w, 4.5);
-  assert.doesNotMatch(h.html, /jeu-direct/);
+  assert.equal(h.ev('jeuDirectHTML(0)').split('<li ').length - 1, 1, 'seul : « En direct » est déjà là, avec sa ligne (17 h 08)');
   const g = samePid(w, 'Ami', gpid); g.join('ALONE2'); sec(w, 4);
   assert.equal(g.view(), 'play0', 'il arrive dans la manche');
-  assert.match(h.html, /<section class="jeu-direct" id="jeu-direct"/, 'chez l’hôte, « En direct » apparaît (sans perdre la requête en cours)');
+  assert.match(h.html, /<section class="jeu-direct" id="jeu-direct"/, 'chez l’hôte, « En direct » le montre (sans perdre la requête en cours)');
   assert.match(g.html, /<section class="jeu-direct" id="jeu-direct"/);
   g.found(); sec(w, 1);
   assert.equal(h.view(), 'play0');

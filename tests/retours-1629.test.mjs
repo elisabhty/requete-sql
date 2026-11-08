@@ -22,7 +22,7 @@ test('pendant la manche, une seule action : « Exécuter » ; le schéma passe d
   assert.ok(cours.includes('>Schéma</button>') && cours.includes('>Pas à pas</button>') && !cours.includes('ed-schema'), 'les cours ne changent pas');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes("${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}"));
-  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${sl?'':jeuDirectHTML(n)}\n      ${defiConsigneHTML(c)}"), 'qui en est où : « En direct » sous le titre, avant la question, à plusieurs seulement (8 novembre)');
+  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${J.solo?'':jeuDirectHTML(n)}\n      ${defiConsigneHTML(c)}"), 'qui en est où : « En direct » sous le titre, avant la question, dans toute salle, même seul (8 novembre, 17 h 08)');
   const play = r.slice(r.indexOf("}else if(v.startsWith('play')){"), r.indexOf("}else if(v.startsWith('res')){"));
   assert.ok(!play.includes('jeu-reacts') && !play.includes('jeuHostBarHTML') && !play.includes('jeuPlayersHTML'), 'pendant qu’on cherche : ni réactions, ni « Clore », ni liste de cadres');
   for (const k of ['html.lq .ed-schema{flex:none;display:inline-flex;', 'html.lq #jeu-root .jeu-direct{position:relative;margin:14px 0 20px}', 'html.lq #jeu-root .jeu-direct-bande{position:relative;z-index:1;isolation:isolate;overflow:hidden;border-radius:22px;background:var(--deep);',

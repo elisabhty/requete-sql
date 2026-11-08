@@ -275,8 +275,11 @@ test('la dernière minute : le cadre bat en rouge, « Plus qu’une minute ! » 
   r.done = true; s.ev('jeuDirectMinute(0)'); assert.ok(!cls.has('is-urgent'), 'manche finie : plus rien');
   const t = salle(); t.J.rounds[0].found = { a: 1 }; t.J.rounds[0].t1 = Date.now() - 545000; t.ev('jeuDirectMinute(0)');
   assert.deepEqual(t.buzz, [], 'j’ai déjà trouvé : pas de vibration'); assert.equal(t.J.dit.cur.k, 'minute');
-  const u = salle(); u.ctx.jeuSoloLike = () => true; u.J.rounds[0].t1 = Date.now() - 545000; u.ev('jeuDirectMinute(0)');
-  assert.equal(u.J.dit, undefined, 'seul : pas de cadre, pas de phrase');
+  const u = salle(); u.J.solo = true; u.J.rounds[0].t1 = Date.now() - 545000; u.ev('jeuDirectMinute(0)');
+  assert.equal(u.J.dit, undefined, 'en solo : pas de cadre, pas de phrase');
+  /* 17 h 08 : seul dans la salle, le cadre est là ; il bat aussi la dernière minute */
+  const v = salle(); v.ctx.jeuSoloLike = () => true; v.J.rounds[0].t1 = Date.now() - 545000; v.ev('jeuDirectMinute(0)');
+  assert.equal(v.J.dit.cur.k, 'minute', 'seul dans la salle : « Plus qu’une minute ! »');
 });
 
 test('une réaction jaillit de l’avatar de celui qui l’envoie, dans la liste ou dans la barre repliée', () => {
@@ -321,7 +324,7 @@ test('réductible : la flèche plie et déplie, le choix est gardé ; plié, il 
 
 test('branché à la manche : sous le titre, avant la question ; chaque essai, chaque trouvaille, chaque seconde le tiennent à jour', () => {
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${sl?'':jeuDirectHTML(n)}\n      ${defiConsigneHTML(c)}"), 'à plusieurs seulement');
+  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${J.solo?'':jeuDirectHTML(n)}\n      ${defiConsigneHTML(c)}"), 'dans toute salle, même seul (17 h 08) ; jamais en solo');
   assert.ok(!app.includes('jeuMatesHTML'), 'la bande d’avatars est partie');
   const rate = cut("    case 'rate':{", "    case 'close':{");
   const compte = rate.indexOf('(rt.ko=rt.ko||{})[m.pid]=(rt.ko[m.pid]||0)+1;'), sortie = rate.indexOf('if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;');
