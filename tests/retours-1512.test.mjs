@@ -38,7 +38,8 @@ test('escCode : le texte échappé, les accents graves en <code>', () => {
 
 test('les textes simples passent par escCode : défis, questions d’entretien, « Pas encore » des exercices', () => {
   const dq = cut('function defiConsigneHTML(c,o){', '\n}');
-  for (const s of ["${c.situation?`<p class=\"defi-ctx\">${escCode(c.situation)}</p>`:''}", "${l.map(x=>`<li>${escCode(x)}</li>`).join('')}", "`<p class=\"dq-t\">${escCode(tri[0])}</p>`"])
+  /* 8 novembre, 18 h 36 : la situation finit sur la phrase du schéma (defiSituation), toujours par escCode */
+  for (const s of ["${c.situation?`<p class=\"defi-ctx\">${escCode(defiSituation(c.situation))}</p>`:''}", "${l.map(x=>`<li>${escCode(x)}</li>`).join('')}", "`<p class=\"dq-t\">${escCode(tri[0])}</p>`"])
     assert.ok(dq.includes(s), s);
   assert.ok(cut('function defiIndices(c){', '\n}').includes("['La piste',escCode(c.indice||"));
   const ex = cut('function entExemple(ex){', '\n}');

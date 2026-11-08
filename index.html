@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=242">
+<link rel="stylesheet" href="ludique.css?v=243">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13701,11 +13701,17 @@ const CHALLENGES=[
    du site internet n’est pas trop présente » : chaque point a sa couleur et ses pastilles, comme les cartes de la vitrine ; 21 h : sans
    les autocollants, et « anime le Tu as accès au schéma » : le souligné jaune de la vitrine se dessine sous « schéma », puis le bouton
    appelle (anneau, icône qui se balance, flèche qui pousse) jusqu’à ce qu’on ouvre le schéma. */
+/* La fin de chaque situation (Elisa, 8 novembre, 18 h 36 : « mettre toujours : À toi de jouer ! Tu peux consulter le schéma de la base
+   à tout moment pour explorer les tables et leurs colonnes. ») : les 477 situations finissent sur « À toi de jouer ! », la suite est
+   ajoutée ici, en salle comme sur la page d’un défi ; une situation qui ne finirait pas ainsi la reçoit aussi. */
+const DEFI_A_TOI='À toi de jouer ! Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.';
+function defiSituation(s){return (String(s||'').replace(/\s*À toi de jouer[\s ]*!\s*$/,'').trim()+' '+DEFI_A_TOI).trim();}
 function defiConsigneHTML(c,o){
   const nom=typeof DEFI_BASES!=='undefined'&&c&&c.base&&DEFI_BASES[c.base]?DEFI_BASES[c.base].nom:'';
-  /* En salle, la base en pastille à côté de « La situation » (Elisa, 8 novembre, 18 h 28 : « la base, on ne la met pas dans le premier
-     bloc mais en pill de La situation ») ; la page d’un défi la garde dans sa barre du haut. */
-  const tete=o&&o.base&&nom?`<div class="dq-tete"><span class="tag">La situation</span><span class="dq-chip is-base">Base ${esc(nom)}</span></div>`:'<span class="tag">La situation</span>';
+  /* En salle, la base en pastille (Elisa, 8 novembre, 18 h 28 : « la base, on ne la met pas dans le premier bloc mais en pill de La
+     situation »), posée à cheval sur le bord du cadre, en haut à droite (18 h 36 : « entre l’intérieur et l’extérieur du cadre, genre
+     posée en haut à droite ») ; la page d’un défi la garde dans sa barre du haut. */
+  const base=o&&o.base&&nom?`<span class="dq-chip is-base">Base ${esc(nom)}</span>`:'';
   const schema=`<button type="button" class="dq-schema${typeof schAttn==='function'?schAttn():''}" onclick="openSchemaSheet()"><i class="dq-ico" aria-hidden="true">${typeof ED_SCHEMA_SVG==='string'?ED_SCHEMA_SVG:''}</i><span><b>Tu as accès au <em>schéma</em></b><small>${nom?`Tables, colonnes et liens de la base ${esc(nom)}`:'Tables, colonnes et liens de la base'}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   if(!c||!Array.isArray(c.affiche)||!c.affiche.length)return `<div class="consigne dq"><span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||'')}</p>${schema}</div>`;
   const sec=(cls,titre,chip,corps)=>`<section class="dq-sec ${cls}"><div class="dq-h"><b>${titre}</b>${chip?`<span class="dq-chip">${chip}</span>`:''}</div>${corps}</section>`;
@@ -13713,7 +13719,7 @@ function defiConsigneHTML(c,o){
   const n=c.affiche.length,garde=Array.isArray(c.garde)?c.garde:[],precis=Array.isArray(c.precis)?c.precis:[];
   const tri=c.ordered&&c.tri?String(c.tri).split(/,\s*puis\s+/).map(x=>x.trim()).filter(Boolean):null;
   /* « La situation » (Elisa, 8 novembre, 13 h 15) : le paragraphe raconte le lieu et le besoin ; la question, c’est le titre. */
-  return `<div class="consigne dq">${tete}${c.situation?`<p class="defi-ctx">${escCode(c.situation)}</p>`:''}`
+  return `<div class="consigne dq${base?' has-base':''}">${base}<span class="tag">La situation</span>${c.situation?`<p class="defi-ctx">${escCode(defiSituation(c.situation))}</p>`:''}`
     +sec('is-cols','Affiche',`${n}\u00a0colonne${n>1?'s':''}`,liste(c.affiche,true))
     +(garde.length?sec('is-garde','Garde','',liste(garde,false)):'')
     +(tri?sec('is-tri','Trie','l’ordre compte',tri.length>1?liste(tri,true):`<p class="dq-t">${escCode(tri[0])}</p>`)
@@ -35249,7 +35255,7 @@ function jeuOnMsg(m){
       if(J.view==='res'+(+m.n))jeuRedraw();
       break;}
     case 'react':
-      if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);}
+      if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name);}
       return;
     case 'rate':{
       /* 6 novembre, 16 h (règle de l’expert choisie par Elisa) : un essai, même manqué, fait de lui un joueur de la manche ; la place ne
@@ -35639,7 +35645,9 @@ function jeuDirectHTML(n,hud){
   J.directVu={n,m:jeuDirectEtats(xs),sig:jeuDirectSig(xs)};
   const plie=jeuDirectPlie(),t=jeuDirectTete(xs);
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
-  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
+  /* « Réagir », à plusieurs (18 h 36) : la première fois de la partie, son sourire se balance */
+  const reagir=jeuReagirLa(),neuf=reagir&&!J.reagirVu;if(neuf)J.reagirVu=1;
+  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
     `<button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="${!plie}" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer()">`+
     `<span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b>`+
     `<span class="jeu-direct-nb">${typeof DX_GENS_SVG!=='undefined'?DX_GENS_SVG:''}<span id="jeu-direct-nb">${t.nb}</span></span><span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span>`+
@@ -35653,6 +35661,7 @@ function jeuDirectHTML(n,hud){
    nouvelle. */
 function jeuDirectPeindre(n){
   const J=JEU;if(!J)return;
+  jeuReagirMaj();
   const l=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-direct-l'):null;
   const xs=jeuDirectJoueurs(n),vu=J.directVu&&J.directVu.n===n?J.directVu:null;
   if(vu&&vu.sig===jeuDirectSig(xs)&&(!l||!l.dataset||l.dataset.sig===vu.sig))return;
@@ -35758,8 +35767,8 @@ function jeuDirectMinute(n){
     if(r.found[J.me]==null&&typeof buzz==='function')buzz('medium');
   }
 }
-/* Une réaction (👏 🔥 😅 🤯, envoyée après avoir trouvé) jaillit de l’avatar de celui qui l’envoie, dans « En direct », replié ou non
-   (12 h 25 ; avant, seul le lecteur d’écran l’entendait). */
+/* Une réaction (👏 🔥 😅 🤯) d’un autre jaillit de son avatar, dans « En direct », replié ou non (12 h 25 ; avant, seul le lecteur
+   d’écran l’entendait) ; elle monte aussi, avec son pseudo, le long du bord de l’écran (jeuReactBulle, 18 h 36). */
 function jeuReactPop(pid,e){
   if(typeof document==='undefined'||typeof document.querySelector!=='function')return false;
   const s=document.getElementById('jeu-direct');if(!s)return false;
@@ -35769,6 +35778,82 @@ function jeuReactPop(pid,e){
   b.className='jd-react';b.setAttribute('aria-hidden','true');b.textContent=e;
   b.style.left=Math.round(ra.left-rs.left+ra.width/2)+'px';b.style.top=Math.round(ra.top-rs.top)+'px';
   s.appendChild(b);setTimeout(()=>{try{b.remove();}catch(x){}},1100);
+  return true;
+}
+/* Réagir (Elisa, 8 novembre, 18 h 36 : « comment faire les réactions ? De plus voir la réaction des autres en temps réel sur l’écran
+   avec leur pseudo »). Avant, les quatre réactions n’apparaissaient qu’une fois la réponse trouvée, et à plusieurs : seule pour
+   tester, on ne les voyait jamais. Maintenant, à plusieurs, pendant toute la manche, « Réagir » au bout de la ligne du niveau, dans le
+   cadre : un seul bouton tant qu’on ne s’en sert pas (31 octobre, 16 h 29 : « trop de boutons »). Touché, les quatre réactions
+   prennent la ligne, la croix au bout ; une touche envoie, la ligne reste ouverte pour une autre et se referme seule après 4,5 s sans
+   toucher. La première fois qu’il apparaît dans une partie, le sourire se balance (deux fois, puis il se tait). Après avoir trouvé,
+   la carte « Trouvé » garde ses quatre réactions. */
+const JEU_REAGIR_MS=4500;
+const JEU_REAGIR_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="7.9" cy="11.7" r="1.25" fill="currentColor"/><circle cx="13.1" cy="11.7" r="1.25" fill="currentColor"/><path d="M7.4 15.3c1.6 1.9 4.6 1.9 6.2 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.8 2.6v5.2M17.2 5.2h5.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+function jeuReagirHTML(){
+  const J=JEU,ouvert=!!(J&&J.reagir);
+  return `<span class="jeu-reagir" id="jeu-reagir"><button type="button" class="jeu-reagir-b" id="jeu-reagir-b" aria-expanded="${ouvert}" aria-controls="jeu-reagir-l" aria-label="Réagir" onclick="jeuReagirBasculer(event)">`+
+    `${JEU_REAGIR_SVG}<span>Réagir</span><svg class="jeu-reagir-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>`+
+    `<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions">${JEU_REACTS.map((e,i)=>`<button type="button" style="--i:${i}" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</span></span>`;
+}
+function jeuReagirBasculer(ev){
+  const J=JEU;if(!J)return;
+  if(J.reagir){jeuReagirFermer(true);return;}
+  J.reagir=Date.now();jeuReagirPeindre();jeuReagirMinuter();
+  /* Au clavier, on passe sur la première réaction ; au doigt, rien ne bouge */
+  if(ev&&ev.detail===0&&typeof document!=='undefined'){const b=document.querySelector('#jeu-reagir-l button');if(b&&b.focus)b.focus({preventScroll:true});}
+}
+function jeuReagirMinuter(){const J=JEU;if(!J)return;clearTimeout(J.reagirT);J.reagirT=setTimeout(()=>{if(JEU===J)jeuReagirFermer(false);},JEU_REAGIR_MS);}
+function jeuReagirFermer(rendre){
+  const J=JEU;if(!J)return;
+  const dedans=rendre||(typeof document!=='undefined'&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#jeu-reagir-l'));
+  clearTimeout(J.reagirT);J.reagir=0;jeuReagirPeindre();
+  if(dedans){const b=document.getElementById('jeu-reagir-b');if(b&&b.focus)b.focus({preventScroll:true});}
+}
+function jeuReagirPeindre(){
+  if(typeof document==='undefined'||!document.getElementById)return;
+  const J=JEU,s=document.getElementById('jeu-direct'),b=document.getElementById('jeu-reagir-b'),o=!!(J&&J.reagir);
+  if(s&&s.classList)s.classList.toggle('is-reagir',o);
+  if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(o));
+}
+/* « Réagir » n’est là qu’à plusieurs (quelqu’un d’autre est dans la salle) : suivi à chaque tour d’horloge (jeuDirectPeindre) */
+function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo&&jeuLive().length>1);}
+function jeuReagirMaj(){
+  const J=JEU,s=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-direct'):null;
+  if(!J||!s||!s.classList)return;
+  const la=jeuReagirLa();
+  if(la&&!J.reagirVu&&!s.classList.contains('has-reagir')){J.reagirVu=1;s.classList.add('is-reagir-neuf');}
+  s.classList.toggle('has-reagir',la);
+  if(!la&&J.reagir)jeuReagirFermer(false);
+}
+/* Les réactions en direct (18 h 36 : « voir la réaction des autres en temps réel sur l’écran avec leur pseudo ») : chacune monte le
+   long du bord droit de l’écran, comme dans un live : l’emoji dans sa bulle blanche et, dessous, le pseudo sur la couleur de son
+   avatar (« Toi » pour la sienne). Où qu’on soit dans la page, au-dessus du clavier aussi (visualViewport), sans rien bloquer ni
+   rien annoncer : elle passe et s’efface (2,8 s), ce n’est pas une notification. Six au plus à la fois. En mouvement réduit : elle
+   apparaît et s’efface sur place, les suivantes à côté. */
+function jeuReactBulle(pid,e,nom){
+  const J=JEU;
+  if(!J||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||document.hidden)return false;
+  const root=document.getElementById('jeu-root');if(!root)return false;
+  let c=document.getElementById('jeu-rl');
+  if(!c){c=document.createElement('div');c.id='jeu-rl';c.className='jeu-rl';c.setAttribute('aria-hidden','true');document.body.appendChild(c);}
+  const vv=typeof window!=='undefined'?window.visualViewport:null,h=vv?vv.height:((typeof window!=='undefined'&&window.innerHeight)||640);
+  c.style.top=Math.round((vv?vv.offsetTop:0)+h*.64)+'px';
+  /* Contre le bord droit de la manche (sur un grand écran, la colonne de la salle ; sur le téléphone, le bord de l’écran) */
+  const rr=typeof root.getBoundingClientRect==='function'?root.getBoundingClientRect():null,vw=(typeof window!=='undefined'&&window.innerWidth)||0;
+  if(rr&&rr.width&&vw)c.style.right=Math.max(12,Math.round(vw-rr.right))+'px';
+  while(c.children.length>=6)c.firstElementChild.remove();
+  const me=pid===J.me,qui=me?'Toi':(jeuNom((J.players[pid]||{}).name)||jeuNom(nom)||'Joueur'),k=(J.rlN=(J.rlN||0)+1),now=Date.now();
+  /* Deux réactions presque ensemble (moins d’une seconde ; en mouvement réduit, tant que la précédente est là) : la nouvelle part à
+     gauche de la précédente, sans la cacher ; trop loin du bord, elle repart du bord, un étage au-dessus. Sinon, contre le bord. */
+  const b=document.createElement('span'),i=document.createElement('i'),t=document.createElement('b');
+  const fen=prefersReduceMotion()?2800:950,P=J.rlPrev;let x=0,y=0;
+  if(P&&now-P.at<fen&&P.el.isConnected){x=P.x+Math.ceil(P.el.getBoundingClientRect().width)+10;y=P.y;if(x>200){x=0;y=P.y>-160?P.y-84:0;}}
+  J.rlPrev={el:b,x,y,at:now};
+  b.className='jeu-rl-b';i.className='jeu-rl-e';i.textContent=e;t.className='jeu-rl-n';t.textContent=qui;
+  t.dataset.c=String(Math.max(0,jeuOrder().indexOf(pid))%6);
+  b.style.setProperty('--x',-x+'px');b.style.setProperty('--y',y+'px');b.style.setProperty('--s',(k%2?10:-10)+'px');
+  b.append(i,t);c.appendChild(b);
+  setTimeout(()=>{try{b.remove();}catch(x){}},2900);
   return true;
 }
 /* « Il écrit » : à chaque tour d’horloge (500 ms), si ma requête a changé depuis le dernier tour de cette manche, les autres le savent
@@ -36009,7 +36094,7 @@ function jeuRender(){
        défi et le chrono ; dessous, le niveau (la pastille blanche des feuilles) ; un filet, puis « En direct » et le commentateur.
        Seul (Joue seul), le même bandeau, avec sa tête seulement. La base passe en pastille à côté de « La situation » (18 h 28). */
     const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b><span class="jeu-hud-r">${val}<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b></span>`+
-      `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span></div>`;
+      `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${J.solo?'':jeuReagirHTML()}</span></div>`;
     html=`${jeuNetSlot()}
       <h1>${esc(c.titre)}</h1>
       ${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
@@ -36219,9 +36304,17 @@ function jeuToggleReady(){
   jeuSend({t:'ready',on:!J.ready[J.me]});
   if(navigator.vibrate)navigator.vibrate(8);
 }
-function jeuReact(e){
-  if(!JEU||Date.now()-JEU.lastReact<1500)return;
-  JEU.lastReact=Date.now();jeuSend({t:'react',e});jeuToast(`Toi ${e}`);jeuReactPop(JEU.me,e);
+function jeuReact(e,btn){
+  const J=JEU;if(!J||!JEU_REACTS.includes(e))return;
+  /* Une réaction toutes les 1,5 s : trop tôt, le bouton dit non (un petit non de la tête) */
+  if(Date.now()-J.lastReact<1500){
+    if(btn&&typeof btn.animate==='function'&&!prefersReduceMotion())btn.animate([{transform:'none'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'none'}],{duration:240,easing:'ease-out'});
+    return;
+  }
+  /* La sienne monte avec les autres (« Toi ») ; elle ne jaillit plus de son avatar, juste sous les réactions qu’on vient de toucher */
+  J.lastReact=Date.now();jeuSend({t:'react',e});jeuToast(`Toi ${e}`);jeuReactBulle(J.me,e);
+  if(J.reagir)jeuReagirMinuter();
+  if(typeof buzz==='function')buzz('light');
 }
 /* Arrivées, départs, nouvel hôte : annoncés au lecteur d’écran ; à l’écran, c’est la liste des joueurs qui le montre (la ligne arrive
    en sautillant, l’étiquette « hôte » change de place), plus de bulles en bas de l’écran (Elisa, 31 octobre, 1 h 34 : « ne pas mettre
@@ -36300,7 +36393,7 @@ function jeuFoundHTML(r,pid){
   const stk=!sl&&pos>=0&&pos<3?lqStkSvg('medal'+(pos+1)):JEU_OK_STK;
   return `<section class="jeu-done" id="jeu-done" aria-label="Trouvé">
       <div class="jeu-done-head"><span class="jeu-done-stk" aria-hidden="true">${stk}</span><span class="jeu-done-t"><b>Trouvé en ${jeuChrono(x.ms)}</b><small>${place}</small></span><strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${x.essai} ✨</i>`:''}</strong></div>
-      ${sl?'':`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}')" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div><div id="jeu-hostbar">${jeuHostBarHTML()}</div>`}
+      ${sl?'':`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div><div id="jeu-hostbar">${jeuHostBarHTML()}</div>`}
       ${r.mine?`<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>`:''}
     </section>`;
 }
@@ -36433,8 +36526,9 @@ function jeuStop(){
   try{if(!J.scored&&J.played){const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
   /* Prévenir les autres tout de suite : l’hôte qui part passe la main sans attendre. */
   if((!J.solo||J.ranked)&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
-  clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);J.drawT.forEach(clearTimeout);
+  clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);clearTimeout(J.reagirT);J.drawT.forEach(clearTimeout);
   setTimeout(()=>{try{J.t&&J.t.close();}catch(e){}},600);
+  document.getElementById('jeu-rl')?.remove();   // les réactions encore en l’air partent avec la salle
   if(typeof ileSalleQuitter==='function')ileSalleQuitter();   // la salle dans l’île s’en va (sauf le podium)
   JEU=null;
   document.getElementById('jeu-toasts')?.remove();
@@ -46529,7 +46623,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-base-situation-v2689';
+  const SW_CACHE='requete-2026-11-08-reactions-direct-v2690';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

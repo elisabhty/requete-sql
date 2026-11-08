@@ -53,6 +53,7 @@ function salle({ dom = false, reduit = false } = {}) {
   vm.runInContext(cut('function jeuInitial(name){', '\n') + '\n' + bloc.replace(/^const /gm, 'var ') + `
     function jeuOrder(){return ['a','b','c','d','e'];}
     function jeuPresent(p){return p===JEU.me||!__absents.has(p);}
+    function jeuLive(){return jeuOrder().filter(jeuPresent);}
     function jeuRanking(n){const r=JEU.rounds[n];return Object.entries(r.found).sort((x,y)=>x[1]-y[1]).map(([pid],i)=>({pid,place:i+1,essai:i===0&&r.first&&r.first[pid]?25:0,pts:[1000,800,600,400][i]}));}
     function jeuRoundDone(n){return !!JEU.rounds[n].done;}`, ctx);
   J.rounds[0].t1 = Date.now();
@@ -78,7 +79,7 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   assert.match(rows[1], /<b><span class="jd-pts" data-n="0" data-fmt="fr">0<\/span><small>&nbsp;pt<\/small><\/b><small>2&nbsp;essais<\/small>/);
   assert.match(rows[2], /^class="jd is-test"/); assert.match(rows[2], /<i class="jd-run" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2v9.6l7.6-4.8z"[^>]*\/><\/svg><\/i>Teste sa requête/, 'la pastille d’« Exécuter »');
   assert.match(html, /<span class="jeu-direct-nb"><span id="jeu-direct-nb">4&nbsp;joueurs<\/span><\/span>/);
-  assert.match(html, /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button [^>]*><span class="jeu-direct-live" aria-hidden="true"><\/span><b id="jeu-direct-t">En direct<\/b>/, 'le bandeau, la pastille « en direct »');
+  assert.match(html, /^<section class="jeu-direct(?: has-reagir)?(?: is-reagir-neuf)?" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button [^>]*><span class="jeu-direct-live" aria-hidden="true"><\/span><b id="jeu-direct-t">En direct<\/b>/, 'le bandeau, la pastille « en direct »');
   assert.match(html, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true"><svg class="ok"\/><\/i>1\/4<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/);
   assert.match(html, /<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true"><b class="jeu-av is-ok" data-c="1" data-pid="b">@?L<\/b><b class="jeu-av is-pense" data-c="0" data-pid="a">E<\/b>/, 'repliée, les avatars restent dans la barre');
   assert.doesNotMatch(html, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
@@ -273,7 +274,7 @@ test('la dernière minute : le cadre bat en rouge, « Plus qu’une minute ! » 
   assert.ok(cls.has('is-urgent')); assert.equal(s.J.dit.cur.html, 'Plus qu’une minute\u00a0!'); assert.equal(s.J.dit.cur.k, 'minute');
   assert.deepEqual(s.buzz, ['medium']); assert.deepEqual(s.toasts, ['Plus qu’une minute\u00a0!']);
   s.ev('jeuDirectMinute(0)'); assert.deepEqual(s.buzz, ['medium'], 'une fois');
-  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-urgent" id="jeu-direct"/, 'redessiné : toujours rouge');
+  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-urgent(?: has-reagir)?(?: is-reagir-neuf)?" id="jeu-direct"/, 'redessiné : toujours rouge');
   r.done = true; s.ev('jeuDirectMinute(0)'); assert.ok(!cls.has('is-urgent'), 'manche finie : plus rien');
   const t = salle(); t.J.rounds[0].found = { a: 1 }; t.J.rounds[0].t1 = Date.now() - 545000; t.ev('jeuDirectMinute(0)');
   assert.deepEqual(t.buzz, [], 'j’ai déjà trouvé : pas de vibration'); assert.equal(t.J.dit.cur.k, 'minute');
@@ -284,7 +285,7 @@ test('la dernière minute : le cadre bat en rouge, « Plus qu’une minute ! » 
   assert.equal(v.J.dit.cur.k, 'minute', 'seul dans la salle : « Plus qu’une minute ! »');
 });
 
-test('une réaction jaillit de l’avatar de celui qui l’envoie, dans la liste ou dans la barre repliée', () => {
+test('une réaction d’un autre jaillit de son avatar, dans la liste ou dans la barre repliée', () => {
   const s = salle(), made = [], later = [];
   const sec = { plie: false, kids: [], getBoundingClientRect: () => ({ left: 10, top: 100 }), appendChild(b) { this.kids.push(b); b.parent = this; },
     classList: { contains: k => k === 'is-plie' && sec.plie }, querySelector: q => (sec.q = q, { getBoundingClientRect: () => ({ left: 30, top: 120, width: 38 }) }) };
@@ -300,8 +301,11 @@ test('une réaction jaillit de l’avatar de celui qui l’envoie, dans la liste
   sec.plie = true; s.ev("jeuReactPop('b','🔥')"); assert.equal(sec.q, '#jeu-direct-av .jeu-av[data-pid="b"]', 'repliée : depuis la barre');
   s.ctx.document.getElementById = () => null; assert.equal(s.ev("jeuReactPop('b','🔥')"), false, 'sans « En direct » : rien');
   const react = cut("    case 'react':", "    case 'rate':{");
-  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);}'), 'reçue des autres');
-  assert.ok(cut('function jeuReact(e){', '\n}\n').includes('jeuSend({t:\'react\',e});jeuToast(`Toi ${e}`);jeuReactPop(JEU.me,e);'), 'la sienne, tout de suite');
+  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name);}'), 'reçue des autres : de son avatar, et le long de l’écran avec son pseudo (18 h 36)');
+  /* 8 novembre, 18 h 36 : la sienne monte avec celles des autres (« Toi ») ; elle ne jaillit plus de son avatar, juste sous les
+     réactions qu’on vient de toucher dans le cadre */
+  const mienne = cut('function jeuReact(e,btn){', '\n}\n');
+  assert.ok(mienne.includes('jeuSend({t:\'react\',e});jeuToast(`Toi ${e}`);jeuReactBulle(J.me,e);') && !mienne.includes('jeuReactPop('), 'la sienne, tout de suite');
   for (const k of ['html.lq #jeu-root .jd-react{position:absolute;', '@keyframes jdReact{', 'html.lq #jeu-root .jeu-direct{position:relative;'])
     assert.ok(css.includes(k), k);
 });
@@ -309,9 +313,9 @@ test('une réaction jaillit de l’avatar de celui qui l’envoie, dans la liste
 test('réductible : la flèche plie et déplie, le choix est gardé ; plié, il ne reste que la barre', () => {
   const s = salle();
   s.J.rounds[0].found = { b: 1 };
-  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="true" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer\(\)">/);
+  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct(?: has-reagir)?(?: is-reagir-neuf)?" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="true" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer\(\)">/);
   s.store['rq-jeu-direct'] = 'plie';
-  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-plie" [^>]*><div class="jeu-direct-bande"><button [^>]*aria-expanded="false"/);
+  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-plie[^"]*" [^>]*><div class="jeu-direct-bande"><button [^>]*aria-expanded="false"/);
   const cls = new Set(['jeu-direct']), attrs = {};
   s.ctx.document = { getElementById: id => id === 'jeu-direct' ? { classList: { contains: k => cls.has(k), toggle: (k, on) => { if (on) cls.add(k); else cls.delete(k); } } }
     : id === 'jeu-direct-h' ? { setAttribute: (k, v) => { attrs[k] = v; } } : null };

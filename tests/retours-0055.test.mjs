@@ -126,7 +126,7 @@ test('la consigne autonome d’un défi, point par point, avec l’accès au sch
   assert.ok(!app.includes('<summary>Un indice</summary>'), 'pas d’indice');
   assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length + (app.match(/\$\{defiConsigneHTML\(c,\{base:true\}\)\}/g) || []).length, 2, 'défi seul et manche en salle (la base en pastille, 8 novembre, 18 h 28)');
   ctx.c = DEFIS[8];
-  assert.ok(vm.runInContext('defiConsigneHTML(c,{base:true})', ctx).startsWith('<div class="consigne dq"><div class="dq-tete"><span class="tag">La situation</span><span class="dq-chip is-base">Base ' + NOMS[DEFIS[8].base].nom + '</span></div>'), 'en salle : « La situation » et la base');
+  assert.ok(vm.runInContext('defiConsigneHTML(c,{base:true})', ctx).startsWith('<div class="consigne dq has-base"><span class="dq-chip is-base">Base ' + NOMS[DEFIS[8].base].nom + '</span><span class="tag">La situation</span>'), 'en salle : la base posée sur le bord du cadre, puis « La situation » (18 h 36)');
 });
 
 test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se ferme au bout du chrono de son niveau (8 novembre : 10, 15 ou 20 min)', () => {
