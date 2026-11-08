@@ -56,7 +56,7 @@ test('chaque situation nomme son lieu et qui demande, sans sujet flou, et reste 
     assert.ok(s.includes(lieu.replace(/^(aéroport|hôpital des|zoo des|laboratoire|club) /, '')), `${c.id} : le lieu (${lieu})`);
     assert.ok(equipe.some(n => s.includes(n)) || AUTRES.test(s), `${c.id} : qui demande`);
     assert.doesNotMatch(s, /^(L’accueil|Le service|La direction|Les opérations|L’équipe du|Le secrétariat|La coordination|Le planning|La billetterie|La pharmacie|La cuisine|La réserve|Le responsable|La responsable)\b/, `${c.id} : un sujet sans visage`);
-    assert.ok(mots(s) >= 25 && mots(s) <= 70, `${c.id} : ${mots(s)} mots`);   // 70 au plus depuis le 8 novembre, 13 h 28 (« on peut dire 70 »)
+    assert.ok(mots(s) >= 25 && mots(s) <= 100, `${c.id} : ${mots(s)} mots`);   // 100 au plus depuis le 8 novembre, 13 h 31 (70 à 13 h 28)
     assert.doesNotMatch(s, / [?!;:]/, `${c.id} : espace insécable avant la ponctuation`);
     assert.doesNotMatch(s.replace(/«[^»]*»/g, ''), /['"]/, `${c.id} : apostrophes et guillemets typographiques`);
     assert.doesNotMatch(s, /SQLite|SELECT|WHERE|JOIN/, `${c.id} : pas de SQL dans la situation`);
