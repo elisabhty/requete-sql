@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=253">
+<link rel="stylesheet" href="ludique.css?v=254">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35635,7 +35635,8 @@ function jeuDirectJoueurs(n){
        taper dans l’éditeur, c’est « Écrit sa requête » ; une requête manquée, « Teste sa requête ». Rien ne part pour soi. */
     const t=J.koAt&&J.koAt[pid]?now-J.koAt[pid]:-1,w=J.ecritAt&&J.ecritAt[pid]?now-J.ecritAt[pid]:-1;
     const etat=ok?'ok':!jeuPresent(pid)?'parti':t>=0&&t<JEU_TEST_MS?'test':w>=0&&w<JEU_ECRIT_MS?'ecrit':'pense';
-    return {pid,me,vrai,nom:me?'Toi':vrai,c:ordre.indexOf(pid)%6,ok,ms:ok?+r.found[pid]:Infinity,essais,etat,quitte:!!(J.left&&J.left[pid]),pts:tot[pid]||0,gain:gain[pid]||0,serie:jeuDirectSerie(rk,pid,n),i};
+    return {pid,me,vrai,nom:me?'Toi':vrai,c:ordre.indexOf(pid)%6,ok,ms:ok?+r.found[pid]:Infinity,essais,etat,quitte:!!(J.left&&J.left[pid]),pts:tot[pid]||0,gain:gain[pid]||0,serie:jeuDirectSerie(rk,pid,n),i,
+      pays:typeof drapPays==='function'?drapPays(vrai):''};
   });
   const max=Math.max(0,...l.map(x=>x.pts));
   l.forEach(x=>{x.chef=max>0&&x.pts===max;});
@@ -35677,7 +35678,7 @@ function jeuDirectLigne(x,avant){
 function jeuDirectTete(xs,avant){
   const la=xs.filter(x=>x.etat!=='parti'),ok=la.filter(x=>x.ok).length,nb=la.length;   // ceux de la manche, sans ceux partis avant d’avoir trouvé
   return {ok:`<i aria-hidden="true">${JEU_ICO.check}</i>${ok}/${nb}<span class="jeu-sr"> : ${ok>1?`${ok} joueurs ont trouvé`:ok?'1 joueur a trouvé':'personne n’a encore trouvé'}</span>`,
-    av:xs.map(x=>`<b class="jeu-av is-${x.etat}" data-c="${x.c}" data-pid="${jeuDirectPid(x.pid)}">${jeuInitial(x.vrai)}${jeuDirectBulle(x,avant)}</b>`).join(''),nb:`${nb}&nbsp;joueur${nb>1?'s':''}`};
+    av:xs.map(x=>`<b class="jeu-av is-${x.etat}" data-c="${x.c}" data-pid="${jeuDirectPid(x.pid)}">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai,x.pays||''):''}${jeuDirectBulle(x,avant)}</b>`).join(''),nb:`${nb}&nbsp;joueur${nb>1?'s':''}`};
 }
 /* 20 h 39 (« quand quelqu’un tape une requête, on a un … juste au-dessus de lui, et un validé aussi quand la personne a eu juste à la
    manche ») : replié, une bulle sur la tête de chaque avatar dit ce qu’il fait : les trois petits points tant qu’il écrit (pour soi
@@ -35687,18 +35688,19 @@ function jeuDirectBulle(x,avant){
   return x.etat==='ecrit'?`<i class="jd-av-b is-ecrit${neuf}"><b></b><b></b><b></b></i>`:x.etat==='ok'?`<i class="jd-av-b is-ok${neuf}">${JEU_ICO.check}</i>`:'';
 }
 /* Les avatars de la barre, un par un : celui qui n’a pas changé garde son nœud (ses petits points continuent de sauter) ; si l’ordre
-   change (quelqu’un passe devant), la rangée est redessinée. */
+   change (quelqu’un passe devant), la rangée est redessinée. Son drapeau qui arrive compte comme un changement (21 h 04). */
 function jeuDirectAvMaj(el,h){
   if(!el)return;
   if(!el.children||typeof document.createElement!=='function'||typeof el.replaceChildren!=='function'){if(el.innerHTML!==h)el.innerHTML=h;return;}
   const t=document.createElement('template');t.innerHTML=h;
   const neufs=[...t.content.children],vieux=[...el.children];
   if(neufs.length!==vieux.length||neufs.some((x,i)=>x.dataset.pid!==vieux[i].dataset.pid)){el.replaceChildren(...neufs);return;}
-  neufs.forEach((x,i)=>{if(x.className!==vieux[i].className||x.dataset.c!==vieux[i].dataset.c)vieux[i].replaceWith(x);});
+  const cle=e=>[e.className,e.dataset.c,(e.querySelector('.jeu-flag')||{}).textContent||''].join('|');
+  neufs.forEach((x,i)=>{if(cle(x)!==cle(vieux[i]))vieux[i].replaceWith(x);});
 }
 function jeuDirectPid(p){return String(p).replace(/[^\w-]/g,'');}
 function jeuDirectEtats(xs){return Object.fromEntries(xs.map(x=>[jeuDirectPid(x.pid),{etat:x.etat,essais:x.essais,chef:x.chef,place:x.place,serie:x.serie,pts:x.pts}]));}
-function jeuDirectSig(xs){return xs.map(x=>[jeuDirectPid(x.pid),x.etat+(x.quitte?'-q':''),x.essais,x.pts,x.chef?1:0,x.gain,x.serie,x.monte,x.rang].join(':')).join('|');}
+function jeuDirectSig(xs){return xs.map(x=>[jeuDirectPid(x.pid),x.etat+(x.quitte?'-q':''),x.essais,x.pts,x.chef?1:0,x.gain,x.serie,x.monte,x.rang].join(':')+(x.pays?':'+x.pays:'')).join('|');}
 function jeuDirectHTML(n,hud){
   const J=JEU,xs=jeuDirectJoueurs(n);if(!xs.length)return '';
   const avant=J.directVu&&J.directVu.n===n?J.directVu.m:{};
@@ -46751,7 +46753,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-bulle-verre-v2700';
+  const SW_CACHE='requete-2026-11-08-drapeaux-bande-v2701';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

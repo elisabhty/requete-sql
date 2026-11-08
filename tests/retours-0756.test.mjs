@@ -91,5 +91,5 @@ test('le téléchargement et la planche passent par le même dessin', () => {
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-bulle-verre-v2700';") && app.includes("const SW_CACHE='requete-2026-11-08-bulle-verre-v2700';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-drapeaux-bande-v2701';") && app.includes("const SW_CACHE='requete-2026-11-08-drapeaux-bande-v2701';"));
 });
