@@ -129,8 +129,8 @@ test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et
     assert.ok(f.includes(k), k);
   const t = fn('dxFeuilleTouche');
   assert.ok(t.includes("if(e.key==='Escape'){e.preventDefault();e.stopPropagation();defisFeuilleFermer();return;}") && t.includes('f[i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length].focus();'), 'Échap, et Tab qui reste dans la feuille');
-  /* 8 novembre, 15 h 27 : la feuille du code couvre ce qui reste visible au-dessus du clavier ; les autres, l’écran (feuille-code-clavier) */
-  assert.ok(fn('dxFeuilleCaler').includes("const vv=el.dataset.k==='code'?window.visualViewport:null;") && fn('dxFeuilleCaler').includes("el.style.top=(vv?vv.offsetTop:0)+'px';el.style.height=(vv?vv.height:window.innerHeight)+'px';"));
+  /* 8 novembre, 16 h 18 : le cadre couvre l’écran ; la feuille du code, une carte, monte avec le clavier (feuille-code-clavier) */
+  assert.ok(fn('dxFeuilleCaler').includes("el.style.top='0px';el.style.height=el._haut+'px';el.style.bottom='auto';") && fn('dxFeuilleCaler').includes("el.style.setProperty('--dx-clavier',k+'px');"));
   assert.ok(fn('defisCarte').includes('if(!k){defisFeuilleFermer();return;}') && fn('defisCarte').includes('defisFeuilleOuvrir(k);'));
 });
 
