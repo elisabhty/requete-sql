@@ -43,7 +43,7 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
     assert.ok(!app.includes(gone), 'retiré : ' + gone);
   const rules = fn('renderDefisRules');
   /* 17 h 39 : les paliers de temps, +25 du premier coup, le classement entre amis jusqu’au 4e */
-  for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>',
+  for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>',
     '<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>',
     '<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>',
     '<small>Le plus rapide au total passe devant ; même temps : ex æquo</small>'])
@@ -79,7 +79,7 @@ test('ref 4 — le chrono descend jusqu’à 00:00 (6 novembre, 7 h 52 ; depuis 
   /* Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono » */
   assert.ok(!tick.includes('jeu-tbar') && !app.includes('<i class="jeu-tbar"'), 'plus de barre de temps');
   assert.ok(app.includes('id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>'));
-  assert.ok(app.includes('`${fermeHTML}<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];'), 'argent, or, bronze (sous « la salle est fermée » quand le chrono est arrivé à 0)');
+  assert.ok(app.includes('`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];') && !app.includes('fermeHTML'), 'argent, or, bronze (plus de « la salle est fermée » : à 0, la partie continue, 8 novembre, 9 h 31)');
   assert.ok(app.includes("<em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>"), 'chaque ligne : le temps et les points gagnés');
   assert.ok(app.includes("<span class=\"jeu-rk\">${sl?'✓':(medal[x.place-1]||x.place)}</span>"), 'les ex æquo partagent la médaille');
   for (const part of ['html.lq .jeu-timer', 'html.lq .jeu-podium', 'html.lq .jeu-pd i'])

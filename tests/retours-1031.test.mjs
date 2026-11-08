@@ -12,12 +12,12 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 
-function monde({ view = 'play0', ferme = false, closed = false } = {}) {
+function monde({ view = 'play0', closed = false } = {}) {
   const ios = [], mos = [], timers = [];
   let peek = null;
   const body = { appendChild: el => { peek = el; el.isConnected = true; el.remove = () => { el.isConnected = false; if (peek === el) peek = null; }; } };
   const c = vm.createContext({
-    COACH: { kind: 'room', round: 0, diag: '' }, JEU: { view, ferme, rounds: [{ closed, done: false }] },
+    COACH: { kind: 'room', round: 0, diag: '' }, JEU: { view, rounds: [{ closed, done: false }] },
     document: { body, getElementById: id => (id === 'coach-peek' ? peek : null), createElement: () => ({ classList: { add() {} } }) },
     IntersectionObserver: class { constructor(f) { this.f = f; this.off = false; ios.push(this); } observe() {} disconnect() { this.off = true; } },
     MutationObserver: class { constructor(f) { this.f = f; this.off = false; mos.push(this); } observe() {} disconnect() { this.off = true; } },
@@ -40,8 +40,9 @@ test('en jeu : la pastille arrive avec l’indice ; dès que la carte quitte la 
   assert.ok(m.ios[0].off && m.mos[0].off, 'les observateurs sont arrêtés');
 });
 
-test('la carte encore là, mais la manche close ou la salle fermée : la pastille part aussi', () => {
-  for (const change of [J => { J.rounds[0].closed = true; }, J => { J.ferme = true; }, J => { J.view = 'final'; }]) {
+/* 8 novembre, 9 h 31 : le chrono à 0 ne ferme plus la salle, il termine la manche (on passe à ses résultats, « res0 ») */
+test('la carte encore là, mais la manche close, finie au chrono ou la partie finie : la pastille part aussi', () => {
+  for (const change of [J => { J.rounds[0].closed = true; }, J => { J.view = 'res0'; }, J => { J.view = 'final'; }]) {
     const m = monde(), card = { isConnected: true, scrollIntoView() {} };
     m.c.card = card; vm.runInContext('coachPeek(card,true)', m.c);
     change(m.c.JEU);
@@ -51,7 +52,7 @@ test('la carte encore là, mais la manche close ou la salle fermée : la pastill
 });
 
 test('pas de partie en cours : la pastille ne naît pas', () => {
-  for (const o of [{ view: 'final' }, { ferme: true }, { closed: true }]) {
+  for (const o of [{ view: 'final' }, { view: 'res0' }, { closed: true }]) {
     const m = monde(o), card = { isConnected: true, scrollIntoView() {} };
     m.c.card = card; vm.runInContext('coachPeek(card,true)', m.c);
     assert.equal(m.peek(), null, JSON.stringify(o));

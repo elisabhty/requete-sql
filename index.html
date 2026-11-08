@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=219">
+<link rel="stylesheet" href="ludique.css?v=220">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13813,7 +13813,7 @@ function coachPaint(){
    close, et elle ne naît pas sans partie en cours. */
 function coachEnJeu(){
   if(!COACH||COACH.kind!=='room')return true;
-  if(typeof JEU==='undefined'||!JEU||JEU.ferme||!String(JEU.view||'').startsWith('play'))return false;
+  if(typeof JEU==='undefined'||!JEU||!String(JEU.view||'').startsWith('play'))return false;
   const r=JEU.rounds&&JEU.rounds[COACH.round];
   return !!r&&!r.closed&&!r.done;
 }
@@ -27733,7 +27733,7 @@ function renderDefisRules(){
     <h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span>Comment sont calculés les points&nbsp;?</h2>
     <div class="room-rules-niv" role="radiogroup" aria-label="Le barème du niveau">${choix}</div>
     <ul>
-      <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>
+      <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
       <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le premier coup vaut +${JEU_PTS_ESSAI} partout. Le chrono : ${JEU_NIV_MANCHE.f/60000} min en Facile, ${JEU_NIV_MANCHE.m/60000} en Moyen, ${JEU_NIV_MANCHE.d/60000} en Difficile.</small></li>
@@ -34423,7 +34423,9 @@ const JEU_SB='https://ynuenrxozcpkrjdbeftc.supabase.co';
 const JEU_SB_KEY='sb_publishable_xhqZIRNKel3gXW_rH_GajQ_8Jb7iNhv';
 const JEU_HB_MS=15000;
 /* La manche s’arrête quand tout le monde a trouvé, ou quand le chrono arrive à 0 (17 h 39 : les paliers vont au-delà de 7 min) : le
-   chrono descend jusqu’à 00:00 ; à 0, la salle se ferme (jeuExpiree ; Elisa, 6 novembre, 7 h 52). Sa durée suit le niveau du défi
+   chrono descend jusqu’à 00:00. À 0, la salle se fermait (Elisa, 6 novembre, 7 h 52) ; depuis le 8 novembre, 9 h 31 (« passe à la
+   suivante même pour solo »), seule la manche se termine : 0 point pour qui n’a pas trouvé, puis la partie continue, seul comme entre
+   amis (jeuRoundDone, la vue des résultats, « Manche suivante »). Sa durée suit le niveau du défi
    (JEU_NIV_MANCHE, jeuDureeMs) : 20 min pour tous le 6 novembre, 10 min le 8 novembre à 8 h 21 (« 10 min de jeu stp par manche »),
    puis à 8 h 52 « 15 min pour moyen et 20 min par manche pour difficile » : 10 min en Facile, 15 en Moyen, 20 en Difficile. Chaque
    palier tient ainsi dans la manche (Moyen : cinq paliers de 3 min ; Difficile : quatre de 5 min), et un défi plus dur laisse plus de
@@ -35057,7 +35059,7 @@ function jeuOnMsg(m){
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
-      J.g=m.g|0;J.rounds=[];J.over=false;J.ferme=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';
+      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';
       jeuApplyCfg();jeuDrain();
       if(J.ranked&&J.solo&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuNextRound();},100);
       break;}
@@ -35119,12 +35121,6 @@ function jeuPick(){
   return fresh[Math.floor(Math.random()*fresh.length)]||all[0];
 }
 function jeuCur(){const J=JEU;for(let i=J.rounds.length-1;i>=0;i--)if(J.rounds[i])return i;return -1;}
-/* Le chrono de la manche est arrivé à 0 alors que quelqu’un cherchait encore (ni close par l’hôte, ni trouvée par tous) : la salle
-   se ferme (6 novembre, 7 h 52) ; la partie s’arrête là, pour tout le monde. */
-function jeuExpiree(n){
-  const J=JEU,r=J&&n>=0?J.rounds[n]:null;
-  return !!r&&!r.closed&&!r.done&&Date.now()-r.t1>=jeuDureeMs(jeuNivManche(n))&&!jeuLive().every(p=>r.found[p]!=null);
-}
 function jeuRoundDone(n){
   const J=JEU,r=J.rounds[n];if(!r)return false;
   if(r.done||r.closed||Date.now()-r.t1>=jeuDureeMs(jeuNivManche(n)))return true;
@@ -35196,8 +35192,8 @@ function jeuView(){
   const n=jeuCur();
   if(n<0)return jeuRoomEmpty()?'empty':'lobby';
   if(Date.now()<J.rounds[n].t1)return'draw'+n;
-  /* Le chrono à 0 : la salle se ferme, tout le monde passe au bilan ou au podium (6 novembre, 7 h 52). */
-  if(J.ferme||jeuExpiree(n))return'final';
+  /* Le chrono à 0 : la manche est finie (jeuRoundDone), on passe à ses résultats, puis à la suivante (8 novembre, 9 h 31 ; avant, la
+     salle se fermait). */
   /* Seul, la dernière manche finie mène tout droit au bilan, sur la même page (Elisa, 3 novembre, 7 h 31). */
   if(jeuRoundDone(n)&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';
   return (jeuRoundDone(n)?'res':'play')+n;
@@ -35237,7 +35233,6 @@ function jeuTick(){
   jeuHostWatch();
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
-  if(n>=0&&!J.ferme&&jeuExpiree(n))J.ferme=true;   // gardé : un temps qui arrive ensuite ne rouvre pas la salle
   if(el&&n>=0){const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
     /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
     const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
@@ -35524,11 +35519,6 @@ function jeuRender(){
   }else if(v==='final'){
     const sc=jeuScores();
     const cg=jeuCreditGame();
-    /* Le chrono arrivé à 0 (6 novembre, 7 h 52) : la salle est fermée ; l’hôte l’annonce au serveur (plus de manche ni de relance), et
-       la page le dit en une ligne. */
-    const ferme=!!(J.ferme||jeuExpiree(jeuCur()));
-    if(ferme&&host&&!J.over)setTimeout(()=>{if(JEU===J&&!J.over)jeuFinish();},0);
-    const fermeHTML=ferme?`<p class="jeu-ferme" role="status">${lqStkSvg('clock')}<span>Le chrono est arrivé à 0&nbsp;: la salle est fermée.</span></p>`:'';
     const jouees=J.rounds.filter(Boolean).length;
     /* Les points de la partie arrivent en notification, une fois le podium ou le bilan posé. */
     if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);
@@ -35566,7 +35556,7 @@ function jeuRender(){
       const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`
         :!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat is-effort" aria-hidden="true">${chatBonusHtml('effort')}</div>`:'';   // rien trouvé : « Encore un effort ! » (15 h 38)
       html=trophee+head('Fin de la partie',all?(trophee?'Tout trouvé\u00a0!':'Tout trouvé ! 🏆'):'Ton bilan',verdict)+
-        `${fermeHTML}${lastMiss}<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>trouvé${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${avg}</b><small>temps moyen</small></div></div>
+        `${lastMiss}<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>trouvé${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${avg}</b><small>temps moyen</small></div></div>
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rounds">${recap}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
         ${J.solo?(all&&nextNiv?jeuBtn2('level',`Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}`,'jeuNiveauSuivant()'):jeuBtn2('level','Changer de niveau','openJeu()')):jeuBtn2('quit','Quitter la salle','goBack()')}`;
@@ -35581,11 +35571,10 @@ function jeuRender(){
       /* Gagnée entre amis : le trophée aussi (14 h 27) */
       const trophee=winner&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`:'';
       html=trophee+head('Salle de défi · Fin de partie',winner?(trophee?'Tu as gagné\u00a0!':'Tu as gagné ! 🏆'):'Le podium',`${jouees} manche${jouees>1?'s':''} jouée${jouees>1?'s':''}.`)+
-        `${fermeHTML}<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
+        `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
         ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>${tie}</div>`:tie}
-        ${ferme?`<button type="button" class="journey-primary" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`
-          :`${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
-        ${jeuBtn2('quit','Quitter la salle','goBack()')}`}
+        ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
+        ${jeuBtn2('quit','Quitter la salle','goBack()')}
         ${jeuBtn2('amis','Retrouver mes adversaires','jeuVersAdversaires()')}
         <div id="jeu-netslot">${jeuNetHTML()}</div>`;
       if(winner)setTimeout(celebrate,300);
@@ -35620,10 +35609,20 @@ function jeuRender(){
   if(focusKey){const f=root.querySelector(`[data-fk="${focusKey}"]`);if(f&&f.focus)f.focus({preventScroll:true});}
   const scr=document.getElementById('scr-lesson');if(scr&&!keep)scr.scrollTop=0;
 }
+/* Une manche finie au chrono sans que tout le monde ait trouvé (8 novembre, 9 h 31 : la partie continue) : le serveur la garde
+   ouverte jusqu’à sa fin, à son heure à lui, et refuserait d’ici là la manche suivante (« manche en cours ») ou la fin de partie. On
+   attend donc ce moment, avec 2 s de marge pour l’écart des horloges ; le bouton reste éteint en attendant. */
+function jeuAttenteFin(n){
+  const J=JEU,r=J&&n>=0?J.rounds[n]:null;
+  if(!r||r.closed||r.done||jeuLive().every(p=>r.found[p]!=null))return 0;
+  return Math.max(0,r.t1+jeuDureeMs(jeuNivManche(n))+2000-Date.now());
+}
 function jeuNextRound(){
   const J=JEU;if(!J||!jeuIsHost())return;
   const n=jeuCur()+1;if(n>=J.nb)return;
   const btn=document.getElementById('jeu-go');if(btn)btn.disabled=true;
+  const att=jeuAttenteFin(n-1);
+  if(att>0){setTimeout(()=>{if(JEU===J&&jeuCur()===n-1)jeuNextRound();},att);return;}
   /* Personne d’autre dans la salle : la manche se joue comme seul (pas de bonus de rang, Elisa, 31 octobre, 16 h 29 : « si personne
      ne rejoint la salle, alors c’est comme si on est seule »). Le drapeau voyage avec la manche : le même chez tous.
      6 novembre, 15 h 20 : en ligne, le serveur tire le défi parmi ceux qu’aucun joueur présent n’a joués ni trouvés ; celui proposé
@@ -35640,7 +35639,12 @@ function jeuClose(){
     :{ico:'⏱',titre:'Clore la manche pour tout le monde ?',texte:'Ceux qui n’ont pas encore trouvé ne marquent pas de point.',oui:'Clore la manche',non:'Continuer'})
     .then(ok=>{if(ok&&JEU===J&&jeuCur()===n)jeuSend({t:'close',n});});
 }
-function jeuFinish(){if(JEU&&jeuIsHost())jeuSend({t:'end'});}
+function jeuFinish(){
+  const J=JEU;if(!J||!jeuIsHost())return;
+  const att=J.solo?0:jeuAttenteFin(jeuCur());
+  if(att>0){const btn=document.getElementById('jeu-go');if(btn)btn.disabled=true;setTimeout(()=>{if(JEU===J&&!J.over)jeuFinish();},att);return;}
+  jeuSend({t:'end'});
+}
 /* Nouvelle partie dans la même salle (même code, mêmes joueurs). Seul : on enchaîne. */
 /* Une manche manquée, retentée tout de suite : le défi seul, avec son chrono (la partie seule est finie, ses points comptés). */
 function jeuRetenter(cid){
@@ -45989,7 +45993,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-premier-coup-fixe-v2656';
+  const SW_CACHE='requete-2026-11-08-manche-suivante-v2657';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

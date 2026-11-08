@@ -83,12 +83,12 @@ test('« Comment sont calculés les points ? » : le barème du niveau choisi, s
   const m = regles('m');
   /* La manche dure 15 min en Moyen et 20 en Difficile (8 novembre, 8 h 52) : chaque marche tient dans le chrono. */
   assert.deepEqual(m.marches, [[400, '≤ 3'], [350, '3–6'], [300, '6–9'], [250, '9–12'], [200, '12–15']], 'le Moyen : cinq marches de 3 min, jusqu’à la fin du chrono (15 min)');
-  assert.ok(m.h.includes('Le chrono part de 15&nbsp;min&nbsp;; à 0, la salle se ferme.'));
+  assert.ok(m.h.includes('Le chrono part de 15&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
   assert.ok(m.h.includes('<span>jusqu’à 400</span>') && m.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && m.h.includes('<b>🥇 Premier à trouver</b><span>+100</span><small>À plusieurs : 2e +60 · 3e +40 · 4e +20.'));
   assert.ok(m.h.includes('<span>Manche parfaite en Moyen</span><b>425</b><small>seul</small><i aria-hidden="true">·</i><b>525</b><small>à plusieurs</small>'));
   const d = regles('d');
   assert.deepEqual(d.marches, [[800, '≤ 5'], [700, '5–10'], [600, '10–15'], [500, '15–20']], 'le Difficile : quatre marches de 5 min dans une manche de 20 min');
-  assert.ok(d.h.includes('Le chrono part de 20&nbsp;min&nbsp;; à 0, la salle se ferme.') && f.h.includes('Le chrono part de 10&nbsp;min&nbsp;; à 0, la salle se ferme.'));
+  assert.ok(d.h.includes('Le chrono part de 20&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.') && f.h.includes('Le chrono part de 10&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
   assert.ok(d.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && d.h.includes('<span>Manche parfaite en Difficile</span><b>825</b><small>seul</small><i aria-hidden="true">·</i><b>1\u202f025</b>'), '1 025, avec l’espace des milliers');
   assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×4</small></button>'));
   assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 3' + NB + 'min' + NB + '; en Difficile, quadruple et 5' + NB + 'min. Le premier coup vaut +25 partout. Le chrono' + NB + ': 10' + NB + 'min en Facile, 15 en Moyen, 20 en Difficile.</small></li>'));
