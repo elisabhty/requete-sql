@@ -31,7 +31,8 @@ test('en jeu : la pastille arrive avec l’indice ; dès que la carte quitte la 
   const m = monde(), card = { isConnected: true, scrollIntoView() {} };
   m.c.card = card; vm.runInContext('coachPeek(card,true)', m.c);
   const b = m.peek();
-  assert.ok(b && b.id === 'coach-peek' && b.innerHTML.includes('Nouvel indice · le voir'));
+  /* 8 novembre, 19 h 18 : un indice qui arrive, même sans essai raté, se dit « Un coup de patte ? · voir l’indice » */
+  assert.ok(b && b.id === 'coach-peek' && b.innerHTML.includes('Un coup de patte\u00a0? · voir l’indice'));
   m.ios[0].f([{ isIntersecting: false }]); assert.equal(b.hidden, false, 'la carte hors de l’écran : la pastille se montre');
   /* La salle passe au bilan : tout l’écran est remplacé, la carte n’est plus dans la page */
   card.isConnected = false; m.c.JEU.view = 'final';

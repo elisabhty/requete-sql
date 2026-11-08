@@ -316,7 +316,8 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   const tick = fn('jeuTick');
   assert.ok(tick.includes("const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;"), 'le palier du niveau change avec le chrono (6 novembre, 15 h)');
   assert.ok(tick.includes("pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');"), 'un petit saut quand il change');
-  assert.ok(app.includes('<span class="jeu-hud-r">${val}<b class="jeu-timer'), 'à côté du chrono (dans le cadre de la manche depuis le 8 novembre, 17 h 48)');
+  /* Dans le cadre de la manche depuis le 8 novembre, 17 h 48 ; 19 h 18 : le chrono est posé sur le bord du cadre, juste au-dessus d’elle */
+  assert.ok(app.includes('<span class="jeu-hud-r">${val}</span>') && app.includes('const chrono=`<b class="jeu-timer'), 'sous le chrono, posé sur le bord du cadre');
   /* Le premier essai manqué : le « +25 » s’envole */
   const run = fn('jeuRun');
   assert.ok(run.includes('r.tries=(r.tries||0)+1;') && run.includes("jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});"), 'chaque exécution est un essai ; le premier juste est annoncé à tous');

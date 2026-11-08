@@ -23,6 +23,7 @@ test('sa propre ligne suit ce qu’on fait : écrire, tester (sans rien envoyer 
 test('« Un coup de patte ? » au lieu de « Pas encore », dans la carte des indices et sur la pastille qui y ramène', () => {
   assert.ok(fn('defiIndicesHTML').includes('<span class="coach-st-k">Un coup de patte&nbsp;?</span><p>${diag}</p>'));
   const peek = fn('coachPeek');
-  assert.ok(peek.includes("${COACH.diag?(hint?'Un coup de patte\\u00a0? · voir l’indice':'Un coup de patte\\u00a0? · voir pourquoi'):'Nouvel indice · le voir'}"));
+  /* 19 h 18 : la pastille dit toujours « Un coup de patte ? », un indice qui arrive sans essai raté aussi */
+  assert.ok(peek.includes("Un coup de patte\\u00a0? · ${hint||COACH.n>0?'voir l’indice':'voir pourquoi'}"));
   assert.ok(!fn('defiIndicesHTML').includes('Pas encore</span>') && !peek.includes('Pas encore'));
 });
