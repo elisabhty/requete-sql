@@ -40,22 +40,27 @@ test('la base : une pastille posée à cheval sur le bord du cadre, en haut à d
   assert.ok(seul.startsWith('<div class="consigne dq"><span class="tag">La situation</span><p class="defi-ctx">') && !seul.includes('is-base'));
 });
 
-test('la situation finit toujours sur « À toi de jouer ! Tu peux consulter le schéma… », une seule fois', () => {
-  assert.ok(app.includes(`const DEFI_A_TOI='${PHRASE}';`), 'l’espace insécable avant « ! »');
-  assert.ok(cut('function defiConsigneHTML(c,o){', '\n}\n').includes('<p class="defi-ctx">${escCode(defiSituation(c.situation))}</p>'), 'au rendu, en salle comme sur la page d’un défi');
+test('« À toi de jouer ! Tu peux consulter le schéma… » sous chaque situation, dans un cadre gris clair (18 h 36, 19 h 57)', () => {
+  assert.ok(app.includes("const DEFI_A_TOI=['À toi de jouer\\u00a0!','Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.'];"), 'l’espace insécable avant « ! »');
+  assert.ok(app.includes('function defiAToiHTML(){return `<div class="dq-atoi"><b>${DEFI_A_TOI[0]}</b> ${DEFI_A_TOI[1]}</div>`;}'));
+  assert.ok(cut('function defiConsigneHTML(c,o){', '\n}\n').includes('<p class="defi-ctx">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}'), 'au rendu, en salle comme sur la page d’un défi');
   const ctx = vm.createContext({});
   vm.runInContext(cut('const DEFI_A_TOI=', '\nfunction defiConsigneHTML(c,o){').replace(/^const /gm, 'var '), ctx);
+  assert.equal(vm.runInContext('defiAToiHTML()', ctx), `<div class="dq-atoi"><b>À toi de jouer${NB}!</b> Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.</div>`);
   const data = vm.runInNewContext(app.slice(app.indexOf('const CHALLENGES=['), app.indexOf('const NIV=')) + ';({challenges:CHALLENGES})');
   assert.equal(data.challenges.length, 477);
   for (const c of data.challenges) {
     ctx.s = c.situation;
-    const t = vm.runInContext('defiSituation(s)', ctx);
-    assert.ok(t.endsWith(' ' + PHRASE), `${c.id} : la phrase pour finir`);
-    assert.equal(t.split('À toi de jouer').length, 2, `${c.id} : « À toi de jouer » une seule fois`);
-    assert.equal(t.slice(0, -PHRASE.length).trim(), c.situation.replace(/\s*À toi de jouer\s*!$/, '').trim(), `${c.id} : la situation elle-même ne change pas`);
+    const t = vm.runInContext('defiSituationSeule(s)', ctx);
+    assert.ok(!t.includes('À toi de jouer'), `${c.id} : l’appel quitte le récit`);
+    assert.equal(t, c.situation.replace(/\s*À toi de jouer\s*!$/, '').trim(), `${c.id} : la situation elle-même ne change pas`);
+    assert.ok(/[.!?…»)]$/.test(t), `${c.id} : la situation finit sur sa ponctuation`);
   }
   ctx.s = 'Une situation sans la fin habituelle.';
-  assert.equal(vm.runInContext('defiSituation(s)', ctx), 'Une situation sans la fin habituelle. ' + PHRASE, 'une autre fin : la phrase s’ajoute aussi');
+  assert.equal(vm.runInContext('defiSituationSeule(s)', ctx), 'Une situation sans la fin habituelle.', 'une autre fin : rien n’est coupé');
+  for (const r of ['html.lq .consigne.dq .dq-atoi{margin:12px 0 0;padding:11px 14px 12px;border-radius:14px;background:#F4F3F7;box-shadow:inset 0 0 0 1.5px #E9E7F0;',
+    'html.lq .consigne.dq .dq-atoi b{color:var(--ink);font-weight:800}', 'html.lq .consigne.dq>.dq-atoi+.dq-sec{margin-top:14px}'])
+    assert.ok(css.includes(r), r);
 });
 
 /* Un faux DOM pour « Réagir » et les bulles : la page, le bouton posé en bas à droite, le calque des réactions et ses bulles. */
@@ -98,7 +103,7 @@ function monde({ reduit = false, live = ['a', 'b'], solo = false, view = 'play0'
 
 test('« Réagir » : un bouton posé en bas à droite de l’écran, pendant la manche, dans toute salle (même seule) ; plus dans le cadre', () => {
   const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
-  assert.ok(!play.includes('jeuReagirHTML') && play.includes("${JEU_NIVL[c.niv]}</span></span></div>`;"), 'la ligne du niveau n’a plus que le niveau');
+  assert.ok(!play.includes('jeuReagirHTML') && play.includes("${JEU_NIVL[c.niv]}</span>${val}</span></div>`;"), 'la ligne du niveau : le niveau et ce que vaut le défi');
   assert.ok(!cut('function jeuDirectHTML(n,hud,chrono){', '\n}\n').includes('reagir'), 'le cadre ne s’en occupe plus');
   const m = monde(), h = m.ev('jeuReagirHTML()');
   assert.ok(h.startsWith('<div class="jeu-reagir" id="jeu-reagir"><button type="button" class="jeu-reagir-b" id="jeu-reagir-b" aria-expanded="false" aria-controls="jeu-reagir-l" aria-label="Réagir" onclick="jeuReagirBasculer(event)">'));
@@ -222,10 +227,12 @@ test('reçue d’un autre : de son avatar et le long de l’écran ; la carte «
 test('le style : « Réagir », la pastille violette posée en bas à droite ; effacé quand on écrit ; au-dessus de « Un coup de patte ? »', () => {
   for (const r of ['html.lq .jeu-reagir{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:91;',
     'html.lq .jeu-reagir.is-ecrit{opacity:0;visibility:hidden;translate:0 18px;pointer-events:none;',
-    'html.lq .jeu-reagir.is-haut:not(.is-ecrit){translate:0 -62px}', 'html.lq body:has(.viz.on) .jeu-reagir{opacity:0;visibility:hidden;pointer-events:none}',
+    'html.lq .jeu-reagir.is-haut:not(.is-ecrit){translate:0 -58px}', 'html.lq body:has(.viz.on) .jeu-reagir{opacity:0;visibility:hidden;pointer-events:none}',
     'html.lq body:has(>.jeu-reagir) #jeu-root{padding-bottom:76px}',
-    'background:var(--accent);color:#fff;font:800 15px/1 var(--display);box-shadow:0 4px 0 var(--accent-ink),0 14px 28px -12px rgba(40,20,140,.55);',
-    'html.lq .jeu-reagir-b>svg{flex:none;width:21px;height:21px;color:var(--sun-hi)}',
+    /* 19 h 57 : « mets le bouton Réagir en plus fin » */
+    'gap:6px;height:38px;margin:0;padding:0 14px 0 10px;border:2px solid #fff;border-radius:999px;',
+    'background:var(--accent);color:#fff;font:800 13.5px/1 var(--display);box-shadow:0 3px 0 var(--accent-ink),0 10px 22px -12px rgba(40,20,140,.5);',
+    'html.lq .jeu-reagir-b>svg{flex:none;width:18px;height:18px;color:var(--sun-hi)}', 'html.lq .jeu-reagir.is-ouvert .jeu-reagir-b{width:38px;padding:0}',
     'html.lq .jeu-reagir.is-ouvert .jeu-reagir-b>.jeu-reagir-x{display:block}',
     'html.lq .jeu-reagir.is-ouvert .jeu-reagir-l{display:flex;transform-origin:right center;animation:jeuReagirTray .32s cubic-bezier(.3,1.35,.5,1) backwards}',
     'html.lq .jeu-reagir.is-neuf .jeu-reagir-b>svg:first-child{animation:jeuReagirSalut 1.3s ease-in-out .9s 2}',

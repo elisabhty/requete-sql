@@ -28,11 +28,11 @@ test('le style : à cheval sur le bord, en haut à droite, un rien penché ; le 
   for (const r of ['html.lq #jeu-root .jeu-direct:has(>.jeu-timer){margin-top:32px}',
     'html.lq #jeu-root .jeu-direct>.jeu-timer{position:absolute;top:0;right:16px;z-index:3;height:34px;box-sizing:border-box;padding:0 13px 0 11px!important;',
     'font-size:17px!important;box-shadow:0 3px 0 #C98F00;translate:0 -50%;rotate:-2deg}', 'html.lq #jeu-root .jeu-direct>.jeu-timer.is-low{box-shadow:0 3px 0 #B8323A}',
-    'html.lq #jeu-root .jeu-direct:has(>.jeu-timer) .jeu-hud{padding-top:30px}',
-    '  html.lq #jeu-root .jeu-direct>.jeu-timer{right:12px;padding:0 11px 0 9px!important;font-size:16px!important}',
-    '  html.lq #jeu-root .jeu-direct:has(>.jeu-timer) .jeu-hud{padding-top:28px}}'])
+    '  html.lq #jeu-root .jeu-direct>.jeu-timer{right:12px;padding:0 11px 0 9px!important;font-size:16px!important}}'])
     assert.ok(css.includes(r), r);
   assert.ok(!css.includes('.jeu-hud .jeu-timer'), 'les règles du chrono dans la tête sont parties');
+  /* 19 h 57 : sa moitié du dedans pend au-dessus de la ligne du niveau et des points ; la tête du cadre garde sa marge de toujours */
+  assert.ok(!css.includes(':has(>.jeu-timer) .jeu-hud'));
   /* Le bandeau coupe ce qui dépasse (ses coins arrondis, sa grille) : le chrono n’est donc pas dedans */
   assert.ok(css.includes('html.lq #jeu-root .jeu-direct-bande{position:relative;z-index:1;isolation:isolate;overflow:hidden;'));
   assert.ok(css.includes('html.lq #jeu-root .jeu-direct{position:relative;'), 'la section le place');
