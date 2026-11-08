@@ -493,10 +493,11 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 150); s.found(); sec(w, 1);  /* vers 150 s */
   const rk = s.ev('JEU.rounds.map((r,i)=>jeuRanking(i)[0])');
   assert.deepEqual(rk.map(x => x.rang), [0, 0, 0], 'seul : pas de bonus de rang');
-  /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la partie est en Moyen, tous les points comptent double et chaque palier dure
-     3 min (retours-1242) : trouvés en moins de 3 min, les trois défis valent 400, plus 50 du premier coup */
-  assert.deepEqual(rk.map(x => x.pts), rk.map(x => 2 * (valeur(Math.floor(x.ms / 3)) + 25)), 'seul : le palier du Moyen, et le premier coup, ×2');
-  assert.deepEqual(rk.map(x => x.pts), [450, 450, 450], 'vers 20 s, 80 s et 150 s : 400, plus 50 du premier coup');
+  /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la partie est en Moyen, les points de vitesse comptent double et chaque palier
+     dure 3 min (retours-1242) ; 8 novembre, 9 h 17 : le premier coup reste à +25. Trouvés en moins de 3 min, les trois défis valent
+     400, plus 25 du premier coup */
+  assert.deepEqual(rk.map(x => x.pts), rk.map(x => 2 * valeur(Math.floor(x.ms / 3)) + 25), 'seul : le palier du Moyen ×2, et le premier coup');
+  assert.deepEqual(rk.map(x => x.pts), [425, 425, 425], 'vers 20 s, 80 s et 150 s : 400, plus 25 du premier coup');
   s.ev('jeuFinish()'); sec(w, 1);
   assert.equal(s.view(), 'final'); assert.match(s.html, /Tout trouvé/); assert.match(s.html, /Rejouer/);
   assert.equal(s.ev('state.salle.pts'), rk.reduce((a, x) => a + x.pts, 0)); assert.equal(s.ev('state.salle.parties'), 1);
@@ -521,7 +522,7 @@ test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pa
   assert.equal(s.ev('Object.keys(state.defis).length'), 0);
 });
 
-test('solo : en Moyen, la manche dure 15 min au plus (8 novembre, 8 h 52) ; trouvée à 8 min, elle rapporte encore 300 (+50 du premier coup)', () => {
+test('solo : en Moyen, la manche dure 15 min au plus (8 novembre, 8 h 52) ; trouvée à 8 min, elle rapporte encore 300 (+25 du premier coup)', () => {
   const w = new World();
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=2;jeuNiv='m'");
   s.ev("jeuStart('SOLO44',true,null,{solo:true})"); sec(w, 4);
@@ -530,13 +531,13 @@ test('solo : en Moyen, la manche dure 15 min au plus (8 novembre, 8 h 52) ; trou
   assert.equal(s.ev('jeuValeur(Date.now()-JEU.rounds[0].t1)'), 50, 'en Facile, le défi vaudrait 50 au-delà de 7 min');
   assert.equal(s.ev("jeuValeur(Date.now()-JEU.rounds[0].t1,'m')"), 300, 'en Moyen, les paliers durent 3 min : entre 6 et 9 min, 150 × 2');
   s.found(); sec(w, 1);
-  assert.equal(s.ev('jeuRanking(0)[0].pts'), 350, '300, plus 50 du premier coup (×2 en Moyen, 6 novembre, 15 h)');
+  assert.equal(s.ev('jeuRanking(0)[0].pts'), 325, '300, plus 25 du premier coup (le palier ×2 en Moyen, 6 novembre, 15 h ; le premier coup fixe, 8 novembre, 9 h 17)');
   s.ev('jeuNextRound()'); sec(w, 4);
   assert.match(s.html, /role="timer" aria-label="Temps restant de la manche">(15:00|14:5\d)<\/b>/, 'le chrono du Moyen part de 15:00');
   sec(w, 14.5 * 60); assert.equal(s.view(), 'play1', 'à 14 min 30, on cherche encore');
   sec(w, 31); assert.equal(s.view(), 'final', 'à 15 min (le chrono à 0), la manche s’arrête, et le bilan suit sur la même page (3 novembre, 7 h 31)');
   assert.match(s.html, /class="jeu-bilan.*class="jr is-ok".*class="jr is-miss".*Temps écoulé.*jeuRetenter\(/s, "le bilan : la manche trouvée, puis la manquée « Temps écoulé », à retenter (3 novembre, 7 h 42)");
-  assert.equal(s.ev('state.salle.pts'), 350);
+  assert.equal(s.ev('state.salle.pts'), 325);
 });
 
 /* Elisa, 31 octobre, 17 h 53 : « laisse tomber le fait qu’un défi ne peut pas être rejoué s’il est réussi : il peut être rejoué, et ne
