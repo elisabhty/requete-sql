@@ -14,8 +14,8 @@ const data = vm.runInNewContext(app.slice(app.indexOf('const CHALLENGES=['), app
 const mots = s => String(s || '').split(/[\s ]+/).filter(Boolean).length;
 
 test('la consigne s’ouvre sur « La situation » ; l’ancien format (une question seule) garde « La question »', () => {
-  const i = app.indexOf('function defiConsigneHTML(c){'), f = app.slice(i, app.indexOf('\n}\n', i));
-  assert.ok(f.includes('<span class="tag">La situation</span>${c.situation?'));
+  const i = app.indexOf('function defiConsigneHTML(c,o){'), f = app.slice(i, app.indexOf('\n}\n', i));
+  assert.ok(f.includes(":'<span class=\"tag\">La situation</span>';") && f.includes('<div class="consigne dq">${tete}${c.situation?'), 'en salle, la base en pastille à côté (8 novembre, 18 h 28)');
   assert.ok(f.includes('<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||\'\')'));
 });
 

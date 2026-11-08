@@ -23,5 +23,5 @@ test('les contextes du lot Moyen définissent seuls le résultat et les règles 
   assert.ok(T(D('am4')).includes('le prix moyen des billets « Économique »'), 'la référence est la classe Économique');
   assert.ok(T(D('af33')).includes('statut') && D('af33').niv === 'f');
   assert.match(T(D('am9')), /avant arrondi, dépasse strictement 3 %/);
-  assert.ok(!cut('function defiConsigneHTML(c){', '\n}').includes('indice'), 'pas d’indice au départ dans la consigne');
+  assert.ok(!cut('function defiConsigneHTML(c,o){', '\n}').includes('indice'), 'pas d’indice au départ dans la consigne');
 });
