@@ -59,7 +59,8 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
   assert.ok(r.includes("if(fromDraw&&!prefersReduceMotion()&&root.getBoundingClientRect){"), 'pas de fondu en mouvement réduit');
   assert.ok(r.includes("if(ghost){root.appendChild(ghost);setTimeout(()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);},560);}"));
   assert.ok(r.includes("const fromDraw=/^draw/.test(J.view||'')&&v==='play'+J.view.slice(4);"));
-  assert.ok(r.includes("if(fromDraw&&root.children){Array.from(root.children).forEach((el,i)=>{if(el.style)el.style.setProperty('--k',Math.min(i,7));});root.classList.add('jeu-cascade');}"));
+  /* 8 novembre, 23 h 44 : l’ancre de la barre collée du chrono (sans hauteur, en tête) ne compte pas dans la cascade (retours-2344) */
+  assert.ok(r.includes("if(fromDraw&&root.children){Array.from(root.children).filter(el=>!(el.classList&&el.classList.contains('jeu-collee-ancre'))).forEach((el,i)=>{if(el.style)el.style.setProperty('--k',Math.min(i,7));});root.classList.add('jeu-cascade');}"));
   /* La cascade en vrai : un tirage puis la manche, avec de faux éléments */
   const kids = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(() => ({ style: { props: {}, setProperty(k, v) { this.props[k] = v; } } }));
   const cls = new Set();

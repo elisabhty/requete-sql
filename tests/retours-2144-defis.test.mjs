@@ -63,7 +63,7 @@ test('Jouer : « Lance un défi ! », « Créer ma partie », « Rejoindre avec 
   for (const vieux of ["'J’ai un code','rejoindre un ami'", "'Seul','entraînement'", '<span>Créer une salle</span>', '<h2 id="dx-rapide-h">Ta salle de défi</h2>', "['Entraînement','Joue seul',"])
     assert.ok(!app.includes(vieux), vieux);
   /* « Aucune salle à ton niveau ? » : seulement quand il n’y en a aucune à ce niveau (déjà le cas) */
-  assert.ok(fn('sallesSectionHTML').includes("corps=ici.length?`<ul class=\"dx-list\">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`\n      :`<p class=\"dx-vide is-aucune\">Aucune salle à ton niveau&nbsp;?"));
+  assert.ok(fn('sallesSectionHTML').includes("corps=ici.length?`<ul class=\"dx-list\">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`\n      :ma?ancre   // « Ta salle » est là : pas de « Crée la tienne » (23 h 44)\n      :`<p class=\"dx-vide is-aucune\">Aucune salle à ton niveau&nbsp;?"), '8 novembre, 23 h 44 : sauf quand « Ta salle » est là (retours-2344)');
 });
 
 test('Jouer : ce que rapporte un niveau, plus visible : « ×2 pts » (plus « Plus c’est dur, plus ça rapporte » depuis le 8 novembre)', () => {

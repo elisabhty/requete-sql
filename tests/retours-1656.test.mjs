@@ -63,7 +63,7 @@ test('un lien par un nom : questions.categorie → categories.name, avec sa join
   const m = ctx.umlModele(d, ['categories', 'levels', 'questions'], true);
   assert.deepEqual(pur(m.liens.map(l => [l.de, l.col, l.vers, l.versCol, l.un, l.plusieurs, !!l.devine])), [['questions', 'categorie', 'categories', 'name', '1', '0..*', true]]);
   assert.equal(ctx.umlJoin(m, m.liens[0]), 'FROM questions JOIN categories ON questions.categorie = categories.name');
-  assert.ok(ctx.importRetourHtml(d, ['categories', 'levels', 'questions'], null, true).includes('<p class="imp-liens">Lien trouvé&nbsp;: <code>questions.categorie</code> → <code>categories</code>.</p>'));
+  assert.ok(ctx.importRetourHtml(d, ['categories', 'levels', 'questions'], null, true).includes('<p class="imp-liens">Relation trouvée&nbsp;: <code>questions.categorie</code> → <code>categories</code>.</p>'));
   /* Une valeur absente de la table désignée, ou des doublons dans sa colonne : pas de lien */
   d.run("INSERT INTO questions VALUES ('DA-200','Inconnue','Avancé')");
   assert.equal(ctx.umlModele(d, ['categories', 'levels', 'questions'], true).liens.length, 0);

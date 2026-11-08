@@ -71,7 +71,8 @@ test('14 h 33 : un seul cadre pour « Pas encore » et l’indice ; en salle, le
   assert.ok(app.includes("${coach?'<div id=\"hint-slot\"></div>':''}"), 'la carte des indices');
   assert.ok(app.includes("if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}"), 'défi seul');
   assert.ok(app.includes('const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;'), 'en salle : le temps de la manche, le même pour tous');
-  assert.ok(app.includes("pour tout le monde dans <b id=\"coach-cd\">${jeuChrono(next)}</b>"));
+  /* 8 novembre, 23 h 44 : seul, plus de « pour tout le monde » (retours-2344) */
+  assert.ok(app.includes("${n?'Indice suivant':'Premier indice'}${seul?'':' pour tout le monde'} dans <b id=\"coach-cd\">${jeuChrono(next)}</b>"));
   /* 8 novembre, 17 h 48 : la barre est entrée dans le cadre de la manche ; 18 h 28 : la base, en pastille de « La situation » ; 18 h 36 :
      posée à cheval sur le bord du cadre, en haut à droite */
   assert.ok(app.includes("const base=o&&o.base&&nom?`<span class=\"dq-chip is-base\">Base ${esc(nom)}</span>`:'';"));
