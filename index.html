@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=223">
+<link rel="stylesheet" href="ludique.css?v=224">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35578,13 +35578,14 @@ function jeuRender(){
       const verdict=all?(nT>1?`Les ${nT} défis trouvés, niveau ${nivL}.`:`Défi trouvé, niveau ${nivL}.`)
         :nOk*2>=nT&&nOk?`Bien joué\u00a0: ${nOk} défi${nOk>1?'s':''} sur ${nT}, niveau ${nivL}.`
         :nOk?`${nOk} défi sur ${nT}\u00a0: retente ceux qui t’ont échappé.`
-        :`Aucun défi trouvé cette fois\u00a0: retente-le${nT>1?'s':''} à tête reposée.`;
-      const lastR=rows.length?rows[rows.length-1]:null,lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,true):'';
+        :`Aucun défi trouvé cette fois\u00a0: <span class="jeu-nw">retente-le${nT>1?'s':''}</span> à tête reposée.`;   // « retente-le » d’un bloc, à côté du chat (8 novembre)
+      const lastR=rows.length?rows[rows.length-1]:null,lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';
       const ICO_OK='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12.5l4 4 8-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const ICO_KO='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
       const recap=rows.map((x,i)=>{
         const k=J.rounds.indexOf(x.r),ok=x.ms!=null,y=ok?jeuRanking(k).find(z=>z.pid===J.me):null;
-        const why=x.r.closed?(J.solo?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
+        /* Seul dans sa salle et hôte, c’est soi qui a quitté la manche : « Abandonnée », comme la carte du haut (8 novembre, 10 h 24) */
+        const why=x.r.closed?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
         return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ICO_KO}</span>
           <div class="jr-t"><small class="jr-n">Manche ${i+1}</small><b>${esc(x.c.titre)}</b>
           <span class="jr-meta">${ok?`<i class="jr-time">Trouvé en ${dur(x.ms)}</i>${y?jeuPtsDetail(y):''}`:`<i class="jr-why">${why}</i>`}</span>
@@ -46056,7 +46057,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-suite-auto-v2660';
+  const SW_CACHE='requete-2026-11-08-chat-entier-v2661';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
