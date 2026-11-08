@@ -30,7 +30,7 @@ function rulesHTML({ io = false } = {}) {
 
 test('le cadre « Comment on marque des points » : les paliers en marches, le premier coup, le classement, la manche parfaite', () => {
   const { h, sec } = rulesHTML();
-  assert.ok(h.includes('<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à 200</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de 10&nbsp;min&nbsp;; à 0, la salle se ferme.</small>'), 'le chrono de 10 min (8 novembre, 8 h 21)');
+  assert.ok(h.includes('<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à 200</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de 10&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>'), 'le chrono de 10 min (8 novembre, 8 h 21) ; à 0, la partie continue (9 h 31)');
   const steps = [...h.matchAll(/<li style="--h:(\d+)px;--i:(\d)"><b>(\d+)<\/b><i aria-hidden="true"><\/i><small aria-hidden="true">([^<]+)<\/small><em class="lq-sr"> points ([^<]+)<\/em><\/li>/g)]
     .map(m => [+m[3], m[4], m[5], +m[1]]);
   assert.deepEqual(steps.map(s => s.slice(0, 3)), [

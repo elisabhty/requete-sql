@@ -1042,10 +1042,10 @@ test('base : l’appli et les fonctions SQL de supabase/migrations restent d’a
 });
 
 /* Elisa, 6 novembre, 7 h 52 : « faire partir le chrono de 20 min pour passer à 0 et fermeture de la salle » (chaque manche) : le chrono
-   descend jusqu’à 00:00 ; arrivé à 0 alors que quelqu’un cherche encore, la salle se ferme pour tout le monde : la partie s’arrête là
-   (le podium ou le bilan, « la salle est fermée », plus de manche ni de relance entre amis) ; l’hôte l’annonce au serveur. 8 novembre,
-   8 h 21 : « 10 min de jeu stp par manche » : il part de 10:00. */
-test('6 novembre, 7 h 52 (en Facile, 10 min depuis le 8 novembre) : le chrono descend de 10:00 ; à 0, la salle se ferme pour tout le monde', () => {
+   descend jusqu’à 00:00 ; 10:00 en Facile depuis le 8 novembre. 8 novembre, 9 h 31 (« passe à la suivante même pour solo ») : à 0, la
+   salle ne se ferme plus ; seule la manche se termine. Qui n’a pas trouvé marque 0 point (la carte « Temps écoulé »), les résultats de
+   la manche s’affichent, et l’hôte lance la suivante, une fois la manche finie aussi sur le serveur (2 s de marge, jeuAttenteFin). */
+test('8 novembre, 9 h 31 : à 0, la manche s’arrête, 0 point pour qui n’a pas trouvé, et la partie continue (le chrono de 10:00 en Facile)', () => {
   const { w, host, guests } = room({ n: 2, nb: 3 });
   host.ev('jeuNextRound()'); sec(w, 4.5);
   assert.match(host.html, /role="timer" aria-label="Temps restant de la manche">(10:00|09:5\d)<\/b>/, 'le temps qui reste');
@@ -1055,17 +1055,17 @@ test('6 novembre, 7 h 52 (en Facile, 10 min depuis le 8 novembre) : le chrono de
   host.found(); sec(w, 2);
   sec(w, 9.5 * 60);
   assert.equal(guests[0].view(), 'play0', 'à 9 min 30, l’ami cherche encore');
-  sec(w, 31);
-  for (const c of [host, ...guests]) { assert.equal(c.view(), 'final', c.name); assert.equal(c.J('ferme'), true, c.name); }
-  assert.equal(host.J('over'), true, 'l’hôte a annoncé la fin');
-  assert.equal(guests[0].J('over'), true, 'et tout le monde l’a reçue');
-  for (const c of [host, ...guests]) {
-    assert.ok(c.html.includes('Le chrono est arrivé à 0&nbsp;: la salle est fermée.') && c.html.includes('1 manche jouée.'), c.name);
-    assert.ok(c.html.includes('onclick="openJeu()"><span>Revenir aux défis</span>') && !c.html.includes('Rejouer dans cette salle') && !c.html.includes('L’hôte peut relancer'), c.name);
-  }
-  assert.equal(host.J('rounds.length'), 1, 'pas de deuxième manche');
-  host.ev('jeuNextRound()'); sec(w, 2);
-  assert.equal(host.view(), 'final', 'la salle reste fermée');
+  sec(w, 28);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' : les résultats de la manche');
+  assert.ok(guests[0].html.includes('Temps écoulé') && guests[0].html.includes('Le chrono est arrivé à 0 avant que tu valides ta réponse.'), 'l’ami : 0 point, « Temps écoulé »');
+  assert.ok(host.html.includes('<span>Manche suivante</span>') && !host.html.includes('la salle est fermée') && !host.html.includes('Revenir aux défis'), 'l’hôte peut lancer la suivante');
+  assert.equal(host.J('over'), false, 'la partie continue');
+  assert.ok(host.ev('jeuAttenteFin(0)') > 0, 'juste après 0 : le serveur tient encore la manche quelques instants');
+  host.ev('jeuNextRound()'); sec(w, 0.5);
+  assert.equal(host.J('rounds.length'), 1, 'la suivante attend la fin de la manche sur le serveur');
+  sec(w, 7);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name + ' : la manche 2');
+  assert.deepEqual(host.ev('jeuRanking(0).map(x=>x.pid===JEU.me)'), [true], 'la manche 1 : seul l’hôte marque des points');
 });
 
 test('6 novembre, 7 h 52 : tout le monde a trouvé avant 0 : rien ne se ferme, même 11 minutes plus tard', () => {
@@ -1075,24 +1075,33 @@ test('6 novembre, 7 h 52 : tout le monde a trouvé avant 0 : rien ne se ferme, m
   assert.equal(host.view(), 'res0');
   sec(w, 11 * 60);
   assert.equal(host.view(), 'res0', 'les résultats attendent la manche suivante');
-  assert.equal(host.J('ferme') || false, false);
+  assert.equal(host.ev('jeuAttenteFin(0)'), 0, 'tout le monde a trouvé : rien à attendre');
   host.ev('jeuNextRound()'); sec(w, 4.5);
   assert.equal(guests[0].view(), 'play1');
 });
 
-test('6 novembre, 7 h 52 : seul, à 0, le bilan tout de suite ; « Rejouer » relance une partie, chrono et salle remis à neuf', () => {
+test('8 novembre, 9 h 31 : seul, à 0, la manche s’arrête et « Manche suivante » mène à la suivante ; à 0 à la dernière, le bilan ; « Rejouer » repart à neuf', () => {
   const w = new World();
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=3;jeuNiv='f'");
   s.ev("jeuStart('SOLO52',true,null,{solo:true})"); sec(w, 4);
   assert.equal(s.view(), 'play0');
   sec(w, 10 * 60 + 2);
-  assert.equal(s.view(), 'final', 'la première manche arrivée à 0 : la partie s’arrête là');
-  assert.ok(s.html.includes('Le chrono est arrivé à 0&nbsp;: la salle est fermée.') && s.html.includes('Le chrono est arrivé à 0 avant que tu valides ta réponse.'));
-  assert.ok(s.html.includes('Aucun défi trouvé cette fois : retente-le à tête reposée.'), 'le deux-points ne commence pas la ligne');
-  assert.equal((s.html.match(/class="jr is-miss"/g) || []).length, 1, 'une seule manche jouée');
+  assert.equal(s.view(), 'res0', 'la première manche arrivée à 0 : ses résultats, la partie continue');
+  assert.ok(s.html.includes('Temps écoulé') && s.html.includes('Le chrono est arrivé à 0 avant que tu valides ta réponse.') && s.html.includes('<span>Manche suivante</span>'));
+  assert.ok(!s.html.includes('la salle est fermée'));
+  s.ev('jeuNextRound()'); sec(w, 4.5);
+  assert.equal(s.view(), 'play1', 'la deuxième manche');
+  s.found(); sec(w, 1);
+  assert.equal(s.view(), 'res1');
+  s.ev('jeuNextRound()'); sec(w, 4.5);
+  assert.equal(s.view(), 'play2');
+  sec(w, 10 * 60 + 2);
+  assert.equal(s.view(), 'final', 'la dernière manche arrivée à 0 : le bilan');
+  assert.equal((s.html.match(/class="jr is-miss"/g) || []).length, 2, 'deux manches manquées sur trois');
+  assert.equal((s.html.match(/class="jr is-ok"/g) || []).length, 1, 'la manche trouvée');
+  assert.ok(s.ev('state.salle.pts') > 0, 'elle compte');
   s.ev('jeuAgain()'); sec(w, 5);
-  assert.equal(s.J('ferme'), false);
-  assert.equal(s.view(), 'play0', 'une nouvelle partie, une nouvelle manche');
+  assert.equal(s.view(), 'play0', '« Rejouer » : une nouvelle partie, une nouvelle manche');
 });
 
 test('6 novembre, 7 h 52 : le serveur compte aussi 20 minutes par manche (cinq fonctions, rien d’autre ne change)', () => {
@@ -1134,7 +1143,7 @@ test('8 novembre, 8 h 52 : 10 min en Facile, 15 en Moyen, 20 en Difficile, dans 
   assert.ok(engineSrc.includes('const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};\nfunction jeuDureeMs(k){return JEU_NIV_MANCHE[k]||JEU_NIV_MANCHE.f;}'), 'l’appli compte les mêmes durées');
 });
 
-test('8 novembre, 8 h 52 : entre amis en Difficile, le chrono part de 20:00 ; la salle tient encore à 15 min, se ferme à 20', () => {
+test('8 novembre, 8 h 52 : entre amis en Difficile, le chrono part de 20:00 ; la manche tient encore à 15 min, s’arrête à 20 et la partie continue (9 h 31)', () => {
   const { w, host, guests } = room({ n: 2, nb: 3, niv: 'd' });
   host.ev('jeuNextRound()'); sec(w, 4.5);
   assert.match(host.html, /role="timer" aria-label="Temps restant de la manche">(20:00|19:5\d)<\/b>/, 'le temps qui reste');
@@ -1143,5 +1152,7 @@ test('8 novembre, 8 h 52 : entre amis en Difficile, le chrono part de 20:00 ; la
   sec(w, 15 * 60);
   assert.equal(guests[0].view(), 'play0', 'à 15 min, l’ami cherche encore');
   sec(w, 5 * 60);
-  for (const c of [host, ...guests]) { assert.equal(c.view(), 'final', c.name); assert.equal(c.J('ferme'), true, c.name); }
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name);
+  host.ev('jeuNextRound()'); sec(w, 7);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name);
 });
