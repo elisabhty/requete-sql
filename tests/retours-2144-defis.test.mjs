@@ -106,7 +106,8 @@ test('Classement vide : « Le classement n’attend que toi ! 🏆 », puis la p
   r = await phrase('', 'tout', 'amis');
   /* 22 h 09 : la pastille dit « Mes amis », la phrase aussi */
   /* 8 novembre, 14 h 48 (« je veux marcher qu’avec code ») : plus d’ajout dans l’onglet Joueurs, on y invite avec un code */
-  assert.ok(r.pager.includes('Aucun de tes amis n’est encore classé. Joue avec eux&nbsp;: invite-les avec un code depuis l’onglet Joueurs.') && !r.pager.includes('dx-vide-t'), 'Mes amis : la phrase qui dit quoi faire');
+  /* 15 h 09 (sa maquette) : l’onglet s’appelle Adversaires */
+  assert.ok(r.pager.includes('Aucun de tes amis n’est encore classé. Joue avec eux&nbsp;: invite-les avec un code depuis l’onglet Adversaires.') && !r.pager.includes('dx-vide-t'), 'Mes amis : la phrase qui dit quoi faire');
   assert.ok(!app.includes("'Depuis lundi'") && !app.includes('Personne n’a encore marqué de points cette semaine'));
   for (const k of ['html.lq #scr-defis .dx-vide-t{margin:0 0 4px;color:var(--ink);font:800 16px/1.3 var(--display);', 'html.lq #scr-defis .dx-vide-bloc{'])
     assert.ok(lq.includes(k), k);
@@ -144,23 +145,25 @@ test('Classement : « Ta place dans le classement », et « Jouer un défi » d�
   assert.ok(lq.includes('html.lq #scr-defis .dx-cls-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px}'));
 });
 
-test('Joueurs : « Tes adversaires », « Ton prochain rival t’attend ! », « Inviter un ami » seul (8 novembre, 14 h 48 : « je veux marcher qu’avec code »)', () => {
+test('Adversaires : « Tes adversaires », « Ton prochain rival t’attend ! », « Créer une partie » et « Rejoindre avec un code » (8 novembre, 14 h 48 puis 15 h 09)', () => {
   const c = bac();
   c.ev("DEFIS.onglet='amis';defisPeindre()");
-  assert.ok(c.els['defis-tabs'].innerHTML.includes('onclick="defisOnglet(\'amis\')">Joueurs</button>'), 'l’onglet garde son nom');
+  assert.ok(c.els['defis-tabs'].innerHTML.includes('onclick="defisOnglet(\'amis\')">Adversaires</button>'), '15 h 09 (sa maquette) : l’onglet s’appelle Adversaires');
   const a = c.els['defis-amis'].innerHTML;
   /* 22 h 13 : le surtitre « Tes adversaires » ; vide, le titre (8 novembre, 14 h 40) : « Ton prochain rival t’attend ! » */
   assert.ok(a.includes('<section class="dx-amis is-v2 is-vide" aria-labelledby="dx-amis-k">') && a.includes('<p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">Ton prochain rival t’attend&nbsp;!</h2>'));
   assert.ok(!app.includes('Ceux que tu as affrontés</p>'));
-  /* 14 h 48 : on se retrouve avec un code de salle, rien d’autre : un seul bouton, « Inviter un ami » (une salle privée, son code) */
-  assert.ok(a.includes('<div class="dx-duo is-un"><button type="button" class="dx-sec is-main" onclick="jeuDefier()">Inviter un ami</button></div>'));
+  /* 14 h 48 : on se retrouve avec un code de salle, rien d’autre. 15 h 09 (sa maquette, corrigée) : « Créer une partie », puis
+     « Rejoindre avec un code », l’un sous l’autre, chacun son icône */
+  assert.ok(a.includes('<div class="dx-duo"><button type="button" class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte(\'creer\')"><svg viewBox="0 0 24 24"') && a.includes('</svg>Créer une partie</button><button type="button" class="dx-sec" aria-haspopup="dialog" onclick="defisCarte(\'code\')"><svg viewBox="0 0 24 24"') && a.includes('</svg>Rejoindre avec un code</button></div>'));
+  assert.ok(!a.includes('Inviter un ami') && !a.includes('J’ai un code de salle') && !a.includes('Rejoindre une partie'));
   for (const k of ['>Rechercher un joueur</button>', '>Ajouter par pseudo</button>', 'id="dx-ajout"', 'for="dx-ajout-in"', 'function amisAjouter(', 'function amisGarder(', 'function amisRetirer('])
     assert.ok(!app.includes(k), `plus d’ajout par pseudo : ${k}`);
   /* Vide : la mascotte, la phrase, puis le bouton ; remplie (refonte du 7 novembre) : le bouton au-dessus de la liste. */
-  assert.ok(a.indexOf('id="dx-amis-liste"') < a.indexOf('Inviter un ami'));
+  assert.ok(a.indexOf('id="dx-amis-liste"') < a.indexOf('Créer une partie'));
   assert.ok(!a.includes('dx-note') && !app.includes('Un adversaire s’ajoute tout seul après une partie.'), 'plus l’explication sur l’ajout automatique et le code de salle');
   /* La mascotte dans l’espace vide de la carte (22 h 13 : elle saluait ; 8 novembre, 14 h 27 : le duel, joué une fois), puis la phrase */
-  assert.equal(c.els['dx-amis-liste'].innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="duel"><p class="dx-vide">Chaque joueur affronté en salle arrive ici. Invite un ami&nbsp;: il te rejoint avec ton code.</p></div>');
+  assert.equal(c.els['dx-amis-liste'].innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="duel"><p class="dx-vide-t">Aucun adversaire pour l’instant&nbsp;!</p><p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p></div>');
   assert.ok(fn('amisListesPeindre').includes("chatBonusHtml('duel','is-vide dx-amis-chat')"));
   for (const k of ['html.lq #scr-defis .dx-vide-bloc.is-amis{margin:2px 2px 0;text-align:center}', 'html.lq #scr-defis .dx-vide-bloc.is-amis .chat-bonus{display:block;width:96px;'])
     assert.ok(lq.includes(k), k);
@@ -169,7 +172,7 @@ test('Joueurs : « Tes adversaires », « Ton prochain rival t’attend ! », «
   d.ev("DEFIS.onglet='amis';defisPeindre()");
   assert.ok(d.els['dx-amis-liste'].innerHTML.startsWith('<ul class="dx-list dx-adv">'));
   assert.ok(!d.els['dx-amis-liste'].innerHTML.includes('@lea') && !d.els['dx-amis-liste'].innerHTML.includes('×'), 'plus d’ajoutés, plus de ×');
-  assert.ok(d.els['defis-amis'].innerHTML.indexOf('Inviter un ami') < d.els['defis-amis'].innerHTML.indexOf('id="dx-amis-liste"'), 'remplie : le bouton au-dessus');
+  assert.ok(d.els['defis-amis'].innerHTML.indexOf('Rejoindre avec un code') < d.els['defis-amis'].innerHTML.indexOf('id="dx-amis-liste"'), 'remplie : les boutons au-dessus');
   assert.ok(d.els['defis-amis'].innerHTML.includes('<h2 id="dx-amis-h">1 adversaire</h2>'), 'remplie : le titre dit combien');
   for (const k of ['html.lq #scr-defis .dx-amis .dx-duo{flex-direction:column;gap:10px}', 'html.lq #scr-defis .dx-sec.is-main{border-color:var(--accent);background:var(--accent);',
     'html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:0}'])
@@ -357,7 +360,7 @@ test('refonte — Classement : la légende, une page sans navigation, l’écart
   assert.ok(k.els['dx-pager'].innerHTML.includes('il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle=\'\';clsPageCharger(0)">Réessayer</button></div>'));
   assert.ok(k.els['dx-place'].innerHTML.startsWith('<button type="button" class="room-go dx-cls-go"') && k.els['dx-place-h'].hidden, 'en dessous : seulement « Jouer un défi »');
   assert.ok(!app.includes('arrive avec la prochaine mise à jour') && fn('clsPagerPeindre').includes('Ce classement n’est pas disponible pour le moment.</p><button type="button" class="perf-top-btn" onclick="DEFIS.periode=\'tout\';defisPortee(\'monde\')">Voir le classement mondial</button>'));
-  assert.ok(fn('clsPagerPeindre').includes('onclick="defisOnglet(\\\'amis\\\')">Ouvrir l’onglet Joueurs</button>'), 'Mes amis, personne de classé : l’onglet Joueurs d’un toucher');
+  assert.ok(fn('clsPagerPeindre').includes('onclick="defisOnglet(\\\'amis\\\')">Ouvrir l’onglet Adversaires</button>'), 'Mes amis, personne de classé : l’onglet Adversaires d’un toucher');
 });
 
 test('refonte — Joueurs : une ligne par joueur ; qui attend dans une salle le dit, « Rejoindre », en tête', () => {
@@ -368,7 +371,7 @@ test('refonte — Joueurs : une ligne par joueur ; qui attend dans une salle le 
   assert.ok(l.includes('<li class="is-tap is-live" style="--i:0"') && l.includes('<span class="dx-dot" aria-hidden="true"></span>En salle<span class="dx-pc is-niv is-m is-blanc"><i class="jeu-bars is-m" aria-hidden="true"><b></b><b></b><b></b></i><span>Moyen</span></span><span class="dx-large"><span class="dx-pc is-gens is-doux"><svg') && l.includes('<span>2/5</span></span></span>') && l.includes("onclick=\"sallesRejoindre('AAA111')\""));
   assert.ok(l.includes('<span class="dx-score is-down" aria-hidden="true">1–3</span>') && l.includes('<em class="is-down">à rattraper</em> · hier') && l.includes("onclick=\"jeuDefier('@tom')\""));
   assert.ok(l.includes('aria-label="@zoe, 1 fois devant, 1 fois derrière, dans une salle ouverte (Moyen) : voir sa fiche"'), 'le lecteur d’écran dit tout');
-  assert.ok(!c.els['defis-amis'].innerHTML.includes('perf-card') && c.els['defis-amis'].innerHTML.includes('<div class="dx-amis-actions"><div class="dx-duo is-un">'));
+  assert.ok(!c.els['defis-amis'].innerHTML.includes('perf-card') && c.els['defis-amis'].innerHTML.includes('<div class="dx-amis-actions"><div class="dx-duo">'));
 });
 
 test('refonte — la fiche : « En salle maintenant » et « Rejoindre » ; ouverte du classement, « Signaler ce pseudo »', async () => {
