@@ -105,7 +105,7 @@ test('chaque solution Aéroport s’exécute et son ordre reste stable', () => {
    que tous les défis soient très très bien expliqués point par point ». */
 test('la consigne autonome d’un défi, point par point, avec l’accès au schéma, seul comme en salle', () => {
   const NOMS = Object.fromEntries([...app.matchAll(/\n  ([a-z_]+):\{nom:'([^']+)',/g)].map(m => [m[1], { nom: m[2] }]));
-  vm.runInContext(cut('function defiConsigneHTML(c){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;'), escCode: s => String(s).replace(/</g, '&lt;').replace(/`([^`\n]+)`/g, '<code>$1</code>'), DEFI_BASES: NOMS }));
+  vm.runInContext(cut('function defiConsigneHTML(c,o){', '\n/* Les indices d’un défi raté'), Object.assign(ctx, { esc: s => String(s).replace(/</g, '&lt;'), escCode: s => String(s).replace(/</g, '&lt;').replace(/`([^`\n]+)`/g, '<code>$1</code>'), DEFI_BASES: NOMS }));
   for (const c of [DEFIS[8], DEFIS.find(x => !x.ordered && x.affiche), DEFIS.find(x => x.garde && x.garde.length && x.precis && x.precis.length)]) {
     ctx.c = c;
     const html = vm.runInContext('defiConsigneHTML(c)', ctx);
@@ -124,7 +124,9 @@ test('la consigne autonome d’un défi, point par point, avec l’accès au sch
   const ancien = vm.runInContext('defiConsigneHTML(c)', ctx);
   assert.ok(!ancien.includes('<script>') && ancien.includes('Tu as accès au <em>schéma</em>'), 'un ancien défi garde son texte, et le schéma');
   assert.ok(!app.includes('<summary>Un indice</summary>'), 'pas d’indice');
-  assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length, 2, 'défi seul et manche en salle');
+  assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length + (app.match(/\$\{defiConsigneHTML\(c,\{base:true\}\)\}/g) || []).length, 2, 'défi seul et manche en salle (la base en pastille, 8 novembre, 18 h 28)');
+  ctx.c = DEFIS[8];
+  assert.ok(vm.runInContext('defiConsigneHTML(c,{base:true})', ctx).startsWith('<div class="consigne dq"><div class="dq-tete"><span class="tag">La situation</span><span class="dq-chip is-base">Base ' + NOMS[DEFIS[8].base].nom + '</span></div>'), 'en salle : « La situation » et la base');
 });
 
 test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se ferme au bout du chrono de son niveau (8 novembre : 10, 15 ou 20 min)', () => {
