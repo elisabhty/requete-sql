@@ -33,9 +33,9 @@ test('seule dans la salle : le +25 du premier coup reste, le bonus de place ne c
   const deux = JSON.parse(JSON.stringify(ctx.jeuRanking(1)));
   assert.deepEqual(deux.map(x => [x.pid, x.essai, x.rang, x.pts]), [['a', 25, 50, 275], ['b', 0, 30, 230]], 'à plusieurs : le +25 au premier, le bonus de place à chacun');
   const regles = fn('renderDefisRules');
-  assert.ok(regles.includes('<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI*x}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
+  assert.ok(regles.includes('<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
   assert.ok(regles.includes('<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>'));
-  assert.ok(regles.includes('<small>seul</small><i aria-hidden="true">·</i><b>${(top+(JEU_PTS_ESSAI+JEU_PTS_RANG[0])*x).toLocaleString(\'fr-FR\')}</b><small>à plusieurs</small>'));
+  assert.ok(regles.includes('<small>seul</small><i aria-hidden="true">·</i><b>${(top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]*x).toLocaleString(\'fr-FR\')}</b><small>à plusieurs</small>'), 'le premier coup ne compte plus ×2 ni ×4 (8 novembre, 9 h 17)');
 });
 
 test('réf. 1 : le curseur de « À toi de jouer » clignote par sa couleur, plus en opacité (l’étiquette penchée reste nette)', () => {
@@ -158,5 +158,5 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 
 test('versions : ludique.css v155, cache du service worker', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=219">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-manche-selon-niveau-v2655';") && app.includes("const SW_CACHE='requete-2026-11-08-manche-selon-niveau-v2655';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-premier-coup-fixe-v2656';") && app.includes("const SW_CACHE='requete-2026-11-08-premier-coup-fixe-v2656';"));
 });

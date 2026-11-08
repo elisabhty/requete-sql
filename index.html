@@ -27736,12 +27736,12 @@ function renderDefisRules(){
       <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
-      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base. Le chrono : ${JEU_NIV_MANCHE.f/60000} min en Facile, ${JEU_NIV_MANCHE.m/60000} en Moyen, ${JEU_NIV_MANCHE.d/60000} en Difficile.</small></li>
-      <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI*x}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
+      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le premier coup vaut +${JEU_PTS_ESSAI} partout. Le chrono : ${JEU_NIV_MANCHE.f/60000} min en Facile, ${JEU_NIV_MANCHE.m/60000} en Moyen, ${JEU_NIV_MANCHE.d/60000} en Difficile.</small></li>
+      <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
       <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
-    <p class="room-rules-max"><span>Manche parfaite en ${JEU_NIVL[k]}</span><b>${(top+JEU_PTS_ESSAI*x).toLocaleString('fr-FR')}</b><small>seul</small><i aria-hidden="true">·</i><b>${(top+(JEU_PTS_ESSAI+JEU_PTS_RANG[0])*x).toLocaleString('fr-FR')}</b><small>à plusieurs</small></p>
+    <p class="room-rules-max"><span>Manche parfaite en ${JEU_NIVL[k]}</span><b>${(top+JEU_PTS_ESSAI).toLocaleString('fr-FR')}</b><small>seul</small><i aria-hidden="true">·</i><b>${(top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]*x).toLocaleString('fr-FR')}</b><small>à plusieurs</small></p>
   </section>`;
   /* Les marches montent quand le cadre arrive à l’écran (il est en bas de l’onglet) ; mouvement réduit : tout de suite. */
   const sec=host.firstElementChild;if(!sec)return;
@@ -34455,7 +34455,10 @@ const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JE
    l’écart, un analyste gagnait par heure moins à son niveau qu’un débutant en Facile), le choix d’Elisa : « Multiplicateur ×2 / ×4 ».
    En Moyen, tous les points de la manche comptent double (le palier, le premier coup, la place) et chaque palier dure 3 fois plus
    longtemps (3 min) ; en Difficile, ×4 et 5 min. Le Facile ne change pas. Manche parfaite : 225, 450 ou 900 seul ; 275, 550 ou 1 100
-   entre amis. Le serveur compte de même (jeu_score_v2, jeu_score). */
+   entre amis. Le serveur compte de même (jeu_score_v2, jeu_score).
+   8 novembre, 9 h 17 (« Ok » à la proposition de 9 h 14) : le premier coup vaut +25 à tous les niveaux, il ne compte plus ×2 ni ×4 ; à
+   +100 en Difficile, il dissuadait de lancer une requête pour regarder les données, un bon réflexe en SQL. La vitesse et la place
+   gardent leur multiplicateur. Manche parfaite : 225, 425 ou 825 seul ; 275, 525 ou 1 025 entre amis. */
 const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};
 const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};
 function jeuDureeMs(k){return JEU_NIV_MANCHE[k]||JEU_NIV_MANCHE.f;}
@@ -35134,7 +35137,7 @@ function jeuRoundDone(n){
 /* Ce que vaut le défi quand on le trouve en ms : son palier, d’après les secondes du chrono affiché. */
 function jeuValeur(ms,k){const s=Math.floor(Math.max(0,+ms||0)/1000),x=JEU_NIV_X[k]||1,d=JEU_NIV_DUREE[k]||1;for(const [t,p] of JEU_PALIERS)if(s<=t*d)return p*x;return JEU_PTS_MIN*x;}
 /* Les points d’un joueur qui trouve en ms, i-ème à trouver (0 : le premier) : le détail sert à l’écran (réussite, rang, rapidité). */
-function jeuPts(ms,i,solo,p1,k){const x=JEU_NIV_X[k]||1,val=jeuValeur(ms,k),essai=p1?JEU_PTS_ESSAI*x:0,rang=solo?0:(JEU_PTS_RANG[i]||0)*x;return {val,x,essai,rang,pts:val+essai+rang};}
+function jeuPts(ms,i,solo,p1,k){const x=JEU_NIV_X[k]||1,val=jeuValeur(ms,k),essai=p1?JEU_PTS_ESSAI:0,rang=solo?0:(JEU_PTS_RANG[i]||0)*x;return {val,x,essai,rang,pts:val+essai+rang};}
 /* Le niveau d’une manche : celui de son défi, qui est celui de la salle (le serveur prend le niveau de la salle). */
 function jeuNivManche(n){const J=JEU,r=J&&J.rounds[n],c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;return (c&&c.niv)||(J&&J.niv)||'f';}
 function jeuRanking(n){
@@ -35485,10 +35488,9 @@ function jeuRender(){
     const took0=Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
     /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150… ; en Moyen 400, 350… toutes les 3 min ; en Difficile
-       800, 700… toutes les 5 min), et le premier coup (+25, +50 ou +100) tant que la première requête peut être la bonne (il tombe au
+       800, 700… toutes les 5 min), et le premier coup (+25 à tous les niveaux depuis le 8 novembre) tant que la première requête peut être la bonne (il tombe au
        premier essai manqué). */
-    const xn=JEU_NIV_X[jeuNivManche(n)]||1;
-    const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span><small>pts</small>${r.tries||jeuBonusPris(r)?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI*xn}</i>`}</b>`;
+    const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span><small>pts</small>${r.tries||jeuBonusPris(r)?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;
     html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b></span></div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
@@ -35891,7 +35893,7 @@ function jeuEvt(ok,pid,name,bonus){
   if(!box){box=document.createElement('div');box.id='jeu-evts';box.className='jeu-evts';box.setAttribute('aria-hidden','true');document.body.appendChild(box);}
   const J=JEU,i=J?Math.max(0,jeuOrder().indexOf(pid)):0,el=document.createElement('p');
   el.className='jeu-evt '+(ok?'is-ok':'is-ko');
-  el.innerHTML=`<b class="jeu-av" data-c="${i%6}">${jeuInitial(name)}</b><span class="jeu-evt-t"><b>${esc(name)}</b><small>${ok?'a trouvé':'pas encore'}</small></span><i class="jeu-evt-i">${ok?JEU_ICO.check:JEU_ICO.cross}</i>${ok&&bonus?`<em class="jeu-evt-b">+${JEU_PTS_ESSAI*(J?(JEU_NIV_X[jeuNivManche(jeuCur())]||1):1)} ✨</em>`:''}`;
+  el.innerHTML=`<b class="jeu-av" data-c="${i%6}">${jeuInitial(name)}</b><span class="jeu-evt-t"><b>${esc(name)}</b><small>${ok?'a trouvé':'pas encore'}</small></span><i class="jeu-evt-i">${ok?JEU_ICO.check:JEU_ICO.cross}</i>${ok&&bonus?`<em class="jeu-evt-b">+${JEU_PTS_ESSAI} ✨</em>`:''}`;
   const pp=document.getElementById('jeu-pts-pop'),low=pp&&pp.classList.contains('on')?Math.round(pp.getBoundingClientRect().bottom+8):0;
   if(low)box.style.top=low+'px';else box.style.removeProperty('top');
   box.prepend(el);
@@ -45987,7 +45989,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-manche-selon-niveau-v2655';
+  const SW_CACHE='requete-2026-11-08-premier-coup-fixe-v2656';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -312,7 +312,7 @@ test('« notif in-app » : effacer la progression passe par deux feuilles de l�
 
 test('points — la valeur du défi, palier par palier, à côté du chrono ; « +25 » tant que la première requête peut être la bonne', () => {
   /* Le barème a ses propres tests (salle-points-microinteractions, salle-defis : 17 h 39) ; ici, ce que montre la barre de jeu */
-  assert.ok(app.includes('const val=mine?\'\':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span><small>pts</small>${r.tries||jeuBonusPris(r)?\'\':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI*xn}</i>`}</b>`;'));
+  assert.ok(app.includes('const val=mine?\'\':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span><small>pts</small>${r.tries||jeuBonusPris(r)?\'\':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;'), 'le premier coup : +25 à tous les niveaux (8 novembre, 9 h 17)');
   const tick = fn('jeuTick');
   assert.ok(tick.includes("const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;"), 'le palier du niveau change avec le chrono (6 novembre, 15 h)');
   assert.ok(tick.includes("pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');"), 'un petit saut quand il change');

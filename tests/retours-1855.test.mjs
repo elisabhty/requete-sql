@@ -267,5 +267,5 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   assert.ok(app.includes('<script src="multiplayer-security.js?v=3"></script>') && sw.includes("'./multiplayer-security.js?v=3',"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=219">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-08-manche-selon-niveau-v2655');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-08-premier-coup-fixe-v2656');
 });
