@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=248">
+<link rel="stylesheet" href="ludique.css?v=249">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35293,7 +35293,7 @@ function jeuOnMsg(m){
       if(J.view==='res'+(+m.n))jeuRedraw();
       break;}
     case 'react':
-      if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name);}
+      if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}
       return;
     case 'rate':{
       /* 6 novembre, 16 h (règle de l’expert choisie par Elisa) : un essai, même manqué, fait de lui un joueur de la manche ; la place ne
@@ -35900,9 +35900,10 @@ function jeuReagirEcoute(){
 /* Les réactions en direct (18 h 36 : « voir la réaction des autres en temps réel sur l’écran avec leur pseudo ») : chacune monte le
    long du bord droit de l’écran, comme dans un live : l’emoji dans sa bulle blanche et, dessous, le pseudo sur la couleur de son
    avatar (« Toi » pour la sienne). Où qu’on soit dans la page, au-dessus du clavier aussi (visualViewport), sans rien bloquer ni
-   rien annoncer : elle passe et s’efface (2,8 s), ce n’est pas une notification. Six au plus à la fois. En mouvement réduit : elle
-   apparaît et s’efface sur place, les suivantes à côté. */
-function jeuReactBulle(pid,e,nom){
+   rien annoncer : elle passe et s’efface (2,8 s), ce n’est pas une notification. Quatorze au plus à la fois. En mouvement réduit :
+   elle apparaît et s’efface sur place, les suivantes à côté. À la chaîne (20 h 07), les suivantes d’un même joueur partent de la place
+   de la première, un rien de côté, sans le pseudo (déjà dit) : elles montent en grappe derrière elle. */
+function jeuReactBulle(pid,e,nom,suite){
   const J=JEU;
   if(!J||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||document.hidden)return false;
   const root=document.getElementById('jeu-root');if(!root)return false;
@@ -35914,18 +35915,28 @@ function jeuReactBulle(pid,e,nom){
   const f=document.getElementById('jeu-reagir'),fr=f&&!f.classList.contains('is-ecrit')&&typeof f.getBoundingClientRect==='function'?f.getBoundingClientRect():null;
   c.style.top=Math.round(fr&&fr.height?fr.top-10:(vv?vv.offsetTop:0)+h-86)+'px';
   const d=jeuReagirDroite();if(d!=null)c.style.right=d+'px';
-  while(c.children.length>=6)c.firstElementChild.remove();
+  while(c.children.length>=14)c.firstElementChild.remove();
   const me=pid===J.me,qui=me?'Toi':(jeuNom((J.players[pid]||{}).name)||jeuNom(nom)||'Joueur'),k=(J.rlN=(J.rlN||0)+1),now=Date.now();
-  /* Deux réactions presque ensemble (moins d’une seconde ; en mouvement réduit, tant que la précédente est là) : la nouvelle part à
-     gauche de la précédente, sans la cacher ; trop loin du bord, elle repart du bord, un étage au-dessus. Sinon, contre le bord. */
-  const b=document.createElement('span'),i=document.createElement('i'),t=document.createElement('b');
-  const fen=prefersReduceMotion()?2800:950,P=J.rlPrev;let x=0,y=0;
-  if(P&&now-P.at<fen&&P.el.isConnected){x=P.x+Math.ceil(P.el.getBoundingClientRect().width)+10;y=P.y;if(x>200){x=0;y=P.y>-160?P.y-84:0;}}
-  J.rlPrev={el:b,x,y,at:now};
-  b.className='jeu-rl-b';i.className='jeu-rl-e';i.textContent=e;t.className='jeu-rl-n';t.textContent=qui;
-  t.dataset.c=String(Math.max(0,jeuOrder().indexOf(pid))%6);
+  const b=document.createElement('span'),i=document.createElement('i'),pos=J.rlPos||(J.rlPos={}),Q=pos[pid],calme=prefersReduceMotion();
+  /* La chaîne s’accroche à sa première bulle tant qu’elle est là ; partie (plus de 2,9 s), la suivante redit le pseudo */
+  const chaine=!!(suite&&Q&&Q.el&&Q.el.isConnected);
+  let x=0,y=0;
+  if(chaine&&!calme){
+    /* La suite d’une chaîne : de la place de la première, un rien de côté ; un autre joueur qui réagit se met à côté de la grappe */
+    x=Q.x+Math.round((Math.random()*2-1)*12);y=Q.y;
+    if(J.rlPrev&&J.rlPrev.pid===pid)J.rlPrev.at=now;
+  }else{
+    /* Deux réactions presque ensemble (moins d’une seconde ; en mouvement réduit, tant que la précédente est là) : la nouvelle part à
+       gauche de la précédente, sans la cacher ; trop loin du bord, elle repart du bord, un étage au-dessus. Sinon, contre le bord. */
+    const fen=calme?2800:950,P=J.rlPrev;
+    if(P&&now-P.at<fen&&P.el.isConnected){x=P.x+Math.ceil(P.el.getBoundingClientRect().width)+10;y=P.y;if(x>200){x=0;y=P.y>-160?P.y-84:0;}}
+    J.rlPrev={el:b,x,y,at:now,pid};
+    if(!chaine)pos[pid]={el:b,x,y};
+  }
+  b.className=chaine?'jeu-rl-b is-suite':'jeu-rl-b';i.className='jeu-rl-e';i.textContent=e;b.append(i);
+  if(!chaine){const t=document.createElement('b');t.className='jeu-rl-n';t.textContent=qui;t.dataset.c=String(Math.max(0,jeuOrder().indexOf(pid))%6);b.append(t);}
   b.style.setProperty('--x',-x+'px');b.style.setProperty('--y',y+'px');b.style.setProperty('--s',(k%2?10:-10)+'px');
-  b.append(i,t);c.appendChild(b);
+  c.appendChild(b);
   setTimeout(()=>{try{b.remove();}catch(x){}},2900);
   return true;
 }
@@ -36386,17 +36397,32 @@ function jeuToggleReady(){
   jeuSend({t:'ready',on:!J.ready[J.me]});
   if(navigator.vibrate)navigator.vibrate(8);
 }
+/* Les réactions à la chaîne (Elisa, 8 novembre, 20 h 07 : « pouvoir mettre les réactions à la chaîne ») : plus d’une seule réaction
+   toutes les 1,5 s ; on peut taper vite, chaque touche part (150 ms au moins entre deux, dix au plus en 4 s, pour ne pas inonder la
+   salle) ; au-delà, le bouton dit non (un petit non de la tête). Chaque touche fait sauter l’emoji touché. */
+const JEU_REACT_PAS=150,JEU_REACT_RAFALE=10,JEU_REACT_FENETRE=4000;
 function jeuReact(e,btn){
   const J=JEU;if(!J||!JEU_REACTS.includes(e))return;
-  /* Une réaction toutes les 1,5 s : trop tôt, le bouton dit non (un petit non de la tête) */
-  if(Date.now()-J.lastReact<1500){
-    if(btn&&typeof btn.animate==='function'&&!prefersReduceMotion())btn.animate([{transform:'none'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'none'}],{duration:240,easing:'ease-out'});
+  const now=Date.now(),h=(J.reactAt||[]).filter(t=>now-t<JEU_REACT_FENETRE),bouge=btn&&typeof btn.animate==='function'&&!prefersReduceMotion();
+  if(now-J.lastReact<JEU_REACT_PAS||h.length>=JEU_REACT_RAFALE){
+    if(bouge)btn.animate([{transform:'none'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'none'}],{duration:240,easing:'ease-out'});
     return;
   }
-  /* La sienne monte avec les autres (« Toi ») ; elle ne jaillit plus de son avatar, juste sous les réactions qu’on vient de toucher */
-  J.lastReact=Date.now();jeuSend({t:'react',e});jeuToast(`Toi ${e}`);jeuReactBulle(J.me,e);
+  h.push(now);J.reactAt=h;J.lastReact=now;
+  if(bouge)btn.animate([{transform:'scale(1)'},{transform:'scale(1.28)'},{transform:'scale(1)'}],{duration:240,easing:'cubic-bezier(.3,1.4,.5,1)'});
+  /* La sienne monte avec les autres (« Toi ») ; elle ne jaillit plus de son avatar, juste sous les réactions qu’on vient de toucher.
+     À la chaîne, le lecteur d’écran ne la dit qu’une fois. */
+  const suite=jeuReactSuite(J.me);
+  jeuSend({t:'react',e});if(!suite)jeuToast(`Toi ${e}`);jeuReactBulle(J.me,e,null,suite);
   if(J.reagir)jeuReagirMinuter();
   if(typeof buzz==='function')buzz('light');
+}
+/* Une réaction qui suit de près la précédente du même joueur (moins de 1,2 s) : la suite d’une chaîne. */
+const JEU_SUITE_MS=1200;
+function jeuReactSuite(pid){
+  const J=JEU;if(!J)return false;
+  const t=J.rlSuite||(J.rlSuite={}),now=Date.now(),suite=!!(t[pid]&&now-t[pid]<JEU_SUITE_MS);
+  t[pid]=now;return suite;
 }
 /* Arrivées, départs, nouvel hôte : annoncés au lecteur d’écran ; à l’écran, c’est la liste des joueurs qui le montre (la ligne arrive
    en sautillant, l’étiquette « hôte » change de place), plus de bulles en bas de l’écran (Elisa, 31 octobre, 1 h 34 : « ne pas mettre
@@ -46706,7 +46732,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-cadre-gris-v2695';
+  const SW_CACHE='requete-2026-11-08-reactions-chaine-v2696';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

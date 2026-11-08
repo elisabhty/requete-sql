@@ -24,10 +24,11 @@ test('le chrono hors du bandeau, juste avant lui dans la section, en salle comme
   assert.equal((app.match(/id="jeu-timer"/g) || []).length, 1);
 });
 
-test('le style : à cheval sur le bord, en haut à droite, un rien penché ; le cadre lui fait de la place, dedans et dehors', () => {
+test('le style : à cheval sur le bord, en haut à droite, droit et posé au pixel près ; le cadre lui fait de la place', () => {
   for (const r of ['html.lq #jeu-root .jeu-direct:has(>.jeu-timer){margin-top:32px}',
-    'html.lq #jeu-root .jeu-direct>.jeu-timer{position:absolute;top:0;right:16px;z-index:3;height:34px;box-sizing:border-box;padding:0 13px 0 11px!important;',
-    'font-size:17px!important;box-shadow:0 3px 0 #C98F00;translate:0 -50%;rotate:-2deg}', 'html.lq #jeu-root .jeu-direct>.jeu-timer.is-low{box-shadow:0 3px 0 #B8323A}',
+    'html.lq #jeu-root .jeu-direct>.jeu-timer{position:absolute;top:-17px;right:16px;z-index:3;height:34px;box-sizing:border-box;padding:0 13px 0 11px!important;',
+    /* 20 h 07 : penché, Safari le dessinait moins net ; droit, sa moitié (17 px) au-dessus du bord */
+    'font-size:17px!important;box-shadow:0 3px 0 #C98F00}', 'html.lq #jeu-root .jeu-direct>.jeu-timer.is-low{box-shadow:0 3px 0 #B8323A}',
     '  html.lq #jeu-root .jeu-direct>.jeu-timer{right:12px;padding:0 11px 0 9px!important;font-size:16px!important}}'])
     assert.ok(css.includes(r), r);
   assert.ok(!css.includes('.jeu-hud .jeu-timer'), 'les règles du chrono dans la tête sont parties');
