@@ -22,11 +22,11 @@ test('pendant la manche, une seule action : « Exécuter » ; le schéma passe d
   assert.ok(cours.includes('>Schéma</button>') && cours.includes('>Pas à pas</button>') && !cours.includes('ed-schema'), 'les cours ne changent pas');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes("${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}"));
-  assert.ok(r.includes('${sl?\'\':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}'), 'qui a trouvé : la bande d’avatars, à plusieurs seulement');
+  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${sl?'':jeuDirectHTML(n)}\n      ${defiConsigneHTML(c)}"), 'qui en est où : « En direct » sous le titre, avant la question, à plusieurs seulement (8 novembre)');
   const play = r.slice(r.indexOf("}else if(v.startsWith('play')){"), r.indexOf("}else if(v.startsWith('res')){"));
   assert.ok(!play.includes('jeu-reacts') && !play.includes('jeuHostBarHTML') && !play.includes('jeuPlayersHTML'), 'pendant qu’on cherche : ni réactions, ni « Clore », ni liste de cadres');
-  for (const k of ['html.lq .ed-schema{flex:none;display:inline-flex;', 'html.lq .jeu-mates{list-style:none;display:flex;gap:10px;', 'html.lq .jeu-mates li.is-wait .jeu-av::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px dashed #CFC6F2;',
-    'html.lq .jeu-mate-ok{position:absolute;', 'html.lq .jeu-mates li.is-fresh .jeu-mate-ok{animation:jeuMateOk'])
+  for (const k of ['html.lq .ed-schema{flex:none;display:inline-flex;', 'html.lq #jeu-root .jeu-direct{margin:14px 0 18px;border-radius:22px;background:#F4F1FE;',
+    'html.lq #jeu-root .jeu-direct.is-plie .jeu-direct-l{display:none}', 'html.lq #jeu-root .jd.is-trouve>.jeu-av{animation:jdRebond'])
     assert.ok(s50.includes(k), k);
 });
 
