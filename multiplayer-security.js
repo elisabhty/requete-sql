@@ -65,6 +65,9 @@
     const id = request?.n === n && request.sql === sql ? request.id : crypto.randomUUID();
     game.pendingVerification = {id,n,sql};
     game.verifying = true;
+    // « Teste sa requête » sur sa propre ligne pendant que le serveur vérifie (Elisa, 8 novembre, 18 h 18).
+    (game.koAt = game.koAt || {})[game.me] = Date.now();
+    if (typeof jeuDirectPeindre === 'function') jeuDirectPeindre(n);
     const button = document.querySelector('#lesson-body .btn-run');
     if (button) setRunLoading(button, true);
     let timeout;

@@ -44,7 +44,7 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   assert.ok(h3.includes('Indice 3/3') && h3.includes('C’était le dernier indice') && !h3.includes(c.indice));
   assert.ok(ctx.defiIndicesHTML(c, 3, 1).includes('Indice 1/3'), 'une pastille ramène à un indice déjà donné');
   assert.equal(h9, h3, 'trois au plus');
-  assert.ok(ctx.defiIndicesHTML(c, 1, 0, 'On attend 1 colonne.').includes('<span class="coach-st-k">Pas encore</span><p>On attend 1 colonne.</p>'), '« Pas encore » dans la même carte');
+  assert.ok(ctx.defiIndicesHTML(c, 1, 0, 'On attend 1 colonne.').includes('<span class="coach-st-k">Un coup de patte&nbsp;?</span><p>On attend 1 colonne.</p>'), '« Un coup de patte ? » (8 novembre, 18 h 18 ; avant, « Pas encore ») dans la même carte');
   assert.equal(ctx.defiSquelette(c.sol), 'SELECT …\nFROM …\nJOIN … ON … = …\nJOIN … ON … = …\nJOIN … ON … = …\nWHERE … = …\nORDER BY …');
   for (const x of ctx.CHALLENGES) {
     const sq = ctx.defiSquelette(x.sol);

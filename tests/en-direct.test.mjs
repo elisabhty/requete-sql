@@ -87,11 +87,11 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   /* Il écrit (12 h 07) : les trois petits points, « Écrit sa requête » ; s’il vient d’exécuter, « Teste sa requête » l’emporte */
   s.J.ecritAt = { d: now - 1000, c: now - 100, a: now };
   const e = s.rang(0);
-  assert.deepEqual(e.map(x => [x.pid, x.etat]), [['b', 'ok'], ['a', 'pense'], ['c', 'test'], ['d', 'ecrit']], 'jamais pour soi');
+  assert.deepEqual(e.map(x => [x.pid, x.etat]), [['b', 'ok'], ['a', 'ecrit'], ['c', 'test'], ['d', 'ecrit']], 'pour soi aussi (8 novembre, 18 h 18 : « c’est toujours en réflexion »)');
   assert.match(s.ev('jeuDirectHTML(0)').split('<li ')[4], /^class="jd is-ecrit"[^>]*>.*<small class="jd-etat"><i class="jd-pp" aria-hidden="true"><b><\/b><b><\/b><b><\/b><\/i>Écrit sa requête<\/small>/);
   s.J.ecritAt.d = now - 5200; assert.equal(s.rang(0)[3].etat, 'pense', 'sans nouvelles 5 s : en réflexion');
-  /* « Teste sa requête » le temps du geste (3,2 s), puis « En réflexion » ; jamais pour soi */
-  s.J.ecritAt = {}; s.J.koAt.c = now - 4000; s.J.koAt.a = now; assert.deepEqual(s.rang(0).filter(x => x.pid !== 'b').map(x => x.etat), ['pense', 'pense', 'pense']);
+  /* « Teste sa requête » le temps du geste (3,2 s), puis « En réflexion » ; pour soi aussi */
+  s.J.ecritAt = {}; s.J.koAt.c = now - 4000; s.J.koAt.a = now; assert.deepEqual(s.rang(0).filter(x => x.pid !== 'b').map(x => x.etat), ['test', 'pense', 'pense']);
 });
 
 test('les points de toute la partie ; deux à égalité en tête, deux couronnes ; parti, il garde sa ligne et ses points', () => {
@@ -180,7 +180,9 @@ test('« il écrit » : part si ma requête a changé depuis le dernier tour, au
   s.J.ecritEnvoye = 0; s.J.edVu = { n: 1, v: '' }; ed.value = 'x'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 2, 'une autre manche : on repart de sa requête');
   s.J.rounds[0].found = { a: 1 }; ed.value = 'y'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 2, 'trouvé : plus rien');
   s.J.rounds[0].found = {}; s.ctx.jeuSoloLike = () => true; ed.value = 'z'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 2, 'seul dans la salle : rien');
+  assert.ok(s.J.ecritAt.a > 0, 'ma ligne aussi : « Écrit sa requête » (18 h 18), sans rien envoyer de plus');
   /* Reçu */
+  s.J.ecritAt = {};
   s.ctx.jeuSoloLike = () => false; Object.assign(s.J, { view: 'play0', denied: {} });
   s.ev("jeuEcritRecu({t:'ecrit',pid:'c',g:2,n:0})"); assert.ok(s.J.ecritAt.c > 0);
   for (const m of ["{pid:'a',g:2,n:0}", "{pid:'zz',g:2,n:0}", "{pid:'d',g:1,n:0}", "{pid:'d',g:2,n:4}"]) s.ev(`jeuEcritRecu(${m})`);

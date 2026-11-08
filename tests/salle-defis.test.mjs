@@ -691,7 +691,7 @@ test('« En direct » : les essais manqués des autres comptent chez tous, la li
   g.ed.value = "SELECT 'encore faux'"; g.ev('jeuRun()'); sec(w, 0.5);
   assert.equal(lui(host).essais, 2, 'deux essais, vus par l’hôte'); assert.equal(lui(host).etat, 'test', 'il teste sa requête');
   assert.equal(lui(guests[1]).essais, 2, 'et par l’autre ami');
-  assert.equal(lui(g).essais, 2, 'chez lui, le même compte'); assert.equal(lui(g).etat, 'pense', 'chez lui : pas de « Teste sa requête »');
+  assert.equal(lui(g).essais, 2, 'chez lui, le même compte'); assert.equal(lui(g).etat, 'test', 'chez lui aussi : « Teste sa requête » (8 novembre, 18 h 18)');
   sec(w, 4); assert.equal(lui(host).etat, 'pense', 'le geste passe (3,2 s)');
   g.found(); sec(w, 1);
   const tete = host.ev('jeuDirectJoueurs(0)[0]');
@@ -755,7 +755,7 @@ test('« En direct » : « Écrit sa requête » tant qu’il tape, sans jamais 
   g.ev('jeuRun()'); sec(w, 0.5); assert.equal(lui(host), 'test', 'il exécute : « Teste sa requête »');
   sec(w, 3.5); assert.equal(lui(host), 'pense', 'puis en réflexion (il n’écrit plus)');
   host.ed.value = 'SELECT 1'; sec(w, 1);
-  assert.equal(host.ev('jeuDirectJoueurs(0).find(x=>x.me)').etat, 'pense', 'sa propre ligne reste « En réflexion »');
+  assert.equal(host.ev('jeuDirectJoueurs(0).find(x=>x.me)').etat, 'ecrit', 'sa propre ligne aussi : « Écrit sa requête » (8 novembre, 18 h 18)');
   assert.equal(lui(g) , 'pense'); assert.equal(g.ev(`jeuDirectJoueurs(0).find(x=>x.pid===${JSON.stringify(host.pid())})`).etat, 'ecrit', 'l’ami voit l’hôte écrire');
   g.found(); sec(w, 1); const n = w.signals.length;
   g.ed.value = 'autre chose'; sec(w, 4); assert.equal(w.signals.length, n, 'trouvé : plus rien ne part');
