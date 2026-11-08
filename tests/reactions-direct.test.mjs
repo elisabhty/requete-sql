@@ -99,7 +99,7 @@ test('« Réagir » : un seul bouton dans la ligne du niveau, en salle (même se
   assert.equal((h.match(/onclick="jeuReact\('/g) || []).length, 4, 'les quatre réactions');
   assert.ok(h.includes('<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions"><button type="button" style="--i:0" onclick="jeuReact(\'👏\',this)" aria-label="Réagir 👏">👏</button>'));
   /* Le cadre le montre dans toute salle ; la première fois de la partie, son sourire se balance */
-  const d = cut('function jeuDirectHTML(n,hud){', '\n}\n');
+  const d = cut('function jeuDirectHTML(n,hud,chrono){', '\n}\n');
   assert.ok(d.includes('const reagir=jeuReagirLa(),neuf=reagir&&!J.reagirVu;if(neuf)J.reagirVu=1;'));
   assert.ok(d.includes("${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}\" id=\"jeu-direct\""));
   assert.ok(app.includes('function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo);}'));

@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=244">
+<link rel="stylesheet" href="ludique.css?v=245">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13829,17 +13829,44 @@ function coachEnJeu(){
   return !!r&&!r.closed&&!r.done;
 }
 function coachPeekOff(){document.getElementById('coach-peek')?.remove();}
+/* La pastille du bas (Elisa, 8 novembre, 19 h 18 puis 19 h 27, avec sa capture de 18 h 16, « Pas encore · voir l’indice » : « je n’ai pas
+   le message Un coup de patte · voir l’indice, je parle de ça, le message en bas »). Elle dit toujours « Un coup de patte ? » : « voir
+   l’indice » quand un indice arrive, ou après un essai raté si la carte en montre un ; « voir pourquoi » après un essai raté sans
+   indice. Avant, un indice arrivé sans essai raté disait « Nouvel indice · le voir ». Elle se montre tant que ce qu’elle annonce
+   (l’indice, ou l’encart « Un coup de patte ? ») n’est pas vu en entier : un bout de carte en haut de l’écran, sous la barre du haut
+   ou derrière le clavier ne compte plus pour vu. Le clavier ouvert, elle se pose au-dessus de lui (Safari laisse derrière lui ce qui
+   est fixé en bas de l’écran). */
+function coachPeekVu(el){
+  if(!el||typeof el.getBoundingClientRect!=='function'||typeof window==='undefined')return false;
+  const r=el.getBoundingClientRect(),vv=window.visualViewport;
+  let haut=vv?vv.offsetTop:0,bas=vv?vv.offsetTop+vv.height:(window.innerHeight||0);
+  const sc=typeof el.closest==='function'?el.closest('.screen'):null,nb=sc&&typeof sc.querySelector==='function'?sc.querySelector('.navbar'):null;
+  if(sc){const s=sc.getBoundingClientRect();haut=Math.max(haut,s.top);bas=Math.min(bas,s.bottom);}
+  if(nb){const s=nb.getBoundingClientRect();if(s.height>0)haut=Math.max(haut,s.bottom);}
+  return r.height>0&&r.top>=haut-2&&r.bottom<=bas+2;
+}
+function coachPeekCaler(b){
+  if(!b||!b.style||typeof window==='undefined')return;
+  const vv=window.visualViewport,k=vv?Math.max(0,Math.round((window.innerHeight||0)-vv.offsetTop-vv.height)):0;
+  b.style.bottom=k>60?`${k+14}px`:'';
+}
 function coachPeek(card,hint){
   coachPeekOff();
   if(typeof IntersectionObserver==='undefined'||!card||!card.isConnected||!coachEnJeu())return;
+  const cible=(typeof card.querySelector==='function'&&card.querySelector(hint?'.coach-hint':'.coach-st'))||card;
   const b=document.createElement('button');
   b.type='button';b.id='coach-peek';b.className='coach-peek';b.hidden=true;
-  b.innerHTML=`<span aria-hidden="true">↑</span>${COACH.diag?(hint?'Un coup de patte\u00a0? · voir l’indice':'Un coup de patte\u00a0? · voir pourquoi'):'Nouvel indice · le voir'}`;
+  b.innerHTML=`<span aria-hidden="true">↑</span>Un coup de patte\u00a0? · ${hint||COACH.n>0?'voir l’indice':'voir pourquoi'}`;
   let mo=null;
-  const io=new IntersectionObserver(([e])=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=e.isIntersecting;});
-  const bye=()=>{io.disconnect();if(mo)mo.disconnect();b.remove();};
-  b.onclick=()=>{bye();card.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'center'});};
-  document.body.appendChild(b);io.observe(card);
+  const vv=typeof window!=='undefined'?window.visualViewport:null,sc=typeof card.closest==='function'?card.closest('.screen'):null;
+  const maj=e=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=(e?!!e.isIntersecting:true)&&coachPeekVu(cible);coachPeekCaler(b);};
+  const suivre=()=>maj();
+  const io=new IntersectionObserver(([e])=>maj(e),{threshold:[0,.5,1]});
+  const bye=()=>{io.disconnect();if(mo)mo.disconnect();if(vv){vv.removeEventListener('resize',suivre);vv.removeEventListener('scroll',suivre);}if(sc)sc.removeEventListener('scroll',suivre);b.remove();};
+  b.onclick=()=>{bye();cible.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'center'});};
+  document.body.appendChild(b);io.observe(cible);
+  if(vv){vv.addEventListener('resize',suivre);vv.addEventListener('scroll',suivre);}
+  if(sc)sc.addEventListener('scroll',suivre,{passive:true});
   /* Elle disparaît d’elle-même au bout de quelques secondes, ou dès qu’on quitte le défi (la carte quitte la page). */
   setTimeout(()=>{if(b.isConnected)b.classList.add('is-out');setTimeout(()=>{if(b.isConnected)bye();},300);},6000);
   mo=new MutationObserver(()=>{if(!card.isConnected||!coachEnJeu())bye();});mo.observe(document.body,{childList:true,subtree:true});
@@ -35638,7 +35665,7 @@ function jeuDirectTete(xs){
 function jeuDirectPid(p){return String(p).replace(/[^\w-]/g,'');}
 function jeuDirectEtats(xs){return Object.fromEntries(xs.map(x=>[jeuDirectPid(x.pid),{etat:x.etat,essais:x.essais,chef:x.chef,place:x.place,serie:x.serie,pts:x.pts}]));}
 function jeuDirectSig(xs){return xs.map(x=>[jeuDirectPid(x.pid),x.etat+(x.quitte?'-q':''),x.essais,x.pts,x.chef?1:0,x.gain,x.serie,x.monte,x.rang].join(':')).join('|');}
-function jeuDirectHTML(n,hud){
+function jeuDirectHTML(n,hud,chrono){
   const J=JEU,xs=jeuDirectJoueurs(n);if(!xs.length)return '';
   const avant=J.directVu&&J.directVu.n===n?J.directVu.m:{};
   jeuDirectObserver(n,xs,avant);
@@ -35647,7 +35674,7 @@ function jeuDirectHTML(n,hud){
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
   /* « Réagir », en salle, même seule (18 h 36, 19 h 12) : la première fois de la partie, son sourire se balance */
   const reagir=jeuReagirLa(),neuf=reagir&&!J.reagirVu;if(neuf)J.reagirVu=1;
-  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
+  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}" id="jeu-direct" aria-labelledby="jeu-direct-t">${chrono||''}<div class="jeu-direct-bande">${hud||''}`+
     `<button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="${!plie}" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer()">`+
     `<span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b>`+
     `<span class="jeu-direct-nb">${typeof DX_GENS_SVG!=='undefined'?DX_GENS_SVG:''}<span id="jeu-direct-nb">${t.nb}</span></span><span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span>`+
@@ -36092,13 +36119,18 @@ function jeuRender(){
     const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span><small>pts</small>${r.tries||jeuBonusPris(r)?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>`}</b>`;
     /* Le cadre de la manche (Elisa, 8 novembre, 17 h 48 : « mettre tout ce qu’il y a en haut aussi dans le cadre (manche, points,
        temps) de manière UI UX ») : la barre du haut entre dans le bandeau violet, sous le titre. En tête : la manche, ce que vaut le
-       défi et le chrono ; dessous, le niveau (la pastille blanche des feuilles) ; un filet, puis « En direct » et le commentateur.
-       Seul (Joue seul), le même bandeau, avec sa tête seulement. La base passe en pastille à côté de « La situation » (18 h 28). */
-    const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b><span class="jeu-hud-r">${val}<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b></span>`+
+       défi ; dessous, le niveau (la pastille blanche des feuilles) ; un filet, puis « En direct » et le commentateur. Le chrono est
+       posé sur le bord du cadre (19 h 18). Seul (Joue seul), le même bandeau, avec sa tête seulement. La base passe en pastille sur le
+       bord de « La situation » (18 h 28, 18 h 36). */
+    const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b><span class="jeu-hud-r">${val}</span>`+
       `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${J.solo?'':jeuReagirHTML()}</span></div>`;
+    /* Le chrono, posé à cheval sur le bord du cadre, en haut à droite, comme la base sur celui de « La situation » (Elisa, 8 novembre,
+       19 h 18 : « le chrono, le mettre comme la pill du cadre, entre l’intérieur et l’extérieur ») : hors du bandeau, qui coupe ce qui
+       dépasse, dans la section. */
+    const chrono=`<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;
     html=`${jeuNetSlot()}
       <h1>${esc(c.titre)}</h1>
-      ${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
+      ${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}">${chrono}<div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud,chrono)}
       ${defiConsigneHTML(c,{base:true})}
       ${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
@@ -46624,7 +46656,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-reagir-seule-v2691';
+  const SW_CACHE='requete-2026-11-08-chrono-bord-v2692';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
