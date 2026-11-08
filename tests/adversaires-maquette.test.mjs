@@ -19,7 +19,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 
 test('l’onglet s’appelle « Adversaires »', () => {
   assert.ok(app.includes("DEFIS_ONGLETS=[['jouer','Jouer'],['classement','Classement'],['amis','Adversaires']];"));
-  assert.ok(app.includes('invite-les avec un code depuis l’onglet Adversaires.') && app.includes('>Ouvrir l’onglet Adversaires</button>'), 'le classement le nomme pareil');
+  assert.ok(app.includes('invite des amis avec un code depuis l’onglet Adversaires.') && app.includes('>Ouvrir l’onglet Adversaires</button>'), 'le classement le nomme pareil');
 });
 
 test('le bandeau : deux épées croisées, dans le dessin des autres autocollants', () => {
@@ -39,8 +39,8 @@ test('le bandeau : deux épées croisées, dans le dessin des autres autocollant
 test('la carte vide : le duel, le titre, la phrase ; puis les deux boutons, avec leur icône', () => {
   assert.ok(app.includes("chatBonusHtml('duel','is-vide dx-amis-chat'):''}<p class=\"dx-vide-t\">Aucun adversaire pour l’instant&nbsp;!</p><p class=\"dx-vide\">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p></div>`"));
   const boutons = cut('  const boutons=`', '`;');
-  assert.ok(boutons.indexOf('Créer une partie') < boutons.indexOf('Rejoindre avec un code'), 'le bouton plein d’abord');
-  assert.ok(boutons.includes('class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte(\'creer\')">${DX_AJOUT_SVG}Créer une partie</button>'));
+  assert.ok(boutons.indexOf('Créer ma partie') < boutons.indexOf('Rejoindre avec un code'), 'le bouton plein d’abord');
+  assert.ok(boutons.includes('class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte(\'creer\')">${DX_AJOUT_SVG}Créer ma partie</button>'));   // 9 novembre : « Créer ma partie », comme dans Jouer et la feuille qu’il ouvre
   assert.ok(boutons.includes('class="dx-sec" aria-haspopup="dialog" onclick="defisCarte(\'code\')">${DX_LIEN_SVG}Rejoindre avec un code</button>'));
   for (const k of ['DX_AJOUT_SVG', 'DX_LIEN_SVG']) {
     const d = cut(`const ${k}='`, "';");

@@ -118,14 +118,15 @@ test('la consigne autonome d’un défi, point par point, avec l’accès au sch
     assert.equal(html.includes('<b>Garde</b>'), c.garde.length > 0, c.id + ' : les lignes gardées, s’il y en a');
     assert.equal(html.includes('<b>À savoir</b>'), c.precis.length > 0, c.id);
     assert.ok(c.ordered ? c.tri.split(/,\s*puis\s+/).every(t => html.includes(t.trim())) && html.includes('l’ordre compte') : html.includes('<b>Ordre libre</b>'), c.id + ' : le tri clé par clé, ou l’ordre libre');
-    assert.ok(html.includes('onclick="openSchemaSheet()"') && html.includes('Tu as accès au <em>schéma</em>') && html.includes('de la base ' + NOMS[c.base].nom), c.id + ' : le schéma à un toucher');
+    /* 9 novembre, 0 h 31 (« supprimer du coup ») : plus de carte « Tu as accès au schéma » ; la pastille d’« À toi de jouer » l’ouvre */
+    assert.ok(html.includes('class="dq-lien" onclick="openSchemaSheet()"') && !html.includes('Tu as accès au') && !html.includes('dq-schema'), c.id + ' : le schéma à un toucher');
     assert.ok(!html.includes(c.sol) && !html.includes(c.indice), c.id + ' : ni solution ni indice');
   }
   ctx.c = { ...DEFIS[8], affiche: ['<script>intrusion</script>'] };
   assert.ok(!vm.runInContext('defiConsigneHTML(c)', ctx).includes('<script>'), 'les points restent du texte');
   ctx.c = { contexte: '<script>intrusion</script>', q: 'Autre texte' };
   const ancien = vm.runInContext('defiConsigneHTML(c)', ctx);
-  assert.ok(!ancien.includes('<script>') && ancien.includes('Tu as accès au <em>schéma</em>'), 'un ancien défi garde son texte, et le schéma');
+  assert.ok(!ancien.includes('<script>') && ancien.includes('class="dq-lien" onclick="openSchemaSheet()"') && !ancien.includes('Tu as accès au'), 'un ancien défi garde son texte, et le schéma (par « À toi de jouer »)');
   assert.ok(!app.includes('<summary>Un indice</summary>'), 'pas d’indice');
   assert.equal((app.match(/\$\{defiConsigneHTML\(c,\{titre:true\}\)\}/g) || []).length + (app.match(/\$\{defiConsigneHTML\(c,\{base:true,titre:true\}\)\}/g) || []).length, 2, 'défi seul et manche en salle (la base en pastille, 8 novembre, 18 h 28 ; le titre dans le cadre, 21 h 51)');
   ctx.c = DEFIS[8];

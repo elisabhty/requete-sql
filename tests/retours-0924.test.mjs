@@ -215,7 +215,7 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
       { at: now - 2 * 864e5, pts: 258, n: 1, ok: 1, ms: 60000, niv: 'f', solo: 1, place: 0, players: 1 }],
     mates: { 'léa': { n: 'Léa', g: 2, w: 1, l: 1, at: now - 3600e3 }, 'tom': { n: 'Tom', g: 1, w: 1, l: 0, at: now - 3600e3 }, 'zoé': { n: 'Zoé', g: 3, w: 0, l: 2, at: now - 3 * 864e5 } } };
   const h = perfCtx(salle);
-  assert.match(h, /<div class="perf-block perf-friends"><h3>Entre amis<\/h3>/);
+  assert.match(h, /<div class="perf-block perf-friends"><h3>À plusieurs<\/h3>/);
   assert.ok(h.includes('<b>Ta dernière partie</b> · Aujourd’hui · Moyen · avec Léa et Tom'), 'quand, à quel niveau, avec qui');
   assert.ok(h.includes('<div class="jeu-podium perf-podium">'), 'le podium de la fin de partie');
   const steps = h.match(/<div class="jeu-step is-\d[^"]*" style="--i:\d">/g);
@@ -233,7 +233,7 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
     ['is-down', 'Zoé', '3 parties ensemble · ' + mates[2][2].split(' · ')[1], '0 fois devant, 2 fois derrière, 1 ex æquo', '0–2', 'à rattraper'],
   ], 'les plus récents d’abord (à égalité, les plus affrontés), et le score entre vous');
   assert.ok(h.includes(`<button type="button" class="perf-rematch" onclick="perfRematch('m')"><svg data-k="friends"></svg><span>Les redéfier</span>`), 'les redéfier, au niveau de la dernière partie');
-  assert.ok(h.includes('<span class="perf-g"><b>Entre amis · Moyen · avec Léa et Tom</b>'), 'l’historique dit avec qui');
+  assert.ok(h.includes('<span class="perf-g"><b>À plusieurs · Moyen · avec Léa et Tom</b>'), 'l’historique dit avec qui');
   /* Quatrième : sous le podium, sa place et ses points ; deux ex æquo partagent une marche ; une marche vide attend */
   const f = perfCtx({ ...salle, hist: [{ at: now, pts: 120, n: 3, ok: 2, ms: 1, niv: 'f', solo: 0, place: 4, players: 5,
     ppl: [{ n: 'Léa', pts: 412, place: 1 }, { n: 'Tom', pts: 300, place: 2 }, { n: 'Ana', pts: 300, place: 2 }, { n: 'Elisa', pts: 120, place: 4, me: 1 }, { n: 'Zoé', pts: 50, place: 5 }] }] });
@@ -243,7 +243,7 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
   assert.ok(f.includes('avec Léa, Tom +2'));
   /* Seulement seul jusqu’ici : le podium vide qui attend, et de quoi jouer entre amis */
   const s = perfCtx({ pts: 300, parties: 1, best: 300, manches: 3, trouves: 3, amis: 0, pl: [0, 0, 0], lv: { f: [3, 3] }, hist: [{ at: now, pts: 300, n: 3, ok: 3, ms: 1, niv: 'f', solo: 1, place: 0, players: 1 }] });
-  assert.ok(s.includes('Ton prochain podium entre amis s’affichera ici.') && s.includes('<div class="jeu-podium perf-podium is-ghost">'));
+  assert.ok(s.includes('Ton prochain podium à plusieurs s’affichera ici.') && s.includes('<div class="jeu-podium perf-podium is-ghost">'));
   assert.ok(s.includes("onclick=\"perfRematch('')\"") && s.includes('<span>Jouer à plusieurs</span>') && !s.includes('<ul class="perf-mates">'));
   assert.ok(s.includes('<h4>Tes derniers adversaires</h4><p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'));
 });

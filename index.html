@@ -13723,8 +13723,10 @@ function defiConsigneHTML(c,o){
      en tête du cadre, puis « La situation » : le cadre dit tout le défi, de sa question à ce qu’il faut afficher. En salle comme
      sur la page d’un défi. */
   const titre=o&&o.titre&&c&&c.titre?`<h1 class="dq-titre">${esc(c.titre)}</h1>`:'';
-  const schema=`<button type="button" class="dq-schema${typeof schAttn==='function'?schAttn():''}" onclick="openSchemaSheet()"><i class="dq-ico" aria-hidden="true">${typeof ED_SCHEMA_SVG==='string'?ED_SCHEMA_SVG:''}</i><span><b>Tu as accès au <em>schéma</em></b><small>${nom?`Tables, colonnes et relations de la base ${esc(nom)}`:'Tables, colonnes et relations de la base'}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  if(!c||!Array.isArray(c.affiche)||!c.affiche.length)return `<div class="consigne dq${titre?' has-titre':''}">${titre}<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||'')}</p>${schema}</div>`;
+  /* 9 novembre, 0 h 31 (Elisa, sa capture de « Tu as accès au schéma » : « supprimer du coup ») : la carte doublait « À toi de
+     jouer ! Tu peux consulter le schéma… » (sa pastille ouvre le schéma) et le bouton Schéma de l’éditeur ; elle s’en va. Un ancien
+     défi, sans ses points, garde l’accès au schéma par la phrase d’« À toi de jouer ». */
+  if(!c||!Array.isArray(c.affiche)||!c.affiche.length)return `<div class="consigne dq${titre?' has-titre':''}">${titre}<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||'')}</p>${defiAToiHTML()}</div>`;
   const sec=(cls,titre,chip,corps)=>`<section class="dq-sec ${cls}"><div class="dq-h"><b>${titre}</b>${chip?`<span class="dq-chip">${chip}</span>`:''}</div>${corps}</section>`;
   const liste=(l,num)=>`<${num?'ol':'ul'} class="dq-l${num?' is-num':''}">${l.map(x=>`<li>${escCode(x)}</li>`).join('')}</${num?'ol':'ul'}>`;
   const n=c.affiche.length,garde=Array.isArray(c.garde)?c.garde:[],precis=Array.isArray(c.precis)?c.precis:[];
@@ -13736,7 +13738,7 @@ function defiConsigneHTML(c,o){
     +(tri?sec('is-tri','Trie','l’ordre compte',tri.length>1?liste(tri,true):`<p class="dq-t">${escCode(tri[0])}</p>`)
       :sec('is-libre','Ordre libre','',`<p class="dq-t">Range les lignes comme tu veux\u00a0: seul leur contenu compte.</p>`))
     +(precis.length?sec('is-info','À savoir','',liste(precis,false)):'')
-    +schema+'</div>';
+    +'</div>';
 }
 /* Les indices d’un défi raté (Elisa, 1er novembre, 8 h 59 : « si on réussit pas du premier coup, commencer par un premier indice,
    un deuxième après, puis troisième max, mais sans jamais dévoiler la requête, même après »). Rien au départ (1 h 20). Trois
@@ -13827,9 +13829,9 @@ function coachPaint(){
   if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();
   const card=sl.querySelector('.coach');
   if(card&&COACH.fx&&!prefersReduceMotion()){card.classList.add(COACH.fx);setTimeout(()=>card.classList.remove('is-new-hint','is-new-ko'),900);}
-  /* La carte est au-dessus de l’éditeur : si elle est sortie de l’écran quand un indice arrive, une pastille en bas de l’écran y ramène.
-     Seulement pour l’indice (Elisa, 8 novembre, 19 h 49 : « je veux juste pour l’indice ») : un essai raté se lit dans la carte. */
-  if(card&&COACH.fx==='is-new-hint')coachPeek(card,true);
+  /* 9 novembre, 0 h 31 (Elisa) : « pour l’indice ne met pas un coup de patte à part en bas (notif en bas de page) » : plus de
+     pastille « Un coup de patte ? · voir l’indice » en bas de l’écran. L’indice arrive dans sa carte, au-dessus de l’éditeur, qui
+     rebondit (is-new-hint), avec un petit retour du téléphone. coachPeek reste, sans appel ; coachPeekOff range une pastille d’avant. */
   COACH.fx='';
 }
 /* Elisa, 6 novembre, 10 h 31 (capture du bilan « Ton bilan », la manche close) : « on a une notification d’indice alors que la salle
@@ -27166,7 +27168,7 @@ function defisFeuilleHTML(k){
   const ko=join&&typeof jeuCodeKo!=='undefined'?jeuCodeKo:'',code=jeuInvite||ko||'';
   const tete=join?['Rejoindre une partie','Entre ton code&nbsp;!','Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.']
     :friends?['Créer ma partie','Ta salle de défi','Choisis les règles. Le défi sera révélé au lancement de la partie.']
-    :['Mode solo','Joue seul','Relève des défis contre la montre.'];   // 23 h 44 : « à ton rythme » contredisait le chrono et les points qui baissent
+    :['Mode solo',`Joue ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}`,'Relève des défis contre la montre.'];   // 23 h 44 : « à ton rythme » contredisait le chrono et les points qui baissent
   const manches=[1,2,3].map(v=>`<button type="button" role="radio" aria-checked="${jeuNb===v}" class="dx-manche${jeuNb===v?' on':''}" data-set="nb" data-v="${v}"${v>jeuChallenges(jeuNiv).length?' disabled':''} onclick="jeuRoomSet('nb',${v})"><b>${v}</b> <span>manche${v>1?'s':''}</span> <small class="dx-m-duree">${dxDureeMax(v)}</small></button>`).join('');
   return `<div class="room-head dx-f-tete"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span>
     <div class="dx-f-titres"><p class="room-kicker">${tete[0]}</p>
@@ -27421,7 +27423,7 @@ function perfWith(h){
   return 'avec '+(o.length<=2?o.join(' et '):`${o.slice(0,2).join(', ')} +${o.length-2}`);
 }
 function perfGame(h){
-  return `${h.solo?'En solo':'Entre amis'} · ${JEU_NIVL[h.niv]||'Facile'}${!h.solo&&h.players>1?` · ${perfWith(h)}`:''}`;
+  return `${h.solo?'En solo':'À plusieurs'} · ${JEU_NIVL[h.niv]||'Facile'}${!h.solo&&h.players>1?` · ${perfWith(h)}`:''}`;
 }
 function perfBadge(h){
   if(!h.solo&&h.place>=1&&h.place<=3)return lqStkSvg('medal'+h.place);
@@ -27571,7 +27573,7 @@ function clsTopHTML(){
   const me=d.moi&&d.moi.id,top=(d.top||[]).filter(x=>x&&!hide.has(x.id)).slice(0,5);
   /* Un pseudo d’avant refusé par le filtre (il n’a pas pu être réservé) : la feuille pour en choisir un, une fois pour toutes. */
   const refus=s.clsRefus?`<p class="perf-top-msg is-warn">Ton pseudo « ${esc(s.clsRefus)} » n’est pas accepté au classement.</p><button type="button" class="perf-top-btn" onclick="psPage({raison:'refuse'})">Choisir mon pseudo</button>`:'';
-  if(!top.length)return head+refus+`<p class="perf-top-msg">Personne n’est encore classé : termine une partie, seul ou entre amis, pour ouvrir le classement.</p>`;
+  if(!top.length)return head+refus+`<p class="perf-top-msg">Personne n’est encore classé : termine une partie, seul ou à plusieurs, pour ouvrir le classement.</p>`;
   const rows=top.map((x,i)=>{const mine=x.id===me,rk=+x.rang||i+1;
     return `<li class="${mine?'is-me ':''}is-r${Math.min(rk,4)}" style="--i:${i}"><span class="perf-top-rk">${rk<=3?lqStkSvg('medal'+rk):rk}</span>`+
       `<b class="jeu-av" data-c="${perfColor(x.pseudo)}" aria-hidden="true">${jeuInitial(x.pseudo)}${typeof jeuFlag==='function'?jeuFlag(x.pseudo):''}</b>`+
@@ -27774,7 +27776,7 @@ function jeuAvecPseudo(f,ko){
     if(ok){lqSay('Tu joues en tant que '+psMien());f();return;}
     if(ko){ko('pseudo');return;}   // depuis la feuille du code : le message sous le champ (8 novembre, 15 h 27)
     lqInfo('Salle indisponible','Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.','📶');
-  },()=>{if(ko){ko('reseau');return;}lqInfo('Pas de réseau','Il faut une connexion internet pour jouer entre amis. Réessaie dans un instant.','📶');});
+  },()=>{if(ko){ko('reseau');return;}lqInfo('Pas de réseau','Il faut une connexion internet pour jouer à plusieurs. Réessaie dans un instant.','📶');});
 }
 function psJoueurAuHasard(){return psForme('joueur'+Math.floor(1000+Math.random()*9000));}
 function psCandidats(){
@@ -27842,22 +27844,22 @@ function renderDefisPerf(){
   const chart=last.length
     ?`<div class="perf-chart${vsAny?' has-vs':''}" role="group" aria-label="Points des ${last.length} dernières parties">${last.map((h,i)=>{const vs=vsOf(h),autres=vs?h.ppl.filter(x=>!x.me).slice(0,7):[],tt=vs?perfTeintes(h.ppl):{};
       return `<button type="button" class="perf-bar${i===bi?' is-best':''}${i===last.length-1?' is-on':''}${vs?' is-vs':''}" style="--h:${Math.max(5,Math.round(h.pts/top*100))}%;--i:${i}" data-cap="${escAttr(`${perfDay(h.at)} · ${perfGame(h)} · ${h.pts} ${plur(h.pts,'point')}`)}" data-caph="${escAttr(perfCapHTML(h))}" aria-label="${escAttr(`${perfDay(h.at)}, ${h.pts} ${plur(h.pts,'point')}${vs?`, à ${nbOf(h)} joueurs`:''}`)}" onclick="perfPick(this)">${i===bi?`<em>${h.pts}</em>`:''}<i></i>${autres.map((x,k)=>`<span class="perf-o" data-c="${tt[x.n]}" style="--y:${Math.max(4,Math.round((+x.pts||0)/top*100))}%;--x:${zig(k)}px" aria-hidden="true"></span>`).join('')}${vs?`<b class="perf-n" aria-hidden="true">${nbOf(h)}</b>`:''}</button>`;}).join('')}</div>
-      <p class="perf-cap" aria-live="polite">${perfCapHTML(last[last.length-1])}</p>${vsAny?'<p class="perf-legend"><span><i class="perf-legend-o" aria-hidden="true"></i>les points de tes amis</span><span class="perf-legend-t">au pied de chaque barre : le nombre de joueurs</span></p>':''}`
+      <p class="perf-cap" aria-live="polite">${perfCapHTML(last[last.length-1])}</p>${vsAny?'<p class="perf-legend"><span><i class="perf-legend-o" aria-hidden="true"></i>les points de tes adversaires</span><span class="perf-legend-t">au pied de chaque barre : le nombre de joueurs</span></p>':''}`
     :`<div class="perf-chart is-ghost" aria-hidden="true">${[38,62,46,80,54,70].map((h,i)=>`<span class="perf-bar" style="--h:${h}%;--i:${i}"><i></i></span>`).join('')}</div>
       <p class="perf-cap">${parties?'Tes prochaines parties s’afficheront ici, en barres.':'Joue ta première partie : tes points s’afficheront ici, partie après partie.'}</p>`;
   const lvRows=['f','m','d'].map((k,i)=>{const a=Array.isArray(lv[k])?lv[k]:[0,0],n=num(a[0]),ok=Math.min(num(a[1]),n);
     return `<li class="is-${k}" style="--i:${i}"><b>${JEU_NIVL[k]}</b><span class="perf-lvbar"><i style="--w:${n?Math.round(ok/n*100):0}%"></i></span><em>${n?`${ok}/${n}`:'—'}</em></li>`;}).join('');
   const amis=num(s.amis);
   const pods=`<div class="perf-pods">${[0,1,2].map(i=>`<span style="--i:${i}"><i aria-hidden="true">${lqStkSvg('medal'+(i+1))}</i><b>${num(pl[i])}</b><small>${['1re','2e','3e'][i]} place</small></span>`).join('')}</div>
-    <p class="perf-note">${amis?`Sur ${amis} ${plur(amis,'partie')} entre amis.`:'Joue dans une salle à plusieurs pour monter sur le podium.'}</p>`;
+    <p class="perf-note">${amis?`Sur ${amis} ${plur(amis,'partie')} à plusieurs.`:'Joue dans une salle à plusieurs pour monter sur le podium.'}</p>`;
   /* Entre amis (Elisa, 31 octobre, 9 h 24 : « mettre aussi le lien avec les personnes qu’on a joué, par exemple un podium animé ») :
      le podium de la dernière partie entre amis, les places gagnées, les amis affrontés et le score entre vous, et de quoi les redéfier. */
   const vsLast=hist.find(h=>!h.solo&&Array.isArray(h.ppl)&&h.ppl.length>1),meLast=vsLast&&vsLast.ppl.find(x=>x.me);
   /* Les 3 dernières personnes avec qui on a joué (Elisa, 31 octobre, 15 h 16), la plus récente en premier, et le score entre vous. */
   const mates=Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).filter(m=>m&&m.n&&num(m.g)>0)
     .map(m=>({n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)})).sort((a,b)=>b.at-a.at||b.g-a.g).slice(0,3);
-  const friends=`<div class="perf-block perf-friends"><h3>Entre amis</h3>
-    <p class="perf-pod-cap">${vsLast?`<b>Ta dernière partie</b> · ${esc(perfDay(vsLast.at))} · ${esc(JEU_NIVL[vsLast.niv]||'Facile')} · ${esc(perfWith(vsLast))}`:'Ton prochain podium entre amis s’affichera ici.'}</p>
+  const friends=`<div class="perf-block perf-friends"><h3>À plusieurs</h3>
+    <p class="perf-pod-cap">${vsLast?`<b>Ta dernière partie</b> · ${esc(perfDay(vsLast.at))} · ${esc(JEU_NIVL[vsLast.niv]||'Facile')} · ${esc(perfWith(vsLast))}`:'Ton prochain podium à plusieurs s’affichera ici.'}</p>
     ${perfPodiumHTML(vsLast)}${meLast&&meLast.place>3?`<p class="perf-pod-me">Toi : ${meLast.place}e · ${meLast.pts} ${plur(meLast.pts,'point')}</p>`:''}
     ${pods}
     <h4>${mates.length>1?`Tes ${mates.length} derniers adversaires`:mates.length?'Ton dernier adversaire':'Tes derniers adversaires'}</h4>${mates.length?`<ul class="perf-mates">${mates.map(perfMateHTML).join('')}</ul>`:'<p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'}
@@ -28127,6 +28129,7 @@ function jeuNiveauxHTML(lab,fn){
 function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
   jeuNiv=k;jeuNivUser=true;jeuSavePrefs();
+  if(typeof defisReglesNiv!=='undefined'&&defisReglesNiv&&defisReglesNiv!==k&&typeof renderDefisRules==='function'){defisReglesNiv='';renderDefisRules();}   // 9 novembre : le barème de Mes stats suit le niveau choisi ici
   document.querySelectorAll('#scr-defis [data-set="niv"]').forEach(b=>{const on=b.dataset.v===k;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
   /* « Rejoins une partie » suit le niveau (11 h 37, 12 h 52) : ses salles ; aucune : « Crée la tienne », au-dessus de « Créer une salle ». */
   sallesRepeindre();
@@ -28349,6 +28352,9 @@ function jeuPublier(J,n){
 
 /* ---- Mes stats : le tableau de bord et le barème ---- */
 function defisStats(regles){
+  /* 9 novembre : « Comment sont calculés les points ? » ouvre le barème du niveau choisi dans Jouer, pas du dernier regardé ni de
+     celui de l’arrivée sur l’écran Défis (il n’était peint qu’à l’entrée et au choix d’un niveau dans le barème). */
+  if(regles){defisReglesNiv='';renderDefisRules();}
   defisOnglet('stats');
   if(regles){const r=document.getElementById('defis-rules');if(r)setTimeout(()=>{try{r.scrollIntoView({block:'start',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){}},60);}
 }
@@ -28453,7 +28459,7 @@ function defisClassementPeindre(){
   /* Refonte du 7 novembre (designer produit) : plus de carte autour de l’onglet (son titre « Classement » répétait l’onglet ; il reste
      pour le lecteur d’écran) ; les filtres sur le fond ; « 5 joueurs classés » en légende, écrit dès la première réponse. */
   host.innerHTML=`<section class="dx-cls is-v2" aria-labelledby="dx-cls-h"><h2 class="lq-sr" id="dx-cls-h">Classement</h2>
-    <div class="dx-filtres"><div class="dx-filters" role="group" aria-label="Qui">${chip('monde','🌍 Monde')}${pays?chip('pays',`${paysDrapeau(pays)} ${esc(paysNom(pays))}`):''}${chip('amis','Mes amis')}</div>
+    <div class="dx-filtres"><div class="dx-filters" role="group" aria-label="Qui">${chip('monde','🌍 Monde')}${pays?chip('pays',`${paysDrapeau(pays)} ${esc(paysNom(pays))}`):''}${chip('amis','Mes adversaires')}</div>
     <div class="room-seg dx-periode" role="radiogroup" aria-label="Période">${per('tout','Depuis toujours')}${per('semaine','Cette semaine')}</div></div>
     <p class="dx-cls-compte" id="dx-cls-k" aria-live="polite"></p>
     <div class="dx-pager" id="dx-pager"></div>
@@ -28494,7 +28500,7 @@ function clsPagerPeindre(){
   if(c.err==='net'&&!c.pages[0]){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Classement indisponible pour le moment&nbsp;: il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle='';clsPageCharger(0)">Réessayer</button></div>`;clsPlacePeindre();return;}
   if(c.err==='bientot'){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Ce classement n’est pas disponible pour le moment.</p><button type="button" class="perf-top-btn" onclick="DEFIS.periode='tout';defisPortee('monde')">Voir le classement mondial</button></div>`;clsPlacePeindre();return;}
   if(c.total===0){host.innerHTML=DEFIS.portee==='amis'
-    ?'<div class="dx-cls-msg"><p class="perf-top-msg">Aucun de tes amis n’est encore classé. Joue avec eux&nbsp;: invite-les avec un code depuis l’onglet Adversaires.</p><button type="button" class="perf-top-btn" onclick="defisOnglet(\'amis\')">Ouvrir l’onglet Adversaires</button></div>'
+    ?'<div class="dx-cls-msg"><p class="perf-top-msg">Aucun de tes adversaires n’est encore classé. Joue à plusieurs&nbsp;: invite des amis avec un code depuis l’onglet Adversaires.</p><button type="button" class="perf-top-btn" onclick="defisOnglet(\'amis\')">Ouvrir l’onglet Adversaires</button></div>'
     :clsVideHTML();clsPlacePeindre();return;}
   host.innerHTML=`<div class="dx-pages" id="dx-pages" tabindex="0" aria-label="Classement, ${n} page${n>1?'s':''} : glisse pour changer de page">${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="Page ${i+1} sur ${n}"></ul>`).join('')}</div>
     <div class="dx-nav"><button type="button" class="dx-arrow" id="dx-prev" aria-label="Page précédente" onclick="clsAllerPage(DEFIS.cls.page-1)">‹</button><span class="dx-dots" id="dx-dots" aria-hidden="true"></span><small id="dx-range" aria-live="polite"></small><button type="button" class="dx-arrow" id="dx-next" aria-label="Page suivante" onclick="clsAllerPage(DEFIS.cls.page+1)">›</button></div>`;
@@ -28584,9 +28590,9 @@ function clsPlacePeindre(){
   const page=Number.isInteger(+m.page)?+m.page:-1,go=page>=0&&page<clsPagesNb(),uneSeule=clsPagesNb()<=1&&page===0;
   /* 8 novembre, 11 h 08 (« modifie les pages défis pour ce niveau premium ») : ta place dans le bandeau violet de « Ta salle de
      défi » : ton avatar en autocollant, « Ta place » en surtitre, ton rang en titre jaune (« 5e mondial », « 2e en France », « 1er parmi
-     tes amis »), l’écart avec le joueur devant en phrase, tes points dans la pastille jaune ; sur plusieurs pages, « Page 3 › » y
+     tes adversaires »), l’écart avec le joueur devant en phrase, tes points dans la pastille jaune ; sur plusieurs pages, « Page 3 › » y
      ramène. Le titre « Ta place dans le classement » se tait : le bandeau le dit. */
-  const pays=DEFIS.portee==='pays'&&typeof paysDuProfil==='function'?paysDuProfil():'',ou=DEFIS.portee==='amis'?'parmi tes amis':pays?paysEn(pays):'mondial';
+  const pays=DEFIS.portee==='pays'&&typeof paysDuProfil==='function'?paysDuProfil():'',ou=DEFIS.portee==='amis'?'parmi tes adversaires':pays?paysEn(pays):'mondial';
   if(tete)tete.hidden=true;
   const versPage=go&&!uneSeule?`<button type="button" class="dx-pc is-verre dx-place-go" onclick="clsAllerPage(${page})" aria-label="${escAttr(`Aller à ta page du classement, la page ${page+1}`)}"><span>Page ${page+1}</span>${DEF_CHEV_SVG}</button>`:'';
   host.innerHTML=`<div class="dx-bande dx-place-bande" role="group" aria-labelledby="dx-place-t"><span class="room-stk dx-fiche-av" aria-hidden="true"><b class="jeu-av" data-c="0">${jeuInitial(nom)}${jeuFlag(nom,paysMontre()?paysDuProfil():'')}</b></span><div>
@@ -28636,7 +28642,7 @@ function defisAmisPeindre(){
      8 novembre, 14 h 48 (« je veux marcher qu’avec code ») : un seul bouton, « Inviter un ami » (une salle privée, son code).
      15 h 09 (sa maquette « Adversaires », avec ses corrections) : « Créer une partie » (la feuille de Jouer) et « Rejoindre avec un
      code » (la feuille du code), l’un sous l’autre ; le bandeau prend les deux épées. */
-  const boutons=`<div class="dx-duo"><button type="button" class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte('creer')">${DX_AJOUT_SVG}Créer une partie</button><button type="button" class="dx-sec" aria-haspopup="dialog" onclick="defisCarte('code')">${DX_LIEN_SVG}Rejoindre avec un code</button></div>`;
+  const boutons=`<div class="dx-duo"><button type="button" class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte('creer')">${DX_AJOUT_SVG}Créer ma partie</button><button type="button" class="dx-sec" aria-haspopup="dialog" onclick="defisCarte('code')">${DX_LIEN_SVG}Rejoindre avec un code</button></div>`;
   /* 8 novembre, 11 h 08 (« modifie les pages défis pour ce niveau premium ») : le haut prend le bandeau violet de « Ta salle de défi »
      (l’autocollant, le surtitre menthe, le titre jaune, une phrase, les pastilles) ; le reste ne bouge pas. */
   const amis=amisListe();
@@ -28700,9 +28706,9 @@ function dxFiche(n,x){
   if(typeof document==='undefined'||!document.body)return;
   const D=typeof DEFIS!=='undefined'?DEFIS:{},tout=!!x&&D.periode!=='semaine',rk=x?Math.max(0,Math.floor(+x.rang||0)):0;
   /* Sa place dans le classement d’où l’on vient (22 h 19 : « premier en France n’est pas forcément premier au monde ») : « 🥇 N° 1
-     mondial », « N° 4 en France », « N° 2 parmi tes amis », et « cette semaine » s’il le faut. */
+     mondial », « N° 4 en France », « N° 2 parmi tes adversaires » (9 novembre : comme l’onglet), et « cette semaine » s’il le faut. */
   const pays=D.portee==='pays'&&typeof paysDuProfil==='function'?paysDuProfil():'';
-  const ou=D.portee==='amis'?'parmi tes amis':pays?paysEn(pays):'mondial';
+  const ou=D.portee==='amis'?'parmi tes adversaires':pays?paysEn(pays):'mondial';
   const lieu=!rk?'':`${rk<=3?['🥇','🥈','🥉'][rk-1]+' ':''}N°\u00a0${rk} ${ou}${D.periode==='semaine'?' cette semaine':''}`;
   dxFicheEtat={n,pays:x&&x.pays||'',lieu,pts:tout?Math.max(0,+x.pts||0):null,parties:tout?Math.max(0,+x.parties||0):null,err:false};
   const a=document.activeElement;
@@ -36353,6 +36359,8 @@ function jeuRender(){
         :nOk*2>=nT&&nOk?`Bien joué\u00a0: ${nOk} défi${nOk>1?'s':''} sur ${nT}, niveau ${nivL}.`
         :nOk?`${nOk} défi sur ${nT}\u00a0: retente ceux qui t’ont échappé.`
         :`Aucun défi trouvé cette fois\u00a0: <span class="jeu-nw">retente-le${nT>1?'s':''}</span> à tête reposée.`;   // « retente-le » d’un bloc, à côté du chat (8 novembre)
+      /* 9 novembre, 0 h 31 : lastMiss, une partie d’une manche manquée, sans record : la carte « Temps écoulé » dit déjà « 0 point obtenu,
+         réponse non validée » ; le bandeau « 0 point · 0/1 trouvé · — temps moyen » le répétait : il s’efface. Le bandeau ne revient que pour un record. */
       const lastR=rows.length?rows[rows.length-1]:null,lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';
       const ICO_OK='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12.5l4 4 8-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const ICO_KO='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
@@ -36372,7 +36380,7 @@ function jeuRender(){
       const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`
         :!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat is-effort" aria-hidden="true">${chatBonusHtml('effort')}</div>`:'';   // rien trouvé : « Encore un effort ! » (15 h 38)
       html=trophee+head('Fin de la partie',all?(trophee?'Tout trouvé\u00a0!':'Tout trouvé ! 🏆'):'Ton bilan',verdict)+
-        `${lastMiss}<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>trouvé${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${avg}</b><small>temps moyen</small></div></div>
+        `${lastMiss}${lastMiss&&!J.record?'':`<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>trouvé${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${avg}</b><small>temps moyen</small></div></div>`}
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rounds">${recap}</ol></div>
         <button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
         ${J.solo?(all&&nextNiv?jeuBtn2('level',`Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}`,'jeuNiveauSuivant()'):jeuBtn2('level','Changer de niveau','openJeu()')):jeuBtn2('quit','Quitter la salle','goBack()')}`;
@@ -46853,7 +46861,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-a-corriger-v2708';
+  const SW_CACHE='requete-2026-11-09-sans-carte-schema-v2709';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

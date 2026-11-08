@@ -38,9 +38,9 @@ test('la liste et « Mes amis » : ceux avec qui tu as joué ; un ancien ajout r
 
 test('l’onglet : le titre, la phrase, les boutons (15 h 09 : « Créer une partie », « Rejoindre avec un code ») ; « Mes amis » vide renvoie à l’onglet', () => {
   assert.ok(app.includes("function amisTitre(n){return n?`${n} adversaire${n>1?'s':''}`:'Ton prochain rival t’attend&nbsp;!';}"));
-  assert.ok(app.includes('const boutons=`<div class="dx-duo"><button type="button" class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte(\'creer\')">${DX_AJOUT_SVG}Créer une partie</button><button type="button" class="dx-sec" aria-haspopup="dialog" onclick="defisCarte(\'code\')">${DX_LIEN_SVG}Rejoindre avec un code</button></div>`;'));
+  assert.ok(app.includes('const boutons=`<div class="dx-duo"><button type="button" class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte(\'creer\')">${DX_AJOUT_SVG}Créer ma partie</button><button type="button" class="dx-sec" aria-haspopup="dialog" onclick="defisCarte(\'code\')">${DX_LIEN_SVG}Rejoindre avec un code</button></div>`;'));
   assert.ok(app.includes('<p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p>'));
-  assert.ok(app.includes('Aucun de tes amis n’est encore classé. Joue avec eux&nbsp;: invite-les avec un code depuis l’onglet Adversaires.'));
+  assert.ok(app.includes('Aucun de tes adversaires n’est encore classé. Joue à plusieurs&nbsp;: invite des amis avec un code depuis l’onglet Adversaires.'));
   assert.ok(lq.includes('html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:0}'), 'remplie : les boutons sur toute la largeur, l’un sous l’autre');
 });
 
