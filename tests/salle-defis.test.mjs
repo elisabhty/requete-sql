@@ -548,7 +548,9 @@ test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pa
   s.ev('jeuClose()'); sec(w, 1);
   /* 3 novembre, 7 h 31 : seul, la dernière manche mène tout droit au bilan, sur la même page que la manche abandonnée. */
   assert.equal(s.view(), 'final'); assert.match(s.html, /Manche abandonnée/);
-  assert.match(s.html, /Ton bilan/); assert.match(s.html, /0\/1/);
+  assert.match(s.html, /Ton bilan/); assert.match(s.html, /<b>0<\/b><small>Point obtenu<\/small>/);
+  /* 9 novembre, 0 h 31 : une seule manche, manquée, sans record : la carte le dit, pas de bandeau « 0 · 0/1 · — » en plus */
+  assert.doesNotMatch(s.html, /class="jeu-bilan/); assert.doesNotMatch(s.html, /0\/1/);
   assert.equal(s.ev('state.salle.pts'), 0);
   assert.equal(s.ev('Object.keys(state.defis).length'), 0);
 });

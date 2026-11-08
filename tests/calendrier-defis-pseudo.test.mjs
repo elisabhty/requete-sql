@@ -128,13 +128,13 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.equal(bars.length, 5, 'une barre par partie');
   assert.equal(bars.filter(b => b.includes('is-best')).length, 1, 'la meilleure partie en jaune');
   assert.ok(bars[1].includes('is-best') && bars[4].includes('is-on'), 'de la plus ancienne à la plus récente ; la dernière choisie');
-  assert.match(h, /<p class="perf-cap" aria-live="polite">Aujourd’hui · Entre amis · Moyen · 3 joueurs · 412 points<\/p>/);
+  assert.match(h, /<p class="perf-cap" aria-live="polite">Aujourd’hui · À plusieurs · Moyen · 3 joueurs · 412 points<\/p>/);
   assert.ok(h.includes('<li class="is-f" style="--i:0"><b>Facile</b><span class="perf-lvbar"><i style="--w:100%"></i></span><em>6/6</em></li>'));
   assert.ok(h.includes('<em>6/8</em>') && h.includes('--w:75%') && h.includes('<em>2/4</em>'));
-  assert.ok(h.includes('<b>2</b><small>1re place</small>') && h.includes('Sur 5 parties entre amis.'), 'les podiums entre amis');
+  assert.ok(h.includes('<b>2</b><small>1re place</small>') && h.includes('Sur 5 parties à plusieurs.'), 'les podiums à plusieurs');
   const rows = h.match(/<li style="--i:\d"><span class="perf-rk/g);
   assert.equal(rows.length, 4, 'les quatre dernières parties');
-  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>Entre amis · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 réussies · 03:21</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
+  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>À plusieurs · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 réussies · 03:21</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
   assert.ok(h.includes('<span class="perf-rk">0/1</span>') && h.includes('<span class="perf-rk">✓</span>'), 'seul : coché, ou trouvés sur joués');
   /* Avant la première partie : le même tableau, vide, qui dit ce qui s’y affichera */
   const e = perfCtx({ pts: 0, parties: 0, best: 0 });

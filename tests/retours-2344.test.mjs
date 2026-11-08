@@ -194,12 +194,13 @@ test('seul : « Premier indice dans 01:28 », sans « pour tout le monde » ; à
 });
 
 test('la fenêtre « Joue seul » : « contre la montre », plus « à ton rythme »', () => {
-  assert.ok(app.includes(":['Mode solo','Joue seul','Relève des défis contre la montre.'];"));
+  assert.ok(app.includes(":['Mode solo',`Joue ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}`,'Relève des défis contre la montre.'];"), 'le titre s’accorde depuis le 9 novembre (retours-0031)');
   assert.ok(!app.includes('Relève des défis à ton rythme.'));
 });
 
 test('le schéma : « relations » plutôt que « liens » entre tables', () => {
-  for (const neuf of ['Tables, colonnes et relations de la base ${esc(nom)}', "'Tables, colonnes et relations de la base'", "${plur(umlNbLiens(m),'relation')}",
+  /* 9 novembre, 0 h 31 : la carte « Tables, colonnes et relations de la base » est retirée (retours-0031) */
+  for (const neuf of ["${plur(umlNbLiens(m),'relation')}",
     '<b>Les relations en clair</b>', '${UML_SVG}Les relations en clair</button>', 'Touche une table&nbsp;: ses relations s’allument.', ': allumer ses relations`)',
     'Aucune relation&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.', 'le schéma UML se dessinera tout seul, avec ses relations.',
     'Aucune relation pour l’instant&nbsp;: une colonne comme', "`${liens.length} relations trouvées`:'Relation trouvée'"])

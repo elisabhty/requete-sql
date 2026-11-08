@@ -50,9 +50,9 @@ function ecran({ clavier = 0, navbas = 60 } = {}) {
   return { c, ios, mos, timers, ecoute, hint, st, vv, peek: () => peek, ev: x => vm.runInContext(x, c) };
 }
 
-test('la pastille arrive avec l’indice, seulement (19 h 49 : « je veux juste pour l’indice ») : « Un coup de patte ? · voir l’indice »', () => {
+test('9 novembre, 0 h 31 (« ne met pas un coup de patte à part en bas ») : plus de pastille en bas de l’écran quand l’indice arrive ; gardée sans appel, elle dit « Un coup de patte ? · voir l’indice »', () => {
   const paint = cut('function coachPaint(){', '\n}\n');
-  assert.ok(paint.includes("if(card&&COACH.fx==='is-new-hint')coachPeek(card,true);") && !paint.includes("'is-new-ko'||"), 'un essai raté : pas de pastille, il se lit dans la carte');
+  assert.ok(!paint.includes('coachPeek(') && !app.includes('coachPeek(card,true)'), 'ni après un essai raté ni avec un indice : la carte rebondit, le téléphone vibre');
   const e = ecran();
   e.ev('coachPeek(card,true)'); assert.equal(e.peek().innerHTML, '<span aria-hidden="true">↑</span>Un coup de patte ? · voir l’indice', 'après un essai raté');
   e.c.COACH.diag = ''; e.ev('coachPeek(card,true)'); assert.equal(e.peek().innerHTML, '<span aria-hidden="true">↑</span>Un coup de patte ? · voir l’indice', 'sans essai raté avant');

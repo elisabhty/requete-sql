@@ -18,7 +18,7 @@ test('réf. 2 : les phrases de l’élève et pour l’élève, les mêmes pour 
   assert.ok(anim('bases-relationnelles.html').includes("const REPONSE = ['Avec plaisir !', 'On commence quand vous le voulez !'];"));
   /* La salle d’attente dit « prête », « prêt » ou « prêt·e » depuis le 5 novembre, 13 h 35 (retours-1335.test.mjs). */
   for (const t of ['Envie d’écrire ta prochaine requête', '`En attente : ${',
-    'Une question pour t’entraîner', '\'Ta première note t’attend\'', "${h.solo?'En solo':'Entre amis'}", '>En solo</button>', 'Joue en solo ou affronte d’autres joueurs'])
+    'Une question pour t’entraîner', '\'Ta première note t’attend\'', "${h.solo?'En solo':'À plusieurs'}", '>En solo</button>', 'Joue en solo ou affronte d’autres joueurs'])
     assert.ok(app.includes(t), t);
   for (const t of ['Prêt·e pour', 'pas prêt</em>', 'Pas encore prêt', 'Prêt pour une question', 'Prêt pour ta première note', "['solo','Seul']", '>Seul</button>'])
     assert.ok(!app.includes(t), t);

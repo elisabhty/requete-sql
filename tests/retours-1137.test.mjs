@@ -162,7 +162,7 @@ test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient
   /* 8 novembre, 11 h 08 (« ce niveau premium ») : le haut dans le bandeau violet de la feuille (retours-premium-defis) */
   /* 8 novembre, 14 h 48 (« je veux marcher qu’avec code ») : plus d’ajout par pseudo. 15 h 09 (sa maquette) : « Créer une partie » et
      « Rejoindre avec un code » ouvrent les feuilles de Jouer. */
-  assert.ok(a.includes('<p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">1 adversaire</h2>') && a.includes('onclick="defisCarte(\'creer\')">') && a.includes('Créer une partie</button>') && a.includes('Rejoindre avec un code</button>'));
+  assert.ok(a.includes('<p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">1 adversaire</h2>') && a.includes('onclick="defisCarte(\'creer\')">') && a.includes('Créer ma partie</button>') && a.includes('Rejoindre avec un code</button>'));
   assert.ok(!a.includes('dx-ajout') && !a.includes('Inviter un ami') && !c.els['dx-amis-liste'].innerHTML.includes('Retirer @lea'));
   const ouvertes = [];
   c.ctx.defisFeuilleOuvrir = k => ouvertes.push(k); c.ctx.defisFeuilleFermer = () => ouvertes.push('fermée');
@@ -174,7 +174,7 @@ test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient
   v.ev("DEFIS.onglet='amis';defisPeindre()");
   assert.ok(v.els['dx-amis-liste'].innerHTML.includes('<p class="dx-vide-t">Aucun adversaire pour l’instant&nbsp;!</p><p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p>'));
   /* 7 novembre, 22 h 09 (Elisa) : « remplace la pills "mes joueurs" par "mes amis" ». 8 novembre, 15 h 09 : l’onglet s’appelle Adversaires. */
-  assert.ok(app.includes("${chip('amis','Mes amis')}") && app.includes('invite-les avec un code depuis l’onglet Adversaires.'), 'le classement nomme l’onglet Adversaires');
+  assert.ok(app.includes("${chip('amis','Mes adversaires')}") && app.includes('invite des amis avec un code depuis l’onglet Adversaires.'), 'le classement nomme l’onglet Adversaires');
   assert.ok(!app.includes('depuis l’onglet Joueurs') && !app.includes('>Ouvrir l’onglet Joueurs<'), 'plus d’« onglet Joueurs » à l’écran');
   for (const k of ['<h2 id="dx-amis-h">Tes amis</h2>', 'Ajouter un ami</button>', "chip('amis','Mes joueurs')", 'dans l’onglet Amis', 'dans tes amis'])
     assert.ok(!app.includes(k), k);
@@ -200,5 +200,5 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 test('les versions : la feuille de style et le cache', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=259">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-08-a-corriger-v2708' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-09-sans-carte-schema-v2709' && app.includes(`const SW_CACHE='${cache}';`));
 });
