@@ -22,10 +22,10 @@ function bac(o = {}) {
     JEU_NIVL: {f: 'Facile', m: 'Moyen', d: 'Difficile'}, jeuNiv: 'd', jeuNb: 3, jeuVis: 'pub', jeuInvite: '', jeuNivUser: true, jeuMode: 'solo',
     jeuChallenges: () => [1, 2, 3, 4, 5], jeuNivAuto: () => 'f', accord: (f, m, n) => f, DEF_CHEV_SVG: '<svg class="chev"/>', LQ_X_SVG: '<svg class="x"/>',
     JEU_NOTE_HTML: '<p class="jeu-note">🔒 note</p>', lqStkSvg: k => `<svg data-stk="${k}"/>`, jeuNomField: id => `<div class="jeu-me" data-nom="${id}"></div>`,
-    jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''}, JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_ROUND_MS: 600000, LQ_CHRONO_SVG: '<svg class="chrono"/>',
+    jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''}, JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}, LQ_CHRONO_SVG: '<svg class="chrono"/>',
     document: {getElementById: id => els[id] || null, querySelectorAll: () => [], body: null}
   }, o));
-  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeTexte') + fn('dxConfHTML'), ctx);
+  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeTexte') + line('jeuDureeMs') + fn('dxConfHTML'), ctx);
   return {ctx, els};
 }
 
@@ -69,7 +69,7 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(creer.includes('<p class="jeu-lab" id="room-nb-l">Combien de manches&nbsp;?</p>\n      <div class="dx-manches" role="radiogroup" aria-labelledby="room-nb-l">'));
   assert.ok(creer.includes('<button type="button" role="radio" aria-checked="true" class="dx-manche on" data-set="nb" data-v="3" onclick="jeuRoomSet(\'nb\',3)"><b>3</b> <span>manches</span></button>')
     && creer.includes('<button type="button" role="radio" aria-checked="false" class="dx-manche" data-set="nb" data-v="1" onclick="jeuRoomSet(\'nb\',1)"><b>1</b> <span>manche</span></button>'), 'les manches en cartes, « manche » au singulier');
-  assert.ok(creer.includes('<p class="dx-duree" aria-live="polite"><svg class="chrono"/><span>Jusqu’à 30\u00a0min de jeu</span></p>'), '3 manches de 10 min');
+  assert.ok(creer.includes('<p class="dx-duree" aria-live="polite"><svg class="chrono"/><span>Jusqu’à 1\u00a0h de jeu</span></p>'), '3 manches de 20 min en Difficile (8 novembre, 8 h 52) : une heure');
   assert.ok(creer.includes('<p class="jeu-lab" id="room-vis-l">Qui peut entrer&nbsp;?</p>') && creer.includes('<div class="jeu-me" data-nom="jeu-nom"></div>'));
   /* 8 novembre, 0 h 23 : la confidentialité repliée derrière « Confidentialité des parties » (« utile, mais trop visible »). */
   assert.ok(creer.includes('<details class="dx-conf"><summary><span aria-hidden="true">🔒</span> Confidentialité des parties</summary><p class="jeu-note">Les joueurs de ta salle voient ton pseudo, ton drapeau, tes temps et tes réactions. Tes requêtes sont vérifiées en ligne et restent privées.</p></details></div>\n    <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite"></p>'), 'la confidentialité repliée, puis le message et le bouton en pied de feuille');
@@ -81,11 +81,13 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" disabled onclick="jeuEnterRoom()"><span>Rejoindre la partie</span>') && code.includes('dx-conf'));
   assert.ok(!code.includes('jeu-me') && !code.includes('data-set="nb"'), 'un code : pas de pseudo, pas de manches (l’hôte choisit)');
   assert.ok(seul.includes('<p class="room-kicker">Mode solo</p>') && seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<p class="room-sub" id="dx-f-p">Relève des défis à ton rythme.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d">'));
-  assert.ok(seul.includes('<span class="dx-f-pts">Points ×4</span>') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('Jusqu’à 30\u00a0min de jeu') && !seul.includes('jeu-note') && !seul.includes('data-vis'));
+  assert.ok(seul.includes('<span class="dx-f-pts">Points ×4</span>') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('Jusqu’à 1\u00a0h de jeu') && !seul.includes('jeu-note') && !seul.includes('data-vis'));
   assert.ok(!code.includes('dx-f-niv-l') && !code.includes('dx-duree'), 'le code : ni niveau ni durée (l’hôte choisit)');
   ctx.jeuNb = 1; ctx.jeuNiv = 'f';
   assert.ok(ctx.defisFeuilleHTML('seul').includes('<span class="dx-f-pts">Points ×1</span>') && ctx.defisFeuilleHTML('seul').includes('<span>Jusqu’à 10\u00a0min de jeu</span>'));
-  assert.equal(ctx.dxDureeTexte(5), 'Jusqu’à 50\u00a0min de jeu');
+  assert.equal(ctx.dxDureeTexte(5), 'Jusqu’à 50\u00a0min de jeu', '10 min par manche en Facile');
+  assert.deepEqual([ctx.dxDureeTexte(3, 'm'), ctx.dxDureeTexte(1, 'd'), ctx.dxDureeTexte(5, 'm'), ctx.dxDureeTexte(5, 'd')],
+    ['Jusqu’à 45\u00a0min de jeu', 'Jusqu’à 20\u00a0min de jeu', 'Jusqu’à 1\u00a0h\u00a015 de jeu', 'Jusqu’à 1\u00a0h\u00a040 de jeu'], '15 min en Moyen, 20 en Difficile ; en heures dès une heure');
   ctx.jeuNb = 3; ctx.jeuNiv = 'd';
   ctx.jeuInvite = 'ABC123';
   const inv = ctx.defisFeuilleHTML('code');
@@ -121,7 +123,7 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
   assert.ok(fn('jeuMsgEl').includes("if((id||'jeu-nom')==='jeu-nom'){const f=document.querySelector('#dx-feuille .jeu-msg');if(f)return f;}"));
   assert.ok(fn('jeuRoomSet').includes("const card=document.querySelector('#dx-feuille .dx-f-corps')||document.getElementById('defis-room');if(!card)return;"));
   assert.ok(fn('jeuRoomSet').includes("if(k==='mode'){const sub=card.querySelector('.room-sub');"), 'le bandeau garde le niveau quand on choisit les manches');
-  assert.ok(fn('jeuRoomSet').includes("if(k==='nb'){const du=card.querySelector('.dx-duree>span');if(du)du.textContent=dxDureeTexte(jeuNb);}"), 'la durée suit les manches choisies (8 novembre, 8 h 21)');
+  assert.ok(fn('jeuRoomSet').includes("if(k==='nb'||k==='niv'){const du=card.querySelector('.dx-duree>span');if(du)du.textContent=dxDureeTexte(jeuNb);}"), 'la durée suit les manches et le niveau (8 novembre, 8 h 21 et 8 h 52)');
   assert.ok(fn('jeuRoomSet').includes("go.textContent=join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie';"), 'le bouton garde son libellé');
   assert.ok(fn('jeuStart').includes("if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);"));
   assert.ok(fn('switchTab').includes("if(name!=='defis'&&typeof defisFeuilleFermer==='function'&&document.getElementById('dx-feuille'))defisFeuilleFermer(true);"));
@@ -150,7 +152,7 @@ test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du 
 
 /* Elisa, 8 novembre, 8 h 21 (sa maquette de « Joue seul », « 10 min de jeu stp par manche ») : toucher une carte de manches change la
    durée annoncée dessous ; le bouton reste « Lancer la partie ». */
-test('8 novembre, 8 h 21 : choisir 5 manches annonce « Jusqu’à 50 min de jeu », le bouton reste « Lancer la partie »', () => {
+test('8 novembre : en Moyen, 5 manches annoncent « Jusqu’à 1 h 15 de jeu », 3 manches 45 min ; le bouton reste « Lancer la partie »', () => {
   const span = {textContent: 'Jusqu’à 10\u00a0min de jeu'}, go = {textContent: 'Lancer la partie'};
   const carte = v => ({dataset: {v: String(v)}, disabled: false, attrs: {}, on: false,
     classList: {toggle(c, on) { if (c === 'on') carte.parent[v].on = !!on; }}, setAttribute(k, x) { this.attrs[k] = String(x); }});
@@ -159,13 +161,13 @@ test('8 novembre, 8 h 21 : choisir 5 manches annonce « Jusqu’à 50 min de jeu
   const card = {querySelector: q => q === '.dx-duree>span' ? span : q === '.room-go span' ? go : null, querySelectorAll: q => q.includes('data-set="nb"') ? nbs : []};
   const ctx = vm.createContext({document: {querySelector: q => q === '#dx-feuille .dx-f-corps' ? card : null, getElementById: () => null},
     JEU_NIVL: {f: 'Facile', m: 'Moyen', d: 'Difficile'}, jeuChallenges: () => [1, 2, 3, 4, 5], jeuNiv: 'm', jeuNb: 1, jeuMode: 'solo', jeuVis: 'pub', jeuNivUser: false,
-    jeuSavePrefs() {}, navigator: {}, JEU_ROUND_MS: 600000});
-  vm.runInContext(fn('jeuRoomSet') + line('dxDureeTexte'), ctx);
+    jeuSavePrefs() {}, navigator: {}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}});
+  vm.runInContext(fn('jeuRoomSet') + line('dxDureeTexte') + line('jeuDureeMs'), ctx);
   ctx.jeuRoomSet('nb', 5);
-  assert.equal(span.textContent, 'Jusqu’à 50\u00a0min de jeu');
+  assert.equal(span.textContent, 'Jusqu’à 1\u00a0h\u00a015 de jeu', '15 min par manche en Moyen (8 h 52)');
   assert.equal(go.textContent, 'Lancer la partie');
   assert.deepEqual(nbs.map(b => [b.attrs['aria-checked'], b.on]), [['false', false], ['false', false], ['true', true]]);
   assert.equal(ctx.jeuNb, 5);
   ctx.jeuRoomSet('nb', 3);
-  assert.equal(span.textContent, 'Jusqu’à 30\u00a0min de jeu');
+  assert.equal(span.textContent, 'Jusqu’à 45\u00a0min de jeu');
 });

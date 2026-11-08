@@ -26,7 +26,7 @@ function monde({ pos = {}, ans = {}, faites = [10, 11], lecons = {}, ses = null 
     MIN_PAR_ACTIVITE: 6, esc, isDefiId: id => typeof id === 'string', itemDone: id => faites.includes(id),
     allLessons: [...LECONS, { id: 2, video: { duree: '3 min 37', moments: 6 } }, { id: 3 }], LV_POS: new Map(Object.entries(pos).map(([k, v]) => [+k, v])), LV_ANS: ans,
     state: { lessons: lecons }, nbFaites: id => (lecons[id] && lecons[id].n) || 0, defiSesRead: () => ses,
-    JEU_ROUND_MS: 600000, LQ_VIDEO_SVG: '<svg v/>', LQ_CHRONO_SVG: '<svg c/>', DEFI_BASES: { aero: { nom: 'Aéroport' } }, defiBaseId: c => c.base });
+    jeuDureeMs: k => ({f: 600000, m: 900000, d: 1200000})[k] || 600000, LQ_VIDEO_SVG: '<svg v/>', LQ_CHRONO_SVG: '<svg c/>', DEFI_BASES: { aero: { nom: 'Aéroport' } }, defiBaseId: c => c.base });
   vm.runInContext(DUREES + ligne('lvFmt') + ligne('jeuChrono') + fn('itemCommence'), ctx);
   return ctx;
 }
@@ -73,7 +73,7 @@ const SOUS = cut("  let prog='',sub='',part=0;", '  const ctaLu=').replace("let 
 function carte(id, o = {}) {
   const c = monde(o);
   const defi = typeof id === 'string';
-  Object.assign(c, { nxt: id, defi, ch: defi ? { id, base: 'aero' } : null, lesson: defi ? null : c.allLessons.find(l => l.id === id), mod: defi ? null : { lessons: LECONS }, index: defi ? 0 : 3 });
+  Object.assign(c, { nxt: id, defi, ch: defi ? { id, base: 'aero', niv: o.niv } : null, lesson: defi ? null : c.allLessons.find(l => l.id === id), mod: defi ? null : { lessons: LECONS }, index: defi ? 0 : 3 });
   vm.runInContext('var commence=itemCommence(nxt);' + SOUS, c);
   return { commence: c.commence, prog: c.prog, sub: c.sub, points: c.points };
 }
@@ -100,6 +100,9 @@ test('un défi : 10 min au chrono (8 novembre, 8 h 21) et sa base ; son chrono e
   const enCours = carte('d1', { ses: { cid: 'd1', t0: Date.now() - 348000 } });
   assert.deepEqual(enCours, { commence: true, prog: `${barre(58)}<p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>05:48 sur 10:00</span></p>`, sub: `Plus que 5${N}min au chrono`, points: '' });
   assert.equal(carte('d1', { ses: { cid: 'd2', t0: Date.now() - 348000 } }).commence, false, 'le chrono d’un autre défi');
+  /* 8 novembre, 8 h 52 : la durée suit le niveau du défi, 15 min en Moyen, 20 en Difficile */
+  assert.deepEqual(carte('d1', { niv: 'd' }), { commence: false, prog: `<p class="lq-a-meta is-ico"><svg c/><span>20${N}min au chrono · Base Aéroport</span></p>`, sub: `20${N}min au plus`, points: '' });
+  assert.equal(carte('d1', { niv: 'm', ses: { cid: 'd1', t0: Date.now() - 348000 } }).sub, `Plus que 10${N}min au chrono`, '5 min 48 sur 15 min');
 });
 
 test('la carte : le bonjour et la séance, le module, la leçon, le chat, puis le bouton ; plus de « Rappel »', () => {
@@ -164,5 +167,5 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=219">'));
-  assert.ok(sw.includes("'requete-2026-11-08-solo-sans-sql-v2654'"));
+  assert.ok(sw.includes("'requete-2026-11-08-manche-selon-niveau-v2655'"));
 });

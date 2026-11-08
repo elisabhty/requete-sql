@@ -12,7 +12,7 @@ const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
 const s52 = css.slice(css.indexOf('/* ---------- 52. Retours du 31 octobre, 17 h 39'));
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
-const consts = cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_NIV_X=', '\n') + '\n' + cut('const JEU_NIVL=', '\n') + '\n' + cut('const JEU_ROUND_MS=', '\n') + '\n';
+const consts = cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_NIV_X=', '\n') + '\n' + cut('const JEU_NIVL=', '\n') + '\n' + cut('const JEU_NIV_MANCHE=', '\n') + '\n' + cut('function jeuDureeMs(', '\n') + '\n';
 
 function rulesHTML({ io = false } = {}) {
   const host = { innerHTML: '', get firstElementChild() { return this._sec; } };
@@ -44,7 +44,7 @@ test('le cadre « Comment on marque des points » : les paliers en marches, le p
   assert.ok(h.includes('<li><b>🥇 Premier à trouver</b><span>+50</span><small>À plusieurs : 2e +30 · 3e +20 · 4e +10. Seul à jouer la manche, pas de bonus de place</small></li>'));
   assert.ok(h.includes('<li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>'));
   /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la ligne du niveau ; le cadre montre le Facile au départ (retours-1242 : les autres) */
-  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base.</small></li>'));
+  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base. Le chrono : 10 min en Facile, 15 en Moyen, 20 en Difficile.</small></li>'), 'la durée de chaque niveau (8 novembre, 8 h 52)');
   assert.ok(h.includes('<p class="room-rules-max"><span>Manche parfaite en Facile</span><b>225</b><small>seul</small><i aria-hidden="true">·</i><b>275</b><small>à plusieurs</small></p>'));
   assert.ok(!h.includes('Rapidité') && !h.includes('baisse doucement'), 'l’ancien barème est parti');
   assert.ok(sec.cls.has('is-in'), 'sans IntersectionObserver : tout de suite');
@@ -84,6 +84,6 @@ test('Supabase — jeu_score accepte le nouveau barème : de 50 à 225 points pa
   /* Vérifié sur la vraie base (31 octobre, 17 h 46, sans rien garder) : 225 seul accepté, 226 refusé ; 50 accepté, 49 refusé ;
      3 manches entre amis : 825 accepté, 826 refusé */
   assert.ok(app.includes("const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];"));
-  assert.ok(app.includes('const JEU_ROUND_MS=600000;'), 'la manche s’arrête à 10 min (8 novembre, 8 h 21 ; 20 min du 6 au 8 novembre)');
-  assert.ok(app.includes('(une manche non trouvée compte ${JEU_ROUND_MS/60000} min)'));
+  assert.ok(app.includes('const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};'), 'la manche : 10 min en Facile, 15 en Moyen, 20 en Difficile (8 novembre, 8 h 52)');
+  assert.ok(app.includes('(une manche non trouvée compte ${jeuDureeMs(J.niv)/60000} min)'));
 });

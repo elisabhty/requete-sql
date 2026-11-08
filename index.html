@@ -26435,12 +26435,13 @@ function renderHomeHero(){
      et les exercices faits) ; vidéo finie mais leçon pas validée : les exercices faits. Un défi : sa base, ou son chrono en cours. */
   let prog='',sub='',part=0;
   if(defi){
-    const o=typeof defiSesRead==='function'?defiSesRead():null,pris=o&&o.cid===nxt&&o.t0>0?Math.max(0,Date.now()-o.t0):-1,enCours=pris>=0&&pris<JEU_ROUND_MS;
+    const dur=jeuDureeMs(ch&&ch.niv);
+    const o=typeof defiSesRead==='function'?defiSesRead():null,pris=o&&o.cid===nxt&&o.t0>0?Math.max(0,Date.now()-o.t0):-1,enCours=pris>=0&&pris<dur;
     const base=ch&&typeof defiBaseId==='function'&&defiBaseId(ch)?`Base ${DEFI_BASES[defiBaseId(ch)].nom}`:'';
-    part=enCours?pris/JEU_ROUND_MS:0;
-    prog=enCours?`<span class="lq-a-bar" aria-hidden="true" data-p="${Math.round(part*100)}"><i style="width:${Math.round(part*100)}%"></i></span><p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(JEU_ROUND_MS)}</span></p>`
-      :`<p class="lq-a-meta is-ico">${LQ_CHRONO_SVG}<span>${JEU_ROUND_MS/60000}\u00a0min au chrono${base?` · ${esc(base)}`:''}</span></p>`;
-    sub=enCours?`Plus que ${Math.max(1,Math.ceil((JEU_ROUND_MS-pris)/60000))}\u00a0min au chrono`:`${JEU_ROUND_MS/60000}\u00a0min au plus`;
+    part=enCours?pris/dur:0;
+    prog=enCours?`<span class="lq-a-bar" aria-hidden="true" data-p="${Math.round(part*100)}"><i style="width:${Math.round(part*100)}%"></i></span><p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>${jeuChrono(pris)} sur ${jeuChrono(dur)}</span></p>`
+      :`<p class="lq-a-meta is-ico">${LQ_CHRONO_SVG}<span>${dur/60000}\u00a0min au chrono${base?` · ${esc(base)}`:''}</span></p>`;
+    sub=enCours?`Plus que ${Math.max(1,Math.ceil((dur-pris)/60000))}\u00a0min au chrono`:`${dur/60000}\u00a0min au plus`;
   }else{
     const v=dureeVideoS(lesson),pos=Math.min(v,(typeof LV_POS!=='undefined'&&LV_POS.get(nxt))||0),mo=(lesson&&lesson.video&&lesson.video.moments)||0,faits=exercicesFaits(nxt);
     part=Math.min(.95,Math.max(v?pos/v:0,mo?faits/mo*.95:0));
@@ -27087,8 +27088,10 @@ function defisFeuilleHTML(k){
     <button type="button" class="room-go"${join?` id="jeu-code-go"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()"><span>${join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie'}</span>${DEF_CHEV_SVG}</button></div>
     </div>`;
 }
-/* « Jusqu’à 30 min de jeu » (8 novembre, 8 h 21) : les manches choisies, chacune 10 min au plus (JEU_ROUND_MS). */
-function dxDureeTexte(n){return `Jusqu’à ${(+n||1)*JEU_ROUND_MS/60000}\u00a0min de jeu`;}
+/* « Jusqu’à 30 min de jeu » (8 novembre, 8 h 21) : les manches choisies, chacune au plus la durée d’une manche du niveau (8 h 52 :
+   10 min en Facile, 15 en Moyen, 20 en Difficile ; jeuDureeMs). Elle suit le choix des manches et le niveau (jeuRoomSet). À partir
+   d’une heure, en heures : « Jusqu’à 1 h 15 de jeu » (5 manches en Moyen), plutôt que 75 min. */
+function dxDureeTexte(n,k){const m=(+n||1)*jeuDureeMs(k||jeuNiv)/60000,h=Math.floor(m/60),r=m%60;return `Jusqu’à ${h?`${h}\u00a0h${r?`\u00a0${String(r).padStart(2,'0')}`:''}`:`${m}\u00a0min`} de jeu`;}
 /* La confidentialité d’une partie (8 novembre, 0 h 23 : « utile, mais trop visible ») : repliée derrière « Confidentialité des
    parties » ; la feuille se concentre sur le code, la saisie et le bouton. */
 function dxConfHTML(){
@@ -27721,7 +27724,7 @@ function defisRulesNiv(k){if(!JEU_NIV_X[k])return;defisReglesNiv=k;renderDefisRu
 function renderDefisRules(){
   const host=document.getElementById('defis-rules');if(!host)return;
   const k=JEU_NIV_X[defisReglesNiv]?defisReglesNiv:(typeof jeuNiv!=='undefined'&&JEU_NIV_X[jeuNiv]?jeuNiv:'f');
-  const x=JEU_NIV_X[k],d=JEU_NIV_DUREE[k],fin=JEU_ROUND_MS/1000;
+  const x=JEU_NIV_X[k],d=JEU_NIV_DUREE[k],fin=jeuDureeMs(k)/1000;
   const top=JEU_PALIERS[0][1]*x,mn=t=>String(t/60).replace('.',','),last=JEU_PALIERS[JEU_PALIERS.length-1][0]*d;
   const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]*d:0,b=Math.min(t*d,fin);return {a,p:p*x,lab:i?`${mn(a)}–${mn(b)}`:`≤ ${mn(b)}`,dit:i?`de ${mn(a)} à ${mn(b)} min`:`jusqu’à ${mn(b)} min`};})
     .concat([{a:last,p:JEU_PTS_MIN*x,lab:`${mn(last)} +`,dit:`après ${mn(last)} min`}]).filter(m=>m.a<fin);
@@ -27730,10 +27733,10 @@ function renderDefisRules(){
     <h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span>Comment sont calculés les points&nbsp;?</h2>
     <div class="room-rules-niv" role="radiogroup" aria-label="Le barème du niveau">${choix}</div>
     <ul>
-      <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${JEU_ROUND_MS/60000}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>
+      <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la salle se ferme.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
-      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base.</small></li>
+      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le Facile reste la base. Le chrono : ${JEU_NIV_MANCHE.f/60000} min en Facile, ${JEU_NIV_MANCHE.m/60000} en Moyen, ${JEU_NIV_MANCHE.d/60000} en Difficile.</small></li>
       <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI*x}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
       <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
@@ -34420,10 +34423,12 @@ const JEU_SB='https://ynuenrxozcpkrjdbeftc.supabase.co';
 const JEU_SB_KEY='sb_publishable_xhqZIRNKel3gXW_rH_GajQ_8Jb7iNhv';
 const JEU_HB_MS=15000;
 /* La manche s’arrête quand tout le monde a trouvé, ou quand le chrono arrive à 0 (17 h 39 : les paliers vont au-delà de 7 min) : le
-   chrono descend jusqu’à 00:00 ; à 0, la salle se ferme (jeuExpiree ; Elisa, 6 novembre, 7 h 52). Sa durée : 20 min le 6 novembre,
-   10 min depuis le 8 novembre, 8 h 21 (« 10 min de jeu stp par manche ») ; la feuille « Joue seul » l’annonce (« Jusqu’à 30 min de
-   jeu » pour 3 manches, dxDureeTexte). Le serveur compte la même durée (requete_private.manche, 10 minutes). */
-const JEU_ROUND_MS=600000;
+   chrono descend jusqu’à 00:00 ; à 0, la salle se ferme (jeuExpiree ; Elisa, 6 novembre, 7 h 52). Sa durée suit le niveau du défi
+   (JEU_NIV_MANCHE, jeuDureeMs) : 20 min pour tous le 6 novembre, 10 min le 8 novembre à 8 h 21 (« 10 min de jeu stp par manche »),
+   puis à 8 h 52 « 15 min pour moyen et 20 min par manche pour difficile » : 10 min en Facile, 15 en Moyen, 20 en Difficile. Chaque
+   palier tient ainsi dans la manche (Moyen : cinq paliers de 3 min ; Difficile : quatre de 5 min), et un défi plus dur laisse plus de
+   temps. La feuille « Joue seul » l’annonce (« Jusqu’à 45 min de jeu » pour 3 manches en Moyen, dxDureeTexte). Le serveur compte la
+   même durée, défi par défi (requete_private.manche_duree). */
 const JEU_DRAW_MS=3300;
 /* Cinq joueurs par salle au plus (Elisa, 31 octobre, 16 h 49). */
 const JEU_MAX=5;
@@ -34452,6 +34457,8 @@ const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JE
    longtemps (3 min) ; en Difficile, ×4 et 5 min. Le Facile ne change pas. Manche parfaite : 225, 450 ou 900 seul ; 275, 550 ou 1 100
    entre amis. Le serveur compte de même (jeu_score_v2, jeu_score). */
 const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};
+const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};
+function jeuDureeMs(k){return JEU_NIV_MANCHE[k]||JEU_NIV_MANCHE.f;}
 const JEU_NIVL={f:'Facile',m:'Moyen',d:'Difficile'};
 let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo',jeuNivUser=false,jeuVis='pub';
 (function jeuLoadPrefs(){
@@ -34518,7 +34525,7 @@ function jeuQue(n){return (jeuVoy(n)?'qu’':'que ')+esc(n);}
 function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 /* Le chrono d’une manche, depuis le 6 novembre, 7 h 52 : le temps qui reste, de 20:00 à 00:00 (arrondi à la seconde du dessus : 20:00
    au départ, 00:01 dans la dernière seconde). */
-function jeuRebours(ms){return jeuChrono(Math.ceil(Math.min(JEU_ROUND_MS,Math.max(0,+ms||0))/1000)*1000);}
+function jeuRebours(ms,max){const m=max>=60000?max:JEU_NIV_MANCHE.d;return jeuChrono(Math.ceil(Math.min(m,Math.max(0,+ms||0))/1000)*1000);}
 function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec);}
 
 /* Transport : la base Supabase entre amis, un canal local pour les tests, ou rien
@@ -34751,7 +34758,7 @@ function jeuRoomSet(k,v){
   else return;
   jeuSavePrefs();
   card.querySelectorAll(`[data-set="${k}"]`).forEach(b=>{const on=b.dataset.v===String(v);b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
-  if(k==='nb'){const du=card.querySelector('.dx-duree>span');if(du)du.textContent=dxDureeTexte(jeuNb);}
+  if(k==='nb'||k==='niv'){const du=card.querySelector('.dx-duree>span');if(du)du.textContent=dxDureeTexte(jeuNb);}
   const friends=jeuMode==='friends',join=jeuMode==='join';
   card.querySelectorAll('[data-friends]').forEach(el=>{el.hidden=!(friends||join);});
   card.querySelectorAll('[data-create]').forEach(el=>{el.hidden=join;});
@@ -34985,7 +34992,7 @@ function jeuOnMsg(m){
       if(!CHALLENGES.some(c=>c.id===m.cid))return;
       /* Chrono : l’heure de réception quand le message arrive en direct. Pour une manche déjà commencée
          (historique), l’heure du relais, ramenée à l’horloge de ce téléphone dès que la salle est connue.
-         Le tirage au sort dure JEU_DRAW_MS ; la manche (10 min au plus, JEU_ROUND_MS) commence après. */
+         Le tirage au sort dure JEU_DRAW_MS ; la manche (10, 15 ou 20 min au plus selon le niveau, jeuDureeMs) commence après. */
       const hist=!J.synced;
       let t0=Date.now();
       if(hist)t0=m.at||t0;
@@ -35001,7 +35008,7 @@ function jeuOnMsg(m){
       if(!r)return jeuLater(m);
       if(r.found[m.pid]!=null)return;
       if(!addP())return;
-      r.found[m.pid]=Math.max(0,Math.min(JEU_ROUND_MS,+m.ms||0));
+      r.found[m.pid]=Math.max(0,Math.min(jeuDureeMs(jeuNivManche(+m.n)),+m.ms||0));
       /* Trouvé du premier essai (p1) : noté pour chacun, puisque chacun compte les points de chacun ; entre amis, le +25 ne va qu’au
          premier à trouver (jeuRanking). */
       if(m.p1===1)(r.first=r.first||{})[m.pid]=1;
@@ -35113,11 +35120,11 @@ function jeuCur(){const J=JEU;for(let i=J.rounds.length-1;i>=0;i--)if(J.rounds[i
    se ferme (6 novembre, 7 h 52) ; la partie s’arrête là, pour tout le monde. */
 function jeuExpiree(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
-  return !!r&&!r.closed&&!r.done&&Date.now()-r.t1>=JEU_ROUND_MS&&!jeuLive().every(p=>r.found[p]!=null);
+  return !!r&&!r.closed&&!r.done&&Date.now()-r.t1>=jeuDureeMs(jeuNivManche(n))&&!jeuLive().every(p=>r.found[p]!=null);
 }
 function jeuRoundDone(n){
   const J=JEU,r=J.rounds[n];if(!r)return false;
-  if(r.done||r.closed||Date.now()-r.t1>=JEU_ROUND_MS)return true;
+  if(r.done||r.closed||Date.now()-r.t1>=jeuDureeMs(jeuNivManche(n)))return true;
   if(!jeuLive().every(p=>r.found[p]!=null))return false;
   /* Une manche terminée le reste (un arrivant tardif ne la rouvre pas) ; mais seulement si notre propre
      réception est saine : un téléphone devenu sourd croit sinon que tout le monde est parti. */
@@ -35149,7 +35156,7 @@ function jeuScores(){
     if(!(r&&(n<cur||jeuRoundDone(n)||J.over)))return;
     const rk=jeuRanking(n),got=new Set(rk.map(x=>x.pid));
     rk.forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;t[x.pid]=(t[x.pid]||0)+x.ms;});
-    J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+JEU_ROUND_MS;});
+    J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+jeuDureeMs(jeuNivManche(n));});
   });
   return jeuOrder().filter(p=>jeuPresent(p)||s[p]>0)
     .map(pid=>({pid,name:(J.players[pid]||{}).name||'Joueur',pts:s[pid]||0,ms:t[pid]||0}))
@@ -35228,7 +35235,7 @@ function jeuTick(){
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
   if(n>=0&&!J.ferme&&jeuExpiree(n))J.ferme=true;   // gardé : un temps qui arrive ensuite ne rouvre pas la salle
-  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1;el.textContent=jeuRebours(JEU_ROUND_MS-took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
+  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
     /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
     const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
   /* « Clore la manche dans 01:42 » : le compte à rebours de l’hôte, puis le bouton */
@@ -35409,8 +35416,8 @@ function jeuRender(){
   J.drawT.forEach(clearTimeout);J.drawT=[];
   const head=(k,t,s)=>`<div class="l-kicker">${k}</div><h1>${t}</h1>${s?`<p class="l-sub" id="jeu-sub">${s}</p>`:''}`;
   /* Les réglages de la partie en autocollants : le niveau et ses barres, les manches, le chrono (Elisa, 31 octobre, 15 h 52, réf. 1 :
-     « c’est pas 3 min par manche, c’est un chrono qui part de 0 » ; 6 novembre, 7 h 52 : il part de 20 min et descend jusqu’à 0 ; 10 min depuis le 8 novembre, 8 h 21). */
-  const chips=()=>`<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li><li class="jeu-chip" style="--i:1">${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li><li class="jeu-chip" style="--i:2">${lqStkSvg('clock')}${JEU_ROUND_MS/60000}\u00a0min par manche</li></ul>`;
+     « c’est pas 3 min par manche, c’est un chrono qui part de 0 » ; 6 novembre, 7 h 52 : il part de 20 min et descend jusqu’à 0 ; depuis le 8 novembre, 10, 15 ou 20 min selon le niveau). */
+  const chips=()=>`<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li><li class="jeu-chip" style="--i:1">${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li><li class="jeu-chip" style="--i:2">${lqStkSvg('clock')}${jeuDureeMs(J.niv)/60000}\u00a0min par manche</li></ul>`;
   const host=jeuIsHost();
   let html='',edOn=false;
   /* Entrer dans une salle, et ses impasses (Elisa, 1er novembre, 1 h 01, réf. 1 : « rejoint la salle » et « Salle introuvable » étaient
@@ -35475,14 +35482,14 @@ function jeuRender(){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     current=c;exoFails=0;
     const mine=r.found[J.me]!=null,sl=jeuSoloLike(n);J.slShown=sl;edOn=!mine;
-    const took0=Date.now()-r.t1;
+    const took0=Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
     /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150… ; en Moyen 400, 350… toutes les 3 min ; en Difficile
        800, 700… toutes les 5 min), et le premier coup (+25, +50 ou +100) tant que la première requête peut être la bonne (il tombe au
        premier essai manqué). */
     const xn=JEU_NIV_X[jeuNivManche(n)]||1;
     const val=mine?'':`<b class="jeu-val" id="jeu-val" title="Ce que vaut le défi maintenant">${JEU_COIN_SVG}<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span><small>pts</small>${r.tries||jeuBonusPris(r)?'':`<i class="jeu-val-b" id="jeu-val-b" title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI*xn}</i>`}</b>`;
-    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${JEU_ROUND_MS-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(JEU_ROUND_MS-took0)}</b></span></div>
+    html=`<div class="jeu-bar"><span class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span><span class="jeu-bar-r">${val}<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b></span></div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>
       ${sl?'':`<ul class="jeu-mates" id="jeu-players" aria-label="Qui a trouvé">${jeuMatesHTML(n)}</ul>`}
       <h1>${esc(c.titre)}</h1>
@@ -35568,7 +35575,7 @@ function jeuRender(){
       const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
       const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
       const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));
-      const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte ${JEU_ROUND_MS/60000} min).</p>`:'';
+      const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte ${jeuDureeMs(J.niv)/60000} min).</p>`:'';
       /* Gagnée entre amis : le trophée aussi (14 h 27) */
       const trophee=winner&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`:'';
       html=trophee+head('Salle de défi · Fin de partie',winner?(trophee?'Tu as gagné\u00a0!':'Tu as gagné ! 🏆'):'Le podium',`${jouees} manche${jouees>1?'s':''} jouée${jouees>1?'s':''}.`)+
@@ -35996,19 +36003,19 @@ function setChallengeHow(k){
   if(navigator.vibrate)navigator.vibrate(6);
 }
 /* Un défi seul (ouvert depuis le planning) se ferme comme une manche de la salle, seul ou entre amis (Elisa, 1er novembre, 1 h 20 :
-   « défi seul ou à plusieurs doit fermer à 10 min » ; 6 novembre, 7 h 52 : 20 min, le chrono qui descend jusqu’à 0 ; 8 novembre, 8 h 21 : 10 min) : le chrono
-   jaune part de 10:00 ; à 0, l’éditeur se bloque et « Recommencer » relance le défi. Trouvé avant : le chrono s’arrête là. */
+   « défi seul ou à plusieurs doit fermer à 10 min » ; 6 novembre, 7 h 52 : 20 min, le chrono qui descend jusqu’à 0 ; 8 novembre : 10 min en Facile, 15 en Moyen, 20 en Difficile) : le chrono
+   jaune part de 10:00, 15:00 ou 20:00 ; à 0, l’éditeur se bloque et « Recommencer » relance le défi. Trouvé avant : le chrono s’arrête là. */
 let defiChrono=null;
 function defiChronoStop(){if(defiChrono)clearInterval(defiChrono.t);defiChrono=null;}
 function defiChronoStart(c,depart){
   defiChronoStop();
-  const t0=depart||Date.now();
+  const t0=depart||Date.now(),dur=jeuDureeMs(c&&c.niv);
   const tick=()=>{
     const el=document.getElementById('defi-timer');
     if(mode!=='defi'||current!==c||!el){defiChronoStop();return;}
     if(document.querySelector('#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();defiSesClear();return;}
-    const took=Date.now()-t0;el.textContent=jeuRebours(JEU_ROUND_MS-took);el.classList.toggle('is-low',JEU_ROUND_MS-took<30000);
-    if(took>=JEU_ROUND_MS){defiChronoStop();defiSesClear();defiTempsEcoule(c);}
+    const took=Date.now()-t0;el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
+    if(took>=dur){defiChronoStop();defiSesClear();defiTempsEcoule(c);}
   };
   defiChrono={t:setInterval(tick,500),t0};tick();
 }
@@ -36032,7 +36039,7 @@ function defiAttenduHTML(c){
 function defiTempsEcoule(c){
   document.querySelectorAll('#defi-solo-block .btn-run').forEach(b=>b.disabled=true);
   const ed=document.getElementById('ed-lesson');if(ed)ed.readOnly=true;
-  setLessonOut(`<div class="feedback warn defi-fin"><div class="fi">⏱️</div><div><b>Temps écoulé</b><p>Un défi se joue en ${JEU_ROUND_MS/60000}&nbsp;min au plus. Le résultat attendu reste caché&nbsp;: tu peux le recommencer.</p><button type="button" class="room-go" onclick="openChallenge('${c.id}')"><span>Recommencer</span></button></div></div>`);
+  setLessonOut(`<div class="feedback warn defi-fin"><div class="fi">⏱️</div><div><b>Temps écoulé</b><p>Ce défi se joue en ${jeuDureeMs(c.niv)/60000}&nbsp;min au plus. Le résultat attendu reste caché&nbsp;: tu peux le recommencer.</p><button type="button" class="room-go" onclick="openChallenge('${c.id}')"><span>Recommencer</span></button></div></div>`);
 }
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{};
@@ -36043,7 +36050,7 @@ function openChallenge(cid){
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
-    <div class="defi-top"><div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><b class="jeu-timer" id="defi-timer" role="timer" aria-label="Temps restant du défi, ${JEU_ROUND_MS/60000} minutes au plus">${jeuRebours(JEU_ROUND_MS)}</b></div><h1>${c.titre}</h1>
+    <div class="defi-top"><div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><b class="jeu-timer" id="defi-timer" role="timer" aria-label="Temps restant du défi, ${jeuDureeMs(c.niv)/60000} minutes au plus">${jeuRebours(jeuDureeMs(c.niv),jeuDureeMs(c.niv))}</b></div><h1>${c.titre}</h1>
     ${defiConsigneHTML(c)}
     ${jeuEligible(c)?challengeHowHTML(c):''}
     <div id="defi-solo-block">
@@ -36052,7 +36059,7 @@ function openChallenge(cid){
   setupEditor('ed-lesson','hl-lesson'); showScreen();
   /* Au rechargement (restoringNav), le défi reprend où on l’avait laissé, s’il reste du temps ; sinon il repart de zéro. */
   const ses=restoringNav?defiSesRead():null;
-  const reprise=ses&&ses.cid===cid&&ses.t0>0&&Date.now()-ses.t0<JEU_ROUND_MS?ses:null;
+  const reprise=ses&&ses.cid===cid&&ses.t0>0&&Date.now()-ses.t0<jeuDureeMs(c.niv)?ses:null;
   if(!reprise)defiSesClear();
   coachReset(c,'solo');
   defiChronoStart(c,reprise?reprise.t0:0);
@@ -42501,7 +42508,7 @@ function ileSalleEtat(){
     ?jeuLive().map(p=>({p,n:nom((J.players[p]||{}).name),pts:0,r:0,ok:jeuIsReady(p)}))
     :jeuPlaces(jeuScores()).map(x=>({p:x.pid,n:nom(x.name),pts:Math.max(0,Math.round(+x.pts||0)),r:x.place|0,ok:!!(r&&r.found[x.pid]!=null)}));
   return {phase,joueurs:joueurs.slice(0,JEU_MAX),hote:J.hostPid||'',manche:phase==='attente'?0:n+1,nb:J.nb|0,
-    defi:c?String(c.titre||'').slice(0,80):'',fin:phase==='partie'&&r?Math.round((r.t1+JEU_ROUND_MS)/1000):0,nouveau:''};
+    defi:c?String(c.titre||'').slice(0,80):'',fin:phase==='partie'&&r?Math.round((r.t1+jeuDureeMs((c&&c.niv)||J.niv))/1000):0,nouveau:''};
 }
 /* Après chaque dessin de la salle (jeuRender), un peu plus tard : les messages du moment sont tous passés. */
 function ileSalleSuivre(){
@@ -45980,7 +45987,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-solo-sans-sql-v2654';
+  const SW_CACHE='requete-2026-11-08-manche-selon-niveau-v2655';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

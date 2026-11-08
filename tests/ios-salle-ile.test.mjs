@@ -133,7 +133,7 @@ const page = ({vue = 'lobby', moi = 'L', hote = 'M', joueurs = ['M', 'L'], prets
   const C = {isNativePlatform: () => natif, addListener: (p, e, f) => ecoute.push([p, e, f]),
     nativePromise: (p, m, d) => { appels.push([m, ici(d)]); return Promise.resolve({ok: true}); }};
   const ctx = vm.createContext({
-    JEU: J, JEU_MAX: 5, JEU_ROUND_MS: 600000, JEU_SB: 'https://exemple.supabase.co', JEU_SB_KEY: 'sb_publishable_x', JSON, Math, Promise, Object, String, Array,
+    JEU: J, JEU_MAX: 5, jeuDureeMs: k => ({f: 600000, m: 900000, d: 1200000})[k] || 600000, JEU_SB: 'https://exemple.supabase.co', JEU_SB_KEY: 'sb_publishable_x', JSON, Math, Promise, Object, String, Array,
     CHALLENGES: [{id: 'af4', titre: 'Le meilleur client'}],
     jeuView: () => x.vue, jeuCur: () => (x.vue === 'lobby' ? -1 : 0), jeuLive: () => x.joueurs, jeuIsReady: p => p === x.J.hostPid || x.prets.includes(p),
     jeuNom: v => String(v || '').slice(0, 16), jeuScores: () => x.joueurs.map(p => ({pid: p, name: '@' + p.toLowerCase(), pts: x.pts[p] || 0, ms: 0})).sort((a, b) => b.pts - a.pts),

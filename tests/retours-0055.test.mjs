@@ -127,11 +127,11 @@ test('la consigne autonome d’un défi, point par point, avec l’accès au sch
   assert.equal((app.match(/\$\{defiConsigneHTML\(c\)\}/g) || []).length, 2, 'défi seul et manche en salle');
 });
 
-test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se ferme à 10 min', () => {
+test('1 h 20 : le Schéma attire l’œil pendant un défi ; un défi seul se ferme au bout du chrono de son niveau (8 novembre : 10, 15 ou 20 min)', () => {
   assert.ok(app.includes("function schAttn(){return typeof mode!=='undefined'&&(mode==='defi'||mode==='jeu')?' sch-attn':'';}"));
   assert.ok(app.includes('class="ed-schema${schAttn()}"') && app.includes('class="btn-ghost${schAttn()}"'));
   assert.ok(app.includes("document.querySelectorAll('.sch-attn').forEach(b=>b.classList.remove('sch-attn'));"), 'ouvert une fois : il s’arrête');
-  assert.ok(app.includes('if(took>=JEU_ROUND_MS){defiChronoStop();defiSesClear();defiTempsEcoule(c);}'));
+  assert.ok(app.includes('const t0=depart||Date.now(),dur=jeuDureeMs(c&&c.niv);') && app.includes('if(took>=dur){defiChronoStop();defiSesClear();defiTempsEcoule(c);}'));
   assert.ok(app.includes("document.querySelectorAll('#defi-solo-block .btn-run').forEach(b=>b.disabled=true);"));
   assert.ok(app.includes('  defiChronoStart(c,reprise?reprise.t0:0);'));
 });
