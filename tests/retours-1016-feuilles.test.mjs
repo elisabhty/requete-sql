@@ -65,7 +65,11 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   /* 8 novembre, 8 h 21 (la maquette de « Joue seul ») : la phrase sur toute la largeur, puis le niveau et ce qu’il fait aux points. */
   /* 8 novembre, 9 h 42 (la relecture de « Ta salle de défi ») : « Choisis les règles. Le défi sera révélé au lancement de la partie. »,
      et « 5 joueurs max » à côté des points */
-  assert.ok(creer.includes('<p class="room-sub" id="dx-f-p">Choisis les règles. Le défi sera révélé au lancement de la partie.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d"><i class="jeu-bars is-d" aria-hidden="true"><b></b><b></b><b></b></i>Difficile</span><span class="dx-f-pts">Points ×4<i aria-hidden="true">·</i><span class="lq-sr">, </span>5\u00a0joueurs max</span></p>'), 'le niveau de la partie rapide, ses points, 5 joueurs');
+  /* 10 h 38 (« comment mettre en avant le coefficient et le 5 joueurs max ») : deux pastilles à côté du niveau, le coefficient en
+     jaune après la pièce, les joueurs en verre clair (les lecteurs d’écran entendent « Difficile, ×4 points, 5 joueurs max ») */
+  assert.ok(creer.includes('<p class="room-sub" id="dx-f-p">Choisis les règles. Le défi sera révélé au lancement de la partie.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d"><i class="jeu-bars is-d" aria-hidden="true"><b></b><b></b><b></b></i>Difficile</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts"><svg viewBox="0 0 24 24" aria-hidden="true">'), 'le niveau de la partie rapide, puis ses points');
+  assert.ok(creer.includes('<span><b>×4</b><span class="lq-sr"> points</span></span></span><span class="lq-sr">, </span><span class="dx-f-chip is-max"><svg viewBox="0 0 24 24" aria-hidden="true">') && creer.includes('<span><b>5</b>\u00a0joueurs max</span></span></p>'), '×4 en pastille, puis 5 joueurs');
+  assert.ok(!creer.includes('dx-f-pts') && !app.includes('dx-f-pts'), 'plus la ligne de texte');
   assert.ok(creer.startsWith('<div class="room-head dx-f-tete"><span class="room-stk" aria-hidden="true"><svg data-stk="user"/></span>\n    <div class="dx-f-titres"><p class="room-kicker">Créer ma partie</p>'), 'l’autocollant à côté du surtitre et du titre');
   for (const h of [creer, code, seul]) assert.ok(!h.includes('room-levels') && !h.includes('data-set="niv"'), 'pas de second choix de niveau');
   assert.ok(creer.includes('<p class="jeu-lab" id="room-nb-l">Combien de manches&nbsp;?</p>\n      <div class="dx-manches" role="radiogroup" aria-labelledby="room-nb-l">'));
@@ -89,10 +93,10 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" disabled onclick="jeuEnterRoom()"><span>Rejoindre la partie</span>'));
   assert.ok(!code.includes('jeu-me') && !code.includes('data-set="nb"'), 'un code : pas de pseudo, pas de manches (l’hôte choisit)');
   assert.ok(seul.includes('<p class="room-kicker">Mode solo</p>') && seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<p class="room-sub" id="dx-f-p">Relève des défis à ton rythme.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d">'));
-  assert.ok(seul.includes('<span class="dx-f-pts">Points ×4</span>') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('<small class="dx-m-duree">1\u00a0h\u00a0max</small>') && !seul.includes('jeu-note') && !seul.includes('data-vis') && !seul.includes('dx-f-note') && !seul.includes('joueurs max'));
+  assert.ok(seul.includes('<span class="dx-f-chip is-pts">') && seul.includes('<span><b>×4</b><span class="lq-sr"> points</span></span></span></p>') && !seul.includes('is-max') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('<small class="dx-m-duree">1\u00a0h\u00a0max</small>') && !seul.includes('jeu-note') && !seul.includes('data-vis') && !seul.includes('dx-f-note') && !seul.includes('joueurs max'));
   assert.ok(!code.includes('dx-f-niv-l') && !code.includes('dx-m-duree'), 'le code : ni niveau ni durée (l’hôte choisit)');
   ctx.jeuNb = 1; ctx.jeuNiv = 'f';
-  assert.ok(ctx.defisFeuilleHTML('seul').includes('<span class="dx-f-pts">Points ×1</span>') && ctx.defisFeuilleHTML('seul').includes('<small class="dx-m-duree">10\u00a0min\u00a0max</small>'));
+  assert.ok(ctx.defisFeuilleHTML('seul').includes('<b>×1</b><span class="lq-sr"> points</span>') && ctx.defisFeuilleHTML('seul').includes('<small class="dx-m-duree">10\u00a0min\u00a0max</small>'));
   assert.equal(ctx.dxDureeMax(5), '50\u00a0min\u00a0max', '10 min par manche en Facile');
   assert.deepEqual([ctx.dxDureeMax(3, 'm'), ctx.dxDureeMax(1, 'd'), ctx.dxDureeMax(5, 'm'), ctx.dxDureeMax(5, 'd'), ctx.dxDureeMax(3, 'd')],
     ['45\u00a0min\u00a0max', '20\u00a0min\u00a0max', '1\u00a0h\u00a015\u00a0max', '1\u00a0h\u00a040\u00a0max', '1\u00a0h\u00a0max'], '15 min en Moyen, 20 en Difficile ; en heures dès une heure');
@@ -178,4 +182,15 @@ test('8 novembre : choisir 5 manches allume la carte ; le niveau change la duré
   assert.deepEqual(nbs.map(b => b.d.textContent), ['20\u00a0min\u00a0max', '1\u00a0h\u00a0max', '1\u00a0h\u00a040\u00a0max'], 'en Difficile, 20 min par manche');
   ctx.jeuRoomSet('niv', 'm');
   assert.deepEqual(nbs.map(b => b.d.textContent), ['15\u00a0min\u00a0max', '45\u00a0min\u00a0max', '1\u00a0h\u00a015\u00a0max'], 'en Moyen, 15 min');
+});
+
+test('10 h 38 : le coefficient et « 5 joueurs max » en pastilles de la hauteur du niveau, le coefficient en jaune', () => {
+  for (const r of ['html.lq .dx-feuille .dx-f-tete>.dx-f-niv-l{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}',
+    'html.lq .dx-feuille .dx-f-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 6px;border-radius:999px;font:800 14px/1.2 var(--display);',
+    'html.lq .dx-feuille .dx-f-chip.is-pts{padding-right:13px;background:var(--sun);color:var(--ink);box-shadow:0 2px 0 var(--sun-lip)}',
+    'html.lq .dx-feuille .dx-f-chip.is-max{padding-left:9px;background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.34)}',
+    'html.lq .dx-feuille .dx-f-chip.is-max>svg{width:18px;height:18px;color:var(--mint)}'])
+    assert.ok(css.includes(r), r);
+  assert.ok(css.indexOf('html.lq .dx-feuille .dx-f-chip{') > css.indexOf('Défis — la refonte du 7 novembre'), 'avec les feuilles des Défis');
+  assert.ok(!css.includes('.dx-f-pts'), 'l’ancienne ligne de texte n’a plus de style');
 });

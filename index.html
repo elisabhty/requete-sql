@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=224">
+<link rel="stylesheet" href="ludique.css?v=225">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27066,7 +27066,13 @@ function defisActionsHTML(){
 function defisFeuilleHTML(k){
   const join=k==='code',friends=k==='creer';
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
-  const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="dx-f-pts">Points ×${JEU_NIV_X[jeuNiv]||1}${friends?`<i aria-hidden="true">·</i><span class="lq-sr">, </span>${JEU_MAX}\u00a0joueurs max`:''}</span></p>`;
+  /* 8 novembre, 10 h 38 (« comment mettre en avant le coefficient et le 5 joueurs max ») : deux pastilles à côté de celle du niveau,
+     plus une ligne de texte. Le coefficient en jaune, « ×4 » après la pièce des points de la manche (le jaune des récompenses, celui
+     du titre ; « points » pour les lecteurs d’écran) ; les joueurs en verre clair, avec les deux silhouettes de « Retrouver mes
+     adversaires ». Les trois tiennent sur une ligne dès 360 px. */
+  const PIECE='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.6" fill="#fff" stroke="#1B1640" stroke-width="2"/><path d="M12 6.9l1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z" fill="#FFC83D" stroke="#1B1640" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  const GENS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM3 19.6c.4-3.3 2.8-5.4 6-5.4s5.6 2.1 6 5.4M15.6 4.6a3.2 3.2 0 0 1 0 6.3M17.4 14.4c2 .6 3.3 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts">${PIECE}<span><b>×${JEU_NIV_X[jeuNiv]||1}</b><span class="lq-sr"> points</span></span></span>${friends?`<span class="lq-sr">, </span><span class="dx-f-chip is-max">${GENS}<span><b>${JEU_MAX}</b>\u00a0joueurs max</span></span>`:''}</p>`;
   /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44) ; seul : « Mode solo » (sa maquette). Le code (8 novembre, 0 h 23,
      sa relecture : « il y a un peu trop d’explications pour une action aussi simple que saisir un code ») : « Rejoindre une partie »,
      « Entre ton code ! ». */
@@ -34512,9 +34518,10 @@ function jeuNomField(id){
      salle ne montre plus de carte « Choisis ton pseudo » : « Ouvrir la salle » réserve celui de l’onboarding sans rien demander
      (jeuAvecPseudo). */
   if(!nom)return '';
-  /* 8 novembre, 9 h 57 : « met la coche valide à côté du pseudo » : une coche verte juste après, le pseudo est réservé et à toi. */
+  /* 8 novembre, 9 h 57 : « met la coche valide à côté du pseudo » : une coche verte, le pseudo est réservé et à toi. 10 h 38 : « la
+     coche validé doit être bien à droite, à l’opposé » : elle ferme la ligne, en face de l’avatar. */
   const at=nom.charAt(0)==='@';
-  return `<div class="jeu-me" data-nom="${id}"><span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${typeof jeuFlag==='function'?jeuFlag(nom):''}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="jeu-me-t"><small>Tu joues en tant que</small><span class="jeu-me-nom"><b>${at?'<i class="jeu-me-at">@</i>':''}${esc(at?nom.slice(1):nom)}</b><span class="jeu-me-ok" role="img" aria-label="Pseudo validé"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.4l3.3 3.3L17 9.2" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
+  return `<div class="jeu-me" data-nom="${id}"><span class="jeu-me-av"><b class="jeu-av" data-c="0" aria-hidden="true">${jeuInitial(nom)}${typeof jeuFlag==='function'?jeuFlag(nom):''}</b><span class="jeu-me-lock" aria-label="Pseudo verrouillé" role="img">${PS_LOCK_SVG}</span></span><span class="jeu-me-t"><small>Tu joues en tant que</small><span class="jeu-me-nom"><b>${at?'<i class="jeu-me-at">@</i>':''}${esc(at?nom.slice(1):nom)}</b></span></span><span class="jeu-me-ok" role="img" aria-label="Pseudo validé"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.4l3.3 3.3L17 9.2" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><input id="${id}" type="hidden" value="${escAttr(nom)}"></div>`;
 }
 function jeuCleanCode(v){
   v=String(v||'');
@@ -46057,7 +46064,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-chat-entier-v2661';
+  const SW_CACHE='requete-2026-11-08-pastilles-regles-v2662';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -200,7 +200,7 @@ test('réf 5 — le prénom dans l’onboarding (17 h 53), le pseudo juste aprè
   ctx.save = () => { ctx.saved++; };
   vm.runInContext(fn('jeuNom') + fn('jeuSavedNom') + fn('jeuInitial') + fn('jeuNomField'), ctx);
   const chip = vm.runInContext("jeuNomField('jeu-nom')", ctx);
-  assert.ok(chip.includes('<small>Tu joues en tant que</small><span class="jeu-me-nom"><b>Léa_sql</b><span class="jeu-me-ok" role="img" aria-label="Pseudo validé">') && chip.includes('<input id="jeu-nom" type="hidden" value="Léa_sql">'), 'le pseudo, pas le prénom, et sa coche verte (8 novembre, 9 h 57)');
+  assert.ok(chip.includes('<small>Tu joues en tant que</small><span class="jeu-me-nom"><b>Léa_sql</b></span></span><span class="jeu-me-ok" role="img" aria-label="Pseudo validé">') && chip.includes('<input id="jeu-nom" type="hidden" value="Léa_sql">'), 'le pseudo, pas le prénom, et sa coche verte (8 novembre, 9 h 57)');
   assert.ok(chip.includes('class="jeu-me-lock"') && chip.includes('<svg data-k="lock"></svg>') && !chip.includes('jeuNomEdit'), 'verrouillé : plus de « Changer »');
   ctx.state.salle = {};
   const field = vm.runInContext("jeuNomField('jeu-nom')", ctx);

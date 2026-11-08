@@ -41,14 +41,15 @@ test('Mon compte : « Confidentialité des parties », juste après « Tes donn�
   assert.ok(lq.includes('html.lq #scr-compte .dc-r{scroll-margin-top:110px}'), 'sous l’en-tête collant de la feuille');
 });
 
-test('« Tu joues en tant que » : la coche verte après le pseudo', () => {
+test('« Tu joues en tant que » : la coche verte au bout de la ligne, en face de l’avatar (10 h 38 : « bien à droite, à l’opposé »)', () => {
   const ctx = vm.createContext({jeuSavedNom: () => '@elisa_sql', jeuInitial: n => 'E', jeuFlag: () => '', PS_LOCK_SVG: '<svg l/>', esc: s => String(s), escAttr: s => String(s)});
   vm.runInContext(fn('jeuNomField'), ctx);
   const h = ctx.jeuNomField('jeu-nom');
-  assert.ok(h.includes('<span class="jeu-me-t"><small>Tu joues en tant que</small><span class="jeu-me-nom"><b><i class="jeu-me-at">@</i>elisa_sql</b><span class="jeu-me-ok" role="img" aria-label="Pseudo validé"><svg viewBox="0 0 24 24" aria-hidden="true">'));
+  assert.ok(h.includes('<span class="jeu-me-t"><small>Tu joues en tant que</small><span class="jeu-me-nom"><b><i class="jeu-me-at">@</i>elisa_sql</b></span></span><span class="jeu-me-ok" role="img" aria-label="Pseudo validé"><svg viewBox="0 0 24 24" aria-hidden="true">'), 'la coche hors du texte, dernière de la ligne');
+  assert.ok(h.indexOf('class="jeu-me-ok"') > h.indexOf('class="jeu-me-t"') && h.indexOf('class="jeu-me-ok"') < h.indexOf('<input'));
   assert.ok(h.includes('<input id="jeu-nom" type="hidden" value="@elisa_sql">'), 'le pseudo part toujours avec la salle');
   for (const r of ['html.lq .jeu-me-nom{display:flex;align-items:center;gap:7px;min-width:0}', 'html.lq .jeu-me-nom>b{min-width:0}',
-    'html.lq .jeu-me-ok{flex:none;display:inline-grid;width:19px;height:19px;border-radius:50%;color:#1E9E57;box-shadow:0 0 0 2px #fff}'])
+    'html.lq .jeu-me-ok{flex:none;display:inline-grid;width:24px;height:24px;margin-left:auto;border-radius:50%;color:#1E9E57;box-shadow:0 0 0 2px #fff}'])
     assert.ok(lq.includes(r), r);
   assert.ok(lq.indexOf('html.lq .jeu-me-ok{') < lq.indexOf('Défis — la refonte du 7 novembre'), 'hors des Défis : la coche suit le pseudo partout où il s’affiche');
 });
