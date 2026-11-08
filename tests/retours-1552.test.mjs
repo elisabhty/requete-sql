@@ -23,7 +23,7 @@ test('réf. 1 — la salle d’attente : le niveau et ses barres, les manches, �
   assert.ok(r.includes('<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li>'));
   assert.ok(r.includes("${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li>") && r.includes("${lqStkSvg('clock')}${jeuDureeMs(J.niv)/60000}\\u00a0min par manche</li></ul>") && !r.includes('Chrono dès 00:00'));
   assert.ok(app.includes('function jeuNivBars(k){return `<i class="jeu-bars is-${k}" aria-hidden="true"><b></b><b></b><b></b></i>`;}'));
-  assert.ok(r.includes('<span class="jeu-chip is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>'), 'le défi tiré garde la même pastille de niveau');
+  assert.ok(app.includes('function jeuDrawnHTML(c){return `<div class="jeu-drawn" id="jeu-drawn" role="status" aria-live="polite" hidden><span class="jeu-chip is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>') && r.includes('${jeuDrawnHTML(c)}'), 'le défi tiré garde la même pastille de niveau');
   for (const k of ['html.lq .jeu-chip{display:inline-flex;align-items:center;gap:7px;min-height:36px;', 'box-shadow:0 3px 0 var(--lip);font:700 14px/1 var(--display)!important',
     '@keyframes jeuChipIn', 'html.lq .jeu-bars.is-f b:nth-child(1){background:#169447}', 'html.lq .jeu-bars.is-m b:nth-child(-n+2){background:#E0A100}', 'html.lq .jeu-bars.is-d b{background:var(--danger-fill)}'])
     assert.ok(s49.includes(k), k);
@@ -54,7 +54,7 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
   assert.ok(app.includes('const JEU_DRAW_STEP=700;'));
   assert.ok(app.includes('const JEU_DRAW_MS='), 'le début du chrono, le même chez tous, ne change pas');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes('J.drawT=[1,2,3].map(k=>setTimeout(()=>jeuDrawStep(n),wait(k*JEU_DRAW_STEP)+10));'));
+  assert.ok(app.includes('J.drawT=[1,2,3].map(k=>setTimeout(()=>jeuDrawStep(n),wait(k*JEU_DRAW_STEP)+10));') && r.includes('jeuDrawTimers(n);'));
   assert.ok(r.includes("ghost=old.cloneNode(true);ghost.removeAttribute('id');ghost.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));"), 'une copie de la scène, sans identifiants en double');
   assert.ok(r.includes("if(fromDraw&&!prefersReduceMotion()&&root.getBoundingClientRect){"), 'pas de fondu en mouvement réduit');
   assert.ok(r.includes("if(ghost){root.appendChild(ghost);setTimeout(()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);},560);}"));

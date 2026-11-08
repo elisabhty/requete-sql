@@ -1156,3 +1156,51 @@ test('8 novembre, 8 h 52 : entre amis en Difficile, le chrono part de 20:00 ; la
   host.ev('jeuNextRound()'); sec(w, 7);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name);
 });
+
+/* Elisa, 8 novembre, 10 h 10 (« oui » à « la manche suivante démarre toute seule après quelques secondes ») : à 0, le résultat de la
+   manche reste 5 s, le compte à rebours au-dessus de « Manche suivante », puis la suite part toute seule : la manche suivante, ou le
+   podium à la dernière. */
+test('8 novembre, 10 h 10 : entre amis, à 0, la manche suivante part toute seule 5 s après ; à la dernière, le podium', () => {
+  const { w, host, guests } = room({ n: 2, nb: 2 });
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  host.found(); sec(w, 2);
+  sec(w, 9.5 * 60); sec(w, 28);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name);
+  assert.match(guests[0].html, /<p class="jeu-auto"><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b> s<\/span><\/p>/, 'le compte à rebours');
+  assert.match(host.html, /<p class="jeu-auto">[\s\S]*<span>Manche suivante<\/span>/, 'au-dessus du bouton, qui reste là pour ne pas attendre');
+  sec(w, 5);
+  for (const c of [host, ...guests]) assert.ok(/^(draw1|play1)$/.test(c.view()), c.name + ' : la manche 2 est partie toute seule');
+  sec(w, 4);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name);
+  sec(w, 10 * 60 + 1);
+  assert.equal(host.view(), 'res1');
+  assert.match(host.html, /Le podium arrive dans <b id="jeu-auto-n">\d<\/b>/);
+  sec(w, 6);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'final', c.name + ' : le podium, tout seul');
+});
+
+test('8 novembre, 10 h 10 : seul, à 0, la manche suivante part toute seule 5 s après ; à 0 à la dernière, le bilan', () => {
+  const w = new World();
+  const s = makeClient(w, 'Seul'); s.ev("jeuNb=2;jeuNiv='f'");
+  s.ev("jeuStart('SOLO77',true,null,{solo:true})"); sec(w, 4);
+  assert.equal(s.view(), 'play0');
+  sec(w, 10 * 60 + 1);
+  assert.equal(s.view(), 'res0');
+  assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/);
+  sec(w, 5);
+  assert.ok(/^(draw1|play1)$/.test(s.view()), 'la manche 2, toute seule');
+  sec(w, 4);
+  assert.equal(s.view(), 'play1');
+  sec(w, 10 * 60 + 1);
+  assert.equal(s.view(), 'final', 'la dernière manche à 0 : le bilan tout de suite');
+});
+
+test('8 novembre, 10 h 10 : une manche trouvée par tout le monde attend toujours l’hôte', () => {
+  const { w, host, guests } = room({ n: 2, nb: 3 });
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  host.found(); sec(w, 2); guests[0].found(); sec(w, 2);
+  sec(w, 11 * 60);
+  assert.equal(host.view(), 'res0', 'pas de suite toute seule');
+  assert.doesNotMatch(host.html, /jeu-auto/);
+  assert.equal(host.ev('jeuFinAuto(0)'), 0);
+});

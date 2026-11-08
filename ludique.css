@@ -4080,6 +4080,9 @@ html.lq .jeu-rank li>small{font:800 15px/1 var(--display)!important;color:#0F7A4
 html.lq .jeu-rank li>small.is-ms{min-width:0;font:700 12px/1 var(--mono)!important;color:var(--ink-3)!important}
 html.lq .jeu-rank li{animation:dbColIn .34s cubic-bezier(.2,.8,.3,1.2) both;animation-delay:calc(var(--i,0) * .07s)}
 html.lq .jeu-tie{margin:10px 2px 0!important;color:var(--ink-3);font-size:12.5px;line-height:1.4}
+/* À 0, la suite part toute seule (8 novembre, 10 h 10) : le compte à rebours, au-dessus du bouton. */
+html.lq .jeu-auto{margin:16px 2px 12px!important;color:var(--ink-2);font:700 14.5px/1.35 var(--ui);text-align:center}
+html.lq .jeu-auto b{color:var(--accent-ink);font:800 16px/1 var(--display);font-variant-numeric:tabular-nums}
 /* Le podium : une scène violette, trois marches qui montent, les médailles qui se posent */
 html.lq .jeu-podium{position:relative;isolation:isolate;overflow:hidden;gap:10px!important;margin:16px 0 4px!important;padding:26px 14px 0;border-radius:26px;background:var(--deep);box-shadow:0 5px 0 #3A22B0}
 html.lq .jeu-podium::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
@@ -6038,10 +6041,12 @@ html[data-motion="reduce"].lq .coach,html[data-motion="reduce"].lq .coach *{anim
 html.lq .coach{margin:4px 0 14px;padding:14px 16px 15px;border:2px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 5px 0 var(--lip)}
 html.lq .coach.has-hint{border-color:var(--line);box-shadow:0 5px 0 var(--lip)}
 html.lq .coach-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-html.lq .coach-tag{flex:none;display:inline-flex;align-items:center;gap:2px;padding:6px 12px;border-radius:12px;font:800 13.5px/1.1 var(--display);transform-origin:50% 50%}
-html.lq .coach-tag.is-go{background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-ink);rotate:-2deg}
+html.lq .coach-tag{flex:none;display:inline-flex;align-items:center;gap:2px;padding:6px 13px;border-radius:999px;font:800 13.5px/1.1 var(--display);transform-origin:50% 50%;-webkit-font-smoothing:antialiased}
+/* 8 novembre, 10 h 10 (« la pill violette À toi de jouer est de mauvaise qualité ») : droite, sans l’inclinaison de 2° que Safari
+   rendait en bords dentelés ; une vraie pastille arrondie. */
+html.lq .coach-tag.is-go{background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-ink)}
 html.lq .coach-caret{display:inline-block;width:2px;height:14px;margin-left:5px;border-radius:1px;background:var(--sun-hi);animation:coachCaret 1s steps(1) infinite}
-html.lq .coach-tag.is-hint{background:var(--sun);color:var(--ink);box-shadow:0 3px 0 var(--sun-lip);rotate:-2deg}
+html.lq .coach-tag.is-hint{background:var(--sun);color:var(--ink);box-shadow:0 3px 0 var(--sun-lip)}
 html.lq .coach-h>b{flex:1;min-width:0;color:var(--ink);font:800 16px/1.2 var(--display)}
 html.lq .coach-dot{border-color:var(--lip)}
 html.lq .coach-dot.is-on{border-color:var(--sun-lip);background:var(--sun-hi)}
@@ -7122,6 +7127,15 @@ html.lq #scr-lesson .jeu-draw h1{font-size:clamp(34px,10vw,42px)!important}
 html.lq #scr-lesson .jeu-draw .jeu-deck{scale:1.22;margin:52px auto 40px}
 html.lq #scr-lesson .jeu-draw.is-reveal .jeu-deck{margin:0}
 html.lq #scr-lesson .jeu-draw .jeu-draw-note{margin-top:18px}
+/* Le paquet et le défi tiré dans la même pile (Elisa, 8 novembre, 10 h 10 : « l’écran avec les cartes saute parfois ») : au tirage,
+   le paquet s’efface sur place et le défi apparaît à sa place, au lieu de replier le paquet et d’ajouter le défi dessous ; la scène
+   garde sa hauteur, le titre ne bouge plus. */
+html.lq .jeu-pile{display:grid;place-items:center;width:100%}
+html.lq .jeu-pile>*{grid-area:1/1}
+html.lq .jeu-pile>.jeu-drawn{margin:0;max-width:100%}
+html.lq #scr-lesson .jeu-draw.is-reveal .jeu-pile>.jeu-deck{height:170px;margin:52px auto 40px;opacity:0;scale:1.05;overflow:visible;transition:opacity .25s ease,scale .3s ease}
+@media (prefers-reduced-motion:reduce){html.lq #scr-lesson .jeu-draw.is-reveal .jeu-pile>.jeu-deck{transition:none}}
+html.lq[data-motion="reduce"] #scr-lesson .jeu-draw.is-reveal .jeu-pile>.jeu-deck{transition:none}
 /* ---------- La consigne des défis, point par point, dans la DA de la vitrine (Elisa, 4 novembre, 20 h 33, 20 h 52 et 21 h) ----------
    20 h 33 : la consigne seule doit tout dire, et dire qu’on a le schéma. 20 h 52 : « la DA du site internet n’est pas trop
    présente ». Chaque point est un bloc teinté, titre en Bricolage et pastilles à rebord, comme les cartes de la vitrine : Affiche
