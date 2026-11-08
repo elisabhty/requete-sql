@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=227">
+<link rel="stylesheet" href="ludique.css?v=228">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -34593,20 +34593,20 @@ function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLA
    du tout en solo. Chaque message reçu du relais (la base) porte fromRelay : c’est
    l’ordre du relais, le même pour tout le monde, qui départage les arrivées. */
 function jeuTransport(code,onMsg,onNet,solo){
-  if(solo){setTimeout(()=>onNet(true),0);return{send(){return Promise.resolve(true);},beacon(){},close(){}};}
+  if(solo){setTimeout(()=>onNet(true),0);return{send(){return Promise.resolve(true);},signal(){},beacon(){},close(){}};}
   if(/[?&]jeu=local\b/.test(location.search)&&'BroadcastChannel' in window){
     const key='rq-jeu-hist-'+code,bc=new BroadcastChannel('rq-jeu-'+code);
     let hist=[],replayed=false;const queue=[];
     try{hist=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){}
     const rel=m=>Object.assign({},m,{fromRelay:true});
     setTimeout(()=>{onNet(true);hist.forEach(m=>onMsg(rel(m)));replayed=true;queue.splice(0).forEach(m=>onMsg(m));},30);
-    bc.onmessage=e=>onMsg(rel(e.data));
+    bc.onmessage=e=>onMsg(e.data&&e.data.eph?e.data:rel(e.data));
     const t={send(m){
       m.at=Date.now();let h=[];try{h=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){}h.push(m);try{localStorage.setItem(key,JSON.stringify(h.slice(-400)));}catch(e){}
       bc.postMessage(m);
       setTimeout(()=>{const c=rel(m);if(replayed)onMsg(c);else queue.push(c);},0);
       return Promise.resolve(true);
-    },beacon(m){t.send(m);},close(){bc.close();}};
+    },signal(m){try{bc.postMessage(Object.assign({},m,{eph:1}));}catch(e){}},beacon(m){t.send(m);},close(){bc.close();}};
     return t;
   }
   return jeuSupabase(code,onMsg,onNet);
@@ -34676,6 +34676,8 @@ function jeuSupabase(code,onMsg,onNet){
     if(f.event==='phx_reply'&&f.ref===S.joinRef){if(f.payload&&f.payload.status==='ok')joined();else drop(ws);return;}
     if(f.event==='phx_close'||f.event==='phx_error')return drop(ws);
     if(f.event!=='broadcast'||!S.joined)return;
+    /* « Il écrit » : diffusé par un joueur, jamais gardé ni relu ; on n’en garde que qui et quelle manche (8 novembre, 12 h 07). */
+    if(f.payload&&f.payload.event==='ecrit'){const e=f.payload.payload;if(e&&typeof e==='object')onMsg({v:1,t:'ecrit',pid:String(e.pid||''),g:+e.g||0,n:+e.n||0});return;}
     // Public WebSocket broadcasts are only notifications. Only HTTPS history
     // from the authenticated server can deliver a ranked game message.
     if(secure){if(Date.now()-noticeAt>150){noticeAt=Date.now();catchUp();}else S.ht=setTimeout(catchUp,180);return;}
@@ -34733,6 +34735,8 @@ function jeuSupabase(code,onMsg,onNet){
   },2500);
   connect();
   return{
+    /* Un signal éphémère (« il écrit ») sur le canal en direct de la salle, sans passer par la base ; hors direct, il ne part pas. */
+    signal(m){if(!S.closed&&S.ws&&S.joined)put(S.ws,{topic,event:'broadcast',payload:{type:'broadcast',event:'ecrit',payload:m},ref:String(++S.ref),join_ref:S.joinRef});},
     send(m){
       const send=()=>rpc('jeu_envoyer',{p_salle:code,p_m:m}).then(r=>{
         if(!r.ok){if(secure)r.clone().json().then(e=>{if(JEU&&JEU.code===code){if(/salle pleine/.test(e.message||''))JEU.full=true;JEU.securityError=e.message||'';jeuPaint();}},()=>{});return false;}
@@ -34970,6 +34974,7 @@ function jeuMaybeDeny(pid,hu){
 }
 function jeuOnMsg(m){
   const J=JEU;if(!J||!m||m.v!==1||!m.pid)return;
+  if(m.t==='ecrit')return jeuEcritRecu(m);   // « il écrit » : éphémère, hors de l’ordre du relais (8 novembre, 12 h 07)
   /* « Moi » = ce démarrage (même pseudo d’appareil + même session). Mes messages d’un démarrage
      précédent sont de l’historique comme les autres : je retrouve ainsi ma salle et mes temps. */
   const mine=m.pid===J.me&&(J.ranked||m.s===J.sid);
@@ -35090,6 +35095,7 @@ function jeuOnMsg(m){
       /* 6 novembre, 16 h (règle de l’expert choisie par Elisa) : un essai, même manqué, fait de lui un joueur de la manche ; la place ne
          se gagne que face à quelqu’un qui joue (jeuRanking). Noté même relu, même le sien. */
       if((m.g|0)===J.g){const rt=J.rounds[+m.n];if(rt){(rt.tried=rt.tried||{})[m.pid]=1;(rt.ko=rt.ko||{})[m.pid]=(rt.ko[m.pid]||0)+1;}}   // ses essais, pour « En direct » (8 novembre)
+      if(J.ecritAt)delete J.ecritAt[m.pid];   // il vient d’exécuter : il n’écrit plus
       /* Un essai manqué d’un autre joueur (9 h 18) : annoncé par le serveur en salle classée, par le joueur lui-même sinon. Seulement
          en direct, pendant la manche, et s’il est récent (une salle relue après une coupure ne rejoue pas les essais d’avant). */
       if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;
@@ -35296,7 +35302,7 @@ function jeuTick(){
   const ct=document.getElementById('jeu-clore-t');
   if(ct&&n>=0){const a=jeuCloreAttente(n);if(a>0)ct.textContent=jeuRebours(a);else{const bar=document.getElementById('jeu-hostbar');if(bar)bar.innerHTML=jeuHostBarHTML();}}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
-  else{coachRoomTick();if(n>=0&&J.view==='play'+n)jeuDirectPeindre(n);}
+  else{coachRoomTick();if(n>=0&&J.view==='play'+n){jeuEcritVeille(n);jeuDirectPeindre(n);}}
   /* À 0 : le compte à rebours de la suite, puis la suite elle-même (jeuFinAuto) */
   if(n>=0){
     const t=jeuFinAuto(n),an=document.getElementById('jeu-auto-n');
@@ -35383,10 +35389,14 @@ function jeuNoteHTML(cls,ico,titre,texte){return `<div class="jeu-net ${cls}" ro
    réflexion, teste sa requête, a trouvé), ses essais et ses points de la partie ; jamais ses requêtes ni ses résultats. Un essai, c’est
    une requête exécutée : celles qui manquent arrivent par « rate » (annoncées par le joueur entre amis, par le serveur en salle classée),
    la bonne par « found ». Il se replie d’un toucher (le choix reste, rq-jeu-direct), pour laisser la place à l’éditeur ; replié, les
-   avatars restent dans sa barre. Les gestes, courts et une seule fois : un essai manqué, l’avatar respire, trois petits points, le
+   avatars restent dans sa barre. Les gestes, courts et une seule fois : un essai manqué, l’avatar respire, la pastille « Exécuter », le
    compteur saute ; trouvé, l’avatar rebondit, des confettis, « A trouvé ! » et ses points ; en tête, une couronne se pose et la ligne
-   remonte. Il remplace la bande d’avatars au-dessus du titre (31 octobre). */
-const JEU_TEST_MS=3200;
+   remonte. Il remplace la bande d’avatars au-dessus du titre (31 octobre).
+   12 h 07 (« Quand il écrit dans la zone de requête ? ») : « Écrit sa requête », avec les trois petits points, tant qu’il tape. Seul
+   le fait d’écrire part, jamais le texte : un signal en direct (jeuEcritVeille), au plus toutes les 3 s, qui ne passe pas par la base
+   et n’est ni gardé ni relu ; sans nouvelles 5 s, il repasse « En réflexion ». */
+const JEU_TEST_MS=3200,JEU_ECRIT_MS=5000,JEU_ECRIT_PAS=3000;
+const JEU_RUN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2v9.6l7.6-4.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const JEU_COURONNE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.6 8.8l4.5 3.4L12 5.6l3.9 6.6 4.5-3.4-1.6 9.6H5.2z" fill="#FFC83D" stroke="#1B1640" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="5.4" r="1.4" fill="#fff" stroke="#1B1640" stroke-width="1.2"/></svg>';
 const JEU_ONDE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M8.1 8.1a5.5 5.5 0 0 0 0 7.8M15.9 8.1a5.5 5.5 0 0 1 0 7.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="jd-onde2" d="M5 5a9.9 9.9 0 0 0 0 14M19 5a9.9 9.9 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 function jeuDirectPlie(){try{return localStorage.getItem('rq-jeu-direct')==='plie';}catch(e){return false;}}
@@ -35399,8 +35409,8 @@ function jeuDirectJoueurs(n){
   const l=ordre.filter(p=>jeuPresent(p)||r.found[p]!=null||tot[p]>0||(r.tried&&r.tried[p])).map((pid,i)=>{
     const me=pid===J.me,ok=r.found[pid]!=null,vrai=(J.players[pid]||{}).name||'Joueur';
     const essais=Math.max(me?(r.tries||0):0,((r.ko&&r.ko[pid])||0)+(ok?1:0));
-    const t=!me&&J.koAt&&J.koAt[pid]?now-J.koAt[pid]:-1;
-    const etat=ok?'ok':!jeuPresent(pid)?'parti':t>=0&&t<JEU_TEST_MS?'test':'pense';
+    const t=!me&&J.koAt&&J.koAt[pid]?now-J.koAt[pid]:-1,w=!me&&J.ecritAt&&J.ecritAt[pid]?now-J.ecritAt[pid]:-1;
+    const etat=ok?'ok':!jeuPresent(pid)?'parti':t>=0&&t<JEU_TEST_MS?'test':w>=0&&w<JEU_ECRIT_MS?'ecrit':'pense';
     return {pid,me,vrai,nom:me?'Toi':vrai,c:ordre.indexOf(pid)%6,ok,ms:ok?+r.found[pid]:Infinity,essais,etat,quitte:!!(J.left&&J.left[pid]),pts:tot[pid]||0,gain:gain[pid]||0,i};
   });
   const max=Math.max(0,...l.map(x=>x.pts));
@@ -35410,7 +35420,8 @@ function jeuDirectJoueurs(n){
 }
 function jeuDirectLigne(x,avant){
   const etat=x.etat==='ok'?`<i class="jd-i" aria-hidden="true">${JEU_ICO.check}</i>A trouvé&nbsp;!${x.gain?`<em class="jd-gain">+${x.gain.toLocaleString('fr-FR')}</em>`:''}`
-    :x.etat==='test'?'<i class="jd-pp" aria-hidden="true"><b></b><b></b><b></b></i>Teste sa requête'
+    :x.etat==='test'?`<i class="jd-run" aria-hidden="true">${JEU_RUN_SVG}</i>Teste sa requête`
+    :x.etat==='ecrit'?'<i class="jd-pp" aria-hidden="true"><b></b><b></b><b></b></i>Écrit sa requête'
     :x.etat==='parti'?`<i class="jd-rond" aria-hidden="true"></i>${x.quitte?'A quitté la salle':'Hors ligne'}`:'<i class="jd-rond" aria-hidden="true"></i>En réflexion';
   /* Ce qui vient de changer, et seulement ça, se joue une fois (le premier dessin de la manche ne rejoue rien) */
   const plus=avant&&x.essais>avant.essais,trouve=avant&&avant.etat!=='ok'&&x.etat==='ok',sacre=avant&&!avant.chef&&x.chef;
@@ -35470,6 +35481,27 @@ function jeuDirectPeindre(n){
     const d=a-li.getBoundingClientRect().top;
     if(Math.abs(d)>2)li.animate([{transform:`translateY(${d}px)`},{transform:'none'}],{duration:520,easing:'cubic-bezier(.2,.8,.25,1)'});
   });
+}
+/* « Il écrit » : à chaque tour d’horloge (500 ms), si ma requête a changé depuis le dernier tour de cette manche, les autres le savent
+   (pas son texte). Une requête remise en place après un redessin ne change pas : rien ne part. */
+function jeuEcritVeille(n){
+  const J=JEU,ed=typeof document!=='undefined'&&document.getElementById?document.getElementById('ed-lesson'):null;if(!J||!ed)return;
+  const v=String(ed.value||''),avant=J.edVu;J.edVu={n,v};
+  if(avant&&avant.n===n&&avant.v!==v)jeuEcritSignal(n);
+}
+function jeuEcritSignal(n){
+  const J=JEU,r=J&&J.rounds[n];
+  if(!r||J.solo||r.one||r.found[J.me]!=null||!J.t||typeof J.t.signal!=='function'||jeuSoloLike(n))return;
+  const now=Date.now();if(now-(J.ecritEnvoye||0)<JEU_ECRIT_PAS)return;
+  J.ecritEnvoye=now;
+  J.t.signal({v:1,t:'ecrit',pid:J.me,g:J.g,n});
+}
+/* Reçu : seulement d’un joueur de la salle, pour la manche en cours, tant qu’il n’a pas trouvé. */
+function jeuEcritRecu(m){
+  const J=JEU;if(!J||m.pid===J.me||!J.players[m.pid]||J.left[m.pid]||J.denied[m.pid]||(m.g|0)!==J.g)return;
+  const n=+m.n,r=J.rounds[n];if(!r||r.found[m.pid]!=null)return;
+  (J.ecritAt=J.ecritAt||{})[m.pid]=Date.now();
+  if(J.view==='play'+n)jeuDirectPeindre(n);
 }
 function jeuDirectBasculer(){
   const s=document.getElementById('jeu-direct');if(!s)return;
@@ -46199,7 +46231,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-en-direct-v2665';
+  const SW_CACHE='requete-2026-11-08-il-ecrit-v2666';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

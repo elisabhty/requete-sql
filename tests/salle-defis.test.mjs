@@ -18,7 +18,7 @@ const VOLATILE = ['ping', 'react'];
 
 /* ---------- Monde : horloge virtuelle + base ---------- */
 class World {
-  constructor() { this.now = 1_800_000_000_000; this.timers = []; this.seq = 0; this.rooms = new Map(); this.posts = 0; this.histCalls = 0; this.latency = 60; }
+  constructor() { this.now = 1_800_000_000_000; this.timers = []; this.seq = 0; this.rooms = new Map(); this.posts = 0; this.histCalls = 0; this.latency = 60; this.signals = []; }
   setTimeout(fn, ms) { const t = { at: this.now + Math.max(0, ms || 0), fn, id: ++this.seq, iv: 0 }; this.timers.push(t); return t.id; }
   setInterval(fn, ms) { const t = { at: this.now + ms, fn, id: ++this.seq, iv: ms }; this.timers.push(t); return t.id; }
   clear(id) { this.timers = this.timers.filter(t => t.id !== id); }
@@ -106,6 +106,11 @@ function makeClient(world, name, { skew = 0 } = {}) {
         this.topic = f.topic; this.room = world.room(f.topic.replace('realtime:salle:', '')); this.room.subs.add(this);
         this.push({ ref: f.ref, event: 'phx_reply', payload: { status: 'ok', response: { postgres_changes: [] } }, topic: f.topic });
       } else if (f.event === 'heartbeat') this.push({ ref: f.ref, event: 'phx_reply', payload: { status: 'ok', response: {} }, topic: 'phoenix' });
+      /* Diffusion d’un joueur (canal public, self:false) : aux autres seulement, sans rien garder (« il écrit », 8 novembre) */
+      else if (f.event === 'broadcast' && this.room && f.topic === this.topic) {
+        world.signals.push(JSON.parse(JSON.stringify(f.payload)));
+        this.room.subs.forEach(s => { if (s !== this) s.push({ ref: null, event: 'broadcast', payload: f.payload, topic: f.topic }); });
+      }
       else if (f.event === 'phx_leave' && this.room) this.room.subs.delete(this);
     }
     push(o) { world.setTimeout(() => this.recv(o), world.latency); }
@@ -664,6 +669,57 @@ test('« En direct » : les essais manqués des autres comptent chez tous, la li
   const d = host.ev('jeuDirectHTML(0)');
   assert.doesNotMatch(d, /faux|SELECT/, 'jamais sa requête'); assert.match(d, /1\/3<span class="jeu-sr"> : 1 joueur a trouvé/);
   assert.match(d, /<span class="jeu-direct-nb" id="jeu-direct-nb">3&nbsp;joueurs<\/span>/);
+});
+
+/* 8 novembre, 12 h 07 : « Quand il écrit dans la zone de requête ? » */
+test('« En direct » : « Écrit sa requête » tant qu’il tape, sans jamais envoyer son texte ni rien garder', () => {
+  const { w, host, guests } = room({ n: 3 });
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  const g = guests[0], gp = JSON.stringify(g.pid()), lui = c => c.ev(`jeuDirectJoueurs(0).find(x=>x.pid===${gp})`).etat;
+  const posts = w.posts, hist = w.histCalls;
+  sec(w, 1); assert.equal(lui(host), 'pense', 'la manche commence : en réflexion');
+  g.ed.value = 'SELECT nom FROM cl'; sec(w, 1);
+  assert.equal(lui(host), 'ecrit', 'l’hôte le voit écrire'); assert.equal(lui(guests[1]), 'ecrit', 'l’autre ami aussi');
+  assert.equal(w.signals.length, 1, 'un seul signal');
+  assert.deepEqual(w.signals[0], { type: 'broadcast', event: 'ecrit', payload: { v: 1, t: 'ecrit', pid: g.pid(), g: 0, n: 0 } }, 'qui, quelle manche : rien d’autre');
+  assert.doesNotMatch(JSON.stringify(w.signals), /SELECT|nom|FROM/, 'jamais son texte');
+  for (let i = 0; i < 8; i++) { g.ed.value += 'i'; sec(w, 0.5); }
+  assert.equal(lui(host), 'ecrit');
+  assert.ok(w.signals.length >= 2 && w.signals.length <= 3, `au plus un signal toutes les 3 s (${w.signals.length} en 4 s)`);
+  assert.equal(w.posts - posts < 3, true, 'rien par la base (seulement les signes de vie)');
+  assert.ok(w.histCalls - hist < 4, 'ni relecture de la salle à chaque signal');
+  sec(w, 6); assert.equal(lui(host), 'pense', 'il s’arrête : « En réflexion » au bout de 5 s');
+  const avant = w.signals.length;
+  host.ev('jeuPaint()'); sec(w, 1); assert.equal(w.signals.length, avant, 'un redessin chez lui ou ailleurs n’envoie rien');
+  g.ed.value = "SELECT 'faux'"; sec(w, 0.6); assert.equal(lui(host), 'ecrit');
+  g.ev('jeuRun()'); sec(w, 0.5); assert.equal(lui(host), 'test', 'il exécute : « Teste sa requête »');
+  sec(w, 3.5); assert.equal(lui(host), 'pense', 'puis en réflexion (il n’écrit plus)');
+  host.ed.value = 'SELECT 1'; sec(w, 1);
+  assert.equal(host.ev('jeuDirectJoueurs(0).find(x=>x.me)').etat, 'pense', 'sa propre ligne reste « En réflexion »');
+  assert.equal(lui(g) , 'pense'); assert.equal(g.ev(`jeuDirectJoueurs(0).find(x=>x.pid===${JSON.stringify(host.pid())})`).etat, 'ecrit', 'l’ami voit l’hôte écrire');
+  g.found(); sec(w, 1); const n = w.signals.length;
+  g.ed.value = 'autre chose'; sec(w, 4); assert.equal(w.signals.length, n, 'trouvé : plus rien ne part');
+});
+
+test('« il écrit » : seul, ou seul dans la salle, rien ne part ; un signal d’un inconnu ou d’une autre manche ne change rien', () => {
+  const w = new World();
+  const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=1");
+  h.host('ALONE3'); sec(w, 1); h.ev('jeuNextRound()'); sec(w, 4.5);
+  h.ed.value = 'SELECT'; sec(w, 1); h.ed.value = 'SELECT *'; sec(w, 1);
+  assert.equal(w.signals.length, 0, 'seul dans la salle');
+  const { w: w2, host, guests } = room({ n: 2 });
+  host.ev('jeuNextRound()'); sec(w2, 4.5);
+  const gp = guests[0].pid(), seq = host.ev('JSON.stringify(JEU.seq)'), seen = host.ev('JSON.stringify(JEU.seen)');
+  host.ev(`jeuOnMsg({v:1,t:'ecrit',pid:'INCONNU1',g:0,n:0})`); host.ev(`jeuOnMsg({v:1,t:'ecrit',pid:${JSON.stringify(gp)},g:3,n:0})`);
+  assert.equal(host.ev(`JSON.stringify(JEU.ecritAt||{})`), '{}');
+  host.ev(`jeuOnMsg({v:1,t:'ecrit',pid:${JSON.stringify(gp)},g:0,n:0})`);
+  assert.equal(host.ev(`jeuDirectJoueurs(0).find(x=>x.pid===${JSON.stringify(gp)}).etat`), 'ecrit');
+  assert.equal(host.ev('JSON.stringify(JEU.seq)'), seq, 'hors de l’ordre du relais'); assert.equal(host.ev('JSON.stringify(JEU.seen)'), seen, 'ce n’est pas un signe de vie');
+  /* Un message déguisé en « il écrit » sur le canal public : on n’en garde que qui et quelle manche */
+  guests[0].ws.send(JSON.stringify({ topic: 'realtime:salle:ROOM42', event: 'broadcast', payload: { type: 'broadcast', event: 'ecrit', payload: { v: 1, t: 'found', pid: gp, g: 0, n: 0, ms: 1, sql: 'SELECT 1' } }, ref: '99' }));
+  sec(w2, 1);
+  assert.equal(host.ev(`JEU.rounds[0].found[${JSON.stringify(gp)}]`), undefined, 'pas un « trouvé »');
+  assert.equal(host.ev(`jeuDirectJoueurs(0).find(x=>x.pid===${JSON.stringify(gp)}).etat`), 'ecrit');
 });
 
 test('un défi précis (« Avec des amis » sur sa page) ouvre la salle comme première manche', () => {
