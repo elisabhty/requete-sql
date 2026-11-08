@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=218">
+<link rel="stylesheet" href="ludique.css?v=219">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27047,37 +27047,48 @@ function defisActionsHTML(){
   const b=(k,stk,titre)=>`<button type="button" class="dx-act is-${k}" data-k="${k}" aria-haspopup="dialog" aria-expanded="${c===k}" onclick="defisCarte('${k}')"><span class="dx-act-stk" aria-hidden="true">${lqStkSvg(stk)}</span><b>${titre}</b></button>`;
   return `<div class="dx-actions" role="group" aria-label="D’autres façons de jouer">${b('code','rocket','Rejoindre avec un code')}${b('seul','clock','Jouer en solo')}</div>`;
 }
-/* Le contenu d’une feuille : le bandeau violet (autocollant, surtitre, titre ; le niveau en pastille), puis, sur blanc, seulement ce
-   qu’il faut choisir. Créer : les manches, qui peut entrer, le pseudo ; un code : le code ; seul : les manches. */
+/* Le contenu d’une feuille : le bandeau violet (l’autocollant, le surtitre, le titre ; dessous, la phrase, puis le niveau en pastille et
+   ce qu’il fait aux points), puis, sur blanc, seulement ce qu’il faut choisir. Créer : les manches, qui peut entrer, le pseudo ; un
+   code : le code ; seul : les manches.
+   « Joue seul », d’après la maquette d’Elisa (8 novembre, 8 h 21, avec « 10 min de jeu stp par manche ») : « Mode solo », « Relève des
+   défis SQL à ton rythme. », le niveau suivi de « Points ×2 », « Combien de manches ? » en trois cartes (1 manche, 3 manches,
+   5 manches), « Jusqu’à 30 min de jeu » dessous, qui suit le choix (dxDureeTexte), et « Lancer la partie ». Le violet de l’appli
+   reste au bouton (la maquette le dessinait en noir). « Créer ma partie » reprend le même bandeau, les cartes et la durée ; le code
+   garde son bandeau et sa fusée (8 novembre, 0 h 23). */
 function defisFeuilleHTML(k){
   const join=k==='code',friends=k==='creer';
   const seg=(key,items,cur)=>items.map(([v,l,x])=>`<button type="button" role="radio" aria-checked="${cur===v}" class="room-opt${cur===v?' on':''}" data-set="${key}" data-v="${v}"${x||''} onclick="jeuRoomSet('${key}',${typeof v==='number'?v:`'${v}'`})">${l}</button>`).join('');
-  const niv=`<span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span>`;
-  /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44). Le code (8 novembre, 0 h 23, sa relecture : « il y a un peu trop
-     d’explications pour une action aussi simple que saisir un code ») : « Rejoindre une partie », « Entre ton code ! ». */
+  const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="dx-f-pts">Points ×${JEU_NIV_X[jeuNiv]||1}</span></p>`;
+  /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44) ; seul : « Mode solo » (sa maquette). Le code (8 novembre, 0 h 23,
+     sa relecture : « il y a un peu trop d’explications pour une action aussi simple que saisir un code ») : « Rejoindre une partie »,
+     « Entre ton code ! ». */
   const ko=join&&typeof jeuCodeKo!=='undefined'?jeuCodeKo:'',code=jeuInvite||ko||'';
   const tete=join?['Rejoindre une partie','Entre ton code&nbsp;!','Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.']
-    :friends?['Créer ma partie','Ta salle de défi',`${niv}<span>Le défi est tiré au sort au dernier moment, le même pour tous.</span>`]
-    :['Jouer en solo','Joue seul',`${niv}<span>Un défi tiré au sort, pour t’entraîner.</span>`];
-  return `<div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span><div>
-    <p class="room-kicker">${tete[0]}</p>
-    <h2 id="dx-f-t">${tete[1]}</h2>
-    <p class="room-sub" id="dx-f-p">${tete[2]}</p></div><i class="room-sp s2" aria-hidden="true"></i></div>
+    :friends?['Créer ma partie','Ta salle de défi','Le défi est tiré au sort au dernier moment, le même pour tous.']
+    :['Mode solo','Joue seul','Relève des défis SQL à ton rythme.'];
+  const manches=[1,3,5].map(v=>`<button type="button" role="radio" aria-checked="${jeuNb===v}" class="dx-manche${jeuNb===v?' on':''}" data-set="nb" data-v="${v}"${v>jeuChallenges(jeuNiv).length?' disabled':''} onclick="jeuRoomSet('nb',${v})"><b>${v}</b> <span>manche${v>1?'s':''}</span></button>`).join('');
+  return `<div class="room-head dx-f-tete"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span>
+    <div class="dx-f-titres"><p class="room-kicker">${tete[0]}</p>
+    <h2 id="dx-f-t">${tete[1]}</h2></div>
+    <p class="room-sub" id="dx-f-p">${tete[2]}</p>${join?'':niv}<i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="dx-f-corps" data-k="${k}">
     ${join?`<div class="room-field room-join" data-join>
       ${jeuInvite?`<p class="room-invite">Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'} dans la salle <b class="jeu-code-inline">${jeuInvite}</b></p>`:''}
       <label class="jeu-lab" for="jeu-code">Code à 6 caractères</label>
-      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${code}" oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go"></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Nombre de manches</p>
-      <div class="room-seg" role="radiogroup" aria-labelledby="room-nb-l">${seg('nb',[[1,'1'],[3,'3'],[5,'5']].map(([v,l])=>[v,l,v>jeuChallenges(jeuNiv).length?' disabled':'']),jeuNb)}</div></div>`}
+      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${code}" oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go"></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Combien de manches&nbsp;?</p>
+      <div class="dx-manches" role="radiogroup" aria-labelledby="room-nb-l">${manches}</div>
+      <p class="dx-duree" aria-live="polite">${LQ_CHRONO_SVG}<span>${dxDureeTexte(jeuNb)}</span></p></div>`}
     ${friends?`<div class="room-field" data-vis><p class="jeu-lab" id="room-vis-l">Qui peut entrer&nbsp;?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-vis-l">${seg('vis',[['pub','Tout le monde'],['priv','Sur invitation']],jeuVis)}</div>
       <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small></div>
     <div class="room-field" data-friends>${jeuNomField('jeu-nom')}</div>`:''}
     ${friends||join?`<div data-friends>${dxConfHTML()}</div>`:''}
     <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite">${ko?'Code introuvable. Vérifie-le et réessaie.':''}</p>
-    <button type="button" class="room-go"${join?` id="jeu-code-go"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()"><span>${join?'Rejoindre la partie':friends?'Ouvrir la salle':'Tirer un défi'}</span>${DEF_CHEV_SVG}</button></div>
+    <button type="button" class="room-go"${join?` id="jeu-code-go"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()"><span>${join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie'}</span>${DEF_CHEV_SVG}</button></div>
     </div>`;
 }
+/* « Jusqu’à 30 min de jeu » (8 novembre, 8 h 21) : les manches choisies, chacune 10 min au plus (JEU_ROUND_MS). */
+function dxDureeTexte(n){return `Jusqu’à ${(+n||1)*JEU_ROUND_MS/60000}\u00a0min de jeu`;}
 /* La confidentialité d’une partie (8 novembre, 0 h 23 : « utile, mais trop visible ») : repliée derrière « Confidentialité des
    parties » ; la feuille se concentre sur le code, la saisie et le bouton. */
 function dxConfHTML(){
@@ -34408,10 +34419,11 @@ function buildSommaire(){
 const JEU_SB='https://ynuenrxozcpkrjdbeftc.supabase.co';
 const JEU_SB_KEY='sb_publishable_xhqZIRNKel3gXW_rH_GajQ_8Jb7iNhv';
 const JEU_HB_MS=15000;
-/* La manche s’arrête quand tout le monde a trouvé, ou au bout de 20 min (17 h 39 : les paliers vont au-delà de 7 min). Elisa,
-   6 novembre, 7 h 52 : « faire partir le chrono de 20 min pour passer à 0 et fermeture de la salle » : le chrono descend de 20:00 à
-   00:00 ; à 0, la salle se ferme (jeuExpiree). Le serveur compte la même durée (requete_private.manche, 20 minutes). */
-const JEU_ROUND_MS=1200000;
+/* La manche s’arrête quand tout le monde a trouvé, ou quand le chrono arrive à 0 (17 h 39 : les paliers vont au-delà de 7 min) : le
+   chrono descend jusqu’à 00:00 ; à 0, la salle se ferme (jeuExpiree ; Elisa, 6 novembre, 7 h 52). Sa durée : 20 min le 6 novembre,
+   10 min depuis le 8 novembre, 8 h 21 (« 10 min de jeu stp par manche ») ; la feuille « Joue seul » l’annonce (« Jusqu’à 30 min de
+   jeu » pour 3 manches, dxDureeTexte). Le serveur compte la même durée (requete_private.manche, 10 minutes). */
+const JEU_ROUND_MS=600000;
 const JEU_DRAW_MS=3300;
 /* Cinq joueurs par salle au plus (Elisa, 31 octobre, 16 h 49). */
 const JEU_MAX=5;
@@ -34739,12 +34751,13 @@ function jeuRoomSet(k,v){
   else return;
   jeuSavePrefs();
   card.querySelectorAll(`[data-set="${k}"]`).forEach(b=>{const on=b.dataset.v===String(v);b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
+  if(k==='nb'){const du=card.querySelector('.dx-duree>span');if(du)du.textContent=dxDureeTexte(jeuNb);}
   const friends=jeuMode==='friends',join=jeuMode==='join';
   card.querySelectorAll('[data-friends]').forEach(el=>{el.hidden=!(friends||join);});
   card.querySelectorAll('[data-create]').forEach(el=>{el.hidden=join;});
   card.querySelectorAll('[data-join]').forEach(el=>{el.hidden=!join;});
   if(k==='mode'){const sub=card.querySelector('.room-sub');if(sub)sub.textContent=join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.';}
-  const go=card.querySelector('.room-go span');if(go)go.textContent=join?'Rejoindre la salle':friends?'Ouvrir la salle':'Tirer un défi';
+  const go=card.querySelector('.room-go span');if(go)go.textContent=join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie';
   if(k==='mode'&&join){const inp=card.querySelector('#jeu-code');if(inp&&!inp.value)setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},60);}
   const msg=card.querySelector('.jeu-msg');if(msg)msg.textContent='';
   if(k==='vis'){const vh=card.querySelector('#room-vis-hint');if(vh)vh.textContent=jeuVisTexte();}
@@ -34972,7 +34985,7 @@ function jeuOnMsg(m){
       if(!CHALLENGES.some(c=>c.id===m.cid))return;
       /* Chrono : l’heure de réception quand le message arrive en direct. Pour une manche déjà commencée
          (historique), l’heure du relais, ramenée à l’horloge de ce téléphone dès que la salle est connue.
-         Le tirage au sort dure JEU_DRAW_MS ; la manche (20 min au plus) commence après. */
+         Le tirage au sort dure JEU_DRAW_MS ; la manche (10 min au plus, JEU_ROUND_MS) commence après. */
       const hist=!J.synced;
       let t0=Date.now();
       if(hist)t0=m.at||t0;
@@ -35396,7 +35409,7 @@ function jeuRender(){
   J.drawT.forEach(clearTimeout);J.drawT=[];
   const head=(k,t,s)=>`<div class="l-kicker">${k}</div><h1>${t}</h1>${s?`<p class="l-sub" id="jeu-sub">${s}</p>`:''}`;
   /* Les réglages de la partie en autocollants : le niveau et ses barres, les manches, le chrono (Elisa, 31 octobre, 15 h 52, réf. 1 :
-     « c’est pas 3 min par manche, c’est un chrono qui part de 0 » ; 6 novembre, 7 h 52 : il part de 20 min et descend jusqu’à 0). */
+     « c’est pas 3 min par manche, c’est un chrono qui part de 0 » ; 6 novembre, 7 h 52 : il part de 20 min et descend jusqu’à 0 ; 10 min depuis le 8 novembre, 8 h 21). */
   const chips=()=>`<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li><li class="jeu-chip" style="--i:1">${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li><li class="jeu-chip" style="--i:2">${lqStkSvg('clock')}${JEU_ROUND_MS/60000}\u00a0min par manche</li></ul>`;
   const host=jeuIsHost();
   let html='',edOn=false;
@@ -35983,8 +35996,8 @@ function setChallengeHow(k){
   if(navigator.vibrate)navigator.vibrate(6);
 }
 /* Un défi seul (ouvert depuis le planning) se ferme comme une manche de la salle, seul ou entre amis (Elisa, 1er novembre, 1 h 20 :
-   « défi seul ou à plusieurs doit fermer à 10 min » ; 6 novembre, 7 h 52 : 20 min, le chrono qui descend jusqu’à 0) : le chrono
-   jaune part de 20:00 ; à 0, l’éditeur se bloque et « Recommencer » relance le défi. Trouvé avant : le chrono s’arrête là. */
+   « défi seul ou à plusieurs doit fermer à 10 min » ; 6 novembre, 7 h 52 : 20 min, le chrono qui descend jusqu’à 0 ; 8 novembre, 8 h 21 : 10 min) : le chrono
+   jaune part de 10:00 ; à 0, l’éditeur se bloque et « Recommencer » relance le défi. Trouvé avant : le chrono s’arrête là. */
 let defiChrono=null;
 function defiChronoStop(){if(defiChrono)clearInterval(defiChrono.t);defiChrono=null;}
 function defiChronoStart(c,depart){
@@ -45967,7 +45980,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-coefficient-v2652';
+  const SW_CACHE='requete-2026-11-08-solo-dix-minutes-v2653';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -17,7 +17,7 @@ const sql = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort().map(f => 
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i); assert.ok(j > i, b); return app.slice(i, j); };
 const flush = () => new Promise(r => setImmediate(r));
 
-test('réf. 1 — la salle d’attente : le niveau et ses barres, les manches, « 20 min par manche » (6 novembre, 7 h 52), en autocollants', () => {
+test('réf. 1 — la salle d’attente : le niveau et ses barres, les manches, « 10 min par manche » (8 novembre, 8 h 21 ; 20 min le 6 novembre), en autocollants', () => {
   assert.ok(!app.includes('3 min max par manche'), 'plus de « 3 min max par manche »');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes('<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li>'));

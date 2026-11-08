@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const host={innerHTML:''};
 const ctx=vm.createContext({
-  state:{plan:null,lessons:{},defis:{}},allLessons:[{id:0},{id:1},{id:2}],TOTAL:3,MIN_PAR_ACTIVITE:6,JEU_ROUND_MS:1200000,
+  state:{plan:null,lessons:{},defis:{}},allLessons:[{id:0},{id:1},{id:2}],TOTAL:3,MIN_PAR_ACTIVITE:6,JEU_ROUND_MS:600000,
   dstr:d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),auj:()=>new Date(2026,8,15),parseD:d=>new Date(d+'T12:00:00'),
   jour0:d=>{const x=new Date(d);x.setHours(0,0,0,0);return x;},
   isDefiId:id=>typeof id==='string',nbFaites:()=>0,itemMeta:id=>({titre:'Activité '+id,sous:'Détail'}),
