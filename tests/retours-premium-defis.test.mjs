@@ -37,7 +37,7 @@ test('les pastilles de la feuille : le niveau et ses barres, la pièce et les po
 test('Jouer : la carte du joueur (la pastille jaune et le rang), le coefficient de chaque niveau (la pièce, jaune sur le niveau choisi), les salles en pastilles', () => {
   const moi = fn('defisMoiHTML');
   assert.ok(moi.includes("const ligne=k.pts||rang?`${dxPcPts(sallePts(k.pts))}${rang?`<span class=\"dx-me-rang\">${rang}</span>`:''}`:lt;"));
-  assert.ok(fn('jeuNiveauxHTML').includes('`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${x}</span>`'));
+  assert.ok(fn('jeuNiveauxHTML').includes('`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${x}<small>pts</small></span>`'));
   const salle = fn('salleLigneHTML');
   assert.ok(salle.includes('<span class="dx-nom">${esc(n)}</span>${dxPcGens(`${s.nb}/${s.max}`)}</b><small class="dx-pcs">${dxPcNiv(s.niv)}<span class="dx-pc-t">${qui?\'salle ouverte\':m}</span></small>'));
   for (const r of ['html.lq #scr-defis .room-level .room-lv-x{gap:4px;min-width:0;padding:3px 10px 3px 4px;border-radius:999px;background:var(--dx-tuile);',
