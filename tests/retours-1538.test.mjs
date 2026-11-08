@@ -24,8 +24,11 @@ const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const app = lire('index.html'), lq = lire('ludique.css'), ob = lire('onboarding-vitrine.css'), sw = lire('sw.js');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 const lastCut = (a, b) => { const i = app.lastIndexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
+/* 8 novembre, 10 h 53 (« le chat était vraiment coupé, remplace par celui-ci ») : « Encore un effort ! » devient son nouveau GIF (triste,
+   puis le poing levé, les étincelles, le sourire), détouré de son faux damier, l’autocollant entier dans son cadre : 9 images de
+   560 ms, une fois. */
 const GIF = { pied: [319, 362, 12, 420, 0], oui: [294, 351, 12, 330, 0], serment: [302, 362, 12, 420, 0], pseudo: [298, 305, 16, 380, 0],
-  effort: [286, 304, 12, 310, 1], stickers: [309, 291, 16, 380, 0], carte: [270, 311, 13, 310, 1], eureka: [294, 311, 10, 310, 1] };
+  effort: [340, 365, 9, 560, 1], stickers: [309, 291, 16, 380, 0], carte: [270, 311, 13, 310, 1], eureka: [294, 311, 10, 310, 1] };
 
 function webp(f) {
   const b = fs.readFileSync(path.join(ROOT, f));
@@ -105,7 +108,7 @@ test('« Encore un effort ! » : la leçon à refaire (une fois), puis l’autoc
   };
   const m = monde(false);
   vm.runInContext("mascotBravo(btn,'effort')", m);
-  assert.deepEqual([m.img.src, m.img.cls.has('is-effort'), m.img.attrs.width, m.img.attrs.height], ['assets/chat-effort.webp', true, '286', '304']);
+  assert.deepEqual([m.img.src, m.img.cls.has('is-effort'), m.img.attrs.width, m.img.attrs.height], ['assets/chat-effort.webp', true, '340', '365']);
   vm.runInContext('mascotBravo(btn,false)', m);
   assert.deepEqual([m.img.src, m.img.cls.has('is-effort'), m.img.attrs.width], ['assets/mascotte-autocollant.webp', false, '450'], 'l’écran quitté : l’autocollant (le GIF repartira du début)');
   vm.runInContext("mascotBravo(btn,'effort')", m); vm.runInContext('mascotBravo(btn,true)', m);
