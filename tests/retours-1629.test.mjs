@@ -29,7 +29,7 @@ test('pendant la manche, une seule action : « Exécuter » ; le schéma passe d
      qui ouvre les quatre (reactions-direct.test.mjs) ; il n’est pas dans la manche */
   assert.ok(!play.includes('jeuReagirHTML') && r.includes('jeuReagirMaj();'), '« Réagir », un seul bouton, en bas à droite');
   for (const k of ['html.lq .ed-schema{flex:none;display:inline-flex;', 'html.lq #jeu-root .jeu-direct{position:relative;margin:14px 0 20px}', 'html.lq #jeu-root .jeu-direct-bande{position:relative;z-index:1;isolation:isolate;overflow:hidden;border-radius:22px;background:var(--deep);',
-    'html.lq #jeu-root .jeu-direct-av{display:flex;', 'html.lq #jeu-root .jd-av-b.is-roi{'])
+    'html.lq #jeu-root .jeu-direct-av{display:grid;', 'html.lq #jeu-root .jd-av-b.is-roi{'])
     assert.ok(s50.includes(k), k);
 });
 
