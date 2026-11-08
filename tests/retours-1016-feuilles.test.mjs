@@ -109,7 +109,7 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   /* Code introuvable (personne dans la salle) : la feuille revient, le code gardé, le message dessous */
   ctx.jeuInvite = ''; ctx.jeuCodeKo = 'ZZZ999';
   const ko = ctx.defisFeuilleHTML('code');
-  assert.ok(ko.includes('value="ZZZ999"') && ko.includes('class="jeu-input is-code is-ko"') && ko.includes('<p class="jeu-msg is-ko" role="status" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">') && ko.includes('<span><b>Salle introuvable&nbsp;!</b> Vérifie le code.</span></p>') && !ko.includes('room-invite'));
+  assert.ok(ko.includes('value="ZZZ999"') && ko.includes('class="jeu-input is-code is-ko"') && ko.includes('<p class="jeu-msg is-ko" role="status" aria-live="polite"><span class="dx-alerte-plie"><span class="dx-alerte"><i class="dx-alerte-ico"><svg viewBox="0 0 32 32" aria-hidden="true">') && ko.includes('<span class="dx-alerte-t"><b>Salle introuvable&nbsp;!</b><small>Ce code ne correspond à aucune salle. Vérifie-le et réessaie.</small></span></span></span></p>') && !ko.includes('room-invite'));
   assert.ok(ko.includes('<span>Réessayer</span>'), '16 h 34 (la relecture) : « Réessayer » après un échec');
   ctx.jeuCodeKo = '';
   ctx.jeuChallenges = () => [1, 2];

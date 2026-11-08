@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=237">
+<link rel="stylesheet" href="ludique.css?v=238">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27123,20 +27123,31 @@ function dxCodePret(inp){
   if(b){b.disabled=!pret;const t=b.querySelector('span');if(t&&t.textContent!=='Rejoindre la salle')t.textContent='Rejoindre la salle';}
   if(pret&&!inp.classList.contains('is-pret')&&typeof buzz==='function')buzz('light');
   inp.classList.toggle('is-pret',pret);inp.classList.remove('is-ko');
-  const m=document.querySelector('#dx-feuille .jeu-msg');if(m&&m.textContent){m.textContent='';m.classList.remove('is-ko');}
+  dxCodeMsgPlier(document.querySelector('#dx-feuille .jeu-msg'));
 }
 /* La salle se cherche dans la feuille (8 novembre, 15 h 27 : la page « Tu rejoins la salle… » s’ouvrait, puis renvoyait à la feuille
    quand le code ne menait nulle part). « On cherche ta salle… » et sa roue dans le bouton ; trouvée (16 h 34, la relecture) : une coche
-   verte, « Salle trouvée ! », un court instant, puis la salle d’attente (jeuVerifSuivre). Sinon, sous le champ, à une place gardée
-   pour lui (rien ne bouge quand il apparaît) : un pictogramme, ce qui se passe en gras, quoi faire ; le bouton dit « Réessayer ».
-   Un code qui ne mène nulle part : le champ rougit et tremble. */
-const DX_CODE_MSG={introuvable:['Salle introuvable&nbsp;!','Vérifie le code.'],complete:['Salle complète&nbsp;!','5 joueurs au maximum.'],
-  commencee:['Trop tard, la partie a commencé&nbsp;!',''],reseau:['Connexion impossible.','Réessaie&nbsp;!'],horsligne:['Pas de connexion internet.',''],
-  pseudo:['Pseudo non réservé.','Réessaie dans un instant.'],moteur:['Le moteur SQL se charge.','Réessaie dans un instant.'],
-  indispo:['Salle indisponible.','Réessaie dans un instant.'],incomplet:['Entre les 6 caractères du code.','']};
-const DX_ALERTE_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2.2"/><path d="M12 7.4v5.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.4" fill="currentColor"/></svg>';
+   verte, « Salle trouvée ! », un court instant, puis la salle d’attente (jeuVerifSuivre). Sinon le bouton dit « Réessayer », et sous
+   le champ s’ouvre une bulle (16 h 50, Elisa : « est-ce que le message peut être mieux comme UI UX, car là c’est pas top ») : un
+   autocollant « ! » corail, ce qui se passe en gras, puis quoi faire ; elle se déplie en douceur, la carte grandit vers le haut et le
+   bouton ne bouge pas. Un code qui ne mène nulle part : le champ rougit et tremble. */
+const DX_CODE_MSG={introuvable:['Salle introuvable&nbsp;!','Ce code ne correspond à aucune salle. Vérifie-le et réessaie.'],
+  complete:['Salle complète&nbsp;!','Elle accueille déjà 5 joueurs, le maximum.'],
+  commencee:['Trop tard, la partie a commencé&nbsp;!','On rejoint une salle avant que l’hôte lance la partie.'],
+  reseau:['Connexion impossible','Vérifie ta connexion internet, puis réessaie.'],horsligne:['Pas de connexion internet','Connecte-toi, puis réessaie.'],
+  pseudo:['Pseudo non réservé','Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.'],
+  moteur:['Encore un instant','Le moteur SQL se charge. Réessaie dans un instant.'],
+  indispo:['Salle indisponible','Elle ne répond pas pour le moment. Réessaie dans un instant.'],incomplet:['Code incomplet','Entre les 6 caractères du code.']};
+const DX_ALERTE_SVG='<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17.6" r="12.6" fill="#1B1640" opacity=".28"/><circle cx="16" cy="16" r="12.6" fill="#FF6B6B" stroke="#1B1640" stroke-width="2.4"/><path d="M16 9.6v7.6" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/><circle cx="16" cy="22.4" r="2" fill="#fff"/><path d="M10.2 12.4a6.6 6.6 0 0 1 3-3.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".55"/></svg>';
 const DX_OK_SVG='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function dxCodeMsgHTML(etat){const m=DX_CODE_MSG[etat];return m?`${DX_ALERTE_SVG}<span><b>${m[0]}</b>${m[1]?` ${m[1]}`:''}</span>`:'';}
+function dxCodeMsgHTML(etat){const m=DX_CODE_MSG[etat];return m?`<span class="dx-alerte-plie"><span class="dx-alerte"><i class="dx-alerte-ico">${DX_ALERTE_SVG}</i><span class="dx-alerte-t"><b>${m[0]}</b><small>${m[1]}</small></span></span></span>`:'';}
+/* La bulle s’en va en douceur : elle s’efface pendant que sa ligne se replie, puis se vide. Taper encore pendant le repli le laisse finir. */
+function dxCodeMsgPlier(m){
+  if(!m||!m.textContent)return;
+  if(!m.classList.contains('is-ko')){if(!m._plie)m.textContent='';return;}
+  m.classList.remove('is-ko');clearTimeout(m._plie);
+  m._plie=setTimeout(()=>{m._plie=0;if(!m.classList.contains('is-ko'))m.textContent='';},320);
+}
 function dxCodeEtat(etat,code){
   const el=document.getElementById('dx-feuille');if(!el||el.dataset.k!=='code')return;
   const inp=el.querySelector('#jeu-code'),go=el.querySelector('#jeu-code-go'),m=el.querySelector('.jeu-msg');
@@ -27148,7 +27159,7 @@ function dxCodeEtat(etat,code){
     go.disabled=cherche||trouvee||jeuCleanCode(inp&&inp.value).length!==6;
   }
   if(inp){inp.classList.toggle('is-trouvee',trouvee);if(trouvee)inp.classList.remove('is-pret');if(etat!=='introuvable'&&etat!=='incomplet')inp.classList.remove('is-ko');}   // le champ n’est en faute que si le code l’est
-  if(m){m.innerHTML=dxCodeMsgHTML(etat);m.classList.toggle('is-ko',ko);}
+  if(m){if(ko){clearTimeout(m._plie);m._plie=0;m.innerHTML=dxCodeMsgHTML(etat);m.classList.add('is-ko');}else dxCodeMsgPlier(m);}
   if(trouvee&&typeof buzz==='function')buzz('success');
   if(!ko)return;
   if(typeof buzz==='function')buzz(etat==='introuvable'?'error':'warning');
@@ -46478,7 +46489,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-code-etats-v2681';
+  const SW_CACHE='requete-2026-11-08-code-bulle-v2682';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

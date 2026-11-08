@@ -9651,11 +9651,28 @@ html.lq .dx-feuille .room-join .jeu-input.is-code.is-pret{border-color:var(--acc
 @keyframes dxCodeOnde{0%{outline:3px solid rgba(106,77,244,.5);outline-offset:0}100%{outline:3px solid rgba(106,77,244,0);outline-offset:10px}}
 html.lq .dx-feuille .room-join .jeu-input.is-code.is-ko{border-color:#E5484D!important;box-shadow:0 0 0 4px rgba(229,72,77,.16)!important}
 html.lq .dx-feuille .room-join .jeu-input.is-code.is-ko.is-shake{animation:roomShake .38s cubic-bezier(.36,.07,.19,.97)}
-/* 16 h 34 (la relecture suivante) : le message a sa place sous le champ, gardée même vide : le champ et le bouton ne bougent plus quand
-   il apparaît. Un pictogramme, ce qui se passe en gras rouge, quoi faire en gris. */
-html.lq .dx-feuille[data-k="code"] .jeu-msg,html.lq .dx-feuille[data-k="code"] .jeu-msg:empty{display:flex;align-items:flex-start;gap:7px;min-height:21px;margin:0 2px 12px;color:var(--ink-2);font:500 14px/1.45 var(--ui)}
-html.lq .dx-feuille[data-k="code"] .jeu-msg>svg{flex:none;width:19px;height:19px;margin-top:1px;color:#D23F45}
-html.lq .dx-feuille[data-k="code"] .jeu-msg b{color:#C2323A;font-weight:800}
+/* 16 h 50 (Elisa : « est-ce que le message peut être mieux comme UI UX, car là c’est pas top ») : une bulle sous le champ, qui se
+   déplie en douceur (la carte grandit vers le haut, le bouton reste où il est). L’autocollant « ! » corail, contour d’encre, arrive
+   d’un petit rebond ; ce qui se passe en gras, quoi faire dessous. La bulle reprend les cartes de l’appli : bord, fond clair, lèvre.
+   Elle colle au champ dont elle parle (14 px) et laisse de l’air avant le bouton (18 px) ; corrigé, elle s’efface et se replie. */
+html.lq .dx-feuille[data-k="code"] .jeu-msg,html.lq .dx-feuille[data-k="code"] .jeu-msg:empty{display:grid;grid-template-rows:0fr;min-height:0;margin:0!important;
+  transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1),margin .3s cubic-bezier(.2,.8,.2,1)}
+html.lq .dx-feuille[data-k="code"] .jeu-msg.is-ko{grid-template-rows:1fr;margin:-10px 0 18px!important}
+html.lq .dx-feuille[data-k="code"] .dx-alerte-plie{min-height:0;overflow:hidden;padding:0 0 4px}
+html.lq .dx-feuille[data-k="code"] .dx-alerte{display:flex;align-items:flex-start;gap:11px;padding:11px 14px 12px 11px;border:2px solid #FFD3CF;border-radius:var(--dx-r-tuile,18px);
+  background:#FFF5F3;box-shadow:0 3px 0 #FFD3CF;animation:dxAlerte .32s cubic-bezier(.2,.8,.2,1) both}
+html.lq .dx-feuille[data-k="code"] .dx-alerte-ico{flex:none;display:block;width:32px;height:32px;rotate:-8deg;animation:dxAlertePop .45s cubic-bezier(.3,1.6,.5,1) .06s both}
+html.lq .dx-feuille[data-k="code"] .dx-alerte-ico svg{display:block;width:100%;height:100%}
+html.lq .dx-feuille[data-k="code"] .dx-alerte-t{display:flex;flex-direction:column;gap:2px;min-width:0;padding-top:1px}
+html.lq .dx-feuille[data-k="code"] .dx-alerte-t b{color:#B8323A;font:700 16px/1.25 var(--display);letter-spacing:-.01em}
+html.lq .dx-feuille[data-k="code"] .dx-alerte-t small{color:var(--ink-2);font:500 13.5px/1.4 var(--ui)}
+html.lq .dx-feuille[data-k="code"] .jeu-msg:not(.is-ko) .dx-alerte{animation:dxAlerteFin .2s ease both}
+@keyframes dxAlerte{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes dxAlertePop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+@keyframes dxAlerteFin{to{opacity:0}}
+@media (prefers-reduced-motion:reduce){html.lq .dx-feuille[data-k="code"] .jeu-msg{transition:none}html.lq .dx-feuille[data-k="code"] :is(.dx-alerte,.dx-alerte-ico){animation:none!important}}
+html.lq[data-motion="reduce"] .dx-feuille[data-k="code"] .jeu-msg{transition:none}
+html.lq[data-motion="reduce"] .dx-feuille[data-k="code"] :is(.dx-alerte,.dx-alerte-ico){animation:none!important}
 /* Pendant qu’on cherche, le code ne change pas : il pâlit, sans curseur. Trouvée : le bord et le bouton passent au vert, la coche
    arrive d’un petit rebond, « Salle trouvée ! », puis la salle. */
 html.lq .dx-feuille.is-cherche .room-join .jeu-input.is-code{color:var(--ink-3);caret-color:transparent}
