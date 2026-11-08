@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=217">
+<link rel="stylesheet" href="ludique.css?v=218">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27862,6 +27862,8 @@ function defisListes(){
 function defisJouerPeindre(){
   const moi=document.getElementById('defis-moi');if(moi)moi.innerHTML=defisMoiHTML();
   const rap=document.getElementById('defis-rapide');if(rap)rap.innerHTML=defisRapideHTML();
+  /* Les coefficients sautent à l’arrivée (is-entree, 8 novembre) ; la classe s’en va ensuite, pour qu’un saut de choix ne la rejoue pas. */
+  if(rap&&typeof setTimeout==='function')setTimeout(()=>{const c=rap.querySelector&&rap.querySelector('.dx-rapide.is-entree');if(c)c.classList.remove('is-entree');},1400);
   renderDefisRoom();
   sallesRepeindre();
   if(!DEFIS.cls.rangs&&!DEFIS.cls.busy.carte&&clsOn())clsRangsCharger();
@@ -27891,7 +27893,23 @@ function defisNiv(k){
   document.querySelectorAll('#scr-defis [data-set="niv"]').forEach(b=>{const on=b.dataset.v===k;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
   /* « Rejoins une partie » suit le niveau (11 h 37, 12 h 52) : ses salles ; aucune : « Crée la tienne », au-dessus de « Créer une salle ». */
   sallesRepeindre();
-  if(navigator.vibrate)navigator.vibrate(6);
+  dxCoefFete(k);
+}
+/* Le coefficient se fête quand on choisit son niveau (Elisa, 8 novembre, 8 h 00 : « une animation ou une micro interaction qui le met
+   en avant ») : la pastille ×N saute, un reflet doré la traverse, des étincelles en sortent (six à ×4, quatre sinon) ; le téléphone
+   vibre, plus fort à ×4. Sans mouvement (réglage du téléphone ou de l’appli) : seulement la vibration. Entre-temps, la pastille du
+   niveau choisi brille de loin en loin, et les trois sautent à l’arrivée sur Jouer (CSS, section 20.16). */
+function dxCoefFete(k){
+  if(typeof buzz==='function')buzz(k==='d'?'medium':'light');else if(navigator.vibrate)navigator.vibrate(k==='d'?12:6);
+  const b=document.querySelector(`#scr-defis .dx-rapide [data-set="niv"][data-v="${k}"]`),x=b&&b.querySelector('.room-lv-x');
+  if(!x||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
+  x.classList.remove('is-pop');void x.offsetWidth;x.classList.add('is-pop');
+  b.querySelectorAll('.dx-x-fete').forEach(e=>e.remove());
+  const f=document.createElement('span');f.className='dx-x-fete'+(k==='d'?' is-fort':'');f.setAttribute('aria-hidden','true');
+  f.innerHTML='<i></i><i></i><i></i><i></i>'+(k==='d'?'<i></i><i></i>':'');
+  f.style.left=(x.offsetLeft+x.offsetWidth/2)+'px';f.style.top=(x.offsetTop+x.offsetHeight/2)+'px';
+  b.appendChild(f);
+  clearTimeout(x._fete);x._fete=setTimeout(()=>{x.classList.remove('is-pop');f.remove();},950);
 }
 /* Le cadre du haut : créer sa salle (Elisa, 5 novembre, 11 h 19 : « le haut, c’est la partie Créer une salle, et Trouver une salle
    c’est en bas, dans le cadre du bas ») : le niveau, « Créer une salle » qui ouvre sa feuille (les manches, qui peut entrer), puis,
@@ -27912,7 +27930,7 @@ function defisRapideHTML(){
   if(!jeuNivUser)jeuNiv=jeuNivAuto();
   if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
-  return `<section class="room-card dx-rapide is-v2" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
+  return `<section class="room-card dx-rapide is-v2 is-entree" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
     <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>
     <p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field dx-r-niv"><div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p></div>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
@@ -45949,7 +45967,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-code-v2651';
+  const SW_CACHE='requete-2026-11-08-coefficient-v2652';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

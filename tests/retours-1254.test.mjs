@@ -70,7 +70,7 @@ test('le chat qui dort : un jour de repos dans le planning', () => {
 
 test('le chrono : la carte des défis', () => {
   const carte = cut('function defisRapideHTML(){', '\n/* Créer une salle, entrer un code');
-  assert.ok(carte.includes(`<section class="room-card dx-rapide is-v2" aria-labelledby="dx-rapide-h"><div class="room-head">\${chatBonusHtml('chrono','room-chat')}<div>`), 'à la place de la cible');
+  assert.ok(carte.includes(`<section class="room-card dx-rapide is-v2 is-entree" aria-labelledby="dx-rapide-h"><div class="room-head">\${chatBonusHtml('chrono','room-chat')}<div>`), 'à la place de la cible');
   assert.ok(!carte.includes("lqStkSvg('target')"));
 });
 

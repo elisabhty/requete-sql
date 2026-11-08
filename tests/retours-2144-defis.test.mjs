@@ -383,7 +383,7 @@ test('refonte — la fiche : « En salle maintenant » et « Rejoindre » ; ouve
 test('refonte — la feuille de style : la DA du site sur la nouvelle structure, 44 px partout, Mes stats sans onglets', () => {
   const v2 = lq.slice(lq.indexOf('Défis — la refonte du 7 novembre'));
   assert.ok(v2.length > 40000, 'à la fin de ludique.css');
-  const regles = v2.replace(/\/\*[\s\S]*?\*\//g, '').split('}').map(r => r.trim()).filter(r => r.includes('{') && !r.startsWith('@'));
+  const regles = v2.replace(/\/\*[\s\S]*?\*\//g, '').replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').split('}').map(r => r.trim()).filter(r => r.includes('{') && !r.startsWith('@'));
   assert.ok(regles.every(r => /html\.lq(\[[^\]]+\])?(:not\([^)]*\))? (body )?(#scr-defis|\.dx-feuille|:is\(#scr-defis,\.dx-feuille\))/.test(r.split('{')[0].trim().replace(/^@media[^{]*\{/, ''))), 'rien hors des Défis');
   for (const k of ['html.lq #scr-defis #defis-tabs[hidden]{display:none}', 'html.lq #scr-defis .dx-nav[hidden]{display:none}',
     'html.lq #scr-defis .dx-rapide.is-v2 .dx-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;',
@@ -395,4 +395,27 @@ test('refonte — la feuille de style : la DA du site sur la nouvelle structure,
   assert.ok(!v2.includes('.dx-rapide>.room-head') && !v2.includes('.dx-rapide.is-v2>.room-head') && v2.includes('html.lq :is(#scr-defis,.dx-feuille) :not(.dx-rapide)>.room-head::after{content:"";'));
   assert.ok(fn('defisPeindre').includes("tabs.hidden=DEFIS.onglet==='stats';") && fn('defisStatsPeindre').includes('<h2 class="dx-stats-h" id="dx-stats-h">Mes stats</h2>') && !fn('defisStatsPeindre').includes('dx-retour'));
   assert.ok(app.includes("function dxParties(n){n=Math.max(0,Math.floor(+n||0));return `${n.toLocaleString('fr-FR')}\\u00a0partie${n>1?'s':''}`;}") && app.includes("d.getDate()+'\\u00a0'+['janv.',"), '« 4 parties », « 4 nov. » ne se coupent plus');
+});
+
+/* 8 novembre, 8 h 00 : « Ok pour le coefficient dans défi mais une animation ou une micro interaction qui le met en avant ». */
+test('le coefficient mis en avant : il saute à l’arrivée, brille sur le niveau choisi, se fête quand on choisit (étincelles, vibration)', () => {
+  assert.ok(fn('defisRapideHTML').includes('<section class="room-card dx-rapide is-v2 is-entree"') && fn('defisJouerPeindre').includes("const c=rap.querySelector&&rap.querySelector('.dx-rapide.is-entree');if(c)c.classList.remove('is-entree');},1400);"),
+    'les trois pastilles sautent à l’arrivée, une fois (un choix ne rejoue pas l’arrivée)');
+  assert.ok(fn('defisNiv').includes('dxCoefFete(k);') && !fn('defisNiv').includes('navigator.vibrate(6)'));
+  /* Le choix : la vibration (plus forte à ×4), puis la pastille saute et six étincelles (quatre sinon) partent de son centre */
+  const vu = [];
+  const pastille = { offsetLeft: 30, offsetTop: 60, offsetWidth: 52, offsetHeight: 24, _fete: 0, classList: { add: k => vu.push('+' + k), remove: k => vu.push('-' + k) } };
+  const carte = { querySelector: s => s === '.room-lv-x' ? pastille : null, querySelectorAll: () => [], appendChild: e => vu.push(['étincelles', e.className, e.innerHTML.split('<i>').length - 1, e.style.left, e.style.top]) };
+  const ctx = vm.createContext({ buzz: t => vu.push('buzz ' + t), prefersReduceMotion: () => false, navigator: {}, setTimeout: () => 1, clearTimeout: () => {},
+    document: { querySelector: s => s === '#scr-defis .dx-rapide [data-set="niv"][data-v="d"]' ? carte : null,
+      createElement: () => ({ style: {}, setAttribute() {}, className: '', innerHTML: '' }) } });
+  vm.runInContext(fn('dxCoefFete') + '\n}\n', ctx);
+  ctx.dxCoefFete('d');
+  assert.deepEqual(J(vu), ['buzz medium', '-is-pop', '+is-pop', ['étincelles', 'dx-x-fete is-fort', 6, '56px', '72px']]);
+  vu.length = 0; ctx.prefersReduceMotion = () => true; ctx.dxCoefFete('d');
+  assert.deepEqual(vu, ['buzz medium'], 'sans mouvement : seulement la vibration');
+  for (const k of ['html.lq #scr-defis .dx-rapide.is-entree .room-level .room-lv-x{animation:dxXEntree .55s', 'html.lq #scr-defis .dx-rapide .room-level .room-lv-x.is-pop{animation:dxXPop .6s',
+    'html.lq #scr-defis .dx-rapide .room-level.on .room-lv-x::after{content:"";', 'animation:dxXReflet 4.6s ease-in-out 1.2s infinite}', '@keyframes dxXEtincelle{', '@keyframes dxXOnde{',
+    'html.lq[data-motion="reduce"] #scr-defis .dx-x-fete{display:none}'])
+    assert.ok(lq.includes(k), k);
 });
