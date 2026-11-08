@@ -1,7 +1,7 @@
 /* Elisa, 8 novembre, 13 h 09 puis 13 h 15 : « Est-ce vraiment un défi le texte ? » ; « dans la situation il n’explique pas vraiment
    le contexte, du style on est dans un escape game ». La consigne s’ouvre sur « La situation » (la question, c’est le titre). ed2 est
    réécrit comme modèle, à valider avant les autres : le lieu et ce qu’on y fait, la donnée en jeu, qui veut quoi et pourquoi, puis
-   « À toi de… ». Les solutions ne changent pas. */
+   « À toi de jouer ! ». 13 h 28 : « on peut dire 70 » (mots) pour bien poser le lieu. Les solutions ne changent pas. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -18,9 +18,9 @@ test('la consigne s’ouvre sur « La situation » ; l’ancien format (une ques
 
 test('ed2, le modèle : l’escape game, le maître du jeu, les avis, le besoin de Malik, puis le défi', () => {
   const c = data.challenges.find(x => x.id === 'ed2');
-  assert.equal(c.situation, 'Au Cadran Fêlé, un escape game lyonnais, chaque équipe doit sortir d’une salle à temps, guidée par un maître du jeu, puis peut laisser un avis noté de 1 à 5. Malik, qui dirige les maîtres du jeu, veut les classer selon leur note moyenne pour leurs entretiens annuels. À toi de jouer !');
+  assert.equal(c.situation, 'Au Cadran Fêlé, un escape game lyonnais, une équipe s’enferme dans une salle et doit résoudre ses énigmes avant la fin du temps. Un maître du jeu anime chaque partie et souffle des indices. À la sortie, l’équipe peut laisser un avis noté de 1 à 5. Malik, qui dirige les maîtres du jeu, veut les classer selon leur note moyenne avant leurs entretiens annuels. À toi de jouer !');
   assert.match(c.situation, / veut /, 'le besoin');
   assert.match(c.situation, /À toi de jouer\u00a0!$/, 'le défi');
-  assert.ok(c.situation.split(/\s+/).length <= 55, 'courte : 55 mots au plus (6 novembre, 9 h 37)');
+  assert.ok(c.situation.split(/\s+/).length <= 70, '70 mots au plus (8 novembre, 13 h 28 : « on peut dire 70 »)');
   assert.ok(c.sol.includes('DENSE_RANK() OVER (ORDER BY AVG(a.note) DESC)'), 'la solution ne change pas');
 });
