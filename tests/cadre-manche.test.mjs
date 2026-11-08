@@ -14,10 +14,11 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 
 test('la tête du cadre : la manche, ce que vaut le défi et le chrono ; dessous, le niveau et la base', () => {
   const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
-  assert.ok(play.includes('const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b><span class="jeu-hud-r">${val}</span>`'));
+  /* 19 h 57 (réf. 2, « meilleur niveau UI UX ») : la manche seule sur sa ligne, puis le niveau et ce que vaut le défi */
+  assert.ok(play.includes('const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b>`+'));
   /* 19 h 18 : le chrono sort du bandeau, posé sur son bord (chrono-bord.test.mjs) */
   assert.ok(play.includes('const chrono=`<b class="jeu-timer${dur0-took0<30000?\' is-low\':\'\'}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;'));
-  assert.ok(play.includes('`<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>'), 'le niveau dans la pastille blanche des feuilles');
+  assert.ok(play.includes('`<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${val}</span></div>`;'), 'le niveau dans la pastille blanche des feuilles, et ce que vaut le défi à droite');
   assert.ok(!play.includes('class="jeu-bar"'), 'plus de barre au-dessus du titre');
   /* 18 h 28 : « la base, on ne la met pas dans le premier bloc mais en pill de La situation » */
   assert.ok(!play.includes('jeu-hud-base') && play.includes('${defiConsigneHTML(c,{base:true})}'), 'la base à côté de « La situation »');
@@ -33,7 +34,7 @@ test('la tête du cadre : la manche, ce que vaut le défi et le chrono ; dessous
 test('la DA du cadre : en grand la manche, les pastilles du chrono et des points, un filet avant « En direct »', () => {
   for (const r of ['html.lq #jeu-root .jeu-hud{display:flex;flex-wrap:wrap;align-items:center;gap:10px 10px;padding:15px 12px 13px 16px}',
     'html.lq #jeu-root .jeu-direct:not(.is-seul) .jeu-hud{box-shadow:inset 0 -1px 0 rgba(255,255,255,.14)}',
-    'html.lq #jeu-root .jeu-hud-m{flex:1 1 auto;min-width:0;color:#fff;font:800 21px/1.1 var(--display);',
+    'html.lq #jeu-root .jeu-hud-m{flex:1 1 100%;min-width:0;color:#fff;font:800 21px/1.1 var(--display);', 'html.lq #jeu-root .jeu-hud-niv>.jeu-val{flex:none;margin-left:auto}',
     'html.lq #jeu-root .jeu-hud-niv{flex:1 1 100%;display:flex;align-items:center;gap:9px;min-width:0}',
     '  html.lq #jeu-root .jeu-hud .jeu-val small{display:none}'])
     assert.ok(css.includes(r), r);

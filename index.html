@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=247">
+<link rel="stylesheet" href="ludique.css?v=248">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13702,10 +13702,12 @@ const CHALLENGES=[
    les autocollants, et « anime le Tu as accès au schéma » : le souligné jaune de la vitrine se dessine sous « schéma », puis le bouton
    appelle (anneau, icône qui se balance, flèche qui pousse) jusqu’à ce qu’on ouvre le schéma. */
 /* La fin de chaque situation (Elisa, 8 novembre, 18 h 36 : « mettre toujours : À toi de jouer ! Tu peux consulter le schéma de la base
-   à tout moment pour explorer les tables et leurs colonnes. ») : les 477 situations finissent sur « À toi de jouer ! », la suite est
-   ajoutée ici, en salle comme sur la page d’un défi ; une situation qui ne finirait pas ainsi la reçoit aussi. */
-const DEFI_A_TOI='À toi de jouer ! Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.';
-function defiSituation(s){return (String(s||'').replace(/\s*À toi de jouer[\s ]*!\s*$/,'').trim()+' '+DEFI_A_TOI).trim();}
+   à tout moment pour explorer les tables et leurs colonnes. ») ; 19 h 57 : « mets le À toi de jouer dans un cadre légèrement gris » :
+   la situation s’arrête avant son « À toi de jouer ! » (les 477 finissent ainsi) et l’appel passe dessous, dans son cadre gris clair,
+   en salle comme sur la page d’un défi. */
+const DEFI_A_TOI=['À toi de jouer\u00a0!','Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.'];
+function defiSituationSeule(s){return String(s||'').replace(/\s*À toi de jouer[\s\u00a0]*!\s*$/,'').trim();}
+function defiAToiHTML(){return `<div class="dq-atoi"><b>${DEFI_A_TOI[0]}</b> ${DEFI_A_TOI[1]}</div>`;}
 function defiConsigneHTML(c,o){
   const nom=typeof DEFI_BASES!=='undefined'&&c&&c.base&&DEFI_BASES[c.base]?DEFI_BASES[c.base].nom:'';
   /* En salle, la base en pastille (Elisa, 8 novembre, 18 h 28 : « la base, on ne la met pas dans le premier bloc mais en pill de La
@@ -13719,7 +13721,7 @@ function defiConsigneHTML(c,o){
   const n=c.affiche.length,garde=Array.isArray(c.garde)?c.garde:[],precis=Array.isArray(c.precis)?c.precis:[];
   const tri=c.ordered&&c.tri?String(c.tri).split(/,\s*puis\s+/).map(x=>x.trim()).filter(Boolean):null;
   /* « La situation » (Elisa, 8 novembre, 13 h 15) : le paragraphe raconte le lieu et le besoin ; la question, c’est le titre. */
-  return `<div class="consigne dq${base?' has-base':''}">${base}<span class="tag">La situation</span>${c.situation?`<p class="defi-ctx">${escCode(defiSituation(c.situation))}</p>`:''}`
+  return `<div class="consigne dq${base?' has-base':''}">${base}<span class="tag">La situation</span>${c.situation?`<p class="defi-ctx">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}`:''}`
     +sec('is-cols','Affiche',`${n}\u00a0colonne${n>1?'s':''}`,liste(c.affiche,true))
     +(garde.length?sec('is-garde','Garde','',liste(garde,false)):'')
     +(tri?sec('is-tri','Trie','l’ordre compte',tri.length>1?liste(tri,true):`<p class="dq-t">${escCode(tri[0])}</p>`)
@@ -36166,8 +36168,11 @@ function jeuRender(){
        défi ; dessous, le niveau (la pastille blanche des feuilles) ; un filet, puis « En direct » et le commentateur. Le chrono est
        posé sur le bord du cadre (19 h 18). Seul (Joue seul), le même bandeau, avec sa tête seulement. La base passe en pastille sur le
        bord de « La situation » (18 h 28, 18 h 36). */
-    const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b><span class="jeu-hud-r">${val}</span>`+
-      `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span></div>`;
+    /* 19 h 57 (réf. 2 : « réfléchis pour que ce soit meilleur niveau UI UX ») : en haut à gauche « Manche 1/3 », seule sur sa ligne
+       (le chrono pend en haut à droite) ; dessous, le niveau à gauche et ce que vaut le défi à droite. Plus de vide au-dessus de la
+       manche, plus de pastilles empilées sous le chrono. */
+    const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b>`+
+      `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${val}</span></div>`;
     /* Le chrono, posé à cheval sur le bord du cadre, en haut à droite, comme la base sur celui de « La situation » (Elisa, 8 novembre,
        19 h 18 : « le chrono, le mettre comme la pill du cadre, entre l’intérieur et l’extérieur ») : hors du bandeau, qui coupe ce qui
        dépasse, dans la section. */
@@ -46701,7 +46706,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-patte-indice-v2694';
+  const SW_CACHE='requete-2026-11-08-cadre-gris-v2695';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
