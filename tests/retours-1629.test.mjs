@@ -25,8 +25,9 @@ test('pendant la manche, une seule action : « Exécuter » ; le schéma passe d
   assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${J.solo?`<section class=\"jeu-direct is-seul\" aria-label=\"Manche ${n+1} sur ${J.nb}\">${chrono}<div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud,chrono)}\n      ${defiConsigneHTML(c,{base:true})}"), 'qui en est où : « En direct » sous le titre, avant la question, dans toute salle, même seul (8 novembre, 17 h 08)');
   const play = r.slice(r.indexOf("}else if(v.startsWith('play')){"), r.indexOf("}else if(v.startsWith('res')){"));
   assert.ok(!play.includes('jeu-reacts') && !play.includes('jeuHostBarHTML') && !play.includes('jeuPlayersHTML'), 'pendant qu’on cherche : ni rangée de réactions, ni « Clore », ni liste de cadres');
-  /* 8 novembre, 18 h 36 (« comment faire les réactions ? ») : à plusieurs, un seul bouton « Réagir » dans le cadre, qui ouvre les quatre */
-  assert.ok(play.includes("${J.solo?'':jeuReagirHTML()}"), '« Réagir », un seul bouton, dans la ligne du niveau');
+  /* 8 novembre, 18 h 36 (« comment faire les réactions ? ») puis 19 h 37 : un seul bouton « Réagir », posé en bas à droite de l’écran,
+     qui ouvre les quatre (reactions-direct.test.mjs) ; il n’est pas dans la manche */
+  assert.ok(!play.includes('jeuReagirHTML') && r.includes('jeuReagirMaj();'), '« Réagir », un seul bouton, en bas à droite');
   for (const k of ['html.lq .ed-schema{flex:none;display:inline-flex;', 'html.lq #jeu-root .jeu-direct{position:relative;margin:14px 0 20px}', 'html.lq #jeu-root .jeu-direct-bande{position:relative;z-index:1;isolation:isolate;overflow:hidden;border-radius:22px;background:var(--deep);',
     'html.lq #jeu-root .jeu-direct.is-plie .jeu-direct-l{display:none}', 'html.lq #jeu-root .jd.is-trouve>.jeu-av{animation:jdRebond'])
     assert.ok(s50.includes(k), k);
