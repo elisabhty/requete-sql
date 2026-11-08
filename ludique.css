@@ -9374,3 +9374,39 @@ html.lq .dx-feuille .dx-conf>.jeu-note{margin:2px 0 4px!important;padding:12px 1
 html.lq[data-reading="large"] .dx-feuille .dx-conf>summary{font-size:15.5px}
 @media (prefers-reduced-motion:reduce){html.lq .dx-feuille .dx-conf>summary::after{transition:none}}
 html.lq[data-motion="reduce"] .dx-feuille .dx-conf>summary::after{transition:none}
+
+/* ---------- Défis v2 · 20.16 Le coefficient mis en avant (8 novembre, 8 h 00 : « une animation ou une micro interaction qui le met en avant ») ----------
+   À l’arrivée sur Jouer, les trois pastilles ×1, ×2, ×4 sautent l’une après l’autre ; celle du niveau choisi brille de loin en loin
+   (un reflet doré la traverse) ; choisir un niveau la fait sauter et en fait sortir des étincelles (dxCoefFete). */
+html.lq #scr-defis .dx-rapide .room-level .room-lv-x{position:relative;isolation:isolate;overflow:hidden}
+html.lq #scr-defis .dx-rapide.is-entree .room-level .room-lv-x{animation:dxXEntree .55s cubic-bezier(.3,.7,.3,1.5) .25s both}
+html.lq #scr-defis .dx-rapide.is-entree .room-level:nth-child(2) .room-lv-x{animation-delay:.37s}
+html.lq #scr-defis .dx-rapide.is-entree .room-level:nth-child(3) .room-lv-x{animation-delay:.49s}
+@keyframes dxXEntree{0%{opacity:0;transform:scale(.4) rotate(-10deg)}60%{opacity:1;transform:scale(1.2) rotate(3deg)}100%{opacity:1;transform:none}}
+html.lq #scr-defis .dx-rapide .room-level .room-lv-x.is-pop{animation:dxXPop .6s cubic-bezier(.3,.7,.3,1.4) both}
+@keyframes dxXPop{0%{transform:none}30%{transform:scale(1.34) rotate(-6deg)}62%{transform:scale(.93) rotate(2deg)}100%{transform:none}}
+html.lq #scr-defis .dx-rapide .room-level.on .room-lv-x::after{content:"";position:absolute;top:-4px;bottom:-4px;left:0;z-index:-1;width:65%;
+  background:linear-gradient(100deg,rgba(255,200,61,0),rgba(255,200,61,.8) 50%,rgba(255,200,61,0));transform:translateX(-170%) skewX(-18deg);animation:dxXReflet 4.6s ease-in-out 1.2s infinite}
+@keyframes dxXReflet{0%,60%{transform:translateX(-170%) skewX(-18deg)}80%,100%{transform:translateX(260%) skewX(-18deg)}}
+/* Les étincelles : posées au centre de la pastille (dxCoefFete), une onde dorée s’élargit autour d’elle et des étoiles partent en
+   gerbe, puis s’éteignent. */
+html.lq #scr-defis .dx-x-fete{position:absolute;z-index:3;width:0;height:0;pointer-events:none}
+html.lq #scr-defis .dx-x-fete::before{content:"";position:absolute;left:-34px;top:-17px;width:68px;height:34px;border:2.5px solid var(--sun);border-radius:999px;
+  box-sizing:border-box;opacity:0;animation:dxXOnde .62s cubic-bezier(.2,.7,.3,1) both}
+html.lq #scr-defis .dx-x-fete.is-fort::before{border-width:3px;animation-duration:.72s}
+@keyframes dxXOnde{0%{opacity:.95;transform:scale(.75)}100%{opacity:0;transform:scale(1.75)}}
+html.lq #scr-defis .dx-x-fete i{position:absolute;left:-7px;top:-7px;width:14px;height:14px;background:var(--sun);opacity:0;
+  clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:dxXEtincelle .8s cubic-bezier(.2,.7,.3,1) both}
+html.lq #scr-defis .dx-x-fete i:nth-child(1){--dx:-52px;--dy:-30px}
+html.lq #scr-defis .dx-x-fete i:nth-child(2){--dx:50px;--dy:-34px;animation-delay:.04s}
+html.lq #scr-defis .dx-x-fete i:nth-child(3){--dx:-46px;--dy:20px;animation-delay:.08s;left:-5px;top:-5px;width:10px;height:10px;background:var(--mint)}
+html.lq #scr-defis .dx-x-fete i:nth-child(4){--dx:48px;--dy:22px;animation-delay:.11s;left:-5px;top:-5px;width:10px;height:10px;background:var(--accent)}
+html.lq #scr-defis .dx-x-fete i:nth-child(5){--dx:-12px;--dy:-52px;animation-delay:.06s;left:-8px;top:-8px;width:16px;height:16px}
+html.lq #scr-defis .dx-x-fete i:nth-child(6){--dx:16px;--dy:42px;animation-delay:.13s;left:-6px;top:-6px;width:12px;height:12px;background:var(--mint)}
+@keyframes dxXEtincelle{0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0)}20%{opacity:1}75%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1) rotate(100deg)}}
+@media (prefers-reduced-motion:reduce){
+  html.lq #scr-defis .dx-rapide .room-level .room-lv-x,html.lq #scr-defis .dx-rapide .room-level .room-lv-x::after{animation:none!important}
+  html.lq #scr-defis .dx-x-fete{display:none}
+}
+html.lq[data-motion="reduce"] #scr-defis .dx-rapide .room-level .room-lv-x,html.lq[data-motion="reduce"] #scr-defis .dx-rapide .room-level .room-lv-x::after{animation:none!important}
+html.lq[data-motion="reduce"] #scr-defis .dx-x-fete{display:none}
