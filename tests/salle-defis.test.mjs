@@ -282,10 +282,10 @@ test('tirage au sort : même défi pour tous, compte à rebours, puis la manche 
   const cid = host.J('rounds[0].cid');
   for (const c of all) { assert.equal(c.view(), 'draw0', c.name); assert.equal(c.J('rounds[0].cid'), cid, 'même défi'); }
   assert.match(host.html, /Tirage au sort/);
-  assert.doesNotMatch(host.html, /La question/, 'la question reste cachée pendant le tirage');
+  assert.doesNotMatch(host.html, /La situation/, 'la consigne reste cachée pendant le tirage');
   sec(w, 3.6);
   for (const c of all) { assert.equal(c.view(), 'play0', c.name); }
-  assert.match(host.html, /La question/);
+  assert.match(host.html, /<span class="tag">La situation<\/span>/, 'la consigne : « La situation » (8 novembre, 13 h 15)');
   assert.ok(host.ev('CHALLENGES.find(c=>c.id===JEU.rounds[0].cid).niv') === 'f', 'au niveau choisi');
 });
 
