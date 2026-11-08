@@ -80,7 +80,7 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(code.includes('<label class="jeu-lab" for="jeu-code">Code à 6 caractères</label>') && code.includes('oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)"') && !code.includes('room-hint') && !code.includes('Les 6 caractères'));
   assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" disabled onclick="jeuEnterRoom()"><span>Rejoindre la partie</span>') && code.includes('dx-conf'));
   assert.ok(!code.includes('jeu-me') && !code.includes('data-set="nb"'), 'un code : pas de pseudo, pas de manches (l’hôte choisit)');
-  assert.ok(seul.includes('<p class="room-kicker">Mode solo</p>') && seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<p class="room-sub" id="dx-f-p">Relève des défis SQL à ton rythme.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d">'));
+  assert.ok(seul.includes('<p class="room-kicker">Mode solo</p>') && seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<p class="room-sub" id="dx-f-p">Relève des défis à ton rythme.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d">'));
   assert.ok(seul.includes('<span class="dx-f-pts">Points ×4</span>') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('Jusqu’à 30\u00a0min de jeu') && !seul.includes('jeu-note') && !seul.includes('data-vis'));
   assert.ok(!code.includes('dx-f-niv-l') && !code.includes('dx-duree'), 'le code : ni niveau ni durée (l’hôte choisit)');
   ctx.jeuNb = 1; ctx.jeuNiv = 'f';

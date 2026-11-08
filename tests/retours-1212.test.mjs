@@ -191,7 +191,7 @@ test('réf. 5 : l’onboarding prend le même « À quel moment ? »', () => {
 
 test('Joue seul : le pied ne couvre plus les manches, la phrase d’Elisa, et le dégradé du bas mesuré après l’entrée', () => {
   /* 8 novembre, 8 h 21 : la phrase de sa maquette de « Joue seul » remplace « Un défi tiré au sort, pour t’entraîner. » (retours-1016-feuilles). */
-  assert.ok(app.includes(":['Mode solo','Joue seul','Relève des défis SQL à ton rythme.'];") && !app.includes('sans adversaire'));
+  assert.ok(app.includes(":['Mode solo','Joue seul','Relève des défis à ton rythme.'];") && !app.includes('sans adversaire') && !app.includes('défis SQL à ton rythme'), '8 h 48 : « Enlève sql »');
   assert.ok(lq.includes('html.lq .dx-feuille .dx-f-pied{position:sticky;bottom:-18px;z-index:2;margin:6px -18px -18px;padding:12px 18px 18px;background:#fff}'));
   assert.ok(app.includes("setTimeout(marque,typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:720);}"));
 });
@@ -216,5 +216,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=219">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=39">') && sw.includes("'./onboarding-vitrine.css?v=39',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-08-solo-dix-minutes-v2653' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-08-solo-sans-sql-v2654' && app.includes(`const SW_CACHE='${cache}';`));
 });
