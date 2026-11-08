@@ -301,11 +301,11 @@ test('une réaction d’un autre jaillit de son avatar, dans la liste ou dans la
   sec.plie = true; s.ev("jeuReactPop('b','🔥')"); assert.equal(sec.q, '#jeu-direct-av .jeu-av[data-pid="b"]', 'repliée : depuis la barre');
   s.ctx.document.getElementById = () => null; assert.equal(s.ev("jeuReactPop('b','🔥')"), false, 'sans « En direct » : rien');
   const react = cut("    case 'react':", "    case 'rate':{");
-  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name);}'), 'reçue des autres : de son avatar, et le long de l’écran avec son pseudo (18 h 36)');
+  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}'), 'reçue des autres : de son avatar, et le long de l’écran avec son pseudo (18 h 36) ; à la chaîne, dite une fois (20 h 07)');
   /* 8 novembre, 18 h 36 : la sienne monte avec celles des autres (« Toi ») ; elle ne jaillit plus de son avatar, juste sous les
      réactions qu’on vient de toucher dans le cadre */
   const mienne = cut('function jeuReact(e,btn){', '\n}\n');
-  assert.ok(mienne.includes('jeuSend({t:\'react\',e});jeuToast(`Toi ${e}`);jeuReactBulle(J.me,e);') && !mienne.includes('jeuReactPop('), 'la sienne, tout de suite');
+  assert.ok(mienne.includes('jeuSend({t:\'react\',e});if(!suite)jeuToast(`Toi ${e}`);jeuReactBulle(J.me,e,null,suite);') && !mienne.includes('jeuReactPop('), 'la sienne, tout de suite');
   for (const k of ['html.lq #jeu-root .jd-react{position:absolute;', '@keyframes jdReact{', 'html.lq #jeu-root .jeu-direct{position:relative;'])
     assert.ok(css.includes(k), k);
 });

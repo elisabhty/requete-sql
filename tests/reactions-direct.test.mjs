@@ -27,9 +27,12 @@ test('la base : une pastille posée à cheval sur le bord du cadre, en haut à d
   assert.ok(f.includes('return `<div class="consigne dq${base?\' has-base\':\'\'}">${base}<span class="tag">La situation</span>'));
   assert.ok(!app.includes('dq-tete'), 'plus de rangée « La situation » + base');
   for (const r of ['html.lq .consigne.dq.has-base{position:relative;margin-top:30px}',
-    'html.lq .consigne.dq .dq-chip.is-base{position:absolute;top:-1px;right:16px;z-index:1;max-width:calc(100% - 32px);',
-    'background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-lip);text-overflow:ellipsis;translate:0 -50%;rotate:-2.5deg}'])
+    'html.lq .consigne.dq .dq-chip.is-base{position:absolute;top:-14px;right:16px;z-index:1;box-sizing:border-box;height:26px;max-width:calc(100% - 32px);overflow:hidden;',
+    'padding:0 12px;background:var(--accent);color:#fff;font:800 12px/26px var(--display);box-shadow:0 3px 0 var(--accent-lip);text-overflow:ellipsis}'])
     assert.ok(css.includes(r), r);
+  /* 20 h 07 : « la pill violette est de mauvaise qualité (base) » : ni penchée ni décalée d’un demi-pixel, Safari la dessine nette */
+  const regle = css.slice(css.indexOf('html.lq .consigne.dq .dq-chip.is-base{'), css.indexOf('}', css.indexOf('html.lq .consigne.dq .dq-chip.is-base{')));
+  assert.ok(!/rotate|translate|transform/.test(regle), 'droite, sans transformation');
   assert.ok(!/\.dq-tete/.test(css), 'les règles de l’ancienne rangée sont parties');
   /* Rendu : en salle la pastille, sur la page d’un défi rien (la base y est dans la barre du haut) */
   const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'), escCode: s => String(s), DEFI_BASES: { zoo: { nom: 'Zoo' } } });
@@ -97,7 +100,7 @@ function monde({ reduit = false, live = ['a', 'b'], solo = false, view = 'play0'
     prefersReduceMotion: () => reduit, jeuLive: () => live, jeuOrder: () => ['a', 'b', 'c'], jeuNom: v => String(v || '').slice(0, 16),
     jeuSend: m => sent.push(m), jeuToast: t => dits.push(t), buzz: () => {},
   });
-  vm.runInContext(cut('const JEU_REAGIR_MS=', '\n/* « Il écrit »').replace(/^(const|let) /gm, 'var ') + '\n' + cut('function jeuReact(e,btn){', '\n}\n') + '\n}', ctx);
+  vm.runInContext(cut('const JEU_REAGIR_MS=', '\n/* « Il écrit »').replace(/^(const|let) /gm, 'var ') + '\n' + cut('const JEU_REACT_PAS=', '\n/* Arrivées, départs, nouvel hôte').replace(/^(const|let) /gm, 'var '), ctx);
   return { ctx, J, document, focus, later, cleared, els, sent, dits, body, ecoute, ev: c => vm.runInContext(c, ctx), avance: ms => { T += ms; }, fab: () => els['jeu-reagir'] || null };
 }
 
@@ -162,11 +165,19 @@ test('« Réagir » : touché, il s’ouvre ; une réaction part ; seul, il se r
   m.ev("jeuReact('🔥')");
   assert.deepEqual(m.sent.map(x => ({ ...x })), [{ t: 'react', e: '🔥' }]); assert.deepEqual(m.dits, ['Toi 🔥']);
   assert.equal(m.later.filter(x => x[1] === 4500).length, 2, 'le compte à rebours repart');
-  /* Trop tôt (moins de 1,5 s) : rien ne part, le bouton dit non */
-  const anims = []; m.ctx.btn = { animate: (k, o) => anims.push([k, o]) };
-  m.avance(800); m.ev("jeuReact('👏',btn)"); assert.equal(m.sent.length, 1); assert.equal(anims.length, 1, 'un petit non de la tête');
-  m.avance(800); m.ev("jeuReact('👏',btn)"); assert.equal(m.sent.length, 2, 'après 1,5 s, elle part');
-  m.ev("jeuReact('💩')"); assert.equal(m.sent.length, 2, 'seulement les quatre réactions');
+  /* À la chaîne (20 h 07) : chaque touche part, même rapprochée ; l’emoji touché saute ; le lecteur d’écran ne la dit qu’une fois */
+  const anims = []; m.ctx.btn = { animate: (k, o) => anims.push(k.map(x => x.transform).join(' ')) };
+  m.avance(160); m.ev("jeuReact('🔥',btn)"); m.avance(160); m.ev("jeuReact('🔥',btn)");
+  assert.equal(m.sent.length, 3, 'à la chaîne'); assert.deepEqual(m.dits, ['Toi 🔥'], 'dite une fois');
+  assert.deepEqual(anims, ['scale(1) scale(1.28) scale(1)', 'scale(1) scale(1.28) scale(1)'], 'l’emoji saute à chaque touche');
+  /* Trop rapproché (moins de 150 ms) : rien ne part, le bouton dit non */
+  m.avance(100); m.ev("jeuReact('🔥',btn)"); assert.equal(m.sent.length, 3); assert.equal(anims.at(-1), 'none translateX(-3px) translateX(3px) none', 'un petit non de la tête');
+  /* Dix au plus en 4 s, pour ne pas inonder la salle */
+  for (let i = 0; i < 9; i++) { m.avance(200); m.ev("jeuReact('👏',btn)"); }
+  assert.equal(m.sent.length, 10, 'dix en 4 s'); assert.equal(anims.at(-1), 'none translateX(-3px) translateX(3px) none', 'la onzième dit non');
+  m.avance(2500); m.ev("jeuReact('👏',btn)"); assert.equal(m.sent.length, 11, 'les plus anciennes sorties de la fenêtre : elle repart');
+  m.ev("jeuReact('💩')"); assert.equal(m.sent.length, 11, 'seulement les quatre réactions');
+  assert.ok(app.includes('const JEU_REACT_PAS=150,JEU_REACT_RAFALE=10,JEU_REACT_FENETRE=4000;'));
   /* Le temps passe : la rangée se referme seule */
   m.later.filter(x => x[1] === 4500).at(-1)[0]();
   assert.ok(!f.classList.contains('is-ouvert') && b.attrs['aria-expanded'] === 'false');
@@ -200,9 +211,8 @@ test('les réactions en direct : l’emoji et le pseudo montent juste au-dessus 
   /* Elle passe et s’efface : 2,9 s, puis partie ; six au plus à la fois */
   const fin = m.later.filter(x => x[1] === 2900); assert.equal(fin.length, 5);
   fin[0][0](); assert.equal(c.children.length, 4);
-  for (let i = 0; i < 4; i++) { m.avance(100); m.ev("jeuReactBulle('b','👏')"); }
-  assert.equal(c.children.length, 6);
-  m.ev("jeuReactBulle('b','👏')"); assert.equal(c.children.length, 6, 'la plus ancienne laisse sa place');
+  while (c.children.length < 14) { m.avance(100); m.ev("jeuReactBulle('b','👏')"); }
+  m.ev("jeuReactBulle('b','👏')"); assert.equal(c.children.length, 14, 'quatorze au plus : la plus ancienne laisse sa place');
   /* On écrit (« Réagir » effacé) : elles montent au-dessus du clavier */
   m.fab().classList.add('is-ecrit'); m.avance(3000); m.ev("jeuReactBulle('b','👏')"); assert.equal(c.style.top, '414px');
   /* Ni hors de la salle, ni écran caché */
@@ -217,7 +227,7 @@ test('les réactions en direct : l’emoji et le pseudo montent juste au-dessus 
 
 test('reçue d’un autre : de son avatar et le long de l’écran ; la carte « Trouvé » garde ses réactions ; on part, elles partent', () => {
   const react = cut("    case 'react':", "    case 'rate':{");
-  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name);}'));
+  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}'), 'à la chaîne, dite une fois');
   const f = cut('function jeuFoundHTML(r,pid){', '\nfunction jeuCountUp(el){');
   assert.ok(f.includes("${JEU_REACTS.map(e=>`<button type=\"button\" onclick=\"jeuReact('${e}',this)\" aria-label=\"Réagir ${e}\">${e}</button>`).join('')}"));
   const stop = cut('function jeuStop(){', '\n}\n');
@@ -247,4 +257,27 @@ test('le style : « Réagir », la pastille violette posée en bas à droite ; e
   assert.ok(/html\.lq \.coach-peek\{[^}]*z-index:90;/.test(css));
   /* Le salut ne joue que deux fois, puis le sourire se tait (pas d’animation sans fin) */
   assert.ok(!/jeuReagir\w*[^;}]*infinite/.test(css));
+});
+
+test('à la chaîne (20 h 07) : les suivantes d’un joueur montent en grappe derrière la première, sans redire le pseudo', () => {
+  const m = monde();
+  m.ev('jeuReagirMaj()');
+  /* La suite : moins de 1,2 s après la précédente du même joueur */
+  assert.equal(m.ev("jeuReactSuite('b')"), false); m.avance(500); assert.equal(m.ev("jeuReactSuite('b')"), true);
+  m.avance(1300); assert.equal(m.ev("jeuReactSuite('b')"), false, 'après 1,2 s : une nouvelle chaîne'); assert.equal(m.ev("jeuReactSuite('c')"), false, 'chacun la sienne');
+  const n = monde(); n.ev('jeuReagirMaj()');
+  n.ev("jeuReactBulle('b','🔥','@lea_data',false)");
+  const c = n.els['jeu-rl'], tete = c.children[0];
+  for (let i = 0; i < 3; i++) { n.avance(250); n.ev("jeuReactBulle('b','🔥','@lea_data',true)"); }
+  const suites = c.children.slice(1);
+  assert.deepEqual(suites.map(b => b.className), ['jeu-rl-b is-suite', 'jeu-rl-b is-suite', 'jeu-rl-b is-suite']);
+  assert.ok(suites.every(b => b.children.length === 1 && b.children[0].textContent === '🔥'), 'l’emoji seul, sans le pseudo (déjà dit)');
+  assert.ok(suites.every(b => Math.abs(parseInt(b.style.p['--x'], 10)) <= 12 && b.style.p['--y'] === '0px'), 'de la place de la première, un rien de côté');
+  /* Un autre joueur réagit pendant la grappe : il se met à côté d’elle */
+  n.avance(200); n.ev("jeuReactBulle('c','👏','@max',false)");
+  assert.equal(c.children.at(-1).style.p['--x'], '-80px');
+  /* La première partie (2,9 s), la suivante redit le pseudo */
+  tete.remove(); n.avance(300); n.ev("jeuReactBulle('b','🔥','@lea_data',true)");
+  assert.equal(c.children.at(-1).className, 'jeu-rl-b'); assert.equal(c.children.at(-1).children[1].textContent, '@lea_data');
+  assert.ok(css.includes('html.lq .jeu-rl-b.is-suite .jeu-rl-e{width:42px;height:42px;font-size:23px}'));
 });
