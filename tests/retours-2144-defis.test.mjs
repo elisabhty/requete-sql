@@ -71,7 +71,8 @@ test('Jouer : ce que rapporte un niveau, plus visible : « ×2 pts » (plus « P
   const haut = c.ev('defisRapideHTML()');
   /* 8 novembre, 0 h 23 : « enlever le plus c’est dur plus ça rapporte » ; ×1, ×2, ×4 le disent sous chaque niveau. */
   assert.ok(haut.includes('<div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p></div>') && !app.includes('<span class="dx-niv-plus">'));
-  assert.deepEqual([...haut.matchAll(/<span class="room-lv-x" aria-hidden="true">(×\d)<small>pts<\/small><\/span>/g)].map(m => m[1]), ['×1', '×2', '×4']);
+  /* 8 novembre, 11 h 08 (« ce niveau premium ») : la pièce de « Ta salle de défi » puis ×N (retours-premium-defis) */
+  assert.deepEqual([...haut.matchAll(/<span class="room-lv-x" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true">[\s\S]*?<\/svg>(×\d)<\/span>/g)].map(m => m[1]), ['×1', '×2', '×4']);
   assert.ok(haut.includes('aria-label="Difficile, points multipliés par 4"'), 'toujours lu en toutes lettres');
   for (const k of ['html.lq #scr-defis .dx-niv-tete{display:flex;align-items:baseline;justify-content:space-between;', 'html.lq #scr-defis .dx-niv-plus{color:var(--accent-ink);',
     'html.lq .room-level .room-lv-x{gap:2px;min-width:44px;padding:4px 10px;font-size:15px}', 'html.lq .room-level .room-lv-x small{'])
@@ -127,11 +128,15 @@ test('Classement : « Ta place dans le classement », et « Jouer un défi » d�
   assert.ok(c.els['dx-place'].innerHTML.startsWith('<p class="perf-top-msg">Termine un défi cette semaine pour décrocher ta place.</p>'));
   c = bac({ rpc: f => f === 'jeu_classement_v2' ? { lignes: [{ id: 'm', pseudo: '@elisa_sql', pts: 40, parties: 2, rang: 1, moi: true }], total: 1, moi: { rang: 1, pts: 40, page: 0 } } : {} });
   c.ev("DEFIS.periode='tout';defisClassementPeindre()"); await attendre();
-  assert.equal(c.els['dx-place'].innerHTML, `<p class="dx-ecart"><span class="dx-ecart-ico" aria-hidden="true">↑</span><span>Tu es en tête du classement.</span></p>${go}`, 'classé : sa place (sa ligne est déjà dans la page), puis le bouton, pour grimper');
+  /* 8 novembre, 11 h 08 (« ce niveau premium ») : ta place dans le bandeau violet de la feuille, puis le bouton (retours-premium-defis) */
+  const tete = c.els['dx-place'].innerHTML;
+  assert.ok(tete.startsWith('<div class="dx-bande dx-place-bande" role="group" aria-labelledby="dx-place-t">') && tete.includes('<h2 id="dx-place-t">🥇 1<sup>er</sup> mondial</h2><p class="room-sub">Tu es en tête du classement.</p>')
+    && tete.includes('<span>40\u00a0pts</span>') && tete.endsWith(go) && !tete.includes('dx-list'), 'classé : sa place (sa ligne est déjà dans la page), puis le bouton, pour grimper');
+  assert.equal(c.els['dx-place-h'].hidden, true, 'le bandeau dit « Ta place »');
   /* Classé derrière quelqu’un : l’écart avec le joueur juste devant */
   c = bac({ rpc: f => f === 'jeu_classement_v2' ? { lignes: [autres[0], { id: 'm', pseudo: '@elisa_sql', pts: 40, parties: 2, rang: 2, moi: true }], total: 2, moi: { rang: 2, pts: 40, page: 0 } } : {} });
   c.ev("DEFIS.periode='tout';defisClassementPeindre()"); await attendre();
-  assert.ok(c.els['dx-place'].innerHTML.includes('<span><b>Tu es 2<sup>e</sup> avec 40&nbsp;pts.</b> 50&nbsp;pts te séparent de @lea, 1<sup>er</sup>.</span>'));
+  assert.ok(c.els['dx-place'].innerHTML.includes('<h2 id="dx-place-t">🥈 2<sup>e</sup> mondial</h2><p class="room-sub">50&nbsp;pts te séparent de @lea, 1<sup>er</sup>.</p>'));
   /* Pas encore au classement, ou sans pseudo : leur bouton à eux, pas deux boutons */
   c = bac({ clsOn: false }); c.ev('clsPlacePeindre()');
   assert.ok(!c.els['dx-place'].innerHTML.includes('Jouer un défi'));
@@ -145,7 +150,7 @@ test('Joueurs : « Tes adversaires », « Pas encore d’adversaire ! », « Ajo
   const a = c.els['defis-amis'].innerHTML;
   /* 22 h 13 : le surtitre « Tes adversaires » (plus « Ceux que tu as affrontés » : on en ajoute aussi par pseudo) ; vide, le titre est
      « Pas encore d’adversaire ! » ; « Inviter un joueur », plus court que « Partager une invitation ». */
-  assert.ok(a.includes('<section class="dx-amis is-v2 is-vide" aria-labelledby="dx-amis-k">') && a.includes('<p class="perf-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">Pas encore d’adversaire&nbsp;!</h2>'));
+  assert.ok(a.includes('<section class="dx-amis is-v2 is-vide" aria-labelledby="dx-amis-k">') && a.includes('<p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">Pas encore d’adversaire&nbsp;!</h2>'));
   assert.ok(!app.includes('Ceux que tu as affrontés</p>'));
   assert.ok(a.includes('<button type="button" class="dx-sec is-main" aria-expanded="false" aria-controls="dx-ajout" onclick="amisFormBasculer()">Ajouter par pseudo</button><button type="button" class="dx-sec" onclick="jeuDefier()">Inviter un joueur</button>'));
   /* Vide : la mascotte, la phrase, puis les deux boutons ; remplie (refonte du 7 novembre) : les boutons au-dessus de la liste. */
@@ -183,7 +188,7 @@ test('depuis le classement : une ligne se touche (ou son nom au clavier) et ouvr
   const n = c.appels.length;
   const h = c.ev('dxFicheHTML()');
   /* 22 h 19 : « Profil du joueur », « 🥇 N° 1 mondial », « parties jouées », « Dernier duel : hier » */
-  assert.ok(h.includes('<p class="room-kicker">Profil du joueur</p>') && h.includes('<h2 id="dx-f-t">@lea</h2>') && h.includes('<p class="room-sub" id="dx-f-p">🥇 N°\u00a01 mondial</p>'));
+  assert.ok(h.includes('<p class="room-kicker">Profil du joueur</p>') && h.includes('<h2 id="dx-f-t">@lea</h2>') && h.includes('<p class="room-sub dx-f-pcs" id="dx-f-p"><span class="dx-pc is-blanc"><span>🥇 N°\u00a01 mondial</span></span>'));
   assert.ok(h.includes('<div><b>1240</b><small>points</small></div><div><b>37</b><small>parties jouées</small></div>'), 'depuis toujours : ses chiffres déjà là');
   assert.ok(h.includes('<div class="dx-duel-score" aria-hidden="true"><span><b>1</b><small>@lea</small></span><i>–</i><span class="is-tete"><b>3</b><small>Toi</small></span></div>'), 'ses victoires sous son pseudo, les tiennes sous « Toi »');
   assert.ok(h.includes('aria-label="Face à face\u00a0: @lea 1 victoire, toi 3 victoires, en 4 confrontations"') && h.includes('<div class="dx-fiche-duel is-up"'));
@@ -210,7 +215,7 @@ test('la fiche d’un adversaire : ses points demandés à la base (lui seul), v
   await attendre();
   assert.equal(c.els['dx-fiche-kpi'].innerHTML, '<div><b>980</b><small>points</small></div><div><b>22</b><small>parties jouées</small></div>');
   const h = c.ev('dxFicheHTML()');
-  assert.ok(h.includes('<p class="room-sub" id="dx-f-p">Ton adversaire</p>'), 'pas de place sans classement d’où l’on vient');
+  assert.ok(h.includes('<p class="room-sub dx-f-pcs" id="dx-f-p"><span class="dx-pc is-verre is-adv"><span>Ton adversaire</span></span></p>'), 'pas de place sans classement d’où l’on vient');
   assert.ok(h.includes('<span class="is-tete"><b>2</b><small>@tom</small></span><i>–</i><span><b>0</b><small>Toi</small></span>') && h.includes('<div class="dx-fiche-duel is-down"'));
   assert.ok(h.includes('<span>Prendre ta revanche ⚡</span>'), 'il mène (pas de partie gardée pour savoir la dernière) : la revanche');
   /* Sans connexion */
@@ -227,13 +232,14 @@ test('la fiche d’un joueur qui n’est pas encore dans ta liste : « Ajouter �
   c.ev("DEFIS.periode='semaine';DEFIS.portee='monde';defisClassementPeindre()"); await attendre();
   c.ev("dxFicheCls('z')");
   const h = c.ev('dxFicheHTML()');
-  assert.ok(h.includes('<p class="room-sub" id="dx-f-p">🥉 N°\u00a03 mondial cette semaine</p>'), 'sa place, dans le classement d’où l’on vient');
+  assert.ok(h.includes('<p class="room-sub dx-f-pcs" id="dx-f-p"><span class="dx-pc is-blanc"><span>🥉 N°\u00a03 mondial cette semaine</span></span></p>'), 'sa place, dans le classement d’où l’on vient');
   assert.ok(h.includes('<button type="button" class="dx-sec dx-fiche-ajout" onclick="dxFicheAjouter()">Ajouter à mes adversaires</button>'));
   assert.equal(c.appels.filter(x => x[0] === 'jeu_classement_v2' && x[1].p_portee === 'amis').length, 1, 'la semaine : ses points depuis toujours sont demandés');
   c.ev('dxFicheAjouter()');
   assert.deepEqual(J(c.ctx.state.salle.amisAjoutes.map(a => a.n)), ['@zoe']);
   assert.ok(c.appels.some(x => x[0] === 'say' && x[1] === '@zoe est dans ta liste.'));
-  assert.equal(c.els['dx-f-p'].textContent, 'Ton adversaire');
+  /* 8 novembre, 11 h 08 : « Ton adversaire » s’ajoute en pastille de verre sous son pseudo (la page, pas ce bac à sable) */
+  assert.ok(fn('dxFicheAjouter').includes("if(p&&typeof p.insertAdjacentHTML==='function'&&!p.querySelector('.is-adv'))p.insertAdjacentHTML('beforeend',dxPc('is-verre is-adv','Ton adversaire'));"));
   /* Le formulaire passe par la même mise en liste */
   assert.ok(fn('amisAjouter').includes('const garder=n=>{DEFIS.amisMsg=\'\';DEFIS.amisForm=false;amisGarder(n);defisAmisPeindre();};'));
   for (const k of ['html.lq .dx-feuille .dx-fiche-kpi{display:grid;', 'html.lq .dx-feuille .dx-fiche-duel{', 'html.lq .dx-feuille .dx-fiche-ajout{display:block;width:100%;',
@@ -347,7 +353,8 @@ test('refonte — Classement : la légende, une page sans navigation, l’écart
   assert.ok(sec.startsWith('<section class="dx-cls is-v2" aria-labelledby="dx-cls-h"><h2 class="lq-sr" id="dx-cls-h">Classement</h2>') && !sec.includes('perf-card') && !sec.includes('Tous les joueurs'), 'plus de carte ni de titre qui répète l’onglet (il reste pour le lecteur d’écran)');
   assert.equal(c.els['dx-cls-k'].textContent, '5 joueurs classés', 'la légende, dès la première réponse');
   assert.equal(nav.hidden, true, 'une seule page : ni flèches ni « 1 à 5 sur 5 »');
-  assert.equal(c.els['dx-place'].innerHTML.split('<button')[0], '<p class="dx-ecart"><span class="dx-ecart-ico" aria-hidden="true">↑</span><span><b>Tu es 5<sup>e</sup> avec 310&nbsp;pts.</b> 110&nbsp;pts te séparent de @nora, 4<sup>e</sup>.</span></p>', 'ta ligne n’est pas répétée');
+  const place = c.els['dx-place'].innerHTML.split('<button')[0];
+  assert.ok(place.includes('<h2 id="dx-place-t">5<sup>e</sup> mondial</h2><p class="room-sub">110&nbsp;pts te séparent de @nora, 4<sup>e</sup>.</p>') && !place.includes('dx-list') && !place.includes('dx-place-go'), 'ta ligne n’est pas répétée ; une seule page, pas de « Page 1 › »');
   /* Sans connexion : le message et « Réessayer » ; filtre pas encore servi : plus de promesse de mise à jour */
   const k = bac({ rpcKo: true }); k.ev("DEFIS.periode='tout';defisClassementPeindre()"); await attendre();
   assert.ok(k.els['dx-pager'].innerHTML.includes('il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle=\'\';clsPageCharger(0)">Réessayer</button></div>'));
@@ -361,7 +368,7 @@ test('refonte — Joueurs : une ligne par joueur ; qui attend dans une salle le 
   c.ev("DEFIS.salles=[{code:'AAA111',niv:'m',manches:1,nb:2,max:5,hote:'@zoe',joueurs:[]}];DEFIS.onglet='amis';defisPeindre()");
   const l = c.els['dx-amis-liste'].innerHTML;
   assert.ok(l.indexOf('@zoe') < l.indexOf('@tom'), 'en salle : en tête, même ajouté avant');
-  assert.ok(l.includes('<li class="is-tap is-live" style="--i:0"') && l.includes('<span class="dx-dot" aria-hidden="true"></span>En salle · Moyen<span class="dx-large"> · 2/5</span>') && l.includes("onclick=\"sallesRejoindre('AAA111')\""));
+  assert.ok(l.includes('<li class="is-tap is-live" style="--i:0"') && l.includes('<span class="dx-dot" aria-hidden="true"></span>En salle<span class="dx-pc is-niv is-m is-blanc"><i class="jeu-bars is-m" aria-hidden="true"><b></b><b></b><b></b></i><span>Moyen</span></span><span class="dx-large"><span class="dx-pc is-gens is-doux"><svg') && l.includes('<span>2/5</span></span></span>') && l.includes("onclick=\"sallesRejoindre('AAA111')\""));
   assert.ok(l.includes('<span class="dx-score is-down" aria-hidden="true">1–3</span>') && l.includes('<em class="is-down">à rattraper</em> · hier') && l.includes("onclick=\"jeuDefier('@tom')\""));
   assert.ok(l.includes('aria-label="@zoe, 1 fois devant, 1 fois derrière, dans une salle ouverte (Moyen) : voir sa fiche"'), 'le lecteur d’écran dit tout');
   assert.ok(!c.els['defis-amis'].innerHTML.includes('perf-card') && c.els['defis-amis'].innerHTML.includes('<div class="dx-amis-actions"><div class="dx-duo">'));
@@ -372,7 +379,8 @@ test('refonte — la fiche : « En salle maintenant » et « Rejoindre » ; ouve
   c.ev("DEFIS.salles=[{code:'AAA111',niv:'d',manches:1,nb:3,max:5,hote:'@kev',joueurs:[{pseudo:'@kev'},{pseudo:'@lea'}]}];DEFIS.periode='tout';defisClassementPeindre()"); await attendre();
   c.ev("dxFicheCls('a1')");
   const h = c.ev('dxFicheHTML()');
-  assert.ok(h.includes('<div class="dx-fiche-live"><span class="dx-dot" aria-hidden="true"></span><p><b>En salle maintenant</b><small><i class="dx-niv is-d">Difficile</i> · 3/5</small></p><button type="button" class="dx-join" onclick="dxFicheRejoindre(\'AAA111\')"'));
+  assert.ok(h.includes('<div class="dx-fiche-live"><span class="dx-dot" aria-hidden="true"></span><p><b>En salle maintenant</b><small class="dx-pcs"><span class="dx-pc is-niv is-d is-blanc"><i class="jeu-bars is-d" aria-hidden="true"><b></b><b></b><b></b></i><span>Difficile</span></span><span class="dx-pc is-gens is-doux"><svg')
+    && h.includes('<span>3/5</span></span></small></p><button type="button" class="dx-join" onclick="dxFicheRejoindre(\'AAA111\')"'));
   assert.ok(h.includes('aria-label="Rejoindre la salle de @kev : Difficile, 3 joueurs sur 5"'));
   assert.ok(h.indexOf('dx-fiche-live') < h.indexOf('dx-fiche-kpi') && h.indexOf('<span>Défier @lea</span>') < h.indexOf('Signaler ce pseudo'), 'le bouton validé ne change pas');
   c.ev("dxFicheRejoindre('AAA111')");
@@ -393,7 +401,7 @@ test('refonte — la feuille de style : la DA du site sur la nouvelle structure,
   assert.ok(!v2.includes('Tu joues en tant que » passe en'), 'Elisa garde l’aplat violet de « Tu joues en tant que »');
   /* 8 novembre, 0 h 17 (« je veux garder ça ») : le bandeau de Jouer garde son dessin d’avant (chat à gauche, sans vague ni souligné). */
   assert.ok(!v2.includes('.dx-rapide>.room-head') && !v2.includes('.dx-rapide.is-v2>.room-head') && v2.includes('html.lq :is(#scr-defis,.dx-feuille) :not(.dx-rapide)>.room-head::after{content:"";'));
-  assert.ok(fn('defisPeindre').includes("tabs.hidden=DEFIS.onglet==='stats';") && fn('defisStatsPeindre').includes('<h2 class="dx-stats-h" id="dx-stats-h">Mes stats</h2>') && !fn('defisStatsPeindre').includes('dx-retour'));
+  assert.ok(fn('defisPeindre').includes("tabs.hidden=DEFIS.onglet==='stats';") && fn('defisStatsPeindre').includes(`<p class="room-kicker" id="dx-stats-k">${'$'}{nom?'Mes stats':'Tableau de bord'}</p><h2 class="dx-stats-h" id="dx-stats-h">${'$'}{nom?esc(nom):'Mes stats'}</h2>`) && !fn('defisStatsPeindre').includes('dx-retour'));
   assert.ok(app.includes("function dxParties(n){n=Math.max(0,Math.floor(+n||0));return `${n.toLocaleString('fr-FR')}\\u00a0partie${n>1?'s':''}`;}") && app.includes("d.getDate()+'\\u00a0'+['janv.',"), '« 4 parties », « 4 nov. » ne se coupent plus');
 });
 

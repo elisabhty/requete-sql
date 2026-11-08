@@ -140,7 +140,8 @@ test('un niveau sans défi est grisé et ne se choisit pas', () => {
   /* 6 novembre, 15 h 20 : un niveau qui a des défis montre son coefficient à la place (retours-1520-pratiquer) */
   /* 7 novembre, 21 h 44 : « ×2 pts » (retours-2144-defis). Refonte du 7 novembre : plus de « Bientôt » (aucun texte ne promet ce qui
      viendra) ; la carte reste grisée et désactivée (is-bientot, disabled). */
-  assert.ok(app.includes("${vide?'':`<span class=\"room-lv-x\" aria-hidden=\"true\">×${x}<small>pts</small></span>`}"));
+  /* 8 novembre, 11 h 08 (« ce niveau premium ») : la pièce de « Ta salle de défi » puis ×N */
+  assert.ok(app.includes("${vide?'':`<span class=\"room-lv-x\" aria-hidden=\"true\">${DX_PIECE_SVG}×${x}</span>`}"));
   const niv = app.slice(app.indexOf('function jeuNiveauxHTML('), app.indexOf('\nfunction defisNiv('));
   assert.ok(niv.length > 100 && !niv.includes('Bientôt') && niv.includes("${vide?' is-bientot':''}") && niv.includes("${vide?' disabled':"));
   assert.ok(app.includes("if(!jeuChallenges(jeuNiv).length){const k=['f','m','d'].find(x=>jeuChallenges(x).length);if(k)jeuNiv=k;}"));
