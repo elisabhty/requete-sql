@@ -116,7 +116,7 @@ test('celui qui ne joue pas ne compte pas : moins de deux joueurs ont essayé, l
   const r = n => JSON.parse(JSON.stringify(ctx.jeuRanking(n))).map(x => [x.pid, x.essai, x.rang, x.pts]);
   assert.deepEqual(r(0), [['a', 25, 0, 225]], 'l’autre téléphone n’a rien tenté : pas de bonus de place');
   assert.deepEqual(r(1), [['a', 25, 50, 275]], 'l’autre a essayé (manqué) : la place compte');
-  assert.ok(app.includes("if((m.g|0)===J.g){const rt=J.rounds[+m.n];if(rt)(rt.tried=rt.tried||{})[m.pid]=1;}"), 'un essai manqué est noté pour sa manche');
+  assert.ok(app.includes("if((m.g|0)===J.g){const rt=J.rounds[+m.n];if(rt){(rt.tried=rt.tried||{})[m.pid]=1;(rt.ko=rt.ko||{})[m.pid]=(rt.ko[m.pid]||0)+1;}}"), 'un essai manqué est noté pour sa manche (et compté pour « En direct », 8 novembre)');
   assert.ok(fn('renderDefisRules').includes('Seul à jouer la manche, pas de bonus de place</small></li>'), 'le cadre des points le dit');
   const m = mig('_defis_anti_triche.sql');
   assert.ok(m.includes('(select count(distinct x.pid) from requete_private.essai x where x.code=rd.code and x.generation=rd.generation and x.numero=rd.numero)<2) as seul,'), 'le serveur compte de même');
