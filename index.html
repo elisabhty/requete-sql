@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=238">
+<link rel="stylesheet" href="ludique.css?v=239">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35074,7 +35074,8 @@ function jeuPost(m){
    jusqu’à ce qu’il passe ; les autres l’ignorent en double grâce à son identifiant. */
 function jeuFlush(){
   const J=JEU;if(!J||J.solo||J.flushing||!J.out.length||Date.now()-J.flushAt<2500)return;
-  J.out=J.out.filter(e=>Date.now()-e.at<600000);
+  /* Une manche déjà lancée (par un autre hôte, après un relais) : son lancement en attente ne repart plus. */
+  J.out=J.out.filter(e=>Date.now()-e.at<600000&&!(e.m.t==='round'&&J.rounds[+e.m.n]&&J.rounds[+e.m.n].u!==e.m.u));
   const e=J.out[0];if(!e)return;
   J.flushAt=Date.now();J.flushing=true;
   J.t.send(e.m).then(ok=>{
@@ -35091,6 +35092,9 @@ function jeuResume(){
   /* Jusqu’au retour de ce « hello » par le relais, ce qui arrive est du rejeu (messages manqués) : il
      informe, mais ne prouve pas que son auteur est là maintenant. */
   J.replaying=true;J.replayEnd=Date.now()+6000;
+  /* Un signe de vie d’abord (les envois partent dans l’ordre) : le serveur nous compte présent avant que « hello » regarde la manche
+     en cours ; sinon, seul dans la salle et parti plus de 55 s (une autre appli), on la retrouvait fermée (8 novembre, 17 h 31). */
+  jeuSend({t:'ping'});
   J.resumeU=jeuSend({t:'hello'});
 }
 function jeuIsHost(){const J=JEU;return !!J&&J.hostPid===J.me&&!(J.replaying&&Date.now()<J.replayEnd);}
@@ -35214,7 +35218,7 @@ function jeuOnMsg(m){
       let t0=Date.now();
       if(hist)t0=m.at||t0;
       else if(replay&&m.at)t0=Math.min(t0,m.at-J.skew);
-      J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,by:m.pid,u:m.u,conf:!!m.fromRelay,one:!!m.one};
+      J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,srvT1:+m.startAt||(m.at?m.at+JEU_DRAW_MS:0),by:m.pid,u:m.u,conf:!!m.fromRelay,one:!!m.one};
       if(J.ranked&&m.startAt){const rr=J.rounds[n];rr.t1=+m.startAt-J.skew;rr.t0=rr.t1-JEU_DRAW_MS;}
       if(J.synced)J.played=true;
       addP();jeuDrain();break;}
@@ -35259,7 +35263,7 @@ function jeuOnMsg(m){
       if((m.g|0)>J.g)return jeuLater(m);
       if(!gOk)return;
       const r=J.rounds[+m.n];if(!r)return jeuLater(m);
-      r.closed=true;
+      r.closed=true;r.closeAt=+m.at||0;
       break;}
     case 'end':
       if(m.pid!==J.hostPid)return;
@@ -35379,8 +35383,11 @@ function jeuPtsDetail(x){return `<span class="jeu-pd">${x.x>1?`<i class="is-niv 
 /* Seul dans la salle (personne n’a rejoint, ou tous sont partis) et personne d’autre n’a trouvé cette manche : tout se dessine
    comme seul (ni liste de joueurs, ni réactions, ni « Clore la manche », ni annonce « seul·e dans la salle »). */
 /* Fin de manche sans réponse validée (Elisa, 3 novembre, 7 h 25) : ce qui s’est passé, 0 point, « Non validée ». */
+/* Fermée par le serveur à son heure (de retour dans l’appli après la fin du chrono, Elisa, 8 novembre, 17 h 08) : c’est le chrono, pas
+   un abandon. */
+function jeuFermeeAuChrono(r,n){return !!(r&&r.closeAt&&r.srvT1&&r.closeAt>=r.srvT1+jeuDureeMs(jeuNivManche(n))-1500);}
 function jeuMissHTML(r,sl){
-  const [t,p]=r.closed?(sl?['Manche abandonnée','Tu as quitté la manche avant de valider ta réponse.']:['Manche close par l’hôte','L’hôte a fermé la manche avant que tu valides ta réponse.'])
+  const [t,p]=r.closed&&!jeuFermeeAuChrono(r,JEU?JEU.rounds.indexOf(r):-1)?(sl?['Manche abandonnée','Tu as quitté la manche avant de valider ta réponse.']:['Manche close par l’hôte','L’hôte a fermé la manche avant que tu valides ta réponse.'])
     :['Temps écoulé','Le chrono est arrivé à 0 avant que tu valides ta réponse.'];
   return `<div class="jeu-card jeu-miss"><div class="jeu-miss-h"><span class="jeu-miss-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><b>${t}</b></div><p class="jeu-miss-p">${p}</p><div class="jeu-miss-tiles"><div><b>0</b><small>Point obtenu</small></div><div><b>Non validée</b><small>Ta réponse</small></div></div></div>`;
 }
@@ -35457,7 +35464,7 @@ function jeuTick(){
   /* À 0 : le compte à rebours de la suite, puis la suite elle-même (jeuFinAuto) */
   if(n>=0){
     const t=jeuFinAuto(n),an=document.getElementById('jeu-auto-n');
-    if(an&&t)an.textContent=String(Math.max(1,Math.ceil((t-Date.now())/1000)));
+    if(an&&t){if(Date.now()<t)an.textContent=String(Math.max(1,Math.ceil((t-Date.now())/1000)));else{const al=document.getElementById('jeu-auto');if(al)al.innerHTML=jeuAutoAttente(n);}}
     const r=J.rounds[n];
     if(t&&r&&!r.auto&&Date.now()>=t&&jeuIsHost()){r.auto=true;if(n<J.nb-1)jeuNextRound();else if(!jeuSoloLike(n))jeuFinish();}
   }
@@ -35990,22 +35997,17 @@ function jeuRender(){
     const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';
     /* Pas trouvé : une carte qui dit ce qui s’est passé, 0 point, réponse non validée (Elisa, 3 novembre, 7 h 25, maquette, DA du site). */
     const miss=got?'':jeuMissHTML(r,sl);
-    /* En attendant l’hôte : la carte « Classement de la salle » (7 h 22), avec le nombre de participants et une roue qui tourne. */
-    const np=Object.keys(J.players||{}).length;
-    const waitTxt=last?(sl?'Ton bilan arrive…':'En attente des derniers résultats…'):'La manche suivante arrive…';
-    /* Finie au chrono : la suite part toute seule dans 5 s (8 novembre, 10 h 10), le compte à rebours au-dessus du bouton. */
+    /* La suite part toute seule, chez tous la même ligne : le compte à rebours, puis « La manche suivante arrive… » (17 h 31 : plus de
+       bouton « Manche suivante », plus d’attente de l’hôte). */
     const auto=jeuFinAuto(n);
-    const autoHTML=auto?`<p class="jeu-auto"><span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil((auto-Date.now())/1000))}</b>\u00a0s</span></p>`:'';
-    const next=host?`<button type="button" class="journey-primary" id="jeu-go" onclick="${last?'jeuFinish()':'jeuNextRound()'}"><span>${last?(sl?'Voir mon bilan':'Voir le podium'):'Manche suivante'}</span>${DEF_CHEV_SVG}</button>`
-      :sl?`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>${waitTxt}</p>`
-      :`<div class="jeu-card jeu-room-wait" role="status"><div class="jeu-rw-h"><span class="jeu-rw-ico" aria-hidden="true">${lqStkSvg('trophy')}</span><b>Classement de la salle</b><small>${np} participant${np>1?'s':''}</small></div><p class="jeu-rw-p">Découvre les résultats des participants de cette manche.</p><p class="jeu-rw-load"><i class="jeu-spin" aria-hidden="true"></i>${waitTxt}</p></div>`;
+    const autoHTML=`<p class="jeu-auto" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil((auto-Date.now())/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>`;
     /* La solution se replie quand on a trouvé ; les scores cumulés n’apparaissent qu’à partir de la 2e manche, et à plusieurs. */
     html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
       `<div id="jeu-netslot">${jeuNetHTML()}</div>
       ${miss}${sl&&!got?'':`<div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>`}
       ${got?`<details class="jeu-card jeu-sol"><summary class="jeu-card-h">Le résultat attendu</summary>${typeof defiAttenduHTML==='function'?defiAttenduHTML(c):''}</details>`:''}
       ${sl||n<1?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
-      ${autoHTML}${next}`;
+      ${autoHTML}`;
   }else if(v==='final'){
     const sc=jeuScores();
     const cg=jeuCreditGame();
@@ -36034,7 +36036,7 @@ function jeuRender(){
       const recap=rows.map((x,i)=>{
         const k=J.rounds.indexOf(x.r),ok=x.ms!=null,y=ok?jeuRanking(k).find(z=>z.pid===J.me):null;
         /* Seul dans sa salle et hôte, c’est soi qui a quitté la manche : « Abandonnée », comme la carte du haut (8 novembre, 10 h 24) */
-        const why=x.r.closed?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
+        const why=x.r.closed&&!jeuFermeeAuChrono(x.r,J.rounds.indexOf(x.r))?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
         return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ICO_KO}</span>
           <div class="jr-t"><small class="jr-n">Manche ${i+1}</small><b>${esc(x.c.titre)}</b>
           <span class="jr-meta">${ok?`<i class="jr-time">Trouvé en ${dur(x.ms)}</i>${y?jeuPtsDetail(y):''}`:`<i class="jr-why">${why}</i>`}</span>
@@ -36105,14 +36107,17 @@ function jeuRender(){
    attend donc ce moment, avec 2 s de marge pour l’écart des horloges ; le bouton reste éteint en attendant. */
 /* À 0, la suite part toute seule (Elisa, 8 novembre, 10 h 10 : « oui » à « la manche suivante démarre toute seule après quelques
    secondes ») : 5 s pour voir le résultat de la manche, puis l’hôte (ou le joueur seul) lance la suivante, ou le podium à la dernière
-   (jeuTick). « Manche suivante » reste là pour ne pas attendre. Une manche que tout le monde a trouvée attend toujours l’hôte. */
+   (jeuTick). 17 h 31 (« pourquoi on doit cliquer sur le bouton pour la manche ? il faut que ça continue seul sans interruption ») :
+   toujours, quelle que soit la fin de la manche (chrono à 0, tout le monde a trouvé, close, abandonnée) ; plus de bouton
+   « Manche suivante ». Les 5 s partent du moment où ce téléphone voit la manche finie : de retour d’une autre appli ou après un
+   rechargement, encore 5 s pour voir le résultat, puis la suite ; rien ne reste bloqué (« ça s’est bloqué à 1 s »). */
 const JEU_AUTO_MS=5000;
+function jeuAutoAttente(n){const J=JEU,last=!!J&&n>=J.nb-1,sl=!!J&&jeuSoloLike(n);return `<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>${last?(sl?'Ton bilan arrive…':'Le podium arrive…'):'La manche suivante arrive…'}</span>`;}
 function jeuFinAuto(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
-  if(!r||r.closed||r.done||J.over)return 0;
-  const fin=r.t1+jeuDureeMs(jeuNivManche(n));
-  if(Date.now()<fin||jeuLive().every(p=>r.found[p]!=null))return 0;
-  return fin+JEU_AUTO_MS;
+  if(!r||J.over||Date.now()<r.t1||!jeuRoundDone(n))return 0;
+  if(!r.finVu)r.finVu=Date.now();
+  return r.finVu+JEU_AUTO_MS;
 }
 function jeuAttenteFin(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
@@ -36130,6 +36135,8 @@ function jeuNextRound(){
      6 novembre, 15 h 20 : en ligne, le serveur tire le défi parmi ceux qu’aucun joueur présent n’a joués ni trouvés ; celui proposé
      ici est gardé s’il en fait partie, et un défi choisi exprès (« Avec des amis » sur la page d’un défi : imp) reste. */
   const impose=!!J.plan[n];
+  /* Une seule fois par manche depuis ce téléphone (la suite part toute seule, 17 h 31) */
+  const k=J.g+':'+n;if(J.lance===k)return;J.lance=k;
   jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});
 }
 function jeuClose(){
@@ -46491,7 +46498,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-manches-v2683';
+  const SW_CACHE='requete-2026-11-08-suite-auto-v2684';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

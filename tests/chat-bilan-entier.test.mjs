@@ -36,6 +36,6 @@ test('« retente-le » ne se coupe pas au trait d’union à côté du chat', ()
 
 test('seul dans sa salle : « Abandonnée » partout, la carte du haut comme la ligne de la manche', () => {
   assert.ok(app.includes("lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';"));
-  assert.ok(app.includes("const why=x.r.closed?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';"));
+  assert.ok(app.includes("const why=x.r.closed&&!jeuFermeeAuChrono(x.r,J.rounds.indexOf(x.r))?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';"), '8 novembre, 17 h 31 : fermée à son heure par le serveur, c’est le chrono');
   assert.ok(!app.includes("const why=x.r.closed?(J.solo?'Abandonnée'"), 'plus « Close par l’hôte » pour l’hôte seul');
 });
