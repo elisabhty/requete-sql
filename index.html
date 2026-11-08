@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=240">
+<link rel="stylesheet" href="ludique.css?v=241">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -34953,10 +34953,10 @@ function jeuStart(code,host,cid,opts){
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
     sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
-    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null,inscrits:new Set(),tard:false};
+    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null,inscrits:new Set(),tard:false,reprise:!!opts.reprise};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
   const G=JEU;
-  JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo&&!opts.secure);
+  JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;J.netBas=ok?0:(J.netBas||Date.now());if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo&&!opts.secure);
   if(host){JEU.ready[me]=true;jeuSend({t:'cfg',niv,n:nb,max:JEU.max,solo:solo?1:0});}
   JEU.helloAt=Date.now();
   const hu=jeuSend({t:'hello'});
@@ -35062,9 +35062,9 @@ function jeuPost(m){
   const J=JEU;if(!J||(J.solo&&!J.ranked))return;
   J.t.send(m).then(ok=>{
     if(JEU!==J)return;
-    if(ok){J.out=J.out.filter(e=>e.m!==m);if(J.net===false){J.net=true;jeuPaint();}}
+    if(ok){J.out=J.out.filter(e=>e.m!==m);if(J.net===false){J.net=true;J.netBas=0;jeuPaint();}}
     else{
-      J.net=false;
+      J.net=false;if(!J.netBas)J.netBas=Date.now();
       if(!JEU_VOLATILE.includes(m.t)&&!J.out.some(e=>e.m===m))J.out.push({m,at:Date.now()});
       jeuPaint();
     }
@@ -35081,13 +35081,16 @@ function jeuFlush(){
   J.t.send(e.m).then(ok=>{
     if(JEU!==J)return;
     J.flushing=false;
-    if(ok){J.out=J.out.filter(x=>x!==e);J.flushAt=0;if(J.net===false){J.net=true;jeuPaint();}}
+    if(ok){J.out=J.out.filter(x=>x!==e);J.flushAt=0;if(J.net===false){J.net=true;J.netBas=0;jeuPaint();}}
   },()=>{if(JEU===J)J.flushing=false;});
 }
 /* Retour au premier plan, réveil du téléphone ou reconnexion : on se signale (les autres répondent) et on
    laisse un délai avant de juger quiconque absent. */
 function jeuResume(){
   const J=JEU;if(!J||J.solo||!J.synced||J.full)return;
+  /* Au retour, plusieurs signaux arrivent ensemble (l’appli revient, le chrono a sauté, le direct se rebranche) : une seule reprise,
+     un seul « hello » (8 novembre, 18 h 01). */
+  if(Date.now()-(J.repriseAt||0)<3000)return;J.repriseAt=Date.now();
   J.claimGrace=Date.now()+8000;J.goneAt=0;J.echoAt=Date.now();
   /* Jusqu’au retour de ce « hello » par le relais, ce qui arrive est du rejeu (messages manqués) : il
      informe, mais ne prouve pas que son auteur est là maintenant. */
@@ -35451,6 +35454,7 @@ function jeuTick(){
   if(gap>8000)jeuResume();
   jeuFlush();
   jeuHostWatch();
+  jeuNetMaj();
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
   if(el&&n>=0){const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
@@ -35797,10 +35801,20 @@ function jeuWaitLine(n){
   const who=wait.length===1?wait[0]:wait.length===2?wait.join(' et '):`${wait.slice(0,2).join(', ')} +${wait.length-2}`;
   return `<i class="jeu-dot" aria-hidden="true"></i>${who} ${wait.length>1?'cherchent':'cherche'} encore…`;
 }
+/* Elle n’apparaît qu’après 4 s sans réseau (8 novembre, 18 h 01, « quand je reviens ça bug un peu l’écran comme des flash ») : au
+   retour d’une autre appli, le direct se rebranche en une ou deux secondes, et la notice entrait puis repartait aussitôt, en
+   poussant l’écran. Posée une fois : redessiner l’écran ne la refait pas entrer. */
+const JEU_NET_MS=4000;
 function jeuNetHTML(){
   const J=JEU;
-  if(J.net===false)return jeuNoteHTML('is-off',JEU_ICO.wifi,'Connexion perdue','La partie reprend dès que le réseau revient.');
+  if(J.net===false&&Date.now()-(J.netBas||0)>=JEU_NET_MS)return jeuNoteHTML('is-off',JEU_ICO.wifi,'Connexion perdue','La partie reprend dès que le réseau revient.');
   return '';
+}
+function jeuNetSlot(){const h=jeuNetHTML();return `<div id="jeu-netslot" data-vu="${h?'1':''}">${h}</div>`;}
+function jeuNetMaj(){
+  const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-netslot'):null;if(!el)return;
+  const h=jeuNetHTML(),vu=h?'1':'';
+  if(((el.dataset&&el.dataset.vu)||'')!==vu){el.innerHTML=h;if(el.dataset)el.dataset.vu=vu;}
 }
 function jeuLobbyLabel(){
   const live=jeuLive(),ready=live.filter(jeuIsReady).length;
@@ -35833,7 +35847,7 @@ function jeuPatch(v){
     const pl=document.getElementById('jeu-players');
     if(pl)pl.innerHTML=jeuPlayersHTML(v==='lobby'?'lobby':'res');
   }
-  const net=document.getElementById('jeu-netslot');if(net)net.innerHTML=jeuNetHTML();
+  jeuNetMaj();
   const go=document.getElementById('jeu-go');
   if(go){go.disabled=false;const l=document.getElementById('jeu-go-label');if(l&&v==='lobby')l.textContent=jeuLobbyLabel();}
   const hint=document.getElementById('jeu-lobby-hint');if(hint)hint.innerHTML=jeuLobbyHint();
@@ -35924,8 +35938,12 @@ function jeuRender(){
       ${codeEnBas?'':codeTuiles()}
       ${corps}</section>`;
   const retour=`<button type="button" class="room-go" onclick="openJeu()"><span>Revenir aux défis</span>${DEF_CHEV_SVG}</button>`;
-  if(v==='join'){
-    html=etat('chat:pied','Tu rejoins la salle…','La salle de ton ami s’ouvre dans un instant.',`<p class="jeu-etat-wait" role="status"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span>Connexion en cours</span></p><div id="jeu-netslot">${jeuNetHTML()}</div>`,'is-join');
+  /* Après un rechargement, sa propre salle se retrouve : un écran calme, sans le chat ni le code (« Tu rejoins la salle de ton ami »
+     n’y avait pas sa place), le temps que la partie revienne (8 novembre, 18 h 01 : « ça bug un peu l’écran comme des flash »). */
+  if(v==='join'&&J.reprise){
+    html=`<div class="jeu-reprise" role="status"><i class="jeu-spin" aria-hidden="true"></i><span>On reprend ta partie…</span></div>${jeuNetSlot()}`;
+  }else if(v==='join'){
+    html=etat('chat:pied','Tu rejoins la salle…','La salle de ton ami s’ouvre dans un instant.',`<p class="jeu-etat-wait" role="status"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span>Connexion en cours</span></p>${jeuNetSlot()}`,'is-join');
   }else if(v==='lost'){
     html=etat('chat:loupe','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
@@ -35943,7 +35961,7 @@ function jeuRender(){
         <h1>Tirage au sort</h1>
         <div class="jeu-pile"><div class="jeu-deck" aria-hidden="true"><i></i><i></i><i></i></div></div>
         <p class="jeu-draw-note" role="status">${jeuDrawNote()}</p>
-      </div><div id="jeu-netslot">${jeuNetHTML()}</div>`;
+      </div>${jeuNetSlot()}`;
   }else if(v==='lobby'){
     const hostName=(J.players[J.hostPid]||{}).name||'l’hôte';
     /* 23 h 55 : « descends le code de salle en bas » : les pastilles d’abord, puis le code et « Copier le code » ensemble.
@@ -35959,7 +35977,7 @@ function jeuRender(){
         :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span></button>
         <p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente ${jeuQue(hostName)} lance la partie…</p>`}</div>`;
     /* Le cadre et son code en haut, puis les joueurs. */
-    html=frame+players+`<div id="jeu-netslot">${jeuNetHTML()}</div>`;
+    html=frame+players+`${jeuNetSlot()}`;
   }else if(v.startsWith('draw')){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     html=`<div class="jeu-draw" id="jeu-draw" data-step="3">
@@ -35987,7 +36005,7 @@ function jeuRender(){
     const base=defiBaseId(c);
     const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b><span class="jeu-hud-r">${val}<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b></span>`+
       `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${base?`<span class="jeu-hud-base">Base ${esc(DEFI_BASES[base].nom)}</span>`:''}</span></div>`;
-    html=`<div id="jeu-netslot">${jeuNetHTML()}</div>
+    html=`${jeuNetSlot()}
       <h1>${esc(c.titre)}</h1>
       ${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
       ${defiConsigneHTML(c)}
@@ -36009,7 +36027,7 @@ function jeuRender(){
     const autoHTML=`<p class="jeu-auto" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil((auto-Date.now())/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>`;
     /* La solution se replie quand on a trouvé ; les scores cumulés n’apparaissent qu’à partir de la 2e manche, et à plusieurs. */
     html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
-      `<div id="jeu-netslot">${jeuNetHTML()}</div>
+      `${jeuNetSlot()}
       ${miss}${sl&&!got?'':`<div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>`}
       ${got?`<details class="jeu-card jeu-sol"><summary class="jeu-card-h">Le résultat attendu</summary>${typeof defiAttenduHTML==='function'?defiAttenduHTML(c):''}</details>`:''}
       ${sl||n<1?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
@@ -36075,7 +36093,7 @@ function jeuRender(){
         ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
         ${jeuBtn2('quit','Quitter la salle','goBack()')}
         ${jeuBtn2('amis','Retrouver mes adversaires','jeuVersAdversaires()')}
-        <div id="jeu-netslot">${jeuNetHTML()}</div>`;
+        ${jeuNetSlot()}`;
       if(winner)setTimeout(celebrate,300);
     }
   }
@@ -46446,6 +46464,8 @@ boot();
   };
   stage.addEventListener('touchstart',e=>{
     on=false; if(busy||e.touches.length!==1)return;
+    /* Pas pendant une partie : un rechargement sans le vouloir faisait quitter la salle (Elisa, 8 novembre, 17 h 31 et 18 h 01). */
+    if(typeof JEU!=='undefined'&&JEU)return;
     const t=e.target, s=t&&t.closest&&t.closest('.screen.active'); if(!s||s.scrollTop>0)return;
     if(t.closest('input,textarea,select,[contenteditable="true"],.cm-editor,.stk-board'))return;
     for(let n=t;n&&n!==s;n=n.parentElement)if(n.scrollTop>0)return;
@@ -46504,7 +46524,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-cadre-manche-v2685';
+  const SW_CACHE='requete-2026-11-08-sans-flash-v2686';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
