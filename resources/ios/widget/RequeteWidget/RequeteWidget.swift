@@ -4048,7 +4048,7 @@ enum LectureSalle {
         return j.n
     }
 
-    /// « 2/5 » : les joueurs dans la salle, sur le maximum.
+    /// « 2/6 » : les joueurs dans la salle, sur le maximum.
     static func compte(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         return "\(e.joueurs.count)/\(a.max)"
     }
@@ -4184,12 +4184,14 @@ struct BoutonSalle: View {
     }
 }
 
-/// Les joueurs en pastilles : l’initiale de chacun, sur sa couleur.
+/// Les joueurs en pastilles : l’initiale de chacun, sur sa couleur. Six au plus (8 novembre, 22 h 27 : six joueurs par salle),
+/// six couleurs : la sixième, un rose framboise clair, comme l’avatar framboise de l’appli.
 struct AvatarsSalle: View {
     let joueurs: [JoueurSalle]
     let taille: CGFloat
 
-    private static let teintes: [Color] = [violetVif, braise, menthe, dore, lilas]
+    private static let framboise: Color = Color(red: 0.944, green: 0.496, blue: 0.66)
+    private static let teintes: [Color] = [violetVif, braise, menthe, dore, lilas, framboise]
 
     static func initiale(_ n: String) -> String {
         let sans: String = n.hasPrefix("@") ? String(n.dropFirst()) : n
@@ -4200,21 +4202,21 @@ struct AvatarsSalle: View {
     var body: some View {
         let police: Font = Font.system(size: taille * 0.46, weight: .heavy, design: .rounded)
         let ecart: CGFloat = taille * -0.18
-        let liste: [JoueurSalle] = Array(joueurs.prefix(5))
+        let liste: [JoueurSalle] = Array(joueurs.prefix(AvatarsSalle.teintes.count))
         return HStack(spacing: ecart) {
             ForEach(0..<liste.count, id: \.self) { i in
                 Text(AvatarsSalle.initiale(liste[i].n))
                     .font(police)
                     .foregroundColor(encre)
                     .frame(width: taille, height: taille)
-                    .background(Circle().fill(AvatarsSalle.teintes[i % 5]))
+                    .background(Circle().fill(AvatarsSalle.teintes[i % AvatarsSalle.teintes.count]))
                     .overlay(Circle().stroke(Color.black, lineWidth: 2))
             }
         }
     }
 }
 
-/// À droite de l’île : « 2/5 » en attente, le chrono pendant la manche, la place ensuite (dorée à la première).
+/// À droite de l’île : « 2/6 » en attente, le chrono pendant la manche, la place ensuite (dorée à la première).
 @available(iOS 16.1, *)
 struct SalleDroite: View {
     let salle: RequeteSalle
@@ -4244,7 +4246,7 @@ struct SalleDroite: View {
     }
 }
 
-/// Tout petit (une autre activité dans l’île) : « 2/5 », puis la place.
+/// Tout petit (une autre activité dans l’île) : « 2/6 », puis la place.
 @available(iOS 16.1, *)
 struct SalleMinimale: View {
     let salle: RequeteSalle
@@ -4486,7 +4488,7 @@ struct SalleVerrouille: View {
         return "\(rang) sur \(e.joueurs.count)"
     }
 
-    /// « 2/5 · on attend Max » ; « Le meilleur client · Manche 3 sur 5 » ; « Le meilleur client · 1er sur 4 ».
+    /// « 2/6 · on attend Max » ; « Le meilleur client · Manche 3 sur 5 » ; « Le meilleur client · 1er sur 4 ».
     static func sous(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         if e.phase == "attente" {
             let compte: String = LectureSalle.compte(e, a)

@@ -426,9 +426,9 @@ test('réf. 6 — « Tes dernières parties » : les parties à 2, 3, 4, 5 (et j
     'html.lq .perf-n{position:absolute;', 'html.lq .perf-cap-ppl>span.is-me{', 'html.lq .perf-legend{'])
     assert.ok(s51.includes(part), part);
   assert.ok(css.includes('html.lq .perf-o[data-c="7"],html.lq .perf-cap-ppl .jeu-av[data-c="7"]{'), 'deux couleurs de plus');
-  /* Cinq joueurs par salle au plus */
-  assert.ok(app.includes('const JEU_MAX=5;'));
-  assert.ok(app.includes('max:Math.max(1,Math.min(JEU_MAX,+m.max||JEU_MAX))'), 'une ancienne salle à 6 est ramenée à 5');
+  /* Six joueurs par salle au plus (8 novembre, 22 h 27 ; cinq avant) */
+  assert.ok(app.includes('const JEU_MAX=6;'));
+  assert.ok(app.includes('max:Math.max(1,Math.min(JEU_MAX,+m.max||JEU_MAX))'), 'une salle annoncée plus grande est ramenée à 6');
 });
 
 test('Supabase — le pseudo unique (jeu_pseudo), sans ménage : il reste à la personne tant qu’elle ne le supprime pas', () => {

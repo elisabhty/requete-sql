@@ -247,23 +247,26 @@ test('« prêt » : chaque ami se déclare, l’hôte voit le compteur', () => {
   assert.equal(host.ev('jeuToggleReady()'), undefined, 'l’hôte est toujours prêt : pas de bascule');
 });
 
-/* Elisa, 31 octobre, 16 h 49 : « max 5 pour une salle » */
-test('5 joueurs au maximum : le 6e voit « salle complète », les autres ne changent pas', () => {
-  assert.ok(html.includes('const JEU_MAX=5;'));
-  const { w, host, guests } = room({ n: 5 });
-  assert.equal(host.live().length, 5);
+/* Elisa, 31 octobre, 16 h 49 : « max 5 pour une salle » ; 8 novembre, 22 h 27 : « accepte 6 max dans une salle, comme ça on a deux
+   lignes pleines » */
+test('6 joueurs au maximum : le 7e voit « salle complète », les autres ne changent pas', () => {
+  assert.ok(html.includes('const JEU_MAX=6;'));
+  const { w, host, guests } = room({ n: 6 });
+  assert.equal(host.live().length, 6);
+  assert.equal(host.ev("jeuLive().length+'/'+JEU.max"), '6/6', 'la salle d’attente compte sur 6');
   const late = makeClient(w, 'Trop'); late.join('ROOM42'); sec(w, 4);
   assert.equal(late.view(), 'full');
   assert.match(late.html, /salle est complète/);
-  for (const c of [host, ...guests]) assert.equal(c.live().length, 5, c.name + ' n’affiche pas le 6e');
+  assert.match(late.html, /Une salle accueille 6 joueurs au maximum/);
+  for (const c of [host, ...guests]) assert.equal(c.live().length, 6, c.name + ' n’affiche pas le 7e');
   assert.ok(!host.live().includes('Trop'));
   /* Une place se libère : la même personne peut réessayer. */
-  guests[3].ev('jeuStop()'); sec(w, 2);
-  assert.equal(host.live().length, 4);
+  guests[4].ev('jeuStop()'); sec(w, 2);
+  assert.equal(host.live().length, 5);
   const retry = makeClient(w, 'Trop'); retry.ev(`sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(late.pid())})`);
   late.ev('jeuStop()'); retry.join('ROOM42'); sec(w, 4);
   assert.equal(retry.view(), 'lobby', 'réadmise quand il y a de la place');
-  assert.equal(host.live().length, 5);
+  assert.equal(host.live().length, 6);
 });
 
 test('les fantômes de l’historique ne comptent pas dans la limite et ne sont pas affichés', () => {
@@ -1410,7 +1413,7 @@ test('8 novembre, 15 h 27 : la salle trouvée depuis la feuille du code, on y en
 });
 
 test('8 novembre, 15 h 27 : personne derrière le code, salle complète, plus de réseau : la feuille le dit, on reste où l’on est', () => {
-  const { w, host } = room({ n: 5 });
+  const { w, host } = room({ n: 6 });   // complète à six (22 h 27)
   const perdu = avecFeuille(makeClient(w, 'Perdu'));
   perdu.join('NOPE99'); sec(w, 6);
   assert.equal(perdu.J('verif'), true, 'on cherche encore');
@@ -1422,7 +1425,7 @@ test('8 novembre, 15 h 27 : personne derrière le code, salle complète, plus de
   trop.join('ROOM42'); sec(w, 4);
   assert.deepEqual(trop.etats, [['cherche', 'ROOM42'], ['complete', 'ROOM42']]);
   assert.deepEqual([trop.ev('JEU'), trop.ecrans, trop.fermee], [null, 0, []]);
-  assert.equal(host.live().length, 5);
+  assert.equal(host.live().length, 6);
   const coupe = avecFeuille(makeClient(w, 'Coupé')); coupe.offline = true;
   coupe.join('ROOM42'); sec(w, 8);
   assert.deepEqual(coupe.etats, [['cherche', 'ROOM42'], ['reseau', 'ROOM42']]);

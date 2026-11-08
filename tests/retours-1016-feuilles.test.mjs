@@ -22,7 +22,7 @@ function bac(o = {}) {
     JEU_NIVL: {f: 'Facile', m: 'Moyen', d: 'Difficile'}, jeuNiv: 'd', jeuNb: 3, jeuVis: 'pub', jeuInvite: '', jeuNivUser: true, jeuMode: 'solo',
     jeuChallenges: () => [1, 2, 3, 4, 5], jeuNivAuto: () => 'f', accord: (f, m, n) => f, DEF_CHEV_SVG: '<svg class="chev"/>', LQ_X_SVG: '<svg class="x"/>',
     JEU_NOTE_HTML: '<p class="jeu-note">🔒 note</p>', lqStkSvg: k => `<svg data-stk="${k}"/>`, jeuNomField: id => `<div class="jeu-me" data-nom="${id}"></div>`,
-    jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''}, JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}, JEU_MAX: 5,
+    jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''}, JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}, JEU_MAX: 6,
     document: {getElementById: id => els[id] || null, querySelectorAll: () => [], body: null}
   }, o));
   vm.runInContext(cut('const DX_CODE_MSG=', '\nfunction dxCodeEtat(') + '\n' + line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
@@ -68,7 +68,7 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   /* 10 h 38 (« comment mettre en avant le coefficient et le 5 joueurs max ») : deux pastilles à côté du niveau, le coefficient en
      jaune après la pièce, les joueurs en verre clair (les lecteurs d’écran entendent « Difficile, ×4 points, 5 joueurs max ») */
   assert.ok(creer.includes('<p class="room-sub" id="dx-f-p">Choisis les règles. Le défi sera révélé au lancement de la partie.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d"><i class="jeu-bars is-d" aria-hidden="true"><b></b><b></b><b></b></i>Difficile</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts"><svg viewBox="0 0 24 24" aria-hidden="true">'), 'le niveau de la partie rapide, puis ses points');
-  assert.ok(creer.includes('<span><b>×4</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span><span class="lq-sr">, </span><span class="dx-f-chip is-max"><svg viewBox="0 0 24 24" aria-hidden="true">') && creer.includes('<span><b>5</b>\u00a0joueurs max</span></span></p>'), '×4 en pastille, puis 5 joueurs');
+  assert.ok(creer.includes('<span><b>×4</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span><span class="lq-sr">, </span><span class="dx-f-chip is-max"><svg viewBox="0 0 24 24" aria-hidden="true">') && creer.includes('<span><b>6</b>\u00a0joueurs max</span></span></p>'), '×4 en pastille, puis 6 joueurs (22 h 27 : six par salle)');
   assert.ok(!creer.includes('dx-f-pts') && !app.includes('dx-f-pts'), 'plus la ligne de texte');
   assert.ok(creer.startsWith('<div class="room-head dx-f-tete"><span class="room-stk" aria-hidden="true"><svg data-stk="user"/></span>\n    <div class="dx-f-titres"><p class="room-kicker">Créer ma partie</p>'), 'l’autocollant à côté du surtitre et du titre');
   for (const h of [creer, code, seul]) assert.ok(!h.includes('room-levels') && !h.includes('data-set="niv"'), 'pas de second choix de niveau');

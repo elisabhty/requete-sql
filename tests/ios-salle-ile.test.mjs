@@ -128,12 +128,12 @@ test('le petit miaou : un WAV court (moins de 30 s), synthétisé par tools/sons
 /* La page, dans un bac à sable : une salle de trois joueurs, vue de chez Léa (L), l’hôte est Max (M) */
 const page = ({vue = 'lobby', moi = 'L', hote = 'M', joueurs = ['M', 'L'], prets = ['M'], trouves = [], pts = {}, natif = true, over = false, rejet = false} = {}) => {
   const appels = [], posts = [], rpc = [], minuteurs = [], ecoute = [];
-  const J = {code: 'K7P2QX', me: moi, nom: '@' + moi.toLowerCase(), solo: false, synced: true, full: false, hostPid: hote, max: 5, nb: 3, over,
+  const J = {code: 'K7P2QX', me: moi, nom: '@' + moi.toLowerCase(), solo: false, synced: true, full: false, hostPid: hote, max: 6, nb: 3, over,
     players: Object.fromEntries(['M', 'L', 'X'].map(p => [p, {name: '@' + p.toLowerCase()}])), rounds: [{cid: 'af4', t1: 1_700_000_000_000, found: {}}]};
   const C = {isNativePlatform: () => natif, addListener: (p, e, f) => ecoute.push([p, e, f]),
     nativePromise: (p, m, d) => { appels.push([m, ici(d)]); return Promise.resolve({ok: true}); }};
   const ctx = vm.createContext({
-    JEU: J, JEU_MAX: 5, jeuDureeMs: k => ({f: 600000, m: 900000, d: 1200000})[k] || 600000, JEU_SB: 'https://exemple.supabase.co', JEU_SB_KEY: 'sb_publishable_x', JSON, Math, Promise, Object, String, Array,
+    JEU: J, JEU_MAX: 6, jeuDureeMs: k => ({f: 600000, m: 900000, d: 1200000})[k] || 600000, JEU_SB: 'https://exemple.supabase.co', JEU_SB_KEY: 'sb_publishable_x', JSON, Math, Promise, Object, String, Array,
     CHALLENGES: [{id: 'af4', titre: 'Le meilleur client'}],
     jeuView: () => x.vue, jeuCur: () => (x.vue === 'lobby' ? -1 : 0), jeuLive: () => x.joueurs, jeuIsReady: p => p === x.J.hostPid || x.prets.includes(p),
     jeuNom: v => String(v || '').slice(0, 16), jeuScores: () => x.joueurs.map(p => ({pid: p, name: '@' + p.toLowerCase(), pts: x.pts[p] || 0, ms: 0})).sort((a, b) => b.pts - a.pts),
@@ -171,7 +171,7 @@ test('l’activité démarre avec la salle, suit ses changements, garde le podiu
   const x = page();
   x.run('ileSalleMaintenant()');
   assert.equal(x.appels[0][0], 'salleDebut');
-  assert.deepEqual([x.appels[0][1].code, x.appels[0][1].moi, x.appels[0][1].max], ['K7P2QX', 'L', 5]);
+  assert.deepEqual([x.appels[0][1].code, x.appels[0][1].moi, x.appels[0][1].max], ['K7P2QX', 'L', 6]);   // six places (22 h 27)
   assert.equal(JSON.parse(x.appels[0][1].etat).phase, 'attente', 'l’état part en JSON (le même que celui du serveur)');
   assert.deepEqual(x.ecoute.map(e => e.slice(0, 2)), [['RequeteWidget', 'salleJeton']]);
   x.run('ileSalleMaintenant()');
@@ -208,7 +208,7 @@ test('le serveur, pour les autres : mon arrivée (avec un clin d’œil et un mi
   assert.equal(url, 'https://exemple.supabase.co/functions/v1/jeu-ile?forceFunctionRegion=eu-west-3');
   assert.equal(keepalive, true);
   assert.deepEqual([corps.cle, corps.salle, corps.etat.nouveau], ['cle'.repeat(10), 'K7P2QX', 'L']);
-  assert.deepEqual(corps.alerte, {titre: '@l entre dans la salle', texte: 'Salle K7P2QX · 2/5', son: 'miaou.wav'});
+  assert.deepEqual(corps.alerte, {titre: '@l entre dans la salle', texte: 'Salle K7P2QX · 2/6', son: 'miaou.wav'});
   x.run('ileSalleMaintenant()'); assert.equal(x.posts.length, 1);
   /* Un autre arrive : je ne suis pas l’hôte, ce n’est pas à moi de l’envoyer (lui le fait) */
   x.joueurs.push('X'); x.run('ileSalleMaintenant()'); assert.equal(x.posts.length, 1);
@@ -258,8 +258,9 @@ test('la fonction jeu-ile : l’état reconstruit, l’alerte, ce que reçoit Ap
   const t = 1_800_000_000;
   const ok = {phase: 'attente', joueurs: [{p: 'M2k3m4n5', n: '@max', pts: 0, r: 0, ok: true}], hote: 'M2k3m4n5', manche: 0, nb: 3, defi: '', fin: 0, nouveau: ''};
   assert.deepEqual(etatPropre(ok, t), ok);
+  assert.equal(etatPropre({...ok, joueurs: Array(6).fill(ok.joueurs[0])}, t).joueurs.length, 6, 'six joueurs par salle (8 novembre, 22 h 27) ; le 7e est refusé plus bas');
   assert.deepEqual(etatPropre({...ok, en: 'trop', joueurs: [{...ok.joueurs[0], n: '  @max<\u200b>  ', x: 1}]}, t).joueurs[0], {p: 'M2k3m4n5', n: '@max', pts: 0, r: 0, ok: true}, 'nettoyé, clés en trop retirées');
-  for (const mauvais of [{...ok, phase: 'autre'}, {...ok, joueurs: []}, {...ok, joueurs: Array(6).fill(ok.joueurs[0])}, {...ok, fin: t + 90000}, {...ok, fin: 1.5},
+  for (const mauvais of [{...ok, phase: 'autre'}, {...ok, joueurs: []}, {...ok, joueurs: Array(7).fill(ok.joueurs[0])}, {...ok, fin: t + 90000}, {...ok, fin: 1.5},
     {...ok, manche: 9}, {...ok, joueurs: [{...ok.joueurs[0], pts: -1}]}, {...ok, joueurs: [{...ok.joueurs[0], p: 'a b'}]}, {...ok, nouveau: 'x'}, null, []])
     assert.equal(etatPropre(mauvais, t), null, JSON.stringify(mauvais));
   assert.deepEqual(alertePropre({titre: 'Léa entre', texte: 'Salle K7P2QX', son: 'miaou.wav'}), {titre: 'Léa entre', texte: 'Salle K7P2QX', son: 'miaou.wav'});
@@ -286,7 +287,7 @@ test('la fonction jeu-ile : la production d’abord, le bac à sable pour une ve
 
 test('la fonction jeu-ile : en veille sans la clé d’Apple ; membre de la salle seulement ; un état déjà poussé ne repart pas', async () => {
   const corps = {cle: 'c'.repeat(32), salle: 'K7P2QX', etat: {phase: 'attente', joueurs: [{p: 'L1234567', n: '@lea', pts: 0, r: 0, ok: false}], hote: 'M1234567', manche: 0, nb: 3, defi: '', fin: 0, nouveau: 'L1234567'},
-    alerte: {titre: '@lea entre dans la salle', texte: 'Salle K7P2QX · 2/5', son: 'miaou.wav'}};
+    alerte: {titre: '@lea entre dans la salle', texte: 'Salle K7P2QX · 2/6', son: 'miaou.wav'}};
   const demande = b => new Request('https://x/functions/v1/jeu-ile', {method: 'POST', body: JSON.stringify(b)});
   const appels = [], envois = [];
   const rpc = reponse => async (f, a) => { appels.push([f, a]); if (reponse instanceof Error) throw reponse; return typeof reponse === 'function' ? reponse(f, a) : reponse; };
@@ -309,7 +310,7 @@ test('la fonction jeu-ile : en veille sans la clé d’Apple ; membre de la sall
   assert.deepEqual(await lire(await h(demande(corps))), [200, {ok: true, pousse: 1}]);
   assert.deepEqual(appels[0], ['jeu_ile_cibles_v2', {p_cle: corps.cle, p_salle: 'K7P2QX', p_etat: corps.etat}]);
   assert.deepEqual(appels[1], ['jeu_ile_suivi_v2', {p_salle: 'K7P2QX', p_retirer: ['mort'], p_bac: []}]);
-  assert.deepEqual(envois.find(e => e[1] === 'vivant')[2].aps.alert, {title: '@lea entre dans la salle', body: 'Salle K7P2QX · 2/5', sound: 'miaou.wav'});
+  assert.deepEqual(envois.find(e => e[1] === 'vivant')[2].aps.alert, {title: '@lea entre dans la salle', body: 'Salle K7P2QX · 2/6', sound: 'miaou.wav'});
   /* Le point d’entrée : les en-têtes d’une Live Activity, verify_jwt désactivé (l’appareil est authentifié par sa clé) */
   const index = fs.readFileSync(path.join(ROOT, 'supabase/functions/jeu-ile/index.ts'), 'utf8');
   for (const k of ["'apns-push-type': 'liveactivity'", "'apns-topic': `${sujet}.push-type.liveactivity`", "'apns-priority': '10'", 'https://${hote}/3/device/${jeton}',

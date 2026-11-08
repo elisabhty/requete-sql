@@ -32,7 +32,7 @@ function bac(o = {}) {
     clsRpc: (f, b) => { appels.push([f, b]); return Promise.resolve(o.rpc ? o.rpc(f, b) : {}); },
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     jeuInitial: n => String(n || '?').replace(/^@+/, '').charAt(0).toUpperCase(), perfColor: () => 2, lqStkSvg: k => `<svg data-k="${k}"></svg>`, chatBonusHtml: k => `<img data-k="${k}">`,
-    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: o.niv || 'm', jeuNivUser: true,
+    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_MAX: 6, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: o.niv || 'm', jeuNivUser: true,
     DEF_CHEV_SVG: '<svg data-k="chev"></svg>', CLS_FLAG_SVG: '<svg data-k="flag"></svg>', perfDay: () => 'Hier', CHALLENGES: o.sansMoteur ? undefined : [1], SQL: o.sansMoteur ? null : {},
     jeuStart: (...a) => { appels.push(['jeuStart', ...a]); return o.start ? o.start() : undefined; }, jeuPseudoPuis: f => f(), jeuRand: () => 'NOUV01', jeuNom: v => String(v || '').trim(),
     psForme: v => { const h = String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 15); return h ? '@' + h : ''; },
@@ -47,17 +47,22 @@ function bac(o = {}) {
 }
 const attendre = () => new Promise(r => setImmediate(r));
 const J = v => JSON.parse(JSON.stringify(v));
-const salle = (code, niv, hote, nb = 2) => ({ code, niv, manches: 1, nb, max: 5, hote, joueurs: [] });
+const salle = (code, niv, hote, nb = 2) => ({ code, niv, manches: 1, nb, max: 6, hote, joueurs: [] });
 const codes = h => [...h.matchAll(/sallesRejoindre\('([A-Z0-9]{6})'\)/g)].map(m => m[1]);
 
-test('le cadre du haut : la phrase d’Elisa, et « 4 joueurs » tient avec une salle de 5 (l’hôte et 4 invités)', () => {
+/* 8 novembre, 22 h 27 (« accepte 6 max dans une salle, comme ça on a deux lignes pleines ») : six joueurs, l’hôte et 5 invités ;
+   la phrase suit JEU_MAX. */
+test('le cadre du haut : la phrase d’Elisa, et « 5 joueurs » tient avec une salle de 6 (l’hôte et 5 invités)', () => {
   const haut = fn('defisRapideHTML');
   /* 8 novembre, 0 h 17 (Elisa, « je veux garder ça ») : après la refonte, le bandeau garde sa phrase entière. */
-  assert.ok(haut.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p>'));
+  assert.ok(haut.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à ${JEU_MAX-1} joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p>'));
+  assert.ok(bac().ev('defisRapideHTML()').includes('invite jusqu’à 5 joueurs, ou ouvre ta salle à tous.'), 'jusqu’à 5 invités');
   assert.ok(!haut.includes('invite tes amis'));
-  assert.ok(app.includes('const JEU_MAX=5;') && app.includes('max:solo?1:JEU_MAX'), 'une salle : 5 joueurs au plus');
-  const mig = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).find(f => f.endsWith('_defis_trois_onglets.sql'));
-  assert.ok(lire('supabase/migrations/' + mig).includes('having count(v.pid) < 5'), 'la base cache une salle pleine à 5');
+  assert.ok(app.includes('const JEU_MAX=6;') && app.includes('max:solo?1:JEU_MAX'), 'une salle : 6 joueurs au plus');
+  const mig = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).find(f => f.endsWith('_salle_six_joueurs.sql'));
+  const sql = lire('supabase/migrations/' + mig);
+  assert.ok(sql.includes("neuf := replace(replace(def, 'having count(v.pid) < 5', 'having count(v.pid) < 6'), '''max'', 5,', '''max'', 6,');"), 'la base cache une salle pleine à 6');
+  assert.ok(sql.includes("neuf := replace(def, avant, 'case when r.solo then 1 else 6 end');"), 'et laisse entrer le 6e');
 });
 
 test('« Mes stats » plus en avant : une pastille lavande, et sa flèche qui bouge (sauf en mouvement réduit)', () => {
@@ -195,5 +200,5 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 test('les versions : la feuille de style et le cache', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=259">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-08-salle-cinq-v2706' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-08-six-joueurs-v2707' && app.includes(`const SW_CACHE='${cache}';`));
 });
