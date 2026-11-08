@@ -1,7 +1,8 @@
 /* Elisa, 8 novembre, 19 h 18 : « J’ai pas le message un coup de patte • voir l’indice / Et le chrono le mettre comme la pill du cadre
    entre l’intérieur et l’extérieur » ; 19 h 27, avec sa capture de 18 h 16 (la pastille violette « Pas encore · voir l’indice » en bas
    de l’écran) : « je parle de ça, le message en bas ».
-   - Le chrono sort du bandeau de la manche : posé à cheval sur son bord, en haut à droite, comme la base sur « La situation ».
+   - Le chrono sort du bandeau de la manche : posé à cheval sur son bord, en haut à droite, comme la base sur « La situation » ; 20 h 15 :
+     il y revient, dans le cadre « points | chrono » (cadre-manche.test.mjs).
    - La pastille du bas dit toujours « Un coup de patte ? » (un indice arrivé sans essai raté disait « Nouvel indice · le voir ») ; elle
      se montre tant que ce qu’elle annonce n’est pas vu en entier, et se pose au-dessus du clavier. */
 import fs from 'node:fs';
@@ -13,30 +14,14 @@ const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 
-test('le chrono hors du bandeau, juste avant lui dans la section, en salle comme seule', () => {
+test('le chrono, posé sur le bord du cadre à 19 h 18, revient dedans à 20 h 15, dans le cadre « points | chrono » (cadre-manche)', () => {
   const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
-  assert.ok(!/<span class="jeu-hud-r">\$\{val\}<b class="jeu-timer/.test(play), 'plus dans la tête du bandeau');
-  assert.ok(play.includes('const chrono=`<b class="jeu-timer${dur0-took0<30000?\' is-low\':\'\'}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;'));
-  assert.ok(play.includes('<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}">${chrono}<div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud,chrono)}'));
-  assert.ok(cut('function jeuDirectHTML(n,hud,chrono){', '\n}\n').includes('aria-labelledby="jeu-direct-t">${chrono||\'\'}<div class="jeu-direct-bande">${hud||\'\'}`+'));
-  /* Il garde son identifiant : chaque seconde le tient à jour, rouge les 30 dernières */
-  assert.ok(cut('function jeuTick(){', '\n}\n').includes("el=document.getElementById('jeu-timer')"));
-  assert.equal((app.match(/id="jeu-timer"/g) || []).length, 1);
-});
-
-test('le style : à cheval sur le bord, en haut à droite, droit et posé au pixel près ; le cadre lui fait de la place', () => {
-  for (const r of ['html.lq #jeu-root .jeu-direct:has(>.jeu-timer){margin-top:32px}',
-    'html.lq #jeu-root .jeu-direct>.jeu-timer{position:absolute;top:-17px;right:16px;z-index:3;height:34px;box-sizing:border-box;padding:0 13px 0 11px!important;',
-    /* 20 h 07 : penché, Safari le dessinait moins net ; droit, sa moitié (17 px) au-dessus du bord */
-    'font-size:17px!important;box-shadow:0 3px 0 #C98F00}', 'html.lq #jeu-root .jeu-direct>.jeu-timer.is-low{box-shadow:0 3px 0 #B8323A}',
-    '  html.lq #jeu-root .jeu-direct>.jeu-timer{right:12px;padding:0 11px 0 9px!important;font-size:16px!important}}'])
-    assert.ok(css.includes(r), r);
-  assert.ok(!css.includes('.jeu-hud .jeu-timer'), 'les règles du chrono dans la tête sont parties');
-  /* 19 h 57 : sa moitié du dedans pend au-dessus de la ligne du niveau et des points ; la tête du cadre garde sa marge de toujours */
-  assert.ok(!css.includes(':has(>.jeu-timer) .jeu-hud'));
-  /* Le bandeau coupe ce qui dépasse (ses coins arrondis, sa grille) : le chrono n’est donc pas dedans */
+  assert.ok(play.includes('<span class="jeu-hud-box${val?\'\':\' is-seul\'}">${val}${chrono}</span></div>`;'));
+  assert.ok(!play.includes('${chrono}<div class="jeu-direct-bande">') && !app.includes('function jeuDirectHTML(n,hud,chrono){'), 'plus hors du bandeau');
+  assert.ok(!css.includes('.jeu-direct>.jeu-timer') && !css.includes(':has(>.jeu-timer)'));
+  /* Le bandeau coupe ce qui dépasse (ses coins arrondis, sa grille) : le chrono est dedans */
   assert.ok(css.includes('html.lq #jeu-root .jeu-direct-bande{position:relative;z-index:1;isolation:isolate;overflow:hidden;'));
-  assert.ok(css.includes('html.lq #jeu-root .jeu-direct{position:relative;'), 'la section le place');
+  assert.ok(css.includes('html.lq #jeu-root .jeu-direct{position:relative;margin:14px 0 20px}'), 'le bandeau garde sa marge de toujours');
 });
 
 /* La pastille du bas, dans un faux écran : la fenêtre (et ce qu’on en voit, clavier compris), la barre du haut, la carte et ses parts. */
