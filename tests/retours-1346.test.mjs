@@ -72,7 +72,8 @@ test('14 h 33 : un seul cadre pour « Pas encore » et l’indice ; en salle, le
   assert.ok(app.includes("if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}"), 'défi seul');
   assert.ok(app.includes('const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;'), 'en salle : le temps de la manche, le même pour tous');
   assert.ok(app.includes("pour tout le monde dans <b id=\"coach-cd\">${jeuChrono(next)}</b>"));
-  assert.ok(app.includes("<span class=\"l-kicker\">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</span>"));
+  /* 8 novembre, 17 h 48 : la barre est entrée dans le cadre de la manche ; la base y reste, à côté du niveau */
+  assert.ok(app.includes("<span class=\"jeu-hud-niv\"><span class=\"dx-f-niv is-${c.niv}\">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${base?`<span class=\"jeu-hud-base\">Base ${esc(DEFI_BASES[base].nom)}</span>`:''}</span>"));
   for (const part of ['html.lq .coach.is-new-ko .coach-st{animation:coachKo .45s ease}', 'html.lq .coach-dot.is-cur{transform:scale(1.3);', 'html.lq .coach-tag{flex:none;padding:4px 10px;border-radius:99px;background:var(--sun);'])
     assert.ok(css.includes(part), part);
 });
