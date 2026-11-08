@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=251">
+<link rel="stylesheet" href="ludique.css?v=252">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13707,7 +13707,12 @@ const CHALLENGES=[
    en salle comme sur la page d’un défi. */
 const DEFI_A_TOI=['À toi de jouer\u00a0!','Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.'];
 function defiSituationSeule(s){return String(s||'').replace(/\s*À toi de jouer[\s\u00a0]*!\s*$/,'').trim();}
-function defiAToiHTML(){return `<div class="dq-atoi"><b>${DEFI_A_TOI[0]}</b> ${DEFI_A_TOI[1]}</div>`;}
+/* 20 h 29 : « quand on clique sur schéma, c’est comme un bouton » : dans la phrase, « schéma » est une petite pastille (son icône, le
+   lilas des boutons, un rebord) qui ouvre le schéma de la base. */
+function defiAToiHTML(){
+  const lien=`<button type="button" class="dq-lien" onclick="openSchemaSheet()">${typeof ED_SCHEMA_SVG==='string'?ED_SCHEMA_SVG:''}schéma</button>`;
+  return `<div class="dq-atoi"><b>${DEFI_A_TOI[0]}</b> ${DEFI_A_TOI[1].replace('schéma',lien)}</div>`;
+}
 function defiConsigneHTML(c,o){
   const nom=typeof DEFI_BASES!=='undefined'&&c&&c.base&&DEFI_BASES[c.base]?DEFI_BASES[c.base].nom:'';
   /* En salle, la base en pastille (Elisa, 8 novembre, 18 h 28 : « la base, on ne la met pas dans le premier bloc mais en pill de La
@@ -46728,7 +46733,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-atoi-clair-v2698';
+  const SW_CACHE='requete-2026-11-08-schema-bouton-v2699';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

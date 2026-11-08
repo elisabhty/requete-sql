@@ -45,11 +45,18 @@ test('la base : une pastille posée à cheval sur le bord du cadre, en haut à d
 
 test('« À toi de jouer ! Tu peux consulter le schéma… » sous chaque situation, dans un cadre gris clair (18 h 36, 19 h 57)', () => {
   assert.ok(app.includes("const DEFI_A_TOI=['À toi de jouer\\u00a0!','Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.'];"), 'l’espace insécable avant « ! »');
-  assert.ok(app.includes('function defiAToiHTML(){return `<div class="dq-atoi"><b>${DEFI_A_TOI[0]}</b> ${DEFI_A_TOI[1]}</div>`;}'));
+  /* 20 h 29 : « quand on clique sur schéma, c’est comme un bouton » */
+  assert.ok(app.includes("const lien=`<button type=\"button\" class=\"dq-lien\" onclick=\"openSchemaSheet()\">${typeof ED_SCHEMA_SVG==='string'?ED_SCHEMA_SVG:''}schéma</button>`;"));
   assert.ok(cut('function defiConsigneHTML(c,o){', '\n}\n').includes('<p class="defi-ctx">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}'), 'au rendu, en salle comme sur la page d’un défi');
   const ctx = vm.createContext({});
   vm.runInContext(cut('const DEFI_A_TOI=', '\nfunction defiConsigneHTML(c,o){').replace(/^const /gm, 'var '), ctx);
-  assert.equal(vm.runInContext('defiAToiHTML()', ctx), `<div class="dq-atoi"><b>À toi de jouer${NB}!</b> Tu peux consulter le schéma de la base à tout moment pour explorer les tables et leurs colonnes.</div>`);
+  assert.equal(vm.runInContext('defiAToiHTML()', ctx), `<div class="dq-atoi"><b>À toi de jouer${NB}!</b> Tu peux consulter le <button type="button" class="dq-lien" onclick="openSchemaSheet()">schéma</button> de la base à tout moment pour explorer les tables et leurs colonnes.</div>`, '« schéma » ouvre le schéma');
+  ctx.ED_SCHEMA_SVG = '<svg/>'; assert.ok(vm.runInContext('defiAToiHTML()', ctx).includes('onclick="openSchemaSheet()"><svg/>schéma</button>'), 'avec son icône');
+  for (const r of ['html.lq .consigne.dq .dq-lien{display:inline-flex;align-items:center;gap:4px;margin:0 1px;padding:1px 8px 2px 6px;border:0;border-radius:9px;vertical-align:baseline;',
+    'background:var(--accent-soft);color:var(--accent-ink);font:800 15px/1.3 var(--ui);box-shadow:0 2px 0 var(--lip);cursor:pointer;',
+    'html.lq .consigne.dq .dq-lien:active{transform:translateY(2px);box-shadow:0 0 0 var(--lip)}',
+    'html.lq .consigne.dq .dq-lien::after{content:"";position:absolute;inset:-11px -6px}'])
+    assert.ok(css.includes(r), r);
   const data = vm.runInNewContext(app.slice(app.indexOf('const CHALLENGES=['), app.indexOf('const NIV=')) + ';({challenges:CHALLENGES})');
   assert.equal(data.challenges.length, 477);
   for (const c of data.challenges) {
