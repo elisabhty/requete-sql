@@ -606,6 +606,7 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
   assert.doesNotMatch(h.html, /jeu-direct|jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien des écrans à plusieurs (ni « En direct »)');
   h.found(); sec(w, 1);
+  assert.ok(!h.toasts.some(t => /tête|course|affilée|minute|Remontée/.test(t)), 'seul : le commentateur se tait');
   assert.equal(h.view(), 'res0', 'seul : les résultats tout de suite');
   assert.match(h.html, /Ton résultat/); assert.doesNotMatch(h.html, /Classement de la manche|\(toi\)/);
   const x = h.ev('jeuRanking(0)[0]');
@@ -636,13 +637,13 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   assert.match(g.html, /class="jeu-done"/); assert.match(g.html, /Hôte cherche encore/);
   const d = h.ev('jeuDirectHTML(0)'), rows = d.split('<li ').slice(1);
   assert.equal(rows.length, 2, 'une ligne par joueur');
-  assert.match(rows[0], /^class="jd is-ok is-chef is-plus is-trouve is-sacre" data-pid="[\w-]+" data-s="[^"]+"><b class="jeu-av" data-c="1" aria-hidden="true">A/, 'l’ami en premier, en tête (même couleur qu’en salle d’attente) ; ce qui a changé depuis le dernier dessin se joue');
-  assert.match(rows[0], /<i class="jd-fete">(<i><\/i>){6}<\/i>/, 'ses confettis');
-  assert.match(h.ev('jeuDirectHTML(0)').split('<li ')[1], /^class="jd is-ok is-chef" /, 'redessiné aussitôt : rien ne se rejoue');
+  assert.match(rows[0], /^class="jd is-ok is-chef" data-pid="[\w-]+" data-s="[^"]+"><b class="jeu-av" data-c="1" aria-hidden="true">A/, 'l’ami en premier, en tête (même couleur qu’en salle d’attente)');
+  assert.match(rows[0], /<span class="jd-monte"><svg[^]*?<\/svg><b>1<\/b>/, 'il vient de gagner une place : la flèche (4 s)');
+  assert.equal(h.ev('JEU.dit.cur.html'), '<b>Ami</b> ouvre le score\u00a0!', 'le commentateur l’a dit, même pendant que la liste n’était pas redessinée');
   assert.match(rows[0], /<i class="jd-couronne">/); assert.match(rows[0], /Ami<span class="jeu-sr">, en tête<\/span>/);
   assert.match(rows[0], /A trouvé&nbsp;!<em class="jd-gain">\+[\d\u202f\u00a0]+<\/em>/, '« A trouvé ! » et ce que la manche lui rapporte');
   assert.match(rows[0], /<small>1&nbsp;essai<\/small>/);
-  assert.match(rows[1], /^class="jd is-pense is-moi"/); assert.match(rows[1], /<b>Toi<\/b><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>En réflexion<\/small>/);
+  assert.match(rows[1], /^class="jd is-pense is-moi"/); assert.match(rows[1], /<span class="jd-l1"><b>Toi<\/b><\/span><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>En réflexion<\/small>/);
   assert.match(rows[1], /<b>0<small>&nbsp;pt<\/small><\/b><small>0&nbsp;essai<\/small>/);
   assert.match(d, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true">.*?<\/i>1\/2<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/, 'combien ont trouvé, dans la barre');
   assert.doesNotMatch(d, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
@@ -669,6 +670,34 @@ test('« En direct » : les essais manqués des autres comptent chez tous, la li
   const d = host.ev('jeuDirectHTML(0)');
   assert.doesNotMatch(d, /faux|SELECT/, 'jamais sa requête'); assert.match(d, /1\/3<span class="jeu-sr"> : 1 joueur a trouvé/);
   assert.match(d, /<span class="jeu-direct-nb" id="jeu-direct-nb">3&nbsp;joueurs<\/span>/);
+});
+
+/* 8 novembre, 12 h 25 : le commentateur, la série, les réactions, de bout en bout */
+test('« En direct » raconte la partie : la croix, qui ouvre le score, qui reste en course, la série d’une manche à l’autre', () => {
+  const { w, host, guests } = room({ n: 3, nb: 2 });
+  const [a1, a2] = guests, dit = c => c.ev('JEU.dit&&JEU.dit.cur?JEU.dit.cur.html:""'), nb = ' ';
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  assert.equal(dit(host), `C’est parti${nb}! Qui ouvrira le score${nb}?`);
+  a1.ed.value = "SELECT 'faux'"; a1.ev('jeuRun()'); sec(w, 0.6);
+  assert.equal(dit(host), `<b>Ami1</b>${nb}: pas encore`, 'la croix et son pseudo, chez l’hôte');
+  assert.equal(dit(a2), `<b>Ami1</b>${nb}: pas encore`, 'chez l’autre ami aussi');
+  assert.equal(dit(a1), `C’est parti${nb}! Qui ouvrira le score${nb}?`, 'pas chez lui (sa carte le lui dit)');
+  sec(w, 2.5); a1.found(); sec(w, 3);
+  assert.equal(dit(host), `<b>Ami1</b> ouvre le score${nb}!`);
+  a2.found(); sec(w, 3);
+  assert.equal(dit(host), `Plus que toi en course, courage${nb}!`, 'à l’hôte, le dernier');
+  assert.equal(dit(a1), `Plus que <b>Hôte</b> en course…`);
+  assert.ok(host.toasts.includes(`Plus que toi en course, courage${nb}!`), 'dit au lecteur d’écran');
+  /* Ami1 réagit (il a trouvé) : chez l’hôte, dit au lecteur d’écran ; à l’écran, la bulle sur son avatar */
+  a1.ev("JEU.lastReact=0;jeuReact('👏')"); sec(w, 1);
+  assert.ok(host.toasts.includes('Ami1 👏'));
+  host.found(); sec(w, 2);
+  assert.equal(host.view(), 'res0');
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  assert.equal(dit(host), `Manche 2, c’est reparti${nb}!`);
+  a1.found(); sec(w, 3);
+  assert.equal(dit(host), `2 d’affilée pour <b>Ami1</b>${nb}!`, 'la série');
+  assert.match(host.ev('jeuDirectHTML(1)'), /<b>Ami1<span class="jeu-sr">, en tête<\/span><\/b><span class="jd-serie[^"]*"><svg[^]*?<\/svg><b>2<\/b>/, 'sa flamme à côté de son pseudo');
 });
 
 /* 8 novembre, 12 h 07 : « Quand il écrit dans la zone de requête ? » */
