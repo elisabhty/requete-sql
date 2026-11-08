@@ -7,8 +7,9 @@
    - ni correction ni suggestions du clavier, des capitales ; coller l’invitation entière ou son lien ne laisse que le code (le champ
      n’a plus de longueur maximale, qui coupait le texte collé avant qu’on en tire le code) ;
    - au 6e caractère, le contour du champ s’illumine et le bouton s’allume ; on n’entre jamais tout seul : il faut le toucher.
-   Pas de bouton « Coller » : il faudrait lire le presse-papiers, et l’iPhone le demande à chaque fois. Les cas « partie déjà
-   commencée » et « salle fermée » n’existent pas dans l’appli (on peut entrer en cours de partie ; une salle sans hôte ne répond pas). */
+   Pas de bouton « Coller » : il faudrait lire le presse-papiers, et l’iPhone le demande à chaque fois. 16 h 05 (Elisa : « on peut
+   rejoindre tant que l’hôte n’a pas cliqué sur commencer, mais après non ») : « Trop tard, la partie a déjà commencé ! » (salle-defis).
+   Une salle fermée, sans hôte, ne répond pas : « Aucune salle ne correspond à ce code ». */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -89,13 +90,13 @@ test('la recherche dans la feuille : « On cherche ta salle… », puis le messa
   assert.equal(inp.value, 'NENEKE');
   assert.deepEqual(buzz, ['error']);
   /* Complète, sans réseau : le message seul, le champ n’est pas en faute */
-  for (const [e, texte] of [['complete', 'Cette salle est déjà complète&nbsp;!'], ['reseau', 'Connexion perdue. Réessaie&nbsp;!'], ['horsligne', 'Pas de connexion internet. Réessaie&nbsp;!']]) {
+  for (const [e, texte] of [['complete', 'Cette salle est déjà complète&nbsp;!'], ['commencee', 'Trop tard, la partie a déjà commencé&nbsp;!'], ['reseau', 'Connexion perdue. Réessaie&nbsp;!'], ['horsligne', 'Pas de connexion internet. Réessaie&nbsp;!']]) {
     inp.classList.remove('is-ko', 'is-shake');
     ctx.dxCodeEtat(e, 'NENEKE');
     assert.equal(msg.innerHTML, texte, e);
     assert.ok(!inp.classList.contains('is-ko'), e);
   }
-  assert.deepEqual(buzz.slice(1), ['warning', 'warning', 'warning']);
+  assert.deepEqual(buzz.slice(1), ['warning', 'warning', 'warning', 'warning']);
   /* On retape pendant une recherche : elle s’arrête, le bouton revient */
   ctx.dxCodeEtat('cherche', 'NENEKE');
   ctx.JEU = { verif: true, code: 'NENEKE' };
