@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=235">
+<link rel="stylesheet" href="ludique.css?v=236">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27188,6 +27188,12 @@ function defisFeuilleOuvrir(k){
     </div>`;
   const inp=el.querySelector('#jeu-code'),ko=k==='code'&&typeof jeuCodeKo!=='undefined'&&!!jeuCodeKo;
   if(ko){jeuCodeKo='';if(inp)inp.classList.add('is-shake');}
+  if(inp){
+    /* Le champ prend le focus (touché, ou à l’ouverture) : un instant tout en haut, pour que Safari ne fasse rien défiler (comme
+       React Aria) ; la feuille monte elle-même avec le clavier (dxClavierPrevu). Il le perd : elle redescend avec le clavier. */
+    inp.addEventListener('focus',()=>{if(!dxTactile())return;inp.style.transform='translateY(-2000px)';requestAnimationFrame(()=>{inp.style.transform='';});if(!el._auto)dxClavierPrevu(el);});
+    inp.addEventListener('blur',()=>{el._prevu=0;clearTimeout(el._prevuT);setTimeout(dxFeuilleCaler,80);});
+  }
   document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));
   const bx=el.querySelector('.dx-f-boite');
   if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;
@@ -27203,13 +27209,8 @@ function defisFeuilleOuvrir(k){
   };
   if(neuf)document.body.appendChild(el);
   /* Sur téléphone, le clavier monte avec la feuille (8 novembre, 15 h 27) : le champ prend le focus pendant le toucher même (l’iPhone
-     n’ouvre le clavier qu’ainsi), plutôt qu’une feuille vide qu’il faudrait toucher encore. Un instant placé tout en haut : Safari ne
-     fait rien défiler pour le montrer pendant que la feuille monte. */
-  if(inp&&(!inp.value||ko)&&typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches){
-    inp.style.transform='translateY(-2000px)';
-    try{inp.focus({preventScroll:true});}catch(e){}
-    requestAnimationFrame(()=>{inp.style.transform='';});
-  }
+     n’ouvre le clavier qu’ainsi), plutôt qu’un champ qu’il faudrait toucher encore. */
+  if(inp&&(!inp.value||ko)&&dxTactile()){el._auto=true;try{inp.focus({preventScroll:true});}catch(e){}el._auto=false;}   // ici, pas d’estimation : la carte monte quand le clavier est vraiment là
   if(neuf)requestAnimationFrame(()=>requestAnimationFrame(montrer));else montrer();
 }
 function defisFeuilleFermer(sansRetour){
@@ -27226,6 +27227,7 @@ function defisFeuilleFermer(sansRetour){
   /* Elle s’efface encore un instant : son champ et son bouton perdent leur nom, une feuille rouverte aussitôt ne lit jamais l’ancien
      code (8 novembre, 15 h 27 : le même code du champ à la salle). */
   el.querySelectorAll('#jeu-code,#jeu-code-go').forEach(x=>x.removeAttribute('id'));
+  el.style.setProperty('--dx-clavier','0px');
   el.removeAttribute('id');
   el.classList.remove('on');el.classList.add('off');
   setTimeout(()=>el.remove(),prefersReduceMotion()?0:260);
@@ -27243,14 +27245,50 @@ function dxFeuilleTouche(e){
   e.preventDefault();
   f[i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length].focus();
 }
-/* La feuille couvre l’écran (la barre de Safari qui se replie change sa hauteur). Celle du code (8 novembre, 15 h 27) couvre ce qui
-   reste visible au-dessus du clavier : sa hauteur suit le clavier, son haut ne bouge pas ; le champ y est en haut, déjà au-dessus du
-   clavier, rien ne saute (14 h 59 : posée en bas, Safari faisait défiler la page pour montrer le champ, puis la feuille remontait). */
+/* La feuille couvre l’écran (la barre de Safari qui se replie change sa hauteur). Celle du code (Elisa, 8 novembre, 16 h 18, la feuille
+   pleine hauteur, clavier fermé : « Ça fait trop long ») reste une carte posée en bas, qui monte avec le clavier d’un seul mouvement
+   (--dx-clavier, la hauteur du clavier). Dans l’app, l’iPhone annonce le clavier et sa hauteur quand il commence à monter
+   (keyboardWillShow) : la feuille monte avec lui ; la page ne rétrécit qu’une fois le clavier arrivé, et le cadre de la feuille garde
+   alors sa hauteur : rien ne bouge. Dans Safari, la hauteur mesurée la fois d’avant (sinon une estimation) dès le toucher du champ,
+   corrigée quand Safari donne la vraie (visualViewport). Avant : posée en bas, Safari faisait défiler la page pour montrer le champ,
+   puis la feuille remontait (14 h 59) ; en haut, un vide au-dessus du clavier (15 h 27) ; pleine hauteur, trop longue. */
+let dxClavierApp=0;
+function dxNatif(){const C=typeof window!=='undefined'?window.Capacitor:null;return !!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform());}
+function dxTactile(){return typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches;}
 function dxFeuilleCaler(){
   const el=document.getElementById('dx-feuille');if(!el)return;
-  const vv=el.dataset.k==='code'?window.visualViewport:null;
-  el.style.top=(vv?vv.offsetTop:0)+'px';el.style.height=(vv?vv.height:window.innerHeight)+'px';el.style.bottom='auto';
+  let k=0;
+  if(el.dataset.k!=='code')el._haut=window.innerHeight;
+  else if(dxNatif()){
+    k=dxClavierApp;
+    const recent=Date.now()-(el._ferme||0)<700;   // le clavier redescend : la page n’a pas encore repris sa hauteur
+    el._haut=k?(el._haut||window.innerHeight):recent?Math.max(el._haut||0,window.innerHeight):window.innerHeight;
+  }else{
+    const vv=window.visualViewport,reel=vv?Math.max(0,Math.round(window.innerHeight-vv.offsetTop-vv.height)):0;
+    el._haut=window.innerHeight;
+    if(reel>60){k=reel;el._prevu=0;try{localStorage.setItem('rq-clavier',String(reel));}catch(e){}}
+    else k=el._prevu||0;
+  }
+  el.style.top='0px';el.style.height=el._haut+'px';el.style.bottom='auto';
+  el.style.setProperty('--dx-clavier',k+'px');el.classList.toggle('is-clavier',k>0);
   if(el._marque)requestAnimationFrame(el._marque);
+}
+/* Safari : le champ touché, la feuille monte tout de suite de la hauteur du clavier de la fois d’avant (sinon environ 45 % de l’écran).
+   Pas de clavier après tout (un clavier externe) : elle redescend. */
+function dxClavierPrevu(el){
+  if(dxNatif())return;   // l’app annonce le clavier elle-même
+  const vv=window.visualViewport;
+  if(!vv||window.innerHeight-vv.offsetTop-vv.height>60)return;   // déjà ouvert : Safari donne la vraie hauteur
+  let k=0;try{k=+localStorage.getItem('rq-clavier')||0;}catch(e){}
+  el._prevu=k>120&&k<window.innerHeight*.75?k:Math.round(window.innerHeight*.45);
+  dxFeuilleCaler();
+  clearTimeout(el._prevuT);
+  el._prevuT=setTimeout(()=>{if(el._prevu){el._prevu=0;dxFeuilleCaler();}},900);
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
+  window.addEventListener('keyboardWillShow',e=>{dxClavierApp=Math.max(0,Math.round(+(e&&e.keyboardHeight)||0));dxFeuilleCaler();});
+  window.addEventListener('keyboardWillHide',()=>{dxClavierApp=0;const el=typeof document!=='undefined'&&document.getElementById('dx-feuille');if(el)el._ferme=Date.now();dxFeuilleCaler();});
+  window.addEventListener('resize',()=>{if(typeof document!=='undefined'&&document.getElementById('dx-feuille'))dxFeuilleCaler();});
 }
 function jeuVisTexte(){return jeuVis==='priv'?'Seuls les joueurs à qui tu donnes le code peuvent rejoindre ta salle.':'Tous les joueurs peuvent voir et rejoindre ta salle. Tu peux aussi partager son code.';}
 /* L’écran Défis : la salle de défi seule (Elisa, 31 octobre, 1 h 34 : « pas de défis libres ni d’entraînement libre, que la salle de
@@ -46422,7 +46460,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-partie-lancee-v2679';
+  const SW_CACHE='requete-2026-11-08-code-carte-v2680';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
