@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=245">
+<link rel="stylesheet" href="ludique.css?v=246">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35492,6 +35492,7 @@ function jeuTick(){
   jeuFlush();
   jeuHostWatch();
   jeuNetMaj();
+  jeuReagirMaj();   // « Réagir », en bas à droite, pendant la manche (19 h 37)
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
   if(el&&n>=0){const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
@@ -35672,9 +35673,7 @@ function jeuDirectHTML(n,hud,chrono){
   J.directVu={n,m:jeuDirectEtats(xs),sig:jeuDirectSig(xs)};
   const plie=jeuDirectPlie(),t=jeuDirectTete(xs);
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
-  /* « Réagir », en salle, même seule (18 h 36, 19 h 12) : la première fois de la partie, son sourire se balance */
-  const reagir=jeuReagirLa(),neuf=reagir&&!J.reagirVu;if(neuf)J.reagirVu=1;
-  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}" id="jeu-direct" aria-labelledby="jeu-direct-t">${chrono||''}<div class="jeu-direct-bande">${hud||''}`+
+  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t">${chrono||''}<div class="jeu-direct-bande">${hud||''}`+
     `<button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="${!plie}" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer()">`+
     `<span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b>`+
     `<span class="jeu-direct-nb">${typeof DX_GENS_SVG!=='undefined'?DX_GENS_SVG:''}<span id="jeu-direct-nb">${t.nb}</span></span><span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span>`+
@@ -35688,7 +35687,6 @@ function jeuDirectHTML(n,hud,chrono){
    nouvelle. */
 function jeuDirectPeindre(n){
   const J=JEU;if(!J)return;
-  jeuReagirMaj();
   const l=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-direct-l'):null;
   const xs=jeuDirectJoueurs(n),vu=J.directVu&&J.directVu.n===n?J.directVu:null;
   if(vu&&vu.sig===jeuDirectSig(xs)&&(!l||!l.dataset||l.dataset.sig===vu.sig))return;
@@ -35809,19 +35807,20 @@ function jeuReactPop(pid,e){
 }
 /* Réagir (Elisa, 8 novembre, 18 h 36 : « comment faire les réactions ? De plus voir la réaction des autres en temps réel sur l’écran
    avec leur pseudo »). Avant, les quatre réactions n’apparaissaient qu’une fois la réponse trouvée, et à plusieurs : seule pour
-   tester, on ne les voyait jamais. Maintenant, en salle, pendant toute la manche, « Réagir » au bout de la ligne du niveau, dans le
-   cadre, même seule dans la salle (19 h 12 : « visible même seule » ; sa réaction monte alors avec « Toi ») ; pas en partie seule
-   (« Joue seul »). Un seul bouton tant qu’on ne s’en sert pas (31 octobre, 16 h 29 : « trop de boutons »). Touché, les quatre réactions
-   prennent la ligne, la croix au bout ; une touche envoie, la ligne reste ouverte pour une autre et se referme seule après 4,5 s sans
-   toucher. La première fois qu’il apparaît dans une partie, le sourire se balance (deux fois, puis il se tait). Après avoir trouvé,
-   la carte « Trouvé » garde ses quatre réactions. */
+   tester, on ne les voyait jamais. 19 h 12 : « visible même seule ». 19 h 37 : « le Réagir, laisse-le en bas à droite, et il s’enlève
+   quand on écrit dans l’endroit de la requête » : un bouton « Réagir » posé en bas à droite de l’écran, pendant toute la manche, dans
+   toute salle (pas en « Joue seul ») ; il s’efface dès qu’on écrit (l’éditeur, ou un autre champ, a le clavier) et revient ensuite.
+   Touché, les quatre réactions sortent à sa gauche, la croix à sa place ; une touche envoie, la rangée reste ouverte pour une autre
+   et se referme seule après 4,5 s sans toucher. Les réactions montent juste au-dessus de lui (jeuReactBulle). La première fois de la
+   partie, son sourire se balance (deux fois, puis il se tait). Quand la pastille « Un coup de patte ? » est là, il monte au-dessus
+   d’elle. La carte « Trouvé » garde ses quatre réactions. */
 const JEU_REAGIR_MS=4500;
 const JEU_REAGIR_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="7.9" cy="11.7" r="1.25" fill="currentColor"/><circle cx="13.1" cy="11.7" r="1.25" fill="currentColor"/><path d="M7.4 15.3c1.6 1.9 4.6 1.9 6.2 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.8 2.6v5.2M17.2 5.2h5.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 function jeuReagirHTML(){
   const J=JEU,ouvert=!!(J&&J.reagir);
-  return `<span class="jeu-reagir" id="jeu-reagir"><button type="button" class="jeu-reagir-b" id="jeu-reagir-b" aria-expanded="${ouvert}" aria-controls="jeu-reagir-l" aria-label="Réagir" onclick="jeuReagirBasculer(event)">`+
+  return `<div class="jeu-reagir${ouvert?' is-ouvert':''}" id="jeu-reagir"><button type="button" class="jeu-reagir-b" id="jeu-reagir-b" aria-expanded="${ouvert}" aria-controls="jeu-reagir-l" aria-label="Réagir" onclick="jeuReagirBasculer(event)">`+
     `${JEU_REAGIR_SVG}<span>Réagir</span><svg class="jeu-reagir-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>`+
-    `<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions">${JEU_REACTS.map((e,i)=>`<button type="button" style="--i:${i}" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</span></span>`;
+    `<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions">${JEU_REACTS.map((e,i)=>`<button type="button" style="--i:${i}" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</span></div>`;
 }
 function jeuReagirBasculer(ev){
   const J=JEU;if(!J)return;
@@ -35839,19 +35838,52 @@ function jeuReagirFermer(rendre){
 }
 function jeuReagirPeindre(){
   if(typeof document==='undefined'||!document.getElementById)return;
-  const J=JEU,s=document.getElementById('jeu-direct'),b=document.getElementById('jeu-reagir-b'),o=!!(J&&J.reagir);
-  if(s&&s.classList)s.classList.toggle('is-reagir',o);
+  const J=JEU,f=document.getElementById('jeu-reagir'),b=document.getElementById('jeu-reagir-b'),o=!!(J&&J.reagir);
+  if(f&&f.classList)f.classList.toggle('is-ouvert',o);
   if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(o));
 }
-/* « Réagir » est là dans toute salle, même seule (19 h 12) ; pas en partie seule. Suivi à chaque tour d’horloge (jeuDirectPeindre). */
-function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo);}
+/* Là pendant toute la manche, dans toute salle, même seule ; ni en partie seule, ni sur le tirage, le bilan ou le podium. */
+function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo&&/^play\d/.test(String(J.view||'')));}
+/* On écrit : un champ de texte a le clavier (l’éditeur de la requête d’abord). */
+function jeuReagirEcrit(){
+  const a=typeof document!=='undefined'?document.activeElement:null;if(!a||!a.tagName)return false;
+  return a.tagName==='TEXTAREA'||a.isContentEditable===true||(a.tagName==='INPUT'&&!/^(button|checkbox|radio|range|submit|reset|file|color)$/i.test(a.type||''));
+}
+/* Contre le bord droit de la manche : sur un grand écran, la colonne de la salle ; sur le téléphone, le bord de l’écran. */
+function jeuReagirDroite(){
+  if(typeof document==='undefined'||typeof document.getElementById!=='function')return null;
+  const root=document.getElementById('jeu-root'),vw=(typeof window!=='undefined'&&window.innerWidth)||0;
+  const rr=root&&typeof root.getBoundingClientRect==='function'?root.getBoundingClientRect():null;
+  return rr&&rr.width&&vw?Math.max(12,Math.round(vw-rr.right)):null;
+}
+/* Posé, retiré, effacé pendant qu’on écrit : à chaque dessin de la salle, à chaque tour d’horloge, et dès qu’un champ prend ou
+   quitte le clavier. */
 function jeuReagirMaj(){
-  const J=JEU,s=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-direct'):null;
-  if(!J||!s||!s.classList)return;
-  const la=jeuReagirLa();
-  if(la&&!J.reagirVu&&!s.classList.contains('has-reagir')){J.reagirVu=1;s.classList.add('is-reagir-neuf');}
-  s.classList.toggle('has-reagir',la);
-  if(!la&&J.reagir)jeuReagirFermer(false);
+  if(typeof document==='undefined'||typeof document.getElementById!=='function')return;
+  const J=JEU;let f=document.getElementById('jeu-reagir');
+  if(!J||!jeuReagirLa()||!document.getElementById('jeu-root')){
+    if(f)f.remove();
+    if(J&&J.reagir){clearTimeout(J.reagirT);J.reagir=0;}
+    return;
+  }
+  if(!f){
+    if(typeof document.createElement!=='function'||!document.body)return;
+    const t=document.createElement('template');t.innerHTML=jeuReagirHTML();f=t.content.firstElementChild;
+    if(!J.reagirVu){J.reagirVu=1;f.classList.add('is-neuf');}
+    document.body.appendChild(f);
+    jeuReagirEcoute();
+  }
+  const ecrit=jeuReagirEcrit();
+  f.classList.toggle('is-ecrit',ecrit);
+  if(ecrit&&J.reagir)jeuReagirFermer(false);
+  const d=jeuReagirDroite();if(f.style)f.style.right=d==null?'':d+'px';
+}
+let jeuReagirEcoutee=false;
+function jeuReagirEcoute(){
+  if(jeuReagirEcoutee||typeof document.addEventListener!=='function')return;jeuReagirEcoutee=true;
+  const suivre=()=>setTimeout(()=>{if(typeof JEU!=='undefined'&&JEU)jeuReagirMaj();},0);
+  document.addEventListener('focusin',suivre);document.addEventListener('focusout',suivre);
+  if(typeof window!=='undefined'&&typeof window.addEventListener==='function')window.addEventListener('resize',suivre);
 }
 /* Les réactions en direct (18 h 36 : « voir la réaction des autres en temps réel sur l’écran avec leur pseudo ») : chacune monte le
    long du bord droit de l’écran, comme dans un live : l’emoji dans sa bulle blanche et, dessous, le pseudo sur la couleur de son
@@ -35864,11 +35896,12 @@ function jeuReactBulle(pid,e,nom){
   const root=document.getElementById('jeu-root');if(!root)return false;
   let c=document.getElementById('jeu-rl');
   if(!c){c=document.createElement('div');c.id='jeu-rl';c.className='jeu-rl';c.setAttribute('aria-hidden','true');document.body.appendChild(c);}
+  /* Elles montent juste au-dessus du bouton « Réagir », en bas à droite (19 h 37) ; pendant qu’on écrit (il s’efface), au-dessus du
+     clavier. Contre le bord droit de la manche. */
   const vv=typeof window!=='undefined'?window.visualViewport:null,h=vv?vv.height:((typeof window!=='undefined'&&window.innerHeight)||640);
-  c.style.top=Math.round((vv?vv.offsetTop:0)+h*.64)+'px';
-  /* Contre le bord droit de la manche (sur un grand écran, la colonne de la salle ; sur le téléphone, le bord de l’écran) */
-  const rr=typeof root.getBoundingClientRect==='function'?root.getBoundingClientRect():null,vw=(typeof window!=='undefined'&&window.innerWidth)||0;
-  if(rr&&rr.width&&vw)c.style.right=Math.max(12,Math.round(vw-rr.right))+'px';
+  const f=document.getElementById('jeu-reagir'),fr=f&&!f.classList.contains('is-ecrit')&&typeof f.getBoundingClientRect==='function'?f.getBoundingClientRect():null;
+  c.style.top=Math.round(fr&&fr.height?fr.top-10:(vv?vv.offsetTop:0)+h-86)+'px';
+  const d=jeuReagirDroite();if(d!=null)c.style.right=d+'px';
   while(c.children.length>=6)c.firstElementChild.remove();
   const me=pid===J.me,qui=me?'Toi':(jeuNom((J.players[pid]||{}).name)||jeuNom(nom)||'Joueur'),k=(J.rlN=(J.rlN||0)+1),now=Date.now();
   /* Deux réactions presque ensemble (moins d’une seconde ; en mouvement réduit, tant que la précédente est là) : la nouvelle part à
@@ -36038,6 +36071,7 @@ function jeuRender(){
   const focusKey=keep&&document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.fk:null;
   J.view=v;J.sig=sig;
   if(!/^play/.test(v)&&typeof coachPeekOff==='function')coachPeekOff();   // le bilan, l’attente, le tirage : pas de pastille d’indice (10 h 31)
+  jeuReagirMaj();   // « Réagir » : là pendant la manche, parti ailleurs
   J.drawT.forEach(clearTimeout);J.drawT=[];
   const head=(k,t,s)=>`<div class="l-kicker">${k}</div><h1>${t}</h1>${s?`<p class="l-sub" id="jeu-sub">${s}</p>`:''}`;
   /* Les réglages de la partie en autocollants : le niveau et ses barres, les manches, le chrono (Elisa, 31 octobre, 15 h 52, réf. 1 :
@@ -36123,7 +36157,7 @@ function jeuRender(){
        posé sur le bord du cadre (19 h 18). Seul (Joue seul), le même bandeau, avec sa tête seulement. La base passe en pastille sur le
        bord de « La situation » (18 h 28, 18 h 36). */
     const hud=`<div class="jeu-hud"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b><span class="jeu-hud-r">${val}</span>`+
-      `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${J.solo?'':jeuReagirHTML()}</span></div>`;
+      `<span class="jeu-hud-niv"><span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span></div>`;
     /* Le chrono, posé à cheval sur le bord du cadre, en haut à droite, comme la base sur celui de « La situation » (Elisa, 8 novembre,
        19 h 18 : « le chrono, le mettre comme la pill du cadre, entre l’intérieur et l’extérieur ») : hors du bandeau, qui coupe ce qui
        dépasse, dans la section. */
@@ -36562,6 +36596,7 @@ function jeuStop(){
   clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);clearTimeout(J.reagirT);J.drawT.forEach(clearTimeout);
   setTimeout(()=>{try{J.t&&J.t.close();}catch(e){}},600);
   document.getElementById('jeu-rl')?.remove();   // les réactions encore en l’air partent avec la salle
+  document.getElementById('jeu-reagir')?.remove();   // et « Réagir », en bas à droite
   if(typeof ileSalleQuitter==='function')ileSalleQuitter();   // la salle dans l’île s’en va (sauf le podium)
   JEU=null;
   document.getElementById('jeu-toasts')?.remove();
@@ -46656,7 +46691,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-chrono-bord-v2692';
+  const SW_CACHE='requete-2026-11-08-reagir-bas-v2693';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

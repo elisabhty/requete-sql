@@ -6,7 +6,9 @@
    - Réagir : avant, les quatre réactions n’apparaissaient qu’une fois la réponse trouvée, et à plusieurs. Maintenant, en salle,
      « Réagir » au bout de la ligne du niveau, dans le cadre de la manche, un seul bouton (31 octobre : « trop de boutons ») qui ouvre
      les quatre ; chaque réaction, la sienne comme celles des autres, monte le long du bord de l’écran avec le pseudo. 19 h 12 (capture
-     d’une salle où elle est seule, sans « Réagir ») : « visible même seule » ; pas en partie seule (« Joue seul »).
+     d’une salle où elle est seule, sans « Réagir ») : « visible même seule » ; pas en partie seule (« Joue seul »). 19 h 37 : « le
+     Réagir, laisse-le en bas à droite, et il s’enlève quand on écrit dans l’endroit de la requête » : un bouton posé en bas à droite
+     de l’écran, effacé pendant qu’on écrit ; les réactions montent juste au-dessus de lui.
    - La situation finit toujours sur la phrase du schéma. */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -56,65 +58,96 @@ test('la situation finit toujours sur « À toi de jouer ! Tu peux consulter le 
   assert.equal(vm.runInContext('defiSituation(s)', ctx), 'Une situation sans la fin habituelle. ' + PHRASE, 'une autre fin : la phrase s’ajoute aussi');
 });
 
-/* Un faux DOM pour « Réagir » et les bulles : le cadre (ses classes), le bouton, le calque des réactions et ses bulles. */
-function monde({ reduit = false, live = ['a', 'b'], solo = false } = {}) {
+/* Un faux DOM pour « Réagir » et les bulles : la page, le bouton posé en bas à droite, le calque des réactions et ses bulles. */
+function monde({ reduit = false, live = ['a', 'b'], solo = false, view = 'play0' } = {}) {
   let T = 1_000_000;
-  const later = [], cleared = [], els = {}, sent = [], dits = [];
+  const later = [], cleared = [], els = {}, sent = [], dits = [], focus = [], ecoute = {};
   const classes = () => { const set = new Set(); return { set, add: k => set.add(k), contains: k => set.has(k), toggle: (k, on) => (on ? set.add(k) : set.delete(k), on) }; };
   const el = tag => {
-    const e = { tag, id: '', children: [], style: { p: {}, setProperty(k, v) { this.p[k] = v; } }, dataset: {}, attrs: {}, className: '', textContent: '', isConnected: false, parent: null, w: 70,
+    const e = { tag, id: '', children: [], style: { p: {}, setProperty(k, v) { this.p[k] = v; } }, dataset: {}, attrs: {}, className: '', textContent: '', isConnected: false, parent: null,
+      w: 70, top: 0, h: 0, classList: classes(),
       setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; },
       appendChild(c) { this.children.push(c); c.parent = this; c.isConnected = true; if (c.id) els[c.id] = c; return c; },
       append(...cs) { cs.forEach(c => this.appendChild(c)); },
       remove() { if (this.parent) { this.parent.children.splice(this.parent.children.indexOf(this), 1); this.parent = null; this.isConnected = false; } if (els[this.id] === this) delete els[this.id]; },
       get firstElementChild() { return this.children[0] || null; },
-      getBoundingClientRect() { return { width: this.w }; }, focus() { focus.push(this.id || this.tag); } };
+      getBoundingClientRect() { return { width: this.w, top: this.top, height: this.h }; }, focus() { focus.push(this.id || this.tag); } };
     return e;
   };
-  const focus = [];
-  const section = Object.assign(el('section'), { id: 'jeu-direct', classList: classes() });
-  const bouton = Object.assign(el('button'), { id: 'jeu-reagir-b' });
   const premiere = Object.assign(el('button'), { id: 'premiere' });
   const body = el('body');
+  const root = { getBoundingClientRect: () => ({ left: 20, right: 373, width: 353 }) };
+  /* Le bouton naît d’un modèle (template) : son HTML est gardé, son bouton intérieur trouvable par son identifiant */
+  const template = () => ({ content: { firstElementChild: null }, set innerHTML(h) {
+    const f = el('div'); f.id = 'jeu-reagir'; f.html = h; f.top = 690; f.h = 48;
+    const b = el('button'); b.id = 'jeu-reagir-b'; els['jeu-reagir-b'] = b; f.bouton = b; this.content.firstElementChild = f; } });
   const document = { body, hidden: false, activeElement: null,
-    getElementById: id => id === 'jeu-root' ? {} : id === 'jeu-direct' ? section : id === 'jeu-reagir-b' ? bouton : els[id] || null,
-    querySelector: q => q === '#jeu-reagir-l button' ? premiere : null, createElement: el };
-  const J = { me: 'a', solo, players: { a: { name: 'Elisa' }, b: { name: '@lea_data' }, c: { name: '@max' } }, lastReact: 0 };
+    getElementById: id => (id === 'jeu-root' ? root : els[id] || null),
+    querySelector: q => (q === '#jeu-reagir-l button' ? premiere : null), createElement: tag => (tag === 'template' ? template() : el(tag)),
+    addEventListener: (k, f) => { ecoute[k] = f; } };
+  const J = { me: 'a', solo, view, players: { a: { name: 'Elisa' }, b: { name: '@lea_data' }, c: { name: '@max' } }, lastReact: 0 };
   const ctx = vm.createContext({
-    JEU: J, JEU_REACTS: ['👏', '🔥', '😅', '🤯'], document, window: { innerHeight: 800, visualViewport: { offsetTop: 0, height: 500 } },
+    JEU: J, JEU_REACTS: ['👏', '🔥', '😅', '🤯'], document, window: { innerHeight: 800, innerWidth: 393, visualViewport: { offsetTop: 0, height: 500 }, addEventListener: (k, f) => { ecoute['w:' + k] = f; } },
     Date: { now: () => T }, setTimeout: (f, ms) => (later.push([f, ms]), later.length), clearTimeout: k => cleared.push(k),
     prefersReduceMotion: () => reduit, jeuLive: () => live, jeuOrder: () => ['a', 'b', 'c'], jeuNom: v => String(v || '').slice(0, 16),
     jeuSend: m => sent.push(m), jeuToast: t => dits.push(t), buzz: () => {},
   });
-  vm.runInContext(cut('const JEU_REAGIR_MS=', '\n/* « Il écrit »').replace(/^const /gm, 'var ') + '\n' + cut('function jeuReact(e,btn){', '\n}\n') + '\n}', ctx);
-  return { ctx, J, section, bouton, focus, later, cleared, els, sent, dits, body, ev: c => vm.runInContext(c, ctx), avance: ms => { T += ms; } };
+  vm.runInContext(cut('const JEU_REAGIR_MS=', '\n/* « Il écrit »').replace(/^(const|let) /gm, 'var ') + '\n' + cut('function jeuReact(e,btn){', '\n}\n') + '\n}', ctx);
+  return { ctx, J, document, focus, later, cleared, els, sent, dits, body, ecoute, ev: c => vm.runInContext(c, ctx), avance: ms => { T += ms; }, fab: () => els['jeu-reagir'] || null };
 }
 
-test('« Réagir » : un seul bouton dans la ligne du niveau, en salle (même seule) ; il ouvre les quatre réactions', () => {
+test('« Réagir » : un bouton posé en bas à droite de l’écran, pendant la manche, dans toute salle (même seule) ; plus dans le cadre', () => {
   const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
-  assert.ok(play.includes("`<span class=\"jeu-hud-niv\"><span class=\"dx-f-niv is-${c.niv}\">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>${J.solo?'':jeuReagirHTML()}</span></div>`"), 'au bout de la ligne du niveau ; pas en partie seule');
+  assert.ok(!play.includes('jeuReagirHTML') && play.includes("${JEU_NIVL[c.niv]}</span></span></div>`;"), 'la ligne du niveau n’a plus que le niveau');
+  assert.ok(!cut('function jeuDirectHTML(n,hud,chrono){', '\n}\n').includes('reagir'), 'le cadre ne s’en occupe plus');
   const m = monde(), h = m.ev('jeuReagirHTML()');
-  assert.ok(h.startsWith('<span class="jeu-reagir" id="jeu-reagir"><button type="button" class="jeu-reagir-b" id="jeu-reagir-b" aria-expanded="false" aria-controls="jeu-reagir-l" aria-label="Réagir" onclick="jeuReagirBasculer(event)">'));
+  assert.ok(h.startsWith('<div class="jeu-reagir" id="jeu-reagir"><button type="button" class="jeu-reagir-b" id="jeu-reagir-b" aria-expanded="false" aria-controls="jeu-reagir-l" aria-label="Réagir" onclick="jeuReagirBasculer(event)">'));
   assert.ok(h.includes('<span>Réagir</span>') && h.includes('class="jeu-reagir-x"'), 'le sourire et « Réagir » ; la croix, cachée tant que c’est fermé');
   assert.equal((h.match(/onclick="jeuReact\('/g) || []).length, 4, 'les quatre réactions');
   assert.ok(h.includes('<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions"><button type="button" style="--i:0" onclick="jeuReact(\'👏\',this)" aria-label="Réagir 👏">👏</button>'));
-  /* Le cadre le montre dans toute salle ; la première fois de la partie, son sourire se balance */
-  const d = cut('function jeuDirectHTML(n,hud,chrono){', '\n}\n');
-  assert.ok(d.includes('const reagir=jeuReagirLa(),neuf=reagir&&!J.reagirVu;if(neuf)J.reagirVu=1;'));
-  assert.ok(d.includes("${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}\" id=\"jeu-direct\""));
-  assert.ok(app.includes('function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo);}'));
-  assert.equal(m.ev('jeuReagirLa()'), true);
-  assert.equal(monde({ live: ['a'] }).ev('jeuReagirLa()'), true, 'seule dans la salle aussi (19 h 12 : « visible même seule »)');
+  assert.ok(app.includes("function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo&&/^play\\d/.test(String(J.view||'')));}"));
+  assert.equal(m.ev('jeuReagirLa()'), true, 'pendant la manche, à plusieurs');
+  assert.equal(monde({ live: ['a'] }).ev('jeuReagirLa()'), true, 'seule dans la salle aussi (19 h 12)');
   assert.equal(monde({ solo: true }).ev('jeuReagirLa()'), false, 'pas en partie seule (« Joue seul »)');
+  for (const v of ['lobby', 'draw0', 'res0', 'final']) assert.equal(monde({ view: v }).ev('jeuReagirLa()'), false, v);
+  /* Il suit la salle : à chaque dessin, à chaque tour d’horloge ; on part, il part */
+  assert.ok(cut('function jeuRender(){', '\n  J.drawT.forEach(clearTimeout)').includes('jeuReagirMaj();'));
+  assert.ok(cut('function jeuTick(){', '\n}\n').includes('jeuReagirMaj();'));
+  assert.ok(cut('function jeuStop(){', '\n}\n').includes("document.getElementById('jeu-reagir')?.remove();"));
+});
+
+test('« Réagir » posé, salué une fois, effacé pendant qu’on écrit, retiré hors de la manche', () => {
+  const m = monde();
+  m.ev('jeuReagirMaj()');
+  const f = m.fab();
+  assert.ok(f && f.parent === m.body, 'posé sur la page (pas dans la manche, qui défile)');
+  assert.ok(f.classList.contains('is-neuf'), 'la première fois, son sourire se balance');
+  assert.equal(f.style.right, '20px', 'contre le bord droit de la manche');
+  assert.ok(m.ecoute.focusin && m.ecoute.focusout, 'il suit le clavier');
+  /* On écrit dans l’éditeur : il s’efface, et la rangée ouverte se referme */
+  m.ev('jeuReagirBasculer({detail:1})'); assert.ok(f.classList.contains('is-ouvert'));
+  m.document.activeElement = { tagName: 'TEXTAREA', id: 'ed-lesson' };
+  m.ecoute.focusin(); m.later.at(-1)[0]();
+  assert.ok(f.classList.contains('is-ecrit') && !f.classList.contains('is-ouvert'), 'on écrit : effacé, refermé');
+  m.document.activeElement = { tagName: 'INPUT', type: 'text' }; m.ev('jeuReagirMaj()'); assert.ok(f.classList.contains('is-ecrit'), 'un autre champ aussi');
+  m.document.activeElement = { tagName: 'BUTTON' }; m.ecoute.focusout(); m.later.at(-1)[0]();
+  assert.ok(!f.classList.contains('is-ecrit'), 'on a fini d’écrire : il revient');
+  /* Une autre manche : le même bouton, sans resaluer ; le bilan : parti */
+  f.classList.set.delete('is-neuf'); m.ev('jeuReagirMaj()'); assert.equal(m.fab(), f); assert.ok(!f.classList.contains('is-neuf'));
+  m.J.view = 'res0'; m.ev('jeuReagirMaj()'); assert.equal(m.fab(), null, 'hors de la manche : retiré');
+  m.J.view = 'play1'; m.ev('jeuReagirMaj()'); assert.ok(m.fab() && !m.fab().classList.contains('is-neuf'), 'une fois par partie');
+  const s = monde({ solo: true }); s.ev('jeuReagirMaj()'); assert.equal(s.fab(), null, 'partie seule : jamais');
 });
 
 test('« Réagir » : touché, il s’ouvre ; une réaction part ; seul, il se referme au bout de 4,5 s ; la croix le referme', () => {
   const m = monde();
+  m.ev('jeuReagirMaj()');
+  const f = m.fab(), b = m.els['jeu-reagir-b'];
   m.ev('jeuReagirBasculer({detail:1})');
-  assert.ok(m.section.classList.contains('is-reagir') && m.bouton.attrs['aria-expanded'] === 'true', 'ouvert');
+  assert.ok(f.classList.contains('is-ouvert') && b.attrs['aria-expanded'] === 'true', 'ouvert');
   assert.deepEqual(m.focus, [], 'au doigt, le focus ne bouge pas');
-  const [ferme, ms] = m.later.at(-1); assert.equal(ms, 4500);
-  /* Une réaction : envoyée, dite au lecteur d’écran, et la ligne reste ouverte 4,5 s de plus */
+  assert.equal(m.later.at(-1)[1], 4500);
+  /* Une réaction : envoyée, dite au lecteur d’écran, et la rangée reste ouverte 4,5 s de plus */
   m.ev("jeuReact('🔥')");
   assert.deepEqual(m.sent.map(x => ({ ...x })), [{ t: 'react', e: '🔥' }]); assert.deepEqual(m.dits, ['Toi 🔥']);
   assert.equal(m.later.filter(x => x[1] === 4500).length, 2, 'le compte à rebours repart');
@@ -123,38 +156,23 @@ test('« Réagir » : touché, il s’ouvre ; une réaction part ; seul, il se r
   m.avance(800); m.ev("jeuReact('👏',btn)"); assert.equal(m.sent.length, 1); assert.equal(anims.length, 1, 'un petit non de la tête');
   m.avance(800); m.ev("jeuReact('👏',btn)"); assert.equal(m.sent.length, 2, 'après 1,5 s, elle part');
   m.ev("jeuReact('💩')"); assert.equal(m.sent.length, 2, 'seulement les quatre réactions');
-  /* Le temps passe : la ligne se referme seule */
+  /* Le temps passe : la rangée se referme seule */
   m.later.filter(x => x[1] === 4500).at(-1)[0]();
-  assert.ok(!m.section.classList.contains('is-reagir') && m.bouton.attrs['aria-expanded'] === 'false');
+  assert.ok(!f.classList.contains('is-ouvert') && b.attrs['aria-expanded'] === 'false');
   /* Au clavier : la première réaction prend le focus ; la croix le rend au bouton */
   m.ev('jeuReagirBasculer({detail:0})'); assert.deepEqual(m.focus, ['premiere']);
   m.ev('jeuReagirBasculer({detail:0})'); assert.deepEqual(m.focus, ['premiere', 'jeu-reagir-b']);
-  assert.ok(!m.section.classList.contains('is-reagir'));
-  assert.equal(typeof ferme, 'function');
+  assert.ok(!f.classList.contains('is-ouvert'));
 });
 
-test('« Réagir » dans toute salle, même seule : son sourire salue une fois par partie ; jamais en partie seule', () => {
-  const m = monde({ live: ['a'] });
-  m.ev('jeuReagirMaj()');
-  assert.ok(m.section.classList.contains('has-reagir') && m.section.classList.contains('is-reagir-neuf'), 'seule dans la salle : là, et il salue');
-  m.section.classList.set.delete('is-reagir-neuf');
-  m.ctx.jeuLive = () => ['a', 'b'];
-  m.ev('jeuReagirMaj()'); assert.ok(m.section.classList.contains('has-reagir') && !m.section.classList.contains('is-reagir-neuf'), 'quelqu’un arrive : il reste, sans resaluer');
-  /* Seule, une réaction part quand même, et monte avec « Toi » */
-  m.ctx.jeuLive = () => ['a'];
-  m.ev("jeuReact('👏')"); assert.equal(m.sent.length, 1);
-  const s = monde({ solo: true });
-  s.ev('jeuReagirMaj()'); assert.ok(!s.section.classList.contains('has-reagir'), 'partie seule : jamais');
-  assert.ok(cut('function jeuDirectPeindre(n){', '\n}\n').includes('const J=JEU;if(!J)return;\n  jeuReagirMaj();'), 'à chaque tour d’horloge');
-});
-
-test('les réactions en direct : l’emoji et le pseudo montent le long du bord de l’écran, la sienne aussi (« Toi »)', () => {
+test('les réactions en direct : l’emoji et le pseudo montent juste au-dessus de « Réagir », la sienne aussi (« Toi »)', () => {
   const m = monde();
+  m.ev('jeuReagirMaj()');
   assert.equal(m.ev("jeuReactBulle('b','🔥','@lea_data')"), true);
   const c = m.els['jeu-rl'];
   assert.ok(c && c.className === 'jeu-rl' && c.attrs['aria-hidden'] === 'true', 'un calque, hors de la lecture (le lecteur d’écran l’entend déjà)');
-  assert.equal(m.body.children[0], c, 'sur la page, hors de la manche : visible où qu’on soit');
-  assert.equal(c.style.top, '320px', 'aux deux tiers de ce qu’on voit (au-dessus du clavier)');
+  assert.equal(m.body.children.includes(c), true, 'sur la page, hors de la manche : visible où qu’on soit');
+  assert.deepEqual([c.style.top, c.style.right], ['680px', '20px'], 'juste au-dessus du bouton « Réagir », contre le bord de la manche');
   const b = c.children[0];
   assert.equal(b.className, 'jeu-rl-b');
   assert.deepEqual(b.children.map(x => [x.tag, x.className, x.textContent]), [['i', 'jeu-rl-e', '🔥'], ['b', 'jeu-rl-n', '@lea_data']]);
@@ -174,8 +192,10 @@ test('les réactions en direct : l’emoji et le pseudo montent le long du bord 
   for (let i = 0; i < 4; i++) { m.avance(100); m.ev("jeuReactBulle('b','👏')"); }
   assert.equal(c.children.length, 6);
   m.ev("jeuReactBulle('b','👏')"); assert.equal(c.children.length, 6, 'la plus ancienne laisse sa place');
+  /* On écrit (« Réagir » effacé) : elles montent au-dessus du clavier */
+  m.fab().classList.add('is-ecrit'); m.avance(3000); m.ev("jeuReactBulle('b','👏')"); assert.equal(c.style.top, '414px');
   /* Ni hors de la salle, ni écran caché */
-  const n = monde(); n.ctx.document.getElementById = id => null;
+  const n = monde(); n.ctx.document.getElementById = () => null;
   assert.equal(n.ev("jeuReactBulle('b','🔥')"), false);
   const o = monde(); o.ctx.document.hidden = true; assert.equal(o.ev("jeuReactBulle('b','🔥')"), false);
   /* En mouvement réduit : la précédente reste là 2,8 s, la suivante se met à côté */
@@ -193,19 +213,23 @@ test('reçue d’un autre : de son avatar et le long de l’écran ; la carte «
   assert.ok(stop.includes('clearTimeout(J.reagirT);') && stop.includes("document.getElementById('jeu-rl')?.remove();"));
 });
 
-test('le style : « Réagir » en verre dans le cadre, les réactions en pastilles blanches ; les bulles par-dessus tout, sans rien bloquer', () => {
-  for (const r of ['html.lq #jeu-root .jeu-reagir{display:none;', 'html.lq #jeu-root .jeu-direct.has-reagir .jeu-reagir{display:flex}',
-    'background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3);color:#fff;font:800 13px/1 var(--display);',
-    'html.lq #jeu-root .jeu-reagir-b>svg{flex:none;width:19px;height:19px;color:var(--sun-hi)}',
-    'html.lq #jeu-root .jeu-direct.is-reagir .jeu-hud-niv>.dx-f-niv{display:none}', 'html.lq #jeu-root .jeu-direct.is-reagir .jeu-reagir-l{display:flex}',
-    'html.lq #jeu-root .jeu-direct.is-reagir .jeu-reagir-l button{animation:jeuReagirIn .42s cubic-bezier(.3,1.5,.5,1) calc(var(--i,0)*55ms) backwards}',
-    'html.lq #jeu-root .jeu-direct.is-reagir-neuf .jeu-reagir-b>svg:first-child{animation:jeuReagirSalut 1.3s ease-in-out .7s 2}',
+test('le style : « Réagir », la pastille violette posée en bas à droite ; effacé quand on écrit ; au-dessus de « Un coup de patte ? »', () => {
+  for (const r of ['html.lq .jeu-reagir{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:89;',
+    'html.lq .jeu-reagir.is-ecrit{opacity:0;visibility:hidden;translate:0 18px;pointer-events:none;',
+    'html.lq body:has(>#coach-peek:not([hidden])) .jeu-reagir:not(.is-ecrit){translate:0 -62px}',
+    'html.lq body:has(>.jeu-reagir) #jeu-root{padding-bottom:76px}',
+    'background:var(--accent);color:#fff;font:800 15px/1 var(--display);box-shadow:0 4px 0 var(--accent-ink),0 14px 28px -12px rgba(40,20,140,.55);',
+    'html.lq .jeu-reagir-b>svg{flex:none;width:21px;height:21px;color:var(--sun-hi)}',
+    'html.lq .jeu-reagir.is-ouvert .jeu-reagir-b>.jeu-reagir-x{display:block}',
+    'html.lq .jeu-reagir.is-ouvert .jeu-reagir-l{display:flex;transform-origin:right center;animation:jeuReagirTray .32s cubic-bezier(.3,1.35,.5,1) backwards}',
+    'html.lq .jeu-reagir.is-neuf .jeu-reagir-b>svg:first-child{animation:jeuReagirSalut 1.3s ease-in-out .9s 2}',
+    '@media (prefers-reduced-motion:reduce){html.lq .jeu-reagir,html.lq .jeu-reagir *{transition:none!important;animation:none!important}}',
     'html.lq .jeu-rl{position:fixed;top:64%;right:max(16px,env(safe-area-inset-right));z-index:8990;width:0;height:0;pointer-events:none}',
     'translate:var(--x,0px) var(--y,0px);\n  animation:jeuRl 2.8s cubic-bezier(.22,.7,.3,1) both}',
     'html.lq .jeu-rl-n[data-c="3"]{background:hsl(338 70% 52%)}', '@keyframes jeuRl{0%{opacity:0;transform:translateY(16px) scale(.35)}',
-    '@media (prefers-reduced-motion:reduce){html.lq .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}}', 'html.lq[data-motion="reduce"] .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}',
-    'html.lq[data-motion="reduce"] #jeu-root .jeu-direct.is-reagir .jeu-reagir-l button,html.lq[data-motion="reduce"] #jeu-root .jeu-direct.is-reagir-neuf .jeu-reagir-b>svg:first-child{animation:none}'])
+    '@media (prefers-reduced-motion:reduce){html.lq .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}}', 'html.lq[data-motion="reduce"] .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}'])
     assert.ok(css.includes(r), r);
+  assert.ok(!css.includes('#jeu-root .jeu-reagir') && !css.includes('has-reagir'), 'plus rien de « Réagir » dans le cadre');
   /* Le salut ne joue que deux fois, puis le sourire se tait (pas d’animation sans fin) */
   assert.ok(!/jeuReagir\w*[^;}]*infinite/.test(css));
 });

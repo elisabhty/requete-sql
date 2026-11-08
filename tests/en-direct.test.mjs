@@ -79,7 +79,7 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   assert.match(rows[1], /<b><span class="jd-pts" data-n="0" data-fmt="fr">0<\/span><small>&nbsp;pt<\/small><\/b><small>2&nbsp;essais<\/small>/);
   assert.match(rows[2], /^class="jd is-test"/); assert.match(rows[2], /<i class="jd-run" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2v9.6l7.6-4.8z"[^>]*\/><\/svg><\/i>Teste sa requête/, 'la pastille d’« Exécuter »');
   assert.match(html, /<span class="jeu-direct-nb"><span id="jeu-direct-nb">4&nbsp;joueurs<\/span><\/span>/);
-  assert.match(html, /^<section class="jeu-direct(?: has-reagir)?(?: is-reagir-neuf)?" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button [^>]*><span class="jeu-direct-live" aria-hidden="true"><\/span><b id="jeu-direct-t">En direct<\/b>/, 'le bandeau, la pastille « en direct »');
+  assert.match(html, /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button [^>]*><span class="jeu-direct-live" aria-hidden="true"><\/span><b id="jeu-direct-t">En direct<\/b>/, 'le bandeau, la pastille « en direct »');
   assert.match(html, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true"><svg class="ok"\/><\/i>1\/4<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/);
   assert.match(html, /<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true"><b class="jeu-av is-ok" data-c="1" data-pid="b">@?L<\/b><b class="jeu-av is-pense" data-c="0" data-pid="a">E<\/b>/, 'repliée, les avatars restent dans la barre');
   assert.doesNotMatch(html, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
@@ -274,7 +274,7 @@ test('la dernière minute : le cadre bat en rouge, « Plus qu’une minute ! » 
   assert.ok(cls.has('is-urgent')); assert.equal(s.J.dit.cur.html, 'Plus qu’une minute\u00a0!'); assert.equal(s.J.dit.cur.k, 'minute');
   assert.deepEqual(s.buzz, ['medium']); assert.deepEqual(s.toasts, ['Plus qu’une minute\u00a0!']);
   s.ev('jeuDirectMinute(0)'); assert.deepEqual(s.buzz, ['medium'], 'une fois');
-  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-urgent(?: has-reagir)?(?: is-reagir-neuf)?" id="jeu-direct"/, 'redessiné : toujours rouge');
+  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-urgent" id="jeu-direct"/, 'redessiné : toujours rouge');
   r.done = true; s.ev('jeuDirectMinute(0)'); assert.ok(!cls.has('is-urgent'), 'manche finie : plus rien');
   const t = salle(); t.J.rounds[0].found = { a: 1 }; t.J.rounds[0].t1 = Date.now() - 545000; t.ev('jeuDirectMinute(0)');
   assert.deepEqual(t.buzz, [], 'j’ai déjà trouvé : pas de vibration'); assert.equal(t.J.dit.cur.k, 'minute');
@@ -313,7 +313,7 @@ test('une réaction d’un autre jaillit de son avatar, dans la liste ou dans la
 test('réductible : la flèche plie et déplie, le choix est gardé ; plié, il ne reste que la barre', () => {
   const s = salle();
   s.J.rounds[0].found = { b: 1 };
-  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct(?: has-reagir)?(?: is-reagir-neuf)?" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="true" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer\(\)">/);
+  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="true" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer\(\)">/);
   s.store['rq-jeu-direct'] = 'plie';
   assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-plie[^"]*" [^>]*><div class="jeu-direct-bande"><button [^>]*aria-expanded="false"/);
   const cls = new Set(['jeu-direct']), attrs = {};
