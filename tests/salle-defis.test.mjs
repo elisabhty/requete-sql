@@ -631,7 +631,7 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   const d0 = h.ev('jeuDirectHTML(0)');
   assert.equal(d0.split('<li ').length - 1, 1, 'une ligne : toi'); assert.match(d0, /<span class="jd-l1"><b>Toi<\/b><\/span>/);
   assert.match(d0, /<span id="jeu-direct-nb">1&nbsp;joueur<\/span>/);
-  assert.equal(h.ev('JEU.dit.cur.html'), 'C’est parti\u00a0!', 'seul : pas de « Qui ouvrira le score ? »');
+  assert.equal(h.ev('JEU.dit.cur.html'), 'C’est parti\u00a0! Qui ouvrira le score\u00a0?', 'seul aussi, la phrase de toujours (18 h 14)');
   assert.doesNotMatch(h.html, /jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien d’autre des écrans à plusieurs (réactions, « Clore la manche pour tous »)');
   h.found(); sec(w, 1);
   assert.ok(!h.toasts.some(t => /tête|course|affilée|minute|Remontée/.test(t)), 'seul : le commentateur se tait');
