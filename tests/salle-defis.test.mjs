@@ -432,15 +432,34 @@ test('l’hôte quitte en pleine manche : la partie continue avec le nouvel hôt
   assert.ok(guests[1].J('rounds[1]'));
 });
 
-test('arrivée en cours de manche : on rejoint la manche, sans fantômes', () => {
-  const { w, host, guests } = room({ n: 3 });
-  guests[1].ev('jeuStop()'); sec(w, 2);
+/* Elisa, 8 novembre, 16 h 05 : « on peut rejoindre tant que l’hôte n’a pas cliqué sur commencer, mais après non ». */
+test('la partie lancée, un nouveau venu n’entre plus ; qui était dans la salle d’attente revient, sans fantômes ; « Rejouer » rouvre', () => {
+  const { w, host, guests } = room({ n: 3, nb: 1 });
+  const pid2 = guests[1].pid(); guests[1].ev('jeuStop()'); sec(w, 2);
   host.ev('jeuNextRound()'); sec(w, 4.5);
   const late = makeClient(w, 'Retard'); late.join('ROOM42'); sec(w, 3);
-  assert.equal(late.view(), 'play0');
-  assert.deepEqual(late.live().sort(), ['Ami1', 'Hôte', 'Retard']);
-  const left = late.ev('Math.round((JEU.rounds[0].t1+180000-Date.now())/1000)');
-  assert.ok(left > 150 && left < 180, 'temps restant cohérent : ' + left);
+  assert.equal(late.view(), 'tard');
+  assert.match(late.html, /La partie a déjà commencé/);
+  for (const c of [host, guests[0]]) {
+    assert.deepEqual(c.live().sort(), ['Ami1', 'Hôte'], c.name + ' ne le voit pas arriver');
+    assert.ok(!c.toasts.some(t => /Retard/.test(t)), c.name + ' : pas d’annonce');
+  }
+  sec(w, 60);
+  assert.ok(late.J('hostPid') !== late.pid() && host.J('hostPid') === host.pid(), 'il ne prend jamais la main');
+  /* Ami2 était dans la salle d’attente : il revient en pleine manche, même appareil */
+  const back = samePid(w, 'Ami2', pid2); back.join('ROOM42'); sec(w, 3);
+  assert.equal(back.view(), 'play0');
+  assert.deepEqual(host.live().sort(), ['Ami1', 'Ami2', 'Hôte']);
+  const left = back.ev('Math.round((JEU.rounds[0].t1+600000-Date.now())/1000)');
+  assert.ok(left > 500 && left < 600, 'temps restant cohérent : ' + left);
+  /* Fin de partie, « Rejouer » : la salle d’attente est rouverte, un nouveau venu entre */
+  host.found(); guests[0].found(); back.found(); sec(w, 2); host.ev('jeuFinish()'); sec(w, 1.5);
+  const podium = makeClient(w, 'Podium'); podium.join('ROOM42'); sec(w, 3);
+  assert.equal(podium.view(), 'tard', 'pendant le podium non plus');
+  host.ev('jeuAgain()'); sec(w, 1.5);
+  const neuf = makeClient(w, 'Neuf'); neuf.join('ROOM42'); sec(w, 3);
+  assert.equal(neuf.view(), 'lobby');
+  assert.ok(host.live().includes('Neuf'));
 });
 
 test('décalage d’horloge de ±3 s entre téléphones : même tirage, même manche', () => {
@@ -624,9 +643,12 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   const w = new World();
   const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=1");
   h.host('ALONE2'); sec(w, 1);
+  /* 8 novembre, 16 h 05 : on n’entre plus une fois la partie lancée ; l’ami était dans la salle d’attente, il en était sorti */
+  const avant = makeClient(w, 'Ami'); avant.join('ALONE2'); sec(w, 2);
+  const gpid = avant.pid(); avant.ev('jeuStop()'); sec(w, 40);
   h.ev('jeuNextRound()'); sec(w, 4.5);
   assert.doesNotMatch(h.html, /jeu-direct/);
-  const g = makeClient(w, 'Ami'); g.join('ALONE2'); sec(w, 4);
+  const g = samePid(w, 'Ami', gpid); g.join('ALONE2'); sec(w, 4);
   assert.equal(g.view(), 'play0', 'il arrive dans la manche');
   assert.match(h.html, /<section class="jeu-direct" id="jeu-direct"/, 'chez l’hôte, « En direct » apparaît (sans perdre la requête en cours)');
   assert.match(g.html, /<section class="jeu-direct" id="jeu-direct"/);
@@ -822,9 +844,12 @@ const samePid = (w, name, pid) => { const c = makeClient(w, name); c.ev(`session
 
 test('une manche terminée le reste : un arrivant ne rouvre rien, les scores gardent les manches passées', () => {
   const { w, host, guests } = room({ n: 3, nb: 3 });
+  /* 8 novembre, 16 h 05 : l’arrivant était dans la salle d’attente, il revient (un nouveau venu n’entrerait plus) */
+  const avant = makeClient(w, 'Retard'); avant.join('ROOM42'); sec(w, 2);
+  const lpid = avant.pid(); avant.ev('jeuStop()'); sec(w, 2);
   host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); guests[0].found(); guests[1].found(); sec(w, 1.5);
   assert.equal(host.view(), 'res0');
-  const late = makeClient(w, 'Retard'); late.join('ROOM42'); sec(w, 6);
+  const late = samePid(w, 'Retard', lpid); late.join('ROOM42'); sec(w, 6);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' reste sur les résultats');
   assert.match(host.html, /Manche suivante/);
   host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); late.found(); guests[0].found(); guests[1].found(); sec(w, 2);
@@ -901,8 +926,11 @@ test('téléphone dont l’horloge avance de 8 s : il rejoint une manche en cour
   const w = new World();
   const host = makeClient(w, 'Hôte'); host.host('SKEW88'); sec(w, 1);
   const g = makeClient(w, 'Ami'); g.join('SKEW88'); sec(w, 3);
+  /* 8 novembre, 16 h 05 : il était dans la salle d’attente, il revient en pleine manche */
+  const avant = makeClient(w, 'Avance', { skew: 8000 }); avant.join('SKEW88'); sec(w, 3);
+  const fpid = avant.pid(); avant.ev('jeuStop()'); sec(w, 2);
   host.ev('jeuNextRound()'); sec(w, 20);
-  const fast = makeClient(w, 'Avance', { skew: 8000 }); fast.join('SKEW88'); sec(w, 4);
+  const fast = makeClient(w, 'Avance', { skew: 8000 }); fast.ev(`sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(fpid)})`); fast.join('SKEW88'); sec(w, 4);
   assert.equal(fast.view(), 'play0', 'pas de tirage sauté ni de manche déjà finie');
   const left = fast.ev('Math.round((JEU.rounds[0].t1+180000-Date.now())/1000)');
   assert.ok(left > 140 && left < 170, 'temps restant cohérent : ' + left);
@@ -1020,8 +1048,11 @@ test('base : chacun reçoit les messages dans l’ordre de la base, une seule fo
   const host = makeClient(w, 'Hôte'); host.ev('jeuNb=3'); host.host('BASE01'); host.logRelay(); sec(w, 1);
   const a = makeClient(w, 'Ami1'); a.join('BASE01'); a.logRelay(); sec(w, 1.5);
   a.ev('jeuToggleReady()'); sec(w, 1);
+  /* 8 novembre, 16 h 05 : l’arrivant était dans la salle d’attente (un nouveau venu n’entrerait plus) */
+  const avant = makeClient(w, 'Retard'); avant.join('BASE01'); sec(w, 1.5);
+  const rpid = avant.pid(); avant.ev('jeuStop()'); sec(w, 1);
   host.ev('jeuNextRound()'); sec(w, 4.5);
-  const late = makeClient(w, 'Retard'); late.join('BASE01'); late.logRelay(); sec(w, 2);
+  const late = samePid(w, 'Retard', rpid); late.join('BASE01'); late.logRelay(); sec(w, 2);
   host.found(); a.found(); late.found(); a.ev('jeuReact("🔥")'); sec(w, 3);
   for (const c of [host, a, late]) assertInOrder(w, 'BASE01', c);
   assert.deepEqual(late.ev('JEU.seq'), host.ev('JEU.seq'), 'le même ordre d’arrivée pour tous (relais d’hôte)');
@@ -1377,4 +1408,15 @@ test('8 novembre, 15 h 27 : personne derrière le code, salle complète, plus de
   /* Sans feuille (un lien d’invitation ouvert en pleine leçon) : la page « Tu rejoins la salle… », comme avant */
   const lien = makeClient(w, 'Lien'); lien.join('ROOM42');
   assert.equal(lien.J('verif'), false);
+});
+
+test('8 novembre, 16 h 05 : depuis la feuille du code, une partie déjà lancée : « Trop tard, la partie a déjà commencé ! », on reste où l’on est', () => {
+  const { w, host, guests } = room({ n: 2, nb: 1 });
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  const tard = avecFeuille(makeClient(w, 'Tard'));
+  tard.join('ROOM42'); sec(w, 3);
+  assert.deepEqual(tard.etats, [['cherche', 'ROOM42'], ['commencee', 'ROOM42']]);
+  assert.deepEqual([tard.ev('JEU'), tard.ecrans, tard.fermee, tard.html], [null, 0, [], '']);
+  sec(w, 2);
+  for (const c of [host, ...guests]) { assert.deepEqual(c.live().sort(), ['Ami1', 'Hôte'], c.name); assert.equal(c.view(), 'play0', c.name); }
 });

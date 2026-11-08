@@ -27128,6 +27128,7 @@ function dxCodePret(inp){
    la salle d’attente (jeuVerifSuivre) ; sinon le message sous le champ, le code gardé tel quel (rien n’est sélectionné). Un code qui
    ne mène nulle part : le champ rougit et tremble. */
 const DX_CODE_MSG={introuvable:'Aucune salle ne correspond à ce code. Vérifie-le et réessaie&nbsp;!',complete:'Cette salle est déjà complète&nbsp;!',
+  commencee:'Trop tard, la partie a déjà commencé&nbsp;!',
   reseau:'Connexion perdue. Réessaie&nbsp;!',horsligne:'Pas de connexion internet. Réessaie&nbsp;!',pseudo:'Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.',
   moteur:'Le moteur SQL se charge encore, réessaie dans un instant.',indispo:'La salle est indisponible pour le moment. Réessaie dans un instant.'};
 function dxCodeEtat(etat,code){
@@ -34894,7 +34895,7 @@ function jeuStart(code,host,cid,opts){
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
     sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
-    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null};
+    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null,inscrits:new Set(),tard:false};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
   const G=JEU;
   JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo&&!opts.secure);
@@ -34939,6 +34940,7 @@ function jeuEcran(){
    referme sur la salle d’attente. Complète : la feuille le dit, on n’entre pas. */
 function jeuVerifSuivre(J){
   if(J.full){jeuVerifEchec('complete');return false;}
+  if(J.tard){jeuVerifEchec('commencee');return false;}
   if(!J.hostPid||!J.synced)return false;
   J.verif=false;
   if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
@@ -35056,6 +35058,17 @@ function jeuOnMsg(m){
      n’agit que dans cet ordre. */
   if(m.fromRelay&&m.u&&!J.seenR.has(m.u)){
     J.seenR.add(m.u);
+    /* On rejoint une salle tant que l’hôte n’a pas lancé la partie, après non (Elisa, 8 novembre, 16 h 05). Dans l’ordre du relais,
+       le même pour tous : qui a dit bonjour avant la première manche est de la partie, et peut revenir en cours de route (même
+       appareil) ; un nouveau venu après le lancement n’entre pas : les autres ne le voient pas, lui lit « La partie a déjà
+       commencé ». « Rejouer » rouvre la salle d’attente : on peut de nouveau entrer jusqu’au lancement suivant. */
+    if(m.t==='hello'){
+      if(!jeuCommencee())J.inscrits.add(m.pid);
+      else if(!J.inscrits.has(m.pid)){
+        if(mine&&m.u===J.helloU&&!J.tard){J.tard=true;setTimeout(()=>{if(JEU===J&&J.tard&&!J.verif){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}},0);}
+        else if(m.pid!==J.me)J.denied[m.pid]=m.u;
+      }
+    }
     if(mine){
       J.echoAt=Date.now();
       if(m.t==='hello'&&m.u===J.helloU&&!J.synced)jeuSynced(m);
@@ -35313,9 +35326,12 @@ function jeuRoomEmpty(){
   const J=JEU;
   return !J.solo&&!J.created&&J.synced&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace&&jeuLive().length<2;
 }
+/* La partie est lancée : une manche de cette partie est tirée, ou son podium est là ; « Rejouer » la remet à zéro (8 novembre, 16 h 05). */
+function jeuCommencee(){const J=JEU;return !!J&&!J.solo&&(J.over||J.rounds.some(Boolean));}
 function jeuView(){
   const J=JEU;
   if(J.full)return'full';
+  if(J.tard)return'tard';
   if(J.lost&&!J.hostPid)return'lost';
   if(!J.hostPid||!J.synced)return'join';
   if(J.over)return'final';
@@ -35331,7 +35347,7 @@ function jeuView(){
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
 function jeuHostWatch(){
   const J=JEU;
-  if(!J||J.solo||!J.synced||J.full||!J.hostPid||J.hostPid===J.me)return;
+  if(!J||J.solo||!J.synced||J.full||J.tard||!J.hostPid||J.hostPid===J.me)return;
   const now=Date.now();
   if(jeuPresent(J.hostPid)){J.goneAt=0;return;}
   if(!J.goneAt)J.goneAt=now;
@@ -35349,7 +35365,7 @@ function jeuHostWatch(){
   J.claimAt=now;
   jeuSend({t:'host',from:J.hostPid});
 }
-function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full)return;jeuSend({t:'ping'});}
+function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full||J.tard)return;jeuSend({t:'ping'});}
 /* Ce qui change à l’écran sans nouveau message : arrivées, départs, prêts. */
 function jeuSig(){
   const J=JEU,n=jeuCur(),r=n>=0?J.rounds[n]:null;
@@ -35838,6 +35854,8 @@ function jeuRender(){
     html=etat('chat:loupe','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
     html=etat('user','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.',retour,'is-lost');
+  }else if(v==='tard'){
+    html=etat('user','La partie a déjà commencé','On rejoint une salle tant que l’hôte n’a pas lancé la partie. Ouvre la tienne, ou attends la prochaine partie de cette salle.',retour,'is-lost');
   }else if(v==='full'){
     html=etat('user','La salle est complète',`Une salle accueille ${J.max} joueurs au maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`,retour,'is-lost');
   }else if(v==='lobby'&&J.solo){
@@ -46404,7 +46422,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-code-feuille-v2678';
+  const SW_CACHE='requete-2026-11-08-partie-lancee-v2679';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
