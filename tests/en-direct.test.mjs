@@ -179,7 +179,7 @@ test('sur la tête de l’avatar : les trois petits points tant qu’il écrit, 
   assert.match(av(h2, 'b'), /^<b class="jeu-av" data-c="1">@?L<i class="jeu-flag" aria-hidden="true">BE<\/i><i class="jd-av-b is-roi">/, 'Léa : son drapeau, puis sa couronne');
   assert.equal((h2.match(/class="jeu-flag"/g) || []).length, 1, 'sans pays : rien');
   assert.ok(s.ev("jeuDirectSig(jeuDirectJoueurs(0).filter(x=>x.pid==='b'))").endsWith(':BE') && !s.ev("jeuDirectSig(jeuDirectJoueurs(0).filter(x=>x.pid==='a'))").includes(':BE'), 'dans sa signature : il redessine en arrivant');
-  for (const k of ['html.lq #jeu-root .jeu-direct-av{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:0;padding:15px 16px 13px}',
+  for (const k of ['html.lq #jeu-root .jeu-direct-av{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;gap:21px 10px;margin:0;padding:15px 14px 13px 16px}',
     'html.lq #jeu-root .jd-av-b.is-roi{left:calc(50% - 10px);bottom:calc(100% - 6px);width:20px;height:20px;background:none;box-shadow:none;rotate:-10deg}',
     'html.lq #jeu-root .jeu-direct-av .jeu-av .jeu-flag{right:-6px;bottom:-5px;font-size:11px}', '  html.lq #jeu-root .jeu-direct-av .jeu-av .jeu-flag{font-size:10px}',
     'html.lq #jeu-root .jd-av-b{position:absolute;left:calc(50% - 9px);bottom:calc(100% - 2px);z-index:1;',
@@ -350,7 +350,7 @@ test('21 h 13 : plus de tableau des scores ni de flèche ; la rangée des avatar
   s.store['rq-jeu-direct'] = 'plie'; s.J.rounds[0].found = { b: 1 };
   assert.doesNotMatch(s.ev('jeuDirectHTML(0)'), /is-plie|<ol|aria-expanded|onclick|jeu-direct-nb/, 'l’ancien choix replié/déplié ne compte plus');
   for (const k of ['html.lq #jeu-root .jeu-direct-h{display:flex;align-items:center;gap:7px;margin:0;padding:13px 16px 0;color:#fff}',
-    'html.lq #jeu-root .jeu-direct-av{display:flex;flex-wrap:wrap;'])
+    'html.lq #jeu-root .jeu-direct-av{display:grid;grid-template-columns:repeat(3,'])   // 21 h 58 : une grille de trois colonnes
     assert.ok(css.includes(k), k);
   assert.ok(!/jeu-direct-l(?!ive)|jeu-direct-chev|jeu-direct-nb|jeu-direct-ok|\.jd[{ .:+>]|jd-couronne|jd-fete|jd-rang|jd-l1|jd-pts|jdConfetti|jdRebond|jdTourne|is-plie \.jeu/.test(css), 'les règles du tableau et de la flèche sont parties');
 });
@@ -388,8 +388,8 @@ test('le style : tout sous #jeu-root (avant la refonte des Défis), des gestes d
     'linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/22px 22px', 'html.lq #jeu-root .jd-j.is-ok>.jeu-av{border-color:var(--mint)}',
     'html.lq #jeu-root .jd-j.is-test>.jeu-av{border-color:var(--sun);animation:jdRespire 1.1s ease-in-out infinite}', '@keyframes jdRespire{', '@keyframes jdPose{',
     /* 21 h 29 : les présents espacés, leurs points à côté (les tiens en soleil) */
-    'html.lq #jeu-root .jd-j{display:inline-flex;align-items:center;gap:11px;min-width:0}', 'html.lq #jeu-root .jd-j.is-moi .jd-j-pts b{color:var(--sun-hi)}',
-    'html.lq #jeu-root .jd-j-pts{color:#fff;font:800 14.5px/1 var(--display);', 'html.lq #jeu-root .jeu-direct-dit{display:flex;align-items:center;min-height:34px;margin:0 12px 12px;',
+    'html.lq #jeu-root .jd-j{display:flex;align-items:center;gap:11px;min-width:0}', 'html.lq #jeu-root .jd-j.is-moi .jd-j-pts b{color:var(--sun-hi)}',
+    'color:#fff;font:800 14.5px/20px var(--display);', 'html.lq #jeu-root .jeu-direct-dit{display:flex;align-items:center;min-height:34px;margin:0 12px 12px;',
     'html.lq #jeu-root .jd-av-b.is-roi svg{display:block;width:100%;height:100%}', 'html.lq #jeu-root .jd-dit-m b{color:var(--sun-hi);font-weight:800}'])
     assert.ok(bloc.includes(k), k);
   assert.ok(!/jeu-mates|jeu-mate-/.test(css), 'les règles de l’ancienne bande sont parties');
