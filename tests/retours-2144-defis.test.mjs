@@ -37,7 +37,7 @@ function bac(o = {}) {
     clsRpc: (f, b) => { appels.push([f, b]); return o.rpcKo ? Promise.reject(new Error('net')) : Promise.resolve(o.rpc ? o.rpc(f, b) : {}); },
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     jeuInitial: n => String(n || '?').replace(/^@+/, '').charAt(0).toUpperCase(), perfColor: () => 2, lqStkSvg: k => `<svg data-k="${k}"></svg>`, chatBonusHtml: k => `<img data-k="${k}">`,
-    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: 'm', jeuNivUser: true,
+    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_MAX: 6, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: 'm', jeuNivUser: true,
     DEF_CHEV_SVG: '<svg data-k="chev"></svg>', CLS_FLAG_SVG: '<svg data-k="flag"></svg>', LQ_X_SVG: '<svg data-k="x"></svg>', perfDay: () => 'Hier', CHALLENGES: [1], SQL: {},
     jeuStart: (...a) => { appels.push(['jeuStart', ...a]); }, jeuPseudoPuis: f => f(), jeuRand: () => 'NOUV01', jeuNom: v => String(v || '').trim(),
     psForme: v => { const h = String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 15); return h ? '@' + h : ''; },
@@ -322,9 +322,10 @@ test('la fiche : « 4 confrontations » déplie vos dernières parties ; la reva
    sous-titre court. Vérifié dans Chrome à 320, 375 et 390 px : « Créer ma partie » visible sans défiler à 390 × 844, plein ou vide. */
 test('refonte — Jouer : le bandeau court, les salles du niveau puis « Créer ma partie », et « Voir les autres salles »', () => {
   const c = bac({ niv: 'd' });
-  c.ev("DEFIS.salles=[{code:'AAA111',niv:'f',manches:1,nb:2,max:5,hote:'@kev',joueurs:[]},{code:'BBB222',niv:'m',manches:3,nb:3,max:5,hote:'@lea',joueurs:[]}];jeuNiv='d'");
+  c.ev("DEFIS.salles=[{code:'AAA111',niv:'f',manches:1,nb:2,max:6,hote:'@kev',joueurs:[]},{code:'BBB222',niv:'m',manches:3,nb:3,max:6,hote:'@lea',joueurs:[]}];jeuNiv='d'");
   const h = c.ev('defisRapideHTML()');
-  assert.ok(h.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p>'), '8 novembre, 0 h 17 : « je veux garder ça », la phrase entière');
+  /* 22 h 27 : six joueurs par salle, donc « jusqu’à 5 joueurs » */
+  assert.ok(h.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à 5 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p>'), '8 novembre, 0 h 17 : « je veux garder ça », la phrase entière');
   const i = k => h.indexOf(k);
   assert.ok(i('id="dx-niv-l"') < i('id="dx-rejoindre"') && i('id="dx-rejoindre"') < i('data-k="creer"') && i('data-k="creer"') < i('class="dx-actions"') && i('class="dx-actions"') < i('id="dx-autres"'),
     'l’ordre d’Elisa (5 novembre, 12 h 52) : le niveau, les salles du niveau, « Créer ma partie », les deux boutons, les autres niveaux');

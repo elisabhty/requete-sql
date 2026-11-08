@@ -284,9 +284,9 @@ WhatsApp : tu vois tes amis arriver. ») : une troisième Live Activity (`Requet
 salle entre amis (pas pour une partie seule). Elle démarre quand la salle s’ouvre (la page, `ileSalleMaintenant` ; le pont,
 `salleDebut`) et la suit en trois temps :
 
-- **on attend les amis** : dans l’île, les lunettes du chat et « 2/5 » ; appui long, le code de la salle, les joueurs en pastilles,
+- **on attend les amis** : dans l’île, les lunettes du chat et « 2/6 » (six joueurs par salle depuis le 8 novembre) ; appui long, le code de la salle, les joueurs en pastilles,
   et pour l’hôte **Partager** (la feuille de partage d’iOS, `partagerTexte`) et **Lancer** ; sur l’écran verrouillé, « Salle K7P2QX »,
-  « 2/5 · on attend Max ». Un ami qui entre : l’île s’ouvre un instant, un clin d’œil du chat et un petit **miaou**
+  « 2/6 · on attend Max ». Un ami qui entre : l’île s’ouvre un instant, un clin d’œil du chat et un petit **miaou**
   (`assets/sons/miaou.wav`, synthétisé par `tools/sons/miaou.py`, recopié dans Library/Sounds au lancement, où iOS cherche les sons
   des alertes) ;
 - **la partie** : le chrono de la manche descend tout seul (`Text(timerInterval:)`), ma place (« 2e sur 4 »), le défi, la manche,

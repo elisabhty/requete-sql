@@ -302,7 +302,7 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject("Salle incomplète")
             return
         }
-        let places: Int = call.getInt("max") ?? 5
+        let places: Int = call.getInt("max") ?? 6   // six joueurs par salle (8 novembre, 22 h 27)
         Task {
             let ok: Bool = await RequeteSallePont.debut(code: code, moi: moi, max: places, etat: etat) { [weak self] jeton in
                 DispatchQueue.main.async {

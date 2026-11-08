@@ -27208,7 +27208,7 @@ function dxCodePret(inp){
    autocollant « ! » corail, ce qui se passe en gras, puis quoi faire ; elle se déplie en douceur, la carte grandit vers le haut et le
    bouton ne bouge pas. Un code qui ne mène nulle part : le champ rougit et tremble. */
 const DX_CODE_MSG={introuvable:['Salle introuvable&nbsp;!','Ce code ne correspond à aucune salle. Vérifie-le et réessaie.'],
-  complete:['Salle complète&nbsp;!','Elle accueille déjà 5 joueurs, le maximum.'],
+  complete:['Salle complète&nbsp;!','Elle accueille déjà 6 joueurs, le maximum.'],   // JEU_MAX (défini plus bas, lu ici trop tôt)
   commencee:['Trop tard, la partie a commencé&nbsp;!','On rejoint une salle avant que l’hôte lance la partie.'],
   reseau:['Connexion impossible','Vérifie ta connexion internet, puis réessaie.'],horsligne:['Pas de connexion internet','Connecte-toi, puis réessaie.'],
   pseudo:['Pseudo non réservé','Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.'],
@@ -28149,7 +28149,7 @@ function dxCoefFete(k){
    c’est en bas, dans le cadre du bas ») : le niveau, « Créer une salle » qui ouvre sa feuille (les manches, qui peut entrer), puis,
    sous « ou », « J’ai un code » et « Seul ». Le niveau vaut aussi pour « Seul » et pour le cadre du bas.
    11 h 37 : « Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi ! » (une
-   salle tient JEU_MAX = 5 joueurs : l’hôte et 4 invités).
+   salle tient JEU_MAX joueurs : l’hôte et ses invités ; 8 novembre, 22 h 27 : six, donc « jusqu’à 5 joueurs »).
    12 h 52 : « tu peux fusionner les deux cadres, car même bouton dans les deux » : un seul cadre. Sous le niveau, « Rejoins une partie »
    (les salles ouvertes à ce niveau ; aucune : « Aucune salle à ton niveau ? Crée la tienne et laisse les autres te rejoindre ! »), puis
    le seul « Créer une salle », « ou » « J’ai un code » et « Seul » ; les salles des autres niveaux à la fin du cadre.
@@ -28166,7 +28166,7 @@ function defisRapideHTML(){
   const c=typeof DEFIS!=='undefined'?DEFIS.carte:'';
   return `<section class="room-card dx-rapide is-v2 is-entree" aria-labelledby="dx-rapide-h"><div class="room-head">${chatBonusHtml('chrono','room-chat')}<div>
     <p class="room-kicker">Créer ou rejoindre</p><h2 id="dx-rapide-h">Lance un défi&nbsp;!</h2>
-    <p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
+    <p class="room-sub">Choisis ton niveau et invite jusqu’à ${JEU_MAX-1} joueurs, ou ouvre ta salle à tous. Tout le monde relève le même défi&nbsp;!</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="room-field dx-r-niv"><div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p></div>${jeuNiveauxHTML('dx-niv-l','defisNiv')}</div>
     <div class="dx-rejoindre" id="dx-rejoindre" role="group" aria-labelledby="dx-rejoindre-h">${sallesSectionHTML()}</div>
     <button type="button" class="room-go dx-act-go" data-k="creer" aria-haspopup="dialog" aria-expanded="${c==='creer'}" onclick="defisCarte('creer')"><span>Créer ma partie</span>${DEF_CHEV_SVG}</button>
@@ -28184,13 +28184,13 @@ function defisCarte(m){
 /* Les salles ouvertes : chargées en arrivant sur Jouer ou Amis, puis toutes les 10 s tant que l’onglet est à l’écran. */
 function sallesValide(s){
   return s&&/^[A-Z0-9]{6}$/.test(s.code||'')&&['f','m','d'].includes(s.niv)&&typeof s.hote==='string'&&s.hote.length>0
-    &&Number.isInteger(+s.nb)&&+s.nb>=1&&+s.nb<(+s.max||5);
+    &&Number.isInteger(+s.nb)&&+s.nb>=1&&+s.nb<(+s.max||JEU_MAX);
 }
 function sallesCharger(force){
   if(DEFIS.sallesBusy)return DEFIS.sallesBusy;
   if(!force&&DEFIS.salles&&Date.now()-DEFIS.sallesAt<8000)return Promise.resolve(DEFIS.salles);
   DEFIS.sallesBusy=clsRpc('jeu_salles_ouvertes',{p_cle:clsCle()}).then(l=>{
-    DEFIS.salles=(Array.isArray(l)?l:[]).filter(sallesValide).map(s=>Object.assign({},s,{nb:+s.nb,max:+s.max||5,manches:Math.max(1,+s.manches||1)}));
+    DEFIS.salles=(Array.isArray(l)?l:[]).filter(sallesValide).map(s=>Object.assign({},s,{nb:+s.nb,max:+s.max||JEU_MAX,manches:Math.max(1,+s.manches||1)}));
     DEFIS.sallesAt=Date.now();DEFIS.sallesErr='';DEFIS.sallesBusy=null;
     DEFIS.salles.forEach(s=>{drapNoter(s.hote,s.pays);(Array.isArray(s.joueurs)?s.joueurs:[]).forEach(j=>j&&drapNoter(j.pseudo,j.pays));});
     sallesRepeindre();if(DEFIS.onglet==='amis')amisListesPeindre();
@@ -34650,8 +34650,10 @@ const JEU_HB_MS=15000;
    Moyen, dxDureeMax). Le serveur compte la
    même durée, défi par défi (requete_private.manche_duree). */
 const JEU_DRAW_MS=3300;
-/* Cinq joueurs par salle au plus (Elisa, 31 octobre, 16 h 49). */
-const JEU_MAX=5;
+/* Six joueurs par salle au plus, l’hôte et 5 invités (Elisa, 8 novembre, 22 h 27 : « accepte 6 max dans une salle, comme ça on a
+   deux lignes pleines » : trois colonnes dans « En direct ») ; cinq depuis le 31 octobre, 16 h 49. Le serveur suit
+   (supabase/migrations/…_salle_six_joueurs.sql), comme la salle dans l’île (supabase/functions/jeu-ile, RequeteWidget.swift). */
+const JEU_MAX=6;
 /* La version du catalogue de défis que cette appli connaît (1 : les 267 défis du 6 novembre ; 2 : les 210 des sept bases ajoutées
    le même jour, station de ski, food truck, aquarium, vélos en libre-service, ferme apicole, escape game et festival). Elle part avec
    chaque message de la salle : le serveur ne tire que des défis que tous les téléphones présents connaissent, pour qu’un défi ajouté
@@ -46760,7 +46762,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-salle-cinq-v2706';
+  const SW_CACHE='requete-2026-11-08-six-joueurs-v2707';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

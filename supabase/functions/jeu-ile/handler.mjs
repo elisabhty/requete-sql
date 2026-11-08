@@ -6,6 +6,8 @@
 const ID = /^[A-Za-z0-9_-]{4,64}$/;
 const PHASES = ['attente', 'partie', 'pause', 'fin'];
 const SONS = ['miaou.wav', 'default'];
+// Six joueurs par salle au plus, comme dans l’appli (JEU_MAX) et la base (8 novembre, 22 h 27 ; cinq avant).
+const MAX_JOUEURS = 6;
 const propre = (v, max) => (typeof v === 'string'
   ? Array.from(v.replace(/[\u0000-\u001f\u007f<>\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/g, '').trim()).slice(0, max).join('')
   : null);
@@ -16,11 +18,11 @@ const ident = v => (v === '' ? '' : typeof v === 'string' && ID.test(v) ? v : nu
 // dans le même ordre ; un même état donne le même JSON, le serveur reconnaît celui qu’il a déjà poussé.
 export function etatPropre(e, maintenant) {
   if (!e || typeof e !== 'object' || Array.isArray(e)) return null;
-  if (!PHASES.includes(e.phase) || !Array.isArray(e.joueurs) || e.joueurs.length < 1 || e.joueurs.length > 5) return null;
+  if (!PHASES.includes(e.phase) || !Array.isArray(e.joueurs) || e.joueurs.length < 1 || e.joueurs.length > MAX_JOUEURS) return null;
   const joueurs = [];
   for (const j of e.joueurs) {
     if (!j || typeof j !== 'object') return null;
-    const p = ident(j.p), n = propre(j.n, 24), pts = entier(j.pts, 0, 1000000), r = entier(j.r, 0, 5);
+    const p = ident(j.p), n = propre(j.n, 24), pts = entier(j.pts, 0, 1000000), r = entier(j.r, 0, MAX_JOUEURS);
     if (!p || !n || pts === null || r === null || typeof j.ok !== 'boolean') return null;
     joueurs.push({p, n, pts, r, ok: j.ok});
   }
@@ -85,7 +87,7 @@ export function createIleHandler({pret, rpc, envoyer, maintenant = () => Math.fl
       if (!pret) return reply({ok: true, pousse: 0, veille: true});
       const r = await rpc('jeu_ile_cibles_v2', {p_cle: b.cle, p_salle: b.salle, p_etat: etat});
       if (!r || r.pareil || !Array.isArray(r.cibles) || !r.cibles.length) return reply({ok: true, pousse: 0});
-      const cibles = r.cibles.slice(0, 5), charge = chargeApns(etat, alerte, t);
+      const cibles = r.cibles.slice(0, MAX_JOUEURS - 1), charge = chargeApns(etat, alerte, t);
       const resultats = await Promise.all(cibles.map(c => pousserUn(c, charge, envoyer).catch(() => ({ok: false}))));
       const retirer = [], bac = [];
       resultats.forEach((x, i) => { if (x.oublier) retirer.push(cibles[i].jeton); if (x.bac) bac.push(cibles[i].jeton); });
