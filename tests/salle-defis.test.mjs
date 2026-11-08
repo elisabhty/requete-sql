@@ -1322,3 +1322,59 @@ test('8 novembre, 10 h 10 : une manche trouvée par tout le monde attend toujour
   assert.doesNotMatch(host.html, /jeu-auto/);
   assert.equal(host.ev('jeuFinAuto(0)'), 0);
 });
+
+/* Elisa, 8 novembre, 15 h 27 (la relecture de « Rejoindre une partie » qu’elle a fait faire) : la salle se cherche dans la feuille du
+   code, sans passer par la page « Tu rejoins la salle… ». La feuille est simulée : son champ existe, ses états sont notés. */
+function avecFeuille(c) {
+  c.etats = []; c.fermee = []; c.ecrans = 0;
+  const doc = c.ctx.document, qs = doc.querySelector;
+  doc.querySelector = sel => (sel === '#dx-feuille #jeu-code' ? { value: '' } : qs(sel));
+  c.ctx.dxCodeEtat = (e, code) => c.etats.push([e, code]);
+  c.ctx.defisFeuilleFermer = s => c.fermee.push(!!s);
+  c.ctx.showScreen = () => { c.ecrans++; };
+  return c;
+}
+
+test('8 novembre, 15 h 27 : la salle trouvée depuis la feuille du code, on y entre ; rien ne s’affiche avant', () => {
+  const w = new World();
+  const host = makeClient(w, 'Hôte'); host.host('ROOM42'); sec(w, 1);
+  const g = avecFeuille(makeClient(w, 'Ami1'));
+  g.join('ROOM42');
+  assert.deepEqual(g.etats, [['cherche', 'ROOM42']], '« On cherche ta salle… » dans le bouton');
+  assert.deepEqual([g.J('verif'), g.ecrans, g.fermee, g.html], [true, 0, [], ''], 'la feuille reste ouverte, aucune page « Tu rejoins la salle… »');
+  g.join('ROOM42');
+  assert.deepEqual(g.etats, [['cherche', 'ROOM42']], 'touché deux fois : une seule recherche');
+  sec(w, 3);
+  assert.deepEqual([g.J('verif'), g.ecrans, g.fermee], [false, 1, [true]], 'l’hôte a répondu : la feuille se referme sur la salle');
+  assert.equal(g.view(), 'lobby');
+  assert.match(g.html, /Salle de Hôte/);
+  assert.doesNotMatch(g.html, /Tu rejoins la salle/);
+  assert.deepEqual(host.live(), ['Hôte', 'Ami1']);
+  assert.deepEqual(g.etats, [['cherche', 'ROOM42']]);
+});
+
+test('8 novembre, 15 h 27 : personne derrière le code, salle complète, plus de réseau : la feuille le dit, on reste où l’on est', () => {
+  const { w, host } = room({ n: 5 });
+  const perdu = avecFeuille(makeClient(w, 'Perdu'));
+  perdu.join('NOPE99'); sec(w, 6);
+  assert.equal(perdu.J('verif'), true, 'on cherche encore');
+  sec(w, 2);
+  assert.equal(perdu.ev('JEU'), null);
+  assert.deepEqual(perdu.etats, [['cherche', 'NOPE99'], ['introuvable', 'NOPE99']]);
+  assert.deepEqual([perdu.ecrans, perdu.fermee, perdu.html], [0, [], '']);
+  const trop = avecFeuille(makeClient(w, 'Trop'));
+  trop.join('ROOM42'); sec(w, 4);
+  assert.deepEqual(trop.etats, [['cherche', 'ROOM42'], ['complete', 'ROOM42']]);
+  assert.deepEqual([trop.ev('JEU'), trop.ecrans, trop.fermee], [null, 0, []]);
+  assert.equal(host.live().length, 5);
+  const coupe = avecFeuille(makeClient(w, 'Coupé')); coupe.offline = true;
+  coupe.join('ROOM42'); sec(w, 8);
+  assert.deepEqual(coupe.etats, [['cherche', 'ROOM42'], ['reseau', 'ROOM42']]);
+  assert.deepEqual([coupe.ev('JEU'), coupe.ecrans], [null, 0]);
+  const hors = avecFeuille(makeClient(w, 'Hors')); hors.ctx.navigator.onLine = false;
+  hors.join('ROOM42');
+  assert.deepEqual([hors.etats, hors.ev('JEU')], [[['horsligne', 'ROOM42']], null], 'hors ligne : tout de suite');
+  /* Sans feuille (un lien d’invitation ouvert en pleine leçon) : la page « Tu rejoins la salle… », comme avant */
+  const lien = makeClient(w, 'Lien'); lien.join('ROOM42');
+  assert.equal(lien.J('verif'), false);
+});

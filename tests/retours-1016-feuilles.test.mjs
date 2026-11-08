@@ -25,7 +25,7 @@ function bac(o = {}) {
     jeuVisTexte: () => 'visible', esc: s => String(s), DEFIS: {carte: ''}, JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_MANCHE: {f: 600000, m: 900000, d: 1200000}, JEU_MAX: 5,
     document: {getElementById: id => els[id] || null, querySelectorAll: () => [], body: null}
   }, o));
-  vm.runInContext(line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
+  vm.runInContext(cut('const DX_CODE_MSG=', '};') + '};\n' + line('jeuNivBars') + fn('renderDefisRoom') + fn('defisActionsHTML') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
   return {ctx, els};
 }
 
@@ -86,11 +86,13 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   assert.ok(creer.includes('<span>Ouvrir la salle</span><svg class="chev"/></button><p class="dx-f-note">Le défi démarre quand tu le décides.</p></div>'));
   assert.ok(creer.includes('<div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite"></p>'), 'le message et le bouton en pied de feuille');
   assert.ok(creer.includes('onclick="jeuEnterRoom()"><span>Ouvrir la salle</span>'));
-  /* 8 novembre, 0 h 23 (la relecture d’Elisa) : « Rejoindre une partie », « Entre ton code ! », « Code à 6 caractères », plus « Les 6
-     caractères que ton ami t’a envoyés » ; « Rejoindre la partie », éteint tant que le code n’a pas ses 6 caractères. */
+  /* 8 novembre, 0 h 23 (la relecture d’Elisa) : « Rejoindre une partie », « Entre ton code ! », plus « Les 6 caractères que ton ami
+     t’a envoyés » ; le bouton éteint tant que le code n’a pas ses 6 caractères. 15 h 27 (la relecture qu’elle a fait faire) : « Code de
+     la salle », « Rejoindre la salle » ; ni correction ni suggestions ; plus de longueur maximale (une invitation collée entière). */
   assert.ok(code.includes('<p class="room-kicker">Rejoindre une partie</p>') && code.includes('<h2 id="dx-f-t">Entre ton code&nbsp;!</h2>') && code.includes('<p class="room-sub" id="dx-f-p">Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.</p>'));
-  assert.ok(code.includes('<label class="jeu-lab" for="jeu-code">Code à 6 caractères</label>') && code.includes('oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)"') && !code.includes('room-hint') && !code.includes('Les 6 caractères'));
-  assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" disabled onclick="jeuEnterRoom()"><span>Rejoindre la partie</span>'));
+  assert.ok(code.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && code.includes('oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)" onpaste="dxCodeColle(event)"') && !code.includes('room-hint') && !code.includes('Les 6 caractères'));
+  assert.ok(code.includes('<input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="ABC123" value=""') && !code.includes('maxlength'));
+  assert.ok(code.includes('<button type="button" class="room-go" id="jeu-code-go" onmousedown="event.preventDefault()" disabled onclick="jeuEnterRoom()"><i class="dx-go-roue" aria-hidden="true"></i><span>Rejoindre la salle</span>'));
   assert.ok(!code.includes('jeu-me') && !code.includes('data-set="nb"'), 'un code : pas de pseudo, pas de manches (l’hôte choisit)');
   assert.ok(seul.includes('<p class="room-kicker">Mode solo</p>') && seul.includes('<h2 id="dx-f-t">Joue seul</h2>') && seul.includes('<p class="room-sub" id="dx-f-p">Relève des défis à ton rythme.</p><p class="dx-f-niv-l"><span class="dx-f-niv is-d">'));
   assert.ok(seul.includes('<span class="dx-f-chip is-pts">') && seul.includes('<span><b>×4</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span></p>') && !seul.includes('is-max') && seul.includes('<span>Lancer la partie</span>') && seul.includes('class="dx-manche on" data-set="nb" data-v="3"') && seul.includes('<small class="dx-m-duree">1\u00a0h\u00a0max</small>') && !seul.includes('jeu-note') && !seul.includes('data-vis') && !seul.includes('dx-f-note') && !seul.includes('joueurs max'));
@@ -103,11 +105,11 @@ test('les feuilles : le niveau rappelé dans le bandeau, puis seulement ce qu’
   ctx.jeuNb = 3; ctx.jeuNiv = 'd';
   ctx.jeuInvite = 'ABC123';
   const inv = ctx.defisFeuilleHTML('code');
-  assert.ok(inv.includes('<p class="room-invite">Tu es invitée dans la salle <b class="jeu-code-inline">ABC123</b></p>') && inv.includes('value="ABC123"') && inv.includes('id="jeu-code-go" onclick='), 'le code d’un lien : le bouton allumé');
+  assert.ok(inv.includes('<p class="room-invite">Tu es invitée dans la salle <b class="jeu-code-inline">ABC123</b></p>') && inv.includes('value="ABC123"') && inv.includes('class="jeu-input is-code is-pret"') && inv.includes('id="jeu-code-go" onmousedown="event.preventDefault()" onclick='), 'le code d’un lien : le champ allumé, le bouton aussi');
   /* Code introuvable (personne dans la salle) : la feuille revient, le code gardé, le message dessous */
   ctx.jeuInvite = ''; ctx.jeuCodeKo = 'ZZZ999';
   const ko = ctx.defisFeuilleHTML('code');
-  assert.ok(ko.includes('value="ZZZ999"') && ko.includes('aria-live="polite">Code introuvable. Vérifie-le et réessaie.</p>') && !ko.includes('room-invite'));
+  assert.ok(ko.includes('value="ZZZ999"') && ko.includes('class="jeu-input is-code is-ko"') && ko.includes('<p class="jeu-msg is-ko" role="status" aria-live="polite">Aucune salle ne correspond à ce code. Vérifie-le et réessaie&nbsp;!</p>') && !ko.includes('room-invite'));
   ctx.jeuCodeKo = '';
   ctx.jeuChallenges = () => [1, 2];
   assert.ok(ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="3" disabled') && ctx.defisFeuilleHTML('seul').includes('data-set="nb" data-v="5" disabled'), 'pas plus de manches que de défis');
@@ -119,7 +121,7 @@ test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et
     '<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>',
     '<button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>',
     "document.addEventListener('keydown',dxFeuilleTouche,true);", "vv.addEventListener('resize',dxFeuilleCaler)", "document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.k===k)));",
-    'if(inp&&(!inp.value||ko)){inp.focus({preventScroll:true});if(ko)inp.select();} else el.querySelector(\'.dx-f-boite\').focus({preventScroll:true});', "bx.classList.toggle('is-defile',"])
+    'if(inp&&(!inp.value||ko))setTimeout(()=>{try{if(inp.isConnected&&document.activeElement!==inp){inp.focus({preventScroll:true});const n=inp.value.length;inp.setSelectionRange(n,n);}}catch(e){}},', "bx.classList.toggle('is-defile',"])
     assert.ok(o.includes(k), k);
   const f = fn('defisFeuilleFermer');
   for (const k of ["DEFIS.carte='';", "document.removeEventListener('keydown',dxFeuilleTouche,true);", "el.removeAttribute('id');", "el.classList.remove('on');el.classList.add('off');",
@@ -127,9 +129,8 @@ test('la feuille s’ouvre par-dessus, se referme par ×, le voile ou Échap, et
     assert.ok(f.includes(k), k);
   const t = fn('dxFeuilleTouche');
   assert.ok(t.includes("if(e.key==='Escape'){e.preventDefault();e.stopPropagation();defisFeuilleFermer();return;}") && t.includes('f[i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length].focus();'), 'Échap, et Tab qui reste dans la feuille');
-  /* 8 novembre, 14 h 59 (« Cette page saute avec le clavier ») : elle ne suit plus le clavier ; le code se tape en haut de l’écran
-     (feuille-code-clavier) */
-  assert.ok(fn('dxFeuilleCaler').includes("el.style.top='0px';el.style.height=window.innerHeight+'px';") && !fn('dxFeuilleCaler').includes('offsetTop'), 'plus de suivi du clavier');
+  /* 8 novembre, 15 h 27 : la feuille du code couvre ce qui reste visible au-dessus du clavier ; les autres, l’écran (feuille-code-clavier) */
+  assert.ok(fn('dxFeuilleCaler').includes("const vv=el.dataset.k==='code'?window.visualViewport:null;") && fn('dxFeuilleCaler').includes("el.style.top=(vv?vv.offsetTop:0)+'px';el.style.height=(vv?vv.height:window.innerHeight)+'px';"));
   assert.ok(fn('defisCarte').includes('if(!k){defisFeuilleFermer();return;}') && fn('defisCarte').includes('defisFeuilleOuvrir(k);'));
 });
 
@@ -138,8 +139,8 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
   assert.ok(fn('jeuRoomSet').includes("const card=document.querySelector('#dx-feuille .dx-f-corps')||document.getElementById('defis-room');if(!card)return;"));
   assert.ok(fn('jeuRoomSet').includes("if(k==='mode'){const sub=card.querySelector('.room-sub');"), 'le bandeau garde le niveau quand on choisit les manches');
   assert.ok(fn('jeuRoomSet').includes("if(k==='niv')card.querySelectorAll('.dx-manche').forEach(b=>{const d=b.querySelector('.dx-m-duree');if(d)d.textContent=dxDureeMax(+b.dataset.v);});"), 'les durées des cartes suivent le niveau (8 novembre, 9 h 42)');
-  assert.ok(fn('jeuRoomSet').includes("go.textContent=join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie';"), 'le bouton garde son libellé');
-  assert.ok(fn('jeuStart').includes("if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);"));
+  assert.ok(fn('jeuRoomSet').includes("go.textContent=join?'Rejoindre la salle':friends?'Ouvrir la salle':'Lancer la partie';"), 'le bouton garde son libellé');
+  assert.ok(fn('jeuStart').includes("if(!verif&&typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);"), 'la salle s’ouvre : la feuille se referme (sauf le code qu’on cherche encore, 15 h 27)');
   assert.ok(fn('switchTab').includes("if(name!=='defis'&&typeof defisFeuilleFermer==='function'&&document.getElementById('dx-feuille'))defisFeuilleFermer(true);"));
   assert.ok(!fn('openJeu').includes('scrollIntoView'), 'un lien d’invitation : la feuille du code, plus de défilement');
   const re = fn('perfRematch');

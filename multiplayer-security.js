@@ -38,15 +38,19 @@
       // The public name is chosen during onboarding: never ask for it again before a room (2 November, 23:45).
       // The server has no name for this device yet: reserve it silently, then enter once more.
       if (/pseudo/.test(text) && !options.nameRetry && typeof psReserverPourSalle === 'function') needName = true;
+      // 8 November, 15:27: a code looked up from its sheet says what went wrong under the field, never in a window above it.
+      else if (options.verif && typeof dxCodeEtat === 'function') dxCodeEtat(/pseudo/.test(text) ? 'pseudo' : offline ? 'reseau' : 'indispo', code);
       else lqInfo('Connexion à la salle', /pseudo/.test(text) ? 'Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.' : text, '📶');
     } finally {
       clearTimeout(deadline);
       opening = false;
-      if (button?.isConnected) button.disabled = false;
+      // The sheet's button keeps waiting while the room is still being looked up (8 November, 15:27).
+      if (button?.isConnected && !button.classList.contains('is-cherche')) button.disabled = false;
     }
     if (!needName) return;
     const reserved = await psReserverPourSalle().catch(() => false);
     if (reserved) return jeuStart(code, host, cid, {...options, nameRetry:true});
+    if (options.verif && typeof dxCodeEtat === 'function') { dxCodeEtat('pseudo', code); return; }
     lqInfo('Connexion à la salle', 'Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.', '📶');
   };
   jeuRun = async function() {
