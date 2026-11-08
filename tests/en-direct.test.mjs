@@ -12,7 +12,7 @@ import test from 'node:test';
 const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
-const bloc = cut('const JEU_TEST_MS=3200;', '\nfunction jeuWaitLine(n){');
+const bloc = cut('const JEU_TEST_MS=', '\nfunction jeuWaitLine(n){');
 
 /* Un faux DOM, juste ce que jeuDirectPeindre touche : la liste, ses lignes (leur place donne leur hauteur), la barre. */
 function fauxDom() {
@@ -71,15 +71,21 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   assert.match(rows[0], /<i class="jd-couronne"><svg viewBox/); assert.match(rows[0], /<b>1 000<small>&nbsp;pts<\/small><\/b><small>1&nbsp;essai<\/small>/);
   assert.match(rows[1], /^class="jd is-pense is-moi"/); assert.match(rows[1], /<b>Toi<\/b><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>En réflexion<\/small>/);
   assert.match(rows[1], /<b>0<small>&nbsp;pt<\/small><\/b><small>2&nbsp;essais<\/small>/);
-  assert.match(rows[2], /^class="jd is-test"/); assert.match(rows[2], /<i class="jd-pp" aria-hidden="true"><b><\/b><b><\/b><b><\/b><\/i>Teste sa requête/, 'trois petits points');
+  assert.match(rows[2], /^class="jd is-test"/); assert.match(rows[2], /<i class="jd-run" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2v9.6l7.6-4.8z"[^>]*\/><\/svg><\/i>Teste sa requête/, 'la pastille d’« Exécuter »');
   assert.match(html, /<span class="jeu-direct-nb" id="jeu-direct-nb">4&nbsp;joueurs<\/span>/);
   assert.match(html, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true"><svg class="ok"\/><\/i>1\/4<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/);
   assert.match(html, /<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true"><b class="jeu-av is-ok" data-c="1">@?L<\/b><b class="jeu-av is-pense" data-c="0">E<\/b>/, 'repliée, les avatars restent dans la barre');
   assert.doesNotMatch(html, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
   /* Chez moi, mes essais sont ceux que j’ai lancés (même relu après une coupure, la salle les recompte) */
   s.J.rounds[0].tries = 0; assert.equal(s.rang(0).find(x => x.me).essais, 2);
+  /* Il écrit (12 h 07) : les trois petits points, « Écrit sa requête » ; s’il vient d’exécuter, « Teste sa requête » l’emporte */
+  s.J.ecritAt = { d: now - 1000, c: now - 100, a: now };
+  const e = s.rang(0);
+  assert.deepEqual(e.map(x => [x.pid, x.etat]), [['b', 'ok'], ['a', 'pense'], ['c', 'test'], ['d', 'ecrit']], 'jamais pour soi');
+  assert.match(s.ev('jeuDirectHTML(0)').split('<li ')[4], /^class="jd is-ecrit"[^>]*>.*<small class="jd-etat"><i class="jd-pp" aria-hidden="true"><b><\/b><b><\/b><b><\/b><\/i>Écrit sa requête<\/small>/);
+  s.J.ecritAt.d = now - 5200; assert.equal(s.rang(0)[3].etat, 'pense', 'sans nouvelles 5 s : en réflexion');
   /* « Teste sa requête » le temps du geste (3,2 s), puis « En réflexion » ; jamais pour soi */
-  s.J.koAt.c = now - 4000; s.J.koAt.a = now; assert.deepEqual(s.rang(0).filter(x => x.pid !== 'b').map(x => x.etat), ['pense', 'pense', 'pense']);
+  s.J.ecritAt = {}; s.J.koAt.c = now - 4000; s.J.koAt.a = now; assert.deepEqual(s.rang(0).filter(x => x.pid !== 'b').map(x => x.etat), ['pense', 'pense', 'pense']);
 });
 
 test('les points de toute la partie ; deux à égalité en tête, deux couronnes ; parti, il garde sa ligne et ses points', () => {
@@ -155,6 +161,41 @@ test('sur place : une ligne qui n’a pas changé garde son nœud (son geste con
   assert.ok(r.f.liste.children.every(li => !li.anims.length));
 });
 
+test('« il écrit » : part si ma requête a changé depuis le dernier tour, au plus toutes les 3 s, jamais le texte', () => {
+  const s = salle(), sent = [], ed = { value: '' };
+  Object.assign(s.ctx, { document: { getElementById: id => (id === 'ed-lesson' ? ed : null) }, jeuSoloLike: () => false, jeuDirectPeindre() {} });
+  Object.assign(s.J, { g: 2, t: { signal: m => sent.push(JSON.parse(JSON.stringify(m))) } });
+  s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 0, 'le premier tour de la manche note seulement la requête');
+  ed.value = 'SELECT nom'; s.ev('jeuEcritVeille(0)');
+  assert.deepEqual(sent, [{ v: 1, t: 'ecrit', pid: 'a', g: 2, n: 0 }], 'qui, quelle partie, quelle manche ; pas le texte');
+  ed.value = 'SELECT nom,'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 1, 'moins de 3 s après : rien');
+  s.J.ecritEnvoye -= 3000; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 1, 'rien n’a changé depuis le dernier tour : rien');
+  ed.value = 'SELECT nom, ville'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 2);
+  s.J.ecritEnvoye = 0; s.J.edVu = { n: 1, v: '' }; ed.value = 'x'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 2, 'une autre manche : on repart de sa requête');
+  s.J.rounds[0].found = { a: 1 }; ed.value = 'y'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 2, 'trouvé : plus rien');
+  s.J.rounds[0].found = {}; s.ctx.jeuSoloLike = () => true; ed.value = 'z'; s.ev('jeuEcritVeille(0)'); assert.equal(sent.length, 2, 'seul dans la salle : rien');
+  /* Reçu */
+  s.ctx.jeuSoloLike = () => false; Object.assign(s.J, { view: 'play0', denied: {} });
+  s.ev("jeuEcritRecu({t:'ecrit',pid:'c',g:2,n:0})"); assert.ok(s.J.ecritAt.c > 0);
+  for (const m of ["{pid:'a',g:2,n:0}", "{pid:'zz',g:2,n:0}", "{pid:'d',g:1,n:0}", "{pid:'d',g:2,n:4}"]) s.ev(`jeuEcritRecu(${m})`);
+  assert.deepEqual(Object.keys(s.J.ecritAt), ['c'], 'ni moi, ni un inconnu, ni une autre partie, ni une manche absente');
+  s.J.rounds[0].found = { d: 1 }; s.ev("jeuEcritRecu({pid:'d',g:2,n:0})"); assert.deepEqual(Object.keys(s.J.ecritAt), ['c'], 'ni celui qui a trouvé');
+  s.J.left.c = true; delete s.J.ecritAt.c; s.ev("jeuEcritRecu({pid:'c',g:2,n:0})"); assert.deepEqual(Object.keys(s.J.ecritAt), [], 'ni celui qui est parti');
+});
+
+test('« il écrit » passe par le canal en direct de la salle, sans la base ; reçu, on n’en garde que qui et quelle manche', () => {
+  const sb = cut('function jeuSupabase(code,onMsg,onNet){', '\n/* ');
+  assert.ok(sb.includes("signal(m){if(!S.closed&&S.ws&&S.joined)put(S.ws,{topic,event:'broadcast',payload:{type:'broadcast',event:'ecrit',payload:m},ref:String(++S.ref),join_ref:S.joinRef});},"));
+  const recu = sb.indexOf("if(f.payload&&f.payload.event==='ecrit'){const e=f.payload.payload;if(e&&typeof e==='object')onMsg({v:1,t:'ecrit',pid:String(e.pid||''),g:+e.g||0,n:+e.n||0});return;}");
+  assert.ok(recu > 0 && recu < sb.indexOf('if(secure){if(Date.now()-noticeAt>150)'), 'avant la relecture des salles classées : un signal ne relit pas la salle');
+  const tr = cut('function jeuTransport(code,onMsg,onNet,solo){', '\nfunction jeuSupabase(');
+  assert.ok(tr.includes('return{send(){return Promise.resolve(true);},signal(){},beacon(){},close(){}};'), 'seul : rien');
+  assert.ok(tr.includes('bc.onmessage=e=>onMsg(e.data&&e.data.eph?e.data:rel(e.data));') && tr.includes('signal(m){try{bc.postMessage(Object.assign({},m,{eph:1}));}catch(e){}}'), 'le canal local (tests) : pas gardé');
+  const on = cut('function jeuOnMsg(m){', "\n  const mine=");
+  assert.ok(on.includes("if(m.t==='ecrit')return jeuEcritRecu(m);"), 'avant l’ordre du relais et les signes de vie');
+  assert.ok(cut("    case 'rate':{", "    case 'close':{").includes('if(J.ecritAt)delete J.ecritAt[m.pid];'), 'il exécute : il n’écrit plus');
+});
+
 test('réductible : la flèche plie et déplie, le choix est gardé ; plié, il ne reste que la barre', () => {
   const s = salle();
   s.J.rounds[0].found = { b: 1 };
@@ -183,7 +224,7 @@ test('branché à la manche : sous le titre, avant la question ; chaque essai, c
   assert.ok(rate.includes("(J.koAt=J.koAt||{})[m.pid]=Date.now();\n      jeuDirectPeindre(n);"), 'en direct : « Teste sa requête » tout de suite');
   assert.ok(cut('function jeuEssaiRate(r){', '\n}\n').includes("if(n>=0&&typeof jeuDirectPeindre==='function')jeuDirectPeindre(n);"), 'mon compteur aussi, sans attendre');
   assert.ok(cut('function jeuPatch(v){', '\n}\n').includes('jeuDirectPeindre(n);'), 'quelqu’un trouve, arrive ou part : sur place, l’éditeur ne bouge pas');
-  assert.ok(cut('function jeuTick(){', '\n}\n').includes("else{coachRoomTick();if(n>=0&&J.view==='play'+n)jeuDirectPeindre(n);}"), 'le geste « Teste sa requête » s’éteint tout seul');
+  assert.ok(cut('function jeuTick(){', '\n}\n').includes("else{coachRoomTick();if(n>=0&&J.view==='play'+n){jeuEcritVeille(n);jeuDirectPeindre(n);}}"), 'ma requête qui change part ; « Teste », « Écrit » s’éteignent tout seuls');
 });
 
 test('le style : tout sous #jeu-root (avant la refonte des Défis), des gestes de 0,5 à 1 s, rien en mouvement réduit', () => {
