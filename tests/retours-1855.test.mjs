@@ -229,24 +229,18 @@ test('sans la nouvelle base, le classement retombe sur l’ancien Top 12, en pag
   assert.equal(c.ev('DEFIS.cls.moi.page'), 0);
 });
 
-test('Amis : les adversaires et ceux qu’on ajoute par leur pseudo ; qui est dans une salle ouverte', async () => {
+test('Amis : les adversaires, ceux avec qui tu as joué (8 novembre, 14 h 48 : « je veux marcher qu’avec code ») ; qui est dans une salle ouverte', async () => {
   const now = Date.now();
-  const c = bac({ salle: { mates: { tom: { n: '@tom', g: 4, w: 3, l: 1, at: now - 1000 } }, amisAjoutes: [{ n: '@lea', at: now - 500 }] },
-    rpc: (f, b) => f === 'jeu_drapeaux' ? (b.p_pseudos[0] === '@noe' ? [{ q: '@noe', pseudo: '@noe', pays: 'CH' }] : []) : {} });
-  assert.deepEqual(J(c.ev('amisListe().map(a=>a.n+":"+a.g+(a.ajout?"+":""))')), ['@lea:0+', '@tom:4']);
+  const c = bac({ salle: { mates: { tom: { n: '@tom', g: 4, w: 3, l: 1, at: now - 1000 }, zoe: { n: '@zoe', g: 1, w: 1, l: 0, at: now - 200 } }, amisAjoutes: [{ n: '@lea', at: now - 500 }] } });
+  /* un ancien ajout par pseudo (@lea, jamais affrontée) reste dans la progression, mais ne s’affiche plus */
+  assert.deepEqual(J(c.ev('amisListe().map(a=>a.n+":"+a.g)')), ['@zoe:1', '@tom:4']);
+  assert.deepEqual(J(c.ev('clsAmisPseudos()')), ['@tom', '@zoe'], 'Mes amis du classement : ceux avec qui tu as joué');
   c.ev("DEFIS.salles=[{code:'AAA111',niv:'f',manches:1,nb:2,max:5,hote:'@kev',joueurs:[{pseudo:'@kev'},{pseudo:'@tom'}]}];defisAmisPeindre()");
   /* Refonte du 7 novembre : une seule ligne par joueur. @tom attend dans une salle : sa ligne le dit, « Rejoindre », et passe en tête. */
   const l = c.els['dx-amis-liste'].innerHTML;
   assert.ok(!app.includes('dx-amis-salles') && !l.includes('Dans une salle maintenant'), 'plus de section en double');
   assert.ok(l.includes('<span class="dx-score is-up" aria-hidden="true">3–1</span>') && l.includes('</span>En salle<span class="dx-pc is-niv is-f is-blanc">') && l.includes('<span>Facile</span>') && l.includes("sallesRejoindre('AAA111')"));
-  assert.ok(l.indexOf('@tom') < l.indexOf('@lea') && l.includes("onclick=\"amisRetirer('@lea')\"") && l.includes("onclick=\"jeuDefier('@lea')\""));
-  /* Ajouter : il doit exister */
-  c.el('dx-ajout-in').value = 'Noé!'; c.ev('amisAjouter()'); await attendre();
-  assert.equal(c.els['dx-ajout-msg'].textContent, 'Aucun joueur ne s’appelle @no.');
-  c.el('dx-ajout-in').value = '@noe'; c.ev('amisAjouter()'); await attendre();
-  assert.deepEqual(J(c.ctx.state.salle.amisAjoutes.map(a => a.n)), ['@lea', '@noe']);
-  c.el('dx-ajout-in').value = '@elisa_sql'; c.ev('amisAjouter()');
-  assert.equal(c.els['dx-ajout-msg'].textContent, 'C’est ton pseudo à toi.');
+  assert.ok(l.indexOf('@tom') < l.indexOf('@zoe') && l.includes("onclick=\"jeuDefier('@zoe')\"") && !l.includes('@lea') && !l.includes('amisRetirer'));
   /* Défier : une salle privée */
   c.ev("jeuDefier('@tom')");
   assert.deepEqual(J(c.appels.filter(a => a[0] === 'jeuStart').at(-1)), ['jeuStart', 'NOUV01', true, null, { nomId: 'jeu-nom', pub: false, pour: '@tom' }]);
@@ -269,7 +263,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=3"></script>') && sw.includes("'./multiplayer-security.js?v=3',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=231">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=232">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-08-duel-v2674');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-08-joueurs-code-v2675');
 });
