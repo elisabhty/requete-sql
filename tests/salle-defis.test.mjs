@@ -513,7 +513,7 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   assert.equal(s.view(), 'draw0');
   assert.match(s.html, /Un défi au hasard/);
   sec(w, 3.5); assert.equal(s.view(), 'play0');
-  assert.doesNotMatch(s.html, /jeu-players|jeu-reacts/, 'ni liste de joueurs ni réactions');
+  assert.doesNotMatch(s.html, /jeu-players|jeu-reacts|jeu-reagir/, 'ni liste de joueurs ni réactions (« Réagir » non plus)');
   sec(w, 20); s.found(); sec(w, 1);                        /* vers 20 s : 200 */
   assert.equal(s.view(), 'res0'); assert.match(s.html, /Ton résultat/);
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 80); s.found(); sec(w, 1);   /* vers 80 s */
@@ -627,13 +627,13 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   assert.equal(h.view(), 'play0');
   assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
   /* 8 novembre, 17 h 08 (« pourquoi j’ai pas le truc du haut avec les présents et toi ») : « En direct » reste en haut, même seul */
-  assert.match(h.html, /<section class="jeu-direct" id="jeu-direct"/);
+  assert.match(h.html, /<section class="jeu-direct has-reagir(?: is-reagir-neuf)?" id="jeu-direct"/);
   const d0 = h.ev('jeuDirectHTML(0)');
   assert.equal(d0.split('<li ').length - 1, 1, 'une ligne : toi'); assert.match(d0, /<span class="jd-l1"><b>Toi<\/b><\/span>/);
   assert.match(d0, /<span id="jeu-direct-nb">1&nbsp;joueur<\/span>/);
   assert.equal(h.ev('JEU.dit.cur.html'), 'C’est parti\u00a0! Qui ouvrira le score\u00a0?', 'seul aussi, la phrase de toujours (18 h 14)');
   assert.doesNotMatch(h.html, /jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien d’autre des écrans à plusieurs (réactions, « Clore la manche pour tous »)');
-  assert.doesNotMatch(h.html, /has-reagir/, 'seul dans la salle : « Réagir » reste caché (personne pour le voir)');
+  assert.match(h.html, /id="jeu-reagir-b" aria-expanded="false"/, 'seule dans la salle, « Réagir » est là aussi (19 h 12 : « visible même seule »)');
   h.found(); sec(w, 1);
   assert.ok(!h.toasts.some(t => /tête|course|affilée|minute|Remontée/.test(t)), 'seul : le commentateur se tait');
   assert.equal(h.view(), 'res0', 'seul : les résultats tout de suite');

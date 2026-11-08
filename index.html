@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=243">
+<link rel="stylesheet" href="ludique.css?v=244">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35645,7 +35645,7 @@ function jeuDirectHTML(n,hud){
   J.directVu={n,m:jeuDirectEtats(xs),sig:jeuDirectSig(xs)};
   const plie=jeuDirectPlie(),t=jeuDirectTete(xs);
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
-  /* « Réagir », à plusieurs (18 h 36) : la première fois de la partie, son sourire se balance */
+  /* « Réagir », en salle, même seule (18 h 36, 19 h 12) : la première fois de la partie, son sourire se balance */
   const reagir=jeuReagirLa(),neuf=reagir&&!J.reagirVu;if(neuf)J.reagirVu=1;
   return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}${reagir?' has-reagir':''}${reagir&&J.reagir?' is-reagir':''}${neuf?' is-reagir-neuf':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
     `<button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="${!plie}" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer()">`+
@@ -35782,8 +35782,9 @@ function jeuReactPop(pid,e){
 }
 /* Réagir (Elisa, 8 novembre, 18 h 36 : « comment faire les réactions ? De plus voir la réaction des autres en temps réel sur l’écran
    avec leur pseudo »). Avant, les quatre réactions n’apparaissaient qu’une fois la réponse trouvée, et à plusieurs : seule pour
-   tester, on ne les voyait jamais. Maintenant, à plusieurs, pendant toute la manche, « Réagir » au bout de la ligne du niveau, dans le
-   cadre : un seul bouton tant qu’on ne s’en sert pas (31 octobre, 16 h 29 : « trop de boutons »). Touché, les quatre réactions
+   tester, on ne les voyait jamais. Maintenant, en salle, pendant toute la manche, « Réagir » au bout de la ligne du niveau, dans le
+   cadre, même seule dans la salle (19 h 12 : « visible même seule » ; sa réaction monte alors avec « Toi ») ; pas en partie seule
+   (« Joue seul »). Un seul bouton tant qu’on ne s’en sert pas (31 octobre, 16 h 29 : « trop de boutons »). Touché, les quatre réactions
    prennent la ligne, la croix au bout ; une touche envoie, la ligne reste ouverte pour une autre et se referme seule après 4,5 s sans
    toucher. La première fois qu’il apparaît dans une partie, le sourire se balance (deux fois, puis il se tait). Après avoir trouvé,
    la carte « Trouvé » garde ses quatre réactions. */
@@ -35815,8 +35816,8 @@ function jeuReagirPeindre(){
   if(s&&s.classList)s.classList.toggle('is-reagir',o);
   if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(o));
 }
-/* « Réagir » n’est là qu’à plusieurs (quelqu’un d’autre est dans la salle) : suivi à chaque tour d’horloge (jeuDirectPeindre) */
-function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo&&jeuLive().length>1);}
+/* « Réagir » est là dans toute salle, même seule (19 h 12) ; pas en partie seule. Suivi à chaque tour d’horloge (jeuDirectPeindre). */
+function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo);}
 function jeuReagirMaj(){
   const J=JEU,s=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-direct'):null;
   if(!J||!s||!s.classList)return;
@@ -46623,7 +46624,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-reactions-direct-v2690';
+  const SW_CACHE='requete-2026-11-08-reagir-seule-v2691';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
