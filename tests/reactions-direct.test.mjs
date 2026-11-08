@@ -61,7 +61,8 @@ test('« À toi de jouer ! Tu peux consulter le schéma… » sous chaque situat
   }
   ctx.s = 'Une situation sans la fin habituelle.';
   assert.equal(vm.runInContext('defiSituationSeule(s)', ctx), 'Une situation sans la fin habituelle.', 'une autre fin : rien n’est coupé');
-  for (const r of ['html.lq .consigne.dq .dq-atoi{margin:12px 0 0;padding:11px 14px 12px;border-radius:14px;background:#F4F3F7;box-shadow:inset 0 0 0 1.5px #E9E7F0;',
+  /* 20 h 22 : « je le veux plus clair » */
+  for (const r of ['html.lq .consigne.dq .dq-atoi{margin:12px 0 0;padding:11px 14px 12px;border-radius:14px;background:#FAF9FC;box-shadow:inset 0 0 0 1px #EEECF3;',
     'html.lq .consigne.dq .dq-atoi b{color:var(--ink);font-weight:800}', 'html.lq .consigne.dq>.dq-atoi+.dq-sec{margin-top:14px}'])
     assert.ok(css.includes(r), r);
 });
