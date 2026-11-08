@@ -68,7 +68,8 @@ test('le titre du défi en tête du cadre blanc, avant « La situation » ; en s
   ctx.c.titre = 'A <b>&'; assert.ok(vm.runInContext('defiConsigneHTML(c,{titre:true})', ctx).includes('<h1 class="dq-titre">A &lt;b>&amp;</h1>'), 'échappé');
   const ouvre = src.slice(src.indexOf('function openChallenge(cid){'), src.indexOf('\n}\n', src.indexOf('function openChallenge(cid){')));
   assert.ok(ouvre.includes('</b></div>\n    ${defiConsigneHTML(c,{titre:true})}') && !ouvre.includes('<h1>${c.titre}</h1>'), 'la page d’un défi : le titre entre dans le cadre');
-  for (const k of ['html.lq .consigne.dq>.dq-titre{margin:0 0 14px;padding:0 0 14px;border-bottom:2px solid var(--line-2);color:var(--ink);',
+  /* 21 h 58 : « tu peux mettre le trait en pointillé ? » */
+  for (const k of ['html.lq .consigne.dq>.dq-titre{margin:0 0 14px;padding:0 0 14px;border-bottom:2px dashed var(--lip);color:var(--ink);',
     'font:800 23px/1.16 var(--display);letter-spacing:-.022em;text-wrap:balance}', 'html.lq .consigne.dq.has-base>.dq-titre{margin-top:6px}'])
     assert.ok(css.includes(k), k);
 });

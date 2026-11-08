@@ -62,6 +62,6 @@ test('la coche « validé » : sans mot, au centre de la chose touchée, comme l
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=257">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-titre-cadre-v2704';") && app.includes("const SW_CACHE='requete-2026-11-08-titre-cadre-v2704';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=258">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-pointilles-v2705';") && app.includes("const SW_CACHE='requete-2026-11-08-pointilles-v2705';"));
 });
