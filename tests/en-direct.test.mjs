@@ -226,7 +226,16 @@ test('repliée : sur la tête de l’avatar, les trois petits points tant qu’i
   /* Il vient d’exécuter (« Teste sa requête ») ou il est parti : pas de bulle */
   s.J.koAt.d = Date.now(); assert.doesNotMatch(av(tete(), 'd'), /jd-av-b/);
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
-  for (const k of ['html.lq #jeu-root .jeu-direct-av{display:none;align-items:center;min-width:0;margin-top:-8px;padding:14px 0 6px 2px;overflow:hidden}',
+  /* 21 h 04 (« tu peux mettre les drapeaux ? ») : le drapeau au coin de l’avatar, comme dans la liste ; arrivé en cours de manche, il
+     redessine sa ligne et son avatar */
+  s.ctx.drapPays = n => (n === '@lea_data' ? 'BE' : '');
+  s.ctx.jeuFlag = (n, p) => (/^[A-Z]{2}$/.test(p || '') ? `<i class="jeu-flag" aria-hidden="true">${p}</i>` : '');
+  const h2 = tete();
+  assert.match(h2, /<b class="jeu-av is-\w+" data-c="1" data-pid="b">@?L<i class="jeu-flag" aria-hidden="true">BE<\/i><\/b>/, 'Léa : son drapeau');
+  assert.doesNotMatch(h2, /data-pid="(a|c|d)">[^<]*<i class="jeu-flag"/, 'sans pays : rien');
+  assert.ok(s.ev("jeuDirectSig(jeuDirectJoueurs(0).filter(x=>x.pid==='b'))").endsWith(':BE') && !s.ev("jeuDirectSig(jeuDirectJoueurs(0).filter(x=>x.pid==='a'))").includes(':BE'), 'dans sa signature : il redessine en arrivant');
+  for (const k of ['html.lq #jeu-root .jeu-direct-av{display:none;align-items:center;min-width:0;margin:-8px -8px -2px 0;padding:14px 8px 8px 2px;overflow:hidden}',
+    'html.lq #jeu-root .jeu-direct-av .jeu-av .jeu-flag{right:-6px;bottom:-6px;font-size:10px}', '  html.lq #jeu-root .jeu-direct-av .jeu-av .jeu-flag{right:-5px;font-size:9px}',
     'html.lq #jeu-root .jd-av-b{position:absolute;left:calc(50% - 9px);bottom:calc(100% - 2px);z-index:1;',
     'html.lq #jeu-root .jd-av-b>b{flex:none;width:3px;height:3px;border-radius:50%;background:var(--accent);animation:jdBulle 1s ease-in-out infinite}',
     '@keyframes jdBulle{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-2px);opacity:1}}',
@@ -240,7 +249,8 @@ test('repliée : sur la tête de l’avatar, les trois petits points tant qu’i
 
 test('la barre, avatar par avatar : celui qui n’a pas changé garde son nœud (ses points sautent sans à-coup)', () => {
   const s = salle();
-  const fait = h => { const m = /data-pid="(\w+)"/.exec(h), c = /class="([^"]*)"/.exec(h), dc = /data-c="(\d)"/.exec(h); return { html: h, className: c[1], dataset: { pid: m[1], c: dc[1] }, replaceWith(n) { const k = barre.children.indexOf(this); barre.children[k] = n; } }; };
+  const fait = h => { const m = /data-pid="(\w+)"/.exec(h), c = /class="([^"]*)"/.exec(h), dc = /data-c="(\d)"/.exec(h), f = /<i class="jeu-flag"[^>]*>([^<]*)<\/i>/.exec(h);
+    return { html: h, className: c[1], dataset: { pid: m[1], c: dc[1] }, querySelector: q => (q === '.jeu-flag' && f ? { textContent: f[1] } : null), replaceWith(n) { const k = barre.children.indexOf(this); barre.children[k] = n; } }; };
   const morceaux = h => h.split(/(?=<b class="jeu-av)/).filter(Boolean).map(fait);
   const barre = { children: [], innerHTML: '', replaceChildren(...k) { this.children = k; this.tout = (this.tout || 0) + 1; } };
   s.ctx.document = { createElement: () => { const t = { content: { children: [] } }; Object.defineProperty(t, 'innerHTML', { set(h) { t.content.children = morceaux(h); } }); return t; } };
@@ -252,6 +262,10 @@ test('la barre, avatar par avatar : celui qui n’a pas changé garde son nœud 
   assert.notEqual(barre.children[2], c0); assert.equal(barre.children[2].className, 'jeu-av is-ecrit', 'seul celui qui change est redessiné');
   s.ctx.jeuDirectAvMaj(barre, '<b class="jeu-av is-ok" data-c="2" data-pid="c">M</b><b class="jeu-av is-ok" data-c="1" data-pid="b">L</b><b class="jeu-av is-ecrit" data-c="0" data-pid="a">E</b>');
   assert.equal(barre.tout, 2, 'quelqu’un passe devant : la rangée est redessinée');
+  const [c1, b1, a1] = barre.children;
+  s.ctx.jeuDirectAvMaj(barre, '<b class="jeu-av is-ok" data-c="2" data-pid="c">M</b><b class="jeu-av is-ok" data-c="1" data-pid="b">L<i class="jeu-flag" aria-hidden="true">🇧🇪</i></b><b class="jeu-av is-ecrit" data-c="0" data-pid="a">E</b>');
+  assert.equal(barre.tout, 2); assert.equal(barre.children[0], c1); assert.equal(barre.children[2], a1);
+  assert.notEqual(barre.children[1], b1, 'son drapeau arrive (21 h 04) : son avatar est redessiné');
   /* Sans vrai DOM (les tests, un vieux navigateur) : comme avant */
   const simple = { innerHTML: '' }; s.ctx.jeuDirectAvMaj(simple, h); assert.equal(simple.innerHTML, h);
   s.ctx.jeuDirectAvMaj(null, h);
