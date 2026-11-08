@@ -71,11 +71,14 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   assert.deepEqual(xs.map(x => x.c), [1, 0, 2, 3], 'la couleur de son avatar en salle d’attente, quelle que soit sa place');
   const html = s.ev('jeuDirectHTML(0)'), rows = html.split('<li ').slice(1);
   assert.match(rows[0], /<span class="jd-l1"><b>@lea_data<span class="jeu-sr">, en tête<\/span><\/b><\/span><small class="jd-etat"><i class="jd-i" aria-hidden="true"><svg class="ok"\/><\/i>A trouvé&nbsp;!<em class="jd-gain">\+1 000<\/em><\/small>/);
-  assert.match(rows[0], /<i class="jd-couronne"><svg viewBox/); assert.match(rows[0], /<b>1 000<small>&nbsp;pts<\/small><\/b><small>1&nbsp;essai<\/small>/);
+  assert.match(rows[0], /<i class="jd-couronne"><svg viewBox/); assert.match(rows[0], /<b><span class="jd-pts" data-n="1000" data-fmt="fr">1 000<\/span><small>&nbsp;pts<\/small><\/b><small>1&nbsp;essai<\/small>/);
+  assert.match(rows[0], /^class="jd is-ok is-chef" data-pid="b" data-s="[^"]+"><span class="jd-rang is-m1" aria-hidden="true">1<\/span><b class="jeu-av"/, 'le rang : l’or');
+  assert.match(rows[1], /"><span class="jd-rang is-vide" aria-hidden="true">–<\/span><b class="jeu-av"/, 'sans points : un tiret');
   assert.match(rows[1], /^class="jd is-pense is-moi"/); assert.match(rows[1], /<span class="jd-l1"><b>Toi<\/b><\/span><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>En réflexion<\/small>/);
-  assert.match(rows[1], /<b>0<small>&nbsp;pt<\/small><\/b><small>2&nbsp;essais<\/small>/);
+  assert.match(rows[1], /<b><span class="jd-pts" data-n="0" data-fmt="fr">0<\/span><small>&nbsp;pt<\/small><\/b><small>2&nbsp;essais<\/small>/);
   assert.match(rows[2], /^class="jd is-test"/); assert.match(rows[2], /<i class="jd-run" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2v9.6l7.6-4.8z"[^>]*\/><\/svg><\/i>Teste sa requête/, 'la pastille d’« Exécuter »');
-  assert.match(html, /<span class="jeu-direct-nb" id="jeu-direct-nb">4&nbsp;joueurs<\/span>/);
+  assert.match(html, /<span class="jeu-direct-nb"><span id="jeu-direct-nb">4&nbsp;joueurs<\/span><\/span>/);
+  assert.match(html, /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button [^>]*><span class="jeu-direct-live" aria-hidden="true"><\/span><b id="jeu-direct-t">En direct<\/b>/, 'le bandeau, la pastille « en direct »');
   assert.match(html, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true"><svg class="ok"\/><\/i>1\/4<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/);
   assert.match(html, /<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true"><b class="jeu-av is-ok" data-c="1" data-pid="b">@?L<\/b><b class="jeu-av is-pense" data-c="0" data-pid="a">E<\/b>/, 'repliée, les avatars restent dans la barre');
   assert.doesNotMatch(html, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
@@ -99,7 +102,7 @@ test('les points de toute la partie ; deux à égalité en tête, deux couronnes
   const xs = s.rang(1);
   assert.deepEqual(xs.map(x => [x.pid, x.pts, x.chef, x.etat]), [['b', 1800, true, 'ok'], ['e', 1000, false, 'parti'], ['a', 0, false, 'pense'], ['c', 0, false, 'parti'], ['d', 0, false, 'pense']]);
   const html = s.ev('jeuDirectHTML(1)');
-  assert.match(html, /<b>@zoe<\/b><\/span><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>A quitté la salle<\/small>/);
+  assert.match(html, /<b>@zoe<span class="jeu-sr">, 2e<\/span><\/b><\/span><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>A quitté la salle<\/small>/);
   assert.match(html, /<b>@max<\/b><\/span><small class="jd-etat"><i class="jd-rond" aria-hidden="true"><\/i>Hors ligne<\/small>/);
   assert.match(html, /1\/3<span class="jeu-sr"> : 1 joueur a trouvé<\/span>/, 'ceux partis avant d’avoir trouvé ne comptent plus');
   assert.match(html, /3&nbsp;joueurs/);
@@ -111,9 +114,9 @@ test('les points de toute la partie ; deux à égalité en tête, deux couronnes
 
 test('les gestes : seulement ce qui vient de changer, une fois (le premier dessin de la manche ne rejoue rien)', () => {
   const s = salle();
-  const x = { pid: 'b', me: false, vrai: '@lea_data', nom: '@lea_data', c: 1, ok: true, essais: 2, etat: 'ok', quitte: false, pts: 1000, gain: 1000, chef: true, serie: 0, monte: 0, place: 1 };
+  const x = { pid: 'b', me: false, vrai: '@lea_data', nom: '@lea_data', c: 1, ok: true, essais: 2, etat: 'ok', quitte: false, pts: 1000, gain: 1000, chef: true, serie: 0, monte: 0, place: 1, rang: 1 };
   const neuf = s.ctx.jeuDirectLigne(x, null);
-  assert.match(neuf, /^<li class="jd is-ok is-chef" data-pid="b" data-s="b:ok:2:1000:1:1000:0:0">/);
+  assert.match(neuf, /^<li class="jd is-ok is-chef" data-pid="b" data-s="b:ok:2:1000:1:1000:0:0:1"><span class="jd-rang is-m1" aria-hidden="true">1<\/span>/);
   assert.doesNotMatch(neuf, /jd-fete/);
   const vu = s.ctx.jeuDirectLigne(x, { etat: 'test', essais: 1, chef: false });
   assert.match(vu, /^<li class="jd is-ok is-chef is-plus is-trouve is-sacre"/, 'un essai de plus, trouvé, en tête');
@@ -204,7 +207,7 @@ test('le commentateur : une phrase à la fois (2,2 s au moins), de la croix d’
   const s = salle(), nb = '\u00a0', r = s.J.rounds[0];
   const dit = () => s.J.dit.cur.html, attend = () => [...s.J.dit.file].map(d => d.k), passe = () => { s.J.dit.at -= 2300; s.ev('jeuDitAvancer(0)'); };
   const html0 = s.ev('jeuDirectHTML(0)');
-  assert.match(html0, /<\/button><p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true"><span class="jd-dit-m is-go"><i class="jd-dit-i" aria-hidden="true"><svg[^]*?<\/i><span>C’est parti\u00a0! Qui ouvrira le score\u00a0\?<\/span><\/span><\/p><ol class="jeu-direct-l"/, 'sous la barre, avant la liste (visible même repliée)');
+  assert.match(html0, /<\/button><p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true"><span class="jd-dit-m is-go"><i class="jd-dit-i" aria-hidden="true"><svg[^]*?<\/i><span>C’est parti\u00a0! Qui ouvrira le score\u00a0\?<\/span><\/span><\/p><\/div><ol class="jeu-direct-l"/, 'en bas du bandeau, avant la liste (visible même repliée)');
   /* @max manque : la croix, son pseudo, tout de suite (la phrase de départ s’efface aussitôt) */
   Object.assign(r, { ko: { c: 1 }, tried: { c: 1 } }); s.J.koAt.c = Date.now(); s.ev('jeuDirectHTML(0)');
   assert.equal(dit(), `<b>@max</b>${nb}: pas encore`); assert.equal(s.J.dit.cur.ico, '<svg class="ko"/>');
@@ -301,9 +304,9 @@ test('une réaction jaillit de l’avatar de celui qui l’envoie, dans la liste
 test('réductible : la flèche plie et déplie, le choix est gardé ; plié, il ne reste que la barre', () => {
   const s = salle();
   s.J.rounds[0].found = { b: 1 };
-  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="true" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer\(\)">/);
+  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="true" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer\(\)">/);
   s.store['rq-jeu-direct'] = 'plie';
-  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-plie" [^>]*><button [^>]*aria-expanded="false"/);
+  assert.match(s.ev('jeuDirectHTML(0)'), /^<section class="jeu-direct is-plie" [^>]*><div class="jeu-direct-bande"><button [^>]*aria-expanded="false"/);
   const cls = new Set(['jeu-direct']), attrs = {};
   s.ctx.document = { getElementById: id => id === 'jeu-direct' ? { classList: { contains: k => cls.has(k), toggle: (k, on) => { if (on) cls.add(k); else cls.delete(k); } } }
     : id === 'jeu-direct-h' ? { setAttribute: (k, v) => { attrs[k] = v; } } : null };
@@ -339,9 +342,15 @@ test('le style : tout sous #jeu-root (avant la refonte des Défis), des gestes d
   const gestes = [...bloc.matchAll(/animation:(jd\w+) ([\d.]+)s([^;}]*)/g)].filter(m => !/infinite/.test(m[3]));
   assert.deepEqual([...new Set(gestes.map(m => m[1]))].sort(), ['jdConfetti', 'jdCouronne', 'jdDit', 'jdLueur', 'jdNon', 'jdPlus', 'jdPose', 'jdReact', 'jdRebond']);
   for (const m of gestes) assert.ok(+m[2] >= 0.5 && +m[2] <= 1, `${m[1]} ${m[2]} s`);
-  for (const k of ['@media (prefers-reduced-motion:reduce){\n  html.lq #jeu-root :is(.jd,.jd *,.jeu-direct-onde .jd-onde2,.jeu-direct-av .jeu-av,.jd-dit-m,.jd-dit-m *,.jd-react,.jeu-direct.is-urgent){animation:none!important}',
+  assert.ok(!/:is\([^)]*::/.test(bloc), 'pas de pseudo-élément dans :is() (la règle entière serait ignorée)');
+  for (const k of ['@media (prefers-reduced-motion:reduce){\n  html.lq #jeu-root :is(.jd,.jd *,.jeu-direct-av .jeu-av,.jd-dit-m,.jd-dit-m *,.jd-react,.jeu-direct.is-urgent .jeu-direct-bande),html.lq #jeu-root .jd>.jeu-av::after,html.lq #jeu-root .jeu-direct-live::after{animation:none!important}',
     'html.lq[data-motion="reduce"] #jeu-root .jd-fete{display:none}', 'html.lq[data-reading="large"] #jeu-root .jd-l1>b{font-size:17px}',
-    'html.lq #jeu-root .jd.is-moi{margin:4px -8px;padding:9px 8px;border-radius:14px;background:var(--accent-soft)}'])
+    'html.lq #jeu-root .jd.is-moi{margin:4px -7px;padding:9px 9px;border-radius:15px;background:var(--accent-soft);box-shadow:inset 0 0 0 2px #DDD5FF}',
+    /* 12 h 48, premium : le bandeau des Défis, l’anneau de l’avatar, le rang */
+    'html.lq #jeu-root .jeu-direct-bande{position:relative;z-index:1;isolation:isolate;overflow:hidden;border-radius:22px;background:var(--deep);color:#fff;box-shadow:0 4px 0 #3420A6}',
+    'linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/22px 22px', 'html.lq #jeu-root .jd.is-ok>.jeu-av::after{border-color:#2DB67C}',
+    'html.lq #jeu-root .jd.is-ecrit>.jeu-av::after{border-color:var(--accent) transparent var(--accent) transparent;animation:jdTourne 1.4s linear infinite}',
+    'html.lq #jeu-root .jd-rang.is-m1{background:var(--sun);', 'html.lq #jeu-root .jd-dit-m b{color:var(--sun-hi);font-weight:800}'])
     assert.ok(bloc.includes(k), k);
   assert.ok(!/jeu-mates|jeu-mate-/.test(css), 'les règles de l’ancienne bande sont parties');
   assert.ok(!/jeu-evt|jeuMateOk|jeuEvtNon/.test(css), 'les pastilles du haut sont parties (le commentateur les remplace)');
