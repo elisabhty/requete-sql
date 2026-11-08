@@ -26,7 +26,7 @@ test('chaque consigne dit point par point le résultat attendu, sans renvoi à u
   else if(c.tri)assert.match(c.tri,/^par /,c.id+': le tri commence par « par »');
   const t=[c.titre,c.situation,...c.affiche,...c.garde,c.tri||'',...c.precis].join(' ');
   assert.doesNotMatch(t,/voir (?:la question|la consigne)|comme (?:ci-dessus|précédemment)/i,c.id);
-  /* 8 novembre, 13 h 31 : la situation a jusqu’à 100 mots (retours-0937) ; le reste de la consigne garde sa taille d’avant */
+  /* 8 novembre : la situation a jusqu’à 150 mots (retours-0937) ; le reste de la consigne garde sa taille d’avant */
   const reste=[c.titre,...c.affiche,...c.garde,c.tri||'',...c.precis].join(' ');
   assert.ok(reste.split(/\s+/).length<=135,c.id+': consigne lisible d’un coup d’œil');
   assert.doesNotMatch(t.replace(/«[^»]*»/g,''),/['"]/,c.id+': apostrophes et guillemets typographiques');

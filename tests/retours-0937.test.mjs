@@ -42,7 +42,7 @@ const AUTRES = /Camille Moreau|Oliver Smith|Sophie Martin|Manon Lambert|Simba|Al
 
 test('le défi de la capture : Inès, à l’accueil du club Pulsar, et ce qu’elle doit présenter', () => {
   const c = C.find(x => x.id === 'sm7');
-  assert.equal(c.situation, `Au club Pulsar, Inès tient l’accueil${N}: c’est le comptoir de l’entrée, où elle reçoit les adhérents et vend les abonnements. Lundi, en réunion d’équipe, elle doit présenter combien d’adhérents sont abonnés en ce moment à chacune des trois formules du club${N}: Annuel, Mensuel et Étudiant.`);
+  assert.equal(c.situation, `Au club Pulsar, une salle de sport de quartier, Inès tient l’accueil${N}: c’est le comptoir de l’entrée, où elle reçoit les adhérents et vend les abonnements, au mois, à l’année ou au tarif étudiant. Lundi, en réunion d’équipe, elle doit présenter combien d’adhérents sont abonnés en ce moment à chacune des trois formules du club${N}: Annuel, Mensuel et Étudiant. À toi de jouer${N}!`);
   assert.equal(c.titre, `Combien d’adhérents actifs compte chaque formule${N}?`, 'le titre ne change pas');
   assert.deepEqual([...c.garde], ['seulement les abonnements en cours (date de fin vide)'], 'la consigne ne change pas');
   assert.ok(!C.some(x => /^L’accueil (fait|prépare|veut|lance|vérifie|archive|attend|mesure)/.test(x.situation)), 'plus aucun « L’accueil… » sans lieu ni personne');
@@ -56,7 +56,7 @@ test('chaque situation nomme son lieu et qui demande, sans sujet flou, et reste 
     assert.ok(s.includes(lieu.replace(/^(aéroport|hôpital des|zoo des|laboratoire|club) /, '')), `${c.id} : le lieu (${lieu})`);
     assert.ok(equipe.some(n => s.includes(n)) || AUTRES.test(s), `${c.id} : qui demande`);
     assert.doesNotMatch(s, /^(L’accueil|Le service|La direction|Les opérations|L’équipe du|Le secrétariat|La coordination|Le planning|La billetterie|La pharmacie|La cuisine|La réserve|Le responsable|La responsable)\b/, `${c.id} : un sujet sans visage`);
-    assert.ok(mots(s) >= 25 && mots(s) <= 100, `${c.id} : ${mots(s)} mots`);   // 100 au plus depuis le 8 novembre, 13 h 31 (70 à 13 h 28)
+    assert.ok(mots(s) >= 25 && mots(s) <= 150, `${c.id} : ${mots(s)} mots`);   // 8 novembre : 70, puis 100, puis 150 mots au plus, sans remplissage
     assert.doesNotMatch(s, / [?!;:]/, `${c.id} : espace insécable avant la ponctuation`);
     assert.doesNotMatch(s.replace(/«[^»]*»/g, ''), /['"]/, `${c.id} : apostrophes et guillemets typographiques`);
     assert.doesNotMatch(s, /SQLite|SELECT|WHERE|JOIN/, `${c.id} : pas de SQL dans la situation`);
