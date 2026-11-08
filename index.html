@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=254">
+<link rel="stylesheet" href="ludique.css?v=255">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35612,7 +35612,10 @@ function jeuNoteHTML(cls,ico,titre,texte){return `<div class="jeu-net ${cls}" ro
    remonte. Il remplace la bande d’avatars au-dessus du titre (31 octobre).
    12 h 07 (« Quand il écrit dans la zone de requête ? ») : « Écrit sa requête », avec les trois petits points, tant qu’il tape. Seul
    le fait d’écrire part, jamais le texte : un signal en direct (jeuEcritVeille), au plus toutes les 3 s, qui ne passe pas par la base
-   et n’est ni gardé ni relu ; sans nouvelles 5 s, il repasse « En réflexion ». */
+   et n’est ni gardé ni relu ; sans nouvelles 5 s, il repasse « En réflexion ».
+   21 h 13 (« supprimer le Toi, etc., et mettre une couronne pour le premier avec un validé pour les autres ») : plus de tableau des
+   scores sous le bandeau, ni de flèche pour le déplier. La rangée des avatars dit tout : ce que chacun fait (les petits points), la
+   couronne du premier qui a trouvé, la coche des suivants, son drapeau ; les points de la partie sont au bilan de chaque manche. */
 const JEU_TEST_MS=3200,JEU_ECRIT_MS=5000,JEU_ECRIT_PAS=3000,JEU_DIT_MS=2200,JEU_MONTE_MS=4000;
 const JEU_FLAMME_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.4 2.6c.5 2.9-1.6 4.5-3.1 6.6-1.3 1.8-2 3.5-2 5.3 0 3.7 2.4 6.7 5.7 6.7 3.5 0 6-2.7 6-6.3 0-2.6-1.2-4.6-2.7-6.1-.2 1.4-.9 2.5-2.1 3.1.3-3.5-.5-7-1.8-9.3z" fill="#FF8A3D" stroke="#1B1640" stroke-width="1.7" stroke-linejoin="round"/><path d="M12.3 20.3c-1.5 0-2.7-1.3-2.7-3 0-1.5 1.1-2.6 2-3.6.3 1 .9 1.6 1.7 1.9.1-.8.5-1.4 1-1.8.6.9 1 1.8 1 2.8 0 2.2-1.3 3.7-3 3.7z" fill="#FFC83D"/></svg>';
 const JEU_MONTE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19.5V5.8M6.2 11.6L12 5.8l5.8 5.8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -35620,7 +35623,6 @@ const JEU_CHRONO_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12
 const JEU_LOUPE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.8"/><path d="M15.2 15.2l4.8 4.8" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
 const JEU_RUN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2v9.6l7.6-4.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const JEU_COURONNE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.6 8.8l4.5 3.4L12 5.6l3.9 6.6 4.5-3.4-1.6 9.6H5.2z" fill="#FFC83D" stroke="#1B1640" stroke-width="1.9" stroke-linejoin="round"/><circle cx="12" cy="5.4" r="1.4" fill="#fff" stroke="#1B1640" stroke-width="1.2"/></svg>';
-function jeuDirectPlie(){try{return localStorage.getItem('rq-jeu-direct')==='plie';}catch(e){return false;}}
 function jeuDirectJoueurs(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;if(!r)return [];
   const ordre=jeuOrder(),tot={},gain={},now=Date.now();
@@ -35659,33 +35661,27 @@ function jeuDirectSerie(rk,pid,n){
   }
   return k;
 }
-function jeuDirectLigne(x,avant){
-  const etat=x.etat==='ok'?`<i class="jd-i" aria-hidden="true">${JEU_ICO.check}</i>A trouvé&nbsp;!${x.gain?`<em class="jd-gain">+${x.gain.toLocaleString('fr-FR')}</em>`:''}`
-    :x.etat==='test'?`<i class="jd-run" aria-hidden="true">${JEU_RUN_SVG}</i>Teste sa requête`
-    :x.etat==='ecrit'?'<i class="jd-pp" aria-hidden="true"><b></b><b></b><b></b></i>Écrit sa requête'
-    :x.etat==='parti'?`<i class="jd-rond" aria-hidden="true"></i>${x.quitte?'A quitté la salle':'Hors ligne'}`:'<i class="jd-rond" aria-hidden="true"></i>En réflexion';
-  /* Ce qui vient de changer, et seulement ça, se joue une fois (le premier dessin de la manche ne rejoue rien) */
-  const plus=avant&&x.essais>avant.essais,trouve=avant&&avant.etat!=='ok'&&x.etat==='ok',sacre=avant&&!avant.chef&&x.chef;
-  const pts=x.pts.toLocaleString('fr-FR'),neufS=avant&&x.serie>(avant.serie||0),neufM=avant&&avant.place&&x.place<avant.place,monte=avant&&avant.pts!=null&&x.pts>avant.pts;
-  const rang=x.rang?`<span class="jd-rang${x.rang<4?' is-m'+x.rang:''}" aria-hidden="true">${x.rang}</span>`:'<span class="jd-rang is-vide" aria-hidden="true">–</span>';
-  const marques=(x.serie>=2?`<span class="jd-serie${neufS?' is-neuf':''}">${JEU_FLAMME_SVG}<b>${x.serie}</b><span class="jeu-sr">, ${x.serie} manches d’affilée en premier</span></span>`:'')
-    +(x.monte?`<span class="jd-monte${neufM?' is-neuf':''}">${JEU_MONTE_SVG}<b>${x.monte}</b><span class="jeu-sr">, gagne ${x.monte} place${x.monte>1?'s':''}</span></span>`:'');
-  return `<li class="jd is-${x.etat}${x.me?' is-moi':''}${x.chef?' is-chef':''}${plus?' is-plus':''}${trouve?' is-trouve':''}${sacre?' is-sacre':''}" data-pid="${jeuDirectPid(x.pid)}" data-s="${jeuDirectSig([x])}">`+
-    rang+`<b class="jeu-av" data-c="${x.c}" aria-hidden="true">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai):''}${x.chef?`<i class="jd-couronne">${JEU_COURONNE_SVG}</i>`:''}${trouve?'<i class="jd-fete"><i></i><i></i><i></i><i></i><i></i><i></i></i>':''}</b>`+
-    `<span class="jd-t"><span class="jd-l1"><b>${esc(x.nom)}${x.chef?'<span class="jeu-sr">, en tête</span>':x.rang?`<span class="jeu-sr">, ${jeuOrdinal(x.rang)}</span>`:''}</b>${marques}</span><small class="jd-etat">${etat}</small></span>`+
-    `<span class="jd-n"><b><span class="jd-pts${monte?' is-compte':''}" data-n="${x.pts}"${monte?` data-from="${avant.pts}"`:''} data-fmt="fr">${pts}</span><small>&nbsp;pt${x.pts>1?'s':''}</small></b><small>${x.essais}&nbsp;essai${x.essais>1?'s':''}</small></span></li>`;
-}
+/* La rangée des avatars, seule dans le bandeau depuis 21 h 13 : ceux qui ont trouvé d’abord, dans l’ordre où ils ont trouvé (le premier
+   porte la couronne, les suivants la coche), puis ceux qui cherchent, dans l’ordre de la salle, et ceux qui sont partis au bout. Le
+   lecteur d’écran a la même chose en une phrase (la rangée lui est cachée). */
 function jeuDirectTete(xs,avant){
   const la=xs.filter(x=>x.etat!=='parti'),ok=la.filter(x=>x.ok).length,nb=la.length;   // ceux de la manche, sans ceux partis avant d’avoir trouvé
+  const t1=Math.min(...xs.filter(x=>x.ok).map(x=>x.ms)),premier=x=>x.ok&&x.ms===t1,cran=x=>x.ok?0:x.etat==='parti'?2:1;
+  const ys=xs.slice().sort((a,b)=>cran(a)-cran(b)||(a.ok&&b.ok?a.ms-b.ms:0)||a.i-b.i);
+  const mot={ok:'trouvé',test:'teste une requête',ecrit:'en train d’écrire',pense:'en réflexion'};
   return {ok:`<i aria-hidden="true">${JEU_ICO.check}</i>${ok}/${nb}<span class="jeu-sr"> : ${ok>1?`${ok} joueurs ont trouvé`:ok?'1 joueur a trouvé':'personne n’a encore trouvé'}</span>`,
-    av:xs.map(x=>`<b class="jeu-av is-${x.etat}" data-c="${x.c}" data-pid="${jeuDirectPid(x.pid)}">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai,x.pays||''):''}${jeuDirectBulle(x,avant)}</b>`).join(''),nb:`${nb}&nbsp;joueur${nb>1?'s':''}`};
+    av:ys.map(x=>`<b class="jeu-av is-${x.etat}${premier(x)?' is-premier':''}" data-c="${x.c}" data-pid="${jeuDirectPid(x.pid)}">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai,x.pays||''):''}${jeuDirectBulle(x,avant,premier(x))}</b>`).join(''),
+    qui:ys.map(x=>`${esc(x.nom)}\u00a0: ${premier(x)?'trouvé en premier':x.etat==='parti'?(x.quitte?'parti de la salle':'hors ligne'):mot[x.etat]}`).join(', ')};
 }
 /* 20 h 39 (« quand quelqu’un tape une requête, on a un … juste au-dessus de lui, et un validé aussi quand la personne a eu juste à la
-   manche ») : replié, une bulle sur la tête de chaque avatar dit ce qu’il fait : les trois petits points tant qu’il écrit (pour soi
-   aussi), la coche quand il a trouvé. Elle se pose quand ça vient de changer ; le premier dessin de la manche ne rejoue rien. */
-function jeuDirectBulle(x,avant){
+   manche ») : une bulle sur la tête de chaque avatar dit ce qu’il fait : les trois petits points tant qu’il écrit (pour soi aussi), la
+   coche quand il a trouvé ; 21 h 13, la couronne pour le premier qui a trouvé. Elle se pose quand ça vient de changer ; le premier
+   dessin de la manche ne rejoue rien. */
+function jeuDirectBulle(x,avant,premier){
   const a=avant&&avant[jeuDirectPid(x.pid)],neuf=a&&a.etat!==x.etat?' is-neuf':'';
-  return x.etat==='ecrit'?`<i class="jd-av-b is-ecrit${neuf}"><b></b><b></b><b></b></i>`:x.etat==='ok'?`<i class="jd-av-b is-ok${neuf}">${JEU_ICO.check}</i>`:'';
+  if(x.etat==='ecrit')return `<i class="jd-av-b is-ecrit${neuf}"><b></b><b></b><b></b></i>`;
+  if(x.etat!=='ok')return '';
+  return premier?`<i class="jd-av-b is-roi${neuf}">${JEU_COURONNE_SVG}</i>`:`<i class="jd-av-b is-ok${neuf}">${JEU_ICO.check}</i>`;
 }
 /* Les avatars de la barre, un par un : celui qui n’a pas changé garde son nœud (ses petits points continuent de sauter) ; si l’ordre
    change (quelqu’un passe devant), la rangée est redessinée. Son drapeau qui arrive compte comme un changement (21 h 04). */
@@ -35706,53 +35702,27 @@ function jeuDirectHTML(n,hud){
   const avant=J.directVu&&J.directVu.n===n?J.directVu.m:{};
   jeuDirectObserver(n,xs,avant);
   J.directVu={n,m:jeuDirectEtats(xs),sig:jeuDirectSig(xs)};
-  const plie=jeuDirectPlie(),t=jeuDirectTete(xs,avant);
+  const t=jeuDirectTete(xs,avant);
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
-  return `<section class="jeu-direct${plie?' is-plie':''}${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
-    `<button type="button" class="jeu-direct-h" id="jeu-direct-h" aria-expanded="${!plie}" aria-controls="jeu-direct-l" onclick="jeuDirectBasculer()">`+
-    `<span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b>`+
-    `<span class="jeu-direct-nb">${typeof DX_GENS_SVG!=='undefined'?DX_GENS_SVG:''}<span id="jeu-direct-nb">${t.nb}</span></span><span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span>`+
-    `<span class="jeu-direct-ok" id="jeu-direct-ok">${t.ok}</span><span class="jeu-direct-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button>`+
-    `<p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">${jeuDitHTML(f.cur,Date.now()-f.at<600)}</p></div>`+
-    `<ol class="jeu-direct-l" id="jeu-direct-l" data-sig="${jeuDirectSig(xs)}">${xs.map(x=>jeuDirectLigne(x,avant[jeuDirectPid(x.pid)]||null)).join('')}</ol></section>`;
+  return `<section class="jeu-direct${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
+    `<div class="jeu-direct-h"><span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b>`+
+    `<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span><span class="jeu-sr" id="jeu-direct-qui">${t.qui}</span>`+
+    `<span class="jeu-direct-ok" id="jeu-direct-ok">${t.ok}</span></div>`+
+    `<p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">${jeuDitHTML(f.cur,Date.now()-f.at<600)}</p></div></section>`;
 }
-/* Sur place, sans toucher à l’éditeur, et seulement si quelque chose a changé. Ce qui a changé est noté même quand la liste n’est
-   pas à l’écran (le commentateur suit la partie). Une ligne qui n’a pas bougé garde son nœud, donc son geste en cours (les
-   confettis d’un joueur ne s’arrêtent pas parce qu’un autre vient d’essayer) ; une ligne qui change de place glisse jusqu’à la
-   nouvelle. */
+/* Sur place, sans toucher à l’éditeur, et seulement si quelque chose a changé : ce qui a changé est noté (le commentateur suit la
+   partie), puis la rangée des avatars, un par un, et le compte de ceux qui ont trouvé. */
 function jeuDirectPeindre(n){
   const J=JEU;if(!J)return;
-  const l=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-direct-l'):null;
-  const xs=jeuDirectJoueurs(n),vu=J.directVu&&J.directVu.n===n?J.directVu:null;
-  if(vu&&vu.sig===jeuDirectSig(xs)&&(!l||!l.dataset||l.dataset.sig===vu.sig))return;
-  jeuDirectObserver(n,xs,vu?vu.m:{});
-  const sig=jeuDirectSig(xs),avant=vu?vu.m:{},haut={},vieux={};
+  const xs=jeuDirectJoueurs(n),sig=jeuDirectSig(xs),vu=J.directVu&&J.directVu.n===n?J.directVu:null;
+  if(vu&&vu.sig===sig)return;
+  const avant=vu?vu.m:{};
+  jeuDirectObserver(n,xs,avant);
   J.directVu={n,m:jeuDirectEtats(xs),sig};
-  if(!l)return;
-  if(l.querySelectorAll)l.querySelectorAll('li[data-pid]').forEach(li=>{vieux[li.dataset.pid]=li;haut[li.dataset.pid]=li.getBoundingClientRect().top;});
-  const ligne=x=>jeuDirectLigne(x,avant[jeuDirectPid(x.pid)]||null);
-  if(typeof document.createElement!=='function'||typeof l.insertBefore!=='function')l.innerHTML=xs.map(ligne).join('');
-  else{
-    const voulu=xs.map(x=>{
-      const id=jeuDirectPid(x.pid),li=vieux[id];
-      if(li&&li.dataset.s===jeuDirectSig([x])){delete vieux[id];return li;}
-      const t=document.createElement('template');t.innerHTML=ligne(x);return t.content.firstElementChild;
-    });
-    Object.values(vieux).forEach(li=>li.remove());
-    voulu.forEach((li,i)=>{const la=l.children[i];if(la!==li)l.insertBefore(li,la||null);});
-  }
-  if(l.dataset)l.dataset.sig=sig;
-  /* Ses points montent : ils défilent jusqu’au nouveau total (0,7 s) */
-  if(l.querySelectorAll&&typeof jeuCountUp==='function')l.querySelectorAll('.jd-pts.is-compte').forEach(e=>{e.classList.remove('is-compte');jeuCountUp(e);});
+  if(typeof document==='undefined'||!document.getElementById)return;
   const t=jeuDirectTete(xs,avant);
-  [['jeu-direct-ok',t.ok],['jeu-direct-nb',t.nb]].forEach(([id,h])=>{const e=document.getElementById(id);if(e&&e.innerHTML!==h)e.innerHTML=h;});
+  [['jeu-direct-ok',t.ok],['jeu-direct-qui',t.qui]].forEach(([id,h])=>{const e=document.getElementById(id);if(e&&e.innerHTML!==h)e.innerHTML=h;});
   jeuDirectAvMaj(document.getElementById('jeu-direct-av'),t.av);
-  if(typeof prefersReduceMotion==='function'&&prefersReduceMotion())return;
-  if(l.querySelectorAll)l.querySelectorAll('li[data-pid]').forEach(li=>{
-    const a=haut[li.dataset.pid];if(a==null||typeof li.animate!=='function')return;
-    const d=a-li.getBoundingClientRect().top;
-    if(Math.abs(d)>2)li.animate([{transform:`translateY(${d}px)`},{transform:'none'}],{duration:520,easing:'cubic-bezier(.2,.8,.25,1)'});
-  });
 }
 /* Le commentateur (Elisa, 8 novembre, 12 h 25) : une ligne sous la barre, visible même repliée, qui raconte la manche ; il remplace
    les pastilles du haut de l’écran (9 h 18), qui cachaient le titre, et garde leur croix et leur coche. Ce qu’il dit vient de ce qui
@@ -35828,12 +35798,12 @@ function jeuDirectMinute(n){
     if(r.found[J.me]==null&&typeof buzz==='function')buzz('medium');
   }
 }
-/* Une réaction (👏 🔥 😅 🤯) d’un autre jaillit de son avatar, dans « En direct », replié ou non (12 h 25 ; avant, seul le lecteur
+/* Une réaction (👏 🔥 😅 🤯) d’un autre jaillit de son avatar, dans la rangée d’« En direct » (12 h 25 ; avant, seul le lecteur
    d’écran l’entendait) ; elle monte aussi, avec son pseudo, le long du bord de l’écran (jeuReactBulle, 18 h 36). */
 function jeuReactPop(pid,e){
   if(typeof document==='undefined'||typeof document.querySelector!=='function')return false;
   const s=document.getElementById('jeu-direct');if(!s)return false;
-  const id=jeuDirectPid(pid),av=s.classList.contains('is-plie')?s.querySelector(`#jeu-direct-av .jeu-av[data-pid="${id}"]`):s.querySelector(`#jeu-direct-l li[data-pid="${id}"]>.jeu-av`);
+  const av=s.querySelector(`#jeu-direct-av .jeu-av[data-pid="${jeuDirectPid(pid)}"]`);
   if(!av)return false;
   const ra=av.getBoundingClientRect(),rs=s.getBoundingClientRect(),b=document.createElement('span');
   b.className='jd-react';b.setAttribute('aria-hidden','true');b.textContent=e;
@@ -35985,14 +35955,6 @@ function jeuEcritRecu(m){
   const n=+m.n,r=J.rounds[n];if(!r||r.found[m.pid]!=null)return;
   (J.ecritAt=J.ecritAt||{})[m.pid]=Date.now();
   if(J.view==='play'+n)jeuDirectPeindre(n);
-}
-function jeuDirectBasculer(){
-  const s=document.getElementById('jeu-direct');if(!s)return;
-  const plie=!s.classList.contains('is-plie');
-  s.classList.toggle('is-plie',plie);
-  const h=document.getElementById('jeu-direct-h');if(h)h.setAttribute('aria-expanded',String(!plie));
-  try{localStorage.setItem('rq-jeu-direct',plie?'plie':'ouvert');}catch(e){}
-  if(typeof buzz==='function')buzz('light');
 }
 function jeuWaitLine(n){
   const J=JEU,r=J.rounds[n];if(!r)return '';
@@ -46753,7 +46715,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-drapeaux-bande-v2701';
+  const SW_CACHE='requete-2026-11-08-couronne-jaune-v2702';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
