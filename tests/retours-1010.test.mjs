@@ -24,5 +24,5 @@ test('le bonjour seul sur sa ligne : il rapetisse puis le prénom s’abrège s�
 test('10 h 25 : « Parcours terminé en deux lignes stp »', () => {
   const lq = fs.readFileSync(path.join(path.resolve(import.meta.dirname, '..'), 'ludique.css'), 'utf8');
   assert.ok(lq.includes('html.lq .lq-hero.has-hi .journey-session-meta>.lq-ses.is-end{border-radius:14px;padding:6px 11px 6px 9px!important;line-height:1.12!important;text-align:left}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=221">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=222">'));
 });
