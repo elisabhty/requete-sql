@@ -64,40 +64,45 @@ function ecran({ clavier = 0, navbas = 60 } = {}) {
   return { c, ios, mos, timers, ecoute, hint, st, vv, peek: () => peek, ev: x => vm.runInContext(x, c) };
 }
 
-test('la pastille dit toujours « Un coup de patte ? » : voir l’indice, ou voir pourquoi', () => {
+test('la pastille arrive avec l’indice, seulement (19 h 49 : « je veux juste pour l’indice ») : « Un coup de patte ? · voir l’indice »', () => {
+  const paint = cut('function coachPaint(){', '\n}\n');
+  assert.ok(paint.includes("if(card&&COACH.fx==='is-new-hint')coachPeek(card,true);") && !paint.includes("'is-new-ko'||"), 'un essai raté : pas de pastille, il se lit dans la carte');
   const e = ecran();
-  e.ev('coachPeek(card,false)'); assert.equal(e.peek().innerHTML, '<span aria-hidden="true">↑</span>Un coup de patte ? · voir pourquoi', 'un essai raté, pas encore d’indice');
-  e.c.COACH.n = 1; e.ev('coachPeek(card,false)'); assert.ok(e.peek().innerHTML.endsWith('Un coup de patte ? · voir l’indice'), 'un essai raté, un indice sur la carte');
-  e.c.COACH.n = 0; e.c.COACH.diag = ''; e.ev('coachPeek(card,true)'); assert.ok(e.peek().innerHTML.endsWith('Un coup de patte ? · voir l’indice'), 'un indice qui arrive, sans essai raté');
-  assert.ok(!cut('function coachPeek(card,hint){', '\n}\n').includes('Nouvel indice'), 'plus de « Nouvel indice · le voir »');
+  e.ev('coachPeek(card,true)'); assert.equal(e.peek().innerHTML, '<span aria-hidden="true">↑</span>Un coup de patte ? · voir l’indice', 'après un essai raté');
+  e.c.COACH.diag = ''; e.ev('coachPeek(card,true)'); assert.equal(e.peek().innerHTML, '<span aria-hidden="true">↑</span>Un coup de patte ? · voir l’indice', 'sans essai raté avant');
+  const peek = cut('function coachPeek(card,hint){', '\n}\n');
+  assert.ok(!peek.includes('Nouvel indice') && !peek.includes('voir pourquoi'), 'plus de « Nouvel indice · le voir », plus de « voir pourquoi »');
 });
 
-test('elle se montre tant que ce qu’elle annonce n’est pas vu en entier ; elle y ramène ; elle suit le défilement', () => {
-  const e = ecran();
-  e.ev('coachPeek(card,false)');
+test('elle se montre tant que l’indice n’est pas vu en entier ; elle y ramène ; elle suit le défilement', () => {
+  const e = ecran(), x = e.hint;
+  e.hint.top = 380;
+  e.ev('coachPeek(card,true)');
   const b = e.peek(), io = e.ios[0];
-  assert.equal(io.t, e.st, 'elle surveille l’encart « Un coup de patte ? »'); assert.deepEqual([...io.o.threshold], [0, 0.5, 1]);
+  assert.equal(io.t, x, 'elle surveille l’indice'); assert.deepEqual([...io.o.threshold], [0, 0.5, 1]);
   io.f([{ isIntersecting: false }]); assert.equal(b.hidden, false, 'hors de l’écran : elle se montre');
   io.f([{ isIntersecting: true }]); assert.equal(b.hidden, true, 'vu en entier : elle se cache');
-  e.st.top = 770; io.f([{ isIntersecting: true }]); assert.equal(b.hidden, false, 'coupé en bas de l’écran : pas vu');
-  e.st.top = 20; e.ecoute.sc.scroll(); assert.equal(b.hidden, false, 'sous la barre du haut : pas vu');
-  e.st.top = 380; e.ecoute.sc.scroll(); assert.equal(b.hidden, true, 'on fait défiler jusqu’à lui : elle se cache');
-  /* Un indice : elle surveille l’indice */
-  const f = ecran(); f.ev('coachPeek(card,true)'); assert.equal(f.ios[0].t, f.hint);
-  /* La toucher : l’encart au milieu de l’écran, elle part, les écoutes avec elle */
-  e.st.top = 770; io.f([{ isIntersecting: true }]);
-  b.onclick(); assert.equal(e.peek(), null); assert.deepEqual({ ...e.st.vu }, { behavior: 'auto', block: 'center' });
+  x.top = 770; io.f([{ isIntersecting: true }]); assert.equal(b.hidden, false, 'coupé en bas de l’écran : pas vu');
+  x.top = 20; e.ecoute.sc.scroll(); assert.equal(b.hidden, false, 'sous la barre du haut : pas vu');
+  x.top = 380; e.ecoute.sc.scroll(); assert.equal(b.hidden, true, 'on fait défiler jusqu’à lui : elle se cache');
+  /* La toucher : l’indice au milieu de l’écran, elle part, les écoutes avec elle */
+  x.top = 770; io.f([{ isIntersecting: true }]);
+  b.onclick(); assert.equal(e.peek(), null); assert.deepEqual({ ...x.vu }, { behavior: 'auto', block: 'center' });
   assert.ok(io.off && e.mos[0].off); assert.deepEqual(Object.keys(e.ecoute.vv), []); assert.deepEqual(Object.keys(e.ecoute.sc), []);
+  /* Retirée d’un coup (la salle passe au bilan) : ses écoutes partent aussi */
+  const g = ecran(); g.ev('coachPeek(card,true)'); g.ev('coachPeekOff()');
+  assert.equal(g.peek(), null); assert.ok(g.ios[0].off && g.mos[0].off); assert.deepEqual(Object.keys(g.ecoute.vv), []);
 });
 
 test('le clavier ouvert : ce qu’il cache n’est pas vu, et la pastille se pose au-dessus de lui', () => {
-  const e = ecran({ clavier: 320 });
-  e.ev('coachPeek(card,false)');
+  const e = ecran({ clavier: 320 }), x = e.hint;
+  x.top = 380;
+  e.ev('coachPeek(card,true)');
   const b = e.peek(), io = e.ios[0];
   io.f([{ isIntersecting: true }]);
-  assert.equal(b.hidden, true, 'l’encart (380 à 440) au-dessus du clavier (480) : vu');
+  assert.equal(b.hidden, true, 'l’indice (380 à 440) au-dessus du clavier (480) : vu');
   assert.equal(b.style.bottom, '334px', 'au-dessus du clavier');
-  e.st.top = 460; e.ecoute.vv.resize(); assert.equal(b.hidden, false, 'à moitié derrière le clavier : pas vu');
+  x.top = 460; e.ecoute.vv.resize(); assert.equal(b.hidden, false, 'à moitié derrière le clavier : pas vu');
   e.vv.height = 800; e.ecoute.vv.resize(); assert.equal(b.style.bottom, '', 'le clavier fermé : sa place de toujours');
   assert.equal(b.hidden, true);
 });

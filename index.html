@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=246">
+<link rel="stylesheet" href="ludique.css?v=247">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13813,8 +13813,9 @@ function coachPaint(){
   if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();
   const card=sl.querySelector('.coach');
   if(card&&COACH.fx&&!prefersReduceMotion()){card.classList.add(COACH.fx);setTimeout(()=>card.classList.remove('is-new-hint','is-new-ko'),900);}
-  /* La carte est au-dessus de l’éditeur : si elle est sortie de l’écran au moment d’un essai raté, une pastille sous « Exécuter » y ramène. */
-  if(card&&(COACH.fx==='is-new-ko'||COACH.fx==='is-new-hint'))coachPeek(card,COACH.fx==='is-new-hint');
+  /* La carte est au-dessus de l’éditeur : si elle est sortie de l’écran quand un indice arrive, une pastille en bas de l’écran y ramène.
+     Seulement pour l’indice (Elisa, 8 novembre, 19 h 49 : « je veux juste pour l’indice ») : un essai raté se lit dans la carte. */
+  if(card&&COACH.fx==='is-new-hint')coachPeek(card,true);
   COACH.fx='';
 }
 /* Elisa, 6 novembre, 10 h 31 (capture du bilan « Ton bilan », la manche close) : « on a une notification d’indice alors que la salle
@@ -13828,14 +13829,21 @@ function coachEnJeu(){
   const r=JEU.rounds&&JEU.rounds[COACH.round];
   return !!r&&!r.closed&&!r.done;
 }
-function coachPeekOff(){document.getElementById('coach-peek')?.remove();}
+function coachPeekOff(){
+  const b=document.getElementById('coach-peek');
+  if(b){if(typeof b.coachBye==='function')b.coachBye();else b.remove();}
+}
 /* La pastille du bas (Elisa, 8 novembre, 19 h 18 puis 19 h 27, avec sa capture de 18 h 16, « Pas encore · voir l’indice » : « je n’ai pas
-   le message Un coup de patte · voir l’indice, je parle de ça, le message en bas »). Elle dit toujours « Un coup de patte ? » : « voir
-   l’indice » quand un indice arrive, ou après un essai raté si la carte en montre un ; « voir pourquoi » après un essai raté sans
-   indice. Avant, un indice arrivé sans essai raté disait « Nouvel indice · le voir ». Elle se montre tant que ce qu’elle annonce
-   (l’indice, ou l’encart « Un coup de patte ? ») n’est pas vu en entier : un bout de carte en haut de l’écran, sous la barre du haut
-   ou derrière le clavier ne compte plus pour vu. Le clavier ouvert, elle se pose au-dessus de lui (Safari laisse derrière lui ce qui
-   est fixé en bas de l’écran). */
+   le message Un coup de patte · voir l’indice, je parle de ça, le message en bas » ; 19 h 49 : « je veux juste pour l’indice »). Elle
+   arrive avec un indice et dit « Un coup de patte ? · voir l’indice » (avant, sans essai raté : « Nouvel indice · le voir ») ; plus de
+   pastille après un essai raté. Elle se montre tant que l’indice n’est pas vu en entier : un bout de carte en haut de l’écran, sous la
+   barre du haut ou derrière le clavier ne compte plus pour vu. Le clavier ouvert, elle se pose au-dessus de lui (Safari laisse
+   derrière lui ce qui est fixé en bas de l’écran). « Réagir », en bas à droite, monte au-dessus d’elle tant qu’elle est là (19 h 49 :
+   « faire en sorte que la pill Réagir soit au-dessus »). */
+function coachPeekReagir(haut){
+  const f=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-reagir'):null;
+  if(f&&f.classList)f.classList.toggle('is-haut',!!haut);
+}
 function coachPeekVu(el){
   if(!el||typeof el.getBoundingClientRect!=='function'||typeof window==='undefined')return false;
   const r=el.getBoundingClientRect(),vv=window.visualViewport;
@@ -13856,13 +13864,14 @@ function coachPeek(card,hint){
   const cible=(typeof card.querySelector==='function'&&card.querySelector(hint?'.coach-hint':'.coach-st'))||card;
   const b=document.createElement('button');
   b.type='button';b.id='coach-peek';b.className='coach-peek';b.hidden=true;
-  b.innerHTML=`<span aria-hidden="true">↑</span>Un coup de patte\u00a0? · ${hint||COACH.n>0?'voir l’indice':'voir pourquoi'}`;
+  b.innerHTML='<span aria-hidden="true">↑</span>Un coup de patte\u00a0? · voir l’indice';
   let mo=null;
   const vv=typeof window!=='undefined'?window.visualViewport:null,sc=typeof card.closest==='function'?card.closest('.screen'):null;
-  const maj=e=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=(e?!!e.isIntersecting:true)&&coachPeekVu(cible);coachPeekCaler(b);};
+  const maj=e=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=(e?!!e.isIntersecting:true)&&coachPeekVu(cible);coachPeekCaler(b);coachPeekReagir(!b.hidden);};
   const suivre=()=>maj();
   const io=new IntersectionObserver(([e])=>maj(e),{threshold:[0,.5,1]});
-  const bye=()=>{io.disconnect();if(mo)mo.disconnect();if(vv){vv.removeEventListener('resize',suivre);vv.removeEventListener('scroll',suivre);}if(sc)sc.removeEventListener('scroll',suivre);b.remove();};
+  const bye=()=>{io.disconnect();if(mo)mo.disconnect();if(vv){vv.removeEventListener('resize',suivre);vv.removeEventListener('scroll',suivre);}if(sc)sc.removeEventListener('scroll',suivre);b.remove();coachPeekReagir(false);};
+  b.coachBye=bye;
   b.onclick=()=>{bye();cible.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'center'});};
   document.body.appendChild(b);io.observe(cible);
   if(vv){vv.addEventListener('resize',suivre);vv.addEventListener('scroll',suivre);}
@@ -35813,7 +35822,7 @@ function jeuReactPop(pid,e){
    Touché, les quatre réactions sortent à sa gauche, la croix à sa place ; une touche envoie, la rangée reste ouverte pour une autre
    et se referme seule après 4,5 s sans toucher. Les réactions montent juste au-dessus de lui (jeuReactBulle). La première fois de la
    partie, son sourire se balance (deux fois, puis il se tait). Quand la pastille « Un coup de patte ? » est là, il monte au-dessus
-   d’elle. La carte « Trouvé » garde ses quatre réactions. */
+   d’elle, et passe devant elle s’ils se croisent (19 h 49). La carte « Trouvé » garde ses quatre réactions. */
 const JEU_REAGIR_MS=4500;
 const JEU_REAGIR_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="7.9" cy="11.7" r="1.25" fill="currentColor"/><circle cx="13.1" cy="11.7" r="1.25" fill="currentColor"/><path d="M7.4 15.3c1.6 1.9 4.6 1.9 6.2 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.8 2.6v5.2M17.2 5.2h5.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 function jeuReagirHTML(){
@@ -35873,8 +35882,9 @@ function jeuReagirMaj(){
     document.body.appendChild(f);
     jeuReagirEcoute();
   }
-  const ecrit=jeuReagirEcrit();
+  const ecrit=jeuReagirEcrit(),p=document.getElementById('coach-peek');
   f.classList.toggle('is-ecrit',ecrit);
+  f.classList.toggle('is-haut',!!(p&&!p.hidden));   // au-dessus de « Un coup de patte ? » tant qu’elle est là (19 h 49)
   if(ecrit&&J.reagir)jeuReagirFermer(false);
   const d=jeuReagirDroite();if(f.style)f.style.right=d==null?'':d+'px';
 }
@@ -46691,7 +46701,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-reagir-bas-v2693';
+  const SW_CACHE='requete-2026-11-08-patte-indice-v2694';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
