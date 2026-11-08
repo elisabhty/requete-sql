@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=234">
+<link rel="stylesheet" href="ludique.css?v=235">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27081,7 +27081,9 @@ function defisFeuilleHTML(k){
   const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts">${PIECE}<span><b>×${JEU_NIV_X[jeuNiv]||1}</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span>${friends?`<span class="lq-sr">, </span><span class="dx-f-chip is-max">${GENS}<span><b>${JEU_MAX}</b>\u00a0joueurs max</span></span>`:''}</p>`;
   /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44) ; seul : « Mode solo » (sa maquette). Le code (8 novembre, 0 h 23,
      sa relecture : « il y a un peu trop d’explications pour une action aussi simple que saisir un code ») : « Rejoindre une partie »,
-     « Entre ton code ! ». */
+     « Entre ton code ! ». 15 h 27 (la relecture qu’elle a fait faire) : « Code de la salle » au-dessus du champ, « Rejoindre la
+     salle » (on arrive d’abord dans sa salle d’attente) ; ni correction ni suggestions du clavier ; une invitation collée entière
+     ne laisse que son code. */
   const ko=join&&typeof jeuCodeKo!=='undefined'?jeuCodeKo:'',code=jeuInvite||ko||'';
   const tete=join?['Rejoindre une partie','Entre ton code&nbsp;!','Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.']
     :friends?['Créer ma partie','Ta salle de défi','Choisis les règles. Le défi sera révélé au lancement de la partie.']
@@ -27094,28 +27096,64 @@ function defisFeuilleHTML(k){
     <div class="dx-f-corps" data-k="${k}">
     ${join?`<div class="room-field room-join" data-join>
       ${jeuInvite?`<p class="room-invite">Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'} dans la salle <b class="jeu-code-inline">${jeuInvite}</b></p>`:''}
-      <label class="jeu-lab" for="jeu-code">Code à 6 caractères</label>
-      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="6" placeholder="ABC123" value="${code}" oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go"></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Combien de manches&nbsp;?</p>
+      <label class="jeu-lab" for="jeu-code">Code de la salle</label>
+      <input id="jeu-code" class="jeu-input is-code${ko?' is-ko':code.length===6?' is-pret':''}" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="ABC123" value="${code}" oninput="this.value=jeuCleanCode(this.value);dxCodePret(this)" onpaste="dxCodeColle(event)" onkeydown="if(event.key==='Enter'){event.preventDefault();jeuEnterRoom();}" enterkeyhint="go"></div>`:`<div class="room-field" data-create><p class="jeu-lab" id="room-nb-l">Combien de manches&nbsp;?</p>
       <div class="dx-manches" role="radiogroup" aria-labelledby="room-nb-l">${manches}</div></div>`}
     ${friends?`<div class="room-field" data-vis><p class="jeu-lab" id="room-vis-l">Qui peut rejoindre&nbsp;?</p>
       <div class="room-seg" role="radiogroup" aria-labelledby="room-vis-l">${seg('vis',[['pub','<span aria-hidden="true">🌍</span> Publique'],['priv','<span aria-hidden="true">🔒</span> Privée']],jeuVis)}</div>
       <small class="room-hint" id="room-vis-hint">${jeuVisTexte()}</small></div>
     <div class="room-field dx-f-moi" data-friends>${jeuNomField('jeu-nom')}</div>`:''}
-    <div class="dx-f-pied"><p class="jeu-msg" role="status" aria-live="polite">${ko?'Code introuvable. Vérifie-le et réessaie.':''}</p>
-    <button type="button" class="room-go"${join?` id="jeu-code-go"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()"><span>${join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie'}</span>${DEF_CHEV_SVG}</button>${friends?'<p class="dx-f-note">Le défi démarre quand tu le décides.</p>':''}</div>
+    <div class="dx-f-pied"><p class="jeu-msg${ko?' is-ko':''}" role="status" aria-live="polite">${ko?DX_CODE_MSG.introuvable:''}</p>
+    <button type="button" class="room-go"${join?` id="jeu-code-go" onmousedown="event.preventDefault()"${code.length===6?'':' disabled'}`:''} onclick="jeuEnterRoom()">${join?'<i class="dx-go-roue" aria-hidden="true"></i>':''}<span>${join?'Rejoindre la salle':friends?'Ouvrir la salle':'Lancer la partie'}</span>${DEF_CHEV_SVG}</button>${friends?'<p class="dx-f-note">Le défi démarre quand tu le décides.</p>':''}</div>
     </div>`;
 }
 /* La durée d’une partie au plus, sur chaque carte de manches (8 novembre, 9 h 42 ; avant, « Jusqu’à 30 min de jeu » sous les cartes) :
    la manche dure 10 min en Facile, 15 en Moyen, 20 en Difficile (jeuDureeMs) ; en heures dès une heure (« 1 h 15 max »). */
 function dxDureeMax(n,k){const m=(+n||1)*jeuDureeMs(k||jeuNiv)/60000,h=Math.floor(m/60),r=m%60;return `${h?`${h}\u00a0h${r?`\u00a0${String(r).padStart(2,'0')}`:''}`:`${m}\u00a0min`}\u00a0max`;}
-/* « Rejoindre la partie » ne s’allume qu’avec 6 caractères (8 novembre, 0 h 23) ; taper efface le message d’erreur. */
+/* « Rejoindre la salle » ne s’allume qu’avec 6 caractères (8 novembre, 0 h 23) ; taper efface le message d’erreur. 15 h 27 (la
+   relecture qu’Elisa a fait faire) : au 6e caractère, le contour du champ s’illumine, une seule fois, avec un petit retour du
+   téléphone ; changer le code arrête une recherche en cours. */
 let jeuCodeKo='';
 function dxCodePret(inp){
-  const b=document.getElementById('jeu-code-go');if(b)b.disabled=jeuCleanCode(inp&&inp.value).length!==6;
-  const m=document.querySelector('#dx-feuille .jeu-msg');if(m&&m.textContent)m.textContent='';
+  if(!inp)return;
+  const c=jeuCleanCode(inp.value),pret=c.length===6;
+  if(typeof JEU!=='undefined'&&JEU&&JEU.verif&&JEU.code!==c){jeuStop();dxCodeEtat('');}
+  const b=document.getElementById('jeu-code-go');if(b&&!b.classList.contains('is-cherche'))b.disabled=!pret;
+  if(pret&&!inp.classList.contains('is-pret')&&typeof buzz==='function')buzz('light');
+  inp.classList.toggle('is-pret',pret);inp.classList.remove('is-ko');
+  const m=document.querySelector('#dx-feuille .jeu-msg');if(m&&m.textContent){m.textContent='';m.classList.remove('is-ko');}
+}
+/* La salle se cherche dans la feuille (8 novembre, 15 h 27 : la page « Tu rejoins la salle… » s’ouvrait, puis renvoyait à la feuille
+   quand le code ne menait nulle part). « On cherche ta salle… » et sa roue dans le bouton ; l’hôte répond : la feuille se referme sur
+   la salle d’attente (jeuVerifSuivre) ; sinon le message sous le champ, le code gardé tel quel (rien n’est sélectionné). Un code qui
+   ne mène nulle part : le champ rougit et tremble. */
+const DX_CODE_MSG={introuvable:'Aucune salle ne correspond à ce code. Vérifie-le et réessaie&nbsp;!',complete:'Cette salle est déjà complète&nbsp;!',
+  reseau:'Connexion perdue. Réessaie&nbsp;!',horsligne:'Pas de connexion internet. Réessaie&nbsp;!',pseudo:'Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.',
+  moteur:'Le moteur SQL se charge encore, réessaie dans un instant.',indispo:'La salle est indisponible pour le moment. Réessaie dans un instant.'};
+function dxCodeEtat(etat,code){
+  const el=document.getElementById('dx-feuille');if(!el||el.dataset.k!=='code')return;
+  const inp=el.querySelector('#jeu-code'),go=el.querySelector('#jeu-code-go'),m=el.querySelector('.jeu-msg');
+  const cherche=etat==='cherche',msg=DX_CODE_MSG[etat]||'';
+  if(go){
+    go.classList.toggle('is-cherche',cherche);go.setAttribute('aria-busy',cherche?'true':'false');
+    const t=go.querySelector('span');if(t)t.textContent=cherche?'On cherche ta salle…':'Rejoindre la salle';
+    go.disabled=cherche||jeuCleanCode(inp&&inp.value).length!==6;
+  }
+  if(m){m.innerHTML=msg;m.classList.toggle('is-ko',!!msg);}
+  if(!msg)return;
+  if(typeof buzz==='function')buzz(etat==='introuvable'?'error':'warning');
+  if(inp&&etat==='introuvable'){inp.classList.remove('is-pret','is-shake');void inp.offsetWidth;inp.classList.add('is-ko','is-shake');}
+}
+/* Coller un code, son lien ou toute l’invitation (« Rejoins-moi sur Requête… Code de la salle : … ») : le code seul arrive dans le
+   champ. Un morceau de code se colle normalement. */
+function dxCodeColle(e){
+  const inp=e&&e.target,d=e&&e.clipboardData,c=jeuCleanCode(d&&typeof d.getData==='function'?d.getData('text'):'');
+  if(!inp||c.length!==6)return;
+  e.preventDefault();inp.value=c;dxCodePret(inp);
 }
 /* « Code introuvable. Vérifie-le et réessaie. » (8 novembre, 0 h 23) : personne ne répond dans la salle d’un code tapé (ou d’un lien
-   d’invitation) : retour à la feuille du code, le code gardé et choisi, le message dessous. Avant : un écran « Salle introuvable ». */
+   d’invitation) : retour à la feuille du code, le code gardé, le message dessous. Avant : un écran « Salle introuvable ». Depuis 15 h 27,
+   un code tapé se cherche dans la feuille (jeuJoin) : ce retour ne sert plus qu’à un lien ouvert en pleine leçon. */
 function jeuCodeIntrouvable(code){
   jeuStop();
   jeuCodeKo=jeuCleanCode(code);jeuInvite='';
@@ -27125,8 +27163,8 @@ function jeuCodeIntrouvable(code){
   else switchTab('defis');
 }
 /* La feuille : elle monte du bas, le fond se voile ; × , le voile ou Échap la referment, le focus revient au bouton qui l’a ouverte.
-   Le code à taper (8 novembre, 14 h 59, « Cette page saute avec le clavier ») : sa feuille descend du haut de l’écran, et le clavier
-   monte dessous sans rien déplacer (ludique.css, [data-k="code"]). */
+   Le code à taper (8 novembre, 15 h 27, « Pourquoi c’est en haut ? Ça va être sur l’application, est-ce que ça va faire bien ? ») :
+   sur téléphone, sa feuille va jusqu’au clavier, le champ en haut (ludique.css, [data-k="code"] ; dxFeuilleCaler). */
 let dxFeuilleRetour=null;
 function defisFeuilleOuvrir(k){
   if(typeof document==='undefined'||!document.body||!['creer','code','seul'].includes(k))return;
@@ -27141,6 +27179,7 @@ function defisFeuilleOuvrir(k){
     const vv=window.visualViewport;if(vv){vv.addEventListener('resize',dxFeuilleCaler);vv.addEventListener('scroll',dxFeuilleCaler);}
   }
   el.dataset.k=k;
+  el.classList.toggle('is-court',k==='code'&&window.innerHeight<=700);   // un petit écran, mesuré avant le clavier (8 novembre, 15 h 27)
   el.innerHTML=`<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>
     <div class="dx-f-boite" role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1">
       <button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>
@@ -27156,20 +27195,36 @@ function defisFeuilleOuvrir(k){
     setTimeout(marque,typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:720);}
   const montrer=()=>{
     el.classList.add('on');
-    try{ if(inp&&(!inp.value||ko)){inp.focus({preventScroll:true});if(ko)inp.select();} else el.querySelector('.dx-f-boite').focus({preventScroll:true}); }catch(e){}
+    /* À la souris, le champ prend le focus une fois la feuille arrivée, le code gardé tel quel (8 novembre, 15 h 27) ; sur téléphone,
+       il l’a déjà (plus bas). */
+    try{ if(inp&&(!inp.value||ko))setTimeout(()=>{try{if(inp.isConnected&&document.activeElement!==inp){inp.focus({preventScroll:true});const n=inp.value.length;inp.setSelectionRange(n,n);}}catch(e){}},typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:380); else el.querySelector('.dx-f-boite').focus({preventScroll:true}); }catch(e){}
     dxFeuilleCaler();
   };
-  if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
+  if(neuf)document.body.appendChild(el);
+  /* Sur téléphone, le clavier monte avec la feuille (8 novembre, 15 h 27) : le champ prend le focus pendant le toucher même (l’iPhone
+     n’ouvre le clavier qu’ainsi), plutôt qu’une feuille vide qu’il faudrait toucher encore. Un instant placé tout en haut : Safari ne
+     fait rien défiler pour le montrer pendant que la feuille monte. */
+  if(inp&&(!inp.value||ko)&&typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches){
+    inp.style.transform='translateY(-2000px)';
+    try{inp.focus({preventScroll:true});}catch(e){}
+    requestAnimationFrame(()=>{inp.style.transform='';});
+  }
+  if(neuf)requestAnimationFrame(()=>requestAnimationFrame(montrer));else montrer();
 }
 function defisFeuilleFermer(sansRetour){
   if(typeof DEFIS!=='undefined')DEFIS.carte='';
   jeuInvite='';
+  /* Fermée pendant qu’on cherche la salle (×, le voile, Échap, un autre onglet) : la recherche s’arrête (8 novembre, 15 h 27). */
+  if(typeof JEU!=='undefined'&&JEU&&JEU.verif)jeuStop();
   if(typeof document==='undefined'||!document.getElementById)return;
   document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded','false'));
   const el=document.getElementById('dx-feuille');if(!el)return;
   document.removeEventListener('keydown',dxFeuilleTouche,true);
   const vv=window.visualViewport;if(vv){vv.removeEventListener('resize',dxFeuilleCaler);vv.removeEventListener('scroll',dxFeuilleCaler);}
   const inp=el.querySelector('#jeu-code');if(inp)inp.blur();
+  /* Elle s’efface encore un instant : son champ et son bouton perdent leur nom, une feuille rouverte aussitôt ne lit jamais l’ancien
+     code (8 novembre, 15 h 27 : le même code du champ à la salle). */
+  el.querySelectorAll('#jeu-code,#jeu-code-go').forEach(x=>x.removeAttribute('id'));
   el.removeAttribute('id');
   el.classList.remove('on');el.classList.add('off');
   setTimeout(()=>el.remove(),prefersReduceMotion()?0:260);
@@ -27187,12 +27242,13 @@ function dxFeuilleTouche(e){
   e.preventDefault();
   f[i<0?0:(i+(e.shiftKey?f.length-1:1))%f.length].focus();
 }
-/* La feuille couvre l’écran (la barre de Safari qui se replie change sa hauteur). Elle ne suit plus le clavier (8 novembre, 14 h 59) :
-   le code à taper est en haut de l’écran, le clavier monte dessous ; avant, la feuille posée en bas suivait le visualViewport, et Safari
-   faisait d’abord défiler la page pour montrer le champ, puis la feuille remontait : elle sautait deux fois. */
+/* La feuille couvre l’écran (la barre de Safari qui se replie change sa hauteur). Celle du code (8 novembre, 15 h 27) couvre ce qui
+   reste visible au-dessus du clavier : sa hauteur suit le clavier, son haut ne bouge pas ; le champ y est en haut, déjà au-dessus du
+   clavier, rien ne saute (14 h 59 : posée en bas, Safari faisait défiler la page pour montrer le champ, puis la feuille remontait). */
 function dxFeuilleCaler(){
   const el=document.getElementById('dx-feuille');if(!el)return;
-  el.style.top='0px';el.style.height=window.innerHeight+'px';el.style.bottom='auto';
+  const vv=el.dataset.k==='code'?window.visualViewport:null;
+  el.style.top=(vv?vv.offsetTop:0)+'px';el.style.height=(vv?vv.height:window.innerHeight)+'px';el.style.bottom='auto';
   if(el._marque)requestAnimationFrame(el._marque);
 }
 function jeuVisTexte(){return jeuVis==='priv'?'Seuls les joueurs à qui tu donnes le code peuvent rejoindre ta salle.':'Tous les joueurs peuvent voir et rejoindre ta salle. Tu peux aussi partager son code.';}
@@ -27574,12 +27630,13 @@ function psVerifier(){
    pas le mettre avant d’entrer dans une salle défi » : la mini-page ne s’ouvre plus ici. On réserve sans rien demander le pseudo de
    l’onboarding (gardé sans réseau, ou celui des salles d’avant), à défaut celui tiré du prénom donné dans l’onboarding ; s’il est
    pris, le premier pseudo libre proposé par la base. La salle s’ouvre et un message dit sous quel pseudo on joue. */
-function jeuAvecPseudo(f){
+function jeuAvecPseudo(f,ko){
   if(psMien()){f();return;}
   psReserverPourSalle().then(ok=>{
     if(ok){lqSay('Tu joues en tant que '+psMien());f();return;}
+    if(ko){ko('pseudo');return;}   // depuis la feuille du code : le message sous le champ (8 novembre, 15 h 27)
     lqInfo('Salle indisponible','Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.','📶');
-  },()=>lqInfo('Pas de réseau','Il faut une connexion internet pour jouer entre amis. Réessaie dans un instant.','📶'));
+  },()=>{if(ko){ko('reseau');return;}lqInfo('Pas de réseau','Il faut une connexion internet pour jouer entre amis. Réessaie dans un instant.','📶');});
 }
 function psJoueurAuHasard(){return psForme('joueur'+Math.floor(1000+Math.random()*9000));}
 function psCandidats(){
@@ -34546,8 +34603,12 @@ function jeuNomField(id){
 function jeuCleanCode(v){
   v=String(v||'');
   /* Un lien ou une invitation collée : le code est dans « ?partie=XXXXXX » ; sans le lien, après « Code de la salle : ». */
-  const m=/[?&]partie=([A-Za-z0-9]{6})/.exec(v)||/salle\s*:\s*([A-Za-z0-9]{6})(?![A-Za-z0-9])/i.exec(v);
+  const m=/[?&]partie=([A-Za-z0-9]{6})/.exec(v)||/salle\s*:\s*([A-Za-z0-9]{6})(?![A-Za-z0-9])/i.exec(v)||/\bcode\s*:?\s*([A-Za-z0-9]{6})(?![A-Za-z0-9])/i.exec(v);
   if(m)v=m[1];
+  /* 8 novembre, 15 h 27 (la relecture qu’Elisa a fait faire : « accepter le collage ») : un message écrit à la main (« Viens jouer !
+     NENEKE ») : le dernier mot de 6 caractères en capitales. Le champ n’a plus de longueur maximale : collé entier, rien n’est coupé
+     avant d’arriver ici. */
+  else if(v.replace(/[^A-Za-z0-9]/g,'').length>6){const t=v.match(/(?:^|[^A-Za-z0-9])[A-Z0-9]{6}(?![A-Za-z0-9])/g);if(t)v=t[t.length-1];}
   return v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
 }
 /* « Salle d’Anne », « Salle de Lucas » ; « attend qu’Anne lance », « que Lucas lance ». */
@@ -34801,7 +34862,7 @@ function jeuRoomSet(k,v){
   card.querySelectorAll('[data-create]').forEach(el=>{el.hidden=join;});
   card.querySelectorAll('[data-join]').forEach(el=>{el.hidden=!join;});
   if(k==='mode'){const sub=card.querySelector('.room-sub');if(sub)sub.textContent=join?'Rejoins la salle d’un ami avec son code.':'Un défi tiré au sort, au niveau que tu choisis.';}
-  const go=card.querySelector('.room-go span');if(go)go.textContent=join?'Rejoindre la partie':friends?'Ouvrir la salle':'Lancer la partie';
+  const go=card.querySelector('.room-go span');if(go)go.textContent=join?'Rejoindre la salle':friends?'Ouvrir la salle':'Lancer la partie';
   if(k==='mode'&&join){const inp=card.querySelector('#jeu-code');if(inp&&!inp.value)setTimeout(()=>{try{inp.focus({preventScroll:true});}catch(e){}},60);}
   const msg=card.querySelector('.jeu-msg');if(msg)msg.textContent='';
   if(k==='vis'){const vh=card.querySelector('#room-vis-hint');if(vh)vh.textContent=jeuVisTexte();}
@@ -34814,19 +34875,20 @@ function jeuEnterRoom(){
   if(jeuMode==='solo')jeuStart(jeuRand(6),true,null,{solo:true});
   else jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom',pub:jeuVis==='pub'}));
 }
-function jeuPseudoPuis(f){if(typeof jeuAvecPseudo==='function')jeuAvecPseudo(f);else f();}
+function jeuPseudoPuis(f,ko){if(typeof jeuAvecPseudo==='function')jeuAvecPseudo(f,ko);else f();}
 function jeuStart(code,host,cid,opts){
   opts=opts||{};
-  const solo=!!opts.solo;
-  const nom=solo?(jeuSavedNom()||'Toi'):jeuAskNom(opts.nomId);if(!nom)return;
-  if(typeof CHALLENGES==='undefined'||!SQL){const m=jeuMsgEl(opts.nomId);if(m)m.textContent='Le moteur SQL se charge encore, réessaie dans un instant.';return;}
+  const solo=!!opts.solo,verif=!!opts.verif&&!host&&!solo;
+  const nom=solo?(jeuSavedNom()||'Toi'):jeuAskNom(opts.nomId);if(!nom){if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('pseudo',code);return;}
+  if(typeof CHALLENGES==='undefined'||!SQL){const m=jeuMsgEl(opts.nomId);if(m)m.textContent='Le moteur SQL se charge encore, réessaie dans un instant.';if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('moteur',code);return;}
   if(JEU)jeuStop();
-  if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
+  /* 8 novembre, 15 h 27 : cherchée depuis la feuille du code (verif), la salle laisse la feuille ouverte tant que l’hôte n’a pas répondu. */
+  if(!verif&&typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
   const picked=host&&cid?CHALLENGES.find(x=>x.id===cid):null;
   const niv=picked?picked.niv:jeuNiv;
   const nb=Math.max(1,Math.min(jeuNb,jeuChallenges(niv).length||1));
   const me=jeuPid();
-  JEU={code,solo,ranked:!!opts.secure,parCode:!!opts.parCode,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),
+  JEU={code,solo,verif,ranked:!!opts.secure,parCode:!!opts.parCode,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),
     players:{},order:[],rounds:[],over:false,net:solo?true:null,view:'',sig:'',
     seenU:new Set(),seenR:new Set(),seq:[],seen:{},ready:{},left:{},denied:{},helloOf:{},
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
@@ -34841,20 +34903,17 @@ function jeuStart(code,host,cid,opts){
   const hu=jeuSend({t:'hello'});
   if(!host)JEU.helloU=hu;
   jeuInvite='';
-  annulerBilanAuto();
-  current=null;mode='jeu';exoFails=0;
-  {const scr=document.getElementById('scr-lesson');if(scr)scr.dataset.mc='6';}
-  document.getElementById('back-label').textContent=lessonBackLabel();
-  document.getElementById('nav-title').textContent=solo?'Défi':'Salle de défi';
-  document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
-  showScreen();
+  if(!verif)jeuEcran();
   JEU.tick=setInterval(jeuTick,500);
   if(!solo||opts.secure)JEU.ping=setInterval(jeuPing,JEU_PING_MS);
   if(!host){
     const rep=opts.reprise&&opts.reprise.host;
-    const J=JEU,wait=()=>{if(JEU!==J||J.hostPid)return;
+    const J=JEU,wait=()=>{if(JEU!==J)return;
+      /* Depuis la feuille du code : l’hôte a répondu mais la salle n’arrive pas (réseau qui lâche) : on le dit au bout de 8 s de plus. */
+      if(J.hostPid){if(J.verif)J.waitCfg=setTimeout(()=>{if(JEU===J&&J.verif)jeuVerifEchec('reseau');},8000);return;}
       if(rep){jeuStart(code,true,null,{nomId:opts.nomId});return;}
-      if(J.net===false){J.waitCfg=setTimeout(wait,3000);return;}
+      if(J.net===false){if(J.verif){jeuVerifEchec('reseau');return;}J.waitCfg=setTimeout(wait,3000);return;}
+      if(J.verif){jeuVerifEchec('introuvable');return;}   // personne dans cette salle : le message sous le champ, rien d’autre ne bouge
       if(J.parCode&&typeof jeuCodeIntrouvable==='function'){jeuCodeIntrouvable(code);return;}   // le code tapé : retour à sa feuille (8 novembre)
       J.view='';J.lost=true;jeuPaint();};
     J.waitCfg=setTimeout(wait,rep?3000:7000);
@@ -34862,7 +34921,36 @@ function jeuStart(code,host,cid,opts){
   if(solo&&!opts.secure)jeuNextRound();
   if(host&&JEU.pub&&typeof jeuPublier==='function')jeuPublier(JEU,0);
   jeuPaint();
+  if(!verif)try{saveNav();}catch(e){}
+}
+/* L’écran de la salle prend la place de la page. Une salle cherchée depuis la feuille du code n’y vient qu’une fois l’hôte trouvé
+   (jeuVerifSuivre). */
+function jeuEcran(){
+  const J=JEU;if(!J)return;
+  annulerBilanAuto();
+  current=null;mode='jeu';exoFails=0;
+  {const scr=document.getElementById('scr-lesson');if(scr)scr.dataset.mc='6';}
+  document.getElementById('back-label').textContent=lessonBackLabel();
+  document.getElementById('nav-title').textContent=J.solo?'Défi':'Salle de défi';
+  document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
+  showScreen();
+}
+/* La salle cherchée depuis la feuille du code (Elisa, 8 novembre, 15 h 27) : l’hôte a répondu et la salle est arrivée : la feuille se
+   referme sur la salle d’attente. Complète : la feuille le dit, on n’entre pas. */
+function jeuVerifSuivre(J){
+  if(J.full){jeuVerifEchec('complete');return false;}
+  if(!J.hostPid||!J.synced)return false;
+  J.verif=false;
+  if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
+  jeuEcran();
   try{saveNav();}catch(e){}
+  return true;
+}
+function jeuVerifEchec(r){
+  const J=JEU;if(!J||!J.verif)return;
+  const code=J.code;
+  jeuStop();
+  if(typeof dxCodeEtat==='function')dxCodeEtat(r,code);
 }
 /* Après un rechargement : on revient dans la même salle. Des amis y sont : on la rejoint (l’un d’eux est devenu l’hôte). Personne
    ne répond et on en était l’hôte : on la rouvre, même code, mêmes réglages (3 novembre, 0 h 00). */
@@ -34875,6 +34963,17 @@ function jeuReprendre(nav){
 function jeuJoin(code){
   const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom');
   if(c.length!==6){if(msg)msg.textContent=c.length?'Le code fait 6 caractères.':'Entre le code que tu as reçu.';const inp=document.getElementById('jeu-code');if(inp){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}return;}
+  /* La feuille du code reste ouverte pendant qu’on cherche la salle (Elisa, 8 novembre, 15 h 27, la relecture qu’elle a fait faire :
+     « Tu rejoins la salle… » ouvrait une page, qui renvoyait à la feuille quand le code ne menait nulle part). « On cherche ta salle… »
+     dans le bouton ; l’hôte répond : la salle d’attente ; sinon le message sous le champ, le code gardé. Sans feuille (un lien
+     d’invitation en pleine leçon) : la page « Tu rejoins la salle… », comme avant. */
+  if(typeof dxCodeEtat==='function'&&document.querySelector('#dx-feuille #jeu-code')){
+    if(typeof JEU!=='undefined'&&JEU&&JEU.verif&&JEU.code===c)return;
+    if(typeof navigator!=='undefined'&&navigator.onLine===false){dxCodeEtat('horsligne',c);return;}
+    dxCodeEtat('cherche',c);
+    jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom',parCode:true,verif:true}),r=>dxCodeEtat(r==='pseudo'?'pseudo':'reseau',c));
+    return;
+  }
   jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom',parCode:true}));
 }
 function jeuSend(m){
@@ -35697,7 +35796,9 @@ function jeuDrawNote(cid){
   return JEU.solo?'Un défi au hasard, au niveau choisi.':'Tout le monde reçoit le même défi.';
 }
 function jeuRender(){
-  const J=JEU,root=document.getElementById('jeu-root');if(!J||!root)return;
+  const J=JEU;if(!J)return;
+  if(J.verif&&!jeuVerifSuivre(J))return;
+  const root=document.getElementById('jeu-root');if(!root)return;
   if(typeof ileSalleSuivre==='function')ileSalleSuivre();   // la salle dans l’île (7 novembre)
   const v=jeuView();
   const sig=jeuSig();
@@ -36002,7 +36103,7 @@ function jeuReact(e){
 /* Arrivées, départs, nouvel hôte : annoncés au lecteur d’écran ; à l’écran, c’est la liste des joueurs qui le montre (la ligne arrive
    en sautillant, l’étiquette « hôte » change de place), plus de bulles en bas de l’écran (Elisa, 31 octobre, 1 h 34 : « ne pas mettre
    de notification, mais des micro-interactions »). */
-function jeuToast(txt){ if(typeof lqSay==='function')lqSay(txt); }
+function jeuToast(txt){ if(typeof JEU!=='undefined'&&JEU&&JEU.verif)return; if(typeof lqSay==='function')lqSay(txt); }
 /* « Copier le code plutôt » (Elisa, 2 novembre, 23 h 52) : le bouton de la salle d’attente copie les 6 caractères du code, rien
    d’autre ; il dit « Code copié » une seconde et demie, les tuiles sautent. Sans presse-papiers, le code s’affiche pour être recopié. */
 const JEU_COPY_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg>';
@@ -46303,7 +46404,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-adversaires-v2677';
+  const SW_CACHE='requete-2026-11-08-code-feuille-v2678';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -46338,6 +46439,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
-<script src="multiplayer-security.js?v=3"></script>
+<script src="multiplayer-security.js?v=4"></script>
 </body>
 </html>

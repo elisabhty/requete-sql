@@ -7250,13 +7250,24 @@ html.lq .dx-feuille .dx-f-boite{position:relative;width:calc(100% - 16px);max-wi
 html.lq .dx-feuille.on .dx-f-boite{transform:none}
 .dx-feuille.off .dx-f-fond{opacity:0;transition-duration:.2s}
 html.lq .dx-feuille.off .dx-f-boite{transform:translateY(calc(100% + 40px));transition-duration:.24s;transition-timing-function:cubic-bezier(.4,0,1,1)}
-/* Le code à taper (Elisa, 8 novembre, 14 h 59 : « Cette page saute avec le clavier ») : la feuille s’ouvre en haut de l’écran et le
-   clavier monte dessous, sans rien déplacer. Posée en bas, elle suivait le clavier : Safari faisait d’abord défiler la page pour montrer
-   le champ, puis la feuille remontait au-dessus du clavier (deux sauts). Elle descend du haut et y repart. */
-html.lq .dx-feuille[data-k="code"]{align-items:flex-start}
-html.lq .dx-feuille[data-k="code"] .dx-f-boite{margin:calc(8px + var(--safe-top,0px)) 0 0;transform:translateY(calc(-100% - 40px))}
-html.lq .dx-feuille.on[data-k="code"] .dx-f-boite{transform:none}
-html.lq .dx-feuille.off[data-k="code"] .dx-f-boite{transform:translateY(calc(-100% - 40px))}
+/* Le code à taper (Elisa, 8 novembre, 15 h 27 : « Pourquoi c’est en haut ? Ça va être sur l’application, est-ce que ça va faire
+   bien ? ») : sur téléphone, une feuille pleine hauteur, comme « Utiliser un code » de l’App Store. Elle monte du bas comme les autres
+   et couvre ce qui reste visible au-dessus du clavier (dxFeuilleCaler) : le champ, en haut, ne bouge pas quand le clavier s’ouvre,
+   seul le bas de la feuille le suit. Posée en bas, elle sautait avec le clavier ; seule en haut (14 h 59), elle laissait un vide
+   entre elle et le clavier. Sous ses coins arrondis et la barre ⌃ ⌄ ✓ de Safari, le blanc de la feuille continue. */
+@media (pointer:coarse){
+  html.lq .dx-feuille[data-k="code"] .dx-f-boite{width:100%;max-width:520px;height:calc(100% - var(--safe-top,0px) - 12px);max-height:none;margin:0;border-radius:var(--dx-r-feuille,28px) var(--dx-r-feuille,28px) 0 0}
+  html.lq .dx-feuille.on[data-k="code"]::after{content:"";position:absolute;z-index:1;left:50%;bottom:-120px;width:100%;max-width:520px;height:121px;transform:translateX(-50%);background:#fff;pointer-events:none}
+  /* Dans l’app, la page rétrécit avec le clavier (Keyboard « native ») et passe sous 720 px de haut : le bandeau garde ses mesures
+     d’écran bas dès l’ouverture, pour que le champ ne remonte pas de 4 px quand le clavier arrive. */
+  html.lq :is(#scr-defis,.dx-feuille)[data-k="code"] .room-head.dx-f-tete{padding-bottom:26px}
+  html.lq :is(#scr-defis,.dx-feuille)[data-k="code"] .room-head.dx-f-tete>.room-sub{margin-top:10px}
+  /* Le pied ne colle plus en bas : sur un petit écran, clavier ouvert, il venait couvrir le champ ; la feuille défile. Petit écran
+     (iPhone SE, mini : mesuré à l’ouverture, avant le clavier) : le bandeau sans sa phrase, pour que le champ, le message et le
+     bouton tiennent au-dessus du clavier. */
+  html.lq .dx-feuille[data-k="code"] .dx-f-pied{position:static}
+  html.lq :is(#scr-defis,.dx-feuille).is-court[data-k="code"] .room-head.dx-f-tete>.room-sub{display:none}
+}
 html.lq .dx-feuille .room-head{margin:0 -18px 4px;padding:20px 66px 18px 18px}
 html.lq .dx-feuille .room-head .room-sub{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 html.lq .dx-feuille .room-head .room-sub>span:not(.dx-f-niv){flex:1 1 100%}
@@ -9632,6 +9643,21 @@ html.lq body .dx-feuille .dx-f-moi .jeu-me-t b{color:var(--ink);font-size:17.5px
 html.lq body .dx-feuille .dx-f-moi .jeu-me-at{color:var(--accent-ink)}
 html.lq .dx-feuille .dx-f-note{margin:10px 0 0;color:var(--ink-3);font:600 12.5px/1.35 var(--ui);text-align:center}
 
+/* ---------- Défis v2 · 20.19 La feuille du code (8 novembre, 15 h 27, la relecture qu’Elisa a fait faire) : au 6e caractère, le contour
+   du champ s’illumine (une onde violette, une fois) ; « On cherche ta salle… » et sa roue dans le bouton, qui reste violet ; un code qui
+   ne mène nulle part : le champ rougit et tremble ; le message dessous, en rouge ---------- */
+html.lq .dx-feuille .room-join .jeu-input.is-code.is-pret{border-color:var(--accent)!important;animation:dxCodeOnde .6s ease-out}
+@keyframes dxCodeOnde{0%{outline:3px solid rgba(106,77,244,.5);outline-offset:0}100%{outline:3px solid rgba(106,77,244,0);outline-offset:10px}}
+html.lq .dx-feuille .room-join .jeu-input.is-code.is-ko{border-color:#E5484D!important;box-shadow:0 0 0 4px rgba(229,72,77,.16)!important}
+html.lq .dx-feuille .room-join .jeu-input.is-code.is-ko.is-shake{animation:roomShake .38s cubic-bezier(.36,.07,.19,.97)}
+html.lq .dx-feuille .jeu-msg.is-ko{color:#C2323A;font-weight:700}
+html.lq .dx-feuille .room-go .dx-go-roue{display:none}
+html.lq :is(#scr-defis,.dx-feuille) .room-go.is-cherche:disabled{background:var(--accent)!important;box-shadow:var(--dx-relief-v)!important;color:#fff!important;cursor:progress}
+html.lq .dx-feuille .room-go.is-cherche .dx-go-roue{display:block;flex:none;width:18px;height:18px;box-sizing:border-box;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:dxRoue .8s linear infinite}
+html.lq .dx-feuille .room-go.is-cherche>svg{display:none}
+@keyframes dxRoue{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){html.lq .dx-feuille .room-join .jeu-input.is-code.is-pret,html.lq .dx-feuille .room-go.is-cherche .dx-go-roue{animation:none}}
+html.lq[data-motion="reduce"] .dx-feuille .room-join .jeu-input.is-code.is-pret,html.lq[data-motion="reduce"] .dx-feuille .room-go.is-cherche .dx-go-roue{animation:none}
 /* ---------- Défis v2 · 21. Le niveau de « Ta salle de défi » dans toutes les pages (8 novembre, 11 h 08, sur la feuille : « voilà
    parfait, c’est le niveau que j’attends ; modifie donc les pages défis pour ce niveau premium ») ----------
    Les pastilles de la feuille partout : le niveau en blanc avec ses barres, les points en jaune après la pièce (la lèvre dorée), les
