@@ -104,6 +104,6 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=232">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-joueurs-code-v2675';") && app.includes("const SW_CACHE='requete-2026-11-08-joueurs-code-v2675';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=233">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-code-clavier-v2676';") && app.includes("const SW_CACHE='requete-2026-11-08-code-clavier-v2676';"));
 });
