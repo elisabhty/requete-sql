@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=255">
+<link rel="stylesheet" href="ludique.css?v=256">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -23922,19 +23922,38 @@ function showKbar(on){
   else if(!document.getElementById('note-sheet').classList.contains('on')&&!document.getElementById('card-sheet').classList.contains('on')&&!document.getElementById('viz').classList.contains('on')) f.classList.remove('hide');
   syncKbarOffset();
 }
+/* 21 h 29 (« on ne peut pas remonter complètement quand on écrit dans la requête ») : dans Safari, le clavier ouvert, la page entière
+   glissait vers le haut pour montrer la requête ; le haut de l’écran (la barre, le titre, le bandeau de la manche) restait caché
+   au-dessus, et faire défiler l’écran ne le ramenait plus. La page reprend sa place et c’est l’écran qui défile jusqu’à la requête :
+   tout reste à portée du doigt. L’app n’est pas concernée (le clavier y rétrécit la page). */
+let edRecaleAt=0;
+function edPageRecaler(){
+  if(typeof window==='undefined'||!window.visualViewport||(typeof dxNatif==='function'&&dxNatif()))return;
+  const ta=activeTA;if(!ta||document.activeElement!==ta||!ta.closest('.editor-area')||ta.closest('.xf-editor'))return;
+  if(keyboardInset()<40)return;
+  const vv=window.visualViewport,glisse=Math.max(window.scrollY||window.pageYOffset||0,vv.offsetTop||0);
+  if(glisse<2||Date.now()-edRecaleAt<300)return;
+  edRecaleAt=Date.now();
+  window.scrollTo(0,0);
+  requestAnimationFrame(()=>{if(document.activeElement===ta){revealSqlEditor(ta);ensureRunRowVisible(ta);}});
+}
 if(window.visualViewport){
   const vv=window.visualViewport;
-  let kbarVvLayoutT=0;
-  const adjOffset=()=>syncKbarOffset();
+  let kbarVvLayoutT=0,kbarVvKb=0;
+  const adjOffset=()=>{syncKbarOffset();edPageRecaler();};
   const adjLayout=()=>{
     syncKbarOffset();
+    const kb=keyboardInset();if(kb<40)kbarVvKb=0;
     if(kbarKbDismissed||document.activeElement!==activeTA||!document.body.classList.contains('kbar-on')) return;
     if(!activeTA||!activeTA.closest('.editor-area')) return;
     fitSqlEditor(activeTA);
-    if(keyboardInset()>40){
+    /* La requête remonte en vue quand le clavier arrive (ou change de hauteur), pas à chaque petit changement de la vue : on peut
+       faire défiler l’écran, clavier ouvert, sans être ramené à la requête (21 h 29). */
+    if(kb>40&&Math.abs(kb-kbarVvKb)>40){
+      kbarVvKb=kb;
       clearTimeout(kbarVvLayoutT);
       kbarVvLayoutT=setTimeout(()=>{
-        if(!kbarKbDismissed&&document.activeElement===activeTA) layoutSqlEditor();
+        if(!kbarKbDismissed&&document.activeElement===activeTA){ layoutSqlEditor(); edPageRecaler(); }
       },90);
     }
   };
@@ -35661,17 +35680,24 @@ function jeuDirectSerie(rk,pid,n){
   }
   return k;
 }
-/* La rangée des avatars, seule dans le bandeau depuis 21 h 13 : ceux qui ont trouvé d’abord, dans l’ordre où ils ont trouvé (le premier
-   porte la couronne, les suivants la coche), puis ceux qui cherchent, dans l’ordre de la salle, et ceux qui sont partis au bout. Le
-   lecteur d’écran a la même chose en une phrase (la rangée lui est cachée). */
+/* La rangée des présents (21 h 13 : seule dans le bandeau ; 21 h 29 : « la lignée des présents avec le nombre de points à côté du
+   drapeau », « laisser de l’espace entre les icônes », plus de « 0/1 ») : chaque joueur là, son avatar (ce qu’il fait sur sa tête, son
+   drapeau au coin) et, à côté, ses points de la partie, qui défilent quand ils montent. Ceux qui ont trouvé d’abord, dans l’ordre où ils
+   ont trouvé (le premier porte la couronne, les suivants la coche), puis ceux qui cherchent, dans l’ordre de la salle ; ceux qui sont
+   partis n’y sont plus. Le lecteur d’écran a la même chose en une phrase (la rangée lui est cachée). */
 function jeuDirectTete(xs,avant){
-  const la=xs.filter(x=>x.etat!=='parti'),ok=la.filter(x=>x.ok).length,nb=la.length;   // ceux de la manche, sans ceux partis avant d’avoir trouvé
-  const t1=Math.min(...xs.filter(x=>x.ok).map(x=>x.ms)),premier=x=>x.ok&&x.ms===t1,cran=x=>x.ok?0:x.etat==='parti'?2:1;
-  const ys=xs.slice().sort((a,b)=>cran(a)-cran(b)||(a.ok&&b.ok?a.ms-b.ms:0)||a.i-b.i);
-  const mot={ok:'trouvé',test:'teste une requête',ecrit:'en train d’écrire',pense:'en réflexion'};
-  return {ok:`<i aria-hidden="true">${JEU_ICO.check}</i>${ok}/${nb}<span class="jeu-sr"> : ${ok>1?`${ok} joueurs ont trouvé`:ok?'1 joueur a trouvé':'personne n’a encore trouvé'}</span>`,
-    av:ys.map(x=>`<b class="jeu-av is-${x.etat}${premier(x)?' is-premier':''}" data-c="${x.c}" data-pid="${jeuDirectPid(x.pid)}">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai,x.pays||''):''}${jeuDirectBulle(x,avant,premier(x))}</b>`).join(''),
-    qui:ys.map(x=>`${esc(x.nom)}\u00a0: ${premier(x)?'trouvé en premier':x.etat==='parti'?(x.quitte?'parti de la salle':'hors ligne'):mot[x.etat]}`).join(', ')};
+  const t1=Math.min(...xs.filter(x=>x.ok).map(x=>x.ms)),premier=x=>x.ok&&x.ms===t1;
+  const ys=xs.filter(x=>x.etat!=='parti').sort((a,b)=>(a.ok?0:1)-(b.ok?0:1)||(a.ok&&b.ok?a.ms-b.ms:0)||a.i-b.i);
+  const mot={ok:'trouvé',test:'teste une requête',ecrit:'en train d’écrire',pense:'en réflexion'},pt=v=>`\u00a0pt${v>1?'s':''}`;
+  return {
+    av:ys.map(x=>{
+      const p=premier(x),a=avant&&avant[jeuDirectPid(x.pid)],monte=!!(a&&a.pts!=null&&x.pts>a.pts);
+      return `<span class="jd-j is-${x.etat}${p?' is-premier':''}${x.me?' is-moi':''}" data-pid="${jeuDirectPid(x.pid)}" data-c="${x.c}" data-n="${x.pts}">`+
+        `<b class="jeu-av" data-c="${x.c}">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai,x.pays||''):''}${jeuDirectBulle(x,avant,p)}</b>`+
+        `<span class="jd-j-pts"><b class="jd-pts${monte?' is-compte':''}" data-n="${x.pts}"${monte?` data-from="${a.pts}"`:''} data-fmt="fr">${x.pts.toLocaleString('fr-FR')}</b><small>${pt(x.pts)}</small></span></span>`;
+    }).join(''),
+    qui:ys.map(x=>`${esc(x.nom)}\u00a0: ${premier(x)?'trouvé en premier':mot[x.etat]}, ${x.pts.toLocaleString('fr-FR')}${pt(x.pts).replace('pt','point')}`).join(' ; ')
+  };
 }
 /* 20 h 39 (« quand quelqu’un tape une requête, on a un … juste au-dessus de lui, et un validé aussi quand la personne a eu juste à la
    manche ») : une bulle sur la tête de chaque avatar dit ce qu’il fait : les trois petits points tant qu’il écrit (pour soi aussi), la
@@ -35683,16 +35709,20 @@ function jeuDirectBulle(x,avant,premier){
   if(x.etat!=='ok')return '';
   return premier?`<i class="jd-av-b is-roi${neuf}">${JEU_COURONNE_SVG}</i>`:`<i class="jd-av-b is-ok${neuf}">${JEU_ICO.check}</i>`;
 }
-/* Les avatars de la barre, un par un : celui qui n’a pas changé garde son nœud (ses petits points continuent de sauter) ; si l’ordre
-   change (quelqu’un passe devant), la rangée est redessinée. Son drapeau qui arrive compte comme un changement (21 h 04). */
+/* La rangée, joueur par joueur : celui qui n’a pas changé garde son nœud (ses petits points continuent de sauter) ; si l’ordre change
+   (quelqu’un passe devant), la rangée est redessinée. Son drapeau qui arrive (21 h 04) et ses points qui montent (21 h 29) comptent
+   comme un changement ; les points défilent jusqu’au nouveau total. */
 function jeuDirectAvMaj(el,h){
   if(!el)return;
   if(!el.children||typeof document.createElement!=='function'||typeof el.replaceChildren!=='function'){if(el.innerHTML!==h)el.innerHTML=h;return;}
   const t=document.createElement('template');t.innerHTML=h;
   const neufs=[...t.content.children],vieux=[...el.children];
-  if(neufs.length!==vieux.length||neufs.some((x,i)=>x.dataset.pid!==vieux[i].dataset.pid)){el.replaceChildren(...neufs);return;}
-  const cle=e=>[e.className,e.dataset.c,(e.querySelector('.jeu-flag')||{}).textContent||''].join('|');
-  neufs.forEach((x,i)=>{if(cle(x)!==cle(vieux[i]))vieux[i].replaceWith(x);});
+  if(neufs.length!==vieux.length||neufs.some((x,i)=>x.dataset.pid!==vieux[i].dataset.pid))el.replaceChildren(...neufs);
+  else{
+    const cle=e=>[e.className,e.dataset.c,e.dataset.n,(e.querySelector('.jeu-flag')||{}).textContent||''].join('|');
+    neufs.forEach((x,i)=>{if(cle(x)!==cle(vieux[i]))vieux[i].replaceWith(x);});
+  }
+  if(typeof el.querySelectorAll==='function'&&typeof jeuCountUp==='function')el.querySelectorAll('.jd-pts.is-compte').forEach(e=>{e.classList.remove('is-compte');jeuCountUp(e);});
 }
 function jeuDirectPid(p){return String(p).replace(/[^\w-]/g,'');}
 function jeuDirectEtats(xs){return Object.fromEntries(xs.map(x=>[jeuDirectPid(x.pid),{etat:x.etat,essais:x.essais,chef:x.chef,place:x.place,serie:x.serie,pts:x.pts}]));}
@@ -35705,13 +35735,12 @@ function jeuDirectHTML(n,hud){
   const t=jeuDirectTete(xs,avant);
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
   return `<section class="jeu-direct${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
-    `<div class="jeu-direct-h"><span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b>`+
-    `<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</span><span class="jeu-sr" id="jeu-direct-qui">${t.qui}</span>`+
-    `<span class="jeu-direct-ok" id="jeu-direct-ok">${t.ok}</span></div>`+
+    `<div class="jeu-direct-h"><span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b></div>`+
+    `<div class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</div><span class="jeu-sr" id="jeu-direct-qui">${t.qui}</span>`+
     `<p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">${jeuDitHTML(f.cur,Date.now()-f.at<600)}</p></div></section>`;
 }
 /* Sur place, sans toucher à l’éditeur, et seulement si quelque chose a changé : ce qui a changé est noté (le commentateur suit la
-   partie), puis la rangée des avatars, un par un, et le compte de ceux qui ont trouvé. */
+   partie), puis la rangée des présents, joueur par joueur. */
 function jeuDirectPeindre(n){
   const J=JEU;if(!J)return;
   const xs=jeuDirectJoueurs(n),sig=jeuDirectSig(xs),vu=J.directVu&&J.directVu.n===n?J.directVu:null;
@@ -35721,7 +35750,7 @@ function jeuDirectPeindre(n){
   J.directVu={n,m:jeuDirectEtats(xs),sig};
   if(typeof document==='undefined'||!document.getElementById)return;
   const t=jeuDirectTete(xs,avant);
-  [['jeu-direct-ok',t.ok],['jeu-direct-qui',t.qui]].forEach(([id,h])=>{const e=document.getElementById(id);if(e&&e.innerHTML!==h)e.innerHTML=h;});
+  const q=document.getElementById('jeu-direct-qui');if(q&&q.innerHTML!==t.qui)q.innerHTML=t.qui;
   jeuDirectAvMaj(document.getElementById('jeu-direct-av'),t.av);
 }
 /* Le commentateur (Elisa, 8 novembre, 12 h 25) : une ligne sous la barre, visible même repliée, qui raconte la manche ; il remplace
@@ -35733,7 +35762,7 @@ function jeuDirectPeindre(n){
 function jeuOrdinal(k){return k===1?'1er':k+'e';}
 function jeuDirectObserver(n,xs,avant){
   const J=JEU,r=J.rounds[n];if(!r||!avant||!Object.keys(avant).length||jeuSoloLike(n))return;   // seul : ni cadre ni commentaire
-  const now=Date.now(),rk=jeuRanking(n),dits=[],N=x=>`<b>${esc(x.vrai)}</b>`;
+  const now=Date.now(),rk=jeuRanking(n),dits=[],bulles=[],N=x=>`<b>${esc(x.vrai)}</b>`;
   const ouvre=!J.rounds.slice(0,n).some(x=>x&&Object.keys(x.found||{}).length),ex=xs.filter(x=>x.chef).length>1;
   xs.forEach(x=>{
     const a=avant[jeuDirectPid(x.pid)];if(!a)return;
@@ -35748,9 +35777,12 @@ function jeuDirectObserver(n,xs,avant){
       else if(prem&&!x.me)d={k:'ok',p:3,ico:JEU_ICO.check,html:`${N(x)} trouve en premier\u00a0!`,b};
       else if(!x.me)d={k:'ok',p:2,ico:JEU_ICO.check,html:`${N(x)} trouve, ${jeuOrdinal(y.place||1)} de la manche`};
       if(d)dits.push(d);
+      if(!x.me)bulles.push([x.pid,prem?'roi':'ok']);
     }else if(!x.me&&x.etat==='test'&&x.essais>a.essais)
       dits.push({k:'ko',p:1,ico:JEU_ICO.cross,html:`${N(x)}\u00a0: pas encore${x.essais>=3?` <small>(${jeuOrdinal(x.essais)} essai)</small>`:''}`});
+    else if(!x.me&&a.etat!=='ecrit'&&x.etat==='ecrit')bulles.push([x.pid,'ecrit']);
   });
+  bulles.forEach(([p,k])=>jeuStatutBulle(p,k));
   /* Plus qu’un à chercher */
   const lice=xs.filter(x=>x.etat!=='ok'&&x.etat!=='parti'),avantLice=Object.values(avant).filter(a=>a.etat!=='ok'&&a.etat!=='parti').length;
   if(lice.length===1&&avantLice>1)dits.push({k:'seul',p:2,ico:JEU_LOUPE_SVG,html:lice[0].me?'Plus que toi en course, courage\u00a0!':`Plus que ${N(lice[0])} en course…`});
@@ -35803,7 +35835,7 @@ function jeuDirectMinute(n){
 function jeuReactPop(pid,e){
   if(typeof document==='undefined'||typeof document.querySelector!=='function')return false;
   const s=document.getElementById('jeu-direct');if(!s)return false;
-  const av=s.querySelector(`#jeu-direct-av .jeu-av[data-pid="${jeuDirectPid(pid)}"]`);
+  const av=s.querySelector(`#jeu-direct-av .jd-j[data-pid="${jeuDirectPid(pid)}"]>.jeu-av`);
   if(!av)return false;
   const ra=av.getBoundingClientRect(),rs=s.getBoundingClientRect(),b=document.createElement('span');
   b.className='jd-react';b.setAttribute('aria-hidden','true');b.textContent=e;
@@ -35898,7 +35930,7 @@ function jeuReagirEcoute(){
    rien annoncer : elle passe et s’efface (2,8 s), ce n’est pas une notification. Quatorze au plus à la fois. En mouvement réduit :
    elle apparaît et s’efface sur place, les suivantes à côté. À la chaîne (20 h 07), les suivantes d’un même joueur partent de la place
    de la première, un rien de côté, sans le pseudo (déjà dit) : elles montent en grappe derrière elle. */
-function jeuReactBulle(pid,e,nom,suite){
+function jeuReactBulle(pid,e,nom,suite,quoi){
   const J=JEU;
   if(!J||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||document.hidden)return false;
   const root=document.getElementById('jeu-root');if(!root)return false;
@@ -35914,7 +35946,7 @@ function jeuReactBulle(pid,e,nom,suite){
   const me=pid===J.me,qui=me?'Toi':(jeuNom((J.players[pid]||{}).name)||jeuNom(nom)||'Joueur'),k=(J.rlN=(J.rlN||0)+1),now=Date.now();
   const b=document.createElement('span'),i=document.createElement('i'),pos=J.rlPos||(J.rlPos={}),Q=pos[pid],calme=prefersReduceMotion();
   /* La chaîne s’accroche à sa première bulle tant qu’elle est là ; partie (plus de 2,9 s), la suivante redit le pseudo */
-  const chaine=!!(suite&&Q&&Q.el&&Q.el.isConnected);
+  const chaine=!!(!quoi&&suite&&Q&&Q.el&&Q.el.isConnected);
   let x=0,y=0;
   if(chaine&&!calme){
     /* La suite d’une chaîne : de la place de la première, un rien de côté ; un autre joueur qui réagit se met à côté de la grappe */
@@ -35926,14 +35958,24 @@ function jeuReactBulle(pid,e,nom,suite){
     const fen=calme?2800:950,P=J.rlPrev;
     if(P&&now-P.at<fen&&P.el.isConnected){x=P.x+Math.ceil(P.el.getBoundingClientRect().width)+10;y=P.y;if(x>200){x=0;y=P.y>-160?P.y-84:0;}}
     J.rlPrev={el:b,x,y,at:now,pid};
-    if(!chaine)pos[pid]={el:b,x,y};
+    if(!quoi)pos[pid]={el:b,x,y};
   }
-  b.className=chaine?'jeu-rl-b is-suite':'jeu-rl-b';i.className='jeu-rl-e';i.textContent=e;b.append(i);
+  b.className=(chaine?'jeu-rl-b is-suite':'jeu-rl-b')+(quoi?' '+quoi.cls:'');i.className='jeu-rl-e';if(quoi)i.innerHTML=quoi.html;else i.textContent=e;b.append(i);
   if(!chaine){const t=document.createElement('b');t.className='jeu-rl-n';t.textContent=qui;t.dataset.c=String(Math.max(0,jeuOrder().indexOf(pid))%6);b.append(t);}
   b.style.setProperty('--x',-x+'px');b.style.setProperty('--y',y+'px');b.style.setProperty('--s',(k%2?10:-10)+'px');
   c.appendChild(b);
   setTimeout(()=>{try{b.remove();}catch(x){}},2900);
   return true;
+}
+/* 21 h 29 (« comme les réactions : mets les … avec le pseudo si quelqu’un écrit, la couronne avec le pseudo s’il a réussi, et validé
+   (l’icône) avec le pseudo ») : ce qui se passe chez les autres monte aussi le long de l’écran, où qu’on soit dans la page, dans la
+   bulle blanche des réactions : les trois petits points quand il se met à écrire (une fois toutes les 15 s au plus pour un même
+   joueur), la couronne pour le premier qui trouve, la coche pour les suivants. Pas pour soi : on sait ce qu’on fait. */
+const JEU_STATUT_ECRIT_MS=15000;
+function jeuStatutBulle(pid,k){
+  const J=JEU;if(!J)return false;
+  if(k==='ecrit'){const v=J.statutEcrit||(J.statutEcrit={}),now=Date.now();if(now-(v[pid]||0)<JEU_STATUT_ECRIT_MS)return false;v[pid]=now;}
+  return jeuReactBulle(pid,null,null,false,{cls:'is-'+k,html:k==='ecrit'?'<b></b><b></b><b></b>':k==='roi'?JEU_COURONNE_SVG:JEU_ICO.check});
 }
 /* « Il écrit » : à chaque tour d’horloge (500 ms), si ma requête a changé depuis le dernier tour de cette manche, les autres le savent
    (pas son texte). Une requête remise en place après un redessin ne change pas : rien ne part. */
@@ -46715,7 +46757,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-couronne-jaune-v2702';
+  const SW_CACHE='requete-2026-11-08-presents-points-v2703';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

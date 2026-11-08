@@ -67,5 +67,5 @@ test('si la séance ne tient plus à droite du bonjour, elle se resserre ; sinon
 test('plus de « Ton module » en menthe au-dessus du pourcentage (et, depuis le 6 novembre, plus de grand pourcentage du tout)', () => {
   assert.ok(!app.includes('const parc=`') && !app.includes('lq-hero-kicker') && !app.includes("'Ton module'"));
   assert.ok(!lq.includes('lq-hero-kicker'), 'son style est parti avec lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=255">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=256">'));
 });
