@@ -3,6 +3,7 @@
 -- réglage de la salle ; jeu_salles_ouvertes montre une salle tant qu’elle a moins de 6 joueurs, avec max 6.
 -- Les deux fonctions sont recréées telles qu’elles sont en service (pg_get_functiondef) : seul le nombre de joueurs change ;
 -- s’il n’est plus celui attendu, rien n’est changé.
+-- Appliquée au projet Supabase « requete-sql » (ynuenrxozcpkrjdbeftc, Paris) le 8 novembre 2026, 22 h 45, avec l’accord d’Elisa (« ok pour… faire la migration »).
 do $$
 declare
   def text;
