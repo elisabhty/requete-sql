@@ -180,5 +180,5 @@ test('la DA : la pastille jaune soleil, la toile quadrillée, les classes aux co
   /* Les mesures de la page et du dessin sont les mêmes : en-tête 34 px, lignes de 20 px, 7 px autour */
   assert.ok(app.includes('const UML_G={tete:34,pad:7,ligne:20,ligneEx:40,haut:2,ecart:20,voie0:14,voie:8};'));
   assert.ok(!/\.uml-(?:t|h|cs|toile|plan)\b/.test(css), 'les classes umd- : celles du guide (.uml-c, .uml-l…) restent à lui');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=249">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=250">'));
 });

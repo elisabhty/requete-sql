@@ -106,8 +106,8 @@ function monde({ reduit = false, live = ['a', 'b'], solo = false, view = 'play0'
 
 test('« Réagir » : un bouton posé en bas à droite de l’écran, pendant la manche, dans toute salle (même seule) ; plus dans le cadre', () => {
   const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
-  assert.ok(!play.includes('jeuReagirHTML') && play.includes("${JEU_NIVL[c.niv]}</span>${val}</span></div>`;"), 'la ligne du niveau : le niveau et ce que vaut le défi');
-  assert.ok(!cut('function jeuDirectHTML(n,hud,chrono){', '\n}\n').includes('reagir'), 'le cadre ne s’en occupe plus');
+  assert.ok(!play.includes('jeuReagirHTML') && play.includes('<span class="jeu-hud-box${val?\'\':\' is-seul\'}">${val}${chrono}</span></div>`;'), 'la tête du cadre : la manche, le niveau, ce que vaut le défi | le chrono');
+  assert.ok(!cut('function jeuDirectHTML(n,hud){', '\n}\n').includes('reagir'), 'le cadre ne s’en occupe plus');
   const m = monde(), h = m.ev('jeuReagirHTML()');
   assert.ok(h.startsWith('<div class="jeu-reagir" id="jeu-reagir"><button type="button" class="jeu-reagir-b" id="jeu-reagir-b" aria-expanded="false" aria-controls="jeu-reagir-l" aria-label="Réagir" onclick="jeuReagirBasculer(event)">'));
   assert.ok(h.includes('<span>Réagir</span>') && h.includes('class="jeu-reagir-x"'), 'le sourire et « Réagir » ; la croix, cachée tant que c’est fermé');
