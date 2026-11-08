@@ -38,9 +38,11 @@ test('seule dans la salle : le +25 du premier coup reste, le bonus de place ne c
   assert.ok(regles.includes('<small>seul</small><i aria-hidden="true">·</i><b>${(top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]*x).toLocaleString(\'fr-FR\')}</b><small>à plusieurs</small>'), 'le premier coup ne compte plus ×2 ni ×4 (8 novembre, 9 h 17)');
 });
 
-test('réf. 1 : le curseur de « À toi de jouer » clignote par sa couleur, plus en opacité (l’étiquette penchée reste nette)', () => {
+test('réf. 1 : le curseur de « À toi de jouer » clignote par sa couleur, plus en opacité ; l’étiquette, droite, reste nette (8 novembre, 10 h 10)', () => {
   assert.ok(lq.includes('@keyframes coachCaret{50%{background-color:transparent}}') && !lq.includes('@keyframes coachCaret{50%{opacity:0}}'));
-  assert.ok(lq.includes('animation:coachCaret 1s steps(1) infinite') && lq.includes('html.lq .coach-tag.is-go{background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-ink);rotate:-2deg}'));
+  assert.ok(lq.includes('animation:coachCaret 1s steps(1) infinite') && lq.includes('html.lq .coach-tag.is-go{background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-ink)}'));
+  /* 8 novembre, 10 h 10 : « la pill violette À toi de jouer est de mauvaise qualité » : plus d’inclinaison (Safari dentelait ses bords), une vraie pastille */
+  assert.ok(!/\.coach-tag[^{]*\{[^}]*rotate:-2deg/.test(lq) && lq.includes('html.lq .coach-tag{flex:none;display:inline-flex;align-items:center;gap:2px;padding:6px 13px;border-radius:999px;'));
 });
 
 test('réf. 2 et 3 : Pratiquer, la salle de défi lance une partie ; Mes stats s’ouvre seulement si on le demande', () => {
@@ -157,6 +159,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=222">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-confidentialite-compte-v2659';") && app.includes("const SW_CACHE='requete-2026-11-08-confidentialite-compte-v2659';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=223">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-08-suite-auto-v2660';") && app.includes("const SW_CACHE='requete-2026-11-08-suite-auto-v2660';"));
 });
