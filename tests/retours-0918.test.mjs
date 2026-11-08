@@ -130,51 +130,31 @@ test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre ami
   assert.equal(vm.runInContext("jeuBonusPris({found:{b:1},one:true})", c), false, 'manche commencée seule : comme seul');
   assert.ok(app.includes("${r.tries||jeuBonusPris(r)?'':`<i class=\"jeu-val-b\" id=\"jeu-val-b\""), 'le badge n’est plus dessiné');
   const found = cut("    case 'found':{", "    case 'react':");
-  assert.ok(found.includes('jeuEvt(true,m.pid,name,m.p1===1&&(premier||r.one));') && found.includes('if(r.found[J.me]==null&&!r.one)jeuBonusOut();'), 'il s’envole chez les autres');
+  assert.ok(found.includes('if(r.found[J.me]==null&&!r.one)jeuBonusOut();'), 'il s’envole chez les autres');
+  assert.ok(fn('jeuDirectObserver').includes("const y=rk.find(z=>z.pid===x.pid)||{},prem=y.place===1,b=prem&&y.essai?`+${y.essai}`:'';"), 'celui qui l’a pris : « +25 » dans le commentateur de « En direct » (8 novembre, 12 h 25)');
   /* Celui qui l’a pris : la pastille « +25 ✨ » saute sur ses points */
   assert.ok(fn('jeuFoundHTML').includes('${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${x.essai} ✨</i>`:\'\'}'), 'le premier coup du niveau : +25, +50 ou +100 (6 novembre, 15 h)');
   for (const k of ['html.lq .jeu-done-b{position:absolute;', '@keyframes jeuDoneB{', '@keyframes jeuDoneEt{']) assert.ok(css.includes(k), k);
   assert.ok(app.includes('Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi'), 'la règle dite dans « Comment on marque des points »');
 });
 
-test('salle : chaque essai des autres passe en haut de l’écran, son pseudo et une croix ou une coche', () => {
-  const made = [];
-  const el = () => { const e = {children: [], classList: {list: [], add(c) { this.list.push(c); }, contains: () => false}, style: {removeProperty() {}}, attrs: {},
-    setAttribute(k, v) { this.attrs[k] = v; }, prepend(x) { this.children.unshift(x); x.parent = this; }, remove() { this.gone = true; if (this.parent) this.parent.children = this.parent.children.filter(y => y !== this); },
-    get lastElementChild() { return this.children.at(-1); }}; made.push(e); return e; };
-  const body = {appendChild(x) { this.box = x; }};
-  const timers = [];
-  const c = vm.createContext({document: {body, createElement: el, getElementById: id => (id === 'jeu-evts' ? body.box || null : null)}, setTimeout: (f, ms) => timers.push([f, ms]),
-    prefersReduceMotion: () => false, esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), JEU_PTS_ESSAI: 25,
-    JEU_ICO: {check: '<svg class="ok"/>', cross: '<svg class="ko"/>'}, JEU: {me: 'z'}, jeuOrder: () => ['h', 'b', 'c'], jeuInitial: n => String(n)[0].toUpperCase(),
-    JEU_NIV_X: {f: 1, m: 2, d: 4}, jeuNivManche: () => 'f', jeuCur: () => 0});
-  vm.runInContext(cut('const JEU_KO_MS=', '\nfunction jeuStop(){'), c);
-  c.jeuEvt(false, 'b', 'Léa<3');
-  const box = body.box;
-  assert.equal(box.id, 'jeu-evts');
-  assert.equal(box.attrs['aria-hidden'], 'true', 'le lecteur d’écran l’entend déjà par l’annonce (jeuToast)');
-  const ko = box.children[0];
-  assert.equal(ko.className, 'jeu-evt is-ko');
-  assert.equal(ko.innerHTML, '<b class="jeu-av" data-c="1">L</b><span class="jeu-evt-t"><b>Léa&lt;3</b><small>pas encore</small></span><i class="jeu-evt-i"><svg class="ko"/></i>');
-  c.jeuEvt(true, 'c', 'Tom', true);
-  const ok = box.children[0];
-  assert.equal(ok.className, 'jeu-evt is-ok');
-  assert.ok(ok.innerHTML.includes('<small>a trouvé</small></span><i class="jeu-evt-i"><svg class="ok"/></i><em class="jeu-evt-b">+25 ✨</em>'), 'le +25 de celui qui l’a pris');
-  c.jeuEvt(false, 'b', 'Léa'); c.jeuEvt(false, 'b', 'Léa');
-  assert.equal(box.children.length, 3, 'trois au plus');
-  assert.deepEqual(timers.slice(0, 2).map(t => t[1]), [2600, 3400], 'elles s’en vont d’elles-mêmes');
-  timers[0][0](); assert.ok(ko.classList.list.includes('is-out'));
+/* 8 novembre, 12 h 25 : les pastilles du haut de l’écran sont devenues le commentateur de « En direct » (elles cachaient le titre) ;
+   il garde leur croix qui secoue et leur coche qui se pose, avec le pseudo (en-direct.test.mjs le vérifie phrase par phrase). */
+test('salle : chaque essai des autres se dit dans « En direct », son pseudo et une croix ou une coche', () => {
+  assert.ok(!app.includes('function jeuEvt(') && !app.includes('jeu-evts'), 'plus de pastilles en haut de l’écran');
+  const obs = fn('jeuDirectObserver');
+  assert.ok(obs.includes("dits.push({k:'ko',p:1,ico:JEU_ICO.cross,html:`${N(x)}\\u00a0: pas encore") && obs.includes("d={k:'ok',p:2,ico:JEU_ICO.check,html:`${N(x)} trouve, "), 'une croix, une coche, son pseudo');
+  assert.ok(fn('jeuDitHTML').includes('<i class="jd-dit-i" aria-hidden="true">${d.ico||\'\'}</i>'));
   const rate = cut("    case 'rate':{", "    case 'close':{");
   for (const k of ["if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;", "if(!r||r.one||r.found[m.pid]!=null||J.view!=='play'+n)return;",
-    'if(m.at&&Date.now()-(m.at-(J.skew||0))>10000)return;', 'jeuEvt(false,m.pid,name);', '(J.koAt=J.koAt||{})[m.pid]=Date.now();'])
+    'if(m.at&&Date.now()-(m.at-(J.skew||0))>10000)return;', '(J.koAt=J.koAt||{})[m.pid]=Date.now();'])
     assert.ok(rate.includes(k), k);
   /* 8 novembre : la bande d’avatars est devenue « En direct » ; son essai y compte aussitôt, sa ligne s’anime (en-direct.test.mjs) */
   assert.ok(rate.includes('(rt.ko=rt.ko||{})[m.pid]=(rt.ko[m.pid]||0)+1;') && rate.includes('jeuDirectPeindre(n);'), 'son essai compte dans « En direct », aussitôt');
   assert.ok(fn('jeuDirectPeindre').includes('if(li&&li.dataset.s===jeuDirectSig([x])){delete vieux[id];return li;}'), 'une ligne qui n’a pas changé garde son geste, même si la liste se redessine');
   assert.ok(fn('jeuEssaiRate').includes("if(typeof jeuRateSend==='function')jeuRateSend(r);") && line('jeuRateSend').includes("if(!J||J.ranked||J.solo||!r||r.one)return;"), 'sans serveur, le joueur l’annonce lui-même');
-  assert.ok(fn('jeuStop').includes("document.getElementById('jeu-evts')?.remove();"), 'on quitte la salle : les pastilles partent');
-  for (const k of ['#jeu-evts{position:fixed;left:50%;top:calc(var(--safe-top,0px) + 63px);', 'html.lq .jeu-evt.is-ko .jeu-evt-i{background:#FFE1E1;color:#B4232C;animation:jeuEvtNon',
-    'html.lq #jeu-root .jd.is-test>.jeu-av{animation:jdRespire 1.1s ease-in-out infinite}', 'html[data-motion="reduce"].lq .jeu-evt,'])
+  for (const k of ['html.lq #jeu-root .jd-dit-m.is-neuf.is-ko .jd-dit-i{animation:jdNon .6s', 'html.lq #jeu-root .jd-dit-m.is-ko .jd-dit-i{background:#FFE1E1;color:#B4232C}',
+    'html.lq #jeu-root .jd-dit-m.is-ok .jd-dit-i{background:#2DB67C;color:#fff}', 'html.lq #jeu-root .jd.is-test>.jeu-av{animation:jdRespire 1.1s ease-in-out infinite}'])
     assert.ok(css.includes(k), k);
 });
 
@@ -201,5 +181,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=228">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=229">'));
 });
