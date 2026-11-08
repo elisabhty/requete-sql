@@ -156,9 +156,9 @@ test('Joueurs : « Tes adversaires », « Pas encore d’adversaire ! », « Ajo
   /* Vide : la mascotte, la phrase, puis les deux boutons ; remplie (refonte du 7 novembre) : les boutons au-dessus de la liste. */
   assert.ok(a.indexOf('id="dx-amis-liste"') < a.indexOf('Ajouter par pseudo'));
   assert.ok(!a.includes('dx-note') && !app.includes('Un adversaire s’ajoute tout seul après une partie.'), 'plus l’explication sur l’ajout automatique et le code de salle');
-  /* La mascotte qui salue, dans l’espace vide de la carte (22 h 13), puis la phrase */
-  assert.equal(c.els['dx-amis-liste'].innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="salut"><p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>');
-  assert.ok(fn('amisListesPeindre').includes("chatBonusHtml('salut','is-vide dx-amis-chat')"));
+  /* La mascotte dans l’espace vide de la carte (22 h 13 : elle saluait ; 8 novembre, 14 h 27 : le duel, joué une fois), puis la phrase */
+  assert.equal(c.els['dx-amis-liste'].innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="duel"><p class="dx-vide">Défie d’autres joueurs pour les retrouver ici et suivre leurs performances.</p></div>');
+  assert.ok(fn('amisListesPeindre').includes("chatBonusHtml('duel','is-vide dx-amis-chat')"));
   for (const k of ['html.lq #scr-defis .dx-vide-bloc.is-amis{margin:2px 2px 0;text-align:center}', 'html.lq #scr-defis .dx-vide-bloc.is-amis .chat-bonus{display:block;width:96px;'])
     assert.ok(lq.includes(k), k);
   /* La liste n’a plus son propre titre « Tes adversaires » : c’est celui de la carte */
