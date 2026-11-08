@@ -151,10 +151,10 @@ test('salle : chaque essai des autres se dit dans « En direct », son pseudo et
     assert.ok(rate.includes(k), k);
   /* 8 novembre : la bande d’avatars est devenue « En direct » ; son essai y compte aussitôt, sa ligne s’anime (en-direct.test.mjs) */
   assert.ok(rate.includes('(rt.ko=rt.ko||{})[m.pid]=(rt.ko[m.pid]||0)+1;') && rate.includes('jeuDirectPeindre(n);'), 'son essai compte dans « En direct », aussitôt');
-  assert.ok(fn('jeuDirectPeindre').includes('if(li&&li.dataset.s===jeuDirectSig([x])){delete vieux[id];return li;}'), 'une ligne qui n’a pas changé garde son geste, même si la liste se redessine');
+  assert.ok(fn('jeuDirectAvMaj').includes('neufs.forEach((x,i)=>{if(cle(x)!==cle(vieux[i]))vieux[i].replaceWith(x);});'), 'un avatar qui n’a pas changé garde son geste, même si la rangée se redessine');
   assert.ok(fn('jeuEssaiRate').includes("if(typeof jeuRateSend==='function')jeuRateSend(r);") && line('jeuRateSend').includes("if(!J||J.ranked||J.solo||!r||r.one)return;"), 'sans serveur, le joueur l’annonce lui-même');
   for (const k of ['html.lq #jeu-root .jd-dit-m.is-neuf.is-ko .jd-dit-i{animation:jdNon .6s', 'html.lq #jeu-root .jd-dit-m.is-ko .jd-dit-i{background:#FFE1E1;color:#B4232C}',
-    'html.lq #jeu-root .jd-dit-m.is-ok .jd-dit-i{background:#2DB67C;color:#fff}', 'html.lq #jeu-root .jd.is-test>.jeu-av{animation:jdRespire 1.1s ease-in-out infinite}'])
+    'html.lq #jeu-root .jd-dit-m.is-ok .jd-dit-i{background:#2DB67C;color:#fff}', 'html.lq #jeu-root .jeu-direct-av .jeu-av.is-test{border-color:var(--sun);animation:jdRespire 1.1s ease-in-out infinite}'])
     assert.ok(css.includes(k), k);
 });
 
@@ -181,5 +181,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=254">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=255">'));
 });
