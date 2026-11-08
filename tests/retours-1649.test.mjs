@@ -350,7 +350,7 @@ test('réf. 4 et 5 — la note de la salle garde sa première phrase ; « Un cod
   /* 3 novembre, 7 h 49 : le code reçu passe dans la carte de la salle, en mode « Rejoindre ». */
   /* 5 novembre, 10 h 16 : la feuille « J’ai un code » (defisFeuilleHTML) */
   const join = fn('defisFeuilleHTML');
-  assert.ok(fn('defisFeuilleOuvrir').includes("jeuMode=k==='code'?'join'") && join.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && join.includes('<p class="jeu-msg${ko?\' is-ko\':\'\'}" role="status" aria-live="polite">${ko?DX_CODE_MSG.introuvable:\'\'}</p>'));
+  assert.ok(fn('defisFeuilleOuvrir').includes("jeuMode=k==='code'?'join'") && join.includes('<label class="jeu-lab" for="jeu-code">Code de la salle</label>') && join.includes('<p class="jeu-msg${ko?\' is-ko\':\'\'}" role="status" aria-live="polite">${ko?dxCodeMsgHTML(\'introuvable\'):\'\'}</p>'));
   assert.ok(!fn('renderDefisJoin').includes('jeu-code'), 'plus de carte « Un code reçu ? » à part');
   for (const part of ['html.lq .def-join-body{padding:2px 16px 18px!important;gap:10px!important}', 'html.lq .def-join-body>.jeu-msg:empty{display:none}',
     'html.lq:not(.pointer-nav) .def-join>summary:focus-visible{box-shadow:inset 0 0 0 2.5px rgba(106,77,244,.45)!important;'])
