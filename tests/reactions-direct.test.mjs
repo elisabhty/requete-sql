@@ -242,15 +242,20 @@ test('reçue d’un autre : de son avatar et le long de l’écran ; la carte «
   assert.ok(stop.includes('clearTimeout(J.reagirT);') && stop.includes("document.getElementById('jeu-rl')?.remove();"));
 });
 
-test('le style : « Réagir », la pastille violette posée en bas à droite ; effacé quand on écrit ; au-dessus de « Un coup de patte ? »', () => {
+test('le style : « Réagir », la pastille de verre à contour orange posée en bas à droite ; effacé quand on écrit ; au-dessus de « Un coup de patte ? »', () => {
   for (const r of ['html.lq .jeu-reagir{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:91;',
     'html.lq .jeu-reagir.is-ecrit{opacity:0;visibility:hidden;translate:0 18px;pointer-events:none;',
     'html.lq .jeu-reagir.is-haut:not(.is-ecrit){translate:0 -58px}', 'html.lq body:has(.viz.on) .jeu-reagir{opacity:0;visibility:hidden;pointer-events:none}',
     'html.lq body:has(>.jeu-reagir) #jeu-root{padding-bottom:76px}',
     /* 19 h 57 : « mets le bouton Réagir en plus fin » */
-    'gap:6px;height:38px;margin:0;padding:0 14px 0 10px;border:2px solid #fff;border-radius:999px;',
-    'background:var(--accent);color:#fff;font:800 13.5px/1 var(--display);box-shadow:0 3px 0 var(--accent-ink),0 10px 22px -12px rgba(40,20,140,.5);',
-    'html.lq .jeu-reagir-b>svg{flex:none;width:18px;height:18px;color:var(--sun-hi)}', 'html.lq .jeu-reagir.is-ouvert .jeu-reagir-b{width:38px;padding:0}',
+    'gap:6px;height:38px;margin:0;padding:0 14px 0 10px;border:2px solid #FF8A3D;border-radius:999px;',
+    /* 20 h 39 : « style glass et contour orange comme la DA de l’appli » */
+    'background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(255,255,255,.64));-webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);',
+    'color:var(--ink);font:800 13.5px/1 var(--display);box-shadow:inset 0 1px 0 #fff,0 3px 0 var(--flame-lip),0 10px 22px -12px rgba(224,94,0,.5);',
+    'html.lq .jeu-reagir-b:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #fff,0 1px 0 var(--flame-lip),0 6px 14px -10px rgba(224,94,0,.5)}',
+    'html.lq .jeu-reagir-b>svg{flex:none;width:18px;height:18px;color:var(--flame-b)}', 'html.lq .jeu-reagir-b>.jeu-reagir-x{display:none;width:15px;height:15px;color:var(--ink)}',
+    'box-shadow:inset 0 0 0 2px #FFD9A6,0 4px 0 #FFD0A0,0 14px 28px -14px rgba(27,22,64,.45)}', 'html.lq .jeu-reagir-l button:active{transform:scale(.84);background:#FFEBD6}',
+    'html.lq .jeu-reagir.is-ouvert .jeu-reagir-b{width:38px;padding:0}',
     'html.lq .jeu-reagir.is-ouvert .jeu-reagir-b>.jeu-reagir-x{display:block}',
     'html.lq .jeu-reagir.is-ouvert .jeu-reagir-l{display:flex;transform-origin:right center;animation:jeuReagirTray .32s cubic-bezier(.3,1.35,.5,1) backwards}',
     'html.lq .jeu-reagir.is-neuf .jeu-reagir-b>svg:first-child{animation:jeuReagirSalut 1.3s ease-in-out .9s 2}',

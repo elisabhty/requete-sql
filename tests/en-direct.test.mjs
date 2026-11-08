@@ -81,7 +81,7 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   assert.match(html, /<span class="jeu-direct-nb"><span id="jeu-direct-nb">4&nbsp;joueurs<\/span><\/span>/);
   assert.match(html, /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><button [^>]*><span class="jeu-direct-live" aria-hidden="true"><\/span><b id="jeu-direct-t">En direct<\/b>/, 'le bandeau, la pastille « en direct »');
   assert.match(html, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true"><svg class="ok"\/><\/i>1\/4<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/);
-  assert.match(html, /<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true"><b class="jeu-av is-ok" data-c="1" data-pid="b">@?L<\/b><b class="jeu-av is-pense" data-c="0" data-pid="a">E<\/b>/, 'repliée, les avatars restent dans la barre');
+  assert.match(html, /<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true"><b class="jeu-av is-ok" data-c="1" data-pid="b">@?L<i class="jd-av-b is-ok"><svg class="ok"\/><\/i><\/b><b class="jeu-av is-pense" data-c="0" data-pid="a">E<\/b>/, 'repliée, les avatars restent dans la barre ; la coche sur celui qui a trouvé (20 h 39)');
   assert.doesNotMatch(html, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
   /* Chez moi, mes essais sont ceux que j’ai lancés (même relu après une coupure, la salle les recompte) */
   s.J.rounds[0].tries = 0; assert.equal(s.rang(0).find(x => x.me).essais, 2);
@@ -203,6 +203,59 @@ test('« il écrit » passe par le canal en direct de la salle, sans la base ; r
   const on = cut('function jeuOnMsg(m){', "\n  const mine=");
   assert.ok(on.includes("if(m.t==='ecrit')return jeuEcritRecu(m);"), 'avant l’ordre du relais et les signes de vie');
   assert.ok(cut("    case 'rate':{", "    case 'close':{").includes('if(J.ecritAt)delete J.ecritAt[m.pid];'), 'il exécute : il n’écrit plus');
+});
+
+/* 20 h 39 : « quand quelqu’un tape une requête, on a un … juste au-dessus de lui, et un validé aussi quand la personne a eu juste à la
+   manche ». */
+test('repliée : sur la tête de l’avatar, les trois petits points tant qu’il écrit, la coche quand il a trouvé ; posées quand ça change', () => {
+  const s = salle(), now = Date.now(), r = s.J.rounds[0];
+  const tete = () => /<span class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">(.*?)<\/span><span class="jeu-direct-ok"/.exec(s.ev('jeuDirectHTML(0)'))[1];
+  const av = (h, pid) => new RegExp(`<b class="jeu-av is-\\w+" data-c="\\d" data-pid="${pid}">.*?</b>(?=<b class="jeu-av|$)`).exec(h)[0];
+  s.J.ecritAt = { c: now - 400, a: now };
+  const h0 = tete();
+  assert.equal(av(h0, 'c'), '<b class="jeu-av is-ecrit" data-c="2" data-pid="c">@?M<i class="jd-av-b is-ecrit"><b></b><b></b><b></b></i></b>'.replace('@?', /data-pid="c">@/.test(h0) ? '@' : ''), 'il écrit : la bulle et ses trois points');
+  assert.match(av(h0, 'a'), /^<b class="jeu-av is-ecrit" data-c="0" data-pid="a">E<i class="jd-av-b is-ecrit"><b><\/b><b><\/b><b><\/b><\/i><\/b>$/, 'pour soi aussi');
+  assert.equal(av(h0, 'd'), '<b class="jeu-av is-pense" data-c="3" data-pid="d">' + /data-pid="d">([^<]*)/.exec(h0)[1] + '</b>', 'en réflexion : rien');
+  assert.doesNotMatch(h0, /is-neuf/, 'le premier dessin de la manche ne rejoue rien');
+  /* c trouve : la coche se pose ; d se met à écrire : sa bulle se pose ; a écrit toujours : la sienne ne rejoue pas */
+  r.found = { c: 30000 }; s.J.ecritAt.d = now; s.J.ecritAt.a = now;
+  const h1 = tete();
+  assert.match(av(h1, 'c'), /^<b class="jeu-av is-ok" data-c="2" data-pid="c">@?M<i class="jd-av-b is-ok is-neuf"><svg class="ok"\/><\/i><\/b>$/);
+  assert.match(av(h1, 'd'), /<i class="jd-av-b is-ecrit is-neuf">/); assert.match(av(h1, 'a'), /<i class="jd-av-b is-ecrit">/);
+  assert.doesNotMatch(tete(), /is-neuf/, 'une fois');
+  /* Il vient d’exécuter (« Teste sa requête ») ou il est parti : pas de bulle */
+  s.J.koAt.d = Date.now(); assert.doesNotMatch(av(tete(), 'd'), /jd-av-b/);
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  for (const k of ['html.lq #jeu-root .jeu-direct-av{display:none;align-items:center;min-width:0;margin-top:-8px;padding:14px 0 6px 2px;overflow:hidden}',
+    'html.lq #jeu-root .jd-av-b{position:absolute;left:calc(50% - 9px);bottom:calc(100% - 2px);z-index:1;',
+    'html.lq #jeu-root .jd-av-b>b{flex:none;width:3px;height:3px;border-radius:50%;background:var(--accent);animation:jdBulle 1s ease-in-out infinite}',
+    '@keyframes jdBulle{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-2px);opacity:1}}',
+    'html.lq #jeu-root .jd-av-b.is-ok{left:calc(50% - 7px);bottom:calc(100% - 4px);width:14px;height:14px;background:#2DB67C;color:#fff;',
+    'html.lq #jeu-root .jd-av-b.is-neuf{animation:jdPose .55s cubic-bezier(.3,.7,.3,1.5) both}',
+    '  html.lq #jeu-root .jd-av-b,html.lq #jeu-root .jd-av-b>b{animation:none!important}',
+    'html.lq[data-motion="reduce"] #jeu-root .jd-av-b,html.lq[data-motion="reduce"] #jeu-root .jd-av-b>b{animation:none!important}',
+    '  html.lq #jeu-root .jd-av-b{left:calc(50% - 7px);bottom:calc(100% - 1px);width:14px;height:9px;gap:1.5px}', '  html.lq #jeu-root .jd-av-b.is-ok{bottom:calc(100% - 2px)}'])
+    assert.ok(css.includes(k), k);
+});
+
+test('la barre, avatar par avatar : celui qui n’a pas changé garde son nœud (ses points sautent sans à-coup)', () => {
+  const s = salle();
+  const fait = h => { const m = /data-pid="(\w+)"/.exec(h), c = /class="([^"]*)"/.exec(h), dc = /data-c="(\d)"/.exec(h); return { html: h, className: c[1], dataset: { pid: m[1], c: dc[1] }, replaceWith(n) { const k = barre.children.indexOf(this); barre.children[k] = n; } }; };
+  const morceaux = h => h.split(/(?=<b class="jeu-av)/).filter(Boolean).map(fait);
+  const barre = { children: [], innerHTML: '', replaceChildren(...k) { this.children = k; this.tout = (this.tout || 0) + 1; } };
+  s.ctx.document = { createElement: () => { const t = { content: { children: [] } }; Object.defineProperty(t, 'innerHTML', { set(h) { t.content.children = morceaux(h); } }); return t; } };
+  const h = '<b class="jeu-av is-ok" data-c="1" data-pid="b">L</b><b class="jeu-av is-ecrit" data-c="0" data-pid="a">E</b><b class="jeu-av is-pense" data-c="2" data-pid="c">M</b>';
+  s.ctx.jeuDirectAvMaj(barre, h); assert.equal(barre.tout, 1, 'la première fois : toute la rangée');
+  const [b0, a0, c0] = barre.children;
+  s.ctx.jeuDirectAvMaj(barre, h.replace('is-pense" data-c="2"', 'is-ecrit" data-c="2"'));
+  assert.equal(barre.tout, 1); assert.equal(barre.children[0], b0); assert.equal(barre.children[1], a0, 'Elisa écrit toujours : même nœud');
+  assert.notEqual(barre.children[2], c0); assert.equal(barre.children[2].className, 'jeu-av is-ecrit', 'seul celui qui change est redessiné');
+  s.ctx.jeuDirectAvMaj(barre, '<b class="jeu-av is-ok" data-c="2" data-pid="c">M</b><b class="jeu-av is-ok" data-c="1" data-pid="b">L</b><b class="jeu-av is-ecrit" data-c="0" data-pid="a">E</b>');
+  assert.equal(barre.tout, 2, 'quelqu’un passe devant : la rangée est redessinée');
+  /* Sans vrai DOM (les tests, un vieux navigateur) : comme avant */
+  const simple = { innerHTML: '' }; s.ctx.jeuDirectAvMaj(simple, h); assert.equal(simple.innerHTML, h);
+  s.ctx.jeuDirectAvMaj(null, h);
+  assert.ok(cut('function jeuDirectPeindre(n){', '\n}\n').includes("const t=jeuDirectTete(xs,avant);\n  [['jeu-direct-ok',t.ok],['jeu-direct-nb',t.nb]].forEach(([id,h])=>{const e=document.getElementById(id);if(e&&e.innerHTML!==h)e.innerHTML=h;});\n  jeuDirectAvMaj(document.getElementById('jeu-direct-av'),t.av);"));
 });
 
 /* 12 h 25, les quatre idées : le commentateur, les réactions sur les avatars, la série et la remontée, la dernière minute. */

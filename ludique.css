@@ -8372,7 +8372,7 @@ html.lq #jeu-root .jeu-direct.is-plie .jeu-direct-chev{rotate:90deg}
 html.lq #jeu-root .jeu-direct.is-plie .jeu-direct-nb{display:none}
 html.lq #jeu-root .jeu-direct.is-plie .jeu-direct-av{display:flex}
 html.lq #jeu-root .jeu-direct.is-plie .jeu-direct-l{display:none}
-html.lq #jeu-root .jeu-direct-av{display:none;align-items:center;min-width:0;padding:6px 0 6px 2px;overflow:hidden}
+html.lq #jeu-root .jeu-direct-av{display:none;align-items:center;min-width:0;margin-top:-8px;padding:14px 0 6px 2px;overflow:hidden}
 html.lq #jeu-root .jeu-direct-av .jeu-av{position:relative;flex:none;width:26px;height:26px;border:2px solid #fff;font-size:11.5px;box-shadow:none!important}
 html.lq #jeu-root .jeu-direct-av .jeu-av+.jeu-av{margin-left:-6px}
 /* Le premier (en tête) devant, les suivants rangés derrière lui : chaque initiale reste lisible */
@@ -8384,6 +8384,19 @@ html.lq #jeu-root .jeu-direct-av .jeu-av.is-ok{border-color:var(--mint)}
 html.lq #jeu-root .jeu-direct-av .jeu-av.is-test{border-color:var(--sun);animation:jdRespire 1.1s ease-in-out infinite}
 html.lq #jeu-root .jeu-direct-av .jeu-av.is-ecrit{border-color:var(--sun)}
 html.lq #jeu-root .jeu-direct-av .jeu-av.is-parti{opacity:.45}
+/* 20 h 39 (« quand quelqu’un tape une requête, on a un … juste au-dessus de lui, et un validé aussi quand la personne a eu juste à la
+   manche ») : sur la tête de l’avatar, la bulle blanche et ses trois petits points violets qui sautent tant qu’il écrit ; la coche
+   menthe, cerclée de blanc, quand il a trouvé. Elle se pose (une fois) quand ça change. La rangée lui fait de la place en haut
+   (sa marge négative : le bandeau ne grandit pas). */
+html.lq #jeu-root .jd-av-b{position:absolute;left:calc(50% - 9px);bottom:calc(100% - 2px);z-index:1;display:flex;align-items:center;justify-content:center;gap:2px;width:18px;height:11px;
+  box-sizing:border-box;border-radius:999px;background:#fff;box-shadow:0 1.5px 0 rgba(22,12,74,.4);font-style:normal;transform-origin:50% 100%;pointer-events:none}
+html.lq #jeu-root .jd-av-b>b{flex:none;width:3px;height:3px;border-radius:50%;background:var(--accent);animation:jdBulle 1s ease-in-out infinite}
+html.lq #jeu-root .jd-av-b>b:nth-child(2){animation-delay:.15s}
+html.lq #jeu-root .jd-av-b>b:nth-child(3){animation-delay:.3s}
+@keyframes jdBulle{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-2px);opacity:1}}
+html.lq #jeu-root .jd-av-b.is-ok{left:calc(50% - 7px);bottom:calc(100% - 4px);width:14px;height:14px;background:#2DB67C;color:#fff;box-shadow:0 0 0 2px #fff,0 2.5px 0 1px rgba(22,12,74,.32)}
+html.lq #jeu-root .jd-av-b.is-ok svg{width:9px;height:9px}
+html.lq #jeu-root .jd-av-b.is-neuf{animation:jdPose .55s cubic-bezier(.3,.7,.3,1.5) both}
 /* Le commentateur (8 novembre, 12 h 25), en bas du bandeau : une bande plus sombre, le texte blanc, les pseudos en soleil ; la
    phrase nouvelle monte en place, son pictogramme se pose (la croix secoue) */
 html.lq #jeu-root .jeu-direct-dit{display:flex;align-items:center;min-height:34px;margin:0 10px 10px;padding:0 10px 0 8px;overflow:hidden;border-radius:13px;
@@ -8506,6 +8519,10 @@ html.lq #jeu-root .jeu-direct.is-urgent .jeu-direct-live::after{border-color:#FF
   /* Replié, à cinq sur un petit écran : des avatars un peu plus petits */
   html.lq #jeu-root .jeu-direct-av .jeu-av{width:22px;height:22px;font-size:10px}
   html.lq #jeu-root .jeu-direct-av .jeu-av+.jeu-av{margin-left:-9px}
+  /* La bulle et la coche, à la taille de ces avatars : côte à côte, elles se touchent sans se cacher */
+  html.lq #jeu-root .jd-av-b{left:calc(50% - 7px);bottom:calc(100% - 1px);width:14px;height:9px;gap:1.5px}
+  html.lq #jeu-root .jd-av-b>b{width:2.5px;height:2.5px}
+  html.lq #jeu-root .jd-av-b.is-ok{bottom:calc(100% - 2px)}
   html.lq #jeu-root .jeu-direct.is-plie .jeu-direct-live{margin-right:1px}
   html.lq #jeu-root .jeu-direct-dit{margin:0 8px 8px;font-size:12.5px}
   html.lq #jeu-root .jeu-direct-l{margin:-18px 5px 0;padding:23px 9px 4px}
@@ -8529,39 +8546,46 @@ html.lq[data-reading="large"] #jeu-root :is(.jd-etat,.jd-n>small){font-size:14.5
   html.lq #jeu-root .jeu-direct.is-urgent .jeu-direct-bande{box-shadow:0 4px 0 #3420A6,0 0 0 2.5px #E5484D}
   html.lq #jeu-root .jd-fete{display:none}
   html.lq #jeu-root .jeu-direct-chev{transition:none}
+  html.lq #jeu-root .jd-av-b,html.lq #jeu-root .jd-av-b>b{animation:none!important}
 }
 html.lq[data-motion="reduce"] #jeu-root :is(.jd,.jd *,.jeu-direct-av .jeu-av,.jd-dit-m,.jd-dit-m *,.jd-react,.jeu-direct.is-urgent .jeu-direct-bande),html.lq[data-motion="reduce"] #jeu-root .jd>.jeu-av::after,html.lq[data-motion="reduce"] #jeu-root .jeu-direct-live::after{animation:none!important}
 html.lq[data-motion="reduce"] #jeu-root .jeu-direct.is-urgent .jeu-direct-bande{box-shadow:0 4px 0 #3420A6,0 0 0 2.5px #E5484D}
 html.lq[data-motion="reduce"] #jeu-root .jd-fete{display:none}
 html.lq[data-motion="reduce"] #jeu-root .jeu-direct-chev{transition:none}
+html.lq[data-motion="reduce"] #jeu-root .jd-av-b,html.lq[data-motion="reduce"] #jeu-root .jd-av-b>b{animation:none!important}
 /* « Réagir », posé en bas à droite de l’écran (8 novembre, 19 h 37 : « le Réagir, laisse-le en bas à droite, et il s’enlève quand on
    écrit dans l’endroit de la requête ») : la pastille violette à bord blanc et à rebord de « Un coup de patte ? », le sourire en
    soleil, fin (19 h 57 : « mets le bouton Réagir en plus fin »). Ouvert : la croix à sa place, les quatre réactions dans une bulle
    blanche à sa gauche, qui arrivent une à une. On écrit :
    il descend et s’efface. La pastille « Un coup de patte ? » là (.is-haut) : il monte au-dessus d’elle, et passe devant elle s’ils se
-   croisent (19 h 49 : « faire en sorte que la pill Réagir soit au-dessus »). La manche garde de quoi défiler sous lui. */
+   croisent (19 h 49 : « faire en sorte que la pill Réagir soit au-dessus »). La manche garde de quoi défiler sous lui.
+   20 h 39 (« le bouton Réagir, fais en sorte qu’il soit style glass et contour orange comme la DA de l’appli ») : une pastille de verre
+   (blanc translucide, ce qui passe dessous est flouté), le contour orange de la série et son rebord, le sourire orange, « Réagir » à
+   l’encre ; la bulle des réactions, du même verre, au contour pêche des cartes chaudes (« Activités à replacer », la série). */
 html.lq .jeu-reagir{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:91;display:flex;align-items:center;gap:8px;
   transition:translate .28s cubic-bezier(.3,.7,.3,1),opacity .2s,visibility 0s}
 html.lq .jeu-reagir.is-ecrit{opacity:0;visibility:hidden;translate:0 18px;pointer-events:none;transition:translate .2s ease-in,opacity .15s,visibility 0s .2s}
 html.lq .jeu-reagir.is-haut:not(.is-ecrit){translate:0 -58px}
 html.lq body:has(.viz.on) .jeu-reagir{opacity:0;visibility:hidden;pointer-events:none}
 html.lq body:has(>.jeu-reagir) #jeu-root{padding-bottom:76px}
-html.lq .jeu-reagir-b{order:2;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;margin:0;padding:0 14px 0 10px;border:2px solid #fff;border-radius:999px;
-  background:var(--accent);color:#fff;font:800 13.5px/1 var(--display);box-shadow:0 3px 0 var(--accent-ink),0 10px 22px -12px rgba(40,20,140,.5);cursor:pointer;
+html.lq .jeu-reagir-b{order:2;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;margin:0;padding:0 14px 0 10px;border:2px solid #FF8A3D;border-radius:999px;
+  background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(255,255,255,.64));-webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
+  color:var(--ink);font:800 13.5px/1 var(--display);box-shadow:inset 0 1px 0 #fff,0 3px 0 var(--flame-lip),0 10px 22px -12px rgba(224,94,0,.5);cursor:pointer;
   -webkit-tap-highlight-color:transparent;transition:transform .12s var(--press),box-shadow .12s var(--press)}
-html.lq .jeu-reagir-b:active{transform:translateY(2px);box-shadow:0 1px 0 var(--accent-ink),0 6px 14px -10px rgba(40,20,140,.5)}
+html.lq .jeu-reagir-b:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #fff,0 1px 0 var(--flame-lip),0 6px 14px -10px rgba(224,94,0,.5)}
 html.lq .jeu-reagir-b:focus-visible,html.lq .jeu-reagir-l button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
-html.lq .jeu-reagir-b>svg{flex:none;width:18px;height:18px;color:var(--sun-hi)}
-html.lq .jeu-reagir-b>.jeu-reagir-x{display:none;width:15px;height:15px;color:#fff}
+html.lq .jeu-reagir-b>svg{flex:none;width:18px;height:18px;color:var(--flame-b)}
+html.lq .jeu-reagir-b>.jeu-reagir-x{display:none;width:15px;height:15px;color:var(--ink)}
 html.lq .jeu-reagir.is-ouvert .jeu-reagir-b{width:38px;padding:0}
 html.lq .jeu-reagir.is-ouvert .jeu-reagir-b>:not(.jeu-reagir-x){display:none}
 html.lq .jeu-reagir.is-ouvert .jeu-reagir-b>.jeu-reagir-x{display:block}
-html.lq .jeu-reagir-l{display:none;align-items:center;gap:4px;padding:4px;border-radius:999px;background:#fff;
-  box-shadow:inset 0 0 0 2px var(--line),0 4px 0 var(--lip),0 14px 28px -14px rgba(27,22,64,.45)}
+html.lq .jeu-reagir-l{display:none;align-items:center;gap:4px;padding:4px;border-radius:999px;
+  background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(255,255,255,.66));-webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
+  box-shadow:inset 0 0 0 2px #FFD9A6,0 4px 0 #FFD0A0,0 14px 28px -14px rgba(27,22,64,.45)}
 html.lq .jeu-reagir.is-ouvert .jeu-reagir-l{display:flex;transform-origin:right center;animation:jeuReagirTray .32s cubic-bezier(.3,1.35,.5,1) backwards}
-html.lq .jeu-reagir-l button{display:grid;place-items:center;width:34px;height:34px;margin:0;padding:0;border:0;border-radius:50%;background:var(--surface-2);font-size:18px;line-height:1;
+html.lq .jeu-reagir-l button{display:grid;place-items:center;width:34px;height:34px;margin:0;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.78);font-size:18px;line-height:1;
   cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s var(--press),background .15s}
-html.lq .jeu-reagir-l button:active{transform:scale(.84);background:var(--accent-soft)}
+html.lq .jeu-reagir-l button:active{transform:scale(.84);background:#FFEBD6}
 html.lq .jeu-reagir.is-ouvert .jeu-reagir-l button{animation:jeuReagirIn .42s cubic-bezier(.3,1.5,.5,1) calc(70ms + var(--i,0)*50ms) backwards}
 html.lq .jeu-reagir.is-neuf .jeu-reagir-b>svg:first-child{animation:jeuReagirSalut 1.3s ease-in-out .9s 2}
 @keyframes jeuReagirTray{0%{opacity:0;transform:scaleX(.4)}100%{opacity:1;transform:none}}
