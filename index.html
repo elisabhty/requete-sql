@@ -13723,7 +13723,7 @@ function defiConsigneHTML(c,o){
      en tête du cadre, puis « La situation » : le cadre dit tout le défi, de sa question à ce qu’il faut afficher. En salle comme
      sur la page d’un défi. */
   const titre=o&&o.titre&&c&&c.titre?`<h1 class="dq-titre">${esc(c.titre)}</h1>`:'';
-  const schema=`<button type="button" class="dq-schema${typeof schAttn==='function'?schAttn():''}" onclick="openSchemaSheet()"><i class="dq-ico" aria-hidden="true">${typeof ED_SCHEMA_SVG==='string'?ED_SCHEMA_SVG:''}</i><span><b>Tu as accès au <em>schéma</em></b><small>${nom?`Tables, colonnes et liens de la base ${esc(nom)}`:'Tables, colonnes et liens de la base'}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+  const schema=`<button type="button" class="dq-schema${typeof schAttn==='function'?schAttn():''}" onclick="openSchemaSheet()"><i class="dq-ico" aria-hidden="true">${typeof ED_SCHEMA_SVG==='string'?ED_SCHEMA_SVG:''}</i><span><b>Tu as accès au <em>schéma</em></b><small>${nom?`Tables, colonnes et relations de la base ${esc(nom)}`:'Tables, colonnes et relations de la base'}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   if(!c||!Array.isArray(c.affiche)||!c.affiche.length)return `<div class="consigne dq${titre?' has-titre':''}">${titre}<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||'')}</p>${schema}</div>`;
   const sec=(cls,titre,chip,corps)=>`<section class="dq-sec ${cls}"><div class="dq-h"><b>${titre}</b>${chip?`<span class="dq-chip">${chip}</span>`:''}</div>${corps}</section>`;
   const liste=(l,num)=>`<${num?'ol':'ul'} class="dq-l${num?' is-num':''}">${l.map(x=>`<li>${escCode(x)}</li>`).join('')}</${num?'ol':'ul'}>`;
@@ -13810,7 +13810,10 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
     :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
   /* 8 novembre, 18 h 18 : « mettre Un coup de patte ? au lieu de Pas encore » : ce qui cloche dans l’essai, dit comme un coup de main. */
   const st=diag?`<div class="coach-st"><span class="coach-st-k">Un coup de patte&nbsp;?</span><p>${diag}</p></div>`:'';
-  const nx=next!=null&&n<3?`<p class="coach-next"><i aria-hidden="true"></i>${n?'Indice suivant':'Premier indice'} pour tout le monde dans <b id="coach-cd">${jeuChrono(next)}</b></p>`:'';
+  /* 8 novembre, 23 h 44 (« corrige : À corriger en premier », la relecture des défis) : seul, ou seul dans sa salle, « pour tout le
+     monde » n’a pas de sens ; le compte à rebours dit « Premier indice dans 01:28 ». */
+  const seul=room&&typeof JEU!=='undefined'&&!!JEU&&typeof jeuSoloLike==='function'&&jeuSoloLike(typeof COACH!=='undefined'&&COACH&&COACH.round!=null?COACH.round:jeuCur());
+  const nx=next!=null&&n<3?`<p class="coach-next"><i aria-hidden="true"></i>${n?'Indice suivant':'Premier indice'}${seul?'':' pour tout le monde'} dans <b id="coach-cd">${jeuChrono(next)}</b></p>`:'';
   return `<section class="coach${n?' has-hint':' is-go'}${diag?' has-ko':''}${chat?' has-chat':''}" aria-live="polite">${head}${body}${st}${nx}</section>`;
 }
 function coachNext(){
@@ -22790,7 +22793,7 @@ function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){
   /* « Schéma UML », comme la pastille jaune du projet (5 novembre, 15 h 01 : « je garderais Schéma UML plutôt que Voir le schéma UML ») */
   const voir=tabs.length>1?`<button type="button" class="imp-uml" onclick="openSchemaSheet('console','__uml__')">${UML_SVG}<span>Schéma UML</span></button>`:'';
   const dits=liens.slice(0,4).map(l=>`<code>${esc(l.de)}.${esc(l.col)}</code> → <code>${esc(l.vers)}</code>`).join(', ')+(liens.length>4?'…':'');
-  const trouves=liens.length?`<p class="imp-liens">${liens.length>1?`${liens.length} liens trouvés`:'Lien trouvé'}&nbsp;: ${dits}.</p>`:'';
+  const trouves=liens.length?`<p class="imp-liens">${liens.length>1?`${liens.length} relations trouvées`:'Relation trouvée'}&nbsp;: ${dits}.</p>`:'';
   /* La colonne qui désignerait cette table depuis une autre : clients → client_id, animaux → animal_id */
   const cle=t=>String(t).toLowerCase().replace(/eaux$/,'eau').replace(/aux$/,'al').replace(/ies$/,'y').replace(/s$/,'')+'_id';
   const ok=(titre,corps)=>`<div class="feedback ok"><div class="fi">✓</div><div><b>${titre}</b>${corps}</div></div>`;
@@ -22799,8 +22802,8 @@ function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){
     return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`rejoignent ${codes(autres)}`:`sont les ${ajoutees.length} tables du projet`}.</p>${garde}${trouves}${voir}`);
   }
   if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${garde}${trouves}${voir}`);
-  if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses liens.</p>`);
-  if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucun lien pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait un.`}</p>${trouves}${voir}`);
+  if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses relations.</p>`);
+  if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucune relation pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait une.`}</p>${trouves}${voir}`);
   return ok('Import réussi',`<p>${tabs.length?`Tables&nbsp;: ${codes(tabs)}.`:'Script exécuté.'}</p>${trouves}${voir}`);
 }
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE','OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD','FIRST_VALUE','LAST_VALUE','NTILE','ROWS','RANGE','CURRENT','UNBOUNDED','PRECEDING','FOLLOWING','GROUP_CONCAT','STRING_AGG',
@@ -24552,7 +24555,7 @@ function umlHtml(p){
     };
     /* Une carte : son en-tête (toucher allume ses liens), la flèche qui plie ou déplie la table, ses colonnes. */
     return `<div class="umd-t${ex?' is-ex':''}${c.plie?' is-plie':''}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--c:${c.teinte[0]};--cs:${c.teinte[1]};--ci:${c.teinte[2]};--i:${k}" data-t="${escAttr(c.name)}" onclick="umlCarte(this,event)" onpointerenter="umlSurligne(this,true,event)" onpointerleave="umlSurligne(this,false,event)">`
-      +`<span class="umd-h"><button type="button" class="umd-hb" aria-pressed="false" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(c.cols.length+c.plus-c.caches.length,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses liens`)}"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></button>`
+      +`<span class="umd-h"><button type="button" class="umd-hb" aria-pressed="false" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(c.cols.length+c.plus-c.caches.length,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses relations`)}"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></button>`
       +`<button type="button" class="umd-pli" aria-expanded="${!c.plie}" aria-label="${escAttr((c.plie?'Déplier':'Plier')+' la table '+c.name)}" onclick="umlPlier(this,event)">${UML_CHEV}</button></span><span class="umd-cs">`
       +(c.cols.map(ligne).join('')||'<span class="umd-c is-plus">Aucune colonne</span>')
       /* 6 novembre, 7 h 52 : « efface les Voir » : la ligne « +4 colonnes » d’une table pliée, sans pastille, la déplie (comme sa flèche). */
@@ -24567,7 +24570,7 @@ function umlHtml(p){
 function umlListe(m,T){
   const ouvert=umlPref('rq-uml-liens',false);
   return `<details class="umd-liens" id="umd-liens"${ouvert?' open':''} ontoggle="umlListeToggle(this)">
-        <summary><span class="umd-li-i">${UML_SVG}</span><b>Les liens en clair</b><small>${umlNbLiens(m)}</small><span class="umd-chev">${UML_CHEV}</span></summary>
+        <summary><span class="umd-li-i">${UML_SVG}</span><b>Les relations en clair</b><small>${umlNbLiens(m)}</small><span class="umd-chev">${UML_CHEV}</span></summary>
         <ol>${m.liens.map((l,i)=>{ if(l.grp&&m.liens.findIndex(z=>z.grp===l.grp)!==i)return ''; const t=T[l.vers]||UML_NEUTRE; return `<li><button type="button" class="umd-li" data-i="${i}" style="--lc:${t[0]};--lcs:${t[1]};--lci:${t[2]}" onclick="umlFocusLien(${i})">${umlLienHtml(m,l)}</button></li>`; }).join('')}</ol>
       </details>`;
 }
@@ -24577,13 +24580,13 @@ function umlPanneau(m,W,on,ex=umlEx){
   if(umlDernier&&umlDernier.m===m)umlDernier.p=p;
   const aEx=m.tables.some(t=>t.cols.some(c=>c.ex));
   return `<div class="sch-uml" role="tabpanel" data-t="__uml__"${on?'':' hidden'}>
-      <div class="umd-tete"><b>Schéma UML</b><span>${plur(m.tables.length,'table')} · ${plur(umlNbLiens(m),'lien')}</span></div>
-      ${aEx||m.liens.length?`<div class="umd-outils">${aEx?`<button type="button" class="umd-bt is-ex" aria-pressed="${!!ex}" onclick="umlBasculeEx(this)" aria-label="Exemples de données"><span class="umd-sw" aria-hidden="true"></span>Exemples</button>`:''}${m.liens.length?`<button type="button" class="umd-bt" onclick="umlVersLiens()">${UML_SVG}Les liens en clair</button>`:''}</div>`:''}
+      <div class="umd-tete"><b>Schéma UML</b><span>${plur(m.tables.length,'table')} · ${plur(umlNbLiens(m),'relation')}</span></div>
+      ${aEx||m.liens.length?`<div class="umd-outils">${aEx?`<button type="button" class="umd-bt is-ex" aria-pressed="${!!ex}" onclick="umlBasculeEx(this)" aria-label="Exemples de données"><span class="umd-sw" aria-hidden="true"></span>Exemples</button>`:''}${m.liens.length?`<button type="button" class="umd-bt" onclick="umlVersLiens()">${UML_SVG}Les relations en clair</button>`:''}</div>`:''}
       <div class="umd-toile" id="umd-toile" onclick="umlToileClic(event)">${umlHtml(p)}</div>
       <div class="umd-bulle" id="umd-bulle" role="status" aria-live="polite" hidden></div>
       ${m.liens.length?umlListe(m,p.T):''}
       <div class="umd-leg" aria-hidden="true"><span class="umd-lg is-pk"><i>PK</i>clé primaire</span><span class="umd-lg is-fk"><i>FK</i>clé étrangère</span>${m.liens.length?'<span class="umd-lg is-v"><b>→</b>la table qu’elle désigne</span>':''}${mult.map(k=>`<span class="umd-lg"><b>${k}</b>${UML_MULT[k]}</span>`).join('')}${aEx?'<span class="umd-lg is-x"><b>ex&nbsp;:</b>une valeur de la table</span>':''}</div>
-      <p class="umd-note">${m.liens.length?'Chaque trait va d’une clé étrangère (FK) à la clé primaire (PK) qu’elle désigne, dans la couleur de cette table. Touche une table&nbsp;: ses liens s’allument. ':''}Dessiné à partir de la base&nbsp;: une table importée ou créée, une colonne ajoutée y apparaissent aussitôt.</p>
+      <p class="umd-note">${m.liens.length?'Chaque trait va d’une clé étrangère (FK) à la clé primaire (PK) qu’elle désigne, dans la couleur de cette table. Touche une table&nbsp;: ses relations s’allument. ':''}Dessiné à partir de la base&nbsp;: une table importée ou créée, une colonne ajoutée y apparaissent aussitôt.</p>
     </div>`;
 }
 /* La largeur de la toile avant que la feuille soit ouverte : celle de la feuille (720 px au plus), moins ses marges. */
@@ -24767,7 +24770,7 @@ function umlBulle(m,s,T){
   const lignes=vers.map(v=>`<p class="umd-bl" style="--lc:${(T[v]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} désigne ${esc(v)}</span>${moi}${UML_FLECHE}${puce(v)}</p>`).join('')
     +(par.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(par.join(', '))} ${par.length>1?'désignent':'désigne'} ${esc(t)}</span><span class="umd-bps">${par.map(puce).join('')}</span>${UML_FLECHE}${moi}</p>`:'')
     +(auto.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} se désigne elle-même</span>${moi}<span class="umd-ar is-boucle" aria-hidden="true"><svg viewBox="0 0 30 18"><path class="umd-ar-l" d="M4 13C4 2 26 2 26 11"/><path class="umd-ar-p" d="M21.5 8.5L26 13.5L30 8"/></svg></span>${auto.map(l=>`<code>${esc(l.col)}</code>`).join('')}</p>`:'');
-  return `<div class="umd-bc" style="${st(t)}">${x}<span class="umd-bh"><b class="umd-bn">${esc(t)}</b></span>${lignes||'<p class="umd-bl is-vide">Aucun lien&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'}</div>`;
+  return `<div class="umd-bc" style="${st(t)}">${x}<span class="umd-bh"><b class="umd-bn">${esc(t)}</b></span>${lignes||'<p class="umd-bl is-vide">Aucune relation&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'}</div>`;
 }
 /* La toile défile jusqu’à la table ou au lien allumés : sous les pastilles, au-dessus de la bulle. */
 function umlDefiler(){
@@ -27163,7 +27166,7 @@ function defisFeuilleHTML(k){
   const ko=join&&typeof jeuCodeKo!=='undefined'?jeuCodeKo:'',code=jeuInvite||ko||'';
   const tete=join?['Rejoindre une partie','Entre ton code&nbsp;!','Un joueur t’a envoyé un code&nbsp;? Saisis-le pour rejoindre sa partie.']
     :friends?['Créer ma partie','Ta salle de défi','Choisis les règles. Le défi sera révélé au lancement de la partie.']
-    :['Mode solo','Joue seul','Relève des défis à ton rythme.'];
+    :['Mode solo','Joue seul','Relève des défis contre la montre.'];   // 23 h 44 : « à ton rythme » contredisait le chrono et les points qui baissent
   const manches=[1,2,3].map(v=>`<button type="button" role="radio" aria-checked="${jeuNb===v}" class="dx-manche${jeuNb===v?' on':''}" data-set="nb" data-v="${v}"${v>jeuChallenges(jeuNiv).length?' disabled':''} onclick="jeuRoomSet('nb',${v})"><b>${v}</b> <span>manche${v>1?'s':''}</span> <small class="dx-m-duree">${dxDureeMax(v)}</small></button>`).join('');
   return `<div class="room-head dx-f-tete"><span class="room-stk" aria-hidden="true">${lqStkSvg(join?'rocket':friends?'user':'clock')}</span>
     <div class="dx-f-titres"><p class="room-kicker">${tete[0]}</p>
@@ -28229,10 +28232,56 @@ function sallesRejoindre(code){
   if(typeof CHALLENGES==='undefined'||!SQL){if(typeof lqSay==='function')lqSay('Le moteur SQL se charge encore, réessaie dans un instant.');return;}
   jeuPseudoPuis(()=>jeuStart(code,false,null,{nomId:'jeu-nom',pub:true}));
 }
+/* « Ta salle » (Elisa, 8 novembre, 23 h 44 : « corrige : À corriger en premier », la relecture des défis : quand on quittait la salle
+   d’attente, aucune question, la salle restait ouverte et l’écran Défis n’en disait rien ; on ne la retrouvait qu’en retapant son
+   code). L’hôte seul qui la quitte avant le lancement le confirme (jeuLeaveQuestion), puis la retrouve en tête de « Rejoins une
+   partie » : sa ligne, comme celle d’une salle ouverte, « Revenir » (même code, mêmes réglages, comme après un rechargement) et une
+   croix pour la fermer. Une ligne de la liste des salles, pas une notification. Gardée sur l’appareil deux heures au plus ;
+   oubliée dès qu’on entre dans une salle à plusieurs (jeuEcran). Avec d’autres joueurs, la salle continue sans lui : rien à garder. */
+const JEU_MA_SALLE='rq-ma-salle',JEU_MA_SALLE_MS=2*3600*1000;
+function jeuMaSalle(){
+  let s=null;
+  try{s=JSON.parse(localStorage.getItem(JEU_MA_SALLE)||'null');}catch(e){s=null;}
+  if(!s)return null;
+  if(typeof s!=='object'||!/^[A-Z0-9]{6}$/.test(s.code||'')||!['f','m','d'].includes(s.niv)||!(Date.now()-(+s.at||0)<JEU_MA_SALLE_MS)){jeuMaSalleOublier();return null;}
+  if(typeof JEU!=='undefined'&&JEU&&JEU.code===s.code)return null;
+  return {code:s.code,niv:s.niv,nb:Math.max(1,Math.min(3,Math.floor(+s.nb||1))),pub:!!s.pub,at:+s.at};
+}
+function jeuMaSalleOublier(){try{localStorage.removeItem(JEU_MA_SALLE);}catch(e){}}
+function jeuMaSalleNoter(){
+  const J=typeof JEU!=='undefined'?JEU:null;
+  if(!J||J.solo||J.full||J.tard||!J.synced||!jeuIsHost()||jeuCommencee()||jeuLive().length>1)return;
+  try{localStorage.setItem(JEU_MA_SALLE,JSON.stringify({code:J.code,niv:J.niv,nb:J.nb,pub:!!J.pub,at:Date.now()}));}catch(e){}
+}
+function jeuMaSalleHTML(){
+  const s=jeuMaSalle();if(!s)return '';
+  /* Sans avatar (c’est la sienne) : « Ta salle », son niveau et ses manches tiennent en entier à côté de « Revenir » et de la croix (390 px). */
+  const m=`${s.nb}\u00a0manche${s.nb>1?'s':''}`,code=s.code.split('').join(' ');
+  return `<ul class="dx-list is-mienne" aria-label="Ta salle"><li class="is-me">`+
+    `<span class="dx-t"><b><span class="dx-nom">Ta salle</span></b><small class="dx-pcs">${dxPcNiv(s.niv)}<span class="dx-pc-t">${m}</span></small></span>`+
+    `<button type="button" class="dx-join" onclick="jeuMaSalleRevenir()" aria-label="${escAttr(`Revenir dans ta salle ${code}\u00a0: ${JEU_NIVL[s.niv]||'Facile'}, ${m}`)}">Revenir</button>`+
+    `<button type="button" class="dx-ma-x" onclick="jeuMaSalleFermer()" aria-label="${escAttr(`Fermer ta salle ${code}`)}">${LQ_X_SVG}</button></li></ul>`;
+}
+function jeuMaSalleRevenir(){
+  const s=jeuMaSalle();if(!s)return;
+  if(typeof CHALLENGES==='undefined'||!SQL){if(typeof lqSay==='function')lqSay('Le moteur SQL se charge encore, réessaie dans un instant.');return;}
+  if(typeof buzz==='function')buzz('light');
+  jeuNiv=s.niv;jeuNb=s.nb;
+  /* Comme après un rechargement (jeuReprendre) : on y retourne en hôte ; si un ami l’a rejointe entre-temps et en est devenu l’hôte,
+     on entre comme joueur. Publique, elle le reste (le serveur l’a gardée publique). */
+  jeuPseudoPuis(()=>{jeuStart(s.code,false,null,{nomId:'jeu-nom',reprise:{host:true}});if(JEU&&JEU.code===s.code)JEU.pub=s.pub;});
+}
+function jeuMaSalleFermer(){
+  jeuMaSalleOublier();
+  if(typeof buzz==='function')buzz('light');
+  if(typeof sallesRepeindre==='function')sallesRepeindre();
+  const h=document.getElementById('dx-rejoindre-h');if(h){h.setAttribute('tabindex','-1');try{h.focus({preventScroll:true});}catch(e){}}
+}
 /* « Rejoins une partie », dans le cadre (12 h 52) : les salles ouvertes au niveau choisi, et combien ; aucune : la phrase d’Elisa, que
    suit « Créer une salle ». */
 function sallesSectionHTML(){
   const D=typeof DEFIS!=='undefined'?DEFIS:{},l=D.salles,err=D.sallesErr,ici=(l||[]).filter(s=>s.niv===jeuNiv),autres=(l||[]).filter(s=>s.niv!==jeuNiv);
+  const ma=typeof jeuMaSalleHTML==='function'?jeuMaSalleHTML():'';
   let corps;
   if(err==='net'&&!l)corps=`<p class="dx-vide">Pas de connexion&nbsp;: les salles ouvertes reviennent avec internet.</p><button type="button" class="perf-top-btn" onclick="sallesCharger(true).catch(()=>{})">Réessayer</button>`;
   else if(!l)corps=`<ul class="dx-list is-wait" aria-label="Chargement des salles ouvertes">${[0,1].map(i=>`<li style="--i:${i}"><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('')}</ul>`;
@@ -28242,12 +28291,13 @@ function sallesSectionHTML(){
     const n=autres.length,ancre=n
       ?`<button type="button" class="dx-ancre" onclick="dxVoirAutres()">${n>1?`Voir les ${n} autres salles`:'Voir l’autre salle'}${DEF_CHEV_SVG}</button>`:'';
     corps=ici.length?`<ul class="dx-list">${ici.map(s=>salleLigneHTML(s)).join('')}</ul>`
+      :ma?ancre   // « Ta salle » est là : pas de « Crée la tienne » (23 h 44)
       :`<p class="dx-vide is-aucune">Aucune salle à ton niveau&nbsp;? Crée la tienne et laisse les autres te rejoindre&nbsp;!</p>${ancre}`;
   }
   /* Aucune salle nulle part (Elisa, 7 novembre, 22 h 29 : « monte le "aucune salle disponible" ») : à côté de « Rejoins une partie »,
      là où s’affiche « 2 en direct », plus tout en bas du cadre. */
-  const aucune=Array.isArray(l)&&!l.length&&err!=='net';
-  return `<div class="dx-rj-tete"><h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3>${ici.length?`<span class="dx-live">${ici.length} en direct</span>`:aucune?'<span class="dx-live is-off">Aucune salle disponible</span>':''}</div>${corps}`;
+  const aucune=Array.isArray(l)&&!l.length&&err!=='net'&&!ma;
+  return `<div class="dx-rj-tete"><h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3>${ici.length?`<span class="dx-live">${ici.length} en direct</span>`:aucune?'<span class="dx-live is-off">Aucune salle disponible</span>':''}</div>${ma}${corps}`;
 }
 /* Les salles des autres niveaux, à la fin du cadre : personne n’attend au sien, elles restent à portée. Elisa, 5 novembre, 13 h 04 :
    « Salles disponibles », ou « Aucune salle disponible » quand il n’y en a aucune (plus « Aux autres niveaux »). Seulement au niveau
@@ -28812,7 +28862,8 @@ function leaveLessonScreen(toTab,instant){
   stkLeaveLesson();
   /* La page de départ du cours s’en va avec l’écran du cours, quel que soit le chemin du retour (même fondu que sa croix). */
   {const ls=document.getElementById('lesson-start');if(ls&&!ls.classList.contains('is-out')){ls.classList.add('is-out');setTimeout(()=>ls.remove(),prefersReduceMotion()?0:220);}}
-  if(mode==='jeu')jeuStop();
+  if(mode==='jeu'){if(typeof jeuMaSalleNoter==='function')jeuMaSalleNoter();jeuStop();}   // « Ta salle » (23 h 44)
+  if(typeof jeuColleeSuivre==='function')jeuColleeSuivre(null);   // la barre collée du chrono s’en va avec la page
   const tab=toTab||activeTab||'learn';
   activeTab=tab;
   /* 3 novembre, 0 h 00 : « au retour avec Défis, il y a un décalage » : Défis (comme Console, Notes, Entretien…) est une sous-page,
@@ -35064,6 +35115,7 @@ function jeuStart(code,host,cid,opts){
    (jeuVerifSuivre). */
 function jeuEcran(){
   const J=JEU;if(!J)return;
+  if(!J.solo&&typeof jeuMaSalleOublier==='function')jeuMaSalleOublier();   // on est dans une salle : « Ta salle » n’a plus lieu d’être
   annulerBilanAuto();
   current=null;mode='jeu';exoFails=0;
   {const scr=document.getElementById('scr-lesson');if(scr)scr.dataset.mc='6';}
@@ -36111,6 +36163,40 @@ function jeuNivBars(k){return `<i class="jeu-bars is-${k}" aria-hidden="true"><b
 function jeuDrawNote(cid){
   return JEU.solo?'Un défi au hasard, au niveau choisi.':'Tout le monde reçoit le même défi.';
 }
+/* La barre collée du chrono (Elisa, 8 novembre, 23 h 44 : « corrige : À corriger en premier », la relecture des défis : « la barre
+   manche / points / chrono défile avec la page ; pendant qu’on lit l’énoncé ou qu’on écrit la requête, on ne voit plus le temps ») :
+   dès que le cadre du haut sort de l’écran, une barre compacte aux couleurs du bandeau reste collée sous l’en-tête (tout en haut
+   quand l’en-tête s’efface) : la manche, ce que vaut le défi, le chrono. Elle recopie le cadre au fil des secondes (jeuColleeSuivre) ;
+   elle laisse passer les touchers et reste muette pour le lecteur d’écran, qui garde le chrono du cadre. Pendant une manche, et sur
+   la page d’un défi. */
+let jeuColleeObs=null;
+function jeuColleeHTML(titre,sub,avecVal){
+  return `<div class="jeu-collee-ancre" aria-hidden="true"><div class="jeu-collee" id="jeu-collee"><b class="jeu-collee-m">${titre}${sub?`<small>${sub}</small>`:''}</b>`+
+    `<span class="jeu-collee-box">${avecVal?`<b class="jeu-val jeu-collee-v">${JEU_COIN_SVG}<span id="jeu-collee-v"></span><small>pts</small></b>`:''}<b class="jeu-timer jeu-collee-t" id="jeu-collee-t"></b></span></div></div>`;
+}
+function jeuColleeSuivre(src,timerId,valId){
+  if(jeuColleeObs){jeuColleeObs.forEach(o=>{try{o.disconnect();}catch(e){}});jeuColleeObs=null;}
+  const scr=document.getElementById('scr-lesson'),mini=document.getElementById('jeu-collee');
+  if(!src||!scr||!mini||typeof scr.querySelector!=='function'||!scr.style||!mini.classList)return;
+  const nav=scr.querySelector('.navbar'),navH=nav?nav.offsetHeight:0;
+  scr.style.setProperty('--jeu-collee-top',navH+'px');
+  const mt=document.getElementById('jeu-collee-t'),mv=document.getElementById('jeu-collee-v');
+  const copie=()=>{
+    const t=document.getElementById(timerId);
+    if(t&&mt){if(mt.textContent!==t.textContent)mt.textContent=t.textContent;mt.classList.toggle('is-low',t.classList.contains('is-low'));mt.classList.toggle('is-ok',t.classList.contains('is-ok'));}
+    mini.classList.toggle('is-masque',!t||!!t.hidden);   // « Avec des amis » sur la page d’un défi : pas de chrono, pas de barre
+    if(mv){const v=valId&&document.getElementById(valId),b=mv.parentNode;if(v&&mv.textContent!==v.textContent)mv.textContent=v.textContent;if(b)b.hidden=!v;}
+  };
+  copie();
+  const obs=[];
+  if(typeof MutationObserver==='function'){const mo=new MutationObserver(copie);mo.observe(src,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden']});obs.push(mo);}
+  if(typeof IntersectionObserver==='function'){
+    /* Le cadre caché sous l’en-tête compte comme sorti : la barre arrive au moment où il passe dessous. */
+    const io=new IntersectionObserver(es=>{const e=es[es.length-1];if(!e||!e.boundingClientRect.height)return;if(nav&&nav.offsetHeight)scr.style.setProperty('--jeu-collee-top',nav.offsetHeight+'px');mini.classList.toggle('is-on',!e.isIntersecting);},{root:scr,rootMargin:`-${navH}px 0px 0px 0px`,threshold:0});
+    io.observe(src);obs.push(io);
+  }
+  jeuColleeObs=obs;
+}
 function jeuRender(){
   const J=JEU;if(!J)return;
   if(J.verif&&!jeuVerifSuivre(J))return;
@@ -36219,7 +36305,7 @@ function jeuRender(){
     const hud=`<div class="jeu-hud"><span class="jeu-hud-g"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b>`+
       `<span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span>`+
       `<span class="jeu-hud-box${val?'':' is-seul'}">${val}${chrono}</span></div>`;
-    html=`${jeuNetSlot()}
+    html=`${jeuColleeHTML(`Manche ${n+1}`,`/${J.nb}`,!mine)}${jeuNetSlot()}
       ${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
       ${defiConsigneHTML(c,{base:true,titre:true})}
       ${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}`;
@@ -36325,7 +36411,7 @@ function jeuRender(){
   if(!keep){
     root.classList.remove('jeu-in','jeu-cascade');void root.offsetWidth;
     /* Juste après le tirage : la manche arrive en cascade (la barre et le chrono, le titre, la question, l’éditeur…). */
-    if(fromDraw&&root.children){Array.from(root.children).forEach((el,i)=>{if(el.style)el.style.setProperty('--k',Math.min(i,7));});root.classList.add('jeu-cascade');}
+    if(fromDraw&&root.children){Array.from(root.children).filter(el=>!(el.classList&&el.classList.contains('jeu-collee-ancre'))).forEach((el,i)=>{if(el.style)el.style.setProperty('--k',Math.min(i,7));});root.classList.add('jeu-cascade');}
     else root.classList.add('jeu-in');
   }
   if(ghost){root.appendChild(ghost);setTimeout(()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);},560);}
@@ -36335,6 +36421,7 @@ function jeuRender(){
   }
   if(v.startsWith('draw'))jeuDrawStep(+v.slice(4));
   if(v.startsWith('play'))coachRoomTick();
+  jeuColleeSuivre(v.startsWith('play')&&typeof root.querySelector==='function'?root.querySelector('.jeu-hud'):null,'jeu-timer','jeu-val-n');   // la barre collée du chrono (23 h 44)
   jeuAnnounce();
   if(focusKey){const f=root.querySelector(`[data-fk="${focusKey}"]`);if(f&&f.focus)f.focus({preventScroll:true});}
   const scr=document.getElementById('scr-lesson');if(scr&&!keep)scr.scrollTop=0;
@@ -36682,6 +36769,9 @@ function jeuLeaveQuestion(){
   const v=J.view||'';
   if(/^(play|draw)/.test(v))return {ico:'🏁',titre:J.solo?'Quitter la partie ?':'Quitter la salle ?',texte:'Ta manche en cours sera perdue.',oui:'Quitter',non:'Rester',danger:true};
   if(!J.solo&&jeuIsHost()&&v!=='final'&&jeuLive().length>1)return {ico:'👋',titre:'Quitter la salle ?',texte:'Un autre joueur deviendra l’hôte.',oui:'Quitter',non:'Rester'};
+  /* 8 novembre, 23 h 44 (« corrige : À corriger en premier », la relecture des défis) : l’hôte seul dans sa salle d’attente partait
+     sans un mot, et la salle restait ouverte sans lui. On demande ; parti, il la retrouve dans Jouer (« Ta salle », jeuMaSalle). */
+  if(!J.solo&&v==='lobby'&&J.synced&&jeuIsHost()&&!jeuCommencee())return {ico:'👋',titre:'Quitter ta salle ?',texte:'Personne ne l’a encore rejointe. Tu pourras y revenir depuis Défis.',oui:'Quitter',non:'Rester'};
   return null;
 }
 function jeuLeaveOk(){return !jeuLeaveQuestion();}
@@ -36808,7 +36898,7 @@ function openChallenge(cid){
   exoFails=0; defiDernierKo=null;
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
-  document.getElementById('lesson-body').innerHTML=`
+  document.getElementById('lesson-body').innerHTML=`${jeuColleeHTML('Défi',` · ${NIV[c.niv].l}`,false)}
     <div class="defi-top"><div class="l-kicker">Défi · ${NIV[c.niv].l}${defiBaseId(c)?` · Base ${esc(DEFI_BASES[defiBaseId(c)].nom)}`:''}</div><b class="jeu-timer" id="defi-timer" role="timer" aria-label="Temps restant du défi, ${jeuDureeMs(c.niv)/60000} minutes au plus">${jeuRebours(jeuDureeMs(c.niv),jeuDureeMs(c.niv))}</b></div>
     ${defiConsigneHTML(c,{titre:true})}
     ${jeuEligible(c)?challengeHowHTML(c):''}
@@ -36816,6 +36906,7 @@ function openChallenge(cid){
     ${editorBlock(true,'defi.sql',{coach:1})}
     </div>`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  jeuColleeSuivre(document.querySelector('#lesson-body .defi-top'),'defi-timer',null);   // la barre collée du chrono (23 h 44)
   /* Au rechargement (restoringNav), le défi reprend où on l’avait laissé, s’il reste du temps ; sinon il repart de zéro. */
   const ses=restoringNav?defiSesRead():null;
   const reprise=ses&&ses.cid===cid&&ses.t0>0&&Date.now()-ses.t0<jeuDureeMs(c.niv)?ses:null;
@@ -46762,7 +46853,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-six-joueurs-v2707';
+  const SW_CACHE='requete-2026-11-08-a-corriger-v2708';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -135,7 +135,7 @@ test('les cartes : un cadre « ex : » sous chaque colonne, à la couleur du lie
   const sansEx = ctx.umlHtml(ctx.umlPlan(m, 322, false));
   assert.ok(!sansEx.includes('class="umd-t is-ex') && sansEx.includes('class="umd-x'), 'pliés : les cadres cachés par la carte');
   assert.ok(css.includes('html.lq #schema-sheet .umd-t:not(.is-ex) .umd-x{opacity:0}'));
-  assert.ok(h.includes('<button type="button" class="umd-hb" aria-pressed="false"') && h.includes('onclick="umlCarte(this,event)"') && h.includes('aria-label="Table plats, 5 colonnes, 20 lignes : allumer ses liens"'));
+  assert.ok(h.includes('<button type="button" class="umd-hb" aria-pressed="false"') && h.includes('onclick="umlCarte(this,event)"') && h.includes('aria-label="Table plats, 5 colonnes, 20 lignes : allumer ses relations"'));
   d.close();
   const e = ouvrir(`CREATE TABLE a(id INTEGER PRIMARY KEY, x TEXT); INSERT INTO a VALUES (1,NULL); CREATE TABLE b(id INTEGER PRIMARY KEY, a_id INTEGER REFERENCES a(id)); INSERT INTO b VALUES (1,1);`);
   assert.ok(ctx.umlHtml(ctx.umlPlan(ctx.umlModele(e, tablesDe(e)), 322, true)).includes('<span class="umd-x is-null"><small>ex&nbsp;:</small><b>NULL</b></span>'));
@@ -171,7 +171,7 @@ test('la toile touchée : les liens d’une table ou un seul lien, leurs tables 
   d.close();
   const e = ouvrir(`CREATE TABLE seule(id INTEGER PRIMARY KEY); CREATE TABLE autre(id INTEGER PRIMARY KEY);`);
   const me = ctx.umlModele(e, tablesDe(e));
-  assert.ok(ctx.umlBulle(me, {t: 'seule'}, {}).includes('<p class="umd-bl is-vide">Aucun lien&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'));
+  assert.ok(ctx.umlBulle(me, {t: 'seule'}, {}).includes('<p class="umd-bl is-vide">Aucune relation&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'));
   e.close();
 });
 
@@ -186,7 +186,7 @@ test('les liens en clair : deux phrases (l’élision comprise), la jointure tou
   assert.equal(ctx.umlJoin(m, c), 'FROM commandes JOIN clients ON commandes.client_id = clients.id');
   const h = ctx.umlPanneau(m, 322, true);
   assert.ok(h.includes('<details class="umd-liens" id="umd-liens" ontoggle="umlListeToggle(this)">'), 'pliée d’abord');
-  assert.ok(h.includes('<b>Les liens en clair</b><small>10</small>'));
+  assert.ok(h.includes('<b>Les relations en clair</b><small>10</small>'));
   assert.equal((h.match(/<li><button type="button" class="umd-li" data-i="\d+" style="--lc:/g) || []).length, 10);
   assert.ok(h.includes('onclick="umlFocusLien(0)"><span class="umd-lt"><code>avis.client_id</code><span class="umd-fl" aria-hidden="true">→</span><span class="sr">désigne</span><code>clients.id</code></span><span class="umd-lp"><b>1</b>'));
   d.close();
@@ -208,7 +208,7 @@ test('le panneau : l’interrupteur « Exemples », « Les liens en clair », la
   assert.ok(h.includes('<div class="umd-toile" id="umd-toile" onclick="umlToileClic(event)">'));
   assert.ok(h.includes('<div class="umd-bulle" id="umd-bulle" role="status" aria-live="polite" hidden></div>'));
   assert.ok(h.includes('<span class="umd-lg is-v"><b>→</b>la table qu’elle désigne</span>') && h.includes('<span class="umd-lg is-x"><b>ex&nbsp;:</b>une valeur de la table</span>'));
-  assert.ok(h.includes('Chaque trait va d’une clé étrangère (FK) à la clé primaire (PK) qu’elle désigne, dans la couleur de cette table. Touche une table&nbsp;: ses liens s’allument.'));
+  assert.ok(h.includes('Chaque trait va d’une clé étrangère (FK) à la clé primaire (PK) qu’elle désigne, dans la couleur de cette table. Touche une table&nbsp;: ses relations s’allument.'));
   d.close();
   /* Une base sans ligne ni lien : ni interrupteur, ni liste, ni légende des liens */
   const e = ouvrir(`CREATE TABLE a(id INTEGER PRIMARY KEY); CREATE TABLE b(id INTEGER PRIMARY KEY);`);

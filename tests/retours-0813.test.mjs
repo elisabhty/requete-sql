@@ -86,7 +86,7 @@ test('une clé primaire qui est aussi étrangère, une clé composite : leurs li
   assert.equal(d.exec('SELECT COUNT(*) ' + j)[0].values[0][0], 3, 'trois inscriptions, trois cours : pas sept');
   assert.equal(ctx.umlNbLiens(m), 3, 'la clé composite compte pour un lien');
   const h = ctx.umlPanneau(m, 322, true);
-  assert.ok(h.includes('<span>3 tables · 3 liens</span>') === false && h.includes('4 tables · 3 liens'));
+  assert.ok(h.includes('<span>3 tables · 3 relations</span>') === false && h.includes('4 tables · 3 relations'));
   assert.equal((h.match(/<li><button type="button" class="umd-li"/g) || []).length, 3, 'une entrée pour la clé composite');
   assert.ok(h.includes('<code>inscriptions.(cours_code, cours_annee)</code>') && h.includes('<code>cours.(code, annee)</code>') && h.includes('<small class="umd-dv">clé composite</small>'));
   assert.ok(h.includes('<i class="is-pk">PK</i><i class="is-fk">FK</i><span>etudiant_id</span><b class="umd-v">→ etudiants</b>'), 'PK et FK à la fois');
@@ -244,10 +244,10 @@ test('l’import : un échec ne laisse rien, un nom déjà pris se demande, et l
   assert.ok(un.includes('<b>Table importée</b>') && un.includes('est la première table du projet. Importe une deuxième table, avec une colonne comme <code>client_id</code>&nbsp;: le schéma UML se dessinera tout seul') && !un.includes('imp-uml'));
   d.run('CREATE TABLE commandes(id INTEGER, client_id INTEGER, total REAL); INSERT INTO commandes VALUES (1,1,9.5);');
   const deux = ctx.importRetourHtml(d, ['clients', 'commandes'], 'commandes', false);
-  assert.ok(deux.includes('<code>commandes</code> rejoint <code>clients</code>.') && deux.includes('<p class="imp-liens">Lien trouvé&nbsp;: <code>commandes.client_id</code> → <code>clients</code>.</p>'));
+  assert.ok(deux.includes('<code>commandes</code> rejoint <code>clients</code>.') && deux.includes('<p class="imp-liens">Relation trouvée&nbsp;: <code>commandes.client_id</code> → <code>clients</code>.</p>'));
   assert.ok(deux.includes(`onclick="openSchemaSheet('console','__uml__')"`), 'le bouton ouvre le schéma UML');
   d.run('CREATE TABLE meteo(jour TEXT, temp REAL);');
-  assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], 'meteo', false).includes('Aucun lien pour l’instant&nbsp;: une colonne comme <code>client_id</code> en créerait un.'));
+  assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], 'meteo', false).includes('Aucune relation pour l’instant&nbsp;: une colonne comme <code>client_id</code> en créerait une.'));
   assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], null, true).includes('<b>Projet importé</b><p>3 tables disponibles&nbsp;:'));
   d.close();
 });

@@ -133,8 +133,8 @@ test('la toile : une carte par table (7 h 38 : touchée, elle allume ses liens),
   const pp = ctx.umlPlan(m, 322, true), uniques = new Set(pp.arcs.flatMap(a => a.lab.map(t => t.x + '|' + t.y + '|' + t.t))).size;
   assert.equal((h.match(/<g class="umd-m"/g) || []).length, uniques, 'deux multiplicités par lien, une par bout de faisceau');
   assert.ok(uniques > 8 && uniques <= 16);
-  assert.ok(h.includes('onclick="umlCarte(this,event)"') && h.includes('<button type="button" class="umd-hb" aria-pressed="false"') && h.includes('aria-label="Table animaux, 8 colonnes, 35 lignes : allumer ses liens"'));
-  assert.ok(h.includes('<div class="umd-tete"><b>Schéma UML</b><span>9 tables · 8 liens</span></div>'));
+  assert.ok(h.includes('onclick="umlCarte(this,event)"') && h.includes('<button type="button" class="umd-hb" aria-pressed="false"') && h.includes('aria-label="Table animaux, 8 colonnes, 35 lignes : allumer ses relations"'));
+  assert.ok(h.includes('<div class="umd-tete"><b>Schéma UML</b><span>9 tables · 8 relations</span></div>'));
   assert.ok(h.includes('<span class="umd-lg is-pk"><i>PK</i>clé primaire</span><span class="umd-lg is-fk"><i>FK</i>clé étrangère</span><span class="umd-lg is-v"><b>→</b>la table qu’elle désigne</span><span class="umd-lg"><b>0..*</b>zéro ou plusieurs</span>'));
   /* Ce que montrent les traits, en clair (pour les lecteurs d’écran aussi) : la liste pliable, une entrée par lien */
   assert.ok(h.includes('<code>animaux.espece_id</code><span class="umd-fl" aria-hidden="true">→</span><span class="sr">désigne</span><code>especes.id</code>'));
