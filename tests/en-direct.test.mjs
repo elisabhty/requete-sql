@@ -324,7 +324,7 @@ test('réductible : la flèche plie et déplie, le choix est gardé ; plié, il 
 
 test('branché à la manche : sous le titre, avant la question ; chaque essai, chaque trouvaille, chaque seconde le tiennent à jour', () => {
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${J.solo?'':jeuDirectHTML(n)}\n      ${defiConsigneHTML(c)}"), 'dans toute salle, même seul (17 h 08) ; jamais en solo');
+  assert.ok(r.includes("<h1>${esc(c.titre)}</h1>\n      ${J.solo?`<section class=\"jeu-direct is-seul\" aria-label=\"Manche ${n+1} sur ${J.nb}\"><div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud)}\n      ${defiConsigneHTML(c)}"), 'dans toute salle, même seul (17 h 08) ; en solo, le bandeau avec sa tête seulement (17 h 48)');
   assert.ok(!app.includes('jeuMatesHTML'), 'la bande d’avatars est partie');
   const rate = cut("    case 'rate':{", "    case 'close':{");
   const compte = rate.indexOf('(rt.ko=rt.ko||{})[m.pid]=(rt.ko[m.pid]||0)+1;'), sortie = rate.indexOf('if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;');
