@@ -44,7 +44,8 @@ test('style : pastilles rondes à droite de l’en-tête avec leur nom dessous, 
   assert.ok(/#scr-lesson \.nav-tool-ico\{[^}]*width:36px;height:36px[^}]*border-radius:50%/.test(css), 'pastille ronde de 36 px');
   assert.ok(/#scr-lesson \.nav-tool-t\{font:700 10\.5px\/1\.1 var\(--display\)/.test(css), 'nom sous la pastille');
   assert.ok(/#scr-lesson \.nav-tool:active \.nav-tool-ico\{transform:translateY\(3px\)/.test(css), 'la pastille s’enfonce au toucher');
-  assert.ok(/\.navbar\.has-tools \.ls-where\{right:106px\}/.test(css) && /\.navbar\.has-tools \.nav-title\{margin-right:106px\}/.test(css));
+  /* 21 h 29 : le titre centré ; avec les outils, la colonne de droite leur garde leur place (--nav-r) au lieu d’une marge */
+  assert.ok(/\.navbar\.has-tools \.ls-where\{right:106px\}/.test(css) && /#scr-lesson \.navbar\.has-tools\{--nav-r:96px\}/.test(css));
   assert.ok(/body\.in-lesson:has\(#scr-lesson\.active \.navbar\.has-tools\) #fab\{display:none!important\}/.test(css));
 });
 

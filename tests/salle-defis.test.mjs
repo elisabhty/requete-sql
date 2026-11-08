@@ -630,7 +630,7 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   /* 8 novembre, 17 h 08 (« pourquoi j’ai pas le truc du haut avec les présents et toi ») : « En direct » reste en haut, même seul */
   assert.match(h.html, /<section class="jeu-direct" id="jeu-direct"/);
   const d0 = h.ev('jeuDirectHTML(0)');
-  assert.equal((d0.match(/<b class="jeu-av/g) || []).length, 1, 'un avatar : toi'); assert.match(d0, /<span class="jeu-sr" id="jeu-direct-qui">Toi\u00a0: en réflexion<\/span>/);
+  assert.equal((d0.match(/<b class="jeu-av/g) || []).length, 1, 'un avatar : toi'); assert.match(d0, /<span class="jeu-sr" id="jeu-direct-qui">Toi\u00a0: en réflexion, 0\u00a0point<\/span>/);
   assert.equal(h.ev('JEU.dit.cur.html'), 'C’est parti\u00a0! Qui ouvrira le score\u00a0?', 'seul aussi, la phrase de toujours (18 h 14)');
   assert.doesNotMatch(h.html, /jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien d’autre des écrans à plusieurs (réactions, « Clore la manche pour tous »)');
   assert.equal(h.ev('jeuReagirLa()'), true, 'seule dans la salle, « Réagir » est là aussi, en bas à droite (19 h 12 : « visible même seule »)');
@@ -667,15 +667,15 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   assert.equal(h.ev('jeuRanking(0)[0].rang'), 0, 'commencée seule : pas de bonus de rang, le même chez tous');
   assert.equal(g.ev('jeuRanking(0)[0].rang'), 0);
   assert.match(g.html, /class="jeu-done"/); assert.match(g.html, /Hôte cherche encore/);
-  const d = h.ev('jeuDirectHTML(0)'), av = /id="jeu-direct-av" aria-hidden="true">(.*?)<\/span><span class="jeu-sr"/.exec(d)[1];
+  const d = h.ev('jeuDirectHTML(0)'), av = /id="jeu-direct-av" aria-hidden="true">(.*?)<\/div><span class="jeu-sr"/.exec(d)[1];
   assert.equal((av.match(/<b class="jeu-av/g) || []).length, 2, 'un avatar par joueur');
-  assert.match(av, /^<b class="jeu-av is-ok is-premier" data-c="1" data-pid="[\w-]+">A<i class="jd-av-b is-roi[^"]*"><svg/, 'l’ami d’abord, la couronne (même couleur qu’en salle d’attente)');
-  assert.match(av, /<b class="jeu-av is-pense" data-c="0" data-pid="[\w-]+">H<\/b>$/, 'toi ensuite, en réflexion');
+  assert.match(av, /^<span class="jd-j is-ok is-premier" data-pid="[\w-]+" data-c="1" data-n="([1-9]\d*)"><b class="jeu-av" data-c="1">A<i class="jd-av-b is-roi[^"]*"><svg/, 'l’ami d’abord, la couronne (même couleur qu’en salle d’attente), ses points');
+  assert.match(av, /<span class="jd-j is-pense is-moi" data-pid="[\w-]+" data-c="0" data-n="0"><b class="jeu-av" data-c="0">H<\/b><span class="jd-j-pts"><b class="jd-pts" data-n="0" data-fmt="fr">0<\/b><small>\u00a0pt<\/small><\/span><\/span>$/, 'toi ensuite, en réflexion, 0 point');
   assert.equal(h.ev('JEU.dit.cur.html'), '<b>Ami</b> ouvre le score\u00a0!', 'le commentateur l’a dit, même pendant que la rangée n’était pas redessinée');
-  assert.match(d, /<span class="jeu-sr" id="jeu-direct-qui">Ami\u00a0: trouvé en premier, Toi\u00a0: en réflexion<\/span>/);
+  assert.match(d, /<span class="jeu-sr" id="jeu-direct-qui">Ami\u00a0: trouvé en premier, [\d\u202f\u00a0]+\u00a0points ; Toi\u00a0: en réflexion, 0\u00a0point<\/span>/);
   const tete = h.ev('jeuDirectJoueurs(0)[0]');
   assert.ok(tete.chef && tete.gain > 0 && tete.essais === 1 && tete.monte === 1, 'en tête, ce que la manche lui rapporte, un essai, une place gagnée');
-  assert.match(d, /<span class="jeu-direct-ok" id="jeu-direct-ok"><i aria-hidden="true">.*?<\/i>1\/2<span class="jeu-sr"> : 1 joueur a trouvé<\/span><\/span>/, 'combien ont trouvé, dans la barre');
+  assert.doesNotMatch(d, /jeu-direct-ok|1\/2/, '21 h 29 : plus de « 1/2 » dans la barre');
   assert.doesNotMatch(d, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
 });
 
@@ -698,7 +698,7 @@ test('« En direct » : les essais manqués des autres comptent chez tous, la li
   assert.ok(tete.gain > 0 && tete.pts === tete.gain, 'ses points de la manche');
   assert.equal(host.ev('jeuDirectJoueurs(0).filter(x=>x.chef).length'), 1);
   const d = host.ev('jeuDirectHTML(0)');
-  assert.doesNotMatch(d, /faux|SELECT/, 'jamais sa requête'); assert.match(d, /1\/3<span class="jeu-sr"> : 1 joueur a trouvé/);
+  assert.doesNotMatch(d, /faux|SELECT/, 'jamais sa requête');
   assert.equal((d.match(/<b class="jeu-av/g) || []).length, 3, 'trois avatars'); assert.match(d, /<i class="jd-av-b is-roi/, 'la couronne sur celui qui a trouvé');
 });
 
@@ -728,7 +728,7 @@ test('« En direct » raconte la partie : la croix, qui ouvre le score, qui rest
   a1.found(); sec(w, 3);
   assert.equal(dit(host), `2 d’affilée pour <b>Ami1</b>${nb}!`, 'la série');
   assert.equal(host.ev(`jeuDirectJoueurs(1).find(x=>x.pid===${JSON.stringify(a1.pid())}).serie`), 2, 'sa série : deux manches');
-  assert.match(host.ev('jeuDirectHTML(1)'), new RegExp(`data-pid="${a1.pid().replace(/[^\w-]/g, '')}">A<i class="jd-av-b is-roi`), 'la couronne : premier de la manche');
+  assert.match(host.ev('jeuDirectHTML(1)'), new RegExp(`data-pid="${a1.pid().replace(/[^\w-]/g, '')}" data-c="\\d" data-n="\\d+"><b class="jeu-av" data-c="\\d">A<i class="jd-av-b is-roi`), 'la couronne : premier de la manche');
 });
 
 /* 8 novembre, 12 h 07 : « Quand il écrit dans la zone de requête ? » */

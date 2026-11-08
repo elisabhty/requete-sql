@@ -295,3 +295,30 @@ test('à la chaîne (20 h 07) : les suivantes d’un joueur montent en grappe de
   assert.equal(c.children.at(-1).className, 'jeu-rl-b'); assert.equal(c.children.at(-1).children[1].textContent, '@lea_data');
   assert.ok(css.includes('html.lq .jeu-rl-b.is-suite .jeu-rl-e{width:42px;height:42px;font-size:23px}'));
 });
+
+/* 21 h 29 : « comme les réactions : mets les … avec le pseudo si quelqu’un écrit, couronne avec le pseudo si quelqu’un a réussi, et
+   validé (icône) avec le pseudo » */
+test('les bulles d’état montent comme les réactions : les …, la couronne, la coche, avec le pseudo ; les … une fois toutes les 15 s', () => {
+  const m = monde();
+  Object.assign(m.ctx, { JEU_COURONNE_SVG: '<svg class="roi"/>', JEU_ICO: { check: '<svg class="ok"/>' } });
+  assert.equal(m.ev("jeuStatutBulle('b','ecrit')"), true);
+  const c = m.els['jeu-rl'], b0 = c.children[0];
+  assert.equal(b0.className, 'jeu-rl-b is-ecrit'); assert.equal(b0.children[0].innerHTML, '<b></b><b></b><b></b>', 'les trois petits points');
+  assert.equal(b0.children[1].textContent, '@lea_data', 'son pseudo dessous, sur sa couleur');
+  assert.equal(m.ev("jeuStatutBulle('b','ecrit')"), false, 'il écrit encore : pas une bulle à chaque signal');
+  m.avance(15000); assert.equal(m.ev("jeuStatutBulle('b','ecrit')"), true, '15 s plus tard, oui');
+  m.avance(3000); m.ev("jeuStatutBulle('c','roi')");
+  const roi = c.children[c.children.length - 1];
+  assert.equal(roi.className, 'jeu-rl-b is-roi'); assert.equal(roi.children[0].innerHTML, '<svg class="roi"/>'); assert.equal(roi.children[1].textContent, '@max');
+  m.avance(3000); m.ev("jeuStatutBulle('b','ok')");
+  const ok = c.children[c.children.length - 1];
+  assert.equal(ok.className, 'jeu-rl-b is-ok'); assert.equal(ok.children[0].innerHTML, '<svg class="ok"/>');
+  /* Une réaction de c juste après sa couronne : elle ne s’y accroche pas (la bulle d’état n’est pas une grappe) */
+  assert.equal(m.J.rlPos && m.J.rlPos.c, undefined, 'la bulle d’état ne devient pas la tête d’une chaîne');
+  const fn = cut('function jeuReactBulle(pid,e,nom,suite,quoi){', '\n}\n');
+  assert.ok(fn.includes("const chaine=!!(!quoi&&suite&&Q&&Q.el&&Q.el.isConnected);") && fn.includes("if(quoi)i.innerHTML=quoi.html;else i.textContent=e;"));
+  for (const k of ['html.lq .jeu-rl-b.is-ecrit .jeu-rl-e>b{flex:none;width:7px;height:7px;border-radius:50%;background:var(--accent);animation:jeuRlPoint 1s ease-in-out infinite}',
+    'html.lq .jeu-rl-b.is-roi .jeu-rl-e svg{width:32px;height:32px}', 'html.lq .jeu-rl-b.is-ok .jeu-rl-e{color:#1E9E62}',
+    'html.lq[data-motion="reduce"] .jeu-rl-b.is-ecrit .jeu-rl-e>b{animation:none;opacity:1}'])
+    assert.ok(css.includes(k), k);
+});
