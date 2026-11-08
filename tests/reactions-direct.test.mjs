@@ -134,6 +134,12 @@ test('« Réagir » posé, salué une fois, effacé pendant qu’on écrit, reti
   assert.ok(!f.classList.contains('is-ecrit'), 'on a fini d’écrire : il revient');
   /* Une autre manche : le même bouton, sans resaluer ; le bilan : parti */
   f.classList.set.delete('is-neuf'); m.ev('jeuReagirMaj()'); assert.equal(m.fab(), f); assert.ok(!f.classList.contains('is-neuf'));
+  /* La pastille « Un coup de patte ? » là : il monte au-dessus d’elle ; partie, il redescend (19 h 49) */
+  const pastille = { hidden: false }; m.document.getElementById = (g => id => (id === 'coach-peek' ? pastille : g(id)))(m.document.getElementById);
+  m.ev('jeuReagirMaj()'); assert.ok(f.classList.contains('is-haut'));
+  pastille.hidden = true; m.ev('jeuReagirMaj()'); assert.ok(!f.classList.contains('is-haut'), 'cachée : il redescend');
+  assert.ok(app.includes("const maj=e=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=(e?!!e.isIntersecting:true)&&coachPeekVu(cible);coachPeekCaler(b);coachPeekReagir(!b.hidden);};"), 'tout de suite, quand elle se montre ou se cache');
+  assert.ok(cut('function coachPeek(card,hint){', '\n}\n').includes('b.remove();coachPeekReagir(false);};'), 'partie : il redescend');
   m.J.view = 'res0'; m.ev('jeuReagirMaj()'); assert.equal(m.fab(), null, 'hors de la manche : retiré');
   m.J.view = 'play1'; m.ev('jeuReagirMaj()'); assert.ok(m.fab() && !m.fab().classList.contains('is-neuf'), 'une fois par partie');
   const s = monde({ solo: true }); s.ev('jeuReagirMaj()'); assert.equal(s.fab(), null, 'partie seule : jamais');
@@ -214,9 +220,9 @@ test('reçue d’un autre : de son avatar et le long de l’écran ; la carte «
 });
 
 test('le style : « Réagir », la pastille violette posée en bas à droite ; effacé quand on écrit ; au-dessus de « Un coup de patte ? »', () => {
-  for (const r of ['html.lq .jeu-reagir{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:89;',
+  for (const r of ['html.lq .jeu-reagir{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:91;',
     'html.lq .jeu-reagir.is-ecrit{opacity:0;visibility:hidden;translate:0 18px;pointer-events:none;',
-    'html.lq body:has(>#coach-peek:not([hidden])) .jeu-reagir:not(.is-ecrit){translate:0 -62px}',
+    'html.lq .jeu-reagir.is-haut:not(.is-ecrit){translate:0 -62px}', 'html.lq body:has(.viz.on) .jeu-reagir{opacity:0;visibility:hidden;pointer-events:none}',
     'html.lq body:has(>.jeu-reagir) #jeu-root{padding-bottom:76px}',
     'background:var(--accent);color:#fff;font:800 15px/1 var(--display);box-shadow:0 4px 0 var(--accent-ink),0 14px 28px -12px rgba(40,20,140,.55);',
     'html.lq .jeu-reagir-b>svg{flex:none;width:21px;height:21px;color:var(--sun-hi)}',
@@ -230,6 +236,8 @@ test('le style : « Réagir », la pastille violette posée en bas à droite ; e
     '@media (prefers-reduced-motion:reduce){html.lq .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}}', 'html.lq[data-motion="reduce"] .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}'])
     assert.ok(css.includes(r), r);
   assert.ok(!css.includes('#jeu-root .jeu-reagir') && !css.includes('has-reagir'), 'plus rien de « Réagir » dans le cadre');
+  /* 19 h 49 : « faire en sorte que la pill Réagir soit au-dessus » : devant la pastille « Un coup de patte ? » (z-index 90) */
+  assert.ok(/html\.lq \.coach-peek\{[^}]*z-index:90;/.test(css));
   /* Le salut ne joue que deux fois, puis le sourire se tait (pas d’animation sans fin) */
   assert.ok(!/jeuReagir\w*[^;}]*infinite/.test(css));
 });

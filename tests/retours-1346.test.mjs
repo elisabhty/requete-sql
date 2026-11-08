@@ -126,7 +126,7 @@ test('15 h 36 : la carte des indices dans la DA, juste après la question ; « �
   assert.ok(f.includes('<span class="coach-tag is-go">À toi de jouer<i class="coach-caret" aria-hidden="true"></i></span>'));
   assert.ok(f.includes('<span class="coach-tag is-hint">Indice ${v}/3</span>'));
   assert.ok(f.includes("room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>."), 'en salle, pas de promesse d’indice par essai');
-  assert.ok(app.includes("coachPeek(card,COACH.fx==='is-new-hint');"), 'une pastille ramène à la carte si elle est hors de l’écran');
+  assert.ok(app.includes("if(card&&COACH.fx==='is-new-hint')coachPeek(card,true);"), 'une pastille ramène à la carte si elle est hors de l’écran (8 novembre, 19 h 49 : seulement pour l’indice)');
   for (const part of ['html.lq .coach.is-new-hint .coach-tag.is-hint{animation:coachFlip .6s var(--pop) both}', 'html.lq .coach-caret{', 'html.lq .coach-st-k{flex:none;padding:3px 9px;border-radius:99px;background:#E0457B;'])
     assert.ok(css.includes(part), part);
 });
