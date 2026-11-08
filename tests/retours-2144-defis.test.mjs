@@ -59,7 +59,7 @@ test('Jouer : « Lance un défi ! », « Créer ma partie », « Rejoindre avec 
   const tuiles = fn('defisActionsHTML');
   /* Refonte du 7 novembre (designers) : deux boutons secondaires sous « Créer ma partie », plus de « ou » ni de tuiles. */
   assert.ok(tuiles.includes("${b('code','rocket','Rejoindre avec un code')}${b('seul','clock','Jouer en solo')}") && !tuiles.includes('<small>') && !tuiles.includes('dx-ou'), 'un libellé chacune, sans petite ligne');
-  assert.ok(app.includes("const tete=join?['Rejoindre une partie',") && app.includes(":friends?['Créer ma partie','Ta salle de défi',") && app.includes(":['Jouer en solo','Joue seul',"));
+  assert.ok(app.includes("const tete=join?['Rejoindre une partie',") && app.includes(":friends?['Créer ma partie','Ta salle de défi',") && app.includes(":['Mode solo','Joue seul',"), 'seul : « Mode solo », d’après sa maquette (8 novembre, 8 h 21)');
   for (const vieux of ["'J’ai un code','rejoindre un ami'", "'Seul','entraînement'", '<span>Créer une salle</span>', '<h2 id="dx-rapide-h">Ta salle de défi</h2>', "['Entraînement','Joue seul',"])
     assert.ok(!app.includes(vieux), vieux);
   /* « Aucune salle à ton niveau ? » : seulement quand il n’y en a aucune à ce niveau (déjà le cas) */

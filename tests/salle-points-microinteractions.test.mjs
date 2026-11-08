@@ -54,8 +54,8 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
 
 test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25 du premier coup, +50 / +30 / +20 / +10 ; les temps en 00:00', () => {
   const ctx = vm.createContext({});
-  vm.runInContext(['const JEU_ROUND_MS=1200000;', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
-  assert.ok(app.includes('const JEU_ROUND_MS=1200000;') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));
+  vm.runInContext(['const JEU_ROUND_MS=600000;', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
+  assert.ok(app.includes('const JEU_ROUND_MS=600000;') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));
   const ev = c => JSON.parse(JSON.stringify(vm.runInContext(c, ctx)));
   assert.deepEqual(ev("[0,999,72000,179999].map(jeuChrono)"), ['00:00', '00:00', '01:12', '02:59']);
   assert.deepEqual(ev('[0,59000,60999,61000,120999,121000,180999,181000,240999,241000,300999,301000,420999,421000,599999].map(jeuValeur)'),
@@ -73,7 +73,7 @@ test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25
   assert.ok(line('jeuPlaces').includes('if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;'));
 });
 
-test('ref 4 — le chrono descend de 20:00 à 00:00 (6 novembre, 7 h 52 ; sans barre de temps), le podium a trois marches', () => {
+test('ref 4 — le chrono descend jusqu’à 00:00 (6 novembre, 7 h 52 ; depuis 10:00 le 8 novembre ; sans barre de temps), le podium a trois marches', () => {
   const tick = fn('jeuTick');
   assert.ok(tick.includes('const took=Date.now()-J.rounds[n].t1;el.textContent=jeuRebours(JEU_ROUND_MS-took);'), 'le temps restant');
   /* Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono » */

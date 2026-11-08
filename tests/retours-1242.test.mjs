@@ -79,11 +79,12 @@ test('« Comment sont calculés les points ? » : le barème du niveau choisi, s
   assert.ok(f.h.includes('<div class="room-rules-niv" role="radiogroup" aria-label="Le barème du niveau"><button type="button" role="radio" aria-checked="true" class="is-on" onclick="defisRulesNiv(\'f\')">Facile</button><button type="button" role="radio" aria-checked="false" class="" onclick="defisRulesNiv(\'m\')">Moyen<small>×2</small></button>'), 'les trois niveaux, le Facile au départ');
   assert.deepEqual(f.marches.map(m => m[0]), [200, 175, 150, 125, 100, 75, 50]);
   const m = regles('m');
-  assert.deepEqual(m.marches, [[400, '≤ 3'], [350, '3–6'], [300, '6–9'], [250, '9–12'], [200, '12–15'], [150, '15–20']], 'le Moyen : des marches de 3 min, jusqu’à la fin du chrono');
+  /* La manche dure 10 min depuis le 8 novembre, 8 h 21 (« 10 min de jeu stp par manche ») : les marches s’arrêtent au bout du chrono. */
+  assert.deepEqual(m.marches, [[400, '≤ 3'], [350, '3–6'], [300, '6–9'], [250, '9–10']], 'le Moyen : des marches de 3 min, jusqu’à la fin du chrono (10 min)');
   assert.ok(m.h.includes('<span>jusqu’à 400</span>') && m.h.includes('<b>✨ Du premier coup</b><span>+50</span>') && m.h.includes('<b>🥇 Premier à trouver</b><span>+100</span><small>À plusieurs : 2e +60 · 3e +40 · 4e +20.'));
   assert.ok(m.h.includes('<span>Manche parfaite en Moyen</span><b>450</b><small>seul</small><i aria-hidden="true">·</i><b>550</b><small>à plusieurs</small>'));
   const d = regles('d');
-  assert.deepEqual(d.marches, [[800, '≤ 5'], [700, '5–10'], [600, '10–15'], [500, '15–20']], 'le Difficile : des marches de 5 min');
+  assert.deepEqual(d.marches, [[800, '≤ 5'], [700, '5–10']], 'le Difficile : des marches de 5 min, deux dans une manche de 10 min');
   assert.ok(d.h.includes('<b>✨ Du premier coup</b><span>+100</span>') && d.h.includes('<span>Manche parfaite en Difficile</span><b>900</b><small>seul</small><i aria-hidden="true">·</i><b>1\u202f100</b>'), '1 100, avec l’espace des milliers');
   assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×4</small></button>'));
   assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, tous les points comptent double et chaque palier dure 3' + NB + 'min' + NB + '; en Difficile, quadruple et 5' + NB + 'min. Le Facile reste la base.</small></li>'));

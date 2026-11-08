@@ -26,7 +26,7 @@ function monde({ pos = {}, ans = {}, faites = [10, 11], lecons = {}, ses = null 
     MIN_PAR_ACTIVITE: 6, esc, isDefiId: id => typeof id === 'string', itemDone: id => faites.includes(id),
     allLessons: [...LECONS, { id: 2, video: { duree: '3 min 37', moments: 6 } }, { id: 3 }], LV_POS: new Map(Object.entries(pos).map(([k, v]) => [+k, v])), LV_ANS: ans,
     state: { lessons: lecons }, nbFaites: id => (lecons[id] && lecons[id].n) || 0, defiSesRead: () => ses,
-    JEU_ROUND_MS: 1200000, LQ_VIDEO_SVG: '<svg v/>', LQ_CHRONO_SVG: '<svg c/>', DEFI_BASES: { aero: { nom: 'Aéroport' } }, defiBaseId: c => c.base });
+    JEU_ROUND_MS: 600000, LQ_VIDEO_SVG: '<svg v/>', LQ_CHRONO_SVG: '<svg c/>', DEFI_BASES: { aero: { nom: 'Aéroport' } }, defiBaseId: c => c.base });
   vm.runInContext(DUREES + ligne('lvFmt') + ligne('jeuChrono') + fn('itemCommence'), ctx);
   return ctx;
 }
@@ -95,10 +95,10 @@ test('tous les cas d’une leçon : jamais ouverte, ouverte à 0:05, en cours, v
   assert.deepEqual(carte(1, { lecons: { 1: { draft: 'SELECT *' } } }), { commence: true, prog: `<p class="lq-a-meta is-ico"><svg v/><span>Vidéo de 2 min 50 · 3${N}exercices</span></p>`, sub: `Plus que 4${N}min`, points: dots(0) });
 });
 
-test('un défi : 20 min au chrono et sa base ; son chrono en cours, ce qui reste', () => {
-  assert.deepEqual(carte('d1'), { commence: false, prog: `<p class="lq-a-meta is-ico"><svg c/><span>20${N}min au chrono · Base Aéroport</span></p>`, sub: `20${N}min au plus`, points: '' });
+test('un défi : 10 min au chrono (8 novembre, 8 h 21) et sa base ; son chrono en cours, ce qui reste', () => {
+  assert.deepEqual(carte('d1'), { commence: false, prog: `<p class="lq-a-meta is-ico"><svg c/><span>10${N}min au chrono · Base Aéroport</span></p>`, sub: `10${N}min au plus`, points: '' });
   const enCours = carte('d1', { ses: { cid: 'd1', t0: Date.now() - 348000 } });
-  assert.deepEqual(enCours, { commence: true, prog: `${barre(29)}<p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>05:48 sur 20:00</span></p>`, sub: `Plus que 15${N}min au chrono`, points: '' });
+  assert.deepEqual(enCours, { commence: true, prog: `${barre(58)}<p class="lq-a-meta"><span class="lq-sr">Chrono : </span><span>05:48 sur 10:00</span></p>`, sub: `Plus que 5${N}min au chrono`, points: '' });
   assert.equal(carte('d1', { ses: { cid: 'd2', t0: Date.now() - 348000 } }).commence, false, 'le chrono d’un autre défi');
 });
 
@@ -163,6 +163,6 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     '@media (max-width:360px){\n  html.lq .lq-a-titre{font-size:22px}'])
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=218">'));
-  assert.ok(sw.includes("'requete-2026-11-08-coefficient-v2652'"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=219">'));
+  assert.ok(sw.includes("'requete-2026-11-08-solo-dix-minutes-v2653'"));
 });

@@ -133,7 +133,7 @@ const page = ({vue = 'lobby', moi = 'L', hote = 'M', joueurs = ['M', 'L'], prets
   const C = {isNativePlatform: () => natif, addListener: (p, e, f) => ecoute.push([p, e, f]),
     nativePromise: (p, m, d) => { appels.push([m, ici(d)]); return Promise.resolve({ok: true}); }};
   const ctx = vm.createContext({
-    JEU: J, JEU_MAX: 5, JEU_ROUND_MS: 1200000, JEU_SB: 'https://exemple.supabase.co', JEU_SB_KEY: 'sb_publishable_x', JSON, Math, Promise, Object, String, Array,
+    JEU: J, JEU_MAX: 5, JEU_ROUND_MS: 600000, JEU_SB: 'https://exemple.supabase.co', JEU_SB_KEY: 'sb_publishable_x', JSON, Math, Promise, Object, String, Array,
     CHALLENGES: [{id: 'af4', titre: 'Le meilleur client'}],
     jeuView: () => x.vue, jeuCur: () => (x.vue === 'lobby' ? -1 : 0), jeuLive: () => x.joueurs, jeuIsReady: p => p === x.J.hostPid || x.prets.includes(p),
     jeuNom: v => String(v || '').slice(0, 16), jeuScores: () => x.joueurs.map(p => ({pid: p, name: '@' + p.toLowerCase(), pts: x.pts[p] || 0, ms: 0})).sort((a, b) => b.pts - a.pts),
@@ -159,7 +159,7 @@ test('l’état de la salle pour l’île : attente, partie, pause entre deux ma
     hote: 'M', manche: 0, nb: 3, defi: '', fin: 0, nouveau: ''});
   x.vue = 'play0'; x.pts.L = 240; x.J.rounds[0].found = {L: 42000};
   assert.deepEqual(ici(x.run('ileSalleEtat()')), {phase: 'partie', joueurs: [{p: 'L', n: '@l', pts: 240, r: 1, ok: true}, {p: 'M', n: '@m', pts: 0, r: 2, ok: false}],
-    hote: 'M', manche: 1, nb: 3, defi: 'Le meilleur client', fin: 1_700_001_200, nouveau: ''}, 'la fin du chrono, en secondes depuis 1970');
+    hote: 'M', manche: 1, nb: 3, defi: 'Le meilleur client', fin: 1_700_000_600, nouveau: ''}, 'la fin du chrono (10 min après le départ), en secondes depuis 1970');
   x.vue = 'draw0'; assert.equal(x.run('ileSalleEtat()').phase, 'partie', 'le tirage au sort aussi');
   x.vue = 'res0'; assert.deepEqual([x.run('ileSalleEtat()').phase, x.run('ileSalleEtat()').fin], ['pause', 0]);
   x.vue = 'final'; assert.equal(x.run('ileSalleEtat()').phase, 'fin');
