@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=230">
+<link rel="stylesheet" href="ludique.css?v=231">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27074,7 +27074,7 @@ function defisFeuilleHTML(k){
      adversaires ». Les trois tiennent sur une ligne dès 360 px. */
   const PIECE='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.6" fill="#fff" stroke="#1B1640" stroke-width="2"/><path d="M12 6.9l1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z" fill="#FFC83D" stroke="#1B1640" stroke-width="1.5" stroke-linejoin="round"/></svg>';
   const GENS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM3 19.6c.4-3.3 2.8-5.4 6-5.4s5.6 2.1 6 5.4M15.6 4.6a3.2 3.2 0 0 1 0 6.3M17.4 14.4c2 .6 3.3 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts">${PIECE}<span><b>×${JEU_NIV_X[jeuNiv]||1}</b><span class="lq-sr"> points</span></span></span>${friends?`<span class="lq-sr">, </span><span class="dx-f-chip is-max">${GENS}<span><b>${JEU_MAX}</b>\u00a0joueurs max</span></span>`:''}</p>`;
+  const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts">${PIECE}<span><b>×${JEU_NIV_X[jeuNiv]||1}</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span>${friends?`<span class="lq-sr">, </span><span class="dx-f-chip is-max">${GENS}<span><b>${JEU_MAX}</b>\u00a0joueurs max</span></span>`:''}</p>`;
   /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44) ; seul : « Mode solo » (sa maquette). Le code (8 novembre, 0 h 23,
      sa relecture : « il y a un peu trop d’explications pour une action aussi simple que saisir un code ») : « Rejoindre une partie »,
      « Entre ton code ! ». */
@@ -27735,7 +27735,7 @@ function renderDefisRules(){
   const top=JEU_PALIERS[0][1]*x,mn=t=>String(t/60).replace('.',','),last=JEU_PALIERS[JEU_PALIERS.length-1][0]*d;
   const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]*d:0,b=Math.min(t*d,fin);return {a,p:p*x,lab:i?`${mn(a)}–${mn(b)}`:`≤ ${mn(b)}`,dit:i?`de ${mn(a)} à ${mn(b)} min`:`jusqu’à ${mn(b)} min`};})
     .concat([{a:last,p:JEU_PTS_MIN*x,lab:`${mn(last)} +`,dit:`après ${mn(last)} min`}]).filter(m=>m.a<fin);
-  const choix=['f','m','d'].map(n=>`<button type="button" role="radio" aria-checked="${n===k}" class="${n===k?'is-on':''}" onclick="defisRulesNiv('${n}')">${JEU_NIVL[n]}${JEU_NIV_X[n]>1?`<small>×${JEU_NIV_X[n]}</small>`:''}</button>`).join('');
+  const choix=['f','m','d'].map(n=>`<button type="button" role="radio" aria-checked="${n===k}" class="${n===k?'is-on':''}" onclick="defisRulesNiv('${n}')">${JEU_NIVL[n]}${JEU_NIV_X[n]>1?`<small>×${JEU_NIV_X[n]}\u00a0pts</small>`:''}</button>`).join('');
   host.innerHTML=`<section class="room-rules" aria-labelledby="room-rules-h">
     <h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span>Comment sont calculés les points&nbsp;?</h2>
     <div class="room-rules-niv" role="radiogroup" aria-label="Le barème du niveau">${choix}</div>
@@ -27919,7 +27919,7 @@ function defisMoiHTML(){
    8 novembre, 11 h 08 (« ce niveau premium ») : la pastille de « Ta salle de défi », la pièce puis ×N ; celle du niveau choisi en jaune. */
 function jeuNiveauxHTML(lab,fn){
   const auto=jeuNivAuto();
-  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'':`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${x}</span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
+  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'':`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${x}<small>pts</small></span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
 }
 function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
@@ -46329,7 +46329,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-08-situation-v2671';
+  const SW_CACHE='requete-2026-11-08-coef-pts-v2672';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -36,13 +36,13 @@ test('les niveaux de la salle portent leur coefficient : ×1, ×2, ×4', () => {
   assert.ok(niv.includes("x=JEU_NIV_X[k]||1"), 'le coefficient vient du barème (JEU_NIV_X)');
   /* 7 novembre, 21 h 44 : « ×2 pts », plus visible (retours-2144-defis) */
   /* 8 novembre, 11 h 08 (« ce niveau premium ») : la pièce de « Ta salle de défi » puis ×N (retours-premium-defis) */
-  assert.ok(niv.includes('`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${x}</span>`'));
+  assert.ok(niv.includes('`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${x}<small>pts</small></span>`'), 'la pièce, ×2, puis « pts » (8 novembre, 13 h 35)');
   assert.ok(niv.includes("lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`"), 'lu en toutes lettres');
   assert.ok(niv.includes("${k===auto&&!vide?'<em class=\"room-lv-auto\">Niveau recommandé</em>':''}"), 'le niveau recommandé reste');
   const ctx = vm.createContext({ JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, jeuNiv: 'm', jeuNivAuto: () => 'm', jeuChallenges: () => [1], DX_PIECE_SVG: '<svg data-k="piece"></svg>' });
   vm.runInContext(niv, ctx);
   const html = ctx.jeuNiveauxHTML('lab', 'defisNiv');
-  assert.deepEqual([...html.matchAll(/<span class="room-lv-x" aria-hidden="true"><svg data-k="piece"><\/svg>([^<]+)<\/span>/g)].map(m => m[1]), ['×1', '×2', '×4']);
+  assert.deepEqual([...html.matchAll(/<span class="room-lv-x" aria-hidden="true"><svg data-k="piece"><\/svg>([^<]+)<small>pts<\/small><\/span>/g)].map(m => m[1]), ['×1', '×2', '×4']);
   assert.deepEqual([...html.matchAll(/aria-label="([^"]+)"/g)].map(m => m[1]),
     ['Facile, points de base', 'Moyen, points multipliés par 2, niveau recommandé', 'Difficile, points multipliés par 4']);
   for (const part of ['html.lq .room-level .room-lv-x{display:inline-flex;', 'html.lq .room-level.is-m .room-lv-x{background:#FDF1E2;color:var(--warn)}',

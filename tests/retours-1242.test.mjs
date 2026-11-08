@@ -78,7 +78,7 @@ function regles(niv) {
 
 test('« Comment sont calculés les points ? » : le barème du niveau choisi, ses marches, son premier coup, ses places, sa manche parfaite', () => {
   const f = regles();
-  assert.ok(f.h.includes('<div class="room-rules-niv" role="radiogroup" aria-label="Le barème du niveau"><button type="button" role="radio" aria-checked="true" class="is-on" onclick="defisRulesNiv(\'f\')">Facile</button><button type="button" role="radio" aria-checked="false" class="" onclick="defisRulesNiv(\'m\')">Moyen<small>×2</small></button>'), 'les trois niveaux, le Facile au départ');
+  assert.ok(f.h.includes('<div class="room-rules-niv" role="radiogroup" aria-label="Le barème du niveau"><button type="button" role="radio" aria-checked="true" class="is-on" onclick="defisRulesNiv(\'f\')">Facile</button><button type="button" role="radio" aria-checked="false" class="" onclick="defisRulesNiv(\'m\')">Moyen<small>×2\u00a0pts</small></button>'), 'les trois niveaux, le Facile au départ ; « pts » après le coefficient (8 novembre, 13 h 35)');
   assert.deepEqual(f.marches.map(m => m[0]), [200, 175, 150, 125, 100, 75, 50]);
   const m = regles('m');
   /* La manche dure 15 min en Moyen et 20 en Difficile (8 novembre, 8 h 52) : chaque marche tient dans le chrono. */
@@ -90,7 +90,7 @@ test('« Comment sont calculés les points ? » : le barème du niveau choisi, s
   assert.deepEqual(d.marches, [[800, '≤ 5'], [700, '5–10'], [600, '10–15'], [500, '15–20']], 'le Difficile : quatre marches de 5 min dans une manche de 20 min');
   assert.ok(d.h.includes('Le chrono part de 20&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.') && f.h.includes('Le chrono part de 10&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
   assert.ok(d.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && d.h.includes('<span>Manche parfaite en Difficile</span><b>825</b><small>seul</small><i aria-hidden="true">·</i><b>1\u202f025</b>'), '1 025, avec l’espace des milliers');
-  assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×4</small></button>'));
+  assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×4\u00a0pts</small></button>'));
   assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 3' + NB + 'min' + NB + '; en Difficile, quadruple et 5' + NB + 'min. Le premier coup vaut +25 partout. Le chrono' + NB + ': 10' + NB + 'min en Facile, 15 en Moyen, 20 en Difficile.</small></li>'));
   assert.ok(app.includes('<small>Vitesse, niveau, premier coup et place dans la salle</small>'));
   for (const r of ['html.lq .room-rules-niv{display:flex;', 'html.lq .room-rules-niv button.is-on{background:#fff;', '@media (prefers-reduced-motion:reduce){html.lq .room-rules-niv button{transition:none}}']) assert.ok(lq.includes(r), r);

@@ -72,7 +72,7 @@ test('Jouer : ce que rapporte un niveau, plus visible : « ×2 pts » (plus « P
   /* 8 novembre, 0 h 23 : « enlever le plus c’est dur plus ça rapporte » ; ×1, ×2, ×4 le disent sous chaque niveau. */
   assert.ok(haut.includes('<div class="dx-niv-tete"><p class="jeu-lab" id="dx-niv-l">Niveau</p></div>') && !app.includes('<span class="dx-niv-plus">'));
   /* 8 novembre, 11 h 08 (« ce niveau premium ») : la pièce de « Ta salle de défi » puis ×N (retours-premium-defis) */
-  assert.deepEqual([...haut.matchAll(/<span class="room-lv-x" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true">[\s\S]*?<\/svg>(×\d)<\/span>/g)].map(m => m[1]), ['×1', '×2', '×4']);
+  assert.deepEqual([...haut.matchAll(/<span class="room-lv-x" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true">[\s\S]*?<\/svg>(×\d)<small>pts<\/small><\/span>/g)].map(m => m[1]), ['×1', '×2', '×4']);
   assert.ok(haut.includes('aria-label="Difficile, points multipliés par 4"'), 'toujours lu en toutes lettres');
   for (const k of ['html.lq #scr-defis .dx-niv-tete{display:flex;align-items:baseline;justify-content:space-between;', 'html.lq #scr-defis .dx-niv-plus{color:var(--accent-ink);',
     'html.lq .room-level .room-lv-x{gap:2px;min-width:44px;padding:4px 10px;font-size:15px}', 'html.lq .room-level .room-lv-x small{'])
