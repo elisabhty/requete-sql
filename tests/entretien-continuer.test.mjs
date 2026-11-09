@@ -30,7 +30,7 @@ vm.runInContext(`
   function entOk(id){return state.entretien[id]==='ok';}
   function entAllItems(){return ENTRETIEN.map((q,i)=>({q,id:q.id,i}));}
   function openEntretienQuestion(id,run){entRun=!!run;entOpen=id;opened.push(id);}
-  ${fn('startEntretien')}${fn('entInTab')}${fn('entFile')}${fn('entNextTarget')}${fn('entPrevTarget')}
+  ${fn('entOrdre')}${fn('startEntretien')}${fn('entInTab')}${fn('entFile')}${fn('entNextTarget')}${fn('entPrevTarget')}
 `, ctx);
 const chain = status => vm.runInContext(`
   entStatus='${status}';opened=[];startEntretien();

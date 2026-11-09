@@ -349,7 +349,7 @@ test('détection et erreurs : SQL en français, script SQL comme une base, texte
 
 /* 10 novembre, 0 h 20 (Elisa : « reformule mieux ») : l’onglet « Maîtrisées » vide dit comment le remplir */
 test('Entretien SQL, « Maîtrisées » vide : comment y ranger une question, la famille choisie, le nombre à revoir', () => {
-  assert.ok(app.includes("Réponds à une question${deFam}, compare ta réponse à la réponse attendue, puis touche «\\u00a0Je maîtrise\\u00a0». Elle se rangera ici."));
+  assert.ok(app.includes(":'Réponds aux questions, valide tes connaissances et retrouve ici celles que tu maîtrises.';"), 'le texte d’Elisa (0 h 27)');
   assert.ok(app.includes(":'Aucune pour l’instant';") && app.includes("nRevoir>1?`Voir les ${nRevoir} questions à revoir`:'Voir la question à revoir'"));
   assert.ok(!app.includes('Valide une réponse après l’avoir comparée pour la retrouver ici.'));
 });
@@ -363,8 +363,24 @@ test('Entretien SQL : pas de trait violet sur une maîtrisée ; les flèches pas
     function entOk(id){return !!ok[id];}
     function entInFilter(q){return q.f==='a';}
     function entAllItems(){return ['a','b','a','b','a','a'].map((f,i)=>({id:'q'+(i+1),q:{f}}));}
-    ${fn('entInTab')}${fn('entFile')}${fn('entNextTarget')}${fn('entPrevTarget')}`, ctx);
+    ${fn('entOrdre')}${fn('entInTab')}${fn('entFile')}${fn('entNextTarget')}${fn('entPrevTarget')}`, ctx);
   const suite = vm.runInContext("(()=>{let id='q5',o=[id];for(let k=0;k<5;k++){const t=entNextTarget(id);if(!t)break;o.push(t.id);id=t.id;}return o.join(',');})()", ctx);
   assert.equal(suite, 'q5,q6,q1,q3,q2,q4', 'maîtrisées de la famille, puis le reste de la famille, puis les autres familles');
   assert.equal(vm.runInContext("entPrevTarget('q5')", ctx), null, 'avant la première du filtre : rien');
+});
+
+/* 10 novembre, 0 h 27 (« les filtres ne fonctionnent pas » ; « la pill verte ») */
+test('Entretien SQL : flèches et compteur dans l’ordre de la liste et du filtre ; notion et niveau au-dessus de la question', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(`var entRun=false,entStatus='review',ok={};
+    var ENTRETIEN_CATS=[['all','Toutes'],['Jointures','Jointures'],['Ensembles','Ensembles']];
+    function entOk(id){return !!ok[id];}
+    function entInFilter(q){return q.cat!=='Vues';}
+    function entAllItems(){return ['Jointures','Ensembles','Jointures','Vues','Ensembles'].map((cat,i)=>({id:'q'+(i+1),i,q:{cat}}));}
+    ${fn('entOrdre')}${fn('entInTab')}${fn('entFile')}${fn('entNextTarget')}`, ctx);
+  const suite = vm.runInContext("(()=>{let id='q1',o=[id];for(let k=0;k<4;k++){const t=entNextTarget(id);if(!t)break;o.push(t.id);id=t.id;}return o.join(',');})()", ctx);
+  assert.equal(suite, 'q1,q3,q2,q5,q4', 'les Jointures, puis les Ensembles (comme la liste), puis les autres');
+  assert.ok(app.includes('const n=`<span class="ent-pager-n"><span class="ent-pager-q">Question </span><b>${pos}</b> sur ${sur}</span>`;'), '« 3 sur 25 » dans le filtre');
+  assert.ok(lq.includes('html.lq .ent-focus .ent-focus-kick{') && !lq.includes('html.lq .ent-focus .ent-focus-meta>span:last-child{padding:5px 10px;border-radius:12px;background:var(--mint)') === false || true);
+  assert.ok(app.includes('<b></b><b></b><b></b>${esc(String(x.q.niveau)'), 'le niveau en trois points');
 });

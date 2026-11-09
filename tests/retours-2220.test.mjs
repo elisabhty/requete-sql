@@ -19,7 +19,7 @@ const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
 
 /* Les deux morceaux, rendus pour de vrai selon ce que proposent entPrevTarget et entNextTarget. */
 function rendu(prev, next) {
-  const ctx = vm.createContext({ ENTRETIEN: { length: 142 }, entPrevTarget: () => prev, entNextTarget: () => next });
+  const ctx = vm.createContext({ ENTRETIEN: { length: 142 }, entPrevTarget: () => prev, entNextTarget: () => next, entRun: false, entOrdre: a => a, entAllItems: () => [], entInFilter: () => true, entInTab: () => true, entOk: () => false });
   vm.runInContext(cut('const ENT_FL_G=', 'function renderEntretienFocus(x){'), ctx);
   /* const n’est pas une propriété du contexte : on lit les deux flèches dans le contexte même */
   const fl = vm.runInContext('({ G: ENT_FL_G, D: ENT_FL_D })', ctx);
@@ -28,7 +28,7 @@ function rendu(prev, next) {
 
 test('en haut de la carte : les flèches autour du numéro ; sous l’évaluation : « Question suivante »', () => {
   const f = cut('function renderEntretienFocus(x){', 'function renderEntretien(opts){');
-  assert.ok(f.includes('<div class="ent-focus-meta">${entPagerHtml(x)}<i aria-hidden="true"></i><span>${x.q.niveau} · ${x.q.cat}</span></div>'), 'dans la ligne du numéro');
+  assert.ok(f.includes('<div class="ent-focus-meta">${entPagerHtml(x)}</div>\n    <p class="ent-focus-kick"><span class="ent-focus-cat">${esc(x.q.cat)}</span>'), 'dans la ligne du numéro');
   assert.ok(f.includes('${entFoot(x.id)}</div>${entSuiteHtml(x.id)}`:\'\'}'), 'juste sous l’évaluation, une fois la réponse révélée');
   const hero = f.slice(f.indexOf('<header class="ent-focus-hero">'), f.indexOf('</header>'));
   assert.ok(!hero.includes('entSuiteHtml') && hero.includes('<span>Réponds à voix haute, puis compare.</span></div>\n    </header>'.replace('\n    </header>', '')), 'plus de rangée de boutons sous la consigne');

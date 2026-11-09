@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=297">
+<link rel="stylesheet" href="ludique.css?v=298">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -42386,7 +42386,11 @@ function entEtoile(et){
 const ENT_FL_G='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
 const ENT_FL_D='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function entPagerHtml(x){
-  const n=`<span class="ent-pager-n"><span class="ent-pager-q">Question </span><b>${x.i+1}</b> sur ${ENTRETIEN.length}</span>`;
+  /* La place de la question dans ce qui est filtré (« 3 sur 25 » dans Jointures à revoir), comme la liste ; hors du filtre, sa place
+     parmi toutes (10 novembre, 0 h 27 : « Question 48 sur 142 » ne disait rien du filtre). */
+  const dedans=entRun?entOrdre(entAllItems()).filter(y=>entInFilter(y.q)&&!entOk(y.id)):entOrdre(entAllItems()).filter(y=>entInFilter(y.q)&&entInTab(y));
+  const k=dedans.findIndex(y=>y.id===x.id),pos=k>=0?k+1:x.i+1,sur=k>=0?dedans.length:ENTRETIEN.length;
+  const n=`<span class="ent-pager-n"><span class="ent-pager-q">Question </span><b>${pos}</b> sur ${sur}</span>`;
   if(!entPrevTarget(x.id)&&!entNextTarget(x.id))return `<div class="ent-pager">${n}</div>`;
   return `<nav class="ent-pager" aria-label="Changer de question"><button type="button" class="ent-pager-prev" onclick="prevEntretien('${x.id}')" aria-label="Question précédente">${ENT_FL_G}</button>${n}<button type="button" class="ent-pager-next" onclick="nextEntretien('${x.id}')" aria-label="Question suivante">${ENT_FL_D}</button></nav>`;
 }
@@ -42394,6 +42398,10 @@ function entPagerHtml(x){
 function entSuiteHtml(id){
   return `<button type="button" class="ent-suite" onclick="nextEntretien('${id}')"><span>${entNextTarget(id)?'Question suivante':'Retour aux questions'}</span>${ENT_FL_D}</button>`;
 }
+/* 10 novembre, 0 h 27 (Elisa : « améliorer la position de la pill verte Intermédiaire · Vues ») : elle était coincée sous les flèches,
+   en vert sur le violet, et tirait l’œil avant la question. La notion et le niveau deviennent la ligne d’annonce de la question, juste
+   au-dessus d’elle : la notion en clair, le niveau en trois points (un, deux ou trois allumés). */
+const ENT_NIV_N={'débutant':1,'debutant':1,'intermédiaire':2,'intermediaire':2,'avancé':3,'avance':3};
 function renderEntretienFocus(x){
   const revealed=!!entRevealed[x.id]||entOk(x.id);
   /* La question sur la carte violette de l’accueil, le micro en autocollant, l’onde qui parle (Elisa, 30 octobre, 22 h 11 :
@@ -42401,7 +42409,8 @@ function renderEntretienFocus(x){
   return `<article class="ent-focus" data-id="${x.id}" aria-labelledby="ent-focus-title">
     <header class="ent-focus-hero">
     <span class="ent-focus-stk" aria-hidden="true">${lqStkSvg('bulb')}</span>
-    <div class="ent-focus-meta">${entPagerHtml(x)}<i aria-hidden="true"></i><span>${x.q.niveau} · ${x.q.cat}</span></div>
+    <div class="ent-focus-meta">${entPagerHtml(x)}</div>
+    <p class="ent-focus-kick"><span class="ent-focus-cat">${esc(x.q.cat)}</span><span class="ent-niv" data-n="${ENT_NIV_N[String(x.q.niveau).toLowerCase()]||1}" aria-label="Niveau ${esc(x.q.niveau)}"><b></b><b></b><b></b>${esc(String(x.q.niveau).replace(/^\w/,c=>c.toUpperCase()))}</span></p>
     <h1 id="ent-focus-title">${entNbsp(x.q.q)}</h1>
     <div class="ent-coach"><span class="ent-coach-ico ent-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Réponds à voix haute, puis compare.</span></div>
     </header>
@@ -42477,10 +42486,9 @@ function renderEntretien(opts){
     const isDone=entStatus==='review';
     /* 10 novembre, 0 h 20 (Elisa : « reformule mieux ») : dire ce qui manque, comment le remplir, et la famille choisie */
     const nRevoir=entAllItems().filter(x=>entInFilter(x.q)&&!entOk(x.id)).length;
-    const deFam=famille?` de «\u00a0${esc(famille)}\u00a0»`:'';
     const emptyTitle=isDone?(famille?`«\u00a0${esc(famille)}\u00a0» : tout est maîtrisé`:'Tout est maîtrisé'):'Aucune pour l’instant';
     const emptyCopy=isDone?'Bravo\u00a0! Refais une question de temps en temps pour garder tes réflexes.'
-      :`Réponds à une question${deFam}, compare ta réponse à la réponse attendue, puis touche «\u00a0Je maîtrise\u00a0». Elle se rangera ici.`;
+      :'Réponds aux questions, valide tes connaissances et retrouve ici celles que tu maîtrises.';
     list.innerHTML=intro+`<div class="ent-empty"><span class="ent-empty-ico">${ENT_OK_SVG}</span><b>${emptyTitle}</b><span>${emptyCopy}</span><button type="button" onclick="${isDone?'startEntretien()':"setEntStatus('review')"}">${isDone?'Refaire une question':nRevoir>1?`Voir les ${nRevoir} questions à revoir`:'Voir la question à revoir'}</button></div>`;
     return;
   }
@@ -42536,10 +42544,10 @@ function openEntretienQuestion(id,run){
   if(navigator.vibrate)navigator.vibrate(6);
 }
 function startEntretien(){
-  const todo=entAllItems().filter(x=>!entOk(x.id));
+  const todo=entOrdre(entAllItems()).filter(x=>!entOk(x.id));
   if(!todo.length){
     /* Tout est maîtrisé : « Revoir une question » repart de la première, en suivant l’onglet. */
-    const pool=entAllItems().filter(x=>entInFilter(x.q));
+    const pool=entOrdre(entAllItems()).filter(x=>entInFilter(x.q));
     const t=pool[0]||entAllItems()[0];
     if(t)openEntretienQuestion(t.id);
     return;
@@ -42560,13 +42568,20 @@ function entInTab(x){ if(entRun)return !entOk(x.id); return entStatus==='ok'?ent
    aux autres ») : les flèches suivent une file. D’abord les questions de l’onglet et de la famille choisis, dans l’ordre de la liste ;
    puis les autres questions de la famille ; puis toutes les autres. Plus de boucle sur l’onglet : après la dernière maîtrisée vient la
    première des autres. Une série « Continuer la préparation » (entRun) garde sa boucle sur les questions à revoir. */
+/* 10 novembre, 0 h 27 (Elisa : « les filtres ne fonctionnent pas ») : ils filtraient bien, mais les flèches suivaient l’ordre du
+   fichier des questions (Jointures, puis Ensembles, puis de nouveau Jointures) quand la liste les montre rangées par notion. Les
+   flèches, le compteur et « Continuer » suivent maintenant l’ordre de la liste affichée. */
+function entOrdre(items){
+  const cats=typeof ENTRETIEN_CATS!=='undefined'?ENTRETIEN_CATS:[],rang=Object.fromEntries(cats.filter(([k])=>k!=='all').map(([k],r)=>[k,r]));
+  return items.slice().sort((a,b)=>((rang[a.q.cat]??99)-(rang[b.q.cat]??99))||(a.i-b.i));
+}
 function entFile(){
-  const tout=entAllItems(),dans=x=>entInFilter(x.q);
+  const tout=entOrdre(entAllItems()),dans=x=>entInFilter(x.q);
   return [...tout.filter(x=>dans(x)&&entInTab(x)),...tout.filter(x=>dans(x)&&!entInTab(x)),...tout.filter(x=>!dans(x))];
 }
 function entNextTarget(id){
   if(!entRun){const f=entFile(),i=f.findIndex(x=>x.id===id);return i<0?(f[0]||null):(f[i+1]||null);}
-  const pool=entAllItems().filter(x=>entInFilter(x.q));
+  const pool=entOrdre(entAllItems()).filter(x=>entInFilter(x.q));
   const cur=pool.findIndex(x=>x.id===id);
   for(let k=1;k<=pool.length;k++){
     const c=pool[(Math.max(-1,cur)+k)%pool.length];
@@ -42577,7 +42592,7 @@ function entNextTarget(id){
 /* 18 h 38, réf. 4 : « Question précédente » à côté de « Question suivante » : la précédente dans le même onglet et le même filtre. */
 function entPrevTarget(id){
   if(!entRun){const f=entFile(),i=f.findIndex(x=>x.id===id);return i>0?f[i-1]:null;}
-  const pool=entAllItems().filter(x=>entInFilter(x.q));
+  const pool=entOrdre(entAllItems()).filter(x=>entInFilter(x.q));
   const cur=pool.findIndex(x=>x.id===id);
   for(let k=1;k<=pool.length;k++){
     const c=pool[(Math.max(0,cur)-k+pool.length*2)%pool.length];
@@ -47818,7 +47833,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-file-v2793';
+  const SW_CACHE='requete-2026-11-09-ordre-v2794';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
