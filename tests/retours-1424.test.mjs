@@ -103,9 +103,9 @@ test('import : l’en-tête sous un titre fusionné, les lignes par requête pr�
   assert.ok(suivis.length >= 5 && suivis.every((f, i) => f > 0 && f <= 1 && (!i || f > suivis[i - 1])), 'la progression avance : ' + suivis.join(' '));
   db.close();
   const conf = fn('confirmImport');
-  assert.ok(conf.includes("if(go&&go.getAttribute('aria-busy')==='true')return;}") && conf.includes('importOccupe(true);\n  await new Promise(ok=>setTimeout(ok,40));'));
-  assert.ok(conf.includes('await createImportedTables(database, p.tables.filter(t=>!(pendingImport.saute&&pendingImport.saute.has(safeIdent(t.name).toLowerCase()))), f=>importOccupe(true,f));') && conf.includes('importOccupe(false);\n    importLaisses=') && conf.includes('importOccupe(false);\n    lqInfo(\'Import impossible\''));
-  assert.ok(fn('importOccupe').includes("go.textContent=frac==null?'Import en cours…':`Import en cours… ${Math.min(99,Math.round(frac*100))}\\u00a0%`;"));
+  assert.ok(conf.includes("if(go&&go.getAttribute('aria-busy')==='true')return;}") && conf.includes('importOccupe(true,0);\n  await new Promise(ok=>setTimeout(ok,40));'));
+  assert.ok(conf.includes('await createImportedTables(database, p.tables.filter(t=>!(pendingImport.saute&&pendingImport.saute.has(safeIdent(t.name).toLowerCase()))), f=>importOccupe(true,.05+f*.8));') && conf.includes('await importProgFin();\n    importOccupe(false);\n    importLaisses=') && conf.includes('importOccupe(false);\n    lqInfo(\'Import impossible\''));
+  assert.ok(fn('importProgPeindre').includes("go.textContent=`Import en cours… ${P.but>=1?pc:Math.min(99,pc)}\\u00a0%`;") && fn('importOccupe').includes('if(frac!=null)impProg.but=Math.max(impProg.but,Math.min(1,frac));'), 'le bouton compte de 0 à 100 % (22 h 44)');
   /* Les noms longs passent à la ligne dans la carte du projet (depuis le 6 novembre, 7 h 52 : la carte du schéma UML) */
   assert.ok(app.includes('<span class="tbu-cn">${esc(c.c).replace(/_/g,\'_<wbr>\')}</span>') && lq.includes('html.lq #scr-console .tbu-cn{min-width:0;line-height:1.3;overflow-wrap:anywhere}'));
 });
@@ -159,6 +159,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=291">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-importcas-v2783';") && app.includes("const SW_CACHE='requete-2026-11-09-importcas-v2783';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=292">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-importpct-v2784';") && app.includes("const SW_CACHE='requete-2026-11-09-importpct-v2784';"));
 });

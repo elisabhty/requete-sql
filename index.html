@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=291">
+<link rel="stylesheet" href="ludique.css?v=292">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -22176,7 +22176,7 @@ function cleanColName(h,i){
 }
 function tableFromMatrix(headers,dataRows){
   /* Un tableur : les colonnes vides en fin de ligne s’en vont, et les nombres à virgule (12,5) deviennent des nombres. */
-  const width=Math.max(headers.length,...dataRows.map(r=>r.length));
+  const width=dataRows.reduce((w,r)=>Math.max(w,r.length),headers.length);   // sans « ... » : 150 000 lignes dépassaient la pile (22 h 44)
   let last=width-1;
   while(last>0&&(headers[last]==null||String(headers[last]).trim()==='')&&dataRows.every(r=>r[last]==null||String(r[last]).trim()===''))last--;
   headers=Array.from({length:last+1},(_,i)=>headers[i]==null?'':String(headers[i]).trim());
@@ -22688,7 +22688,7 @@ function openImportSheet(){
   /* Où vont les tables d’un classeur, d’une base ou d’un script ajoutés au projet ouvert */
   const ou=document.getElementById('imp-ou');
   if(ou){
-    ou.textContent=aj&&asDb?(noms.length?`${noms.length>1?'Elles rejoindront':'Elle rejoindra'} « ${projectName(aj)} »${nAj?`, à côté de ${nAj>1?`ses ${nAj} tables`:'sa table'}`:''}.`:`Le script sera exécuté dans « ${projectName(aj)} ».`):'';
+    ou.textContent=aj&&asDb?(noms.length?`${noms.length>1?'Elles seront ajoutées':'Elle sera ajoutée'} au projet « ${projectName(aj)} »${nAj?`, qui contient déjà ${plur(nAj,'table')}`:''}.`:`Le script sera exécuté dans « ${projectName(aj)} ».`):'';
     ou.hidden=!ou.textContent;
   }
 
@@ -22759,13 +22759,48 @@ function copierTablesSqlite(bytes,dest,saute){
   return noms;
 }
 /* Le bouton de la feuille d’import, le temps de l’import : désactivé, « Import en cours… 42 % ». */
+/* 9 novembre, 22 h 44 (Elisa : « le bouton importer marche bien, avec des % d’import ») : le bouton se remplit de gauche à droite et
+   compte de 0 à 100 %. Le pourcentage suit le vrai travail (lignes écrites, puis enregistrement) ; il avance sans à-coups (au plus
+   vite 0 → 100 % en 0,6 s), même quand une étape finit d’un coup, et 100 % s’affiche avant que la feuille ne se ferme. */
+let impProg=null;
+function importProgPeindre(go){
+  const P=impProg;if(!P||!go)return;
+  const t=performance.now(),dt=Math.max(0,t-P.t)/1000;P.t=t;
+  P.vu=Math.min(P.but,P.vu+dt*1.7);
+  const pc=Math.round(P.vu*100);
+  go.style.setProperty('--imp-pc',P.vu.toFixed(3));
+  go.textContent=`Import en cours… ${P.but>=1?pc:Math.min(99,pc)}\u00a0%`;
+}
+function importProgTourner(){
+  const go=document.getElementById('imp-go');
+  if(!impProg||!go)return;
+  importProgPeindre(go);
+  impProg.raf=requestAnimationFrame(importProgTourner);
+}
 function importOccupe(on,frac){
   const go=document.getElementById('imp-go');if(!go)return;
-  if(!on){go.disabled=false;go.removeAttribute('aria-busy');go.classList.remove('is-busy');if(go.dataset.lib)go.textContent=go.dataset.lib;delete go.dataset.lib;return;}
+  if(!on){
+    if(impProg)cancelAnimationFrame(impProg.raf);impProg=null;
+    go.disabled=false;go.removeAttribute('aria-busy');go.classList.remove('is-busy');go.style.removeProperty('--imp-pc');
+    if(go.dataset.lib)go.textContent=go.dataset.lib;delete go.dataset.lib;return;
+  }
   if(!go.dataset.lib)go.dataset.lib=go.textContent;
   go.disabled=true;go.setAttribute('aria-busy','true');go.classList.add('is-busy');
-  go.textContent=frac==null?'Import en cours…':`Import en cours… ${Math.min(99,Math.round(frac*100))}\u00a0%`;
+  if(!impProg){impProg={vu:0,but:0,t:performance.now(),raf:0};impProg.raf=requestAnimationFrame(importProgTourner);}
+  if(frac!=null)impProg.but=Math.max(impProg.but,Math.min(1,frac));
+  importProgPeindre(go);
 }
+/* La fin : le bouton monte jusqu’à 100 % (et s’y arrête un instant) avant que la feuille se ferme */
+function importProgFin(){
+  return new Promise(ok=>{
+    if(!impProg){ok();return;}
+    impProg.but=1;const t0=performance.now();
+    const att=()=>{if(!impProg||impProg.vu>=1||performance.now()-t0>900)setTimeout(ok,220);else requestAnimationFrame(att);};
+    att();
+  });
+}
+/* Une étape finie : on laisse le bouton se repeindre */
+function importSouffle(){return new Promise(ok=>requestAnimationFrame(()=>setTimeout(ok,0)));}
 function resolveImportTarget(){
   let target=document.getElementById('imp-db').value;
   if(target==='cours'){toast('La base du cours est protégée');return null;}
@@ -22858,7 +22893,7 @@ async function confirmImport(){
   }
   const avant=activeDbId,neuf=chosen==='__new__';
   /* Le bouton dit tout de suite que l’import est parti, avant le gros du travail (une image, pour qu’il ait le temps de s’afficher) */
-  importOccupe(true);
+  importOccupe(true,0);
   await new Promise(ok=>setTimeout(ok,40));
   const target=aj||resolveImportTarget();
   if(!target){importOccupe(false);return;}
@@ -22884,19 +22919,22 @@ async function confirmImport(){
   try{
     if(remplace){
       /* rien à créer : les tables sont celles du fichier */
+      importOccupe(true,.6);await importSouffle();
     }else if(p.format==='sqlite'){
       database.run('SAVEPOINT rq_import');point=true;
+      importOccupe(true,.2);await importSouffle();
       copierTablesSqlite(p.bytes,database,pendingImport.saute);
     }else if(p.kind==='database' && p.format==='json-db'){
       database.run('SAVEPOINT rq_import');point=true;
-      await createImportedTables(database, p.tables.filter(t=>!(pendingImport.saute&&pendingImport.saute.has(safeIdent(t.name).toLowerCase()))), f=>importOccupe(true,f));
+      await createImportedTables(database, p.tables.filter(t=>!(pendingImport.saute&&pendingImport.saute.has(safeIdent(t.name).toLowerCase()))), f=>importOccupe(true,.05+f*.8));
     }else if(p.kind==='database' || p.kind==='sql-table'){
+      importOccupe(true,.25);await importSouffle();
       runSqlImport(database, p.sql);
       if(p.primaryTable) pendingImport.importedTable=safeIdent(p.primaryTable);
     }else{
       const tname=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
       database.run('SAVEPOINT rq_import');point=true;
-      await createImportedTables(database, [{name:tname, cols:p.cols, types:p.types, rows:p.rows}], f=>importOccupe(true,f));
+      await createImportedTables(database, [{name:tname, cols:p.cols, types:p.types, rows:p.rows}], f=>importOccupe(true,.05+f*.8));
       pendingImport.importedTable=tname;
     }
     if(point){ database.run('RELEASE rq_import'); point=false; }
@@ -22918,9 +22956,11 @@ async function confirmImport(){
     const infosT=p.format==='json-db'?(p.tables||[]).find(t=>t.infos):null;
     const infosN=infosT?tabs.find(t=>t.toLowerCase()===safeIdent(infosT.name).toLowerCase()):null;
     if(infosN&&infosT.note){ const pj=projOf(target); pj.tdesc=pj.tdesc||{}; if(!pj.tdesc[infosN]){ pj.tdesc[infosN]=infosT.note; try{ saveProjState(); }catch(e){} } }
+    importOccupe(true,.88);await importSouffle();
     if(activeDbId!=='cours')persistCustomDbs(target);
+    await importProgFin();
     importOccupe(false);
-    importLaisses={identiques:pendingImport.identiques||[],gardees:pendingImport.gardees||[],majs:pendingImport.majs||[],remplace:!!pendingImport.remplace};   // la feuille se ferme (pendingImport s’en va) : le compte rendu les dira
+    importLaisses={identiques:pendingImport.identiques||[],gardees:pendingImport.gardees||[],majs:pendingImport.majs||[],remplace:!!pendingImport.remplace,neuf};   // la feuille se ferme (pendingImport s’en va) : le compte rendu les dira
     closeImportSheet();
     const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):ajoutees.length===1?tabs.find(t=>t.toLowerCase()===ajoutees[0].toLowerCase())||null:null;
     /* Ajoutée depuis la page du projet : on y reste, le panneau des tables ouvert, et la page descend jusqu’à la nouvelle table ;
@@ -22955,8 +22995,8 @@ async function confirmImport(){
       if(carte){
         carte.classList.add('is-valide');
         carte.querySelectorAll('code').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,14)));
-        requestAnimationFrame(()=>lqDone(carte,aj?(ajoutees.length>1?'Ajoutées':'Ajoutée'):asDb?'Importé':'Importée',aj?(ajoutees.length>1?'Tables ajoutées':'Table ajoutée'):asDb?'Projet importé':'Table importée'));
-      }else lqSay(asDb?'Projet importé':'Table importée');
+        requestAnimationFrame(()=>lqDone(carte,neuf?'Créé':affected.length>1?'Ajoutées':'Ajoutée',neuf?'Projet créé':affected.length>1?'Tables ajoutées':'Table ajoutée'));
+      }else lqSay(neuf?'Projet créé':'Import terminé');
     }
   }catch(e){
     if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}
@@ -23003,13 +23043,15 @@ function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){
   }
   if(ajoutees&&ajoutees.length>1){
     const autres=tabs.filter(t=>!ajoutees.some(a=>a.toLowerCase()===t.toLowerCase()));
-    return ok('Tables ajoutées',`<p>${autres.length?`Ajoutées au projet&nbsp;: ${codes(ajoutees)}`:`${codes(ajoutees)} constituent les ${ajoutees.length} tables du projet`}.</p>${garde}${trouves}${voir}`);
+    return ok('Tables ajoutées',`<p>Ajoutées au projet&nbsp;: ${codes(ajoutees)}.</p>${garde}${trouves}${voir}`);
   }
   if(asDb&&pi.remplace)return ok('Contenu remplacé',`<p>Le projet contient maintenant ${plur(tabs.length,'table')}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${garde}${trouves}${voir}`);
-  if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${garde}${trouves}${voir}`);
-  if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses relations.</p>`);
-  if(tn)return ok('Table ajoutée',`<p>Ajoutée au projet&nbsp;: <code>${esc(tn)}</code>.${liens.length?'':` Aucune relation pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait une.`}</p>${trouves}${voir}`);
-  return ok('Import réussi',`<p>${tabs.length?`Tables&nbsp;: ${codes(tabs)}.`:'Script exécuté.'}</p>${trouves}${voir}`);
+  /* 9 novembre, 22 h 44 (« comme l’autre ») : un nouveau projet dit ses tables comme un ajout, « Ajoutées au projet : … » */
+  if(asDb&&tabs.length)return ok(pi.neuf?'Projet créé':tabs.length>1?'Tables ajoutées':'Table ajoutée',`<p>${tabs.length>1?'Ajoutées':'Ajoutée'} au projet&nbsp;: ${codes(tabs)}.</p>${garde}${trouves}${voir}`);
+  if(asDb)return ok(pi.neuf?'Projet créé':'Script exécuté','<p>Le script a été exécuté. Le projet ne contient encore aucune table.</p>');
+  if(tn&&tabs.length===1)return ok(pi.neuf?'Projet créé':'Table ajoutée',`<p>Ajoutée au projet&nbsp;: <code>${esc(tn)}</code>.</p><p class="imp-liens">Importe une deuxième table avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML affichera leur relation.</p>`);
+  if(tn)return ok('Table ajoutée',`<p>Ajoutée au projet&nbsp;: <code>${esc(tn)}</code>.</p>${liens.length?'':`<p class="imp-liens">Aucune relation pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait une.</p>`}${trouves}${voir}`);
+  return ok(tabs.length?'Import terminé':'Script exécuté',`<p>${tabs.length?`Tables du projet&nbsp;: ${codes(tabs)}.`:'Le script a été exécuté.'}</p>${trouves}${voir}`);
 }
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE','OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD','FIRST_VALUE','LAST_VALUE','NTILE','ROWS','RANGE','CURRENT','UNBOUNDED','PRECEDING','FOLLOWING','GROUP_CONCAT','STRING_AGG',
   /* Définir, modifier, sécuriser (les chapitres du projet) : GRANT, REVOKE et TO restaient en blanc dans la requête d’une note
@@ -47618,7 +47660,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-importcas-v2783';
+  const SW_CACHE='requete-2026-11-09-importpct-v2784';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
