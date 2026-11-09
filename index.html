@@ -36714,6 +36714,12 @@ function jeuRender(){
       ghost.style.cssText=`position:absolute;left:${ro.left-rr.left}px;top:${ro.top-rr.top}px;width:${ro.width}px;height:${ro.height}px;margin:0;z-index:3;pointer-events:none`;
     }
   }
+  /* 9 novembre, 17 h 09 (Elisa : « je pense que ça saute quand ça passe du moteur jusqu’au cadre ») : l’éditeur (la saisie,
+     « Exécuter », le résultat) laisse la place à la carte « Bravo, défi résolu ! », bien plus courte ; on venait de taper, la page
+     défilait en bas : elle raccourcissait d’un coup et l’écran sautait. La hauteur perdue se résorbe en douceur, et la carte est
+     ramenée au milieu de l’écran (jeuAtterrir). */
+  const atterrit=keep&&/^play/.test(v)&&!!prevEd&&!html.includes('id="ed-lesson"');
+  const avantH=atterrit?root.offsetHeight:0;
   root.innerHTML=html;
   if(!keep){
     root.classList.remove('jeu-in','jeu-cascade');void root.offsetWidth;
@@ -36732,6 +36738,20 @@ function jeuRender(){
   jeuAnnounce();
   if(focusKey){const f=root.querySelector(`[data-fk="${focusKey}"]`);if(f&&f.focus)f.focus({preventScroll:true});}
   const scr=document.getElementById('scr-lesson');if(scr&&!keep)scr.scrollTop=0;
+  if(atterrit)jeuAtterrir(root,avantH);
+}
+function jeuAtterrir(root,avantH){
+  const scr=document.getElementById('scr-lesson'),card=document.getElementById('jeu-done');
+  if(!scr||!card||typeof card.getBoundingClientRect!=='function')return;
+  const doux=!(typeof prefersReduceMotion==='function'&&prefersReduceMotion()),manque=avantH-root.offsetHeight;
+  if(manque>0&&doux){
+    const sp=document.createElement('div');sp.className='jeu-amorti';sp.setAttribute('aria-hidden','true');sp.style.height=manque+'px';root.appendChild(sp);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{sp.style.transition='height .5s cubic-bezier(.3,.7,.2,1)';sp.style.height='0px';}));
+    setTimeout(()=>{if(sp.parentNode)sp.parentNode.removeChild(sp);},650);
+  }
+  const r=card.getBoundingClientRect(),s=scr.getBoundingClientRect();
+  const cible=Math.max(0,scr.scrollTop+(r.top-s.top)-Math.max(90,(s.height-r.height)/2.6));
+  if(Math.abs(cible-scr.scrollTop)>8){try{scr.scrollTo({top:cible,behavior:doux?'smooth':'auto'});}catch(e){scr.scrollTop=cible;}}
 }
 /* Une manche finie au chrono sans que tout le monde ait trouvé (8 novembre, 9 h 31 : la partie continue) : le serveur la garde
    ouverte jusqu’à sa fin, à son heure à lui, et refuserait d’ici là la manche suivante (« manche en cours ») ou la fin de partie. On
@@ -47353,7 +47373,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-centre-v2757';
+  const SW_CACHE='requete-2026-11-09-atterrir-v2758';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
