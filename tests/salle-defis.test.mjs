@@ -1764,12 +1764,18 @@ test('14 h 01 : pas tous prêts, le bouton se débloque à 30 s ; « n’est pas
   assert.ok(host.J('rounds[0]'), 'l’hôte lance sans eux');
   /* 14 h 09 : sans les joueurs non prêts ; eux lisent « Oups, la partie a déjà démarré ! » */
   assert.equal(guests[0].view(), 'draw0', 'la prête joue');
-  for (const c of [guests[1], n]) { assert.equal(c.view(), 'oups', c.name); assert.match(c.html, /Oups, la partie a déjà démarré\u00a0!/); }
+  for (const c of [guests[1], n]) { assert.equal(c.view(), 'oups', c.name); assert.match(c.html, /Oups, la partie a déjà démarré\u00a0!/);
+    assert.match(c.html, /Pas de panique, d’autres salles t’attendent\./); assert.doesNotMatch(c.html, /prochaine/, '14 h 22 : plus « tu joueras la prochaine partie »');
+    assert.match(c.html, /<button type="button" class="room-go jeu-retour" onclick="openJeu\(\)"><span>Retour aux défis<\/span><i class="jeu-ready-fl" aria-hidden="true">/, 'la flèche qui avance');
+    assert.match(c.html, /Retour automatique dans <b id="jeu-oups-n">30<\/b>\u00a0s/, '14 h 24 : le compte à rebours'); }
   for (const c of [host, guests[0]]) assert.deepEqual(c.live(), ['Hôte', 'Ami1'], c.name + ' : la partie se joue à deux');
   sec(w, 3.5); host.found(); guests[0].found(); sec(w, 2.5);
   assert.equal(host.view(), 'res0', 'la manche finit sans attendre les absents de la partie');
   /* Un « prêt » touché trop tard ne change rien */
   guests[1].ev('jeuToggleReady()'); sec(w, 1); assert.equal(guests[1].view(), 'oups');
+  /* 14 h 24 : au bout de 30 s, retour sur Défis tout seul */
+  n.ctx.leaveLessonScreen = t => { n.parti = t; };
+  sec(w, 12); assert.equal(n.parti, undefined, 'pas avant 30 s'); sec(w, 12); assert.equal(n.parti, 'defis', 'retour sur Défis');
   /* L’hôte part : la main passe à un participant, jamais à un absent de la partie */
   host.ev('jeuStop()'); sec(w, 6);
   assert.equal(guests[0].ev('jeuIsHost()'), true);

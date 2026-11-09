@@ -2040,6 +2040,8 @@
   #jeu-go:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
   .jeu-ready{display:inline-flex;align-items:center;justify-content:center;gap:8px}
   .jeu-ready-fl{display:inline-flex;font-style:normal}
+  .jeu-oups-auto{margin:10px 0 0!important;text-align:center;font-size:12.5px;font-weight:600;color:var(--ink-3)}
+  .jeu-oups-auto b{font-variant-numeric:tabular-nums;color:var(--ink-2)}
   .jeu-ready-fl svg{width:16px;height:16px;animation:jeuFlAvance 1.3s ease-in-out infinite}
   .jeu-ready.on .jeu-ready-fl{display:none}
   @keyframes jeuFlAvance{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
@@ -35439,7 +35441,7 @@ function jeuOnMsg(m){
       /* La liste des participants, figée au lancement (celle du serveur en salle classée, sinon celle de l’hôte) : les autres regardent
          la partie se jouer sans eux (« Oups, la partie a déjà démarré ! ») et reviennent à la partie suivante (« Rejouer »). */
       if(n===0){const lst=Array.isArray(m.joueurs)?m.joueurs:Array.isArray(m.who)?m.who:null;
-        if(lst){J.partants=new Set(lst.map(String));if(!J.partants.has(J.me))J.horsPartie=true;}}
+        if(lst){J.partants=new Set(lst.map(String));if(!J.partants.has(J.me)&&!J.horsPartie){J.horsPartie=true;J.oupsAt=Date.now();}}}
       addP();jeuDrain();break;}
     case 'found':{
       if((m.g|0)>J.g)return jeuLater(m);
@@ -35723,7 +35725,8 @@ function jeuTick(){
   jeuFlush();
   jeuHostWatch();
   jeuNetMaj();
-  jeuReagirMaj();   // « Réagir », en bas à droite, pendant la manche (19 h 37)
+  jeuReagirMaj();   // « Réagir », en bas à droite
+  jeuOupsMaj();   // pas prêt au lancement : retour sur Défis au bout de 30 s (14 h 24), pendant la manche (19 h 37)
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
   if(el&&n>=0&&(jeuFige(n)||(jeuSoloLike(n)&&jeuRoundDone(n))))jeuChronoPose(el,jeuChronoEtat(n));   // seul, le chrono arrêté : le temps mis, ou 00:00 (10 h 37)
@@ -36462,7 +36465,9 @@ function jeuRender(){
     html=etat('user','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.',retour,'is-lost');
   }else if(v==='oups'){
     /* 14 h 09 (Elisa : « pour les invités non prêts lorsque la partie démarre : 🐱 Oups, la partie a déjà démarré ! ») */
-    html=etat('chat:pied','Oups, la partie a déjà démarré !',`Tu n’étais pas ${jeuPretMot(true)} au lancement. Reste là : tu joueras la prochaine partie de cette salle.`,retour,'is-lost');
+    /* 14 h 22 : « Pas de panique, d’autres salles t’attendent. », et « Retour aux défis » avec sa flèche qui avance (plus « tu joueras la
+       prochaine partie ») ; on reste sur cet écran jusqu’au bouton. */
+    html=etat('chat:pied','Oups, la partie a déjà démarré !','Pas de panique, d’autres salles t’attendent.',`<button type="button" class="room-go jeu-retour" onclick="openJeu()"><span>Retour aux défis</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button><p class="jeu-oups-auto">Retour automatique dans <b id="jeu-oups-n">${Math.max(1,Math.ceil((JEU_OUPS_MS-(Date.now()-(J.oupsAt||Date.now())))/1000))}</b> s</p>`,'is-lost');
   }else if(v==='tard'){
     html=etat('user','La partie a déjà commencé','On rejoint une salle tant que l’hôte n’a pas lancé la partie. Ouvre la tienne, ou attends la prochaine partie de cette salle.',retour,'is-lost');
   }else if(v==='full'){
@@ -36704,6 +36709,16 @@ function jeuAttenteFin(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
   if(!r||r.closed||r.done||jeuLive().every(p=>r.found[p]!=null))return 0;
   return Math.max(0,r.t1+jeuDureeMs(jeuNivManche(n))+2000-Date.now());
+}
+/* 14 h 24 (Elisa : « retour auto sur la page Défis au bout de 30 s ») : l’écran « Oups » compte les secondes sous son bouton, puis
+   repart tout seul sur Défis. */
+const JEU_OUPS_MS=30000;
+function jeuOupsMaj(){
+  const J=JEU;if(!J||!J.horsPartie||!J.oupsAt)return;
+  const reste=JEU_OUPS_MS-(Date.now()-J.oupsAt);
+  if(reste<=0){J.leaveOk=true;if(typeof leaveLessonScreen==='function'&&typeof mode!=='undefined'&&mode==='jeu'){jeuInvite='';leaveLessonScreen('defis');}else jeuStop();return;}
+  const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-oups-n'):null;
+  if(el){const t=String(Math.ceil(reste/1000));if(el.textContent!==t)el.textContent=t;}
 }
 function jeuNextRound(){
   const J=JEU,who=arguments[0];   // la liste des prêts, au lancement de la partie (jeuLancer, 14 h 09)if(!J||!jeuIsHost())return;
@@ -47290,7 +47305,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-partants-v2746';
+  const SW_CACHE='requete-2026-11-09-oups-v2747';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
