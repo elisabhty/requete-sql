@@ -31,10 +31,10 @@ test('l’indicateur des défis : les manches trouvées sur jouées (0/0, 1/1, 1
 test('le KPI partout où il était : planning, Mon compte, Pratiquer, les niveaux de la salle ; plus de défis « réussis »', () => {
   const over = cut('function planOverviewHTML(st){', 'function planManageHTML(');
   /* 1er novembre, 1 h 12 : « améliore l’ui ux des kpi » */
-  assert.ok(over.includes(`<div class="pgr-stat is-d"><small>Défis</small><b>\${kd.ma?\`\${kd.tr}<em>/\${kd.ma}</em>\`:'0'}</b><i class="pgr-meter" aria-hidden="true"><b style="width:\${pD}%"></b></i><p>\${kd.ma?\`réussie\${kd.tr>1?'s':''}\`:'à jouer'}</p><span class="kpi-pts">\${KPI_COIN_SVG}\${sallePts(kd.pts)}</span></div>`), 'la tuile du planning');
+  assert.ok(over.includes(`<div class="pgr-stat is-d"><small>Défis</small><b>\${kd.ma?\`\${kd.tr}<em>/\${kd.ma}</em>\`:'0'}</b><i class="pgr-meter" aria-hidden="true"><b style="width:\${pD}%"></b></i><p>\${kd.ma?\`résolu\${kd.tr>1?'s':''}\`:'à jouer'}</p><span class="kpi-pts">\${KPI_COIN_SVG}\${sallePts(kd.pts)}</span></div>`), 'la tuile du planning');
   assert.ok(over.includes('pD=kd.ma?Math.round(kd.tr/kd.ma*100):0'), 'la jauge : la part de manches trouvées');
   const compte = cut('function renderCompte(){', 'function accPseudoHTML(');
-  assert.ok(compte.includes(`<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">\${lqStkSvg('target')}</span><b>\${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point\${kd.pts>1?'s':''} en défis</small><span class="kpi-chip\${kd.ma?'':' is-vide'}">\${kd.ma?\`\${kd.tr}/\${kd.ma} réussie\${kd.tr>1?'s':''}\`:'À jouer'}</span></div>`), 'Mon compte');
+  assert.ok(compte.includes(`<div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">\${lqStkSvg('target')}</span><b>\${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point\${kd.pts>1?'s':''} en défis</small><span class="kpi-chip\${kd.ma?'':' is-vide'}">\${kd.ma?\`\${kd.tr}/\${kd.ma} résolu\${kd.tr>1?'s':''}\`:'À jouer'}</span></div>`), 'Mon compte');
   const hub = fn('renderJourneyHub');
   /* 6 novembre, 15 h 20 : « Mes défis » quitte Pratiquer (le KPI reste dans Mes stats, Mon compte et le planning) ; le cadre du haut
      dit « À toi de jouer » (retours-1520-pratiquer.test.mjs). */

@@ -27,8 +27,8 @@ test('la phrase sous le titre s’arrête avant le chat (la marge de la leçon e
   assert.ok(lq.includes('html.lq #jeu-root:has(>.jeu-fin-chat)>:is(h1,.l-sub){margin-right:82px!important}'), 'petit écran');
 });
 
-test('« retente-le » ne se coupe pas au trait d’union à côté du chat', () => {
-  assert.ok(app.includes("Aucun défi trouvé cette fois\\u00a0: <span class=\"jeu-nw\">retente-le${nT>1?'s':''}</span> à tête reposée."));
+test('« retente-le » ne se coupe pas au trait d’union à côté du chat ; 9 novembre, 10 h 01 : la phrase s’en va (« l’essentiel »), « Retenter ce défi » le dit', () => {
+  assert.ok(!app.includes('retente-le${nT>1') && app.includes("const titre=all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Ton bilan':'Aucun défi résolu';"));
   assert.ok(lq.includes('html.lq #jeu-root .jeu-nw{white-space:nowrap}'));
   const debut = lq.indexOf('Défis — la refonte du 7 novembre');
   assert.ok(debut > 0 && lq.indexOf('html.lq #jeu-root .jeu-nw{') < debut, 'avec les règles du jeu, avant le bloc des Défis');

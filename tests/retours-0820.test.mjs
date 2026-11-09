@@ -39,19 +39,19 @@ test('l’encart vert : « Bravo, défi résolu ! », le détail, les points ; �
 test('dans la salle : la carte trouvée est la carte de l’indice ; à plusieurs, « En attente des autres » ; seul, la suite', () => {
   const f = fn('jeuFoundHTML');
   assert.ok(f.includes('<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">'));
-  assert.ok(app.includes("${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}"), 'à la place de l’éditeur, où était la carte de l’indice');
+  assert.ok(app.includes("${mine?jeuFoundHTML(r,J.me):rate?jeuRateHTML(r):editorBlock(false,'defi.sql',{jeu:1})}"), 'à la place de l’éditeur, où était la carte de l’indice (seul, finie au chrono : « Temps écoulé », 10 h 01)');
   assert.ok(fn('jeuWaitLine').includes('return `<i class="jeu-dot" aria-hidden="true"></i><span class="jeu-wl"><b class="jeu-wl-k">En attente des autres…</b><small>${who} ${wait.length>1?\'cherchent\':\'cherche\'} encore</small></span>`;'));
   const ctx = vm.createContext({ JEU: { me: 'a', players: { a: { name: 'Elisa' }, b: { name: '@matime' } }, rounds: [{ found: { a: 1000 } }] }, esc: s => s, jeuLive: () => ['a', 'b'] });
   vm.runInContext(fn('jeuWaitLine'), ctx);
   assert.equal(ctx.jeuWaitLine(0), '<i class="jeu-dot" aria-hidden="true"></i><span class="jeu-wl"><b class="jeu-wl-k">En attente des autres…</b><small>@matime cherche encore</small></span>', '« En attente des autres… », puis qui cherche encore, dessous (8 h 50)');
   /* Seul : la manche trouvée reste à l’écran le temps de la suite (jeuFinAuto, 5 s), jusqu’à la manche suivante ou jusqu’au bilan */
   const v = fn('jeuView');
-  assert.ok(v.includes("if(fin&&J.rounds[n].found[J.me]!=null&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;"));
+  assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||J.nb===1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono (10 h 01) ; une partie d’une manche s’y termine');
   assert.ok(v.indexOf("return'play'+n;") < v.indexOf("if(fin&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';"), 'avant le bilan');
   assert.ok(app.includes('function jeuFige(n){const J=JEU,r=J&&n>=0?J.rounds[n]:null;return !!r&&r.found[J.me]!=null&&jeuSoloLike(n);}'));
   assert.ok(fn('jeuTick').includes("if(el&&n>=0&&jeuFige(n))el.classList.add('is-ok');"), 'le chrono s’arrête, au vert');
   assert.ok(app.includes("const fige=jeuFige(n),took0=fige?r.found[J.me]:Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));") && app.includes("<b class=\"jeu-timer${fige?' is-ok':dur0-took0<30000?' is-low':''}\" id=\"jeu-timer\""), 'au temps trouvé');
-  assert.ok(fn('jeuLeaveQuestion').includes("if(/^play/.test(v)&&typeof jeuFige==='function'&&jeuFige(jeuCur()))return null;"), 'rien à perdre');
+  assert.ok(fn('jeuLeaveQuestion').includes("if(/^play/.test(v)&&typeof jeuFige==='function'&&(jeuFige(jeuCur())||(typeof jeuRoundDone==='function'&&jeuSoloLike(jeuCur())&&jeuRoundDone(jeuCur()))))return null;"), 'rien à perdre');
   /* À plusieurs, le dernier à trouver : l’encart vert un instant, puis les résultats de la manche */
   assert.ok(v.includes("if(fin&&!J.rounds[n].closed&&J.rounds[n].okAt&&Date.now()-J.rounds[n].okAt<JEU_OK_MS)return'play'+n;") && app.includes('const JEU_OK_MS=1800;'));
   assert.ok(app.includes("if(m.pid===J.me){J.played=true;if(!replay)r.okAt=Date.now();"), 'pas à la relecture de la salle (retour, rechargement)');
@@ -86,7 +86,7 @@ test('le style : l’encart vert comme la boîte « Défi résolu », le vert qu
     'html[data-motion="reduce"].lq .coach-ok,html[data-motion="reduce"].lq .coach-ok *{animation:none!important}',
   ]) assert.ok(lq.includes(k), k);
   assert.ok(lq.includes('html.lq .feedback.ok{background:var(--success-soft)!important;border-color:#BFE6CF!important;'), 'les couleurs de « Défi résolu »');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=264">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=265">'));
   /* 8 h 50 (« Change de couleur pour le vert Garde, sinon ça fait trop ») : « Garde » au bleu ciel, plus en menthe */
   assert.ok(!lq.includes('html.lq .consigne.dq .dq-sec.is-garde{background:#E5FAEF}') && lq.includes("background:#9CD7FF url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23134E7C'"));
 });
