@@ -35589,7 +35589,9 @@ function jeuRanking(n){
 function jeuScores(){
   const J=JEU,s={},t={},cur=jeuCur();J.order.forEach(p=>{s[p]=0;t[p]=0;});
   J.rounds.forEach((r,n)=>{
-    if(!(r&&(n<cur||jeuRoundDone(n)||J.over)))return;
+    /* 15 h 41 (Elisa : « si la personne a validé la manche, même si elle n’a pas terminé les autres, elle gagne ses points ») : qui part
+       compte aussi la manche qu’il vient de trouver, même si les autres la jouent encore (J.depart, jeuStop). */
+    if(!(r&&(n<cur||jeuRoundDone(n)||J.over||(J.depart&&r.found[J.me]!=null))))return;
     const rk=jeuRanking(n),got=new Set(rk.map(x=>x.pid));
     rk.forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;t[x.pid]=(t[x.pid]||0)+x.ms;});
     J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+jeuDureeMs(jeuNivManche(n));});
@@ -37085,7 +37087,7 @@ function jeuCreditGame(){
     J.record=pts>0&&(s.parties||0)>0&&pts>(s.best||0);
     s.pts=(s.pts||0)+pts;s.parties=(s.parties||0)+1;s.best=Math.max(s.best||0,pts);
     /* Le tableau « Tes performances » : les manches comptées comme dans les scores (terminées, ou toutes à la fin de la partie). */
-    const cur=jeuCur(),played=J.rounds.filter((r,n)=>r&&(n<cur||jeuRoundDone(n)||J.over));
+    const cur=jeuCur(),played=J.rounds.filter((r,n)=>r&&(n<cur||jeuRoundDone(n)||J.over||(J.depart&&r.found[J.me]!=null)));
     const mine=played.map(r=>r.found[J.me]).filter(v=>v!=null&&Number.isFinite(+v)).map(v=>Math.max(0,Math.round(+v)));
     const ms=mine.reduce((a,v)=>a+v,0),vs=!J.solo&&sc.length>1,place=vs&&me?me.place:0;
     s.manches=(s.manches||0)+played.length;s.trouves=(s.trouves||0)+mine.length;s.tms=(s.tms||0)+ms;
@@ -37174,7 +37176,7 @@ function jeuStop(){
   const J=JEU;if(!J)return;
   if(typeof coachPeekOff==='function')coachPeekOff();
   /* On quitte avant le podium : les points déjà gagnés ne sont pas perdus. */
-  try{if(!J.scored&&J.played){const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
+  try{if(!J.scored&&J.played){J.depart=true;const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
   /* Prévenir les autres tout de suite : l’hôte qui part passe la main sans attendre. */
   if((!J.solo||J.ranked)&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
   clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);clearTimeout(J.reagirT);J.drawT.forEach(clearTimeout);
@@ -47314,7 +47316,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-reagir-v2751';
+  const SW_CACHE='requete-2026-11-09-depart-v2752';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
