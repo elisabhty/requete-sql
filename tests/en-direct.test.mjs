@@ -366,7 +366,7 @@ test('branché à la manche : en tête, puis le cadre blanc et son titre (21 h 5
   assert.ok(rate.includes("(J.koAt=J.koAt||{})[m.pid]=Date.now();\n      jeuDirectPeindre(n);"), 'en direct : « Teste sa requête » tout de suite');
   assert.ok(cut('function jeuEssaiRate(r){', '\n}\n').includes("if(n>=0&&typeof jeuDirectPeindre==='function')jeuDirectPeindre(n);"), 'mon compteur aussi, sans attendre');
   assert.ok(cut('function jeuPatch(v){', '\n}\n').includes('jeuDirectPeindre(n);'), 'quelqu’un trouve, arrive ou part : sur place, l’éditeur ne bouge pas');
-  assert.ok(cut('function jeuTick(){', '\n}\n').includes("else{coachRoomTick();if(n>=0&&J.view==='play'+n){jeuEcritVeille(n);jeuDirectPeindre(n);jeuDirectMinute(n);jeuDitAvancer(n);}}"), 'ma requête qui change part ; « Teste », « Écrit », la flèche s’éteignent seuls ; la dernière minute ; la phrase suivante');
+  assert.ok(cut('function jeuTick(){', '\n}\n').includes("else{coachRoomTick();if(J.view==='lobby')jeuLobbyEtatMaj();if(n>=0&&J.view==='play'+n){jeuEcritVeille(n);jeuDirectPeindre(n);jeuDirectMinute(n);jeuDitAvancer(n);}}"), 'ma requête qui change part ; « Teste », « Écrit », la flèche s’éteignent seuls ; la dernière minute ; la phrase suivante');
 });
 
 test('le style : tout sous #jeu-root (avant la refonte des Défis), des gestes de 0,5 à 1 s, rien en mouvement réduit', () => {

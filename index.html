@@ -2011,6 +2011,33 @@
   .jeu-ready{width:100%;min-height:48px;margin-top:14px;border:1.5px solid var(--accent);border-radius:14px;background:#fff;color:var(--accent-ink);font:inherit;font-size:15px;font-weight:780;cursor:pointer;touch-action:manipulation;transition:background .16s,color .16s,transform .16s var(--spring-ios)}
   .jeu-ready.on{background:var(--success);border-color:var(--success);color:#fff}
   .jeu-ready:active{transform:scale(.98)}
+  /* 13 h 20 (Elisa) : la salle d’attente selon le rôle. Au-dessus du bouton, « 2/3 joueurs prêts » (un point par joueur, vert quand il
+     est prêt) et le message, qui entre en fondu quand il change ; « Retirer ce joueur », un lien discret. « Je suis prête » : sa flèche
+     avance, puis « Prête ✓ » en vert. « En attente » : une pastille grise. Sur un petit iPhone, tout passe à la ligne, rien ne déborde. */
+  .jeu-lobby-etat{display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 2px;text-align:center}
+  .jeu-lobby-etat:empty{display:none}
+  .jeu-prets{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 10px;border-radius:999px;background:var(--accent-soft,#F1EEFF);color:var(--accent-ink);font-size:13px;font-weight:700;line-height:1.2;transition:background .3s,color .3s}
+  .jeu-prets b{font-family:var(--display);font-weight:800}
+  .jeu-prets.is-tous{background:var(--success-soft);color:var(--success)}
+  .jeu-prets-pts{display:inline-flex;gap:4px}
+  .jeu-prets-pts i{width:8px;height:8px;border-radius:50%;background:#D9D4EC;transition:background .3s,transform .3s var(--pop,ease)}
+  .jeu-prets-pts i.ok{background:var(--success-fill,var(--success));transform:scale(1.15)}
+  .jeu-lobby-msg{margin:0!important;max-width:30ch;font-size:14px;font-weight:650;line-height:1.4;color:var(--ink-2);text-wrap:balance!important;animation:jeuMsgIn .32s ease-out both}
+  .jeu-lobby-msg.is-ok,.jeu-lobby-msg.is-moi{color:var(--success)}
+  .jeu-lobby-msg.is-lent{color:#9A5B12}
+  @keyframes jeuMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .jeu-retirer{min-height:36px;margin:-4px 0 0;padding:6px 12px;border:0;background:none;color:var(--ink-3);font:inherit;font-size:13px;font-weight:650;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;touch-action:manipulation}
+  .jeu-retirer:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+  .jeu-lobby-etat+.journey-primary,.jeu-lobby-etat+.jeu-ready{margin-top:12px}
+  #jeu-go:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+  .jeu-ready{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .jeu-ready-fl{display:inline-flex;font-style:normal}
+  .jeu-ready-fl svg{width:16px;height:16px;animation:jeuFlAvance 1.3s ease-in-out infinite}
+  .jeu-ready.on .jeu-ready-fl{display:none}
+  @keyframes jeuFlAvance{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+  .jeu-players em.jeu-state.is-att{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:#F0EEF5;color:#6E6A80;font-style:normal;font-size:12.5px;line-height:1;white-space:nowrap;transition:background .3s,color .3s}
+  @media (prefers-reduced-motion:reduce){.jeu-lobby-msg,.jeu-ready-fl svg{animation:none!important}.jeu-prets-pts i.ok{transform:none}}
+  html[data-motion="reduce"] .jeu-lobby-msg,html[data-motion="reduce"] .jeu-ready-fl svg{animation:none!important}
   .jeu-net.is-soft{background:var(--accent-soft);color:var(--accent-ink)!important}
   .jeu-draw{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;min-height:58vh;padding:18px 0 10px}
   .jeu-draw .l-kicker{margin:0!important}
@@ -35228,6 +35255,7 @@ function jeuSend(m){
   /* Le relais rejoue un historique dont l’ordre, à la seconde près, n’est pas garanti : un horodatage
      d’émetteur départage les réglages, les « prêt » et les prises de main. */
   if(m.t==='cfg'||m.t==='ready'||m.t==='host')m.cv=Date.now();
+  if(m.t==='hello')(JEU.mesHello||(JEU.mesHello=new Set())).add(m.u);   // un retrait ne vaut que pour mes arrivées (13 h 20)
   if(m.g===undefined)m.g=JEU.g;
   const J=JEU;
   if(!J.ranked)jeuOnMsg(Object.assign({},m,{at:Date.now()}));
@@ -35264,7 +35292,7 @@ function jeuFlush(){
 /* Retour au premier plan, réveil du téléphone ou reconnexion : on se signale (les autres répondent) et on
    laisse un délai avant de juger quiconque absent. */
 function jeuResume(){
-  const J=JEU;if(!J||J.solo||!J.synced||J.full)return;
+  const J=JEU;if(!J||J.solo||!J.synced||J.full||J.retire)return;
   /* Au retour, plusieurs signaux arrivent ensemble (l’appli revient, le chrono a sauté, le direct se rebranche) : une seule reprise,
      un seul « hello » (8 novembre, 18 h 01). */
   if(Date.now()-(J.repriseAt||0)<3000)return;J.repriseAt=Date.now();
@@ -35463,6 +35491,19 @@ function jeuOnMsg(m){
       if(m.pid===J.me)return;
       J.left[m.pid]=true;delete J.seen[m.pid];
       break;
+    case 'retire':{
+      /* 13 h 20 : l’hôte retire un joueur de la salle d’attente. Il ne vaut que pour l’arrivée visée (hu) : revenu avec le code, on
+         reste ; relu dans l’historique par un nouveau venu, il compte comme un départ. */
+      if(m.pid!==J.hostPid||!m.who||m.who===J.hostPid||(m.g|0)!==J.g)return;
+      if(m.who===J.me){
+        if(!m.hu||!(J.mesHello&&J.mesHello.has(m.hu)))return;
+        J.retire=true;J.view='';clearInterval(J.ping);
+        try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}
+        break;
+      }
+      if(m.hu&&J.helloOf[m.who]&&J.helloOf[m.who]!==m.hu)return;
+      J.left[m.who]=true;delete J.seen[m.who];delete J.ready[m.who];
+      break;}
     case 'host':break;
     default:return;
   }
@@ -35620,6 +35661,7 @@ function jeuView(){
   const J=JEU;
   if(J.full)return'full';
   if(J.tard)return'tard';
+  if(J.retire)return'retire';
   if(J.lost&&!J.hostPid)return'lost';
   if(!J.hostPid||!J.synced)return'join';
   if(J.over)return'final';
@@ -35652,7 +35694,7 @@ function jeuView(){
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
 function jeuHostWatch(){
   const J=JEU;
-  if(!J||J.solo||!J.synced||J.full||J.tard||!J.hostPid||J.hostPid===J.me)return;
+  if(!J||J.solo||!J.synced||J.full||J.tard||J.retire||!J.hostPid||J.hostPid===J.me)return;
   const now=Date.now();
   if(jeuPresent(J.hostPid)){J.goneAt=0;return;}
   if(!J.goneAt)J.goneAt=now;
@@ -35670,7 +35712,7 @@ function jeuHostWatch(){
   J.claimAt=now;
   jeuSend({t:'host',from:J.hostPid});
 }
-function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full||J.tard)return;jeuSend({t:'ping'});}
+function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full||J.tard||J.retire)return;jeuSend({t:'ping'});}
 /* Ce qui change à l’écran sans nouveau message : arrivées, départs, prêts. */
 function jeuSig(){
   const J=JEU,n=jeuCur(),r=n>=0?J.rounds[n]:null;
@@ -35691,7 +35733,7 @@ function jeuTick(){
     /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
     const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
-  else{coachRoomTick();if(n>=0&&J.view==='play'+n){jeuEcritVeille(n);jeuDirectPeindre(n);jeuDirectMinute(n);jeuDitAvancer(n);}}
+  else{coachRoomTick();if(J.view==='lobby')jeuLobbyEtatMaj();if(n>=0&&J.view==='play'+n){jeuEcritVeille(n);jeuDirectPeindre(n);jeuDirectMinute(n);jeuDitAvancer(n);}}
   /* À 0 : le compte à rebours de la suite, puis la suite elle-même (jeuFinAuto) */
   if(n>=0){
     const t=jeuFinAuto(n),an=document.getElementById('jeu-auto-n');
@@ -35739,7 +35781,9 @@ function jeuInitial(name){return esc((Array.from(String(name||'?').trim().replac
    quelqu’un qui n’a pas dit son sexe ». Le genre reste sur l’appareil (page Confidentialité) : ta ligne et ton bouton s’accordent
    (accord), les autres joueurs gardent « prêt·e ». */
 function jeuPretMot(me){return me&&typeof accord==='function'?accord('prête','prêt','prêt·e'):'prêt·e';}
-function jeuPretBouton(on){return `Je suis ${jeuPretMot(true)}${on?' ✓':''}`;}
+function jeuMaj(t){return t?t.charAt(0).toUpperCase()+t.slice(1):t;}
+/* 13 h 20 : avant, « Je suis prête » et sa flèche ; après, le statut « Prête ✓ » (le bouton, touché de nouveau, la remet en attente). */
+function jeuPretBouton(on){return on?`${jeuMaj(jeuPretMot(true))} ✓`:`Je suis ${jeuPretMot(true)}`;}
 /* Quand un joueur passe prêt, sa pastille saute, la coche se trace et une onde part, une seule fois (is-pret) ; la liste redessinée
    entre-temps reprend le geste là où il en était (--pret). Redevenu « en attente », il la refera. */
 const JEU_PRET_MS=900;
@@ -35756,8 +35800,8 @@ function jeuPlayersHTML(kind){
     if(kind==='lobby'){
       if(jeuIsReady(pid)){
         const t=Date.now()-(pretAt[pid]||(pretAt[pid]=Date.now()));if(t<JEU_PRET_MS)pret=Math.max(0,t);
-        state=`<em class="jeu-state is-ready"><i class="jeu-pret-ok" aria-hidden="true">${JEU_ICO.check}</i>${jeuPretMot(me)}</em>`;
-      }else{delete pretAt[pid];state='<em class="jeu-state">en attente</em>';}
+        state=`<em class="jeu-state is-ready"><i class="jeu-pret-ok" aria-hidden="true">${JEU_ICO.check}</i>${jeuMaj(jeuPretMot(me))}</em>`;
+      }else{delete pretAt[pid];state='<em class="jeu-state is-att">En attente</em>';}   // 13 h 20 : « Prêt·e » en vert, « En attente » en gris
     }
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
     return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
@@ -36179,16 +36223,60 @@ function jeuNetMaj(){
   const h=jeuNetHTML(),vu=h?'1':'';
   if(((el.dataset&&el.dataset.vu)||'')!==vu){el.innerHTML=h;if(el.dataset)el.dataset.vu=vu;}
 }
-function jeuLobbyLabel(){
-  const live=jeuLive(),ready=live.filter(jeuIsReady).length;
-  return live.length>1?`Lancer la partie · ${ready}/${live.length} prêts`:'Lancer la partie';
+/* La salle d’attente selon le rôle (Elisa, 9 novembre, 13 h 20) : l’hôte lance quand tout le monde est prêt, et jamais seul (« ne jamais
+   permettre de lancer une partie avec moins de deux joueurs », « ne jamais démarrer automatiquement ») ; un message au-dessus du bouton
+   dit où on en est, adapté à l’hôte ou à l’invité ; « 2/3 joueurs prêts » chez tous. Un joueur pas prêt depuis 30 s est nommé
+   (« @lili n’est pas encore prête… ») ; à 60 s (« @lili prend son temps… »), l’hôte peut le retirer, après une question, jamais tout
+   seul. Les temps comptent depuis que ce téléphone le voit dans la salle sans être prêt. */
+const JEU_LENT_MS=30000,JEU_LENT2_MS=60000;
+function jeuLobbyLabel(){return 'Lancer la partie';}
+function jeuPrets(){const live=jeuLive();return {live,prets:live.filter(jeuIsReady)};}
+function jeuPeutLancer(){
+  const J=JEU;if(!J||J.solo||!jeuIsHost()||jeuCur()>=0||J.over)return false;
+  const {live,prets}=jeuPrets();return live.length>=2&&prets.length===live.length;
 }
-function jeuLobbyHint(){
-  const live=jeuLive();
-  /* 12 h 50 : l’ami resté seul, devenu hôte, ne lit plus « Personne n’a encore rejoint » (les autres étaient là). */
-  if(live.length<2)return `${JEU.pub?'Ta salle est visible par les autres joueurs.':JEU.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;
-  const wait=live.filter(p=>!jeuIsReady(p));
-  return wait.length?`En attente : ${wait.map(p=>esc((JEU.players[p]||{}).name||'Joueur')).join(', ')}. Tu peux lancer quand tu veux.`:'Tout le monde est prêt.';
+/* Les joueurs pas encore prêts, celui qui attend depuis le plus longtemps d’abord. */
+function jeuPasPrets(){
+  const J=JEU,at=J.attAt||(J.attAt={}),now=Date.now(),w=jeuLive().filter(p=>!jeuIsReady(p));
+  Object.keys(at).forEach(p=>{if(!w.includes(p))delete at[p];});
+  w.forEach(p=>{if(!at[p])at[p]=now;});
+  return w.map(pid=>({pid,ms:now-at[pid]})).sort((x,y)=>y.ms-x.ms||(x.pid<y.pid?-1:1));
+}
+function jeuLobbyEtatHTML(){
+  const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true);
+  const tous=live.length>=2&&prets.length===live.length;
+  let msg,cls='',act='';
+  if(host&&live.length<2){
+    msg=`${J.pub?'Ta salle est visible par les autres joueurs.':J.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Il faut être au moins deux pour lancer la partie.`;
+  }else if(tous){
+    msg=host?'Tout le monde est prêt ! À toi de lancer la partie.':'Tout le monde est prêt ! En attente que l’hôte lance la partie…';cls='is-ok';
+  }else if(host){
+    const w=jeuPasPrets()[0],nom=w?esc((J.players[w.pid]||{}).name||'Un joueur'):'';
+    if(w&&w.ms>=JEU_LENT2_MS){msg=`${nom} prend son temps…`;cls='is-lent';
+      act=`<button type="button" class="jeu-retirer" data-pid="${esc(w.pid).replace(/"/g,'&quot;')}" onclick="jeuRetirer(this.dataset.pid)">Retirer ce joueur</button>`;}
+    else if(w&&w.ms>=JEU_LENT_MS){msg=`${nom} n’est pas encore prêt·e…`;cls='is-lent';}
+    else msg='En attente que les autres joueurs soient prêts…';
+  }else if(J.ready[J.me]){msg=`Tu es ${mot} ! En attente des autres joueurs…`;cls='is-moi';}
+  else msg=`Préviens l’hôte quand tu es ${mot} !`;
+  const compte=live.length>=2?`<span class="jeu-prets${tous?' is-tous':''}"><span class="jeu-prets-pts" aria-hidden="true">${live.map(p=>`<i${jeuIsReady(p)?' class="ok"':''}></i>`).join('')}</span><b>${prets.length}/${live.length}</b> joueurs prêts</span>`:'';
+  return `${compte}<p class="jeu-lobby-msg ${cls}">${msg}</p>${act}`;
+}
+/* Le message ne se redessine que s’il change (il entre en fondu) ; le bouton « Lancer » suit à chaque instant. */
+function jeuLobbyEtatMaj(){
+  const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-lobby-etat'):null;
+  if(el){const h=jeuLobbyEtatHTML();if((el.dataset&&el.dataset.h)!==h){el.innerHTML=h;if(el.dataset)el.dataset.h=h;}}
+  const go=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-go'):null;
+  if(go&&JEU&&JEU.view==='lobby'){const off=!jeuPeutLancer();if(go.disabled!==off)go.disabled=off;if(go.setAttribute)go.setAttribute('aria-disabled',String(off));}
+}
+function jeuLancer(){if(!jeuPeutLancer()){jeuLobbyEtatMaj();return;}jeuNextRound();}
+/* « Retirer ce joueur » : l’hôte seul, en salle d’attente ; une question d’abord. Le retiré lit qu’il a été retiré et peut revenir avec le
+   code (le retrait vise son arrivée, comme un refus : hu). */
+function jeuRetirer(pid){
+  const J=JEU;if(!J||J.solo||!jeuIsHost()||pid===J.me||jeuCur()>=0||J.over||!jeuPresent(pid))return;
+  const nom=(J.players[pid]||{}).name||'Ce joueur';
+  const go=()=>{if(JEU===J&&jeuIsHost()&&jeuCur()<0&&jeuPresent(pid))jeuSend({t:'retire',who:pid,hu:J.helloOf[pid]||''});};
+  if(typeof lqAsk!=='function'){go();return;}
+  lqAsk({ico:'👋',titre:`Retirer ${nom} ?`,texte:`${nom} quittera la salle d’attente. Tu pourras l’inviter de nouveau avec le code.`,oui:'Retirer',non:'Annuler',danger:true}).then(ok=>{if(ok)go();});
 }
 /* Annonces : « Léa a rejoint la salle » / « Léa est partie », sans bruit au premier affichage. */
 function jeuAnnounce(){
@@ -36217,8 +36305,8 @@ function jeuPatch(v){
   }
   jeuNetMaj();
   const go=document.getElementById('jeu-go');
-  if(go){go.disabled=false;const l=document.getElementById('jeu-go-label');if(l&&v==='lobby')l.textContent=jeuLobbyLabel();}
-  const hint=document.getElementById('jeu-lobby-hint');if(hint)hint.innerHTML=jeuLobbyHint();
+  if(go)go.disabled=v==='lobby'&&!jeuPeutLancer();
+  if(v==='lobby')jeuLobbyEtatMaj();
   const cnt=document.getElementById('jeu-n');if(cnt)cnt.textContent=`${jeuLive().length}/${J.max}`;
   const rd=document.getElementById('jeu-ready');
   if(rd){const on=!!J.ready[J.me];rd.setAttribute('aria-pressed',on);rd.classList.toggle('on',on);const l=rd.querySelector('span');if(l)l.textContent=jeuPretBouton(on);}
@@ -36352,6 +36440,9 @@ function jeuRender(){
     html=etat('chat:loupe','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
     html=etat('user','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.',retour,'is-lost');
+  }else if(v==='retire'){
+    const ac=(f,h,n)=>typeof accord==='function'?accord(f,h,n):n;
+    html=etat('user',`${ac('Tu as été retirée','Tu as été retiré','Tu as été retiré·e')} de la salle`,`L’hôte t’a ${ac('retirée','retiré','retiré·e')} de la salle d’attente. Tu peux y revenir avec son code, ou ouvrir ta propre salle.`,retour,'is-lost');
   }else if(v==='tard'){
     html=etat('user','La partie a déjà commencé','On rejoint une salle tant que l’hôte n’a pas lancé la partie. Ouvre la tienne, ou attends la prochaine partie de cette salle.',retour,'is-lost');
   }else if(v==='full'){
@@ -36378,9 +36469,9 @@ function jeuRender(){
       host&&J.pub?'Elle est visible par les autres joueurs, qui peuvent entrer. Tu peux aussi partager ce code.':host&&J.pour?`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`:'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
       `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
-      ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuNextRound()"><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button><p class="jeu-hint" id="jeu-lobby-hint">${jeuLobbyHint()}</p>`
-        :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span></button>
-        <p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente que l’hôte lance la partie…</p>`}</div>`;   // 9 novembre, 2 h 19 (sa réf. 1) : « en attente que l’hôte lance la partie » ; son pseudo est déjà dans la liste, avec « hôte »
+      <div class="jeu-lobby-etat" id="jeu-lobby-etat" role="status" aria-live="polite" data-h="">${jeuLobbyEtatHTML()}</div>
+      ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuLancer()"${jeuPeutLancer()?'':' disabled aria-disabled="true"'}><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button>`
+        :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button>`}</div>`;   // 13 h 20 : le message au-dessus du bouton (jeuLobbyEtatHTML) ; « Je suis prête » et sa flèche qui avance
     /* Le cadre et son code en haut, puis les joueurs. */
     html=frame+players+`${jeuNetSlot()}`;
   }else if(v.startsWith('draw')){
@@ -43754,7 +43845,7 @@ function ileSalleAction(quoi){
   const essai=k=>{
     if(JEU!==J)return;
     if(jeuIsHost()){
-      if(quoi==='lancer'&&jeuCur()<0&&!J.over)jeuNextRound();
+      if(quoi==='lancer'&&jeuPeutLancer())jeuNextRound();   // comme le bouton : tout le monde prêt, deux joueurs au moins (13 h 20)
       if(quoi==='rejouer'&&J.over)jeuAgain();
       return;
     }
@@ -47177,7 +47268,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-ferme-v2739';
+  const SW_CACHE='requete-2026-11-09-prets-v2740';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

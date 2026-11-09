@@ -238,17 +238,32 @@ test('salle d’attente : chacun voit les autres en direct, avec l’hôte en pr
   assert.ok(host.toasts.some(t => /Ami2 a rejoint la salle/.test(t)), 'annonce d’arrivée');
 });
 
-test('« prêt » : chaque ami se déclare, l’hôte voit le compteur', () => {
+test('« prêt » : chaque ami se déclare, l’hôte voit le compteur ; il ne lance que quand tout le monde est prêt (13 h 20)', () => {
   const { w, host, guests } = room({ n: 3 });
-  assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie · 1/3 prêts');
+  const etat = c => c.ev('jeuLobbyEtatHTML()');
+  assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie');
+  assert.match(etat(host), /<b>1\/3<\/b> joueurs prêts/); assert.match(etat(host), /En attente que les autres joueurs soient prêts…/);
+  assert.equal(host.ev('jeuPeutLancer()'), false, 'Situation A : le bouton est désactivé');
+  assert.match(host.html, /id="jeu-go" onclick="jeuLancer\(\)" disabled aria-disabled="true"/);
+  assert.match(etat(guests[0]), /Préviens l’hôte quand tu es prêt·e\u00a0!/);
   guests[0].ev('jeuToggleReady()'); sec(w, 1);
-  assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie · 2/3 prêts');
-  assert.match(host.ev('jeuLobbyHint()'), /En attente : Ami2/);
+  assert.match(etat(host), /<b>2\/3<\/b> joueurs prêts/);
+  assert.match(etat(guests[0]), /Tu es prêt·e\u00a0! En attente des autres joueurs…/);
+  assert.equal(guests[0].ev('jeuPretBouton(!!JEU.ready[JEU.me])'), 'Prêt·e ✓');
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
-  assert.equal(host.ev('jeuLobbyHint()'), 'Tout le monde est prêt.');
+  assert.match(etat(host), /Tout le monde est prêt\u00a0! À toi de lancer la partie\./, 'Situation B');
+  assert.equal(host.ev('jeuPeutLancer()'), true);
+  assert.equal(host.ev("document.getElementById('jeu-go')"), null, 'le harnais n’a pas de bouton : jeuLobbyEtatMaj ne casse rien');
+  for (const g of guests) assert.match(etat(g), /Tout le monde est prêt\u00a0! En attente que l’hôte lance la partie…/);
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
-  assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie · 2/3 prêts', 'on peut se remettre « pas prêt »');
+  assert.match(etat(host), /<b>2\/3<\/b> joueurs prêts/, 'on peut se remettre « pas prêt »');
+  assert.equal(host.ev('jeuPeutLancer()'), false);
   assert.equal(host.ev('jeuToggleReady()'), undefined, 'l’hôte est toujours prêt : pas de bascule');
+  /* Un joueur qui part : le compteur suit, et tout le monde est de nouveau prêt */
+  guests[1].ev('jeuStop()'); sec(w, 3);
+  assert.match(etat(host), /<b>2\/2<\/b> joueurs prêts/); assert.equal(host.ev('jeuPeutLancer()'), true);
+  host.ev('jeuLancer()'); sec(w, 1);
+  assert.ok(host.J('rounds[0]'), 'l’hôte lance : la partie part (jamais toute seule)');
 });
 
 /* Elisa, 31 octobre, 16 h 49 : « max 5 pour une salle » ; 8 novembre, 22 h 27 : « accepte 6 max dans une salle, comme ça on a deux
@@ -741,7 +756,11 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=2");
   h.host('ALONE1'); sec(w, 1);
   assert.equal(h.view(), 'lobby');
-  assert.match(h.ev('jeuLobbyHint()'), /Si tu lances maintenant, tu joues seul·e\./);
+  /* 13 h 20 : seul, « Lancer la partie » ne lance pas (« jamais avec moins de deux joueurs ») ; la partie qui se retrouve seule (les
+     autres partis) se joue toujours comme seul : le moteur, appelé directement */
+  assert.equal(h.ev('jeuPeutLancer()'), false);
+  assert.match(h.ev('jeuLobbyEtatHTML()'), /Il faut être au moins deux pour lancer la partie\./);
+  h.ev('jeuLancer()'); sec(w, 1); assert.equal(h.view(), 'lobby', 'le bouton ne lance pas');
   h.ev('jeuNextRound()'); sec(w, 4.5);
   assert.equal(h.view(), 'play0');
   assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
@@ -1716,4 +1735,40 @@ test('13 h 09 : l’hôte seul quitte sa salle d’attente (« Veux-tu quitter l
   host.ev('jeuStop()'); sec(w2, 5);
   assert.ok(guests[0].ev('jeuIsHost()'));
   assert.match(guests[0].ev('jeuLeaveQuestion().texte'), /en partant, tu la fermes/);
+});
+
+/* 9 novembre, 13 h 20 (Elisa : la salle d’attente selon le rôle ; « Retirer ce joueur » à 60 s, avec une question, jamais tout seul) */
+test('13 h 20 : un joueur lent est nommé à 30 s, à 60 s l’hôte peut le retirer ; le retiré le lit, et peut revenir', () => {
+  const { w, host, guests } = room({ n: 3, settle: 1 });
+  const etat = c => c.ev('jeuLobbyEtatHTML()');
+  guests[0].ev('jeuToggleReady()'); sec(w, 1);
+  assert.match(etat(host), /En attente que les autres joueurs soient prêts…/);
+  sec(w, 30);
+  assert.match(etat(host), /Ami2 n’est pas encore prêt·e…/);
+  assert.doesNotMatch(etat(host), /Retirer/);
+  assert.doesNotMatch(etat(guests[0]), /Ami2/, 'les invités ne voient pas ces messages');
+  sec(w, 30);
+  assert.match(etat(host), /Ami2 prend son temps…/);
+  assert.match(etat(host), /<button type="button" class="jeu-retirer" data-pid="[^"]+" onclick="jeuRetirer\(this\.dataset\.pid\)">Retirer ce joueur<\/button>/);
+  assert.doesNotMatch(etat(guests[0]), /Retirer/, 'seulement chez l’hôte');
+  assert.equal(guests[1].view(), 'lobby', 'rien n’est fait tout seul');
+  /* La question d’abord : « Annuler » ne retire personne */
+  const asks = []; let oui = false;
+  host.ctx.lqAsk = q => { asks.push([q.titre, q.texte, q.oui, q.non, q.danger]); return { then: f => f(oui) }; };
+  host.ev(`jeuRetirer(${JSON.stringify(guests[1].pid())})`); sec(w, 2);
+  assert.deepEqual(asks[0], ['Retirer Ami2\u00a0?', 'Ami2 quittera la salle d’attente. Tu pourras l’inviter de nouveau avec le code.', 'Retirer', 'Annuler', true]);
+  assert.equal(guests[1].view(), 'lobby');
+  oui = true; host.ev(`jeuRetirer(${JSON.stringify(guests[1].pid())})`); sec(w, 2);
+  assert.equal(guests[1].view(), 'retire');
+  assert.match(guests[1].html, /Tu as été retiré·e de la salle/);
+  for (const c of [host, guests[0]]) assert.deepEqual(c.live(), ['Hôte', 'Ami1'], c.name + ' : Ami2 n’est plus dans la salle');
+  assert.match(etat(host), /Tout le monde est prêt\u00a0! À toi de lancer la partie\./);
+  /* Il revient avec le code : il entre, le retrait relu dans l’historique ne le retire pas de nouveau */
+  const back = makeClient(w, 'Ami2'); back.ev(`sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(guests[1].pid())})`);
+  guests[1].ev('jeuStop()'); back.join('ROOM42'); sec(w, 4);
+  assert.equal(back.view(), 'lobby');
+  assert.deepEqual(host.live(), ['Hôte', 'Ami1', 'Ami2']);
+  /* Un invité ne peut retirer personne */
+  guests[0].ev(`jeuRetirer(${JSON.stringify(host.pid())})`); guests[0].ev(`jeuSend({t:'retire',who:${JSON.stringify(back.pid())},hu:JEU.helloOf[${JSON.stringify(back.pid())}]})`); sec(w, 2);
+  assert.equal(back.view(), 'lobby', 'seul l’hôte retire');
 });
