@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=296">
+<link rel="stylesheet" href="ludique.css?v=297">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -42556,7 +42556,16 @@ function startEntretien(){
    l’onglet à revoir, toutes si on est dans toutes et maîtrisées quand on est dans maîtrisées ») : la suivante dans l’ordre de la liste,
    à partir de la question ouverte, parmi celles de l’onglet (et du thème choisi). Plus aucune autre : retour à la liste. */
 function entInTab(x){ if(entRun)return !entOk(x.id); return entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true; }
+/* 10 novembre, 0 h 24 (Elisa : « quand on est dans un filtre, on passe d’abord par lui, par exemple les maîtrisées ; ensuite on passe
+   aux autres ») : les flèches suivent une file. D’abord les questions de l’onglet et de la famille choisis, dans l’ordre de la liste ;
+   puis les autres questions de la famille ; puis toutes les autres. Plus de boucle sur l’onglet : après la dernière maîtrisée vient la
+   première des autres. Une série « Continuer la préparation » (entRun) garde sa boucle sur les questions à revoir. */
+function entFile(){
+  const tout=entAllItems(),dans=x=>entInFilter(x.q);
+  return [...tout.filter(x=>dans(x)&&entInTab(x)),...tout.filter(x=>dans(x)&&!entInTab(x)),...tout.filter(x=>!dans(x))];
+}
 function entNextTarget(id){
+  if(!entRun){const f=entFile(),i=f.findIndex(x=>x.id===id);return i<0?(f[0]||null):(f[i+1]||null);}
   const pool=entAllItems().filter(x=>entInFilter(x.q));
   const cur=pool.findIndex(x=>x.id===id);
   for(let k=1;k<=pool.length;k++){
@@ -42567,6 +42576,7 @@ function entNextTarget(id){
 }
 /* 18 h 38, réf. 4 : « Question précédente » à côté de « Question suivante » : la précédente dans le même onglet et le même filtre. */
 function entPrevTarget(id){
+  if(!entRun){const f=entFile(),i=f.findIndex(x=>x.id===id);return i>0?f[i-1]:null;}
   const pool=entAllItems().filter(x=>entInFilter(x.q));
   const cur=pool.findIndex(x=>x.id===id);
   for(let k=1;k<=pool.length;k++){
@@ -47808,7 +47818,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-entretien-v2792';
+  const SW_CACHE='requete-2026-11-09-file-v2793';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
