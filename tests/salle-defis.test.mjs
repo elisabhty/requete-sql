@@ -1966,3 +1966,11 @@ test('9 novembre, 21 h 53 : « Importer » reste collé en bas de la feuille d�
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   assert.ok(css.includes('html.lq .imp-sheet>.imp-go{position:sticky;bottom:0;z-index:3;') && css.includes('html.lq .imp-prev.is-riche{max-height:none;overflow:visible}'));
 });
+
+test('9 novembre, 21 h 57 : importer dans un projet qui a déjà des tables : identiques laissées, nouvelles ajoutées, différentes au choix', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(app.includes("oui:'Ajouter au projet',trois:'Tout remplacer',troisDanger:true,non:null"), 'ajouter ou tout remplacer');
+  assert.ok(app.includes("oui:un?'Mettre à jour':'Les mettre à jour',trois:un?'Garder la mienne':'Garder les miennes',non:null"), 'les tables différentes : mettre à jour ou garder');
+  assert.ok(app.includes("copierTablesSqlite(p.bytes,database,pendingImport.saute);") && app.includes("if(saute&&saute.has(String(t).toLowerCase()))continue;"), 'une base SQLite saute ses tables identiques');
+  assert.ok(app.includes("{const tr=el.querySelector('.lq-ask-trois');if(tr)tr.onclick=()=>fin('trois');}"), 'lqAsk : un deuxième choix');
+});

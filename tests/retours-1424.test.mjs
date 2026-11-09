@@ -104,7 +104,7 @@ test('import : l’en-tête sous un titre fusionné, les lignes par requête pr�
   db.close();
   const conf = fn('confirmImport');
   assert.ok(conf.includes("if(go&&go.getAttribute('aria-busy')==='true')return;}") && conf.includes('importOccupe(true);\n  await new Promise(ok=>setTimeout(ok,40));'));
-  assert.ok(conf.includes('await createImportedTables(database, p.tables, f=>importOccupe(true,f));') && conf.includes('importOccupe(false);\n    closeImportSheet();') && conf.includes('importOccupe(false);\n    lqInfo(\'Import impossible\''));
+  assert.ok(conf.includes('await createImportedTables(database, p.tables.filter(t=>!(pendingImport.saute&&pendingImport.saute.has(safeIdent(t.name).toLowerCase()))), f=>importOccupe(true,f));') && conf.includes('importOccupe(false);\n    importLaisses=') && conf.includes('importOccupe(false);\n    lqInfo(\'Import impossible\''));
   assert.ok(fn('importOccupe').includes("go.textContent=frac==null?'Import en cours…':`Import en cours… ${Math.min(99,Math.round(frac*100))}\\u00a0%`;"));
   /* Les noms longs passent à la ligne dans la carte du projet (depuis le 6 novembre, 7 h 52 : la carte du schéma UML) */
   assert.ok(app.includes('<span class="tbu-cn">${esc(c.c).replace(/_/g,\'_<wbr>\')}</span>') && lq.includes('html.lq #scr-console .tbu-cn{min-width:0;line-height:1.3;overflow-wrap:anywhere}'));
@@ -160,5 +160,5 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 
 test('versions : ludique.css v155, cache du service worker', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=289">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-importer-v2779';") && app.includes("const SW_CACHE='requete-2026-11-09-importer-v2779';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-fusion-v2780';") && app.includes("const SW_CACHE='requete-2026-11-09-fusion-v2780';"));
 });
