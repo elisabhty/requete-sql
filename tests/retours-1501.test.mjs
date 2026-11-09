@@ -75,7 +75,9 @@ test('réf. 8 : « Tables du projet », leur nombre, une phrase ; « Ajouter une
   assert.equal(els['db-tables-n'].textContent, '2 tables');
   assert.equal(els['db-tables-lab'].textContent, 'Explore les tables de ton projet et leurs colonnes.');
   const bar = els['db-bar'].innerHTML;
-  assert.ok(bar.includes('<button type="button" class="db-pill add is-plus" onclick="ajouterTable()"><svg class="plus"/><span>Ajouter une table</span></button>'));
+  /* 9 novembre, 23 h 44 : « Ajouter une table » quitte la barre pour le titre (le « + » rond) et la fin de la liste */
+  assert.ok(!bar.includes('ajouterTable()') && els['db-tables-ajout'].hidden === false);
+  assert.ok(els['db-tables'].innerHTML.endsWith('<span>Ajouter une table</span></button>') && els['db-tables'].innerHTML.includes('class="tbl-ajout-fin" onclick="ajouterTable()"'));
   assert.ok(bar.includes('<span>Schéma UML</span>') && !bar.includes('Importer'), '« Schéma UML » garde son nom');
   const h = els['db-tables'].innerHTML;
   /* 6 novembre, 7 h 52 (« reprendre exactement ce format dans base ») : l’en-tête de la carte du schéma (le nom, ses lignes dans une
@@ -301,4 +303,13 @@ test('réinitialiser : la copie d’une table disparue s’en va, la restauratio
   c.elaguerCopies('p');
   assert.deepEqual(Object.keys(c.tableBaselines.p), ['clients'], 'DROP TABLE en SQL : sa copie ne reste pas');
   assert.ok(fn('restoreTableBaseline').includes('try{data[0].values.forEach(row=>st.run(row));}finally{st.free();}'));
+});
+
+/* 9 novembre, 23 h 44 : projet cible en lignes à toucher, description écrite en place, « + » dans le titre des tables */
+test('feuille d’import, description en place, ajout de table : à portée de main', () => {
+  assert.ok(app.includes('function impChoixRendre(){') && app.includes('  impChoixRendre();\n  onImportDbChange();'));
+  assert.ok(lq.includes('html.lq .imp-sheet .imp-db-natif{display:none!important}') && lq.includes('html.lq .imp-choix-l.is-on{'));
+  assert.ok(app.includes('function descEnPlace(cible,o){') && app.includes("await descEnPlace(ici,{...o,label:'Description du projet',sombre:true})") && app.includes('await descEnPlace(ici,{...o,label:`Description de la table ${name}`})'));
+  assert.ok(lq.includes('html.lq #scr-console .tbl-desc[hidden],html.lq #scr-console .console-desc[hidden]{display:none!important}'));
+  assert.ok(app.includes('id="db-tables-ajout" onclick="ajouterTable()" aria-label="Ajouter une table"') && lq.includes('html.lq #scr-console .tbl-ajout-fin{'));
 });

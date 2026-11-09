@@ -23,7 +23,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const fn = name => { const i = app.indexOf(`function ${name}(`); assert.ok(i >= 0, name); const j = app.indexOf('\n}\n', i); return app.slice(i, j + 3); };
 
 test('la feuille d’import : passer de « Nouveau projet » à un projet déjà créé ne fait plus sauter la feuille', () => {
-  assert.ok(app.includes('<select id="imp-db" onchange="onImportDbChange(true)"></select>'), 'un choix fait dans la liste : animé');
+  assert.ok(app.includes('<select id="imp-db" class="imp-db-natif" onchange="onImportDbChange(true)" tabindex="-1" aria-hidden="true"></select><div class="imp-choix" id="imp-db-choix" role="radiogroup" aria-labelledby="imp-db-label"></div>') && fn('impChoisir').includes('sel.value=v;impChoixRendre();onImportDbChange(true);'), 'un choix fait dans la liste : animé');
   assert.ok(fn('onImportDbChange').includes("impBasculer(nameField,sel.value==='__new__',anime);"));
   assert.ok(cut('function openImportSheet(){', 'const prev=document.getElementById(\'imp-prev\');').includes('  onImportDbChange();\n'), 'à l’ouverture : d’un coup');
   const essai = ({ anime = true, reduit = false, cache = false, voir = false } = {}) => {
@@ -131,5 +131,5 @@ test('la base de démo des cours s’appelle NutriBoost', () => {
   assert.equal(ctx.projectName('cours'), 'NutriBoost');
   assert.ok(!app.includes("name:'Cours'") && !app.includes("return 'Cours';"));
   assert.ok(app.includes("fname.textContent=(activeDbId==='cours'?'nutriboost':isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';"), 'son brouillon : nutriboost.sql');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=294">') && sw.includes("const CACHE = 'requete-2026-11-09-reinit-v2787';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=295">') && sw.includes("const CACHE = 'requete-2026-11-09-enplace-v2788';"));
 });
