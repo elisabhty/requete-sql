@@ -58,9 +58,9 @@ test('ld8 : DISTINCT ON n’existe pas en SQLite, l’erreur le dit', () => {
 test('les trois appels passent la requête : défi seul, salle, console', () => {
   assert.ok(app.includes('const diag=isDefi?defiDiag(userRes,solRes,current,sql):exoFailDiag(sql,sol,userRes,solRes,ordered);'));
   assert.ok(app.includes("const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c,sql):exoFailDiag("));
-  /* 9 novembre, 2 h (retours-0031) : dans un défi, la partie rouge de la carte dit l’erreur de SQLite en français, sans aide ; la boîte
-     « Erreur SQL » (et son aide sur DISTINCT ON) reste pour un défi sans carte et pour la console. */
-  assert.ok(app.includes("    else setLessonOut(errBox(e.message,sql));") && app.includes("}catch(e){setLessonOut(defiErreurBox(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message)));jeuEssaiRate(r);return;}") && app.includes('?consoleLockBox():errBox(e.message,sql)}'));
+  /* 9 novembre, 2 h puis 7 h 37 (retours-0031) : dans un défi, « Réessaie » dans la carte dit l’erreur de SQLite en français, sans aide ;
+     la boîte « Erreur SQL » (et son aide sur DISTINCT ON) reste pour un défi sans carte et pour la console. */
+  assert.ok(app.includes("    else setLessonOut(errBox(e.message,sql));") && app.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message));return;}") && app.includes('?consoleLockBox():errBox(e.message,sql)}'));
   /* Les quatre défis restent là, avec leur solution */
   for (const id of ['af21', 'vm3', 'hm2', 'ld8']) assert.ok(defi(id) && defi(id).sol, id);
 });

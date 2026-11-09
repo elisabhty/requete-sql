@@ -44,7 +44,11 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   assert.ok(h3.includes('Indice 3/3') && h3.includes('C’était le dernier indice') && !h3.includes(c.indice));
   assert.ok(ctx.defiIndicesHTML(c, 3, 1).includes('Indice 1/3'), 'une pastille ramène à un indice déjà donné');
   assert.equal(h9, h3, 'trois au plus');
-  assert.ok(!ctx.defiIndicesHTML(c, 1, 0, 'On attend 1 colonne.').includes('On attend 1 colonne.'), 'ce qui cloche n’est plus dans la carte : il est sous l’éditeur (9 novembre, 7 h 23 ; avant « Essaie encore », « Raté », « Un coup de patte ? », « Pas encore ») dans la même carte');
+  const ko = ctx.defiIndicesHTML(c, 1, 0, 'La colonne <code>foo</code> n’existe pas.');
+  assert.ok(ko.includes('<section class="coach has-hint has-ko" aria-live="polite">') && ko.includes('<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Réessaie</b><p>La colonne <code>foo</code> n’existe pas.</p></div></div>'), 'ce qui cloche, dans la carte : « Réessaie », en mode erreur SQL (9 novembre, 7 h 37 ; sous l’éditeur à 7 h 23 ; avant « Essaie encore », « Raté », « Un coup de patte ? », « Pas encore »)');
+  assert.ok(ko.indexOf('class="coach-hint"') < ko.indexOf('class="coach-st"'), 'sous l’indice');
+  assert.ok(ctx.defiIndicesHTML(c, 0, 0, 'On attend 1 colonne.').includes('<b class="coach-st-k">Réessaie</b><p>On attend 1 colonne.</p>'), 'avant le premier indice aussi (en salle, ils viennent à l’heure)');
+  assert.ok(!h1.includes('coach-st') && !h1.includes('has-ko'), 'sans essai manqué, rien');
   assert.equal(ctx.defiSquelette(c.sol), 'SELECT …\nFROM …\nJOIN … ON … = …\nJOIN … ON … = …\nJOIN … ON … = …\nWHERE … = …\nORDER BY …');
   for (const x of ctx.CHALLENGES) {
     const sq = ctx.defiSquelette(x.sol);
@@ -69,7 +73,7 @@ test('branché partout : défi seul, salle, fin du chrono, fin de manche ; la m�
   assert.ok(app.includes("if(mode==='defi'){if(!COACH||COACH.c!==current)COACH={c:current,kind:'solo',n:0,view:0,diag:'',fx:''};coachSet(exoFails);return;}"), 'défi seul : les indices au lieu de la solution');
   assert.ok(app.includes("if(mode==='defi'&&sql!=null){const k=String(sql).replace(/\\s+/g,' ').trim();if(k===defiDernierKo){renderExoHelp();return;}defiDernierKo=k;}"));
   assert.ok(app.includes('const diag=isDefi?defiDiag(userRes,solRes,current,sql):exoFailDiag(sql,sol,userRes,solRes,ordered);'));
-  assert.ok(app.includes('  setLessonOut(defiPasEncoreBox(diag,table));   // sous l’éditeur, plus dans la carte (9 novembre, 7 h 23)\n  jeuEssaiRate(r);\n  coachRoomTick();\n}'), 'salle');
+  assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; « Réessaie » et ce qui cloche dans la carte (9 novembre, 7 h 37)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'salle');
   assert.ok(app.includes('const JEU_IND_T=[150000,300000,450000];'), 'en salle, à la même minute pour tout le monde');
   assert.ok(app.includes('Le résultat attendu reste caché&nbsp;: tu peux le recommencer.</p>') && !app.includes('Voici ce qu’il fallait obtenir'), 'fin du chrono : ni la requête ni le résultat, on peut recommencer (3 novembre, 7 h 14)');
   assert.ok(app.includes('<summary class="jeu-card-h">Le résultat attendu</summary>'), 'fin de manche');
