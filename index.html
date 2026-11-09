@@ -35287,7 +35287,7 @@ function jeuPost(m){
 function jeuFlush(){
   const J=JEU;if(!J||J.solo||J.flushing||!J.out.length||Date.now()-J.flushAt<2500)return;
   /* Une manche déjà lancée (par un autre hôte, après un relais) : son lancement en attente ne repart plus. */
-  J.out=J.out.filter(e=>Date.now()-e.at<600000&&!(e.m.t==='round'&&J.rounds[+e.m.n]&&J.rounds[+e.m.n].u!==e.m.u));
+  J.out=J.out.filter(e=>Date.now()-e.at<600000&&!(e.m.t==='round'&&J.rounds[+e.m.n]&&J.rounds[+e.m.n].u!==e.m.u)&&!(e.m.t==='ready'&&J.rounds.some(Boolean)));   // un « prêt » arrivé trop tard ne repart plus
   const e=J.out[0];if(!e)return;
   J.flushAt=Date.now();J.flushing=true;
   J.t.send(e.m).then(ok=>{
@@ -35323,7 +35323,7 @@ function jeuPresent(pid){
 /* Joueurs de la salle, hôte en premier puis dans l’ordre d’arrivée du relais. */
 function jeuOrder(){
   const J=JEU,idx=p=>{const i=J.seq.indexOf(p);return i<0?999:i;};
-  return J.order.filter(p=>!J.denied[p]).sort((a,b)=>(b===J.hostPid)-(a===J.hostPid)||idx(a)-idx(b));
+  return J.order.filter(p=>!J.denied[p]&&(!J.partants||J.partants.has(p)||p===J.me)).sort((a,b)=>(b===J.hostPid)-(a===J.hostPid)||idx(a)-idx(b));
 }
 function jeuLive(){return jeuOrder().filter(jeuPresent);}
 function jeuIsReady(pid){return pid===JEU.hostPid||!!JEU.ready[pid];}
@@ -35436,6 +35436,10 @@ function jeuOnMsg(m){
       J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,srvT1:+m.startAt||(m.at?m.at+JEU_DRAW_MS:0),by:m.pid,u:m.u,conf:!!m.fromRelay,one:!!m.one};
       if(J.ranked&&m.startAt){const rr=J.rounds[n];rr.t1=+m.startAt-J.skew;rr.t0=rr.t1-JEU_DRAW_MS;}
       if(J.synced)J.played=true;
+      /* La liste des participants, figée au lancement (celle du serveur en salle classée, sinon celle de l’hôte) : les autres regardent
+         la partie se jouer sans eux (« Oups, la partie a déjà démarré ! ») et reviennent à la partie suivante (« Rejouer »). */
+      if(n===0){const lst=Array.isArray(m.joueurs)?m.joueurs:Array.isArray(m.who)?m.who:null;
+        if(lst){J.partants=new Set(lst.map(String));if(!J.partants.has(J.me))J.horsPartie=true;}}
       addP();jeuDrain();break;}
     case 'found':{
       if((m.g|0)>J.g)return jeuLater(m);
@@ -35490,7 +35494,7 @@ function jeuOnMsg(m){
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
-      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;
+      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;J.partants=null;J.horsPartie=false;
       jeuApplyCfg();jeuDrain();
       if(J.ranked&&J.solo&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuNextRound();},100);
       break;}
@@ -35655,6 +35659,7 @@ function jeuView(){
   const J=JEU;
   if(J.full)return'full';
   if(J.tard)return'tard';
+  if(J.horsPartie)return'oups';
   if(J.lost&&!J.hostPid)return'lost';
   if(!J.hostPid||!J.synced)return'join';
   if(J.over)return'final';
@@ -35698,7 +35703,7 @@ function jeuHostWatch(){
   /* Ne pas se croire seul quand c’est notre propre réception qui est coupée : nos signes de vie nous
      reviennent du relais, sinon on ne prend pas la main. */
   if(now-J.echoAt>JEU_PING_MS*1.6)return;
-  const live=J.seq.filter(p=>p!==J.hostPid&&!J.denied[p]&&jeuPresent(p));
+  const live=J.seq.filter(p=>p!==J.hostPid&&!J.denied[p]&&jeuPresent(p)&&(!J.partants||J.partants.has(p)));   // un absent de la partie ne la mène pas
   const rank=live.indexOf(J.me);
   /* Le plus ancien d’abord ; le suivant seulement s’il n’a rien fait 12 s plus tard (il est peut-être sourd). */
   if(rank<0||now-J.goneAt<wait+rank*12000||now-J.claimAt<8000)return;
@@ -36222,7 +36227,13 @@ function jeuNetMaj(){
    (« @lili n’est pas encore prête… ») ; à 60 s (« @lili prend son temps… »), l’hôte peut le retirer, après une question, jamais tout
    seul. Les temps comptent depuis que ce téléphone le voit dans la salle sans être prêt. */
 const JEU_LENT_MS=30000,JEU_LENT2_MS=60000;
-function jeuLobbyLabel(){return 'Lancer la partie';}
+/* 14 h 09 (Elisa) : le bouton dit la situation : « Lancer la partie » (tout le monde prêt, ou 30 s passées), « En attente des
+   joueurs… » (désactivé), seul « Jouer en solo ». */
+function jeuLobbyLabel(){
+  const J=JEU;if(!J||!jeuIsHost())return 'Lancer la partie';
+  if(jeuPrets().live.length<2)return 'Jouer en solo';
+  return jeuPeutLancer()?'Lancer la partie':'En attente des joueurs…';
+}
 function jeuPrets(){const live=jeuLive();return {live,prets:live.filter(jeuIsReady)};}
 /* 13 h 41 (Elisa : « oui il peut lancer seul ; s’il y en a 3 et que 1 n’est pas prêt, il n’est pas obligé d’attendre, il peut le
    retirer de plus ») : l’hôte lance quand il veut, seul ou sans attendre les retardataires ; le message dit où on en est. */
@@ -36255,12 +36266,12 @@ function jeuPasPrets(){
 const JEU_SABLIER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h10M7 20.5h10M8 3.5v3.2a4 4 0 0 0 1.6 3.2L12 12l2.4-2.1A4 4 0 0 0 16 6.7V3.5M8 20.5v-3.2a4 4 0 0 1 1.6-3.2L12 12l2.4 2.1a4 4 0 0 1 1.6 3.2v3.2"/></svg>';
 const JEU_MAIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 12.5V5.8a1.4 1.4 0 0 1 2.8 0V11M11.3 10.6V4.4a1.4 1.4 0 0 1 2.8 0v6.3M14.1 10.7V5.6a1.4 1.4 0 0 1 2.8 0v7.6c0 4-2.6 7.3-6.4 7.3-2.4 0-3.9-1.1-5.2-3l-2.2-3.3a1.4 1.4 0 0 1 2.2-1.7l1.6 1.8"/></svg>';
 function jeuLobbyEtatHTML(){
-  const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true),seul=typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e';
+  const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true);
   const tous=live.length>=2&&prets.length===live.length;
   let cls='is-att',ico=JEU_SABLIER,t,p;
   if(host&&live.length<2){
     t=J.pub?'Ta salle est ouverte':J.created?'Personne n’a encore rejoint':'Les autres sont partis';
-    p=`Partage le code, ou lance et joue ${seul}.`;ico=JEU_ICO.amis;
+    p='Partage le code, ou joue en solo.';ico=JEU_ICO.amis;
   }else if(tous){
     cls='is-ok';ico=JEU_ICO.check;t='Tout le monde est prêt !';p=host?'À toi de lancer la partie.':'L’hôte peut lancer la partie.';
   }else if(host){
@@ -36280,9 +36291,13 @@ function jeuLobbyEtatMaj(){
   const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-lobby-etat'):null;
   if(el){const h=jeuLobbyEtatHTML();if((el.dataset&&el.dataset.h)!==h){el.innerHTML=h;if(el.dataset)el.dataset.h=h;}}
   const go=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-go'):null;
-  if(go&&JEU&&JEU.view==='lobby'){const off=!jeuPeutLancer();if(go.disabled!==off)go.disabled=off;if(go.setAttribute)go.setAttribute('aria-disabled',String(off));}
+  if(go&&JEU&&JEU.view==='lobby'){const off=!jeuPeutLancer();if(go.disabled!==off)go.disabled=off;if(go.setAttribute)go.setAttribute('aria-disabled',String(off));
+    const l=document.getElementById('jeu-go-label'),t=jeuLobbyLabel();if(l&&l.textContent!==t)l.textContent=t;}
 }
-function jeuLancer(){if(!jeuPeutLancer()){jeuLobbyEtatMaj();return;}jeuNextRound();}
+/* 14 h 09 (Elisa : « l’hôte peut lancer après 30 secondes, sans les joueurs non prêts » ; « le serveur doit figer la liste des
+   participants au démarrage ») : le lancement emporte la liste des prêts (who). En salle classée, le serveur la refait lui-même avec
+   les « prêt » qu’il a reçus (un « prêt » qui arrive après le lancement est refusé) et la renvoie (joueurs) : c’est elle qui compte. */
+function jeuLancer(){if(!jeuPeutLancer()){jeuLobbyEtatMaj();return;}const {prets}=jeuPrets();jeuNextRound(prets.includes(JEU.me)?prets:[JEU.me,...prets]);}
 /* Annonces : « Léa a rejoint la salle » / « Léa est partie », sans bruit au premier affichage. */
 function jeuAnnounce(){
   const J=JEU;if(!J||J.solo||!J.synced)return;
@@ -36445,6 +36460,9 @@ function jeuRender(){
     html=etat('chat:loupe','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
     html=etat('user','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.',retour,'is-lost');
+  }else if(v==='oups'){
+    /* 14 h 09 (Elisa : « pour les invités non prêts lorsque la partie démarre : 🐱 Oups, la partie a déjà démarré ! ») */
+    html=etat('chat:pied','Oups, la partie a déjà démarré !',`Tu n’étais pas ${jeuPretMot(true)} au lancement. Reste là : tu joueras la prochaine partie de cette salle.`,retour,'is-lost');
   }else if(v==='tard'){
     html=etat('user','La partie a déjà commencé','On rejoint une salle tant que l’hôte n’a pas lancé la partie. Ouvre la tienne, ou attends la prochaine partie de cette salle.',retour,'is-lost');
   }else if(v==='full'){
@@ -36688,7 +36706,7 @@ function jeuAttenteFin(n){
   return Math.max(0,r.t1+jeuDureeMs(jeuNivManche(n))+2000-Date.now());
 }
 function jeuNextRound(){
-  const J=JEU;if(!J||!jeuIsHost())return;
+  const J=JEU,who=arguments[0];   // la liste des prêts, au lancement de la partie (jeuLancer, 14 h 09)if(!J||!jeuIsHost())return;
   const n=jeuCur()+1;if(n>=J.nb)return;
   const btn=document.getElementById('jeu-go');if(btn)btn.disabled=true;
   const att=jeuAttenteFin(n-1);
@@ -36700,7 +36718,9 @@ function jeuNextRound(){
   const impose=!!J.plan[n];
   /* Une seule fois par manche depuis ce téléphone (la suite part toute seule, 17 h 31) */
   const k=J.g+':'+n;if(J.lance===k)return;J.lance=k;
-  jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});
+  const w=n===0&&Array.isArray(who)?who:null;
+  if(w)jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:w.length<2?1:0,who:w});
+  else jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});
 }
 function jeuFinish(){
   const J=JEU;if(!J||!jeuIsHost())return;
@@ -43847,7 +43867,7 @@ function ileSalleAction(quoi){
   const essai=k=>{
     if(JEU!==J)return;
     if(jeuIsHost()){
-      if(quoi==='lancer'&&jeuPeutLancer())jeuNextRound();   // comme le bouton : tout le monde prêt, deux joueurs au moins (13 h 20)
+      if(quoi==='lancer'&&jeuPeutLancer())jeuLancer();   // comme le bouton : tout le monde prêt, deux joueurs au moins (13 h 20)
       if(quoi==='rejouer'&&J.over)jeuAgain();
       return;
     }
@@ -47270,7 +47290,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-trente-v2745';
+  const SW_CACHE='requete-2026-11-09-partants-v2746';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

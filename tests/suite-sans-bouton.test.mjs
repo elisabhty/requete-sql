@@ -52,7 +52,7 @@ test('plus de bouton « Manche suivante » : la même ligne chez tous, puis « L
   assert.ok(tick.includes('if(t&&r&&!r.auto&&Date.now()>=t&&jeuIsHost()){r.auto=true;if(n<J.nb-1)jeuNextRound();else if(!jeuSoloLike(n))jeuFinish();}'));
   const next = fn('jeuNextRound');
   assert.ok(next.includes("const k=J.g+':'+n;if(J.lance===k)return;J.lance=k;"), 'une seule fois par manche');
-  assert.ok(fn('jeuFlush').includes("J.out=J.out.filter(e=>Date.now()-e.at<600000&&!(e.m.t==='round'&&J.rounds[+e.m.n]&&J.rounds[+e.m.n].u!==e.m.u));"), 'un lancement déjà fait par un autre ne repart plus');
+  assert.ok(fn('jeuFlush').includes("J.out=J.out.filter(e=>Date.now()-e.at<600000&&!(e.m.t==='round'&&J.rounds[+e.m.n]&&J.rounds[+e.m.n].u!==e.m.u)"), 'un lancement déjà fait par un autre ne repart plus');
 });
 
 test('fermée par le serveur à son heure (de retour après la fin) : « Temps écoulé », pas « Manche abandonnée »', () => {
