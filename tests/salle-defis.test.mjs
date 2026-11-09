@@ -1765,7 +1765,7 @@ test('14 h 01 : pas tous prêts, le bouton se débloque à 30 s ; « n’est pas
   /* 14 h 09 : sans les joueurs non prêts ; eux lisent « Oups, la partie a déjà démarré ! » */
   assert.equal(guests[0].view(), 'draw0', 'la prête joue');
   for (const c of [guests[1], n]) { assert.equal(c.view(), 'oups', c.name); assert.match(c.html, /Oups, la partie a déjà démarré\u00a0!/);
-    assert.match(c.html, /Pas de panique, d’autres salles t’attendent\./); assert.doesNotMatch(c.html, /prochaine/, '14 h 22 : plus « tu joueras la prochaine partie »');
+    assert.match(c.html, /Tu n’étais pas prêt·e au lancement\. Pas de panique, d’autres salles t’attendent\./); assert.doesNotMatch(c.html, /prochaine/, '14 h 22 : plus « tu joueras la prochaine partie »');
     assert.match(c.html, /<button type="button" class="room-go jeu-retour" onclick="openJeu\(\)"><span>Retour aux défis<\/span><i class="jeu-ready-fl" aria-hidden="true">/, 'la flèche qui avance');
     assert.match(c.html, /Retour automatique dans <b id="jeu-oups-n">30<\/b>\u00a0s/, '14 h 24 : le compte à rebours'); }
   for (const c of [host, guests[0]]) assert.deepEqual(c.live(), ['Hôte', 'Ami1'], c.name + ' : la partie se joue à deux');
