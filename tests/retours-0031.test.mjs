@@ -144,10 +144,24 @@ test('« Joue seul » s’accorde : « Joue seule », « Joue seul », « Joue s
 
 /* Sa capture de la carte des indices après un essai : « Un coup de patte ? Utilise une seule requête de lecture SELECT pour ce défi. »
    « ici mettre qqchose comme raté au lieu d’un coup de patte ». */
-test('la carte des indices n’a plus de partie rouge (7 h 23 ; « Essaie encore » à 7 h 13, « Raté » à 2 h)', () => {
+/* 7 h 13 : « Essaie encore finalement avec le message sql » ; 7 h 23 : « si je veux une erreur sous l’éditeur… et enlève le « raté »
+   complètement » ; 7 h 37 : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais en mode erreur sql ui ux ». */
+test('« Réessaie » dans la carte, sous l’indice, avec la pastille « ! » de « Erreur SQL » (7 h 37 ; sous l’éditeur à 7 h 23, « Essaie encore » à 7 h 13, « Raté » à 2 h)', () => {
   const f = fn('defiIndicesHTML');
-  assert.ok(!f.includes('<div class="coach-st">') && !f.includes('<span class="coach-st-k">') && !f.includes("${diag?' has-ko':''}"));
-  assert.ok(!app.includes('function coachKo(') && !app.includes('coachKo('), 'plus rien ne la remplit');
+  assert.ok(f.includes("const st=diag?`<div class=\"coach-st\"><span class=\"coach-st-ico\" aria-hidden=\"true\">!</span><div class=\"coach-st-tx\"><b class=\"coach-st-k\">Réessaie</b><p>${diag}</p></div></div>`:'';"));
+  assert.ok(f.includes("${diag?' has-ko':''}") && f.includes('${head}${body}${st}${nx}'), 'sous l’indice, avant le compte à rebours');
+  assert.ok(!f.includes('Essaie encore</span>') && !f.includes('>Raté<') && !f.includes('Un coup de patte&nbsp;?</span>'));
+  assert.ok(app.includes("function coachKo(diag){if(!COACH)return;COACH.diag=diag;COACH.fx='is-new-ko';coachPaint();}"), 'un essai manqué la remplit, la ligne secoue');
+  /* En mode erreur SQL : les couleurs, la pastille et le titre de la boîte « Erreur SQL » (ludique.css, 24) */
+  for (const part of [
+    'html.lq .coach-st{display:flex;align-items:flex-start;gap:12px;margin-top:12px;padding:12px 14px 13px 12px;border:2px solid #F6C9CC;border-radius:16px;background:var(--danger-soft);animation:none}',
+    'html.lq .coach-st .coach-st-ico{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:12px;background:var(--danger-fill);color:#fff;',
+    'html.lq .coach-st .coach-st-k{display:block;margin:3px 0 2px;color:var(--danger);font:700 17px/1.2 var(--display)}',
+    'html.lq .coach-st p code{padding:1px 6px;border-radius:6px;background:rgba(0,0,0,.05);color:var(--ink);',
+    'html.lq .coach.is-new-ko .coach-st{animation:coachKo .45s ease}',
+  ]) assert.ok(lq.includes(part), part);
+  assert.ok(lq.includes('html.lq .feedback.err{background:var(--danger-soft)!important;border-color:#F6C9CC!important;') && lq.includes('html.lq .feedback.err .fi{background:var(--danger-fill)!important}'), 'les mêmes que « Erreur SQL »');
+  assert.ok(!lq.includes('html.lq .coach-st-k{flex:none;padding:3px 9px;border-radius:99px;background:#E0457B;') && !lq.includes('html.lq .coach-st p{display:inline}') && !lq.includes('html.lq .coach-intro+.coach-st{'), 'plus la pastille rose « Essaie encore »');
 });
 
 /* ---------- 8. La partie rouge : l’erreur de SQLite, en français (9 novembre, 2 h) ---------- */
@@ -195,16 +209,35 @@ test('en salle classée : la requête est compilée sur la base du défi, sans �
   assert.equal(ctx.defiErreurSqlFr({ id: 'd1' }, 'SELECT 1', 'Le résultat ne correspond pas à la consigne.'), 'Le résultat ne correspond pas à la consigne.', 'un résultat faux n’est pas une erreur');
   assert.deepEqual(vus, ['q', 'DELETE FROM avis'], 'compilée seulement (prepare), jamais pour un résultat faux');
   const mps = lire('multiplayer-security.js');
-  assert.ok(mps.includes("const msg = typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut);") && mps.includes('(faux ? defiPasEncoreBox(msg, \'\') : defiErreurBox(msg))'), 'sous l’éditeur : l’erreur, ou « La requête tourne, mais… »');
-  assert.ok(!mps.includes('coachKo('));
+  assert.ok(mps.includes("const msg = typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut);"));
+  assert.ok(mps.includes("setLessonOut(carte ? '' : `<div class=\"feedback err\"><div class=\"fi\">!</div><div><b>Réessaie</b><p>${msg}</p></div></div>`);\n        jeuEssaiRate(round);\n        if(typeof coachRoomTick==='function')coachRoomTick();\n        if(carte)coachKo(msg);"), 'dans la carte : « Réessaie » et l’erreur, ou « Le résultat ne correspond pas à la consigne. » ; rien sous l’éditeur (7 h 37)');
+  assert.ok(!mps.includes('defiErreurBox') && !mps.includes('defiPasEncoreBox'));
 });
 
-test('un défi seul ou une salle : l’erreur sous l’éditeur, en français et sans aide ; un résultat faux, « La requête tourne, mais… » (7 h 23)', () => {
-  assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current)setLessonOut(defiErreurBox(sqlErreurFr(e.message)));\n    else setLessonOut(errBox(e.message,sql));"));
-  assert.ok(app.includes("}catch(e){setLessonOut(defiErreurBox(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message)));jeuEssaiRate(r);return;}"));
+test('un défi seul ou une salle : « Réessaie » et l’erreur en français dans la carte, sans aide, rien sous l’éditeur ; un résultat faux, ce qui cloche dans la carte et le résultat dessous (7 h 37)', () => {
+  assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=sqlErreurFr(e.message);COACH.fx='is-new-ko';}\n    else setLessonOut(errBox(e.message,sql));"), 'seul : une erreur');
+  assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}\n    else setLessonOut(defiPasEncoreBox(diag,table));\n    registerExoFail(sql);"), 'seul : un résultat faux ; un exercice garde « La requête tourne, mais… »');
+  assert.ok(app.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message));return;}"), 'en salle : une erreur');
+  assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; « Réessaie » et ce qui cloche dans la carte (9 novembre, 7 h 37)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'en salle : un résultat faux');
+  assert.ok(!app.includes('defiErreurBox('), 'plus de boîte « Erreur SQL » sous l’éditeur dans un défi (errBox la garde pour les exercices)');
+  /* En salle, pour de vrai : une requête qui plante, puis une qui tourne sans le bon résultat */
+  const vu = { out: [], ko: [], rate: 0, tick: 0 };
+  const salle = vm.createContext({
+    JEU: { me: 'p1', rounds: [{ cid: 'd1', t1: 0, found: {}, tries: 0 }] }, CHALLENGES: [{ id: 'd1', sol: 'SELECT 1' }],
+    jeuCur: () => 0, jeuRoundDone: () => false, Date: { now: () => 1 }, performance: { now: () => 0 },
+    document: { getElementById: () => ({ value: vu.sql }), querySelectorAll: () => [] },
+    defiSandbox: () => ({ close() {} }), execChallengeResult: (d, q) => { if (q === 'q') throw new Error('near "q": syntax error'); return [{ columns: ['x'], values: [[q === 'SELECT 1' ? 1 : 2]] }]; },
+    resultatsDefiEgaux: (a, b) => JSON.stringify(a) === JSON.stringify(b), defiDiag: () => 'Le bon nombre de lignes, mais pas les bonnes valeurs.',
+    renderTable: () => '<table></table>', setLessonOut: h => vu.out.push(h), jeuEssaiRate: () => vu.rate++, coachRoomTick: () => vu.tick++, coachKo: d => vu.ko.push(d),
+    sqlErreurFr: m => `FR(${m})`, esc: s => s,
+  });
+  vm.runInContext(fn('jeuRun'), salle);
+  vu.sql = 'q'; salle.jeuRun();
+  assert.deepEqual([vu.out, vu.ko, vu.rate, vu.tick], [[''], ['FR(near "q": syntax error)'], 1, 1], 'l’erreur, en français, dans la carte ; rien sous l’éditeur');
+  vu.sql = 'SELECT 2'; salle.jeuRun();
+  assert.deepEqual([vu.out[1], vu.ko[1], vu.rate, vu.tick], ['<table></table>', 'Le bon nombre de lignes, mais pas les bonnes valeurs.', 2, 2], 'ce qui cloche dans la carte ; le résultat obtenu sous l’éditeur');
   const ctx = vm.createContext({});
-  vm.runInContext(line('defiErreurBox') + line('defiPasEncoreBox'), ctx);
-  assert.equal(ctx.defiErreurBox('Erreur de syntaxe près de <code>q</code>.'), '<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p>Erreur de syntaxe près de <code>q</code>.</p></div></div>');
+  vm.runInContext(line('defiPasEncoreBox'), ctx);
   assert.equal(ctx.defiPasEncoreBox('On attend 1 colonne.', '<table></table>'), '<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>On attend 1 colonne.</p></div></div><table></table>');
   assert.ok(!app.includes('La requête ne s’exécute pas : lis le message juste en dessous.'));
 });
@@ -248,7 +281,7 @@ test('l’invité attend : « En attente que l’hôte lance la partie… » (so
   assert.ok(!app.includes('En attente ${jeuQue(hostName)} lance la partie…'));
 });
 
-/* ---------- 13. « Essaie encore » (9 novembre, 7 h 13) : voir le test 7 ---------- */
+/* ---------- 13. « Essaie encore » (9 novembre, 7 h 13), puis « Réessaie » (7 h 37) : voir le test 7 ---------- */
 
 /* ---------- 14. Seul dans la salle : la partie se joue comme en solo (9 novembre, 7 h 16) ---------- */
 
