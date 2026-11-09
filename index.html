@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=290">
+<link rel="stylesheet" href="ludique.css?v=291">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -22577,11 +22577,12 @@ function importComparer(db,p){
   return out;
 }
 function importBilanPhrase(b){
-  const bits=[];
-  if(b.nouvelles.length)bits.push(plur(b.nouvelles.length,'nouvelle'));
-  if(b.identiques.length)bits.push(`${b.identiques.length} déjà là à l’identique`);
-  if(b.modifiees.length)bits.push(`${b.modifiees.length} déjà là avec un autre contenu`);
-  return bits.join(', ')||'aucune';
+  /* 9 novembre, 22 h 13 (« mal formulé, sois pro ») : « 1 nouvelle, 1 identique et 1 différente » */
+  const bits=[],n=(k,un,pl)=>`${k}\u00a0${k>1?pl:un}`;
+  if(b.nouvelles.length)bits.push(n(b.nouvelles.length,'nouvelle','nouvelles'));
+  if(b.identiques.length)bits.push(n(b.identiques.length,'identique','identiques'));
+  if(b.modifiees.length)bits.push(n(b.modifiees.length,'différente','différentes'));
+  return bits.length>1?bits.slice(0,-1).join(', ')+' et '+bits[bits.length-1]:bits[0]||'aucune';
 }
 function importAjoutCible(){
   const id=pendingImport&&pendingImport.ajout;
@@ -22663,7 +22664,7 @@ function openImportSheet(){
 
   dbLabel.textContent=asDb?'Où créer / charger ce projet ?':'Projet cible';
   dbHint.textContent=asDb
-    ? 'Crée un projet, ou choisis-en un : tu pourras y ajouter ces tables ou tout remplacer.'
+    ? 'Crée un projet, ou choisis-en un : tu pourras y ajouter ces tables ou remplacer son contenu.'
     : 'Ajoute la table dans un projet existant, ou crée un projet pour l’accueillir.';
   newName.value=pendingImport.defaultDbName||pendingImport.defaultTable||'Mon projet';
   document.getElementById('imp-db-field').hidden=!!aj;
@@ -22788,8 +22789,8 @@ async function confirmImport(){
   {const ch0=document.getElementById('imp-db')&&document.getElementById('imp-db').value;
     if(!aj&&isDatabaseImport(p)&&ch0&&ch0!=='__new__'&&customDbs[ch0]&&!isDemoDb(ch0)&&listTables(customDbs[ch0]).length){
       const nom=(dbCatalog.find(d=>d.id===ch0)||{}).name||ch0,bilan=importComparer(customDbs[ch0],p);
-      const r=await lqAsk({ico:'🗂️',titre:'Ce projet a déjà des tables',texte:`« ${nom} » contient ${plur(listTables(customDbs[ch0]).length,'table')}. Le fichier en apporte ${plur(bilan.total,'table')} : ${importBilanPhrase(bilan)}.`,
-        oui:'Ajouter au projet',trois:'Tout remplacer',troisDanger:true,non:null});
+      const r=await lqAsk({ico:'🗂️',titre:'Ce projet contient déjà des tables',texte:`« ${nom} » contient déjà ${plur(listTables(customDbs[ch0]).length,'table')}. Le fichier en compte ${bilan.total}\u00a0: ${importBilanPhrase(bilan)}. Tu peux les ajouter au projet ou remplacer tout son contenu.`,
+        oui:'Ajouter au projet',trois:'Remplacer le contenu',troisDanger:true,non:null});
       if(!r)return;
       if(r===true){aj=ch0;pendingImport.ajout=ch0;}
     }}
@@ -22813,21 +22814,23 @@ async function confirmImport(){
   /* Les feuilles d’un classeur ou les tables d’une base qui portent le nom d’une table du projet : identiques (mêmes colonnes, mêmes
      lignes), elles sont laissées ; d’un autre contenu, on demande : les mettre à jour, ou garder celles du projet (21 h 57). */
   let ajoutees=aj?importNoms(p):[];
-  pendingImport.saute=new Set();pendingImport.identiques=[];pendingImport.gardees=[];
+  pendingImport.saute=new Set();pendingImport.identiques=[];pendingImport.gardees=[];pendingImport.majs=[];
   if(ajoutees.length){
     const bilan=importComparer(customDbs[aj],p);
     bilan.identiques.forEach(n=>pendingImport.saute.add(n.toLowerCase()));pendingImport.identiques=bilan.identiques;
     if(bilan.modifiees.length){
       const m=bilan.modifiees,un=m.length===1;
-      const r=await lqAsk({ico:'🗂️',titre:un?`Mettre à jour « ${m[0]} » ?`:`Mettre à jour ${m.length} tables ?`,
-        texte:`${un?`« ${m[0]} » existe`:`${m.join(', ')} existent`} déjà dans ce projet, avec un autre contenu.${bilan.nouvelles.length?` ${plur(bilan.nouvelles.length,'nouvelle table')} ${bilan.nouvelles.length>1?'arrivent':'arrive'} aussi.`:''}`,
-        oui:un?'Mettre à jour':'Les mettre à jour',trois:un?'Garder la mienne':'Garder les miennes',non:null});
+      const nv=bilan.nouvelles.length;
+      const r=await lqAsk({ico:'🗂️',titre:un?`Mettre à jour la table « ${m[0]} » ?`:`Mettre à jour ${m.length} tables ?`,
+        texte:`${un?'Cette table existe':`${m.join(', ')} existent`} déjà dans le projet avec un contenu différent. La mise à jour remplace ${un?'sa':'leur'} version actuelle par celle du fichier.${nv?` Dans les deux cas, ${nv>1?`les ${nv} nouvelles tables sont ajoutées`:'la nouvelle table est ajoutée'}.`:''}`,
+        oui:un?'Mettre à jour':'Les mettre à jour',trois:un?'Conserver la version actuelle':'Conserver les versions actuelles',non:null});
       if(!r)return;
+      if(r===true)pendingImport.majs=m.slice();
       if(r==='trois'){m.forEach(n=>pendingImport.saute.add(n.toLowerCase()));pendingImport.gardees=m.slice();}
     }
     ajoutees=ajoutees.filter(n=>!pendingImport.saute.has(n.toLowerCase()));
     if(!ajoutees.length){
-      lqInfo('Déjà à jour',bilan.identiques.length===bilan.total?`Les ${plur(bilan.total,'table')} du fichier sont déjà dans ce projet, à l’identique : rien à ajouter.`:'Rien à ajouter : tu gardes les tables du projet.');
+      lqInfo('Projet déjà à jour',bilan.identiques.length===bilan.total?`${bilan.total>1?`Les ${bilan.total} tables du fichier sont identiques`:'La table du fichier est identique'} à celles du projet. Aucune modification n’a été apportée.`:'Les versions actuelles du projet sont conservées. Aucune modification n’a été apportée.');
       return;
     }
   }
@@ -22895,7 +22898,7 @@ async function confirmImport(){
     if(infosN&&infosT.note){ const pj=projOf(target); pj.tdesc=pj.tdesc||{}; if(!pj.tdesc[infosN]){ pj.tdesc[infosN]=infosT.note; try{ saveProjState(); }catch(e){} } }
     if(activeDbId!=='cours')persistCustomDbs(target);
     importOccupe(false);
-    importLaisses={identiques:pendingImport.identiques||[],gardees:pendingImport.gardees||[]};   // la feuille se ferme (pendingImport s’en va) : le compte rendu les dira
+    importLaisses={identiques:pendingImport.identiques||[],gardees:pendingImport.gardees||[],majs:pendingImport.majs||[]};   // la feuille se ferme (pendingImport s’en va) : le compte rendu les dira
     closeImportSheet();
     const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):ajoutees.length===1?tabs.find(t=>t.toLowerCase()===ajoutees[0].toLowerCase())||null:null;
     /* Ajoutée depuis la page du projet : on y reste, le panneau des tables ouvert, et la page descend jusqu’à la nouvelle table ;
@@ -22963,17 +22966,26 @@ function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){
   const cle=t=>String(t).toLowerCase().replace(/eaux$/,'eau').replace(/aux$/,'al').replace(/ies$/,'y').replace(/s$/,'')+'_id';
   const ok=(titre,corps)=>`<div class="feedback ok"><div class="fi">✓</div><div><b>${titre}</b>${corps}</div></div>`;
   /* Ajoutées à un projet (21 h 57) : ce qui n’a pas bougé, et pourquoi */
-  const pi=typeof importLaisses!=='undefined'&&importLaisses?importLaisses:{},idq=pi.identiques||[],gd=pi.gardees||[];
-  const idem=(idq.length?`<p class="imp-idem">Déjà à jour, ${idq.length>1?'laissées':'laissée'} telle${idq.length>1?'s':''} quelle${idq.length>1?'s':''}&nbsp;: ${codes(idq)}.</p>`:'')
-    +(gd.length?`<p class="imp-idem">${gd.length>1?'Gardées':'Gardée'} comme dans le projet&nbsp;: ${codes(gd)}.</p>`:'');
+  /* 9 novembre, 22 h 13 (« mal formulé, sois pro ») : une ligne par sort, ajoutées, mises à jour, identiques, conservées */
+  const pi=typeof importLaisses!=='undefined'&&importLaisses?importLaisses:{},idq=pi.identiques||[],gd=pi.gardees||[],mj=pi.majs||[];
+  const sort=(l,un,pl)=>l.length?`<p class="imp-idem">${l.length>1?pl:un}&nbsp;: ${codes(l)}.</p>`:'';
+  if(!asDb&&(idq.length||gd.length||mj.length)){
+    const est=(l,t)=>l.some(x=>String(x).toLowerCase()===String(t).toLowerCase());
+    const nv=(ajoutees&&ajoutees.length?ajoutees:tn?[tn]:[]).filter(t=>!est(mj,t));
+    return ok(nv.length>1?'Tables ajoutées':nv.length?'Table ajoutée':'Projet mis à jour',
+      (nv.length?`<p>${nv.length>1?'Ajoutées':'Ajoutée'} au projet&nbsp;: ${codes(nv)}.</p>`:'')
+      +sort(mj,'Mise à jour avec la version du fichier','Mises à jour avec la version du fichier')
+      +sort(idq,'Identique au projet, non modifiée','Identiques au projet, non modifiées')
+      +sort(gd,'Version du projet conservée','Versions du projet conservées')
+      +`${garde}${trouves}${voir}`);
+  }
   if(ajoutees&&ajoutees.length>1){
     const autres=tabs.filter(t=>!ajoutees.some(a=>a.toLowerCase()===t.toLowerCase()));
-    return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`rejoignent ${codes(autres)}`:`sont les ${ajoutees.length} tables du projet`}.</p>${idem}${garde}${trouves}${voir}`);
+    return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`ont été ajoutées au projet, qui contient aussi ${codes(autres)}`:`constituent les ${ajoutees.length} tables du projet`}.</p>${garde}${trouves}${voir}`);
   }
   if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${garde}${trouves}${voir}`);
   if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses relations.</p>`);
-  if(tn&&idem)return ok('Table ajoutée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.</p>${idem}${trouves}${voir}`);
-  if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucune relation pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait une.`}</p>${trouves}${voir}`);
+  if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> a été ajoutée au projet, qui contient aussi ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucune relation pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait une.`}</p>${trouves}${voir}`);
   return ok('Import réussi',`<p>${tabs.length?`Tables&nbsp;: ${codes(tabs)}.`:'Script exécuté.'}</p>${trouves}${voir}`);
 }
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE','OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD','FIRST_VALUE','LAST_VALUE','NTILE','ROWS','RANGE','CURRENT','UNBOUNDED','PRECEDING','FOLLOWING','GROUP_CONCAT','STRING_AGG',
@@ -47583,7 +47595,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-historique-v2781';
+  const SW_CACHE='requete-2026-11-09-fusionpro-v2782';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
