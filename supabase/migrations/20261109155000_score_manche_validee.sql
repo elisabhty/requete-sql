@@ -5,6 +5,8 @@
 -- jouent encore (son rang y est déjà acquis : qui trouve plus tard a un temps plus long).
 -- jeu_score_v2 est recréée telle qu’elle est en service (pg_get_functiondef) : seule la condition « manche terminée » change ; si
 -- elle n’est plus celle attendue, rien n’est changé.
+-- Appliquée au projet Supabase « requete-sql » (ynuenrxozcpkrjdbeftc, Paris) le 9 novembre 2026, vers 15 h 55, avec l’accord d’Elisa
+-- (« Oui, applique-le ») ; vérifiée ensuite : la condition est en service.
 do $t$
 declare
   def text;
