@@ -236,7 +236,7 @@ test('l’import : un échec ne laisse rien, un nom déjà pris se demande, et l
   for (const k of ["titre:`Remplacer la table « ${deja} » ?`", "database.run('SAVEPOINT rq_import');point=true;", "if(point){ database.run('RELEASE rq_import'); point=false; }",
     "if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}",
     'if(ancienne){ try{ customDbs[target].close(); }catch(x){} customDbs[target]=ancienne; }', 'dbCatalog=dbCatalog.filter(d=>d.id!==target);',
-    "activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';", 'out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null,infosN?{n:infosN,c:infosT.cols}:null);', "if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));"])
+    "activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';", 'out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null,infosN?{n:infosN,c:infosT.cols}:null);', "if(cadre&&typeof ecranVers==='function')requestAnimationFrame(()=>requestAnimationFrame(()=>ecranVers(cadre)));"])
     assert.ok(c.includes(k), k);
   assert.ok(c.indexOf('const avant=activeDbId,neuf=chosen===') < c.indexOf('activeDbId=target;'));
   const d = ouvrir(`CREATE TABLE clients(id INTEGER PRIMARY KEY, nom TEXT); INSERT INTO clients VALUES (1,'Ana');`);
@@ -287,5 +287,5 @@ test('la DA : les accents entiers, « → table » qui rétrécit d’abord, les
     'html.lq #schema-sheet .umd-dv{padding:2px 7px;border-radius:99px;', 'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);',
     'html.lq #schema-sheet .sch-col .cxl{flex-basis:100%;order:9;min-width:0;', 'html.lq #schema-sheet .sch-col .cx{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow:hidden;'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=285">'), 'la feuille de style est rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=286">'), 'la feuille de style est rechargée');
 });

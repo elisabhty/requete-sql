@@ -1933,3 +1933,18 @@ test('9 novembre, 21 h 30 : une table ouverte glisse sous la barre ; cartes de t
   assert.ok(t.includes('if(r.top>=70&&r.top<=h*.28)return;') && t.includes('ecranVers(el);'), 'la table ouverte se montre');
   for (const r of ['html.lq #scr-console .tbu-h,html.lq #schema-sheet .umd-h{background:#fff!important;', 'html.lq #schema-sheet .sch-table.is-tbu .sch-head{', 'html.lq #scr-console .tbu-c i.is-fk,html.lq #schema-sheet .umd-c i.is-fk{background:#EEEBF8;']) assert.ok(css.includes(r), r);
 });
+
+test('9 novembre, 21 h 38 : import, plus d’étiquette « Nouvelle », la page va au compte rendu, des erreurs en français et une image refusée', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  assert.ok(css.includes('html.lq #scr-console .console-schema-panel .db-tblock.is-new::after{content:none!important;display:none!important}'));
+  assert.ok(app.includes("if(cadre&&typeof ecranVers==='function')requestAnimationFrame(()=>requestAnimationFrame(()=>ecranVers(cadre)));"));
+  const ctx = vm.createContext({});
+  const f = n => { const i = app.indexOf('function ' + n + '('); return app.slice(i, app.indexOf('\n}\n', i) + 3); };
+  vm.runInContext(f('importPasUnTableau') + f('importErreurLisible'), ctx);
+  assert.match(ctx.importPasUnTableau('photo.png', new Uint8Array([0x89, 0x50, 0x4E, 0x47, 1, 2])), /une image, pas un tableau/);
+  assert.match(ctx.importPasUnTableau('releve.pdf', new Uint8Array([0x25, 0x50, 0x44, 0x46])), /un PDF/);
+  assert.equal(ctx.importPasUnTableau('ventes.csv', new Uint8Array([0x61, 0x3B, 0x62])), '');
+  assert.match(ctx.importErreurLisible(new SyntaxError('Unexpected end of JSON input')), /JSON est incomplet ou mal formé/);
+  assert.match(ctx.importErreurLisible(new Error('il faut une ligne d’en-têtes et au moins une ligne de données.')), /n’a pas de données/);
+});

@@ -54,7 +54,7 @@ test('la feuille d’import : passer de « Nouveau projet » à un projet déjà
 
 test('réf. 2 : « Projet importé » en mode validé', () => {
   const c = cut('async function confirmImport(){', 'function importRetourHtml(');
-  assert.ok(c.includes("carte.classList.add('is-valide');") && c.includes("requestAnimationFrame(()=>lqDone(carte,asDb?'Importé':'Importée',asDb?'Projet importé':'Table importée'));"));
+  assert.ok(c.includes("carte.classList.add('is-valide');") && c.includes("requestAnimationFrame(()=>lqDone(carte,aj?(ajoutees.length>1?'Ajoutées':'Ajoutée'):asDb?'Importé':'Importée',aj?(ajoutees.length>1?'Tables ajoutées':'Table ajoutée'):asDb?'Projet importé':'Table importée'));"));
   assert.ok(c.includes("carte.querySelectorAll('code').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,14)));"), 'les tables, une à une');
   const i = lq.indexOf('/* ---------- Retours du 5 novembre, 22 h 19 ----------');
   const css = lq.slice(i), m = css.indexOf('@media (prefers-reduced-motion:no-preference){');
@@ -131,5 +131,5 @@ test('la base de démo des cours s’appelle NutriBoost', () => {
   assert.equal(ctx.projectName('cours'), 'NutriBoost');
   assert.ok(!app.includes("name:'Cours'") && !app.includes("return 'Cours';"));
   assert.ok(app.includes("fname.textContent=(activeDbId==='cours'?'nutriboost':isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';"), 'son brouillon : nutriboost.sql');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=285">') && sw.includes("const CACHE = 'requete-2026-11-09-calme-v2775';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=286">') && sw.includes("const CACHE = 'requete-2026-11-09-import-v2776';"));
 });
