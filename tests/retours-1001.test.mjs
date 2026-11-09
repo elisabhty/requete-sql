@@ -43,8 +43,8 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   /* 11 h 38 (« trop de cadres, trop de boutons ») : la prochaine étape, une ligne sans cadre */
   assert.equal(ctx.jeuFinBoutonsHTML(1, true), '<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant()">[m]'
     + '<span class="jeu-prog-t">Passer au niveau moyen</span><span class="jeu-prog-x">×2<span class="lq-sr"> points par défi</span></span><svg>›</svg></button>'
-    + '<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[retour|Retour aux défis|openJeu()]</div>');
-  assert.equal(ctx.jeuFinBoutonsHTML(1, false), '<div class="jeu-fin-actions"><button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[retour|Retour aux défis|openJeu()]</div>', 'pas tout résolu : pas de prochaine étape');
+    + '<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[classement|Voir mon classement|jeuVersClassement()]</div>');
+  assert.equal(ctx.jeuFinBoutonsHTML(1, false), '<div class="jeu-fin-actions"><button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[classement|Voir mon classement|jeuVersClassement()]</div>', 'pas tout résolu : pas de prochaine étape');
   assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Réessayer</span>'), 'rien de résolu : « Réessayer »');
   ctx.JEU.niv = 'd'; assert.ok(!ctx.jeuFinBoutonsHTML(2, true).includes('jeu-prog'), 'au plus haut niveau, pas de prochaine étape'); ctx.JEU.niv = 'f';
   ctx.JEU.solo = false;
@@ -86,7 +86,7 @@ test('le bilan (2 ou 3 manches) : l’essentiel, une fois ; « résolu » partou
   assert.ok(fin.includes("html=trophee+head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+"), 'le niveau sous le titre, seul');
   assert.ok(!fin.includes('const verdict') && !fin.includes('`Bien joué') && !fin.includes("'Tout trouvé"), 'plus de phrase qui redit le bandeau');
   assert.ok(fin.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}${un?' is-2':''}\">") && fin.includes("<small>résolu${nOk>1?'s':''}</small>"), 'les trois cases (deux pour une manche, 11 h 31) ; « résolu »');
-  assert.ok(fin.includes("const meta=ok?(un?'':`<i class=\"jr-time\">Résolu en ${dur(x.ms)}</i>`)+(y&&(y.essai||y.rang)?jeuPtsDetail(y):''):`<i class=\"jr-why\">${why}</i>`;"), 'le détail seulement s’il dit autre chose que les points ; une seule manche, sans redire le bandeau (11 h 31)');
+  assert.ok(fin.includes("const meta=pt+(ok?(un?'':`<i class=\"jr-time\">Résolu en ${dur(x.ms)}</i>`)+(y&&(y.essai||y.rang)?jeuPtsDetail(y):''):`<i class=\"jr-why\">${why}</i>`);"), 'le détail seulement s’il dit autre chose que les points ; une seule manche, sans redire le bandeau (11 h 31)');
   assert.ok(fin.includes('${jeuCorrBoutonHTML(k)}</div>') && !fin.includes('jeuRetenter('), '« Voir la correction » pour chaque manche, plus « Retenter ce défi »');
   /* Mes stats, Planning, Mon compte */
   for (const k of ["${trouves} ${plur(trouves,'défi')} ${plur(trouves,'résolu')} sur ${manches}", "'Les défis que tu résous comptent ici.'", "${h.ok}/${h.n} ${plur(h.ok,'résolu')}",
