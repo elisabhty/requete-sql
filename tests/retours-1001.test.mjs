@@ -37,7 +37,7 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   assert.ok(app.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}"), 'les points de la manche, puis ceux de la partie sur l’écran de fin');
   /* Ses boutons : ceux du bilan (jeuFinBoutonsHTML depuis 10 h 37 : la prochaine étape en carte, « Réessayer » sans défi résolu,
      « Retour aux défis » à la place de « Changer de niveau ») */
-  const ctx = vm.createContext({ JEU: { solo: true, niv: 'f' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>',
+  const ctx = vm.createContext({ JEU: { solo: true, niv: 'f' }, jeuIsHost: () => true, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>',
     DEF_CHEV_SVG: '<svg>›</svg>', jeuNivBars: k => `[${k}]`, jeuBtn2: (i, l, o) => `[${i}|${l}|${o}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), ctx);
   /* 11 h 38 (« trop de cadres, trop de boutons ») : la prochaine étape, une ligne sans cadre */
@@ -49,6 +49,10 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   ctx.JEU.niv = 'd'; assert.ok(!ctx.jeuFinBoutonsHTML(2, true).includes('jeu-prog'), 'au plus haut niveau, pas de prochaine étape'); ctx.JEU.niv = 'f';
   ctx.JEU.solo = false;
   assert.ok(ctx.jeuFinBoutonsHTML(1, true).includes('[quit|Quitter la salle|goBack()]') && !ctx.jeuFinBoutonsHTML(1, true).includes('jeu-prog'), 'dans une salle : la quitter');
+  /* 12 h 36 : pas encore l’hôte (il vient de partir), pas de « Rejouer » qui ne ferait rien */
+  ctx.jeuIsHost = () => false;
+  assert.ok(!ctx.jeuFinBoutonsHTML(1, true).includes('jeuRejouer()') && ctx.jeuFinBoutonsHTML(1, true).includes('L’hôte peut relancer une partie dans cette salle.'));
+  ctx.jeuIsHost = () => true;
   /* « Rejouer » touché avant que la fin de partie revienne : elle part, la partie suivante la suit */
   assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();J.rejouer=true;jeuFinish();'));
   assert.ok(app.includes("J.over=true;\n      if(J.rejouer){J.rejouer=false;setTimeout(()=>{if(JEU===J&&J.over)jeuAgain();},0);}"));

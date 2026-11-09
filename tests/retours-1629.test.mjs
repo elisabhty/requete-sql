@@ -75,7 +75,7 @@ test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », 
   assert.ok(app.includes('const seul=J.solo||r.one||actifs.size<2,k=jeuNivManche(n);') && app.includes('Object.assign({pid,ms,place:i+1,k},jeuPts(ms,i,seul,!!(r.first&&r.first[pid])&&(seul||i===0),k))'));
   assert.ok(app.includes("if(jeuSoloLike(n)!==J.slShown){J.keep=v;J.view='';jeuPaint();return;}"), 'quelqu’un arrive ou part : la manche se redessine (la requête tapée reste)');
   assert.ok(!app.includes('Tu es seul·e dans la salle'), 'plus d’annonce « seul·e dans la salle »');
-  assert.ok(app.includes("const seul=J.solo||sc.every(x=>x.pid===J.me);"), 'fin de partie seul : le bilan, pas le podium');
+  assert.ok(app.includes("if(J.seulFin==null)J.seulFin=J.solo||sc.every(x=>x.pid===J.me);"), 'fin de partie seul : le bilan, pas le podium (décidé à l’arrivée, 12 h 36)');
   assert.ok(app.includes("salle:J.code,g:J.g});"), 'au classement : la partie est identifiée, les bonus sont calculés sur le serveur');
   assert.ok(app.includes("`${JEU.pub?'Ta salle est visible par les autres joueurs.':'Personne n’a encore rejoint : partage le code.'} Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`"));
 });
