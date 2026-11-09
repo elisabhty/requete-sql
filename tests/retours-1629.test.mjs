@@ -33,12 +33,17 @@ test('pendant la manche, une seule action : « Exécuter » ; le schéma passe d
     assert.ok(s50.includes(k), k);
 });
 
-test('trouvé : une carte blanche à la place de l’éditeur (plus le grand cadre vert), la requête repliée', () => {
+/* 9 novembre, 8 h 20 (Elisa) : « je veux que l’encart rouge se transforme en vert avec Bravo défi résolu…. En attente des autres ou qui
+   passe à la manche suivante si autre manche, avec résolu en 2 min etc. » La carte « Trouvé en 00:04 » (médaille, carte blanche) devient
+   la carte de l’indice, son encart passé au vert. */
+test('trouvé : la carte de l’indice reste à la place de l’éditeur, son encart passe au vert, « Bravo, défi résolu ! » ; la requête repliée', () => {
   const f = cut('function jeuFoundHTML(r,pid){', '\nfunction jeuCountUp(el){');
-  assert.ok(!f.includes('feedback ok'), 'plus de cadre vert');
-  assert.ok(f.includes('<section class="jeu-done" id="jeu-done" aria-label="Trouvé">'));
-  assert.ok(f.includes("const stk=!sl&&pos>=0&&pos<3?lqStkSvg('medal'+(pos+1)):JEU_OK_STK;"), 'la médaille de sa place, ou la coche');
-  assert.ok(f.includes('<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">'), 'qui cherche encore, et les réactions groupées');
+  assert.ok(!f.includes('feedback ok') && !f.includes('Trouvé en') && !f.includes('JEU_OK_STK') && !app.includes('const JEU_OK_STK='), 'plus de carte blanche « Trouvé en », ni de médaille');
+  assert.ok(f.includes('<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">') && f.includes('${coachOkHTML({ko,det,pts})}'));
+  assert.ok(f.includes("const det=[`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?'du premier coup ✨':''].filter(Boolean).join(' · ');"), 'le temps, la place entre amis, le premier coup');
+  assert.ok(f.includes("const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;"), 'après un essai manqué, le vert part du rouge');
+  assert.ok(f.includes('`<p class="jeu-auto coach-ok-suite" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">'), 'seul : la suite, et son compte à rebours');
+  assert.ok(f.includes('<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">'), 'à plusieurs : qui cherche encore, et les réactions groupées');
   assert.ok(f.includes('<div id="jeu-hostbar">${jeuHostBarHTML()}</div>'));
   assert.ok(f.includes('<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>'));
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
