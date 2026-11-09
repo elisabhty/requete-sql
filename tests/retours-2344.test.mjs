@@ -197,7 +197,7 @@ test('le schéma : « relations » plutôt que « liens » entre tables', () => 
   /* 9 novembre, 0 h 31 : la carte « Tables, colonnes et relations de la base » est retirée (retours-0031) */
   for (const neuf of ["${plur(umlNbLiens(m),'relation')}",
     '<b>Les relations en clair</b>', '${UML_SVG}Les relations en clair</button>', 'Touche une table&nbsp;: ses relations s’allument.', ': allumer ses relations`)',
-    'Aucune relation&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.', 'le schéma UML se dessinera tout seul, avec ses relations.',
+    'Aucune relation&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.', 'le schéma UML affichera leur relation.',
     'Aucune relation pour l’instant&nbsp;: une colonne comme', "`${liens.length} relations trouvées`:'Relation trouvée'"])
     assert.ok(app.includes(neuf), neuf);
   for (const vieux of ['Tables, colonnes et liens de la base', "plur(umlNbLiens(m),'lien')", '<b>Les liens en clair</b>', 'Les liens en clair</button>', 'Touche une table&nbsp;: ses liens s’allument',

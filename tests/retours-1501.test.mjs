@@ -174,7 +174,7 @@ test('« Vérifier les données » : les colonnes, leurs types et un exemple ; l
   const o = fn('openImportSheet');
   assert.ok(o.includes("title.textContent=aj?'Vérifier les données':asDb?'Importer une base':'Importer une table';"));
   assert.ok(o.includes("go.textContent=aj?(!asDb||noms.length===1?'Créer la table':noms.length>1?`Créer les ${noms.length} tables`:'Créer les tables'):(asDb?'Importer le projet':'Importer la table');"));
-  assert.ok(o.includes("document.getElementById('imp-db-field').hidden=!!aj;") && o.includes(`Elle rejoindra «${N}\${projectName(aj)}${N}»`), 'le projet ouvert, sans le choisir');
+  assert.ok(o.includes("document.getElementById('imp-db-field').hidden=!!aj;") && o.includes(`'Elle sera ajoutée'} au projet «${N}\${projectName(aj)}${N}»`), 'le projet ouvert, sans le choisir');
   assert.ok(app.includes('<div class="imp-prev" id="imp-prev"></div>\n    <p class="imp-ou" id="imp-ou" hidden></p>'));
   assert.ok(lq.includes('html.lq .imp-sheet{max-height:calc(100dvh - 12px);overflow-y:auto;overscroll-behavior:contain}'), 'une longue liste de colonnes défile');
 });
@@ -185,7 +185,7 @@ test('« Créer la table » : tout rejoint le projet ouvert sans le remplacer ; 
      même nom : identiques, laissées ; différentes, « Mettre à jour » ou « Garder les miennes » */
   assert.ok(c.includes('let aj=importAjoutCible();') && c.includes('const asDb=isDatabaseImport(p)&&!aj;\n  const chosen=aj||document.getElementById(\'imp-db\').value;'), 'un classeur ajouté ne remplace pas le projet');
   assert.ok(c.includes('const bilan=importComparer(customDbs[aj],p);') && c.includes("if(r==='trois'){m.forEach(n=>pendingImport.saute.add(n.toLowerCase()));"));
-  assert.ok(c.includes("const remplace=p.format==='sqlite'&&!aj;") && c.includes("database.run('SAVEPOINT rq_import');point=true;\n      copierTablesSqlite(p.bytes,database,pendingImport.saute);"));
+  assert.ok(c.includes("const remplace=p.format==='sqlite'&&!aj;") && c.includes("database.run('SAVEPOINT rq_import');point=true;\n      importOccupe(true,.2);await importSouffle();\n      copierTablesSqlite(p.bytes,database,pendingImport.saute);"));
   assert.ok(c.includes('[pendingImport.importedTable,p.primaryTable,...(p.tableNames||[]),...ajoutees].filter(Boolean)'), 'leur copie de départ');
   assert.ok(c.includes('if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);'), 'le nom du fichier, pour la carte');
   assert.ok(c.includes('consoleSchemaOpen=true;') && c.includes("if(aj&&avant===aj&&consoleView==='work'){") && c.includes('}else openConsoleProject(target);'), 'on reste sur la page du projet ; depuis la liste, on l’ouvre (la page va au compte rendu, 21 h 38)');
@@ -246,4 +246,18 @@ test('import dans un projet : phrases selon le contenu du fichier, table identiq
   assert.ok(app.includes("titre:'Remplacer tout le contenu ?'") && app.includes('Cette action est définitive.`,oui:\'Remplacer\',danger:true,non:\'Annuler\''));
   assert.ok(app.includes("if(asDb&&pi.remplace)return ok('Contenu remplacé'"));
   assert.ok(app.includes("k===1?'Sa ligne actuelle sera remplacée'"), 'plus de « ses 1 ligne »');
+});
+
+/* 9 novembre, 22 h 44 : « le bouton importer marche bien, avec des % » ; « nouveau projet : comme l’autre » */
+test('import : le bouton compte de 0 à 100 %, un nouveau projet dit « Ajoutées au projet », un gros fichier passe', () => {
+  assert.ok(app.includes('let impProg=null;') && app.includes('P.vu=Math.min(P.but,P.vu+dt*1.7);') && app.includes("go.style.setProperty('--imp-pc',P.vu.toFixed(3));"));
+  assert.ok(app.includes('importOccupe(true,.88);await importSouffle();\n    if(activeDbId!==\'cours\')persistCustomDbs(target);\n    await importProgFin();'), '100 % avant de fermer');
+  assert.ok(lq.includes('html.lq .imp-sheet>.imp-go.is-busy::after{content:"";position:absolute;inset:0;z-index:-1;') && lq.includes('transform:scaleX(var(--imp-pc,0))'));
+  assert.ok(lq.includes('html.lq #scr-console .console-schema-panel .db-tblock.is-new{animation:dbNewDoux .45s ease-out both}'), 'plus d’anneau vert');
+  assert.ok(app.includes("if(asDb&&tabs.length)return ok(pi.neuf?'Projet créé':tabs.length>1?'Tables ajoutées':'Table ajoutée',`<p>${tabs.length>1?'Ajoutées':'Ajoutée'} au projet&nbsp;: ${codes(tabs)}.</p>"));
+  assert.ok(app.includes('const width=dataRows.reduce((w,r)=>Math.max(w,r.length),headers.length);') && !app.includes('Math.max(headers.length,...dataRows'), '150 000 lignes ne dépassent plus la pile');
+  const ctx = vm.createContext({ esc, plur, UML_SVG: '<svg/>', umlModele: () => ({ liens: [] }), importLaisses: { neuf: true } });
+  vm.runInContext(fn('importRetourHtml'), ctx);
+  const h = ctx.importRetourHtml(null, ['Clients', 'Ventes'], null, true, null);
+  assert.ok(h.includes('<b>Projet créé</b><p>Ajoutées au projet&nbsp;: <code>Clients</code>, <code>Ventes</code>.</p>'), h);
 });

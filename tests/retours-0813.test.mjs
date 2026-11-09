@@ -241,14 +241,14 @@ test('l’import : un échec ne laisse rien, un nom déjà pris se demande, et l
   assert.ok(c.indexOf('const avant=activeDbId,neuf=chosen===') < c.indexOf('activeDbId=target;'));
   const d = ouvrir(`CREATE TABLE clients(id INTEGER PRIMARY KEY, nom TEXT); INSERT INTO clients VALUES (1,'Ana');`);
   const un = ctx.importRetourHtml(d, ['clients'], 'clients', false);
-  assert.ok(un.includes('<b>Table importée</b>') && un.includes('est la première table du projet. Importe une deuxième table, avec une colonne comme <code>client_id</code>&nbsp;: le schéma UML se dessinera tout seul') && !un.includes('imp-uml'));
+  assert.ok(un.includes('<b>Table ajoutée</b><p>Ajoutée au projet&nbsp;: <code>clients</code>.</p>') && un.includes('Importe une deuxième table avec une colonne comme <code>client_id</code>&nbsp;: le schéma UML affichera leur relation.') && !un.includes('imp-uml'));
   d.run('CREATE TABLE commandes(id INTEGER, client_id INTEGER, total REAL); INSERT INTO commandes VALUES (1,1,9.5);');
   const deux = ctx.importRetourHtml(d, ['clients', 'commandes'], 'commandes', false);
   assert.ok(deux.includes('Ajoutée au projet&nbsp;: <code>commandes</code>.') && deux.includes('<p class="imp-liens">Relation trouvée&nbsp;: <code>commandes.client_id</code> → <code>clients</code>.</p>'));
   assert.ok(deux.includes(`onclick="openSchemaSheet('console','__uml__')"`), 'le bouton ouvre le schéma UML');
   d.run('CREATE TABLE meteo(jour TEXT, temp REAL);');
   assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], 'meteo', false).includes('Aucune relation pour l’instant&nbsp;: une colonne comme <code>client_id</code> en créerait une.'));
-  assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], null, true).includes('<b>Projet importé</b><p>3 tables disponibles&nbsp;:'));
+  assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], null, true).includes("<b>Tables ajoutées</b><p>Ajoutées au projet&nbsp;: <code>clients</code>, <code>commandes</code>, <code>meteo</code>.</p>"));
   d.close();
 });
 
@@ -287,5 +287,5 @@ test('la DA : les accents entiers, « → table » qui rétrécit d’abord, les
     'html.lq #schema-sheet .umd-dv{padding:2px 7px;border-radius:99px;', 'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);',
     'html.lq #schema-sheet .sch-col .cxl{flex-basis:100%;order:9;min-width:0;', 'html.lq #schema-sheet .sch-col .cx{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow:hidden;'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=291">'), 'la feuille de style est rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=292">'), 'la feuille de style est rechargée');
 });
