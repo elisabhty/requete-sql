@@ -32,9 +32,9 @@ test('af21 et vm3 : une division entre deux entiers, l’appli le dit', () => {
   const c = defi('af21');
   const juste = lancer(c, 'SELECT classe, ROUND(SUM(prix) * 1.0 / COUNT(*), 2) AS prix_moyen FROM reservations GROUP BY classe ORDER BY prix_moyen DESC, classe');
   assert.equal(JSON.stringify(juste[0].values), JSON.stringify(lancer(c, c.sol)[0].values));
-  /* Une autre erreur de calcul, même avec une division : le message général */
+  /* Une autre erreur de calcul, même avec une division : le message général, sans indice (9 novembre, 7 h 55) */
   assert.equal(diag('af21', 'SELECT classe, ROUND(SUM(prix) / 2.0, 2) AS prix_moyen FROM reservations GROUP BY classe ORDER BY prix_moyen DESC, classe'),
-    'Le bon nombre de lignes, mais pas les bonnes valeurs : vérifie tes filtres et tes calculs.');
+    'Le résultat ne correspond pas à la consigne.');
 });
 
 test('hm2 : soustraire deux dates ne donne pas des jours, l’appli le dit', () => {
