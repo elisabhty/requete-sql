@@ -21178,8 +21178,8 @@ function restoreTableBaseline(database,name,snapshot){
     database.run('DROP TABLE IF EXISTS '+quoteIdent(name));
     database.run(createSql);
     if(data[0]&&data[0].values.length){
-      const insert='INSERT INTO '+quoteIdent(snapshot.name||name)+' VALUES ('+data[0].columns.map(()=>'?').join(',')+')';
-      data[0].values.forEach(row=>database.run(insert,row));
+      const st=database.prepare('INSERT INTO '+quoteIdent(snapshot.name||name)+' VALUES ('+data[0].columns.map(()=>'?').join(',')+')');
+      try{data[0].values.forEach(row=>st.run(row));}finally{st.free();}
     }
     (extras[0]?extras[0].values:[]).forEach(row=>{if(row[0])database.run(row[0]);});
     database.run('COMMIT');
@@ -21209,9 +21209,17 @@ function dbsTrop(){
   if(dbsTropLourd)return;dbsTropLourd=true;
   if(typeof lqInfo==='function')lqInfo('Projet trop lourd pour cet appareil','Il reste ouvert jusqu’à la fermeture de l’appli, mais ne pourra pas être retrouvé ensuite. Garde un fichier plus léger (moins de lignes), ou réimporte-le à la prochaine ouverture.','💾');
 }
+/* La copie de départ d’une table qui n’existe plus s’en va (9 novembre, 23 h 36 : un DROP TABLE tapé en SQL la laissait enregistrée ;
+   une table recréée ensuite sous ce nom aurait été « réinitialisée » avec les données de l’ancien fichier). */
+function elaguerCopies(id){
+  const b=tableBaselines[id],d=customDbs[id];if(!b||!d)return;
+  let ici;try{ici=new Set(listTables(d).map(tableBaselineKey));}catch(e){return;}
+  for(const k of Object.keys(b))if(!ici.has(k))delete b[k];
+}
 async function persistCustomDbs(seul){
   const metas=dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id]);
   const exporter=(d,i)=>{const database=customDbs[d.id],bytes=database.export();attachDateFns(database);   // export() ferme puis rouvre la base : les fonctions ajoutées au moteur sont à reposer
+    elaguerCopies(d.id);
     return {id:d.id,name:d.name,ordre:i,bytes,baselines:tableBaselines[d.id]||{}};};
   try{
     const idb=await dbsIdb();
@@ -47711,7 +47719,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-formatage-v2786';
+  const SW_CACHE='requete-2026-11-09-reinit-v2787';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

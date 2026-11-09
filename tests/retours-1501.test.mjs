@@ -292,3 +292,13 @@ test('formatage : noms longs dans leur cadre, rien sous le bouton collé, nom de
   assert.ok(app.includes('>${esc(umlNomCourt(col.c,25))}</span>') && app.includes('>${esc(umlNomCourt(c.name,16))}</b>'));
   assert.ok(app.includes("return F&&F.repairMojibake?F.repairMojibake(n).text:n;"), '« GÃ©nÃ©ral » redevient « Général »');
 });
+
+/* 9 novembre, 23 h 36 (« la réinitialisation prend en compte update, insert… ? quand on supprime et réinsère ? ») */
+test('réinitialiser : la copie d’une table disparue s’en va, la restauration par requête préparée', () => {
+  assert.ok(app.includes('function elaguerCopies(id){') && app.includes('    elaguerCopies(d.id);\n    return {id:d.id,name:d.name,ordre:i,bytes,baselines:tableBaselines[d.id]||{}};};'));
+  const c = vm.createContext({ tableBaselines: { p: { clients: { b64: 'x' }, ancienne: { b64: 'y' } } }, customDbs: { p: {} }, listTables: () => ['Clients'] });
+  vm.runInContext(fn('tableBaselineKey') + fn('elaguerCopies'), c);
+  c.elaguerCopies('p');
+  assert.deepEqual(Object.keys(c.tableBaselines.p), ['clients'], 'DROP TABLE en SQL : sa copie ne reste pas');
+  assert.ok(fn('restoreTableBaseline').includes('try{data[0].values.forEach(row=>st.run(row));}finally{st.free();}'));
+});
