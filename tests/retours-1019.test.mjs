@@ -13,7 +13,7 @@ test('le record dit « en une partie », en petit', () => {
 });
 
 test('les limites de description tiennent toutes les descriptions des bases', () => {
-  const max = k => Number((app.match(new RegExp(`placeholder:'Ex\\.\\s:\\s${k}',max:(\\d+),`)) || [])[1]);
+  const max = k => Number((app.match(new RegExp(`placeholder:'Ex\\.\\s:\\s${k}',max:(\\d+)[,}]`)) || [])[1]);
   const descs = [...app.matchAll(/\n    desc:'([^']+)'/g)].map(m => m[1].length);
   const tables = [...app.matchAll(/\n    tables:(\{[^\n]+\})/g)].flatMap(m => Object.values(JSON.parse(m[1])).map(v => v.length));
   assert.ok(max('les ventes 2025 de la boutique') >= Math.max(...descs), 'projet');
