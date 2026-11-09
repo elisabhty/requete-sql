@@ -131,5 +131,5 @@ test('la base de démo des cours s’appelle NutriBoost', () => {
   assert.equal(ctx.projectName('cours'), 'NutriBoost');
   assert.ok(!app.includes("name:'Cours'") && !app.includes("return 'Cours';"));
   assert.ok(app.includes("fname.textContent=(activeDbId==='cours'?'nutriboost':isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';"), 'son brouillon : nutriboost.sql');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=260">') && sw.includes("const CACHE = 'requete-2026-11-09-erreur-sql-seule-v2719';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=261">') && sw.includes("const CACHE = 'requete-2026-11-09-erreur-sql-aide-v2720';"));
 });

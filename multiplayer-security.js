@@ -90,13 +90,13 @@
         // The success is rendered only when read back from the trusted server history.
         game.t.sync?.();
       } else {
-        // « Pas tout à fait. Réessaie ! » dans la carte des indices, en mode erreur SQL (Elisa, 9 novembre, 7 h 37 puis 7 h 51) : l’erreur de SQLite en français,
-        // ou « Le résultat ne correspond pas à la consigne. » pour un résultat faux ; rien sous l’éditeur.
+        // « Pas tout à fait. Réessaie ! » dans la carte des indices (Elisa, 9 novembre, 7 h 37, 7 h 51 puis 8 h 04) : l’erreur SQL comme
+        // dans la boîte « Erreur SQL », son message et son aide, ou « Le résultat ne correspond pas à la consigne. » ; rien sous l’éditeur.
         const brut = result.error || 'Le résultat ne correspond pas à la consigne.';
         const defi = typeof CHALLENGES !== 'undefined' ? CHALLENGES.find(x => x.id === round.cid) : null;
-        const msg = typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut);
+        const msg = typeof defiErreurSalle === 'function' ? defiErreurSalle(defi, sql, brut) : esc(brut);
         const carte = typeof coachKo === 'function';
-        setLessonOut(carte ? '' : `<div class="feedback err"><div class="fi">!</div><div><b>Pas tout à fait. Réessaie&nbsp;!</b><p>${msg}</p></div></div>`);
+        setLessonOut(carte ? '' : `<div class="feedback err"><div class="fi">!</div><div><b>Pas tout à fait. Réessaie&nbsp;!</b>${String(msg).startsWith('<p>') ? msg : `<p>${msg}</p>`}</div></div>`);
         jeuEssaiRate(round);
         if(typeof coachRoomTick==='function')coachRoomTick();
         if(carte)coachKo(msg);
