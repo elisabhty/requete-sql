@@ -47,7 +47,7 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   const ko = ctx.defiIndicesHTML(c, 1, 0, 'La colonne <code>foo</code> n’existe pas.');
   assert.ok(ko.includes('<section class="coach has-hint has-ko" aria-live="polite">') && ko.includes('<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>La colonne <code>foo</code> n’existe pas.</p></div></div>'), 'ce qui cloche, dans la carte : « Réessaie », en mode erreur SQL (9 novembre, 7 h 37 ; sous l’éditeur à 7 h 23 ; avant « Essaie encore », « Raté », « Un coup de patte ? », « Pas encore »)');
   assert.ok(ko.indexOf('class="coach-hint"') < ko.indexOf('class="coach-st"'), 'sous l’indice');
-  assert.ok(ctx.defiIndicesHTML(c, 0, 0, 'On attend 1 colonne.').includes('<b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>On attend 1 colonne.</p>'), 'avant le premier indice aussi (en salle, ils viennent à l’heure)');
+  assert.ok(ctx.defiIndicesHTML(c, 0, 0, 'Le résultat ne correspond pas à la consigne.').includes('<b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>Le résultat ne correspond pas à la consigne.</p>'), 'avant le premier indice aussi (en salle, ils viennent à l’heure)');
   assert.ok(!h1.includes('coach-st') && !h1.includes('has-ko'), 'sans essai manqué, rien');
   assert.equal(ctx.defiSquelette(c.sol), 'SELECT …\nFROM …\nJOIN … ON … = …\nJOIN … ON … = …\nJOIN … ON … = …\nWHERE … = …\nORDER BY …');
   for (const x of ctx.CHALLENGES) {
@@ -58,14 +58,21 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   assert.equal(ctx.defiSquelette(D('am4').sol).split('\n')[3], 'WHERE … = … AND … > (SELECT AVG(…) FROM … WHERE … = …)');
 });
 
-test('le diagnostic dit ce qui cloche sans rien dévoiler', () => {
+/* 9 novembre, 7 h 55 (sa capture de « Pas tout à fait. Réessaie ! » qui disait « On attend 3 colonnes ; ta requête en renvoie 1. ») :
+   « Met vraiment l’erreur sql dedans pas ce genre d’indice ». Une requête qui tourne n’a pas d’erreur SQL : ni le nombre de lignes,
+   ni celui des colonnes, ni l’ordre, ni les valeurs ; seulement que le résultat ne correspond pas (comme en salle classée). */
+test('un résultat faux : « Le résultat ne correspond pas à la consigne. », sans indice (7 h 55 ; avant, ce qui cloche)', () => {
   const d = base(), c = D('af1'), sol = d.exec(c.sol);
-  const diag = sql => ctx.defiDiag(d.exec(sql), sol, c);
-  assert.equal(diag("SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut = 'retardé'"), 'Ta requête ne renvoie aucune ligne ; il en faut 4.');
-  assert.equal(diag("SELECT numero_vol FROM vols WHERE statut = 'Retardé'"), 'On attend 3 colonnes ; ta requête en renvoie 1.');
-  assert.equal(diag("SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut <> 'Annulé'"), 'Ta requête renvoie 38 lignes ; il en faut 4.');
-  assert.equal(diag("SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut = 'Retardé' ORDER BY numero_vol"), 'Les bonnes lignes sont là, mais pas dans le bon ordre : relis le tri demandé.');
-  assert.equal(diag("SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut = 'Terminé' LIMIT 4"), 'Le bon nombre de lignes, mais pas les bonnes valeurs : vérifie tes filtres et tes calculs.');
+  const diag = sql => ctx.defiDiag(d.exec(sql), sol, c, sql);
+  for (const sql of [
+    "SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut = 'retardé'",
+    "SELECT numero_vol FROM vols WHERE statut = 'Retardé'",
+    "SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut <> 'Annulé'",
+    "SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut = 'Retardé' ORDER BY numero_vol",
+    "SELECT numero_vol, date_depart, heure_depart FROM vols WHERE statut = 'Terminé' LIMIT 4",
+  ]) assert.equal(diag(sql), 'Le résultat ne correspond pas à la consigne.', sql);
+  const f = cut('function defiDiag(', '\n}\n');
+  for (const mot of ['colonne', 'ligne', 'ordre', 'valeurs', 'il en faut']) assert.ok(!f.includes(mot), mot);
   d.close();
 });
 
@@ -73,7 +80,7 @@ test('branché partout : défi seul, salle, fin du chrono, fin de manche ; la m�
   assert.ok(app.includes("if(mode==='defi'){if(!COACH||COACH.c!==current)COACH={c:current,kind:'solo',n:0,view:0,diag:'',fx:''};coachSet(exoFails);return;}"), 'défi seul : les indices au lieu de la solution');
   assert.ok(app.includes("if(mode==='defi'&&sql!=null){const k=String(sql).replace(/\\s+/g,' ').trim();if(k===defiDernierKo){renderExoHelp();return;}defiDernierKo=k;}"));
   assert.ok(app.includes('const diag=isDefi?defiDiag(userRes,solRes,current,sql):exoFailDiag(sql,sol,userRes,solRes,ordered);'));
-  assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; « Réessaie » et ce qui cloche dans la carte (9 novembre, 7 h 37)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'salle');
+  assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; dans la carte, « Pas tout à fait. Réessaie ! », sans indice (9 novembre, 7 h 55)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'salle');
   assert.ok(app.includes('const JEU_IND_T=[150000,300000,450000];'), 'en salle, à la même minute pour tout le monde');
   assert.ok(app.includes('Le résultat attendu reste caché&nbsp;: tu peux le recommencer.</p>') && !app.includes('Voici ce qu’il fallait obtenir'), 'fin du chrono : ni la requête ni le résultat, on peut recommencer (3 novembre, 7 h 14)');
   assert.ok(app.includes('<summary class="jeu-card-h">Le résultat attendu</summary>'), 'fin de manche');

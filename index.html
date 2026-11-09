@@ -13813,7 +13813,8 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   /* Ce que dit un essai manqué (« Pas encore », puis « Un coup de patte ? » le 8 novembre, « Raté » et « Essaie encore » le 9, sous
      l’éditeur à 7 h 23). 9 novembre, 7 h 37 (Elisa) : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais
      en mode erreur sql ui ux ». De retour dans la carte, sous l’indice : un encart comme « Erreur SQL » (fond rose pâle, bord rose,
-     pastille rouge « ! »), titré « Réessaie », puis le message de SQLite en français (sqlErreurFr) ou ce qui cloche dans le résultat.
+     pastille rouge « ! »), titré « Réessaie », puis le message de SQLite en français (sqlErreurFr) ; 7 h 55, « pas ce genre d’indice » :
+     une requête qui tourne sans le bon résultat dit seulement « Le résultat ne correspond pas à la consigne. » (defiDiag).
      Rien sous l’éditeur pour une erreur ; le résultat obtenu, lui, y reste. 7 h 51 : « Je vais plus partir sur : Pas tout à fait.
      Réessaie ! » : c’est le titre de l’encart (l’espace insécable garde le « ! » sur sa ligne). */
   const st=diag?`<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>${diag}</p></div></div>`:'';
@@ -13919,17 +13920,15 @@ function coachRoomTick(){
   if(cd&&nx!=null)cd.textContent=jeuChrono(nx);
   else if(!document.querySelector('#hint-slot .coach'))coachPaint();
 }
-/* Ce qui cloche dans un essai raté, sans rien dévoiler de la requête. */
+/* Ce que dit l’encart d’un essai qui tourne sans donner le bon résultat. 9 novembre, 7 h 55 (Elisa, sa capture de « Pas tout à fait.
+   Réessaie ! » qui disait « On attend 3 colonnes ; ta requête en renvoie 1. ») : « Met vraiment l’erreur sql dedans pas ce genre
+   d’indice » ; 7 h 56 : « Si je veux l’erreur sql ». Plus de diagnostic (lignes, colonnes, ordre, valeurs) : une requête qui tourne
+   n’a pas d’erreur SQL, l’encart dit seulement que le résultat ne correspond pas à la consigne, comme en salle classée. Reste, rare,
+   ce que SQLite fait autrement que PostgreSQL (defiPiege, 4 novembre, 23 h 50) : la requête y paraît juste, l’appli dit pourquoi. */
 function defiDiag(userRes,solRes,c,sql){
   const U=userRes&&userRes[0],S=solRes&&solRes[0];
-  const nU=U?U.values.length:0,nS=S?S.values.length:0,cU=U?U.columns.length:0,cS=S?S.columns.length:0;
-  const pl=(n,m)=>n+' '+m+(n>1?'s':'');
-  if(!nU&&nS)return `Ta requête ne renvoie aucune ligne ; il en faut ${nS}.`;
-  if(cU!==cS)return `On attend ${pl(cS,'colonne')} ; ta requête en renvoie ${cU}.`;
-  if(nU!==nS)return `Ta requête renvoie ${pl(nU,'ligne')} ; il en faut ${nS}.`;
-  if(c&&c.ordered&&typeof memeResultatColonnesLibres==='function'&&memeResultatColonnesLibres(U,S,false))return 'Les bonnes lignes sont là, mais pas dans le bon ordre : relis le tri demandé.';
-  const piege=defiPiege(U,S,sql);if(piege)return piege;
-  return 'Le bon nombre de lignes, mais pas les bonnes valeurs : vérifie tes filtres et tes calculs.';
+  const meme=!!(U&&S&&U.values.length===S.values.length&&U.columns.length===S.columns.length);
+  return (meme&&defiPiege(U,S,sql))||'Le résultat ne correspond pas à la consigne.';
 }
 /* Elisa, 4 novembre, 23 h 50 (les 4 bonnes requêtes encore refusées : « on supprime ou corrige ? ») : on corrige, sans accepter
    un faux résultat. Ces écritures sont justes en PostgreSQL, mais SQLite, le moteur de l’appli, en tire un autre résultat ; l’appli
@@ -36792,7 +36791,7 @@ function jeuRun(){
   }
   const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c,sql):exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
   const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
-  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; « Réessaie » et ce qui cloche dans la carte (9 novembre, 7 h 37)
+  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; dans la carte, « Pas tout à fait. Réessaie ! », sans indice (9 novembre, 7 h 55)
   jeuEssaiRate(r);
   coachRoomTick();
   coachKo(diag);
@@ -37331,8 +37330,8 @@ function runLesson(){
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     // Évite le double message : pas de bandeau vert « Requête exécutée / Aucune ligne » sous le warn.
     const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
-    /* Un défi : « Réessaie » et ce qui cloche, dans la carte des indices ; dessous, le résultat obtenu (9 novembre, 7 h 37).
-       Un exercice : « La requête tourne, mais… » sous l’éditeur. */
+    /* Un défi : « Pas tout à fait. Réessaie ! » dans la carte des indices, sans indice (defiDiag, 9 novembre, 7 h 55) ; dessous, le
+       résultat obtenu. Un exercice : « La requête tourne, mais… » et ce qui cloche, sous l’éditeur. */
     if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}
     else setLessonOut(defiPasEncoreBox(diag,table));
     registerExoFail(sql);
@@ -46943,7 +46942,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-pas-tout-a-fait-v2718';
+  const SW_CACHE='requete-2026-11-09-erreur-sql-seule-v2719';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -219,7 +219,7 @@ test('un défi seul ou une salle : « Réessaie » et l’erreur en français da
   assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=sqlErreurFr(e.message);COACH.fx='is-new-ko';}\n    else setLessonOut(errBox(e.message,sql));"), 'seul : une erreur');
   assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}\n    else setLessonOut(defiPasEncoreBox(diag,table));\n    registerExoFail(sql);"), 'seul : un résultat faux ; un exercice garde « La requête tourne, mais… »');
   assert.ok(app.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message));return;}"), 'en salle : une erreur');
-  assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; « Réessaie » et ce qui cloche dans la carte (9 novembre, 7 h 37)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'en salle : un résultat faux');
+  assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; dans la carte, « Pas tout à fait. Réessaie ! », sans indice (9 novembre, 7 h 55)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'en salle : un résultat faux');
   assert.ok(!app.includes('defiErreurBox('), 'plus de boîte « Erreur SQL » sous l’éditeur dans un défi (errBox la garde pour les exercices)');
   /* En salle, pour de vrai : une requête qui plante, puis une qui tourne sans le bon résultat */
   const vu = { out: [], ko: [], rate: 0, tick: 0 };
@@ -228,15 +228,15 @@ test('un défi seul ou une salle : « Réessaie » et l’erreur en français da
     jeuCur: () => 0, jeuRoundDone: () => false, Date: { now: () => 1 }, performance: { now: () => 0 },
     document: { getElementById: () => ({ value: vu.sql }), querySelectorAll: () => [] },
     defiSandbox: () => ({ close() {} }), execChallengeResult: (d, q) => { if (q === 'q') throw new Error('near "q": syntax error'); return [{ columns: ['x'], values: [[q === 'SELECT 1' ? 1 : 2]] }]; },
-    resultatsDefiEgaux: (a, b) => JSON.stringify(a) === JSON.stringify(b), defiDiag: () => 'Le bon nombre de lignes, mais pas les bonnes valeurs.',
+    resultatsDefiEgaux: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     renderTable: () => '<table></table>', setLessonOut: h => vu.out.push(h), jeuEssaiRate: () => vu.rate++, coachRoomTick: () => vu.tick++, coachKo: d => vu.ko.push(d),
     sqlErreurFr: m => `FR(${m})`, esc: s => s,
   });
-  vm.runInContext(fn('jeuRun'), salle);
+  vm.runInContext(fn('defiDiag') + fn('defiPiege') + fn('jeuRun'), salle);
   vu.sql = 'q'; salle.jeuRun();
   assert.deepEqual([vu.out, vu.ko, vu.rate, vu.tick], [[''], ['FR(near "q": syntax error)'], 1, 1], 'l’erreur, en français, dans la carte ; rien sous l’éditeur');
   vu.sql = 'SELECT 2'; salle.jeuRun();
-  assert.deepEqual([vu.out[1], vu.ko[1], vu.rate, vu.tick], ['<table></table>', 'Le bon nombre de lignes, mais pas les bonnes valeurs.', 2, 2], 'ce qui cloche dans la carte ; le résultat obtenu sous l’éditeur');
+  assert.deepEqual([vu.out[1], vu.ko[1], vu.rate, vu.tick], ['<table></table>', 'Le résultat ne correspond pas à la consigne.', 2, 2], 'dans la carte, sans indice (7 h 55) ; le résultat obtenu sous l’éditeur');
   const ctx = vm.createContext({});
   vm.runInContext(line('defiPasEncoreBox'), ctx);
   assert.equal(ctx.defiPasEncoreBox('On attend 1 colonne.', '<table></table>'), '<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>On attend 1 colonne.</p></div></div><table></table>');
