@@ -93,7 +93,10 @@
         setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(result.error || 'Le résultat ne correspond pas à la consigne.')}</p></div></div>`);
         jeuEssaiRate(round);
         if(typeof coachRoomTick==='function')coachRoomTick();
-        if(typeof coachKo==='function'){setLessonOut('');coachKo(result.error || 'Le résultat ne correspond pas à la consigne.');}
+        // L’erreur de SQLite, en français, dans la partie rouge de la carte (Elisa, 9 novembre, 2 h) ; un résultat faux le dit simplement.
+        const brut = result.error || 'Le résultat ne correspond pas à la consigne.';
+        const defi = typeof CHALLENGES !== 'undefined' ? CHALLENGES.find(x => x.id === round.cid) : null;
+        if(typeof coachKo==='function'){setLessonOut('');coachKo(typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut));}
       }
     } catch (error) {
       if (JEU === game && jeuCur() === n) setLessonOut(errBox(error?.name === 'AbortError' ? 'La vérification prend du temps. Réessaie : tes points ne seront pas comptés deux fois.' : String(error?.message || 'Vérification indisponible. Réessaie.')));

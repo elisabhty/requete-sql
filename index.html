@@ -23161,6 +23161,46 @@ function bindTableSwipe(root){
     });
   });
 }
+/* 9 novembre, 2 h (Elisa, sa capture de « Raté · Utilise une seule requête de lecture SELECT pour ce défi. », après avoir écrit
+   « q ») : « en français et ne met pas d’indice, met juste le message d’erreur SQL pour la partie en rouge ». Le message de SQLite,
+   traduit ; ce qu’il cite (le mot, la colonne, la table) en code, échappé (c’est un bout de la requête). Un message déjà en français
+   passe tel quel ; un message inconnu garde son texte d’origine, après « Erreur SQL ». */
+function sqlErreurFr(msg){
+  const m=String(msg==null?'':msg).trim().replace(/^Error:\s*/i,''),c=s=>`<code>${esc(s)}</code>`;
+  let r;
+  if(!m)return 'Erreur SQL.';
+  if((r=/^near "([\s\S]*?)": syntax error$/i.exec(m)))return `Erreur de syntaxe près de ${c(r[1])}.`;
+  if(/^incomplete input$/i.test(m))return 'La requête est incomplète.';
+  if((r=/^unrecognized token: "?([\s\S]*?)"?$/i.exec(m)))return `Symbole non reconnu : ${c(r[1])}.`;
+  if((r=/^no such column: ([\s\S]+)$/i.exec(m)))return `La colonne ${c(r[1])} n’existe pas.`;
+  if((r=/^no such table: ([\s\S]+)$/i.exec(m)))return `La table ${c(r[1])} n’existe pas.`;
+  if((r=/^no such function: ([\s\S]+)$/i.exec(m)))return `La fonction ${c(r[1])} n’existe pas.`;
+  if((r=/^ambiguous column name: ([\s\S]+)$/i.exec(m)))return `Le nom de colonne ${c(r[1])} est ambigu : plusieurs tables de la requête l’ont.`;
+  if((r=/^misuse of aggregate(?: function)?:? ([\s\S]+)$/i.exec(m)))return `Mauvaise utilisation de la fonction d’agrégation ${c(r[1])}.`;
+  if((r=/^misuse of window function ([\s\S]+)$/i.exec(m)))return `Mauvaise utilisation de la fonction de fenêtre ${c(r[1])}.`;
+  if((r=/^wrong number of arguments to function ([\s\S]+)$/i.exec(m)))return `Mauvais nombre d’arguments pour la fonction ${c(r[1])}.`;
+  if(/^a GROUP BY clause is required before HAVING$/i.test(m))return 'Une clause <code>GROUP BY</code> doit précéder <code>HAVING</code>.';
+  if(/^HAVING clause on a non-aggregate query$/i.test(m))return 'La clause <code>HAVING</code> est dans une requête sans agrégation.';
+  if(/^aggregate functions are not allowed in the GROUP BY clause$/i.test(m))return 'Les fonctions d’agrégation ne sont pas permises dans <code>GROUP BY</code>.';
+  if((r=/^(\d+)(?:st|nd|rd|th) (ORDER|GROUP) BY term out of range - should be between 1 and (\d+)$/i.exec(m)))return `Le terme n°\u00a0${r[1]} de ${c(r[2].toUpperCase()+' BY')} est hors limites : il doit être entre 1 et ${r[3]}.`;
+  if((r=/^SELECTs to the left and right of (UNION ALL|UNION|INTERSECT|EXCEPT) do not have the same number of result columns$/i.exec(m)))return `Les SELECT de part et d’autre de ${c(r[1].toUpperCase())} n’ont pas le même nombre de colonnes.`;
+  if((r=/^sub-select returns (\d+) columns - expected 1$/i.exec(m)))return `La sous-requête renvoie ${r[1]} colonnes : il en faut une seule.`;
+  if(/^row value misused$/i.test(m))return 'Valeur de ligne mal utilisée.';
+  if(/^no tables specified$/i.test(m))return 'Aucune table n’est indiquée.';
+  if(/^Utilise une seule requête de lecture SELECT pour ce défi\.?$/.test(m))return 'Requête refusée : un défi n’accepte qu’une seule requête <code>SELECT</code>.';
+  if(/[àâçéèêëîïôûùüœ’]/i.test(m))return esc(m);
+  return `Erreur SQL : ${c(m)}`;
+}
+/* En salle classée, le serveur vérifie l’essai : pour une requête qui n’est pas un SELECT (« q »), il ne dit que sa règle. Ici, la
+   requête est compilée sur la base du défi, sans être exécutée : SQLite donne son erreur exacte. Un résultat faux n’est pas une erreur. */
+function defiErreurSqlFr(c,sql,brut){
+  if(!brut||brut==='Le résultat ne correspond pas à la consigne.')return brut||'';
+  if(c&&sql&&typeof defiSandbox==='function'){
+    try{const d=defiSandbox(c);try{d.prepare(typeof sqlCompat==='function'?sqlCompat(sql):sql).free();}finally{d.close();}}
+    catch(e){return sqlErreurFr(e&&e.message);}
+  }
+  return sqlErreurFr(brut);
+}
 function errBox(msg,sql){
   const m=msg.toLowerCase(); let aide='';
   /* 23 h 50 (ld8) : DISTINCT ON, juste en PostgreSQL, n’existe pas en SQLite (« near "ON": syntax error ») */
@@ -36712,7 +36752,7 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut(errBox(e.message,sql));jeuEssaiRate(r);coachKo('La requête ne s’exécute pas : lis le message juste en dessous.');return;}
+  }catch(e){setLessonOut('');jeuEssaiRate(r);coachKo(sqlErreurFr(e.message));return;}   // l’erreur de SQLite, en français, dans la carte (9 novembre, 2 h)
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
@@ -37212,7 +37252,11 @@ function runLesson(){
       try{userRes=isDefi?execChallengeResult(dU,sql):dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
-  }catch(e){ setLessonOut(errBox(e.message,sql)); if(isDefi&&COACH&&COACH.c===current){COACH.diag='La requête ne s’exécute pas : lis le message juste en dessous.';COACH.fx='is-new-ko';} registerExoFail(sql); return; }
+  }catch(e){
+    /* 9 novembre, 2 h : un défi dit l’erreur de SQLite en français, dans la partie rouge de sa carte, et rien dessous (sqlErreurFr) */
+    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=sqlErreurFr(e.message);COACH.fx='is-new-ko';}
+    else setLessonOut(errBox(e.message,sql));
+    registerExoFail(sql); return; }
   const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,alt=>{const d=defiSandbox(current);try{return execChallengeResult(d,alt);}finally{d.close();}}):exerciseResultsMatch(userRes,solRes,current,isDefi);
   if(ok){
     const table=renderTable(userRes,ms);
@@ -46863,7 +46907,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-rate-v2710';
+  const SW_CACHE='requete-2026-11-09-erreur-sql-v2711';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
