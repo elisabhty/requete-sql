@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=268">
+<link rel="stylesheet" href="ludique.css?v=269">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35705,6 +35705,7 @@ const JEU_ICO={
   cross:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>',
   reveil:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.6" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 9.2v4l2.4 1.9M9.6 2.8h4.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   retour:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5.5 4 12l6.5 6.5M4.5 12H20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  classement:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 20v-9.5h6V20M3.5 20v-6h5.5M15 20v-7.5h5.5V20M2.5 20h19M12 3.6l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 5.7l2-.3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   amis:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM3 19.6c.4-3.3 2.8-5.4 6-5.4s5.6 2.1 6 5.4M15.6 4.6a3.2 3.2 0 0 1 0 6.3M17.4 14.4c2 .6 3.3 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   wifi:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2a12.5 12.5 0 0 1 17 0M6.6 12.6a8 8 0 0 1 10.8 0M9.8 15.9a3.4 3.4 0 0 1 4.4 0" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>'
 };
@@ -36477,12 +36478,14 @@ function jeuRender(){
         /* Seul dans sa salle et hôte, c’est soi qui a quitté la manche : « Abandonnée », comme la carte du haut (8 novembre, 10 h 24) */
         const ab=!ok&&x.r.closed&&!jeuFermeeAuChrono(x.r,k),why=ab?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
         /* Une seule manche : ni « Manche 1 », ni son temps, ni ses points, que le bandeau dit déjà ; le premier coup, s’il compte. */
-        const meta=ok?(un?'':`<i class="jr-time">Résolu en ${dur(x.ms)}</i>`)+(y&&(y.essai||y.rang)?jeuPtsDetail(y):''):`<i class="jr-why">${why}</i>`;
+        /* 11 h 57 (« ne pas tout mettre en vert, des pills ») : les points de la manche en tête de la ligne, en pastille soleil, puis le
+           temps et le premier coup ; la ligne prend toute la largeur. */
+        const pt=un?'':`<b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b>`;
+        const meta=pt+(ok?(un?'':`<i class="jr-time">Résolu en ${dur(x.ms)}</i>`)+(y&&(y.essai||y.rang)?jeuPtsDetail(y):''):`<i class="jr-why">${why}</i>`);
         return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ab?ICO_KO:JEU_ICO.reveil}</span>
           <div class="jr-t">${un?'':`<small class="jr-n">Manche ${i+1}</small>`}<b>${esc(x.c.titre)}</b>
           ${meta?`<span class="jr-meta">${meta}</span>`:''}
-          ${jeuCorrBoutonHTML(k)}</div>
-          ${un?'':`<b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b>`}</li>`;
+          ${jeuCorrBoutonHTML(k)}</div></li>`;
       }).join('');
       /* 14 h 27 : tout trouvé, ou un nouveau record, le chat lève son trophée sous les confettis (son GIF), à droite du titre ; il
          remplace la coupe du titre */
@@ -36794,7 +36797,7 @@ function jeuFinBoutonsHTML(nOk,all){
   const prog=J.solo&&all&&nextNiv?`<button type="button" class="jeu-prog is-${nextNiv}" onclick="jeuNiveauSuivant()">${jeuNivBars(nextNiv)}`+
     `<span class="jeu-prog-t">Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</span><span class="jeu-prog-x">×${JEU_NIV_X[nextNiv]||1}<span class="lq-sr"> points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
   return `<div class="jeu-fin-actions">${prog}<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>${nOk?'Rejouer':'Réessayer'}</span>${DEF_CHEV_SVG}</button>`+
-    (J.solo?jeuBtn2('retour','Retour aux défis','openJeu()'):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
+    (J.solo?jeuBtn2('classement','Voir mon classement','jeuVersClassement()'):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
 }
 /* La correction (Elisa, 9 novembre, 10 h 37 : « pouvoir voir la correction et le résultat finalement, mais sur l’écran bilan, qui
    ouvre une page en restant sur celle-ci » ; 11 h 31 : « pas directement sur le défi mais sur l’écran de fin ») : sur l’écran de fin
@@ -37043,6 +37046,15 @@ function jeuLeaveQuestion(){
 function jeuLeaveOk(){return !jeuLeaveQuestion();}
 /* Après une partie à plusieurs (Elisa, 7 novembre, 21 h 44 : « après une partie, pouvoir retrouver immédiatement son adversaire ») :
    on quitte la salle pour l’onglet Joueurs, où ils viennent d’arriver avec votre face-à-face, prêts à être défiés de nouveau. */
+/* « Voir mon classement » (Elisa, 9 novembre, 11 h 57 : à la place de « Retour aux défis ») : l’écran Défis, onglet Classement. */
+function jeuVersClassement(){
+  if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(jeuVersClassement);return;}
+  if(typeof DEFIS!=='undefined'){DEFIS.onglet='classement';DEFIS.carte='';}
+  jeuInvite='';
+  if(typeof closeSchemaSheet==='function')closeSchemaSheet();
+  if(typeof closeLessonWhere==='function')closeLessonWhere(true);
+  leaveLessonScreen('defis');
+}
 function jeuVersAdversaires(){
   if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(jeuVersAdversaires);return;}
   if(typeof DEFIS!=='undefined'){DEFIS.onglet='amis';DEFIS.carte='';}
@@ -47139,7 +47151,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-niveau-v2729';
+  const SW_CACHE='requete-2026-11-09-classement-v2730';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -581,7 +581,7 @@ test('solo : la manche trouvée reste à l’écran, « Bravo, défi résolu ! �
   assert.match(s.html, /<p class="jeu-card-h">Le défi<\/p><ol class="jeu-rounds"><li class="jr is-ok"/);
   assert.doesNotMatch(s.html, /jr-n|jr-pts|Résolu en 1|1\/1/, 'ni « Manche 1 », ni ses points, ni son temps : le bandeau les dit');
   assert.match(s.html, /<button type="button" class="jr-corr" onclick="jeuCorrection\(0\)" aria-label="Voir la correction : [^"]+"><span>Voir la correction<\/span>/, 'la correction, sur l’écran de fin');
-  assert.match(s.html, /<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant\(\)">.*?<span class="jeu-prog-t">Passer au niveau moyen<\/span>.*?<span>Rejouer<\/span>.*?<span>Retour aux défis<\/span>/s);
+  assert.match(s.html, /<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant\(\)">.*?<span class="jeu-prog-t">Passer au niveau moyen<\/span>.*?<span>Rejouer<\/span>.*?<span>Voir mon classement<\/span>/s);
   sec(w, 30);
   assert.equal(s.ev('state.salle.parties'), 1, 'toujours une seule partie comptée');
   s.ev('jeuRejouer()'); sec(w, 0.5);
@@ -599,7 +599,7 @@ test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pa
   sec(w, 6);
   assert.equal(s.view(), 'final');
   assert.match(s.html, /<h1>On retente \?<\/h1>/); assert.match(s.html, /<i class="jr-why">Abandonnée<\/i>/);
-  assert.match(s.html, /onclick="jeuCorrection\(0\)"/); assert.match(s.html, /<span>Réessayer<\/span>/); assert.match(s.html, /Retour aux défis/);
+  assert.match(s.html, /onclick="jeuCorrection\(0\)"/); assert.match(s.html, /<span>Réessayer<\/span>/); assert.match(s.html, /Voir mon classement/);
   assert.doesNotMatch(s.html, /jeuRetenter\(|Changer de niveau|jeu-prog|Point obtenu|Non validée/);
   assert.equal(s.ev('state.salle.pts'), 0);
   assert.equal(s.ev('Object.keys(state.defis).length'), 0);
@@ -1643,5 +1643,5 @@ test('10 h 37 : seul, tout résolu : « Tout résolu », la prochaine étape (un
   assert.equal(s.view(), 'final');
   assert.match(s.html, /<h1>Tout résolu( ! 🏆| !)<\/h1>/);
   assert.match(s.html, /<div><b>2\/2<\/b><small>résolus<\/small>.*?<div><b>\d s<\/b><small>temps moyen<\/small><\/div>/);
-  assert.match(s.html, /<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant\(\)">.*?<span class="jeu-prog-t">Passer au niveau moyen<\/span>.*?<button type="button" class="journey-primary" onclick="jeuRejouer\(\)"><span>Rejouer<\/span>.*?<span>Retour aux défis<\/span>/s);
+  assert.match(s.html, /<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant\(\)">.*?<span class="jeu-prog-t">Passer au niveau moyen<\/span>.*?<button type="button" class="journey-primary" onclick="jeuRejouer\(\)"><span>Rejouer<\/span>.*?<span>Voir mon classement<\/span>/s);
 });
