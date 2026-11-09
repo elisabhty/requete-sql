@@ -15,7 +15,7 @@ const sansCommentaires = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:
 
 test('réf. 6 : les fiches des leçons, les cartes mémo et les indices des défis ne nomment plus SQLite', () => {
   for (const [a, b] of [['guide({ id:0,', 'const CHALLENGES=['], ['const CHALLENGES=[', 'const NIV='], ['const CARTES={', '\n};'],
-    ['function errBox(msg,sql){', 'const RUN_ICO=']]) {
+    ['function errBox(msg,sql,o){', 'const RUN_ICO=']]) {
     assert.ok(!sansCommentaires(cut(a, b)).includes('SQLite'), a);
   }
   /* 6 novembre (cartes mémo, direction A) : les cartes réécrites disent « la base de l’app » dans leurs points et leurs pièges. */
