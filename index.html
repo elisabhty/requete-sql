@@ -36185,7 +36185,8 @@ function jeuLobbyLabel(){
 }
 function jeuLobbyHint(){
   const live=jeuLive();
-  if(live.length<2)return `${JEU.pub?'Ta salle est visible par les autres joueurs.':'Personne n’a encore rejoint : partage le code.'} Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;
+  /* 12 h 50 : l’ami resté seul, devenu hôte, ne lit plus « Personne n’a encore rejoint » (les autres étaient là). */
+  if(live.length<2)return `${JEU.pub?'Ta salle est visible par les autres joueurs.':JEU.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;
   const wait=live.filter(p=>!jeuIsReady(p));
   return wait.length?`En attente : ${wait.map(p=>esc((JEU.players[p]||{}).name||'Joueur')).join(', ')}. Tu peux lancer quand tu veux.`:'Tout le monde est prêt.';
 }
@@ -47175,7 +47176,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-fin-v2737';
+  const SW_CACHE='requete-2026-11-09-seul-v2738';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
