@@ -90,13 +90,14 @@
         // The success is rendered only when read back from the trusted server history.
         game.t.sync?.();
       } else {
-        setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(result.error || 'Le résultat ne correspond pas à la consigne.')}</p></div></div>`);
-        jeuEssaiRate(round);
-        if(typeof coachRoomTick==='function')coachRoomTick();
-        // L’erreur de SQLite, en français, dans la partie rouge de la carte (Elisa, 9 novembre, 2 h) ; un résultat faux le dit simplement.
+        // Sous l’éditeur (Elisa, 9 novembre, 7 h 23) : l’erreur de SQLite en français, ou « La requête tourne, mais… » pour un résultat faux.
         const brut = result.error || 'Le résultat ne correspond pas à la consigne.';
         const defi = typeof CHALLENGES !== 'undefined' ? CHALLENGES.find(x => x.id === round.cid) : null;
-        if(typeof coachKo==='function'){setLessonOut('');coachKo(typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut));}
+        const faux = brut === 'Le résultat ne correspond pas à la consigne.';
+        const msg = typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut);
+        setLessonOut(typeof defiErreurBox === 'function' ? (faux ? defiPasEncoreBox(msg, '') : defiErreurBox(msg)) : `<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${msg}</p></div></div>`);
+        jeuEssaiRate(round);
+        if(typeof coachRoomTick==='function')coachRoomTick();
       }
     } catch (error) {
       if (JEU === game && jeuCur() === n) setLessonOut(errBox(error?.name === 'AbortError' ? 'La vérification prend du temps. Réessaie : tes points ne seront pas comptés deux fois.' : String(error?.message || 'Vérification indisponible. Réessaie.')));

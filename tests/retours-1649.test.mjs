@@ -322,7 +322,7 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   /* Le premier essai manqué : le « +25 » s’envole */
   const run = fn('jeuRun');
   assert.ok(run.includes('r.tries=(r.tries||0)+1;') && run.includes("jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});"), 'chaque exécution est un essai ; le premier juste est annoncé à tous');
-  assert.ok(run.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachKo(sqlErreurFr(e.message));return;}"), 'une erreur compte comme un essai, et la carte le dit (14 h 33 : les indices arrivent à la même minute pour tous)');
+  assert.ok(run.includes("}catch(e){setLessonOut(defiErreurBox(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message)));jeuEssaiRate(r);return;}"), 'une erreur compte comme un essai, et se lit sous l’éditeur (9 novembre, 7 h 23) (14 h 33 : les indices arrivent à la même minute pour tous)');
   const els = {}, ctx = vm.createContext({ prefersReduceMotion: () => false, setTimeout: f => { ctx.later = f; } });
   const b = { classList: { list: [], add(c) { this.list.push(c); } }, remove() { b.gone = true; } };
   ctx.document = { getElementById: id => (id === 'jeu-val-b' ? b : els[id] || null) };

@@ -13810,16 +13810,14 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}${chat}</div>`;
   const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?'<p class="coach-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`
     :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
-  /* 8 novembre, 18 h 18 : « mettre Un coup de patte ? au lieu de Pas encore ». 9 novembre, 2 h (sa capture de la carte, « Un coup de
-     patte ? Utilise une seule requête de lecture SELECT… ») : « ici mettre qqchose comme raté au lieu d’un coup de patte » : l’essai
-     est « Raté », puis ce qui cloche. 9 novembre, 7 h 13 : « Essaie encore finalement avec le message sql » : « Essaie encore », puis
-     l’erreur de SQLite en français (sqlErreurFr). */
-  const st=diag?`<div class="coach-st"><span class="coach-st-k">Essaie encore</span><p>${diag}</p></div>`:'';
+  /* La partie rouge (« Pas encore », puis « Un coup de patte ? » le 8 novembre, « Raté » et « Essaie encore » le 9) s’en va : 9 novembre,
+     7 h 23, « si je veux une erreur sous l’éditeur… et enlève le « raté » complètement ». Ce que dit un essai manqué est sous
+     l’éditeur (defiErreurBox, defiPasEncoreBox) ; la carte ne garde que les indices. */
   /* 8 novembre, 23 h 44 (« corrige : À corriger en premier », la relecture des défis) : seul, ou seul dans sa salle, « pour tout le
      monde » n’a pas de sens ; le compte à rebours dit « Premier indice dans 01:28 ». */
   const seul=room&&typeof JEU!=='undefined'&&!!JEU&&typeof jeuSoloLike==='function'&&jeuSoloLike(typeof COACH!=='undefined'&&COACH&&COACH.round!=null?COACH.round:jeuCur());
   const nx=next!=null&&n<3?`<p class="coach-next"><i aria-hidden="true"></i>${n?'Indice suivant':'Premier indice'}${seul?'':' pour tout le monde'} dans <b id="coach-cd">${jeuChrono(next)}</b></p>`:'';
-  return `<section class="coach${n?' has-hint':' is-go'}${diag?' has-ko':''}${chat?' has-chat':''}" aria-live="polite">${head}${body}${st}${nx}</section>`;
+  return `<section class="coach${n?' has-hint':' is-go'}${chat?' has-chat':''}" aria-live="polite">${head}${body}${nx}</section>`;
 }
 function coachNext(){
   if(!COACH||COACH.kind!=='room'||typeof JEU==='undefined'||!JEU)return null;
@@ -13901,7 +13899,6 @@ function coachPeek(card,hint){
 }
 function coachVoir(i){if(!COACH||i<1||i>COACH.n)return;COACH.view=i;coachPaint();const t=document.querySelector('#hint-slot .coach-hint');if(t&&!prefersReduceMotion()){t.classList.add('is-swap');}}
 /* Un essai raté : ce qui cloche en haut de la carte, qui secoue d’un rien. */
-function coachKo(diag){if(!COACH)return;COACH.diag=diag;COACH.fx='is-new-ko';coachPaint();}
 /* Un nouvel indice : il prend la place du précédent, la carte rebondit. */
 function coachSet(n){if(!COACH)return;n=Math.min(3,n);if(n>COACH.n){COACH.n=n;COACH.view=n;COACH.fx='is-new-hint';if(typeof buzz==='function')buzz('light');}coachPaint();}
 /* En salle : à chaque seconde, les indices du moment et le compte à rebours. */
@@ -36761,6 +36758,12 @@ function jeuCreditGame(){
     return {pts,total:s.pts};
   }catch(e){return null;}
 }
+/* 9 novembre, 7 h 23 (Elisa) : « si je veux une erreur sous l’éditeur, mais aujourd’hui on l’a plus ; et enlève le « raté »
+   complètement » : dans un défi, ce que dit un essai manqué revient sous l’éditeur, et la carte des indices n’a plus de partie rouge.
+   Une requête qui ne s’exécute pas : « Erreur SQL » et le message de SQLite en français (sqlErreurFr), sans aide ; une requête qui
+   tourne sans donner le bon résultat : « La requête tourne, mais… », ce qui cloche, puis le résultat obtenu. */
+function defiErreurBox(msgFr){return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p>${msgFr}</p></div></div>`;}
+function defiPasEncoreBox(diag,table){return `<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table||''}`;}
 function jeuRun(){
   const J=JEU;if(!J)return;
   const n=jeuCur(),r=J.rounds[n];if(!r||jeuRoundDone(n)||r.found[J.me]!=null||Date.now()<r.t1)return;
@@ -36772,7 +36775,7 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut('');jeuEssaiRate(r);coachKo(sqlErreurFr(e.message));return;}   // l’erreur de SQLite, en français, dans la carte (9 novembre, 2 h)
+  }catch(e){setLessonOut(defiErreurBox(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message)));jeuEssaiRate(r);return;}   // l’erreur de SQLite, en français, sous l’éditeur (9 novembre, 7 h 23)
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
@@ -36787,10 +36790,9 @@ function jeuRun(){
   }
   const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c,sql):exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
   const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
-  setLessonOut(table);
+  setLessonOut(defiPasEncoreBox(diag,table));   // sous l’éditeur, plus dans la carte (9 novembre, 7 h 23)
   jeuEssaiRate(r);
   coachRoomTick();
-  coachKo(diag);
 }
 
 /* En salle, les indices ne dépendent plus des essais : ils arrivent à la même minute pour tout le monde (coachRoomTick, 14 h 33). */
@@ -37273,8 +37275,8 @@ function runLesson(){
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
   }catch(e){
-    /* 9 novembre, 2 h : un défi dit l’erreur de SQLite en français, dans la partie rouge de sa carte, et rien dessous (sqlErreurFr) */
-    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=sqlErreurFr(e.message);COACH.fx='is-new-ko';}
+    /* Un défi : l’erreur de SQLite en français, sous l’éditeur, sans aide (9 novembre, 2 h puis 7 h 23 : defiErreurBox) */
+    if(isDefi&&COACH&&COACH.c===current)setLessonOut(defiErreurBox(sqlErreurFr(e.message)));
     else setLessonOut(errBox(e.message,sql));
     registerExoFail(sql); return; }
   const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,alt=>{const d=defiSandbox(current);try{return execChallengeResult(d,alt);}finally{d.close();}}):exerciseResultsMatch(userRes,solRes,current,isDefi);
@@ -37325,9 +37327,8 @@ function runLesson(){
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     // Évite le double message : pas de bandeau vert « Requête exécutée / Aucune ligne » sous le warn.
     const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
-    /* Un défi : « Pas encore » passe dans la carte des indices ; dessous, le résultat obtenu. */
-    if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}
-    else setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`);
+    /* Ce qui cloche, sous l’éditeur, puis le résultat obtenu (9 novembre, 7 h 23 : plus dans la carte des indices) */
+    setLessonOut(defiPasEncoreBox(diag,table));
     registerExoFail(sql);
   }
 }
@@ -46936,7 +46937,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-seul-solo-v2715';
+  const SW_CACHE='requete-2026-11-09-erreur-dessous-v2716';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
