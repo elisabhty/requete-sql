@@ -34,7 +34,8 @@ test('une durée se dit d’une seule façon : « Résolu en », la seconde enta
   assert.ok(fin.includes('const dur=jeuDureeLisible;') && !fin.includes('Math.round(ms/1000)'), 'le bilan lit comme l’encart vert');
   assert.ok(fin.includes('<i class="jr-time">Résolu en ${dur(x.ms)}</i>') && !fin.includes('">Trouvé en'), '« Résolu en » dans le bilan');
   const res = cut("}else if(v.startsWith('res')){", "}else if(v==='final'){");
-  assert.ok(res.includes("const sub=got?`Résolu en ${jeuDureeLisible(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';") && !res.includes('`Tu as trouvé en'), 'aux résultats de la manche');
+  /* 16 h 22 (Elisa : « enlève “Résolu en 1 s” ») : aux résultats de la manche, le temps n’est plus que dans le classement (00:01) */
+  assert.ok(res.includes("const sub=got?'':'Tu pourras retenter ce défi plus tard.';") && !res.includes('`Tu as trouvé en'), 'aux résultats de la manche');
   assert.ok(res.includes('<em>${jeuChrono(x.ms)}</em>'), 'le classement de la manche garde sa colonne chrono');
   assert.equal((app.match(/Trouvé en \$\{|Tu as trouvé en \$\{/g) || []).length, 0, 'plus de « Trouvé en » nulle part');
   /* Mes stats : en clair, comme le bilan ; la police des chiffres du tableau */
