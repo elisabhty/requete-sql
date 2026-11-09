@@ -1759,19 +1759,28 @@ test('13 h 20 : un joueur lent est nommé à 30 s, à 60 s l’hôte peut le ret
   const asks = []; let oui = false;
   host.ctx.lqAsk = q => { asks.push([q.titre, q.texte, q.oui, q.non, q.danger]); return { then: f => f(oui) }; };
   host.ev(`jeuRetirer(${JSON.stringify(guests[1].pid())})`); sec(w, 2);
-  assert.deepEqual(asks[0], ['Retirer Ami2\u00a0?', 'Ami2 quittera la salle d’attente. Tu pourras l’inviter de nouveau avec le code.', 'Retirer', 'Annuler', true]);
+  assert.deepEqual(asks[0], ['Retirer Ami2\u00a0?', 'Ami2 quittera la salle d’attente et ne pourra plus participer à cette partie.', 'Retirer', 'Annuler', true]);
   assert.equal(guests[1].view(), 'lobby');
   oui = true; host.ev(`jeuRetirer(${JSON.stringify(guests[1].pid())})`); sec(w, 2);
-  assert.equal(guests[1].view(), 'retire');
-  assert.match(guests[1].html, /Tu as été retiré·e de la salle/);
+  /* 13 h 47 : le retiré repart sur Défis (« Tu as été retiré de la salle par l’hôte. ») : il n’est plus dans la salle */
+  assert.equal(guests[1].ev('!JEU||JEU.retire===true'), true, 'retiré : il quitte la salle (leaveLessonScreen, factice ici)');
+  assert.ok(html.includes("const t=`Tu as été ${typeof accord==='function'?accord('retirée','retiré','retiré·e'):'retiré·e'} de la salle par l’hôte.`;"));
+  assert.ok(html.includes("{jeuInvite='';leaveLessonScreen('defis');}"), 'retour à la page Défis');
   for (const c of [host, guests[0]]) assert.deepEqual(c.live(), ['Hôte', 'Ami1'], c.name + ' : Ami2 n’est plus dans la salle');
   assert.match(etat(host), /Tout le monde est prêt\u00a0! À toi de lancer la partie\./);
-  /* Il revient avec le code : il entre, le retrait relu dans l’historique ne le retire pas de nouveau */
+  /* 13 h 47 : « ne pourra plus participer à cette partie » : revenu avec le code, l’hôte le retire de nouveau */
   const back = makeClient(w, 'Ami2'); back.ev(`sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(guests[1].pid())})`);
-  guests[1].ev('jeuStop()'); back.join('ROOM42'); sec(w, 4);
-  assert.equal(back.view(), 'lobby');
-  assert.deepEqual(host.live(), ['Hôte', 'Ami1', 'Ami2']);
+  back.join('ROOM42'); sec(w, 5);
+  assert.equal(back.ev('!JEU||JEU.retire===true'), true, 'retiré de nouveau');
+  assert.deepEqual(host.live(), ['Hôte', 'Ami1']);
+  /* La partie suivante (« Rejouer ») : il peut de nouveau entrer */
+  host.ev('jeuLancer()'); sec(w, 4.5); host.found(); guests[0].found(); sec(w, 1); host.ev('jeuFinish()'); sec(w, 2);
+  assert.equal(host.J('over'), true);
+  host.ev('jeuAgain()'); sec(w, 2);
+  const again = makeClient(w, 'Ami2'); again.ev(`sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(guests[1].pid())})`);
+  again.join('ROOM42'); sec(w, 5);
+  assert.equal(again.view(), 'lobby', 'nouvelle partie : il entre');
   /* Un invité ne peut retirer personne */
-  guests[0].ev(`jeuRetirer(${JSON.stringify(host.pid())})`); guests[0].ev(`jeuSend({t:'retire',who:${JSON.stringify(back.pid())},hu:JEU.helloOf[${JSON.stringify(back.pid())}]})`); sec(w, 2);
-  assert.equal(back.view(), 'lobby', 'seul l’hôte retire');
+  guests[0].ev(`jeuRetirer(${JSON.stringify(host.pid())})`); guests[0].ev(`jeuSend({t:'retire',who:${JSON.stringify(again.pid())},hu:JEU.helloOf[${JSON.stringify(again.pid())}]})`); sec(w, 2);
+  assert.equal(again.view(), 'lobby', 'seul l’hôte retire');
 });
