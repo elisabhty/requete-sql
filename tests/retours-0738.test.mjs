@@ -159,12 +159,13 @@ test('la toile touchée : les liens d’une table ou un seul lien, leurs tables 
      qu’elle désigne (à sa couleur) ; les tables qui la désignent, une flèche, elle. Les mots restent pour les lecteurs d’écran. */
   const fl = vm.runInContext('UML_FLECHE', ctx);
   assert.ok(!b.includes('<span>Désigne</span>') && !b.includes('<span>Désignée par</span>'));
-  assert.ok(b.includes('<p class="umd-bl" style="--lc:#2F80ED"><span class="sr">plats désigne categories</span><b class="umd-bme"') && b.includes('>plats</b>' + fl + '<button type="button" class="umd-bp" style="--c:#2F80ED;')
-    && b.includes('data-t="categories" onclick="umlFocusTable(this.dataset.t,true)">categories</button></p>'));
-  assert.match(b, /<span class="sr">(lignes_commande, plats_ingredients|plats_ingredients, lignes_commande) désignent plats<\/span><span class="umd-bps">/);
-  assert.ok(b.includes('>lignes_commande</button>') && b.includes('</button></span>' + fl + '<b class="umd-bme"'));
+  /* 9 novembre, 21 h 15 : une relation par ligne, « Elle désigne » / « La désignent », la colonne dessous */
+  assert.ok(b.includes('<p class="umd-bcap">Elle désigne</p><p class="umd-bl is-rel" style="--lc:#2F80ED"><span class="sr">plats désigne categories par ') && b.includes('>plats</b>' + fl + '<button type="button" class="umd-bp" style="--c:#2F80ED;')
+    && b.includes('data-t="categories" onclick="umlFocusTable(this.dataset.t,true)">categories</button></p><small class="umd-bvia"><code>plats.'));
+  assert.ok(b.includes('<p class="umd-bcap">La désignent</p>') && /<span class="sr">lignes_commande désigne plats par \w+<\/span>/.test(b) && /<span class="sr">plats_ingredients désigne plats par \w+<\/span>/.test(b));
+  assert.ok(b.includes('>lignes_commande</button>' + fl + '<b class="umd-bme"'), 'chaque table qui la désigne, sa flèche, elle');
   assert.ok(b.includes('onclick="umlFocus(null)" aria-label="Tout rallumer"'));
-  assert.ok(ctx.umlBulle(m, {t: 'serveurs'}, p.T).includes('désigne serveurs</span><span class="umd-bps">') && !ctx.umlBulle(m, {t: 'serveurs'}, p.T).includes('<span class="sr">serveurs désigne '));
+  assert.ok(/désigne serveurs par \w+<\/span>/.test(ctx.umlBulle(m, {t: 'serveurs'}, p.T)) && !ctx.umlBulle(m, {t: 'serveurs'}, p.T).includes('<span class="sr">serveurs désigne '));
   /* La bulle d’un lien : ses phrases, sa jointure */
   const bl = ctx.umlBulle(m, {i}, p.T);
   assert.ok(bl.startsWith('<div class="umd-bc is-lien" style="--c:') && bl.includes('<code class="umd-j">FROM avis JOIN commandes ON avis.commande_id = commandes.id</code>'));

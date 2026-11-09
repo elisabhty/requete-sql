@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=282">
+<link rel="stylesheet" href="ludique.css?v=283">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -24839,14 +24839,20 @@ function umlBulle(m,s,T){
   const st=n=>{ const t=T[n]||UML_NEUTRE; return `--c:${t[0]};--cs:${t[1]};--ci:${t[2]};--lc:${t[0]};--lcs:${t[1]};--lci:${t[2]}`; };
   const x=`<button type="button" class="umd-bx" onclick="umlFocus(null)" aria-label="Tout rallumer">${UML_X}</button>`;
   if(s.i!=null){ const l=m.liens[s.i]; return l?`<div class="umd-bc is-lien" style="${st(l.vers)}">${x}${umlLienHtml(m,l)}</div>`:''; }
-  const t=s.t,uniq=a=>[...new Set(a)];
-  const vers=uniq(m.liens.filter(l=>l.de===t&&l.vers!==t).map(l=>l.vers)),par=uniq(m.liens.filter(l=>l.vers===t&&l.de!==t).map(l=>l.de)),auto=m.liens.filter(l=>l.de===t&&l.vers===t);
+  const t=s.t;
   const puce=n=>`<button type="button" class="umd-bp" style="${st(n)}" data-t="${escAttr(n)}" onclick="umlFocusTable(this.dataset.t,true)">${esc(n)}</button>`;
   const moi=`<b class="umd-bme" style="${st(t)}">${esc(t)}</b>`;
-  /* Ce qu’elle désigne : une flèche par table, à la couleur de chacune ; qui la désigne : ces tables, une flèche, elle. */
-  const lignes=vers.map(v=>`<p class="umd-bl" style="--lc:${(T[v]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} désigne ${esc(v)}</span>${moi}${UML_FLECHE}${puce(v)}</p>`).join('')
-    +(par.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(par.join(', '))} ${par.length>1?'désignent':'désigne'} ${esc(t)}</span><span class="umd-bps">${par.map(puce).join('')}</span>${UML_FLECHE}${moi}</p>`:'')
-    +(auto.length?`<p class="umd-bl" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} se désigne elle-même</span>${moi}<span class="umd-ar is-boucle" aria-hidden="true"><svg viewBox="0 0 30 18"><path class="umd-ar-l" d="M4 13C4 2 26 2 26 11"/><path class="umd-ar-p" d="M21.5 8.5L26 13.5L30 8"/></svg></span>${auto.map(l=>`<code>${esc(l.col)}</code>`).join('')}</p>`:'');
+  /* 9 novembre, 21 h 15 (Elisa : « ce n’est pas du tout lisible ») : une relation par ligne, toujours dans le même sens (qui désigne ⟶
+     qui est désignée), la table allumée en plein, l’autre à toucher, et la colonne qui porte le lien en dessous ; deux groupes titrés,
+     « Elle désigne » et « La désignent ». Avant : les pastilles s’empilaient en vrac avec une seule flèche pour toutes. */
+  const colDe=l=>{ const g=umlGroupe(m,l); return g.length>1?'('+g.map(z=>z.col).join(', ')+')':g[0].col; };
+  const ligne=(l,sens)=>`<p class="umd-bl is-rel" style="--lc:${(T[sens==='vers'?l.vers:t]||UML_NEUTRE)[0]}"><span class="sr">${esc(l.de)} désigne ${esc(l.vers)} par ${esc(colDe(l))}</span>`
+    +(sens==='vers'?`${moi}${UML_FLECHE}${puce(l.vers)}`:`${puce(l.de)}${UML_FLECHE}${moi}`)+`</p><small class="umd-bvia"><code>${esc(l.de)}.${esc(colDe(l))}</code></small>`;
+  const versL=m.liens.filter(l=>l.de===t&&l.vers!==t),parL=m.liens.filter(l=>l.vers===t&&l.de!==t),auto=m.liens.filter(l=>l.de===t&&l.vers===t);
+  const vu=new Set(),uniqL=a=>a.filter(l=>{ const k=l.de+'>'+l.vers+'>'+colDe(l); if(vu.has(k))return false; vu.add(k); return true; });
+  const lignes=(versL.length?`<p class="umd-bcap">Elle désigne</p>${uniqL(versL).map(l=>ligne(l,'vers')).join('')}`:'')
+    +(parL.length?`<p class="umd-bcap">La désignent</p>${uniqL(parL).map(l=>ligne(l,'par')).join('')}`:'')
+    +(auto.length?`<p class="umd-bcap">Se désigne elle-même</p><p class="umd-bl is-rel" style="--lc:${(T[t]||UML_NEUTRE)[0]}"><span class="sr">${esc(t)} se désigne elle-même</span>${moi}<span class="umd-ar is-boucle" aria-hidden="true"><svg viewBox="0 0 30 18"><path class="umd-ar-l" d="M4 13C4 2 26 2 26 11"/><path class="umd-ar-p" d="M21.5 8.5L26 13.5L30 8"/></svg></span></p><small class="umd-bvia"><code>${esc(t)}.${esc(colDe(auto[0]))}</code></small>`:'');
   return `<div class="umd-bc" style="${st(t)}">${x}<span class="umd-bh"><b class="umd-bn">${esc(t)}</b></span>${lignes||'<p class="umd-bl is-vide">Aucune relation&nbsp;: elle ne désigne aucune table, et aucune ne la désigne.</p>'}</div>`;
 }
 /* La toile défile jusqu’à la table ou au lien allumés : sous les pastilles, au-dessus de la bulle. */
@@ -47453,7 +47459,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-partout-v2772';
+  const SW_CACHE='requete-2026-11-09-bulle-v2773';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
