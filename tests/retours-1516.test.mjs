@@ -21,7 +21,7 @@ test('réf. 1 — le retour « Questions » d’une question ouverte a la même 
 
 test('réf. 2 — « Question suivante » reste dans l’onglet : à revoir, toutes ou maîtrisées', () => {
   const ent = cut('const ENTRETIEN=[', 'const ENTRETIEN_CATS=');
-  const fns = ['function entMark(', 'function entOk(', 'function entId(', 'function entNum(', 'function entAllItems(', 'function entInTab(', 'function entNextTarget(', 'function nextEntretien(']
+  const fns = ['function entMark(', 'function entOk(', 'function entId(', 'function entNum(', 'function entAllItems(', 'function entInTab(', 'function entFile(', 'function entNextTarget(', 'function nextEntretien(']
     .map(a => { const i = app.indexOf(a); const j = app.indexOf('\nfunction ', i + 10); return app.slice(i, j); }).join('\n');
   const opened = [];
   const ctx = vm.createContext({ state: { entretien: {} }, opened, renderEntretien() { opened.push('liste'); }, entScrollTop() {}, openEntretienQuestion: id => opened.push(id) });
@@ -38,12 +38,14 @@ test('réf. 2 — « Question suivante » reste dans l’onglet : à revoir, tou
   /* Maîtrisées : la suivante maîtrisée, en repartant du début si besoin */
   set('ok', [ids[1], ids[5]]);
   assert.equal(next(ids[1]), ids[5]);
-  assert.equal(next(ids[5]), ids[1], 'on boucle sur les maîtrisées');
-  /* Plus aucune autre dans l’onglet : retour à la liste */
+  /* 10 novembre, 0 h 24 (Elisa : « le filtre d’abord, ensuite les autres ») : après la dernière maîtrisée, la première des autres */
+  assert.equal(next(ids[5]), ids[0], 'après les maîtrisées, les autres questions');
   set('ok', [ids[4]]);
-  assert.equal(next(ids[4]), 'liste');
+  assert.equal(next(ids[4]), ids[0], 'une seule maîtrisée : puis les autres');
   set('review', ids.slice(1));
-  assert.equal(next(ids[0]), 'liste', 'la dernière à revoir : retour à la liste');
+  assert.equal(next(ids[0]), ids[1], 'la dernière à revoir : puis les maîtrisées');
+  set('review', ids);
+  assert.equal(next(ids[ids.length - 1]), 'liste', 'plus rien après : retour à la liste');
   /* 6 novembre, 22 h 56 : « Question suivante » est revenue sous l’évaluation. */
   assert.ok(app.includes(`<button type="button" class="ent-suite" onclick="nextEntretien('\${id}')"><span>\${entNextTarget(id)?'Question suivante':'Retour aux questions'}</span>`), 'le bouton le dit');
 });

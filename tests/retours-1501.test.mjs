@@ -353,3 +353,18 @@ test('Entretien SQL, « Maîtrisées » vide : comment y ranger une question, la
   assert.ok(app.includes(":'Aucune pour l’instant';") && app.includes("nRevoir>1?`Voir les ${nRevoir} questions à revoir`:'Voir la question à revoir'"));
   assert.ok(!app.includes('Valide une réponse après l’avoir comparée pour la retrouver ici.'));
 });
+
+/* 10 novembre, 0 h 24 (« pas de bord violet » ; « le filtre d’abord, ensuite les autres ») */
+test('Entretien SQL : pas de trait violet sur une maîtrisée ; les flèches passent par le filtre puis par les autres', () => {
+  assert.ok(lq.includes('html.lq #scr-entretien .ecard.ok{box-shadow:none}'));
+  const ctx = vm.createContext({});
+  vm.runInContext(`var entRun=false,entStatus='ok',fam=x=>x.q.f==='a';
+    var ok={q2:1,q5:1,q6:1};
+    function entOk(id){return !!ok[id];}
+    function entInFilter(q){return q.f==='a';}
+    function entAllItems(){return ['a','b','a','b','a','a'].map((f,i)=>({id:'q'+(i+1),q:{f}}));}
+    ${fn('entInTab')}${fn('entFile')}${fn('entNextTarget')}${fn('entPrevTarget')}`, ctx);
+  const suite = vm.runInContext("(()=>{let id='q5',o=[id];for(let k=0;k<5;k++){const t=entNextTarget(id);if(!t)break;o.push(t.id);id=t.id;}return o.join(',');})()", ctx);
+  assert.equal(suite, 'q5,q6,q1,q3,q2,q4', 'maîtrisées de la famille, puis le reste de la famille, puis les autres familles');
+  assert.equal(vm.runInContext("entPrevTarget('q5')", ctx), null, 'avant la première du filtre : rien');
+});
