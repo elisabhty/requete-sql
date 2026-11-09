@@ -47,6 +47,9 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   const ko = ctx.defiIndicesHTML(c, 1, 0, 'La colonne <code>foo</code> n’existe pas.');
   assert.ok(ko.includes('<section class="coach has-hint has-ko" aria-live="polite">') && ko.includes('<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>La colonne <code>foo</code> n’existe pas.</p></div></div>'), 'ce qui cloche, dans la carte : « Réessaie », en mode erreur SQL (9 novembre, 7 h 37 ; sous l’éditeur à 7 h 23 ; avant « Essaie encore », « Raté », « Un coup de patte ? », « Pas encore »)');
   assert.ok(ko.indexOf('class="coach-hint"') < ko.indexOf('class="coach-st"'), 'sous l’indice');
+  /* 8 h 04 : l’erreur SQL comme dans la boîte « Erreur SQL » arrive en deux paragraphes, le message puis l’aide : pas de <p> de plus */
+  const sq = ctx.defiIndicesHTML(c, 1, 0, '<p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>');
+  assert.ok(sq.includes('<b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p></div></div>') && !sq.includes('<p><p>'));
   assert.ok(ctx.defiIndicesHTML(c, 0, 0, 'Le résultat ne correspond pas à la consigne.').includes('<b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>Le résultat ne correspond pas à la consigne.</p>'), 'avant le premier indice aussi (en salle, ils viennent à l’heure)');
   assert.ok(!h1.includes('coach-st') && !h1.includes('has-ko'), 'sans essai manqué, rien');
   assert.equal(ctx.defiSquelette(c.sol), 'SELECT …\nFROM …\nJOIN … ON … = …\nJOIN … ON … = …\nJOIN … ON … = …\nWHERE … = …\nORDER BY …');

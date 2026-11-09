@@ -149,7 +149,8 @@ test('« Joue seul » s’accorde : « Joue seule », « Joue seul », « Joue s
    7 h 51 : « Je vais plus partir sur : Pas tout à fait. Réessaie ! ». */
 test('« Réessaie » dans la carte, sous l’indice, avec la pastille « ! » de « Erreur SQL » (7 h 37 ; sous l’éditeur à 7 h 23, « Essaie encore » à 7 h 13, « Raté » à 2 h)', () => {
   const f = fn('defiIndicesHTML');
-  assert.ok(f.includes("const st=diag?`<div class=\"coach-st\"><span class=\"coach-st-ico\" aria-hidden=\"true\">!</span><div class=\"coach-st-tx\"><b class=\"coach-st-k\">Pas tout à fait. Réessaie&nbsp;!</b><p>${diag}</p></div></div>`:'';"));
+  assert.ok(f.includes("const st=diag?`<div class=\"coach-st\"><span class=\"coach-st-ico\" aria-hidden=\"true\">!</span><div class=\"coach-st-tx\"><b class=\"coach-st-k\">Pas tout à fait. Réessaie&nbsp;!</b>${String(diag).startsWith('<p>')?diag:`<p>${diag}</p>`}</div></div>`:'';"));
+  assert.ok(lq.includes('html.lq .coach-st p+p{margin-top:6px}'), 'le message, puis l’aide (8 h 04)');
   assert.ok(f.includes("${diag?' has-ko':''}") && f.includes('${head}${body}${st}${nx}'), 'sous l’indice, avant le compte à rebours');
   assert.ok(!f.includes('Essaie encore</span>') && !f.includes('>Raté<') && !f.includes('Un coup de patte&nbsp;?</span>'));
   assert.ok(app.includes("function coachKo(diag){if(!COACH)return;COACH.diag=diag;COACH.fx='is-new-ko';coachPaint();}"), 'un essai manqué la remplit, la ligne secoue');
@@ -165,60 +166,51 @@ test('« Réessaie » dans la carte, sous l’indice, avec la pastille « ! » d
   assert.ok(!lq.includes('html.lq .coach-st-k{flex:none;padding:3px 9px;border-radius:99px;background:#E0457B;') && !lq.includes('html.lq .coach-st p{display:inline}') && !lq.includes('html.lq .coach-intro+.coach-st{'), 'plus la pastille rose « Essaie encore »');
 });
 
-/* ---------- 8. La partie rouge : l’erreur de SQLite, en français (9 novembre, 2 h) ---------- */
+/* ---------- 8. La partie rouge : l’erreur SQL, comme dans la boîte « Erreur SQL » (9 novembre, 8 h 04) ---------- */
 
-/* « en français et ne met pas d’indice, met juste le message d’erreur sql pour la partie en rouge stp » */
-function traducteur(o = {}) {
-  const ctx = vm.createContext(Object.assign({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }, o));
-  vm.runInContext(cut('function sqlErreurFr(msg){', '\nfunction errBox(msg,sql){'), ctx);
+/* 2 h : « en français et ne met pas d’indice, met juste le message d’erreur sql pour la partie en rouge stp » (sqlErreurFr, retiré).
+   8 h 04 : « Non, c’est pas ça que je veux, c’est vraiment l’erreur SQL, comme quand on fait exécuter et qu’on a une erreur. Ça dit,
+   il n’y a pas de point-virgule, etc. » : le message de SQLite tel quel, puis l’aide de errBox. */
+function erreurs(o = {}) {
+  const ctx = vm.createContext(Object.assign({}, o));
+  vm.runInContext(line('esc') + cut('/* 9 novembre, 8 h 04 (Elisa) : « c’est vraiment l’erreur SQL', 'const RUN_ICO='), ctx);
   return ctx;
 }
 
-test('les messages de SQLite, en français ; ce qu’ils citent en code, échappé', () => {
-  const { sqlErreurFr: fr } = traducteur();
-  const cas = [
-    ['near "q": syntax error', 'Erreur de syntaxe près de <code>q</code>.'],
-    ['incomplete input', 'La requête est incomplète.'],
-    ['no such column: foo', 'La colonne <code>foo</code> n’existe pas.'],
-    ['no such table: nope', 'La table <code>nope</code> n’existe pas.'],
-    ['no such function: abc', 'La fonction <code>abc</code> n’existe pas.'],
-    ['ambiguous column name: id', 'Le nom de colonne <code>id</code> est ambigu : plusieurs tables de la requête l’ont.'],
-    ['misuse of aggregate: COUNT()', 'Mauvaise utilisation de la fonction d’agrégation <code>COUNT()</code>.'],
-    ['1st ORDER BY term out of range - should be between 1 and 3', 'Le terme n° 1 de <code>ORDER BY</code> est hors limites : il doit être entre 1 et 3.'],
-    ['SELECTs to the left and right of UNION do not have the same number of result columns', 'Les SELECT de part et d’autre de <code>UNION</code> n’ont pas le même nombre de colonnes.'],
-    ['sub-select returns 2 columns - expected 1', 'La sous-requête renvoie 2 colonnes : il en faut une seule.'],
-    ['HAVING clause on a non-aggregate query', 'La clause <code>HAVING</code> est dans une requête sans agrégation.'],
-    ['wrong number of arguments to function substr()', 'Mauvais nombre d’arguments pour la fonction <code>substr()</code>.'],
-    ['Utilise une seule requête de lecture SELECT pour ce défi.', 'Requête refusée : un défi n’accepte qu’une seule requête <code>SELECT</code>.'],
-    ['Résultat trop volumineux.', 'Résultat trop volumineux.'],
-    ['something new', 'Erreur SQL : <code>something new</code>'],
-  ];
-  for (const [en, attendu] of cas) assert.equal(fr(en), attendu, en);
-  assert.equal(fr('near "<img src=x onerror=alert(1)>": syntax error'), 'Erreur de syntaxe près de <code>&lt;img src=x onerror=alert(1)&gt;</code>.', 'un bout de requête ne devient jamais du HTML');
-  assert.ok(!fr('near "q": syntax error').includes('Utilise') && !fr('no such column: foo').includes('Vérifie'), 'pas d’indice : seulement l’erreur');
+test('l’erreur SQL d’un défi : le message de SQLite, puis l’aide de la boîte « Erreur SQL » (« … le point-virgule final »)', () => {
+  const { defiErreurSql: e, errBox, errAide } = erreurs();
+  assert.equal(e('near "q": syntax error', 'q'), '<p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>');
+  assert.equal(e('no such column: foo', 'SELECT foo FROM vols'), '<p><code>no such column: foo</code></p><p>Vérifie l\'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>\'texte\'</code>.</p>');
+  assert.equal(e('incomplete input', 'SELECT * FROM vols WHERE'), '<p><code>incomplete input</code></p>', 'sans aide connue : le message seul');
+  assert.equal(e('Error: near "x": syntax error'), '<p><code>near "x": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>');
+  assert.equal(e('near "<img src=x onerror=alert(1)>": syntax error'), '<p><code>near "&lt;img src=x onerror=alert(1)&gt;": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>', 'un bout de requête ne devient jamais du HTML');
+  for (const [m, q] of [['near "q": syntax error', 'q'], ['no such column: foo', ''], ['near "ON": syntax error', 'SELECT DISTINCT ON (e.id) e.nom FROM equipes e']]) {
+    assert.ok(errBox(m, q).includes(`<p><code>${m}</code></p><p style="margin-top:7px">${errAide(m, q)}</p>`), 'les mêmes mots que la boîte « Erreur SQL » : ' + m);
+  }
+  assert.ok(!app.includes('function sqlErreurFr(') && !app.includes('sqlErreurFr(') && !lire('multiplayer-security.js').includes('sqlErreurFr'), 'plus de traduction');
 });
 
 test('en salle classée : la requête est compilée sur la base du défi, sans être exécutée, pour donner l’erreur exacte', () => {
   const vus = [];
-  const ctx = traducteur({
+  const ctx = erreurs({
     sqlCompat: s => s,
     defiSandbox: () => ({ prepare: q => { vus.push(q); if (q === 'q') throw new Error('near "q": syntax error'); return { free() {}, step() { throw new Error('exécutée !'); } }; }, close() {} })
   });
   const regle = 'Utilise une seule requête de lecture SELECT pour ce défi.';
-  assert.equal(ctx.defiErreurSqlFr({ id: 'd1' }, 'q', regle), 'Erreur de syntaxe près de <code>q</code>.', '« q » : l’erreur de SQLite, pas la règle du serveur');
-  assert.equal(ctx.defiErreurSqlFr({ id: 'd1' }, 'DELETE FROM avis', regle), 'Requête refusée : un défi n’accepte qu’une seule requête <code>SELECT</code>.', 'une requête valide mais refusée : la raison');
-  assert.equal(ctx.defiErreurSqlFr({ id: 'd1' }, 'SELECT 1', 'Le résultat ne correspond pas à la consigne.'), 'Le résultat ne correspond pas à la consigne.', 'un résultat faux n’est pas une erreur');
+  assert.equal(ctx.defiErreurSalle({ id: 'd1' }, 'q', regle), '<p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>', '« q » : l’erreur de SQLite et son aide, pas la règle du serveur');
+  assert.equal(ctx.defiErreurSalle({ id: 'd1' }, 'DELETE FROM avis', regle), `<p><code>${regle}</code></p>`, 'une requête valide mais refusée : la règle du serveur');
+  assert.equal(ctx.defiErreurSalle({ id: 'd1' }, 'SELECT 1', 'Le résultat ne correspond pas à la consigne.'), 'Le résultat ne correspond pas à la consigne.', 'un résultat faux n’est pas une erreur');
   assert.deepEqual(vus, ['q', 'DELETE FROM avis'], 'compilée seulement (prepare), jamais pour un résultat faux');
   const mps = lire('multiplayer-security.js');
-  assert.ok(mps.includes("const msg = typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut);"));
-  assert.ok(mps.includes("setLessonOut(carte ? '' : `<div class=\"feedback err\"><div class=\"fi\">!</div><div><b>Pas tout à fait. Réessaie&nbsp;!</b><p>${msg}</p></div></div>`);\n        jeuEssaiRate(round);\n        if(typeof coachRoomTick==='function')coachRoomTick();\n        if(carte)coachKo(msg);"), 'dans la carte : « Réessaie » et l’erreur, ou « Le résultat ne correspond pas à la consigne. » ; rien sous l’éditeur (7 h 37)');
-  assert.ok(!mps.includes('defiErreurBox') && !mps.includes('defiPasEncoreBox'));
+  assert.ok(mps.includes("const msg = typeof defiErreurSalle === 'function' ? defiErreurSalle(defi, sql, brut) : esc(brut);"));
+  assert.ok(mps.includes("setLessonOut(carte ? '' : `<div class=\"feedback err\"><div class=\"fi\">!</div><div><b>Pas tout à fait. Réessaie&nbsp;!</b>${String(msg).startsWith('<p>') ? msg : `<p>${msg}</p>`}</div></div>`);\n        jeuEssaiRate(round);\n        if(typeof coachRoomTick==='function')coachRoomTick();\n        if(carte)coachKo(msg);"), 'dans la carte : l’erreur SQL et son aide, ou « Le résultat ne correspond pas à la consigne. » ; rien sous l’éditeur');
+  assert.ok(!mps.includes('defiErreurBox') && !mps.includes('defiPasEncoreBox') && !mps.includes('defiErreurSqlFr'));
 });
 
-test('un défi seul ou une salle : « Réessaie » et l’erreur en français dans la carte, sans aide, rien sous l’éditeur ; un résultat faux, ce qui cloche dans la carte et le résultat dessous (7 h 37)', () => {
-  assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=sqlErreurFr(e.message);COACH.fx='is-new-ko';}\n    else setLessonOut(errBox(e.message,sql));"), 'seul : une erreur');
+test('un défi seul ou une salle : l’erreur SQL et son aide dans la carte, rien sous l’éditeur (8 h 04) ; un résultat faux, sans indice, et le résultat dessous (7 h 55)', () => {
+  assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=defiErreurSql(e.message,sql);COACH.fx='is-new-ko';}\n    else setLessonOut(errBox(e.message,sql));"), 'seul : une erreur');
   assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}\n    else setLessonOut(defiPasEncoreBox(diag,table));\n    registerExoFail(sql);"), 'seul : un résultat faux ; un exercice garde « La requête tourne, mais… »');
-  assert.ok(app.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message));return;}"), 'en salle : une erreur');
+  assert.ok(app.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}"), 'en salle : une erreur');
   assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; dans la carte, « Pas tout à fait. Réessaie ! », sans indice (9 novembre, 7 h 55)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'en salle : un résultat faux');
   assert.ok(!app.includes('defiErreurBox('), 'plus de boîte « Erreur SQL » sous l’éditeur dans un défi (errBox la garde pour les exercices)');
   /* En salle, pour de vrai : une requête qui plante, puis une qui tourne sans le bon résultat */
@@ -230,11 +222,11 @@ test('un défi seul ou une salle : « Réessaie » et l’erreur en français da
     defiSandbox: () => ({ close() {} }), execChallengeResult: (d, q) => { if (q === 'q') throw new Error('near "q": syntax error'); return [{ columns: ['x'], values: [[q === 'SELECT 1' ? 1 : 2]] }]; },
     resultatsDefiEgaux: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     renderTable: () => '<table></table>', setLessonOut: h => vu.out.push(h), jeuEssaiRate: () => vu.rate++, coachRoomTick: () => vu.tick++, coachKo: d => vu.ko.push(d),
-    sqlErreurFr: m => `FR(${m})`, esc: s => s,
+    defiErreurSql: (m, q) => `ERR(${m} | ${q})`, esc: s => s,
   });
   vm.runInContext(fn('defiDiag') + fn('defiPiege') + fn('jeuRun'), salle);
   vu.sql = 'q'; salle.jeuRun();
-  assert.deepEqual([vu.out, vu.ko, vu.rate, vu.tick], [[''], ['FR(near "q": syntax error)'], 1, 1], 'l’erreur, en français, dans la carte ; rien sous l’éditeur');
+  assert.deepEqual([vu.out, vu.ko, vu.rate, vu.tick], [[''], ['ERR(near "q": syntax error | q)'], 1, 1], 'l’erreur SQL et son aide (avec la requête), dans la carte ; rien sous l’éditeur');
   vu.sql = 'SELECT 2'; salle.jeuRun();
   assert.deepEqual([vu.out[1], vu.ko[1], vu.rate, vu.tick], ['<table></table>', 'Le résultat ne correspond pas à la consigne.', 2, 2], 'dans la carte, sans indice (7 h 55) ; le résultat obtenu sous l’éditeur');
   const ctx = vm.createContext({});

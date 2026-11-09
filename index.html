@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=260">
+<link rel="stylesheet" href="ludique.css?v=261">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13813,11 +13813,13 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   /* Ce que dit un essai manqué (« Pas encore », puis « Un coup de patte ? » le 8 novembre, « Raté » et « Essaie encore » le 9, sous
      l’éditeur à 7 h 23). 9 novembre, 7 h 37 (Elisa) : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais
      en mode erreur sql ui ux ». De retour dans la carte, sous l’indice : un encart comme « Erreur SQL » (fond rose pâle, bord rose,
-     pastille rouge « ! »), titré « Réessaie », puis le message de SQLite en français (sqlErreurFr) ; 7 h 55, « pas ce genre d’indice » :
-     une requête qui tourne sans le bon résultat dit seulement « Le résultat ne correspond pas à la consigne. » (defiDiag).
+     pastille rouge « ! »), titré « Réessaie », puis le message de SQLite ; 7 h 55, « pas ce genre d’indice » : une requête qui tourne
+     sans le bon résultat dit seulement « Le résultat ne correspond pas à la consigne. » (defiDiag) ; 8 h 04, « vraiment l’erreur SQL,
+     comme quand on fait exécuter » : une requête qui plante dit ce que dit la boîte « Erreur SQL », son message et son aide, en deux
+     paragraphes (defiErreurSql).
      Rien sous l’éditeur pour une erreur ; le résultat obtenu, lui, y reste. 7 h 51 : « Je vais plus partir sur : Pas tout à fait.
      Réessaie ! » : c’est le titre de l’encart (l’espace insécable garde le « ! » sur sa ligne). */
-  const st=diag?`<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>${diag}</p></div></div>`:'';
+  const st=diag?`<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b>${String(diag).startsWith('<p>')?diag:`<p>${diag}</p>`}</div></div>`:'';
   /* 8 novembre, 23 h 44 (« corrige : À corriger en premier », la relecture des défis) : seul, ou seul dans sa salle, « pour tout le
      monde » n’a pas de sens ; le compte à rebours dit « Premier indice dans 01:28 ». */
   const seul=room&&typeof JEU!=='undefined'&&!!JEU&&typeof jeuSoloLike==='function'&&jeuSoloLike(typeof COACH!=='undefined'&&COACH&&COACH.round!=null?COACH.round:jeuCur());
@@ -23163,48 +23165,33 @@ function bindTableSwipe(root){
     });
   });
 }
-/* 9 novembre, 2 h (Elisa, sa capture de « Raté · Utilise une seule requête de lecture SELECT pour ce défi. », après avoir écrit
-   « q ») : « en français et ne met pas d’indice, met juste le message d’erreur SQL pour la partie en rouge ». Le message de SQLite,
-   traduit ; ce qu’il cite (le mot, la colonne, la table) en code, échappé (c’est un bout de la requête). Un message déjà en français
-   passe tel quel ; un message inconnu garde son texte d’origine, après « Erreur SQL ». */
-function sqlErreurFr(msg){
-  const m=String(msg==null?'':msg).trim().replace(/^Error:\s*/i,''),c=s=>`<code>${esc(s)}</code>`;
-  let r;
-  if(!m)return 'Erreur SQL.';
-  if((r=/^near "([\s\S]*?)": syntax error$/i.exec(m)))return `Erreur de syntaxe près de ${c(r[1])}.`;
-  if(/^incomplete input$/i.test(m))return 'La requête est incomplète.';
-  if((r=/^unrecognized token: "?([\s\S]*?)"?$/i.exec(m)))return `Symbole non reconnu : ${c(r[1])}.`;
-  if((r=/^no such column: ([\s\S]+)$/i.exec(m)))return `La colonne ${c(r[1])} n’existe pas.`;
-  if((r=/^no such table: ([\s\S]+)$/i.exec(m)))return `La table ${c(r[1])} n’existe pas.`;
-  if((r=/^no such function: ([\s\S]+)$/i.exec(m)))return `La fonction ${c(r[1])} n’existe pas.`;
-  if((r=/^ambiguous column name: ([\s\S]+)$/i.exec(m)))return `Le nom de colonne ${c(r[1])} est ambigu : plusieurs tables de la requête l’ont.`;
-  if((r=/^misuse of aggregate(?: function)?:? ([\s\S]+)$/i.exec(m)))return `Mauvaise utilisation de la fonction d’agrégation ${c(r[1])}.`;
-  if((r=/^misuse of window function ([\s\S]+)$/i.exec(m)))return `Mauvaise utilisation de la fonction de fenêtre ${c(r[1])}.`;
-  if((r=/^wrong number of arguments to function ([\s\S]+)$/i.exec(m)))return `Mauvais nombre d’arguments pour la fonction ${c(r[1])}.`;
-  if(/^a GROUP BY clause is required before HAVING$/i.test(m))return 'Une clause <code>GROUP BY</code> doit précéder <code>HAVING</code>.';
-  if(/^HAVING clause on a non-aggregate query$/i.test(m))return 'La clause <code>HAVING</code> est dans une requête sans agrégation.';
-  if(/^aggregate functions are not allowed in the GROUP BY clause$/i.test(m))return 'Les fonctions d’agrégation ne sont pas permises dans <code>GROUP BY</code>.';
-  if((r=/^(\d+)(?:st|nd|rd|th) (ORDER|GROUP) BY term out of range - should be between 1 and (\d+)$/i.exec(m)))return `Le terme n°\u00a0${r[1]} de ${c(r[2].toUpperCase()+' BY')} est hors limites : il doit être entre 1 et ${r[3]}.`;
-  if((r=/^SELECTs to the left and right of (UNION ALL|UNION|INTERSECT|EXCEPT) do not have the same number of result columns$/i.exec(m)))return `Les SELECT de part et d’autre de ${c(r[1].toUpperCase())} n’ont pas le même nombre de colonnes.`;
-  if((r=/^sub-select returns (\d+) columns - expected 1$/i.exec(m)))return `La sous-requête renvoie ${r[1]} colonnes : il en faut une seule.`;
-  if(/^row value misused$/i.test(m))return 'Valeur de ligne mal utilisée.';
-  if(/^no tables specified$/i.test(m))return 'Aucune table n’est indiquée.';
-  if(/^Utilise une seule requête de lecture SELECT pour ce défi\.?$/.test(m))return 'Requête refusée : un défi n’accepte qu’une seule requête <code>SELECT</code>.';
-  if(/[àâçéèêëîïôûùüœ’]/i.test(m))return esc(m);
-  return `Erreur SQL : ${c(m)}`;
+/* 9 novembre, 8 h 04 (Elisa) : « c’est vraiment l’erreur SQL, comme quand on fait exécuter et qu’on a une erreur. Ça dit, il n’y a
+   pas de point-virgule, etc. » Dans un défi, l’encart « Pas tout à fait. Réessaie ! » dit ce que dit la boîte « Erreur SQL » d’une
+   leçon ou de la console (errBox) : le message de SQLite tel quel, puis son aide (« Requête mal formée — vérifie les mots-clés, les
+   virgules et le point-virgule final. », les tables de la base, l’orthographe d’une colonne…). Avant (9 novembre, 2 h), le message
+   était traduit en français, sans aide (sqlErreurFr, retiré). */
+function defiErreurSql(msg,sql){
+  const m=String(msg==null?'':msg).trim().replace(/^Error:\s*/i,''),aide=errAide(m,sql);
+  return `<p><code>${esc(m||'Erreur SQL')}</code></p>${aide?`<p>${aide}</p>`:''}`;
 }
 /* En salle classée, le serveur vérifie l’essai : pour une requête qui n’est pas un SELECT (« q »), il ne dit que sa règle. Ici, la
-   requête est compilée sur la base du défi, sans être exécutée : SQLite donne son erreur exacte. Un résultat faux n’est pas une erreur. */
-function defiErreurSqlFr(c,sql,brut){
+   requête est compilée sur la base du défi, sans être exécutée : SQLite donne son erreur exacte, dite comme partout (defiErreurSql).
+   Un résultat faux n’est pas une erreur : son message passe tel quel. */
+function defiErreurSalle(c,sql,brut){
   if(!brut||brut==='Le résultat ne correspond pas à la consigne.')return brut||'';
   if(c&&sql&&typeof defiSandbox==='function'){
     try{const d=defiSandbox(c);try{d.prepare(typeof sqlCompat==='function'?sqlCompat(sql):sql).free();}finally{d.close();}}
-    catch(e){return sqlErreurFr(e&&e.message);}
+    catch(e){return defiErreurSql(e&&e.message,sql);}
   }
-  return sqlErreurFr(brut);
+  return defiErreurSql(brut,sql);
 }
 function errBox(msg,sql){
-  const m=msg.toLowerCase(); let aide='';
+  const aide=errAide(msg,sql);
+  return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p><code>${esc(msg)}</code></p>${aide?`<p style="margin-top:7px">${aide}</p>`:''}</div></div>`;
+}
+/* L’aide de la boîte « Erreur SQL », selon le message de SQLite ; l’encart d’un défi dit la même (defiErreurSql, 9 novembre, 8 h 04). */
+function errAide(msg,sql){
+  const m=String(msg==null?'':msg).toLowerCase(); let aide='';
   /* 23 h 50 (ld8) : DISTINCT ON, juste en PostgreSQL, n’existe pas en SQLite (« near "ON": syntax error ») */
   if(sql&&/\bDISTINCT\s+ON\s*\(/i.test(String(sql).replace(/'(?:''|[^'])*'/g,"''"))) aide="<code>DISTINCT ON</code> est propre à PostgreSQL : la base de l’app ne le connaît pas. Pour garder une seule ligne par groupe, numérote les lignes dans une sous-requête avec <code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code>, puis garde le numéro 1.";
   else if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
@@ -23223,7 +23210,7 @@ function errBox(msg,sql){
     : "Deux tables ont une colonne du même nom. Préfixe-la avec le nom de la table.";
   else if(m.includes('misuse of window function')) aide="Une fonction de fenêtre (<code>LAG</code>, <code>LEAD</code>, <code>RANK</code>…) ne peut pas être placée directement dans une fonction d’agrégation comme <code>AVG()</code>. Calcule-la d’abord dans un <code>WITH</code>, puis fais la moyenne sur ce résultat.";
   else if(m.includes('values do not match')) aide="Le nombre de valeurs après VALUES doit être identique au nombre de colonnes citées.";
-  return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p><code>${esc(msg)}</code></p>${aide?`<p style="margin-top:7px">${aide}</p>`:''}</div></div>`;
+  return aide;
 }
 const RUN_ICO=`<svg class="run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>`;
 const XF_RUN_ICO=`<svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>`;
@@ -36776,7 +36763,7 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof sqlErreurFr==='function'?sqlErreurFr(e.message):esc(e.message));return;}   // « Réessaie » et l’erreur de SQLite en français, dans la carte (9 novembre, 7 h 37)
+  }catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}   // l’erreur SQL comme dans la boîte « Erreur SQL », dans la carte (9 novembre, 8 h 04)
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
@@ -36992,8 +36979,8 @@ function openChallenge(cid){
     if(ed&&reprise.sql){ed.value=String(reprise.sql);syncHL('ed-lesson','hl-lesson');fitSqlEditor(ed);syncEditorClear('ed-lesson');}
     exoFails=Math.max(0,Math.floor(+reprise.fails||0));
     COACH.n=Math.min(3,Math.max(0,Math.floor(+reprise.n||0)));COACH.view=Math.min(COACH.n,Math.max(0,Math.floor(+reprise.view||0)));
-    /* Le « Pas encore » gardé : seulement du texte, <code>, <b> et <br>, sans attribut. */
-    COACH.diag=reprise.diag?String(reprise.diag).replace(/<(?!\/?(?:code|b|br)\b)[^>]*>/gi,'').replace(/<(\/?)(code|b|br)\b[^>]*>/gi,'<$1$2>'):'';
+    /* L’encart gardé : seulement du texte, <p>, <code>, <b> et <br>, sans attribut (les paragraphes de l’erreur SQL, 8 h 04). */
+    COACH.diag=reprise.diag?String(reprise.diag).replace(/<(?!\/?(?:p|code|b|br)\b)[^>]*>/gi,'').replace(/<(\/?)(p|code|b|br)\b[^>]*>/gi,'<$1$2>'):'';
     coachPaint();
   }
   defiSesSave();
@@ -37277,9 +37264,9 @@ function runLesson(){
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
   }catch(e){
-    /* Un défi : « Réessaie » et l’erreur de SQLite en français, dans la carte des indices, sans aide ; rien sous l’éditeur
-       (9 novembre, 2 h, puis 7 h 37) */
-    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=sqlErreurFr(e.message);COACH.fx='is-new-ko';}
+    /* Un défi : dans la carte des indices, « Pas tout à fait. Réessaie ! » et l’erreur SQL comme dans la boîte « Erreur SQL », son
+       message et son aide ; rien sous l’éditeur (9 novembre, 7 h 37 puis 8 h 04) */
+    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=defiErreurSql(e.message,sql);COACH.fx='is-new-ko';}
     else setLessonOut(errBox(e.message,sql));
     registerExoFail(sql); return; }
   const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,alt=>{const d=defiSandbox(current);try{return execChallengeResult(d,alt);}finally{d.close();}}):exerciseResultsMatch(userRes,solRes,current,isDefi);
@@ -46942,7 +46929,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-erreur-sql-seule-v2719';
+  const SW_CACHE='requete-2026-11-09-erreur-sql-aide-v2720';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -46981,6 +46968,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
-<script src="multiplayer-security.js?v=7"></script>
+<script src="multiplayer-security.js?v=8"></script>
 </body>
 </html>
