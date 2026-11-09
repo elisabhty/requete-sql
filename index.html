@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=278">
+<link rel="stylesheet" href="ludique.css?v=279">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -23225,19 +23225,21 @@ function defiErreurSalle(c,sql,brut){
   }
   return defiErreurSql(brut,sql);
 }
-function errBox(msg,sql){
-  const aide=errAide(msg,sql);
+function errBox(msg,sql,o){
+  const aide=errAide(msg,sql,o);
   return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p><code>${esc(msg)}</code></p>${aide?`<p style="margin-top:7px">${aide}</p>`:''}</div></div>`;
 }
 /* L’aide de la boîte « Erreur SQL », selon le message de SQLite ; l’encart d’un défi dit la même (defiErreurSql, 9 novembre, 8 h 04). */
-function errAide(msg,sql){
+function errAide(msg,sql,o){
   const m=String(msg==null?'':msg).toLowerCase(); let aide='';
   /* 23 h 50 (ld8) : DISTINCT ON, juste en PostgreSQL, n’existe pas en SQLite (« near "ON": syntax error ») */
   if(sql&&/\bDISTINCT\s+ON\s*\(/i.test(String(sql).replace(/'(?:''|[^'])*'/g,"''"))) aide="<code>DISTINCT ON</code> est propre à PostgreSQL : la base de l’app ne le connaît pas. Pour garder une seule ligne par groupe, numérote les lignes dans une sous-requête avec <code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code>, puis garde le numéro 1.";
   else if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
   else if(m.includes('no such table')){
     /* Pendant un défi sur une autre base (Aéroport…), ce sont ses tables à elle. */
-    const dId=defiBaseId(defiActif());let tabs;
+    /* La console : ses tables à elle, même après un défi ouvert plus tôt (mode reste « defi » ; 9 novembre, 18 h 21, vu en capture :
+       « Tables disponibles : aeroports… » sous une requête de NutriBoost). */
+    const dId=o&&o.console?null:defiBaseId(defiActif());let tabs;
     if(dId){const d=new SQL.Database(defiBaseBytes(dId));try{tabs=listTables(d);}finally{d.close();}}
     else tabs=listTables(activeDb()||db);
     aide=tabs.length?`Tables disponibles : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:"Aucune table dans la base active — importe un fichier pour commencer.";
@@ -23341,7 +23343,7 @@ function runConsole(o){
       if(verrou&&/\b(?:ATTACH|DETACH|VACUUM|REINDEX|PRAGMA)\b/i.test(sql.replace(/'(?:[^']|'')*'|"(?:[^"]|"")*"|--[^\n]*|\/\*[\s\S]*?\*\//g,' ')))throw new Error('attempt to write a readonly database');
       const{res,ms}=execQuery(sql,database);
       const n=(res&&res[0])?res[0].values.length:null;
-      fb=[true,n==null?'Exécutée':plur(n,'ligne')];
+      fb=[true,'Exécutée'];   // le nombre de lignes est dans le pied de l’éditeur (18 h 21)
       typeof edPied==='function'&&edPied('ed-console',res,ms);
       paint(`<div class="console-out-ready result-live">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms)}</div>`);
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
@@ -23359,8 +23361,8 @@ function runConsole(o){
       }
     }catch(e){
       fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];
-      typeof edPied==='function'&&edPied('ed-console',null);
-      paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message,sql)}</div>`);
+      typeof edPied==='function'&&edPied('ed-console','err',null,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur');
+      paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message,sql,{console:1})}</div>`);
       recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
       if(touched()){ if(activeDbId!=='cours') persistCustomDbs(activeDbId); renderDbWorkspace(); renderConsoleChips(); }
     }finally{
@@ -33943,7 +33945,7 @@ function runExemple(btn){
         buzz('light');
       });
     }catch(e){
-      typeof edPied==='function'&&edPied(ta,null);
+      typeof edPied==='function'&&edPied(ta,'err');
       host.classList.remove('on','flash');
       host.innerHTML=errBox(e.message);
       host.hidden=false;
@@ -37203,7 +37205,7 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
-  }catch(e){typeof edPied==='function'&&edPied('ed-lesson',null);setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}   // l’erreur SQL comme dans la boîte « Erreur SQL », dans la carte (9 novembre, 8 h 04)
+  }catch(e){typeof edPied==='function'&&edPied('ed-lesson','err');setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}   // l’erreur SQL comme dans la boîte « Erreur SQL », dans la carte (9 novembre, 8 h 04)
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
@@ -37523,19 +37525,25 @@ function loadExample(){
    de la requête trouvée en salle) : comme la barre d’état d’un éditeur SQL. On retouche la requête : le pied pâlit (ce n’est plus le
    résultat de ce qui est écrit). Une erreur, un autre projet : il s’en va. Sous l’éditeur, au-dessus du tableau, il ne reste que
    « Glisse ». */
-function edPiedHTML(res,ms){
-  const vals=res&&res[0]?res[0].values.length:-1;
+/* 18 h 21 : « · 5 colonnes » dans le pied (plus de « Encore 4 colonnes » au-dessus du tableau) ; une erreur : « ✕ Erreur » en rouge,
+   au même endroit (res === 'err', label : « Lecture seule » dans une base d’entraînement). */
+function edPiedHTML(res,ms,label){
+  if(res==='err')return `<span class="jsp-n is-ko"><i aria-hidden="true">✕</i>${label||'Erreur'}</span>`;
+  const vals=res&&res[0]?res[0].values.length:-1,cols=res&&res[0]&&res[0].columns?res[0].columns.length:0;
   const n=vals<0?'Exécutée':vals?`${vals} ligne${vals>1?'s':''}`:'Aucune ligne';
-  return `<span class="jsp-n">${typeof CHECK_SVG==='string'?CHECK_SVG:''}${n}</span>${ms!=null?`<span class="jsp-ms">${Math.round(ms)} ms</span>`:''}`;
+  const bits=[];
+  if(cols)bits.push(`<span class="jsp-c">${cols} colonne${cols>1?'s':''}</span>`);
+  if(ms!=null)bits.push(`<span class="jsp-ms">${Math.round(ms)} ms</span>`);
+  return `<span class="jsp-n">${typeof CHECK_SVG==='string'?CHECK_SVG:''}${n}</span>${bits.join('<span class="jsp-dot" aria-hidden="true">·</span>')}`;
 }
-function edPied(ed,res,ms){
+function edPied(ed,res,ms,label){
   const ta=typeof ed==='string'?document.getElementById(ed):ed;if(!ta)return;
   const area=ta.closest('.editor-area'),shell=ta.closest('.editor-shell');if(!area)return;
   const nx=area.nextElementSibling;
   let p=shell?shell.querySelector(':scope>.ed-pied'):(nx&&nx.classList.contains('ed-pied')?nx:null);
   if(res===null){if(p)p.remove();return;}
   if(!p){p=document.createElement('div');p.className='ed-pied jeu-sql-pied'+(shell?'':' is-detache');p.setAttribute('aria-hidden','true');if(shell)shell.appendChild(p);else area.after(p);}
-  p.innerHTML=edPiedHTML(res,ms);
+  p.innerHTML=edPiedHTML(res,ms,label);
   p.classList.remove('is-perime','is-new');void p.offsetWidth;p.classList.add('is-new');
 }
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('input',e=>{
@@ -37746,7 +37754,7 @@ function runLesson(){
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
   }catch(e){
-    typeof edPied==='function'&&edPied('ed-lesson',null);
+    typeof edPied==='function'&&edPied('ed-lesson','err');
     /* Un défi : dans la carte des indices, « Pas tout à fait. Réessaie ! » et l’erreur SQL comme dans la boîte « Erreur SQL », son
        message et son aide ; rien sous l’éditeur (9 novembre, 7 h 37 puis 8 h 04) */
     if(isDefi&&(!COACH||COACH.c!==current)&&document.getElementById('hint-slot'))coachReset(current,'solo');   // 12 h 28 : jamais sous l’éditeur, même sans carte (après une réussite)
@@ -47421,7 +47429,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-piedpartout-v2761';
+  const SW_CACHE='requete-2026-11-09-piedcolonnes-v2762';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
