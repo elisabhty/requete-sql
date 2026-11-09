@@ -35460,7 +35460,9 @@ function jeuOnMsg(m){
       /* La liste des participants, figée au lancement (celle du serveur en salle classée, sinon celle de l’hôte) : les autres regardent
          la partie se jouer sans eux (« Oups, la partie a déjà démarré ! ») et reviennent à la partie suivante (« Rejouer »). */
       if(n===0){const lst=Array.isArray(m.joueurs)?m.joueurs:Array.isArray(m.who)?m.who:null;
-        if(lst){J.partants=new Set(lst.map(String));if(!J.partants.has(J.me)&&!J.horsPartie){J.horsPartie=true;J.oupsAt=Date.now();}}}
+        if(lst){J.partants=new Set(lst.map(String));if(!J.partants.has(J.me)&&!J.horsPartie&&J.inscrits.has(J.me)){J.horsPartie=true;J.oupsAt=Date.now();}}}
+      /* « Oups » seulement pour qui était dans la salle d’attente au lancement (9 novembre, 18 h 43, vu en vidéo) : un nouveau venu, dont
+         le « hello » arrive après la manche 0, lit « La partie a déjà commencé » (J.tard), pas « Tu n’étais pas prête au lancement ». */
       addP();jeuDrain();break;}
     case 'found':{
       if((m.g|0)>J.g)return jeuLater(m);
@@ -47430,7 +47432,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-piedcolonnes-v2762';
+  const SW_CACHE='requete-2026-11-09-nouveauvenu-v2763';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

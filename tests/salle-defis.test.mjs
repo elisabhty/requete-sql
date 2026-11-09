@@ -1876,3 +1876,12 @@ test('9 novembre, 18 h 43 : jeuNextRound garde sa garde (seul l’hôte tire une
   const i = app.indexOf('function jeuNextRound(){');
   assert.ok(/\n  if\(!J\|\|!jeuIsHost\(\)\)return;/.test(app.slice(i, i + 400)));
 });
+
+test('9 novembre, 18 h 43 : lancée avec la liste des prêts, un nouveau venu lit « La partie a déjà commencé », pas « Oups »', () => {
+  const { w, host, guests } = room({ n: 3, nb: 1 });
+  for (const g of guests) g.ev('jeuToggleReady()');
+  sec(w, 1); host.ev('jeuLancer()'); sec(w, 4.5);
+  const late = makeClient(w, 'Retard'); late.join('ROOM42'); sec(w, 3);
+  assert.equal(late.view(), 'tard');
+  assert.ok(!late.J('horsPartie'));
+});
