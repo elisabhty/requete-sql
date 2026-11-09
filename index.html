@@ -35169,7 +35169,7 @@ function jeuEcran(){
   current=null;mode='jeu';exoFails=0;
   {const scr=document.getElementById('scr-lesson');if(scr)scr.dataset.mc='6';}
   document.getElementById('back-label').textContent=lessonBackLabel();
-  document.getElementById('nav-title').textContent=J.solo?'Défi':'Salle de défi';
+  jeuTitreNav(false);
   document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
   showScreen();
 }
@@ -35577,6 +35577,11 @@ function jeuSoloLike(n){
   const J=JEU;if(J.solo)return true;
   const r=n>=0?J.rounds[n]:null;
   return jeuLive().length<2&&(!r||Object.keys(r.found).every(p=>p===J.me));
+}
+/* Le titre de l’écran : « Défi » en « Joue seul », et dans une salle où l’on est seul pendant la partie ; « Salle de défi » sinon. */
+function jeuTitreNav(seul){
+  const J=JEU,t=typeof document!=='undefined'&&typeof document.getElementById==='function'?document.getElementById('nav-title'):null;
+  if(t&&J)t.textContent=J.solo||seul?'Défi':'Salle de défi';
 }
 function jeuRoomEmpty(){
   const J=JEU;
@@ -35989,7 +35994,10 @@ function jeuReagirPeindre(){
   if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(o));
 }
 /* Là pendant toute la manche, dans toute salle, même seule ; ni en partie seule, ni sur le tirage, le bilan ou le podium. */
-function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo&&/^play\d/.test(String(J.view||'')));}
+function jeuReagirLa(){
+  const J=JEU,m=J&&/^play(\d+)$/.exec(String(J.view||''));
+  return !!(m&&!J.solo&&!(typeof jeuSoloLike==='function'&&jeuSoloLike(+m[1])));   // seul dans la salle : pas de « Réagir », comme en « Joue seul » (9 novembre, 7 h 16)
+}
 /* On écrit : un champ de texte a le clavier (l’éditeur de la requête d’abord). */
 function jeuReagirEcrit(){
   const a=typeof document!=='undefined'?document.activeElement:null;if(!a||!a.tagName)return false;
@@ -36310,6 +36318,7 @@ function jeuRender(){
         <p class="jeu-draw-note" role="status">${jeuDrawNote()}</p>
       </div>${jeuNetSlot()}`;
   }else if(v==='lobby'){
+    jeuTitreNav(false);
     const hostName=(J.players[J.hostPid]||{}).name||'l’hôte';
     /* 23 h 55 : « descends le code de salle en bas » : les pastilles d’abord, puis le code et « Copier le code » ensemble.
        Elisa, 2 novembre, 23 h 48 : « ne pas pouvoir modifier après qu’on rentre dans la salle » : plus de carte Niveau / Nombre de
@@ -36355,12 +36364,20 @@ function jeuRender(){
     const hud=`<div class="jeu-hud"><span class="jeu-hud-g"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b>`+
       `<span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span>`+
       `<span class="jeu-hud-box${val?'':' is-seul'}">${val}${chrono}</span></div>`;
+    /* 9 novembre, 7 h 16 (Elisa, sa capture d’une salle où elle est seule : « En direct », « C’est parti ! Qui ouvrira le score ? »,
+       « Réagir ») : « quand il y a personne dans la salle, ça se transforme en solo automatiquement ». Seul dans la salle (personne
+       d’autre présent, personne d’autre n’a trouvé cette manche : jeuSoloLike), la manche prend la tête de « Joue seul » : le bandeau
+       sans « En direct » ni commentateur, pas de « Réagir », « Défi » en titre. Si les autres partent en cours de manche, elle se
+       redessine ainsi (jeuPatch). Cela remplace « il reste là quand on est seul » (8 novembre, 17 h 08) et « visible même seule »
+       (19 h 12). */
+    jeuTitreNav(sl);
     html=`${jeuColleeHTML(`Manche ${n+1}`,`/${J.nb}`,!mine)}${jeuNetSlot()}
-      ${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
+      ${sl?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
       ${defiConsigneHTML(c,{base:true,titre:true})}
       ${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
     const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1,sl=jeuSoloLike(n);
+    jeuTitreNav(sl);
     const medal=['🥇','🥈','🥉'];
     /* Le détail des points seulement sur sa propre ligne : le reste dit le temps et les points, sans pastilles en trop. */
     const lines=rk.map((x,i)=>`<li style="--i:${i}"${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${sl?'✓':(medal[x.place-1]||x.place)}</span><b>${esc((J.players[x.pid]||{}).name||'Joueur')}${x.pid===J.me&&!sl?' <small>(toi)</small>':''}</b><em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>${x.pid===J.me?jeuPtsDetail(x):''}</li>`).join('')||'<li class="is-empty">Personne n’a trouvé cette fois.</li>';
@@ -36388,6 +36405,7 @@ function jeuRender(){
     /* Les points de la partie arrivent en notification, une fois le podium ou le bilan posé. */
     if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);
     const seul=J.solo||sc.every(x=>x.pid===J.me);
+    jeuTitreNav(seul);
     if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
@@ -46918,7 +46936,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-essaie-encore-v2714';
+  const SW_CACHE='requete-2026-11-09-seul-solo-v2715';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

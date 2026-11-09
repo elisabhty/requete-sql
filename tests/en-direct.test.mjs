@@ -357,7 +357,7 @@ test('21 h 13 : plus de tableau des scores ni de flèche ; la rangée des avatar
 
 test('branché à la manche : en tête, puis le cadre blanc et son titre (21 h 51) ; chaque essai, chaque trouvaille, chaque seconde le tiennent à jour', () => {
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("${J.solo?`<section class=\"jeu-direct is-seul\" aria-label=\"Manche ${n+1} sur ${J.nb}\"><div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud)}\n      ${defiConsigneHTML(c,{base:true,titre:true})}"), 'dans toute salle, même seul (17 h 08) ; en solo, le bandeau avec sa tête seulement (17 h 48) ; le titre dans le cadre blanc (21 h 51)');
+  assert.ok(r.includes("${sl?`<section class=\"jeu-direct is-seul\" aria-label=\"Manche ${n+1} sur ${J.nb}\"><div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud)}\n      ${defiConsigneHTML(c,{base:true,titre:true})}"), 'dans toute salle où l’on n’est pas seul (9 novembre, 7 h 16 : seul, la partie se joue comme en solo ; avant, même seul, 17 h 08) ; en solo, le bandeau avec sa tête seulement (17 h 48) ; le titre dans le cadre blanc (21 h 51)');
   assert.ok(!r.includes('<h1>${esc(c.titre)}</h1>'), 'plus de titre au-dessus du bandeau');
   assert.ok(!app.includes('jeuMatesHTML'), 'la bande d’avatars est partie');
   const rate = cut("    case 'rate':{", "    case 'close':{");
