@@ -121,8 +121,8 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.match(h, /class="perf-kpi is-sun" style="--i:0"><b data-count-to="2316"[^>]*>2316<\/b><small>points<\/small>/, 'les points, en jaune soleil, qui montent');
   assert.match(h, /data-count-to="8"[^>]*>8<\/b><small>parties<\/small>/);
   assert.match(h, /data-count-to="512"[^>]*>512<\/b><small>record<em>en une partie<\/em><\/small>/);
-  assert.match(h, /data-count-to="78"[^>]*>78\u202f%<\/b>/, 'réussite : 14 manches réussies sur 18');
-  assert.ok(h.includes('<small>14 manches réussies sur 18</small>'), '18 h 28 : « réussies », pas « trouvées »');
+  assert.match(h, /data-count-to="78"[^>]*>78\u202f%<\/b>/, 'réussite : 14 défis résolus sur 18');
+  assert.ok(h.includes('<small>14 défis résolus sur 18</small>'), '18 h 28 : « réussies », pas « trouvées » ; 9 novembre, 10 h 01 : « résolu », comme le jeu');
   assert.ok(h.includes('<small>Temps moyen</small><b>1\u00a0min\u00a023</b>') && h.includes('<small>Le plus rapide</small><b>38\u00a0s</b>'), 'en clair, comme le bilan (9 novembre, 9 h 04)');
   const bars = h.match(/class="perf-bar[^"]*"/g);
   assert.equal(bars.length, 5, 'une barre par partie');
@@ -134,7 +134,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.ok(h.includes('<b>2</b><small>1re place</small>') && h.includes('Sur 5 parties à plusieurs.'), 'les podiums à plusieurs');
   const rows = h.match(/<li style="--i:\d"><span class="perf-rk/g);
   assert.equal(rows.length, 4, 'les quatre dernières parties');
-  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>À plusieurs · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 réussies · 3\u00a0min\u00a021</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
+  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>À plusieurs · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 résolus · 3\u00a0min\u00a021</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
   assert.ok(h.includes('<span class="perf-rk">0/1</span>') && h.includes('<span class="perf-rk">✓</span>'), 'seul : coché, ou trouvés sur joués');
   /* Avant la première partie : le même tableau, vide, qui dit ce qui s’y affichera */
   const e = perfCtx({ pts: 0, parties: 0, best: 0 });
