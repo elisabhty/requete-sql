@@ -21,7 +21,7 @@ test('réf. 1 — le retour « Questions » d’une question ouverte a la même 
 
 test('réf. 2 — « Question suivante » reste dans l’onglet : à revoir, toutes ou maîtrisées', () => {
   const ent = cut('const ENTRETIEN=[', 'const ENTRETIEN_CATS=');
-  const fns = ['function entMark(', 'function entOk(', 'function entId(', 'function entNum(', 'function entAllItems(', 'function entInTab(', 'function entFile(', 'function entNextTarget(', 'function nextEntretien(']
+  const fns = ['function entMark(', 'function entOk(', 'function entId(', 'function entNum(', 'function entAllItems(', 'function entOrdre(', 'function entInTab(', 'function entFile(', 'function entNextTarget(', 'function nextEntretien(']
     .map(a => { const i = app.indexOf(a); const j = app.indexOf('\nfunction ', i + 10); return app.slice(i, j); }).join('\n');
   const opened = [];
   const ctx = vm.createContext({ state: { entretien: {} }, opened, renderEntretien() { opened.push('liste'); }, entScrollTop() {}, openEntretienQuestion: id => opened.push(id) });
