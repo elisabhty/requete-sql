@@ -21125,15 +21125,13 @@ function tableDefinitionSql(database,name){
     return stmt.step()?stmt.get()[0]:null;
   }finally{stmt.free();}
 }
-/* La copie de départ d’une table (« Restaurer les données ») : au-delà de BASELINE_MAX lignes, pas de copie (5 novembre, 14 h 24 : un
-   classeur de 120 594 lignes, dont une feuille de 76 479, était copié ligne à ligne puis gardé deux fois). La copie se fait en une
-   transaction, avec une requête préparée. */
-const BASELINE_MAX=20000;
+/* La copie de départ d’une table (« Restaurer les données »), en une transaction, avec une requête préparée. 5 novembre, 14 h 24 :
+   au-delà de 20 000 lignes, pas de copie (un classeur de 120 594 lignes était copié ligne à ligne puis gardé deux fois). 9 novembre,
+   23 h 54 (Elisa : « supprime la limite ») : toutes les tables ont leur copie, les grandes comprises ; d’anciennes copies marquées
+   « trop » (avant ce jour) gardent leur message, et un nouvel import les remplace. */
 function captureTableBaseline(database,name){
   const createSql=tableDefinitionSql(database,name);
   if(!createSql)return null;
-  const n=+tableRowCount(database,name)||0;
-  if(n>BASELINE_MAX)return {name,trop:n};
   const copy=new SQL.Database();
   try{
     copy.run(createSql);
@@ -21145,8 +21143,29 @@ function captureTableBaseline(database,name){
     }
     const extras=database.exec("SELECT sql FROM sqlite_master WHERE tbl_name="+quoteSqlText(name)+" AND type IN ('index','trigger') AND sql IS NOT NULL ORDER BY type");
     (extras[0]?extras[0].values:[]).forEach(row=>{if(row[0])copy.run(row[0]);});
-    return {name,b64:u8ToB64(copy.export())};
+    return {name,octets:copy.export()};   // les octets tels quels (le base64 pesait un tiers de plus), compressés ensuite (copiesCompresser)
   }finally{copy.close();}
+}
+/* Les copies de départ, compressées (9 novembre, 23 h 54 : sans limite, la grille de 76 479 lignes pesait 35 Mo en base64 ; du texte
+   SQLite se compresse bien). gzip, natif (CompressionStream) ; sans lui, les octets restent tels quels. */
+async function gzipOctets(u8,sens){
+  const flux=new Blob([u8]).stream().pipeThrough(sens==='lire'?new DecompressionStream('gzip'):new CompressionStream('gzip'));
+  return new Uint8Array(await new Response(flux).arrayBuffer());
+}
+async function copiesCompresser(id){
+  if(typeof CompressionStream==='undefined')return;
+  const b=tableBaselines[id];if(!b)return;
+  for(const k of Object.keys(b)){
+    const c=b[k];if(!c||!c.octets)continue;
+    try{const gz=await gzipOctets(c.octets);if(b[k]===c){c.gz=gz;delete c.octets;}}catch(e){}
+  }
+}
+/* Les octets d’une copie, quelle que soit sa forme : compressée, brute, ou en base64 (les copies d’avant le 9 novembre) */
+async function copieOctets(c){
+  if(!c)return null;
+  if(c.gz)return gzipOctets(c.gz,'lire');
+  if(c.octets)return c.octets;
+  return c.b64?b64ToU8(c.b64):null;
 }
 function rememberTableBaseline(database,id,name){
   const snapshot=captureTableBaseline(database,name);
@@ -21156,7 +21175,7 @@ function rememberTableBaseline(database,id,name){
 function hasTableBaseline(id,name){
   if(id==='cours')return SCHEMA_META.some(t=>tableBaselineKey(t.table)===tableBaselineKey(name));
   const b=tableBaselines[id]&&tableBaselines[id][tableBaselineKey(name)];
-  return !!(b&&b.b64);
+  return !!(b&&(b.b64||b.octets||b.gz));
 }
 function getTableBaseline(id,name){
   if(id!=='cours')return tableBaselines[id]&&tableBaselines[id][tableBaselineKey(name)];
@@ -21165,8 +21184,9 @@ function getTableBaseline(id,name){
   try{return captureTableBaseline(fresh,name);}finally{fresh.close();}
 }
 function restoreTableBaseline(database,name,snapshot){
-  if(!snapshot||!snapshot.b64)throw new Error('Aucun état initial enregistré pour cette table.');
-  const source=new SQL.Database(b64ToU8(snapshot.b64));
+  const brut=snapshot&&(snapshot.octets||(snapshot.b64?b64ToU8(snapshot.b64):null));
+  if(!brut)throw new Error('Aucun état initial enregistré pour cette table.');
+  const source=new SQL.Database(brut);
   const createSql=tableDefinitionSql(source,snapshot.name||name);
   if(!createSql){source.close();throw new Error('État initial illisible.');}
   const data=source.exec('SELECT * FROM '+quoteIdent(snapshot.name||name));
@@ -21233,7 +21253,8 @@ async function persistCustomDbs(seul){
     try{localStorage.removeItem(DBS_KEY);}catch(e){}
     return true;
   }catch(e){
-    const payload=metas.map((d,i)=>{const r=exporter(d,i);return {id:r.id,name:r.name,b64:u8ToB64(r.bytes),baselines:r.baselines};});
+    const enTexte=bs=>Object.fromEntries(Object.entries(bs||{}).filter(([,c])=>c&&(c.b64||c.octets)).map(([k,c])=>[k,{name:c.name,fichier:c.fichier,b64:c.b64||u8ToB64(c.octets)}]));
+    const payload=metas.map((d,i)=>{const r=exporter(d,i);return {id:r.id,name:r.name,b64:u8ToB64(r.bytes),baselines:enTexte(r.baselines)};});
     try{localStorage.setItem(DBS_KEY,JSON.stringify(payload));return true;}catch(x){dbsTrop();return false;}
   }
 }
@@ -21920,7 +21941,8 @@ async function resetTable(name){
     corps:`<p class="lq-del-warn is-attention"><span class="lq-del-wi">${alerte}</span><span><b>Attention, tes modifications seront perdues.</b>Les lignes ajoutées, modifiées ou supprimées ${cours?'':'depuis l’importation '}seront remises dans leur état initial.</span></p>`,
     oui:'Réinitialiser la table',non:'Conserver mes modifications'}))return;
   try{
-    restoreTableBaseline(database,name,snapshot);
+    const octets=await copieOctets(snapshot);
+    restoreTableBaseline(database,name,{name:snapshot.name,octets});
     if(activeDbId!=='cours')persistCustomDbs(activeDbId);
   }catch(e){lqInfo('Restauration impossible',String(e.message||e));return;}
   kbarSchemaCache=null;
@@ -22401,9 +22423,9 @@ function parseImportFile(name,text,enc){
     const hint=cls.scope==='database'
       ? (nNamed?`${nNamed} table${nNamed>1?'s':''} détectée${nNamed>1?'s':''} · script SQL`:'Script SQL · base')
       : (cls.primaryTable
-        ? (insertOnly?`Table « ${cls.primaryTable} » · INSERT (création auto)`:`Table « ${cls.primaryTable} » · script SQL`)
+        ? (insertOnly?`Table « ${cls.primaryTable} » · lignes à ajouter`:`Table « ${cls.primaryTable} » · script SQL`)
         :'Script SQL · une table');
-    return {
+    const brut={
       kind:cls.scope==='database'?'database':'sql-table',
       format:'sql',
       sql,
@@ -22414,6 +22436,25 @@ function parseImportFile(name,text,enc){
       hint,
       preview:sql.slice(0,280)+(sql.length>280?'…':'')
     };
+    /* 10 novembre, 0 h (« vérifie la détection, les messages d’erreur, le remplacement de table ») : un script qui crée ses tables
+       s’exécute d’abord à part, dans une base vide. Ses erreurs se voient dès le choix du fichier (et plus au moment d’importer), et
+       ses tables suivent le chemin d’une base SQLite : réimporté dans son projet, il ne bute plus sur « table already exists » ; ses
+       tables identiques sont laissées, les différentes se demandent. Un script qui lit une table du projet (« no such table ») garde
+       l’ancien chemin : il s’exécute dans le projet. */
+    if(extractSqlTableNames(sql).length&&typeof SQL!=='undefined'&&SQL&&SQL.Database){
+      const tmp=new SQL.Database();
+      try{
+        try{ensureTablesForSqlImport(tmp,sql);tmp.exec(sql);}
+        catch(e){if(/no such (table|function)/i.test(String(e&&e.message||e)))return brut;throw e;}
+        const noms=listTables(tmp);
+        if(noms.length){
+          const nbs=noms.map(t=>+tableRowCount(tmp,t)||0);
+          return {kind:'database',format:'sqlite',viaSql:true,sql,bytes:tmp.export(),noms,nbs,defaultTable:brut.defaultTable,
+            hint:`${plur(noms.length,'table')} · script SQL`,preview:noms.map((t,i)=>`${t} (${nbs[i]})`).join(' · ')};
+        }
+      }finally{try{tmp.close();}catch(e){}}
+    }
+    return brut;
   }
   if(/\.(jsonl|ndjson)$/.test(lower)||!delimite&&(/^\s*\{/.test(text)&&/\}\s*\r?\n\s*\{/.test(text))){
     const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
@@ -22430,6 +22471,14 @@ function parseImportFile(name,text,enc){
   const parsedCsv=window.ImportFormats?ImportFormats.parseDelimited(text):{rows:parseCsv(text),delimiterName:''};
   const matrix=parsedCsv.rows;
   if(matrix.length<2) throw new Error('il faut une ligne d’en-têtes et au moins une ligne de données.');
+  /* Un fichier texte (.txt, ou sans extension connue) qui n’est pas un tableau (10 novembre, 0 h : des notes de réunion devenaient une
+     table « bonjour, voici_mes_notes… ») : moins de deux colonnes, ou des lignes qui n’en ont pas le même nombre. Un .csv ou un .tsv
+     passe toujours : c’est un tableau annoncé. */
+  if(!delimite&&window.ImportFormats){
+    const nb=r=>r.filter(c=>c!=null&&String(c).trim()!=='').length;
+    const w=matrix[0].length,pareilles=matrix.slice(1).filter(r=>nb(r)>1&&r.length===w).length;
+    if(w<2||pareilles<Math.max(1,Math.ceil((matrix.length-1)*.8)))throw new Error('pas un tableau');
+  }
   const t=tableFromMatrix(matrix[0],matrix.slice(1));
   /* « CSV · UTF-8 · point-virgule · 120 lignes · nom, ville, prix » : ce qui a été détecté, puis ce qui sera créé */
   const fmt=/\.tsv$/.test(lower)?'TSV':/\.txt$/.test(lower)?'Texte':'CSV';
@@ -22558,9 +22607,20 @@ function importErreurLisible(e){
   if(/JSON/.test(m)&&/(Unexpected|Expected|unterminated|position|token|end of)/i.test(m))return 'Ce fichier JSON est incomplet ou mal formé : une accolade, un crochet ou une virgule manque. Ouvre-le pour le vérifier, puis réessaie.';
   if(/ligne d’en-têtes et au moins une ligne de données/.test(m))return 'Ce fichier n’a pas de données : il faut une ligne de titres de colonnes, puis au moins une ligne de valeurs.';
   if(/^JSON : attendu un tableau/.test(m))return 'Ce JSON ne décrit pas un tableau. Il faut une liste d’objets, par exemple [{"nom":"Léa"}, {"nom":"Max"}], ou un objet qui en contient une par table.';
+  if(/^pas un tableau$/.test(m))return 'Ce fichier texte ne ressemble pas à un tableau : ses lignes n’ont pas le même nombre de colonnes. Enregistre-le en CSV (une ligne de titres, puis une ligne par élément), puis réessaie.';
   if(/le classeur est vide/.test(m))return 'Ce classeur est vide : aucune feuille ne contient de données.';
   if(/aucune table/.test(m))return 'Cette base SQLite ne contient aucune table.';
   if(/(password|encrypt|chiffr)/i.test(m))return 'Ce classeur est protégé par un mot de passe. Enregistre-le sans mot de passe, puis réessaie.';
+  /* Les erreurs du moteur SQL, en français (10 novembre, 0 h : « near ";": syntax error », « table produits already exists ») */
+  let q;
+  if((q=/near "([^"]*)": syntax error/i.exec(m)))return `Le script SQL contient une erreur de syntaxe près de « ${q[1]} ». Corrige-la dans le fichier, puis réessaie.`;
+  if(/incomplete input/i.test(m))return 'Le script SQL s’arrête au milieu d’une instruction : une parenthèse ou un point-virgule manque.';
+  if((q=/no such table: (\S+)/i.exec(m)))return `Le script utilise la table « ${q[1].replace(/^main\./,'')} », qui n’existe pas. Ajoute sa ligne CREATE TABLE au script, ou importe-le dans le projet qui la contient.`;
+  if((q=/table (\S+) already exists/i.exec(m)))return `La table « ${q[1].replace(/^"|"$/g,'')} » existe déjà dans ce projet.`;
+  if((q=/no such column: (\S+)/i.exec(m)))return `La colonne « ${q[1]} » n’existe pas dans la table visée par le script.`;
+  if((q=/UNIQUE constraint failed: (\S+)/i.exec(m)))return `Deux lignes ont la même valeur dans « ${q[1]} », qui doit être unique.`;
+  if((q=/table (\S+) has (\d+) columns but (\d+) values were supplied/i.exec(m)))return `Une ligne du script donne ${q[3]} valeurs à la table « ${q[1]} », qui a ${q[2]} colonnes.`;
+  if((q=/^Table « (.+) » absente : le script INSERT/.exec(m)))return `Ce script ajoute des lignes à la table « ${q[1]} », qui n’existe pas encore, sans dire ses colonnes. Importe-le dans le projet qui contient cette table, ou ajoute au script sa ligne CREATE TABLE.`;
   if(/(out of memory|Maximum call stack|too large|Array buffer allocation)/i.test(m))return 'Ce fichier est trop lourd pour cet appareil. Essaie avec une partie des données.';
   if(/^[A-Z][a-z]+(Error)?:|Unexpected|undefined|null|is not/i.test(m))return 'Ce fichier n’a pas pu être lu. Vérifie qu’il s’ouvre bien dans Excel ou un éditeur de texte, puis réessaie.';
   const v=m.replace(/^\w/,c=>c.toUpperCase());
@@ -22717,7 +22777,7 @@ function importApercuHtml(p,aj){
   const tabs=p.format==='json-db'?(p.tables||[]).map(t=>({n:safeIdent(t.name),l:t.rows.length,c:t.cols}))
     :p.format==='sqlite'?(p.noms||[]).map((n,i)=>({n,l:(p.nbs||[])[i],c:null})):null;
   if(!tabs)return '';
-  const items=tabs.map(t=>`<li class="iv-tab"><span class="iv-ico" aria-hidden="true">${TBL_GRILLE_SVG}</span><span class="iv-tx"><b>${esc(t.n).replace(/_/g,'_<wbr>')}</b><small>${[typeof t.l==='number'?plur(t.l,'ligne'):'',t.c?plur(t.c.length,'colonne'):''].filter(Boolean).join(' · ')}</small>${t.c?`<small class="iv-tc">${esc(coupe(t.c.join(', '),70))}</small>`:''}${deja.has(t.n.toLowerCase())?'<em class="iv-deja">Remplacera la table du même nom</em>':''}</span></li>`).join('');
+  const items=tabs.map(t=>`<li class="iv-tab"><span class="iv-ico" aria-hidden="true">${TBL_GRILLE_SVG}</span><span class="iv-tx"><b>${esc(t.n).replace(/_/g,'_<wbr>')}</b><small>${[typeof t.l==='number'?plur(t.l,'ligne'):'',t.c?plur(t.c.length,'colonne'):''].filter(Boolean).join(' · ')}</small>${t.c?`<small class="iv-tc">${esc(coupe(t.c.join(', '),70))}</small>`:''}${deja.has(t.n.toLowerCase())?'<em class="iv-deja">Déjà dans le projet : comparée avant l’ajout</em>':''}</span></li>`).join('');
   return `<div class="iv-t"><b>Tables détectées</b><small>${plur(tabs.length,'table')}</small></div><ul class="iv-tabs">${items}</ul>`;
 }
 function openImportSheet(){
@@ -22792,7 +22852,7 @@ function openImportSheet(){
     ou.hidden=!ou.textContent;
   }
 
-  go.textContent=aj?(!asDb||noms.length===1?'Créer la table':noms.length>1?`Créer les ${noms.length} tables`:'Créer les tables'):(asDb?'Importer le projet':'Importer la table');
+  go.textContent=p.insertOnly?'Ajouter les lignes':aj?(!asDb||noms.length===1?'Créer la table':noms.length>1?`Créer les ${noms.length} tables`:'Créer les tables'):(asDb?'Importer le projet':'Importer la table');
 
   const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
   back.hidden=false; sheet.hidden=false; back.setAttribute('aria-hidden','false'); sheet.setAttribute('aria-hidden','false'); sheet.inert=false;
@@ -22937,7 +22997,7 @@ async function confirmImport(){
     if(!aj&&isDatabaseImport(p)&&ch0&&ch0!=='__new__'&&customDbs[ch0]&&!isDemoDb(ch0)&&listTables(customDbs[ch0]).length){
       const nom=(dbCatalog.find(d=>d.id===ch0)||{}).name||ch0,bilan=await importBilan(ch0,p);
       /* Tout est déjà là, à l’identique : rien à demander */
-      if(bilan.total&&bilan.identiques.length===bilan.total){lqInfo('Projet déjà à jour',`${importBilanTexte(bilan)} Aucune modification n’a été apportée.`);return;}
+      if(bilan.total&&bilan.identiques.length===bilan.total){closeImportSheet();lqInfo('Projet déjà à jour',`${importBilanTexte(bilan)} Aucune modification n’a été apportée.`);return;}
       const r=await lqAsk({ico:'🗂️',titre:'Ce projet contient déjà des tables',texte:`«\u00a0${nom}\u00a0» contient déjà ${plur(listTables(customDbs[ch0]).length,'table')}. ${importBilanTexte(bilan)} Tu peux ${bilan.nouvelles.length===bilan.total?'les ajouter au projet':bilan.nouvelles.length?'compléter le projet':'mettre à jour le projet'} ou remplacer tout son contenu.`,
         oui:bilan.nouvelles.length?'Ajouter au projet':'Mettre à jour le projet',trois:'Remplacer le contenu',troisDanger:true,non:null});
       if(!r)return;
@@ -22959,7 +23019,7 @@ async function confirmImport(){
     const deja=listTables(customDbs[chosen]).find(t=>t.toLowerCase()===String(tn).toLowerCase());
     /* La même table, au même contenu (22 h 22) : rien à remplacer */
     if(deja&&importComparer(customDbs[chosen],{format:'json-db',tables:[{name:deja,cols:p.cols||[],types:p.types,rows:p.rows||[]}]}).identiques.length){
-      lqInfo('Projet déjà à jour',`La table « ${deja} » du fichier est identique à celle du projet. Aucune modification n’a été apportée.`);
+      closeImportSheet();lqInfo('Projet déjà à jour',`La table « ${deja} » du fichier est identique à celle du projet. Aucune modification n’a été apportée.`);
       return;
     }
     if(deja)tableMaj=deja;
@@ -22970,7 +23030,7 @@ async function confirmImport(){
   /* Les feuilles d’un classeur ou les tables d’une base qui portent le nom d’une table du projet : identiques (mêmes colonnes, mêmes
      lignes), elles sont laissées ; d’un autre contenu, on demande : les mettre à jour, ou garder celles du projet (21 h 57). */
   let ajoutees=aj?importNoms(p):[];
-  pendingImport.saute=new Set();pendingImport.identiques=[];pendingImport.gardees=[];pendingImport.majs=tableMaj?[tableMaj]:[];
+  pendingImport.saute=new Set();pendingImport.lignesAjoutees=null;pendingImport.identiques=[];pendingImport.gardees=[];pendingImport.majs=tableMaj?[tableMaj]:[];
   pendingImport.remplace=!!(asDb&&chosen!=='__new__'&&customDbs[chosen]&&listTables(customDbs[chosen]).length);
   if(ajoutees.length){
     const bilan=await importBilan(aj,p);
@@ -22988,6 +23048,7 @@ async function confirmImport(){
     ajoutees=ajoutees.filter(n=>!pendingImport.saute.has(n.toLowerCase()));
     if(!ajoutees.length){
       const iq=bilan.identiques,gk=pendingImport.gardees;
+      closeImportSheet();
       if(iq.length===bilan.total)lqInfo('Projet déjà à jour',`${importBilanTexte(bilan)} Aucune modification n’a été apportée.`);
       else lqInfo('Aucune modification',(iq.length?`${iq.length>1?'Les tables':'La table'} ${importListe(iq)} ${iq.length>1?'sont identiques à celles':'est identique à celle'} du projet. `:'')
         +`${gk.length>1?`Les versions actuelles de ${importListe(gk)} sont conservées.`:`La version actuelle de ${importListe(gk)} est conservée.`}`);
@@ -23032,7 +23093,12 @@ async function confirmImport(){
       await createImportedTables(database, p.tables.filter(t=>!(pendingImport.saute&&pendingImport.saute.has(safeIdent(t.name).toLowerCase()))), f=>importOccupe(true,.05+f*.8));
     }else if(p.kind==='database' || p.kind==='sql-table'){
       importOccupe(true,.25);await importSouffle();
+      /* Des lignes ajoutées à une table qui existe (10 novembre, 0 h : un script d’INSERT disait « Table ajoutée » et remplaçait la
+         copie de départ de la table par son état du moment) : on compte ce qui arrive, la copie de départ ne bouge pas. */
+      const visee=p.insertOnly&&p.primaryTable?listTables(database).find(t=>t.toLowerCase()===String(p.primaryTable).toLowerCase()):null;
+      const avantN=visee?+tableRowCount(database,visee)||0:0;
       runSqlImport(database, p.sql);
+      if(visee)pendingImport.lignesAjoutees={table:visee,n:(+tableRowCount(database,visee)||0)-avantN};
       if(p.primaryTable) pendingImport.importedTable=safeIdent(p.primaryTable);
     }else{
       const tname=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
@@ -23053,17 +23119,24 @@ async function confirmImport(){
     const affected=[...new Set(wanted.map(name=>tabs.find(t=>t.toLowerCase()===String(name).toLowerCase())).filter(Boolean))];
     /* Le nom du fichier reste avec la copie de départ : la carte de la table dit d’où viennent ses colonnes */
     const fichier=pendingImport.file;
-    affected.forEach(name=>{const s0=rememberTableBaseline(database,target,name);if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);});
+    /* Les copies de départ, une table après l’autre, le bouton avançant de 86 à 88 % (la grille de 76 479 lignes prend une seconde) */
+    const lignesA=pendingImport.lignesAjoutees;
+    for(const [k,name] of affected.entries()){
+      if(lignesA&&name.toLowerCase()===lignesA.table.toLowerCase())continue;   // sa copie de départ reste celle de son fichier
+      importOccupe(true,.86+.02*k/Math.max(1,affected.length));await importSouffle();
+      const s0=rememberTableBaseline(database,target,name);if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);
+    }
     if(neuf&&p.desc){ const pj=projOf(target); if(!pj.desc){ pj.desc=p.desc; try{ saveProjState(); }catch(e){} } }
     /* La table infos d’un fichier JSON (17 h 22) dit d’elle-même ce qu’elle garde, si elle n’a pas déjà une description */
     const infosT=p.format==='json-db'?(p.tables||[]).find(t=>t.infos):null;
     const infosN=infosT?tabs.find(t=>t.toLowerCase()===safeIdent(infosT.name).toLowerCase()):null;
     if(infosN&&infosT.note){ const pj=projOf(target); pj.tdesc=pj.tdesc||{}; if(!pj.tdesc[infosN]){ pj.tdesc[infosN]=infosT.note; try{ saveProjState(); }catch(e){} } }
     importOccupe(true,.88);await importSouffle();
+    await copiesCompresser(target);
     if(activeDbId!=='cours')persistCustomDbs(target);
     await importProgFin();
     importOccupe(false);
-    importLaisses={identiques:pendingImport.identiques||[],gardees:pendingImport.gardees||[],majs:pendingImport.majs||[],remplace:!!pendingImport.remplace,neuf};   // la feuille se ferme (pendingImport s’en va) : le compte rendu les dira
+    importLaisses={identiques:pendingImport.identiques||[],gardees:pendingImport.gardees||[],majs:pendingImport.majs||[],remplace:!!pendingImport.remplace,neuf,lignes:pendingImport.lignesAjoutees||null};   // la feuille se ferme (pendingImport s’en va) : le compte rendu les dira
     closeImportSheet();
     const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):ajoutees.length===1?tabs.find(t=>t.toLowerCase()===ajoutees[0].toLowerCase())||null:null;
     /* Ajoutée depuis la page du projet : on y reste, le panneau des tables ouvert, et la page descend jusqu’à la nouvelle table ;
@@ -23112,7 +23185,7 @@ async function confirmImport(){
     }
     activeDbId=avant==='cours'||isDemoDb(avant)||customDbs[avant]?avant:'cours';
     importOccupe(false);
-    lqInfo('Import impossible',String(e.message||e));
+    lqInfo('Import impossible',importErreurLisible(e));
   }
 }
 /* Le compte rendu d’un import, dans la Console : les tables, les liens trouvés avec les autres (le schéma UML s’est dessiné tout seul),
@@ -23148,6 +23221,7 @@ function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){
     const autres=tabs.filter(t=>!ajoutees.some(a=>a.toLowerCase()===t.toLowerCase()));
     return ok('Tables ajoutées',`<p>Ajoutées au projet&nbsp;: ${codes(ajoutees)}.</p>${garde}${trouves}${voir}`);
   }
+  if(pi.lignes)return ok(pi.lignes.n>1?'Lignes ajoutées':pi.lignes.n?'Ligne ajoutée':'Aucune ligne ajoutée',`<p>${pi.lignes.n>0?`${plur(pi.lignes.n,'ligne')} ${pi.lignes.n>1?'ajoutées':'ajoutée'} à la table <code>${esc(pi.lignes.table)}</code>.`:`Le script n’a ajouté aucune ligne à la table <code>${esc(pi.lignes.table)}</code>.`}</p>${trouves}${voir}`);
   if(asDb&&pi.remplace)return ok('Contenu remplacé',`<p>Le projet contient maintenant ${plur(tabs.length,'table')}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${garde}${trouves}${voir}`);
   /* 9 novembre, 22 h 44 (« comme l’autre ») : un nouveau projet dit ses tables comme un ajout, « Ajoutées au projet : … » */
   if(asDb&&tabs.length)return ok(pi.neuf?'Projet créé':tabs.length>1?'Tables ajoutées':'Table ajoutée',`<p>${tabs.length>1?'Ajoutées':'Ajoutée'} au projet&nbsp;: ${codes(tabs)}.</p>${garde}${trouves}${voir}`);
@@ -47766,7 +47840,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-enplace-v2788';
+  const SW_CACHE='requete-2026-11-09-detection-v2790';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
