@@ -150,8 +150,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-classement-v2730';") && app.includes("const SW_CACHE='requete-2026-11-09-classement-v2730';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=269">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-points-v2731';") && app.includes("const SW_CACHE='requete-2026-11-09-points-v2731';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=270">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -176,7 +176,9 @@ test('11 h 57 : « Voir mon classement », et le bilan en pastilles : le vert à
   const v = fn('jeuVersClassement');
   assert.ok(v.includes("DEFIS.onglet='classement';DEFIS.carte='';") && v.includes("leaveLessonScreen('defis');") && v.includes('jeuLeaveAsk(jeuVersClassement)'));
   const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
-  assert.ok(fin.includes("const meta=pt+(ok?") && fin.includes('${jeuCorrBoutonHTML(k)}</div></li>`;'), 'les points en tête de la ligne de pastilles');
+  /* 12 h 04 (« les points à droite ») : sur la ligne de « Manche 1 », à droite ; le titre garde toute la largeur */
+  assert.ok(fin.includes('<span class="jr-top"><small class="jr-n">Manche ${i+1}</small>${pt}</span>') && fin.includes('${jeuCorrBoutonHTML(k)}</div></li>`;'), 'les points à droite de « Manche 1 »');
+  assert.ok(lq.includes('html.lq #app .jr-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:26px}'));
   for (const k of ['html.lq #app .jr-meta .jeu-pd{display:contents!important}', 'html.lq #app .jr-meta .jeu-pd i:not([class]){display:none!important}',
     'html.lq #app .jr-pts{align-items:center;gap:3px;height:24px;margin:0;padding:0 9px;box-sizing:border-box;border-radius:99px;background:var(--sun);',
     'html.lq #app .jeu-rounds .jr-t>.jr-corr::before{content:"";position:absolute;left:-2px;right:-200px;top:-7px;border-top:2px dashed #E4DFF5;'])
