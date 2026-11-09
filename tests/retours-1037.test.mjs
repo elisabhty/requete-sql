@@ -150,8 +150,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-points-v2731';") && app.includes("const SW_CACHE='requete-2026-11-09-points-v2731';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=270">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-fleches-v2732';") && app.includes("const SW_CACHE='requete-2026-11-09-fleches-v2732';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=271">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -181,6 +181,13 @@ test('11 h 57 : « Voir mon classement », et le bilan en pastilles : le vert à
   assert.ok(lq.includes('html.lq #app .jr-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:26px}'));
   for (const k of ['html.lq #app .jr-meta .jeu-pd{display:contents!important}', 'html.lq #app .jr-meta .jeu-pd i:not([class]){display:none!important}',
     'html.lq #app .jr-pts{align-items:center;gap:3px;height:24px;margin:0;padding:0 9px;box-sizing:border-box;border-radius:99px;background:var(--sun);',
-    'html.lq #app .jeu-rounds .jr-t>.jr-corr::before{content:"";position:absolute;left:-2px;right:-200px;top:-7px;border-top:2px dashed #E4DFF5;'])
+    'html.lq #app .jeu-rounds .jr-t>.jr-corr::before{content:"";position:absolute;left:-2px;right:-200px;top:-12px;border-top:2px dashed #E4DFF5;'])
+    assert.ok(lq.includes(k), k);
+});
+
+/* 12 h 09 (Elisa) : « Les flèches de Voir la correction sont animées ? Un peu d’espace avant Voir la correction. » */
+test('12 h 09 : la flèche de « Voir la correction » avance de temps en temps (rien en mouvement réduit) ; plus d’air au-dessus', () => {
+  for (const k of ['html.lq #app .jr-t>.jr-corr{margin-top:22px}', 'html.lq #app .jr-corr>svg{animation:jrCorrPas 2.8s ease-in-out 1.2s infinite}',
+    '@keyframes jrCorrPas{', '@media (prefers-reduced-motion:reduce){html.lq #app .jr-corr>svg{animation:none}}', 'html[data-motion="reduce"].lq #app .jr-corr>svg{animation:none}'])
     assert.ok(lq.includes(k), k);
 });
