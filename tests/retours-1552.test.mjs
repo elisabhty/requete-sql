@@ -25,7 +25,7 @@ test('réf. 1 — la salle d’attente : le niveau et ses barres, les manches, �
   assert.ok(app.includes('function jeuNivBars(k){return `<i class="jeu-bars is-${k}" aria-hidden="true"><b></b><b></b><b></b></i>`;}'));
   assert.ok(app.includes('function jeuDrawnHTML(c){return `<div class="jeu-drawn" id="jeu-drawn" role="status" aria-live="polite" hidden><span class="jeu-chip is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span>') && r.includes('${jeuDrawnHTML(c)}'), 'le défi tiré garde la même pastille de niveau');
   for (const k of ['html.lq .jeu-chip{display:inline-flex;align-items:center;gap:7px;min-height:36px;', 'box-shadow:0 3px 0 var(--lip);font:700 14px/1 var(--display)!important',
-    '@keyframes jeuChipIn', 'html.lq .jeu-bars.is-f b:nth-child(1){background:#169447}', 'html.lq .jeu-bars.is-m b:nth-child(-n+2){background:#E0A100}', 'html.lq .jeu-bars.is-d b{background:var(--danger-fill)}'])
+    '@keyframes jeuChipIn', 'html.lq .jeu-bars.is-f b:nth-child(1){background:var(--accent)}', 'html.lq .jeu-bars.is-m b:nth-child(-n+2){background:#B45309}', 'html.lq .jeu-bars.is-d b{background:#C2323A}'])
     assert.ok(s49.includes(k), k);
 });
 

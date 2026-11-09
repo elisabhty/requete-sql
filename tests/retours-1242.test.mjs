@@ -57,7 +57,7 @@ test('une manche compte le niveau de son défi (celui de la salle), sinon celui 
 test('ce qu’on voit : la valeur du niveau pendant la manche, « Difficile ×4 » dans le détail des points', () => {
   const c = salle();
   assert.equal(vm.runInContext("jeuPtsDetail({val:700,x:4,k:'d',essai:25,rang:120,place:2})", c),
-    '<span class="jeu-pd"><i class="is-niv is-d">Difficile ×4</i><i>Défi 700</i><i class="is-essai">1er essai +25</i><i class="is-rang">2e +120</i></span>');
+    '<span class="jeu-pd"><i class="is-niv is-d">Difficile ×4</i><i>Défi 700</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">2e +120</i></span>');
   assert.equal(vm.runInContext("jeuPtsDetail({val:400,x:2,k:'m',essai:0,rang:0,place:1})", c), '<span class="jeu-pd"><i class="is-niv is-m">Moyen ×2</i><i>Défi 400</i></span>');
   assert.equal(vm.runInContext("jeuPtsDetail({val:150,x:1,k:'f',essai:0,rang:0,place:1})", c), '<span class="jeu-pd"><i>Défi 150</i></span>', 'en Facile, rien de plus');
   assert.ok(app.includes('<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span>') && app.includes('title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>') && !app.includes('JEU_PTS_ESSAI*'), 'pendant la manche : la valeur du niveau, et le premier coup à +25');

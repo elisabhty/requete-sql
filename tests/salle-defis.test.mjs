@@ -335,7 +335,7 @@ test('manche : les paliers de temps, +25 du premier coup, +50 / +30 / +20 aux pr
   /* Le détail des points sur sa seule ligne (Elisa, 31 octobre, 16 h 29 : « il y a trop de trucs ») : l’hôte est 2e ; ce que
      valait le défi quand il l’a trouvé, puis son bonus de 2e */
   assert.ok(host.html.includes('class="jeu-pd"><i>Défi 200</i><i class="is-rang">2e +30</i></span>'), 'le détail des points');
-  assert.ok(guests[1].html.includes('class="jeu-pd"><i>Défi 200</i><i class="is-essai">1er essai +25</i><i class="is-rang">1er +50</i></span>'), 'du premier coup');
+  assert.ok(guests[1].html.includes('class="jeu-pd"><i>Défi 200</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">1er +50</i></span>'), 'du premier coup');
   assert.doesNotMatch(host.html, /rapidité<\/i>/);
   assert.equal((host.html.match(/class="jeu-pd"/g) || []).length, 1, 'seulement sur sa propre ligne');
   assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
@@ -755,7 +755,10 @@ test('« En direct » raconte la partie : qui ouvre le score, qui reste en cours
   /* Ami1 réagit (il a trouvé) : chez l’hôte, dit au lecteur d’écran ; à l’écran, la bulle sur son avatar */
   a1.ev("JEU.lastReact=0;jeuReact('👏')"); sec(w, 1);
   assert.ok(host.toasts.includes('Ami1 👏'));
-  host.found(); sec(w, 2.5);   // l’encart vert un instant (9 novembre, 8 h 20)
+  host.found(); sec(w, 0.5);
+  assert.equal(dit(host), `Tout le monde a trouvé${nb}!`, 'le dernier trouve : plus de « Plus que toi en course » pendant que son encart passe au vert (9 novembre, 9 h 04)');
+  assert.ok(host.toasts.includes(`Tout le monde a trouvé${nb}!`), 'dit au lecteur d’écran');
+  sec(w, 2);   // l’encart vert un instant (9 novembre, 8 h 20)
   assert.equal(host.view(), 'res0');
   host.ev('jeuNextRound()'); sec(w, 4.5);
   assert.equal(dit(host), `Manche 2, c’est reparti${nb}!`);

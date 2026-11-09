@@ -50,7 +50,7 @@ test('l’onglet Adversaires vide montre le duel ; déjà affiché, il n’est p
   const ls = { innerHTML: '', firstElementChild: null, closest: () => null };
   const ctx = vm.createContext({
     document: { getElementById: id => id === 'dx-amis-liste' ? ls : null },
-    amisListe: () => [], amisTitre: () => '', amisPcsHTML: () => '', defisAmisPeindre: () => {},
+    amisListe: () => [], amisTitre: () => '', amisSous: () => '', amisPcsHTML: () => '', defisAmisPeindre: () => {},
     chatBonusHtml: (k, cls) => `<img data-k="${k}" data-cls="${cls}">`,
   });
   vm.runInContext(fn, ctx);
