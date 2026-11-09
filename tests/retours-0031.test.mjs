@@ -273,7 +273,7 @@ test('la page de connexion : Apple, Google, le trait « ou », puis l’adresse 
 
 test('l’invité attend : « En attente que l’hôte lance la partie… » (son pseudo est déjà dans la liste, avec « hôte »)', () => {
   /* 13 h 20 : la phrase a changé avec la salle d’attente selon le rôle (« Préviens l’hôte… », « Tu es prête !… », « Tout le monde est prêt ! En attente que l’hôte lance la partie… ») */
-  assert.ok(app.includes("t='Tout le monde est prêt\u00a0!';p=host?'À toi de lancer la partie.':'L’hôte va lancer la partie…';"), '13 h 50 : la carte, le titre et sa précision');
+  assert.ok(app.includes("t='Tout le monde est prêt\u00a0!';p=host?'À toi de lancer la partie.':'L’hôte peut lancer la partie.';"), '13 h 50 : la carte, le titre et sa précision');
   assert.ok(!app.includes('En attente ${jeuQue(hostName)} lance la partie…'));
 });
 

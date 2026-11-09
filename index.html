@@ -2036,19 +2036,6 @@
   .jeu-lob.is-lent .jeu-lob-ico svg{animation:jeuLobSonne 2.4s ease-in-out infinite}
   @keyframes jeuLobSonne{0%,70%,100%{transform:none}76%{transform:rotate(-14deg)}82%{transform:rotate(12deg)}88%{transform:rotate(-8deg)}94%{transform:rotate(4deg)}}
   @keyframes jeuMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  /* 13 h 36 : la croix pour retirer un joueur lent (l’hôte, à 60 s) : elle arrive d’un petit bond, frémit une fois, rougit sous le
-     doigt et s’enfonce ; confirmé, la ligne glisse et s’efface. 32 px à l’œil, 44 px sous le doigt. */
-  .jeu-pl-x{position:relative;flex:none;display:grid;place-items:center;width:32px;height:32px;margin:-2px -2px -2px 2px;padding:0;border:0;border-radius:50%;background:#F0EEF5;color:#6E6A80;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-    transition:background .18s,color .18s,transform .18s var(--spring-ios,ease);animation:jeuXIn .42s var(--pop,ease) both,jeuXFremit .5s ease-in-out .9s 1}
-  .jeu-pl-x::before{content:"";position:absolute;inset:-6px}
-  .jeu-pl-x svg{width:13px;height:13px}
-  .jeu-pl-x:hover,.jeu-pl-x:focus-visible{background:#FFE4DC;color:#C2412D}
-  .jeu-pl-x:active{transform:scale(.86);background:#FFD5C8;color:#B23A26}
-  .jeu-pl-x:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-  @keyframes jeuXIn{from{opacity:0;transform:scale(.4) rotate(-90deg)}to{opacity:1;transform:none}}
-  @keyframes jeuXFremit{0%,100%{transform:none}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
-  .jeu-players li.is-sort{animation:jeuRowOut .28s ease-in forwards;pointer-events:none}
-  @keyframes jeuRowOut{to{opacity:0;transform:translateX(18px) scale(.97)}}
   .jeu-lobby-etat+.journey-primary,.jeu-lobby-etat+.jeu-ready{margin-top:12px}
   #jeu-go:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
   .jeu-ready{display:inline-flex;align-items:center;justify-content:center;gap:8px}
@@ -2057,8 +2044,8 @@
   .jeu-ready.on .jeu-ready-fl{display:none}
   @keyframes jeuFlAvance{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
   .jeu-players em.jeu-state.is-att{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:#F0EEF5;color:#6E6A80;font-style:normal;font-size:12.5px;line-height:1;white-space:nowrap;transition:background .3s,color .3s}
-  @media (prefers-reduced-motion:reduce){.jeu-lob,.jeu-lob *,.jeu-ready-fl svg,.jeu-pl-x,.jeu-players li.is-sort{animation:none!important}.jeu-prets-pts i.ok{transform:none}}
-  html[data-motion="reduce"] .jeu-lob,html[data-motion="reduce"] .jeu-lob *,html[data-motion="reduce"] .jeu-ready-fl svg,html[data-motion="reduce"] .jeu-pl-x{animation:none!important}
+  @media (prefers-reduced-motion:reduce){.jeu-lob,.jeu-lob *,.jeu-ready-fl svg{animation:none!important}.jeu-prets-pts i.ok{transform:none}}
+  html[data-motion="reduce"] .jeu-lob,html[data-motion="reduce"] .jeu-lob *,html[data-motion="reduce"] .jeu-ready-fl svg{animation:none!important}
   .jeu-net.is-soft{background:var(--accent-soft);color:var(--accent-ink)!important}
   .jeu-draw{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;min-height:58vh;padding:18px 0 10px}
   .jeu-draw .l-kicker{margin:0!important}
@@ -35276,7 +35263,6 @@ function jeuSend(m){
   /* Le relais rejoue un historique dont l’ordre, à la seconde près, n’est pas garanti : un horodatage
      d’émetteur départage les réglages, les « prêt » et les prises de main. */
   if(m.t==='cfg'||m.t==='ready'||m.t==='host')m.cv=Date.now();
-  if(m.t==='hello')(JEU.mesHello||(JEU.mesHello=new Set())).add(m.u);   // un retrait ne vaut que pour mes arrivées (13 h 20)
   if(m.g===undefined)m.g=JEU.g;
   const J=JEU;
   if(!J.ranked)jeuOnMsg(Object.assign({},m,{at:Date.now()}));
@@ -35313,7 +35299,7 @@ function jeuFlush(){
 /* Retour au premier plan, réveil du téléphone ou reconnexion : on se signale (les autres répondent) et on
    laisse un délai avant de juger quiconque absent. */
 function jeuResume(){
-  const J=JEU;if(!J||J.solo||!J.synced||J.full||J.retire)return;
+  const J=JEU;if(!J||J.solo||!J.synced||J.full)return;
   /* Au retour, plusieurs signaux arrivent ensemble (l’appli revient, le chrono a sauté, le direct se rebranche) : une seule reprise,
      un seul « hello » (8 novembre, 18 h 01). */
   if(Date.now()-(J.repriseAt||0)<3000)return;J.repriseAt=Date.now();
@@ -35418,9 +35404,6 @@ function jeuOnMsg(m){
       /* Un arrivant en direct : on se signale tout de suite, pour qu’il nous voie. */
       if(m.pid!==J.me&&J.synced&&!J.solo&&!replay)setTimeout(()=>{if(JEU===J&&!J.full)jeuSend({t:'ping'});},Math.random()*600);
       if(m.pid!==J.me)jeuMaybeDeny(m.pid,m.u);
-      /* retiré de cette partie, il revient : l’hôte le retire de nouveau (en direct seulement, jamais sur l’historique) */
-      if(m.pid!==J.me&&J.retires&&J.retires.has(m.pid)&&J.synced&&!replay&&jeuIsHost()&&jeuCur()<0&&!J.over)
-        setTimeout(()=>{if(JEU===J&&jeuIsHost()&&jeuPresent(m.pid))jeuSend({t:'retire',who:m.pid,hu:m.u});},0);
       break;}
     case 'deny':{
       if(m.pid!==J.hostPid||!m.who)return;
@@ -35507,7 +35490,7 @@ function jeuOnMsg(m){
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
-      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;J.retires=null;
+      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;
       jeuApplyCfg();jeuDrain();
       if(J.ranked&&J.solo&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuNextRound();},100);
       break;}
@@ -35515,30 +35498,6 @@ function jeuOnMsg(m){
       if(m.pid===J.me)return;
       J.left[m.pid]=true;delete J.seen[m.pid];
       break;
-    case 'retire':{
-      /* 13 h 20 : l’hôte retire un joueur de la salle d’attente. Il ne vaut que pour l’arrivée visée (hu) : revenu avec le code, on
-         reste ; relu dans l’historique par un nouveau venu, il compte comme un départ. */
-      if(m.pid!==J.hostPid||!m.who||m.who===J.hostPid||(m.g|0)!==J.g)return;
-      /* 13 h 47 (Elisa : « ne pourra plus participer à cette partie ») : chacun note le retrait ; revenu avec le code, l’hôte, quel qu’il
-         soit, le retire de nouveau, jusqu’à la partie suivante (« Rejouer » : case 'again'). */
-      (J.retires||(J.retires=new Set())).add(m.who);
-      if(m.who===J.me){
-        if(!m.hu||!(J.mesHello&&J.mesHello.has(m.hu)))return;
-        J.retire=true;J.view='';clearInterval(J.ping);
-        try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}
-        /* « Tu as été retiré de la salle par l’hôte. », et retour à la page Défis (13 h 47) */
-        setTimeout(()=>{
-          if(JEU!==J)return;
-          J.leaveOk=true;
-          const t=`Tu as été ${typeof accord==='function'?accord('retirée','retiré','retiré·e'):'retiré·e'} de la salle par l’hôte.`;
-          if(typeof leaveLessonScreen==='function'&&typeof mode!=='undefined'&&mode==='jeu'){jeuInvite='';leaveLessonScreen('defis');}else jeuStop();
-          if(typeof toast==='function')setTimeout(()=>{try{toast(t,'','info');}catch(e){}},350);
-        },0);
-        break;
-      }
-      if(m.hu&&J.helloOf[m.who]&&J.helloOf[m.who]!==m.hu)return;
-      J.left[m.who]=true;delete J.seen[m.who];delete J.ready[m.who];
-      break;}
     case 'host':break;
     default:return;
   }
@@ -35696,7 +35655,6 @@ function jeuView(){
   const J=JEU;
   if(J.full)return'full';
   if(J.tard)return'tard';
-  if(J.retire)return'retire';
   if(J.lost&&!J.hostPid)return'lost';
   if(!J.hostPid||!J.synced)return'join';
   if(J.over)return'final';
@@ -35729,7 +35687,7 @@ function jeuView(){
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
 function jeuHostWatch(){
   const J=JEU;
-  if(!J||J.solo||!J.synced||J.full||J.tard||J.retire||!J.hostPid||J.hostPid===J.me)return;
+  if(!J||J.solo||!J.synced||J.full||J.tard||!J.hostPid||J.hostPid===J.me)return;
   const now=Date.now();
   if(jeuPresent(J.hostPid)){J.goneAt=0;return;}
   if(!J.goneAt)J.goneAt=now;
@@ -35747,7 +35705,7 @@ function jeuHostWatch(){
   J.claimAt=now;
   jeuSend({t:'host',from:J.hostPid});
 }
-function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full||J.tard||J.retire)return;jeuSend({t:'ping'});}
+function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full||J.tard)return;jeuSend({t:'ping'});}
 /* Ce qui change à l’écran sans nouveau message : arrivées, départs, prêts. */
 function jeuSig(){
   const J=JEU,n=jeuCur(),r=n>=0?J.rounds[n]:null;
@@ -35827,7 +35785,6 @@ function jeuPlayersHTML(kind){
   const J=JEU,n=jeuCur(),r=kind!=='lobby'&&n>=0?J.rounds[n]:null;
   const all=jeuOrder(),pretAt=J.pretAt||(J.pretAt={});
   const list=all.filter(p=>kind==='lobby'?jeuPresent(p):(jeuPresent(p)||(r&&r.found[p]!=null)));
-  const lents=kind==='lobby'&&typeof jeuLents==='function'?jeuLents():[];
   const rows=list.map(pid=>{
     const p=J.players[pid]||{name:'Joueur'},me=pid===J.me,host=pid===J.hostPid;
     const away=!jeuPresent(pid),found=r&&r.found[pid]!=null,isNew=!J.shown.has(pid);
@@ -35840,8 +35797,7 @@ function jeuPlayersHTML(kind){
       }else{delete pretAt[pid];state='<em class="jeu-state is-att">En attente</em>';}   // 13 h 20 : « Prêt·e » en vert, « En attente » en gris
     }
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
-    const x=kind==='lobby'&&lents.includes(pid)?`<button type="button" class="jeu-pl-x" data-pid="${esc(pid).replace(/"/g,'&quot;')}" onclick="jeuRetirer(this.dataset.pid,this)" aria-label="${esc('Retirer '+p.name).replace(/"/g,'&quot;')}">${typeof LQ_X_SVG!=='undefined'?LQ_X_SVG:'×'}</button>`:'';
-    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}${x?' has-x':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}${x}</li>`;
+    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
   });
   if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un joueur…</span></li>');
   return rows.join('');
@@ -36270,7 +36226,14 @@ function jeuLobbyLabel(){return 'Lancer la partie';}
 function jeuPrets(){const live=jeuLive();return {live,prets:live.filter(jeuIsReady)};}
 /* 13 h 41 (Elisa : « oui il peut lancer seul ; s’il y en a 3 et que 1 n’est pas prêt, il n’est pas obligé d’attendre, il peut le
    retirer de plus ») : l’hôte lance quand il veut, seul ou sans attendre les retardataires ; le message dit où on en est. */
-function jeuPeutLancer(){const J=JEU;return !!J&&!J.solo&&jeuIsHost()&&jeuCur()<0&&!J.over;}
+/* 14 h 01 (Elisa : « finalement je veux pas possible de supprimer un joueur ; l’hôte lance quand il en a envie, qu’il y ait un ou deux
+   sur 3 présents ; le bouton se débloque quand 30 s et non prêt ») : seul, ou tout le monde prêt, « Lancer la partie » est actif ;
+   sinon il se débloque quand chacun de ceux qui ne sont pas prêts l’est depuis 30 s (un arrivant a ses 30 s). Personne n’est retiré. */
+function jeuPeutLancer(){
+  const J=JEU;if(!J||J.solo||!jeuIsHost()||jeuCur()>=0||J.over)return false;
+  const {live,prets}=jeuPrets();if(live.length<2||prets.length===live.length)return true;
+  return jeuPasPrets().every(x=>x.ms>=JEU_LENT_MS);
+}
 /* « Joueurs » et son badge : « 2/3 prêts » (un point par joueur, au vert quand tout le monde l’est) ; seul, la place « 1/6 »
    (13 h 41 : « mettre le 3/3 prêts en haut, fusionner avec le badge du haut »). */
 function jeuBadgeHTML(){
@@ -36299,40 +36262,27 @@ function jeuLobbyEtatHTML(){
     t=J.pub?'Ta salle est ouverte':J.created?'Personne n’a encore rejoint':'Les autres sont partis';
     p=`Partage le code, ou lance et joue ${seul}.`;ico=JEU_ICO.amis;
   }else if(tous){
-    cls='is-ok';ico=JEU_ICO.check;t='Tout le monde est prêt !';p=host?'À toi de lancer la partie.':'L’hôte va lancer la partie…';
+    cls='is-ok';ico=JEU_ICO.check;t='Tout le monde est prêt !';p=host?'À toi de lancer la partie.':'L’hôte peut lancer la partie.';
   }else if(host){
-    const w=jeuPasPrets()[0],nom=w?esc((J.players[w.pid]||{}).name||'Un joueur'):'';
-    if(w&&w.ms>=JEU_LENT2_MS){cls='is-lent';ico=JEU_ICO.reveil;t=`${nom} prend son temps…`;p='Lance sans attendre, ou touche ×.';}
-    else if(w&&w.ms>=JEU_LENT_MS){cls='is-lent';ico=JEU_ICO.reveil;t=`${nom} n’est pas encore prêt·e…`;p='Tu peux lancer sans attendre.';}
-    else{t='En attente des autres joueurs…';p='Tu peux lancer quand tu veux.';}
+    /* 14 h 01, les mots d’Elisa : « En attente de @sam… » ; à 30 s, « @sam n’est pas encore prêt·e. Tu peux patienter ou lancer sans ce
+       joueur. » ; à 60 s, « @sam prend son temps… Tu peux lancer la partie. » (le plus récent compte : le bouton attend ses 30 s) */
+    const w=jeuPasPrets(),nm=x=>esc((J.players[x.pid]||{}).name||'Un joueur'),moins=w.length?w[w.length-1].ms:0;
+    const qui=w.length===1?nm(w[0]):w.length===2?`${nm(w[0])} et ${nm(w[1])}`:`${nm(w[0])} et ${w.length-1} autres`;
+    if(moins>=JEU_LENT2_MS){cls='is-lent';ico=JEU_ICO.reveil;t=w.length>1?`${qui} prennent leur temps…`:`${qui} prend son temps…`;p='Tu peux lancer la partie.';}
+    else if(moins>=JEU_LENT_MS){cls='is-lent';ico=JEU_ICO.reveil;t=w.length>1?`${qui} ne sont pas encore prêts.`:`${qui} n’est pas encore prêt·e.`;p=`Tu peux patienter ou lancer sans ${w.length>1?'eux':'ce joueur'}.`;}
+    else{t=`En attente de ${qui}…`;p='';}
   }else if(J.ready[J.me]){cls='is-ok';ico=JEU_ICO.check;t=`Tu es ${mot} !`;p='En attente des autres joueurs…';}
   else{ico=JEU_MAIN;t=`Préviens l’hôte quand tu es ${mot} !`;p='L’hôte lance la partie.';}
-  return `<div class="jeu-lob ${cls}"><span class="jeu-lob-ico" aria-hidden="true">${ico}</span><span class="jeu-lob-tx"><b>${t}</b><small>${p}</small></span></div>`;
+  return `<div class="jeu-lob ${cls}"><span class="jeu-lob-ico" aria-hidden="true">${ico}</span><span class="jeu-lob-tx"><b>${t}</b>${p?`<small>${p}</small>`:''}</span></div>`;
 }
 /* Le message ne se redessine que s’il change (il entre en fondu) ; le bouton « Lancer » suit à chaque instant. */
-/* 13 h 36 (Elisa : « c’est pas UI/UX, peut-être juste une croix avec micro-interaction ») : chez l’hôte, la croix apparaît sur la ligne
-   d’un joueur pas prêt depuis 60 s ; la liste se redessine quand l’ensemble change. */
-function jeuLents(){const J=JEU;return J&&!J.solo&&jeuIsHost()&&jeuCur()<0&&!J.over?jeuPasPrets().filter(x=>x.ms>=JEU_LENT2_MS&&x.pid!==J.me).map(x=>x.pid):[];}
 function jeuLobbyEtatMaj(){
-  {const J=JEU,k=jeuLents().join(',');if(J&&J.lentsVus!==k){const prem=J.lentsVus==null;J.lentsVus=k;const pl=!prem&&typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-players'):null;if(pl)pl.innerHTML=jeuPlayersHTML('lobby');}}
   const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-lobby-etat'):null;
   if(el){const h=jeuLobbyEtatHTML();if((el.dataset&&el.dataset.h)!==h){el.innerHTML=h;if(el.dataset)el.dataset.h=h;}}
   const go=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-go'):null;
   if(go&&JEU&&JEU.view==='lobby'){const off=!jeuPeutLancer();if(go.disabled!==off)go.disabled=off;if(go.setAttribute)go.setAttribute('aria-disabled',String(off));}
 }
 function jeuLancer(){if(!jeuPeutLancer()){jeuLobbyEtatMaj();return;}jeuNextRound();}
-/* « Retirer ce joueur » : l’hôte seul, en salle d’attente ; une question d’abord. Le retiré lit qu’il a été retiré et peut revenir avec le
-   code (le retrait vise son arrivée, comme un refus : hu). */
-function jeuRetirer(pid,btn){
-  const J=JEU;if(!J||J.solo||!jeuIsHost()||pid===J.me||jeuCur()>=0||J.over||!jeuPresent(pid))return;
-  const nom=(J.players[pid]||{}).name||'Ce joueur';
-  /* Confirmé : sa ligne glisse et s’efface (0,28 s), puis il part ; mouvement réduit : tout de suite. */
-  const envoi=()=>{if(JEU===J&&jeuIsHost()&&jeuCur()<0&&jeuPresent(pid))jeuSend({t:'retire',who:pid,hu:J.helloOf[pid]||''});};
-  const go=()=>{const li=btn&&btn.closest?btn.closest('li'):null;
-    if(li&&!(typeof prefersReduceMotion==='function'&&prefersReduceMotion())){li.classList.add('is-sort');setTimeout(envoi,280);}else envoi();};
-  if(typeof lqAsk!=='function'){go();return;}
-  lqAsk({ico:'👋',titre:`Retirer ${nom} ?`,texte:`${nom} quittera la salle d’attente et ne pourra plus participer à cette partie.`,oui:'Retirer',non:'Annuler',danger:true}).then(ok=>{if(ok)go();});
-}
 /* Annonces : « Léa a rejoint la salle » / « Léa est partie », sans bruit au premier affichage. */
 function jeuAnnounce(){
   const J=JEU;if(!J||J.solo||!J.synced)return;
@@ -36495,9 +36445,6 @@ function jeuRender(){
     html=etat('chat:loupe','Salle introuvable','Aucune salle ne correspond à ce code. Vérifie-le auprès de ton ami, ou ouvre ta propre salle.',retour,'is-lost');
   }else if(v==='empty'){
     html=etat('user','Cette salle est vide','Les joueurs sont partis. Ouvre ta propre salle pour rejouer avec tes amis.',retour,'is-lost');
-  }else if(v==='retire'){
-    const ac=(f,h,n)=>typeof accord==='function'?accord(f,h,n):n;
-    html=etat('user',`${ac('Tu as été retirée','Tu as été retiré','Tu as été retiré·e')} de la salle`,`Tu as été ${ac('retirée','retiré','retiré·e')} de la salle par l’hôte.`,retour,'is-lost');   // le temps de repartir sur Défis (13 h 47)
   }else if(v==='tard'){
     html=etat('user','La partie a déjà commencé','On rejoint une salle tant que l’hôte n’a pas lancé la partie. Ouvre la tienne, ou attends la prochaine partie de cette salle.',retour,'is-lost');
   }else if(v==='full'){
@@ -47323,7 +47270,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-carte-v2744';
+  const SW_CACHE='requete-2026-11-09-trente-v2745';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
