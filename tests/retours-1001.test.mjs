@@ -73,7 +73,7 @@ test('seul, finie au chrono : « Temps écoulé » à la place de l’éditeur, 
   assert.ok(fn('jeuRetenter').includes('if(JEU)jeuStop();'), 'seule dans sa salle aussi, on la quitte pour la page du défi');
   for (const k of ['html.lq .coach-to{display:grid;grid-template-columns:28px minmax(0,1fr);', 'border:2px solid #FFD2BC;border-radius:16px;background:#FFF1E8;',
     'html.lq .coach-to .coach-to-k{grid-column:2;grid-row:1;margin:0;color:#A24A1E;', 'html.lq #app .coach-to .jr-corr{grid-column:2;grid-row:3;justify-self:start;margin-top:8px;',
-    'html.lq .jeu-fin-actions{margin:4px 0 6px}', 'html.lq .coach-ok .coach-ok-bonus.is-record{background:var(--sun);color:#1B1640}', 'html.lq #app .jeu-bilan.is-2{grid-template-columns:repeat(2,minmax(0,1fr))}'])
+    'html.lq .jeu-fin-actions{margin:16px 0 6px}', 'html.lq .coach-ok .coach-ok-bonus.is-record{background:var(--sun);color:#1B1640}', 'html.lq #app .jeu-bilan.is-2{grid-template-columns:repeat(2,minmax(0,1fr))}'])
     assert.ok(lq.includes(k), k);
 });
 
