@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=271">
+<link rel="stylesheet" href="ludique.css?v=272">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -36494,13 +36494,18 @@ function jeuRender(){
       /* 10 h 37 (la relecture, ses maquettes 2/2, 1/2 et 0/2) : le titre dit l’issue, « Tout résolu ! », « Bien joué ! » ou
          « On retente ? » ; le niveau dessous, sans point final ; le bandeau, toujours les trois mêmes cases (les points, les défis
          résolus, le temps moyen, « — » sans défi résolu), d’un bilan à l’autre. */
-      const titre=un?(all?(trophee?'Défi résolu\u00a0!':'Défi résolu ! 🏆'):'On retente\u00a0?'):all?(trophee?'Tout résolu\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\u00a0!':'On retente\u00a0?';
+      /* 12 h 17 (Elisa) : « Carton plein ! » et « 2 manches, 2 victoires ! » ; « Bien joué ! » et « 2 manches, 1 victoire ! » ; « Pas
+         encore cette fois ! » et « Prêt·e à retenter ta chance ? » ; « Tu progresses à chaque défi ! » quand c’est mieux qu’avant (plus de
+         points que la partie d’avant, seule, au même niveau). Le niveau passe dans le surtitre. */
+      const titre=all?(trophee?'Carton plein\u00a0!':'Carton plein ! 🏆'):nOk?'Bien joué\u00a0!':'Pas encore cette fois\u00a0!';
+      const sous=nOk?`${nT} manche${nT>1?'s':''}, ${nOk} victoire${nOk>1?'s':''}\u00a0!`:`${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} à retenter ta chance\u00a0?`;
+      const progres=J.mieux?`<p class="jeu-progres"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5l5.5-5.5 4 4L20 8.5M14.5 8.5H20V14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Tu progresses à chaque défi\u00a0!</p>`:'';
       /* Une seule manche : deux cases, les points et ton temps (« 1/1 résolu » ne disait rien) */
       const bande=`<div class="jeu-bilan${J.record?' has-record':''}${un?' is-2':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div>`+
         `${un?'':`<div><b>${nOk}/${nT}</b><small>résolu${nOk>1?'s':''}</small><span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span></div>`}<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;
-      html=trophee+head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+   // le niveau, seul, sous le titre : il ne se dit nulle part ailleurs
+      html=trophee+head(`Fin de la partie · ${JEU_NIVL[J.niv]}`,titre,sous)+progres+
         `${bande}
-        <div class="jeu-card jeu-recap"><p class="jeu-card-h">${un?'Le défi':'Manche par manche'}</p><ol class="jeu-rounds">${recap}</ol></div>
+        <div class="jeu-card jeu-recap"><p class="jeu-card-h">Ton récap’</p><ol class="jeu-rounds">${recap}</ol></div>
         ${jeuFinBoutonsHTML(nOk,all)}`;
       if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
       if(all)setTimeout(celebrate,300);
@@ -36947,6 +36952,8 @@ function jeuCreditGame(){
       });
       Object.keys(mates).sort((a,b)=>(mates[b].at||0)-(mates[a].at||0)).slice(30).forEach(key=>{delete mates[key];});
     }
+    /* Mieux qu’avant (Elisa, 9 novembre, 12 h 17) : plus de points que la partie précédente jouée seule au même niveau. */
+    {const av=(Array.isArray(s.hist)?s.hist:[]).find(h=>h&&h.niv===k&&h.solo===(vs?0:1));J.mieux=!!av&&pts>(+av.pts||0);}
     s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:vs?0:1,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
       .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
     save();
@@ -47151,7 +47158,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-fleches-v2732';
+  const SW_CACHE='requete-2026-11-09-titres-v2733';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

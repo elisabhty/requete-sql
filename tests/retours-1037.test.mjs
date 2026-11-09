@@ -127,8 +127,8 @@ test('la feuille monte par-dessus l’écran, qui reste dessous ; elle se referm
 
 test('le bilan : le titre dit l’issue, les trois cases, une manche ratée dans la pêche, la prochaine étape, « Réessayer »', () => {
   const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
-  assert.ok(fin.includes("const titre=un?(all?(trophee?'Défi résolu\\u00a0!':'Défi résolu ! 🏆'):'On retente\\u00a0?'):all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
-  assert.ok(fin.includes("head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)"), '« Niveau facile », sans point');
+  assert.ok(fin.includes("const titre=all?(trophee?'Carton plein\\u00a0!':'Carton plein ! 🏆'):nOk?'Bien joué\\u00a0!':'Pas encore cette fois\\u00a0!';"));
+  assert.ok(fin.includes("head(`Fin de la partie · ${JEU_NIVL[J.niv]}`,titre,sous)"), '« Niveau facile », sans point');
   assert.ok(fin.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;"), '« — » sans défi résolu');
   assert.ok(fin.includes("<span class=\"jr-ico\" aria-hidden=\"true\">${ok?ICO_OK:ab?ICO_KO:JEU_ICO.reveil}</span>"), 'le réveil pour le chrono, la croix pour une manche quittée');
   const ctx = vm.createContext({ JEU: { solo: true, niv: 'm' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>', DEF_CHEV_SVG: '›',
@@ -150,8 +150,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-fleches-v2732';") && app.includes("const SW_CACHE='requete-2026-11-09-fleches-v2732';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=271">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-titres-v2733';") && app.includes("const SW_CACHE='requete-2026-11-09-titres-v2733';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=272">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -190,4 +190,15 @@ test('12 h 09 : la flèche de « Voir la correction » avance de temps en temps 
   for (const k of ['html.lq #app .jr-t>.jr-corr{margin-top:22px}', 'html.lq #app .jr-corr>svg{animation:jrCorrPas 2.8s ease-in-out 1.2s infinite}',
     '@keyframes jrCorrPas{', '@media (prefers-reduced-motion:reduce){html.lq #app .jr-corr>svg{animation:none}}', 'html[data-motion="reduce"].lq #app .jr-corr>svg{animation:none}'])
     assert.ok(lq.includes(k), k);
+});
+
+/* 12 h 17 (Elisa) : à la place de « Niveau facile », une phrase selon l’issue ; « Tu progresses à chaque défi ! » quand c’est mieux
+   qu’avant ; « Ton récap’ » à la place de « Manche par manche ». */
+test('12 h 17 : « Carton plein ! », « Bien joué ! », « Pas encore cette fois ! », leur phrase ; « Tu progresses » si mieux qu’avant ; « Ton récap’ »', () => {
+  const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
+  assert.ok(fin.includes("const sous=nOk?`${nT} manche${nT>1?'s':''}, ${nOk} victoire${nOk>1?'s':''}\\u00a0!`:`${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} à retenter ta chance\\u00a0?`;"));
+  assert.ok(fin.includes('const progres=J.mieux?`<p class="jeu-progres">') && fin.includes('Tu progresses à chaque défi\\u00a0!</p>`') && fin.includes('<p class="jeu-card-h">Ton récap’</p>'));
+  const c = fn('jeuCreditGame');
+  assert.ok(c.includes('{const av=(Array.isArray(s.hist)?s.hist:[]).find(h=>h&&h.niv===k&&h.solo===(vs?0:1));J.mieux=!!av&&pts>(+av.pts||0);}') && c.indexOf('J.mieux=') < c.indexOf('s.hist=['), 'comparée à la partie d’avant, avant d’ajouter celle-ci');
+  assert.ok(lq.includes('html.lq #jeu-root>.jeu-progres{display:inline-flex;align-items:center;gap:7px;'));
 });

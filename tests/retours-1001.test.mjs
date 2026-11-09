@@ -82,8 +82,8 @@ test('trouvée sans que la page le montre (la réponse du serveur en salle class
 test('le bilan (2 ou 3 manches) : l’essentiel, une fois ; « résolu » partout pour un défi', () => {
   const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
   /* 10 h 37 (la relecture) : le titre dit l’issue, le niveau sans point final, toujours les trois cases du bandeau, la correction */
-  assert.ok(fin.includes("const titre=un?(all?(trophee?'Défi résolu\\u00a0!':'Défi résolu ! 🏆'):'On retente\\u00a0?'):all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
-  assert.ok(fin.includes("html=trophee+head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+"), 'le niveau sous le titre, seul');
+  assert.ok(fin.includes("const titre=all?(trophee?'Carton plein\\u00a0!':'Carton plein ! 🏆'):nOk?'Bien joué\\u00a0!':'Pas encore cette fois\\u00a0!';"));
+  assert.ok(fin.includes("html=trophee+head(`Fin de la partie · ${JEU_NIVL[J.niv]}`,titre,sous)+progres+"), 'le niveau sous le titre, seul');
   assert.ok(!fin.includes('const verdict') && !fin.includes('`Bien joué') && !fin.includes("'Tout trouvé"), 'plus de phrase qui redit le bandeau');
   assert.ok(fin.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}${un?' is-2':''}\">") && fin.includes("<small>résolu${nOk>1?'s':''}</small>"), 'les trois cases (deux pour une manche, 11 h 31) ; « résolu »');
   assert.ok(fin.includes("const meta=(ok?(un?'':`<i class=\"jr-time\">Résolu en ${dur(x.ms)}</i>`)+(y&&(y.essai||y.rang)?jeuPtsDetail(y):''):`<i class=\"jr-why\">${why}</i>`);"), 'le détail seulement s’il dit autre chose que les points ; une seule manche, sans redire le bandeau (11 h 31)');
