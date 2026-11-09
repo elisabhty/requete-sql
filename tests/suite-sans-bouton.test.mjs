@@ -45,8 +45,8 @@ test('quelle que soit la fin de la manche, la suite part 5 s après que ce tél�
 test('plus de bouton « Manche suivante » : la même ligne chez tous, puis « La manche suivante arrive… »', () => {
   const r = cut("}else if(v.startsWith('res')){", "}else if(v==='final'){");
   assert.ok(!r.includes("onclick=\"${last?'jeuFinish()':'jeuNextRound()'}\"") && !r.includes('Manche suivante</span>') && !r.includes('jeu-room-wait'), 'ni bouton ni attente de l’hôte');
-  assert.ok(r.includes('const autoHTML=`<p class="jeu-auto" id="jeu-auto">${auto&&Date.now()<auto?'));
-  assert.ok(r.includes(':jeuAutoAttente(n)}</p>`;') && r.includes('      ${autoHTML}`;'));
+  assert.ok(r.includes('const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto" style="--reste:${reste}ms;') && r.includes('">${auto&&Date.now()<auto?'), 'le compte à rebours et sa barre (15 h 48)');
+  assert.ok(r.includes(':jeuAutoAttente(n)}</p>`;') && r.includes('${total}${autoHTML}`;'));
   const tick = fn('jeuTick');
   assert.ok(tick.includes("if(an&&t){if(Date.now()<t)an.textContent=String(Math.max(1,Math.ceil((t-Date.now())/1000)));else{const al=document.getElementById('jeu-auto');if(al)al.innerHTML=jeuAutoAttente(n);}}"));
   assert.ok(tick.includes('if(t&&r&&!r.auto&&Date.now()>=t&&jeuIsHost()){r.auto=true;if(n<J.nb-1)jeuNextRound();else if(!jeuSoloLike(n))jeuFinish();}'));

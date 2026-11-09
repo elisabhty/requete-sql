@@ -6781,7 +6781,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=273">
+<link rel="stylesheet" href="ludique.css?v=274">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -36550,30 +36550,58 @@ function jeuRender(){
       ${defiConsigneHTML(c,{base:true,titre:true})}
       ${mine?jeuFoundHTML(r,J.me):rate?jeuRateHTML(r):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
+    /* 9 novembre, 15 h 48 (Elisa : « améliore l’UI/UX de cette page, pour que ça soit vraiment waouh ») : les résultats d’une manche à
+       plusieurs. En tête, un cadre violet comme le bandeau de la manche : l’issue (« Tu remportes la manche ! » et sa médaille, « 2e
+       place », « Temps écoulé »…), le défi, tes points qui montent et leur détail en pastilles. Puis le classement de la manche : avatars,
+       médailles, temps, points ; qui n’a pas trouvé y est aussi. À partir de la 2e manche, « Au total », avec ▲ ▼ quand une place change.
+       La suite : une barre qui se remplit jusqu’à la manche suivante. Confettis quand on gagne la manche (une fois). */
     const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1,sl=jeuSoloLike(n);
     jeuTitreNav(sl);
-    const medal=['🥇','🥈','🥉'];
-    /* Le détail des points seulement sur sa propre ligne : le reste dit le temps et les points, sans pastilles en trop. */
-    const lines=rk.map((x,i)=>`<li style="--i:${i}"${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${sl?'✓':(medal[x.place-1]||x.place)}</span><b>${esc((J.players[x.pid]||{}).name||'Joueur')}${x.pid===J.me&&!sl?' <small>(toi)</small>':''}</b><em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>${x.pid===J.me?jeuPtsDetail(x):''}</li>`).join('')||'<li class="is-empty">Personne n’a trouvé cette fois.</li>';
-    const sc=jeuScores(),got=r.found[J.me]!=null;
-    /* Pas trouvé : le résultat attendu n’est plus montré, on pourra retomber sur ce défi (Elisa, 3 novembre, 7 h 14 : « ne pas mettre
-       voici ce qu’il fallait obtenir, au cas où il repasse sur le même défi »). */
-    /* 9 novembre, 9 h 04 (Elisa : « fais le parcours défis avec tous les écrans pour trouver une incohérence ») : « Tu as trouvé en
-       00:15. » ici, « Résolu en 15 s » dans l’encart vert : la même durée se dit d’une seule façon, « Résolu en », en clair. */
+    const got=r.found[J.me]!=null,moi=rk.find(x=>x.pid===J.me)||null,ab=!got&&r.closed&&!jeuFermeeAuChrono(r,n);
+    const nom=p=>esc((J.players[p]||{}).name||'Joueur'),ord=jeuOrder();
+    const av=p=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(p))%6}" aria-hidden="true">${jeuInitial((J.players[p]||{}).name)}${typeof jeuFlag==='function'?jeuFlag((J.players[p]||{}).name):''}</b>`;
+    const ex=moi&&rk.filter(x=>x.place===moi.place).length>1;
+    let ton,titre,ico;
+    if(got&&!sl&&moi&&moi.place===1){ton='is-or';titre=ex?'Ex æquo en tête !':'Tu remportes la manche !';ico=lqStkSvg('medal1');}
+    else if(got&&!sl&&moi&&moi.place<=3){ton='is-ok';titre=(moi.place===2?'2e place':'3e place')+(ex?' ex æquo':'')+', bien joué !';ico=lqStkSvg('medal'+moi.place);}
+    else if(got){ton='is-ok';titre=sl?'Défi résolu !':`${moi?moi.place:''}e place, défi résolu !`;ico=lqStkSvg('trophy');}
+    else{ton='is-ko';titre=ab?(sl?'Manche abandonnée':'Manche close par l’hôte'):'Temps écoulé';ico=JEU_ICO.reveil;}
+    const pts=got&&moi?moi.pts:0;
+    const pills=got&&moi?[`<i>Défi ${moi.val}${moi.x>1?` ×${moi.x}`:''}</i>`,moi.essai?`<i class="is-essai">Du premier coup +${moi.essai}</i>`:'',moi.rang?`<i class="is-rang">${moi.place===1?'1er':moi.place+'e'} +${moi.rang}</i>`:''].join(''):'';
     const sub=got?`Résolu en ${jeuDureeLisible(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';
-    /* Pas trouvé : une carte qui dit ce qui s’est passé, 0 point, réponse non validée (Elisa, 3 novembre, 7 h 25, maquette, DA du site). */
-    const miss=got?'':jeuMissHTML(r,sl);
-    /* La suite part toute seule, chez tous la même ligne : le compte à rebours, puis « La manche suivante arrive… » (17 h 31 : plus de
-       bouton « Manche suivante », plus d’attente de l’hôte). */
-    const auto=jeuFinAuto(n);
-    const autoHTML=`<p class="jeu-auto" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil((auto-Date.now())/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>`;
-    /* La solution se replie quand on a trouvé ; les scores cumulés n’apparaissent qu’à partir de la 2e manche, et à plusieurs. */
-    html=head(J.nb===1?(sl?'Défi solo terminé':'Manche unique terminée'):`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
-      `${jeuNetSlot()}
-      ${miss}${sl&&!got?'':`<div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>`}
+    const kick=J.nb===1?(sl?'Défi solo terminé':'Manche unique terminée'):`Manche ${n+1}/${J.nb} terminée`;
+    const hero=`<section class="jr2-hero ${ton}" aria-labelledby="jr2-t">
+        <div class="jr2-top"><span class="jr2-k">${kick}</span><span class="jr2-niv">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></div>
+        <div class="jr2-main"><span class="jr2-ico" aria-hidden="true">${ico}</span><div class="jr2-tx"><h1 id="jr2-t">${titre}</h1><p class="jr2-defi">${esc(c.titre)}</p></div></div>
+        <div class="jr2-bas"><p class="jr2-pts"><b class="jr2-n" data-n="${pts}">${got?'+':''}${pts}</b><small>point${pts>1?'s':''}</small></p><p class="jr2-sub" id="jeu-sub">${sub}</p></div>
+        ${pills?`<p class="jr2-pills">${pills}</p>`:''}
+      </section>`;
+    /* Le classement de la manche : qui a trouvé, puis qui a joué sans trouver */
+    const pas=sl?[]:ord.filter(p=>r.found[p]==null&&(jeuPresent(p)||(r.tried&&r.tried[p])));
+    const rows=rk.map((x,i)=>`<li class="jr2-row${x.pid===J.me?' is-me':''}${x.place<=3?' is-p'+x.place:''}" style="--i:${i}"><span class="jr2-pl">${x.place<=3?lqStkSvg('medal'+x.place):x.place}</span>${av(x.pid)}<span class="jr2-nm"><b>${nom(x.pid)}${x.pid===J.me?' <small>(toi)</small>':''}</b><small class="jr2-ms"><em>${jeuChrono(x.ms)}</em></small></span><em class="jr2-p">+${x.pts}</em></li>`)
+      .concat(pas.map((p,i)=>`<li class="jr2-row is-miss${p===J.me?' is-me':''}" style="--i:${rk.length+i}"><span class="jr2-pl">–</span>${av(p)}<span class="jr2-nm"><b>${nom(p)}${p===J.me?' <small>(toi)</small>':''}</b><small>Pas trouvé</small></span><em class="jr2-p">0</em></li>`)).join('');
+    const classement=sl?'':`<div class="jeu-card jr2-card"><p class="jeu-card-h">Classement de la manche</p><ol class="jr2-list">${rows}</ol></div>`;
+    /* Au total (dès la 2e manche) : les points des manches jouées jusqu’ici, et le mouvement depuis la précédente */
+    let total='';
+    if(!sl&&n>=1){
+      const cumul=k=>{const s={};for(let i=0;i<=k;i++){if(J.rounds[i])jeuRanking(i).forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;});}return s;};
+      const now=cumul(n),avant=cumul(n-1),ids=ord.filter(p=>jeuPresent(p)||(now[p]||0)>0);
+      const places=s=>{const a=ids.slice().sort((x,y)=>(s[y]||0)-(s[x]||0)||(x<y?-1:1)),pl={};a.forEach((p,i)=>{pl[p]=i>0&&(s[a[i-1]]||0)===(s[p]||0)?pl[a[i-1]]:i+1;});return {a,pl};};
+      const P=places(now),A=places(avant);
+      total=`<div class="jeu-card jr2-card"><p class="jeu-card-h">Au total</p><ol class="jr2-list is-total">${P.a.map((p,i)=>{const d=(A.pl[p]||0)-P.pl[p];
+        return `<li class="jr2-row${p===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">${P.pl[p]}</span>${av(p)}<span class="jr2-nm"><b>${nom(p)}${p===J.me?' <small>(toi)</small>':''}</b></span>${d>0?`<i class="jr2-mv is-up" aria-label="gagne ${d} place${d>1?'s':''}">▲ ${d}</i>`:d<0?`<i class="jr2-mv is-down" aria-label="perd ${-d} place${d<-1?'s':''}">▼ ${-d}</i>`:''}<em class="jr2-p is-tot">${now[p]||0}<small> pts</small></em></li>`;}).join('')}</ol></div>`;
+    }
+    /* La suite part toute seule (17 h 31) : le compte à rebours et sa barre */
+    const auto=jeuFinAuto(n),reste=auto?Math.max(0,auto-Date.now()):0;
+    const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto" style="--reste:${reste}ms;--depart:${Math.max(0,Math.min(100,100-reste/JEU_AUTO_MS*100)).toFixed(1)}%">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b> s</span><i class="jr2-barre" aria-hidden="true"></i>`:jeuAutoAttente(n)}</p>`;
+    html=`${jeuNetSlot()}${hero}${classement}
       ${got?`<details class="jeu-card jeu-sol"><summary class="jeu-card-h">Le résultat attendu</summary>${typeof defiAttenduHTML==='function'?defiAttenduHTML(c):''}</details>`:''}
-      ${sl||n<1?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol></div>`}
-      ${autoHTML}`;
+      ${total}${autoHTML}`;
+    /* Une fois par manche : les points montent, et la première place a ses confettis */
+    if(!r.resVu){r.resVu=1;
+      setTimeout(()=>{const b=document.querySelector('#jeu-root .jr2-n');if(b&&JEU===J)jeuCountUp(b);},300);
+      if(ton==='is-or'&&typeof lqConfetti==='function'&&!prefersReduceMotion())setTimeout(()=>{if(JEU===J&&J.view==='res'+n)lqConfetti({n:36});},420);
+    }
   }else if(v==='final'){
     const sc=jeuScores();
     const cg=jeuCreditGame();
@@ -47316,7 +47344,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-depart-v2752';
+  const SW_CACHE='requete-2026-11-09-resultats-v2753';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
