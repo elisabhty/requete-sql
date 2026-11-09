@@ -2040,6 +2040,8 @@
   #jeu-go:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
   .jeu-ready{display:inline-flex;align-items:center;justify-content:center;gap:8px}
   .jeu-ready-fl{display:inline-flex;font-style:normal}
+  .jeu-centre{display:flex;flex-direction:column;justify-content:center;min-height:calc(100svh - 78px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 34px)}
+  .jeu-centre>*{margin-top:0!important;margin-bottom:0!important}
   .jeu-oups-auto{margin:10px 0 0!important;text-align:center;font-size:12.5px;font-weight:600;color:var(--ink-3)}
   .jeu-oups-auto b{font-variant-numeric:tabular-nums;color:var(--ink-2)}
   .jeu-ready-fl svg{width:16px;height:16px;animation:jeuFlAvance 1.3s ease-in-out infinite}
@@ -36698,6 +36700,9 @@ function jeuRender(){
       if(winner)setTimeout(celebrate,300);
     }
   }
+  /* 9 novembre, 16 h 59 (Elisa : « sur iPhone, vérifie bien que l’écran “Oups, la partie a déjà démarré” soit bien centré, pas tout en
+     haut ») : ces écrans d’une seule carte (oups, partie commencée, complète, introuvable, vide) se centrent dans la hauteur de l’écran. */
+  if(['oups','tard','full','lost','empty'].includes(v))html=`<div class="jeu-centre">${html}</div>`;
   /* Fondu enchaîné : une copie de la scène du tirage reste posée par-dessus et s’efface pendant que la manche arrive. */
   let ghost=null;
   if(fromDraw&&!prefersReduceMotion()&&root.getBoundingClientRect){
@@ -47348,7 +47353,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-sanstemps-v2756';
+  const SW_CACHE='requete-2026-11-09-centre-v2757';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
