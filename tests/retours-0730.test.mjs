@@ -18,5 +18,5 @@ test('Schéma : plus de trou au-dessus des pastilles quand on défile', () => {
   assert.ok(css.includes('html.lq #schema-sheet .sch-tabs{position:sticky;top:0;z-index:2;'), 'la rangée colle au haut, sur son fond');
   /* La règle des pastilles en premier vient après celle du premier bloc (même poids) : c’est elle qui gagne */
   assert.ok(css.indexOf('.sch-tabs:first-child{margin-top:0}') > css.indexOf('.sch-sheet-body>:first-child{margin-top:16px}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=275">'), 'la feuille de style est rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=276">'), 'la feuille de style est rechargée');
 });
