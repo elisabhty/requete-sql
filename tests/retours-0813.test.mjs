@@ -244,7 +244,7 @@ test('l’import : un échec ne laisse rien, un nom déjà pris se demande, et l
   assert.ok(un.includes('<b>Table importée</b>') && un.includes('est la première table du projet. Importe une deuxième table, avec une colonne comme <code>client_id</code>&nbsp;: le schéma UML se dessinera tout seul') && !un.includes('imp-uml'));
   d.run('CREATE TABLE commandes(id INTEGER, client_id INTEGER, total REAL); INSERT INTO commandes VALUES (1,1,9.5);');
   const deux = ctx.importRetourHtml(d, ['clients', 'commandes'], 'commandes', false);
-  assert.ok(deux.includes('<code>commandes</code> rejoint <code>clients</code>.') && deux.includes('<p class="imp-liens">Relation trouvée&nbsp;: <code>commandes.client_id</code> → <code>clients</code>.</p>'));
+  assert.ok(deux.includes('<code>commandes</code> a été ajoutée au projet, qui contient aussi <code>clients</code>.') && deux.includes('<p class="imp-liens">Relation trouvée&nbsp;: <code>commandes.client_id</code> → <code>clients</code>.</p>'));
   assert.ok(deux.includes(`onclick="openSchemaSheet('console','__uml__')"`), 'le bouton ouvre le schéma UML');
   d.run('CREATE TABLE meteo(jour TEXT, temp REAL);');
   assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], 'meteo', false).includes('Aucune relation pour l’instant&nbsp;: une colonne comme <code>client_id</code> en créerait une.'));
@@ -287,5 +287,5 @@ test('la DA : les accents entiers, « → table » qui rétrécit d’abord, les
     'html.lq #schema-sheet .umd-dv{padding:2px 7px;border-radius:99px;', 'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);',
     'html.lq #schema-sheet .sch-col .cxl{flex-basis:100%;order:9;min-width:0;', 'html.lq #schema-sheet .sch-col .cx{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow:hidden;'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=290">'), 'la feuille de style est rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=291">'), 'la feuille de style est rechargée');
 });

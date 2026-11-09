@@ -194,7 +194,21 @@ test('« Créer la table » : tout rejoint le projet ouvert sans le remplacer ; 
   const ctx = vm.createContext({ esc, plur, UML_SVG: '<svg/>', umlModele: () => ({ liens: [] }) });
   vm.runInContext(fn('importRetourHtml'), ctx);
   const h = ctx.importRetourHtml(null, ['Clients', 'Commandes', 'In'], null, false, ['Clients', 'Commandes']);
-  assert.ok(h.includes('<b>Tables ajoutées</b><p><code>Clients</code>, <code>Commandes</code> rejoignent <code>In</code>.</p>') && h.includes('<span>Schéma UML</span>') && !h.includes('Voir le schéma UML'));
+  assert.ok(h.includes('<b>Tables ajoutées</b><p><code>Clients</code>, <code>Commandes</code> ont été ajoutées au projet, qui contient aussi <code>In</code>.</p>') && h.includes('<span>Schéma UML</span>') && !h.includes('Voir le schéma UML'));
+  /* 9 novembre, 22 h 13 (« mal formulé, sois pro ») : une ligne par sort */
+  ctx.importLaisses = { identiques: ['Infos'], gardees: ['Bareme'], majs: [] };
+  const f = ctx.importRetourHtml(null, ['Bareme', 'Infos', 'Codes_eco'], 'Codes_eco', false, null);
+  assert.ok(f.includes('<b>Table ajoutée</b><p>Ajoutée au projet&nbsp;: <code>Codes_eco</code>.</p><p class="imp-idem">Identique au projet, non modifiée&nbsp;: <code>Infos</code>.</p><p class="imp-idem">Version du projet conservée&nbsp;: <code>Bareme</code>.</p>'), f);
+  assert.ok(!/rejoint|déjà là|Gardée|telle quelle/.test(f));
+  ctx.importLaisses = { identiques: [], gardees: [], majs: ['Bareme'] };
+  const m = ctx.importRetourHtml(null, ['Bareme', 'Infos', 'Codes_eco'], null, false, ['Codes_eco', 'Bareme']);
+  assert.ok(m.includes('<b>Table ajoutée</b><p>Ajoutée au projet&nbsp;: <code>Codes_eco</code>.</p><p class="imp-idem">Mise à jour avec la version du fichier&nbsp;: <code>Bareme</code>.</p>'), m);
+  ctx.importLaisses = null;
+  const b = vm.createContext({});
+  vm.runInContext(fn('importBilanPhrase'), b);
+  assert.equal(b.importBilanPhrase({ nouvelles: ['a'], identiques: ['b'], modifiees: ['c'] }), '1\u00a0nouvelle, 1\u00a0identique et 1\u00a0différente');
+  assert.equal(b.importBilanPhrase({ nouvelles: ['a', 'd'], identiques: [], modifiees: ['c'] }), '2\u00a0nouvelles et 1\u00a0différente');
+  assert.ok(app.includes("titre:'Ce projet contient déjà des tables'") && app.includes('La mise à jour remplace ${un?\'sa\':\'leur\'} version actuelle par celle du fichier.'));
 });
 
 test('une base SQLite ajoutée à un projet : ses tables, leurs lignes, leur clé et leurs index, sans toucher aux autres', () => {
