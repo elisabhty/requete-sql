@@ -1925,3 +1925,11 @@ test('9 novembre, 20 h 49 : le même pas vertical sur toute l’appli et l’onb
   for (const r of ['html #onboarding.ob-vitrine .ob-screen>.ob-chat{margin:12px 0 16px!important}', 'html #onboarding.ob-vitrine .ob-screen>.ob-answer-list{display:flex;flex-direction:column;gap:12px!important}']) assert.ok(ob.includes(r), r);
   assert.ok(ob.indexOf('html #onboarding.ob-vitrine .ob-screen>.ob-chat{margin:12px 0 16px!important}') < ob.indexOf('html #onboarding.ob-vitrine.ob-fit-1 '), 'avant les paliers ob-fit, qui resserrent sur les petits écrans');
 });
+
+test('9 novembre, 21 h 30 : une table ouverte glisse sous la barre ; cartes de table au même calme dans la Console et le schéma', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  const t = app.slice(app.indexOf('function toggleTableSchema(name){'), app.indexOf('function voirDonneesTable('));
+  assert.ok(t.includes('if(r.top>=70&&r.top<=h*.28)return;') && t.includes('ecranVers(el);'), 'la table ouverte se montre');
+  for (const r of ['html.lq #scr-console .tbu-h,html.lq #schema-sheet .umd-h{background:#fff!important;', 'html.lq #schema-sheet .sch-table.is-tbu .sch-head{', 'html.lq #scr-console .tbu-c i.is-fk,html.lq #schema-sheet .umd-c i.is-fk{background:#EEEBF8;']) assert.ok(css.includes(r), r);
+});

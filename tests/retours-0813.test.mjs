@@ -262,7 +262,7 @@ test('la Console : des requêtes prêtes qui marchent sur des données importée
 
 test('les noms à guillemet ou apostrophe, la pastille UML, le clavier, la bulle', () => {
   const r = cut('function renderSchemaSheet(){', 'const schTabSel={},schBaseOuverte={};');
-  assert.ok(r.includes('data-t="${escAttr(name)}" onclick="schemaPickTab(this)">') && r.includes('<div class="sch-table" role="tabpanel" data-t="${escAttr(name)}"'));
+  assert.ok(r.includes('data-t="${escAttr(name)}" onclick="schemaPickTab(this)">') && r.includes('<div class="sch-table is-tbu" role="tabpanel" data-t="${escAttr(name)}"'));
   assert.ok(!r.includes('data-t="${esc(name)}"'));
   /* Une seule depuis le 5 novembre, 15 h 01 : les lignes d’une table ne s’affichent plus dans sa carte (« Voir les données » va à l’éditeur) */
   assert.equal((app.match(/encodeURIComponent\((?:t|name)\)\.replace\(\/'\/g,'%27'\)/g) || []).length, 1, 'l’apostrophe ne ferme plus le onclick de la Console');
@@ -287,5 +287,5 @@ test('la DA : les accents entiers, « → table » qui rétrécit d’abord, les
     'html.lq #schema-sheet .umd-dv{padding:2px 7px;border-radius:99px;', 'html.lq #schema-sheet .umd-c i.is-pk{background:var(--sun);', 'html.lq #schema-sheet .umd-c i.is-fk{background:var(--mint);',
     'html.lq #schema-sheet .sch-col .cxl{flex-basis:100%;order:9;min-width:0;', 'html.lq #schema-sheet .sch-col .cx{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow:hidden;'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=284">'), 'la feuille de style est rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=285">'), 'la feuille de style est rechargée');
 });
