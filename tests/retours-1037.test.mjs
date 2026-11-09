@@ -150,8 +150,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-compte-v2734';") && app.includes("const SW_CACHE='requete-2026-11-09-compte-v2734';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=272">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-doigt-v2735';") && app.includes("const SW_CACHE='requete-2026-11-09-doigt-v2735';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=273">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -201,4 +201,15 @@ test('12 h 17 : « Carton plein ! », « Bien joué ! », « Pas encore cette fo
   const c = fn('jeuCreditGame');
   assert.ok(c.includes('{const av=(Array.isArray(s.hist)?s.hist:[]).find(h=>h&&h.niv===k&&h.solo===(vs?0:1));J.mieux=!!av&&pts>(+av.pts||0);}') && c.indexOf('J.mieux=') < c.indexOf('s.hist=['), 'comparée à la partie d’avant, avant d’ajouter celle-ci');
   assert.ok(lq.includes('html.lq #jeu-root>.jeu-progres{display:inline-flex;align-items:center;gap:7px;'));
+});
+
+/* 12 h 28 (Elisa) : « un mini doigt qui s’anime » sur « Schéma » ; « tout doit se passer dans le cadre du haut », jamais un message
+   sous l’éditeur. */
+test('12 h 28 : le doigt qui tapote sur « Schéma » ; les messages de la vérification dans la carte, rien sous l’éditeur', () => {
+  assert.ok(app.includes("${schAttn()?'<i class=\"sch-doigt\" aria-hidden=\"true\">👆</i>':''}</button>"));
+  for (const k of ['html.lq .ed-schema .sch-doigt{position:absolute;left:50%;top:100%;', 'html.lq .ed-schema:not(.sch-attn) .sch-doigt{display:none}', '@keyframes schDoigt{',
+    '@media (prefers-reduced-motion:reduce){html.lq .ed-schema .sch-doigt{animation:none}}'])
+    assert.ok(lq.includes(k), k);
+  assert.ok(mps.includes("if (typeof coachKo === 'function' && typeof COACH !== 'undefined' && COACH) { setLessonOut(''); coachKo(esc(msg)); }"), 'salle classée : la vérification indisponible ou trop lente se dit dans la carte');
+  assert.ok(fn('runLesson').includes("if(isDefi&&(!COACH||COACH.c!==current)&&document.getElementById('hint-slot'))coachReset(current,'solo');"), 'la page d’un défi : la carte revient s’il le faut');
 });

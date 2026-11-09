@@ -110,7 +110,12 @@
         if(carte)coachKo(msg);
       }
     } catch (error) {
-      if (JEU === game && jeuCur() === n) setLessonOut(errBox(error?.name === 'AbortError' ? 'La vérification prend du temps. Réessaie : tes points ne seront pas comptés deux fois.' : String(error?.message || 'Vérification indisponible. Réessaie.')));
+      if (JEU === game && jeuCur() === n) {
+        const msg = error?.name === 'AbortError' ? 'La vérification prend du temps. Réessaie : tes points ne seront pas comptés deux fois.' : String(error?.message || 'Vérification indisponible. Réessaie.');
+        // 9 novembre, 12 h 28 (Elisa) : « tout doit se passer dans le cadre du haut » : le message dans la carte des indices, rien sous l’éditeur.
+        if (typeof coachKo === 'function' && typeof COACH !== 'undefined' && COACH) { setLessonOut(''); coachKo(esc(msg)); }
+        else setLessonOut(errBox(msg));
+      }
     } finally {
       clearTimeout(timeout);
       game.verifying = false;
