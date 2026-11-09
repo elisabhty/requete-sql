@@ -86,7 +86,8 @@ test('branché partout : défi seul, salle, fin du chrono, fin de manche ; la m�
   assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; dans la carte, « Pas tout à fait. Réessaie ! », sans indice (9 novembre, 7 h 55)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'salle');
   assert.ok(app.includes('const JEU_IND_T=[150000,300000,450000];'), 'en salle, à la même minute pour tout le monde');
   assert.ok(app.includes('Le résultat attendu reste caché&nbsp;: tu peux le recommencer.</p>') && !app.includes('Voici ce qu’il fallait obtenir'), 'fin du chrono : ni la requête ni le résultat, on peut recommencer (3 novembre, 7 h 14)');
-  assert.ok(app.includes('<summary class="jeu-card-h">Le résultat attendu</summary>'), 'fin de manche');
+  /* 16 h 04 (Elisa) : plus de « Le résultat attendu » sur les résultats de manche ; la correction est au bilan (Voir la correction) */
+  assert.ok(!app.includes('<summary class="jeu-card-h">Le résultat attendu</summary>'), 'fin de manche : plus de résultat attendu');
   assert.ok(!/highlight\((c|current)\.sol\)/.test(app), 'la solution d’un défi n’est affichée nulle part');
   assert.ok(css.includes('html.lq .coach{margin:14px 0 16px;padding:14px 16px;border:2px solid var(--line);border-radius:20px;background:#fff;'));
 });

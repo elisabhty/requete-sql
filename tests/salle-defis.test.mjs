@@ -968,7 +968,7 @@ test('toutes les vues se dessinent sans erreur (échappement des pseudos compris
   assert.doesNotMatch(play, /<img/);
   host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="coach is-ok jeu-done"/); assert.match(wait, /Bravo, défi résolu/); assert.match(wait, /En attente des autres…<\/b><small>.* cherche encore<\/small>/); assert.match(wait, /jeu-reacts/); assert.doesNotMatch(wait, /Clore la manche|jeu-hostbar/, '9 novembre, 8 h 42 : l’hôte n’a plus la main pour clore la manche');
   assert.doesNotMatch(wait, /id="ed-lesson"/, 'la carte « Trouvé » remplace l’éditeur');
-  evil.found(); sec(w, 2); const res = grab(); assert.match(res, /Classement de la manche/); assert.doesNotMatch(res, /<img/);
+  evil.found(); sec(w, 2); const res = grab(); assert.match(res, /<p class="jeu-card-h">Classement<\/p>/); assert.doesNotMatch(res, /<img/);
   clore(host); host.ev('jeuNextRound()'); sec(w, 5); clore(host); sec(w, 1);
   host.ev('jeuNextRound()'); sec(w, 5); clore(host); sec(w, 1);
   host.ev('jeuFinish()'); sec(w, 1);
