@@ -276,7 +276,7 @@ test('6 joueurs au maximum : le 7e voit « salle complète », les autres ne cha
   const late = makeClient(w, 'Trop'); late.join('ROOM42'); sec(w, 4);
   assert.equal(late.view(), 'full');
   assert.match(late.html, /Salle complète&nbsp;!/);
-  assert.match(late.html, /Elle accueille déjà 6 joueurs, le maximum/);
+  assert.match(late.html, /Cette salle a déjà atteint sa limite de 6 joueurs/);
   for (const c of [host, ...guests]) assert.equal(c.live().length, 6, c.name + ' n’affiche pas le 7e');
   assert.ok(!host.live().includes('Trop'));
   /* Une place se libère : la même personne peut réessayer. */
@@ -1895,7 +1895,7 @@ test('9 novembre, 19 h 30 : « Encore 3 caractères » sur le bouton ; « Oups �
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(app.includes("lib=c.length&&reste>0?`Encore ${reste} caractère${reste>1?'s':''}`:'Rejoindre la salle';"));
   assert.ok(app.includes("s</p>`,'is-lost',true);   // 19 h 30 : sans le code de la salle"));
-  assert.ok(app.includes("html=etat('user','Salle complète&nbsp;!',`Elle accueille déjà ${J.max} joueurs, le maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`"));
+  assert.ok(app.includes("html=etat('user','Salle complète&nbsp;!',`Cette salle a déjà atteint sa limite de ${J.max} joueurs. Essaie un autre code ou crée ta propre salle.`"));
 });
 
 test('9 novembre, 19 h 40 : « Oups » une fois suffit ; un lien en plein défi se cherche sur place ; l’hôte reste l’hôte à l’écran pendant une reprise', () => {

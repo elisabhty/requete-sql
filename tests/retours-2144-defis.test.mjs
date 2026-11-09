@@ -385,7 +385,7 @@ test('refonte — la fiche : « En salle maintenant » et « Rejoindre » ; ouve
   assert.ok(h.includes('aria-label="Rejoindre la salle de @kev : Difficile, 3 joueurs sur 5"'));
   assert.ok(h.indexOf('dx-fiche-live') < h.indexOf('dx-fiche-kpi') && h.indexOf('<span>Défier @lea</span>') < h.indexOf('Signaler ce pseudo'), 'le bouton validé ne change pas');
   c.ev("dxFicheRejoindre('AAA111')");
-  assert.deepEqual(J(c.appels.slice(-2)), [['fermer', true], ['jeuStart', 'AAA111', false, null, { nomId: 'jeu-nom', pub: true }]], 'la fiche se ferme, puis la salle s’ouvre');
+  assert.deepEqual(J(c.appels.slice(-2)), [['fermer', true], ['jeuStart', 'AAA111', false, null, { nomId: 'jeu-nom', pub: true, verif: true, enLecon: true }]], 'la fiche se ferme, puis la salle s’ouvre');
   assert.ok(fn('dxFicheSignaler').includes('defisFeuilleFermer(true);dxFicheEtat=null;') && fn('dxFicheSignaler').includes('clsSignalerV2(id)'));
 });
 
