@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=285">
+<link rel="stylesheet" href="ludique.css?v=286">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -22464,6 +22464,35 @@ function nomDeFichierLisible(nom){
   if(v.length>40){ const c=v.slice(0,41),i=c.lastIndexOf(' '); v=(i>=12?c.slice(0,i):v.slice(0,40)).trim(); }
   return v;
 }
+/* 9 novembre, 21 h 38 (Elisa : « quel message quand ça ne fonctionne pas ? ») : vu en capture, une photo était acceptée comme un CSV
+   (une colonne « apng » remplie de signes), et un JSON abîmé disait « Unexpected end of JSON input ». Un fichier qui n’est pas un
+   tableau (image, PDF, Word, vidéo, son, archive autre qu’un classeur) est refusé tout de suite, en disant ce qu’il est ; les erreurs du
+   navigateur sont redites en français, avec ce qu’on peut faire. */
+function importPasUnTableau(nom,b){
+  const ext=String(nom||'').toLowerCase().split('.').pop(),sig=(...o)=>o.every((v,i)=>b[i]===v);
+  const quoi=sig(0x89,0x50,0x4E,0x47)||sig(0xFF,0xD8,0xFF)||sig(0x47,0x49,0x46,0x38)||/^(png|jpe?g|gif|heic|heif|webp|bmp|tiff?|svg)$/.test(ext)?'une image'
+    :sig(0x25,0x50,0x44,0x46)||ext==='pdf'?'un PDF'
+    :/^(docx?|pages|rtf|odt)$/.test(ext)?'un document texte'
+    :/^(pptx?|key|odp)$/.test(ext)?'une présentation'
+    :/^(mp4|mov|m4v|avi|mkv|webm|mp3|m4a|wav|aac|ogg|flac)$/.test(ext)?(/^(mp3|m4a|wav|aac|ogg|flac)$/.test(ext)?'un fichier audio':'une vidéo')
+    :/^(rar|7z|gz|tar)$/.test(ext)?'une archive':'';
+  if(quoi)return `Ce fichier est ${quoi}, pas un tableau. Choisis un fichier Excel, CSV, JSON, SQL ou SQLite.`;
+  if(!b.length)return 'Ce fichier est vide.';
+  return '';
+}
+function importErreurLisible(e){
+  const m=String(e&&e.message||e||'').trim();
+  if(/JSON/.test(m)&&/(Unexpected|Expected|unterminated|position|token|end of)/i.test(m))return 'Ce fichier JSON est incomplet ou mal formé : une accolade, un crochet ou une virgule manque. Ouvre-le pour le vérifier, puis réessaie.';
+  if(/ligne d’en-têtes et au moins une ligne de données/.test(m))return 'Ce fichier n’a pas de données : il faut une ligne de titres de colonnes, puis au moins une ligne de valeurs.';
+  if(/^JSON : attendu un tableau/.test(m))return 'Ce JSON ne décrit pas un tableau. Il faut une liste d’objets, par exemple [{"nom":"Léa"}, {"nom":"Max"}], ou un objet qui en contient une par table.';
+  if(/le classeur est vide/.test(m))return 'Ce classeur est vide : aucune feuille ne contient de données.';
+  if(/aucune table/.test(m))return 'Cette base SQLite ne contient aucune table.';
+  if(/(password|encrypt|chiffr)/i.test(m))return 'Ce classeur est protégé par un mot de passe. Enregistre-le sans mot de passe, puis réessaie.';
+  if(/(out of memory|Maximum call stack|too large|Array buffer allocation)/i.test(m))return 'Ce fichier est trop lourd pour cet appareil. Essaie avec une partie des données.';
+  if(/^[A-Z][a-z]+(Error)?:|Unexpected|undefined|null|is not/i.test(m))return 'Ce fichier n’a pas pu être lu. Vérifie qu’il s’ouvre bien dans Excel ou un éditeur de texte, puis réessaie.';
+  const v=m.replace(/^\w/,c=>c.toUpperCase());
+  return v.endsWith('.')?v:v+'.';
+}
 async function onDataImport(ev){
   /* Choisi depuis « Ajouter une table » (il y a moins de 15 min) : les tables rejoindront le projet ouvert */
   const ajout=importAjout&&Date.now()-importAjout<15*60*1000&&consoleView==='work'&&!isDemoDb(activeDbId)&&customDbs[activeDbId]?activeDbId:null;
@@ -22473,6 +22502,8 @@ async function onDataImport(ev){
   if(!file)return;
   try{
     const bytes=new Uint8Array(await file.arrayBuffer());
+    const pasTableau=importPasUnTableau(file.name,bytes);
+    if(pasTableau)throw new Error(pasTableau);
     const parsed=await parseImportBytes(file.name,bytes);
     pendingImport={
       file:file.name,
@@ -22483,8 +22514,8 @@ async function onDataImport(ev){
     };
     openImportSheet();
   }catch(e){
-    const msg=String(e&&e.message||e).replace(/^\w/,c=>c.toUpperCase());
-    lqAsk({ico:'📄',titre:'Import impossible',texte:msg.endsWith('.')?msg:msg+'.',oui:'Choisir un autre fichier',non:'Fermer',
+    const msg=importErreurLisible(e);
+    lqAsk({ico:'📄',titre:'Import impossible',texte:msg,oui:'Choisir un autre fichier',non:'Fermer',
       surOui:()=>{importAjout=ajout?Date.now():0;document.getElementById('data-import').click();}});
   }
 }
@@ -22815,17 +22846,21 @@ async function confirmImport(){
     if(out){
       out.style.minHeight='';
       out.innerHTML=importRetourHtml(database,tabs,tn,asDb,affected.length>1&&!asDb?affected:null,infosN?{n:infosN,c:infosT.cols}:null);
-      /* Le compte rendu sous les yeux dès qu’il y a un schéma à voir (il restait sous l’éditeur, hors de l’écran) */
-      if(!aj&&tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));
+      /* 9 novembre, 21 h 38 (Elisa : « pousser directement au cadre ») : après chaque import, ajout de tables compris, la page glisse
+         jusqu’au compte rendu (« Tables ajoutées », « Table importée »…), sous la barre du haut. Avant : seulement un nouveau projet
+         d’au moins deux tables, et le cadre restait sous l’éditeur, hors de l’écran. */
+      const cadre=out.querySelector('.feedback');
+      if(cadre&&typeof ecranVers==='function')requestAnimationFrame(()=>requestAnimationFrame(()=>ecranVers(cadre)));
+      else if(tabs.length>1&&typeof scrollToResult==='function')requestAnimationFrame(()=>scrollToResult(out));
     }
     /* 22 h 19 (réf. 2 : « une micro-interaction en mode validé ») : la carte s’allume, la coche « Importé » s’y pose et ses tables
        arrivent une à une */
-    if(!aj){
+    {
       const carte=out&&out.querySelector('.feedback.ok');
       if(carte){
         carte.classList.add('is-valide');
         carte.querySelectorAll('code').forEach((c,i)=>c.style.setProperty('--i',Math.min(i,14)));
-        requestAnimationFrame(()=>lqDone(carte,asDb?'Importé':'Importée',asDb?'Projet importé':'Table importée'));
+        requestAnimationFrame(()=>lqDone(carte,aj?(ajoutees.length>1?'Ajoutées':'Ajoutée'):asDb?'Importé':'Importée',aj?(ajoutees.length>1?'Tables ajoutées':'Table ajoutée'):asDb?'Projet importé':'Table importée'));
       }else lqSay(asDb?'Projet importé':'Table importée');
     }
   }catch(e){
@@ -47472,7 +47507,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-calme-v2775';
+  const SW_CACHE='requete-2026-11-09-import-v2776';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
