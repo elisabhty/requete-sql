@@ -36601,10 +36601,14 @@ function jeuRetenter(cid){
   openChallenge(cid);
 }
 /* Tout trouvé : la partie suivante, un niveau au-dessus, avec le même nombre de manches. */
+/* « Passer au niveau moyen » (Elisa, 9 novembre, 11 h 53) : retour à l’écran Défis, le niveau au-dessus déjà choisi (Moyen après Facile,
+   Difficile après Moyen) ; on lance de là. Au niveau Difficile, il n’y a pas de niveau suivant : seulement « Rejouer ». Avant, une
+   nouvelle partie partait aussitôt au niveau suivant. */
 function jeuNiveauSuivant(){
-  const J=JEU,n=J?{f:'m',m:'d'}[J.niv]:null;if(!n)return openJeu();
-  jeuNiv=n;jeuNivUser=true;jeuNb=J.nb;jeuSavePrefs();
-  jeuStart(jeuRand(6),true,null,{solo:true});
+  const J=JEU,n=J?{f:'m',m:'d'}[J.niv]:null;
+  if(n){jeuNiv=n;jeuNivUser=true;jeuNb=J.nb;jeuSavePrefs();}
+  if(typeof DEFIS!=='undefined'){DEFIS.onglet='jouer';DEFIS.carte='';}
+  openJeu();
 }
 function jeuAgain(){
   const J=JEU;if(!J||!jeuIsHost()||!J.over)return;
@@ -47135,7 +47139,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-fin-v2728';
+  const SW_CACHE='requete-2026-11-09-niveau-v2729';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -150,6 +150,22 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-fin-v2728';") && app.includes("const SW_CACHE='requete-2026-11-09-fin-v2728';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-niveau-v2729';") && app.includes("const SW_CACHE='requete-2026-11-09-niveau-v2729';"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=268">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
+});
+
+/* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
+   au niveau Difficile, seulement « Rejouer ». */
+test('11 h 53 : le niveau suivant ramène à l’écran Défis, déjà choisi ; « Rejouer » garde la salle ; rien au-dessus du Difficile', () => {
+  const ouverts = [], prefs = [];
+  const ctx = vm.createContext({ JEU: { niv: 'f', nb: 2 }, jeuNiv: 'f', jeuNivUser: false, jeuNb: 1, DEFIS: { onglet: 'classement', carte: 'seul' },
+    jeuSavePrefs: () => prefs.push(1), openJeu: c => ouverts.push(c === undefined ? 'défis' : c), jeuStart: () => { throw Error('pas de partie lancée'); } });
+  vm.runInContext(fn('jeuNiveauSuivant'), ctx);
+  ctx.jeuNiveauSuivant();
+  assert.deepEqual([ctx.jeuNiv, ctx.jeuNivUser, ctx.jeuNb, ctx.DEFIS.onglet, ctx.DEFIS.carte, ouverts, prefs.length], ['m', true, 2, 'jouer', '', ['défis'], 1]);
+  ctx.JEU.niv = 'm'; ctx.jeuNiveauSuivant(); assert.equal(ctx.jeuNiv, 'd');
+  const b = vm.createContext({ JEU: { solo: true, niv: 'd' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, DEF_CHEV_SVG: '›', jeuNivBars: k => k, jeuBtn2: (i, l) => `[${l}]` });
+  vm.runInContext(fn('jeuFinBoutonsHTML'), b);
+  assert.ok(!b.jeuFinBoutonsHTML(2, true).includes('jeu-prog') && b.jeuFinBoutonsHTML(2, true).includes('<span>Rejouer</span>'), 'Difficile : « Rejouer » seulement');
+  assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();') && fn('jeuAgain').includes("jeuSend({t:'again',g:J.g+1});"), '« Rejouer » : une nouvelle partie dans la même salle');
 });
