@@ -20,8 +20,8 @@ test('sa propre ligne suit ce qu’on fait : écrire, tester (sans rien envoyer 
   assert.ok(app.includes('<script src="multiplayer-security.js?v=5"></script>'));
 });
 
-test('« Raté » dans la carte des indices (9 novembre, 2 h ; avant « Un coup de patte ? », et encore avant « Pas encore ») ; la pastille du bas, sans appel, garde son texte', () => {
-  assert.ok(fn('defiIndicesHTML').includes('<span class="coach-st-k">Raté</span><p>${diag}</p>') && !fn('defiIndicesHTML').includes('Un coup de patte&nbsp;?</span>'));
+test('« Essaie encore » dans la carte des indices (9 novembre, 7 h 13 ; « Raté » à 2 h ; avant « Un coup de patte ? », et encore avant « Pas encore ») ; la pastille du bas, sans appel, garde son texte', () => {
+  assert.ok(fn('defiIndicesHTML').includes('<span class="coach-st-k">Essaie encore</span><p>${diag}</p>') && !fn('defiIndicesHTML').includes('Un coup de patte&nbsp;?</span>'));
   const peek = fn('coachPeek');
   /* 19 h 18 puis 19 h 49 (« je veux juste pour l’indice ») : la pastille arrive avec un indice, et dit « Un coup de patte ? · voir l’indice » */
   assert.ok(peek.includes("b.innerHTML='<span aria-hidden=\"true\">↑</span>Un coup de patte\\u00a0? · voir l’indice';"));
