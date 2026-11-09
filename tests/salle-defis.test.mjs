@@ -1901,7 +1901,7 @@ test('9 novembre, 19 h 30 : « Encore 3 caractères » sur le bouton ; « Oups �
 test('9 novembre, 19 h 40 : « Oups » une fois suffit ; un lien en plein défi se cherche sur place ; l’hôte reste l’hôte à l’écran pendant une reprise', () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(app.includes("if(J.tard||J.horsPartie){jeuVerifEchec('commencee');return false;}"), 'le code retapé après « Oups » : « Trop tard, la partie a commencé ! »');
-  assert.ok(app.includes("if(enLecon&&!document.querySelector('#dx-feuille #jeu-code')){jeuInvitationEchec(r);return;}") && app.includes("oui:'Continuer',non:null"), 'salle pleine en plein défi : un message par-dessus, on reste');
+  assert.ok(app.includes("if(enLecon&&!document.querySelector('#dx-feuille #jeu-code')){jeuInvitationEchec(r);return;}") && app.includes("oui:\"Retour aux défis\",fleche:true,non:null"), 'salle pleine en plein défi : un message par-dessus, on reste');
   assert.ok(app.includes('const J=JEU,host=J.hostPid===J.me,{live,prets}=jeuPrets()') && app.includes('const host=J.hostPid===J.me;   // l’écran'), 'Safari, retour sur la page : la carte ne passe plus au vert');
 });
 test('9 novembre, 19 h 40 : la salle d’attente en reprise (Safari revient) garde l’écran de l’hôte', () => {
