@@ -241,7 +241,7 @@ test('salle d’attente : chacun voit les autres en direct, avec l’hôte en pr
 test('« prêt » : chaque ami se déclare, l’hôte voit « 2/3 prêts » ; tout le monde prêt, il lance (14 h 01)', () => {
   const { w, host, guests } = room({ n: 3, settle: 1 });
   const etat = c => c.ev('jeuLobbyEtatHTML()'), badge = c => c.ev('jeuBadgeHTML()');
-  assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie');
+  assert.equal(host.ev('jeuLobbyLabel()'), 'En attente des joueurs…', '14 h 09 : le bouton dit qu’il attend');
   assert.match(badge(host), /1\/3 prêts$/);
   assert.match(etat(host), /<b>En attente de Ami[12] et Ami[12]…<\/b><\/span>/, 'les mots d’Elisa, sans précision');
   assert.equal(host.ev('jeuPeutLancer()'), false, 'pas tous prêts, moins de 30 s : le bouton attend');
@@ -254,7 +254,7 @@ test('« prêt » : chaque ami se déclare, l’hôte voit « 2/3 prêts » ; to
   assert.equal(guests[0].ev('jeuPretBouton(!!JEU.ready[JEU.me])'), 'Prêt·e ✓');
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
   assert.match(etat(host), /<b>Tout le monde est prêt\u00a0!<\/b><small>À toi de lancer la partie\.<\/small>/);
-  assert.equal(host.ev('jeuPeutLancer()'), true);
+  assert.equal(host.ev('jeuPeutLancer()'), true); assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie');
   for (const g of guests) assert.match(etat(g), /<b>Tout le monde est prêt\u00a0!<\/b><small>L’hôte peut lancer la partie\.<\/small>/);
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
   assert.match(badge(host), /2\/3 prêts$/, 'on peut se remettre « pas prêt »');
@@ -758,7 +758,8 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   assert.equal(h.view(), 'lobby');
   /* 13 h 41 (Elisa : « oui il peut lancer seul ») : seul dans sa salle, « Lancer la partie » lance, et la partie se joue comme seul */
   assert.equal(h.ev('jeuPeutLancer()'), true, '13 h 41 : « oui il peut lancer seul »');
-  assert.match(h.ev('jeuLobbyEtatHTML()'), /<b>Personne n’a encore rejoint<\/b><small>Partage le code, ou lance et joue seul·e\.<\/small>/); assert.equal(h.ev('jeuBadgeHTML()'), '1/6');
+  assert.match(h.ev('jeuLobbyEtatHTML()'), /<b>Personne n’a encore rejoint<\/b><small>Partage le code, ou joue en solo\.<\/small>/); assert.equal(h.ev('jeuBadgeHTML()'), '1/6');
+  assert.equal(h.ev('jeuLobbyLabel()'), 'Jouer en solo', '14 h 09 : seul, le bouton dit « Jouer en solo »');
   h.ev('jeuLancer()'); sec(w, 4.5);
   assert.equal(h.view(), 'play0');
   assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
@@ -1739,7 +1740,7 @@ test('13 h 09 : l’hôte seul quitte sa salle d’attente (« Veux-tu quitter l
 /* 9 novembre, 14 h 01 (Elisa : « je veux pas possible de supprimer un joueur ; l’hôte lance quand il en a envie, qu’il y ait un ou deux
    sur 3 présents ; le bouton se débloque quand 30 s et non prêt ») */
 test('14 h 01 : pas tous prêts, le bouton se débloque à 30 s ; « n’est pas encore prêt·e », puis « prend son temps » ; personne n’est retiré', () => {
-  const { w, host, guests } = room({ n: 3, settle: 1 });
+  const { w, host, guests } = room({ n: 3, settle: 1, nb: 1 });
   const etat = c => c.ev('jeuLobbyEtatHTML()');
   guests[0].ev('jeuToggleReady()'); sec(w, 1);
   assert.equal(host.ev('jeuPeutLancer()'), false);
@@ -1758,7 +1759,34 @@ test('14 h 01 : pas tous prêts, le bouton se débloque à 30 s ; « n’est pas
   assert.match(etat(host), /<b>En attente de Ami2 et Ami3…<\/b>/);
   sec(w, 30);
   assert.match(etat(host), /<b>Ami2 et Ami3 ne sont pas encore prêts\.<\/b><small>Tu peux patienter ou lancer sans eux\.<\/small>/);
+  assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie');
   host.ev('jeuLancer()'); sec(w, 1);
   assert.ok(host.J('rounds[0]'), 'l’hôte lance sans eux');
-  assert.equal(guests[1].view(), 'draw0', 'les pas prêts jouent quand même');
+  /* 14 h 09 : sans les joueurs non prêts ; eux lisent « Oups, la partie a déjà démarré ! » */
+  assert.equal(guests[0].view(), 'draw0', 'la prête joue');
+  for (const c of [guests[1], n]) { assert.equal(c.view(), 'oups', c.name); assert.match(c.html, /Oups, la partie a déjà démarré\u00a0!/); }
+  for (const c of [host, guests[0]]) assert.deepEqual(c.live(), ['Hôte', 'Ami1'], c.name + ' : la partie se joue à deux');
+  sec(w, 3.5); host.found(); guests[0].found(); sec(w, 2.5);
+  assert.equal(host.view(), 'res0', 'la manche finit sans attendre les absents de la partie');
+  /* Un « prêt » touché trop tard ne change rien */
+  guests[1].ev('jeuToggleReady()'); sec(w, 1); assert.equal(guests[1].view(), 'oups');
+  /* L’hôte part : la main passe à un participant, jamais à un absent de la partie */
+  host.ev('jeuStop()'); sec(w, 6);
+  assert.equal(guests[0].ev('jeuIsHost()'), true);
+  for (const c of [guests[1], n]) assert.equal(c.ev('jeuIsHost()'), false);
+  /* « Rejouer » : la partie suivante, tout le monde revient dans la salle d’attente */
+  guests[0].ev('jeuFinish()'); sec(w, 2); guests[0].ev('jeuAgain()'); sec(w, 2);
+  for (const c of [guests[0], guests[1], n]) assert.equal(c.view(), 'lobby', c.name);
+  assert.deepEqual(guests[0].live().sort(), ['Ami1', 'Ami2', 'Ami3']);
+});
+
+test('14 h 09 : tout le monde prêt, tout le monde joue ; le lancement emporte la liste, la même chez tous', () => {
+  const { w, host, guests } = room({ n: 3, settle: 1 });
+  guests.forEach(g => g.ev('jeuToggleReady()')); sec(w, 1);
+  host.ev('jeuLancer()'); sec(w, 1);
+  const who = host.J('rounds[0]') && host.ev('[...JEU.partants].sort()');
+  assert.deepEqual(who, [host.pid(), ...guests.map(g => g.pid())].sort());
+  for (const g of guests) { assert.equal(g.view(), 'draw0'); assert.deepEqual(g.ev('[...JEU.partants].sort()'), who); }
+  /* Le serveur fait foi : sa liste (joueurs) passe avant celle de l’hôte (who) */
+  assert.ok(html.includes("const lst=Array.isArray(m.joueurs)?m.joueurs:Array.isArray(m.who)?m.who:null;"));
 });

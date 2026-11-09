@@ -141,7 +141,7 @@ const page = ({vue = 'lobby', moi = 'L', hote = 'M', joueurs = ['M', 'L'], prets
     ilePont: () => (natif ? C : null), ileAppel: (m, d) => C.nativePromise('RequeteWidget', m, d),
     clsCle: () => 'cle'.repeat(10), clsRpc: (f, b) => { rpc.push([f, ici(b)]); return rejet ? Promise.reject(new Error('non')) : Promise.resolve({ok: true}); },
     fetch: (u, o) => { posts.push([u, JSON.parse(o.body), o.keepalive]); return Promise.resolve({ok: true}); },
-    jeuIsHost: () => x.J.hostPid === x.J.me && !x.relit, jeuNextRound: () => appels.push(['jeuNextRound']), jeuPeutLancer: () => true, jeuAgain: () => appels.push(['jeuAgain']),
+    jeuIsHost: () => x.J.hostPid === x.J.me && !x.relit, jeuNextRound: () => appels.push(['jeuNextRound']), jeuPeutLancer: () => true, jeuLancer: () => appels.push(['jeuNextRound']), jeuAgain: () => appels.push(['jeuAgain']),
     jeuTexteInvitation: () => 'Rejoins-moi', jeuLienInvitation: () => 'https://exemple/?partie=K7P2QX',
     setTimeout: (f, ms) => { minuteurs.push({f, ms}); return minuteurs.length; }, clearTimeout: () => {},
     document: {addEventListener: () => {}},

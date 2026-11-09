@@ -53,7 +53,7 @@ test('les niveaux de la salle portent leur coefficient : ×1, ×2, ×4', () => {
 test('le tirage : la version du catalogue part avec chaque message, un défi choisi exprès le dit', () => {
   assert.ok(app.includes('const JEU_CAT=2;'), '2 : les 267 défis, puis les 210 des sept bases du 6 novembre');
   assert.ok(fn('jeuSend').includes('m.u=jeuRand(8);m.cat=JEU_CAT;'));
-  assert.ok(app.includes("const impose=!!J.plan[n];\n  /* Une seule fois par manche depuis ce téléphone (la suite part toute seule, 17 h 31) */\n  const k=J.g+':'+n;if(J.lance===k)return;J.lance=k;\n  jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});"));
+  assert.ok(app.includes("const impose=!!J.plan[n];\n  /* Une seule fois par manche depuis ce téléphone (la suite part toute seule, 17 h 31) */\n  const k=J.g+':'+n;if(J.lance===k)return;J.lance=k;\n  const w=n===0&&Array.isArray(who)?who:null;\n  if(w)jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:w.length<2?1:0,who:w});\n  else jeuSend({t:'round',n,cid:J.plan[n]||jeuPick(),imp:impose?1:0,one:jeuLive().length<2?1:0});"));
 });
 
 test('seul ou hors ligne : un défi déjà trouvé n’est plus tiré tant qu’il en reste', () => {
