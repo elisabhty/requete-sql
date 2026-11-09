@@ -149,3 +149,64 @@ test('un essai qui ne va pas : « Raté », puis ce qui cloche', () => {
   assert.ok(st.includes('<div class="coach-st"><span class="coach-st-k">Raté</span><p>${diag}</p></div>'));
   assert.ok(!st.includes('coup de patte'));
 });
+
+/* ---------- 8. La partie rouge : l’erreur de SQLite, en français (9 novembre, 2 h) ---------- */
+
+/* « en français et ne met pas d’indice, met juste le message d’erreur sql pour la partie en rouge stp » */
+function traducteur(o = {}) {
+  const ctx = vm.createContext(Object.assign({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }, o));
+  vm.runInContext(cut('function sqlErreurFr(msg){', '\nfunction errBox(msg,sql){'), ctx);
+  return ctx;
+}
+
+test('les messages de SQLite, en français ; ce qu’ils citent en code, échappé', () => {
+  const { sqlErreurFr: fr } = traducteur();
+  const cas = [
+    ['near "q": syntax error', 'Erreur de syntaxe près de <code>q</code>.'],
+    ['incomplete input', 'La requête est incomplète.'],
+    ['no such column: foo', 'La colonne <code>foo</code> n’existe pas.'],
+    ['no such table: nope', 'La table <code>nope</code> n’existe pas.'],
+    ['no such function: abc', 'La fonction <code>abc</code> n’existe pas.'],
+    ['ambiguous column name: id', 'Le nom de colonne <code>id</code> est ambigu : plusieurs tables de la requête l’ont.'],
+    ['misuse of aggregate: COUNT()', 'Mauvaise utilisation de la fonction d’agrégation <code>COUNT()</code>.'],
+    ['1st ORDER BY term out of range - should be between 1 and 3', 'Le terme n° 1 de <code>ORDER BY</code> est hors limites : il doit être entre 1 et 3.'],
+    ['SELECTs to the left and right of UNION do not have the same number of result columns', 'Les SELECT de part et d’autre de <code>UNION</code> n’ont pas le même nombre de colonnes.'],
+    ['sub-select returns 2 columns - expected 1', 'La sous-requête renvoie 2 colonnes : il en faut une seule.'],
+    ['HAVING clause on a non-aggregate query', 'La clause <code>HAVING</code> est dans une requête sans agrégation.'],
+    ['wrong number of arguments to function substr()', 'Mauvais nombre d’arguments pour la fonction <code>substr()</code>.'],
+    ['Utilise une seule requête de lecture SELECT pour ce défi.', 'Requête refusée : un défi n’accepte qu’une seule requête <code>SELECT</code>.'],
+    ['Résultat trop volumineux.', 'Résultat trop volumineux.'],
+    ['something new', 'Erreur SQL : <code>something new</code>'],
+  ];
+  for (const [en, attendu] of cas) assert.equal(fr(en), attendu, en);
+  assert.equal(fr('near "<img src=x onerror=alert(1)>": syntax error'), 'Erreur de syntaxe près de <code>&lt;img src=x onerror=alert(1)&gt;</code>.', 'un bout de requête ne devient jamais du HTML');
+  assert.ok(!fr('near "q": syntax error').includes('Utilise') && !fr('no such column: foo').includes('Vérifie'), 'pas d’indice : seulement l’erreur');
+});
+
+test('en salle classée : la requête est compilée sur la base du défi, sans être exécutée, pour donner l’erreur exacte', () => {
+  const vus = [];
+  const ctx = traducteur({
+    sqlCompat: s => s,
+    defiSandbox: () => ({ prepare: q => { vus.push(q); if (q === 'q') throw new Error('near "q": syntax error'); return { free() {}, step() { throw new Error('exécutée !'); } }; }, close() {} })
+  });
+  const regle = 'Utilise une seule requête de lecture SELECT pour ce défi.';
+  assert.equal(ctx.defiErreurSqlFr({ id: 'd1' }, 'q', regle), 'Erreur de syntaxe près de <code>q</code>.', '« q » : l’erreur de SQLite, pas la règle du serveur');
+  assert.equal(ctx.defiErreurSqlFr({ id: 'd1' }, 'DELETE FROM avis', regle), 'Requête refusée : un défi n’accepte qu’une seule requête <code>SELECT</code>.', 'une requête valide mais refusée : la raison');
+  assert.equal(ctx.defiErreurSqlFr({ id: 'd1' }, 'SELECT 1', 'Le résultat ne correspond pas à la consigne.'), 'Le résultat ne correspond pas à la consigne.', 'un résultat faux n’est pas une erreur');
+  assert.deepEqual(vus, ['q', 'DELETE FROM avis'], 'compilée seulement (prepare), jamais pour un résultat faux');
+  const mps = lire('multiplayer-security.js');
+  assert.ok(mps.includes("coachKo(typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut));"));
+});
+
+test('un défi seul ou une salle locale : l’erreur dans la partie rouge, plus de boîte « Erreur SQL » dessous', () => {
+  assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=sqlErreurFr(e.message);COACH.fx='is-new-ko';}\n    else setLessonOut(errBox(e.message,sql));"));
+  assert.ok(app.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachKo(sqlErreurFr(e.message));return;}"));
+  assert.ok(!app.includes('La requête ne s’exécute pas : lis le message juste en dessous.'));
+});
+
+/* ---------- 9. L’onboarding : de l’air sous « Continuer » (9 novembre, 2 h, sa réf. 1) ---------- */
+
+test('la phrase des conditions : 12 px de plus sous le bouton', () => {
+  const ob = lire('onboarding-vitrine.css');
+  assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-foot-note.is-legal{max-width:340px;margin:12px auto 0!important;'));
+});

@@ -48,7 +48,7 @@ test('« En continuant… » juste sous le bouton jaune, avec ses deux liens', (
   assert.equal(els['ob-foot-note']._html, 'En continuant, <a>…</a>'); assert.ok(els['ob-foot-note'].classList.on.has('is-legal'));
   ctx.obSetFooter('Continuer', () => {}, '', '', 'Ta progression sera sauvegardée sur tous tes appareils.');
   assert.equal(els['ob-foot-note']._txt, 'Ta progression sera sauvegardée sur tous tes appareils.'); assert.ok(!els['ob-foot-note'].classList.on.has('is-legal'), 'les autres notes restent du texte');
-  assert.ok(code.includes('html #onboarding.ob-vitrine .ob-foot-note.is-legal{max-width:340px;margin:0 auto!important;font-size:11.5px!important;'));
+  assert.ok(code.includes('html #onboarding.ob-vitrine .ob-foot-note.is-legal{max-width:340px;margin:12px auto 0!important;font-size:11.5px!important;'), '9 novembre, 2 h : 12 px de plus sous le bouton (retours-0031)');
   assert.ok(code.includes('html #onboarding.ob-vitrine .ob-screen.ob-account>:last-child{margin-bottom:auto!important}'), 'la page reste centrée à la verticale');
 });
 
