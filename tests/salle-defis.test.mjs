@@ -242,12 +242,13 @@ test('« prêt » : chaque ami se déclare, l’hôte voit le compteur ; il ne l
   const { w, host, guests } = room({ n: 3 });
   const etat = c => c.ev('jeuLobbyEtatHTML()');
   assert.equal(host.ev('jeuLobbyLabel()'), 'Lancer la partie');
-  assert.match(etat(host), /<b>1\/3<\/b> joueurs prêts/); assert.match(etat(host), /En attente que les autres joueurs soient prêts…/);
-  assert.equal(host.ev('jeuPeutLancer()'), false, 'Situation A : le bouton est désactivé');
-  assert.match(host.html, /id="jeu-go" onclick="jeuLancer\(\)" disabled aria-disabled="true"/);
+  const badge = c => c.ev('jeuBadgeHTML()');   // 13 h 41 : le compte des prêts dans le badge de « Joueurs »
+  assert.match(badge(host), /1\/3 prêts$/); assert.match(etat(host), /En attente que les autres joueurs soient prêts…<\/p>/);
+  assert.equal(host.ev('jeuPeutLancer()'), true, '13 h 41 : l’hôte n’est pas obligé d’attendre');
+  assert.match(host.html, /id="jeu-go" onclick="jeuLancer\(\)"><span/);
   assert.match(etat(guests[0]), /Préviens l’hôte quand tu es prêt·e\u00a0!/);
   guests[0].ev('jeuToggleReady()'); sec(w, 1);
-  assert.match(etat(host), /<b>2\/3<\/b> joueurs prêts/);
+  assert.match(badge(host), /2\/3 prêts$/);
   assert.match(etat(guests[0]), /Tu es prêt·e\u00a0! En attente des autres joueurs…/);
   assert.equal(guests[0].ev('jeuPretBouton(!!JEU.ready[JEU.me])'), 'Prêt·e ✓');
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
@@ -256,12 +257,12 @@ test('« prêt » : chaque ami se déclare, l’hôte voit le compteur ; il ne l
   assert.equal(host.ev("document.getElementById('jeu-go')"), null, 'le harnais n’a pas de bouton : jeuLobbyEtatMaj ne casse rien');
   for (const g of guests) assert.match(etat(g), /Tout le monde est prêt\u00a0! En attente que l’hôte lance la partie…/);
   guests[1].ev('jeuToggleReady()'); sec(w, 1);
-  assert.match(etat(host), /<b>2\/3<\/b> joueurs prêts/, 'on peut se remettre « pas prêt »');
-  assert.equal(host.ev('jeuPeutLancer()'), false);
+  assert.match(badge(host), /2\/3 prêts$/, 'on peut se remettre « pas prêt »');
+  assert.equal(host.ev('jeuBadgeTous()'), false);
   assert.equal(host.ev('jeuToggleReady()'), undefined, 'l’hôte est toujours prêt : pas de bascule');
   /* Un joueur qui part : le compteur suit, et tout le monde est de nouveau prêt */
   guests[1].ev('jeuStop()'); sec(w, 3);
-  assert.match(etat(host), /<b>2\/2<\/b> joueurs prêts/); assert.equal(host.ev('jeuPeutLancer()'), true);
+  assert.match(badge(host), /2\/2 prêts$/); assert.equal(host.ev('jeuBadgeTous()'), true);
   host.ev('jeuLancer()'); sec(w, 1);
   assert.ok(host.J('rounds[0]'), 'l’hôte lance : la partie part (jamais toute seule)');
 });
@@ -756,12 +757,10 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   const h = makeClient(w, 'Hôte'); h.ev("jeuNiv='f';jeuNb=2");
   h.host('ALONE1'); sec(w, 1);
   assert.equal(h.view(), 'lobby');
-  /* 13 h 20 : seul, « Lancer la partie » ne lance pas (« jamais avec moins de deux joueurs ») ; la partie qui se retrouve seule (les
-     autres partis) se joue toujours comme seul : le moteur, appelé directement */
-  assert.equal(h.ev('jeuPeutLancer()'), false);
-  assert.match(h.ev('jeuLobbyEtatHTML()'), /Il faut être au moins deux pour lancer la partie\./);
-  h.ev('jeuLancer()'); sec(w, 1); assert.equal(h.view(), 'lobby', 'le bouton ne lance pas');
-  h.ev('jeuNextRound()'); sec(w, 4.5);
+  /* 13 h 41 (Elisa : « oui il peut lancer seul ») : seul dans sa salle, « Lancer la partie » lance, et la partie se joue comme seul */
+  assert.equal(h.ev('jeuPeutLancer()'), true, '13 h 41 : « oui il peut lancer seul »');
+  assert.match(h.ev('jeuLobbyEtatHTML()'), /Si tu lances maintenant, tu joues seul·e\./); assert.equal(h.ev('jeuBadgeHTML()'), '1/6');
+  h.ev('jeuLancer()'); sec(w, 4.5);
   assert.equal(h.view(), 'play0');
   assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
   /* 9 novembre, 7 h 16 (« quand il y a personne dans la salle, ça se transforme en solo automatiquement ») : seul, la tête de
