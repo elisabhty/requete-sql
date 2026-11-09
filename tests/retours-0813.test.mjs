@@ -244,7 +244,7 @@ test('l’import : un échec ne laisse rien, un nom déjà pris se demande, et l
   assert.ok(un.includes('<b>Table importée</b>') && un.includes('est la première table du projet. Importe une deuxième table, avec une colonne comme <code>client_id</code>&nbsp;: le schéma UML se dessinera tout seul') && !un.includes('imp-uml'));
   d.run('CREATE TABLE commandes(id INTEGER, client_id INTEGER, total REAL); INSERT INTO commandes VALUES (1,1,9.5);');
   const deux = ctx.importRetourHtml(d, ['clients', 'commandes'], 'commandes', false);
-  assert.ok(deux.includes('<code>commandes</code> a été ajoutée au projet, qui contient aussi <code>clients</code>.') && deux.includes('<p class="imp-liens">Relation trouvée&nbsp;: <code>commandes.client_id</code> → <code>clients</code>.</p>'));
+  assert.ok(deux.includes('Ajoutée au projet&nbsp;: <code>commandes</code>.') && deux.includes('<p class="imp-liens">Relation trouvée&nbsp;: <code>commandes.client_id</code> → <code>clients</code>.</p>'));
   assert.ok(deux.includes(`onclick="openSchemaSheet('console','__uml__')"`), 'le bouton ouvre le schéma UML');
   d.run('CREATE TABLE meteo(jour TEXT, temp REAL);');
   assert.ok(ctx.importRetourHtml(d, ['clients', 'commandes', 'meteo'], 'meteo', false).includes('Aucune relation pour l’instant&nbsp;: une colonne comme <code>client_id</code> en créerait une.'));
