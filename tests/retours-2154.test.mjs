@@ -27,8 +27,8 @@ test('réf. 1 et 2 : plus de ligne « Profil et objectif » ; l’objectif sur l
   /* La carte du profil ouvre toujours la feuille (pseudo, personnalisation, revoir l’intro) */
   assert.ok(compte.includes(`<button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')"`));
   assert.ok(compte.includes('<details class="plus-details" id="plus-profile-settings">\n      <summary><span>Profil et objectif</span>'));
-  assert.ok(compte.includes("</span>${objHero}${depuisHero}</span>"), 'sous le prénom (6 novembre, 11 h 12 : le niveau a sa tuile, retours-1013-compte)');
-  assert.ok(compte.includes('${profileGoal?`, objectif : ${profileGoal}`:\'\'}, membre depuis le ${inscriptionTexte()}'), 'VoiceOver le lit aussi');
+  assert.ok(compte.includes("</span>${objHero}</span>"), 'sous le prénom (6 novembre, 11 h 12 : le niveau a sa tuile, retours-1013-compte)');
+  assert.ok(compte.includes('${profileGoal?`, objectif : ${profileGoal}`:\'\'}`)}">'), 'VoiceOver le lit aussi');
   /* L’objectif, rendu */
   const decl = compte.match(/  const objHero=(profileGoal\?`[^\n]+`:'');/)[1];
   const rendu = (goal, icone = 'person') => vm.runInNewContext(decl, {
@@ -79,5 +79,5 @@ test('réf. 4 : la Bibliothèque et Pratiquer retrouvent leurs autocollants, com
     assert.ok(lq.includes(k), k);
   /* Les feuilles et le cache rafraîchis */
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=272">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-titres-v2733';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-compte-v2734';"));
 });
