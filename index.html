@@ -2016,11 +2016,11 @@
      avance, puis « Prête ✓ » en vert. « En attente » : une pastille grise. Sur un petit iPhone, tout passe à la ligne, rien ne déborde. */
   .jeu-lobby-etat{display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 2px;text-align:center}
   .jeu-lobby-etat:empty{display:none}
-  .jeu-prets{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 10px;border-radius:999px;background:var(--accent-soft,#F1EEFF);color:var(--accent-ink);font-size:13px;font-weight:700;line-height:1.2;transition:background .3s,color .3s}
-  .jeu-prets b{font-family:var(--display);font-weight:800}
-  .jeu-prets.is-tous{background:var(--success-soft);color:var(--success)}
-  .jeu-prets-pts{display:inline-flex;gap:4px}
-  .jeu-prets-pts i{width:8px;height:8px;border-radius:50%;background:#D9D4EC;transition:background .3s,transform .3s var(--pop,ease)}
+  /* 13 h 41 : le compte des prêts est dans le badge de « Joueurs » (« ●●○ 2/3 prêts », au vert quand tout le monde l’est) */
+  .jeu-n{display:inline-flex;align-items:center;gap:6px;transition:background .3s,color .3s}
+  .jeu-n.is-tous{background:var(--success-soft);color:var(--success)}
+  .jeu-prets-pts{display:inline-flex;gap:3px;font-style:normal}
+  .jeu-prets-pts i{width:7px;height:7px;border-radius:50%;background:#CFC8EA;transition:background .3s,transform .3s var(--pop,ease)}
   .jeu-prets-pts i.ok{background:var(--success-fill,var(--success));transform:scale(1.15)}
   .jeu-lobby-msg{margin:0!important;max-width:30ch;font-size:14px;font-weight:650;line-height:1.4;color:var(--ink-2);text-wrap:balance!important;animation:jeuMsgIn .32s ease-out both}
   .jeu-lobby-msg.is-ok,.jeu-lobby-msg.is-moi{color:var(--success)}
@@ -36244,10 +36244,17 @@ function jeuNetMaj(){
 const JEU_LENT_MS=30000,JEU_LENT2_MS=60000;
 function jeuLobbyLabel(){return 'Lancer la partie';}
 function jeuPrets(){const live=jeuLive();return {live,prets:live.filter(jeuIsReady)};}
-function jeuPeutLancer(){
-  const J=JEU;if(!J||J.solo||!jeuIsHost()||jeuCur()>=0||J.over)return false;
-  const {live,prets}=jeuPrets();return live.length>=2&&prets.length===live.length;
+/* 13 h 41 (Elisa : « oui il peut lancer seul ; s’il y en a 3 et que 1 n’est pas prêt, il n’est pas obligé d’attendre, il peut le
+   retirer de plus ») : l’hôte lance quand il veut, seul ou sans attendre les retardataires ; le message dit où on en est. */
+function jeuPeutLancer(){const J=JEU;return !!J&&!J.solo&&jeuIsHost()&&jeuCur()<0&&!J.over;}
+/* « Joueurs » et son badge : « 2/3 prêts » (un point par joueur, au vert quand tout le monde l’est) ; seul, la place « 1/6 »
+   (13 h 41 : « mettre le 3/3 prêts en haut, fusionner avec le badge du haut »). */
+function jeuBadgeHTML(){
+  const J=JEU,{live,prets}=jeuPrets();
+  if(live.length<2)return `${live.length}/${J.max}`;
+  return `<i class="jeu-prets-pts" aria-hidden="true">${live.map(p=>`<i${jeuIsReady(p)?' class="ok"':''}></i>`).join('')}</i>${prets.length}/${live.length} prêts`;
 }
+function jeuBadgeTous(){const {live,prets}=jeuPrets();return live.length>=2&&prets.length===live.length;}
 /* Les joueurs pas encore prêts, celui qui attend depuis le plus longtemps d’abord. */
 function jeuPasPrets(){
   const J=JEU,at=J.attAt||(J.attAt={}),now=Date.now(),w=jeuLive().filter(p=>!jeuIsReady(p));
@@ -36260,18 +36267,17 @@ function jeuLobbyEtatHTML(){
   const tous=live.length>=2&&prets.length===live.length;
   let msg,cls='';
   if(host&&live.length<2){
-    msg=`${J.pub?'Ta salle est visible par les autres joueurs.':J.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Il faut être au moins deux pour lancer la partie.`;
+    msg=`${J.pub?'Ta salle est visible par les autres joueurs.':J.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;
   }else if(tous){
     msg=host?'Tout le monde est prêt ! À toi de lancer la partie.':'Tout le monde est prêt ! En attente que l’hôte lance la partie…';cls='is-ok';
   }else if(host){
     const w=jeuPasPrets()[0],nom=w?esc((J.players[w.pid]||{}).name||'Un joueur'):'';
     if(w&&w.ms>=JEU_LENT2_MS){msg=`${nom} prend son temps…`;cls='is-lent';}   // 13 h 36 : le retrait, une croix sur sa ligne (jeuPlayersHTML)
     else if(w&&w.ms>=JEU_LENT_MS){msg=`${nom} n’est pas encore prêt·e…`;cls='is-lent';}
-    else msg='En attente que les autres joueurs soient prêts…';
+    else msg='En attente que les autres joueurs soient prêts…';   // le bouton reste actif : il peut lancer sans attendre (13 h 41)
   }else if(J.ready[J.me]){msg=`Tu es ${mot} ! En attente des autres joueurs…`;cls='is-moi';}
   else msg=`Préviens l’hôte quand tu es ${mot} !`;
-  const compte=live.length>=2?`<span class="jeu-prets${tous?' is-tous':''}"><span class="jeu-prets-pts" aria-hidden="true">${live.map(p=>`<i${jeuIsReady(p)?' class="ok"':''}></i>`).join('')}</span><b>${prets.length}/${live.length}</b> joueurs prêts</span>`:'';
-  return `${compte}<p class="jeu-lobby-msg ${cls}">${msg}</p>`;
+  return `<p class="jeu-lobby-msg ${cls}">${msg}</p>`;
 }
 /* Le message ne se redessine que s’il change (il entre en fondu) ; le bouton « Lancer » suit à chaque instant. */
 /* 13 h 36 (Elisa : « c’est pas UI/UX, peut-être juste une croix avec micro-interaction ») : chez l’hôte, la croix apparaît sur la ligne
@@ -36326,7 +36332,7 @@ function jeuPatch(v){
   const go=document.getElementById('jeu-go');
   if(go)go.disabled=v==='lobby'&&!jeuPeutLancer();
   if(v==='lobby')jeuLobbyEtatMaj();
-  const cnt=document.getElementById('jeu-n');if(cnt)cnt.textContent=`${jeuLive().length}/${J.max}`;
+  const cnt=document.getElementById('jeu-n');if(cnt){if(v==='lobby'){const h=jeuBadgeHTML();if(cnt.innerHTML!==h)cnt.innerHTML=h;cnt.classList.toggle('is-tous',jeuBadgeTous());}else cnt.textContent=`${jeuLive().length}/${J.max}`;}
   const rd=document.getElementById('jeu-ready');
   if(rd){const on=!!J.ready[J.me];rd.setAttribute('aria-pressed',on);rd.classList.toggle('on',on);const l=rd.querySelector('span');if(l)l.textContent=jeuPretBouton(on);}
 }
@@ -36487,7 +36493,7 @@ function jeuRender(){
     const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle est ouverte':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis'):`Salle ${jeuDe(hostName)}`,
       host&&J.pub?'Elle est visible par les autres joueurs, qui peuvent entrer. Tu peux aussi partager ce code.':host&&J.pour?`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`:'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
       `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
-    const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
+    const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n${jeuBadgeTous()?' is-tous':''}" id="jeu-n">${jeuBadgeHTML()}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       <div class="jeu-lobby-etat" id="jeu-lobby-etat" role="status" aria-live="polite" data-h="">${jeuLobbyEtatHTML()}</div>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuLancer()"${jeuPeutLancer()?'':' disabled aria-disabled="true"'}><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button>`
         :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button>`}</div>`;   // 13 h 20 : le message au-dessus du bouton (jeuLobbyEtatHTML) ; « Je suis prête » et sa flèche qui avance
@@ -47287,7 +47293,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-croix-v2741';
+  const SW_CACHE='requete-2026-11-09-badge-v2742';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
