@@ -6781,7 +6781,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=275">
+<link rel="stylesheet" href="ludique.css?v=276">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -36561,18 +36561,21 @@ function jeuRender(){
     const nom=p=>esc((J.players[p]||{}).name||'Joueur'),ord=jeuOrder();
     const av=p=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(p))%6}" aria-hidden="true">${jeuInitial((J.players[p]||{}).name)}${typeof jeuFlag==='function'?jeuFlag((J.players[p]||{}).name):''}</b>`;
     const ex=moi&&rk.filter(x=>x.place===moi.place).length>1;
-    let ton,titre,ico;
-    if(got&&!sl&&moi&&moi.place===1){ton='is-or';titre=ex?'Ex æquo en tête !':'Tu remportes la manche !';ico=lqStkSvg('medal1');}
-    else if(got&&!sl&&moi&&moi.place<=3){ton='is-ok';titre=(moi.place===2?'2e place':'3e place')+(ex?' ex æquo':'')+', bien joué !';ico=lqStkSvg('medal'+moi.place);}
-    else if(got){ton='is-ok';titre=sl?'Défi résolu !':`${moi?moi.place:''}e place, défi résolu !`;ico=lqStkSvg('trophy');}
-    else{ton='is-ko';titre=ab?(sl?'Manche abandonnée':'Manche close par l’hôte'):'Temps écoulé';ico=JEU_ICO.reveil;}
+    /* 16 h 14 (Elisa : « mets un chat ou un GIF quelque part, c’est assez triste ») : le chat de l’appli dans le cadre, selon l’issue
+       (le trophée, le rire, le « oui », l’eurêka, le réveil, l’effort), la médaille en badge sur lui. */
+    let ton,titre,chat,med='';
+    if(got&&!sl&&moi&&moi.place===1){ton='is-or';titre=ex?'Ex æquo en tête !':'Tu remportes la manche !';chat='trophee';med=lqStkSvg('medal1');}
+    else if(got&&!sl&&moi&&moi.place<=3){ton='is-ok';titre=(moi.place===2?'2e place':'3e place')+(ex?' ex æquo':'')+', bien joué !';chat=moi.place===2?'rire':'oui';med=lqStkSvg('medal'+moi.place);}
+    else if(got){ton='is-ok';titre=sl?'Défi résolu !':`${moi?moi.place:''}e place, défi résolu !`;chat='eureka';}
+    else{ton='is-ko';titre=ab?(sl?'Manche abandonnée':'Manche close par l’hôte'):'Temps écoulé';chat=ab?'effort':'reveil';}
+    const ico=`${typeof chatBonusHtml==='function'?chatBonusHtml(chat):''}${med?`<i class="jr2-med">${med}</i>`:''}`;
     const pts=got&&moi?moi.pts:0;
     const pills=got&&moi?[`<i>Défi ${moi.val}${moi.x>1?` ×${moi.x}`:''}</i>`,moi.essai?`<i class="is-essai">Du premier coup +${moi.essai}</i>`:'',moi.rang?`<i class="is-rang">${moi.place===1?'1er':moi.place+'e'} +${moi.rang}</i>`:''].join(''):'';
     const sub=got?`Résolu en ${jeuDureeLisible(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';
     const kick=J.nb===1?(sl?'Défi solo terminé':'Manche unique terminée'):`Manche ${n+1}/${J.nb} terminée`;
     const hero=`<section class="jr2-hero ${ton}" aria-labelledby="jr2-t">
         <div class="jr2-top"><span class="jr2-k">${kick}</span><span class="jr2-niv">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></div>
-        <div class="jr2-main"><span class="jr2-ico" aria-hidden="true">${ico}</span><div class="jr2-tx"><h1 id="jr2-t">${titre}</h1><p class="jr2-defi">${esc(c.titre)}</p></div></div>
+        <div class="jr2-main"><span class="jr2-chat" aria-hidden="true">${ico}</span><div class="jr2-tx"><h1 id="jr2-t">${titre}</h1><p class="jr2-defi">${esc(c.titre)}</p></div></div>
         <div class="jr2-bas"><p class="jr2-pts"><b class="jr2-n" data-n="${pts}">${got?'+':''}${pts}</b><small>point${pts>1?'s':''}</small></p><p class="jr2-sub" id="jeu-sub">${sub}</p></div>
         ${pills?`<p class="jr2-pills">${pills}</p>`:''}
       </section>`;
@@ -47345,7 +47348,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-classement-v2754';
+  const SW_CACHE='requete-2026-11-09-chat-v2755';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
