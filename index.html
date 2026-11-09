@@ -34760,6 +34760,7 @@ const JEU_PING_MS=20000;
 const JEU_AWAY_MS=55000;
 const JEU_HOST_WAIT=25000;
 const JEU_HOST_FAST=1500;
+const JEU_FIN_MARGE=2500;   // la fin de partie sans l’hôte (12 h 47, jeuView)
 const JEU_REACTS=['👏','🔥','😅','🤯'];
 const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Points d’une manche (Elisa, 31 octobre, 17 h 39 : « des paliers : ≤ 1 min 200, 1 à 2 min 175, 2 à 3 min 150, 3 à 4 min 125, 4 à
@@ -35641,6 +35642,11 @@ function jeuView(){
   if(fin&&!J.rounds[n].closed&&J.rounds[n].okAt&&Date.now()-J.rounds[n].okAt<JEU_OK_MS)return'play'+n;
   /* Seul, la dernière manche finie mène tout droit au bilan, sur la même page (Elisa, 3 novembre, 7 h 31). */
   if(fin&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';
+  /* 9 novembre, 12 h 47 (Elisa : « corrige ») : l’hôte qui perd le réseau pile à la fin de la dernière manche n’envoie jamais la fin de
+     partie ; les autres restaient sur « Le podium arrive… » jusqu’au relais d’hôte (70 s environ). Chacun a déjà toutes les manches et
+     tous les temps : passé l’heure de la suite (jeuFinAuto) et une marge, l’écran de fin se pose chez soi. La fin de l’hôte, si elle
+     arrive, ne change rien ; « Rejouer » attend d’être l’hôte (jeuFinBoutonsHTML), et le nouvel hôte envoie la fin aussitôt (jeuTick). */
+  if(fin&&n>=J.nb-1&&!jeuIsHost()){const t=jeuFinAuto(n);if(t&&Date.now()>=t+JEU_FIN_MARGE)return'final';}
   return (fin?'res':'play')+n;
 }
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
@@ -47169,7 +47175,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-hote-v2736';
+  const SW_CACHE='requete-2026-11-09-fin-v2737';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

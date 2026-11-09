@@ -1674,3 +1674,28 @@ test('12 h 36 : l’ami resté seul garde la salle d’attente en hôte ; le pod
   }
   assert.ok(html.includes("const main=J.solo||jeuIsHost()?"), 'le bilan : « Rejouer » chez l’hôte, sinon la ligne d’attente');
 });
+
+/* 9 novembre, 12 h 47 (Elisa : « corrige ») */
+test('12 h 47 : l’hôte perd le réseau pile à la fin de la dernière manche : l’écran de fin arrive quand même, sans attendre le relais', () => {
+  const { w, host, guests } = room({ n: 3, nb: 1 });
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  guests[0].found(); guests[1].found(); sec(w, 2);
+  host.found(); sec(w, 1); host.offline = true; sec(w, 3);
+  for (const g of guests) assert.match(g.view(), /^res0$/, g.name + ' : les résultats, le podium arrive');
+  sec(w, 5);
+  for (const g of guests) { assert.equal(g.view(), 'final', g.name + ' : le podium, sans l’hôte'); assert.match(g.html, /jeu-podium/); assert.doesNotMatch(g.html, /jeuAgain\(\)/); }
+  assert.equal(guests[0].J('over'), false, 'la fin de partie n’est pas encore partie');
+  sec(w, 90);
+  assert.ok(guests[0].ev('jeuIsHost()'));
+  assert.equal(guests[1].J('over'), true, 'le nouvel hôte envoie la fin');
+  guests[0].ev('jeuAgain()'); sec(w, 2);
+  for (const g of guests) assert.equal(g.view(), 'lobby', g.name + ' : « Rejouer dans cette salle »');
+});
+
+test('12 h 47 : en temps normal, l’écran de fin arrive avec la fin de l’hôte, chez tous en même temps', () => {
+  const { w, host, guests } = room({ n: 2, nb: 1 });
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  host.found(); guests[0].found(); sec(w, 6.5);
+  assert.equal(host.view(), 'final'); assert.equal(guests[0].view(), 'final'); assert.equal(guests[0].J('over'), true);
+  assert.ok(html.includes("if(fin&&n>=J.nb-1&&!jeuIsHost()){const t=jeuFinAuto(n);if(t&&Date.now()>=t+JEU_FIN_MARGE)return'final';}"));
+});
