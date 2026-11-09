@@ -1911,3 +1911,9 @@ test('9 novembre, 19 h 40 : la salle d’attente en reprise (Safari revient) gar
   assert.match(host.html, /id="jeu-go"/, 'le bouton de l’hôte reste');
   assert.doesNotMatch(host.html, /id="jeu-ready"/, 'pas le bouton « Prêt » des invités');
 });
+
+test('9 novembre, 20 h 29 : un même pas de 16 px entre les blocs des pages de la salle (fin de partie, podium, résultats)', () => {
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  for (const r of ['html.lq .jeu-fin-actions{margin:16px 0 6px}', 'html.lq #jeu-root>.l-sub{margin-bottom:16px!important}', 'html.lq #jeu-root>.jeu-card,html.lq #jeu-root>.jeu-bilan+.jeu-card{margin-top:16px}', 'html.lq #jeu-root>.jeu-podium{margin-bottom:0}']) assert.ok(css.includes(r), r);
+  assert.ok(/html\.lq #app \.jeu-bilan\{[^}]*margin:16px 0 16px;/.test(css) && /html\.lq #jeu-root \.jr2-hero\{[^}]*margin:14px 0 16px;/.test(css));
+});

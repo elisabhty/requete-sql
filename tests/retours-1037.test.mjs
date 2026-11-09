@@ -150,8 +150,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-fleche-v2770';") && app.includes("const SW_CACHE='requete-2026-11-09-fleche-v2770';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=280">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-espace-v2771';") && app.includes("const SW_CACHE='requete-2026-11-09-espace-v2771';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=281">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -200,7 +200,7 @@ test('12 h 17 : « Carton plein ! », « Bien joué ! », « Pas encore cette fo
   assert.ok(fin.includes('const progres=J.mieux?`<p class="jeu-progres">') && fin.includes('Tu progresses à chaque défi\\u00a0!</p>`') && fin.includes('<p class="jeu-card-h">Ton récap’</p>'));
   const c = fn('jeuCreditGame');
   assert.ok(c.includes('{const av=(Array.isArray(s.hist)?s.hist:[]).find(h=>h&&h.niv===k&&h.solo===(vs?0:1));J.mieux=!!av&&pts>(+av.pts||0);}') && c.indexOf('J.mieux=') < c.indexOf('s.hist=['), 'comparée à la partie d’avant, avant d’ajouter celle-ci');
-  assert.ok(lq.includes('html.lq #jeu-root>.jeu-progres{display:inline-flex;align-items:center;gap:7px;'));
+  assert.ok(lq.includes('html.lq #jeu-root>.jeu-progres{display:flex;width:fit-content;align-items:center;gap:7px;'));
 });
 
 /* 12 h 28 (Elisa) : « un mini doigt qui s’anime » sur « Schéma » ; « tout doit se passer dans le cadre du haut », jamais un message
