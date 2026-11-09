@@ -1956,3 +1956,8 @@ test('9 novembre, 21 h 46 : la ligne d’une colonne, la même partout : un file
     'html.lq #scr-console .db-tblock.tbu .tbu-c+.tbu-c{box-shadow:inset 0 1px 0 var(--line-2,#EEEBF8)}']) assert.ok(css.includes(r), r);
   assert.ok(!css.includes('html.lq #scr-console .tbu-c.is-on,html.lq #schema-sheet .umd-c.is-on{background:#F6F4FD}'), 'plus de fond gris sous les colonnes clés');
 });
+
+test('9 novembre, 21 h 50 : nouveau projet, le champ seul sur sa ligne, puis « Annuler » et « Créer le projet » côte à côte', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(app.includes('<div class="console-create-acts"><button type="button" class="console-create-cancel" onclick="closeProjectCreator()">Annuler</button><button type="submit" class="console-create-cta">Créer le projet</button></div>'));
+});
