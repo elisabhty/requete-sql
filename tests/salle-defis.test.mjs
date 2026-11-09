@@ -1948,3 +1948,11 @@ test('9 novembre, 21 h 38 : import, plus d’étiquette « Nouvelle », la page 
   assert.match(ctx.importErreurLisible(new SyntaxError('Unexpected end of JSON input')), /JSON est incomplet ou mal formé/);
   assert.match(ctx.importErreurLisible(new Error('il faut une ligne d’en-têtes et au moins une ligne de données.')), /n’a pas de données/);
 });
+
+test('9 novembre, 21 h 46 : la ligne d’une colonne, la même partout : un filet entre deux colonnes, le cadre « ex : » toujours sous le nom, plus de fond gris', () => {
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  for (const r of ['html.lq #scr-console .db-tblock.tbu .tbu-xl{display:block;margin-top:6px;', 'html.lq #scr-console .db-tblock.tbu .tbu-r{align-items:baseline;min-height:0}',
+    'html.lq #schema-sheet .sch-table.is-tbu .sch-col .cxl{display:block;margin-top:6px;', 'html.lq #schema-sheet .umd-c{background:none!important}',
+    'html.lq #scr-console .db-tblock.tbu .tbu-c+.tbu-c{box-shadow:inset 0 1px 0 var(--line-2,#EEEBF8)}']) assert.ok(css.includes(r), r);
+  assert.ok(!css.includes('html.lq #scr-console .tbu-c.is-on,html.lq #schema-sheet .umd-c.is-on{background:#F6F4FD}'), 'plus de fond gris sous les colonnes clés');
+});
