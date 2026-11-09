@@ -1961,3 +1961,8 @@ test('9 novembre, 21 h 50 : nouveau projet, le champ seul sur sa ligne, puis « 
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(app.includes('<div class="console-create-acts"><button type="button" class="console-create-cancel" onclick="closeProjectCreator()">Annuler</button><button type="submit" class="console-create-cta">Créer le projet</button></div>'));
 });
+
+test('9 novembre, 21 h 53 : « Importer » reste collé en bas de la feuille d’import, la liste des tables ne défile plus seule', () => {
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  assert.ok(css.includes('html.lq .imp-sheet>.imp-go{position:sticky;bottom:0;z-index:3;') && css.includes('html.lq .imp-prev.is-riche{max-height:none;overflow:visible}'));
+});
