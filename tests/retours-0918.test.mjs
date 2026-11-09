@@ -140,10 +140,11 @@ test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre ami
 
 /* 8 novembre, 12 h 25 : les pastilles du haut de l’écran sont devenues le commentateur de « En direct » (elles cachaient le titre) ;
    il garde leur croix qui secoue et leur coche qui se pose, avec le pseudo (en-direct.test.mjs le vérifie phrase par phrase). */
-test('salle : chaque essai des autres se dit dans « En direct », son pseudo et une croix ou une coche', () => {
+test('salle : « En direct » dit qui trouve (son pseudo, une coche) ; plus les essais des autres (9 novembre, 2 h 11)', () => {
   assert.ok(!app.includes('function jeuEvt(') && !app.includes('jeu-evts'), 'plus de pastilles en haut de l’écran');
   const obs = fn('jeuDirectObserver');
-  assert.ok(obs.includes("dits.push({k:'ko',p:1,ico:JEU_ICO.cross,html:`${N(x)}\\u00a0: pas encore") && obs.includes("d={k:'ok',p:2,ico:JEU_ICO.check,html:`${N(x)} trouve, "), 'une croix, une coche, son pseudo');
+  assert.ok(!obs.includes("k:'ko'") && !obs.includes('\\u00a0: pas encore') && obs.includes("d={k:'ok',p:2,ico:JEU_ICO.check,html:`${N(x)} trouve, "), 'une coche et son pseudo ; plus de croix pour un essai manqué');
+  assert.ok(!cut("    case 'rate':{", "    case 'close':{").includes('pas encore'), 'ni au lecteur d’écran');
   assert.ok(fn('jeuDitHTML').includes('<i class="jd-dit-i" aria-hidden="true">${d.ico||\'\'}</i>'));
   const rate = cut("    case 'rate':{", "    case 'close':{");
   for (const k of ["if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;", "if(!r||r.one||r.found[m.pid]!=null||J.view!=='play'+n)return;",

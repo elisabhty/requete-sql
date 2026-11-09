@@ -210,3 +210,28 @@ test('la phrase des conditions : 12 px de plus sous le bouton', () => {
   const ob = lire('onboarding-vitrine.css');
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-foot-note.is-legal{max-width:340px;margin:12px auto 0!important;'));
 });
+
+/* ---------- 10. La salle : plus les essais des autres (9 novembre, 2 h 11, sa réf. 1 : « @bb : pas encore (5e essai) ») ---------- */
+
+test('« En direct » ne raconte plus les essais manqués des autres, ni au lecteur d’écran ; « Teste sa requête » reste', () => {
+  const obs = cut('function jeuDirectObserver(n,xs,avant){', '\nfunction jeuDitPousser(');
+  assert.ok(!obs.includes("k:'ko'") && !obs.includes('\\u00a0: pas encore') && !obs.includes('jeuOrdinal(x.essais)'));
+  assert.ok(obs.includes("d={k:'ok',p:2,ico:JEU_ICO.check,html:`${N(x)} trouve, ") && obs.includes("bulles.push([x.pid,'ecrit'])"), 'qui trouve, qui écrit : toujours');
+  const rate = cut("    case 'rate':{", "    case 'close':{");
+  assert.ok(!rate.includes('jeuToast(') && rate.includes('(J.koAt=J.koAt||{})[m.pid]=Date.now();\n      jeuDirectPeindre(n);'));
+});
+
+/* ---------- 11. La connexion : le trait « ou », puis l’e-mail (9 novembre, 2 h 11) ---------- */
+
+test('la page de connexion : Apple, Google, le trait « ou », puis l’adresse e-mail en champ', () => {
+  const page = cut("  }else if(slide==='account'){", "  }else if(slide==='name'){");
+  assert.ok(page.includes("${OB_PROVIDERS.filter(([provider])=>provider!=='email').map(") && page.includes('<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}'));
+  const ctx = vm.createContext({ obAuthBusy: false, obProviderIcon: p => `<i data-p="${p}"></i>` });
+  vm.runInContext(cut('function obMailChampHTML(authReady){', '\nfunction obCompteCarteHTML(){'), ctx);
+  const bientot = ctx.obMailChampHTML(false), branche = ctx.obMailChampHTML(true);
+  assert.ok(bientot.includes('class="ob-provider is-email is-champ is-soon"') && bientot.includes('onclick="obStartAuth(\'email\',this)"') && bientot.includes('<span class="ob-champ-ph">Ton adresse e-mail</span><small>Bientôt</small>'));
+  assert.ok(!branche.includes('is-soon') && !branche.includes('Bientôt') && branche.includes('ob-provider-chev'), 'branchée : elle ouvre la connexion par e-mail');
+  const ob = lire('onboarding-vitrine.css');
+  for (const r of ['html #onboarding.ob-vitrine .ob-account .ob-provider-list>.ob-divider{margin:2px 4px!important;', 'html #onboarding.ob-vitrine .ob-provider.is-champ .ob-champ-ph{color:#A9A3C4;'])
+    assert.ok(ob.includes(r), r);
+});

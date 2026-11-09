@@ -708,15 +708,14 @@ test('« En direct » : les essais manqués des autres comptent chez tous, la li
 });
 
 /* 8 novembre, 12 h 25 : le commentateur, la série, les réactions, de bout en bout */
-test('« En direct » raconte la partie : la croix, qui ouvre le score, qui reste en course, la série d’une manche à l’autre', () => {
+test('« En direct » raconte la partie : qui ouvre le score, qui reste en course, la série d’une manche à l’autre ; pas les essais (9 novembre)', () => {
   const { w, host, guests } = room({ n: 3, nb: 2 });
   const [a1, a2] = guests, dit = c => c.ev('JEU.dit&&JEU.dit.cur?JEU.dit.cur.html:""'), nb = ' ';
   host.ev('jeuNextRound()'); sec(w, 4.5);
   assert.equal(dit(host), `C’est parti${nb}! Qui ouvrira le score${nb}?`);
   a1.ed.value = "SELECT 'faux'"; a1.ev('jeuRun()'); sec(w, 0.6);
-  assert.equal(dit(host), `<b>Ami1</b>${nb}: pas encore`, 'la croix et son pseudo, chez l’hôte');
-  assert.equal(dit(a2), `<b>Ami1</b>${nb}: pas encore`, 'chez l’autre ami aussi');
-  assert.equal(dit(a1), `C’est parti${nb}! Qui ouvrira le score${nb}?`, 'pas chez lui (sa carte le lui dit)');
+  for (const c of [host, a2, a1]) assert.equal(dit(c), `C’est parti${nb}! Qui ouvrira le score${nb}?`, 'son essai manqué n’est dit nulle part (9 novembre, 2 h 11)');
+  assert.ok(!host.toasts.some(t => t.includes('pas encore')), 'ni au lecteur d’écran');
   sec(w, 2.5); a1.found(); sec(w, 3);
   assert.equal(dit(host), `<b>Ami1</b> ouvre le score${nb}!`);
   a2.found(); sec(w, 3);

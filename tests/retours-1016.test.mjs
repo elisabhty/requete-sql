@@ -70,14 +70,17 @@ test('la page de connexion est toujours dans le tunnel, avec ou sans fournisseur
 test('les boutons : « Bientôt » et vifs sans fournisseur, de vrais boutons avec, jamais de mode local', () => {
   const { html, pied } = rendreCompte();
   const boutons = [...html.matchAll(/<button type="button" class="ob-provider is-(\w+) is-soon" data-provider="(\w+)" style="--i:(\d)" onclick="obStartAuth\('(\w+)',this\)" >(<span class="ob-provider-icon[^"]*" aria-hidden="true">[\s\S]*?<\/span>)<span>Continuer avec ([^<]+)<\/span><small>Bientôt<\/small><\/button>/g)];
-  assert.deepEqual(boutons.map(b => [b[1], b[2], +b[3], b[4], b[6]]), [['apple', 'apple', 0, 'apple', 'Apple'], ['google', 'google', 1, 'google', 'Google'], ['email', 'email', 2, 'email', 'un e-mail']], 'Apple en premier, puis Google (14 h 08), chacun « Bientôt »');
+  assert.deepEqual(boutons.map(b => [b[1], b[2], +b[3], b[4], b[6]]), [['apple', 'apple', 0, 'apple', 'Apple'], ['google', 'google', 1, 'google', 'Google']], 'Apple en premier, puis Google (14 h 08), chacun « Bientôt »');
+  /* 9 novembre, 2 h 11 (« le trait avec l’e-mail dessous (ou) ») : le trait « ou », puis l’adresse e-mail en champ, « Bientôt » aussi */
+  assert.ok(html.includes('<p class="ob-divider" aria-hidden="true">ou</p><button type="button" class="ob-provider is-email is-champ is-soon" data-provider="email" style="--i:2" onclick="obStartAuth(\'email\',this)" aria-label="Continuer avec une adresse e-mail, bientôt" >'));
+  assert.ok(html.includes('<span class="ob-champ-ph">Ton adresse e-mail</span><small>Bientôt</small></button>') && !html.includes('Continuer avec un e-mail'));
   assert.ok(!/<button[^>]*class="ob-provider[^>]*disabled/.test(html), 'vifs : on peut les toucher (ils ne connectent à rien)');
   assert.ok(boutons[0][5].includes('<svg viewBox="0 0 24 24"><path fill="currentColor" d="M16.37 12.62') && !app.includes(''), 'la pomme est dessinée (le caractère U+F8FF ne s’affichait que sur les appareils Apple)');
   assert.ok(html.includes('<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>'), 'le message des boutons, qu’un lecteur d’écran entend aussi');
   assert.ok(!html.includes('ob-local-proof') && !html.includes('Mode local') && !html.includes('sans compte'), 'plus de mode local (10 h 29)');
   /* 6 novembre, 23 h 16 : la phrase des conditions est sous le bouton jaune, dans le pied de page */
   assert.ok(!html.includes('En continuant') && pied[0][4].html.startsWith('En continuant, tu acceptes les <a class="ob-legal-link" href="decouvrir/terms.html" target="_blank" rel="noopener">Conditions d’utilisation</a>'));
-  assert.ok(!html.includes('ob-divider') && !html.includes('ob-auth-availability'));
+  assert.ok(!html.includes('ob-auth-availability'));
   assert.deepEqual(pied.map(a => a[0]), ['Continuer'], 'tant que la connexion n’est pas branchée');
   /* Avec un fournisseur : les vrais boutons, et le compte seul */
   const { html: branche, pied: piedBranche } = rendreCompte({ authReady: true });

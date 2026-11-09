@@ -242,23 +242,23 @@ test('21 h 29 : ce qui change chez les autres monte aussi le long de l’écran,
 });
 
 /* 12 h 25, les quatre idées : le commentateur, les réactions sur les avatars, la série et la remontée, la dernière minute. */
-test('le commentateur : une phrase à la fois (2,2 s au moins), de la croix d’un essai à « Plus que … en course »', () => {
+test('le commentateur : une phrase à la fois (2,2 s au moins), de qui ouvre le score à « Plus que … en course » ; plus les essais des autres (9 novembre)', () => {
   const s = salle(), nb = '\u00a0', r = s.J.rounds[0];
   const dit = () => s.J.dit.cur.html, attend = () => [...s.J.dit.file].map(d => d.k), passe = () => { s.J.dit.at -= 2300; s.ev('jeuDitAvancer(0)'); };
   const html0 = s.ev('jeuDirectHTML(0)');
   assert.match(html0, /<\/span><p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true"><span class="jd-dit-m is-go"><i class="jd-dit-i" aria-hidden="true"><svg[^]*?<\/i><span>C’est parti\u00a0! Qui ouvrira le score\u00a0\?<\/span><\/span><\/p><\/div><\/section>$/, 'en bas du bandeau');
-  /* @max manque : la croix, son pseudo, tout de suite (la phrase de départ s’efface aussitôt) */
+  /* @max manque : rien n’est dit (9 novembre, 2 h 11 : « ne pas mettre les essais des uns ou des autres dans la partie défi ») ; la
+     phrase de départ reste */
   Object.assign(r, { ko: { c: 1 }, tried: { c: 1 } }); s.J.koAt.c = Date.now(); s.ev('jeuDirectHTML(0)');
-  assert.equal(dit(), `<b>@max</b>${nb}: pas encore`); assert.equal(s.J.dit.cur.ico, '<svg class="ko"/>');
-  /* @lea_data trouve du premier coup : elle attend que la croix ait été lue */
+  assert.match(dit(), /^C’est parti/); assert.deepEqual(attend(), []);
+  /* @lea_data trouve du premier coup : la phrase de départ s’efface aussitôt */
   r.found = { b: 30000 }; r.first = { b: 1 }; s.ev('jeuDirectHTML(0)');
-  assert.deepEqual(attend(), ['ok']); assert.equal(dit(), `<b>@max</b>${nb}: pas encore`);
-  passe(); assert.equal(dit(), `<b>@lea_data</b> ouvre le score${nb}!`); assert.equal(s.J.dit.cur.b, '+25');
+  assert.equal(dit(), `<b>@lea_data</b> ouvre le score${nb}!`); assert.equal(s.J.dit.cur.b, '+25');
   assert.equal(s.ev('jeuDitHTML(JEU.dit.cur,true)'), `<span class="jd-dit-m is-ok is-neuf"><i class="jd-dit-i" aria-hidden="true"><svg class="ok"/></i><span><b>@lea_data</b> ouvre le score${nb}!</span><em class="jd-dit-b">+25</em></span>`);
   assert.deepEqual(s.toasts, [], 'les essais et les trouvailles, le lecteur d’écran les entend déjà (jeuToast du message)');
-  /* Un troisième essai manqué : son numéro */
-  r.ko.c = 3; s.J.koAt.c = Date.now(); s.ev('jeuDirectHTML(0)'); passe();
-  assert.equal(dit(), `<b>@max</b>${nb}: pas encore <small>(3e essai)</small>`);
+  /* Un troisième essai manqué : rien non plus, ni son numéro */
+  r.ko.c = 3; s.J.koAt.c = Date.now(); s.ev('jeuDirectHTML(0)');
+  assert.deepEqual(attend(), []); assert.ok(!dit().includes('pas encore') && !dit().includes('essai'));
   /* @sam_sql trouve, 2e : il remonte de la 4e à la 2e place, la flèche reste 4 s */
   r.found.d = 45000; s.ev('jeuDirectHTML(0)'); passe();
   assert.equal(dit(), `Remontée de <b>@sam_sql</b>, 2e${nb}!`);
