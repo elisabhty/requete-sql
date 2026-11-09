@@ -36308,10 +36308,9 @@ function jeuLobbyEtatHTML(){
   if(!host)jeuPasPrets();   // 15 h 08 : chaque téléphone compte les 30 s ; l’invité qui devient hôte (relais) ne les remet pas à zéro
   const tous=live.length>=2&&prets.length===live.length;
   let cls='is-att',ico=JEU_SABLIER,t,p;
-  if(host&&live.length<2){
-    t=J.pub?'Ta salle est ouverte':J.created?'Personne n’a encore rejoint':'Les autres sont partis';
-    p=J.pub?'Les autres joueurs la voient et peuvent entrer. Ou joue en solo.':'Partage le code, ou joue en solo.';ico=JEU_ICO.amis;
-  }else if(tous){
+  /* 20 h 12 (Elisa) : seul dans sa salle, plus de carte sous les joueurs (« En attente d’un joueur… » et « Jouer en solo » suffisent). */
+  if(host&&live.length<2)return '';
+  if(tous){
     cls='is-ok';ico=JEU_ICO.check;t='Tout le monde est prêt !';p=host?'À toi de lancer la partie.':'L’hôte peut lancer la partie.';
   }else if(host){
     /* 14 h 01, les mots d’Elisa : « En attente de @sam… » ; à 30 s, « @sam n’est pas encore prêt·e. Tu peux patienter ou lancer sans ce
@@ -36724,7 +36723,6 @@ function jeuRender(){
         ${jeuCorrListeHTML()}
         ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
         ${jeuBtn2('quit','Quitter la salle','goBack()')}
-        ${jeuBtn2('amis','Retrouver mes adversaires','jeuVersAdversaires()')}
         ${jeuNetSlot()}`;
       if(winner)setTimeout(celebrate,300);
     }
@@ -47452,7 +47450,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-limite-v2767';
+  const SW_CACHE='requete-2026-11-09-epure-v2768';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
