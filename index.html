@@ -45845,6 +45845,9 @@ function lqStreakToast(){
   const pop=document.getElementById('jeu-pts-pop');
   if(pop&&pop.classList.contains('on')&&(lqStreakToast.wait||0)<4){lqStreakToast.wait=(lqStreakToast.wait||0)+1;setTimeout(lqStreakToast,700);return;}
   lqStreakToast.wait=0;
+  /* 9 novembre, 15 h 18 (Elisa : « oui, attendre la fin de la manche ») : pendant une manche de salle (tirage compris), la flamme ne
+     recouvre plus le haut de l’écran ; elle attend les résultats de la manche, le podium, ou la sortie de la salle. */
+  if(typeof JEU!=='undefined'&&JEU&&/^(play|draw)\d/.test(JEU.view||'')){clearTimeout(lqStreakToast.r);lqStreakToast.r=setTimeout(lqStreakToast,1000);return;}
   const n=typeof streakJours==='function'?streakJours():0;
   if(!n)return;
   let t=document.getElementById('lq-streak-toast');
@@ -47307,7 +47310,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-parcours-v2749';
+  const SW_CACHE='requete-2026-11-09-flamme-v2750';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
