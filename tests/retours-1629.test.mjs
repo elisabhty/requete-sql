@@ -85,8 +85,8 @@ test('résultats et fin de partie allégés ; la notification des points en une 
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes('<p class="jr2-pills">') && r.includes('<i class="is-essai">Du premier coup +${moi.essai}</i>'), 'le détail de mes points, en pastilles dans le cadre (15 h 48)');
   /* 1er novembre, 8 h 59 : plus jamais la requête ; le résultat attendu, replié quand on a trouvé */
-  assert.ok(r.includes('${got?`<details class="jeu-card jeu-sol"><summary class="jeu-card-h">Le résultat attendu</summary>') && r.includes('Tu pourras retenter ce défi plus tard.') && r.includes('const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto"') && !r.includes('highlight(c.sol)'), 'le résultat attendu replié quand on a trouvé');
-  assert.ok(r.includes('if(!sl&&n>=1){') && r.includes('<p class="jeu-card-h">Au total</p>'), 'les scores cumulés à partir de la 2e manche (« Au total », 15 h 48)');
+  assert.ok(!r.includes('<summary class="jeu-card-h">Le résultat attendu</summary>') && r.includes('Tu pourras retenter ce défi plus tard.') && r.includes('const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto"') && !r.includes('highlight(c.sol)'), 'plus de résultat attendu sur les résultats de manche (16 h 04)');
+  assert.ok(r.includes('}else if(!sl){') && !r.includes('<p class="jeu-card-h">Au total</p>') && r.includes('<i class="jr2-mv is-up"'), 'dès la 2e manche, un seul classement, au total, avec ▲ ▼ (16 h 04)');
   assert.ok(r.includes('const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));'), 'la liste finale seulement si le podium ne dit pas tout');
   assert.ok(r.includes("const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?"), 'le mot sur l’égalité seulement s’il y a égalité');
   for (const k of ['html.lq .jeu-pd i{padding:0!important;background:none!important;', 'html.lq .jeu-pd i:not(:last-child)::after{content:"·";', 'html.lq .jeu-rank li.is-me{', 'html.lq .jeu-sol>summary{display:flex;'])

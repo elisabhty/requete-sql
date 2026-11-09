@@ -6781,7 +6781,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=274">
+<link rel="stylesheet" href="ludique.css?v=275">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -36576,27 +36576,28 @@ function jeuRender(){
         <div class="jr2-bas"><p class="jr2-pts"><b class="jr2-n" data-n="${pts}">${got?'+':''}${pts}</b><small>point${pts>1?'s':''}</small></p><p class="jr2-sub" id="jeu-sub">${sub}</p></div>
         ${pills?`<p class="jr2-pills">${pills}</p>`:''}
       </section>`;
-    /* Le classement de la manche : qui a trouvé, puis qui a joué sans trouver */
+    /* 16 h 04 (Elisa : « ne mets pas ici le résultat attendu, ni juste le classement, et le total ; avec les triangles, mais que dans le
+       classement ») : un seul classement. Manche 1 : la manche (temps, points). Dès la 2e : le classement de la partie, au total ; chaque
+       ligne dit sa manche (temps et points, ou « Pas trouvé ») et ▲ ▼ quand une place change. Plus de « Le résultat attendu » ici. */
     const pas=sl?[]:ord.filter(p=>r.found[p]==null&&(jeuPresent(p)||(r.tried&&r.tried[p])));
-    const rows=rk.map((x,i)=>`<li class="jr2-row${x.pid===J.me?' is-me':''}${x.place<=3?' is-p'+x.place:''}" style="--i:${i}"><span class="jr2-pl">${x.place<=3?lqStkSvg('medal'+x.place):x.place}</span>${av(x.pid)}<span class="jr2-nm"><b>${nom(x.pid)}${x.pid===J.me?' <small>(toi)</small>':''}</b><small class="jr2-ms"><em>${jeuChrono(x.ms)}</em></small></span><em class="jr2-p">+${x.pts}</em></li>`)
-      .concat(pas.map((p,i)=>`<li class="jr2-row is-miss${p===J.me?' is-me':''}" style="--i:${rk.length+i}"><span class="jr2-pl">–</span>${av(p)}<span class="jr2-nm"><b>${nom(p)}${p===J.me?' <small>(toi)</small>':''}</b><small>Pas trouvé</small></span><em class="jr2-p">0</em></li>`)).join('');
-    const classement=sl?'':`<div class="jeu-card jr2-card"><p class="jeu-card-h">Classement de la manche</p><ol class="jr2-list">${rows}</ol></div>`;
-    /* Au total (dès la 2e manche) : les points des manches jouées jusqu’ici, et le mouvement depuis la précédente */
-    let total='';
-    if(!sl&&n>=1){
+    let classement='';
+    if(!sl&&n<1){
+      const rows=rk.map((x,i)=>`<li class="jr2-row${x.pid===J.me?' is-me':''}${x.place<=3?' is-p'+x.place:''}" style="--i:${i}"><span class="jr2-pl">${x.place<=3?lqStkSvg('medal'+x.place):x.place}</span>${av(x.pid)}<span class="jr2-nm"><b>${nom(x.pid)}${x.pid===J.me?' <small>(toi)</small>':''}</b><small class="jr2-ms"><em>${jeuChrono(x.ms)}</em></small></span><em class="jr2-p">+${x.pts}</em></li>`)
+        .concat(pas.map((p,i)=>`<li class="jr2-row is-miss${p===J.me?' is-me':''}" style="--i:${rk.length+i}"><span class="jr2-pl">–</span>${av(p)}<span class="jr2-nm"><b>${nom(p)}${p===J.me?' <small>(toi)</small>':''}</b><small>Pas trouvé</small></span><em class="jr2-p">0</em></li>`)).join('');
+      classement=`<div class="jeu-card jr2-card"><p class="jeu-card-h">Classement</p><ol class="jr2-list">${rows}</ol></div>`;
+    }else if(!sl){
       const cumul=k=>{const s={};for(let i=0;i<=k;i++){if(J.rounds[i])jeuRanking(i).forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;});}return s;};
-      const now=cumul(n),avant=cumul(n-1),ids=ord.filter(p=>jeuPresent(p)||(now[p]||0)>0);
+      const now=cumul(n),avant=cumul(n-1),ids=ord.filter(p=>jeuPresent(p)||(now[p]||0)>0||r.found[p]!=null);
       const places=s=>{const a=ids.slice().sort((x,y)=>(s[y]||0)-(s[x]||0)||(x<y?-1:1)),pl={};a.forEach((p,i)=>{pl[p]=i>0&&(s[a[i-1]]||0)===(s[p]||0)?pl[a[i-1]]:i+1;});return {a,pl};};
-      const P=places(now),A=places(avant);
-      total=`<div class="jeu-card jr2-card"><p class="jeu-card-h">Au total</p><ol class="jr2-list is-total">${P.a.map((p,i)=>{const d=(A.pl[p]||0)-P.pl[p];
-        return `<li class="jr2-row${p===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">${P.pl[p]}</span>${av(p)}<span class="jr2-nm"><b>${nom(p)}${p===J.me?' <small>(toi)</small>':''}</b></span>${d>0?`<i class="jr2-mv is-up" aria-label="gagne ${d} place${d>1?'s':''}">▲ ${d}</i>`:d<0?`<i class="jr2-mv is-down" aria-label="perd ${-d} place${d<-1?'s':''}">▼ ${-d}</i>`:''}<em class="jr2-p is-tot">${now[p]||0}<small> pts</small></em></li>`;}).join('')}</ol></div>`;
+      const P=places(now),A=places(avant),gain={};rk.forEach(x=>{gain[x.pid]=x;});
+      classement=`<div class="jeu-card jr2-card"><p class="jeu-card-h">Classement</p><ol class="jr2-list">${P.a.map((p,i)=>{const d=(A.pl[p]||0)-P.pl[p],g=gain[p],pl=P.pl[p];
+        const manche=g?`<small class="jr2-ms"><em>${jeuChrono(g.ms)}</em> · +${g.pts}</small>`:`<small class="is-pas">Pas trouvé · 0</small>`;
+        return `<li class="jr2-row${p===J.me?' is-me':''}${pl<=3&&(now[p]||0)>0?' is-p'+pl:''}" style="--i:${i}"><span class="jr2-pl">${pl<=3&&(now[p]||0)>0?lqStkSvg('medal'+pl):pl}</span>${av(p)}<span class="jr2-nm"><b>${nom(p)}${p===J.me?' <small>(toi)</small>':''}</b>${manche}</span>${d>0?`<i class="jr2-mv is-up" aria-label="gagne ${d} place${d>1?'s':''}">▲ ${d}</i>`:d<0?`<i class="jr2-mv is-down" aria-label="perd ${-d} place${d<-1?'s':''}">▼ ${-d}</i>`:''}<em class="jr2-p is-tot">${now[p]||0}<small> pts</small></em></li>`;}).join('')}</ol></div>`;
     }
     /* La suite part toute seule (17 h 31) : le compte à rebours et sa barre */
     const auto=jeuFinAuto(n),reste=auto?Math.max(0,auto-Date.now()):0;
     const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto" style="--reste:${reste}ms;--depart:${Math.max(0,Math.min(100,100-reste/JEU_AUTO_MS*100)).toFixed(1)}%">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b> s</span><i class="jr2-barre" aria-hidden="true"></i>`:jeuAutoAttente(n)}</p>`;
-    html=`${jeuNetSlot()}${hero}${classement}
-      ${got?`<details class="jeu-card jeu-sol"><summary class="jeu-card-h">Le résultat attendu</summary>${typeof defiAttenduHTML==='function'?defiAttenduHTML(c):''}</details>`:''}
-      ${total}${autoHTML}`;
+    html=`${jeuNetSlot()}${hero}${classement}${autoHTML}`;
     /* Une fois par manche : les points montent, et la première place a ses confettis */
     if(!r.resVu){r.resVu=1;
       setTimeout(()=>{const b=document.querySelector('#jeu-root .jr2-n');if(b&&JEU===J)jeuCountUp(b);},300);
@@ -47344,7 +47345,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-resultats-v2753';
+  const SW_CACHE='requete-2026-11-09-classement-v2754';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
