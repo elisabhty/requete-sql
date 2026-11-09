@@ -57,8 +57,8 @@ test('la mini-page : le @ dans le champ, sans « unique dans l’appli » ni tex
 test('Mon compte : le pseudo sous le prénom ; « manches réussies » partout au lieu de « trouvées », puis « résolu » (9 novembre, 10 h 01)', () => {
   /* Elisa, 1er novembre (« Aligne le pseudo avec le prénom ») : le pseudo sur la ligne du prénom, le niveau dessous. */
   /* 5 novembre, 21 h 54 : l’objectif sous le niveau (retours-2154) */
-  assert.ok(app.includes('<span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:\'\'}</span>${objHero}${depuisHero}</span>'));   // 6 novembre, 11 h 12 : le niveau a sa tuile (retours-1013-compte)
-  assert.ok(app.includes("aria-label=\"${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}${profileGoal?`, objectif : ${profileGoal}`:''}, membre depuis le ${inscriptionTexte()}`)}\""), 'le niveau se lit dans sa tuile');
+  assert.ok(app.includes('<span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:\'\'}</span>${objHero}</span>'));   // 6 novembre, 11 h 12 : le niveau a sa tuile (retours-1013-compte)
+  assert.ok(app.includes("aria-label=\"${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}${profileGoal?`, objectif : ${profileGoal}`:''}`)}\""), 'le niveau se lit dans sa tuile');
   assert.ok(css.includes('html.lq .acct-id-copy .acct-id-pseudo{align-self:flex-start;'));
   /* 9 novembre, 10 h 01 (Elisa, « oui » à « un seul mot, « résolu », pour un défi partout : encart vert, bilan et stats ») */
   for (const part of ["`résolu${kd.tr>1?'s':''}`:'à jouer'", "${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}",

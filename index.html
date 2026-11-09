@@ -46114,7 +46114,6 @@ function lvlBadgeHTML(level,cls){
 }
 const ACCT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const ACCT_PEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>';
-const ACCT_CAL_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="3"/><path d="M4 10.2h16M8.5 3.5v4M15.5 3.5v4"/></svg>';
 const ACCT_ALLER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 const ACCT_CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 /* Mon compte : une seule page, sans onglets internes. Profil et niveau en
@@ -46208,7 +46207,7 @@ function renderCompte(){
      « mets la date d’inscription sur la partie compte ») : plus de niveau suivant ; « Niv. 2 » passe sous l’avatar, le nom du niveau
      reste sous le prénom ; la date d’inscription suit l’objectif, sur le même modèle. 7 h 29 (« Ma progression du parcours ») : la
      barre dit ce qu’elle mesure, le parcours ; « Ma progression », plus bas, reste le titre des chiffres (série, leçons, défis). */
-  const depuisHero=`<span class="acct-obj acct-depuis"><span class="acct-obj-ico" aria-hidden="true">${ACCT_CAL_SVG}</span><span>Membre depuis le <strong>${esc(inscriptionTexte())}</strong></span></span>`;
+  /* 9 novembre, 12 h 24 (Elisa) : la date d’inscription quitte la carte du profil (elle reste gardée, state.inscritLe). */
   const parc=parcoursCompte(),chap=moduleCompte();   // audit du 6 novembre : le % et le module de l’accueil et du catalogue
   /* Direction C (« Niveau et parcours, deux mesures », Elisa, 6 novembre, 11 h 12) : le niveau quitte le rond et le dessous du prénom
      pour sa tuile, à côté de celle du parcours. 12 h 28 (« tout le monde commence au même endroit ») : il monte avec les leçons
@@ -46257,9 +46256,9 @@ function renderCompte(){
   const planSummary=state.plan?`${plural(state.plan.freq||7,'séance')} par semaine · ${plural(state.plan.per||3,'activité')}`:'Créer un parcours sur mesure';
   host.innerHTML=`
     <section class="acct-hero" aria-label="Ton profil">
-      <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}${profileGoal?`, objectif : ${profileGoal}`:''}, membre depuis le ${inscriptionTexte()}`)}">
+      <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}${psMien()?`, pseudo ${psMien()}`:''}${profileGoal?`, objectif : ${profileGoal}`:''}`)}">
         <span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:''}</span></span>
-        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${objHero}${depuisHero}</span>
+        <span class="acct-id-copy"><span class="acct-identity-line"><b>${esc(accountTitle)}</b>${psMien()?`<em class="acct-id-pseudo">${esc(psMien())}</em>`:''}</span>${objHero}</span>
       </button>
       <div class="acct-duo">
         <div class="acct-tuile acct-t-niv"><span class="acct-sr">${esc(nivLu)}</span><span aria-hidden="true"><small>Ton niveau</small><span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b><em>${nivDit}</em></span></div>
@@ -47158,7 +47157,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-titres-v2733';
+  const SW_CACHE='requete-2026-11-09-compte-v2734';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

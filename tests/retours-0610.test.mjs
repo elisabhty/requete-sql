@@ -25,9 +25,9 @@ test('« Noter Requête » mène à la page « Écrire un avis » de la fiche Ap
 test('la carte du profil : « Niv. 2 » et le nom du niveau dans la tuile « Ton niveau », plus de niveau suivant', () => {
   assert.ok(compte.includes('<span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>'));
   assert.ok(compte.includes('<small>Ton niveau</small><span class="acct-t-l"><span class="acct-niv"><span class="lvl-k">Niv.</span>${level.rank}</span></span><b>${esc(level.label)}</b>'), 'la pastille, puis le nom du niveau, dans leur tuile');
-  assert.ok(compte.includes('</span>${objHero}${depuisHero}</span>'), 'sous le prénom : l’objectif, la date');
+  assert.ok(compte.includes('</span>${objHero}</span>'), 'sous le prénom : l’objectif (la date d’inscription s’en va, 9 novembre, 12 h 24)');
   assert.ok(!compte.includes('lvlBadgeHTML(level') && !compte.includes('Niveau ${level.rank+1} dans'), 'plus de « Niveau 3 dans 8 leçons »');
-  assert.ok(compte.includes(', membre depuis le ${inscriptionTexte()}`)}">'), 'VoiceOver lit aussi la date');
+  assert.ok(!compte.includes('membre depuis') && !compte.includes('Membre depuis') && !compte.includes('depuisHero'), '9 novembre, 12 h 24 : plus de « Membre depuis le … », ni à l’écran ni pour VoiceOver');
   for (const k of ['html.lq .acct-pic{flex:none;display:flex;flex-direction:column;align-items:center;gap:10px}', 'html.lq .acct-hero .acct-niv{display:inline-flex;', 'html.lq .acct-hero .acct-tuile .acct-niv{height:28px;'])
     assert.ok(lq.includes(k), k);
 });
@@ -45,8 +45,7 @@ test('la date d’inscription : posée au premier onboarding, retrouvée pour qu
   assert.equal(dates({ lessons: {}, profile: {} }).iso(), '2026-11-06', 'sinon aujourd’hui');
   assert.equal(dates({ inscritLe: '2026-11-06' }).texte(), '6 novembre 2026');
   assert.equal(dates({ inscritLe: '2026-12-01' }).texte(), '1er décembre 2026', '« 1er »');
-  assert.ok(compte.includes('<span>Membre depuis le <strong>${esc(inscriptionTexte())}</strong></span>'));
-  assert.ok(compte.includes('<span class="acct-obj acct-depuis"><span class="acct-obj-ico" aria-hidden="true">${ACCT_CAL_SVG}</span>'), 'sur le modèle de l’objectif, avec un calendrier');
+  /* 9 novembre, 12 h 24 : la date ne s’affiche plus dans la carte du profil ; elle reste gardée et calculée */
   /* Gardée dans l’état, posée à la fin du premier onboarding, retrouvée au démarrage, et gardée quand on efface sa progression */
   assert.ok(app.includes("const inscritLe=typeof source.inscritLe==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(source.inscritLe)?source.inscritLe:null;"));
   assert.ok(app.includes('return {lessons,defis,notes,plan,onboarded,inscritLe,name,'));
