@@ -181,13 +181,14 @@ test('« Vérifier les données » : les colonnes, leurs types et un exemple ; l
 
 test('« Créer la table » : tout rejoint le projet ouvert sans le remplacer ; une table du même nom se demande ; on reste sur la page', () => {
   const c = fn('confirmImport');
-  assert.ok(c.includes('const aj=importAjoutCible();\n  const asDb=isDatabaseImport(p)&&!aj;\n  const chosen=aj||document.getElementById(\'imp-db\').value;'), 'un classeur ajouté ne remplace pas le projet');
-  assert.ok(c.includes('const dejaLa=ajoutees.length?listTables(customDbs[aj]).filter(t=>ajoutees.some(n=>n.toLowerCase()===t.toLowerCase())):[];'));
-  assert.ok(c.includes(`titre:dejaLa.length>1?\`Remplacer \${dejaLa.length} tables${N}?\`:\`Remplacer la table «${N}\${dejaLa[0]}${N}»${N}?\``));
-  assert.ok(c.includes("const remplace=p.format==='sqlite'&&!aj;") && c.includes("database.run('SAVEPOINT rq_import');point=true;\n      copierTablesSqlite(p.bytes,database);"));
+  /* 9 novembre, 21 h 57 : un classeur vers un projet qui a déjà des tables : « Ajouter au projet » ou « Tout remplacer » ; les tables du
+     même nom : identiques, laissées ; différentes, « Mettre à jour » ou « Garder les miennes » */
+  assert.ok(c.includes('let aj=importAjoutCible();') && c.includes('const asDb=isDatabaseImport(p)&&!aj;\n  const chosen=aj||document.getElementById(\'imp-db\').value;'), 'un classeur ajouté ne remplace pas le projet');
+  assert.ok(c.includes('const bilan=importComparer(customDbs[aj],p);') && c.includes("if(r==='trois'){m.forEach(n=>pendingImport.saute.add(n.toLowerCase()));"));
+  assert.ok(c.includes("const remplace=p.format==='sqlite'&&!aj;") && c.includes("database.run('SAVEPOINT rq_import');point=true;\n      copierTablesSqlite(p.bytes,database,pendingImport.saute);"));
   assert.ok(c.includes('[pendingImport.importedTable,p.primaryTable,...(p.tableNames||[]),...ajoutees].filter(Boolean)'), 'leur copie de départ');
   assert.ok(c.includes('if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);'), 'le nom du fichier, pour la carte');
-  assert.ok(c.includes('consoleSchemaOpen=true;') && c.includes("carte.scrollIntoView({block:'center',") && c.includes('}else openConsoleProject(target);'), 'on reste sur la page du projet, jusqu’à la nouvelle table');
+  assert.ok(c.includes('consoleSchemaOpen=true;') && c.includes("if(aj&&avant===aj&&consoleView==='work'){") && c.includes('}else openConsoleProject(target);'), 'on reste sur la page du projet ; depuis la liste, on l’ouvre (la page va au compte rendu, 21 h 38)');
   assert.ok(!c.includes('queryTable('));
   /* Le compte rendu : « Tables ajoutées », et « Schéma UML » */
   const ctx = vm.createContext({ esc, plur, UML_SVG: '<svg/>', umlModele: () => ({ liens: [] }) });

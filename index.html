@@ -22542,6 +22542,37 @@ function impBasculer(el,voir,anime){
   a.oncancel=()=>{el.style.overflow='';};
 }
 /* Le projet où « Ajouter une table » envoie le fichier choisi : celui qui était ouvert, s’il peut recevoir des tables */
+/* Ce que le fichier apporte à un projet : ses tables nouvelles, celles déjà là à l’identique (mêmes colonnes, mêmes lignes, dans le
+   même ordre), et celles du même nom au contenu différent. */
+let importLaisses=null;
+function importComparer(db,p){
+  const noms=importNoms(p),deja=db?listTables(db):[],out={total:noms.length,nouvelles:[],identiques:[],modifiees:[]};
+  const val=v=>v==null?'':typeof v==='number'?String(+v):String(v);
+  const lignesDb=t=>{try{const r=db.exec('SELECT * FROM '+quoteIdent(t));return r[0]?{cols:r[0].columns,rows:r[0].values}:{cols:db.exec('PRAGMA table_info('+quoteIdent(t)+')')[0].values.map(x=>x[1]),rows:[]};}catch(e){return null;}};
+  let src=null;
+  try{
+    if(p.format==='sqlite')src=new SQL.Database(p.bytes);
+    for(const n of noms){
+      const ici=deja.find(t=>t.toLowerCase()===n.toLowerCase());
+      if(!ici){out.nouvelles.push(n);continue;}
+      let lui;
+      if(src){try{const r=src.exec('SELECT * FROM '+quoteIdent(n));lui=r[0]?{cols:r[0].columns,rows:r[0].values}:{cols:src.exec('PRAGMA table_info('+quoteIdent(n)+')')[0].values.map(x=>x[1]),rows:[]};}catch(e){lui=null;}}
+      else{const t=(p.tables||[]).find(x=>safeIdent(x.name).toLowerCase()===n.toLowerCase());lui=t?{cols:t.cols,rows:t.rows}:null;}
+      const moi=lignesDb(ici);
+      const pareil=!!(lui&&moi)&&lui.cols.length===moi.cols.length&&lui.cols.every((c,i)=>String(c).toLowerCase()===String(moi.cols[i]).toLowerCase())
+        &&lui.rows.length===moi.rows.length&&lui.rows.every((r,i)=>r.length===moi.rows[i].length&&r.every((v,j)=>val(v)===val(moi.rows[i][j])));
+      (pareil?out.identiques:out.modifiees).push(ici);
+    }
+  }finally{if(src)try{src.close();}catch(e){}}
+  return out;
+}
+function importBilanPhrase(b){
+  const bits=[];
+  if(b.nouvelles.length)bits.push(plur(b.nouvelles.length,'nouvelle'));
+  if(b.identiques.length)bits.push(`${b.identiques.length} déjà là à l’identique`);
+  if(b.modifiees.length)bits.push(`${b.modifiees.length} déjà là avec un autre contenu`);
+  return bits.join(', ')||'aucune';
+}
 function importAjoutCible(){
   const id=pendingImport&&pendingImport.ajout;
   return id&&customDbs[id]&&!isDemoDb(id)?id:null;
@@ -22686,10 +22717,11 @@ async function createImportedTables(database,tables,suivre){
   }
 }
 /* Les tables d’une base SQLite ajoutées à un projet (« Ajouter une table », 15 h 01) : leur CREATE, leurs lignes, leurs index. */
-function copierTablesSqlite(bytes,dest){
+function copierTablesSqlite(bytes,dest,saute){
   const src=new SQL.Database(bytes),noms=[];
   try{
     for(const t of listTables(src)){
+      if(saute&&saute.has(String(t).toLowerCase()))continue;   // déjà dans le projet, à l’identique, ou gardée (21 h 57)
       const def=tableDefinitionSql(src,t);
       if(!def)continue;
       dest.run('DROP TABLE IF EXISTS '+quoteIdent(t));
@@ -22739,7 +22771,18 @@ async function confirmImport(){
   {const go=document.getElementById('imp-go');if(go&&go.getAttribute('aria-busy')==='true')return;}   // déjà en cours : un seul import
   const p=pendingImport.parsed;
   /* « Ajouter une table » (5 novembre, 15 h 01) : ce que le fichier apporte rejoint le projet ouvert, sans le remplacer */
-  const aj=importAjoutCible();
+  let aj=importAjoutCible();
+  /* 9 novembre, 21 h 57 (Elisa : « détecter les tables identiques pour y intégrer le reste ; je veux importer d’autres tables dans une
+     base ») : un classeur ou une base vers un projet qui a déjà des tables : d’abord « Ajouter au projet » (ses tables restent, celles
+     du fichier qui y sont déjà à l’identique sont laissées, les nouvelles arrivent), ou « Tout remplacer » comme avant. */
+  {const ch0=document.getElementById('imp-db')&&document.getElementById('imp-db').value;
+    if(!aj&&isDatabaseImport(p)&&ch0&&ch0!=='__new__'&&customDbs[ch0]&&!isDemoDb(ch0)&&listTables(customDbs[ch0]).length){
+      const nom=(dbCatalog.find(d=>d.id===ch0)||{}).name||ch0,bilan=importComparer(customDbs[ch0],p);
+      const r=await lqAsk({ico:'🗂️',titre:'Ce projet a déjà des tables',texte:`« ${nom} » contient ${plur(listTables(customDbs[ch0]).length,'table')}. Le fichier en apporte ${plur(bilan.total,'table')} : ${importBilanPhrase(bilan)}.`,
+        oui:'Ajouter au projet',trois:'Tout remplacer',troisDanger:true,non:null});
+      if(!r)return;
+      if(r===true){aj=ch0;pendingImport.ajout=ch0;}
+    }}
   const asDb=isDatabaseImport(p)&&!aj;
   const chosen=aj||document.getElementById('imp-db').value;
   if(asDb && chosen!=='__new__' && customDbs[chosen]){
@@ -22757,11 +22800,26 @@ async function confirmImport(){
       return;
     }
   }
-  /* Les feuilles d’un classeur ou les tables d’une base qui portent le nom d’une table du projet : on demande avant de les remplacer */
-  const ajoutees=aj?importNoms(p):[];
-  const dejaLa=ajoutees.length?listTables(customDbs[aj]).filter(t=>ajoutees.some(n=>n.toLowerCase()===t.toLowerCase())):[];
-  if(dejaLa.length && !await lqAsk({ico:'🗂️',titre:dejaLa.length>1?`Remplacer ${dejaLa.length} tables ?`:`Remplacer la table « ${dejaLa[0]} » ?`,texte:dejaLa.length>1?`${dejaLa.join(', ')} existent déjà dans ce projet : leurs lignes seront remplacées par celles du fichier.`:`Elle existe déjà dans ce projet : ses ${plur(+tableRowCount(customDbs[aj],dejaLa[0])||0,'ligne')} seront remplacées par celles du fichier.`,oui:'Remplacer',non:'Annuler'})){
-    return;
+  /* Les feuilles d’un classeur ou les tables d’une base qui portent le nom d’une table du projet : identiques (mêmes colonnes, mêmes
+     lignes), elles sont laissées ; d’un autre contenu, on demande : les mettre à jour, ou garder celles du projet (21 h 57). */
+  let ajoutees=aj?importNoms(p):[];
+  pendingImport.saute=new Set();pendingImport.identiques=[];pendingImport.gardees=[];
+  if(ajoutees.length){
+    const bilan=importComparer(customDbs[aj],p);
+    bilan.identiques.forEach(n=>pendingImport.saute.add(n.toLowerCase()));pendingImport.identiques=bilan.identiques;
+    if(bilan.modifiees.length){
+      const m=bilan.modifiees,un=m.length===1;
+      const r=await lqAsk({ico:'🗂️',titre:un?`Mettre à jour « ${m[0]} » ?`:`Mettre à jour ${m.length} tables ?`,
+        texte:`${un?`« ${m[0]} » existe`:`${m.join(', ')} existent`} déjà dans ce projet, avec un autre contenu.${bilan.nouvelles.length?` ${plur(bilan.nouvelles.length,'nouvelle table')} ${bilan.nouvelles.length>1?'arrivent':'arrive'} aussi.`:''}`,
+        oui:un?'Mettre à jour':'Les mettre à jour',trois:un?'Garder la mienne':'Garder les miennes',non:null});
+      if(!r)return;
+      if(r==='trois'){m.forEach(n=>pendingImport.saute.add(n.toLowerCase()));pendingImport.gardees=m.slice();}
+    }
+    ajoutees=ajoutees.filter(n=>!pendingImport.saute.has(n.toLowerCase()));
+    if(!ajoutees.length){
+      lqInfo('Déjà à jour',bilan.identiques.length===bilan.total?`Les ${plur(bilan.total,'table')} du fichier sont déjà dans ce projet, à l’identique : rien à ajouter.`:'Rien à ajouter : tu gardes les tables du projet.');
+      return;
+    }
   }
   const avant=activeDbId,neuf=chosen==='__new__';
   /* Le bouton dit tout de suite que l’import est parti, avant le gros du travail (une image, pour qu’il ait le temps de s’afficher) */
@@ -22793,10 +22851,10 @@ async function confirmImport(){
       /* rien à créer : les tables sont celles du fichier */
     }else if(p.format==='sqlite'){
       database.run('SAVEPOINT rq_import');point=true;
-      copierTablesSqlite(p.bytes,database);
+      copierTablesSqlite(p.bytes,database,pendingImport.saute);
     }else if(p.kind==='database' && p.format==='json-db'){
       database.run('SAVEPOINT rq_import');point=true;
-      await createImportedTables(database, p.tables, f=>importOccupe(true,f));
+      await createImportedTables(database, p.tables.filter(t=>!(pendingImport.saute&&pendingImport.saute.has(safeIdent(t.name).toLowerCase()))), f=>importOccupe(true,f));
     }else if(p.kind==='database' || p.kind==='sql-table'){
       runSqlImport(database, p.sql);
       if(p.primaryTable) pendingImport.importedTable=safeIdent(p.primaryTable);
@@ -22827,10 +22885,12 @@ async function confirmImport(){
     if(infosN&&infosT.note){ const pj=projOf(target); pj.tdesc=pj.tdesc||{}; if(!pj.tdesc[infosN]){ pj.tdesc[infosN]=infosT.note; try{ saveProjState(); }catch(e){} } }
     if(activeDbId!=='cours')persistCustomDbs(target);
     importOccupe(false);
+    importLaisses={identiques:pendingImport.identiques||[],gardees:pendingImport.gardees||[]};   // la feuille se ferme (pendingImport s’en va) : le compte rendu les dira
     closeImportSheet();
     const tn=tname?tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase()):ajoutees.length===1?tabs.find(t=>t.toLowerCase()===ajoutees[0].toLowerCase())||null:null;
-    /* Ajoutée depuis la page du projet : on y reste, le panneau des tables ouvert, et la page descend jusqu’à la nouvelle table */
-    if(aj){
+    /* Ajoutée depuis la page du projet : on y reste, le panneau des tables ouvert, et la page descend jusqu’à la nouvelle table ;
+       depuis la liste des projets (« Ajouter au projet », 21 h 57) : on ouvre le projet */
+    if(aj&&avant===aj&&consoleView==='work'){
       kbarSchemaCache=null;
       consoleSchemaOpen=true;
       renderDbWorkspace();
@@ -22838,7 +22898,7 @@ async function confirmImport(){
       renderConsoleSchemaSummary();
       const premiere=tn||affected[0];
       const carte=premiere?document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(premiere)}"]`):null;
-      if(carte)requestAnimationFrame(()=>{carte.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});lqDone(carte,affected.length>1?'Ajoutées':'Ajoutée',affected.length>1?`${plur(affected.length,'table')} ajoutées au projet`:`Table « ${premiere} » ajoutée au projet`);});
+      if(carte)requestAnimationFrame(()=>{lqDone(carte,affected.length>1?'Ajoutées':'Ajoutée',affected.length>1?`${plur(affected.length,'table')} ajoutées au projet`:`Table « ${premiere} » ajoutée au projet`);});
     }else openConsoleProject(target);
     /* Ce que l’import a fait, et le schéma qui s’est dessiné tout seul (8 h 13 : « si on met un fichier, ça génère
        automatiquement ») : les liens trouvés, « Voir le schéma UML » dès deux tables. */
@@ -22892,12 +22952,17 @@ function importRetourHtml(database,tabs,tn,asDb,ajoutees,infos){
   /* La colonne qui désignerait cette table depuis une autre : clients → client_id, animaux → animal_id */
   const cle=t=>String(t).toLowerCase().replace(/eaux$/,'eau').replace(/aux$/,'al').replace(/ies$/,'y').replace(/s$/,'')+'_id';
   const ok=(titre,corps)=>`<div class="feedback ok"><div class="fi">✓</div><div><b>${titre}</b>${corps}</div></div>`;
+  /* Ajoutées à un projet (21 h 57) : ce qui n’a pas bougé, et pourquoi */
+  const pi=typeof importLaisses!=='undefined'&&importLaisses?importLaisses:{},idq=pi.identiques||[],gd=pi.gardees||[];
+  const idem=(idq.length?`<p class="imp-idem">Déjà à jour, ${idq.length>1?'laissées':'laissée'} telle${idq.length>1?'s':''} quelle${idq.length>1?'s':''}&nbsp;: ${codes(idq)}.</p>`:'')
+    +(gd.length?`<p class="imp-idem">${gd.length>1?'Gardées':'Gardée'} comme dans le projet&nbsp;: ${codes(gd)}.</p>`:'');
   if(ajoutees&&ajoutees.length>1){
     const autres=tabs.filter(t=>!ajoutees.some(a=>a.toLowerCase()===t.toLowerCase()));
-    return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`rejoignent ${codes(autres)}`:`sont les ${ajoutees.length} tables du projet`}.</p>${garde}${trouves}${voir}`);
+    return ok('Tables ajoutées',`<p>${codes(ajoutees)} ${autres.length?`rejoignent ${codes(autres)}`:`sont les ${ajoutees.length} tables du projet`}.</p>${idem}${garde}${trouves}${voir}`);
   }
   if(asDb)return ok('Projet importé',`<p>${plur(tabs.length,'table')} disponible${tabs.length>1?'s':''}${tabs.length?`&nbsp;: ${codes(tabs)}`:''}.</p>${garde}${trouves}${voir}`);
   if(tn&&tabs.length===1)return ok('Table importée',`<p><code>${esc(tn)}</code> est la première table du projet. Importe une deuxième table, avec une colonne comme <code>${esc(cle(tn))}</code>&nbsp;: le schéma UML se dessinera tout seul, avec ses relations.</p>`);
+  if(tn&&idem)return ok('Table ajoutée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.</p>${idem}${trouves}${voir}`);
   if(tn)return ok('Table importée',`<p><code>${esc(tn)}</code> rejoint ${codes(tabs.filter(t=>t!==tn))}.${liens.length?'':` Aucune relation pour l’instant&nbsp;: une colonne comme <code>${esc(cle(tabs.find(t=>t!==tn)))}</code> en créerait une.`}</p>${trouves}${voir}`);
   return ok('Import réussi',`<p>${tabs.length?`Tables&nbsp;: ${codes(tabs)}.`:'Script exécuté.'}</p>${trouves}${voir}`);
 }
@@ -40288,7 +40353,7 @@ function lqAsk(o){
         <h2 id="lq-ask-t">${esc(o.titre)}</h2>
         ${o.texteHtml?`<p id="lq-ask-p">${o.texteHtml}</p>`:o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}</div>
         ${o.corps?`<div class="lq-ask-corps" id="lq-ask-c">${o.corps}</div>`:''}
-        <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui${o.danger?' is-danger':''}${o.fleche?' has-fl':''}">${esc(o.oui||'OK')}${o.fleche&&typeof DEF_CHEV_SVG!=='undefined'?`<i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i>`:''}</button>${o.non===null?'':`<button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button>`}</div>
+        <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui${o.danger?' is-danger':''}${o.fleche?' has-fl':''}">${esc(o.oui||'OK')}${o.fleche&&typeof DEF_CHEV_SVG!=='undefined'?`<i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i>`:''}</button>${o.trois?`<button type="button" class="lq-btn-2 lq-ask-trois${o.troisDanger?' is-danger':''}">${esc(o.trois)}</button>`:''}${o.non===null?'':`<button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button>`}</div>
       </div>`;
     const back=document.activeElement;
     let fini=false;
@@ -40308,6 +40373,7 @@ function lqAsk(o){
     const xb=el.querySelector('.lq-ask-x');if(xb)xb.onclick=()=>fin(false);
     const non=el.querySelector('.lq-ask-non');
     if(non)non.onclick=()=>fin(false);
+    {const tr=el.querySelector('.lq-ask-trois');if(tr)tr.onclick=()=>fin('trois');}   // o.trois : un deuxième choix (21 h 57), la croix reste « annuler »
     /* o.surOui : ce qui doit partir dans le geste même du toucher (ouvrir le choix d’un fichier : iOS le refuse après coup) */
     el.querySelector('.lq-ask-oui').onclick=()=>{if(typeof o.surOui==='function')try{o.surOui();}catch(e){}fin(true);};
     document.addEventListener('keydown',key,true);
@@ -47507,7 +47573,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-importer-v2779';
+  const SW_CACHE='requete-2026-11-09-fusion-v2780';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
