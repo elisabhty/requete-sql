@@ -194,7 +194,7 @@ test('« Créer la table » : tout rejoint le projet ouvert sans le remplacer ; 
   const ctx = vm.createContext({ esc, plur, UML_SVG: '<svg/>', umlModele: () => ({ liens: [] }) });
   vm.runInContext(fn('importRetourHtml'), ctx);
   const h = ctx.importRetourHtml(null, ['Clients', 'Commandes', 'In'], null, false, ['Clients', 'Commandes']);
-  assert.ok(h.includes('<b>Tables ajoutées</b><p><code>Clients</code>, <code>Commandes</code> ont été ajoutées au projet, qui contient aussi <code>In</code>.</p>') && h.includes('<span>Schéma UML</span>') && !h.includes('Voir le schéma UML'));
+  assert.ok(h.includes('<b>Tables ajoutées</b><p>Ajoutées au projet&nbsp;: <code>Clients</code>, <code>Commandes</code>.</p>') && h.includes('<span>Schéma UML</span>') && !h.includes('Voir le schéma UML'));
   /* 9 novembre, 22 h 13 (« mal formulé, sois pro ») : une ligne par sort */
   ctx.importLaisses = { identiques: ['Infos'], gardees: ['Bareme'], majs: [] };
   const f = ctx.importRetourHtml(null, ['Bareme', 'Infos', 'Codes_eco'], 'Codes_eco', false, null);
@@ -228,4 +228,22 @@ test('une base SQLite ajoutée à un projet : ses tables, leurs lignes, leur cl�
   assert.equal(dest.exec("PRAGMA table_info(clients)")[0].values[0][5], 1, 'la clé primaire suit');
   dest.close();
   assert.ok(app.includes("return {kind:'database',format:'sqlite',bytes,defaultTable:baseName,noms:tabs,nbs:counts,"));
+});
+
+/* 9 novembre, 22 h 22 (« teste avec des fichiers différents ») : chaque cas a une phrase juste */
+test('import dans un projet : phrases selon le contenu du fichier, table identique, remplacement complet', () => {
+  const b = vm.createContext({});
+  vm.runInContext(fn('importBilanPhrase') + fn('importBilanTexte') + fn('importListe'), b);
+  const B = (n, i, m) => ({ total: n.length + i.length + m.length, nouvelles: n, identiques: i, modifiees: m });
+  assert.equal(b.importBilanTexte(B(['a', 'b'], [], [])), 'Les 2 tables du fichier sont nouvelles.');
+  assert.equal(b.importBilanTexte(B([], ['a', 'b'], [])), 'Les 2 tables du fichier sont identiques à celles du projet.');
+  assert.equal(b.importBilanTexte(B([], [], ['a'])), 'La table du fichier existe déjà dans le projet avec un contenu différent.');
+  assert.equal(b.importBilanTexte(B(['a'], ['b'], ['c'])), 'Le fichier en compte 3 : 1 nouvelle, 1 identique et 1 différente.');
+  assert.equal(b.importListe(['Bareme', 'Infos']), '«\u00a0Bareme\u00a0» et «\u00a0Infos\u00a0»');
+  assert.ok(app.includes("if(bilan.total&&bilan.identiques.length===bilan.total){lqInfo('Projet déjà à jour'"), 'tout identique : rien à demander');
+  assert.ok(app.includes("oui:bilan.nouvelles.length?'Ajouter au projet':'Mettre à jour le projet'"));
+  assert.ok(app.includes("lqInfo('Projet déjà à jour',`La table « ${deja} » du fichier est identique à celle du projet."), 'un CSV identique ne remplace rien');
+  assert.ok(app.includes("titre:'Remplacer tout le contenu ?'") && app.includes('Cette action est définitive.`,oui:\'Remplacer\',danger:true,non:\'Annuler\''));
+  assert.ok(app.includes("if(asDb&&pi.remplace)return ok('Contenu remplacé'"));
+  assert.ok(app.includes("k===1?'Sa ligne actuelle sera remplacée'"), 'plus de « ses 1 ligne »');
 });
