@@ -49,9 +49,10 @@ test('le titre et la description du fichier nomment et décrivent le projet ; si
   assert.equal(ctx.nomDeFichierLisible('Requete_Entretiens_Data_Analyst_100_Questions.json'), 'Requete Entretiens Data Analyst 100');
   assert.equal(ctx.nomDeFichierLisible('ventes_2025.csv'), 'ventes 2025');
   assert.equal(ctx.nomDeFichierLisible('.json'), 'Import');
+  assert.equal(ctx.nomDeFichierLisible('Ameublement-Generateur-des-codes-produits-et-des-tarifs-2025-v11.5.xlsm'), 'Ameublement Generateur des codes produits', 'tirets : coupé entre deux mots (23 h 15)');
   assert.equal(ctx.nomDeFichierLisible('x'.repeat(60) + '.csv').length, 40);
   const on = fn('onDataImport');
-  assert.ok(on.includes('defaultDbName:parsed.titre?parsed.titre.slice(0,40):nomDeFichierLisible(file.name),'));
+  assert.ok(on.includes('defaultDbName:parsed.titre?parsed.titre.slice(0,40):nomDeFichierLisible(nomF),'));
   assert.ok(fn('confirmImport').includes('if(neuf&&p.desc){ const pj=projOf(target); if(!pj.desc){ pj.desc=p.desc; try{ saveProjState(); }catch(e){} } }'), 'un nouveau projet seulement');
   assert.ok(lq.includes('html.lq #schema-sheet .viz-head b,html.lq #schema-sheet .viz-head h2{min-width:0;overflow-wrap:anywhere}'));
 });
