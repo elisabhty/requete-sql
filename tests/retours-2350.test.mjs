@@ -16,7 +16,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const ctx = vm.createContext({esc: s => String(s).replace(/[&<>"]/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[ch])});
 vm.runInContext(cut('const CHALLENGES=[', 'const NIV=').replace('const CHALLENGES=', 'CHALLENGES=').replace('const DEFI_BASES=', 'DEFI_BASES='), ctx);
 vm.runInContext(cut('function defiDiag(', 'function defisParProgression('), ctx);
-vm.runInContext(cut('function errBox(msg,sql){', 'const RUN_ICO='), ctx);
+vm.runInContext(cut('function errBox(msg,sql,o){', 'const RUN_ICO='), ctx);
 const initSqlJs = createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/sql-wasm.js'));
 const SQL = await initSqlJs({locateFile: f => path.join(ROOT, 'vendor/sqljs', f)});
 const defi = id => vm.runInContext(`CHALLENGES.find(c=>c.id==='${id}')`, ctx);
@@ -60,7 +60,7 @@ test('les trois appels passent la requête : défi seul, salle, console', () => 
   assert.ok(app.includes("const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c,sql):exoFailDiag("));
   /* 9 novembre, 8 h 04 (retours-0031) : dans un défi, l’encart de la carte dit l’erreur comme la boîte « Erreur SQL », son message et
      son aide (errAide, dont celle sur DISTINCT ON) ; la boîte elle-même reste pour un défi sans carte et pour la console. */
-  assert.ok(app.includes("    else setLessonOut(errBox(e.message,sql));") && app.includes("}catch(e){typeof edPied==='function'&&edPied('ed-lesson','err');setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}") && app.includes('?consoleLockBox():errBox(e.message,sql)}'));
+  assert.ok(app.includes("    else setLessonOut(errBox(e.message,sql));") && app.includes("}catch(e){typeof edPied==='function'&&edPied('ed-lesson','err');setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}") && app.includes('?consoleLockBox():errBox(e.message,sql,{console:1})}'));
   /* Les quatre défis restent là, avec leur solution */
   for (const id of ['af21', 'vm3', 'hm2', 'ld8']) assert.ok(defi(id) && defi(id).sol, id);
 });
