@@ -105,17 +105,17 @@ test('la feuille monte par-dessus l’écran, qui reste dessous ; elle se referm
   const f = fn('defisFeuilleFermer');
   assert.ok(f.includes("document.getElementById('dx-feuille').dataset.k==='corr';") && f.indexOf('if(!corr){') < f.indexOf("DEFIS.carte='';") && f.indexOf("jeuStop();") < f.indexOf('  }\n  if(typeof document'), 'ni la carte de l’écran Défis, ni l’invitation, ni la salle');
   /* Une autre vue (une autre partie, une autre manche), ou la salle quittée : elle se referme */
-  assert.ok(fn('jeuRender').includes("if(!(v==='final'||(v==='play0'&&jeuFinSurPlace()&&jeuRoundDone(0))))jeuCorrFermer();"));
+  assert.ok(fn('jeuRender').includes("if(v!=='final')jeuCorrFermer();"));
   assert.ok(fn('jeuStop').includes('  JEU=null;\n  document.getElementById(\'jeu-toasts\')?.remove();\n  jeuCorrFermer();'));
   const ferme = [];
   const ctx = vm.createContext({ document: { getElementById: () => ({ dataset: { k: 'corr' } }) }, defisFeuilleFermer: x => ferme.push(x) });
   vm.runInContext(fn('jeuCorrFermer'), ctx);
   ctx.jeuCorrFermer(); assert.deepEqual(ferme, [true]);
   ctx.document.getElementById = () => ({ dataset: { k: 'code' } }); ctx.jeuCorrFermer(); assert.deepEqual(ferme, [true], 'la feuille du code reste');
-  /* Où on l’ouvre : le bilan, la fin sur place, le podium ; plus « Retenter ce défi » nulle part */
+  /* Où on l’ouvre : sur l’écran de fin seulement (11 h 31 : « pas directement sur le défi ») ; plus « Retenter ce défi » nulle part */
   assert.ok(cut("}else if(v==='final'){", '/* Fondu enchaîné').includes('${jeuCorrBoutonHTML(k)}</div>'));
-  assert.ok(fn('jeuFoundHTML').includes('${fin1?jeuCorrBoutonHTML(n):r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:\'\'}'));
-  assert.ok(fn('jeuRateHTML').includes('${fin1?jeuCorrBoutonHTML(n):\'\'}'));
+  assert.ok(!fn('jeuFoundHTML').includes('jeuCorrBoutonHTML') && !fn('jeuRateHTML').includes('jeuCorrBoutonHTML'), 'jamais sur la carte du défi');
+  assert.equal((app.match(/jeuCorrBoutonHTML\(/g) || []).length, 2, 'sa définition et l’écran de fin');
   assert.ok(cut("}else if(v==='final'){", '/* Fondu enchaîné').includes('${jeuCorrListeHTML()}'), 'entre amis, sous le classement');
   assert.ok(!/Retenter ce défi<\/span>/.test(app), 'plus de « Retenter ce défi »');
   /* Ta requête et ton dernier essai, gardés : en salle, et en salle classée (la réponse vient du serveur) */
@@ -127,19 +127,19 @@ test('la feuille monte par-dessus l’écran, qui reste dessous ; elle se referm
 
 test('le bilan : le titre dit l’issue, les trois cases, une manche ratée dans la pêche, la prochaine étape, « Réessayer »', () => {
   const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
-  assert.ok(fin.includes("const titre=all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
+  assert.ok(fin.includes("const titre=un?(all?(trophee?'Défi résolu\\u00a0!':'Défi résolu ! 🏆'):'On retente\\u00a0?'):all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
   assert.ok(fin.includes("head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)"), '« Niveau facile », sans point');
-  assert.ok(fin.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>temps moyen</small></div></div>`;"), '« — » sans défi résolu');
+  assert.ok(fin.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;"), '« — » sans défi résolu');
   assert.ok(fin.includes("<span class=\"jr-ico\" aria-hidden=\"true\">${ok?ICO_OK:ab?ICO_KO:JEU_ICO.reveil}</span>"), 'le réveil pour le chrono, la croix pour une manche quittée');
   const ctx = vm.createContext({ JEU: { solo: true, niv: 'm' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>', DEF_CHEV_SVG: '›',
     jeuNivBars: k => `[${k}]`, jeuBtn2: (i, l, o) => `[${i}|${l}|${o}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), ctx);
-  assert.ok(ctx.jeuFinBoutonsHTML(2, true).startsWith('<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-d" onclick="jeuNiveauSuivant()">') && ctx.jeuFinBoutonsHTML(2, true).includes('<b>Passer au niveau difficile</b><span class="jeu-prog-x"><coin>×4 points par défi</span>'));
+  assert.ok(ctx.jeuFinBoutonsHTML(2, true).startsWith('<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-d" onclick="jeuNiveauSuivant()">') && ctx.jeuFinBoutonsHTML(2, true).includes('<span class="jeu-prog-t">Passer au niveau difficile</span><span class="jeu-prog-x">×4<span class="lq-sr"> points par défi</span></span>'));
   assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Réessayer</span>') && ctx.jeuFinBoutonsHTML(0, false).includes('[retour|Retour aux défis|openJeu()]'));
   /* Le style : la pêche, la pastille à 44 px de toucher, la carte de la prochaine étape, les trois cases */
   for (const k of ['html.lq #app .jeu-rounds .jr.is-miss{border-style:solid;border-color:#FFDCC8;background:#FFF9F5;', 'html.lq #app .jr.is-miss .jr-ico{background:#FFE1D1;color:#A24A1E;',
-    'html.lq #app .jr-corr::after{content:"";position:absolute;inset:-9px -6px}', 'html.lq #app .jeu-prog{display:flex;align-items:center;gap:12px;width:100%;',
-    'html.lq #app .jeu-prog.is-d{border-color:#F6CDD0;background:#FFF1F2;', 'html.lq #app .jeu-bilan{grid-template-columns:repeat(3,minmax(0,1fr))}',
+    'html.lq #app .jr-corr::after{content:"";position:absolute;inset:-9px -6px}', 'html.lq #app .jeu-prog{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;',
+    'html.lq #app .jeu-prog.is-d{color:#A3262E}', 'html.lq .consigne.dq .dq-sec.is-garde{background:#F1F8FF}', 'html.lq #app .jeu-bilan{grid-template-columns:repeat(3,minmax(0,1fr))}',
     'html.lq #app .jcl-b{display:flex;align-items:center;gap:10px;width:100%;'])
     assert.ok(lq.includes(k), k);
 });
@@ -150,6 +150,6 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-correction-v2727';") && app.includes("const SW_CACHE='requete-2026-11-09-correction-v2727';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=267">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-fin-v2728';") && app.includes("const SW_CACHE='requete-2026-11-09-fin-v2728';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=268">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
 });

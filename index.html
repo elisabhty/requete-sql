@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=267">
+<link rel="stylesheet" href="ludique.css?v=268">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35618,7 +35618,7 @@ function jeuView(){
   if(J.tard)return'tard';
   if(J.lost&&!J.hostPid)return'lost';
   if(!J.hostPid||!J.synced)return'join';
-  if(J.over)return jeuFinSurPlace()?'play0':'final';   // une partie d’une seule manche, seule, se termine sur place (9 novembre, 10 h 01)
+  if(J.over)return'final';
   const n=jeuCur();
   if(n<0)return jeuRoomEmpty()?'empty':'lobby';
   if(Date.now()<J.rounds[n].t1)return'draw'+n;
@@ -35628,10 +35628,11 @@ function jeuView(){
   /* 9 novembre, 8 h 20 (Elisa : « l’encart rouge se transforme en vert avec Bravo défi résolu… qui passe à la manche suivante si autre
      manche ») : seul, la manche trouvée reste à l’écran, « Bravo, défi résolu ! » dans la carte (jeuFoundHTML), le temps de la suite
      (jeuFinAuto, 5 s) : jusqu’à la manche suivante, ou jusqu’au bilan à la dernière. Pas trouvée : ses résultats, comme avant. */
-  /* 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel, et ne passer par cette page que s’il y a plus d’une
-     manche ») : finie au chrono aussi, la manche reste à l’écran, son encart dit « Temps écoulé » (jeuRateHTML), plus de page
-     « Manche 1/2 terminée » ; une partie d’une seule manche n’a pas de bilan, elle se termine sur place (jeuFinSurPlace). */
-  if(fin&&jeuSoloLike(n)&&(n<J.nb-1||J.nb===1||Date.now()<jeuFinAuto(n)))return'play'+n;
+  /* 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel ») : finie au chrono aussi, la manche reste à l’écran,
+     son encart dit « Temps écoulé » (jeuRateHTML), plus de page « Manche 1/2 terminée ». 11 h 31 (« ne pas mettre Voir la correction
+     directement sur le défi mais sur l’écran de fin ») : une partie d’une seule manche repasse, elle aussi, par l’écran de fin, 5 s
+     après sa carte, comme la dernière manche d’une partie plus longue (de 10 h 01 à 11 h 31, elle se terminait sur place). */
+  if(fin&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;
   /* À plusieurs, le dernier à trouver voit aussi son encart passer au vert, un instant (« Tout le monde a trouvé, les résultats
      arrivent… »), puis les résultats de la manche. */
   if(fin&&!J.rounds[n].closed&&J.rounds[n].okAt&&Date.now()-J.rounds[n].okAt<JEU_OK_MS)return'play'+n;
@@ -36299,7 +36300,7 @@ function jeuRender(){
   const v=jeuView();
   const sig=jeuSig();
   if(v===J.view){J.sig=sig;jeuPatch(v);return;}
-  if(!(v==='final'||(v==='play0'&&jeuFinSurPlace()&&jeuRoundDone(0))))jeuCorrFermer();   // une autre partie, une autre manche : la correction se referme
+  if(v!=='final')jeuCorrFermer();   // une autre partie : la correction se referme
   /* Seul en ligne, la scène d’attente (« Tirage au sort » sans compte à rebours, le temps que le serveur réponde) devient le tirage
      sans être redessinée : les cartes continuent de se mélanger, la scène ne rejoue pas son entrée (Elisa, 8 novembre, 10 h 10 :
      « l’écran avec les cartes saute parfois »). */
@@ -36386,7 +36387,6 @@ function jeuRender(){
     current=c;exoFails=0;
     const mine=r.found[J.me]!=null,sl=jeuSoloLike(n);J.slShown=sl;
     const rate=!mine&&sl&&jeuRoundDone(n);edOn=!mine&&!rate;   // seul, finie au chrono : « Temps écoulé » à la place de l’éditeur (9 novembre, 10 h 01)
-    if((mine||rate)&&jeuFinSurPlace())jeuFinirSurPlace();   // une partie d’une seule manche se termine ici : ses points, la notification, la fin de partie
     const fige=jeuFige(n),took0=fige?r.found[J.me]:Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
     /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150… ; en Moyen 400, 350… toutes les 3 min ; en Difficile
@@ -36456,20 +36456,17 @@ function jeuRender(){
       /* 9 novembre, 9 h 04 (le parcours) : la manche « Résolu en 2 min 40 » dans l’encart vert devenait « Trouvé en 2 min 41 » ici
          (arrondi à la seconde la plus proche) : la même lecture partout, celle du chrono et des paliers de points (la seconde entamée
          ne compte pas), et le même mot, « Résolu en ». */
-      /* 9 novembre, 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel, et ne passer par cette page que s’il y
-         a plus d’une manche ») : une partie d’une seule manche se termine sur place (jeuFinSurPlace). Ce bilan, celui d’une partie de 2 ou
-         3 manches, dit chaque chose une fois : le niveau sous le titre ; le titre (« Tout résolu ! », « Ton bilan », « Aucun défi
-         résolu ») ; le bandeau, les points, les défis résolus et le temps moyen dès deux (pas de bandeau de zéros) ; puis chaque manche,
-         « Résolu en … » et ses points (le détail seulement s’il dit autre chose : le premier coup), ou « Temps écoulé » et « Retenter ce
-         défi », seule dans sa salle aussi. Plus de phrase qui redisait le bandeau (« Bien joué : 1 défi sur 2, niveau facile. »), ni de
-         « Défi 200 » à côté de « +200 pts ». « Résolu », comme l’encart vert (« trouver » reste à la course entre joueurs). */
+      /* 9 novembre, 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel ») : le bilan dit chaque chose une fois :
+         le niveau sous le titre ; le titre ; le bandeau ; puis chaque manche, « Résolu en … » et ses points (le détail seulement s’il
+         dit autre chose : le premier coup), ou « Temps écoulé ». Plus de phrase qui redisait le bandeau (« Bien joué : 1 défi sur 2,
+         niveau facile. »), ni de « Défi 200 » à côté de « +200 pts ». « Résolu », comme l’encart vert (« trouver » reste à la course
+         entre joueurs). 11 h 31 (« Voir la correction sur l’écran de fin ») : une partie d’une seule manche y repasse ; son écran dit
+         l’essentiel sans redire sa carte : « Défi résolu ! » ou « On retente ? », les points et ton temps, « Le défi » et sa correction. */
       const dur=jeuDureeLisible;
       const nOk=got.length,nT=rows.length;
       const all=nOk===nT&&nT>0;
       if(!J.over&&host)setTimeout(()=>{if(JEU===J&&!J.over)jeuFinish();},0);
-      /* 9 novembre, 0 h 31 : lastMiss, une partie d’une manche manquée, sans record : la carte « Temps écoulé » dit déjà « 0 point obtenu,
-         réponse non validée » ; le bandeau « 0 point · 0/1 trouvé · — temps moyen » le répétait : il s’efface. Le bandeau ne revient que pour un record. */
-      const lastR=rows.length?rows[rows.length-1]:null,lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';
+      const un=nT===1;   // une partie d’une seule manche (11 h 31)
       const ICO_OK='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12.5l4 4 8-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const ICO_KO='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
       /* 10 h 37 (la relecture) : une manche ratée garde sa ligne, dans la pêche des défis à rattraper, le réveil quand c’est le chrono ;
@@ -36479,11 +36476,13 @@ function jeuRender(){
         const k=J.rounds.indexOf(x.r),ok=x.ms!=null,y=ok?jeuRanking(k).find(z=>z.pid===J.me):null;
         /* Seul dans sa salle et hôte, c’est soi qui a quitté la manche : « Abandonnée », comme la carte du haut (8 novembre, 10 h 24) */
         const ab=!ok&&x.r.closed&&!jeuFermeeAuChrono(x.r,k),why=ab?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
+        /* Une seule manche : ni « Manche 1 », ni son temps, ni ses points, que le bandeau dit déjà ; le premier coup, s’il compte. */
+        const meta=ok?(un?'':`<i class="jr-time">Résolu en ${dur(x.ms)}</i>`)+(y&&(y.essai||y.rang)?jeuPtsDetail(y):''):`<i class="jr-why">${why}</i>`;
         return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ab?ICO_KO:JEU_ICO.reveil}</span>
-          <div class="jr-t"><small class="jr-n">Manche ${i+1}</small><b>${esc(x.c.titre)}</b>
-          <span class="jr-meta">${ok?`<i class="jr-time">Résolu en ${dur(x.ms)}</i>${y&&(y.essai||y.rang)?jeuPtsDetail(y):''}`:`<i class="jr-why">${why}</i>`}</span>
+          <div class="jr-t">${un?'':`<small class="jr-n">Manche ${i+1}</small>`}<b>${esc(x.c.titre)}</b>
+          ${meta?`<span class="jr-meta">${meta}</span>`:''}
           ${jeuCorrBoutonHTML(k)}</div>
-          <b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b></li>`;
+          ${un?'':`<b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b>`}</li>`;
       }).join('');
       /* 14 h 27 : tout trouvé, ou un nouveau record, le chat lève son trophée sous les confettis (son GIF), à droite du titre ; il
          remplace la coupe du titre */
@@ -36492,11 +36491,13 @@ function jeuRender(){
       /* 10 h 37 (la relecture, ses maquettes 2/2, 1/2 et 0/2) : le titre dit l’issue, « Tout résolu ! », « Bien joué ! » ou
          « On retente ? » ; le niveau dessous, sans point final ; le bandeau, toujours les trois mêmes cases (les points, les défis
          résolus, le temps moyen, « — » sans défi résolu), d’un bilan à l’autre. */
-      const titre=all?(trophee?'Tout résolu\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\u00a0!':'On retente\u00a0?';
-      const bande=`<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>résolu${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>temps moyen</small></div></div>`;
+      const titre=un?(all?(trophee?'Défi résolu\u00a0!':'Défi résolu ! 🏆'):'On retente\u00a0?'):all?(trophee?'Tout résolu\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\u00a0!':'On retente\u00a0?';
+      /* Une seule manche : deux cases, les points et ton temps (« 1/1 résolu » ne disait rien) */
+      const bande=`<div class="jeu-bilan${J.record?' has-record':''}${un?' is-2':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div>`+
+        `${un?'':`<div><b>${nOk}/${nT}</b><small>résolu${nOk>1?'s':''}</small><span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span></div>`}<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;
       html=trophee+head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+   // le niveau, seul, sous le titre : il ne se dit nulle part ailleurs
-        `${lastMiss}${lastMiss&&!J.record?'':bande}
-        <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rounds">${recap}</ol></div>
+        `${bande}
+        <div class="jeu-card jeu-recap"><p class="jeu-card-h">${un?'Le défi':'Manche par manche'}</p><ol class="jeu-rounds">${recap}</ol></div>
         ${jeuFinBoutonsHTML(nOk,all)}`;
       if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
       if(all)setTimeout(celebrate,300);
@@ -36741,21 +36742,18 @@ function coachOkHTML(o){
 function jeuFoundHTML(r,pid){
   const J=JEU,n=J.rounds.indexOf(r),rk=jeuRanking(n),k=rk.findIndex(y=>y.pid===pid),x=rk[k]||Object.assign({pid,ms:0,place:1},jeuPts(0,0,true));
   const sl=jeuSoloLike(n),pos=k<0?-1:x.place-1,last=n>=J.nb-1;
-  const det=coachOkDetail([`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?`du premier coup <span class="coach-ok-bonus">+${x.essai}\u00a0✨</span>`:'',sl&&J.record&&jeuFinSurPlace()?'<span class="coach-ok-bonus is-record">Nouveau record</span>':'']);
+  const det=coachOkDetail([`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?`du premier coup <span class="coach-ok-bonus">+${x.essai}\u00a0✨</span>`:'']);
   const pts=`<strong class="jeu-done-pts coach-ok-pts"><em data-n="${x.pts}">+${x.pts}</em><small>pts</small></strong>`;
   /* Un essai manqué dans cette manche : l’encart était rouge (coachKo) */
   const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;
-  /* Seul : la suite (jeuSuiteHTML). Une partie d’une seule manche se termine ici : pas de compte à rebours, ses boutons sous la carte
-     (jeuFinBoutonsHTML), et un nouveau record dans le détail (9 novembre, 10 h 01) ; « Voir la correction » à la place de la
-     requête repliée (10 h 37 : la correction la montre, avec la solution). */
-  const fin1=sl&&jeuFinSurPlace();
-  const suite=fin1?'':sl?jeuSuiteHTML(n)
+  /* Seul : la suite (jeuSuiteHTML), la manche suivante ou l’écran de fin. La correction, elle, est sur l’écran de fin (11 h 31). */
+  const suite=sl?jeuSuiteHTML(n)
     :`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div>`;
   return `<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">
       ${coachOkHTML({ko,det,pts})}
       ${suite}
-      ${fin1?jeuCorrBoutonHTML(n):r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:''}
-    </section>${fin1?jeuFinBoutonsHTML(1,true):''}`;
+      ${r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:''}
+    </section>`;
 }
 /* Seul : ce qui vient sous la carte de la manche finie, et une barre qui se remplit jusqu’à elle (8 h 50), de là où elle en est si la
    carte se redessine : « La manche suivante démarre dans 5 s », ou « Ton bilan arrive dans 5 s » à la dernière. */
@@ -36769,48 +36767,34 @@ function jeuSuiteHTML(n){
    dessous. Avant : la page « Manche 1/2 terminée » (« Temps écoulé », « 0 point obtenu », « Non validée »), ou le bilan aussitôt. */
 /* 10 h 37 (la relecture : « réduire la hauteur du bloc Temps écoulé », « ne jamais interrompre une partie de plusieurs manches parce
    qu’une seule a été ratée ») : le réveil à la place de la croix, une phrase courte : « Tu te rattraperas à la prochaine manche. »,
-   « La correction t’attend dans ton bilan. » à la dernière, « Le chrono est arrivé à 0 avant ta réponse. » quand la partie s’y
-   termine, avec « Voir la correction » (plus « Retenter ce défi », que « Rejouer » doublait). */
+   ou « La correction t’attend dans ton bilan. » à la dernière ; puis la suite. Plus « Retenter ce défi », que « Rejouer » doublait ;
+   la correction est sur l’écran de fin (11 h 31), une partie d’une seule manche comprise. */
 function jeuRateHTML(r){
-  const J=JEU,n=J.rounds.indexOf(r),fin1=jeuFinSurPlace(),last=n>=J.nb-1;
+  const J=JEU,n=J.rounds.indexOf(r),last=n>=J.nb-1;
   const ab=r.closed&&!jeuFermeeAuChrono(r,n);   // quittée avant la fin (une appli d’avant) : « Manche abandonnée », comme jeuMissHTML
   const t=ab?'Manche abandonnée':'Temps écoulé';
-  const p=ab?'Tu as quitté la manche avant ta réponse.':fin1?'Le chrono est arrivé à 0 avant ta réponse.':last?'La correction t’attend dans ton bilan.':'Tu te rattraperas à la prochaine manche.';
+  const p=ab?'Tu as quitté la manche avant ta réponse.':last?'La correction t’attend dans ton bilan.':'Tu te rattraperas à la prochaine manche.';
   return `<section class="coach is-to jeu-done" id="jeu-done" aria-label="${t}" aria-live="polite">
-      <div class="coach-to"><span class="coach-to-ico" aria-hidden="true">${ab?JEU_ICO.cross:JEU_ICO.reveil}</span><div class="coach-to-tx"><b class="coach-to-k">${t}</b><p>${p}</p>${fin1?jeuCorrBoutonHTML(n):''}</div></div>
-      ${fin1?'':jeuSuiteHTML(n)}
-    </section>${fin1?jeuFinBoutonsHTML(0,false):''}`;
+      <div class="coach-to"><span class="coach-to-ico" aria-hidden="true">${ab?JEU_ICO.cross:JEU_ICO.reveil}</span><div class="coach-to-tx"><b class="coach-to-k">${t}</b><p>${p}</p></div></div>
+      ${jeuSuiteHTML(n)}
+    </section>`;
 }
-/* 9 novembre, 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel, et ne passer par cette page que s’il y a
-   plus d’une manche ») : une partie d’une seule manche, seule (Joue seule, ou seule dans sa salle), n’a plus de bilan : il redisait
-   sa carte (« Bravo, défi résolu ! » et « Résolu en 4 s » / « +200 », ou « Temps écoulé » deux fois). Elle se termine sur place :
-   la carte reste, ses boutons dessous (ceux du bilan) ; les points de la partie comptent (jeuCreditGame), la notification dit le
-   total, la salle apprend la fin de partie (jeuFinish). */
-function jeuFinSurPlace(){const J=JEU;return !!J&&J.nb===1&&!!J.rounds[0]&&jeuSoloLike(0);}
-function jeuFinirSurPlace(){
-  const J=JEU;if(!J)return;
-  const cg=jeuCreditGame();   // une seule fois par partie (J.scored)
-  if(J.finSP!==J.g){
-    J.finSP=J.g;
-    if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J)jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},450);
-    if(J.rounds[0]&&J.rounds[0].found[J.me]!=null&&typeof celebrate==='function')setTimeout(()=>{if(JEU===J)celebrate();},250);
-    if(!J.over&&jeuIsHost())setTimeout(()=>{if(JEU===J&&!J.over)jeuFinish();},0);
-  }
-}
-/* Les boutons de fin, sous la carte d’une partie d’une manche et sous le bilan (10 h 37, la relecture : « Passer au niveau moyen »,
+/* Les boutons de l’écran de fin (10 h 37, la relecture : « Passer au niveau moyen »,
    une progression proposée, pas la seule sortie ; le bouton principal selon l’issue) : tout résolu, seule, la carte « Prochaine étape »
    (le niveau au-dessus, ce qu’y vaut un défi) ; « Rejouer », ou « Réessayer » sans défi résolu ; « Retour aux défis » seule, « Quitter
    la salle » dans une salle. */
 function jeuFinBoutonsHTML(nOk,all){
   const J=JEU,nextNiv={f:'m',m:'d'}[J.niv];
-  const prog=J.solo&&all&&nextNiv?`<button type="button" class="jeu-prog is-${nextNiv}" onclick="jeuNiveauSuivant()"><span class="jeu-prog-ico" aria-hidden="true">${jeuNivBars(nextNiv)}</span>`+
-    `<span class="jeu-prog-tx"><small>Prochaine étape</small><b>Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</b><span class="jeu-prog-x">${JEU_COIN_SVG}×${JEU_NIV_X[nextNiv]||1} points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
+  /* 11 h 38 (Elisa : « trop de cadres, trop de boutons ») : la prochaine étape n’est plus une carte, une ligne sans cadre, entre le
+     récapitulatif et « Rejouer » : les barres du niveau, « Passer au niveau moyen », ce qu’y vaut un défi, la flèche. */
+  const prog=J.solo&&all&&nextNiv?`<button type="button" class="jeu-prog is-${nextNiv}" onclick="jeuNiveauSuivant()">${jeuNivBars(nextNiv)}`+
+    `<span class="jeu-prog-t">Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</span><span class="jeu-prog-x">×${JEU_NIV_X[nextNiv]||1}<span class="lq-sr"> points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
   return `<div class="jeu-fin-actions">${prog}<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>${nOk?'Rejouer':'Réessayer'}</span>${DEF_CHEV_SVG}</button>`+
     (J.solo?jeuBtn2('retour','Retour aux défis','openJeu()'):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
 }
 /* La correction (Elisa, 9 novembre, 10 h 37 : « pouvoir voir la correction et le résultat finalement, mais sur l’écran bilan, qui
-   ouvre une page en restant sur celle-ci ») : à la fin de la partie, chaque défi joué a son « Voir la correction » (le bilan, la fin
-   sur place d’une partie d’une manche, le podium entre amis). Elle monte du bas par-dessus l’écran, qui reste dessous : la feuille
+   ouvre une page en restant sur celle-ci » ; 11 h 31 : « pas directement sur le défi mais sur l’écran de fin ») : sur l’écran de fin
+   seulement, chaque défi joué a son « Voir la correction » (le bilan, une partie d’une manche comprise ; le podium entre amis). Elle monte du bas par-dessus l’écran, qui reste dessous : la feuille
    des Défis (× , le voile ou Échap la referment, le focus revient au bouton). Une solution (à copier ; d’autres requêtes donnent le
    même résultat), ce qu’elle renvoie, le raisonnement (la piste du défi), puis ta requête acceptée, ou ton dernier essai. Pendant la
    partie, rien ne se dévoile : les indices s’arrêtent avant la requête. */
@@ -36987,7 +36971,7 @@ function jeuRun(){
     jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});
     if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}
     jeuCountUp(document.querySelector('#jeu-done .jeu-done-pts em'));
-    {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x&&!jeuFinSurPlace())jeuPtsPop({kind:'round',pts:x.pts});}   // une partie d’une manche : celle de la partie suit, avec le total
+    {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}
     if(navigator.vibrate)navigator.vibrate([10,40,20]);
     return;
   }
@@ -47151,7 +47135,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-correction-v2727';
+  const SW_CACHE='requete-2026-11-09-fin-v2728';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

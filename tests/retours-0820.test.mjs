@@ -46,7 +46,7 @@ test('dans la salle : la carte trouvée est la carte de l’indice ; à plusieur
   assert.equal(ctx.jeuWaitLine(0), '<i class="jeu-dot" aria-hidden="true"></i><span class="jeu-wl"><b class="jeu-wl-k">En attente des autres…</b><small>@matime cherche encore</small></span>', '« En attente des autres… », puis qui cherche encore, dessous (8 h 50)');
   /* Seul : la manche trouvée reste à l’écran le temps de la suite (jeuFinAuto, 5 s), jusqu’à la manche suivante ou jusqu’au bilan */
   const v = fn('jeuView');
-  assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||J.nb===1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono (10 h 01) ; une partie d’une manche s’y termine');
+  assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono (10 h 01) ; une partie d’une manche aussi, jusqu’à l’écran de fin (11 h 31)');
   assert.ok(v.indexOf("return'play'+n;") < v.indexOf("if(fin&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';"), 'avant le bilan');
   assert.ok(app.includes('function jeuFige(n){const J=JEU,r=J&&n>=0?J.rounds[n]:null;return !!r&&r.found[J.me]!=null&&jeuSoloLike(n);}'));
   assert.ok(fn('jeuTick').includes("if(el&&n>=0&&(jeuFige(n)||(jeuSoloLike(n)&&jeuRoundDone(n))))jeuChronoPose(el,jeuChronoEtat(n));"), 'le chrono s’arrête, au vert');
@@ -87,7 +87,7 @@ test('le style : l’encart vert comme la boîte « Défi résolu », le vert qu
     'html[data-motion="reduce"].lq .coach-ok,html[data-motion="reduce"].lq .coach-ok *{animation:none!important}',
   ]) assert.ok(lq.includes(k), k);
   assert.ok(lq.includes('html.lq .feedback.ok{background:var(--success-soft)!important;border-color:#BFE6CF!important;'), 'les couleurs de « Défi résolu »');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=267">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=268">'));
   /* 8 h 50 (« Change de couleur pour le vert Garde, sinon ça fait trop ») : « Garde » au bleu ciel, plus en menthe */
   assert.ok(!lq.includes('html.lq .consigne.dq .dq-sec.is-garde{background:#E5FAEF}') && lq.includes("background:#9CD7FF url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23134E7C'"));
 });

@@ -27,23 +27,22 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const fn = name => cut(`function ${name}(`, '\n}\n') + '\n}\n';
 const line = name => cut(`function ${name}(`, '\n') + '\n';
 
-test('une partie d’une seule manche, seule, se termine sur place : pas de bilan, ses points, sa notification, sa fin de partie', () => {
-  assert.ok(line('jeuFinSurPlace').includes('return !!J&&J.nb===1&&!!J.rounds[0]&&jeuSoloLike(0);'));
+/* 11 h 31 (Elisa : « ne pas mettre Voir la correction directement sur le défi mais sur l’écran de fin ») : de 10 h 01 à 11 h 31, une
+   partie d’une seule manche se terminait sur place, ses boutons sous la carte ; elle repasse par l’écran de fin, comme les autres. */
+test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; ses boutons, ceux de l’écran de fin', () => {
+  assert.ok(!app.includes('jeuFinSurPlace') && !app.includes('jeuFinirSurPlace'), 'plus de fin sur place');
   const v = fn('jeuView');
-  assert.ok(v.includes("if(J.over)return jeuFinSurPlace()?'play0':'final';"), 'finie, elle reste la page de la manche');
-  assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||J.nb===1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono');
-  const f = fn('jeuFinirSurPlace');
-  assert.ok(f.includes('const cg=jeuCreditGame();') && f.includes("jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total})") && f.includes('celebrate()') && f.includes('jeuFinish();'));
-  assert.ok(f.includes('if(J.finSP!==J.g){') && f.includes('J.finSP=J.g;'), 'une fois par partie');
-  assert.ok(app.includes("if((mine||rate)&&jeuFinSurPlace())jeuFinirSurPlace();"), 'dès que la manche est finie, avant de dessiner sa carte (le record)');
-  assert.ok(app.includes("if(x&&!jeuFinSurPlace())jeuPtsPop({kind:'round',pts:x.pts});"), 'une seule notification : celle de la partie, avec le total');
+  assert.ok(v.includes("if(J.over)return'final';"), 'finie : l’écran de fin');
+  assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono : sa carte, 5 s, puis l’écran de fin');
+  assert.ok(app.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}"), 'les points de la manche, puis ceux de la partie sur l’écran de fin');
   /* Ses boutons : ceux du bilan (jeuFinBoutonsHTML depuis 10 h 37 : la prochaine étape en carte, « Réessayer » sans défi résolu,
      « Retour aux défis » à la place de « Changer de niveau ») */
   const ctx = vm.createContext({ JEU: { solo: true, niv: 'f' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>',
     DEF_CHEV_SVG: '<svg>›</svg>', jeuNivBars: k => `[${k}]`, jeuBtn2: (i, l, o) => `[${i}|${l}|${o}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), ctx);
-  assert.equal(ctx.jeuFinBoutonsHTML(1, true), '<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant()"><span class="jeu-prog-ico" aria-hidden="true">[m]</span>'
-    + '<span class="jeu-prog-tx"><small>Prochaine étape</small><b>Passer au niveau moyen</b><span class="jeu-prog-x"><coin>×2 points par défi</span></span><svg>›</svg></button>'
+  /* 11 h 38 (« trop de cadres, trop de boutons ») : la prochaine étape, une ligne sans cadre */
+  assert.equal(ctx.jeuFinBoutonsHTML(1, true), '<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant()">[m]'
+    + '<span class="jeu-prog-t">Passer au niveau moyen</span><span class="jeu-prog-x">×2<span class="lq-sr"> points par défi</span></span><svg>›</svg></button>'
     + '<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[retour|Retour aux défis|openJeu()]</div>');
   assert.equal(ctx.jeuFinBoutonsHTML(1, false), '<div class="jeu-fin-actions"><button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[retour|Retour aux défis|openJeu()]</div>', 'pas tout résolu : pas de prochaine étape');
   assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Réessayer</span>'), 'rien de résolu : « Réessayer »');
@@ -57,12 +56,12 @@ test('une partie d’une seule manche, seule, se termine sur place : pas de bila
   assert.ok(cut("}else if(v==='final'){", '/* Fondu enchaîné').includes('${jeuFinBoutonsHTML(nOk,all)}'));
 });
 
-test('seul, finie au chrono : « Temps écoulé » à la place de l’éditeur, dans la pêche des défis à rattraper ; « Voir la correction » quand la partie s’arrête là (10 h 37)', () => {
+test('seul, finie au chrono : « Temps écoulé » à la place de l’éditeur, dans la pêche des défis à rattraper, puis la suite (10 h 37, 11 h 31)', () => {
   const r = fn('jeuRateHTML');
   assert.ok(r.includes('<section class="coach is-to jeu-done" id="jeu-done" aria-label="${t}" aria-live="polite">'), 'la carte de l’indice, comme l’encart vert (jeu-done : la page ne la redessine pas)');
-  assert.ok(r.includes('<div class="coach-to"><span class="coach-to-ico" aria-hidden="true">${ab?JEU_ICO.cross:JEU_ICO.reveil}</span><div class="coach-to-tx"><b class="coach-to-k">${t}</b><p>${p}</p>${fin1?jeuCorrBoutonHTML(n):\'\'}</div></div>'));
-  assert.ok(r.includes("const p=ab?'Tu as quitté la manche avant ta réponse.':fin1?'Le chrono est arrivé à 0 avant ta réponse.':last?'La correction t’attend dans ton bilan.':'Tu te rattraperas à la prochaine manche.';"), '10 h 37 : une phrase courte, qui encourage');
-  assert.ok(r.includes("${fin1?'':jeuSuiteHTML(n)}") && r.includes("${fin1?jeuFinBoutonsHTML(0,false):''}"), 'la suite, ou ses boutons');
+  assert.ok(r.includes('<div class="coach-to"><span class="coach-to-ico" aria-hidden="true">${ab?JEU_ICO.cross:JEU_ICO.reveil}</span><div class="coach-to-tx"><b class="coach-to-k">${t}</b><p>${p}</p></div></div>'));
+  assert.ok(r.includes("const p=ab?'Tu as quitté la manche avant ta réponse.':last?'La correction t’attend dans ton bilan.':'Tu te rattraperas à la prochaine manche.';"), '10 h 37 : une phrase courte, qui encourage');
+  assert.ok(r.includes('      ${jeuSuiteHTML(n)}\n    </section>`;') && !r.includes('jeuCorrBoutonHTML') && !r.includes('jeuFinBoutonsHTML'), 'la suite, toujours ; la correction sur l’écran de fin (11 h 31)');
   assert.ok(!r.includes('jeuRetenter') && !r.includes('Retenter ce défi'), 'plus de « Retenter ce défi » : « Réessayer » le doublait');
   assert.ok(!r.includes('Point obtenu') && !r.includes('Non validée'), 'l’essentiel : plus de « 0 point obtenu », « Non validée »');
   assert.ok(app.includes("const rate=!mine&&sl&&jeuRoundDone(n);edOn=!mine&&!rate;") && app.includes("${mine?jeuFoundHTML(r,J.me):rate?jeuRateHTML(r):editorBlock(false,'defi.sql',{jeu:1})}"));
@@ -83,11 +82,11 @@ test('trouvée sans que la page le montre (la réponse du serveur en salle class
 test('le bilan (2 ou 3 manches) : l’essentiel, une fois ; « résolu » partout pour un défi', () => {
   const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
   /* 10 h 37 (la relecture) : le titre dit l’issue, le niveau sans point final, toujours les trois cases du bandeau, la correction */
-  assert.ok(fin.includes("const titre=all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
+  assert.ok(fin.includes("const titre=un?(all?(trophee?'Défi résolu\\u00a0!':'Défi résolu ! 🏆'):'On retente\\u00a0?'):all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
   assert.ok(fin.includes("html=trophee+head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+"), 'le niveau sous le titre, seul');
   assert.ok(!fin.includes('const verdict') && !fin.includes('`Bien joué') && !fin.includes("'Tout trouvé"), 'plus de phrase qui redit le bandeau');
-  assert.ok(fin.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}\">") && fin.includes("<small>résolu${nOk>1?'s':''}</small>"), 'les trois cases ; « résolu »');
-  assert.ok(fin.includes("<i class=\"jr-time\">Résolu en ${dur(x.ms)}</i>${y&&(y.essai||y.rang)?jeuPtsDetail(y):''}"), 'le détail seulement s’il dit autre chose que les points');
+  assert.ok(fin.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}${un?' is-2':''}\">") && fin.includes("<small>résolu${nOk>1?'s':''}</small>"), 'les trois cases (deux pour une manche, 11 h 31) ; « résolu »');
+  assert.ok(fin.includes("const meta=ok?(un?'':`<i class=\"jr-time\">Résolu en ${dur(x.ms)}</i>`)+(y&&(y.essai||y.rang)?jeuPtsDetail(y):''):`<i class=\"jr-why\">${why}</i>`;"), 'le détail seulement s’il dit autre chose que les points ; une seule manche, sans redire le bandeau (11 h 31)');
   assert.ok(fin.includes('${jeuCorrBoutonHTML(k)}</div>') && !fin.includes('jeuRetenter('), '« Voir la correction » pour chaque manche, plus « Retenter ce défi »');
   /* Mes stats, Planning, Mon compte */
   for (const k of ["${trouves} ${plur(trouves,'défi')} ${plur(trouves,'résolu')} sur ${manches}", "'Les défis que tu résous comptent ici.'", "${h.ok}/${h.n} ${plur(h.ok,'résolu')}",
