@@ -17,12 +17,12 @@ const ligne = nom => { const i = app.indexOf(`function ${nom}(`); assert.ok(i >=
 function moteur({ live = ['a'], now = 1_000_000 } = {}) {
   const ctx = vm.createContext({ Date: { now: () => ctx.__now }, __now: now, JEU: null, CHALLENGES: [{ id: 'x', niv: 'f' }], JEU_NIV_MANCHE: { f: 600000, m: 900000, d: 1200000 },
     JEU_PING_MS: 20000, jeuLive: () => live, jeuSoloLike: () => live.length < 2 });
-  vm.runInContext('const JEU_AUTO_MS=5000;' + ligne('jeuDureeMs') + ligne('jeuNivManche') + fn('jeuRoundDone') + ligne('jeuAutoAttente') + fn('jeuFinAuto') + ligne('jeuFermeeAuChrono'), ctx);
+  vm.runInContext('const JEU_AUTO_MS=5000,JEU_AUTO_SOLO_MS=10000;' + ligne('jeuDureeMs') + ligne('jeuNivManche') + fn('jeuRoundDone') + ligne('jeuAutoAttente') + fn('jeuFinAuto') + ligne('jeuFermeeAuChrono'), ctx);
   return ctx;
 }
 
 test('quelle que soit la fin de la manche, la suite part 5 s après que ce téléphone l’a vue finie', () => {
-  const ctx = moteur();
+  const ctx = moteur({ live: ['a', 'b'] });
   const r = { cid: 'x', t1: 1_000_000 - 60_000, found: {} };
   ctx.JEU = { solo: false, nb: 3, over: false, rounds: [r], synced: true, syncAt: 0, echoAt: 1_000_000 };
   assert.equal(ctx.jeuFinAuto(0), 0, 'la manche se joue');
@@ -30,7 +30,7 @@ test('quelle que soit la fin de la manche, la suite part 5 s après que ce tél�
   assert.equal(ctx.jeuFinAuto(0), 1_005_000, 'close (par l’hôte, abandonnée, ou par le serveur à son heure) : 5 s');
   ctx.__now += 3000;
   assert.equal(ctx.jeuFinAuto(0), 1_005_000, 'le même moment, d’un tick à l’autre');
-  const s = { cid: 'x', t1: 1_000_000, found: { a: 42 } };
+  const s = { cid: 'x', t1: 1_000_000, found: { a: 42, b: 43 } };
   ctx.JEU.rounds = [s];
   assert.equal(ctx.jeuFinAuto(0), 1_008_000, 'trouvée par tout le monde : aussi');
   const t = { cid: 'x', t1: ctx.__now - 600_000 - 30_000, found: {} };
@@ -39,7 +39,7 @@ test('quelle que soit la fin de la manche, la suite part 5 s après que ce tél�
   ctx.JEU.over = true;
   assert.equal(ctx.jeuFinAuto(0), 0, 'la partie finie : plus rien');
   assert.equal(ctx.jeuAutoAttente(0), '<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>La manche suivante arrive…</span>');
-  assert.match(ctx.jeuAutoAttente(2), /Ton bilan arrive…/);
+  assert.match(ctx.jeuAutoAttente(2), /Le podium arrive…/, 'à plusieurs, la dernière : le podium');
 });
 
 test('plus de bouton « Manche suivante » : la même ligne chez tous, puis « La manche suivante arrive… »', () => {
@@ -79,4 +79,13 @@ test('de retour d’une autre appli : un signe de vie avant « hello », et le s
   assert.match(sql, /avant constant text := 'update requete_private\.membre set parti=false where code=p_salle and membre\.pid=v_pid;';/);
   assert.match(sql, /replace\(def, avant, 'update requete_private\.membre set parti=false,vu=now_at where code=p_salle and membre\.pid=v_pid;'\)/);
   assert.match(sql, /raise exception 'arrivée introuvable dans jeu_envoyer_v2'/, 'rien n’est changé si la ligne a bougé');
+});
+
+test('9 novembre, 19 h 40 : seul, la suite part 10 s après (le temps de lire sa requête et son résultat)', () => {
+  const ctx = moteur();
+  const r = { cid: 'x', t1: 1_000_000 - 60_000, found: {}, closed: true };
+  ctx.JEU = { solo: true, nb: 3, over: false, rounds: [r], synced: true, syncAt: 0, echoAt: 1_000_000 };
+  assert.equal(ctx.jeuFinAuto(0), 1_010_000);
+  ctx.JEU.over = true;
+  assert.match(ctx.jeuAutoAttente(2), /Ton bilan arrive…/, 'seul, la dernière : le bilan');
 });

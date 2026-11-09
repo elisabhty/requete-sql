@@ -150,7 +150,7 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-encore-v2764';") && app.includes("const SW_CACHE='requete-2026-11-09-encore-v2764';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-flamme-v2766';") && app.includes("const SW_CACHE='requete-2026-11-09-flamme-v2766';"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=279">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
@@ -229,8 +229,12 @@ test('15 h 18 : la flamme du jour attend la fin de la manche de salle, puis s’
   assert.deepEqual(cree, [], 'pendant la manche : rien');
   assert.equal(timers.at(-1)[1], 1000, 'elle repasse dans une seconde');
   ctx.JEU.view = 'draw1'; timers.at(-1)[0](); assert.deepEqual(cree, [], 'le tirage aussi');
-  ctx.JEU.view = 'res1'; timers.at(-1)[0]();
-  assert.ok(cree.includes('on'), 'les résultats de la manche : la flamme s’allume');
+  ctx.JEU.view = 'res1'; timers.at(-1)[0](); assert.deepEqual(cree, [], '19 h 40 : les résultats de la manche aussi (elle passait sur l’en-tête)');
+  ctx.JEU.view = 'final'; ctx.JEU.code = 'ROOM42'; ctx.JEU.g = 0; timers.at(-1)[0]();
+  assert.deepEqual(cree, [], 'le podium : ses points d’abord');
+  assert.equal(timers.at(-1)[1], 3500);
+  timers.at(-1)[0]();
+  assert.ok(cree.includes('on'), 'puis la flamme s’allume');
 });
 
 /* 9 novembre, 17 h 09 (Elisa : « je pense que ça saute quand ça passe du moteur jusqu’au cadre ») */

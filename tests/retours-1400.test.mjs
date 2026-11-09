@@ -66,18 +66,19 @@ test('l’invitation : lue dans le lien, gardée le temps de l’inscription, pu
   assert.equal(ouvrir({ search: '?partie=PRET02' }).ctx.jeuInvitation().de, '');
 });
 
-test('entrer : Défis passe derrière (la carte au code rempli si ça échoue), en pleine leçon la salle prend sa place', () => {
+test('entrer : Défis passe derrière (la carte au code rempli si ça échoue), en pleine leçon on cherche sur place (19 h 40)', () => {
   const entrer = cut('function jeuEntrerInvitation(code){', '\n}\n') + '\n}\n';
   const lancer = ({ lecon = false, salle = null } = {}) => {
     const appels = [];
     const ctx = vm.createContext({ JEU: salle, jeuInvite: '', document: { body: { classList: { contains: c => c === 'in-lesson' && lecon } } },
-      openJeu: c => { appels.push('défis ' + c); ctx.jeuInvite = c; }, jeuJoin: c => appels.push('rejoint ' + c), requestAnimationFrame: f => f() });
+      openJeu: c => { appels.push('défis ' + c); ctx.jeuInvite = c; }, jeuJoin: c => appels.push('rejoint ' + c), requestAnimationFrame: f => f(),
+      jeuPseudoPuis: f => f(), jeuStart: (c, h, x, o) => appels.push('cherche ' + c + (o && o.verif && o.enLecon ? ' sur place' : '')) });
     vm.runInContext('var jeuInvite="";' + entrer, ctx);
     ctx.jeuEntrerInvitation('PRET02');
     return appels;
   };
   assert.deepEqual(lancer(), ['défis PRET02', 'rejoint PRET02']);
-  assert.deepEqual(lancer({ lecon: true }), ['rejoint PRET02']);
+  assert.deepEqual(lancer({ lecon: true }), ['cherche PRET02 sur place'], '19 h 40 : en plein défi, on cherche la salle sans quitter la page');
   assert.deepEqual(lancer({ lecon: true, salle: { code: 'PRET02' } }), [], 'déjà dans cette salle (rechargement) : rien');
   /* La salle se rejoint comme d’habitude : le pseudo réservé sans rien demander, puis la salle (jeuJoin) */
   assert.ok(app.includes('  jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:\'jeu-nom\',parCode:true}));'));
@@ -167,5 +168,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-encore-v2764';") && app.includes("const SW_CACHE='requete-2026-11-09-encore-v2764';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-flamme-v2766';") && app.includes("const SW_CACHE='requete-2026-11-09-flamme-v2766';"));
 });

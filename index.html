@@ -35179,7 +35179,7 @@ function jeuStart(code,host,cid,opts){
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
     sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
-    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null,inscrits:new Set(),tard:false,reprise:!!opts.reprise};
+    recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null,inscrits:new Set(),tard:false,reprise:!!opts.reprise,enLecon:!!opts.enLecon};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
   const G=JEU;
   JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;J.netBas=ok?0:(J.netBas||Date.now());if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo&&!opts.secure);
@@ -35225,7 +35225,7 @@ function jeuEcran(){
    referme sur la salle d’attente. Complète : la feuille le dit, on n’entre pas. */
 function jeuVerifSuivre(J){
   if(J.full){jeuVerifEchec('complete');return false;}
-  if(J.tard){jeuVerifEchec('commencee');return false;}
+  if(J.tard||J.horsPartie){jeuVerifEchec('commencee');return false;}   // 19 h 40 : déjà « Oups » une fois, le code ne relance pas la boucle
   if(J.introuvable&&!J.hostPid){jeuVerifEchec('introuvable');return false;}   // la base n’a pas cette salle : inutile d’attendre
   if(!J.hostPid||!J.synced||J.verifOk)return false;
   /* 16 h 34 (la relecture) : la coche verte, « Salle trouvée ! », un court instant, puis la salle d’attente. */
@@ -35243,8 +35243,9 @@ function jeuVerifSuivre(J){
 }
 function jeuVerifEchec(r){
   const J=JEU;if(!J||!J.verif)return;
-  const code=J.code;
+  const code=J.code,enLecon=!!J.enLecon;
   jeuStop();
+  if(enLecon&&!document.querySelector('#dx-feuille #jeu-code')){jeuInvitationEchec(r);return;}
   if(typeof dxCodeEtat==='function')dxCodeEtat(r,code);
 }
 /* Après un rechargement : on revient dans la même salle. Des amis y sont : on la rejoint (l’un d’eux est devenu l’hôte). Personne
@@ -36265,7 +36266,7 @@ const JEU_LENT_MS=30000,JEU_LENT2_MS=60000;
 /* 14 h 09 (Elisa) : le bouton dit la situation : « Lancer la partie » (tout le monde prêt, ou 30 s passées), « En attente des
    joueurs… » (désactivé), seul « Jouer en solo ». */
 function jeuLobbyLabel(){
-  const J=JEU;if(!J||!jeuIsHost())return 'Lancer la partie';
+  const J=JEU;if(!J||J.hostPid!==J.me)return 'Lancer la partie';
   if(jeuPrets().live.length<2)return 'Jouer en solo';
   return jeuPeutLancer()?'Lancer la partie':'En attente des joueurs…';
 }
@@ -36276,7 +36277,7 @@ function jeuPrets(){const live=jeuLive();return {live,prets:live.filter(jeuIsRea
    sur 3 présents ; le bouton se débloque quand 30 s et non prêt ») : seul, ou tout le monde prêt, « Lancer la partie » est actif ;
    sinon il se débloque quand chacun de ceux qui ne sont pas prêts l’est depuis 30 s (un arrivant a ses 30 s). Personne n’est retiré. */
 function jeuPeutLancer(){
-  const J=JEU;if(!J||J.solo||!jeuIsHost()||jeuCur()>=0||J.over)return false;
+  const J=JEU;if(!J||J.solo||J.hostPid!==J.me||jeuCur()>=0||J.over)return false;
   const {live,prets}=jeuPrets();if(live.length<2||prets.length===live.length)return true;
   return jeuPasPrets().every(x=>x.ms>=JEU_LENT_MS);
 }
@@ -36301,13 +36302,13 @@ function jeuPasPrets(){
 const JEU_SABLIER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h10M7 20.5h10M8 3.5v3.2a4 4 0 0 0 1.6 3.2L12 12l2.4-2.1A4 4 0 0 0 16 6.7V3.5M8 20.5v-3.2a4 4 0 0 1 1.6-3.2L12 12l2.4 2.1a4 4 0 0 1 1.6 3.2v3.2"/></svg>';
 const JEU_MAIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 12.5V5.8a1.4 1.4 0 0 1 2.8 0V11M11.3 10.6V4.4a1.4 1.4 0 0 1 2.8 0v6.3M14.1 10.7V5.6a1.4 1.4 0 0 1 2.8 0v7.6c0 4-2.6 7.3-6.4 7.3-2.4 0-3.9-1.1-5.2-3l-2.2-3.3a1.4 1.4 0 0 1 2.2-1.7l1.6 1.8"/></svg>';
 function jeuLobbyEtatHTML(){
-  const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true);
+  const J=JEU,host=J.hostPid===J.me,{live,prets}=jeuPrets(),mot=jeuPretMot(true);   // 19 h 40 : l’hôte reste l’hôte à l’écran pendant une reprise (Safari : la carte passait au vert)
   if(!host)jeuPasPrets();   // 15 h 08 : chaque téléphone compte les 30 s ; l’invité qui devient hôte (relais) ne les remet pas à zéro
   const tous=live.length>=2&&prets.length===live.length;
   let cls='is-att',ico=JEU_SABLIER,t,p;
   if(host&&live.length<2){
     t=J.pub?'Ta salle est ouverte':J.created?'Personne n’a encore rejoint':'Les autres sont partis';
-    p='Partage le code, ou joue en solo.';ico=JEU_ICO.amis;
+    p=J.pub?'Les autres joueurs la voient et peuvent entrer. Ou joue en solo.':'Partage le code, ou joue en solo.';ico=JEU_ICO.amis;
   }else if(tous){
     cls='is-ok';ico=JEU_ICO.check;t='Tout le monde est prêt !';p=host?'À toi de lancer la partie.':'L’hôte peut lancer la partie.';
   }else if(host){
@@ -36472,7 +36473,7 @@ function jeuRender(){
   /* Les réglages de la partie en autocollants : le niveau et ses barres, les manches, le chrono (Elisa, 31 octobre, 15 h 52, réf. 1 :
      « c’est pas 3 min par manche, c’est un chrono qui part de 0 » ; 6 novembre, 7 h 52 : il part de 20 min et descend jusqu’à 0 ; depuis le 8 novembre, 10, 15 ou 20 min selon le niveau). */
   const chips=()=>`<ul class="jeu-chips" aria-label="La partie"><li class="jeu-chip is-${J.niv}" style="--i:0">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</li><li class="jeu-chip" style="--i:1">${lqStkSvg('cards')}${J.nb} manche${J.nb>1?'s':''}</li><li class="jeu-chip" style="--i:2">${lqStkSvg('clock')}${jeuDureeMs(J.niv)/60000}\u00a0min par manche</li></ul>`;
-  const host=jeuIsHost();
+  const host=J.hostPid===J.me;   // l’écran : qui est l’hôte (jeuIsHost : qui peut agir, faux le temps d’une reprise ; 19 h 40)
   let html='',edOn=false;
   /* Entrer dans une salle, et ses impasses (Elisa, 1er novembre, 1 h 01, réf. 1 : « rejoint la salle » et « Salle introuvable » étaient
      de l’ancienne DA). La carte de l’écran Défis : l’en-tête violet quadrillé, l’autocollant, le surtitre menthe, le titre jaune ;
@@ -36524,8 +36525,10 @@ function jeuRender(){
        manches dans la salle d’attente, les réglages se choisissent avant d’entrer (ils restent lisibles en pastilles) ; « le code
        reçu, monte-le en haut dans le cadre Entre dans la salle » : le code est en tête, en tuiles, dans la carte violette de la salle
        de défi, avec « Partager l’invitation ». */
-    const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle est ouverte':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis'):`Salle ${jeuDe(hostName)}`,
-      host&&J.pub?'Elle est visible par les autres joueurs, qui peuvent entrer. Tu peux aussi partager ce code.':host&&J.pour?`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`:'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
+    /* 19 h 40 (Elisa : « remplace Ta salle est ouverte par celle en bas des joueurs ») : « Ta salle est ouverte » n’est plus dit qu’une
+       fois, sous les joueurs (jeuLobbyEtatHTML) ; en haut, le titre de la salle et ce qu’on fait du code. */
+    const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle de défi':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis'):`Salle ${jeuDe(hostName)}`,
+      host&&J.pub?'Invite tes amis avec le code ou le lien de l’invitation.':host&&J.pour?`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`:'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
       `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n${jeuBadgeTous()?' is-tous':''}" id="jeu-n">${jeuBadgeHTML()}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       <div class="jeu-lobby-etat" id="jeu-lobby-etat" role="status" aria-live="polite" data-h="">${jeuLobbyEtatHTML()}</div>
@@ -36786,13 +36789,13 @@ function jeuAtterrir(root,avantH){
    toujours, quelle que soit la fin de la manche (chrono à 0, tout le monde a trouvé, close, abandonnée) ; plus de bouton
    « Manche suivante ». Les 5 s partent du moment où ce téléphone voit la manche finie : de retour d’une autre appli ou après un
    rechargement, encore 5 s pour voir le résultat, puis la suite ; rien ne reste bloqué (« ça s’est bloqué à 1 s »). */
-const JEU_AUTO_MS=5000;
+const JEU_AUTO_MS=5000,JEU_AUTO_SOLO_MS=10000;   // seul : 10 s pour lire sa requête et son résultat (Elisa, 9 novembre, 19 h 40)
 function jeuAutoAttente(n){const J=JEU,last=!!J&&n>=J.nb-1,sl=!!J&&jeuSoloLike(n);return `<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>${last?(sl?'Ton bilan arrive…':'Le podium arrive…'):'La manche suivante arrive…'}</span>`;}
 function jeuFinAuto(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
   if(!r||J.over||Date.now()<r.t1||!jeuRoundDone(n))return 0;
   if(!r.finVu)r.finVu=Date.now();
-  return r.finVu+JEU_AUTO_MS;
+  return r.finVu+(jeuSoloLike(n)?JEU_AUTO_SOLO_MS:JEU_AUTO_MS);
 }
 function jeuAttenteFin(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
@@ -37003,7 +37006,7 @@ function jeuFoundHTML(r,pid){
    carte se redessine : « La manche suivante démarre dans 5 s », ou « Ton bilan arrive dans 5 s » à la dernière. */
 function jeuSuiteHTML(n){
   const J=JEU,last=n>=J.nb-1,auto=jeuFinAuto(n),reste=auto?Math.max(0,auto-Date.now()):0;
-  return `<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?'Ton bilan arrive':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>${reste?`<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:${Math.min(1,Math.max(0,1-reste/JEU_AUTO_MS)).toFixed(3)}"></i>`:''}</div>`;
+  return `<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?'Ton bilan arrive':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>${reste?`<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:${Math.min(1,Math.max(0,1-reste/JEU_AUTO_SOLO_MS)).toFixed(3)}"></i>`:''}</div>`;
 }
 /* 9 novembre, 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel ») : seul, le chrono à 0, la manche reste à
    l’écran comme une manche trouvée : la carte de l’indice dit « Temps écoulé », dans la pêche des défis à rattraper, puis la suite
@@ -37345,7 +37348,16 @@ function jeuFromUrl(){
 function jeuEntrerInvitation(code){
   if(typeof JEU!=='undefined'&&JEU&&JEU.code===code&&document.body.classList.contains('in-lesson'))return;   // déjà dans cette salle (rechargement)
   if(!document.body.classList.contains('in-lesson')){openJeu(code);requestAnimationFrame(()=>{if(jeuInvite===code)jeuJoin(code);});return;}
-  jeuInvite=code;jeuJoin(code);
+  /* 19 h 40 (Elisa) : en plein défi ou en pleine leçon, on cherche la salle sans quitter la page ; trouvée, on y entre ; complète,
+     commencée, introuvable : un message par-dessus, et on reste où l’on était. */
+  jeuInvite=code;
+  if(typeof lqSay==='function')lqSay('On cherche la salle '+code+'…');
+  jeuPseudoPuis(()=>jeuStart(code,false,null,{nomId:'jeu-nom',parCode:true,verif:true,enLecon:true}),r=>jeuInvitationEchec(r==='pseudo'?'pseudo':'reseau'));
+}
+function jeuInvitationEchec(r){
+  const m=(typeof DX_CODE_MSG!=='undefined'&&DX_CODE_MSG[r])||DX_CODE_MSG.introuvable,nb=t=>String(t).replace(/&nbsp;/g,'\u00a0');
+  jeuInvite='';
+  if(typeof lqAsk==='function')lqAsk({ico:r==='complete'?'👥':r==='commencee'?'⏱️':'🔎',titre:nb(m[0]),texte:nb(m[1]),oui:'Continuer',non:null});
 }
 /* Le même défi, seul ou à plusieurs : on choisit ici, puis on reçoit un code à partager. */
 function challengeHowHTML(c){
@@ -45969,11 +45981,13 @@ function lqStreakToast(){
   if(typeof document==='undefined'||!document.documentElement.classList.contains('lq'))return;
   /* Les points d’un défi en salle viennent de tomber au même endroit : la flamme attend qu’ils repartent (une notification à la fois). */
   const pop=document.getElementById('jeu-pts-pop');
-  if(pop&&pop.classList.contains('on')&&(lqStreakToast.wait||0)<4){lqStreakToast.wait=(lqStreakToast.wait||0)+1;setTimeout(lqStreakToast,700);return;}
+  if(pop&&pop.classList.contains('on')&&(lqStreakToast.wait||0)<12){   /* 19 h 40 : au podium, les points restent plus longtemps : la flamme attend jusqu’à 8 s */lqStreakToast.wait=(lqStreakToast.wait||0)+1;setTimeout(lqStreakToast,700);return;}
   lqStreakToast.wait=0;
   /* 9 novembre, 15 h 18 (Elisa : « oui, attendre la fin de la manche ») : pendant une manche de salle (tirage compris), la flamme ne
      recouvre plus le haut de l’écran ; elle attend les résultats de la manche, le podium, ou la sortie de la salle. */
-  if(typeof JEU!=='undefined'&&JEU&&/^(play|draw)\d/.test(JEU.view||'')){clearTimeout(lqStreakToast.r);lqStreakToast.r=setTimeout(lqStreakToast,1000);return;}
+  if(typeof JEU!=='undefined'&&JEU&&/^(play|draw|res)\d/.test(JEU.view||'')){clearTimeout(lqStreakToast.r);   /* 19 h 40 : les résultats aussi, jusqu’au podium */lqStreakToast.r=setTimeout(lqStreakToast,1000);return;}
+  /* Le podium : d’abord ses points (jeuPtsPop), la flamme ensuite, 3,5 s après son arrivée (19 h 40). */
+  if(typeof JEU!=='undefined'&&JEU&&JEU.view==='final'&&lqStreakToast.fin!==JEU.code+':'+JEU.g){lqStreakToast.fin=JEU.code+':'+JEU.g;clearTimeout(lqStreakToast.r);lqStreakToast.r=setTimeout(lqStreakToast,3500);return;}
   const n=typeof streakJours==='function'?streakJours():0;
   if(!n)return;
   let t=document.getElementById('lq-streak-toast');
@@ -47436,7 +47450,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-encore-v2764';
+  const SW_CACHE='requete-2026-11-09-flamme-v2766';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
