@@ -544,7 +544,7 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   sec(w, 20); s.found(); sec(w, 1);                        /* vers 20 s : 200 */
   /* 9 novembre, 8 h 20 : la manche trouvée reste à l’écran, « Bravo, défi résolu ! » dans la carte, le temps de la suite (avant : ses
      résultats, « Ton résultat ») */
-  assert.equal(s.view(), 'play0'); assert.match(s.html, /Bravo, défi résolu/); assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/);
+  assert.equal(s.view(), 'play0'); assert.match(s.html, /Bravo, défi résolu/); assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d+<\/b>/);
   assert.doesNotMatch(s.html, /id="ed-lesson"|En attente des autres|jeu-reacts/, 'ni éditeur, ni attente des autres, ni réactions');
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 80); s.found(); sec(w, 1);   /* vers 80 s */
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 150); s.found(); sec(w, 1);  /* vers 150 s */
@@ -583,10 +583,10 @@ test('solo : la manche trouvée reste à l’écran, « Bravo, défi résolu ! �
      repliée ; ni correction, ni boutons de fin sur le défi */
   assert.match(s.html, /<b class="jeu-timer is-ok" id="jeu-timer" role="timer" aria-label="Résolu en 1 min 0[5-9]">01:0[5-9]<\/b>/, 'le chrono s’arrête sur le temps mis, au vert');
   assert.match(s.html, /<b class="jeu-hud-m">Défi solo<\/b>/); assert.doesNotMatch(s.html, /Manche 1<small>\/1|Manche 1\/1/);
-  assert.match(s.html, /Ton bilan arrive dans <b id="jeu-auto-n">\d<\/b>/); assert.match(s.html, /<details class="jeu-done-sql"><summary>Voir ma requête et son résultat<\/summary>/);
+  assert.match(s.html, /Ton bilan arrive dans <b id="jeu-auto-n">\d+<\/b>/); assert.match(s.html, /<details class="jeu-done-sql"><summary>Voir ma requête et son résultat<\/summary>/);
   assert.doesNotMatch(s.html, /jeuCorrection\(|jeu-fin-actions|jeuRejouer\(/, 'rien de la fin sur le défi');
   assert.equal(s.ev('jeuLeaveQuestion()'), null, 'plus rien à perdre : on part sans question');
-  sec(w, 5);
+  sec(w, 10);
   assert.equal(s.view(), 'final', 'l’écran de fin');
   assert.equal(s.J('over'), true, 'la partie est finie');
   assert.ok(s.ev('state.salle.pts') > 0, 'les points comptent'); assert.equal(s.ev('state.salle.parties'), 1, 'une seule fois');
@@ -612,7 +612,7 @@ test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pa
   /* La carte dit « Manche abandonnée », puis l’écran de fin (11 h 31) : « On retente ? », la correction, « Réessayer » */
   assert.equal(s.view(), 'play0'); assert.match(s.html, /<b class="coach-to-k">Manche abandonnée<\/b><p>Tu as quitté la manche avant ta réponse\.<\/p><\/div><\/div>/);
   assert.match(s.html, /Ton bilan arrive dans/); assert.doesNotMatch(s.html, /jeuCorrection\(|jeuRetenter\(|id="ed-lesson"/);
-  sec(w, 6);
+  sec(w, 11);
   assert.equal(s.view(), 'final');
   assert.match(s.html, /<h1>Pas encore cette fois\u00a0!<\/h1><p class="l-sub" id="jeu-sub">Prêt·e à retenter ta chance\u00a0\?<\/p>/); assert.match(s.html, /<i class="jr-why">Abandonnée<\/i>/);
   assert.match(s.html, /onclick="jeuCorrection\(0\)"/); assert.match(s.html, /<span>Réessayer<\/span>/); assert.match(s.html, /Voir mon classement/);
@@ -638,7 +638,7 @@ test('seule dans sa salle, une manche, le chrono à 0 : « Temps écoulé » sur
   assert.match(h.html, /Ton bilan arrive dans/);
   assert.doesNotMatch(h.html, /id="ed-lesson"|Point obtenu|La manche suivante|id="jeu-val"|jeuCorrection\(|jeu-fin-actions/, 'ni éditeur, ni valeur du défi, ni correction sur le défi');
   assert.equal(h.ev('jeuLeaveQuestion()'), null, 'rien à perdre : on part sans question');
-  sec(w, 6);
+  sec(w, 11);
   assert.equal(h.view(), 'final', 'l’écran de fin');
   assert.match(h.html, /<h1>Pas encore cette fois\u00a0!<\/h1>/);
   assert.match(h.html, /<div class="jeu-bilan is-2"><div><b data-n="0">0<\/b><small>point<\/small><\/div><div><b>—<\/b><small>ton temps<\/small><\/div><\/div>/);
@@ -666,10 +666,10 @@ test('le bilan d’une partie de 2 manches dit l’essentiel une fois : le nivea
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=2;jeuNiv='f'");
   s.ev("jeuStart('SOLO89',true,null,{solo:true})"); sec(w, 4);
   sec(w, 30); s.ed.value = "SELECT 'faux'"; s.ev('jeuRun()'); sec(w, 1); s.found(); sec(w, 1);   // un essai manqué : pas de premier coup
-  sec(w, 9); assert.equal(s.view(), 'play1');
+  sec(w, 14); assert.equal(s.view(), 'play1');
   sec(w, 10 * 60 + 1);
   assert.equal(s.view(), 'play1'); assert.match(s.html, /Ton bilan arrive dans/);
-  sec(w, 6);
+  sec(w, 11);
   assert.equal(s.view(), 'final');
   /* 10 h 37 (la relecture) : « Bien joué ! », le niveau sans point final ; toujours les trois cases du bandeau ; chaque manche a sa
      correction, plus de « Retenter ce défi » */
@@ -696,8 +696,8 @@ test('solo : en Moyen, la manche dure 15 min au plus (8 novembre, 8 h 52) ; trou
   assert.match(s.html, /role="timer" aria-label="Temps restant de la manche">(15:00|14:5\d)<\/b>/, 'le chrono du Moyen part de 15:00');
   sec(w, 14.5 * 60); assert.equal(s.view(), 'play1', 'à 14 min 30, on cherche encore');
   sec(w, 31); assert.equal(s.view(), 'play1', 'à 15 min (le chrono à 0), la manche s’arrête et reste à l’écran (9 novembre, 10 h 01)');
-  assert.match(s.html, /<b class="coach-to-k">Temps écoulé<\/b>/); assert.match(s.html, /Ton bilan arrive dans <b id="jeu-auto-n">[1-5]<\/b>/);
-  sec(w, 5); assert.equal(s.view(), 'final', 'puis le bilan');
+  assert.match(s.html, /<b class="coach-to-k">Temps écoulé<\/b>/); assert.match(s.html, /Ton bilan arrive dans <b id="jeu-auto-n">([1-9]|10)<\/b>/);
+  sec(w, 10); assert.equal(s.view(), 'final', 'puis le bilan');
   assert.match(s.html, /class="jeu-bilan.*class="jr is-ok".*class="jr is-miss".*Temps écoulé.*jeuCorrection\(1\)/s, "le bilan : la manche trouvée, puis la manquée « Temps écoulé », et sa correction (10 h 37)");
   assert.equal(s.ev('state.salle.pts'), 325);
 });
@@ -1410,18 +1410,18 @@ test('8 novembre, 9 h 31 : seul, à 0, la manche s’arrête et la suite part to
   assert.ok(s.html.includes('Temps écoulé') && s.html.includes('Tu te rattraperas à la prochaine manche.') && s.html.includes('La manche suivante démarre dans'));
   assert.ok(!s.html.includes('id="ed-lesson"') && !s.html.includes('jeuRetenter(') && !s.html.includes('jeuCorrection('), 'à la place de l’éditeur ; la correction viendra au bilan (10 h 37)');
   assert.ok(!s.html.includes('la salle est fermée') && !s.html.includes('id="jeu-go"'));
-  sec(w, 8);
+  sec(w, 13);
   assert.equal(s.view(), 'play1', 'la deuxième manche, toute seule');
   s.found(); sec(w, 1);
   assert.equal(s.view(), 'play1', 'trouvée : la manche reste à l’écran, en vert (9 novembre, 8 h 20 ; avant : res1)');
   assert.match(s.html, /Bravo, défi résolu/);
-  assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/, 'trouvée : la suite part aussi toute seule');
-  sec(w, 9);
+  assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d+<\/b>/, 'trouvée : la suite part aussi toute seule');
+  sec(w, 14);
   assert.equal(s.view(), 'play2');
   sec(w, 10 * 60 + 2);
   assert.equal(s.view(), 'play2', 'la dernière manche arrivée à 0 : « Temps écoulé », le bilan 5 s après (10 h 01)');
   assert.match(s.html, /Ton bilan arrive dans/);
-  sec(w, 5);
+  sec(w, 10);
   assert.equal(s.view(), 'final', 'puis le bilan');
   assert.equal((s.html.match(/class="jr is-miss"/g) || []).length, 2, 'deux manches manquées sur trois');
   assert.equal((s.html.match(/class="jr is-ok"/g) || []).length, 1, 'la manche trouvée');
@@ -1512,14 +1512,14 @@ test('8 novembre, 10 h 10 : seul, à 0, la manche suivante part toute seule 5 s 
   assert.equal(s.view(), 'play0');
   sec(w, 10 * 60 + 1);
   assert.equal(s.view(), 'play0', 'la manche reste à l’écran, « Temps écoulé » (9 novembre, 10 h 01)');
-  assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/);
-  sec(w, 5);
+  assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d+<\/b>/);
+  sec(w, 10);
   assert.ok(/^(draw1|play1)$/.test(s.view()), 'la manche 2, toute seule');
   sec(w, 4);
   assert.equal(s.view(), 'play1');
   sec(w, 10 * 60 + 1);
   assert.equal(s.view(), 'play1', 'la dernière manche à 0 : « Temps écoulé », puis le bilan (10 h 01)');
-  sec(w, 5);
+  sec(w, 10);
   assert.equal(s.view(), 'final');
 });
 
@@ -1639,10 +1639,10 @@ test('10 h 37 : seul, deux manches ratées : « On retente ? », le bandeau et s
   assert.match(s.html, /<b class="coach-to-k">Temps écoulé<\/b><p>Tu te rattraperas à la prochaine manche\.<\/p><\/div><\/div>/, 'la partie continue : de quoi se rattraper');
   assert.match(s.html, /<b class="jeu-timer is-fin" id="jeu-timer" role="timer" aria-label="Temps écoulé">00:00<\/b>/);
   assert.equal(s.J('rounds[0].essai'), "SELECT 'faux'", 'son dernier essai, pour la correction');
-  sec(w, 9); assert.equal(s.view(), 'play1');
+  sec(w, 14); assert.equal(s.view(), 'play1');
   sec(w, 10 * 60 + 1);
   assert.match(s.html, /<p>La correction t’attend dans ton bilan\.<\/p>/);
-  sec(w, 6);
+  sec(w, 11);
   assert.equal(s.view(), 'final');
   assert.match(s.html, /<h1>Pas encore cette fois\u00a0!<\/h1><p class="l-sub" id="jeu-sub">Prêt·e à retenter ta chance\u00a0\?<\/p>/);
   assert.match(s.html, /<p class="jeu-card-h">Ton récap’<\/p>/);
@@ -1658,8 +1658,8 @@ test('10 h 37 : seul, tout résolu : « Tout résolu », la prochaine étape (un
   sec(w, 5); s.found(); sec(w, 1);
   assert.match(s.html, /<b class="jeu-timer is-ok" id="jeu-timer" role="timer" aria-label="Résolu en 5 s">00:05<\/b>/, 'le temps mis, plus ce qui restait');
   assert.match(s.html, /<b class="jeu-hud-m">Manche 1<small>\/2<\/small><\/b>/);
-  sec(w, 9); assert.equal(s.view(), 'play1');
-  sec(w, 7); s.found(); sec(w, 6);
+  sec(w, 14); assert.equal(s.view(), 'play1');
+  sec(w, 7); s.found(); sec(w, 11);
   assert.equal(s.view(), 'final');
   assert.match(s.html, /<h1>Carton plein( ! 🏆|\u00a0!)<\/h1><p class="l-sub" id="jeu-sub">2 manches, 2 victoires\u00a0!<\/p>/);
   assert.match(s.html, /<div><b>2\/2<\/b><small>résolus<\/small>.*?<div><b>\d s<\/b><small>temps moyen<\/small><\/div>/);
@@ -1896,4 +1896,18 @@ test('9 novembre, 19 h 30 : « Encore 3 caractères » sur le bouton ; « Oups �
   assert.ok(app.includes("lib=c.length&&reste>0?`Encore ${reste} caractère${reste>1?'s':''}`:'Rejoindre la salle';"));
   assert.ok(app.includes("s</p>`,'is-lost',true);   // 19 h 30 : sans le code de la salle"));
   assert.ok(app.includes("html=etat('user','Salle complète&nbsp;!',`Elle accueille déjà ${J.max} joueurs, le maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`"));
+});
+
+test('9 novembre, 19 h 40 : « Oups » une fois suffit ; un lien en plein défi se cherche sur place ; l’hôte reste l’hôte à l’écran pendant une reprise', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(app.includes("if(J.tard||J.horsPartie){jeuVerifEchec('commencee');return false;}"), 'le code retapé après « Oups » : « Trop tard, la partie a commencé ! »');
+  assert.ok(app.includes("if(enLecon&&!document.querySelector('#dx-feuille #jeu-code')){jeuInvitationEchec(r);return;}") && app.includes("oui:'Continuer',non:null"), 'salle pleine en plein défi : un message par-dessus, on reste');
+  assert.ok(app.includes('const J=JEU,host=J.hostPid===J.me,{live,prets}=jeuPrets()') && app.includes('const host=J.hostPid===J.me;   // l’écran'), 'Safari, retour sur la page : la carte ne passe plus au vert');
+});
+test('9 novembre, 19 h 40 : la salle d’attente en reprise (Safari revient) garde l’écran de l’hôte', () => {
+  const { w, host } = room({ n: 1 });
+  const avant = host.html;
+  host.ev('JEU.replaying=true;JEU.replayEnd=Date.now()+6000;jeuRender()');
+  assert.match(host.html, /id="jeu-go"/, 'le bouton de l’hôte reste');
+  assert.doesNotMatch(host.html, /id="jeu-ready"/, 'pas le bouton « Prêt » des invités');
 });

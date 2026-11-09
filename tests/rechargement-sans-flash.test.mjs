@@ -55,7 +55,7 @@ test('au retour, une seule reprise : un signe de vie et un « hello », pas troi
 });
 
 test('après un rechargement, un écran calme le temps de retrouver sa partie (plus « Tu rejoins la salle de ton ami »)', () => {
-  assert.ok(app.includes('inscrits:new Set(),tard:false,reprise:!!opts.reprise};'));
+  assert.ok(app.includes('inscrits:new Set(),tard:false,reprise:!!opts.reprise,enLecon:!!opts.enLecon};'));
   assert.ok(app.includes("  if(v==='join'&&J.reprise){\n    html=`<div class=\"jeu-reprise\" role=\"status\"><i class=\"jeu-spin\" aria-hidden=\"true\"></i><span>On reprend ta partie…</span></div>${jeuNetSlot()}`;\n  }else if(v==='join'){"));
   assert.ok(css.includes('html.lq #jeu-root .jeu-reprise{display:flex;align-items:center;justify-content:center;gap:10px;min-height:42vh;'));
 });

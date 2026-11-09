@@ -94,7 +94,7 @@ test('l’engagement : le serment, à droite du bouton à l’empreinte', () => 
 
 test('la salle : il attend en tapotant du pied quand on rejoint un ami ; l’hôte garde sa cible', () => {
   assert.ok(app.includes("html=etat('chat:pied','Tu rejoins la salle…',"));
-  assert.ok(app.includes("const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle est ouverte'"));
+  assert.ok(app.includes("const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle de défi'"));
   assert.ok(app.includes("<span class=\"room-stk\" aria-hidden=\"true\">${lqStkSvg(String(stk).startsWith('chat:')?'help':stk)}</span>"), 'sans le GIF : un autocollant connu');
 });
 
