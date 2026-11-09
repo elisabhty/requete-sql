@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=261">
+<link rel="stylesheet" href="ludique.css?v=262">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -35403,7 +35403,7 @@ function jeuOnMsg(m){
       /* Trouvé du premier essai (p1) : noté pour chacun, puisque chacun compte les points de chacun ; entre amis, le +25 ne va qu’au
          premier à trouver (jeuRanking). */
       if(m.p1===1)(r.first=r.first||{})[m.pid]=1;
-      if(m.pid===J.me){J.played=true;if(J.ranked){const c=CHALLENGES.find(c=>c.id===r.cid);if(c)jeuCredit(c.id);}}
+      if(m.pid===J.me){J.played=true;if(!replay)r.okAt=Date.now();if(J.ranked){const c=CHALLENGES.find(c=>c.id===r.cid);if(c)jeuCredit(c.id);}}   // okAt : l’encart vert, un instant (jeuView, 9 novembre, 8 h 20)
       if(m.pid!==J.me&&!J.solo&&J.synced&&!replay){
         jeuToast(`${name} a trouvé ✓`);
         if(r.found[J.me]==null&&!r.one)jeuBonusOut();
@@ -35566,6 +35566,10 @@ function jeuSoloLike(n){
   const r=n>=0?J.rounds[n]:null;
   return jeuLive().length<2&&(!r||Object.keys(r.found).every(p=>p===J.me));
 }
+/* Seul, la manche trouvée : elle reste à l’écran, chrono arrêté, « Bravo, défi résolu ! » (9 novembre, 8 h 20). À plusieurs, le dernier
+   à trouver la garde JEU_OK_MS avant les résultats de la manche. */
+const JEU_OK_MS=1800;
+function jeuFige(n){const J=JEU,r=J&&n>=0?J.rounds[n]:null;return !!r&&r.found[J.me]!=null&&jeuSoloLike(n);}
 /* Le titre de l’écran : « Défi » en « Joue seul », et dans une salle où l’on est seul pendant la partie ; « Salle de défi » sinon. */
 function jeuTitreNav(seul){
   const J=JEU,t=typeof document!=='undefined'&&typeof document.getElementById==='function'?document.getElementById('nav-title'):null;
@@ -35589,9 +35593,17 @@ function jeuView(){
   if(Date.now()<J.rounds[n].t1)return'draw'+n;
   /* Le chrono à 0 : la manche est finie (jeuRoundDone), on passe à ses résultats, puis à la suivante (8 novembre, 9 h 31 ; avant, la
      salle se fermait). */
+  const fin=jeuRoundDone(n);
+  /* 9 novembre, 8 h 20 (Elisa : « l’encart rouge se transforme en vert avec Bravo défi résolu… qui passe à la manche suivante si autre
+     manche ») : seul, la manche trouvée reste à l’écran, « Bravo, défi résolu ! » dans la carte (jeuFoundHTML), le temps de la suite
+     (jeuFinAuto, 5 s) : jusqu’à la manche suivante, ou jusqu’au bilan à la dernière. Pas trouvée : ses résultats, comme avant. */
+  if(fin&&J.rounds[n].found[J.me]!=null&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;
+  /* À plusieurs, le dernier à trouver voit aussi son encart passer au vert, un instant (« Tout le monde a trouvé, les résultats
+     arrivent… »), puis les résultats de la manche. */
+  if(fin&&!J.rounds[n].closed&&J.rounds[n].okAt&&Date.now()-J.rounds[n].okAt<JEU_OK_MS)return'play'+n;
   /* Seul, la dernière manche finie mène tout droit au bilan, sur la même page (Elisa, 3 novembre, 7 h 31). */
-  if(jeuRoundDone(n)&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';
-  return (jeuRoundDone(n)?'res':'play')+n;
+  if(fin&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';
+  return (fin?'res':'play')+n;
 }
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
 function jeuHostWatch(){
@@ -35630,7 +35642,8 @@ function jeuTick(){
   jeuReagirMaj();   // « Réagir », en bas à droite, pendant la manche (19 h 37)
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
-  if(el&&n>=0){const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
+  if(el&&n>=0&&jeuFige(n))el.classList.add('is-ok');   // seul, la manche trouvée : le chrono s’arrête, au vert (9 novembre, 8 h 20)
+  else if(el&&n>=0){const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
     /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
     const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
   /* « Clore la manche dans 01:42 » : le compte à rebours de l’hôte, puis le bouton */
@@ -36107,7 +36120,8 @@ function jeuWaitLine(n){
   const wait=jeuLive().filter(p=>p!==J.me&&r.found[p]==null).map(p=>esc((J.players[p]||{}).name||'Joueur'));
   if(!wait.length)return '<i class="jeu-dot" aria-hidden="true"></i>Tout le monde a trouvé, les résultats arrivent…';
   const who=wait.length===1?wait[0]:wait.length===2?wait.join(' et '):`${wait.slice(0,2).join(', ')} +${wait.length-2}`;
-  return `<i class="jeu-dot" aria-hidden="true"></i>${who} ${wait.length>1?'cherchent':'cherche'} encore…`;
+  /* « En attente des autres » (Elisa, 9 novembre, 8 h 20), puis qui cherche encore */
+  return `<i class="jeu-dot" aria-hidden="true"></i>En attente des autres · ${who} ${wait.length>1?'cherchent':'cherche'} encore…`;
 }
 /* Elle n’apparaît qu’après 4 s sans réseau (8 novembre, 18 h 01, « quand je reviens ça bug un peu l’écran comme des flash ») : au
    retour d’une autre appli, le direct se rebranche en une ou deux secondes, et la notice entrait puis repartait aussitôt, en
@@ -36336,7 +36350,7 @@ function jeuRender(){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     current=c;exoFails=0;
     const mine=r.found[J.me]!=null,sl=jeuSoloLike(n);J.slShown=sl;edOn=!mine;
-    const took0=Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));
+    const fige=jeuFige(n),took0=fige?r.found[J.me]:Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
     /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150… ; en Moyen 400, 350… toutes les 3 min ; en Difficile
        800, 700… toutes les 5 min), et le premier coup (+25 à tous les niveaux depuis le 8 novembre) tant que la première requête peut être la bonne (il tombe au
@@ -36348,7 +36362,7 @@ function jeuRender(){
        (18 h 28, 18 h 36). 20 h 15 (« on peut faire beaucoup mieux niveau UI UX, peut-être intégrer à l’intérieur un cadre avec point |
        chrono ») : à gauche, « Manche 1/3 » et, dessous, le niveau ; à droite, un seul cadre blanc, ce que vaut le défi | le chrono, le
        chrono dans sa pastille soleil au bout. Le chrono revient dans le bandeau (il était posé sur son bord, 19 h 18). */
-    const chrono=`<b class="jeu-timer${dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;
+    const chrono=`<b class="jeu-timer${fige?' is-ok':dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;
     const hud=`<div class="jeu-hud"><span class="jeu-hud-g"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b>`+
       `<span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span>`+
       `<span class="jeu-hud-box${val?'':' is-seul'}">${val}${chrono}</span></div>`;
@@ -36665,18 +36679,32 @@ function jeuCredit(cid){
     state.defis[cid]=true;noteActivityDay();save();renderProgress();renderPlanning();
   }catch(e){}
 }
-/* Trouvé : la carte prend la place de l’éditeur. Blanche, comme les autres cartes de l’appli (plus le grand cadre vert) : la médaille
-   (ou la coche), le temps et la place, les points ; à plusieurs, qui cherche encore, les réactions et, pour l’hôte, « Clore la
-   manche » ; la requête et son résultat restent repliés. */
-const JEU_OK_STK='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26.6" r="20" fill="#1B1640" opacity=".28"/><circle cx="24" cy="24" r="20" fill="#fff"/><circle cx="24" cy="24" r="16.3" fill="#9FF0C6" stroke="#1B1640" stroke-width="2.5"/><path d="M16.3 24.6l5.2 5.2 10.4-11.2" fill="none" stroke="#1B1640" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* Trouvé. 9 novembre, 8 h 20 (Elisa) : « je veux que l’encart rouge se transforme en vert avec Bravo défi résolu…. En attente des
+   autres ou qui passe à la manche suivante si autre manche, avec résolu en 2 min etc. » La carte de l’indice reste à sa place, au-dessus
+   de la requête ; son encart passe au vert, comme la boîte « Défi résolu » (fond vert pâle, bord vert, pastille verte ✓) : « Bravo,
+   défi résolu ! », le temps (« Résolu en 2 min 05 »), la place entre amis, le premier coup, puis les points. Après un essai manqué, le
+   vert part du rouge de l’encart. Dessous, ce qui vient : à plusieurs, « En attente des autres » et qui cherche encore, les réactions,
+   « Clore la manche » pour l’hôte ; seul, « La manche suivante démarre dans 5 s », ou « Ton bilan arrive dans 5 s » à la dernière (la
+   manche reste à l’écran le temps de la suite : jeuView). La requête et son résultat restent repliés. Avant : une carte blanche
+   « Trouvé en 00:04 », avec la médaille de sa place. */
+function jeuDureeLisible(ms){const t=Math.max(0,Math.floor((+ms||0)/1000));return t<60?`${t} s`:`${Math.floor(t/60)} min${t%60?` ${String(t%60).padStart(2,'0')}`:''}`;}
+/* L’encart vert : partagé par la salle et le défi seul ouvert depuis sa page (runLesson). */
+function coachOkHTML(o){
+  return `<div class="coach-ok${o.ko?' was-ko':''}"><span class="coach-ok-ico" aria-hidden="true">${JEU_ICO.check}</span><div class="coach-ok-tx"><b class="coach-ok-k">Bravo, défi résolu&nbsp;!</b>${o.det?`<p>${o.det}</p>`:''}${o.pts||''}</div></div>`;
+}
 function jeuFoundHTML(r,pid){
   const J=JEU,n=J.rounds.indexOf(r),rk=jeuRanking(n),k=rk.findIndex(y=>y.pid===pid),x=rk[k]||Object.assign({pid,ms:0,place:1},jeuPts(0,0,true));
-  const sl=jeuSoloLike(n),pos=k<0?-1:x.place-1;
-  const place=(sl||pos<0?'Bien joué !':pos===0?'1er à trouver':`${pos+1}e à trouver`)+(x.essai?' · du premier coup ✨':'');
-  const stk=!sl&&pos>=0&&pos<3?lqStkSvg('medal'+(pos+1)):JEU_OK_STK;
-  return `<section class="jeu-done" id="jeu-done" aria-label="Trouvé">
-      <div class="jeu-done-head"><span class="jeu-done-stk" aria-hidden="true">${stk}</span><span class="jeu-done-t"><b>Trouvé en ${jeuChrono(x.ms)}</b><small>${place}</small></span><strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${x.essai} ✨</i>`:''}</strong></div>
-      ${sl?'':`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div><div id="jeu-hostbar">${jeuHostBarHTML()}</div>`}
+  const sl=jeuSoloLike(n),pos=k<0?-1:x.place-1,last=n>=J.nb-1;
+  const det=[`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?'du premier coup ✨':''].filter(Boolean).join(' · ');
+  const pts=`<strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${x.essai} ✨</i>`:''}</strong>`;
+  /* Un essai manqué dans cette manche : l’encart était rouge (coachKo) */
+  const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;
+  const auto=sl?jeuFinAuto(n):0;
+  const suite=sl?`<p class="jeu-auto coach-ok-suite" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?'Ton bilan arrive':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil((auto-Date.now())/1000))}</b> s</span>`:jeuAutoAttente(n)}</p>`
+    :`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div><div id="jeu-hostbar">${jeuHostBarHTML()}</div>`;
+  return `<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">
+      ${coachOkHTML({ko,det,pts})}
+      ${suite}
       ${r.mine?`<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>`:''}
     </section>`;
 }
@@ -36828,6 +36856,7 @@ function jeuStop(){
 function jeuLeaveQuestion(){
   const J=JEU;if(!J||J.leaveOk)return null;
   const v=J.view||'';
+  if(/^play/.test(v)&&typeof jeuFige==='function'&&jeuFige(jeuCur()))return null;   // seul, la manche trouvée : rien à perdre, comme sur ses résultats (9 novembre, 8 h 20)
   if(/^(play|draw)/.test(v))return {ico:'🏁',titre:J.solo?'Quitter la partie ?':'Quitter la salle ?',texte:'Ta manche en cours sera perdue.',oui:'Quitter',non:'Rester',danger:true};
   if(!J.solo&&jeuIsHost()&&v!=='final'&&jeuLive().length>1)return {ico:'👋',titre:'Quitter la salle ?',texte:'Un autre joueur deviendra l’hôte.',oui:'Quitter',non:'Rester'};
   /* 8 novembre, 23 h 44 (« corrige : À corriger en premier », la relecture des défis) : l’hôte seul dans sa salle d’attente partait
@@ -36923,7 +36952,7 @@ function defiChronoStart(c,depart){
   const tick=()=>{
     const el=document.getElementById('defi-timer');
     if(mode!=='defi'||current!==c||!el){defiChronoStop();return;}
-    if(document.querySelector('#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();defiSesClear();return;}
+    if(document.querySelector('#hint-slot .coach.is-ok,#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();defiSesClear();return;}   // résolu : l’encart vert de la carte (9 novembre, 8 h 20)
     const took=Date.now()-t0;el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
     if(took>=dur){defiChronoStop();defiSesClear();defiTempsEcoule(c);}
   };
@@ -37278,10 +37307,14 @@ function runLesson(){
       state.defis[current.id]=true; noteActivityDay(); save(); renderDefis(); renderProgress(); renderPlanning();
       if(typeof clsDefis==='function')clsDefis();
       if(premier) celebrate();
-      head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
-      {const hs=document.getElementById('hint-slot');if(hs)hs.innerHTML='';}
+      /* 9 novembre, 8 h 20 (Elisa : « je veux que l’encart rouge se transforme en vert avec Bravo défi résolu… avec résolu en 2 min ») :
+         la carte de l’indice reste à sa place, son encart passe au vert (coachOkHTML, comme dans la salle) ; dessous l’éditeur, le
+         résultat et la suite. Avant : la boîte verte « Défi résolu » sous l’éditeur, et la carte s’effaçait. */
+      {const hs=document.getElementById('hint-slot'),ms=defiChrono?Date.now()-defiChrono.t0:null,ko=!!(COACH&&COACH.c===current&&COACH.diag);
+        if(hs)hs.innerHTML=`<section class="coach is-ok" aria-live="polite">${coachOkHTML({ko,det:[ms!=null?`Résolu en <b>${jeuDureeLisible(ms)}</b>`:'',exoFails?'':'du premier coup ✨'].filter(Boolean).join(' · ')})}</section>`;
+        COACH=null;}
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
-      setLessonOut(head+table+(nxtPlan!=null
+      setLessonOut(table+(nxtPlan!=null
         ?`<button class="next-btn" onclick="openItem(${isDefiId(nxtPlan)?`'${nxtPlan}'`:nxtPlan})">Continuer la séance →</button>`
         :`<button class="next-btn" onclick="openJeu()">Salle de défi →</button>`));
       pulseCta('#lesson-out .next-btn');
@@ -46929,7 +46962,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-erreur-sql-aide-v2720';
+  const SW_CACHE='requete-2026-11-09-bravo-resolu-v2721';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

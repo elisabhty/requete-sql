@@ -336,7 +336,7 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   assert.equal(vm.runInContext('jeuPtsDetail({val:175,essai:25,rang:30,place:2})', d), '<span class="jeu-pd"><i>Défi 175</i><i class="is-essai">1er essai +25</i><i class="is-rang">2e +30</i></span>');
   assert.equal(vm.runInContext('jeuPtsDetail({val:100,essai:0,rang:10,place:4})', d), '<span class="jeu-pd"><i>Défi 100</i><i class="is-rang">4e +10</i></span>');
   assert.equal(vm.runInContext('jeuPtsDetail({val:150,essai:0,rang:0,place:1})', d), '<span class="jeu-pd"><i>Défi 150</i></span>', 'seul : la valeur du défi');
-  assert.ok(fn('jeuFoundHTML').includes("+(x.essai?' · du premier coup ✨':'')"));
+  assert.ok(fn('jeuFoundHTML').includes("x.essai?'du premier coup ✨':''"), 'le premier coup, dans l’encart vert « Bravo, défi résolu ! » (9 novembre, 8 h 20)');
   for (const part of ['html.lq .jeu-bar-r{flex:none;display:flex;align-items:center;gap:6px}', 'html.lq .jeu-val{display:inline-flex;', 'font-variant-numeric:tabular-nums'])
     assert.ok(s51.includes(part), part);
   assert.ok(s51.includes('html.lq .jeu-bar .l-kicker{display:block;flex:1 1 0%;min-width:0;'), 'la pastille de manche peut prendre l’espace restant');

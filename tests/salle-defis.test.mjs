@@ -308,6 +308,10 @@ test('manche : les paliers de temps, +25 du premier coup, +50 / +30 / +20 aux pr
   assert.equal(host.view(), 'play0', 'Ami1 n’a pas encore trouvé : la manche continue');
   assert.match(host.html, /Ami2|✓/);
   sec(w, 65); guests[0].found(); sec(w, 1);
+  /* 9 novembre, 8 h 20 : le dernier à trouver voit son encart passer au vert, un instant, puis les résultats de la manche */
+  assert.equal(guests[0].view(), 'play0'); assert.match(guests[0].html, /Bravo, défi résolu/); assert.match(guests[0].html, /Tout le monde a trouvé, les résultats arrivent…/);
+  assert.equal(host.view(), 'res0', 'les autres, aussitôt les résultats');
+  sec(w, 1.5);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name);
   const rk = host.ev('jeuRanking(0).map(x=>({name:JEU.players[x.pid].name,ms:x.ms,val:x.val,essai:x.essai,rang:x.rang,pts:x.pts,place:x.place}))');
   assert.deepEqual(rk.map(x => x.name), ['Ami2', 'Hôte', 'Ami1']);
@@ -502,7 +506,7 @@ test('un joueur en retard de signe de vie disparaît de la manche, et revient av
   host.ev('jeuNextRound()'); sec(w, 4.5);
   guests[1].offline = true; sec(w, 60);
   assert.deepEqual(host.live(), ['Hôte', 'Ami1']);
-  host.found(); guests[0].found(); sec(w, 1);
+  host.found(); guests[0].found(); sec(w, 2.5);   // l’encart vert un instant (9 novembre, 8 h 20)
   assert.equal(host.view(), 'res0');
   guests[1].offline = false; guests[1].reconnect(); guests[1].ev('jeuPing()'); sec(w, 2);
   assert.ok(host.live().includes('Ami2'));
@@ -519,7 +523,10 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   assert.doesNotMatch(s.html, /jeu-players|jeu-reacts|jeu-reagir/, 'ni liste de joueurs ni réactions');
   assert.equal(s.ev('jeuReagirLa()'), false, '« Réagir » non plus');
   sec(w, 20); s.found(); sec(w, 1);                        /* vers 20 s : 200 */
-  assert.equal(s.view(), 'res0'); assert.match(s.html, /Ton résultat/);
+  /* 9 novembre, 8 h 20 : la manche trouvée reste à l’écran, « Bravo, défi résolu ! » dans la carte, le temps de la suite (avant : ses
+     résultats, « Ton résultat ») */
+  assert.equal(s.view(), 'play0'); assert.match(s.html, /Bravo, défi résolu/); assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/);
+  assert.doesNotMatch(s.html, /id="ed-lesson"|En attente des autres|jeu-reacts/, 'ni éditeur, ni attente des autres, ni réactions');
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 80); s.found(); sec(w, 1);   /* vers 80 s */
   s.ev('jeuNextRound()'); sec(w, 4); sec(w, 150); s.found(); sec(w, 1);  /* vers 150 s */
   const rk = s.ev('JEU.rounds.map((r,i)=>jeuRanking(i)[0])');
@@ -539,6 +546,26 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   s.ev('jeuAgain()'); sec(w, 0.5);
   assert.equal(s.view(), 'draw0', 'rejouer en solo enchaîne directement');
   assert.equal(s.ev('JEU.g'), 1);
+});
+
+/* 9 novembre, 8 h 20 (Elisa) : « je veux que l’encart rouge se transforme en vert avec Bravo défi résolu…. En attente des autres ou qui
+   passe à la manche suivante si autre manche, avec résolu en 2 min etc. » */
+test('solo : la manche trouvée reste à l’écran, « Bravo, défi résolu ! », chrono arrêté au vert ; à la dernière, le bilan 5 s après', () => {
+  const w = new World();
+  const s = makeClient(w, 'Seul'); s.ev("jeuNb=1;jeuNiv='f'");
+  s.ev("jeuStart('SOLO77',true,null,{solo:true})"); sec(w, 4);
+  assert.equal(s.view(), 'play0');
+  sec(w, 65); s.found(); sec(w, 1);
+  assert.equal(s.view(), 'play0', 'la manche reste');
+  assert.match(s.html, /<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">/);
+  assert.match(s.html, /<b class="coach-ok-k">Bravo, défi résolu&nbsp;!<\/b><p>Résolu en <b>1\u00a0min\u00a00[5-9]<\/b> · du premier coup ✨<\/p><strong class="jeu-done-pts"><em data-n="\d+">/, 'le temps, le premier coup, les points');
+  assert.match(s.html, /Ton bilan arrive dans <b id="jeu-auto-n">[1-5]<\/b>\u00a0s/, 'la dernière : le bilan arrive');
+  assert.match(s.html, /<b class="jeu-timer is-ok" id="jeu-timer"/, 'le chrono s’arrête, au vert');
+  assert.equal(s.ev('jeuLeaveQuestion()'), null, 'plus rien à perdre : on part sans question');
+  sec(w, 5);
+  assert.equal(s.view(), 'final', 'puis le bilan');
+  assert.match(s.html, /Tout trouvé/);
+  assert.ok(s.ev('state.salle.pts') > 0, 'les points comptent');
 });
 
 test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pas marqué réussi', () => {
@@ -640,8 +667,8 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   assert.equal(h.ev('jeuReagirLa()'), false, 'seul dans la salle, pas de « Réagir », comme en « Joue seul » (9 novembre, 7 h 16 ; avant, 19 h 12 : « visible même seule »)');
   h.found(); sec(w, 1);
   assert.ok(!h.toasts.some(t => /tête|course|affilée|minute|Remontée/.test(t)), 'seul : le commentateur se tait');
-  assert.equal(h.view(), 'res0', 'seul : les résultats tout de suite');
-  assert.match(h.html, /Ton résultat/); assert.doesNotMatch(h.html, /Classement de la manche|\(toi\)/);
+  assert.equal(h.view(), 'play0', 'seul : la manche reste, en vert (9 novembre, 8 h 20 ; avant, ses résultats tout de suite)');
+  assert.match(h.html, /Bravo, défi résolu/); assert.match(h.html, /La manche suivante démarre dans/); assert.doesNotMatch(h.html, /Classement de la manche|\(toi\)|En attente des autres|jeu-reacts/);
   const x = h.ev('jeuRanking(0)[0]');
   assert.equal(x.rang, 0, 'pas de bonus de rang quand on est seul'); assert.equal(x.pts, x.val + x.essai); assert.equal(x.essai, 25);
   h.ev('jeuNextRound()'); sec(w, 4.5); h.found(); sec(w, 1);
@@ -670,7 +697,7 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   assert.equal(h.view(), 'play0');
   assert.equal(h.ev('jeuRanking(0)[0].rang'), 0, 'commencée seule : pas de bonus de rang, le même chez tous');
   assert.equal(g.ev('jeuRanking(0)[0].rang'), 0);
-  assert.match(g.html, /class="jeu-done"/); assert.match(g.html, /Hôte cherche encore/);
+  assert.match(g.html, /class="coach is-ok jeu-done"/); assert.match(g.html, /Bravo, défi résolu/); assert.match(g.html, /En attente des autres · Hôte cherche encore/);
   const d = h.ev('jeuDirectHTML(0)'), av = /id="jeu-direct-av" aria-hidden="true">(.*?)<\/div><span class="jeu-sr"/.exec(d)[1];
   assert.equal((av.match(/<b class="jeu-av/g) || []).length, 2, 'un avatar par joueur');
   assert.match(av, /^<span class="jd-j is-ok is-premier" data-pid="[\w-]+" data-c="1" data-n="([1-9]\d*)"><b class="jeu-av" data-c="1">A<i class="jd-av-b is-roi[^"]*"><svg/, 'l’ami d’abord, la couronne (même couleur qu’en salle d’attente), ses points');
@@ -724,7 +751,7 @@ test('« En direct » raconte la partie : qui ouvre le score, qui reste en cours
   /* Ami1 réagit (il a trouvé) : chez l’hôte, dit au lecteur d’écran ; à l’écran, la bulle sur son avatar */
   a1.ev("JEU.lastReact=0;jeuReact('👏')"); sec(w, 1);
   assert.ok(host.toasts.includes('Ami1 👏'));
-  host.found(); sec(w, 2);
+  host.found(); sec(w, 2.5);   // l’encart vert un instant (9 novembre, 8 h 20)
   assert.equal(host.view(), 'res0');
   host.ev('jeuNextRound()'); sec(w, 4.5);
   assert.equal(dit(host), `Manche 2, c’est reparti${nb}!`);
@@ -832,7 +859,7 @@ test('toutes les vues se dessinent sans erreur (échappement des pseudos compris
   /* 8 novembre, 18 h 36 puis 19 h 37 : « Réagir », un seul bouton, posé en bas à droite de l’écran, hors de la manche qui défile */
   assert.equal(host.ev('jeuReagirLa()'), true); assert.doesNotMatch(play, /jeu-reagir/);
   assert.doesNotMatch(play, /<img/);
-  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="jeu-done"/); assert.match(wait, /cherche encore/); assert.match(wait, /jeu-reacts/); assert.match(wait, /Clore la manche dans <b id="jeu-clore-t">0[12]:\d\d<\/b>/, '6 novembre : 2 min après le premier qui a trouvé');
+  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="coach is-ok jeu-done"/); assert.match(wait, /Bravo, défi résolu/); assert.match(wait, /En attente des autres · .* cherche encore/); assert.match(wait, /jeu-reacts/); assert.match(wait, /Clore la manche dans <b id="jeu-clore-t">0[12]:\d\d<\/b>/, '6 novembre : 2 min après le premier qui a trouvé');
   assert.doesNotMatch(wait, /id="ed-lesson"/, 'la carte « Trouvé » remplace l’éditeur');
   evil.found(); sec(w, 2); const res = grab(); assert.match(res, /Classement de la manche/); assert.doesNotMatch(res, /<img/);
   host.ev('jeuClose()'); host.ev('jeuNextRound()'); sec(w, 5); host.ev('jeuClose()'); sec(w, 1);
@@ -861,7 +888,7 @@ test('une manche terminée le reste : un arrivant ne rouvre rien, les scores gar
   /* 8 novembre, 16 h 05 : l’arrivant était dans la salle d’attente, il revient (un nouveau venu n’entrerait plus) */
   const avant = makeClient(w, 'Retard'); avant.join('ROOM42'); sec(w, 2);
   const lpid = avant.pid(); avant.ev('jeuStop()'); sec(w, 2);
-  host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); guests[0].found(); guests[1].found(); sec(w, 1.5);
+  host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); guests[0].found(); guests[1].found(); sec(w, 2.5);   // l’encart vert un instant
   assert.equal(host.view(), 'res0');
   const late = samePid(w, 'Retard', lpid); late.join('ROOM42'); sec(w, 2);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' reste sur les résultats');
@@ -897,7 +924,7 @@ test('retour avec le même pseudo en pleine manche : son temps déjà trouvé es
   const back = samePid(w, 'Ami1', pid); back.join('ROOM42'); sec(w, 5);
   assert.equal(back.view(), 'play0');
   assert.notEqual(back.J('rounds[0].found[JEU.me]'), undefined, 'son temps est restitué');
-  assert.match(back.html, /Trouvé en/);
+  assert.match(back.html, /Bravo, défi résolu/); assert.match(back.html, /Résolu en <b>/);
 });
 
 /* Les promesses (réponses du relais) ne se résolvent qu’entre deux avances de l’horloge. */
@@ -1256,7 +1283,8 @@ test('8 novembre, 9 h 31 : seul, à 0, la manche s’arrête et la suite part to
   sec(w, 8);
   assert.equal(s.view(), 'play1', 'la deuxième manche, toute seule');
   s.found(); sec(w, 1);
-  assert.equal(s.view(), 'res1');
+  assert.equal(s.view(), 'play1', 'trouvée : la manche reste à l’écran, en vert (9 novembre, 8 h 20 ; avant : res1)');
+  assert.match(s.html, /Bravo, défi résolu/);
   assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/, 'trouvée : la suite part aussi toute seule');
   sec(w, 9);
   assert.equal(s.view(), 'play2');
@@ -1367,7 +1395,8 @@ test('8 novembre, 17 h 31 : trouvée par tout le monde, close ou abandonnée, la
   host.ev('jeuNextRound()'); sec(w, 4.5);
   host.found(); sec(w, 2); guests[0].found(); sec(w, 1);
   assert.equal(host.view(), 'res0');
-  assert.match(guests[0].html, /La manche suivante démarre dans <b id="jeu-auto-n">[45]<\/b>/);
+  assert.match(host.html, /La manche suivante démarre dans <b id="jeu-auto-n">[45]<\/b>/);
+  assert.match(guests[0].html, /Bravo, défi résolu/, 'le dernier à trouver : son encart vert, un instant (9 novembre, 8 h 20)');
   sec(w, 3);
   assert.equal(host.view(), 'res0', 'les 5 s pour voir le résultat');
   sec(w, 5.5);

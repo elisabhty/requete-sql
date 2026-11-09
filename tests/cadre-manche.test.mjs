@@ -15,7 +15,8 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 test('la tête du cadre : à gauche la manche et le niveau ; à droite un seul cadre, ce que vaut le défi | le chrono (20 h 15)', () => {
   const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
   /* 20 h 15 : « peut-être intégrer à l’intérieur un cadre avec point | chrono » ; le chrono revient dans le bandeau */
-  assert.ok(play.includes('const chrono=`<b class="jeu-timer${dur0-took0<30000?\' is-low\':\'\'}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;'));
+  /* 9 novembre, 8 h 20 : seul, la manche trouvée, le chrono s’arrête au vert (fige, retours-0820) */
+  assert.ok(play.includes('const chrono=`<b class="jeu-timer${fige?\' is-ok\':dur0-took0<30000?\' is-low\':\'\'}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;'));
   assert.ok(play.includes('const hud=`<div class="jeu-hud"><span class="jeu-hud-g"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b>`+'));
   assert.ok(play.includes('`<span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span>`+'), 'le niveau, sous la manche, dans la pastille blanche des feuilles');
   assert.ok(play.includes('`<span class="jeu-hud-box${val?\'\':\' is-seul\'}">${val}${chrono}</span></div>`;'), 'un seul cadre : ce que vaut le défi | le chrono');
