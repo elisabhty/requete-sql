@@ -97,8 +97,8 @@ test('réf. 5 : dépliée, ses colonnes (et leurs exemples), puis la description
   /* Ses colonnes d’abord, comme sur le schéma : le nom, le type, le cadre « ex : » (la deuxième ligne, comme la quatrième d’une plus grande) */
   assert.ok(h.includes('<div class="tbu-c"><span class="tbu-r"><span class="tbu-cn">n</span><em>INTEGER</em></span><span class="tbu-xl"><span class="tbu-x"><small>ex&nbsp;:</small><b>2</b></span></span></div>'));
   assert.ok(h.includes('<span class="tbu-cn">risque</span><em>TEXT</em></span><span class="tbu-xl"><span class="tbu-x"><small>ex&nbsp;:</small><b>faible</b></span></span></div>'));
-  assert.ok(h.indexOf('<span class="tbu-cn">risque</span>') < h.indexOf('<div class="tbl-corps tbu-pied">') && !h.includes('+3 colonnes'), 'dépliée : toutes ses colonnes, puis le reste');
-  const corps = h.slice(h.indexOf('<div class="tbl-corps tbu-pied">'));
+  assert.ok(h.indexOf('<div class="tbl-corps tbu-haut">') < h.indexOf('<span class="tbu-cn">risque</span>') && !h.includes('+3 colonnes'), '21 h 24 : dépliée, la description et les actions, puis toutes ses colonnes');
+  const corps = h.slice(h.indexOf('<div class="tbl-corps tbu-haut">'));
   const i = k => { const n = corps.indexOf(k); assert.ok(n >= 0, k); return n; };
   assert.ok(i('Aucune description ajoutée') < i('<span>Décrire cette table</span>') && i('<span>Décrire cette table</span>') < i('<span>Voir les données</span>'));
   assert.ok(i('<span>Voir les données</span>') < i('class="tbl-rond reset-table"') && i('class="tbl-rond reset-table"') < i('class="tbl-rond is-danger drop-table"'));

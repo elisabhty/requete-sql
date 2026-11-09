@@ -123,7 +123,8 @@ test('ref 6 — la description d’une table : seulement dépliée, au-dessus de
   const ws = fn('renderDbWorkspace');
   assert.ok(ws.includes("const desc=!open?'':note"), 'repliée : pas de description');
   /* Depuis le 6 novembre, 7 h 52 (la carte du schéma UML) : sous ses colonnes, avant les actions */
-  assert.ok(ws.indexOf('<div class="tbu-cs">') < ws.indexOf('${open?`<div class="tbl-corps tbu-pied${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}'), 'sous les colonnes, avant les actions');
+  /* 9 novembre, 21 h 24 (Elisa) : dépliée, la description et les actions juste sous le nom, avant les colonnes */
+  assert.ok(ws.indexOf('<div class="tbl-corps tbu-haut${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}</div>') < ws.indexOf('<div class="tbu-cs">'), 'sous le nom, avant les colonnes');
   assert.ok(ws.includes("const nom=esc(t).replace(/_/g,'_<wbr>');") && ws.includes('<b class="tbu-n">${nom}</b>'), 'un long nom passe à la ligne après un « _ »');
 });
 

@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=283">
+<link rel="stylesheet" href="ludique.css?v=284">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -22011,7 +22011,9 @@ function renderDbWorkspace(){
      table dans le schéma (son nom, ses lignes dans une pastille, la flèche ronde qui la plie ou la déplie) ; ses colonnes : PK ou FK
      devant le nom, le type à droite, ou « → la table » qu’elle désigne, dans la couleur de cette table. Repliée : ses clés seulement et
      « +N colonnes » (qui la déplie) ; dépliée : toutes ses colonnes, chacune avec son cadre « ex : » et ce qu’elle veut dire, ses liens
-     allumés comme une table touchée du schéma, puis sa description, « Voir les données » et les ronds. */
+     allumés comme une table touchée du schéma, puis sa description, « Voir les données » et les ronds.
+     9 novembre, 21 h 24 (Elisa : « la description, la suppression doivent être après le nom de table ») : dépliée, juste sous son nom,
+     sa description et ses actions, puis ses colonnes, et tout en bas d’où elles viennent. */
   const ouvre=typeof tblOuvre==='undefined'?null:tblOuvre;
   const modele=umlModele(database,tables),teintes=umlTeintes(modele,umlOrdre(modele).ordre);
   const st=c=>`--lc:${c[0]};--lcs:${c[1]};--lci:${c[2]}`;
@@ -22053,8 +22055,9 @@ function renderDbWorkspace(){
       <button type="button" class="tbu-h" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" aria-label="${escAttr(`Table ${t}, ${lignes}, ${plur(cols.length,'colonne')}`)}">
         <b class="tbu-n">${nom}</b><small class="tbu-k" aria-hidden="true">${typeof n==='number'?n.toLocaleString('fr-FR'):esc(String(n))}</small><span class="tbu-pli" aria-hidden="true">${UML_CHEV}</span>
       </button>
+      ${open?`<div class="tbl-corps tbu-haut${ouvre===t?' is-ouvre':''}">${desc}${acts}</div>`:''}
       <div class="tbu-cs">${vis.map(ligne).join('')||(cols.length?'':'<p class="tbu-c is-plus">Aucune colonne</p>')}${plus}</div>
-      ${open?`<div class="tbl-corps tbu-pied${ouvre===t?' is-ouvre':''}">${desc}${acts}${origine?`<p class="tbl-orig">${typeof INFO_SVG!=='undefined'?INFO_SVG:''}<span>${origine}</span></p>`:''}</div>`:''}
+      ${origine?`<div class="tbl-corps tbu-pied"><p class="tbl-orig">${typeof INFO_SVG!=='undefined'?INFO_SVG:''}<span>${origine}</span></p></div>`:''}
     </div>`;
   }).join('');
   tblOuvre=null;
@@ -47459,7 +47462,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-bulle-v2773';
+  const SW_CACHE='requete-2026-11-09-tablehaut-v2774';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

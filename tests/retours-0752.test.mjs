@@ -124,7 +124,7 @@ test('« base » : dépliée, toutes ses colonnes avec leur cadre « ex : » et 
   assert.ok(avis.includes(`<div class="tbu-c is-fk is-lien is-on" style="--lc:${T.circuits[0]};--lcs:${T.circuits[1]};--lci:${T.circuits[2]}"><span class="tbu-r"><i class="is-fk">FK</i><span class="tbu-cn">circuit_<wbr>id</span><b class="tbu-v">→ circuits</b></span><span class="tbu-xl"><span class="tbu-x"><small>ex&nbsp;:</small><b>11</b></span></span></div>`),
     'comme une table touchée du schéma : ses liens allumés, son exemple');
   assert.ok(avis.includes('<span class="tbu-cn">note</span><em>INTEGER</em></span><span class="tbu-xl"><span class="tbu-x"><small>ex&nbsp;:</small><b>5</b></span><small class="tbu-d">La note, de 1 à 5.</small></span>'), 'le cadre, puis ce que veut dire la colonne');
-  assert.ok(!avis.includes('+3 colonnes') && avis.indexOf('<span class="tbu-cn">date_<wbr>avis</span>') < avis.indexOf('<div class="tbl-corps tbu-pied">'), 'toutes ses colonnes, puis la description et les actions');
+  assert.ok(!avis.includes('+3 colonnes') && avis.indexOf('<div class="tbl-corps tbu-haut">') < avis.indexOf('<span class="tbu-cn">date_<wbr>avis</span>'), '21 h 24 : la description et les actions, puis toutes ses colonnes');
   assert.ok(avis.indexOf('Aucune description ajoutée') < avis.indexOf('<span>Voir les données</span>') && !avis.includes('drop-table'), 'une base d’entraînement : rien à supprimer');
   /* Les styles : ceux des cartes du schéma, à la taille de la Console */
   for (const k of ['html.lq #scr-console .console-schema-panel .db-tblock.tbu.is-open{box-shadow:0 0 0 2.5px var(--c),0 3px 0 2.5px var(--c)}',

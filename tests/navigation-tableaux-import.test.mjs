@@ -123,9 +123,9 @@ test('réf 9 — les tables d’un projet : ni autocollant, ni actions sur la li
   assert.ok(!w.includes('db-tico') && !w.includes("lqStkSvg('table')") && !w.includes('db-tnote-k'), 'aucun autocollant');
   /* Depuis le 6 novembre, 7 h 52 (la carte d’une table du schéma UML) : l’en-tête est un bouton (nom, lignes, flèche ronde) ; dessous,
      ses colonnes ; dépliée, la description, puis « Voir les données » et ses deux ronds. */
-  const row = w.slice(w.indexOf('<button type="button" class="tbu-h"'), w.indexOf('<div class="tbu-cs">'));
+  const row = w.slice(w.indexOf('<button type="button" class="tbu-h"'), w.indexOf('</button>', w.indexOf('<span class="tbu-pli"')));
   assert.ok(row.includes('<span class="tbu-pli" aria-hidden="true">${UML_CHEV}</span>') && !row.includes('tbl-acts') && !row.includes('${desc}'), 'la ligne du nom ne porte ni actions ni description');
-  assert.ok(w.includes('${open?`<div class="tbl-corps tbu-pied${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}'), 'les colonnes, puis la description et les actions ; l’apparition seulement à l’ouverture (17 h 35)');
+  assert.ok(w.includes('${open?`<div class="tbl-corps tbu-haut${ouvre===t?\' is-ouvre\':\'\'}">${desc}${acts}</div>`:\'\'}\n      <div class="tbu-cs">'), '21 h 24 : la description et les actions sous le nom, puis les colonnes ; l’apparition seulement à l’ouverture (17 h 35)');
   assert.ok(css.includes('html.lq #scr-console .tbl-voir{flex:1;min-width:0;'), '« Voir les données » en grand');
 });
 
