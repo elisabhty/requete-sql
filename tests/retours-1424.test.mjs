@@ -128,12 +128,13 @@ test('les projets dans IndexedDB : un gros projet s’enregistre, se recharge, e
     quoteIdent: s => '"' + s + '"', quoteSqlText: s => "'" + s + "'", u8ToB64: () => 'b64', b64ToU8: () => new Uint8Array(),
     listTables: d => d.exec("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")[0].values.map(v => v[0]) });
   vm.runInContext('var dbCatalog=[{id:"db_1",name:"Ameublement"}],customDbs={},tableBaselines={};' + fn('tableBaselineKey') + fn('baselineSlot') + fn('tableDefinitionSql') + fn('tableRowCount')
-    + cut('const BASELINE_MAX=', 'function rememberTableBaseline(') + fn('rememberTableBaseline') + fn('hasTableBaseline').replace("if(id==='cours')return SCHEMA_META.some(t=>tableBaselineKey(t.table)===tableBaselineKey(name));", '')
+    + cut('function captureTableBaseline(', 'function rememberTableBaseline(') + fn('rememberTableBaseline') + fn('hasTableBaseline').replace("if(id==='cours')return SCHEMA_META.some(t=>tableBaselineKey(t.table)===tableBaselineKey(name));", '')
     + cut('const DBS_IDB=', 'async function persistCustomDbs(') + cut('async function persistCustomDbs(', 'async function loadCustomDbs(') + cut('async function loadCustomDbs(', '\n}\n') + '\n}\n', ctx);
   vm.runInContext('customDbs.db_1=SQL_BIG;', Object.assign(ctx, { SQL_BIG: big }));
   vm.runInContext('rememberTableBaseline(customDbs.db_1,"db_1","grille");rememberTableBaseline(customDbs.db_1,"db_1","eco");', ctx);
-  assert.equal(vm.runInContext('JSON.stringify(tableBaselines.db_1.grille)', ctx), '{"name":"grille","trop":25000}', 'pas de copie de départ au-delà de 20 000 lignes');
-  assert.equal(vm.runInContext('hasTableBaseline("db_1","grille")+","+hasTableBaseline("db_1","eco")', ctx), 'false,true');
+  /* 9 novembre, 23 h 54 (« supprime la limite ») : 25 000 lignes ont aussi leur copie de départ */
+  assert.equal(vm.runInContext('String(tableBaselines.db_1.grille.octets instanceof Uint8Array && tableBaselines.db_1.grille.octets.length > 100000)', ctx), 'true', 'une copie de départ, même au-delà de 20 000 lignes');
+  assert.equal(vm.runInContext('hasTableBaseline("db_1","grille")+","+hasTableBaseline("db_1","eco")', ctx), 'true,true');
   assert.equal(await ctx.persistCustomDbs(), true);
   const rec = store.get('db_1');
   assert.ok(rec && rec.bytes.byteLength > 100000 && rec.name === 'Ameublement' && rec.ordre === 0 && !ls.has('requete-sql-dbs-v1'), 'les octets tels quels, rien dans localStorage');
@@ -160,5 +161,5 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 
 test('versions : ludique.css v155, cache du service worker', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=295">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-enplace-v2788';") && app.includes("const SW_CACHE='requete-2026-11-09-enplace-v2788';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-detection-v2790';") && app.includes("const SW_CACHE='requete-2026-11-09-detection-v2790';"));
 });

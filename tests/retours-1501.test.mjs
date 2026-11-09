@@ -169,13 +169,13 @@ test('« Vérifier les données » : les colonnes, leurs types et un exemple ; l
   assert.ok(t.includes('<span class="iv-cn">nom</span><span class="iv-ct">TEXT</span><small class="iv-ex">ex. Atelier Nord</small>'));
   const c = ctx.importApercuHtml({ kind: 'database', format: 'json-db', tables: [{ name: 'Clients', cols: ['id', 'nom'], rows: [[1, 'A']] }, { name: 'Phase_audit___RH', cols: ['n'], rows: [] }] }, 'db_1');
   assert.ok(c.includes('<b>Tables détectées</b><small>2 tables</small>') && c.includes('<b>Clients</b><small>1 ligne · 2 colonnes</small><small class="iv-tc">id, nom</small></span>'));
-  assert.ok(c.includes('<b>Phase_<wbr>audit_<wbr>_<wbr>_<wbr>RH</b><small>0 ligne · 1 colonne</small><small class="iv-tc">n</small><em class="iv-deja">Remplacera la table du même nom</em>'));
+  assert.ok(c.includes('<b>Phase_<wbr>audit_<wbr>_<wbr>_<wbr>RH</b><small>0 ligne · 1 colonne</small><small class="iv-tc">n</small><em class="iv-deja">Déjà dans le projet : comparée avant l’ajout</em>'));
   assert.deepEqual([...ctx.importNoms({ format: 'sqlite', noms: ['a', 'b'] })], ['a', 'b']);
   assert.equal(ctx.importApercuHtml({ kind: 'database', format: 'sql', sql: 'CREATE TABLE x(a)' }, 'db_1'), '', 'un script : son texte, comme avant');
   db.close();
   const o = fn('openImportSheet');
   assert.ok(o.includes("title.textContent=aj?'Vérifier les données':asDb?'Importer une base':'Importer une table';"));
-  assert.ok(o.includes("go.textContent=aj?(!asDb||noms.length===1?'Créer la table':noms.length>1?`Créer les ${noms.length} tables`:'Créer les tables'):(asDb?'Importer le projet':'Importer la table');"));
+  assert.ok(o.includes("go.textContent=p.insertOnly?'Ajouter les lignes':aj?(!asDb||noms.length===1?'Créer la table':noms.length>1?`Créer les ${noms.length} tables`:'Créer les tables'):(asDb?'Importer le projet':'Importer la table');"));
   assert.ok(o.includes("document.getElementById('imp-db-field').hidden=!!aj;") && o.includes(`'Elle sera ajoutée'} au projet «${N}\${projectName(aj)}${N}»`), 'le projet ouvert, sans le choisir');
   assert.ok(app.includes('<div class="imp-prev" id="imp-prev"></div>\n    <p class="imp-ou" id="imp-ou" hidden></p>'));
   assert.ok(lq.includes('html.lq .imp-sheet{max-height:calc(100dvh - 12px);overflow-y:auto;overscroll-behavior:contain}'), 'une longue liste de colonnes défile');
@@ -242,7 +242,7 @@ test('import dans un projet : phrases selon le contenu du fichier, table identiq
   assert.equal(b.importBilanTexte(B([], [], ['a'])), 'La table du fichier existe déjà dans le projet avec un contenu différent.');
   assert.equal(b.importBilanTexte(B(['a'], ['b'], ['c'])), 'Le fichier en compte 3 : 1 nouvelle, 1 identique et 1 différente.');
   assert.equal(b.importListe(['Bareme', 'Infos']), '«\u00a0Bareme\u00a0» et «\u00a0Infos\u00a0»');
-  assert.ok(app.includes("if(bilan.total&&bilan.identiques.length===bilan.total){lqInfo('Projet déjà à jour'"), 'tout identique : rien à demander');
+  assert.ok(app.includes("if(bilan.total&&bilan.identiques.length===bilan.total){closeImportSheet();lqInfo('Projet déjà à jour'"), 'tout identique : rien à demander');
   assert.ok(app.includes("oui:bilan.nouvelles.length?'Ajouter au projet':'Mettre à jour le projet'"));
   assert.ok(app.includes("lqInfo('Projet déjà à jour',`La table « ${deja} » du fichier est identique à celle du projet."), 'un CSV identique ne remplace rien');
   assert.ok(app.includes("titre:'Remplacer tout le contenu ?'") && app.includes('Cette action est définitive.`,oui:\'Remplacer\',danger:true,non:\'Annuler\''));
@@ -253,7 +253,7 @@ test('import dans un projet : phrases selon le contenu du fichier, table identiq
 /* 9 novembre, 22 h 44 : « le bouton importer marche bien, avec des % » ; « nouveau projet : comme l’autre » */
 test('import : le bouton compte de 0 à 100 %, un nouveau projet dit « Ajoutées au projet », un gros fichier passe', () => {
   assert.ok(app.includes('let impProg=null;') && app.includes('P.vu=Math.min(P.but,P.vu+dt*1.7);') && app.includes("go.style.setProperty('--imp-pc',P.vu.toFixed(3));"));
-  assert.ok(app.includes('importOccupe(true,.88);await importSouffle();\n    if(activeDbId!==\'cours\')persistCustomDbs(target);\n    await importProgFin();'), '100 % avant de fermer');
+  assert.ok(app.includes('importOccupe(true,.88);await importSouffle();\n    await copiesCompresser(target);\n    if(activeDbId!==\'cours\')persistCustomDbs(target);\n    await importProgFin();'), '100 % avant de fermer');
   assert.ok(lq.includes('html.lq .imp-sheet>.imp-go.is-busy::after{content:"";position:absolute;inset:0;z-index:-1;') && lq.includes('transform:scaleX(var(--imp-pc,0))'));
   assert.ok(lq.includes('html.lq #scr-console .console-schema-panel .db-tblock.is-new{animation:dbNewDoux .45s ease-out both}'), 'plus d’anneau vert');
   assert.ok(app.includes("if(asDb&&tabs.length)return ok(pi.neuf?'Projet créé':tabs.length>1?'Tables ajoutées':'Table ajoutée',`<p>${tabs.length>1?'Ajoutées':'Ajoutée'} au projet&nbsp;: ${codes(tabs)}.</p>"));
@@ -312,4 +312,35 @@ test('feuille d’import, description en place, ajout de table : à portée de m
   assert.ok(app.includes('function descEnPlace(cible,o){') && app.includes("await descEnPlace(ici,{...o,label:'Description du projet',sombre:true})") && app.includes('await descEnPlace(ici,{...o,label:`Description de la table ${name}`})'));
   assert.ok(lq.includes('html.lq #scr-console .tbl-desc[hidden],html.lq #scr-console .console-desc[hidden]{display:none!important}'));
   assert.ok(app.includes('id="db-tables-ajout" onclick="ajouterTable()" aria-label="Ajouter une table"') && lq.includes('html.lq #scr-console .tbl-ajout-fin{'));
+});
+
+/* 9 novembre, 23 h 54 (« supprime la limite ») : toutes les tables ont leur copie, compressée */
+test('copies de départ : sans limite de lignes, compressées, lues sous toutes leurs formes', async () => {
+  assert.ok(!app.includes('BASELINE_MAX') && app.includes("return {name,octets:copy.export()};"));
+  assert.ok(app.includes('return !!(b&&(b.b64||b.octets||b.gz));'));
+  const c = vm.createContext({ Blob, Response, CompressionStream, DecompressionStream, Uint8Array, tableBaselines: {}, b64ToU8: s => Uint8Array.from(Buffer.from(s, 'base64')) });
+  vm.runInContext('async ' + fn('gzipOctets') + 'async ' + fn('copiesCompresser') + 'async ' + fn('copieOctets'), c);
+  const brut = new TextEncoder().encode('CREATE TABLE grille(code TEXT);'.repeat(2000));
+  c.tableBaselines.p = { grille: { name: 'grille', octets: brut } };
+  await c.copiesCompresser('p');
+  const g = c.tableBaselines.p.grille;
+  assert.ok(g.gz && !g.octets && g.gz.length < brut.length / 20, `compressée : ${brut.length} → ${g.gz.length} octets`);
+  assert.deepEqual([...await c.copieOctets(g)], [...brut], 'relue telle quelle');
+  assert.deepEqual([...await c.copieOctets({ b64: Buffer.from('abc').toString('base64') })], [97, 98, 99], 'les anciennes copies en base64');
+});
+
+/* 10 novembre, 0 h (« vérifie la détection, les messages d’erreur, le remplacement de table ») */
+test('détection et erreurs : SQL en français, script SQL comme une base, texte non tabulaire refusé, lignes ajoutées comptées', () => {
+  const c = vm.createContext({});
+  vm.runInContext(fn('importErreurLisible'), c);
+  assert.equal(c.importErreurLisible(new Error('near ";": syntax error')), 'Le script SQL contient une erreur de syntaxe près de « ; ». Corrige-la dans le fichier, puis réessaie.');
+  assert.equal(c.importErreurLisible(new Error('table produits already exists')), 'La table « produits » existe déjà dans ce projet.');
+  assert.ok(/qui n’existe pas encore, sans dire ses colonnes/.test(c.importErreurLisible(new Error('Table « produits » absente : le script INSERT ne liste pas les colonnes, impossible de la créer automatiquement.'))));
+  assert.ok(/ne ressemble pas à un tableau/.test(c.importErreurLisible(new Error('pas un tableau'))));
+  assert.ok(app.includes("lqInfo('Import impossible',importErreurLisible(e));"));
+  assert.ok(app.includes("return {kind:'database',format:'sqlite',viaSql:true,sql,bytes:tmp.export(),noms,nbs,"), 'un script qui crée ses tables : une base');
+  assert.ok(app.includes("'<em class=\"iv-deja\">Déjà dans le projet : comparée avant l’ajout</em>'") && !app.includes('Remplacera la table du même nom'));
+  assert.ok(app.includes("closeImportSheet();lqInfo('Projet déjà à jour',`La table « ${deja} »"), 'rien à faire : la feuille se ferme');
+  assert.ok(app.includes("if(pi.lignes)return ok(") && app.includes("if(lignesA&&name.toLowerCase()===lignesA.table.toLowerCase())continue;"), 'des lignes ajoutées : comptées, la copie de départ garde le fichier');
+  assert.ok(app.includes("go.textContent=p.insertOnly?'Ajouter les lignes':"));
 });
