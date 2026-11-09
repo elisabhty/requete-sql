@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=272">
+<link rel="stylesheet" href="ludique.css?v=273">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -29062,7 +29062,7 @@ const editorBlock=(withViz,fname='exercice.sql',o)=>{
   const noExec=current&&current.noExec,jeu=!!(o&&o.jeu),coach=jeu||!!(o&&o.coach);
   return `${coach?'<div id="hint-slot"></div>':''}
   <div class="editor-shell">
-    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${jeu?`<button type="button" class="ed-schema${schAttn()}" onclick="openSchemaSheet()" aria-label="Voir le schéma des tables">${ED_SCHEMA_SVG}<span>Schéma</span></button>`:''}${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
+    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${jeu?`<button type="button" class="ed-schema${schAttn()}" onclick="openSchemaSheet()" aria-label="Voir le schéma des tables">${ED_SCHEMA_SVG}<span>Schéma</span>${schAttn()?'<i class="sch-doigt" aria-hidden="true">👆</i>':''}</button>`:''}${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
     <div class="editor-area"><pre><code id="hl-lesson"></code></pre>
     <textarea aria-label="Requête SQL de l’exercice" id="ed-lesson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Écris ta requête ici…"></textarea></div>
   </div>
@@ -37490,6 +37490,7 @@ function runLesson(){
   }catch(e){
     /* Un défi : dans la carte des indices, « Pas tout à fait. Réessaie ! » et l’erreur SQL comme dans la boîte « Erreur SQL », son
        message et son aide ; rien sous l’éditeur (9 novembre, 7 h 37 puis 8 h 04) */
+    if(isDefi&&(!COACH||COACH.c!==current)&&document.getElementById('hint-slot'))coachReset(current,'solo');   // 12 h 28 : jamais sous l’éditeur, même sans carte (après une réussite)
     if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=defiErreurSql(e.message,sql);COACH.fx='is-new-ko';}
     else setLessonOut(errBox(e.message,sql));
     registerExoFail(sql); return; }
@@ -47157,7 +47158,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-compte-v2734';
+  const SW_CACHE='requete-2026-11-09-doigt-v2735';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -47196,6 +47197,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
-<script src="multiplayer-security.js?v=9"></script>
+<script src="multiplayer-security.js?v=10"></script>
 </body>
 </html>
