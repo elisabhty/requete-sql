@@ -133,7 +133,7 @@ test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre ami
   assert.ok(found.includes('if(r.found[J.me]==null&&!r.one)jeuBonusOut();'), 'il s’envole chez les autres');
   assert.ok(fn('jeuDirectObserver').includes("const y=rk.find(z=>z.pid===x.pid)||{},prem=y.place===1,b=prem&&y.essai?`+${y.essai}`:'';"), 'celui qui l’a pris : « +25 » dans le commentateur de « En direct » (8 novembre, 12 h 25)');
   /* Celui qui l’a pris : la pastille « +25 ✨ » saute sur ses points */
-  assert.ok(fn('jeuFoundHTML').includes('${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${x.essai} ✨</i>`:\'\'}'), 'le premier coup du niveau : +25, +50 ou +100 (6 novembre, 15 h)');
+  assert.ok(fn('jeuFoundHTML').includes('x.essai?`du premier coup <span class="coach-ok-bonus">+${x.essai}\\u00a0✨</span>`'), 'le premier coup du niveau : +25, +50 ou +100 (6 novembre, 15 h ; dans l’encart vert, 9 novembre, 8 h 50)');
   for (const k of ['html.lq .jeu-done-b{position:absolute;', '@keyframes jeuDoneB{', '@keyframes jeuDoneEt{']) assert.ok(css.includes(k), k);
   assert.ok(app.includes('Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi'), 'la règle dite dans « Comment on marque des points »');
 });
@@ -182,5 +182,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=262">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=263">'));
 });

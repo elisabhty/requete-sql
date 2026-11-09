@@ -62,7 +62,7 @@ test('ce qu’on voit : la valeur du niveau pendant la manche, « Difficile ×4 
   assert.equal(vm.runInContext("jeuPtsDetail({val:150,x:1,k:'f',essai:0,rang:0,place:1})", c), '<span class="jeu-pd"><i>Défi 150</i></span>', 'en Facile, rien de plus');
   assert.ok(app.includes('<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span>') && app.includes('title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>') && !app.includes('JEU_PTS_ESSAI*'), 'pendant la manche : la valeur du niveau, et le premier coup à +25');
   assert.ok(fn('jeuTick').includes("const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));"), 'au fil du chrono aussi');
-  assert.ok(fn('jeuFoundHTML').includes('+${x.essai} ✨') && fn('jeuDirectObserver').includes("b=prem&&y.essai?`+${y.essai}`:''"), 'trouvé : le premier coup du niveau (chez les autres, dans le commentateur de « En direct »)');
+  assert.ok(fn('jeuFoundHTML').includes('+${x.essai}\\u00a0✨') && fn('jeuDirectObserver').includes("b=prem&&y.essai?`+${y.essai}`:''"), 'trouvé : le premier coup du niveau (chez les autres, dans le commentateur de « En direct »)');
   for (const r of ['html.lq .jeu-pd i.is-niv.is-m{color:#B45309!important}', 'html.lq .jeu-pd i.is-niv.is-d{color:#C2323A!important}']) assert.ok(lq.includes(r), r);
 });
 
