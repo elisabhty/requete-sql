@@ -35726,7 +35726,8 @@ function jeuTick(){
   jeuHostWatch();
   jeuNetMaj();
   jeuReagirMaj();   // « Réagir », en bas à droite
-  jeuOupsMaj();   // pas prêt au lancement : retour sur Défis au bout de 30 s (14 h 24), pendant la manche (19 h 37)
+  jeuOupsMaj();   // pas prêt au lancement : retour sur Défis au bout de 30 s (14 h 24)
+  if(JEU!==J)return;   // la salle vient de se fermer (retour sur Défis) : rien d’autre à faire, pendant la manche (19 h 37)
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
   if(el&&n>=0&&(jeuFige(n)||(jeuSoloLike(n)&&jeuRoundDone(n))))jeuChronoPose(el,jeuChronoEtat(n));   // seul, le chrono arrêté : le temps mis, ou 00:00 (10 h 37)
@@ -36270,6 +36271,7 @@ const JEU_SABLIER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const JEU_MAIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 12.5V5.8a1.4 1.4 0 0 1 2.8 0V11M11.3 10.6V4.4a1.4 1.4 0 0 1 2.8 0v6.3M14.1 10.7V5.6a1.4 1.4 0 0 1 2.8 0v7.6c0 4-2.6 7.3-6.4 7.3-2.4 0-3.9-1.1-5.2-3l-2.2-3.3a1.4 1.4 0 0 1 2.2-1.7l1.6 1.8"/></svg>';
 function jeuLobbyEtatHTML(){
   const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true);
+  if(!host)jeuPasPrets();   // 15 h 08 : chaque téléphone compte les 30 s ; l’invité qui devient hôte (relais) ne les remet pas à zéro
   const tous=live.length>=2&&prets.length===live.length;
   let cls='is-att',ico=JEU_SABLIER,t,p;
   if(host&&live.length<2){
@@ -47305,7 +47307,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-oups-v2748';
+  const SW_CACHE='requete-2026-11-09-parcours-v2749';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
