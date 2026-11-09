@@ -76,7 +76,7 @@ test('« Enlève Ses colonnes » : la bulle d’une table touchée dit ses liens
   const m = ctx.umlModele(d, tablesDe(d)), p = ctx.umlPlan(m, 340, true, new Set());
   const b = ctx.umlBulle(m, {t: 'avis'}, p.T);
   assert.ok(b.includes('<span class="umd-bh"><b class="umd-bn">avis</b></span>') && !b.includes('Ses colonnes') && !b.includes('<button type="button" class="umd-bgo"'));
-  assert.ok(b.includes('<span class="sr">avis désigne clients</span>') && b.includes('<span class="sr">avis désigne circuits</span>'));
+  assert.ok(/<span class="sr">avis désigne clients par \w+<\/span>/.test(b) && /<span class="sr">avis désigne circuits par \w+<\/span>/.test(b));
   assert.ok(!css.includes('.umd-bgo') && !css.includes('@keyframes umdGo'));
   d.close();
 });

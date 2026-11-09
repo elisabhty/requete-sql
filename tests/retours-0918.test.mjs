@@ -92,7 +92,7 @@ test('une flèche animée : des points qui coulent sur les liens allumés, la bu
   assert.ok(fn('umlAppliquer').includes("plan.querySelectorAll('.umd-a,.umd-m,.umd-f')"), 'touchée, la table fait couler ses liens');
   assert.ok(ctx.UML_FLECHE.includes('class="umd-ar-l"') && ctx.UML_FLECHE.includes('class="umd-ar-p"') && ctx.UML_FLECHE.includes('aria-hidden="true"'));
   const b = ctx.umlBulle(m, {t: 'plats'}, p.T);
-  assert.ok(b.includes(ctx.UML_FLECHE) && !b.includes('Désigne') && b.includes('<span class="sr">plats désigne categories</span>'));
+  assert.ok(b.includes(ctx.UML_FLECHE) && !b.includes('<span>Désigne</span>') && /<span class="sr">plats désigne categories par \w+<\/span>/.test(b));
   assert.ok(!b.includes('Ses colonnes'), 'plus de « Ses colonnes » (6 novembre, 7 h 52)');
   const auto = ouvrir(`CREATE TABLE employes(id INTEGER PRIMARY KEY, chef_id INTEGER REFERENCES employes(id)); INSERT INTO employes VALUES (1,NULL);`);
   assert.ok(ctx.umlBulle(ctx.umlModele(auto, ['employes']), {t: 'employes'}, {}).includes('<span class="sr">employes se désigne elle-même</span>'));
@@ -182,5 +182,5 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=282">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=283">'));
 });
