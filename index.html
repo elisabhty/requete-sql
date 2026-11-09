@@ -36082,9 +36082,13 @@ function jeuReagirPeindre(){
   if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(o));
 }
 /* Là pendant toute la manche, dans toute salle, même seule ; ni en partie seule, ni sur le tirage, le bilan ou le podium. */
+/* 15 h 24 (Elisa : « laisse le Réagir jusqu’au bilan, résultat ») : pendant la manche, aux résultats de chaque manche et sur le podium ;
+   pas dans la salle d’attente ni au tirage, pas seul (le bilan de « Joue seul », ou seul dans la salle). */
 function jeuReagirLa(){
-  const J=JEU,m=J&&/^play(\d+)$/.exec(String(J.view||''));
-  return !!(m&&!J.solo&&!(typeof jeuSoloLike==='function'&&jeuSoloLike(+m[1])));   // seul dans la salle : pas de « Réagir », comme en « Joue seul » (9 novembre, 7 h 16)
+  const J=JEU,v=String(J&&J.view||''),m=/^(?:play|res)(\d+)$/.exec(v);
+  if(!J||J.solo)return false;
+  if(v==='final')return J.seulFin===false;
+  return !!(m&&!(typeof jeuSoloLike==='function'&&jeuSoloLike(+m[1])));   // seul dans la salle : pas de « Réagir », comme en « Joue seul » (9 novembre, 7 h 16)
 }
 /* On écrit : un champ de texte a le clavier (l’éditeur de la requête d’abord). */
 function jeuReagirEcrit(){
@@ -47310,7 +47314,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-flamme-v2750';
+  const SW_CACHE='requete-2026-11-09-reagir-v2751';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
