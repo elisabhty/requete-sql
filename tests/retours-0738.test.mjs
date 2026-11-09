@@ -241,7 +241,7 @@ test('les onglets de table : chaque colonne a son cadre « ex : », la clé étr
   const r = cut('function renderSchemaSheet(){', 'const schTabSel={},schBaseOuverte={};');
   assert.ok(r.includes('const exs=mt?Object.fromEntries(mt.cols.map(c=>[c.c,c.ex])):schemaExemples(database,name,n);'), 'les mêmes valeurs que sur le schéma UML');
   /* 9 novembre, 21 h 30 : comme sa carte dans la Console : « → la table » à droite, le cadre « ex : » dessous */
-  assert.ok(r.includes('const droite=c.ref?`<b class="cref">→ ${esc(c.ref)}</b>`:`<span class="ct">${esc(c.t)}</span>`;') && r.includes('<span class="cxl">${x?`<span class="cx${x.k===\'null\'?\' is-null\':\'\'}"><small>ex&nbsp;:</small><b>${esc(x.v)}</b></span>`:\'\'}'));
+  assert.ok(r.includes('const droite=c.ref?`<b class="cref">→ ${esc(c.ref)}</b>`:`<span class="ct">${esc(typeof umlType===\'function\'?umlType(c.t):c.t)}</span>`;') && r.includes('<span class="cxl">${x?`<span class="cx${x.k===\'null\'?\' is-null\':\'\'}"><small>ex&nbsp;:</small><b>${esc(x.v)}</b></span>`:\'\'}'));
   assert.ok(!r.includes('${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:\'\'}\n        <span class="ct">'), '« → categories » ne repousse plus le type à la ligne');
   for (const k of ['html.lq #schema-sheet .sch-col .cxl{flex-basis:100%;order:9;', 'html.lq #schema-sheet .sch-col .cx{display:inline-flex;align-items:center;gap:5px;',
     'html.lq #schema-sheet .sch-col .cx.is-fk{background:#EAFBF2;', 'html.lq #schema-sheet .sch-col .cx.is-null b{font-style:italic;'])
