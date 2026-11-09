@@ -1745,12 +1745,16 @@ test('13 h 20 : un joueur lent est nommé à 30 s, à 60 s l’hôte peut le ret
   assert.match(etat(host), /En attente que les autres joueurs soient prêts…/);
   sec(w, 30);
   assert.match(etat(host), /Ami2 n’est pas encore prêt·e…/);
-  assert.doesNotMatch(etat(host), /Retirer/);
+  assert.doesNotMatch(host.ev("jeuPlayersHTML('lobby')"), /jeu-pl-x/, 'à 30 s, pas encore de croix');
   assert.doesNotMatch(etat(guests[0]), /Ami2/, 'les invités ne voient pas ces messages');
   sec(w, 30);
   assert.match(etat(host), /Ami2 prend son temps…/);
-  assert.match(etat(host), /<button type="button" class="jeu-retirer" data-pid="[^"]+" onclick="jeuRetirer\(this\.dataset\.pid\)">Retirer ce joueur<\/button>/);
-  assert.doesNotMatch(etat(guests[0]), /Retirer/, 'seulement chez l’hôte');
+  /* 13 h 36 (« juste une croix avec micro-interaction ») : la croix sur sa ligne, plus de lien sous le message */
+  assert.doesNotMatch(etat(host), /Retirer/);
+  const lignes = c => c.ev("jeuPlayersHTML('lobby')");
+  assert.match(lignes(host), /<li class="[^"]*has-x"[^>]*>.*Ami2.*<button type="button" class="jeu-pl-x" data-pid="[^"]+" onclick="jeuRetirer\(this\.dataset\.pid,this\)" aria-label="Retirer Ami2">/);
+  assert.equal((lignes(host).match(/jeu-pl-x/g) || []).length, 1, 'une seule croix : le joueur lent, ni l’hôte ni le prêt');
+  assert.doesNotMatch(lignes(guests[0]), /jeu-pl-x/, 'seulement chez l’hôte');
   assert.equal(guests[1].view(), 'lobby', 'rien n’est fait tout seul');
   /* La question d’abord : « Annuler » ne retire personne */
   const asks = []; let oui = false;

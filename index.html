@@ -2026,8 +2026,19 @@
   .jeu-lobby-msg.is-ok,.jeu-lobby-msg.is-moi{color:var(--success)}
   .jeu-lobby-msg.is-lent{color:#9A5B12}
   @keyframes jeuMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .jeu-retirer{min-height:36px;margin:-4px 0 0;padding:6px 12px;border:0;background:none;color:var(--ink-3);font:inherit;font-size:13px;font-weight:650;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;touch-action:manipulation}
-  .jeu-retirer:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+  /* 13 h 36 : la croix pour retirer un joueur lent (l’hôte, à 60 s) : elle arrive d’un petit bond, frémit une fois, rougit sous le
+     doigt et s’enfonce ; confirmé, la ligne glisse et s’efface. 32 px à l’œil, 44 px sous le doigt. */
+  .jeu-pl-x{position:relative;flex:none;display:grid;place-items:center;width:32px;height:32px;margin:-2px -2px -2px 2px;padding:0;border:0;border-radius:50%;background:#F0EEF5;color:#6E6A80;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    transition:background .18s,color .18s,transform .18s var(--spring-ios,ease);animation:jeuXIn .42s var(--pop,ease) both,jeuXFremit .5s ease-in-out .9s 1}
+  .jeu-pl-x::before{content:"";position:absolute;inset:-6px}
+  .jeu-pl-x svg{width:13px;height:13px}
+  .jeu-pl-x:hover,.jeu-pl-x:focus-visible{background:#FFE4DC;color:#C2412D}
+  .jeu-pl-x:active{transform:scale(.86);background:#FFD5C8;color:#B23A26}
+  .jeu-pl-x:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  @keyframes jeuXIn{from{opacity:0;transform:scale(.4) rotate(-90deg)}to{opacity:1;transform:none}}
+  @keyframes jeuXFremit{0%,100%{transform:none}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+  .jeu-players li.is-sort{animation:jeuRowOut .28s ease-in forwards;pointer-events:none}
+  @keyframes jeuRowOut{to{opacity:0;transform:translateX(18px) scale(.97)}}
   .jeu-lobby-etat+.journey-primary,.jeu-lobby-etat+.jeu-ready{margin-top:12px}
   #jeu-go:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
   .jeu-ready{display:inline-flex;align-items:center;justify-content:center;gap:8px}
@@ -2036,8 +2047,8 @@
   .jeu-ready.on .jeu-ready-fl{display:none}
   @keyframes jeuFlAvance{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
   .jeu-players em.jeu-state.is-att{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:#F0EEF5;color:#6E6A80;font-style:normal;font-size:12.5px;line-height:1;white-space:nowrap;transition:background .3s,color .3s}
-  @media (prefers-reduced-motion:reduce){.jeu-lobby-msg,.jeu-ready-fl svg{animation:none!important}.jeu-prets-pts i.ok{transform:none}}
-  html[data-motion="reduce"] .jeu-lobby-msg,html[data-motion="reduce"] .jeu-ready-fl svg{animation:none!important}
+  @media (prefers-reduced-motion:reduce){.jeu-lobby-msg,.jeu-ready-fl svg,.jeu-pl-x,.jeu-players li.is-sort{animation:none!important}.jeu-prets-pts i.ok{transform:none}}
+  html[data-motion="reduce"] .jeu-lobby-msg,html[data-motion="reduce"] .jeu-ready-fl svg,html[data-motion="reduce"] .jeu-pl-x{animation:none!important}
   .jeu-net.is-soft{background:var(--accent-soft);color:var(--accent-ink)!important}
   .jeu-draw{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;min-height:58vh;padding:18px 0 10px}
   .jeu-draw .l-kicker{margin:0!important}
@@ -35792,6 +35803,7 @@ function jeuPlayersHTML(kind){
   const J=JEU,n=jeuCur(),r=kind!=='lobby'&&n>=0?J.rounds[n]:null;
   const all=jeuOrder(),pretAt=J.pretAt||(J.pretAt={});
   const list=all.filter(p=>kind==='lobby'?jeuPresent(p):(jeuPresent(p)||(r&&r.found[p]!=null)));
+  const lents=kind==='lobby'&&typeof jeuLents==='function'?jeuLents():[];
   const rows=list.map(pid=>{
     const p=J.players[pid]||{name:'Joueur'},me=pid===J.me,host=pid===J.hostPid;
     const away=!jeuPresent(pid),found=r&&r.found[pid]!=null,isNew=!J.shown.has(pid);
@@ -35804,7 +35816,8 @@ function jeuPlayersHTML(kind){
       }else{delete pretAt[pid];state='<em class="jeu-state is-att">En attente</em>';}   // 13 h 20 : « Prêt·e » en vert, « En attente » en gris
     }
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
-    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
+    const x=kind==='lobby'&&lents.includes(pid)?`<button type="button" class="jeu-pl-x" data-pid="${esc(pid).replace(/"/g,'&quot;')}" onclick="jeuRetirer(this.dataset.pid,this)" aria-label="${esc('Retirer '+p.name).replace(/"/g,'&quot;')}">${typeof LQ_X_SVG!=='undefined'?LQ_X_SVG:'×'}</button>`:'';
+    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}${x?' has-x':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}${x}</li>`;
   });
   if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un joueur…</span></li>');
   return rows.join('');
@@ -36245,24 +36258,27 @@ function jeuPasPrets(){
 function jeuLobbyEtatHTML(){
   const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true);
   const tous=live.length>=2&&prets.length===live.length;
-  let msg,cls='',act='';
+  let msg,cls='';
   if(host&&live.length<2){
     msg=`${J.pub?'Ta salle est visible par les autres joueurs.':J.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Il faut être au moins deux pour lancer la partie.`;
   }else if(tous){
     msg=host?'Tout le monde est prêt ! À toi de lancer la partie.':'Tout le monde est prêt ! En attente que l’hôte lance la partie…';cls='is-ok';
   }else if(host){
     const w=jeuPasPrets()[0],nom=w?esc((J.players[w.pid]||{}).name||'Un joueur'):'';
-    if(w&&w.ms>=JEU_LENT2_MS){msg=`${nom} prend son temps…`;cls='is-lent';
-      act=`<button type="button" class="jeu-retirer" data-pid="${esc(w.pid).replace(/"/g,'&quot;')}" onclick="jeuRetirer(this.dataset.pid)">Retirer ce joueur</button>`;}
+    if(w&&w.ms>=JEU_LENT2_MS){msg=`${nom} prend son temps…`;cls='is-lent';}   // 13 h 36 : le retrait, une croix sur sa ligne (jeuPlayersHTML)
     else if(w&&w.ms>=JEU_LENT_MS){msg=`${nom} n’est pas encore prêt·e…`;cls='is-lent';}
     else msg='En attente que les autres joueurs soient prêts…';
   }else if(J.ready[J.me]){msg=`Tu es ${mot} ! En attente des autres joueurs…`;cls='is-moi';}
   else msg=`Préviens l’hôte quand tu es ${mot} !`;
   const compte=live.length>=2?`<span class="jeu-prets${tous?' is-tous':''}"><span class="jeu-prets-pts" aria-hidden="true">${live.map(p=>`<i${jeuIsReady(p)?' class="ok"':''}></i>`).join('')}</span><b>${prets.length}/${live.length}</b> joueurs prêts</span>`:'';
-  return `${compte}<p class="jeu-lobby-msg ${cls}">${msg}</p>${act}`;
+  return `${compte}<p class="jeu-lobby-msg ${cls}">${msg}</p>`;
 }
 /* Le message ne se redessine que s’il change (il entre en fondu) ; le bouton « Lancer » suit à chaque instant. */
+/* 13 h 36 (Elisa : « c’est pas UI/UX, peut-être juste une croix avec micro-interaction ») : chez l’hôte, la croix apparaît sur la ligne
+   d’un joueur pas prêt depuis 60 s ; la liste se redessine quand l’ensemble change. */
+function jeuLents(){const J=JEU;return J&&!J.solo&&jeuIsHost()&&jeuCur()<0&&!J.over?jeuPasPrets().filter(x=>x.ms>=JEU_LENT2_MS&&x.pid!==J.me).map(x=>x.pid):[];}
 function jeuLobbyEtatMaj(){
+  {const J=JEU,k=jeuLents().join(',');if(J&&J.lentsVus!==k){const prem=J.lentsVus==null;J.lentsVus=k;const pl=!prem&&typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-players'):null;if(pl)pl.innerHTML=jeuPlayersHTML('lobby');}}
   const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-lobby-etat'):null;
   if(el){const h=jeuLobbyEtatHTML();if((el.dataset&&el.dataset.h)!==h){el.innerHTML=h;if(el.dataset)el.dataset.h=h;}}
   const go=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-go'):null;
@@ -36271,10 +36287,13 @@ function jeuLobbyEtatMaj(){
 function jeuLancer(){if(!jeuPeutLancer()){jeuLobbyEtatMaj();return;}jeuNextRound();}
 /* « Retirer ce joueur » : l’hôte seul, en salle d’attente ; une question d’abord. Le retiré lit qu’il a été retiré et peut revenir avec le
    code (le retrait vise son arrivée, comme un refus : hu). */
-function jeuRetirer(pid){
+function jeuRetirer(pid,btn){
   const J=JEU;if(!J||J.solo||!jeuIsHost()||pid===J.me||jeuCur()>=0||J.over||!jeuPresent(pid))return;
   const nom=(J.players[pid]||{}).name||'Ce joueur';
-  const go=()=>{if(JEU===J&&jeuIsHost()&&jeuCur()<0&&jeuPresent(pid))jeuSend({t:'retire',who:pid,hu:J.helloOf[pid]||''});};
+  /* Confirmé : sa ligne glisse et s’efface (0,28 s), puis il part ; mouvement réduit : tout de suite. */
+  const envoi=()=>{if(JEU===J&&jeuIsHost()&&jeuCur()<0&&jeuPresent(pid))jeuSend({t:'retire',who:pid,hu:J.helloOf[pid]||''});};
+  const go=()=>{const li=btn&&btn.closest?btn.closest('li'):null;
+    if(li&&!(typeof prefersReduceMotion==='function'&&prefersReduceMotion())){li.classList.add('is-sort');setTimeout(envoi,280);}else envoi();};
   if(typeof lqAsk!=='function'){go();return;}
   lqAsk({ico:'👋',titre:`Retirer ${nom} ?`,texte:`${nom} quittera la salle d’attente. Tu pourras l’inviter de nouveau avec le code.`,oui:'Retirer',non:'Annuler',danger:true}).then(ok=>{if(ok)go();});
 }
@@ -47268,7 +47287,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-prets-v2740';
+  const SW_CACHE='requete-2026-11-09-croix-v2741';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
