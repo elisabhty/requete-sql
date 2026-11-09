@@ -1917,3 +1917,11 @@ test('9 novembre, 20 h 29 : un même pas de 16 px entre les blocs des pages de l
   for (const r of ['html.lq .jeu-fin-actions{margin:16px 0 6px}', 'html.lq #jeu-root>.l-sub{margin-bottom:16px!important}', 'html.lq #jeu-root>.jeu-card,html.lq #jeu-root>.jeu-bilan+.jeu-card{margin-top:16px}', 'html.lq #jeu-root>.jeu-podium{margin-bottom:0}']) assert.ok(css.includes(r), r);
   assert.ok(/html\.lq #app \.jeu-bilan\{[^}]*margin:16px 0 16px;/.test(css) && /html\.lq #jeu-root \.jr2-hero\{[^}]*margin:14px 0 16px;/.test(css));
 });
+
+test('9 novembre, 20 h 49 : le même pas vertical sur toute l’appli et l’onboarding (16 entre blocs, 12 dans les listes, 8 titre / phrase)', () => {
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  const ob = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
+  for (const r of ['html.lq #scr-compte .acc-stack{gap:16px!important}', 'html.lq #scr-learn #modules>.home-module{margin-bottom:12px!important}', 'html.lq #scr-console .console-projects-head{margin:16px 1px 12px!important}', 'html.lq #scr-entretien .ent-list{display:flex;flex-direction:column;gap:12px!important}']) assert.ok(css.includes(r), r);
+  for (const r of ['html #onboarding.ob-vitrine .ob-screen>.ob-chat{margin:12px 0 16px!important}', 'html #onboarding.ob-vitrine .ob-screen>.ob-answer-list{display:flex;flex-direction:column;gap:12px!important}']) assert.ok(ob.includes(r), r);
+  assert.ok(ob.indexOf('html #onboarding.ob-vitrine .ob-screen>.ob-chat{margin:12px 0 16px!important}') < ob.indexOf('html #onboarding.ob-vitrine.ob-fit-1 '), 'avant les paliers ob-fit, qui resserrent sur les petits écrans');
+});
