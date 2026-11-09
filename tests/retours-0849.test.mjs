@@ -166,6 +166,6 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     '@media (max-width:360px){\n  html.lq .lq-a-titre{font-size:22px}'])
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=284">'));
-  assert.ok(sw.includes("'requete-2026-11-09-tablehaut-v2774'"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=285">'));
+  assert.ok(sw.includes("'requete-2026-11-09-calme-v2775'"));
 });

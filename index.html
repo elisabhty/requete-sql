@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=284">
+<link rel="stylesheet" href="ludique.css?v=285">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -22068,6 +22068,15 @@ function toggleTableSchema(name){
   openTableSchema=openTableSchema===name?null:name;
   tblOuvre=openTableSchema;
   renderDbWorkspace();
+  /* 9 novembre, 21 h 30 (Elisa : « quand on ouvre une table, que ça nous pousse pour la voir ») : la table ouverte glisse sous la barre
+     du haut, son nom en premier ; déjà bien placée (son haut à l’écran, sous la barre), rien ne bouge. */
+  if(!openTableSchema||typeof ecranVers!=='function')return;
+  requestAnimationFrame(()=>{
+    const el=[...document.querySelectorAll('#scr-console .db-tblock.is-open')].find(b=>b.dataset.table===openTableSchema);if(!el)return;
+    const r=el.getBoundingClientRect(),h=window.innerHeight||800;
+    if(r.top>=70&&r.top<=h*.28)return;
+    ecranVers(el);
+  });
 }
 /* Elisa, 5 novembre, 15 h 01 : « quand on appuie sur Select, ça nous emmène vers le moteur SQL ». « Voir les données » écrit la requête
    dans l’éditeur et l’exécute ; la page descend une seule fois, jusqu’à l’éditeur, et le résultat s’affiche juste dessous (sans le
@@ -24897,6 +24906,7 @@ function renderSchemaSheet(){
   umlSel=null;
   body.dataset.base=key;   // avant la toile : ses tables pliées sont celles de cette base (22 h 19)
   const umlBloc=modele?umlPanneau(modele,umlDernier.W,cur==='__uml__'):'';
+  const teintesTab=modele?umlTeintes(modele,umlOrdre(modele).ordre):null;
   /* La présentation de la base, pliable (3 novembre, 21 h 03) : fermée d’abord, elle reste comme on l’a laissée pendant la visite. */
   const baseOuverte=!!schBaseOuverte[key];
   const baseCarte=dId?`<div class="sch-base${baseOuverte?' open':''}"><button type="button" class="sch-base-h" aria-expanded="${baseOuverte}" aria-controls="sch-base-txt" onclick="schemaBaseToggle(this)"><b>Base ${esc(DEFI_BASES[dId].nom)}</b><span class="sch-base-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button><div class="sch-base-body" id="sch-base-txt"><div><p>${esc(DEFI_BASES[dId].desc)}</p></div></div></div>`:'';
@@ -24908,17 +24918,17 @@ function renderSchemaSheet(){
        étrangère y dit où elle va (« ex : 2 → categories »), devant ce que dit la colonne. */
     const mt=modele&&modele.tables.find(t=>t.name===name);
     const exs=mt?Object.fromEntries(mt.cols.map(c=>[c.c,c.ex])):schemaExemples(database,name,n);
-    return `<div class="sch-table" role="tabpanel" data-t="${escAttr(name)}"${name===cur?'':' hidden'}>
-      <div class="sch-head">${schemaTableIcon()}<b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
+    /* 9 novembre, 21 h 30 (Elisa : « schéma défi et schéma console, à aligner de la même manière ») : l’onglet d’une table a la forme de
+       sa carte dans la Console : la pastille de sa couleur devant son nom, ses lignes en gris ; chaque colonne, « PK » / « FK » devant
+       son nom, à droite son type ou « → la table » qu’elle désigne, dessous son cadre « ex : » et ce qu’elle veut dire. */
+    const tt=teintesTab&&teintesTab[name]||UML_NEUTRE;
+    return `<div class="sch-table is-tbu" role="tabpanel" data-t="${escAttr(name)}"${name===cur?'':' hidden'} style="--c:${tt[0]};--cs:${tt[1]};--ci:${tt[2]}">
+      <div class="sch-head"><b>${esc(name)}</b><small>${n} ligne${n>1?'s':''}</small></div>
       ${noteId&&tableNote(noteId,name)?`<p class="sch-tnote">${esc(tableNote(noteId,name))}</p>`:''}
-      ${cols.map(c=>{ const x=exs[c.c],nt=noteId&&colNote(noteId,name,c.c),vers=c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:'';
-        return `<div class="sch-col">
-        <span class="cn">${esc(c.c)}</span>
-        ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
-        ${c.b==='fk'||c.ref?'<span class="badge fk">FK</span>':''}
-        <span class="ct">${esc(c.t)}</span>
-        ${x||vers||nt?`<span class="cxl">${x||vers?`<span class="cx${x&&x.k==='null'?' is-null':''}${vers?' is-fk':''}">${x?`<small>ex&nbsp;:</small><b>${esc(x.v)}</b>`:''}${vers}</span>`:''}${nt?`<small class="cd">${esc(nt)}</small>`:''}</span>`:''}
-      </div>`; }).join('')||'<div class="sch-col"><span class="cn">—</span></div>'}
+      ${cols.map(c=>{ const x=exs[c.c],nt=noteId&&colNote(noteId,name,c.c),fk=c.b==='fk'||!!c.ref;
+        const badges=(c.b==='pk'?'<span class="badge pk">PK</span>':'')+(fk?'<span class="badge fk">FK</span>':'');
+        const droite=c.ref?`<b class="cref">→ ${esc(c.ref)}</b>`:`<span class="ct">${esc(c.t)}</span>`;
+        return `<div class="sch-col${c.b==='pk'?' is-pk':''}${fk?' is-fk':''}"><span class="sch-r">${badges}<span class="cn">${esc(c.c)}</span>${droite}</span>${x||nt?`<span class="cxl">${x?`<span class="cx${x.k==='null'?' is-null':''}"><small>ex&nbsp;:</small><b>${esc(x.v)}</b></span>`:''}${nt?`<small class="cd">${esc(nt)}</small>`:''}</span>`:''}</div>`; }).join('')||'<div class="sch-col"><span class="cn">—</span></div>'}
     </div>`;
   }).join('')||'<p class="viz-e">Aucune table disponible.</p>');
   }finally{if(dId)database.close();}
@@ -47462,7 +47472,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-tablehaut-v2774';
+  const SW_CACHE='requete-2026-11-09-calme-v2775';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
