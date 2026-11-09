@@ -32,18 +32,19 @@ test('« prête », « prêt » ou « prêt·e » : ta ligne et ton bouton suive
   for (const [g, mot] of [['f', 'prête'], ['h', 'prêt'], ['n', 'prêt·e'], ['', 'prêt·e']]) {
     const { ctx, lignes } = salle(g);
     const [moi, lea, sam] = lignes();
-    assert.ok(moi.includes('Elisa <small>(toi)</small>') && moi.includes(`</i>${mot}</em>`), `${g || 'sans réponse'} : ${mot} pour toi`);
-    assert.ok(lea.includes('</i>prêt·e</em>'), 'Léa : son genre n’est pas connu ici');
-    assert.ok(sam.includes('<em class="jeu-state">en attente</em>') && !sam.includes('is-ready'));
+    const Mot = mot[0].toUpperCase() + mot.slice(1);   // 13 h 20 : « Prête » en vert, « En attente » en gris
+    assert.ok(moi.includes('Elisa <small>(toi)</small>') && moi.includes(`</i>${Mot}</em>`), `${g || 'sans réponse'} : ${Mot} pour toi`);
+    assert.ok(lea.includes('</i>Prêt·e</em>'), 'Léa : son genre n’est pas connu ici');
+    assert.ok(sam.includes('<em class="jeu-state is-att">En attente</em>') && !sam.includes('is-ready'));
     assert.equal(ctx.jeuPretBouton(false), `Je suis ${mot}`);
-    assert.equal(ctx.jeuPretBouton(true), `Je suis ${mot} ✓`);
+    assert.equal(ctx.jeuPretBouton(true), `${Mot} ✓`, 'prête : le statut « Prête ✓ » (13 h 20)');
   }
   const sans = vm.createContext({});
   vm.runInContext(pret.slice(0, pret.indexOf('const JEU_PRET_MS')), sans);
   assert.equal(sans.jeuPretMot(true), 'prêt·e', 'sans le genre (bac à sable, page à part) : la forme inclusive');
   /* Plus de « c’est bon » dans la salle */
   assert.ok(!app.includes('✓ c’est bon') && !app.includes('C’est bon pour moi'));
-  assert.ok(app.includes('onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span></button>'));
+  assert.ok(app.includes('onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button>'));
   assert.ok(app.includes("const l=rd.querySelector('span');if(l)l.textContent=jeuPretBouton(on);}"));
 });
 
@@ -57,9 +58,9 @@ test('l’animation se joue une fois, quand le joueur passe prêt, et reprend o�
   horloge.t = 1900; [moi, lea, sam] = lignes();
   assert.ok(![moi, lea, sam].some(l => l.includes('is-pret') || l.includes('--pret')), 'passé 900 ms : plus rien ne bouge');
   ctx.JEU.ready.c = true; horloge.t = 2000; sam = lignes()[2];
-  assert.ok(sam.includes('is-pret"><b') && sam.includes('</i>prêt·e</em>'), 'Sam passe prêt : sa pastille saute');
+  assert.ok(sam.includes('is-pret"><b') && sam.includes('</i>Prêt·e</em>'), 'Sam passe prêt : sa pastille saute');
   ctx.JEU.ready.b = false; horloge.t = 2100; lea = lignes()[1];
-  assert.ok(lea.includes('en attente') && !('b' in ctx.JEU.pretAt), 'Léa redevient en attente');
+  assert.ok(lea.includes('En attente') && !('b' in ctx.JEU.pretAt), 'Léa redevient en attente');
   ctx.JEU.ready.b = true; horloge.t = 2200; lea = lignes()[1];
   assert.ok(lea.includes('is-pret"><b'), 'puis de nouveau prête : la pastille resaute');
   /* Les résultats ne touchent pas à la pastille */
@@ -87,5 +88,5 @@ test('la pastille : la coche tourne et se trace, une onde part, l’avatar bondi
 test('le genre ne sort pas de l’appareil : la salle ne l’envoie pas', () => {
   assert.ok(!cut('function jeuSend(m){', '\n}\n').includes('genre'));
   assert.ok(conf.includes('ton genre et ta profession (si tu les indiques)'), 'Confidentialité : il reste sur l’appareil');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-ferme-v2739';") && app.includes("const SW_CACHE='requete-2026-11-09-ferme-v2739';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-prets-v2740';") && app.includes("const SW_CACHE='requete-2026-11-09-prets-v2740';"));
 });

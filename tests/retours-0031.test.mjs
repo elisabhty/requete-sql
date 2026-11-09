@@ -248,7 +248,7 @@ test('la phrase des conditions : 12 px de plus sous le bouton', () => {
 
 test('« En direct » ne raconte plus les essais manqués des autres, ni au lecteur d’écran ; « Teste sa requête » reste', () => {
   const obs = cut('function jeuDirectObserver(n,xs,avant){', '\nfunction jeuDitPousser(');
-  assert.ok(!obs.includes("k:'ko'") && !obs.includes('\\u00a0: pas encore') && !obs.includes('jeuOrdinal(x.essais)'));
+  assert.ok(!obs.includes("k:'ko'") && !obs.includes('\u00a0: pas encore') && !obs.includes('jeuOrdinal(x.essais)'));
   assert.ok(obs.includes("d={k:'ok',p:2,ico:JEU_ICO.check,html:`${N(x)} trouve, ") && obs.includes("bulles.push([x.pid,'ecrit'])"), 'qui trouve, qui écrit : toujours');
   const rate = cut("    case 'rate':{", "    case 'close':{");
   assert.ok(!rate.includes('jeuToast(') && rate.includes('(J.koAt=J.koAt||{})[m.pid]=Date.now();\n      jeuDirectPeindre(n);'));
@@ -272,7 +272,8 @@ test('la page de connexion : Apple, Google, le trait « ou », puis l’adresse 
 /* ---------- 12. La salle d’attente d’un invité (9 novembre, 2 h 19, sa réf. 1) ---------- */
 
 test('l’invité attend : « En attente que l’hôte lance la partie… » (son pseudo est déjà dans la liste, avec « hôte »)', () => {
-  assert.ok(app.includes('<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente que l’hôte lance la partie…</p>'));
+  /* 13 h 20 : la phrase a changé avec la salle d’attente selon le rôle (« Préviens l’hôte… », « Tu es prête !… », « Tout le monde est prêt ! En attente que l’hôte lance la partie… ») */
+  assert.ok(app.includes("'Tout le monde est prêt\u00a0! En attente que l’hôte lance la partie…'"));
   assert.ok(!app.includes('En attente ${jeuQue(hostName)} lance la partie…'));
 });
 

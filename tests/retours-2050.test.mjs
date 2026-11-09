@@ -17,7 +17,7 @@ test('réf. 1 : la barre « Valide la leçon » a la largeur de la carte de la v
 test('réf. 2 : les phrases de l’élève et pour l’élève, les mêmes pour tout le monde', () => {
   assert.ok(anim('bases-relationnelles.html').includes("const REPONSE = ['Avec plaisir !', 'On commence quand vous le voulez !'];"));
   /* La salle d’attente dit « prête », « prêt » ou « prêt·e » depuis le 5 novembre, 13 h 35 (retours-1335.test.mjs). */
-  for (const t of ['Envie d’écrire ta prochaine requête', '`En attente : ${',
+  for (const t of ['Envie d’écrire ta prochaine requête', 'Préviens l’hôte quand tu es ${mot}\u00a0!',
     'Une question pour t’entraîner', '\'Ta première note t’attend\'', "${h.solo?'En solo':'À plusieurs'}", '>En solo</button>', 'Joue en solo ou affronte d’autres joueurs'])
     assert.ok(app.includes(t), t);
   for (const t of ['Prêt·e pour', 'pas prêt</em>', 'Pas encore prêt', 'Prêt pour une question', 'Prêt pour ta première note', "['solo','Seul']", '>Seul</button>'])
