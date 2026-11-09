@@ -10,6 +10,8 @@
 --   - relais d’hôte en cours de partie : seulement entre participants.
 -- jeu_envoyer_v2 est recréée telle qu’elle est en service (pg_get_functiondef) ; si un passage n’est plus celui attendu, rien n’est
 -- changé.
+-- Appliquée au projet Supabase « requete-sql » (ynuenrxozcpkrjdbeftc, Paris) le 9 novembre 2026, vers 14 h 20, avec l’accord d’Elisa
+-- (« Oui, applique-le ») ; vérifiée ensuite : les trois passages sont en service.
 do $t$
 declare
   def text;
