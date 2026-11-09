@@ -1974,3 +1974,14 @@ test('9 novembre, 21 h 57 : importer dans un projet qui a déjà des tables : id
   assert.ok(app.includes("copierTablesSqlite(p.bytes,database,pendingImport.saute);") && app.includes("if(saute&&saute.has(String(t).toLowerCase()))continue;"), 'une base SQLite saute ses tables identiques');
   assert.ok(app.includes("{const tr=el.querySelector('.lq-ask-trois');if(tr)tr.onclick=()=>fin('trois');}"), 'lqAsk : un deuxième choix');
 });
+
+test('9 novembre, 22 h 09 : l’historique de la Console garde le début d’une requête de plus de 20 000 caractères, et ne l’épingle pas', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(app.includes('const HIST_SQL_MAX=20000;') && app.includes("const row={sql:coupe?plein.slice(0,HIST_SQL_MAX):plein,"));
+  assert.ok(app.includes("const meta=it.coupe?['Trop longue : seul le début est gardé',fmtHistWhen(it.ts)].join(' · '):it.ok"));
+  assert.ok(app.includes("if(idx<0&&t.length>HIST_SQL_MAX){lqInfo('Requête trop longue',") && app.includes("if(idx<0&&it.coupe){lqInfo('Requête trop longue',"));
+  const ctx = vm.createContext({ HIST_SQL_MAX: 20000, consoleSqlKey: s => String(s || '').trim().toLowerCase() });
+  const i = app.indexOf('function dedupeConsoleQueries('); vm.runInContext(app.slice(i, app.indexOf('\n}\n', i) + 3), ctx);
+  const r = ctx.dedupeConsoleQueries([{ sql: 'x'.repeat(30000) }, { sql: 'SELECT 1' }], 24);
+  assert.equal(r[0].sql.length, 20000); assert.equal(r[0].coupe, true); assert.equal(r[1].sql, 'SELECT 1');
+});

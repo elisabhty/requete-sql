@@ -20340,6 +20340,10 @@ let consoleView='list';
 const PROJ_KEY='requete-sql-proj-v1';
 const HIST_MAX=24;
 const PIN_MAX=12;
+/* 9 novembre, 22 h 09 (Elisa : « est-ce que l’historique coûte ? ») : il reste sur l’appareil, mais un script de milliers de lignes, lancé
+   plusieurs fois, pouvait remplir la mémoire du navigateur. Une requête de plus de 20 000 caractères garde son début dans l’historique
+   (« Trop longue : seul le début est gardé »), et ne s’épingle pas. */
+const HIST_SQL_MAX=20000;
 const COURS_DEFAULT_SQL="SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;";
 let projState={};
 let consoleProjectPanel='editor';
@@ -21639,7 +21643,9 @@ function dedupeConsoleQueries(list,limit){
   for(const it of Array.isArray(list)?list:[]){
     const key=consoleSqlKey(it&&it.sql);
     if(!key||seen.has(key))continue;
-    seen.add(key);clean.push(it);
+    seen.add(key);
+    /* Gardées avant le 9 novembre (22 h 09) : une requête trop longue garde son début */
+    clean.push(typeof HIST_SQL_MAX!=='undefined'&&String(it.sql).length>HIST_SQL_MAX?Object.assign({},it,{sql:String(it.sql).slice(0,HIST_SQL_MAX),coupe:true}):it);
     if(limit&&clean.length>=limit)break;
   }
   return clean;
@@ -21697,7 +21703,7 @@ function renderConsoleSide(){
     hist.innerHTML=histRows.length
       ? histRows.map(({it,i})=>{
           const on=pinnedSql.has(consoleSqlKey(it.sql));
-          const meta=it.ok
+          const meta=it.coupe?['Trop longue : seul le début est gardé',fmtHistWhen(it.ts)].join(' · '):it.ok
             ? [it.n,it.ms!=null?Math.round(it.ms)+' ms':null,fmtHistWhen(it.ts)].filter(Boolean).join(' · ')
             : ['Erreur',String(it.err||'Requête incorrecte').replace(/^Error:\s*/i,'').slice(0,44),fmtHistWhen(it.ts)].filter(Boolean).join(' · ');
           return `<div class="console-query-row">
@@ -21723,7 +21729,8 @@ function renderConsoleSide(){
 }
 function recordConsoleRun(sql,ok,extra){
   const p=projOf(activeDbId);
-  const row={sql:String(sql||'').trim(),ok:!!ok,ts:Date.now(),n:extra&&extra.n,ms:extra&&extra.ms,err:extra&&extra.err};
+  const plein=String(sql||'').trim(),coupe=plein.length>HIST_SQL_MAX;
+  const row={sql:coupe?plein.slice(0,HIST_SQL_MAX):plein,ok:!!ok,ts:Date.now(),n:extra&&extra.n,ms:extra&&extra.ms,err:extra&&extra.err,coupe:coupe||undefined};
   p.hist=promoteConsoleQuery(p.hist,row,HIST_MAX);
   saveProjState();
   renderConsoleSide();
@@ -21735,6 +21742,7 @@ function pinConsoleQuery(){
   const p=projOf(activeDbId);
   const key=consoleSqlKey(t);
   const idx=p.pins.findIndex(it=>consoleSqlKey(it.sql)===key);
+  if(idx<0&&t.length>HIST_SQL_MAX){lqInfo('Requête trop longue','Une requête de plus de 20 000 caractères ne s’épingle pas. Garde ce script dans un fichier, et importe-le au besoin.');return;}
   if(idx>=0){p.pins=removeConsoleQuery(p.pins,t);lqSay('Requête désépinglée');}
   else{p.pins=promoteConsoleQuery(p.pins,{sql:t,ts:Date.now()},PIN_MAX);lqSay('Requête épinglée : retrouve-la dans l’onglet Épinglées');}
   saveProjState();
@@ -21774,6 +21782,7 @@ function unpinConsoleQuery(i){
 function toggleHistoryPin(i){
   const p=projOf(activeDbId),it=p.hist[i];if(!it)return;
   const sql=String(it.sql||'').trim(),key=consoleSqlKey(sql),idx=p.pins.findIndex(x=>consoleSqlKey(x.sql)===key);
+  if(idx<0&&it.coupe){lqInfo('Requête trop longue','Seul son début est gardé dans l’historique : elle ne s’épingle pas.');return;}
   if(idx>=0){p.pins=removeConsoleQuery(p.pins,sql);lqSay('Requête désépinglée');}
   else{p.pins=promoteConsoleQuery(p.pins,{sql,ts:Date.now()},PIN_MAX);lqSay('Requête épinglée');}
   saveProjState();renderConsoleSide();
@@ -21794,6 +21803,7 @@ function clearConsoleHistory(){
 function loadHistSql(i){
   const it=projOf(activeDbId).hist[i]; if(!it)return;
   fillConsoleSql(it.sql);
+  if(it.coupe)lqSay('Requête trop longue : seul son début était gardé');
 }
 function loadPinnedSql(i){
   const it=projOf(activeDbId).pins[i]; if(!it)return;
@@ -47573,7 +47583,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-fusion-v2780';
+  const SW_CACHE='requete-2026-11-09-historique-v2781';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
