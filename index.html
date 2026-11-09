@@ -35435,7 +35435,7 @@ function jeuOnMsg(m){
       if((m.g|0)!==J.g||J.solo||mine||!J.synced||replay)return;
       const n=+m.n,r=J.rounds[n];if(!r||r.one||r.found[m.pid]!=null||J.view!=='play'+n)return;
       if(m.at&&Date.now()-(m.at-(J.skew||0))>10000)return;
-      jeuToast(`${name} : pas encore`);
+      /* 9 novembre, 2 h 11 : ses essais ne sont plus annoncés (ni phrase ni lecteur d’écran) ; « Teste sa requête » reste sur sa tête */
       (J.koAt=J.koAt||{})[m.pid]=Date.now();
       jeuDirectPeindre(n);
       return;}
@@ -35884,8 +35884,9 @@ function jeuDirectObserver(n,xs,avant){
       else if(!x.me)d={k:'ok',p:2,ico:JEU_ICO.check,html:`${N(x)} trouve, ${jeuOrdinal(y.place||1)} de la manche`};
       if(d)dits.push(d);
       if(!x.me)bulles.push([x.pid,prem?'roi':'ok']);
-    }else if(!x.me&&x.etat==='test'&&x.essais>a.essais)
-      dits.push({k:'ko',p:1,ico:JEU_ICO.cross,html:`${N(x)}\u00a0: pas encore${x.essais>=3?` <small>(${jeuOrdinal(x.essais)} essai)</small>`:''}`});
+    }
+    /* 9 novembre, 2 h 11 (Elisa, sa capture de « @bb : pas encore (5e essai) ») : « ne pas mettre les essais des uns ou des autres
+       dans la partie défi » : le commentateur ne raconte plus les essais manqués ; il garde qui trouve, la tête, les remontées. */
     else if(!x.me&&a.etat!=='ecrit'&&x.etat==='ecrit')bulles.push([x.pid,'ecrit']);
   });
   bulles.forEach(([p,k])=>jeuStatutBulle(p,k));
@@ -44529,6 +44530,14 @@ function obCompteHautHTML(reussie){
   return `<div class="ob-compte-haut">${fond}${fete}${chat}${bravo}</div>`;
 }
 const OB_ICO_NUAGE='<svg viewBox="0 0 32 32" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 24.5H9a6.5 6.5 0 0 1-.9-12.94A8.5 8.5 0 0 1 24.4 10.2 7 7 0 0 1 23.5 24.5H21.5"/><path d="M16 26.5v-10m-4 4 4-4 4 4"/></svg>';
+/* 9 novembre, 2 h 11 (Elisa) : « dans la page de connexion, pour le mail, mettre directement le trait avec l’e-mail dessous (ou) » :
+   sous Apple et Google, un trait « ou », puis l’adresse e-mail en champ, comme une page de connexion, et plus un troisième bouton.
+   Tant que la connexion n’est pas branchée, le champ porte « Bientôt » et répond comme les boutons (obConnexionBientot) ; branchée,
+   il ouvre la connexion par e-mail du fournisseur (obStartAuth). */
+function obMailChampHTML(authReady){
+  return `<button type="button" class="ob-provider is-email is-champ${authReady?'':' is-soon'}" data-provider="email" style="--i:2" onclick="obStartAuth('email',this)" aria-label="Continuer avec une adresse e-mail${authReady?'':', bientôt'}" ${obAuthBusy?'disabled aria-busy="true"':''}>`+
+    `${obProviderIcon('email')}<span class="ob-champ-ph">Ton adresse e-mail</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`;
+}
 function obCompteCarteHTML(){
   return `<div class="ob-compte-carte"><span class="ob-compte-carte-ico" aria-hidden="true">${OB_ICO_NUAGE}</span><span class="ob-compte-carte-txt"><b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, exercices, défis et ta collection sur tous tes appareils.</small></span></div>`;
 }
@@ -45035,7 +45044,8 @@ function paintOb(){
       :`<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
       <p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>`}
       ${masquee?'':`<div class="ob-provider-list">
-        ${OB_PROVIDERS.map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
+        ${OB_PROVIDERS.filter(([provider])=>provider!=='email').map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
+        <p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}
       </div>`}${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
       </div>`;
     /* Elisa, 6 novembre, 23 h 16 (réf. 4) : « Met le en continuant… juste en bas du bouton jaune » : la phrase des conditions passe
@@ -46907,7 +46917,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-erreur-sql-v2711';
+  const SW_CACHE='requete-2026-11-09-connexion-mail-v2712';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

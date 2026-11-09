@@ -87,7 +87,8 @@ test('la page de connexion : son texte, Apple et l’e-mail, et la fête seuleme
   /* 6 novembre, 23 h 16 : la phrase des conditions est passée sous le bouton jaune */
   const ordre = ['ob-compte-stk', 'ob-title', 'ob-compte-lead', 'ob-compte-carte', 'ob-provider-list', 'ob-compte-msg'].map(k => html.indexOf(k));
   assert.deepEqual([...ordre].sort((x, y) => x - y), ordre, 'dans l’ordre de son texte');
-  assert.deepEqual([...html.matchAll(/<span>Continuer avec ([^<]+)<\/span>/g)].map(m => m[1]), ['Apple', 'Google', 'un e-mail'], '14 h 08 : « avec Google aussi »');
+  assert.deepEqual([...html.matchAll(/<span>Continuer avec ([^<]+)<\/span>/g)].map(m => m[1]), ['Apple', 'Google'], '14 h 08 : « avec Google aussi »');
+  assert.ok(html.includes('<p class="ob-divider" aria-hidden="true">ou</p>') && html.includes('<span class="ob-champ-ph">Ton adresse e-mail</span>'), '9 novembre, 2 h 11 : puis le trait « ou » et l’e-mail en champ');
   assert.ok(!html.includes('ob-chat'));
   /* Sans première requête réussie (moteur SQL indisponible, ou ouverte depuis Mon compte) : pas de réussite annoncée, pas de fête */
   const sans = rendre({ practiceDone: false });
