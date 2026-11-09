@@ -1,0 +1,155 @@
+/* Elisa, 9 novembre, 10 h 37 : la relecture qu’elle a fait faire des écrans de fin (le chrono à 09:56 après une réussite, « Rejouer »
+   et « Retenter ce défi » côte à côte, le bilan après un échec, « Manche 1/1 », « Niveau facile. »…), et ses notes :
+   « Chrono arrête -> seulement en solo », « Pouvoir voir la correction et résultat finalement mais sur l’écran bilan qui ouvre une
+   page en restant sur celle ci », « Faire passer les page a un niveau plus que prenium ». Ce qui change :
+   1. seul, le chrono arrêté dit le temps mis (« 00:04 », une coche, au vert), ou « 00:00 » calme quand la manche finit au chrono ; à
+      plusieurs, il continue ; la page d’un défi fait de même ;
+   2. « Voir la correction » : une feuille qui monte par-dessus le bilan (la fin sur place d’une partie d’une manche, le podium entre
+      amis) : une solution à copier, ce qu’elle renvoie, le raisonnement, ta requête acceptée ou ton dernier essai ; elle remplace
+      « Retenter ce défi » ;
+   3. le bilan : « Tout résolu ! », « Bien joué ! » ou « On retente ? », « Niveau facile » sans point, toujours les trois cases (« — »
+      sans défi résolu), une manche ratée dans la pêche, la prochaine étape en carte, « Rejouer » ou « Réessayer », « Retour aux défis » ;
+   4. « Défi solo » (ou « Manche unique » à plusieurs) plutôt que « Manche 1/1 » ; « Voir ma requête et son résultat » ; « Temps
+      écoulé » plus court (« Tu te rattraperas à la prochaine manche. »).
+   Elle avait dit à 10 h 01 de ne pas passer par le bilan pour une seule manche : la relecture proposait d’harmoniser, la fin sur
+   place reste. Le déroulé, dans salle-defis.test.mjs. */
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+const ROOT = path.resolve(import.meta.dirname, '..');
+const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
+const app = lire('index.html'), lq = lire('ludique.css'), mps = lire('multiplayer-security.js'), sw = lire('sw.js');
+const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
+const fn = name => cut(`function ${name}(`, '\n}\n') + '\n}\n';
+const line = name => cut(`function ${name}(`, '\n') + '\n';
+
+test('seul, le chrono arrêté dit le temps mis ; fini au chrono, 00:00 calme ; à plusieurs, il continue', () => {
+  const ctx = vm.createContext({ Date: { now: () => 100_000 } });
+  vm.runInContext(line('jeuChrono') + line('jeuRebours') + line('jeuDureeLisible') + line('jeuFermeeAuChrono') + fn('jeuChronoEtat') + fn('jeuChronoPose')
+    + `var JEU_NIV_MANCHE={f:600000,m:900000,d:1200000},seul=true,fini=false,JEU;function jeuDureeMs(k){return JEU_NIV_MANCHE[k]||600000;}function jeuNivManche(){return 'f';}
+       function jeuSoloLike(){return seul;}function jeuRoundDone(){return fini;}function jeuFige(n){return JEU.rounds[n].found[JEU.me]!=null&&seul;}`, ctx);
+  ctx.JEU = { me: 'a', rounds: [{ t1: 96_000, found: { a: 4_200 } }] };
+  assert.deepEqual({ ...ctx.jeuChronoEtat(0) }, { k: 'is-ok', t: '00:04', l: 'Résolu en 4 s' }, 'seul, trouvée : le temps mis, plus ce qui restait (09:56)');
+  ctx.seul = false;
+  assert.deepEqual({ ...ctx.jeuChronoEtat(0) }, { k: '', t: '09:56', l: 'Temps restant de la manche' }, 'à plusieurs : le chrono continue');
+  ctx.seul = true; ctx.fini = true; ctx.JEU.rounds[0].found = {};
+  assert.deepEqual({ ...ctx.jeuChronoEtat(0) }, { k: 'is-fin', t: '00:00', l: 'Temps écoulé' }, 'seul, fini au chrono : 00:00, sans battre');
+  /* Posé sur l’élément : le texte, une seule classe d’état, son nom pour le lecteur d’écran */
+  const cls = new Set(['jeu-timer', 'is-low']), attrs = {};
+  const el = { textContent: '04:12', classList: { add: k => cls.add(k), remove: k => cls.delete(k) }, getAttribute: k => attrs[k], setAttribute: (k, v) => { attrs[k] = v; } };
+  ctx.jeuChronoPose(el, { k: 'is-ok', t: '00:04', l: 'Résolu en 4 s' });
+  assert.deepEqual([el.textContent, [...cls].sort(), attrs['aria-label']], ['00:04', ['is-ok', 'jeu-timer'], 'Résolu en 4 s']);
+  /* La manche, la barre collée, la page d’un défi */
+  assert.ok(fn('jeuTick').includes("if(el&&n>=0&&(jeuFige(n)||(jeuSoloLike(n)&&jeuRoundDone(n))))jeuChronoPose(el,jeuChronoEtat(n));"));
+  assert.ok(app.includes("mt.classList.toggle('is-fin',t.classList.contains('is-fin'));"), 'la barre collée recopie aussi « fini »');
+  assert.ok(fn('runLesson').includes("if(ms!=null)jeuChronoPose(document.getElementById('defi-timer'),{k:'is-ok',t:jeuChrono(ms),l:`Résolu en ${jeuDureeLisible(ms)}`});"), 'la page d’un défi : le temps mis');
+  assert.ok(fn('defiChronoStart').includes("jeuChronoPose(el,{k:'is-fin',t:'00:00',l:'Temps écoulé'});defiTempsEcoule(c);"));
+  /* La coche à la place du réveil, la pêche du « Temps écoulé » */
+  assert.ok(lq.includes("html.lq .jeu-timer.is-ok::before{\n  -webkit-mask-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.6l4.4 4.4L19 7.4'"));
+  assert.ok(lq.includes('html.lq .jeu-timer.is-fin{background:#FFE9DC!important;color:#A24A1E!important;box-shadow:0 3px 0 #F4C4A6;animation:none!important}'));
+});
+
+test('« Défi solo » ou « Manche unique » plutôt que « Manche 1/1 »', () => {
+  const ctx = vm.createContext({ JEU: { nb: 1 } });
+  vm.runInContext(line('jeuMancheNom'), ctx);
+  assert.equal(ctx.jeuMancheNom(0, true), 'Défi solo');
+  assert.equal(ctx.jeuMancheNom(0, false), 'Manche unique');
+  ctx.JEU.nb = 3;
+  assert.equal(ctx.jeuMancheNom(1, true), 'Manche 2/3');
+  const play = cut("}else if(v.startsWith('play')){", "}else if(v.startsWith('res')){");
+  assert.ok(play.includes('<b class="jeu-hud-m">${J.nb===1?jeuMancheNom(n,sl):`Manche ${n+1}<small>/${J.nb}</small>`}</b>') && play.includes("${J.nb===1?jeuColleeHTML(jeuMancheNom(n,sl),'',!mine&&!rate)"));
+  assert.ok(app.includes('<p class="l-kicker">${jeuMancheNom(0,true)} · ${JEU_NIVL[J.niv]}</p>') && app.includes('<p class="l-kicker">${jeuMancheNom(n,jeuSoloLike(n))} · ${JEU_NIVL[c.niv]}</p>'), 'le tirage aussi');
+  assert.ok(app.includes("if(k)k.textContent=`${jeuMancheNom(n,true)} · ${JEU_NIVL[c.niv]}`;"), 'la scène d’attente qui devient le tirage');
+});
+
+test('la correction : une solution mise en lignes et à copier, ce qu’elle renvoie, le raisonnement, ta requête ou ton dernier essai', () => {
+  const ctx = vm.createContext({
+    JEU: { me: 'a', nb: 2, solo: true, rounds: [] }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, DEF_CHEV_SVG: '›', JEU_ICO: { check: '<ok>', reveil: '<reveil>' },
+    esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), highlight: s => `«${s}»`, lqStkSvg: k => `<stk ${k}>`, sqlCopyBtn: () => '<copier>',
+    defiAttenduHTML: () => '<div class="result-meta"><span class="rm-n">2 lignes</span></div>\n  <div class="table-scroll">TABLE</div>',
+    jeuSoloLike: () => true, jeuFermeeAuChrono: () => false
+  });
+  vm.runInContext(line('dxBarres') + line('dxPc') + line('dxPcNiv') + line('escCode') + line('jeuDureeLisible') + fn('sqlEnLignes') + fn('jeuCorrHTML') + fn('jeuCorrBoutonHTML'), ctx);
+  const c = { id: 'x1', niv: 'f', titre: 'Les vols « retardés »', sol: "SELECT a, COUNT(*) AS n FROM vols v JOIN x ON x.id=v.id WHERE s = 'Retardé FROM' GROUP BY a ORDER BY n DESC;", indice: 'Compte avec `COUNT(*)`.' };
+  ctx.CHALLENGES = [c];
+  const ok = ctx.jeuCorrHTML({ cid: 'x1', found: { a: 4200 }, sql: 'select a from vols' }, c, 1);
+  assert.ok(ok.includes('<p class="room-kicker">Correction · manche 2</p>') && ok.includes('<h2 id="dx-f-t">Les vols « retardés »</h2>'));
+  assert.ok(ok.includes('<p class="room-sub dx-f-pcs" id="dx-f-p"><span class="dx-pc is-niv is-f is-blanc">') && ok.includes('<span class="dx-pc is-ok"><ok><span>Résolu en 4 s</span></span>'), 'le niveau, ce qui s’est passé');
+  assert.ok(ok.includes("<div class=\"sql-copy-wrap\"><div class=\"ex-code\">«SELECT a, COUNT(*) AS n\nFROM vols v\nJOIN x ON x.id=v.id\nWHERE s = 'Retardé FROM'\nGROUP BY a\nORDER BY n DESC;»</div><copier></div>"), 'une clause par ligne, hors des chaînes ; à copier');
+  assert.ok(ok.includes('D’autres requêtes peuvent donner le même résultat&nbsp;: c’est lui qui compte.'), 'une solution, pas la seule');
+  assert.ok(ok.includes('<section class="jc-sec is-res"><div class="jc-h"><b>Ce qu’elle renvoie</b><div class="result-meta"><span class="rm-n">2 lignes</span></div></div>\n  <div class="table-scroll">TABLE</div></section>'), 'le nombre de lignes sur la ligne du titre');
+  assert.ok(ok.includes('<p class="jc-p">Compte avec <code>COUNT(*)</code>.</p>'), 'le raisonnement : la piste du défi');
+  assert.ok(ok.includes('<b>Ta requête</b><span class="jc-chip is-ok">Acceptée</span></div><div class="ex-code">«select a\nfrom vols»</div>'), 'ta requête, acceptée');
+  assert.ok(ok.includes('<button type="button" class="room-go" onclick="defisFeuilleFermer()"><span>J’ai compris</span>›</button>'));
+  const rate = ctx.jeuCorrHTML({ cid: 'x1', found: {}, essai: 'SELECT * FROM vols' }, c, 0);
+  assert.ok(rate.includes('<span class="dx-pc is-to"><reveil><span>Temps écoulé</span></span>') && rate.includes('<b>Ton dernier essai</b></div><div class="ex-code">«SELECT *\nFROM vols»</div>') && !rate.includes('Ta requête'));
+  assert.ok(!ctx.jeuCorrHTML({ cid: 'x1', found: {} }, c, 0).includes('jc-sec is-essai'), 'sans essai, rien');
+  ctx.JEU.nb = 1;
+  assert.ok(ctx.jeuCorrHTML({ cid: 'x1', found: {} }, c, 0).includes('<p class="room-kicker">La correction</p>'));
+  ctx.JEU.rounds = [{ cid: 'x1', found: {} }];
+  assert.equal(ctx.jeuCorrBoutonHTML(0), '<button type="button" class="jr-corr" onclick="jeuCorrection(0)" aria-label="Voir la correction : Les vols « retardés »"><span>Voir la correction</span>›</button>');
+  /* Une requête déjà mise en lignes reste telle quelle */
+  assert.equal(ctx.sqlEnLignes('SELECT a\nFROM b'), 'SELECT a\nFROM b');
+  assert.equal(ctx.sqlEnLignes('WITH t AS (SELECT a FROM b) SELECT * FROM t UNION ALL SELECT 1'), 'WITH t AS (SELECT a FROM b)\nSELECT *\nFROM t\nUNION ALL\nSELECT 1', 'pas dans les parenthèses');
+});
+
+test('la feuille monte par-dessus l’écran, qui reste dessous ; elle se referme sans toucher à l’écran Défis ni à la salle', () => {
+  const o = fn('jeuCorrection');
+  assert.ok(o.includes("el.dataset.k='corr';") && o.includes('<div class="dx-f-boite" role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1">'), 'la feuille des Défis');
+  assert.ok(o.includes("document.addEventListener('keydown',dxFeuilleTouche,true);"), 'Échap la referme, Tab y reste');
+  assert.ok(o.includes("dxFeuilleRetour=a&&a!==document.body&&a.closest&&a.closest('#jeu-root')?a:null;"), 'le focus revient au bouton');
+  assert.ok(o.includes("if(typeof bindTableSwipe==='function')bindTableSwipe(el);"), 'le tableau se fait glisser');
+  const f = fn('defisFeuilleFermer');
+  assert.ok(f.includes("document.getElementById('dx-feuille').dataset.k==='corr';") && f.indexOf('if(!corr){') < f.indexOf("DEFIS.carte='';") && f.indexOf("jeuStop();") < f.indexOf('  }\n  if(typeof document'), 'ni la carte de l’écran Défis, ni l’invitation, ni la salle');
+  /* Une autre vue (une autre partie, une autre manche), ou la salle quittée : elle se referme */
+  assert.ok(fn('jeuRender').includes("if(!(v==='final'||(v==='play0'&&jeuFinSurPlace()&&jeuRoundDone(0))))jeuCorrFermer();"));
+  assert.ok(fn('jeuStop').includes('  JEU=null;\n  document.getElementById(\'jeu-toasts\')?.remove();\n  jeuCorrFermer();'));
+  const ferme = [];
+  const ctx = vm.createContext({ document: { getElementById: () => ({ dataset: { k: 'corr' } }) }, defisFeuilleFermer: x => ferme.push(x) });
+  vm.runInContext(fn('jeuCorrFermer'), ctx);
+  ctx.jeuCorrFermer(); assert.deepEqual(ferme, [true]);
+  ctx.document.getElementById = () => ({ dataset: { k: 'code' } }); ctx.jeuCorrFermer(); assert.deepEqual(ferme, [true], 'la feuille du code reste');
+  /* Où on l’ouvre : le bilan, la fin sur place, le podium ; plus « Retenter ce défi » nulle part */
+  assert.ok(cut("}else if(v==='final'){", '/* Fondu enchaîné').includes('${jeuCorrBoutonHTML(k)}</div>'));
+  assert.ok(fn('jeuFoundHTML').includes('${fin1?jeuCorrBoutonHTML(n):r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:\'\'}'));
+  assert.ok(fn('jeuRateHTML').includes('${fin1?jeuCorrBoutonHTML(n):\'\'}'));
+  assert.ok(cut("}else if(v==='final'){", '/* Fondu enchaîné').includes('${jeuCorrListeHTML()}'), 'entre amis, sous le classement');
+  assert.ok(!/Retenter ce défi<\/span>/.test(app), 'plus de « Retenter ce défi »');
+  /* Ta requête et ton dernier essai, gardés : en salle, et en salle classée (la réponse vient du serveur) */
+  assert.ok(fn('jeuRun').includes('r.tries=(r.tries||0)+1;r.essai=sql;') && fn('jeuRun').includes('r.sql=sql;'));
+  assert.ok(mps.includes('round.sql = sql;') && mps.includes("round.mine = `<div class=\"ex-code\">${highlight(sql)}</div>${renderTable(execChallengeResult(base, sql))}`;") && mps.includes('round.essai = sql;'));
+  /* Pendant la partie, la requête reste cachée : le dernier indice le dit */
+  assert.ok(app.includes("${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\\u00a0: d’ici là, à toi de trouver.':'C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.'}"));
+});
+
+test('le bilan : le titre dit l’issue, les trois cases, une manche ratée dans la pêche, la prochaine étape, « Réessayer »', () => {
+  const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
+  assert.ok(fin.includes("const titre=all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
+  assert.ok(fin.includes("head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)"), '« Niveau facile », sans point');
+  assert.ok(fin.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>temps moyen</small></div></div>`;"), '« — » sans défi résolu');
+  assert.ok(fin.includes("<span class=\"jr-ico\" aria-hidden=\"true\">${ok?ICO_OK:ab?ICO_KO:JEU_ICO.reveil}</span>"), 'le réveil pour le chrono, la croix pour une manche quittée');
+  const ctx = vm.createContext({ JEU: { solo: true, niv: 'm' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>', DEF_CHEV_SVG: '›',
+    jeuNivBars: k => `[${k}]`, jeuBtn2: (i, l, o) => `[${i}|${l}|${o}]` });
+  vm.runInContext(fn('jeuFinBoutonsHTML'), ctx);
+  assert.ok(ctx.jeuFinBoutonsHTML(2, true).startsWith('<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-d" onclick="jeuNiveauSuivant()">') && ctx.jeuFinBoutonsHTML(2, true).includes('<b>Passer au niveau difficile</b><span class="jeu-prog-x"><coin>×4 points par défi</span>'));
+  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Réessayer</span>') && ctx.jeuFinBoutonsHTML(0, false).includes('[retour|Retour aux défis|openJeu()]'));
+  /* Le style : la pêche, la pastille à 44 px de toucher, la carte de la prochaine étape, les trois cases */
+  for (const k of ['html.lq #app .jeu-rounds .jr.is-miss{border-style:solid;border-color:#FFDCC8;background:#FFF9F5;', 'html.lq #app .jr.is-miss .jr-ico{background:#FFE1D1;color:#A24A1E;',
+    'html.lq #app .jr-corr::after{content:"";position:absolute;inset:-9px -6px}', 'html.lq #app .jeu-prog{display:flex;align-items:center;gap:12px;width:100%;',
+    'html.lq #app .jeu-prog.is-d{border-color:#F6CDD0;background:#FFF1F2;', 'html.lq #app .jeu-bilan{grid-template-columns:repeat(3,minmax(0,1fr))}',
+    'html.lq #app .jcl-b{display:flex;align-items:center;gap:10px;width:100%;'])
+    assert.ok(lq.includes(k), k);
+});
+
+test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la correction dans la feuille des Défis ; les versions', () => {
+  const jeu = lq.indexOf('9 novembre, 10 h 37 (Elisa, la relecture'), defis = lq.indexOf('Défis — la refonte du 7 novembre'), feuille = lq.indexOf('/* La feuille de la correction : l’en-tête violet');
+  assert.ok(jeu > 0 && jeu < defis && feuille > defis, 'les règles des Défis restent limitées à leurs pages (retours-2144-defis)');
+  for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
+    'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
+    assert.ok(lq.indexOf(k) > feuille, k);
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-correction-v2726';") && app.includes("const SW_CACHE='requete-2026-11-09-correction-v2726';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=266">') && app.includes('<script src="multiplayer-security.js?v=9"></script>') && sw.includes("'./multiplayer-security.js?v=9',"));
+});

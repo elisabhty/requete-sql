@@ -78,7 +78,7 @@ test('ref 4 — le chrono descend jusqu’à 00:00 (6 novembre, 7 h 52 ; depuis 
   assert.ok(tick.includes('const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);'), 'le temps restant, d’après la durée de la manche');
   /* Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono » */
   assert.ok(!tick.includes('jeu-tbar') && !app.includes('<i class="jeu-tbar"'), 'plus de barre de temps');
-  assert.ok(app.includes('id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>'));
+  assert.ok(app.includes('id="jeu-timer" role="timer" aria-label="${ce.l}">${ce.t}</b>') && fn('jeuChronoEtat').includes("return {k:reste<30000?'is-low':'',t:jeuRebours(reste,dur),l:'Temps restant de la manche'};"), 'le temps restant (jeuChronoEtat, 10 h 37)');
   assert.ok(app.includes('`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];') && !app.includes('fermeHTML'), 'argent, or, bronze (plus de « la salle est fermée » : à 0, la partie continue, 8 novembre, 9 h 31)');
   assert.ok(app.includes("<em>${jeuChrono(x.ms)}</em><small>+${x.pts}</small>"), 'chaque ligne : le temps et les points gagnés');
   assert.ok(app.includes("<span class=\"jeu-rk\">${sl?'✓':(medal[x.place-1]||x.place)}</span>"), 'les ex æquo partagent la médaille');

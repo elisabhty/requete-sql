@@ -49,8 +49,9 @@ test('dans la salle : la carte trouvée est la carte de l’indice ; à plusieur
   assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||J.nb===1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono (10 h 01) ; une partie d’une manche s’y termine');
   assert.ok(v.indexOf("return'play'+n;") < v.indexOf("if(fin&&n>=J.nb-1&&jeuSoloLike(n)&&jeuIsHost())return'final';"), 'avant le bilan');
   assert.ok(app.includes('function jeuFige(n){const J=JEU,r=J&&n>=0?J.rounds[n]:null;return !!r&&r.found[J.me]!=null&&jeuSoloLike(n);}'));
-  assert.ok(fn('jeuTick').includes("if(el&&n>=0&&jeuFige(n))el.classList.add('is-ok');"), 'le chrono s’arrête, au vert');
-  assert.ok(app.includes("const fige=jeuFige(n),took0=fige?r.found[J.me]:Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));") && app.includes("<b class=\"jeu-timer${fige?' is-ok':dur0-took0<30000?' is-low':''}\" id=\"jeu-timer\""), 'au temps trouvé');
+  assert.ok(fn('jeuTick').includes("if(el&&n>=0&&(jeuFige(n)||(jeuSoloLike(n)&&jeuRoundDone(n))))jeuChronoPose(el,jeuChronoEtat(n));"), 'le chrono s’arrête, au vert');
+  /* 10 h 37 : arrêté sur le temps mis (« 00:04 »), plus sur ce qui restait (« 09:56 ») */
+  assert.ok(app.includes("const fige=jeuFige(n),took0=fige?r.found[J.me]:Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));") && fn('jeuChronoEtat').includes("if(jeuFige(n)){const ms=r.found[J.me];return {k:'is-ok',t:jeuChrono(ms),l:`Résolu en ${jeuDureeLisible(ms)}`};}"), 'au temps trouvé');
   assert.ok(fn('jeuLeaveQuestion').includes("if(/^play/.test(v)&&typeof jeuFige==='function'&&(jeuFige(jeuCur())||(typeof jeuRoundDone==='function'&&jeuSoloLike(jeuCur())&&jeuRoundDone(jeuCur()))))return null;"), 'rien à perdre');
   /* À plusieurs, le dernier à trouver : l’encart vert un instant, puis les résultats de la manche */
   assert.ok(v.includes("if(fin&&!J.rounds[n].closed&&J.rounds[n].okAt&&Date.now()-J.rounds[n].okAt<JEU_OK_MS)return'play'+n;") && app.includes('const JEU_OK_MS=1800;'));
@@ -86,7 +87,7 @@ test('le style : l’encart vert comme la boîte « Défi résolu », le vert qu
     'html[data-motion="reduce"].lq .coach-ok,html[data-motion="reduce"].lq .coach-ok *{animation:none!important}',
   ]) assert.ok(lq.includes(k), k);
   assert.ok(lq.includes('html.lq .feedback.ok{background:var(--success-soft)!important;border-color:#BFE6CF!important;'), 'les couleurs de « Défi résolu »');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=265">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=266">'));
   /* 8 h 50 (« Change de couleur pour le vert Garde, sinon ça fait trop ») : « Garde » au bleu ciel, plus en menthe */
   assert.ok(!lq.includes('html.lq .consigne.dq .dq-sec.is-garde{background:#E5FAEF}') && lq.includes("background:#9CD7FF url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23134E7C'"));
 });

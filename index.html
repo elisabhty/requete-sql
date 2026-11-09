@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=265">
+<link rel="stylesheet" href="ludique.css?v=266">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -13808,7 +13808,7 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   /* Un indice à l’écran : eurêka, l’ampoule s’allume (Elisa, 7 novembre, 15 h 38 : son GIF, une fois), au bout de la ligne de l’indice */
   const chat=n&&typeof chatBonusHtml==='function'?`<span class="coach-chat" aria-hidden="true">${chatBonusHtml('eureka')}</span>`:'';
   const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}${chat}</div>`;
-  const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?'<p class="coach-fin">C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.</p>':''}</div>`
+  const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?`<p class="coach-fin">${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\u00a0: d’ici là, à toi de trouver.':'C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.'}</p>`:''}</div>`
     :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
   /* Ce que dit un essai manqué (« Pas encore », puis « Un coup de patte ? » le 8 novembre, « Raté » et « Essaie encore » le 9, sous
      l’éditeur à 7 h 23). 9 novembre, 7 h 37 (Elisa) : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais
@@ -27346,10 +27346,13 @@ function defisFeuilleOuvrir(k){
   if(neuf)requestAnimationFrame(()=>requestAnimationFrame(montrer));else montrer();
 }
 function defisFeuilleFermer(sansRetour){
+  const corr=typeof document!=='undefined'&&typeof document.getElementById==='function'&&!!document.getElementById('dx-feuille')&&document.getElementById('dx-feuille').dataset.k==='corr';
+  if(!corr){   // la correction d’une partie (10 h 37) ne touche ni à l’écran Défis ni à la salle
   if(typeof DEFIS!=='undefined')DEFIS.carte='';
   jeuInvite='';
   /* Fermée pendant qu’on cherche la salle (×, le voile, Échap, un autre onglet) : la recherche s’arrête (8 novembre, 15 h 27). */
   if(typeof JEU!=='undefined'&&JEU&&JEU.verif)jeuStop();
+  }
   if(typeof document==='undefined'||!document.getElementById)return;
   document.querySelectorAll('#scr-defis :is(.dx-act,.dx-act-go)').forEach(b=>b.setAttribute('aria-expanded','false'));
   const el=document.getElementById('dx-feuille');if(!el)return;
@@ -35578,6 +35581,26 @@ function jeuSoloLike(n){
    à trouver la garde JEU_OK_MS avant les résultats de la manche. */
 const JEU_OK_MS=1800;
 function jeuFige(n){const J=JEU,r=J&&n>=0?J.rounds[n]:null;return !!r&&r.found[J.me]!=null&&jeuSoloLike(n);}
+/* Seul, le chrono s’arrête (Elisa, 9 novembre, 10 h 37, sur la relecture qu’elle a fait faire : « Chrono arrête -> seulement en
+   solo ») : trouvée, la manche montre le temps mis (« 00:04 », une coche à la place du réveil, au vert), plus ce qui restait
+   (« 09:56 ») ; finie au chrono, « 00:00 », qui ne bat plus, dans la pêche de « Temps écoulé ». À plusieurs, il continue jusqu’à la
+   fin de la manche. La page d’un défi fait de même (defiChronoStart, runLesson). */
+function jeuChronoEtat(n){
+  const J=JEU,r=J.rounds[n],dur=jeuDureeMs(jeuNivManche(n));
+  if(jeuFige(n)){const ms=r.found[J.me];return {k:'is-ok',t:jeuChrono(ms),l:`Résolu en ${jeuDureeLisible(ms)}`};}
+  if(jeuSoloLike(n)&&jeuRoundDone(n))return {k:'is-fin',t:'00:00',l:r.closed&&!jeuFermeeAuChrono(r,n)?'Manche terminée':'Temps écoulé'};
+  const reste=dur-(Date.now()-r.t1);
+  return {k:reste<30000?'is-low':'',t:jeuRebours(reste,dur),l:'Temps restant de la manche'};
+}
+function jeuChronoPose(el,e){
+  if(!el||!e)return;
+  if(el.textContent!==e.t)el.textContent=e.t;
+  if(el.classList)['is-ok','is-fin','is-low'].forEach(k=>{if(k===e.k)el.classList.add(k);else el.classList.remove(k);});
+  if(typeof el.getAttribute==='function'&&el.getAttribute('aria-label')!==e.l)el.setAttribute('aria-label',e.l);
+}
+/* « Manche 1/1 » ne disait rien (10 h 37, la relecture) : une partie d’une seule manche dit « Défi solo » quand on joue seul (Joue
+   seule, ou seule dans sa salle), « Manche unique » à plusieurs ; « Manche 2/3 » sinon. */
+function jeuMancheNom(n,sl){const J=JEU;return J&&J.nb===1?(sl?'Défi solo':'Manche unique'):`Manche ${n+1}/${J?J.nb:1}`;}
 /* Le titre de l’écran : « Défi » en « Joue seul », et dans une salle où l’on est seul pendant la partie ; « Salle de défi » sinon. */
 function jeuTitreNav(seul){
   const J=JEU,t=typeof document!=='undefined'&&typeof document.getElementById==='function'?document.getElementById('nav-title'):null;
@@ -35653,7 +35676,7 @@ function jeuTick(){
   jeuReagirMaj();   // « Réagir », en bas à droite, pendant la manche (19 h 37)
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   /* Le chrono seul, sans barre de temps (Elisa, 31 octobre, 15 h 16, réf. 5 : « ne pas mettre la barre, laisse que le chrono ») */
-  if(el&&n>=0&&jeuFige(n))el.classList.add('is-ok');   // seul, la manche trouvée : le chrono s’arrête, au vert (9 novembre, 8 h 20)
+  if(el&&n>=0&&(jeuFige(n)||(jeuSoloLike(n)&&jeuRoundDone(n))))jeuChronoPose(el,jeuChronoEtat(n));   // seul, le chrono arrêté : le temps mis, ou 00:00 (10 h 37)
   else if(el&&n>=0){const took=Date.now()-J.rounds[n].t1,dur=jeuDureeMs(jeuNivManche(n));el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
     /* Un palier passé : la valeur change, la pastille fait un petit saut (sauf mouvement réduit). */
     const vn=document.getElementById('jeu-val-n');if(vn){const v=String(jeuValeur(Math.max(0,took),jeuNivManche(n)));if(vn.textContent!==v){vn.textContent=v;const pv=vn.parentNode;if(pv&&pv.classList&&!prefersReduceMotion()){pv.classList.remove('is-drop');void pv.offsetWidth;pv.classList.add('is-drop');}}}}
@@ -35679,6 +35702,8 @@ const JEU_ICO={
   level:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18.5v-4M12 18.5v-8M18 18.5V5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
   check:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   cross:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>',
+  reveil:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.6" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 9.2v4l2.4 1.9M9.6 2.8h4.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  retour:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5.5 4 12l6.5 6.5M4.5 12H20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   amis:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM3 19.6c.4-3.3 2.8-5.4 6-5.4s5.6 2.1 6 5.4M15.6 4.6a3.2 3.2 0 0 1 0 6.3M17.4 14.4c2 .6 3.3 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   wifi:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2a12.5 12.5 0 0 1 17 0M6.6 12.6a8 8 0 0 1 10.8 0M9.8 15.9a3.4 3.4 0 0 1 4.4 0" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>'
 };
@@ -36218,7 +36243,7 @@ function jeuDrawEnPlace(n){
   const pile=box.querySelector('.jeu-pile'),deck=box.querySelector('.jeu-deck'),note=box.querySelector('.jeu-draw-note'),k=box.querySelector('.l-kicker');
   if(!pile||!deck||!note)return false;
   box.classList.remove('is-wait');box.dataset.step='3';
-  if(k)k.textContent=`Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}`;
+  if(k)k.textContent=`${jeuMancheNom(n,true)} · ${JEU_NIVL[c.niv]}`;
   deck.insertAdjacentHTML('beforeend','<b class="jeu-count" id="jeu-count">3</b>');
   pile.insertAdjacentHTML('beforeend',jeuDrawnHTML(c));
   note.removeAttribute('role');note.textContent=jeuDrawNote(c.id);
@@ -36252,7 +36277,7 @@ function jeuColleeSuivre(src,timerId,valId){
   const mt=document.getElementById('jeu-collee-t'),mv=document.getElementById('jeu-collee-v');
   const copie=()=>{
     const t=document.getElementById(timerId);
-    if(t&&mt){if(mt.textContent!==t.textContent)mt.textContent=t.textContent;mt.classList.toggle('is-low',t.classList.contains('is-low'));mt.classList.toggle('is-ok',t.classList.contains('is-ok'));}
+    if(t&&mt){if(mt.textContent!==t.textContent)mt.textContent=t.textContent;mt.classList.toggle('is-low',t.classList.contains('is-low'));mt.classList.toggle('is-ok',t.classList.contains('is-ok'));mt.classList.toggle('is-fin',t.classList.contains('is-fin'));}
     mini.classList.toggle('is-masque',!t||!!t.hidden);   // « Avec des amis » sur la page d’un défi : pas de chrono, pas de barre
     if(mv){const v=valId&&document.getElementById(valId),b=mv.parentNode;if(v&&mv.textContent!==v.textContent)mv.textContent=v.textContent;if(b)b.hidden=!v;}
   };
@@ -36274,6 +36299,7 @@ function jeuRender(){
   const v=jeuView();
   const sig=jeuSig();
   if(v===J.view){J.sig=sig;jeuPatch(v);return;}
+  if(!(v==='final'||(v==='play0'&&jeuFinSurPlace()&&jeuRoundDone(0))))jeuCorrFermer();   // une autre partie, une autre manche : la correction se referme
   /* Seul en ligne, la scène d’attente (« Tirage au sort » sans compte à rebours, le temps que le serveur réponde) devient le tirage
      sans être redessinée : les cartes continuent de se mélanger, la scène ne rejoue pas son entrée (Elisa, 8 novembre, 10 h 10 :
      « l’écran avec les cartes saute parfois »). */
@@ -36323,7 +36349,7 @@ function jeuRender(){
        partie seul classée attend l’accord du serveur avant le tirage ; on montrait alors la salle d’attente entre amis (code, « Invite
        tes amis », « Lancer la partie »). Place directement au tirage au sort, le même écran que celui qui suit, sans son compte à rebours. */
     html=`<div class="jeu-draw is-wait" id="jeu-draw" data-step="3">
-        <p class="l-kicker">Manche 1/${J.nb} · ${JEU_NIVL[J.niv]}</p>
+        <p class="l-kicker">${jeuMancheNom(0,true)} · ${JEU_NIVL[J.niv]}</p>
         <h1>Tirage au sort</h1>
         <div class="jeu-pile"><div class="jeu-deck" aria-hidden="true"><i></i><i></i><i></i></div></div>
         <p class="jeu-draw-note" role="status">${jeuDrawNote()}</p>
@@ -36348,7 +36374,7 @@ function jeuRender(){
   }else if(v.startsWith('draw')){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     html=`<div class="jeu-draw" id="jeu-draw" data-step="3">
-        <p class="l-kicker">Manche ${n+1}/${J.nb} · ${JEU_NIVL[c.niv]}</p>
+        <p class="l-kicker">${jeuMancheNom(n,jeuSoloLike(n))} · ${JEU_NIVL[c.niv]}</p>
         <h1>Tirage au sort</h1>
         <div class="jeu-pile"><div class="jeu-deck" aria-hidden="true"><i></i><i></i><i></i><b class="jeu-count" id="jeu-count">3</b></div>
         ${jeuDrawnHTML(c)}</div>
@@ -36373,8 +36399,8 @@ function jeuRender(){
        (18 h 28, 18 h 36). 20 h 15 (« on peut faire beaucoup mieux niveau UI UX, peut-être intégrer à l’intérieur un cadre avec point |
        chrono ») : à gauche, « Manche 1/3 » et, dessous, le niveau ; à droite, un seul cadre blanc, ce que vaut le défi | le chrono, le
        chrono dans sa pastille soleil au bout. Le chrono revient dans le bandeau (il était posé sur son bord, 19 h 18). */
-    const chrono=`<b class="jeu-timer${fige?' is-ok':dur0-took0<30000?' is-low':''}" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">${jeuRebours(dur0-took0,dur0)}</b>`;
-    const hud=`<div class="jeu-hud"><span class="jeu-hud-g"><b class="jeu-hud-m">Manche ${n+1}<small>/${J.nb}</small></b>`+
+    const ce=jeuChronoEtat(n),chrono=`<b class="jeu-timer${ce.k?' '+ce.k:''}" id="jeu-timer" role="timer" aria-label="${ce.l}">${ce.t}</b>`;
+    const hud=`<div class="jeu-hud"><span class="jeu-hud-g"><b class="jeu-hud-m">${J.nb===1?jeuMancheNom(n,sl):`Manche ${n+1}<small>/${J.nb}</small>`}</b>`+
       `<span class="dx-f-niv is-${c.niv}">${jeuNivBars(c.niv)}${JEU_NIVL[c.niv]}</span></span>`+
       `<span class="jeu-hud-box${val?'':' is-seul'}">${val}${chrono}</span></div>`;
     /* 9 novembre, 7 h 16 (Elisa, sa capture d’une salle où elle est seule : « En direct », « C’est parti ! Qui ouvrira le score ? »,
@@ -36384,8 +36410,8 @@ function jeuRender(){
        redessine ainsi (jeuPatch). Cela remplace « il reste là quand on est seul » (8 novembre, 17 h 08) et « visible même seule »
        (19 h 12). */
     jeuTitreNav(sl);
-    html=`${jeuColleeHTML(`Manche ${n+1}`,`/${J.nb}`,!mine&&!rate)}${jeuNetSlot()}
-      ${sl?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
+    html=`${J.nb===1?jeuColleeHTML(jeuMancheNom(n,sl),'',!mine&&!rate):jeuColleeHTML(`Manche ${n+1}`,`/${J.nb}`,!mine&&!rate)}${jeuNetSlot()}
+      ${sl?`<section class="jeu-direct is-seul" aria-label="${J.nb===1?jeuMancheNom(n,sl):`Manche ${n+1} sur ${J.nb}`}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}
       ${defiConsigneHTML(c,{base:true,titre:true})}
       ${mine?jeuFoundHTML(r,J.me):rate?jeuRateHTML(r):editorBlock(false,'defi.sql',{jeu:1})}`;
   }else if(v.startsWith('res')){
@@ -36407,7 +36433,7 @@ function jeuRender(){
     const auto=jeuFinAuto(n);
     const autoHTML=`<p class="jeu-auto" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil((auto-Date.now())/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>`;
     /* La solution se replie quand on a trouvé ; les scores cumulés n’apparaissent qu’à partir de la 2e manche, et à plusieurs. */
-    html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
+    html=head(J.nb===1?(sl?'Défi solo terminé':'Manche unique terminée'):`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
       `${jeuNetSlot()}
       ${miss}${sl&&!got?'':`<div class="jeu-card"><p class="jeu-card-h">${sl?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>`}
       ${got?`<details class="jeu-card jeu-sol"><summary class="jeu-card-h">Le résultat attendu</summary>${typeof defiAttenduHTML==='function'?defiAttenduHTML(c):''}</details>`:''}
@@ -36446,28 +36472,32 @@ function jeuRender(){
       const lastR=rows.length?rows[rows.length-1]:null,lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';
       const ICO_OK='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12.5l4 4 8-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const ICO_KO='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>';
+      /* 10 h 37 (la relecture) : une manche ratée garde sa ligne, dans la pêche des défis à rattraper, le réveil quand c’est le chrono ;
+         chaque manche, résolue ou non, a son « Voir la correction » (la feuille monte, le bilan reste dessous). Plus « Retenter ce
+         défi » : « Rejouer » le doublait. */
       const recap=rows.map((x,i)=>{
         const k=J.rounds.indexOf(x.r),ok=x.ms!=null,y=ok?jeuRanking(k).find(z=>z.pid===J.me):null;
         /* Seul dans sa salle et hôte, c’est soi qui a quitté la manche : « Abandonnée », comme la carte du haut (8 novembre, 10 h 24) */
-        const why=x.r.closed&&!jeuFermeeAuChrono(x.r,J.rounds.indexOf(x.r))?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
-        return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ICO_KO}</span>
+        const ab=!ok&&x.r.closed&&!jeuFermeeAuChrono(x.r,k),why=ab?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
+        return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ab?ICO_KO:JEU_ICO.reveil}</span>
           <div class="jr-t"><small class="jr-n">Manche ${i+1}</small><b>${esc(x.c.titre)}</b>
           <span class="jr-meta">${ok?`<i class="jr-time">Résolu en ${dur(x.ms)}</i>${y&&(y.essai||y.rang)?jeuPtsDetail(y):''}`:`<i class="jr-why">${why}</i>`}</span>
-          ${!ok?`<button type="button" class="jr-retry" onclick="jeuRetenter('${x.c.id}')"><span>Retenter ce défi</span>${DEF_CHEV_SVG}</button>`:''}</div>
+          ${jeuCorrBoutonHTML(k)}</div>
           <b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b></li>`;
       }).join('');
-      const nextNiv={f:'m',m:'d'}[J.niv];
       /* 14 h 27 : tout trouvé, ou un nouveau record, le chat lève son trophée sous les confettis (son GIF), à droite du titre ; il
          remplace la coupe du titre */
       const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`
         :!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat is-effort" aria-hidden="true">${chatBonusHtml('effort')}</div>`:'';   // rien trouvé : « Encore un effort ! » (15 h 38)
-      const titre=all?(trophee?'Tout résolu\u00a0!':'Tout résolu ! 🏆'):nOk?'Ton bilan':'Aucun défi résolu';
-      const bande=nOk||J.record?`<div class="jeu-bilan${J.record?' has-record':''}${nOk>1?'':' is-2'}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>résolu${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div>${nOk>1?`<div><b>${dur(got.reduce((a,x)=>a+x.ms,0)/nOk)}</b><small>temps moyen</small></div>`:''}</div>`:'';
-      html=trophee+head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}.`)+   // le niveau, seul, sous le titre : il ne se dit nulle part ailleurs
+      /* 10 h 37 (la relecture, ses maquettes 2/2, 1/2 et 0/2) : le titre dit l’issue, « Tout résolu ! », « Bien joué ! » ou
+         « On retente ? » ; le niveau dessous, sans point final ; le bandeau, toujours les trois mêmes cases (les points, les défis
+         résolus, le temps moyen, « — » sans défi résolu), d’un bilan à l’autre. */
+      const titre=all?(trophee?'Tout résolu\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\u00a0!':'On retente\u00a0?';
+      const bande=`<div class="jeu-bilan${J.record?' has-record':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div><div><b>${nOk}/${nT}</b><small>résolu${nOk>1?'s':''}</small>${nT>1?`<span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span>`:''}</div><div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>temps moyen</small></div></div>`;
+      html=trophee+head('Fin de la partie',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+   // le niveau, seul, sous le titre : il ne se dit nulle part ailleurs
         `${lastMiss}${lastMiss&&!J.record?'':bande}
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Manche par manche</p><ol class="jeu-rounds">${recap}</ol></div>
-        <button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>
-        ${J.solo?(all&&nextNiv?jeuBtn2('level',`Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}`,'jeuNiveauSuivant()'):jeuBtn2('level','Changer de niveau','openJeu()')):jeuBtn2('quit','Quitter la salle','goBack()')}`;
+        ${jeuFinBoutonsHTML(nOk,all)}`;
       if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
       if(all)setTimeout(celebrate,300);
     }else{
@@ -36481,6 +36511,7 @@ function jeuRender(){
       html=trophee+head('Salle de défi · Fin de partie',winner?(trophee?'Tu as gagné\u00a0!':'Tu as gagné ! 🏆'):'Le podium',`${jouees} manche${jouees>1?'s':''} jouée${jouees>1?'s':''}.`)+
         `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
         ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>${tie}</div>`:tie}
+        ${jeuCorrListeHTML()}
         ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
         ${jeuBtn2('quit','Quitter la salle','goBack()')}
         ${jeuBtn2('amis','Retrouver mes adversaires','jeuVersAdversaires()')}
@@ -36715,15 +36746,16 @@ function jeuFoundHTML(r,pid){
   /* Un essai manqué dans cette manche : l’encart était rouge (coachKo) */
   const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;
   /* Seul : la suite (jeuSuiteHTML). Une partie d’une seule manche se termine ici : pas de compte à rebours, ses boutons sous la carte
-     (jeuFinActionsHTML), et un nouveau record dans le détail (9 novembre, 10 h 01). */
+     (jeuFinBoutonsHTML), et un nouveau record dans le détail (9 novembre, 10 h 01) ; « Voir la correction » à la place de la
+     requête repliée (10 h 37 : la correction la montre, avec la solution). */
   const fin1=sl&&jeuFinSurPlace();
   const suite=fin1?'':sl?jeuSuiteHTML(n)
     :`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div>`;
   return `<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">
       ${coachOkHTML({ko,det,pts})}
       ${suite}
-      ${r.mine?`<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>`:''}
-    </section>${fin1?jeuFinActionsHTML(true):''}`;
+      ${fin1?jeuCorrBoutonHTML(n):r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:''}
+    </section>${fin1?jeuFinBoutonsHTML(1,true):''}`;
 }
 /* Seul : ce qui vient sous la carte de la manche finie, et une barre qui se remplit jusqu’à elle (8 h 50), de là où elle en est si la
    carte se redessine : « La manche suivante démarre dans 5 s », ou « Ton bilan arrive dans 5 s » à la dernière. */
@@ -36735,15 +36767,19 @@ function jeuSuiteHTML(n){
    l’écran comme une manche trouvée : la carte de l’indice dit « Temps écoulé », dans la pêche des défis à rattraper, puis la suite
    (la manche suivante, ou le bilan). Une partie d’une seule manche s’y termine : « Retenter ce défi » dans la carte, ses boutons
    dessous. Avant : la page « Manche 1/2 terminée » (« Temps écoulé », « 0 point obtenu », « Non validée »), ou le bilan aussitôt. */
+/* 10 h 37 (la relecture : « réduire la hauteur du bloc Temps écoulé », « ne jamais interrompre une partie de plusieurs manches parce
+   qu’une seule a été ratée ») : le réveil à la place de la croix, une phrase courte : « Tu te rattraperas à la prochaine manche. »,
+   « La correction t’attend dans ton bilan. » à la dernière, « Le chrono est arrivé à 0 avant ta réponse. » quand la partie s’y
+   termine, avec « Voir la correction » (plus « Retenter ce défi », que « Rejouer » doublait). */
 function jeuRateHTML(r){
-  const J=JEU,n=J.rounds.indexOf(r),fin1=jeuFinSurPlace(),c=typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;
+  const J=JEU,n=J.rounds.indexOf(r),fin1=jeuFinSurPlace(),last=n>=J.nb-1;
   const ab=r.closed&&!jeuFermeeAuChrono(r,n);   // quittée avant la fin (une appli d’avant) : « Manche abandonnée », comme jeuMissHTML
-  const t=ab?'Manche abandonnée':'Temps écoulé',p=ab?'Tu as quitté la manche avant de valider ta réponse.':'Le chrono est arrivé à 0 avant que tu valides ta réponse.';
-  const retry=fin1&&c?`<button type="button" class="jr-retry" onclick="jeuRetenter('${c.id}')"><span>Retenter ce défi</span>${DEF_CHEV_SVG}</button>`:'';
+  const t=ab?'Manche abandonnée':'Temps écoulé';
+  const p=ab?'Tu as quitté la manche avant ta réponse.':fin1?'Le chrono est arrivé à 0 avant ta réponse.':last?'La correction t’attend dans ton bilan.':'Tu te rattraperas à la prochaine manche.';
   return `<section class="coach is-to jeu-done" id="jeu-done" aria-label="${t}" aria-live="polite">
-      <div class="coach-to"><span class="coach-to-ico" aria-hidden="true">${JEU_ICO.cross}</span><div class="coach-to-tx"><b class="coach-to-k">${t}</b><p>${p}</p>${retry}</div></div>
+      <div class="coach-to"><span class="coach-to-ico" aria-hidden="true">${ab?JEU_ICO.cross:JEU_ICO.reveil}</span><div class="coach-to-tx"><b class="coach-to-k">${t}</b><p>${p}</p>${fin1?jeuCorrBoutonHTML(n):''}</div></div>
       ${fin1?'':jeuSuiteHTML(n)}
-    </section>${fin1?jeuFinActionsHTML(false):''}`;
+    </section>${fin1?jeuFinBoutonsHTML(0,false):''}`;
 }
 /* 9 novembre, 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel, et ne passer par cette page que s’il y a
    plus d’une manche ») : une partie d’une seule manche, seule (Joue seule, ou seule dans sa salle), n’a plus de bilan : il redisait
@@ -36761,12 +36797,100 @@ function jeuFinirSurPlace(){
     if(!J.over&&jeuIsHost())setTimeout(()=>{if(JEU===J&&!J.over)jeuFinish();},0);
   }
 }
-/* Ses boutons, sous la carte : ceux du bilan. Rejouer ; seule, « Passer au niveau » au-dessus quand c’est résolu, sinon « Changer de
-   niveau » ; dans une salle, « Quitter la salle ». */
-function jeuFinActionsHTML(ok){
+/* Les boutons de fin, sous la carte d’une partie d’une manche et sous le bilan (10 h 37, la relecture : « Passer au niveau moyen »,
+   une progression proposée, pas la seule sortie ; le bouton principal selon l’issue) : tout résolu, seule, la carte « Prochaine étape »
+   (le niveau au-dessus, ce qu’y vaut un défi) ; « Rejouer », ou « Réessayer » sans défi résolu ; « Retour aux défis » seule, « Quitter
+   la salle » dans une salle. */
+function jeuFinBoutonsHTML(nOk,all){
   const J=JEU,nextNiv={f:'m',m:'d'}[J.niv];
-  return `<div class="jeu-fin-actions"><button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span>${DEF_CHEV_SVG}</button>`+
-    (J.solo?(ok&&nextNiv?jeuBtn2('level',`Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}`,'jeuNiveauSuivant()'):jeuBtn2('level','Changer de niveau','openJeu()')):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
+  const prog=J.solo&&all&&nextNiv?`<button type="button" class="jeu-prog is-${nextNiv}" onclick="jeuNiveauSuivant()"><span class="jeu-prog-ico" aria-hidden="true">${jeuNivBars(nextNiv)}</span>`+
+    `<span class="jeu-prog-tx"><small>Prochaine étape</small><b>Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</b><span class="jeu-prog-x">${JEU_COIN_SVG}×${JEU_NIV_X[nextNiv]||1} points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
+  return `<div class="jeu-fin-actions">${prog}<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>${nOk?'Rejouer':'Réessayer'}</span>${DEF_CHEV_SVG}</button>`+
+    (J.solo?jeuBtn2('retour','Retour aux défis','openJeu()'):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
+}
+/* La correction (Elisa, 9 novembre, 10 h 37 : « pouvoir voir la correction et le résultat finalement, mais sur l’écran bilan, qui
+   ouvre une page en restant sur celle-ci ») : à la fin de la partie, chaque défi joué a son « Voir la correction » (le bilan, la fin
+   sur place d’une partie d’une manche, le podium entre amis). Elle monte du bas par-dessus l’écran, qui reste dessous : la feuille
+   des Défis (× , le voile ou Échap la referment, le focus revient au bouton). Une solution (à copier ; d’autres requêtes donnent le
+   même résultat), ce qu’elle renvoie, le raisonnement (la piste du défi), puis ta requête acceptée, ou ton dernier essai. Pendant la
+   partie, rien ne se dévoile : les indices s’arrêtent avant la requête. */
+function jeuCorrBoutonHTML(k){
+  const J=JEU,r=J&&J.rounds[k],c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;
+  return c?`<button type="button" class="jr-corr" onclick="jeuCorrection(${k})" aria-label="Voir la correction : ${esc(c.titre).replace(/"/g,'&quot;')}"><span>Voir la correction</span>${DEF_CHEV_SVG}</button>`:'';
+}
+function jeuCorrHTML(r,c,k){
+  const J=JEU,ms=r.found[J.me],ok=ms!=null,ab=!ok&&r.closed&&!jeuFermeeAuChrono(r,k);
+  const etat=ok?dxPc('is-ok',`Résolu en ${jeuDureeLisible(ms)}`,JEU_ICO.check):dxPc('is-to',ab?'Manche abandonnée':J.solo||jeuSoloLike(k)?'Temps écoulé':'Pas trouvé',JEU_ICO.reveil);
+  const sec=(cls,titre,chip,corps)=>`<section class="jc-sec ${cls}"><div class="jc-h"><b>${titre}</b>${chip||''}</div>${corps}</section>`;
+  /* Ce qu’elle renvoie : le nombre de lignes (et « Glisse » quand le tableau déborde) monte sur la ligne du titre. */
+  const res=defiAttenduHTML(c),meta=(res.match(/^<div class="result-meta">[\s\S]*?<\/div>/)||[''])[0];
+  const moi=ok&&r.sql?sec('is-moi','Ta requête','<span class="jc-chip is-ok">Acceptée</span>',`<div class="ex-code">${highlight(sqlEnLignes(r.sql))}</div>`)
+    :!ok&&r.essai?sec('is-essai','Ton dernier essai','',`<div class="ex-code">${highlight(sqlEnLignes(r.essai))}</div>`):'';
+  return `<div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><div>
+    <p class="room-kicker">${J.nb>1?`Correction · manche ${k+1}`:'La correction'}</p>
+    <h2 id="dx-f-t">${esc(c.titre)}</h2>
+    <p class="room-sub dx-f-pcs" id="dx-f-p">${dxPcNiv(c.niv)}${etat}</p></div><i class="room-sp s2" aria-hidden="true"></i></div>
+    <div class="dx-f-corps" data-k="corr">
+    ${sec('is-sol','Une solution','',`<div class="sql-copy-wrap"><div class="ex-code">${highlight(sqlEnLignes(c.sol))}</div>${sqlCopyBtn()}</div><p class="jc-note">D’autres requêtes peuvent donner le même résultat&nbsp;: c’est lui qui compte.</p>`)}
+    ${res?sec('is-res','Ce qu’elle renvoie',meta,res.slice(meta.length)):''}
+    ${c.indice?sec('is-piste','Le raisonnement','',`<p class="jc-p">${escCode(c.indice)}</p>`):''}
+    ${moi}
+    <div class="dx-f-pied"><button type="button" class="room-go" onclick="defisFeuilleFermer()"><span>J’ai compris</span>${DEF_CHEV_SVG}</button></div>
+    </div>`;
+}
+function jeuCorrection(k){
+  const J=JEU,r=J&&J.rounds[k],c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;
+  if(!c||typeof document==='undefined'||!document.body)return;
+  let el=document.getElementById('dx-feuille');
+  const neuf=!el;
+  if(neuf){
+    el=document.createElement('div');el.id='dx-feuille';el.className='dx-feuille';
+    document.addEventListener('keydown',dxFeuilleTouche,true);
+    const vv=window.visualViewport;if(vv){vv.addEventListener('resize',dxFeuilleCaler);vv.addEventListener('scroll',dxFeuilleCaler);}
+  }
+  const a=document.activeElement;dxFeuilleRetour=a&&a!==document.body&&a.closest&&a.closest('#jeu-root')?a:null;
+  el.dataset.k='corr';
+  el.innerHTML=`<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>
+    <div class="dx-f-boite" role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1">
+      <button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${LQ_X_SVG}</button>
+      ${jeuCorrHTML(r,c,k)}
+    </div>`;
+  const bx=el.querySelector('.dx-f-boite');
+  if(typeof bindTableSwipe==='function')bindTableSwipe(el);
+  /* Plus haute que l’écran (presque toujours : la requête, puis le tableau) : elle défile, le dégradé du pied le dit. */
+  if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;setTimeout(marque,typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:720);}
+  const montrer=()=>{el.classList.add('on');try{bx.focus({preventScroll:true});}catch(e){}dxFeuilleCaler();};
+  if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
+  if(typeof buzz==='function')buzz('light');
+}
+/* Entre amis, sous le classement (10 h 37) : les défis de la partie, chacun avec ce que tu en as fait et sa correction. */
+function jeuCorrListeHTML(){
+  const J=JEU,l=J.rounds.map((r,k)=>{
+    const c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;if(!c)return '';
+    const ms=r.found[J.me];
+    return `<li><button type="button" class="jcl-b" onclick="jeuCorrection(${k})"><span class="jcl-t"><small>${J.nb>1?`Manche ${k+1} · `:''}${ms!=null?`<i class="is-ok">Résolu en ${jeuDureeLisible(ms)}</i>`:'<i>Pas trouvé</i>'}</small><b>${esc(c.titre)}</b><span class="jcl-v">Voir la correction</span></span>${DEF_CHEV_SVG}</button></li>`;
+  }).join('');
+  return l?`<div class="jeu-card jeu-corr-l"><p class="jeu-card-h">Les défis de la partie</p><ol class="jeu-corr-liste">${l}</ol></div>`:'';
+}
+/* Une requête d’une seule ligne, une clause par ligne (la correction, 10 h 37) : SELECT, FROM, chaque JOIN, WHERE, GROUP BY, HAVING,
+   ORDER BY, LIMIT, UNION…, hors des parenthèses et des chaînes. Une requête déjà mise en lignes reste telle quelle. */
+function sqlEnLignes(sql){
+  const s=String(sql||'').trim();
+  if(/\n/.test(s))return s;
+  const re=/'(?:[^']|'')*'|\(|\)|\b(?:(?:LEFT|RIGHT|INNER|CROSS|FULL)(?:\s+OUTER)?\s+JOIN|JOIN|SELECT|FROM|WHERE|GROUP\s+BY|HAVING|ORDER\s+BY|LIMIT|UNION(?:\s+ALL)?|EXCEPT|INTERSECT)\b/gi;
+  let out='',last=0,depth=0,m;
+  while((m=re.exec(s))){
+    const t=m[0];
+    if(t==='(')depth++;
+    else if(t===')')depth=Math.max(0,depth-1);
+    else if(t[0]!=="'"&&depth===0&&m.index>0&&s.slice(last,m.index).trim()){out+=s.slice(last,m.index).replace(/\s+$/,'')+'\n';last=m.index;}
+  }
+  return out+s.slice(last);
+}
+/* La partie s’en va (une autre commence, on quitte la salle) : sa correction se referme. */
+function jeuCorrFermer(){
+  const f=typeof document!=='undefined'&&typeof document.getElementById==='function'?document.getElementById('dx-feuille'):null;
+  if(f&&f.dataset&&f.dataset.k==='corr'&&typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
 }
 /* « Rejouer » : la fin de partie peut être encore en route (le serveur, ou la marge de 2 s après le chrono : jeuFinish) ; elle part, et
    la partie suivante la suit dès qu’elle est là (case 'end'). */
@@ -36849,7 +36973,7 @@ function jeuRun(){
   const c=CHALLENGES.find(x=>x.id===r.cid),sql=document.getElementById('ed-lesson').value.trim();
   if(!sql)return;
   /* Chaque exécution est un essai : la première requête juste vaut +25. */
-  r.tries=(r.tries||0)+1;
+  r.tries=(r.tries||0)+1;r.essai=sql;   // r.essai : « Ton dernier essai » dans la correction (10 h 37)
   let userRes,solRes,ms=null;
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
@@ -36858,7 +36982,7 @@ function jeuRun(){
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
-    r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;
+    r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;r.sql=sql;   // r.sql : « Ta requête » dans la correction (10 h 37)
     jeuCredit(c.id);
     jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});
     if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}
@@ -36910,6 +37034,7 @@ function jeuStop(){
   if(typeof ileSalleQuitter==='function')ileSalleQuitter();   // la salle dans l’île s’en va (sauf le podium)
   JEU=null;
   document.getElementById('jeu-toasts')?.remove();
+  jeuCorrFermer();
 }
 /* Quitter une salle en cours : on confirme (la manche en cours serait perdue). */
 /* Quitter une salle : une question seulement quand il y a quelque chose à perdre, posée par l’app (lqAsk) et non par une boîte du
@@ -37017,7 +37142,7 @@ function defiChronoStart(c,depart){
     if(mode!=='defi'||current!==c||!el){defiChronoStop();return;}
     if(document.querySelector('#hint-slot .coach.is-ok,#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();defiSesClear();return;}   // résolu : l’encart vert de la carte (9 novembre, 8 h 20)
     const took=Date.now()-t0;el.textContent=jeuRebours(dur-took,dur);el.classList.toggle('is-low',dur-took<30000);
-    if(took>=dur){defiChronoStop();defiSesClear();defiTempsEcoule(c);}
+    if(took>=dur){defiChronoStop();defiSesClear();jeuChronoPose(el,{k:'is-fin',t:'00:00',l:'Temps écoulé'});defiTempsEcoule(c);}
   };
   defiChrono={t:setInterval(tick,500),t0};tick();
 }
@@ -37374,6 +37499,7 @@ function runLesson(){
          la carte de l’indice reste à sa place, son encart passe au vert (coachOkHTML, comme dans la salle) ; dessous l’éditeur, le
          résultat et la suite. Avant : la boîte verte « Défi résolu » sous l’éditeur, et la carte s’effaçait. */
       {const hs=document.getElementById('hint-slot'),ms=defiChrono?Date.now()-defiChrono.t0:null,ko=!!(COACH&&COACH.c===current&&COACH.diag);
+        if(ms!=null)jeuChronoPose(document.getElementById('defi-timer'),{k:'is-ok',t:jeuChrono(ms),l:`Résolu en ${jeuDureeLisible(ms)}`});   // le chrono s’arrête sur le temps mis (10 h 37)
         if(hs)hs.innerHTML=`<section class="coach is-ok" aria-live="polite">${coachOkHTML({ko,det:coachOkDetail([ms!=null?`Résolu en <b>${jeuDureeLisible(ms)}</b>`:'',exoFails?'':'du premier coup ✨'])})}</section>`;
         COACH=null;}
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
@@ -47025,7 +47151,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-fin-sur-place-v2725';
+  const SW_CACHE='requete-2026-11-09-correction-v2726';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -47064,6 +47190,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
-<script src="multiplayer-security.js?v=8"></script>
+<script src="multiplayer-security.js?v=9"></script>
 </body>
 </html>

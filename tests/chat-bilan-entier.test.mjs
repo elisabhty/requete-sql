@@ -27,8 +27,8 @@ test('la phrase sous le titre s’arrête avant le chat (la marge de la leçon e
   assert.ok(lq.includes('html.lq #jeu-root:has(>.jeu-fin-chat)>:is(h1,.l-sub){margin-right:82px!important}'), 'petit écran');
 });
 
-test('« retente-le » ne se coupe pas au trait d’union à côté du chat ; 9 novembre, 10 h 01 : la phrase s’en va (« l’essentiel »), « Retenter ce défi » le dit', () => {
-  assert.ok(!app.includes('retente-le${nT>1') && app.includes("const titre=all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Ton bilan':'Aucun défi résolu';"));
+test('« retente-le » ne se coupe pas au trait d’union à côté du chat ; 9 novembre, 10 h 01 : la phrase s’en va (« l’essentiel ») ; 10 h 37 : le titre dit l’issue', () => {
+  assert.ok(!app.includes('retente-le${nT>1') && app.includes("const titre=all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
   assert.ok(lq.includes('html.lq #jeu-root .jeu-nw{white-space:nowrap}'));
   const debut = lq.indexOf('Défis — la refonte du 7 novembre');
   assert.ok(debut > 0 && lq.indexOf('html.lq #jeu-root .jeu-nw{') < debut, 'avec les règles du jeu, avant le bloc des Défis');
@@ -36,6 +36,6 @@ test('« retente-le » ne se coupe pas au trait d’union à côté du chat ; 9 
 
 test('seul dans sa salle : « Abandonnée » partout, la carte du haut comme la ligne de la manche', () => {
   assert.ok(app.includes("lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';"));
-  assert.ok(app.includes("const why=x.r.closed&&!jeuFermeeAuChrono(x.r,J.rounds.indexOf(x.r))?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';"), '8 novembre, 17 h 31 : fermée à son heure par le serveur, c’est le chrono');
+  assert.ok(app.includes("const ab=!ok&&x.r.closed&&!jeuFermeeAuChrono(x.r,k),why=ab?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';"), '8 novembre, 17 h 31 : fermée à son heure par le serveur, c’est le chrono');
   assert.ok(!app.includes("const why=x.r.closed?(J.solo?'Abandonnée'"), 'plus « Close par l’hôte » pour l’hôte seul');
 });

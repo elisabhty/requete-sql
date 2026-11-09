@@ -207,5 +207,5 @@ test('la salle classée (l’identité d’abord, multiplayer-security.js) : ses
   assert.equal(ok.starts.length, 1);
   assert.deepEqual(JSON.parse(JSON.stringify(ok.starts[0])), ['NENEKE', false, null, { nomId: 'jeu-nom', parCode: true, verif: true, secure: true }], 'la recherche continue dans la feuille');
   assert.equal(ok.button.disabled, true, 'le bouton attend toujours, « On cherche ta salle… »');
-  assert.ok(app.includes('<script src="multiplayer-security.js?v=8"></script>'));
+  assert.ok(app.includes('<script src="multiplayer-security.js?v=9"></script>'));
 });

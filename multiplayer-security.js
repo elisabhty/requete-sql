@@ -87,11 +87,19 @@
       game.pendingVerification = null;
       round.tries = (round.tries || 0) + 1;
       if (result.ok) {
+        // Ta requête et son résultat, pour l’encart vert et la correction (9 novembre, 10 h 37) : acceptée par le serveur, elle tourne
+        // aussi ici, sur la base du défi.
+        round.sql = sql;
+        try {
+          const defi = CHALLENGES.find(x => x.id === round.cid), base = defiSandbox(defi);
+          try { round.mine = `<div class="ex-code">${highlight(sql)}</div>${renderTable(execChallengeResult(base, sql))}`; } finally { base.close(); }
+        } catch (e) {}
         // The success is rendered only when read back from the trusted server history.
         game.t.sync?.();
       } else {
         // « Pas tout à fait. Réessaie ! » dans la carte des indices (Elisa, 9 novembre, 7 h 37, 7 h 51 puis 8 h 04) : l’erreur SQL comme
         // dans la boîte « Erreur SQL », son message et son aide, ou « Le résultat ne correspond pas à la consigne. » ; rien sous l’éditeur.
+        round.essai = sql;   // « Ton dernier essai » dans la correction (10 h 37)
         const brut = result.error || 'Le résultat ne correspond pas à la consigne.';
         const defi = typeof CHALLENGES !== 'undefined' ? CHALLENGES.find(x => x.id === round.cid) : null;
         const msg = typeof defiErreurSalle === 'function' ? defiErreurSalle(defi, sql, brut) : esc(brut);

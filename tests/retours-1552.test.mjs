@@ -38,7 +38,8 @@ test('réf. 2 et 3 — « En attente d’un joueur », des boutons secondaires e
   assert.ok(net.includes('<div class="jeu-net ${cls}" role="status"><span class="jeu-net-ico" aria-hidden="true">${ico}</span><span class="jeu-net-tx"><b>${titre}</b><small>${texte}</small></span></div>'));
   assert.ok(!app.includes('📡 Connexion perdue'), 'plus de bandeau à émoji');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("jeuBtn2('level','Changer de niveau','openJeu()')") && r.includes("jeuBtn2('quit','Quitter la salle','goBack()')"));
+  /* 9 novembre, 10 h 37 : la fin d’une partie seule dit « Retour aux défis » (jeuFinBoutonsHTML), plus « Changer de niveau » */
+  assert.ok(cut('function jeuFinBoutonsHTML(', '\n}\n').includes("(J.solo?jeuBtn2('retour','Retour aux défis','openJeu()'):jeuBtn2('quit','Quitter la salle','goBack()'))") && r.includes("jeuBtn2('quit','Quitter la salle','goBack()')"));
   assert.ok(!/class="jeu-close" onclick="[^"]+">[A-Z]/.test(r), 'chaque bouton du bas a son pictogramme');
   const ctx = vm.createContext({});
   vm.runInContext(cut('const JEU_ICO={', '\nfunction jeuRedraw(){'), ctx);
