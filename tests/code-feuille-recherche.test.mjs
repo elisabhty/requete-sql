@@ -107,7 +107,7 @@ test('la recherche dans la feuille : « On cherche ta salle… », la coche, ou 
   assert.equal(inp.value, 'NENEKE');
   assert.deepEqual(buzz, ['success', 'error']);
   /* Complète, commencée, sans réseau : le message seul, le champ n’est pas en faute */
-  for (const [e, texte] of [['complete', '<b>Salle complète&nbsp;!</b><small>Elle accueille déjà 6 joueurs, le maximum.</small>'], ['commencee', '<b>Trop tard, la partie a commencé&nbsp;!</b><small>On rejoint une salle avant que l’hôte lance la partie.</small>'], ['reseau', '<b>Connexion impossible</b><small>Vérifie ta connexion internet, puis réessaie.</small>'], ['horsligne', '<b>Pas de connexion internet</b><small>Connecte-toi, puis réessaie.</small>']]) {
+  for (const [e, texte] of [['complete', '<b>Salle complète&nbsp;!</b><small>Elle accueille déjà 6 joueurs, le maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.</small>'], ['commencee', '<b>Trop tard, la partie a commencé&nbsp;!</b><small>On rejoint une salle avant que l’hôte lance la partie.</small>'], ['reseau', '<b>Connexion impossible</b><small>Vérifie ta connexion internet, puis réessaie.</small>'], ['horsligne', '<b>Pas de connexion internet</b><small>Connecte-toi, puis réessaie.</small>']]) {
     ctx.dxCodeEtat(e, 'NENEKE');   // même juste après « introuvable » : le champ n’est plus rouge
     assert.ok(msg.innerHTML.endsWith(`<span class="dx-alerte-t">${texte}</span></span></span>`), e);
     assert.ok(!inp.classList.contains('is-ko'), e);

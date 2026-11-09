@@ -27276,7 +27276,9 @@ function dxCodePret(inp){
   if(typeof JEU!=='undefined'&&JEU&&JEU.verif){if(inp.value!==JEU.code)inp.value=JEU.code;return;}   // on cherche : le code ne bouge pas
   const c=jeuCleanCode(inp.value),pret=c.length===6;
   const b=document.getElementById('jeu-code-go');
-  if(b){b.disabled=!pret;const t=b.querySelector('span');if(t&&t.textContent!=='Rejoindre la salle')t.textContent='Rejoindre la salle';}
+  /* 19 h 30 (Elisa) : un code commencé, le bouton grisé dit ce qu’il manque : « Encore 3 caractères ». */
+  const reste=6-c.length,lib=c.length&&reste>0?`Encore ${reste} caractère${reste>1?'s':''}`:'Rejoindre la salle';
+  if(b){b.disabled=!pret;const t=b.querySelector('span');if(t&&t.textContent!==lib)t.textContent=lib;}
   if(pret&&!inp.classList.contains('is-pret')&&typeof buzz==='function')buzz('light');
   inp.classList.toggle('is-pret',pret);inp.classList.remove('is-ko');
   dxCodeMsgPlier(document.querySelector('#dx-feuille .jeu-msg'));
@@ -27288,7 +27290,7 @@ function dxCodePret(inp){
    autocollant « ! » corail, ce qui se passe en gras, puis quoi faire ; elle se déplie en douceur, la carte grandit vers le haut et le
    bouton ne bouge pas. Un code qui ne mène nulle part : le champ rougit et tremble. */
 const DX_CODE_MSG={introuvable:['Salle introuvable&nbsp;!','Ce code ne correspond à aucune salle. Vérifie-le et réessaie.'],
-  complete:['Salle complète&nbsp;!','Elle accueille déjà 6 joueurs, le maximum.'],   // JEU_MAX (défini plus bas, lu ici trop tôt)
+  complete:['Salle complète&nbsp;!','Elle accueille déjà 6 joueurs, le maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.'],   // le même texte que l’écran « full » (19 h 30)   // JEU_MAX (défini plus bas, lu ici trop tôt)
   commencee:['Trop tard, la partie a commencé&nbsp;!','On rejoint une salle avant que l’hôte lance la partie.'],
   reseau:['Connexion impossible','Vérifie ta connexion internet, puis réessaie.'],horsligne:['Pas de connexion internet','Connecte-toi, puis réessaie.'],
   pseudo:['Pseudo non réservé','Ton pseudo n’a pas pu être réservé. Réessaie dans un instant.'],
@@ -36498,11 +36500,12 @@ function jeuRender(){
     /* 14 h 09 (Elisa : « pour les invités non prêts lorsque la partie démarre : 🐱 Oups, la partie a déjà démarré ! ») */
     /* 14 h 22 : « Pas de panique, d’autres salles t’attendent. », et « Retour aux défis » avec sa flèche qui avance (plus « tu joueras la
        prochaine partie ») ; on reste sur cet écran jusqu’au bouton. */
-    html=etat('chat:pied','Oups, la partie a déjà démarré !',`Tu n’étais pas ${jeuPretMot(true)} au lancement. Pas de panique, d’autres salles t’attendent.`,`<button type="button" class="room-go jeu-retour" onclick="openJeu()"><span>Retour aux défis</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button><p class="jeu-oups-auto">Retour automatique dans <b id="jeu-oups-n">${Math.max(1,Math.ceil((JEU_OUPS_MS-(Date.now()-(J.oupsAt||Date.now())))/1000))}</b> s</p>`,'is-lost');
+    html=etat('chat:pied','Oups, la partie a déjà démarré !',`Tu n’étais pas ${jeuPretMot(true)} au lancement. Pas de panique, d’autres salles t’attendent.`,`<button type="button" class="room-go jeu-retour" onclick="openJeu()"><span>Retour aux défis</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button><p class="jeu-oups-auto">Retour automatique dans <b id="jeu-oups-n">${Math.max(1,Math.ceil((JEU_OUPS_MS-(Date.now()-(J.oupsAt||Date.now())))/1000))}</b> s</p>`,'is-lost',true);   // 19 h 30 : sans le code de la salle (on ne peut plus y entrer)
   }else if(v==='tard'){
     html=etat('user','La partie a déjà commencé','On rejoint une salle tant que l’hôte n’a pas lancé la partie. Ouvre la tienne, ou attends la prochaine partie de cette salle.',retour,'is-lost');
   }else if(v==='full'){
-    html=etat('user','La salle est complète',`Une salle accueille ${J.max} joueurs au maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`,retour,'is-lost');
+    /* 19 h 30 : le même texte que la feuille du code (DX_CODE_MSG.complete) */
+    html=etat('user','Salle complète&nbsp;!',`Elle accueille déjà ${J.max} joueurs, le maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.`,retour,'is-lost');
   }else if(v==='lobby'&&J.solo){
     /* Elisa, 3 novembre, 6 h 08 : « pour les défis, il y a une page qui s’affiche avant d’être entré dans la salle, pour solo ». Une
        partie seul classée attend l’accord du serveur avant le tirage ; on montrait alors la salle d’attente entre amis (code, « Invite
@@ -47433,7 +47436,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-nouveauvenu-v2763';
+  const SW_CACHE='requete-2026-11-09-encore-v2764';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
