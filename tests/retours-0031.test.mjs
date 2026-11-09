@@ -299,7 +299,8 @@ test('seul dans la salle : la tête de « Joue seul », pas de « Réagir », «
   vm.runInContext(fn('jeuReagirLa') + 'function jeuSoloLike(n){return seul;}', r);
   assert.equal(vm.runInContext('jeuReagirLa()', r), false, 'seul : pas de « Réagir »');
   vm.runInContext('seul=false', r); assert.equal(vm.runInContext('jeuReagirLa()', r), true, 'à plusieurs : « Réagir »');
-  vm.runInContext("JEU.view='res0'", r); assert.equal(vm.runInContext('jeuReagirLa()', r), false, 'hors de la manche : non');
+  vm.runInContext("JEU.view='res0'", r); assert.equal(vm.runInContext('jeuReagirLa()', r), true, 'aux résultats aussi (15 h 24)');
+  vm.runInContext("JEU.view='lobby'", r); assert.equal(vm.runInContext('jeuReagirLa()', r), false, 'salle d’attente : non');
   /* Quelqu’un arrive ou part pendant la manche : elle se redessine (salle-defis.test.mjs le joue) */
   assert.ok(app.includes('    if(jeuSoloLike(n)!==J.slShown){J.keep=v;J.view=\'\';jeuPaint();return;}'));
 });

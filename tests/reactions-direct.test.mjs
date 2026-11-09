@@ -121,11 +121,15 @@ test('« Réagir » : un bouton posé en bas à droite de l’écran, pendant la
   assert.ok(h.includes('<span>Réagir</span>') && h.includes('class="jeu-reagir-x"'), 'le sourire et « Réagir » ; la croix, cachée tant que c’est fermé');
   assert.equal((h.match(/onclick="jeuReact\('/g) || []).length, 4, 'les quatre réactions');
   assert.ok(h.includes('<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions"><button type="button" style="--i:0" onclick="jeuReact(\'👏\',this)" aria-label="Réagir 👏">👏</button>'));
-  assert.ok(app.includes("  const J=JEU,m=J&&/^play(\\d+)$/.exec(String(J.view||''));\n  return !!(m&&!J.solo&&!(typeof jeuSoloLike==='function'&&jeuSoloLike(+m[1])));"), 'pendant la manche, dans une salle où l’on n’est pas seul (9 novembre, 7 h 16)');
+  assert.ok(app.includes("  const J=JEU,v=String(J&&J.view||''),m=/^(?:play|res)(\\d+)$/.exec(v);") && app.includes("return !!(m&&!(typeof jeuSoloLike==='function'&&jeuSoloLike(+m[1])));"), 'pendant la manche et à ses résultats, dans une salle où l’on n’est pas seul (9 novembre, 7 h 16 ; 15 h 24)');
   assert.equal(m.ev('jeuReagirLa()'), true, 'pendant la manche, à plusieurs');
   assert.equal(monde({ live: ['a'] }).ev('jeuReagirLa()'), true, 'seule dans la salle aussi (19 h 12)');
   assert.equal(monde({ solo: true }).ev('jeuReagirLa()'), false, 'pas en partie seule (« Joue seul »)');
-  for (const v of ['lobby', 'draw0', 'res0', 'final']) assert.equal(monde({ view: v }).ev('jeuReagirLa()'), false, v);
+  for (const v of ['lobby', 'draw0']) assert.equal(monde({ view: v }).ev('jeuReagirLa()'), false, v);
+  /* 15 h 24 (Elisa : « laisse le Réagir jusqu’au bilan, résultat ») : aux résultats de la manche et sur le podium aussi */
+  assert.equal(monde({ view: 'res0' }).ev('jeuReagirLa()'), true, 'résultats de la manche');
+  assert.equal(monde({ view: 'final' }).ev('JEU.seulFin=false;jeuReagirLa()'), true, 'podium');
+  assert.equal(monde({ view: 'final' }).ev('JEU.seulFin=true;jeuReagirLa()'), false, 'bilan seul : non');
   /* Il suit la salle : à chaque dessin, à chaque tour d’horloge ; on part, il part */
   assert.ok(cut('function jeuRender(){', '\n  J.drawT.forEach(clearTimeout)').includes('jeuReagirMaj();'));
   assert.ok(cut('function jeuTick(){', '\n}\n').includes('jeuReagirMaj();'));
@@ -156,7 +160,8 @@ test('« Réagir » posé, salué une fois, effacé pendant qu’on écrit, reti
   pastille.hidden = true; m.ev('jeuReagirMaj()'); assert.ok(!f.classList.contains('is-haut'), 'cachée : il redescend');
   assert.ok(app.includes("const maj=e=>{if(!card.isConnected||!coachEnJeu()){bye();return;}b.hidden=(e?!!e.isIntersecting:true)&&coachPeekVu(cible);coachPeekCaler(b);coachPeekReagir(!b.hidden);};"), 'tout de suite, quand elle se montre ou se cache');
   assert.ok(cut('function coachPeek(card,hint){', '\n}\n').includes('b.remove();coachPeekReagir(false);};'), 'partie : il redescend');
-  m.J.view = 'res0'; m.ev('jeuReagirMaj()'); assert.equal(m.fab(), null, 'hors de la manche : retiré');
+  m.J.view = 'res0'; m.ev('jeuReagirMaj()'); assert.ok(m.fab(), '15 h 24 : aux résultats de la manche, il reste');
+  m.J.view = 'lobby'; m.ev('jeuReagirMaj()'); assert.equal(m.fab(), null, 'salle d’attente : retiré');
   m.J.view = 'play1'; m.ev('jeuReagirMaj()'); assert.ok(m.fab() && !m.fab().classList.contains('is-neuf'), 'une fois par partie');
   const s = monde({ solo: true }); s.ev('jeuReagirMaj()'); assert.equal(s.fab(), null, 'partie seule : jamais');
 });
