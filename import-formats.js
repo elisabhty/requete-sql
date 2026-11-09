@@ -168,7 +168,11 @@
     String(inner).replace(/<rPh\b[\s\S]*?<\/rPh>/g, '').replace(/<t\b[^>]*>([\s\S]*?)<\/t>/g, (m, t) => { s += unent(t); return m; });
     return s;
   };
-  async function readXlsx(z) {
+  /* La lecture suit son avancée (9 novembre, 23 h 05 : un classeur de 8 Mo restait plusieurs secondes sans rien dire) :
+     suivre(0..1) au fil des feuilles, pesées par leur taille, et des lignes de chacune, avec une pause pour que l’écran se repeigne. */
+  const maintenant = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+  const souffle = () => new Promise(ok => setTimeout(ok, 0));
+  async function readXlsx(z, suivre) {
     const wb = await z.text('xl/workbook.xml');
     if (!wb) throw new Error('classeur Excel illisible');
     const d1904 = /<workbookPr\b[^>]*\bdate1904="(?:1|true)"/.test(wb);
@@ -181,16 +185,26 @@
     const xfs = [], cellXfs = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/.exec(styles);
     if (cellXfs) cellXfs[1].replace(/<xf\b[^>]*>/g, t => { const id = +(attrs(t).numFmtId || 0); xfs.push(BUILTIN_DATES.has(id) || isDateFormat(fmts[id])); return t; });
     const sheets = [];
+    const cibles = [];
     for (const t of wb.match(/<sheet\b[^>]*>/g) || []) {
       const a = attrs(t);
       if (a.state === 'hidden' || a.state === 'veryHidden') continue;
       let target = rels[a['r:id']] || '';
       target = target.startsWith('/') ? target.slice(1) : 'xl/' + target.replace(/^\.\//, '');
+      cibles.push({a, target, poids: ((z.files.get(target) || {}).size || 1)});
+    }
+    const total = cibles.reduce((n, c) => n + c.poids, 0) || 1;
+    let fait = 0, t0 = maintenant();
+    if (suivre) suivre(0);
+    for (const {a, target, poids} of cibles) {
       const xml = await z.text(target);
-      if (!xml) continue;
+      if (!xml) { fait += poids; continue; }
       const rows = [];
       let auto = 0;
-      xml.replace(/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g, (m, ra, inner) => {
+      const reRow = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g;
+      let mr;
+      while ((mr = reRow.exec(xml))) {
+        const ra = mr[1], inner = mr[2];
         const r = +(attrs(ra).r || 0) - 1, ri = r >= 0 ? r : auto;
         auto = ri + 1;
         const row = [];
@@ -211,8 +225,10 @@
           return mc;
         });
         if (row.length) rows[ri] = row;
-        return m;
-      });
+        if (suivre && maintenant() - t0 > 90) { suivre((fait + poids * reRow.lastIndex / xml.length) / total); await souffle(); t0 = maintenant(); }
+      }
+      fait += poids;
+      if (suivre) suivre(fait / total);
       /* Les cellules fusionnées (5 novembre) : la valeur de la première vaut pour toutes (une région sur quatre lignes). */
       xml.replace(/<mergeCell\b[^>]*\bref="([A-Z]+)(\d+):([A-Z]+)(\d+)"/g, (mm, c0, r0, c1, r1) => {
         fusionner(rows, +r0 - 1, colIndex(c0 + '1'), +r1 - 1, colIndex(c1 + '1'));
@@ -411,12 +427,12 @@
     return sheets;
   }
 
-  async function readWorkbook(bytes, name) {
+  async function readWorkbook(bytes, name, suivre) {
     const kind = sniff(bytes, name);
     if (kind === 'cfb') return {sheets: readXls(bytes), format: 'xls'};
     if (kind !== 'zip') throw new Error('ce fichier n’est pas un classeur');
     const z = await unzip(bytes);
-    if (z.files.has('xl/workbook.xml')) return {sheets: await readXlsx(z), format: 'xlsx'};
+    if (z.files.has('xl/workbook.xml')) return {sheets: await readXlsx(z, suivre), format: 'xlsx'};
     if (z.files.has('content.xml')) return {sheets: await readOds(z), format: 'ods'};
     if ([...z.files.keys()].some(n => /^Index\//.test(n))) throw new Error('un fichier Numbers s’exporte d’abord : Fichier › Exporter vers › Excel, puis importe le fichier .xlsx');
     throw new Error('archive sans classeur reconnu');

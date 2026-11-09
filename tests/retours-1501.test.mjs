@@ -184,7 +184,7 @@ test('« Créer la table » : tout rejoint le projet ouvert sans le remplacer ; 
   /* 9 novembre, 21 h 57 : un classeur vers un projet qui a déjà des tables : « Ajouter au projet » ou « Tout remplacer » ; les tables du
      même nom : identiques, laissées ; différentes, « Mettre à jour » ou « Garder les miennes » */
   assert.ok(c.includes('let aj=importAjoutCible();') && c.includes('const asDb=isDatabaseImport(p)&&!aj;\n  const chosen=aj||document.getElementById(\'imp-db\').value;'), 'un classeur ajouté ne remplace pas le projet');
-  assert.ok(c.includes('const bilan=importComparer(customDbs[aj],p);') && c.includes("if(r==='trois'){m.forEach(n=>pendingImport.saute.add(n.toLowerCase()));"));
+  assert.ok(c.includes('const bilan=await importBilan(aj,p);') && c.includes("if(r==='trois'){m.forEach(n=>pendingImport.saute.add(n.toLowerCase()));"));
   assert.ok(c.includes("const remplace=p.format==='sqlite'&&!aj;") && c.includes("database.run('SAVEPOINT rq_import');point=true;\n      importOccupe(true,.2);await importSouffle();\n      copierTablesSqlite(p.bytes,database,pendingImport.saute);"));
   assert.ok(c.includes('[pendingImport.importedTable,p.primaryTable,...(p.tableNames||[]),...ajoutees].filter(Boolean)'), 'leur copie de départ');
   assert.ok(c.includes('if(s0&&fichier)s0.fichier=String(fichier).slice(0,120);'), 'le nom du fichier, pour la carte');
@@ -260,4 +260,20 @@ test('import : le bouton compte de 0 à 100 %, un nouveau projet dit « Ajoutée
   vm.runInContext(fn('importRetourHtml'), ctx);
   const h = ctx.importRetourHtml(null, ['Clients', 'Ventes'], null, true, null);
   assert.ok(h.includes('<b>Projet créé</b><p>Ajoutées au projet&nbsp;: <code>Clients</code>, <code>Ventes</code>.</p>'), h);
+});
+
+/* 9 novembre, 23 h 05 (Elisa, son classeur de 8 Mo réimporté : « 1 différente ») : une cellule d’espaces devient vide des deux côtés */
+test('import : même valeur à l’écriture et à la comparaison, bilan calculé une fois, lecture en %', () => {
+  const c = vm.createContext({});
+  vm.runInContext(fn('importValeurSql'), c);
+  assert.equal(c.importValeurSql('   ', 'TEXT'), null);
+  assert.equal(c.importValeurSql(' 12 ', 'INTEGER'), 12);
+  assert.equal(c.importValeurSql('12.50', 'REAL'), 12.5);
+  assert.ok(app.includes('st.run(t.cols.map((_,i)=>importValeurSql(r[i],t.types[i])));'));
+  assert.ok(app.includes('lui=t?{cols:t.cols,rows:t.types?t.rows.map(r=>t.cols.map((_,i)=>importValeurSql(r[i],t.types[i]))):t.rows}:null;'));
+  assert.ok(app.includes('bilan=await importBilan(ch0,p);') && app.includes('const bilan=await importBilan(aj,p);') && app.includes("go.textContent='Comparaison avec le projet…';"));
+  assert.ok(app.includes("const lourd=(file.size||0)>400e3;") && app.includes('const book=await F.readWorkbook(bytes,name,suivre?f=>suivre(f*.85):undefined);'));
+  assert.ok(lire('import-formats.js').includes('if (suivre && maintenant() - t0 > 90) { suivre((fait + poids * reRow.lastIndex / xml.length) / total); await souffle(); t0 = maintenant(); }'));
+  assert.ok(lq.includes('.imp-lecture-barre i{display:block;height:100%;width:0;'));
+  assert.ok(app.includes("titre:un?'Mettre à jour cette table ?'") && app.includes("titre:'Remplacer cette table ?'"), 'titres courts, le nom dans le texte');
 });
