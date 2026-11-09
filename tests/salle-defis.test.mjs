@@ -1845,14 +1845,28 @@ test('9 novembre, 17 h 59 : « 1 ligne · 1 ms » dans le bloc de la requête, s
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   assert.ok(app.includes("const pied=`<span class=\"jeu-sql-pied\">${typeof edPiedHTML==='function'?edPiedHTML(userRes,ms):''}</span>`;"), 'le pied dans le bloc sombre');
-  assert.ok(css.includes('html.lq .jeu-done-sql .result-meta>span:not(.table-swipe-hint){display:none!important}') && css.includes('html.lq .jeu-done-sql .result-meta:not(:has(.table-swipe-hint.is-on)){display:none}'), 'plus de pastille au-dessus du tableau');
+  assert.ok(css.includes('html.lq .jeu-done-sql .result-meta{display:none!important}'), 'plus de pastille au-dessus du tableau');
 });
 
 test('9 novembre, 18 h 09 : « N lignes · ms » en pied de chaque éditeur (défi, salle, console, Teste) ; pâlit quand on retouche', () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
-  for (const s of ["edPied('ed-console',res,ms);", "edPied('ed-console',null);", "edPied('ed-lesson',userRes,ms);", "edPied('ed-lesson',write?null:userRes,ms);", "edPied(ta,follow?null:res,ms);", "edPied(ta,null);"]) assert.ok(app.includes("typeof edPied==='function'&&" + s), s);
+  for (const s of ["edPied('ed-console',res,ms);", "edPied('ed-console',null);", "edPied('ed-lesson',userRes,ms);", "edPied('ed-lesson',write?null:userRes,ms);", "edPied(ta,follow?null:res,ms);", "edPied(ta,'err');"]) assert.ok(app.includes("typeof edPied==='function'&&" + s), s);
   assert.ok(app.includes("const pied=`<span class=\"jeu-sql-pied\">${typeof edPiedHTML==='function'?edPiedHTML(userRes,ms):''}</span>`;"), 'la carte de la salle prend le même pied');
   assert.ok(app.includes("if(p)p.classList.add('is-perime');") && css.includes('html.lq .ed-pied.is-perime{opacity:.4}'), 'retouchée : le pied pâlit');
-  assert.ok(css.includes('html.lq #lesson-out>.result-meta>span:not(.table-swipe-hint)'), 'plus de pastille sous l’éditeur');
+  assert.ok(css.includes('html.lq #lesson-out>.result-meta,html.lq .xf-result>.result-meta{display:none!important}'), 'plus de pastille sous l’éditeur');
+});
+
+test('9 novembre, 18 h 21 : le pied dit aussi les colonnes, « ✕ Erreur » en rouge ; la console : « ✓ Exécutée » sur le bouton, plus de « Encore 4 colonnes »', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  assert.ok(app.includes("if(res==='err')return `<span class=\"jsp-n is-ko\"><i aria-hidden=\"true\">✕</i>${label||'Erreur'}</span>`;"), 'l’erreur dans le pied');
+  assert.ok(app.includes("if(cols)bits.push(`<span class=\"jsp-c\">${cols} colonne${cols>1?'s':''}</span>`);"), 'les colonnes');
+  assert.ok(app.includes("fb=[true,'Exécutée'];") && app.includes("edPied('ed-console','err',null,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur');"), 'la console');
+  assert.ok(css.includes('html.lq #console-out .result-live>.result-meta>span{display:none!important}'), 'au-dessus du tableau de la console : « Résultat » seul');
+});
+
+test('9 novembre, 18 h 21 : dans la console, « Tables disponibles » parle de la base de la console, même après un défi', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(app.includes('const dId=o&&o.console?null:defiBaseId(defiActif());let tabs;') && app.includes('errBox(e.message,sql,{console:1})'));
 });

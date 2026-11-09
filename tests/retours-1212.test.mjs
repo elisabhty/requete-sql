@@ -214,7 +214,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=278">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=39">') && sw.includes("'./onboarding-vitrine.css?v=39',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=279">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=39">') && sw.includes("'./onboarding-vitrine.css?v=39',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-09-piedpartout-v2761' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-09-piedcolonnes-v2762' && app.includes(`const SW_CACHE='${cache}';`));
 });

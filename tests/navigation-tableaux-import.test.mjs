@@ -80,7 +80,7 @@ test('réf 6 — les pages légales ouvrent celles du site', () => {
 
 test('réf 7 — Exécuter répond, puis l’écran va au résultat', () => {
   const run = fn('runConsole');
-  assert.ok(run.includes("fb=[true,n==null?'Exécutée':plur(n,'ligne')];") && run.includes("fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];"));
+  assert.ok(run.includes("fb=[true,'Exécutée'];") && run.includes("fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];"));
   assert.ok(run.includes('if(fb)runFeedback(btn,fb[0],fb[1]); requestAnimationFrame(()=>{if(!surEditeur)return descendreApresValide(out,btn);'), 'depuis le 5 novembre, 17 h 35 : le validé se voit d’abord');
   /* « Voir les données » (5 novembre, 15 h 01) : la page est déjà descendue à l’éditeur ; elle n’en repart pas */
   assert.ok(run.includes('ecranVers(document.querySelector(\'#scr-console .console-editor-shell\'));') && fn('voirDonneesTable').includes('runConsole({surEditeur:true,direct:true});'));
