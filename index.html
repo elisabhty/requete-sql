@@ -6636,7 +6636,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <link rel="stylesheet" href="home-journey.css?v=1132">
 <link rel="stylesheet" href="design-premium.css?v=1237">
 <script src="design-premium.js?v=1403" defer></script>
-<script src="import-formats.js?v=3" defer></script>
+<script src="import-formats.js?v=4" defer></script>
 <!-- Curseur de la vitrine et de l’appli (sur ordinateur seulement) : flèche et main en autocollant, halo qui suit (Elisa, 30 octobre, 22 h 58) -->
 <script src="assets/curseur.js?v=60b94b87" defer></script>
 <script>
@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=292">
+<link rel="stylesheet" href="ludique.css?v=293">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -22420,6 +22420,26 @@ function ligneEnTete(rows){
   return cand.length?cand[0]:0;
 }
 /* Un fichier, quel qu’il soit : une base SQLite, un classeur (Excel .xlsx/.xls, OpenDocument .ods ; une feuille = une table), ou du texte. */
+/* 9 novembre, 23 h 05 (Elisa, son classeur de 8 Mo : « ça bug quand il est un peu lourd ») : rien ne s’affichait pendant la lecture
+   (5 s sur un ordinateur, davantage sur un téléphone). Une carte « Lecture du fichier » apparaît tout de suite et compte jusqu’à 100 %. */
+let importLectureSuivre=null;
+function importLecture(nom,taille){
+  importLectureFin();
+  const el=document.createElement('div');
+  el.id='imp-lecture';el.className='imp-lecture';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  const mo=taille>=1e6?`${(taille/1e6).toFixed(1).replace('.',',')}\u00a0Mo`:`${Math.max(1,Math.round(taille/1e3))}\u00a0Ko`;
+  el.innerHTML=`<div class="imp-lecture-carte"><b>Lecture du fichier</b><small>${esc(nom)} · ${mo}</small><div class="imp-lecture-barre"><i></i></div><span class="imp-lecture-pc">0\u00a0%</span></div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('on'));
+  return el;
+}
+function importLecturePc(f){
+  const el=document.getElementById('imp-lecture');if(!el)return;
+  const pc=Math.max(0,Math.min(100,Math.round(f*100)));
+  const i=el.querySelector('.imp-lecture-barre i'),t=el.querySelector('.imp-lecture-pc');
+  if(i)i.style.width=pc+'%';if(t)t.textContent=`${pc}\u00a0%`;
+}
+function importLectureFin(){const el=document.getElementById('imp-lecture');if(el)el.remove();}
 async function parseImportBytes(name,bytes){
   const F=window.ImportFormats;
   const kind=F?F.sniff(bytes,name):'text';
@@ -22433,8 +22453,10 @@ async function parseImportBytes(name,bytes){
       hint:`${plur(tabs.length,'table')} · base SQLite`,preview:tabs.map((t,i)=>`${t} (${counts[i]})`).join(' · ')};
   }
   if(kind==='zip'||kind==='cfb'){
-    const book=await F.readWorkbook(bytes,name);
+    const suivre=importLectureSuivre;
+    const book=await F.readWorkbook(bytes,name,suivre?f=>suivre(f*.85):undefined);
     const used=new Set();
+    if(suivre){suivre(.88);await new Promise(ok=>setTimeout(ok,0));}
     const tables=book.sheets.map(sh=>{
       const rows=sh.rows.filter(r=>r&&r.some(c=>c!=null&&String(c).trim()!==''));
       if(rows.length<1)return null;
@@ -22511,10 +22533,14 @@ async function onDataImport(ev){
   ev.target.value='';
   if(!file)return;
   try{
+    const lourd=(file.size||0)>400e3;
+    if(lourd){importLecture(file.name,file.size);importLectureSuivre=importLecturePc;await new Promise(ok=>requestAnimationFrame(()=>setTimeout(ok,0)));}
     const bytes=new Uint8Array(await file.arrayBuffer());
     const pasTableau=importPasUnTableau(file.name,bytes);
     if(pasTableau)throw new Error(pasTableau);
     const parsed=await parseImportBytes(file.name,bytes);
+    importLectureSuivre=null;
+    if(lourd){importLecturePc(1);await new Promise(ok=>setTimeout(ok,180));importLectureFin();}
     pendingImport={
       file:file.name,
       parsed,
@@ -22524,6 +22550,7 @@ async function onDataImport(ev){
     };
     openImportSheet();
   }catch(e){
+    importLectureSuivre=null;importLectureFin();
     const msg=importErreurLisible(e);
     lqAsk({ico:'📄',titre:'Import impossible',texte:msg,oui:'Choisir un autre fichier',non:'Fermer',
       surOui:()=>{importAjout=ajout?Date.now():0;document.getElementById('data-import').click();}});
@@ -22567,7 +22594,7 @@ function importComparer(db,p){
       if(!ici){out.nouvelles.push(n);continue;}
       let lui;
       if(src){try{const r=src.exec('SELECT * FROM '+quoteIdent(n));lui=r[0]?{cols:r[0].columns,rows:r[0].values}:{cols:src.exec('PRAGMA table_info('+quoteIdent(n)+')')[0].values.map(x=>x[1]),rows:[]};}catch(e){lui=null;}}
-      else{const t=(p.tables||[]).find(x=>safeIdent(x.name).toLowerCase()===n.toLowerCase());lui=t?{cols:t.cols,rows:t.rows}:null;}
+      else{const t=(p.tables||[]).find(x=>safeIdent(x.name).toLowerCase()===n.toLowerCase());lui=t?{cols:t.cols,rows:t.types?t.rows.map(r=>t.cols.map((_,i)=>importValeurSql(r[i],t.types[i]))):t.rows}:null;}
       const moi=lignesDb(ici);
       const pareil=!!(lui&&moi)&&lui.cols.length===moi.cols.length&&lui.cols.every((c,i)=>String(c).toLowerCase()===String(moi.cols[i]).toLowerCase())
         &&lui.rows.length===moi.rows.length&&lui.rows.every((r,i)=>r.length===moi.rows[i].length&&r.every((v,j)=>val(v)===val(moi.rows[i][j])));
@@ -22575,6 +22602,17 @@ function importComparer(db,p){
     }
   }finally{if(src)try{src.close();}catch(e){}}
   return out;
+}
+/* Le bilan d’un fichier face à un projet, calculé une fois (une seconde pour 117 000 lignes : il l’était deux fois), le bouton
+   disant ce qui se passe pendant ce temps (9 novembre, 23 h 05). */
+async function importBilan(id,p){
+  pendingImport.bilans=pendingImport.bilans||{};
+  if(pendingImport.bilans[id])return pendingImport.bilans[id];
+  const go=document.getElementById('imp-go'),lib=go&&go.textContent;
+  if(go){go.disabled=true;go.classList.add('is-verif');go.textContent='Comparaison avec le projet…';}
+  await importSouffle();
+  try{return pendingImport.bilans[id]=importComparer(customDbs[id],p);}
+  finally{if(go){go.disabled=false;go.classList.remove('is-verif');go.textContent=lib;}}
 }
 function importBilanPhrase(b){
   /* 9 novembre, 22 h 13 (« mal formulé, sois pro ») : « 1 nouvelle, 1 identique et 1 différente » */
@@ -22723,18 +22761,21 @@ async function createImportedTables(database,tables,suivre){
     const st=database.prepare('INSERT INTO '+quoteIdent(tname)+' VALUES ('+t.cols.map(()=>'?').join(',')+')');
     try{
       for(const r of t.rows){
-        st.run(t.cols.map((_,i)=>{
-          const v=r[i];
-          if(v==null||String(v).trim()==='') return null;
-          if(t.types[i]==='INTEGER'){const n=parseInt(String(v).trim(),10);return Number.isFinite(n)?n:null;}
-          if(t.types[i]==='REAL'){const n=parseFloat(String(v).trim());return Number.isFinite(n)?n:null;}
-          return String(v);
-        }));
+        st.run(t.cols.map((_,i)=>importValeurSql(r[i],t.types[i])));
         fait++;
         if(suivre&&now()-pause>100){suivre(fait/total);await new Promise(ok=>setTimeout(ok,0));pause=now();}
       }
     }finally{st.free();}
   }
+}
+/* La valeur d’une cellule telle qu’elle entre dans la table : la comparaison avec un projet (« identique ? ») passe par la même
+   (9 novembre, 23 h 05 : une cellule de trois espaces devenait vide dans la table, mais pas dans la comparaison, et le même fichier
+   réimporté avait « 1 table différente »). */
+function importValeurSql(v,type){
+  if(v==null||String(v).trim()==='') return null;
+  if(type==='INTEGER'){const n=parseInt(String(v).trim(),10);return Number.isFinite(n)?n:null;}
+  if(type==='REAL'){const n=parseFloat(String(v).trim());return Number.isFinite(n)?n:null;}
+  return String(v);
 }
 /* Les tables d’une base SQLite ajoutées à un projet (« Ajouter une table », 15 h 01) : leur CREATE, leurs lignes, leurs index. */
 function copierTablesSqlite(bytes,dest,saute){
@@ -22832,10 +22873,10 @@ async function confirmImport(){
      du fichier qui y sont déjà à l’identique sont laissées, les nouvelles arrivent), ou « Tout remplacer » comme avant. */
   {const ch0=document.getElementById('imp-db')&&document.getElementById('imp-db').value;
     if(!aj&&isDatabaseImport(p)&&ch0&&ch0!=='__new__'&&customDbs[ch0]&&!isDemoDb(ch0)&&listTables(customDbs[ch0]).length){
-      const nom=(dbCatalog.find(d=>d.id===ch0)||{}).name||ch0,bilan=importComparer(customDbs[ch0],p);
+      const nom=(dbCatalog.find(d=>d.id===ch0)||{}).name||ch0,bilan=await importBilan(ch0,p);
       /* Tout est déjà là, à l’identique : rien à demander */
       if(bilan.total&&bilan.identiques.length===bilan.total){lqInfo('Projet déjà à jour',`${importBilanTexte(bilan)} Aucune modification n’a été apportée.`);return;}
-      const r=await lqAsk({ico:'🗂️',titre:'Ce projet contient déjà des tables',texte:`« ${nom} » contient déjà ${plur(listTables(customDbs[ch0]).length,'table')}. ${importBilanTexte(bilan)} Tu peux ${bilan.nouvelles.length===bilan.total?'les ajouter au projet':bilan.nouvelles.length?'compléter le projet':'mettre à jour le projet'} ou remplacer tout son contenu.`,
+      const r=await lqAsk({ico:'🗂️',titre:'Ce projet contient déjà des tables',texte:`«\u00a0${nom}\u00a0» contient déjà ${plur(listTables(customDbs[ch0]).length,'table')}. ${importBilanTexte(bilan)} Tu peux ${bilan.nouvelles.length===bilan.total?'les ajouter au projet':bilan.nouvelles.length?'compléter le projet':'mettre à jour le projet'} ou remplacer tout son contenu.`,
         oui:bilan.nouvelles.length?'Ajouter au projet':'Mettre à jour le projet',trois:'Remplacer le contenu',troisDanger:true,non:null});
       if(!r)return;
       if(r===true){aj=ch0;pendingImport.ajout=ch0;}
@@ -22855,12 +22896,12 @@ async function confirmImport(){
     const tn=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
     const deja=listTables(customDbs[chosen]).find(t=>t.toLowerCase()===String(tn).toLowerCase());
     /* La même table, au même contenu (22 h 22) : rien à remplacer */
-    if(deja&&importComparer(customDbs[chosen],{format:'json-db',tables:[{name:deja,cols:p.cols||[],rows:p.rows||[]}]}).identiques.length){
+    if(deja&&importComparer(customDbs[chosen],{format:'json-db',tables:[{name:deja,cols:p.cols||[],types:p.types,rows:p.rows||[]}]}).identiques.length){
       lqInfo('Projet déjà à jour',`La table « ${deja} » du fichier est identique à celle du projet. Aucune modification n’a été apportée.`);
       return;
     }
     if(deja)tableMaj=deja;
-    if(deja && !await lqAsk({ico:'🗂️',titre:`Remplacer la table « ${deja} » ?`,texte:`Cette table existe déjà dans le projet avec un contenu différent. ${(k=>k===1?'Sa ligne actuelle sera remplacée':k?`Ses ${k} lignes actuelles seront remplacées`:'Elle sera remplacée')(+tableRowCount(customDbs[chosen],deja)||0)} par le contenu du fichier. Pour conserver les deux, choisis un autre nom de table.`,oui:'Remplacer',non:'Annuler'})){
+    if(deja && !await lqAsk({ico:'🗂️',titre:'Remplacer cette table ?',texte:`La table ${importListe([deja])} existe déjà dans le projet avec un contenu différent. ${(k=>k===1?'Sa ligne actuelle sera remplacée':k?`Ses ${k} lignes actuelles seront remplacées`:'Elle sera remplacée')(+tableRowCount(customDbs[chosen],deja)||0)} par le contenu du fichier. Pour conserver les deux, choisis un autre nom de table.`,oui:'Remplacer',non:'Annuler'})){
       return;
     }
   }
@@ -22870,13 +22911,13 @@ async function confirmImport(){
   pendingImport.saute=new Set();pendingImport.identiques=[];pendingImport.gardees=[];pendingImport.majs=tableMaj?[tableMaj]:[];
   pendingImport.remplace=!!(asDb&&chosen!=='__new__'&&customDbs[chosen]&&listTables(customDbs[chosen]).length);
   if(ajoutees.length){
-    const bilan=importComparer(customDbs[aj],p);
+    const bilan=await importBilan(aj,p);
     bilan.identiques.forEach(n=>pendingImport.saute.add(n.toLowerCase()));pendingImport.identiques=bilan.identiques;
     if(bilan.modifiees.length){
       const m=bilan.modifiees,un=m.length===1;
       const nv=bilan.nouvelles.length;
-      const r=await lqAsk({ico:'🗂️',titre:un?`Mettre à jour la table « ${m[0]} » ?`:`Mettre à jour ${m.length} tables ?`,
-        texte:`${un?'Cette table existe':`Les tables ${importListe(m)} existent`} déjà dans le projet avec un contenu différent. La mise à jour remplace ${un?'sa':'leur'} version actuelle par celle du fichier.${nv?` Dans les deux cas, ${nv>1?`les ${nv} nouvelles tables sont ajoutées`:'la nouvelle table est ajoutée'}.`:''}`,
+      const r=await lqAsk({ico:'🗂️',titre:un?'Mettre à jour cette table ?':`Mettre à jour ${m.length} tables ?`,
+        texte:`${un?`La table ${importListe(m)} existe`:`Les tables ${importListe(m)} existent`} déjà dans le projet avec un contenu différent. La mise à jour remplace ${un?'sa':'leur'} version actuelle par celle du fichier.${nv?` Dans les deux cas, ${nv>1?`les ${nv} nouvelles tables sont ajoutées`:'la nouvelle table est ajoutée'}.`:''}`,
         oui:un?'Mettre à jour':'Les mettre à jour',trois:un?'Conserver la version actuelle':'Conserver les versions actuelles',non:null});
       if(!r)return;
       if(r===true)pendingImport.majs=m.slice();
@@ -47660,7 +47701,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-importpct-v2784';
+  const SW_CACHE='requete-2026-11-09-lecture-v2785';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

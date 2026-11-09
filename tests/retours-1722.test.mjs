@@ -22,7 +22,7 @@ vm.runInContext(cut('function quoteIdent(name){', '\n') + '\n' + cut('function t
   + fn('safeIdent') + cut('function guessFkTarget(col,tables){', 'function courseTableNames(){')
   + cut('const UML_TEINTES=', 'let schCtx=null;')
   + cut('/* ---------- Import CSV / JSON / SQL ---------- */', '/* Un fichier, quel qu’il soit :') + fn('importRetourHtml')
-  + 'async ' + fn('createImportedTables')
+  + fn('importValeurSql') + 'async ' + fn('createImportedTables')
   + ';Object.assign(this,{parseImportFile,parseJsonImport,jsonTableInfos,JSON_INFOS_NOTE,importRetourHtml,createImportedTables});', ctx);
 const pur = x => JSON.parse(JSON.stringify(x));
 const FICHIER = { title: 'Requête — Entretiens Data Analyst', version: '1.0.0', language: 'fr-FR',
