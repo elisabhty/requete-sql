@@ -28,7 +28,7 @@ test('la phrase sous le titre s’arrête avant le chat (la marge de la leçon e
 });
 
 test('« retente-le » ne se coupe pas au trait d’union à côté du chat ; 9 novembre, 10 h 01 : la phrase s’en va (« l’essentiel ») ; 10 h 37 : le titre dit l’issue', () => {
-  assert.ok(!app.includes('retente-le${nT>1') && app.includes("const titre=un?(all?(trophee?'Défi résolu\\u00a0!':'Défi résolu ! 🏆'):'On retente\\u00a0?'):all?(trophee?'Tout résolu\\u00a0!':'Tout résolu ! 🏆'):nOk?'Bien joué\\u00a0!':'On retente\\u00a0?';"));
+  assert.ok(!app.includes('retente-le${nT>1') && app.includes("const titre=all?(trophee?'Carton plein\\u00a0!':'Carton plein ! 🏆'):nOk?'Bien joué\\u00a0!':'Pas encore cette fois\\u00a0!';"));
   assert.ok(lq.includes('html.lq #jeu-root .jeu-nw{white-space:nowrap}'));
   const debut = lq.indexOf('Défis — la refonte du 7 novembre');
   assert.ok(debut > 0 && lq.indexOf('html.lq #jeu-root .jeu-nw{') < debut, 'avec les règles du jeu, avant le bloc des Défis');

@@ -114,7 +114,7 @@ test('« Comment sont calculés les points ? » ouvre le barème du niveau chois
 test('une manche manquée : l’écran de fin dit les points et le temps, « — » sans défi résolu ; plus de carte « 0 point obtenu » qui le redisait', () => {
   /* 9 novembre, 10 h 37 (la relecture) : le bandeau, toujours ; 11 h 31 : une partie d’une seule manche repasse par l’écran de fin,
      deux cases (les points, ton temps) ; la carte « Temps écoulé · 0 point obtenu · Non validée » de 0 h 31 s’en va */
-  assert.ok(!app.includes('lastMiss') && app.includes('html=trophee+head(\'Fin de la partie\',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+') && app.includes("        `${bande}\n"));
+  assert.ok(!app.includes('lastMiss') && app.includes('html=trophee+head(`Fin de la partie · ${JEU_NIVL[J.niv]}`,titre,sous)+progres+') && app.includes("        `${bande}\n"));
   assert.ok(app.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}${un?' is-2':''}\">"), 'le bandeau, toujours le même ; deux cases pour une manche');
   assert.ok(app.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;"), 'le temps, « — » sans défi résolu');
   assert.ok(fn('jeuMissHTML').includes('<div><b>0</b><small>Point obtenu</small></div><div><b>Non validée</b><small>Ta réponse</small></div>'), 'la carte dit déjà 0 point');
