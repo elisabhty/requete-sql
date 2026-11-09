@@ -192,7 +192,7 @@ test('chaque classe des défis a son style : l’onglet Joueurs avait perdu ses 
 test('la salle ouverte se dit visible par les autres joueurs, partout où l’on nommait « Salles ouvertes »', () => {
   assert.ok(!app.includes('«\\u00a0Salles ouvertes\\u00a0»') && !app.includes('«&nbsp;Salles ouvertes&nbsp;»'));
   assert.ok(app.includes("function jeuVisTexte(){return jeuVis==='priv'?'Seuls les joueurs à qui tu donnes le code peuvent rejoindre ta salle.':'Tous les joueurs peuvent voir et rejoindre ta salle. Tu peux aussi partager son code.';}"), '8 novembre, 9 h 42 : « Qui peut rejoindre ? »');
-  assert.ok(app.includes("p=J.pub?'Les autres joueurs la voient et peuvent entrer. Ou joue en solo.'"));
+  assert.ok(app.includes("if(host&&live.length<2)return '';"), '20 h 12 : seul dans sa salle, plus de carte sous les joueurs');
   assert.ok(lire('decouvrir/confidentialite.html').includes('apparaît dans la liste des salles ouvertes («&nbsp;Rejoins une partie&nbsp;»), avec le pseudo et le drapeau de ses joueurs'));
   assert.ok(lire('IOS.md').includes('dans « Rejoins une partie », la liste des salles ouvertes (`jeu_salles_ouvertes`, `jeu_salle_publier`)'));
 });
@@ -200,5 +200,5 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 test('les versions : la feuille de style et le cache', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=279">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-09-limite-v2767' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-09-epure-v2768' && app.includes(`const SW_CACHE='${cache}';`));
 });

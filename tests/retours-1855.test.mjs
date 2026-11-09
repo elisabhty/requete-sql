@@ -187,7 +187,7 @@ test('une salle créée est publique par défaut ; l’hôte la publie dès que 
   /* La salle d’attente le dit */
   const r = fn('jeuRender', '\nfunction jeuNextRound(){');
   assert.ok(r.includes("host?(J.pub?'Ta salle de défi':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis')"));
-  assert.ok(app.includes("t=J.pub?'Ta salle est ouverte':J.created?'Personne n’a encore rejoint':'Les autres sont partis';"), 'sans nommer « Salles ouvertes » (11 h 37 ; la carte, 13 h 50)');
+  assert.ok(app.includes("if(host&&live.length<2)return '';"), '20 h 12 : seul dans sa salle, plus de carte sous les joueurs');
 });
 
 test('le classement : 5 par page qu’on fait glisser, depuis toujours par défaut, la semaine en vue, sa place toujours là', async () => {
@@ -265,5 +265,5 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=279">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-09-limite-v2767');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-09-epure-v2768');
 });

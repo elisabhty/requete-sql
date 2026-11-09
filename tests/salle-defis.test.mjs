@@ -758,7 +758,7 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   assert.equal(h.view(), 'lobby');
   /* 13 h 41 (Elisa : « oui il peut lancer seul ») : seul dans sa salle, « Lancer la partie » lance, et la partie se joue comme seul */
   assert.equal(h.ev('jeuPeutLancer()'), true, '13 h 41 : « oui il peut lancer seul »');
-  assert.match(h.ev('jeuLobbyEtatHTML()'), /<b>Personne n’a encore rejoint<\/b><small>Partage le code, ou joue en solo\.<\/small>/); assert.equal(h.ev('jeuBadgeHTML()'), '1/6');
+  assert.equal(h.ev('jeuLobbyEtatHTML()'), '', '20 h 12 : plus de carte sous les joueurs'); assert.equal(h.ev('jeuBadgeHTML()'), '1/6');
   assert.equal(h.ev('jeuLobbyLabel()'), 'Jouer en solo', '14 h 09 : seul, le bouton dit « Jouer en solo »');
   h.ev('jeuLancer()'); sec(w, 4.5);
   assert.equal(h.view(), 'play0');

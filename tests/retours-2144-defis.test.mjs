@@ -250,7 +250,7 @@ test('la fiche d’un joueur qui n’est pas dans ta liste : « Défier » seul 
 test('après une partie à plusieurs : « Retrouver mes adversaires » mène à l’onglet Joueurs', () => {
   const r = fn('jeuRender', '\nfunction jeuNextRound(){');
   const fin = r.slice(r.indexOf("head('Salle de défi · Fin de partie'"));
-  assert.ok(fin.includes("${jeuBtn2('amis','Retrouver mes adversaires','jeuVersAdversaires()')}\n        ${jeuNetSlot()}"), 'sous le podium, à plusieurs seulement');
+  assert.ok(!fin.includes('Retrouver mes adversaires'), '20 h 12 (Elisa) : plus sous le podium');
   assert.ok(!r.slice(0, r.indexOf("head('Salle de défi · Fin de partie'")).includes('Retrouver mes adversaires'), 'pas en solo');
   assert.ok(app.includes("  amis:'<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\">"), 'son icône');
   const vers = fn('jeuVersAdversaires');
