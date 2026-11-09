@@ -36,23 +36,18 @@ test('escCode : le texte échappé, les accents graves en <code>', () => {
   assert.equal(ctx.escCode('un ` seul'), 'un ` seul', 'un accent grave isolé reste tel quel');
 });
 
-test('les textes simples passent par escCode : défis, questions d’entretien, « Pas encore » des exercices', () => {
+test('les textes simples passent par escCode : défis, « Pas encore » des exercices', () => {
   const dq = cut('function defiConsigneHTML(c,o){', '\n}');
   /* 8 novembre, 18 h 36 puis 19 h 57 : la situation, toujours par escCode ; l’appel « À toi de jouer ! » dans son cadre gris dessous */
   for (const s of ["${c.situation?`<p class=\"defi-ctx\">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}`:''}", "${l.map(x=>`<li>${escCode(x)}</li>`).join('')}", "`<p class=\"dq-t\">${escCode(tri[0])}</p>`"])
     assert.ok(dq.includes(s), s);
   assert.ok(cut('function defiIndices(c){', '\n}').includes("['La piste',escCode(c.indice||"));
-  const ex = cut('function entExemple(ex){', '\n}');
-  for (const k of ['ex.intro', 'n', 'ex.precision', 'ex.attention']) assert.ok(ex.includes(`\${escCode(${k})}`), k);
-  assert.equal((ex.match(/\$\{esc\(/g) || []).length, 2, 'esc() ne reste que pour les cases du tableau (en-têtes et valeurs)');
-  assert.ok(cut('function entEtoile(et){', '\n}').includes('<figcaption>${escCode(et.legende)}</figcaption>'));
+  /* 10 novembre : les exemples des questions d’entretien sont partis (entretien-generales) */
   assert.ok(app.includes('<b>Pas encore</b><p>${escCode(check.diag)}</p>') && app.includes('<b>Pas encore</b><p>${escCode(concept.diag)}</p>'));
-  assert.ok(lq.includes('html.lq .ent-focus :is(.ent-ex,.ent-star figcaption) code{padding:1px 6px;border-radius:7px;background:var(--accent-soft);color:var(--accent-ink);font:700 .9em/1.4 var(--mono);'), 'la pastille dans les exemples');
 });
 
-test('la capture d’Elisa : « La table abonnes » devient la table `abonnes`', () => {
-  assert.ok(app.includes('ex:{intro:"La table `abonnes` d’un service de vélos en libre-service, avec un e-mail saisi deux fois et deux e-mails manquants :"') || app.includes('ex:{intro:"La table `abonnes` d’un service de vélos en libre-service, avec un e-mail saisi deux fois et deux e-mails manquants :"'));
-  assert.ok(!app.includes('La table abonnes'), 'plus nulle part');
+test('la capture d’Elisa : « La table abonnes » n’apparaît plus nulle part', () => {
+  assert.ok(!app.includes('La table abonnes'));
 });
 
 test('les défis : plus aucun nom sans accent hors code dans la consigne et la piste', () => {
@@ -66,15 +61,12 @@ test('les défis : plus aucun nom sans accent hors code dans la consigne et la p
   assert.ok(app.includes('Les tables `pistes` et `remontees` ont chacune une colonne `nom` et une colonne `etat`'));
 });
 
-test('les questions d’entretien : plus aucun nom sans accent hors code dans les exemples, la légende et les relances', () => {
+test('les questions d’entretien : plus aucun nom sans accent hors code dans les réponses', () => {
+  const a0 = app.indexOf('const ENTRETIEN=['), b0 = app.indexOf('\n];', a0) + 3;
+  const ctx = {}; vm.runInNewContext(app.slice(a0, b0).replace('const ENTRETIEN', 'this.E'), ctx);
   const vus = [];
-  for (const m of app.matchAll(/\b(intro|note|attention|precision|legende|apres):"((?:[^"\\]|\\.)*)"/g)) {
-    const t = m[1] === 'apres' ? m[2] : m[2];
-    for (const w of horsCode(t).matchAll(re)) vus.push(`${m[1]} : ${w[1]} …${t.slice(0, 80)}`);
-  }
+  for (const q of ctx.E) for (const w of horsCode(q.a).matchAll(re)) vus.push(`${q.id} : ${w[1]}`);
   assert.deepEqual(vus, []);
-  assert.ok(app.includes('il faudrait joindre la table <code>recoltes</code> au résultat d’un <code>GROUP BY ruche_id</code>'), 'une relance en HTML : <code>');
-  assert.ok(app.includes('`ROLLUP (annee, mois)` équivaut à `GROUPING SETS ((annee, mois), (annee), ())`'), 'l’expression entière, pas seulement le nom');
 });
 
 test('une leçon et un exercice', () => {
