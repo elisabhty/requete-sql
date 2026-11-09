@@ -1870,3 +1870,9 @@ test('9 novembre, 18 h 21 : dans la console, « Tables disponibles » parle de l
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(app.includes('const dId=o&&o.console?null:defiBaseId(defiActif());let tabs;') && app.includes('errBox(e.message,sql,{console:1})'));
 });
+
+test('9 novembre, 18 h 43 : jeuNextRound garde sa garde (seul l’hôte tire une manche)', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const i = app.indexOf('function jeuNextRound(){');
+  assert.ok(/\n  if\(!J\|\|!jeuIsHost\(\)\)return;/.test(app.slice(i, i + 400)));
+});
