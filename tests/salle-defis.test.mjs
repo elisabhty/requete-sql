@@ -346,16 +346,16 @@ test('manche : les paliers de temps, +25 du premier coup, +50 / +30 / +20 aux pr
     assert.equal(x.pts, x.val + x.essai + x.rang, x.name + ' : le total');
   }
   assert.deepEqual(rk.map(x => x.pts), [275, 230, 195]);
-  for (const x of rk) assert.ok(host.html.includes(`<small>+${x.pts}</small>`), 'les points gagnés dans le classement : ' + x.pts);
+  for (const x of rk) assert.ok(host.html.includes(`<em class="jr2-p">+${x.pts}</em>`), 'les points gagnés dans le classement : ' + x.pts);
   /* Le détail des points sur sa seule ligne (Elisa, 31 octobre, 16 h 29 : « il y a trop de trucs ») : l’hôte est 2e ; ce que
      valait le défi quand il l’a trouvé, puis son bonus de 2e */
-  assert.ok(host.html.includes('class="jeu-pd"><i>Défi 200</i><i class="is-rang">2e +30</i></span>'), 'le détail des points');
-  assert.ok(guests[1].html.includes('class="jeu-pd"><i>Défi 200</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">1er +50</i></span>'), 'du premier coup');
+  assert.ok(host.html.includes('<p class="jr2-pills"><i>Défi 200</i><i class="is-rang">2e +30</i></p>'), 'le détail des points (en pastilles, 15 h 48)');
+  assert.ok(guests[1].html.includes('<p class="jr2-pills"><i>Défi 200</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">1er +50</i></p>'), 'du premier coup');
   assert.doesNotMatch(host.html, /rapidité<\/i>/);
-  assert.equal((host.html.match(/class="jeu-pd"/g) || []).length, 1, 'seulement sur sa propre ligne');
+  assert.equal((host.html.match(/class="jr2-pills"/g) || []).length, 1, 'le détail : une seule fois, le sien, dans le cadre');
   assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
   /* 17 h 31 : « il faut que ça continue seul sans interruption » : le même compte à rebours chez tous, plus de bouton */
-  for (const c of [host, ...guests]) assert.match(c.html, /<p class="jeu-auto" id="jeu-auto"><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/, c.name);
+  for (const c of [host, ...guests]) assert.match(c.html, /<p class="jeu-auto jr2-auto" id="jeu-auto"[^>]*><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/, c.name);
   assert.doesNotMatch(host.html, /id="jeu-go"|<span>Manche suivante<\/span>/);
   assert.equal(host.ev('state.defis[JEU.rounds[0].cid]'), true, 'réussi en salle : compte dans la progression');
 });
@@ -1378,7 +1378,7 @@ test('8 novembre, 9 h 31 : à 0, la manche s’arrête, 0 point pour qui n’a p
   assert.equal(guests[0].view(), 'play0', 'à 9 min 30, l’ami cherche encore');
   sec(w, 28);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' : les résultats de la manche');
-  assert.ok(guests[0].html.includes('Temps écoulé') && guests[0].html.includes('Le chrono est arrivé à 0 avant que tu valides ta réponse.'), 'l’ami : 0 point, « Temps écoulé »');
+  assert.ok(guests[0].html.includes('Temps écoulé') && guests[0].html.includes('Tu pourras retenter ce défi plus tard.') && guests[0].html.includes('<b class="jr2-n" data-n="0">0</b>'), 'l’ami : 0 point, « Temps écoulé » (la carte des résultats, 15 h 48)');
   assert.ok(host.html.includes('La manche suivante démarre dans') && !host.html.includes('la salle est fermée') && !host.html.includes('Revenir aux défis'), 'la suite part toute seule');
   assert.equal(host.J('over'), false, 'la partie continue');
   assert.ok(host.ev('jeuAttenteFin(0)') > 0, 'juste après 0 : le serveur tient encore la manche quelques instants');
@@ -1492,7 +1492,7 @@ test('8 novembre, 10 h 10 : entre amis, à 0, la manche suivante part toute seul
   host.found(); sec(w, 2);
   sec(w, 9.5 * 60); sec(w, 28);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name);
-  for (const c of [host, ...guests]) assert.match(c.html, /<p class="jeu-auto" id="jeu-auto"><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b> s<\/span><\/p>/, c.name + ' : le compte à rebours');
+  for (const c of [host, ...guests]) assert.match(c.html, /<p class="jeu-auto jr2-auto" id="jeu-auto"[^>]*><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b> s<\/span><i class="jr2-barre"/, c.name + ' : le compte à rebours');
   assert.doesNotMatch(host.html, /<span>Manche suivante<\/span>/, '17 h 31 : plus de bouton');
   sec(w, 5);
   for (const c of [host, ...guests]) assert.ok(/^(draw1|play1)$/.test(c.view()), c.name + ' : la manche 2 est partie toute seule');
@@ -1541,7 +1541,7 @@ test('8 novembre, 17 h 31 : trouvée par tout le monde, close ou abandonnée, la
   assert.equal(guests[0].view(), 'res1');
   assert.match(guests[0].html, /Manche close par l’hôte/);
   guests[0].ev('JEU.rounds[1].finVu=Date.now()-6000'); guests[0].ev("JEU.view='';jeuRender()");
-  assert.match(guests[0].html, /<p class="jeu-auto" id="jeu-auto"><span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"><\/i>La manche suivante arrive…<\/span><\/p>/, 'les 5 s passées : la suite arrive');
+  assert.match(guests[0].html, /<p class="jeu-auto jr2-auto" id="jeu-auto"[^>]*><span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"><\/i>La manche suivante arrive…<\/span><\/p>/, 'les 5 s passées : la suite arrive');
   sec(w, 9);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'play2', c.name + ' : la manche 3');
 });
