@@ -1699,3 +1699,21 @@ test('12 h 47 : en temps normal, l’écran de fin arrive avec la fin de l’hô
   assert.equal(host.view(), 'final'); assert.equal(guests[0].view(), 'final'); assert.equal(guests[0].J('over'), true);
   assert.ok(html.includes("if(fin&&n>=J.nb-1&&!jeuIsHost()){const t=jeuFinAuto(n);if(t&&Date.now()>=t+JEU_FIN_MARGE)return'final';}"));
 });
+
+/* 9 novembre, 13 h 09 (Elisa : « si la personne qui est l’hôte et seule part, ça quitte carrément la salle ») */
+test('13 h 09 : l’hôte seul quitte sa salle d’attente (« Veux-tu quitter la salle ? », 13 h 11) ; son code ne mène plus à personne', () => {
+  const w = new World();
+  const h = makeClient(w, 'Hôte'); const asks = []; let partie = 0;
+  h.ctx.lqAsk = q => { asks.push(q.titre + ' ' + q.texte); return { then: f => f(true) }; }; h.ctx.__partie = () => { partie++; h.ev('jeuStop()'); };
+  h.host('SEUL42'); sec(w, 3);
+  assert.equal(h.view(), 'lobby');
+  h.ev('jeuLeaveAsk(()=>__partie())'); sec(w, 2);
+  assert.deepEqual(asks, ['Veux-tu quitter la salle\u00a0? Tu y es seul·e : en partant, tu la fermes.']); assert.equal(partie, 1);
+  const tard = makeClient(w, 'Tard'); tard.join('SEUL42'); sec(w, 60);
+  assert.equal(tard.view(), 'empty', 'la salle est fermée : « Cette salle est vide »');
+  /* resté seul après le départ de l’hôte : pareil */
+  const { w: w2, host, guests } = room({ n: 2 });
+  host.ev('jeuStop()'); sec(w2, 5);
+  assert.ok(guests[0].ev('jeuIsHost()'));
+  assert.match(guests[0].ev('jeuLeaveQuestion().texte'), /en partant, tu la fermes/);
+});

@@ -28908,7 +28908,7 @@ function leaveLessonScreen(toTab,instant){
   stkLeaveLesson();
   /* La page de départ du cours s’en va avec l’écran du cours, quel que soit le chemin du retour (même fondu que sa croix). */
   {const ls=document.getElementById('lesson-start');if(ls&&!ls.classList.contains('is-out')){ls.classList.add('is-out');setTimeout(()=>ls.remove(),prefersReduceMotion()?0:220);}}
-  if(mode==='jeu'){if(typeof jeuMaSalleNoter==='function')jeuMaSalleNoter();jeuStop();}   // « Ta salle » (23 h 44)
+  if(mode==='jeu'){if(typeof jeuMaSalleOublier==='function')jeuMaSalleOublier();jeuStop();}   // l’hôte seul qui part ferme sa salle (9 novembre, 13 h 09)
   if(typeof jeuColleeSuivre==='function')jeuColleeSuivre(null);   // la barre collée du chrono s’en va avec la page
   const tab=toTab||activeTab||'learn';
   activeTab=tab;
@@ -37063,9 +37063,10 @@ function jeuLeaveQuestion(){
   if(/^play/.test(v)&&typeof jeuFige==='function'&&(jeuFige(jeuCur())||(typeof jeuRoundDone==='function'&&jeuSoloLike(jeuCur())&&jeuRoundDone(jeuCur()))))return null;   // seul, la manche trouvée (9 novembre, 8 h 20) ou finie au chrono (10 h 01) : rien à perdre
   if(/^(play|draw)/.test(v))return {ico:'🏁',titre:J.solo?'Quitter la partie ?':'Quitter la salle ?',texte:'Ta manche en cours sera perdue.',oui:'Quitter',non:'Rester',danger:true};
   if(!J.solo&&jeuIsHost()&&v!=='final'&&jeuLive().length>1)return {ico:'👋',titre:'Quitter la salle ?',texte:'Un autre joueur deviendra l’hôte.',oui:'Quitter',non:'Rester'};
-  /* 8 novembre, 23 h 44 (« corrige : À corriger en premier », la relecture des défis) : l’hôte seul dans sa salle d’attente partait
-     sans un mot, et la salle restait ouverte sans lui. On demande ; parti, il la retrouve dans Jouer (« Ta salle », jeuMaSalle). */
-  if(!J.solo&&v==='lobby'&&J.synced&&jeuIsHost()&&!jeuCommencee())return {ico:'👋',titre:'Quitter ta salle ?',texte:J.created?'Personne ne l’a encore rejointe. Tu pourras y revenir depuis Défis.':`Tu y es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}. Tu pourras y revenir depuis Défis.`,oui:'Quitter',non:'Rester'};
+  /* 9 novembre, 13 h 09 (Elisa : « si la personne qui est l’hôte et seule part, ça quitte carrément la salle » ; 13 h 11 : « il y a quand
+     même “veux-tu quitter la salle” ») : plus de « Ta salle » à retrouver dans Défis (8 novembre, 23 h 44) : l’hôte seul qui part ferme
+     sa salle, et la question le dit. Son départ (« bye », jeuStop) la retire des salles ouvertes ; son code ne mène plus à personne. */
+  if(!J.solo&&v==='lobby'&&J.synced&&jeuIsHost()&&!jeuCommencee())return {ico:'👋',titre:'Veux-tu quitter la salle\u00a0?',texte:`Tu y es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'} : en partant, tu la fermes.`,oui:'Quitter',non:'Rester'};
   return null;
 }
 function jeuLeaveOk(){return !jeuLeaveQuestion();}
@@ -47176,7 +47177,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-seul-v2738';
+  const SW_CACHE='requete-2026-11-09-ferme-v2739';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
