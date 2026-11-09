@@ -79,5 +79,5 @@ test('réf. 4 : la Bibliothèque et Pratiquer retrouvent leurs autocollants, com
     assert.ok(lq.includes(k), k);
   /* Les feuilles et le cache rafraîchis */
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=296">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-selecteur-v2791';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-entretien-v2792';"));
 });

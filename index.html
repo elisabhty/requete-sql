@@ -42475,9 +42475,13 @@ function renderEntretien(opts){
   }
   if(!items.length){
     const isDone=entStatus==='review';
-    const emptyTitle=isDone?'Tout est maîtrisé':'Rien ici pour le moment';
-    const emptyCopy=isDone?'Bravo. Tu peux refaire une question pour consolider tes réflexes.':'Valide une réponse après l’avoir comparée pour la retrouver ici.';
-    list.innerHTML=intro+`<div class="ent-empty"><span class="ent-empty-ico">${ENT_OK_SVG}</span><b>${emptyTitle}</b><span>${emptyCopy}</span><button type="button" onclick="${isDone?'startEntretien()':"setEntStatus('review')"}">${isDone?'Revoir une question':'Voir les questions à revoir'}</button></div>`;
+    /* 10 novembre, 0 h 20 (Elisa : « reformule mieux ») : dire ce qui manque, comment le remplir, et la famille choisie */
+    const nRevoir=entAllItems().filter(x=>entInFilter(x.q)&&!entOk(x.id)).length;
+    const deFam=famille?` de «\u00a0${esc(famille)}\u00a0»`:'';
+    const emptyTitle=isDone?(famille?`«\u00a0${esc(famille)}\u00a0» : tout est maîtrisé`:'Tout est maîtrisé'):'Aucune pour l’instant';
+    const emptyCopy=isDone?'Bravo\u00a0! Refais une question de temps en temps pour garder tes réflexes.'
+      :`Réponds à une question${deFam}, compare ta réponse à la réponse attendue, puis touche «\u00a0Je maîtrise\u00a0». Elle se rangera ici.`;
+    list.innerHTML=intro+`<div class="ent-empty"><span class="ent-empty-ico">${ENT_OK_SVG}</span><b>${emptyTitle}</b><span>${emptyCopy}</span><button type="button" onclick="${isDone?'startEntretien()':"setEntStatus('review')"}">${isDone?'Refaire une question':nRevoir>1?`Voir les ${nRevoir} questions à revoir`:'Voir la question à revoir'}</button></div>`;
     return;
   }
   const groups=entGroupItems(items);
@@ -47804,7 +47808,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-selecteur-v2791';
+  const SW_CACHE='requete-2026-11-09-entretien-v2792';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

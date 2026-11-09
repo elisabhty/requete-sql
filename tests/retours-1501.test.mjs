@@ -346,3 +346,10 @@ test('détection et erreurs : SQL en français, script SQL comme une base, texte
   assert.ok(app.includes("if(pi.lignes)return ok(") && app.includes("if(lignesA&&name.toLowerCase()===lignesA.table.toLowerCase())continue;"), 'des lignes ajoutées : comptées, la copie de départ garde le fichier');
   assert.ok(app.includes("go.textContent=p.insertOnly?'Ajouter les lignes':"));
 });
+
+/* 10 novembre, 0 h 20 (Elisa : « reformule mieux ») : l’onglet « Maîtrisées » vide dit comment le remplir */
+test('Entretien SQL, « Maîtrisées » vide : comment y ranger une question, la famille choisie, le nombre à revoir', () => {
+  assert.ok(app.includes("Réponds à une question${deFam}, compare ta réponse à la réponse attendue, puis touche «\\u00a0Je maîtrise\\u00a0». Elle se rangera ici."));
+  assert.ok(app.includes(":'Aucune pour l’instant';") && app.includes("nRevoir>1?`Voir les ${nRevoir} questions à revoir`:'Voir la question à revoir'"));
+  assert.ok(!app.includes('Valide une réponse après l’avoir comparée pour la retrouver ici.'));
+});
