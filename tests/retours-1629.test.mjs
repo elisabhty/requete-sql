@@ -49,7 +49,7 @@ test('trouvé : la carte de l’indice reste à la place de l’éditeur, son en
   /* 10 h 37 : « Voir ma requête et son résultat » ; 11 h 31 : la correction attend l’écran de fin, jamais sur le défi */
   assert.ok(f.includes('${r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:\'\'}') && !f.slice(0, f.indexOf('\n}\n')).includes('jeuCorrBoutonHTML'));
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
-  assert.ok(run.includes('r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;'));
+  assert.ok(run.includes('r.mine=`<div class="ex-code jeu-sql-code">${highlight(sql)}${pied}</div>${renderTable(userRes,ms)}`;'));
   assert.ok(run.includes("if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}"), 'la manche se redessine aussitôt');
   assert.ok(!run.includes('setLessonOut(jeuFoundHTML'), 'plus de carte sous l’éditeur');
   for (const k of ['html.lq .jeu-done{margin:16px 0 0;padding:16px;border:2px solid var(--line);border-radius:24px;background:#fff;box-shadow:0 4px 0 var(--lip);',
