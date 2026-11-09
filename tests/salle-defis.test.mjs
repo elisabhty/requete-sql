@@ -1840,3 +1840,10 @@ test('9 novembre, 18 h : la salle pleine refuse vraiment le 7e (transport local 
   assert.ok(app.includes("if(m.who===J.me){if(m.hu!==J.helloU&&m.hu!==J.resumeU)return;J.full=true;J.view='';}"), 'un refus visant le « hello » de reprise compte aussi');
   assert.ok(/function jeuTropPlein\(\)\{[\s\S]{0,260}l\.slice\(J\.max\)/.test(app) && app.includes('  jeuTropPlein();\n'), 'l’hôte refait le compte à chaque battement');
 });
+
+test('9 novembre, 17 h 59 : « 1 ligne · 1 ms » dans le bloc de la requête, sous « Voir ma requête et son résultat »', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  assert.ok(app.includes('<span class="jeu-sql-pied"><span class="jsp-n">${typeof CHECK_SVG===\'string\'?CHECK_SVG:\'\'}${nl?`${nl} ligne${nl>1?\'s\':\'\'}`:\'Aucune ligne\'}</span>'), 'le pied dans le bloc sombre');
+  assert.ok(css.includes('html.lq .jeu-done-sql .result-meta>span:not(.table-swipe-hint){display:none!important}') && css.includes('html.lq .jeu-done-sql .result-meta:not(:has(.table-swipe-hint.is-on)){display:none}'), 'plus de pastille au-dessus du tableau');
+});

@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=276">
+<link rel="stylesheet" href="ludique.css?v=277">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -37202,7 +37202,11 @@ function jeuRun(){
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
-    r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;r.sql=sql;   // r.sql : « Ta requête » dans la correction (10 h 37)
+    /* « 1 ligne · 1 ms » dans le bloc de la requête, en pied (Elisa, 9 novembre, 17 h 59 : « intégrer les 1 lignes à l’intérieur
+       du moteur ») : au-dessus du tableau, il ne reste que l’invitation à faire glisser. */
+    const nl=userRes&&userRes[0]?userRes[0].values.length:0;
+    const pied=`<span class="jeu-sql-pied"><span class="jsp-n">${typeof CHECK_SVG==='string'?CHECK_SVG:''}${nl?`${nl} ligne${nl>1?'s':''}`:'Aucune ligne'}</span>${ms!=null?`<span class="jsp-ms">${Math.round(ms)} ms</span>`:''}</span>`;
+    r.mine=`<div class="ex-code jeu-sql-code">${highlight(sql)}${pied}</div>${renderTable(userRes,ms)}`;r.sql=sql;   // r.sql : « Ta requête » dans la correction (10 h 37)
     jeuCredit(c.id);
     jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});
     if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}
@@ -47384,7 +47388,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-complete-v2759';
+  const SW_CACHE='requete-2026-11-09-piedsql-v2760';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
