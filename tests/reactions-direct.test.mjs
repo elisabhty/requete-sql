@@ -121,7 +121,7 @@ test('« Réagir » : un bouton posé en bas à droite de l’écran, pendant la
   assert.ok(h.includes('<span>Réagir</span>') && h.includes('class="jeu-reagir-x"'), 'le sourire et « Réagir » ; la croix, cachée tant que c’est fermé');
   assert.equal((h.match(/onclick="jeuReact\('/g) || []).length, 4, 'les quatre réactions');
   assert.ok(h.includes('<span class="jeu-reagir-l" id="jeu-reagir-l" role="group" aria-label="Réactions"><button type="button" style="--i:0" onclick="jeuReact(\'👏\',this)" aria-label="Réagir 👏">👏</button>'));
-  assert.ok(app.includes("function jeuReagirLa(){const J=JEU;return !!(J&&!J.solo&&/^play\\d/.test(String(J.view||'')));}"));
+  assert.ok(app.includes("  const J=JEU,m=J&&/^play(\\d+)$/.exec(String(J.view||''));\n  return !!(m&&!J.solo&&!(typeof jeuSoloLike==='function'&&jeuSoloLike(+m[1])));"), 'pendant la manche, dans une salle où l’on n’est pas seul (9 novembre, 7 h 16)');
   assert.equal(m.ev('jeuReagirLa()'), true, 'pendant la manche, à plusieurs');
   assert.equal(monde({ live: ['a'] }).ev('jeuReagirLa()'), true, 'seule dans la salle aussi (19 h 12)');
   assert.equal(monde({ solo: true }).ev('jeuReagirLa()'), false, 'pas en partie seule (« Joue seul »)');

@@ -24,7 +24,7 @@ test('la tête du cadre : à gauche la manche et le niveau ; à droite un seul c
   assert.ok(!play.includes('jeu-hud-base') && play.includes('${defiConsigneHTML(c,{base:true,titre:true})}'), 'la base à côté de « La situation »');
   /* 21 h 51 (« mettre le titre dans le cadre blanc avant la situation ») : le bandeau en tête, puis le cadre blanc et son titre */
   assert.ok(play.indexOf('<div id="jeu-netslot">') < play.indexOf('jeuDirectHTML(n,hud)') && play.indexOf('jeuDirectHTML(n,hud)') < play.indexOf('defiConsigneHTML(c,{base:true,titre:true})') && !play.includes('<h1>'), 'le cadre de la manche, puis la question');
-  assert.ok(play.includes('${J.solo?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}'), 'seul : la tête seulement');
+  assert.ok(play.includes('${sl?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}'), 'seul (Joue seul, ou seul dans la salle depuis le 9 novembre, 7 h 16) : la tête seulement');
   const d = cut('function jeuDirectHTML(n,hud){', '\n}\n');
   assert.ok(d.includes('id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||\'\'}`+'), 'en tête du bandeau, avant « En direct »');
   /* Le chrono et la valeur gardent leurs identifiants : chaque seconde les tient à jour */

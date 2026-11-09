@@ -632,13 +632,12 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   h.ev('jeuNextRound()'); sec(w, 4.5);
   assert.equal(h.view(), 'play0');
   assert.equal(h.J('rounds[0].one'), true, 'la manche commence seule');
-  /* 8 novembre, 17 h 08 (« pourquoi j’ai pas le truc du haut avec les présents et toi ») : « En direct » reste en haut, même seul */
-  assert.match(h.html, /<section class="jeu-direct" id="jeu-direct"/);
-  const d0 = h.ev('jeuDirectHTML(0)');
-  assert.equal((d0.match(/<b class="jeu-av/g) || []).length, 1, 'un avatar : toi'); assert.match(d0, /<span class="jeu-sr" id="jeu-direct-qui">Toi\u00a0: en réflexion, 0\u00a0point<\/span>/);
-  assert.equal(h.ev('JEU.dit.cur.html'), 'C’est parti\u00a0! Qui ouvrira le score\u00a0?', 'seul aussi, la phrase de toujours (18 h 14)');
+  /* 9 novembre, 7 h 16 (« quand il y a personne dans la salle, ça se transforme en solo automatiquement ») : seul, la tête de
+     « Joue seul », sans « En direct » ni commentateur (avant, 8 novembre, 17 h 08 : « En direct » restait, même seul) */
+  assert.match(h.html, /<section class="jeu-direct is-seul" aria-label="Manche 1 sur 2"><div class="jeu-direct-bande"><div class="jeu-hud">/);
+  assert.doesNotMatch(h.html, /id="jeu-direct"|jeu-direct-dit|Qui ouvrira le score/);
   assert.doesNotMatch(h.html, /jeu-reacts|jeu-mini|seul·e dans la salle/, 'rien d’autre des écrans à plusieurs (réactions, « Clore la manche pour tous »)');
-  assert.equal(h.ev('jeuReagirLa()'), true, 'seule dans la salle, « Réagir » est là aussi, en bas à droite (19 h 12 : « visible même seule »)');
+  assert.equal(h.ev('jeuReagirLa()'), false, 'seul dans la salle, pas de « Réagir », comme en « Joue seul » (9 novembre, 7 h 16 ; avant, 19 h 12 : « visible même seule »)');
   h.found(); sec(w, 1);
   assert.ok(!h.toasts.some(t => /tête|course|affilée|minute|Remontée/.test(t)), 'seul : le commentateur se tait');
   assert.equal(h.view(), 'res0', 'seul : les résultats tout de suite');

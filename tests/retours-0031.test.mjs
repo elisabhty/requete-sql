@@ -242,3 +242,30 @@ test('l’invité attend : « En attente que l’hôte lance la partie… » (so
   assert.ok(app.includes('<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente que l’hôte lance la partie…</p>'));
   assert.ok(!app.includes('En attente ${jeuQue(hostName)} lance la partie…'));
 });
+
+/* ---------- 13. « Essaie encore » (9 novembre, 7 h 13) : voir le test 7 ---------- */
+
+/* ---------- 14. Seul dans la salle : la partie se joue comme en solo (9 novembre, 7 h 16) ---------- */
+
+/* Sa capture d’une salle où elle est seule (« En direct », « C’est parti ! Qui ouvrira le score ? », « Réagir ») : « quand il y a
+   personne dans la salle, ça se transforme en solo automatiquement ». */
+test('seul dans la salle : la tête de « Joue seul », pas de « Réagir », « Défi » en titre', () => {
+  const play = cut("    /* 9 novembre, 7 h 16 (Elisa, sa capture d’une salle où elle est seule", "      ${defiConsigneHTML(c,{base:true,titre:true})}");
+  assert.ok(play.includes('    jeuTitreNav(sl);\n') && play.includes('${sl?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}'));
+  /* Le titre */
+  const titres = [];
+  const ctx = vm.createContext({ JEU: { solo: false }, document: { getElementById: id => (id === 'nav-title' ? { set textContent(v) { titres.push(v); } } : null) } });
+  vm.runInContext(fn('jeuTitreNav'), ctx);
+  vm.runInContext('jeuTitreNav(true);jeuTitreNav(false);JEU.solo=true;jeuTitreNav(false)', ctx);
+  assert.deepEqual(titres, ['Défi', 'Salle de défi', 'Défi']);
+  for (const k of ['last=n>=J.nb-1,sl=jeuSoloLike(n);\n    jeuTitreNav(sl);', "  }else if(v==='lobby'){\n    jeuTitreNav(false);", '    const seul=J.solo||sc.every(x=>x.pid===J.me);\n    jeuTitreNav(seul);', '  jeuTitreNav(false);'])
+    assert.ok(app.includes(k), k);   // les résultats, la salle d’attente, le bilan, l’entrée dans la salle
+  /* « Réagir » */
+  const r = vm.createContext({ JEU: { solo: false, view: 'play0' }, seul: true });
+  vm.runInContext(fn('jeuReagirLa') + 'function jeuSoloLike(n){return seul;}', r);
+  assert.equal(vm.runInContext('jeuReagirLa()', r), false, 'seul : pas de « Réagir »');
+  vm.runInContext('seul=false', r); assert.equal(vm.runInContext('jeuReagirLa()', r), true, 'à plusieurs : « Réagir »');
+  vm.runInContext("JEU.view='res0'", r); assert.equal(vm.runInContext('jeuReagirLa()', r), false, 'hors de la manche : non');
+  /* Quelqu’un arrive ou part pendant la manche : elle se redessine (salle-defis.test.mjs le joue) */
+  assert.ok(app.includes('    if(jeuSoloLike(n)!==J.slShown){J.keep=v;J.view=\'\';jeuPaint();return;}'));
+});
