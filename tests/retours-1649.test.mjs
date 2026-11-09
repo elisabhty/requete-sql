@@ -322,7 +322,7 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   /* Le premier essai manqué : le « +25 » s’envole */
   const run = fn('jeuRun');
   assert.ok(run.includes('r.tries=(r.tries||0)+1;') && run.includes("jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});"), 'chaque exécution est un essai ; le premier juste est annoncé à tous');
-  assert.ok(run.includes("}catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}"), 'une erreur compte comme un essai, et se lit dans la carte, comme dans la boîte « Erreur SQL » (9 novembre, 8 h 04) (14 h 33 : les indices arrivent à la même minute pour tous)');
+  assert.ok(run.includes("}catch(e){typeof edPied==='function'&&edPied('ed-lesson',null);setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}"), 'une erreur compte comme un essai, et se lit dans la carte, comme dans la boîte « Erreur SQL » (9 novembre, 8 h 04) (14 h 33 : les indices arrivent à la même minute pour tous)');
   const els = {}, ctx = vm.createContext({ prefersReduceMotion: () => false, setTimeout: f => { ctx.later = f; } });
   const b = { classList: { list: [], add(c) { this.list.push(c); } }, remove() { b.gone = true; } };
   ctx.document = { getElementById: id => (id === 'jeu-val-b' ? b : els[id] || null) };

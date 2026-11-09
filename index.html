@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=277">
+<link rel="stylesheet" href="ludique.css?v=278">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -21467,6 +21467,7 @@ function openConsoleProject(id){
   consoleQuerySearch='';
   const out=document.getElementById('console-out');
   if(out){ out.innerHTML=''; out.style.minHeight=''; }
+  typeof edPied==='function'&&edPied('ed-console',null);   // le pied de l’éditeur parlait de l’autre projet
   if(activeTab!=='console') switchTab('console');
   else renderConsoleScreen();
   const scr=document.getElementById('scr-console');
@@ -23341,6 +23342,7 @@ function runConsole(o){
       const{res,ms}=execQuery(sql,database);
       const n=(res&&res[0])?res[0].values.length:null;
       fb=[true,n==null?'Exécutée':plur(n,'ligne')];
+      typeof edPied==='function'&&edPied('ed-console',res,ms);
       paint(`<div class="console-out-ready result-live">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms)}</div>`);
       recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
       const moved=touched();
@@ -23357,6 +23359,7 @@ function runConsole(o){
       }
     }catch(e){
       fb=[false,verrou&&/readonly|query_only/i.test(e.message)?'Lecture seule':'Erreur'];
+      typeof edPied==='function'&&edPied('ed-console',null);
       paint(`<div class="console-out-ready result-live">${verrou&&/readonly|query_only/i.test(e.message)?consoleLockBox():errBox(e.message,sql)}</div>`);
       recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
       if(touched()){ if(activeDbId!=='cours') persistCustomDbs(activeDbId); renderDbWorkspace(); renderConsoleChips(); }
@@ -33928,6 +33931,7 @@ function runExemple(btn){
       /* 'on' est posé dans la même image que le tableau : sinon les lignes s’affichent
          une image en entier, disparaissent puis réapparaissent (flash blanc). */
       host.classList.remove('on','flash');
+      typeof edPied==='function'&&edPied(ta,follow?null:res,ms);
       host.innerHTML=renderTable(res,ms);
       /* Une structure créée, modifiée ou supprimée dans un cours l'est sur une copie jetable : le schéma du cours ne change pas. */
       if((follow||testeNeedsSandbox(runSql))&&/(^|;)\s*(CREATE|ALTER|DROP)\b/i.test(runSql)&&!/\bEXPLAIN\b/i.test(runSql))host.insertAdjacentHTML('beforeend','<p class="xf-copy-note">🧪 Exécuté sur une copie : la base du cours n’est pas modifiée.</p>');
@@ -33939,6 +33943,7 @@ function runExemple(btn){
         buzz('light');
       });
     }catch(e){
+      typeof edPied==='function'&&edPied(ta,null);
       host.classList.remove('on','flash');
       host.innerHTML=errBox(e.message);
       host.hidden=false;
@@ -37198,14 +37203,13 @@ function jeuRun(){
   try{
     const dU=defiSandbox(c);const t0=performance.now();try{userRes=execChallengeResult(dU,sql);ms=performance.now()-t0;}finally{dU.close();}
     const dS=defiSandbox(c);try{solRes=execChallengeResult(dS,c.sol);}finally{dS.close();}
-  }catch(e){setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}   // l’erreur SQL comme dans la boîte « Erreur SQL », dans la carte (9 novembre, 8 h 04)
+  }catch(e){typeof edPied==='function'&&edPied('ed-lesson',null);setLessonOut('');jeuEssaiRate(r);coachRoomTick();coachKo(typeof defiErreurSql==='function'?defiErreurSql(e.message,sql):esc(e.message));return;}   // l’erreur SQL comme dans la boîte « Erreur SQL », dans la carte (9 novembre, 8 h 04)
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
     /* « 1 ligne · 1 ms » dans le bloc de la requête, en pied (Elisa, 9 novembre, 17 h 59 : « intégrer les 1 lignes à l’intérieur
        du moteur ») : au-dessus du tableau, il ne reste que l’invitation à faire glisser. */
-    const nl=userRes&&userRes[0]?userRes[0].values.length:0;
-    const pied=`<span class="jeu-sql-pied"><span class="jsp-n">${typeof CHECK_SVG==='string'?CHECK_SVG:''}${nl?`${nl} ligne${nl>1?'s':''}`:'Aucune ligne'}</span>${ms!=null?`<span class="jsp-ms">${Math.round(ms)} ms</span>`:''}</span>`;
+    const pied=`<span class="jeu-sql-pied">${typeof edPiedHTML==='function'?edPiedHTML(userRes,ms):''}</span>`;
     r.mine=`<div class="ex-code jeu-sql-code">${highlight(sql)}${pied}</div>${renderTable(userRes,ms)}`;r.sql=sql;   // r.sql : « Ta requête » dans la correction (10 h 37)
     jeuCredit(c.id);
     jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});
@@ -37217,6 +37221,7 @@ function jeuRun(){
   }
   const diag=typeof defiDiag==='function'?defiDiag(userRes,solRes,c,sql):exoFailDiag(sql,c.sol,userRes,solRes,exerciseRequiresOrder(c,true));
   const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
+  typeof edPied==='function'&&edPied('ed-lesson',userRes,ms);
   setLessonOut(table);   // le résultat obtenu sous l’éditeur ; dans la carte, « Pas tout à fait. Réessaie ! », sans indice (9 novembre, 7 h 55)
   jeuEssaiRate(r);
   coachRoomTick();
@@ -37514,6 +37519,32 @@ function loadExample(){
   ta.value=current.exemple; syncHL('ed-lesson','hl-lesson');
   fitSqlEditor(ta); ta.focus();
 }
+/* « 4 lignes · 1 ms » en pied de l’éditeur, dans le bloc sombre (Elisa, 9 novembre, 18 h 09 : « le mettre partout », après le bloc
+   de la requête trouvée en salle) : comme la barre d’état d’un éditeur SQL. On retouche la requête : le pied pâlit (ce n’est plus le
+   résultat de ce qui est écrit). Une erreur, un autre projet : il s’en va. Sous l’éditeur, au-dessus du tableau, il ne reste que
+   « Glisse ». */
+function edPiedHTML(res,ms){
+  const vals=res&&res[0]?res[0].values.length:-1;
+  const n=vals<0?'Exécutée':vals?`${vals} ligne${vals>1?'s':''}`:'Aucune ligne';
+  return `<span class="jsp-n">${typeof CHECK_SVG==='string'?CHECK_SVG:''}${n}</span>${ms!=null?`<span class="jsp-ms">${Math.round(ms)} ms</span>`:''}`;
+}
+function edPied(ed,res,ms){
+  const ta=typeof ed==='string'?document.getElementById(ed):ed;if(!ta)return;
+  const area=ta.closest('.editor-area'),shell=ta.closest('.editor-shell');if(!area)return;
+  const nx=area.nextElementSibling;
+  let p=shell?shell.querySelector(':scope>.ed-pied'):(nx&&nx.classList.contains('ed-pied')?nx:null);
+  if(res===null){if(p)p.remove();return;}
+  if(!p){p=document.createElement('div');p.className='ed-pied jeu-sql-pied'+(shell?'':' is-detache');p.setAttribute('aria-hidden','true');if(shell)shell.appendChild(p);else area.after(p);}
+  p.innerHTML=edPiedHTML(res,ms);
+  p.classList.remove('is-perime','is-new');void p.offsetWidth;p.classList.add('is-new');
+}
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('input',e=>{
+  const t=e.target;if(!t||t.tagName!=='TEXTAREA'||!t.closest)return;
+  const area=t.closest('.editor-area');if(!area)return;
+  const shell=t.closest('.editor-shell'),nx=area.nextElementSibling;
+  const p=shell?shell.querySelector(':scope>.ed-pied'):(nx&&nx.classList.contains('ed-pied')?nx:null);
+  if(p)p.classList.add('is-perime');
+},true);
 function setLessonOut(html){
   const out=document.getElementById('lesson-out');
   if(!out)return;
@@ -37715,6 +37746,7 @@ function runLesson(){
       const dS=isDefi?defiSandbox(current):sandbox(); try{solRes=isDefi?execChallengeResult(dS,sol):dS.exec(sol);}finally{dS.close();}
     }
   }catch(e){
+    typeof edPied==='function'&&edPied('ed-lesson',null);
     /* Un défi : dans la carte des indices, « Pas tout à fait. Réessaie ! » et l’erreur SQL comme dans la boîte « Erreur SQL », son
        message et son aide ; rien sous l’éditeur (9 novembre, 7 h 37 puis 8 h 04) */
     if(isDefi&&(!COACH||COACH.c!==current)&&document.getElementById('hint-slot'))coachReset(current,'solo');   // 12 h 28 : jamais sous l’éditeur, même sans carte (après une réussite)
@@ -37722,6 +37754,7 @@ function runLesson(){
     else setLessonOut(errBox(e.message,sql));
     registerExoFail(sql); return; }
   const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,alt=>{const d=defiSandbox(current);try{return execChallengeResult(d,alt);}finally{d.close();}}):exerciseResultsMatch(userRes,solRes,current,isDefi);
+  typeof edPied==='function'&&edPied('ed-lesson',write?null:userRes,ms);
   if(ok){
     const table=renderTable(userRes,ms);
     let head;
@@ -47388,7 +47421,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-piedsql-v2760';
+  const SW_CACHE='requete-2026-11-09-piedpartout-v2761';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
