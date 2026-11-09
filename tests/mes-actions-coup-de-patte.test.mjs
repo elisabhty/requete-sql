@@ -17,11 +17,11 @@ test('sa propre ligne suit ce qu’on fait : écrire, tester (sans rien envoyer 
   assert.ok(fn('jeuEcritVeille').includes('if(avant&&avant.n===n&&avant.v!==v){(J.ecritAt=J.ecritAt||{})[J.me]=Date.now();jeuEcritSignal(n);}'), 'taper : « Écrit sa requête »');
   assert.ok(fn('jeuEssaiRate').includes('if(J)(J.koAt=J.koAt||{})[J.me]=Date.now();'), 'une requête manquée : « Teste sa requête »');
   assert.ok(sec.includes("game.verifying = true;\n    // « Teste sa requête » sur sa propre ligne pendant que le serveur vérifie (Elisa, 8 novembre, 18 h 18).\n    (game.koAt = game.koAt || {})[game.me] = Date.now();\n    if (typeof jeuDirectPeindre === 'function') jeuDirectPeindre(n);"), 'en salle classée, pendant la vérification');
-  assert.ok(app.includes('<script src="multiplayer-security.js?v=6"></script>'));
+  assert.ok(app.includes('<script src="multiplayer-security.js?v=7"></script>'));
 });
 
 test('dans la carte des indices, « Réessaie » en mode erreur SQL (9 novembre, 7 h 37 ; avant « Essaie encore », « Raté », « Un coup de patte ? », « Pas encore ») ; la pastille du bas, sans appel, garde son texte', () => {
-  assert.ok(fn('defiIndicesHTML').includes('<b class="coach-st-k">Réessaie</b>') && !fn('defiIndicesHTML').includes('Un coup de patte&nbsp;?</span>'));
+  assert.ok(fn('defiIndicesHTML').includes('<b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b>') && !fn('defiIndicesHTML').includes('Un coup de patte&nbsp;?</span>'));
   const peek = fn('coachPeek');
   /* 19 h 18 puis 19 h 49 (« je veux juste pour l’indice ») : la pastille arrive avec un indice, et dit « Un coup de patte ? · voir l’indice » */
   assert.ok(peek.includes("b.innerHTML='<span aria-hidden=\"true\">↑</span>Un coup de patte\\u00a0? · voir l’indice';"));

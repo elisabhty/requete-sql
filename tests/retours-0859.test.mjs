@@ -45,9 +45,9 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   assert.ok(ctx.defiIndicesHTML(c, 3, 1).includes('Indice 1/3'), 'une pastille ramène à un indice déjà donné');
   assert.equal(h9, h3, 'trois au plus');
   const ko = ctx.defiIndicesHTML(c, 1, 0, 'La colonne <code>foo</code> n’existe pas.');
-  assert.ok(ko.includes('<section class="coach has-hint has-ko" aria-live="polite">') && ko.includes('<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Réessaie</b><p>La colonne <code>foo</code> n’existe pas.</p></div></div>'), 'ce qui cloche, dans la carte : « Réessaie », en mode erreur SQL (9 novembre, 7 h 37 ; sous l’éditeur à 7 h 23 ; avant « Essaie encore », « Raté », « Un coup de patte ? », « Pas encore »)');
+  assert.ok(ko.includes('<section class="coach has-hint has-ko" aria-live="polite">') && ko.includes('<div class="coach-st"><span class="coach-st-ico" aria-hidden="true">!</span><div class="coach-st-tx"><b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>La colonne <code>foo</code> n’existe pas.</p></div></div>'), 'ce qui cloche, dans la carte : « Réessaie », en mode erreur SQL (9 novembre, 7 h 37 ; sous l’éditeur à 7 h 23 ; avant « Essaie encore », « Raté », « Un coup de patte ? », « Pas encore »)');
   assert.ok(ko.indexOf('class="coach-hint"') < ko.indexOf('class="coach-st"'), 'sous l’indice');
-  assert.ok(ctx.defiIndicesHTML(c, 0, 0, 'On attend 1 colonne.').includes('<b class="coach-st-k">Réessaie</b><p>On attend 1 colonne.</p>'), 'avant le premier indice aussi (en salle, ils viennent à l’heure)');
+  assert.ok(ctx.defiIndicesHTML(c, 0, 0, 'On attend 1 colonne.').includes('<b class="coach-st-k">Pas tout à fait. Réessaie&nbsp;!</b><p>On attend 1 colonne.</p>'), 'avant le premier indice aussi (en salle, ils viennent à l’heure)');
   assert.ok(!h1.includes('coach-st') && !h1.includes('has-ko'), 'sans essai manqué, rien');
   assert.equal(ctx.defiSquelette(c.sol), 'SELECT …\nFROM …\nJOIN … ON … = …\nJOIN … ON … = …\nJOIN … ON … = …\nWHERE … = …\nORDER BY …');
   for (const x of ctx.CHALLENGES) {

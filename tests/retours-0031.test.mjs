@@ -145,10 +145,11 @@ test('« Joue seul » s’accorde : « Joue seule », « Joue seul », « Joue s
 /* Sa capture de la carte des indices après un essai : « Un coup de patte ? Utilise une seule requête de lecture SELECT pour ce défi. »
    « ici mettre qqchose comme raté au lieu d’un coup de patte ». */
 /* 7 h 13 : « Essaie encore finalement avec le message sql » ; 7 h 23 : « si je veux une erreur sous l’éditeur… et enlève le « raté »
-   complètement » ; 7 h 37 : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais en mode erreur sql ui ux ». */
+   complètement » ; 7 h 37 : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais en mode erreur sql ui ux » ;
+   7 h 51 : « Je vais plus partir sur : Pas tout à fait. Réessaie ! ». */
 test('« Réessaie » dans la carte, sous l’indice, avec la pastille « ! » de « Erreur SQL » (7 h 37 ; sous l’éditeur à 7 h 23, « Essaie encore » à 7 h 13, « Raté » à 2 h)', () => {
   const f = fn('defiIndicesHTML');
-  assert.ok(f.includes("const st=diag?`<div class=\"coach-st\"><span class=\"coach-st-ico\" aria-hidden=\"true\">!</span><div class=\"coach-st-tx\"><b class=\"coach-st-k\">Réessaie</b><p>${diag}</p></div></div>`:'';"));
+  assert.ok(f.includes("const st=diag?`<div class=\"coach-st\"><span class=\"coach-st-ico\" aria-hidden=\"true\">!</span><div class=\"coach-st-tx\"><b class=\"coach-st-k\">Pas tout à fait. Réessaie&nbsp;!</b><p>${diag}</p></div></div>`:'';"));
   assert.ok(f.includes("${diag?' has-ko':''}") && f.includes('${head}${body}${st}${nx}'), 'sous l’indice, avant le compte à rebours');
   assert.ok(!f.includes('Essaie encore</span>') && !f.includes('>Raté<') && !f.includes('Un coup de patte&nbsp;?</span>'));
   assert.ok(app.includes("function coachKo(diag){if(!COACH)return;COACH.diag=diag;COACH.fx='is-new-ko';coachPaint();}"), 'un essai manqué la remplit, la ligne secoue');
@@ -210,7 +211,7 @@ test('en salle classée : la requête est compilée sur la base du défi, sans �
   assert.deepEqual(vus, ['q', 'DELETE FROM avis'], 'compilée seulement (prepare), jamais pour un résultat faux');
   const mps = lire('multiplayer-security.js');
   assert.ok(mps.includes("const msg = typeof defiErreurSqlFr === 'function' ? defiErreurSqlFr(defi, sql, brut) : esc(brut);"));
-  assert.ok(mps.includes("setLessonOut(carte ? '' : `<div class=\"feedback err\"><div class=\"fi\">!</div><div><b>Réessaie</b><p>${msg}</p></div></div>`);\n        jeuEssaiRate(round);\n        if(typeof coachRoomTick==='function')coachRoomTick();\n        if(carte)coachKo(msg);"), 'dans la carte : « Réessaie » et l’erreur, ou « Le résultat ne correspond pas à la consigne. » ; rien sous l’éditeur (7 h 37)');
+  assert.ok(mps.includes("setLessonOut(carte ? '' : `<div class=\"feedback err\"><div class=\"fi\">!</div><div><b>Pas tout à fait. Réessaie&nbsp;!</b><p>${msg}</p></div></div>`);\n        jeuEssaiRate(round);\n        if(typeof coachRoomTick==='function')coachRoomTick();\n        if(carte)coachKo(msg);"), 'dans la carte : « Réessaie » et l’erreur, ou « Le résultat ne correspond pas à la consigne. » ; rien sous l’éditeur (7 h 37)');
   assert.ok(!mps.includes('defiErreurBox') && !mps.includes('defiPasEncoreBox'));
 });
 
