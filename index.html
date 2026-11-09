@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=279">
+<link rel="stylesheet" href="ludique.css?v=280">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -37357,7 +37357,10 @@ function jeuEntrerInvitation(code){
 function jeuInvitationEchec(r){
   const m=(typeof DX_CODE_MSG!=='undefined'&&DX_CODE_MSG[r])||DX_CODE_MSG.introuvable,nb=t=>String(t).replace(/&nbsp;/g,'\u00a0');
   jeuInvite='';
-  if(typeof lqAsk==='function')lqAsk({ico:r==='complete'?'👥':r==='commencee'?'⏱️':'🔎',titre:nb(m[0]),texte:nb(m[1]),oui:'Continuer',non:null});
+  /* 20 h 24 (Elisa) : « Retour aux défis », sa flèche qui avance ; la croix laisse là où l’on était (un défi en cours). */
+  const surDefis=typeof activeTab!=='undefined'&&activeTab==='defis'&&!document.body.classList.contains('in-lesson');
+  if(typeof lqAsk==='function')lqAsk({ico:r==='complete'?'👥':r==='commencee'?'⏱️':'🔎',titre:nb(m[0]),texte:nb(m[1]),oui:"Retour aux défis",fleche:true,non:null})
+    .then(ok=>{if(ok&&!surDefis&&typeof openJeu==='function')openJeu();});
 }
 /* Le même défi, seul ou à plusieurs : on choisit ici, puis on reçoit un code à partager. */
 function challengeHowHTML(c){
@@ -40231,7 +40234,7 @@ function lqAsk(o){
         <h2 id="lq-ask-t">${esc(o.titre)}</h2>
         ${o.texteHtml?`<p id="lq-ask-p">${o.texteHtml}</p>`:o.texte?`<p id="lq-ask-p">${esc(o.texte)}</p>`:''}</div>
         ${o.corps?`<div class="lq-ask-corps" id="lq-ask-c">${o.corps}</div>`:''}
-        <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui${o.danger?' is-danger':''}">${esc(o.oui||'OK')}</button>${o.non===null?'':`<button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button>`}</div>
+        <div class="lq-ask-btns"><button type="button" class="lq-btn lq-ask-oui${o.danger?' is-danger':''}${o.fleche?' has-fl':''}">${esc(o.oui||'OK')}${o.fleche&&typeof DEF_CHEV_SVG!=='undefined'?`<i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i>`:''}</button>${o.non===null?'':`<button type="button" class="lq-btn-2 lq-ask-non">${esc(o.non||'Annuler')}</button>`}</div>
       </div>`;
     const back=document.activeElement;
     let fini=false;
@@ -47450,7 +47453,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-commencee-v2769';
+  const SW_CACHE='requete-2026-11-09-fleche-v2770';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
