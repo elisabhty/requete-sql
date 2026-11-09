@@ -144,9 +144,9 @@ test('« Joue seul » s’accorde : « Joue seule », « Joue seul », « Joue s
 
 /* Sa capture de la carte des indices après un essai : « Un coup de patte ? Utilise une seule requête de lecture SELECT pour ce défi. »
    « ici mettre qqchose comme raté au lieu d’un coup de patte ». */
-test('un essai qui ne va pas : « Raté », puis ce qui cloche', () => {
+test('un essai qui ne va pas : « Essaie encore » (7 h 13 ; « Raté » à 2 h), puis ce qui cloche', () => {
   const st = cut('  const st=diag?', ";\n");
-  assert.ok(st.includes('<div class="coach-st"><span class="coach-st-k">Raté</span><p>${diag}</p></div>'));
+  assert.ok(st.includes('<div class="coach-st"><span class="coach-st-k">Essaie encore</span><p>${diag}</p></div>'));
   assert.ok(!st.includes('coup de patte'));
 });
 
