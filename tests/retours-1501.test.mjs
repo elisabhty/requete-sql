@@ -277,3 +277,18 @@ test('import : même valeur à l’écriture et à la comparaison, bilan calcul�
   assert.ok(lq.includes('.imp-lecture-barre i{display:block;height:100%;width:0;'));
   assert.ok(app.includes("titre:un?'Mettre à jour cette table ?'") && app.includes("titre:'Remplacer cette table ?'"), 'titres courts, le nom dans le texte');
 });
+
+/* 9 novembre, 23 h 15 (Elisa : « problème de formatage », « on ne voit pas la fin », « que ça n’arrive pas ailleurs ») */
+test('formatage : noms longs dans leur cadre, rien sous le bouton collé, nom de fichier réparé', () => {
+  assert.ok(lq.includes('html.lq #schema-sheet .sch-table.is-tbu .sch-r{flex:1 1 100%;width:100%;min-width:0}'), 'l’onglet d’une table tient dans sa carte');
+  assert.ok(lq.includes('html.lq .feedback code,html.lq .feedback p code,html.lq .lq-ask code,html.lq #schema-sheet .umd-bulle code,html.lq .imp-sheet code{white-space:normal;overflow-wrap:anywhere;'), 'un nom de table passe à la ligne');
+  assert.ok(lq.includes('html.lq .imp-sheet>.imp-go,html.lq .imp-sheet>.imp-ou:not([hidden])+.imp-go{margin-top:28px}'), 'la fin de la feuille au-dessus du bouton');
+  assert.ok(lq.includes('html.lq .lq-ask-sheet.has-corps .lq-ask-corps{padding-bottom:20px}'));
+  assert.ok(lq.includes('-webkit-line-clamp:2;overflow:hidden;overflow-wrap:normal}'), 'un nom de projet sur deux lignes');
+  const c = vm.createContext({});
+  vm.runInContext(fn('umlNomCourt'), c);
+  assert.equal(c.umlNomCourt('ameublement_generateur_des_codes_produits_ba_4', 30), 'ameublement_gen…_produits_ba_4');
+  assert.equal(c.umlNomCourt('court', 30), 'court');
+  assert.ok(app.includes('>${esc(umlNomCourt(col.c,25))}</span>') && app.includes('>${esc(umlNomCourt(c.name,16))}</b>'));
+  assert.ok(app.includes("return F&&F.repairMojibake?F.repairMojibake(n).text:n;"), '« GÃ©nÃ©ral » redevient « Général »');
+});

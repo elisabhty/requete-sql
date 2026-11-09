@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=293">
+<link rel="stylesheet" href="ludique.css?v=294">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -22493,7 +22493,11 @@ function isTableImport(parsed){
    coupé entre deux mots quand il dépasse 40 caractères (le nom d’un projet ; avant, « …_100_Ques »). */
 function nomDeFichierLisible(nom){
   let v=String(nom||'').replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').replace(/\s+/g,' ').trim()||'Import';
-  if(v.length>40){ const c=v.slice(0,41),i=c.lastIndexOf(' '); v=(i>=12?c.slice(0,i):v.slice(0,40)).trim(); }
+  /* Des tirets pour séparer les mots (9 novembre, 23 h 15 : « Ameublement-Generateur-des-codes-produits-et-des-tarifs… » devenait
+     « Ameublement-Generateur-des-codes-produit », coupé au milieu d’un mot) : des espaces, coupé entre deux mots, sans « et » au bout */
+  if(!/ /.test(v)&&(v.match(/-/g)||[]).length>=2)v=v.replace(/-+/g,' ');
+  if(v.length>40){ const c=v.slice(0,45),i=c.lastIndexOf(' '); v=(i>=12?c.slice(0,i):v.slice(0,40)).trim(); }
+  v=v.replace(/(?:\s+(?:et|des|de|du|la|le|les|en|à|a|pour|d|l|v\d[\w.]*))+$/i,'').trim()||v;
   return v;
 }
 /* 9 novembre, 21 h 38 (Elisa : « quel message quand ça ne fonctionne pas ? ») : vu en capture, une photo était acceptée comme un CSV
@@ -22532,20 +22536,23 @@ async function onDataImport(ev){
   const file=ev.target.files&&ev.target.files[0];
   ev.target.value='';
   if(!file)return;
+  /* Un nom de fichier mal encodé (« GÃ©nÃ©ral », 9 novembre, 23 h 15 : la table devenait « GA_nA_ral ») : réparé avant d’en tirer
+     le nom du projet et des tables */
+  const nomF=(()=>{const n=String(file.name||'').normalize('NFC'),F=window.ImportFormats;try{return F&&F.repairMojibake?F.repairMojibake(n).text:n;}catch(e){return n;}})();
   try{
     const lourd=(file.size||0)>400e3;
-    if(lourd){importLecture(file.name,file.size);importLectureSuivre=importLecturePc;await new Promise(ok=>requestAnimationFrame(()=>setTimeout(ok,0)));}
+    if(lourd){importLecture(nomF,file.size);importLectureSuivre=importLecturePc;await new Promise(ok=>requestAnimationFrame(()=>setTimeout(ok,0)));}
     const bytes=new Uint8Array(await file.arrayBuffer());
-    const pasTableau=importPasUnTableau(file.name,bytes);
+    const pasTableau=importPasUnTableau(nomF,bytes);
     if(pasTableau)throw new Error(pasTableau);
-    const parsed=await parseImportBytes(file.name,bytes);
+    const parsed=await parseImportBytes(nomF,bytes);
     importLectureSuivre=null;
     if(lourd){importLecturePc(1);await new Promise(ok=>setTimeout(ok,180));importLectureFin();}
     pendingImport={
-      file:file.name,
+      file:nomF,
       parsed,
-      defaultTable:parsed.defaultTable||safeIdent(file.name.replace(/\.[^.]+$/,''))||'import',
-      defaultDbName:parsed.titre?parsed.titre.slice(0,40):nomDeFichierLisible(file.name),
+      defaultTable:parsed.defaultTable||safeIdent(nomF.replace(/\.[^.]+$/,''))||'import',
+      defaultDbName:parsed.titre?parsed.titre.slice(0,40):nomDeFichierLisible(nomF),
       ajout
     };
     openImportSheet();
@@ -24850,6 +24857,9 @@ function umlPastilles(p){
   }));
   return out;
 }
+/* Un nom trop long pour sa ligne (9 novembre, 23 h 15 : sept colonnes « ameublement_generateur_des_codes… », toutes pareilles) :
+   on garde le début et la fin, « ameublement_ge…produits_ba_4 », le nom entier au survol et dans la bulle. */
+function umlNomCourt(n,max){n=String(n);if(n.length<=max)return n;const d=Math.ceil((max-1)/2),f=max-1-d;return n.slice(0,d)+'…'+n.slice(-f);}
 function umlHtml(p){
   const st=a=>`--lc:${a.c};--lcs:${a.cs};--lci:${a.ci}`;
   /* Par-dessus les traits allumés, des points qui coulent de la clé étrangère vers la clé primaire (9 h 18 : « avec une flèche animée »). */
@@ -24868,11 +24878,11 @@ function umlHtml(p){
       const droite=a?`<b class="umd-v">→ ${esc(a.vers)}</b>`:`<em>${esc(umlType(col.t))}</em>`;
       const x=col.ex?`<span class="umd-x${col.ex.k==='null'?' is-null':''}"><small>ex&nbsp;:</small><b>${esc(col.ex.v)}</b></span>`:'';
       const badges=(col.b==='pk'?'<i class="is-pk">PK</i>':'')+(fk?'<i class="is-fk">FK</i>':'');
-      return `<span class="umd-c${col.b==='pk'?' is-pk':fk?' is-fk':''}${a?' is-lien':''}${c.caches.includes(col.c)?' is-cache':''}" data-c="${escAttr(col.c)}"${a?` style="${st(a)}"`:''}><span class="umd-r">${badges}<span>${esc(col.c)}</span>${droite}</span>${x}</span>`;
+      return `<span class="umd-c${col.b==='pk'?' is-pk':fk?' is-fk':''}${a?' is-lien':''}${c.caches.includes(col.c)?' is-cache':''}" data-c="${escAttr(col.c)}"${a?` style="${st(a)}"`:''}><span class="umd-r">${badges}<span${String(col.c).length>25?` title="${escAttr(col.c)}"`:''}>${esc(umlNomCourt(col.c,25))}</span>${droite}</span>${x}</span>`;
     };
     /* Une carte : son en-tête (toucher allume ses liens), la flèche qui plie ou déplie la table, ses colonnes. */
     return `<div class="umd-t${ex?' is-ex':''}${c.plie?' is-plie':''}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--c:${c.teinte[0]};--cs:${c.teinte[1]};--ci:${c.teinte[2]};--i:${k}" data-t="${escAttr(c.name)}" onclick="umlCarte(this,event)" onpointerenter="umlSurligne(this,true,event)" onpointerleave="umlSurligne(this,false,event)">`
-      +`<span class="umd-h"><button type="button" class="umd-hb" aria-pressed="false" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(c.cols.length+c.plus-c.caches.length,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses relations`)}"><b>${esc(c.name)}</b><small>${esc(c.n)}</small></button>`
+      +`<span class="umd-h"><button type="button" class="umd-hb" aria-pressed="false" onfocus="umlSurligne(this,true)" onblur="umlSurligne(this,false)" aria-label="${escAttr(`Table ${c.name}, ${plur(c.cols.length+c.plus-c.caches.length,'colonne')}, ${plur(+c.n||0,'ligne')} : allumer ses relations`)}"><b${String(c.name).length>16?` title="${escAttr(c.name)}"`:''}>${esc(umlNomCourt(c.name,16))}</b><small>${esc(c.n)}</small></button>`
       +`<button type="button" class="umd-pli" aria-expanded="${!c.plie}" aria-label="${escAttr((c.plie?'Déplier':'Plier')+' la table '+c.name)}" onclick="umlPlier(this,event)">${UML_CHEV}</button></span><span class="umd-cs">`
       +(c.cols.map(ligne).join('')||'<span class="umd-c is-plus">Aucune colonne</span>')
       /* 6 novembre, 7 h 52 : « efface les Voir » : la ligne « +4 colonnes » d’une table pliée, sans pastille, la déplie (comme sa flèche). */
@@ -47701,7 +47711,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-lecture-v2785';
+  const SW_CACHE='requete-2026-11-09-formatage-v2786';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
