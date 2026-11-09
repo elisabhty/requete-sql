@@ -235,3 +235,10 @@ test('la page de connexion : Apple, Google, le trait « ou », puis l’adresse 
   for (const r of ['html #onboarding.ob-vitrine .ob-account .ob-provider-list>.ob-divider{margin:2px 4px!important;', 'html #onboarding.ob-vitrine .ob-provider.is-champ .ob-champ-ph{color:#A9A3C4;'])
     assert.ok(ob.includes(r), r);
 });
+
+/* ---------- 12. La salle d’attente d’un invité (9 novembre, 2 h 19, sa réf. 1) ---------- */
+
+test('l’invité attend : « En attente que l’hôte lance la partie… » (son pseudo est déjà dans la liste, avec « hôte »)', () => {
+  assert.ok(app.includes('<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente que l’hôte lance la partie…</p>'));
+  assert.ok(!app.includes('En attente ${jeuQue(hostName)} lance la partie…'));
+});
