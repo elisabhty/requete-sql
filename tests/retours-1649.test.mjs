@@ -333,7 +333,7 @@ test('points — la valeur du défi, palier par palier, à côté du chrono ; «
   /* Le détail des points et la carte « Trouvé » */
   const d = vm.createContext({ JEU_PTS_RANG: [50, 30, 20, 10] });
   vm.runInContext(line('jeuPtsDetail'), d);
-  assert.equal(vm.runInContext('jeuPtsDetail({val:175,essai:25,rang:30,place:2})', d), '<span class="jeu-pd"><i>Défi 175</i><i class="is-essai">1er essai +25</i><i class="is-rang">2e +30</i></span>');
+  assert.equal(vm.runInContext('jeuPtsDetail({val:175,essai:25,rang:30,place:2})', d), '<span class="jeu-pd"><i>Défi 175</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">2e +30</i></span>');
   assert.equal(vm.runInContext('jeuPtsDetail({val:100,essai:0,rang:10,place:4})', d), '<span class="jeu-pd"><i>Défi 100</i><i class="is-rang">4e +10</i></span>');
   assert.equal(vm.runInContext('jeuPtsDetail({val:150,essai:0,rang:0,place:1})', d), '<span class="jeu-pd"><i>Défi 150</i></span>', 'seul : la valeur du défi');
   assert.ok(fn('jeuFoundHTML').includes('x.essai?`du premier coup <span class="coach-ok-bonus">+${x.essai}'), 'le premier coup, dans l’encart vert « Bravo, défi résolu ! » (9 novembre, 8 h 20)');

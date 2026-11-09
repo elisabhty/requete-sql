@@ -86,7 +86,7 @@ test('résultats et fin de partie allégés ; la notification des points en une 
   assert.ok(r.includes("${sl||n<1?'':`<div class=\"jeu-card\"><p class=\"jeu-card-h\">Scores</p>"), 'les scores cumulés à partir de la 2e manche');
   assert.ok(r.includes('const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));'), 'la liste finale seulement si le podium ne dit pas tout');
   assert.ok(r.includes("const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?"), 'le mot sur l’égalité seulement s’il y a égalité');
-  for (const k of ['html.lq .jeu-pd i{padding:0!important;background:none!important;', 'html.lq .jeu-pd i+i::before{content:"·";', 'html.lq .jeu-rank li.is-me{', 'html.lq .jeu-sol>summary{display:flex;'])
+  for (const k of ['html.lq .jeu-pd i{padding:0!important;background:none!important;', 'html.lq .jeu-pd i:not(:last-child)::after{content:"·";', 'html.lq .jeu-rank li.is-me{', 'html.lq .jeu-sol>summary{display:flex;'])
     assert.ok(s50.includes(k), k);
   const pop = cut('function jeuPtsPop(o){', '\n/* Points de la partie (une seule fois)');
   assert.ok(pop.includes('t.innerHTML=`<span class="jpp-coin">${JEU_COIN_SVG}</span><b><em class="jpp-n" data-n="${o.pts}">+${still?o.pts:0}</em> point${o.pts>1?\'s\':\'\'}</b>'));

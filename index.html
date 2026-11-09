@@ -1971,7 +1971,7 @@
   .jeu-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;padding:0;list-style:none}
   .jeu-chip .lq-stk,.jeu-chip .jeu-bars{width:22px;height:22px;margin-right:6px}
   .jeu-chip{display:inline-flex;align-items:center;padding:5px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:12.5px;font-weight:750}
-  .jeu-chip.is-f{background:var(--success-soft);color:var(--success)}
+  .jeu-chip.is-f{background:var(--accent-soft);color:var(--accent-ink)}
   .jeu-chip.is-m{background:var(--warn-soft);color:var(--warn)}
   .jeu-chip.is-d{background:var(--danger-soft);color:var(--danger)}
   .jeu-n{margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:12px;font-weight:800;vertical-align:2px}
@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=263">
+<link rel="stylesheet" href="ludique.css?v=264">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -27862,7 +27862,10 @@ function renderDefisPerf(){
   const ring=`<div class="perf-ratebox" style="--i:3"><div class="perf-rate"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="perf-ring-bg" cx="32" cy="32" r="${R}"/><circle class="perf-ring" cx="32" cy="32" r="${R}" style="--c:${C}px;--v:${(C*(1-rate/100)).toFixed(2)}px"/></svg>
     <span class="perf-rate-n">${manches?`<b data-count-to="${rate}" data-delay=".25" data-dur="1" data-suffix=" %">${rate} %</b>`:'<b>—</b>'}</span></div>
     <p class="perf-rate-t"><b>Réussite</b><small>${manches?`${trouves} ${plur(trouves,'manche')} ${plur(trouves,'réussie')} sur ${manches}`:'Les manches que tu réussis comptent ici.'}</small></p></div>`;
-  const times=`<div class="perf-times"><div style="--i:4"><small>Temps moyen</small><b>${trouves?jeuChrono(avg):'—'}</b></div><div style="--i:5"><small>Le plus rapide</small><b>${fast?jeuChrono(fast):'—'}</b></div></div>`;
+  /* 9 novembre, 9 h 04 (le parcours) : « Temps moyen 00:58 » ici, « 2 min 41 temps moyen » dans le bilan d’une partie : les durées
+     se lisent en clair, comme le bilan et l’encart vert (« 58 s », « 2 min 05 ») ; les classements gardent leur chrono 00:58. */
+  const dl=typeof jeuDureeLisible==='function'?jeuDureeLisible:jeuChrono;
+  const times=`<div class="perf-times"><div style="--i:4"><small>Temps moyen</small><b>${trouves?dl(avg):'—'}</b></div><div style="--i:5"><small>Le plus rapide</small><b>${fast?dl(fast):'—'}</b></div></div>`;
   /* Les 10 dernières parties, de la plus ancienne à la plus récente ; la meilleure en jaune soleil. Les parties à plusieurs ressortent
      (Elisa, 31 octobre, 16 h 49 : « mettre en évidence quand on a joué à 2, 3, 4, 5, avec aussi leur nombre de points ») : le nombre de
      joueurs au pied de la barre, et les points de chacun des autres en pastilles de sa couleur, à leur hauteur ; toucher la barre
@@ -27896,7 +27899,7 @@ function renderDefisPerf(){
     <h4>${mates.length>1?`Tes ${mates.length} derniers adversaires`:mates.length?'Ton dernier adversaire':'Tes derniers adversaires'}</h4>${mates.length?`<ul class="perf-mates">${mates.map(perfMateHTML).join('')}</ul>`:'<p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'}
     <button type="button" class="perf-rematch" onclick="perfRematch('${vsLast?vsLast.niv:''}')">${JEU_FRIENDS_SVG}<span>${mates.length?'Les redéfier':'Jouer à plusieurs'}</span>${DEF_CHEV_SVG}</button>
   </div>`;
-  const rows=hist.slice(0,4).map((h,i)=>`<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${esc(perfGame(h))}</b><small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'réussie')}${h.ok?` · ${jeuChrono(h.ms)}`:''}</small></span><em>+${h.pts}</em></li>`).join('');
+  const rows=hist.slice(0,4).map((h,i)=>`<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${esc(perfGame(h))}</b><small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'réussie')}${h.ok?` · ${dl(h.ms)}`:''}</small></span><em>+${h.pts}</em></li>`).join('');
   host.innerHTML=`<section class="perf-card${parties?'':' is-empty'}" aria-labelledby="perf-h">
     <div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('chart')}</span><div><p class="perf-kicker">Tableau de bord</p><h2 id="perf-h">Tes performances</h2></div></div>
     <div class="perf-kpis">${kpi(' is-sun',pts,plur(pts,'point'),0)}${kpi('',parties,plur(parties,'partie'),1)}${kpi('',best||null,'record<em>en une partie</em>',2)}</div>
@@ -28656,6 +28659,8 @@ function amisListe(){
    8 novembre, 14 h 40 (l’avis qu’elle a demandé : « la page ressemble davantage à une liste de contacts vide qu’à un espace
    communautaire ») : vide, le titre donne envie, « Ton prochain rival t’attend ! ». */
 function amisTitre(n){return n?`${n} adversaire${n>1?'s':''}`:'Ton prochain rival t’attend&nbsp;!';}
+/* 9 novembre, 9 h 04 (le parcours) : « 1 adversaire », puis « Défie-les, rejoins leurs salles » : au singulier quand il n’y en a qu’un. */
+function amisSous(n){return n>1?'Défie-les, rejoins leurs salles, prends ta revanche.':'Défie ton adversaire, rejoins sa salle, prends ta revanche.';}
 /* Les pastilles du bandeau (8 novembre, 11 h 08, « ce niveau premium ») : combien attendent dans une salle ouverte (le point vert), et
    combien de duels contre eux. */
 function amisPcsHTML(amis){
@@ -28679,7 +28684,7 @@ function defisAmisPeindre(){
   const amis=amisListe();
   host.innerHTML=`<section class="dx-amis is-v2${n?'':' is-vide'}" aria-labelledby="dx-amis-k">
     <div class="dx-amis-tete dx-bande"><span class="room-stk" aria-hidden="true">${lqStkSvg('epees')}</span><div><p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(n)}</h2>
-    ${n?'<p class="room-sub">Défie-les, rejoins leurs salles, prends ta revanche.</p>':''}<p class="dx-bande-pcs" id="dx-amis-pcs">${amisPcsHTML(amis)}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
+    ${n?`<p class="room-sub" id="dx-amis-sous">${amisSous(n)}</p>`:''}<p class="dx-bande-pcs" id="dx-amis-pcs">${amisPcsHTML(amis)}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>
     ${n?`<div class="dx-amis-actions">${boutons}</div><div id="dx-amis-liste"></div>`
       :`<div class="dx-amis-vide"><div id="dx-amis-liste"></div>${boutons}</div>`}</section>`;
   amisListesPeindre();
@@ -28692,6 +28697,7 @@ function amisListesPeindre(){
   if(sec&&sec.classList&&typeof sec.classList.contains==='function'&&sec.classList.contains('is-vide')===!!amis.length){defisAmisPeindre();return;}
   /* Le titre suit la liste (une partie finie, un ajout, un retrait) ; les pastilles du bandeau aussi (les salles changent). */
   const h=document.getElementById('dx-amis-h'),t=amisTitre(amis.length);if(h&&h.innerHTML!==t)h.innerHTML=t;
+  const so=document.getElementById('dx-amis-sous'),st=amisSous(amis.length);if(so&&so.textContent!==st)so.textContent=st;
   const pc=document.getElementById('dx-amis-pcs'),ph=amisPcsHTML(amis);if(pc&&pc.innerHTML!==ph)pc.innerHTML=ph;
   /* 7 novembre, 21 h 44 : « Pas encore d’adversaire ! » (le titre), puis ce qu’on y gagne ; 22 h 13 : la mascotte qui salue. */
   /* 8 novembre, 14 h 27 : le duel, joué une fois. Déjà affiché, il n’est pas redessiné (les salles qui se rafraîchissent le relanceraient). */
@@ -35549,7 +35555,7 @@ function jeuScores(){
 function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;x.place=place;});return sc;}
 /* Le détail des points d’une manche : « 100 réussite · +50 1er · +46 rapidité ». */
 /* Le détail : ce que valait le défi quand on l’a trouvé, et le bonus de place entre amis (« Défi 193 · 2e +30 »). */
-function jeuPtsDetail(x){return `<span class="jeu-pd">${x.x>1?`<i class="is-niv is-${x.k}">${JEU_NIVL[x.k]||'Niveau'} ×${x.x}</i>`:''}<i>Défi ${x.val}</i>${x.essai?`<i class="is-essai">1er essai +${x.essai}</i>`:''}${x.rang?`<i class="is-rang">${x.place===1?'1er':x.place+'e'} +${x.rang}</i>`:''}</span>`;}
+function jeuPtsDetail(x){return `<span class="jeu-pd">${x.x>1?`<i class="is-niv is-${x.k}">${JEU_NIVL[x.k]||'Niveau'} ×${x.x}</i>`:''}<i>Défi ${x.val}</i>${x.essai?`<i class="is-essai">Du premier coup +${x.essai}</i>`:''}${x.rang?`<i class="is-rang">${x.place===1?'1er':x.place+'e'} +${x.rang}</i>`:''}</span>`;}
 /* Seul dans la salle (personne n’a rejoint, ou tous sont partis) et personne d’autre n’a trouvé cette manche : tout se dessine
    comme seul (ni liste de joueurs, ni réactions, ni annonce « seul·e dans la salle »). */
 /* Fin de manche sans réponse validée (Elisa, 3 novembre, 7 h 25) : ce qui s’est passé, 0 point, « Non validée ». */
@@ -35888,12 +35894,18 @@ function jeuDirectObserver(n,xs,avant){
   /* Plus qu’un à chercher */
   const lice=xs.filter(x=>x.etat!=='ok'&&x.etat!=='parti'),avantLice=Object.values(avant).filter(a=>a.etat!=='ok'&&a.etat!=='parti').length;
   if(lice.length===1&&avantLice>1)dits.push({k:'seul',p:2,ico:JEU_LOUPE_SVG,html:lice[0].me?'Plus que toi en course, courage\u00a0!':`Plus que ${N(lice[0])} en course…`});
+  /* 9 novembre, 9 h 04 (le parcours) : le dernier trouve ; « Plus que toi en course, courage ! » restait sous la barre pendant que son
+     encart passait au vert. Plus personne en course : le commentateur le dit, tout de suite (la file d’attente part avec). */
+  if(!lice.length&&avantLice>0&&xs.some(x=>{const a=avant[jeuDirectPid(x.pid)];return a&&a.etat!=='ok'&&x.etat==='ok';})){
+    const f=J.dit&&J.dit.n===n?J.dit:null;if(f){f.file=[];f.cur=null;}
+    dits.length=0;dits.push({k:'tous',p:6,ico:JEU_ICO.check,html:'Tout le monde a trouvé\u00a0!'});
+  }
   dits.sort((a,b)=>b.p-a.p).forEach(d=>jeuDitPousser(n,d));
 }
 function jeuDitPousser(n,d){
   const J=JEU;if(!J)return;
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});
-  if(d.txt==null&&/^(serie|tete|monte|seul|minute)$/.test(d.k))d.txt=jeuDitTexte(d.html);
+  if(d.txt==null&&/^(serie|tete|monte|seul|minute|tous)$/.test(d.k))d.txt=jeuDitTexte(d.html);
   d.t=Date.now();f.file.push(d);
   while(f.file.length>3){const i=f.file.findIndex(x=>x.k==='ko');f.file.splice(i>=0?i:0,1);}
   jeuDitAvancer(n);
@@ -36374,7 +36386,9 @@ function jeuRender(){
     const sc=jeuScores(),got=r.found[J.me]!=null;
     /* Pas trouvé : le résultat attendu n’est plus montré, on pourra retomber sur ce défi (Elisa, 3 novembre, 7 h 14 : « ne pas mettre
        voici ce qu’il fallait obtenir, au cas où il repasse sur le même défi »). */
-    const sub=got?`Tu as trouvé en ${jeuChrono(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';
+    /* 9 novembre, 9 h 04 (Elisa : « fais le parcours défis avec tous les écrans pour trouver une incohérence ») : « Tu as trouvé en
+       00:15. » ici, « Résolu en 15 s » dans l’encart vert : la même durée se dit d’une seule façon, « Résolu en », en clair. */
+    const sub=got?`Résolu en ${jeuDureeLisible(r.found[J.me])}.`:'Tu pourras retenter ce défi plus tard.';
     /* Pas trouvé : une carte qui dit ce qui s’est passé, 0 point, réponse non validée (Elisa, 3 novembre, 7 h 25, maquette, DA du site). */
     const miss=got?'':jeuMissHTML(r,sl);
     /* La suite part toute seule, chez tous la même ligne : le compte à rebours, puis « La manche suivante arrive… » (17 h 31 : plus de
@@ -36402,7 +36416,10 @@ function jeuRender(){
       /* Le bilan, revu (Elisa, 3 novembre, 7 h 42 : « pousse encore l’amélioration fonctionnelle et UI/UX ») : un verdict en une phrase,
          les points qui montent, un point par manche (trouvée ou non), le record ; chaque manche dit ce qui s’est passé, en entier, et
          une manche manquée se retente d’un geste. Les durées se lisent « 12 s », « 2 min 05 ». */
-      const dur=ms=>{const t=Math.max(0,Math.round(ms/1000));return t<60?`${t}\u00a0s`:`${Math.floor(t/60)}\u00a0min\u00a0${String(t%60).padStart(2,'0')}`;};
+      /* 9 novembre, 9 h 04 (le parcours) : la manche « Résolu en 2 min 40 » dans l’encart vert devenait « Trouvé en 2 min 41 » ici
+         (arrondi à la seconde la plus proche) : la même lecture partout, celle du chrono et des paliers de points (la seconde entamée
+         ne compte pas), et le même mot, « Résolu en ». */
+      const dur=jeuDureeLisible;
       const nOk=got.length,nT=rows.length,nivL=JEU_NIVL[J.niv].toLowerCase();
       const avg=nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—';
       const all=nOk===nT&&nT>0;
@@ -36422,7 +36439,7 @@ function jeuRender(){
         const why=x.r.closed&&!jeuFermeeAuChrono(x.r,J.rounds.indexOf(x.r))?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';
         return `<li class="jr ${ok?'is-ok':'is-miss'}" style="--i:${i}"><span class="jr-ico" aria-hidden="true">${ok?ICO_OK:ICO_KO}</span>
           <div class="jr-t"><small class="jr-n">Manche ${i+1}</small><b>${esc(x.c.titre)}</b>
-          <span class="jr-meta">${ok?`<i class="jr-time">Trouvé en ${dur(x.ms)}</i>${y?jeuPtsDetail(y):''}`:`<i class="jr-why">${why}</i>`}</span>
+          <span class="jr-meta">${ok?`<i class="jr-time">Résolu en ${dur(x.ms)}</i>${y?jeuPtsDetail(y):''}`:`<i class="jr-why">${why}</i>`}</span>
           ${!ok&&J.solo?`<button type="button" class="jr-retry" onclick="jeuRetenter('${x.c.id}')"><span>Retenter ce défi</span>${DEF_CHEV_SVG}</button>`:''}</div>
           <b class="jr-pts">${ok&&y?'+'+y.pts:'0'}<small>pt${ok&&y&&y.pts>1?'s':''}</small></b></li>`;
       }).join('');
@@ -46946,7 +46963,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-garde-bleu-v2723';
+  const SW_CACHE='requete-2026-11-09-parcours-defis-v2724';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
