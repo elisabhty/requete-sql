@@ -40,14 +40,14 @@ test('trouvé : la carte de l’indice reste à la place de l’éditeur, son en
   const f = cut('function jeuFoundHTML(r,pid){', '\nfunction jeuCountUp(el){');
   assert.ok(!f.includes('feedback ok') && !f.includes('Trouvé en') && !f.includes('JEU_OK_STK') && !app.includes('const JEU_OK_STK='), 'plus de carte blanche « Trouvé en », ni de médaille');
   assert.ok(f.includes('<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">') && f.includes('${coachOkHTML({ko,det,pts})}'));
-  assert.ok(f.includes("const det=coachOkDetail([`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?`du premier coup <span class=\"coach-ok-bonus\">+${x.essai}\\u00a0✨</span>`:'',sl&&J.record&&jeuFinSurPlace()?'<span class=\"coach-ok-bonus is-record\">Nouveau record</span>':'']);"), 'le temps, la place entre amis, le premier coup ; une partie d’une manche, son record (10 h 01)');
+  assert.ok(f.includes("const det=coachOkDetail([`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?`du premier coup <span class=\"coach-ok-bonus\">+${x.essai}\\u00a0✨</span>`:'']);"), 'le temps, la place entre amis, le premier coup (le record, sur l’écran de fin : 11 h 31)');
   assert.ok(f.includes("const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;"), 'après un essai manqué, le vert part du rouge');
   const suite = cut('function jeuSuiteHTML(n){', '\n}\n');
-  assert.ok(f.includes("const suite=fin1?'':sl?jeuSuiteHTML(n)") && suite.includes('`<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">') && suite.includes('<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:'), 'seul : la suite, son compte à rebours et sa barre (8 h 50)');
+  assert.ok(f.includes("const suite=sl?jeuSuiteHTML(n)") && suite.includes('`<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">') && suite.includes('<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:'), 'seul : la suite, son compte à rebours et sa barre (8 h 50)');
   assert.ok(f.includes('<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">'), 'à plusieurs : qui cherche encore, et les réactions groupées');
   assert.ok(!f.includes('jeu-hostbar') && !f.includes('jeuHostBarHTML'), 'plus de « Clore la manche » pour l’hôte (9 novembre, 8 h 42)');
-  /* 10 h 37 : « Voir ma requête et son résultat » ; une partie d’une manche, « Voir la correction » (la feuille la montre, avec la solution) */
-  assert.ok(f.includes('${fin1?jeuCorrBoutonHTML(n):r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:\'\'}'));
+  /* 10 h 37 : « Voir ma requête et son résultat » ; 11 h 31 : la correction attend l’écran de fin, jamais sur le défi */
+  assert.ok(f.includes('${r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:\'\'}') && !f.slice(0, f.indexOf('\n}\n')).includes('jeuCorrBoutonHTML'));
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
   assert.ok(run.includes('r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;'));
   assert.ok(run.includes("if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}"), 'la manche se redessine aussitôt');

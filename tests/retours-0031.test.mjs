@@ -111,12 +111,12 @@ test('« Comment sont calculés les points ? » ouvre le barème du niveau chois
 
 /* ---------- 5. Le bilan d’une partie d’une manche, manquée ---------- */
 
-test('une manche manquée : la carte « Temps écoulé » (0 point obtenu), sans bandeau « 0 · 0/1 · — » ; il reste pour un record et à plusieurs manches', () => {
-  assert.ok(app.includes("lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';"), 'la carte : une manche, manquée');
-  /* 9 novembre, 10 h 37 (la relecture) : le bilan d’une partie de 2 ou 3 manches a toujours ses trois cases, « — » sans défi résolu ;
-     une manche seule et manquée (une partie d’une manche finit sur place depuis 10 h 01) garde sa carte */
-  assert.ok(app.includes("`${lastMiss}${lastMiss&&!J.record?'':bande}") && app.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}\">"), 'le bandeau, sinon, toujours le même');
-  assert.ok(app.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>temps moyen</small></div></div>`;"), 'le temps moyen, « — » sans défi résolu');
+test('une manche manquée : l’écran de fin dit les points et le temps, « — » sans défi résolu ; plus de carte « 0 point obtenu » qui le redisait', () => {
+  /* 9 novembre, 10 h 37 (la relecture) : le bandeau, toujours ; 11 h 31 : une partie d’une seule manche repasse par l’écran de fin,
+     deux cases (les points, ton temps) ; la carte « Temps écoulé · 0 point obtenu · Non validée » de 0 h 31 s’en va */
+  assert.ok(!app.includes('lastMiss') && app.includes('html=trophee+head(\'Fin de la partie\',titre,`Niveau ${JEU_NIVL[J.niv].toLowerCase()}`)+') && app.includes("        `${bande}\n"));
+  assert.ok(app.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}${un?' is-2':''}\">"), 'le bandeau, toujours le même ; deux cases pour une manche');
+  assert.ok(app.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;"), 'le temps, « — » sans défi résolu');
   assert.ok(fn('jeuMissHTML').includes('<div><b>0</b><small>Point obtenu</small></div><div><b>Non validée</b><small>Ta réponse</small></div>'), 'la carte dit déjà 0 point');
   /* Le compteur des points vise le bandeau : sans lui, il ne trouve rien et ne fait rien */
   assert.ok(app.includes("const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);"));

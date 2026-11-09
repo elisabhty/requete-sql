@@ -89,7 +89,7 @@ test('les points gagnés en notification animée : à la manche trouvée et en f
   assert.ok(pop.includes("t.setAttribute('aria-hidden','true')"));
   assert.ok(pop.includes("const st=document.getElementById('lq-streak-toast'),low=st&&st.classList.contains('on')"), 'sous la flamme du jour si elle tombe en même temps');
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
-  assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x&&!jeuFinSurPlace())jeuPtsPop({kind:'round',pts:x.pts});}"), 'une partie d’une seule manche : celle de la partie, avec le total (9 novembre, 10 h 01)');
+  assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}"), 'chaque manche trouvée ; celle de la partie, avec le total, sur l’écran de fin (11 h 31 : une partie d’une manche aussi)');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);"));
   assert.ok(app.includes('    return {pts,total:s.pts};\n  }catch(e){return null;}'), 'la partie créditée une seule fois renvoie ses points');
