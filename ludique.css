@@ -6070,8 +6070,24 @@ html.lq .coach-ok .coach-ok-tx{flex:1;min-width:0}
 html.lq .coach-ok .coach-ok-k{display:block;margin:3px 0 2px;color:var(--success);font:700 17px/1.2 var(--display)}
 html.lq .coach-ok p{margin:0;color:var(--ink-2);font:600 14px/1.55 var(--ui)}
 html.lq .coach-ok p b{color:var(--ink);font-weight:800}
-html.lq .coach-ok .jeu-done-pts{margin-top:9px;background:#fff;color:var(--success);box-shadow:0 2px 0 #BFE6CF}
-html.lq .coach-ok .jeu-done-pts:has(.jeu-done-b){margin-top:16px}   /* le « +25 ✨ » posé sur la pastille ne mord plus sur le détail */
+/* 8 h 50 (« améliore l’ui ux des composants que t’as rajouté ») : les points à droite du titre, en grand chiffre vert, sans cadre (la
+   pastille blanche à ombre avait l’air d’un bouton) ; le premier coup, en petite pastille menthe dans le détail. */
+html.lq .coach-ok .coach-ok-pts{align-self:center;display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin:0 0 0 2px;padding:0;border-radius:0;background:none;box-shadow:none;color:var(--success)}
+/* La grille : la pastille ✓ | le titre | les points ; dessous, le détail sur toute la largeur (sous les points aussi) */
+html.lq .coach-ok{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:12px;row-gap:3px;align-items:center}
+html.lq .coach-ok .coach-ok-ico{grid-column:1;grid-row:1;align-self:center}
+html.lq .coach-ok .coach-ok-tx{display:contents}
+html.lq .coach-ok .coach-ok-k{grid-column:2;grid-row:1;margin:0}
+html.lq .coach-ok p{grid-column:2 / 4;grid-row:2}
+html.lq .coach-ok .coach-ok-pts{grid-column:3;grid-row:1}
+html.lq .coach-ok .coach-ok-d{white-space:nowrap}
+@media (max-width:380px){html.lq .coach-ok .coach-ok-k{font-size:16px}}
+html.lq #jeu-waitline .jeu-wl{display:flex;flex-direction:column;gap:2px;min-width:0}
+html.lq #jeu-waitline .jeu-wl-k{font:inherit;color:var(--ink-2)}
+html.lq #jeu-waitline .jeu-wl small{font:600 13px/1.3 var(--ui);color:var(--ink-3)}
+html.lq .coach-ok .coach-ok-pts em{font:800 24px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+html.lq .coach-ok .coach-ok-pts small{font:800 11.5px/1.2 var(--display);opacity:.8}
+html.lq .coach-ok .coach-ok-bonus{display:inline-block;padding:1px 7px;border-radius:99px;background:#9FF0C6;color:#0D5B3B;font:800 12px/1.45 var(--display);white-space:nowrap}
 html.lq .coach-ok.was-ko{animation:coachOkDuRouge .8s ease both}
 html.lq .coach-ok.was-ko .coach-ok-ico{animation:coachOkIcoDuRouge .8s ease both}
 @keyframes coachOkIn{0%{opacity:0;transform:scale(.96)}60%{opacity:1;transform:scale(1.015)}100%{opacity:1;transform:none}}
@@ -6079,7 +6095,14 @@ html.lq .coach-ok.was-ko .coach-ok-ico{animation:coachOkIcoDuRouge .8s ease both
 @keyframes coachOkIcoDuRouge{0%,30%{background:var(--danger-fill)}100%{background:var(--success-fill)}}
 /* La carte trouvée de la salle est la carte de l’indice : ses marges, son rebord, pas de second cadre qui saute */
 html.lq .coach.jeu-done{margin:4px 0 14px;padding:14px 16px 15px;border-radius:22px;box-shadow:0 5px 0 var(--lip);animation:none}
-html.lq .coach-ok-suite{margin:14px 0 0!important;padding-top:12px;border-top:2px dashed var(--line-2);text-align:left}
+html.lq .coach-ok-suite{margin:14px 0 0;padding-top:12px;border-top:2px dashed var(--line-2)}
+html.lq .coach-ok-suite .jeu-auto{margin:0!important;text-align:left}
+/* Seul : une barre qui se remplit jusqu’à la manche suivante, ou jusqu’au bilan (8 h 50) */
+html.lq .coach-ok-barre{display:block;height:5px;margin:10px 0 0;border-radius:99px;background:var(--surface-2);overflow:hidden}
+html.lq .coach-ok-barre::after{content:"";display:block;height:100%;border-radius:inherit;background:var(--accent);transform-origin:0 50%;transform:scaleX(var(--p0,0));animation:coachOkBarre var(--d,5s) linear forwards}
+@keyframes coachOkBarre{from{transform:scaleX(var(--p0,0))}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){html.lq .coach-ok-barre{display:none}}
+html[data-motion="reduce"].lq .coach-ok-barre{display:none}
 /* « En attente des autres · @matime cherche encore… » prend la ligne ; les réactions passent dessous quand la place manque */
 html.lq .coach.jeu-done .jeu-done-wait{flex-wrap:wrap;row-gap:10px}
 html.lq .coach.jeu-done #jeu-waitline{flex:1 1 200px}
@@ -7183,7 +7206,9 @@ html.lq .consigne.dq .dq-lien:active{transform:translateY(2px);box-shadow:0 0 0 
 html.lq .consigne.dq .dq-lien:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 html.lq .consigne.dq>.dq-atoi+.dq-sec{margin-top:14px}
 html.lq .consigne.dq .dq-sec.is-cols{background:var(--accent-soft)}
-html.lq .consigne.dq .dq-sec.is-garde{background:#E5FAEF}
+/* 9 novembre, 8 h 50 (Elisa) : « Change de couleur pour le vert Garde, sinon ça fait trop » : le vert ne dit plus que la bonne réponse
+   (« Bravo, défi résolu ! », le chrono arrêté) ; « Garde » passe au bleu ciel de la marque (le dégradé de la série), sa coche aussi. */
+html.lq .consigne.dq .dq-sec.is-garde{background:#E8F3FF}
 html.lq .consigne.dq .dq-sec.is-tri{background:#FFF4D4}
 html.lq .consigne.dq .dq-sec.is-libre{background:var(--surface-2)}
 html.lq .consigne.dq .dq-sec.is-info{padding:10px 12px 12px;border:2px dashed var(--lip);background:#fff}
@@ -7215,7 +7240,7 @@ html.lq .consigne.dq .dq-l.is-num li{counter-increment:dq}
 html.lq .consigne.dq .dq-l.is-num li::before{content:counter(dq);width:23px;height:23px;border-radius:8px;font:800 13px/1 var(--display)}
 html.lq .consigne.dq .is-cols .dq-l li::before{background:var(--accent);color:#fff;box-shadow:0 2px 0 var(--accent-lip)}
 html.lq .consigne.dq .is-tri .dq-l li::before{background:var(--sun);color:var(--ink);box-shadow:0 2px 0 var(--sun-lip)}
-html.lq .consigne.dq .is-garde .dq-l li::before{content:'';top:1px;width:21px;height:21px;border-radius:50%;background:var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%230F5F32' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;box-shadow:0 2px 0 #5FD39B}
+html.lq .consigne.dq .is-garde .dq-l li::before{content:'';top:1px;width:21px;height:21px;border-radius:50%;background:#9CD7FF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23134E7C' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;box-shadow:0 2px 0 #63B2F0}
 html.lq .consigne.dq .is-info .dq-l li::before{content:'';top:.5em;left:7px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 html.lq .consigne.dq .is-info .dq-l li{padding-left:24px}
 html.lq .consigne.dq .dq-t{margin:0!important;color:var(--ink)!important;font:500 15px/1.45 var(--ui)!important;letter-spacing:normal!important}

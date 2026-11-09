@@ -562,7 +562,8 @@ test('solo : la manche trouvée reste à l’écran, « Bravo, défi résolu ! �
   sec(w, 65); s.found(); sec(w, 1);
   assert.equal(s.view(), 'play0', 'la manche reste');
   assert.match(s.html, /<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">/);
-  assert.match(s.html, /<b class="coach-ok-k">Bravo, défi résolu&nbsp;!<\/b><p>Résolu en <b>1\u00a0min\u00a00[5-9]<\/b> · du premier coup ✨<\/p><strong class="jeu-done-pts"><em data-n="\d+">/, 'le temps, le premier coup, les points');
+  assert.match(s.html, /<b class="coach-ok-k">Bravo, défi résolu&nbsp;!<\/b><p><span class="coach-ok-d">Résolu en <b>1\u00a0min\u00a00[5-9]<\/b>\u00a0·<\/span> <span class="coach-ok-d">du premier coup <span class="coach-ok-bonus">\+25\u00a0✨<\/span><\/span><\/p><\/div><strong class="jeu-done-pts coach-ok-pts"><em data-n="\d+">/, 'le temps, le premier coup, les points à droite (8 h 50)');
+  assert.match(s.html, /<i class="coach-ok-barre" aria-hidden="true" style="--d:\d+ms;--p0:0\.\d{3}"><\/i>/, 'la barre jusqu’au bilan');
   assert.match(s.html, /Ton bilan arrive dans <b id="jeu-auto-n">[1-5]<\/b>\u00a0s/, 'la dernière : le bilan arrive');
   assert.match(s.html, /<b class="jeu-timer is-ok" id="jeu-timer"/, 'le chrono s’arrête, au vert');
   assert.equal(s.ev('jeuLeaveQuestion()'), null, 'plus rien à perdre : on part sans question');
@@ -700,7 +701,7 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   assert.equal(h.view(), 'play0');
   assert.equal(h.ev('jeuRanking(0)[0].rang'), 0, 'commencée seule : pas de bonus de rang, le même chez tous');
   assert.equal(g.ev('jeuRanking(0)[0].rang'), 0);
-  assert.match(g.html, /class="coach is-ok jeu-done"/); assert.match(g.html, /Bravo, défi résolu/); assert.match(g.html, /En attente des autres · Hôte cherche encore/);
+  assert.match(g.html, /class="coach is-ok jeu-done"/); assert.match(g.html, /Bravo, défi résolu/); assert.match(g.html, /En attente des autres…<\/b><small>Hôte cherche encore<\/small>/);
   const d = h.ev('jeuDirectHTML(0)'), av = /id="jeu-direct-av" aria-hidden="true">(.*?)<\/div><span class="jeu-sr"/.exec(d)[1];
   assert.equal((av.match(/<b class="jeu-av/g) || []).length, 2, 'un avatar par joueur');
   assert.match(av, /^<span class="jd-j is-ok is-premier" data-pid="[\w-]+" data-c="1" data-n="([1-9]\d*)"><b class="jeu-av" data-c="1">A<i class="jd-av-b is-roi[^"]*"><svg/, 'l’ami d’abord, la couronne (même couleur qu’en salle d’attente), ses points');
@@ -862,7 +863,7 @@ test('toutes les vues se dessinent sans erreur (échappement des pseudos compris
   /* 8 novembre, 18 h 36 puis 19 h 37 : « Réagir », un seul bouton, posé en bas à droite de l’écran, hors de la manche qui défile */
   assert.equal(host.ev('jeuReagirLa()'), true); assert.doesNotMatch(play, /jeu-reagir/);
   assert.doesNotMatch(play, /<img/);
-  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="coach is-ok jeu-done"/); assert.match(wait, /Bravo, défi résolu/); assert.match(wait, /En attente des autres · .* cherche encore/); assert.match(wait, /jeu-reacts/); assert.doesNotMatch(wait, /Clore la manche|jeu-hostbar/, '9 novembre, 8 h 42 : l’hôte n’a plus la main pour clore la manche');
+  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="coach is-ok jeu-done"/); assert.match(wait, /Bravo, défi résolu/); assert.match(wait, /En attente des autres…<\/b><small>.* cherche encore<\/small>/); assert.match(wait, /jeu-reacts/); assert.doesNotMatch(wait, /Clore la manche|jeu-hostbar/, '9 novembre, 8 h 42 : l’hôte n’a plus la main pour clore la manche');
   assert.doesNotMatch(wait, /id="ed-lesson"/, 'la carte « Trouvé » remplace l’éditeur');
   evil.found(); sec(w, 2); const res = grab(); assert.match(res, /Classement de la manche/); assert.doesNotMatch(res, /<img/);
   clore(host); host.ev('jeuNextRound()'); sec(w, 5); clore(host); sec(w, 1);

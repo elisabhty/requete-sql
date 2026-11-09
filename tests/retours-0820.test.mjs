@@ -24,10 +24,14 @@ const line = name => cut(`function ${name}(`, '\n') + '\n';
 test('l’encart vert : « Bravo, défi résolu ! », le détail, les points ; « Résolu en 4 s », « 1 min 05 », « 2 min »', () => {
   const ctx = vm.createContext({ JEU_ICO: { check: '<svg>✓</svg>' } });
   vm.runInContext(line('jeuDureeLisible') + fn('coachOkHTML'), ctx);
-  assert.equal(ctx.coachOkHTML({ det: 'Résolu en <b>4 s</b>', pts: '<strong class="jeu-done-pts">+225</strong>' }),
-    '<div class="coach-ok"><span class="coach-ok-ico" aria-hidden="true"><svg>✓</svg></span><div class="coach-ok-tx"><b class="coach-ok-k">Bravo, défi résolu&nbsp;!</b><p>Résolu en <b>4 s</b></p><strong class="jeu-done-pts">+225</strong></div></div>');
+  /* 8 h 50 : les points à droite du titre, hors du texte */
+  assert.equal(ctx.coachOkHTML({ det: 'Résolu en <b>4 s</b>', pts: '<strong class="jeu-done-pts coach-ok-pts">+225</strong>' }),
+    '<div class="coach-ok"><span class="coach-ok-ico" aria-hidden="true"><svg>✓</svg></span><div class="coach-ok-tx"><b class="coach-ok-k">Bravo, défi résolu&nbsp;!</b><p>Résolu en <b>4 s</b></p></div><strong class="jeu-done-pts coach-ok-pts">+225</strong></div>');
   assert.ok(ctx.coachOkHTML({ ko: true, det: '' }).startsWith('<div class="coach-ok was-ko">'), 'après un essai manqué');
   assert.ok(!ctx.coachOkHTML({ det: '' }).includes('<p>'), 'sans détail, pas de paragraphe vide');
+  /* 8 h 50 : le détail en morceaux qui ne se coupent pas, le « · » au bout du précédent */
+  vm.runInContext(line('coachOkDetail'), ctx);
+  assert.equal(ctx.coachOkDetail(['Résolu en <b>16 s</b>', '', '1er à trouver', 'du premier coup']), '<span class="coach-ok-d">Résolu en <b>16 s</b>\u00a0·</span> <span class="coach-ok-d">1er à trouver\u00a0·</span> <span class="coach-ok-d">du premier coup</span>');
   assert.deepEqual([0, 4200, 59999, 60000, 65000, 120000, 605000].map(ms => ctx.jeuDureeLisible(ms)),
     ['0 s', '4 s', '59 s', '1 min', '1 min 05', '2 min', '10 min 05']);
 });
@@ -36,10 +40,10 @@ test('dans la salle : la carte trouvée est la carte de l’indice ; à plusieur
   const f = fn('jeuFoundHTML');
   assert.ok(f.includes('<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">'));
   assert.ok(app.includes("${mine?jeuFoundHTML(r,J.me):editorBlock(false,'defi.sql',{jeu:1})}"), 'à la place de l’éditeur, où était la carte de l’indice');
-  assert.ok(fn('jeuWaitLine').includes('return `<i class="jeu-dot" aria-hidden="true"></i>En attente des autres · ${who} ${wait.length>1?\'cherchent\':\'cherche\'} encore…`;'));
+  assert.ok(fn('jeuWaitLine').includes('return `<i class="jeu-dot" aria-hidden="true"></i><span class="jeu-wl"><b class="jeu-wl-k">En attente des autres…</b><small>${who} ${wait.length>1?\'cherchent\':\'cherche\'} encore</small></span>`;'));
   const ctx = vm.createContext({ JEU: { me: 'a', players: { a: { name: 'Elisa' }, b: { name: '@matime' } }, rounds: [{ found: { a: 1000 } }] }, esc: s => s, jeuLive: () => ['a', 'b'] });
   vm.runInContext(fn('jeuWaitLine'), ctx);
-  assert.equal(ctx.jeuWaitLine(0), '<i class="jeu-dot" aria-hidden="true"></i>En attente des autres · @matime cherche encore…');
+  assert.equal(ctx.jeuWaitLine(0), '<i class="jeu-dot" aria-hidden="true"></i><span class="jeu-wl"><b class="jeu-wl-k">En attente des autres…</b><small>@matime cherche encore</small></span>', '« En attente des autres… », puis qui cherche encore, dessous (8 h 50)');
   /* Seul : la manche trouvée reste à l’écran le temps de la suite (jeuFinAuto, 5 s), jusqu’à la manche suivante ou jusqu’au bilan */
   const v = fn('jeuView');
   assert.ok(v.includes("if(fin&&J.rounds[n].found[J.me]!=null&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;"));
@@ -56,7 +60,7 @@ test('dans la salle : la carte trouvée est la carte de l’indice ; à plusieur
 test('le défi seul ouvert depuis sa page : le même encart vert dans sa carte, puis le résultat et la suite sous l’éditeur', () => {
   const run = fn('runLesson');
   assert.ok(run.includes("{const hs=document.getElementById('hint-slot'),ms=defiChrono?Date.now()-defiChrono.t0:null,ko=!!(COACH&&COACH.c===current&&COACH.diag);"));
-  assert.ok(run.includes("if(hs)hs.innerHTML=`<section class=\"coach is-ok\" aria-live=\"polite\">${coachOkHTML({ko,det:[ms!=null?`Résolu en <b>${jeuDureeLisible(ms)}</b>`:'',exoFails?'':'du premier coup ✨'].filter(Boolean).join(' · ')})}</section>`;"));
+  assert.ok(run.includes("if(hs)hs.innerHTML=`<section class=\"coach is-ok\" aria-live=\"polite\">${coachOkHTML({ko,det:coachOkDetail([ms!=null?`Résolu en <b>${jeuDureeLisible(ms)}</b>`:'',exoFails?'':'du premier coup ✨'])})}</section>`;"));
   assert.ok(run.includes('COACH=null;}') && run.includes('setLessonOut(table+(nxtPlan!=null'), 'la carte ne se redessine plus par-dessus ; sous l’éditeur, le résultat et la suite');
   assert.ok(!run.includes('<b>Défi résolu</b>'), 'plus de boîte « Défi résolu » sous l’éditeur');
   assert.ok(fn('defiChronoStart').includes("if(document.querySelector('#hint-slot .coach.is-ok,#lesson-out .feedback.ok')){el.classList.add('is-ok');defiChronoStop();defiSesClear();return;}"), 'le chrono s’arrête toujours, au vert');
@@ -70,12 +74,19 @@ test('le style : l’encart vert comme la boîte « Défi résolu », le vert qu
     'html.lq .coach-ok.was-ko{animation:coachOkDuRouge .8s ease both}',
     '@keyframes coachOkDuRouge{0%,30%{background:var(--danger-soft);border-color:#F6C9CC;',
     'html.lq .coach.jeu-done{margin:4px 0 14px;padding:14px 16px 15px;border-radius:22px;box-shadow:0 5px 0 var(--lip);animation:none}',
-    'html.lq .coach-ok-suite{margin:14px 0 0!important;padding-top:12px;border-top:2px dashed var(--line-2);text-align:left}',
+    'html.lq .coach-ok-suite{margin:14px 0 0;padding-top:12px;border-top:2px dashed var(--line-2)}',
+    'html.lq .coach-ok .coach-ok-pts{align-self:center;display:flex;flex-direction:column;align-items:flex-end;',
+    'html.lq .coach-ok .coach-ok-bonus{display:inline-block;',
+    'html.lq .coach-ok-barre::after{content:"";display:block;height:100%;border-radius:inherit;background:var(--accent);transform-origin:0 50%;transform:scaleX(var(--p0,0));animation:coachOkBarre var(--d,5s) linear forwards}',
+    'html[data-motion="reduce"].lq .coach-ok-barre{display:none}',
+    'html.lq .consigne.dq .dq-sec.is-garde{background:#E8F3FF}',
+    'html.lq .coach-ok{display:grid;grid-template-columns:28px minmax(0,1fr) auto;', 'html.lq .coach-ok p{grid-column:2 / 4;grid-row:2}', 'html.lq .coach-ok .coach-ok-d{white-space:nowrap}', 'html.lq #jeu-waitline .jeu-wl{display:flex;flex-direction:column;gap:2px;min-width:0}',
     'html.lq #jeu-root .jeu-hud-box .jeu-timer.is-ok{',
-    'html.lq .coach-ok .jeu-done-pts:has(.jeu-done-b){margin-top:16px}',
     'html.lq .coach.jeu-done .jeu-done-wait{flex-wrap:wrap;row-gap:10px}',
     'html[data-motion="reduce"].lq .coach-ok,html[data-motion="reduce"].lq .coach-ok *{animation:none!important}',
   ]) assert.ok(lq.includes(k), k);
   assert.ok(lq.includes('html.lq .feedback.ok{background:var(--success-soft)!important;border-color:#BFE6CF!important;'), 'les couleurs de « Défi résolu »');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=262">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=263">'));
+  /* 8 h 50 (« Change de couleur pour le vert Garde, sinon ça fait trop ») : « Garde » au bleu ciel, plus en menthe */
+  assert.ok(!lq.includes('html.lq .consigne.dq .dq-sec.is-garde{background:#E5FAEF}') && lq.includes("background:#9CD7FF url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23134E7C'"));
 });

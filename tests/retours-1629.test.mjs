@@ -40,9 +40,9 @@ test('trouvé : la carte de l’indice reste à la place de l’éditeur, son en
   const f = cut('function jeuFoundHTML(r,pid){', '\nfunction jeuCountUp(el){');
   assert.ok(!f.includes('feedback ok') && !f.includes('Trouvé en') && !f.includes('JEU_OK_STK') && !app.includes('const JEU_OK_STK='), 'plus de carte blanche « Trouvé en », ni de médaille');
   assert.ok(f.includes('<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">') && f.includes('${coachOkHTML({ko,det,pts})}'));
-  assert.ok(f.includes("const det=[`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?'du premier coup ✨':''].filter(Boolean).join(' · ');"), 'le temps, la place entre amis, le premier coup');
+  assert.ok(f.includes("const det=coachOkDetail([`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?`du premier coup <span class=\"coach-ok-bonus\">+${x.essai}\\u00a0✨</span>`:'']);"), 'le temps, la place entre amis, le premier coup');
   assert.ok(f.includes("const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;"), 'après un essai manqué, le vert part du rouge');
-  assert.ok(f.includes('`<p class="jeu-auto coach-ok-suite" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">'), 'seul : la suite, et son compte à rebours');
+  assert.ok(f.includes('`<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">') && f.includes('<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:'), 'seul : la suite, son compte à rebours et sa barre (8 h 50)');
   assert.ok(f.includes('<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">'), 'à plusieurs : qui cherche encore, et les réactions groupées');
   assert.ok(!f.includes('jeu-hostbar') && !f.includes('jeuHostBarHTML'), 'plus de « Clore la manche » pour l’hôte (9 novembre, 8 h 42)');
   assert.ok(f.includes('<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>'));
@@ -57,9 +57,9 @@ test('trouvé : la carte de l’indice reste à la place de l’éditeur, son en
   const ctx = vm.createContext({ JEU: { me: 'a', players: { a: { name: 'Elisa' }, b: { name: 'Léa' }, c: { name: 'Tom' }, d: { name: 'Zoé' } }, rounds: [{ found: { a: 1000 } }] }, esc: s => s });
   vm.runInContext(cut('function jeuWaitLine(n){', '\nfunction jeuNetHTML(){'), ctx);
   ctx.jeuLive = () => ['a', 'b'];
-  assert.match(vm.runInContext('jeuWaitLine(0)', ctx), /Léa cherche encore…$/);
+  assert.match(vm.runInContext('jeuWaitLine(0)', ctx), /En attente des autres…<\/b><small>Léa cherche encore<\/small><\/span>$/);
   ctx.jeuLive = () => ['a', 'b', 'c', 'd'];
-  assert.match(vm.runInContext('jeuWaitLine(0)', ctx), /Léa, Tom \+1 cherchent encore…$/);
+  assert.match(vm.runInContext('jeuWaitLine(0)', ctx), /<small>Léa, Tom \+1 cherchent encore<\/small><\/span>$/);
   ctx.JEU.rounds[0].found = { a: 1, b: 2, c: 3, d: 4 };
   assert.match(vm.runInContext('jeuWaitLine(0)', ctx), /Tout le monde a trouvé/);
 });

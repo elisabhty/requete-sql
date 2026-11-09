@@ -6744,7 +6744,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=262">
+<link rel="stylesheet" href="ludique.css?v=263">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=39">
 <style id="lesson-video-css">
@@ -23202,7 +23202,7 @@ function errAide(msg,sql){
     else tabs=listTables(activeDb()||db);
     aide=tabs.length?`Tables disponibles : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:"Aucune table dans la base active — importe un fichier pour commencer.";
   }
-  else if(m.includes('syntax error')) aide="Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.";
+  else if(m.includes('syntax error')) aide="Requête mal formée — vérifie les <span style='white-space:nowrap'>mots-clés</span>, les virgules et le <span style='white-space:nowrap'>point-virgule</span> final.";   // sans coupure au trait d’union (8 h 50)
   else if(m.includes('misuse of aggregate')) aide="Une fonction d'agrégation (COUNT, SUM…) ne peut pas être utilisée dans un WHERE.";
   else if(m.includes('no such function')) aide="Cette fonction n’existe pas ici. Pour trouver son équivalent, voir la page <button type='button' class='sgbd-link' data-sgbd=''>Selon le SGBD</button>.";
   else if(m.includes('ambiguous')) aide=/ambiguous column name: \S+\.\S+/.test(m)
@@ -36106,10 +36106,10 @@ function jeuEcritRecu(m){
 function jeuWaitLine(n){
   const J=JEU,r=J.rounds[n];if(!r)return '';
   const wait=jeuLive().filter(p=>p!==J.me&&r.found[p]==null).map(p=>esc((J.players[p]||{}).name||'Joueur'));
-  if(!wait.length)return '<i class="jeu-dot" aria-hidden="true"></i>Tout le monde a trouvé, les résultats arrivent…';
+  if(!wait.length)return '<i class="jeu-dot" aria-hidden="true"></i><span>Tout le monde a trouvé, les résultats arrivent…</span>';
   const who=wait.length===1?wait[0]:wait.length===2?wait.join(' et '):`${wait.slice(0,2).join(', ')} +${wait.length-2}`;
-  /* « En attente des autres » (Elisa, 9 novembre, 8 h 20), puis qui cherche encore */
-  return `<i class="jeu-dot" aria-hidden="true"></i>En attente des autres · ${who} ${wait.length>1?'cherchent':'cherche'} encore…`;
+  /* « En attente des autres » (Elisa, 9 novembre, 8 h 20), puis, dessous, qui cherche encore (8 h 50 : deux lignes nettes) */
+  return `<i class="jeu-dot" aria-hidden="true"></i><span class="jeu-wl"><b class="jeu-wl-k">En attente des autres…</b><small>${who} ${wait.length>1?'cherchent':'cherche'} encore</small></span>`;
 }
 /* Elle n’apparaît qu’après 4 s sans réseau (8 novembre, 18 h 01, « quand je reviens ça bug un peu l’écran comme des flash ») : au
    retour d’une autre appli, le direct se rebranche en une ou deux secondes, et la notice entrait puis repartait aussitôt, en
@@ -36668,18 +36668,23 @@ function jeuCredit(cid){
    « Trouvé en 00:04 », avec la médaille de sa place. */
 function jeuDureeLisible(ms){const t=Math.max(0,Math.floor((+ms||0)/1000));return t<60?`${t} s`:`${Math.floor(t/60)} min${t%60?` ${String(t%60).padStart(2,'0')}`:''}`;}
 /* L’encart vert : partagé par la salle et le défi seul ouvert depuis sa page (runLesson). */
+/* 8 h 50 (« améliore l’ui ux des composants que t’as rajouté ») : les points passent à droite du titre, en grand chiffre vert, sans
+   cadre (la pastille blanche à ombre avait l’air d’un bouton) ; le premier coup, en petite pastille dans le détail. */
+/* Le détail, en morceaux qui ne se coupent pas : la ligne passe d’un morceau à l’autre, le « · » reste au bout du précédent. */
+function coachOkDetail(l){l=l.filter(Boolean);return l.map((t,i)=>`<span class="coach-ok-d">${t}${i<l.length-1?'\u00a0·':''}</span>`).join(' ');}
 function coachOkHTML(o){
-  return `<div class="coach-ok${o.ko?' was-ko':''}"><span class="coach-ok-ico" aria-hidden="true">${JEU_ICO.check}</span><div class="coach-ok-tx"><b class="coach-ok-k">Bravo, défi résolu&nbsp;!</b>${o.det?`<p>${o.det}</p>`:''}${o.pts||''}</div></div>`;
+  return `<div class="coach-ok${o.ko?' was-ko':''}"><span class="coach-ok-ico" aria-hidden="true">${JEU_ICO.check}</span><div class="coach-ok-tx"><b class="coach-ok-k">Bravo, défi résolu&nbsp;!</b>${o.det?`<p>${o.det}</p>`:''}</div>${o.pts||''}</div>`;
 }
 function jeuFoundHTML(r,pid){
   const J=JEU,n=J.rounds.indexOf(r),rk=jeuRanking(n),k=rk.findIndex(y=>y.pid===pid),x=rk[k]||Object.assign({pid,ms:0,place:1},jeuPts(0,0,true));
   const sl=jeuSoloLike(n),pos=k<0?-1:x.place-1,last=n>=J.nb-1;
-  const det=[`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?'du premier coup ✨':''].filter(Boolean).join(' · ');
-  const pts=`<strong class="jeu-done-pts"><em data-n="${x.pts}">+${x.pts}</em> pts${x.essai?`<i class="jeu-done-b" aria-hidden="true">+${x.essai} ✨</i>`:''}</strong>`;
+  const det=coachOkDetail([`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?`du premier coup <span class="coach-ok-bonus">+${x.essai}\u00a0✨</span>`:'']);
+  const pts=`<strong class="jeu-done-pts coach-ok-pts"><em data-n="${x.pts}">+${x.pts}</em><small>pts</small></strong>`;
   /* Un essai manqué dans cette manche : l’encart était rouge (coachKo) */
   const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;
-  const auto=sl?jeuFinAuto(n):0;
-  const suite=sl?`<p class="jeu-auto coach-ok-suite" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?'Ton bilan arrive':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil((auto-Date.now())/1000))}</b> s</span>`:jeuAutoAttente(n)}</p>`
+  /* Seul : la suite, et une barre qui se remplit jusqu’à elle (8 h 50), de là où elle en est si la carte se redessine */
+  const auto=sl?jeuFinAuto(n):0,reste=auto?Math.max(0,auto-Date.now()):0;
+  const suite=sl?`<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?'Ton bilan arrive':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>${reste?`<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:${Math.min(1,Math.max(0,1-reste/JEU_AUTO_MS)).toFixed(3)}"></i>`:''}</div>`
     :`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div>`;
   return `<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">
       ${coachOkHTML({ko,det,pts})}
@@ -37290,7 +37295,7 @@ function runLesson(){
          la carte de l’indice reste à sa place, son encart passe au vert (coachOkHTML, comme dans la salle) ; dessous l’éditeur, le
          résultat et la suite. Avant : la boîte verte « Défi résolu » sous l’éditeur, et la carte s’effaçait. */
       {const hs=document.getElementById('hint-slot'),ms=defiChrono?Date.now()-defiChrono.t0:null,ko=!!(COACH&&COACH.c===current&&COACH.diag);
-        if(hs)hs.innerHTML=`<section class="coach is-ok" aria-live="polite">${coachOkHTML({ko,det:[ms!=null?`Résolu en <b>${jeuDureeLisible(ms)}</b>`:'',exoFails?'':'du premier coup ✨'].filter(Boolean).join(' · ')})}</section>`;
+        if(hs)hs.innerHTML=`<section class="coach is-ok" aria-live="polite">${coachOkHTML({ko,det:coachOkDetail([ms!=null?`Résolu en <b>${jeuDureeLisible(ms)}</b>`:'',exoFails?'':'du premier coup ✨'])})}</section>`;
         COACH=null;}
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
       setLessonOut(table+(nxtPlan!=null
@@ -46941,7 +46946,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-manche-seule-v2722';
+  const SW_CACHE='requete-2026-11-09-garde-bleu-v2723';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

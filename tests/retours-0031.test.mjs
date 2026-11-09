@@ -179,11 +179,11 @@ function erreurs(o = {}) {
 
 test('l’erreur SQL d’un défi : le message de SQLite, puis l’aide de la boîte « Erreur SQL » (« … le point-virgule final »)', () => {
   const { defiErreurSql: e, errBox, errAide } = erreurs();
-  assert.equal(e('near "q": syntax error', 'q'), '<p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>');
+  assert.equal(e('near "q": syntax error', 'q'), '<p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les <span style=\'white-space:nowrap\'>mots-clés</span>, les virgules et le <span style=\'white-space:nowrap\'>point-virgule</span> final.</p>');
   assert.equal(e('no such column: foo', 'SELECT foo FROM vols'), '<p><code>no such column: foo</code></p><p>Vérifie l\'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>\'texte\'</code>.</p>');
   assert.equal(e('incomplete input', 'SELECT * FROM vols WHERE'), '<p><code>incomplete input</code></p>', 'sans aide connue : le message seul');
-  assert.equal(e('Error: near "x": syntax error'), '<p><code>near "x": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>');
-  assert.equal(e('near "<img src=x onerror=alert(1)>": syntax error'), '<p><code>near "&lt;img src=x onerror=alert(1)&gt;": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>', 'un bout de requête ne devient jamais du HTML');
+  assert.equal(e('Error: near "x": syntax error'), '<p><code>near "x": syntax error</code></p><p>Requête mal formée — vérifie les <span style=\'white-space:nowrap\'>mots-clés</span>, les virgules et le <span style=\'white-space:nowrap\'>point-virgule</span> final.</p>');
+  assert.equal(e('near "<img src=x onerror=alert(1)>": syntax error'), '<p><code>near "&lt;img src=x onerror=alert(1)&gt;": syntax error</code></p><p>Requête mal formée — vérifie les <span style=\'white-space:nowrap\'>mots-clés</span>, les virgules et le <span style=\'white-space:nowrap\'>point-virgule</span> final.</p>', 'un bout de requête ne devient jamais du HTML');
   for (const [m, q] of [['near "q": syntax error', 'q'], ['no such column: foo', ''], ['near "ON": syntax error', 'SELECT DISTINCT ON (e.id) e.nom FROM equipes e']]) {
     assert.ok(errBox(m, q).includes(`<p><code>${m}</code></p><p style="margin-top:7px">${errAide(m, q)}</p>`), 'les mêmes mots que la boîte « Erreur SQL » : ' + m);
   }
@@ -197,7 +197,7 @@ test('en salle classée : la requête est compilée sur la base du défi, sans �
     defiSandbox: () => ({ prepare: q => { vus.push(q); if (q === 'q') throw new Error('near "q": syntax error'); return { free() {}, step() { throw new Error('exécutée !'); } }; }, close() {} })
   });
   const regle = 'Utilise une seule requête de lecture SELECT pour ce défi.';
-  assert.equal(ctx.defiErreurSalle({ id: 'd1' }, 'q', regle), '<p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.</p>', '« q » : l’erreur de SQLite et son aide, pas la règle du serveur');
+  assert.equal(ctx.defiErreurSalle({ id: 'd1' }, 'q', regle), '<p><code>near "q": syntax error</code></p><p>Requête mal formée — vérifie les <span style=\'white-space:nowrap\'>mots-clés</span>, les virgules et le <span style=\'white-space:nowrap\'>point-virgule</span> final.</p>', '« q » : l’erreur de SQLite et son aide, pas la règle du serveur');
   assert.equal(ctx.defiErreurSalle({ id: 'd1' }, 'DELETE FROM avis', regle), `<p><code>${regle}</code></p>`, 'une requête valide mais refusée : la règle du serveur');
   assert.equal(ctx.defiErreurSalle({ id: 'd1' }, 'SELECT 1', 'Le résultat ne correspond pas à la consigne.'), 'Le résultat ne correspond pas à la consigne.', 'un résultat faux n’est pas une erreur');
   assert.deepEqual(vus, ['q', 'DELETE FROM avis'], 'compilée seulement (prepare), jamais pour un résultat faux');
