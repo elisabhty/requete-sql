@@ -130,7 +130,7 @@ test('la mini-barre : une ancre sans hauteur, collée sous l’en-tête, muette 
     + '<span class="jeu-collee-box"><b class="jeu-val jeu-collee-v"><svg class="coin"></svg><span id="jeu-collee-v"></span><small>pts</small></b><b class="jeu-timer jeu-collee-t" id="jeu-collee-t"></b></span></div></div>');
   assert.ok(!vm.runInContext("jeuColleeHTML('Défi',' · Facile',false)", ctx).includes('jeu-val'), 'la page d’un défi : le chrono seul');
   /* Pendant une manche (salle ou seul) et sur la page d’un défi */
-  assert.ok(app.includes("html=`${jeuColleeHTML(`Manche ${n+1}`,`/${J.nb}`,!mine&&!rate)}${jeuNetSlot()}"), 'ce que vaut le défi tant qu’on cherche (ni trouvée, ni finie au chrono)');
+  assert.ok(app.includes("html=`${J.nb===1?jeuColleeHTML(jeuMancheNom(n,sl),'',!mine&&!rate):jeuColleeHTML(`Manche ${n+1}`,`/${J.nb}`,!mine&&!rate)}${jeuNetSlot()}"), 'ce que vaut le défi tant qu’on cherche (ni trouvée, ni finie au chrono) ; « Défi solo » pour une partie d’une manche (10 h 37)');
   assert.ok(app.includes("jeuColleeSuivre(v.startsWith('play')&&typeof root.querySelector==='function'?root.querySelector('.jeu-hud'):null,'jeu-timer','jeu-val-n');"));
   assert.ok(app.includes("document.getElementById('lesson-body').innerHTML=`${jeuColleeHTML('Défi',` · ${NIV[c.niv].l}`,false)}\n    <div class=\"defi-top\">"));
   assert.ok(app.includes("  jeuColleeSuivre(document.querySelector('#lesson-body .defi-top'),'defi-timer',null);"));

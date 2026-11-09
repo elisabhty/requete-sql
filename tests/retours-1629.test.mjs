@@ -22,7 +22,7 @@ test('pendant la manche, une seule action : « Exécuter » ; le schéma passe d
   assert.ok(cours.includes('>Schéma</button>') && cours.includes('>Pas à pas</button>') && !cours.includes('ed-schema'), 'les cours ne changent pas');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes("${mine?jeuFoundHTML(r,J.me):rate?jeuRateHTML(r):editorBlock(false,'defi.sql',{jeu:1})}"));
-  assert.ok(r.includes("${sl?`<section class=\"jeu-direct is-seul\" aria-label=\"Manche ${n+1} sur ${J.nb}\"><div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud)}\n      ${defiConsigneHTML(c,{base:true,titre:true})}"), 'qui en est où : « En direct » sous le titre, avant la question, dès qu’on n’est pas seul (9 novembre, 7 h 16 ; avant, même seul, 17 h 08)');
+  assert.ok(r.includes("${sl?`<section class=\"jeu-direct is-seul\" aria-label=\"${J.nb===1?jeuMancheNom(n,sl):`Manche ${n+1} sur ${J.nb}`}\"><div class=\"jeu-direct-bande\">${hud}</div></section>`:jeuDirectHTML(n,hud)}\n      ${defiConsigneHTML(c,{base:true,titre:true})}"), 'qui en est où : « En direct » sous le titre, avant la question, dès qu’on n’est pas seul (9 novembre, 7 h 16 ; avant, même seul, 17 h 08)');
   const play = r.slice(r.indexOf("}else if(v.startsWith('play')){"), r.indexOf("}else if(v.startsWith('res')){"));
   assert.ok(!play.includes('jeu-reacts') && !play.includes('jeuHostBarHTML') && !play.includes('jeuPlayersHTML'), 'pendant qu’on cherche : ni rangée de réactions, ni « Clore », ni liste de cadres');
   /* 8 novembre, 18 h 36 (« comment faire les réactions ? ») puis 19 h 37 : un seul bouton « Réagir », posé en bas à droite de l’écran,
@@ -46,7 +46,8 @@ test('trouvé : la carte de l’indice reste à la place de l’éditeur, son en
   assert.ok(f.includes("const suite=fin1?'':sl?jeuSuiteHTML(n)") && suite.includes('`<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">') && suite.includes('<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:'), 'seul : la suite, son compte à rebours et sa barre (8 h 50)');
   assert.ok(f.includes('<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">'), 'à plusieurs : qui cherche encore, et les réactions groupées');
   assert.ok(!f.includes('jeu-hostbar') && !f.includes('jeuHostBarHTML'), 'plus de « Clore la manche » pour l’hôte (9 novembre, 8 h 42)');
-  assert.ok(f.includes('<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>'));
+  /* 10 h 37 : « Voir ma requête et son résultat » ; une partie d’une manche, « Voir la correction » (la feuille la montre, avec la solution) */
+  assert.ok(f.includes('${fin1?jeuCorrBoutonHTML(n):r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:\'\'}'));
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
   assert.ok(run.includes('r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;'));
   assert.ok(run.includes("if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}"), 'la manche se redessine aussitôt');

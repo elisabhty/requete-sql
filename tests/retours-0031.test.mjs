@@ -113,8 +113,10 @@ test('« Comment sont calculés les points ? » ouvre le barème du niveau chois
 
 test('une manche manquée : la carte « Temps écoulé » (0 point obtenu), sans bandeau « 0 · 0/1 · — » ; il reste pour un record et à plusieurs manches', () => {
   assert.ok(app.includes("lastMiss=nT===1&&lastR&&lastR.ms==null?jeuMissHTML(lastR.r,J.solo||host):'';"), 'la carte : une manche, manquée');
-  assert.ok(app.includes("`${lastMiss}${lastMiss&&!J.record?'':bande}") && app.includes("const bande=nOk||J.record?`<div class=\"jeu-bilan${J.record?' has-record':''}${nOk>1?'':' is-2'}\">"), 'le bandeau, sinon (9 novembre, 10 h 01 : pas de bandeau de zéros)');
-  assert.ok(app.includes("${nOk>1?`<div><b>${dur(got.reduce((a,x)=>a+x.ms,0)/nOk)}</b><small>temps moyen</small></div>`:''}</div>`:'';"), 'le temps moyen dès deux défis résolus');
+  /* 9 novembre, 10 h 37 (la relecture) : le bilan d’une partie de 2 ou 3 manches a toujours ses trois cases, « — » sans défi résolu ;
+     une manche seule et manquée (une partie d’une manche finit sur place depuis 10 h 01) garde sa carte */
+  assert.ok(app.includes("`${lastMiss}${lastMiss&&!J.record?'':bande}") && app.includes("const bande=`<div class=\"jeu-bilan${J.record?' has-record':''}\">"), 'le bandeau, sinon, toujours le même');
+  assert.ok(app.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>temps moyen</small></div></div>`;"), 'le temps moyen, « — » sans défi résolu');
   assert.ok(fn('jeuMissHTML').includes('<div><b>0</b><small>Point obtenu</small></div><div><b>Non validée</b><small>Ta réponse</small></div>'), 'la carte dit déjà 0 point');
   /* Le compteur des points vise le bandeau : sans lui, il ne trouve rien et ne fait rien */
   assert.ok(app.includes("const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);"));
@@ -282,7 +284,7 @@ test('l’invité attend : « En attente que l’hôte lance la partie… » (so
    personne dans la salle, ça se transforme en solo automatiquement ». */
 test('seul dans la salle : la tête de « Joue seul », pas de « Réagir », « Défi » en titre', () => {
   const play = cut("    /* 9 novembre, 7 h 16 (Elisa, sa capture d’une salle où elle est seule", "      ${defiConsigneHTML(c,{base:true,titre:true})}");
-  assert.ok(play.includes('    jeuTitreNav(sl);\n') && play.includes('${sl?`<section class="jeu-direct is-seul" aria-label="Manche ${n+1} sur ${J.nb}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}'));
+  assert.ok(play.includes('    jeuTitreNav(sl);\n') && play.includes('${sl?`<section class="jeu-direct is-seul" aria-label="${J.nb===1?jeuMancheNom(n,sl):`Manche ${n+1} sur ${J.nb}`}"><div class="jeu-direct-bande">${hud}</div></section>`:jeuDirectHTML(n,hud)}'));
   /* Le titre */
   const titres = [];
   const ctx = vm.createContext({ JEU: { solo: false }, document: { getElementById: id => (id === 'nav-title' ? { set textContent(v) { titres.push(v); } } : null) } });

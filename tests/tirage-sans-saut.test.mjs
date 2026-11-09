@@ -39,7 +39,7 @@ test('seul en ligne : la scène d’attente devient le tirage sur place, sans ê
     jeuNivBars: k => `<i class="jeu-bars is-${k}"></i>`, jeuDrawNote: () => 'Un défi au hasard, au niveau choisi.',
     jeuDrawTimers: n => appels.push(['minuteurs', n]), jeuDrawStep: n => appels.push(['pas', n]),
   });
-  vm.runInContext(fn('jeuDrawEnPlace') + line('jeuDrawnHTML'), ctx);
+  vm.runInContext(fn('jeuDrawEnPlace') + line('jeuDrawnHTML') + line('jeuMancheNom'), ctx);
   assert.equal(ctx.jeuDrawEnPlace(0), true);
   assert.ok(!cls.has('is-wait') && box.dataset.step === '3', 'la scène devient le tirage');
   assert.equal(kicker.textContent, 'Manche 1/3 · Facile');

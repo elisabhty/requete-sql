@@ -65,7 +65,7 @@ test('fermée par le serveur à son heure (de retour après la fin) : « Temps �
   assert.ok(app.includes("J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,srvT1:+m.startAt||(m.at?m.at+JEU_DRAW_MS:0),"));
   assert.ok(cut("    case 'close':{", "    case 'end':").includes('r.closed=true;r.closeAt=+m.at||0;'));
   assert.ok(fn('jeuMissHTML').includes("r.closed&&!jeuFermeeAuChrono(r,JEU?JEU.rounds.indexOf(r):-1)?"));
-  assert.ok(app.includes("const why=x.r.closed&&!jeuFermeeAuChrono(x.r,J.rounds.indexOf(x.r))?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';"));
+  assert.ok(app.includes("const ab=!ok&&x.r.closed&&!jeuFermeeAuChrono(x.r,k),why=ab?(J.solo||host?'Abandonnée':'Close par l’hôte'):'Temps écoulé';"));
 });
 
 test('de retour d’une autre appli : un signe de vie avant « hello », et le serveur compte le joueur présent', () => {
