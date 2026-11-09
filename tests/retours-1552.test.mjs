@@ -41,9 +41,9 @@ test('réf. 2 et 3 — « En attente d’un joueur », des boutons secondaires e
   assert.ok(r.includes("jeuBtn2('level','Changer de niveau','openJeu()')") && r.includes("jeuBtn2('quit','Quitter la salle','goBack()')"));
   assert.ok(!/class="jeu-close" onclick="[^"]+">[A-Z]/.test(r), 'chaque bouton du bas a son pictogramme');
   const ctx = vm.createContext({});
-  vm.runInContext(cut('const JEU_ICO={', '\nfunction jeuHostBarHTML(){'), ctx);
-  const b = vm.runInContext("jeuBtn2('flag','Clore la manche pour tous','jeuClose()')", ctx);
-  assert.match(b, /^<button type="button" class="jeu-close" onclick="jeuClose\(\)"><svg viewBox="0 0 24 24" aria-hidden="true">.+<\/svg><span>Clore la manche pour tous<\/span><\/button>$/);
+  vm.runInContext(cut('const JEU_ICO={', '\nfunction jeuRedraw(){'), ctx);
+  const b = vm.runInContext("jeuBtn2('quit','Quitter la salle','goBack()')", ctx);
+  assert.match(b, /^<button type="button" class="jeu-close" onclick="goBack\(\)"><svg viewBox="0 0 24 24" aria-hidden="true">.+<\/svg><span>Quitter la salle<\/span><\/button>$/);
   for (const k of ['html.lq .jeu-close{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:50px;', 'text-decoration:none!important;box-shadow:0 4px 0 var(--lip)',
     'html.lq .jeu-close:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}', 'html.lq #jeu-hostbar .jeu-close svg{color:var(--danger-fill)}',
     'html.lq .jeu-net{display:flex;align-items:center;gap:10px;', 'html.lq .jeu-net.is-off{border-color:#FFE08A;', '@keyframes jeuNoteIn'])

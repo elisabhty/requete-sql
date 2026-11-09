@@ -208,6 +208,10 @@ function makeClient(world, name, { skew = 0 } = {}) {
 }
 
 const sec = (w, s) => w.advance(s * 1000);
+/* Une manche close avant la fin du chrono : par le serveur à son heure, ou par une version d’avant de l’appli. L’hôte n’a plus de bouton
+   pour la clore (Elisa, 9 novembre, 8 h 42 : « l’hôte n’a pas la main pour la clore ») : le message « close », tel que la salle le reçoit. */
+const clore = c => c.ev("jeuSend({t:'close',n:jeuCur()})");
+
 function room({ n = 2, nb = 3, niv = 'f', settle = 3 } = {}) {
   const w = new World();
   const host = makeClient(w, 'Hôte');
@@ -572,7 +576,7 @@ test('solo : manche abandonnée ou temps écoulé = 0 point, le défi n’est pa
   const w = new World();
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=1;jeuNiv='d'");
   s.ev("jeuStart('SOLO22',true,null,{solo:true})"); sec(w, 4);
-  s.ev('jeuClose()'); sec(w, 1);
+  clore(s); sec(w, 1);
   /* 3 novembre, 7 h 31 : seul, la dernière manche mène tout droit au bilan, sur la même page que la manche abandonnée. */
   assert.equal(s.view(), 'final'); assert.match(s.html, /Manche abandonnée/);
   assert.match(s.html, /Ton bilan/); assert.match(s.html, /<b>0<\/b><small>Point obtenu<\/small>/);
@@ -612,7 +616,7 @@ test('un défi déjà trouvé peut revenir au tirage : seul, tous les défis fac
   assert.match(s.html, /Un défi au hasard, au niveau choisi\./);
   assert.doesNotMatch(s.html, /réussi/, 'plus de « pas encore réussi »');
   sec(w, 3);
-  for (let n = 1; n < 3; n++) { s.ev('jeuClose()'); sec(w, 1); s.ev('jeuNextRound()'); sec(w, 4); }
+  for (let n = 1; n < 3; n++) { clore(s); sec(w, 1); s.ev('jeuNextRound()'); sec(w, 4); }
   assert.equal(new Set(s.ev('JEU.rounds.map(r=>r.cid)')).size, 3, '3 manches faciles, tous les défis déjà trouvés, sans doublon');
 });
 
@@ -642,8 +646,7 @@ test('un défi trouvé dans la salle peut revenir après « Rejouer »', () => {
   const x = h.ev('JEU.rounds[0].cid');
   g.found(); sec(w, 2);
   assert.equal(g.ev(`state.defis['${x}']`), true, 'trouvé par l’ami (sa progression le garde)');
-  sec(w, 120);   // 6 novembre : l’hôte clôt 2 min après le premier qui a trouvé
-  h.ev('jeuClose()'); sec(w, 1); h.ev('jeuFinish()'); sec(w, 1); h.ev('jeuAgain()'); sec(w, 1);
+  clore(h); sec(w, 1); h.ev('jeuFinish()'); sec(w, 1); h.ev('jeuAgain()'); sec(w, 1);
   h.ev('JEU.recent.clear()');
   const seen = new Set(h.ev(`(()=>{const original=Math.random,picks=[];try{for(let k=0,total=jeuChallenges('f').length;k<total;k++){Math.random=()=> (k+.5)/total;picks.push(jeuPick());}}finally{Math.random=original;}return picks;})()`));
   assert.ok(seen.has(x), 'trouvé, il peut revenir');
@@ -859,11 +862,11 @@ test('toutes les vues se dessinent sans erreur (échappement des pseudos compris
   /* 8 novembre, 18 h 36 puis 19 h 37 : « Réagir », un seul bouton, posé en bas à droite de l’écran, hors de la manche qui défile */
   assert.equal(host.ev('jeuReagirLa()'), true); assert.doesNotMatch(play, /jeu-reagir/);
   assert.doesNotMatch(play, /<img/);
-  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="coach is-ok jeu-done"/); assert.match(wait, /Bravo, défi résolu/); assert.match(wait, /En attente des autres · .* cherche encore/); assert.match(wait, /jeu-reacts/); assert.match(wait, /Clore la manche dans <b id="jeu-clore-t">0[12]:\d\d<\/b>/, '6 novembre : 2 min après le premier qui a trouvé');
+  host.found(); sec(w, 1); const wait = grab(); assert.match(wait, /class="coach is-ok jeu-done"/); assert.match(wait, /Bravo, défi résolu/); assert.match(wait, /En attente des autres · .* cherche encore/); assert.match(wait, /jeu-reacts/); assert.doesNotMatch(wait, /Clore la manche|jeu-hostbar/, '9 novembre, 8 h 42 : l’hôte n’a plus la main pour clore la manche');
   assert.doesNotMatch(wait, /id="ed-lesson"/, 'la carte « Trouvé » remplace l’éditeur');
   evil.found(); sec(w, 2); const res = grab(); assert.match(res, /Classement de la manche/); assert.doesNotMatch(res, /<img/);
-  host.ev('jeuClose()'); host.ev('jeuNextRound()'); sec(w, 5); host.ev('jeuClose()'); sec(w, 1);
-  host.ev('jeuNextRound()'); sec(w, 5); host.ev('jeuClose()'); sec(w, 1);
+  clore(host); host.ev('jeuNextRound()'); sec(w, 5); clore(host); sec(w, 1);
+  host.ev('jeuNextRound()'); sec(w, 5); clore(host); sec(w, 1);
   host.ev('jeuFinish()'); sec(w, 1);
   const fin = grab(); assert.match(fin, /class="jeu-podium"/); assert.doesNotMatch(fin, /Classement final/, 'deux joueurs, tous deux sur le podium : pas de liste en double');
   assert.deepEqual([...seen].sort(), ['draw', 'final', 'lobby', 'play', 'res']);
@@ -900,9 +903,31 @@ test('une manche terminée le reste : un arrivant ne rouvre rien, les scores gar
   assert.ok(sc.length === 4 && sc.every(x => !/:0$/.test(x)), 'les points des deux manches : ' + sc);
 });
 
+/* 9 novembre, 8 h 42 (Elisa) : « La manche se clôt seule quand tout le monde a trouvé ; l’hôte n’a pas la main pour la clore ; elle
+   termine au mieux au chrono si personne n’a trouvé. » */
+test('la manche se clôt seule quand tout le monde a trouvé, sinon à la fin du chrono ; l’hôte n’a pas la main pour la clore', () => {
+  const { w, host, guests } = room({ n: 2, nb: 2 });
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  host.found(); sec(w, 3);
+  assert.equal(host.view(), 'play0', 'un ami cherche encore : la manche continue');
+  assert.doesNotMatch(host.html, /Clore la manche|jeu-hostbar|jeu-mini/, 'pas de bouton pour la clore');
+  assert.equal(host.ev('typeof jeuClose'), 'undefined');
+  sec(w, 150);
+  assert.equal(host.view(), 'play0', '2 min 30 plus tard, toujours en cours (avant, l’hôte pouvait la clore 2 min après le premier)');
+  assert.doesNotMatch(host.html, /Clore la manche/);
+  guests[0].found(); sec(w, 2.5);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' : tout le monde a trouvé, elle se clôt seule');
+  sec(w, 10);
+  assert.equal(host.view(), 'play1', 'la suivante part toute seule');
+  sec(w, 10 * 60);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'res1', c.name + ' : personne n’a trouvé, elle finit au chrono');
+  assert.match(guests[0].html, /Temps écoulé/);
+  assert.doesNotMatch(guests[0].html, /close par l’hôte/);
+});
+
 test('un temps reçu pendant les résultats met le classement à jour (sans rouvrir la manche)', () => {
   const { w, host, guests } = room({ n: 3 });
-  host.ev('jeuNextRound()'); sec(w, 4.5); host.ev('jeuClose()'); sec(w, 1);
+  host.ev('jeuNextRound()'); sec(w, 4.5); clore(host); sec(w, 1);
   assert.equal(host.view(), 'res0');
   guests[0].ev('jeuSend({t:"found",n:0,ms:5000})'); sec(w, 2);
   assert.equal(host.view(), 'res0');
@@ -992,7 +1017,7 @@ test('pseudos : invisibles retirés, initiale d’emoji entière, élision, code
 
 test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille à 0 point', () => {
   const { w, host, guests } = room({ n: 2, nb: 1 });
-  host.ev('jeuNextRound()'); sec(w, 4.5); host.ev('jeuClose()'); sec(w, 1); host.ev('jeuFinish()'); sec(w, 1.5);
+  host.ev('jeuNextRound()'); sec(w, 4.5); clore(host); sec(w, 1); host.ev('jeuFinish()'); sec(w, 1.5);
   assert.equal(host.view(), 'final');
   assert.doesNotMatch(host.html, /Tu as gagné/, 'personne n’a marqué : pas de gagnant');
   assert.match(host.html, /is-1 is-empty/, 'pas de médaille d’or à 0 point');
@@ -1042,7 +1067,7 @@ test('tableau de performance : une partie entre amis notée pour chacun, avec sa
     host.found(); sec(w, 3);
     if (n < 2) guests[0].found();
     sec(w, 1.5);
-    if (n === 2) { sec(w, 120); host.ev('jeuClose()'); sec(w, 1.5); }   // 2 min après le premier qui a trouvé
+    if (n === 2) sec(w, 15 * 60);   // la manche finit au chrono : l’hôte ne la clôt plus (9 novembre, 8 h 42)
   }
   host.ev('jeuFinish()'); sec(w, 1.5);
   const h = host.ev('state.salle'), g = guests[0].ev('state.salle');
@@ -1066,7 +1091,7 @@ test('tableau de performance : en solo, pas de place ; une manche abandonnée co
   const w = new World();
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=1;jeuNiv='d'");
   s.ev("jeuStart('SOLO66',true,null,{solo:true})"); sec(w, 4);
-  s.ev('jeuClose()'); sec(w, 1); s.ev('jeuFinish()'); sec(w, 1);
+  clore(s); sec(w, 1); s.ev('jeuFinish()'); sec(w, 1);
   const st = s.ev('state.salle');
   assert.equal(st.manches, 1); assert.equal(st.trouves, 0); assert.equal(st.fast || 0, 0); assert.equal(st.amis || 0, 0);
   assert.deepEqual(st.lv.d, [1, 0]);
@@ -1401,8 +1426,8 @@ test('8 novembre, 17 h 31 : trouvée par tout le monde, close ou abandonnée, la
   assert.equal(host.view(), 'res0', 'les 5 s pour voir le résultat');
   sec(w, 5.5);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name + ' : la manche 2');
-  /* Close par l’hôte : la suite part aussi toute seule ; les 5 s passées sans la suite, la ligne le dit */
-  host.ev('jeuClose()'); sec(w, 1);
+  /* Close (par une version d’avant de l’appli) : la suite part aussi toute seule ; les 5 s passées sans la suite, la ligne le dit */
+  clore(host); sec(w, 1);
   assert.equal(guests[0].view(), 'res1');
   assert.match(guests[0].html, /Manche close par l’hôte/);
   guests[0].ev('JEU.rounds[1].finVu=Date.now()-6000'); guests[0].ev("JEU.view='';jeuRender()");

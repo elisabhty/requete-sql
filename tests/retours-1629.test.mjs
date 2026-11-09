@@ -44,7 +44,7 @@ test('trouvé : la carte de l’indice reste à la place de l’éditeur, son en
   assert.ok(f.includes("const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;"), 'après un essai manqué, le vert part du rouge');
   assert.ok(f.includes('`<p class="jeu-auto coach-ok-suite" id="jeu-auto">${auto&&Date.now()<auto?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">'), 'seul : la suite, et son compte à rebours');
   assert.ok(f.includes('<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">'), 'à plusieurs : qui cherche encore, et les réactions groupées');
-  assert.ok(f.includes('<div id="jeu-hostbar">${jeuHostBarHTML()}</div>'));
+  assert.ok(!f.includes('jeu-hostbar') && !f.includes('jeuHostBarHTML'), 'plus de « Clore la manche » pour l’hôte (9 novembre, 8 h 42)');
   assert.ok(f.includes('<details class="jeu-done-sql"><summary>Ta requête et son résultat</summary>${r.mine}</details>'));
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
   assert.ok(run.includes('r.mine=`<div class="ex-code">${highlight(sql)}</div>${renderTable(userRes,ms)}`;'));

@@ -80,11 +80,9 @@ test('réf. 4 — la même marge de 20 px sur toutes les pages, et les pastilles
 
 test('réf. 5 et 6 — pendant une manche : le chrono seul, et pas de « Voir la solution » seul', () => {
   assert.ok(!app.includes('id="jeu-tbar"'), 'plus de barre de temps');
-  const bar = cut('function jeuHostBarHTML(){', '\nfunction jeuRedraw(){');
-  /* Le bouton de l’hôte : un petit bouton dans la carte « Trouvé », à plusieurs seulement (retours de 15 h 52 et 16 h 29). */
-  /* 6 novembre, 16 h : il attend 2 min après le premier qui a trouvé, et le dit (retours-1520-pratiquer) */
-  assert.ok(bar.includes("if(!jeuIsHost()||jeuSoloLike(jeuCur()))return '';") && bar.includes(":`<button type=\"button\" class=\"jeu-mini\" onclick=\"jeuClose()\">${JEU_ICO.flag}<span>Clore la manche pour tous</span></button>`;"));
-  assert.ok(!bar.includes('Voir la solution'));
+  /* Le bouton de l’hôte (« Clore la manche pour tous », retours de 15 h 52 et 16 h 29, puis 2 min après le premier le 6 novembre) s’en
+     va le 9 novembre, 8 h 42 : personne ne clôt la manche à la main (retours-1520-pratiquer) ; seul, jamais de « Voir la solution » */
+  assert.ok(!app.includes('function jeuHostBarHTML(') && !app.includes('function jeuClose(') && !app.includes("titre:'Voir la solution ?'"));
 });
 
 test('réf. 7 — le pas à pas sans étapes : en-tête violet, autocollant, chemin d’un SELECT, « Compris »', () => {

@@ -4,7 +4,7 @@
    1. trouvé, la carte de l’indice reste à sa place, au-dessus de la requête ; son encart passe au vert (coachOkHTML), comme la boîte
       « Défi résolu » : « Bravo, défi résolu ! », « Résolu en 2 min 05 », la place entre amis, le premier coup, les points ; après un
       essai manqué, le vert part du rouge ;
-   2. à plusieurs, dessous : « En attente des autres · @matime cherche encore… », les réactions, « Clore la manche » pour l’hôte ;
+   2. à plusieurs, dessous : « En attente des autres · @matime cherche encore… » et les réactions (« Clore la manche » s’en va à 8 h 42) ;
    3. seul, la manche trouvée reste à l’écran le temps de la suite : « La manche suivante démarre dans 5 s », ou « Ton bilan arrive
       dans 5 s » à la dernière ; le chrono s’arrête, au vert ; on peut partir sans question (salle-defis.test.mjs : le déroulé) ;
    4. le défi seul ouvert depuis sa page : le même encart vert dans sa carte ; sous l’éditeur, le résultat et la suite. */

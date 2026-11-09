@@ -123,18 +123,15 @@ test('celui qui ne joue pas ne compte pas : moins de deux joueurs ont essayé, l
   assert.ok(m.includes("'+case when premier and (seul or rang=0) then 25 else 0 end+case when seul then 0 when rang=0'"));
 });
 
-test('« Clore la manche » : 2 minutes après le premier qui a trouvé, le bouton compte jusque-là', () => {
-  const bar = cut('function jeuHostBarHTML(){', '\nfunction jeuRedraw(){');
-  assert.ok(bar.includes('Clore la manche dans <b id="jeu-clore-t">${jeuRebours(a)}</b>') && bar.includes('class="jeu-mini is-attente" disabled'));
-  const ctx = vm.createContext({ Date: { now: () => 1000000 + ctx.__t }, Math, Number, Object, __t: 0, jeuRoundDone: () => false });
-  vm.runInContext(cut('const JEU_CLORE_MS=', '\nfunction jeuHostBarHTML(){') + ';var JEU={solo:false,rounds:[{t1:1000000,found:{}}]};', ctx);
-  assert.equal(ctx.jeuCloreAttente(0), 0, 'personne n’a trouvé : on peut clore');
-  vm.runInContext('JEU.rounds[0].found={a:30000,b:50000}', ctx);
-  ctx.__t = 40000; assert.equal(ctx.jeuCloreAttente(0), 110000, 'le premier a trouvé à 30 s : encore 1 min 50');
-  ctx.__t = 150000; assert.equal(ctx.jeuCloreAttente(0), 0, '2 min plus tard : c’est possible');
-  assert.ok(fn('jeuClose').includes("if(att>0){lqInfo('Encore un instant','Après le premier qui a trouvé, les autres ont 2 minutes pour finir. Tu pourras clore la manche dans '+jeuRebours(att)+'.','⏱');return;}"));
-  assert.ok(fn('jeuTick').includes("const ct=document.getElementById('jeu-clore-t');"), 'le compte à rebours avance chaque seconde');
-  assert.ok(lq.includes('html.lq .jeu-mini.is-attente{cursor:default;'));
+/* 6 novembre, 16 h : « Clore la manche », 2 min après le premier qui a trouvé. 9 novembre, 8 h 42 (Elisa) : « La manche se clôt seule
+   quand tout le monde a trouvé ; l’hôte n’a pas la main pour la clore ; elle termine au mieux au chrono si personne n’a trouvé. » */
+test('plus de « Clore la manche » : la manche se clôt seule (tout le monde a trouvé, ou le chrono) ; la règle du serveur reste', () => {
+  for (const k of ['function jeuHostBarHTML(', 'function jeuCloreAttente(', 'const JEU_CLORE_MS=', 'function jeuClose(', 'jeuClose()', 'jeu-clore-t', 'jeu-hostbar', '<span>Clore la manche pour tous</span>', 'Tu pourras clore la manche dans'])
+    assert.ok(!app.includes(k), k);
+  assert.ok(!fn('jeuTick').includes('clore'), 'plus de compte à rebours de l’hôte');
+  assert.ok(fn('jeuRoundDone').includes("if(r.done||r.closed||Date.now()-r.t1>=jeuDureeMs(jeuNivManche(n)))return true;") && fn('jeuRoundDone').includes('if(!jeuLive().every(p=>r.found[p]!=null))return false;'), 'tout le monde a trouvé, ou le chrono à 0');
+  /* Une manche close par une version d’avant de l’appli (ou par le serveur à la fin du chrono) se lit toujours */
+  assert.ok(app.includes("    case 'close':{\n      if(m.pid!==J.hostPid)return;"));
   const m = mig('_defis_anti_triche.sql');
   assert.ok(m.includes("raise exception 'clore la manche : 2 minutes après le premier qui a trouvé' using errcode='P0001';") && m.includes("raise exception 'fin de partie : 2 minutes après le premier qui a trouvé' using errcode='P0001';"), 'le serveur refuse aussi');
 });
