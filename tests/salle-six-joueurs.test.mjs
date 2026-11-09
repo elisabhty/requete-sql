@@ -11,9 +11,9 @@ test('six joueurs par salle : l’appli, ses textes et les trois colonnes d’«
   assert.ok(app.includes('const JEU_MAX=6;'), 'six au plus');
   assert.ok(app.includes('max:solo?1:JEU_MAX'), 'seul : une place');
   assert.ok(app.includes('invite jusqu’à ${JEU_MAX-1} joueurs, ou ouvre ta salle à tous.'), 'le cadre du haut : « jusqu’à 5 joueurs »');
-  assert.ok(app.includes("complete:['Salle complète&nbsp;!','Elle accueille déjà 6 joueurs, le maximum. Demande à l’hôte de libérer une place, ou ouvre ta propre salle.']"), 'la feuille du code, salle pleine');
+  assert.ok(app.includes("complete:['Salle complète&nbsp;!','Cette salle a déjà atteint sa limite de 6 joueurs. Essaie un autre code ou crée ta propre salle.']"), 'la feuille du code, salle pleine');
   assert.ok(app.includes('<span><b>${JEU_MAX}</b>\\u00a0joueurs max</span>'), '« Créer ma partie » : « 6 joueurs max »');
-  assert.ok(app.includes('`Elle accueille déjà ${J.max} joueurs, le maximum.'), 'la salle complète');
+  assert.ok(app.includes('`Cette salle a déjà atteint sa limite de ${J.max} joueurs.'), 'la salle complète');
   assert.ok(app.includes('+s.nb<(+s.max||JEU_MAX)') && app.includes('max:+s.max||JEU_MAX'), 'les salles ouvertes : 6 par défaut');
   assert.ok(!app.includes('Elle accueille déjà 5') && !app.includes('<p class="room-sub">Choisis ton niveau et invite jusqu’à 4 joueurs'), 'plus de « 5 » ni de « 4 invités »');
   assert.ok(css.includes('html.lq #jeu-root .jeu-direct-av{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));'), 'trois colonnes : deux lignes pleines à six');
