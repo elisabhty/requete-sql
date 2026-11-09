@@ -306,11 +306,13 @@ test('réinitialiser : la copie d’une table disparue s’en va, la restauratio
 });
 
 /* 9 novembre, 23 h 44 : projet cible en lignes à toucher, description écrite en place, « + » dans le titre des tables */
-test('feuille d’import, description en place, ajout de table : à portée de main', () => {
-  assert.ok(app.includes('function impChoixRendre(){') && app.includes('  impChoixRendre();\n  onImportDbChange();'));
-  assert.ok(lq.includes('html.lq .imp-sheet .imp-db-natif{display:none!important}') && lq.includes('html.lq .imp-choix-l.is-on{'));
-  assert.ok(app.includes('function descEnPlace(cible,o){') && app.includes("await descEnPlace(ici,{...o,label:'Description du projet',sombre:true})") && app.includes('await descEnPlace(ici,{...o,label:`Description de la table ${name}`})'));
-  assert.ok(lq.includes('html.lq #scr-console .tbl-desc[hidden],html.lq #scr-console .console-desc[hidden]{display:none!important}'));
+test('feuille d’import : la liste d’origine, plus vive ; les descriptions dans leur fenêtre ; « + » dans le titre des tables', () => {
+  /* 10 novembre, 0 h 14 (Elisa : « je préfère celui d’avant, mais plus rapide » ; « on repart sur la page pour la description ») */
+  assert.ok(app.includes('<select id="imp-db" onchange="onImportDbChange(true)"></select>') && !app.includes('impChoixRendre') && !app.includes('descEnPlace'));
+  assert.ok(app.includes("document.documentElement.classList.add('imp-ouvert');\n  if(window.matchMedia&&matchMedia('(pointer:fine)').matches){"), 'pas de champ mis au point sur un téléphone');
+  assert.ok(app.includes("document.documentElement.classList.remove('imp-ouvert');"));
+  assert.ok(lq.includes('html.lq .imp-field select{touch-action:manipulation;transition:none}') && lq.includes('html.imp-ouvert [id^="scr-"] *,'));
+  assert.ok(app.includes("const v=await lqPrompt({ico:'📝',titre:'Description du projet'"), 'la fenêtre de description, comme avant');
   assert.ok(app.includes('id="db-tables-ajout" onclick="ajouterTable()" aria-label="Ajouter une table"') && lq.includes('html.lq #scr-console .tbl-ajout-fin{'));
 });
 

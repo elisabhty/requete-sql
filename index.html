@@ -6783,7 +6783,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=295">
+<link rel="stylesheet" href="ludique.css?v=296">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -7909,7 +7909,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <p class="imp-sub" id="imp-sub">Excel, CSV, JSON, SQL ou SQLite</p>
     <div class="imp-kind" id="imp-kind">Table</div>
     <div class="imp-field" id="imp-table-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"><span class="hint" id="imp-table-hint"></span></div>
-    <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Projet cible</label><select id="imp-db" class="imp-db-natif" onchange="onImportDbChange(true)" tabindex="-1" aria-hidden="true"></select><div class="imp-choix" id="imp-db-choix" role="radiogroup" aria-labelledby="imp-db-label"></div><span class="hint" id="imp-db-hint"></span></div>
+    <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Projet cible</label><select id="imp-db" onchange="onImportDbChange(true)"></select><span class="hint" id="imp-db-hint"></span></div>
     <div class="imp-field" id="imp-newname-field" hidden><label>Nom du nouveau projet</label><input id="imp-newname" autocomplete="off" spellcheck="false" placeholder="Mon projet"></div>
     <div class="imp-prev" id="imp-prev"></div>
     <p class="imp-ou" id="imp-ou" hidden></p>
@@ -21319,33 +21319,10 @@ function dbNote(id){ const p=projOf(id); return p.desc!=null?p.desc:(id==='cours
 function tableNote(id,t){ const m=projOf(id).tdesc||{}; return m[t]!=null?m[t]:(id==='cours'?(DEMO_NOTES.tables[t]||''):(DEFI_BASES[id]&&DEFI_BASES[id].tables&&DEFI_BASES[id].tables[t])||''); }
 /* La description d’une colonne, pour les bases qui en ont (Aéroport). */
 function colNote(id,t,c){ const b=typeof DEFI_BASES!=='undefined'&&DEFI_BASES[id];return (b&&b.cols&&b.cols[t]&&b.cols[t][c])||''; }
-/* 9 novembre, 23 h 44 (Elisa : « les Ajouter une description ont-ils besoin d’une nouvelle page ? ») : non. La description s’écrit
-   là où elle s’affiche : le champ prend sa place, le clavier s’ouvre dans le même geste, « Enregistrer » (ou la touche Entrée) garde,
-   « Annuler » (ou Échap) rend la ligne telle qu’elle était. Une seule ligne de texte à écrire ne demande pas une feuille entière. */
-function descEnPlace(cible,o){
-  return new Promise(res=>{
-    const f=document.createElement('form');
-    f.className='desc-ep'+(o.sombre?' is-sombre':'');
-    f.innerHTML=`<textarea rows="2" maxlength="${o.max}" enterkeyhint="done" placeholder="${escAttr(o.placeholder)}" aria-label="${escAttr(o.label)}"></textarea><div class="desc-ep-pied"><small class="desc-ep-n" aria-live="polite"></small><button type="button" class="desc-ep-non">Annuler</button><button type="submit" class="desc-ep-oui">Enregistrer</button></div>`;
-    const ta=f.querySelector('textarea'),n=f.querySelector('.desc-ep-n');
-    ta.value=o.valeur||'';
-    const taille=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight+2,220)+'px';n.textContent=`${ta.value.length}\u00a0/\u00a0${o.max}`;};
-    let fini=false;
-    const fin=v=>{if(fini)return;fini=true;f.remove();cible.hidden=false;if(v==null)try{cible.focus({preventScroll:true});}catch(e){}res(v);};
-    f.onsubmit=e=>{e.preventDefault();fin(ta.value.trim());};
-    f.querySelector('.desc-ep-non').onclick=()=>fin(null);
-    ta.addEventListener('input',taille);
-    ta.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();fin(null);}else if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();fin(ta.value.trim());}});
-    cible.hidden=true;cible.after(f);taille();
-    try{ta.focus({preventScroll:true});ta.setSelectionRange(ta.value.length,ta.value.length);}catch(e){}
-    requestAnimationFrame(()=>{try{f.scrollIntoView({block:'center',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){}});
-  });
-}
 async function editDbNote(id){
   id=id||activeDbId;
-  const ici=id===activeDbId&&document.getElementById('console-desc'),o={valeur:dbNote(id),placeholder:'Ex. : les ventes 2025 de la boutique',max:400};
-  const v=ici&&!ici.hidden&&ici.offsetParent?await descEnPlace(ici,{...o,label:'Description du projet',sombre:true})
-    :await lqPrompt({ico:'📝',titre:'Description du projet',texte:'Quelques mots pour te rappeler ce que contient cette base.',...o,multi:true});
+  const v=await lqPrompt({ico:'📝',titre:'Description du projet',texte:'Quelques mots pour te rappeler ce que contient cette base.',
+    valeur:dbNote(id),placeholder:'Ex. : les ventes 2025 de la boutique',max:400,multi:true});
   if(v==null)return;
   projOf(id).desc=v; saveProjState();
   renderConsoleScreen();
@@ -21353,10 +21330,8 @@ async function editDbNote(id){
   lqSay(v?'Description enregistrée':'Description retirée');
 }
 async function editTableNote(name){
-  const carte=document.querySelector(`#db-tables .db-tblock[data-table="${CSS.escape(name)}"]`),ici=carte&&carte.querySelector('.tbl-desc');
-  const o={valeur:tableNote(activeDbId,name),placeholder:'Ex. : une ligne par vente, avec son montant',max:240};
-  const v=ici&&ici.offsetParent?await descEnPlace(ici,{...o,label:`Description de la table ${name}`})
-    :await lqPrompt({ico:'🗂️',titre:`Table « ${name} »`,texte:'Décris en quelques mots ce que contient chaque ligne.',...o,multi:true});
+  const v=await lqPrompt({ico:'🗂️',titre:`Table « ${name} »`,texte:'Décris en quelques mots ce que contient chaque ligne.',
+    valeur:tableNote(activeDbId,name),placeholder:'Ex. : une ligne par vente, avec son montant',max:240,multi:true});
   if(v==null)return;
   const p=projOf(activeDbId); p.tdesc=p.tdesc||{}; p.tdesc[name]=v; saveProjState();
   renderDbWorkspace();
@@ -22660,23 +22635,6 @@ async function onDataImport(ev){
       surOui:()=>{importAjout=ajout?Date.now():0;document.getElementById('data-import').click();}});
   }
 }
-/* 9 novembre, 23 h 44 (Elisa : « le champ Projet cible met du temps à réagir ») : le menu de l’iPhone s’ouvrait lentement par-dessus
-   la feuille floutée. Les projets sont maintenant des lignes à toucher, dans la feuille ; la liste déroulante reste, cachée, pour la
-   valeur choisie. */
-function impChoixRendre(){
-  const sel=document.getElementById('imp-db'),box=document.getElementById('imp-db-choix');
-  if(!sel||!box)return;
-  box.innerHTML=[...sel.options].map(o=>{
-    const neuf=o.value==='__new__',on=o.selected;
-    const m=/^(.*?)(?: · (\d+ tables?))?$/.exec(o.textContent)||[];
-    const nom=neuf?'Nouveau projet':m[1]||o.textContent,det=neuf?'Un projet vide, rien que pour ce fichier':m[2]||'Projet vide';
-    return `<button type="button" class="imp-choix-l${on?' is-on':''}${neuf?' is-neuf':''}" role="radio" aria-checked="${on}" onclick="impChoisir(${JSON.stringify(o.value).replace(/"/g,'&quot;')})"><span class="imp-choix-r" aria-hidden="true"></span><span class="imp-choix-t"><b>${esc(nom)}</b><small>${esc(det)}</small></span></button>`;
-  }).join('');
-}
-function impChoisir(v){
-  const sel=document.getElementById('imp-db');if(!sel||sel.value===v)return;
-  sel.value=v;impChoixRendre();onImportDbChange(true);
-}
 function onImportDbChange(anime){
   const sel=document.getElementById('imp-db');
   const nameField=document.getElementById('imp-newname-field');
@@ -22836,7 +22794,6 @@ function openImportSheet(){
     : 'Ajoute la table dans un projet existant, ou crée un projet pour l’accueillir.';
   newName.value=pendingImport.defaultDbName||pendingImport.defaultTable||'Mon projet';
   document.getElementById('imp-db-field').hidden=!!aj;
-  impChoixRendre();
   onImportDbChange();
 
   const prev=document.getElementById('imp-prev');
@@ -22857,14 +22814,21 @@ function openImportSheet(){
   const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
   back.hidden=false; sheet.hidden=false; back.setAttribute('aria-hidden','false'); sheet.setAttribute('aria-hidden','false'); sheet.inert=false;
   back.classList.add('on'); sheet.classList.add('on');
-  if(!asDb && !tableInput.disabled) tableInput.focus();
-  else if(document.getElementById('imp-newname-field').hidden===false) newName.focus();
-  else sel.focus();
+  /* 10 novembre, 0 h 14 (Elisa : « le sélecteur, plus rapide ») : sur un téléphone, aucun champ n’est mis au point à l’ouverture.
+     Le nom de la table l’était : toucher ensuite « Projet cible » devait d’abord quitter ce champ (le clavier, la page qui se recale
+     sous le flou) avant d’ouvrir la liste. Et ce qui bouge sous la feuille floutée s’arrête tant qu’elle est ouverte. */
+  document.documentElement.classList.add('imp-ouvert');
+  if(window.matchMedia&&matchMedia('(pointer:fine)').matches){
+    if(!asDb && !tableInput.disabled) tableInput.focus();
+    else if(document.getElementById('imp-newname-field').hidden===false) newName.focus();
+    else sel.focus();
+  }
   const fab=document.getElementById('fab');if(fab)fab.classList.add('hide');
 }
 function closeImportSheet(){
   const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
   back.classList.remove('on'); sheet.classList.remove('on'); back.setAttribute('aria-hidden','true'); sheet.setAttribute('aria-hidden','true'); sheet.inert=true;
+  document.documentElement.classList.remove('imp-ouvert');
   setTimeout(()=>{if(!sheet.classList.contains('on')){back.hidden=true;sheet.hidden=true;}},300);
   const fab=document.getElementById('fab');if(fab)fab.classList.remove('hide');
   pendingImport=null;
@@ -47840,7 +47804,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-detection-v2790';
+  const SW_CACHE='requete-2026-11-09-selecteur-v2791';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
