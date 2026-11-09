@@ -78,7 +78,7 @@ test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », 
   assert.ok(app.includes("if(J.seulFin==null)J.seulFin=J.solo||sc.every(x=>x.pid===J.me);"), 'fin de partie seul : le bilan, pas le podium (décidé à l’arrivée, 12 h 36)');
   assert.ok(app.includes("salle:J.code,g:J.g});"), 'au classement : la partie est identifiée, les bonus sont calculés sur le serveur');
   /* 13 h 41 : seul, il peut lancer (« oui il peut lancer seul ») */
-  assert.ok(app.includes("msg=`${J.pub?'Ta salle est visible par les autres joueurs.':J.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;"));
+  assert.ok(app.includes("p=`Partage le code, ou lance et joue ${seul}.`;"), 'seul dans sa salle : il peut lancer (13 h 41), la carte le dit (13 h 50)');
 });
 
 test('résultats et fin de partie allégés ; la notification des points en une pastille', () => {

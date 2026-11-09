@@ -78,7 +78,7 @@ test('femme, homme ou ne pas dire : sur l’écran de l’âge, gardé sur l’a
   /* Les mots qui parlent de la personne */
   for (const k of ["${obMascotDit(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.',obMascotOui(draft.job))}",
     "accord('future','futur','futur·e')+' pro du SQL'", "Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'} dans la salle",
-    "ac('Tu as été retirée','Tu as été retiré','Tu as été retiré·e')", "tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;", '  const profileJob=obJobNom(profile.job);'])
+    "ac('Tu as été retirée','Tu as été retiré','Tu as été retiré·e')", ",seul=typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e';", '  const profileJob=obJobNom(profile.job);'])
     assert.ok(app.includes(k), k);
   /* Rien ne part : la page de confidentialité le dit avec le reste du profil */
   assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), ton pays (seul son drapeau accompagne ton pseudo dans les défis, voir plus bas), la liste de tes amis des défis, la façon dont tu as connu Requête'));

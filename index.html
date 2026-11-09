@@ -2022,9 +2022,19 @@
   .jeu-prets-pts{display:inline-flex;gap:3px;font-style:normal}
   .jeu-prets-pts i{width:7px;height:7px;border-radius:50%;background:#CFC8EA;transition:background .3s,transform .3s var(--pop,ease)}
   .jeu-prets-pts i.ok{background:var(--success-fill,var(--success));transform:scale(1.15)}
-  .jeu-lobby-msg{margin:0!important;max-width:30ch;font-size:14px;font-weight:650;line-height:1.4;color:var(--ink-2);text-wrap:balance!important;animation:jeuMsgIn .32s ease-out both}
-  .jeu-lobby-msg.is-ok,.jeu-lobby-msg.is-moi{color:var(--success)}
-  .jeu-lobby-msg.is-lent{color:#9A5B12}
+  /* 13 h 50 : la carte du message, comme les annonces de la salle : tuile + pictogramme, phrase en gras, précision dessous */
+  .jeu-lob{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px 10px 10px;border:2px solid var(--line);border-radius:16px;background:#fff;text-align:left;animation:jeuMsgIn .32s ease-out both;transition:border-color .3s,background .3s}
+  .jeu-lob-ico{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);transition:background .3s,color .3s}
+  .jeu-lob-ico svg{width:20px;height:20px}
+  .jeu-lob-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .jeu-lob-tx b{font-family:var(--display);font-size:14.5px;font-weight:750;line-height:1.25;color:var(--ink);overflow-wrap:anywhere}
+  .jeu-lob-tx small{font-size:12.5px;font-weight:600;line-height:1.35;color:var(--ink-3)}
+  .jeu-lob.is-ok{border-color:color-mix(in srgb,var(--success) 28%,#fff);background:color-mix(in srgb,var(--success-soft) 55%,#fff)}
+  .jeu-lob.is-ok .jeu-lob-ico{background:var(--success-fill,var(--success));color:#fff}
+  .jeu-lob.is-lent{border-color:#FFD9C7;background:#FFF8F4}
+  .jeu-lob.is-lent .jeu-lob-ico{background:#FFE4D6;color:#B4522A}
+  .jeu-lob.is-lent .jeu-lob-ico svg{animation:jeuLobSonne 2.4s ease-in-out infinite}
+  @keyframes jeuLobSonne{0%,70%,100%{transform:none}76%{transform:rotate(-14deg)}82%{transform:rotate(12deg)}88%{transform:rotate(-8deg)}94%{transform:rotate(4deg)}}
   @keyframes jeuMsgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   /* 13 h 36 : la croix pour retirer un joueur lent (l’hôte, à 60 s) : elle arrive d’un petit bond, frémit une fois, rougit sous le
      doigt et s’enfonce ; confirmé, la ligne glisse et s’efface. 32 px à l’œil, 44 px sous le doigt. */
@@ -2047,8 +2057,8 @@
   .jeu-ready.on .jeu-ready-fl{display:none}
   @keyframes jeuFlAvance{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
   .jeu-players em.jeu-state.is-att{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:#F0EEF5;color:#6E6A80;font-style:normal;font-size:12.5px;line-height:1;white-space:nowrap;transition:background .3s,color .3s}
-  @media (prefers-reduced-motion:reduce){.jeu-lobby-msg,.jeu-ready-fl svg,.jeu-pl-x,.jeu-players li.is-sort{animation:none!important}.jeu-prets-pts i.ok{transform:none}}
-  html[data-motion="reduce"] .jeu-lobby-msg,html[data-motion="reduce"] .jeu-ready-fl svg,html[data-motion="reduce"] .jeu-pl-x{animation:none!important}
+  @media (prefers-reduced-motion:reduce){.jeu-lob,.jeu-lob *,.jeu-ready-fl svg,.jeu-pl-x,.jeu-players li.is-sort{animation:none!important}.jeu-prets-pts i.ok{transform:none}}
+  html[data-motion="reduce"] .jeu-lob,html[data-motion="reduce"] .jeu-lob *,html[data-motion="reduce"] .jeu-ready-fl svg,html[data-motion="reduce"] .jeu-pl-x{animation:none!important}
   .jeu-net.is-soft{background:var(--accent-soft);color:var(--accent-ink)!important}
   .jeu-draw{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;min-height:58vh;padding:18px 0 10px}
   .jeu-draw .l-kicker{margin:0!important}
@@ -36276,22 +36286,28 @@ function jeuPasPrets(){
   w.forEach(p=>{if(!at[p])at[p]=now;});
   return w.map(pid=>({pid,ms:now-at[pid]})).sort((x,y)=>y.ms-x.ms||(x.pid<y.pid?-1:1));
 }
+/* 13 h 50 (Elisa : « pas top l’UI/UX du texte ») : le message devient une carte comme les autres annonces de la salle (jeuNoteHTML) : une
+   tuile et son pictogramme, une phrase courte en gras, la précision dessous ; lavande pour l’attente, pêche pour un joueur lent, vert
+   quand tout le monde est prêt. */
+const JEU_SABLIER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h10M7 20.5h10M8 3.5v3.2a4 4 0 0 0 1.6 3.2L12 12l2.4-2.1A4 4 0 0 0 16 6.7V3.5M8 20.5v-3.2a4 4 0 0 1 1.6-3.2L12 12l2.4 2.1a4 4 0 0 1 1.6 3.2v3.2"/></svg>';
+const JEU_MAIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 12.5V5.8a1.4 1.4 0 0 1 2.8 0V11M11.3 10.6V4.4a1.4 1.4 0 0 1 2.8 0v6.3M14.1 10.7V5.6a1.4 1.4 0 0 1 2.8 0v7.6c0 4-2.6 7.3-6.4 7.3-2.4 0-3.9-1.1-5.2-3l-2.2-3.3a1.4 1.4 0 0 1 2.2-1.7l1.6 1.8"/></svg>';
 function jeuLobbyEtatHTML(){
-  const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true);
+  const J=JEU,host=jeuIsHost(),{live,prets}=jeuPrets(),mot=jeuPretMot(true),seul=typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e';
   const tous=live.length>=2&&prets.length===live.length;
-  let msg,cls='';
+  let cls='is-att',ico=JEU_SABLIER,t,p;
   if(host&&live.length<2){
-    msg=`${J.pub?'Ta salle est visible par les autres joueurs.':J.created?'Personne n’a encore rejoint : partage le code.':'Les autres sont partis : partage le code.'} Si tu lances maintenant, tu joues ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}.`;
+    t=J.pub?'Ta salle est ouverte':J.created?'Personne n’a encore rejoint':'Les autres sont partis';
+    p=`Partage le code, ou lance et joue ${seul}.`;ico=JEU_ICO.amis;
   }else if(tous){
-    msg=host?'Tout le monde est prêt ! À toi de lancer la partie.':'Tout le monde est prêt ! En attente que l’hôte lance la partie…';cls='is-ok';
+    cls='is-ok';ico=JEU_ICO.check;t='Tout le monde est prêt !';p=host?'À toi de lancer la partie.':'L’hôte va lancer la partie…';
   }else if(host){
     const w=jeuPasPrets()[0],nom=w?esc((J.players[w.pid]||{}).name||'Un joueur'):'';
-    if(w&&w.ms>=JEU_LENT2_MS){msg=`${nom} prend son temps…`;cls='is-lent';}   // 13 h 36 : le retrait, une croix sur sa ligne (jeuPlayersHTML)
-    else if(w&&w.ms>=JEU_LENT_MS){msg=`${nom} n’est pas encore prêt·e…`;cls='is-lent';}
-    else msg='En attente que les autres joueurs soient prêts…';   // le bouton reste actif : il peut lancer sans attendre (13 h 41)
-  }else if(J.ready[J.me]){msg=`Tu es ${mot} ! En attente des autres joueurs…`;cls='is-moi';}
-  else msg=`Préviens l’hôte quand tu es ${mot} !`;
-  return `<p class="jeu-lobby-msg ${cls}">${msg}</p>`;
+    if(w&&w.ms>=JEU_LENT2_MS){cls='is-lent';ico=JEU_ICO.reveil;t=`${nom} prend son temps…`;p='Lance sans attendre, ou touche ×.';}
+    else if(w&&w.ms>=JEU_LENT_MS){cls='is-lent';ico=JEU_ICO.reveil;t=`${nom} n’est pas encore prêt·e…`;p='Tu peux lancer sans attendre.';}
+    else{t='En attente des autres joueurs…';p='Tu peux lancer quand tu veux.';}
+  }else if(J.ready[J.me]){cls='is-ok';ico=JEU_ICO.check;t=`Tu es ${mot} !`;p='En attente des autres joueurs…';}
+  else{ico=JEU_MAIN;t=`Préviens l’hôte quand tu es ${mot} !`;p='L’hôte lance la partie.';}
+  return `<div class="jeu-lob ${cls}"><span class="jeu-lob-ico" aria-hidden="true">${ico}</span><span class="jeu-lob-tx"><b>${t}</b><small>${p}</small></span></div>`;
 }
 /* Le message ne se redessine que s’il change (il entre en fondu) ; le bouton « Lancer » suit à chaque instant. */
 /* 13 h 36 (Elisa : « c’est pas UI/UX, peut-être juste une croix avec micro-interaction ») : chez l’hôte, la croix apparaît sur la ligne
@@ -47307,7 +47323,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-retire-v2743';
+  const SW_CACHE='requete-2026-11-09-carte-v2744';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
