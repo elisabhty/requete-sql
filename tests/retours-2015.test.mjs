@@ -35,13 +35,14 @@ test('Entretien SQL : toutes les réponses à la première personne, comme le ca
   assert.ok(E.filter(q => /(?<![A-Za-zÀ-ÿ])([Jj]e |[Jj]’)/.test(texte(q))).length >= 110, 'presque toutes les cartes parlent en « je » (les autres sont des définitions)');
   /* Quelques réponses, telles que le candidat les dit */
   assert.ok(carte('ent-v2-121').a.includes('Je choisis le plus souvent une clé artificielle comme clé primaire'));
-  assert.ok(carte('ent-v2-06').a.includes('j’écarte les vélos en réparation dans <code>WHERE</code>, puis je filtre sur <code>COUNT(*)</code> dans <code>HAVING</code>.'));
+  /* 10 novembre : des réponses générales, sans les vélos de l’exemple */
+  assert.ok(carte('ent-v2-06').a.includes('Quand une condition peut s’écrire dans les deux, je la place dans <code>WHERE</code>'));
   assert.ok(carte('ent-v2-88').a.includes('Je m’en sers pour générer toutes les combinaisons') && carte('ent-v2-89').a.includes('ou le séparateur de mon choix'));
   assert.ok(carte('ent-v2-66').a.includes('Pour les limiter, j’accède aux lignes toujours dans le même ordre'), 'les conseils aussi');
-  assert.ok(carte('ent-v2-112').a.includes('En entretien, je précise le dialecte que j’utilise') && carte('ent-v2-112').apres.startsWith('Deux noms reviennent souvent : T-SQL et PL/SQL.'));
-  assert.ok(carte('ent-v2-131').a.includes('puis j’observe chacune au fil des mois'), '« je suis chacune » se lisait comme le verbe être');
+  assert.ok(carte('ent-v2-112').a.includes('En entretien, je précise le dialecte que j’utilise') && carte('ent-v2-112').a.includes('Deux noms reviennent souvent : T-SQL et PL/SQL.'));
+  assert.ok(carte('ent-v2-131').a.includes('puis j’observe chaque cohorte au fil des périodes'), '« je suis chacune » se lisait comme le verbe être');
   /* La relance reste posée par le recruteur, la question aussi */
-  assert.ok(carte('ent-v2-08').apres.startsWith('Relance fréquente : peut-on trier sur une colonne absente du <code>SELECT</code> ?'));
+  assert.ok(carte('ent-v2-08').a.includes('Relance fréquente : peut-on trier sur une colonne absente du <code>SELECT</code> ?'));
   assert.ok(carte('ent-v2-33').q.startsWith('Peut-on sélectionner une colonne non agrégée avec GROUP BY'));
   /* Le site montre toujours le premier paragraphe de la carte ent-v2-06, mot pour mot */
   const vit = fs.readFileSync(path.join(ROOT, 'decouvrir/index.html'), 'utf8');

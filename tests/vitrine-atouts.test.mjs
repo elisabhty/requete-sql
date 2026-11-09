@@ -50,9 +50,9 @@ test('les cinq atouts sont des widgets « tableau de bord », comme les cartes c
   const titres = [...section.matchAll(/<div class="panel tile db w\d rv[^"]*"(?: id="[\w-]+")?>\s*(?:<div class="en-in">\s*<div class="en-txt">\s*)?<div class="db-head"><span class="db-ic c\d"><svg[^>]*>.*?<\/svg><\/span><span class="db-t"><small>[^<]+<\/small><\/span><span class="db-badge[^"]*">[^<]+<\/span><\/div>\s*<h3>([^<]+)<\/h3>/gs)].map(m => m[1]);
   assert.deepEqual(titres, ['Un labo SQL dans ton navigateur', 'Des cartes à collectionner', 'Tes propres données', 'Cas pratiques et révisions', 'Entraîne-toi pour l’entretien']);
   assert.equal((section.match(/<div class="panel tile db /g) || []).length, titres.length, 'chaque carte suit le même modèle');
-  /* Plus les anciennes vignettes ; seule la réponse attendue de l’entretien garde son exemple SQL, comme dans l’appli */
-  assert.doesNotMatch(section.replace(tuile('t-en'), ''), /class="(?:chips|streak|memo|mini-code)\b/, 'plus les anciennes vignettes (pastilles, flammes, mini-cartes, code seul)');
-  assert.match(tuile('t-en'), /<div class="en-open">[\s\S]*<div class="mini-code">/, 'l’exemple est dans la réponse révélée');
+  /* Plus les anciennes vignettes ; depuis le 10 novembre, la réponse attendue de l’entretien n’a plus d’exemple SQL, comme dans l’appli */
+  assert.doesNotMatch(section, /class="(?:chips|streak|memo|mini-code)\b/, 'plus les anciennes vignettes (pastilles, flammes, mini-cartes, code seul)');
+  assert.match(tuile('t-en'), /<div class="en-open">\s*<small>Réponse attendue<\/small>\s*<p>[\s\S]*?<\/p>\s*<p>/, 'deux paragraphes dans la réponse révélée');
   for (const k of ['.lb2{', '.mm2{', '.dt2{', '.cs2{', '.en-demo{']) assert.ok(css.includes(k), `styles ${k}`);
   /* Les aperçus sont décoratifs : le texte de la carte dit déjà tout */
   for (const k of ['lb2', 'mm2', 'dt2', 'cs2']) assert.match(section, new RegExp(`<div class="${k}" aria-hidden="true">`), `${k} masqué aux lecteurs d’écran`);

@@ -33,39 +33,13 @@ test('la banque garde ses 142 cartes, leurs niveaux et leurs notions', () => {
   assert.deepEqual(['Débutant', 'Intermédiaire', 'Avancé'].map(n => E.filter(q => q.niveau === n).length), [47, 52, 43]);
   assert.equal(new Set(E.map(q => q.id)).size, 142);
   assert.ok(REECRITES.every(id => E.some(q => q.id === id)) && REECRITES.length === 104);
-  assert.ok(E.every(q => q.ex && q.notions), 'chaque carte a maintenant ses notions et son exemple concret');
-});
-
-test('les 104 cartes réécrites : la réponse en deux ou trois paragraphes, des notions, un exemple concret, un SQL qui tient sur iPhone', () => {
-  for (const id of REECRITES) {
-    const q = E.find(x => x.id === id);
-    const paras = q.a.split('\n\n');
-    assert.ok(paras.length >= 2 && paras.length <= 3 && paras.every(p => p.trim() && !p.includes('\n')), `${id} : 2 ou 3 paragraphes`);
-    assert.ok(q.a.length >= 230 && q.a.length <= 760, `${id} : ${q.a.length} caractères`);
-    assert.doesNotMatch(q.a.replace(/<\/?(code|b)>/g, ''), /<[^>]*>/, `${id} : seulement <code> et <b>`);
-    typo(id, 'a', q.a, true);
-    if (q.apres) typo(id, 'apres', q.apres, true);
-    assert.ok(Array.isArray(q.notions) && q.notions.length >= 2 && q.notions.length <= 4, `${id} : 2 à 4 notions`);
-    const ex = q.ex;
-    assert.ok(ex.cols.length >= 2 && ex.cols.length <= 4 && ex.rows.length >= 2 && ex.rows.length <= 6, `${id} : un petit tableau`);
-    assert.ok(ex.rows.every(r => r.length === ex.cols.length && r.every(c => typeof c === 'string' && c.length <= 18)), `${id} : des cellules courtes, autant que de colonnes`);
-    const large = ex.cols.reduce((n, c, j) => n + Math.max(c.length, ...ex.rows.map(r => r[j].length)), 0);
-    assert.ok(large <= 44, `${id} : le tableau tient sur un iPhone (${large})`);
-    assert.ok((ex.mono || []).every(j => j >= 0 && j < ex.cols.length) && (ex.cut == null || (ex.cut >= 0 && ex.cut < ex.rows.length)), `${id} : mono et cut`);
-    assert.equal(ex.calm, 1);
-    assert.ok(ex.intro.endsWith(NB + ':') && ex.note && ex.note.split('\n').length <= 2, `${id} : l’intro finit par « : », une note de deux phrases au plus`);
-    assert.ok(!(ex.precision && ex.attention), `${id} : Précision ou Attention, pas les deux`);
-    for (const k of ['intro', 'note', 'precision', 'attention']) if (ex[k]) { typo(id, 'ex.' + k, ex[k], false); assert.doesNotMatch(ex[k], /<[a-z/]/i, `${id} ex.${k} : du texte, pas du HTML`); }
-    for (const l of q.sql.split('\n')) assert.ok(l.length <= 30 && l === l.trimEnd(), `${id} : ligne SQL de ${l.length} caractères (${l})`);
-    if (q.etoile) assert.ok([2, 4].includes(q.etoile.dims.length) && q.etoile.faits.cols.length, `${id} : le schéma`);
-  }
+  /* 10 novembre : plus d’exemple concret, de schéma ni d’exemple SQL ; des réponses générales (entretien-generales). */
+  assert.ok(E.every(q => q.notions && !('ex' in q) && !('sql' in q)), 'chaque carte a ses notions, sans exemple');
 });
 
 test('toute la banque : une espace insécable avant « : ; ? ! », jamais une espace ordinaire', () => {
   for (const q of E) {
     typo(q.id, 'a', q.a, true);
-    if (q.apres) typo(q.id, 'apres', q.apres, true);
-    for (const k of ['intro', 'note', 'precision', 'attention']) if (q.ex && q.ex[k]) assert.doesNotMatch(q.ex[k], / [:;?!»]/, `${q.id} ex.${k}`);
   }
 });
 

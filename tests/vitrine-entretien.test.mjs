@@ -97,7 +97,7 @@ test('le nombre de questions et de niveaux annoncé correspond à l’appli', ()
   assert.ok(texte(section).includes('niveau validé sur 3'));
 });
 
-test('la question montrée est celle de l’appli : même numéro, niveau, thème, réponse et exemple', () => {
+test('la question montrée est celle de l’appli : même numéro, niveau, thème et réponse', () => {
   const i = QUESTIONS.findIndex(x => x.id === 'ent-v2-06');
   assert.ok(i >= 0, 'la question WHERE/HAVING existe dans l’appli');
   const x = QUESTIONS[i], n = QUESTIONS.length;
@@ -111,9 +111,10 @@ test('la question montrée est celle de l’appli : même numéro, niveau, thèm
   const rep = section.match(/<div class="en-open">\s*<small>Réponse attendue<\/small>\s*<p>(.*?)<\/p>/s);
   assert.ok(rep, 'vitrine : réponse attendue présente');
   assert.equal(texte(rep[1]), texte(x.a.split('\n\n')[0]), 'vitrine : la réponse est celle de l’appli, mot pour mot (son premier paragraphe : la réponse directe, depuis la réécriture du 5 novembre, 18 h 03)');
-  const code = section.match(/<div class="mini-code">(.*?)<\/div>/s);
-  assert.ok(code && x.sql, 'vitrine : exemple SQL présent');
-  assert.equal(texte(code[1]), x.sql, 'vitrine : l’exemple SQL est celui de l’appli');
+  /* 10 novembre : plus d’exemple SQL dans l’appli, la vitrine montre le paragraphe qui suit la réponse directe */
+  const suite = section.match(/<div class="en-open">\s*<small>Réponse attendue<\/small>\s*<p>.*?<\/p>\s*<p>(.*?)<\/p>/s);
+  assert.ok(suite && !/mini-code/.test(section), 'vitrine : le deuxième paragraphe, sans requête');
+  assert.equal(texte(suite[1]), texte(x.a.split('\n\n')[1]), 'vitrine : le deuxième paragraphe est celui de l’appli');
   /* La vidéo montre la réponse attendue, sans la requête d’exemple (Elisa, 30 octobre, 20 h 45 : « ne mets pas la requête ici ») */
   assert.ok(texte(scene).includes('Réponse attendue'), 'vidéo : réponse attendue');
   assert.doesNotMatch(scene, /en-sql|mini-code|<code>SELECT/, 'vidéo : pas de requête dans la carte');
