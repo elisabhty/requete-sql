@@ -6,6 +6,8 @@
 --   - le message part à tous avec who et hu (l’arrivée visée : un retrait relu dans l’historique ne retire pas celui qui est revenu).
 -- jeu_envoyer_v2 est recréée telle qu’elle est en service (pg_get_functiondef) : seuls la liste des messages et le cas « retire »
 -- changent ; si l’une des deux n’est plus celle attendue, rien n’est changé.
+-- Appliquée au projet Supabase « requete-sql » (ynuenrxozcpkrjdbeftc, Paris) le 9 novembre 2026, vers 13 h 45, avec l’accord d’Elisa
+-- (« Oui, applique-le ») ; vérifiée ensuite : la liste des messages et le cas « retire » sont en service.
 do $t$
 declare
   def text;
