@@ -1796,3 +1796,40 @@ test('14 h 09 : tout le monde prêt, tout le monde joue ; le lancement emporte l
   /* Le serveur fait foi : sa liste (joueurs) passe avant celle de l’hôte (who) */
   assert.ok(html.includes("const lst=Array.isArray(m.joueurs)?m.joueurs:Array.isArray(m.who)?m.who:null;"));
 });
+
+/* 9 novembre, 15 h 41 (Elisa : « si la personne a validé la manche, même si elle n’a pas terminé les autres manches, elle va gagner ses
+   points ; vérifie, teste avec plusieurs personnes ») */
+test('15 h 41 : qui part garde les points des manches qu’il a validées, même celle que les autres jouent encore', () => {
+  const jusqua = (w, c, re) => { for (let i = 0; i < 80 && !re.test(c.view() || ''); i++) sec(w, 0.5); };
+  const total = c => c.ev('(state.salle&&state.salle.pts)||0');
+  const partie = () => { const r = room({ n: 3, nb: 3, settle: 1 }); r.guests.forEach(g => g.ev('jeuToggleReady()')); sec(r.w, 1); r.host.ev('jeuLancer()'); sec(r.w, 4.5); return r; };
+  {
+    /* Il valide la manche 1 et part pendant cette manche (les autres cherchent encore) : avant, 0 point */
+    const { w, host, guests } = partie();
+    guests[0].found(); sec(w, 1);
+    const gagne = guests[0].ev('jeuRanking(0).find(x=>x.pid===JEU.me).pts');
+    guests[0].ev('jeuStop()'); sec(w, 2);
+    assert.ok(gagne > 0); assert.equal(total(guests[0]), gagne, 'la manche validée compte');
+    host.found(); guests[1].found();
+    for (let m = 1; m < 3; m++) { jusqua(w, host, new RegExp('^play' + m + '$')); sec(w, 0.5); host.found(); guests[1].found(); }
+    jusqua(w, host, /^final$/);
+    assert.ok(host.ev('jeuScores().some(x=>x.name==="Ami1"&&x.pts>0)'), 'les autres le voient au podium avec ses points');
+  }
+  {
+    /* Il valide les manches 1 et 2, part pendant la 3 sans l’avoir trouvée */
+    const { w, host, guests } = partie();
+    for (let m = 0; m < 2; m++) { jusqua(w, host, new RegExp('^play' + m + '$')); sec(w, 0.5); guests[0].found(); host.found(); guests[1].found(); }
+    jusqua(w, host, /^play2$/); sec(w, 0.5);
+    const avant = guests[0].ev('jeuScores().find(x=>x.pid===JEU.me).pts');
+    guests[0].ev('jeuStop()'); sec(w, 2);
+    assert.equal(total(guests[0]), avant, 'ses deux manches');
+    assert.equal(guests[0].ev('state.salle.hist[0].ok'), 2);
+  }
+  {
+    /* Il part sans rien avoir validé : rien */
+    const { w, guests } = partie();
+    guests[0].ed.value = 'SELECT 1'; guests[0].ev('jeuRun()'); sec(w, 1);
+    guests[0].ev('jeuStop()'); sec(w, 2);
+    assert.equal(total(guests[0]), 0);
+  }
+});
