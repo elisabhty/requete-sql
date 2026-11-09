@@ -27,11 +27,15 @@ function bacQuitter(J, o = {}) {
   return () => vm.runInContext('jeuLeaveQuestion()', ctx);
 }
 
-test('l’hôte seul qui quitte sa salle d’attente : une question, « Quitter » ou « Rester »', () => {
-  const q = bacQuitter({ view: 'lobby', synced: true, solo: false, created: true })();
-  assert.equal(q.titre, 'Quitter ta salle ?');
-  assert.equal(q.texte, 'Personne ne l’a encore rejointe. Tu pourras y revenir depuis Défis.');
-  assert.equal(q.oui, 'Quitter'); assert.equal(q.non, 'Rester'); assert.ok(!q.danger, 'rien de perdu : pas de bouton rouge');
+/* 9 novembre, 13 h 09 (Elisa : « si la personne qui est l’hôte et seule part, ça quitte carrément la salle ») */
+test('l’hôte seul qui quitte sa salle d’attente : « Veux-tu quitter la salle ? », en partant il la ferme (13 h 09, 13 h 11)', () => {
+  for (const created of [true, false]) {
+    const q = bacQuitter({ view: 'lobby', synced: true, solo: false, created })();
+    assert.equal(q.titre, 'Veux-tu quitter la salle\u00a0?');
+    assert.equal(q.texte, 'Tu y es seul·e : en partant, tu la fermes.', created ? 'qui l’a ouverte' : 'resté seul après le départ de l’hôte');
+    assert.equal(q.oui, 'Quitter'); assert.equal(q.non, 'Rester'); assert.ok(!q.danger);
+  }
+  assert.ok(!app.includes('Tu pourras y revenir depuis Défis'), 'plus de « Tu pourras y revenir »');
   /* Ce qui existait reste : avec d’autres, un autre devient l’hôte ; en pleine manche, la manche est perdue */
   assert.equal(bacQuitter({ view: 'lobby', synced: true, solo: false }, { live: 2 })().texte, 'Un autre joueur deviendra l’hôte.');
   assert.equal(bacQuitter({ view: 'play0', synced: true, solo: false })().texte, 'Ta manche en cours sera perdue.');
@@ -62,18 +66,9 @@ function bacSalle(o = {}) {
   return { ctx, store, appels, ev: s => vm.runInContext(s, ctx), avance: ms => { now += ms; } };
 }
 
-test('« Ta salle » : notée au départ de l’hôte seul, avant le lancement ; rien à garder sinon', () => {
-  const salle = { code: 'U9SAHM', niv: 'm', nb: 2, pub: true, solo: false, synced: true };
-  const b = bacSalle({ JEU: salle });
-  b.ev('jeuMaSalleNoter()');
-  assert.deepEqual(JSON.parse(b.store.get('rq-ma-salle')), { code: 'U9SAHM', niv: 'm', nb: 2, pub: true, at: 1_800_000_000_000 });
-  for (const [nom, o] of [['avec d’autres joueurs', { live: 2 }], ['partie lancée', { commencee: true }], ['simple invité', { host: false }],
-    ['partie seul', { JEU: { ...salle, solo: true } }], ['salle pas encore jointe', { JEU: { ...salle, synced: false } }], ['salle complète', { JEU: { ...salle, full: true } }]]) {
-    const x = bacSalle({ JEU: salle, ...o });
-    x.ev('jeuMaSalleNoter()');
-    assert.ok(!x.store.has('rq-ma-salle'), nom);
-  }
-  assert.ok(fn('leaveLessonScreen').includes("if(mode==='jeu'){if(typeof jeuMaSalleNoter==='function')jeuMaSalleNoter();jeuStop();}"), 'notée juste avant de quitter (jeuStop)');
+test('13 h 09 : l’hôte seul qui part ferme sa salle : rien n’est gardé pour y revenir', () => {
+  assert.ok(fn('leaveLessonScreen').includes("if(mode==='jeu'){if(typeof jeuMaSalleOublier==='function')jeuMaSalleOublier();jeuStop();}"), 'rien de noté en partant, et une ancienne « Ta salle » s’efface');
+  assert.ok(!fn('leaveLessonScreen').includes('jeuMaSalleNoter'));
   assert.ok(fn('jeuEcran').includes("if(!J.solo&&typeof jeuMaSalleOublier==='function')jeuMaSalleOublier();"), 'oubliée en entrant dans une salle à plusieurs');
 });
 
