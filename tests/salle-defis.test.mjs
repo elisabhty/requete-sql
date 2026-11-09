@@ -1885,3 +1885,8 @@ test('9 novembre, 18 h 43 : lancée avec la liste des prêts, un nouveau venu li
   assert.equal(late.view(), 'tard');
   assert.ok(!late.J('horsPartie'));
 });
+
+test('9 novembre, 18 h 43 : refusé quand la salle était pleine, puis revenu après le lancement : « La partie a déjà commencé »', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(app.includes('J.inscrits.delete(m.who);   // refusé (salle pleine)'));
+});
