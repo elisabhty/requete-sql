@@ -34907,7 +34907,9 @@ function jeuTransport(code,onMsg,onNet,solo){
     try{hist=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){}
     const rel=m=>Object.assign({},m,{fromRelay:true});
     setTimeout(()=>{onNet(true);hist.forEach(m=>onMsg(rel(m)));replayed=true;queue.splice(0).forEach(m=>onMsg(m));},30);
-    bc.onmessage=e=>onMsg(e.data&&e.data.eph?e.data:rel(e.data));
+    /* Le direct attend la fin du rejeu, comme avec la base : un refus de l’hôte arrivé avant ses réglages était ignoré, et l’arrivant
+       entrait dans une salle pleine (9 novembre, la vidéo « salle complète »). */
+    bc.onmessage=e=>{const c=e.data&&e.data.eph?e.data:rel(e.data);if(replayed)onMsg(c);else queue.push(c);};
     const t={send(m){
       m.at=Date.now();let h=[];try{h=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){}h.push(m);try{localStorage.setItem(key,JSON.stringify(h.slice(-400)));}catch(e){}
       bc.postMessage(m);
@@ -35335,6 +35337,14 @@ function jeuMaybeDeny(pid,hu){
   const J=JEU;if(!J||J.solo||!jeuIsHost()||pid===J.me||J.denied[pid])return;
   if(jeuLive().filter(p=>p!==pid).length>=J.max)jeuSend({t:'deny',who:pid,hu});
 }
+/* La salle d’attente au-delà du maximum (9 novembre, 18 h, la vidéo « salle complète ») : un arrivant entré pendant qu’un joueur
+   semblait absent, ou pendant la reprise de l’hôte, faisait un 7e joueur. L’hôte refait le compte à chaque battement : les derniers
+   arrivés au-delà de 6 sont refusés, et ils voient « La salle est complète ». */
+function jeuTropPlein(){
+  const J=JEU;if(!J||J.solo||J.over||J.rounds.length||!jeuIsHost())return;
+  const l=jeuLive();if(l.length<=J.max)return;
+  l.slice(J.max).forEach(p=>{if(p!==J.me&&!J.denied[p])jeuSend({t:'deny',who:p,hu:J.helloOf[p]});});
+}
 function jeuOnMsg(m){
   const J=JEU;if(!J||!m||m.v!==1||!m.pid)return;
   if(m.t==='ecrit')return jeuEcritRecu(m);   // « il écrit » : éphémère, hors de l’ordre du relais (8 novembre, 12 h 07)
@@ -35411,7 +35421,7 @@ function jeuOnMsg(m){
       break;}
     case 'deny':{
       if(m.pid!==J.hostPid||!m.who)return;
-      if(m.who===J.me){if(m.hu!==J.helloU)return;J.full=true;J.view='';}
+      if(m.who===J.me){if(m.hu!==J.helloU&&m.hu!==J.resumeU)return;J.full=true;J.view='';}
       /* Un refus ne vaut que pour l’arrivée qu’il vise (pas pour un nouvel essai). */
       else if(m.hu&&J.helloOf[m.who]&&J.helloOf[m.who]!==m.hu)return;
       J.denied[m.who]=m.hu||true;
@@ -35728,6 +35738,7 @@ function jeuTick(){
   if(gap>8000)jeuResume();
   jeuFlush();
   jeuHostWatch();
+  jeuTropPlein();
   jeuNetMaj();
   jeuReagirMaj();   // « Réagir », en bas à droite
   jeuOupsMaj();   // pas prêt au lancement : retour sur Défis au bout de 30 s (14 h 24)
@@ -47373,7 +47384,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-atterrir-v2758';
+  const SW_CACHE='requete-2026-11-09-complete-v2759';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

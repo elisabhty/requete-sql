@@ -1833,3 +1833,10 @@ test('15 h 41 : qui part garde les points des manches qu’il a validées, même
     assert.equal(total(guests[0]), 0);
   }
 });
+
+test('9 novembre, 18 h : la salle pleine refuse vraiment le 7e (transport local en ordre, refus d’une reprise, recompte de l’hôte)', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(app.includes("bc.onmessage=e=>{const c=e.data&&e.data.eph?e.data:rel(e.data);if(replayed)onMsg(c);else queue.push(c);};"), 'le direct local attend la fin du rejeu');
+  assert.ok(app.includes("if(m.who===J.me){if(m.hu!==J.helloU&&m.hu!==J.resumeU)return;J.full=true;J.view='';}"), 'un refus visant le « hello » de reprise compte aussi');
+  assert.ok(/function jeuTropPlein\(\)\{[\s\S]{0,260}l\.slice\(J\.max\)/.test(app) && app.includes('  jeuTropPlein();\n'), 'l’hôte refait le compte à chaque battement');
+});

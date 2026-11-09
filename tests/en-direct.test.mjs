@@ -143,7 +143,7 @@ test('« il écrit » passe par le canal en direct de la salle, sans la base ; r
   assert.ok(recu > 0 && recu < sb.indexOf('if(secure){if(Date.now()-noticeAt>150)'), 'avant la relecture des salles classées : un signal ne relit pas la salle');
   const tr = cut('function jeuTransport(code,onMsg,onNet,solo){', '\nfunction jeuSupabase(');
   assert.ok(tr.includes('return{send(){return Promise.resolve(true);},signal(){},beacon(){},close(){}};'), 'seul : rien');
-  assert.ok(tr.includes('bc.onmessage=e=>onMsg(e.data&&e.data.eph?e.data:rel(e.data));') && tr.includes('signal(m){try{bc.postMessage(Object.assign({},m,{eph:1}));}catch(e){}}'), 'le canal local (tests) : pas gardé');
+  assert.ok(tr.includes('bc.onmessage=e=>{const c=e.data&&e.data.eph?e.data:rel(e.data);if(replayed)onMsg(c);else queue.push(c);};') && tr.includes('signal(m){try{bc.postMessage(Object.assign({},m,{eph:1}));}catch(e){}}'), 'le canal local (tests) : pas gardé');
   const on = cut('function jeuOnMsg(m){', "\n  const mine=");
   assert.ok(on.includes("if(m.t==='ecrit')return jeuEcritRecu(m);"), 'avant l’ordre du relais et les signes de vie');
   assert.ok(cut("    case 'rate':{", "    case 'close':{").includes('if(J.ecritAt)delete J.ecritAt[m.pid];'), 'il exécute : il n’écrit plus');
