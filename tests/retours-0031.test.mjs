@@ -291,7 +291,7 @@ test('seul dans la salle : la tête de « Joue seul », pas de « Réagir », «
   vm.runInContext(fn('jeuTitreNav'), ctx);
   vm.runInContext('jeuTitreNav(true);jeuTitreNav(false);JEU.solo=true;jeuTitreNav(false)', ctx);
   assert.deepEqual(titres, ['Défi', 'Salle de défi', 'Défi']);
-  for (const k of ['last=n>=J.nb-1,sl=jeuSoloLike(n);\n    jeuTitreNav(sl);', "  }else if(v==='lobby'){\n    jeuTitreNav(false);", '    const seul=J.solo||sc.every(x=>x.pid===J.me);\n    jeuTitreNav(seul);', '  jeuTitreNav(false);'])
+  for (const k of ['last=n>=J.nb-1,sl=jeuSoloLike(n);\n    jeuTitreNav(sl);', "  }else if(v==='lobby'){\n    jeuTitreNav(false);", '    const seul=J.seulFin;\n    jeuTitreNav(seul);', '  jeuTitreNav(false);'])
     assert.ok(app.includes(k), k);   // les résultats, la salle d’attente, le bilan, l’entrée dans la salle
   /* « Réagir » */
   const r = vm.createContext({ JEU: { solo: false, view: 'play0' }, seul: true });

@@ -1647,3 +1647,30 @@ test('10 h 37 : seul, tout résolu : « Tout résolu », la prochaine étape (un
   assert.match(s.html, /<div><b>2\/2<\/b><small>résolus<\/small>.*?<div><b>\d s<\/b><small>temps moyen<\/small><\/div>/);
   assert.match(s.html, /<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant\(\)">.*?<span class="jeu-prog-t">Passer au niveau moyen<\/span>.*?<button type="button" class="journey-primary" onclick="jeuRejouer\(\)"><span>Rejouer<\/span>.*?<span>Voir mon classement<\/span>/s);
 });
+
+/* 9 novembre, 12 h 36 (Elisa : « regarde s’il n’y a pas d’erreur dans la logique hôte, salle, joueur, quitter la salle ») */
+test('12 h 36 : l’ami resté seul garde la salle d’attente en hôte ; le podium ne se change pas en bilan ; « Rejouer » seulement chez l’hôte', () => {
+  {
+    const { w, host, guests } = room({ n: 2 });
+    host.ev('jeuStop()'); sec(w, 40);
+    assert.equal(guests[0].view(), 'lobby', 'plus de « Cette salle est vide » 30 s après le départ de l’hôte');
+    assert.ok(guests[0].ev('jeuIsHost()'));
+    assert.match(guests[0].ev('jeuLeaveQuestion().texte'), /^Tu y es seul/, 'pas « Personne ne l’a encore rejointe »');
+    const ghost = makeClient(w, 'Tard');
+    guests[0].ev('jeuStop()'); sec(w, 120);
+    ghost.join('ROOM42'); sec(w, 60);
+    assert.equal(ghost.view(), 'empty', 'la salle fantôme reste « vide »');
+  }
+  {
+    const { w, host, guests } = room({ n: 2, nb: 1 });
+    host.ev('jeuNextRound()'); sec(w, 4.5); guests[0].found(); sec(w, 615);
+    assert.equal(guests[0].view(), 'final'); assert.match(guests[0].html, /jeu-podium/);
+    host.offline = true; sec(w, 65);
+    assert.match(guests[0].html, /jeu-podium/, 'l’hôte à 0 point n’est plus compté présent : le podium reste');
+    assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)|jeuAgain\(\)/);
+    sec(w, 20);
+    assert.ok(guests[0].ev('jeuIsHost()'));
+    assert.match(guests[0].html, /jeuAgain\(\)/, 'devenu hôte : « Rejouer dans cette salle »');
+  }
+  assert.ok(html.includes("const main=J.solo||jeuIsHost()?"), 'le bilan : « Rejouer » chez l’hôte, sinon la ligne d’attente');
+});

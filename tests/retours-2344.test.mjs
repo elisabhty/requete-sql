@@ -28,7 +28,7 @@ function bacQuitter(J, o = {}) {
 }
 
 test('l’hôte seul qui quitte sa salle d’attente : une question, « Quitter » ou « Rester »', () => {
-  const q = bacQuitter({ view: 'lobby', synced: true, solo: false })();
+  const q = bacQuitter({ view: 'lobby', synced: true, solo: false, created: true })();
   assert.equal(q.titre, 'Quitter ta salle ?');
   assert.equal(q.texte, 'Personne ne l’a encore rejointe. Tu pourras y revenir depuis Défis.');
   assert.equal(q.oui, 'Quitter'); assert.equal(q.non, 'Rester'); assert.ok(!q.danger, 'rien de perdu : pas de bouton rouge');

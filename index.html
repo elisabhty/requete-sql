@@ -35454,7 +35454,7 @@ function jeuOnMsg(m){
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
-      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';
+      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;
       jeuApplyCfg();jeuDrain();
       if(J.ranked&&J.solo&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuNextRound();},100);
       break;}
@@ -35608,7 +35608,10 @@ function jeuTitreNav(seul){
 }
 function jeuRoomEmpty(){
   const J=JEU;
-  return !J.solo&&!J.created&&J.synced&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace&&jeuLive().length<2;
+  /* 12 h 36 : « Cette salle est vide » est pour la salle fantôme (on arrive, personne). L’ami resté seul après le départ de l’hôte en
+     devient l’hôte et garde la salle d’attente, comme celui qui l’a ouverte ; avant, elle devenait « vide » sous ses yeux 30 s après. */
+  if(!J.entoure&&J.synced&&jeuLive().length>1)J.entoure=true;
+  return !J.solo&&!J.created&&!J.entoure&&J.synced&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace&&jeuLive().length<2;
 }
 /* La partie est lancée : une manche de cette partie est tirée, ou son podium est là ; « Rejouer » la remet à zéro (8 novembre, 16 h 05). */
 function jeuCommencee(){const J=JEU;return !!J&&!J.solo&&(J.over||J.rounds.some(Boolean));}
@@ -36446,7 +36449,11 @@ function jeuRender(){
     const jouees=J.rounds.filter(Boolean).length;
     /* Les points de la partie arrivent en notification, une fois le podium ou le bilan posé. */
     if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);
-    const seul=J.solo||sc.every(x=>x.pid===J.me);
+    /* 9 novembre, 12 h 36 (Elisa : « regarde s’il n’y a pas d’erreur dans la logique hôte, salle, joueur, quitter la salle ») : la
+       forme de l’écran de fin se décide à son arrivée et ne bouge plus ; le podium d’une partie à deux devenait un bilan « seul » 55 s
+       après le départ d’un joueur à 0 point (il n’est plus compté présent). « Rejouer » le remet à zéro (case 'again'). */
+    if(J.seulFin==null)J.seulFin=J.solo||sc.every(x=>x.pid===J.me);
+    const seul=J.seulFin;
     jeuTitreNav(seul);
     if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
@@ -36801,7 +36808,11 @@ function jeuFinBoutonsHTML(nOk,all){
      récapitulatif et « Rejouer » : les barres du niveau, « Passer au niveau moyen », ce qu’y vaut un défi, la flèche. */
   const prog=J.solo&&all&&nextNiv?`<button type="button" class="jeu-prog is-${nextNiv}" onclick="jeuNiveauSuivant()">${jeuNivBars(nextNiv)}`+
     `<span class="jeu-prog-t">Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</span><span class="jeu-prog-x">×${JEU_NIV_X[nextNiv]||1}<span class="lq-sr"> points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
-  return `<div class="jeu-fin-actions">${prog}<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>${nOk?'Rejouer':'Réessayer'}</span>${DEF_CHEV_SVG}</button>`+
+  /* 12 h 36 : seul sur l’écran de fin d’une salle entre amis dont l’hôte vient de partir, on n’en est pas encore l’hôte (25 s au plus) :
+     « Rejouer » ne faisait rien. On le dit ; le bouton revient dès qu’on prend la main (jeuSig redessine). */
+  const main=J.solo||jeuIsHost()?`<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>${nOk?'Rejouer':'Réessayer'}</span>${DEF_CHEV_SVG}</button>`
+    :`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`;
+  return `<div class="jeu-fin-actions">${prog}${main}`+
     (J.solo?jeuBtn2('classement','Voir mon classement','jeuVersClassement()'):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
 }
 /* La correction (Elisa, 9 novembre, 10 h 37 : « pouvoir voir la correction et le résultat finalement, mais sur l’écran bilan, qui
@@ -37047,7 +37058,7 @@ function jeuLeaveQuestion(){
   if(!J.solo&&jeuIsHost()&&v!=='final'&&jeuLive().length>1)return {ico:'👋',titre:'Quitter la salle ?',texte:'Un autre joueur deviendra l’hôte.',oui:'Quitter',non:'Rester'};
   /* 8 novembre, 23 h 44 (« corrige : À corriger en premier », la relecture des défis) : l’hôte seul dans sa salle d’attente partait
      sans un mot, et la salle restait ouverte sans lui. On demande ; parti, il la retrouve dans Jouer (« Ta salle », jeuMaSalle). */
-  if(!J.solo&&v==='lobby'&&J.synced&&jeuIsHost()&&!jeuCommencee())return {ico:'👋',titre:'Quitter ta salle ?',texte:'Personne ne l’a encore rejointe. Tu pourras y revenir depuis Défis.',oui:'Quitter',non:'Rester'};
+  if(!J.solo&&v==='lobby'&&J.synced&&jeuIsHost()&&!jeuCommencee())return {ico:'👋',titre:'Quitter ta salle ?',texte:J.created?'Personne ne l’a encore rejointe. Tu pourras y revenir depuis Défis.':`Tu y es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'}. Tu pourras y revenir depuis Défis.`,oui:'Quitter',non:'Rester'};
   return null;
 }
 function jeuLeaveOk(){return !jeuLeaveQuestion();}
@@ -47158,7 +47169,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-doigt-v2735';
+  const SW_CACHE='requete-2026-11-09-hote-v2736';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
