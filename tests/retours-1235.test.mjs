@@ -33,7 +33,7 @@ test('la Live Activity : le même type dans l’app et dans le widget, iOS les r
   const type = t => sansCommentaires(cut(t, 'struct RequeteLecon: ActivityAttributes {', '\n}\n')).replace(/\s+/g, ' ').trim();
   assert.equal(type(widget), type(pont));
   /* 5 novembre, 6 h 45 : les moments réussis (« 2/4 »), facultatifs (une activité d’avant les ignore) ; retours-0645 */
-  assert.ok(type(widget).includes('public struct ContentState: Codable, Hashable { var progression: Double var allumee: Bool var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil } var titre: String var module: String'));
+  assert.ok(type(widget).includes('public struct ContentState: Codable, Hashable { var progression: Double var allumee: Bool var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil var pause: Bool? = nil } var titre: String var module: String'));
   for (const t of [widget, pont]) {
     assert.ok(t.includes('import ActivityKit\n'));
     assert.ok(t.includes('@available(iOS 16.1, *)\nstruct RequeteLecon: ActivityAttributes {'), 'iOS 16.1 : l’app reste installable en iOS 15');
@@ -135,15 +135,15 @@ const ileLab = ({natif = true, allumee = true} = {}) => {
 test('la page lance la Live Activity à l’ouverture de la leçon, la suit par dixièmes, l’arrête à la fin', () => {
   const {ctx, appels} = ileLab({allumee: false});
   ctx.ileDebut({id: 12, titre: 'INNER JOIN'});
-  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconDebut', {titre: 'INNER JOIN', module: 'Module 2 · Les jointures', progression: 0, allumee: false}]);
+  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconDebut', {titre: 'INNER JOIN', module: 'Module 2 · Les jointures', progression: 0, allumee: false, pause: false}]);
   ctx.LV.video.currentTime = 5; ctx.ileMaj(false);
-  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.05, allumee: false}], 'le premier dixième');
+  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.05, allumee: false, pause: false}], 'le premier dixième');
   ctx.LV.video.currentTime = 8; ctx.ileMaj(false);
   assert.equal(appels.length, 0, 'même dixième : rien');
   ctx.LV.video.currentTime = 12; ctx.ileMaj(false);
-  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.12, allumee: false}]);
+  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.12, allumee: false, pause: false}]);
   ctx.LV.video.currentTime = 13; ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.13, allumee: false}], 'on quitte l’app : tout de suite');
+  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.13, allumee: false, pause: false}], 'on quitte l’app : tout de suite');
   ctx.LV.id = 99; ctx.ileMaj(true);
   assert.equal(appels.length, 0, 'une autre leçon : rien');
   ctx.LV.id = 12; ctx.LV.fin = true; ctx.ileMaj(true);

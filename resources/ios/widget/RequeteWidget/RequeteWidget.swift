@@ -1504,9 +1504,17 @@ struct RequeteCheminee: Widget {
 // garde, RequeteWidgetPlugin.swift). Son choix pour la flamme : « la séance seule » ; répondre ici n’allume pas la flamme du jour.
 // Les boutons passent par App Intents (RepondrePoche, SuivantePoche) : ils écrivent dans le groupe d’apps, puis iOS redessine le
 // widget. Avant iOS 17, les widgets n’ont pas de boutons : le widget n’existe qu’à partir d’iOS 17 (le paquet le garde derrière).
+// 10 novembre, 7 h 56 (sur une capture du widget vide : « crée des questions juste pour le widget en combinant tout : QCM, choix de la
+// réponse à l’intérieur d’une requête, cas pratique etc. ») : cinq genres de questions (index.html, POCHE_PLUS) : la requête à trou,
+// le cas pratique (un besoin, puis la requête à compléter), « Quel résultat ? », le QCM (une question, sans code) et « Trouve
+// l’erreur » (les lignes numérotées). L’étiquette dit le genre ; l’énoncé passe au-dessus du code. Sans leçon faite, les questions de
+// la toute première leçon : le widget n’est plus vide.
 
 /// Une question, telle que l’app la range : le nom du module, les lignes de la requête (« ___ » à la place du trou), les trois
 /// réponses, la bonne, et le pourquoi d’une bonne et d’une mauvaise réponse (les mots de SQL entre accents graves).
+/// 10 novembre (« crée des questions juste pour le widget en combinant tout : QCM, choix de la réponse à l’intérieur d’une requête,
+/// cas pratique etc. ») : le genre (« trou », « cas », « resultat », « qcm », « erreur ») et l’énoncé, absents des anciennes
+/// questions (une requête à trou, sans énoncé).
 struct QuestionPoche: Codable, Hashable {
     let titre: String
     let code: [String]
@@ -1514,6 +1522,8 @@ struct QuestionPoche: Codable, Hashable {
     let bon: Int
     let oui: String
     let non: String
+    var genre: String? = nil
+    var enonce: String? = nil
 }
 
 enum EtatPoche {
@@ -1550,7 +1560,7 @@ enum PocheRangement {
         guard let texte = d?.string(forKey: "poche"), let donnees = texte.data(using: .utf8) else { return [] }
         let liste: [QuestionPoche] = (try? JSONDecoder().decode([QuestionPoche].self, from: donnees)) ?? []
         return liste.filter { q in
-            q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && !q.code.isEmpty
+            q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && (!q.code.isEmpty || aEnonce(q))
         }
     }
 
@@ -1586,6 +1596,30 @@ enum PocheRangement {
         let apres: Int = n > 0 ? (i + 1) % n : 0
         d?.set(apres, forKey: "pocheIndex")
         d?.set(-1, forKey: "pocheChoix")
+    }
+
+    static func aEnonce(_ q: QuestionPoche) -> Bool {
+        return !(q.enonce ?? "").isEmpty
+    }
+
+    /// « Révision · Agrégats et regroupements » ; « QCM · … », « Cas pratique · … », « Quel résultat ? · … », « Trouve l’erreur · … ».
+    static func etiquette(_ q: QuestionPoche) -> String {
+        switch q.genre ?? "trou" {
+        case "qcm": return "QCM · " + q.titre
+        case "cas": return "Cas pratique · " + q.titre
+        case "resultat": return "Quel résultat\u{202F}? · " + q.titre
+        case "erreur": return "Trouve l’erreur · " + q.titre
+        default: return "Révision · " + q.titre
+        }
+    }
+
+    /// Sous les réponses, avant d’avoir répondu.
+    static func consigne(_ q: QuestionPoche) -> String {
+        switch q.genre ?? "trou" {
+        case "erreur": return "Touche la ligne fausse"
+        case "resultat": return "Touche le bon résultat"
+        default: return "Touche la bonne réponse"
+        }
     }
 
     static func bonne(_ q: QuestionPoche) -> String {
@@ -1635,9 +1669,11 @@ enum PocheRangement {
     static func policeCode(_ q: QuestionPoche, u: CGFloat, v: CGFloat) -> CGFloat {
         let trou: Int = (q.choix.map { $0.count }.max() ?? 3) + 1
         let longueurs: [Int] = q.code.map { $0.replacingOccurrences(of: "___", with: String(repeating: "x", count: trou)).count }
-        let plusLongue: Int = max(1, longueurs.max() ?? 1)
+        let numeros: Int = q.genre == "erreur" ? 2 : 0   // « 1 », « 2 », « 3 » devant les lignes
+        let plusLongue: Int = max(1, (longueurs.max() ?? 1) + numeros)
+        let place: CGFloat = aEnonce(q) ? 38 : 54   // l’énoncé prend sa ligne au code
         let parLargeur: CGFloat = 222 * u / (0.61 * CGFloat(plusLongue))
-        let parHauteur: CGFloat = 54 * v / (1.3 * CGFloat(max(3, q.code.count)))
+        let parHauteur: CGFloat = place * v / (1.3 * CGFloat(max(3, q.code.count)))
         return min(11.5 * u, parLargeur, parHauteur)
     }
 }
@@ -1868,8 +1904,14 @@ struct PocheVue: View {
         let apresCode: CGFloat = 6 * v
         return VStack(alignment: .leading, spacing: 0) {
             etiquette(u, q)
-            code(u, v, q)
-                .padding(.top, apresTitre)
+            if PocheRangement.aEnonce(q) {
+                enonce(u, q)
+                    .padding(.top, apresTitre)
+            }
+            if !q.code.isEmpty {
+                code(u, v, q)
+                    .padding(.top, apresTitre)
+            }
             reponses(u, v, q)
                 .padding(.top, apresCode)
             retour(u, q)
@@ -1884,7 +1926,7 @@ struct PocheVue: View {
     private func etiquette(_ u: CGFloat, _ q: QuestionPoche) -> some View {
         let police: Font = Font.system(size: 11 * u, weight: .heavy, design: .rounded)
         let ecart: CGFloat = 0.5 * u
-        let texte: String = "Révision · " + q.titre
+        let texte: String = PocheRangement.etiquette(q)
         return Text(verbatim: texte)
             .font(police)
             .tracking(ecart)
@@ -1892,6 +1934,22 @@ struct PocheVue: View {
             .foregroundColor(gristexte)
             .lineLimit(1)
             .minimumScaleFactor(0.6)
+    }
+
+    /// L’énoncé : une ligne au-dessus du code ; seul (un QCM), trois lignes au plus, un peu plus grand.
+    private func enonce(_ u: CGFloat, _ q: QuestionPoche) -> some View {
+        let seul: Bool = q.code.isEmpty
+        let taille: CGFloat = seul ? 13 * u : 11.5 * u
+        let police: Font = Font.system(size: taille, weight: .bold, design: .rounded)
+        let lignes: Int = seul ? 3 : 1
+        let largeur: CGFloat = 242 * u
+        let texte: String = q.enonce ?? ""
+        return Text(verbatim: texte)
+            .font(police)
+            .foregroundColor(encrePoche)
+            .lineLimit(lignes)
+            .minimumScaleFactor(0.7)
+            .frame(width: largeur, alignment: .leading)
     }
 
     private func code(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
@@ -1906,7 +1964,7 @@ struct PocheVue: View {
         let fond = RoundedRectangle(cornerRadius: coin, style: .continuous).fill(encre)
         return VStack(alignment: .leading, spacing: ecart) {
             ForEach(Array(lignes.enumerated()), id: \.offset) { item in
-                ligne(item.element, q, police, taille)
+                ligne(item.element, item.offset, q, police, taille)
             }
         }
         .padding(.horizontal, marge)
@@ -1915,12 +1973,19 @@ struct PocheVue: View {
         .background(fond)
     }
 
-    private func ligne(_ s: String, _ q: QuestionPoche, _ police: Font, _ taille: CGFloat) -> some View {
+    /// Une ligne de la requête ; pour « Trouve l’erreur », son numéro devant (les réponses sont « Ligne 1 », « Ligne 2 »…).
+    private func ligne(_ s: String, _ n: Int, _ q: QuestionPoche, _ police: Font, _ taille: CGFloat) -> some View {
         let morceaux: [String] = s.components(separatedBy: "___")
         let avant: String = morceaux.first ?? s
         let aTrou: Bool = morceaux.count > 1
         let apres: String = aTrou ? morceaux[1] : ""
+        let numero: Bool = q.genre == "erreur"
         return HStack(alignment: .center, spacing: 0) {
+            if numero {
+                Text(verbatim: "\(n + 1) ")
+                    .font(police)
+                    .foregroundColor(commentaireCode)
+            }
             PocheRangement.code(avant)
                 .font(police)
             if aTrou {
@@ -2024,7 +2089,7 @@ struct PocheVue: View {
     private func retour(_ u: CGFloat, _ q: QuestionPoche) -> some View {
         switch entree.etat {
         case .question:
-            consigne(u)
+            consigne(u, q)
         case .juste:
             verdict("Bien vu\u{202F}!", q.oui, vertTexte, u)
         case .presque:
@@ -2032,9 +2097,10 @@ struct PocheVue: View {
         }
     }
 
-    private func consigne(_ u: CGFloat) -> some View {
+    private func consigne(_ u: CGFloat, _ q: QuestionPoche) -> some View {
         let police: Font = Font.system(size: 11.5 * u, weight: .bold, design: .rounded)
-        return Text("Touche la bonne réponse")
+        let texte: String = PocheRangement.consigne(q)
+        return Text(verbatim: texte)
             .font(police)
             .foregroundColor(gristexte)
             .lineLimit(1)
@@ -3133,6 +3199,7 @@ struct RequeteLecon: ActivityAttributes {
         var reussis: Int? = nil   // les moments « À toi » réussis du premier coup (5 novembre, 6 h 45 : « 2/4 »)
         var moments: Int? = nil   // les moments de la leçon
         var objectif: Int? = nil  // les moments à réussir pour valider la leçon
+        var pause: Bool? = nil    // la vidéo est en pause (10 novembre) : « Reprendre » dans l’île et sur l’écran verrouillé
     }
 
     var titre: String
@@ -3330,6 +3397,10 @@ struct LeconVerrouille: View {
                     .foregroundColor(Color.white.opacity(0.88))
                     .lineLimit(2)
                     .minimumScaleFactor(0.85)
+                if leconEnPause(etat) {
+                    LeconReprendre()
+                        .padding(.top, 2)
+                }
             }
             LeconFlamme(etat: etat, taille: 34)
         }
@@ -3497,6 +3568,38 @@ struct LunettesChat: View {
     }
 }
 
+// 10 novembre, 7 h 56 (« Mettre la leçon en pause depuis l’île : un bouton Pause / Reprendre », ok) : la vidéo se met en pause
+// d’elle-même quand on quitte l’app (index.html, lvHidden) ; l’île le sait (pause) et propose « Reprendre », qui rouvre l’app sur la
+// leçon et relance la vidéo là où elle s’était arrêtée (requete://lecon-reprendre ; index.html, raccourciOuvrir). Pendant la lecture,
+// l’app est à l’écran : l’île n’y paraît pas, un bouton Pause n’y servirait à rien.
+
+/// La vidéo de la leçon attend : « Reprendre » apparaît (pas une fois la leçon réussie).
+@available(iOS 16.1, *)
+func leconEnPause(_ e: RequeteLecon.ContentState) -> Bool {
+    return e.pause == true && !e.fini
+}
+
+/// « Reprendre » : une pastille braise, un lien vers la leçon dans l’app.
+struct LeconReprendre: View {
+    var body: some View {
+        let police: Font = Font.system(size: 13, weight: .heavy, design: .rounded)
+        let symbole: Font = Font.system(size: 11, weight: .black)
+        let fond = Capsule().fill(braise)
+        return Link(destination: lienSalle("lecon-reprendre")) {
+            HStack(spacing: 6) {
+                Image(systemName: "play.fill")
+                    .font(symbole)
+                Text("Reprendre")
+                    .font(police)
+            }
+            .foregroundColor(encre)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 7)
+            .background(fond)
+        }
+    }
+}
+
 /// Les yeux du chat pendant la leçon : des étoiles une fois réussie, endormis quand elle est en pause, rieurs l’objectif atteint.
 @available(iOS 16.1, *)
 func leconRegard(_ e: RequeteLecon.ContentState, perime: Bool) -> Regard {
@@ -3557,6 +3660,9 @@ struct RequeteLeconActivite: Widget {
                             .foregroundColor(Color.white.opacity(0.85))
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
+                        if leconEnPause(context.state) {
+                            LeconReprendre()
+                        }
                     }
                     .padding(.horizontal, 4)
                     .padding(.top, 2)
