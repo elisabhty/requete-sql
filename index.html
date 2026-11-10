@@ -43438,6 +43438,7 @@ function obApercuFermer(){
   closeOnboardingAuth();
 }
 function closeOnboardingAuth(){
+  if(typeof ileObFin==='function')ileObFin(false);
   obVideoFermer(true);
   const root=document.getElementById('onboarding');
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
@@ -44342,6 +44343,41 @@ function ileFin(reussie){
   const mo=ileMoments();
   ileEtat=null;
   ileAppel('leconFin',Object.assign({fini:!!reussie,allumee:reussie?true:ileAllumee()},mo?{reussis:mo.reussis}:{}));
+}
+/* ---------- La Dynamic Island : l’onboarding en cours ----------
+   Elisa, 10 novembre, 7 h 33 (capture de la Dynamic Island d’une autre app : son avatar à gauche, un anneau qui avance à droite) :
+   « En plein onboarding, fais la même chose pour Requête avec les yeux du chat. » Dès l’accueil, l’iPhone suit l’onboarding en Live
+   Activity (RequeteWidget.accueilDebut) : à gauche, les lunettes du chat (un clin d’œil sur l’accueil, les yeux ouverts pendant les
+   questions, rieurs sur le parcours prêt) ; à droite, l’anneau des étapes, le même compte que l’en-tête (« Étape 3 sur 18 »). Ouverte :
+   l’étape, sa barre et le temps qui reste ; sur l’écran verrouillé aussi. Chaque page met l’étape à jour (accueilMaj) ; la fin de
+   l’onboarding l’arrête, le chat les étoiles plein les yeux (accueilFin) ; fermé sans finir (aperçu, retour), elle part tout de suite.
+   Seulement pour un vrai premier onboarding : ni l’aperçu de Mon compte, ni la personnalisation d’un compte déjà inscrit. */
+let ileOb=null;   // le dernier état envoyé (k), pour ne pas renvoyer deux fois le même
+const ILE_OB_TITRES={welcome:'Bienvenue',name:'Ton prénom',pays:'Ton pays',age:'Ton âge',job:'Ton métier',goal:'Ton objectif',level:'Ton niveau',
+  rhythm:'Ton rythme',jours:'Tes jours de séance',build:'Ton parcours se prépare',temoignages:'Ils apprennent avec Requête',pact:'Ton engagement',
+  practice:'Ta première requête',account:'Ton compte',source:'Comment tu nous as connus',rappel:'Ton rappel',widget:'Ton widget',
+  widgetTuto:'Ton widget',pseudo:'Ton pseudo',ready:'Ton parcours t’attend'};
+function ileObEtat(){
+  const slide=OB_SLIDES[obStep]||'welcome',steps=typeof obFlowSteps==='function'?obFlowSteps():[],total=Math.max(1,steps.length),i=steps.indexOf(slide);
+  const etape=slide==='welcome'?0:slide==='ready'?total:i>=0?i+1:(ileOb?ileOb.etape:0);
+  const minutes=slide==='ready'?0:Math.max(1,Math.ceil((total-Math.max(0,etape-1))*12/60));   // comme l’en-tête : 12 s par étape ; 0 : le parcours est prêt
+  const prenom=String(draft&&draft.name||'').trim().slice(0,24);
+  return {etape,total,titre:ILE_OB_TITRES[slide]||'Ton parcours',bonjour:prenom?`Bienvenue, ${prenom}`:'Bienvenue sur Requête',minutes};
+}
+function ileObSync(){
+  if(!ilePont()||state.onboarded||(typeof obApercu!=='undefined'&&obApercu)||obLegalMode)return;
+  const root=typeof document!=='undefined'&&document.getElementById('onboarding');
+  if(!root||!root.classList.contains('on'))return;
+  const data=ileObEtat(),k=JSON.stringify(data);
+  if(ileOb&&ileOb.k===k)return;
+  const m=ileOb?'accueilMaj':'accueilDebut';
+  ileOb={k,etape:data.etape};
+  ileAppel(m,data);
+}
+function ileObFin(fini){
+  if(!ileOb)return;
+  ileOb=null;
+  ileAppel('accueilFin',{fini:!!fini});
 }
 /* ---------- Les raccourcis de l’icône de l’app iPhone ----------
    Elisa, 4 novembre, 9 h 02 (capture de l’appui long sur l’icône de Duolingo : « 😱 Tu supprimes Duolingo ? Duo te retrouvera. »,
@@ -45804,6 +45840,7 @@ function paintOb(){
     if(inp&&matchMedia('(hover:hover) and (pointer:fine)').matches)setTimeout(()=>inp.focus({preventScroll:true}),360);
   }
   obJustEntered=false;
+  if(typeof ileObSync==='function')ileObSync();   // la Dynamic Island suit l’étape (10 novembre)
 }
 function finishOnboard(action){
   if(typeof obApercu!=='undefined'&&obApercu){obApercuFermer();return;}
@@ -45847,6 +45884,7 @@ function finishOnboard(action){
   obTerminer(action);
 }
 function obTerminer(action){
+  if(typeof ileObFin==='function')ileObFin(true);   // le chat, les étoiles plein les yeux : le parcours est prêt
   const root=document.getElementById('onboarding');
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
   root.setAttribute('aria-hidden','true');obBarreEtat(false);
@@ -47399,7 +47437,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2809';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2810';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

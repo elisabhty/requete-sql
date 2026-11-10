@@ -247,6 +247,22 @@ atteint ; il s’endort quand la leçon est en pause depuis une heure (la Live A
 d’iOS 16.2 : le pont la met à jour avec une `staleDate` d’une heure) ; leçon réussie, des étoiles plein les yeux. Appui long : le
 chat sort du noir (`ChatNoir`, sur fond noir, comme l’île). L’écran verrouillé ne change pas.
 
+### L’onboarding dans la Dynamic Island (10 novembre)
+
+« En plein onboarding, fais la même chose pour Requête avec les yeux du chat » (d’après la Dynamic Island d’une autre app : son
+avatar à gauche, un anneau qui avance à droite). Une Live Activity (`RequeteAccueilIle`) suit le premier onboarding, de l’accueil
+au parcours prêt : la page la lance et la met à jour à chaque page (index.html, `ileObSync` ; le pont, `accueilDebut`,
+`accueilMaj`), et l’arrête à la fin (`accueilFin`).
+
+- **Dynamic Island** (dès qu’on quitte l’app en plein onboarding) : à gauche, les lunettes du chat (un clin d’œil sur l’accueil,
+  les yeux ouverts pendant les questions, rieurs sur le parcours prêt, endormis après une heure de pause) ; à droite, l’anneau des
+  étapes, lilas, qui se remplit page après page. Appui long : le chat, « Bienvenue, Elisa », la page du moment, sa barre et
+  « Étape 3 sur 18 · ≈ 3 min », le même compte que l’en-tête de l’onboarding.
+- **Écran verrouillé** : la même chose, sur le violet de l’app.
+- **La fin** : le parcours prêt, l’anneau menthe avec sa coche et des étoiles plein les yeux du chat, cinq minutes sur l’écran
+  verrouillé. Fermé sans finir (l’aperçu de Mon compte, par exemple) : elle s’en va tout de suite. Ni l’aperçu ni la
+  personnalisation d’un compte déjà inscrit ne la lancent.
+
 ### Ta flamme en direct, jusqu’à minuit (7 novembre)
 
 Sur la planche « Ta flamme, en direct jusqu’à minuit » (« À l’heure de ton planning, si ta flamme n’est pas encore allumée, une

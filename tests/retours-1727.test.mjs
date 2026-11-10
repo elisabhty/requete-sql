@@ -122,7 +122,9 @@ test('réf. 7 : l’objectif sur l’accueil… puis supprimé (5 novembre, 20 h
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {
-  assert.ok(!swift.includes('LeconAnneau') && !swift.includes('.trim(from: 0'));
+  /* 10 novembre : l’anneau revient, mais seulement pour l’onboarding dans l’île, à la demande d’Elisa (ios-accueil-ile) ; jamais pour la leçon. */
+  const horsAccueil = swift.slice(0, swift.indexOf('// MARK: - L’onboarding dans l’île')) + swift.slice(swift.indexOf('// MARK: - La salle dans l’île'));
+  assert.ok(!swift.includes('LeconAnneau') && !horsAccueil.includes('.trim(from: 0'));
   const v = swift.slice(swift.indexOf('struct LeconPourcent: View {'), swift.indexOf('/// L’écran verrouillé'));
   for (const k of ['let part: Double = etat.fini ? 1 : min(1, max(0, etat.progression))', 'let pct: Int = Int((part * 100).rounded())',
     'let texte: String = etat.fini ? "✓" : "\\(pct)\\u{202F}%"', 'let teinte: Color = etat.fini ? dore : braise', 'return Text(texte)\n            .font(police)\n            .monospacedDigit()'])

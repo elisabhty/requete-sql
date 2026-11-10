@@ -3978,6 +3978,231 @@ struct RequeteFlammeDirecte: Widget {
     }
 }
 
+// MARK: - L’onboarding dans l’île (Live Activity)
+//
+// Elisa, 10 novembre, 7 h 33 (capture de la Dynamic Island d’une autre app : son avatar à gauche, un anneau qui avance à droite) :
+// « En plein onboarding, fais la même chose pour Requête avec les yeux du chat. » À gauche de l’île, les lunettes du chat : un clin
+// d’œil sur l’accueil, les yeux ouverts pendant les questions, rieurs sur le parcours prêt, des étoiles plein les yeux une fois
+// l’onboarding fini ; il s’endort si l’onboarding reste en pause une heure (staleDate). À droite, l’anneau des étapes, qui se remplit
+// page après page ; menthe, avec sa coche, à la fin. Appui long : le chat, la page du moment, sa barre et le temps qui reste (comme
+// l’en-tête de l’onboarding, « Étape 3 sur 18 ») ; sur l’écran verrouillé aussi. La page la lance et la tient à jour (index.html,
+// ileObSync ; RequeteWidgetPlugin.swift, accueilDebut). Comme ailleurs : les valeurs d’abord, chacune avec son type.
+
+/// Le même type, au même nom et aux mêmes champs, est déclaré dans l’app (RequeteWidgetPlugin.swift) : iOS relie la Live Activity
+/// lancée par l’app à son dessin ici par ce nom.
+@available(iOS 16.1, *)
+struct RequeteAccueil: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var etape: Int        // l’étape de l’onboarding : 0 sur l’accueil, total sur le parcours prêt
+        var total: Int        // les étapes du tunnel (« Étape 3 sur 18 »)
+        var titre: String     // ce que demande la page (« Ton niveau »)
+        var bonjour: String   // « Bienvenue, Elisa », ou « Bienvenue sur Requête » avant le prénom
+        var minutes: Int      // le temps qui reste, comme l’en-tête de l’onboarding ; 0 sur le parcours prêt
+        var fini: Bool        // l’onboarding est terminé : le parcours est prêt
+    }
+
+    var app: String
+}
+
+/// Ce que l’île lit de l’onboarding.
+@available(iOS 16.1, *)
+enum LectureAccueil {
+    /// La part faite, de 0 à 1 : l’anneau et la barre.
+    static func part(_ e: RequeteAccueil.ContentState) -> Double {
+        if e.fini { return 1 }
+        let total: Int = max(1, e.total)
+        let fait: Int = min(total, max(0, e.etape))
+        return Double(fait) / Double(total)
+    }
+
+    static func regard(_ e: RequeteAccueil.ContentState, perime: Bool) -> Regard {
+        if e.fini { return .etoiles }
+        if perime { return .endormi }
+        if e.etape <= 0 { return .clin }
+        if e.etape >= e.total && e.minutes <= 0 { return .rieur }
+        return .ouvert
+    }
+
+    static func titre(_ e: RequeteAccueil.ContentState) -> String {
+        if e.fini { return "Ton parcours est prêt" }
+        return e.titre
+    }
+
+    static func phrase(_ e: RequeteAccueil.ContentState, perime: Bool) -> String {
+        if e.fini { return "C’est parti\u{202F}! Ta première leçon t’attend." }
+        if perime { return "Le chat garde ta place\u{202F}: reviens quand tu veux." }
+        let duree: String = "≈\u{00A0}\(max(1, e.minutes))\u{00A0}min"
+        if e.etape <= 0 { return "Ton parcours en quelques étapes · " + duree }
+        if e.etape >= e.total && e.minutes <= 0 { return "Toutes les étapes sont faites\u{202F}!" }
+        return "Étape \(e.etape) sur \(e.total) · " + duree
+    }
+}
+
+/// L’onboarding n’a plus bougé depuis une heure : iOS marque la Live Activity périmée (iOS 16.2 et plus).
+@available(iOS 16.1, *)
+func accueilPerime(_ context: ActivityViewContext<RequeteAccueil>) -> Bool {
+    if #available(iOSApplicationExtension 16.2, *) {
+        return context.isStale
+    }
+    return false
+}
+
+/// L’anneau des étapes : lilas, il se remplit page après page ; menthe, avec sa coche, une fois le parcours prêt.
+@available(iOS 16.1, *)
+struct AccueilAnneau: View {
+    let etat: RequeteAccueil.ContentState
+    let taille: CGFloat
+
+    var body: some View {
+        let part: Double = LectureAccueil.part(etat)
+        let bout: CGFloat = CGFloat(max(0.04, part))
+        let teinte: Color = etat.fini ? menthe : lilas
+        let trait: CGFloat = max(2.6, taille * 0.15)
+        let piste: Color = Color.white.opacity(0.2)
+        let coche: Font = Font.system(size: taille * 0.42, weight: .black)
+        return ZStack {
+            Circle()
+                .stroke(piste, lineWidth: trait)
+            Circle()
+                .trim(from: 0, to: bout)
+                .stroke(teinte, style: StrokeStyle(lineWidth: trait, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            if etat.fini {
+                Image(systemName: "checkmark")
+                    .font(coche)
+                    .foregroundColor(menthe)
+            }
+        }
+        .padding(trait / 2)
+        .frame(width: taille, height: taille)
+    }
+}
+
+/// Le haut de l’île ouverte : « Bienvenue, Elisa », puis la page du moment.
+@available(iOS 16.1, *)
+struct AccueilCentre: View {
+    let etat: RequeteAccueil.ContentState
+
+    var body: some View {
+        let petit: Font = Font.system(size: 12, weight: .semibold, design: .rounded)
+        let grand: Font = Font.system(size: 16, weight: .bold, design: .rounded)
+        let titre: String = LectureAccueil.titre(etat)
+        return VStack(spacing: 2) {
+            Text(etat.bonjour)
+                .font(petit)
+                .foregroundColor(Color.white.opacity(0.6))
+                .lineLimit(1)
+            Text(titre)
+                .font(grand)
+                .foregroundColor(Color.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+    }
+}
+
+/// Le bas de l’île ouverte : la barre des étapes et ce qui reste.
+@available(iOS 16.1, *)
+struct AccueilBas: View {
+    let etat: RequeteAccueil.ContentState
+    let perime: Bool
+
+    var body: some View {
+        let part: Double = LectureAccueil.part(etat)
+        let phrase: String = LectureAccueil.phrase(etat, perime: perime)
+        let police: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
+        return VStack(spacing: 7) {
+            LeconBarre(progression: part, fini: etat.fini)
+            Text(phrase)
+                .font(police)
+                .foregroundColor(Color.white.opacity(0.85))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.horizontal, 4)
+        .padding(.top, 2)
+    }
+}
+
+/// L’écran verrouillé : le chat, la page du moment, la barre, ce qui reste, et l’anneau.
+@available(iOS 16.1, *)
+struct AccueilVerrouille: View {
+    let etat: RequeteAccueil.ContentState
+    let perime: Bool
+
+    var body: some View {
+        let part: Double = LectureAccueil.part(etat)
+        let titre: String = LectureAccueil.titre(etat)
+        let phrase: String = LectureAccueil.phrase(etat, perime: perime)
+        let petit: Font = Font.system(size: 12, weight: .semibold, design: .rounded)
+        let grand: Font = Font.system(size: 17, weight: .bold, design: .rounded)
+        let police: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
+        return HStack(alignment: .center, spacing: 14) {
+            Image("Mascotte")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 56)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(etat.bonjour)
+                    .font(petit)
+                    .foregroundColor(Color.white.opacity(0.7))
+                    .lineLimit(1)
+                Text(titre)
+                    .font(grand)
+                    .foregroundColor(Color.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                LeconBarre(progression: part, fini: etat.fini)
+                    .padding(.top, 2)
+                Text(phrase)
+                    .font(police)
+                    .foregroundColor(Color.white.opacity(0.88))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+            }
+            AccueilAnneau(etat: etat, taille: 34)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+}
+
+@available(iOS 16.1, *)
+struct RequeteAccueilIle: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: RequeteAccueil.self) { context in
+            AccueilVerrouille(etat: context.state, perime: accueilPerime(context))
+                .activityBackgroundTint(violetTexte)
+                .activitySystemActionForegroundColor(Color.white)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Image("ChatNoir")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 52)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    AccueilAnneau(etat: context.state, taille: 30)
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    AccueilCentre(etat: context.state)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    AccueilBas(etat: context.state, perime: accueilPerime(context))
+                }
+            } compactLeading: {
+                LunettesChat(regard: LectureAccueil.regard(context.state, perime: accueilPerime(context)), largeur: 30)
+            } compactTrailing: {
+                AccueilAnneau(etat: context.state, taille: 20)
+            } minimal: {
+                LunettesChat(regard: LectureAccueil.regard(context.state, perime: accueilPerime(context)), largeur: 24)
+            }
+            .keylineTint(lilas)
+        }
+    }
+}
+
 // MARK: - La salle dans l’île (Live Activity)
 //
 // Elisa, 7 novembre, 20 h 16 (« Oui », pour la planche « Ta salle vit dans l’île » : « Une seule activité, du code de la salle
@@ -4601,6 +4826,9 @@ struct RequeteWidgets: WidgetBundle {
         }
         if #available(iOS 16.1, *) {
             RequeteSalleIle()
+        }
+        if #available(iOS 16.1, *) {
+            RequeteAccueilIle()
         }
         if #available(iOS 17.0, *) {
             RequetePoche()
