@@ -1,5 +1,5 @@
 // Elisa, 10 novembre, 17 h 11 : « mettre la page de connexion et le paywall au bon moment » ; ses choix : « À la fin », « 4,99 par
-// semaine + 59 par an, regarder ailleurs si c’est cohérent, une page étudiée psychologiquement et de la même DA que le site internet »,
+// semaine + 59 par an, regarder ailleurs si c’est cohérent » puis, à 17 h 50, « Ok 5,99 par semaine et 44,99 par an, une page étudiée psychologiquement et de la même DA que le site internet »,
 // et, tant que le paiement n’est pas branché, « Visible, on passe ».
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -35,12 +35,12 @@ test('l’ordre : les questions, « Ton parcours est prêt », la connexion, le 
   assert.deepEqual(abonne.vers, ['plan-ready'], 'déjà abonné : pas de paywall');
 });
 
-test('les prix : 59 € par an en gros, 1,13 € par semaine dessous, −77 %, 4,99 € par semaine ; l’annuel choisi d’avance', () => {
+test('les prix : 44,99 € par an en gros, 0,86 € par semaine dessous, −86 %, 5,99 € par semaine ; l’annuel choisi d’avance', () => {
   const { ctx } = monter();
   const h = ctx.obPaywallHTML().replace(/[\u00a0\u202f](?!%)/g, ' ').replace(/&nbsp;/g, '\u00a0');
-  assert.ok(h.includes('<span class="pw-o-p"><b>59 €</b> par an</span><span class="pw-o-s">soit 1,13 € par semaine</span>'));
-  assert.ok(h.includes('<span class="pw-o-p"><b>4,99 €</b> par semaine</span>'));
-  assert.ok(h.includes('<span class="pw-badge">−77\u00a0%</span>'));
+  assert.ok(h.includes('<span class="pw-o-p"><b>44,99 €</b> par an</span><span class="pw-o-s">soit 0,86 € par semaine</span>'));
+  assert.ok(h.includes('<span class="pw-o-p"><b>5,99 €</b> par semaine</span>'));
+  assert.ok(h.includes('<span class="pw-badge">−86\u00a0%</span>'));
   assert.ok(/class="pw-offre is-an is-on" role="radio" aria-checked="true"/.test(h) && /class="pw-offre is-semaine" role="radio" aria-checked="false"/.test(h));
   assert.ok(h.indexOf('is-an') < h.indexOf('is-semaine'), 'l’annuel en haut');
   assert.ok(h.includes('Elisa, va au bout de ton <em>objectif</em>.') && h.includes('<b>Progresser en SQL</b> · fin estimée le 3 décembre'), 'son parcours d’abord');
@@ -54,9 +54,9 @@ test('le pied : « Commencer mon parcours », sans engagement, le renouvellement
   ctx.obPaywallPied();
   const [libelle, , , , note] = pied.at(-1); note.html = note.html.replace(/[\u00a0\u202f]/g, ' ');
   assert.equal(libelle, 'Commencer mon parcours');
-  assert.ok(note.html.includes('<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à 59 € par an') && note.html.includes('Conditions') && note.html.includes('Confidentialité'));
+  assert.ok(note.html.includes('<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à 44,99 € par an') && note.html.includes('Conditions') && note.html.includes('Confidentialité'));
   ctx.obPaywallChoisir('semaine');
-  assert.ok(pied.at(-1)[4].html.replace(/[\u00a0\u202f]/g, ' ').includes('Renouvellement automatique à 4,99 € par semaine'));
+  assert.ok(pied.at(-1)[4].html.replace(/[\u00a0\u202f]/g, ' ').includes('Renouvellement automatique à 5,99 € par semaine'));
 });
 
 test('tant que l’achat n’est pas branché : « Continuer » discret et le bouton entrent dans l’app ; branché, seul le paiement passe', async () => {
