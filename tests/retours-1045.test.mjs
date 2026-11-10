@@ -152,5 +152,5 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
   assert.ok(css.includes('@keyframes obvFeteEmoji{'));
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=40">') && sw.includes("'./onboarding-vitrine.css?v=40',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });

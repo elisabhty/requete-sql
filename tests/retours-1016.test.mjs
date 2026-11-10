@@ -149,5 +149,5 @@ test('l’habillage : Apple en noir à la police du système, « Bientôt » en 
     ' .ob-provider.is-nudge small{animation:obvJoyIcon .5s var(--v-pop)}'])
     assert.ok(media.includes(k), k);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });

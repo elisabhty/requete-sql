@@ -187,5 +187,5 @@ test('l’habillage : tuiles en ligne comme l’âge, carte voilée aux nombres 
   /* La feuille est rechargée, et le cache de l’app renouvelé */
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=40">') && sw.includes("'./onboarding-vitrine.css?v=40',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-0\d-[a-z-]+-v\d+$/.test(cache));
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });

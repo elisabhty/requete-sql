@@ -6680,7 +6680,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=311">
+<link rel="stylesheet" href="ludique.css?v=312">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -40992,6 +40992,7 @@ function lqFlammeTexte(jours){
 }
 function lqFlammeOuvrir(){
   const jours=typeof semaineSerie==='function'?semaineSerie():[],{titre,phrase}=lqFlammeTexte(jours);
+  if(titre==='Ta semaine est en feu'&&typeof lqFeuOuvrir==='function')return lqFeuOuvrir(jours);   // 10 novembre : le feu de camp
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   const sem=jours.map((d,i)=>`<li class="is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></li>`).join('');
   const el=document.createElement('div');
@@ -41007,6 +41008,52 @@ function lqFlammeOuvrir(){
   const ok=el.querySelector('.lq-flamme-ok');try{ok.focus({preventScroll:true});}catch(e){ok.focus();}
   if(typeof buzz==='function')buzz('success');
   if(typeof lqConfetti==='function')setTimeout(()=>lqConfetti({n:40}),380);
+}
+/* ---------- La semaine en feu : le feu de camp (Elisa, 10 novembre, 15 h 39 : « Le deuxième parfait », sa piste B) ----------
+   Une autre page que la flamme du jour : la nuit tombe, les flammes des jours faits glissent le long de l'arc et tombent une à une
+   dans le foyer, qui grandit à chacune puis s'embrase ; le chat s'assoit à côté. Les jours de repos restent des lunes, dans le ciel.
+   « 7 jours sur 7 » (« 5 sur 5 » avec deux jours de repos), la série, et « C'est ton record » quand elle l'est. Même fenêtre que la
+   flamme du jour (#lq-flamme : Échap, Continuer, le retour du focus). Mouvement réduit : le feu déjà grand, les flammes dans l'arc. */
+const LQ_FEU_ARC=[[8.8,20.3],[18.1,12.3],[32.7,6.9],[50,5.1],[67.3,6.9],[81.9,12.3],[91.2,20.3]];
+const LQ_FEU_SVG='<svg class="lq-feu-feu" viewBox="0 0 24 28" aria-hidden="true"><path class="f1" d="M12 1c1.6 5 7.5 7.6 7.5 15a7.5 7.5 0 0 1-15 0c0-3 1.5-5.2 3-6.6 0 3 1.4 4.4 3 4.4 0-4.4-1.6-8.8 1.5-12.8z"/><path class="f2" d="M12 9c1 3 4.6 4.8 4.6 9.2a4.6 4.6 0 0 1-9.2 0c0-1.8 1-3.2 1.9-4 0 1.8.9 2.7 1.9 2.7 0-2.7-1-5.4.8-7.9z"/><path class="f3" d="M12 15.5c.6 1.8 2.6 2.8 2.6 5.2a2.6 2.6 0 0 1-5.2 0c0-1.4.9-2.3 1.4-2.8.1 1 .5 1.4 1.1 1.4 0-1.4-.5-2.6.1-3.8z"/></svg>';
+function lqFeuTextes(jours,serie,record){
+  const faits=jours.filter(d=>d.kind==='done').length;
+  return {phrase:`${faits} jour${faits>1?'s':''} sur ${faits}. Chaque petite flamme a nourri ce feu de camp.`,
+    serie:serie>1?`Série : ${serie} jours`:'',record:serie>1&&serie>=record?'C’est ton record':'',
+    partage:`Ma semaine SQL est en feu : ${faits} jour${faits>1?'s':''} sur ${faits} sur Requête !`};
+}
+function lqFeuOuvrir(jours){
+  const T=lqFeuTextes(jours,typeof streakJours==='function'?streakJours():0,typeof streakRecord==='function'?streakRecord():0);
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  let k=0;
+  const arc=jours.map((d,i)=>{const [x,y]=LQ_FEU_ARC[i]||[50,5],repos=d.kind!=='done';
+    return `<li class="${repos?'is-rest':'is-done'}" style="left:${x}%;top:${y}%;--k:${repos?0:k++}"><i>${repos?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></li>`;}).join('');
+  const etoiles=[[10,11,3],[85,8,4],[74,17,2],[21,21,2],[50,7,3],[91,26,3],[6,30,4],[38,15,2],[63,24,2]]
+    .map(([x,y,t],i)=>`<i style="left:${x}%;top:${y}%;width:${t}px;height:${t}px;--e:${i}"></i>`).join('');
+  const braises=[0,1,2,3,4].map(i=>`<i style="--b:${i}"></i>`).join('');
+  const el=document.createElement('div');
+  el.id='lq-flamme';el.className='lq-flamme lq-feu';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+  el.setAttribute('aria-labelledby','lq-flamme-t');el.setAttribute('aria-describedby','lq-flamme-d');
+  el.style.setProperty('--n',String(Math.max(1,k)));
+  el.innerHTML=`<div class="lq-feu-ciel" aria-hidden="true">${etoiles}</div><div class="lq-flamme-in">`
+    +`<div class="lq-feu-scene" aria-hidden="true"><ol class="lq-feu-arc">${arc}</ol>`
+    +`<div class="lq-feu-foyer"><span class="lq-feu-halo"></span>${LQ_FEU_SVG}<span class="lq-feu-braises">${braises}</span></div>`
+    +`<span class="lq-feu-buche"></span><span class="lq-feu-buche is-2"></span>`
+    +`<img class="lq-feu-chat" src="assets/${fixe?'chat-oui-fixe':'chat-oui'}.webp" width="294" height="351" alt="" draggable="false"></div>`
+    +`<h2 class="lq-flamme-t" id="lq-flamme-t">Ta semaine est en feu</h2><p class="lq-flamme-d" id="lq-flamme-d">${T.phrase}</p>`
+    +`${T.serie?`<p class="lq-feu-pills">${`<span>${T.serie}</span>`}${T.record?`<span class="is-record">${T.record}</span>`:''}</p>`:''}`
+    +`<button type="button" class="lq-flamme-ok" onclick="lqFlammeFermer()">Garder le feu allumé</button>`
+    +`${typeof navigator!=='undefined'&&navigator.share?'<button type="button" class="lq-feu-partage" onclick="lqFeuPartager()">Partager ma semaine</button>':''}</div>`;
+  el.dataset.partage=T.partage;
+  lqFlammeOuvrir.avant=document.activeElement;
+  document.body.appendChild(el);
+  el.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();lqFlammeFermer();}});
+  const ok=el.querySelector('.lq-flamme-ok');try{ok.focus({preventScroll:true});}catch(e){ok.focus();}
+  if(typeof buzz==='function'){buzz('light');setTimeout(()=>buzz('success'),fixe?0:2100);}   // quand le feu s'embrase
+}
+async function lqFeuPartager(){
+  const el=document.getElementById('lq-flamme');if(!el||!navigator.share)return;
+  try{await navigator.share({title:'Requête — Apprends le SQL',text:el.dataset.partage||'',url:'https://elisabhty.github.io/requete-sql/'});}catch(e){}
 }
 function lqFlammeFermer(){
   const el=document.getElementById('lq-flamme');if(!el||el.classList.contains('is-sort'))return;
@@ -47588,7 +47635,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2827';
+  const SW_CACHE='requete-2026-11-10-feu-v2828';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
