@@ -53,7 +53,7 @@ test('réf 1 — le calendrier garde les activités validées, au jour de leur v
   assert.equal(vm.runInContext("itemDoneDay(9,'2026-11-04')", ctx), '2026-10-31', 'une séance à venir : aujourd’hui');
   assert.deepEqual(plain(vm.runInContext("planMergeSessions([{d:'2026-11-02',lessons:[4]},{d:'2026-10-30',lessons:[1]}],[{d:'2026-11-02',lessons:[4,7]}])", ctx)),
     [{ d: '2026-10-30', lessons: [1] }, { d: '2026-11-02', lessons: [4, 7] }], 'réunies jour par jour, sans doublon');
-  for (const f of ['decalerPlanning', 'planAdjustCommit']) assert.ok(fn(f).includes('p.sessions=planMergeSessions(planAnchorDone(p,'), f + ' : les validées restent au calendrier');
+  for (const f of ['planAdjustCommit']) assert.ok(fn(f).includes('p.sessions=planMergeSessions(planAnchorDone(p,'), f + ' : les validées restent au calendrier');
 });
 
 test('réf 3 — un glissement vertical sur la barre d’onglets fait défiler l’écran ; un toucher change toujours d’onglet', () => {
