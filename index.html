@@ -41019,18 +41019,8 @@ function semaineCompte(fait,prevu){
   if(fait>=prevu)return `${prevu} séance${s(prevu)} validée${s(prevu)}`;
   return `${fait} séance${s(fait)} validée${s(fait)} sur ${prevu}`;
 }
-/* Elisa, 10 novembre, 9 h 16 (capture du planning : « 0 séance validée sur 5 » entouré, « pas cohérent par rapport au planning ») :
-   les jours montrent des leçons (▶ 4, ▶ 3…) et la séance du jour en est à 1/4, mais l’en-tête comptait des séances entières. Il
-   compte maintenant ce que montrent les jours : « 16 leçons prévues », « 1 leçon validée sur 16 », « 16 leçons validées » (« activités »
-   quand la semaine mêle leçons et défis). La légende ne montre plus un « 2 » d’exemple. */
-function semaineActivites(sessions){
-  const ids=sessions.flatMap(x=>x.lessons),tot=ids.length,fait=ids.filter(itemDone).length,defi=ids.some(isDefiId);
-  if(!tot)return 'Aucune séance prévue';
-  const mot=defi?'activité':'leçon',s=n=>n>1?'s':'';
-  if(!fait)return `${tot} ${mot}${s(tot)} prévue${s(tot)}`;
-  if(fait>=tot)return `${tot} ${mot}${s(tot)} validée${s(tot)}`;
-  return `${fait} ${mot}${s(fait)} validée${s(fait)} sur ${tot}`;
-}
+/* 10 novembre, 9 h 23 (Elisa : « séance validée sur 3 me convient, j’avais mal compris ») : l’en-tête compte les séances
+   (semaineCompte) ; la légende garde « Prévue », sans le « 2 » d’exemple. */
 /* Même règle pour l’avancement global du planning : « 71 activités », « 5 activités validées sur 71 », « 71 activités validées ». */
 function activitesCompte(fait,total,o){
   const s=n=>n>1?'s':'',v=(o&&o.verbe)||'validée',z=o&&o.zero?' '+o.zero:'';
@@ -41070,7 +41060,7 @@ function renderSemaine(){
   const nD=sess?sess.lessons.length-nL:0;
   const started=!!sess&&faitN>0&&!fait;
   return `
-    <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les ${NB_JOURS_VUS} prochains jours</h2><p>${semaineActivites(visibleSessions)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i></b>À faire</span><span><b class="lg-pill done">✓</b>Validée</span></div></div>
+    <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les ${NB_JOURS_VUS} prochains jours</h2><p>${semaineCompte(weekComplete,weekPlanned)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i></b>Prévue</span><span><b class="lg-pill done">✓</b>Validée</span></div></div>
     <div class="wk-chrome">
       <div class="wk-nav">${navHTML()}</div>
       <div class="wk-strip">${stripHTML()}</div>
@@ -46617,7 +46607,7 @@ function renderCompte(){
     const total=session&&session.lessons?session.lessons.length:0;
     const done=total?total-resteDe(session):0;
     const name=DAY_NAMES[date.getDay()];
-    return {label:i?name[0]:'Auj.',name,iso,total,done,session,today:i===0,complete:total>0&&done===total};
+    return {label:i?name[0]:'Auj.',name,iso,total,done,today:i===0,complete:total>0&&done===total};
   });
   const weekEnd=weekDays[weekDays.length-1].name.toLowerCase();
   const weekPlanned=weekDays.filter(d=>d.total>0).length;
@@ -46673,7 +46663,7 @@ function renderCompte(){
           <div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point${kd.pts>1?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}`:'À jouer'}</span></div>
         </div>
         <div class="acct-card acct-week-card">
-          <div class="acct-card-head"><b>Tes ${NB_JOURS_VUS} prochains jours</b>${weekPlanned?`<span>${semaineActivites(weekDays.filter(d=>d.total).map(d=>d.session))}</span>`:''}</div>
+          <div class="acct-card-head"><b>Tes ${NB_JOURS_VUS} prochains jours</b>${weekPlanned?`<span>${semaineCompte(weekComplete,weekPlanned)}</span>`:''}</div>
           <ol class="acct-week" aria-label="Séances des ${NB_JOURS_VUS} prochains jours, à partir d’aujourd’hui">${weekHTML}</ol>
           ${weekFoot}
         </div>
@@ -47552,7 +47542,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2820';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2821';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

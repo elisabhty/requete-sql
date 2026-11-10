@@ -67,18 +67,10 @@ test('l’en-tête de la collection : jamais « 0 carte » ni « 0 module comple
   assert.ok(app.includes('<strong>${collTitre(n)}</strong><span>${collSous(n,completedModules,locked)}</span>'));
 });
 
-/* 10 novembre, 9 h 16 : « 0 séance validée sur 5 » entouré sur le planning (« pas cohérent par rapport au planning ») ; « pas à gagner,
-   à récolter stp pour les cartes ». */
-test('le planning compte ce que montrent les jours (des leçons), et la légende n’a plus de « 2 » d’exemple', () => {
-  const ctx = vm.createContext({ itemDone: id => id === 1, isDefiId: id => String(id).startsWith('d') });
-  vm.runInContext(fn('function semaineActivites(sessions){'), ctx);
-  const sem = l => ctx.semaineActivites(l.map(x => ({ lessons: x })));
-  assert.equal(sem([[2, 3, 4], [5, 6]]), '5 leçons prévues');
-  assert.equal(sem([[1, 2, 3, 4], [5, 6, 7]]), '1 leçon validée sur 7', 'la séance du jour en est à 1/4 : l’en-tête le dit');
-  assert.equal(sem([[1]]), '1 leçon validée');
-  assert.equal(sem([[2, 'd1']]), '2 activités prévues', 'leçons et défis : des activités');
-  assert.equal(sem([]), 'Aucune séance prévue');
-  assert.ok(app.includes('<p>${semaineActivites(visibleSessions)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i></b>À faire</span>'));
+/* 10 novembre, 9 h 16 : « pas à gagner, à récolter stp pour les cartes ». 9 h 23 : l’en-tête du planning garde les séances. */
+test('le planning compte les séances ; la légende n’a plus de « 2 » d’exemple', () => {
+  assert.ok(app.includes('<p>${semaineCompte(weekComplete,weekPlanned)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i></b>Prévue</span>'));
+  assert.ok(!app.includes('semaineActivites'));
 });
 
 test('les cartes se récoltent', () => {
