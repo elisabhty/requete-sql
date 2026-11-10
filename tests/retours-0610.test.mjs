@@ -66,12 +66,12 @@ test('la carte « Questions fréquentes » : en tête de « Compte et assistance
 });
 
 test('le site dans l’app iPhone : à son adresse en ligne (le site n’est pas dans l’app), à côté sur le web', () => {
-  const code = cut("const SITE_URL='https://elisabhty.github.io/requete-sql/';", '/* La date d’inscription');
-  const essai = natif => { const ctx = vm.createContext({ appliNative: () => natif, location: { href: 'https://elisabhty.github.io/requete-sql/index.html?app' }, URL });
+  const code = cut("const SITE_URL='https://requeteapp.com/';", '/* La date d’inscription');
+  const essai = natif => { const ctx = vm.createContext({ appliNative: () => natif, location: { href: 'https://requeteapp.com/index.html?app' }, URL });
     vm.runInContext("const LEGAL_PAGES={privacy:'decouvrir/confidentialite.html'};" + code, ctx); return ctx; };
-  assert.equal(essai(true).siteUrl('decouvrir/#faq'), 'https://elisabhty.github.io/requete-sql/decouvrir/#faq');
-  assert.equal(essai(true).legalUrl('privacy'), 'https://elisabhty.github.io/requete-sql/decouvrir/confidentialite.html', 'les pages légales aussi');
-  assert.equal(essai(false).siteUrl('decouvrir/#faq'), 'https://elisabhty.github.io/requete-sql/decouvrir/#faq');
+  assert.equal(essai(true).siteUrl('decouvrir/#faq'), 'https://requeteapp.com/decouvrir/#faq');
+  assert.equal(essai(true).legalUrl('privacy'), 'https://requeteapp.com/decouvrir/confidentialite.html', 'les pages légales aussi');
+  assert.equal(essai(false).siteUrl('decouvrir/#faq'), 'https://requeteapp.com/decouvrir/#faq');
   const web = vm.createContext({ appliNative: () => false, location: { href: 'http://127.0.0.1:8765/index.html' }, URL });
   vm.runInContext("const LEGAL_PAGES={};" + code, web);
   assert.equal(web.siteUrl('decouvrir/#faq'), 'http://127.0.0.1:8765/decouvrir/#faq', 'sur le web : le site à côté de l’appli');

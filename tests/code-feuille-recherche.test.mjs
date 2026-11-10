@@ -44,8 +44,8 @@ function feuille() {
 test('le code se tire d’une invitation collée entière, de son lien ou d’un message écrit à la main ; taper reste simple', () => {
   const { ctx } = feuille();
   const cas = [
-    ['Rejoins-moi sur Requête pour un défi SQL ! Code de la salle : NENEKE https://elisabhty.github.io/requete-sql/?partie=NENEKE&de=lea', 'NENEKE'],
-    ['https://elisabhty.github.io/requete-sql/?partie=ab12cd&de=lea', 'AB12CD'],
+    ['Rejoins-moi sur Requête pour un défi SQL ! Code de la salle : NENEKE https://requeteapp.com/?partie=NENEKE&de=lea', 'NENEKE'],
+    ['https://requeteapp.com/?partie=ab12cd&de=lea', 'AB12CD'],
     ['mon code : abc123', 'ABC123'], ['Code JUIUUI', 'JUIUUI'], ['Viens jouer ! NENEKE', 'NENEKE'], ['  juiuui ', 'JUIUUI'],
     ['nenek', 'NENEK'], ['NENEKEX', 'NENEKE'], ['a b-c 1', 'ABC1'], ['CODE12', 'CODE12'], ['', ''],
   ];

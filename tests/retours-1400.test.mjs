@@ -40,7 +40,7 @@ test('l’invitation : lue dans le lien, gardée le temps de l’inscription, pu
   const ouvrir = ({ search = '', onboarded = false, ss = memoire() } = {}) => {
     const appels = [];
     const ctx = vm.createContext({ URL, URLSearchParams, sessionStorage: ss, state: { onboarded },
-      location: { search, href: 'https://elisabhty.github.io/requete-sql/' + search },
+      location: { search, href: 'https://requeteapp.com/' + search },
       history: { state: null, replaceState: (s, t, u) => appels.push('adresse ' + u) }, jeuEntrerInvitation: c => appels.push('entre ' + c) });
     vm.runInContext(pseudo + nettoyer + bloc, ctx);
     return { ctx, ss, appels };
@@ -54,12 +54,12 @@ test('l’invitation : lue dans le lien, gardée le temps de l’inscription, pu
   /* Inscrite, la même page (l’adresse a pu perdre son invitation) : on entre, l’adresse et la mémoire nettoyées */
   const b = ouvrir({ onboarded: true, ss: a.ss });
   b.ctx.jeuFromUrl();
-  assert.deepEqual(b.appels, ['adresse /requete-sql/', 'entre PRET02']);
+  assert.deepEqual(b.appels, ['adresse /', 'entre PRET02']);
   assert.equal(a.ss.m.size, 0);
   /* Déjà inscrit qui ouvre le lien : on entre tout de suite ; seuls partie et de quittent l’adresse */
   const c = ouvrir({ search: '?partie=PRET02&de=elisa_sql&jeu=local', onboarded: true });
   c.ctx.jeuFromUrl();
-  assert.deepEqual(c.appels, ['adresse /requete-sql/?jeu=local', 'entre PRET02']);
+  assert.deepEqual(c.appels, ['adresse /?jeu=local', 'entre PRET02']);
   /* Un lien abîmé ne fait rien ; un pseudo bizarre est ramené à un pseudo possible */
   assert.equal(ouvrir({ search: '?partie=PRE02' }).ctx.jeuInvitation(), null);
   assert.equal(ouvrir({ search: '?partie=PRET02&de=%3Cb%3Ex%3C/b%3E' }).ctx.jeuInvitation().de, '@bxb');
@@ -145,7 +145,7 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
     const vu = { partage: null, copie: null };
     const out = { textContent: '', classList: { remove() {} } };
     const ctx = vm.createContext({ JEU: { code: 'PRET02', nom: '@elisa_sql' }, encodeURIComponent,
-      location: { protocol: protocole, origin: protocole === 'https:' ? 'https://elisabhty.github.io' : 'capacitor://localhost', pathname: protocole === 'https:' ? '/requete-sql/' : '/index.html', search },
+      location: { protocol: protocole, origin: protocole === 'https:' ? 'https://requeteapp.com' : 'capacitor://localhost', pathname: protocole === 'https:' ? '/' : '/index.html', search },
       navigator: share ? { share: async d => { vu.partage = d; } } : {}, document: { getElementById: id => (id === 'jeu-copied' ? out : null) },
       jeuCopyText: async t => { vu.copie = t; }, buzz() {} });
     vm.runInContext(pseudo + bloc, ctx);
@@ -153,11 +153,11 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
     return { ...vu, dit: out.textContent };
   };
   const a = await partager();
-  assert.deepEqual(JSON.parse(JSON.stringify(a.partage)), { title: 'Défi SQL sur Requête', text: 'Rejoins-moi sur Requête pour un défi SQL ! Code de la salle : PRET02', url: 'https://elisabhty.github.io/requete-sql/?partie=PRET02&de=elisa_sql' });
+  assert.deepEqual(JSON.parse(JSON.stringify(a.partage)), { title: 'Défi SQL sur Requête', text: 'Rejoins-moi sur Requête pour un défi SQL ! Code de la salle : PRET02', url: 'https://requeteapp.com/?partie=PRET02&de=elisa_sql' });
   const b = await partager({ protocole: 'capacitor:' });
-  assert.equal(b.partage.url, 'https://elisabhty.github.io/requete-sql/?partie=PRET02&de=elisa_sql', 'depuis l’app iOS : le site public, pas l’adresse locale');
+  assert.equal(b.partage.url, 'https://requeteapp.com/?partie=PRET02&de=elisa_sql', 'depuis l’app iOS : le site public, pas l’adresse locale');
   const c = await partager({ share: false });
-  assert.equal(c.copie, 'Rejoins-moi sur Requête pour un défi SQL ! Code de la salle : PRET02\nhttps://elisabhty.github.io/requete-sql/?partie=PRET02&de=elisa_sql');
+  assert.equal(c.copie, 'Rejoins-moi sur Requête pour un défi SQL ! Code de la salle : PRET02\nhttps://requeteapp.com/?partie=PRET02&de=elisa_sql');
   assert.equal(c.dit, 'Invitation copiée : colle-la dans un message à tes amis.');
   /* Collée dans « Entre le code », l’invitation donne le code, avec ou sans le lien */
   const n = vm.createContext({}); vm.runInContext(nettoyer, n);
@@ -169,5 +169,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button>'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-10-revenuecat-v2836';") && app.includes("const SW_CACHE='requete-2026-11-10-revenuecat-v2836';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-10-domaine-v2837';") && app.includes("const SW_CACHE='requete-2026-11-10-domaine-v2837';"));
 });
