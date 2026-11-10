@@ -133,3 +133,12 @@ test('Intermédiaire et Avancé : bien compréhensibles aussi (Elisa, 10 novembr
     assert.ok(phrases.every(ph => ph.length <= 300), `${q.id} : une phrase trop longue (${phrases.find(ph => ph.length > 300)})`);
   }
 });
+
+test('pas de phrase qui commence par « Il » ou « Elle » : le sujet est nommé (Elisa, 10 novembre, 3 h 47 : « ça se dit pas il il il »)', () => {
+  for (const q of E) {
+    const t = q.a.replace(/<\/?code>/g, '').replace(/\u00a0/g, ' ');
+    const m = t.match(/(?:^|[.!?] |\n\n)((?:Il|Elle|Ils|Elles) (?!en existe)[^ ]+)/);
+    assert.equal(m, null, `${q.id} : « ${m && m[1]}… »`);
+  }
+  assert.ok(E.find(q => q.id === 'ent-v2-12').a.includes('La clause <code>DISTINCT</code> porte sur toutes les colonnes demandées, prises ensemble.'));
+});
