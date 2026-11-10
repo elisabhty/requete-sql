@@ -123,6 +123,9 @@
 #s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
 #s7 .rtxt{font-size:39px}
 #s7 .rtxt .rs{margin-top:6px;font-size:33px}
+/* Intro de l’app (carte violette, introScene) : bulle un peu plus large et texte un peu plus petit, pour des lignes pleines
+   sans mot seul (?check : orphelin, ligne trop courte) ; le sous-titre garde ses mots, sur des lignes équilibrées. */
+#s0.nv .bubble{left:510px;width:490px;font-size:38px !important}
 </style>
 </head>
 <body>
@@ -256,8 +259,8 @@
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">🔝</div><div class="rtxt"><b>Comparer à toute une liste</b><span class="rs"><span class="ic">ALL</span> est vrai si la comparaison est vraie pour <b>toutes</b> les valeurs de la <span class="nw">sous-requête</span>, <span class="ic">ANY</span> si elle l’est pour <b>au moins une</b>.</span></div></div>
-      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt"><b>Une autre écriture</b><span class="rs"><span class="ic">&gt; ALL</span> s’écrit aussi <span class="ic">&gt; MAX</span>, et <span class="ic">&gt; ANY</span> s’écrit <span class="ic">&gt; MIN</span>.</span></div></div>
-      <div class="rrow"><div class="rico emo">🟰</div><div class="rtxt"><b>Égal à au moins une valeur</b><span class="rs"><span class="ic">= ANY (…)</span> revient à <span class="ic">IN (…)</span>, que tu connais déjà.</span></div></div>
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt"><b>Une autre écriture</b><span class="rs"><span class="ic">&gt; ALL</span> s’écrit aussi <span class="ic">&gt; MAX</span>,<br>et <span class="ic">&gt; ANY</span> s’écrit <span class="ic">&gt; MIN</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🟰</div><div class="rtxt"><b>Égal à au moins une valeur</b><span class="rs"><span class="ic">= ANY (…)</span> revient à <span class="ic">IN (…)</span>,<br>que tu connais déjà.</span></div></div>
     </div>
   </section>
 
@@ -331,15 +334,16 @@ const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse. */
 const MOMENTS = [
   // ALL expliqué : avant que la vidéo ne compare la Protéine Végétale et l’Oméga 3
+  // étiquettes de 22 caractères au plus : deux par ligne dans la feuille ; plus longues, une par ligne, et sur un iPhone SE (320 × 568) la feuille couvrait les cases « ALL vrai » et « ALL faux »
   {at: 66.9, from: 56.4, kind: 'sort', text: true, prompt: 'Pour chaque produit, <code>prix &gt; ALL (…)</code> est-il vrai ou faux ?',
     hint: 'Sélectionne un produit, puis appuie sur l’emplacement où tu veux le placer. Tu peux aussi le faire glisser directement.', next: '« {x} » : appuie sur l’emplacement où tu veux le placer.',
     board: {y: 470, html: '<span class="mb-k">Prix de la catégorie Bien-être : 29,90 €, 19,90 € et 24,90 €</span><div class="mb-cols" style="gap:28px"><div class="mb-col"><div class="mb-bin" id="mbV"><b>ALL vrai</b><div class="mb-drop"></div></div></div><div class="mb-col"><div class="mb-bin" id="mbF"><b>ALL faux</b><div class="mb-drop"></div></div></div></div>'},
     spots: [{k: 'V', sel: '#mbV', label: 'ALL vrai'}, {k: 'F', sel: '#mbF', label: 'ALL faux'}],
     options: [
-      {label: 'Protéine Végétale, 34,90 €', to: 'V', why: '34,90 € dépasse 29,90 €, 19,90 € et 24,90 € : les trois comparaisons sont vraies.'},
+      {label: 'Protéine, 34,90 €', to: 'V', why: '34,90 € dépasse 29,90 €, 19,90 € et 24,90 € : les trois comparaisons sont vraies.'},
       {label: 'Oméga 3, 24,90 €', to: 'F', why: '24,90 € ne dépasse pas 29,90 € : une comparaison fausse suffit, ALL est faux.'},
-      {label: 'Collagène Marin, 39,90 €', to: 'V', why: '39,90 € dépasse les trois prix de la catégorie Bien-être : ALL est vrai.'},
-      {label: 'Fibre Prébiotique, 29,90 €', to: 'F', why: '29,90 € n’est pas plus grand que 29,90 € : cette comparaison est fausse, ALL est faux.'}],
+      {label: 'Collagène, 39,90 €', to: 'V', why: '39,90 € dépasse les trois prix de la catégorie Bien-être : ALL est vrai.'},
+      {label: 'Fibre, 29,90 €', to: 'F', why: '29,90 € n’est pas plus grand que 29,90 € : cette comparaison est fausse, ALL est faux.'}],
     tip: 'ALL est vrai seulement si le prix dépasse le plus cher de la catégorie Bien-être, 29,90 €.'},
   // ANY expliqué : avant que la vidéo ne montre les verdicts de toute la table
   {at: 109.4, from: 92.2, kind: 'pick', text: true, prompt: 'Avec <code>prix &gt; ANY (…)</code>, combien des 8 produits sont retenus ?', options: [

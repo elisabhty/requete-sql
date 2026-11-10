@@ -124,6 +124,8 @@
 #s7 .rtxt{font-size:37px}
 #s7 .rtxt .rs{margin-top:6px;font-size:33px}
 .rtxt .blk.sm{font-size:.74em}
+/* Bulle de l’intro : à 42 px, la phrase s’émiettait sur six lignes (« à toutes / les lignes »…) ; à 38 px, elle se lit par groupes de mots (10 novembre). */
+#s0.nv .bubble{font-size:38px !important}
 </style>
 </head>
 <body>
@@ -635,8 +637,9 @@ function build(){
   boardIn('#cat6', 125.9, '.vt', 0.12);
   const sq = $$('#vg6 .vd i');
   gsap.set(sq, {autoAlpha: 0, scale: 0.5});
-  tl.to(sq, {autoAlpha: 1, scale: 1, duration: 0.2, ease: 'back.out(2.4)', stagger: 0.035}, 127.1);
-  sq.forEach((_, i) => i % 6 || cue(127.1 + i * 0.035, 'tick', 0.4, (i / 6) % 5));
+  /* Pas de 0,03 s (et non 0,035) : les 48 cases ont fini d’apparaître avant la pause de lecture de la légende, qui les figeait à moitié (10 novembre). */
+  tl.to(sq, {autoAlpha: 1, scale: 1, duration: 0.2, ease: 'back.out(2.4)', stagger: 0.03}, 127.1);
+  sq.forEach((_, i) => i % 6 || cue(127.1 + i * 0.03, 'tick', 0.4, (i / 6) % 5));
   stackBelow('#badge6', '#cat6', 0, 50);
   show('#badge6', 129.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
   cue(129.9, 'chord', 0.7);

@@ -9277,6 +9277,29 @@ html.lq #app #scr-entretien .ent-search-clear.lq-clear:active{transform:translat
 @media (prefers-reduced-motion:reduce){html.lq .lq-clear{animation:none;transition:none}html.lq .lq-clear:active{rotate:0deg}}
 html[data-motion="reduce"].lq .lq-clear{animation:none;transition:none}
 
+/* ---------- 66. Le lecteur des cours, sur tous les iPhone (10 novembre : « verrouiller tous les cours une fois pour toutes ») ----------
+   Vérifié de 320 × 568 à 440 × 956, en paysage (844 × 390) et en grand texte : lecture, pause, moment « À toi », hauteur réduite
+   de 300 px, écran de fin. Ce qui change :
+   - Le double toucher ne zoome plus nulle part dans le lecteur : seuls la scène, les boutons et les étiquettes avaient
+     touch-action:manipulation ; deux appuis rapides sur la barre du bas (entre les boutons), sur le texte d’un plateau « À toi » ou
+     sur la carte de fin agrandissaient la page dans Safari. Le pincement reste permis (accessibilité) : la scène garde sa taille,
+     elle se cale sur la fenêtre du cadre, que le pincement ne change pas.
+   - Le rebond d’iOS ne passe plus derrière le lecteur : le geste reste dans le voile de fin quand il défile, et le lecteur lui-même
+     ne le transmet pas à la page.
+   - En paysage (844 × 390), la carte de fin (478 px) dépassait en haut et en bas, sans pouvoir défiler jusqu’à son haut (centrée par
+     align-items:center, la partie au-dessus était hors d’atteinte) : elle reste centrée quand elle tient, sinon elle part du haut et
+     le voile défile.
+   - Une fenêtre très basse (paysage en grand texte) : le plateau « À toi » ne dépasse plus le haut de l’écran, il défile.
+   - Pendant la vidéo, sur téléphone, les animations en boucle de la page sous le lecteur (invisibles) se figent (lvFond, dans
+     index.html ; html.lv-couvre le signale) : moins de calcul à chaque image. */
+html.lq .lv{touch-action:manipulation;overscroll-behavior:none}
+html.lq .lv-end{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+html.lq .lv:not(.is-fin-end) .lv-end{align-items:flex-start}
+html.lq .lv:not(.is-fin-end) .lv-end-card{flex:none;margin-top:auto;margin-bottom:auto}
+@media (max-height:500px){
+  html.lq .lv-pk-card{max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 52px);overflow-y:auto;overscroll-behavior:contain}
+}
+
 /* ==========================================================================
    Défis — la refonte du 7 novembre (« il faut que quelqu’un m’aide pour la partie design/product design sur la partie défi »).
    Deux designers : le produit (structure, parcours, états : les fonctions de rendu de index.html) et le visuel (la DA du site en un

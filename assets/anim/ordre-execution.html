@@ -57,6 +57,13 @@
 .nb.x{margin:0 auto;background:var(--accent);color:#fff;box-shadow:0 5px 0 #4B30CC}
 .cl{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
 .cl .kw{color:var(--accent-ink)}
+/* Opérateurs tels qu’on les tape (>= et non ≥), comme dans les blocs de code (10 novembre : la police mono des étapes et de l’alias les liait). */
+.cl,.vrow b{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+
+/* La ligne 1 nomme le comptage (AS nb_envois), que la ligne 6 utilise (10 novembre : sans l’alias, la requête montrée était refusée) :
+   colonnes et police resserrées pour qu’elle tienne. */
+#or2 .oh,#or2 .orow{grid-template-columns:112px 1fr 126px}
+#or2 .orow .cl{font-size:26px}
 
 /* ---------- 3 · Étape par étape ---------- */
 .pipe{left:64px;width:952px;padding:20px 28px 22px}
@@ -155,7 +162,7 @@
     <div class="abs card ord" id="or2" style="top:300px">
       <div class="trap-h"><span class="emo">✍️</span><span>Écrire, puis exécuter</span></div>
       <div class="oh"><span>Écriture</span><span>Clause</span><span id="hx2">Exécution</span></div>
-      <div class="orow"><span class="nb w">1</span><span class="cl"><span class="kw">SELECT</span> produit_id, <span class="kw">COUNT</span>(*)</span><span class="nb x" data-x="5">5</span></div>
+      <div class="orow"><span class="nb w">1</span><span class="cl"><span class="kw">SELECT</span> produit_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> nb_envois</span><span class="nb x" data-x="5">5</span></div>
       <div class="orow"><span class="nb w">2</span><span class="cl"><span class="kw">FROM</span> commandes</span><span class="nb x" data-x="1">1</span></div>
       <div class="orow"><span class="nb w">3</span><span class="cl"><span class="kw">WHERE</span> statut = <span class="st">'expédiée'</span></span><span class="nb x" data-x="2">2</span></div>
       <div class="orow"><span class="nb w">4</span><span class="cl"><span class="kw">GROUP BY</span> produit_id</span><span class="nb x" data-x="3">3</span></div>
@@ -213,6 +220,9 @@
       <div class="rgR th"><div>produit_id</div><div>nb_envois</div></div>
       <div class="rows" id="rows6"></div>
     </div>
+    <!-- Le nom des produits dont la légende parle : le résultat ne montre que leur identifiant (10 novembre). -->
+    <div class="abs pill vi" id="nm6a"><span>🏷️ Produit n°1&nbsp;: Fibre Prébiotique</span></div>
+    <div class="abs pill vi" id="nm6b"><span>🏷️ n°3&nbsp;: Magnésium · n°6&nbsp;: Protéine Végétale</span></div>
     <div class="abs card board" id="ab6" style="top:300px">
       <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Logistique · réassort</span></div>
       <div class="ms">
@@ -229,7 +239,7 @@
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt"><b>L’ordre d’exécution</b><span class="rs"><span class="ic">FROM</span>, <span class="ic">WHERE</span>, <span class="ic">GROUP BY</span>, <span class="ic">HAVING</span>, <span class="ic">SELECT</span>, <span class="ic">ORDER BY</span>, puis <span class="ic">LIMIT</span>.</span></div></div>
-      <div class="rrow"><div class="rico emo">⚖️</div><div class="rtxt"><b>WHERE avant, HAVING après</b><span class="rs">Une condition sur un comptage va dans <span class="ic">HAVING</span>&nbsp;: <span class="ic">WHERE</span> passe avant le regroupement.</span></div></div>
+      <div class="rrow"><div class="rico emo">⚖️</div><div class="rtxt"><b>WHERE avant, HAVING après</b><span class="rs">Un comptage se filtre dans <span class="ic">HAVING</span>&nbsp;:<br><span class="ic">WHERE</span> passe avant le regroupement.</span></div></div>
       <div class="rrow"><div class="rico emo">🏷️</div><div class="rtxt"><b>L’alias du SELECT</b><span class="rs"><span class="ic">ORDER BY</span> peut l’utiliser&nbsp;; <span class="ic">WHERE</span>, exécuté avant, ne le connaît pas encore.</span></div></div>
     </div>
   </section>
@@ -493,7 +503,15 @@ function build(){
   const r6 = $$('#rows6 .tr');
   pulse(r6[0], 160.6, 3, 'rgba(201,188,255,.45)');
   pulse([r6[1], r6[2]], 165.8, 3, 'rgba(201,188,255,.45)');
-  hide(['#s6code', '#tbl6'], 170.4, {y: -40}, 0.4);
+  /* Sous le résultat, le nom des produits que la légende cite (le tableau n’a que leur identifiant). */
+  stackBelow('#nm6a', '#tbl6', 0, 30);
+  stackBelow('#nm6b', '#tbl6', 0, 30);
+  show('#nm6a', 160.6, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(160.6, 'pop', 0.6, 1);
+  hide('#nm6a', 165.3, {y: 0, scale: 0.85}, 0.3);
+  show('#nm6b', 165.8, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
+  cue(165.8, 'pop', 0.6, 3);
+  hide(['#s6code', '#tbl6', '#nm6b'], 170.4, {y: -40}, 0.4);
   boardIn('#ab6', 170.7, '.ms-h, .rc', 0.25);
   gsap.set('#sp6', {autoAlpha: 0, scale: 1.8, rotation: -14});
   tl.to('#sp6', {autoAlpha: 1, scale: 1, rotation: -8, duration: 0.35, ease: 'back.out(2)'}, 172.2);

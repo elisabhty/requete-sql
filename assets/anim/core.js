@@ -869,7 +869,8 @@ function layoutIssues(render, total){
   const isBox = el => { const cs = getComputedStyle(el); return el.tagName !== 'IMG' && !el.classList.contains('mascot') &&
     (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || parseFloat(cs.borderTopWidth) > 0 || cs.boxShadow !== 'none'); };
   const set = new Set();
-  const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.parentElement.closest('.card, .code')) set.add(el); };
+  /* 10 nov. : .iv-card, fond de l’intro */
+  const take = el => { if (!el.classList.contains('stamp') && !el.classList.contains('fly') && !el.classList.contains('iv-card') && !el.parentElement.closest('.card, .code')) set.add(el); };
   $$('.card, .code', stage).forEach(take);
   $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
   $$('.badge span, .tagpill, .pill > span', stage).forEach(el => { if (!el.closest('.card, .code')) set.add(el); });
@@ -950,7 +951,8 @@ function layoutIssues(render, total){
       }
     });
     const vis = items.filter(it => shown(it.el) >= 0.9).map(it => { const r = it.el.getBoundingClientRect();
-      return Object.assign({x1: r.left - sr.left, y1: r.top - sr.top, x2: r.right - sr.left, y2: r.bottom - sr.top + it.lip}, it); })
+      /* 10 nov. : en pixels de scène */
+      return Object.assign({x1: (r.left - sr.left) / k, y1: (r.top - sr.top) / k, x2: (r.right - sr.left) / k, y2: (r.bottom - sr.top) / k + it.lip}, it); })
       .filter(b => b.x2 - b.x1 > 4 && b.y2 - b.y1 > 4);
     for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) {
       const a = vis[i], b = vis[j];
@@ -1118,13 +1120,16 @@ function pontRender(T){
   if (!on) { if (body.classList.contains('pont-on')) { body.classList.remove('pont-on', 'pont-fin'); PONTS.forEach(p => p.el && p.el.classList.remove('on')); } return; }
   const fin = on.k === 'apres';
   const al = Math.max(0, Math.min(1, (T - on.a) / PONT_FADE, fin ? 1 : (on.b - T) / PONT_FADE));
-  body.style.setProperty('--pont-a', al.toFixed(3));
+  /* 10 nov. : n’écrit que ce qui change */
+  const pose = (k, v) => { v = String(v); if (body.style.getPropertyValue(k) !== v) body.style.setProperty(k, v); };
+  pose('--pont-a', al.toFixed(3));
   /* La bulle du début ne doit pas mordre sur la carte d’intro : la carte recule juste ce qu’il faut pendant la phrase. */
-  body.classList.add('pont-on'); body.classList.toggle('pont-fin', fin);
-  PONTS.forEach(p => p.el && p.el.classList.toggle('on', p === on));
+  const cl = (e, c, v) => e.classList.contains(c) !== v && e.classList.toggle(c, v);
+  cl(body, 'pont-on', true); cl(body, 'pont-fin', fin);
+  PONTS.forEach(p => p.el && cl(p.el, 'on', p === on));
   /* Mesure une fois la bulle en place (classe « pont-on » posée) ; la carte n’est pas encore réduite (--pont-d à 0). */
-  if (!fin && on.up === undefined) { body.style.setProperty('--pont-d', 0); on.up = pontUp(on); }
-  body.style.setProperty('--pont-d', fin ? 0 : (on.up || 0));
+  if (!fin && on.up === undefined) { pose('--pont-d', 0); on.up = pontUp(on); }
+  pose('--pont-d', fin ? 0 : (on.up || 0));
 }
 
 /* ---------- Caméra : sur un écran large, la scène grandit dans la place libre ----------
@@ -1265,14 +1270,15 @@ function camFit(){
 }
 /* Le même agrandissement pour tout : les scènes autour du point (540, o) ; une carte partagée, autour du même point, en gardant son
    propre point d’origine (celui de ses animations) : on la décale de (point − origine) × (1 − z). */
+/* 10 nov. : scènes réécrites si le zoom change ; cartes mesurées avant d’être déplacées */
 function camApply(z, o){
-  const on = Math.abs(z - 1) > 0.005;
-  CAM.secs.forEach(s => { s.style.transformOrigin = on ? `540px ${o.toFixed(1)}px` : ''; s.style.scale = on ? z.toFixed(4) : ''; });
-  CAM.loose.forEach(e => {
-    if (!on) { e.style.scale = ''; e.style.translate = ''; return; }
-    const to = getComputedStyle(e).transformOrigin.split(' ').map(parseFloat), Ox = e.offsetLeft + (to[0] || 0), Oy = e.offsetTop + (to[1] || 0);
-    e.style.scale = z.toFixed(4); e.style.translate = `${((540 - Ox) * (1 - z)).toFixed(1)}px ${((o - Oy) * (1 - z)).toFixed(1)}px`;
-  });
+  const on = Math.abs(z - 1) > 0.005, key = on ? z.toFixed(4) + ' ' + o.toFixed(1) : '';
+  if (CAM.applied !== key) { CAM.applied = key; CAM.secs.forEach(s => { s.style.transformOrigin = on ? `540px ${o.toFixed(1)}px` : ''; s.style.scale = on ? z.toFixed(4) : ''; }); }
+  if (!CAM.loose.length) return;
+  if (!on) { CAM.loose.forEach(e => { e.style.scale = ''; e.style.translate = ''; }); return; }
+  const at = CAM.loose.map(e => { const to = getComputedStyle(e).transformOrigin.split(' ').map(parseFloat); return [e.offsetLeft + (to[0] || 0), e.offsetTop + (to[1] || 0)]; });
+  CAM.loose.forEach((e, i) => { const [Ox, Oy] = at[i];
+    e.style.scale = z.toFixed(4); e.style.translate = `${((540 - Ox) * (1 - z)).toFixed(1)}px ${((o - Oy) * (1 - z)).toFixed(1)}px`; });
 }
 function camAt(t){
   const f = Math.max(0, t) / CAM_STEP, i = Math.floor(f), w = f - i, a = CAM.z, O = CAM.o;

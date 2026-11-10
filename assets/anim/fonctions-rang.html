@@ -16,6 +16,8 @@
 #s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
 #s0 .mascot{left:290px;top:1050px}
 #s1 .need-row .nl{font-size:36px;white-space:nowrap}
+/* Les lignes entrent en glissant depuis la gauche (x : −34 px) : la carte les rogne, elles ne dépassent plus de son bord pendant l’entrée */
+#s1 .need{overflow:hidden}
 .nw{white-space:nowrap}
 /* La table clients en violet, la table commandes en orange, la table produits en bleu */
 .tag.tc{background:#FFF4E5;color:#9A5B00}
@@ -114,6 +116,9 @@
 #s7 .rtxt{font-size:34px}
 #s7 .rtxt .rs{margin-top:4px;font-size:31px}
 #s7 .rtxt .rs.rl{margin-top:2px;padding-left:22px;text-indent:-22px}   /* ROW_NUMBER / RANK / DENSE_RANK : une ligne par fonction */
+/* Intro de l’app (carte violette, introScene) : bulle un peu plus large et texte un peu plus petit, pour des lignes pleines
+   sans mot seul (?check : orphelin, ligne trop courte) ; le sous-titre garde ses mots, sur des lignes équilibrées. */
+#s0.nv .bubble{left:510px;width:490px;font-size:34px !important}
 </style>
 </head>
 <body>
@@ -302,7 +307,7 @@ const CAPTIONS = [
   [10.7, 16.4,   "Pour le trouver, elle cherche le <b>premier achat</b> de chaque client."],
   [16.5, 22.1,   "On récupère la date de chaque achat dans la <b>table commandes</b>."],
   [22.2, 27.5,   "Reste à calculer le rang<br>de chaque commande chez son client."],
-  [28.3, 33.9,   "Avec <code>ORDER BY date_commande</code>, les commandes sont rangées par date."],
+  [28.3, 33.9,   "Avec <code>ORDER BY date_commande</code>,<br>les commandes sont rangées par date."],
   [34.0, 39.6,   "Mais les clients sont mélangés.<br>Par exemple, les trois commandes<br>de Sophie Martin sont dispersées."],
   [39.7, 45.3,   "Et deux d’entre elles datent du <b>même jour</b>, le 2 juillet."],
   [45.4, 51.5,   "Il faut un numéro par commande, qui reparte de 1 pour chaque client."],
@@ -345,10 +350,10 @@ const MOMENTS = [
     {label: '1 et 1', why: 'Une même place pour deux lignes ex æquo, c’est un autre calcul : <code>ROW_NUMBER()</code> ne répète jamais un rang.'},
     {label: '2 et 2', why: 'Les rangs commencent à 1 et ne se répètent jamais : 1, puis 2.'}],
     tip: '<code>ROW_NUMBER()</code> donne un rang à chaque ligne, une à une.'},
-  // les trois fonctions vues : relier chacune à sa numérotation
+  // les trois fonctions vues : relier chacune à sa numérotation (étiquettes de 124 px : au moins 44 px de haut sous le doigt, sur un iPhone de 390 px)
   {at: 127.5, from: 116.2, kind: 'link', need: 3, prompt: 'Sophie Martin a deux commandes le 2 juillet, puis une le 28. Relie chaque fonction aux rangs qu’elle donne.',
     hint: 'Sélectionne une fonction, puis appuie sur ses rangs. Tu peux aussi tracer le trait directement du doigt.',
-    board: {y: 470, html: '<span class="mb-k">2 juillet, 2 juillet, 28 juillet</span><div class="mb-cols" style="gap:120px"><div class="mb-col"><div class="mb-i c" id="mbfR">ROW_NUMBER()</div><div class="mb-i c" id="mbfK">RANK()</div><div class="mb-i c" id="mbfD">DENSE_RANK()</div></div><div class="mb-col" style="flex:0 0 260px"><div class="mb-i" id="mbn112">1, 1, 2</div><div class="mb-i" id="mbn123">1, 2, 3</div><div class="mb-i" id="mbn113">1, 1, 3</div></div></div>'},
+    board: {y: 470, html: '<span class="mb-k">2 juillet, 2 juillet, 28 juillet</span><div class="mb-cols" style="gap:120px"><div class="mb-col"><div class="mb-i c" id="mbfR" style="min-height:124px">ROW_NUMBER()</div><div class="mb-i c" id="mbfK" style="min-height:124px">RANK()</div><div class="mb-i c" id="mbfD" style="min-height:124px">DENSE_RANK()</div></div><div class="mb-col" style="flex:0 0 260px"><div class="mb-i" id="mbn112" style="min-height:124px">1, 1, 2</div><div class="mb-i" id="mbn123" style="min-height:124px">1, 2, 3</div><div class="mb-i" id="mbn113" style="min-height:124px">1, 1, 3</div></div></div>'},
     spots: [
       {k: 'R', sel: '#mbfR', label: 'ROW_NUMBER()', side: 'l', pair: 'n123', why: '<code>ROW_NUMBER()</code> ne répète jamais un rang : 1, 2, 3.'},
       {k: 'K', sel: '#mbfK', label: 'RANK()', side: 'l', pair: 'n113', why: '<code>RANK()</code> donne la même place aux ex æquo, puis saute : 1, 1, 3.'},

@@ -85,6 +85,8 @@
 .rgE{display:grid;grid-template-columns:90px 210px 1fr 150px;padding:0 26px;align-items:center}
 .tr.t4{height:50px;font-size:30px}
 .tr.t4 .hl{background:var(--accent-soft);box-shadow:inset 8px 0 0 var(--accent)}
+/* Le vert d’une ligne gardée : un calque posé sur le violet, qui apparaît en fondu (opacity) au lieu d’animer background et box-shadow */
+.tr.t4 .hk{position:absolute;left:0;top:0;right:0;bottom:0;background:#E7F7EE;box-shadow:inset 8px 0 0 #2FA36B;opacity:0;z-index:0}
 .tr>div.vc{position:relative;height:40px;padding:0;overflow:visible}
 .vc>i{position:absolute;right:0;top:0;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:23px;font-weight:800;font-style:normal;display:flex;align-items:center;opacity:0}
 .vc .y{background:#E7F7EE;color:#1B7A45}
@@ -118,6 +120,9 @@
 #s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
 #s7 .rtxt{font-size:39px}
 #s7 .rtxt .rs{margin-top:6px;font-size:33px}
+/* Intro de l’app (carte violette, introScene) : bulle un peu plus large et texte un peu plus petit, pour des lignes pleines
+   sans mot seul (?check : orphelin, ligne trop courte) ; le sous-titre garde ses mots, sur des lignes équilibrées. */
+#s0.nv .bubble{left:510px;width:490px;font-size:32px !important}
 </style>
 </head>
 <body>
@@ -364,7 +369,7 @@ function dom(){
   /* Chapitre 2 : les quatre commandes de Fibre Prébiotique */
   $('#rows2').innerHTML = FIBRE.map(([n, c]) => `<div class="rgO tr t2"><span class="hl"></span><div>commande ${n}</div><div>${c}</div><div>1</div></div>`).join('');
   /* Chapitre 4 : la table clients, avec le verdict de EXISTS */
-  $('#rows4').innerHTML = CLIENTS.map(([id, p, n]) => `<div class="rgE tr t4"><span class="hl"></span><div>${id}</div><div>${p}</div><div>${n}</div>` +
+  $('#rows4').innerHTML = CLIENTS.map(([id, p, n]) => `<div class="rgE tr t4"><span class="hl"></span><span class="hk"></span><div>${id}</div><div>${p}</div><div>${n}</div>` +
     `<div class="vc"><i class="y">vrai</i><i class="n">faux</i></div></div>`).join('');
   /* Chapitre 5 : sans la condition de liaison, les 10 clients */
   /* nb : n’a jamais acheté la Fibre Prébiotique ; jm : n’a jamais rien commandé. */
@@ -408,7 +413,7 @@ function verdict(i, t, d = 0.35){
   tl.set(nums[i + 1], {autoAlpha: 1}, t);
   cue(t, 'tick', 0.45, i % 5);
   tl.fromTo(r.querySelector(ok ? '.y' : '.n'), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false}, t + d);
-  if (ok) tl.to(r.querySelector('.hl'), {backgroundColor: '#E7F7EE', boxShadow: 'inset 8px 0 0 #2FA36B', duration: 0.25}, t + d);
+  if (ok) tl.to(r.querySelector('.hk'), {opacity: 1, duration: 0.25}, t + d);
   else tl.to(r, {opacity: 0.5, duration: 0.25}, t + d);
   cue(t + d, ok ? 'true' : 'miss', 0.45);
 }

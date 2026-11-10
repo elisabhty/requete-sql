@@ -55,9 +55,11 @@
 .tr .nul{color:var(--ink-3);font-family:var(--mono);font-size:26px}
 .tr.new{background:#ECF8F1}
 .err{margin-top:18px}
+/* Le message d’erreur du piège sur deux lignes de même longueur (« … 3 columns » / « but 2 values … ») : sans bout de ligne isolé */
+#err4 .m{max-width:28ch}
 
 /* ---------- 5 · Une copie figée ---------- */
-.duo5{left:64px;width:952px;display:flex;gap:18px}
+.duo5{left:64px;width:952px;display:flex;gap:24px}
 .cp{flex:1;min-width:0;padding:22px 24px 26px}
 .cph{display:flex;gap:10px;align-items:center;font-size:28px;font-weight:800;color:var(--ink);white-space:nowrap}
 .cpr{margin-top:16px;border-radius:18px;background:var(--surface-2);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
@@ -169,7 +171,7 @@
   <section class="scene" id="s5">
     <div class="abs duo5" id="d5" style="top:300px">
       <div class="card cp" id="cc5"><div class="cph"><span>👥</span><span>table clients</span></div><div class="cpr"><b>Léa Simon</b><span class="pv"><i>lea@mail.fr</i><i class="nwv">lea.simon@mail.fr</i></span></div></div>
-      <div class="card cp" id="ci5"><div class="cph"><span>🗄️</span><span>table invites</span></div><div class="cpr"><b>Léa Simon</b><span class="pv"><i>lea@mail.fr</i></span></div></div>
+      <div class="card cp" id="ci5"><div class="cph"><span>🗄️</span><span>table invites</span></div><div class="cpr"><b>Léa Simon</b><span class="pv"><i id="old5">lea@mail.fr</i><i id="q5">?</i></span></div></div>
     </div>
     <div class="abs pill vi" id="p5"><span>📸 Une copie, faite au moment de la requête</span></div>
   </section>
@@ -429,6 +431,13 @@ function build(){
   tl.to(pv[1], {autoAlpha: 1, duration: 0.25}, 129.5);
   bump('#cc5 .cpr', 129.5, 1.05, 1);
   cue(129.5, 'tick', 0.5, 2);
+  /* Avant le moment « À toi » (133,5 s) : l’e-mail de la table invites devient « ? », pour que la réponse ne soit pas déjà à l’écran ;
+     il revient juste après le moment, avec la légende « La table invites garde l’ancien ». */
+  gsap.set('#q5', {autoAlpha: 0});
+  tl.to('#old5', {autoAlpha: 0, duration: 0.2}, 132.6);
+  tl.to('#q5', {autoAlpha: 1, duration: 0.25}, 132.7);
+  tl.to('#q5', {autoAlpha: 0, duration: 0.2}, 134.1);
+  tl.to('#old5', {autoAlpha: 1, duration: 0.25}, 134.2);
   // La table invites garde l’ancien
   pulse('#ci5 .cpr', 134.6, 3, 'rgba(255,214,140,.6)');
   cue(134.6, 'pop', 0.6, 3);

@@ -208,7 +208,9 @@ const fseg = j => { const [x0, y0] = FPTS[j], [x1, y1] = FPTS[j + 1], a = j ? y0
    fonctions stockées en ajoute sept : l’UPDATE de la commande 13, les deux CALL, les deux SELECT calculer_points, CREATE PROCEDURE et CREATE FUNCTION. Le cours Les schémas en
    ajoute huit : les deux CREATE SCHEMA, ALTER TABLE … SET SCHEMA, les quatre SELECT à adresse complète et SELECT * FROM main.clients. */
 const FSTAT = [[15, 'modules'], [65, 'cours'], [184, 'requêtes']];
-const FDEFIS = 25;   // les défis de l’onglet Pratiquer (CHALLENGES dans l’app)
+/* Les défis de l’onglet Pratiquer : le nombre de l’app (CHALLENGES), lu dans la page qui joue la vidéo ; le bilan qui suit la vidéo
+   affiche ce même nombre (bravoNextHtml). Ouverte seule, la page garde le dernier compte connu (relecture du 10 novembre : 477, et non 25). */
+const FDEFIS = (() => { try { const n = window.parent !== window && window.parent.CHALLENGES && window.parent.CHALLENGES.length; if (n > 0) return n; } catch (e) {} return 477; })();
 /* Un compteur qui monte vite puis ralentit : ses valeurs, de 0 au total (une valeur empilée par étape, comme les autres compteurs) */
 const FSTEPS = 14, fcount = n => [...new Set(Array.from({length: FSTEPS + 1}, (_, i) => Math.round(n * (1 - Math.pow(1 - i / FSTEPS, 2.2)))))];
 const FBURST = [[190, 300, '#FFD45C'], [770, 250, '#FF8FC7'], [150, 760, '#7CE0FF'], [800, 700, '#B9FF8A'], [476, 140, '#C9BEFF']];
@@ -360,9 +362,9 @@ function build(){
   let k = 0;
   GCM.forEach(([, , msgs], r) => msgs.forEach((m, j) => {
     const at = +(GC_FIRST + k * GC_STEP).toFixed(2);
-    if (j === 0) tl.to('#gn' + r, {autoAlpha: 1, duration: 0.2}, at - 0.05);
+    if (j === 0) tl.to('#gn' + r, {autoAlpha: 1, duration: 0.2}, at);   // après la pause de la bulle d’avant (at − 0,02) : jamais figé à moitié
     tl.to(gms[k], {autoAlpha: 1, scale: 1, y: 0, duration: 0.31, ease: 'back.out(1.8)'}, at);
-    if (j === msgs.length - 1) tl.fromTo('#gpa' + r, {autoAlpha: 0, scale: 0.5}, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false}, at + 0.05);
+    if (j === msgs.length - 1) tl.fromTo('#gpa' + r, {autoAlpha: 0, scale: 0.5}, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false}, at + 0.05);   // fini avant la pause (at + 0,32)
     if (k && GC.y[k] !== GC.y[k - 1]) tl.to('#gcs', {y: GC.y[k], duration: 0.32, ease: 'power2.out'}, at - 0.02);
     cue(at, m === '@photo' ? 'pop' : 'tick', 0.45, (k % 6) + 2);
     hold(at + 0.32, m === '@photo' ? 2.4 : Math.ceil(readTime(fr(m)) * 20) / 20);

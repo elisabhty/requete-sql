@@ -84,6 +84,8 @@
 .fd .tx{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--ink-2);white-space:pre}
 .fd .tx.o{color:var(--accent-ink)}
 .fd .ar{font-size:36px;font-weight:800;color:var(--ink-3)}
+/* SUBSTR(nom, 1, 3) : ce que veulent dire 1 et 3, avec les mots du chapitre 6 et du 4e moment (départ, longueur ; relecture du 10 novembre) */
+.fd .sbn{margin-left:auto;height:46px;padding:0 18px;border-radius:999px;background:var(--surface-2);color:var(--ink-3);font-size:26px;font-weight:700;display:inline-flex;align-items:center;white-space:nowrap}
 
 /* ---------- 6 · Le résultat ---------- */
 .rgD{display:grid;grid-template-columns:1fr 130px 290px 180px;padding:0 26px;align-items:center}
@@ -216,7 +218,7 @@
       <div class="fg fd"><span class="fc">LOWER</span><span class="fl"><span class="tx">PARIS</span><span class="ar">→</span><span class="tx o">paris</span></span></div>
       <div class="fg fd"><span class="fc">TRIM</span><span class="fl"><span class="tx">'&nbsp;&nbsp;Paris&nbsp;&nbsp;'</span><span class="ar">→</span><span class="tx o">'Paris'</span></span></div>
       <div class="fg fd"><span class="fc">LENGTH</span><span class="fl"><span class="tx">Sophie</span><span class="ar">→</span><span class="tx o">6</span></span></div>
-      <div class="fg fd"><span class="fc">SUBSTR</span><span class="fl"><span class="tx">Martin</span><span class="ar">→</span><span class="tx o">Mar</span></span></div>
+      <div class="fg fd"><span class="fc">SUBSTR</span><span class="fl"><span class="tx">Martin</span><span class="ar">→</span><span class="tx o">Mar</span><span class="sbn">départ 1, longueur 3</span></span></div>
       <div class="fg fd"><span class="fc">REPLACE</span><span class="fl"><span class="tx">06 39 98 12 04</span><span class="ar">→</span><span class="tx o">0639981204</span></span></div>
     </div>
   </section>
@@ -375,8 +377,9 @@ const MOMENTS = [
      cherche la longueur à donner à SUBSTR, et voit 4 adresses se couper. Une longueur fixe garde un espace ou une lettre. */
   {at: 132.75, from: 123.15, kind: 'tune', ico: '✂️', prompt: 'Quelle longueur donner à <code>SUBSTR</code> pour garder <b>uniquement le numéro de rue</b> ?',
     hint: 'Sélectionne une longueur, puis observe les 4 adresses : chaque numéro de rue doit sortir entier, sans espace.',
-    controls: [{k: 'n', type: 'seg', label: 'Longueur', choices: ['2', '3', 'INSTR\u00a0−\u00a01'], value: '2', code: true}],
-    answer: {n: 'INSTR\u00a0−\u00a01'},
+    /* « INSTR − 1 » débordait de son bouton sur les écrans de 320 à 402 px de large (relecture du 10 novembre) : « INSTR-1 », comme dans la requête. */
+    controls: [{k: 'n', type: 'seg', label: 'Longueur', choices: ['2', '3', 'INSTR-1'], value: '2', code: true}],
+    answer: {n: 'INSTR-1'},
     board: {y: 300, html: '<span class="mb-k">✂️ Le numéro de rue</span><div class="mb-q mg-sm" id="mbnq" style="font-size:28px"></div><div class="mb-col" style="gap:14px">'
       + ADR4.map((a, i) => `<div class="mg-r" id="mbn${i}"><span>${a}</span><b id="mbnv${i}"></b></div>`).join('') + '</div><div class="mg-c" id="mbnc"></div>'},
     show(s, b) {

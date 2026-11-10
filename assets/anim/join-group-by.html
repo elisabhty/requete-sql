@@ -314,7 +314,8 @@ const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
 const MOMENTS = [
-  // deux essais ratés : avant que la vidéo ne montre la bonne requête
+  // deux essais ratés : avant que la vidéo ne montre la bonne requête. Les tables dans le même ordre que la requête montrée juste après
+  // (FROM clients INNER JOIN commandes) : avec FROM commandes, l’élève rangeait une requête que la vidéo écrit à l’envers (10 novembre).
   {at: 61.62, from: 55.9, kind: 'sort', prompt: 'Remets la requête dans l’ordre : une ligne par place.',
     hint: 'Sélectionne une ligne, puis appuie sur l’emplacement où tu veux la placer dans la requête. Tu peux aussi la faire glisser directement.', next: '{x} : appuie sur l’emplacement où tu veux la placer dans la requête.',
     board: {y: 470, html: '<span class="mb-k">Compter les commandes par ville</span><div class="mb-col" style="gap:16px">'
@@ -322,9 +323,9 @@ const MOMENTS = [
     spots: [1, 2, 3, 4].map(n => ({k: 'o' + n, sel: '#mbo' + n, label: `Place ${n}`})),
     options: [
       {label: 'GROUP BY clients.ville;', to: 'o4', why: 'On regroupe une fois les tables reliées : <code>GROUP BY</code> vient en dernier.'},
-      {label: 'FROM commandes', to: 'o2', why: '<code>FROM</code> vient juste après <code>SELECT</code> : on part de la <b>table commandes</b>.'},
+      {label: 'FROM clients', to: 'o2', why: '<code>FROM</code> vient juste après <code>SELECT</code> : on part de la <b>table clients</b>, comme dans la requête qui suit.'},
       {label: 'SELECT clients.ville, COUNT(*)', to: 'o1', why: '<code>SELECT</code> ouvre toujours la requête.'},
-      {label: 'INNER JOIN clients ON …', to: 'o3', why: 'La jointure fait partie de <code>FROM</code> : elle suit la première table.'}],
+      {label: 'INNER JOIN commandes ON …', to: 'o3', why: 'La jointure fait partie de <code>FROM</code> : elle ajoute la <b>table commandes</b> juste après la première table.'}],
     tip: 'D’abord relier les tables, ensuite regrouper.'},
   // les commandes rassemblées par ville : avant que la vidéo ne les compte
   {at: 78.75, from: 67.5, kind: 'pick', text: true, prompt: 'Que donnera <code>COUNT(*)</code> pour le groupe de Paris ?', options: [
@@ -598,7 +599,9 @@ function build(){
   const open6 = fold($('#ft6'));
   boardIn('#rp6', 135.4, '.br', 0.12);
   const bars = $$('#bars6 .bt i');
-  bars.forEach(b => { const w = b.style.width; gsap.set(b, {width: '0%'}); tl.to(b, {width: w, duration: 0.7, ease: 'power3.out'}, 136.3); });
+  /* Chaque barre glisse depuis la gauche dans son rail (qui la rogne) au lieu de s’élargir : même image, sans recalcul de la mise en page
+     à chaque image (10 novembre). */
+  tl.fromTo(bars, {xPercent: -100}, {xPercent: 0, duration: 0.7, ease: 'power3.out', immediateRender: true}, 136.3);
   cue(136.3, 'whoosh', 0.5);
   bump($$('#bars6 .br.top .bv'), 137.3, 1.2, 3);
   cue(137.3, 'chord', 0.6);

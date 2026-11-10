@@ -431,12 +431,13 @@ function mapIn(id, t, end){
   tl.to(deco, {autoAlpha: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)', stagger: 0.12}, t + 1.5);
   gsap.set(ronds, {autoAlpha: 0, scale: 0.6, transformOrigin: '50% 50%'});
   tl.to(ronds, {autoAlpha: 1, scale: 1, duration: 0.9, ease: 'power2.out', stagger: 0.18}, t + 1.7);
-  // Une demi-oscillation dure 1,7 s ; la dernière se termine avant que la carte ne s’en aille (end)
+  // Une demi-oscillation dure 1,7 s ; la dernière se termine avant que la carte ne s’en aille (end). Mouvements d’ambiance (data: 'amb') :
+  // une pause de lecture peut tomber pendant eux (?check signalait la pause de la dernière légende du chapitre 6 sur les ronds dans l’eau).
   const n = Math.max(1, Math.floor((end - (t + 2.1 + (deco.length - 1) * 0.25)) / 1.7));
-  deco.forEach((d, i) => tl.to(d, {y: -9, rotation: +d.dataset.r + (i % 2 ? 6 : -6), duration: 1.7, ease: 'sine.inOut', yoyo: true, repeat: n - 1}, t + 2.1 + i * 0.25));
+  deco.forEach((d, i) => tl.to(d, {y: -9, rotation: +d.dataset.r + (i % 2 ? 6 : -6), duration: 1.7, ease: 'sine.inOut', yoyo: true, repeat: n - 1, data: 'amb'}, t + 2.1 + i * 0.25));
   // Les ronds dans l’eau respirent au même rythme, s’il reste le temps d’une oscillation
   const nr = Math.floor((end - (t + 3.0 + 0.4)) / 1.7);
-  if (nr >= 1) tl.to(ronds, {scale: 1.07, duration: 1.7, ease: 'sine.inOut', yoyo: true, repeat: nr - 1, stagger: 0.2}, t + 3.0);
+  if (nr >= 1) tl.to(ronds, {scale: 1.07, duration: 1.7, ease: 'sine.inOut', yoyo: true, repeat: nr - 1, stagger: 0.2, data: 'amb'}, t + 3.0);
   return pins;
 }
 /* Le verdict d’un groupe : le pied se colore, le cadre gardé se borde de vert, le cadre écarté s’efface à moitié. */
