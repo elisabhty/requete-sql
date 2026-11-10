@@ -152,34 +152,6 @@ test('« Comment sont calculés les points ? » : une rangée bien visible sous 
   assert.ok(!lq.includes('.dx-regles') && !lq.includes('.dx-lien') && !lq.includes('.dx-trouver'), 'les anciens styles sont partis');
 });
 
-test('« Remplacer amis par joueurs » : l’onglet Joueurs, ce qu’il contient, et ce qui le nomme', async () => {
-  const c = bac({ salle: { mates: { lea: { n: '@lea', g: 2, w: 1, l: 1, at: 1 } } } });
-  c.ev("DEFIS.onglet='amis';defisPeindre()");
-  assert.ok(c.els['defis-tabs'].innerHTML.includes('id="dx-tab-amis" class="room-opt on" aria-selected="true" aria-controls="defis-amis" onclick="defisOnglet(\'amis\')">Adversaires</button>'), '8 novembre, 15 h 09 (sa maquette) : l’onglet s’appelle « Adversaires »');
-  const a = c.els['defis-amis'].innerHTML;
-  /* 7 novembre, 21 h 44 : l’onglet reste « Joueurs », la carte s’appelle « Tes adversaires » (retours-2144-defis). */
-  /* 22 h 13 : le surtitre « Tes adversaires », le titre dit combien (retours-2144-defis). */
-  /* 8 novembre, 11 h 08 (« ce niveau premium ») : le haut dans le bandeau violet de la feuille (retours-premium-defis) */
-  /* 8 novembre, 14 h 48 (« je veux marcher qu’avec code ») : plus d’ajout par pseudo. 15 h 09 (sa maquette) : « Créer une partie » et
-     « Rejoindre avec un code » ouvrent les feuilles de Jouer. */
-  assert.ok(a.includes('<p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">1 adversaire</h2>') && a.includes('onclick="defisCarte(\'creer\')">') && a.includes('Créer ma partie</button>') && a.includes('Rejoindre avec un code</button>'));
-  assert.ok(!a.includes('dx-ajout') && !a.includes('Inviter un ami') && !c.els['dx-amis-liste'].innerHTML.includes('Retirer @lea'));
-  const ouvertes = [];
-  c.ctx.defisFeuilleOuvrir = k => ouvertes.push(k); c.ctx.defisFeuilleFermer = () => ouvertes.push('fermée');
-  for (const m of a.matchAll(/onclick="(defisCarte\('[a-z]+'\))"/g)) c.ev(m[1]);
-  assert.deepEqual(ouvertes, ['creer', 'code']);
-  c.ev("jeuDefier('@lea')");
-  assert.deepEqual(J(c.appels.filter(x => x[0] === 'jeuStart').at(-1)), ['jeuStart', 'NOUV01', true, null, { nomId: 'jeu-nom', pub: false, pour: '@lea' }], '« Défier » sur une ligne : une salle privée, son code à envoyer');
-  const v = bac();
-  v.ev("DEFIS.onglet='amis';defisPeindre()");
-  assert.ok(v.els['dx-amis-liste'].innerHTML.includes('<p class="dx-vide-t">Aucun adversaire pour l’instant&nbsp;!</p><p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p>'));
-  /* 7 novembre, 22 h 09 (Elisa) : « remplace la pills "mes joueurs" par "mes amis" ». 8 novembre, 15 h 09 : l’onglet s’appelle Adversaires. */
-  assert.ok(app.includes("${chip('amis','Mes adversaires')}") && app.includes('invite des amis avec un code depuis l’onglet Adversaires.'), 'le classement nomme l’onglet Adversaires');
-  assert.ok(!app.includes('depuis l’onglet Joueurs') && !app.includes('>Ouvrir l’onglet Joueurs<'), 'plus d’« onglet Joueurs » à l’écran');
-  for (const k of ['<h2 id="dx-amis-h">Tes amis</h2>', 'Ajouter un ami</button>', "chip('amis','Mes joueurs')", 'dans l’onglet Amis', 'dans tes amis'])
-    assert.ok(!app.includes(k), k);
-});
-
 test('chaque classe des défis a son style : l’onglet Joueurs avait perdu ses deux boutons à 10 h 16', () => {
   const classes = new Set([...app.matchAll(/class="([^"]*)"/g)].flatMap(m => m[1].split(/[\s$]+/)).map(k => (k.match(/^dx-[a-z0-9-]+/) || [''])[0]).filter(Boolean));
   const sans = [...classes].filter(k => !new RegExp(`\\.${k}(?![a-z0-9-])`).test(lq)).sort();
@@ -200,5 +172,5 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 test('les versions : la feuille de style et le cache', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=308">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-09-chiffres-v2816' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-09-chiffres-v2817' && app.includes(`const SW_CACHE='${cache}';`));
 });

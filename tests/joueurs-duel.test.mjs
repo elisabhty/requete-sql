@@ -45,27 +45,3 @@ test('chatBonusHtml le connaît, et donne l’image fixe quand les mouvements so
   assert.ok(ctx.chatBonusHtml('duel').includes('src="assets/chat-duel-fixe.webp"'));
 });
 
-test('l’onglet Adversaires vide montre le duel ; déjà affiché, il n’est pas redessiné (le GIF ne repart pas) ; le classement garde son trophée', () => {
-  const fn = cut('function amisListesPeindre(){', '\n  /* Refonte du 7 novembre : une seule ligne par joueur') + '\n}';
-  const ls = { innerHTML: '', firstElementChild: null, closest: () => null };
-  const ctx = vm.createContext({
-    document: { getElementById: id => id === 'dx-amis-liste' ? ls : null },
-    amisListe: () => [], amisTitre: () => '', amisSous: () => '', amisPcsHTML: () => '', defisAmisPeindre: () => {},
-    chatBonusHtml: (k, cls) => `<img data-k="${k}" data-cls="${cls}">`,
-  });
-  vm.runInContext(fn, ctx);
-  ctx.amisListesPeindre();
-  /* 15 h 09 (sa maquette) : le titre « Aucun adversaire pour l’instant ! », puis sa phrase */
-  assert.equal(ls.innerHTML, '<div class="dx-vide-bloc is-amis"><img data-k="duel" data-cls="is-vide dx-amis-chat"><p class="dx-vide-t">Aucun adversaire pour l’instant&nbsp;!</p><p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p></div>');
-  /* l’état vide est à l’écran : les salles rafraîchies (defisListes) rappellent la fonction, l’image reste la même */
-  ls.innerHTML = 'déjà là';
-  ls.firstElementChild = { classList: { contains: c => c === 'is-amis' } };
-  ctx.amisListesPeindre();
-  assert.equal(ls.innerHTML, 'déjà là');
-  /* un autre contenu à la place (une liste) : l’état vide revient, avec le duel */
-  ls.firstElementChild = { classList: { contains: c => c === 'dx-list' } };
-  ctx.amisListesPeindre();
-  assert.ok(ls.innerHTML.includes('<img data-k="duel"'));
-  assert.ok(!app.includes("chatBonusHtml('salut','is-vide dx-amis-chat')"), 'plus le chat qui salue ici');
-  assert.ok(app.includes("chatBonusHtml('trophee','is-vide dx-cls-chat')"), 'le classement vide garde son trophée');
-});

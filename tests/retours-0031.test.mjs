@@ -75,9 +75,9 @@ test('l’indice arrive dans sa carte, qui rebondit, et le téléphone vibre ; p
 /* ---------- 3. Les mots ---------- */
 
 test('les mots : « Mes adversaires », « Créer ma partie », « À plusieurs »', () => {
-  for (const k of ["${chip('amis','Mes adversaires')}", 'Aucun de tes adversaires n’est encore classé. Joue à plusieurs&nbsp;: invite des amis avec un code depuis l’onglet Adversaires.',
+  for (const k of ["${chip('amis','Mes adversaires')}", 'Aucun de tes adversaires n’est encore classé. Joue à plusieurs&nbsp;: crée une partie et partage son code.',
     "ou=DEFIS.portee==='amis'?'parmi tes adversaires':", "const ou=D.portee==='amis'?'parmi tes adversaires':",
-    "onclick=\"defisCarte('creer')\">${DX_AJOUT_SVG}Créer ma partie</button>", ":friends?['Créer ma partie','Ta salle de défi',", '<span>Créer ma partie</span>',
+    "onclick=\"defisCarte(\\'creer\\')\">Créer ma partie</button>", ":friends?['Créer ma partie','Ta salle de défi',", '<span>Créer ma partie</span>',
     "${h.solo?'En solo':'À plusieurs'}", '<div class="perf-block perf-friends"><h3>À plusieurs</h3>', 'Ton prochain podium à plusieurs s’affichera ici.',
     "`Sur ${amis} ${plur(amis,'partie')} à plusieurs.`", '</i>les points de tes adversaires</span>', 'termine une partie, seul ou à plusieurs, pour ouvrir le classement.',
     'Il faut une connexion internet pour jouer à plusieurs.'])

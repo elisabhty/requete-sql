@@ -29,19 +29,11 @@ test('la liste et « Mes amis » : ceux avec qui tu as joué ; un ancien ajout r
     state: { salle: { mates: { a: { n: '@tom', g: 3, w: 2, l: 1, at: 2 }, b: { n: '@vu', g: 0, at: 9 } }, amisAjoutes: [{ n: '@lea', at: 5 }] } },
     drapCle: v => String(v || '').toLowerCase().replace(/^@+/, ''),
   });
-  vm.runInContext(cut('function amisListe(){', '\n/* Le haut de la carte') + cut('function clsAmisPseudos(){', '\nfunction clsCleV2(){'), ctx);
+  vm.runInContext(cut('function amisListe(){', '\n/* « Défier » et « Inviter par lien »') + cut('function clsAmisPseudos(){', '\nfunction clsCleV2(){'), ctx);
   assert.deepEqual(JSON.parse(JSON.stringify(ctx.amisListe().map(a => a.n))), ['@tom']);
   assert.ok(!ctx.amisListe()[0].ajout);
   assert.deepEqual(JSON.parse(JSON.stringify(ctx.clsAmisPseudos())), ['@tom', '@vu']);
   assert.ok(app.includes('const a=salleSrc.amisAjoutes.filter(x=>x&&typeof x===\'object\'&&!Array.isArray(x))'), 'la progression garde les anciens ajouts');
-});
-
-test('l’onglet : le titre, la phrase, les boutons (15 h 09 : « Créer une partie », « Rejoindre avec un code ») ; « Mes amis » vide renvoie à l’onglet', () => {
-  assert.ok(app.includes("function amisTitre(n){return n?`${n} adversaire${n>1?'s':''}`:'Ton prochain rival t’attend&nbsp;!';}"));
-  assert.ok(app.includes('const boutons=`<div class="dx-duo"><button type="button" class="dx-sec is-main" aria-haspopup="dialog" onclick="defisCarte(\'creer\')">${DX_AJOUT_SVG}Créer ma partie</button><button type="button" class="dx-sec" aria-haspopup="dialog" onclick="defisCarte(\'code\')">${DX_LIEN_SVG}Rejoindre avec un code</button></div>`;'));
-  assert.ok(app.includes('<p class="dx-vide">Les joueurs que tu affrontes en salle apparaîtront ici automatiquement après une partie.</p>'));
-  assert.ok(app.includes('Aucun de tes adversaires n’est encore classé. Joue à plusieurs&nbsp;: invite des amis avec un code depuis l’onglet Adversaires.'));
-  assert.ok(lq.includes('html.lq #scr-defis .dx-amis.is-v2 .dx-amis-actions .dx-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:0}'), 'remplie : les boutons sur toute la largeur, l’un sous l’autre');
 });
 
 test('un peu moins de vide autour de la mascotte', () => {
