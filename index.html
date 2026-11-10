@@ -37337,7 +37337,7 @@ function jeuCopyCode(){
    s’ouvre pas chez les amis : on partage toujours le site public. Le lien porte le pseudo de qui invite (&de=), pour l’accueil. */
 const JEU_SHARE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5v11M7.5 8 12 3.5 16.5 8"/><path d="M8.5 11.5h-2a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2h-2"/></svg>';
 function jeuLienInvitation(J){
-  const base=location.protocol.startsWith('http')?location.origin+location.pathname:'https://elisabhty.github.io/requete-sql/';
+  const base=location.protocol.startsWith('http')?location.origin+location.pathname:'https://requeteapp.com/';
   const de=typeof psHandle==='function'?psHandle(J.nom):'';
   return base+'?partie='+J.code+(de?'&de='+encodeURIComponent(de):'')+(/[?&]jeu=local\b/.test(location.search)?'&jeu=local':'');
 }
@@ -38612,7 +38612,7 @@ function closeCard(){
   resetBravoCardStage();
 }
 function cardShareUrl(){
-  const base=location.href.split(/[?#]/)[0]||'https://elisabhty.github.io/requete-sql/';
+  const base=location.href.split(/[?#]/)[0]||'https://requeteapp.com/';
   return base.endsWith('/')?base:base+'/';
 }
 function cardShareText(id){
@@ -41117,7 +41117,7 @@ function lqFeuOuvrir(jours){
 }
 async function lqFeuPartager(){
   const el=document.getElementById('lq-flamme');if(!el||!navigator.share)return;
-  try{await navigator.share({title:'Requête — Apprends le SQL',text:el.dataset.partage||'',url:'https://elisabhty.github.io/requete-sql/'});}catch(e){}
+  try{await navigator.share({title:'Requête — Apprends le SQL',text:el.dataset.partage||'',url:'https://requeteapp.com/'});}catch(e){}
 }
 function lqFlammeFermer(){
   const el=document.getElementById('lq-flamme');if(!el||el.classList.contains('is-sort'))return;
@@ -45606,7 +45606,9 @@ const LEGAL_PAGES={privacy:'decouvrir/confidentialite.html',terms:'decouvrir/con
 /* 6 novembre, 6 h 10 (Elisa : « mettre aussi un élément FAQ vers le site internet ») : le site (decouvrir/) n’est pas dans l’app
    iPhone (scripts/build-www.mjs n’en garde que la vidéo et les avis) ; là, ses pages s’ouvrent dans Safari, à leur adresse en ligne
    — les pages légales aussi, qui menaient jusqu’ici à une page absente de l’app. Sur le web, l’adresse reste celle du site à côté. */
-const SITE_URL='https://elisabhty.github.io/requete-sql/';
+/* 10 novembre, 23 h 25 (Elisa : « il faut qu’on puisse mettre le site sur la bonne adresse ») : le site est sur son domaine,
+   requeteapp.com (l’ancienne adresse GitHub Pages y redirige). */
+const SITE_URL='https://requeteapp.com/';
 function siteUrl(chemin){
   if(typeof appliNative==='function'&&appliNative())return SITE_URL+chemin;
   try{return new URL(chemin,location.href).href;}catch(e){return chemin;}
@@ -47909,7 +47911,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-10-revenuecat-v2836';
+  const SW_CACHE='requete-2026-11-10-domaine-v2837';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

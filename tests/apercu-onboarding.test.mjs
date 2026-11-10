@@ -17,7 +17,7 @@ const src = app.slice(app.indexOf('function maybeOnboard(){'), app.indexOf('func
 const arrive = (search, { onboarded = false, lecons = {} } = {}) => {
   const appels = [];
   const store = k => ({ removeItem: c => appels.push(`oublie ${k} ${c}`) });
-  const ctx = vm.createContext({ URL, URLSearchParams, location: { search, href: 'https://elisabhty.github.io/requete-sql/' + search }, appels,
+  const ctx = vm.createContext({ URL, URLSearchParams, location: { search, href: 'https://requeteapp.com/' + search }, appels,
     sessionStorage: store('session'), localStorage: store('local'), NAV_KEY: 'nav', NAV_KEY_LONG: 'nav-long',
     history: { state: null, replaceState: (s, t, u) => appels.push('url ' + u) },
     state: { lessons: lecons, plan: null, profile: {}, onboarded, accountMode: null },
@@ -29,10 +29,10 @@ const arrive = (search, { onboarded = false, lecons = {} } = {}) => {
 };
 
 test('le lien ?app=onboarding ouvre l’aperçu sur un appareil qui a déjà son parcours, et l’adresse est nettoyée', () => {
-  assert.deepEqual(arrive('?app=onboarding', { onboarded: true }), ['url /requete-sql/', 'aperçu']);
-  assert.deepEqual(arrive('?app=onboarding', { lecons: { 1: { done: true } } }), ['url /requete-sql/', 'save', 'aperçu'], 'une leçon déjà validée : l’aperçu aussi');
+  assert.deepEqual(arrive('?app=onboarding', { onboarded: true }), ['url /', 'aperçu']);
+  assert.deepEqual(arrive('?app=onboarding', { lecons: { 1: { done: true } } }), ['url /', 'save', 'aperçu'], 'une leçon déjà validée : l’aperçu aussi');
   /* Un nouveau visiteur a le vrai onboarding (rien à protéger) */
-  assert.deepEqual(arrive('?app=onboarding'), ['url /requete-sql/', 'onboarding']);
+  assert.deepEqual(arrive('?app=onboarding'), ['url /', 'onboarding']);
   /* Sans le lien, rien ne change */
   assert.deepEqual(arrive('', { onboarded: true }), []);
   assert.deepEqual(arrive('?app', { onboarded: true }), [], '?app seul : l’appli, sans aperçu');
