@@ -37,34 +37,6 @@ test('écran de fin : en-tête violet, mascotte, une pastille par moment, tampon
   assert.ok(s40.includes('html[data-motion="reduce"].lq .lv.end-in .lv-pip svg path{stroke-dashoffset:0}'));
 });
 
-test('activités à rattraper : en-tête violet, autocollant, « Recommandé » en autocollant jaune, entrée en cascade, choix animé', () => {
-  const html = cut(app, 'function lateRecoveryHTML(){', 'function activitesRestantesAujourdhui(){');
-  /* Depuis le 5 novembre, 15 h 43 : on coche une façon de rattraper, puis « Confirmer mon choix » passe par lrPick */
-  assert.ok(html.includes('onclick="lrChoisir(this)" onkeydown="lrClavier(event)"') && cut(app, 'function lrConfirmer(btn){', '\n}\n').includes('lrPick(btn,()=>lateAppliquer(k),opt||null);'), 'le choix confirmé passe par lrPick');
-  assert.ok(app.includes("action:'decalerPlanning()'") && app.includes("action:'etalerRetard()'") && app.includes("action:'rattraper()'"));
-  assert.ok(html.includes("const key=d.ids.map(String).join('|'),fresh=key!==lrSeenKey; lrSeenKey=key;") && html.includes("${fresh?' is-fresh':''}"), 'animée quand elle apparaît, pas à chaque mise à jour');
-  /* Le choix : étincelles, puis l’action, une seule fois ; tout de suite en mouvement réduit */
-  const calls = [];
-  const ctx = vm.createContext({ prefersReduceMotion: () => false, buzz: t => calls.push('buzz:' + t), lqBurst: () => calls.push('burst'), setTimeout: (f, ms) => { calls.push('wait:' + ms); f(); } });
-  vm.runInContext(cut(app, "let lrSeenKey='';", '/* Le choix conseillé dépend de ce qui reste à rattraper') + ';this.lrPick=lrPick;', ctx);   // 6 novembre, 11 h 57 : le choix suit le rythme (late-recovery)
-  const btn = { dataset: {}, classList: { add: c => calls.push('class:' + c) }, querySelector: () => ({}) };
-  ctx.lrPick(btn, () => calls.push('action'));
-  ctx.lrPick(btn, () => calls.push('action'));
-  assert.deepEqual(calls, ['class:is-picked', 'buzz:success', 'burst', 'wait:320', 'action'], 'un seul geste compte');
-  ctx.prefersReduceMotion = () => true; calls.length = 0;
-  ctx.lrPick({ dataset: {}, classList: { add() {} }, querySelector: () => null }, () => calls.push('action'));
-  assert.deepEqual(calls, ['action'], 'mouvement réduit : l’action tout de suite');
-  /* Déplier rejoue l’entrée des activités et des choix */
-  assert.ok(cut(app, 'function setLateRecoveryCollapsed(collapsed,source){', 'function toggleLateRecovery(button){').includes("if(!collapsed&&!prefersReduceMotion()){ void card.offsetWidth; card.classList.add('is-reveal'); }"));
-  const s14 = cut(lq, '/* ---------- 14 bis. Activités à replacer', '/* ---------- 15. Jouer');
-  for (const part of ['html.lq .lr-heading{position:relative;isolation:isolate;margin:0;padding:16px;', 'background:var(--deep);color:#fff}', 'html.lq .late-recovery .lr-title{font:700 18px/1.2 var(--display);letter-spacing:-.01em;color:#fff;',
-    'html.lq .late-recovery .lr-option-title em{padding:4px 9px 3px;border-radius:9px;background:var(--sun);', 'html.lq .late-recovery:is(.is-fresh,.is-reveal) .lr-option{animation:lrUp',
-    'html.lq .late-recovery.is-fresh .lr-icon{animation:lrStk', 'html.lq .late-recovery .lr-option.is-picked .lr-option-icon{transform:scale(1.12) rotate(-8deg)}'])
-    assert.ok(s14.includes(part), part);
-  assert.ok(!/#FFD9A6|#FFF6E8|#EFCB9C|#F6DDBD/.test(s14), 'plus de tons crème du retard dans la carte');
-  assert.ok(s14.includes('html[data-motion="reduce"].lq #scr-planning .late-recovery,html[data-motion="reduce"].lq .late-recovery *{animation:none!important}'));
-});
-
 test('console : le schéma et la sauvegarde suivent toute requête qui change la base, même celle qui échoue en route', () => {
   const run = cut(app, 'function runConsole(o){', 'function normalizeState(raw){');
   assert.ok(run.includes('const database=activeDb(), v0=schemaVersion(database), c0=dbChanges(database);'));

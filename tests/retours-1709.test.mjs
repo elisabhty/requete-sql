@@ -75,7 +75,7 @@ test('réf. 2 : « Reprendre ma leçon » seulement si la leçon a été commenc
 test('réf. 3 : les activités à rattraper, sur l’accueil… jusqu’au 7 novembre, 8 h 38 (« Supprime la carte 1 séance à terminer »)', () => {
   const hero = fn('renderHomeHero');
   assert.ok(!hero.includes('journey-planning') && !hero.includes('latePlanDetails()'), 'plus de carte de rattrapage sur l’accueil');
-  assert.ok(app.includes('const late=lateRecoveryHTML();'), 'le planning garde la sienne');
+  assert.ok(!app.includes('lateRecoveryHTML'), '10 novembre : le planning non plus, il se décale tout seul (planning-decalage-auto)');
 });
 
 test('la série : « Garde le rythme ! » (puis « Ta série commence aujourd’hui ! ») et sa phrase au-dessus des sept flammes de la semaine', () => {

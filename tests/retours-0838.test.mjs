@@ -63,7 +63,7 @@ test('la carte : « 👋 Bonjour, Elisa ! », la phrase dessous, « Continuer ma
   assert.ok(h.includes("(commence?'Continuer ma leçon':'Commencer la leçon')") && h.includes('sub=commence?`Plus que ${minutesDe([nxt],true)}'));
   /* Supprimée : la carte « 1 séance à terminer » (les activités à rattraper) */
   assert.ok(!h.includes('journey-planning') && !h.includes('latePlanDetails()') && !h.includes('extras'), 'plus de carte de rattrapage');
-  assert.ok(app.includes('const late=lateRecoveryHTML();'), 'le planning garde son rattrapage');
+  assert.ok(!app.includes('lateRecoveryHTML'), '10 novembre : le planning non plus, il se décale tout seul (planning-decalage-auto)');
   /* La séance d’un jour passé a l’air de celle du jour : plus de pastille rose sur l’accueil */
   assert.ok(h.includes("const sesVue=sesEtat==='late'?'run':sesEtat;") && h.includes('<span class="lq-ses is-${sesVue}">'));
 });
@@ -77,6 +77,6 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     'background:#fff;box-shadow:0 3px 0 var(--lip)}', 'html.lq .lq-stat.is-coche .lq-stat-ic{background:#DCF6E9;color:#14935A}',
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=299">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-generales-v2795';") && app.includes("const SW_CACHE='requete-2026-11-09-generales-v2795';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=300">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-decalage-v2796';") && app.includes("const SW_CACHE='requete-2026-11-09-decalage-v2796';"));
 });
