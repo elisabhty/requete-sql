@@ -72,10 +72,10 @@ test('la base : le pays, les salles publiques, les salles ouvertes, les drapeaux
   assert.ok(base.includes('rank() over (order by b.pts desc) as rang') && base.includes('row_number() over (order by b.pts desc, b.maj, b.id) as pos'));
 });
 
-test('l’écran : trois onglets, et « Mes stats » garde le tableau de bord et le barème', () => {
+test('l’écran : deux onglets (10 novembre), et « Mes stats » garde le tableau de bord et le barème', () => {
   assert.ok(app.includes('<div id="defis-tabs"></div>\n      <div id="defis-jouer" class="defis-panel" role="tabpanel" aria-labelledby="dx-tab-jouer">'));
   assert.ok(app.includes('<div id="defis-classement" class="defis-panel" role="tabpanel" aria-labelledby="dx-tab-classement" hidden></div>'));
-  assert.ok(app.includes('<div id="defis-amis" class="defis-panel" role="tabpanel" aria-labelledby="dx-tab-amis" hidden></div>'));
+  assert.ok(!app.includes('id="defis-amis"'), '10 novembre : plus d’onglet Adversaires');
   assert.ok(fn('renderDefis', '\n}\n').includes("if(typeof defisPeindre==='function')defisPeindre();"));
   const c = bac();
   c.ev("DEFIS.onglet='classement';defisPeindre()");
@@ -229,29 +229,6 @@ test('sans la nouvelle base, le classement retombe sur l’ancien Top 12, en pag
   assert.equal(c.ev('DEFIS.cls.moi.page'), 0);
 });
 
-test('Amis : les adversaires, ceux avec qui tu as joué (8 novembre, 14 h 48 : « je veux marcher qu’avec code ») ; qui est dans une salle ouverte', async () => {
-  const now = Date.now();
-  const c = bac({ salle: { mates: { tom: { n: '@tom', g: 4, w: 3, l: 1, at: now - 1000 }, zoe: { n: '@zoe', g: 1, w: 1, l: 0, at: now - 200 } }, amisAjoutes: [{ n: '@lea', at: now - 500 }] } });
-  /* un ancien ajout par pseudo (@lea, jamais affrontée) reste dans la progression, mais ne s’affiche plus */
-  assert.deepEqual(J(c.ev('amisListe().map(a=>a.n+":"+a.g)')), ['@zoe:1', '@tom:4']);
-  assert.deepEqual(J(c.ev('clsAmisPseudos()')), ['@tom', '@zoe'], 'Mes amis du classement : ceux avec qui tu as joué');
-  c.ev("DEFIS.salles=[{code:'AAA111',niv:'f',manches:1,nb:2,max:5,hote:'@kev',joueurs:[{pseudo:'@kev'},{pseudo:'@tom'}]}];defisAmisPeindre()");
-  /* Refonte du 7 novembre : une seule ligne par joueur. @tom attend dans une salle : sa ligne le dit, « Rejoindre », et passe en tête. */
-  const l = c.els['dx-amis-liste'].innerHTML;
-  assert.ok(!app.includes('dx-amis-salles') && !l.includes('Dans une salle maintenant'), 'plus de section en double');
-  assert.ok(l.includes('<span class="dx-score is-up" aria-hidden="true">3–1</span>') && l.includes('</span>En salle<span class="dx-pc is-niv is-f is-blanc">') && l.includes('<span>Facile</span>') && l.includes("sallesRejoindre('AAA111')"));
-  assert.ok(l.indexOf('@tom') < l.indexOf('@zoe') && l.includes("onclick=\"jeuDefier('@zoe')\"") && !l.includes('@lea') && !l.includes('amisRetirer'));
-  /* Défier : une salle privée */
-  c.ev("jeuDefier('@tom')");
-  assert.deepEqual(J(c.appels.filter(a => a[0] === 'jeuStart').at(-1)), ['jeuStart', 'NOUV01', true, null, { nomId: 'jeu-nom', pub: false, pour: '@tom' }]);
-  /* « amis » compte les parties à plusieurs : la liste est ailleurs, et la progression la garde */
-  const ns = app.slice(app.indexOf('function normalizeState(raw){'));
-  assert.ok(ns.includes('salle.amis=salleN(salleSrc.amis);'));
-  for (const k of ['if(salleSrc.paysVoir===false)salle.paysVoir=false;', "if(typeof salleSrc.paysEnv==='string'&&/^([A-Z]{2})?$/.test(salleSrc.paysEnv))salle.paysEnv=salleSrc.paysEnv;",
-    'const a=salleSrc.amisAjoutes.filter(x=>x&&typeof x===\'object\'&&!Array.isArray(x)).map(x=>({n:psForme(x.n),at:salleBig(x.at)})).filter(x=>x.n).slice(-50);'])
-    assert.ok(ns.includes(k), k);
-});
-
 test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les versions', () => {
   const conf = lire('decouvrir/confidentialite.html');
   assert.ok(conf.includes('Une salle publique (le choix proposé quand tu en crées une) apparaît dans la liste des salles ouvertes («&nbsp;Rejoins une partie&nbsp;»)'));
@@ -265,5 +242,5 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=308">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-09-chiffres-v2816');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-09-chiffres-v2817');
 });

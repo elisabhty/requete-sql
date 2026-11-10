@@ -80,11 +80,3 @@ test('les niveaux gardent partout les couleurs de l’écran Défis ; le compte 
   assert.ok(!/\.coach-next[^{]*\{[^}]*(?:#1E9E68|#147A4E)/.test(lq), 'plus de vert dans la ligne du compte à rebours');
 });
 
-test('Adversaires : « Défie ton adversaire, rejoins sa salle » quand il n’y en a qu’un, et la phrase suit la liste', () => {
-  const ctx = vm.createContext({});
-  vm.runInContext(line('amisSous'), ctx);
-  assert.equal(ctx.amisSous(1), 'Défie ton adversaire, rejoins sa salle, prends ta revanche.');
-  assert.equal(ctx.amisSous(3), 'Défie-les, rejoins leurs salles, prends ta revanche.');
-  assert.ok(app.includes("${n?`<p class=\"room-sub\" id=\"dx-amis-sous\">${amisSous(n)}</p>`:''}"));
-  assert.ok(app.includes("const so=document.getElementById('dx-amis-sous'),st=amisSous(amis.length);if(so&&so.textContent!==st)so.textContent=st;"), 'un ajout, un retrait : la phrase suit, comme le titre');
-});

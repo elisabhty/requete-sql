@@ -48,17 +48,7 @@ test('Jouer : la carte du joueur (la pastille jaune et le rang), le coefficient 
     assert.ok(lq.includes(r), r);
 });
 
-test('Joueurs, Mes stats, ta place : le bandeau violet de la feuille, ses pastilles en verre ; la fiche aussi', () => {
-  const amis = fn('defisAmisPeindre');
-  assert.ok(amis.includes('<div class="dx-amis-tete dx-bande"><span class="room-stk" aria-hidden="true">${lqStkSvg(\'epees\')}</span><div><p class="room-kicker" id="dx-amis-k">Tes adversaires</p><h2 id="dx-amis-h">${amisTitre(n)}</h2>'));
-  assert.ok(amis.includes("${n?`<p class=\"room-sub\" id=\"dx-amis-sous\">${amisSous(n)}</p>`:''}<p class=\"dx-bande-pcs\" id=\"dx-amis-pcs\">${amisPcsHTML(amis)}</p>"));
-  /* Les pastilles du bandeau : qui attend dans une salle ouverte (le point vert), combien de duels */
-  const c = bac({ drapCle: n => String(n).replace(/^@/, '').toLowerCase(), DEFIS: { salles: [{ hote: '@kev', joueurs: [{ pseudo: '@tom' }] }] } });
-  vm.runInContext(fn('amisPcsHTML'), c);
-  const pcs = c.amisPcsHTML([{ n: '@tom', g: 4 }, { n: '@zoe', g: 1 }]);
-  assert.equal(pcs, '<span class="dx-pc is-verre is-live"><i class="dx-dot" aria-hidden="true"></i><span>1 en salle</span></span><span class="dx-pc is-verre"><span>5 duels</span></span>');
-  assert.equal(c.amisPcsHTML([]), '', 'sans adversaire : rien');
-  assert.ok(fn('amisListesPeindre').includes("const pc=document.getElementById('dx-amis-pcs'),ph=amisPcsHTML(amis);if(pc&&pc.innerHTML!==ph)pc.innerHTML=ph;"), 'les salles changent : les pastilles suivent');
+test('Mes stats, ta place : le bandeau violet de la feuille, ses pastilles en verre ; la fiche aussi', () => {
   const stats = fn('defisStatsPeindre');
   assert.ok(stats.includes('<div class="dx-bande dx-stats-bande"><span class="room-stk dx-fiche-av" aria-hidden="true">') && stats.includes("if(nom&&!r&&!DEFIS.cls.busy.carte&&clsOn())clsRangsCharger();"));
   assert.ok(app.includes('<div id="defis-stats" class="defis-panel" aria-labelledby="dx-stats-k dx-stats-h" hidden>'), '« Mes stats » puis ton pseudo, au lecteur d’écran');
