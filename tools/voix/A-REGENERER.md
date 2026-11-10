@@ -2,6 +2,8 @@
 
 _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Elisa décide de ce qui est généré._
 
+**10 novembre, 10 h 10 : contrôle automatique des 1 436 voix** (signal seul : débuts et fins, silences, volume, saturation, débit ; `tools/voix/clics.mjs`). Rien de coupé au début, aucune saturation, aucun silence anormal (le plus long fait 1,2 s), volumes homogènes (`volume.mjs` : 0 fichier à régler), débits normaux. Corrigé sans régénérer ni réencoder : 51 « tic » en fin de phrase et 5 souffles après la dernière syllabe (les trames concernées rendues muettes, durée inchangée, le reste du son identique à l’échantillon près). Reste pour l’oreille d’Elisa : `coalesce/ch02` (un bruit après « absents », trop proche de la voix pour être retiré sans risque), et `bases-relationnelles/ch11`, jamais généré (voir plus bas). Les accents et la prononciation ne se contrôlent pas automatiquement ici.
+
 **6 novembre, 21 h 45 : tout est intégré.** Les deux commandes du 6 novembre ont tourné ; l’appli joue maintenant la voix d’Anaïs dans les 20 cours (et le chapitre refait de GROUP BY), les corrections de la relecture, les moments expliqués avant d’être posés, les deux phrases de la vidéo du site et la phrase des index. Chaque voix intégrée est ramenée au niveau de son cours (`tools/voix/volume.mjs`).
 
 Il reste **une seule consigne** à refaire, avec la voix d’Anaïs : le 3e moment de « Sous-requête dans WHERE avec IN » disait « ici, la base ne lit que la première de la liste » ; la règle d’Elisa ne fait jamais parler la base, la consigne devient « ici, seule la première de la liste compte ». Environ 155 crédits :
