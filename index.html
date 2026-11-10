@@ -6680,7 +6680,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=304">
+<link rel="stylesheet" href="ludique.css?v=305">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -19730,7 +19730,7 @@ const CARTES={
     points:["<code>CASE</code> donne une valeur différente selon une condition, comme un «\u00a0si… alors… sinon\u00a0».",
       "<code>WHEN</code> donne la condition, <code>THEN</code> la valeur, <code>ELSE</code> le cas restant, et <code>END</code> termine.",
       "Les conditions sont lues dans l’ordre\u00a0: la première vraie l’emporte."],
-    piege:"Je mets la condition la plus stricte en premier, sinon elle n’est jamais atteinte."},
+    piege:"La condition la plus stricte se place en premier, sinon elle n’est jamais atteinte."},
  23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"SELECT prenom,\n  COALESCE(email,\n    'Non renseigné') AS email\nFROM clients;",
     points:["<code>COALESCE</code> renvoie la première valeur qui n’est pas vide (<code>NULL</code>).",
       "Je peux prévoir plusieurs solutions de secours, lues dans l’ordre.",
@@ -19915,7 +19915,97 @@ const CARTES={
     points:["<code>GRANT</code> donne un droit sur une table ou une vue à un compte.",
       "Un droit peut viser une seule action, et même une seule colonne.",
       "<code>REVOKE</code> retire un droit quand il n’est plus utile."],
-    piege:"Chaque droit ne vaut que pour son action\u00a0: le droit de lire ne permet pas de modifier."}
+    piege:"Chaque droit ne vaut que pour son action\u00a0: le droit de lire ne permet pas de modifier."},
+ 2:{k:"AS",t:"Renommer une colonne",s:"SELECT nom AS produit,\n  prix AS \"Prix (€)\"\nFROM produits;",
+    points:["<code>AS</code> donne un nom d’affichage, un alias, à une colonne du résultat.",
+      "L’alias se place juste après la colonne\u00a0: <code>nom AS produit</code>.",
+      "Un alias avec des espaces ou des symboles s’écrit entre guillemets doubles."],
+    piege:"L’alias change seulement le titre du résultat\u00a0: dans la table, la colonne garde son nom."},
+ 22:{k:"NOT",t:"Inverser une condition",s:"SELECT prenom, ville\nFROM clients\nWHERE NOT (\n  ville = 'Paris'\n  OR ville = 'Lyon'\n);",
+    points:["<code>NOT</code> inverse une condition\u00a0: la ligne est gardée quand la condition est fausse.",
+      "Plusieurs conditions s’inversent ensemble entre parenthèses\u00a0: <code>NOT (a OR b)</code>.",
+      "Pour une simple égalité, <code>!=</code> suffit\u00a0: <code>NOT</code> sert aux conditions plus riches."],
+    piege:"Une ligne où la valeur est vide (<code>NULL</code>) n’est gardée ni par la condition ni par son <code>NOT</code>."},
+ 40:{k:"CROSS JOIN",t:"Toutes les combinaisons",s:"SELECT clients.ville,\n  produits.nom\nFROM clients\nCROSS JOIN produits;",
+    points:["<code>CROSS JOIN</code> associe chaque ligne d’une table à chaque ligne de l’autre.",
+      "Aucune condition de correspondance\u00a0: la jointure s’écrit sans <code>ON</code>.",
+      "Le résultat a autant de lignes que le produit des deux tables\u00a0: 10 × 8 = 80."],
+    piege:"Sur deux grandes tables, le résultat grossit vite\u00a0: 1\u00a0000 × 1\u00a0000 donnent un million de lignes."},
+ 41:{k:"JOIN + GROUP BY",t:"Calculer par groupe, entre tables",s:"SELECT clients.ville,\n  COUNT(commandes.id)\n  AS nb_commandes\nFROM commandes\nJOIN clients\n  ON clients.id =\n     commandes.client_id\nGROUP BY clients.ville;",
+    points:["Quand le groupe et le calcul sont dans deux tables, <code>JOIN</code> les relie d’abord.",
+      "<code>GROUP BY</code> forme ensuite un groupe par valeur, ici un par ville.",
+      "<code>COUNT</code> compte enfin les lignes de chaque groupe."],
+    piege:"Une colonne du <code>SELECT</code> absente de <code>GROUP BY</code> et d’un calcul donne une valeur au hasard, ou une erreur."},
+ 42:{k:"SELF JOIN",t:"Une table reliée à elle-même",s:"SELECT c1.id AS cmd1,\n  c2.id AS cmd2\nFROM commandes AS c1\nJOIN commandes AS c2\n  ON c1.client_id =\n     c2.client_id\n AND c1.id < c2.id;",
+    points:["Un <code>SELF JOIN</code> relie les lignes d’une même table entre elles.",
+      "Deux alias, <code>c1</code> et <code>c2</code>, donnent deux rôles à la même table.",
+      "<code>c1.id &lt; c2.id</code> garde chaque paire une seule fois, sans la ligne avec elle-même."],
+    piege:"Sans alias, la base ne sait pas de quelle copie de la table vient chaque colonne\u00a0: erreur."},
+ 49:{k:"ON … AND",t:"Plusieurs conditions de jointure",s:"SELECT commandes.id,\n  clients.prenom\nFROM commandes\nJOIN clients\n  ON clients.id =\n     commandes.client_id\n AND clients.ville =\n     'Paris';",
+    points:["<code>ON</code> dit quand deux lignes se relient, et peut vérifier plusieurs conditions.",
+      "Une condition de plus s’ajoute avec <code>AND</code>.",
+      "Les deux lignes ne sont reliées que si toutes les conditions sont vraies."],
+    piege:"Avec <code>LEFT JOIN</code>, une condition dans <code>ON</code> ne retire aucune ligne de gauche, contrairement à <code>WHERE</code>."},
+ 73:{k:"UNION · UNION ALL",t:"Empiler deux résultats",s:"SELECT ville FROM clients\nWHERE age < 30\nUNION\nSELECT ville FROM clients\nWHERE age > 60;",
+    points:["<code>UNION</code> empile les lignes de deux requêtes et retire les doublons.",
+      "<code>UNION ALL</code> garde toutes les lignes, même identiques.",
+      "Les deux requêtes renvoient le même nombre de colonnes, dans le même ordre."],
+    piege:"<code>JOIN</code> met les données côte à côte\u00a0; <code>UNION</code> les met les unes sous les autres."},
+ 72:{k:"Clés et relations",t:"Relier les tables",s:"CREATE TABLE avis (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id),\n  note INTEGER\n);",
+    points:["La <b>clé primaire</b> identifie chaque ligne\u00a0: elle est unique et jamais vide.",
+      "La <b>clé étrangère</b> pointe vers la clé d’une autre table pour relier les données.",
+      "1 → N\u00a0: la clé étrangère va côté «\u00a0plusieurs\u00a0»\u00a0; N ↔ N\u00a0: une table d’association."],
+    piege:"Sans clé étrangère, rien n’empêche un avis de pointer vers un client qui n’existe pas."},
+ 81:{k:"UML",t:"Du diagramme aux tables",s:"CREATE TABLE favoris (\n  client_id INTEGER\n    REFERENCES clients(id),\n  produit_id INTEGER\n    REFERENCES produits(id),\n  PRIMARY KEY (client_id,\n    produit_id)\n);",
+    points:["Le diagramme de classes montre les classes, leurs attributs et leurs associations.",
+      "Chaque classe devient une table, et ses attributs deviennent des colonnes.",
+      "Les multiplicités, comme <code>0..*</code>, disent combien d’éléments peuvent être liés."],
+    piege:"Plusieurs à plusieurs ne tient pas dans une colonne\u00a0: il faut une table d’association."},
+ 61:{k:"CREATE TABLE",t:"Créer la structure d’une table",s:"CREATE TABLE ateliers (\n  id INTEGER PRIMARY KEY,\n  titre TEXT NOT NULL,\n  places INTEGER\n    CHECK (places > 0)\n);",
+    points:["<code>CREATE TABLE</code> donne le nom de la table et la liste de ses colonnes.",
+      "Chaque colonne a un nom et un type\u00a0: <code>INTEGER</code>, <code>TEXT</code>, <code>REAL</code>…",
+      "Les contraintes posent les règles\u00a0: <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>."],
+    piege:"<code>CREATE TABLE</code> crée une table vide\u00a0: les lignes s’ajoutent ensuite avec <code>INSERT INTO</code>."},
+ 65:{k:"ALTER TABLE",t:"Faire évoluer une table",s:"ALTER TABLE clients\n  ADD COLUMN pays TEXT\n  DEFAULT 'France';\n\nALTER TABLE clients\n  RENAME COLUMN pays\n  TO pays_livraison;",
+    points:["<code>ALTER TABLE</code> ajoute, renomme ou supprime une colonne d’une table existante.",
+      "Avec <code>ADD COLUMN</code>, les lignes déjà là reçoivent la valeur de <code>DEFAULT</code>, sinon <code>NULL</code>.",
+      "<code>ALTER TABLE</code> change la structure\u00a0; <code>UPDATE</code> change les valeurs."],
+    piege:"Supprimer une colonne efface toutes ses données\u00a0; la renommer les garde."},
+ 66:{k:"DROP TABLE",t:"Supprimer une table",s:"CREATE TABLE brouillon (\n  id INTEGER\n);\n\nDROP TABLE IF EXISTS\n  brouillon;",
+    points:["<code>DROP TABLE</code> supprime toute la table\u00a0: ses lignes et sa structure.",
+      "<code>DELETE FROM</code> sans <code>WHERE</code> vide la table, mais la garde.",
+      "<code>IF EXISTS</code> évite une erreur quand la table n’existe pas."],
+    piege:"<code>IF EXISTS</code> ne protège pas d’une faute de nom\u00a0: le nom se vérifie avant de supprimer."},
+ 68:{k:"ON DELETE",t:"Le sort des lignes liées",s:"CREATE TABLE avis (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id)\n    ON DELETE SET NULL,\n  texte TEXT\n);",
+    points:["<code>ON DELETE</code> se pose sur la clé étrangère et décide du sort des lignes liées.",
+      "<code>RESTRICT</code> bloque la suppression\u00a0; <code>CASCADE</code> supprime aussi les lignes liées.",
+      "<code>SET NULL</code> garde la ligne liée et vide sa clé étrangère."],
+    piege:"Avec <code>SET NULL</code>, la colonne doit accepter <code>NULL</code>\u00a0: pas de <code>NOT NULL</code> dessus."},
+ 62:{k:"BEGIN · COMMIT · ROLLBACK",t:"Tout valider ou tout annuler",s:"BEGIN TRANSACTION;\nUPDATE produits\n  SET stock = stock - 1\n  WHERE id = 1;\nINSERT INTO commandes\n  (client_id, produit_id,\n   quantite)\n  VALUES (1, 1, 1);\nCOMMIT;",
+    points:["<code>BEGIN TRANSACTION</code> démarre un groupe de modifications qui vont ensemble.",
+      "<code>COMMIT</code> les valide toutes ensemble\u00a0: elles deviennent définitives.",
+      "<code>ROLLBACK</code> annule toutes celles qui ne sont pas encore validées."],
+    piege:"Après <code>COMMIT</code>, <code>ROLLBACK</code> ne peut plus annuler la transaction."},
+ 63:{k:"SAVEPOINT",t:"Annuler une partie",s:"BEGIN TRANSACTION;\nUPDATE produits\n  SET prix = prix * 1.1;\nSAVEPOINT avant_stock;\nUPDATE produits\n  SET stock = 0;\nROLLBACK TO SAVEPOINT\n  avant_stock;\nCOMMIT;",
+    points:["<code>SAVEPOINT nom</code> pose un point de retour dans la transaction.",
+      "<code>ROLLBACK TO SAVEPOINT nom</code> annule seulement ce qui suit ce point.",
+      "<code>COMMIT</code> valide ce qui reste et termine la transaction."],
+    piege:"<code>ROLLBACK</code> seul, sans <code>TO</code>, annule toute la transaction."},
+ 71:{k:"FOR UPDATE",t:"Verrouiller une ligne",s:"BEGIN;\nSELECT stock\nFROM produits\nWHERE id = 1\nFOR UPDATE;\nUPDATE produits\n  SET stock = stock - 1\n  WHERE id = 1;\nCOMMIT;",dialecte:"PostgreSQL",
+    points:["La concurrence\u00a0: deux opérations touchent les mêmes données au même moment.",
+      "<code>FOR UPDATE</code> verrouille la ligne lue jusqu’à la fin de la transaction.",
+      "Le niveau d’isolation décide de ce que chaque transaction voit des autres."],
+    piege:"Une transaction seule n’évite pas tous les conflits\u00a0: il faut aussi un verrou ou la bonne isolation."},
+ 70:{k:"TRIGGER",t:"Une action automatique",s:"CREATE TABLE historique (\n  produit_id INTEGER,\n  ancien REAL,\n  nouveau REAL\n);\nCREATE TRIGGER suivi_prix\nAFTER UPDATE OF prix\nON produits\nWHEN OLD.prix <> NEW.prix\nBEGIN\n  INSERT INTO historique\n  VALUES (NEW.id,\n    OLD.prix, NEW.prix);\nEND;",
+    points:["Un <code>TRIGGER</code> lance une action tout seul quand un événement arrive sur une table.",
+      "<code>OLD</code> et <code>NEW</code> donnent les valeurs avant et après la modification.",
+      "<code>WHEN</code> pose la condition à remplir pour lancer l’action."],
+    piege:"La syntaxe d’un trigger dépend du SGBD\u00a0: celle de la base de l’app ne se recopie pas telle quelle ailleurs."},
+ 64:{k:"CREATE VIEW",t:"Une requête enregistrée",s:"CREATE VIEW stock_bas AS\nSELECT nom, stock\nFROM produits\nWHERE stock < 50;\n\nSELECT * FROM stock_bas;",
+    points:["Une vue enregistre une requête sous un nom et se lit comme une table, avec <code>SELECT</code>.",
+      "Une vue garde la requête, pas les résultats\u00a0: chaque lecture prend les données du moment.",
+      "La vue montre seulement les colonnes et les lignes utiles."],
+    piege:"Une vue n’est pas une copie, contrairement à <code>CREATE TABLE … AS</code>\u00a0: elle suit la table."}
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#0EA5A0','#2DD4BF'],['#B45309','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
@@ -20014,8 +20104,8 @@ function markDone(id,review){
 let db=null,SQL=null,baseBytes=null;
 const allLessons=MODULES.flatMap(m=>m.lessons);
 const TOTAL=allLessons.length;
-/* Toutes les leçons n'ont pas de carte mémo : la collection se compte sur les
-   cartes existantes, pas sur les leçons. */
+/* Chaque leçon donne sa carte mémo depuis le 10 novembre (Elisa, 7 h 21 : « il y a une leçon qui n’a pas de carte mémo, donc du
+   coup la faire ») : 71 cartes. La collection se compte toujours sur les cartes existantes. */
 const TOTAL_CARTES=allLessons.filter(l=>CARTES[l.id]).length;
 let current=null,mode='lesson',reviewQueue=[],activeTab='learn',restoringNav=false;
 function saveNav(override){
@@ -26891,7 +26981,7 @@ function heroSousTitre(nxt){try{
 }catch(e){return '';}}
 /* Sous la carte de la leçon, trois chiffres et jamais un zéro (maquette du 7 novembre, 8 h 38 : « 5 leçons lancées · 0 leçon validée ·
    71 leçons au total », rendue plus positive). Rien de commencé : ce que le parcours réserve (71 leçons à découvrir, 15 modules,
-   53 cartes à gagner) ; en route : les leçons lancées, les leçons validées (avant la première : les exercices faits, sinon les cartes à
+   71 cartes à gagner) ; en route : les leçons lancées, les leçons validées (avant la première : les exercices faits, sinon les cartes à
    gagner), le total ; rien en cours entre deux leçons : les leçons validées, les cartes gagnées, le total (pas deux fois le même
    nombre) ; tout validé : les leçons, les cartes gagnées, les modules terminés. */
 const HOME_STAT_SVG={
@@ -38195,7 +38285,7 @@ const MEMO_LOCK_STK='<svg viewBox="0 0 48 48" aria-hidden="true"><g opacity=".26
 const MEMO_TRAP_STK='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5.5 44 41H4Z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M24 5.5 44 41H4Z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.8" stroke-linejoin="round"/><path d="M24 18v11" stroke="#1B1640" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="35" r="2.6" fill="#1B1640"/></svg>';
 const MEMO_TURN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3L19.5 9M19.5 4.5V9H15M19.5 12a7.5 7.5 0 0 1-12.8 5.3L4.5 15M4.5 19.5V15H9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const MEMO_CHECK_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-/* Le numéro de collection (01 à 53), le même partout : album, fiche, bilan, récompense, annonce de déblocage. */
+/* Le numéro de collection (01 à 71), le même partout : album, fiche, bilan, récompense, annonce de déblocage. */
 function memoSerial(id){ return String(allLessons.filter(l=>CARTES[l.id]).findIndex(l=>l.id===id)+1).padStart(2,'0'); }
 /* Le mot le plus long d'un texte : la taille s'y ajuste (--kn). */
 function memoKn(s){ return Math.max(...String(s||'').split(/\s+/).map(w=>w.length),1); }
@@ -38214,14 +38304,17 @@ function memoFace(id,o={}){
   return `<span class="mc-face"><span class="mc-top"><b class="mc-num">${memoSerial(id)}</b>${o.mod?`<span class="mc-mod"><b>Module ${mi+1}</b><span>${esc(MODULES[mi].titre)}</span></span>`:''}</span>${memoKw(c.k)}<span class="mc-t">${esc(c.t)}</span>${o.shine?'<i class="mc-shine" aria-hidden="true"></i>':''}</span>`;
 }
 /* Le verso : « À retenir » (les trois points), la syntaxe, le piège. o.head : rappel du numéro et du mot-clé (carte retournée au bilan). */
+/* Le code d’une carte ne se coupe plus (Elisa, 10 novembre, la carte AS : « nom AS produit » coupé en deux) : la pastille passe
+   entière à la ligne ; seule une très longue (plus de 24 signes, UNBOUNDED PRECEDING AND CURRENT ROW) peut encore se couper. */
+function memoCodes(t){return String(t).replace(/<code>([^<]*)<\/code>/g,(m,c)=>c.replace(/&[a-z]+;/g,'x').length>24?`<code class="long">${c}</code>`:m);}
 function memoVerso(id,o={}){
-  const c=CARTES[id],pts=(c.points&&c.points.length?c.points:cardMemoPoints(c.m||'')).slice(0,3);
+  const c=CARTES[id],pts=(c.points&&c.points.length?c.points:cardMemoPoints(c.m||'')).slice(0,3).map(memoCodes);
   return `${o.head?`<p class="mc-verso-top" aria-hidden="true"><b class="mc-num">${memoSerial(id)}</b>${memoKw(c.k,' is-mini')}</p>`:''}
     <h3 class="mc-h"${o.head?' tabindex="-1" data-focus':''}><span class="mc-h-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="mc-h-tag">À retenir</span></h3>
     <ol class="mc-pts">${pts.map((p,i)=>`<li style="--i:${i}">${p}</li>`).join('')}</ol>
     ${c.s?`<div class="mc-syn"><p class="mc-lab">Syntaxe${c.dialecte?` <span class="mc-dial">${esc(c.dialecte)}</span>`:''}</p><div class="ex-code mc-code">${highlight(c.s)}</div></div>`:''}
     ${c.sgbd?`<p class="mc-sgbd">Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='${c.sgbd}'>Selon le SGBD</button> de la Bibliothèque.</p>`:''}
-    ${c.piege?`<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i>${MEMO_TRAP_STK}</i>Le piège</p><p>${c.piege}</p></aside>`:''}`;
+    ${c.piege?`<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i>${MEMO_TRAP_STK}</i>Le piège</p><p>${memoCodes(c.piege)}</p></aside>`:''}`;
 }
 /* L'état d'une carte débloquée dans l'album : nouvelle (vient d'être gagnée), à revoir, acquise, ou rien. */
 function memoEtat(l){
@@ -47306,7 +47399,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2808';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2809';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

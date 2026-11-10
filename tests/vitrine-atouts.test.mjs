@@ -92,8 +92,8 @@ test('cartes mémo : leur nombre et les trois cartes montrées sont ceux de l’
     assert.equal(mod, AVEC_CARTE[i].mod, `${k} : module`);
     assert.equal(titre, CARTES[AVEC_CARTE[i].id].t, `${k} : titre`);
   }
-  /* « Chaque leçon » serait faux : toutes les leçons n’ont pas de carte */
-  assert.ok(AVEC_CARTE.length < LECONS.length && !t.includes('Chaque leçon terminée débloque sa carte'), 'pas « chaque leçon »');
+  /* Depuis le 10 novembre, chaque leçon a sa carte (71) : les numéros des trois cartes montrées ont suivi. */
+  assert.equal(AVEC_CARTE.length, LECONS.length, 'une carte par leçon');
   assert.ok(t.includes('<p>Tes leçons terminées débloquent des cartes mémo, à relire en un coup d’œil.</p>'));
   /* Elisa, 30 octobre, 18 h 45 : « supprimer : Elles reviennent au même rythme que tes révisions. » */
   assert.ok(!t.includes('Elles reviennent') && !t.includes('class="st-src"'), 'pas de note sous les cartes');

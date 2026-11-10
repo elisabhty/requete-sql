@@ -34,7 +34,7 @@ test('chaque carte : son mot-clé, son idée, trois points à retenir, une synta
     }
     for (const line of c.s.split('\n')) assert.ok(line.length <= 30, `carte ${id} : « ${line} » tient sur la carte, même à 320 px`);
   }
-  assert.deepEqual(Object.keys(CARTES).filter(id => CARTES[id].dialecte).sort(), ['50', '82', '83', '84'], 'quatre syntaxes que la Console n’exécute pas');
+  assert.deepEqual(Object.keys(CARTES).filter(id => CARTES[id].dialecte).sort(), ['50', '71', '82', '83', '84'], 'cinq syntaxes que la Console n’exécute pas (FOR UPDATE depuis le 10 novembre)');
   assert.deepEqual(Object.fromEntries(Object.keys(CARTES).filter(id => CARTES[id].sgbd).map(id => [id, CARTES[id].sgbd])), {52: 'nombres', 53: 'dates', 54: 'conversion', 76: 'agregats'},
     'les renvois vers « Selon le SGBD » des anciens mémos restent');
 });
@@ -44,7 +44,7 @@ test('le verso : l’ampoule et « À retenir », les trois points numérotés, 
     CARTES, allLessons: Object.keys(CARTES).map(id => ({id: +id})), esc: s => String(s), highlight: s => `<span class="hl">${s}</span>`,
     lqStkSvg: k => `<svg data-k="${k}"></svg>`, cardMemoPoints: () => []
   });
-  vm.runInContext(app.slice(app.indexOf('const MEMO_LOCK_STK='), app.indexOf('/* Le numéro de collection (01 à 53)')) + fn('memoSerial') + fn('memoKn') + fn('memoKw') + fn('memoVerso'), ctx);
+  vm.runInContext(app.slice(app.indexOf('const MEMO_LOCK_STK='), app.indexOf('/* Le numéro de collection (01 à 71)')) + fn('memoSerial') + fn('memoKn') + fn('memoKw') + fn('memoCodes') + fn('memoVerso'), ctx);
   const v = ctx.memoVerso(51);
   assert.ok(v.includes('<h3 class="mc-h"><span class="mc-h-stk" aria-hidden="true"><svg data-k="bulb"></svg></span><span class="mc-h-tag">À retenir</span></h3>'));
   assert.equal((v.match(/<li style="--i:\d">/g) || []).length, 3, 'trois points, qui arrivent l’un après l’autre');
@@ -104,4 +104,15 @@ test('les cartes mémo, reformulées pour les débutants (Elisa, 10 novembre, 6 
     assert.doesNotMatch(t, /Hugo|Inès|Fibre|MARTIN|\b(10|16|18|26) (clients|commandes|lignes)|\b8\b ?:|4 clients/, `carte ${id} : ${t}`);
   }
   assert.equal(CARTES[13].points[0], '<code>DISTINCT</code> retire les lignes en double du résultat.');
+});
+
+test('10 novembre : chaque leçon a sa carte mémo (71), et une pastille de code courte ne se coupe pas', () => {
+  assert.equal(Object.keys(CARTES).length, 71, 'une carte par leçon (71 leçons)');
+  for (const id of [2, 22, 40, 41, 42, 49, 73, 72, 81, 61, 65, 66, 68, 62, 63, 71, 70, 64]) assert.ok(CARTES[id], `la leçon ${id} a sa carte`);
+  assert.equal(CARTES[2].k, 'AS', 'la carte de « Renommer avec AS »');
+  const ctx = vm.createContext({});
+  vm.runInContext(fn('memoCodes'), ctx);
+  assert.equal(ctx.memoCodes('<code>nom AS produit</code>'), '<code>nom AS produit</code>', 'courte : nowrap par le CSS');
+  assert.equal(ctx.memoCodes('<code>UNBOUNDED PRECEDING AND CURRENT ROW</code>'), '<code class="long">UNBOUNDED PRECEDING AND CURRENT ROW</code>', 'très longue : peut se couper');
+  assert.ok(css.includes('html.lq :is(.mc-pts,.mc-piege) code{') && /:is\(\.mc-pts,\.mc-piege\) code\{[^}]*white-space:nowrap\}/.test(css) && css.includes('html.lq :is(.mc-pts,.mc-piege) code.long{white-space:normal}'));
 });
