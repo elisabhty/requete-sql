@@ -6682,7 +6682,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=313">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=40">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=41">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -42765,7 +42765,9 @@ function fillConsole(i){
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
-const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];
+/* Elisa, 10 novembre, 17 h 11 (« mettre la page de connexion et le paywall au bon moment », son choix : « À la fin ») : les questions
+   d’abord, puis « Ton parcours est prêt », la connexion et le paywall, et l’app. On paie après avoir vu son parcours. */
+const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -43563,11 +43565,89 @@ function obFinFlux(){
      le bravo pour la requête et passer directement à la connexion avec confettis de ouf » : elle vient juste après la première
      requête, avant les sources et le rappel. 13 h 48 : le tutoriel du widget n’est plus dans ce tunnel, il vient après la première
      leçon (obWidgetProposer). */
+  /* 10 novembre, 17 h 11 : la connexion et le paywall sortent d’ici, ils viennent après « Ton parcours est prêt » (obApresPret). */
   const f=['practice'];
-  if(!obConnexionMasquee()||(typeof draft!=='undefined'&&draft&&draft.practiceDone))f.push('account');
   f.push('source');
   if(obRappelPossible())f.push('rappel');
   return f;
+}
+/* La fin, après « Ton parcours est prêt » (Elisa, 10 novembre, 17 h 11) : la connexion (dans l’app iPhone, seulement une fois branchée,
+   obConnexionMasquee), puis le paywall, puis ce que le bouton de la dernière page promettait (la première leçon, le parcours ou la
+   salle d’un ami : draft.finVoulue). Un abonnement déjà actif (REQUETE_ACHAT.actif, quand l’achat sera branché) saute le paywall. */
+function obCompteVisible(){return !(typeof obConnexionMasquee==='function'&&obConnexionMasquee());}
+function obAchatPret(){return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.acheter==='function');}
+function obAbonne(){try{return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.actif==='function'&&window.REQUETE_ACHAT.actif());}catch(e){return false;}}
+function obApresPret(fin){draft.finVoulue=fin||'home';if(obCompteVisible())obGoto('account');else obApresCompte();}
+function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||'home');else obGoto('paywall');}
+/* ---------- Le paywall (Elisa, 10 novembre, 17 h 11) ----------
+   Ses prix : 4,99 € par semaine et 59 € par an (comparés le 10 novembre : la semaine est dans la moyenne des apps éducatives, l’an dans
+   le haut du panier, comme Sololearn ou Mimo). « Une page étudiée psychologiquement, dans la DA du site » :
+   - son parcours d’abord (l’objectif choisi, la date de fin estimée) : on paie pour finir ce qu’on vient de construire ;
+   - le chat diplômé : l’objectif atteint, en image ;
+   - trois avantages concrets, chiffrés avec le vrai contenu (leçons, défis) ;
+   - l’annuel choisi d’avance, en haut, avec son économie calculée (« −77 % ») ; l’hebdomadaire à côté sert de repère ;
+   - le prix facturé en gros (« 59 € par an »), le prix par semaine en petit dessous (règle d’Apple : le montant facturé est le plus visible) ;
+   - la preuve sociale vérifiée (OB_COMMUNAUTE), puis « Sans engagement » sous le bouton pour lever la dernière peur.
+   Tant que l’achat n’est pas branché (window.REQUETE_ACHAT : acheter(offre), restaurer(), actif()), le bouton et un « Continuer » discret
+   entrent dans l’app (son choix : « Visible, on passe ») ; une fois branché, seul le paiement passe la page, et « Restaurer » apparaît. */
+const OB_OFFRES={an:{prix:59,titre:'Annuel',par:'par an',semaines:52},semaine:{prix:4.99,titre:'Hebdomadaire',par:'par semaine',semaines:1}};
+function obEuros(x){return (Math.round(x*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:Number.isInteger(x)?0:2,maximumFractionDigits:2})+' €';}
+function obOffreInfo(){
+  const an=OB_OFFRES.an,se=OB_OFFRES.semaine;
+  const parSemaine=Math.floor(an.prix/an.semaines*100)/100,eco=Math.round((1-an.prix/(se.prix*an.semaines))*100);
+  return {parSemaine,eco};
+}
+let obPwBusy=false;
+function obPaywallHTML(){
+  const o=draft.offre==='semaine'?'semaine':'an',b=typeof obPlanInfo==='function'?obPlanInfo():{goal:'Progresser en SQL',endLabel:'',minutes:20};
+  const {parSemaine,eco}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
+  const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  const offre=(k,extra)=>{const x=OB_OFFRES[k],on=o===k;
+    return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">
+      ${extra||''}<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${x.titre}</span>
+      <span class="pw-o-p"><b>${obEuros(x.prix)}</b> ${x.par}</span>${k==='an'?`<span class="pw-o-s">soit ${obEuros(parSemaine)} par semaine</span>`:''}</button>`;};
+  const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve"><span class="pw-preuve-stk" aria-hidden="true">${typeof OB_STK_AVIS!=='undefined'?OB_STK_AVIS:''}</span>Plus de ${OB_COMMUNAUTE.toLocaleString('fr-FR')} personnes apprécient Requête</p>`:'';
+  const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallEntrer()">Continuer</button>';
+  return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
+    <div class="pw-hero"><img class="pw-chat" src="assets/chat-diplome${fixe?'-fixe':''}.webp" width="304" height="367" alt="" draggable="false">
+      <span class="pw-tag">Ton parcours est prêt</span>
+      <h1 class="ob-title" id="ob-title">${nom?`${esc(nom)}, va`:'Va'} au bout de ton <em>objectif</em>.</h1>
+</div>
+    <p class="pw-but"><b>${esc(b.goal)}</b>${b.endLabel?` · fin estimée le ${esc(b.endLabel)}`:''}</p>
+    <ul class="pw-plus">
+      <li><span><b>${nLecons}&nbsp;leçons vidéo</b> et leurs exercices</span></li>
+      <li><span><b>${nDefis}&nbsp;défis</b> en solo ou entre amis</span></li>
+      <li><span><b>Cartes mémo</b>, entretien SQL et console</span></li></ul>
+    <div class="pw-offres" role="radiogroup" aria-label="Choisis ton offre">${offre('an',`<span class="pw-badge">−${eco}&nbsp;%</span>`)}${offre('semaine')}</div>
+    ${preuve}<p class="ob-compte-msg" id="pw-live" role="status" aria-live="polite"></p></div>`;
+}
+function obPaywallPied(){
+  const o=OB_OFFRES[draft.offre==='semaine'?'semaine':'an'];
+  const legal=`<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à ${obEuros(o.prix)} ${o.par}, sauf annulation 24&nbsp;h avant dans les réglages Apple. <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+  obSetFooter('Commencer mon parcours',obPaywallAcheter,'','',{html:legal},obPwBusy);
+}
+function obPaywallChoisir(k){
+  if(!OB_OFFRES[k]||obPwBusy)return;
+  draft.offre=k;
+  document.querySelectorAll('#ob-body .pw-offre').forEach(b=>{const on=b.dataset.offre===k;b.classList.toggle('is-on',on);b.setAttribute('aria-checked',String(on));});
+  if(typeof buzz==='function')buzz('light');
+  obPaywallPied();
+}
+function obPaywallEntrer(){if(typeof buzz==='function')buzz('success');finishOnboard(draft.finVoulue||'home');}
+async function obPaywallAcheter(){
+  if(!obAchatPret()){obPaywallEntrer();return;}
+  if(obPwBusy)return;
+  const live=document.getElementById('pw-live');obPwBusy=true;obPaywallPied();if(live)live.textContent='';
+  try{const ok=await window.REQUETE_ACHAT.acheter(draft.offre==='semaine'?'semaine':'an');obPwBusy=false;if(ok){obPaywallEntrer();return;}}
+  catch(e){obPwBusy=false;if(live)live.textContent='Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.';}
+  obPaywallPied();
+}
+async function obPaywallRestaurer(){
+  const live=document.getElementById('pw-live');
+  if(!window.REQUETE_ACHAT||typeof window.REQUETE_ACHAT.restaurer!=='function')return;
+  try{const ok=await window.REQUETE_ACHAT.restaurer();if(ok){obPaywallEntrer();return;}if(live)live.textContent='Aucun abonnement à restaurer sur ce compte Apple.';}
+  catch(e){if(live)live.textContent='La restauration n’a pas abouti, réessaie.';}
 }
 function obFinSuivante(slide){const f=obFinFlux(),i=f.indexOf(slide);return i>=0&&i<f.length-1?f[i+1]:'ready';}
 function obFinPrecedente(slide){const f=obFinFlux();if(slide==='ready')return f[f.length-1];const i=f.indexOf(slide);return i>0?f[i-1]:'practice';}
@@ -44670,7 +44750,9 @@ function obNext(){
   else if(slide==='widget')obGoto('widgetTuto');
   else if(slide==='widgetTuto')obWidgetFin();
   else if(slide==='account')obPasserConnexion();
+  else if(slide==='paywall'){if(!obAchatPret())obPaywallEntrer();}   // une fois l’achat branché, seul le paiement passe la page
   else if(slide==='pseudo')obPseudoSuivant();
+  else if(slide==='ready'){const b=document.getElementById('ob-next');if(b&&typeof b.onclick==='function')b.onclick();else finishOnboard('home');}
   else finishOnboard('home');
 }
 function obBack(){
@@ -44678,7 +44760,9 @@ function obBack(){
   if(OB_SLIDES[obStep]==='welcome'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}
   if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
-  if(OB_SLIDES[obStep]==='ready'||OB_SLIDES[obStep]==='account'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}
+  if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
+  if(OB_SLIDES[obStep]==='account'){obGoto(draft.finVoulue?'ready':'welcome');return;}   // « J’ai déjà un compte » : retour à l’accueil
+  if(OB_SLIDES[obStep]==='ready'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}
   obGoto(obStep-1);
 }
 function obPick(champ,val){
@@ -45201,7 +45285,8 @@ function obModifiable(){
 function obPasserConnexion(){
   if(obAuthReady())return;
   buzz('light');
-  obGoto(obFinSuivante('account'));
+  if(state.onboarded&&obEntry==='account'){closeOnboardingAuth();return;}   // ouverte depuis Mon compte
+  obApresCompte();
 }
 /* Les fournisseurs, dans l’ordre d’Apple (« Continuer avec Apple » en premier, aussi visible que les autres). 10 h 45 : Apple et
    l’e-mail seulement (le texte d’Elisa). 14 h 08 (réf. 1) : « avec Google aussi », entre les deux. */
@@ -45334,7 +45419,7 @@ async function obStartAuth(provider,btn){
     draft.accountMode='connected';
     obAuthBusy=false;obAuthMessage='';
     if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();renderCompte();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
-    else obGoto(obFinSuivante('account'));
+    else obApresCompte();
   }catch(e){
     obAuthBusy=false;
     obAuthMessage=(e&&e.message==='Connexion annulée')?'Connexion annulée.':'Connexion impossible pour le moment. Réessaie dans un instant.';
@@ -45702,6 +45787,7 @@ function paintOb(){
   const authReady=!!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signIn==='function');
   root.dataset.obSlide=slide;
   root.classList.toggle('ob-account-step',slide==='account'&&!obLegalMode);
+  root.classList.toggle('ob-paywall-step',slide==='paywall'&&!obLegalMode);
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
   root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||OB_WIDGET_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
@@ -45747,12 +45833,16 @@ function paintOb(){
        après la première requête (le « Bravo » de la requête est supprimé) et avec des confettis de ouf à l’arrivée (obFeteConnexion).
        Ouverte sans première requête réussie (moteur SQL indisponible, ou depuis Mon compte), elle ne parle pas de réussite. */
     const message=obAuthMessage?`<p class="ob-auth-message" role="status">${esc(obAuthMessage)}</p>`:'';
-    const reussie=!!draft.practiceDone,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee();
+    /* 10 novembre, 17 h 11 : elle vient après « Ton parcours est prêt », plus après la première requête : le bravo de la requête
+       s’efface (les confettis sont sur la dernière page), elle propose de sauvegarder le parcours. */
+    const reussie=false,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee(),finale=!!draft.finVoulue;
     html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':''}">${obFlowHeader(slide)}
       ${obCompteHautHTML(reussie)}
       ${reussie?`<h1 class="ob-title" id="ob-title">Ta première requête est <em>réussie</em>&nbsp;!<span class="ob-fete-emoji" aria-hidden="true"> 🎉</span></h1>
       <p class="ob-compte-lead"><span>Tu viens de franchir une première étape.</span> <span>Et ce n’est que le début&nbsp;!</span></p>
       ${masquee?'':obCompteCarteHTML()}`
+      :finale?`<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>
+      <p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>`
       :`<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
       <p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>`}
       ${masquee?'':`<div class="ob-provider-list">
@@ -45764,6 +45854,9 @@ function paintOb(){
        sous le bouton, dans le pied de page. */
     const legal=`En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
     obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
+  }else if(slide==='paywall'){
+    html=obPaywallHTML();
+    obPaywallPied();
   }else if(slide==='name'){
     /* Le prénom (Elisa, 31 octobre, 17 h 53 : « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour
        le choix du pseudo ») : il sert à saluer ; le pseudo, unique et public, se choisit après l’onboarding (étape « pseudo »). */
@@ -46003,10 +46096,11 @@ function paintOb(){
         <div class="ob-ready-row" style="--i:2"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
       <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes ${NB_JOURS_VUS} prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
     /* Invité par un ami (5 novembre, 14 h) : l’inscription finie, on rejoint sa salle ; le parcours attend le retour. */
-    if(inv)obSetFooter('Rejoindre la salle',()=>finishOnboard('salle'),'','',(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
+    if(inv)obSetFooter('Rejoindre la salle',()=>obApresPret('salle'),'','',(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* Revenu de Mon compte (« Personnalisation ») : on enregistre et on y revient (audit de Mon compte, 6 novembre) */
     else if(state.onboarded&&obEntry!=='welcome')obSetFooter('Enregistrer',()=>finishOnboard('compte'),'Voir mon parcours',()=>finishOnboard('plan-ready'),'');
-    else obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
+    else if(typeof obApercu!=='undefined'&&obApercu)obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),'');
+    else obSetFooter('Commencer la première leçon',()=>obApresPret('home'),'Voir mon parcours',()=>obApresPret('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* 4 novembre, 2 h 13 : « Commencer la première leçon avec la flèche animée », la même que sur le bouton de la construction
        (obSetFooter la pose, comme sur tous les boutons jaunes depuis 14 h 08). */
     /* Le bouton se réveille une fois tout posé (coche, récapitulatif, semaine). */
@@ -46029,7 +46123,6 @@ function paintOb(){
   if(slide==='pays')obPaysJouer();
   obRepriseGarder(slide);
   if(obJustEntered&&!state.onboarded&&!obLegalMode)obCompter(slide);
-  if(slide==='account'&&obJustEntered&&draft.practiceDone&&!draft.feteConnexion){draft.feteConnexion=true;obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='account')obFeteConnexion();},120));}
   if(slide==='name'||slide==='pseudo'){
     if(slide==='name')obNamePreview();
     /* Au clavier physique, le champ est prêt à taper ; au tactile on n'ouvre
@@ -47635,7 +47728,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-10-se-v2829';
+  const SW_CACHE='requete-2026-11-10-paywall-v2830';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

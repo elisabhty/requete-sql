@@ -43,14 +43,13 @@ const rendreCompte = ({ authReady = false, obAuthBusy = false, obAuthMessage = '
   return { html: ctx.html, pied, ctx };
 };
 
-test('la page de connexion est toujours dans le tunnel, avec ou sans fournisseur branché', () => {
+test('la page de connexion est toujours là, après « Ton parcours est prêt » (10 novembre), avec ou sans fournisseur branché', () => {
   const fin = cut('const OB_FIN_SLIDES=', '/* « Me rappeler de m’entraîner »');
   for (const pret of [false, true]) {
     const ctx = vm.createContext({ OB_PROFILE_SLIDES: ['name', 'practice'], obAuthReady: () => pret, window: {} });
     vm.runInContext(fin, ctx);
-    assert.deepEqual([...ctx.obFinFlux()], ['practice', 'account', 'source'], pret ? 'fournisseur branché' : 'sans fournisseur');
-    assert.deepEqual([...ctx.obFlowSteps()], ['name', 'practice', 'account', 'source'], 'comptée dans « Étape X sur N »');
-    assert.equal(ctx.obFinPrecedente('account'), 'practice', '« Retour » ramène à l’étape d’avant');
+    assert.deepEqual([...ctx.obFinFlux()], ['practice', 'source'], pret ? 'fournisseur branché' : 'sans fournisseur');
+    assert.deepEqual([...ctx.obFlowSteps()], ['name', 'practice', 'source'], 'hors du compte des étapes : elle vient après la dernière page');
   }
   assert.ok(!fin.includes('if(obAuthReady())f.push'), 'plus sautée sans fournisseur');
   /* « Continuer » (et le glissé, et « Suivant ») : la suite du tunnel, tant que la connexion n’est pas branchée ; une fois branchée,
@@ -58,10 +57,10 @@ test('la page de connexion est toujours dans le tunnel, avec ou sans fournisseur
   assert.ok(app.includes("  else if(slide==='account')obPasserConnexion();") && !app.includes('function obChooseGuest('));
   for (const pret of [false, true]) {
     const vers = [];
-    const ctx = vm.createContext({ obAuthReady: () => pret, buzz() {}, obGoto: t => vers.push(t), obFinSuivante: s => (s === 'account' ? 'source' : 'ready') });
+    const ctx = vm.createContext({ obAuthReady: () => pret, buzz() {}, state: {}, obEntry: 'welcome', obApresCompte: () => vers.push('paywall') });
     vm.runInContext(cut('function obPasserConnexion(){', '/* Les fournisseurs,'), ctx);
     vm.runInContext('obPasserConnexion()', ctx);
-    assert.deepEqual(vers, pret ? [] : ['source'], pret ? 'connexion branchée : le compte seul' : 'pas encore de connexion : on passe');
+    assert.deepEqual(vers, pret ? [] : ['paywall'], pret ? 'connexion branchée : le compte seul' : 'pas encore de connexion : on passe, vers le paywall');
   }
   /* Ouverte depuis Mon compte (déjà inscrite), ce n’est pas une étape : retour seul, sans « Étape X sur N » */
   assert.ok(app.includes("  if(active<0||(state.onboarded&&slide===obEntry&&obEntry!=='welcome'))return `<div class=\"ob-flow-top ob-flow-solo\">${obBackButton()}</div>`;"));
@@ -121,17 +120,17 @@ test('sans fournisseur, toucher un bouton ne connecte à rien : la page le dit, 
   assert.ok(!msg.classes.has('is-new') && !b2.classes.has('is-nudge') && msg.textContent.includes('Apple'));
 });
 
-test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, puis la suite du tunnel', async () => {
+test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, puis le paywall (10 novembre)', async () => {
   const vers = [];
   const ctx = vm.createContext({
     window: { REQUETE_AUTH: { signIn: async p => ({ email: `elisa@${p}.test` }) } }, state: {}, draft: {}, obEntry: 'welcome', obAuthBusy: false, obAuthMessage: '',
-    paintOb() {}, save() {}, obGoto: t => vers.push(t), obFinSuivante: s => (s === 'account' ? 'source' : 'ready'), buzz() {}, closeOnboardingAuth() {}, renderCompte() {}, toast() {},
+    paintOb() {}, save() {}, obGoto: t => vers.push(t), obApresCompte: () => vers.push('paywall'), buzz() {}, closeOnboardingAuth() {}, renderCompte() {}, toast() {},
   });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS=') + connexion, ctx);
   await vm.runInContext("obStartAuth('apple',null)", ctx);
   assert.equal(state(ctx).accountMode, 'connected');
   assert.equal(state(ctx).accountLabel, 'elisa@apple.test');
-  assert.deepEqual(vers, ['source']);
+  assert.deepEqual(vers, ['paywall']);
   assert.ok(connexion.includes("'Connexion impossible pour le moment. Réessaie dans un instant.'") && !connexion.includes('continue sans compte'), 'un échec propose de réessayer');
 });
 

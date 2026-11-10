@@ -47,13 +47,12 @@ test('Mon compte : noter l’appli sur l’App Store, se déconnecter, supprimer
   assert.ok(css.includes('html.lq #scr-compte .account-setting-row.is-danger b{color:var(--danger)}'), 'en rouge, comme une action destructrice d’iOS');
 });
 
-test('validation Apple : dans l’app iPhone sans connexion branchée, le bravo sans les boutons « Bientôt »', () => {
+test('validation Apple : dans l’app iPhone sans connexion branchée, pas de boutons « Bientôt » ; depuis le 10 novembre, la page est sautée', () => {
   assert.ok(app.includes("function obConnexionMasquee(){return typeof appliNative==='function'&&appliNative()&&!obAuthReady();}"));
   const s = cut("}else if(slide==='account'){", "}else if(slide==='name'){");
-  assert.ok(s.includes("const reussie=!!draft.practiceDone,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee();"));
+  assert.ok(s.includes("masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee()"));
   assert.ok(s.includes("${masquee?'':`<div class=\"ob-provider-list\">"), 'pas de boutons');
-  assert.ok(s.includes("${masquee?'':obCompteCarteHTML()}"), 'pas de promesse (la carte « Sauvegarde ta progression » non plus, 7 novembre, 0 h 29)');
-  assert.ok(s.includes('Ta première requête est <em>réussie</em>&nbsp;!'), 'le bravo reste');
+  assert.ok(app.includes("function obCompteVisible(){return !(typeof obConnexionMasquee==='function'&&obConnexionMasquee());}") && app.includes("if(obCompteVisible())obGoto('account');else obApresCompte();"), 'sautée : « Ton parcours est prêt » mène droit au paywall');
 });
 
 test('validation Apple : les textes de confidentialité disent la suppression de compte et la vérification en ligne', () => {

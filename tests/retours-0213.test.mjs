@@ -38,13 +38,13 @@ test('le bandeau vert n’est plus pixelisé : une fois posé, l’animation ne 
   assert.ok(css.includes('@keyframes obvStampIn{0%{opacity:0;transform:scale(.4) rotate(-12deg)}60%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{opacity:1;transform:rotate(-1.5deg)}}'));
   const base = css.match(/html #onboarding\.ob-vitrine \.ob-practice-reward\{[^}]+\}/)[0];
   assert.ok(base.includes('transform:rotate(-1.5deg)') && !/will-change/.test(base), 'penché, sans calque gardé exprès');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=40">') && sw.includes("'./onboarding-vitrine.css?v=40',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=41">') && sw.includes("'./onboarding-vitrine.css?v=41',"), 'feuille rechargée');
 });
 
 test('« Commencer la première leçon » a la flèche animée du bouton de la construction', () => {
   /* 14 h 08 (réf. 3) : obSetFooter pose la même flèche sur chaque bouton jaune, après le libellé (plus d’ajout à la main ici) */
   /* Invité par un ami, « Rejoindre la salle » à la place (5 novembre, 14 h, retours-1400.test.mjs). */
-  assert.ok(app.includes("    else obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),"));
+  assert.ok(app.includes("    else obSetFooter('Commencer la première leçon',()=>obApresPret('home'),"), '10 novembre : puis la connexion et le paywall');
   const fleche = "const OB_CTA_FLECHE='<span class=\"ob-cta-arrow\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 12h14M13 6l6 6-6 6\"/></svg></span>';";
   assert.ok(app.includes(fleche) && app.includes("  if(btn){const was=btn.disabled;obCtaLibelle(btn,primary);"), 'la même flèche, posée après le libellé');
   assert.ok(!app.includes("?.insertAdjacentHTML('beforeend','<span class=\"ob-cta-arrow\""), 'une seule flèche par bouton');
@@ -52,7 +52,7 @@ test('« Commencer la première leçon » a la flèche animée du bouton de la c
 });
 
 test('le pseudo passe avant « Ton parcours est prêt », qui reste la dernière page', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
   const go = fnLast('obGoto');
   assert.ok(go.includes("if(OB_SLIDES[n]==='ready'&&obPseudoAvant())return;"), 'tout chemin vers la dernière page passe par le pseudo');
   assert.ok(go.indexOf('obPseudoAvant()') < go.indexOf('obLock=true'));

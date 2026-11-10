@@ -21,8 +21,8 @@ const sansCommentaires = s => s.replace(/\/\*[\s\S]*?\*\//g, '');
 
 const fournisseurs = cut('const OB_PROVIDERS=', '/* 10 h 16 : pas encore de connexion.');
 const page = cut("  }else if(slide==='account'){", "  }else if(slide==='name'){");
-const rendre = ({ practiceDone = true, authReady = false } = {}) => {
-  const ctx = vm.createContext({ slide: 'account', authReady, obAuthBusy: false, obAuthMessage: '', draft: { practiceDone }, MASCOT_IMG: 'mascotte.png',
+const rendre = ({ practiceDone = true, authReady = false, finVoulue } = {}) => {
+  const ctx = vm.createContext({ slide: 'account', authReady, obAuthBusy: false, obAuthMessage: '', draft: { practiceDone, finVoulue }, MASCOT_IMG: 'mascotte.png',
     obFlowHeader: s => `<header data-etape="${s}"></header>`, esc: s => String(s), escAttr: s => String(s), legalUrl: k => `decouvrir/${k}.html`,
     obSetFooter() {}, obPasserConnexion() {} });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS='), ctx);
@@ -30,18 +30,19 @@ const rendre = ({ practiceDone = true, authReady = false } = {}) => {
   return ctx.html;
 };
 
-test('la connexion vient juste après la première requête, et les transitions vont vers l’avant', () => {
+/* 10 novembre, 17 h 11 (son choix : « À la fin ») : la connexion ne vient plus juste après la première requête, mais après « Ton
+   parcours est prêt », suivie du paywall ; l’ordre des pages garde le sens des transitions vers l’avant. */
+test('la connexion vient après « Ton parcours est prêt », puis le paywall, et les transitions vont vers l’avant', () => {
   const ob = vm.runInNewContext(app.match(/const OB_SLIDES = (\[[^\]]+\]);/)[1]);
-  assert.deepEqual([...ob].slice(ob.indexOf('practice'), ob.indexOf('practice') + 3), ['practice', 'account', 'source'], 'dans l’ordre du tunnel (obGoto calcule le sens avec cet ordre)');
+  assert.deepEqual([...ob].slice(ob.indexOf('ready')), ['ready', 'account', 'paywall'], 'dans l’ordre (obGoto calcule le sens avec cet ordre)');
   const fin = cut('const OB_FIN_SLIDES=', '/* « Me rappeler de m’entraîner »');
   const ctx = vm.createContext({ OB_PROFILE_SLIDES: ['name', 'practice'], obAuthReady: () => false, window: { Capacitor: { isNativePlatform: () => true, getPlatform: () => 'ios',
     isPluginAvailable: n => n === 'RequeteWidget', Plugins: { LocalNotifications: {} } } } });
   vm.runInContext(fin, ctx);
-  assert.deepEqual([...ctx.obFinFlux()], ['practice', 'account', 'source', 'rappel'], '13 h 48 : le widget vient après la première leçon');
-  assert.equal(ctx.obAfterPractice(), 'account');
-  assert.equal(ctx.obFinSuivante('account'), 'source', 'puis les sources et le rappel');
+  assert.deepEqual([...ctx.obFinFlux()], ['practice', 'source', 'rappel'], 'la première requête mène aux sources et au rappel');
+  assert.equal(ctx.obAfterPractice(), 'source');
   assert.equal(ctx.obFinSuivante('rappel'), 'ready');
-  assert.ok(cut('function obPasserConnexion(){', '/* Les fournisseurs,').includes("obGoto(obFinSuivante('account'));"));
+  assert.ok(cut('function obPasserConnexion(){', '/* Les fournisseurs,').includes('obApresCompte();'), '« Continuer » mène au paywall');
 });
 
 test('la page du résultat, sans « Bravo » : le résultat se déplie, puis la connexion arrive d’elle-même', () => {
@@ -76,28 +77,18 @@ test('la page du résultat, sans « Bravo » : le résultat se déplie, puis la 
   assert.ok(e.draft.practiceFailed && e.minuteurs.length === 0 && e.vers.length === 0, 'moteur indisponible : on reste, « Continuer » mène à la suite');
 });
 
-test('la page de connexion : son texte, Apple et l’e-mail, et la fête seulement après une vraie réussite', () => {
-  const html = rendre();
-  assert.ok(html.startsWith('<div class="ob-screen ob-profile ob-account is-fete"><header data-etape="account"></header>'));
+test('la page de connexion : son texte, Apple et l’e-mail ; plus de fête (elle vient après « Ton parcours est prêt »)', () => {
+  const html = rendre({ finVoulue: 'home' });
+  assert.ok(html.startsWith('<div class="ob-screen ob-profile ob-account"><header data-etape="account"></header>'));
   assert.ok(html.includes('<img class="ob-promise-stk ob-compte-stk" src="mascotte.png" width="450" height="674" alt="" draggable="false">'), 'la mascotte au-dessus du titre');
-  assert.ok(html.includes('<div class="ob-compte-haut">') && html.includes('Bravo\u00a0!</p></div>'), '7 novembre, 0 h 29 : dans le haut de la page, avec son « Bravo ! » (retours-0029-connexion)');
-  assert.ok(html.includes('<h1 class="ob-title" id="ob-title">Ta première requête est <em>réussie</em>&nbsp;!<span class="ob-fete-emoji" aria-hidden="true"> 🎉</span></h1>'));
-  assert.ok(html.includes('<p class="ob-compte-lead"><span>Tu viens de franchir une première étape.</span> <span>Et ce n’est que le début&nbsp;!</span></p>'));
-  assert.ok(html.includes('<b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, exercices, défis et ta collection sur tous tes appareils.</small>'), '7 novembre, 0 h 29 : la carte à la place de la phrase');
-  /* 6 novembre, 23 h 16 : la phrase des conditions est passée sous le bouton jaune */
-  const ordre = ['ob-compte-stk', 'ob-title', 'ob-compte-lead', 'ob-compte-carte', 'ob-provider-list', 'ob-compte-msg'].map(k => html.indexOf(k));
+  assert.ok(html.includes('<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>') && !html.includes('réussie') && !html.includes('Bravo'));
+  const ordre = ['ob-compte-stk', 'ob-title', 'ob-compte-sub', 'ob-provider-list', 'ob-compte-msg'].map(k => html.indexOf(k));
   assert.deepEqual([...ordre].sort((x, y) => x - y), ordre, 'dans l’ordre de son texte');
   assert.deepEqual([...html.matchAll(/<span>Continuer avec ([^<]+)<\/span>/g)].map(m => m[1]), ['Apple', 'Google'], '14 h 08 : « avec Google aussi »');
   assert.ok(html.includes('<p class="ob-divider" aria-hidden="true">ou</p>') && html.includes('<span class="ob-champ-ph">Ton adresse e-mail</span>'), '9 novembre, 2 h 11 : puis le trait « ou » et l’e-mail en champ');
-  assert.ok(!html.includes('ob-chat'));
-  /* Sans première requête réussie (moteur SQL indisponible, ou ouverte depuis Mon compte) : pas de réussite annoncée, pas de fête */
   const sans = rendre({ practiceDone: false });
-  assert.ok(sans.startsWith('<div class="ob-screen ob-profile ob-account"><header') && sans.includes('<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>'));
-  assert.ok(!sans.includes('réussie') && !sans.includes('ob-compte-lead') && sans.includes('<p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>'));
-  assert.ok(!sans.includes('Bravo') && !sans.includes('ob-compte-confettis') && !sans.includes('ob-compte-carte') && sans.includes('ob-compte-fond'), 'la mascotte sur sa tache, sans fête');
-  /* Les confettis : à l’arrivée, une seule fois par onboarding, après une vraie réussite */
-  assert.ok(app.includes("  if(slide==='account'&&obJustEntered&&draft.practiceDone&&!draft.feteConnexion){draft.feteConnexion=true;obDemoTimers.push(setTimeout(()=>{if(OB_SLIDES[obStep]==='account')obFeteConnexion();},120));}\n"));
-  assert.ok(cut('function startOnboarding(', 'const root=').includes('draft={'), 'oubliés à chaque nouvel onboarding (draft recréé)');
+  assert.ok(sans.includes('<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>'), 'ouverte depuis l’accueil ou Mon compte');
+  assert.ok(!app.includes("if(slide==='account'&&obJustEntered&&draft.practiceDone&&!draft.feteConnexion)"), 'plus de confettis à l’arrivée');
 });
 
 test('les confettis de ouf : deux canons, une explosion derrière le titre, une pluie, et trois retours haptiques', () => {
@@ -150,7 +141,7 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
     ' .ob-account.is-fete .ob-fete-emoji{animation:obvFeteEmoji 1.2s var(--v-pop) .4s both}', ' .ob-compte-msg.is-new{transform-origin:50% 0;animation:obvBubbleIn'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvFeteEmoji{'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=40">') && sw.includes("'./onboarding-vitrine.css?v=40',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=41">') && sw.includes("'./onboarding-vitrine.css?v=41',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });
