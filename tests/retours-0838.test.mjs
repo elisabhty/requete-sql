@@ -30,11 +30,11 @@ test('les trois chiffres sous la carte : jamais un zéro, selon où on en est', 
   vm.runInContext(cut('const HOME_STAT_SVG=', '/* Ce que l’étiquette de la séance dit à VoiceOver'), ctx);
   const chiffres = () => [...ctx.homeStatsHTML().matchAll(/<li class="lq-stat is-(\w+)"><span class="lq-stat-ic" aria-hidden="true"><svg[^]*?<\/svg><\/span><b>(\d+)<\/b><span>([^<]+)<\/span><\/li>/g)]
     .map(m => `${m[1]} ${m[2]} ${m[3]}`).join(' · ');
-  assert.equal(chiffres(), 'cible 6 leçons à découvrir · barres 2 modules · cartes 4 cartes à gagner', 'rien de commencé : ce que le parcours réserve');
+  assert.equal(chiffres(), 'cible 6 leçons à découvrir · barres 2 modules · cartes 4 cartes à récolter', 'rien de commencé : ce que le parcours réserve');
   commencees.add(1); ans[1] = { a: 1 };
   assert.equal(chiffres(), 'barres 1 leçon lancée · coche 1 exercice fait · cible 6 leçons au total', 'avant la première leçon validée : les exercices faits');
   delete ans[1];
-  assert.equal(chiffres(), 'barres 1 leçon lancée · cartes 4 cartes à gagner · cible 6 leçons au total', 'ni exercice ni leçon validée : les cartes à gagner');
+  assert.equal(chiffres(), 'barres 1 leçon lancée · cartes 4 cartes à récolter · cible 6 leçons au total', 'ni exercice ni leçon validée : les cartes à gagner');
   faits.add(1); faits.add(2);
   assert.equal(chiffres(), 'coche 2 leçons validées · cartes 2 cartes gagnées · cible 6 leçons au total', 'rien en cours : pas deux fois « 2 »');
   commencees.add(3);
@@ -78,5 +78,5 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=310">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-chiffres-v2819';") && app.includes("const SW_CACHE='requete-2026-11-09-chiffres-v2819';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-chiffres-v2820';") && app.includes("const SW_CACHE='requete-2026-11-09-chiffres-v2820';"));
 });

@@ -58,11 +58,32 @@ test('la fiche d’un sticker de module : ses leçons en liste, jamais « 0 leç
 test('l’en-tête de la collection : jamais « 0 carte » ni « 0 module complet », pas deux fois le même nombre', () => {
   const ctx = vm.createContext({ TOTAL_CARTES: 71 });
   vm.runInContext(fn('function collTitre(n)', '}\n') + fn('function collSous(n,mods,reste){'), ctx);
-  assert.equal(ctx.collTitre(0), '71 cartes à gagner');
+  assert.equal(ctx.collTitre(0), '71 cartes à récolter');
   assert.equal(ctx.collSous(0, 0, 71), 'Une carte à chaque leçon validée');
   assert.equal(ctx.collTitre(1), '1 carte débloquée');
-  assert.equal(ctx.collSous(1, 1, 70), '1 module complet · encore 70 à obtenir sur 71');
-  assert.equal(ctx.collSous(5, 0, 66), 'encore 66 à obtenir sur 71');
+  assert.equal(ctx.collSous(1, 1, 70), '1 module complet · encore 70 à récolter sur 71');
+  assert.equal(ctx.collSous(5, 0, 66), 'encore 66 à récolter sur 71');
   assert.equal(ctx.collSous(71, 15, 0), '15 modules complets · collection complète');
   assert.ok(app.includes('<strong>${collTitre(n)}</strong><span>${collSous(n,completedModules,locked)}</span>'));
+});
+
+/* 10 novembre, 9 h 16 : « 0 séance validée sur 5 » entouré sur le planning (« pas cohérent par rapport au planning ») ; « pas à gagner,
+   à récolter stp pour les cartes ». */
+test('le planning compte ce que montrent les jours (des leçons), et la légende n’a plus de « 2 » d’exemple', () => {
+  const ctx = vm.createContext({ itemDone: id => id === 1, isDefiId: id => String(id).startsWith('d') });
+  vm.runInContext(fn('function semaineActivites(sessions){'), ctx);
+  const sem = l => ctx.semaineActivites(l.map(x => ({ lessons: x })));
+  assert.equal(sem([[2, 3, 4], [5, 6]]), '5 leçons prévues');
+  assert.equal(sem([[1, 2, 3, 4], [5, 6, 7]]), '1 leçon validée sur 7', 'la séance du jour en est à 1/4 : l’en-tête le dit');
+  assert.equal(sem([[1]]), '1 leçon validée');
+  assert.equal(sem([[2, 'd1']]), '2 activités prévues', 'leçons et défis : des activités');
+  assert.equal(sem([]), 'Aucune séance prévue');
+  assert.ok(app.includes('<p>${semaineActivites(visibleSessions)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i></b>À faire</span>'));
+});
+
+test('les cartes se récoltent', () => {
+  for (const k of ["'carte à récolter','cartes à récolter'", '`${TOTAL_CARTES} cartes à récolter`', '`${m}encore ${reste} à récolter sur ${TOTAL_CARTES}`', "`${plur(rest,'carte')} à récolter`"])
+    assert.ok(app.includes(k), k);
+  for (const k of ["'carte à gagner'", 'cartes à gagner`', "'carte')} à obtenir`", 'à obtenir sur ${TOTAL_CARTES}'])
+    assert.ok(!app.includes(k), k);
 });
