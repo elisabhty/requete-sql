@@ -48,7 +48,7 @@ test('le verso : l’ampoule et « À retenir », les trois points numérotés, 
   const v = ctx.memoVerso(51);
   assert.ok(v.includes('<h3 class="mc-h"><span class="mc-h-stk" aria-hidden="true"><svg data-k="bulb"></svg></span><span class="mc-h-tag">À retenir</span></h3>'));
   assert.equal((v.match(/<li style="--i:\d">/g) || []).length, 3, 'trois points, qui arrivent l’un après l’autre');
-  assert.ok(v.includes('<ol class="mc-pts"><li style="--i:0"><code>UPPER(nom)</code> affiche MARTIN'), 'une liste numérotée');
+  assert.ok(v.includes('<ol class="mc-pts"><li style="--i:0"><code>UPPER</code> et <code>LOWER</code> changent les majuscules'), 'une liste numérotée (reformulée pour les débutants le 10 novembre)');
   assert.ok(v.includes('<div class="mc-syn"><p class="mc-lab">Syntaxe</p><div class="ex-code mc-code"><span class="hl">SELECT UPPER(nom)'), 'la syntaxe, colorée');
   assert.ok(v.includes('<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i><svg'), 'le piège, avec son autocollant');
   assert.ok(ctx.memoVerso(84).includes('<p class="mc-lab">Syntaxe <span class="mc-dial">PostgreSQL</span></p>'), 'une syntaxe d’un autre SGBD le dit');
@@ -92,4 +92,16 @@ test('la DA : scène violette quadrillée, numéro autocollant, mot-clé jaune a
   const rm = s62.slice(s62.indexOf('@media (prefers-reduced-motion:reduce)'));
   assert.ok(rm.includes(':is(.mc,.mc-face,.mc-back,.mc-verso,.mc-pts>li,.mc-flip,.mc-flip>.mc-side,.mc-shine,.mc-seal,.mc-hint-ico,.mc-flag,.mc-prize,.mc-h-stk,.mc-h-stk>svg,.mc-go svg){animation:none!important;transition:none!important}'), 'mouvement réduit : rien ne bouge');
   assert.ok(rm.includes('html[data-motion="reduce"].lq .mc--big .mc-face{transform:none}'), 'le réglage de l’app aussi');
+});
+
+test('les cartes mémo, reformulées pour les débutants (Elisa, 10 novembre, 6 h 11)', () => {
+  /* Comme l’entretien : des phrases simples, le sujet nommé (pas de point qui commence par « Il » ou « Elle »), pas de « on »,
+     et plus de chiffres de la base à recompter (« 10 clients, 6 villes », « 18 lignes, et non 26 ») ni de noms de clients. */
+  for (const [id, c] of Object.entries(CARTES)) for (const p of [...c.points, c.piege]) {
+    const t = prose(p);
+    assert.doesNotMatch(t, /^(Il|Elle|Ils|Elles) /, `carte ${id} : ${t}`);
+    assert.doesNotMatch(t, /(^|[^A-Za-zÀ-ÿ’-])on (?!y)/i, `carte ${id} : ${t}`);
+    assert.doesNotMatch(t, /Hugo|Inès|Fibre|MARTIN|\b(10|16|18|26) (clients|commandes|lignes)|\b8\b ?:|4 clients/, `carte ${id} : ${t}`);
+  }
+  assert.equal(CARTES[13].points[0], '<code>DISTINCT</code> retire les lignes en double du résultat.');
 });
