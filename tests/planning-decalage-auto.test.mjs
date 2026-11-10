@@ -117,3 +117,13 @@ test('un nouveau planning (onboarding, « Adapter mon rythme ») démarre le jou
   assert.ok(fn('apercuPlan').includes('const dates=datesMotif(auj(),freq,n);'), 'la création');
   assert.ok(fn('planAdjustPreview').includes('const dates=n?datesMotif(auj(),choice.freq,n):[];'), '« Adapter mon rythme »');
 });
+
+test('« 0 séance validée sur 7 » (Elisa, 10 novembre, 6 h 49) : la semaine et l’avancement se disent en positif', () => {
+  const ctx = {};
+  vm.runInNewContext(fn('semaineCompte') + fn('activitesCompte') + ';this.s=semaineCompte;this.a=activitesCompte;', ctx);
+  assert.deepEqual([ctx.s(0, 7), ctx.s(1, 7), ctx.s(2, 7), ctx.s(7, 7), ctx.s(0, 1), ctx.s(0, 0)],
+    ['7 séances prévues', '1 séance validée sur 7', '2 séances validées sur 7', '7 séances validées', '1 séance prévue', 'Aucune séance prévue']);
+  assert.deepEqual([ctx.a(0, 71), ctx.a(5, 71), ctx.a(71, 71)], ['71 activités', '5 activités validées sur 71', '71 activités validées']);
+  assert.ok(app.includes('<p>${semaineCompte(weekComplete,weekPlanned)}</p>') && app.includes('<summary>Avancement global<span>${activitesCompte(st.done,st.total)}</span>'));
+  assert.ok(!/\$\{weekComplete\} séance/.test(app), 'plus de « 0 séance validée »');
+});

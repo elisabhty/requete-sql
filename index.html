@@ -40921,6 +40921,23 @@ function majStrip(){
   const st=document.querySelector('.wk-strip'); if(st)st.innerHTML=stripHTML();
   const nv=document.querySelector('.wk-nav'); if(nv)nv.innerHTML=navHTML();
 }
+/* Elisa, 10 novembre, 6 h 49 (capture : « 0 séance validée sur 7 ») : la règle « plus positif » du 7 novembre (parcoursValidees)
+   vaut aussi pour la semaine. Rien de validé : « 7 séances prévues » ; tout : « 7 séances validées » ; entre les deux :
+   « 2 séances validées sur 7 ». Sans séance : « Aucune séance prévue ». */
+function semaineCompte(fait,prevu){
+  const s=n=>n>1?'s':'';
+  if(!prevu)return 'Aucune séance prévue';
+  if(!fait)return `${prevu} séance${s(prevu)} prévue${s(prevu)}`;
+  if(fait>=prevu)return `${prevu} séance${s(prevu)} validée${s(prevu)}`;
+  return `${fait} séance${s(fait)} validée${s(fait)} sur ${prevu}`;
+}
+/* Même règle pour l’avancement global du planning : « 71 activités », « 5 activités validées sur 71 », « 71 activités validées ». */
+function activitesCompte(fait,total){
+  const s=n=>n>1?'s':'';
+  if(!fait)return `${total} activité${s(total)}`;
+  if(fait>=total)return `${total} activité${s(total)} validée${s(total)}`;
+  return `${fait} activité${s(fait)} validée${s(fait)} sur ${total}`;
+}
 function renderSemaine(){
   const t=dstr(auj());
   assureJourSel();
@@ -40953,7 +40970,7 @@ function renderSemaine(){
   const nD=sess?sess.lessons.length-nL:0;
   const started=!!sess&&faitN>0&&!fait;
   return `
-    <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les 7 prochains jours</h2><p>${weekComplete} séance${weekComplete>1?'s':''} validée${weekComplete>1?'s':''} sur ${weekPlanned}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i>2</b>Prévue</span><span><b class="lg-pill done">✓</b>Validée</span></div></div>
+    <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les 7 prochains jours</h2><p>${semaineCompte(weekComplete,weekPlanned)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i>2</b>Prévue</span><span><b class="lg-pill done">✓</b>Validée</span></div></div>
     <div class="wk-chrome">
       <div class="wk-nav">${navHTML()}</div>
       <div class="wk-strip">${stripHTML()}</div>
@@ -41235,7 +41252,7 @@ function renderPlanning(){
     <div class="planning-toolbar" aria-label="Actions du planning"><button type="button" onclick="focusPlanningToday()">Aujourd’hui</button><button type="button" class="pl-manage-toggle" aria-haspopup="dialog" aria-controls="plan-adjust-sheet" aria-expanded="false" onclick="openPlanAdjust(this)">${PLAN_SLIDERS_SVG}Adapter mon rythme</button></div>
     ${studioTodayList()}
     <section class="pl-week" aria-label="Calendrier et activités de la semaine">${renderSemaine()}</section>
-    <details class="planning-progress" data-pp="glob"${ppOpen.glob?' open':''} ontoggle="ppToggle('glob',this)"><summary>Avancement global<span>${st.done}/${st.total} activités validées</span><i class="pgr-sum-bar" aria-hidden="true"><b style="width:${st.total?Math.round(st.done/st.total*100):0}%"></b></i></summary>${planOverviewHTML(st)}</details>
+    <details class="planning-progress" data-pp="glob"${ppOpen.glob?' open':''} ontoggle="ppToggle('glob',this)"><summary>Avancement global<span>${activitesCompte(st.done,st.total)}</span><i class="pgr-sum-bar" aria-hidden="true"><b style="width:${st.total?Math.round(st.done/st.total*100):0}%"></b></i></summary>${planOverviewHTML(st)}</details>
     ${moduleExplorerHtml()}`;
   renderHomeToday();
 }
@@ -47259,7 +47276,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-ordre-fixe-v2804';
+  const SW_CACHE='requete-2026-11-09-positif-v2805';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
