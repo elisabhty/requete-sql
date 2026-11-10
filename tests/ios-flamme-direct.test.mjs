@@ -277,7 +277,7 @@ test('la flamme allumée : « Flamme allumée ! » (discrète si la leçon est d
   const c = page({ on: false });
   c.run("flammeDirectAllumee('2026-11-07')"); await c.attendre();
   assert.deepEqual(c.appels, [], 'coupée : rien');
-  assert.ok(entre(app, 'function noteActivityDay(){', '\n}\n').includes("if(first&&typeof flammeDirectAllumee==='function')flammeDirectAllumee(iso);"), 'la première activité du jour');
+  assert.ok(entre(app, 'function noteActivityDay(src){', '\n}\n').includes("if(first&&typeof flammeDirectAllumee==='function')flammeDirectAllumee(iso);"), 'la première activité du jour');
 });
 
 test('Mon compte : « Ta flamme en direct », un interrupteur dans « Sur ton iPhone », l’app seulement', async () => {
