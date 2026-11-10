@@ -108,5 +108,5 @@ test('Mon compte : « Prochain rappel : demain à 10:00. », sans la phrase sur 
   const f = cut('function rappelFeuilleHTML(){', 'function rappelPeindre(){');
   assert.ok(f.includes("    :d.on?(prochain?`Prochain rappel\\u00a0: ${rappelQuand(prochain)}.`"));
   assert.ok(!app.includes('Il suit ton planning\\u00a0: les jours de séance seulement'), 'la dernière phrase est partie');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-10-prix-v2831';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-10-essai-v2832';"), 'le cache de l’appli change');
 });

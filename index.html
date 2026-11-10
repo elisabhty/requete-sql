@@ -6682,7 +6682,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=313">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=41">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=42">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -43591,8 +43591,16 @@ function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||'home');el
    Tant que l’achat n’est pas branché (window.REQUETE_ACHAT : acheter(offre), restaurer(), actif()), le bouton et un « Continuer » discret
    entrent dans l’app (son choix : « Visible, on passe ») ; une fois branché, seul le paiement passe la page, et « Restaurer » apparaît. */
 /* 17 h 50 : « Ok 5,99 par semaine et 44,99 par an » (les médianes des apps éducatives) : soit 0,86 € par semaine à l’an, −86 %. */
-const OB_OFFRES={an:{prix:44.99,titre:'Annuel',par:'par an',semaines:52},semaine:{prix:5.99,titre:'Hebdomadaire',par:'par semaine',semaines:1}};
+/* 18 h 49 : « Oui » à l’essai gratuit de 3 jours sur l’annuel (les essais marchent bien dans les apps éducatives). Il se règle aussi
+   dans App Store Connect (offre de lancement de l’abonnement annuel) ; quelqu’un qui l’a déjà eu ne le revoit pas
+   (REQUETE_ACHAT.essaiDispo, une fois l’achat branché). */
+const OB_OFFRES={an:{prix:44.99,titre:'Annuel',par:'par an',semaines:52,essai:3},semaine:{prix:5.99,titre:'Hebdomadaire',par:'par semaine',semaines:1}};
 function obEuros(x){return (Math.round(x*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:Number.isInteger(x)?0:2,maximumFractionDigits:2})+' €';}
+function obEssai(k){
+  const j=(OB_OFFRES[k]||{}).essai||0;if(!j)return 0;
+  try{const a=window.REQUETE_ACHAT;if(a&&typeof a.essaiDispo==='function'&&!a.essaiDispo(k))return 0;}catch(e){}
+  return j;
+}
 function obOffreInfo(){
   const an=OB_OFFRES.an,se=OB_OFFRES.semaine;
   const parSemaine=Math.floor(an.prix/an.semaines*100)/100,eco=Math.round((1-an.prix/(se.prix*an.semaines))*100);
@@ -43607,7 +43615,7 @@ function obPaywallHTML(){
   const offre=(k,extra)=>{const x=OB_OFFRES[k],on=o===k;
     return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">
       ${extra||''}<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${x.titre}</span>
-      <span class="pw-o-p"><b>${obEuros(x.prix)}</b> ${x.par}</span>${k==='an'?`<span class="pw-o-s">soit ${obEuros(parSemaine)} par semaine</span>`:''}</button>`;};
+      <span class="pw-o-p"><b>${obEuros(x.prix)}</b> ${x.par}</span>${k==='an'?`<span class="pw-o-s">${obEssai(k)?`<i class="pw-essai">${obEssai(k)}&nbsp;jours gratuits</i>`:''}soit ${obEuros(parSemaine)} par semaine</span>`:''}</button>`;};
   const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve"><span class="pw-preuve-stk" aria-hidden="true">${typeof OB_STK_AVIS!=='undefined'?OB_STK_AVIS:''}</span>Plus de ${OB_COMMUNAUTE.toLocaleString('fr-FR')} personnes apprécient Requête</p>`:'';
   const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallEntrer()">Continuer</button>';
   return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
@@ -43625,8 +43633,12 @@ function obPaywallHTML(){
 }
 function obPaywallPied(){
   const o=OB_OFFRES[draft.offre==='semaine'?'semaine':'an'];
-  const legal=`<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à ${obEuros(o.prix)} ${o.par}, sauf annulation 24&nbsp;h avant dans les réglages Apple. <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
-  obSetFooter('Commencer mon parcours',obPaywallAcheter,'','',{html:legal},obPwBusy);
+  const k=draft.offre==='semaine'?'semaine':'an',essai=obEssai(k);
+  /* Avec l’essai : ce qui se passe à la fin est dit en clair (règle d’Apple), et la peur de payer pour rien est levée d’abord. */
+  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours gratuits, puis ${obEuros(o.prix)} ${o.par}.</b> Annule avant la fin de l’essai et tu ne paies rien. Renouvellement automatique ensuite, sauf annulation 24&nbsp;h avant dans les réglages Apple. `
+    :`<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à ${obEuros(o.prix)} ${o.par}, sauf annulation 24&nbsp;h avant dans les réglages Apple. `;
+  const legal=texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+  obSetFooter(essai?`Essayer gratuitement ${essai} jours`:'Commencer mon parcours',obPaywallAcheter,'','',{html:legal},obPwBusy);
 }
 function obPaywallChoisir(k){
   if(!OB_OFFRES[k]||obPwBusy)return;
@@ -47729,7 +47741,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-10-prix-v2831';
+  const SW_CACHE='requete-2026-11-10-essai-v2832';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

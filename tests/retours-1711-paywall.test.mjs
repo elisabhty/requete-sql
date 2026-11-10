@@ -38,7 +38,7 @@ test('l’ordre : les questions, « Ton parcours est prêt », la connexion, le 
 test('les prix : 44,99 € par an en gros, 0,86 € par semaine dessous, −86 %, 5,99 € par semaine ; l’annuel choisi d’avance', () => {
   const { ctx } = monter();
   const h = ctx.obPaywallHTML().replace(/[\u00a0\u202f](?!%)/g, ' ').replace(/&nbsp;/g, '\u00a0');
-  assert.ok(h.includes('<span class="pw-o-p"><b>44,99 €</b> par an</span><span class="pw-o-s">soit 0,86 € par semaine</span>'));
+  assert.ok(h.includes('<span class="pw-o-p"><b>44,99 €</b> par an</span><span class="pw-o-s"><i class="pw-essai">3\u00a0jours gratuits</i>soit 0,86 € par semaine</span>'));
   assert.ok(h.includes('<span class="pw-o-p"><b>5,99 €</b> par semaine</span>'));
   assert.ok(h.includes('<span class="pw-badge">−86\u00a0%</span>'));
   assert.ok(/class="pw-offre is-an is-on" role="radio" aria-checked="true"/.test(h) && /class="pw-offre is-semaine" role="radio" aria-checked="false"/.test(h));
@@ -49,14 +49,23 @@ test('les prix : 44,99 € par an en gros, 0,86 € par semaine dessous, −86 %
   assert.ok(h.includes('assets/chat-diplome.webp'), 'le chat diplômé');
 });
 
-test('le pied : « Commencer mon parcours », sans engagement, le renouvellement et ses liens ; il suit l’offre choisie', () => {
+test('le pied : avec l’annuel, l’essai de 3 jours, ce qui suit et ses liens ; avec la semaine, « Sans engagement » (18 h 49 : « Oui » à l’essai)', () => {
+  const nb = x => x.replace(/[\u00a0\u202f]/g, ' ').replace(/&nbsp;/g, ' ');
   const { ctx, pied } = monter();
   ctx.obPaywallPied();
-  const [libelle, , , , note] = pied.at(-1); note.html = note.html.replace(/[\u00a0\u202f]/g, ' ');
-  assert.equal(libelle, 'Commencer mon parcours');
-  assert.ok(note.html.includes('<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à 44,99 € par an') && note.html.includes('Conditions') && note.html.includes('Confidentialité'));
+  let [libelle, , , , note] = pied.at(-1);
+  assert.equal(nb(libelle), 'Essayer gratuitement 3 jours');
+  assert.ok(nb(note.html).includes('<b class="pw-sans">3 jours gratuits, puis 44,99 € par an.</b> Annule avant la fin de l’essai et tu ne paies rien. Renouvellement automatique ensuite')
+    && note.html.includes('Conditions') && note.html.includes('Confidentialité'));
+  assert.ok(nb(ctx.obPaywallHTML()).includes('<span class="pw-o-s"><i class="pw-essai">3 jours gratuits</i>soit 0,86 € par semaine</span>') && (nb(ctx.obPaywallHTML()).match(/pw-essai/g) || []).length === 1, 'la pastille sur l’annuel seulement');
   ctx.obPaywallChoisir('semaine');
-  assert.ok(pied.at(-1)[4].html.replace(/[\u00a0\u202f]/g, ' ').includes('Renouvellement automatique à 5,99 € par semaine'));
+  [libelle, , , , note] = pied.at(-1);
+  assert.equal(libelle, 'Commencer mon parcours');
+  assert.ok(nb(note.html).includes('<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à 5,99 € par semaine'));
+  const deja = monter({ achat: { acheter: async () => true, essaiDispo: () => false } });
+  deja.ctx.obPaywallPied();
+  assert.equal(deja.pied.at(-1)[0], 'Commencer mon parcours', 'essai déjà utilisé : plus proposé');
+  assert.ok(!deja.ctx.obPaywallHTML().includes('pw-essai'));
 });
 
 test('tant que l’achat n’est pas branché : « Continuer » discret et le bouton entrent dans l’app ; branché, seul le paiement passe', async () => {
