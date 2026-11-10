@@ -20104,7 +20104,7 @@ function markDone(id,review){
   cur.done=true; cur.due=Date.now()+INTERVALS[cur.level]*DAY;
   /* Le jour de la validation (la première fois) : le planning garde l’activité à ce jour-là, cochée */
   if(!cur.at) cur.at=Date.now();
-  state.lessons[id]=cur; noteActivityDay(); save();
+  state.lessons[id]=cur; noteActivityDay('lecon'); save();
 }
 
 /* ============================================================
@@ -40807,14 +40807,18 @@ function validesDuJour(){
   Object.entries(state.defisJour||{}).forEach(([k,n])=>{n=Math.floor(+n);if(n>0)out[k]=(out[k]||0)+n;});
   return out;
 }
-function noteActivityDay(){
+function noteActivityDay(src){
   try{
     const iso=dstr(auj());
     if(!state.actDays||typeof state.actDays!=='object')state.actDays={};
     const first=!state.actDays[iso];
     state.actDays[iso]=(state.actDays[iso]||0)+1;
     if(!state.actSince)state.actSince=iso;
-    if(first&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
+    /* 10 novembre (Elisa, 14 h 24 : « vérifie que les pages arrivent au bon moment ») : après une leçon, la notification de la série
+       tombait sur l’écran de fin de la vidéo, puis sur la carte « Module terminé », alors que la page « Bravo, ta flamme du jour s’est
+       allumée » attend l’accueil pour fêter la même chose (7 novembre : « on ne met pas d’animation au niveau de la série du haut »).
+       Après une leçon, seule la page de la flamme reste ; un défi garde sa notification (9 novembre : elle attend la fin de la manche). */
+    if(first&&src!=='lecon'&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
     if(first&&typeof lqFlammeAttendue==='function')lqFlammeAttendue(iso);   // la page « Bravo », à l’accueil (10 h 30)
     if(first&&typeof flammeDirectAllumee==='function')flammeDirectAllumee(iso);   // ta flamme en direct : « Flamme allumée ! » (7 novembre)
   }catch(e){}
@@ -41438,7 +41442,7 @@ function etapesDe(id){const s=state.lessons[id]||{};return s.etapes||{};}
 function setEtape(id,cle){
   const s=state.lessons[id]||{level:0};
   s.etapes=s.etapes||{};s.etapes[cle]=1;
-  state.lessons[id]=s;noteActivityDay();save();
+  state.lessons[id]=s;noteActivityDay('lecon');save();
 }
 function lecCompletee(id){
   if(leconSeule(id))return !!(state.lessons[id]&&state.lessons[id].done);
@@ -47584,7 +47588,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2826';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2827';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
