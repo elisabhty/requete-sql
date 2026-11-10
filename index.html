@@ -6680,7 +6680,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=307">
+<link rel="stylesheet" href="ludique.css?v=308">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -32851,6 +32851,11 @@ function carteRetenirHtml(id){
   const l=typeof allLessons!=='undefined'?allLessons.find(x=>x.id===id):null;
   return l&&typeof lessonHasVideo==='function'&&lessonHasVideo(l)&&lessonReflexHtml(l)?lessonReflexHtml(l):'';
 }
+/* Elisa, 10 novembre, 8 h 36 (captures du bilan) : « Cette page est top niveau design, mais elle fait très bizarre : on dirait des
+   briques empilées, pas vraiment de cohérence. » Le bilan se lit maintenant comme une seule page, en chapitres de même allure : sous la
+   carte « Bravo ! », « Ta récompense » (la carte mémo), « Ton avis » (les étoiles), « Et maintenant » (la séance suivante et, collées
+   dessous, les autres actions). Chaque chapitre : sa petite étiquette, son titre, à gauche, au même pas (ludique.css, « 63. Le bilan,
+   en chapitres »). */
 function renderBravoSlide(l){
   return `
     <div class="ls-main bravo-wrap">
@@ -32859,8 +32864,12 @@ function renderBravoSlide(l){
       ${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
       ${bravoAvisHtml(l)}
-      ${bravoNextHtml(l)}
-      ${bravoActionsHtml(l)}
+      <section class="bravo-suite" aria-labelledby="bv-suite-h">
+        <p class="bv-sec-k">Et maintenant</p>
+        <h2 class="bv-sec-h" id="bv-suite-h">${typeof recommendedSession!=='function'||recommendedSession()?'Continue sur ta lancée':'Ton parcours'}</h2>
+        ${bravoNextHtml(l)}
+        ${bravoActionsHtml(l)}
+      </section>
     </div>`;
 }
 /* ---------- L’avis sur la leçon ----------
@@ -32879,12 +32888,14 @@ function bravoAvisHtml(l){
   const a=avisDe(l.id),n=a?a.n:0;
   const etoile=i=>`<label class="av-star${i<=n?' on':''}" style="--i:${i}"><input type="radio" name="av-${l.id}" value="${i}"${i===n?' checked':''} aria-label="${i} étoile${i>1?'s':''} sur 5">${AVIS_ETOILE}</label>`;
   return `<section class="bravo-avis${n?' is-rated':''}" data-lecon="${l.id}" aria-labelledby="av-h-${l.id}">
-    <div class="av-lab" aria-hidden="true"><span class="bv-tag"><b>⭐ Ton avis</b></span></div>
+    <p class="bv-sec-k">Ton avis</p>
     <h2 class="av-h" id="av-h-${l.id}">Donne ton avis sur la leçon</h2>
     <p class="av-sub">${n?esc(avisMerci(n)):'Elle t’a plu&nbsp;? Touche une étoile.'}</p>
+    <div class="av-carte">
     <div class="av-stars" role="radiogroup" aria-labelledby="av-h-${l.id}" onchange="avisNoter(event)">${[1,2,3,4,5].map(etoile).join('')}</div>
     <p class="av-mot${n?'':' is-hint'}" aria-live="polite">${n?AVIS_MOTS[n]:'Ton avis reste anonyme.'}</p>
     ${avisCommentaireHtml(l.id,a)}
+    </div>
   </section>`;
 }
 /* 13 h 48 (« veux-tu laisser un commentaire, en mode lien qu’on clique si jamais ») : sous la note, un lien ; touché, un champ
@@ -38375,6 +38386,7 @@ function bravoUnlockHtml(l){
   /* La carte toute neuve : le chat retourne la sienne, à côté (Elisa, 7 novembre, 15 h 38 : son GIF, une fois) */
   const chat=neuve&&typeof chatBonusHtml==='function'?`<span class="mc-reveal-chat" aria-hidden="true">${chatBonusHtml('carte')}</span>`:'';
   return `<section class="bravo-unlock mc-reveal${neuve?' is-new':''}" aria-labelledby="mc-reveal-h">
+    <p class="bv-sec-k">Ta récompense</p>
     <h2 class="mc-reveal-h" id="mc-reveal-h">${neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>'}</h2>
     <div class="mc-flip">${chat}
       <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(l.id,{shine:true})}</button>
@@ -43930,7 +43942,7 @@ const POCHE_PLUS=[
    et le dernier jour où une activité la garde (les jours de repos du planning sont sautés). Envoyée au démarrage et chaque fois que
    l’app passe en arrière-plan ; sans le pont natif (web, ancienne version de l’app), rien ne se passe.
    7 novembre (« Cheminée + lunettes ») : le widget La cheminée y lit aussi ce qui décore la pièce (widgetCheminee) ; la requête de
-   poche, ses questions du jour (widgetPoche) ; la carte mémo, les cartes gagnées (widgetCartes) ; ta semaine, ses jours
+   poche, ses questions du jour (widgetPoche) ; ta semaine, ses jours
    (widgetSemaine). */
 let widgetDernier='';
 function widgetMaj(){
@@ -43940,7 +43952,7 @@ function widgetMaj(){
     const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
     let d=fait?addJ(t,1):t;
     for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
-    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),cartes:JSON.stringify(widgetCartes()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);
+    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);
     if(k===widgetDernier)return;
     widgetDernier=k;
     Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
@@ -43989,18 +44001,6 @@ function widgetPoche(){
       .sort((x,y)=>x.rang-y.rang||x.h-y.h)
       .slice(0,30)
       .map(({p})=>({titre:module[p.l]||'',code:p.q||[],choix:p.c,bon:p.b,oui:p.oui,non:p.non,genre:p.g||'trou',enonce:p.e||''}));
-  }catch(e){return [];}
-}
-/* La carte mémo qui se retourne (le widget de l’app iPhone : RequeteWidget.swift, RequeteCarte) : les cartes gagnées, dans l’ordre
-   du parcours ; de chacune, le mot-clé, le titre et la première idée, en texte simple (sans balises). Le rythme des révisions
-   (« Je savais » l’éloigne, « À revoir » la ramène demain) vit dans le widget. */
-function widgetCartes(){
-  try{
-    const texte=h=>String(h||'').replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&');
-    return allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).map(l=>{
-      const c=CARTES[l.id];
-      return {id:l.id,k:texte(c.k),t:texte(c.t),p:texte((c.points||[])[0])};
-    });
   }catch(e){return [];}
 }
 /* Ta semaine, en résultat de requête (le widget de l’app iPhone : RequeteWidget.swift, RequeteSemaine) : les jours actifs des trois
@@ -47600,7 +47600,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2815';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2816';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

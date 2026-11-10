@@ -52,7 +52,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
     assert.ok(act.includes(k), k);
   for (const k of ['@available(iOS 16.1, *)\nstruct RequeteLeconActivite: Widget {', '@available(iOS 16.1, *)\nstruct LeconVerrouille: View {',
     '@available(iOS 16.1, *)\nstruct LeconFlamme: View {', '@available(iOS 16.1, *)\nfunc leconPhrase(_ e: RequeteLecon.ContentState) -> String {',
-    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        RequeteCheminee()\n        RequeteSemaine()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeDirecte()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteSalleIle()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteAccueilIle()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()\n        }\n        if #available(iOS 17.0, *) {\n            RequeteCarte()\n        }\n    }\n}'])   // 6 novembre, 0 h 40 : la flamme de l’écran verrouillé rejoint le paquet (retours-0040)
+    '@main\nstruct RequeteWidgets: WidgetBundle {\n    var body: some Widget {\n        RequeteWidget()\n        RequeteCheminee()\n        RequeteSemaine()\n        if #available(iOS 16.1, *) {\n            RequeteLeconActivite()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeDirecte()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteSalleIle()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteAccueilIle()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()\n        }\n    }\n}'])   // 6 novembre, 0 h 40 : la flamme de l’écran verrouillé rejoint le paquet (retours-0040)
     assert.ok(widget.includes(k), k);
   /* Les phrases : l’espace fine avant « ! » et « % » */
   const phrase = cut(widget, 'func leconPhrase(', '\n}\n');
@@ -200,7 +200,7 @@ const faux = () => {
 };
 
 test('le bilan : « Donne ton avis sur la leçon », cinq étoiles en boutons radio, avant la séance suivante', () => {
-  assert.ok(html.includes('      ${bravoUnlockHtml(l)}\n      ${bravoAvisHtml(l)}\n      ${bravoNextHtml(l)}\n      ${bravoActionsHtml(l)}'));
+  assert.ok(html.includes('      ${bravoUnlockHtml(l)}\n      ${bravoAvisHtml(l)}\n      <section class="bravo-suite" aria-labelledby="bv-suite-h">') && html.includes('        ${bravoNextHtml(l)}\n        ${bravoActionsHtml(l)}\n      </section>'), 'l’avis, puis « Et maintenant » (10 novembre, le bilan en chapitres)');
   const {ctx} = avisLab();
   const h = ctx.bravoAvisHtml({id: 12, titre: 'Les jointures'});
   assert.ok(h.includes('<h2 class="av-h" id="av-h-12">Donne ton avis sur la leçon</h2>'));
@@ -272,7 +272,7 @@ test('la note se garde dans la progression (normalizeState), sans rien d’autre
 });
 
 test('les étoiles en CSS : la fiche du bilan, leur arrivée, leur ondulation, le rebond, les étincelles, et le mouvement réduit', () => {
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=307">'));
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=308">'));
   for (const k of ['html.lq #scr-lesson .bravo-avis{', 'html.lq #scr-lesson .bravo-avis .av-star.on path{fill:var(--sun);stroke:var(--sun-lip)}',
     'html.lq #scr-lesson .bravo-avis .av-star input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
     'html.lq #scr-lesson .bravo-avis .av-star{animation:avStarIn .5s var(--pop) calc(.42s + var(--i) * .07s) backwards}',
