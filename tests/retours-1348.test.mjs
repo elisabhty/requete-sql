@@ -149,5 +149,5 @@ test('le widget après la première leçon : une fois, de retour à l’accueil,
   assert.ok(app.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');") && app.includes("obSetFooter('C’est fait\\u00a0!',obWidgetFin,'','','');"));
   const fin = cut('function obWidgetFin(){', '\n}\n');
   assert.ok(fin.includes("localStorage.setItem(OB_WIDGET_VU,'1')") && fin.includes('closeOnboardingAuth();'));
-  assert.ok(app.includes("  else if(slide==='widget')obGoto('widgetTuto');\n  else if(slide==='widgetTuto')obWidgetFin();"), 'Suivant, au balayage');
+  assert.ok(app.includes("  else if(slide==='widget')obGoto('widgetTuto');\n  else if(slide==='widgetTuto'){if(typeof stat==='function')stat('widget');obWidgetFin();}"), 'Suivant, au balayage (10 novembre : compté dans les statistiques)');
 });

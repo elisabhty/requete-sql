@@ -70,14 +70,14 @@ test('le pied : avec l’annuel, l’essai de 3 jours, ce qui suit et ses liens 
 
 test('tant que l’achat n’est pas branché : « Continuer » discret et le bouton entrent dans l’app ; branché, seul le paiement passe', async () => {
   const sans = monter();
-  assert.ok(sans.ctx.obPaywallHTML().includes('<button type="button" class="pw-lien pw-passer" onclick="obPaywallEntrer()">Continuer</button>'));
+  assert.ok(sans.ctx.obPaywallHTML().includes('<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>'));
   await sans.ctx.obPaywallAcheter(); assert.deepEqual(sans.vers, ['plan-ready']);
   let achete = null;
   const avec = monter({ achat: { acheter: async o => { achete = o; return true; }, restaurer: async () => false } });
   const h = avec.ctx.obPaywallHTML();
   assert.ok(h.includes('onclick="obPaywallRestaurer()">Restaurer</button>') && !h.includes('pw-passer'), 'branché : « Restaurer », plus de « Continuer »');
   await avec.ctx.obPaywallAcheter(); assert.equal(achete, 'an'); assert.deepEqual(avec.vers, ['plan-ready']);
-  assert.ok(app.includes("  else if(slide==='paywall'){if(!obAchatPret())obPaywallEntrer();}"), 'Suivant et le glissé ne passent la page que sans achat branché');
+  assert.ok(app.includes("  else if(slide==='paywall'){if(!obAchatPret())obPaywallPasser();}"), 'Suivant et le glissé ne passent la page que sans achat branché');
 });
 
 test('la DA du site : cartes blanches à rebord, bord soleil pour l’offre choisie, coches jaunes, contrastes lisibles ; tout tient sur un iPhone SE', () => {
