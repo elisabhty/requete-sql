@@ -27,11 +27,11 @@ const sem=slice('function renderSemaine(','const PL_OK_SVG=');
 assert(!sem.includes('class="cgo"'),'plus de chevron redondant dans les lignes');
 /* Elisa, 2 novembre, 1 h 32 : l’ordre des leçons est bloqué dans le planning : ni calendrier pour déplacer, ni poignée pour glisser. */
 assert(!sem.includes('class="nx"') && !sem.includes('class="hdl"'),'plus de déplacement ni de glisser');
-assert(html.includes('function brancherDrag(){}') && html.includes('  ordonnerPlan();\n  const st=statsPlan();'),'le planning garde l’ordre du parcours');
+assert(!html.includes('function deplacerVers(') && !html.includes('id="move-sheet"') && html.includes('  ordonnerPlan();\n  const st=statsPlan();'),'le planning garde l’ordre du parcours : plus aucun déplacement à la main (10 novembre)');
 assert(sem.includes('id="pl-day-list"') && sem.includes('class="pl-chips-more"') && sem.includes('aria-controls="pl-day-list"'),'bouton Voir plus relié à la liste');
 assert(sem.indexOf('class="dp-prog"')<sem.indexOf('class="dp-go"'),'avancement au-dessus du bouton');
 assert(/started\?`<div class="dp-prog"/.test(sem),'barre affichée seulement une fois la séance commencée');
-assert(html.includes("if(cn&&!chip.classList.contains('ok'))"),'une activité validée garde sa coche pendant le glisser');
+assert(!html.includes('function refreshChipOrder('),'plus de glisser, donc plus de renumérotation pendant le glisser (10 novembre)');
 assert(css.includes('html.lq .pl-chips.is-collapsed>.pl-chip.is-extra{display:none!important}'),'lignes masquées en CSS, gardées dans la page');
 assert(/html\.lq \.dp-go,\nhtml\.lq \.lq-btn\{/.test(css),'Démarrer la séance : bouton principal en relief');
 assert(css.includes('html.lq .pl-week-heading>div:first-child{display:contents}'),'titre de la semaine sur toute la largeur');

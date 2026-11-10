@@ -36,11 +36,9 @@ test('aucun écouteur tactile non passif permanent sur window ou document', () =
   const all = calls();
   assert.ok(all.length >= 10, 'appels trouvés');
   const global = all.filter(c => c.blocking && (c.target === 'window' || c.target === 'document'));
-  /* Seuls restent : le retour par le bord (posé dans son touchstart, retiré à la fin du geste) et le glisser du
-     planning (posé au début du glisser, retiré à la fin). */
+  /* Seuls restent : le retour par le bord (posé dans son touchstart, retiré à la fin du geste) et (le glisser du planning est parti le 10 novembre). */
   assert.deepEqual(global.map(c => c.head), [
-    "addEventListener('touchmove',move,{passive:false})",
-    "document.addEventListener('touchmove',bloquerScrollTactile,{passive:false})"
+    "addEventListener('touchmove',move,{passive:false})"
   ], 'écouteurs non passifs sur la page entière');
   assert.ok(html.includes("    g=Object.assign(tg,{x0:t.clientX,y0:t.clientY,t0:performance.now(),dx:0,lock:null,w:innerWidth});\n    addEventListener('touchmove',move,{passive:false});"), 'retour par le bord : seulement pendant un geste parti du bord');
   assert.ok(html.includes("    removeEventListener('touchmove',move,{passive:false});\n    if(!g)return;const G=g;g=null;"), '… et retiré à la fin du geste');
@@ -83,8 +81,7 @@ test('pendant un défilement, aucun décalage de scrollTop ni défilement automa
   assert.ok(slots.includes("if(!enDefilement())done.scrollIntoView("), '« Mission accomplie » : pas de défilement automatique sous le doigt');
 });
 
-test('planning : un doigt posé un instant avant de faire défiler ne soulève plus la carte (appui long de 400 ms)', () => {
-  const lp = html.slice(html.indexOf('function armerAppuiLong(e){'), html.indexOf('function annulerAppuiLong(){'));
-  assert.ok(lp.includes("if(!souris)lpTimer=setTimeout(()=>{lpTimer=null;demarrer(x,y,'medium');},400);"));
-  assert.ok(lp.includes('if(Math.abs(dx)+Math.abs(dy)>12){nettoyer();annulerAppuiLong();}'), 'un vrai glisser vertical reste un défilement');
+test('planning : plus d’appui long ni de glisser sur une carte (10 novembre : « ne plus pouvoir décaler les cours à la main »)', () => {
+  for (const k of ['function armerAppuiLong(', 'function startDrag(', 'function deplacerVers(', 'function openMoveSheet(', 'bloquerScrollTactile']) assert.ok(!html.includes(k), k);
+  assert.ok(html.includes('function chipTap(e,id){openItem(parseItemId(id));}'), 'toucher une carte ouvre la leçon, c’est tout');
 });

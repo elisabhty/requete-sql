@@ -91,5 +91,5 @@ test('le téléchargement et la planche passent par le même dessin', () => {
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-equilibre-v2803';") && app.includes("const SW_CACHE='requete-2026-11-09-equilibre-v2803';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-ordre-fixe-v2804';") && app.includes("const SW_CACHE='requete-2026-11-09-ordre-fixe-v2804';"));
 });
