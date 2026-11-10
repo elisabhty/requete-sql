@@ -6680,7 +6680,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=306">
+<link rel="stylesheet" href="ludique.css?v=307">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -26700,8 +26700,14 @@ function mascotFixe(img){return img&&img.hasAttribute&&img.hasAttribute('data-re
 function mascotPoser(img){if(!img)return;img.src=mascotFixe(img);if(img.hasAttribute&&img.hasAttribute('data-repos')&&img.classList)img.classList.add('is-repos');}
 /* Les GIF de l’autocollant : leur image animée, leur image fixe, leur taille. o.uneFois : joué quand il dit bonjour (o.joue : tout de
    suite), au repos sinon (mascotCoucouJoue) ; sans : en boucle. */
+/* Elisa, 10 novembre, 8 h 29 (son GIF : le chat câline son poisson, le salue, le fait tomber, le ramasse, un cœur) : « Remplacer le
+   premier GIF par ça, puis quand on le touche, le GIF qui rigole, ensuite il est au repos ». Sur l’accueil, il remplace le coucou à
+   l’arrivée : 9 images de 230 ms, une fois. Le faux damier blanc et gris du GIF est effacé, son contour blanc refait (6 px, comme les
+   autres autocollants), deux traits parasites des bords retirés. Ensuite le repos (la première image du fou rire, 8 h 12). */
+const MASCOT_POISSON='assets/chat-poisson.webp',MASCOT_POISSON_FIXE='assets/chat-poisson-fixe.webp',MASCOT_POISSON_MS=2070;
 const MASCOT_ANIMS={
   coucou:{src:MASCOT_COUCOU,fixe:MASCOT_COUCOU_FIXE,w:289,h:352},
+  poisson:{src:MASCOT_POISSON,fixe:MASCOT_POISSON_FIXE,w:376,h:402,ms:MASCOT_POISSON_MS},
   parti:{src:MASCOT_PARTI,fixe:MASCOT_PARTI_FIXE,w:302,h:359},
   diplome:{src:MASCOT_DIPLOME,fixe:MASCOT_DIPLOME_FIXE,w:304,h:367}
 };
@@ -26720,7 +26726,7 @@ function mascotChatHtml(o){
 function mascotCoucouPose(img){
   const a=mascotAnimDe(img);
   clearTimeout(img._coucouT);
-  const t=()=>{clearTimeout(img._coucouT);img._coucouT=setTimeout(()=>{if(img.isConnected&&img.getAttribute('src')===a.src)mascotPoser(img);},MASCOT_COUCOU_MS-140);};
+  const t=()=>{clearTimeout(img._coucouT);img._coucouT=setTimeout(()=>{if(img.isConnected&&img.getAttribute('src')===a.src)mascotPoser(img);},(a.ms||MASCOT_COUCOU_MS)-140);};
   if(img.complete)t();else img.addEventListener('load',t,{once:true});
 }
 function mascotCoucouJoue(img){
@@ -26911,7 +26917,7 @@ function renderHomeHero(){
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&mascotAccueilLibre();
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
-  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro,anim:nxt==null?'diplome':'coucou',repos:nxt==null?'':'rire',uneFois:true,joue:intro}):'';
+  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro,anim:nxt==null?'diplome':'poisson',repos:nxt==null?'':'rire',uneFois:true,joue:intro}):'';
   if(nxt==null){
     const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${stats}${streak}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
@@ -47594,7 +47600,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2814';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2815';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
