@@ -41116,10 +41116,10 @@ function planOverviewHTML(st){
      les points. Un défi se rejoue : plus de « défis réussis sur 25 ». */
   const kd=salleKpi();
   const pL=st.nL?Math.round(doneLessons/st.nL*100):0,pD=kd.ma?Math.round(kd.tr/kd.ma*100):0;
-  const trend=week===before?'comme la semaine d’avant':week>before?`${week-before} de plus que la semaine d’avant`:`${before-week} de moins que la semaine d’avant`;
+  const trend=week===before?'autant que les 7 jours d’avant':week>before?`${week-before} de plus que les 7 jours d’avant`:`${before-week} de moins que les 7 jours d’avant`;
   const arg=next==null?'':isDefiId(next)?`'${next}'`:next;
   const tAll=studyTotal(),sDays=studyDays(),tToday=sDays[dstr(auj())]||0,tWeek=act.slice(7).reduce((a,x)=>a+(+sDays[x.iso]||0),0);
-  const timeTile=`<div class="pgr-stat is-t"><div class="pgr-t-main"><small>${CLOCK_SVG}Temps d’étude</small><b>${fmtDureeHTML(tAll)}</b></div>${tAll?`<dl class="pgr-t-more"><div><dt>Aujourd’hui</dt><dd>${esc(fmtDuree(tToday))}</dd></div><div><dt>Cette semaine</dt><dd>${esc(fmtDuree(tWeek))}</dd></div></dl>`:'<p>Compté pendant tes cours, défis et exercices, quand tu t’en sers.</p>'}</div>`;
+  const timeTile=`<div class="pgr-stat is-t"><div class="pgr-t-main"><small>${CLOCK_SVG}Temps d’étude</small><b>${fmtDureeHTML(tAll)}</b></div>${tAll?`<dl class="pgr-t-more"><div><dt>Aujourd’hui</dt><dd>${esc(fmtDuree(tToday))}</dd></div><div><dt>7 derniers jours</dt><dd>${esc(fmtDuree(tWeek))}</dd></div></dl>`:'<p>Compté pendant tes cours, défis et exercices, quand tu t’en sers.</p>'}</div>`;
   return `<section class="pgr pgr-overview">
     <div class="pgr-top">
       <span class="pgr-donut" style="--p:${pct}" role="img" aria-label="${pct} % du parcours validé : ${plur(doneLessons,'leçon')}${st.nD?` et ${plur(doneChallenges,'défi')}`:''} sur ${st.total} activités">${pgrDonut(doneLessons,doneChallenges,st.total)}<i>${pct}<small>%</small></i></span>
@@ -41133,7 +41133,7 @@ function planOverviewHTML(st){
     </div>
     <div class="pgr-chart"><div class="pgr-chart-h"><b>14 derniers jours</b><small>${plur(total14,'activité')} · ${plur(active14,'jour')} actif${active14>1?'s':''}</small></div>
       <ol class="pgr-bars" role="img" aria-label="Activités validées par jour sur les 14 derniers jours : ${total14} au total, ${active14} jours actifs">${bars}</ol>
-      <p class="pgr-trend">${total14||active14?`Cette semaine : <b>${plur(week,'activité')}</b>, ${trend}.`:'Ton rythme apparaîtra ici dès ta première activité validée.'}</p></div>
+      <p class="pgr-trend">${total14||active14?`Ces 7 derniers jours : <b>${plur(week,'activité')}</b>, ${trend}.`:'Ton rythme apparaîtra ici dès ta première activité validée.'}</p></div>
     <div class="pgr-next"><span><small>Prochain cap</small><b>${esc(nextMeta?nextMeta.titre:'Parcours validé')}</b><em>${st.reste?`Fin estimée · ${end} · ${plur(st.aVenir,'séance')} à venir`:'Toutes les séances sont faites'}</em></span>
       <div class="pgr-actions">${next!=null?`<button type="button" class="pgr-go" onclick="openItem(${arg})"><span>Continuer</span>${DEF_CHEV_SVG}</button>`:''}<button type="button" class="pl-overview-adjust" aria-haspopup="dialog" aria-controls="plan-adjust-sheet" aria-expanded="false" onclick="openPlanAdjust(this)">${PLAN_SLIDERS_SVG}<span>Adapter</span></button></div></div>
   </section>`;
@@ -45933,7 +45933,8 @@ document.addEventListener('keydown',e=>{
 function compteStats(){
   const lessons=Object.values(state.lessons||{}).filter(l=>l.done).length;
   const defis=Object.keys(state.defis||{}).length;
-  const cards=lessons;
+  /* Les cartes gagnées : les leçons validées qui ont une carte mémo (la collection compte pareil). */
+  const cards=typeof CARTES==='undefined'||typeof allLessons==='undefined'?lessons:allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;
   const notes=(state.notes||[]).length;
   const due=dueList().length;
   const streak=streakJours();
@@ -47305,7 +47306,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2807';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2808';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

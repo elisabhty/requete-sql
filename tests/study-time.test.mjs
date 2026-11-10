@@ -119,7 +119,7 @@ test('« Avancement global » : tuile Temps d’étude (total, aujourd’hui, ce
   const card = ctx.planOverviewHTML(st);
   assert.match(card, /<b>2<em> h <\/em>05<\/b>/, 'total = somme des activités');
   assert.match(card, /<dt>Aujourd’hui<\/dt><dd>12 min<\/dd>/);
-  assert.match(card, /<dt>Cette semaine<\/dt><dd>45 min<\/dd>/, '7 derniers jours seulement');
+  assert.match(card, /<dt>7 derniers jours<\/dt><dd>45 min<\/dd>/, '7 derniers jours seulement');
 });
 
 test('par module : le temps passé sur ses leçons, à partir d’une minute', () => {
