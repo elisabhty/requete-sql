@@ -1598,7 +1598,9 @@ enum PocheRangement {
         d?.set(-1, forKey: "pocheChoix")
     }
 
+    /// L’énoncé s’affiche-t-il ? Pas pour « Trouve l’erreur » : l’étiquette et la consigne le disent déjà, la place va au code.
     static func aEnonce(_ q: QuestionPoche) -> Bool {
+        if q.genre == "erreur" { return false }
         return !(q.enonce ?? "").isEmpty
     }
 
@@ -1665,16 +1667,30 @@ enum PocheRangement {
     }
 
     /// La taille du code : 11,5 points au plus ; moins pour une ligne longue (le trou compte pour la plus longue réponse) ou une
-    /// requête de quatre lignes.
-    static func policeCode(_ q: QuestionPoche, u: CGFloat, v: CGFloat) -> CGFloat {
-        let trou: Int = (q.choix.map { $0.count }.max() ?? 3) + 1
+    /// requête de quatre lignes. La largeur est celle de la colonne (MesurePoche) : le code tient sur tous les iPhone.
+    static func policeCode(_ q: QuestionPoche, u: CGFloat, v: CGFloat, largeur: CGFloat) -> CGFloat {
+        let trou: Int = (q.choix.map { $0.count }.max() ?? 3) + 2
         let longueurs: [Int] = q.code.map { $0.replacingOccurrences(of: "___", with: String(repeating: "x", count: trou)).count }
         let numeros: Int = q.genre == "erreur" ? 2 : 0   // « 1 », « 2 », « 3 » devant les lignes
         let plusLongue: Int = max(1, (longueurs.max() ?? 1) + numeros)
-        let place: CGFloat = aEnonce(q) ? 38 : 54   // l’énoncé prend sa ligne au code
-        let parLargeur: CGFloat = 222 * u / (0.61 * CGFloat(plusLongue))
+        let place: CGFloat = aEnonce(q) ? 34 : 50   // l’énoncé prend sa ligne au code
+        let parLargeur: CGFloat = (largeur - 20 * u) / (0.61 * CGFloat(plusLongue))
         let parHauteur: CGFloat = place * v / (1.3 * CGFloat(max(3, q.code.count)))
-        return min(11.5 * u, parLargeur, parHauteur)
+        return max(7, min(11.5 * u, parLargeur, parHauteur))
+    }
+
+    /// Le trou garde la largeur de la plus longue réponse, vide ou rempli : la ligne ne saute pas.
+    static func largeurTrou(_ q: QuestionPoche, _ taille: CGFloat) -> CGFloat {
+        let lettres: Int = max(2, q.choix.map { $0.count }.max() ?? 3)
+        return CGFloat(lettres) * taille * 0.61 + taille * 0.7
+    }
+
+    /// Les réponses : 13 points au plus, moins si la plus longue ne tient pas dans son tiers de colonne.
+    static func policeReponses(_ q: QuestionPoche, u: CGFloat, largeur: CGFloat) -> CGFloat {
+        let plusLongue: Int = max(1, q.choix.map { $0.count }.max() ?? 1)
+        let part: CGFloat = (largeur - 12 * u) / 3 - 14 * u
+        let ajuste: CGFloat = part / (0.62 * CGFloat(plusLongue))
+        return max(8, min(13 * u, ajuste))
     }
 }
 
@@ -1843,7 +1859,28 @@ struct PocheFournisseur: TimelineProvider {
     }
 }
 
-/// Le widget : le chat à gauche, et à droite le module, la requête à trou, les trois réponses, puis le verdict et la flèche.
+/// Les mesures du widget, tirées de sa vraie taille (10 novembre, 8 h 24 : « problème de formatage et ce n’est pas responsive ») :
+/// la colonne du chat, la colonne de la question, et l’échelle (u) pour les polices et les marges. Petit iPhone ou grand, tout se
+/// règle sur la place qu’on a, sans rien laisser dépasser.
+struct MesurePoche {
+    let largeur: CGFloat     // le widget
+    let hauteur: CGFloat
+    let u: CGFloat           // l’échelle : 1 sur le widget moyen d’un iPhone 15 (364 × 170)
+    let chat: CGFloat        // la largeur de la colonne du chat
+    let gauche: CGFloat      // le début de la colonne de la question
+    let contenu: CGFloat     // sa largeur
+
+    init(_ taille: CGSize) {
+        largeur = taille.width
+        hauteur = taille.height
+        u = min(taille.width / 364, taille.height / 170)
+        chat = min(taille.width * 0.29, taille.height * 0.62)
+        gauche = chat + 4 * u
+        contenu = max(120, taille.width - gauche - 14 * u)
+    }
+}
+
+/// Le widget : le chat à gauche, et à droite le module, l’énoncé, la requête, les trois réponses, puis le verdict et la flèche.
 @available(iOS 17.0, *)
 struct PocheVue: View {
     let entree: PocheEntree
@@ -1866,60 +1903,55 @@ struct PocheVue: View {
     }
 
     private func avecQuestion(_ taille: CGSize, _ q: QuestionPoche) -> some View {
-        let u: CGFloat = taille.width / 364
-        let v: CGFloat = taille.height / 170
+        let m = MesurePoche(taille)
         let repondu: Bool = entree.etat != .question
         return ZStack(alignment: .topLeading) {
-            chat(v)
-            colonne(u, v, q)
-            if repondu {
-                suivante(u, v)
-                    .transition(.scale(scale: 0.4).combined(with: .opacity))
-            }
+            chat(m)
+            colonne(m, q)
         }
         .frame(width: taille.width, height: taille.height)
         .animation(ressort, value: repondu)
     }
 
-    private func chat(_ v: CGFloat) -> some View {
+    /// Le chat, entier dans sa colonne (plus rogné au bord gauche ni en bas).
+    private func chat(_ m: MesurePoche) -> some View {
         let nom: String = PocheRangement.chat(entree.etat)
-        let hauteur: CGFloat = PocheRangement.hauteurChat(entree.etat) * v
-        let bas: CGFloat = 2 * v
+        let hauteur: CGFloat = min(PocheRangement.hauteurChat(entree.etat) / 170 * m.hauteur, m.hauteur - 8 * m.u)
+        let marge: CGFloat = 6 * m.u
         return Image(nom)
             .resizable()
             .scaledToFit()
-            .frame(height: hauteur)
-            .offset(y: bas)
+            .frame(maxWidth: m.chat, maxHeight: hauteur, alignment: .bottom)
+            .padding(.leading, marge)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .id(nom)
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .accessibilityHidden(true)
     }
 
-    private func colonne(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
-        let gauche: CGFloat = 108 * u
+    private func colonne(_ m: MesurePoche, _ q: QuestionPoche) -> some View {
+        let u: CGFloat = m.u
+        let v: CGFloat = m.hauteur / 170
         let haut: CGFloat = 10 * v
-        let largeur: CGFloat = 242 * u
-        let apresTitre: CGFloat = 4 * v
-        let apresCode: CGFloat = 6 * v
-        return VStack(alignment: .leading, spacing: 0) {
+        let bas: CGFloat = 8 * v
+        let ecart: CGFloat = 4 * v
+        return VStack(alignment: .leading, spacing: ecart) {
             etiquette(u, q)
             if PocheRangement.aEnonce(q) {
-                enonce(u, q)
-                    .padding(.top, apresTitre)
+                enonce(u, q, m)
             }
             if !q.code.isEmpty {
-                code(u, v, q)
-                    .padding(.top, apresTitre)
+                code(u, v, q, m)
             }
-            reponses(u, v, q)
-                .padding(.top, apresCode)
-            retour(u, q)
-                .padding(.top, apresCode)
+            reponses(u, v, q, m)
+            Spacer(minLength: 0)
+            retour(u, v, q)
         }
-        .frame(width: largeur, alignment: .leading)
-        .padding(.leading, gauche)
+        .frame(width: m.contenu, alignment: .leading)
+        .padding(.leading, m.gauche)
         .padding(.top, haut)
+        .padding(.bottom, bas)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     /// « Révision · Agrégats et regroupements » : le module, pas la leçon (son nom donnerait souvent la réponse).
@@ -1937,30 +1969,28 @@ struct PocheVue: View {
     }
 
     /// L’énoncé : une ligne au-dessus du code ; seul (un QCM), trois lignes au plus, un peu plus grand.
-    private func enonce(_ u: CGFloat, _ q: QuestionPoche) -> some View {
+    private func enonce(_ u: CGFloat, _ q: QuestionPoche, _ m: MesurePoche) -> some View {
         let seul: Bool = q.code.isEmpty
-        let taille: CGFloat = seul ? 13 * u : 11.5 * u
+        let taille: CGFloat = seul ? 13.5 * u : 12 * u
         let police: Font = Font.system(size: taille, weight: .bold, design: .rounded)
         let lignes: Int = seul ? 3 : 1
-        let largeur: CGFloat = 242 * u
         let texte: String = q.enonce ?? ""
         return Text(verbatim: texte)
             .font(police)
             .foregroundColor(encrePoche)
             .lineLimit(lignes)
             .minimumScaleFactor(0.7)
-            .frame(width: largeur, alignment: .leading)
+            .frame(width: m.contenu, alignment: .leading)
     }
 
-    private func code(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
+    private func code(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche, _ m: MesurePoche) -> some View {
         let lignes: [String] = Array(q.code.prefix(4))
-        let taille: CGFloat = PocheRangement.policeCode(q, u: u, v: v)
+        let taille: CGFloat = PocheRangement.policeCode(q, u: u, v: v, largeur: m.contenu)
         let police: Font = Font.system(size: taille, weight: .medium, design: .monospaced)
         let ecart: CGFloat = taille * 0.16
         let marge: CGFloat = 10 * u
-        let margeV: CGFloat = 7 * v
+        let margeV: CGFloat = 6 * v
         let coin: CGFloat = 12 * u
-        let largeur: CGFloat = 242 * u
         let fond = RoundedRectangle(cornerRadius: coin, style: .continuous).fill(encre)
         return VStack(alignment: .leading, spacing: ecart) {
             ForEach(Array(lignes.enumerated()), id: \.offset) { item in
@@ -1969,7 +1999,7 @@ struct PocheVue: View {
         }
         .padding(.horizontal, marge)
         .padding(.vertical, margeV)
-        .frame(width: largeur, alignment: .leading)
+        .frame(width: m.contenu, alignment: .leading)
         .background(fond)
     }
 
@@ -1998,7 +2028,8 @@ struct PocheVue: View {
         .fixedSize()
     }
 
-    /// Le trou : en pointillés dorés tant qu’on n’a pas répondu ; ensuite, la bonne réponse sur la menthe.
+    /// Le trou : en pointillés dorés tant qu’on n’a pas répondu ; ensuite, la bonne réponse sur la menthe, dans un cadre de la même
+    /// taille (la ligne ne bouge pas, et une virgule reste lisible).
     @ViewBuilder
     private func trou(_ q: QuestionPoche, _ police: Font, _ taille: CGFloat) -> some View {
         if entree.etat == .question {
@@ -2009,39 +2040,40 @@ struct PocheVue: View {
     }
 
     private func trouVide(_ q: QuestionPoche, _ taille: CGFloat) -> some View {
-        let lettres: Int = q.choix.map { $0.count }.max() ?? 3
-        let largeur: CGFloat = CGFloat(lettres) * taille * 0.61 + taille * 0.4
+        let largeur: CGFloat = PocheRangement.largeurTrou(q, taille)
         let hauteur: CGFloat = taille * 1.3
         let trait = StrokeStyle(lineWidth: 1.5, dash: [3, 2])
         return RoundedRectangle(cornerRadius: 4, style: .continuous)
             .strokeBorder(dore, style: trait)
             .frame(width: largeur, height: hauteur)
+            .padding(.horizontal, taille * 0.15)
     }
 
     private func trouRempli(_ q: QuestionPoche, _ police: Font, _ taille: CGFloat) -> some View {
         let mot: String = PocheRangement.bonne(q)
-        let marge: CGFloat = taille * 0.3
+        let largeur: CGFloat = PocheRangement.largeurTrou(q, taille)
+        let hauteur: CGFloat = taille * 1.3
         let fond = RoundedRectangle(cornerRadius: 4, style: .continuous).fill(menthe)
         return Text(verbatim: mot)
             .font(police)
             .fontWeight(.heavy)
             .foregroundColor(vertFonce)
-            .padding(.horizontal, marge)
+            .frame(minWidth: largeur, minHeight: hauteur)
             .background(fond)
+            .padding(.horizontal, taille * 0.15)
     }
 
-    /// Les trois réponses : des boutons tant qu’on n’a pas répondu (App Intents, iOS 17).
-    private func reponses(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
-        let total: Int = q.choix.reduce(0) { $0 + $1.count }
-        let place: CGFloat = 134 * u
-        let ajuste: CGFloat = place / (0.61 * CGFloat(max(total, 1)))
-        let taille: CGFloat = min(12 * u, ajuste)
-        let ecart: CGFloat = 7 * u
+    /// Les trois réponses, sur toute la largeur de la colonne, chacune sa part : des boutons tant qu’on n’a pas répondu (App
+    /// Intents, iOS 17).
+    private func reponses(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche, _ m: MesurePoche) -> some View {
+        let ecart: CGFloat = 6 * u
+        let taille: CGFloat = PocheRangement.policeReponses(q, u: u, largeur: m.contenu)
         return HStack(spacing: ecart) {
             ForEach(Array(q.choix.enumerated()), id: \.offset) { item in
                 reponse(item.offset, item.element, q, taille, u, v)
             }
         }
+        .frame(width: m.contenu)
     }
 
     @ViewBuilder
@@ -2058,10 +2090,12 @@ struct PocheVue: View {
 
     private func puce(_ i: Int, _ texte: String, _ q: QuestionPoche, _ taille: CGFloat, _ u: CGFloat, _ v: CGFloat) -> some View {
         let style: StylePuce = StylePuce.pour(i, entree, q)
-        let police: Font = Font.system(size: taille, weight: .heavy, design: .monospaced)
+        let code: Bool = q.genre == nil || q.genre == "trou" || q.genre == "cas"
+        let design: Font.Design = code ? .monospaced : .rounded
+        let police: Font = Font.system(size: taille, weight: .heavy, design: design)
         let icone: Font = Font.system(size: taille * 0.8, weight: .black)
         let hauteur: CGFloat = 28 * v
-        let marge: CGFloat = 11 * u
+        let marge: CGFloat = 6 * u
         let coin: CGFloat = 10 * u
         let trait: CGFloat = 2 * u
         let ecart: CGFloat = 4 * u
@@ -2075,18 +2109,32 @@ struct PocheVue: View {
             Text(verbatim: texte)
                 .font(police)
                 .lineLimit(1)
+                .minimumScaleFactor(0.6)
         }
         .foregroundColor(style.texte)
         .padding(.horizontal, marge)
+        .frame(maxWidth: .infinity)
         .frame(height: hauteur)
         .background(fond)
         .overlay(bord)
         .opacity(style.opacite)
     }
 
-    /// Sous les réponses : la consigne, puis le verdict et son pourquoi.
+    /// En bas : la consigne, puis le verdict et son pourquoi, et la flèche à côté (plus par-dessus le texte).
+    private func retour(_ u: CGFloat, _ v: CGFloat, _ q: QuestionPoche) -> some View {
+        let repondu: Bool = entree.etat != .question
+        return HStack(alignment: .center, spacing: 8 * u) {
+            verdictOuConsigne(u, q)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if repondu {
+                suivante(u, v)
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
+            }
+        }
+    }
+
     @ViewBuilder
-    private func retour(_ u: CGFloat, _ q: QuestionPoche) -> some View {
+    private func verdictOuConsigne(_ u: CGFloat, _ q: QuestionPoche) -> some View {
         switch entree.etat {
         case .question:
             consigne(u, q)
@@ -2107,30 +2155,22 @@ struct PocheVue: View {
             .minimumScaleFactor(0.8)
     }
 
+    /// « Bien vu ! » puis le pourquoi, à la suite, sur deux lignes au plus (la place du bas ne déborde plus).
     private func verdict(_ titre: String, _ pourquoi: String, _ couleur: Color, _ u: CGFloat) -> some View {
         let grand: Font = Font.system(size: 12.5 * u, weight: .black, design: .rounded)
-        let petit: Font = Font.system(size: 11 * u, weight: .bold, design: .rounded)
-        let code: Font = Font.system(size: 10.5 * u, weight: .bold, design: .monospaced)
-        let explication: Text = PocheRangement.explication(pourquoi, petit, code)
-        let place: CGFloat = 36 * u
-        return VStack(alignment: .leading, spacing: 1) {
-            Text(verbatim: titre)
-                .font(grand)
-                .foregroundColor(couleur)
-            explication
-                .foregroundColor(sousPoche)
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-        }
-        .padding(.trailing, place)
+        let petit: Font = Font.system(size: 11.5 * u, weight: .bold, design: .rounded)
+        let code: Font = Font.system(size: 11 * u, weight: .bold, design: .monospaced)
+        let tete: Text = Text(verbatim: titre + " ").font(grand).foregroundColor(couleur)
+        let explication: Text = PocheRangement.explication(pourquoi, petit, code).foregroundColor(sousPoche)
+        return (tete + explication)
+            .lineLimit(2)
+            .minimumScaleFactor(0.75)
     }
 
     /// La flèche : la question suivante.
     private func suivante(_ u: CGFloat, _ v: CGFloat) -> some View {
-        let cote: CGFloat = 28 * u
+        let cote: CGFloat = 30 * u
         let symbole: Font = Font.system(size: 13 * u, weight: .heavy)
-        let droite: CGFloat = 14 * u
-        let bas: CGFloat = 12 * v
         return Button(intent: SuivantePoche()) {
             Image(systemName: "arrow.right")
                 .font(symbole)
@@ -2140,9 +2180,6 @@ struct PocheVue: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("Question suivante"))
-        .padding(.trailing, droite)
-        .padding(.bottom, bas)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
     }
 
     /// Aucune leçon faite : le chat se pose la question, et un appui ouvre la séance du jour.
