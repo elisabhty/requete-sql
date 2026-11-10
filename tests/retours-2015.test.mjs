@@ -42,7 +42,7 @@ test('Entretien SQL : toutes les réponses à la première personne, comme le ca
   assert.ok(carte('ent-v2-112').a.includes('En entretien, je précise le dialecte que j’utilise') && carte('ent-v2-112').a.includes('Deux noms reviennent souvent : T-SQL et PL/SQL.'));
   assert.ok(carte('ent-v2-131').a.includes('puis j’observe chaque cohorte au fil des périodes'), '« je suis chacune » se lisait comme le verbe être');
   /* La relance reste posée par le recruteur, la question aussi */
-  assert.ok(carte('ent-v2-08').a.includes('Relance fréquente : peut-on trier sur une colonne absente du <code>SELECT</code> ?'));
+  assert.ok(carte('ent-v2-08').a.includes('Relance fréquente : et si la colonne de tri n’est pas dans le <code>SELECT</code> ? Le tri fonctionne quand même, en général.'));
   assert.ok(carte('ent-v2-33').q.startsWith('Peut-on sélectionner une colonne non agrégée avec GROUP BY'));
   /* Le site montre toujours le premier paragraphe de la carte ent-v2-06, mot pour mot */
   const vit = fs.readFileSync(path.join(ROOT, 'decouvrir/index.html'), 'utf8');
