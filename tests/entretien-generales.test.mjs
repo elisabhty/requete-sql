@@ -21,7 +21,7 @@ const sansCode = t => t.replace(/<code>[\s\S]*?<\/code>/g, 'CODE');
 test('les 142 questions : la question, ses notions et une réponse, plus d’exemple', () => {
   assert.equal(E.length, 142);
   for (const q of E) {
-    assert.deepEqual(Object.keys(q), ['id', 'niveau', 'cat', 'notions', 'dialectes', 'q', 'a'], q.id);
+    assert.deepEqual(Object.keys(q).filter(k => k !== 'syntaxe'), ['id', 'niveau', 'cat', 'notions', 'dialectes', 'q', 'a'], q.id);
     const paras = q.a.split('\n\n');
     assert.ok(paras.length >= 2 && paras.length <= 4 && paras.every(p => p.trim() && !p.includes('\n')), `${q.id} : ${paras.length} paragraphes`);
     assert.ok(q.a.length >= 300 && q.a.length <= 1100, `${q.id} : ${q.a.length} caractères`);
@@ -88,4 +88,19 @@ test('le double filtre : les onglets comptent dans la famille, les familles dans
   assert.ok(r.includes("const dansTab=found.filter(x=>entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true);"));
   assert.ok(r.includes('const ok=dansFam.filter(x=>entOk(x.id)).length, total=dansFam.length;'), 'onglets : dans la famille');
   assert.ok(r.includes("const n=k==='all'?dansTab.length:dansTab.filter(x=>ENT_FAMILLE_DE[x.q.cat]===k).length;") && r.includes("if(!n&&k!=='all'&&entFilter!==k)return '';"), 'familles : dans l’onglet, les vides cachées');
+});
+
+test('la syntaxe en SQL, dans un cadre, quand elle aide (Elisa, 10 novembre, 1 h 26)', () => {
+  const avec = E.filter(q => q.syntaxe);
+  assert.ok(avec.length >= 120, `${avec.length} questions avec leur syntaxe`);
+  for (const q of avec) {
+    for (const l of q.syntaxe.split('\n')) assert.ok(l.length <= 30 && l === l.trimEnd(), `${q.id} : « ${l} » (${l.length} caractères, iPhone)`);
+    assert.doesNotMatch(q.syntaxe, /festival|vélo|velo|élève|camping|ruche|spectateur|auditeur/i, `${q.id} : des noms génériques`);
+  }
+  /* Les questions de culture générale n’en ont pas */
+  for (const id of ['ent-v2-45', 'ent-v2-76', 'ent-v2-77', 'ent-v2-109']) assert.ok(!E.find(q => q.id === id).syntaxe, id);
+  assert.equal(E.find(q => q.id === 'ent-v2-12').syntaxe, 'SELECT DISTINCT a, b\nFROM t;');
+  const f = html.slice(html.indexOf('function renderEntretienFocus(x){'), html.indexOf('\n}\n', html.indexOf('function renderEntretienFocus(x){')));
+  assert.ok(f.includes('${x.q.syntaxe?`<div class="esql sql-copy-wrap ent-syntaxe"><span class="esql-lab">Syntaxe</span>${sqlCopyBtn()}<pre>${highlight(x.q.syntaxe)}</pre></div>`:\'\'}'), 'le cadre de code, colorié et copiable');
+  assert.ok(f.indexOf('ent-syntaxe') < f.indexOf('ent-notions'), 'sous la réponse, avant les notions');
 });
