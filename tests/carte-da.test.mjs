@@ -34,7 +34,7 @@ test('chaque carte : son mot-clé, son idée, trois points à retenir, une synta
     }
     for (const line of c.s.split('\n')) assert.ok(line.length <= 30, `carte ${id} : « ${line} » tient sur la carte, même à 320 px`);
   }
-  assert.deepEqual(Object.keys(CARTES).filter(id => CARTES[id].dialecte).sort(), ['50', '71', '82', '83', '84'], 'cinq syntaxes que la Console n’exécute pas (FOR UPDATE depuis le 10 novembre)');
+  assert.deepEqual(Object.keys(CARTES).filter(id => CARTES[id].dialecte).sort(), ['50', '71', '82', '83', '84', '86'], 'six syntaxes que la Console n’exécute pas (FOR UPDATE depuis le 10 novembre ; > ALL, relu le 10 novembre à 9 h 30)');
   assert.deepEqual(Object.fromEntries(Object.keys(CARTES).filter(id => CARTES[id].sgbd).map(id => [id, CARTES[id].sgbd])), {52: 'nombres', 53: 'dates', 54: 'conversion', 76: 'agregats'},
     'les renvois vers « Selon le SGBD » des anciens mémos restent');
 });
@@ -48,7 +48,7 @@ test('le verso : l’ampoule et « À retenir », les trois points numérotés, 
   const v = ctx.memoVerso(51);
   assert.ok(v.includes('<h3 class="mc-h"><span class="mc-h-stk" aria-hidden="true"><svg data-k="bulb"></svg></span><span class="mc-h-tag">À retenir</span></h3>'));
   assert.equal((v.match(/<li style="--i:\d">/g) || []).length, 3, 'trois points, qui arrivent l’un après l’autre');
-  assert.ok(v.includes('<ol class="mc-pts"><li style="--i:0"><code>UPPER</code> et <code>LOWER</code> changent les majuscules'), 'une liste numérotée (reformulée pour les débutants le 10 novembre)');
+  assert.ok(v.includes('<ol class="mc-pts"><li style="--i:0"><code>UPPER</code> met en majuscules, <code>LOWER</code> en minuscules'), 'une liste numérotée (relue par des débutants le 10 novembre)');
   assert.ok(v.includes('<div class="mc-syn"><p class="mc-lab">Syntaxe</p><div class="ex-code mc-code"><span class="hl">SELECT UPPER(nom)'), 'la syntaxe, colorée');
   assert.ok(v.includes('<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i><svg'), 'le piège, avec son autocollant');
   assert.ok(ctx.memoVerso(84).includes('<p class="mc-lab">Syntaxe <span class="mc-dial">PostgreSQL</span></p>'), 'une syntaxe d’un autre SGBD le dit');
