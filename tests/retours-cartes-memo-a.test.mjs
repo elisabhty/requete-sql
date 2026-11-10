@@ -11,7 +11,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
 const fn = name => { const a = app.indexOf(`function ${name}(`); assert.ok(a > 0, name); return app.slice(a, app.indexOf('\n}', a) + 2); };
-const consts = app.slice(app.indexOf('const MEMO_GO_SVG='), app.indexOf('/* Le numéro de collection (01 à 53)'));
+const consts = app.slice(app.indexOf('const MEMO_GO_SVG='), app.indexOf('/* Le numéro de collection (01 à 71)'));
 
 function bac(extra = {}) {
   const CARTES = {4: {k: 'WHERE', t: 'Filtrer les lignes', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 1;', piege: 'Piège.'},
