@@ -54,8 +54,14 @@ assert.equal(explorer.split('<b class="is-').length - 1, 3, 'un segment par modu
 assert.match(explorer, /role="radiogroup" aria-label="Afficher les modules"/);
 assert.match(explorer, /data-f="todo"/);
 
-/* Activité : 14 jours, aujourd'hui en dernier, compte par jour */
-ctx.state.actDays = { [today]: 2, [day(-1)]: 1, [day(-5)]: 4 };
+/* Activité : 14 jours, aujourd'hui en dernier, compte par jour. Depuis le 10 novembre (« vérifier tous les chiffres ») : les
+   activités validées pour la première fois ce jour-là (la date « at » des leçons, le compteur des défis), plus chaque avancée de
+   state.actDays, qui ne dit plus que le jour actif. */
+vm.runInContext(take('function validesDuJour(', 'function noteActivityDay('), ctx);
+const midi = n => new Date(day(n) + 'T12:00:00').getTime();
+ctx.state.actDays = { [today]: 9, [day(-1)]: 5, [day(-5)]: 12 };
+Object.assign(ctx.state.lessons, { 10: { done: true, at: midi(0) }, 11: { done: true, at: midi(0) }, 12: { done: true, at: midi(-1) }, 13: { done: true, at: midi(-5) } });
+ctx.state.defisJour = { [day(-5)]: 3 };
 const act = JSON.parse(JSON.stringify(ctx.pgrActivity(14)));
 assert.equal(act.length, 14);
 assert.equal(act[13].iso, today); assert.equal(act[13].today, true); assert.equal(act[13].count, 2);
@@ -72,7 +78,7 @@ assert.match(donut, /is-d" cx="50" cy="50" r="40" style="--len:12\.6;--off:-25\.
 assert.doesNotMatch(ctx.pgrDonut(0, 0, 100), /pgr-arc/, 'rien de validé : seulement la piste');
 
 /* Carte complète */
-const st = { total: 82, done: 13, reste: 69, nL: 58, resteL: 47, nD: 24, resteD: 22, fin: '2026-11-12', seances: 30 };
+const st = { total: 82, done: 13, reste: 69, nL: 58, resteL: 47, nD: 24, resteD: 22, fin: '2026-11-12', seances: 30, aVenir: 23 };
 const card = ctx.planOverviewHTML(st);
 assert.match(card, /16<small>%<\/small>/);
 assert.match(card, /aria-label="16 % du parcours validé : 11 leçons et 2 défis sur 82 activités"/);
@@ -84,8 +90,10 @@ assert.equal(card.split('<li class="is-').length - 1, 14, '14 barres');
 assert.match(card, /Cette semaine : <b>7 activités<\/b>, 7 de plus que la semaine d’avant/);
 assert.match(card, /Prochain cap/); assert.match(card, /Leçon 7/); assert.match(card, /onclick="openItem\(7\)"/);
 assert.match(card, /class="pl-overview-adjust"/, 'le bouton Ajuster reste branché sur la feuille de réglage');
-ctx.state.actDays = {};
+const sauve = { actDays: ctx.state.actDays, lessons: ctx.state.lessons, defisJour: ctx.state.defisJour };
+Object.assign(ctx.state, { actDays: {}, lessons: {}, defisJour: {} });
 assert.match(ctx.planOverviewHTML(st), /dès ta première activité validée/, 'état vide expliqué');
+Object.assign(ctx.state, sauve);
 ctx.prochaineActiviteParcours = () => null;
 assert.doesNotMatch(ctx.planOverviewHTML(st), /class="pgr-go"/, 'parcours terminé : plus de bouton Continuer');
 ctx.prochaineActiviteParcours = () => 'c3';

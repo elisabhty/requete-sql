@@ -135,3 +135,21 @@ test('« Voir que les 6 prochains jours » (Elisa, 10 novembre, 6 h 54) : planni
   assert.ok(app.includes('.wk-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));') && lq.includes('html.lq .acct-week{margin:16px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}'), 'six cases, plus larges');
   assert.ok(!/7 prochains jours/.test(app.replace(/\/\*[\s\S]*?\*\//g, '')), 'plus de « 7 prochains jours » à l’écran');
 });
+
+test('« vérifier tous les chiffres de la page » (Elisa, 10 novembre, 6 h 53)', () => {
+  /* 14 derniers jours : les activités validées pour la première fois, plus chaque avancée (étapes, révisions, défis rejoués) */
+  assert.ok(fn('pgrActivity').includes('const count=valides[iso]||0,actif=count>0||jourActif(iso);'));
+  assert.ok(app.includes('const act=pgrActivity(14),total14=act.reduce((a,x)=>a+x.count,0),active14=act.filter(x=>x.actif).length;'));
+  const ctx = { dstr: d => d.toISOString().slice(0, 10), state: { lessons: { 1: { done: true, at: Date.parse('2026-11-09T10:00:00Z') }, 2: { done: true, at: Date.parse('2026-11-09T11:00:00Z') }, 3: { done: false } }, defisJour: { '2026-11-09': 1, '2026-11-10': 2 } } };
+  vm.runInNewContext(fn('validesDuJour') + ';this.f=validesDuJour;', ctx);
+  assert.deepEqual({ ...ctx.f() }, { '2026-11-09': 3, '2026-11-10': 2 });
+  assert.ok(app.includes("    if(!state.defis[cid]&&typeof noteDefiValide==='function')noteDefiValide();") && app.includes("      if(premier&&typeof noteDefiValide==='function')noteDefiValide();"), 'un défi compte à sa première réussite seulement');
+  assert.ok(app.includes('actDays,defisJour,'), 'le compteur est gardé');
+  /* Fin estimée : les séances à venir, plus toutes les séances depuis le début */
+  assert.ok(app.includes("${st.reste?`Fin estimée · ${end} · ${plur(st.aVenir,'séance')} à venir`:'Toutes les séances sont faites'}"));
+  /* Demain se dit en leçons, comme aujourd’hui ; Mon compte en positif */
+  assert.ok(app.includes("<small>${plur(n,'leçon')} · ~${minutesDe(sess.lessons)} min</small>"));
+  assert.ok(app.includes("<span>${activitesCompte(progress.done,progress.total,{verbe:'terminée',zero:'à découvrir'})}</span>") && app.includes('<span>${semaineCompte(weekComplete,weekPlanned)}</span>'));
+  const c = {}; vm.runInNewContext(fn('activitesCompte') + ';this.a=activitesCompte;', c);
+  assert.deepEqual([c.a(0, 71, { verbe: 'terminée', zero: 'à découvrir' }), c.a(3, 71, { verbe: 'terminée' }), c.a(71, 71, { verbe: 'terminée' })], ['71 activités à découvrir', '3 activités terminées sur 71', '71 activités terminées']);
+});
