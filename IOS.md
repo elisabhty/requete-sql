@@ -247,6 +247,14 @@ atteint ; il s’endort quand la leçon est en pause depuis une heure (la Live A
 d’iOS 16.2 : le pont la met à jour avec une `staleDate` d’une heure) ; leçon réussie, des étoiles plein les yeux. Appui long : le
 chat sort du noir (`ChatNoir`, sur fond noir, comme l’île). L’écran verrouillé ne change pas.
 
+### Le défi en solo dans la Dynamic Island, et la manche (10 novembre)
+
+« Ok pour solo et multijoueur avec le 1/2 etc. pour les manches » : une partie seule a maintenant son île, comme la salle entre
+amis (`RequeteSalle`, avec une seule place) : les lunettes du chat à gauche ; à droite, la manche (« 1/3 ») et le chrono qui
+descend tout seul ; entre deux manches, « 1/3 » ; à la fin, tes points. Appui long : la manche et ses points à gauche, le défi,
+« Ton score : 240 pts » ; sur l’écran verrouillé, « Défi en solo ». Elle reste sur le téléphone : ni jeton de push, ni serveur
+(`salleDebut` avec `push: false`). À plusieurs, la manche s’ajoute aussi à côté du chrono.
+
 ### L’onboarding dans la Dynamic Island (10 novembre)
 
 « En plein onboarding, fais la même chose pour Requête avec les yeux du chat » (d’après la Dynamic Island d’une autre app : son

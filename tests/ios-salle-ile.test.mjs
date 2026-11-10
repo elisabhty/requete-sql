@@ -164,7 +164,8 @@ test('l’état de la salle pour l’île : attente, partie, pause entre deux ma
   x.vue = 'res0'; assert.deepEqual([x.run('ileSalleEtat()').phase, x.run('ileSalleEtat()').fin], ['pause', 0]);
   x.vue = 'final'; assert.equal(x.run('ileSalleEtat()').phase, 'fin');
   for (const v of ['join', 'full', 'lost']) { x.vue = v; assert.equal(x.run('ileSalleEtat()'), null, v); }
-  x.vue = 'lobby'; x.J.solo = true; assert.equal(x.run('ileSalleEtat()'), null, 'seul : pas d’île');
+  /* 10 novembre, 7 h 47 (« ok pour solo et multijoueur avec le 1/2 etc. pour les manches ») : une partie seule a son île aussi */
+  x.vue = 'res0'; x.J.solo = true; assert.equal(x.run('ileSalleEtat()').phase, 'pause', 'seul : l’île aussi');
 });
 
 test('l’activité démarre avec la salle, suit ses changements, garde le podium ; quitter la salle l’arrête et oublie le jeton', async () => {
