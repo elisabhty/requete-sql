@@ -373,7 +373,7 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
   assert.ok(fin.includes("'Avant ton départ, toute l’équipe tenait à te dire merci 💜'") && fin.includes("'Tu peux être fier du chemin parcouru ! 💜'") && !fin.includes("'Ta mission touche à sa fin.'"), 'le merci des équipes');
   assert.ok(fin.includes("'Bonjour à toute l’équipe,'") && fin.includes("'À bientôt 👋'"), 'ta réponse, mot pour mot');
   assert.ok(fin.includes("sel: '#gnb'") && fin.includes("sel: '#bsend'"), 'l’app s’arrête sur le message, puis sur « Envoyer »');
-  assert.ok(fin.includes("cap('k3', \"15 modules, 65 cours<br>et 184 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [65, 'cours'], [184, 'requêtes']];"),
+  assert.ok(fin.includes("cap('k3', \"15 modules, 71 cours<br>et 247 requêtes SQL.\", 4.8);") && fin.includes("const FSTAT = [[15, 'modules'], [71, 'cours'], [247, 'requêtes']];"),
     'le nombre de requêtes des cours (plus « 20 chapitres », déjà parmi les 65 cours ; le 30 octobre, le cours MERGE en ajoute trois, Procédures et fonctions stockées sept, Les schémas huit)');
   /* Plus aucun exercice dans les cours (Elisa, 28 octobre) : les 184 requêtes sont celles des vidéos */
   const M = html.slice(html.indexOf('const MODULES = ['), html.indexOf('const CHALLENGES=['));
@@ -389,6 +389,6 @@ test('la vidéo de fin (fin-sql.html) : le bravo du projet, le merci des équipe
     && fe.includes('<p>Tu as terminé ton parcours SQL. Prends un instant pour découvrir tout ce que tu as appris.</p>'), 'ses mots');
   assert.ok(fe.includes('Découvrir les défis</button>') && fe.includes('<button type="button" class="lv-fe-home">Retour à l’accueil</button>'), 'ses deux boutons');
   assert.ok(html.includes("end.querySelector('.lv-fe-go').addEventListener('click',()=>lvFinLeave('defis'));") && html.includes("end.querySelector('.lv-fe-home').addEventListener('click',()=>lvFinLeave('learn'));"), 'les défis, ou l’accueil');
-  assert.ok(html.includes('const SQL_REQUETES=184;') && fin.includes("[184, 'requêtes']"), 'les mêmes nombres que la vidéo');
+  assert.ok(html.includes('const SQL_REQUETES=247;') && fin.includes("[247, 'requêtes']"), 'les mêmes nombres que la vidéo');
   assert.ok(html.includes('if(!LV||LV.fin)return;'), 'pas de point de reprise pour la fin');
 });

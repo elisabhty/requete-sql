@@ -657,7 +657,7 @@ const COURSES = [
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
   {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '3 min 54', notesAt: 173.5,
-    maxKo: 540,   // les quatre démonstrations des usages (Elisa, 29 octobre, 12 h 02) ; 540 depuis sa voix off (38 phrases calées, Elisa, 2 novembre, 8 h 07)
+    maxKo: 560,   // les quatre démonstrations des usages (Elisa, 29 octobre, 12 h 02) ; 540 depuis sa voix off (38 phrases calées, Elisa, 2 novembre, 8 h 07)
     table: 'produits',
     bubble: 'Choisis combien de lignes afficher et à partir de laquelle commencer.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
@@ -809,9 +809,9 @@ const COURSES = [
       '<span class="nl">Son nombre de clients</span><span class="tag calc">à calculer</span>', 'Garder les villes d’au moins 2 clients',
       '<span class="glow" id="hv3"><span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt;= 2</span>;', 'Ici, seules les villes comptant <b>au moins 2 clients</b> sont retenues.',
       '<span class="b"><span class="emo">🎯</span>&nbsp;Le test&nbsp;: <code>COUNT(*) &gt;= 2</code></span>', "n >= SEUIL ? '✓ gardé' : '✕ écarté'",
-      '<span class="glow" id="wa4"><span class="kw">WHERE</span> age &gt;= 30</span>', '<span class="sp4 l" id="sp4a" style="top:127px">trie les lignes</span>',
+      '<span class="glow" id="wa4"><span class="kw">WHERE</span> age &gt;= 30</span>', '<span class="sp4 l" id="sp4a" style="top:127px">filtre les lignes</span>',
       '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
-      '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
+      '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">filtre les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
   {id: 88, next: 76, titre: 'L’ordre d’exécution', page: 'ordre-execution.html', thumb: 'ordre-execution-thumb.jpg', duree: '3 min 24', notesAt: 181.2,
     table: 'commandes',

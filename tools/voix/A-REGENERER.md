@@ -2,19 +2,22 @@
 
 _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Elisa décide de ce qui est généré._
 
-**10 novembre, 13 h : la relecture finale des 72 cours** (six relecteurs débutants, en parallèle). Quatre phrases fausses ou bloquantes, chacune avec la voix de son cours ; la page garde ses textes tant que la voix n’est pas refaite (`tools/voix/<cours>-relecture.json`) :
-  - WITH RECURSIVE (Anaïs, ch06, 422 caractères) : « EXCEPT retire les 12 dates de juillet présentes dans la table commandes » (la table en a 14, deux en août) ;
-  - GROUP BY sur plusieurs colonnes (Antoine, ch05, 296 caractères) : « chaque colonne du GROUP BY doit figurer dans le SELECT » devient un conseil (la vidéo montre ensuite que la requête s’exécute) ;
-  - Normalisation (Agathe, ch05, 688 caractères) : la 2e forme normale parle de « la clé » avant qu’elle soit présentée ;
-  - Bases relationnelles (Agathe, ch06, 1391 caractères, déjà à refaire pour ses légendes muettes) : « ne peut pas être nulle » devient « n’est jamais vide ».
+**10 novembre, 13 h 05 : les voix de la relecture finale, revues avec Elisa** (« corrige en parlant un peu de ce qu’est une clé, et le reste de la meilleure des manières » ; « oui, fais le filtre »). Cinq chapitres, chacun avec la voix de son cours ; la page garde ses textes tant que la voix n’est pas refaite (`tools/voix/<cours>-relecture.json`, même nombre de légendes qu’avant) :
+  - Normalisation (Agathe, ch05, 697 caractères) : « Deuxième forme normale : chaque colonne dépend de toute la clé, les colonnes qui repèrent chaque ligne. » puis « La clé d’une inscription, c’est le couple client et atelier : la date d’inscription dépend des deux. » ;
+  - WITH RECURSIVE (Anaïs, ch06, 419 caractères) : « Ixèpte en retire 12, les jours de juillet avec au moins une commande : il reste 19 jours. » (la table a 14 dates, dont deux en août) ;
+  - GROUP BY sur plusieurs colonnes (Antoine, ch05, 291 caractères) : « Conseil : mets aussi dans le SELECT chaque colonne du groupe baï. » (ce n’est pas une règle : la vidéo montre ensuite que la requête s’exécute) ;
+  - Bases relationnelles (Agathe, ch06, 1391 caractères, déjà à refaire pour ses légendes muettes) : « sa valeur est unique et n’est jamais vide » ;
+  - HAVING (voix du cours, ch04, 407 caractères) : « WHERE filtre les lignes avant les groupes » et « WHERE filtre d’abord les lignes, puis HAVING filtre les groupes » (« trier », c’est ORDER BY ; les étiquettes de la page disent déjà « filtre »).
 
-  Environ 2 800 crédits :
+  Environ 3 200 crédits :
 
 ```
-cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours with-recursive-relecture,group-by-colonnes-relecture,projet-normaliser-relecture,bases-relationnelles-relecture --oui
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours with-recursive-relecture,group-by-colonnes-relecture,projet-normaliser-relecture,bases-relationnelles-relecture,having-relecture --oui
 ```
 
   Puis « fini » : `node tools/voix/integrer.mjs <cours> tools/voix/sortie/<cours>-relecture --garder` pour chacun.
+
+  La vidéo de fin (`fin-sql`, voix à créer, plus bas) dit maintenant « 15 modules, 71 cours et 247 requêtes SQL. ».
 
 **10 novembre, 10 h 10 : contrôle automatique des 1 436 voix** (signal seul : débuts et fins, silences, volume, saturation, débit ; `tools/voix/clics.mjs`). Rien de coupé au début, aucune saturation, aucun silence anormal (le plus long fait 1,2 s), volumes homogènes (`volume.mjs` : 0 fichier à régler), débits normaux. Corrigé sans régénérer ni réencoder : 51 « tic » en fin de phrase et 5 souffles après la dernière syllabe (les trames concernées rendues muettes, durée inchangée, le reste du son identique à l’échantillon près). Reste pour l’oreille d’Elisa : `coalesce/ch02` (un bruit après « absents », trop proche de la voix pour être retiré sans risque), et `bases-relationnelles/ch11`, jamais généré (voir plus bas). Les accents et la prononciation ne se contrôlent pas automatiquement ici.
 
@@ -90,7 +93,7 @@ Dans les listes ci-dessous, les lignes de ces 20 cours sont donc caduques (Mia, 
 4. Ton message est envoyé à toute l’équipe NutriBoost.
 5. Souviens-toi de ta toute première requête.
 6. Regarde le chemin parcouru depuis !
-7. 15 modules, 65 cours et 184 requêtes SQL.
+7. 15 modules, 71 cours et 247 requêtes SQL. _(10 novembre : 65 cours et 184 requêtes avant le recompte)_
 8. Bravo : tu as terminé ton apprentissage du SQL !
 9. Et maintenant, place à la pratique : des défis t’attendent !
 
