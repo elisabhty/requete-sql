@@ -1,4 +1,5 @@
-/* Presentation and guided relationship for INNER JOIN's course only. */
+/* L'ancienne page du cours INNER JOIN (avant les cours en vidéo) : la mise en page de l'introduction et la relation guidée entre
+   les tables. Ne sert qu'à ce cours, quand sa page texte s'affiche ; les cours en vidéo n'en ont pas besoin. */
 window.initInnerJoinCourse = function () {
   const root = document.querySelector('.inner-editorial .lesson-rich');
   if (!root) return;

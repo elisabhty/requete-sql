@@ -23,7 +23,9 @@ python3 -m http.server 8080
 # → http://localhost:8080
 ```
 
-> Le moteur `sql.js` est chargé depuis un CDN : une connexion internet est nécessaire au premier chargement.
+> Le moteur `sql.js` est dans `vendor/sqljs/` : l’appli marche sans réseau (le service worker `sw.js` garde ses fichiers).
+
+Pour savoir où se trouve quoi dans le code : **[CARTE-DU-CODE.md](CARTE-DU-CODE.md)**.
 
 ## Déploiement (prod)
 
