@@ -65,7 +65,7 @@ test('sur l’accueil, le diplômé fête une fois puis se pose, comme le coucou
   attrs.src = ANIM; vm.runInContext('mascotCoucouJoue(img)', ctx);
   assert.equal(attrs.src, FIXE); images.shift()(); images.shift()(); assert.equal(attrs.src, ANIM, 'touché en pleine fête : il recommence au début');
   const hero = cut('function renderHomeHero(){', 'const LQ_VIDEO_SVG=');
-  assert.ok(hero.includes("intro,anim:nxt==null?'diplome':'coucou',repos:nxt==null?'':'rire',uneFois:true,joue:intro})"), 'le parcours terminé : le diplômé');
+  assert.ok(hero.includes("intro,anim:nxt==null?'diplome':'poisson',repos:nxt==null?'':'rire',uneFois:true,joue:intro})"), 'le parcours terminé : le diplômé');
 });
 
 test('la fin du parcours : le diplômé, que le « Bravo » ne remplace plus ; visible dès son arrivée', () => {
