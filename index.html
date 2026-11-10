@@ -2,6 +2,26 @@
 <html lang="fr" class="lq">
 <head>
 <meta charset="UTF-8">
+<!-- CARTE DU FICHIER (10 novembre). index.html, c’est toute l’appli : le HTML des écrans, puis un grand script découpé en parties.
+     Pour aller à une partie, cherche son titre dans le fichier :
+     • 1. BASE DE DONNÉES ........ la base NutriBoost des cours
+     • COURS « GUIDE » ........... un cours décrit en données
+     • 2. PROGRAMME .............. les 15 modules et leurs 71 leçons
+     • 3. DÉFIS .................. les 477 défis et le coach
+     • 3bis. LES CARTES .......... les cartes mémo et les QCM
+     • 4. PERSISTANCE ............ la sauvegarde dans le navigateur
+     • 5. MOTEUR SQL ............. le démarrage, SQLite, la console
+     • 6. BARRE DE TOUCHES SQL ... l’aide à la saisie
+     • 7. VISUALISEUR D'EXÉCUTION  le pas à pas, le schéma UML
+     • 8. ÉCRANS ................. la navigation et tous les écrans
+     • 8bis. STICKERS ............ les stickers
+     • 9. PLANNING ............... le planning, les flammes, la série
+     • 10. VALIDATION ............ la validation d’une leçon
+     • ENTRETIEN ................. les questions d’entretien, les notes
+     • ONBOARDING ................ l’accueil, le paywall, les statistiques, l’app iPhone
+     • COMPTE .................... Mon compte
+     Chaque partie commence par « En bref : » ; les petits titres « ---------- » découpent l’intérieur. Les commentaires datés
+     (« Elisa, 10 novembre, 17 h 11 : … ») gardent la demande d’origine : à garder quand on modifie. Le reste du dépôt : CARTE-DU-CODE.md. -->
 <!-- Elisa, 2 novembre, 15 h 30 : « faire le lien entre le site et l’appli » — un nouveau visiteur de l’adresse principale voit d’abord le site
      (decouvrir/). Restent dans l’appli : qui a déjà un parcours sur cet appareil, qui arrive du site (?depuis=…, retenu), l’appli
      installée (écran d’accueil, App Store), ?app pour forcer l’appli, et les navigateurs pilotés (tests). 5 novembre, 14 h : le lien
@@ -7854,6 +7874,9 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 /* ============================================================
    1. BASE DE DONNÉES
    ============================================================ */
+/* En bref : La base d’entraînement des cours, NutriBoost (clients, produits, commandes, fidélité), écrite en SQL : SCHEMA_SQL la crée
+   dans le moteur SQLite au démarrage (buildDb, partie 5) ; SCHEMA_META décrit ses tables pour le schéma UML et l’aide à la saisie.
+   Les bases des défis (Aéroport, Zoo, Hôpital…) sont avec les défis, partie 3 (DEFI_BASES). */
 const SCHEMA_SQL = `
 PRAGMA foreign_keys = ON;
 /* Schema pedagogique : clients, produits, commandes, et fidelite
@@ -7937,6 +7960,7 @@ const SCHEMA_META=[
    guide({id,titre,résumé,sit,concept,steps,reflex,…}) renvoie un cours au format
    habituel ; la typographie française (espaces insécables) est appliquée ici.
    ============================================================ */
+/* En bref : Un cours décrit en données (scènes, blocs, schémas) plutôt qu’écrit à la main en HTML : guidePage en fait la page. */
 const GUIDE_SCENES={},GUIDE_FILLS={},GUIDE_DONE={};
 /* Animations placées dans le corps d’un cours (blocs « scene »), par numéro de cours, dans l’ordre d’apparition ; GUIDE_CUR = cours en cours de construction. */
 const GUIDE_XSCENES={};let GUIDE_CUR=0;
@@ -8466,6 +8490,9 @@ function guide(spec){
 /* ============================================================
    2. PROGRAMME
    ============================================================ */
+/* En bref : MODULES : les 15 modules et leurs 71 leçons, dans l’ordre du parcours. Chaque leçon est un cours en vidéo
+   (assets/anim/<cours>.html, sa voix dans assets/voix/<cours>/) validé par ses moments « À toi » (leconSeule) : son titre, son
+   résumé, sa page (studio, guided). allLessons (partie 5) les met à plat ; TOTAL les compte. */
 const MODULES = [
 { titre:"Introduction", sous:"Bases de données, tables, relations et SELECT", lessons:[
 guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, clés et lecture avec SELECT",
@@ -9795,6 +9822,10 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
 /* ============================================================
    3. DÉFIS
    ============================================================ */
+/* En bref : CHALLENGES : les 477 défis (la situation, ce qu’il faut afficher, garder et trier, la solution, l’indice), par base métier
+   (DEFI_BASES) et par niveau (NIV : Facile, Moyen, Difficile), puis le coach qui aide pendant un défi (indices, « Pas à pas »).
+   Le serveur en a une copie exacte pour vérifier les parties en salle : après un changement ici, lancer
+   node scripts/build-secure-catalog.cjs, pousser, mettre le commit dans supabase/functions/jeu-verifier/index.ts et redéployer. */
 /* Les 267 défis réécrits (Elisa, 5 novembre, 23 h 27 : « J’adore ce que les agents ont fait niveau entretien je veux que les même
    (expert en écriture / formulation) explique mieux les 267 défis »). Neuf rédacteurs (un par base, deux pour l’aéroport), puis cinq
    relecteurs. Chaque texte est vérifié en jouant le joueur : une requête écrite d’après le seul texte doit être acceptée par le
@@ -19656,6 +19687,8 @@ const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
 /* ============================================================
    3bis. LES CARTES
    ============================================================ */
+/* En bref : CARTES : une carte mémo par leçon (le mot-clé, ce qu’il faut retenir, la syntaxe, le piège), débloquée quand la leçon est
+   validée (isUnlocked). QCM : les anciennes questions de fin de leçon, gardées pour les parcours d’avant les vidéos. */
 /* Les cartes mémo (Elisa, 6 novembre, direction A « Scène à collectionner ») : pour chaque leçon qui en donne une, le mot-clé (k),
    l’idée (t), les trois points à retenir, la syntaxe (s, une requête complète qu’« Essayer » envoie dans la Console) et le piège que la
    leçon montre. dialecte : une syntaxe que la base de l’appli n’exécute pas (PostgreSQL). */
@@ -20033,6 +20066,8 @@ const QCM={};
 /* ============================================================
    4. PERSISTANCE
    ============================================================ */
+/* En bref : Tout ce que l’élève fait reste dans le navigateur (localStorage, clé KEY) : leçons, défis, notes, planning, réglages, par save().
+   markDone valide une leçon et programme ses révisions (à J+1, J+3, J+7, J+21 puis J+60). Rien ne part sur un serveur ici. */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
 const APP_VERSION='2026-09-01-curriculum-v259';
 const KEY='requete-sql-v3';
@@ -20111,6 +20146,10 @@ function markDone(id,review){
 /* ============================================================
    5. MOTEUR SQL
    ============================================================ */
+/* En bref : Le démarrage de l’appli (boot), puis le moteur : sql.js, SQLite compilé en WebAssembly (vendor/sqljs). sqlCompat et attachDateFns
+   ajoutent les fonctions des autres SGBD (DATE_TRUNC, DATEADD…) ; buildDb crée la base du cours, sandbox une copie jetable pour un
+   exercice. Ensuite la console (projets, import de fichiers, historique, épingles) et la comparaison des résultats (normCell…).
+   sql-compat.mjs et matcher.mjs, côté serveur, sont copiés d’ici (même commande que pour les défis). */
 let db=null,SQL=null,baseBytes=null;
 const allLessons=MODULES.flatMap(m=>m.lessons);
 const TOTAL=allLessons.length;
@@ -23980,6 +24019,8 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
 /* ============================================================
    6. BARRE DE TOUCHES SQL
    ============================================================ */
+/* En bref : La barre au-dessus du clavier dans l’éditeur SQL : les mots-clés, tables et colonnes les plus probables à cet endroit de la
+   requête (kbarSqlHints, kbarRankedKeys). */
 let activeTA=null;
 let kbarKbDismissed=false;
 let kbarLastOrder='';
@@ -24387,6 +24428,8 @@ if(window.visualViewport){
 /* ============================================================
    7. VISUALISEUR D'EXÉCUTION
    ============================================================ */
+/* En bref : « Pas à pas » : la requête découpée en clauses (FROM, WHERE, GROUP BY…), chacune avec son résultat intermédiaire (buildSteps,
+   openViz). Puis le schéma UML d’une base, dessiné d’après ses tables (umlModele). */
 function splitClauses(sql){
   const s=sql.replace(/;\s*$/,'').trim();
   if(!/^select/i.test(s))return null;
@@ -25361,6 +25404,10 @@ function vizGo(d){ if(d>0&&(!vizSteps.length||vizI>=vizSteps.length-1)){closeViz
 /* ============================================================
    8. ÉCRANS
    ============================================================ */
+/* En bref : La navigation entre les onglets du bas (Accueil, Planning, Pratiquer, Bibliothèque, Compte) et leurs sous-pages. Toute la suite,
+   jusqu’aux stickers (8bis), ce sont les écrans, chacun annoncé par un titre « ---------- » : la recherche, les onglets (switchTab),
+   l’accueil (renderHomeHero), les défis (renderDefis), la page d’une leçon (openLesson), le cours en vidéo (openLessonVideo) et ses
+   moments « À toi », la salle de défi (jeuStart), un défi seul (openChallenge, runLesson), les cartes mémo (openCard). */
 const tabScrollPositions={};
 /* Sur mobile, un glissement vertical qui commence sur la barre d’outils du clavier (.kbar) fait défiler l’écran en dessous
    (la barre n’est pas dans la zone qui défile). Un simple toucher reste un clic ; un glissement horizontal garde le
@@ -38664,6 +38711,8 @@ function toastWithAction(msg,sub,label,fn){
    Chaque dessin est une liste de calques dans un carré de 200 : tracés SVG (Path2D) et textes en Bricolage. Le même
    rendu sert à l’écran (canvas) et au fichier, où le bord de découpe suit la silhouette comme sur une planche
    prédécoupée. */
+/* En bref : Les stickers : un par module et des accomplissements, dessinés en SVG (stkDraw), à coller sur un tableau (déplacer, tourner,
+   agrandir) et à télécharger en PNG pour les imprimer. */
 const STK_INK='#221C46';
 const STK_C={vio:'#7C5CFF',vio2:'#A993FF',yel:'#FFD23F',yel2:'#FFE795',ora:'#FF9A3D',cor:'#FF6B6B',pnk:'#FF8FC7',pnk2:'#FFC6E2',
   min:'#3ED6A0',sky:'#5EC2FF',sky2:'#C4EAFF',blu:'#3D7BFF',grn:'#22B868',grn2:'#62D89A',gold:'#FFC83D',crm:'#FFF6E3',steel:'#CFCAE4'};
@@ -39839,6 +39888,9 @@ if(typeof window!=='undefined')window.addEventListener('resize',()=>{
 /* ============================================================
    9. PLANNING — vue semaine, dates explicites
    ============================================================ */
+/* En bref : Le planning : d’après le niveau, le rythme (10, 20 ou 30 min) et les jours choisis, apercuPlan répartit les leçons en séances
+   datées. Ici aussi : la série de flammes (streakJours), le temps d’apprentissage, les pages « flamme du jour » et « semaine en feu »,
+   et l’onglet Planning (renderPlanning). */
 const NIVEAUX=[
   {k:'debutant',i:'○',t:"Je pars de zéro",d:"Jamais écrit une requête · défis faciles",from:0},
   {k:'bases',i:'◐',t:"J'ai quelques bases",d:"SELECT et les filtres me parlent · défis moyens",from:11},
@@ -41488,6 +41540,9 @@ function majBadgePlanning(){
 /* ============================================================
    10. VALIDATION DES LEÇONS (exercice + QCM)
    ============================================================ */
+/* En bref : La validation d’une leçon. Aujourd’hui, une leçon est validée par ses moments « À toi » dans la vidéo (leconSeule) ;
+   les étapes exercice et QCM d’ici servent aux anciennes progressions. Quand tout est fait, validerLecon la valide (markDone) et
+   ouvre le bilan. */
 function qcmDe(id){return QCM[id]||[];}
 /* Mélange stable des options : même ordre à chaque affichage, mais la bonne réponse
    ne tombe pas toujours au même endroit. */
@@ -41711,6 +41766,8 @@ function renderNotes(opts){
 /* ============================================================
    ENTRETIEN — questions SQL les plus posées
    ============================================================ */
+/* En bref : Les 142 questions d’entretien (ENTRETIEN), par notion, avec leur réponse, la recherche et le suivi « à revoir / maîtrisée ».
+   Puis les notes (openNote, renderNotes). */
 const ENTRETIEN=[
  {id:'ent-v2-01',niveau:'Débutant',cat:'Clés et contraintes',notions:['PRIMARY KEY','UNIQUE','NOT NULL'],dialectes:['Standard'],q:'Qu’est-ce qu’une clé primaire ?',a:"Une clé primaire, c’est la colonne qui sert de numéro d’identité à chaque ligne d’une table, souvent une colonne <code>id</code>.\n\nLa clé primaire suit deux règles : sa valeur est unique, deux lignes ne peuvent pas avoir la même, et elle est toujours remplie, jamais <code>NULL</code>. Une table n’a qu’une seule clé primaire.\n\nJe choisis une valeur qui ne change jamais, en général un nombre donné automatiquement par la base. Les autres tables s’en servent pour désigner une ligne précise.",syntaxe:'CREATE TABLE t (\n  id INTEGER PRIMARY KEY,\n  nom TEXT NOT NULL\n);'},
  {id:'ent-v2-02',niveau:'Débutant',cat:'Clés et contraintes',notions:['FOREIGN KEY','REFERENCES','Intégrité référentielle'],dialectes:['Standard'],q:'Qu’est-ce qu’une clé étrangère ?',a:"Une clé étrangère est une colonne qui fait référence à la clé primaire d’une autre table. C’est elle qui crée le lien entre les deux tables.\n\nLa base vérifie ce lien : elle refuse une valeur qui ne correspond à aucune ligne de l’autre table, et elle empêche de supprimer une ligne encore utilisée ailleurs.\n\nJe m’en sers pour relier les données sans les recopier : chaque information n’est écrite qu’une fois, et une jointure les rassemble à la lecture.",syntaxe:'CREATE TABLE enfant (\n  id INTEGER PRIMARY KEY,\n  parent_id INTEGER\n    REFERENCES parent (id)\n);'},
@@ -42774,6 +42831,11 @@ function fillConsole(i){
 /* ============================================================
    ONBOARDING · MICRO-INTERACTIONS
    ============================================================ */
+/* En bref : L’accueil d’un nouvel élève, dans l’ordre de OB_SLIDES : les questions (prénom, pays, âge, métier, objectif, niveau, rythme,
+   jours), le parcours qui se construit, les avis, l’engagement, la première requête, « Comment as-tu connu Requête ? », le rappel,
+   le pseudo, « Ton parcours est prêt », la connexion, le paywall. paintOb dessine la page en cours, obGoto change de page,
+   finishOnboard crée le planning et ouvre l’appli. Plus loin : l’entonnoir (obCompter), les statistiques anonymes (stat), le
+   paywall (obPaywallHTML), les widgets, la Dynamic Island et les raccourcis de l’app iPhone. */
 let obStep=0;
 let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
@@ -46459,6 +46521,8 @@ document.addEventListener('keydown',e=>{
 /* ============================================================
    COMPTE
    ============================================================ */
+/* En bref : L’onglet Mon compte : le profil et le niveau, la progression, les accomplissements, les rappels de séance, les réglages,
+   « Tes données, tes choix », « Contacte-nous », se déconnecter et supprimer son compte. */
 function compteStats(){
   const lessons=Object.values(state.lessons||{}).filter(l=>l.done).length;
   const defis=Object.keys(state.defis||{}).length;
@@ -47840,7 +47904,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-10-stats-v2833';
+  const SW_CACHE='requete-2026-11-10-commentaires-v2834';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

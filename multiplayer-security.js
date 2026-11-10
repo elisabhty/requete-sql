@@ -1,5 +1,10 @@
-/* Ranked games use a server-owned identity and a verified SQL submission.
-   This file contains no privileged key. The device secret stays out of broadcasts. */
+/* Les parties classées, sécurisées (chargé après index.html).
+   - jeuStart et jeuRun sont remplacés : en salle, l'identité du joueur vient du serveur (jeu_identite_v2) et chaque requête est
+     envoyée à la fonction jeu-verifier, qui la rejoue sur sa copie du catalogue avant de compter les points (personne ne peut
+     tricher en envoyant « j'ai trouvé »).
+   - REQUETE_SECURE_MULTIPLAYER passe les appels de la salle aux versions _v2 des fonctions Supabase (avec la clé de l'appareil).
+   - Aucune clé secrète ici ; la clé de l'appareil ne part jamais dans les messages de la salle. Un défi seul reste jouable hors ligne.
+   (Ranked games use a server-owned identity and a verified SQL submission. No privileged key; the device secret stays out of broadcasts.) */
 (() => {
   window.REQUETE_SECURE_MULTIPLAYER = true;
   const localStart = jeuStart;
