@@ -18,7 +18,7 @@ function monde({cle = 'appl_test', natif = true, plugin} = {}) {
     document: {visibilityState: 'visible', addEventListener() {}},
     Promise, Error, Object, Number, String,
   };
-  vm.runInNewContext(src.replace("var RC_CLE_IOS = '';", `var RC_CLE_IOS = ${JSON.stringify(cle)};`), ctx);
+  vm.runInNewContext(src.replace(/var RC_CLE_IOS = '[^']*';/, `var RC_CLE_IOS = ${JSON.stringify(cle)};`), ctx);
   return {win, store};
 }
 
@@ -45,7 +45,8 @@ test('sans clé, ou hors de l’app iPhone, rien n’est branché : le paywall g
   assert.equal(monde({cle: '', plugin: faux().plugin}).win.REQUETE_ACHAT, undefined);
   assert.equal(monde({natif: false, plugin: faux().plugin}).win.REQUETE_ACHAT, undefined);
   assert.equal(monde({plugin: undefined}).win.REQUETE_ACHAT, undefined);
-  assert.match(src, /var RC_CLE_IOS = '';/, 'la clé reste vide dans le dépôt tant qu’Elisa ne l’a pas donnée');
+  assert.match(src, /var RC_CLE_IOS = 'appl_[A-Za-z0-9]+';/, 'la clé publique iOS de RevenueCat (22 h 50)');
+  assert.match(readFileSync(new URL('../package.json', import.meta.url), 'utf8'), /"@revenuecat\/purchases-capacitor"/);
 });
 
 test('l’achat passe le bon produit et ouvre l’app, l’annulation de la feuille Apple n’est pas une erreur', async () => {
@@ -76,10 +77,10 @@ test('prix de la boutique du pays, essai caché pour qui l’a déjà eu, restau
 });
 
 test('le paywall affiche les prix de la boutique quand ils sont là, et charge achat.js', () => {
-  assert.match(html, /<script src="achat\.js\?v=1"><\/script>/);
+  assert.match(html, /<script src="achat\.js\?v=2"><\/script>/);
   assert.match(html, /function obPrixTexte\(k\)\{const b=obPrixBoutique\(k\);return b\?b\.texte:obEuros\(OB_OFFRES\[k\]\.prix\);\}/);
   assert.match(html, /<b>\$\{obPrixTexte\(k\)\}<\/b> \$\{x\.par\}/);
   assert.match(html, /soit \$\{parSemaineTexte\} par semaine/);
   assert.equal((html.match(/\$\{prix\} \$\{o\.par\}/g) || []).length, 2, 'le pied (essai et sans essai) suit aussi');
-  assert.match(readFileSync(new URL('../sw.js', import.meta.url), 'utf8'), /'\.\/achat\.js\?v=1',/);
+  assert.match(readFileSync(new URL('../sw.js', import.meta.url), 'utf8'), /'\.\/achat\.js\?v=2',/);
 });
