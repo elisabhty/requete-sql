@@ -111,15 +111,9 @@ test('les points gagnés en notification animée : à la manche trouvée et en f
   assert.ok(s49.includes('#jeu-pts-pop,#jeu-pts-pop *,.collectible.lock .memo-go>svg{animation:none!important}'), 'mouvement réduit');
 });
 
-test('réf. 4 — « Voir la leçon » d’une carte à débloquer : une pastille et sa flèche qui avance', () => {
-  /* 6 novembre (cartes mémo, direction A) : la pastille, blanche sur le dos lavande de la carte (ludique.css, 62e) */
-  assert.ok(app.includes('<span class="mc-go">Voir la leçon${MEMO_GO_SVG}</span>'));
-  assert.ok(app.includes("const MEMO_GO_SVG='<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h13M13 6.5 18.5 12 13 17.5\""));
-  for (const k of ['html.lq .mc-go{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;', 'border-radius:999px;\n  background:#fff;color:var(--accent-ink);',
-    'html.lq .mc-go svg{flex:none;width:14px;height:14px;animation:memoGo 2.6s cubic-bezier(.4,0,.2,1) infinite;animation-delay:calc(.6s + var(--i,0) * .18s)}',
-    'html.lq button.mc.is-lock:active .mc-go svg{animation:none;transform:translateX(5px);transition:transform .15s}'])
-    assert.ok(css.includes(k), k);
-  assert.ok(s49.includes('@keyframes memoGo{0%,40%,100%{transform:none}15%{transform:translateX(4px)}27%{transform:translateX(-1px)}}'));
+test('réf. 4 — 10 novembre (« ne plus mettre voir les leçons sur les cartes ») : la carte à débloquer n’a plus sa pastille', () => {
+  assert.ok(!app.includes('Voir la leçon${MEMO_GO_SVG}') && !app.includes('MEMO_GO_SVG') && !css.includes('.mc-go'));
+  assert.ok(app.includes('<span class="mc-lesson" style="--kn:${memoKn(l.titre)}">${esc(l.titre)}</span></span></button>`;'), 'le nom de la leçon, en bas ; toute la carte ouvre la leçon');
 });
 
 /* Le nombre de défis réussis par joueur, pour savoir quand en ajouter. */

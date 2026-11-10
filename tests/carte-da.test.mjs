@@ -90,7 +90,7 @@ test('la DA : scène violette quadrillée, numéro autocollant, mot-clé jaune a
     'html.lq .mc-h-stk.is-poke svg{animation:lqHeadPoke .6s var(--pop)}'])
     assert.ok(s62.includes(part), part);
   const rm = s62.slice(s62.indexOf('@media (prefers-reduced-motion:reduce)'));
-  assert.ok(rm.includes(':is(.mc,.mc-face,.mc-back,.mc-verso,.mc-pts>li,.mc-flip,.mc-flip>.mc-side,.mc-shine,.mc-seal,.mc-hint-ico,.mc-flag,.mc-prize,.mc-h-stk,.mc-h-stk>svg,.mc-go svg){animation:none!important;transition:none!important}'), 'mouvement réduit : rien ne bouge');
+  assert.ok(rm.includes(':is(.mc,.mc-face,.mc-back,.mc-verso,.mc-pts>li,.mc-flip,.mc-flip>.mc-side,.mc-shine,.mc-seal,.mc-hint-ico,.mc-flag,.mc-prize,.mc-h-stk,.mc-h-stk>svg){animation:none!important;transition:none!important}'), 'mouvement réduit : rien ne bouge');
   assert.ok(rm.includes('html[data-motion="reduce"].lq .mc--big .mc-face{transform:none}'), 'le réglage de l’app aussi');
 });
 

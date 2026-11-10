@@ -11,7 +11,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
 const fn = name => { const a = app.indexOf(`function ${name}(`); assert.ok(a > 0, name); return app.slice(a, app.indexOf('\n}', a) + 2); };
-const consts = app.slice(app.indexOf('const MEMO_GO_SVG='), app.indexOf('/* Le numéro de collection (01 à 71)'));
+const consts = app.slice(app.indexOf('const MEMO_LOCK_STK='), app.indexOf('/* Le numéro de collection (01 à 71)'));
 
 function bac(extra = {}) {
   const CARTES = {4: {k: 'WHERE', t: 'Filtrer les lignes', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 1;', piege: 'Piège.'},
@@ -36,11 +36,11 @@ test('le numéro de collection : 01, 02, 03… dans l’ordre des leçons qui on
   assert.ok(app.includes('<b id="card-sheet-title">Carte mémo</b>') && fn('closeCard').includes("t.textContent='Carte mémo';"), 'la fiche s’appelle « Carte mémo »');
 });
 
-test('l’album : à débloquer (le dos, son cadenas, « Voir la leçon »), débloquée, nouvelle, à revoir, acquise', () => {
+test('l’album : à débloquer (le dos, son cadenas, la leçon), débloquée, nouvelle, à revoir, acquise', () => {
   const ctx = bac();
   const lock = ctx.memoAlbumCard({id: 9, titre: 'L’ordre d’exécution'});
   assert.ok(lock.startsWith('<button type="button" class="mc mc--album is-lock" onclick="openLesson(9)" aria-label="Carte 03 à débloquer avec la leçon L’ordre d’exécution. Ouvrir la leçon">'));
-  assert.ok(lock.includes('<span class="mc-back"><span class="mc-top"><b class="mc-num">03</b></span><span class="mc-lock"><svg') && lock.includes('<span class="mc-go">Voir la leçon<svg'));
+  assert.ok(lock.includes('<span class="mc-back"><span class="mc-top"><b class="mc-num">03</b></span><span class="mc-lock"><svg') && lock.includes('</span><span class="mc-lesson" style="--kn:11">L’ordre d’exécution</span></span></button>') && !lock.includes('mc-go'), '10 novembre : plus de « Voir la leçon » sur la carte');
   const open = ctx.memoAlbumCard({id: 4});
   assert.ok(open.startsWith('<button type="button" class="mc mc--album" onclick="openCard(4)" aria-label="Carte 01, WHERE : Filtrer les lignes">'));
   assert.ok(open.includes('<span class="mc-face"><span class="mc-top"><b class="mc-num">01</b></span><b class="mc-k" style="--kn:5">WHERE</b><span class="mc-t">Filtrer les lignes</span></span>'));
@@ -84,9 +84,9 @@ test('la récompense dans le cours, et « Noter » : le numéro et le mot-clé d
   assert.equal(pre.txt, '• WHERE filtre.\n• Deux.\n• Trois.');
 });
 
-test('Texte plus grand, petits écrans : le mot-clé et « Voir la leçon » s’ajustent à la carte, la syntaxe ne défile pas', () => {
+test('Texte plus grand, petits écrans : le mot-clé s’ajuste à la carte, la syntaxe ne défile pas', () => {
   assert.ok(css.includes('html.lq[data-reading="large"]{--mc-fs:1.15}'));
   /* 7 novembre, 8 h 17 : la taille suit l’écran (vw) et non plus la carte (cqi), que Safari mesurait trop tôt (retours-0817) */
-  assert.ok(css.includes('@media (max-width:360px){html.lq .mc-go{gap:4px;padding:5px 6px 5px 9px;font-size:min(calc(12.5px * var(--mc-fs)),calc((50vw - var(--gut,20px) - 79px) / 6))}}'), '« Voir la leçon » tient à 320 px');
+  assert.ok(css.includes('@media (max-width:350px){html.lq .mc--album{--mc-w:calc(50vw - 44px)}}') && !css.includes('.mc-go'), '10 novembre : l’album suit l’écran (retours-0850-cartes), plus de « Voir la leçon »');
   assert.ok(css.includes('container-type:inline-size') && css.includes('font-size:min(calc(14px * var(--mc-fs)),calc((100cqi - 30px) / 18.3))'), 'la syntaxe : 30 signes par ligne, sans défilement');
 });

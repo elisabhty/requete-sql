@@ -6680,7 +6680,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=308">
+<link rel="stylesheet" href="ludique.css?v=309">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -38218,8 +38218,8 @@ function setFilter(f){ collFilter=f;document.getElementById('scr-collection')?.c
 /* Une identité commune pour l’album, la récompense et la fiche mémo :
    une carte blanche comme le reste de l’appli, le mot-clé SQL en violet. */
 const MEMO_LOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>`;
-/* « Voir la leçon » d’une carte à débloquer : une pastille et sa flèche qui avance (Elisa, 31 octobre, 15 h 52, réf. 4 ; ludique.css, 49e). */
-const MEMO_GO_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6.5 18.5 12 13 17.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* 10 novembre, 8 h 50 (Elisa : « ne plus mettre voir les leçons sur les cartes ») : la carte à débloquer garde son cadenas et le nom
+   de la leçon ; la toucher ouvre toujours la leçon (son nom le dit à VoiceOver). */
 /* ---------- Cartes mémo : « Scène à collectionner » (Elisa, 6 novembre : la direction A du designer) ----------
    Une carte, deux faces, la même partout : l’album, la fiche, le bilan de la leçon (on la retourne pour lire son verso) et la
    récompense dans le héros de la leçon. Le recto : la scène violette quadrillée du site, le numéro en autocollant, le mot-clé jaune.
@@ -38241,7 +38241,9 @@ function memoKw(k,cls=''){
   const mot=/[a-zà-ÿ]{3,}/.test(k);
   let t=String(k).replace(/\s+([·\/+])\s+/g,' $1 ').replace(/\b(GROUP|ORDER|PARTITION) BY\b/g,'$1 BY').replace(/\b(INNER|LEFT|RIGHT|CROSS) JOIN\b/g,'$1 JOIN').replace(/\ba, b\b/,'a, b');
   const kl=t.length,kc=kl<=11?kl:kl<=22?Math.ceil(kl/2):Math.ceil(kl/3);
-  return `<b class="mc-k${mot?' is-mot':''}${cls}" style="--kn:${Math.max(memoKn(t.replace(/ /g,'_')),kc)}">${esc(t)}</b>`;
+  /* 10 novembre, 8 h 50 (« Base relationnelle » coupé) : une notion en mots (is-mot) passe à la ligne entre ses mots, elle se
+     mesure à son mot le plus long ; le code garde ses mots ensemble (GROUP BY). */
+  return `<b class="mc-k${mot?' is-mot':''}${cls}" style="--kn:${Math.max(memoKn(mot?t:t.replace(/ /g,'_')),kc)}">${esc(t)}</b>`;
 }
 /* Le recto. o.mod : la pastille du module (fiche seulement : ailleurs, le module est déjà écrit au-dessus). o.shine : le reflet. */
 function memoFace(id,o={}){
@@ -38261,6 +38263,15 @@ function memoVerso(id,o={}){
     ${c.sgbd?`<p class="mc-sgbd">Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='${c.sgbd}'>Selon le SGBD</button> de la Bibliothèque.</p>`:''}
     ${c.piege?`<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i>${MEMO_TRAP_STK}</i>Le piège</p><p>${memoCodes(c.piege)}</p></aside>`:''}`;
 }
+/* L’en-tête de la collection (10 novembre, 8 h 50 : « vérifie qu’il n’y a pas d’erreur de calcul ») : jamais « 0 carte » ni « 0 module
+   complet », pas deux fois le même nombre (« 1 sur 71 · 70 à obtenir »). Rien : « 71 cartes à gagner », une par leçon validée ; en route :
+   les cartes débloquées, les modules complets s’il y en a, ce qui reste ; tout : la collection complète. */
+function collTitre(n){return n?`${n} carte${n>1?'s':''} débloquée${n>1?'s':''}`:`${TOTAL_CARTES} cartes à gagner`;}
+function collSous(n,mods,reste){
+  if(!n)return 'Une carte à chaque leçon validée';
+  const m=mods?`${mods} module${mods>1?'s':''} complet${mods>1?'s':''} · `:'';
+  return reste?`${m}encore ${reste} à obtenir sur ${TOTAL_CARTES}`:`${m}collection complète`;
+}
 /* L'état d'une carte débloquée dans l'album : nouvelle (vient d'être gagnée), à revoir, acquise, ou rien. */
 function memoEtat(l){
   if(lastUnlockedId===l.id)return 'new';
@@ -38271,7 +38282,7 @@ function memoEtat(l){
 /* Une carte de l'album : débloquée (elle ouvre sa fiche) ou à débloquer (elle ouvre la leçon qui la donne). */
 function memoAlbumCard(l){
   const c=CARTES[l.id],n=memoSerial(l.id);
-  if(!isUnlocked(l.id))return `<button type="button" class="mc mc--album is-lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte ${n} à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}"><span class="mc-back"><span class="mc-top"><b class="mc-num">${n}</b></span><span class="mc-lock">${MEMO_LOCK_STK}</span><span class="mc-lesson" style="--kn:${memoKn(l.titre)}">${esc(l.titre)}</span><span class="mc-go">Voir la leçon${MEMO_GO_SVG}</span></span></button>`;
+  if(!isUnlocked(l.id))return `<button type="button" class="mc mc--album is-lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte ${n} à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}"><span class="mc-back"><span class="mc-top"><b class="mc-num">${n}</b></span><span class="mc-lock">${MEMO_LOCK_STK}</span><span class="mc-lesson" style="--kn:${memoKn(l.titre)}">${esc(l.titre)}</span></span></button>`;
   const e=memoEtat(l),lab={due:'. À revoir',ok:'. Acquise',new:'. Nouvelle'}[e]||'';
   return `<button type="button" class="mc mc--album${e?' is-'+e:''}" onclick="openCard(${l.id})" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}${lab}`)}">${e==='due'?`<span class="mc-flag" aria-hidden="true">${MEMO_TURN_SVG}À revoir</span>`:e==='new'?'<span class="mc-flag is-new" aria-hidden="true">Nouvelle</span>':''}${memoFace(l.id,{shine:e==='new'})}${e==='ok'?`<span class="mc-ok" aria-hidden="true">${MEMO_CHECK_SVG}</span>`:''}</button>`;
 }
@@ -38386,7 +38397,7 @@ function renderCollection(){
       review=`<div class="coll-review"><div class="coll-review-copy"><small>Révision</small><b>Rien à revoir aujourd’hui</b><span>${next?`Prochaine révision ${esc(collNextReviewLabel(next))}.`:'Tes cartes reviennent au bon moment.'}</span></div></div>`;
     }else review='';
     const nextRow=!dueCards.length?`<div class="coll-overview-next${nextLesson?' has-next':''}">${nextLesson?`<span class="coll-next-card" aria-hidden="true"><i>${lqStkSvg('cards')}</i></span>`:''}<span><small>${nextLesson?'Prochaine carte':'Collection complète'}</small><b>${nextLesson?esc(CARTES[nextLesson.id].k):'Toutes les cartes sont disponibles'}</b></span>${nextLesson?`<button type="button" onclick="openLesson(${nextLesson.id})">Voir la leçon</button>`:''}</div>`:'';
-    overview.innerHTML=`<section class="coll-overview"><div class="coll-overview-main"><span class="coll-overview-ring" style="--p:${pct}" role="img" aria-label="${pct}% des cartes débloquées"><b>${pct}%</b></span><div class="coll-overview-copy"><small>Ta collection</small><strong>${n} carte${n>1?'s':''} débloquée${n>1?'s':''}</strong><span>${n} sur ${TOTAL_CARTES} · ${completedModules} module${completedModules>1?'s':''} complet${completedModules>1?'s':''} · ${locked} à obtenir</span></div></div>${review}${nextRow}</section>`;
+    overview.innerHTML=`<section class="coll-overview"><div class="coll-overview-main"><span class="coll-overview-ring" style="--p:${pct}" role="img" aria-label="${pct}% des cartes débloquées"><b>${pct}%</b></span><div class="coll-overview-copy"><small>Ta collection</small><strong>${collTitre(n)}</strong><span>${collSous(n,completedModules,locked)}</span></div></div>${review}${nextRow}</section>`;
   }
   const t=document.getElementById('coll-t');
   if(t) t.innerHTML='';
@@ -39527,7 +39538,14 @@ function stkOpen(id){
 `;   /* Elisa, 2 novembre, 1 h 06 (réf. 3) : plus de texte sous les boutons. */
   }else{
     const how=s.kind==='module'?'Termine ce module pour gagner ce sticker.':s.how;
-    const prog=s.goal>1?`<div class="stk-prog" role="progressbar" aria-label="${escAttr(`${unit(s.now)} sur ${s.goal}`)}" aria-valuemin="0" aria-valuemax="${s.goal}" aria-valuenow="${s.now}"><i style="width:${Math.round(s.now/s.goal*100)}%"></i></div><p class="stk-prog-t">${unit(s.now)} sur ${s.goal}</p>`:'';
+    /* 10 novembre, 8 h 50 (Elisa : « 0 leçon validée sur 5, c’est quoi les 5 ? ») : jamais « 0 … sur » ; un module dit ses leçons, en
+       liste, cochées une fois validées ; chacune ouvre sa leçon. */
+    const progT=s.kind==='module'?(s.now?`${s.now} leçon${s.now>1?'s':''} validée${s.now>1?'s':''} sur ${s.goal}`:`${s.goal} leçon${s.goal>1?'s':''} dans ce module`)
+      :s.now?`${unit(s.now)} sur ${s.goal}`:`Objectif\u00a0: ${unit(s.goal)}`;
+    const prog=s.goal>1?`<div class="stk-prog" role="progressbar" aria-label="${escAttr(progT)}" aria-valuemin="0" aria-valuemax="${s.goal}" aria-valuenow="${s.now}"><i style="width:${Math.round(s.now/s.goal*100)}%"></i></div><p class="stk-prog-t">${progT}</p>`:'';
+    const mod=s.kind==='module'?MODULES[s.num-1]:null,suite=mod?mod.lessons.find(l=>!itemDone(l.id)):null;
+    const lecons=mod?`<ol class="stk-lecons" aria-label="${escAttr(`Les leçons du module ${s.num}`)}">${mod.lessons.map((l,i)=>{const ok=itemDone(l.id),pro=!!suite&&l.id===suite.id;
+      return `<li class="${ok?'is-ok':pro?'is-suite':''}"><button type="button" onclick="stkClose();openLesson(${l.id})" aria-label="${escAttr(`${l.titre}${ok?', validée':pro?', la prochaine':''}. Ouvrir la leçon`)}"><b aria-hidden="true">${ok?MEMO_CHECK_SVG:i+1}</b><span>${esc(l.titre)}</span></button></li>`;}).join('')}</ol>`:'';
     const go=s.kind==='module'?`<button type="button" class="lq-btn stk-btn" onclick="stkGoModule(${s.num-1})">Continuer le module</button>`
       :s.id==='defis10'?`<button type="button" class="lq-btn stk-btn" onclick="stkClose();switchTab('defis')">Voir les défis</button>`:'';
     body.innerHTML=`
@@ -39535,7 +39553,7 @@ function stkOpen(id){
       <p class="stk-kicker">${kicker} · À gagner</p>
       <h2 class="stk-name" id="stk-name">${esc(s.name)}</h2>
       <p class="stk-when">${esc(how)}</p>
-      ${prog}${go?`<div class="stk-actions">${go}</div>`:''}`;
+      ${prog}${lecons}${go?`<div class="stk-actions">${go}</div>`:''}`;
   }
   document.getElementById('stk-back').classList.add('on');
   document.getElementById('stk-sheet').classList.add('on');
@@ -47521,7 +47539,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2817';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2818';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
