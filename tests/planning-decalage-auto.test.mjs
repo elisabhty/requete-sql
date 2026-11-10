@@ -127,3 +127,11 @@ test('« 0 séance validée sur 7 » (Elisa, 10 novembre, 6 h 49) : la semaine e
   assert.ok(app.includes('<p>${semaineCompte(weekComplete,weekPlanned)}</p>') && app.includes('<summary>Avancement global<span>${activitesCompte(st.done,st.total)}</span>'));
   assert.ok(!/\$\{weekComplete\} séance/.test(app), 'plus de « 0 séance validée »');
 });
+
+test('« Voir que les 6 prochains jours » (Elisa, 10 novembre, 6 h 54) : planning, Mon compte et fin de l’inscription', () => {
+  assert.ok(app.includes('const NB_JOURS_VUS=6;'));
+  assert.ok(fn('joursSemaine').includes('Array.from({length:NB_JOURS_VUS},(_,i)=>addJ(d0,i))') && fn('joursSemaine').includes('semaineOffset*NB_JOURS_VUS'), 'la fenêtre avance de 6 jours');
+  assert.ok(app.includes('<h2>Les ${NB_JOURS_VUS} prochains jours</h2>') && app.includes('<b>Tes ${NB_JOURS_VUS} prochains jours</b>') && app.includes('<span>Tes ${NB_JOURS_VUS} prochains jours</span>'));
+  assert.ok(app.includes('.wk-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));') && lq.includes('html.lq .acct-week{margin:16px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}'), 'six cases, plus larges');
+  assert.ok(!/7 prochains jours/.test(app.replace(/\/\*[\s\S]*?\*\//g, '')), 'plus de « 7 prochains jours » à l’écran');
+});
