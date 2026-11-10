@@ -62,7 +62,10 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "salleDebut", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "salleMaj", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "salleFin", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "partagerTexte", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "partagerTexte", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "accueilDebut", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "accueilMaj", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "accueilFin", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -80,6 +83,11 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         // La salle dans l’île restée d’avant (l’app relancée) : la page la rouvre si elle reprend la salle. Le podium reste.
         if #available(iOS 16.2, *) {
             Task { await RequeteSallePont.arreterEnCours() }
+        }
+        // L’onboarding resté dans l’île (l’app fermée en plein onboarding) : la page la relance si l’onboarding reprend. Le parcours
+        // prêt (les étoiles plein les yeux, cinq minutes sur l’écran verrouillé) reste jusqu’au bout.
+        if #available(iOS 16.2, *) {
+            Task { await RequeteAccueilPont.arreterEnCours() }
         }
         // Le petit miaou de la salle dans l’île (les alertes poussées par le serveur), rangé là où iOS le cherche.
         RequeteSon.installer()
@@ -344,6 +352,46 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /// L’onboarding s’ouvre : { etape, total, titre, bonjour, minutes }. Répond { ok } (faux si les Live Activities sont coupées).
+    @objc func accueilDebut(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve(["ok": false])
+            return
+        }
+        let etat: RequeteAccueil.ContentState = RequeteAccueilPont.etat(call, fini: false)
+        Task {
+            let ok: Bool = await RequeteAccueilPont.debut(etat)
+            call.resolve(["ok": ok])
+        }
+    }
+
+    /// Une autre page de l’onboarding : { etape, total, titre, bonjour, minutes }.
+    @objc func accueilMaj(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve()
+            return
+        }
+        let etat: RequeteAccueil.ContentState = RequeteAccueilPont.etat(call, fini: false)
+        Task {
+            await RequeteAccueilPont.maj(etat)
+            call.resolve()
+        }
+    }
+
+    /// L’onboarding se ferme : { fini }. Fini, le parcours prêt reste cinq minutes sur l’écran verrouillé, les étoiles plein les
+    /// yeux du chat ; sinon, l’activité s’en va tout de suite.
+    @objc func accueilFin(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve()
+            return
+        }
+        let fini: Bool = call.getBool("fini") ?? false
+        Task {
+            await RequeteAccueilPont.fin(fini: fini)
+            call.resolve()
+        }
+    }
+
     /// « Partager », depuis l’île : { texte, url }. La feuille de partage d’iOS (la page, ouverte par un lien et non par un geste,
     /// ne peut pas appeler navigator.share). Répond { ok }.
     @objc func partagerTexte(_ call: CAPPluginCall) {
@@ -490,6 +538,92 @@ enum RequeteLeconPont {
 
     static func arreterEnCours() async {
         for a in Activity<RequeteLecon>.activities where !a.content.state.fini {
+            await a.end(nil, dismissalPolicy: .immediate)
+        }
+    }
+}
+
+// MARK: - L’onboarding en cours (Live Activity)
+//
+// Elisa, 10 novembre, 7 h 33 (capture de la Dynamic Island d’une autre app) : « En plein onboarding, fais la même chose pour
+// Requête avec les yeux du chat. » La page la lance sur l’accueil de l’onboarding (accueilDebut), la met à jour à chaque page
+// (accueilMaj) et l’arrête à la fin (accueilFin) ; son dessin est dans le widget (RequeteWidget.swift, RequeteAccueilIle).
+
+/// Le même type, au même nom et aux mêmes champs, est déclaré dans le widget (RequeteWidget.swift) : iOS relie la Live Activity
+/// lancée par l’app à son dessin là-bas par ce nom.
+@available(iOS 16.1, *)
+struct RequeteAccueil: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var etape: Int        // l’étape de l’onboarding : 0 sur l’accueil, total sur le parcours prêt
+        var total: Int        // les étapes du tunnel (« Étape 3 sur 18 »)
+        var titre: String     // ce que demande la page (« Ton niveau »)
+        var bonjour: String   // « Bienvenue, Elisa », ou « Bienvenue sur Requête » avant le prénom
+        var minutes: Int      // le temps qui reste, comme l’en-tête de l’onboarding ; 0 sur le parcours prêt
+        var fini: Bool        // l’onboarding est terminé : le parcours est prêt
+    }
+
+    var app: String
+}
+
+/// Un seul onboarding à la fois ; une heure sans nouvelles et iOS le montre comme passé (le chat s’endort).
+@available(iOS 16.2, *)
+enum RequeteAccueilPont {
+    static func etat(_ call: CAPPluginCall, fini: Bool) -> RequeteAccueil.ContentState {
+        let total: Int = max(1, call.getInt("total") ?? 1)
+        let etape: Int = min(total, max(0, call.getInt("etape") ?? 0))
+        let titre: String = call.getString("titre") ?? "Ton parcours"
+        let bonjour: String = call.getString("bonjour") ?? "Bienvenue sur Requête"
+        let minutes: Int = max(0, call.getInt("minutes") ?? 0)
+        return RequeteAccueil.ContentState(etape: etape, total: total, titre: titre, bonjour: bonjour, minutes: minutes, fini: fini)
+    }
+
+    static func debut(_ etat: RequeteAccueil.ContentState) async -> Bool {
+        await toutArreter()
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }
+        do {
+            _ = try Activity<RequeteAccueil>.request(
+                attributes: RequeteAccueil(app: "Requête"),
+                content: ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)),
+                pushType: nil
+            )
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    static func maj(_ etat: RequeteAccueil.ContentState) async {
+        if Activity<RequeteAccueil>.activities.isEmpty {
+            _ = await debut(etat)
+            return
+        }
+        for a in Activity<RequeteAccueil>.activities {
+            await a.update(ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)))
+        }
+    }
+
+    static func fin(fini: Bool) async {
+        for a in Activity<RequeteAccueil>.activities {
+            var bilan: RequeteAccueil.ContentState = a.content.state
+            if fini {
+                bilan.fini = true
+                bilan.etape = bilan.total
+                bilan.minutes = 0
+            }
+            let dernier = ActivityContent(state: bilan, staleDate: nil)
+            let politique: ActivityUIDismissalPolicy = fini ? .after(Date().addingTimeInterval(5 * 60)) : .immediate
+            await a.end(dernier, dismissalPolicy: politique)
+        }
+    }
+
+    static func toutArreter() async {
+        for a in Activity<RequeteAccueil>.activities {
+            await a.end(nil, dismissalPolicy: .immediate)
+        }
+    }
+
+    static func arreterEnCours() async {
+        for a in Activity<RequeteAccueil>.activities where !a.content.state.fini {
             await a.end(nil, dismissalPolicy: .immediate)
         }
     }

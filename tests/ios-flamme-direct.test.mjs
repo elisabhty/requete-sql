@@ -44,7 +44,7 @@ test('le widget : l’écran verrouillé, l’île (ouverte, compacte, minimale)
     assert.ok(act.includes(k), k);
   assert.equal(act.split('.widgetURL(lienDirect(momentDirect(context)))').length, 3, 'l’écran verrouillé et l’île mènent à la séance');
   /* Le paquet : après la flamme de l’écran verrouillé, iOS 16.1 comme la leçon */
-  assert.ok(swift.includes('        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeDirecte()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteSalleIle()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()'), 'puis la salle dans l’île (ios-salle-ile)');
+  assert.ok(swift.includes('        if #available(iOS 16.1, *) {\n            RequeteFlammeVerrou()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteFlammeDirecte()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteSalleIle()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteAccueilIle()\n        }\n        if #available(iOS 17.0, *) {\n            RequetePoche()'), 'puis la salle dans l’île (ios-salle-ile)');
   assert.ok(swift.includes('@available(iOS 16.1, *)\nstruct RequeteFlammeDirecte: Widget {'));
 });
 

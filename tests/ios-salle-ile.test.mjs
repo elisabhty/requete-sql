@@ -89,7 +89,7 @@ test('ce que l’île lit de l’état : moi, ma place, « Victoire ! », qui ar
 
 test('le pont : salleDebut (un jeton de push, sinon sans), salleMaj, salleFin (le podium un quart d’heure), partagerTexte, le miaou', () => {
   const noms = [...pont.matchAll(/CAPPluginMethod\(name: "(\w+)", returnType: CAPPluginReturnPromise\)/g)].map(x => x[1]);
-  assert.deepEqual(noms.slice(-4), ['salleDebut', 'salleMaj', 'salleFin', 'partagerTexte']);
+  assert.deepEqual(noms.slice(-7, -3), ['salleDebut', 'salleMaj', 'salleFin', 'partagerTexte'], 'puis l’onboarding dans l’île (ios-accueil-ile)');
   for (const n of ['salleDebut', 'salleMaj', 'salleFin']) {
     const f = entre(pont, `@objc func ${n}(_ call: CAPPluginCall) {`, '\n    }\n');
     assert.ok(f.includes('guard #available(iOS 16.2, *) else {') && f.includes('Task {') && f.includes('call.resolve('), n);
