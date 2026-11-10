@@ -14,11 +14,13 @@
    - RevenueCat : projet « Requête », droit d'accès « premium », offre
      par défaut avec le paquet annuel et le paquet hebdomadaire.
 
-   Ce qui reste à faire pour l'allumer : coller la clé publique iOS de
-   RevenueCat (elle commence par appl_) dans RC_CLE_IOS ci-dessous, et
-   installer le plugin : npm i @revenuecat/purchases-capacitor, puis
-   npm run ios. Vide, rien ne change : le site et l'app gardent le
-   paywall « Visible, on passe ».
+   22 h 50 : l'app App Store est reliée dans RevenueCat (clé d'achat
+   intégré et clé API App Store Connect reprises de Diction AI, même
+   compte Apple), les deux produits importés, rattachés à « premium » et
+   aux paquets $rc_annual et $rc_weekly de l'offre « default ». La clé
+   publique iOS est dans RC_CLE_IOS. Le plugin est dans package.json
+   (npm install, puis npm run ios). Sur le site, ou sans le plugin, rien
+   ne change : le paywall garde « Continuer ».
 
    Le crochet :
    - acheter('an' | 'semaine') → Promise<bool> : true si l'abonnement est
@@ -39,7 +41,7 @@
   'use strict';
   /* La clé publique iOS de RevenueCat (Projet Requête › Apps & providers › App Store › Public API key).
      Elle est faite pour être dans l'app : ce n'est pas un secret. */
-  var RC_CLE_IOS = '';
+  var RC_CLE_IOS = 'appl_qLAPPmCbplIcNyriYbILgTzVYYQ';
   var DROIT = 'premium';
   var GARDE = 'requete-premium';
   var PRODUITS = {an:'fr.requete.app.annuel', semaine:'fr.requete.app.hebdo'};
