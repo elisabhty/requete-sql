@@ -4273,6 +4273,41 @@ enum LectureSalle {
         return j.n
     }
 
+    /// Une partie seule (10 novembre, 7 h 47 : « ok pour solo et multijoueur avec le 1/2 etc. pour les manches ») : sa salle n’a
+    /// qu’une place.
+    static func solo(_ a: RequeteSalle) -> Bool {
+        return a.max <= 1
+    }
+
+    /// « 1/3 » : la manche du moment, sur celles de la partie.
+    static func manches(_ e: RequeteSalle.ContentState) -> String {
+        let nb: Int = max(1, e.nb)
+        let m: Int = min(nb, max(1, e.manche))
+        return "\(m)/\(nb)"
+    }
+
+    /// Mes points : « 240 pts ».
+    static func points(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        let p: Int = moi(e, a)?.pts ?? 0
+        if p > 1 { return "\(p)\u{00A0}pts" }
+        return "\(p)\u{00A0}pt"
+    }
+
+    /// En tout petit : « 2/6 » en attente, « 1/3 » (la manche) pendant la partie ; à la fin, ma place, ou mes points seul.
+    static func court(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if e.phase == "attente" { return compte(e, a) }
+        if e.phase != "fin" { return manches(e) }
+        if solo(a) { return points(e, a) }
+        return rang(place(e, a))
+    }
+
+    /// « Léa 240 · Toi 210 » à plusieurs ; seul, « Ton score : 240 pts ».
+    static func tableau(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if solo(a) { return "Ton score\u{202F}: " + points(e, a) }
+        if e.phase == "fin" { return podium(e, a).joined(separator: "   ") }
+        return scores(e, a)
+    }
+
     /// « 2/6 » : les joueurs dans la salle, sur le maximum.
     static func compte(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         return "\(e.joueurs.count)/\(a.max)"
@@ -4441,7 +4476,8 @@ struct AvatarsSalle: View {
     }
 }
 
-/// À droite de l’île : « 2/6 » en attente, le chrono pendant la manche, la place ensuite (dorée à la première).
+/// À droite de l’île : « 2/6 » en attente ; pendant la manche, « 1/3 » (la manche) et le chrono ; entre deux manches, « 1/3 » ; à la
+/// fin, la place (dorée à la première), ou les points d’une partie seule.
 @available(iOS 16.1, *)
 struct SalleDroite: View {
     let salle: RequeteSalle
@@ -4449,29 +4485,34 @@ struct SalleDroite: View {
 
     var body: some View {
         let police: Font = Font.system(size: 14, weight: .heavy, design: .rounded)
+        let petite: Font = Font.system(size: 11, weight: .heavy, design: .rounded)
         let place: Int = LectureSalle.place(etat, salle)
-        let teinte: Color = place == 1 ? dore : lilasClair
+        let doree: Bool = etat.phase == "fin" && place == 1
+        let teinte: Color = doree ? dore : lilasClair
         return Group {
-            if etat.phase == "attente" {
-                Text(LectureSalle.compte(etat, salle))
-                    .foregroundColor(lilasClair)
-            } else if LectureSalle.enCours(etat) {
-                Text(timerInterval: LectureSalle.chrono(etat), countsDown: true)
-                    .monospacedDigit()
-                    .foregroundColor(braise)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 50)
+            if LectureSalle.enCours(etat) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(LectureSalle.manches(etat))
+                        .font(petite)
+                        .foregroundColor(lilasClair)
+                    Text(timerInterval: LectureSalle.chrono(etat), countsDown: true)
+                        .monospacedDigit()
+                        .foregroundColor(braise)
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: 44)
+                }
             } else {
-                Text(LectureSalle.rang(place))
+                Text(LectureSalle.court(etat, salle))
                     .foregroundColor(teinte)
             }
         }
         .font(police)
         .lineLimit(1)
+        .minimumScaleFactor(0.7)
     }
 }
 
-/// Tout petit (une autre activité dans l’île) : « 2/6 », puis la place.
+/// Tout petit (une autre activité dans l’île) : « 2/6 », « 1/3 » (la manche), puis la place ou les points.
 @available(iOS 16.1, *)
 struct SalleMinimale: View {
     let salle: RequeteSalle
@@ -4480,9 +4521,9 @@ struct SalleMinimale: View {
     var body: some View {
         let police: Font = Font.system(size: 12, weight: .heavy, design: .rounded)
         let place: Int = LectureSalle.place(etat, salle)
-        let attente: Bool = etat.phase == "attente"
-        let texte: String = attente ? LectureSalle.compte(etat, salle) : LectureSalle.rang(place)
-        let teinte: Color = place == 1 ? dore : lilasClair
+        let doree: Bool = etat.phase == "fin" && place == 1
+        let texte: String = LectureSalle.court(etat, salle)
+        let teinte: Color = doree ? dore : lilasClair
         return Text(texte)
             .font(police)
             .foregroundColor(teinte)
@@ -4503,6 +4544,10 @@ struct SalleGauche: View {
         let grande: Font = Font.system(size: 26, weight: .heavy, design: .rounded)
         let place: Int = LectureSalle.place(etat, salle)
         let teinte: Color = place == 1 ? dore : Color.white
+        let fin: Bool = etat.phase == "fin"
+        let soloHaut: String = fin ? "\(LectureSalle.moi(etat, salle)?.pts ?? 0)" : LectureSalle.manches(etat)
+        let soloBas: String = fin ? "points" : "manche"
+        let soloTeinte: Color = fin ? dore : Color.white
         return VStack(alignment: .leading, spacing: 0) {
             if etat.phase == "attente" {
                 Text("Salle")
@@ -4511,6 +4556,13 @@ struct SalleGauche: View {
                 Text(salle.code)
                     .font(code)
                     .foregroundColor(Color.white)
+            } else if LectureSalle.solo(salle) {
+                Text(soloHaut)
+                    .font(grande)
+                    .foregroundColor(soloTeinte)
+                Text(soloBas)
+                    .font(petite)
+                    .foregroundColor(lilasPale)
             } else {
                 Text(LectureSalle.rang(place))
                     .font(grande)
@@ -4615,7 +4667,7 @@ struct SalleBas: View {
     var body: some View {
         let police: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
         let hote: Bool = LectureSalle.hote(etat, salle)
-        let podium: String = LectureSalle.podium(etat, salle).joined(separator: "   ")
+        let podium: String = LectureSalle.tableau(etat, salle)
         return Group {
             if etat.phase == "attente" && hote {
                 HStack(spacing: 10) {
@@ -4637,7 +4689,7 @@ struct SalleBas: View {
                     }
                 }
             } else {
-                Text(LectureSalle.scores(etat, salle))
+                Text(LectureSalle.tableau(etat, salle))
                     .font(police)
                     .foregroundColor(lilasClair)
                     .minimumScaleFactor(0.75)
@@ -4680,7 +4732,7 @@ struct SalleDetail: View {
 
     var body: some View {
         let police: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
-        let podium: String = LectureSalle.podium(etat, salle).joined(separator: "   ")
+        let podium: String = LectureSalle.tableau(etat, salle)
         return Group {
             if etat.phase == "attente" {
                 AvatarsSalle(joueurs: etat.joueurs, taille: 24)
@@ -4689,7 +4741,7 @@ struct SalleDetail: View {
                     .font(police)
                     .foregroundColor(Color.white)
             } else {
-                Text(LectureSalle.scores(etat, salle))
+                Text(LectureSalle.tableau(etat, salle))
                     .font(police)
                     .foregroundColor(lilasClair)
             }
@@ -4709,6 +4761,7 @@ struct SalleVerrouille: View {
     static func titre(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         if e.phase == "attente" { return "Salle " + a.code }
         if e.phase == "fin" { return LectureSalle.titreFin(e, a) }
+        if LectureSalle.solo(a) { return "Défi en solo" }
         let rang: String = LectureSalle.rang(LectureSalle.place(e, a))
         return "\(rang) sur \(e.joueurs.count)"
     }

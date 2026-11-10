@@ -43883,9 +43883,11 @@ if(typeof document!=='undefined'&&document.addEventListener){
    l’écran verrouillé ; quitter la salle avant l’arrête. Dans l’île, pour l’hôte : Partager, Lancer, Rejouer (ileSalleAction, par
    raccourciOuvrir). Le dessin : RequeteWidget.swift, RequeteSalleIle. */
 let ileSalle=null,ileSalleT=0,ileSalleBranche=false;
-/* L’état de la salle pour l’île : rien tant qu’on entre, salle pleine ou perdue, ni pour une partie seule. */
+/* L’état de la salle pour l’île : rien tant qu’on entre, salle pleine ou perdue. Elisa, 10 novembre, 7 h 47 (« ok pour solo et
+   multijoueur avec le 1/2 etc. pour les manches ») : une partie seule aussi, son chrono dans l’île et « 1/3 » à côté (la manche) ;
+   elle reste sur ce téléphone (ni serveur ni jeton de push : personne d’autre à prévenir). */
 function ileSalleEtat(){
-  const J=JEU;if(!J||J.solo||!J.synced||J.full)return null;
+  const J=JEU;if(!J||!J.synced||J.full)return null;
   const v=jeuView();
   const phase=v==='final'?'fin':/^(draw|play)\d/.test(v)?'partie':/^res\d/.test(v)?'pause':v==='lobby'||v==='empty'?'attente':'';
   if(!phase)return null;
@@ -43915,12 +43917,13 @@ function ileSalleMaintenant(){
   if(!ileSalle||ileSalle.code!==J.code||ileSalle.me!==J.me||(ileSalle.fini&&e.phase!=='fin')){
     const meme=ileSalle&&ileSalle.code===J.code&&ileSalle.me===J.me,fini=e.phase==='fin';
     ileSalle={code:J.code,me:J.me,sig:etat,poste:meme?ileSalle.poste:'',fini,vuMoi:meme?ileSalle.vuMoi:false,moi:meme?ileSalle.moi:'',phase:'',manche:-1,liste:''};
-    if(!fini)ileAppel('salleDebut',{code:J.code,moi:J.me,max:(J.max|0)||JEU_MAX,etat});
+    if(!fini)ileAppel('salleDebut',{code:J.code,moi:J.me,max:J.solo?1:(J.max|0)||JEU_MAX,etat,push:!J.solo});
   }else if(etat!==ileSalle.sig){
     ileSalle.sig=etat;
     if(e.phase==='fin'){if(!ileSalle.fini){ileSalle.fini=true;ileAppel('salleFin',{etat,garder:true});}}
     else ileAppel('salleMaj',{etat});
   }
+  if(J.solo)return;   // seul : personne d’autre à prévenir
   /* Le serveur, pour les autres (l’app fermée chez eux) : mon arrivée, ce qui m’a changé (prêt, trouvé), une nouvelle manche ou phase ;
      pour l’hôte, aussi qui arrive ou part. Le serveur ne repousse pas un état déjà envoyé (par moi ou par un autre). */
   const moi=e.joueurs.find(j=>j.p===J.me),sigMoi=moi?JSON.stringify(moi):'',liste=e.joueurs.map(j=>j.p).join(','),hote=e.hote===J.me;
@@ -47437,7 +47440,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2810';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2811';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

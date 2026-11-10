@@ -310,9 +310,10 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject("Salle incomplète")
             return
         }
-        let places: Int = call.getInt("max") ?? 6   // six joueurs par salle (8 novembre, 22 h 27)
+        let places: Int = call.getInt("max") ?? 6   // six joueurs par salle (8 novembre, 22 h 27) ; 1 pour une partie seule
+        let push: Bool = call.getBool("push") ?? true   // une partie seule (10 novembre) : pas de jeton, personne d’autre à prévenir
         Task {
-            let ok: Bool = await RequeteSallePont.debut(code: code, moi: moi, max: places, etat: etat) { [weak self] jeton in
+            let ok: Bool = await RequeteSallePont.debut(code: code, moi: moi, max: places, etat: etat, push: push) { [weak self] jeton in
                 DispatchQueue.main.async {
                     self?.notifyListeners("salleJeton", data: ["code": code, "jeton": jeton], retainUntilConsumed: true)
                 }
@@ -818,6 +819,11 @@ struct JoueurSalle: Codable, Hashable {
     var ok: Bool    // prêt (en attente) ; a trouvé la manche (en partie)
 }
 
+/// Une partie seule : la Live Activity démarre tout de suite sans jeton de push (le second essai de RequeteSallePont.debut).
+enum RequeteSansPush: Error {
+    case seul
+}
+
 /// Une seule salle à la fois.
 @available(iOS 16.2, *)
 enum RequeteSallePont {
@@ -829,7 +835,7 @@ enum RequeteSallePont {
 
     /// La salle s’ouvre : l’ancienne activité s’en va, la nouvelle demande un jeton de push (sans la permission des push, elle
     /// démarre sans : elle suit alors la salle seulement l’app ouverte). Chaque jeton reçu part à la page (jetons).
-    static func debut(code: String, moi: String, max: Int, etat: RequeteSalle.ContentState, jetons: @escaping (String) -> Void) async -> Bool {
+    static func debut(code: String, moi: String, max: Int, etat: RequeteSalle.ContentState, push: Bool, jetons: @escaping (String) -> Void) async -> Bool {
         for a in Activity<RequeteSalle>.activities {
             await a.end(nil, dismissalPolicy: .immediate)
         }
@@ -838,6 +844,7 @@ enum RequeteSallePont {
         let contenu = ActivityContent(state: etat, staleDate: nil)
         let activite: Activity<RequeteSalle>
         do {
+            guard push else { throw RequeteSansPush.seul }
             activite = try Activity<RequeteSalle>.request(attributes: salle, content: contenu, pushType: .token)
         } catch {
             do {
@@ -846,6 +853,7 @@ enum RequeteSallePont {
                 return false
             }
         }
+        guard push else { return true }
         Task {
             for await jeton in activite.pushTokenUpdates {
                 let hex: String = jeton.map { String(format: "%02x", $0) }.joined()
