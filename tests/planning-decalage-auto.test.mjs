@@ -93,3 +93,17 @@ test('plus de carte « activités à rattraper », ni de choix à confirmer', ()
     assert.ok(!app.includes(k), k);
   assert.doesNotMatch(lq + app, /\.late-recovery|\.lr-(?:option|head|chips|confirm|later)\b/, 'leur style est parti avec eux');
 });
+
+test('un nouveau planning (onboarding, « Adapter mon rythme ») démarre le jour même, puis suit les jours du rythme (Elisa, 10 novembre, 1 h 33)', () => {
+  /* « Oui le jour même et les jours suivants ça reprend normal comme décidé à l’onboarding ». Vérifié dans le navigateur pour les
+     4 rythmes et les 7 jours de la semaine (253 vérifications) : onboarding, lendemain sans rien faire, « Adapter mon rythme ». */
+  const ctx = { PATTERN };
+  vm.runInNewContext(['jour0', 'dstr', 'parseD', 'addJ', 'datesMotif'].map(fn).join('\n') + ';this.f=datesMotif;', ctx);
+  const d = (iso, freq, n) => [...ctx.f(new Date(iso + 'T00:00:00'), freq, n)].map(x => x.slice(5));
+  assert.deepEqual(d('2026-11-14', 5, 3), ['11-14', '11-16', '11-17'], 'samedi, en semaine : samedi (choisi à l’instant), puis lundi, mardi');
+  assert.deepEqual(d('2026-11-10', 3, 3), ['11-10', '11-11', '11-13'], 'mardi, 3 jours : mardi, puis mercredi, vendredi');
+  assert.deepEqual(d('2026-11-15', 2, 3), ['11-15', '11-16', '11-19'], 'dimanche, 2 jours : dimanche, puis lundi, jeudi');
+  assert.deepEqual(d('2026-11-09', 7, 3), ['11-09', '11-10', '11-11']);
+  assert.ok(fn('apercuPlan').includes('const dates=datesMotif(auj(),freq,n);'), 'la création');
+  assert.ok(fn('planAdjustPreview').includes('const dates=n?datesMotif(auj(),choice.freq,n):[];'), '« Adapter mon rythme »');
+});
