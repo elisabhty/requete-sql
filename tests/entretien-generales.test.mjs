@@ -59,7 +59,7 @@ test('ce que disaient les exemples est repris dans la réponse', () => {
 
 test('l’écran n’affiche plus d’exemple concret, de schéma ni d’exemple SQL', () => {
   const f = html.slice(html.indexOf('function renderEntretienFocus(x){'), html.indexOf('\n}\n', html.indexOf('function renderEntretienFocus(x){')));
-  assert.ok(f.includes("${x.q.a.split('\\n\\n').map(p=>`<p class=\"eans\">${p}</p>`).join('')}"), 'la réponse, paragraphe par paragraphe');
+  assert.ok(f.includes("${x.q.a.split('\\n\\n').map(p=>`<p class=\"eans\">${entCodeInsec(p)}</p>`).join('')}"), 'la réponse, paragraphe par paragraphe');
   assert.ok(f.includes('ent-notions') && f.includes('Voir selon le SGBD'), 'les notions et le lien « Voir selon le SGBD » restent');
   assert.doesNotMatch(f, /Exemple concret|Exemple SQL|entExemple|entEtoile|x\.q\.(ex|sql|apres|etoile)\b/);
   assert.ok(!html.includes('function entExemple(') && !html.includes('function entEtoile('));
@@ -71,4 +71,21 @@ test('la vitrine compte les niveaux de l’appli, et plus de « À retenir »', 
   const nb = k => E.filter(q => q.niveau === k).length;
   assert.ok(vitrine.includes(`<li>Débutant · ${nb('Débutant')}</li><li>Intermédiaire · ${nb('Intermédiaire')}</li><li>Avancé · ${nb('Avancé')}</li>`));
   assert.ok(!html.includes('class="ent-retenir"'));
+});
+
+test('le code d’une réponse ne se coupe pas en deux, jusqu’à 28 caractères (10 novembre, 1 h 06)', () => {
+  const ctx = {}; vm.runInNewContext(html.slice(html.indexOf('function entCodeInsec('), html.indexOf('\nfunction entNbsp(')) + ';this.f=entCodeInsec;', ctx);
+  assert.equal(ctx.f('et <code>COUNT(DISTINCT colonne)</code> compte'), 'et <code class="ins">COUNT(DISTINCT colonne)</code> compte');
+  assert.equal(ctx.f('<code>COUNT(*) - COUNT(colonne)</code>'), '<code class="ins">COUNT(*) - COUNT(colonne)</code>', 'ni après le « - »');
+  const long = '<code>INSERT … ON CONFLICT … DO UPDATE SET x = 1</code>';
+  assert.equal(ctx.f(long), long, 'plus long : il peut se couper');
+  assert.ok(lq.includes('html.lq .eans code{padding:1px 7px;border-radius:7px;background:var(--accent-soft);color:var(--accent-ink);font:700 .9em/1.4 var(--mono);-webkit-box-decoration-break:clone;box-decoration-break:clone}'), 'chaque morceau garde sa pastille');
+  assert.ok(lq.includes('html.lq .eans code.ins,.ent-focus .eans code.ins{white-space:nowrap}'), 'la pastille courte reste entière');
+});
+
+test('le double filtre : les onglets comptent dans la famille, les familles dans l’onglet (10 novembre, 1 h 06)', () => {
+  const r = html.slice(html.indexOf('function renderEntretien('), html.indexOf('\nfunction setEntFilter('));
+  assert.ok(r.includes("const dansTab=found.filter(x=>entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true);"));
+  assert.ok(r.includes('const ok=dansFam.filter(x=>entOk(x.id)).length, total=dansFam.length;'), 'onglets : dans la famille');
+  assert.ok(r.includes("const n=k==='all'?dansTab.length:dansTab.filter(x=>ENT_FAMILLE_DE[x.q.cat]===k).length;") && r.includes("if(!n&&k!=='all'&&entFilter!==k)return '';"), 'familles : dans l’onglet, les vides cachées');
 });

@@ -6718,7 +6718,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=300">
+<link rel="stylesheet" href="ludique.css?v=301">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -42073,6 +42073,10 @@ function entNum(q){
   return String((i<0?0:i)+1).padStart(2,'0');
 }
 /* Le « ? » ne part jamais seul à la ligne (espace insécable avant ? ! : ;). */
+/* Le code d’une réponse ne se coupe plus en deux (Elisa, 10 novembre, 1 h 06, capture de COUNT(DISTINCT colonne) : « faire attention
+   au formatage du texte ») : jusqu’à 28 caractères, la pastille ne se coupe pas (classe ins, white-space:nowrap : ni aux espaces, ni
+   après un « - ») et passe entière à la ligne. Plus long, il peut se couper, chaque morceau gardant sa pastille (box-decoration-break). */
+function entCodeInsec(t){return String(t).replace(/<code>([^<]*)<\/code>/g,(m,c)=>c.replace(/&[a-z]+;/g,'x').length<=28?`<code class="ins">${c}</code>`:m);}
 function entNbsp(t){return String(t).replace(/ ([?!:;»])/g,'\u00a0$1').replace(/« /g,'«\u00a0');}
 function entAllItems(){ return ENTRETIEN.map((q,i)=>({q,id:entId(q,i),n:entNum(q),i})); }
 function entVisibleItems(){
@@ -42170,7 +42174,7 @@ function renderEntretienFocus(x){
     </header>
     <section class="ent-answer-card" aria-live="polite">
       ${revealed?`<span class="ent-answer-label">Réponse attendue</span>
-        ${x.q.a.split('\n\n').map(p=>`<p class="eans">${p}</p>`).join('')}
+        ${x.q.a.split('\n\n').map(p=>`<p class="eans">${entCodeInsec(p)}</p>`).join('')}
         ${x.q.notions?`<div class="ent-notions" aria-label="Notions évaluées">${x.q.notions.map(n=>`<code>${esc(n)}</code>`).join('')}</div>`:''}
         ${entSgbdTheme(x.q)?`<button type="button" class="ent-sgbd" onclick="entVoirSgbd('${x.id}','${entSgbdTheme(x.q)}')"><span class="ent-sgbd-ico" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span><span><b>Voir selon le SGBD</b><small>${esc((SGBD_PAGE.find(s=>s.id===entSgbdTheme(x.q))||{}).t||'')} · SQLite, PostgreSQL, MySQL…</small></span>${ENT_CHEV_SVG}</button>`:''}`:
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
@@ -42206,7 +42210,12 @@ function renderEntretien(opts){
   const searching=entSearchTerms().length>0;
   /* Pendant une recherche, les nombres des onglets et des familles comptent les questions trouvées. */
   const found=entAllItems().filter(x=>entMatchesSearch(x.q));
-  const ok=found.filter(x=>entOk(x.id)).length, total=found.length;
+  /* Le double filtre (Elisa, 10 novembre, 1 h 06 : « si je clique sur Maîtrisées il en faut 2 en tout alors dans les pills, car je
+     filtre doublement ») : les onglets comptent dans la famille choisie, les familles dans l’onglet choisi. Une famille vide dans
+     l’onglet disparaît (sauf celle qui est choisie) ; « Toutes » reste. */
+  const dansFam=found.filter(x=>entFilter==='all'||ENT_FAMILLE_DE[x.q.cat]===entFilter);
+  const dansTab=found.filter(x=>entStatus==='ok'?entOk(x.id):entStatus==='review'?!entOk(x.id):true);
+  const ok=dansFam.filter(x=>entOk(x.id)).length, total=dansFam.length;
   const status=document.getElementById('ent-status');
   if(status){
     const tabs=[['review','À revoir',total-ok],['all','Toutes',total],['ok','Maîtrisées',ok]];
@@ -42215,7 +42224,8 @@ function renderEntretien(opts){
   const fbar=document.getElementById('ent-filters');
   if(fbar){
     fbar.innerHTML=ENT_FAMILLES.map(([k,l])=>{
-      const n=k==='all'?found.length:found.filter(x=>ENT_FAMILLE_DE[x.q.cat]===k).length;
+      const n=k==='all'?dansTab.length:dansTab.filter(x=>ENT_FAMILLE_DE[x.q.cat]===k).length;
+      if(!n&&k!=='all'&&entFilter!==k)return '';
       return `<button type="button" class="fchip ${entFilter===k?'on':''}" aria-pressed="${entFilter===k?'true':'false'}" onclick="setEntFilter('${k}')">${l}<small>${n}</small></button>`;
     }).join('');
   }
@@ -47583,7 +47593,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-decalage-v2796';
+  const SW_CACHE='requete-2026-11-09-filtres-v2797';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
