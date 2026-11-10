@@ -121,9 +121,12 @@ test('la page range une trentaine de questions : les leçons faites (et la premi
   assert.ok(app.includes('poche:JSON.stringify(widgetPoche())'), 'avec la série (widgetMaj)');
 });
 
-test('le pont garde les questions ; une nouvelle série repart de la première, la même laisse le widget où il en est', () => {
+test('le pont garde les questions ; une nouvelle série garde la question du moment si elle y est, la même laisse le widget où il en est', () => {
   const maj = entre(pont, '@objc func maj(_ call: CAPPluginCall) {', '\n    }\n');
-  assert.ok(maj.includes('let poche: String = call.getString("poche") ?? "[]"\n        if poche != (d.string(forKey: "poche") ?? "") {\n            d.set(poche, forKey: "poche")\n            d.set(0, forKey: "pocheIndex")\n            d.set(-1, forKey: "pocheChoix")\n        }'));
+  /* 10 novembre, 8 h 24 (« quand on appuie sur la flèche, on a la même question ») : une série rangée de nouveau garde la question du moment */
+  assert.ok(maj.includes('let rang: Int = RequetePocheSuite.rang(ancienne: d.string(forKey: "poche"), index: d.integer(forKey: "pocheIndex"), nouvelle: poche)\n            d.set(poche, forKey: "poche")\n            d.set(rang, forKey: "pocheIndex")'));
+  const suite = entre(pont, 'enum RequetePocheSuite {', '\n}\n');
+  assert.ok(suite.includes('return code.joined(separator: "\\n") + "|" + enonce') && suite.includes('return apres.firstIndex { cle($0) == courante } ?? 0'));
   assert.ok(maj.indexOf('forKey: "poche"') < maj.indexOf('WidgetCenter.shared.reloadAllTimelines()'));
 });
 

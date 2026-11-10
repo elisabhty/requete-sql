@@ -120,9 +120,14 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         // sa première question ; la même (l’app la renvoie en partant) laisse le widget où il en est.
         let poche: String = call.getString("poche") ?? "[]"
         if poche != (d.string(forKey: "poche") ?? "") {
+            // 10 novembre, 8 h 24 (« quand on appuie sur la flèche, on a la même question ») : une série rangée de nouveau garde la
+            // question du moment si elle y est encore, au lieu de repartir de la première.
+            let rang: Int = RequetePocheSuite.rang(ancienne: d.string(forKey: "poche"), index: d.integer(forKey: "pocheIndex"), nouvelle: poche)
             d.set(poche, forKey: "poche")
-            d.set(0, forKey: "pocheIndex")
-            d.set(-1, forKey: "pocheChoix")
+            d.set(rang, forKey: "pocheIndex")
+            if rang == 0 {
+                d.set(-1, forKey: "pocheChoix")
+            }
         }
         // La carte mémo (RequeteWidget.swift, CartesRangement) : les cartes gagnées, en JSON. Leur rythme de révision vit dans le
         // widget (« cartesRythme ») et ne change pas quand l’app range de nouveau les cartes.
@@ -819,6 +824,29 @@ struct JoueurSalle: Codable, Hashable {
     var pts: Int    // ses points
     var r: Int      // sa place (0 en attente)
     var ok: Bool    // prêt (en attente) ; a trouvé la manche (en partie)
+}
+
+/// La requête de poche rangée de nouveau : où se trouve, dans la nouvelle série, la question qu’on avait à l’écran (son code et son
+/// énoncé) ; 0 si elle n’y est plus.
+enum RequetePocheSuite {
+    static func cle(_ q: [String: Any]) -> String {
+        let code: [String] = (q["code"] as? [String]) ?? []
+        let enonce: String = (q["enonce"] as? String) ?? ""
+        return code.joined(separator: "\n") + "|" + enonce
+    }
+
+    static func liste(_ texte: String?) -> [[String: Any]] {
+        guard let t = texte, let donnees = t.data(using: .utf8) else { return [] }
+        return ((try? JSONSerialization.jsonObject(with: donnees)) as? [[String: Any]]) ?? []
+    }
+
+    static func rang(ancienne: String?, index: Int, nouvelle: String) -> Int {
+        let avant: [[String: Any]] = liste(ancienne)
+        let apres: [[String: Any]] = liste(nouvelle)
+        guard !avant.isEmpty, !apres.isEmpty else { return 0 }
+        let courante: String = cle(avant[max(0, index) % avant.count])
+        return apres.firstIndex { cle($0) == courante } ?? 0
+    }
 }
 
 /// Une partie seule : la Live Activity démarre tout de suite sans jeton de push (le second essai de RequeteSallePont.debut).

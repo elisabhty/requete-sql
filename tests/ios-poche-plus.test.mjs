@@ -110,12 +110,25 @@ test('le widget lit le genre et l’énoncé : l’étiquette, l’énoncé au-d
   const r = entre(swift, 'enum PocheRangement {', '\nstruct BoutCode');
   for (const k of ['case "qcm": return "QCM · " + q.titre', 'case "cas": return "Cas pratique · " + q.titre', 'case "resultat": return "Quel résultat\\u{202F}? · " + q.titre',
     'case "erreur": return "Trouve l’erreur · " + q.titre', 'case "erreur": return "Touche la ligne fausse"', 'case "resultat": return "Touche le bon résultat"',
-    'q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && (!q.code.isEmpty || aEnonce(q))', 'let place: CGFloat = aEnonce(q) ? 38 : 54'])
+    'q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && (!q.code.isEmpty || aEnonce(q))', 'let place: CGFloat = aEnonce(q) ? 34 : 50', 'if q.genre == "erreur" { return false }'])
     assert.ok(r.includes(k), k);
   const v = entre(swift, 'struct PocheVue: View {', '\n}\n');
-  for (const k of ['if PocheRangement.aEnonce(q) {\n                enonce(u, q)', 'if !q.code.isEmpty {\n                code(u, v, q)', 'let lignes: Int = seul ? 3 : 1',
+  for (const k of ['if PocheRangement.aEnonce(q) {\n                enonce(u, q, m)', 'if !q.code.isEmpty {\n                code(u, v, q, m)', 'let lignes: Int = seul ? 3 : 1',
     'ligne(item.element, item.offset, q, police, taille)', 'if numero {\n                Text(verbatim: "\\(n + 1) ")', 'consigne(u, q)'])
     assert.ok(v.includes(k), k);
   /* La page envoie le genre et l’énoncé */
   assert.ok(app.includes(".map(({p})=>({titre:module[p.l]||'',code:p.q||[],choix:p.c,bon:p.b,oui:p.oui,non:p.non,genre:p.g||'trou',enonce:p.e||''}));"));
+});
+
+test('10 novembre, 8 h 24 (« problème de formatage et ce n’est pas responsive ») : les mesures viennent de la vraie taille du widget', () => {
+  const m = entre(swift, 'struct MesurePoche {', '\n}\n');
+  for (const k of ['u = min(taille.width / 364, taille.height / 170)', 'chat = min(taille.width * 0.29, taille.height * 0.62)', 'contenu = max(120, taille.width - gauche - 14 * u)'])
+    assert.ok(m.includes(k), k);
+  const v = entre(swift, 'struct PocheVue: View {', '\n}\n');
+  for (const k of ['let m = MesurePoche(taille)', '.frame(maxWidth: .infinity)\n        .frame(height: hauteur)', 'PocheRangement.policeReponses(q, u: u, largeur: m.contenu)',
+    'PocheRangement.policeCode(q, u: u, v: v, largeur: m.contenu)', '.frame(minWidth: largeur, minHeight: hauteur)', 'verdictOuConsigne(u, q)\n                .frame(maxWidth: .infinity, alignment: .leading)\n            if repondu {\n                suivante(u, v)'])
+    assert.ok(v.includes(k), k);
+  assert.ok(!v.includes('242 * u'), 'plus de largeur fixe');
+  const r = entre(swift, 'enum PocheRangement {', '\nstruct BoutCode');
+  assert.ok(r.includes('let parLargeur: CGFloat = (largeur - 20 * u) / (0.61 * CGFloat(plusLongue))') && r.includes('static func largeurTrou(') && r.includes('static func policeReponses('));
 });
