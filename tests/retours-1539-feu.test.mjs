@@ -34,3 +34,7 @@ test('le style : la nuit, les flammes qui tombent dans le foyer, et rien ne boug
     assert.ok(lq.includes(r), r);
   assert.ok(lq.indexOf('html.lq .lq-feu-arc') > lq.indexOf('@media (prefers-reduced-motion:reduce){html.lq .lq-flamme,html.lq .lq-flamme *{animation:none!important}}'));
 });
+
+test('iPhone SE : le code de « Selon le SGBD » ne se coupe plus au milieu des mots', () => {
+  assert.ok(lq.includes('@media (max-width:400px){html.lq .sg-row{grid-template-columns:minmax(0,84px) minmax(0,1fr);gap:8px}html.lq .sg-code{font-size:11.5px;padding:5px 8px}}'));
+});
