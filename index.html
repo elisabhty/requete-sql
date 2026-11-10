@@ -30344,8 +30344,8 @@ function openLessonVideo(fin){
     const g=lvPkGate(r); if(g>=0)r=Math.max(0,video.picks[g].t-.08);
     video.currentTime=r;
   },{once:true});
-  video.addEventListener('play',()=>{ root.classList.remove('is-paused','is-flash'); root.classList.add('has-played'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(); lvSyncPP(); });
-  video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); lvPosKeep(); });
+  video.addEventListener('play',()=>{ root.classList.remove('is-paused','is-flash'); root.classList.add('has-played'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); if(LV&&LV.pk)lvPkClose(true); if(LV&&LV.op)lvOpClose(); lvSyncPP(); if(LV&&LV.video===video)ileMaj(false); });
+  video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); if(LV&&LV.video===video)ileMaj(false); lvPosKeep(); });
   /* Son bloqué en cours de lecture : la vidéo s’est mise en pause d’elle-même, le gros ▶ apparaît un instant. */
   video.addEventListener('blocked',()=>{ if(LV&&LV.video===video)lvBigFlash(); });
   video.addEventListener('timeupdate',()=>{
@@ -43776,6 +43776,139 @@ const POCHE=[
  /* Sécurité et droits */
  {l:50,q:['___ SELECT','ON commandes','TO lina;'],c:['GIVE','GRANT','ALLOW'],b:1,oui:'`GRANT` accorde un droit.',non:'Un droit s’accorde avec `GRANT`.'}
 ];
+/* Les questions du widget seulement (Elisa, 10 novembre, 7 h 56, sur une capture du widget vide, « Rien à réviser pour
+   l’instant » : « Crée des questions juste pour le widget en combinant tout : QCM, choix de la réponse à l’intérieur d’une requête,
+   cas pratique etc., une centaine de questions cohérentes »). Elles s’ajoutent à POCHE, rattachées chacune à sa leçon (l) : le
+   widget ne pose que ce que tu as vu. g, le genre : trou (une requête à compléter), cas (un besoin, puis une requête à compléter),
+   resultat (que renvoie la requête ; r : ses lignes, sa valeur ou ses colonnes), qcm (une question sans code), erreur (une ligne
+   fausse : laquelle ?). e : l’énoncé (une ligne avec du code, trois sans) ; q : le code (trois lignes au plus avec un énoncé) ;
+   c, b, oui, non : comme POCHE. tests/ios-poche-plus.test.mjs exécute chaque requête sur la base de l’app : la bonne réponse
+   marche, chaque autre échoue ou donne autre chose ; le résultat annoncé est le vrai ; la ligne fausse échoue, corrigée elle
+   marche. */
+const POCHE_PLUS=[
+ {l:0,g:"qcm",e:"Une table range des clients. Que décrit une ligne\u00a0?",q:[],c:["1 client","1 info","1 table"],b:0,oui:"Une ligne décrit un seul client.",non:"Chaque ligne décrit un client."},
+ {l:0,g:"qcm",e:"Quelle colonne identifie chaque client, sans doublon\u00a0?",q:[],c:["nom","ville","id"],b:2,oui:"La clé primaire `id` est unique.",non:"Seul `id` est unique pour chaque ligne."},
+ {l:0,g:"resultat",e:"Combien de colonnes dans le résultat\u00a0?",r:"colonnes",q:["SELECT prenom, nom, ville","FROM clients;"],c:["1","3","10"],b:1,oui:"Trois colonnes demandées, trois sorties.",non:"Une colonne par nom après `SELECT`."},
+ {l:0,g:"cas",e:"Afficher toutes les colonnes des produits.",q:["SELECT ___","FROM produits;"],c:["*","ALL","TOUT"],b:0,oui:"`*` prend toutes les colonnes.",non:"Toutes les colonnes\u00a0: `*`."},
+ {l:0,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["SELECT prenom, nom","FORM clients","WHERE ville = 'Paris';"],c:["Ligne 1","Ligne 2","Ligne 3"],b:1,oui:"`FORM` au lieu de `FROM`.",non:"Ligne 2\u00a0: `FROM`, pas `FORM`."},
+ {l:0,g:"trou",q:["-- tout le catalogue","SELECT * ___ produits;"],c:["IN","OF","FROM"],b:2,oui:"`FROM` dit quelle table lire.",non:"La table vient après `FROM`."},
+ {l:2,g:"cas",e:"Le rapport veut une colonne «\u00a0Prix (€)\u00a0».",q:["SELECT nom, prix ___ \"Prix (€)\"","FROM produits;"],c:["=","AS","IS"],b:1,oui:"`AS` donne un nom d’affichage.",non:"Un alias s’écrit avec `AS`."},
+ {l:2,g:"qcm",e:"Un alias avec AS change-t-il le nom de la colonne dans la table\u00a0?",q:[],c:["Non","Oui","Parfois"],b:0,oui:"L’alias change seulement le résultat.",non:"Non\u00a0: seul le résultat change."},
+ {l:13,g:"resultat",e:"Combien de lignes renvoie la requête\u00a0?",r:"lignes",q:["SELECT DISTINCT ville","FROM clients;"],c:["10","5","6"],b:2,oui:"Six villes différentes.",non:"`DISTINCT` garde 6 villes."},
+ {l:13,g:"cas",e:"La liste des catégories, sans doublon.",q:["SELECT ___ categorie","FROM produits;"],c:["ONLY","DISTINCT","UNIQUE"],b:1,oui:"`DISTINCT` retire les doublons.",non:"Sans doublon\u00a0: `DISTINCT`."},
+ {l:4,g:"cas",e:"Les clients qui habitent à Lyon.",q:["SELECT prenom FROM clients","___ ville = 'Lyon';"],c:["WHERE","IF","WHEN"],b:0,oui:"`WHERE` filtre les lignes.",non:"Filtrer les lignes\u00a0: `WHERE`."},
+ {l:4,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["SELECT prenom","FROM clients","WHERE ville = Paris;"],c:["Ligne 1","Ligne 2","Ligne 3"],b:2,oui:"Un texte s’écrit entre guillemets.",non:"Ligne 3\u00a0: `'Paris'`, entre guillemets."},
+ {l:4,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT prenom FROM clients","WHERE ville = 'Paris';"],c:["3","10","4"],b:2,oui:"Sophie, Nathan, Léa et Nathan.",non:"Quatre clients habitent à Paris."},
+ {l:5,g:"resultat",e:"Combien de produits sortent\u00a0?",r:"lignes",q:["SELECT nom FROM produits","WHERE prix >= 29.9;"],c:["4","3","2"],b:1,oui:"29,9 compte aussi avec `>=`.",non:"`>=` garde aussi le prix de 29,9."},
+ {l:5,g:"cas",e:"Les produits dont le stock n’est pas 30.",q:["SELECT nom FROM produits","WHERE stock ___ 30;"],c:["!=","=!","<<"],b:0,oui:"`!=` veut dire «\u00a0différent de\u00a0».",non:"«\u00a0Différent de\u00a0» s’écrit `!=`."},
+ {l:6,g:"cas",e:"Les Parisiens de plus de 35 ans.",q:["SELECT prenom FROM clients","WHERE ville = 'Paris'","  ___ age > 35;"],c:["OR","THEN","AND"],b:2,oui:"Les deux conditions\u00a0: `AND`.",non:"`AND` exige les deux conditions."},
+ {l:6,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT prenom FROM clients","WHERE ville = 'Lyon'","   OR ville = 'Nantes';"],c:["0","3","1"],b:1,oui:"Deux Lyonnais et une Nantaise.",non:"`OR` garde les deux villes."},
+ {l:6,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["SELECT prenom FROM clients","WHERE ville = 'Paris'","AND OR age > 30;"],c:["Ligne 1","Ligne 2","Ligne 3"],b:2,oui:"Un seul mot entre deux conditions.",non:"Ligne 3\u00a0: `AND` ou `OR`."},
+ {l:22,g:"qcm",e:"Une ville vide (NULL) passe-t-elle WHERE NOT ville = 'Paris'\u00a0?",q:[],c:["Non","Oui","Selon"],b:0,oui:"`NULL` échappe au test et à son `NOT`.",non:"Non\u00a0: `NULL` échappe aux deux."},
+ {l:7,g:"cas",e:"Les clients sans e-mail.",q:["SELECT prenom FROM clients","WHERE email ___;"],c:["= NULL","NULL","IS NULL"],b:2,oui:"`IS NULL` trouve les cases vides.",non:"`= NULL` ne marche jamais."},
+ {l:7,g:"resultat",e:"Combien de clients sans e-mail\u00a0?",r:"lignes",q:["SELECT prenom FROM clients","WHERE email IS NULL;"],c:["10","2","0"],b:1,oui:"Hugo et Inès n’ont pas d’e-mail.",non:"Deux e-mails sont vides."},
+ {l:8,g:"cas",e:"Les produits dont le nom commence par M.",q:["SELECT nom FROM produits","WHERE nom LIKE ___;"],c:["'M%'","'M_'","'M'"],b:0,oui:"`%` remplace la suite du nom.",non:"Commence par M\u00a0: `'M%'`."},
+ {l:8,g:"qcm",e:"Dans LIKE, que remplace le signe _\u00a0?",q:[],c:["0 ou +","1 mot","1 lettre"],b:2,oui:"`_` remplace un seul caractère.",non:"`_`\u00a0: un seul caractère."},
+ {l:9,g:"cas",e:"Les clients de Lyon, Nantes ou Bordeaux.",q:["SELECT prenom FROM clients","WHERE ville ___","  ('Lyon','Nantes','Bordeaux');"],c:["LIKE","IN","="],b:1,oui:"`IN` teste une liste de valeurs.",non:"Une liste de valeurs\u00a0: `IN`."},
+ {l:10,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT nom FROM produits","WHERE prix","  BETWEEN 15 AND 30;"],c:["4","3","5"],b:0,oui:"`BETWEEN` inclut 15 et 30.",non:"Les bornes comptent\u00a0: 4 produits."},
+ {l:10,g:"qcm",e:"BETWEEN 10 AND 20 garde-t-il la valeur 20\u00a0?",q:[],c:["Non","Jamais","Oui"],b:2,oui:"Les deux bornes sont incluses.",non:"`BETWEEN` inclut ses bornes."},
+ {l:11,g:"cas",e:"Les produits du plus cher au moins cher.",q:["SELECT nom, prix","FROM produits","ORDER BY prix ___;"],c:["DOWN","DESC","ASC"],b:1,oui:"`DESC` trie du plus grand au plus petit.",non:"Décroissant\u00a0: `DESC`."},
+ {l:11,g:"qcm",e:"Sans ASC ni DESC, ORDER BY trie dans quel ordre\u00a0?",q:[],c:["Croissant","Hasard","Inverse"],b:0,oui:"Par défaut, `ORDER BY` est croissant.",non:"Par défaut\u00a0: croissant (`ASC`)."},
+ {l:11,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["SELECT nom FROM produits","ORDER prix DESC","LIMIT 3;"],c:["Ligne 1","Ligne 2","Ligne 3"],b:1,oui:"`ORDER BY` prend toujours `BY`.",non:"Ligne 2\u00a0: `ORDER BY prix`."},
+ {l:12,g:"cas",e:"Les 3 produits les plus chers.",q:["SELECT nom FROM produits","ORDER BY prix DESC","___ 3;"],c:["TOP","FIRST","LIMIT"],b:2,oui:"`LIMIT` garde les premières lignes.",non:"Les N premières\u00a0: `LIMIT N`."},
+ {l:12,g:"resultat",e:"Quel produit sort\u00a0?",r:"valeur",q:["SELECT nom FROM produits","ORDER BY stock DESC","LIMIT 1;"],c:["Oméga 3","Magnésium","Shaker"],b:1,oui:"500 en stock, le plus grand.",non:"Le plus gros stock passe en tête."},
+ {l:51,g:"cas",e:"Les noms de famille en majuscules.",q:["SELECT ___(nom)","FROM clients;"],c:["UPPER","LOWER","CAPS"],b:0,oui:"`UPPER` met en majuscules.",non:"Majuscules\u00a0: `UPPER`."},
+ {l:51,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT LENGTH('SQL');"],c:["4","1","3"],b:2,oui:"`LENGTH` compte les caractères.",non:"S, Q, L\u00a0: 3 caractères."},
+ {l:51,g:"qcm",e:"Quel opérateur colle deux textes\u00a0?",q:[],c:["&","||","+"],b:1,oui:"`||` met deux textes bout à bout.",non:"Pour coller\u00a0: `||`."},
+ {l:52,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT ROUND(14.96, 1);"],c:["15","14.9","14"],b:0,oui:"`ROUND` arrondit au plus proche.",non:"14,96 au dixième\u00a0: 15,0."},
+ {l:52,g:"cas",e:"Le prix arrondi à l’euro.",q:["SELECT nom, ___(prix)","FROM produits;"],c:["ABS","INT","ROUND"],b:2,oui:"Sans décimale, `ROUND` va à l’unité.",non:"Arrondir\u00a0: `ROUND`."},
+ {l:53,g:"cas",e:"Les commandes de juillet.",q:["SELECT id FROM commandes","WHERE STRFTIME('%m',","  date_commande) = ___;"],c:["'7'","'07'","7"],b:1,oui:"Le mois sort en texte, sur 2 chiffres.",non:"Le mois est un texte\u00a0: `'07'`."},
+ {l:53,g:"qcm",e:"Dans la base de l’app, comment s’écrit une date\u00a0?",q:[],c:["AAAA-MM-JJ","JJ/MM","MM-JJ"],b:0,oui:"Format ISO\u00a0: 2026-07-02.",non:"Les dates sont en `AAAA-MM-JJ`."},
+ {l:54,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT CAST('42' AS INTEGER) + 1;"],c:["421","Erreur","43"],b:2,oui:"`CAST` change le texte en nombre.",non:"Converti en nombre\u00a0: 42 + 1."},
+ {l:21,g:"cas",e:"Écrire «\u00a0Cher\u00a0» au-dessus de 30\u00a0€.",q:["SELECT nom, CASE WHEN prix > 30","  THEN 'Cher' ___ 'OK' END","FROM produits;"],c:["THEN","ELSE","OR"],b:1,oui:"`ELSE` donne la valeur restante.",non:"Le cas restant\u00a0: `ELSE`."},
+ {l:21,g:"qcm",e:"Dans un CASE sans ELSE, si aucun WHEN n’est vrai, on obtient\u00a0:",q:[],c:["NULL","0","Erreur"],b:0,oui:"Sans `ELSE`, le résultat est `NULL`.",non:"Pas de `ELSE`\u00a0: `NULL`."},
+ {l:23,g:"cas",e:"Écrire «\u00a0aucun\u00a0» si l’e-mail est vide.",q:["SELECT prenom,","  ___(email, 'aucun')","FROM clients;"],c:["ISNULL","NVL","COALESCE"],b:2,oui:"`COALESCE` prend la 1re valeur non vide.",non:"Remplacer `NULL`\u00a0: `COALESCE`."},
+ {l:23,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT COALESCE(NULL, NULL, 'B');"],c:["Erreur","B","NULL"],b:1,oui:"1re valeur non vide\u00a0: `B`.",non:"`COALESCE` saute les `NULL`."},
+ {l:14,g:"resultat",e:"Combien de clients\u00a0?",r:"valeur",q:["SELECT COUNT(*) FROM clients;"],c:["10","8","9"],b:0,oui:"`COUNT(*)` compte toutes les lignes.",non:"La table a 10 clients."},
+ {l:14,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT COUNT(email)","FROM clients;"],c:["10","2","8"],b:2,oui:"`COUNT(email)` ignore les `NULL`.",non:"Les e-mails vides ne comptent pas."},
+ {l:14,g:"cas",e:"Combien de villes différentes\u00a0?",q:["SELECT COUNT(___ ville)","FROM clients;"],c:["UNIQUE","DISTINCT","ALL"],b:1,oui:"`DISTINCT` compte chaque ville une fois.",non:"Sans doublon\u00a0: `DISTINCT`."},
+ {l:85,g:"cas",e:"Le stock total de la boutique.",q:["SELECT ___(stock)","FROM produits;"],c:["SUM","COUNT","MAX"],b:0,oui:"`SUM` additionne les valeurs.",non:"Un total\u00a0: `SUM`."},
+ {l:85,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT MAX(prix)","FROM produits;"],c:["15","29.9","39.9"],b:2,oui:"Le collagène, à 39,90 €, est en tête.",non:"`MAX` donne le plus grand prix."},
+ {l:85,g:"qcm",e:"AVG(age) compte-t-il les âges vides (NULL)\u00a0?",q:[],c:["Comme 0","Non","Oui"],b:1,oui:"`AVG` ignore les `NULL`.",non:"Les `NULL` sont ignorés."},
+ {l:16,g:"cas",e:"Le nombre de clients par ville.",q:["SELECT ville, COUNT(*)","FROM clients","___ ville;"],c:["GROUP BY","ORDER BY","PER"],b:0,oui:"`GROUP BY` fait un groupe par ville.",non:"Un groupe par ville\u00a0: `GROUP BY`."},
+ {l:16,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT statut, COUNT(*)","FROM commandes","GROUP BY statut;"],c:["16","11","2"],b:2,oui:"Deux statuts, deux groupes.",non:"Une ligne par statut."},
+ {l:16,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["SELECT ville, COUNT(*)","FROM clients","GROUP ville;"],c:["Ligne 1","Ligne 2","Ligne 3"],b:2,oui:"`GROUP BY` s’écrit en deux mots.",non:"Ligne 3\u00a0: `GROUP BY`, avec `BY`."},
+ {l:87,g:"qcm",e:"GROUP BY ville, age forme un groupe par…",q:[],c:["âge","couple","ville"],b:1,oui:"Un groupe par couple ville et âge.",non:"Chaque couple ville + âge."},
+ {l:17,g:"cas",e:"Les villes qui ont au moins 2 clients.",q:["SELECT ville FROM clients","GROUP BY ville","___ COUNT(*) >= 2;"],c:["HAVING","WHERE","AND"],b:0,oui:"`HAVING` filtre les groupes.",non:"Après `GROUP BY`\u00a0: `HAVING`."},
+ {l:17,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT ville FROM clients","GROUP BY ville","HAVING COUNT(*) >= 2;"],c:["1","6","2"],b:2,oui:"Paris (4) et Lyon (2).",non:"Seules Paris et Lyon ont 2 clients."},
+ {l:88,g:"qcm",e:"Qui passe en premier\u00a0: WHERE ou GROUP BY\u00a0?",q:[],c:["Ensemble","WHERE","GROUP BY"],b:1,oui:"`WHERE` filtre avant de grouper.",non:"Les lignes sont filtrées d’abord."},
+ {l:88,g:"qcm",e:"Quelle clause s’exécute en dernier\u00a0?",q:[],c:["LIMIT","FROM","WHERE"],b:0,oui:"`LIMIT` coupe le résultat à la fin.",non:"La dernière étape\u00a0: `LIMIT`."},
+ {l:76,g:"cas",e:"Les prénoms de chaque ville, sur une ligne.",q:["SELECT ville,","  ___(prenom, ', ')","FROM clients GROUP BY ville;"],c:["SUM","UNION","GROUP_CONCAT"],b:2,oui:"`GROUP_CONCAT` assemble les valeurs.",non:"Assembler\u00a0: `GROUP_CONCAT`."},
+ {l:18,g:"cas",e:"Chaque commande avec le prénom du client.",q:["SELECT commandes.id, prenom","FROM commandes JOIN clients","  ON clients.id = ___;"],c:["prenom","client_id","id"],b:1,oui:"La clé étrangère `client_id` relie.",non:"On relie par `client_id`."},
+ {l:18,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT * FROM commandes","JOIN clients","  ON clients.id = client_id;"],c:["15","16","10"],b:0,oui:"La commande sans client disparaît.",non:"`JOIN` écarte le `NULL`\u00a0: 15."},
+ {l:18,g:"qcm",e:"INNER JOIN garde-t-il une commande sans client\u00a0?",q:[],c:["Oui","En NULL","Non"],b:2,oui:"Sans correspondance, la ligne part.",non:"Pour la garder\u00a0: `LEFT JOIN`."},
+ {l:18,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["SELECT prenom FROM commandes","JOIN clients","client_id = clients.id;"],c:["Ligne 1","Ligne 2","Ligne 3"],b:2,oui:"La condition suit `ON`.",non:"Ligne 3\u00a0: commence par `ON`."},
+ {l:20,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT prenom, points","FROM clients LEFT JOIN fidelite","  ON clients.id = client_id;"],c:["14","10","4"],b:1,oui:"`LEFT JOIN` garde les 10 clients.",non:"Toute la gauche reste\u00a0: 10."},
+ {l:20,g:"cas",e:"Les clients sans carte de fidélité.",q:["SELECT prenom FROM clients LEFT","JOIN fidelite ON clients.id =","  client_id WHERE points ___;"],c:["IS NULL","= 0","NULL"],b:0,oui:"`IS NULL`\u00a0: rien en face.",non:"Sans carte, `points` est `NULL`."},
+ {l:38,g:"qcm",e:"A RIGHT JOIN B garde toutes les lignes de…",q:[],c:["A","A et B","B"],b:2,oui:"`RIGHT JOIN` garde la table de droite.",non:"La table de droite, c’est B."},
+ {l:39,g:"qcm",e:"Quelle jointure garde toutes les lignes des deux tables\u00a0?",q:[],c:["CROSS","FULL","INNER"],b:1,oui:"`FULL OUTER JOIN` garde tout.",non:"Les deux côtés\u00a0: `FULL OUTER JOIN`."},
+ {l:40,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT * FROM fidelite","CROSS JOIN produits;"],c:["32","12","8"],b:0,oui:"4 cartes × 8 produits = 32.",non:"Toutes les paires\u00a0: 4 × 8."},
+ {l:19,g:"trou",q:["SELECT prenom, p.nom FROM clients c","JOIN commandes o ON c.id = client_id","JOIN produits p","  ON p.id = ___;"],c:["o.id","c.id","produit_id"],b:2,oui:"`produit_id` mène au produit.",non:"La commande pointe par `produit_id`."},
+ {l:41,g:"resultat",e:"Combien de commandes à Paris\u00a0?",r:"valeur",q:["SELECT COUNT(*) FROM commandes","JOIN clients ON clients.id =","  client_id WHERE ville='Paris';"],c:["16","7","4"],b:1,oui:"Sophie 3, Nathan 2, Léa 2.",non:"Trois clients parisiens commandent."},
+ {l:42,g:"qcm",e:"Pour joindre une table à elle-même, il faut\u00a0:",q:[],c:["2 alias","2 bases","1 index"],b:0,oui:"Deux alias, deux rôles pour la table.",non:"Deux alias, comme `c1` et `c2`."},
+ {l:49,g:"qcm",e:"Avec LEFT JOIN, une condition de plus dans ON retire-t-elle des lignes de gauche\u00a0?",q:[],c:["Oui","Parfois","Non"],b:2,oui:"La gauche reste, la droite se vide.",non:"Dans `ON`, la gauche reste entière."},
+ {l:44,g:"cas",e:"Tous les clients, même sans commande.",q:["SELECT prenom, commandes.id","FROM clients ___ commandes","  ON clients.id = client_id;"],c:["RIGHT","LEFT JOIN","JOIN"],b:1,oui:"`LEFT JOIN` garde tous les clients.",non:"Toute la gauche\u00a0: `LEFT JOIN`."},
+ {l:45,g:"cas",e:"Les clients qui ont déjà commandé.",q:["SELECT prenom FROM clients","WHERE id ___ (SELECT client_id","  FROM commandes);"],c:["IN","=","LIKE"],b:0,oui:"`IN` teste toute la liste.",non:"Plusieurs valeurs\u00a0: `IN`."},
+ {l:47,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT (SELECT MAX(stock)","  FROM produits) - 100;"],c:["500","30","400"],b:2,oui:"La sous-requête vaut 500.",non:"500 − 100 = 400."},
+ {l:48,g:"qcm",e:"Une sous-requête dans FROM se lit comme…",q:[],c:["1 index","1 table","1 nombre"],b:1,oui:"Son résultat sert de table.",non:"Le résultat sert de table."},
+ {l:92,g:"cas",e:"Copier les Parisiens dans une table.",q:["CREATE TABLE vip ___","SELECT * FROM clients","WHERE ville = 'Paris';"],c:["AS","FROM","LIKE"],b:0,oui:"`CREATE TABLE … AS` copie un résultat.",non:"Créer d’un résultat\u00a0: `AS`."},
+ {l:55,g:"cas",e:"Les clients qui n’ont jamais commandé.",q:["SELECT prenom FROM clients c","WHERE ___ (SELECT 1 FROM","commandes WHERE client_id=c.id);"],c:["EXISTS","NOT IN","NOT EXISTS"],b:2,oui:"`NOT EXISTS`\u00a0: aucune commande.",non:"Aucune ligne liée\u00a0: `NOT EXISTS`."},
+ {l:55,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT prenom FROM clients c","WHERE NOT EXISTS (SELECT 1 FROM","commandes WHERE client_id=c.id);"],c:["0","2","8"],b:1,oui:"Inès et Nathan Dupont.",non:"Deux clients n’ont rien commandé."},
+ {l:86,g:"qcm",e:"prix > ALL (sous-requête) est vrai si le prix dépasse…",q:[],c:["chaque","une","aucune"],b:0,oui:"`ALL`\u00a0: plus grand que chaque valeur.",non:"`ALL` compare à chaque valeur."},
+ {l:59,g:"cas",e:"Nommer un résultat avant de le lire.",q:["___ cher AS (SELECT * FROM","  produits WHERE prix > 30)","SELECT nom FROM cher;"],c:["AS","LET","WITH"],b:2,oui:"`WITH` nomme une sous-requête.",non:"Une CTE commence par `WITH`."},
+ {l:73,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["SELECT ville FROM clients","UNION ALL","SELECT 'Paris';"],c:["10","11","7"],b:1,oui:"`UNION ALL` garde les doublons.",non:"10 villes + Paris\u00a0: 11 lignes."},
+ {l:73,g:"cas",e:"Une ville par ligne, sans doublon.",q:["SELECT ville FROM clients","___","SELECT 'Rennes';"],c:["UNION","UNION ALL","JOIN"],b:0,oui:"`UNION` retire les doublons.",non:"Sans doublon\u00a0: `UNION`."},
+ {l:80,g:"cas",e:"Les clients sans carte de fidélité.",q:["SELECT id FROM clients","___","SELECT client_id FROM fidelite;"],c:["INTERSECT","UNION","EXCEPT"],b:2,oui:"`EXCEPT` retire la 2e liste.",non:"Ôter des lignes\u00a0: `EXCEPT`."},
+ {l:77,g:"resultat",e:"Combien de lignes\u00a0?",r:"lignes",q:["WITH RECURSIVE n(x) AS (SELECT 1","  UNION ALL SELECT x+1 FROM n","  WHERE x < 5) SELECT x FROM n;"],c:["6","5","4"],b:1,oui:"De 1 à 5\u00a0: 5 lignes.",non:"La suite s’arrête à 5."},
+ {l:60,g:"qcm",e:"Une fonction avec OVER() réduit-elle le nombre de lignes\u00a0?",q:[],c:["Non","Oui","Par 2"],b:0,oui:"`OVER` garde chaque ligne.",non:"Contrairement à `GROUP BY`, non."},
+ {l:60,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT COUNT(*) OVER ()","FROM produits LIMIT 1;"],c:["1","0","8"],b:2,oui:"La fenêtre voit les 8 produits.",non:"`OVER ()`\u00a0: toute la table."},
+ {l:74,g:"qcm",e:"Deux ex æquo en 1re place. Avec RANK(), le suivant est\u00a0:",q:[],c:["1er","3e","2e"],b:1,oui:"`RANK`\u00a0: 1, 1, puis 3.",non:"`RANK` saute le rang 2."},
+ {l:74,g:"qcm",e:"Même cas avec DENSE_RANK()\u00a0: le suivant est\u00a0:",q:[],c:["2e","3e","1er"],b:0,oui:"`DENSE_RANK`\u00a0: 1, 1, puis 2.",non:"`DENSE_RANK` ne saute pas."},
+ {l:74,g:"cas",e:"Numéroter les produits du plus cher.",q:["SELECT nom, ___() OVER","  (ORDER BY prix DESC) AS n","FROM produits;"],c:["NTILE","SUM","ROW_NUMBER"],b:2,oui:"`ROW_NUMBER` numérote 1, 2, 3…",non:"Numéroter\u00a0: `ROW_NUMBER`."},
+ {l:78,g:"cas",e:"La date de la commande précédente.",q:["SELECT id, ___(date_commande)","  OVER (ORDER BY id)","FROM commandes;"],c:["PREV","LAG","LEAD"],b:1,oui:"`LAG` lit la ligne d’avant.",non:"La précédente\u00a0: `LAG`."},
+ {l:79,g:"qcm",e:"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW couvre combien de lignes\u00a0?",q:[],c:["3","2","1"],b:0,oui:"2 avant + la ligne = 3.",non:"Deux d’avant et la ligne\u00a0: 3."},
+ {l:89,g:"resultat",e:"Que renvoie la requête\u00a0?",r:"valeur",q:["SELECT MAX(g) FROM (SELECT NTILE(4)","  OVER (ORDER BY prix) AS g","  FROM produits);"],c:["8","2","4"],b:2,oui:"`NTILE(4)` fait 4 groupes.",non:"4 groupes, numérotés de 1 à 4."},
+ {l:56,g:"qcm",e:"Une case contient «\u00a0Yoga, Pilates\u00a0». La bonne idée\u00a0?",q:[],c:["Un CSV","Une table","Rien"],b:1,oui:"Une table de liens, une ligne chacun.",non:"Une valeur par case\u00a0: une table."},
+ {l:72,g:"qcm",e:"Une clé primaire peut-elle être vide (NULL)\u00a0?",q:[],c:["Non","Oui","Une fois"],b:0,oui:"La clé primaire n’est jamais vide.",non:"Unique et jamais `NULL`."},
+ {l:72,g:"qcm",e:"Clients et produits\u00a0: plusieurs à plusieurs. La solution\u00a0?",q:[],c:["Une clé","Rien","Une table"],b:2,oui:"Une table d’association relie les deux.",non:"N ↔ N\u00a0: une table d’association."},
+ {l:81,g:"qcm",e:"En UML, que signifie la multiplicité 0..*\u00a0?",q:[],c:["Aucun","0 ou plus","1 seul"],b:1,oui:"Zéro, un ou plusieurs éléments.",non:"`0..*`\u00a0: zéro ou plus."},
+ {l:61,g:"cas",e:"Un titre obligatoire pour chaque atelier.",q:["CREATE TABLE ateliers (","  id INTEGER PRIMARY KEY,","  titre TEXT ___);"],c:["NOT NULL","NULL","EMPTY"],b:0,oui:"`NOT NULL` rend la valeur obligatoire.",non:"Obligatoire\u00a0: `NOT NULL`."},
+ {l:61,g:"qcm",e:"Quelle contrainte interdit deux e-mails identiques\u00a0?",q:[],c:["CHECK","DEFAULT","UNIQUE"],b:2,oui:"`UNIQUE` interdit les doublons.",non:"Pas de doublon\u00a0: `UNIQUE`."},
+ {l:65,g:"cas",e:"Ajouter une colonne pays aux clients.",q:["ALTER TABLE clients","  ___ pays TEXT;"],c:["SET","ADD COLUMN","INSERT"],b:1,oui:"`ADD COLUMN` ajoute une colonne.",non:"Une colonne de plus\u00a0: `ADD COLUMN`."},
+ {l:66,g:"qcm",e:"Qu’est-ce qui vide une table sans la supprimer\u00a0?",q:[],c:["DELETE","DROP","ALTER"],b:0,oui:"`DELETE` vide, la table reste.",non:"`DROP` supprime aussi la structure."},
+ {l:84,g:"qcm",e:"Dans boutique.commandes, que désigne boutique\u00a0?",q:[],c:["Colonne","Ligne","Schéma"],b:2,oui:"Le schéma range la table.",non:"`boutique` est le schéma."},
+ {l:26,g:"cas",e:"Ajouter le produit «\u00a0Thé vert\u00a0».",q:["___ produits (nom, prix)","VALUES ('Thé vert', 9.9);"],c:["UPDATE","INSERT INTO","ADD TO"],b:1,oui:"`INSERT INTO` ajoute une ligne.",non:"Une ligne de plus\u00a0: `INSERT INTO`."},
+ {l:26,g:"qcm",e:"INSERT sans liste de colonnes\u00a0: les valeurs suivent…",q:[],c:["l’ordre","le hasard","A à Z"],b:0,oui:"L’ordre des colonnes de la table.",non:"Toujours l’ordre des colonnes."},
+ {l:26,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["INSERT INTO produits","  (nom, prix)","VALUE ('Thé', 9.9);"],c:["Ligne 1","Ligne 2","Ligne 3"],b:2,oui:"`VALUES` prend un S.",non:"Ligne 3\u00a0: `VALUES`, avec un S."},
+ {l:27,g:"cas",e:"Augmenter tous les prix de 10\u00a0%.",q:["UPDATE produits","___ prix = prix * 1.1;"],c:["PUT","WITH","SET"],b:2,oui:"`SET` donne la nouvelle valeur.",non:"Après `UPDATE`\u00a0: `SET`."},
+ {l:27,g:"qcm",e:"UPDATE sans WHERE modifie…",q:[],c:["rien","tout","1 ligne"],b:1,oui:"Sans `WHERE`, toutes les lignes.",non:"Toutes les lignes changent."},
+ {l:82,g:"qcm",e:"MERGE combine UPDATE et quelle commande\u00a0?",q:[],c:["INSERT","DELETE","SELECT"],b:0,oui:"`MERGE` met à jour, sinon insère.",non:"Mettre à jour ou ajouter\u00a0: `INSERT`."},
+ {l:28,g:"cas",e:"Supprimer les commandes sans client.",q:["DELETE ___ commandes","WHERE client_id IS NULL;"],c:["IN","INTO","FROM"],b:2,oui:"`DELETE FROM` vise une table.",non:"La syntaxe\u00a0: `DELETE FROM`."},
+ {l:28,g:"erreur",e:"Une ligne est fausse\u00a0: laquelle\u00a0?",q:["DELETE * FROM commandes","WHERE statut =","  'en_preparation';"],c:["Ligne 1","Ligne 2","Ligne 3"],b:0,oui:"Pas d’étoile après `DELETE`.",non:"Ligne 1\u00a0: `DELETE FROM`, sans `*`."},
+ {l:68,g:"qcm",e:"ON DELETE CASCADE\u00a0: on supprime un client. Ses commandes…",q:[],c:["vides","partent","restent"],b:1,oui:"`CASCADE` emporte les lignes liées.",non:"Avec `CASCADE`, elles partent aussi."},
+ {l:68,g:"qcm",e:"Quelle règle bloque la suppression d’un client qui a des commandes\u00a0?",q:[],c:["RESTRICT","CASCADE","SET NULL"],b:0,oui:"`RESTRICT` empêche la suppression.",non:"Pour bloquer\u00a0: `RESTRICT`."},
+ {l:62,g:"qcm",e:"Quelle commande annule une transaction pas encore validée\u00a0?",q:[],c:["COMMIT","UNDO","ROLLBACK"],b:2,oui:"`ROLLBACK` annule tout depuis `BEGIN`.",non:"Annuler\u00a0: `ROLLBACK`."},
+ {l:62,g:"cas",e:"Rendre la transaction définitive.",q:["BEGIN;","UPDATE produits SET stock = 0;","___;"],c:["SAVE","COMMIT","STOP"],b:1,oui:"`COMMIT` rend tout définitif.",non:"Valider\u00a0: `COMMIT`."},
+ {l:63,g:"qcm",e:"ROLLBACK TO SAVEPOINT p annule…",q:[],c:["après p","tout","avant p"],b:0,oui:"Seulement ce qui suit le point `p`.",non:"Ce qui vient après `p`."},
+ {l:71,g:"qcm",e:"Quelle clause verrouille la ligne lue jusqu’à la fin de la transaction\u00a0?",q:[],c:["DISTINCT","LIMIT","FOR UPDATE"],b:2,oui:"`FOR UPDATE` verrouille la ligne lue.",non:"Verrouiller\u00a0: `FOR UPDATE`."},
+ {l:83,g:"qcm",e:"Quelle commande lance une procédure stockée\u00a0?",q:[],c:["GO","CALL","RUN"],b:1,oui:"`CALL` exécute une procédure.",non:"Lancer une procédure\u00a0: `CALL`."},
+ {l:70,g:"qcm",e:"Dans un trigger, quelle valeur donne l’ancien prix\u00a0?",q:[],c:["OLD.prix","NEW.prix","prix"],b:0,oui:"`OLD` = avant, `NEW` = après.",non:"Avant le changement\u00a0: `OLD`."},
+ {l:64,g:"cas",e:"Enregistrer la requête sous le nom «\u00a0bas\u00a0».",q:["CREATE ___ bas AS","SELECT nom FROM produits","WHERE stock < 50;"],c:["TABLE","INDEX","VIEW"],b:2,oui:"`CREATE VIEW` garde la requête.",non:"Une requête nommée\u00a0: `VIEW`."},
+ {l:64,g:"qcm",e:"Une vue garde-t-elle une copie des données\u00a0?",q:[],c:["1 fois","Non","Oui"],b:1,oui:"La vue relit les tables à chaque fois.",non:"Seule la requête est gardée."},
+ {l:57,g:"qcm",e:"Un index sur ville sert surtout à…",q:[],c:["chercher","ranger","cacher"],b:0,oui:"Un index accélère les recherches.",non:"L’index sert à trouver plus vite."},
+ {l:57,g:"cas",e:"Accélérer les recherches par ville.",q:["CREATE ___ idx_ville","ON clients (ville);"],c:["VIEW","KEY","INDEX"],b:2,oui:"`CREATE INDEX` accélère la recherche.",non:"Chercher plus vite\u00a0: un `INDEX`."},
+ {l:50,g:"qcm",e:"Quelle commande donne un droit à un compte\u00a0?",q:[],c:["ALLOW","GRANT","REVOKE"],b:1,oui:"`GRANT` donne, `REVOKE` retire.",non:"Donner un droit\u00a0: `GRANT`."}
+];
 /* ---------- Le widget de l’app iPhone : la série, mise à jour en partant ----------
    Le widget (RequeteWidget.swift) lit la série dans le groupe d’apps : la série, le jour où elle a été comptée, si ce jour est fait,
    et le dernier jour où une activité la garde (les jours de repos du planning sont sautés). Envoyée au démarrage et chaque fois que
@@ -43825,18 +43958,21 @@ function widgetCheminee(){
 function widgetPoche(){
   try{
     const faites=new Set(allLessons.filter(l=>itemDone(l.id)).map(l=>l.id));
-    if(!faites.size)return [];
+    /* Rien de fait encore (10 novembre) : les questions de la toute première leçon, une découverte ; le widget n’est jamais vide. */
+    if(allLessons.length)faites.add(allLessons[0].id);
     const module={};
     MODULES.forEach(m=>m.lessons.forEach(l=>{module[l.id]=m.titre;}));
     let aRevoir=new Set();
     try{aRevoir=new Set(dueList().map(l=>l.id));}catch(e){}
     const graine=dstr(auj());
     const hache=s=>{let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h;};
-    return POCHE.filter(p=>faites.has(p.l))
-      .map(p=>({p,rang:aRevoir.has(p.l)?0:1,h:hache(graine+':'+p.l)}))
+    /* POCHE (une requête à trou par leçon) et POCHE_PLUS (les questions du widget, de tous les genres), mêlées au hasard du jour */
+    const banque=POCHE.map(p=>Object.assign({g:'trou'},p)).concat(typeof POCHE_PLUS!=='undefined'?POCHE_PLUS:[]);
+    return banque.map((p,i)=>({p,i})).filter(({p})=>faites.has(p.l))
+      .map(({p,i})=>({p,rang:aRevoir.has(p.l)?0:1,h:hache(graine+':'+p.l+':'+i)}))
       .sort((x,y)=>x.rang-y.rang||x.h-y.h)
-      .slice(0,20)
-      .map(({p})=>({titre:module[p.l]||'',code:p.q,choix:p.c,bon:p.b,oui:p.oui,non:p.non}));
+      .slice(0,30)
+      .map(({p})=>({titre:module[p.l]||'',code:p.q||[],choix:p.c,bon:p.b,oui:p.oui,non:p.non,genre:p.g||'trou',enonce:p.e||''}));
   }catch(e){return [];}
 }
 /* La carte mémo qui se retourne (le widget de l’app iPhone : RequeteWidget.swift, RequeteCarte) : les cartes gagnées, dans l’ordre
@@ -44324,20 +44460,22 @@ function ileMoments(){
 function ileDebut(l){
   if(!l||!ilePont())return;
   const m=typeof moduleDeLecon==='function'?moduleDeLecon(l.id):null,mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
-  ileEtat={id:l.id,pas:-1,seuil:typeof lvSeuil==='function'?lvSeuil(l):0,vus:null};
-  const data={titre:String(l.titre||'Leçon'),module:m?`Module ${mi+1} · ${m.titre}`:'Cours',progression:ileProgression(),allumee:ileAllumee()},mo=ileMoments();
+  ileEtat={id:l.id,pas:-1,seuil:typeof lvSeuil==='function'?lvSeuil(l):0,vus:null,pause:ilePause()};
+  const data={titre:String(l.titre||'Leçon'),module:m?`Module ${mi+1} · ${m.titre}`:'Cours',progression:ileProgression(),allumee:ileAllumee(),pause:ilePause()},mo=ileMoments();
   if(mo){ ileEtat.vus=mo.reussis; Object.assign(data,mo); }
   ileAppel('leconDebut',data);
 }
+/* 10 novembre (« un bouton Pause / Reprendre dans l’île ») : la vidéo attend, l’île propose « Reprendre ». */
+function ilePause(){ const V=typeof LV!=='undefined'&&LV&&LV.video; return !!(V&&V.paused&&!V.ended); }
 function ileMaj(force){
   if(!ileEtat||!LV||LV.id!==ileEtat.id||LV.fin)return;
-  const p=ileProgression(),pas=Math.floor(p*10),mo=ileMoments();
+  const p=ileProgression(),pas=Math.floor(p*10),mo=ileMoments(),pause=ilePause(),bascule=pause!==ileEtat.pause;
   /* Les moments arrivent (la vidéo vient de les donner) : tout de suite. Un moment réussi de plus : seulement quand on quitte l’app. */
   const premier=!!(mo&&ileEtat.vus==null),neuf=!!(force&&mo&&!premier&&mo.reussis!==ileEtat.vus);
-  if(!force&&!premier&&pas===ileEtat.pas)return;
-  ileEtat.pas=pas;
+  if(!force&&!premier&&!bascule&&pas===ileEtat.pas)return;
+  ileEtat.pas=pas;ileEtat.pause=pause;
   if(premier||neuf)ileEtat.vus=mo.reussis;
-  const data={progression:p,allumee:ileAllumee()};
+  const data={progression:p,allumee:ileAllumee(),pause};
   if(mo)Object.assign(data,{reussis:ileEtat.vus,moments:mo.moments,objectif:mo.objectif},neuf?{anime:true}:{});
   ileAppel('leconMaj',data);
 }
@@ -44409,6 +44547,12 @@ function raccourcisBrancher(){
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
+  /* « Reprendre », dans l’île ou sur l’écran verrouillé (10 novembre) : la vidéo de la leçon repart là où elle s’était arrêtée,
+     comme le bouton lecture (un moment « À toi » ouvert attend toujours sa réponse). */
+  if(type.endsWith('.lecon-reprendre')){
+    if(typeof LV!=='undefined'&&LV&&LV.video&&!LV.fin&&LV.root&&!LV.root.classList.contains('is-end')&&LV.video.paused&&typeof lvPlay==='function')lvPlay();
+    return;
+  }
   /* Les boutons de la salle dans l’île (7 novembre) : Partager, Lancer, Rejouer agissent sur la salle ouverte (ileSalleAction). */
   const salle=/\.salle-(partager|lancer|rejouer)$/.exec(type);
   if(salle){if(typeof ileSalleAction==='function')ileSalleAction(salle[1]);return;}
@@ -47440,7 +47584,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2811';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2812';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -153,7 +153,13 @@ suivante. Son choix pour la flamme : « la séance seule » — répondre dans l
 - **Les questions** : une par leçon, dans index.html (`POCHE`), chacune avec son commentaire SQL quand plusieurs réponses
   s’exécutent (« -- 60 unités ou moins »). `tests/ios-poche.test.mjs` exécute chaque requête sur la base de l’app : la bonne
   réponse marche, chaque autre échoue ou donne autre chose. Une question à changer : la modifier là, le test dit si elle tient.
-- **Ce que range l’app** : jusqu’à vingt questions des leçons faites, celles à revoir d’abord, dans le même ordre toute la
+- **Les questions du widget** (10 novembre, « crée des questions juste pour le widget en combinant tout ») : 122 de plus, dans
+  index.html (`POCHE_PLUS`), de cinq genres : la requête à trou, le **cas pratique** (un besoin, puis la requête à compléter),
+  **Quel résultat ?** (combien de lignes, quelle valeur), le **QCM** (une question, sans code) et **Trouve l’erreur** (les lignes
+  numérotées, on touche la fausse). Chacune est rattachée à sa leçon. L’étiquette du widget dit le genre, l’énoncé passe
+  au-dessus du code. `tests/ios-poche-plus.test.mjs` exécute chaque requête : la bonne réponse, le vrai résultat, la vraie ligne
+  fausse. Sans leçon faite, les questions de la toute première leçon : le widget n’est plus vide.
+- **Ce que range l’app** : jusqu’à trente questions des leçons faites, tous genres mêlés, celles à revoir d’abord, dans le même ordre toute la
   journée (`widgetPoche`, avec la série, dans `widgetMaj`). Le pont les garde (`maj`) ; une nouvelle série repart de la première
   question, la même laisse le widget où il en est.
 - **Les boutons** passent par **App Intents** (`RepondrePoche`, `SuivantePoche`, cachés de Raccourcis) : ils écrivent la réponse

@@ -55,13 +55,13 @@ test('le widget : une case par moment, la coche qui se pose, le contour doré su
 test('le type de la Live Activity : trois champs de plus, facultatifs, les mêmes dans l’app et dans le widget', () => {
   const type = t => sansCommentaires(cut(t, 'struct RequeteLecon: ActivityAttributes {', '\n}\n')).replace(/\s+/g, ' ').trim();
   assert.equal(type(widget), type(pont));
-  assert.ok(type(pont).includes('var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil }'),
+  assert.ok(type(pont).includes('var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil var pause: Bool? = nil }'),
     'facultatifs : une activité lancée par une version d’avant se lit encore');
 });
 
 test('le pont : les moments de la page, puis le nouveau compte une seconde après qu’on a quitté l’app', () => {
   const m = cut(pont, 'static func moments(_ etat: RequeteLecon.ContentState, _ call: CAPPluginCall) -> RequeteLecon.ContentState {', '\n    }\n');
-  for (const k of ['guard let n = call.getInt("moments"), n > 0 else { return etat }', 'e.reussis = min(n, max(0, r))', 'e.objectif = min(n, max(1, but))'])
+  for (const k of ['guard let n = call.getInt("moments"), n > 0 else { return e }', 'e.pause = call.getBool("pause")', 'e.reussis = min(n, max(0, r))', 'e.objectif = min(n, max(1, but))'])
     assert.ok(m.includes(k), k);
   for (const n of ['leconDebut', 'leconMaj']) {
     const f = cut(pont, `@objc func ${n}(_ call: CAPPluginCall) {`, '\n    }\n');
@@ -107,22 +107,22 @@ const lecon = {id: 12, titre: 'INNER JOIN', video: {moments: 4, seuil: 3}};
 test('la page : les moments partent dès que la vidéo les donne ; un moment réussi de plus, seulement quand on quitte l’app (anime)', () => {
   const {ctx, appels, etat} = lab();
   ctx.ileDebut(lecon);
-  assert.deepEqual(appels.shift(), ['leconDebut', {titre: 'INNER JOIN', module: 'Module 2 · Les jointures', progression: 0, allumee: false}], 'la vidéo n’a pas encore donné ses moments');
+  assert.deepEqual(appels.shift(), ['leconDebut', {titre: 'INNER JOIN', module: 'Module 2 · Les jointures', progression: 0, allumee: false, pause: false}], 'la vidéo n’a pas encore donné ses moments');
   ctx.LV.video.picks = [{}, {}, {}, {}];
   ctx.ileMaj(false);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, reussis: 0, moments: 4, objectif: 3}], 'les moments arrivent : tout de suite, même au même dixième');
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, pause: false, reussis: 0, moments: 4, objectif: 3}], 'les moments arrivent : tout de suite, même au même dixième');
   ctx.ileMaj(false);
   assert.equal(appels.length, 0, 'ensuite, par dixièmes, comme avant');
   /* Deux moments réussis dans l’app : la Dynamic Island n’est pas à l’écran, le compte attend */
   etat.ok = 2; ctx.LV.video.currentTime = 31; ctx.ileMaj(false);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.31, allumee: false, reussis: 0, moments: 4, objectif: 3}], 'dans l’app : l’ancien compte');
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.31, allumee: false, pause: false, reussis: 0, moments: 4, objectif: 3}], 'dans l’app : l’ancien compte');
   /* On quitte l’app : le nouveau compte, à animer */
   ctx.LV.video.currentTime = 33; ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.33, allumee: false, reussis: 2, moments: 4, objectif: 3, anime: true}]);
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.33, allumee: false, pause: false, reussis: 2, moments: 4, objectif: 3, anime: true}]);
   ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.33, allumee: false, reussis: 2, moments: 4, objectif: 3}], 'rien de neuf : pas d’animation');
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.33, allumee: false, pause: false, reussis: 2, moments: 4, objectif: 3}], 'rien de neuf : pas d’animation');
   ctx.LV.video.currentTime = 52; ctx.ileMaj(false);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.52, allumee: false, reussis: 2, moments: 4, objectif: 3}], 'de retour dans l’app : le compte montré');
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.52, allumee: false, pause: false, reussis: 2, moments: 4, objectif: 3}], 'de retour dans l’app : le compte montré');
   /* Leçon réussie : la carte garde ses moments */
   etat.ok = 3; ctx.ileFin(true);
   assert.deepEqual(appels.shift(), ['leconFin', {fini: true, allumee: true, reussis: 3}]);
@@ -134,12 +134,12 @@ test('la page : une leçon reprise, ses moments déjà réussis montrés dès l�
   ctx.LV.video.picks = [{}, {}, {}];
   etat.ok = 1;
   ctx.ileDebut({id: 12, titre: 'WHERE', video: {moments: 3}});
-  assert.deepEqual(appels.shift(), ['leconDebut', {titre: 'WHERE', module: 'Module 2 · Les jointures', progression: 0, allumee: false, reussis: 1, moments: 3, objectif: 3}]);
+  assert.deepEqual(appels.shift(), ['leconDebut', {titre: 'WHERE', module: 'Module 2 · Les jointures', progression: 0, allumee: false, pause: false, reussis: 1, moments: 3, objectif: 3}]);
   ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, reussis: 1, moments: 3, objectif: 3}], 'déjà montré : pas d’animation');
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, pause: false, reussis: 1, moments: 3, objectif: 3}], 'déjà montré : pas d’animation');
   /* Tout recommencer : le compte redescend, en roulant aussi */
   etat.ok = 0; ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, reussis: 0, moments: 3, objectif: 3, anime: true}]);
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, pause: false, reussis: 0, moments: 3, objectif: 3, anime: true}]);
 });
 
 test('IOS.md décrit la Dynamic Island des moments et son animation', () => {

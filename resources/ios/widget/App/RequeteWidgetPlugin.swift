@@ -433,6 +433,7 @@ struct RequeteLecon: ActivityAttributes {
         var reussis: Int? = nil   // les moments « À toi » réussis du premier coup (5 novembre, 6 h 45 : « 2/4 »)
         var moments: Int? = nil   // les moments de la leçon
         var objectif: Int? = nil  // les moments à réussir pour valider la leçon
+        var pause: Bool? = nil    // la vidéo est en pause (10 novembre) : « Reprendre » dans l’île et sur l’écran verrouillé
     }
 
     var titre: String
@@ -473,10 +474,11 @@ enum RequeteLeconPont {
 
     /// Les moments de la leçon, quand la page les donne : { reussis, moments, objectif }.
     static func moments(_ etat: RequeteLecon.ContentState, _ call: CAPPluginCall) -> RequeteLecon.ContentState {
-        guard let n = call.getInt("moments"), n > 0 else { return etat }
+        var e: RequeteLecon.ContentState = etat
+        e.pause = call.getBool("pause")   // la vidéo en pause (10 novembre) : « Reprendre » dans l’île
+        guard let n = call.getInt("moments"), n > 0 else { return e }
         let r: Int = call.getInt("reussis") ?? 0
         let but: Int = call.getInt("objectif") ?? n
-        var e: RequeteLecon.ContentState = etat
         e.moments = n
         e.reussis = min(n, max(0, r))
         e.objectif = min(n, max(1, but))
