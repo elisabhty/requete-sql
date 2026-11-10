@@ -57,7 +57,7 @@ test('le planning, l’accueil et le bilan comptent avec les vraies minutes (plu
   const hors = app.replace(DUREES, '');
   assert.ok(!/\*\s*MIN_PAR_ACTIVITE|MIN_PAR_ACTIVITE\s*\*/.test(hors), 'le forfait ne sert plus que dans les durées');
   assert.ok(fn('recommendedSession').includes('const minutes=minutesDe(session.remaining,true);'), '« Ta session · 12 min »');
-  for (const k of ['<small>${plur(n,\'activité\')} · ~${minutesDe(sess.lessons)} min</small>', '· ~${minutesDe(sess.lessons)} min${ret?',
+  for (const k of ['<small>${plur(n,\'leçon\')} · ~${minutesDe(sess.lessons)} min</small>', '· ~${minutesDe(sess.lessons)} min${ret?',
     'body=`Aujourd’hui : ${plur(left,\'activité\')} · ~${minutesDe(info.today.lessons.filter(id=>!itemDone(id)),true)} min.',
     'moy:p.sessions.length?Math.round(toutesActivites().reduce((a,id)=>a+dureeActiviteS(id),0)/60/p.sessions.length):0',
     'Une leçon prend environ ${Math.round(allLessons.reduce((a,l)=>a+dureeActiviteS(l.id),0)/Math.max(1,allLessons.length)/60)}\\u00a0minutes.'])
@@ -166,5 +166,5 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=304">'));
-  assert.ok(sw.includes("'requete-2026-11-09-six-jours-v2806'"));
+  assert.ok(sw.includes("'requete-2026-11-09-chiffres-v2807'"));
 });

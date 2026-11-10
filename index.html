@@ -23670,6 +23670,13 @@ function normalizeState(raw){
       const n=Math.floor(Number(source.actDays[k]));if(n>0)actDays[k]=Math.min(n,999);
     });
   }
+  /* Défis validés pour la première fois, jour par jour (le graphique « 14 derniers jours », 10 novembre). */
+  const defisJour={};
+  if(source.defisJour&&typeof source.defisJour==='object'&&!Array.isArray(source.defisJour)){
+    Object.keys(source.defisJour).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort().slice(-400).forEach(k=>{
+      const n=Math.floor(Number(source.defisJour[k]));if(n>0)defisJour[k]=Math.min(n,999);
+    });
+  }
   const actSince=typeof source.actSince==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(source.actSince)?source.actSince:null;
   /* Points gagnés dans les salles de défi (seul ou entre amis), et de quoi tenir le tableau « Tes performances » (Elisa, 31 octobre,
      8 h 06) : manches jouées et trouvées, temps, places entre amis, réussite par niveau, les 12 dernières parties. */
@@ -23773,7 +23780,7 @@ function normalizeState(raw){
     const c=typeof a.c==='string'?a.c.replace(/\s+/g,' ').trim().slice(0,500):'';
     if(n>=1&&n<=5)avis[k]=Object.assign({n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false},c?{c}:{});
   });
-  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,...(accountProvider?{accountProvider}:{}),...(accountLabel?{accountLabel}:{}),entretien,preferences,actDays,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
+  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,...(accountProvider?{accountProvider}:{}),...(accountLabel?{accountLabel}:{}),entretien,preferences,actDays,defisJour,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
@@ -37208,6 +37215,7 @@ async function jeuShare(){
 function jeuCredit(cid){
   try{
     if(!state.defis)state.defis={};
+    if(!state.defis[cid]&&typeof noteDefiValide==='function')noteDefiValide();
     state.defis[cid]=true;noteActivityDay();save();renderProgress();renderPlanning();
   }catch(e){}
 }
@@ -38032,6 +38040,7 @@ function runLesson(){
     let head;
     if(isDefi){
       const premier=!state.defis[current.id];
+      if(premier&&typeof noteDefiValide==='function')noteDefiValide();
       state.defis[current.id]=true; noteActivityDay(); save(); renderDefis(); renderProgress(); renderPlanning();
       if(typeof clsDefis==='function')clsDefis();
       if(premier) celebrate();
@@ -39949,7 +39958,8 @@ function statsPlan(){
   const nL=all.filter(id=>!isDefiId(id)).length,nD=all.filter(isDefiId).length;
   const resteL=remaining.filter(id=>!isDefiId(id)).length,resteD=remaining.filter(isDefiId).length;
   const fin=p.sessions.length?p.sessions[p.sessions.length-1].d:null;
-  return {total:all.length,done,reste:remaining.length,seances:p.sessions.length,fin,nL,nD,resteL,resteD,
+  const aVenir=p.sessions.filter(s=>Array.isArray(s.lessons)&&s.lessons.some(id=>!itemDone(id))).length;
+  return {total:all.length,done,reste:remaining.length,seances:p.sessions.length,aVenir,fin,nL,nD,resteL,resteD,
     moy:p.sessions.length?Math.round(toutesActivites().reduce((a,id)=>a+dureeActiviteS(id),0)/60/p.sessions.length):0};
 }
 /* Elisa, 10 novembre, 6 h 23 (capture du Planning : 1, 5, 3, 2, 2, 1, 2 activités) : « rééquilibrer ». Les activités qui restent à
@@ -40680,6 +40690,23 @@ function stripHTML(){
    casse pas la série et ne la prolonge pas. Tant que la journée n’est pas
    finie, la série reste en vie : sans activité aujourd’hui, on compte
    jusqu’à hier. */
+/* Elisa, 10 novembre, 6 h 53 : « vérifier tous les chiffres de la page ». Le graphique « 14 derniers jours » comptait chaque
+   avancée (une étape de leçon, une révision, un défi rejoué : state.actDays) comme une activité validée. Il compte maintenant les
+   activités validées pour la première fois ce jour-là : les leçons par leur date de validation (state.lessons[id].at), les défis
+   par ce compteur, tenu à leur première réussite. state.actDays reste le signe d’un jour actif (la série). */
+function noteDefiValide(){
+  try{
+    const iso=dstr(auj());
+    if(!state.defisJour||typeof state.defisJour!=='object')state.defisJour={};
+    state.defisJour[iso]=(state.defisJour[iso]||0)+1;
+  }catch(e){}
+}
+function validesDuJour(){
+  const out={};
+  Object.values(state.lessons||{}).forEach(e=>{if(e&&e.done&&Number.isFinite(e.at)&&e.at>0){const k=dstr(new Date(e.at));out[k]=(out[k]||0)+1;}});
+  Object.entries(state.defisJour||{}).forEach(([k,n])=>{n=Math.floor(+n);if(n>0)out[k]=(out[k]||0)+n;});
+  return out;
+}
 function noteActivityDay(){
   try{
     const iso=dstr(auj());
@@ -40935,11 +40962,11 @@ function semaineCompte(fait,prevu){
   return `${fait} séance${s(fait)} validée${s(fait)} sur ${prevu}`;
 }
 /* Même règle pour l’avancement global du planning : « 71 activités », « 5 activités validées sur 71 », « 71 activités validées ». */
-function activitesCompte(fait,total){
-  const s=n=>n>1?'s':'';
-  if(!fait)return `${total} activité${s(total)}`;
-  if(fait>=total)return `${total} activité${s(total)} validée${s(total)}`;
-  return `${fait} activité${s(fait)} validée${s(fait)} sur ${total}`;
+function activitesCompte(fait,total,o){
+  const s=n=>n>1?'s':'',v=(o&&o.verbe)||'validée',z=o&&o.zero?' '+o.zero:'';
+  if(!fait)return `${total} activité${s(total)}${z}`;
+  if(fait>=total)return `${total} activité${s(total)} ${v}${s(total)}`;
+  return `${fait} activité${s(fait)} ${v}${s(fait)} sur ${total}`;
 }
 function renderSemaine(){
   const t=dstr(auj());
@@ -41045,7 +41072,7 @@ function nextDayPreviewHTML(){
       const m=itemMeta(id),ok=itemDone(id),arg=isDefiId(id)?`'${id}'`:id;
       return `<button type="button" class="pl-next-row${ok?' ok':''}" onclick="openItem(${arg})"><span class="cn" aria-hidden="true">${ok?PL_OK_SVG:i+1}</span><span class="ct"><span>${esc(m.titre)}</span><small>${esc(m.sous)}</small></span>${ok?'<span class="pl-chip-valid"><i aria-hidden="true">✓</i>Validé</span>':''}</button>`;
     }).join('');
-    return `<section class="pl-next-day" aria-label="${escAttr(title)}"><div class="pl-next-head"><h3>${esc(title)}</h3><small>${plur(n,'activité')} · ~${minutesDe(sess.lessons)} min</small></div><div class="pl-next-list">${rows}</div></section>`;
+    return `<section class="pl-next-day" aria-label="${escAttr(title)}"><div class="pl-next-head"><h3>${esc(title)}</h3><small>${plur(n,'leçon')} · ~${minutesDe(sess.lessons)} min</small></div><div class="pl-next-list">${rows}</div></section>`;
   }
   return '';
 }
@@ -41061,13 +41088,12 @@ const PLAN_SLIDERS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const PLAN_CAL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>';
 /* Activités validées par jour (n derniers jours) : le graphique en barres. */
 function pgrActivity(n){
-  const t=dstr(auj()),start=debutPlan(),letters=['D','L','M','M','J','V','S'];
+  const t=dstr(auj()),start=debutPlan(),letters=['D','L','M','M','J','V','S'],valides=typeof validesDuJour==='function'?validesDuJour():{};
   return Array.from({length:n},(_,k)=>{
     const d=addJ(auj(),k-(n-1)),iso=dstr(d);
-    const raw=state.actDays&&state.actDays[iso]?Math.floor(state.actDays[iso]):0;
-    const count=raw||(jourActif(iso)?1:0);
-    const kind=count?'done':iso===t?'today':jourRepos(iso,start)?'rest':(start&&iso>=start&&iso<t)?'missed':'none';
-    return {iso,count,kind,letter:letters[d.getDay()],today:iso===t,
+    const count=valides[iso]||0,actif=count>0||jourActif(iso);
+    const kind=actif?'done':iso===t?'today':jourRepos(iso,start)?'rest':(start&&iso>=start&&iso<t)?'missed':'none';
+    return {iso,count,actif,kind,letter:letters[d.getDay()],today:iso===t,
       label:d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})};
   });
 }
@@ -41082,10 +41108,10 @@ function planOverviewHTML(st){
   const doneLessons=st.nL-st.resteL,doneChallenges=st.nD-st.resteD;
   const next=prochaineActiviteParcours(),nextMeta=next!=null?itemMeta(next):null;
   const end=st.fin?parseD(st.fin).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'—';
-  const act=pgrActivity(14),total14=act.reduce((a,x)=>a+x.count,0),active14=act.filter(x=>x.count).length;
+  const act=pgrActivity(14),total14=act.reduce((a,x)=>a+x.count,0),active14=act.filter(x=>x.actif).length;
   const week=act.slice(7).reduce((a,x)=>a+x.count,0),before=act.slice(0,7).reduce((a,x)=>a+x.count,0);
   const max=Math.max(3,...act.map(x=>x.count));
-  const bars=act.map((x,k)=>`<li class="is-${x.kind}${x.today?' is-today':''}" style="--h:${x.count?Math.max(16,Math.round(x.count/max*100)):0};--k:${k}"><em>${x.count||''}</em><i></i><small>${x.letter}</small></li>`).join('');
+  const bars=act.map((x,k)=>`<li class="is-${x.kind}${x.today?' is-today':''}" style="--h:${x.count?Math.max(16,Math.round(x.count/max*100)):(x.actif?8:0)};--k:${k}"><em>${x.count||''}</em><i></i><small>${x.letter}</small></li>`).join('');
   /* La tuile Défis (Elisa, 31 octobre, 18 h 02) : les manches réussies sur jouées, qui bougent à chaque manche (0/0, 1/1, 1/2…), et
      les points. Un défi se rejoue : plus de « défis réussis sur 25 ». */
   const kd=salleKpi();
@@ -41107,8 +41133,8 @@ function planOverviewHTML(st){
     </div>
     <div class="pgr-chart"><div class="pgr-chart-h"><b>14 derniers jours</b><small>${plur(total14,'activité')} · ${plur(active14,'jour')} actif${active14>1?'s':''}</small></div>
       <ol class="pgr-bars" role="img" aria-label="Activités validées par jour sur les 14 derniers jours : ${total14} au total, ${active14} jours actifs">${bars}</ol>
-      <p class="pgr-trend">${total14?`Cette semaine : <b>${plur(week,'activité')}</b>, ${trend}.`:'Ton rythme apparaîtra ici dès ta première activité validée.'}</p></div>
-    <div class="pgr-next"><span><small>Prochain cap</small><b>${esc(nextMeta?nextMeta.titre:'Parcours validé')}</b><em>Fin estimée · ${end} · ${plur(st.seances,'séance')}</em></span>
+      <p class="pgr-trend">${total14||active14?`Cette semaine : <b>${plur(week,'activité')}</b>, ${trend}.`:'Ton rythme apparaîtra ici dès ta première activité validée.'}</p></div>
+    <div class="pgr-next"><span><small>Prochain cap</small><b>${esc(nextMeta?nextMeta.titre:'Parcours validé')}</b><em>${st.reste?`Fin estimée · ${end} · ${plur(st.aVenir,'séance')} à venir`:'Toutes les séances sont faites'}</em></span>
       <div class="pgr-actions">${next!=null?`<button type="button" class="pgr-go" onclick="openItem(${arg})"><span>Continuer</span>${DEF_CHEV_SVG}</button>`:''}<button type="button" class="pl-overview-adjust" aria-haspopup="dialog" aria-controls="plan-adjust-sheet" aria-expanded="false" onclick="openPlanAdjust(this)">${PLAN_SLIDERS_SVG}<span>Adapter</span></button></div></div>
   </section>`;
 }
@@ -46393,14 +46419,14 @@ function renderCompte(){
     </section>
     <div class="acct-col acct-col-main">
       <section class="acct-block" id="acct-progress" aria-labelledby="acct-progress-t">
-        <div class="acct-head"><h2 id="acct-progress-t">Ma progression</h2><span>${progress.done} activité${progress.done>1?'s':''} terminée${progress.done>1?'s':''}</span></div>
+        <div class="acct-head"><h2 id="acct-progress-t">Ma progression</h2><span>${activitesCompte(progress.done,progress.total,{verbe:'terminée',zero:'à découvrir'})}</span></div>
         <div class="acct-stats">
           <div class="acct-stat is-streak${st.streak?' is-on':''}" style="--i:0"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('flame')}</span><b>${st.streak}</b><small>jour${st.streak>1?'s':''} de série</small></div>
           <div class="acct-stat" style="--i:1"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('book')}</span><b>${st.lessons}</b><small>leçon${st.lessons>1?'s':''}</small></div>
           <div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point${kd.pts>1?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}`:'À jouer'}</span></div>
         </div>
         <div class="acct-card acct-week-card">
-          <div class="acct-card-head"><b>Tes ${NB_JOURS_VUS} prochains jours</b>${weekPlanned?`<span>${weekComplete} / ${plural(weekPlanned,'séance')}</span>`:''}</div>
+          <div class="acct-card-head"><b>Tes ${NB_JOURS_VUS} prochains jours</b>${weekPlanned?`<span>${semaineCompte(weekComplete,weekPlanned)}</span>`:''}</div>
           <ol class="acct-week" aria-label="Séances des ${NB_JOURS_VUS} prochains jours, à partir d’aujourd’hui">${weekHTML}</ol>
           ${weekFoot}
         </div>
@@ -47279,7 +47305,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-six-jours-v2806';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2807';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
