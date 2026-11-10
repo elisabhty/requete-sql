@@ -87,7 +87,7 @@ assert.match(card, /<b>11<em>\/58<\/em>/);
 assert.match(card, /<div class="pgr-stat is-d"><small>Défis<\/small><b>1<em>\/2<\/em><\/b><i class="pgr-meter" aria-hidden="true"><b style="width:50%"><\/b><\/i><p>résolu<\/p><span class="kpi-pts"><svg[^]*?<\/svg>1\u202f230 pts<\/span><\/div>/);
 assert.match(card, /Record 5 j/);
 assert.equal(card.split('<li class="is-').length - 1, 14, '14 barres');
-assert.match(card, /Cette semaine : <b>7 activités<\/b>, 7 de plus que la semaine d’avant/);
+assert.match(card, /Ces 7 derniers jours : <b>7 activités<\/b>, 7 de plus que les 7 jours d’avant/);
 assert.match(card, /Prochain cap/); assert.match(card, /Leçon 7/); assert.match(card, /onclick="openItem\(7\)"/);
 assert.match(card, /class="pl-overview-adjust"/, 'le bouton Ajuster reste branché sur la feuille de réglage');
 const sauve = { actDays: ctx.state.actDays, lessons: ctx.state.lessons, defisJour: ctx.state.defisJour };
