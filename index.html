@@ -3502,7 +3502,7 @@
   .wk-nav .wk-t b{display:block;font-size:16px;font-weight:750;letter-spacing:-.2px}
   .wk-nav .wk-t small{display:block;font-size:12px;color:var(--ink-2);margin-top:1px}
   .wk-nav .wk-now{width:auto;min-width:44px;height:44px;padding:0 14px;font-size:13px;font-weight:750;font-family:var(--ui);background:var(--accent);color:#fff;border-color:transparent;box-shadow:0 4px 14px -6px rgba(91,91,214,.7)}
-  .wk-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:12px 16px 0;margin:0}
+  .wk-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;padding:12px 16px 0;margin:0}
   .wk-day{background:var(--surface);border:1px solid var(--card-border);border-radius:15px;padding:10px 0;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;min-width:0;transition:transform .18s var(--bounce-ios), background .18s, box-shadow .18s, border-color .18s;box-shadow:var(--card-shadow-sm);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .wk-day:active{transform:scale(.94)}
   .wk-day .wd{font-size:10.5px;font-weight:700;color:var(--ink-3);letter-spacing:.2px}
@@ -4549,7 +4549,7 @@
   .ob-practice-reward{margin:11px 2px 0;color:#0F766E;font-size:12px;font-weight:680;text-align:center;animation:obResultIn .4s var(--bounce-ios) .08s both}
   .ob-ready-path{width:100%;margin-top:12px;padding:13px 14px;border:1px solid rgba(91,91,214,.13);border-radius:17px;background:#F5F4FF;text-align:left}
   .ob-ready-path-head{display:flex;align-items:center;justify-content:space-between;color:#5555BC;font-size:11.5px;font-weight:760}
-  .ob-ready-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+  .ob-ready-days{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
   .ob-ready-days i{height:7px;border-radius:99px;background:#DCDCFA}.ob-ready-days i.on{background:var(--accent)}.ob-ready-days i.rest{background:#E6E6EC}
   .ob-ready-path small{display:block;margin-top:8px;color:#777785;font-size:10.5px;line-height:1.35}
   @media(max-height:720px){
@@ -6031,7 +6031,7 @@
   .account-goal-copy{min-width:0}.account-goal-copy>small{display:block;color:var(--accent);font-size:9.5px;font-weight:780;text-transform:uppercase;letter-spacing:.08em}.account-goal-copy>b{display:block;margin-top:3px;font-size:14.5px;font-weight:800;letter-spacing:-.25px}.account-goal-copy>span{display:block;margin-top:3px;color:#777A84;font-size:10.5px;line-height:1.3}
   .account-goal-meta{max-width:65px;color:var(--accent);font-size:10px;font-weight:760;text-align:right}.account-goal-meta .chev{display:block;margin-top:3px;font-size:20px;line-height:.7;color:#B1B2BC}
   .account-week-panel{padding-bottom:0}
-  .account-week{height:78px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;align-items:end}
+  .account-week{height:78px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;align-items:end}
   .account-week-day{height:100%;display:grid;grid-template-rows:1fr 14px;align-items:end;gap:4px;text-align:center}
   .account-week-day>span{width:100%;height:56px;padding:3px;border-radius:11px;background:var(--surface-2);display:flex;align-items:flex-end;overflow:hidden;transition:background .25s}
   .account-week-day>span i{display:block;width:100%;height:var(--h);min-height:5px;border-radius:7px;background:#D7D7E0;transition:height .55s var(--ease-ios)}
@@ -6680,7 +6680,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=303">
+<link rel="stylesheet" href="ludique.css?v=304">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -40647,9 +40647,12 @@ function renderTodayHero(){
 }
 
 /* ---------- Rendu : vue semaine ---------- */
+/* Elisa, 10 novembre, 6 h 54 : « Voir que les 6 prochains jours stp, pas les 7 prochains ». La fenêtre du planning, celle de Mon compte
+   et celle de la fin de l’inscription montrent 6 jours, à partir d’aujourd’hui ; les flèches avancent de 6 jours. */
+const NB_JOURS_VUS=6;
 function joursSemaine(){
-  const d0=addJ(auj(),semaineOffset*7);   // la fenêtre commence toujours au jour même
-  return Array.from({length:7},(_,i)=>addJ(d0,i));
+  const d0=addJ(auj(),semaineOffset*NB_JOURS_VUS);   // la fenêtre commence toujours au jour même
+  return Array.from({length:NB_JOURS_VUS},(_,i)=>addJ(d0,i));
 }
 function assureJourSel(){
   const p=state.plan,t=dstr(auj()),dans=joursSemaine().map(dstr);
@@ -40905,11 +40908,11 @@ function studioTodayList(){
   return rev;
 }
 function navHTML(){
-  const j=joursSemaine(),a=j[0],b=j[6];
+  const j=joursSemaine(),a=j[0],b=j[j.length-1];
   const titre=a.getMonth()===b.getMonth()
     ? `${a.getDate()} – ${b.getDate()} ${b.toLocaleDateString('fr-FR',{month:'long'})}`
     : `${a.getDate()} ${a.toLocaleDateString('fr-FR',{month:'short'})} – ${b.getDate()} ${b.toLocaleDateString('fr-FR',{month:'short'})}`;
-  const sous=semaineOffset===0?'7 prochains jours':(semaineOffset===1?'Semaine suivante':(semaineOffset===-1?'Semaine précédente':(semaineOffset<0?`Il y a ${-semaineOffset} sem.`:`Dans ${semaineOffset} sem.`)));
+  const sous=semaineOffset===0?`${NB_JOURS_VUS} prochains jours`:(semaineOffset===1?'Jours suivants':(semaineOffset===-1?'Jours précédents':(semaineOffset<0?`Il y a ${-semaineOffset} sem.`:`Dans ${semaineOffset} sem.`)));
   return `<button type="button" data-nav="-1" aria-label="Semaine précédente" onclick="changerSemaine(-1)">‹</button>
     <div class="wk-t"><b>${titre}</b><small>${sous}</small></div>
     <button type="button" data-nav="1" aria-label="Semaine suivante" onclick="changerSemaine(1)">›</button>
@@ -40970,7 +40973,7 @@ function renderSemaine(){
   const nD=sess?sess.lessons.length-nL:0;
   const started=!!sess&&faitN>0&&!fait;
   return `
-    <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les 7 prochains jours</h2><p>${semaineCompte(weekComplete,weekPlanned)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i>2</b>Prévue</span><span><b class="lg-pill done">✓</b>Validée</span></div></div>
+    <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les ${NB_JOURS_VUS} prochains jours</h2><p>${semaineCompte(weekComplete,weekPlanned)}</p></div><div class="pl-week-legend" aria-hidden="true"><span><b class="lg-pill planned"><i class="ld-ic"></i>2</b>Prévue</span><span><b class="lg-pill done">✓</b>Validée</span></div></div>
     <div class="wk-chrome">
       <div class="wk-nav">${navHTML()}</div>
       <div class="wk-strip">${stripHTML()}</div>
@@ -41049,7 +41052,7 @@ function nextDayPreviewHTML(){
 function allerAuJour(iso){
   if(iso!==jourSel)buzz('selection');
   jourSel=iso;
-  semaineOffset=Math.floor((parseD(iso)-auj())/86400000/7);
+  semaineOffset=Math.floor((parseD(iso)-auj())/86400000/NB_JOURS_VUS);
   renderPlanning();
 }
 
@@ -45633,7 +45636,7 @@ function paintOb(){
     const inv=!state.onboarded&&typeof jeuInvitation==='function'?jeuInvitation():null;
     /* La première semaine reflète le plan réellement généré. */
     const dates=new Set(p.sessions.map(s=>s.d)),d0=auj();
-    const week=Array.from({length:7},(_,i)=>dates.has(dstr(addJ(d0,i))));
+    const week=Array.from({length:NB_JOURS_VUS},(_,i)=>dates.has(dstr(addJ(d0,i))));
     const nWeek=week.filter(Boolean).length;
     /* 3 novembre, 17 h 32 : « améliore la dernière page de manière animée ». La coche se trace dans son rond, deux ondes en partent ;
        le prénom se souligne ; les lignes du récapitulatif arrivent l’une après l’autre, leur pastille rebondit ; les sept jours se
@@ -45645,7 +45648,7 @@ function paintOb(){
       <div class="ob-ready-summary"><div class="ob-ready-row" style="--i:0"><span class="ob-ready-ico">◎</span><div><small>Ton objectif</small><b>${esc(goalLabel)}</b></div></div>
         <div class="ob-ready-row" style="--i:1"><span class="ob-ready-ico">✓</span><div><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
         <div class="ob-ready-row" style="--i:2"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
-      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes 7 prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
+      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes ${NB_JOURS_VUS} prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
     /* Invité par un ami (5 novembre, 14 h) : l’inscription finie, on rejoint sa salle ; le parcours attend le retour. */
     if(inv)obSetFooter('Rejoindre la salle',()=>finishOnboard('salle'),'','',(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* Revenu de Mon compte (« Personnalisation ») : on enregistre et on y revient (audit de Mon compte, 6 novembre) */
@@ -46336,14 +46339,14 @@ function renderCompte(){
   /* Ta semaine : les 7 jours du planning, à partir d’aujourd’hui, comme « Les 7 prochains jours » du Planning (Elisa, 30 octobre,
      22 h 11 : « c’est pas cette semaine, c’est aujourd’hui, du coup pour vendredi » : plus de lundi à jeudi en lunes avant l’inscription). */
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  const weekDays=Array.from({length:7},(_,i)=>{
+  const weekDays=Array.from({length:NB_JOURS_VUS},(_,i)=>{
     const date=addJ(auj(),i),iso=dstr(date),session=state.plan&&(state.plan.sessions||[]).find(s=>s.d===iso);
     const total=session&&session.lessons?session.lessons.length:0;
     const done=total?total-resteDe(session):0;
     const name=DAY_NAMES[date.getDay()];
     return {label:i?name[0]:'Auj.',name,iso,total,done,today:i===0,complete:total>0&&done===total};
   });
-  const weekEnd=weekDays[6].name.toLowerCase();
+  const weekEnd=weekDays[weekDays.length-1].name.toLowerCase();
   const weekPlanned=weekDays.filter(d=>d.total>0).length;
   const weekComplete=weekDays.filter(d=>d.complete).length;
   const weekLeft=Math.max(0,weekPlanned-weekComplete);
@@ -46397,8 +46400,8 @@ function renderCompte(){
           <div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point${kd.pts>1?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}`:'À jouer'}</span></div>
         </div>
         <div class="acct-card acct-week-card">
-          <div class="acct-card-head"><b>Tes 7 prochains jours</b>${weekPlanned?`<span>${weekComplete} / ${plural(weekPlanned,'séance')}</span>`:''}</div>
-          <ol class="acct-week" aria-label="Séances des 7 prochains jours, à partir d’aujourd’hui">${weekHTML}</ol>
+          <div class="acct-card-head"><b>Tes ${NB_JOURS_VUS} prochains jours</b>${weekPlanned?`<span>${weekComplete} / ${plural(weekPlanned,'séance')}</span>`:''}</div>
+          <ol class="acct-week" aria-label="Séances des ${NB_JOURS_VUS} prochains jours, à partir d’aujourd’hui">${weekHTML}</ol>
           ${weekFoot}
         </div>
       </section>
@@ -47276,7 +47279,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-positif-v2805';
+  const SW_CACHE='requete-2026-11-09-six-jours-v2806';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

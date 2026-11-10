@@ -48,10 +48,10 @@ test('les feuilles : bandeau violet en tête (titre, texte, autocollant), champ 
   assert.match(sec, /@media \(prefers-reduced-motion:reduce\)\{\s*html\.lq \.lq-ask\.on \.lq-ask-stk,/, 'mouvement réduit : rien ne bouge');
 });
 
-test('Mon compte : les 7 jours du planning à partir d’aujourd’hui (« Auj. » en premier), plus de lundi à jeudi en lunes', () => {
+test('Mon compte : les jours du planning à partir d’aujourd’hui (« Auj. » en premier), plus de lundi à jeudi en lunes', () => {
   const acct = cut('function renderCompte(){', 'function openLegal(');
   assert.ok(acct.includes("const date=addJ(auj(),i)") && acct.includes("label:i?name[0]:'Auj.'") && !acct.includes('const monday='));
-  assert.ok(acct.includes('<b>Tes 7 prochains jours</b>') && !acct.includes('<b>Cette semaine</b>'));
+  assert.ok(acct.includes('<b>Tes ${NB_JOURS_VUS} prochains jours</b>') && !acct.includes('<b>Cette semaine</b>'), '6 jours depuis le 10 novembre (NB_JOURS_VUS)');
   assert.ok(acct.includes("`Encore ${plural(weekLeft,'séance')} d’ici ${weekEnd}.`") && !acct.includes('cette semaine.'), '« d’ici jeudi », pas « cette semaine »');
 });
 
