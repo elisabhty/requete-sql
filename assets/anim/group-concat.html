@@ -80,7 +80,8 @@
 .snote{height:46px;padding:0 16px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-family:var(--ui);font-size:24px;font-weight:700;display:flex;align-items:center;white-space:nowrap;opacity:0}
 .vals{display:flex;justify-content:center;gap:10px;margin-top:26px}
 .vc{position:relative;width:164px;height:118px;border-radius:24px;border:3px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-.vc small{font-size:21px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+/* « commande » au-dessus de son numéro (le texte passe à la ligne) : sur une ligne, l’étiquette touchait les bords de la case (10 novembre). */
+.vc small{max-width:130px;font-size:21px;line-height:1.1;font-weight:700;color:var(--ink-3);white-space:normal;text-align:center}
 .vc b{font-family:var(--mono);font-size:40px;font-weight:800;color:var(--accent-ink)}
 .vc.nul b{font-size:34px;color:#C2323A}
 .vc .ig{position:absolute;left:50%;bottom:-20px;height:38px;margin-left:-56px;width:112px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0}
@@ -395,8 +396,9 @@ function merge(card, pos, t, step = 0.12){
   tl.to(seps, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2.2)', stagger: step}, t);
   seps.forEach((_, i) => { if (i % 2 === 0) cue(t + i * step, 'tick', 0.5, i % 5); });
   const t2 = t + seps.length * step + 0.4;
-  cases.forEach((c, i) => tl.to(c, {left: pos[2 * i].x, width: pos[2 * i].w, backgroundColor: 'rgba(255,255,255,0)', duration: 0.6, ease: 'power3.inOut'}, t2));
-  seps.forEach((s, i) => tl.to(s, {left: pos[2 * i + 1].x, duration: 0.6, ease: 'power3.inOut'}, t2));
+  /* Le déplacement passe par x (transform) plutôt que par left : même image, sans recalcul de la mise en page à chaque image (10 novembre). */
+  cases.forEach((c, i) => tl.to(c, {x: pos[2 * i].x - parseFloat(c.style.left), width: pos[2 * i].w, backgroundColor: 'rgba(255,255,255,0)', duration: 0.6, ease: 'power3.inOut'}, t2));
+  seps.forEach((s, i) => tl.to(s, {x: pos[2 * i + 1].x - parseFloat(s.style.left), duration: 0.6, ease: 'power3.inOut'}, t2));
   cue(t2, 'whoosh', 0.45);
   tl.to(card.querySelector('.cell'), {autoAlpha: 1, duration: 0.3}, t2 + 0.55);
   tl.to([...cases, ...seps], {autoAlpha: 0, duration: 0.2}, t2 + 0.65);

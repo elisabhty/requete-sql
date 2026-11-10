@@ -6680,7 +6680,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=310">
+<link rel="stylesheet" href="ludique.css?v=311">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=40">
 <style id="lesson-video-css">
@@ -6821,6 +6821,9 @@ html.ios .lv-anim{will-change:transform}
 /* « ↺ Revoir » : revoir le passage qui amène le moment */
 .lv-pk-back{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border:1.5px solid var(--line,#E6E1F6);border-radius:999px;background:#fff;color:var(--ink-2,#4E4872);font:700 12.5px/1 var(--display);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color .15s,transform .12s}
 .lv-pk-back span:first-child{font-size:14px}
+/* 10 novembre (relecture des cours) : la pastille garde ses 26 px, mais se touche sur 44 px de haut. */
+.lv-pk-back{position:relative}
+.lv-pk-back::before{content:"";position:absolute;inset:-9px -4px}
 .lv-pk-back:active{background:var(--accent-soft,#EEE9FF);transform:scale(.96)}
 :where(html:not(.pointer-nav)) .lv-pk-back:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(106,77,244,.35)}
 .lv-pk-back+.lv-pk-dots{margin-left:8px}
@@ -6936,12 +6939,19 @@ html.ios .lv-anim{will-change:transform}
    une étiquette seule sur sa ligne (nombre impair, ou au fil des étiquettes posées) se centre */
 .lv-pk.is-sort .lv-pk-opts:not([hidden]){display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
 .lv-pk.is-sort .lv-pk-opt{min-height:44px;flex:0 0 calc(50% - 3.5px);min-width:0}
+/* 10 novembre (relecture des cours) : avec six étiquettes de plus de 22 signes, une par ligne, la feuille montait jusqu’à cacher les
+   cases où les poser (dernier moment de ON DELETE, des transactions…, sur tous les iPhone, et tout sur un SE). Une phrase courte
+   (23 à 36 signes, sans code) reste deux par ligne, un peu plus petite, sur deux lignes au plus (is-mid) ; une étiquette plus longue ou
+   avec du code garde toute la largeur (27 octobre, 17 h 47), en plus serré sur un téléphone ; sur un écran bas, l’aide se replie. */
 .lv-pk.is-sort.is-wide .lv-pk-opt{flex-basis:100%}
+.lv-pk.is-sort.is-mid .lv-pk-opt{font-size:14px;line-height:1.2}
+@media (max-height:900px){.lv-pk.is-sort.is-wide .lv-pk-opt{min-height:38px;padding-top:4px;padding-bottom:4px;font-size:14px}}
+@media (max-height:700px){.lv-pk.is-sort .lv-pk-opt{min-height:38px}.lv-pk.is-sort.is-mid .lv-pk-opt{font-size:13px}.lv-pk.is-sort .lv-pk-hint:not(.is-next){display:none}}
 .lv-pk.is-sort .lv-pk-opt{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;text-align:left;text-wrap:balance;line-height:1.15;background:#fff;border-color:#D4C8FB;color:var(--ink,#221C46);font-family:var(--ui);font-size:15px;font-weight:700;letter-spacing:-.01em;box-shadow:0 4px 0 #CBBEFB,0 10px 18px -12px rgba(40,20,120,.45)}
 .lv-pk-grip{width:9px;height:15px;flex:none;fill:#A496E8}
 /* Le nom de l’étiquette, d’un seul tenant : sans lui, « e-mail » (mot insécable) et « du coach » étaient deux éléments du bouton,
    côte à côte, et débordaient au lieu de passer à la ligne (projet Normaliser, iPhone). */
-.lv-pk-lb{min-width:0}
+.lv-pk-lb{min-width:0;overflow-wrap:anywhere}   /* « seances_restantes », d’un seul tenant, ne sort plus du bouton (10 novembre) */
 /* Réglages (tune) : un curseur (sa valeur à droite de son nom), un choix en boutons accolés, des bascules ; « Valider » dessous. */
 .lv-pk.is-tune .lv-pk-opts:not([hidden]){display:flex;flex-direction:column;align-items:stretch;gap:12px}
 .lv-pk-c{display:flex;flex-wrap:wrap;align-items:center;gap:7px 10px}
@@ -29583,6 +29593,20 @@ function lvAnsSet(id,i,q,k){ (LV_ANS[id]||(LV_ANS[id]={}))[i]={k,q:q.q}; lvAnsSa
 /* Recommencer la leçon : la vidéo repart du début et les questions sont reposées. */
 function lvForget(id){ LV_POS.delete(id); lvPosSave(); if(LV_ANS[id]){ delete LV_ANS[id]; lvAnsSave(); } }
 let LV=null, LV_MUTED=false;
+let lvCouvreT=0, lvFige=[];   // 10 novembre : la page de la leçon se fige sous le lecteur, une fois le fondu d’ouverture fini (openLessonVideo)
+/* Sous le lecteur plein écran (téléphone : moins de 600 px de large ; au-delà, la page se voit autour du lecteur), seules les animations
+   en boucle de la page de la leçon et de la page « Commencer » se mettent en pause : une entrée encore en cours (un titre qui glisse)
+   va au bout, la page n’a rien à rejouer en réapparaissant. Elles reprennent là où elles s’étaient arrêtées. */
+function lvFond(on){
+  if(!on){ lvFige.forEach(a=>{ try{ if(a.playState==='paused')a.play(); }catch(e){} }); lvFige=[]; document.documentElement.classList.remove('lv-couvre'); return; }
+  if(!document.getAnimations||!window.matchMedia||!matchMedia('(max-width:599.98px)').matches)return;
+  const app=document.getElementById('app');
+  const neuves=document.getAnimations().filter(a=>{ const t=a.effect&&a.effect.target, tm=a.effect&&a.effect.getTiming&&a.effect.getTiming();
+    return a.playState==='running'&&tm&&tm.iterations===Infinity&&t&&t.closest&&!(LV&&LV.root.contains(t))&&(!!(app&&app.contains(t)&&t.closest('.screen'))||!!t.closest('#lesson-start')); });
+  neuves.forEach(a=>{ try{ a.pause(); }catch(e){} });
+  lvFige=lvFige.concat(neuves);   // appelée deux fois de suite, elle n’oublie pas celles qu’elle a déjà figées
+  document.documentElement.classList.add('lv-couvre');
+}
 /* Vitesse de lecture choisie par la personne, gardée d’une vidéo à l’autre. */
 const LV_RATES=[0.5,0.75,1,1.5,2];
 let LV_RATE=(()=>{ try{ const r=parseFloat(localStorage.getItem('rq-video-vitesse')); return LV_RATES.includes(r)?r:1; }catch(e){ return 1; } })();
@@ -30385,6 +30409,11 @@ function openLessonVideo(fin){
      dans son cadre pouvait les retarder d’une à deux secondes ; on voyait alors l’écran clair du cours avant la vidéo (Elisa,
      3 novembre, 9 h 01). Lire l’opacité fixe le point de départ (transparent) ; le fondu se joue ensuite sans le fil principal. */
   else{ void getComputedStyle(root).opacity; root.classList.add('on'); }
+  /* 10 novembre (« verrouiller tous les cours ») : sur téléphone, le lecteur couvre tout l’écran ; la page de la leçon, dessous, gardait
+     ses animations en boucle (la porte du cours qui respire, les étincelles de la carte, la mascotte qui flotte) : cinq à huit animations
+     invisibles recalculées à chaque image de la vidéo. Une fois le fondu d’ouverture fini, elles se figent (lvFond) ; elles repartent dès
+     que la fermeture commence (closeLessonVideo), avant que la page ne réapparaisse. */
+  clearTimeout(lvCouvreT); lvCouvreT=setTimeout(()=>{ if(LV&&LV.root===root&&root.isConnected)lvFond(true); },fin||prefersReduceMotion()?0:420);
   lvPlay();
   try{root.focus({preventScroll:true});}catch(e){}
 }
@@ -30431,7 +30460,9 @@ function lvSyncSeek(){
   const V=LV.video, d=V.duration||0, p=d?Math.min(1,V.currentTime/d):0;
   LV.seek.value=String(Math.round(p*1000));
   lvFill(p);
-  const c=LV.root.querySelector('.lv-cur'); if(c)c.textContent=lvFmt(V.currentTime);
+  /* 10 novembre : le temps n’est réécrit que quand il change (une fois par seconde) ; il l’était à chaque tic (toutes les 80 ms),
+     ce qui refaisait la mise en page de la barre du bas pour rien. */
+  const c=LV.root.querySelector('.lv-cur'), s=lvFmt(V.currentTime); if(c&&c.textContent!==s)c.textContent=s;
 }
 function lvSyncPP(){
   const b=LV&&LV.root.querySelector('.lv-pp'); if(!b)return;
@@ -31125,6 +31156,13 @@ function lvVoiceSay(c){ if(c&&LV&&LV.video&&!LV.video.muted)LvVoice.say(c); }
    et bien rattrapé elle dit rien ») ; un cours qui n’a pas encore cette phrase dit « Bien vu ! ». */
 function lvVoiceWin(first){ const V=lvVoiceV(); if(V)lvVoiceSay(first?V.ok:(V.late||V.ok)); }
 function lvVoiceKo(P){ const V=lvVoiceV(); if(!V||!P)return; if(P.hinted&&!P.tipSaid){ P.tipSaid=true; lvVoiceSay(V.tips[P.i]); } else if(!P.koSaid){ P.koSaid=true; lvVoiceSay(V.ko); } }
+/* La largeur des étiquettes à ranger (10 novembre) : une phrase de 23 à 36 signes reste deux par ligne (is-mid) ; plus longue, ou avec du
+   code (parenthèse, point, étoile, signe égal, tiret bas), elle prend la ligne entière (is-wide). */
+function lvPkLarge(opts){
+  const L=opts.map(o=>String(o.label||'').replace(/<[^>]+>/g,''));
+  if(L.some(t=>t.length>36||(t.length>22&&/[(.*=_]/.test(t))))return ' is-wide';
+  return L.some(t=>t.length>22)?' is-mid':'';
+}
 function lvPkShow(i,p){
   if(!LV||!p)return;
   const rawPrompt=p.prompt, rawHint=p.hint||'';
@@ -31137,7 +31175,7 @@ function lvPkShow(i,p){
   /* Réponses longues (une phrase) : l’une sous l’autre, sur toute la largeur, le texte sur deux lignes au besoin. */
   /* Étiquettes à ranger longues (« SELECT clients.ville, COUNT(*) », « Sophie Martin, commande n°1 ») : une par ligne, sur toute la
      largeur ; à deux par ligne, elles tenaient sur trois lignes, coupées n’importe où (Elisa, 27 octobre, 17 h 47). */
-  box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')+(kind==='sort'&&opts.some(o=>String(o.label).length>22)?' is-wide':'');
+  box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')+(kind==='sort'?lvPkLarge(opts):'');
   box.innerHTML=`<div class="lv-pk-card" role="group" aria-labelledby="lv-pk-t" tabindex="-1">
     <div class="lv-pk-top"><span class="lv-pk-kick">À toi · ${i+1}/${n}</span>${total>1?`<span class="lv-pk-cnt">0 / ${total}</span>`:''}<button type="button" class="lv-pk-back" aria-label="Revoir le passage avant ce moment"><span aria-hidden="true">↺</span><span>Revoir</span></button><span class="lv-pk-dots" aria-hidden="true">${lvPkDots(i,n)}</span></div>
     <p class="lv-pk-t" id="lv-pk-t">${kind==='pick'?`<span class="lv-pk-hole" aria-hidden="true">?</span>`:`<span class="lv-pk-ico" aria-hidden="true">${(kind==='tune'&&p.ico)||LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span></p>
@@ -31446,6 +31484,8 @@ function lvPkPlace(){
    réduit en 0,2 s ; et l’image reprend de la taille dès que la feuille raccourcit et que l’état s’est posé (0,15 s), même avant la bonne
    réponse : elle ne restait plus réduite pour une explication déjà repliée. */
 const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=150, LV_PK_BOT=22;
+/* 10 novembre : sur un téléphone, l’image peut se réduire davantage (0,55 sous 700 px de haut, un SE) pour rester au-dessus de la feuille. */
+const lvPkZmin=()=>typeof innerHeight==='number'&&innerHeight<700?.55:LV_PK_ZMIN;
 function lvPkFit(P,settled){
   const V=LV&&LV.video, w=V&&V.win; if(!w||typeof w.__contentBottom!=='function')return;
   const wait=()=>{ clearTimeout(P.fitT); P.fitT=setTimeout(()=>{ if(LV&&LV.pk===P)lvPkFit(P,true); },LV_PK_WAIT); };
@@ -31461,7 +31501,7 @@ function lvPkFit(P,settled){
   if(P.fitSig!==sig){ P.fitSig=sig; P.zoom=null; }
   const oy=r.top-R.top, yb=lvPt(0,B,1).y, top=parseFloat(P.box.style.top)||0, room=yb-oy;
   if(!(room>0))return;
-  const z=top-yb<LV_PK_MIN?Math.max(LV_PK_ZMIN,Math.min(1,(top-LV_PK_GAP-oy)/room)):lvPkZoomIn(w,r,R,top);
+  const z=top-yb<LV_PK_MIN?Math.max(lvPkZmin(),Math.min(1,(top-LV_PK_GAP-oy)/room)):lvPkZoomIn(w,r,R,top);
   P.zoom=P.done||settled||P.zoom==null?z:Math.min(P.zoom,z);
   lvZoomTo(P.zoom);
   if(!settled)wait();
@@ -32159,6 +32199,8 @@ function lvWake(){ if(LV&&LV.video instanceof LvAnim&&!LV.video.paused)LvSfx.wak
 function closeLessonVideo(instant){
   if(!LV)return;
   ileFin(false);   // fermée avant la fin : elle quitte la Dynamic Island
+  /* 10 novembre : la page de la leçon reprend ses animations avant que le fondu ne la découvre (voir openLessonVideo). */
+  clearTimeout(lvCouvreT); lvFond(false);
   lvPosKeep();
   clearTimeout(LV.flashT);
   const {id,root,video,note,ro,place,tap,fin,firstDone}=LV;
@@ -47542,7 +47584,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-chiffres-v2824';
+  const SW_CACHE='requete-2026-11-09-chiffres-v2825';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -1740,7 +1740,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
 
 test('moments joués sur l’image : toucher, glisser ou relier, au doigt comme à la souris, sans couper « e-mail »', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
-  for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')+(kind==='sort'&&opts.some(o=>String(o.label).length>22)?' is-wide':'');",
+  for (const part of ["const total=kind==='sort'?opts.length:(p.need||0);", "box.className='lv-pk'+(kind==='pick'?'':' is-'+kind)+(p.text?' is-text':'')+(kind==='pick'&&opts.some(o=>String(o.label).length>30)?' is-long':'')+(kind==='sort'?lvPkLarge(opts):'');",   /* 10 novembre : is-mid (deux par ligne) ou is-wide (toute la ligne), voir lecteur-iphone */
     '<span class="lv-pk-cnt">0 / ${total}</span>', '<span class="lv-pk-ico" aria-hidden="true">${(kind===\'tune\'&&p.ico)||LV_PK_ICO[kind]||LV_PK_ICO.tap}</span>`}<span class="lv-pk-tx">${p.prompt}</span>',
     '<p class="lv-pk-hint">${p.hint}</p>', "}else if(kind==='tune')lvPkTune(P);\n  else lvPkLayer(P);", "p={...p,prompt:lvNw(p.prompt),hint:p.hint?lvNw(p.hint):''};"])
     assert.ok(show.includes(part), `plateau : ${part}`);
@@ -3008,7 +3008,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=310">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=311">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {

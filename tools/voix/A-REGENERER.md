@@ -2,6 +2,20 @@
 
 _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Elisa décide de ce qui est généré._
 
+**10 novembre, 13 h : la relecture finale des 72 cours** (six relecteurs débutants, en parallèle). Quatre phrases fausses ou bloquantes, chacune avec la voix de son cours ; la page garde ses textes tant que la voix n’est pas refaite (`tools/voix/<cours>-relecture.json`) :
+  - WITH RECURSIVE (Anaïs, ch06, 422 caractères) : « EXCEPT retire les 12 dates de juillet présentes dans la table commandes » (la table en a 14, deux en août) ;
+  - GROUP BY sur plusieurs colonnes (Antoine, ch05, 296 caractères) : « chaque colonne du GROUP BY doit figurer dans le SELECT » devient un conseil (la vidéo montre ensuite que la requête s’exécute) ;
+  - Normalisation (Agathe, ch05, 688 caractères) : la 2e forme normale parle de « la clé » avant qu’elle soit présentée ;
+  - Bases relationnelles (Agathe, ch06, 1391 caractères, déjà à refaire pour ses légendes muettes) : « ne peut pas être nulle » devient « n’est jamais vide ».
+
+  Environ 2 800 crédits :
+
+```
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours with-recursive-relecture,group-by-colonnes-relecture,projet-normaliser-relecture,bases-relationnelles-relecture --oui
+```
+
+  Puis « fini » : `node tools/voix/integrer.mjs <cours> tools/voix/sortie/<cours>-relecture --garder` pour chacun.
+
 **10 novembre, 10 h 10 : contrôle automatique des 1 436 voix** (signal seul : débuts et fins, silences, volume, saturation, débit ; `tools/voix/clics.mjs`). Rien de coupé au début, aucune saturation, aucun silence anormal (le plus long fait 1,2 s), volumes homogènes (`volume.mjs` : 0 fichier à régler), débits normaux. Corrigé sans régénérer ni réencoder : 51 « tic » en fin de phrase et 5 souffles après la dernière syllabe (les trames concernées rendues muettes, durée inchangée, le reste du son identique à l’échantillon près). Reste pour l’oreille d’Elisa : `coalesce/ch02` (un bruit après « absents », trop proche de la voix pour être retiré sans risque), et `bases-relationnelles/ch11`, jamais généré (voir plus bas). Les accents et la prononciation ne se contrôlent pas automatiquement ici.
 
 **6 novembre, 21 h 45 : tout est intégré.** Les deux commandes du 6 novembre ont tourné ; l’appli joue maintenant la voix d’Anaïs dans les 20 cours (et le chapitre refait de GROUP BY), les corrections de la relecture, les moments expliqués avant d’être posés, les deux phrases de la vidéo du site et la phrase des index. Chaque voix intégrée est ramenée au niveau de son cours (`tools/voix/volume.mjs`).

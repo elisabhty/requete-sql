@@ -85,6 +85,9 @@
 #s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
 #s7 .rtxt{font-size:39px}
 #s7 .rtxt .rs{margin-top:6px;font-size:33px}
+/* Intro de l’app (carte violette, introScene) : bulle un peu plus large et texte un peu plus petit, pour des lignes pleines
+   sans mot seul (?check : orphelin, ligne trop courte) ; le sous-titre garde ses mots, sur des lignes équilibrées. */
+#s0.nv .bubble{left:510px;width:490px;font-size:38px !important}
 </style>
 </head>
 <body>
@@ -277,6 +280,9 @@ const CAPTIONS = [
 const QUESTIONS = [];
 /* Moments « À toi » (moments.js) : l’image s’arrête à `at` (temps de la timeline ci-dessus), juste avant que la vidéo ne montre la réponse.
    Elisa, 27 octobre, 13 h 42 et 13 h 48 : des moments de toutes sortes, du même niveau que les derniers cours. */
+/* Moment 2 : les étiquettes à toucher font au moins 40 px de haut sur un iPhone de 390 px (24 px avant : cible trop petite au doigt) ;
+   celles de droite, à la même hauteur, restent alignées sur elles. */
+const MB_T = 'padding:36px 22px';
 const MOMENTS = [
   // deux listes à comparer : avant que la vidéo ne nomme INTERSECT
   {at: 51.5, from: 45.7, kind: 'pick', prompt: 'Quel mot-clé ne garde que les produits présents dans les deux listes ?', options: [
@@ -287,8 +293,8 @@ const MOMENTS = [
   // les produits en stock faible qui ne se vendent plus : avant que la vidéo n’amène EXCEPT
   {at: 87.95, from: 82.3, kind: 'tap', need: 1, prompt: 'Touche le produit en stock faible qui n’a pas été commandé depuis le 20 juillet.',
     board: {y: 300, html: '<div class="mb-cols" style="gap:24px"><div class="mb-col" style="gap:10px"><b class="mb-lh">Stock faible</b>'
-      + STOCK_FAIBLE.map(([n], i) => `<span class="mb-t" id="mbs${i}">${n}</span>`).join('') + '</div><div class="mb-col" style="gap:10px"><b class="mb-lh">Commandés récemment</b>'
-      + COMMANDES_RECENTES.map(n => `<span class="mb-t">${n}</span>`).join('') + '</div></div>'},
+      + STOCK_FAIBLE.map(([n], i) => `<span class="mb-t" id="mbs${i}" style="${MB_T}">${n}</span>`).join('') + '</div><div class="mb-col" style="gap:10px"><b class="mb-lh">Commandés récemment</b>'
+      + COMMANDES_RECENTES.map(n => `<span class="mb-t" style="${MB_T}">${n}</span>`).join('') + '</div></div>'},
     spots: STOCK_FAIBLE.map(([n], i) => ({k: 's' + i, sel: '#mbs' + i, label: n, ok: !COMMANDES_RECENTES.includes(n),
       why: COMMANDES_RECENTES.includes(n) ? `Le produit ${n} figure aussi parmi les produits commandés récemment.` : ''})),
     tip: 'Cherche le produit de gauche absent de la liste de droite.'},

@@ -58,6 +58,8 @@
 .tr.tp{height:50px;font-size:30px}
 .tr.am .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
 .tr.rd .hl{background:#FDEBEC;box-shadow:inset 8px 0 0 #E5484D}
+/* Le rouge de la Tisane Détox (chapitre 5) : un calque posé sur l’orange, qui apparaît en fondu (opacity) au lieu d’animer background et box-shadow */
+.tr .hk{position:absolute;left:0;top:0;right:0;bottom:0;background:#FDEBEC;box-shadow:inset 8px 0 0 #E5484D;opacity:0;z-index:0}
 .dc .q{color:var(--ink-3)}
 .dc .d{position:absolute;left:12px;top:7px;opacity:0}
 
@@ -98,6 +100,10 @@
 #s7 .rico{width:84px;height:84px;border-radius:24px;font-size:44px}
 #s7 .rtxt{font-size:36px}
 #s7 .rtxt .rs{margin-top:4px;font-size:30px;line-height:1.22}
+/* Intro de l’app (carte violette, introScene) : bulle un peu plus large et texte un peu plus petit, pour des lignes pleines
+   sans mot seul (?check : orphelin, ligne trop courte) ; le sous-titre garde ses mots, sur des lignes équilibrées. */
+#s0.nv .bubble{left:510px;width:490px;font-size:36px !important}
+#s0.nv .sub{width:700px}
 </style>
 </head>
 <body>
@@ -287,7 +293,7 @@ const CAPTIONS = [
   [105.9, 111.5, "Ligne 2 : pour le Collagène&nbsp;Marin, la <span class=\"nw\">sous-requête</span> renvoie <span class=\"nw\">2026-07-25</span>."],
   [111.6, 117.5, "Le calcul est refait pour chaque produit, qui reçoit sa propre date."],
   [117.6, 124.4, "Reliée ainsi à la requête principale, la <span class=\"nw\">sous-requête</span> est dite <b>corrélée</b>."],
-  [125.2, 130.9, "Attention : la requête s’exécute même sans le lien avec <code>produits.id</code>."],
+  [125.7, 130.9, "Attention : la requête s’exécute même sans le lien avec <code>produits.id</code>."],
   [131.0, 136.3, "Mais chaque produit affiche la même date : <span class=\"nw\">2026-08-03</span>."],
   [136.4, 141.7, "Sans le lien avec <code>produits.id</code>,<br>la <span class=\"nw\">sous-requête</span> récupère<br>la date la plus récente"],
   [141.8, 146.1, "parmi toutes les commandes,<br>puis l’affiche pour chaque produit."],
@@ -322,8 +328,8 @@ const MOMENTS = [
     {label: 'produit_id', why: 'Comparer <code>produit_id</code> à lui-même est toujours vrai : toutes les commandes compteraient.'},
     {label: 'id', why: 'Seul, <code>id</code> désignerait l’identifiant de la commande : il faut <code>produits.id</code>.'}],
     tip: 'Il faut l’identifiant du produit de la ligne en cours, dans la <b>table produits</b>.'},
-  // le piège : sans le lien
-  {at: 124.92, from: 117.6, kind: 'pick', text: true, prompt: 'Sans la condition sur <code>produits.id</code>, que renvoie la sous-requête pour chaque produit ?', options: [
+  // le piège : sans le lien (la requête affichée, sa carte posée à 125,5 s)
+  {at: 125.6, from: 117.6, kind: 'pick', text: true, prompt: 'Sans la condition sur <code>produits.id</code>, que renvoie la sous-requête pour chaque produit ?', options: [
     {label: 'La même date pour chaque produit', ok: true, why: 'Sans cette condition, elle calcule la date la plus récente de toute la table : la même pour tous, 2026-08-03.'},
     {label: 'Une erreur SQL', why: 'La requête s’exécute : c’est le résultat qui est faux.'},
     {label: 'La bonne date pour chaque produit', why: 'Sans <code>produits.id</code>, rien ne relie le calcul au produit de la ligne.'}],
@@ -339,7 +345,7 @@ function dom(){
     `<div class="dc"><span class="q">?</span><span class="d">${DERNIERE(p)}</span></div></div>`).join('');
   $('#dg4').innerHTML = PRODUITS.map(p => `<div class="grp">${p[2].map(d => `<span class="dt">${d}</span>`).join('')}</div>`).join('');
   /* Chapitre 5 : sans le lien, la même date pour tous */
-  $('#rows5').innerHTML = PRODUITS.map(p => `<div class="rgN tr tp am"><span class="hl"></span>${nom(p)}<div>${TOUTE_LA_TABLE}</div></div>`).join('');
+  $('#rows5').innerHTML = PRODUITS.map(p => `<div class="rgN tr tp am"><span class="hl"></span><span class="hk"></span>${nom(p)}<div>${TOUTE_LA_TABLE}</div></div>`).join('');
   /* Chapitre 6 : le résultat de la requête complète */
   $('#rows6').innerHTML = PRODUITS.map(p => `<div class="rgN tr tp am"><span class="hl"></span>${nom(p)}<div>${DERNIERE(p)}</div></div>`).join('');
 }
@@ -476,7 +482,7 @@ function build(){
   tl.to(['#x3a', '#x3b'], {height: 48, duration: 0.45, ease: 'power3.out'}, 71.7);
   tl.to(['#x3a', '#x3b'], {opacity: 1, duration: 0.3}, 72.1);
   tl.to('#pp3', {width: W(3), duration: 0.45, ease: 'power3.out'}, 71.7);
-  tl.to(['#q3b', '#q3c'], {paddingLeft: W(3), duration: 0.45, ease: 'power3.out'}, 71.7);
+  tl.to(['#q3b', '#q3c'], {x: W(3), duration: 0.45, ease: 'power3.out'}, 71.7);   // le retrait : un déplacement (transform), même image qu’avec padding-left
   tl.to('#sc3', {width: 0, duration: 0.3}, 71.7);
   tl.to('#cp3', {width: W(1), duration: 0.3}, 71.9);
   cue(71.7, 'fold', 0.6);
@@ -545,7 +551,7 @@ function build(){
   pulse('#f5', 142.0, 3, 'rgba(255,214,140,.5)');
   pulse($$('#rows5 .tr > div:last-child'), 143.9, 1, 'rgba(255,214,140,.6)');
   // La Tisane Détox risque d’être écartée à tort des produits à relancer
-  tl.to(r5[4].querySelector('.hl'), {backgroundColor: '#FDEBEC', boxShadow: 'inset 8px 0 0 #E5484D', duration: 0.3}, 146.7);
+  tl.to(r5[4].querySelector('.hk'), {opacity: 1, duration: 0.3}, 146.7);
   cue(146.7, 'miss', 0.55);
   show('#x5', 147.3, {y: 0, scale: 0.7}, 0.45, 'back.out(2)');
   shake('#x5', 147.9);
