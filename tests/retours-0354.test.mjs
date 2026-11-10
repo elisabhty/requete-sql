@@ -28,35 +28,35 @@ const flux = (globals = {}) => {
   return ctx;
 };
 
-test('le tunnel de fin : sources, rappel (s’il peut être demandé), puis le compte ; le widget après la première leçon (13 h 48)', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+test('le tunnel de fin : sources, rappel (s’il peut être demandé) ; le compte et le paywall après « Ton parcours est prêt » (10 novembre) ; le widget après la première leçon (13 h 48)', () => {
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
   /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte est toujours là ; 10 h 45
      (« passer directement à la connexion ») : juste après la première requête. */
-  assert.deepEqual([...flux().obFinFlux()], ['practice', 'account', 'source'], 'navigateur sans notifications : le compte, puis la question');
-  assert.deepEqual([...flux({Notification: {permission: 'default'}}).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
-  assert.deepEqual([...flux({Notification: {permission: 'granted'}}).obFinFlux()], ['practice', 'account', 'source'], 'déjà décidé : rien à demander');
+  assert.deepEqual([...flux().obFinFlux()], ['practice', 'source'], 'navigateur sans notifications : le compte, puis la question');
+  assert.deepEqual([...flux({Notification: {permission: 'default'}}).obFinFlux()], ['practice', 'source', 'rappel']);
+  assert.deepEqual([...flux({Notification: {permission: 'granted'}}).obFinFlux()], ['practice', 'source'], 'déjà décidé : rien à demander');
   const natif = (plugins = ['RequeteWidget', 'LocalNotifications'], plateforme = 'ios') => ({window: {Capacitor: {isNativePlatform: () => true, getPlatform: () => plateforme,
     isPluginAvailable: n => plugins.includes(n), Plugins: plugins.includes('LocalNotifications') ? {LocalNotifications: {}} : {}}}});
   const c = flux(natif());
-  assert.deepEqual([...c.obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'app iPhone : le widget n’est plus dans le tunnel');
-  assert.equal(c.obAfterPractice(), 'account');
-  assert.equal(c.obFinSuivante('rappel'), 'ready'); assert.equal(c.obFinSuivante('account'), 'source'); assert.equal(c.obFinPrecedente('ready'), 'rappel');
-  assert.equal(c.obFinPrecedente('account'), 'practice'); assert.equal(c.obFinPrecedente('source'), 'account');
-  assert.deepEqual([...c.obFlowSteps()], ['name', 'practice', 'account', 'source', 'rappel'], 'deux étapes de moins');
-  assert.deepEqual([...flux(natif(['LocalNotifications'])).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
-  assert.deepEqual([...flux({...natif(), obAuthReady: () => true}).obFinFlux()], ['practice', 'account', 'source', 'rappel']);
+  assert.deepEqual([...c.obFinFlux()], ['practice', 'source', 'rappel'], 'app iPhone : le widget n’est plus dans le tunnel');
+  assert.equal(c.obAfterPractice(), 'source');   // 10 novembre : la connexion vient après « Ton parcours est prêt »
+  assert.equal(c.obFinSuivante('rappel'), 'ready'); assert.equal(c.obFinPrecedente('ready'), 'rappel');
+  assert.equal(c.obFinPrecedente('source'), 'practice');
+  assert.deepEqual([...c.obFlowSteps()], ['name', 'practice', 'source', 'rappel'], 'la connexion n’est plus comptée');
+  assert.deepEqual([...flux(natif(['LocalNotifications'])).obFinFlux()], ['practice', 'source', 'rappel']);
+  assert.deepEqual([...flux({...natif(), obAuthReady: () => true}).obFinFlux()], ['practice', 'source', 'rappel']);
   /* 4 novembre, 22 h 50 (« Oui, masque-la ») : l’app iPhone sans connexion branchée garde le bravo d’une première requête réussie,
      sans les boutons « Bientôt » ; sans réussite, la page est sautée ; avec un fournisseur branché, elle revient. */
   assert.deepEqual([...flux({...natif(), appliNative: () => true}).obFinFlux()], ['practice', 'source', 'rappel'], 'app iPhone, sans première requête réussie');
-  assert.deepEqual([...flux({...natif(), appliNative: () => true, draft: {practiceDone: true}}).obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'le bravo reste');
-  assert.deepEqual([...flux({...natif(), appliNative: () => true, obAuthReady: () => true}).obFinFlux()], ['practice', 'account', 'source', 'rappel'], 'connexion branchée');
+  assert.deepEqual([...flux({...natif(), appliNative: () => true, draft: {practiceDone: true}}).obFinFlux()], ['practice', 'source', 'rappel'], 'le bravo reste');
+  assert.deepEqual([...flux({...natif(), appliNative: () => true, obAuthReady: () => true}).obFinFlux()], ['practice', 'source', 'rappel'], 'connexion branchée');
   /* Retenu pour tout l’onboarding : une permission accordée en route ne retire pas l’étape (ni ne fausse « Suivant »). */
   const w = flux({Notification: {permission: 'default'}}); w.obFinFlux(); w.Notification.permission = 'granted';
-  assert.deepEqual([...w.obFinFlux()], ['practice', 'account', 'source', 'rappel']);
+  assert.deepEqual([...w.obFinFlux()], ['practice', 'source', 'rappel']);
   assert.ok(app.includes('obVideoMontree=false;obFinRappel=obFinWidget=null;'), 'oublié à chaque nouvel onboarding');
   /* Suivant, Précédent */
   assert.ok(fn('obNext', 'function obBack(){').includes("else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));"));
-  assert.ok(fn('obBack', 'function obPick(').includes("if(OB_SLIDES[obStep]==='ready'||OB_SLIDES[obStep]==='account'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}"));
+  assert.ok(fn('obBack', 'function obPick(').includes("if(OB_SLIDES[obStep]==='ready'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}"));
   assert.ok(app.includes("root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||OB_WIDGET_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);"));
 });
 

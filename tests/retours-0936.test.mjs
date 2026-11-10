@@ -42,7 +42,7 @@ const etape = ({ rythme = 'regulier', freq = 7, reduit = false, noeuds = [] } = 
 const noeud = n => ({ dataset: { n: String(n) }, textContent: String(n), isConnected: true });
 
 test('une étape de plus, juste après la durée des séances, et comptée dans « Étape X sur N »', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
   assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice'];"));
   /* obNext, exécuté seul : rythme → jours → parcours */
   const vers = [];
@@ -185,7 +185,7 @@ test('l’habillage : tuiles en ligne comme l’âge, carte voilée aux nombres 
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvDotOn{') && css.includes('@keyframes obvNumBump{'));
   /* La feuille est rechargée, et le cache de l’app renouvelé */
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=40">') && sw.includes("'./onboarding-vitrine.css?v=40',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=41">') && sw.includes("'./onboarding-vitrine.css?v=41',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });

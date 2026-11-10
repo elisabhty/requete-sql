@@ -20,8 +20,8 @@ const NB = ' ';
 
 const fournisseurs = cut('const OB_PROVIDERS=', '/* 10 h 16 : pas encore de connexion.');
 const page = cut("  }else if(slide==='account'){", "  }else if(slide==='name'){");
-const rendre = ({ practiceDone = true, masquee = false } = {}) => {
-  const ctx = vm.createContext({ slide: 'account', authReady: false, obAuthBusy: false, obAuthMessage: '', draft: { practiceDone }, MASCOT_IMG: 'mascotte.webp',
+const rendre = ({ practiceDone = true, masquee = false, finVoulue } = {}) => {
+  const ctx = vm.createContext({ slide: 'account', authReady: false, obAuthBusy: false, obAuthMessage: '', draft: { practiceDone, finVoulue }, MASCOT_IMG: 'mascotte.webp',
     obConnexionMasquee: () => masquee, obFlowHeader: () => '<header></header>', esc: s => String(s), escAttr: s => String(s), legalUrl: k => k,
     obSetFooter() {}, obPasserConnexion() {} });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS='), ctx);
@@ -29,30 +29,23 @@ const rendre = ({ practiceDone = true, masquee = false } = {}) => {
   return ctx.html;
 };
 
-test('le haut de la page : la mascotte sur sa tache, les confettis, « Bravo ! », le titre, les deux phrases, la carte', () => {
-  const h = rendre();
-  const haut = h.slice(h.indexOf('<div class="ob-compte-haut">'), h.indexOf('<h1'));
-  assert.ok(haut.includes('<svg class="ob-compte-fond" viewBox="0 0 330 150" width="330" height="150" aria-hidden="true" focusable="false">'), 'la tache, dessinée');
-  assert.ok(haut.includes('<svg class="ob-compte-confettis" viewBox="0 0 330 150"') && haut.includes('<path class="ob-compte-rai"'), 'les confettis et les rayons, dans le même cadre');
-  for (const c of ['#FFC83D', '#FFD86B', '#7CC7FF', '#FF8FB1', '#9FF0C6']) assert.ok(haut.includes(c), 'les couleurs des confettis de l’app : ' + c);
-  assert.ok(haut.includes('<img class="ob-promise-stk ob-compte-stk" src="mascotte.webp" width="450" height="674" alt="" draggable="false">'), 'la mascotte qui salue');
-  assert.ok(haut.endsWith(`<svg class="ob-compte-rayons" viewBox="0 0 26 26" width="26" height="26" aria-hidden="true" focusable="false"><path d="M20 4 10 2M19 10 6 14M22 15l-6 9"/></svg>Bravo${NB}!</p></div>\n      `), '« Bravo ! », lu avant le titre, avec ses rayons');
-  assert.ok(h.includes(`<p class="ob-compte-lead"><span>Tu viens de franchir une première étape.</span> <span>Et ce n’est que le début&nbsp;!</span></p>`), 'une phrase par ligne');
-  const carte = h.slice(h.indexOf('<div class="ob-compte-carte">'), h.indexOf('<div class="ob-provider-list">'));
-  assert.ok(carte.includes('<span class="ob-compte-carte-ico" aria-hidden="true"><svg viewBox="0 0 32 32"'), 'le nuage dans sa pastille');
-  assert.ok(carte.includes('<b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, exercices, défis et ta collection sur tous tes appareils.</small>'));
-  assert.ok(!/badges|[Bb]ientôt|[Pp]rochainement/.test(carte), 'les mots de l’app (1 h 05 : « cours, exercices, défis et ta collection ») ; jamais « bientôt »');
-  assert.ok(!h.includes('ob-compte-sub'), 'la carte remplace la phrase');
-  const ordre = ['ob-compte-fond', 'ob-compte-stk', 'ob-compte-bravo', 'ob-title', 'ob-compte-lead', 'ob-compte-carte', 'ob-provider-list'].map(k => h.indexOf(k));
-  assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, 'dans l’ordre de la réf.');
+/* 10 novembre, 17 h 11 (« mettre la page de connexion et le paywall au bon moment », son choix : « À la fin ») : la page vient après
+   « Ton parcours est prêt » ; le bravo de la première requête et sa carte s'effacent, les confettis sont sur la dernière page. */
+test('après « Ton parcours est prêt » : la mascotte sur sa tache, « Sauvegarde ton parcours », les boutons ; plus de fête', () => {
+  const h = rendre({ finVoulue: 'home' });
+  assert.ok(h.includes('ob-compte-fond') && h.includes('ob-compte-stk'), 'la mascotte sur sa tache');
+  assert.ok(h.includes('<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>'));
+  assert.ok(h.includes('<p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>'));
+  assert.ok(!h.includes('Bravo') && !h.includes('ob-compte-confettis') && !h.includes('ob-compte-carte') && !h.includes('réussie'), 'plus de bravo de la requête');
+  assert.ok(h.includes('ob-provider-list'), 'Apple, Google et l’e-mail');
+  const ordre = ['ob-compte-fond', 'ob-compte-stk', 'ob-title', 'ob-compte-sub', 'ob-provider-list'].map(k => h.indexOf(k));
+  assert.deepEqual([...ordre].sort((a, b) => a - b), ordre);
 });
 
-test('dans l’app sans connexion branchée : la fête, sans carte ni boutons ; sans première requête réussie : la mascotte, sans fête', () => {
-  const m = rendre({ masquee: true });
-  assert.ok(m.includes('ob-compte-bravo') && m.includes('ob-compte-confettis') && !m.includes('ob-compte-carte') && !m.includes('ob-provider-list'));
+test('ouverte depuis l’accueil (« J’ai déjà un compte ») ou Mon compte : « Garde ta progression » ; dans l’app sans connexion, elle est sautée', () => {
   const s = rendre({ practiceDone: false });
-  assert.ok(s.includes('ob-compte-fond') && s.includes('ob-compte-stk') && !s.includes('Bravo') && !s.includes('ob-compte-confettis') && !s.includes('ob-compte-carte'));
-  assert.ok(s.includes('<p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>'));
+  assert.ok(s.includes('<p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>') && !s.includes('ob-compte-confettis'));
+  assert.ok(app.includes("function obApresPret(fin){draft.finVoulue=fin||'home';if(obCompteVisible())obGoto('account');else obApresCompte();}"), 'sans connexion branchée, droit au paywall');
 });
 
 test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par palier ; au dernier, le haut part', () => {
@@ -77,6 +70,6 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=40">') && sw.includes("'./onboarding-vitrine.css?v=40',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-10-se-v2829';") && app.includes("const SW_CACHE='requete-2026-11-10-se-v2829';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=41">') && sw.includes("'./onboarding-vitrine.css?v=41',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-10-paywall-v2830';") && app.includes("const SW_CACHE='requete-2026-11-10-paywall-v2830';"));
 });

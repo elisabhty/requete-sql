@@ -48,7 +48,7 @@ test('avant un cours, sa page de départ dans la DA du site, avec un seul bouton
 });
 
 test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l’engagement signé ; tout tient sur un écran', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','account','source','rappel','widget','widgetTuto','pseudo','ready'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
   const ob = cut('function obPlanInfo(){', 'function obRhythmSummary(){');
   assert.ok(ob.includes("const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);"), 'le nombre de jours vient du plan réellement généré');
   /* 5 novembre, 19 h 41 : plus de signature à dessiner, un doigt maintenu 1,5 s sur le bouton à l’empreinte (retours-1941) */
