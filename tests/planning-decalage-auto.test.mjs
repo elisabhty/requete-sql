@@ -63,6 +63,26 @@ test('le jour manqué n’est pas un jour de repos : la série le compte comme m
   assert.equal(decaler('2026-11-10', 7, [['11-09', [1]], ['11-10', [4]]], [1]).manques, undefined);
 });
 
+test('les cas vérifiés dans le navigateur le 10 novembre (fausse horloge, vrais plannings) : 2 jours, week-end, absence, fin, deux fois', () => {
+  /* 2 jours par semaine (lundi, jeudi), mercredi : lundi passe à jeudi, jeudi au lundi suivant */
+  assert.deepEqual(decaler('2026-11-11', 2, [['11-09', [1]], ['11-12', [2]], ['11-16', [3]]]).jours, ['11-12:1', '11-16:2', '11-19:3']);
+  /* En semaine, samedi : vendredi passe au lundi, le week-end reste libre */
+  assert.deepEqual(decaler('2026-11-14', 5, [['11-13', [1]], ['11-16', [2]]]).jours, ['11-16:1', '11-17:2']);
+  /* Une semaine d’absence, tous les jours : tout glisse de 7 jours, l’ordre ne change pas, 7 jours manqués */
+  const jours = Array.from({ length: 10 }, (_, i) => [`11-${String(2 + i).padStart(2, '0')}`, [i]]);
+  const r = decaler('2026-11-09', 7, jours);
+  assert.deepEqual(r.jours, Array.from({ length: 10 }, (_, i) => `11-${String(9 + i).padStart(2, '0')}:${i}`));
+  assert.equal(r.manques.length, 7);
+  /* La dernière séance ratée, tout le reste fait : elle passe à aujourd’hui, le reste ne bouge pas */
+  assert.deepEqual(decaler('2026-11-12', 7, [['11-08', [1]], ['11-09', [2]], ['11-10', [3]]], [1, 2]).jours, ['11-08:1', '11-09:2', '11-12:3']);
+  /* Deux fois le même jour : la deuxième ne change rien */
+  const ctx = { PATTERN, save() {}, itemDone: () => false, state: { plan: { freq: 7, sessions: [{ d: '2026-11-09', lessons: [1] }, { d: '2026-11-10', lessons: [2] }] } },
+    Date: class extends Date { constructor(...a) { super(...(a.length ? a : ['2026-11-10T00:30:00'])); } } };
+  vm.runInNewContext(code + ';this.f=planDecalerAuto;', ctx);
+  assert.equal(ctx.f(), 2, '0 h 30 : la séance de la veille passe à aujourd’hui');
+  assert.equal(ctx.f(), 0, 'puis plus rien ne bouge');
+});
+
 test('le décalage se fait tout seul : au démarrage et dès que le planning est lu', () => {
   assert.ok(fn('infoJour').includes("if(typeof planDecalerAuto==='function')planDecalerAuto();"));
   assert.ok(app.includes('    try{ if(state.plan)planDecalerAuto(); }catch(e){}\n'), 'au démarrage, avant tout affichage');
