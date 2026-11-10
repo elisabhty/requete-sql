@@ -78,5 +78,5 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=302">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-memos-v2802';") && app.includes("const SW_CACHE='requete-2026-11-09-memos-v2802';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-equilibre-v2803';") && app.includes("const SW_CACHE='requete-2026-11-09-equilibre-v2803';"));
 });

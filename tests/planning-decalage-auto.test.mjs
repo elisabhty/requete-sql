@@ -1,8 +1,10 @@
 /* Elisa, 10 novembre, 0 h 53 (capture de la carte « 8 activités à rattraper ») : « Enlever cette notion et décaler automatiquement le
    planning (du jour suivant par rapport au jour d’étude, prendre en compte le repos) ».
    Plus de carte « activités à rattraper » ni de « Comment veux-tu reprendre ? » : une séance passée sans être terminée glisse
-   d’elle-même au jour d’étude suivant (au plus tôt aujourd’hui), en sautant les jours de repos du rythme ; les séances d’après
-   suivent seulement si leur jour est pris. Les activités validées restent à leur jour, et le jour manqué compte comme manqué. */
+   d’elle-même au jour d’étude suivant (au plus tôt aujourd’hui), en sautant les jours de repos du rythme. Les activités validées
+   restent à leur jour, et le jour manqué compte comme manqué.
+   6 h 23 (capture du Planning : 1, 5, 3, 2, 2, 1, 2 activités) : « rééquilibrer ». Ce qui reste est réparti en séances de la taille
+   du rythme (p.per), sur les jours d’étude à partir d’aujourd’hui ; un planning d’avant est rééquilibré une fois (p.equilibre). */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,46 +15,52 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const lq = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const fn = n => { const i = app.indexOf('function ' + n + '('); assert.ok(i >= 0, n); return app.slice(i, app.indexOf('\n}\n', i) + 3); };
-const code = ['jour0', 'auj', 'dstr', 'parseD', 'addJ', 'planMergeSessions', 'trierSessions', 'sessionDe', 'debutPlan', 'jourRepos', 'planDecalerAuto'].map(fn).join('\n');
+const code = ['jour0', 'auj', 'dstr', 'parseD', 'addJ', 'planMergeSessions', 'trierSessions', 'sessionDe', 'debutPlan', 'jourRepos', 'itemDoneDay', 'planAnchorDone', 'planReequilibrer', 'planDecalerAuto'].map(fn).join('\n');
 const PATTERN = { 2: [1, 4], 3: [1, 3, 5], 5: [1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };
 
-/* Aujourd’hui = today ; sessions : [['11-09', [1, 2, 3]], …] ; done : les activités validées */
-function decaler(today, freq, sessions, done = []) {
+/* Aujourd’hui = today ; sessions : [['11-09', [1, 2, 3]], …] ; done : { id: jour de validation } ; o.per : la taille d’une séance ;
+   o.ancien : un planning d’avant le rééquilibrage (sans p.equilibre) */
+function decaler(today, freq, sessions, done = {}, o = {}) {
   let saved = 0;
   const RealDate = Date;
+  const lessons = Object.fromEntries(Object.entries(done).map(([id, d]) => [id, { done: true, at: new RealDate('2026-' + d + 'T18:00:00').getTime() }]));
   const ctx = {
-    PATTERN, save: () => { saved++; }, itemDone: id => done.includes(id),
-    state: { plan: { freq, sessions: sessions.map(([d, l]) => ({ d: '2026-' + d, lessons: [...l] })) } },
+    PATTERN, save: () => { saved++; }, itemDone: id => id in done, isDefiId: () => false, INTERVALS: [1], DAY: 864e5,
+    state: { lessons, plan: Object.assign({ freq, per: o.per || 3, sessions: sessions.map(([d, l]) => ({ d: '2026-' + d, lessons: [...l] })) }, o.ancien ? {} : { equilibre: 1 }) },
     Date: class extends RealDate { constructor(...a) { super(...(a.length ? a : [today + 'T09:00:00'])); } },
   };
   vm.runInNewContext(code + ';this.decaler=planDecalerAuto;this.repos=jourRepos;', ctx);
   const n = ctx.decaler();
   return {
-    n, saved, manques: ctx.state.plan.manques && [...ctx.state.plan.manques], repos: iso => ctx.repos(iso),
-    jours: [...ctx.state.plan.sessions].map(s => s.d.slice(5) + ':' + s.lessons.join(',')),
+    n, saved, manques: ctx.state.plan.manques && [...ctx.state.plan.manques], repos: iso => ctx.repos(iso), ctx,
+    jours: [...ctx.state.plan.sessions].filter(s => s.lessons.length).map(s => s.d.slice(5) + ':' + s.lessons.join(',')),
   };
 }
 
 test('une séance manquée passe au jour d’étude suivant, en sautant les jours de repos', () => {
-  /* 3 séances par semaine (lundi, mercredi, vendredi), mardi 10 novembre : la séance de lundi va mercredi, celle de mercredi vendredi,
-     celle de vendredi lundi prochain */
+  /* 3 séances par semaine (lundi, mercredi, vendredi), mardi 10 novembre : lundi passe à mercredi, mercredi à vendredi, vendredi au lundi */
   const r = decaler('2026-11-10', 3, [['11-09', [1, 2, 3]], ['11-11', [4, 5, 6]], ['11-13', [7, 8, 9]]]);
   assert.deepEqual(r.jours, ['11-11:1,2,3', '11-13:4,5,6', '11-16:7,8,9']);
-  assert.equal(r.n, 3);
-  /* En semaine seulement (5 par semaine), jeudi 12 : mardi et mercredi manqués ; le week-end est sauté */
-  const s = decaler('2026-11-12', 5, [['11-10', [1, 2]], ['11-11', [3, 4]], ['11-12', [5, 6]], ['11-13', [7, 8]]]);
+  /* En semaine, jeudi 12 : mardi et mercredi manqués ; le week-end est sauté */
+  const s = decaler('2026-11-12', 5, [['11-10', [1, 2]], ['11-11', [3, 4]], ['11-12', [5, 6]], ['11-13', [7, 8]]], {}, { per: 2 });
   assert.deepEqual(s.jours, ['11-12:1,2', '11-13:3,4', '11-16:5,6', '11-17:7,8']);
 });
 
-test('tous les jours : la séance d’hier reprend aujourd’hui, un trou dans le planning reste un trou', () => {
-  const r = decaler('2026-11-10', 7, [['11-09', [1, 2, 3]], ['11-10', [4, 5, 6]], ['11-11', [7, 8, 9]], ['11-14', [10]]]);
-  assert.deepEqual(r.jours, ['11-10:1,2,3', '11-11:4,5,6', '11-12:7,8,9', '11-14:10'], 'samedi 14 ne bouge pas : la place était libre');
+test('rééquilibrer (6 h 23) : des séances de la taille du rythme, à partir d’aujourd’hui', () => {
+  /* La capture : 1, 5, 3, 2… activités ; le rythme en prévoit 2 par séance */
+  const r = decaler('2026-11-10', 7, [['11-10', [1]], ['11-11', [2, 3, 4, 5, 6]], ['11-12', [7, 8, 9]], ['11-13', [10, 11]]], {}, { per: 2, ancien: true });
+  assert.deepEqual(r.jours, ['11-10:1,2', '11-11:3,4', '11-12:5,6', '11-13:7,8', '11-14:9,10', '11-15:11']);
+  assert.equal(r.ctx.state.plan.equilibre, 1, 'une seule fois : ensuite, seul un retard relance la répartition');
+  /* Après un retard, un trou dans le planning se comble aussi */
+  assert.deepEqual(decaler('2026-11-10', 7, [['11-09', [1, 2]], ['11-10', [3, 4]], ['11-13', [5, 6]]], {}, { per: 2 }).jours, ['11-10:1,2', '11-11:3,4', '11-12:5,6']);
+  /* Un planning commencé aujourd’hui, un jour de repos (samedi, en semaine) : sa séance du jour reste */
+  assert.deepEqual(decaler('2026-11-14', 5, [['11-14', [1, 2]], ['11-16', [3, 4]]], {}, { per: 2, ancien: true }).jours, ['11-14:1,2', '11-16:3,4']);
 });
 
 test('les activités validées restent à leur jour ; rien ne bouge quand rien n’est en retard', () => {
-  const r = decaler('2026-11-10', 7, [['11-09', [1, 2, 3]], ['11-10', [4, 5, 6]]], [1]);
-  assert.deepEqual(r.jours, ['11-09:1', '11-10:2,3', '11-11:4,5,6']);
-  const rien = decaler('2026-11-10', 7, [['11-09', [1]], ['11-10', [2]]], [1]);
+  const r = decaler('2026-11-10', 7, [['11-09', [1, 2, 3]], ['11-10', [4, 5, 6]]], { 1: '11-09' });
+  assert.deepEqual(r.jours, ['11-09:1', '11-10:2,3,4', '11-11:5,6']);
+  const rien = decaler('2026-11-10', 7, [['11-09', [1]], ['11-10', [2]]], { 1: '11-09' });
   assert.deepEqual([rien.n, rien.saved, rien.jours], [0, 0, ['11-09:1', '11-10:2']], 'séance d’hier terminée : rien à décaler');
 });
 
@@ -60,26 +68,28 @@ test('le jour manqué n’est pas un jour de repos : la série le compte comme m
   const r = decaler('2026-11-10', 7, [['11-09', [1, 2, 3]], ['11-10', [4]]]);
   assert.deepEqual(r.manques, ['2026-11-09']);
   assert.equal(r.repos('2026-11-09'), false, 'sa séance est partie, mais le jour reste manqué');
-  assert.equal(decaler('2026-11-10', 7, [['11-09', [1]], ['11-10', [4]]], [1]).manques, undefined);
+  assert.equal(decaler('2026-11-10', 7, [['11-09', [1]], ['11-10', [4]]], { 1: '11-09' }).manques, undefined);
 });
 
 test('les cas vérifiés dans le navigateur le 10 novembre (fausse horloge, vrais plannings) : 2 jours, week-end, absence, fin, deux fois', () => {
   /* 2 jours par semaine (lundi, jeudi), mercredi : lundi passe à jeudi, jeudi au lundi suivant */
-  assert.deepEqual(decaler('2026-11-11', 2, [['11-09', [1]], ['11-12', [2]], ['11-16', [3]]]).jours, ['11-12:1', '11-16:2', '11-19:3']);
+  assert.deepEqual(decaler('2026-11-11', 2, [['11-09', [1]], ['11-12', [2]], ['11-16', [3]]], {}, { per: 1 }).jours, ['11-12:1', '11-16:2', '11-19:3']);
   /* En semaine, samedi : vendredi passe au lundi, le week-end reste libre */
-  assert.deepEqual(decaler('2026-11-14', 5, [['11-13', [1]], ['11-16', [2]]]).jours, ['11-16:1', '11-17:2']);
-  /* Une semaine d’absence, tous les jours : tout glisse de 7 jours, l’ordre ne change pas, 7 jours manqués */
+  assert.deepEqual(decaler('2026-11-14', 5, [['11-13', [1]], ['11-16', [2]]], {}, { per: 1 }).jours, ['11-16:1', '11-17:2']);
+  /* Une semaine d’absence, tous les jours : tout reprend aujourd’hui, l’ordre ne change pas, 7 jours manqués */
   const jours = Array.from({ length: 10 }, (_, i) => [`11-${String(2 + i).padStart(2, '0')}`, [i]]);
-  const r = decaler('2026-11-09', 7, jours);
+  const r = decaler('2026-11-09', 7, jours, {}, { per: 1 });
   assert.deepEqual(r.jours, Array.from({ length: 10 }, (_, i) => `11-${String(9 + i).padStart(2, '0')}:${i}`));
   assert.equal(r.manques.length, 7);
   /* La dernière séance ratée, tout le reste fait : elle passe à aujourd’hui, le reste ne bouge pas */
-  assert.deepEqual(decaler('2026-11-12', 7, [['11-08', [1]], ['11-09', [2]], ['11-10', [3]]], [1, 2]).jours, ['11-08:1', '11-09:2', '11-12:3']);
+  assert.deepEqual(decaler('2026-11-12', 7, [['11-08', [1]], ['11-09', [2]], ['11-10', [3]]], { 1: '11-08', 2: '11-09' }, { per: 1 }).jours, ['11-08:1', '11-09:2', '11-12:3']);
   /* Deux fois le même jour : la deuxième ne change rien */
-  const ctx = { PATTERN, save() {}, itemDone: () => false, state: { plan: { freq: 7, sessions: [{ d: '2026-11-09', lessons: [1] }, { d: '2026-11-10', lessons: [2] }] } },
-    Date: class extends Date { constructor(...a) { super(...(a.length ? a : ['2026-11-10T00:30:00'])); } } };
+  const RealDate = Date;
+  const ctx = { PATTERN, save() {}, itemDone: () => false, isDefiId: () => false, INTERVALS: [1], DAY: 864e5,
+    state: { lessons: {}, plan: { freq: 7, per: 1, equilibre: 1, sessions: [{ d: '2026-11-09', lessons: [1] }, { d: '2026-11-10', lessons: [2] }] } },
+    Date: class extends RealDate { constructor(...a) { super(...(a.length ? a : ['2026-11-10T00:30:00'])); } } };
   vm.runInNewContext(code + ';this.f=planDecalerAuto;', ctx);
-  assert.equal(ctx.f(), 2, '0 h 30 : la séance de la veille passe à aujourd’hui');
+  assert.equal(ctx.f(), 1, '0 h 30 : la séance de la veille passe à aujourd’hui');
   assert.equal(ctx.f(), 0, 'puis plus rien ne bouge');
 });
 

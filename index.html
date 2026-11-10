@@ -39997,42 +39997,50 @@ function statsPlan(){
   return {total:all.length,done,reste:remaining.length,seances:p.sessions.length,fin,nL,nD,resteL,resteD,
     moy:p.sessions.length?Math.round(toutesActivites().reduce((a,id)=>a+dureeActiviteS(id),0)/60/p.sessions.length):0};
 }
+/* Elisa, 10 novembre, 6 h 23 (capture du Planning : 1, 5, 3, 2, 2, 1, 2 activités) : « rééquilibrer ». Les activités qui restent à
+   faire sont réparties en séances de même taille, celle du rythme (p.per), sur les jours d’étude à partir d’aujourd’hui (ou du
+   prochain jour d’étude si aujourd’hui est un repos sans séance prévue). Les activités validées restent au jour où elles l’ont été.
+   C’est la répartition de « Adapter mon rythme », sans changer le rythme. Rend 1 si le planning a changé, 0 sinon. */
+function planReequilibrer(p){
+  const t=dstr(auj()),cle=id=>typeof id+':'+String(id);
+  const tri=p.sessions.filter(s=>s&&s.d&&Array.isArray(s.lessons)).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  const vus=new Set(),reste=[],faits=[];
+  [...tri.flatMap(s=>s.lessons),...(Array.isArray(p.archive)?p.archive:[])].forEach(id=>{const k=cle(id);if(vus.has(k))return;vus.add(k);(itemDone(id)?faits:reste).push(id);});
+  if(!reste.length)return 0;
+  const per=Math.max(1,Math.round(+p.per)||2);
+  const pat=PATTERN[p.freq]||PATTERN[7],etude=d=>pat.indexOf(d.getDay())>=0;
+  const seanceAuj=tri.find(s=>s.d===t);
+  let d=auj();
+  if(!etude(d)&&!(seanceAuj&&seanceAuj.lessons.some(id=>!itemDone(id))))for(let g=0;g<14&&!etude(d);g++)d=addJ(d,1);
+  const n=Math.ceil(reste.length/per),dates=[dstr(d)];
+  for(let g=0;dates.length<n&&g<4000;g++){d=addJ(d,1);if(etude(d))dates.push(dstr(d));}
+  const nouv=planMergeSessions(planAnchorDone({sessions:tri},faits),dates.map((x,i)=>({d:x,lessons:reste.slice(i*per,(i+1)*per)})));
+  const sig=l=>JSON.stringify(l.filter(s=>s.lessons.length).map(s=>[s.d,s.lessons]));
+  if(sig(nouv)===sig(tri)&&!(p.archive&&p.archive.length))return 0;
+  p.sessions=nouv;p.archive=[];
+  return 1;
+}
 /* Elisa, 10 novembre, 0 h 53 (capture de la carte « 8 activités à rattraper ») : « Enlever cette notion et décaler automatiquement le
-   planning (du jour suivant par rapport au jour d’étude, prendre en compte le repos) ». Plus de carte ni de choix à confirmer : une
-   séance passée sans être terminée glisse d’elle-même au jour d’étude suivant, au plus tôt aujourd’hui, en sautant les jours de repos
-   du rythme (PATTERN). Les séances d’après suivent, une par jour d’étude, seulement quand leur jour est pris : un trou dans le
-   planning reste un trou, et rien ne recule. Les activités déjà validées restent au jour où elles l’ont été. Un jour d’étude manqué
-   est retenu (plan.manques) : il compte comme manqué dans la série, pas comme un jour de repos. Rend le nombre de séances déplacées. */
+   planning (du jour suivant par rapport au jour d’étude, prendre en compte le repos) ». Plus de carte ni de choix à confirmer : dès
+   qu’une séance passée n’est pas terminée, ce qui reste reprend au plus tôt aujourd’hui, en sautant les jours de repos du rythme
+   (PATTERN), en séances de même taille (planReequilibrer, 6 h 23). Un planning d’avant le 10 novembre est rééquilibré une fois
+   (p.equilibre). Un jour d’étude manqué est retenu (plan.manques) : il compte comme manqué dans la série, pas comme un repos. */
 function planDecalerAuto(){
   const p=typeof state!=='undefined'&&state?state.plan:null;
   if(!p||!Array.isArray(p.sessions))return 0;
-  const t=dstr(auj()),cle=id=>typeof id+':'+String(id);
-  const tri=p.sessions.filter(s=>s&&s.d&&Array.isArray(s.lessons)).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
-  const enRetard=tri.filter(s=>s.d<t&&s.lessons.some(id=>!itemDone(id)));
-  if(!enRetard.length)return 0;
-  const pat=PATTERN[p.freq]||PATTERN[7],etude=iso=>pat.indexOf(parseD(iso).getDay())>=0;
-  const vus=new Set(),blocs=[];
-  tri.filter(s=>s.d>=enRetard[0].d).forEach(s=>{
-    const ids=s.lessons.filter(id=>!itemDone(id)&&!vus.has(cle(id)));
-    ids.forEach(id=>vus.add(cle(id)));
-    if(ids.length)blocs.push({de:s.d,ids});
-  });
-  let min=t;
-  blocs.forEach(b=>{
-    let d=b.de;
-    if(d<min){d=min;for(let g=0;g<14&&!etude(d);g++)d=dstr(addJ(parseD(d),1));}
-    b.vers=d;min=dstr(addJ(parseD(d),1));
-  });
-  const bouges=blocs.filter(b=>b.vers!==b.de);
-  const partis=new Set(bouges.flatMap(b=>b.ids.map(cle)));
-  const manques=new Set(Array.isArray(p.manques)?p.manques:[]);
-  enRetard.forEach(s=>manques.add(s.d));
-  p.manques=[...manques].sort().slice(-200);
-  p.sessions.forEach(s=>{if(Array.isArray(s.lessons))s.lessons=s.lessons.filter(id=>!partis.has(cle(id)));});
-  p.sessions=planMergeSessions(p.sessions,bouges.map(b=>({d:b.vers,lessons:b.ids})));
+  const t=dstr(auj());
+  const enRetard=p.sessions.filter(s=>s&&s.d&&s.d<t&&Array.isArray(s.lessons)&&s.lessons.some(id=>!itemDone(id)));
+  if(!enRetard.length&&p.equilibre===1)return 0;
+  if(enRetard.length){
+    const manques=new Set(Array.isArray(p.manques)?p.manques:[]);
+    enRetard.forEach(s=>manques.add(s.d));
+    p.manques=[...manques].sort().slice(-200);
+  }
+  const n=planReequilibrer(p);
+  p.equilibre=1;
   trierSessions();
   try{save();}catch(e){}
-  return bouges.length;
+  return n;
 }
 function infoJour(){
   normaliserPlan();
@@ -40129,7 +40137,7 @@ function apercuPlan(niveau,rythme,freq){
   const dates=datesMotif(auj(),freq,n);
   const sessions=distribuerSessions(pool,dates);
   const per=Math.max(1,Math.ceil((pool.length||1)/n));
-  return {niveau,rythme,freq,per,mix:true,sessions};
+  return {niveau,rythme,freq,per,mix:true,sessions,equilibre:1};
 }
 function validerPlan(){
   if(!(draft.niveau&&draft.rythme&&draft.freq))return;
@@ -40222,6 +40230,7 @@ function planAdjustCommit(preview){
   p.archive=[];
   p.per=preview.choice.per;
   p.freq=preview.choice.freq;
+  p.equilibre=1;
   p.rythme=preview.choice.per===2?'calme':(preview.choice.per===5?'intensif':'regulier');
   try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours (11 h 08)
   semaineOffset=0;jourSel=dstr(auj());planToolsOpen=false;planAdjustDraft=null;
@@ -47594,7 +47603,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-09-memos-v2802';
+  const SW_CACHE='requete-2026-11-09-equilibre-v2803';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
