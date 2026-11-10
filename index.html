@@ -43751,21 +43751,27 @@ function obEssai(k){
   try{const a=window.REQUETE_ACHAT;if(a&&typeof a.essaiDispo==='function'&&!a.essaiDispo(k))return 0;}catch(e){}
   return j;
 }
+/* Les prix de la boutique Apple du pays de la personne (REQUETE_ACHAT.prix, achat.js) quand l’achat est branché :
+   44,99 € en France, mais 39,99 $ aux États-Unis. Sinon, les prix d’Elisa en euros (OB_OFFRES). */
+function obPrixBoutique(k){try{const a=window.REQUETE_ACHAT,p=a&&typeof a.prix==='function'&&a.prix(k);return p&&typeof p.prix==='number'&&p.texte?p:null;}catch(e){return null;}}
+function obPrixTexte(k){const b=obPrixBoutique(k);return b?b.texte:obEuros(OB_OFFRES[k].prix);}
 function obOffreInfo(){
-  const an=OB_OFFRES.an,se=OB_OFFRES.semaine;
-  const parSemaine=Math.floor(an.prix/an.semaines*100)/100,eco=Math.round((1-an.prix/(se.prix*an.semaines))*100);
-  return {parSemaine,eco};
+  const an=OB_OFFRES.an,se=OB_OFFRES.semaine,ba=obPrixBoutique('an'),bs=obPrixBoutique('semaine');
+  const pa=ba?ba.prix:an.prix,ps=bs?bs.prix:se.prix;
+  const parSemaine=Math.floor(pa/an.semaines*100)/100,eco=Math.round((1-pa/(ps*an.semaines))*100);
+  const parSemaineTexte=ba&&ba.parSemaine?ba.parSemaine:obEuros(parSemaine);
+  return {parSemaine,eco,parSemaineTexte};
 }
 let obPwBusy=false;
 function obPaywallHTML(){
   const o=draft.offre==='semaine'?'semaine':'an',b=typeof obPlanInfo==='function'?obPlanInfo():{goal:'Progresser en SQL',endLabel:'',minutes:20};
-  const {parSemaine,eco}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
+  const {parSemaineTexte,eco}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
   const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   const offre=(k,extra)=>{const x=OB_OFFRES[k],on=o===k;
     return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">
       ${extra||''}<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${x.titre}</span>
-      <span class="pw-o-p"><b>${obEuros(x.prix)}</b> ${x.par}</span>${k==='an'?`<span class="pw-o-s">${obEssai(k)?`<i class="pw-essai">${obEssai(k)}&nbsp;jours gratuits</i>`:''}soit ${obEuros(parSemaine)} par semaine</span>`:''}</button>`;};
+      <span class="pw-o-p"><b>${obPrixTexte(k)}</b> ${x.par}</span>${k==='an'?`<span class="pw-o-s">${obEssai(k)?`<i class="pw-essai">${obEssai(k)}&nbsp;jours gratuits</i>`:''}soit ${parSemaineTexte} par semaine</span>`:''}</button>`;};
   const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve"><span class="pw-preuve-stk" aria-hidden="true">${typeof OB_STK_AVIS!=='undefined'?OB_STK_AVIS:''}</span>Plus de ${OB_COMMUNAUTE.toLocaleString('fr-FR')} personnes apprécient Requête</p>`:'';
   const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
   return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
@@ -43782,11 +43788,10 @@ function obPaywallHTML(){
     ${preuve}<p class="ob-compte-msg" id="pw-live" role="status" aria-live="polite"></p></div>`;
 }
 function obPaywallPied(){
-  const o=OB_OFFRES[draft.offre==='semaine'?'semaine':'an'];
-  const k=draft.offre==='semaine'?'semaine':'an',essai=obEssai(k);
+  const k=draft.offre==='semaine'?'semaine':'an',o=OB_OFFRES[k],essai=obEssai(k),prix=obPrixTexte(k);
   /* Avec l’essai : ce qui se passe à la fin est dit en clair (règle d’Apple), et la peur de payer pour rien est levée d’abord. */
-  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours gratuits, puis ${obEuros(o.prix)} ${o.par}.</b> Annule avant la fin de l’essai et tu ne paies rien. Renouvellement automatique ensuite, sauf annulation 24&nbsp;h avant dans les réglages Apple. `
-    :`<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à ${obEuros(o.prix)} ${o.par}, sauf annulation 24&nbsp;h avant dans les réglages Apple. `;
+  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours gratuits, puis ${prix} ${o.par}.</b> Annule avant la fin de l’essai et tu ne paies rien. Renouvellement automatique ensuite, sauf annulation 24&nbsp;h avant dans les réglages Apple. `
+    :`<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à ${prix} ${o.par}, sauf annulation 24&nbsp;h avant dans les réglages Apple. `;
   const legal=texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
   obSetFooter(essai?`Essayer gratuitement ${essai} jours`:'Commencer mon parcours',obPaywallAcheter,'','',{html:legal},obPwBusy);
 }
@@ -47904,7 +47909,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-10-commentaires-v2834';
+  const SW_CACHE='requete-2026-11-10-achat-v2835';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -47944,5 +47949,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=10"></script>
+<script src="achat.js?v=1"></script>
 </body>
 </html>
