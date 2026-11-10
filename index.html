@@ -20099,6 +20099,7 @@ function revisable(l){ return !!(l&&!l.leconSeule&&l.consigne&&l.solution); }
 function dueList(){ return allLessons.filter(l=>isDue(l.id)&&revisable(l)); }
 function markDone(id,review){
   const cur=state.lessons[id]||{level:0};
+  if(!cur.done&&!review&&typeof stat==='function')stat('lecon_validee',null,{l:String(id).slice(0,40)});
   if(review) cur.level=Math.min(cur.level+1,INTERVALS.length-1);
   else if(cur.done) {} else cur.level=0;
   cur.done=true; cur.due=Date.now()+INTERVALS[cur.level]*DAY;
@@ -29420,6 +29421,7 @@ let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le
 function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',stickers:'Stickers',console:'Console',entretien:'Entretien',sgbd:'Selon le SGBD'})[activeTab]||'Accueil';}
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
+  if(restoreStep==null&&typeof stat==='function')stat('lecon_debut',null,{l:String(id).slice(0,40)});
   stkLeaveLesson();
   closeLessonVideo(true);
   annulerBilanAuto();
@@ -30996,7 +30998,7 @@ function lvQPlace(){
    Sinon : rouge, l’étiquette se barre, l’explication reste sur le résultat et on réessaie. Le premier essai est gardé
    (score de fin) ; le plateau couvre la légende et les commandes, jamais le résultat. */
 function lvPkGet(id,i){ const a=LV_ANS[id]&&LV_ANS[id]['p'+i]; return a&&typeof a.first==='number'?a:null; }
-function lvPkSet(id,i,first,err){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'+i])o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}; delete o['d'+i]; lvAnsSave(); }
+function lvPkSet(id,i,first,err){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'+i]&&typeof stat==='function')stat('moment',null,{l:String(id).slice(0,40),i,ok:!!first}); if(!o['p'+i])o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}; delete o['d'+i]; lvAnsSave(); }
 /* Moment commencé, pas encore fini : bons gestes (a), réponses écartées (o), erreurs (m) et essais (t), gardés dès qu’ils
    arrivent. « ↺ Revoir », un retour en arrière ou le lecteur fermé ne les effacent pas : le moment rouvre là où on l’a laissé,
    et une erreur faite reste comptée (le premier coup compte). Effacés quand le moment est fini. */
@@ -32204,6 +32206,9 @@ function closeLessonVideo(instant){
   lvPosKeep();
   clearTimeout(LV.flashT);
   const {id,root,video,note,ro,place,tap,fin,firstDone}=LV;
+  /* Quittée avant la fin : où (en %), pour voir les vidéos qu'on abandonne */
+  try{if(typeof stat==='function'&&video&&!video.ended&&!LV.ended&&!(root&&root.classList.contains('is-ended'))){const dur=+(video.duration||(video.info&&video.info.duree)||0),t=+(video.currentTime||0);
+    if(dur>0&&t>1)stat('video_quittee',null,{l:String(id).slice(0,40),pct:Math.round(Math.min(100,t/dur*100))});}}catch(e){}
   if(typeof obBarreEtat==='function')obBarreEtat(false);
   /* La vidéo de fin fermée par la croix : la leçon est réussie, on va au bilan. */
   if(fin&&!instant)setTimeout(()=>{ if(!LV&&mode==='lesson'&&current&&current.id===id)leconSeuleBilan(!!firstDone); },0);
@@ -32654,6 +32659,7 @@ function muSet(node,html,instant){
   };
 }
 function moduleUpOpen(i,n){
+  if(typeof stat==='function')stat('module_termine',i+1);
   const box=document.createElement('div');
   box.innerHTML=moduleUpHtml(i,n);
   const el=box.firstElementChild;
@@ -35501,6 +35507,7 @@ function jeuStart(code,host,cid,opts){
   opts=opts||{};
   const solo=!!opts.solo,verif=!!opts.verif&&!host&&!solo;
   const nom=solo?(jeuSavedNom()||'Toi'):jeuAskNom(opts.nomId);if(!nom){if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('pseudo',code);return;}
+  if(!solo&&!opts.reprise&&typeof stat==='function')stat(host?'salle_creee':'salle_rejointe');
   if(typeof CHALLENGES==='undefined'||!SQL){const m=jeuMsgEl(opts.nomId);if(m)m.textContent='Le moteur SQL se charge encore, réessaie dans un instant.';if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('moteur',code);return;}
   if(JEU)jeuStop();
   /* 8 novembre, 15 h 27 : cherchée depuis la feuille du code (verif), la salle laisse la feuille ouverte tant que l’hôte n’a pas répondu. */
@@ -37500,6 +37507,7 @@ function jeuPtsPop(o){
 function jeuCreditGame(){
   const J=JEU;if(!J||J.scored||!J.played||!J.rounds.some(Boolean))return;
   J.scored=true;
+  try{if(typeof stat==='function'){const me=jeuPlaces(jeuScores()).find(x=>x.pid===J.me);stat('partie',me?me.pts:0,{solo:!!J.solo,niv:String(J.niv||'').slice(0,4)});}}catch(e){}
   try{
     const sc=jeuPlaces(jeuScores()),me=sc.find(x=>x.pid===J.me),pts=me?me.pts:0;
     const s=state.salle=state.salle&&typeof state.salle==='object'?state.salle:{pts:0,parties:0,best:0};
@@ -38107,11 +38115,13 @@ function runLesson(){
     /* Un défi : dans la carte des indices, « Pas tout à fait. Réessaie ! » et l’erreur SQL comme dans la boîte « Erreur SQL », son
        message et son aide ; rien sous l’éditeur (9 novembre, 7 h 37 puis 8 h 04) */
     if(isDefi&&(!COACH||COACH.c!==current)&&document.getElementById('hint-slot'))coachReset(current,'solo');   // 12 h 28 : jamais sous l’éditeur, même sans carte (après une réussite)
+    if(isDefi&&typeof stat==='function')stat('defi',0,{c:String(current.id).slice(0,20)});
     if(isDefi&&COACH&&COACH.c===current){setLessonOut('');COACH.diag=defiErreurSql(e.message,sql);COACH.fx='is-new-ko';}
     else setLessonOut(errBox(e.message,sql));
     registerExoFail(sql); return; }
   const ok=isDefi?resultatsDefiEgaux(userRes,solRes,current,alt=>{const d=defiSandbox(current);try{return execChallengeResult(d,alt);}finally{d.close();}}):exerciseResultsMatch(userRes,solRes,current,isDefi);
   typeof edPied==='function'&&edPied('ed-lesson',write?null:userRes,ms);
+  if(isDefi&&typeof stat==='function')stat('defi',ok?1:0,{c:String(current.id).slice(0,20)});
   if(ok){
     const table=renderTable(userRes,ms);
     let head;
@@ -40821,6 +40831,7 @@ function noteActivityDay(src){
     if(first&&src!=='lecon'&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
     if(first&&typeof lqFlammeAttendue==='function')lqFlammeAttendue(iso);   // la page « Bravo », à l’accueil (10 h 30)
     if(first&&typeof flammeDirectAllumee==='function')flammeDirectAllumee(iso);   // ta flamme en direct : « Flamme allumée ! » (7 novembre)
+    if(first&&typeof stat==='function'){const n=typeof streakJours==='function'?streakJours():1;stat('flamme',n);try{localStorage.setItem(STAT_SERIE,String(n));}catch(e){}}
   }catch(e){}
   try{stkAfterProgress();}catch(e){}
 }
@@ -41023,6 +41034,7 @@ function lqFeuTextes(jours,serie,record){
     partage:`Ma semaine SQL est en feu : ${faits} jour${faits>1?'s':''} sur ${faits} sur Requête !`};
 }
 function lqFeuOuvrir(jours){
+  if(typeof stat==='function')stat('semaine_feu',jours.filter(d=>d.kind==='done').length);
   const T=lqFeuTextes(jours,typeof streakJours==='function'?streakJours():0,typeof streakRecord==='function'?streakRecord():0);
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   let k=0;
@@ -43477,6 +43489,82 @@ function obCompteEnvoyer(){
     return ok;
   }).catch(()=>false).then(ok=>{obCompteEnvoi=false;return ok;});
 }
+/* ---------- Statistiques anonymes (Elisa, 10 novembre, 19 h 33 : « Oui tout ») ----------
+   Combien ouvrent l'app, allument leur flamme, finissent une semaine en feu, valident des leçons, jouent, arrivent au paywall, paient…
+   Chaque événement (un type d'une liste fermée, le jour, un nombre, quelques détails courts) attend dans une file (localStorage) et part
+   par lots de 40 au plus (stat_noter), avec la clé de l'appareil : le serveur la brouille deux fois, on ne peut pas la relier au pseudo.
+   Ni nom, ni e-mail, ni requête SQL. « Statistiques anonymes » dans Tes données, tes choix les coupe (et vide la file). */
+const STAT_FILE='rq-stat-file',STAT_OFF='rq-stat-off',STAT_VU='rq-stat-vu',STAT_SERIE='rq-stat-serie';
+let statEnvoi=false,statT=0,statErreurs=0;
+function statActif(){try{return localStorage.getItem(STAT_OFF)!=='1';}catch(e){return false;}}
+function statLire(){try{const a=JSON.parse(localStorage.getItem(STAT_FILE)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function statJour(){try{return dstr(auj());}catch(e){return new Date().toISOString().slice(0,10);}}
+function stat(t,v,d){
+  if(!statActif()||!/^[a-z_]{3,24}$/.test(String(t||''))||(typeof obApercu!=='undefined'&&obApercu))return;
+  const e={t,j:statJour()};
+  if(typeof v==='number'&&Number.isFinite(v))e.v=Math.round(v);
+  if(d&&typeof d==='object')e.d=d;
+  const f=statLire();f.push(e);
+  try{localStorage.setItem(STAT_FILE,JSON.stringify(f.slice(-300)));}catch(err){}
+  clearTimeout(statT);statT=setTimeout(()=>{try{statEnvoyer();}catch(err){}},4000);
+}
+/* Une seule fois : à vie (« installation ») ou par jour (« ouverture:2026-11-10 ») ; les clés datées de plus d'une semaine s'en vont */
+function statUneFois(t,cle,v,d){
+  if(!statActif())return false;
+  let vu={};try{vu=JSON.parse(localStorage.getItem(STAT_VU)||'{}')||{};}catch(e){vu={};}
+  if(vu[cle])return false;
+  const limite=dstr(addJ(auj(),-7));
+  for(const k of Object.keys(vu)){const m=/:(\d{4}-\d{2}-\d{2})$/.exec(k);if(m&&m[1]<limite)delete vu[k];}
+  vu[cle]=1;try{localStorage.setItem(STAT_VU,JSON.stringify(vu));}catch(e){}
+  stat(t,v,d);return true;
+}
+function statEnvoyer(){
+  if(statEnvoi||!statActif()||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
+  const lot=statLire().slice(0,40);if(!lot.length)return Promise.resolve(true);
+  statEnvoi=true;
+  return clsRpc('stat_noter',{p_cle:clsCle(),p_evts:lot}).then(r=>{
+    if(!r||!(r.ok||r.raison==='invalide'))return false;   // « trop » : on garde la file pour plus tard
+    const reste=statLire().slice(lot.length);
+    try{localStorage.setItem(STAT_FILE,JSON.stringify(reste));}catch(e){}
+    if(reste.length)setTimeout(()=>{try{statEnvoyer();}catch(e){}},1500);
+    return true;
+  }).catch(()=>false).then(ok=>{statEnvoi=false;return ok;});
+}
+function statChoisir(on){
+  try{if(on)localStorage.removeItem(STAT_OFF);else{localStorage.setItem(STAT_OFF,'1');localStorage.removeItem(STAT_FILE);}}catch(e){}
+  if(!on)statOublier();   // coupées : ce qui est déjà parti est effacé aussi
+}
+/* Effacer les statistiques de cet appareil sur le serveur (« Supprimer mon compte », ou l'interrupteur coupé) ; sans réseau, rien ne bloque */
+function statOublier(cle){
+  if(typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
+  return clsRpc('stat_oublier',{p_cle:cle||clsCle()}).then(r=>!!(r&&r.ok)).catch(()=>false);
+}
+function statVersion(){const v=String(window.APP_VERSION||''),m=v.match(/v\d+$/);return m?m[0]:'';}
+/* L'ouverture du jour (les actifs, la rétention), la première (les installations), et la série cassée depuis la dernière visite */
+function statOuverture(){
+  if(!statActif())return;
+  const natif=typeof appliNative==='function'&&appliNative();
+  statUneFois('installation','installation',null,{p:natif?'ios':'web'});
+  statUneFois('ouverture','ouverture:'+statJour(),null,{p:natif?'ios':'web',v:statVersion()});
+  try{
+    const n=typeof streakJours==='function'?streakJours():0;
+    const avant=+(localStorage.getItem(STAT_SERIE)||0);
+    if(avant>=2&&n===0)stat('serie_cassee',avant);
+    localStorage.setItem(STAT_SERIE,String(n));
+  }catch(e){}
+}
+/* Les erreurs de l'app : le message seulement (100 caractères), cinq au plus par session */
+function statErreur(m){
+  if(statErreurs>=5)return;statErreurs++;
+  stat('erreur',null,{m:String(m||'?').replace(/\s+/g,' ').slice(0,100)});
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
+  window.addEventListener('load',()=>setTimeout(()=>{try{statOuverture();statEnvoyer();}catch(e){}},3000));
+  document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState==='visible')statOuverture();else statEnvoyer();}catch(e){}});
+  window.addEventListener('online',()=>{try{statEnvoyer();}catch(e){}});
+  window.addEventListener('error',e=>{try{if(e&&e.message)statErreur(e.message);}catch(x){}});
+  window.addEventListener('unhandledrejection',e=>{try{const r=e&&e.reason;statErreur(r&&r.message?r.message:String(r));}catch(x){}});
+}
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
   window.addEventListener('load',()=>setTimeout(()=>{try{obCompteEnvoyer();}catch(e){}},5000));
   window.addEventListener('online',()=>{try{obCompteEnvoyer();}catch(e){}});
@@ -43617,7 +43705,7 @@ function obPaywallHTML(){
       ${extra||''}<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${x.titre}</span>
       <span class="pw-o-p"><b>${obEuros(x.prix)}</b> ${x.par}</span>${k==='an'?`<span class="pw-o-s">${obEssai(k)?`<i class="pw-essai">${obEssai(k)}&nbsp;jours gratuits</i>`:''}soit ${obEuros(parSemaine)} par semaine</span>`:''}</button>`;};
   const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve"><span class="pw-preuve-stk" aria-hidden="true">${typeof OB_STK_AVIS!=='undefined'?OB_STK_AVIS:''}</span>Plus de ${OB_COMMUNAUTE.toLocaleString('fr-FR')} personnes apprécient Requête</p>`:'';
-  const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallEntrer()">Continuer</button>';
+  const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
   return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
     <div class="pw-hero"><img class="pw-chat" src="assets/chat-diplome${fixe?'-fixe':''}.webp" width="304" height="367" alt="" draggable="false">
       <span class="pw-tag">Ton parcours est prêt</span>
@@ -43643,23 +43731,26 @@ function obPaywallPied(){
 function obPaywallChoisir(k){
   if(!OB_OFFRES[k]||obPwBusy)return;
   draft.offre=k;
+  if(typeof stat==='function')stat('offre',null,{o:k});
   document.querySelectorAll('#ob-body .pw-offre').forEach(b=>{const on=b.dataset.offre===k;b.classList.toggle('is-on',on);b.setAttribute('aria-checked',String(on));});
   if(typeof buzz==='function')buzz('light');
   obPaywallPied();
 }
+function obPaywallPasser(){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
 function obPaywallEntrer(){if(typeof buzz==='function')buzz('success');finishOnboard(draft.finVoulue||'home');}
 async function obPaywallAcheter(){
-  if(!obAchatPret()){obPaywallEntrer();return;}
+  if(!obAchatPret()){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
   if(obPwBusy)return;
   const live=document.getElementById('pw-live');obPwBusy=true;obPaywallPied();if(live)live.textContent='';
-  try{const ok=await window.REQUETE_ACHAT.acheter(draft.offre==='semaine'?'semaine':'an');obPwBusy=false;if(ok){obPaywallEntrer();return;}}
+  try{const o=draft.offre==='semaine'?'semaine':'an',essai=obEssai(o);const ok=await window.REQUETE_ACHAT.acheter(o);obPwBusy=false;
+    if(ok){if(typeof stat==='function')stat(essai?'essai':'achat',null,{o});obPaywallEntrer();return;}}
   catch(e){obPwBusy=false;if(live)live.textContent='Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.';}
   obPaywallPied();
 }
 async function obPaywallRestaurer(){
   const live=document.getElementById('pw-live');
   if(!window.REQUETE_ACHAT||typeof window.REQUETE_ACHAT.restaurer!=='function')return;
-  try{const ok=await window.REQUETE_ACHAT.restaurer();if(ok){obPaywallEntrer();return;}if(live)live.textContent='Aucun abonnement à restaurer sur ce compte Apple.';}
+  try{const ok=await window.REQUETE_ACHAT.restaurer();if(ok){if(typeof stat==='function')stat('restaure');obPaywallEntrer();return;}if(live)live.textContent='Aucun abonnement à restaurer sur ce compte Apple.';}
   catch(e){if(live)live.textContent='La restauration n’a pas abouti, réessaie.';}
 }
 function obFinSuivante(slide){const f=obFinFlux(),i=f.indexOf(slide);return i>=0&&i<f.length-1?f[i+1]:'ready';}
@@ -43728,6 +43819,7 @@ async function obRappelDemander(){
     else if(typeof Notification!=='undefined'){const r=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;ok=r==='granted';}
   }catch(e){}
   try{localStorage.setItem('requete-rappel',ok?'1':'0');}catch(e){}
+  if(typeof stat==='function')stat(ok?'rappel_oui':'rappel_non');
   obRappelEnCours=false;
   if(ok){rappelNativeSync();buzz('success');}
   if(btn)btn.disabled=false;
@@ -44761,9 +44853,9 @@ function obNext(){
   else if(slide==='practice')obGoto(obAfterPractice());
   else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));
   else if(slide==='widget')obGoto('widgetTuto');
-  else if(slide==='widgetTuto')obWidgetFin();
+  else if(slide==='widgetTuto'){if(typeof stat==='function')stat('widget');obWidgetFin();}
   else if(slide==='account')obPasserConnexion();
-  else if(slide==='paywall'){if(!obAchatPret())obPaywallEntrer();}   // une fois l’achat branché, seul le paiement passe la page
+  else if(slide==='paywall'){if(!obAchatPret())obPaywallPasser();}   // une fois l’achat branché, seul le paiement passe la page
   else if(slide==='pseudo')obPseudoSuivant();
   else if(slide==='ready'){const b=document.getElementById('ob-next');if(b&&typeof b.onclick==='function')b.onclick();else finishOnboard('home');}
   else finishOnboard('home');
@@ -45426,6 +45518,7 @@ async function obStartAuth(provider,btn){
     const result=await adapter.signIn(provider);
     if(!result)throw new Error('Connexion annulée');
     state.accountMode='connected';
+    if(typeof stat==='function')stat('connexion',null,{f:String(provider).slice(0,10)});
     state.accountProvider=provider;
     state.accountLabel=String(result.email||result.label||provider).slice(0,120);
     save();
@@ -45868,6 +45961,7 @@ function paintOb(){
     const legal=`En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
     obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
   }else if(slide==='paywall'){
+    if(obJustEntered&&typeof statUneFois==='function')statUneFois('paywall_vu','paywall:'+statJour());
     html=obPaywallHTML();
     obPaywallPied();
   }else if(slide==='name'){
@@ -46972,6 +47066,9 @@ function renderCompte(){
           <span class="acc-row-ico danger" aria-hidden="true">${plusIcon('trash')}</span>
           <div class="at"><b>Effacer la progression</b><small>Leçons, défis, notes et planning</small></div>
           ${CHEV}</button>`)}
+        <label class="acc-row stat-row"><span class="acc-row-ico" aria-hidden="true">${plusIcon('privacy')}</span>
+          <div class="at"><b>Statistiques anonymes</b><small>Elles aident à améliorer l’appli, sans savoir qui tu es</small></div>
+          <input type="checkbox" role="switch" class="pc-switch" ${typeof statActif==='function'&&!statActif()?'':'checked'} onchange="statChoisir(this.checked)" aria-label="Envoyer des statistiques d’usage anonymes"></label>
         <p class="dc-legal-t">Pour tout lire</p>
         <a class="acc-row is-ext" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('privacy')}</span>
@@ -47094,11 +47191,12 @@ const DC_RUBRIQUES=[
     '<b>Le classement</b>\u00a0: tes points, tes parties et les défis réussis.',
     '<b>Les salles</b>\u00a0: tes temps, tes réactions et tes messages, effacés au bout de 24\u00a0heures.',
     '<b>«\u00a0Contacte-nous\u00a0»</b>\u00a0: ton message, ce que tu y joins et ton e-mail si tu le donnes, pour te répondre. Le message est effacé au bout de 3\u00a0ans.',
-    '<b>Tes avis</b> sur les leçons, ton vote pour le prochain parcours et les écrans de l’accueil que tu as vus, sans ton prénom ni tes réponses.'],
+    '<b>Tes avis</b> sur les leçons, ton vote pour le prochain parcours et les écrans de l’accueil que tu as vus, sans ton prénom ni tes réponses.',
+    '<b>Des statistiques d’usage anonymes</b>\u00a0: tes jours d’usage, flammes, leçons, défis et parties, le paywall vu. Leur identifiant brouillé ne mène ni à toi ni à ton pseudo. Gardées 13\u00a0mois.'],
     note:'Tout est hébergé chez Supabase, à Paris.'},
   {k:'confid',stk:'shield',t:'Ta confidentialité',r:'Personne ne voit tes requêtes.',c:['Dans une salle, les autres joueurs voient ton pseudo, ton drapeau, tes temps et tes réactions. Jamais tes requêtes.',
     'En salle, ta requête part en ligne pour être vérifiée. Seule son empreinte, un code qui ne permet pas de la relire, est gardée 24\u00a0heures au plus.',
-    'Ni publicité, ni traceur\u00a0: l’appli compte seulement les écrans de l’accueil vus, sans savoir qui tu es.']},
+    'Ni publicité, ni traceur, rien de revendu\u00a0: l’appli compte seulement comment elle est utilisée, sans savoir qui tu es. Tu peux couper ces statistiques plus bas.']},
   {k:'gerer',stk:'export',t:'Gérer mes données',r:'Sauvegarder ta progression ou effacer tes informations.',c:['<b>Effacer la progression</b>\u00a0: tes leçons, défis, cartes, notes et planning sont vidés sur cet appareil, et tes scores quittent le classement. Ton pseudo reste à toi.',
     '<b>Supprimer mon compte</b> (en bas de Mon compte)\u00a0: efface tout ce que le serveur garde pour toi et tout ce qui est sur cet appareil.',
     'Supprimer l’appli efface aussi ce qui est sur cet appareil\u00a0: sauvegarde ta progression avant.'],actions:true},
@@ -47545,6 +47643,7 @@ async function compteSupprimer(){
         if(!(e&&(e.status===404||e.code==='PGRST202')))throw e;
         return clsRpc('jeu_pseudo_liberer',{p_cle:cle});   /* serveur sans compte_supprimer : au moins le pseudo et les scores */
       });
+      if(typeof statOublier==='function')await statOublier(cle);   // et ses statistiques anonymes (10 novembre)
     }catch(e){
       if(e&&e.status)lqInfo('Suppression refusée','Le serveur n’a pas pu supprimer ton compte : écris-nous depuis « Contacte-nous », on s’en occupe. Rien n’a été effacé.','⚠️');
       else lqInfo('Pas de réseau','Il faut une connexion internet pour supprimer ton compte sur le serveur. Réessaie dans un instant : rien n’a été effacé.','📶');
@@ -47741,7 +47840,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-10-essai-v2832';
+  const SW_CACHE='requete-2026-11-10-stats-v2833';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
