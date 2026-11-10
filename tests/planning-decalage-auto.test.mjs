@@ -124,7 +124,7 @@ test('« 0 séance validée sur 7 » (Elisa, 10 novembre, 6 h 49) : la semaine e
   assert.deepEqual([ctx.s(0, 7), ctx.s(1, 7), ctx.s(2, 7), ctx.s(7, 7), ctx.s(0, 1), ctx.s(0, 0)],
     ['7 séances prévues', '1 séance validée sur 7', '2 séances validées sur 7', '7 séances validées', '1 séance prévue', 'Aucune séance prévue']);
   assert.deepEqual([ctx.a(0, 71), ctx.a(5, 71), ctx.a(71, 71)], ['71 activités', '5 activités validées sur 71', '71 activités validées']);
-  assert.ok(app.includes('<p>${semaineActivites(visibleSessions)}</p>') && app.includes('<summary>Avancement global<span>${activitesCompte(st.done,st.total)}</span>'));
+  assert.ok(app.includes('<p>${semaineCompte(weekComplete,weekPlanned)}</p>') && app.includes('<summary>Avancement global<span>${activitesCompte(st.done,st.total)}</span>'));
   assert.ok(!/\$\{weekComplete\} séance/.test(app), 'plus de « 0 séance validée »');
 });
 
@@ -149,7 +149,7 @@ test('« vérifier tous les chiffres de la page » (Elisa, 10 novembre, 6 h 53)'
   assert.ok(app.includes("${st.reste?`Fin estimée · ${end} · ${plur(st.aVenir,'séance')} à venir`:'Toutes les séances sont faites'}"));
   /* Demain se dit en leçons, comme aujourd’hui ; Mon compte en positif */
   assert.ok(app.includes("<small>${plur(n,'leçon')} · ~${minutesDe(sess.lessons)} min</small>"));
-  assert.ok(app.includes("<span>${activitesCompte(progress.done,progress.total,{verbe:'terminée',zero:'à découvrir'})}</span>") && app.includes('<span>${semaineActivites(weekDays.filter(d=>d.total).map(d=>d.session))}</span>'));
+  assert.ok(app.includes("<span>${activitesCompte(progress.done,progress.total,{verbe:'terminée',zero:'à découvrir'})}</span>") && app.includes('<span>${semaineCompte(weekComplete,weekPlanned)}</span>'));
   const c = {}; vm.runInNewContext(fn('activitesCompte') + ';this.a=activitesCompte;', c);
   assert.deepEqual([c.a(0, 71, { verbe: 'terminée', zero: 'à découvrir' }), c.a(3, 71, { verbe: 'terminée' }), c.a(71, 71, { verbe: 'terminée' })], ['71 activités à découvrir', '3 activités terminées sur 71', '71 activités terminées']);
 });
