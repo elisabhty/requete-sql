@@ -72,7 +72,7 @@ test('Mon compte : les chiffres et chaque réglage portent leur autocollant ; la
 });
 
 test('Planning : le prochain cap en scène violette ; plus d’autocollants sur les tuiles d’« Avancement global » (Elisa, 8 h 06)', () => {
-  assert.ok(app.includes('  brancherDrag();renderHomeToday();\n}'), 'plus de décoration après le rendu');
+  assert.ok(app.includes('  renderHomeToday();\n}') && !app.includes('brancherDrag'), 'plus de décoration après le rendu (ni de glisser-déposer, 10 novembre)');
   assert.ok(!app.includes('function lqPlanStk(') && !css.includes('.pgr-stk'), 'ni fonction ni style d’autocollant de tuile');
   assert.ok(!css.includes('.pgr-stat.is-s .pgr-flame,html.lq #scr-planning .pgr-stat.is-t .pgr-t-main>small>svg{display:none}'), 'la flamme et l’horloge reviennent');
   for (const part of ['html.lq #scr-planning .pgr-next{position:relative;isolation:isolate;overflow:hidden;', 'html.lq #scr-planning .pgr-next .pgr-go{background:var(--sun)!important;'])
