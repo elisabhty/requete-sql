@@ -120,3 +120,16 @@ test('les réponses Débutant, simples : phrases courtes, sans jargon (Elisa, 10
   }
   assert.ok(E.find(q => q.id === 'ent-v2-12').a.startsWith('<code>DISTINCT</code> supprime les lignes en double dans le résultat\u00a0: chaque ligne n’apparaît qu’une seule fois.'));
 });
+
+test('Intermédiaire et Avancé : bien compréhensibles aussi (Elisa, 10 novembre, 1 h 47)', () => {
+  const autres = E.filter(q => q.niveau !== 'Débutant');
+  assert.equal(autres.length, 95);
+  for (const q of autres) {
+    const t = sansCode(q.a);
+    assert.ok(q.a.length <= 900, `${q.id} : ${q.a.length} caractères`);
+    /* Plus de numéros de version ni de codes d’erreur : ils n’aident pas à comprendre */
+    assert.doesNotMatch(t, /version \d|depuis la \d|\b\d+\.\d+\b(?! ?%)|40P01|\b1213\b|\b1205\b|SQL:1999/, `${q.id} : ${(t.match(/version \d|depuis la \d|\b\d+\.\d+\b|40P01|SQL:1999/) || [''])[0]}`);
+    const phrases = t.split(/(?<=[.!?])\s+/).filter(Boolean);
+    assert.ok(phrases.every(ph => ph.length <= 300), `${q.id} : une phrase trop longue (${phrases.find(ph => ph.length > 300)})`);
+  }
+});
