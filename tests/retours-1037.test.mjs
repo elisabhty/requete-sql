@@ -150,8 +150,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-chiffres-v2815';") && app.includes("const SW_CACHE='requete-2026-11-09-chiffres-v2815';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=307">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-09-chiffres-v2816';") && app.includes("const SW_CACHE='requete-2026-11-09-chiffres-v2816';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=308">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;

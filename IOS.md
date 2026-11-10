@@ -166,21 +166,10 @@ suivante. Son choix pour la flamme : « la séance seule » — répondre dans l
   touchée et la question du moment dans le groupe d’apps, puis iOS redessine le widget. Les widgets n’ont de boutons qu’à partir
   d’**iOS 17** : le widget n’existe qu’à partir de là. Sans leçon faite, il le dit, et un appui ouvre la séance du jour.
 
-### La carte mémo qui se retourne (7 novembre)
+### La carte mémo (retirée le 10 novembre)
 
-Elisa, 7 novembre (« La carte mémo qui se retourne », d’après la planche : « Touche la carte, elle se retourne. Tu dis si tu
-savais : elle revient au bon moment. »). Le widget **La carte mémo** (`RequeteCarte`, dans `RequeteWidget.swift`, petit) montre
-au recto le mot-clé d’une carte gagnée ; un appui la retourne : son titre, sa première idée, et deux boutons. **Je savais**
-l’éloigne (3 jours, puis 7, 21 et 60, comme les révisions de l’app, `INTERVALS`) ; **À revoir** la ramène demain. « Noté ! » dit
-quand elle revient ; un appui passe à la suivante. Les cartes du jour d’abord, la plus en retard en premier, puis les nouvelles,
-dans l’ordre du parcours. Tout est à jour : le widget dit quand revient la prochaine, et un appui ouvre l’album
-(`requete://cartes`, `raccourciOuvrir`). Comme pour la requête de poche, réviser ici n’allume pas la flamme du jour.
-
-- **Ce que range l’app** : les cartes gagnées, avec la série (`widgetCartes`, dans `widgetMaj` ; pont `maj`, clé `cartes`).
-- **Le rythme** vit dans le widget (`CartesRangement`, clé `cartesRythme` du groupe d’apps) : l’app ne le lit pas et ne
-  l’efface pas en rangeant de nouveau les cartes. Le widget pose une entrée chaque minuit, le jour où une carte revient.
-- **Les boutons** passent par App Intents (`RetournerCarte`, `NoterCarte`, `CarteSuivante`, cachés de Raccourcis) : ils n’existent
-  qu’à partir d’**iOS 17**, comme le widget.
+Le widget **La carte mémo** (petit, qui se retournait) a été retiré (« supprime le widget carte mémo »). Ses cartes restent dans
+l’app (Bibliothèque › Cartes mémo) ; `CartesRangement` ne garde que les deux outils de calendrier dont Ta semaine se sert.
 
 ### Ta semaine, en résultat de requête (7 novembre)
 

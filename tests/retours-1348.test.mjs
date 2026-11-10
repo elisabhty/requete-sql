@@ -29,7 +29,7 @@ test('l’avis : « Veux-tu laisser un commentaire ? », un lien qui n’appara�
   /* Il apparaît dès la note, et la note gardée garde le commentaire */
   assert.ok(cut('function avisPeindre(box,n,star){', 'function avisEclats(star){').includes("const com=box.querySelector('.av-com.is-cache');\n  if(com)com.classList.remove('is-cache');"));
   assert.ok(app.includes("state.avis[id]=Object.assign({n,le:Date.now(),envoye:false},avant&&typeof avant.c==='string'&&avant.c?{c:avant.c}:{});save();"), 'changer sa note ne perd pas le commentaire');
-  assert.ok(app.includes('${avisCommentaireHtml(l.id,a)}\n  </section>`;'));
+  assert.ok(app.includes('${avisCommentaireHtml(l.id,a)}\n    </div>\n  </section>`;'));
 });
 
 test('envoyer le commentaire : gardé sur l’appareil (espaces resserrés, 500 signes), le merci, puis l’envoi avec la note', () => {
@@ -53,7 +53,7 @@ test('envoyer le commentaire : gardé sur l’appareil (espaces resserrés, 500 
   for (const k of ['html.lq #scr-lesson .bravo-avis .av-com.is-cache{display:none}', 'html.lq #scr-lesson .bravo-avis .av-com.is-ouvert>.av-com-lien{display:none}',
     'html.lq #scr-lesson .bravo-avis .av-com-zone textarea{display:block;width:100%;min-height:92px;', '.av-com-champ,.av-com-merci),html.lq #scr-lesson .bravo-avis{animation:none!important}}'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=307">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=308">'));
 });
 
 const repriseLab = ({onboarded = false, apercu = false, legal = null} = {}) => {
