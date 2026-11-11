@@ -3293,6 +3293,20 @@
   .ncard.pin .npin-btn svg{transform:rotate(-16deg)}
   @keyframes ncardIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
   .notes-list[data-enter] .ncard{animation:ncardIn .5s var(--spring-ios) both;animation-delay:calc(var(--i,0)*55ms)}
+  /* La poubelle des notes (lqCorbeille) : la boulette, la poubelle en trois couches (fond, corps, couvercle), les confettis */
+  .lq-corb{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden}
+  .lq-corb>*{position:absolute;left:0;top:0;display:block}
+  .lq-corb .lqc-p{width:64px;height:76px;transform-origin:50% 92%;will-change:transform}
+  .lq-corb .lqc-p svg,.lq-corb .lqc-lid i svg{display:block;width:64px;height:76px;overflow:visible}
+  .lq-corb .lqc-lid i{display:block;width:64px;height:76px;transform-origin:54px 30px}
+  .lq-corb .lqc-x,.lq-corb .lqc-y{width:0;height:0;will-change:transform}
+  .lq-corb .lqc-b{position:absolute;left:-15px;top:-15px;width:30px;height:30px}
+  .lq-corb .lqc-b svg{display:block;width:30px;height:30px;overflow:visible}
+  .lq-corb .lqc-s{width:7px;height:7px;border-radius:50%;background:currentColor}
+  .lq-corb .lqc-s.is-star{width:13px;height:13px;border-radius:0;background:none}
+  .lq-corb .lqc-s svg{display:block;width:100%;height:100%}
+  .lq-corb .f-wait,.lq-corb .f-happy,.lq-corb.is-wait .f-norm,.lq-corb.is-happy .f-norm,.lq-corb.is-happy .f-wait{opacity:0}
+  .lq-corb.is-wait .f-wait,.lq-corb.is-happy .f-happy{opacity:1}
   @keyframes ncardFresh{0%{opacity:0}16%{opacity:1}100%{opacity:0}}
   .ncard.is-fresh::after{content:"";position:absolute;inset:0;border:2.5px solid var(--accent);border-radius:inherit;pointer-events:none;animation:ncardFresh 1.8s ease-out both}
   @keyframes statBump{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:none}}
@@ -30122,6 +30136,11 @@ const LvSfx=(()=>{
       case 'empty':{ o=new Float32Array(N(.35)); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*(760*Math.exp(-t/.16)+260)/SR; o[i]=.38*Math.sin(ph)*env(t,.003,.09); } break; }
       case 'mail':{ o=new Float32Array(N(.62)); marimba(o,0,1568,.45,.13,.12,.24,SR); marimba(o,N(.13),1174.7,.48,.17,.12,.22,SR); break; }
       case 'sms':{ o=new Float32Array(N(.55)); marimba(o,0,1760,.3,.09,.2,.22,SR); marimba(o,N(.075),2349.3,.38,.12,.2,.2,SR); marimba(o,N(.15),2793,.4,.14,.15,.17,SR); break; }
+      /* La note froissée en boulette (la poubelle des notes) : une vingtaine de craquements de papier, sur un frottement léger. */
+      case 'crumple':{ const d=.34; o=new Float32Array(N(d)); const nz=noise(o.length,900,7500,SR);
+        for(let i=0;i<o.length;i++)o[i]=.05*nz[i]*Math.sin(Math.PI*T(i)/d);
+        for(let k=0;k<20;k++){ const off=N(Math.max(0,d*.88*k/20+.01*rnd())), a=.28+.22*Math.abs(rnd()), n=Math.min(N(.03),o.length-off); for(let i=0;i<n;i++)o[off+i]+=a*nz[off+i]*env(T(i),.0004,.005); }
+        break; }
       case 'stamp':{ o=new Float32Array(N(.3)); const nz=noise(o.length,200,1800,SR); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*140*(1+.6*Math.exp(-t/.02))/SR; o[i]=.4*(Math.sin(ph)*env(t,.001,.08)+.5*nz[i]*env(t,.0005,.025)); } break; }
       /* L’appel du cours LIKE (Elisa, 29 octobre, 0 h 06 : « son réaliste ») : la sonnerie (une cloche frappée 24 fois par seconde,
          comme un vieux téléphone), le décroché, la fin d’appel (trois bips à 425 Hz). */
@@ -30193,6 +30212,14 @@ const LvSfx=(()=>{
     /* Fermeture du cours : session rendue et contexte fermé ; le cours suivant repart d’un contexte neuf,
        créé après la session « lecture » (sinon, sur iPhone, il pouvait rester muet en mode silencieux). */
     release(){ session(false); drop(); },
+    /* Sons de l’interface (la poubelle des notes) : contexte créé ou relancé pendant l’appui, sans la session « lecture » des cours :
+       le bouton silencieux de l’iPhone les coupe, et la musique d’une autre app continue. */
+    ui(){
+      const c=ctx||init(); if(!c)return false;
+      if(c.state!=='running'){ try{ const p=c.resume(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} }
+      if(!unlocked){ unlocked=true; try{ const s=c.createBufferSource(); s.buffer=c.createBuffer(1,1,22050); s.connect(c.destination); s.start(0); }catch(e){} }
+      return true;
+    },
     stats(){ return {state:ctx?ctx.state:'none',played}; },
     setMuted(m){ muted=!!m; if(master)master.gain.value=muted?0:1; },
     play(kind,pitch,gain,pan){
@@ -41193,17 +41220,136 @@ function lqAdieu(cartes,suite,o){
   cartes.forEach((c,k)=>{
     let gap=o.gap;
     if(gap==null){try{const cs=c.parentElement&&getComputedStyle(c.parentElement);gap=cs&&/flex|grid/.test(cs.display)?parseFloat(cs.rowGap)||0:0;}catch(e){gap=0;}}
-    let bg='#fff';try{const b=getComputedStyle(c).backgroundColor;if(b&&!/^rgba\(0, 0, 0, 0\)$|transparent/.test(b))bg=b;}catch(e){}
+    let bg='#fff',bx0={};try{const cs=getComputedStyle(c),b=cs.backgroundColor;if(b&&!/^rgba\(0, 0, 0, 0\)$|transparent/.test(b))bg=b;
+      /* 11 novembre : marges intérieures et bordures se referment aussi (sinon la liste sautait de leur hauteur au rendu suivant). */
+      ['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].forEach(k=>{if(cs[k])bx0[k]=cs[k];});}catch(e){}
+    const bxZ={};Object.keys(bx0).forEach(k=>{bxZ[k]='0px';});
     const h=c.offsetHeight,avant=!!c.previousElementSibling;
     c.style.overflow='hidden';c.style.pointerEvents='none';c.style.transformOrigin='left center';
     c.animate([
-      {height:h+'px',opacity:1,transform:'none',marginTop:'0px',marginBottom:'0px',backgroundColor:bg,offset:0},
-      {height:h+'px',opacity:1,transform:'scale(.97) rotate(-1.4deg)',backgroundColor:'#FFF1F2',offset:.32},
-      {height:'0px',opacity:0,transform:'translateX(-18px) scale(.9) rotate(-2.5deg)',marginTop:avant?-gap+'px':'0px',marginBottom:avant?'0px':-gap+'px',backgroundColor:'#FFE4E6',offset:1}
+      {height:h+'px',opacity:1,transform:'none',marginTop:'0px',marginBottom:'0px',backgroundColor:bg,...bx0,offset:0},
+      {height:h+'px',opacity:1,transform:'scale(.97) rotate(-1.4deg)',backgroundColor:'#FFF1F2',...bx0,offset:.32},
+      {height:'0px',opacity:0,transform:'translateX(-18px) scale(.9) rotate(-2.5deg)',marginTop:avant?-gap+'px':'0px',marginBottom:avant?'0px':-gap+'px',backgroundColor:'#FFE4E6',...bxZ,offset:1}
     ],{duration:480,delay:k*pas,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
   });
   if(typeof buzz==='function')buzz('medium');
   setTimeout(suite,480+(cartes.length-1)*pas);
+}
+/* La poubelle des notes (Elisa, 11 novembre, 21 h 11 : plus de « Note supprimée » ni d’« Annuler », « une micro-interaction vraiment,
+   vraiment fun, vraiment cool » à la place). La note se froisse en boulette ; une petite poubelle rose (avec une tête) sort à sa place,
+   ouvre le couvercle et la bouche en « o » ; la boulette part en cloche et tombe dedans ; le couvercle claque, la poubelle s’écrase,
+   quelques confettis sautent, elle sourit, fait un petit saut et s’en va ; puis la place de la note se referme. Vibrations au froissage
+   et au claquement ; sons discrets (froissé, lancer, claquement) si le son du lecteur n’est pas coupé (lqCorbSon). Mouvements réduits :
+   la note s’en va tout de suite. La boulette passe entre le fond et le corps de la poubelle : elle tombe vraiment dedans. */
+const LQC_INK='#1B1640';
+const LQC_BACK=`<svg viewBox="0 0 64 76"><ellipse cx="32" cy="71.5" rx="21" ry="3.6" fill="rgba(27,22,64,.16)"/><ellipse cx="32" cy="30" rx="19.6" ry="4.8" fill="#FF9EC7" stroke="${LQC_INK}" stroke-width="2.3"/><ellipse cx="32" cy="30.6" rx="16.2" ry="3.1" fill="${LQC_INK}"/></svg>`;
+const LQC_FRONT=`<svg viewBox="0 0 64 76"><path d="M12.4 30 16.6 66a5 5 0 0 0 5 4.5h20.8a5 5 0 0 0 5-4.5L51.6 30" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>`
+  +`<path d="M12.4 30A19.6 4.8 0 0 0 51.6 30L47.4 66a5 5 0 0 1-5 4.5H21.6a5 5 0 0 1-5-4.5Z" fill="#FF9EC7" stroke="${LQC_INK}" stroke-width="2.5" stroke-linejoin="round"/>`
+  +`<path d="M19.6 39.5 20.9 60" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".75"/>`
+  +`<ellipse cx="22.6" cy="51.4" rx="2.8" ry="1.7" fill="#FF5C9E" opacity=".6"/><ellipse cx="41.4" cy="51.4" rx="2.8" ry="1.7" fill="#FF5C9E" opacity=".6"/>`
+  +`<g class="f-norm"><circle cx="26.6" cy="45.6" r="2.5" fill="${LQC_INK}"/><circle cx="37.4" cy="45.6" r="2.5" fill="${LQC_INK}"/><path d="M29 51.4q3 2.6 6 0" fill="none" stroke="${LQC_INK}" stroke-width="2.2" stroke-linecap="round"/></g>`
+  +`<g class="f-wait"><circle cx="26.6" cy="45" r="3.2" fill="${LQC_INK}"/><circle cx="37.4" cy="45" r="3.2" fill="${LQC_INK}"/><circle cx="27.7" cy="43.9" r="1" fill="#fff"/><circle cx="38.5" cy="43.9" r="1" fill="#fff"/><ellipse cx="32" cy="52.4" rx="2.4" ry="2.9" fill="${LQC_INK}"/></g>`
+  +`<g class="f-happy"><path d="M23.9 46.6q2.7-3.9 5.4 0M34.7 46.6q2.7-3.9 5.4 0" fill="none" stroke="${LQC_INK}" stroke-width="2.4" stroke-linecap="round"/><path d="M27.8 50.4h8.4a4.2 4.2 0 0 1-8.4 0Z" fill="${LQC_INK}"/></g></svg>`;
+const LQC_LID=`<svg viewBox="0 0 64 76"><path d="M10 30A22 4.9 0 0 0 54 30V27.4a3.4 3.4 0 0 0-3.4-3.4H13.4a3.4 3.4 0 0 0-3.4 3.4Z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>`
+  +`<path d="M26.6 24v-3.4a2.4 2.4 0 0 1 2.4-2.4h6a2.4 2.4 0 0 1 2.4 2.4V24" fill="#FFC83D" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>`
+  +`<path d="M26.6 24v-3.4a2.4 2.4 0 0 1 2.4-2.4h6a2.4 2.4 0 0 1 2.4 2.4V24" fill="#FFC83D" stroke="${LQC_INK}" stroke-width="2.3" stroke-linejoin="round"/>`
+  +`<path d="M10 30A22 4.9 0 0 0 54 30V27.4a3.4 3.4 0 0 0-3.4-3.4H13.4a3.4 3.4 0 0 0-3.4 3.4Z" fill="#6A4DF4" stroke="${LQC_INK}" stroke-width="2.5" stroke-linejoin="round"/>`
+  +`<path d="M15 28h9" stroke="#B8A6FF" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+const LQC_BALL=`<svg viewBox="0 0 32 32"><path d="M16 2.4 22.2 4 27.6 8.6 29.6 15.2 28 22.2 23.4 27.6 16.4 29.6 9.8 28 4.4 23 2.4 16 4.6 9 9.6 4.4Z" fill="#fff"/>`
+  +`<path d="M9.6 4.4 16 2.4 22.2 4 20.2 10.2 13 12Z" fill="#6A4DF4"/>`
+  +`<path d="M9.6 4.4 13 12 8 18.2 4.4 23M13 12 20.2 10.2 27.6 8.6M20.2 10.2 22 18 28 22.2M22 18 15.2 21 16.4 29.6M8 18.2 15.2 21" fill="none" stroke="#C9BEFF" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`
+  +`<path d="M16 2.4 22.2 4 27.6 8.6 29.6 15.2 28 22.2 23.4 27.6 16.4 29.6 9.8 28 4.4 23 2.4 16 4.6 9 9.6 4.4Z" fill="none" stroke="${LQC_INK}" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
+const LQC_STAR='<svg viewBox="0 0 12 12"><path d="M6 0Q6.8 4.4 12 6 6.8 7.6 6 12 5.2 7.6 0 6 5.2 4.4 6 0Z" fill="currentColor"/></svg>';
+/* Le son de la poubelle : seulement pendant l’appui (« Supprimer ») et si le son du lecteur n’est pas coupé. */
+function lqCorbSon(){
+  try{
+    if((typeof LV_MUTED!=='undefined'&&LV_MUTED)||typeof LvSfx==='undefined'||typeof LvSfx.ui!=='function')return false;
+    const ua=typeof navigator!=='undefined'?navigator.userActivation:null;
+    if(ua&&!ua.isActive)return false;
+    return !!LvSfx.ui();
+  }catch(e){ return false; }
+}
+function lqCorbeille(carte,suite,o){
+  o=o||{};
+  let fait=false;const fin=()=>{ if(fait)return; fait=true; try{suite();}catch(e){} };
+  if(!carte||!carte.isConnected||typeof carte.animate!=='function'||typeof document==='undefined'||(typeof prefersReduceMotion==='function'&&prefersReduceMotion())){fin();return;}
+  const W=innerWidth||400,H=innerHeight||800;
+  let r=carte.getBoundingClientRect();
+  if(r.bottom<70||r.top>H-70){ try{carte.scrollIntoView({block:'center'});}catch(e){} r=carte.getBoundingClientRect(); }
+  /* La scène : la boulette naît un peu à gauche du milieu de la note, la poubelle sort à droite, à la hauteur de la note. */
+  const cy=Math.max(120,Math.min(H-90,r.top+r.height/2));
+  const bx=r.left+r.width*.42,by=cy;
+  const cl=Math.max(8,Math.min(W-74,r.right-84)),ct=cy-44;
+  const ox=cl+32,oy=ct+30,peak=Math.min(by,oy)-Math.max(58,Math.abs(ox-bx)*.5),sink=oy+21;
+  const S=document.createElement('div');S.className='lq-corb';S.setAttribute('aria-hidden','true');
+  const piece=(cls,html)=>{ const d=document.createElement('div'); d.className='lqc-p '+cls; d.style.left=cl+'px'; d.style.top=ct+'px'; d.innerHTML=html; return d; };
+  const back=piece('lqc-back',LQC_BACK),front=piece('lqc-front',LQC_FRONT),lid=piece('lqc-lid','<i>'+LQC_LID+'</i>'),li=lid.firstChild;
+  const X=document.createElement('div'),Y=document.createElement('div'),B=document.createElement('div');
+  X.className='lqc-x';Y.className='lqc-y';B.className='lqc-b';B.innerHTML=LQC_BALL;
+  X.style.transform=`translateX(${bx}px)`;Y.style.transform=`translateY(${by}px)`;
+  Y.appendChild(B);X.appendChild(Y);
+  S.append(back,X,front,lid);
+  const can=[back,front,lid];
+  const A=(el,k,op)=>{ try{ return el.animate(k,op); }catch(e){ return null; } };
+  const T=[],at=(ms,f)=>T.push(setTimeout(()=>{ try{f();}catch(e){} },ms));
+  const son=(ms,k,p,g)=>{ if(o.son&&typeof LvSfx!=='undefined')at(ms,()=>LvSfx.play(k,p,g,0)); };
+  /* Les confettis du claquement, au-dessus du couvercle */
+  const PAL=['#FFC83D','#9FF0C6','#6A4DF4','#FF9EC7'],sp=[];
+  for(let k=0;k<9;k++){
+    const s=document.createElement('i'),star=k%3===1;
+    s.className='lqc-s'+(star?' is-star':'');s.style.left=ox+'px';s.style.top=(ct+21)+'px';s.style.color=PAL[k%4];
+    if(star)s.innerHTML=LQC_STAR;
+    S.appendChild(s);sp.push(s);
+  }
+  document.body.appendChild(S);
+  /* 1. La note se froisse (0 à 260 ms) ; sa place reste vide le temps de la scène, puis se referme (1500 à 1800 ms). */
+  const D=1800;
+  let gap=0;try{const cs=carte.parentElement&&getComputedStyle(carte.parentElement);gap=cs&&/flex|grid/.test(cs.display)?parseFloat(cs.rowGap)||0:0;}catch(e){gap=0;}
+  const h=carte.offsetHeight,avant=!!carte.previousElementSibling,mt=avant?-gap+'px':'0px',mb=avant?'0px':-gap+'px';
+  /* La boîte se referme entière : hauteur, marges intérieures et bordures (sinon il restait 34 px, qui sautaient au rendu suivant). */
+  let bx0={};try{const c=getComputedStyle(carte);bx0={paddingTop:c.paddingTop||'0px',paddingBottom:c.paddingBottom||'0px',borderTopWidth:c.borderTopWidth||'0px',borderBottomWidth:c.borderBottomWidth||'0px'};}catch(e){}
+  const bxZ={};Object.keys(bx0).forEach(k=>{bxZ[k]='0px';});
+  carte.style.overflow='hidden';carte.style.pointerEvents='none';carte.style.transformOrigin='42% 50%';
+  A(carte,[
+    {offset:0,transform:'none',opacity:1,height:h+'px',marginTop:'0px',marginBottom:'0px',...bx0,easing:'cubic-bezier(.4,0,.6,1)'},
+    {offset:80/D,transform:'scale(.965,.92) rotate(1deg)',opacity:1,easing:'cubic-bezier(.5,0,.8,.5)'},
+    {offset:180/D,transform:'scale(.5,.38) rotate(-8deg)',opacity:.9,borderRadius:'40px'},
+    {offset:260/D,transform:'scale(.08) rotate(28deg)',opacity:0,borderRadius:'50%'},
+    {offset:1500/D,height:h+'px',marginTop:'0px',marginBottom:'0px',...bx0,easing:'cubic-bezier(.4,0,.2,1)'},
+    {offset:1,transform:'scale(.08) rotate(28deg)',opacity:0,borderRadius:'50%',height:'0px',marginTop:mt,marginBottom:mb,...bxZ}
+  ],{duration:D,fill:'forwards'});
+  at(0,()=>{ if(typeof buzz==='function')buzz('light'); });
+  son(10,'crumple',0,.55);
+  /* 2. La poubelle sort de terre (140 ms), la boulette apparaît (200 ms), le couvercle s’ouvre et la poubelle attend, bouche en « o » (330 ms). */
+  can.forEach(p=>A(p,[{transform:'translateY(16px) scale(.3,.1)',opacity:0},{transform:'translateY(-5px) scale(1.06,1.1)',opacity:1,offset:.55},{transform:'translateY(1px) scale(1.03,.96)',opacity:1,offset:.8},{transform:'none',opacity:1}],{duration:320,delay:140,easing:'ease-out',fill:'both'}));
+  A(B,[{transform:'scale(.2) rotate(-40deg)',opacity:0},{transform:'scale(1.2) rotate(8deg)',opacity:1,offset:.6},{transform:'none',opacity:1}],{duration:190,delay:200,easing:'ease-out',fill:'both'});
+  A(li,[{transform:'rotate(0deg)'},{transform:'rotate(80deg)',offset:.65},{transform:'rotate(70deg)'}],{duration:200,delay:330,easing:'cubic-bezier(.3,.7,.4,1)',fill:'forwards'});
+  at(330,()=>S.classList.add('is-wait'));
+  /* 3. Le lancer en cloche (420 à 820 ms) : la boulette tourne, monte, redescend dans l’ouverture et s’enfonce derrière le corps. */
+  A(X,[{transform:`translateX(${bx}px)`},{transform:`translateX(${ox}px)`,offset:.82},{transform:`translateX(${ox}px)`}],{duration:400,delay:420,easing:'linear',fill:'forwards'});
+  A(Y,[{transform:`translateY(${by}px)`,easing:'cubic-bezier(.25,.6,.45,1)'},{transform:`translateY(${peak}px)`,offset:.42,easing:'cubic-bezier(.55,0,.75,.45)'},{transform:`translateY(${oy-4}px)`,offset:.82,easing:'cubic-bezier(.3,0,.6,1)'},{transform:`translateY(${sink}px)`}],{duration:400,delay:420,fill:'forwards'});
+  A(B,[{transform:'none',opacity:1},{transform:'rotate(380deg)',opacity:1,offset:.82},{transform:'rotate(430deg) scale(.8)',opacity:0}],{duration:400,delay:420,easing:'linear',fill:'forwards'});
+  son(420,'whoosh',0,.3);
+  /* 4. Le couvercle claque (810 ms, choc à 900 ms) : la poubelle s’écrase, les confettis sautent, elle sourit. */
+  A(li,[{transform:'rotate(70deg)',easing:'cubic-bezier(.55,0,.9,.45)'},{transform:'rotate(-6deg)',offset:.6,easing:'ease-out'},{transform:'rotate(2.5deg)',offset:.82,easing:'ease-in-out'},{transform:'rotate(0deg)'}],{duration:150,delay:810,fill:'forwards'});
+  can.forEach(p=>A(p,[{transform:'none'},{transform:'scale(1.15,.8)',offset:.22},{transform:'scale(.94,1.08)',offset:.5},{transform:'scale(1.03,.98)',offset:.76},{transform:'none'}],{duration:300,delay:895,easing:'ease-out'}));
+  sp.forEach((s,k)=>{
+    const ang=(-166+k*19)*Math.PI/180,dist=30+(k%3)*9,dx=Math.cos(ang)*dist,dy=Math.sin(ang)*dist;
+    A(s,[{transform:'translate(-50%,-50%) scale(.2)',opacity:0},{transform:`translate(calc(-50% + ${(dx*.7).toFixed(1)}px),calc(-50% + ${(dy*.7).toFixed(1)}px)) scale(1.15) rotate(${k*40}deg)`,opacity:1,offset:.42},{transform:`translate(calc(-50% + ${dx.toFixed(1)}px),calc(-50% + ${(dy+7).toFixed(1)}px)) scale(.35) rotate(${k*70}deg)`,opacity:0}],{duration:540,delay:900+(k%3)*25,easing:'cubic-bezier(.2,.7,.3,1)',fill:'both'});
+  });
+  at(895,()=>{ S.classList.remove('is-wait');S.classList.add('is-happy'); if(typeof buzz==='function')buzz('medium'); });
+  son(890,'stamp',0,.5);son(895,'click',0,.45);son(960,'pop',4,.3);
+  /* 5. Un petit saut content, le couvercle qui tressaute (1180 ms), puis la poubelle rentre sous terre (1400 ms). */
+  can.forEach(p=>A(p,[{transform:'none'},{transform:'translateY(-10px) scale(.96,1.05)',offset:.42},{transform:'translateY(0) scale(1.07,.93)',offset:.76},{transform:'none'}],{duration:240,delay:1180,easing:'ease-in-out'}));
+  A(li,[{transform:'rotate(0deg)'},{transform:'rotate(9deg)',offset:.36},{transform:'rotate(-2deg)',offset:.7},{transform:'rotate(0deg)'}],{duration:240,delay:1180});
+  can.forEach(p=>A(p,[{transform:'none',opacity:1},{transform:'translateY(-3px) scale(1.08)',opacity:1,offset:.3},{transform:'translateY(10px) scale(0) rotate(-14deg)',opacity:0}],{duration:220,delay:1400,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'}));
+  at(D,fin);
+  at(D+90,()=>S.remove());
+  /* Le son de l’interface s’arrête ensuite (sauf pendant un cours ou la fête d’un module) : un cours repart d’un contexte neuf. */
+  if(o.son){
+    const tok=lqCorbeille.tok=(lqCorbeille.tok||0)+1;
+    at(D+900,()=>{ if(lqCorbeille.tok===tok&&(typeof LV==='undefined'||!LV)&&(typeof MU==='undefined'||!MU))LvSfx.release(); });
+  }
 }
 /* La chose enregistrée s’allume un instant là où elle s’affiche (un halo jaune soleil qui s’éteint) */
 function lqFresh(el){
@@ -43316,25 +43462,23 @@ function togglePinFromList(id){
 }
 function deleteNote(id){
   const all=state.notes||[],i=all.findIndex(x=>x.id===id),gone=i>=0?all[i]:null;
+  /* Le son de la poubelle se décide pendant l’appui sur « Supprimer » (sur iPhone, un son ne part que d’un appui). */
+  const son=gone?lqCorbSon():false;
   const go=()=>{
     /* Sans cela, quitter l’éditeur réenregistrait la note : elle réapparaissait aussitôt. */
     editingNote=null; noteView='list';
-    /* 22 h 35 : la liste revient avec la note, qui s’y froisse et s’en va (lqAdieu), puis « Note supprimée » et « Annuler » */
+    /* 11 novembre, 21 h 11 : la liste revient avec la note, déjà en place (sans l’entrée des cartes), et la note part à la poubelle
+       (lqCorbeille). Plus de « Note supprimée » ni d’« Annuler » : VoiceOver dit seulement « Note supprimée ». */
     notesEnter=false;backToNotesList();
     const r=notesRoot(),carte=gone&&r&&r.querySelector(`.ncard[data-id="${CSS.escape(String(id))}"]`);
-    setTimeout(()=>lqAdieu([carte],fin),carte?140:0);
+    if(r)r.querySelectorAll('.notes-list[data-enter]').forEach(l=>l.removeAttribute('data-enter'));
+    setTimeout(()=>lqCorbeille(carte,fin,{son}),carte?120:0);
   };
   const fin=()=>{
     state.notes=(state.notes||[]).filter(x=>x.id!==id);
     save();notesEnter=false;
     if(typeof renderNotes==='function')renderNotes();
-    if(!gone)return;
-    toastWithAction('Note supprimée','Tu peux encore l’annuler.','Annuler',()=>{
-      state.notes=state.notes||[];
-      if(!state.notes.some(x=>x.id===gone.id))state.notes.splice(Math.min(i,state.notes.length),0,gone);
-      noteFreshId=gone.id; notesEnter=false; save(); renderNotes();
-      lqSay('Note restaurée');
-    });
+    if(gone)lqSay('Note supprimée');
   };
   /* La note s’efface avant de revenir à la liste. */
   const nb=document.getElementById('note-body');
@@ -48755,7 +48899,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-page-sticker-v2865';
+  const SW_CACHE='requete-2026-11-11-poubelle-notes-v2866';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

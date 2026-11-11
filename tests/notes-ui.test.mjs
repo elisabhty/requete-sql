@@ -56,12 +56,12 @@ test('liste « Toutes » : une seule section, dont le nombre est celui du filtre
   assert.ok(!/notesSectionHtml\('Épinglées',pinned\)/.test(surf), 'plus de section « Épinglées 16 » sous le filtre « Toutes 27 »');
 });
 
-test('éditeur de note : Supprimer supprime vraiment, et peut être annulé', () => {
+test('éditeur de note : Supprimer supprime vraiment (la poubelle, sans toast ni « Annuler » depuis le 11 novembre)', () => {
   const del = fnSrc('deleteNote');
   /* Avant, quitter l'éditeur réenregistrait la note qu'on venait de supprimer. */
   assert.ok(/editingNote=null; noteView='list';[^]*?backToNotesList\(\);/.test(del), 'l’éditeur est vidé avant le retour à la liste');
-  assert.ok(/toastWithAction\('Note supprimée','Tu peux encore l’annuler\.','Annuler',/.test(del), 'toast avec « Annuler »');
-  assert.ok(/state\.notes\.splice\(Math\.min\(i,state\.notes\.length\),0,gone\)/.test(del), 'Annuler remet la note à sa place');
+  assert.ok(!/toastWithAction|Tu peux encore l’annuler|Note restaurée/.test(del), 'plus de toast « Note supprimée » ni d’« Annuler »');
+  assert.ok(/lqCorbeille\(carte,fin,\{son\}\)/.test(del) && /if\(gone\)lqSay\('Note supprimée'\);/.test(del), 'la poubelle, et VoiceOver le dit');
   assert.ok(/toastAction\)\{ const f=toastAction; toastAction=null; f\(\); return; \}/.test(fnSrc('toastGo')), 'le bouton du toast lance l’action');
   assert.ok(/<button type="button" class="tgo" id="toast-go">/.test(html), 'bouton du toast : un vrai bouton');
 });
