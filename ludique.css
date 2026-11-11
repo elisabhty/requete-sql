@@ -3244,55 +3244,53 @@ html[data-motion="reduce"].lq #loader p,html[data-motion="reduce"].lq #loader .l
 /* ---------- 37 bis. L’ouverture de l’appli iOS ----------
    Elisa, 3 novembre, 21 h 03 : « une animation quand on appuie sur l’application » ; 21 h 56 : « c’est pas waouh et ça a l’air de
    bug ». Dans l’appli seulement (html.is-native). L’écran de lancement fixe d’iOS reste jusqu’à ce que l’appli soit prête ; derrière
-   lui, la page se dessine à l’identique (resources/splash.png : un carré de 2732 px étiré sur la hauteur de l’écran, d’où --u ; la
-   touche fait 512 de côté, 28 d’épaisseur, coins de 116), si bien que son départ ne se voit pas. Puis tout se déroule d’un seul
-   tenant à partir d’une classe (is-play), en transform et opacité seulement, donc sans à-coups : la touche >_ s’enfonce (retour
-   haptique) et rebondit comme une touche Entrée ; l’écran devient une table de données : une onde carrée part de la touche, et
-   chaque case chiffrée surgit quand elle passe ; « Requête » s’écrit lettre par lettre, puis on plonge dans la touche : elle remplit
-   tout l’écran pendant que la table file sur les côtés, et c’est seulement alors que le violet s’efface sur l’appli (jamais de
-   touche à moitié transparente par-dessus l’accueil). 1,3 s, puis 2 s (4 novembre, 9 h 28 : « l’arrivée de l’animation au début
-   fait mal aux yeux, trop rapide ») : chaque temps est plus lent, les cases surgissent plus doucement, leurs nombres défilent sans
-   saccade (plus de scintillement), la plongée dure le double et l’appli apparaît en fondu. Mouvement réduit : un simple fondu.
-   4 novembre, 1 h 16 : « en mode data, mettre des chiffres au lieu des confettis » ; 1 h 29, sur la gerbe de nombres qui avait
-   remplacé les confettis : « réfléchis mieux, on peut faire mieux ». Des nombres lancés au hasard restaient des confettis ; une
-   table qui répond à la touche raconte l’appli : on appuie, la requête part, les données arrivent. */
+   lui, la page se dessine à l’identique, si bien que son départ ne se voit pas. Puis tout se déroule d’un seul tenant à partir d’une
+   classe (is-play), en transform et opacité surtout. L’unité --u est le plus grand côté de l’écran / 2732 (la touche fait 512 de
+   côté, 28 d’épaisseur, coins de 116).
+   11 novembre, 13 h 10 : « Le logo se construit ». L’écran de lancement montre 23 points de données (.in-d, aux mêmes fractions de
+   l’écran que resources/ios/LaunchScreen.storyboard, 30 unités de côté). Seize d’entre eux s’envolent l’un après l’autre, grandissent
+   en cases chiffrées aux couleurs de la touche (.in-k : chacune porte son morceau du dégradé) et se posent en diagonale dans la
+   touche, avec un petit rebond ; les cases se soudent (les jours disparaissent, seuls les quatre coins restent arrondis), la touche
+   apparaît d’un coup net sur son socle, le chevron puis le curseur s’écrivent ; les sept derniers points deviennent les lettres de
+   « Requête ». On appuie sur la touche, on y plonge, et l’appli apparaît en fondu. La chronologie (--t-soude, --t-fin, --t-appui,
+   --t-sortie…) est posée par le script qui suit #loader : pleine à la première ouverture du jour (2,3 s), courte ensuite (moins
+   d’une seconde). Le violet ne s’efface qu’une fois la plongée bien avancée. Mouvement réduit : un simple fondu. */
 html.is-native.lq #loader.is-intro{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;background:#F4F2FC!important;color:#1B1640;overflow:hidden;
-  --u:calc(max(100vw,100vh) / 2732);--cy:calc(50% - 14*var(--u))}
+  --u:calc(max(100vw,100vh) / 2732);--cy:calc(50% - 14*var(--u));
+  --t-soude:980ms;--d-soude:100ms;--t-fin:1080ms;--t-appui:1440ms;--d-plonge:640ms;--t-sortie:1930ms;--d-sortie:360ms}
 html.is-native.lq #loader.is-intro::before{content:"";position:absolute;left:50%;top:var(--cy);z-index:0;width:calc(1600*var(--u));height:calc(1600*var(--u));
   margin:calc(-800*var(--u)) 0 0 calc(-800*var(--u));border-radius:50%;opacity:0;-webkit-mask-image:none;mask-image:none;
   background:radial-gradient(closest-side,rgba(128,96,255,.32),rgba(128,96,255,.1) 58%,rgba(128,96,255,0))}
-html.is-native.lq #loader.is-intro .logo-badge{position:absolute;z-index:1;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
-  margin:calc(-270*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:0;border-radius:calc(116*var(--u));rotate:0deg;animation:none;
+html.is-native.lq #loader.is-intro .logo-badge{position:absolute;z-index:2;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
+  margin:calc(-270*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:0;border-radius:calc(116*var(--u));rotate:0deg;animation:none;opacity:0;
   background:linear-gradient(135deg,#8060FF,#593CE7)!important;box-shadow:none!important;font-size:0;color:transparent;will-change:transform}
-/* Le chevron et le curseur, dessinés comme sur l’écran de lancement */
+/* Le chevron et le curseur, dessinés comme sur l’icône */
 html.is-native.lq #loader.is-intro .logo-badge::before{content:"";position:absolute;inset:0;background:#fff;
   clip-path:polygon(29.1% 34.375%,46.68% 42.56%,46.68% 47.48%,29.1% 55.66%,29.1% 51.37%,42.75% 45.02%,29.1% 38.67%)}
-html.is-native.lq #loader.is-intro .logo-badge::after{content:"";position:absolute;left:52.34%;top:59.18%;width:19.14%;height:4.49%;background:#fff}
+html.is-native.lq #loader.is-intro .logo-badge::after{content:"";position:absolute;left:52.34%;top:59.18%;width:19.14%;height:4.49%;background:#fff;transform-origin:0 50%}
 /* L’épaisseur de la touche : un socle fixe sous elle, de la même forme ; enfoncée, la touche y descend */
-html.is-native.lq #loader.is-intro::after{content:"";position:absolute;z-index:0;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
-  margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC}
-/* Les ondes et les confettis partent du centre de la touche, de derrière elle (créés par le script qui suit #loader) */
-html.is-native.lq #loader.is-intro .in-ring{position:absolute;z-index:0;left:50%;top:var(--cy);width:calc(512*var(--u));height:calc(512*var(--u));
-  margin:calc(-256*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:calc(8*var(--u)) solid #6A4DF4;border-radius:calc(116*var(--u));
-  opacity:0;will-change:transform,opacity}
-html.is-native.lq #loader.is-intro .in-ring.is-2{border-color:var(--sun);border-width:calc(6*var(--u))}
-/* La table : des cases de 112 sur un pas de 128 (la touche en couvre 4 × 4), rangées autour d’elle et créées par le script qui suit
-   #loader. Chaque case est une petite touche, rebord compris (--b, --l), son nombre en --k ; plus elle est loin, plus ses couleurs se
-   fondent dans le fond. Les cases proches font défiler leur nombre : une colonne de quatre lignes dans une fenêtre d’une ligne. */
-html.is-native.lq #loader.is-intro .in-grid{position:absolute;inset:0;z-index:0;transform-origin:50% var(--cy)}
-html.is-native.lq #loader.is-intro .in-t{position:absolute;left:calc(50% + (var(--x) - 56)*var(--u));top:calc(var(--cy) + (var(--y) - 56)*var(--u));
-  width:calc(112*var(--u));height:calc(112*var(--u));border-radius:calc(26*var(--u));background:var(--b);box-shadow:0 calc(9*var(--u)) 0 var(--l);
-  display:flex;align-items:center;justify-content:center;font:800 calc(44*var(--u))/1 var(--mono);color:var(--k);font-variant-numeric:tabular-nums;opacity:0}
-html.is-native.lq #loader.is-intro .in-t>b{display:block;height:1em;overflow:hidden;font:inherit}
-html.is-native.lq #loader.is-intro .in-t>b>b{display:block;font:inherit;white-space:pre}
-/* Un résultat choisi par la requête : la même case, aux couleurs de l’appli, posée par-dessus */
-html.is-native.lq #loader.is-intro .in-t>s{position:absolute;inset:0;border-radius:inherit;background:var(--c);box-shadow:0 calc(9*var(--u)) 0 var(--cl);
-  display:flex;align-items:center;justify-content:center;color:var(--ci);text-decoration:none;opacity:0}
+html.is-native.lq #loader.is-intro::after{content:"";position:absolute;z-index:1;left:50%;top:50%;width:calc(512*var(--u));height:calc(512*var(--u));
+  margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC;opacity:0}
+/* Les points de données de l’écran de lancement (posés par le script qui suit #loader) */
+html.is-native.lq #loader.is-intro .in-d{position:absolute;z-index:0;width:calc(30*var(--u));height:calc(30*var(--u));
+  margin:calc(-15*var(--u)) 0 0 calc(-15*var(--u));background:#D2C6F7}
+/* Les cases de la touche : 112 sur un pas de 128 (la touche en couvre 4 × 4), à leur place ; chacune porte son morceau du dégradé de
+   la touche (448 de côté : soudées, agrandies à 128, elles le recomposent exactement), une épaisseur de touche, et un nombre. */
+html.is-native.lq #loader.is-intro .in-k{position:absolute;z-index:1;left:calc(50% + (var(--c)*128 - 248)*var(--u));top:calc(var(--cy) + (var(--r)*128 - 248)*var(--u));
+  width:calc(112*var(--u));height:calc(112*var(--u));border-radius:calc(26*var(--u));opacity:0;will-change:transform;
+  background:linear-gradient(135deg,#8060FF,#593CE7);background-size:calc(448*var(--u)) calc(448*var(--u));
+  background-position:calc(var(--c)*-112*var(--u)) calc(var(--r)*-112*var(--u));box-shadow:0 calc(8*var(--u)) 0 #4B30CC;
+  display:flex;align-items:center;justify-content:center;font:800 calc(40*var(--u))/1 var(--mono);color:#fff;font-variant-numeric:tabular-nums}
+/* Au départ, la case a la couleur de son point : un voile qui s’efface pendant le vol */
+html.is-native.lq #loader.is-intro .in-k::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#D2C6F7;opacity:0}
+html.is-native.lq #loader.is-intro .in-k>b{font:inherit;opacity:0}
 html.is-native.lq #loader.is-intro .ld-spark{display:none}
-/* « Requête », sous la touche, lettre par lettre (derrière elle : quand on y plonge, la touche le recouvre) */
+/* « Requête », sous la touche : chaque lettre part d’un point (son ::before) */
 html.is-native.lq #loader.is-intro .ld-name{position:absolute;z-index:0;left:0;right:0;top:calc(50% + 330*var(--u));margin:0;text-align:center;
   font:700 30px/1 var(--display);letter-spacing:-.02em;color:#1B1640;opacity:0;animation:none}
-html.is-native.lq #loader.is-intro .in-l{display:inline-block;opacity:0;transform-origin:50% 90%;will-change:transform,opacity}
+html.is-native.lq #loader.is-intro .in-l{display:inline-block;position:relative;will-change:transform}
+html.is-native.lq #loader.is-intro .in-l::before{content:"";position:absolute;left:50%;top:50%;width:calc(30*var(--u));height:calc(30*var(--u));
+  margin:calc(-15*var(--u)) 0 0 calc(-15*var(--u));background:#D2C6F7;opacity:0}
 /* Si la base met du temps à se préparer : l’anneau et la phrase, dessous */
 html.is-native.lq #loader.is-intro .spinner{position:absolute;z-index:1;left:50%;top:calc(50% + 330*var(--u) + 54px);margin:0 0 0 -17px;width:34px!important;height:34px!important;
   box-shadow:inset 0 0 0 5px rgba(106,77,244,.16);opacity:0;transition:opacity .3s ease;animation:none}
@@ -3302,47 +3300,68 @@ html.is-native.lq #loader.is-intro .spinner::before{background:#6A4DF4;box-shado
 html.is-native.lq #loader.is-intro p{position:absolute;z-index:1;left:24px;right:24px;top:calc(50% + 330*var(--u) + 104px);margin:0;text-align:center;
   color:var(--ink-2);opacity:0;transition:opacity .3s ease;animation:none}
 html.is-native.lq #loader.is-intro.is-long :is(.spinner,p){opacity:1}
-/* L’animation : une seule classe, tout est réglé ici */
-html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .62s cubic-bezier(.3,.7,.3,1) both,introZoom .55s cubic-bezier(.42,0,.72,.42) 1.25s forwards}
-html.is-native.lq #loader.is-intro.is-play .logo-badge::before,html.is-native.lq #loader.is-intro.is-play .logo-badge::after,
-html.is-native.lq #loader.is-intro.is-play::after{animation:introFade .16s linear 1.25s forwards}
-html.is-native.lq #loader.is-intro.is-play::before{animation:introGlow 1.2s cubic-bezier(.2,.7,.3,1) .12s forwards}
-/* L’onde : le contour violet part de la touche à vitesse constante (de 256 à 1 280 unités en 0,6 s, environ 1 650 unités par
-   seconde) ; chaque case surgit quand elle passe (--w, en ms, calculé par le script), les proches font défiler leur nombre, d’un
-   seul glissé ; de 0,78 à 1,16 s, les résultats s’allument un à un (--p) ; puis la table file sur les côtés pendant la plongée */
-html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .6s linear .18s forwards}
-html.is-native.lq #loader.is-intro.is-play .in-ring.is-2{animation-delay:.29s}
-html.is-native.lq #loader.is-intro.is-play .in-t{animation:introTile .48s cubic-bezier(.3,.7,.4,1) calc(var(--w)*1ms) both}
-html.is-native.lq #loader.is-intro.is-play .in-t>b>b{animation:introRoll .6s cubic-bezier(.25,.8,.3,1) calc(var(--w)*1ms) both}
-html.is-native.lq #loader.is-intro.is-play .in-t>s{animation:introPick .36s cubic-bezier(.3,1.3,.5,1) calc(var(--p)*1ms) both}
-html.is-native.lq #loader.is-intro.is-play .in-grid{animation:introWarp .55s cubic-bezier(.42,0,.72,.42) 1.25s forwards}
-html.is-native.lq #loader.is-intro.is-play .ld-name{opacity:1;animation:introFade .22s ease-in 1.25s forwards}
-html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLetter .5s cubic-bezier(.3,1.35,.5,1) calc(.28s + var(--i)*55ms) forwards}
-html.is-native.lq #loader.is-intro.is-play{animation:introOut .4s ease-out 1.62s forwards}
+/* L’animation : une seule classe, tout est réglé ici. Les points passent la main aux cases et aux lettres, qui partent d’eux. */
+html.is-native.lq #loader.is-intro.is-play .in-d{opacity:0}
+html.is-native.lq #loader.is-intro.is-play .in-k{animation:introCase var(--v) linear var(--a) both,introSoude var(--d-soude) cubic-bezier(.5,0,.8,.4) var(--t-soude) forwards,
+  introFade 1ms linear var(--t-fin) forwards}
+html.is-native.lq #loader.is-intro.is-play .in-k::after{animation:introVoile var(--v) linear var(--a) both}
+html.is-native.lq #loader.is-intro.is-play .in-k>b{animation:introNombre var(--v) linear var(--a) both,introFade 90ms linear var(--t-soude) forwards}
+html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introApparait 34ms linear calc(var(--t-fin) - 34ms) forwards,introPose .34s linear var(--t-fin) forwards,introPlonge var(--d-plonge) linear var(--t-appui) forwards}
+html.is-native.lq #loader.is-intro.is-play .logo-badge::before{animation:introChevron .3s cubic-bezier(.3,1.4,.5,1) calc(var(--t-fin) + 40ms) both,introFade .16s linear calc(var(--t-appui) + 100ms) forwards}
+html.is-native.lq #loader.is-intro.is-play .logo-badge::after{animation:introCurseur .26s cubic-bezier(.3,.8,.3,1) calc(var(--t-fin) + 130ms) both,introFade .16s linear calc(var(--t-appui) + 100ms) forwards}
+html.is-native.lq #loader.is-intro.is-play::after{animation:introOn 1ms linear var(--t-fin) forwards,introFade .16s linear calc(var(--t-appui) + 100ms) forwards}
+html.is-native.lq #loader.is-intro.is-play::before{animation:introGlow 1.2s cubic-bezier(.2,.7,.3,1) var(--t-fin) forwards}
+html.is-native.lq #loader.is-intro.is-play .ld-name{opacity:1;animation:introFade .22s ease-in calc(var(--t-appui) + 60ms) forwards}
+html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLettre var(--v) linear var(--a) both}
+html.is-native.lq #loader.is-intro.is-play .in-l::before{animation:introLettreDot var(--v) linear var(--a) both}
+html.is-native.lq #loader.is-intro.is-play{animation:introOut var(--d-sortie) ease-out var(--t-sortie) forwards}
 html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}
-@keyframes introKey{
-  0%{transform:none}
-  18%{transform:translateY(calc(22*var(--u)))}
-  46%{transform:translateY(calc(-18*var(--u))) scale(1.06)}
-  70%{transform:translateY(calc(5*var(--u))) scale(.985)}
-  86%{transform:translateY(calc(-3*var(--u)))}
-  100%{transform:none}}
-@keyframes introZoom{from{transform:none}to{transform:scale(9)}}
+/* Le vol d’une case : du point (sa taille, sa couleur, à angle droit) à sa place, en accélérant puis en freinant ; elle se pose aux
+   82 % (un peu grande), puis se tasse */
+@keyframes introCase{
+  0%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(var(--k));border-radius:0;box-shadow:0 calc(8*var(--u)) 0 rgba(75,48,204,0);animation-timing-function:cubic-bezier(.5,0,.2,1)}
+  82%{opacity:1;transform:scale(1.07);border-radius:calc(26*var(--u));box-shadow:0 calc(8*var(--u)) 0 #4B30CC;animation-timing-function:cubic-bezier(.3,0,.3,1)}
+  100%{opacity:1;transform:none;border-radius:calc(26*var(--u));box-shadow:0 calc(8*var(--u)) 0 #4B30CC}}
+@keyframes introVoile{0%{opacity:1}40%,100%{opacity:0}}
+@keyframes introNombre{0%,30%{opacity:0}60%,100%{opacity:.9}}
+/* La soudure : chaque case grandit jusqu’à toucher ses voisines (128 / 112, un peu plus pour qu’aucun fil de jour ne reste entre
+   elles), seuls les coins de la touche restent arrondis ; seule la
+   rangée du bas garde son épaisseur (--ombre), celle des autres ne déborde pas sur leurs voisines */
+@keyframes introSoude{from{transform:none;border-radius:calc(26*var(--u));box-shadow:0 calc(8*var(--u)) 0 #4B30CC}
+  to{transform:scale(1.152);border-radius:var(--rf);box-shadow:0 calc(8*var(--u)) 0 var(--ombre,#4B30CC)}}
+/* La touche entière : elle tombe sur son socle (un coup net), le chevron surgit, le curseur s’écrit */
+@keyframes introPose{
+  0%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.3,0,.6,1)}
+  22%{opacity:1;transform:translateY(calc(12*var(--u))) scale(1.025,.97);animation-timing-function:cubic-bezier(.3,0,.4,1)}
+  60%{opacity:1;transform:translateY(calc(-4*var(--u)));animation-timing-function:ease-in-out}
+  100%{opacity:1;transform:none}}
+@keyframes introChevron{from{opacity:0;transform:translateX(calc(-40*var(--u))) scale(.6)}to{opacity:1;transform:none}}
+@keyframes introCurseur{from{transform:scaleX(0)}to{transform:none}}
+@keyframes introOn{to{opacity:1}}
+/* La touche se pose sur les cases soudées pendant les 34 dernières ms (deux images) : aucun fil de jour entre elles ne se voit */
+@keyframes introApparait{from{opacity:0}to{opacity:1}}
+/* L’appui (au plus bas aux 14 %), puis la plongée : la touche remplit l’écran */
+@keyframes introPlonge{
+  0%{transform:none;animation-timing-function:cubic-bezier(.3,0,.6,1)}
+  14%{transform:translateY(calc(22*var(--u)));animation-timing-function:cubic-bezier(.3,0,.5,1)}
+  28%{transform:translateY(calc(14*var(--u))) scale(1.05);animation-timing-function:cubic-bezier(.42,0,.72,.42)}
+  100%{transform:translateY(calc(14*var(--u))) scale(9)}}
+/* Une lettre : son point vole jusqu’à elle en grandissant, puis s’efface pendant qu’elle apparaît, un peu haute, et se pose */
+@keyframes introLettre{
+  0%{transform:translate(var(--dx),var(--dy));color:rgba(27,22,64,0);animation-timing-function:cubic-bezier(.5,0,.2,1)}
+  55%{color:rgba(27,22,64,0)}
+  80%{transform:translateY(calc(-10*var(--u))) scale(1.18);color:#1B1640;animation-timing-function:cubic-bezier(.3,0,.3,1)}
+  100%{transform:none;color:#1B1640}}
+@keyframes introLettreDot{0%{opacity:1;transform:none}50%{opacity:1;transform:scale(1.5)}78%,100%{opacity:0;transform:scale(.5)}}
 @keyframes introFade{to{opacity:0}}
 @keyframes introGlow{0%{opacity:0;transform:scale(.45)}35%{opacity:1}100%{opacity:0;transform:scale(1.2)}}
-@keyframes introWave{0%{opacity:.9;transform:none}60%{opacity:.25}100%{opacity:0;transform:scale(5)}}
-@keyframes introTile{0%{opacity:0;transform:scale(.55)}60%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:none}}
-@keyframes introRoll{from{transform:none}to{transform:translateY(calc(1em - 100%))}}
-@keyframes introPick{0%{opacity:0;transform:scale(.6)}60%{opacity:1}100%{opacity:1;transform:none}}
-@keyframes introWarp{to{opacity:0;transform:scale(2.4)}}
-@keyframes introLetter{from{opacity:0;transform:translateY(calc(70*var(--u))) scale(.3) rotate(-10deg)}to{opacity:1;transform:none}}
 @keyframes introOut{to{opacity:0}}
 /* Si le moteur SQL ne se charge pas : le message d’erreur, lisible, au centre */
 html.is-native.lq #loader.is-intro.fatal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;animation:none}
-html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;
+html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;opacity:1;
   display:flex;align-items:center;justify-content:center;font:700 32px/1 var(--mono);color:#fff;animation:none}
 html.is-native.lq #loader.is-intro.fatal .logo-badge::before,html.is-native.lq #loader.is-intro.fatal .logo-badge::after,html.is-native.lq #loader.is-intro.fatal::after,
-html.is-native.lq #loader.is-intro.fatal :is(.in-ring,.in-grid){display:none}
+html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k){display:none}
 html.is-native.lq #loader.is-intro.fatal p{position:static;opacity:1;color:#1B1640}
 
 /* ---------- 38. L’appui : chaque bouton répond ----------

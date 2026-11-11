@@ -5,12 +5,14 @@
    2. Le cran de sélection marche enfin : selectionChanged ne fait rien sans selectionStart.
    3. Chaque verdict a son retour : une mauvaise réponse ne vibre plus comme une bonne ; « Pas encore » avertit, une erreur SQL aussi.
    4. Les feuilles qui montent du bas se ferment en les tirant vers le bas (un cran au seuil, un rebond sinon).
-   5. Le lancement : l’ouverture entière (2 s, son, haptique) une fois par jour, un fondu ensuite ; sa table se prépare au départ,
-      plus pendant le chargement. */
+   5. Le lancement : l’ouverture entière (son, haptique) une fois par jour ; ce qu’elle construit se crée au départ, plus pendant
+      le chargement. Depuis 13 h 10 (« Le logo se construit », tests/retours-1310), les autres ouvertures du jour jouent une version
+      courte, avec ses vibrations, au lieu d’un fondu muet. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { fauxLoader } from './aide-ouverture.mjs';
 
 const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const cut = (s, a, b) => { const i = s.indexOf(a); assert.ok(i >= 0, a); const j = s.indexOf(b, i + a.length); assert.ok(j > i, b); return s.slice(i, j); };
@@ -219,10 +221,8 @@ test('feuille : pendant le geste, le fond s’éclaircit à mesure qu’elle des
 const intro = cut(app, '/* Appli iOS : l’ouverture animée', '  </script>');
 const ajd = (() => { const x = new Date(); return x.getFullYear() + '-' + (x.getMonth() + 1) + '-' + x.getDate(); })();
 function lancer(store = {}, { calme = false } = {}) {
-  const log = [], cls = new Set(), timers = [], frames = [], html = [];
-  const nom = { textContent: 'Requête', innerHTML: '', setAttribute() {} };
-  const L = { style: {}, classList: { add: (...c) => c.forEach(x => cls.add(x)), remove: c => cls.delete(c), contains: c => cls.has(c) },
-    querySelector: q => (q === '.ld-name' ? nom : null), insertAdjacentHTML: (w, h) => html.push(h) };
+  const log = [], timers = [], frames = [];
+  const L = fauxLoader({ log }), cls = L.cls, html = L.html, nom = L.nom;
   const ctx = vm.createContext({
     document: { documentElement: { classList: { contains: c => c === 'is-native' } }, getElementById: id => (id === 'loader' ? L : null) },
     window: { AudioContext: class { decodeAudioData() {} close() {} }, fetch: u => { log.push('son ' + u); return new Promise(() => {}); } },
@@ -238,30 +238,31 @@ function lancer(store = {}, { calme = false } = {}) {
   return { log, cls, html, nom, L, run, jouer, store };
 }
 
-test('lancement : la première ouverture du jour se joue en entier (son, haptique, table), et note le jour', () => {
+test('lancement : la première ouverture du jour se joue en entier (son, haptique), et note le jour ; les cases se créent au départ', () => {
   const s = lancer();
-  assert.equal(s.html.length, 0, 'la table ne se construit pas pendant le chargement (elle alourdissait chaque recalcul de style)');
+  assert.equal(s.html.length, 1, 'au chargement, rien que les points de l’écran de lancement');
   assert.ok(s.log.includes('son assets/sons/ouverture.m4a'), 'le son se charge');
-  s.run(1000); assert.equal(s.html.length, 0, 'ni juste après');
+  s.run(1000); assert.equal(s.html.length, 1, 'ni juste après');
   s.jouer();
-  assert.equal(s.html.length, 1); assert.ok(s.html[0].includes('<div class="in-grid" aria-hidden="true">'), 'la table, au départ de l’ouverture');
-  assert.ok(s.cls.has('is-play'));
+  assert.equal(s.html.length, 2); assert.ok(s.html[1].includes('<i class="in-k" aria-hidden="true"'), 'les cases, au départ de l’ouverture');
+  assert.ok(s.cls.has('is-play') && !s.cls.has('is-court'));
   assert.equal(s.store['rq-intro-jour'], ajd, 'le jour est noté');
-  s.run(112); assert.ok(s.log.includes('vibre 25'));
-  s.run(2080); assert.equal(s.L.style.display, 'none');
+  assert.equal(s.L.style['--t-fin'], '1080ms');
+  s.run(1080); assert.ok(s.log.includes('vibre 25'));
+  s.run(2300); assert.equal(s.L.style.display, 'none');
 });
 
-test('lancement : les ouvertures suivantes du même jour s’ouvrent d’un fondu, sans attendre, sans son ni vibration', () => {
+test('lancement : les ouvertures suivantes du même jour se jouent en version courte (environ une seconde), sans son', () => {
   const s = lancer({ 'rq-intro-jour': ajd });
-  assert.equal(s.nom.innerHTML, '', 'ni lettres');
+  assert.equal((s.nom.innerHTML.match(/class="in-l"/g) || []).length, 7, 'les lettres se construisent aussi');
   assert.ok(!s.log.some(l => l.startsWith('son')), 'ni son chargé');
   s.jouer();
-  assert.ok(s.log.includes('écran retiré') && s.cls.has('fade-out') && !s.cls.has('is-play'), 'un fondu');
-  assert.equal(s.html.length, 0, 'ni table');
-  s.run(340); assert.equal(s.L.style.display, 'none', 'rangé en 340 ms au lieu de 2 s');
-  assert.ok(!s.log.some(l => l.startsWith('vibre')));
+  assert.ok(s.log.includes('écran retiré') && s.cls.has('is-play') && s.cls.has('is-court'), 'la version courte');
+  assert.equal(s.html.length, 2, 'les cases');
+  assert.equal(s.L.style['--t-fin'], '430ms'); assert.equal(s.L.style['--t-sortie'], '790ms'); assert.equal(s.L.style['--d-sortie'], '190ms');
+  s.run(980); assert.notEqual(s.L.style.display, 'none'); s.run(990); assert.equal(s.L.style.display, 'none', 'rangée en 0,99 s');
   const hier = lancer({ 'rq-intro-jour': '2020-1-1' });
-  hier.jouer(); assert.ok(hier.cls.has('is-play'), 'un autre jour : l’ouverture entière revient');
+  hier.jouer(); assert.ok(hier.cls.has('is-play') && !hier.cls.has('is-court'), 'un autre jour : l’ouverture entière revient');
   const calme = lancer({}, { calme: true });
   calme.jouer(); assert.ok(calme.cls.has('fade-out') && !('rq-intro-jour' in calme.store), 'mouvement réduit : le fondu, comme avant');
 });

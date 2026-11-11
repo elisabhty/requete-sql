@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """Le son de l’ouverture de l’appli iOS (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son »).
 
-Calé à la milliseconde sur l’animation (ludique.css, 37 bis ; le 0 est l’instant où #loader prend la classe is-play), ralentie
-le 4 novembre à 9 h 28 (« l’arrivée de l’animation au début fait mal aux yeux, trop rapide ») :
-  0,112 s  la touche >_ touche le fond : un « toc » de touche Entrée (corps grave qui descend, petit déclic aigu) ;
-  0,18 s   l’onde part : un souffle qui monte, et un bip par anneau de cases, au moment où l’onde l’atteint
-           (170 + (r - 256) / 1,65 ms, comme dans le script de l’ouverture), de plus en plus doux au loin ;
-  0,78 s   la requête allume ses résultats, un toutes les 42 ms : huit clochettes qui montent (gamme pentatonique de do) ;
-  1,23 s   la plongée dans la touche : un souffle qui enfle ;
-  1,62 s   l’appli apparaît : un accord de do majeur, doux, qui s’éteint.
-Son synthétisé ici (aucun enregistrement), en stéréo, avec un peu de réverbération ; crête à -4 dB.
+Calé à la milliseconde sur l’animation « Le logo se construit » (11 novembre, 13 h 10 ; ludique.css, 37 bis, et le script qui
+suit #loader ; le 0 est l’instant où #loader prend la classe is-play) :
+  0 à 0,45 s  les points s’envolent : un souffle léger qui monte ;
+  0,38 s      les seize cases se posent dans la touche, une toutes les 32 ms : seize « tic » de touche de clavier, de gauche à
+              droite dans l’espace selon leur colonne, un peu plus aigus à mesure que la touche se remplit ;
+  1,08 s      la touche est entière : un « toc » de touche Entrée, grave et net ;
+  1,11 s      les lettres de « Requête » se posent, une toutes les 36 ms : sept clochettes qui montent (gamme pentatonique de do) ;
+  1,53 s      on appuie sur la touche : un petit toc ;
+  1,62 s      la plongée : un souffle qui enfle ;
+  1,93 s      l’appli apparaît : un accord de do majeur, doux, qui s’éteint.
+Son synthétisé ici (aucun enregistrement), en stéréo, avec un peu de réverbération ; crête à -4 dB. La version courte de
+l’ouverture (les autres ouvertures du jour) est muette.
 
     python3 tools/sons/ouverture.py      # écrit assets/sons/ouverture.m4a (et tools/sons/sortie/ouverture.wav)
 """
@@ -28,15 +31,14 @@ RACINE = os.path.dirname(os.path.dirname(ICI))
 SORTIE_WAV = os.path.join(ICI, 'sortie', 'ouverture.wav')
 SORTIE_M4A = os.path.join(RACINE, 'assets', 'sons', 'ouverture.m4a')
 
-# Les instants de l’animation (en secondes après is-play)
-TOUCHE = 0.112                 # introKey : 18 % de 0,62 s, la touche au plus bas
-ONDE = 0.18                    # introWave part à 0,18 s
-VITESSE = 1650                 # unités par seconde, comme --w dans le script de l’ouverture
-DEPART = 170                   # ms : --w = DEPART + (r - 256) / 1,65
-ANNEAUX = [320, 452, 576, 640, 704, 768, 832, 896, 960, 1024]   # distances des rangées de cases (unités)
-RESULTATS = [0.780 + i * 0.042 for i in range(8)]                # --p : 780 + k × 42 ms
-PLONGEE = 1.23
-ARRIVEE = 1.62
+# Les instants de l’animation (en secondes après is-play), comme PLEINE dans le script qui suit #loader
+ORDRE = sorted([(c, r) for c in range(4) for r in range(4)], key=lambda s: (s[0] + s[1], s[0]))
+CASES = [(0.380 + 0.032 * i, c) for i, (c, r) in enumerate(ORDRE)]   # case posée : 380 + 32 i ms, et sa colonne
+ENTIERE = 1.080
+LETTRES = [1.110 + 0.036 * j for j in range(7)]
+APPUI = 1.440 + 0.64 * 0.14
+PLONGEE = 1.440 + 0.64 * 0.28
+ARRIVEE = 1.930
 
 gauche = np.zeros(N)
 droite = np.zeros(N)
@@ -94,53 +96,64 @@ def note(midi):
     return 440.0 * 2 ** ((midi - 69) / 12)
 
 
-# 1. La touche Entrée : un « toc » grave qui descend (190 → 105 Hz, pour les écouteurs), un « clac » de plastique
-#    (900 → 600 Hz, que le haut-parleur de l’iPhone rend bien) et un petit déclic
-n = int(0.14 * SR)
-t = np.arange(n) / SR
-f = 105 + 85 * np.exp(-t / 0.018)
-corps = np.sin(2 * np.pi * np.cumsum(f) / SR) * enveloppe(n, 0.0015, 0.036)
-f = 600 + 300 * np.exp(-t / 0.01)
-clac = np.sin(2 * np.pi * np.cumsum(f) / SR) * enveloppe(n, 0.0008, 0.016)
-declic = bruit_bande(n, 1800, 7000) * enveloppe(n, 0.0004, 0.005)
-poser(0.8 * corps + 0.45 * clac + 0.32 * declic, TOUCHE - 0.002, 0.0, 0.62)
+# Le « toc » d’une touche Entrée : un corps grave qui descend (pour les écouteurs), un « clac » de plastique (que le haut-parleur
+# de l’iPhone rend bien) et un petit déclic
+def toc(grave=1.0):
+    n = int(0.14 * SR)
+    t = np.arange(n) / SR
+    f = (105 + 85 * np.exp(-t / 0.018)) * grave
+    corps = np.sin(2 * np.pi * np.cumsum(f) / SR) * enveloppe(n, 0.0015, 0.036)
+    f = (600 + 300 * np.exp(-t / 0.01)) * grave
+    clac = np.sin(2 * np.pi * np.cumsum(f) / SR) * enveloppe(n, 0.0008, 0.016)
+    declic = bruit_bande(n, 1800, 7000) * enveloppe(n, 0.0004, 0.005)
+    return 0.8 * corps + 0.45 * clac + 0.32 * declic
 
-# 2. L’onde : un souffle qui monte (500 → 3 500 Hz) puis s’efface, et un bip par anneau de cases
-duree = 0.66
-for pan, graine in ((-0.35, 1), (0.35, 2)):
-    s = souffle(duree, 500, 3500, 0.16, lambda t: np.minimum(1, t / 0.16) * np.clip((duree - t) / 0.45, 0, 1) ** 1.5)
-    poser(s, ONDE, pan, 0.075)
-pentatonique = [84, 86, 88, 91, 93, 96, 98, 100]       # do6 ré6 mi6 sol6 la6 do7 ré7 mi7
-for i, r in enumerate(ANNEAUX):
-    t0 = (DEPART + (r - 256) / (VITESSE / 1000)) / 1000
-    fr = note(pentatonique[int(alea.integers(0, 6))])
-    n = int(0.07 * SR)
+
+# 1. L’envol : un souffle léger qui monte (400 → 2 400 Hz) pendant que les points partent
+duree = 0.5
+for pan in (-0.4, 0.4):
+    s_ = souffle(duree, 400, 2400, 0.0, lambda t: np.clip(t / 0.3, 0, 1) ** 1.5 * np.clip((duree - t) / 0.2, 0, 1))
+    poser(s_, 0.0, pan, 0.05)
+
+# 2. Les cases qui se posent : un « tic » de touche de clavier (un clic aigu bref et un petit corps), de plus en plus aigu
+for i, (t0, c) in enumerate(CASES):
+    n = int(0.05 * SR)
     tt = np.arange(n) / SR
-    bip = (np.sin(2 * np.pi * fr * tt) + 0.18 * np.sin(4 * np.pi * fr * tt)) * enveloppe(n, 0.0012, 0.016)
-    poser(bip, t0, -0.6 if i % 2 else 0.6, 0.22 * (1 - i / len(ANNEAUX)) ** 1.3 + 0.03)
+    fr = 1500 * 2 ** (i / 32)
+    tic = (0.6 * bruit_bande(n, 2500, 8000) * enveloppe(n, 0.0003, 0.004)
+           + np.sin(2 * np.pi * fr * tt) * enveloppe(n, 0.0005, 0.009)
+           + 0.5 * np.sin(2 * np.pi * (fr / 4) * tt) * enveloppe(n, 0.001, 0.012))
+    poser(tic, t0 - 0.002, -0.6 + 0.4 * c, 0.16)
 
-# 3. Les résultats : huit clochettes qui montent, une par case allumée
-for i, t0 in enumerate(RESULTATS):
+# 3. La touche entière : le toc de la touche Entrée, net
+poser(toc(), ENTIERE - 0.002, 0.0, 0.66)
+
+# 4. Les lettres : sept clochettes qui montent, une par lettre posée
+pentatonique = [84, 86, 88, 91, 93, 96, 98]       # do6 ré6 mi6 sol6 la6 do7 ré7
+for i, t0 in enumerate(LETTRES):
     fr = note(pentatonique[i])
-    n = int(0.7 * SR)
+    n = int(0.6 * SR)
     tt = np.arange(n) / SR
     cloche = (np.sin(2 * np.pi * fr * tt)
               + 0.22 * np.sin(2 * np.pi * fr * 2.0 * tt) * np.exp(-tt / 0.07)
-              + 0.10 * np.sin(2 * np.pi * fr * 3.01 * tt) * np.exp(-tt / 0.04)) * enveloppe(n, 0.0015, 0.20)
-    poser(cloche, t0 + 0.02, -0.5 + i / 7, 0.13)
+              + 0.10 * np.sin(2 * np.pi * fr * 3.01 * tt) * np.exp(-tt / 0.04)) * enveloppe(n, 0.0015, 0.16)
+    poser(cloche, t0, -0.45 + 0.15 * i, 0.11)
 
-# 4. La plongée : un souffle qui enfle (300 → 2 600 Hz) jusqu’à ce que la touche remplisse l’écran
-duree = 0.58
+# 5. L’appui : un petit toc, plus léger
+poser(toc(1.15), APPUI - 0.002, 0.0, 0.42)
+
+# 6. La plongée : un souffle qui enfle (300 → 2 600 Hz) jusqu’à ce que la touche remplisse l’écran
+duree = 0.52
 for pan in (-0.25, 0.25):
-    s = souffle(duree, 300, 2600, 0.0, lambda t: (np.clip(t / 0.45, 0, 1) ** 2.2) * np.clip((duree - t) / 0.12, 0, 1))
-    poser(s, PLONGEE, pan, 0.12)
+    s_ = souffle(duree, 300, 2600, 0.0, lambda t: (np.clip(t / 0.42, 0, 1) ** 2.2) * np.clip((duree - t) / 0.12, 0, 1))
+    poser(s_, PLONGEE, pan, 0.12)
 
-# 5. L’arrivée : do majeur, doux (do5 mi5 sol5 do6, assez haut pour le haut-parleur de l’iPhone), qui s’éteint
+# 7. L’arrivée : do majeur, doux (do5 mi5 sol5 do6, assez haut pour le haut-parleur de l’iPhone), qui s’éteint
 for midi, g, pan in ((72, 0.07, -0.2), (76, 0.055, 0.2), (79, 0.05, 0.0), (84, 0.035, 0.0)):
     fr = note(midi)
-    n = int(0.75 * SR)
+    n = int(0.6 * SR)
     tt = np.arange(n) / SR
-    voix = (np.sin(2 * np.pi * fr * tt) + 0.12 * np.sin(6 * np.pi * fr * tt)) * np.minimum(1, tt / 0.012) * np.exp(-tt / 0.28)
+    voix = (np.sin(2 * np.pi * fr * tt) + 0.12 * np.sin(6 * np.pi * fr * tt)) * np.minimum(1, tt / 0.012) * np.exp(-tt / 0.24)
     poser(voix, ARRIVEE, pan, g)
 
 # Réverbération légère (bruit qui décroît, 0,5 s), puis limiteur doux et crête à -4 dB

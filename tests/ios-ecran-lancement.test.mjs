@@ -3,13 +3,13 @@
    échelles) sur un fond « couleur système » : trop lourde pour l’écran de lancement, iOS ne la dessinait pas et laissait
    le fond, noir en mode sombre. Il est remplacé par un fond lavande fixe et la seule touche >_, petite image posée au centre,
    à la taille et à la place exactes de la première image de l’ouverture animée (ludique.css, 37 bis). Le dossier ios/
-   n’étant pas dans Git, la version de référence est dans resources/ios et un script la recopie avant chaque envoi. */
+   n’étant pas dans Git, la version de référence est dans resources/ios et un script la recopie avant chaque envoi.
+   11 novembre, 13 h 10 (« Le logo se construit ») : la touche a laissé place à 23 points de données, sans image. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import zlib from 'node:zlib';
 import { execFileSync, spawnSync } from 'node:child_process';
 
 const root = new URL('../', import.meta.url);
@@ -17,34 +17,6 @@ const lire = (p) => fs.readFileSync(new URL(p, root), 'utf8');
 const sb = lire('resources/ios/LaunchScreen.storyboard');
 const css = lire('ludique.css');
 
-/* Petit lecteur de PNG (8 bits, RVB ou RVBA, non entrelacé) : de quoi vérifier les pixels sans dépendance */
-function png(file) {
-  const buf = fs.readFileSync(new URL(file, root));
-  assert.equal(buf.toString('latin1', 1, 4), 'PNG', file);
-  let off = 8, w = 0, h = 0, type = 0; const idat = [];
-  while (off < buf.length) {
-    const len = buf.readUInt32BE(off), kind = buf.toString('latin1', off + 4, off + 8), data = buf.subarray(off + 8, off + 8 + len);
-    if (kind === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); assert.equal(data[8], 8); type = data[9]; assert.equal(data[12], 0); }
-    else if (kind === 'IDAT') idat.push(data);
-    else if (kind === 'IEND') break;
-    off += 12 + len;
-  }
-  const ch = { 2: 3, 6: 4 }[type]; assert.ok(ch, `${file} : RVB ou RVBA`);
-  const raw = zlib.inflateSync(Buffer.concat(idat)), stride = w * ch, px = Buffer.alloc(h * stride);
-  for (let y = 0; y < h; y++) {
-    const f = raw[y * (stride + 1)], src = y * (stride + 1) + 1, dst = y * stride;
-    for (let x = 0; x < stride; x++) {
-      const a = x >= ch ? px[dst + x - ch] : 0, b = y ? px[dst - stride + x] : 0, c = x >= ch && y ? px[dst - stride + x - ch] : 0;
-      let v = raw[src + x];
-      if (f === 1) v += a; else if (f === 2) v += b; else if (f === 3) v += (a + b) >> 1;
-      else if (f === 4) { const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
-      px[dst + x] = v & 255;
-    }
-  }
-  const at = (x, y) => { const i = (y * w + x) * ch; return [px[i], px[i + 1], px[i + 2], ch === 4 ? px[i + 3] : 255]; };
-  return { w, h, ch, at, bytes: buf.length };
-}
-const proche = (p, q, tol = 6) => p.slice(0, 3).every((v, i) => Math.abs(v - q[i]) <= tol);
 
 test('Écran de lancement : fond lavande fixe, plus d’image géante ni de couleur système', () => {
   assert.ok(sb.includes('launchScreen="YES"') && sb.includes('initialViewController="01J-lp-oVM"') && sb.includes('<viewController id="01J-lp-oVM"'));
@@ -69,57 +41,46 @@ test('Écran de lancement : fond lavande fixe, plus d’image géante ni de coul
   assert.equal(new Set(ids).size, ids.length, 'identifiants uniques');
 });
 
-test('Écran de lancement : la touche au centre, à 540/2732 du plus grand côté, comme dans splash.png et l’ouverture animée', () => {
-  const img = sb.match(/<imageView [^>]*>/)[0];
-  for (const a of ['image="SplashLogo"', 'contentMode="scaleAspectFit"', 'translatesAutoresizingMaskIntoConstraints="NO"', 'id="Rq1-Lg-0Ky"',
-    'verticalCompressionResistancePriority="100"', 'horizontalCompressionResistancePriority="100"']) assert.ok(img.includes(a), a);
-  assert.ok(sb.includes('<image name="SplashLogo" width="256" height="270"/>'));
-  const c = (s) => assert.ok(sb.includes(s), s);
-  c('<constraint firstAttribute="width" secondItem="Rq1-Lg-0Ky" secondAttribute="height" multiplier="512:540" id="Rq1-Ar-0Ky"/>');
-  c('<constraint firstItem="Rq1-Lg-0Ky" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="Rq1-Cx-0Ky"/>');
-  c('<constraint firstItem="Rq1-Lg-0Ky" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="Rq1-Cy-0Ky"/>');
-  /* Le plus grand des deux côtés (comme max(100vw,100vh) dans la page, et l’image carrée « remplie » d’avant) : deux minimums
-     obligatoires et deux égalités presque obligatoires, dont seule la plus grande peut tenir */
-  for (const cote of ['height', 'width']) {
-    c(`<constraint firstItem="Rq1-Lg-0Ky" firstAttribute="height" relation="greaterThanOrEqual" secondItem="Ze5-6b-2t3" secondAttribute="${cote}" multiplier="0.19765739"`);
-    c(`<constraint firstItem="Rq1-Lg-0Ky" firstAttribute="height" secondItem="Ze5-6b-2t3" secondAttribute="${cote}" multiplier="0.19765739" priority="999"`);
-  }
-  assert.ok(Math.abs(540 / 2732 - 0.19765739) < 1e-8);
-  /* La page : unité = plus grand côté / 2732, touche de 512, socle 28 plus bas, l’ensemble (540) centré */
-  assert.ok(css.includes('--u:calc(max(100vw,100vh) / 2732);--cy:calc(50% - 14*var(--u))'));
-  assert.ok(css.includes('width:calc(512*var(--u));height:calc(512*var(--u));\n  margin:calc(-270*var(--u)) 0 0 calc(-256*var(--u));'), 'touche : de -270 à +242');
-  assert.ok(css.includes('margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC'), 'socle : de -242 à +270');
-  /* splash.png, la référence : la touche et son socle font 512 × 540 et sont centrés */
-  const sp = png('resources/splash.png'), fond = sp.at(5, 5);
-  assert.equal(sp.w, 2732); assert.ok(proche(fond, [0xF4, 0xF2, 0xFC], 1));
-  const ligne = (y) => { let a = -1, b = -1; for (let x = 0; x < sp.w; x++) if (!proche(sp.at(x, y), fond, 30)) { if (a < 0) a = x; b = x; } return [a, b]; };
-  const col = (x) => { let a = -1, b = -1; for (let y = 0; y < sp.h; y++) if (!proche(sp.at(x, y), fond, 30)) { if (a < 0) a = y; b = y; } return [a, b]; };
-  assert.deepEqual(ligne(1366), [1110, 1621]); assert.deepEqual(col(1366), [1096, 1635]);
-  assert.equal((1110 + 1621 + 1) / 2, 2732 / 2); assert.equal((1096 + 1635 + 1) / 2, 2732 / 2);
-});
+/* 11 novembre, 13 h 10 (« Le logo se construit ») : plus d’image du tout ; 23 points de données, aux places exactes de la première
+   image de l’ouverture animée (POINTS, dans le script qui suit #loader), écrits par tools/ecran-lancement.py */
+const app = lire('index.html');
+const POINTS = JSON.parse(app.match(/var POINTS=(\[\[[\d.,\[\]\s]+\]\]);/)[1].replace(/\s+/g, ''));
 
-test('Image de la touche : trois échelles légères, fond transparent, identique à splash.png', () => {
-  const man = JSON.parse(lire('resources/ios/SplashLogo.imageset/Contents.json'));
-  assert.deepEqual(man.images.map(i => [i.filename, i.idiom, i.scale]),
-    [['splash-logo@1x.png', 'universal', '1x'], ['splash-logo@2x.png', 'universal', '2x'], ['splash-logo@3x.png', 'universal', '3x']]);
-  for (const [n, k] of [[1, 0.5], [2, 1], [3, 1.5]]) {
-    const im = png(`resources/ios/SplashLogo.imageset/splash-logo@${n}x.png`);
-    assert.deepEqual([im.w, im.h], [512 * k, 540 * k], `@${n}x : 256 × 270 points`);
-    assert.equal(im.ch, 4); assert.ok(im.bytes < 150000, `@${n}x : ${im.bytes} octets`);
-    for (const [x, y] of [[0, 0], [im.w - 1, 0], [0, im.h - 1], [im.w - 1, im.h - 1]]) assert.equal(im.at(x, y)[3], 0, 'coins transparents');
-    const s = (x, y) => im.at(Math.round(x * k), Math.round(y * k));
-    assert.ok(proche(s(256, 100), [0x75, 0x56, 0xF7], 14) && s(256, 100)[3] === 255, 'dégradé violet');
-    assert.ok(proche(s(256, 528), [0x4B, 0x30, 0xCC], 4), 'socle');
-    assert.ok(proche(s(317, 314), [255, 255, 255], 2), 'curseur blanc');
-    assert.ok(proche(s(189, 205), [255, 255, 255], 2), 'chevron blanc');
-  }
-  const sp = png('resources/splash.png'), lg = png('resources/ios/SplashLogo.imageset/splash-logo@2x.png');
-  let somme = 0;
-  for (let y = 0; y < 540; y++) for (let x = 0; x < 512; x++) {
-    const a = lg.at(x, y), b = sp.at(1110 + x, 1096 + y), al = a[3] / 255;
-    for (let i = 0; i < 3; i++) somme += Math.abs(a[i] * al + [0xF4, 0xF2, 0xFC][i] * (1 - al) - b[i]);
-  }
-  assert.ok(somme / (512 * 540 * 3) < 2, `écart moyen avec splash.png : ${(somme / (512 * 540 * 3)).toFixed(2)}`);
+test('Écran de lancement : plus d’image, 23 points carrés aux fractions de l’écran où l’ouverture les dessine', () => {
+  assert.ok(!sb.includes('<imageView') && !sb.includes('image=') && !sb.includes('<resources>'), 'aucune image (l’écran noir du 3 novembre venait d’une image trop lourde)');
+  assert.ok(!sb.includes('userDefinedRuntimeAttribute'), 'rien que les écrans de lancement refusent');
+  assert.equal(POINTS.length, 23);
+  const vues = [...sb.matchAll(/<view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="(P\d\d-dD-pnt)" userLabel="Point (\d+)">/g)];
+  assert.equal(vues.length, 23);
+  const c = (x) => assert.ok(sb.includes(x), x);
+  const n = (v) => String(+v.toFixed(6));
+  POINTS.forEach(([x, y], i) => {
+    const id = vues[i][1];
+    assert.equal(id, `P${String(i).padStart(2, '0')}-dD-pnt`);
+    /* centre = centre de l’écran × 2x : x × la largeur, y × la hauteur, comme left:x% et top:y% dans la page */
+    c(`<constraint firstItem="${id}" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" multiplier="${n(2 * x)}"`);
+    c(`<constraint firstItem="${id}" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" multiplier="${n(2 * y)}"`);
+    /* côté : 30/2732 du plus grand côté de l’écran, comme 30 × --u dans la page ; carré */
+    for (const cote of ['height', 'width']) {
+      c(`<constraint firstItem="${id}" firstAttribute="height" relation="greaterThanOrEqual" secondItem="Ze5-6b-2t3" secondAttribute="${cote}" multiplier="${n(30 / 2732)}"`);
+      c(`<constraint firstItem="${id}" firstAttribute="height" secondItem="Ze5-6b-2t3" secondAttribute="${cote}" multiplier="${n(30 / 2732)}" priority="999"`);
+    }
+    c(`<constraint firstAttribute="width" secondItem="${id}" secondAttribute="height" id="c${String(i).padStart(2, '0')}-Ar-dDt"/>`);
+    assert.ok(x > 0.06 && x < 0.94 && y > 0.07 && y < 0.93, `point ${i + 1} dans l’écran, loin de l’île et de la barre du bas`);
+  });
+  /* #D2C6F7, comme .in-d */
+  assert.equal((sb.match(/<color key="backgroundColor" red="0.823529" green="0.776471" blue="0.968627" alpha="1" colorSpace="custom" customColorSpace="sRGB"\/>/g) || []).length, 23);
+  assert.ok(css.includes('html.is-native.lq #loader.is-intro .in-d{position:absolute;z-index:0;width:calc(30*var(--u));height:calc(30*var(--u));\n  margin:calc(-15*var(--u)) 0 0 calc(-15*var(--u));background:#D2C6F7}'));
+  assert.ok(app.includes("h+='<i class=\"in-d\" aria-hidden=\"true\" style=\"left:'+(POINTS[i][0]*100).toFixed(2)+'%;top:'+(POINTS[i][1]*100).toFixed(2)+'%\"></i>';"));
+  /* Le générateur réécrit exactement ce fichier */
+  const t = fs.mkdtempSync(path.join(os.tmpdir(), 'rq-points-'));
+  try {
+    fs.mkdirSync(path.join(t, 'tools')); fs.mkdirSync(path.join(t, 'resources/ios'), { recursive: true });
+    fs.copyFileSync(new URL('tools/ecran-lancement.py', root), path.join(t, 'tools/ecran-lancement.py'));
+    fs.copyFileSync(new URL('index.html', root), path.join(t, 'index.html'));
+    execFileSync('python3', [path.join(t, 'tools/ecran-lancement.py')], { encoding: 'utf8' });
+    assert.equal(fs.readFileSync(path.join(t, 'resources/ios/LaunchScreen.storyboard'), 'utf8'), sb, 'à jour avec POINTS');
+  } finally { fs.rmSync(t, { recursive: true, force: true }); }
 });
 
 test('Script : recopie l’écran de lancement dans le projet iOS, avant chaque ouverture et chaque envoi', () => {
@@ -130,25 +91,27 @@ test('Script : recopie l’écran de lancement dans le projet iOS, avant chaque 
   assert.equal(pkg['ios:testflight'], 'npm run build:www && npx cap sync ios && bash scripts/ios-ecran-lancement.sh && node scripts/ios-widget.mjs && bash scripts/ios-testflight.sh');
   assert.equal(pkg.ios, 'npm run build:www && npx cap sync ios && bash scripts/ios-ecran-lancement.sh && node scripts/ios-widget.mjs && npx cap open ios');
   assert.equal(pkg['ios:add'], 'npm run build:www && npx cap add ios && bash scripts/ios-ecran-lancement.sh && node scripts/ios-widget.mjs');
-  /* Dans un faux dépôt : il remplace l’ancien storyboard, ajoute l’image, et s’arrête net s’il n’y a pas de projet iOS */
+  /* Dans un faux dépôt : il remplace l’ancien storyboard, retire l’ancienne image de la touche, et s’arrête net s’il n’y a pas de projet iOS */
   const t = fs.mkdtempSync(path.join(os.tmpdir(), 'rq-lancement-'));
   try {
     const app = path.join(t, 'ios/App/App');
     fs.mkdirSync(path.join(t, 'scripts')); fs.mkdirSync(path.join(app, 'Base.lproj'), { recursive: true });
     fs.mkdirSync(path.join(app, 'Assets.xcassets/Splash.imageset'), { recursive: true });
+    fs.mkdirSync(path.join(app, 'Assets.xcassets/SplashLogo.imageset'), { recursive: true });
+    fs.writeFileSync(path.join(app, 'Assets.xcassets/SplashLogo.imageset/Contents.json'), '{}');
     fs.copyFileSync(new URL('scripts/ios-ecran-lancement.sh', root), path.join(t, 'scripts/ios-ecran-lancement.sh'));
     fs.cpSync(new URL('resources/ios', root), path.join(t, 'resources/ios'), { recursive: true });
     fs.writeFileSync(path.join(app, 'Base.lproj/LaunchScreen.storyboard'), 'ancien');
     const out = execFileSync('bash', [path.join(t, 'scripts/ios-ecran-lancement.sh')], { encoding: 'utf8' });
-    assert.ok(out.includes('Écran de lancement à jour'));
+    assert.ok(out.includes('Écran de lancement à jour : fond lavande, points de données.'));
     assert.equal(fs.readFileSync(path.join(app, 'Base.lproj/LaunchScreen.storyboard'), 'utf8'), sb);
-    assert.deepEqual(fs.readdirSync(path.join(app, 'Assets.xcassets/SplashLogo.imageset')).sort(),
-      ['Contents.json', 'splash-logo@1x.png', 'splash-logo@2x.png', 'splash-logo@3x.png']);
+    assert.ok(!fs.existsSync(path.join(app, 'Assets.xcassets/SplashLogo.imageset')), 'l’image de la touche ne sert plus');
     assert.ok(fs.existsSync(path.join(app, 'Assets.xcassets/Splash.imageset')), 'le reste du projet n’est pas touché');
     fs.rmSync(path.join(t, 'ios'), { recursive: true });
     const sans = spawnSync('bash', [path.join(t, 'scripts/ios-ecran-lancement.sh')], { encoding: 'utf8' });
     assert.equal(sans.status, 1); assert.ok(sans.stderr.includes('npm run ios:add'));
   } finally { fs.rmSync(t, { recursive: true, force: true }); }
+  assert.ok(!fs.existsSync(new URL('resources/ios/SplashLogo.imageset', root)));
   const ios = lire('IOS.md');
   assert.ok(ios.includes('resources/ios/LaunchScreen.storyboard') && ios.includes('scripts/ios-ecran-lancement.sh') && ios.includes('redémarrer l’iPhone'));
 });

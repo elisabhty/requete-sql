@@ -7,6 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { fauxLoader } from './aide-ouverture.mjs';
 
 const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
@@ -56,17 +57,15 @@ test('Schéma : déplier puis replier, la base garde son état pendant la visite
   assert.ok(!cls.has('open')); assert.equal(attrs['aria-expanded'], 'false'); assert.equal(ctx.schBaseOuverte.aeroport, false);
 });
 
-/* Le petit script juste après #loader, joué dans un bac à sable */
+/* Le petit script juste après #loader, joué dans un bac à sable (11 novembre, 13 h 10 : le logo se construit, tests/retours-1310) */
 const intro = cut(app, '/* Appli iOS : l’ouverture animée', '  </script>');
 function lancer({ natif = true, calme = false, stocke = '' } = {}) {
-  const log = [], cls = new Set(), timers = [], frames = [], html = [];
-  const nom = { textContent: 'Requête', innerHTML: '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
-  const L = { style: {}, classList: { add: (...c) => c.forEach(x => { cls.add(x); log.push('+' + x); }), remove: c => { cls.delete(c); log.push('-' + c); }, contains: c => cls.has(c) },
-    querySelector: q => (q === '.ld-name' ? nom : null), insertAdjacentHTML: (w, h) => html.push(h) };
+  const log = [], timers = [], frames = [];
+  const L = fauxLoader({ log }), cls = L.cls, nom = L.nom, html = L.html;
   const ctx = vm.createContext({
     document: { documentElement: { classList: { contains: c => natif && c === 'is-native' } }, getElementById: id => (id === 'loader' ? L : null) },
     window: {}, Array, performance: { now: () => 1000 },
-    matchMedia: () => ({ matches: calme }), localStorage: { getItem: () => stocke },
+    matchMedia: () => ({ matches: calme }), localStorage: { getItem: () => stocke, setItem() {} },
     navigator: { vibrate: ms => { log.push('vibre ' + ms); return true; } },
     requestAnimationFrame: f => frames.push(f), setTimeout: (f, ms) => timers.push([ms, f])
   });
@@ -83,15 +82,15 @@ test('appli iOS : derrière l’écran de lancement, la page se dessine à l’i
   s.tick(); s.tick();
   assert.ok(!s.log.some(l => l.startsWith('écran retiré')), 'l’écran natif reste tant que l’appli n’est pas prête');
   assert.equal(typeof s.ctx.window.__introJouer, 'function');
-  /* « Requête » en lettres, deux ondes et la table de données (des confettis jusqu’au 4 novembre : tests/retours-0116.test.mjs) */
+  /* Les 23 points de l’écran de lancement, tout de suite ; « Requête » en lettres ; les cases, seulement au départ */
+  assert.equal(s.html.length, 1);
+  assert.equal((s.html[0].match(/<i class="in-d" aria-hidden="true" style="left:[\d.]+%;top:[\d.]+%"><\/i>/g) || []).length, 23);
   assert.equal(s.nom.attrs['aria-label'], 'Requête');
   assert.equal((s.nom.innerHTML.match(/class="in-l"/g) || []).length, 7);
   assert.ok(s.nom.innerHTML.includes('<span class="in-l" aria-hidden="true" style="--i:4">ê</span>'));
-  assert.equal(s.html.length, 0, 'la table n’alourdit plus le chargement : elle se prépare au départ (11 novembre)');
   s.run(2600); assert.ok(s.cls.has('is-long'), 'l’anneau et la phrase si l’appli tarde');
   s.ctx.window.__introJouer();
-  assert.equal((s.html[0].match(/class="in-ring/g) || []).length, 2);
-  assert.ok(s.html[0].includes('<div class="in-grid" aria-hidden="true">') && (s.html[0].match(/<i class="in-t" /g) || []).length > 80);
+  assert.equal(s.html.length, 2); assert.equal((s.html[1].match(/<i class="in-k" /g) || []).length, 16, 'les seize cases de la touche, au départ');
 });
 
 test('appli iOS : prête, l’écran natif part d’un coup puis tout se joue d’une seule classe', () => {
@@ -102,19 +101,20 @@ test('appli iOS : prête, l’écran natif part d’un coup puis tout se joue d�
   assert.ok(!s.cls.has('is-play'));
   s.tick(); assert.ok(!s.cls.has('is-play'), 'pas avant que la page ait fini de se dessiner'); s.tick();
   assert.ok(s.cls.has('is-play'));
-  s.run(112); assert.equal(s.log.at(-1), 'vibre 25', 'le retour haptique quand la touche est en bas (112 ms ; 9 h 28 : « trop rapide »)');
+  s.run(1080); assert.equal(s.log.at(-1), 'vibre 25', 'sans l’extension Haptics, une vibration quand la touche est entière (1,08 s)');
   assert.equal(s.L.style.display, undefined);
-  s.run(1900); assert.equal(s.L.style.display, undefined, 'pas avant la fin du fondu');
-  s.run(2080); assert.equal(s.L.style.display, 'none', 'rangé à la fin (2,08 s)');
+  s.run(2280); assert.equal(s.L.style.display, undefined, 'pas avant la fin du fondu');
+  s.run(2300); assert.equal(s.L.style.display, 'none', 'rangé à la fin (1,93 + 0,36 s)');
   s.ctx.window.__introJouer(); assert.equal(s.log.filter(l => l.startsWith('écran retiré')).length, 1, 'une seule fois');
 });
 
 test('appli iOS : mouvement réduit, un simple fondu ; sur le site, rien ne change', () => {
   for (const opts of [{ calme: true }, { stocke: '{"preferences":{"reduceMotion":true}}' }]) {
     const s = lancer(opts);
-    assert.equal(s.html.length, 0); assert.equal(s.nom.innerHTML, '', 'ni lettres ni nombres');
+    assert.equal(s.html.length, 1, 'les points de l’écran de lancement, seulement'); assert.equal(s.nom.innerHTML, '', 'ni lettres ni cases');
     s.ctx.window.__introJouer();
     assert.ok(s.log.includes('écran retiré 0') && s.cls.has('fade-out') && !s.cls.has('is-play'));
+    assert.equal(s.html.length, 1);
     assert.ok(!s.log.some(l => l.startsWith('vibre')));
     s.run(340); assert.equal(s.L.style.display, 'none');
   }
@@ -136,31 +136,29 @@ test('appli iOS : hideLoader passe la main à l’ouverture ; l’écran natif s
   assert.ok(app.indexOf('/* Appli iOS : l’ouverture animée') < app.indexOf('<!-- Script à part : il tourne même si le gros JS a une erreur de syntaxe. -->'));
 });
 
-test('appli iOS : la première image reprend l’écran de lancement, et l’animation ne bouge qu’en transform et opacité', () => {
+test('appli iOS : la première image reprend l’écran de lancement (les points seuls), la touche n’apparaît qu’une fois construite', () => {
   const s = css.slice(css.indexOf('/* ---------- 37 bis.'), css.indexOf('/* ---------- 38.'));
   for (const part of [
     'html.is-native.lq #loader.is-intro{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;background:#F4F2FC!important;',
-    '--u:calc(max(100vw,100vh) / 2732);--cy:calc(50% - 14*var(--u))}',
+    '--u:calc(max(100vw,100vh) / 2732);--cy:calc(50% - 14*var(--u));',
     'width:calc(512*var(--u));height:calc(512*var(--u));',
-    'margin:calc(-270*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:0;border-radius:calc(116*var(--u));rotate:0deg;animation:none;',
+    'margin:calc(-270*var(--u)) 0 0 calc(-256*var(--u));box-sizing:border-box;border:0;border-radius:calc(116*var(--u));rotate:0deg;animation:none;opacity:0;',
     'background:linear-gradient(135deg,#8060FF,#593CE7)!important;box-shadow:none!important;font-size:0;color:transparent;will-change:transform}',
     'clip-path:polygon(29.1% 34.375%,46.68% 42.56%,46.68% 47.48%,29.1% 55.66%,29.1% 51.37%,42.75% 45.02%,29.1% 38.67%)',
-    '.logo-badge::after{content:"";position:absolute;left:52.34%;top:59.18%;width:19.14%;height:4.49%;background:#fff}',
-    'margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC}',
-    /* Rien d’autre à la première image */
+    '.logo-badge::after{content:"";position:absolute;left:52.34%;top:59.18%;width:19.14%;height:4.49%;background:#fff;transform-origin:0 50%}',
+    'margin:calc(-242*var(--u)) 0 0 calc(-256*var(--u));border-radius:calc(116*var(--u));background:#4B30CC;opacity:0}',
+    /* Rien d’autre que les points à la première image */
     'html.is-native.lq #loader.is-intro .ld-spark{display:none}', 'font:700 30px/1 var(--display);letter-spacing:-.02em;color:#1B1640;opacity:0;animation:none}',
-    'html.is-native.lq #loader.is-intro .in-l{display:inline-block;opacity:0;', 'font:800 calc(44*var(--u))/1 var(--mono);color:var(--k);font-variant-numeric:tabular-nums;opacity:0}',
+    'html.is-native.lq #loader.is-intro .in-d{position:absolute;z-index:0;width:calc(30*var(--u));height:calc(30*var(--u));',
+    'margin:calc(-15*var(--u)) 0 0 calc(-15*var(--u));background:#D2C6F7}',
     /* Le déroulé */
-    'html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introKey .62s cubic-bezier(.3,.7,.3,1) both,introZoom .55s cubic-bezier(.42,0,.72,.42) 1.25s forwards}',
-    '18%{transform:translateY(calc(22*var(--u)))}', '@keyframes introZoom{from{transform:none}to{transform:scale(9)}}',
-    'html.is-native.lq #loader.is-intro.is-play .in-ring{animation:introWave .6s linear .18s forwards}', 'html.is-native.lq #loader.is-intro.is-play .in-t{animation:introTile .48s',
-    'html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLetter .5s cubic-bezier(.3,1.35,.5,1) calc(.28s + var(--i)*55ms) forwards}',
-    'html.is-native.lq #loader.is-intro.is-play{animation:introOut .4s ease-out 1.62s forwards}', /* le violet s’efface une fois l’écran rempli (plongée finie à 1,8 s, fondu dès 1,62 s) */ 'html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}',
-    'html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;'
+    'html.is-native.lq #loader.is-intro.is-play .in-d{opacity:0}',
+    'html.is-native.lq #loader.is-intro.is-play{animation:introOut var(--d-sortie) ease-out var(--t-sortie) forwards}',
+    'html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}',
+    'html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;opacity:1;',
+    'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k){display:none}'
   ]) assert.ok(s.includes(part), part);
-  const images = s.slice(s.indexOf('@keyframes introKey'), s.indexOf('/* Si le moteur SQL ne se charge pas'));
-  assert.ok(!/filter|box-shadow|width|height|top|left|margin/.test(images), 'les images clés ne touchent qu’à transform et opacity');
-  assert.ok(!s.includes('introCursor'), 'plus de curseur qui clignote (on aurait dit un bug)');
+  assert.ok(!s.includes('introCursor'), 'pas de curseur qui clignote (on aurait dit un bug)');
   assert.ok(css.includes('html.lq #loader{background:var(--deep)!important;'), 'le site garde son écran violet');
 });
 
