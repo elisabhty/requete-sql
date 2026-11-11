@@ -87,9 +87,11 @@ test('appli iOS : derrière l’écran de lancement, la page se dessine à l’i
   assert.equal(s.nom.attrs['aria-label'], 'Requête');
   assert.equal((s.nom.innerHTML.match(/class="in-l"/g) || []).length, 7);
   assert.ok(s.nom.innerHTML.includes('<span class="in-l" aria-hidden="true" style="--i:4">ê</span>'));
+  assert.equal(s.html.length, 0, 'la table n’alourdit plus le chargement : elle se prépare au départ (11 novembre)');
+  s.run(2600); assert.ok(s.cls.has('is-long'), 'l’anneau et la phrase si l’appli tarde');
+  s.ctx.window.__introJouer();
   assert.equal((s.html[0].match(/class="in-ring/g) || []).length, 2);
   assert.ok(s.html[0].includes('<div class="in-grid" aria-hidden="true">') && (s.html[0].match(/<i class="in-t" /g) || []).length > 80);
-  s.run(2600); assert.ok(s.cls.has('is-long'), 'l’anneau et la phrase si l’appli tarde');
 });
 
 test('appli iOS : prête, l’écran natif part d’un coup puis tout se joue d’une seule classe', () => {

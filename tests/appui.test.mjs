@@ -64,7 +64,7 @@ test('le rebond vit dans assets/curseur.js, chargé par l’appli et la vitrine,
   assert.ok(cur.includes("a instanceof CSSAnimation && a.playState === 'running'"), 'un bouton qui saute déjà de lui-même garde son animation');
   assert.ok(cur.includes('}, true);') && cur.includes('window.requestAnimationFrame(function () { rebondir(el, r); });'), 'après les gestionnaires du clic');
   assert.ok(!app.includes('lq-squish') && !app.includes('LQ_SQUISH'), 'une seule mécanique, pas de doublon dans l’appli');
-  assert.ok(app.includes("const LQ_PRESS='.journey-primary,") && app.includes('navigator.vibrate(5);'), 'la petite vibration à l’appui reste');
+  assert.ok(app.includes("const LQ_PRESS='.journey-primary,") && app.includes("input[type=\"checkbox\"],input[type=\"radio\"],label,'+LQ_PRESS);"), 'la petite vibration reste, au toucher confirmé (11 novembre : plus au doigt posé, qui vibrait aussi en faisant défiler)');
 });
 
 test('au relâché, le bouton rebondit : d’autant plus qu’il est petit ; jamais une grande surface, un bouton éteint, remplacé ou déjà animé', () => {

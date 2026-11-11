@@ -38,8 +38,12 @@ test('aucun écouteur tactile non passif permanent sur window ou document', () =
   const global = all.filter(c => c.blocking && (c.target === 'window' || c.target === 'document'));
   /* Seuls restent : le retour par le bord (posé dans son touchstart, retiré à la fin du geste) et (le glisser du planning est parti le 10 novembre). */
   assert.deepEqual(global.map(c => c.head), [
-    "addEventListener('touchmove',move,{passive:false})"
+    "addEventListener('touchmove',move,{passive:false})",
+    "window.addEventListener('touchmove',bouge,{passive:false})"
   ], 'écouteurs non passifs sur la page entière');
+  /* La feuille tirée vers le bas (11 novembre) : posé dans le touchstart d’une feuille ouverte, retiré à la fin du geste */
+  assert.ok(html.includes("const fin=()=>{window.removeEventListener('touchmove',bouge,{passive:false});window.removeEventListener('touchend',lache);window.removeEventListener('touchcancel',lache);};"), 'feuilles : retiré à la fin du geste');
+  assert.ok(html.includes("    const t=e.target;if(!t||!t.closest||t.closest(LQ_FEUILLE_SANS))return;\n    for(const [sel,fermer,fond,garder] of LQ_FEUILLES){"), 'feuilles : seulement quand le doigt se pose sur une feuille ouverte');
   assert.ok(html.includes("    g=Object.assign(tg,{x0:t.clientX,y0:t.clientY,t0:performance.now(),dx:0,lock:null,w:innerWidth});\n    addEventListener('touchmove',move,{passive:false});"), 'retour par le bord : seulement pendant un geste parti du bord');
   assert.ok(html.includes("    removeEventListener('touchmove',move,{passive:false});\n    if(!g)return;const G=g;g=null;"), '… et retiré à la fin du geste');
   assert.ok(html.includes("    bar.addEventListener('touchmove',move,{passive:false});") && html.includes("    bar.addEventListener('wheel',wheel,{passive:false});"), 'barres : sur les barres elles-mêmes');

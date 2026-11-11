@@ -49,8 +49,9 @@ test('défilement : aucun écouteur tactile bloquant sur un parent des écrans (
   assert.deepEqual(blocking.filter(c => !allowed.has(c.target)).map(c => c.head), [], 'aucun écouteur bloquant ailleurs');
   assert.ok(!blocking.some(c => /^(stage|app|body|scr|screen)$/.test(c.target)), 'rien sur la scène, #app, le corps de page ou un écran');
   assert.deepEqual(blocking.filter(c => c.target === 'window' || c.target === 'document').map(c => c.head), [
-    "addEventListener('touchmove',move,{passive:false})"
-  ], 'sur la page entière, seulement le temps d’un geste (retour par le bord)');
+    "addEventListener('touchmove',move,{passive:false})",
+    "window.addEventListener('touchmove',bouge,{passive:false})"
+  ], 'sur la page entière, seulement le temps d’un geste (retour par le bord, feuille tirée vers le bas)');
 });
 
 test('défilement : la barre d’onglets fait défiler l’écran une seule fois, et l’élan s’arrête dès qu’un doigt se pose', () => {
