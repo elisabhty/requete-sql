@@ -99,10 +99,10 @@ test('les autres actions : des tuiles égales, chacune avec son icône', () => {
 test('la carte mémo débloquée : sa ligne, avant la suite du parcours ; on la retourne sur place (6 novembre, direction A)', () => {
   const ctx = vm.createContext({
     CARTES: {4: {k: 'WHERE', t: 'Filtrer les lignes', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 1;', piege: 'Le piège.'}, 56: {k: 'Normalisation', t: 'Répartir les données', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 1;', piege: 'Le piège.'}},
-    allLessons: [{id: 4}, {id: 56}, {id: 70}], lastUnlockedId: 56, TOTAL_CARTES: 53, isUnlocked: () => true, moduleOf: () => 0, MODULES: [{titre: 'Lire une table'}],
+    CARTES_PLUS: {}, allLessons: [{id: 4}, {id: 56}, {id: 70}], lastUnlockedId: 56, TOTAL_CARTES: 53, isUnlocked: () => true, moduleOf: () => 0, MODULES: [{titre: 'Lire une table'}],
     esc: s => String(s), escAttr: s => String(s), highlight: s => s, lqStkSvg: k => `<svg data-k="${k}"></svg>`, cardMemoPoints: () => []
   });
-  vm.runInContext(cut('const MEMO_LOCK_STK=', 'function memoEtat(l){') + cut('function bravoUnlockHtml(l){', '/* Retourner : la face cachée'), ctx);
+  vm.runInContext(cut('const MEMO_LOCK_STK=', 'function memoEtat(l){') + cut('let memoListeCache=null;', 'function memoArg(') + cut('function bravoUnlockHtml(l){', '/* Retourner : la face cachée'), ctx);
   const row = ctx.bravoUnlockHtml({id: 56});
   assert.ok(row.startsWith('<section class="bravo-unlock mc-reveal is-new" aria-labelledby="mc-reveal-h">'), 'la classe bravo-unlock reste : la suite garde sa scène');
   assert.ok(row.includes('<h2 class="mc-reveal-h" id="mc-reveal-h">Nouvelle carte <em>mémo</em>&nbsp;!</h2>'));

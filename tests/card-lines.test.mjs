@@ -73,6 +73,6 @@ test('cartes DELETE, UPDATE et GROUP BY : la requête tient sur une ligne par cl
   vm.runInContext(cut('function cardRunnableSql(c){', '\n}\n') + '\n}\n;this.f = cardRunnableSql;', run);
   assert.equal(run.f(CARTES[28]), 'DELETE FROM commandes\nWHERE id = 15;');
   const essayer = cut('function cardToConsole(id){', '\n}\n');
-  assert.ok(essayer.includes('fillConsoleSql(cardRunnableSql(CARTES[id]));'), '« Essayer » : l’exemple de la carte, tel quel');
+  assert.ok(essayer.includes('fillConsoleSql(cardRunnableSql(memoCarte(id).c));'), '« Essayer » : l’exemple de la carte, tel quel (11 novembre : la carte par son identifiant, une leçon pouvant en donner deux)');
   assert.ok(cut('function fillConsoleSql(sql,o){', 'function clearConsoleEditor(){').includes("ta.value=sql||'';"), 'la console garde les retours à la ligne');
 });

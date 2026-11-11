@@ -36,7 +36,12 @@ debuts.forEach(([pos, mod], n) => {
 });
 const cb = app.slice(app.indexOf('const CARTES={'), app.indexOf('\n};', app.indexOf('const CARTES={')));
 const CARTES = Object.fromEntries([...cb.matchAll(/[\s{,](\w+):\{k:"([^"]+)",t:"([^"]+)"/g)].map(m => [m[1], {k: m[2], t: m[3]}]));
-const AVEC_CARTE = LECONS.filter(l => CARTES[l.id]);
+/* 11 novembre, 17 h 20 : une leçon peut donner plusieurs cartes (CARTES_PLUS) ; elles suivent la première dans la collection */
+const pb = app.slice(app.indexOf('const CARTES_PLUS={'), app.indexOf('\n};', app.indexOf('const CARTES_PLUS={')));
+const PLUS = {};
+let lecon = null;
+for (const m of pb.matchAll(/(?:\n (\d+):\[)?\{cid:'[^']+',k:"([^"]+)",t:"([^"]+)"/g)) { if (m[1]) lecon = m[1]; (PLUS[lecon] = PLUS[lecon] || []).push({k: m[2], t: m[3]}); }
+const AVEC_CARTE = LECONS.flatMap(l => CARTES[l.id] ? [{...l, ...CARTES[l.id]}, ...(PLUS[l.id] || []).map(c => ({...l, ...c}))] : []);
 
 test('l’appli est bien lue : modules, leçons et cartes mémo', () => {
   assert.ok(debuts.length >= 10 && LECONS.length >= 60, `${debuts.length} modules, ${LECONS.length} leçons`);
@@ -86,14 +91,15 @@ test('cartes mémo : leur nombre et les trois cartes montrées sont ceux de l’
   const vues = [...t.matchAll(/<span class="mm2-top"><b>(\d+)<\/b><small>([^<]+)<\/small><\/span><b class="mm2-k">([^<]+)<\/b><span class="mm2-t">([^<]+)<\/span>/g)];
   assert.equal(vues.length, 3, 'trois cartes');
   for (const [, num, mod, k, titre] of vues) {
-    const i = AVEC_CARTE.findIndex(l => CARTES[l.id].k === k);
+    const i = AVEC_CARTE.findIndex(l => l.k === k);
     assert.ok(i >= 0, `la carte ${k} existe`);
     assert.equal(num, String(i + 1).padStart(2, '0'), `${k} : numéro dans la collection`);
     assert.equal(mod, AVEC_CARTE[i].mod, `${k} : module`);
-    assert.equal(titre, CARTES[AVEC_CARTE[i].id].t, `${k} : titre`);
+    assert.equal(titre, AVEC_CARTE[i].t, `${k} : titre`);
   }
   /* Depuis le 10 novembre, chaque leçon a sa carte (71) : les numéros des trois cartes montrées ont suivi. */
-  assert.equal(AVEC_CARTE.length, LECONS.length, 'une carte par leçon');
+  assert.ok(LECONS.every(l => CARTES[l.id]), 'une carte par leçon');
+  assert.equal(AVEC_CARTE.length, LECONS.length + Object.values(PLUS).flat().length, 'et les cartes suivantes (« Types de données », 11 novembre)');
   assert.ok(t.includes('<p>Tes leçons terminées débloquent des cartes mémo, à relire en un coup d’œil.</p>'));
   /* Elisa, 30 octobre, 18 h 45 : « supprimer : Elles reviennent au même rythme que tes révisions. » */
   assert.ok(!t.includes('Elles reviennent') && !t.includes('class="st-src"'), 'pas de note sous les cartes');

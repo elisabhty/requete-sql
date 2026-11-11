@@ -12,18 +12,20 @@ const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
 const fn = name => { const a = app.indexOf(`function ${name}(`); assert.ok(a > 0, name); return app.slice(a, app.indexOf('\n}', a) + 2); };
 const consts = app.slice(app.indexOf('const MEMO_LOCK_STK='), app.indexOf('/* Le numéro de collection (01 à 71)'));
+/* 11 novembre, 17 h 20 : la liste des cartes (une leçon peut en donner deux), lue par le numéro, le recto, l’album et « Noter » */
+const aide = app.slice(app.indexOf('let memoListeCache=null;'), app.indexOf('\n', app.indexOf('function memoArg(')) + 1);
 
 function bac(extra = {}) {
   const CARTES = {4: {k: 'WHERE', t: 'Filtrer les lignes', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 1;', piege: 'Piège.'},
     5: {k: 'GROUP BY', t: 'Regrouper', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 2;', piege: 'Piège.'},
     9: {k: 'Ordre d’exécution', t: 'Dans quel ordre', points: ['Un.', 'Deux.', 'Trois.'], s: 'SELECT 3;', piege: 'Piège.'}};
   const ctx = vm.createContext(Object.assign({
-    CARTES, allLessons: [{id: 1, titre: 'Sans carte'}, {id: 4, titre: 'Filtrer avec WHERE'}, {id: 5, titre: 'Regrouper'}, {id: 9, titre: 'L’ordre d’exécution'}],
+    CARTES, CARTES_PLUS: {}, allLessons: [{id: 1, titre: 'Sans carte'}, {id: 4, titre: 'Filtrer avec WHERE'}, {id: 5, titre: 'Regrouper'}, {id: 9, titre: 'L’ordre d’exécution'}],
     MODULES: [{titre: 'Lire une table'}], moduleOf: () => 0, lastUnlockedId: null, state: {lessons: {}},
     unlocked: new Set([4, 5]), isUnlocked(id) { return this.unlocked.has(id); }, revisable: () => true, due: new Set(), isDue(id) { return this.due.has(id); },
     esc: s => String(s), escAttr: s => String(s), highlight: s => s, lqStkSvg: k => `<svg data-k="${k}"></svg>`, cardMemoPoints: () => []
   }, extra));
-  vm.runInContext(consts + ['memoSerial', 'memoKn', 'memoKw', 'memoFace', 'memoEtat', 'memoAlbumCard'].map(fn).join('\n'), ctx);
+  vm.runInContext(consts + aide + ['memoSerial', 'memoKn', 'memoKw', 'memoFace', 'memoEtat', 'memoAlbumCard'].map(fn).join('\n'), ctx);
   vm.runInContext('isUnlocked=this.isUnlocked.bind(this);isDue=this.isDue.bind(this);', ctx);
   return ctx;
 }
@@ -55,7 +57,7 @@ test('l’album : à débloquer (le dos, son cadenas, la leçon), débloquée, n
   assert.ok(ok.includes('class="mc mc--album is-ok"') && ok.includes('<span class="mc-ok" aria-hidden="true"><svg') && ok.includes('. Acquise">'));
   assert.ok(ok.includes('<b class="mc-k" style="--kn:8">GROUP BY</b>'), 'GROUP BY ne se coupe pas');
   const coll = fn('renderCollection');
-  assert.ok(coll.includes('const cards=items.map(l=>memoAlbumCard(l)).join(\'\');') && app.includes('coll-grid mc-grid'), 'l’album pose les nouvelles cartes');
+  assert.ok(coll.includes('const cards=items.map(x=>memoAlbumCard(x.l,x.cid)).join(\'\');') && app.includes('coll-grid mc-grid'), 'l’album pose les nouvelles cartes (chaque carte de la leçon, 11 novembre)');
 });
 
 test('le bilan : la carte gagnée se retourne sur place ; la face cachée est inerte, le focus suit, sans animation si on le demande', () => {
@@ -64,7 +66,7 @@ test('le bilan : la carte gagnée se retourne sur place ; la face cachée est in
     "v.toggleAttribute('inert',!toVerso); v.setAttribute('aria-hidden',String(!toVerso));", "const f=toVerso?v.querySelector('[data-focus]'):r;", 'setTimeout(go,still?40:420);'])
     assert.ok(flip.includes(part), part);
   assert.ok(fn('memoFlipFit').includes("box.style.setProperty('--mc-h',face.offsetHeight+'px');"), 'la boîte prend la hauteur de la face visible');
-  const reveal = fn('revealBravoCard');
+  const reveal = fn('revealBravoUne');   // 11 novembre : chaque carte du bilan arrive à son tour (revealBravoCard)
   assert.ok(reveal.includes("if(!root.classList.contains('is-new')||prefersReduceMotion()){root.classList.add('is-in');return;}"), 'l’arrivée, une seule fois, et pas en mouvement réduit');
   assert.ok(reveal.includes('new IntersectionObserver('), 'quand le bloc entre à l’écran');
   assert.ok(fn('renderBravoSlide').includes("${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}"), 'le verso tient lieu de « Ce que tu retiens »');
