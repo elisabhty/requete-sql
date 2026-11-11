@@ -328,7 +328,7 @@ test(`${FILE} : les six moments du scénario, leurs corrections et leurs indices
   /* Les gestes de la timeline, chacun pendant la bulle qui en parle. */
   for (const s of ["show('#st-cl', 21.3,", "slotIn('sl0', 46.6);", "FLECHES.forEach(([id], q) => draw('#' + id, 73.0 + q * 0.6, 0.5));", "pop('#od-co', 86.5, 0.5);",
     "bump('#tb-date .ex', 101.45, 1.12);", "sqMore('an1', 123.1);", "sqMore('cdf', 157.3);", "sqMore('cck', 161.0, 30);", "press($('#run'), 171.6);", "show('#okm', 172.4,",
-    "show('#ins', 186.35,", "show('#keyc', 189.35,", "bump('#db .dbn', 178.05, 1.18);", "bump('#ins code', 187.45, 1.15);"])
+    "show('#ins', 186.35,", "show('#keyc', 188.95,", "bump('#db .dbn', 178.05, 1.18);", "bump('#ins code', 187.45, 1.15);"])
     assert.ok(page.includes(s), `geste : ${s}`);
   /* Le badge de la base compte avec les tables : 4, 5, 6, 7, 8, chaque nombre quand la table entre ; « 8 tables » est là avant que la bulle ne dise huit. */
   assert.ok(page.includes("Base de données<span class=\"dbn\">' + [4, 5, 6, 7, 8].map(n => `<i class=\"n${n}\">${n} tables</i>`).join('') + '</span></div>'"), 'le badge a cinq états, de 4 à 8 tables');

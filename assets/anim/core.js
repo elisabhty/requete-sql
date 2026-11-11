@@ -666,18 +666,23 @@ function introScene(){
   s0.insertBefore(card, s0.firstChild);
   const title = $('#s0 .title'), sub = $('#s0 .sub'), bubble = $('#s0 .bubble');
   [sub, bubble].forEach(el => el && el.querySelectorAll('br').forEach(br => br.replaceWith(' ')));
-  /* Titre : la plus grande taille qui tient dans la carte (de 250 à 96 px) */
-  let fs = 250; title.style.fontSize = fs + 'px';
+  /* 11 nov. (Elisa, 8 h 57) : la rubrique évite l’étincelle du coin ; le sous-titre tient sur une ligne jusqu’à 72 px (WebKit coupait
+     « Une valeur selon le cas »), sinon deux ; le titre laisse les pastilles au-dessus des oreilles de la mascotte (968 − 14 − 18 px). */
+  const tagp = $('#s0 .tagpill');
+  for (let f = 34; tagp && f >= 26; f--) { tagp.style.fontSize = f + 'px'; if (tagp.scrollWidth <= 720) break; }
+  const fit = (f, n) => { sub.style.fontSize = f + 'px'; return sub.scrollHeight <= f * 1.06 * n + 4; };
+  let fsub = 84, f1 = 84;
+  while (f1 >= 72 && !fit(f1, 1)) f1 -= 2;
+  if (f1 >= 72) fsub = f1; else while (!fit(fsub, 2) && fsub > 52) fsub -= 4;
+  capWords(sub); capBalance(sub, sub);   /* deux lignes de longueurs voisines, pas de mot seul */
+  let fs = Math.min(250, Math.max(150, Math.floor((350 - sub.scrollHeight) / 0.95))); title.style.fontSize = fs + 'px';
   while (title.scrollWidth > 840 && fs > 96) { fs -= 4; title.style.fontSize = fs + 'px'; }
   const tb = 352 + fs * 0.95;
   const sw = mk('<svg class="abs iv-sw" viewBox="0 0 720 60" preserveAspectRatio="none" aria-hidden="true"><path d="M10 40C200 14 470 8 710 26"/></svg>');
   title.after(sw);
   sw.style.width = Math.max(200, Math.min(840, title.scrollWidth)) + 'px';
   sw.style.top = (tb + 4 - fs * 0.02) + 'px';
-  /* Sous-titre : deux lignes au plus */
-  let fsub = 84; sub.style.top = (tb + 82) + 'px'; sub.style.fontSize = fsub + 'px';
-  while (sub.scrollHeight > fsub * 1.06 * 2 + 4 && fsub > 52) { fsub -= 4; sub.style.fontSize = fsub + 'px'; }
-  capWords(sub); capBalance(sub, sub);   /* deux lignes de longueurs voisines, pas de mot seul */
+  sub.style.top = (tb + 82) + 'px';
   const pills = mk('<div class="abs iv-pills"><span class="iv-pill w"><span class="iv-shine"></span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg><b class="iv-dur"></b></span><span class="iv-pill g iv-mom"></span></div>');
   sub.after(pills);
   pills.style.top = (tb + 82 + sub.scrollHeight + 48) + 'px';
@@ -737,6 +742,16 @@ function introPills(seconds, moments){
   d.textContent = mn ? mn + ' min ' + String(sc).padStart(2, '0') : sc + ' s';
   if (moments > 0) m.textContent = moments + (moments > 1 ? ' moments' : ' moment') + ' « À' + NB + 'toi' + NB + '»';
   else m.remove();
+  /* L’étincelle s2 ne passe ni sous une ligne du sous-titre ni sous les pastilles : à sa place si c’est libre, sinon juste après
+     les pastilles, sinon dessous (11 nov. ; WebKit coupe parfois le sous-titre plus large qu’ailleurs). */
+  const pl = $('#s0.nv .iv-pills'), s2 = $('#s0.nv .iv-spark.s2'), sub = $('#s0.nv .sub');
+  if (pl && s2 && sub) { const t = pl.offsetTop, r = pl.offsetLeft + pl.offsetWidth, h = pl.offsetHeight, cs = getComputedStyle(s2);
+    const sb = sub.getBoundingClientRect(), k = sb.width / (sub.offsetWidth || 1), rg = document.createRange(); rg.selectNodeContents(sub);
+    const B = (k > 0 ? [...rg.getClientRects()].map(q => [sub.offsetLeft + (q.left - sb.left) / k, sub.offsetTop + (q.top - sb.top) / k, q.width / k, q.height / k])
+      : [[sub.offsetLeft, sub.offsetTop, sub.offsetWidth, sub.scrollHeight]]).concat([[pl.offsetLeft, t, pl.offsetWidth, h]]);
+    const free = ([x, y]) => x + 56 <= 1000 && B.every(([l, u, w, v]) => x >= l + w + 24 || x + 76 <= l || y >= u + v + 8 || y + 64 <= u);
+    const c = [[parseFloat(cs.left), parseFloat(cs.top)], [r + 28, t + (h - 56) / 2], [904, t + h + 26]].find(free);
+    if (c) Object.assign(s2.style, {left: c[0] + 'px', top: c[1] + 'px'}); }
 }
 
 /* Récapitulatif « Les trois idées à retenir » : titre, carte, puis une idée à chaque instant donné. */
@@ -1410,6 +1425,9 @@ function Course(cfg){
     /* … et avec la leçon d’après : la vidéo s’allonge, la dernière image s’efface derrière la pastille. */
     if (LI && LI.apres) { const d = pontDur(LI.apres, 'apres'); PONTS.push({k: 'apres', a: out, b: +(out + d).toFixed(3), el: PEL.apres, html: LI.apres}); out = +(out + d).toFixed(3); }
     introPills(out, picks.length);
+    /* ?check : les contrôles du 11 nov. (check.js, chargé pour eux seuls). */
+    const CHECK2 = QS.has('check') ? await new Promise(res => { const sc = document.createElement('script'); sc.src = 'check.js';
+      sc.onload = sc.onerror = () => res(window.coverIssues || null); document.head.append(sc); }) : null;
     renderAt(0);
     camPlan(tl.duration());
     if (EMBED) dispatchEvent(new Event('resize'));
@@ -1420,6 +1438,7 @@ function Course(cfg){
       notesUntil: cfg.notesUntil != null ? unwarp(cfg.notesUntil) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(picks.concat(opens).map(p => p.at)).concat(cfg.extraClashes ? cfg.extraClashes() : []),
       textIssues: QS.has('check') ? textIssues() : undefined,
       layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
+      coverIssues: CHECK2 ? CHECK2(renderAt, out) : undefined,
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
       /* Moments « À toi » : l’animation s’arrête, l’élève agit ; la page montre aussitôt le résultat (window.IX : slot, pick,

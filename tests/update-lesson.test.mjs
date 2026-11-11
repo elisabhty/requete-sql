@@ -316,7 +316,7 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
   const fiche = html.slice(html.indexOf('guide({ id:27,'), html.indexOf('guide({ id:28,'));
   const idees = [...fiche.matchAll(/\["(✏️|⚠️|🔢)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
-  assert.ok(page.includes('recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);'), 'chaque idée se révèle à son tour');
+  assert.ok(page.includes('recapScene(RECAP - 0.35, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);'), 'chaque idée se révèle à son tour');
 });
 
 test('les mots d’Elisa (24 octobre, 22 h 29), mot pour mot : une phrase par bulle, dans l’ordre de la vidéo', () => {
