@@ -44,7 +44,7 @@ const rar = cell => (/<span class="stk-rar ([^"]+)" aria-hidden="true">([^<]*)/.
 test('la rareté suit l’holographie : Rare (10 défis, 1ᵉʳ en multijoueur, défi difficile), Légendaire (séries de 7, 14 et 30 jours, Champion, parcours terminé)', () => {
   const { ctx } = world({ got: {}, fresh: {}, board: [], since: 1 });
   const all = vm.runInContext('[...STK_3D]', ctx);
-  assert.equal(all.length, 29);
+  assert.equal(all.length, 30);
   assert.deepEqual(Object.fromEntries(all.map(id => [id, ctx.stkRarete(id)]).filter(([, r]) => r)), { defis10: 'Rare', premier: 'Rare', difficile: 'Rare', serie7: 'Légendaire', serie14: 'Légendaire', champion: 'Légendaire', serie30: 'Légendaire', parcours: 'Légendaire' });
   assert.deepEqual({ ...vm.runInContext('STK_HOLO', ctx) }, { defis10: 1, serie7: 2, parcours: 2, premier: 1, difficile: 1, serie14: 2, champion: 2, serie30: 2 }, 'les mêmes que les holographiques (2 : à paillettes)');
 });

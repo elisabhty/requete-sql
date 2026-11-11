@@ -35,7 +35,7 @@ test('les trois préparations sont inactives et absentes des écrans',async()=>{
  const sync=createPersonalisationSync();assert.deepEqual(await sync.status(),{enabled:false,pending:0});await assert.rejects(sync.pull(),{code:'sync_disabled'});
  for(const f of ['index.html','sw.js','decouvrir/connexion.html'])assert.doesNotMatch(fs.readFileSync(new URL('../'+f,import.meta.url),'utf8'),/account\/(personalisation|study)\.mjs/);
 });
-test('le catalogue de stickers correspond aux 15 modules et 14 accomplissements actuels',()=>{
+test('le catalogue de stickers correspond aux 15 modules et 15 accomplissements actuels',()=>{
  const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
  const m=app.match(/const STK_MODULE_IDS=(\[[^;]+\]);/);assert.ok(m);const modules=vm.runInNewContext(m[1]);
  const start=app.indexOf('function accomplissements()'),end=app.indexOf('\n}',start);const acc=[...app.slice(start,end).matchAll(/\{id:'([^']+)'/g)].map(m=>m[1]);

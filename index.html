@@ -23264,6 +23264,9 @@ async function confirmImport(){
         requestAnimationFrame(()=>lqDone(carte,neuf?'Créé':affected.length>1?'Ajoutées':'Ajoutée',neuf?'Projet créé':affected.length>1?'Tables ajoutées':'Table ajoutée'));
       }else lqSay(neuf?'Projet créé':'Import terminé');
     }
+    /* 11 novembre, 18 h 38 (Elisa : « Ajoute un sticker pour faire une ligne complète ») : le 1er import réussi de ses propres
+       données fait gagner « Tes propres données ». Le toast arrive après la coche « Importé ». */
+    if(typeof stkMarquer==='function')setTimeout(()=>stkMarquer('donnees'),1300);
   }catch(e){
     if(point)try{ database.run('ROLLBACK TO rq_import'); database.run('RELEASE rq_import'); }catch(x){}
     if(ancienne){ try{ customDbs[target].close(); }catch(x){} customDbs[target]=ancienne; }
@@ -39329,7 +39332,7 @@ function stkLayers(ctx,list,cut,b){
    (hors ligne, jamais vue), le dessin à plat (STK_ART) la remplace, pour les stickers qui en ont un.
    La silhouette (à gagner, emplacement vide, ombre, masque holographique) se tire de l’image elle-même. */
 const STK_3D=new Set(['intro','lire','fonctions','agregats','jointures','sousreq','fenetre','modeliser','creer','ecrire','contraintes','transactions',
-  'triggers','index','securite','requete','defi1','lecons10','serie3','code','defis10','premier','difficile','serie7','amis5','serie14','champion','serie30','parcours']);
+  'triggers','index','securite','requete','defi1','lecons10','serie3','code','donnees','defis10','premier','difficile','serie7','amis5','serie14','champion','serie30','parcours']);
 const STK_IMG_V=1;
 const stkImgs={},stkSilCache=new Map();
 let stkRepaintT=0;
@@ -39419,6 +39422,9 @@ function accomplissements(){
     {id:'lecons10',label:'10 leçons',cap:'10 leçons validées',now:Math.min(st.lessons,10),goal:10,unit:'leçon',how:'Valide 10 leçons.'},
     {id:'serie3',label:'Série de 3 jours',cap:'3 jours de suite',now:Math.min(st.streak,3),goal:3,ok:rec>=3,unit:'jour',how:'Atteins une série de 3 jours.'},
     {id:'code',label:'Code partagé',cap:'Code de salle partagé',now:ev.code?1:0,goal:1,how:'Partage le code d’une salle de défi avec un ami.'},
+    /* 11 novembre, 18 h 38 : le 15ᵉ, pour que la dernière ligne de la planche soit pleine (3 par ligne). Gagné au 1er import réussi
+       dans la Console (confirmImport) ; les imports d’avant ne laissent pas de trace sûre, il compte donc à partir du prochain. */
+    {id:'donnees',label:'Tes propres données',cap:'Données importées',now:ev.donnees?1:0,goal:1,how:'Importe tes propres données (Excel, CSV ou base) dans la Console.'},
     {id:'defis10',label:'10 défis',cap:'10 défis trouvés',now:Math.min(st.defis,10),goal:10,unit:'défi',how:'Trouve 10 défis différents.'},
     {id:'premier',label:'1ᵉʳ en multijoueur',cap:'1ʳᵉ place à plusieurs',now:Math.min(premiers,1),goal:1,how:'Finis premier d’une partie à plusieurs.'},
     {id:'difficile',label:'Défi difficile',cap:'Niveau Difficile',now:Math.min(difficiles,1),goal:1,how:'Trouve un défi de niveau Difficile.'},
@@ -39439,7 +39445,8 @@ function stkState(){
   if(!S.got)S.got={};if(!S.fresh)S.fresh={};if(!Array.isArray(S.board))S.board=[];
   return S;
 }
-/* Un geste qui fait gagner un sticker sans passer par la progression (le code d’une salle partagé) : noté une fois, puis la planche suit. */
+/* Un geste qui fait gagner un sticker sans passer par la progression (le code d’une salle partagé, le 1er import de ses données) :
+   noté une fois, puis la planche suit. */
 function stkMarquer(k){
   try{const S=stkState();if(!S.ev||typeof S.ev!=='object')S.ev={};if(S.ev[k])return;S.ev[k]=1;save();stkAfterProgress();}catch(e){}
 }
@@ -48585,7 +48592,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-touches-sql-v2856';
+  const SW_CACHE='requete-2026-11-11-sticker-donnees-v2857';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

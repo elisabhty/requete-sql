@@ -13,9 +13,9 @@ const take = (a, b) => { const i = html.indexOf(a); assert.ok(i >= 0, a); const 
 const fn = name => take(`function ${name}(`, '\n}\n') + '\n}\n';
 const NEW = ['defi1', 'code', 'premier', 'difficile', 'amis5', 'serie14', 'champion', 'serie30'];
 
-test('les 29 images : WebP carrés de 768 px, fond transparent, légères', () => {
+test('les 30 images : WebP carrés de 768 px, fond transparent, légères', () => {
   const ids = vm.runInContext(take('const STK_3D=', 'const STK_IMG_V=') + '[...STK_3D]', vm.createContext({}));
-  assert.equal(ids.length, 29);
+  assert.equal(ids.length, 30);
   for (const id of NEW) assert.ok(ids.includes(id), id);
   let total = 0;
   for (const id of ids) {
