@@ -32,6 +32,8 @@ function momentWin(p){
   return '';
 }
 const MOMENT_GAP = 2.65;   // 0,1 s d’écart + la légende « À toi ! » (2,55 s), comme toi() dans les chapitres du projet
+/* La carte d’un moment se pose dès « À toi ! » (0,1 s avant le passage) et reste jusqu’à ce que la scène suivante arrive (11 nov.). */
+const MOMENT_LEAD = 2.55, MOMENT_TAIL = 0.25;
 
 /* Le plan : où tombent les moments une fois les passages insérés, et ce que deviennent les temps de la page. Fonction pure (testée). */
 function momentPlan(moments, captions, chapters, duration, notesAt){
@@ -114,7 +116,8 @@ function momentIX(P){
     svg.append(l);
   };
   return {
-    enter: i => { clear(); start(i); },
+    /* La carte posée pendant « À toi ! » reste telle quelle. */
+    enter: i => { if (X && X.i === i && X.lead) { X.lead = false; return; } clear(); start(i); },
     /* Réglage en cours : la carte suit chaque mouvement (rien n’est jugé). */
     tune(i, s){ start(i); draw(i, s); },
     /* Moment déjà réussi : la carte montre le réglage juste. */
@@ -199,7 +202,13 @@ function momentIX(P){
     hint(i){ const p = P[i]; return p.tip ? {text: fr(p.tip), keys: (p.tipKeys || []).map(String)} : null; },
     slot: i => { start(i); const sl = P[i].slot && $(P[i].slot); return sl ? lay(sl) : null; },
     leave(i, answered){ if (answered && X && X.i === i) wait = i; else clear(); },
-    tick(t){ if (wait < 0) return; const a = P[wait].at; if (t >= a + 0.0199 || t < a - 0.001) clear(); }
+    tick(t){
+      if (wait >= 0) { const a = P[wait].at; if (t >= a + MOMENT_TAIL || t < a - 0.001) clear(); return; }
+      /* « À toi ! » passait sur une image vide (Elisa, 11 nov., 8 h 57) : la carte se pose avec la légende ; en reculant, elle s’en va. */
+      const i = P.findIndex(p => p.board && t >= p.at - MOMENT_LEAD && t < p.at + MOMENT_TAIL);
+      if (i >= 0) { if (!X || X.i !== i) { clear(); start(i); X.lead = true; } }
+      else if (X && X.lead) clear();
+    }
   };
 }
 

@@ -274,7 +274,7 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
   const fiche = html.slice(html.indexOf('guide({ id:66,'), html.indexOf('guide({ id:26,'));
   const idees = [...fiche.matchAll(/\["(🗑️|🔗|🛟)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3]), ...(m[4] ? [m[4]] : [])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
-  assert.ok(page.includes('recapScene(RECAP, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);') && page.includes("hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));") && page.includes('hold(d + 0.5, rd(rs[i].innerHTML));'),
+  assert.ok(page.includes('recapScene(RECAP - 0.35, [RECAP + 0.7, RECAP + 2.1, RECAP + 3.5]);') && page.includes("hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));") && page.includes('hold(d + 0.5, rd(rs[i].innerHTML));'),
     'chaque idée se révèle en deux temps : la phrase, puis sa précision, chacune lue en entier');
 });
 

@@ -741,7 +741,7 @@ const COURSES = [
     traps: ['<span>Entrepôt · Tableau de bord</span>', "const ALERTE = s => s < 50 ? 'r' : s < 100 ? 'o' : 'g';",
       '<span class="nl">Son alerte</span><span class="tag calc">à calculer</span>', '<span class="kw">WHERE</span> <span class="glow" id="wh2">stock &lt; 50</span>;',
       '<div class="tr gh" id="gh2">✕ 6 autres produits écartés</div>',
-      '<span class="sw c" id="sw3a"><span class="a">stock</span><span class="b nv">90</span></span> &lt; 50</span>', '<span class="b al o">À surveiller</span>',
+      '<span class="sw c" id="sw3a"><span class="a">stock</span><span class="b nval">90</span></span> &lt; 50</span>', '<span class="b al o">À surveiller</span>',
       '<span>Dans le mauvais ordre</span>', '<b>Aucun produit « À commander »</b><span class="s">Sous 50, le stock est aussi sous 100.</span>',
       '<span class="a com">  -- pas de ELSE</span>', '<span class="nul" id="nul5">NULL</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> alerte</span>', '✓ 8 alertes à jour']},
@@ -1390,7 +1390,10 @@ for (const c of COURSES) {
        écran (la scène grandit dans la place libre, Elisa, 2 novembre, 0 h 26, réf. 4), ~7 Ko dans le moteur commun. */
     /* 560 Ko depuis le 2 novembre, 20 h (et 5 Ko de plus pour les cours qui ont leur propre plafond) : « À toi ! » dit avec sa légende
        (moments.js, momentVoice ; Elisa, 19 h 53) et le texte qui garde sa taille sur iPhone (core.css ; 19 h 31), ~2 Ko. */
-    assert.ok(total < ((c.maxKo || 520) + 40) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* 565 Ko depuis le 11 novembre (et 5 Ko de plus pour les cours qui ont leur propre plafond) : la carte des moments posée dès « À toi ! »
+       et l’intro qui place sa rubrique, son sous-titre et son titre (Elisa, 8 h 57 : « des soucis de formatage »), ~2 Ko dans le moteur
+       commun et moments.js ; les contrôles ajoutés (check.js) ne sont chargés que par ?check. */
+    assert.ok(total < ((c.maxKo || 520) + 45) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -2458,7 +2461,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
     ['La table inscriptions relie', ["tl.to('#ib-r2 .hl', {opacity: 1, duration: 0.25, yoyo: true, repeat: 1}, 190.0); cue(190.0, 'pop', 0.6, 3);"], 190.0, 0.5],
     ['Elle conserve aussi', ["tl.to('#ib-r3', {backgroundColor: 'rgba(22,148,71,.14)', duration: 0.25, yoyo: true, repeat: 3}, 192.45); cue(192.45, 'pop', 0.6, 4);"], 192.45, 1.0],
     // La boutique entière : les classes déjà vues arrivent, puis chaque association à son tour ; « les commandes » et « les produits » arrivent quand la bulle les nomme
-    ['Tu peux appliquer', ["['#sh-co', '#sh-at', '#sh-in', '#qm-cl', '#qm-ca'].forEach((q, k) => { const t = 197.0 + k * 0.15;"], 197.0, 1.05],
+    ['Tu peux appliquer', ["['#sh-co', '#sh-at', '#sh-in', '#qm-cl', '#qm-ca'].forEach((q, k) => { const t = 196.3 + k * 0.15;"], 196.3, 1.05],
     ['Pour cela, ajoute', ["[['#qm-cm', 201.95], ['#qm-pr', 202.95]].forEach(([q, t], k) => {"], 201.95, 1.45],
     ['Tu peux appliquer', ["const AT = [198.5, 199.3, 200.1, 202.1, 203.2];", "draw('#ls-' + k, t, 0.4); show('#sn-' + k, t + 0.3, {y: 12}, 0.35);", "cue(t + 0.45, 'pop', 0.6, q);"], 198.5, 2.53],
     ['Pour cela, ajoute', ["const AT = [198.5, 199.3, 200.1, 202.1, 203.2];"], 202.1, 2.03],
@@ -2500,7 +2503,7 @@ test('Modéliser avec UML (projet, chapitre 3) : leçon seule, le plan des table
   assert.deepEqual(fiche, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
   assert.ok(!/1 — \*|\* — \*/.test(page + l81), 'plus de « 1 — * » dans le récapitulatif');
   /* Chaque idée se révèle en deux temps : la phrase, puis sa précision, chacune gardée à l’image le temps de la lire. */
-  assert.ok(page.includes('recapScene(218.85, [219.55, 220.95, 222.35]);') && page.includes('[[219.55, 220.3], [220.95, 221.7], [222.35, 223.1]].forEach(([r, d], i) => {')
+  assert.ok(page.includes('recapScene(218.5, [219.55, 220.95, 222.35]);') && page.includes('[[219.55, 220.3], [220.95, 221.7], [222.35, 223.1]].forEach(([r, d], i) => {')
     && page.includes("hold(r + 0.6, rd(rt[i].innerHTML.split('<span')[0]));") && page.includes('hold(d + 0.5, rd(rs[i].innerHTML));'), 'récapitulatif : la phrase puis sa précision, chacune lue en entier');
   assert.ok(D.CAPTIONS[idx('Pour finir')][0] < 219.55 && flat(idx('Pour finir')) === 'Pour finir, voici les trois idées à retenir.', 'la légende annonce les trois idées avant la première');
   /* Les six moments */
