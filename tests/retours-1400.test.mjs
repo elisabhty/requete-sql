@@ -102,7 +102,7 @@ test('pas encore inscrite : l’accueil annonce l’invitation, « Je m’inscri
   assert.equal(accueil({ code: 'PRET02', de: '@x' }, true), '', 'déjà inscrit : rien à annoncer');
   /* Sous le titre, à la place de la démo de la console ; le bouton dit « Je m’inscris » ; la vidéo du métier passe d’abord, comme pour
      tout nouveau venu (15 h 01 : « l’onboarding depuis le début ») */
-  assert.ok(app.includes('Choisis ton parcours en quelques étapes.</p>${invite}\n      <div class="ob-welcome-demo'));
+  assert.ok(app.includes('Apprends à ton rythme, où que tu sois.</p>${invite}\n      <div class="ob-welcome-demo'), 'sous le texte d’accueil (le sien depuis le 11 novembre, 17 h 47)');
   assert.ok(app.includes("    obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('name'),"));
   assert.ok(app.includes('  #onboarding .ob-screen.welcome.has-invite .ob-welcome-demo{display:none!important}'));
   const video = cut('function obVideoVoulue(){', '\n}\n') + '\n}\n';
@@ -169,5 +169,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button>'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-carte-types-v2853';") && app.includes("const SW_CACHE='requete-2026-11-11-carte-types-v2853';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-accueil-texte-v2854';") && app.includes("const SW_CACHE='requete-2026-11-11-accueil-texte-v2854';"));
 });
