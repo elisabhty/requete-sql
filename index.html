@@ -3295,6 +3295,8 @@
   .notes-list[data-enter] .ncard{animation:ncardIn .5s var(--spring-ios) both;animation-delay:calc(var(--i,0)*55ms)}
   /* La poubelle des notes (lqCorbeille) : la boulette, la poubelle en trois couches (fond, corps, couvercle), les confettis */
   .lq-corb{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden}
+  .stk-vol{position:fixed;z-index:9997;pointer-events:none;transform-origin:50% 50%;will-change:transform}
+  .stk-vol .stk-art{display:block;width:100%;height:100%}
   .lq-corb>*{position:absolute;left:0;top:0;display:block}
   .lq-corb .lqc-p{width:64px;height:76px;transform-origin:50% 92%;will-change:transform}
   .lq-corb .lqc-p svg,.lq-corb .lqc-lid i svg{display:block;width:64px;height:76px;overflow:visible}
@@ -3829,6 +3831,14 @@
   .mu-ring{position:absolute;left:50%;top:50%;width:200px;height:200px;margin:-100px 0 0 -100px;border-radius:50%;border:8px solid rgba(255,236,170,.95);opacity:0;pointer-events:none}
   .mu-flash{position:absolute;inset:-46px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95),rgba(255,255,255,0) 60%);opacity:0;pointer-events:none}
   .mu-st{position:absolute;inset:18px}
+  /* Plusieurs stickers gagnés ensemble (11 novembre) : en éventail sur la scène */
+  .mu-done.is-multi{display:flex;align-items:center;justify-content:center}
+  .mu-done.is-multi .mu-st-i{flex:none;width:60%;margin:0 -10%;display:block}
+  .mu-done.is-multi.n2 .mu-st-i{width:64%;margin:0 -7%}
+  .mu-done.is-multi .mu-st-i:nth-child(1){transform:rotate(-13deg) translateY(7%)}
+  .mu-done.is-multi .mu-st-i:nth-child(2){position:relative;z-index:2;transform:translateY(-5%) scale(1.06)}
+  .mu-done.is-multi.n2 .mu-st-i:nth-child(2){transform:rotate(11deg) translateY(4%)}
+  .mu-done.is-multi .mu-st-i:nth-child(3){transform:rotate(13deg) translateY(9%)}
   .mu-done{opacity:0}
   .mu.is-a .mu-done{animation:muSlam .78s cubic-bezier(.3,.6,.3,1) .12s both,muFloat 3.4s ease-in-out 1.7s infinite}
   @keyframes muSlam{0%{opacity:0;transform:translateY(-75vh) rotate(-32deg) scale(1.5)}55%{opacity:1;transform:translateY(0) rotate(6deg) scale(.86,.92)}72%{transform:translateY(-16px) rotate(-7deg) scale(1.07)}86%{transform:translateY(0) rotate(-3deg) scale(.98)}100%{opacity:1;transform:rotate(-4deg)}}
@@ -3911,6 +3921,8 @@
   .mu.is-still,.mu.is-still *,.mu.is-still *::before,.mu.is-still *::after{animation:none!important;transition:none!important}
   .mu.is-still :is(.mu-kick,.mu-h,.mu-p,.mu-time,.mu-path,.mu-acts),.mu.is-still .mu-rays{opacity:1;transform:none}
   .mu.is-still .mu-done,.mu.is-still .mu-tag{display:none}
+  .mu-acc.is-still .mu-done{display:block;opacity:1}
+  .mu-pts .mu-coin svg{display:block;width:100%;height:100%}.mu-pts .mu-album-ico svg{width:22px;height:22px;display:block}.mu-pts .mu-album-n{min-width:46px}.mu-pts .mu-tag{text-transform:none;letter-spacing:0;font-size:13px}.mu-acc.is-still .mu-done.is-multi{display:flex}
   .mu.is-still .mu-pips i.cur{background:#FFD23F;box-shadow:none}
   .mu.is-still .mu-pips i.nx{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.22)}
 
@@ -21964,10 +21976,10 @@ function clearConsoleHistory(){
   lqAsk({ico:'🧹',titre:'Effacer l’historique ?',texte:'Les requêtes exécutées dans ce projet ne seront plus listées.',oui:'Effacer',non:'Garder',danger:true}).then(ok=>{
     if(!ok)return;
     p.hist=[];saveProjState();
-    /* 22 h 35 : les lignes se froissent l’une après l’autre, puis la coche « Effacé » sur l’onglet */
-    lqAdieu([...document.querySelectorAll('#console-hist .console-query-row')].slice(0,10),()=>{
+    /* 11 novembre, 21 h 33 : les lignes partent à la poubelle, l’une après l’autre (lqCorbeille, comme une note supprimée) */
+    lqCorbeille([...document.querySelectorAll('#console-hist .console-query-row')].slice(0,10),()=>{
       renderConsoleSide();
-      lqDone(document.getElementById('console-tab-history')||document.querySelector('#console-hist'),'Effacé','Historique effacé');
+      lqSay('Historique effacé');
     },{pas:45});
   });
 }
@@ -22095,12 +22107,12 @@ function deleteDb(id){
 function deleteDbNow(id){
   const meta=dbCatalog.find(d=>d.id===id);
   if(!meta||!customDbs[id]) return;
-  /* 22 h 35 : sa ligne de la liste se froisse et s’en va, puis la coche « Supprimé » sur la liste */
+  /* 11 novembre, 21 h 33 : sa ligne de la liste part à la poubelle (lqCorbeille, comme une note supprimée) */
   const D=typeof document!=='undefined'&&document.querySelector?document:null;
   const ligne=D&&D.querySelector(`#scr-console .console-project-open[onclick="openConsoleProject('${id}')"]`);
-  lqAdieu([ligne&&ligne.closest('.console-project-row')],()=>{
+  lqCorbeille([ligne&&ligne.closest('.console-project-row')],()=>{
     deleteDbFin(id);
-    if(D&&typeof lqDone==='function')lqDone(D.querySelector('#scr-console .console-projects-head h2')||D.querySelector('#scr-console .lgtitle h1'),'Supprimé',`Projet «\u00a0${meta.name}\u00a0» supprimé`);
+    if(typeof lqSay==='function')lqSay(`Projet «\u00a0${meta.name}\u00a0» supprimé`);
   });
 }
 function deleteDbFin(id){
@@ -22290,14 +22302,14 @@ function ajouterTable(){
     oui:'Choisir un fichier',non:'Annuler',
     surOui:()=>{importAjout=Date.now();const f=document.getElementById('data-import');if(f)f.click();}});
 }
-/* Une table supprimée (Elisa, 5 novembre, 22 h 19 : « une micro-interaction à la suppression d’une table ») : sa carte rougit, se
-   froisse et s’efface vers la gauche pendant que la liste se referme sur elle, puis les cartes se redessinent. Le bouton de la carte
-   comme un DROP TABLE écrit dans l’éditeur. Sans animation : tout de suite. */
+/* Une table supprimée (Elisa, 5 novembre, 22 h 19 : « une micro-interaction à la suppression d’une table ») : sa carte part à la
+   poubelle (11 novembre, 21 h 33 : lqCorbeille, comme une note supprimée) pendant que la liste se referme sur elle, puis les cartes se
+   redessinent. Le bouton de la carte comme un DROP TABLE écrit dans l’éditeur. Sans animation : tout de suite. */
 function dbCartesAdieu(noms,suite){
   const host=document.getElementById('db-tables');
   const cartes=host?noms.map(n=>host.querySelector(`.db-tblock[data-table="${CSS.escape(n)}"]`)).filter(Boolean):[];
   if(!cartes.length){suite();return;}
-  lqAdieu(cartes,suite,{gap:parseFloat(getComputedStyle(host).rowGap)||0});
+  lqCorbeille(cartes,suite,{gap:parseFloat(getComputedStyle(host).rowGap)||0});
 }
 async function dropTable(name){
   if(isDemoDb(activeDbId))return;
@@ -22311,7 +22323,7 @@ async function dropTable(name){
     renderDbWorkspace();
     renderConsoleSchemaSummary();
     const p=projOf(activeDbId); if(p.tdesc&&p.tdesc[name]!=null){delete p.tdesc[name];saveProjState();}
-    lqDone(document.getElementById('console-schema-summary'),'Supprimée',`Table «\u00a0${name}\u00a0» supprimée`);
+    lqSay(`Table «\u00a0${name}\u00a0» supprimée`);
   }catch(e){ lqInfo('Suppression impossible',String(e.message||e)); }
 }
 /* ---------- Import CSV / JSON / SQL ---------- */
@@ -28487,7 +28499,8 @@ function clsQuitter(){
       const cle=s.cle;s.horsCls=1;s.envoi=[];delete s.clsId;delete s.defisEnv;save();
       if(cle)clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});
       CLS.data=null;clsPaint();closePlusDetails();if(document.getElementById('compte-body'))renderCompte();
-      lqSay('Tes scores sont retirés du classement.');
+      /* 11 novembre, 21 h 33 : la poubelle, comme toute suppression */
+      lqDone(document.querySelector('#scr-compte .acct-data'),'Retiré','Tes scores sont retirés du classement.');
     });
 }
 /* ---------- Pseudo unique ----------
@@ -32620,8 +32633,9 @@ function leconSeuleBilan(first){
   }
   lessonStepDir=1;
   lessonStep=3;
+  if(first)showUnlock(current.id);   // avant le bilan : il dit « Nouvelle carte mémo ! »
   renderLessonFlow();
-  if(first){ celebrate(); showUnlock(current.id); }
+  if(first)celebrate();
   saveNav();
   scrollLessonTop();
 }
@@ -33233,40 +33247,54 @@ function moduleUpClose(instant){
    fin d’un module sans le chemin des modules ni le module suivant : le sticker tombe et se plaque au centre (onde, confettis), « Bravo ! »,
    ce qu’il récompense ; « Récupérer le sticker » l’envoie dans « Ta collection », puis « Continuer » referme. Une page à la fois : elle
    attend que la fin d’un module (MU), une vidéo de cours ou l’onboarding soit fermé. */
-function stkPageHtml(id){
-  const info=stkInfo(id)||{name:id},n=stkList().filter(x=>x.got).length;
-  const txt=id==='requete'?'Ta toute première requête SQL a marché. Voici ton sticker&nbsp;!':`Tu as gagné «&nbsp;${esc(info.name)}&nbsp;». Voici ton sticker&nbsp;!`;
+function stkPageHtml(ids){
+  ids=[].concat(ids).filter(id=>stkInfo(id));
+  const infos=ids.map(id=>stkInfo(id)),plus=ids.length>1,id=ids[0],info=infos[0]||{name:id},n=stkList().filter(x=>x.got).length;
+  const noms=infos.map(x=>`«&nbsp;${esc(x.name)}&nbsp;»`),liste=noms.length>1?noms.slice(0,-1).join(', ')+' et '+noms[noms.length-1]:noms[0];
+  const txt=plus?`Tu as gagné ${liste}. Voici tes stickers&nbsp;!`:id==='requete'?'Ta toute première requête SQL a marché. Voici ton sticker&nbsp;!':`Tu as gagné ${liste}. Voici ton sticker&nbsp;!`;
+  const art=plus?ids.slice(0,3).map(x=>`<span class="mu-st-i">${stkArtHtml(x,'art')}</span>`).join(''):stkArtHtml(id,'art');
   return `<div class="mu mu-acc" role="dialog" aria-modal="true" aria-labelledby="mu-h">
     <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
-    <div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${MU_STK}</span><span>Ta collection</span><b class="mu-album-n"><span>${Math.max(0,n-1)}</span><span>${n}</span></b></div>
+    <div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${MU_STK}</span><span>Ta collection</span><b class="mu-album-n"><span>${Math.max(0,n-ids.length)}</span><span>${n}</span></b></div>
     <button type="button" class="mu-x" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="mu-in">
-      <span class="mu-kick" id="mu-k">${esc(info.name)}</span>
+      <span class="mu-kick" id="mu-k">${plus?`${ids.length} nouveaux stickers`:esc(info.name)}</span>
       <div class="mu-stage" aria-hidden="true">
         <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
-        <div class="mu-st mu-done">${stkArtHtml(id,'art')}</div>
-        <span class="mu-tag">Nouveau sticker</span>
+        <div class="mu-st mu-done${plus?` is-multi n${Math.min(3,ids.length)}`:''}">${art}</div>
+        <span class="mu-tag">${plus?'Nouveaux stickers':'Nouveau sticker'}</span>
       </div>
       <h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>
       <p class="mu-p" id="mu-p">${txt}</p>
       <div class="mu-acts">
-        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_STK}</span><span class="mu-go-l">Récupérer le sticker</span></button>
+        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_STK}</span><span class="mu-go-l">${plus?'Récupérer les stickers':'Récupérer le sticker'}</span></button>
         <button type="button" class="mu-later">Voir ma collection</button>
       </div>
       <p class="mu-sr" aria-live="polite"></p>
     </div>
   </div>`;
 }
-function stkPageOuvrir(id){
-  if(typeof document==='undefined'||!stkInfo(id))return;
+/* 11 novembre, 21 h 33 (Elisa : « pour les nouveaux stickers, ça sera une page ») : chaque sticker gagné hors d’une leçon a cette
+   page, plus de bandeau « Nouveau sticker » ; plusieurs à la fois, une seule page qui les montre ensemble (trois au plus sur la scène).
+   La page attend qu’aucune autre ne soit ouverte (fin de module, flamme du jour, vidéo de cours, onboarding) et qu’on ne soit pas
+   dans une leçon ou une partie. */
+let stkPageFile=[];
+function stkPageOuvrir(ids){
+  if(typeof document==='undefined')return;
+  [].concat(ids).forEach(id=>{ if(stkInfo(id)&&!stkPageFile.includes(id))stkPageFile.push(id); });
+  if(!stkPageFile.length)return;
   const video=document.getElementById('lesson-video'),ob=document.getElementById('onboarding');
-  if(MU||(video&&video.classList.contains('on'))||(ob&&ob.classList.contains('on'))){ setTimeout(()=>stkPageOuvrir(id),1500); return; }
+  if(MU||(video&&video.classList.contains('on'))||(ob&&ob.classList.contains('on'))||document.getElementById('lq-flamme')||document.getElementById('lq-feu')||(document.body.classList.contains('in-lesson')&&!stkPageFile.includes('requete'))){
+    clearTimeout(stkPageOuvrir.t);stkPageOuvrir.t=setTimeout(()=>stkPageOuvrir([]),1500);return;
+  }
+  const liste=stkPageFile.slice();stkPageFile=[];
+  const id=liste[0];
   const box=document.createElement('div');
-  box.innerHTML=stkPageHtml(id);
+  box.innerHTML=stkPageHtml(liste);
   const el=box.firstElementChild;
   document.body.appendChild(el);
   document.body.classList.add('mu-on');
-  MU={el,acc:id,stage:'a',snd:false,timers:[]};
+  MU={el,acc:id,accs:liste,stage:'a',snd:false,timers:[]};
   stkPaint(el);
   el.querySelector('.mu-go').addEventListener('click',moduleUpGo);
   el.querySelector('.mu-later').addEventListener('click',()=>{ moduleUpClose(true); openStickers(id); });
@@ -33304,8 +33332,9 @@ function stkPageCollect(){
   T(()=>{
     MU.stage='c';
     el.classList.add('is-b');
-    muSet(el.querySelector('#mu-p'),'Ton sticker est dans ta collection&nbsp;!',vite);
-    el.querySelector('.mu-sr').textContent='Sticker ajouté à ta collection.';
+    const plus=MU.accs&&MU.accs.length>1;
+    muSet(el.querySelector('#mu-p'),plus?'Tes stickers sont dans ta collection&nbsp;!':'Ton sticker est dans ta collection&nbsp;!',vite);
+    el.querySelector('.mu-sr').textContent=plus?'Stickers ajoutés à ta collection.':'Sticker ajouté à ta collection.';
     go.removeAttribute('aria-disabled');
     muSet(go.querySelector('.mu-go-l'),'Continuer',vite);
     go.querySelector('.mu-go-ico').innerHTML=MU_PLAY;
@@ -37509,8 +37538,8 @@ function jeuRender(){
     const sc=jeuScores();
     const cg=jeuCreditGame();
     const jouees=J.rounds.filter(Boolean).length;
-    /* Les points de la partie arrivent en notification, une fois le podium ou le bilan posé. */
-    if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);
+    /* Les points de la partie ont leur page, une fois le podium ou le bilan posé dessous (11 novembre, 21 h 33). */
+    if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage({pts:cg.pts,total:cg.total,solo:!!J.solo});},700);
     /* 9 novembre, 12 h 36 (Elisa : « regarde s’il n’y a pas d’erreur dans la logique hôte, salle, joueur, quitter la salle ») : la
        forme de l’écran de fin se décide à son arrivée et ne bouge plus ; le podium d’une partie à deux devenait un bilan « seul » 55 s
        après le départ d’un joueur à 0 point (il n’est plus compté présent). « Rejouer » le remet à zéro (case 'again'). */
@@ -38014,24 +38043,56 @@ function jeuCountUp(el){
    nombre qui monte ; en fin de partie, le total de salle à côté. Le détail des points est dans la carte « Trouvé » et les résultats.
    Le lecteur d’écran entend le résultat (lqSay). */
 const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26.6" r="20" fill="#1B1640" opacity=".28"/><circle cx="24" cy="24" r="20" fill="#fff"/><circle cx="24" cy="24" r="16.3" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><circle cx="24" cy="24" r="11.6" fill="none" stroke="#E0A100" stroke-width="2"/><path d="M24 15.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff" stroke="#1B1640" stroke-width="2" stroke-linejoin="round"/></svg>';
-function jeuPtsPop(o){
-  if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||!document.body.appendChild)return;
-  let t=document.getElementById('jeu-pts-pop');
-  if(!t){t=document.createElement('div');t.id='jeu-pts-pop';t.setAttribute('aria-hidden','true');document.body.appendChild(t);}
-  const still=prefersReduceMotion(),game=o.kind==='game'&&o.total>0;
-  const fmt=v=>(+v||0).toLocaleString('fr-FR');
-  t.innerHTML=`<span class="jpp-coin">${JEU_COIN_SVG}</span><b><em class="jpp-n" data-n="${o.pts}">+${still?o.pts:0}</em> point${o.pts>1?'s':''}</b>${game?`<small class="jpp-sub">total <b data-n="${o.total}" data-from="${Math.max(0,o.total-o.pts)}" data-fmt="fr">${fmt(still?o.total:Math.max(0,o.total-o.pts))}</b></small>`:''}`;
-  /* La flamme du jour peut tomber au même moment : les points se posent juste dessous. */
-  const st=document.getElementById('lq-streak-toast'),low=st&&st.classList.contains('on')?Math.round(st.getBoundingClientRect().bottom+10):0;
-  if(low)t.style.top=low+'px';else t.style.removeProperty('top');
-  t.classList.remove('on');void t.offsetWidth;t.classList.add('on');
-  if(!still){
-    const n=t.querySelector('.jpp-n');setTimeout(()=>jeuCountUp(n),220);
-    const b=t.querySelector('.jpp-sub b');if(b)setTimeout(()=>jeuCountUp(b),700);
-  }
-  if(typeof lqSay==='function')lqSay(`+${o.pts} points`+(game?`, total de salle : ${o.total} points`:''));
-  if(o.kind==='game'&&typeof buzz==='function')buzz('success');
-  clearTimeout(jeuPtsPop.t);jeuPtsPop.t=setTimeout(()=>t.classList.remove('on'),game?3200:2400);
+/* Les points d’une partie (Elisa, 11 novembre, 21 h 33 : « pareil pour les points : lors d’un jeu en solo ou en multijoueur, c’est
+   une page et pas une notif, et la page nous demande d’aller voir le bilan ») : à l’écran final, une page dans la DA de la fin d’un
+   module (MU) : la pièce tombe et se plaque au centre, « +12 points », « Bravo ! », ce que la partie rapporte et le nouveau total de
+   salle, que le compteur en haut fait rouler ; « Voir le bilan » (ou la croix, ou Échap) referme la page sur le podium ou le bilan
+   de la partie, déjà posé dessous. Plus de pastille de points à chaque manche : la carte « Trouvé » les donne déjà. */
+function jeuPtsPage(o){
+  if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||typeof document.body.appendChild!=='function'||typeof MU==='undefined'||typeof moduleUpClose!=='function')return;
+  if(MU){ clearTimeout(jeuPtsPage.t); jeuPtsPage.t=setTimeout(()=>jeuPtsPage(o),900); return; }
+  const fmt=v=>(+v||0).toLocaleString('fr-FR'),pl=o.pts>1?'s':'',total=o.total>0?o.total:0;
+  const box=document.createElement('div');
+  box.innerHTML=`<div class="mu mu-acc mu-pts" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">
+    <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
+    ${total?`<div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${JEU_COIN_SVG}</span><span>Points de salle</span><b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b></div>`:''}
+    <button type="button" class="mu-x" aria-label="Voir le bilan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="mu-in">
+      <span class="mu-kick" id="mu-k">${o.solo?'Partie solo terminée':'Partie terminée'}</span>
+      <div class="mu-stage" aria-hidden="true">
+        <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
+        <div class="mu-st mu-done mu-coin">${JEU_COIN_SVG}</div>
+        <span class="mu-tag">+${fmt(o.pts)} point${pl}</span>
+      </div>
+      <h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>
+      <p class="mu-p" id="mu-p">Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${total?` Tes points de salle passent à <b>${fmt(total)}</b>.`:''}</p>
+      <div class="mu-acts">
+        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_PLAY}</span><span class="mu-go-l">Voir le bilan</span></button>
+      </div>
+    </div>
+  </div>`;
+  const el=box.firstElementChild;
+  document.body.appendChild(el);
+  document.body.classList.add('mu-on');
+  MU={el,pts:o.pts,stage:'c',snd:false,timers:[]};
+  const fermer=()=>moduleUpClose();
+  el.querySelector('.mu-go').addEventListener('click',fermer);
+  el.querySelector('.mu-x').addEventListener('click',fermer);
+  el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); fermer(); } });
+  if(typeof lqSay==='function')lqSay(`+${o.pts} point${pl}`+(total?`, total de salle : ${total} points`:''));
+  if(typeof buzz==='function')buzz('success');
+  const alb=el.querySelector('.mu-album');
+  if(prefersReduceMotion()){ el.classList.add('is-still','is-a','is-ready','is-album'); if(alb)alb.classList.add('is-hit'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} return; }
+  const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(MU&&MU.el===el)el.classList.add('is-a'); }));
+  T(()=>{
+    muImpact(el,false);
+    if(navigator.vibrate)navigator.vibrate([18,30,10]);
+    lqConfetti({n:60});
+    muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);
+  },560);
+  if(alb){ T(()=>el.classList.add('is-album'),1150); T(()=>{ alb.classList.add('is-hit'); muSound([[0,'pop',3,.6]]); if(navigator.vibrate)navigator.vibrate(8); },1500); }
+  T(()=>{ el.classList.add('is-ready'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} },1500);
 }
 /* Points de la partie (une seule fois) : cumulés dans « Tes points de salle ». */
 function jeuCreditGame(){
@@ -38102,7 +38163,7 @@ function jeuRun(){
     jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});
     if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}
     jeuCountUp(document.querySelector('#jeu-done .jeu-done-pts em'));
-    {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}
+    {const x=jeuRanking(n).find(y=>y.pid===J.me);if(x&&x.pts>0&&typeof lqSay==='function')lqSay(`+${x.pts} points`);}   // 11 novembre : plus de pastille, la carte « Trouvé » les montre
     if(navigator.vibrate)navigator.vibrate([10,40,20]);
     return;
   }
@@ -39173,25 +39234,12 @@ function cardToConsole(id){
   fillConsoleSql(cardRunnableSql(memoCarte(id).c));
 }
 let toastId=null,toastTimer=null,toastAction=null;
+/* La carte mémo d’une leçon validée pour la première fois (11 novembre, 21 h 33, Elisa : « pour les cartes mémo, ça sera dans les
+   pages finales, les bilans ; donc pas de notification ») : plus de bandeau « Carte débloquée » ; le bilan l’accueille, « Nouvelle carte
+   mémo ! » (bravoUnlockHtml, qui lit lastUnlockedId). */
 function showUnlock(id){
-  const c=CARTES[id]; if(!c)return;
-  toastId=id; lastUnlockedId=id; toastAction=null;
-  const t=document.getElementById('toast');
-  const mini=document.getElementById('toast-mini');
-  mini.className='tmini card';
-  mini.style.background=gradOf(id);
-  mini.textContent=memoSerial(id);
-  t.classList.remove('warn','info');
-  t.classList.add('has-sub','is-action');
-  const k=document.getElementById('toast-kicker');
-  const cs=memoDeLecon(id);   // 11 novembre, 17 h 20 : une leçon peut en donner deux
-  if(k){k.textContent=cs.length>1?`${cs.length} cartes débloquées`:'Carte débloquée';k.classList.add('on');}
-  const go=document.getElementById('toast-go'); if(go){go.classList.remove('hidden');go.textContent='Voir';}
-  document.getElementById('toast-t').textContent=cs.length>1?cs.map(e=>e.c.k).join(' + '):c.k;
-  document.getElementById('toast-s').textContent=cs.length>1?'Ajoutées à ta collection':c.t+' · ajoutée à ta collection';
-  toastLift(t);
-  t.classList.add('on');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),4500);
+  if(!CARTES[id])return;
+  lastUnlockedId=id;
 }
 function toastGo(){
   document.getElementById('toast').classList.remove('on');
@@ -39626,7 +39674,7 @@ function stkSync(){
   return won;
 }
 /* Après chaque avancée (noteActivityDay) : pendant une leçon ou une partie de Jouer, les stickers gagnés attendent (le bilan de
-   la leçon les montre ; sinon, un toast en sortant) ; ailleurs, un toast tout de suite. */
+   la leçon les montre ; sinon, leur page en sortant) ; ailleurs, leur page tout de suite (11 novembre, 21 h 33 : plus de bandeau). */
 let stkLessonNew=[],stkLessonShown=false;
 function stkAfterProgress(){
   const won=stkSync();
@@ -39634,28 +39682,16 @@ function stkAfterProgress(){
   /* 20 h 26 : la première requête faite dans l’onboarding s’annonce tout de suite, même si la première leçon s’est déjà ouverte : elle
      n’attend pas son bilan, qui garde ce que la leçon fait gagner (le sticker du module). */
   const ev=stkState().ev||{},now=won.filter(id=>id==='requete'&&ev.requete),held=won.filter(id=>!now.includes(id));
-  if(now.length)stkPageOuvrir(now[0]);   // 20 h 54 : « C’est pas une page qui vient ? » : sa page, pas une notification
+  if(now.length)stkPageOuvrir(now);   // 20 h 54 : « C’est pas une page qui vient ? » : sa page, pas une notification
   if(!held.length)return;
   if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...held);return;}
-  stkAnnounce(held);
+  stkPageOuvrir(held);
 }
-/* En quittant une leçon ou une partie : ce que le bilan n’a pas montré est annoncé par un toast. */
+/* En quittant une leçon ou une partie : ce que le bilan n’a pas montré a sa page. */
 function stkLeaveLesson(){
   const won=stkLessonNew,shown=stkLessonShown;
   stkLessonNew=[];stkLessonShown=false;
-  if(won.length&&!shown)setTimeout(()=>stkAnnounce(won),450);
-}
-function stkAnnounce(ids,tries=0){
-  const t=document.getElementById('toast');
-  if(!t||!ids.length)return;
-  if(t.classList.contains('on')&&tries<6){clearTimeout(stkAnnounce.t);stkAnnounce.t=setTimeout(()=>stkAnnounce(ids,tries+1),1500);return;}
-  const items=ids.map(stkInfo).filter(Boolean);
-  if(!items.length)return;
-  toastWithAction(items.length>1?`${items.length} nouveaux stickers`:items[0].name,'Ajouté à ta collection','Voir',()=>openStickers(items[0].id));
-  const k=document.getElementById('toast-kicker');
-  if(k){k.textContent='Nouveau sticker';k.classList.add('on');}
-  const mini=document.getElementById('toast-mini');
-  if(mini){mini.className='tmini stk';mini.style.background='';mini.innerHTML=stkArtHtml(items[0].id,'art');stkPaint(mini);}
+  if(won.length&&!shown)setTimeout(()=>stkPageOuvrir(won),450);
 }
 /* Le bilan d’une leçon qui fait gagner un sticker (fin de module, accomplissement). */
 function stkBravoHtml(){
@@ -40069,31 +40105,72 @@ function stkPlace(id,x,y){
   save();renderStickers();buzz('light');
   stkStick(document.querySelector(`#stk-board .stk-item[data-id="${id}"]`));
 }
+/* Un sticker décollé du tableau rentre dans sa case de la planche (Elisa, 11 novembre, 21 h 33 : plus de bandeau « Sticker décollé »
+   ni « Tableau vidé » avec « Annuler », une micro-interaction) : il se soulève, file en cloche jusqu’à sa case et s’y pose d’un
+   rebond ; le tableau vidé, tous rentrent, l’un après l’autre. stkVolPrendre note leurs places avant le rendu, stkVolRentrer les fait
+   voler après. Mouvement réduit : rien ne vole, la vibration et le lecteur d’écran disent que c’est fait. */
+function stkVolPrendre(ids){
+  const S=stkState(),out=[];
+  ids.forEach(id=>{
+    const el=document.querySelector(`#stk-board .stk-item[data-id="${CSS.escape(id)}"]`),b=S.board.find(q=>q.id===id);
+    if(!el)return;const r=el.getBoundingClientRect();
+    if(r.width&&r.height)out.push({id,r,rot:b?+b.r||0:0});
+  });
+  return out;
+}
+function stkVolRentrer(vols){
+  if(typeof document==='undefined')return;
+  if(!vols.length||prefersReduceMotion()||typeof document.body.animate!=='function'){if(typeof buzz==='function')buzz('light');return;}
+  vols.forEach((v,k)=>{
+    const cell=document.querySelector(`.stk-grid:not(.stk-choix) .stk-cell[data-id="${CSS.escape(v.id)}"]`);
+    let cible=cell&&(cell.querySelector('.stk-art')||cell);
+    if(!cible)return;
+    /* Sa case hors de l’écran (plus bas dans la planche) : il file dans le compteur « 3/30 débloqués », qui saute. */
+    const H=innerHeight||800,vue=r=>r.width&&r.bottom>40&&r.top<H-40;
+    if(!vue(cible.getBoundingClientRect())){const c=document.getElementById('stk-sheet-t')?.nextElementSibling;if(c&&vue(c.getBoundingClientRect()))cible=c;}
+    const b=cible.getBoundingClientRect(),a=v.r;if(!b.width)return;
+    const f=document.createElement('div');f.className='stk-vol';f.setAttribute('aria-hidden','true');
+    f.style.cssText=`left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${a.height}px`;
+    f.innerHTML=stkArtHtml(v.id,'art');
+    document.body.appendChild(f);stkPaint(f);
+    const cache=cell&&(cell.querySelector('.stk-art')||cell);if(cache)cache.style.opacity='0';
+    const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2),sc=Math.max(.2,Math.min(b.width,b.height*1.4)/a.width),haut=Math.min(-40,dy*.5-60);
+    const dansCase=!!cell&&cell.contains(cible);
+    const d=k*90,anim=f.animate([
+      {transform:`rotate(${v.rot}deg)`,easing:'cubic-bezier(.3,.7,.4,1)'},
+      {transform:`translateY(-16px) rotate(${v.rot-8}deg) scale(1.14)`,offset:.2,easing:'cubic-bezier(.4,0,.6,1)'},
+      {transform:`translate(${(dx*.55).toFixed(1)}px,${(haut).toFixed(1)}px) rotate(${(v.rot+14)/2}deg) scale(${((1.14+sc)/2).toFixed(3)})`,offset:.58,easing:'cubic-bezier(.4,0,.8,.6)'},
+      {transform:`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) rotate(0deg) scale(${sc.toFixed(3)})`}
+    ],{duration:640,delay:d,fill:'forwards'});
+    setTimeout(()=>{ if(typeof buzz==='function'&&k<4)buzz('light'); },d);
+    const pose=()=>{
+      f.remove();if(cache)cache.style.opacity='';
+      try{cible.animate(dansCase?[{transform:'scale(.72)'},{transform:'scale(1.16)',offset:.45},{transform:'scale(.96)',offset:.75},{transform:'none'}]:[{transform:'none'},{transform:'scale(1.22)',offset:.4},{transform:'none'}],{duration:340,easing:'ease-out'});}catch(e){}
+      if(typeof buzz==='function'&&k===vols.length-1)buzz('medium');
+    };
+    if(anim&&'onfinish' in anim)anim.onfinish=pose;else setTimeout(pose,640+d);
+  });
+}
 function stkRemove(id){
   const S=stkState(),i=S.board.findIndex(b=>b.id===id);
   if(i<0)return;
-  const b=S.board.splice(i,1)[0];
+  const vols=stkVolPrendre([id]);
+  S.board.splice(i,1);
   if(stkSel===id)stkSel=null;
   save();renderStickers();
   document.querySelector(`.stk-cell[data-id="${id}"]`)?.focus({preventScroll:true});
+  stkVolRentrer(vols);
   const s=stkInfo(id);
-  toastWithAction('Sticker décollé',s?`${s.name} · revenu dans ta collection`:'','Annuler',()=>{
-    const T=stkState();
-    if(T.board.some(q=>q.id===id))return;
-    T.board.splice(Math.min(i,T.board.length),0,b);save();renderStickers();
-  });
+  lqSay(s?`${s.name}\u00a0: revenu dans ta collection`:'Sticker revenu dans ta collection');
 }
 function stkClearBoard(){
   const S=stkState();
   if(!S.board.length)return;
-  const prev=S.board.slice();
+  const vols=stkVolPrendre(S.board.map(b=>b.id));
   S.board=[];stkSel=null;save();renderStickers();
   document.querySelector('.stk-cell.is-got')?.focus({preventScroll:true});
-  toastWithAction('Tableau vidé','Tes stickers sont revenus dans ta collection.','Annuler',()=>{
-    const T=stkState();
-    T.board=prev.filter(b=>!T.board.some(q=>q.id===b.id)).concat(T.board);
-    save();renderStickers();
-  });
+  stkVolRentrer(vols);
+  lqSay('Tableau vidé\u00a0: tes stickers sont revenus dans ta collection.');
 }
 /* ---------- La planche : toucher ouvre la fiche, glisser décolle le sticker jusqu’au tableau ---------- */
 let stkPeel=null;
@@ -41179,9 +41256,8 @@ function lqSay(t){
    je préfère juste une petite micro interaction sans texte en mode « validé » ; pareil pour le supprimer, je préfère quand l’icône fait
    juste une petite micro interaction », puis « comme l’épinglé ») : plus de mot à côté de la coche, plus de pastille au coin. Au centre
    de la chose touchée (du texte d’un titre), une coche ronde se plante d’un rebond, une onde en part et quatre éclats jaillissent,
-   comme la punaise d’une requête épinglée ; pour une suppression (« Supprimé », « Effacé »…), une petite poubelle rose dont le couvercle
-   saute. label ne s’affiche plus : il dit si c’est une suppression, et ce qu’entend le lecteur d’écran quand say manque (lqSay). */
-const LQ_POUBELLE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="lq-pb-couv" d="M4.5 7h15M9.6 7V5.3c0-.7.5-1.3 1.2-1.3h2.4c.7 0 1.2.6 1.2 1.3V7"/><path d="M6.6 7.2l.8 11.6c.1.9.8 1.6 1.7 1.6h5.8c.9 0 1.6-.7 1.7-1.6l.8-11.6M10.2 11v5.6M13.8 11v5.6"/></svg>';
+   comme la punaise d’une requête épinglée ; une suppression (« Supprimé », « Effacé »…) part à la poubelle (lqCorbeille, depuis
+   le 11 novembre). label ne s’affiche plus : il dit si c’est une suppression, et ce qu’entend le lecteur d’écran quand say manque (lqSay). */
 function lqEstSuppr(label){return /^(Supprim|Effac|Retir|Vid|Décoll)/i.test(String(label||''));}
 /* Le centre de ce qu’on voit d’une chose : le texte d’un titre (une ligne pleine largeur dont le mot est à gauche), sinon sa boîte, dans
    la partie visible de l’écran. */
@@ -41195,45 +41271,20 @@ function lqCentreDe(el){
 function lqDone(el,label,say){
   lqSay(say||label);
   if(!el)return;
-  const suppr=lqEstSuppr(label);
-  if(!suppr)lqFresh(el);
-  if(typeof buzz==='function')buzz(suppr?'medium':'success');
+  /* 11 novembre, 21 h 33 : une suppression a partout la même micro-interaction, la poubelle (lqCorbeille), qui naît ici. */
+  if(lqEstSuppr(label)){ if(typeof lqCorbeille==='function')lqCorbeille([],null,{depuis:el}); return; }
+  lqFresh(el);
+  if(typeof buzz==='function')buzz('success');
   if(prefersReduceMotion())return;
   const p0=lqCentreDe(el);if(!p0)return;
-  const c=document.createElement('span');c.className=suppr?'lq-done is-suppr':'lq-done';c.setAttribute('aria-hidden','true');
-  c.innerHTML=`<i class="lq-done-onde"></i><i class="lq-done-eclats"><b></b><b></b><b></b><b></b></i><span class="lq-done-pastille">${suppr?LQ_POUBELLE_SVG:CHECK_SVG}</span>`;
+  const c=document.createElement('span');c.className='lq-done';c.setAttribute('aria-hidden','true');
+  c.innerHTML=`<i class="lq-done-onde"></i><i class="lq-done-eclats"><b></b><b></b><b></b><b></b></i><span class="lq-done-pastille">${CHECK_SVG}</span>`;
   /* La coche suit sa chose pendant qu’elle vit (l’écran défile souvent au même moment, vers l’éditeur par exemple). */
   const at=p=>{c.style.left=Math.round(Math.min(innerWidth-28,Math.max(28,p.x)))+'px';c.style.top=Math.round(Math.min(innerHeight-28,Math.max(28,p.y)))+'px';};
   at(p0);document.body.appendChild(c);
   const follow=()=>{if(!c.isConnected||!el.isConnected)return;const p=lqCentreDe(el);if(p)at(p);requestAnimationFrame(follow);};
   requestAnimationFrame(follow);
   setTimeout(()=>c.remove(),1100);
-}
-/* Ce qu’on supprime s’en va (Elisa, 5 novembre, 22 h 19 puis 22 h 35 : « pareil quand on supprime des notes ou quoi que ce soit, une
-   micro-interaction pour être sûr que l’action s’est bien passée ») : la carte rougit, se froisse et part vers la gauche pendant que la
-   liste se referme sur elle (son écart compris), puis suite() redessine. o.gap : l’écart de la liste (sinon celui de son parent) ;
-   o.pas : le décalage entre deux cartes (une cascade). Sans animation : suite() tout de suite. */
-function lqAdieu(cartes,suite,o){
-  o=o||{};cartes=(cartes||[]).filter(Boolean);
-  if(!cartes.length||(typeof prefersReduceMotion==='function'&&prefersReduceMotion())||typeof cartes[0].animate!=='function'){suite();return;}
-  const pas=+o.pas||0;
-  cartes.forEach((c,k)=>{
-    let gap=o.gap;
-    if(gap==null){try{const cs=c.parentElement&&getComputedStyle(c.parentElement);gap=cs&&/flex|grid/.test(cs.display)?parseFloat(cs.rowGap)||0:0;}catch(e){gap=0;}}
-    let bg='#fff',bx0={};try{const cs=getComputedStyle(c),b=cs.backgroundColor;if(b&&!/^rgba\(0, 0, 0, 0\)$|transparent/.test(b))bg=b;
-      /* 11 novembre : marges intérieures et bordures se referment aussi (sinon la liste sautait de leur hauteur au rendu suivant). */
-      ['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].forEach(k=>{if(cs[k])bx0[k]=cs[k];});}catch(e){}
-    const bxZ={};Object.keys(bx0).forEach(k=>{bxZ[k]='0px';});
-    const h=c.offsetHeight,avant=!!c.previousElementSibling;
-    c.style.overflow='hidden';c.style.pointerEvents='none';c.style.transformOrigin='left center';
-    c.animate([
-      {height:h+'px',opacity:1,transform:'none',marginTop:'0px',marginBottom:'0px',backgroundColor:bg,...bx0,offset:0},
-      {height:h+'px',opacity:1,transform:'scale(.97) rotate(-1.4deg)',backgroundColor:'#FFF1F2',...bx0,offset:.32},
-      {height:'0px',opacity:0,transform:'translateX(-18px) scale(.9) rotate(-2.5deg)',marginTop:avant?-gap+'px':'0px',marginBottom:avant?'0px':-gap+'px',backgroundColor:'#FFE4E6',...bxZ,offset:1}
-    ],{duration:480,delay:k*pas,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
-  });
-  if(typeof buzz==='function')buzz('medium');
-  setTimeout(suite,480+(cartes.length-1)*pas);
 }
 /* La poubelle des notes (Elisa, 11 novembre, 21 h 11 : plus de « Note supprimée » ni d’« Annuler », « une micro-interaction vraiment,
    vraiment fun, vraiment cool » à la place). La note se froisse en boulette ; une petite poubelle rose (avec une tête) sort à sa place,
@@ -41269,26 +41320,48 @@ function lqCorbSon(){
     return !!LvSfx.ui();
   }catch(e){ return false; }
 }
-function lqCorbeille(carte,suite,o){
+/* lqCorbeille(cartes,suite,o) : ce qu’on supprime part à la poubelle, partout pareil (Elisa, 11 novembre, 21 h 33 : « la
+   micro-interaction de la suppression de notes, la micro-interaction de suppression de partout, homogène »). cartes : une carte ou
+   plusieurs (une note, des doublons, des lignes d’historique, une table, un projet, une pièce jointe) : chacune se froisse, les quatre
+   premières deviennent des boulettes lancées l’une après l’autre, puis leurs places se referment et suite() redessine. Sans carte,
+   o.depuis (un élément ou un point {x,y}) : la boulette naît là (une chose déjà partie, un titre), et suite() part tout de suite.
+   o.gap : l’écart de la liste ; o.pas : le décalage entre deux cartes ; o.son : décidé pendant l’appui (sinon lqCorbSon ici). */
+function lqCorbeille(cartes,suite,o){
   o=o||{};
-  let fait=false;const fin=()=>{ if(fait)return; fait=true; try{suite();}catch(e){} };
-  if(!carte||!carte.isConnected||typeof carte.animate!=='function'||typeof document==='undefined'||(typeof prefersReduceMotion==='function'&&prefersReduceMotion())){fin();return;}
+  cartes=(Array.isArray(cartes)?cartes:[cartes]).filter(c=>c&&c.isConnected!==false&&typeof c.animate==='function');
+  let fait=false;const fin=()=>{ if(fait)return; fait=true; try{ if(typeof suite==='function')suite(); }catch(e){} };
+  const reduit=typeof prefersReduceMotion==='function'&&prefersReduceMotion();
+  let pt=null;
+  if(!cartes.length&&o.depuis){ try{ pt=o.depuis.getBoundingClientRect?(typeof lqCentreDe==='function'?lqCentreDe(o.depuis):null):o.depuis; }catch(e){ pt=null; } }
+  /* Une chose hors de l’écran (sous le bas, au-dessus du haut) : la scène se joue au milieu de ce qu’on voit. */
+  if(pt&&isFinite(pt.y)&&(pt.y<60||pt.y>(innerHeight||800)-60))pt={x:(innerWidth||400)*.45,y:(innerHeight||800)*.48};
+  if(typeof document==='undefined'||reduit||(!cartes.length&&!(pt&&isFinite(pt.x)&&isFinite(pt.y)))){
+    if(reduit&&(cartes.length||o.depuis)&&typeof buzz==='function')buzz('medium');
+    fin();return;
+  }
+  if(o.son===undefined)o.son=typeof lqCorbSon==='function'?lqCorbSon():false;
   const W=innerWidth||400,H=innerHeight||800;
-  let r=carte.getBoundingClientRect();
-  if(r.bottom<70||r.top>H-70){ try{carte.scrollIntoView({block:'center'});}catch(e){} r=carte.getBoundingClientRect(); }
-  /* La scène : la boulette naît un peu à gauche du milieu de la note, la poubelle sort à droite, à la hauteur de la note. */
-  const cy=Math.max(120,Math.min(H-90,r.top+r.height/2));
-  const bx=r.left+r.width*.42,by=cy;
-  const cl=Math.max(8,Math.min(W-74,r.right-84)),ct=cy-44;
-  const ox=cl+32,oy=ct+30,peak=Math.min(by,oy)-Math.max(58,Math.abs(ox-bx)*.5),sink=oy+21;
+  let R=cartes.map(c=>c.getBoundingClientRect());
+  if(R.length&&R.every(r=>r.bottom<70||r.top>H-70)){ try{cartes[0].scrollIntoView({block:'center'});}catch(e){} R=cartes.map(c=>c.getBoundingClientRect()); }
+  const vu=R.filter(r=>r.bottom>40&&r.top<H-40),zone=vu.length?vu:R;
+  const top=pt?pt.y:Math.min(...zone.map(r=>r.top)),bas=pt?pt.y:Math.max(...zone.map(r=>r.bottom)),droite=pt?pt.x+120:Math.max(...zone.map(r=>r.right));
+  /* La scène : la poubelle sort à droite, à la hauteur de ce qu’on supprime ; chaque boulette naît un peu à gauche du milieu de sa carte. */
+  const cy=Math.max(120,Math.min(H-90,(top+bas)/2));
+  const cl=Math.max(8,Math.min(W-74,droite-84)),ct=cy-44,ox=cl+32,oy=ct+30,sink=oy+21;
+  const nb=pt?1:Math.min(4,cartes.length),dt=(nb-1)*120;
+  const pas=cartes.length>1?Math.min(o.pas!=null?+o.pas:60,240/(cartes.length-1)):0;
+  const departs=pt?[{x:Math.min(pt.x,ox-90),y:Math.max(40,Math.min(H-40,pt.y))}]
+    :R.slice(0,nb).map(r=>({x:Math.min(r.left+r.width*.42,ox-90),y:Math.max(60,Math.min(H-60,r.top+r.height/2))}));
   const S=document.createElement('div');S.className='lq-corb';S.setAttribute('aria-hidden','true');
   const piece=(cls,html)=>{ const d=document.createElement('div'); d.className='lqc-p '+cls; d.style.left=cl+'px'; d.style.top=ct+'px'; d.innerHTML=html; return d; };
   const back=piece('lqc-back',LQC_BACK),front=piece('lqc-front',LQC_FRONT),lid=piece('lqc-lid','<i>'+LQC_LID+'</i>'),li=lid.firstChild;
-  const X=document.createElement('div'),Y=document.createElement('div'),B=document.createElement('div');
-  X.className='lqc-x';Y.className='lqc-y';B.className='lqc-b';B.innerHTML=LQC_BALL;
-  X.style.transform=`translateX(${bx}px)`;Y.style.transform=`translateY(${by}px)`;
-  Y.appendChild(B);X.appendChild(Y);
-  S.append(back,X,front,lid);
+  const balles=departs.map(d=>{
+    const X=document.createElement('div'),Y=document.createElement('div'),B=document.createElement('div');
+    X.className='lqc-x';Y.className='lqc-y';B.className='lqc-b';B.innerHTML=LQC_BALL;
+    X.style.transform=`translateX(${d.x}px)`;Y.style.transform=`translateY(${d.y}px)`;
+    Y.appendChild(B);X.appendChild(Y);return {X,Y,B,d};
+  });
+  S.append(back,...balles.map(b=>b.X),front,lid);
   const can=[back,front,lid];
   const A=(el,k,op)=>{ try{ return el.animate(k,op); }catch(e){ return null; } };
   const T=[],at=(ms,f)=>T.push(setTimeout(()=>{ try{f();}catch(e){} },ms));
@@ -41302,49 +41375,59 @@ function lqCorbeille(carte,suite,o){
     S.appendChild(s);sp.push(s);
   }
   document.body.appendChild(S);
-  /* 1. La note se froisse (0 à 260 ms) ; sa place reste vide le temps de la scène, puis se referme (1500 à 1800 ms). */
-  const D=1800;
-  let gap=0;try{const cs=carte.parentElement&&getComputedStyle(carte.parentElement);gap=cs&&/flex|grid/.test(cs.display)?parseFloat(cs.rowGap)||0:0;}catch(e){gap=0;}
-  const h=carte.offsetHeight,avant=!!carte.previousElementSibling,mt=avant?-gap+'px':'0px',mb=avant?'0px':-gap+'px';
-  /* La boîte se referme entière : hauteur, marges intérieures et bordures (sinon il restait 34 px, qui sautaient au rendu suivant). */
-  let bx0={};try{const c=getComputedStyle(carte);bx0={paddingTop:c.paddingTop||'0px',paddingBottom:c.paddingBottom||'0px',borderTopWidth:c.borderTopWidth||'0px',borderBottomWidth:c.borderBottomWidth||'0px'};}catch(e){}
-  const bxZ={};Object.keys(bx0).forEach(k=>{bxZ[k]='0px';});
-  carte.style.overflow='hidden';carte.style.pointerEvents='none';carte.style.transformOrigin='42% 50%';
-  A(carte,[
-    {offset:0,transform:'none',opacity:1,height:h+'px',marginTop:'0px',marginBottom:'0px',...bx0,easing:'cubic-bezier(.4,0,.6,1)'},
-    {offset:80/D,transform:'scale(.965,.92) rotate(1deg)',opacity:1,easing:'cubic-bezier(.5,0,.8,.5)'},
-    {offset:180/D,transform:'scale(.5,.38) rotate(-8deg)',opacity:.9,borderRadius:'40px'},
-    {offset:260/D,transform:'scale(.08) rotate(28deg)',opacity:0,borderRadius:'50%'},
-    {offset:1500/D,height:h+'px',marginTop:'0px',marginBottom:'0px',...bx0,easing:'cubic-bezier(.4,0,.2,1)'},
-    {offset:1,transform:'scale(.08) rotate(28deg)',opacity:0,borderRadius:'50%',height:'0px',marginTop:mt,marginBottom:mb,...bxZ}
-  ],{duration:D,fill:'forwards'});
+  /* 1. Les cartes se froissent (0 à 260 ms, en cascade) ; leurs places restent vides le temps de la scène, puis se referment. */
+  const D=1800+dt;
+  cartes.forEach((carte,k)=>{
+    const r=R[k],c0=k<nb?departs[k]:null;
+    let gap=o.gap;
+    if(gap==null){try{const cs=carte.parentElement&&getComputedStyle(carte.parentElement);gap=cs&&/flex|grid/.test(cs.display)?parseFloat(cs.rowGap)||0:0;}catch(e){gap=0;}}
+    const h=carte.offsetHeight,avant=!!carte.previousElementSibling,mt=avant?-gap+'px':'0px',mb=avant?'0px':-gap+'px';
+    /* La boîte se referme entière : hauteur, marges intérieures et bordures (sinon il restait 34 px, qui sautaient au rendu suivant). */
+    let bx0={};try{const c=getComputedStyle(carte);['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].forEach(q=>{if(c[q])bx0[q]=c[q];});}catch(e){}
+    const bxZ={};Object.keys(bx0).forEach(q=>{bxZ[q]='0px';});
+    carte.style.overflow='hidden';carte.style.pointerEvents='none';
+    carte.style.transformOrigin=c0&&r&&r.width&&r.height?`${(((c0.x-r.left)/r.width)*100).toFixed(1)}% ${(((c0.y-r.top)/r.height)*100).toFixed(1)}%`:'50% 50%';
+    A(carte,[
+      {offset:0,transform:'none',opacity:1,height:h+'px',marginTop:'0px',marginBottom:'0px',...bx0,easing:'cubic-bezier(.4,0,.6,1)'},
+      {offset:80/D,transform:'scale(.965,.92) rotate(1deg)',opacity:1,easing:'cubic-bezier(.5,0,.8,.5)'},
+      {offset:180/D,transform:'scale(.5,.38) rotate(-8deg)',opacity:.9,borderRadius:'40px'},
+      {offset:260/D,transform:'scale(.08) rotate(28deg)',opacity:0,borderRadius:'50%'},
+      {offset:(1500+dt)/D,height:h+'px',marginTop:'0px',marginBottom:'0px',...bx0,easing:'cubic-bezier(.4,0,.2,1)'},
+      {offset:1,transform:'scale(.08) rotate(28deg)',opacity:0,borderRadius:'50%',height:'0px',marginTop:mt,marginBottom:mb,...bxZ}
+    ],{duration:D,delay:k*pas,fill:'forwards'});
+  });
   at(0,()=>{ if(typeof buzz==='function')buzz('light'); });
   son(10,'crumple',0,.55);
-  /* 2. La poubelle sort de terre (140 ms), la boulette apparaît (200 ms), le couvercle s’ouvre et la poubelle attend, bouche en « o » (330 ms). */
+  /* 2. La poubelle sort de terre (140 ms), les boulettes apparaissent (200 ms), le couvercle s’ouvre, bouche en « o » (330 ms). */
   can.forEach(p=>A(p,[{transform:'translateY(16px) scale(.3,.1)',opacity:0},{transform:'translateY(-5px) scale(1.06,1.1)',opacity:1,offset:.55},{transform:'translateY(1px) scale(1.03,.96)',opacity:1,offset:.8},{transform:'none',opacity:1}],{duration:320,delay:140,easing:'ease-out',fill:'both'}));
-  A(B,[{transform:'scale(.2) rotate(-40deg)',opacity:0},{transform:'scale(1.2) rotate(8deg)',opacity:1,offset:.6},{transform:'none',opacity:1}],{duration:190,delay:200,easing:'ease-out',fill:'both'});
+  balles.forEach(({B},k)=>A(B,[{transform:'scale(.2) rotate(-40deg)',opacity:0},{transform:'scale(1.2) rotate(8deg)',opacity:1,offset:.6},{transform:'none',opacity:1}],{duration:190,delay:200+(pt?0:k*pas),easing:'ease-out',fill:'both'}));
   A(li,[{transform:'rotate(0deg)'},{transform:'rotate(80deg)',offset:.65},{transform:'rotate(70deg)'}],{duration:200,delay:330,easing:'cubic-bezier(.3,.7,.4,1)',fill:'forwards'});
   at(330,()=>S.classList.add('is-wait'));
-  /* 3. Le lancer en cloche (420 à 820 ms) : la boulette tourne, monte, redescend dans l’ouverture et s’enfonce derrière le corps. */
-  A(X,[{transform:`translateX(${bx}px)`},{transform:`translateX(${ox}px)`,offset:.82},{transform:`translateX(${ox}px)`}],{duration:400,delay:420,easing:'linear',fill:'forwards'});
-  A(Y,[{transform:`translateY(${by}px)`,easing:'cubic-bezier(.25,.6,.45,1)'},{transform:`translateY(${peak}px)`,offset:.42,easing:'cubic-bezier(.55,0,.75,.45)'},{transform:`translateY(${oy-4}px)`,offset:.82,easing:'cubic-bezier(.3,0,.6,1)'},{transform:`translateY(${sink}px)`}],{duration:400,delay:420,fill:'forwards'});
-  A(B,[{transform:'none',opacity:1},{transform:'rotate(380deg)',opacity:1,offset:.82},{transform:'rotate(430deg) scale(.8)',opacity:0}],{duration:400,delay:420,easing:'linear',fill:'forwards'});
-  son(420,'whoosh',0,.3);
-  /* 4. Le couvercle claque (810 ms, choc à 900 ms) : la poubelle s’écrase, les confettis sautent, elle sourit. */
-  A(li,[{transform:'rotate(70deg)',easing:'cubic-bezier(.55,0,.9,.45)'},{transform:'rotate(-6deg)',offset:.6,easing:'ease-out'},{transform:'rotate(2.5deg)',offset:.82,easing:'ease-in-out'},{transform:'rotate(0deg)'}],{duration:150,delay:810,fill:'forwards'});
-  can.forEach(p=>A(p,[{transform:'none'},{transform:'scale(1.15,.8)',offset:.22},{transform:'scale(.94,1.08)',offset:.5},{transform:'scale(1.03,.98)',offset:.76},{transform:'none'}],{duration:300,delay:895,easing:'ease-out'}));
+  /* 3. Les lancers en cloche (420 ms, puis toutes les 120 ms) : chaque boulette tourne, monte, redescend dans l’ouverture et
+     s’enfonce derrière le corps (elle passe entre le fond et le corps de la poubelle). */
+  balles.forEach(({X,Y,B,d},k)=>{
+    const t0=420+k*120,peak=Math.min(d.y,oy)-Math.max(58,Math.abs(ox-d.x)*.5);
+    A(X,[{transform:`translateX(${d.x}px)`},{transform:`translateX(${ox}px)`,offset:.82},{transform:`translateX(${ox}px)`}],{duration:400,delay:t0,easing:'linear',fill:'forwards'});
+    A(Y,[{transform:`translateY(${d.y}px)`,easing:'cubic-bezier(.25,.6,.45,1)'},{transform:`translateY(${peak}px)`,offset:.42,easing:'cubic-bezier(.55,0,.75,.45)'},{transform:`translateY(${oy-4}px)`,offset:.82,easing:'cubic-bezier(.3,0,.6,1)'},{transform:`translateY(${sink}px)`}],{duration:400,delay:t0,fill:'forwards'});
+    A(B,[{transform:'none',opacity:1},{transform:'rotate(380deg)',opacity:1,offset:.82},{transform:'rotate(430deg) scale(.8)',opacity:0}],{duration:400,delay:t0,easing:'linear',fill:'forwards'});
+    son(t0,'whoosh',0,k?.2:.3);
+  });
+  /* 4. Le couvercle claque après la dernière boulette (choc à 900 ms) : la poubelle s’écrase, les confettis sautent, elle sourit. */
+  A(li,[{transform:'rotate(70deg)',easing:'cubic-bezier(.55,0,.9,.45)'},{transform:'rotate(-6deg)',offset:.6,easing:'ease-out'},{transform:'rotate(2.5deg)',offset:.82,easing:'ease-in-out'},{transform:'rotate(0deg)'}],{duration:150,delay:810+dt,fill:'forwards'});
+  can.forEach(p=>A(p,[{transform:'none'},{transform:'scale(1.15,.8)',offset:.22},{transform:'scale(.94,1.08)',offset:.5},{transform:'scale(1.03,.98)',offset:.76},{transform:'none'}],{duration:300,delay:895+dt,easing:'ease-out'}));
   sp.forEach((s,k)=>{
     const ang=(-166+k*19)*Math.PI/180,dist=30+(k%3)*9,dx=Math.cos(ang)*dist,dy=Math.sin(ang)*dist;
-    A(s,[{transform:'translate(-50%,-50%) scale(.2)',opacity:0},{transform:`translate(calc(-50% + ${(dx*.7).toFixed(1)}px),calc(-50% + ${(dy*.7).toFixed(1)}px)) scale(1.15) rotate(${k*40}deg)`,opacity:1,offset:.42},{transform:`translate(calc(-50% + ${dx.toFixed(1)}px),calc(-50% + ${(dy+7).toFixed(1)}px)) scale(.35) rotate(${k*70}deg)`,opacity:0}],{duration:540,delay:900+(k%3)*25,easing:'cubic-bezier(.2,.7,.3,1)',fill:'both'});
+    A(s,[{transform:'translate(-50%,-50%) scale(.2)',opacity:0},{transform:`translate(calc(-50% + ${(dx*.7).toFixed(1)}px),calc(-50% + ${(dy*.7).toFixed(1)}px)) scale(1.15) rotate(${k*40}deg)`,opacity:1,offset:.42},{transform:`translate(calc(-50% + ${dx.toFixed(1)}px),calc(-50% + ${(dy+7).toFixed(1)}px)) scale(.35) rotate(${k*70}deg)`,opacity:0}],{duration:540,delay:900+dt+(k%3)*25,easing:'cubic-bezier(.2,.7,.3,1)',fill:'both'});
   });
-  at(895,()=>{ S.classList.remove('is-wait');S.classList.add('is-happy'); if(typeof buzz==='function')buzz('medium'); });
-  son(890,'stamp',0,.5);son(895,'click',0,.45);son(960,'pop',4,.3);
+  at(895+dt,()=>{ S.classList.remove('is-wait');S.classList.add('is-happy'); if(typeof buzz==='function')buzz('medium'); });
+  son(890+dt,'stamp',0,.5);son(895+dt,'click',0,.45);son(960+dt,'pop',4,.3);
   /* 5. Un petit saut content, le couvercle qui tressaute (1180 ms), puis la poubelle rentre sous terre (1400 ms). */
-  can.forEach(p=>A(p,[{transform:'none'},{transform:'translateY(-10px) scale(.96,1.05)',offset:.42},{transform:'translateY(0) scale(1.07,.93)',offset:.76},{transform:'none'}],{duration:240,delay:1180,easing:'ease-in-out'}));
-  A(li,[{transform:'rotate(0deg)'},{transform:'rotate(9deg)',offset:.36},{transform:'rotate(-2deg)',offset:.7},{transform:'rotate(0deg)'}],{duration:240,delay:1180});
-  can.forEach(p=>A(p,[{transform:'none',opacity:1},{transform:'translateY(-3px) scale(1.08)',opacity:1,offset:.3},{transform:'translateY(10px) scale(0) rotate(-14deg)',opacity:0}],{duration:220,delay:1400,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'}));
-  at(D,fin);
-  at(D+90,()=>S.remove());
+  can.forEach(p=>A(p,[{transform:'none'},{transform:'translateY(-10px) scale(.96,1.05)',offset:.42},{transform:'translateY(0) scale(1.07,.93)',offset:.76},{transform:'none'}],{duration:240,delay:1180+dt,easing:'ease-in-out'}));
+  A(li,[{transform:'rotate(0deg)'},{transform:'rotate(9deg)',offset:.36},{transform:'rotate(-2deg)',offset:.7},{transform:'rotate(0deg)'}],{duration:240,delay:1180+dt});
+  can.forEach(p=>A(p,[{transform:'none',opacity:1},{transform:'translateY(-3px) scale(1.08)',opacity:1,offset:.3},{transform:'translateY(10px) scale(0) rotate(-14deg)',opacity:0}],{duration:220,delay:1400+dt,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'}));
+  /* Sans carte, rien ne se referme : suite() part tout de suite. */
+  if(cartes.length)at(D+(cartes.length-1)*pas,fin);else fin();
+  at(Math.max(D,1720+dt)+90,()=>S.remove());
   /* Le son de l’interface s’arrête ensuite (sauf pendant un cours ou la fête d’un module) : un cours repart d’un contexte neuf. */
   if(o.son){
     const tok=lqCorbeille.tok=(lqCorbeille.tok||0)+1;
@@ -41623,8 +41706,8 @@ function noteActivityDay(src){
     /* 10 novembre (Elisa, 14 h 24 : « vérifie que les pages arrivent au bon moment ») : après une leçon, la notification de la série
        tombait sur l’écran de fin de la vidéo, puis sur la carte « Module terminé », alors que la page « Bravo, ta flamme du jour s’est
        allumée » attend l’accueil pour fêter la même chose (7 novembre : « on ne met pas d’animation au niveau de la série du haut »).
-       Après une leçon, seule la page de la flamme reste ; un défi garde sa notification (9 novembre : elle attend la fin de la manche). */
-    if(first&&src!=='lecon'&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
+       Après une leçon, seule la page de la flamme reste ; 11 novembre, 21 h 33 (« pour les un jour de série, c’est une page et pas la
+       notif ») : après un défi ou une partie aussi, plus de notification, la page de la flamme seulement. */
     if(first&&typeof lqFlammeAttendue==='function')lqFlammeAttendue(iso);   // la page « Bravo », à l’accueil (10 h 30)
     if(first&&typeof flammeDirectAllumee==='function')flammeDirectAllumee(iso);   // ta flamme en direct : « Flamme allumée ! » (7 novembre)
     if(first&&typeof stat==='function'){const n=typeof streakJours==='function'?streakJours():1;stat('flamme',n);try{localStorage.setItem(STAT_SERIE,String(n));}catch(e){}}
@@ -43174,12 +43257,12 @@ function mergeDuplicateNotes(){
     const keep=g.slice().sort((a,b)=>(b.pin?1:0)-(a.pin?1:0)||a.ts-b.ts)[0];
     g.forEach(n=>{ if(n!==keep)drop.add(n.id); });
   });
-  /* 22 h 35 : les doubles se froissent et s’en vont, l’un après l’autre */
+  /* 11 novembre, 21 h 33 : les doubles partent à la poubelle, l’un après l’autre (lqCorbeille, comme une note supprimée) */
   const r=notesRoot();
-  lqAdieu(r?[...drop].map(id=>r.querySelector(`.ncard[data-id="${CSS.escape(String(id))}"]`)):[],()=>{
+  lqCorbeille(r?[...drop].map(id=>r.querySelector(`.ncard[data-id="${CSS.escape(String(id))}"]`)):[],()=>{
   state.notes=(state.notes||[]).filter(n=>!drop.has(n.id));
   save(); notesEnter=false; renderNotes();
-  lqDone(document.querySelector('#scr-notes .lgtitle h1')||notesRoot(),drop.size>1?`${drop.size} doublons fusionnés`:'Doublon fusionné');
+  lqSay(drop.size>1?`${drop.size} doublons fusionnés`:'Doublon fusionné');
   },{pas:70});
 }
 /* Le classement change quand on épingle : les cartes glissent à leur nouvelle place. */
@@ -43417,6 +43500,8 @@ function persistEditingNote(){
 function saveNote(){
   const e=collectNote();
   const empty=!!e&&!String(e.txt||'').trim()&&!String(e.sql||'').trim(),wasNew=!!(e&&e.isNew);
+  /* 11 novembre, 21 h 33 : une note vidée puis enregistrée est supprimée comme avec « Supprimer » : elle part à la poubelle. */
+  if(empty&&!wasNew){ deleteNote(e.id); return; }
   const ok=persistEditingNote();
   const b=document.querySelector('#note-body .ne-row .prim');
   const still=typeof motionOff==='function'&&motionOff();
@@ -43431,7 +43516,7 @@ function saveNote(){
     return;
   }
   backToNotesList();
-  if(!ok&&empty)toast(wasNew?'Rien à enregistrer':'Note vide supprimée',wasNew?'La note est vide.':'Elle ne contenait plus rien.','info');
+  if(!ok&&empty)toast('Rien à enregistrer','La note est vide.','info');
 }
 /* Épingler une note : depuis sa carte, dans la liste (la coche ronde animée). L’éditeur n’a plus son bouton (Elisa, 2 novembre,
    18 h 45 : « Qu’est-ce que le bouton en trop au milieu ? Il y a trop de bouton ») : une seule action, « Enregistrer ». */
@@ -47331,29 +47416,6 @@ function lqConfetti(opts){
   }
   setTimeout(()=>layer.remove(),2800);
 }
-function lqStreakToast(){
-  if(typeof document==='undefined'||!document.documentElement.classList.contains('lq'))return;
-  /* Les points d’un défi en salle viennent de tomber au même endroit : la flamme attend qu’ils repartent (une notification à la fois). */
-  const pop=document.getElementById('jeu-pts-pop');
-  if(pop&&pop.classList.contains('on')&&(lqStreakToast.wait||0)<12){   /* 19 h 40 : au podium, les points restent plus longtemps : la flamme attend jusqu’à 8 s */lqStreakToast.wait=(lqStreakToast.wait||0)+1;setTimeout(lqStreakToast,700);return;}
-  lqStreakToast.wait=0;
-  /* 9 novembre, 15 h 18 (Elisa : « oui, attendre la fin de la manche ») : pendant une manche de salle (tirage compris), la flamme ne
-     recouvre plus le haut de l’écran ; elle attend les résultats de la manche, le podium, ou la sortie de la salle. */
-  if(typeof JEU!=='undefined'&&JEU&&/^(play|draw|res)\d/.test(JEU.view||'')){clearTimeout(lqStreakToast.r);   /* 19 h 40 : les résultats aussi, jusqu’au podium */lqStreakToast.r=setTimeout(lqStreakToast,1000);return;}
-  /* Le podium : d’abord ses points (jeuPtsPop), la flamme ensuite, 3,5 s après son arrivée (19 h 40). */
-  if(typeof JEU!=='undefined'&&JEU&&JEU.view==='final'&&lqStreakToast.fin!==JEU.code+':'+JEU.g){lqStreakToast.fin=JEU.code+':'+JEU.g;clearTimeout(lqStreakToast.r);lqStreakToast.r=setTimeout(lqStreakToast,3500);return;}
-  const n=typeof streakJours==='function'?streakJours():0;
-  if(!n)return;
-  let t=document.getElementById('lq-streak-toast');
-  if(!t){t=document.createElement('div');t.id='lq-streak-toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.appendChild(t);}
-  /* Elisa, 31 octobre, 2 h 18 : « laisser la notif de flamme mais ajouter micro-interaction, animation ». La flamme s’allume dans un
-     anneau jaune et lâche des étincelles, « +1 » se colle sur sa case, et le compteur de la série roule de la veille à aujourd’hui. */
-  const prev=Math.max(0,n-1);
-  t.innerHTML=`<span class="lq-st-flame" aria-hidden="true"><i class="lq-st-ring"></i>${LQ_FLAME_SVG}${'<i class="lq-st-sp"></i>'.repeat(6)}<em class="lq-st-plus">+1</em></span><span class="lq-st-txt"><b><span class="lq-st-odo" aria-hidden="true"><span class="lq-st-new">${n}</span><span class="lq-st-old">${prev}</span></span><span class="acct-sr">${n}</span> jour${n>1?'s':''} de série</b><small>Flamme du jour allumée !</small></span>`;
-  t.classList.remove('on');void t.offsetWidth;t.classList.add('on');
-  if(navigator.vibrate)navigator.vibrate([10,50,18]);
-  clearTimeout(lqStreakToast.t);lqStreakToast.t=setTimeout(()=>t.classList.remove('on'),2800);
-}
 /* Le toucher (11 novembre, 12 h 46) : le retour haptique part quand le toucher est confirmé (le doigt se lève sans avoir glissé),
    plus quand il se pose. Avant, faire défiler une liste en commençant sur une ligne ou une carte vibrait à chaque fois, sans rien
    toucher. Un choix (interrupteur, onglet, case, filtre, segment, étoile) donne le cran de sélection ; un bouton, un petit impact ;
@@ -47668,8 +47730,12 @@ function rappelEnregistrer(){
   if(typeof flammeDirectAuto==='function')flammeDirectAuto(0);   // ta flamme en direct démarre à l’heure du rappel
   if(typeof closePlusDetails==='function')closePlusDetails();
   renderCompte();
-  if(typeof toast==='function')toast(d.on?'Rappel enregistré':'Rappel désactivé',d.on?`${rappelJoursTexte()} à ${d.heure}`:'Tu pourras le réactiver ici.');
-  if(typeof buzz==='function')buzz('success');
+  /* 11 novembre, 21 h 33 (Elisa : « pareil pour le rappel enregistré, ça sera une micro-interaction et pas la notif ») : la coche
+     ronde se plante sur la ligne « Rappel de séance », qui affiche déjà le nouveau réglage ; le lecteur d’écran entend le détail. */
+  const dit=d.on?`Rappel enregistré\u00a0: ${rappelJoursTexte()} à ${d.heure}`:'Rappel désactivé';
+  const ligne=()=>document.querySelector(`#scr-compte .account-setting-row[onclick="openPlusDetails('plus-reminders')"]`);
+  if(typeof lqDone==='function')requestAnimationFrame(()=>lqDone(ligne(),d.on?'Enregistré':'Désactivé',dit));
+  else if(typeof buzz==='function')buzz('success');
 }
 function tickRappel(){
   if(!rappelOn()) return;
@@ -48443,10 +48509,15 @@ function ctRetirer(id){
   if(CT.envoi)return;
   const i=CT.pieces.findIndex(p=>p.id===id);if(i<0)return;
   const [p]=CT.pieces.splice(i,1);
-  if(p.url){try{URL.revokeObjectURL(p.url);}catch(e){}}
-  ctPeindrePieces();ctDire('');
-  if(typeof buzz==='function')buzz('selection');
-  if(!CT.pieces.length)document.getElementById('ct-ajout')?.focus();
+  ctDire('');
+  /* 11 novembre, 21 h 33 : la pièce retirée part à la poubelle, comme une note supprimée (lqCorbeille) ; la liste suit ensuite. */
+  const chip=document.querySelector(`#ct-pieces .ct-piece[data-id="${CSS.escape(String(id))}"]`);
+  lqCorbeille([chip],()=>{
+    if(p.url){try{URL.revokeObjectURL(p.url);}catch(e){}}
+    ctPeindrePieces();
+    if(!CT.pieces.length)document.getElementById('ct-ajout')?.focus();
+  });
+  lqSay(`${p.nom||'Pièce jointe'} retirée`);
 }
 function ctVider(){CT.pieces.forEach(p=>{if(p.url){try{URL.revokeObjectURL(p.url);}catch(e){}}});CT.pieces=[];}
 /* Une capture collée dans le message (⌘V) devient une pièce jointe ; un texte collé reste du texte. */
@@ -48730,6 +48801,8 @@ async function resetAllProgress(){
   save(); stkSync(); buildDb(); baseBytes=db.export(); attachDateFns(db); /* voir boot : export() perd les fonctions ajoutées au moteur */
   renderModules(); renderDefis(); renderProgress();
   renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
+  /* 11 novembre, 21 h 33 : la poubelle, comme toute suppression */
+  if(typeof lqDone==='function')requestAnimationFrame(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Effacé','Ta progression est effacée.'));
 }
 
 
@@ -48899,7 +48972,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-poubelle-notes-v2866';
+  const SW_CACHE='requete-2026-11-11-poubelle-partout-v2867';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

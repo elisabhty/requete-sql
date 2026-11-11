@@ -84,38 +84,25 @@ test('réf. 3 : le schéma UML, seule la première table dépliée à la premiè
   assert.ok(o.indexOf('body.dataset.base=key;') < o.indexOf("const umlBloc=modele?umlPanneau("), 'la base posée avant de dessiner la toile');
 });
 
-test('une table supprimée : sa carte rougit, se froisse et s’efface ; la liste se referme sur elle', async () => {
-  const essai = ({ reduit = false, sans = false } = {}) => {
-    const appels = [], timers = [];
-    const carte = (t, avant) => ({ dataset: { table: t }, offsetHeight: 64, previousElementSibling: avant, style: {}, animate: (k, o) => appels.push(['anime', t, k, o]) });
-    const a = carte('clients', null), b = carte('commandes', {});
+test('une table supprimée : sa carte part à la poubelle (11 novembre, 21 h 33) ; la liste se referme sur elle', async () => {
+  const essai = ({ sans = false } = {}) => {
+    const appels = [];
+    const a = { dataset: { table: 'clients' } }, b = { dataset: { table: 'commandes' } };
     const host = { querySelector: s => (s.includes('"clients"') ? a : s.includes('"commandes"') ? b : null) };
     const ctx = vm.createContext({
-      document: { getElementById: id => (id === 'db-tables' && !sans ? host : null) }, CSS: { escape: s => s }, prefersReduceMotion: () => reduit,
-      getComputedStyle: () => ({ rowGap: '10px' }), buzz: k => appels.push(['buzz', k]), setTimeout: (f, ms) => { timers.push([f, ms]); },
+      document: { getElementById: id => (id === 'db-tables' && !sans ? host : null) }, CSS: { escape: s => s },
+      getComputedStyle: () => ({ rowGap: '10px' }), lqCorbeille: (cartes, suite, o) => { appels.push([cartes.map(c => c.dataset.table), o]); suite(); },
     });
-    vm.runInContext(fn('lqAdieu') + fn('dbCartesAdieu'), ctx);   // 22 h 35 : le geste commun (retours-2235)
-    return { ctx, appels, timers, a, b };
+    vm.runInContext(fn('dbCartesAdieu'), ctx);
+    return { ctx, appels };
   };
-  let x = essai(), fini = 0;
+  const x = essai(); let fini = 0;
   x.ctx.dbCartesAdieu(['commandes', 'clients'], () => fini++);
-  const an = x.appels.filter(a => a[0] === 'anime');
-  assert.deepEqual(an.map(a => a[1]), ['commandes', 'clients']);
-  const [, , k, o] = an[0];
-  assert.equal(k.length, 3); assert.equal(o.duration, 480); assert.equal(o.fill, 'forwards');
-  assert.equal(k[1].backgroundColor, '#FFF1F2', 'elle rougit');
-  assert.ok(k[1].transform.includes('rotate(-1.4deg)') && k[2].transform.includes('translateX(-18px)'), 'se froisse, part à gauche');
-  assert.deepEqual([k[2].height, k[2].opacity, k[2].marginTop], ['0px', 0, '-10px'], 'la liste se referme, son écart avec');
-  assert.equal(an[1][2][2].marginBottom, '-10px', 'la première carte : l’écart du dessous');
-  assert.ok(x.b.style.pointerEvents === 'none' && x.b.style.overflow === 'hidden');
-  assert.deepEqual(x.appels.find(a => a[0] === 'buzz'), ['buzz', 'medium']);
-  assert.equal(fini, 0); assert.equal(x.timers[0][1], 480);
-  x.timers[0][0](); assert.equal(fini, 1, 'puis les cartes se redessinent');
-  for (const o2 of [{ reduit: true }, { sans: true }]) {
-    const y = essai(o2); let f = 0;
-    y.ctx.dbCartesAdieu(['clients'], () => f++);
-    assert.equal(f, 1, JSON.stringify(o2)); assert.equal(y.appels.length, 0);
-  }
+  assert.deepEqual(JSON.parse(JSON.stringify(x.appels)), [[['commandes', 'clients'], { gap: 10 }]], 'les cartes, avec l’écart de la liste');
+  assert.equal(fini, 1, 'puis les cartes se redessinent');
+  const y = essai({ sans: true }); let f = 0;
+  y.ctx.dbCartesAdieu(['clients'], () => f++);
+  assert.equal(f, 1); assert.equal(y.appels.length, 0, 'rien à animer : tout de suite');
   /* Le bouton de la carte : après « Supprimer », avant le DROP ; et un DROP TABLE écrit dans l’éditeur */
   const d = fn('dropTable');
   assert.ok(d.indexOf('await new Promise(r=>dbCartesAdieu([name],r));') > d.indexOf('danger:true}))return;') && d.indexOf('await new Promise(r=>dbCartesAdieu([name],r));') < d.indexOf("activeDb().run('DROP TABLE IF EXISTS '+quoteIdent(name));"));
@@ -131,5 +118,5 @@ test('la base de démo des cours s’appelle NutriBoost', () => {
   assert.equal(ctx.projectName('cours'), 'NutriBoost');
   assert.ok(!app.includes("name:'Cours'") && !app.includes("return 'Cours';"));
   assert.ok(app.includes("fname.textContent=(activeDbId==='cours'?'nutriboost':isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';"), 'son brouillon : nutriboost.sql');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && sw.includes("const CACHE = 'requete-2026-11-11-poubelle-notes-v2866';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && sw.includes("const CACHE = 'requete-2026-11-11-poubelle-partout-v2867';"));
 });

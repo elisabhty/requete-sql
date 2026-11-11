@@ -21,34 +21,8 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const fn = name => { const i = app.indexOf(`function ${name}(`); assert.ok(i >= 0, name); const j = app.indexOf('\n}\n', i); return app.slice(i, j + 3); };
 const compte = cut('function renderCompte(){', '\nfunction ');
 
-test('le geste de ce qu’on supprime : rougit, se froisse, part, la liste se referme ; en cascade ; rien en mouvement réduit', () => {
-  const essai = ({ reduit = false, display = 'flex' } = {}) => {
-    const appels = [], timers = [];
-    const parent = { display, rowGap: '8px' };
-    const carte = (id, avant, bg) => ({ id, bg, offsetHeight: 80, previousElementSibling: avant, parentElement: parent, style: {}, animate: (k, o) => appels.push({ id, k, o }) });
-    const ctx = vm.createContext({ prefersReduceMotion: () => reduit, getComputedStyle: e => (e === parent ? parent : { backgroundColor: e.bg }), buzz: k => appels.push({ buzz: k }), setTimeout: (f, ms) => timers.push([f, ms]) });
-    vm.runInContext(fn('lqAdieu'), ctx);
-    return { ctx, appels, timers, carte };
-  };
-  const x = essai(), a = x.carte('a', null, 'rgb(255, 251, 235)'), b = x.carte('b', {}, 'rgba(0, 0, 0, 0)');
-  let fini = 0;
-  x.ctx.lqAdieu([a, null, b], () => fini++, { pas: 45 });
-  const an = x.appels.filter(e => e.k);
-  assert.deepEqual(an.map(e => e.id), ['a', 'b'], 'les cartes absentes sont ignorées');
-  assert.deepEqual(an.map(e => e.o.delay), [0, 45], 'en cascade');
-  assert.equal(an[0].k[0].backgroundColor, 'rgb(255, 251, 235)', 'part de sa couleur (une note épinglée, jaune)');
-  assert.equal(an[1].k[0].backgroundColor, '#fff', 'transparente : blanc');
-  assert.deepEqual([an[0].k[2].marginBottom, an[1].k[2].marginTop], ['-8px', '-8px'], 'l’écart de la liste se referme aussi');
-  assert.deepEqual(x.appels.filter(e => e.buzz).map(e => e.buzz), ['medium']);
-  assert.equal(x.timers[0][1], 480 + 45);
-  x.timers[0][0](); assert.equal(fini, 1);
-  const y = essai({ display: 'block' }), c = y.carte('c', {}, '#fff');
-  y.ctx.lqAdieu([c], () => {});
-  assert.equal(y.appels.find(e => e.k).k[2].marginTop, '0px', 'une liste sans écart (des marges) : rien à refermer en plus');
-  const z = essai({ reduit: true }); let f = 0;
-  z.ctx.lqAdieu([z.carte('d', null, '#fff')], () => f++);
-  assert.equal(f, 1); assert.equal(z.appels.length, 0);
-  f = 0; z.ctx.lqAdieu([], () => f++); assert.equal(f, 1, 'rien à animer : tout de suite');
+test('le geste de ce qu’on supprime : depuis le 11 novembre (21 h 33), la poubelle partout (lqCorbeille, retours-2111-poubelle)', () => {
+  assert.ok(!app.includes('function lqAdieu(') && app.includes('function lqCorbeille(cartes,suite,o){'));
 });
 
 test('partout où l’on supprime ou crée : la carte s’en va, la coche dit que c’est fait', () => {
@@ -59,22 +33,21 @@ test('partout où l’on supprime ou crée : la carte s’en va, la coche dit qu
   assert.ok(!d.includes("toastWithAction('Note supprimée'"));
   /* Une note créée ou modifiée : la coche sur sa carte */
   assert.ok(fn('saveNote').includes("if(c)requestAnimationFrame(()=>lqDone(c,wasNew?'Créée':'Enregistrée',dit));else lqSay(dit);"));
-  /* Les doublons fusionnés : l’un après l’autre, puis la coche */
+  /* Les doublons fusionnés : à la poubelle, l’un après l’autre ; le lecteur d’écran dit combien */
   const m = fn('mergeDuplicateNotes');
-  assert.ok(m.includes('lqAdieu(r?[...drop].map(id=>r.querySelector(') && m.includes('},{pas:70});') && m.includes("'Doublon fusionné'"));
-  /* L’historique effacé : ses lignes, puis la coche « Effacé » sur l’onglet */
+  assert.ok(m.includes('lqCorbeille(r?[...drop].map(id=>r.querySelector(') && m.includes('},{pas:70});') && m.includes("'Doublon fusionné'") && !m.includes('lqDone('));
+  /* L’historique effacé : ses lignes à la poubelle ; un projet supprimé : sa ligne ; plus de coche ensuite (le lecteur d’écran le dit) */
   const h = cut('function clearConsoleHistory(){', 'function loadHistSql(');
-  assert.ok(h.includes("lqAdieu([...document.querySelectorAll('#console-hist .console-query-row')].slice(0,10),()=>{") && h.includes("lqDone(document.getElementById('console-tab-history')||document.querySelector('#console-hist'),'Effacé','Historique effacé');") && h.includes('},{pas:45});'));
-  /* Un projet supprimé : sa ligne, puis la coche « Supprimé » */
+  assert.ok(h.includes("lqCorbeille([...document.querySelectorAll('#console-hist .console-query-row')].slice(0,10),()=>{") && h.includes("lqSay('Historique effacé');") && !h.includes('lqDone('));
   const p = fn('deleteDbNow');
-  assert.ok(p.includes("lqAdieu([ligne&&ligne.closest('.console-project-row')],()=>{") && p.includes('deleteDbFin(id);') && p.includes("'Supprimé',`Projet «\\u00a0${meta.name}\\u00a0» supprimé`"));
+  assert.ok(p.includes("lqCorbeille([ligne&&ligne.closest('.console-project-row')],()=>{") && p.includes('deleteDbFin(id);') && p.includes("lqSay(`Projet «\\u00a0${meta.name}\\u00a0» supprimé`)"));
   assert.ok(fn('deleteDbFin').includes('dbCatalog=dbCatalog.filter(d=>d.id!==id);') && fn('deleteDbFin').includes('renderConsoleScreen();'));
-  /* Une table supprimée : la coche « Supprimée » sur le schéma, qui compte une table de moins */
-  assert.ok(fn('dropTable').includes("lqDone(document.getElementById('console-schema-summary'),'Supprimée',`Table «\\u00a0${name}\\u00a0» supprimée`);"));
-  assert.ok(fn('dbCartesAdieu').includes("lqAdieu(cartes,suite,{gap:parseFloat(getComputedStyle(host).rowGap)||0});"), 'les tables : le même geste');
+  /* Une table supprimée : sa carte à la poubelle ; le lecteur d’écran le dit */
+  assert.ok(fn('dropTable').includes("lqSay(`Table «\\u00a0${name}\\u00a0» supprimée`);"));
+  assert.ok(fn('dbCartesAdieu').includes("lqCorbeille(cartes,suite,{gap:parseFloat(getComputedStyle(host).rowGap)||0});"), 'les tables : le même geste');
   /* Sans document (les tests, un autre contexte) : la suppression d’un projet se fait quand même, tout de suite */
   const ctx = vm.createContext({ customDbs: { db_1: { close() {} } }, tableBaselines: {}, dbCatalog: [{ id: 'db_1', name: 'Ventes' }], projState: { db_1: {} }, activeDbId: 'db_1', consoleView: 'work', vus: [] });
-  vm.runInContext(fn('lqAdieu') + fn('deleteDbNow') + fn('deleteDbFin') + 'function saveProjState(){} function persistCustomDbs(){} function renderConsoleScreen(){vus.push("rendu")}', ctx);
+  vm.runInContext(fn('lqCorbeille') + fn('deleteDbNow') + fn('deleteDbFin') + 'function saveProjState(){} function persistCustomDbs(){} function renderConsoleScreen(){vus.push("rendu")}', ctx);
   vm.runInContext("deleteDbNow('db_1')", ctx);
   assert.equal(vm.runInContext('dbCatalog.length+"|"+activeDbId+"|"+consoleView+"|"+vus.join()', ctx), '0|cours|list|rendu');
 });
@@ -108,5 +81,5 @@ test('la carte de Mon compte : la barre au chiffre du parcours, le module qui su
   for (const k of ['html.lq .acct-hero .acct-chap{display:flex;align-items:center;gap:12px;width:100%;', 'html.lq .acct-hero .acct-chap-go{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);',
     'html.lq .acct-hero .acct-level-head em{font:800 19px/1 var(--display);color:var(--sun-hi)}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && sw.includes("const CACHE = 'requete-2026-11-11-poubelle-notes-v2866';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && sw.includes("const CACHE = 'requete-2026-11-11-poubelle-partout-v2867';"));
 });

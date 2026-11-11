@@ -46,10 +46,10 @@ test('la carte des types : trois points, le tableau de son brouillon, une syntax
   assert.ok(css.includes('html.lq .mc-tab{position:relative;margin:22px 0 0;'));
 });
 
-test('au bilan de la leçon, les deux cartes ; l’annonce de déblocage dit « 2 cartes débloquées »', () => {
+test('au bilan de la leçon, les deux cartes ; plus d’annonce de déblocage depuis le 11 novembre (le bilan l’accueille)', () => {
   assert.ok(fn('bravoUnlockHtml').includes('return cs.map((e,k)=>bravoUnlockCarte(l,e,k,cs.length)).join(\'\');'));
   assert.ok(fn('bravoUnlockCarte').includes("'Deux nouvelles cartes <em>mémo</em>&nbsp;!'") && fn('bravoUnlockCarte').includes("'Et une deuxième carte <em>mémo</em>&nbsp;!'"));
-  assert.ok(fn('showUnlock').includes("k.textContent=cs.length>1?`${cs.length} cartes débloquées`:'Carte débloquée';"));
+  assert.ok(fn('showUnlock').includes('lastUnlockedId=id;') && !fn('showUnlock').includes('toast'));
   assert.ok(fn('revealBravoCard').includes("document.querySelectorAll('#lesson-body .mc-reveal').forEach(revealBravoUne);"));
 });
 

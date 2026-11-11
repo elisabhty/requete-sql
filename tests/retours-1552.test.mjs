@@ -78,23 +78,20 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
   assert.ok(cls.has('jeu-in') && !cls.has('jeu-cascade'), 'les autres écrans : l’arrivée habituelle');
 });
 
-test('les points gagnés en notification animée : à la manche trouvée et en fin de partie', () => {
-  const pop = cut('function jeuPtsPop(o){', '\n/* Points de la partie (une seule fois)');
+test('les points gagnés : une page en fin de partie (11 novembre, 21 h 33), plus de pastille à la manche', () => {
+  const pop = cut('function jeuPtsPage(o){', '\n/* Points de la partie (une seule fois)');
   assert.ok(pop.includes("if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'"), 'rien sans points ni sans page');
-  /* Épurée à 16 h 29 (« pas assez clean ») : la pièce, le nombre ; le total en fin de partie ; plus de pastilles ni d’étincelles */
-  assert.ok(pop.includes('t.innerHTML=`<span class="jpp-coin">${JEU_COIN_SVG}</span><b><em class="jpp-n" data-n="${o.pts}">'));
-  assert.ok(!pop.includes('jpp-pd') && !pop.includes('jpp-sp') && !pop.includes('jpp-ring'));
-  assert.ok(pop.includes('total <b data-n="${o.total}" data-from="${Math.max(0,o.total-o.pts)}" data-fmt="fr">'), 'le total roule de l’ancien au nouveau');
-  assert.ok(pop.includes("if(typeof lqSay==='function')lqSay(`+${o.pts} points`"), 'le lecteur d’écran entend le résultat');
-  assert.ok(pop.includes("t.setAttribute('aria-hidden','true')"));
-  assert.ok(pop.includes("const st=document.getElementById('lq-streak-toast'),low=st&&st.classList.contains('on')"), 'sous la flamme du jour si elle tombe en même temps');
+  assert.ok(pop.includes('<span class="mu-tag">+${fmt(o.pts)} point${pl}</span>') && pop.includes('<span class="mu-go-l">Voir le bilan</span>'), 'la pièce, « +12 points », « Voir le bilan »');
+  assert.ok(pop.includes('<b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b>'), 'le total roule de l’ancien au nouveau');
+  assert.ok(pop.includes("if(typeof lqSay==='function')lqSay(`+${o.pts} point${pl}`"), 'le lecteur d’écran entend le résultat');
+  assert.ok(!app.includes('function jeuPtsPop('), 'plus de pastille');
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
-  assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x)jeuPtsPop({kind:'round',pts:x.pts});}"), 'chaque manche trouvée ; celle de la partie, avec le total, sur l’écran de fin (11 h 31 : une partie d’une manche aussi)');
+  assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x&&x.pts>0&&typeof lqSay==='function')lqSay(`+${x.pts} points`);}"), 'à la manche, la carte « Trouvé » les montre ; le lecteur d’écran les dit');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPop({kind:'game',pts:cg.pts,total:cg.total});},950);"));
+  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage({pts:cg.pts,total:cg.total,solo:!!J.solo});},700);"));
   assert.ok(app.includes('    return {pts,total:s.pts};\n  }catch(e){return null;}'), 'la partie créditée une seule fois renvoie ses points');
   /* Le compteur sait partir d’un nombre et écrire « 1 274 » */
-  const cu = cut('function jeuCountUp(el){', '\n/* Les points gagnés, en notification');
+  const cu = cut('function jeuCountUp(el){', '\n/* Les points d’une partie');
   const frames = [];
   let t = 0;
   const el = { dataset: { n: '1274', from: '1100', fmt: 'fr' }, textContent: '1 100', isConnected: true };

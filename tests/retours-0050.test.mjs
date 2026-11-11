@@ -93,7 +93,8 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
   assert.equal(compte(3, 15), '<span><b aria-hidden="true">3/15</b><b class="acct-sr">3 sur 15</b></span>', 'les groupes aussi');
   assert.ok(r.includes(`<div class="acct-head"><h2 id="stk-sheet-t">Tous tes stickers</h2>\${compte(won.length,list.length,'débloqué')}</div>`), '7 h 56 : « Ta collection » passe en surtitre, la grille devient « Tous tes stickers »');
   assert.ok(r.includes('<div class="stk-group"><h3>${title}</h3>${compte(items.filter(s=>s.got).length,items.length)}</div>'));
-  for (const t of ["'Ajouté à ta collection','Voir'", '`${s.name} · revenu dans ta collection`', "'Tes stickers sont revenus dans ta collection.'",
+  /* 11 novembre, 21 h 33 : plus de bandeaux (« Nouveau sticker », « Sticker décollé », « Tableau vidé ») ; la page et ce qu’entend le lecteur d’écran */
+  for (const t of ["Voici ton sticker&nbsp;!", '`${s.name}\\u00a0: revenu dans ta collection`', "'Tableau vidé\\u00a0: tes stickers sont revenus dans ta collection.'",
     '<span>Ta collection</span><b class="mu-album-n">', "'Ton sticker est dans ta collection&nbsp;!'", "'Sticker ajouté à ta collection.'"])
     assert.ok(app.includes(t), t);
   const code = app.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '');
@@ -105,5 +106,5 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-poubelle-notes-v2866';") && app.includes("const SW_CACHE='requete-2026-11-11-poubelle-notes-v2866';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-poubelle-partout-v2867';") && app.includes("const SW_CACHE='requete-2026-11-11-poubelle-partout-v2867';"));
 });

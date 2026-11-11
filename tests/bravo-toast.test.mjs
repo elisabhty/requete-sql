@@ -71,7 +71,8 @@ test('notification : au ras du bas de l’écran quand aucun bouton collant n’
   assert.ok(html.includes('body.in-lesson .toast{bottom:var(--toast-lift,calc(max(8px,var(--safe-bottom)) + 92px))}'), 'dans un cours, la notification suit --toast-lift');
   const toast = cut('function toast(msg,sub,tone){', '/* ---------- Rendu : assistant');
   assert.ok(toast.includes('toastLift(t);t.classList.add(\'on\');'), 'toast() mesure avant d’afficher');
-  assert.ok(cut('function showUnlock(', '\n}\n').includes('toastLift(t)'), '« Carte débloquée » (showUnlock) passe aussi par toastLift');
+  /* 11 novembre, 21 h 33 : plus de bandeau « Carte débloquée », le bilan l’accueille */
+  assert.ok(!cut('function showUnlock(', '\n}\n').includes('toast'), '« Carte débloquée » : plus de notification');
 });
 
 test('feuille « Carte » : la note rejoint « Essayer » en bas (21 h 58, Réf 3 : « remplacer le bouton partager par note »)', () => {

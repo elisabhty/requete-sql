@@ -32,7 +32,8 @@ function ctx({ depot = () => ({ ok: true }), reply = (f, b) => ({ ok: true, piec
     localStorage: { getItem: () => null, setItem() {} },
     navigator: { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/130.0 Safari/537.36', maxTouchPoints: 0, language: 'fr-FR', onLine: true },
     screen: { width: 1512, height: 982 }, matchMedia: () => ({ matches: false }),
-    document: { getElementById: id => get(id), querySelectorAll: () => [] },
+    document: { getElementById: id => get(id), querySelectorAll: () => [], querySelector: () => null },
+    CSS: { escape: x => String(x) }, lqCorbeille: (cartes, suite) => suite(), lqSay() {},   /* 11 novembre : la pièce retirée part à la poubelle */
     URL: { createObjectURL: () => 'blob:apercu-' + (++n), revokeObjectURL() {} },
     crypto: { getRandomValues: a => { a.fill(171); return a; } },
     JEU_SB: 'https://sb.test', JEU_SB_KEY: 'sb_publishable_x',

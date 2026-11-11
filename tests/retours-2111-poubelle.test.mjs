@@ -119,10 +119,8 @@ test('le son de la poubelle : coupé si le lecteur est muet ou hors d’un appui
   assert.ok(app.includes("case 'crumple':{"), 'le bruit du papier froissé');
 });
 
-test('lqAdieu referme aussi marges intérieures et bordures ; le style de la scène', () => {
-  const a = fn('lqAdieu');
-  assert.ok(a.includes("['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].forEach(k=>{if(cs[k])bx0[k]=cs[k];});"));
-  assert.ok(a.includes("backgroundColor:'#FFE4E6',...bxZ,offset:1}"));
+test('21 h 33 : la poubelle partout (lqAdieu n’existe plus) ; le style de la scène', () => {
+  assert.ok(!app.includes('lqAdieu('), 'un seul geste de suppression');
   assert.ok(app.includes('.lq-corb{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden}'));
   assert.ok(app.includes('.lq-corb.is-wait .f-wait,.lq-corb.is-happy .f-happy{opacity:1}'));
 });
