@@ -3243,6 +3243,7 @@
      hauteur varie (il passe en colonne sous 360px). On mesure au moment de
      l'afficher plutôt que de deviner. */
   body.in-lesson .toast{bottom:var(--toast-lift,calc(max(8px,var(--safe-bottom)) + 92px))}
+  .toast.is-over{z-index:125;bottom:var(--toast-lift,calc(max(8px,var(--safe-bottom)) + 92px))}   /* devant la page de départ d’un cours (20 h 26) */
 
   /* Carnet de notes */
   .seg{display:flex;background:rgba(120,120,128,.12);border-radius:13px;padding:3px;margin:14px 18px 0;position:relative}
@@ -39456,7 +39457,9 @@ function accomplissements(){
   const premiers=Array.isArray(sal.pl)?Math.max(0,Math.floor(+sal.pl[0]||0)):0,amis=Math.max(0,Math.floor(+sal.amis||0));
   const difficiles=typeof CHALLENGES==='undefined'?0:CHALLENGES.filter(c=>c.niv==='d'&&state.defis&&state.defis[c.id]).length;
   return [
-    {id:'requete',label:'Première requête',cap:'1ʳᵉ requête',now:Math.min(st.lessons+st.defis,1),goal:1,how:'Valide ta première leçon ou ton premier défi.'},
+    /* 11 novembre, 20 h 26 (Elisa : son choix « Le donner à l’arrivée ») : la requête d’essai réussie dans l’onboarding est la
+       première (ev.requete, noté par finishOnboard) ; sans elle (essai passé ou en panne), la première leçon ou le premier défi. */
+    {id:'requete',label:'Première requête',cap:'1ʳᵉ requête',now:ev.requete||st.lessons+st.defis>0?1:0,goal:1,how:'Exécute ta première requête : l’essai du début, une leçon ou un défi.'},
     {id:'defi1',label:'Premier défi réussi',cap:'1ᵉʳ défi trouvé',now:Math.min(st.defis,1),goal:1,how:'Trouve ton premier défi.'},
     {id:'lecons10',label:'10 leçons',cap:'10 leçons validées',now:Math.min(st.lessons,10),goal:10,unit:'leçon',how:'Valide 10 leçons.'},
     {id:'serie3',label:'Série de 3 jours',cap:'3 jours de suite',now:Math.min(st.streak,3),goal:3,ok:rec>=3,unit:'jour',how:'Atteins une série de 3 jours.'},
@@ -39516,8 +39519,13 @@ let stkLessonNew=[],stkLessonShown=false;
 function stkAfterProgress(){
   const won=stkSync();
   if(!won.length)return;
-  if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...won);return;}
-  stkAnnounce(won);
+  /* 20 h 26 : la première requête faite dans l’onboarding s’annonce tout de suite, même si la première leçon s’est déjà ouverte : elle
+     n’attend pas son bilan, qui garde ce que la leçon fait gagner (le sticker du module). */
+  const ev=stkState().ev||{},now=won.filter(id=>id==='requete'&&ev.requete),held=won.filter(id=>!now.includes(id));
+  if(now.length)stkAnnounce(now);
+  if(!held.length)return;
+  if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...held);return;}
+  stkAnnounce(held);
 }
 /* En quittant une leçon ou une partie : ce que le bilan n’a pas montré est annoncé par un toast. */
 function stkLeaveLesson(){
@@ -40877,6 +40885,12 @@ function demarrerSeance(iso){
 }
 function toastLift(t){
   t.style.removeProperty('--toast-lift');
+  t.classList.remove('is-over');
+  /* 11 novembre, 20 h 26 : la page de départ d’un cours (#lesson-start) passe devant tout (z-index 120) et cachait la notification ;
+     à l’arrivée dans l’app, la première leçon s’ouvre d’elle-même et « Nouveau sticker · Première requête » restait dessous. La
+     notification passe devant, juste au-dessus de « Commencer ». */
+  const lst=document.querySelector('#lesson-start:not(.is-out)'),go=lst&&lst.querySelector('.lst-go');
+  if(go){const r=go.getBoundingClientRect();if(r.height){t.classList.add('is-over');t.style.setProperty('--toast-lift',Math.round(window.innerHeight-r.top+14)+'px');return;}}
   if(!document.body.classList.contains('in-lesson'))return;
   const nav=document.querySelector('#lesson-body .ls-nav')||document.querySelector('.ls-nav');
   const r=nav&&!nav.classList.contains('cta-away')?nav.getBoundingClientRect():null;
@@ -46995,6 +47009,9 @@ function finishOnboard(action){
   };
   state.accountMode=draft.accountMode||state.accountMode||'guest';
   if(!state.inscritLe)state.inscritLe=inscriptionIso();   // la date d’inscription : le premier onboarding (6 novembre, 6 h 10)
+  /* La requête d’essai réussie (étape « practice ») est la première requête : notée ici, son sticker s’annonce une fois dans l’app
+     (obTerminer), pas par-dessus la page du pseudo. */
+  if(draft.practiceDone){try{const S=stkState();if(!S.ev||typeof S.ev!=='object')S.ev={};S.ev.requete=1;}catch(e){}}
   state.onboarded=true;
   save();
   try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours créé (11 h 08)
@@ -47010,6 +47027,8 @@ function obTerminer(action){
   semaineOffset=0;jourSel=null;
   renderGreeting();renderHomeHero();renderProgress();renderPlanning();renderCompte();
   celebrate();
+  /* 20 h 26 : quelques secondes après l’arrivée, « Nouveau sticker · Première requête » (la requête d’essai de l’onboarding) */
+  if(typeof stkAfterProgress==='function')setTimeout(()=>{try{stkAfterProgress();}catch(e){}},2600);
   if(action==='salle'||(typeof jeuInvitation==='function'&&jeuInvitation())){
     switchTab('defis');
   }else if(action==='plan-ready'){
@@ -48651,7 +48670,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-moment-flash-v2863';
+  const SW_CACHE='requete-2026-11-11-requete-arrivee-v2864';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
