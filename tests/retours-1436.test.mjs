@@ -31,7 +31,7 @@ function lancer({ images = true, court = false } = {}) {
   const ctx = vm.createContext({
     document: { documentElement: { classList: { contains: c => c === 'is-native' } }, getElementById: id => (id === 'loader' ? L : null) },
     window: win, Array, Math, Date, Promise, matchMedia: () => ({ matches: false }), navigator: {},
-    localStorage: { getItem: k => (k === 'rq-intro-jour' && court ? jour : null), setItem() {} },
+    localStorage: { getItem: k => (k === 'rq-intro-jour' && court ? jour : null), setItem() {}, removeItem() {} },
     requestAnimationFrame: f => frames.push(f), setTimeout: (f, ms) => timers.push([t + (ms || 0), f])
   });
   vm.runInContext(intro, ctx);
@@ -66,7 +66,7 @@ test('chat : ses coups de pattes tombent sur ses images 5 et 9 (70 ms chacune), 
   assert.ok(C.chat > C.fin, 'il saute une fois la touche entière');
 });
 
-test('chat : sans ses images à temps, l’ouverture pleine se joue sans lui ; jamais dans la version courte', async () => {
+test('chat : sans ses images à temps, l’ouverture pleine se joue sans lui ; à chaque ouverture, même la deuxième du jour (17 h 56)', async () => {
   const s = lancer({ images: false });
   await attendre(); await attendre(); await attendre();
   const log = s.jouer();
@@ -74,10 +74,10 @@ test('chat : sans ses images à temps, l’ouverture pleine se joue sans lui ; j
   assert.ok(!s.L.html.join('').includes('in-chat'));
   assert.deepEqual(log.filter(c => c[1] !== 'cran').map(c => c.join(' ')), ['0 son assets/sons/ouverture.m4a', '1080 HEAVY', '1530 MEDIUM']);
   const c = lancer({ court: true });
-  assert.deepEqual(c.charges, [], 'la version courte ne charge pas le chat');
-  await attendre();
+  assert.equal(c.charges.length, 2, 'le chat se charge aussi pour une deuxième ouverture du jour');
+  await attendre(); await attendre(); await attendre();
   c.jouer();
-  assert.ok(!c.L.cls.has('is-chat') && c.L.cls.has('is-court'));
+  assert.ok(c.L.cls.has('is-chat') && !c.L.cls.has('is-court'));
 });
 
 test('chat : ses deux bandes de 12 images, détourées, et leur défilé par crans derrière la touche', () => {

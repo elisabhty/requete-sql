@@ -159,7 +159,7 @@ test('le fichier son : léger, de la bonne durée, et calé sur les instants de 
     "SORTIE_M4A = os.path.join(RACINE, 'assets', 'sons', 'ouverture.m4a')"]) assert.ok(py.includes(l), l);
   assert.ok(intro.includes('var PLEINE={soude:980,dSoude:100,fin:1080,appui:1440,dPlonge:640,sortie:1930,dSortie:360,')
     && intro.includes('k:function(i){return [22*i,380+32*i];},l:function(j){return [560+28*j,1110+36*j];}};'), 'cases, touche, lettres, appui, arrivée aux instants du son');
-  assert.ok(intro.includes('if(!court)jouerSon();'), 'la version courte est muette');
+  assert.ok(intro.includes("      L.classList.add('is-play');\n      jouerSon();"), 'le son à chaque ouverture : plus de version courte (11 novembre, 17 h 56)');
   /* Le dossier assets part dans l’appli ; le .wav de travail reste hors du dépôt */
   assert.ok(lire('scripts/build-www.mjs').includes("for (const dir of ['assets', 'vendor'])"));
   assert.ok(lire('.gitignore').includes('tools/sons/sortie/'));
