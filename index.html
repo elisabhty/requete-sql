@@ -23321,10 +23321,23 @@ const IOS_KB_OVERLAY=(()=>{
     return standalone?52:100;
   }catch(e){return 0;}
 })();
+/* Dans l’app, le clavier : sa hauteur (keyboardWillShow, plugin Keyboard), moins ce dont la page a déjà rétréci au-dessus de lui. La page
+   rétrécit d’habitude (Keyboard « native »), une demi-seconde après le clavier ; si elle ne rétrécit pas, rien d’autre ne le dit à la page
+   (le plugin retire à WebKit son propre recul du clavier : visualViewport ne bouge pas). La feuille de note restait alors derrière le
+   clavier, sans pouvoir défiler jusqu’à « Enregistrer » (Elisa, 11 novembre, 11 h 21). 0 sur le web, et clavier fermé. */
+let kbNatH=0,kbNatBase=typeof window!=='undefined'?(window.innerHeight||0):0;
+function kbNatif(){ return kbNatH?Math.max(0,Math.round(kbNatH-Math.max(0,kbNatBase-window.innerHeight))):0; }
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
+  window.addEventListener('keyboardWillShow',e=>{ if(!kbNatH)kbNatBase=Math.max(kbNatBase,window.innerHeight); kbNatH=Math.max(0,Math.round(+(e&&e.keyboardHeight)||0)); });
+  ['keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,()=>{ kbNatH=0; }));
+  window.addEventListener('resize',()=>{ if(!kbNatH)kbNatBase=window.innerHeight; });
+  /* La barre des touches SQL suit le clavier de l’app dès qu’il s’annonce, puis quand il s’en va. */
+  ['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,()=>{ try{ syncKbarOffset(); }catch(e){} }));
+}
 function keyboardInset(){
   const vv=window.visualViewport;
   const raw=vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;
-  return raw>40?raw+IOS_KB_OVERLAY:raw;
+  return Math.max(raw>40?raw+IOS_KB_OVERLAY:raw,kbNatif());
 }
 function revealSqlEditor(ta){
   if(ta.closest('.xf-editor')) return;
@@ -23345,7 +23358,7 @@ function ensureRunRowVisible(ta){
   const scroller=ta.closest('.screen');
   if(!run||!scroller||keyboardInset()<40) return;
   const vv=window.visualViewport;
-  const visBottom=(vv?vv.offsetTop+vv.height:scroller.getBoundingClientRect().bottom)-IOS_KB_OVERLAY;
+  const visBottom=(vv?vv.offsetTop+vv.height:scroller.getBoundingClientRect().bottom)-IOS_KB_OVERLAY-kbNatif();
   const kbar=document.getElementById('kbar');
   const kh=(kbar&&kbar.classList.contains('on'))?kbar.offsetHeight:0;
   const nav=ta.closest('#scr-lesson')?document.querySelector('#lesson-body .ls-nav'):null;
@@ -42699,10 +42712,10 @@ function openNote(id,pre){
       <div class="editor-area"><pre><code id="hl-ne-sql"></code></pre>
       <textarea id="ne-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="-- optionnel"></textarea></div>
     </div>
-    <div class="ne-row">
+    <div class="ne-row ne-act">
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
-      ${n?`<button class="del" type="button" onclick="deleteNote('${e.id}')">Supprimer</button>`:''}
-    </div>`;
+    </div>${n?`
+    <div class="ne-row ne-row-del"><button class="del" type="button" onclick="deleteNote('${e.id}')">Supprimer</button></div>`:''}`;
   const ta=document.getElementById('ne-ta');
   ta.value=e.txt||'';
   const grow=()=>{ta.style.height='auto';ta.style.height=Math.max(160,Math.min(ta.scrollHeight,320))+'px'};grow();
@@ -47012,9 +47025,15 @@ function closePlusDetails(){
 (function(){
   const vv=window.visualViewport;if(!vv)return;
   let raf=0;
-  const fit=()=>{raf=0;const kb=Math.max(0,Math.round(window.innerHeight-vv.height-vv.offsetTop));document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');};
+  /* Dans l’app, le clavier qui ne fait pas rétrécir la page compte aussi (kbNatif, 11 novembre) ; html.kb-ouvert : un clavier à l’écran. */
+  const fit=()=>{raf=0;const kb=Math.max(Math.round(window.innerHeight-vv.height-vv.offsetTop),kbNatif());document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');
+    document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');   // Safari : les barres qui flottent sur le clavier
+    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0);};
   const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
-  vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);fit();
+  vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);
+  /* Le clavier de l’app s’annonce, puis la page rétrécit : recalé aussitôt, sans attendre l’image suivante. */
+  ['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide','resize'].forEach(n=>window.addEventListener(n,fit));
+  fit();
 })();
 /* Niveau SQL : cinq paliers. Les quatre premiers sont les quatre étapes de l’onboarding (« Où en es-tu avec SQL ? » : SELECT,
    Filtres & tris, Jointures, Analyses), le cinquième le parcours maîtrisé. On y monte avec ses leçons validées, tout le monde à
@@ -48103,7 +48122,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-videos-nettes-v2841';
+  const SW_CACHE='requete-2026-11-11-note-clavier-v2842';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
