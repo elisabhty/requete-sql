@@ -41860,6 +41860,7 @@ function homeStreakHTML(){
    image et le cœur tenu 0,9 s, 3,3 s la boucle) ; en mouvement réduit, sa dernière image, fixe. La semaine faite : « Ta semaine est en feu » et « 7 jours sur 7,
    bravo ! », comme la carte. */
 const LQ_FLAMME_CLE='rq-flamme-bravo';
+const LQ_FLAMME_CHAT_MS=3340;   // les 8 images du GIF : 340, 340, 340, 380, 340, 340, 360 et 900 ms (le cœur tenu)
 function lqFlammeAttendue(iso){try{localStorage.setItem(LQ_FLAMME_CLE,iso);}catch(e){}}
 function lqFlammeBravo(){
   if(typeof document==='undefined'||!document.documentElement.classList.contains('lq'))return;
@@ -41894,6 +41895,14 @@ function lqFlammeOuvrir(){
     +`<button type="button" class="lq-flamme-ok" onclick="lqFlammeFermer()">Continuer</button></div>`;
   lqFlammeOuvrir.avant=document.activeElement;
   document.body.appendChild(el);
+  /* 11 novembre, 22 h 03 (Elisa : « il doit le faire qu’une fois et pas en boucle ») : le chat joue son GIF une fois (le fichier ne
+     boucle plus), puis son image fixe, qui est sa dernière pose, prend le relais à la fin, au cas où un navigateur reboucle quand même. */
+  const chat=el.querySelector('.lq-flamme-chat');
+  if(chat&&!fixe){
+    const fin='assets/chat-allumette-fixe.webp';try{new Image().src=fin;}catch(e){}
+    const pose=()=>{clearTimeout(chat._t);chat._t=setTimeout(()=>{if(chat.isConnected)chat.src=fin;},LQ_FLAMME_CHAT_MS-160);};
+    if(chat.complete)pose();else chat.addEventListener('load',pose,{once:true});
+  }
   el.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();lqFlammeFermer();}});
   const ok=el.querySelector('.lq-flamme-ok');try{ok.focus({preventScroll:true});}catch(e){ok.focus();}
   if(typeof buzz==='function')buzz('success');
@@ -48972,7 +48981,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-poubelle-partout-v2867';
+  const SW_CACHE='requete-2026-11-11-flamme-une-fois-v2868';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
