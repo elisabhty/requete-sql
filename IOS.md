@@ -463,9 +463,11 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 - **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre) : le parcours choisi, sa date et l’empreinte
   de l’identifiant tiré au hasard par l’appareil partent dans la table `parcours_vote` (fonction `parcours_voter`, un vote
   par appareil, revoter le remplace). Appliquée le 4 novembre : `supabase/migrations/20261104160653_parcours_vote.sql`.
-  **Résultats** : vue `parcours_votes`. Dans App Store Connect, déclarer « Identifiant
+  **Résultats** : vue `parcours_votes`. Le badge « En tête » de la page d’un parcours lit `parcours_en_tete` (le seul
+  parcours en tête, sans chiffres, à partir de 10 votes et sans égalité ; appliquée le 11 novembre :
+  `supabase/migrations/20261111143000_parcours_en_tete.sql`). Dans App Store Connect, déclarer « Identifiant
   utilisateur » (l’identifiant au hasard) et « Autres données d’usage » (le vote) ; usage « Analyses » ; non liés à
-  l’identité, sans pistage. L’alerte « Préviens-moi à la sortie » reste sur l’appareil.
+  l’identité, sans pistage. L’alerte « M’avertir au lancement » reste sur l’appareil.
 - **Avis sur les leçons** (« Donne ton avis sur la leçon », fin de leçon, 4 novembre) : la note (1 à 5 étoiles), le
   commentaire facultatif (500 signes), le numéro et le titre de la leçon, la date et l’empreinte de l’identifiant au hasard
   partent dans la table `avis_lecon` (fonction `lecon_noter`, un avis par appareil et par leçon, le changer le remplace).

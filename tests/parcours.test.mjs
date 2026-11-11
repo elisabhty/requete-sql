@@ -90,10 +90,10 @@ test('liste et page d’un parcours : ouvrir, revenir (vers la liste ou l’accu
   ctx.openParcours('sql');
   assert.equal(vm.runInContext('parcoursVue', ctx), null);
   const page = ctx.parcoursPageHTML(vm.runInContext("PARCOURS.find(p=>p.id==='python')", ctx));
-  assert.ok(page.includes('<em class="pc-hero-tag">En préparation</em>') && page.includes('<h2 id="pc-titre">Python pour la data</h2>'));
-  assert.ok(page.includes('<div class="pc-hero-top">') && page.indexOf('class="pc-hero-stk"') < page.indexOf('<h2 id="pc-titre">'), 'l’autocollant en haut à droite, le titre sur toute la largeur');
-  assert.ok(page.includes('<p class="pc-hero-sub">Pas encore disponible. Active l’alerte pour savoir quand il ouvre.</p>'));
-  assert.ok(!page.includes('pc-alert-ic') && page.includes('<small>Un message dans l’appli le jour où il ouvre.</small>'), 'l’alerte sans pictogramme, une phrase courte');
+  /* 11 novembre, 15 h 15 : d’après sa maquette (tests/retours-1515.test.mjs) */
+  assert.ok(page.includes('<em class="pc-hero-tag">') && page.includes('En préparation</em>') && page.includes('<h2 id="pc-titre">Python pour la data</h2>'));
+  assert.ok(page.includes('<p class="pc-hero-sub">Un nouveau parcours pour manipuler, analyser et exploiter tes données avec Python.</p>'));
+  assert.ok(page.includes('<b>M’avertir au lancement</b><small>Reçois une notification dans l’appli le jour de l’ouverture.</small>'));
   assert.ok(page.includes('<input type="checkbox" role="switch" class="pc-switch" onchange="parcoursAlerte(\'python\',this.checked)">'));
   assert.equal((page.match(/<input type="radio" name="pc-vote"/g) || []).length, 3);
   assert.ok(page.includes('value="python" checked'), 'le parcours de la page est proposé d’abord');
@@ -110,7 +110,7 @@ test('liste et page d’un parcours : ouvrir, revenir (vers la liste ou l’accu
   ctx.parcoursVoter();
   assert.equal(ctx.state.parcoursVote.id, 'excel');
   await new Promise(r => setTimeout(r, 0));
-  assert.deepEqual(plain(calls.filter(c => c[0] === 'rpc').at(-1)), ['rpc', 'parcours_voter', { p_cle: 'cle', p_parcours: 'excel' }]);
+  assert.deepEqual(plain(calls.filter(c => c[0] === 'rpc' && c[1] === 'parcours_voter').at(-1)), ['rpc', 'parcours_voter', { p_cle: 'cle', p_parcours: 'excel' }]);
   assert.equal(ctx.state.parcoursVote.envoye, true);
   assert.ok(ctx.parcoursVoteMsg(vm.runInContext("PARCOURS.find(p=>p.id==='excel')", ctx)).startsWith('Merci ! Ton vote : Excel'));
   assert.equal(ctx.parcoursVoteFait('excel'), true, 'même choix : rien à renvoyer');

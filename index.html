@@ -27382,12 +27382,30 @@ const LQ_SEARCH_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
    sont annoncés « À venir », sans date ni contenu promis. Chacun a sa page : une alerte (un message dans l’appli le jour où il
    ouvre) et le vote pour le prochain, envoyé à la base de l’appli (parcours_voter : un vote par appareil, qu’on peut changer).
    Quand un parcours ouvre : dispo:true ; ceux qui avaient demandé l’alerte la voient à l’ouverture de l’appli (parcoursAnnonce). */
+/* 11 novembre, 15 h 15 (sa maquette de la page Python) : chaque parcours à venir a sa phrase et ses trois thèmes (des domaines, pas
+   un programme ni une date). */
 const PARCOURS=[
   {id:'sql',titre:'SQL',court:'SQL',stk:'db',dispo:true},
-  {id:'python',titre:'Python pour la data',court:'Python',stk:'term'},
-  {id:'excel',titre:'Excel et tableaux croisés',court:'Excel',stk:'table'},
-  {id:'powerbi',titre:'Power BI',court:'Power BI',stk:'chart'}
+  {id:'python',titre:'Python pour la data',court:'Python',stk:'term',
+    desc:'Un nouveau parcours pour manipuler, analyser et exploiter tes données avec Python.',themes:[['barres','Analyse de\u00a0données'],['engrenage','Automatisation'],['base','Projets concrets']]},
+  {id:'excel',titre:'Excel et tableaux croisés',court:'Excel',stk:'table',
+    desc:'Un nouveau parcours pour organiser, calculer et résumer tes données avec Excel.',themes:[['fx','Formules'],['grille','Tableaux croisés'],['barres','Graphiques']]},
+  {id:'powerbi',titre:'Power BI',court:'Power BI',stk:'chart',
+    desc:'Un nouveau parcours pour construire des tableaux de bord et faire parler tes données avec Power BI.',themes:[['bord','Tableaux de\u00a0bord'],['barres','Visualisation'],['base','Projets concrets']]}
 ];
+/* Les pictogrammes de la page d’un parcours (traits, comme le reste de l’appli) */
+const PC_ICO=(()=>{const g=(d,w)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w||2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;return {
+  fusee:g('<path d="M13.5 4.5c2.7-1.5 5.4-1.5 6.5-1.5 0 1.1 0 3.8-1.5 6.5L13 15l-4-4z"/><path d="M9 11l-3.5.5L3 14l4.5.5M13 15l-.5 3.5L10 21l-.5-4.5"/><circle cx="15.5" cy="8.5" r="1.4"/><path d="M6.5 17.5c-1.3.3-2.2 1.3-2.5 3 1.7-.3 2.7-1.2 3-2.5"/>'),
+  barres:g('<path d="M4 20h16M7 16v-4M12 16V8M17 16v-7"/><rect x="5.5" y="11" width="3" height="5" rx="1"/><rect x="10.5" y="7" width="3" height="9" rx="1"/><rect x="15.5" y="8" width="3" height="8" rx="1"/>',1.8),
+  engrenage:g('<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/><circle cx="12" cy="12" r="6.5"/>',1.8),
+  base:g('<ellipse cx="12" cy="6" rx="7" ry="2.8"/><path d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8"/>',1.8),
+  fx:g('<path d="M10 5.5c-1.6-.4-2.7.3-3 1.9L5.3 18c-.3 1.6-1.4 2.2-3 1.8M4.5 10.5h6M13 10l6 8M19 10l-6 8"/>',1.8),
+  grille:g('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/>',1.8),
+  bord:g('<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M10 9v11"/><path d="M13 16.5l2-2.5 1.5 1.5 2-3"/>',1.8),
+  vote:g('<path d="M5 19V12M10 19V6M15 19v-9M20 19V9"/>',3),
+  coche:g('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12.5l3 3 5.5-6"/>',2.4)
+};})();
+const PC_TETE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF7A1A" d="M12.9 1.9c.5 2.6 2 4.3 3.6 6.1 1.8 2 3.6 4.2 3.6 7.6a8.1 8.1 0 0 1-16.2 0c0-2.8 1.3-5 2.9-6.7.3 1.4 1 2.5 2.1 3.2-.2-4.4 1.6-7.8 4-10.2z"/><path fill="#FFC83D" d="M12.3 12.2c.3 1.6 1.4 2.5 2.3 3.6.7.8 1.1 1.7 1.1 2.8a3.7 3.7 0 0 1-7.4 0c0-1.5.8-2.7 1.8-3.6.1.7.5 1.3 1 1.6 0-1.8.4-3.2 1.2-4.4z"/></svg>';
 const PC_BELL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15zM10 20.5a2 2 0 0 0 4 0"/></svg>';
 const PC_BOOK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5c2.7-1 5.3-1 8 .8 2.7-1.8 5.3-1.8 8-.8v13c-2.7-1-5.3-1-8 .8-2.7-1.8-5.3-1.8-8-.8z"/><path d="M12 6.3v13"/></svg>';
 let parcoursVue=null,parcoursDeListe=false,parcoursChoix=null,parcoursEnvoi=false;
@@ -27432,6 +27450,7 @@ function renderParcoursScreen(){
     if(b)b.setAttribute('aria-label','Retour aux parcours');
   }
   host.innerHTML=p?parcoursPageHTML(p):parcoursListeHTML();
+  if(p)parcoursTeteCharger();
 }
 function parcoursListeHTML(){
   const done=parcoursSqlFaites(),pct=TOTAL?Math.min(100,Math.round(done/TOTAL*100)):0,al=parcoursAlertes(),v=parcoursVote();
@@ -27447,31 +27466,61 @@ function parcoursListeHTML(){
     <button type="button" class="pc-vote-cta" onclick="openParcours('${(vp||parcoursAVenir()[0]).id}')"><span><b>Quel parcours après SQL\u00a0?</b><small>${vp?`Ton vote\u00a0: ${esc(vp.titre)}.`:'Aide-nous à choisir le prochain.'}</small></span><em>${vp?'Changer':'Voter'}</em></button>
   </div>`;
 }
+/* 11 novembre, 15 h 15 (sa maquette) : la carte violette (l’étiquette, le titre souligné d’un trait jaune, sa phrase, ses trois
+   thèmes, le chat à l’ordinateur), l’alerte avec sa cloche, le vote avec son pictogramme, une icône par parcours, et « En tête »
+   sur le parcours qui a le plus de votes (parcoursTete : de vrais votes, à partir de 10, sans égalité). L’étiquette garde
+   « En préparation » (jamais « bientôt » dans les textes). */
 function parcoursPageHTML(p){
   const on=parcoursAlertes().includes(p.id),v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
   const sel=parcoursChoix||(v&&v.id)||p.id;
-  const opts=parcoursAVenir().map(o=>`<label class="pc-opt"><input type="radio" name="pc-vote" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value)"><span>${esc(o.titre)}</span></label>`).join('');
+  const opts=parcoursAVenir().map(o=>`<label class="pc-opt"><input type="radio" name="pc-vote" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value)"><i class="pc-opt-ico" aria-hidden="true">${lqStkSvg(o.stk)}</i><span class="pc-opt-t">${esc(o.titre)}</span>${o.id===parcoursTete?PC_TETE_HTML:''}</label>`).join('');
+  const themes=(p.themes||[]).map(t=>`<li>${PC_ICO[t[0]]||''}<span>${esc(t[1])}</span></li>`).join('');
+  const chat=typeof mascotReduced==='function'&&mascotReduced()?'assets/chat-ordi-fixe.webp':'assets/chat-ordi.webp';
   return `<div class="pc-view">
     <section class="pc-hero" aria-labelledby="pc-titre">
-      <div class="pc-hero-top">
-        <div><em class="pc-hero-tag">En préparation</em><p class="pc-hero-k">Parcours à venir</p></div>
-        <i class="pc-hero-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i>
+      <img class="pc-hero-chat" src="${chat}" alt="" width="314" height="358" decoding="async">
+      <div class="pc-hero-copy">
+        <em class="pc-hero-tag">${PC_ICO.fusee}En préparation</em>
+        <h2 id="pc-titre">${esc(p.titre)}</h2>
+        <svg class="pc-hero-trait" viewBox="0 0 160 12" aria-hidden="true"><path d="M3 8.5C38 4.5 92 3 157 4.5" fill="none" stroke="#FFC83D" stroke-width="5" stroke-linecap="round"/><path d="M24 10.5c30-2 66-2.6 98-2" fill="none" stroke="#FFC83D" stroke-width="2.5" stroke-linecap="round" opacity=".7"/></svg>
+        <p class="pc-hero-sub">${esc(p.desc||'')}</p>
       </div>
-      <h2 id="pc-titre">${esc(p.titre)}</h2>
-      <p class="pc-hero-sub">Pas encore disponible. Active l’alerte pour savoir quand il ouvre.</p>
+      ${themes?`<ul class="pc-themes" aria-label="Au programme">${themes}</ul>`:''}
     </section>
     <label class="pc-alert">
-      <span class="pc-alert-copy"><b>Préviens-moi à la sortie</b><small>Un message dans l’appli le jour où il ouvre.</small></span>
+      <i class="pc-alert-ico" aria-hidden="true">${PC_BELL_SVG}</i>
+      <span class="pc-alert-copy"><b>M’avertir au lancement</b><small>Reçois une notification dans l’appli le jour de l’ouverture.</small></span>
       <input type="checkbox" role="switch" class="pc-switch"${on?' checked':''} onchange="parcoursAlerte('${p.id}',this.checked)">
     </label>
     <fieldset class="pc-vote">
-      <legend>Lequel veux-tu en premier\u00a0?</legend>
-      <p class="pc-vote-sub">Ton vote nous aide à choisir le prochain.</p>
+      <legend><i class="pc-vote-ico" aria-hidden="true">${PC_ICO.vote}</i><span>Quel parcours aimerais-tu découvrir ensuite\u00a0?</span></legend>
+      <p class="pc-vote-sub">Ton vote nous aide à choisir le prochain\u00a0!</p>
       <div class="pc-opts">${opts}</div>
-      <button type="button" class="pc-vote-go" onclick="parcoursVoter()"${parcoursVoteFait(sel)?' disabled':''}>${parcoursVoteLabel(sel)}</button>
+      <button type="button" class="pc-vote-go" onclick="parcoursVoter()"${parcoursVoteFait(sel)?' disabled':''}>${PC_ICO.coche}<span>${parcoursVoteLabel(sel)}</span></button>
       <p class="pc-vote-ok" role="status" aria-live="polite">${parcoursVoteMsg(vp)}</p>
     </fieldset>
   </div>`;
+}
+const PC_TETE_HTML=`<em class="pc-tete">${PC_TETE_SVG}En tête</em>`;
+/* Le parcours en tête des votes (parcours_en_tete : sans chiffres, à partir de 10 votes, sans égalité), relu toutes les 5 minutes
+   au plus quand on ouvre la page d’un parcours, et après son propre vote ; hors ligne, pas de badge. */
+let parcoursTete=null,parcoursTeteLe=0,parcoursTeteVa=false;
+function parcoursTeteCharger(force){
+  if(parcoursTeteVa||(!force&&Date.now()-parcoursTeteLe<300000)||typeof clsRpc!=='function')return Promise.resolve(parcoursTete);
+  parcoursTeteVa=true;
+  return clsRpc('parcours_en_tete',{}).then(r=>{
+    const id=r&&r.parcours;
+    parcoursTete=PARCOURS.some(p=>p.id===id&&!p.dispo)?id:null;parcoursTeteLe=Date.now();
+  }).catch(()=>{}).then(()=>{parcoursTeteVa=false;parcoursTetePeindre();return parcoursTete;});
+}
+function parcoursTetePeindre(){
+  if(typeof document==='undefined'||!document.querySelectorAll)return;
+  document.querySelectorAll('#parcours-body .pc-opt').forEach(l=>{
+    const i=l.querySelector('input'),b=l.querySelector('.pc-tete');
+    if(!i)return;
+    if(i.value===parcoursTete&&!b)l.insertAdjacentHTML('beforeend',PC_TETE_HTML);
+    else if(i.value!==parcoursTete&&b)b.remove();
+  });
 }
 function parcoursVoteFait(id){const v=parcoursVote();return !!v&&v.id===id&&v.envoye!==false;}
 function parcoursVoteLabel(id){const v=parcoursVote();return !v?'Voter':v.id===id?(v.envoye!==false?'Vote enregistré':'Voter'):'Changer mon vote';}
@@ -27484,8 +27533,8 @@ function parcoursVoteMsg(vp){
 function parcoursChoisir(id){
   if(!parcoursAVenir().some(p=>p.id===id))return;
   parcoursChoix=id;
-  const btn=document.querySelector('#parcours-body .pc-vote-go');
-  if(btn){btn.disabled=parcoursVoteFait(id);btn.textContent=parcoursVoteLabel(id);}
+  const btn=document.querySelector('#parcours-body .pc-vote-go'),t=btn&&btn.querySelector('span');
+  if(btn){btn.disabled=parcoursVoteFait(id);if(t)t.textContent=parcoursVoteLabel(id);else btn.textContent=parcoursVoteLabel(id);}
 }
 function parcoursAlerte(id,on){
   if(!parcoursAVenir().some(p=>p.id===id))return;
@@ -27503,7 +27552,7 @@ function parcoursVoter(){
   if(typeof buzz==='function')buzz('light');
   state.parcoursVote={id:p.id,le:Date.now(),envoye:false};save();
   parcoursChoix=null;
-  parcoursEnvoyerVote().then(()=>{if(activeTab==='parcours')renderParcoursScreen();});
+  parcoursEnvoyerVote().then(ok=>{if(activeTab==='parcours')renderParcoursScreen();if(ok)parcoursTeteCharger(true);});
   renderParcoursScreen();
 }
 /* Le vote part à la base de l’appli (Supabase, Paris), avec l’identifiant tiré au hasard de l’appareil (le même que le classement
@@ -48333,7 +48382,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-chat-v2847';
+  const SW_CACHE='requete-2026-11-11-parcours-v2848';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
