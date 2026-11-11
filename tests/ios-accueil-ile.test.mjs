@@ -25,7 +25,7 @@ test('le même type dans l’app et dans le widget', () => {
 
 test('le pont : accueilDebut, accueilMaj, accueilFin (iOS 16.2), et rien d’en cours à la relance', () => {
   const noms = [...pont.matchAll(/CAPPluginMethod\(name: "(\w+)", returnType: CAPPluginReturnPromise\)/g)].map(x => x[1]);
-  assert.deepEqual(noms.slice(-3), ['accueilDebut', 'accueilMaj', 'accueilFin']);
+  assert.deepEqual(noms.slice(-5, -2), ['accueilDebut', 'accueilMaj', 'accueilFin'], 'puis les notifications (retours-1555)');
   for (const n of ['accueilDebut', 'accueilMaj', 'accueilFin']) {
     const f = entre(pont, `@objc func ${n}(_ call: CAPPluginCall) {`, '\n    }\n');
     assert.ok(f.includes('guard #available(iOS 16.2, *) else {') && f.includes('Task {') && f.includes('call.resolve('), n);

@@ -55,7 +55,7 @@ test('la carte violette : étiquette, titre souligné, phrase, chat à l’ordin
 test('l’alerte avec sa cloche, le vote avec son pictogramme, une icône par parcours et un bouton avec sa coche', () => {
   const { ctx } = sandbox();
   const page = ctx.parcoursPageHTML(P(ctx, 'python'));
-  assert.ok(page.includes('<i class="pc-alert-ico" aria-hidden="true"><svg') && page.includes('<b>M’avertir au lancement</b><small>Reçois une notification dans l’appli le jour de l’ouverture.</small>'));
+  assert.ok(page.includes('<i class="pc-alert-ico" aria-hidden="true"><svg') && page.includes('<b>M’avertir au lancement</b><small>Reçois une notification le jour de l’ouverture.</small>'));
   assert.ok(/<legend><i class="pc-vote-ico" aria-hidden="true"><svg[\s\S]*?<\/svg><\/i><span>Quel parcours aimerais-tu découvrir ensuite \?<\/span><\/legend>/.test(page), 'la question est la légende du groupe, avec son pictogramme');
   assert.ok(page.includes('<p class="pc-vote-sub">Ton vote nous aide à choisir le prochain !</p>'));
   for (const [id, k] of [['python', 'term'], ['excel', 'table'], ['powerbi', 'chart']])

@@ -102,7 +102,10 @@ test('scripts/ios-widget.mjs : le délégué du modèle remplacé (et gardé), u
     lancer();
     assert.equal(fs.readFileSync(sc, 'utf8'), read('resources/ios/widget/App/SceneDelegate.swift'), 'le délégué de Requête');
     assert.equal(fs.readFileSync(sc + '.avant-requete', 'utf8'), modele, 'celui du modèle, gardé');
-    assert.equal(fs.readFileSync(ad, 'utf8'), read('tests/fixtures/ios-capacitor/AppDelegate.swift'), 'avec un délégué de scène, AppDelegate.swift n’est pas touché');
+    /* Avec un délégué de scène, AppDelegate.swift ne reçoit que le jeton de push (11 novembre, retours-1555), une seule fois */
+    const ad1 = fs.readFileSync(ad, 'utf8'), fixture = read('tests/fixtures/ios-capacitor/AppDelegate.swift');
+    assert.ok(!ad1.includes('performActionFor shortcutItem') && ad1.split('didRegisterForRemoteNotificationsWithDeviceToken').length - 1 === 1);
+    assert.equal(ad1.replace(/\n    \/\/ Le jeton de push d’Apple[\s\S]*?capacitorDidFailToRegisterForRemoteNotifications, object: error\)\n    \}\n/, ''), fixture, 'le reste n’est pas touché');
     lancer(); assert.equal(fs.readFileSync(sc + '.avant-requete', 'utf8'), modele, 'relancé : la copie reste celle du modèle');
     /* Modifié à la main : rien n’est touché, un avertissement le dit, la fabrication continue */
     fs.writeFileSync(sc, modele.replace('CAPBridgeViewController()', 'MonControleur()'));
@@ -116,6 +119,8 @@ test('scripts/ios-widget.mjs : le délégué du modèle remplacé (et gardé), u
     fs.writeFileSync(ad, vieux); lancer(); lancer();
     const a = fs.readFileSync(ad, 'utf8');
     assert.equal(a.split('performActionFor shortcutItem').length - 1, 1, 'ajouté une fois');
-    assert.ok(a.endsWith('        RequeteRaccourci.recevoir(shortcutItem.type)\n        completionHandler(true)\n    }\n}\n'), 'dans la classe');
+    assert.ok(a.includes('        RequeteRaccourci.recevoir(shortcutItem.type)\n        completionHandler(true)\n    }\n'), 'dans la classe');
+    assert.equal(a.split('didRegisterForRemoteNotificationsWithDeviceToken').length - 1, 1, 'le jeton de push aussi, une fois');
+    assert.ok(a.endsWith('        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)\n    }\n}\n'));
   } finally { fs.rmSync(t, { recursive: true, force: true }); }
 });

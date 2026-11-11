@@ -339,6 +339,34 @@ developer.apple.com › Identifiers › fr.requete.app › coche Push Notificati
 version installée depuis Xcode (développement) a un jeton du bac à sable d’Apple : la fonction le reconnaît (refusé en production,
 elle essaie le bac à sable) et s’en souvient.
 
+### Le jour où un parcours ouvre : la notification (11 novembre, 15 h 55)
+
+« M’avertir au lancement », sur la page d’un parcours à venir, est une vraie notification dans l’appli iPhone : en activant
+l’alerte, iOS demande l’autorisation des notifications (une seule fois) ; l’appareil s’inscrit alors à la base de l’appli
+(`parcours_alerter` : l’empreinte de sa clé, le parcours, le jeton de push d’Apple ; table `parcours_alerte`,
+`supabase/migrations/20261111160000_parcours_alerte_push.sql`, appliquée le 11 novembre). Couper l’alerte efface la ligne ;
+« Supprimer mon compte » aussi. Notifications refusées, ou sur le site : le message dans l’appli à son ouverture, comme avant.
+Le jeton arrive par l’AppDelegate (branché par `scripts/ios-widget.mjs`) et `RequetePush` (`RequeteWidgetPlugin.swift`).
+
+**Une seule fois (Elisa)** : supabase.com › projet requete-sql › **Edge Functions** › **Secrets** › Add new secret :
+`PARCOURS_ANNONCE_CLE`, avec un mot de passe que tu choisis (long, à garder : c’est lui qui autorise l’envoi). La clé d’Apple est
+celle de la salle dans l’île (`APNS_KEY`, `APNS_KEY_ID`, `APNS_TEAM_ID`, plus haut) : sans elle, rien ne part.
+
+**Le jour J**, une fois en ligne sur l’App Store la mise à jour où le parcours est ouvert (`dispo:true` dans `PARCOURS`), dans le
+Terminal (remplace `TA_CLE` par ton mot de passe et `python` par `excel` ou `powerbi` si besoin). D’abord l’essai, qui n’envoie
+rien et dit combien d’iPhone attendent (`inscrits`) et si la clé d’Apple est là (`cleApple`) :
+
+    curl -sS -X POST "https://ynuenrxozcpkrjdbeftc.supabase.co/functions/v1/parcours-annoncer" -H "x-annonce: TA_CLE" -H "Content-Type: application/json" -d '{"parcours":"python","essai":true}'
+
+Puis l’envoi, la même commande sans l’essai :
+
+    curl -sS -X POST "https://ynuenrxozcpkrjdbeftc.supabase.co/functions/v1/parcours-annoncer" -H "x-annonce: TA_CLE" -H "Content-Type: application/json" -d '{"parcours":"python"}'
+
+La fonction (`supabase/functions/parcours-annoncer`) envoie « Python pour la data est ouvert ! — Le nouveau parcours t’attend
+dans Requête. Mets l’appli à jour si besoin. », puis efface les inscrits servis (et les iPhone qu’Apple ne connaît plus) ; elle
+répond `envoyees`, `oubliees` et `restantes` (Apple indisponible) : relancer la même commande renvoie seulement à ceux qui restent.
+`"veille": true` : la clé d’Apple manque. « Clé d’annonce absente ou fausse » : le mot de passe ne correspond pas au secret.
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre
