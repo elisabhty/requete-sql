@@ -59,7 +59,7 @@ test('les feuilles, la barre des touches SQL et la ligne « Exécuter » suivent
   assert.ok(kb.includes("document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');"), 'Safari : les barres qui flottent sur le clavier');
   assert.ok(kb.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0);"));
   assert.ok(kb.includes("['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide','resize'].forEach(n=>window.addEventListener(n,fit));"), 'recalé aussitôt');
-  assert.ok(css.includes('html.lq .viz.on{bottom:var(--kb,0px)!important}'), 'la feuille monte de --kb');
+  assert.ok(css.includes('html.lq .viz.on{bottom:calc(var(--kb,0px) - var(--kb-app,0px))!important}'), 'la feuille monte de --kb (dans l’app, #app tient déjà au-dessus du clavier : retours-1150)');
 });
 
 test('éditeur de note, clavier ouvert : « Enregistrer » reste au-dessus du clavier, « Supprimer » a sa rangée', () => {

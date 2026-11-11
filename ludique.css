@@ -4677,7 +4677,20 @@ html[data-motion="reduce"] .viz-none-stk,html[data-motion="reduce"] .viz-none-pa
 /* 48d. Réf. 9 : clavier ouvert (iPhone), la feuille ouverte se pose au-dessus du clavier (--kb, mesuré avec visualViewport) : le toucher
    d’« Enregistrer » tombe bien sur le bouton, et la feuille se ferme. */
 html.lq #scr-compte .plus-details[open]{bottom:var(--kb,0px)!important;max-height:calc(100dvh - 72px - var(--kb,0px))!important}
-html.lq .viz.on{bottom:var(--kb,0px)!important}
+html.lq .viz.on{bottom:calc(var(--kb,0px) - var(--kb-app,0px))!important}
+/* 48d ter. Dans l’app, clavier ouvert : l’app tient dans la partie de la vue au-dessus du clavier (--app-h), que la vue ait rétréci
+   (Keyboard « native ») ou non (Elisa, 11 novembre, 11 h 50 : « vérifie partout où il y a un clavier »). Les feuilles posées dans
+   l’app (.viz) montent donc seulement du clavier que l’app ne compense pas (Safari) ; les fenêtres fixes montent de --kb-app. */
+html.is-native.kb-ouvert body{min-height:var(--app-h,100dvh)}
+html.is-native.kb-ouvert #app{height:var(--app-h,100dvh);min-height:var(--app-h,100dvh)}
+html.lq.is-native .imp-sheet{bottom:var(--kb-app,0px);max-height:calc(var(--app-h,100dvh) - 12px)}
+html.is-native .pays-feuille{bottom:var(--kb-app,0px)}
+html.is-native .pays-feuille .pays-boite{max-height:calc(var(--app-h,100dvh) - var(--safe-top) - 10px)}
+/* La barre d’onglets reste sous le clavier, comme dans les applis de l’iPhone : posée au-dessus de lui, elle cachait le bas de l’écran
+   (la recherche de l’entretien ramenée au-dessus du clavier passait dessous). Au-dessus du clavier, pas de place à garder pour le bas
+   arrondi de l’écran sous les pieds collants. */
+html.is-native.kb-ouvert #app>.tabbar{visibility:hidden}
+html.lq.kb-ouvert #scr-compte .ct-pied{padding-bottom:14px}
 /* 48d bis. Éditeur de note, clavier ouvert : « Enregistrer » reste posé au-dessus du clavier et la note défile dessous (Elisa, 11 novembre,
    11 h 21 : « on ne peut pas aller en bas pour chercher Enregistrer »). Avec la barre des touches SQL (la requête associée), c’est la
    feuille qui défile pour garder le bouton au-dessus de la barre (noteSqlEnVue). « Supprimer » a sa rangée, sous « Enregistrer ».

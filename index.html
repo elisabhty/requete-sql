@@ -23334,6 +23334,43 @@ if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
   /* La barre des touches SQL suit le clavier de l’app dès qu’il s’annonce, puis quand il s’en va. */
   ['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,()=>{ try{ syncKbarOffset(); }catch(e){} }));
 }
+/* Dans l’app, le champ où l’on tape reste en vue au-dessus du clavier (et de la barre des touches SQL) : le plugin Keyboard retire à
+   WebKit le défilement qui l’y ramenait. Le défilant le plus proche avance juste ce qu’il faut, sans faire passer le haut du champ
+   sous le bord ; une requête garde si possible « Exécuter » avec elle. L’onboarding, les feuilles du défi, de la question et du pays
+   s’en chargent déjà (11 novembre, « vérifie partout où il y a un clavier »). */
+function champEnVue(){
+  if(typeof document==='undefined'||typeof dxNatif!=='function'||!dxNatif())return;
+  const a=document.activeElement;
+  if(!a||!/^(INPUT|TEXTAREA)$/.test(a.tagName)||a.closest('#ob-body,.dx-feuille,.lq-ask,.pays-feuille'))return;
+  let sc=a.parentElement;
+  while(sc&&sc!==document.body&&!(/(auto|scroll)/.test(getComputedStyle(sc).overflowY)&&sc.scrollHeight>sc.clientHeight+1))sc=sc.parentElement;
+  if(!sc||sc===document.body)return;
+  const kbar=document.getElementById('kbar'),kh=kbar&&kbar.classList.contains('on')?kbar.getBoundingClientRect().height:0;
+  const s=sc.getBoundingClientRect(),nav=sc.querySelector('.navbar');
+  const bas=Math.min(window.innerHeight-kbNatif()-kh,s.bottom)-12,haut=s.top+(nav?nav.offsetHeight:0)+8;
+  const shell=a.closest('.editor-shell')||a,host=a.closest('.ls-main')||a.closest('#defi-solo-block')||a.closest('#scr-console'),run=host&&shell!==a?host.querySelector('.run-row'):null;
+  const r=shell.getBoundingClientRect(),rr=run&&run.offsetHeight?run.getBoundingClientRect():null;
+  const fin=rr&&rr.bottom>r.bottom&&rr.bottom-r.top<=bas-haut?rr.bottom:r.bottom;
+  let d=0;
+  if(fin>bas)d=Math.min(fin-bas,r.top-haut);
+  else if(r.top<haut)d=r.top-haut;
+  if(Math.abs(d)>1)sc.scrollTop+=d;
+  /* Un pied qui reste collé en bas du défilant (« Envoyer mon message »…) peut encore couvrir le bas du champ : le champ passe au-dessus. */
+  const r2=shell.getBoundingClientRect(),y=Math.min(r2.bottom,bas+12)-4;
+  let h=y>r2.top?document.elementFromPoint(r2.left+Math.min(24,r2.width/2),y):null;
+  if(h&&!shell.contains(h)&&!h.contains(shell)&&sc.contains(h)){
+    for(let p=h;p&&p!==sc;p=p.parentElement){if(/^(sticky|fixed|absolute)$/.test(getComputedStyle(p).position)){h=p;break;}}
+    const d2=Math.min(r2.bottom-h.getBoundingClientRect().top+10,r2.top-haut);
+    if(d2>1)sc.scrollTop+=d2;
+  }
+}
+if(typeof window!=='undefined'&&typeof document!=='undefined'&&typeof window.addEventListener==='function'){
+  let cevT=[];
+  const cevBientot=()=>{cevT.forEach(clearTimeout);cevT=[60,320,650,1000].map(t=>setTimeout(champEnVue,t));};
+  ['keyboardWillShow','keyboardDidShow'].forEach(n=>window.addEventListener(n,cevBientot));
+  window.addEventListener('resize',()=>{if(kbNatH)cevBientot();});
+  document.addEventListener('focusin',()=>{if(kbNatH)cevBientot();});
+}
 function keyboardInset(){
   const vv=window.visualViewport;
   const raw=vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;
@@ -23353,7 +23390,7 @@ function revealSqlEditor(ta){
   if(delta>28) scroller.scrollTop+=delta;
 }
 function ensureRunRowVisible(ta){
-  const host=ta.closest('.ls-main')||ta.closest('#scr-console');
+  const host=ta.closest('.ls-main')||ta.closest('#defi-solo-block')||ta.closest('#scr-console');   // le défi aussi (11 novembre)
   const run=host&&host.querySelector('.run-row');
   const scroller=ta.closest('.screen');
   if(!run||!scroller||keyboardInset()<40) return;
@@ -24367,7 +24404,7 @@ function syncKbarOffset(){
   const kbLift=on&&kb>40;
   if(on&&!kbar.classList.contains('kb-down')){ const oh=kbar.offsetHeight; if(oh>=44) kbarOpenH=oh; }
   const kh=on?kbarOpenH:0;
-  document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb:0)+kh)+'px');
+  document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb-kbNatif():0)+kh)+'px');   // l’app : #app tient déjà au-dessus du clavier
   /* La barre seule (sans le clavier) : les feuilles (.viz) montent déjà au-dessus du clavier ; elles réservent sous leur contenu la
      hauteur de la barre, qui passe par-dessus (Elisa, 4 novembre, 8 h 36, réf. 2 : « je ne peux pas descendre plus » dans une note). */
   document.documentElement.style.setProperty('--kbar-h',kh+'px');
@@ -40580,14 +40617,18 @@ function lqPrompt(o){
     const fit=()=>{
       if(!vv)return;
       const open=document.activeElement===input;
-      el.style.top=(open?vv.offsetTop:0)+'px'; el.style.height=(open?vv.height:window.innerHeight)+'px'; el.style.bottom='auto';
+      el.style.top=(open?vv.offsetTop:0)+'px'; el.style.height=(open?vv.height-kbNatif():window.innerHeight)+'px'; el.style.bottom='auto';
     };
+    /* Dans l’app, le clavier s’annonce sans toujours faire rétrécir la vue (kbNatif, 11 novembre) : la feuille se recale avec lui. */
+    const CLAV=['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide','resize'];
+    CLAV.forEach(n=>window.addEventListener(n,fit));
     input.addEventListener('blur',()=>{ if(!fini)fit(); });
     input.addEventListener('focus',()=>{ if(!fini)requestAnimationFrame(fit); });
     let fini=false;
     const fin=v=>{
       if(fini)return; fini=true;
       document.removeEventListener('keydown',key,true);
+      CLAV.forEach(n=>window.removeEventListener(n,fit));
       if(vv){vv.removeEventListener('resize',fit);vv.removeEventListener('scroll',fit);}
       input.blur();
       el.classList.remove('on'); el.classList.add('off');
@@ -47028,6 +47069,9 @@ function closePlusDetails(){
   /* Dans l’app, le clavier qui ne fait pas rétrécir la page compte aussi (kbNatif, 11 novembre) ; html.kb-ouvert : un clavier à l’écran. */
   const fit=()=>{raf=0;const kb=Math.max(Math.round(window.innerHeight-vv.height-vv.offsetTop),kbNatif());document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');
     document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');   // Safari : les barres qui flottent sur le clavier
+    /* L’app, clavier ouvert : la partie de la vue au-dessus du clavier (--app-h) et ce que la vue n’a pas compensé en rétrécissant
+       (--kb-app) ; #app s’y tient, comme si la vue avait rétréci (ludique.css, 48d). 0 et la vue entière sur le web. */
+    const ka=kbNatif();document.documentElement.style.setProperty('--kb-app',ka+'px');document.documentElement.style.setProperty('--app-h',(window.innerHeight-ka)+'px');
     document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0);};
   const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
   vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);
@@ -48122,7 +48166,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-note-clavier-v2842';
+  const SW_CACHE='requete-2026-11-11-claviers-v2843';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
