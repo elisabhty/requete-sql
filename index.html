@@ -23893,6 +23893,8 @@ function normalizeState(raw){
   const stkSrc=source.stickers&&typeof source.stickers==='object'&&!Array.isArray(source.stickers)?source.stickers:{};
   const stkKey=k=>/^[a-z0-9]{2,16}$/.test(k);
   const stickers={got:{},fresh:{},board:[],since:0};
+  /* ev : les gestes notés une fois (le code d’une salle partagé, 11 novembre), gardé seulement s’il y en a */
+  if(stkSrc.ev&&typeof stkSrc.ev==='object'&&!Array.isArray(stkSrc.ev)){const ev={};Object.keys(stkSrc.ev).filter(stkKey).slice(0,20).forEach(k=>{if(stkSrc.ev[k])ev[k]=1;});if(Object.keys(ev).length)stickers.ev=ev;}
   if(stkSrc.got&&typeof stkSrc.got==='object')Object.keys(stkSrc.got).filter(stkKey).slice(0,60).forEach(k=>{const t=Math.floor(Number(stkSrc.got[k]));if(t>0)stickers.got[k]=t;});
   if(stkSrc.fresh&&typeof stkSrc.fresh==='object')Object.keys(stkSrc.fresh).filter(k=>stickers.got[k]).forEach(k=>{stickers.fresh[k]=1;});
   if(Array.isArray(stkSrc.board))stkSrc.board.forEach(b=>{
@@ -37346,8 +37348,10 @@ async function jeuShare(){
   const J=JEU;if(!J)return;
   const url=jeuLienInvitation(J),text=jeuTexteInvitation(J);
   const out=document.getElementById('jeu-copied'),dire=t=>{if(out){out.classList.remove('is-ok');out.textContent=t;}};
-  if(navigator.share){try{await navigator.share({title:'Défi SQL sur Requête',text,url});return;}catch(e){if(e&&e.name==='AbortError')return;}}
-  try{await jeuCopyText(text+'\n'+url);dire('Invitation copiée\u00a0: colle-la dans un message à tes amis.');if(typeof buzz==='function')buzz('light');}
+  /* Partagé ou copié : le sticker « Code partagé » (11 novembre) */
+  const gagne=()=>{if(typeof stkMarquer==='function')stkMarquer('code');};
+  if(navigator.share){try{await navigator.share({title:'Défi SQL sur Requête',text,url});gagne();return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  try{await jeuCopyText(text+'\n'+url);dire('Invitation copiée\u00a0: colle-la dans un message à tes amis.');if(typeof buzz==='function')buzz('light');gagne();}
   catch(e){dire(url);}
 }
 /* Un défi trouvé en salle compte dans la progression, comme dans l’entraînement libre. */
@@ -37586,6 +37590,8 @@ function jeuCreditGame(){
     s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:vs?0:1,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
       .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
     save();
+    /* 1re place, Champion, 5 parties à plusieurs : les stickers de parties (11 novembre) — montrés à la fin de la partie */
+    if(typeof stkAfterProgress==='function')try{stkAfterProgress();}catch(e){}
     /* Le classement général : la partie part une seule fois (u), seul ou entre amis. */
     if(typeof clsEnvoyer==='function'&&played.length&&J.ranked)clsEnvoyer({u:J.code+'-'+J.g,salle:J.code,g:J.g});
     return {pts,total:s.pts};
@@ -38971,7 +38977,53 @@ function stkLayers(ctx,list,cut,b){
 }
 /* mode : art (sticker gagné), lock (silhouette à gagner), spot (emplacement vide sur la planche : la fente de découpe).
    cutOnly : seulement la silhouette de découpe (le bord blanc), sans les couleurs : de quoi calculer l’ombre. */
+/* ---------- Stickers en 3D (Elisa, 11 novembre, 6 h 09 : « Met de nouveaux stickers : partage d’un code, premier défis réussis, 1er en
+   multijoueur, 2 semaines de flamme de suite etc il faut vraiment que les stickers soit 3D et incroyable ») ----------
+   Chaque sticker a son rendu 3D : assets/stickers/<id>.webp (vinyle gonflé et brillant, fond transparent, bord de découpe blanc compris
+   dans l’image, 768 px). Le temps qu’elle arrive, rien n’est dessiné (pas de saut d’un dessin à l’autre) ; si elle ne vient pas
+   (hors ligne, jamais vue), le dessin à plat (STK_ART) la remplace, pour les stickers qui en ont un.
+   La silhouette (à gagner, emplacement vide, ombre, masque holographique) se tire de l’image elle-même. */
+const STK_3D=new Set(['intro','lire','fonctions','agregats','jointures','sousreq','fenetre','modeliser','creer','ecrire','contraintes','transactions',
+  'triggers','index','securite','requete','defi1','lecons10','serie3','code','defis10','premier','difficile','serie7','amis5','serie14','champion','serie30','parcours']);
+const STK_IMG_V=1;
+const stkImgs={},stkSilCache=new Map();
+let stkRepaintT=0;
+function stkImg(id){
+  if(typeof Image==='undefined'||!STK_3D.has(id))return null;
+  let o=stkImgs[id];
+  if(!o){
+    o=stkImgs[id]={im:new Image(),ok:false,ko:false};
+    o.im.decoding='async';
+    o.im.onerror=()=>{o.ko=true;clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
+    o.im.onload=()=>{o.ok=true;delete stkMasks[id];for(const k of [...stkSilCache.keys()])if(k.startsWith(id+'|'))stkSilCache.delete(k);
+      clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
+    o.im.src=`assets/stickers/${id}.webp?v=${STK_IMG_V}`;
+  }
+  return o.ok?o.im:null;
+}
+/* La silhouette d’un sticker 3D, d’une seule couleur, à la taille voulue (mise de côté : la planche en redessine beaucoup). */
+function stkSil(id,px,col){
+  const im=stkImg(id);if(!im)return null;
+  const k=id+'|'+px+'|'+col;let c=stkSilCache.get(k);
+  if(!c){
+    c=document.createElement('canvas');c.width=c.height=Math.max(1,px);
+    const x=c.getContext('2d');if(!x)return null;
+    x.drawImage(im,0,0,px,px);x.globalCompositeOperation='source-in';x.fillStyle=col;x.fillRect(0,0,px,px);
+    stkSilCache.set(k,c);if(stkSilCache.size>48)stkSilCache.delete(stkSilCache.keys().next().value);
+  }
+  return c;
+}
 function stkDraw(ctx,id,px,mode,cutOnly){
+  const im=stkImg(id);
+  if(im){
+    const n=Math.max(1,Math.round(px));
+    if(mode==='lock'){const c=stkSil(id,n,'#DCD5F2');if(c)ctx.drawImage(c,0,0,px,px);}
+    else if(mode==='spot'){const a=stkSil(id,n,'#CBC2EC'),b=stkSil(id,n,'#EEEAFB'),i=px*.035;if(a)ctx.drawImage(a,0,0,px,px);if(b)ctx.drawImage(b,i,i,px-2*i,px-2*i);}
+    else if(cutOnly){const c=stkSil(id,n,'#fff');if(c)ctx.drawImage(c,0,0,px,px);}
+    else{ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(im,0,0,px,px);ctx.restore();}
+    return;
+  }
+  if(STK_3D.has(id)&&stkImgs[id]&&!stkImgs[id].ko)return;   // l’image 3D est en route : stkPaint repasse à son arrivée
   const art=STK_ART[id];if(!art)return;
   ctx.save();ctx.scale(px/200,px/200);ctx.lineJoin='round';ctx.lineCap='round';
   const one=(col,b)=>{ctx.fillStyle=ctx.strokeStyle=col;stkLayers(ctx,art,true,b);};
@@ -39000,7 +39052,7 @@ function stkShadow(ctx,id,px,mode,pad,dpr,n){
 /* Dans l’ordre de MODULES : un dessin par module (le nom affiché reste celui du module). */
 const STK_MODULE_IDS=['intro','lire','fonctions','agregats','jointures','sousreq','fenetre','modeliser','creer','ecrire','contraintes','transactions','triggers','index','securite'];
 /* Les plus rares sont holographiques à l’écran (2 : avec des paillettes). */
-const STK_HOLO={defis10:1,serie7:2,parcours:2};
+const STK_HOLO={defis10:1,serie7:2,parcours:2,premier:1,difficile:1,serie14:2,champion:2,serie30:2};
 /* Leur rareté, en étiquette sous la planche et dans la fiche (Elisa, 6 novembre : « rare » ou « de collection » pour ceux difficiles
    à avoir, « Légendaire » avec des étoiles et des paillettes). Elle suit l’holographie : 1 → Rare, 2 → Légendaire. */
 const STK_RARETE=['','Rare','Légendaire'];
@@ -39010,12 +39062,26 @@ function stkRarete(id){return STK_RARETE[STK_HOLO[id]||0]||'';}
 function accomplissements(){
   const st=compteStats(),rec=streakRecord();
   const modules=MODULES.filter(m=>m.lessons.every(l=>itemDone(l.id))).length;
+  /* 11 novembre (6 h 09) : le premier défi, le code d’une salle partagé, la 1re place à plusieurs (et 5 fois : Champion), un défi
+     Difficile, 5 parties à plusieurs, 2 semaines et 1 mois de flamme. Les parties viennent de state.salle (jeuCreditGame) ; le partage,
+     de state.stickers.ev (jeuShare). */
+  const sal=state.salle&&typeof state.salle==='object'?state.salle:{},ev=stkState().ev||{};
+  const premiers=Array.isArray(sal.pl)?Math.max(0,Math.floor(+sal.pl[0]||0)):0,amis=Math.max(0,Math.floor(+sal.amis||0));
+  const difficiles=typeof CHALLENGES==='undefined'?0:CHALLENGES.filter(c=>c.niv==='d'&&state.defis&&state.defis[c.id]).length;
   return [
     {id:'requete',label:'Première requête',cap:'1ʳᵉ requête',now:Math.min(st.lessons+st.defis,1),goal:1,how:'Valide ta première leçon ou ton premier défi.'},
+    {id:'defi1',label:'Premier défi réussi',cap:'1ᵉʳ défi trouvé',now:Math.min(st.defis,1),goal:1,how:'Trouve ton premier défi.'},
     {id:'lecons10',label:'10 leçons',cap:'10 leçons validées',now:Math.min(st.lessons,10),goal:10,unit:'leçon',how:'Valide 10 leçons.'},
     {id:'serie3',label:'Série de 3 jours',cap:'3 jours de suite',now:Math.min(st.streak,3),goal:3,ok:rec>=3,unit:'jour',how:'Atteins une série de 3 jours.'},
+    {id:'code',label:'Code partagé',cap:'Code de salle partagé',now:ev.code?1:0,goal:1,how:'Partage le code d’une salle de défi avec un ami.'},
     {id:'defis10',label:'10 défis',cap:'10 défis trouvés',now:Math.min(st.defis,10),goal:10,unit:'défi',how:'Trouve 10 défis différents.'},
+    {id:'premier',label:'1ᵉʳ en multijoueur',cap:'1ʳᵉ place à plusieurs',now:Math.min(premiers,1),goal:1,how:'Finis premier d’une partie à plusieurs.'},
+    {id:'difficile',label:'Défi difficile',cap:'Niveau Difficile',now:Math.min(difficiles,1),goal:1,how:'Trouve un défi de niveau Difficile.'},
     {id:'serie7',label:'Série de 7 jours',cap:'7 jours de suite',now:Math.min(st.streak,7),goal:7,ok:rec>=7,unit:'jour',how:'Atteins une série de 7 jours.'},
+    {id:'amis5',label:'5 parties à plusieurs',cap:'5 parties à plusieurs',now:Math.min(amis,5),goal:5,unit:'partie',how:'Joue 5 parties dans une salle à plusieurs.'},
+    {id:'serie14',label:'2 semaines de flamme',cap:'14 jours de suite',now:Math.min(st.streak,14),goal:14,ok:rec>=14,unit:'jour',how:'Atteins une série de 14 jours.'},
+    {id:'champion',label:'Champion',cap:'5 fois 1ᵉʳ',now:Math.min(premiers,5),goal:5,unit:'victoire',how:'Finis premier de 5 parties à plusieurs.'},
+    {id:'serie30',label:'1 mois de flamme',cap:'30 jours de suite',now:Math.min(st.streak,30),goal:30,ok:rec>=30,unit:'jour',how:'Atteins une série de 30 jours.'},
     {id:'parcours',label:'Parcours terminé',cap:'Tous les modules',now:modules,goal:MODULES.length,unit:'module',how:'Termine tous les modules.'}
   ].map(a=>({...a,ok:a.ok??a.now>=a.goal}));
 }
@@ -39028,6 +39094,10 @@ function stkState(){
   if(!S.got)S.got={};if(!S.fresh)S.fresh={};if(!Array.isArray(S.board))S.board=[];
   return S;
 }
+/* Un geste qui fait gagner un sticker sans passer par la progression (le code d’une salle partagé) : noté une fois, puis la planche suit. */
+function stkMarquer(k){
+  try{const S=stkState();if(!S.ev||typeof S.ev!=='object')S.ev={};if(S.ev[k])return;S.ev[k]=1;save();stkAfterProgress();}catch(e){}
+}
 /* Tous les stickers, dans l’ordre de la planche : modules, puis accomplissements. */
 function stkList(){
   const S=stkState();
@@ -39036,7 +39106,7 @@ function stkList(){
     return {id:STK_MODULE_IDS[i],kind:'module',num:i+1,name:m.titre,cap:`Module ${i+1}`,now,goal:m.lessons.length,unit:'leçon',ok:now===m.lessons.length};
   });
   const acc=accomplissements().map(a=>({id:a.id,kind:'acc',name:a.label,cap:a.cap,now:a.now,goal:a.goal,unit:a.unit,how:a.how,ok:a.ok}));
-  return mods.concat(acc).filter(s=>s.id&&STK_ART[s.id]).map(s=>({...s,got:S.got[s.id]||0,holo:STK_HOLO[s.id]||0}));
+  return mods.concat(acc).filter(s=>s.id&&(STK_ART[s.id]||STK_3D.has(s.id))).map(s=>({...s,got:S.got[s.id]||0,holo:STK_HOLO[s.id]||0}));
 }
 function stkInfo(id){return stkList().find(s=>s.id===id)||null;}
 /* Ce qui est atteint et pas encore gagné devient un sticker, marqué « Nouveau ». La toute première fois, ceux déjà
@@ -39108,6 +39178,7 @@ function stkRarHtml(id,got,fiche){
 }
 const stkMasks={};
 function stkMask(id){
+  if(STK_3D.has(id)&&!stkImg(id)&&!(stkImgs[id]&&stkImgs[id].ko)&&typeof Image!=='undefined')return '';   // le masque suit la silhouette de l’image 3D : on attend qu’elle arrive
   if(!stkMasks[id]){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');if(!x)return '';stkDraw(x,id,256,'lock');stkMasks[id]=c.toDataURL();}
   return stkMasks[id];
 }
@@ -47954,7 +48025,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-paywall-v2838';
+  const SW_CACHE='requete-2026-11-11-stickers-relief-v2839';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

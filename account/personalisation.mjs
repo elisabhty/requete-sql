@@ -1,5 +1,5 @@
 import {createPrivateSync} from './sync-engine.mjs';
-export const STICKER_IDS=Object.freeze(['intro','lire','fonctions','agregats','jointures','sousreq','fenetre','modeliser','creer','ecrire','contraintes','transactions','triggers','index','securite','requete','lecons10','serie3','defis10','serie7','parcours']);
+export const STICKER_IDS=Object.freeze(['intro','lire','fonctions','agregats','jointures','sousreq','fenetre','modeliser','creer','ecrire','contraintes','transactions','triggers','index','securite','requete','defi1','lecons10','serie3','code','defis10','premier','difficile','serie7','amis5','serie14','champion','serie30','parcours']);
 const ids=new Set(STICKER_IDS),object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x),own=(x,k)=>Object.hasOwn(x,k),clone=x=>JSON.parse(JSON.stringify(x));
 const date=n=>Number.isSafeInteger(n)&&n>=0&&n<=4102444800000;
 const activity=k=>/^(l\d{1,6}|d[A-Za-z0-9_-]{1,24}|jeu|console|entretien)$/.test(k);
