@@ -91,5 +91,5 @@ test('le téléchargement et la planche passent par le même dessin', () => {
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-paywall-devise-v2858';") && app.includes("const SW_CACHE='requete-2026-11-11-paywall-devise-v2858';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-hebdo-avantages-v2859';") && app.includes("const SW_CACHE='requete-2026-11-11-hebdo-avantages-v2859';"));
 });
