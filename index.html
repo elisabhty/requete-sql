@@ -21427,7 +21427,8 @@ async function loadCustomDbs(){
   }
   let seeded=false;
   list.forEach(item=>{
-    if(!item||!item.id||isDemoDb(item.id))return;
+    /* Un identifiant de projet finit dans les boutons de la Console (onclick) : un jeton simple seulement (audit du 11 novembre) */
+    if(!item||!item.id||typeof item.id!=='string'||!/^[A-Za-z0-9_-]{1,40}$/.test(item.id)||isDemoDb(item.id))return;
     const bytes=item.bytes?new Uint8Array(item.bytes):item.b64?b64ToU8(item.b64):null;
     if(!bytes)return;
     try{ customDbs[item.id]=attachDateFns(new SQL.Database(bytes)); }catch(e){ return; }
@@ -23966,8 +23967,21 @@ function normalizeState(raw){
   lessonIds.forEach(id=>{ lessons[id]=normalizeEntry(lessonsSource[id]); });
   Object.keys(lessonsSource).forEach(id=>{ if(!Object.prototype.hasOwnProperty.call(lessons,id)) lessons[id]=normalizeEntry(lessonsSource[id]); });
   const defis=source.defis&&typeof source.defis==='object'&&!Array.isArray(source.defis)?source.defis:{};
-  const notes=Array.isArray(source.notes)?source.notes:[];
-  const plan=source.plan&&typeof source.plan==='object'&&!Array.isArray(source.plan)?source.plan:null;
+  /* Sécurité (audit avant la mise en ligne, 11 novembre, 23 h 25) : une sauvegarde importée (ou une copie abîmée) ne glisse pas de
+     code dans les boutons de l’appli. Les identifiants qui finissent dans un onclick sont des jetons simples : une note dont l’identifiant
+     n’en est pas un en reçoit un neuf ; une séance du planning à la date mal formée est écartée, une activité inconnue retirée. Rien n’est
+     recopié quand tout est déjà propre (le cas normal) : le planning et les notes gardent les mêmes objets d’un enregistrement à l’autre. */
+  const idOk=v=>(typeof v==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(v))||(typeof v==='number'&&Number.isSafeInteger(v));
+  let notes=Array.isArray(source.notes)?source.notes:[];
+  if(notes.some(n=>!n||typeof n!=='object'||Array.isArray(n)||!idOk(n.id)))
+    notes=notes.filter(n=>n&&typeof n==='object'&&!Array.isArray(n)).map((n,k)=>idOk(n.id)?n:Object.assign({},n,{id:'n'+Date.now().toString(36)+'r'+k}));
+  let plan=source.plan&&typeof source.plan==='object'&&!Array.isArray(source.plan)?source.plan:null;
+  if(plan&&Array.isArray(plan.sessions)){
+    const seanceOk=x=>x&&typeof x==='object'&&(x.d===undefined||(typeof x.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.d)))&&(!Array.isArray(x.lessons)||x.lessons.every(idOk));
+    if(!plan.sessions.every(seanceOk))plan=Object.assign({},plan,{sessions:plan.sessions
+      .filter(x=>x&&typeof x==='object'&&(x.d===undefined||(typeof x.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.d))))
+      .map(x=>Array.isArray(x.lessons)&&!x.lessons.every(idOk)?Object.assign({},x,{lessons:x.lessons.filter(idOk)}):x)});
+  }
   const onboarded=!!source.onboarded;
   const inscritLe=typeof source.inscritLe==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(source.inscritLe)?source.inscritLe:null;
   const name=typeof source.name==='string'?source.name:'';
@@ -43219,7 +43233,7 @@ function revealEntretien(id){
 }
 function noteCardHtml(n,i){
   const label=String(n.txt||'').replace(/```[a-z]*/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
-  return `<div class="ncard ${n.pin?'pin':''}${n.id===noteFreshId?' is-fresh':''}" data-id="${n.id}" style="--i:${Math.min(i||0,8)}" role="button" tabindex="0" aria-label="Ouvrir la note ${esc(label||'sans titre')}" onclick="openNote('${n.id}')" onkeydown="if(event.target!==this)return;if(event.key==='Enter'||event.key===' '){event.preventDefault();openNote('${n.id}')}">
+  return `<div class="ncard ${n.pin?'pin':''}${n.id===noteFreshId?' is-fresh':''}" data-id="${n.id}" style="--i:${Math.min(i||0,8)}" role="button" tabindex="0" aria-label="Ouvrir la note ${escAttr(label||'sans titre')}" onclick="openNote('${n.id}')" onkeydown="if(event.target!==this)return;if(event.key==='Enter'||event.key===' '){event.preventDefault();openNote('${n.id}')}">
         ${n.ctx?`<div class="nctx">${esc(n.ctx)}</div>`:''}
         ${n.txt?`<div class="ntxt">${noteBlocksHtml(n.txt)}</div>`:''}
         ${n.sql?`<div class="nsql">${highlight(n.sql)}</div>`:''}
@@ -49063,7 +49077,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-rappels-sans-tiktok-v2870';
+  const SW_CACHE='requete-2026-11-11-securite-v2871';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
