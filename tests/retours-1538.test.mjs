@@ -131,8 +131,9 @@ test('le tableau de stickers vide : il colle un sticker, à gauche du texte', ()
 });
 
 test('« Nouvelle carte mémo ! » : il retourne la sienne, seulement pour une carte toute neuve', () => {
-  const b = cut('function bravoUnlockHtml(l){', '\n}');
-  assert.ok(b.includes("const chat=neuve&&typeof chatBonusHtml==='function'?`<span class=\"mc-reveal-chat\" aria-hidden=\"true\">${chatBonusHtml('carte')}</span>`:'';"));
+  const b = cut('function bravoUnlockCarte(l,e,k,nb){', '\n}');
+  /* 11 novembre, 17 h 20 : sur la première carte de la leçon seulement (une leçon peut en donner deux) */
+  assert.ok(b.includes("const chat=neuve&&!k&&typeof chatBonusHtml==='function'?`<span class=\"mc-reveal-chat\" aria-hidden=\"true\">${chatBonusHtml('carte')}</span>`:'';"));
   assert.ok(b.includes('<div class="mc-flip">${chat}'));
   assert.ok(lq.includes('html.lq .mc-reveal-chat{position:absolute;z-index:3;right:-14px;bottom:-10px;width:calc(86px * var(--mc-fs,1));pointer-events:none}') && lq.includes('html.lq .is-flipped .mc-reveal-chat{opacity:0;'), 'au coin bas droit ; la carte retournée, il s’efface');
 });

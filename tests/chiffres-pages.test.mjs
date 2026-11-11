@@ -21,8 +21,8 @@ test('compteStats : les cartes gagnées sont les leçons validées qui ont une c
     [{ 0: { done: true }, 1: { done: true }, 2: { done: true }, 3: { done: true }, 4: { done: true } }, 5, 3],
   ];
   for (const [lessons, nL, nC] of cas) {
-    const ctx = vm.createContext({ state: { lessons, defis: {}, notes: [] }, allLessons, CARTES, dueList: () => [], streakJours: () => 0 });
-    vm.runInContext(take('function isUnlocked(id)', '\n') + '\n' + fn('compteStats'), ctx);
+    const ctx = vm.createContext({ state: { lessons, defis: {}, notes: [] }, allLessons, CARTES, CARTES_PLUS: {}, dueList: () => [], streakJours: () => 0 });
+    vm.runInContext(take('function isUnlocked(id)', '\n') + '\n' + take('let memoListeCache=null;', 'function memoArg(') + fn('compteStats'), ctx);
     const st = ctx.compteStats();
     assert.equal(st.lessons, nL, 'leçons');
     assert.equal(st.cards, nC, `cartes pour ${JSON.stringify(lessons)}`);
@@ -30,8 +30,9 @@ test('compteStats : les cartes gagnées sont les leçons validées qui ont une c
 });
 
 test('la bibliothèque et la collection comptent les cartes de la même façon', () => {
-  assert.ok(html.includes("allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;\n  const notes="), 'compteStats');
-  assert.ok(html.includes('const n=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;'), 'renderCollection');
+  /* 11 novembre, 17 h 20 : les deux comptent les cartes de la collection (memoCartes), une leçon pouvant en donner deux */
+  assert.ok(html.includes("memoCartes().filter(e=>isUnlocked(e.lid)).length;\n  const notes="), 'compteStats');
+  assert.ok(html.includes('const n=cartes.filter(e=>isUnlocked(e.lid)).length;') && html.includes('const L=new Map(allLessons.map(l=>[l.id,l])),cartes=memoCartes();'), 'renderCollection');
 });
 
 test('planning : les 7 derniers jours ne s’appellent plus « Cette semaine »', () => {

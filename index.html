@@ -20126,6 +20126,29 @@ const CARTES={
       "La vue montre seulement les colonnes et les lignes utiles."],
     piege:"Une vue n’est pas une copie, contrairement à <code>CREATE TABLE … AS</code>\u00a0: elle suit la table."}
 };
+/* Elisa, 11 novembre, 17 h 20 (son brouillon de la carte « Base relationnelle », avec le tableau des types) : « ça va faire deux
+   cartes pour la leçon base relationnelle ». Une leçon peut donner plusieurs cartes : CARTES[id] reste la première, CARTES_PLUS[id]
+   liste les suivantes, chacune avec son identifiant (cid). Elles se gagnent, se révisent et se rangent avec leur leçon ; leur numéro
+   suit celui de la première (01 « Base relationnelle », 02 « Types de données »). tab : un petit tableau au verso (titre, en-têtes,
+   lignes ; la première colonne et la dernière en code). */
+const CARTES_PLUS={
+ 0:[{cid:'0-types',k:"Types de données",t:"Ce qu’une colonne peut contenir",s:"CREATE TABLE coffrets (\n  id INTEGER PRIMARY KEY,\n  nom VARCHAR(50),\n  prix DECIMAL(6, 2),\n  description TEXT,\n  lance_le DATE,\n  disponible BOOLEAN\n);",
+    points:["Chaque colonne a un <b>type</b>, choisi quand on crée la table\u00a0: il fixe les valeurs qu’elle peut contenir.",
+      "Un nombre s’écrit tel quel, avec un point pour les décimales\u00a0; un texte ou une date s’écrit entre guillemets simples.",
+      "Les noms des types changent d’un SGBD à l’autre\u00a0: dans la base de l’appli (SQLite), les dates sont en <code>TEXT</code> et les prix en <code>REAL</code>."],
+    tab:{lab:"Les types courants",tete:["Type","Utilisation","Exemple"],lignes:[["INTEGER","Nombre entier","25"],["DECIMAL","Nombre décimal exact","19.99"],["VARCHAR","Texte court, de longueur limitée","'Paris'"],["TEXT","Texte long","'Bonjour'"],["DATE","Date","'2026-11-11'"],["BOOLEAN","Vrai ou faux","TRUE"]]},
+    piege:"Entre guillemets, un nombre devient un texte\u00a0: <code>'25'</code> n’est pas <code>25</code>, et les textes se trient caractère par caractère (<code>'10'</code> passe avant <code>'9'</code>)."}]
+};
+/* Les cartes de la collection, dans l’ordre des leçons : { cid, lid (la leçon qui la donne), c (la carte) }. cid = l’id de la leçon
+   pour sa première carte. memoCarte(cid) : une carte par son identifiant ; memoArg(cid) : l’identifiant écrit dans un onclick. */
+let memoListeCache=null;
+function memoCartes(){
+  if(memoListeCache)return memoListeCache;
+  return (memoListeCache=allLessons.flatMap(l=>CARTES[l.id]?[{cid:l.id,lid:l.id,c:CARTES[l.id]},...(CARTES_PLUS[l.id]||[]).map(c=>({cid:c.cid,lid:l.id,c}))]:[]));
+}
+function memoCarte(cid){return memoCartes().find(e=>e.cid===cid)||(typeof cid==='string'&&/^\d+$/.test(cid)?memoCartes().find(e=>e.cid===+cid):null)||null;}
+function memoDeLecon(lid){return memoCartes().filter(e=>e.lid===lid);}
+function memoArg(cid){return typeof cid==='string'?`'${cid}'`:String(cid);}
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#0EA5A0','#2DD4BF'],['#B45309','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
 /* Thème Ludique : une seule couleur de marque, toutes les cartes en violet. */
@@ -20231,8 +20254,9 @@ let db=null,SQL=null,baseBytes=null;
 const allLessons=MODULES.flatMap(m=>m.lessons);
 const TOTAL=allLessons.length;
 /* Chaque leçon donne sa carte mémo depuis le 10 novembre (Elisa, 7 h 21 : « il y a une leçon qui n’a pas de carte mémo, donc du
-   coup la faire ») : 71 cartes. La collection se compte toujours sur les cartes existantes. */
-const TOTAL_CARTES=allLessons.filter(l=>CARTES[l.id]).length;
+   coup la faire ») : 71 cartes. La collection se compte toujours sur les cartes existantes ; depuis le 11 novembre, avec les cartes
+   suivantes d’une leçon (CARTES_PLUS) : 72. */
+const TOTAL_CARTES=memoCartes().length;
 let current=null,mode='lesson',reviewQueue=[],activeTab='learn',restoringNav=false;
 function saveNav(override){
   if(restoringNav)return;
@@ -27197,7 +27221,7 @@ function homeStatsHTML(){try{
   const ls=allLessons,nL=ls.length,fait=l=>itemDone(l.id);
   const faites=ls.filter(fait).length,lancees=ls.filter(l=>fait(l)||itemCommence(l.id)).length;
   const exos=ls.reduce((k,l)=>k+(fait(l)?((l.video&&l.video.moments)||0):exercicesFaits(l.id)),0);
-  const nMods=MODULES.filter(m=>m.lessons.length).length,avecCarte=ls.filter(l=>CARTES[l.id]),gagnees=avecCarte.filter(fait).length;
+  const nMods=MODULES.filter(m=>m.lessons.length).length,avecCarte=typeof memoCartes==='function'?memoCartes():ls.filter(l=>CARTES[l.id]),gagnees=avecCarte.filter(e=>itemDone(e.lid!=null?e.lid:e.id)).length;
   const t=(ico,n,un,plus)=>({ico,n,mot:n>1?plus:un});
   const aGagner=t('cartes',avecCarte.length-gagnees,'carte à récolter','cartes à récolter');
   const tuiles=!lancees?[t('cible',nL,'leçon à découvrir','leçons à découvrir'),t('barres',nMods,'module','modules'),aGagner]
@@ -38623,7 +38647,7 @@ const MEMO_TRAP_STK='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5.
 const MEMO_TURN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3L19.5 9M19.5 4.5V9H15M19.5 12a7.5 7.5 0 0 1-12.8 5.3L4.5 15M4.5 19.5V15H9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const MEMO_CHECK_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 /* Le numéro de collection (01 à 71), le même partout : album, fiche, bilan, récompense, annonce de déblocage. */
-function memoSerial(id){ return String(allLessons.filter(l=>CARTES[l.id]).findIndex(l=>l.id===id)+1).padStart(2,'0'); }
+function memoSerial(id){ return String(memoCartes().findIndex(e=>e.cid===id)+1).padStart(2,'0'); }
 /* Le mot le plus long d'un texte : la taille s'y ajuste (--kn). */
 function memoKn(s){ return Math.max(...String(s||'').split(/\s+/).map(w=>w.length),1); }
 /* Le mot-clé : jamais coupé dans un mot ; « · », « / », « + » restent collés au mot qui les précède ; GROUP BY, INNER JOIN… ne se
@@ -38639,18 +38663,25 @@ function memoKw(k,cls=''){
 }
 /* Le recto. o.mod : la pastille du module (fiche seulement : ailleurs, le module est déjà écrit au-dessus). o.shine : le reflet. */
 function memoFace(id,o={}){
-  const c=CARTES[id],mi=moduleOf(id);
+  const e=memoCarte(id),c=e.c,mi=moduleOf(e.lid);
   return `<span class="mc-face"><span class="mc-top"><b class="mc-num">${memoSerial(id)}</b>${o.mod?`<span class="mc-mod"><b>Module ${mi+1}</b><span>${esc(MODULES[mi].titre)}</span></span>`:''}</span>${memoKw(c.k)}<span class="mc-t">${esc(c.t)}</span>${o.shine?'<i class="mc-shine" aria-hidden="true"></i>':''}</span>`;
 }
 /* Le verso : « À retenir » (les trois points), la syntaxe, le piège. o.head : rappel du numéro et du mot-clé (carte retournée au bilan). */
 /* Le code d’une carte ne se coupe plus (Elisa, 10 novembre, la carte AS : « nom AS produit » coupé en deux) : la pastille passe
    entière à la ligne ; seule une très longue (plus de 24 signes, UNBOUNDED PRECEDING AND CURRENT ROW) peut encore se couper. */
 function memoCodes(t){return String(t).replace(/<code>([^<]*)<\/code>/g,(m,c)=>c.replace(/&[a-z]+;/g,'x').length>24?`<code class="long">${c}</code>`:m);}
+/* Le tableau d’une carte (tab) : la première colonne en pastille de code, la dernière en exemple de code */
+function memoTab(t){
+  if(!t||!Array.isArray(t.lignes)||!t.lignes.length)return '';
+  const der=t.tete.length-1;
+  return `<div class="mc-tab"><p class="mc-lab">${esc(t.lab)}</p><table><thead><tr>${t.tete.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${t.lignes.map(l=>`<tr>${l.map((x,i)=>i===0?`<th scope="row"><code>${esc(x)}</code></th>`:i===der?`<td class="mc-tab-ex"><code>${esc(x)}</code></td>`:`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
 function memoVerso(id,o={}){
-  const c=CARTES[id],pts=(c.points&&c.points.length?c.points:cardMemoPoints(c.m||'')).slice(0,3).map(memoCodes);
+  const c=memoCarte(id).c,pts=(c.points&&c.points.length?c.points:cardMemoPoints(c.m||'')).slice(0,3).map(memoCodes);
   return `${o.head?`<p class="mc-verso-top" aria-hidden="true"><b class="mc-num">${memoSerial(id)}</b>${memoKw(c.k,' is-mini')}</p>`:''}
     <h3 class="mc-h"${o.head?' tabindex="-1" data-focus':''}><span class="mc-h-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="mc-h-tag">À retenir</span></h3>
     <ol class="mc-pts">${pts.map((p,i)=>`<li style="--i:${i}">${p}</li>`).join('')}</ol>
+    ${memoTab(c.tab)}
     ${c.s?`<div class="mc-syn"><p class="mc-lab">Syntaxe${c.dialecte?` <span class="mc-dial">${esc(c.dialecte)}</span>`:''}</p><div class="ex-code mc-code">${highlight(c.s)}</div></div>`:''}
     ${c.sgbd?`<p class="mc-sgbd">Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='${c.sgbd}'>Selon le SGBD</button> de la Bibliothèque.</p>`:''}
     ${c.piege?`<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i>${MEMO_TRAP_STK}</i>Le piège</p><p>${memoCodes(c.piege)}</p></aside>`:''}`;
@@ -38672,17 +38703,18 @@ function memoEtat(l){
   return s&&s.level>=2?'ok':'';
 }
 /* Une carte de l'album : débloquée (elle ouvre sa fiche) ou à débloquer (elle ouvre la leçon qui la donne). */
-function memoAlbumCard(l){
-  const c=CARTES[l.id],n=memoSerial(l.id);
+function memoAlbumCard(l,cid=l.id){
+  const c=memoCarte(cid).c,n=memoSerial(cid);
   if(!isUnlocked(l.id))return `<button type="button" class="mc mc--album is-lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte ${n} à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}"><span class="mc-back"><span class="mc-top"><b class="mc-num">${n}</b></span><span class="mc-lock">${MEMO_LOCK_STK}</span><span class="mc-lesson" style="--kn:${memoKn(l.titre)}">${esc(l.titre)}</span></span></button>`;
   const e=memoEtat(l),lab={due:'. À revoir',ok:'. Acquise',new:'. Nouvelle'}[e]||'';
-  return `<button type="button" class="mc mc--album${e?' is-'+e:''}" onclick="openCard(${l.id})" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}${lab}`)}">${e==='due'?`<span class="mc-flag" aria-hidden="true">${MEMO_TURN_SVG}À revoir</span>`:e==='new'?'<span class="mc-flag is-new" aria-hidden="true">Nouvelle</span>':''}${memoFace(l.id,{shine:e==='new'})}${e==='ok'?`<span class="mc-ok" aria-hidden="true">${MEMO_CHECK_SVG}</span>`:''}</button>`;
+  return `<button type="button" class="mc mc--album${e?' is-'+e:''}" onclick="openCard(${memoArg(cid)})" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}${lab}`)}">${e==='due'?`<span class="mc-flag" aria-hidden="true">${MEMO_TURN_SVG}À revoir</span>`:e==='new'?'<span class="mc-flag is-new" aria-hidden="true">Nouvelle</span>':''}${memoFace(cid,{shine:e==='new'})}${e==='ok'?`<span class="mc-ok" aria-hidden="true">${MEMO_CHECK_SVG}</span>`:''}</button>`;
 }
 /* La fiche : le recto (il s'incline sous le doigt), le verso dessous, puis « Noter » et « Essayer » (inchangés). */
 function openCard(id){
-  if(!isUnlocked(id)||!CARTES[id])return;
-  openCardId=id;
-  const c=CARTES[id],mi=moduleOf(id);
+  const e=memoCarte(id);
+  if(!e||!isUnlocked(e.lid))return;
+  id=e.cid;openCardId=id;
+  const c=e.c,mi=moduleOf(e.lid);
   document.getElementById('card-back').classList.add('on');
   document.getElementById('card-sheet').classList.add('on');
   document.getElementById('fab').classList.add('hide');
@@ -38694,8 +38726,8 @@ function openCard(id){
       <div class="mc-verso">${memoVerso(id)}</div>
     </div>
     <div class="cd-actions">
-      ${had?`<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>`:`<button type="button" class="cd-note-btn" onclick="noteFromCard(${id})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Noter</button>`}
-      ${c.dialecte?'':`<button type="button" class="cd-try-btn" onclick="cardToConsole(${id})">${tryIco}Essayer</button>`}
+      ${had?`<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>`:`<button type="button" class="cd-note-btn" onclick="noteFromCard(${memoArg(id)})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg('note')}</span>Noter</button>`}
+      ${c.dialecte?'':`<button type="button" class="cd-try-btn" onclick="cardToConsole(${memoArg(id)})">${tryIco}Essayer</button>`}
     </div>`;
   document.getElementById('card-body').scrollTop=0;
   mountSqlCopyButtons(document.getElementById('card-body'));
@@ -38703,18 +38735,24 @@ function openCard(id){
 }
 /* Le bilan : la carte gagnée, qu'on retourne pour lire son verso, sur place. À sa première réussite (lastUnlockedId), « Nouvelle carte
    mémo ! » et la carte arrive ; en revenant sur le bilan, « Ta carte mémo », sans arrivée. */
+/* 11 novembre, 17 h 20 : une leçon qui donne deux cartes les montre l’une sous l’autre, chacune à retourner (« Et une deuxième
+   carte » pour la suivante). */
 function bravoUnlockHtml(l){
-  if(!CARTES[l.id])return '';
-  const c=CARTES[l.id],n=memoSerial(l.id),neuve=lastUnlockedId===l.id;
-  const owned=allLessons.filter(x=>CARTES[x.id]&&isUnlocked(x.id)).length;
+  const cs=memoDeLecon(l.id);
+  return cs.map((e,k)=>bravoUnlockCarte(l,e,k,cs.length)).join('');
+}
+function bravoUnlockCarte(l,e,k,nb){
+  const c=e.c,n=memoSerial(e.cid),neuve=lastUnlockedId===l.id;
+  const owned=memoCartes().filter(x=>isUnlocked(x.lid)).length;
   /* La carte toute neuve : le chat retourne la sienne, à côté (Elisa, 7 novembre, 15 h 38 : son GIF, une fois) */
-  const chat=neuve&&typeof chatBonusHtml==='function'?`<span class="mc-reveal-chat" aria-hidden="true">${chatBonusHtml('carte')}</span>`:'';
-  return `<section class="bravo-unlock mc-reveal${neuve?' is-new':''}" aria-labelledby="mc-reveal-h">
-    <p class="bv-sec-k">Ta récompense</p>
-    <h2 class="mc-reveal-h" id="mc-reveal-h">${neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>'}</h2>
+  const chat=neuve&&!k&&typeof chatBonusHtml==='function'?`<span class="mc-reveal-chat" aria-hidden="true">${chatBonusHtml('carte')}</span>`:'';
+  const hid='mc-reveal-h'+(k?'-'+k:''),titre=k?(neuve?'Et une deuxième carte <em>mémo</em>&nbsp;!':'Ta deuxième carte <em>mémo</em>'):nb>1?(neuve?'Deux nouvelles cartes <em>mémo</em>&nbsp;!':'Tes cartes <em>mémo</em>'):(neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>');
+  return `<section class="bravo-unlock mc-reveal${neuve?' is-new':''}${k?' is-suite':''}" aria-labelledby="${hid}">
+    ${k?'':'<p class="bv-sec-k">Ta récompense</p>'}
+    <h2 class="mc-reveal-h" id="${hid}">${titre}</h2>
     <div class="mc-flip">${chat}
-      <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(l.id,{shine:true})}</button>
-      <div class="mc-side is-verso" aria-hidden="true" inert><div class="mc-verso is-card">${memoVerso(l.id,{head:true})}<button type="button" class="mc-recto-btn" onclick="memoFlip(this,false)">${MEMO_TURN_SVG}Recto</button></div></div>
+      <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(e.cid,{shine:true})}</button>
+      <div class="mc-side is-verso" aria-hidden="true" inert><div class="mc-verso is-card">${memoVerso(e.cid,{head:true})}<button type="button" class="mc-recto-btn" onclick="memoFlip(this,false)">${MEMO_TURN_SVG}Recto</button></div></div>
       <span class="mc-seal" aria-hidden="true"><b>${owned}</b><small>sur ${TOTAL_CARTES}</small></span>
     </div>
     <p class="mc-hint" aria-hidden="true"><span class="mc-hint-ico">${MEMO_TURN_SVG}</span><span class="when-recto">Touche la carte pour la retourner</span><span class="when-verso">Elle t’attend dans tes cartes mémo</span></p>
@@ -38743,7 +38781,9 @@ function memoFlipFit(root){
 addEventListener('resize',()=>document.querySelectorAll('.mc-reveal').forEach(memoFlipFit));
 /* Appelée après le rendu du bilan (renderLessonFlow) : la hauteur, puis l'arrivée de la carte quand elle entre à l'écran. */
 function revealBravoCard(){
-  const root=document.querySelector('#lesson-body .mc-reveal'); if(!root)return;
+  document.querySelectorAll('#lesson-body .mc-reveal').forEach(revealBravoUne);
+}
+function revealBravoUne(root){
   memoFlipFit(root);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>memoFlipFit(root));
   if(!root.classList.contains('is-new')||prefersReduceMotion()){root.classList.add('is-in');return;}
@@ -38763,24 +38803,25 @@ function lvPrizeHtml(l){
 }
 /* La note d'une carte (« Noter ») : son numéro de collection et son mot-clé, sa syntaxe, ses trois points en texte. */
 function cardNotePre(id){
-  const c=CARTES[id];
+  const c=memoCarte(id).c;
   const txt=(c.points||[]).map(p=>{const d=document.createElement('div');d.innerHTML=p;return '• '+d.textContent.trim();}).join('\n');
   return {ctx:`Carte ${memoSerial(id)} · ${c.k}`,sql:c.s,txt:txt||noteTextFromHtml(c.m||'')};
 }
 function renderCollection(){
-  const n=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;
+  const L=new Map(allLessons.map(l=>[l.id,l])),cartes=memoCartes();
+  const n=cartes.filter(e=>isUnlocked(e.lid)).length;
   if(collFilter===null)collFilter=n?'open':'all';
   const locked=TOTAL_CARTES-n,pct=TOTAL_CARTES?Math.round(n/TOTAL_CARTES*100):0;
   const modulesWithCards=MODULES.filter(mod=>mod.lessons.some(l=>CARTES[l.id]));
   const completedModules=modulesWithCards.filter(mod=>{const cards=mod.lessons.filter(l=>CARTES[l.id]);return cards.length&&cards.every(l=>isUnlocked(l.id));}).length;
-  const nextLesson=allLessons.find(l=>CARTES[l.id]&&!isUnlocked(l.id));
+  const nextCarte=cartes.find(e=>!isUnlocked(e.lid)),nextLesson=nextCarte?L.get(nextCarte.lid):null;
   /* Révision espacée : une carte est « à revoir » quand sa leçon arrive à
      échéance (même calendrier que les révisions de leçons). */
-  const dueCards=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)&&revisable(l)&&isDue(l.id));
+  const dueCards=cartes.filter(e=>isUnlocked(e.lid)&&revisable(L.get(e.lid))&&isDue(e.lid));
   const revisables=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)&&revisable(l));
   const overview=document.getElementById('coll-overview');
   if(overview){
-    const names=dueCards.slice(0,3).map(l=>CARTES[l.id].k).join(', ')+(dueCards.length>3?'…':'');
+    const names=dueCards.slice(0,3).map(e=>e.c.k).join(', ')+(dueCards.length>3?'…':'');
     let review;
     if(dueCards.length){
       review=`<div class="coll-review is-due"><div class="coll-review-copy"><small>À revoir aujourd’hui</small><b>${dueCards.length} carte${dueCards.length>1?'s':''}</b><span>${esc(names)}</span></div><button type="button" class="coll-review-go" onclick="startCardReview()">Réviser</button></div>`;
@@ -38788,7 +38829,7 @@ function renderCollection(){
       const next=revisables.filter(l=>state.lessons[l.id]&&state.lessons[l.id].due).map(l=>state.lessons[l.id].due).sort((x,y)=>x-y)[0];
       review=`<div class="coll-review"><div class="coll-review-copy"><small>Révision</small><b>Rien à revoir aujourd’hui</b><span>${next?`Prochaine révision ${esc(collNextReviewLabel(next))}.`:'Tes cartes reviennent au bon moment.'}</span></div></div>`;
     }else review='';
-    const nextRow=!dueCards.length?`<div class="coll-overview-next${nextLesson?' has-next':''}">${nextLesson?`<span class="coll-next-card" aria-hidden="true"><i>${lqStkSvg('cards')}</i></span>`:''}<span><small>${nextLesson?'Prochaine carte':'Collection complète'}</small><b>${nextLesson?esc(CARTES[nextLesson.id].k):'Toutes les cartes sont disponibles'}</b></span>${nextLesson?`<button type="button" onclick="openLesson(${nextLesson.id})">Voir la leçon</button>`:''}</div>`:'';
+    const nextRow=!dueCards.length?`<div class="coll-overview-next${nextLesson?' has-next':''}">${nextLesson?`<span class="coll-next-card" aria-hidden="true"><i>${lqStkSvg('cards')}</i></span>`:''}<span><small>${nextLesson?'Prochaine carte':'Collection complète'}</small><b>${nextCarte?esc(nextCarte.c.k):'Toutes les cartes sont disponibles'}</b></span>${nextLesson?`<button type="button" onclick="openLesson(${nextLesson.id})">Voir la leçon</button>`:''}</div>`:'';
     overview.innerHTML=`<section class="coll-overview"><div class="coll-overview-main"><span class="coll-overview-ring" style="--p:${pct}" role="img" aria-label="${pct}% des cartes débloquées"><b>${pct}%</b></span><div class="coll-overview-copy"><small>Ta collection</small><strong>${collTitre(n)}</strong><span>${collSous(n,completedModules,locked)}</span></div></div>${review}${nextRow}</section>`;
   }
   const t=document.getElementById('coll-t');
@@ -38799,15 +38840,15 @@ function renderCollection(){
   const host=document.getElementById('cards-grid');
   const LOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>`;
   const groups=MODULES.map((mod,moduleIndex)=>{
-    const avecCarte=mod.lessons.filter(l=>CARTES[l.id]);
-    const items=avecCarte.filter(l=>{
-      const u=isUnlocked(l.id);
+    const avecCarte=mod.lessons.flatMap(l=>memoDeLecon(l.id).map(e=>({l,cid:e.cid,id:l.id})));
+    const items=avecCarte.filter(x=>{
+      const u=isUnlocked(x.id);
       if(collFilter==='open') return u;
       if(collFilter==='lock') return !u;
       return true;
     });
     if(!items.length) return '';
-    const openN=avecCarte.filter(l=>isUnlocked(l.id)).length;
+    const openN=avecCarte.filter(x=>isUnlocked(x.id)).length;
     const complete=openN===avecCarte.length;
     /* Le compteur dit l’avancement du module (8/10) ; la ligne du dessous, ce qu’il reste à obtenir (Elisa, 29 octobre,
        18 h 54 : « améliorer l’UI/UX des cartes et de la page »). */
@@ -38815,9 +38856,9 @@ function renderCollection(){
     const rest=avecCarte.length-openN;
     /* Une vraie carte mémo : la notion en grand, son rôle, et la syntaxe en une ligne colorée comme dans l’éditeur.
        Une carte à débloquer dit quelle leçon la donne, et l’ouvre. Une carte seule sur sa ligne prend toute la largeur. */
-    const cards=items.map(l=>memoAlbumCard(l)).join('');
+    const cards=items.map(x=>memoAlbumCard(x.l,x.cid)).join('');
     /* Ouvert d’office : tous les modules dans « Débloquées » ; ailleurs, celui de la prochaine carte. */
-    const ouvert=collFilter==='open'||(!!nextLesson&&avecCarte.some(l=>l.id===nextLesson.id));
+    const ouvert=collFilter==='open'||(!!nextLesson&&avecCarte.some(x=>x.id===nextLesson.id));
     return `<details class="coll-module ${complete?'complete':''}"${ouvert?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':`${plur(rest,'carte')} à récolter`}</small></span><span class="coll-module-side"><em aria-label="${openN} sur ${avecCarte.length}">${count}</em><i aria-hidden="true">⌄</i></span></summary><div class="coll-grid mc-grid">${cards}</div></details>`;
   }).filter(Boolean);
   if(!groups.length){
@@ -38909,11 +38950,11 @@ function cardShareUrl(){
   return base.endsWith('/')?base:base+'/';
 }
 function cardShareText(id){
-  const c=CARTES[id]; if(!c) return '';
+  const e=memoCarte(id),c=e&&e.c; if(!c) return '';
   return `${c.k} — ${c.t}\n${c.s}\n\nApprendre SQL · Requête\n${cardShareUrl()}`;
 }
 async function shareCard(id){
-  const c=CARTES[id]; if(!c) return;
+  const e=memoCarte(id),c=e&&e.c; if(!c) return;
   const text=cardShareText(id);
   const url=cardShareUrl();
   const title=`Carte SQL · ${c.k}`;
@@ -38958,7 +38999,7 @@ function showShareCopied(ok=true){
 function cardToConsole(id){
   closeCard();
   openConsoleProject('cours');
-  fillConsoleSql(cardRunnableSql(CARTES[id]));
+  fillConsoleSql(cardRunnableSql(memoCarte(id).c));
 }
 let toastId=null,toastTimer=null,toastAction=null;
 function showUnlock(id){
@@ -38972,10 +39013,11 @@ function showUnlock(id){
   t.classList.remove('warn','info');
   t.classList.add('has-sub','is-action');
   const k=document.getElementById('toast-kicker');
-  if(k){k.textContent='Carte débloquée';k.classList.add('on');}
+  const cs=memoDeLecon(id);   // 11 novembre, 17 h 20 : une leçon peut en donner deux
+  if(k){k.textContent=cs.length>1?`${cs.length} cartes débloquées`:'Carte débloquée';k.classList.add('on');}
   const go=document.getElementById('toast-go'); if(go){go.classList.remove('hidden');go.textContent='Voir';}
-  document.getElementById('toast-t').textContent=c.k;
-  document.getElementById('toast-s').textContent=c.t+' · ajoutée à ta collection';
+  document.getElementById('toast-t').textContent=cs.length>1?cs.map(e=>e.c.k).join(' + '):c.k;
+  document.getElementById('toast-s').textContent=cs.length>1?'Ajoutées à ta collection':c.t+' · ajoutée à ta collection';
   toastLift(t);
   t.classList.add('on');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),4500);
@@ -42098,7 +42140,7 @@ function sortedNotes(){
 }
 function currentContext(){
   if(document.getElementById('card-sheet').classList.contains('on')&&openCardId!=null)
-    return `Carte ${openCardId} · ${CARTES[openCardId].k}`;
+    return `Carte ${memoSerial(openCardId)} · ${memoCarte(openCardId).c.k}`;
   const lessonOpen=document.getElementById('scr-lesson').classList.contains('active');
   if(lessonOpen&&current){
     if(mode==='defi')return `Défi · ${current.titre}`;
@@ -42981,7 +43023,7 @@ function startNoteHere(txt){
   openNote(null,{ctx:currentContext(),sql,txt:txt||''});
 }
 function cardNoteExisting(id){
-  if(!CARTES[id])return null;
+  if(!memoCarte(id))return null;
   const p=cardNotePre(id), norm=x=>String(x||'').replace(/\s+/g,' ').trim();
   return (state.notes||[]).find(x=>x.ctx===p.ctx&&norm(x.txt)===norm(p.txt)&&norm(x.sql)===norm(p.sql))||null;
 }
@@ -46517,9 +46559,12 @@ function paintOb(){
         ${mascotMedalHtml({hi:'Coucou\u00a0!',intro:!mascotReduced(),anim:'coucou'})}
       </div>
       <h1 class="ob-title" id="ob-title">Apprends le SQL<br><em>en pratiquant</em>.</h1>
-      <p class="ob-lead">Écris tes requêtes sur une vraie base SQLite, exécute-les dans ton navigateur et vois aussitôt le résultat. Rien à installer. Choisis ton parcours en quelques étapes.</p>${invite}
+      <p class="ob-lead">Écris tes requêtes sur une vraie base de données&nbsp;: le moteur SQL intégré à l’application les exécute, et tu vois aussitôt le résultat. Choisis ton parcours en quelques étapes.</p>${invite}
       <div class="ob-welcome-demo${demoTyping?' is-typing':''}" aria-hidden="true"><div class="ob-code"><div class="oc-bar"><i></i><i></i><i></i><em>requete.sql</em></div><pre class="oc-code" id="ob-demo-code">${demo.html}</pre><div class="oc-res" id="ob-demo-res" style="--res-dl:${demo.fin}s"><i>✓</i> ${plur(nParis,'client')} à Paris</div></div></div>
-      <div class="ob-proof-stats" aria-label="L’apprentissage en bref"><div><strong>${TOTAL}</strong><span>leçons guidées</span></div><div><strong>${nDefis}</strong><span>défis pratiques</span></div><div><strong>SQLite</strong><span>dans ton navigateur</span></div></div></div>`;
+      <div class="ob-proof-stats" aria-label="L’apprentissage en bref"><div><strong>${TOTAL}</strong><span>leçons guidées</span></div><div><strong>${nDefis}</strong><span>défis pratiques</span></div><div><strong class="ob-moteur">Moteur</strong><span>SQL dans ton application</span></div></div></div>`;
+    /* Elisa, 11 novembre, 17 h 24 (capture de l’accueil, dans l’appli iPhone) : « ne pas mettre SQLite, mais un moteur SQL dans ton
+       application ». La troisième tuile se lit d’un trait, « Moteur SQL dans ton application » ; le texte du dessus ne parle plus de
+       SQLite ni du navigateur. */
     /* 17 h 32 (Réf. 8, « c’est un mode avec compte, justement ») : plus de « Aucun compte n’est nécessaire » : le pseudo se choisit à la fin. */
     /* 11 h 08 (réf. 6) : « ça sera enregistré sur tous les appareils, car compte obligatoire ». */
     /* Invité par un ami (5 novembre, 14 h) : « Je m’inscris », l’inscription étant obligatoire pour entrer dans sa salle. */
@@ -47075,7 +47120,7 @@ function compteStats(){
   const lessons=Object.values(state.lessons||{}).filter(l=>l.done).length;
   const defis=Object.keys(state.defis||{}).length;
   /* Les cartes gagnées : les leçons validées qui ont une carte mémo (la collection compte pareil). */
-  const cards=typeof CARTES==='undefined'||typeof allLessons==='undefined'?lessons:allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;
+  const cards=typeof CARTES==='undefined'||typeof allLessons==='undefined'?lessons:memoCartes().filter(e=>isUnlocked(e.lid)).length;
   const notes=(state.notes||[]).length;
   const due=dueList().length;
   const streak=streakJours();
@@ -48524,7 +48569,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-situations-defis-v2852';
+  const SW_CACHE='requete-2026-11-11-carte-types-v2853';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

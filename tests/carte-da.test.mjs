@@ -41,10 +41,10 @@ test('chaque carte : son mot-clé, son idée, trois points à retenir, une synta
 
 test('le verso : l’ampoule et « À retenir », les trois points numérotés, la syntaxe en touches, le piège', () => {
   const ctx = vm.createContext({
-    CARTES, allLessons: Object.keys(CARTES).map(id => ({id: +id})), esc: s => String(s), highlight: s => `<span class="hl">${s}</span>`,
+    CARTES, CARTES_PLUS: {}, allLessons: Object.keys(CARTES).map(id => ({id: +id})), esc: s => String(s), highlight: s => `<span class="hl">${s}</span>`,
     lqStkSvg: k => `<svg data-k="${k}"></svg>`, cardMemoPoints: () => []
   });
-  vm.runInContext(app.slice(app.indexOf('const MEMO_LOCK_STK='), app.indexOf('/* Le numéro de collection (01 à 71)')) + fn('memoSerial') + fn('memoKn') + fn('memoKw') + fn('memoCodes') + fn('memoVerso'), ctx);
+  vm.runInContext(app.slice(app.indexOf('const MEMO_LOCK_STK='), app.indexOf('/* Le numéro de collection (01 à 71)')) + app.slice(app.indexOf('let memoListeCache=null;'), app.indexOf('function memoArg(')) + fn('memoSerial') + fn('memoKn') + fn('memoKw') + fn('memoCodes') + fn('memoTab') + fn('memoVerso'), ctx);
   const v = ctx.memoVerso(51);
   assert.ok(v.includes('<h3 class="mc-h"><span class="mc-h-stk" aria-hidden="true"><svg data-k="bulb"></svg></span><span class="mc-h-tag">À retenir</span></h3>'));
   assert.equal((v.match(/<li style="--i:\d">/g) || []).length, 3, 'trois points, qui arrivent l’un après l’autre');
@@ -66,9 +66,9 @@ test('la fiche : le recto qui s’incline, le verso dessous, « Noter » et « E
   const open = fn('openCard');
   assert.ok(open.includes('<div class="mc mc--big" role="img" aria-label="${escAttr(`Carte ${memoSerial(id)}, ${c.k}\\u00a0: ${c.t}. Module ${mi+1}, ${MODULES[mi].titre}`)}">${memoFace(id,{mod:true,shine:true})}</div>'));
   assert.ok(open.includes('<div class="mc-verso">${memoVerso(id)}</div>'));
-  assert.ok(open.includes('<button type="button" class="cd-note-btn" onclick="noteFromCard(${id})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg(\'note\')}</span>Noter</button>'), 'le carnet de « Noter », à côté d’« Essayer »');
+  assert.ok(open.includes('<button type="button" class="cd-note-btn" onclick="noteFromCard(${memoArg(id)})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg(\'note\')}</span>Noter</button>'), 'le carnet de « Noter », à côté d’« Essayer »');
   assert.ok(open.includes('const had=!!cardNoteExisting(id);') && open.includes('<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>'), 'déjà notée : pas un bouton');
-  assert.ok(open.includes("${c.dialecte?'':`<button type=\"button\" class=\"cd-try-btn\" onclick=\"cardToConsole(${id})\">${tryIco}Essayer</button>`}"), 'pas d’« Essayer » pour une syntaxe que la Console n’exécute pas');
+  assert.ok(open.includes("${c.dialecte?'':`<button type=\"button\" class=\"cd-try-btn\" onclick=\"cardToConsole(${memoArg(id)})\">${tryIco}Essayer</button>`}"), 'pas d’« Essayer » pour une syntaxe que la Console n’exécute pas');
   assert.ok(open.includes("cardTilt(document.querySelector('#card-body .mc--big'));"));
   assert.ok(fn('noteFromCard').includes('if(had)openNote(had.id); else openNote(null,pre);'));
   const tilt = fn('cardTilt');
