@@ -56,7 +56,7 @@ test('la carte d’un moment « À toi » se pose avec sa légende et reste jusq
   assert.ok(moments.includes('const MOMENT_LEAD = 2.55, MOMENT_TAIL = 0.25;'));
   assert.ok(moments.includes('const i = P.findIndex(p => p.board && t >= p.at - MOMENT_LEAD && t < p.at + MOMENT_TAIL);')
     && moments.includes('if (i >= 0) { if (!X || X.i !== i) { clear(); start(i); X.lead = true; } }') && moments.includes('else if (X && X.lead) clear();'));
-  assert.ok(moments.includes('enter: i => { if (X && X.i === i && X.lead) { X.lead = false; return; } clear(); start(i); },'), 'l’ouverture du moment garde la carte posée');
+  assert.ok(moments.includes('enter: i => { if (X && X.i === i && X.lead) { X.lead = false; return; }') && moments.includes('if (X && X.i === i) { reset();'), 'l’ouverture du moment garde la carte posée (19 h 56 : même sans « À toi ! » devant)');
   assert.ok(moments.includes('if (wait >= 0) { const a = P[wait].at; if (t >= a + MOMENT_TAIL || t < a - 0.001) clear(); return; }'));
   /* « À toi ! » paraît 2,35 s avant l’arrêt (passage à at − 2,45, légende 0,1 s après) : la carte arrive 0,2 s avant elle. */
   assert.ok(moments.includes('const MOMENT_GAP = 2.65;') && moments.includes("gaps.forEach(g => caps.push([r3(g + 0.1), r3(g + MOMENT_GAP), 'À toi !']));"));

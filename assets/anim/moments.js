@@ -91,6 +91,18 @@ function momentIX(P){
     /* Un réglage : la carte part des valeurs de départ des commandes. */
     if (P[i].kind === 'tune') draw(i, tuneStart(P[i]));
   };
+  /* Remet le moment à zéro sans retirer sa carte (Elisa, 11 novembre, 19 h 56 : « J’ai eu un flash à ce moment » : un choix faux puis
+     un autre, sur « Le chaînon manquant ») : chaque choix vidait tout le moment, carte comprise, et la recréait aussitôt ; la carte
+     neuve rejouait son entrée (mbIn, depuis l’opacité 0) et clignotait à chaque essai. Seuls partent ce qu’un essai a ajouté (pastilles,
+     traits, couleurs, minuteurs) ; la carte, son voile et la scène estompée (mb-veiled) restent. */
+  const reset = () => {
+    if (!X) return;
+    X.tm.forEach(clearTimeout); X.tm = [];
+    X.cls = X.cls.filter(([e, c]) => { if (c === 'mb-veiled') return true; e.classList.remove(c); return false; });
+    X.add = X.add.filter(e => { if (e === X.board || e.classList.contains('mb-veil')) return true; e.remove(); return false; });
+    if (X.slot0) { X.slot0[0].innerHTML = X.slot0[1]; X.slot0 = null; }
+    X.got = new Set();
+  };
   const tuneStart = p => Object.fromEntries((p.controls || []).map(c => [c.k, c.value]));
   const draw = (i, s) => { if (X && X.board && P[i].show) try { P[i].show(s, X.board); } catch (e) {} };
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
@@ -117,7 +129,10 @@ function momentIX(P){
   };
   return {
     /* La carte posée pendant « À toi ! » reste telle quelle. */
-    enter: i => { if (X && X.i === i && X.lead) { X.lead = false; return; } clear(); start(i); },
+    enter: i => { if (X && X.i === i && X.lead) { X.lead = false; return; }
+      /* Le même moment, déjà posé : remis à zéro sur place (sa carte ne se recrée pas, donc ne clignote pas). */
+      if (X && X.i === i) { reset(); if (P[i].kind === 'tune') draw(i, tuneStart(P[i])); return; }
+      clear(); start(i); },
     /* Réglage en cours : la carte suit chaque mouvement (rien n’est jugé). */
     tune(i, s){ start(i); draw(i, s); },
     /* Moment déjà réussi : la carte montre le réglage juste. */
@@ -191,7 +206,7 @@ function momentIX(P){
       return {ok: false, why: why ? fr(why) : ''};
     },
     pick(i, k){
-      clear(); start(i);
+      start(i); reset();
       const o = P[i].options[k], ok = !!o.ok;
       /* Une réponse glissée dans le trou d’une requête : elle s’y écrit. */
       if (P[i].slot) { const sl = $(P[i].slot); if (sl) { X.slot0 = [sl, sl.innerHTML]; sl.textContent = o.label; mark(sl, ok ? 'mb-fill' : 'mb-bad');
