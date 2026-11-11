@@ -93,7 +93,7 @@ test('liste et page d’un parcours : ouvrir, revenir (vers la liste ou l’accu
   /* 11 novembre, 15 h 15 : d’après sa maquette (tests/retours-1515.test.mjs) */
   assert.ok(page.includes('<em class="pc-hero-tag">') && page.includes('En préparation</em>') && page.includes('<h2 id="pc-titre">Python pour la data</h2>'));
   assert.ok(page.includes('<p class="pc-hero-sub">Un nouveau parcours pour manipuler, analyser et exploiter tes données avec Python.</p>'));
-  assert.ok(page.includes('<b>M’avertir au lancement</b><small>Reçois une notification dans l’appli le jour de l’ouverture.</small>'));
+  assert.ok(page.includes('<b>M’avertir au lancement</b><small>Reçois une notification le jour de l’ouverture.</small>'));
   assert.ok(page.includes('<input type="checkbox" role="switch" class="pc-switch" onchange="parcoursAlerte(\'python\',this.checked)">'));
   assert.equal((page.match(/<input type="radio" name="pc-vote"/g) || []).length, 3);
   assert.ok(page.includes('value="python" checked'), 'le parcours de la page est proposé d’abord');
@@ -128,13 +128,13 @@ test('vote hors ligne : il reste sur l’appareil et repart plus tard', async ()
   ok = true;
   assert.equal(await ctx.parcoursEnvoyerVote(), true);
   assert.equal(ctx.state.parcoursVote.envoye, true);
-  assert.ok(block.includes("window.addEventListener('online',()=>{try{parcoursEnvoyerVote();}catch(e){}});"), 'au retour du réseau');
+  assert.ok(block.includes("window.addEventListener('online',()=>{try{parcoursEnvoyerVote();parcoursPushSync();}catch(e){}});"), 'au retour du réseau (et l’inscription de l’alerte, retours-1555)');
 });
 
 test('la progression garde les alertes, les annonces et le vote (normalizeState)', () => {
   assert.ok(app.includes('const parcoursAlertes=Array.isArray(source.parcoursAlertes)?[...new Set(source.parcoursAlertes.filter(pcId))].slice(0,20):[];'));
   assert.ok(app.includes("const parcoursVote=pv&&typeof pv==='object'&&pcId(pv.id)?{id:pv.id,le:Math.max(0,Math.floor(Number(pv.le))||0),envoye:pv.envoye!==false}:null;"));
-  assert.ok(app.includes('stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};'), 'et les avis sur les leçons (retours-1235)');
+  assert.ok(app.includes('stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,parcoursPush,avis};'), 'et les avis sur les leçons (retours-1235), et la notification de l’alerte (retours-1555)');
 });
 
 test('base de l’appli : un vote par appareil, par la seule fonction parcours_voter ; la confidentialité le dit', () => {
@@ -145,5 +145,5 @@ test('base de l’appli : un vote par appareil, par la seule fonction parcours_v
   assert.ok(sql.includes('on conflict (cle) do update set parcours = excluded.parcours, vote_le = now();'), 'revoter remplace le vote');
   assert.ok(sql.includes('grant execute on function public.parcours_voter(text, text) to anon, authenticated;'));
   assert.ok(sql.includes('create or replace view public.parcours_votes with (security_invoker = true)') && sql.includes('revoke all on public.parcours_votes from public, anon, authenticated;'), 'les résultats, pour le tableau de bord seulement');
-  assert.ok(privacy.includes('<li><b>Vote pour le prochain parcours</b> (facultatif).') && privacy.includes('L’alerte de sortie d’un parcours, elle, reste sur ton appareil.'));
+  assert.ok(privacy.includes('<li><b>Vote pour le prochain parcours</b> (facultatif).') && privacy.includes('<li><b>Alerte «&nbsp;M’avertir au lancement&nbsp;»</b> (facultatif, appli iPhone).'), 'l’alerte en notification : retours-1555');
 });

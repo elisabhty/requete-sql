@@ -99,7 +99,27 @@ const brancherScene = () => {
     }
   }
 };
-const brancher = () => { if (sb.includes(sbAvant)) writeFileSync(story, sb.replace(sbAvant, sbApres)); brancherScene(); };
+/* 2 ter. Le jeton de push (Elisa, 11 novembre, 15 h 55 : « M’avertir au lancement » en vraie notification) : iOS donne le jeton à
+   l’AppDelegate, qui le passe par la notification de Capacitor ; RequetePush (RequeteWidgetPlugin.swift) l’écoute. Ajouté une fois,
+   avant la fin de la classe, si l’AppDelegate ne le reçoit pas déjà (une extension de push installée, par exemple). */
+const PUSH = `    // Le jeton de push d’Apple (scripts/ios-widget.mjs) : passé à RequetePush (RequeteWidgetPlugin) par la notification de Capacitor.
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+    }
+`;
+const brancherPush = () => {
+  if (!existsSync(appDel)) return;
+  const a = readFileSync(appDel, 'utf8');
+  if (a.includes('didRegisterForRemoteNotificationsWithDeviceToken')) return;
+  const fin = a.lastIndexOf('}');
+  if (fin > 0 && /class AppDelegate\b/.test(a) && a.includes('import Capacitor')) writeFileSync(appDel, a.slice(0, fin) + '\n' + PUSH + a.slice(fin));
+  else console.warn('⚠️  AppDelegate.swift inattendu : le jeton de push n’y est pas branché (l’alerte des parcours restera un message dans l’appli).');
+};
+const brancher = () => { if (sb.includes(sbAvant)) writeFileSync(story, sb.replace(sbAvant, sbApres)); brancherScene(); brancherPush(); };
 
 /* 3. Le projet Xcode, une seule fois. */
 let p = readFileSync(projet, 'utf8');

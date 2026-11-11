@@ -24039,6 +24039,9 @@ function normalizeState(raw){
   const parcoursAnnonces=Array.isArray(source.parcoursAnnonces)?[...new Set(source.parcoursAnnonces.filter(pcId))].slice(0,20):[];
   const pv=source.parcoursVote;
   const parcoursVote=pv&&typeof pv==='object'&&pcId(pv.id)?{id:pv.id,le:Math.max(0,Math.floor(Number(pv.le))||0),envoye:pv.envoye!==false}:null;
+  /* La notification de l’alerte (11 novembre) : le jeton de push de l’iPhone et les parcours déjà inscrits à la base de l’appli */
+  const pp=source.parcoursPush&&typeof source.parcoursPush==='object'?source.parcoursPush:{};
+  const parcoursPush={jeton:typeof pp.jeton==='string'&&/^[0-9a-f]{64,200}$/.test(pp.jeton)?pp.jeton:'',faits:Array.isArray(pp.faits)?[...new Set(pp.faits.filter(pcId))].slice(0,20):[]};
   /* L’avis sur chaque leçon (Elisa, 4 novembre, 12 h 35, voir bravoAvisHtml) : l’id de la leçon → la note de 1 à 5, sa date, et s’il
      est parti à la base de l’appli (envoye:false tant qu’il attend le réseau). */
   const avisSrc=source.avis&&typeof source.avis==='object'&&!Array.isArray(source.avis)?source.avis:{};
@@ -24048,7 +24051,7 @@ function normalizeState(raw){
     const c=typeof a.c==='string'?a.c.replace(/\s+/g,' ').trim().slice(0,500):'';
     if(n>=1&&n<=5)avis[k]=Object.assign({n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false},c?{c}:{});
   });
-  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,...(accountProvider?{accountProvider}:{}),...(accountLabel?{accountLabel}:{}),entretien,preferences,actDays,defisJour,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,avis};
+  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,...(accountProvider?{accountProvider}:{}),...(accountLabel?{accountLabel}:{}),entretien,preferences,actDays,defisJour,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,parcoursPush,avis};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
@@ -27489,7 +27492,7 @@ function parcoursPageHTML(p){
     </section>
     <label class="pc-alert">
       <i class="pc-alert-ico" aria-hidden="true">${PC_BELL_SVG}</i>
-      <span class="pc-alert-copy"><b>M’avertir au lancement</b><small>Reçois une notification dans l’appli le jour de l’ouverture.</small></span>
+      <span class="pc-alert-copy"><b>M’avertir au lancement</b><small>Reçois une notification le jour de l’ouverture.</small></span>
       <input type="checkbox" role="switch" class="pc-switch"${on?' checked':''} onchange="parcoursAlerte('${p.id}',this.checked)">
     </label>
     <fieldset class="pc-vote">
@@ -27542,7 +27545,57 @@ function parcoursAlerte(id,on){
   if(on)al.push(id);
   state.parcoursAlertes=al;save();
   if(typeof buzz==='function')buzz('light');
-  if(typeof lqSay==='function')lqSay(on?'C’est noté\u00a0: un message t’attendra dans l’appli le jour où il ouvre.':'Alerte retirée.');
+  const dire=m=>{if(typeof lqSay==='function')lqSay(m);};
+  if(!on){parcoursPushSync();dire('Alerte retirée.');return;}
+  if(!parcoursPushPont()){dire('C’est noté\u00a0: un message t’attendra dans l’appli le jour où il ouvre.');return;}
+  parcoursPushJeton(true).then(r=>{
+    if(r&&r.autorise&&r.jeton){parcoursPushSync();dire('C’est noté\u00a0: tu recevras une notification le jour où il ouvre.');}
+    else if(r&&r.refuse)dire('Les notifications de Requête sont coupées (Réglages › Notifications)\u00a0: un message t’attendra dans l’appli le jour où il ouvre.');
+    else dire('C’est noté\u00a0: un message t’attendra dans l’appli le jour où il ouvre.');
+  });
+}
+/* 11 novembre, 15 h 55 (« Ça peut pas être une notification push ? ») : dans l’appli iPhone, l’alerte devient une vraie notification,
+   même l’appli fermée. En l’activant, iOS demande l’autorisation (une fois) et donne le jeton de push de l’iPhone (RequeteWidget,
+   notifAutoriser) ; l’appareil s’inscrit à la base de l’appli (parcours_alerter : l’empreinte de sa clé, le parcours, le jeton ;
+   supabase/migrations/…_parcours_alerte_push.sql). Le jour où le parcours ouvre, Elisa envoie la notification à tous les inscrits
+   (fonction parcours-annoncer, IOS.md). L’alerte coupée, la ligne s’en va. Notifications refusées, ou sur le site : le message dans
+   l’appli à son ouverture, comme avant (parcoursAnnonce). Hors ligne : l’inscription repart au retour du réseau ou à la prochaine
+   ouverture ; un nouveau jeton (iOS en change parfois) réinscrit tout. */
+function parcoursPushPont(){
+  const C=typeof window!=='undefined'?window.Capacitor:null;
+  return !!(C&&C.isNativePlatform&&C.isNativePlatform()&&typeof C.nativePromise==='function'&&(!C.isPluginAvailable||C.isPluginAvailable('RequeteWidget')));
+}
+function parcoursPushEtat(){
+  const p=state.parcoursPush;
+  if(p&&typeof p==='object'&&Array.isArray(p.faits))return p;
+  return (state.parcoursPush={jeton:'',faits:[]});
+}
+function parcoursPushJeton(demander){
+  if(!parcoursPushPont())return Promise.resolve(null);
+  return Promise.resolve(window.Capacitor.nativePromise('RequeteWidget',demander?'notifAutoriser':'notifJeton',{})).then(r=>{
+    const j=r&&typeof r.jeton==='string'&&/^[0-9a-f]{64,200}$/i.test(r.jeton)?r.jeton.toLowerCase():'';
+    const P=parcoursPushEtat();
+    if(j&&j!==P.jeton){P.jeton=j;P.faits=[];save();}
+    return {autorise:!!(r&&r.autorise),refuse:!!(r&&r.refuse),jeton:j};
+  }).catch(()=>null);
+}
+let parcoursPushVa=false;
+function parcoursPushSync(){
+  if(parcoursPushVa||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
+  const P=parcoursPushEtat(),al=parcoursAlertes();
+  const ajout=P.jeton?al.filter(id=>!P.faits.includes(id)):[],retrait=P.faits.filter(id=>!al.includes(id));
+  if(!ajout.length&&!retrait.length)return Promise.resolve(true);
+  parcoursPushVa=true;
+  const un=(id,on)=>clsRpc('parcours_alerter',{p_cle:clsCle(),p_parcours:id,p_jeton:on?P.jeton:null,p_on:on}).then(r=>{
+    if(!(r&&r.ok))return false;
+    const f=new Set(parcoursPushEtat().faits);
+    if(on)f.add(id);else f.delete(id);
+    parcoursPushEtat().faits=[...f];
+    return true;
+  }).catch(()=>false);
+  return [...ajout.map(id=>[id,true]),...retrait.map(id=>[id,false])]
+    .reduce((p,[id,on])=>p.then(ok=>un(id,on).then(o=>ok&&o)),Promise.resolve(true))
+    .then(ok=>{parcoursPushVa=false;save();return ok;});
 }
 function parcoursVoter(){
   const coche=document.querySelector('#parcours-body input[name="pc-vote"]:checked');
@@ -27577,8 +27630,9 @@ function parcoursAnnonce(){
   if(typeof lqSay==='function')lqSay(`Le parcours ${p.titre} est ouvert\u00a0!`);
 }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
-  window.addEventListener('load',()=>setTimeout(()=>{try{parcoursEnvoyerVote();parcoursAnnonce();}catch(e){}},4000));
-  window.addEventListener('online',()=>{try{parcoursEnvoyerVote();}catch(e){}});
+  window.addEventListener('load',()=>setTimeout(()=>{try{parcoursEnvoyerVote();parcoursAnnonce();
+    if(parcoursAlertes().length&&parcoursPushPont())parcoursPushJeton(false).then(()=>parcoursPushSync());else parcoursPushSync();}catch(e){}},4000));
+  window.addEventListener('online',()=>{try{parcoursEnvoyerVote();parcoursPushSync();}catch(e){}});
 }
 function renderModules(){
   const host=document.getElementById('modules');
@@ -48382,7 +48436,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-parcours-v2848';
+  const SW_CACHE='requete-2026-11-11-push-v2849';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

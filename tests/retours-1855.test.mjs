@@ -234,7 +234,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   assert.ok(conf.includes('Une salle publique (le choix proposé quand tu en crées une) apparaît dans la liste des salles ouvertes («&nbsp;Rejoins une partie&nbsp;»)'));
   assert.ok(conf.includes('Ton pays y est enregistré avec lui, pour afficher ton drapeau à côté de ton pseudo dans les défis&nbsp;; tu peux le masquer dans Mon compte («&nbsp;Afficher mon drapeau&nbsp;»).'));
   assert.ok(conf.includes('Les autres joueurs voient le classement (5 joueurs par page, avec leur drapeau)'));
-  assert.ok(conf.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 6 novembre 2026</p>'), 'mise à jour le 6 novembre : les durées de conservation');
+  assert.ok(conf.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 11 novembre 2026</p>'), 'mise à jour le 6 novembre (les durées de conservation), puis le 11 (l’alerte en notification)');
   const ios = lire('IOS.md');
   assert.ok(ios.includes('- **Défis en trois onglets**') && ios.includes('« Localisation approximative » (le pays)'));
   const ms = lire('multiplayer-security.js');
@@ -242,5 +242,5 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-11-parcours-v2848');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-11-push-v2849');
 });

@@ -3,6 +3,7 @@ import UIKit
 import Capacitor
 import WidgetKit
 import ActivityKit
+import UserNotifications
 
 // Le pont entre l’app web et l’iPhone (Elisa, 4 novembre) :
 // - le widget (3 h 54) : index.html (widgetMaj) appelle Capacitor.nativePromise('RequeteWidget', 'maj', { serie, jour, fait, limite }) ;
@@ -43,6 +44,39 @@ enum RequeteRaccourci {
     }
 }
 
+/// Le jeton de push d’Apple : l’AppDelegate le reçoit (didRegisterForRemoteNotificationsWithDeviceToken, branché par
+/// scripts/ios-widget.mjs) et le passe par la notification de Capacitor (.capacitorDidRegisterForRemoteNotifications) ; on le
+/// garde et on le rend à qui l’attend. Pas de réponse d’Apple en 10 secondes : le dernier connu (ou rien).
+enum RequetePush {
+    static var dernier: String?
+    static var attentes: [(String?) -> Void] = []
+    static var observe = false
+
+    static func jeton(_ fini: @escaping (String?) -> Void) {
+        DispatchQueue.main.async {
+            if !observe {
+                observe = true
+                NotificationCenter.default.addObserver(forName: .capacitorDidRegisterForRemoteNotifications, object: nil, queue: .main) { n in
+                    if let d = n.object as? Data { dernier = d.map { String(format: "%02x", $0) }.joined() }
+                    rendre()
+                }
+                NotificationCenter.default.addObserver(forName: .capacitorDidFailToRegisterForRemoteNotifications, object: nil, queue: .main) { _ in
+                    rendre()
+                }
+            }
+            attentes.append(fini)
+            UIApplication.shared.registerForRemoteNotifications()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) { rendre() }
+        }
+    }
+
+    private static func rendre() {
+        let a = attentes
+        attentes = []
+        a.forEach { $0(dernier) }
+    }
+}
+
 @objc(RequeteWidgetPlugin)
 public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "RequeteWidgetPlugin"
@@ -65,7 +99,9 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "partagerTexte", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "accueilDebut", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "accueilMaj", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "accueilFin", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "accueilFin", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "notifAutoriser", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -243,6 +279,37 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     /// Une adresse que la page ne peut pas ouvrir elle-même (itms-apps:// pour l’App Store) : { url }. Répond { ok }.
+    /// Les notifications (Elisa, 11 novembre, 15 h 55 : « M’avertir au lancement » en vraie notification push). notifAutoriser :
+    /// iOS demande l’autorisation (une seule fois, quand on active l’alerte d’un parcours), puis l’app s’inscrit aux push d’Apple ;
+    /// notifJeton : sans rien demander, le jeton si c’est déjà autorisé (à chaque ouverture, il peut changer). Répond { autorise,
+    /// refuse, jeton } : jeton en hexadécimal (vide si Apple ne l’a pas donné à temps) ; refuse, si les notifications sont coupées.
+    @objc func notifAutoriser(_ call: CAPPluginCall) { notif(call, demander: true) }
+    @objc func notifJeton(_ call: CAPPluginCall) { notif(call, demander: false) }
+
+    private func notif(_ call: CAPPluginCall, demander: Bool) {
+        let centre = UNUserNotificationCenter.current()
+        let rendre: (Bool, Bool) -> Void = { autorise, refuse in
+            if autorise {
+                RequetePush.jeton { jeton in call.resolve(["autorise": true, "refuse": false, "jeton": jeton ?? ""]) }
+            } else {
+                call.resolve(["autorise": false, "refuse": refuse, "jeton": ""])
+            }
+        }
+        centre.getNotificationSettings { reglages in
+            switch reglages.authorizationStatus {
+            case .authorized, .provisional:
+                rendre(true, false)
+            case .notDetermined:
+                guard demander else { rendre(false, false); return }
+                centre.requestAuthorization(options: [.alert, .sound, .badge]) { ok, _ in rendre(ok, !ok) }
+            case .denied:
+                rendre(false, true)
+            default:
+                rendre(false, false)
+            }
+        }
+    }
+
     @objc func ouvrir(_ call: CAPPluginCall) {
         guard let texte = call.getString("url"), let url = URL(string: texte) else {
             call.reject("Adresse invalide")
