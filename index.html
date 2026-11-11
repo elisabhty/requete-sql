@@ -27233,7 +27233,10 @@ const HOME_STAT_SVG={
   barres:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="12.5" width="4.4" height="8" rx="1.6"/><rect x="9.8" y="8" width="4.4" height="12.5" rx="1.6"/><rect x="16.1" y="3.5" width="4.4" height="17" rx="1.6"/></svg>',
   coche:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.6l4.4 4.4L19 7.4"/></svg>',
   cible:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="3.8"/><path d="M11 13 19.5 4.5M16.4 4.5h3.1v3.1"/></svg>',
-  cartes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="8.6" y="3.2" width="11.4" height="15.4" rx="2.6"/><path d="M6.2 6.4 5 6.8a2.3 2.3 0 0 0-1.5 2.8l2.7 9.6a2.3 2.3 0 0 0 2.8 1.6l6.3-1.8"/></svg>'
+  cartes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="8.6" y="3.2" width="11.4" height="15.4" rx="2.6"/><path d="M6.2 6.4 5 6.8a2.3 2.3 0 0 0-1.5 2.8l2.7 9.6a2.3 2.3 0 0 0 2.8 1.6l6.3-1.8"/></svg>',
+  manette:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M7.3 6.5h9.4c2.7 0 4.4 2.3 4.8 5.1l.5 4c.4 2.4-2.3 3.8-4 2.1l-1.9-1.9H7.9L6 17.7c-1.7 1.7-4.4.3-4-2.1l.5-4c.4-2.8 2.1-5.1 4.8-5.1z"/><path d="M7.8 9.6v3.8M5.9 11.5h3.8"/><circle cx="15.6" cy="10.4" r=".6" fill="currentColor"/><circle cx="17.6" cy="12.6" r=".6" fill="currentColor"/></svg>',
+  video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5" width="18.4" height="14" rx="3.6"/><path d="M10 9.1v5.8l4.9-2.9z" fill="currentColor"/></svg>',
+  bulle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 4.5h12.4a2.8 2.8 0 0 1 2.8 2.8v7.1a2.8 2.8 0 0 1-2.8 2.8h-5.6l-4.6 3.6v-3.6H5.8A2.8 2.8 0 0 1 3 14.4V7.3a2.8 2.8 0 0 1 2.8-2.8z"/><path d="M10.4 9.1a1.7 1.7 0 1 1 2.3 1.6c-.5.2-.7.6-.7 1.1M12 13.8h.01"/></svg>'
 };
 function homeStatsHTML(){try{
   if(typeof allLessons==='undefined'||!allLessons.length)return '';
@@ -27241,15 +27244,25 @@ function homeStatsHTML(){try{
   const faites=ls.filter(fait).length,lancees=ls.filter(l=>fait(l)||itemCommence(l.id)).length;
   const exos=ls.reduce((k,l)=>k+(fait(l)?((l.video&&l.video.moments)||0):exercicesFaits(l.id)),0);
   const nMods=MODULES.filter(m=>m.lessons.length).length,avecCarte=typeof memoCartes==='function'?memoCartes():ls.filter(l=>CARTES[l.id]),gagnees=avecCarte.filter(e=>itemDone(e.lid!=null?e.lid:e.id)).length;
-  const t=(ico,n,un,plus)=>({ico,n,mot:n>1?plus:un});
+  const t=(ico,n,un,plus,suf)=>({ico,n,mot:n>1?plus:un,suf:suf||''});
   const aGagner=t('cartes',avecCarte.length-gagnees,'carte à récolter','cartes à récolter');
-  const tuiles=!lancees?[t('cible',nL,'leçon à découvrir','leçons à découvrir'),t('barres',nMods,'module','modules'),aGagner]
+  /* 11 novembre, 19 h 39 (Elisa : « 71 leçons, 15 modules, c’est assez répétitif » avec la ligne « Parcours SQL · 71 leçons ·
+     15 modules » juste dessous ; son choix, « Ce qui t’attend ») : rien de commencé, ce que l’app réserve au-delà des leçons, avec ses
+     vrais chiffres : les défis, les heures de vidéo (arrondies à l’heure du dessous), les questions d’entretien. */
+  const debut=()=>{
+    const sec=ls.reduce((k,l)=>k+(typeof dureeVideoS==='function'?dureeVideoS(l):0),0),h=Math.floor(sec/3600),m=Math.floor(sec/60);
+    let nEnt=0;try{nEnt=Array.isArray(ENTRETIEN)?ENTRETIEN.length:0;}catch(e){}
+    return [t('manette',typeof CHALLENGES!=='undefined'&&CHALLENGES.length||0,'défi à relever','défis à relever'),
+      h?t('video',h,'de vidéo','de vidéo','\u00a0h'):t('video',m,'de vidéo','de vidéo','\u00a0min'),
+      t('bulle',nEnt,'question d’entretien','questions d’entretien')];
+  };
+  const tuiles=!lancees?debut()
     :faites>=nL?[t('coche',nL,'leçon validée','leçons validées'),t('cartes',gagnees,'carte gagnée','cartes gagnées'),t('cible',nMods,'module terminé','modules terminés')]
     :lancees===faites?[t('coche',faites,'leçon validée','leçons validées'),gagnees?t('cartes',gagnees,'carte gagnée','cartes gagnées'):t('barres',exos,'exercice fait','exercices faits'),t('cible',nL,'leçon au total','leçons au total')]
     :[t('barres',lancees,'leçon lancée','leçons lancées'),faites?t('coche',faites,'leçon validée','leçons validées'):exos?t('coche',exos,'exercice fait','exercices faits'):aGagner,t('cible',nL,'leçon au total','leçons au total')];
   const vues=tuiles.filter(x=>x.n>0);
   if(!vues.length)return '';
-  return `<ul class="lq-stats" aria-label="Tes chiffres">${vues.map(x=>`<li class="lq-stat is-${x.ico}"><span class="lq-stat-ic" aria-hidden="true">${HOME_STAT_SVG[x.ico]}</span><b>${x.n}</b><span>${x.mot}</span></li>`).join('')}</ul>`;
+  return `<ul class="lq-stats" aria-label="Tes chiffres">${vues.map(x=>`<li class="lq-stat is-${x.ico}"><span class="lq-stat-ic" aria-hidden="true">${HOME_STAT_SVG[x.ico]}</span><b>${x.n}${x.suf}</b><span>${x.mot}</span></li>`).join('')}</ul>`;
 }catch(e){return '';}}
 /* Ce que l’étiquette de la séance dit à VoiceOver : le même résumé que le bilan et le planning (session.summary), avec les minutes que
    l’écran montre et, en retard, la séance qu’elles comptent : « Séance d’hier à reprendre : 2 activités à rattraper, environ
@@ -48610,7 +48623,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-tous-niveaux-v2860';
+  const SW_CACHE='requete-2026-11-11-kpi-accueil-v2861';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
