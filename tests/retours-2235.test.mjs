@@ -52,11 +52,11 @@ test('le geste de ce qu’on supprime : rougit, se froisse, part, la liste se re
 });
 
 test('partout où l’on supprime ou crée : la carte s’en va, la coche dit que c’est fait', () => {
-  /* Une note supprimée : la liste revient avec elle, elle s’y froisse, puis « Note supprimée » et « Annuler » */
+  /* Une note supprimée : la liste revient avec elle, et elle part à la poubelle (11 novembre : lqCorbeille, plus de toast) */
   const d = fn('deleteNote');
-  assert.ok(d.indexOf('notesEnter=false;backToNotesList();') < d.indexOf('setTimeout(()=>lqAdieu([carte],fin),carte?140:0);'));
+  assert.ok(d.indexOf('notesEnter=false;backToNotesList();') < d.indexOf('setTimeout(()=>lqCorbeille(carte,fin,{son}),carte?120:0);'));
   assert.ok(d.indexOf('const fin=()=>{') > 0 && d.indexOf("state.notes=(state.notes||[]).filter(x=>x.id!==id);") > d.indexOf('const fin=()=>{'), 'retirée seulement après le geste');
-  assert.ok(d.indexOf("toastWithAction('Note supprimée'") > d.indexOf('const fin=()=>{'));
+  assert.ok(!d.includes("toastWithAction('Note supprimée'"));
   /* Une note créée ou modifiée : la coche sur sa carte */
   assert.ok(fn('saveNote').includes("if(c)requestAnimationFrame(()=>lqDone(c,wasNew?'Créée':'Enregistrée',dit));else lqSay(dit);"));
   /* Les doublons fusionnés : l’un après l’autre, puis la coche */
@@ -108,5 +108,5 @@ test('la carte de Mon compte : la barre au chiffre du parcours, le module qui su
   for (const k of ['html.lq .acct-hero .acct-chap{display:flex;align-items:center;gap:12px;width:100%;', 'html.lq .acct-hero .acct-chap-go{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);',
     'html.lq .acct-hero .acct-level-head em{font:800 19px/1 var(--display);color:var(--sun-hi)}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && sw.includes("const CACHE = 'requete-2026-11-11-page-sticker-v2865';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && sw.includes("const CACHE = 'requete-2026-11-11-poubelle-notes-v2866';"));
 });
