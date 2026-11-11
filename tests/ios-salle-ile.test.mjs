@@ -307,11 +307,13 @@ test('la fonction jeu-ile : en veille sans la clé d’Apple ; membre de la sall
   /* Deux autres joueurs, dont un jeton mort */
   appels.length = 0;
   const h = createIleHandler({pret: true, envoyer, maintenant: () => 1_800_000_000,
-    rpc: rpc(f => (f === 'jeu_ile_cibles_v2' ? {pareil: false, cibles: [{jeton: 'vivant', bac: false}, {jeton: 'mort', bac: false}]} : null))});
+    rpc: rpc(f => (f === 'jeu_ile_cibles_v2' ? {pareil: false, cibles: [{jeton: 'vivant', bac: false}, {jeton: 'mort', bac: false}]}
+      : f === 'jeu_ile_alerte_v2' ? {ok: true, moi: 'L1234567', noms: {L1234567: '@lea', M1234567: '@max'}} : null))});
   assert.deepEqual(await lire(await h(demande(corps))), [200, {ok: true, pousse: 1}]);
   assert.deepEqual(appels[0], ['jeu_ile_cibles_v2', {p_cle: corps.cle, p_salle: 'K7P2QX', p_etat: corps.etat}]);
-  assert.deepEqual(appels[1], ['jeu_ile_suivi_v2', {p_salle: 'K7P2QX', p_retirer: ['mort'], p_bac: []}]);
-  assert.deepEqual(envois.find(e => e[1] === 'vivant')[2].aps.alert, {title: '@lea entre dans la salle', body: 'Salle K7P2QX · 2/6', sound: 'miaou.wav'});
+  assert.deepEqual(appels[1], ['jeu_ile_alerte_v2', {p_cle: corps.cle, p_salle: 'K7P2QX'}], '11 novembre : le serveur dit si l’alerte peut partir, avec les pseudos');
+  assert.deepEqual(appels[2], ['jeu_ile_suivi_v2', {p_salle: 'K7P2QX', p_retirer: ['mort'], p_bac: []}]);
+  assert.deepEqual(envois.find(e => e[1] === 'vivant')[2].aps.alert, {title: '@lea entre dans la salle', body: 'Salle K7P2QX · 1/6', sound: 'miaou.wav'}, 'réécrite par le serveur');
   /* Le point d’entrée : les en-têtes d’une Live Activity, verify_jwt désactivé (l’appareil est authentifié par sa clé) */
   const index = fs.readFileSync(path.join(ROOT, 'supabase/functions/jeu-ile/index.ts'), 'utf8');
   for (const k of ["'apns-push-type': 'liveactivity'", "'apns-topic': `${sujet}.push-type.liveactivity`", "'apns-priority': '10'", 'https://${hote}/3/device/${jeton}',
@@ -353,4 +355,32 @@ test('IOS.md : la salle dans l’île, et la clé d’Apple pas à pas', () => {
     'Edge Functions', 'aps-environment', 'Push Notifications', 'miaou', 'veille'])
     assert.ok(c.includes(k), k);
   assert.ok(!/bientôt|prochainement/i.test(c));
+});
+
+test('11 novembre, 23 h 38 (audit) : l’alerte de l’île est réécrite par le serveur ; un texte inventé ou trop d’alertes ne passent pas', async () => {
+  const {alerteVoulue, alerteServeur} = await import('../supabase/functions/jeu-ile/handler.mjs');
+  const etat = {phase: 'attente', joueurs: [{p: 'L1234567', n: '@lea', pts: 0, r: 0, ok: false}, {p: 'M1234567', n: '@max', pts: 0, r: 0, ok: false}], nouveau: 'L1234567'};
+  const info = {ok: true, moi: 'L1234567', noms: {L1234567: '@lea', M1234567: '@max'}};
+  const arrive = {titre: '@lea entre dans la salle', texte: 'Salle K7P2QX · 2/4', son: 'miaou.wav'};
+  assert.deepEqual(alerteServeur(etat, alerteVoulue(etat, arrive), 'K7P2QX', info), {titre: '@lea entre dans la salle', texte: 'Salle K7P2QX · 2/4', son: 'miaou.wav'});
+  /* Un texte inventé : ignoré (l’état part sans alerte) */
+  for (const a of [{titre: 'Paie-moi un café', texte: 'Ou sinon…', son: 'default'}, {titre: 'Fin de la partie', texte: 'Tu as perdu, nul', son: 'default'}])
+    assert.equal(alerteServeur(etat, alerteVoulue(etat, a), 'K7P2QX', info), null, a.titre);
+  /* Le nom dans l’alerte est celui du serveur, pas celui envoyé */
+  const faux = {titre: 'Le patron entre dans la salle', texte: 'Salle K7P2QX · 2/6', son: 'miaou.wav'};
+  assert.equal(alerteServeur(etat, alerteVoulue(etat, faux), 'K7P2QX', info).titre, '@lea entre dans la salle');
+  /* « X entre dans la salle » seulement par celui qui arrive */
+  assert.equal(alerteServeur(etat, alerteVoulue(etat, arrive), 'K7P2QX', {...info, moi: 'M1234567'}), null);
+  /* Une alerte toutes les 8 secondes au plus par salle (le serveur répond ok: false) */
+  assert.equal(alerteServeur(etat, alerteVoulue(etat, arrive), 'K7P2QX', {...info, ok: false}), null);
+  assert.equal(alerteServeur(etat, alerteVoulue(etat, arrive), 'K7P2QX', null), null, 'serveur muet : pas d’alerte');
+  /* La fin : le premier, avec son pseudo du serveur */
+  const fin = {phase: 'fin', joueurs: [{p: 'M1234567', n: 'nimporte', pts: 225, r: 1, ok: true}], nouveau: ''};
+  assert.deepEqual(alerteServeur(fin, alerteVoulue(fin, {titre: 'Fin de la partie', texte: '1er : x · 1 pts', son: 'default'}), 'K7P2QX', info),
+    {titre: 'Fin de la partie', texte: '1er : @max · 225 pts', son: 'default'});
+  const mig = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261111234500_securite_avant_lancement.sql'), 'utf8');
+  for (const k of ["where e.code = p_salle and (e.alerte_le is null or e.alerte_le < clock_timestamp() - interval '8 seconds');",
+    'grant execute on function public.jeu_ile_alerte_v2(text, text) to service_role;', 'revoke all on function public.jeu_ile_alerte_v2(text, text) from public, anon, authenticated;',
+    "j.cree < now() - interval '1 day' and j.parties >= 1) >= 3 then", "o.vue_le < now() - interval '1 day')"])
+    assert.ok(mig.includes(k), k);
 });
