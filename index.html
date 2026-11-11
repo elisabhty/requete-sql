@@ -27475,9 +27475,11 @@ function parcoursListeHTML(){
    « En préparation » (jamais « bientôt » dans les textes). */
 function parcoursPageHTML(p){
   const on=parcoursAlertes().includes(p.id),v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
-  const sel=parcoursChoix||(v&&v.id)||p.id;
-  const opts=parcoursAVenir().map(o=>`<label class="pc-opt"><input type="radio" name="pc-vote" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value)"><i class="pc-opt-ico" aria-hidden="true">${lqStkSvg(o.stk)}</i><span class="pc-opt-t">${esc(o.titre)}</span>${o.id===parcoursTete?PC_TETE_HTML:''}</label>`).join('');
-  const themes=(p.themes||[]).map(t=>`<li>${PC_ICO[t[0]]||''}<span>${esc(t[1])}</span></li>`).join('');
+  /* 16 h 11 : le choix coché est le parcours affiché (la carte suit le choix, parcoursMontrer) ; le vote, le même sur les trois
+     pages, est marqué « Ton vote » sous son nom. */
+  const sel=p.id;
+  const opts=parcoursAVenir().map(o=>`<label class="pc-opt"><input type="radio" name="pc-vote" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value)"><i class="pc-opt-ico" aria-hidden="true">${lqStkSvg(o.stk)}</i><span class="pc-opt-t">${esc(o.titre)}${v&&v.id===o.id?'<small class="pc-opt-moi">Ton vote</small>':''}</span>${o.id===parcoursTete?PC_TETE_HTML:''}</label>`).join('');
+  const themes=parcoursThemesHTML(p);
   const chat=typeof mascotReduced==='function'&&mascotReduced()?'assets/chat-ordi-fixe.webp':'assets/chat-ordi.webp';
   return `<div class="pc-view">
     <section class="pc-hero" aria-labelledby="pc-titre">
@@ -27504,6 +27506,7 @@ function parcoursPageHTML(p){
     </fieldset>
   </div>`;
 }
+function parcoursThemesHTML(p){return (p.themes||[]).map(t=>`<li>${PC_ICO[t[0]]||''}<span>${esc(t[1])}</span></li>`).join('');}
 const PC_TETE_HTML=`<em class="pc-tete">${PC_TETE_SVG}En tête</em>`;
 /* Le parcours en tête des votes (parcours_en_tete : sans chiffres, à partir de 10 votes, sans égalité), relu toutes les 5 minutes
    au plus quand on ouvre la page d’un parcours, et après son propre vote ; hors ligne, pas de badge. */
@@ -27538,6 +27541,57 @@ function parcoursChoisir(id){
   parcoursChoix=id;
   const btn=document.querySelector('#parcours-body .pc-vote-go'),t=btn&&btn.querySelector('span');
   if(btn){btn.disabled=parcoursVoteFait(id);if(t)t.textContent=parcoursVoteLabel(id);else btn.textContent=parcoursVoteLabel(id);}
+  if(parcoursVue&&parcoursVue!==id){const avant=parcoursVue;parcoursVue=id;parcoursMontrer(id,avant);}
+}
+/* 11 novembre, 16 h 11 (« quand on clique sur Python, adapte le cadre du haut, de manière fluide ») : le vote sert aussi à passer
+   d’un parcours à l’autre, sans recharger la page. La carte violette et l’alerte suivent le choix : l’ancien contenu glisse et
+   s’efface, le nouveau arrive du côté du choix (plus bas dans la liste : par la droite), le trait jaune se redessine, les thèmes
+   sautillent un à un, le chat fait un petit bond, la carte change de hauteur en douceur, avec un petit cran sous le doigt. Si le
+   haut de la carte est sorti de l’écran, la page suit ce changement de hauteur : le vote reste sous le doigt. Mouvement réduit :
+   tout change d’un coup. Un choix pendant l’animation reprend proprement (parcoursTour). */
+let parcoursAnims=[],parcoursTour=0;
+/* Ce qui défile autour de la carte : l’écran « Parcours » lui-même (overflow:auto), sinon la page */
+function parcoursDefile(el){
+  for(let e=el.parentElement;e;e=e.parentElement){const o=getComputedStyle(e).overflowY;if((o==='auto'||o==='scroll')&&e.scrollHeight>e.clientHeight)return e;}
+  return document.scrollingElement||document.documentElement;
+}
+function parcoursMontrer(id,avant){
+  const p=PARCOURS.find(x=>x.id===id&&!x.dispo);
+  if(!p||typeof document==='undefined'||!document.querySelector)return;
+  const hero=document.querySelector('#parcours-body .pc-hero');
+  if(!hero)return;
+  if(typeof buzz==='function')buzz('selection');
+  const sw=document.querySelector('#parcours-body .pc-switch');
+  if(sw){sw.checked=parcoursAlertes().includes(id);sw.onchange=function(){parcoursAlerte(id,this.checked);};}
+  const q=s=>hero.querySelector(s),titre=q('h2'),trait=q('.pc-hero-trait'),sub=q('.pc-hero-sub'),themes=q('.pc-themes'),chat=q('.pc-hero-chat');
+  const remplir=()=>{if(titre)titre.textContent=p.titre;if(sub)sub.textContent=p.desc||'';if(themes)themes.innerHTML=parcoursThemesHTML(p);};
+  const tour=++parcoursTour;
+  parcoursAnims.forEach(a=>{try{a.cancel();}catch(e){}});parcoursAnims=[];
+  if(typeof hero.animate!=='function'||(typeof mascotReduced==='function'&&mascotReduced())){remplir();return;}
+  const ordre=parcoursAVenir().map(x=>x.id),sens=ordre.indexOf(id)<ordre.indexOf(avant)?-1:1,doux='cubic-bezier(.2,.8,.2,1)';
+  const joue=(el,k,o)=>{if(!el)return null;const a=el.animate(k,o);parcoursAnims.push(a);return a;};
+  const bouts=[titre,trait,sub,...(themes?[...themes.children]:[])].filter(Boolean);
+  const sorties=bouts.map((el,i)=>joue(el,[{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-sens*16}px)`}],{duration:130,delay:i*12,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'}));
+  joue(chat,[{transform:'none'},{transform:'translateY(-8px) rotate(-3deg)',offset:.4},{transform:'none'}],{duration:440,easing:'cubic-bezier(.3,.7,.4,1)'});
+  return Promise.all(sorties.map(a=>a&&a.finished?a.finished.catch(()=>{}):null)).then(()=>{
+    if(tour!==parcoursTour)return;
+    const zone=parcoursDefile(hero),r0=hero.getBoundingClientRect(),h0=r0.height,y0=zone.scrollTop;
+    const suit=r0.top<(zone===document.scrollingElement||zone===document.documentElement?0:zone.getBoundingClientRect().top);
+    sorties.forEach(a=>{if(a)a.cancel();});
+    remplir();
+    const h1=hero.getBoundingClientRect().height;
+    if(Math.abs(h1-h0)>1){
+      const a=joue(hero,[{height:h0+'px'},{height:h1+'px'}],{duration:320,easing:doux});
+      if(suit&&a&&typeof requestAnimationFrame==='function'){
+        const pas=()=>{if(tour!==parcoursTour)return;zone.scrollTop=Math.max(0,y0+hero.getBoundingClientRect().height-h0);if(a.playState==='running')requestAnimationFrame(pas);};
+        requestAnimationFrame(pas);
+      }
+    }
+    joue(titre,[{opacity:0,transform:`translateX(${sens*18}px)`},{opacity:1,transform:'none'}],{duration:300,easing:doux,fill:'backwards'});
+    joue(trait,[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}],{duration:380,delay:110,easing:'cubic-bezier(.3,.7,.3,1)',fill:'backwards'});
+    joue(sub,[{opacity:0,transform:`translateX(${sens*14}px)`},{opacity:1,transform:'none'}],{duration:300,delay:60,easing:doux,fill:'backwards'});
+    if(themes)[...themes.children].forEach((li,i)=>joue(li,[{opacity:0,transform:'translateY(8px) scale(.9)'},{opacity:1,transform:'none'}],{duration:340,delay:150+i*60,easing:'cubic-bezier(.3,1.4,.5,1)',fill:'backwards'}));
+  });
 }
 function parcoursAlerte(id,on){
   if(!parcoursAVenir().some(p=>p.id===id))return;
@@ -48436,7 +48490,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-push-v2849';
+  const SW_CACHE='requete-2026-11-11-parcours-bascule-v2850';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
