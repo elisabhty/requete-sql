@@ -48,7 +48,7 @@ test('l’appli appelle chaque fonction avec les paramètres de sa migration', (
   assert.deepEqual(appel('lecon_noter'), sig('20261104160655_avis_lecon.sql', 'lecon_noter'));
   assert.deepEqual(appel('parcours_voter'), sig('20261104160653_parcours_vote.sql', 'parcours_voter'));
   /* Les parcours qu’on peut voter sont ceux de l’appli qui ne sont pas encore ouverts (SQL l’est) */
-  const parcours = [...app.matchAll(/\{id:'(\w+)',titre:'[^']+',court:'[^']+',stk:'\w+'(,dispo:true)?\}/g)];
+  const parcours = [...app.matchAll(/\{id:'(\w+)',titre:'[^']+',court:'[^']+',stk:'\w+'(,dispo:true)?[,}]/g)];   // (11 novembre : une phrase et des thèmes ensuite)
   assert.deepEqual(parcours.map(m => m[1]), ['sql', 'python', 'excel', 'powerbi']);
   assert.deepEqual(parcours.filter(m => !m[2]).map(m => m[1]), ['python', 'excel', 'powerbi']);
   assert.ok(lire('supabase/migrations/20261104160653_parcours_vote.sql').includes("check (parcours in ('python', 'excel', 'powerbi'))"));
