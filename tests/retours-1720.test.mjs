@@ -55,6 +55,7 @@ test('au bilan de la leçon, les deux cartes ; l’annonce de déblocage dit « 
 
 test('l’accueil : « Moteur SQL dans ton application », plus SQLite ni navigateur', () => {
   assert.ok(app.includes('<div><strong class="ob-moteur">Moteur</strong><span>SQL dans ton application</span></div>'));
-  assert.ok(app.includes('<p class="ob-lead">Écris tes requêtes sur une vraie base de données&nbsp;: le moteur SQL intégré à l’application les exécute, et tu vois aussitôt le résultat. Choisis ton parcours en quelques étapes.</p>'));
+  /* 17 h 47 : son texte */
+  assert.ok(app.includes('<p class="ob-lead">Écris tes premières requêtes sur une vraie base SQL, exécute-les et découvre instantanément les résultats. Apprends à ton rythme, où que tu sois.</p>'));
   assert.ok(!app.includes('<strong>SQLite</strong><span>dans ton navigateur</span>'));
 });
