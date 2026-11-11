@@ -273,20 +273,21 @@ const rctx = (freq = 7, extra = {}) => {
   return ctx;
 };
 
-test('le rappel : les messages d’Elisa (8, puis 19 de plus le 11 novembre), un par jour, au hasard, puis remélangés', () => {
+test('le rappel : les messages d’Elisa (8, puis 16 de plus le 11 novembre), un par jour, au hasard, puis remélangés', () => {
   const ctx = rctx();
   const L = JSON.parse(JSON.stringify(ctx.RAPPEL_MESSAGES));
-  assert.equal(L.length, 27);
+  assert.equal(L.length, 24);
   assert.deepEqual(L[0], ['👀 On te voit scroller…', 'Et si tu faisais un petit SELECT\u00a0?']);
   assert.deepEqual(L[8], ['🫣 On ne juge pas…', 'Mais ton dernier SELECT date un peu.'], '11 novembre, 22 h 11');
-  assert.deepEqual(L[26], ['🫣 C’est donc ça, la fidélité\u00a0?', '2 heures sur TikTok, 0 minute sur SQL.']);
+  assert.deepEqual(L[23], ['👀 On connaît ton préféré…', 'Spoiler\u00a0: ce n’est pas le SQL.']);
+  assert.ok(!JSON.stringify(L).includes('TikTok') && !JSON.stringify(L).includes('Virement'), '22 h 24 : sans la banque ni TikTok');
   const msg = d => JSON.stringify(vm.runInContext(`rappelMessage(new Date(${d.getTime()}))`, ctx));
-  /* Un tour : autant de jours que de messages, chacun une fois (le tour commence au jour n multiple de 27, depuis 1970) */
-  const n0 = Math.ceil(Date.UTC(2026, 10, 5) / 864e5 / 27) * 27;
-  const tour = k => Array.from({ length: 27 }, (_, i) => new Date((n0 + 27 * k + i) * 864e5 + 12 * 36e5)).map(msg);
+  /* Un tour : autant de jours que de messages, chacun une fois (le tour commence au jour n multiple de 24, depuis 1970) */
+  const n0 = Math.ceil(Date.UTC(2026, 10, 5) / 864e5 / 24) * 24;
+  const tour = k => Array.from({ length: 24 }, (_, i) => new Date((n0 + 24 * k + i) * 864e5 + 12 * 36e5)).map(msg);
   const t0 = tour(0), t1 = tour(1);
-  assert.equal(new Set(t0).size, 27, 'un tour : les 27, une fois chacun');
-  assert.equal(new Set(t1).size, 27);
+  assert.equal(new Set(t0).size, 24, 'un tour : les 24, une fois chacun');
+  assert.equal(new Set(t1).size, 24);
   assert.notDeepEqual(t0, t1, 'puis l’ordre est remélangé');
   const suite = t0.concat(t1);
   for (let i = 0; i < suite.length; i++) for (let j = i + 1; j <= i + 7 && j < suite.length; j++) assert.notEqual(suite[i], suite[j], 'pas deux fois le même en une semaine');
@@ -312,5 +313,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-11-rappels-hasard-v2869"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-11-rappels-sans-tiktok-v2870"), 'le cache de l’appli change');
 });

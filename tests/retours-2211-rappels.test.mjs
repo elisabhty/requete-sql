@@ -26,9 +26,9 @@ function ctx({ store = {}, reponse = null, ok = true } = {}) {
 test('rappels.json, sur le site : la même liste que l’appli, un message par ligne', () => {
   const f = fs.readFileSync(path.join(ROOT, 'rappels.json'), 'utf8'), d = JSON.parse(f);
   const { c } = ctx();
-  assert.deepEqual(d.messages, JSON.parse(JSON.stringify(c.RAPPEL_MESSAGES)), 'les 27 messages');
+  assert.deepEqual(d.messages, JSON.parse(JSON.stringify(c.RAPPEL_MESSAGES)), 'les 24 messages (22 h 24 : sans la banque ni TikTok)');
   assert.ok(d._aide.includes('pas besoin d’une nouvelle version sur l’App Store'));
-  assert.equal(f.split('\n').filter(l => l.startsWith('  ["')).length, 27, 'une ligne par message : facile à modifier sur GitHub');
+  assert.equal(f.split('\n').filter(l => l.startsWith('  ["')).length, 24, 'une ligne par message : facile à modifier sur GitHub');
 });
 
 test('la liste en ligne : lue à l’ouverture (deux fois par jour au plus), gardée, et les rappels reprogrammés si elle change', async () => {
@@ -49,10 +49,10 @@ test('la liste en ligne : lue à l’ouverture (deux fois par jour au plus), gar
   for (const reponse of [{ messages: [['A', 'a']] }, { messages: 'x' }, null, [['', 'b'], ['c']]]) {
     const u = ctx({ reponse });
     await u.c.rappelCharger(true);
-    assert.equal(u.c.rappelListe().length, 27, JSON.stringify(reponse));
+    assert.equal(u.c.rappelListe().length, 24, JSON.stringify(reponse));
   }
-  const v = ctx({ ok: false }); await v.c.rappelCharger(true); assert.equal(v.c.rappelListe().length, 27);
-  const w = ctx({ store: { 'requete-rappels': '{abîmé' } }); assert.equal(w.c.rappelListe().length, 27, 'une copie abîmée sur l’appareil');
+  const v = ctx({ ok: false }); await v.c.rappelCharger(true); assert.equal(v.c.rappelListe().length, 24);
+  const w = ctx({ store: { 'requete-rappels': '{abîmé' } }); assert.equal(w.c.rappelListe().length, 24, 'une copie abîmée sur l’appareil');
 });
 
 test('la liste en ligne entre dans l’empreinte des rappels ; le service worker la laisse passer au réseau', () => {
