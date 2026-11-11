@@ -26656,36 +26656,46 @@ function openCourseCatalog(){
    ouvre la même page dans une feuille, sur le bon thème. Chaque besoin : [intitulé, [SQLite, PostgreSQL, MySQL, SQL Server, Oracle], options]. */
 const SGBD_NOMS=['SQLite','PostgreSQL','MySQL','SQL Server','Oracle'];
 const SGBD_PAGE=[
+  /* 11 novembre, 19 h 44 (Elisa : « regarde dans la page Selon le SGBD pour voir si tout est complet ou s’il faut modifier des
+     choses ») : relue écriture par écriture ; les notes disent les versions qui comptent (SQL Server 2025 et CURRENT_DATE,
+     DATETRUNC en 2022, TRIM en 2017…), et de nouveaux besoins couvrent les pièges classiques d’un SGBD à l’autre (division entière,
+     majuscules dans les comparaisons, place des NULL dans un tri, texte vide d’Oracle, dates à la française des fichiers importés,
+     FULL OUTER JOIN absent de MySQL, EXCEPT et MINUS, CTE récursive, points de retour et verrous des transactions). */
   {id:'dates',t:'Dates et heures',ico:'📅',rows:[
-    ['La date du jour',['CURRENT_DATE','CURRENT_DATE','CURRENT_DATE','CAST(GETDATE() AS DATE)','TRUNC(SYSDATE)']],
-    ['La date et l’heure actuelles',["DATETIME('now')",'NOW()','NOW()','GETDATE()','SYSDATE'],{note:'<code>CURRENT_TIMESTAMP</code> marche dans les cinq.'}],
+    ['La date du jour',['CURRENT_DATE','CURRENT_DATE','CURRENT_DATE','CAST(GETDATE() AS DATE)','TRUNC(SYSDATE)'],{note:'SQL Server accepte aussi <code>CURRENT_DATE</code> depuis sa version 2025.'}],
+    ['La date et l’heure actuelles',["DATETIME('now')",'NOW()','NOW()','GETDATE()','SYSDATE'],{note:'<code>CURRENT_TIMESTAMP</code> marche dans les cinq. En SQLite, c’est l’heure universelle (UTC) : <code>DATETIME(\'now\', \'localtime\')</code> donne l’heure de ton appareil.'}],
     ['Ajouter 7 jours à une date',["DATE(d, '+7 days')","d + INTERVAL '7 days'",'DATE_ADD(d, INTERVAL 7 DAY)','DATEADD(day, 7, d)','d + 7']],
-    ['Extraire l’année',["STRFTIME('%Y', d)",'EXTRACT(YEAR FROM d)','YEAR(d)','YEAR(d)','EXTRACT(YEAR FROM d)']],
+    ['Extraire l’année',["STRFTIME('%Y', d)",'EXTRACT(YEAR FROM d)','YEAR(d)','YEAR(d)','EXTRACT(YEAR FROM d)'],{note:'En SQLite, <code>STRFTIME</code> renvoie du texte (« 2026 ») : pour comparer avec un nombre, <code>CAST(STRFTIME(\'%Y\', d) AS INTEGER)</code>.'}],
     ['Afficher la date à la française (02/07/2026)',["STRFTIME('%d/%m/%Y', d)","TO_CHAR(d, 'DD/MM/YYYY')","DATE_FORMAT(d, '%d/%m/%Y')","FORMAT(d, 'dd/MM/yyyy')","TO_CHAR(d, 'DD/MM/YYYY')"]],
     ['L’écart en jours entre deux dates',['JULIANDAY(fin) - JULIANDAY(debut)','fin - debut','DATEDIFF(fin, debut)','DATEDIFF(day, debut, fin)','fin - debut'],{note:'Avec une heure en plus de la date, les résultats peuvent différer : <code>DATEDIFF(day, …)</code> de SQL Server compte les changements de jour franchis, pas les 24 h écoulées.'}],
     ['Regrouper par mois',["STRFTIME('%Y-%m', d)","DATE_TRUNC('month', d)","DATE_FORMAT(d, '%Y-%m')",'DATETRUNC(month, d)',"TRUNC(d, 'MM')"],{note:'<code>DATETRUNC</code> : SQL Server 2022 et après.'}],
-    ['Regrouper par semaine (le lundi)',["DATE(d, '-6 days', 'weekday 1')","DATE_TRUNC('week', d)",'DATE_SUB(d, INTERVAL WEEKDAY(d) DAY)','DATETRUNC(iso_week, d)',"TRUNC(d, 'IW')"]],
+    ['Regrouper par semaine (le lundi)',["DATE(d, '-6 days', 'weekday 1')","DATE_TRUNC('week', d)",'DATE_SUB(d, INTERVAL WEEKDAY(d) DAY)','DATETRUNC(iso_week, d)',"TRUNC(d, 'IW')"],{note:'<code>DATETRUNC</code> : SQL Server 2022 et après.'}],
     ['Le dernier jour du mois',["DATE(d, 'start of month', '+1 month', '-1 day')","(DATE_TRUNC('month', d) + INTERVAL '1 month - 1 day')::date",'LAST_DAY(d)','EOMONTH(d)','LAST_DAY(d)']]
   ]},
   {id:'texte',t:'Texte',ico:'🔤',rows:[
-    ['Assembler des textes',["prenom || ' ' || nom","prenom || ' ' || nom","CONCAT(prenom, ' ', nom)","CONCAT(prenom, ' ', nom)","prenom || ' ' || nom"]],
+    ['Assembler des textes',["prenom || ' ' || nom","prenom || ' ' || nom","CONCAT(prenom, ' ', nom)","CONCAT(prenom, ' ', nom)","prenom || ' ' || nom"],{note:'Avec un NULL, <code>||</code> renvoie NULL (Oracle, lui, l’ignore) ; <code>CONCAT</code> l’ignore, sauf en MySQL, où il renvoie NULL.'}],
     ['Le nombre de caractères',['LENGTH(nom)','LENGTH(nom)','CHAR_LENGTH(nom)','LEN(nom)','LENGTH(nom)']],
     ['Un morceau du texte',['SUBSTR(nom, 1, 3)','SUBSTRING(nom, 1, 3)','SUBSTRING(nom, 1, 3)','SUBSTRING(nom, 1, 3)','SUBSTR(nom, 1, 3)']],
     ['Les premiers caractères',['SUBSTR(nom, 1, 3)','LEFT(nom, 3)','LEFT(nom, 3)','LEFT(nom, 3)','SUBSTR(nom, 1, 3)']],
     ['La position d’un caractère',["INSTR(email, '@')","POSITION('@' IN email)","INSTR(email, '@')","CHARINDEX('@', email)","INSTR(email, '@')"]],
     ['Remplacer un morceau du texte',["REPLACE(telephone, ' ', '')","REPLACE(telephone, ' ', '')","REPLACE(telephone, ' ', '')","REPLACE(telephone, ' ', '')","REPLACE(telephone, ' ', '')"]],
-    ['Majuscules',['UPPER(nom)','UPPER(nom)','UPPER(nom)','UPPER(nom)','UPPER(nom)']]
+    ['Majuscules',['UPPER(nom)','UPPER(nom)','UPPER(nom)','UPPER(nom)','UPPER(nom)']],
+    ['Enlever les espaces au début et à la fin',['TRIM(nom)','TRIM(nom)','TRIM(nom)','TRIM(nom)','TRIM(nom)'],{note:'SQL Server : depuis sa version 2017 (avant : <code>LTRIM(RTRIM(nom))</code>).'}],
+    ['Comparer « Paris » et « paris »',['différents','différents','égaux','égaux','différents'],{txt:true,note:'Avec les réglages par défaut. <code>LIKE</code> ignore les majuscules en SQLite, MySQL et SQL Server ; en PostgreSQL, c’est <code>ILIKE</code> qui les ignore.'}]
   ]},
   {id:'nombres',t:'Nombres',ico:'🔢',rows:[
     ['Arrondir au centime',['ROUND(prix, 2)','ROUND(prix, 2)','ROUND(prix, 2)','ROUND(prix, 2)','ROUND(prix, 2)']],
     ['Arrondir vers le haut',['CEIL(prix)','CEIL(prix)','CEIL(prix)','CEILING(prix)','CEIL(prix)']],
     ['Arrondir vers le bas',['FLOOR(prix)','FLOOR(prix)','FLOOR(prix)','FLOOR(prix)','FLOOR(prix)']],
     ['Le reste d’une division',['stock % 50','stock % 50','stock % 50','stock % 50','MOD(stock, 50)']],
+    ['Diviser deux nombres entiers (7 / 2)',['3','3','3.5000','3','3.5'],{txt:true,note:'Entre deux entiers, SQLite, PostgreSQL et SQL Server gardent la partie entière. Pour avoir les décimales partout : <code>7 * 1.0 / 2</code>.'}],
     ['La plus grande de plusieurs valeurs',['MAX(prix, stock)','GREATEST(prix, stock)','GREATEST(prix, stock)','GREATEST(prix, stock)','GREATEST(prix, stock)'],{note:'SQL Server connaît <code>GREATEST</code> depuis sa version 2022.'}]
   ]},
   {id:'null',t:'Valeurs NULL et conditions',ico:'❓',rows:[
     ['Remplacer un NULL',["IFNULL(email, '-')","COALESCE(email, '-')","IFNULL(email, '-')","ISNULL(email, '-')","NVL(email, '-')"],{note:'<code>COALESCE</code> marche dans les cinq.'}],
-    ['Si… alors… sinon',["IIF(stock < 50, 'bas', 'ok')","CASE WHEN stock < 50 THEN 'bas' ELSE 'ok' END","IF(stock < 50, 'bas', 'ok')","IIF(stock < 50, 'bas', 'ok')","CASE WHEN stock < 50 THEN 'bas' ELSE 'ok' END"],{note:'<code>CASE</code> marche dans les cinq.'}]
+    ['Si… alors… sinon',["IIF(stock < 50, 'bas', 'ok')","CASE WHEN stock < 50 THEN 'bas' ELSE 'ok' END","IF(stock < 50, 'bas', 'ok')","IIF(stock < 50, 'bas', 'ok')","CASE WHEN stock < 50 THEN 'bas' ELSE 'ok' END"],{note:'<code>CASE</code> marche dans les cinq.'}],
+    ['Les NULL dans un tri croissant',['en premier','en dernier','en premier','en premier','en dernier'],{txt:true,note:'Pour choisir, <code>NULLS FIRST</code> ou <code>NULLS LAST</code> après la colonne du tri, en SQLite, PostgreSQL et Oracle.'}],
+    ['Un texte vide (\'\')',['reste un texte vide','reste un texte vide','reste un texte vide','reste un texte vide','devient NULL'],{txt:true,note:'En Oracle, <code>WHERE email = \'\'</code> ne trouve donc rien : on écrit <code>WHERE email IS NULL</code>.'}]
   ]},
   {id:'agregats',t:'Rassembler les textes d’un groupe',ico:'🧵',rows:[
     ['Les valeurs d’un groupe, dans une seule cellule',["GROUP_CONCAT(nom, ', ')","STRING_AGG(nom, ', ')","GROUP_CONCAT(nom SEPARATOR ', ')","STRING_AGG(nom, ', ')","LISTAGG(nom, ', ')"]],
@@ -26693,23 +26703,36 @@ const SGBD_PAGE=[
   ]},
   {id:'conversion',t:'Conversion de types',ico:'🔁',rows:[
     ['Convertir en nombre entier',['CAST(x AS INTEGER)','CAST(x AS INTEGER)','CAST(x AS SIGNED)','CAST(x AS INT)','CAST(x AS NUMBER)']],
-    ['Convertir en texte',['CAST(x AS TEXT)','CAST(x AS TEXT)','CAST(x AS CHAR)','CAST(x AS VARCHAR(20))','TO_CHAR(x)']]
+    ['Convertir en texte',['CAST(x AS TEXT)','CAST(x AS TEXT)','CAST(x AS CHAR)','CAST(x AS VARCHAR(20))','TO_CHAR(x)']],
+    ['Lire une date écrite à la française (02/07/2026)',["SUBSTR(date_fr, 7, 4) || '-' || SUBSTR(date_fr, 4, 2) || '-' || SUBSTR(date_fr, 1, 2)","TO_DATE(date_fr, 'DD/MM/YYYY')","STR_TO_DATE(date_fr, '%d/%m/%Y')",'CONVERT(DATE, date_fr, 103)',"TO_DATE(date_fr, 'DD/MM/YYYY')"],{note:'Utile après l’import d’un fichier Excel ou CSV. SQLite n’a pas de vrai type date : on remet le texte dans l’ordre AAAA-MM-JJ, que ses fonctions de date comprennent.'}]
   ]},
   {id:'pagination',t:'Limiter le résultat',ico:'📄',rows:[
     ['Les 3 premières lignes',['LIMIT 3','LIMIT 3','LIMIT 3','SELECT TOP 3 …','FETCH FIRST 3 ROWS ONLY']],
-    ['Sauter 3 lignes, puis en garder 3',['LIMIT 3 OFFSET 3','LIMIT 3 OFFSET 3','LIMIT 3 OFFSET 3','OFFSET 3 ROWS FETCH NEXT 3 ROWS ONLY','OFFSET 3 ROWS FETCH NEXT 3 ROWS ONLY']]
+    ['Sauter 3 lignes, puis en garder 3',['LIMIT 3 OFFSET 3','LIMIT 3 OFFSET 3','LIMIT 3 OFFSET 3','OFFSET 3 ROWS FETCH NEXT 3 ROWS ONLY','OFFSET 3 ROWS FETCH NEXT 3 ROWS ONLY'],{note:'En SQL Server, <code>OFFSET</code> demande un <code>ORDER BY</code> juste avant lui.'}]
   ]},
   {id:'tables',t:'Créer et modifier une table',ico:'🗂️',rows:[
-    ['Un identifiant qui s’incrémente',['id INTEGER PRIMARY KEY','id SERIAL PRIMARY KEY','id INT AUTO_INCREMENT PRIMARY KEY','id INT IDENTITY(1,1) PRIMARY KEY','id NUMBER GENERATED AS IDENTITY']],
+    ['Un identifiant qui s’incrémente',['id INTEGER PRIMARY KEY','id SERIAL PRIMARY KEY','id INT AUTO_INCREMENT PRIMARY KEY','id INT IDENTITY(1,1) PRIMARY KEY','id NUMBER GENERATED AS IDENTITY'],{note:'En PostgreSQL (version 10 et après), la forme conseillée est <code>id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY</code>.'}],
+    ['Une colonne vrai ou faux',['INTEGER (0 ou 1)','BOOLEAN','BOOLEAN','BIT','BOOLEAN'],{txt:[0],note:'Oracle : depuis sa version 23ai (avant : <code>NUMBER(1)</code>). En MySQL, <code>BOOLEAN</code> est un autre nom de <code>TINYINT(1)</code>.'}],
     ['Vider une table',['DELETE FROM commandes','TRUNCATE TABLE commandes','TRUNCATE TABLE commandes','TRUNCATE TABLE commandes','TRUNCATE TABLE commandes']],
-    ['Changer le type d’une colonne',['recréer la table','ALTER TABLE t ALTER COLUMN c TYPE INTEGER','ALTER TABLE t MODIFY COLUMN c INT','ALTER TABLE t ALTER COLUMN c INT','ALTER TABLE t MODIFY c NUMBER'],{txt:[0]}]
+    ['Renommer une colonne',['ALTER TABLE t RENAME COLUMN nom TO nom_client','ALTER TABLE t RENAME COLUMN nom TO nom_client','ALTER TABLE t RENAME COLUMN nom TO nom_client',"EXEC sp_rename 't.nom', 'nom_client', 'COLUMN'",'ALTER TABLE t RENAME COLUMN nom TO nom_client'],{note:'MySQL : depuis sa version 8.0.'}],
+    ['Changer le type d’une colonne',['recréer la table','ALTER TABLE t ALTER COLUMN c TYPE INTEGER','ALTER TABLE t MODIFY COLUMN c INT','ALTER TABLE t ALTER COLUMN c INT','ALTER TABLE t MODIFY c NUMBER'],{txt:[0]}],
+    ['Ajouter une ligne, ou la mettre à jour si elle existe',['INSERT … ON CONFLICT (id) DO UPDATE SET …','INSERT … ON CONFLICT (id) DO UPDATE SET …','INSERT … ON DUPLICATE KEY UPDATE …','MERGE INTO …','MERGE INTO …'],{note:'PostgreSQL connaît aussi <code>MERGE INTO</code> depuis sa version 15.'}]
   ]},
   {id:'requetes',t:'Requêtes acceptées ou refusées',ico:'🧩',rows:[
     ['Une sous-requête renvoie plusieurs valeurs après =',['garde la première valeur','refuse la requête','refuse la requête','refuse la requête','refuse la requête'],{txt:true}],
     ['Une table dérivée sans alias',['acceptée','acceptée depuis la version 16','refusée','refusée','acceptée'],{txt:true}],
-    ['Une colonne ni regroupée ni calculée, avec GROUP BY',['affiche une valeur au choix','refuse la requête','refuse la requête','refuse la requête','refuse la requête'],{txt:true}]
+    ['Une colonne ni regroupée ni calculée, avec GROUP BY',['affiche une valeur au choix','refuse la requête','refuse la requête','refuse la requête','refuse la requête'],{txt:true,note:'PostgreSQL et MySQL l’acceptent quand la requête regroupe par la clé primaire de la table.'}]
+  ]},
+  {id:'combiner',t:'Jointures, ensembles et CTE',ico:'🔗',rows:[
+    ['Garder les lignes des deux tables (FULL OUTER JOIN)',['acceptée','acceptée','refusée','acceptée','acceptée'],{txt:true,note:'En MySQL, on réunit un <code>LEFT JOIN</code> et un <code>RIGHT JOIN</code> avec <code>UNION</code>.'}],
+    ['Les lignes d’une requête absentes d’une autre',['EXCEPT','EXCEPT','EXCEPT','EXCEPT','MINUS'],{note:'MySQL : depuis sa version 8.0.31. Oracle accepte aussi <code>EXCEPT</code> depuis sa version 21c.'}],
+    ['Une CTE récursive',['WITH RECURSIVE','WITH RECURSIVE','WITH RECURSIVE','WITH','WITH'],{note:'En SQL Server et Oracle, le mot <code>RECURSIVE</code> est refusé : <code>WITH</code> suffit.'}]
   ]},
   {id:'transactions',t:'Transactions',ico:'🔒',rows:[
+    ['Démarrer une transaction',['BEGIN TRANSACTION','BEGIN','START TRANSACTION','BEGIN TRANSACTION','automatique, dès la 1re modification'],{txt:[4],note:'<code>BEGIN</code> seul marche aussi en SQLite et MySQL, <code>START TRANSACTION</code> en PostgreSQL.'}],
+    ['Poser un point de retour',['SAVEPOINT p','SAVEPOINT p','SAVEPOINT p','SAVE TRANSACTION p','SAVEPOINT p']],
+    ['Revenir à ce point',['ROLLBACK TO p','ROLLBACK TO p','ROLLBACK TO p','ROLLBACK TRANSACTION p','ROLLBACK TO p'],{note:'Ce qui a été fait depuis le point est annulé ; la transaction continue.'}],
+    ['Verrouiller les lignes qu’on va modifier',['toute la base, pendant l’écriture','SELECT … FOR UPDATE','SELECT … FOR UPDATE','WITH (UPDLOCK)','SELECT … FOR UPDATE'],{txt:[0],note:'<code>FOR UPDATE</code> se met à la fin du <code>SELECT</code>, <code>WITH (UPDLOCK)</code> juste après le nom de la table.'}],
     ['Choisir le niveau d’isolation',['pas de réglage','SET TRANSACTION ISOLATION LEVEL …','SET TRANSACTION ISOLATION LEVEL …','SET TRANSACTION ISOLATION LEVEL …','SET TRANSACTION ISOLATION LEVEL …'],{txt:[0]}],
     ['Le niveau par défaut',['SERIALIZABLE','READ COMMITTED','REPEATABLE READ','READ COMMITTED','READ COMMITTED']]
   ]}
@@ -26719,7 +26742,10 @@ const SGBD_PAGE=[
    autres SGBD marchent aussi dans l’app : la fiche le dit (pastille menthe), et les rares qui n’y marchent pas portent « pas dans
    l’app ». Ces exceptions sont vérifiées par tests/sgbd-moteur.test.mjs, qui fait tourner toutes les autres dans le moteur. */
 const SGBD_HORS_APP=new Set(['d + 7','fin - debut','ALTER TABLE t ALTER COLUMN c TYPE INTEGER','ALTER TABLE t MODIFY COLUMN c INT',
-  'ALTER TABLE t ALTER COLUMN c INT','ALTER TABLE t MODIFY c NUMBER','SET TRANSACTION ISOLATION LEVEL …']);
+  'ALTER TABLE t ALTER COLUMN c INT','ALTER TABLE t MODIFY c NUMBER','SET TRANSACTION ISOLATION LEVEL …',
+  /* 11 novembre, 19 h 44 : les nouvelles écritures que le moteur de l’app refuse */
+  'CONVERT(DATE, date_fr, 103)',"EXEC sp_rename 't.nom', 'nom_client', 'COLUMN'",'INSERT … ON DUPLICATE KEY UPDATE …','MERGE INTO …','MINUS',
+  'START TRANSACTION','SAVE TRANSACTION p','ROLLBACK TRANSACTION p','SELECT … FOR UPDATE','WITH (UPDLOCK)']);
 function sgbdNeedHtml([besoin,codes,opt={}]){
   const groups=[];
   codes.forEach((c,i)=>{const g=groups.find(x=>x.c===c);if(g)g.who.push(i);else groups.push({c,who:[i]});});
@@ -42771,7 +42797,7 @@ function entPrevTarget(id){
 function prevEntretien(id){const t=entPrevTarget(id);if(t)openEntretienQuestion(t.id,entRun);}
 /* 18 h 38, réf. 2 : « un bouton Voir selon le SGBD qui nous dirige vers l’onglet Selon le SGBD au bon endroit ». Le thème de la page
    vient de la notion de la question, ou à défaut des fonctions qu’elle cite ; le retour ramène à la question. */
-const ENT_SGBD_CAT={Dates:'dates','Chaînes':'texte',NULL:'null',Conditions:'null',Transactions:'transactions','Modifier les données':'tables'};
+const ENT_SGBD_CAT={Dates:'dates','Chaînes':'texte',NULL:'null',Conditions:'null',Transactions:'transactions','Modifier les données':'tables',Ensembles:'combiner'};
 function entSgbdTheme(q){
   /* Une question sur CAST mène à la conversion de types, même rangée dans « Conditions » (5 novembre, 18 h 03 : elle ouvrait « Valeurs
      NULL et conditions ») */
@@ -42784,7 +42810,9 @@ function entSgbdTheme(q){
   if(/\b(CURRENT_DATE|DATEADD|DATEDIFF|EXTRACT|STRFTIME|NOW\(\))/.test(t))return 'dates';
   if(/\b(CAST|CONVERT)\s*\(/.test(t))return 'conversion';
   if(/\b(AUTO_INCREMENT|SERIAL|IDENTITY|TRUNCATE)\b/.test(t))return 'tables';
-  if(/\b(SUBSTR|SUBSTRING|CONCAT|LENGTH|UPPER|LOWER|REPLACE|INSTR)\s*\(/.test(t))return 'texte';
+  if(/\b(SUBSTR|SUBSTRING|CONCAT|LENGTH|UPPER|LOWER|REPLACE|INSTR|TRIM)\s*\(/.test(t))return 'texte';
+  /* 19 h 44 : la nouvelle partie « Jointures, ensembles et CTE » (FULL OUTER JOIN, EXCEPT et MINUS, CTE récursive) */
+  if(/\b(FULL (OUTER )?JOIN|EXCEPT|MINUS|RECURSIVE)\b/.test(t))return 'combiner';
   if(/\b(ROUND|CEIL|FLOOR)\s*\(/.test(t))return 'nombres';
   if(/niveau d’isolation|isolation/i.test(t))return 'transactions';
   return null;
@@ -48623,7 +48651,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-kpi-accueil-v2861';
+  const SW_CACHE='requete-2026-11-11-sgbd-complet-v2862';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
