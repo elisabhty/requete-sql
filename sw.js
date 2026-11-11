@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-11-flamme-une-fois-v2868';
+const CACHE = 'requete-2026-11-11-rappels-hasard-v2869';
 
 const PRECACHE = [
   './safari-surface.css?v=13',
@@ -355,6 +355,10 @@ self.addEventListener('fetch', (e) => {
      une réponse complète servie depuis le cache. On laisse le navigateur
      les charger lui-même ; hors ligne, l’image fixe (poster) s’affiche. */
   if (url.pathname.endsWith('.mp4')) return;
+
+  /* Les messages du rappel (rappels.json, 11 novembre) : toujours le réseau, jamais une copie rangée ; une liste ajoutée en ligne
+     doit arriver dans l’appli. Hors ligne, l’appli garde la dernière lue. */
+  if (url.pathname.endsWith('/rappels.json')) return;
 
   /* Voix off des cours (assets/voix) : le lecteur les télécharge en entier (fetch, rangées au passage par la règle générale)
      et les lit depuis la mémoire. Si la balise audio les demande elle-même par morceaux (Range), on la laisse faire, comme

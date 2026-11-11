@@ -47567,8 +47567,11 @@ function rappelJoursTexte(jours){
   return t.charAt(0).toUpperCase()+t.slice(1);
 }
 /* Les messages du rappel (Elisa, 5 novembre, 19 h 41 : « remplace celle actuelle sur mon portable ») : huit, qui changent d’une
-   séance à l’autre, au lieu de « C’est l’heure de ta séance SQL. » à chaque fois. Le message dépend du jour (le nombre de jours depuis
-   1970, modulo 8) : deux séances qui se suivent n’ont jamais le même, et il ne repart pas du premier à chaque reprogrammation. */
+   séance à l’autre, au lieu de « C’est l’heure de ta séance SQL. » à chaque fois. 11 novembre, 22 h 11 : dix-neuf de plus, et « ça va
+   prendre au hasard, un par jour, et après ça va retrier » : chaque jour a le sien, tiré dans un ordre mélangé ; en autant de jours qu’il
+   y a de messages, chacun passe une fois, puis l’ordre est remélangé (jamais le même deux jours de suite, même d’un tour à l’autre).
+   L’ordre dépend d’une graine propre à l’appareil (deux personnes n’ont pas la même suite) et du jour, pas de l’heure : reprogrammer les
+   rappels (à chaque ouverture) ne change pas le message d’un jour. */
 const RAPPEL_MESSAGES=[
   ['👀 On te voit scroller…','Et si tu faisais un petit SELECT\u00a0?'],
   ['🚨 Alerte procrastination','5 minutes de SQL et on oublie tout.'],
@@ -47577,11 +47580,91 @@ const RAPPEL_MESSAGES=[
   ['☕ SQL ou café\u00a0?','Les deux, c’est encore mieux.'],
   ['🫣 Encore 5 minutes\u00a0?','Cette fois, on parle de SQL.'],
   ['🐛 Erreur 404','Motivation introuvable. On relance\u00a0?'],
-  ['😏 Netflix peut attendre','Une petite requête d’abord\u00a0?']
+  ['😏 Netflix peut attendre','Une petite requête d’abord\u00a0?'],
+  ['🫣 On ne juge pas…','Mais ton dernier SELECT date un peu.'],
+  ['🫵 Oui, toi\u00a0!','Tu pensais vraiment passer inaperçu·e\u00a0?'],
+  ['💤 Ta progression dort','On la réveille avec une petite requête\u00a0?'],
+  ['🏆 Ton futur toi te remercie','Enfin… si tu ouvres l’appli.'],
+  ['🐛 Un bug dans ta routine\u00a0?','Il manque 5 minutes de SQL.'],
+  ['😏 T’as 5 minutes\u00a0?','Promis, ce n’est pas un entretien d’embauche.'],
+  ['📉 SELECT motivation','Résultat\u00a0: 0 ligne. On corrige ça\u00a0?'],
+  ['🕵️ On a trouvé un suspect','Il évite ses cours SQL depuis hier.'],
+  ['💜 On se manque, non\u00a0?','Ton prochain défi n’attend que toi.'],
+  ['🧙 Une prophétie annonce…','Que tu vas enfin comprendre les sous-requêtes.'],
+  ['🏦 Virement refusé','Motif\u00a0: compétences SQL insuffisantes.'],
+  ['🎬 Précédemment dans Requête…','Tu étais à deux doigts de devenir excellent·e.'],
+  ['💸 Ton futur salaire te regarde','Il aimerait qu’on discute de tes priorités.'],
+  ['🧑‍⚖️ Le tribunal a tranché','Coupable de procrastination au premier degré.'],
+  ['🫢 On a parlé de toi','Tes JOIN disent que tu les évites.'],
+  ['📞 Ton niveau a porté plainte','Pour abandon de compétences.'],
+  ['👀 On connaît ton préféré…','Spoiler\u00a0: ce n’est pas le SQL.'],
+  ['😏 TikTok, encore lui\u00a0?','Et nous, on passe quand dans tes favoris\u00a0?'],
+  ['🫣 C’est donc ça, la fidélité\u00a0?','2 heures sur TikTok, 0 minute sur SQL.']
 ];
+/* « Est-ce que je pourrais ajouter d’autres notifications, même quand l’application sera sur l’App Store ? » (22 h 11) : oui. La liste
+   vit aussi en ligne, dans rappels.json sur le site (requeteapp.com). L’appli la relit à l’ouverture (au plus deux fois par jour), la
+   garde sur l’appareil et reprogramme ses rappels si elle a changé : un message ajouté au fichier arrive dans l’app de l’App Store sans
+   nouvelle version. Sans réseau, ou un fichier abîmé : la dernière liste lue, sinon celle de l’appli (RAPPEL_MESSAGES). */
+const RAPPEL_URL='https://requeteapp.com/rappels.json',RAPPEL_CLE='requete-rappels',RAPPEL_LU='requete-rappels-lu';
+function rappelValide(v){
+  const l=v&&!Array.isArray(v)&&Array.isArray(v.messages)?v.messages:Array.isArray(v)?v:null;
+  if(!l)return null;
+  const ok=l.filter(x=>Array.isArray(x)&&x.length===2&&x.every(t=>typeof t==='string'&&t.trim()&&t.length<=140)).map(x=>[x[0].trim(),x[1].trim()]);
+  return ok.length>=4?ok:null;
+}
+function rappelListe(){
+  try{const l=rappelValide(JSON.parse(localStorage.getItem(RAPPEL_CLE)||'null'));if(l)return l;}catch(e){}
+  return RAPPEL_MESSAGES;
+}
+/* Une empreinte de la liste : quand elle change, les rappels sont reprogrammés (rappelSignature). */
+function rappelListeSig(){let h=5381;const t=JSON.stringify(rappelListe());for(let i=0;i<t.length;i++)h=(Math.imul(h,33)+t.charCodeAt(i))>>>0;return h.toString(36);}
+async function rappelCharger(force){
+  try{
+    if(typeof fetch!=='function')return;
+    const lu=+localStorage.getItem(RAPPEL_LU)||0;
+    if(!force&&Date.now()-lu<12*36e5)return;
+    localStorage.setItem(RAPPEL_LU,String(Date.now()));
+    const r=await fetch(RAPPEL_URL,{cache:'no-store'});
+    if(!r||!r.ok)return;
+    const l=rappelValide(await r.json());if(!l)return;
+    const t=JSON.stringify(l);
+    if(t===localStorage.getItem(RAPPEL_CLE))return;
+    localStorage.setItem(RAPPEL_CLE,t);
+    if(typeof rappelAuto==='function')rappelAuto(0);
+  }catch(e){}
+}
+/* La graine de l’appareil : tirée une fois, gardée. */
+function rappelGraine(){
+  try{let g=+localStorage.getItem('requete-rappel-graine');if(!g){g=1+Math.floor(Math.random()*4294967294);localStorage.setItem('requete-rappel-graine',String(g));}return g>>>0;}catch(e){return 0x5EED;}
+}
+/* L’ordre mélangé d’un tour (c) de len messages : un mélange de Fisher-Yates tiré de la graine et du tour. Au passage d’un tour à
+   l’autre, rien ne revient trop tôt : les w premiers du tour ne sont aucun des w derniers du tour d’avant (w = 7 avec 21 messages ou
+   plus) ; deux rappels à moins d’une semaine d’écart n’ont donc jamais le même, même une séance par semaine. Pour cela, un message
+   du début qui vient de passer change de place avec un du milieu (les w derniers ne bougent jamais : le tour suivant s’y fie). */
+function rappelMelange(c,len,g){
+  let s=(g^Math.imul(c+7,0x9E3779B1))>>>0;
+  const r=()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};
+  const a=Array.from({length:len},(_,i)=>i);
+  for(let i=len-1;i>0;i--){const j=Math.floor(r()*(i+1));const x=a[i];a[i]=a[j];a[j]=x;}
+  return a;
+}
+function rappelOrdre(c,len){
+  const g=rappelGraine(),k=g+':'+c+':'+len,m=rappelOrdre.m||(rappelOrdre.m=new Map());
+  if(m.has(k))return m.get(k);
+  const a=rappelMelange(c,len,g),w=Math.min(7,Math.floor(len/3));
+  if(w>0){
+    const passes=new Set(rappelMelange(c-1,len,g).slice(len-w));
+    for(let i=0;i<w;i++){
+      if(!passes.has(a[i]))continue;
+      for(let j=w;j<len-w;j++)if(!passes.has(a[j])){const x=a[i];a[i]=a[j];a[j]=x;break;}
+    }
+  }
+  m.set(k,a);return a;
+}
 function rappelMessage(d){
-  const n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
-  return RAPPEL_MESSAGES[((n%RAPPEL_MESSAGES.length)+RAPPEL_MESSAGES.length)%RAPPEL_MESSAGES.length];
+  const L=rappelListe(),len=L.length,n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  const c=Math.floor(n/len),p=n-c*len;
+  return L[rappelOrdre(c,len)[p]];
 }
 /* App iOS : le rappel passe par des notifications locales (plugin LocalNotifications), car les notifications web n’y existent pas.
    Une notification qui se répète garde toujours le même texte : les séances à venir sont donc posées une à une, avec leur message
@@ -47638,7 +47721,7 @@ function rappelSeances(depuis,max,heure){
   return out;
 }
 /* Ce qui est programmé, en une ligne : quand elle change (le planning, une séance faite, l’heure, un nouveau jour), on reprogramme. */
-function rappelSignature(){return [rappelOn()?1:0,rappelHeure(),...rappelJoursPrevus(new Date(),56),typeof flammeDirectPrevus==='function'?flammeDirectPrevus().join(','):''].join('|');}
+function rappelSignature(){return [rappelOn()?1:0,rappelHeure(),rappelListeSig(),...rappelJoursPrevus(new Date(),56),typeof flammeDirectPrevus==='function'?flammeDirectPrevus().join(','):''].join('|');}
 let rappelSig='',rappelFile=null,rappelAutoT=0;
 /* demander : l’autorisation d’iOS est demandée (l’onboarding, « Enregistrer mes préférences ») ; sinon elle est seulement lue, pour
    qu’une reprogrammation automatique ne fasse jamais surgir la demande en pleine leçon. Les reprogrammations passent l’une après
@@ -47667,6 +47750,7 @@ function rappelAuto(ms){
         const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications))return;
         const ob=document.getElementById('onboarding');
         if(!state.onboarded||(ob&&ob.classList.contains('on')))return;
+        rappelCharger();   // la liste en ligne (rappels.json), relue au plus deux fois par jour ; si elle change, on repasse ici
         if(rappelSignature()!==rappelSig)rappelNativeSync();
       }catch(e){}
     },ms==null?800:ms);
@@ -48981,7 +49065,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-flamme-une-fois-v2868';
+  const SW_CACHE='requete-2026-11-11-rappels-hasard-v2869';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
