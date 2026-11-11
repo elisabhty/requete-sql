@@ -175,7 +175,7 @@ test('l’habillage : tuiles en ligne comme l’âge, carte voilée aux nombres 
     'html #onboarding.ob-vitrine .ob-jour-tile b{display:block;font:800 32px/1 var(--v-display);letter-spacing:-.03em;color:var(--c);font-variant-numeric:tabular-nums}',
     'html #onboarding.ob-vitrine .ob-jour-dots i.on{background:var(--c)}',
     'html #onboarding.ob-vitrine .ob-apport{margin-top:16px;padding:13px 12px 12px;border:1.5px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(255,255,255,.1);color:#fff;text-align:center}',
-    'html #onboarding.ob-vitrine.ob-fit-3 .ob-apport-note{display:none}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-jour-tile{min-height:0;padding:7px 3px 6px}'])
+    'html #onboarding.ob-vitrine.ob-fit-4 .ob-jour-tile{min-height:0;padding:7px 3px 6px}'])
     assert.ok(s.includes(r), r);
   assert.ok(/\.ob-apport-c b\{[^}]*color:var\(--v-sun-hi\);[^}]*font-variant-numeric:tabular-nums/.test(s), 'les nombres en jaune soleil, chiffres à chasse fixe');
   /* Les animations : dans le média « no-preference », hors mouvements réduits (vérifié pour tout le bloc par retours-1732) */
@@ -185,7 +185,7 @@ test('l’habillage : tuiles en ligne comme l’âge, carte voilée aux nombres 
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvDotOn{') && css.includes('@keyframes obvNumBump{'));
   /* La feuille est rechargée, et le cache de l’app renouvelé */
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });

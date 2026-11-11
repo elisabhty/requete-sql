@@ -26,7 +26,7 @@ test('réf. 4 et 2 : les phrases centrées le sont vraiment (la largeur maximale
     'la cause : « .ob-slides p » écrasait les marges automatiques');
   assert.ok(section.includes('html #onboarding.ob-vitrine .ob-slides p.ob-lead,html #onboarding.ob-vitrine .ob-slides p.ob-legal-note{margin-left:auto!important;margin-right:auto!important}'));
   /* Plus spécifique que « .ob-slides p » (0,1,1) : un identifiant, des classes */
-  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">'));
+  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">'));
 });
 
 test('réf. 3 : le cadre de la notification s’écarte de la carte de l’heure (son anneau de 9 px compris)', () => {
@@ -51,7 +51,7 @@ test('réf. 1 : « Découvre ce qu’ils en pensent », un autocollant comme ceu
   const site = lire('decouvrir/index.html'), etoile = 'M24 4l5.6 11.8 12.9 1.6-9.5 8.9 2.4 12.8L24 32.8l-11.4 6.3 2.4-12.8-9.5-8.9 12.9-1.6z';
   assert.ok(site.includes('<span class="sticker lav avis-stk">Tes retours font l’appli<svg viewBox="0 0 48 48" aria-hidden="true"><path d="' + etoile) && bloc.includes(etoile));
   for (const k of ['html #onboarding.ob-vitrine .ob-tv-stk{position:relative;z-index:3;align-self:center;margin:0 0 -13px;transform:rotate(-2deg);',
-    'html #onboarding.ob-vitrine .ob-tv-stk::before{left:-22px;top:-11px}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-tv-stk{display:none}',
+    'html #onboarding.ob-vitrine .ob-tv-stk::before{left:-22px;top:-11px}',
     '@keyframes obvStkWobble{0%,100%{transform:rotate(-2deg)}30%{transform:rotate(3deg) scale(1.06)}60%{transform:rotate(-4deg)}}'])
     assert.ok(section.includes(k), k);
   /* Il se dandine une fois, seulement avec les mouvements autorisés (le média de retours-1732) */
@@ -102,7 +102,7 @@ test('réf. 8 et 9 : la page « 24 jours » rejoint celle des jours, sans le bil
   assert.ok(j.includes('<div class="ob-apport ob-proj"><p class="ob-apport-k">À ce rythme</p>'));
   assert.ok(fn('obRepriseLire', 'function obRepriseOublier(').includes("if(r&&r.slide==='promise')r.slide='temoignages';"), 'une reprise sur l’ancienne page repart des avis');
   for (const k of ['html #onboarding.ob-vitrine .ob-proj-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:16px;text-align:left}',
-    'html #onboarding.ob-vitrine .ob-proj-big b{display:block;font:800 clamp(46px,13.5vw,58px)/.9 var(--v-display);'])
+    'html #onboarding.ob-vitrine .ob-proj-big b{display:block;font:800 53px/.9 var(--v-display);'])
     assert.ok(section.includes(k), k);
   /* L’entonnoir : la migration qui retire l’étape (appliquée le 4 novembre à 18 h 30, avec l’accord d’Elisa) */
   const sql = lire('supabase/migrations/20261104173026_onboarding_entonnoir_sans_promesse.sql');

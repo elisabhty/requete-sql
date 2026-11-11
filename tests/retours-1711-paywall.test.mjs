@@ -101,8 +101,10 @@ test('tant que l’achat n’est pas branché : « Continuer » discret et le bo
 test('la DA du site : cartes à rebord, la choisie blanche à bord soleil, coche qui rebondit, pied resserré ; « Continuer » au bout de 2 s', () => {
   for (const r of ['html #onboarding.ob-vitrine .pw-offre.is-on{background:#fff;border-color:var(--v-sun);', 'html #onboarding.ob-vitrine .pw-reco{position:absolute;',
     'html #onboarding.ob-vitrine .pw-tag{display:inline-block;', 'html #onboarding.ob-vitrine .pw-plus li+li{border-left:', 'background:#C8306A;color:#fff;',
-    '@media (max-height:700px){html #onboarding.ob-vitrine .pw-chat{width:104px;', '@media (max-width:380px){', 'html #onboarding.ob-vitrine.ob-paywall-step .ob-foot{padding-top:10px!important;',
+    'html #onboarding.ob-vitrine .pw-chat{width:130px;top:-8px;right:-10px}', 'html #onboarding.ob-vitrine .pw-ico{width:30px;height:30px}', 'html #onboarding.ob-vitrine.ob-paywall-step .ob-foot{padding-top:10px!important;',
     'html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-offre.is-on .pw-o-radio{animation:pwCoche'])
     assert.ok(css.includes(r), r);
+  /* 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit) : plus de règle d’écran qui cache les icônes ou le « Soit … par semaine » */
+  assert.ok(!css.includes('.pw-ico{display:none}') && !css.includes('.pw-soit{display:none}'));
   assert.ok(css.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-passer{animation:pwPasser .4s ease-out 2s both}'), '« Continuer » arrive au bout de deux secondes');
 });

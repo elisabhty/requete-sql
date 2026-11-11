@@ -53,7 +53,7 @@ test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l
   assert.ok(ob.includes("const days=Math.max(1,Math.round((parseD(last)-auj())/864e5)+1);"), 'le nombre de jours vient du plan réellement généré');
   /* 5 novembre, 19 h 41 : plus de signature à dessiner, un doigt maintenu 1,5 s sur le bouton à l’empreinte (retours-1941) */
   assert.ok(app.includes('const OB_TENIR=1500;') && !app.includes('function obSignInit('), 'un vrai engagement : le doigt maintenu jusqu’au bout');
-  assert.ok(ob.includes("for(const c of C){") && app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'se resserre par paliers tant que ça déborde');
+  assert.ok(app.includes("for(let k=0;!z&&k<C.length;k++){") && app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'se met à l’échelle, puis se resserre par paliers tant que ça déborde');
   /* 4 novembre, 17 h 27 (réf. 8 et 9) : le grand chiffre des jours est passé sur la page des jours (plus de page « 24 jours ») */
   assert.ok(app.includes('<span class="ob-proj-big" aria-hidden="true"><b><i class="ob-apport-n" data-n="${b.days}">${b.days}</i></b><small>jour${b.days>1?\'s\':\'\'}</small></span>'));
   /* 3 novembre, 13 h 25 : « Mon engagement personnel » à la place de « Mon contrat d’apprentissage » ; 5 novembre, 21 h 19 : « Mon
@@ -62,8 +62,9 @@ test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l
   assert.ok(app.includes("    if(draft.pacte)obSetFooter(PACTE_GO,()=>obGoto('practice'),'','','');\n    else obSetFooter('',null,'Plus tard',()=>obGoto('practice'),'');"), 'le bouton à l’empreinte confirme lui-même ; « Plus tard » reste');
   assert.ok(app.includes("...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})"), 'l’engagement reste sur l’appareil, dans le profil');
   const v = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
-  for (const part of ['html #onboarding.ob-vitrine .ob-big b{font:800 clamp(120px,40vw,168px)/.9 var(--v-display);', 'html #onboarding.ob-vitrine .ob-pact-card{position:relative;',
-    'html #onboarding.ob-vitrine .ob-build-path span.is-start{background:var(--v-sun);', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:none!important}'])
+  /* 11 novembre (6 h 54) : la page se met à l’échelle (obFit), les tailles sont en px (celles d’un écran de 393) ; la mascotte reste, plus petite */
+  for (const part of ['html #onboarding.ob-vitrine .ob-big b{font:800 156px/.9 var(--v-display);', 'html #onboarding.ob-vitrine .ob-pact-card{position:relative;',
+    'html #onboarding.ob-vitrine .ob-build-path span.is-start{background:var(--v-sun);', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:grid!important;'])
     assert.ok(v.includes(part), part);
 });
 

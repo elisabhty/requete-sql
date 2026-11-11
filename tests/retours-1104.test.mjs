@@ -151,6 +151,7 @@ test('à la même hauteur que l’autocollant (le GIF est plus large, la patte q
   assert.ok(lq.includes('@media (max-width:360px){html.lq .lq-hero.is-lecon .mascot-stk:has(.mstk-cat.is-coucou){width:80px}}'), 'petits écrans');
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-hello-stage .mascot-stk:has(.mstk-cat.is-coucou){width:156px;margin-left:-78px}'));
   assert.ok(ob.includes('  html #onboarding.ob-vitrine .ob-hello-stage .mascot-stk:has(.mstk-cat.is-coucou){width:136px;margin-left:-68px}'));
-  assert.ok(ob.includes('  html #onboarding.ob-vitrine .ob-hello-stage .mascot-stk:has(.mstk-cat.is-coucou){width:114px;margin-left:-57px}'));
+  /* 11 novembre : la scène un peu moins haute partout (136), plus basse au palier 2 (114) */
+  assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-hello-stage .mascot-stk:has(.mstk-cat.is-coucou){width:136px;margin-left:-68px}') && ob.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-hello-stage .mascot-stk:has(.mstk-cat.is-coucou){width:114px;margin-left:-57px}'));
   assert.ok(lq.indexOf('html.lq .lq-hero.is-lecon .mascot-stk:has(') > lq.indexOf('html.lq .lq-hero.is-lecon .mascot-stk{width:78px'), 'après la règle de l’autocollant');
 });

@@ -26,7 +26,7 @@ test('les pages courtes : le pays et l’âge grandissent et se posent au tiers 
   for (const k of ['html #onboarding.ob-vitrine .ob-screen.ob-pays-step{min-height:100%}', 'html #onboarding.ob-vitrine .ob-pays-step .ob-pays-carte{margin-top:auto;min-height:116px;padding:18px 20px}',
     'html #onboarding.ob-vitrine .ob-pays-step .ob-pays-changer{margin-bottom:auto}', "html #onboarding.ob-vitrine .ob-screen.ob-pays-step::after{content:'';margin-top:auto}",
     'html #onboarding.ob-vitrine .ob-screen.ob-age-step{min-height:100%}', 'html #onboarding.ob-vitrine .ob-age-step .ob-age-grid{margin-top:auto;margin-bottom:auto}',
-    "html #onboarding.ob-vitrine .ob-screen.ob-age-step::after{content:'';margin-top:auto}", 'html #onboarding.ob-vitrine .ob-age-tile{min-height:clamp(84px,12.4vh,108px)}'])
+    "html #onboarding.ob-vitrine .ob-screen.ob-age-step::after{content:'';margin-top:auto}", 'html #onboarding.ob-vitrine .ob-age-tile{min-height:100px}'])
     assert.ok(rythme.includes(k), k);
   /* Trois marges automatiques (au-dessus, au-dessous, puis l’élément vide de la fin) : un tiers de la place au-dessus, deux tiers en dessous */
   assert.ok(app.includes('<div class="ob-screen ob-profile ob-pays-step">') && app.includes('<div class="ob-screen ob-profile ob-age-step">'));
@@ -34,13 +34,12 @@ test('les pages courtes : le pays et l’âge grandissent et se posent au tiers 
 
 test('les petits écrans : la mascotte se fait petite au palier 3, part au palier 4 ; le cadre du rappel part en dernier', () => {
   for (const k of ['html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:grid!important;grid-template-columns:40px 1fr!important;align-items:center!important;gap:10px!important;margin:8px 0 10px!important}',
-    'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat img{width:40px!important}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-chat{display:none!important}',
-    'html #onboarding.ob-vitrine.ob-fit-4 .ob-rappel-step .ob-notif{display:flex}', 'html #onboarding.ob-vitrine.ob-fit-5 .ob-rappel-step .ob-notif{display:none}',
+    'html #onboarding.ob-vitrine.ob-fit-3 .ob-chat img{width:40px!important}',
     '@media (max-height:700px){html #onboarding.ob-vitrine .ob-tv-ph{min-height:200px}}', 'html #onboarding.ob-vitrine.ob-fit-2 .ob-account{--stk-k:.87}'])
     assert.ok(rythme.includes(k), k);
-  /* Les anciennes règles restent plus haut : celles-ci viennent après, avec la même précision */
-  const avant = css.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:none!important}'), apres = css.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-chat{display:grid!important;');
-  assert.ok(avant > 0 && apres > avant);
+  /* 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit) : la mascotte et sa bulle restent, petites, à tous les paliers ; le cadre du rappel aussi */
+  for (const k of ['.ob-fit-3 .ob-chat{display:none', '.ob-fit-4 .ob-chat{display:none', '.ob-rappel-step .ob-notif{display:none}'])
+    assert.ok(!css.includes(k), k);
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'cinq paliers, comme avant');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"), 'feuille rechargée');
 });

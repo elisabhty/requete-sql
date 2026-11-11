@@ -51,7 +51,7 @@ test('ouverte depuis l’accueil (« J’ai déjà un compte ») ou Mon compte :
 test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par palier ; au dernier, le haut part', () => {
   for (const r of [
     'html #onboarding.ob-vitrine .ob-account{--stk0:76px;--stk-k:1;--stk:calc(var(--stk0) * var(--stk-k))}',
-    'html #onboarding.ob-vitrine .ob-account.is-sans-connexion{--stk0:min(104px,calc((100vw - 48px) / 3.3))}',
+    'html #onboarding.ob-vitrine .ob-account.is-sans-connexion{--stk0:104px}',
     'html #onboarding.ob-vitrine .ob-compte-fond{fill:rgba(255,255,255,.13)}',
     'html #onboarding.ob-vitrine .ob-account .ob-compte-stk{position:relative;display:block;width:var(--stk);margin:0}',
     'background:var(--v-sun);color:var(--v-ink);font:800 clamp(14px,calc(var(--stk) * .245),21px)/1.1 var(--v-display);letter-spacing:-.02em;white-space:nowrap;rotate:-6deg;',
@@ -60,8 +60,10 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
     'html #onboarding.ob-vitrine .ob-compte-carte{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:13px;margin:24px 0 0;padding:13px 15px 13px 13px;border-radius:22px;background:rgba(255,255,255,.13);text-align:left}',
     'html #onboarding.ob-vitrine.ob-fit-2 .ob-account{--stk-k:.87}', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-account{--stk-k:.76}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-account{--stk-k:.66}',
     'html #onboarding.ob-vitrine.ob-fit-2 .ob-account .ob-compte-stk{display:block}',
-    'html #onboarding.ob-vitrine.ob-fit-5 .ob-compte-haut{display:none}', 'html #onboarding.ob-vitrine.ob-fit-5 .ob-compte-carte-txt small{display:none}'])
+    'html #onboarding.ob-vitrine.ob-fit-5 .ob-account{--stk-k:.58}'])
     assert.ok(css.includes(r), r);
+  /* 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit) : la mascotte et la petite ligne de la carte restent */
+  assert.ok(!css.includes('.ob-fit-5 .ob-compte-haut{display:none}') && !css.includes('.ob-fit-5 .ob-compte-carte-txt small{display:none}'));
   assert.ok(!css.includes('.ob-fit-1 .ob-account .ob-compte-stk{width:64px}') && !css.includes('.ob-fit-2 .ob-account .ob-title{margin-top:auto!important}'), 'les anciennes règles sont parties');
   /* Les paliers de la mascotte viennent après la règle générale qui la cachait au palier 2 */
   assert.ok(css.indexOf('html #onboarding.ob-vitrine.ob-fit-2 .ob-account .ob-compte-stk{display:block}') > css.indexOf('html #onboarding.ob-vitrine.ob-fit-2 .ob-promise-stk{display:none}'));
@@ -70,6 +72,6 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-stickers-relief-v2839';") && app.includes("const SW_CACHE='requete-2026-11-11-stickers-relief-v2839';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-tout-tient-v2840';") && app.includes("const SW_CACHE='requete-2026-11-11-tout-tient-v2840';"));
 });

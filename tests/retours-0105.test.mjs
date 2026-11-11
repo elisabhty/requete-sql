@@ -42,12 +42,11 @@ test('les écarts : deux groupes, l’échelle de 4 px, resserrés palier par pa
 
 test('au dernier palier, la mascotte reste ; elle ne part que sur les écrans les plus bas', () => {
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-5 .ob-account{--stk-k:.58}'));
-  assert.ok(css.includes('@media (max-height:620px){\n  html #onboarding.ob-vitrine.ob-fit-5 .ob-compte-haut{display:none}\n  html #onboarding.ob-vitrine.ob-fit-5 .ob-account .ob-compte-haut+.ob-title{margin-top:auto!important}\n}'));
-  const hors = css.replace(/@media \(max-height:620px\)\{[\s\S]*?\n\}/, '');
-  assert.ok(!hors.includes('ob-fit-5 .ob-compte-haut{display:none}'), 'pas ailleurs');
+  /* 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit) : la mascotte reste partout, même sur les écrans les plus bas */
+  assert.ok(!css.includes('ob-fit-5 .ob-compte-haut{display:none}'));
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-stickers-relief-v2839';") && app.includes("const SW_CACHE='requete-2026-11-11-stickers-relief-v2839';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-tout-tient-v2840';") && app.includes("const SW_CACHE='requete-2026-11-11-tout-tient-v2840';"));
 });
