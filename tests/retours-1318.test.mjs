@@ -141,9 +141,10 @@ test('la liste en feuille : recherche sans accents, pays proches en tête, le pa
   const f = cut('function paysFeuille(actuel,choisir){', 'function paysFiltrer(f,texte){');
   for (const k of ['<h2 id="pays-feuille-t">Choisis ton pays</h2>', 'placeholder="Rechercher un pays"', '<p class="pays-titre" data-groupe="proches">Les plus proches</p>',
     '<p class="pays-titre" data-groupe="tous">Tous les pays</p>', '${paysListe().map(p=>ligne(p.code)).join(\'\')}', 'Aucun pays ne correspond.',
-    "f.setAttribute('role','dialog');f.setAttribute('aria-modal','true');", "if(e.key==='Escape'){e.preventDefault();paysFeuilleFermer();}",
-    "f.querySelector('.pays-fond').onclick=()=>paysFeuilleFermer();", "matchMedia('(hover:hover) and (pointer:fine)').matches",
-    'paysFeuilleFermer();\n    choisir(b.dataset.pays);'])
+    "f.setAttribute('role','dialog');f.setAttribute('aria-modal','true');", "if(e.key==='Escape'){e.preventDefault();partir();}",
+    "f.querySelector('.pays-fond').onclick=partir;", "matchMedia('(hover:hover) and (pointer:fine)').matches",
+    /* 11 novembre, 12 h 25 : le pays touché se coche, la feuille part deux secondes après (retours-1225) */
+    "clearTimeout(attente);attente=setTimeout(partir,prefersReduceMotion()?700:PAYS_ATTENTE);"])
     assert.ok(f.includes(k), k);
   /* Le filtre, sur une liste factice */
   const li = (cherche, groupe) => ({hidden: false, firstElementChild: {dataset: {cherche}}, groupe});

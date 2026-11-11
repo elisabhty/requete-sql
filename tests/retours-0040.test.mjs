@@ -13,14 +13,14 @@ const app = lire('index.html'), lq = lire('ludique.css'), swift = lire('resource
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 const compte = cut('function renderCompte(){', '\nfunction ');
 
-test('Mon compte : « Sur ton iPhone », les deux widgets puis « Évaluer l’application », sur iPhone (app ou Safari)', () => {
+test('Mon compte : « Sur ton iPhone », les deux widgets (plus d’« Évaluer l’application » depuis le 11 novembre, 12 h 25), sur iPhone', () => {
   assert.ok(compte.includes("const widgetsIci=typeof obWidgetPossible==='function'&&obWidgetPossible();"), 'le pont RequeteWidget de l’app iPhone');
   const g = compte.slice(compte.indexOf('<p class="account-settings-group-title">Sur ton iPhone</p>'), compte.indexOf('<p class="account-settings-group-title">Compte et assistance</p>'));
   assert.ok(g.length > 0 && compte.indexOf('Apprentissage</p>') < compte.indexOf('Sur ton iPhone</p>'), 'entre « Apprentissage » et « Compte et assistance »');
-  const a = g.indexOf("openPlusDetails('plus-widget-accueil')"), v = g.indexOf("openPlusDetails('plus-widget-verrou')"), n = g.indexOf('onclick="noterAppli()"');
-  assert.ok(a > 0 && v > a && n > v, 'accueil, verrouillé, puis noter');
+  const a = g.indexOf("openPlusDetails('plus-widget-accueil')"), v = g.indexOf("openPlusDetails('plus-widget-verrou')");
+  assert.ok(a > 0 && v > a && !g.includes('noterAppli()'), 'accueil puis verrouillé, sans « Évaluer »');
   assert.ok(g.includes("${lqStkSvg('widgets')}") && g.includes("${lqStkSvg('verrou')}"), 'des autocollants, comme les autres lignes');
-  assert.ok(compte.includes('const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());') && compte.includes('const surIphone=widgetsVus||appliNative();'), 'l’app, ou Safari sur iPhone');
+  assert.ok(compte.includes('const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());') && compte.includes('const surIphone=widgetsVus;'), 'l’app, ou Safari sur iPhone');
   assert.ok(compte.includes('${surIphone?`<div class="account-settings-group">'), 'pas de groupe sur un ordinateur');
   const assistance = compte.slice(compte.indexOf('Compte et assistance</p>'));
   assert.ok(!assistance.slice(0, assistance.indexOf('</section>')).includes('noterAppli()'), '« Évaluer l’application » a quitté « Compte et assistance »');

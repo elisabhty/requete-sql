@@ -285,7 +285,7 @@ test('Mon compte : « Ta flamme en direct », un interrupteur dans « Sur ton iP
   const g = compte.slice(compte.indexOf('Sur ton iPhone</p>'), compte.indexOf('Compte et assistance</p>'));
   const ligne = '${widgetsIci?`<button class="account-setting-row acct-flamme-direct" type="button" role="switch" aria-checked="${flammeDirectOn()}" onclick="flammeDirectBasculer()"><span class="plus-row-icon is-stk">${lqStkSvg(\'flame\')}</span><span><b>Ta flamme en direct</b><small>${flammeDirectResume()}</small></span><span class="account-setting-end"><span class="acc-toggle${flammeDirectOn()?\' on\':\'\'}" aria-hidden="true"><i></i></span></span></button>`:\'\'}';
   assert.ok(g.includes(ligne), 'la ligne, avec son interrupteur');
-  assert.ok(g.indexOf("openPlusDetails('plus-widget-verrou')") < g.indexOf('flammeDirectBasculer()') && g.indexOf('flammeDirectBasculer()') < g.indexOf('onclick="noterAppli()"'), 'après les widgets, avant « Évaluer »');
+  assert.ok(g.indexOf("openPlusDetails('plus-widget-verrou')") < g.indexOf('flammeDirectBasculer()'), 'après les widgets (« Évaluer » est partie le 11 novembre, 12 h 25)');
   /* Ce que dit la ligne */
   assert.equal(page({ on: false }).run('flammeDirectResume()'), 'Un compte à rebours jusqu’à minuit, les soirs de séance');
   assert.equal(page().run('flammeDirectResume()'), 'Activée · les soirs de séance, dès 19:00');

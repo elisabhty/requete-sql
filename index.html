@@ -43469,7 +43469,10 @@ function paysCompleter(){
   state.profile=Object.assign({},state.profile||{},{pays:p,paysAuto:true});save();
 }
 /* La liste des pays, en feuille : une recherche, les pays proches en tête, puis tous les pays de A à Z ; le pays choisi est coché.
-   choisir(code) reçoit le pays touché, la feuille se ferme. */
+   choisir(code) reçoit le pays touché. Elisa, 11 novembre, 12 h 25 (réf. 2, dans Mon compte : « quand on appuie, ça sélectionne direct
+   et ça part, je préfère attendre quelques secondes ») : le pays touché se coche, la feuille reste deux secondes, puis part avec lui ;
+   un autre pays touché entre-temps prend sa place, et la croix ou le fond gardent le pays coché. */
+const PAYS_ATTENTE=2000;
 function paysFeuille(actuel,choisir){
   paysFeuilleFermer(true);
   const f=document.createElement('div');
@@ -43488,17 +43491,22 @@ function paysFeuille(actuel,choisir){
     </div>`;
   document.body.appendChild(f);
   const input=f.querySelector('input'),liste=f.querySelector('.pays-liste');
-  f.querySelector('.pays-fond').onclick=()=>paysFeuilleFermer();
-  f.querySelector('.pays-x').onclick=()=>paysFeuilleFermer();
+  let pris=null,attente=0;
+  const partir=()=>{clearTimeout(attente);if(f.id==='pays-feuille')paysFeuilleFermer();if(pris){const c=pris;pris=null;choisir(c);}};
+  f.querySelector('.pays-fond').onclick=partir;
+  f.querySelector('.pays-x').onclick=partir;
   liste.addEventListener('click',e=>{
     const b=e.target.closest&&e.target.closest('.pays-ligne');
     if(!b)return;
     if(typeof buzz==='function')buzz('light');
-    paysFeuilleFermer();
-    choisir(b.dataset.pays);
+    f.querySelectorAll('.pays-ligne.is-on').forEach(x=>{x.classList.remove('is-on','is-pris');x.setAttribute('aria-pressed','false');x.querySelector('.pays-ok')?.remove();});
+    f.querySelectorAll(`.pays-ligne[data-pays="${b.dataset.pays}"]`).forEach(x=>{x.classList.add('is-on','is-pris');x.setAttribute('aria-pressed','true');
+      if(!x.querySelector('.pays-ok'))x.insertAdjacentHTML('beforeend','<i class="pays-ok" aria-hidden="true">✓</i>');});
+    pris=b.dataset.pays;
+    clearTimeout(attente);attente=setTimeout(partir,prefersReduceMotion()?700:PAYS_ATTENTE);
   });
   input.addEventListener('input',()=>paysFiltrer(f,input.value));
-  f.addEventListener('keydown',e=>{ if(e.key==='Escape'){e.preventDefault();paysFeuilleFermer();} });
+  f.addEventListener('keydown',e=>{ if(e.key==='Escape'){e.preventDefault();partir();} });
   requestAnimationFrame(()=>requestAnimationFrame(()=>f.classList.add('on')));
   /* Au clavier physique, la recherche est prête ; au toucher, le clavier ne s’ouvre pas d’office (il cacherait la liste). */
   if(typeof matchMedia==='function'&&matchMedia('(hover:hover) and (pointer:fine)').matches)setTimeout(()=>{try{input.focus({preventScroll:true});}catch(e){}},200);
@@ -44769,7 +44777,7 @@ const WTU={
     cles:[.62,.62,.62,.36,.44]   // le moment de chaque geste qui le montre le mieux : l’image fixe quand on réduit les animations
   },
   verrou:{
-    titre:'Widgets de l’écran verrouillé',sous:'Ta séance du jour, sans déverrouiller',
+    titre:'Widgets de l’écran verrouillé',sous:'Ta séance du jour, sans déverrouiller l’écran',
     etapes:['Maintiens le doigt sur ton écran verrouillé, puis touche « Personnaliser ».',
       'Touche « Écran verrouillé ».',
       'Touche « Ajouter des widgets », sous l’heure.',
@@ -47191,7 +47199,7 @@ function renderCompte(){
   /* 10 h 40 (« tu n’as pas mis le bouton widget et évaluer l’application ») : sur un iPhone, le groupe se voit aussi dans Safari ; les
      feuilles des widgets y disent qu’ils viennent avec l’app. 11 h 12 : jamais « bientôt », le texte est celui de l’app publiée. */
   const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());   // une app sans le widget : pas de mode d’emploi qui n’y marcherait pas
-  const surIphone=widgetsVus||appliNative();
+  const surIphone=widgetsVus;   // 11 novembre, 12 h 25 : plus d’« Évaluer l’application », le groupe n’a que les widgets
   /* 7 novembre (« Ta flamme en direct ») : son interrupteur, dans l’app iPhone qui a le pont (elle y est programmée) */
   const profile=state.profile||{};
   const profileGoalO=OB_GOALS.find(g=>g[0]===profile.goal)||null,profileGoal=(profileGoalO||[])[1]||'';
@@ -47319,7 +47327,6 @@ function renderCompte(){
             ${widgetsVus?`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-accueil')"><span class="plus-row-icon is-stk">${lqStkSvg('widgets')}</span><span><b>${WTU.accueil.titre}</b><small>${WTU.accueil.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-verrou')"><span class="plus-row-icon is-stk">${lqStkSvg('verrou')}</span><span><b>${WTU.verrou.titre}</b><small>${WTU.verrou.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
             ${widgetsIci?`<button class="account-setting-row acct-flamme-direct" type="button" role="switch" aria-checked="${flammeDirectOn()}" onclick="flammeDirectBasculer()"><span class="plus-row-icon is-stk">${lqStkSvg('flame')}</span><span><b>Ta flamme en direct</b><small>${flammeDirectResume()}</small></span><span class="account-setting-end"><span class="acc-toggle${flammeDirectOn()?' on':''}" aria-hidden="true"><i></i></span></span></button>`:''}
-            <button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Évaluer l’application</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
         </div>`:''}
         <div class="account-settings-group">
@@ -48166,7 +48173,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-claviers-v2843';
+  const SW_CACHE='requete-2026-11-11-pays-attente-v2844';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
