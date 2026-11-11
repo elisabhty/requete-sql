@@ -44223,17 +44223,26 @@ function obEssai(k){
    44,99 € en France, mais 39,99 $ aux États-Unis. Sinon, les prix d’Elisa en euros (OB_OFFRES). */
 function obPrixBoutique(k){try{const a=window.REQUETE_ACHAT,p=a&&typeof a.prix==='function'&&a.prix(k);return p&&typeof p.prix==='number'&&p.texte?p:null;}catch(e){return null;}}
 function obPrixTexte(k){const b=obPrixBoutique(k);return b?b.texte:obEuros(OB_OFFRES[k].prix);}
+/* Un montant dans la devise de la boutique, écrit à la française (« 0,76 $US », « 0,86 € ») ; '' si la devise est inconnue. */
+function obDevise(x,devise,entier){
+  if(!devise)return '';
+  try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:devise,minimumFractionDigits:entier?0:2,maximumFractionDigits:entier?0:2}).format(x);}catch(e){return '';}
+}
 function obOffreInfo(){
   const an=OB_OFFRES.an,se=OB_OFFRES.semaine,ba=obPrixBoutique('an'),bs=obPrixBoutique('semaine');
   const pa=ba?ba.prix:an.prix,ps=bs?bs.prix:se.prix;
   const parSemaine=Math.floor(pa/an.semaines*100)/100,eco=Math.round((1-pa/(ps*an.semaines))*100);
-  const parSemaineTexte=ba&&ba.parSemaine?ba.parSemaine:obEuros(parSemaine);
+  /* 11 novembre, 19 h 02 (sa capture TestFlight : « 39,99 $US / an » puis « Soit 0.76 $ par semaine » et « 0 € aujourd’hui ») :
+     le prix par semaine de RevenueCat s’écrivait à l’anglaise, et le « 0 € » restait en euros. Les deux suivent maintenant la devise
+     de la boutique, écrite à la française comme le prix facturé ; le texte de RevenueCat ne sert plus que sans devise connue. */
+  const parSemaineTexte=(ba&&obDevise(parSemaine,ba.devise))||(ba&&ba.parSemaine)||obEuros(parSemaine);
+  const zero=(ba&&obDevise(0,ba.devise,true))||'0&nbsp;€';
   /* Ce qu’on économise en un an face à 52 semaines payées à la semaine (5,99 × 52 − 44,99 = 266 €), arrondi à l’euro du dessous.
      Avec les prix de la boutique, dans la devise du pays (REQUETE_ACHAT.prix(…).devise) ; sans devise connue, on ne l’affiche pas. */
   const gain=Math.floor(ps*an.semaines-pa);let economie='';
   if(gain>0){if(!ba&&!bs)economie=obEuros(gain);
     else if(ba&&ba.devise&&(!bs||!bs.devise||bs.devise===ba.devise)){try{economie=new Intl.NumberFormat('fr-FR',{style:'currency',currency:ba.devise,maximumFractionDigits:0}).format(gain);}catch(e){}}}
-  return {parSemaine,eco,parSemaineTexte,economie};
+  return {parSemaine,eco,parSemaineTexte,economie,zero};
 }
 /* Le jour du premier prélèvement après l’essai (« 3 jours gratuits, puis 44,99 € par an à partir du 14 novembre ») */
 function obDateApresEssai(j){const d=new Date();d.setDate(d.getDate()+j);return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}).replace(/^1 /,'1er ');}
@@ -44262,7 +44271,7 @@ const PW_ICO={
 let obPwBusy=false;
 function obPaywallHTML(){
   const o=draft.offre==='semaine'?'semaine':'an',b=typeof obPlanInfo==='function'?obPlanInfo():{goal:'Progresser en SQL',endLabel:'',minutes:20};
-  const {parSemaineTexte,eco,economie}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
+  const {parSemaineTexte,eco,economie,zero}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
   const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
   const fixe=typeof mascotReduced==='function'&&mascotReduced(),essaiAn=obEssai('an');
   const sur=par=>par.replace(/^par /,'/&nbsp;');
@@ -44271,7 +44280,7 @@ function obPaywallHTML(){
     return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" aria-label="${escAttr(label)}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">${corps}</button>`;};
   const an=OB_OFFRES.an,se=OB_OFFRES.semaine;
   const reperes=[economie?['pieces',`Économise<br><b>${economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],
-    essaiAn?['agenda','<b>0&nbsp;€</b><br>aujourd’hui']:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
+    essaiAn?['agenda',`<b>${zero}</b><br>aujourd’hui`]:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
   const carteAn=carte('an',`<span class="pw-reco">${PW_ICO.couronne}Meilleur choix</span><span class="pw-badge">−${eco}&nbsp;%</span>
       <span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${an.titre}</span>${prixHtml('an')}
       ${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours gratuits</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span>
@@ -44328,8 +44337,12 @@ async function obPaywallAcheter(){
 async function obPaywallRestaurer(){
   const live=document.getElementById('pw-live');
   if(!window.REQUETE_ACHAT||typeof window.REQUETE_ACHAT.restaurer!=='function')return;
-  try{const ok=await window.REQUETE_ACHAT.restaurer();if(ok){if(typeof stat==='function')stat('restaure');obPaywallEntrer();return;}if(live)live.textContent='Aucun abonnement à restaurer sur ce compte Apple.';}
-  catch(e){if(live)live.textContent='La restauration n’a pas abouti, réessaie.';}
+  /* 11 novembre, 19 h 02 : la réponse de « Restaurer » restait sous les offres jusqu’à la fin, comme si elle faisait partie de la
+     page ; elle s’efface au bout de 6 secondes. */
+  const dire=t=>{if(!live)return;live.textContent=t;clearTimeout(obPaywallRestaurer.t);
+    obPaywallRestaurer.t=setTimeout(()=>{if(live.textContent===t)live.textContent='';},6000);};
+  try{const ok=await window.REQUETE_ACHAT.restaurer();if(ok){if(typeof stat==='function')stat('restaure');obPaywallEntrer();return;}dire('Aucun abonnement à restaurer sur ce compte Apple.');}
+  catch(e){dire('La restauration n’a pas abouti, réessaie.');}
 }
 function obFinSuivante(slide){const f=obFinFlux(),i=f.indexOf(slide);return i>=0&&i<f.length-1?f[i+1]:'ready';}
 function obFinPrecedente(slide){const f=obFinFlux();if(slide==='ready')return f[f.length-1];const i=f.indexOf(slide);return i>0?f[i-1]:'practice';}
@@ -48592,7 +48605,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-sticker-donnees-v2857';
+  const SW_CACHE='requete-2026-11-11-paywall-devise-v2858';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
