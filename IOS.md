@@ -381,8 +381,11 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
    **Ouverture animée** (3 novembre ; refaite le 11 novembre, 13 h 10 : « Le logo se construit ») : la première image de l’appli
    reprend ces points au pixel près (ludique.css, 37 bis). Seize d’entre eux s’envolent, grandissent en cases chiffrées et se
    posent en diagonale dans la touche >_ ; les cases se soudent, la touche tombe sur son socle, le chevron puis le curseur
-   s’écrivent ; les sept autres points deviennent les lettres de « Requête » ; on appuie sur la touche et on y plonge. 2,3 s à la
-   première ouverture du jour ; les suivantes, une version courte d’environ 1 s (avec ses vibrations, sans son).
+   s’écrivent ; les sept autres points deviennent les lettres de « Requête » ; on appuie sur la touche et on y plonge. À la
+   première ouverture du jour (3,2 s), le chat saute sur la touche, y marche, s’assoit et tape deux fois de ses pattes : la
+   seconde, c’est la touche Entrée (11 novembre, 14 h 36 : « le chat qui marche dessus » ; ses deux GIF sur fond vert, détourés
+   en bandes de 12 images par `python3 tools/chat-ouverture.py marche.gif appui.gif`). Les suivantes, une version courte
+   d’environ 1 s, sans le chat (avec ses vibrations, sans son).
    **Son et haptique** (4 novembre, 1 h 51 ; 11 novembre) : un son calé sur l’animation (`assets/sons/ouverture.m4a`, fabriqué par
    `python3 tools/sons/ouverture.py` : envol, un « tic » par case posée, le toc de la touche entière, une clochette par lettre,
    l’appui, le souffle de la plongée, un accord d’arrivée), joué par Web Audio en session « ambient » : il se mêle à la musique

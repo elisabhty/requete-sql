@@ -156,7 +156,7 @@ test('appli iOS : la première image reprend l’écran de lancement (les points
     'html.is-native.lq #loader.is-intro.is-play{animation:introOut var(--d-sortie) ease-out var(--t-sortie) forwards}',
     'html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}',
     'html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;opacity:1;',
-    'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k){display:none}'
+    'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k,.in-chat){display:none}'
   ]) assert.ok(s.includes(part), part);
   assert.ok(!s.includes('introCursor'), 'pas de curseur qui clignote (on aurait dit un bug)');
   assert.ok(css.includes('html.lq #loader{background:var(--deep)!important;'), 'le site garde son écran violet');
