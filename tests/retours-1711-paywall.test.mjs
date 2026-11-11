@@ -46,12 +46,12 @@ test('les prix : 44,99 € / an en gros, 0,86 € par semaine, −86 %, 5,99 €
   assert.ok(h.includes('<i class="pw-essai">3 jours gratuits</i>') && h.includes('<span class="pw-o-s"><span class="pw-soit">Soit </span><b>0,86 €</b> par semaine</span>'));
   assert.ok(h.includes('<span class="pw-badge">−86 %</span>') && h.includes('Meilleur choix</span>'));
   assert.ok(/class="pw-offre is-an is-on" role="radio" aria-checked="true" aria-label="Annuel, 44,99 € par an, 3 jours gratuits, soit 0,86 € par semaine"/.test(h)
-    && /class="pw-offre is-semaine" role="radio" aria-checked="false" aria-label="Hebdomadaire, 5,99 € par semaine, accès immédiat, sans engagement, résiliable à tout moment"/.test(h), 'lu en entier par VoiceOver');
+    && /class="pw-offre is-semaine" role="radio" aria-checked="false" aria-label="Hebdomadaire, 5,99 € par semaine, accès immédiat, tous les niveaux, résiliable à tout moment"/.test(h), 'lu en entier par VoiceOver');
   assert.ok(h.indexOf('is-an') < h.indexOf('is-semaine'), 'l’annuelle en haut');
   assert.ok(h.includes('Elisa, tu es prêt·e à atteindre <em>ton objectif</em> !') && h.includes('<b>Progresser en SQL</b>, fin estimée le 3 décembre.'), 'son parcours d’abord');
   assert.ok(h.includes('<b>71 leçons vidéo</b>et leurs exercices') && h.includes('<b>477 défis</b>en solo ou entre amis') && (h.match(/class="pw-ico"/g) || []).length === 3, 'les vrais chiffres, avec leurs icônes');
   assert.ok(h.includes('Économise<br><b>266 €</b>') && h.includes('<b>0 €</b><br>aujourd’hui') && h.includes('Accès<br><b>illimité</b>'), 'l’économie réelle : 5,99 × 52 − 44,99');
-  assert.ok(h.includes('Accès<br>immédiat') && h.includes('Sans<br>engagement') && h.includes('Résiliable à<br>tout moment') && !h.includes('Sans essai'), 'l’hebdomadaire dit ce qu’elle apporte (19 h 20)');
+  assert.ok(h.includes('Accès<br>immédiat') && h.includes('Tous les<br>niveaux') && h.includes('Résiliable à<br>tout moment') && !h.includes('Sans essai'), 'l’hebdomadaire dit ce qu’elle apporte (19 h 20)');
   assert.ok(h.includes('<b>+1 000 apprenant·es</b> font déjà confiance à Requête<small>Chiffre et avis issus du site requeteapp.com</small>'), 'la preuve sociale, et d’où elle vient');
   assert.ok(!/★|4,5|note moyenne/.test(h), 'pas de note étoilée : l’appli n’en a pas encore');
   assert.ok(h.includes('assets/chat-diplome.webp'), 'le chat diplômé');
