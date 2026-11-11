@@ -51,3 +51,11 @@ test('pas de code évalué à la volée, les liens externes sans accès à l’a
   const esc = vm.runInNewContext(`(${ligne.replace('function escAttr(s)', 'function(s)')})`);
   assert.equal(esc(`"'<>&`), '&quot;&#39;&lt;&gt;&amp;');
 });
+
+test('23 h 38 : les dépendances sont figées (plus de « latest ») aux versions installées sur le Mac', () => {
+  const p = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  for (const sec of ['dependencies', 'devDependencies'])
+    for (const [k, v] of Object.entries(p[sec])) assert.match(v, /^\d+\.\d+\.\d+$/, `${k} : ${v}`);
+  assert.equal(p.dependencies['@capacitor/core'], '8.6.0');
+  assert.equal(p.dependencies['@revenuecat/purchases-capacitor'], '14.1.0');
+});

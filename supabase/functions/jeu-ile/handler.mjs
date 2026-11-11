@@ -41,6 +41,34 @@ export function alertePropre(a) {
   return {titre, texte, son};
 }
 
+// 11 novembre, 23 h 38 (audit de sécurité) : l’alerte n’est plus le texte envoyé par le téléphone. Seules passent les deux alertes de
+// l’appli : « @léa entre dans la salle » (celui qui arrive, et seulement lui) et « Fin de la partie ». Elles sont réécrites avec les
+// pseudos que le serveur connaît (jeu_ile_alerte_v2), une au plus toutes les 8 secondes par salle. Toute autre alerte est ignorée :
+// l’état part quand même, sans alerte.
+export function alerteVoulue(etat, alerte) {
+  if (!alerte || !etat) return null;
+  if (alerte.son === 'miaou.wav' && etat.nouveau && / entre dans la salle$/.test(alerte.titre)) return {type: 'arrivee', texte: alerte.texte};
+  if (alerte.titre === 'Fin de la partie' && etat.phase === 'fin' && etat.joueurs.length) return {type: 'fin'};
+  return null;
+}
+export function alerteServeur(etat, voulue, salle, info) {
+  if (!voulue || !info || info.ok !== true || !info.noms || typeof info.noms !== 'object' || Array.isArray(info.noms)) return null;
+  if (voulue.type === 'arrivee') {
+    if (!info.moi || etat.nouveau !== info.moi) return null;
+    const nom = propre(info.noms[info.moi], 24);
+    if (!nom) return null;
+    const n = Math.min(etat.joueurs.length, MAX_JOUEURS), m = /^Salle ([A-Z0-9]{6}) · ([1-6])\/([1-6])$/.exec(voulue.texte || '');
+    const max = m && m[1] === salle ? Math.max(n, +m[3]) : MAX_JOUEURS;
+    return {titre: `${nom} entre dans la salle`, texte: `Salle ${salle} · ${n}/${max}`, son: 'miaou.wav'};
+  }
+  if (voulue.type === 'fin') {
+    const premier = etat.joueurs[0], nom = premier ? propre(info.noms[premier.p], 24) : null;
+    if (!nom) return null;
+    return {titre: 'Fin de la partie', texte: `1er : ${nom} · ${premier.pts} pts`, son: 'default'};
+  }
+  return null;
+}
+
 // Ce que reçoit Apple : une mise à jour, ou la fin (le podium reste un quart d’heure sur l’écran verrouillé).
 export function chargeApns(etat, alerte, maintenant) {
   const fin = etat.phase === 'fin';
@@ -87,7 +115,9 @@ export function createIleHandler({pret, rpc, envoyer, maintenant = () => Math.fl
       if (!pret) return reply({ok: true, pousse: 0, veille: true});
       const r = await rpc('jeu_ile_cibles_v2', {p_cle: b.cle, p_salle: b.salle, p_etat: etat});
       if (!r || r.pareil || !Array.isArray(r.cibles) || !r.cibles.length) return reply({ok: true, pousse: 0});
-      const cibles = r.cibles.slice(0, MAX_JOUEURS - 1), charge = chargeApns(etat, alerte, t);
+      const voulue = alerteVoulue(etat, alerte);
+      const info = voulue ? await rpc('jeu_ile_alerte_v2', {p_cle: b.cle, p_salle: b.salle}).catch(() => null) : null;
+      const cibles = r.cibles.slice(0, MAX_JOUEURS - 1), charge = chargeApns(etat, alerteServeur(etat, voulue, b.salle, info), t);
       const resultats = await Promise.all(cibles.map(c => pousserUn(c, charge, envoyer).catch(() => ({ok: false}))));
       const retirer = [], bac = [];
       resultats.forEach((x, i) => { if (x.oublier) retirer.push(cibles[i].jeton); if (x.bac) bac.push(cibles[i].jeton); });
