@@ -3868,6 +3868,7 @@
   .mu-time b{color:#fff;white-space:nowrap}
   /* Les boutons */
   .mu-acts{width:100%;padding-top:28px;display:flex;flex-direction:column;gap:10px}
+  .mu-acc .mu-acts{margin-top:auto}   /* la page d’un accomplissement : pas de chemin des modules, les boutons restent en bas (20 h 54) */
   .mu-go{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;border:0;border-radius:18px;background:#fff;color:var(--accent-ink,#5335E0);
     font:800 17.5px/1 var(--display);box-shadow:0 5px 0 #C9BEFF;cursor:pointer;touch-action:manipulation;transition:transform .12s ease,box-shadow .12s ease}
   .mu-go:active{transform:translateY(4px);box-shadow:0 1px 0 #C9BEFF}
@@ -33101,6 +33102,7 @@ function moduleUpOpen(i,n){
 }
 function moduleUpGo(){
   if(!MU)return;
+  if(MU.acc){ if(MU.stage==='a')stkPageCollect(); else if(MU.stage==='c')moduleUpClose(); return; }   // la page d’un accomplissement (stkPageOuvrir)
   if(MU.stage==='a')moduleUpCollect();
   else if(MU.stage==='c')moduleUpStart();
 }
@@ -33198,6 +33200,89 @@ function moduleUpClose(instant){
   if(instant||prefersReduceMotion()){ el.remove(); return; }
   el.classList.add('is-out');
   setTimeout(()=>el.remove(),300);
+}
+/* ---------- La page d’un accomplissement (Elisa, 11 novembre, 20 h 54 : « C’est pas une page qui vient ? ») ----------
+   Un sticker gagné hors d’une leçon qui mérite sa fête (la première requête, faite dans l’essai de l’onboarding) a sa page, celle de la
+   fin d’un module sans le chemin des modules ni le module suivant : le sticker tombe et se plaque au centre (onde, confettis), « Bravo ! »,
+   ce qu’il récompense ; « Récupérer le sticker » l’envoie dans « Ta collection », puis « Continuer » referme. Une page à la fois : elle
+   attend que la fin d’un module (MU), une vidéo de cours ou l’onboarding soit fermé. */
+function stkPageHtml(id){
+  const info=stkInfo(id)||{name:id},n=stkList().filter(x=>x.got).length;
+  const txt=id==='requete'?'Ta toute première requête SQL a marché. Voici ton sticker&nbsp;!':`Tu as gagné «&nbsp;${esc(info.name)}&nbsp;». Voici ton sticker&nbsp;!`;
+  return `<div class="mu mu-acc" role="dialog" aria-modal="true" aria-labelledby="mu-h">
+    <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
+    <div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${MU_STK}</span><span>Ta collection</span><b class="mu-album-n"><span>${Math.max(0,n-1)}</span><span>${n}</span></b></div>
+    <button type="button" class="mu-x" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="mu-in">
+      <span class="mu-kick" id="mu-k">${esc(info.name)}</span>
+      <div class="mu-stage" aria-hidden="true">
+        <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
+        <div class="mu-st mu-done">${stkArtHtml(id,'art')}</div>
+        <span class="mu-tag">Nouveau sticker</span>
+      </div>
+      <h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>
+      <p class="mu-p" id="mu-p">${txt}</p>
+      <div class="mu-acts">
+        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_STK}</span><span class="mu-go-l">Récupérer le sticker</span></button>
+        <button type="button" class="mu-later">Voir ma collection</button>
+      </div>
+      <p class="mu-sr" aria-live="polite"></p>
+    </div>
+  </div>`;
+}
+function stkPageOuvrir(id){
+  if(typeof document==='undefined'||!stkInfo(id))return;
+  const video=document.getElementById('lesson-video'),ob=document.getElementById('onboarding');
+  if(MU||(video&&video.classList.contains('on'))||(ob&&ob.classList.contains('on'))){ setTimeout(()=>stkPageOuvrir(id),1500); return; }
+  const box=document.createElement('div');
+  box.innerHTML=stkPageHtml(id);
+  const el=box.firstElementChild;
+  document.body.appendChild(el);
+  document.body.classList.add('mu-on');
+  MU={el,acc:id,stage:'a',snd:false,timers:[]};
+  stkPaint(el);
+  el.querySelector('.mu-go').addEventListener('click',moduleUpGo);
+  el.querySelector('.mu-later').addEventListener('click',()=>{ moduleUpClose(true); openStickers(id); });
+  el.querySelector('.mu-x').addEventListener('click',()=>moduleUpClose());
+  el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); moduleUpClose(); } });
+  if(prefersReduceMotion()){ el.classList.add('is-still','is-a','is-ready'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} return; }
+  const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(MU&&MU.el===el)el.classList.add('is-a'); }));
+  T(()=>{
+    muImpact(el,false);
+    if(navigator.vibrate)navigator.vibrate([18,30,10]);
+    lqConfetti({n:60});
+    muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);
+  },560);
+  T(()=>{ el.classList.add('is-ready'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} },1500);
+}
+/* « Récupérer le sticker » : il se décolle et file dans « Ta collection », qui compte un sticker de plus ; puis « Continuer ». */
+function stkPageCollect(){
+  const el=MU.el;
+  MU.stage='a1';
+  el.classList.add('is-got','is-album');
+  const go=el.querySelector('.mu-go');
+  go.setAttribute('aria-disabled','true');
+  muSound([[0,'pop',3,.7],[180,'whoosh',0,.4],[760,'true',0,.6]],true);
+  if(navigator.vibrate)navigator.vibrate(10);
+  const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
+  const st=el.querySelector('.mu-done'),alb=el.querySelector('.mu-album'),ico=alb.querySelector('.mu-album-ico'),vite=prefersReduceMotion();
+  if(!vite&&st.animate){
+    const a=st.getBoundingClientRect(),b=ico.getBoundingClientRect();
+    const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2),k=Math.max(.05,b.width/Math.max(1,a.width));
+    st.animate([{transform:'rotate(-4deg)'},{transform:'translateY(-22px) rotate(-12deg) scale(1.12)',offset:.26},{transform:`translate(${dx}px,${dy}px) rotate(14deg) scale(${k})`,opacity:.85}],
+      {duration:820,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'});
+  }
+  T(()=>{ st.style.visibility='hidden'; alb.classList.add('is-hit'); if(navigator.vibrate)navigator.vibrate(8); },vite?0:800);
+  T(()=>{
+    MU.stage='c';
+    el.classList.add('is-b');
+    muSet(el.querySelector('#mu-p'),'Ton sticker est dans ta collection&nbsp;!',vite);
+    el.querySelector('.mu-sr').textContent='Sticker ajouté à ta collection.';
+    go.removeAttribute('aria-disabled');
+    muSet(go.querySelector('.mu-go-l'),'Continuer',vite);
+    go.querySelector('.mu-go-ico').innerHTML=MU_PLAY;
+  },vite?0:1000);
 }
 /* Les autres actions, en tuiles égales sous la suite du parcours (Elisa, 26 octobre, 8 h 10 : « l’UI/UX au niveau des boutons
    est pas top ») : Mon planning (s’il y a un plan), Revoir la vidéo (Relire le cours pour une leçon écrite), Recommencer. Même
@@ -39522,7 +39607,7 @@ function stkAfterProgress(){
   /* 20 h 26 : la première requête faite dans l’onboarding s’annonce tout de suite, même si la première leçon s’est déjà ouverte : elle
      n’attend pas son bilan, qui garde ce que la leçon fait gagner (le sticker du module). */
   const ev=stkState().ev||{},now=won.filter(id=>id==='requete'&&ev.requete),held=won.filter(id=>!now.includes(id));
-  if(now.length)stkAnnounce(now);
+  if(now.length)stkPageOuvrir(now[0]);   // 20 h 54 : « C’est pas une page qui vient ? » : sa page, pas une notification
   if(!held.length)return;
   if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...held);return;}
   stkAnnounce(held);
@@ -48670,7 +48755,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-requete-arrivee-v2864';
+  const SW_CACHE='requete-2026-11-11-page-sticker-v2865';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

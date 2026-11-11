@@ -31,17 +31,18 @@ test('finishOnboard note la requête d’essai réussie, et l’arrivée l’ann
 });
 
 test('pendant la première leçon, la première requête s’annonce tout de suite ; le reste attend le bilan', () => {
-  const ann = [], ctx = vm.createContext({ state: { stickers: { got: {}, fresh: {}, board: [], since: 1, ev: { requete: 1 } } }, mode: 'lesson',
-    document: { body: { classList: { contains: c => c === 'in-lesson' } } }, stkAnnounce: ids => ann.push([...ids]) });
+  const ann = [], pages = [], ctx = vm.createContext({ state: { stickers: { got: {}, fresh: {}, board: [], since: 1, ev: { requete: 1 } } }, mode: 'lesson',
+    document: { body: { classList: { contains: c => c === 'in-lesson' } } }, stkAnnounce: ids => ann.push([...ids]), stkPageOuvrir: id => pages.push(id) });
   vm.runInContext(fn('stkState') + 'let stkLessonNew=[];' + fn('stkAfterProgress'), ctx);
   ctx.stkSync = () => ['intro', 'requete'];
   ctx.stkAfterProgress();
-  assert.deepEqual(ann, [['requete']], 'annoncée tout de suite');
+  assert.deepEqual(pages, ['requete'], 'sa page vient tout de suite (20 h 54 : « C’est pas une page qui vient ? »)');
+  assert.deepEqual(ann, [], 'pas de notification en plus');
   assert.deepEqual([...vm.runInContext('stkLessonNew', ctx)], ['intro'], 'le module attend le bilan');
   /* Sans l’essai (ev vide), rien ne change : tout attend le bilan */
-  ctx.state.stickers.ev = {}; ann.length = 0; vm.runInContext('stkLessonNew=[]', ctx);
+  ctx.state.stickers.ev = {}; ann.length = 0; pages.length = 0; vm.runInContext('stkLessonNew=[]', ctx);
   ctx.stkAfterProgress();
-  assert.deepEqual(ann, []);
+  assert.deepEqual(ann, []); assert.deepEqual(pages, []);
   assert.deepEqual([...vm.runInContext('stkLessonNew', ctx)], ['intro', 'requete']);
 });
 
@@ -50,4 +51,21 @@ test('la notification passe devant la page de départ d’un cours, juste au-des
   assert.ok(l.includes("const lst=document.querySelector('#lesson-start:not(.is-out)'),go=lst&&lst.querySelector('.lst-go');"));
   assert.ok(l.includes("t.classList.add('is-over');t.style.setProperty('--toast-lift',Math.round(window.innerHeight-r.top+14)+'px');"));
   assert.ok(app.includes('.toast.is-over{z-index:125;'), 'devant #lesson-start (z-index 120)');
+});
+
+/* 20 h 54 : « C’est pas une page qui vient ? » La page de la fin d’un module, sans le chemin des modules ni le module suivant. */
+test('la page d’un accomplissement : le sticker tombe, « Récupérer le sticker », puis « Continuer »', () => {
+  const html = fn('stkPageHtml');
+  assert.ok(html.includes('<div class="mu mu-acc" role="dialog" aria-modal="true" aria-labelledby="mu-h">'));
+  assert.ok(html.includes('<span class="mu-tag">Nouveau sticker</span>') && html.includes('<h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>'));
+  assert.ok(html.includes("id==='requete'?'Ta toute première requête SQL a marché. Voici ton sticker&nbsp;!'"));
+  assert.ok(html.includes('Récupérer le sticker') && html.includes('Voir ma collection') && !html.includes('mu-card') && !html.includes('mu-path'));
+  const ouvrir = fn('stkPageOuvrir');
+  assert.ok(ouvrir.includes("if(MU||(video&&video.classList.contains('on'))||(ob&&ob.classList.contains('on'))){ setTimeout(()=>stkPageOuvrir(id),1500); return; }"), 'une page à la fois : elle attend la fin d’un module, une vidéo, l’onboarding');
+  assert.ok(ouvrir.includes('MU={el,acc:id,stage:\'a\',snd:false,timers:[]};') && ouvrir.includes("openStickers(id);"));
+  assert.ok(fn('moduleUpGo').includes("if(MU.acc){ if(MU.stage==='a')stkPageCollect(); else if(MU.stage==='c')moduleUpClose(); return; }"));
+  const col = fn('stkPageCollect');
+  assert.ok(col.includes("muSet(go.querySelector('.mu-go-l'),'Continuer',vite);") && col.includes("'Ton sticker est dans ta collection&nbsp;!'"));
+  assert.ok(app.includes('.mu-acc .mu-acts{margin-top:auto}'));
+  assert.ok(fn('stkAfterProgress').includes('if(now.length)stkPageOuvrir(now[0]);'));
 });
