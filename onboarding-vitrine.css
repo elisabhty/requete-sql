@@ -924,17 +924,20 @@ html #onboarding.ob-vitrine .ob-success>i{position:absolute;inset:0;border-radiu
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-hold-hint.is-relance{animation:obvHoldHint .42s ease-out}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-hold.is-done{animation:obvHoldOk .5s var(--v-pop)}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-hold.is-done .ob-hold-ok svg{animation:obvHoldCoche .35s ease-out .12s backwards}
-  /* Le paywall (10 novembre) : le chat, l’étiquette, les avantages, les offres et leur pastille, puis « Continuer » au bout de 2 s */
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-chat{animation:obvApparait .3s ease-out both,obvStkBob 3.8s ease-in-out .8s infinite}
+  /* Le paywall (refonte du 11 novembre) : le chat surgit puis flotte, l’étiquette, les avantages, les deux offres et leurs pastilles,
+     la preuve sociale ; la coche de l’offre choisie rebondit ; « Continuer » au bout de 2 s */
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-chat{animation:pwChat .7s var(--v-pop) .05s both,obvStkBob 3.8s ease-in-out 1s infinite}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-tag{animation:pwTag .5s var(--v-pop) .15s both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-plus li{animation:pwMonte .4s cubic-bezier(.2,.8,.3,1) both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-plus li:nth-child(1){animation-delay:.25s}
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-plus li:nth-child(2){animation-delay:.35s}
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-plus li:nth-child(3){animation-delay:.45s}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-plus li:nth-child(2){animation-delay:.33s}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-plus li:nth-child(3){animation-delay:.41s}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-offre{animation:pwMonte .45s var(--v-pop) both}
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-offre.is-an{animation-delay:.55s}
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-offre.is-semaine{animation-delay:.65s}
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-badge{animation:pwTag .5s var(--v-pop) .95s both}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-offre.is-an{animation-delay:.5s}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-offre.is-semaine{animation-delay:.6s}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter :is(.pw-badge,.pw-reco){animation:pwTag .5s var(--v-pop) .9s both}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-preuve{animation:pwMonte .45s ease-out .75s both}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-offre.is-on .pw-o-radio{animation:pwCoche .35s var(--v-pop)}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-passer{animation:pwPasser .4s ease-out 2s both}
 }
 @media (prefers-reduced-motion:reduce){
@@ -1651,54 +1654,99 @@ html #onboarding.ob-vitrine.ob-fit-5 .ob-pact .ob-hold-hint{min-height:0;font-si
 html #onboarding.ob-vitrine.ob-fit-5 .ob-pact .ob-pact-txt{font-size:12.5px;line-height:1.34}
 
 /* ---------- Le paywall (Elisa, 10 novembre, 17 h 11 : « une page étudiée psychologiquement, de la même DA que le site internet ») ----------
-   Le violet et la grille du héros, l'étiquette menthe penchée, le titre au mot surligné, le chat diplômé (l'objectif atteint) ; les
-   avantages dans un cadre translucide avec les coches jaunes ; deux cartes blanches à rebord, l'annuelle choisie d'avance (bord soleil,
-   pastille « −77 % ») ; la preuve sociale ; « Continuer » discret, qui n'apparaît qu'au bout de deux secondes. */
-html #onboarding.ob-vitrine .ob-paywall{display:flex;flex-direction:column;padding-bottom:4px}
-html #onboarding.ob-vitrine .ob-paywall .pw-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
-html #onboarding.ob-vitrine .pw-lien{min-height:44px;padding:0 4px;border:0;background:none;color:rgba(255,255,255,.8);font:600 14px/1 var(--v-ui);cursor:pointer;-webkit-tap-highlight-color:transparent}
+   Refonte du 11 novembre, 1 h 42 (sa maquette) : le chat diplômé plus grand, auréolé ; le titre au mot surligné ; les trois avantages
+   en colonnes avec leurs icônes ; l’annuelle « Meilleur choix » blanche à bord soleil et ses trois repères ; l’hebdomadaire lavande
+   tant qu’elle n’est pas choisie (la carte choisie devient blanche, bord et coche animés) ; la preuve sociale entre deux lauriers ;
+   sous le bouton, trois réassurances puis la mention légale. « Continuer » (sans achat branché) n’apparaît qu’au bout de deux secondes. */
+html #onboarding.ob-vitrine .ob-paywall{display:flex;flex-direction:column;padding-bottom:0}
+html #onboarding.ob-vitrine .ob-paywall .pw-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:0}
+html #onboarding.ob-vitrine .pw-lien{min-height:44px;padding:0 4px;border:0;background:none;color:rgba(255,255,255,.85);font:600 14px/1 var(--v-ui);cursor:pointer;-webkit-tap-highlight-color:transparent}
 html #onboarding.ob-vitrine .pw-lien:focus-visible{outline:3px solid #fff;outline-offset:2px;border-radius:8px}
-html #onboarding.ob-vitrine .pw-hero{position:relative;padding-right:96px}
-html #onboarding.ob-vitrine .pw-chat{position:absolute;right:-4px;top:-6px;width:100px;height:auto;rotate:6deg;transform-origin:50% 92%;-webkit-user-drag:none;user-select:none;pointer-events:none}
-html #onboarding.ob-vitrine .pw-tag{display:inline-block;margin:0 0 10px;padding:6px 12px 5px;border:2.5px solid #fff;border-radius:11px;background:var(--v-mint);color:var(--v-ink);
-  font:800 13px/1 var(--v-display);rotate:-3deg;box-shadow:0 3px 0 var(--v-shadow-lip)}
-html #onboarding.ob-vitrine .ob-paywall .ob-title{text-align:left!important;font-size:clamp(26px,7.4vw,32px)!important;margin:0!important}
-html #onboarding.ob-vitrine .pw-but{margin:10px 0 0;color:rgba(255,255,255,.86);font:500 15px/1.4 var(--v-ui)}
-html #onboarding.ob-vitrine .pw-but b{color:var(--v-sun-hi);font-weight:700}
-html #onboarding.ob-vitrine .pw-plus{display:grid;gap:8px;margin:16px 0 0;padding:13px 14px;list-style:none;border-radius:18px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.16)}
-html #onboarding.ob-vitrine .pw-plus li{display:flex;align-items:flex-start;gap:10px;margin:0;color:#fff;font:500 15px/1.35 var(--v-ui)}
-html #onboarding.ob-vitrine .pw-plus li::before{content:'';flex:none;width:22px;height:22px;margin-top:-1px;border-radius:50%;background:var(--v-sun) var(--v-check) 50% 52%/13px no-repeat;box-shadow:0 2px 0 var(--v-sun-lip)}
-html #onboarding.ob-vitrine .pw-plus b{font-weight:800}
-html #onboarding.ob-vitrine .pw-offres{display:grid;gap:12px;margin-top:18px}
-html #onboarding.ob-vitrine .pw-offre{position:relative;display:grid;grid-template-columns:22px 1fr auto;grid-template-areas:"r t p" "r s s";align-items:center;column-gap:12px;row-gap:3px;
-  width:100%;margin:0;padding:13px 16px;border:3px solid transparent;border-radius:18px;background:#fff;color:var(--v-ink);text-align:left;font:inherit;cursor:pointer;
-  box-shadow:0 4px 0 var(--v-shadow-lip);transition:transform .14s var(--v-press),box-shadow .2s ease,border-color .2s ease;-webkit-tap-highlight-color:transparent}
+html #onboarding.ob-vitrine .pw-hero{position:relative;padding-right:118px}
+html #onboarding.ob-vitrine .pw-chat{position:absolute;right:-12px;top:-10px;width:142px;height:auto;rotate:4deg;transform-origin:50% 92%;-webkit-user-drag:none;user-select:none;pointer-events:none;
+  filter:drop-shadow(0 0 16px rgba(255,255,255,.32)) drop-shadow(0 6px 10px rgba(27,22,64,.25))}
+html #onboarding.ob-vitrine .pw-tag{display:inline-block;margin:2px 0 10px;padding:6px 12px 5px;border:2.5px solid #fff;border-radius:11px;background:var(--v-mint);color:var(--v-ink);
+  font:800 13px/1 var(--v-display);rotate:-3deg;box-shadow:0 3px 0 var(--v-shadow-lip);white-space:nowrap}
+html #onboarding.ob-vitrine .ob-paywall .ob-title{text-align:left!important;font-size:clamp(24px,6.9vw,30px)!important;line-height:1.08!important;margin:0!important;text-wrap:balance}
+html #onboarding.ob-vitrine .ob-paywall .ob-title em{font-style:italic;white-space:nowrap}
+html #onboarding.ob-vitrine .pw-but{margin:8px 0 0;color:rgba(255,255,255,.88);font:500 14px/1.38 var(--v-ui)}
+html #onboarding.ob-vitrine .pw-but b{color:#fff;font-weight:700}
+html #onboarding.ob-vitrine .pw-plus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:13px 0 0;padding:10px 2px 9px;list-style:none;border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.08));box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.2),0 8px 24px rgba(27,22,64,.14)}
+html #onboarding.ob-vitrine .pw-plus li{display:flex;flex-direction:column;align-items:center;gap:5px;margin:0;padding:0 4px;color:rgba(255,255,255,.88);font:500 12px/1.22 var(--v-ui);text-align:center}
+html #onboarding.ob-vitrine .pw-plus li+li{border-left:1.5px solid rgba(255,255,255,.2)}
+html #onboarding.ob-vitrine .pw-plus li>span{display:block;text-wrap:balance}
+html #onboarding.ob-vitrine .pw-plus b{display:block;margin-bottom:1px;color:#fff;font:800 clamp(12px,3.45vw,14px)/1.15 var(--v-display);letter-spacing:-.015em;white-space:nowrap}
+html #onboarding.ob-vitrine .pw-ico{display:block;width:36px;height:36px;filter:drop-shadow(0 3px 0 rgba(27,22,64,.28))}
+html #onboarding.ob-vitrine .pw-offres{display:grid;gap:13px;margin-top:17px}
+html #onboarding.ob-vitrine .pw-offre{position:relative;display:grid;grid-template-columns:26px minmax(0,1fr) auto;grid-template-areas:"r t p" "r e s" "x x x";align-items:center;column-gap:12px;row-gap:4px;
+  width:100%;margin:0;padding:15px 16px 13px;border:3px solid rgba(255,255,255,.85);border-radius:20px;background:#EEEAFF;color:var(--v-ink);text-align:left;font:inherit;cursor:pointer;
+  box-shadow:0 4px 0 var(--v-shadow-lip);transition:transform .14s var(--v-press),box-shadow .25s ease,border-color .25s ease,background-color .25s ease;-webkit-tap-highlight-color:transparent}
+html #onboarding.ob-vitrine .pw-offre.is-an{padding-top:21px}
+html #onboarding.ob-vitrine .pw-offre.is-semaine{grid-template-areas:"r t p" "x x x";padding-top:12px;padding-bottom:11px}
 html #onboarding.ob-vitrine .pw-offre:active{transform:translateY(3px);box-shadow:0 1px 0 var(--v-shadow-lip)}
-html #onboarding.ob-vitrine .pw-offre.is-on{border-color:var(--v-sun);box-shadow:0 4px 0 var(--v-sun-lip),0 0 0 4px rgba(255,200,61,.3)}
+html #onboarding.ob-vitrine .pw-offre.is-on{background:#fff;border-color:var(--v-sun);box-shadow:0 4px 0 var(--v-sun-lip),0 0 0 4px rgba(255,200,61,.32),0 12px 28px rgba(27,22,64,.22)}
 html #onboarding.ob-vitrine .pw-offre:focus-visible{outline:3px solid #fff;outline-offset:3px}
-html #onboarding.ob-vitrine .pw-o-radio{grid-area:r;width:22px;height:22px;box-sizing:border-box;border:2.5px solid #CFC8EA;border-radius:50%}
-html #onboarding.ob-vitrine .pw-offre.is-on .pw-o-radio{border:0;background:var(--v-sun) var(--v-check) 50% 52%/13px no-repeat;box-shadow:0 2px 0 var(--v-sun-lip)}
-html #onboarding.ob-vitrine .pw-o-t{grid-area:t;font:800 17px/1.1 var(--v-display);letter-spacing:-.01em}
-html #onboarding.ob-vitrine .pw-o-p{grid-area:p;color:var(--v-ink-2);font:600 13.5px/1.1 var(--v-ui);text-align:right;white-space:nowrap}
-html #onboarding.ob-vitrine .pw-o-p b{color:var(--v-ink);font:800 21px/1 var(--v-display);letter-spacing:-.02em}
-html #onboarding.ob-vitrine .pw-o-s{grid-area:s;color:#0E7A47;font:700 13px/1.2 var(--v-ui)}
-html #onboarding.ob-vitrine .pw-badge{position:absolute;top:-12px;right:14px;padding:4px 9px 3px;border:2px solid #fff;border-radius:9px;background:#C8306A;color:#fff;font:800 12.5px/1 var(--v-display);rotate:3deg;box-shadow:0 2px 0 var(--v-shadow-lip)}
-html #onboarding.ob-vitrine .pw-preuve{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0 0;color:rgba(255,255,255,.92);font:600 14px/1.3 var(--v-ui);text-align:center}
-html #onboarding.ob-vitrine .pw-preuve-stk svg{display:block;width:24px;height:24px}
+html #onboarding.ob-vitrine .pw-o-radio{grid-area:r;width:26px;height:26px;box-sizing:border-box;border:2.5px solid #C4BCE6;border-radius:50%;background:#fff}
+html #onboarding.ob-vitrine .pw-offre.is-on .pw-o-radio{border:3px solid var(--v-sun);background:var(--v-accent-ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") 50% 54%/13px no-repeat;box-shadow:0 2px 0 var(--v-sun-lip)}
+html #onboarding.ob-vitrine .pw-o-t{grid-area:t;font:800 19px/1.1 var(--v-display);letter-spacing:-.01em}
+html #onboarding.ob-vitrine .pw-o-p{grid-area:p;color:var(--v-ink-2);font:600 14px/1.1 var(--v-ui);text-align:right;white-space:nowrap}
+html #onboarding.ob-vitrine .pw-o-p b{color:var(--v-ink);font:800 23px/1 var(--v-display);letter-spacing:-.02em}
+html #onboarding.ob-vitrine .pw-o-e{grid-area:e;justify-self:start}
+html #onboarding.ob-vitrine .pw-o-s{grid-area:s;justify-self:end;padding:4px 9px 3px;border-radius:8px;background:#E3F6EC;color:#0E6E40;font:600 12.5px/1.15 var(--v-ui);white-space:nowrap}
+html #onboarding.ob-vitrine .pw-o-s b{font-weight:800}
+html #onboarding.ob-vitrine .pw-offre.is-semaine .pw-o-t{font-size:18px}
+html #onboarding.ob-vitrine .pw-offre.is-semaine .pw-o-p b{font-size:21px}
+html #onboarding.ob-vitrine .pw-o-plus{grid-area:x;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px;padding-top:9px;border-top:1.5px solid var(--v-line)}
+html #onboarding.ob-vitrine .pw-o-plus>span{display:flex;align-items:center;gap:6px;padding:0 6px;color:var(--v-ink-2);font:600 11.5px/1.2 var(--v-ui)}
+html #onboarding.ob-vitrine .pw-o-plus>span:first-child{padding-left:0}
+html #onboarding.ob-vitrine .pw-o-plus>span+span{border-left:1.5px solid var(--v-line)}
+html #onboarding.ob-vitrine .pw-o-plus b{color:var(--v-ink);font-weight:800}
+html #onboarding.ob-vitrine .pw-o-plus svg{flex:none;width:21px;height:21px;color:var(--v-accent-ink)}
+html #onboarding.ob-vitrine .pw-o-inclus{grid-area:x;display:flex;justify-content:space-between;gap:6px;margin-top:7px}
+html #onboarding.ob-vitrine .pw-o-inclus>span{display:inline-flex;align-items:center;gap:4px;color:var(--v-ink-2);font:600 clamp(11px,3.05vw,12.5px)/1.2 var(--v-ui);white-space:nowrap}
+html #onboarding.ob-vitrine .pw-o-inclus svg{width:15px;height:15px;color:var(--v-accent-ink)}
+html #onboarding.ob-vitrine .pw-o-inclus .is-non{color:var(--v-ink-3)}
+html #onboarding.ob-vitrine .pw-o-inclus .is-non svg{color:var(--v-ink-3)}
+html #onboarding.ob-vitrine .pw-reco{position:absolute;top:-14px;left:16px;display:inline-flex;align-items:center;gap:5px;padding:5px 10px 4px 8px;border:2px solid #fff;border-radius:10px;background:var(--v-sun);
+  color:var(--v-ink);font:800 12.5px/1 var(--v-display);box-shadow:0 2px 0 var(--v-sun-lip)}
+html #onboarding.ob-vitrine .pw-reco svg{width:15px;height:15px}
+html #onboarding.ob-vitrine .pw-badge{position:absolute;top:-14px;right:14px;padding:5px 10px 4px;border:2px solid #fff;border-radius:10px;background:#C8306A;color:#fff;font:800 13px/1 var(--v-display);rotate:3deg;box-shadow:0 2px 0 var(--v-shadow-lip)}
+html #onboarding.ob-vitrine .pw-preuve{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 0;color:#fff;text-align:center}
+html #onboarding.ob-vitrine .pw-laurier{flex:none;width:17px;height:36px;color:rgba(255,255,255,.75)}
+html #onboarding.ob-vitrine .pw-preuve .pw-laurier:last-child{transform:scaleX(-1)}
+html #onboarding.ob-vitrine .pw-preuve-t{font:500 12.5px/1.3 var(--v-ui);color:rgba(255,255,255,.9);text-wrap:balance}
+html #onboarding.ob-vitrine .pw-preuve-t b{color:#fff;font:800 14px/1.15 var(--v-display)}
+html #onboarding.ob-vitrine .pw-preuve-t small{display:block;margin-top:2px;color:rgba(255,255,255,.68);font:500 11px/1.3 var(--v-ui)}
 html #onboarding.ob-vitrine .ob-paywall .ob-compte-msg:empty{display:none}
 html #onboarding.ob-vitrine .ob-paywall .ob-compte-msg{margin:10px 0 0;color:#fff;font:600 14px/1.35 var(--v-ui);text-align:center}
 html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note .pw-sans{display:block;margin-bottom:2px;color:#fff;font-weight:700}
-/* iPhone SE et petits écrans : tout tient sans faire défiler, les deux offres comprises */
-@media (max-height:700px){html #onboarding.ob-vitrine .pw-chat{width:74px;top:-2px}html #onboarding.ob-vitrine .pw-hero{padding-right:70px}
+html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note.is-legal{max-width:none;margin-top:10px!important;font-size:11px!important;line-height:1.4!important}
+/* Le paywall a beaucoup à montrer : le pied garde la zone sûre de l’iPhone, sans la grande marge des autres pages */
+html #onboarding.ob-vitrine.ob-paywall-step .ob-foot{padding-top:10px!important;padding-bottom:calc(var(--safe-bottom,0px) + 12px)!important}
+html #onboarding.ob-vitrine .pw-confiance{display:flex;flex-wrap:wrap;justify-content:center;max-width:100%;margin:0 0 7px;color:rgba(255,255,255,.9);font:600 11px/1.2 var(--v-ui)}
+html #onboarding.ob-vitrine .pw-confiance>span{display:inline-flex;align-items:center;gap:4px;padding:0 6px;white-space:nowrap}
+html #onboarding.ob-vitrine .pw-confiance>span+span{border-left:1.5px solid rgba(255,255,255,.22)}
+html #onboarding.ob-vitrine .pw-confiance svg{flex:none;width:15px;height:15px}
+/* iPhone SE et petits écrans : la même page, resserrée ; le bouton reste en bas, la page défile au besoin */
+@media (max-height:700px){html #onboarding.ob-vitrine .pw-chat{width:104px;top:-6px;right:-8px}html #onboarding.ob-vitrine .pw-hero{padding-right:88px;min-height:0}
   html #onboarding.ob-vitrine .pw-tag{margin-bottom:7px;font-size:12px;padding:5px 10px 4px}
-  html #onboarding.ob-vitrine .ob-paywall .ob-title{font-size:25px!important}html #onboarding.ob-vitrine .pw-but{margin-top:6px;font-size:14px}
-  html #onboarding.ob-vitrine .pw-plus{margin-top:10px;padding:9px 12px;gap:5px}html #onboarding.ob-vitrine .pw-plus li{font-size:13.5px;gap:8px}
-  html #onboarding.ob-vitrine .pw-plus li::before{width:19px;height:19px;background-size:11px}
-  html #onboarding.ob-vitrine .pw-offres{margin-top:14px;gap:10px}html #onboarding.ob-vitrine .pw-offre{padding:9px 14px}
-  html #onboarding.ob-vitrine .pw-o-p b{font-size:19px}html #onboarding.ob-vitrine .pw-preuve{margin-top:10px;font-size:13px}
-  html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note{font-size:11.5px;line-height:1.35}}
+  html #onboarding.ob-vitrine .ob-paywall .ob-title{font-size:24px!important}html #onboarding.ob-vitrine .pw-but{margin-top:6px;font-size:13.5px}
+  html #onboarding.ob-vitrine .pw-plus{margin-top:10px;padding:9px 2px 8px}html #onboarding.ob-vitrine .pw-plus li{gap:0;font-size:11.5px}html #onboarding.ob-vitrine .pw-plus b{font-size:13px}html #onboarding.ob-vitrine .pw-ico{display:none}
+  html #onboarding.ob-vitrine .pw-offres{margin-top:20px;gap:15px}html #onboarding.ob-vitrine .pw-offre{padding:12px 13px 10px}html #onboarding.ob-vitrine .pw-o-p b{font-size:20px}html #onboarding.ob-vitrine .pw-o-t{font-size:17px}
+  html #onboarding.ob-vitrine .pw-o-plus{margin-top:7px;padding-top:8px}html #onboarding.ob-vitrine .pw-o-plus>span{font-size:10.5px;gap:4px}html #onboarding.ob-vitrine .pw-o-plus svg{width:18px;height:18px}
+  html #onboarding.ob-vitrine .pw-preuve{margin-top:12px}html #onboarding.ob-vitrine .pw-preuve-t b{font-size:15px}
+  html #onboarding.ob-vitrine .pw-confiance{margin-bottom:5px;font-size:10.5px}html #onboarding.ob-vitrine .pw-confiance>span{padding:0 6px}
+  html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note{font-size:11px;line-height:1.35}}
+/* Écrans étroits (iPhone SE, mini) : les repères de l’annuelle et les réassurances sur deux lignes, sans couper les mots */
+@media (max-width:380px){html #onboarding.ob-vitrine .pw-o-plus>span{gap:4px;padding:0 4px;font-size:10.5px}html #onboarding.ob-vitrine .pw-o-plus svg{width:17px;height:17px}html #onboarding.ob-vitrine .pw-confiance{font-size:10.5px}html #onboarding.ob-vitrine .pw-confiance>span{padding:0 5px}
+  html #onboarding.ob-vitrine .pw-soit{display:none}html #onboarding.ob-vitrine .pw-o-s{padding:4px 7px 3px;font-size:11.5px}html #onboarding.ob-vitrine .pw-essai{padding:4px 7px 3px;font-size:11px}
+  html #onboarding.ob-vitrine .pw-offre.is-semaine .pw-o-t{font-size:16px}html #onboarding.ob-vitrine .pw-offre.is-semaine .pw-o-p b{font-size:19px}html #onboarding.ob-vitrine .pw-o-p{font-size:12.5px}
+  html #onboarding.ob-vitrine .pw-o-inclus{gap:4px}html #onboarding.ob-vitrine .pw-o-inclus>span{font-size:10.5px;gap:3px}html #onboarding.ob-vitrine .pw-o-inclus svg{width:13px;height:13px}}
 @keyframes pwTag{from{opacity:0;transform:scale(.5) rotate(-10deg)}}
 @keyframes pwMonte{from{opacity:0;transform:translateY(12px)}}
 @keyframes pwPasser{from{opacity:0;visibility:hidden}}
-/* L'essai gratuit (10 novembre, 18 h 49) : une pastille menthe devant le prix par semaine, sans prendre de hauteur */
-html #onboarding.ob-vitrine .pw-essai{display:inline-block;margin-right:7px;padding:3px 7px 2px;border-radius:7px;background:var(--v-mint);color:var(--v-ink);font:800 11px/1.1 var(--v-display);font-style:normal;letter-spacing:0;vertical-align:1px;white-space:nowrap}
+@keyframes pwChat{0%{opacity:0;transform:translateY(14px) scale(.7) rotate(-8deg)}60%{opacity:1;transform:translateY(-4px) scale(1.06) rotate(3deg)}100%{transform:none}}
+@keyframes pwCoche{0%{transform:scale(.4)}70%{transform:scale(1.18)}100%{transform:none}}
+/* L'essai gratuit : une pastille menthe sous « Annuel » */
+html #onboarding.ob-vitrine .pw-essai{display:inline-block;padding:4px 9px 3px;border-radius:8px;background:var(--v-mint);color:var(--v-ink);font:800 12px/1.1 var(--v-display);font-style:normal;letter-spacing:0;white-space:nowrap}

@@ -33,7 +33,7 @@
      même hors ligne.
    - essaiDispo(offre) → bool : faux si Apple dit que ce compte a déjà
      eu l'essai (il ne doit pas revoir « 3 jours gratuits »).
-   - prix(offre) → {prix, texte, parSemaine} ou null : les prix de la
+   - prix(offre) → {prix, texte, parSemaine, devise} ou null : les prix de la
      boutique du pays de la personne (en dollars aux États-Unis…), pour
      que le paywall n'affiche pas des euros à tout le monde.
    ===================================================================== */
@@ -113,7 +113,7 @@
     prix: function(offre){
       var pq = paquets[offre], p = pq && pq.product;
       if (!p || typeof p.price !== 'number') return null;
-      return {prix: p.price, texte: p.priceString || '', parSemaine: p.pricePerWeekString || ''};
+      return {prix: p.price, texte: p.priceString || '', parSemaine: p.pricePerWeekString || '', devise: p.currencyCode || ''};
     }
   };
 })();

@@ -22,7 +22,7 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 /* 10 novembre, 0 h 53 : la carte « activités à rattraper » et ses trois façons sont parties ; le planning se décale tout seul
    (planning-decalage-auto). */
 test('« 1er décembre » : le premier du mois a son « er », partout où le planning dit une date', () => {
-  assert.equal((app.match(/toLocaleDateString\('fr-FR',\{day:'numeric',month:'long'(?:,year:'numeric')?\}\)\.replace\(\/\^1 \/,'1er '\)/g) || []).length, 6, 'depuis le 10 novembre, sans la date de fin du décalage (la carte de rattrapage est partie)');
+  assert.equal((app.match(/toLocaleDateString\('fr-FR',\{day:'numeric',month:'long'(?:,year:'numeric')?\}\)\.replace\(\/\^1 \/,'1er '\)/g) || []).length, 7, 'depuis le 10 novembre, sans la date de fin du décalage (la carte de rattrapage est partie) ; le 11, plus le premier prélèvement après l’essai, sur le paywall');
   assert.equal((app.match(/toLocaleDateString\('fr-FR',\{day:'numeric',month:'long'(?:,year:'numeric')?\}\)(?!\.replace)/g) || []).length, 0, 'aucune date sans son « 1er »');
 });
 
