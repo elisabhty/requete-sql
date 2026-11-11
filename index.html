@@ -24451,7 +24451,29 @@ function buildKbar(){
     });
   }
   bar.addEventListener('mousedown',e=>{ if(!e.target.closest('.kbar-dock')) e.preventDefault(); });
-  bar.addEventListener('touchstart',e=>{ if(e.target.closest('button')&&!e.target.closest('.kbar-dock')) e.preventDefault(); },{passive:false});
+  /* Elisa, 11 novembre, 18 h 05 (capture d’une note, « Requête associée ») : « le clavier SELECT, etc. ne fonctionne pas du tout ».
+     Au doigt, la touche annulait le début du toucher (touchstart) pour garder le clavier ouvert : le navigateur n’envoyait alors plus
+     le clic, et rien ne s’écrivait (ni la rangée ne défilait depuis une touche). La touche s’écrit maintenant à la fin du toucher
+     (touchend, annulé : ni clic en double, ni champ qui perd le clavier) ; un doigt qui a glissé fait défiler la rangée sans rien
+     écrire. La souris garde son clic. */
+  let kbarDoigt=null;
+  bar.addEventListener('touchstart',e=>{
+    const b=e.target.closest('button'),t=e.touches[0];
+    kbarDoigt=b&&!b.classList.contains('kbar-dock')&&b.dataset.k&&t?{b,x:t.clientX,y:t.clientY,glisse:false}:null;
+  },{passive:true});
+  bar.addEventListener('touchmove',e=>{
+    const t=e.touches[0];
+    if(kbarDoigt&&t&&(Math.abs(t.clientX-kbarDoigt.x)>8||Math.abs(t.clientY-kbarDoigt.y)>8))kbarDoigt.glisse=true;
+  },{passive:true});
+  bar.addEventListener('touchend',e=>{
+    const d=kbarDoigt;kbarDoigt=null;
+    if(!d)return;
+    if(e.cancelable)e.preventDefault();
+    if(d.glisse||!d.b.isConnected)return;
+    if(typeof buzz==='function')buzz('selection');
+    insertKey(d.b.dataset.k,d.b.dataset.schema||'');
+  },{passive:false});
+  bar.addEventListener('touchcancel',()=>{kbarDoigt=null;},{passive:true});
   bar.addEventListener('click',e=>{
     const b=e.target.closest('button');
     if(!b||b.classList.contains('kbar-dock')||!b.dataset.k)return;
@@ -48563,7 +48585,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-ouverture-longue-v2855';
+  const SW_CACHE='requete-2026-11-11-touches-sql-v2856';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
