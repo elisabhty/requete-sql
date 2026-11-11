@@ -1,12 +1,16 @@
 /* Retours de 1 h 51 (Elisa, 4 novembre), sur l’ouverture de l’appli iOS : « il n’y a pas d’haptique d’onde et de son dans
    l’application ». L’ouverture a maintenant un son, calé sur l’animation (assets/sons/ouverture.m4a, fabriqué par
    tools/sons/ouverture.py) et joué par Web Audio en session « ambient » (il se mêle à la musique et se tait en mode
-   silencieux), et une haptique qui suit l’onde : la touche, l’onde qui s’éloigne, les résultats, la plongée. */
+   silencieux), et une haptique qui suit l’onde : la touche, l’onde qui s’éloigne, les résultats, la plongée.
+   11 novembre, 13 h 10 (« j’adore les haptiques », « Le logo se construit ») : le son et l’haptique suivent la nouvelle
+   ouverture : un cran par case posée dans la touche, un coup fort quand elle est entière, un cran par lettre, un coup moyen
+   à l’appui. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 import vm from 'node:vm';
+import { fauxLoader } from './aide-ouverture.mjs';
 
 const lire = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const app = lire('index.html');
@@ -16,11 +20,9 @@ const intro = cut(app, '/* Appli iOS : l’ouverture animée', '  </script>');
 const attendre = () => new Promise(r => setTimeout(r, 0));
 
 function lancer({ natif = true, calme = false, audio = true, haptique = true, session = 'auto', decode = true } = {}) {
-  const log = [], cls = new Set(), file = [], frames = [];
+  const log = [], file = [], frames = [];
   let horloge = 0;                                                   // une horloge à nous : les minuteurs partent à leur heure
-  const nom = { textContent: 'Requête', innerHTML: '', setAttribute() {} };
-  const L = { style: {}, classList: { add: c => cls.add(c), remove: c => cls.delete(c), contains: c => cls.has(c) },
-    querySelector: q => (q === '.ld-name' ? nom : null), insertAdjacentHTML() {} };
+  const L = fauxLoader(), cls = L.cls;
   const as = session == null ? undefined : { type: session };
   const sources = [];
   class Contexte {
@@ -41,12 +43,12 @@ function lancer({ natif = true, calme = false, audio = true, haptique = true, se
     selectionChanged: () => log.push('cran'), selectionEnd: () => log.push('crans finis') };
   const ctx = vm.createContext({
     document: { documentElement: { classList: { contains: c => natif && c === 'is-native' } }, getElementById: id => (id === 'loader' ? L : null) },
-    window, Array, matchMedia: () => ({ matches: calme }), localStorage: { getItem: () => '' },
+    window, Array, matchMedia: () => ({ matches: calme }), localStorage: { getItem: () => '', setItem() {} },
     navigator: { vibrate: ms => { log.push('vibre ' + ms); return true; }, audioSession: as },
     performance: perf, requestAnimationFrame: f => frames.push(f), setTimeout: (f, ms) => file.push([horloge + (ms || 0), f])
   });
   vm.runInContext(intro, ctx);
-  /* Joue l’ouverture : deux images (is-play à 0 ms), puis les minuteurs dans l’ordre jusqu’au rangement (2,08 s) ; « occupe » simule
+  /* Joue l’ouverture : deux images (is-play à 0 ms), puis les minuteurs dans l’ordre jusqu’au rangement (2,3 s) ; « occupe » simule
      un fil principal pris pendant ce temps-là juste après le départ. Renvoie le journal daté (ms après is-play). */
   const jouer = ({ occupe = 0 } = {}) => {
     window.__introJouer();
@@ -57,7 +59,7 @@ function lancer({ natif = true, calme = false, audio = true, haptique = true, se
     for (;;) {
       file.sort((a, b) => a[0] - b[0]);
       const t = file[0];
-      if (!t || t[0] >= 2080) break;
+      if (!t || t[0] >= 2300) break;
       file.shift(); horloge = Math.max(horloge, t[0]); t[1]();
       log.splice(0).forEach(l => daté.push([horloge, l]));
     }
@@ -81,42 +83,40 @@ test('son : chargé pendant le démarrage, en session « ambient », lancé avec
   assert.equal(s.log.at(-1), 'fermé');
 });
 
-test('haptique : la touche, l’onde qui s’éloigne, les résultats deux par deux, la plongée', async () => {
+/* Les instants de la version pleine (PLEINE, dans le script de l’ouverture) */
+const CASES = Array.from({ length: 16 }, (_, i) => 380 + 32 * i), LETTRES = Array.from({ length: 7 }, (_, j) => 1110 + 36 * j);
+const ENTIERE = 1080, APPUI = 1440 + Math.round(640 * 0.14);
+const PREVU = [...CASES.map(t => [t, 'cran']), [ENTIERE, 'choc HEAVY'], ...LETTRES.map(t => [t, 'cran']), [APPUI, 'choc MEDIUM']];
+
+test('haptique : un cran par case posée, un coup fort pour la touche entière, un cran par lettre, un coup moyen à l’appui', async () => {
   const s = lancer(); await attendre(); s.log.splice(0);
   const j = s.jouer().filter(([, l]) => /^(choc|cran)/.test(l) || l.startsWith('crans'));
-  assert.deepEqual(j, [[0, 'crans prêts'],
-    [112, 'choc MEDIUM'],                                  // la touche au fond (introKey : 18 % de 0,62 s ; 9 h 28 : « trop rapide »)
-    [210, 'choc LIGHT'], [310, 'choc LIGHT'], [420, 'cran'], [540, 'cran'],   // l’onde, de plus en plus légère
-    [822, 'cran'], [906, 'cran'], [990, 'cran'], [1074, 'cran'],             // les résultats (780 + 42 k), un cran par paire
-    [1270, 'choc MEDIUM'],                                 // la plongée (1,25 s)
-    [1270, 'crans finis']]);
-  /* Les crans des résultats tombent sur une case allumée sur deux */
-  for (const [ms] of j.filter(([ms, l]) => l === 'cran' && ms > 780)) assert.equal((ms - 780 - 42) % 84, 0);
+  assert.deepEqual(j, [[0, 'crans prêts'], ...PREVU, [APPUI, 'crans finis']]);
+  assert.equal(APPUI, 1530, 'l’appui au plus bas : 14 % de la plongée de 0,64 s partie à 1,44 s');
+  for (let i = 1; i < j.length - 1; i++) assert.ok(j[i][0] - j[i - 1][0] >= 25 || i === 1, `${j[i - 1].join(' ')} puis ${j[i].join(' ')} : au moins 25 ms`);
   assert.ok(!s.log.some(l => l.startsWith('vibre')), 'pas de vibration en double');
 });
 
-test('haptique : fil principal occupé au départ, rien ne s’entasse ; la touche et la plongée partent toujours', async () => {
+test('haptique : fil principal occupé au départ, rien ne s’entasse ; la touche entière et l’appui partent toujours', async () => {
   for (const occupe of [30, 70, 130, 250, 420]) {
     const s = lancer(); await attendre(); s.log.splice(0);
     const coups = s.jouer({ occupe }).filter(([, l]) => l === 'cran' || l.startsWith('choc '));
-    assert.equal(coups.filter(([, l]) => l === 'choc MEDIUM').length, 2, `${occupe} ms : la touche et la plongée`);
-    assert.equal(coups[0][1], 'choc MEDIUM'); assert.equal(coups.at(-1).join(' '), '1270 choc MEDIUM');
+    assert.deepEqual(coups.filter(([, l]) => l.startsWith('choc')).map(c => c.join(' ')), [`${ENTIERE} choc HEAVY`, `${APPUI} choc MEDIUM`], `${occupe} ms`);
     for (let i = 1; i < coups.length; i++) {
       const ecart = coups[i][0] - coups[i - 1][0];
-      assert.ok(ecart >= 25 || coups[i][1] === 'choc MEDIUM', `${occupe} ms : ${coups[i - 1].join(' ')} puis ${coups[i].join(' ')}`);
+      assert.ok(ecart >= 25 || coups[i][1].startsWith('choc'), `${occupe} ms : ${coups[i - 1].join(' ')} puis ${coups[i].join(' ')}`);
     }
-    /* Ce qui part le fait à son heure, ou avec au plus 45 ms de retard (la touche mise à part) */
-    for (const [ms, l] of coups.slice(1)) {
-      const prevu = [[210, 'choc LIGHT'], [310, 'choc LIGHT'], [420, 'cran'], [540, 'cran'], [822, 'cran'], [906, 'cran'], [990, 'cran'], [1074, 'cran'], [1270, 'choc MEDIUM']]
-        .filter(([t, n]) => n === l && ms - t >= 0 && ms - t <= 45);
+    /* Ce qui part le fait à son heure, ou avec au plus 45 ms de retard */
+    for (const [ms, l] of coups) {
+      const prevu = PREVU.filter(([t, n]) => n === l && ms - t >= 0 && ms - t <= 45);
       assert.ok(prevu.length, `${occupe} ms : ${ms} ${l} hors de son créneau`);
     }
   }
 });
 
-test('sans Haptics : la vibration de la touche comme avant ; sans Web Audio ou son illisible : muet, sans rien bloquer', async () => {
+test('sans Haptics : une vibration quand la touche est entière ; sans Web Audio ou son illisible : muet, sans rien bloquer', async () => {
   const a = lancer({ haptique: false }); await attendre();
-  assert.ok(a.jouer().some(([ms, l]) => ms === 112 && l === 'vibre 25'));
+  assert.ok(a.jouer().some(([ms, l]) => ms === ENTIERE && l === 'vibre 25'));
   const b = lancer({ audio: false }); await attendre();
   const jb = b.jouer();
   assert.ok(!jb.some(([, l]) => l.startsWith('son')) && b.cls.has('is-play'));
@@ -145,21 +145,21 @@ test('mouvement réduit : un fondu, ni son ni haptique ; sur le site : rien', as
   assert.deepEqual(web.log, []); assert.equal(web.window.__introJouer, undefined);
 });
 
-test('le fichier son : léger, de la bonne durée, et calé sur les instants de l’animation', () => {
+test('le fichier son : léger, de la bonne durée, et calé sur les instants de l’animation (le logo qui se construit)', () => {
   const b = fs.readFileSync(new URL('../assets/sons/ouverture.m4a', import.meta.url));
   assert.equal(b.toString('latin1', 4, 8), 'ftyp');
   assert.ok(b.length > 10000 && b.length < 60000, `${b.length} octets`);
   const i = b.indexOf('mvhd'), v = b[i + 4];
   const [echelle, duree] = v === 1 ? [b.readUInt32BE(i + 24), Number(b.readBigUInt64BE(i + 28))] : [b.readUInt32BE(i + 16), b.readUInt32BE(i + 20)];
   assert.ok(Math.abs(duree / echelle - 2.6) < 0.06, `${(duree / echelle).toFixed(3)} s`);
-  /* Le générateur : mêmes instants que l’animation */
+  /* Le générateur : mêmes instants que l’animation (PLEINE, dans le script de l’ouverture) */
   const py = lire('tools/sons/ouverture.py');
-  for (const l of ['TOUCHE = 0.112', 'ONDE = 0.18', 'VITESSE = 1650', 'DEPART = 170', 'RESULTATS = [0.780 + i * 0.042 for i in range(8)]', 'PLONGEE = 1.23', 'ARRIVEE = 1.62',
+  for (const l of ['CASES = [(0.380 + 0.032 * i, c) for i, (c, r) in enumerate(ORDRE)]', 'ENTIERE = 1.080', 'LETTRES = [1.110 + 0.036 * j for j in range(7)]',
+    'APPUI = 1.440 + 0.64 * 0.14', 'PLONGEE = 1.440 + 0.64 * 0.28', 'ARRIVEE = 1.930', "ORDRE = sorted([(c, r) for c in range(4) for r in range(4)], key=lambda s: (s[0] + s[1], s[0]))",
     "SORTIE_M4A = os.path.join(RACINE, 'assets', 'sons', 'ouverture.m4a')"]) assert.ok(py.includes(l), l);
-  assert.ok(css.includes('@keyframes introKey{\n  0%{transform:none}\n  18%{transform:translateY(calc(22*var(--u)))}') && css.includes('{animation:introKey .62s '), 'la touche au fond à 18 % de 0,62 s, soit 112 ms');
-  assert.ok(css.includes('.in-ring{animation:introWave .6s linear .18s forwards}'), 'l’onde part à 0,18 s');
-  assert.ok(intro.includes('w=Math.round(170+(r-256)/1.65)') && intro.includes("'<s style=\"--p:'+(780+k*42)+'"), 'cases et résultats aux instants du son');
-  assert.ok(css.includes('introZoom .55s cubic-bezier(.42,0,.72,.42) 1.25s forwards') && css.includes('{animation:introOut .4s ease-out 1.62s forwards}'));
+  assert.ok(intro.includes('var PLEINE={soude:980,dSoude:100,fin:1080,appui:1440,dPlonge:640,sortie:1930,dSortie:360,')
+    && intro.includes('k:function(i){return [22*i,380+32*i];},l:function(j){return [560+28*j,1110+36*j];}};'), 'cases, touche, lettres, appui, arrivée aux instants du son');
+  assert.ok(intro.includes('if(!court)jouerSon();'), 'la version courte est muette');
   /* Le dossier assets part dans l’appli ; le .wav de travail reste hors du dépôt */
   assert.ok(lire('scripts/build-www.mjs').includes("for (const dir of ['assets', 'vendor'])"));
   assert.ok(lire('.gitignore').includes('tools/sons/sortie/'));

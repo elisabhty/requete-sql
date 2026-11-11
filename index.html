@@ -7370,58 +7370,55 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 /* Appli iOS : l’ouverture animée (Elisa, 3 novembre, 21 h 03 et 21 h 56 ; ludique.css, 37 bis). Derrière l’écran de lancement
    fixe, la page se dessine à l’identique. Quand l’appli est prête, hideLoader() appelle __introJouer : l’écran natif part d’un
    coup, sans que rien ne bouge, puis toute l’animation se déroule en CSS à partir d’une seule classe (is-play) ; seuls le retour
-   haptique et le rangement final passent par un minuteur. Mouvement réduit (iOS ou l’appli) : un fondu. */
+   haptique et le rangement final passent par un minuteur. Mouvement réduit (iOS ou l’appli) : un fondu.
+   11 novembre, 13 h 10 (« je veux qu’on retravaille l’animation de lancement et j’adore les haptiques », puis, entre trois idées :
+   « Le logo se construit ») : l’écran de lancement ne montre plus la touche, mais 23 points de données éparpillés (POINTS, en
+   fractions de l’écran ; tools/ecran-lancement.py en tire resources/ios/LaunchScreen.storyboard, pour qu’ils soient au pixel près
+   aux mêmes endroits). À l’ouverture, seize d’entre eux arrivent de partout, grandissent en cases chiffrées et se posent l’une
+   après l’autre dans la touche >_ (un cran haptique par case posée) ; les cases se soudent, la touche apparaît d’un coup net
+   (coup fort), puis les sept derniers points deviennent les lettres de « Requête » (un cran chacune). On appuie sur la touche
+   (coup moyen) et on y plonge. Ouverture entière à la première ouverture du jour ; les suivantes, une version courte (moins d’une
+   seconde, deux crans et un coup) : Elisa, 13 h 10, « courte avec vibrations ». Revenir dans l’appli encore ouverte ne rejoue rien. */
 (function(){
   var d=document.documentElement,L=document.getElementById('loader'),C=window.Capacitor;
   if(!L||!d.classList.contains('is-native'))return;
   L.classList.add('is-intro');
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
-  /* 11 novembre, 12 h 46 (« étudie le lancement de l’application ») : l’ouverture entière (2 s, son et haptique) se joue à la première
-     ouverture du jour ; les suivantes, le même jour, s’ouvrent d’un fondu, sans attendre (Apple : ne pas faire patienter à chaque
-     lancement). Revenir dans l’appli encore ouverte ne rejoue rien. La table de données se prépare après la page, plus pendant. */
   var jour=(function(){var x=new Date();return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();})(),court=false;
   try{court=!calme&&localStorage.getItem('rq-intro-jour')===jour;}catch(e){}
-  var son=null,sonCtx=null,avantSon=null,table=null;
+  /* Les points de l’écran de lancement : [x, y] en fractions de la largeur et de la hauteur. Les seize premiers vont aux cases de
+     la touche dans l’ordre où elles se posent (en diagonale, du coin haut gauche au coin bas droit, comme le dégradé) ; les sept
+     derniers aux lettres de « Requête ». Chaque point va à la case la plus proche, aucun trajet n’en croise un autre. */
+  var POINTS=[[0.0829,0.1101],[0.07,0.3116],[0.3693,0.0781],[0.1136,0.4567],[0.196,0.21],[0.5671,0.0949],[0.07,0.6857],[0.1821,0.565],
+    [0.6312,0.2264],[0.9027,0.0883],[0.315,0.7148],[0.7921,0.3429],[0.93,0.2459],[0.8568,0.7071],[0.9114,0.4893],[0.8948,0.6094],
+    [0.1323,0.824],[0.3135,0.925],[0.3688,0.8391],[0.6123,0.8187],[0.6177,0.7241],[0.8102,0.925],[0.9295,0.8419]];
+  var h='';
+  for(var i=0;i<POINTS.length;i++)h+='<i class="in-d" aria-hidden="true" style="left:'+(POINTS[i][0]*100).toFixed(2)+'%;top:'+(POINTS[i][1]*100).toFixed(2)+'%"></i>';
+  L.insertAdjacentHTML('afterbegin',h);
+  var nom=L.querySelector('.ld-name');
+  if(nom&&!calme){var t=nom.textContent;nom.setAttribute('aria-label',t);
+    nom.innerHTML=Array.from(t).map(function(c,i){return '<span class="in-l" aria-hidden="true" style="--i:'+i+'">'+c+'</span>';}).join('');}
+  /* Les deux chronologies, en ms après is-play. Pleine : les cases partent toutes les 22 ms et se posent toutes les 32 ms (de 380 à
+     860), chacune aux 82 % de son vol ; soudure à 980, touche entière à 1 080 ; lettres posées de 1 110 à 1 326 ; appui à 1 440,
+     plongée ; le violet ne s’efface sur l’appli (de 1 930 à 2 290) qu’une fois la touche assez grande pour remplir presque tout l’écran
+     (jamais une petite touche à moitié transparente sur l’accueil). Courte : tout part ensemble, la moitié gauche se pose à 240, la
+     droite et les lettres à 290, touche entière à 430, plongée, fin à 980. */
+  var PLEINE={soude:980,dSoude:100,fin:1080,appui:1440,dPlonge:640,sortie:1930,dSortie:360,
+    k:function(i){return [22*i,380+32*i];},l:function(j){return [560+28*j,1110+36*j];}};
+  var COURTE={soude:360,dSoude:70,fin:430,appui:470,dPlonge:420,sortie:790,dSortie:190,
+    k:function(i,c){return [0,c<2?240:290];},l:function(){return [0,290];}};
+  var T=court?COURTE:PLEINE;
+  /* L’ordre des cases : en diagonale (colonne + rangée), de gauche à droite dans chaque diagonale */
+  var ORDRE=[];
+  for(var c=0;c<4;c++)for(var r=0;r<4;r++)ORDRE.push([c,r]);
+  ORDRE.sort(function(a,b){return (a[0]+a[1])-(b[0]+b[1])||a[0]-b[0];});
+  var son=null,sonCtx=null,avantSon=null;
   if(!calme&&!court){
-    /* « Requête » en lettres, deux ondes et la table, créés tout de suite et invisibles jusqu’au départ */
-    var nom=L.querySelector('.ld-name');
-    if(nom){var t=nom.textContent;nom.setAttribute('aria-label',t);
-      nom.innerHTML=Array.from(t).map(function(c,i){return '<span class="in-l" aria-hidden="true" style="--i:'+i+'">'+c+'</span>';}).join('');}
-    var h='<i class="in-ring" aria-hidden="true"></i><i class="in-ring is-2" aria-hidden="true"></i>';
-    /* La table de données (4 novembre, 1 h 16 : « en mode data, des chiffres au lieu des confettis » ; 1 h 29 : « on peut faire
-       mieux ») : des cases chiffrées sur tout l’écran, au pas de 128 unités (la touche en couvre 4 × 4), rien sous la touche ni sous
-       « Requête ». Chaque case surgit quand l’onde partie de la touche l’atteint (--w) ; plus elle est loin, plus elle se fond dans
-       le fond, jusqu’à disparaître vers 1 050 unités : un halo de données autour de la touche, le haut et le bas de l’écran restent
-       nets. Les plus proches font défiler leur nombre. Puis la requête choisit ses résultats : une dizaine de cases proches
-       s’allument l’une après l’autre aux couleurs de l’appli (--p, en ms), juste avant la plongée. */
-    table=function(){
-    table=null;
-    var iw=window.innerWidth||390,ih=window.innerHeight||844,u=Math.max(iw,ih)/2732,demi=iw/2/u,haut=ih/2/u-14,bas=ih/2/u+14;
-    var graine=11,alea=function(){graine=graine*16807%2147483647;return graine/2147483647;};
-    var mele=function(a,b,f){var r='#';for(var i=1;i<7;i+=2){var v=Math.round(parseInt(a.substr(i,2),16)*f+parseInt(b.substr(i,2),16)*(1-f));r+=(v<16?'0':'')+v.toString(16);}return r;};
-    var nb=function(){return String(10+Math.floor(alea()*90));};
-    var choix=[['#FFC83D','#E5A91A','#221C46'],['#3FC98A','#23A26A','#FFFFFF'],['#F0616A','#C9434C','#FFFFFF'],['#6A4DF4','#4B30CC','#FFFFFF']],k=0;
-    h+='<div class="in-grid" aria-hidden="true">';
-    for(var y=-1344-128*Math.ceil(Math.max(0,haut-1344)/128);y-56<bas;y+=128){
-      if(y+56<=-haut)continue;
-      for(var x=-64-128*Math.floor((demi+56-64)/128);x-56<demi;x+=128){
-        var ax=Math.abs(x),ay=Math.abs(y);
-        if(ax<256&&(ay<256||y===320||y===448))continue;
-        var r=Math.sqrt(x*x+y*y),q=Math.max(0,(r-340)/760);
-        if(q>=.94)continue;
-        var f=Math.pow(1-q,1.2),n=nb(),w=Math.round(170+(r-256)/1.65);
-        var txt=r<560?'<b><b>'+nb()+'\n'+nb()+'\n'+nb()+'\n'+n+'</b></b>':n;
-        if(r<720&&alea()<.16){var c=choix[k%4];txt+='<s style="--p:'+(780+k*42)+';--c:'+c[0]+';--cl:'+c[1]+';--ci:'+c[2]+'">'+n+'</s>';k++;}
-        h+='<i class="in-t" style="--x:'+x+';--y:'+y+';--w:'+w+';--b:'+mele('#E8E2FB','#F4F2FC',f)+';--l:'+mele('#D8CFF5','#F4F2FC',f)+';--k:'+mele('#6A4DF4','#F4F2FC',f)+'">'+txt+'</i>';
-      }
-    }
-    h+='</div>';
-    L.insertAdjacentHTML('afterbegin',h);
-    };
     /* Le son (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son ») : assets/sons/ouverture.m4a, calé sur
        l’animation (tools/sons/ouverture.py), chargé pendant le démarrage. Web Audio en session « ambient » : il se mêle à la
-       musique en cours au lieu de la couper, et se tait en mode silencieux. Pas prêt à temps : l’ouverture reste muette. */
+       musique en cours au lieu de la couper, et se tait en mode silencieux. Pas prêt à temps : l’ouverture reste muette.
+       La version courte est muette. */
     try{
       var AC=window.AudioContext||window.webkitAudioContext;
       if(AC&&window.fetch){
@@ -7450,23 +7447,48 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
       var src=sonCtx.createBufferSource();src.buffer=son;src.connect(sonCtx.destination);src.onended=finSon;src.start(0);
     }catch(e){finSon();}
   };
-  /* L’haptique suit l’onde (1 h 51) : la touche au fond (moyen), l’onde qui s’éloigne (léger, léger, puis deux crans), un cran par
-     paire de résultats allumés, et la plongée (moyen) ; [ms après le départ, MEDIUM | LIGHT | cran]. Un coup à la fois, chacun à
-     son heure : si le fil principal est occupé (le départ de l’animation en demande), un coup léger en retard de plus de 45 ms, ou
-     à moins de 25 ms du précédent, saute au lieu de s’entasser ; la touche et la plongée partent toujours. Sans l’extension
-     Haptics, la seule vibration de la touche. */
-  /* 9 h 28 (« trop rapide ») : les mêmes coups, aux instants de l’ouverture ralentie (2 s). */
-  var HAPTIQUE=[[112,'MEDIUM'],[210,'LIGHT'],[310,'LIGHT'],[420,'cran'],[540,'cran'],[822,'cran'],[906,'cran'],[990,'cran'],[1074,'cran'],[1270,'MEDIUM']];
+  /* Les cases, posées à leur place dans la touche ; chacune part de son point (--dx, --dy, --k : mesurés, au pixel près), avec son
+     départ (--a) et la durée de son vol (--v) : elle se pose aux 82 % du vol. La chronologie va dans le style de #loader. */
+  var construire=function(){
+    var graine=7,nb=function(){graine=graine*16807%2147483647;return String(10+graine%90);},k='';
+    ORDRE.forEach(function(s,i){
+      var x=T.k(i,s[0]),rf=(s[0]===0&&s[1]===0?'R 0 0 0':s[0]===3&&s[1]===0?'0 R 0 0':s[0]===3&&s[1]===3?'0 0 R 0':s[0]===0&&s[1]===3?'0 0 0 R':'0').replace('R','calc(101.5*var(--u))');
+      k+='<i class="in-k" aria-hidden="true" style="--c:'+s[0]+';--r:'+s[1]+';--a:'+x[0]+'ms;--v:'+Math.round((x[1]-x[0])/0.82)+'ms;--rf:'+rf+(s[1]<3?';--ombre:rgba(75,48,204,0)':'')+'"><b>'+nb()+'</b></i>';
+    });
+    L.insertAdjacentHTML('beforeend',k);
+    var pts=L.querySelectorAll('.in-d'),cases=L.querySelectorAll('.in-k'),lettres=L.querySelectorAll('.in-l');
+    var centre=function(e){var b=e.getBoundingClientRect();return [b.left+b.width/2,b.top+b.height/2,b.width];};
+    var vers=function(e,p,j){var a=centre(e),b=centre(p);e.style.setProperty('--dx',(b[0]-a[0]).toFixed(1)+'px');e.style.setProperty('--dy',(b[1]-a[1]).toFixed(1)+'px');
+      if(j==null)e.style.setProperty('--k',(b[2]/a[2]).toFixed(4));};
+    for(var i=0;i<cases.length&&i<pts.length;i++)vers(cases[i],pts[i]);
+    for(var j=0;j<lettres.length&&16+j<pts.length;j++){var x=T.l(j);vers(lettres[j],pts[16+j],j);
+      lettres[j].style.setProperty('--a',x[0]+'ms');lettres[j].style.setProperty('--v',Math.round((x[1]-x[0])/0.8)+'ms');}
+    [['--t-soude',T.soude],['--d-soude',T.dSoude],['--t-fin',T.fin],['--t-appui',T.appui],['--d-plonge',T.dPlonge],['--t-sortie',T.sortie],['--d-sortie',T.dSortie]]
+      .forEach(function(v){L.style.setProperty(v[0],v[1]+'ms');});
+  };
+  /* L’haptique suit les cases : un cran par case posée (et par lettre), un coup fort quand la touche est entière, un coup moyen
+     quand on appuie dessus (au plus bas, 14 % de la plongée). Courte : un cran par moitié, un coup moyen. Un coup à la fois, chacun
+     à son heure : si le fil principal est occupé, un cran en retard de plus de 45 ms, ou à moins de 25 ms du précédent, saute au
+     lieu de s’entasser ; les coups forts et moyens partent toujours. Sans l’extension Haptics, une vibration quand la touche est
+     entière. */
+  var HAPTIQUE=[];
+  if(court)HAPTIQUE=[[240,'cran'],[290,'cran'],[COURTE.fin,'MEDIUM']];
+  else{
+    for(var n=0;n<16;n++)HAPTIQUE.push([PLEINE.k(n)[1],'cran']);
+    HAPTIQUE.push([PLEINE.fin,'HEAVY']);
+    for(var m=0;m<7;m++)HAPTIQUE.push([PLEINE.l(m)[1],'cran']);
+    HAPTIQUE.push([PLEINE.appui+Math.round(PLEINE.dPlonge*0.14),'MEDIUM']);
+  }
   var vibrer=function(){
     var H=C&&C.Plugins&&C.Plugins.Haptics;
-    if(!H||!H.impact){setTimeout(function(){try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}},112);return;}
+    if(!H||!H.impact){setTimeout(function(){try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}},T.fin);return;}
     var perf=window.performance,ici=function(){return perf&&perf.now?perf.now():Date.now();},t0=ici(),dernier=-1e9;
     try{H.selectionStart&&H.selectionStart();}catch(e){}
     var suivant=function(i){
       if(i>=HAPTIQUE.length){try{H.selectionEnd&&H.selectionEnd();}catch(e){}return;}
       var p=HAPTIQUE[i],t=ici(),reste=t0+p[0]-t;
       if(reste>4){setTimeout(function(){suivant(i);},reste);return;}
-      if(p[1]==='MEDIUM'||(reste>-45&&t-dernier>=25)){
+      if(p[1]!=='cran'||(reste>-45&&t-dernier>=25)){
         dernier=t;
         try{if(p[1]==='cran')H.selectionChanged&&H.selectionChanged();else H.impact({style:p[1]});}catch(e){}
       }
@@ -7478,14 +7500,15 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     if(L.classList.contains('is-play')||L.classList.contains('fade-out'))return;
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
-    if(calme||court){L.classList.add('fade-out');setTimeout(ranger,340);return;}
-    if(table)table();
-    try{localStorage.setItem('rq-intro-jour',jour);}catch(e){}
+    if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
+    construire();
+    if(court)L.classList.add('is-court');
+    else try{localStorage.setItem('rq-intro-jour',jour);}catch(e){}
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       L.classList.add('is-play');
-      jouerSon();
+      if(!court)jouerSon();
       vibrer();
-      setTimeout(ranger,2080);
+      setTimeout(ranger,T.sortie+T.dSortie+10);
     });});
   };
 })();
@@ -48274,7 +48297,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-haptique-v2845';
+  const SW_CACHE='requete-2026-11-11-logo-v2846';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

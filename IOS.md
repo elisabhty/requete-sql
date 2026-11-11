@@ -372,22 +372,22 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 3. **Icône et lancement** : `resources/icon-only.png` (1024 × 1024, sans transparence) et `resources/splash.png`
    (2732 × 2732, l’image de référence). Remplace-les si le logo change, puis relance `npm run ios:assets`.
    **Écran de lancement** (3 novembre, 23 h 02 : « quand j’ouvre l’appli, il y a un écran noir ») : `resources/ios/LaunchScreen.storyboard`
-   (fond `#F4F2FC` fixe, même en mode sombre) et `resources/ios/SplashLogo.imageset` (la touche >_ seule, 768 × 810 px au
-   plus), recopiés dans `ios/` par `scripts/ios-ecran-lancement.sh` à chaque `npm run ios`, `ios:add` ou `ios:testflight`.
-   L’ancien écran étirait `splash.png` entière sur un fond « couleur système » : trop lourde, iOS ne la dessinait pas et
-   laissait le fond, noir en mode sombre. La touche fait 540/2732 du plus grand côté de l’écran, au centre : c’est la place
-   qu’elle avait dans `splash.png`. iOS garde l’écran de lancement en mémoire : si l’ancien revient après une mise à jour,
-   redémarrer l’iPhone.
-   **Ouverture animée** (3 novembre) : la première image de l’appli reprend cet écran au pixel près (ludique.css, 37 bis :
-   touche de 512 de côté, 28 d’épaisseur, coins de 116, fond `#F4F2FC`), puis la touche >_ s’enfonce comme une touche Entrée :
-   l’écran devient une table de données (4 novembre, « en mode data ») où une onde partie de la touche fait surgir les cases
-   chiffrées, la requête allume ses résultats un à un, et l’on plonge dans la touche pendant que la table file sur les côtés.
-   Environ 2 s depuis le 4 novembre, 9 h 28 (« l’arrivée de l’animation au début fait mal aux yeux, trop rapide ») : avant 1,3 s,
-   avec des nombres qui défilaient par crans (scintillement) et une plongée en 0,3 s ; le son et l’haptique suivent le même rythme.
-   **Son et haptique** (4 novembre, 1 h 51) : un son calé sur l’animation (`assets/sons/ouverture.m4a`, fabriqué par
-   `python3 tools/sons/ouverture.py` : toc de la touche, bips de l’onde, clochettes des résultats, souffle de la plongée, accord
-   d’arrivée), joué par Web Audio en session « ambient » : il se mêle à la musique en cours et se tait en mode silencieux. Et une
-   haptique qui suit l’onde (extension Haptics) : la touche, l’onde qui s’éloigne, les résultats, la plongée. Si l’écran de lancement change, il faut changer ces mesures aussi, sinon on verra un saut. L’écran natif reste
+   (fond `#F4F2FC` fixe, même en mode sombre), recopié dans `ios/` par `scripts/ios-ecran-lancement.sh` à chaque `npm run ios`,
+   `ios:add` ou `ios:testflight`. L’ancien écran étirait `splash.png` entière sur un fond « couleur système » : trop lourde, iOS
+   ne la dessinait pas et laissait le fond, noir en mode sombre. Depuis le 11 novembre (« Le logo se construit »), il n’a plus
+   d’image du tout : 23 petits carrés `#D2C6F7`, de simples vues placées en fractions de l’écran, écrits par
+   `python3 tools/ecran-lancement.py` à partir de `POINTS` (index.html, script qui suit `#loader`). Si les points changent,
+   relancer ce script. iOS garde l’écran de lancement en mémoire : si l’ancien revient après une mise à jour, redémarrer l’iPhone.
+   **Ouverture animée** (3 novembre ; refaite le 11 novembre, 13 h 10 : « Le logo se construit ») : la première image de l’appli
+   reprend ces points au pixel près (ludique.css, 37 bis). Seize d’entre eux s’envolent, grandissent en cases chiffrées et se
+   posent en diagonale dans la touche >_ ; les cases se soudent, la touche tombe sur son socle, le chevron puis le curseur
+   s’écrivent ; les sept autres points deviennent les lettres de « Requête » ; on appuie sur la touche et on y plonge. 2,3 s à la
+   première ouverture du jour ; les suivantes, une version courte d’environ 1 s (avec ses vibrations, sans son).
+   **Son et haptique** (4 novembre, 1 h 51 ; 11 novembre) : un son calé sur l’animation (`assets/sons/ouverture.m4a`, fabriqué par
+   `python3 tools/sons/ouverture.py` : envol, un « tic » par case posée, le toc de la touche entière, une clochette par lettre,
+   l’appui, le souffle de la plongée, un accord d’arrivée), joué par Web Audio en session « ambient » : il se mêle à la musique
+   en cours et se tait en mode silencieux. Et une haptique (extension Haptics) : un cran par case posée et par lettre, un coup
+   fort quand la touche est entière, un coup moyen à l’appui. Si l’animation change, il faut changer ces instants aussi. L’écran natif reste
    jusqu’à ce que la page se soit dessinée (au plus 4 s, `launchShowDuration`). Avec « Réduire les animations » (iOS), un
    simple fondu.
 
