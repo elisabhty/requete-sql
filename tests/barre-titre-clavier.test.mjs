@@ -27,7 +27,8 @@ function monde({ natif = false, offsetTop = 120, scrollY = 0, vvH = 380 } = {}) 
   const appels = [], ta = { closest: q => (q === '.editor-area' ? {} : null) };
   const window = { innerHeight: 800, scrollY, pageYOffset: scrollY, visualViewport: { offsetTop, height: vvH }, scrollTo: (x, y) => appels.push(['scrollTo', x, y]) };
   const ctx = vm.createContext({ window, document: { activeElement: ta }, activeTA: ta, Date, requestAnimationFrame: f => f(),
-    revealSqlEditor: () => appels.push(['reveal']), ensureRunRowVisible: () => appels.push(['run']), dxNatif: () => natif, IOS_KB_OVERLAY: 100 });
+    revealSqlEditor: () => appels.push(['reveal']), ensureRunRowVisible: () => appels.push(['run']), dxNatif: () => natif, IOS_KB_OVERLAY: 100,
+    kbNatif: () => 0 });   // le clavier de l’app (11 novembre, retours-1121) : rien dans Safari
   vm.runInContext(cut('function keyboardInset(){', '\n}\n') + '\n}\n' + cut('let edRecaleAt=0;', '\nif(window.visualViewport){').replace(/^let /m, 'var '), ctx);
   return { ctx, appels, window, ev: c => vm.runInContext(c, ctx) };
 }
