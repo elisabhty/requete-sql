@@ -3,8 +3,9 @@
    réf. 2 « Choisis ton pays » : « quand on appuie, ça sélectionne direct et ça part, je préfère attendre quelques secondes » ;
    « ne pas avoir de bouton Ta flamme en direct, étoile et statistiques anonymes si ce n’est pas obligatoire par Apple ».
    « Évaluer l’application » (l’étoile) : Apple ne la demande pas, elle part. « Ta flamme en direct » et « Statistiques anonymes »
-   restent en attendant sa réponse : la première est l’accord qui permet à la Live Activity de démarrer seule (Apple refuse les Live
-   Activities non demandées, règle 4.5.3) ; la seconde, l’opposition que la CNIL demande pour une mesure d’audience sans consentement. */
+   restent, au choix d’Elisa (12 h 40) : la première est l’accord qui permet à la Live Activity de démarrer seule (Apple refuse les
+   Live Activities non demandées, règle 4.5.3) ; la seconde, l’opposition que la CNIL demande pour une mesure d’audience sans
+   consentement. */
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -32,7 +33,7 @@ test('réf. 2 : le pays touché se coche, la feuille attend deux secondes avant 
   assert.ok(css.includes('.pays-feuille .pays-ligne.is-pris .pays-ok{animation:paysOk .42s cubic-bezier(.3,1.6,.5,1) both}'), 'la coche rebondit');
 });
 
-test('Mon compte : plus d’« Évaluer l’application » ; la flamme en direct et les statistiques anonymes restent pour l’instant', () => {
+test('Mon compte : plus d’« Évaluer l’application » ; la flamme en direct et les statistiques anonymes restent (choix d’Elisa)', () => {
   const compte = cut('function renderCompte(){', '\nfunction ');
   assert.ok(!compte.includes('noterAppli()') && compte.includes('const surIphone=widgetsVus;'));
   assert.ok(compte.includes('onclick="flammeDirectBasculer()"'), 'l’accord pour la Live Activity');
