@@ -41,11 +41,12 @@ test('lqVersRecherche : le défilement qui pose la barre à 14 px sous la barre 
   assert.deepEqual(brut(pos), [{ top: 900 + 1300 - 59 - 14, behavior: 'smooth' }]);
 });
 
-test('la coche « validé » : sans mot, au centre de la chose touchée, comme la punaise ; une poubelle pour une suppression', () => {
+test('la coche « validé » : sans mot, au centre de la chose touchée, comme la punaise ; une suppression part à la poubelle (lqCorbeille)', () => {
   const d = cut('function lqDone(el,label,say){', '\n}\n');
   assert.ok(!d.includes('<b>${esc(label)}</b>') && !d.includes('b.right-6'), 'plus de mot, plus de place au coin');
   assert.ok(d.includes('const p0=lqCentreDe(el);if(!p0)return;'), 'au centre');
-  assert.ok(d.includes('<i class="lq-done-onde"></i><i class="lq-done-eclats"><b></b><b></b><b></b><b></b></i><span class="lq-done-pastille">${suppr?LQ_POUBELLE_SVG:CHECK_SVG}</span>'), 'l’onde et les quatre éclats de la punaise');
+  assert.ok(d.includes('<i class="lq-done-onde"></i><i class="lq-done-eclats"><b></b><b></b><b></b><b></b></i><span class="lq-done-pastille">${CHECK_SVG}</span>'), 'l’onde et les quatre éclats de la punaise');
+  assert.ok(d.includes("if(lqEstSuppr(label)){ if(typeof lqCorbeille==='function')lqCorbeille([],null,{depuis:el}); return; }"), '11 novembre, 21 h 33 : une suppression, la poubelle');
   assert.ok(d.includes('lqSay(say||label);'), 'le lecteur d’écran entend toujours la phrase');
   const ctx = vm.createContext({ document: {}, innerHeight: 852 });
   vm.runInContext(cut('function lqEstSuppr(label){', '\nfunction lqDone('), ctx);
@@ -56,12 +57,12 @@ test('la coche « validé » : sans mot, au centre de la chose touchée, comme l
   const longue = { tagName: 'DIV', getBoundingClientRect: () => ({ left: 0, top: 700, width: 390, height: 600, bottom: 1300 }) };
   assert.equal(ctx.lqCentreDe(longue).y, 776, 'au centre de ce qu’on en voit');
   for (const r of ['html.lq .lq-done{position:fixed;z-index:9500;width:0;height:0;pointer-events:none}', '@keyframes lqDone{', '@keyframes lqDoneOnde{', '@keyframes lqDoneEclat{',
-    'html.lq .lq-done.is-suppr .lq-done-pastille{background:#FFE4E6;color:#C2283C}', '@keyframes lqPbCouv{'])
+    ])
     assert.ok(lq.includes(r), r);
   assert.ok(!lq.includes('transform:translate(-100%,-50%)'), 'plus de pastille accrochée au coin');
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-poubelle-notes-v2866';") && app.includes("const SW_CACHE='requete-2026-11-11-poubelle-notes-v2866';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-poubelle-partout-v2867';") && app.includes("const SW_CACHE='requete-2026-11-11-poubelle-partout-v2867';"));
 });

@@ -81,7 +81,7 @@ test('seul dans la salle : comme seul (ni bande, ni réactions, ni « Clore », 
   assert.ok(app.includes("if(host&&live.length<2)return '';"), '20 h 12 : seul dans sa salle, plus de carte sous les joueurs');
 });
 
-test('résultats et fin de partie allégés ; la notification des points en une pastille', () => {
+test('résultats et fin de partie allégés ; les points de la partie ont leur page (11 novembre)', () => {
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   assert.ok(r.includes('<p class="jr2-pills">') && r.includes('<i class="is-essai">Du premier coup +${moi.essai}</i>'), 'le détail de mes points, en pastilles dans le cadre (15 h 48)');
   /* 1er novembre, 8 h 59 : plus jamais la requête ; le résultat attendu, replié quand on a trouvé */
@@ -91,7 +91,6 @@ test('résultats et fin de partie allégés ; la notification des points en une 
   assert.ok(r.includes("const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?"), 'le mot sur l’égalité seulement s’il y a égalité');
   for (const k of ['html.lq .jeu-pd i{padding:0!important;background:none!important;', 'html.lq .jeu-pd i:not(:last-child)::after{content:"·";', 'html.lq .jeu-rank li.is-me{', 'html.lq .jeu-sol>summary{display:flex;'])
     assert.ok(s50.includes(k), k);
-  const pop = cut('function jeuPtsPop(o){', '\n/* Points de la partie (une seule fois)');
-  assert.ok(pop.includes('t.innerHTML=`<span class="jpp-coin">${JEU_COIN_SVG}</span><b><em class="jpp-n" data-n="${o.pts}">+${still?o.pts:0}</em> point${o.pts>1?\'s\':\'\'}</b>'));
-  assert.ok(css.includes('#jeu-pts-pop{position:fixed;left:50%;top:calc(var(--safe-top,0px) + 12px);z-index:9991;display:flex;align-items:center;gap:9px;\n  height:48px;'), 'une pastille de 48 px');
+  const pop = cut('function jeuPtsPage(o){', '\n/* Points de la partie (une seule fois)');
+  assert.ok(pop.includes('<div class="mu mu-acc mu-pts" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">'), 'une page, dans la DA de la fin d’un module');
 });

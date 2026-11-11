@@ -60,10 +60,10 @@ test('OVER : l’ordre de la table avec OVER (), puis les lignes rangées par ca
 /* 14 h 24 (« vérifie que les pages arrivent au bon moment ») : une journée jouée dans l’app (horloge truquée). Après une leçon : l’écran
    de fin, le bilan, la carte « Module terminé » s’il y a lieu, puis, à l’accueil, la page de la flamme, une fois. La notification de la
    série ne tombe plus sur l’écran de fin ni sur la carte du module ; elle reste pour les défis. */
-test('après une leçon, seule la page de la flamme fête le jour ; un défi garde sa notification', () => {
+test('après une leçon, seule la page de la flamme fête le jour ; un défi aussi depuis le 11 novembre (21 h 33)', () => {
   const app = lire('index.html');
   assert.ok(app.includes("state.lessons[id]=cur; noteActivityDay('lecon'); save();") && app.includes("state.lessons[id]=s;noteActivityDay('lecon');save();"));
-  assert.ok(app.includes("if(first&&src!=='lecon'&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);"));
+  assert.ok(!app.includes('lqStreakToast'), 'plus de notification de série, pour rien');
   assert.ok(app.includes("if(first&&typeof lqFlammeAttendue==='function')lqFlammeAttendue(iso);"), 'la page de la flamme, elle, vient pour toute première activité du jour');
-  assert.ok(app.includes('state.defis[cid]=true;noteActivityDay();save();'), 'un défi : la notification, comme le 9 novembre');
+  assert.ok(app.includes('state.defis[cid]=true;noteActivityDay();save();'), 'un défi : la page aussi, à l’accueil');
 });

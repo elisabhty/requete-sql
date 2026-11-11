@@ -127,8 +127,10 @@ function rappel({ store = {}, perm = 'default', sansNotif = false } = {}) {
   const ctx = vm.createContext({
     localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } }, PATTERN: { 7: [0, 1, 2, 3, 4, 5, 6], 5: [1, 2, 3, 4, 5] },
     state: { plan: { freq: 7 } }, draft: null, window: {}, navigator: { vibrate() {} }, Notification: sansNotif ? undefined : { permission: perm, requestPermission: () => appels.push('permission') },
-    document: { activeElement: null, documentElement: { classList: { contains: () => false } }, getElementById: id => (id === 'rp-body' ? body : null) },
-    closePlusDetails: () => appels.push('fermer'), renderCompte: () => appels.push('compte'), toast: (a, b) => appels.push(['toast', a, b]), buzz: () => {} });
+    document: { activeElement: null, documentElement: { classList: { contains: () => false } }, getElementById: id => (id === 'rp-body' ? body : null), querySelector: s => ({ sel: s }) },
+    requestAnimationFrame: f => f(),
+    closePlusDetails: () => appels.push('fermer'), renderCompte: () => appels.push('compte'), toast: (a, b) => appels.push(['toast', a, b]), buzz: () => {},
+    lqDone: (el, l, t) => appels.push(['coche', el && el.sel, l, t]) });
   vm.runInContext(cut('function rappelOn(){', 'function tickRappel(){'), ctx);
   return { ctx, ev: s => vm.runInContext(s, ctx), body, appels, store };
 }
@@ -152,7 +154,8 @@ test('réf. 5 et 6 : le rappel de Mon compte, « Recevoir un rappel », « À qu
   assert.deepEqual(r.store, {}, 'rien ne change avant « Enregistrer »');
   r.ev('rappelEnregistrer()');
   assert.deepEqual(r.store, { 'requete-rappel': '1', 'requete-rappel-heure': '09:00' });
-  assert.deepEqual(JSON.parse(JSON.stringify(r.appels)), ['permission', 'fermer', 'compte', ['toast', 'Rappel enregistré', 'Chaque jour à 09:00']], 'l’autorisation demandée, la feuille fermée');
+  /* 11 novembre, 21 h 33 : plus de bandeau « Rappel enregistré » : la coche sur la ligne du rappel, le lecteur d’écran entend le détail */
+  assert.deepEqual(JSON.parse(JSON.stringify(r.appels)), ['permission', 'fermer', 'compte', ['coche', `#scr-compte .account-setting-row[onclick="openPlusDetails('plus-reminders')"]`, 'Enregistré', 'Rappel enregistré\u00a0: Chaque jour à 09:00']], 'l’autorisation demandée, la feuille fermée');
   assert.equal(r.ev('RP'), null);
   /* Rouvrir, changer, fermer sans enregistrer : rien ne change */
   const f = rappel({ store: { 'requete-rappel': '1', 'requete-rappel-heure': '19:00' } });
@@ -216,5 +219,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-11-poubelle-notes-v2866' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-11-poubelle-partout-v2867' && app.includes(`const SW_CACHE='${cache}';`));
 });

@@ -33,8 +33,8 @@ function bac(extra = {}) {
 test('le numéro de collection : 01, 02, 03… dans l’ordre des leçons qui ont une carte', () => {
   const ctx = bac();
   assert.deepEqual([4, 5, 9].map(id => ctx.memoSerial(id)), ['01', '02', '03']);
-  const unlock = fn('showUnlock');
-  assert.ok(unlock.includes('mini.textContent=memoSerial(id);'), 'l’annonce de déblocage porte le même numéro');
+  /* 11 novembre, 21 h 33 : plus d’annonce de déblocage, la carte arrive dans le bilan, avec son numéro */
+  assert.ok(fn('bravoUnlockCarte').includes('n=memoSerial(e.cid)'), 'le bilan porte le même numéro');
   assert.ok(app.includes('<b id="card-sheet-title">Carte mémo</b>') && fn('closeCard').includes("t.textContent='Carte mémo';"), 'la fiche s’appelle « Carte mémo »');
 });
 

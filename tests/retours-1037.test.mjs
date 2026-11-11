@@ -150,7 +150,7 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-poubelle-notes-v2866';") && app.includes("const SW_CACHE='requete-2026-11-11-poubelle-notes-v2866';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-poubelle-partout-v2867';") && app.includes("const SW_CACHE='requete-2026-11-11-poubelle-partout-v2867';"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
@@ -215,26 +215,8 @@ test('12 h 28 : le doigt qui tapote sur « Schéma » ; les messages de la véri
 });
 
 /* 9 novembre, 15 h 18 (Elisa : « oui, attendre la fin de la manche ») */
-test('15 h 18 : la flamme du jour attend la fin de la manche de salle, puis s’affiche', () => {
-  const timers = [], cree = [];
-  const toast = { classList: { remove() {}, add() { cree.push('on'); } }, setAttribute() {}, set innerHTML(v) { this.h = v; }, offsetWidth: 0 };
-  const ctx = vm.createContext({
-    JEU: { view: 'play0' }, navigator: {}, LQ_FLAME_SVG: '<svg></svg>', streakJours: () => 3,
-    setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, clearTimeout() {},
-    document: { documentElement: { classList: { contains: () => true } }, getElementById: id => (id === 'lq-streak-toast' && cree.length ? toast : null),
-      createElement: () => toast, body: { appendChild() { cree.push('ajout'); } } },
-  });
-  vm.runInContext(fn('lqStreakToast'), ctx);
-  ctx.lqStreakToast();
-  assert.deepEqual(cree, [], 'pendant la manche : rien');
-  assert.equal(timers.at(-1)[1], 1000, 'elle repasse dans une seconde');
-  ctx.JEU.view = 'draw1'; timers.at(-1)[0](); assert.deepEqual(cree, [], 'le tirage aussi');
-  ctx.JEU.view = 'res1'; timers.at(-1)[0](); assert.deepEqual(cree, [], '19 h 40 : les résultats de la manche aussi (elle passait sur l’en-tête)');
-  ctx.JEU.view = 'final'; ctx.JEU.code = 'ROOM42'; ctx.JEU.g = 0; timers.at(-1)[0]();
-  assert.deepEqual(cree, [], 'le podium : ses points d’abord');
-  assert.equal(timers.at(-1)[1], 3500);
-  timers.at(-1)[0]();
-  assert.ok(cree.includes('on'), 'puis la flamme s’allume');
+test('15 h 18 : la flamme du jour pendant une salle : plus de notification depuis le 11 novembre (21 h 33), la page à l’accueil', () => {
+  assert.ok(!app.includes('function lqStreakToast('));
 });
 
 /* 9 novembre, 17 h 09 (Elisa : « je pense que ça saute quand ça passe du moteur jusqu’au cadre ») */

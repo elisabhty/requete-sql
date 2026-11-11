@@ -164,10 +164,11 @@ test('gestes : au doigt par les événements tactiles (le défilement est bloqu�
   assert.ok(block.includes('if(b.s!==G.s0)stkPaint(G.item);') && block.includes("if(/^[-+=−]$/.test(e.key))stkPaint(item);"), 'agrandi (pincement, poignée, clavier) : repeint net');
   assert.ok(block.includes('item.focus({preventScroll:true});') && block.includes('if(e.ctrlKey||e.metaKey||e.altKey)return;'), 'cliqué : il prend le focus ; Ctrl, Cmd, Alt restent au navigateur');
   assert.ok(block.includes('document.querySelector(`.stk-cell[data-id="${id}"]`)?.focus({preventScroll:true});'), 'décollé : le focus revient sur sa case');
-  assert.ok(block.includes('T.board=prev.filter(b=>!T.board.some(q=>q.id===b.id)).concat(T.board);'), '« Annuler » garde les stickers posés depuis');
+  /* 11 novembre, 21 h 33 : plus de bandeau ni d’« Annuler » ; décollés, les stickers rentrent dans leur case en volant */
+  assert.ok(block.includes('stkVolRentrer(vols);') && !block.includes("'Sticker décollé'") && !block.includes("toastWithAction('Tableau vidé'"), 'décollé : il vole jusqu’à sa case');
 });
 
-test('gagner pendant une leçon ou une partie : le bilan le montre, ou un toast en sortant ; ailleurs, un toast', () => {
+test('gagner pendant une leçon ou une partie : le bilan le montre, ou sa page en sortant ; ailleurs, sa page (11 novembre)', () => {
   assert.ok(take('function noteActivityDay(', '\n}\n').includes('stkAfterProgress();'), 'après chaque avancée');
   assert.ok(take('async function resetAllProgress(', '\n}\n').includes('save(); stkSync();'), 'après l’effacement, les stickers regagnés sont datés');
   assert.ok(html.includes("collection:'Cartes mémo',stickers:'Stickers',"), 'une leçon ouverte depuis Stickers y ramène');
@@ -177,8 +178,7 @@ test('gagner pendant une leçon ou une partie : le bilan le montre, ou un toast 
   assert.ok(block.includes("if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...held);return;}"), 'pendant une partie de Jouer, pas de toast qui ferait quitter la manche (sauf la première requête de l’onboarding, 11 novembre, 20 h 26)');
   assert.ok(take('function openStickers(', '\n}\n').includes("if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(()=>openStickers(id));return;}"), 'partir d’une partie demande confirmation (une vraie fenêtre, puis on y va)');
   assert.ok(take('function noteActivityDay(', '\n}\n').includes('try{stkAfterProgress();}catch(e){}'), 'un dessin qui échoue ne casse pas la validation');
-  assert.ok(block.includes("if(t.classList.contains('on')&&tries<6)"), 'le toast attend que le précédent soit parti');
-  assert.ok(block.includes("k.textContent='Nouveau sticker'") && block.includes("'Ajouté à ta collection','Voir',()=>openStickers(items[0].id)"));
+  assert.ok(!block.includes('function stkAnnounce(') && block.includes('if(won.length&&!shown)setTimeout(()=>stkPageOuvrir(won),450);'), 'plus de bandeau « Nouveau sticker » : sa page');
 });
 
 test('télécharger : PNG détouré, partagé sur téléphone (Photos, Fichiers, imprimante), téléchargé sur ordinateur', () => {

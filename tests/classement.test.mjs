@@ -23,8 +23,8 @@ function makeCls({ nom = 'Elisa', salle = {}, reply } = {}) {
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
     escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     perfColor: () => 1, jeuInitial: n => String(n || '?').charAt(0).toUpperCase(), plur: (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`,
-    lqAsk: o => { asks.push(o); return Promise.resolve(true); }, lqSay: t => said.push(t), buzz() {}, closePlusDetails() {}, renderCompte() {},
-    document: { getElementById: id => (id === 'perf-top' ? el : null) },
+    lqAsk: o => { asks.push(o); return Promise.resolve(true); }, lqSay: t => said.push(t), lqDone: (el, l, t) => said.push(t), buzz() {}, closePlusDetails() {}, renderCompte() {},
+    document: { getElementById: id => (id === 'perf-top' ? el : null), querySelector: () => null },
     fetch: (url, opt) => {
       const fn = url.split('/rpc/')[1], body = JSON.parse(opt.body);
       calls.push({ fn, body, apikey: opt.headers.apikey });

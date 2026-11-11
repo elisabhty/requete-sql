@@ -114,16 +114,9 @@ test('Cartes mémo et Accueil : les cartes arrivent à leur tour et se retournen
   assert.ok(!s44.includes('.home-catalog-head span{'), 'le bouton « Chercher » ne prend pas le style de la rubrique');
 });
 
-test('la notification de flamme reste, et s’anime : chute balancée, anneau, étincelles, « +1 », le compteur qui monte', () => {
-  const t = fn('lqStreakToast');
-  assert.ok(t.includes('<i class="lq-st-ring"></i>${LQ_FLAME_SVG}${\'<i class="lq-st-sp"></i>\'.repeat(6)}<em class="lq-st-plus">+1</em>'));
-  assert.ok(t.includes('<span class="lq-st-odo" aria-hidden="true"><span class="lq-st-new">${n}</span><span class="lq-st-old">${prev}</span></span><span class="acct-sr">${n}</span>'), 'le lecteur d’écran entend le bon nombre');
-  assert.ok(t.includes('const prev=Math.max(0,n-1);') && t.includes('Flamme du jour allumée !'));
-  for (const part of ['#lq-streak-toast.on{animation:lqStIn .7s var(--pop) both}', '#lq-streak-toast.on .lq-st-ring{animation:lqStRing', '#lq-streak-toast.on .lq-st-sp{animation:lqStSpark',
-    '#lq-streak-toast.on .lq-st-plus{animation:lqStPlus', '#lq-streak-toast .lq-st-odo{position:relative;display:inline-block;-webkit-clip-path:inset(0 -6px);clip-path:inset(0 -6px)}',
-    '#lq-streak-toast.on .lq-st-new{animation:lqStNew', '#lq-streak-toast .lq-st-old{position:absolute;left:0;top:0;opacity:0}'])
-    assert.ok(s44.includes(part), part);
-  for (const n of [2, 3, 4, 5, 6, 7]) assert.ok(s44.includes(`#lq-streak-toast .lq-st-sp:nth-of-type(${n}){--a:`), `étincelle ${n}`);
+test('la flamme du jour n’a plus de notification (11 novembre, 21 h 33) : sa page seulement', () => {
+  assert.ok(!app.includes('function lqStreakToast('), 'plus de bandeau de série');
+  assert.ok(fn('noteActivityDay').includes('if(first&&typeof lqFlammeAttendue===\'function\')lqFlammeAttendue(iso);'), 'la page « Bravo » attend l’accueil');
 });
 
 test('mouvement réduit : tout est à sa place d’emblée', () => {
