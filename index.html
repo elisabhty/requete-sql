@@ -7377,8 +7377,9 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
    aux mêmes endroits). À l’ouverture, seize d’entre eux arrivent de partout, grandissent en cases chiffrées et se posent l’une
    après l’autre dans la touche >_ (un cran haptique par case posée) ; les cases se soudent, la touche apparaît d’un coup net
    (coup fort), puis les sept derniers points deviennent les lettres de « Requête » (un cran chacune). On appuie sur la touche
-   (coup moyen) et on y plonge. Ouverture entière à la première ouverture du jour ; les suivantes, une version courte (moins d’une
-   seconde, deux crans et un coup) : Elisa, 13 h 10, « courte avec vibrations ». Revenir dans l’appli encore ouverte ne rejoue rien.
+   (coup moyen) et on y plonge. 17 h 56 (« je n’aime pas l’animation d’arrivée courte, je préfère la longue ») : l’ouverture entière à
+   chaque arrivée dans l’appli ; plus de version courte pour les ouvertures suivantes du jour (13 h 10). Revenir dans l’appli encore
+   ouverte ne rejoue rien.
    14 h 36 (« Est-ce possible de mettre le chat qui marche dessus ? », puis ses deux GIF) : dans l’ouverture pleine, la touche
    entière, le chat saute dessus depuis la gauche (coup léger, la touche plie), y marche jusqu’au milieu (un cran par pas),
    s’assoit et tape deux fois de ses pattes : la touche s’enfonce (coup moyen), puis la seconde fois c’est la touche Entrée
@@ -7390,8 +7391,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   L.classList.add('is-intro');
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
-  var jour=(function(){var x=new Date();return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();})(),court=false;
-  try{court=!calme&&localStorage.getItem('rq-intro-jour')===jour;}catch(e){}
+  try{localStorage.removeItem('rq-intro-jour');}catch(e){}   // le jour de la dernière ouverture entière ne sert plus (17 h 56)
   /* Les points de l’écran de lancement : [x, y] en fractions de la largeur et de la hauteur. Les seize premiers vont aux cases de
      la touche dans l’ordre où elles se posent (en diagonale, du coin haut gauche au coin bas droit, comme le dégradé) ; les sept
      derniers aux lettres de « Requête ». Chaque point va à la case la plus proche, aucun trajet n’en croise un autre. */
@@ -7404,22 +7404,19 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   var nom=L.querySelector('.ld-name');
   if(nom&&!calme){var t=nom.textContent;nom.setAttribute('aria-label',t);
     nom.innerHTML=Array.from(t).map(function(c,i){return '<span class="in-l" aria-hidden="true" style="--i:'+i+'">'+c+'</span>';}).join('');}
-  /* Les deux chronologies, en ms après is-play. Pleine : les cases partent toutes les 22 ms et se posent toutes les 32 ms (de 380 à
+  /* La chronologie, en ms après is-play. Pleine : les cases partent toutes les 22 ms et se posent toutes les 32 ms (de 380 à
      860), chacune aux 82 % de son vol ; soudure à 980, touche entière à 1 080 ; lettres posées de 1 110 à 1 326 ; appui à 1 440,
      plongée ; le violet ne s’efface sur l’appli (de 1 930 à 2 290) qu’une fois la touche assez grande pour remplir presque tout l’écran
-     (jamais une petite touche à moitié transparente sur l’accueil). Courte : tout part ensemble, la moitié gauche se pose à 240, la
-     droite et les lettres à 290, touche entière à 430, plongée, fin à 980. */
+     (jamais une petite touche à moitié transparente sur l’accueil). */
   var PLEINE={soude:980,dSoude:100,fin:1080,appui:1440,dPlonge:640,sortie:1930,dSortie:360,
     k:function(i){return [22*i,380+32*i];},l:function(j){return [560+28*j,1110+36*j];}};
-  var COURTE={soude:360,dSoude:70,fin:430,appui:470,dPlonge:420,sortie:790,dSortie:190,
-    k:function(i,c){return [0,c<2?240:290];},l:function(){return [0,290];}};
   /* Avec le chat : la même construction, puis il saute à 1 100 et se pose sur la touche à 1 380, marche jusqu’au milieu (1 800),
      s’assoit ; ses deux coups de pattes tombent sur ses images 5 et 9 (70 ms chacune) : 2 150, puis 2 430, au plus bas de l’appui
      qui lance la plongée (2 340 + 14 % de 640). Le violet s’efface de 2 830 à 3 190. */
   var CHAT={soude:980,dSoude:100,fin:1080,chat:1100,pose:1380,arret:1800,patte:2150,appui:2340,dPlonge:640,sortie:2830,dSortie:360,k:PLEINE.k,l:PLEINE.l};
   var T=null,HAPTIQUE=[];
   var CHAT_IMG=['assets/ouverture-chat-marche.webp','assets/ouverture-chat-appui.webp'],chatPret=0;
-  if(!calme&&!court&&window.Image){
+  if(!calme&&window.Image){
     CHAT_IMG.forEach(function(u){
       try{
         var im=new window.Image();
@@ -7433,11 +7430,11 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   for(var c=0;c<4;c++)for(var r=0;r<4;r++)ORDRE.push([c,r]);
   ORDRE.sort(function(a,b){return (a[0]+a[1])-(b[0]+b[1])||a[0]-b[0];});
   var sons={},sonCtx=null,avantSon=null;
-  if(!calme&&!court){
+  if(!calme){
     /* Le son (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son ») : assets/sons/ouverture.m4a, calé sur
        l’animation (tools/sons/ouverture.py), chargé pendant le démarrage. Web Audio en session « ambient » : il se mêle à la
        musique en cours au lieu de la couper, et se tait en mode silencieux. Pas prêt à temps : l’ouverture reste muette.
-       La version courte est muette. Avec le chat, son propre son (assets/sons/ouverture-chat.m4a). */
+       Avec le chat, son propre son (assets/sons/ouverture-chat.m4a). */
     try{
       var AC=window.AudioContext||window.webkitAudioContext;
       if(AC&&window.fetch){
@@ -7498,12 +7495,11 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     v.forEach(function(x){L.style.setProperty(x[0],x[1]+'ms');});
   };
   /* L’haptique suit les cases : un cran par case posée (et par lettre), un coup fort quand la touche est entière, un coup moyen
-     quand on appuie dessus (au plus bas, 14 % de la plongée). Courte : un cran par moitié, un coup moyen. Un coup à la fois, chacun
+     quand on appuie dessus (au plus bas, 14 % de la plongée). Un coup à la fois, chacun
      à son heure : si le fil principal est occupé, un cran en retard de plus de 45 ms, ou à moins de 25 ms du précédent, saute au
      lieu de s’entasser ; les coups (léger, moyen, fort) partent toujours. Sans l’extension Haptics, une vibration quand la touche
      est entière. */
   var haptique=function(){
-    if(T===COURTE)return [[240,'cran'],[290,'cran'],[COURTE.fin,'MEDIUM']];
     var H=[];
     for(var n=0;n<16;n++)H.push([T.k(n)[1],'cran']);
     H.push([T.fin,'HEAVY']);
@@ -7535,14 +7531,12 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
     if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
-    T=court?COURTE:chatPret>=CHAT_IMG.length?CHAT:PLEINE;
+    T=chatPret>=CHAT_IMG.length?CHAT:PLEINE;
     HAPTIQUE=haptique();
     construire();
-    if(court)L.classList.add('is-court');
-    else try{localStorage.setItem('rq-intro-jour',jour);}catch(e){}
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       L.classList.add('is-play');
-      if(!court)jouerSon();
+      jouerSon();
       vibrer();
       setTimeout(ranger,T.sortie+T.dSortie+10);
     });});
@@ -48569,7 +48563,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-accueil-texte-v2854';
+  const SW_CACHE='requete-2026-11-11-ouverture-longue-v2855';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

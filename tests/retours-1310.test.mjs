@@ -31,7 +31,7 @@ function lancer({ court = false, largeur = 430, hauteur = 932, haptique = true }
   const ctx = vm.createContext({
     document: { documentElement: { classList: { contains: c => c === 'is-native' } }, getElementById: id => (id === 'loader' ? L : null) },
     window: win, Array, Math, Date, performance: { now: () => t }, matchMedia: () => ({ matches: false }),
-    localStorage: { getItem: k => (k === 'rq-intro-jour' && court ? jour : null), setItem() {} },
+    localStorage: { getItem: k => (k === 'rq-intro-jour' && court ? jour : null), setItem() {}, removeItem() {} },
     navigator: { vibrate: ms => log.push([t, 'vibre ' + ms]) },
     requestAnimationFrame: f => frames.push(f), setTimeout: (f, ms) => timers.push([t + (ms || 0), f])
   });
@@ -88,22 +88,20 @@ test('le logo se construit : aucun trajet n’en croise un autre, sur un grand i
   }
 });
 
-test('haptique : pleine, un cran par case et par lettre, un coup fort pour la touche, un moyen à l’appui ; courte, deux crans et un coup', () => {
+test('haptique : un cran par case et par lettre, un coup fort pour la touche, un moyen à l’appui', () => {
   const pleine = lancer().jouer();
   assert.deepEqual(pleine.filter(c => c[1] !== 'cran').map(c => c.join(' ')), ['1080 HEAVY', '1530 MEDIUM']);
   assert.equal(pleine.filter(c => c[1] === 'cran').length, 23, 'seize cases, sept lettres');
-  const courte = lancer({ court: true }).jouer();
-  assert.deepEqual(courte.map(c => c.join(' ')), ['240 cran', '290 cran', '430 MEDIUM'], 'la moitié gauche, la moitié droite et les lettres, la touche');
-  assert.deepEqual(lancer({ court: true, haptique: false }).jouer().map(c => c.join(' ')), ['430 vibre 25']);
+  assert.deepEqual(lancer({ haptique: false }).jouer().map(c => c.join(' ')), ['1080 vibre 25'], 'sans l’extension : une vibration, la touche entière');
 });
 
-test('version courte : tout part ensemble, la touche entière à 0,43 s, l’appli à 0,98 s', () => {
-  const s = lancer({ court: true }); s.jouer();
-  const ins = [...s.L.html[1].matchAll(/--c:(\d);--r:(\d);--a:(\d+)ms;--v:(\d+)ms/g)];
-  ins.forEach(m => { assert.equal(+m[3], 0); assert.ok(Math.abs(0.82 * m[4] - (+m[1] < 2 ? 240 : 290)) <= 1); assert.ok(+m[4] <= 360); });
-  s.L.querySelectorAll('.in-l').forEach(l => { assert.equal(l.style['--a'], '0ms'); assert.equal(l.style['--v'], Math.round(290 / 0.8) + 'ms'); });
-  assert.ok(s.L.cls.has('is-court'));
-  assert.equal(+parseInt(s.L.style['--t-sortie']) + parseInt(s.L.style['--d-sortie']), 980);
+/* Elisa, 11 novembre, 17 h 56 : « je n’aime pas l’animation d’arrivée courte, je préfère la longue » */
+test('plus de version courte : une ouverture déjà jouée aujourd’hui se rejoue en entier', () => {
+  const s = lancer({ court: true }); const log = s.jouer();
+  assert.ok(!s.L.cls.has('is-court'));
+  assert.equal(log.filter(c => c[1] === 'cran').length, 23, 'toutes les cases et les lettres');
+  assert.equal(+parseInt(s.L.style['--t-sortie']) + parseInt(s.L.style['--d-sortie']), 2290, 'l’appli à 2,29 s, comme la première fois');
+  assert.ok(!intro.includes('COURTE') && intro.includes("try{localStorage.removeItem('rq-intro-jour');}catch(e){}"));
 });
 
 test('styles : les cases recomposent la touche, qui se pose, s’écrit, s’enfonce et plonge ; les lettres sortent de leur point', () => {

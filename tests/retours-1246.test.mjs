@@ -227,7 +227,7 @@ function lancer(store = {}, { calme = false } = {}) {
     document: { documentElement: { classList: { contains: c => c === 'is-native' } }, getElementById: id => (id === 'loader' ? L : null) },
     window: { AudioContext: class { decodeAudioData() {} close() {} }, fetch: u => { log.push('son ' + u); return new Promise(() => {}); } },
     Array, Promise, performance: { now: () => 1000 }, matchMedia: () => ({ matches: calme }),
-    localStorage: { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } },
+    localStorage: { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
     navigator: { vibrate: ms => { log.push('vibre ' + ms); return true; } },
     requestAnimationFrame: f => frames.push(f), setTimeout: (f, ms) => timers.push([ms, f])
   });
@@ -238,7 +238,7 @@ function lancer(store = {}, { calme = false } = {}) {
   return { log, cls, html, nom, L, run, jouer, store };
 }
 
-test('lancement : la première ouverture du jour se joue en entier (son, haptique), et note le jour ; les cases se créent au départ', () => {
+test('lancement : l’ouverture se joue en entier (son, haptique) ; les cases se créent au départ', () => {
   const s = lancer();
   assert.equal(s.html.length, 1, 'au chargement, rien que les points de l’écran de lancement');
   assert.ok(s.log.includes('son assets/sons/ouverture.m4a'), 'le son se charge');
@@ -246,23 +246,22 @@ test('lancement : la première ouverture du jour se joue en entier (son, haptiqu
   s.jouer();
   assert.equal(s.html.length, 2); assert.ok(s.html[1].includes('<i class="in-k" aria-hidden="true"'), 'les cases, au départ de l’ouverture');
   assert.ok(s.cls.has('is-play') && !s.cls.has('is-court'));
-  assert.equal(s.store['rq-intro-jour'], ajd, 'le jour est noté');
+  assert.ok(!('rq-intro-jour' in s.store), '17 h 56 : plus de jour noté'); 
   assert.equal(s.L.style['--t-fin'], '1080ms');
   s.run(1080); assert.ok(s.log.includes('vibre 25'));
   s.run(2300); assert.equal(s.L.style.display, 'none');
 });
 
-test('lancement : les ouvertures suivantes du même jour se jouent en version courte (environ une seconde), sans son', () => {
+/* Elisa, 11 novembre, 17 h 56 : « je n’aime pas l’animation d’arrivée courte, je préfère la longue » */
+test('lancement : les ouvertures suivantes du même jour se jouent aussi en entier, avec le son', () => {
   const s = lancer({ 'rq-intro-jour': ajd });
-  assert.equal((s.nom.innerHTML.match(/class="in-l"/g) || []).length, 7, 'les lettres se construisent aussi');
-  assert.ok(!s.log.some(l => l.startsWith('son')), 'ni son chargé');
+  assert.ok(!('rq-intro-jour' in s.store), 'le jour noté avant est oublié');
+  assert.equal((s.nom.innerHTML.match(/class="in-l"/g) || []).length, 7, 'les lettres se construisent');
+  assert.ok(s.log.includes('son assets/sons/ouverture.m4a'), 'le son se charge');
   s.jouer();
-  assert.ok(s.log.includes('écran retiré') && s.cls.has('is-play') && s.cls.has('is-court'), 'la version courte');
-  assert.equal(s.html.length, 2, 'les cases');
-  assert.equal(s.L.style['--t-fin'], '430ms'); assert.equal(s.L.style['--t-sortie'], '790ms'); assert.equal(s.L.style['--d-sortie'], '190ms');
-  s.run(980); assert.notEqual(s.L.style.display, 'none'); s.run(990); assert.equal(s.L.style.display, 'none', 'rangée en 0,99 s');
-  const hier = lancer({ 'rq-intro-jour': '2020-1-1' });
-  hier.jouer(); assert.ok(hier.cls.has('is-play') && !hier.cls.has('is-court'), 'un autre jour : l’ouverture entière revient');
+  assert.ok(s.log.includes('écran retiré') && s.cls.has('is-play') && !s.cls.has('is-court'), 'l’ouverture entière');
+  assert.equal(s.L.style['--t-fin'], '1080ms');
+  s.run(2280); assert.notEqual(s.L.style.display, 'none'); s.run(2300); assert.equal(s.L.style.display, 'none', 'rangée après la plongée');
   const calme = lancer({}, { calme: true });
   calme.jouer(); assert.ok(calme.cls.has('fade-out') && !('rq-intro-jour' in calme.store), 'mouvement réduit : le fondu, comme avant');
 });
