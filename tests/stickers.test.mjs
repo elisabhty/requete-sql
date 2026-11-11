@@ -83,8 +83,8 @@ test('première mise en route : ce qui était déjà mérité est gagné sans da
 test('accomplissements : une seule liste, pour Mon compte et pour les stickers', () => {
   const w = world();
   const acc = JSON.parse(w.run('JSON.stringify(accomplissements())'));
-  assert.deepEqual(acc.map(a => a.label), ['Première requête', 'Premier défi réussi', '10 leçons', 'Série de 3 jours', 'Code partagé', '10 défis', '1ᵉʳ en multijoueur', 'Défi difficile', 'Série de 7 jours', '5 parties à plusieurs', '2 semaines de flamme', 'Champion', '1 mois de flamme', 'Parcours terminé']);
-  assert.deepEqual(acc.map(a => a.goal), [1, 1, 10, 3, 1, 10, 1, 1, 7, 5, 14, 5, 30, 3], 'parcours : tous les modules');
+  assert.deepEqual(acc.map(a => a.label), ['Première requête', 'Premier défi réussi', '10 leçons', 'Série de 3 jours', 'Code partagé', 'Tes propres données', '10 défis', '1ᵉʳ en multijoueur', 'Défi difficile', 'Série de 7 jours', '5 parties à plusieurs', '2 semaines de flamme', 'Champion', '1 mois de flamme', 'Parcours terminé']);
+  assert.deepEqual(acc.map(a => a.goal), [1, 1, 10, 3, 1, 1, 10, 1, 1, 7, 5, 14, 5, 30, 3], 'parcours : tous les modules');
   const account = take('function renderCompte(){', 'function openLegal(');
   assert.ok(account.includes('accomplissements().map(') && account.includes("stkArtHtml(b.id,b.unlocked?'art':'lock')") && account.includes("onclick=\"openStickers('${b.id}')\""), 'Mon compte montre le sticker de chaque accomplissement et ouvre sa fiche');
   assert.ok(account.includes('!!stkGot[a.id]||a.ok'), 'un accomplissement gagné reste débloqué');
@@ -100,7 +100,7 @@ test('dessins : un par module, dans l’ordre de MODULES, et un par accomplissem
   const ids = vm.runInContext('STK_MODULE_IDS', ctx), art = vm.runInContext('Object.keys(STK_ART)', ctx), d3 = vm.runInContext('[...STK_3D]', ctx);
   assert.equal(ids.length, 15);
   assert.equal(new Set(ids).size, 15);
-  const accIds = ['requete', 'defi1', 'lecons10', 'serie3', 'code', 'defis10', 'premier', 'difficile', 'serie7', 'amis5', 'serie14', 'champion', 'serie30', 'parcours'];
+  const accIds = ['requete', 'defi1', 'lecons10', 'serie3', 'code', 'donnees', 'defis10', 'premier', 'difficile', 'serie7', 'amis5', 'serie14', 'champion', 'serie30', 'parcours'];
   assert.deepEqual([...d3].sort(), [...ids, ...accIds].sort(), 'chaque sticker a son rendu 3D, aucun en trop');
   for (const id of d3) assert.ok(fs.existsSync(new URL(`../assets/stickers/${id}.webp`, import.meta.url)), `${id} : assets/stickers/${id}.webp`);
   assert.deepEqual([...art].sort(), [...ids, 'requete', 'lecons10', 'serie3', 'defis10', 'serie7', 'parcours'].sort(), 'le dessin à plat reste en secours pour les 21 premiers');
