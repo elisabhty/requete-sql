@@ -17,7 +17,8 @@ const compte = cut('function renderCompte(){', '\nfunction ');
 test('« Noter Requête » mène à la page « Écrire un avis » de la fiche App Store de Requête', () => {
   assert.ok(app.includes("const APP_STORE_ID='6830361256';"), 'la fiche App Store Connect de Requête (IOS.md)');
   assert.ok(app.includes('const url=`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`;'));
-  assert.ok(compte.includes('onclick="noterAppli()"'));
+  /* 11 novembre, 12 h 25 : la ligne de Mon compte est retirée (retours-1225) ; noterAppli reste prête */
+  assert.ok(!compte.includes('onclick="noterAppli()"') && app.includes('function noterAppli(){'));
 });
 
 /* 6 novembre, 11 h 12 : Elisa choisit la direction C de l’audit de la carte (retours-1013-compte) : « Niv. 2 » et le nom du niveau
