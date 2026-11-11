@@ -35,37 +35,55 @@ test('l’ordre : les questions, « Ton parcours est prêt », la connexion, le 
   assert.deepEqual(abonne.vers, ['plan-ready'], 'déjà abonné : pas de paywall');
 });
 
-test('les prix : 44,99 € par an en gros, 0,86 € par semaine dessous, −86 %, 5,99 € par semaine ; l’annuel choisi d’avance', () => {
+// 11 novembre, 1 h 42 : la refonte d’après sa maquette ; 1 h 43 : « Dire que c’est via le site internet (avis etc) ».
+const nb = x => x.replace(/&nbsp;/g, ' ').replace(/[  ]/g, ' ');
+const dateEssai = j => { const d = new Date(); d.setDate(d.getDate() + j); return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }).replace(/^1 /, '1er '); };
+
+test('les prix : 44,99 € / an en gros, 0,86 € par semaine, −86 %, 5,99 € / semaine ; l’annuelle « Meilleur choix », choisie d’avance', () => {
   const { ctx } = monter();
-  const h = ctx.obPaywallHTML().replace(/[\u00a0\u202f](?!%)/g, ' ').replace(/&nbsp;/g, '\u00a0');
-  assert.ok(h.includes('<span class="pw-o-p"><b>44,99 €</b> par an</span><span class="pw-o-s"><i class="pw-essai">3\u00a0jours gratuits</i>soit 0,86 € par semaine</span>'));
-  assert.ok(h.includes('<span class="pw-o-p"><b>5,99 €</b> par semaine</span>'));
-  assert.ok(h.includes('<span class="pw-badge">−86\u00a0%</span>'));
-  assert.ok(/class="pw-offre is-an is-on" role="radio" aria-checked="true"/.test(h) && /class="pw-offre is-semaine" role="radio" aria-checked="false"/.test(h));
-  assert.ok(h.indexOf('is-an') < h.indexOf('is-semaine'), 'l’annuel en haut');
-  assert.ok(h.includes('Elisa, va au bout de ton <em>objectif</em>.') && h.includes('<b>Progresser en SQL</b> · fin estimée le 3 décembre'), 'son parcours d’abord');
-  assert.ok(h.includes('<b>71\u00a0leçons vidéo</b>') && h.includes('<b>477\u00a0défis</b>'), 'les vrais chiffres');
-  assert.ok(h.includes('Plus de 1 000 personnes apprécient Requête'), 'la preuve sociale vérifiée');
+  const h = nb(ctx.obPaywallHTML());
+  assert.ok(h.includes('<span class="pw-o-p"><b>44,99 €</b> / an</span>') && h.includes('<span class="pw-o-p"><b>5,99 €</b> / semaine</span>'));
+  assert.ok(h.includes('<i class="pw-essai">3 jours gratuits</i>') && h.includes('<span class="pw-o-s"><span class="pw-soit">Soit </span><b>0,86 €</b> par semaine</span>'));
+  assert.ok(h.includes('<span class="pw-badge">−86 %</span>') && h.includes('Meilleur choix</span>'));
+  assert.ok(/class="pw-offre is-an is-on" role="radio" aria-checked="true" aria-label="Annuel, 44,99 € par an, 3 jours gratuits, soit 0,86 € par semaine"/.test(h)
+    && /class="pw-offre is-semaine" role="radio" aria-checked="false" aria-label="Hebdomadaire, 5,99 € par semaine, sans essai gratuit"/.test(h), 'lu en entier par VoiceOver');
+  assert.ok(h.indexOf('is-an') < h.indexOf('is-semaine'), 'l’annuelle en haut');
+  assert.ok(h.includes('Elisa, tu es prêt·e à atteindre <em>ton objectif</em> !') && h.includes('<b>Progresser en SQL</b>, fin estimée le 3 décembre.'), 'son parcours d’abord');
+  assert.ok(h.includes('<b>71 leçons vidéo</b>et leurs exercices') && h.includes('<b>477 défis</b>en solo ou entre amis') && (h.match(/class="pw-ico"/g) || []).length === 3, 'les vrais chiffres, avec leurs icônes');
+  assert.ok(h.includes('Économise<br><b>266 €</b>') && h.includes('<b>0 €</b><br>aujourd’hui') && h.includes('Accès<br><b>illimité</b>'), 'l’économie réelle : 5,99 × 52 − 44,99');
+  assert.ok(h.includes('Accès complet') && h.includes('Sans engagement') && h.includes('Sans essai'), 'l’hebdomadaire dit ce qu’elle comprend');
+  assert.ok(h.includes('<b>+1 000 apprenant·es</b> font déjà confiance à Requête<small>Chiffre et avis issus du site requeteapp.com</small>'), 'la preuve sociale, et d’où elle vient');
+  assert.ok(!/★|4,5|note moyenne/.test(h), 'pas de note étoilée : l’appli n’en a pas encore');
   assert.ok(h.includes('assets/chat-diplome.webp'), 'le chat diplômé');
 });
 
-test('le pied : avec l’annuel, l’essai de 3 jours, ce qui suit et ses liens ; avec la semaine, « Sans engagement » (18 h 49 : « Oui » à l’essai)', () => {
-  const nb = x => x.replace(/[\u00a0\u202f]/g, ' ').replace(/&nbsp;/g, ' ');
+test('le pied : le bouton dit ce qu’il fait, trois réassurances, la date et le montant du premier prélèvement', () => {
   const { ctx, pied } = monter();
   ctx.obPaywallPied();
   let [libelle, , , , note] = pied.at(-1);
   assert.equal(nb(libelle), 'Essayer gratuitement 3 jours');
-  assert.ok(nb(note.html).includes('<b class="pw-sans">3 jours gratuits, puis 44,99 € par an.</b> Annule avant la fin de l’essai et tu ne paies rien. Renouvellement automatique ensuite')
-    && note.html.includes('Conditions') && note.html.includes('Confidentialité'));
-  assert.ok(nb(ctx.obPaywallHTML()).includes('<span class="pw-o-s"><i class="pw-essai">3 jours gratuits</i>soit 0,86 € par semaine</span>') && (nb(ctx.obPaywallHTML()).match(/pw-essai/g) || []).length === 1, 'la pastille sur l’annuel seulement');
+  const n = nb(note.html);
+  assert.ok(n.includes(`<b class="pw-sans">3 jours gratuits, puis 44,99 € par an à partir du ${dateEssai(3)}.</b> Renouvellement automatique, sauf annulation 24 h avant (réglages Apple).`));
+  assert.ok(n.includes('Paiement Apple') && n.includes('Annulable') && n.includes('Données protégées') && n.includes('Conditions') && n.includes('Confidentialité'));
+  assert.equal((nb(ctx.obPaywallHTML()).match(/pw-essai/g) || []).length, 1, 'la pastille sur l’annuelle seulement');
   ctx.obPaywallChoisir('semaine');
   [libelle, , , , note] = pied.at(-1);
-  assert.equal(libelle, 'Commencer mon parcours');
-  assert.ok(nb(note.html).includes('<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à 5,99 € par semaine'));
+  assert.equal(nb(libelle), 'S’abonner pour 5,99 €', 'le prix avant de valider');
+  assert.ok(nb(note.html).includes('<b class="pw-sans">5,99 € aujourd’hui, puis chaque semaine.</b> Renouvellement automatique'));
   const deja = monter({ achat: { acheter: async () => true, essaiDispo: () => false } });
   deja.ctx.obPaywallPied();
-  assert.equal(deja.pied.at(-1)[0], 'Commencer mon parcours', 'essai déjà utilisé : plus proposé');
-  assert.ok(!deja.ctx.obPaywallHTML().includes('pw-essai'));
+  assert.equal(nb(deja.pied.at(-1)[0]), 'S’abonner pour 44,99 €', 'essai déjà utilisé : plus proposé');
+  const hd = nb(deja.ctx.obPaywallHTML());
+  assert.ok(!hd.includes('pw-essai') && hd.includes('Un paiement<br><b>par an</b>') && hd.includes('À la semaine') && !hd.includes('Sans essai'));
+  assert.ok(nb(deja.pied.at(-1)[4].html).includes('<b class="pw-sans">44,99 € aujourd’hui, puis chaque année.</b>'));
+});
+
+test('les prix de la boutique : l’économie dans la devise du pays, et rien quand la devise manque', () => {
+  const usd = monter({ achat: { acheter: async () => true, prix: k => k === 'an' ? { prix: 39.99, texte: '39,99 $', parSemaine: '0,76 $', devise: 'USD' } : { prix: 4.99, texte: '4,99 $', parSemaine: '4,99 $', devise: 'USD' } } });
+  const h = nb(usd.ctx.obPaywallHTML());
+  assert.ok(h.includes('<b>39,99 $</b> / an') && /Économise<br><b>219 \$/.test(h), h.match(/Économise[^/]*/)?.[0]);
+  const sans = monter({ achat: { acheter: async () => true, prix: k => k === 'an' ? { prix: 39.99, texte: '39,99 $', parSemaine: '0,76 $' } : { prix: 4.99, texte: '4,99 $', parSemaine: '4,99 $' } } });
+  assert.ok(!sans.ctx.obPaywallHTML().includes('Économise'), 'sans devise connue, pas de montant inventé');
 });
 
 test('tant que l’achat n’est pas branché : « Continuer » discret et le bouton entrent dans l’app ; branché, seul le paiement passe', async () => {
@@ -80,10 +98,11 @@ test('tant que l’achat n’est pas branché : « Continuer » discret et le bo
   assert.ok(app.includes("  else if(slide==='paywall'){if(!obAchatPret())obPaywallPasser();}"), 'Suivant et le glissé ne passent la page que sans achat branché');
 });
 
-test('la DA du site : cartes blanches à rebord, bord soleil pour l’offre choisie, coches jaunes, contrastes lisibles ; tout tient sur un iPhone SE', () => {
-  for (const r of ['html #onboarding.ob-vitrine .pw-offre.is-on{border-color:var(--v-sun);', 'html #onboarding.ob-vitrine .pw-plus li::before{content:\'\';',
-    'html #onboarding.ob-vitrine .pw-tag{display:inline-block;', 'html #onboarding.ob-vitrine .pw-o-s{grid-area:s;color:#0E7A47;', 'background:#C8306A;color:#fff;',
-    '@media (max-height:700px){html #onboarding.ob-vitrine .pw-chat{width:74px;top:-2px}'])
+test('la DA du site : cartes à rebord, la choisie blanche à bord soleil, coche qui rebondit, pied resserré ; « Continuer » au bout de 2 s', () => {
+  for (const r of ['html #onboarding.ob-vitrine .pw-offre.is-on{background:#fff;border-color:var(--v-sun);', 'html #onboarding.ob-vitrine .pw-reco{position:absolute;',
+    'html #onboarding.ob-vitrine .pw-tag{display:inline-block;', 'html #onboarding.ob-vitrine .pw-plus li+li{border-left:', 'background:#C8306A;color:#fff;',
+    '@media (max-height:700px){html #onboarding.ob-vitrine .pw-chat{width:104px;', '@media (max-width:380px){', 'html #onboarding.ob-vitrine.ob-paywall-step .ob-foot{padding-top:10px!important;',
+    'html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-offre.is-on .pw-o-radio{animation:pwCoche'])
     assert.ok(css.includes(r), r);
   assert.ok(css.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-passer{animation:pwPasser .4s ease-out 2s both}'), '« Continuer » arrive au bout de deux secondes');
 });

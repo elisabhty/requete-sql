@@ -43760,40 +43760,83 @@ function obOffreInfo(){
   const pa=ba?ba.prix:an.prix,ps=bs?bs.prix:se.prix;
   const parSemaine=Math.floor(pa/an.semaines*100)/100,eco=Math.round((1-pa/(ps*an.semaines))*100);
   const parSemaineTexte=ba&&ba.parSemaine?ba.parSemaine:obEuros(parSemaine);
-  return {parSemaine,eco,parSemaineTexte};
+  /* Ce qu’on économise en un an face à 52 semaines payées à la semaine (5,99 × 52 − 44,99 = 266 €), arrondi à l’euro du dessous.
+     Avec les prix de la boutique, dans la devise du pays (REQUETE_ACHAT.prix(…).devise) ; sans devise connue, on ne l’affiche pas. */
+  const gain=Math.floor(ps*an.semaines-pa);let economie='';
+  if(gain>0){if(!ba&&!bs)economie=obEuros(gain);
+    else if(ba&&ba.devise&&(!bs||!bs.devise||bs.devise===ba.devise)){try{economie=new Intl.NumberFormat('fr-FR',{style:'currency',currency:ba.devise,maximumFractionDigits:0}).format(gain);}catch(e){}}}
+  return {parSemaine,eco,parSemaineTexte,economie};
 }
+/* Le jour du premier prélèvement après l’essai (« 3 jours gratuits, puis 44,99 € par an à partir du 14 novembre ») */
+function obDateApresEssai(j){const d=new Date();d.setDate(d.getDate()+j);return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}).replace(/^1 /,'1er ');}
+/* ---------- Le paywall, refonte (Elisa, 11 novembre, 1 h 42, d’après sa maquette et les conseils qui l’accompagnent) ----------
+   Le même violet, le chat diplômé plus grand ; « Elisa, tu es prêt·e à atteindre ton objectif ! » ; les trois avantages en colonnes,
+   chacun avec son icône ; l’annuelle « Meilleur choix » (pastilles « 3 jours gratuits » et « −86 % », prix par semaine, et trois
+   repères : l’économie réelle sur un an, l’accès à tout, « 0 € aujourd’hui » pendant l’essai) ; l’hebdomadaire, lavande tant
+   qu’elle n’est pas choisie, avec ce qu’elle comprend et ce qu’elle ne comprend pas ; la preuve sociale dit d’où viennent le chiffre
+   et les avis (1 h 43 : « Dire que c’est via le site internet (avis etc) ») et n’affiche pas de note étoilée, l’appli n’en a pas
+   encore ; sous le bouton, trois réassurances, puis la date et le montant du premier prélèvement (la mention qu’Apple demande). */
+const PW_ICO={
+  video:'<svg class="pw-ico" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="pwgV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A48BFF"/><stop offset="1" stop-color="#6A4DF4"/></linearGradient></defs><rect x="11" y="7" width="31" height="23" rx="7" fill="#C9BCFF" stroke="#fff" stroke-width="2.5"/><rect x="5" y="13" width="33" height="26" rx="8" fill="url(#pwgV)" stroke="#fff" stroke-width="3"/><path d="M18 20.5v11.5l9.5-5.75z" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M10 18.5c1.5-1.6 3.4-2.2 5.5-2.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".55"/></svg>',
+  manette:'<svg class="pw-ico" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="pwgM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A48BFF"/><stop offset="1" stop-color="#6A4DF4"/></linearGradient></defs><path d="M14.5 12h19c5.5 0 9 4.6 9.8 10.4l1.1 8.2c.7 4.8-4.6 7.6-8 4.2L32.5 31h-17l-3.9 3.8c-3.4 3.4-8.7.6-8-4.2l1.1-8.2C5.5 16.6 9 12 14.5 12z" fill="url(#pwgM)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M15.5 18.5v8M11.5 22.5h8" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="32" cy="19.8" r="2.3" fill="#FFC83D"/><circle cx="36.6" cy="24.2" r="2.3" fill="#9FF0C6"/><circle cx="31.6" cy="27" r="2.1" fill="#fff"/></svg>',
+  cartes:'<svg class="pw-ico" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="pwgC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A48BFF"/><stop offset="1" stop-color="#6A4DF4"/></linearGradient></defs><rect x="6" y="11" width="22" height="29" rx="5" fill="#C9BCFF" stroke="#fff" stroke-width="2.5" transform="rotate(-14 17 25.5)"/><rect x="20" y="10" width="22" height="29" rx="5" fill="#DCD3FF" stroke="#fff" stroke-width="2.5" transform="rotate(12 31 24.5)"/><rect x="13" y="8" width="22" height="30" rx="5.5" fill="url(#pwgC)" stroke="#fff" stroke-width="3"/><path d="M24 15.5l2.2 4.6 5 .6-3.7 3.5.9 5-4.4-2.4-4.4 2.4.9-5-3.7-3.5 5-.6z" fill="#FFC83D" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  couronne:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5l4.2 3.6L12 5.5l4.3 6.6 4.2-3.6-1.6 9.5H5.1z" fill="#1B1640"/><rect x="5" y="18.6" width="14" height="2.6" rx="1.3" fill="#1B1640"/></svg>',
+  pieces:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><ellipse cx="10" cy="6.5" rx="6.5" ry="2.8"/><path d="M3.5 6.5v4c0 1.5 2.9 2.8 6.5 2.8s6.5-1.3 6.5-2.8v-4M3.5 10.5v4c0 1.5 2.9 2.8 6.5 2.8"/><ellipse cx="15.5" cy="15" rx="5.5" ry="2.5"/><path d="M10 15v3.5c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5V15"/></svg>',
+  infini:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 12c-2-2.6-3.7-4-5.6-4a4 4 0 1 0 0 8c1.9 0 3.6-1.4 5.6-4zm0 0c2 2.6 3.7 4 5.6 4a4 4 0 1 0 0-8c-1.9 0-3.6 1.4-5.6 4z"/></svg>',
+  agenda:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="8.5" cy="14.5" r="1" fill="currentColor"/><circle cx="12" cy="14.5" r="1" fill="currentColor"/><circle cx="15.5" cy="14.5" r="1" fill="currentColor"/></svg>',
+  coche:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  moins:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M7 12h10"/></svg>',
+  cadenas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10.5" rx="3"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/></svg>',
+  renouv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 9A8 8 0 0 0 5.2 7.4M4.5 15a8 8 0 0 0 14.3 1.6"/><path d="M19.8 4v5h-5M4.2 20v-5h5"/></svg>',
+  bouclier:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6z"/><path d="M8.6 12.2l2.4 2.4 4.4-4.6"/></svg>',
+  laurier:'<svg class="pw-laurier" viewBox="0 0 24 48" aria-hidden="true"><path d="M17 45C8 38 5 26 9 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><g fill="currentColor"><ellipse cx="13" cy="38" rx="2.6" ry="5.2" transform="rotate(-55 13 38)"/><ellipse cx="9.5" cy="31" rx="2.5" ry="5" transform="rotate(-35 9.5 31)"/><ellipse cx="7.6" cy="23.5" rx="2.4" ry="4.8" transform="rotate(-15 7.6 23.5)"/><ellipse cx="7.6" cy="16" rx="2.3" ry="4.5" transform="rotate(5 7.6 16)"/><ellipse cx="9" cy="9" rx="2.1" ry="4" transform="rotate(22 9 9)"/><ellipse cx="15.5" cy="33" rx="2.2" ry="4.4" transform="rotate(40 15.5 33)"/><ellipse cx="13.2" cy="25.5" rx="2.1" ry="4.2" transform="rotate(30 13.2 25.5)"/><ellipse cx="12.6" cy="18" rx="2" ry="4" transform="rotate(35 12.6 18)"/></g></svg>'
+};
 let obPwBusy=false;
 function obPaywallHTML(){
   const o=draft.offre==='semaine'?'semaine':'an',b=typeof obPlanInfo==='function'?obPlanInfo():{goal:'Progresser en SQL',endLabel:'',minutes:20};
-  const {parSemaineTexte,eco}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
+  const {parSemaineTexte,eco,economie}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
   const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
-  const fixe=typeof mascotReduced==='function'&&mascotReduced();
-  const offre=(k,extra)=>{const x=OB_OFFRES[k],on=o===k;
-    return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">
-      ${extra||''}<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${x.titre}</span>
-      <span class="pw-o-p"><b>${obPrixTexte(k)}</b> ${x.par}</span>${k==='an'?`<span class="pw-o-s">${obEssai(k)?`<i class="pw-essai">${obEssai(k)}&nbsp;jours gratuits</i>`:''}soit ${parSemaineTexte} par semaine</span>`:''}</button>`;};
-  const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve"><span class="pw-preuve-stk" aria-hidden="true">${typeof OB_STK_AVIS!=='undefined'?OB_STK_AVIS:''}</span>Plus de ${OB_COMMUNAUTE.toLocaleString('fr-FR')} personnes apprécient Requête</p>`:'';
+  const fixe=typeof mascotReduced==='function'&&mascotReduced(),essaiAn=obEssai('an');
+  const sur=par=>par.replace(/^par /,'/&nbsp;');
+  const prixHtml=k=>`<span class="pw-o-p"><b>${obPrixTexte(k)}</b> ${sur(OB_OFFRES[k].par)}</span>`;
+  const carte=(k,corps,label)=>{const on=o===k;
+    return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" aria-label="${escAttr(label)}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">${corps}</button>`;};
+  const an=OB_OFFRES.an,se=OB_OFFRES.semaine;
+  const reperes=[economie?['pieces',`Économise<br><b>${economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],
+    essaiAn?['agenda','<b>0&nbsp;€</b><br>aujourd’hui']:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
+  const carteAn=carte('an',`<span class="pw-reco">${PW_ICO.couronne}Meilleur choix</span><span class="pw-badge">−${eco}&nbsp;%</span>
+      <span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${an.titre}</span>${prixHtml('an')}
+      ${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours gratuits</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span>
+      <span class="pw-o-plus">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span>`,
+    `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${essaiAn} jours gratuits`:''}, soit ${parSemaineTexte} par semaine`);
+  const inclus=[['coche','Accès complet'],['coche','Sans engagement'],essaiAn?['moins','Sans essai']:['coche','À la semaine']];
+  const carteSe=carte('semaine',`<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${se.titre}</span>${prixHtml('semaine')}
+      <span class="pw-o-inclus">${inclus.map(([i,t])=>`<span class="${i==='moins'?'is-non':''}">${PW_ICO[i]}${t}</span>`).join('')}</span>`,
+    `${se.titre}, ${obPrixTexte('semaine')} ${se.par}${essaiAn?', sans essai gratuit':''}`);
+  const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve">${PW_ICO.laurier}<span class="pw-preuve-t"><b>+${OB_COMMUNAUTE.toLocaleString('fr-FR')} apprenant·es</b> font déjà confiance à Requête<small>Chiffre et avis issus du site requeteapp.com</small></span>${PW_ICO.laurier}</p>`:'';
   const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
   return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
     <div class="pw-hero"><img class="pw-chat" src="assets/chat-diplome${fixe?'-fixe':''}.webp" width="304" height="367" alt="" draggable="false">
-      <span class="pw-tag">Ton parcours est prêt</span>
-      <h1 class="ob-title" id="ob-title">${nom?`${esc(nom)}, va`:'Va'} au bout de ton <em>objectif</em>.</h1>
-</div>
-    <p class="pw-but"><b>${esc(b.goal)}</b>${b.endLabel?` · fin estimée le ${esc(b.endLabel)}`:''}</p>
+      <span class="pw-tag">Ton parcours est prêt&nbsp;🚀</span>
+      <h1 class="ob-title" id="ob-title">${nom?`${esc(nom)}, tu`:'Tu'} es prêt·e à atteindre <em>ton objectif</em>&nbsp;!</h1>
+      <p class="pw-but"><b>${esc(b.goal)}</b>${b.endLabel?`, fin estimée le ${esc(b.endLabel)}`:', à ton rythme'}.</p></div>
     <ul class="pw-plus">
-      <li><span><b>${nLecons}&nbsp;leçons vidéo</b> et leurs exercices</span></li>
-      <li><span><b>${nDefis}&nbsp;défis</b> en solo ou entre amis</span></li>
-      <li><span><b>Cartes mémo</b>, entretien SQL et console</span></li></ul>
-    <div class="pw-offres" role="radiogroup" aria-label="Choisis ton offre">${offre('an',`<span class="pw-badge">−${eco}&nbsp;%</span>`)}${offre('semaine')}</div>
+      <li>${PW_ICO.video}<span><b>${nLecons}&nbsp;leçons vidéo</b>et leurs exercices</span></li>
+      <li>${PW_ICO.manette}<span><b>${nDefis}&nbsp;défis</b>en solo ou entre amis</span></li>
+      <li>${PW_ICO.cartes}<span><b>Cartes mémo,</b>entretien et console SQL</span></li></ul>
+    <div class="pw-offres" role="radiogroup" aria-label="Choisis ton offre">${carteAn}${carteSe}</div>
     ${preuve}<p class="ob-compte-msg" id="pw-live" role="status" aria-live="polite"></p></div>`;
 }
 function obPaywallPied(){
   const k=draft.offre==='semaine'?'semaine':'an',o=OB_OFFRES[k],essai=obEssai(k),prix=obPrixTexte(k);
-  /* Avec l’essai : ce qui se passe à la fin est dit en clair (règle d’Apple), et la peur de payer pour rien est levée d’abord. */
-  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours gratuits, puis ${prix} ${o.par}.</b> Annule avant la fin de l’essai et tu ne paies rien. Renouvellement automatique ensuite, sauf annulation 24&nbsp;h avant dans les réglages Apple. `
-    :`<b class="pw-sans">Sans engagement, annulable à tout moment.</b> Renouvellement automatique à ${prix} ${o.par}, sauf annulation 24&nbsp;h avant dans les réglages Apple. `;
-  const legal=texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
-  obSetFooter(essai?`Essayer gratuitement ${essai} jours`:'Commencer mon parcours',obPaywallAcheter,'','',{html:legal},obPwBusy);
+  /* Le bouton dit ce qu’il fait : l’essai, ou le prix exact. Dessous : trois réassurances, puis, avec l’essai, la date et le montant
+     du premier prélèvement (règle d’Apple : ce qui se passe à la fin de l’essai est dit en clair). */
+  const libelle=essai?`Essayer gratuitement ${essai} jours`:`S’abonner pour ${prix}`;
+  const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
+  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours gratuits, puis ${prix} ${o.par} à partir du ${obDateApresEssai(essai)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+    :`<b class="pw-sans">${prix} aujourd’hui, puis ${k==='an'?'chaque année':'chaque semaine'}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;
+  const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+  obSetFooter(libelle,obPaywallAcheter,'','',{html:legal},obPwBusy);
 }
 function obPaywallChoisir(k){
   if(!OB_OFFRES[k]||obPwBusy)return;
@@ -47911,7 +47954,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-10-domaine-v2837';
+  const SW_CACHE='requete-2026-11-11-paywall-v2838';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -47951,6 +47994,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=10"></script>
-<script src="achat.js?v=2"></script>
+<script src="achat.js?v=3"></script>
 </body>
 </html>
