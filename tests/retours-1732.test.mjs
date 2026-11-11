@@ -202,7 +202,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=42']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=43']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -291,9 +291,9 @@ test('23 h 03, « l’écran n’est pas centré » : l’accueil reste centré 
     "html #onboarding.ob-vitrine .ob-screen.welcome::before,html #onboarding.ob-vitrine .ob-screen.welcome::after{content:'';flex:none;width:100%;height:0}",
     'html #onboarding.ob-vitrine .ob-screen.welcome::before{margin-bottom:auto}', 'html #onboarding.ob-vitrine .ob-screen.welcome::after{margin-top:auto}'])
     assert.ok(css.includes(k), k);
-  /* La cause : la règle d’origine centre avec la marge du dernier bloc, et ce bloc (les chiffres) part au palier 2 */
+  /* La cause : la règle d’origine centre avec la marge du dernier bloc ; 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit), les chiffres restent */
   assert.ok(app.includes('.ob-screen.welcome>:last-child{margin-bottom:auto}'));
-  assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-proof-stats{display:none!important}'));
+  assert.ok(!css.includes('.ob-fit-2 .ob-proof-stats{display:none'));
   assert.ok(app.includes('<div class="ob-proof-stats" aria-label="L’apprentissage en bref">') && app.indexOf('<div class="ob-proof-stats"') > app.indexOf('<div class="ob-welcome-demo'), 'les chiffres sont le dernier bloc');
 });
 

@@ -107,7 +107,8 @@ test('l’engagement : le nouveau texte, et le certificat au milieu de l’écra
   assert.ok(css.includes('html #onboarding.ob-vitrine .ob-pact .ob-pact-card{margin-top:auto;margin-bottom:auto}'));
   /* La phrase sous le titre reste sur les téléphones courants ; elle ne part qu’au dernier palier (5), sur le plus petit écran */
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-pact .ob-lead{display:block!important;'));
-  assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-5 .ob-pact .ob-lead{display:none!important}'));
+  /* 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit) : la phrase reste, même au dernier palier */
+  assert.ok(!css.includes('.ob-fit-5 .ob-pact .ob-lead{display:none'));
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"));
   /* 5 novembre, 19 h 41 : le doigt maintenu sur le bouton à l’empreinte remplace la signature (retours-1941) */
   assert.ok(pact.includes("${holdZoneHTML('ob-hold',!!draft.pacte,typeof chatBonusHtml==='function'?chatBonusHtml('serment','ob-hold-chat'):'')}") && app.includes('<button type="button" class="ob-hold${fait?\' is-done\':\'\'}" id="${id}"') && !pact.includes('ob-sign'));
@@ -155,7 +156,7 @@ test('micro-interactions : sens des transitions, entrées en cascade, bouton qui
 
 test('feuille rechargée et cache renouvelé', () => {
   const sw = lire('sw.js');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`), 'même cache dans la page et le service worker');
   assert.ok(cache !== 'requete-2026-11-03-responsive-v2464', 'renouvelé depuis la version d’avant l’onboarding');

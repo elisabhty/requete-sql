@@ -134,14 +134,14 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
     'html #onboarding.ob-vitrine .ob-compte-msg:empty{margin:0;padding:0;border:0}',
     'html #onboarding.ob-vitrine>.ob-build-confetti{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden}'])
     assert.ok(s.includes(r), r);
-  /* La mascotte de la promesse : exclue de l’entrée en cascade, elle peut sauter de joie ; cachée sur les petits écrans (fit-2) */
-  assert.ok(css.includes(':not(.ob-promise-stk)') && css.includes('html #onboarding.ob-vitrine.ob-fit-2 .ob-promise-stk{display:none}'));
+  /* La mascotte de la promesse : exclue de l’entrée en cascade, elle peut sauter de joie ; 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit) : elle reste */
+  assert.ok(css.includes(':not(.ob-promise-stk)') && !css.includes('.ob-fit-2 .ob-promise-stk{display:none}'));
   const media = css.slice(css.indexOf('@media (prefers-reduced-motion:no-preference){'), css.indexOf('@media (prefers-reduced-motion:reduce){', css.indexOf('@media (prefers-reduced-motion:no-preference){')));
   for (const k of ['.ob-enter .ob-account.is-fete .ob-compte-stk{animation:obvJoy .9s var(--v-pop) .22s both}', ' .ob-account .ob-compte-stk.is-oups{animation:obvJoyIcon',
     ' .ob-account.is-fete .ob-fete-emoji{animation:obvFeteEmoji 1.2s var(--v-pop) .4s both}', ' .ob-compte-msg.is-new{transform-origin:50% 0;animation:obvBubbleIn'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvFeteEmoji{'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });

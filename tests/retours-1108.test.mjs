@@ -130,8 +130,7 @@ test('réf. 2 : la page du rappel, « À quel moment ? » comme dans Mon compte 
   /* L’heure choisie est gardée avant la demande d’iOS */
   assert.ok(cut('async function obRappelDemander(){', '/* L’heure et les jours du rappel').includes("const h=(typeof draft!=='undefined'&&draft&&draft.rappelHeure)||rappelHeure();\n  try{localStorage.setItem('requete-rappel-heure',h);}catch(e){}"));
   for (const k of ['html #onboarding.ob-vitrine .ob-rappel-carte{', 'html #onboarding.ob-vitrine .ob-rappel-choix .rp-heure.on{border-color:var(--v-sun);',
-    'html #onboarding.ob-vitrine .ob-rappel-choix .rp-slot.on{background:#fff;', 'html #onboarding.ob-vitrine .ob-rappel-semaine i.on{background:var(--v-accent);color:#fff}',
-    'html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{display:none}'])
+    'html #onboarding.ob-vitrine .ob-rappel-choix .rp-slot.on{background:#fff;', 'html #onboarding.ob-vitrine .ob-rappel-semaine i.on{background:var(--v-accent);color:#fff}'])
     assert.ok(css.includes(k), k);
   assert.ok(!css.includes('.ob-rappel-moment') && !css.includes('.ob-rappel-heure'), 'les anciens styles sont partis');
 });
@@ -148,7 +147,8 @@ test('réf. 4 : « pas de stress, tu pourras le changer dans ton planning », so
   assert.ok(lastCut("}else if(slide==='jours'){", "}else if(slide==='build'){").includes('</div>${obModifiable()}</div>`;'));
   assert.ok(lastCut("}else if(slide==='rhythm'){", "}else if(slide==='jours'){").includes('${obRhythmSummary()}${obModifiable()}</div>`;'));
   assert.ok(!cut('function obRhythmSummary(){', 'function obModifiable(){').includes('modifiable à tout moment'), 'dit une seule fois');
-  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-modifiable{display:flex;') && css.includes('html #onboarding.ob-vitrine.ob-fit-4 .ob-modifiable{display:none}'));
+  /* 11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit) : la phrase reste */
+  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-modifiable{display:flex;') && !css.includes('.ob-fit-4 .ob-modifiable{display:none}'));
 });
 
 test('réf. 5 : sous le clavier, la couleur du bas de la page plutôt que du noir', () => {
@@ -185,7 +185,7 @@ test('réf. 6 et 7 : la première page parle de tous les appareils, et le bouton
   assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
   /* 4 novembre, 14 h 08 (réf. 3) : « monter encore le bouton jaune » : jusqu’à 58 px au-dessus de la barre d’accueil, 34 px au moins */
   assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + clamp(34px,6.6vh,58px))!important}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   /* Le cache a changé de nom ce jour-là (rappel-jours, v2497), et de nouveau à chaque version qui a suivi */
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2497, cache);

@@ -35,7 +35,7 @@ test('clavier ouvert : le champ où l’on tape revient en vue, avec l’accueil
   assert.equal(ecran({ champ: [60, 120], st: 100 }), 48, 'passé au-dessus du bord (défilé de 100) : il redescend');
   assert.equal(ecran({ champ: [200, 260] }), 0, 'déjà en vue : rien ne bouge');
   assert.equal(ecran({ actif: 'BUTTON' }), 0, 'seulement quand on tape dans un champ');
-  assert.ok(fn('obFit', 'function obFitChips(').includes('obFitChips();\n  obChampEnVue();\n}'), 'obFit le ramène en vue après avoir resserré l’écran');
+  assert.ok(fn('obFit', 'function obFitChips(').includes('const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();}));') && fn('obFit', 'function obFitChips(').includes('  metZ(z);\n  apres();\n}'), 'obFit le ramène en vue après avoir mis la page à l’échelle (l’image suivante)');
 });
 
 test('obFit suit la vraie taille de l’onboarding et se relance pendant que le clavier s’ouvre ou se ferme', () => {

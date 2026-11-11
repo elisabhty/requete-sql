@@ -81,14 +81,12 @@ test('réf. 2 : le cadre de la notification, plus grand, blanc, sur un halo qui 
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   for (const k of ['@keyframes obvNotifTombe{0%{opacity:0;transform:translateY(-34px) scale(.86) rotate(-2deg)}', '@keyframes obvNotifHalo{', '@keyframes obvNotifTouche{'])
     assert.ok(css.includes(k), k);
-  /* Quand la page se resserre, le cadre reste : la phrase part avant la flèche ; la mascotte et la flèche partent au palier 3 ; le cadre
-     au palier 4 seulement (avant, dès le palier 2 la flèche partait, et le cadre au palier 3) */
+  /* Quand la page se resserre, tout reste (11 novembre (6 h 54) : plus rien ne disparaît pour tenir, la page se met à l’échelle (obFit)) : la fenêtre, la flèche et la phrase se font plus petites aux paliers 3 et 4 */
   for (const k of ['html #onboarding.ob-vitrine.ob-fit-2 .ob-rappel-step .ob-notif-arrow{display:block;height:34px;margin-top:4px}',
-    'html #onboarding.ob-vitrine.ob-fit-2 .ob-rappel-step .ob-rappel-note{display:none}', 'html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{display:flex}',
-    'html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif-arrow{display:none}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-rappel-step .ob-notif{display:none}'])
+    'html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{width:min(244px,100%)}', 'html #onboarding.ob-vitrine.ob-fit-4 .ob-rappel-step .ob-notif-arrow{height:28px;margin-top:4px}'])
     assert.ok(s.includes(k), k);
-  const i = s.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{display:none}'), j = s.indexOf('html #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{display:flex}');
-  assert.ok(i > 0 && j > i, 'la règle d’après l’emporte');
+  for (const k of ['.ob-rappel-step .ob-rappel-note{display:none}', '.ob-rappel-step .ob-notif-arrow{display:none}', '.ob-rappel-step .ob-notif{display:none}'])
+    assert.ok(!s.includes(k), k);
 });
 
 test('réf. 3 : le bouton jaune remonte encore, et chaque bouton jaune a sa flèche animée', () => {
@@ -223,13 +221,13 @@ test('le style : la carte du site, qui prend la hauteur qui reste ; ses animatio
     'html #onboarding.ob-vitrine .ob-tv-ph{position:relative;flex:1 1 auto;min-height:230px;max-height:470px;overflow:hidden;container-type:inline-size;border:5px solid #fff;border-radius:30px;',
     'html #onboarding.ob-vitrine .ob-tv.is-lecture .ob-tv-ph{box-shadow:0 0 0 5px var(--v-sun-hi),', 'html #onboarding.ob-vitrine .ob-tv-img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:50% 24%;',
     'html #onboarding.ob-vitrine .ob-tv-wave i.on{background:var(--v-mint)}', 'html #onboarding.ob-vitrine .ob-tv-who b{flex:none;font:800 14px/1.1 var(--v-display);letter-spacing:-.01em;color:#fff}',
-    '@container (max-width:329px){html #onboarding.ob-vitrine .ob-tv-nav{display:none}}', 'html #onboarding.ob-vitrine.ob-fit-1 .ob-tv-note{display:none}',
+    '@container (max-width:329px){html #onboarding.ob-vitrine .ob-tv-nav{display:none}}',
     'html #onboarding.ob-vitrine .ob-tv-profs p b{display:block;font:800 17px/1.15 var(--v-display);letter-spacing:-.01em;white-space:nowrap;color:var(--v-accent-ink)}'])
     assert.ok(s.includes(k), k);
   for (const k of ['.ob-enter .ob-tv-ph{animation:obvTvIn .6s var(--v-pop) .08s backwards}', '.ob-enter .ob-tv-faces>*{animation:obvTvFace .42s var(--v-pop) calc(.74s + var(--i,0) * 70ms) backwards}',
     ' .ob-tv:not(.is-lecture) .ob-tv-play::after{animation:obvTvRing 2.4s ease-out 1.4s infinite}', ' .ob-tv-wave i.cur{animation:obvTvCur .45s ease-in-out infinite alternate}'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=42">') && sw.includes("'./onboarding-vitrine.css?v=42',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2501, cache);
 });
