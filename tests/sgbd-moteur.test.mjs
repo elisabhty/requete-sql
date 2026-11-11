@@ -17,9 +17,9 @@ load('const SGBD_NOMS=', 'function sgbdNeedHtml(');
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({ locateFile: f => path.join(root, 'vendor/sqljs', f) });
 const mk = () => {
   const d = new SQL.Database(); ctx.attachDateFns(d);
-  d.run(`CREATE TABLE t(d TEXT, debut TEXT, fin TEXT, email TEXT, nom TEXT, prenom TEXT, telephone TEXT, prix REAL, stock INTEGER, x TEXT, c TEXT);
-    INSERT INTO t VALUES('2026-07-02','2026-06-01','2026-07-02','lea@mail.fr','Martin','Léa','06 12 34 56 78',12.345,73,'42','a');
-    INSERT INTO t VALUES('2026-02-10','2026-01-01','2026-03-01',NULL,'Bernard','Hugo','01 23',7.5,40,'7','b');
+  d.run(`CREATE TABLE t(d TEXT, debut TEXT, fin TEXT, email TEXT, nom TEXT, prenom TEXT, telephone TEXT, prix REAL, stock INTEGER, x TEXT, c TEXT, date_fr TEXT);
+    INSERT INTO t VALUES('2026-07-02','2026-06-01','2026-07-02','lea@mail.fr','Martin','Léa','06 12 34 56 78',12.345,73,'42','a','02/07/2026');
+    INSERT INTO t VALUES('2026-02-10','2026-01-01','2026-03-01',NULL,'Bernard','Hugo','01 23',7.5,40,'7','b','10/02/2026');
     CREATE TABLE commandes(id INTEGER); INSERT INTO commandes VALUES(1),(2);`);
   return d;
 };
@@ -36,10 +36,25 @@ test('toutes les écritures de la page tournent dans le moteur, sauf celles marq
     else if (c.startsWith('SELECT TOP')) q = 'SELECT TOP 3 nom FROM t';
     else if (c.startsWith('id ')) q = `CREATE TABLE z(${c}, v TEXT); INSERT INTO z(v) VALUES('a'),('b'); SELECT MIN(id) FROM z`;
     else if (/^(DELETE|TRUNCATE)/.test(c)) q = `${c}; SELECT COUNT(*) FROM commandes`;
+    /* 11 novembre, 19 h 44 : les écritures qui ne sont pas des expressions tournent dans une vraie requête, et le résultat est vérifié */
+    else if (c.startsWith('ALTER TABLE t RENAME')) q = `${c}; SELECT COUNT(nom_client) FROM t`;
+    else if (/^(BOOLEAN|BIT)$/.test(c)) q = `CREATE TABLE z(ok ${c}); INSERT INTO z VALUES(1); SELECT ok FROM z`;
+    else if (c === 'EXCEPT') q = 'SELECT nom FROM t EXCEPT SELECT nom FROM t WHERE stock > 50';
+    else if (/^WITH( RECURSIVE)?$/.test(c)) q = `${c} n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 3) SELECT COUNT(*) FROM n`;
+    else if (/^BEGIN/.test(c)) q = `${c}; DELETE FROM commandes; ROLLBACK; SELECT COUNT(*) FROM commandes`;
+    else if (c === 'SAVEPOINT p') q = `BEGIN; ${c}; DELETE FROM commandes; ROLLBACK TO p; COMMIT; SELECT COUNT(*) FROM commandes`;
+    else if (c === 'ROLLBACK TO p') q = `BEGIN; SAVEPOINT p; DELETE FROM commandes; ${c}; COMMIT; SELECT COUNT(*) FROM commandes`;
+    else if (c.startsWith('INSERT … ON CONFLICT')) q = "CREATE TABLE u(id INTEGER PRIMARY KEY, v TEXT); INSERT INTO u VALUES(1, 'a'); INSERT INTO u VALUES(1, 'b') ON CONFLICT (id) DO UPDATE SET v = excluded.v; SELECT v FROM u";
     const d = mk();
     let r; try { r = d.exec(q); } catch (e) { assert.fail(`${besoin} (${vm.runInContext('SGBD_NOMS', ctx)[i]}) : ${c} → ${e.message}`); } finally { d.close(); }
     if (c.startsWith('id ')) assert.equal(r.at(-1).values[0][0], 1, `${c} : l’identifiant s’incrémente vraiment`);
     if (/^(DELETE|TRUNCATE)/.test(c)) assert.equal(r.at(-1).values[0][0], 0, `${c} : la table est vide`);
+    if (c.startsWith('ALTER TABLE t RENAME')) assert.equal(r.at(-1).values[0][0], 2, `${c} : la colonne a changé de nom`);
+    if (c === 'EXCEPT') assert.deepEqual(r.at(-1).values, [['Bernard']], 'EXCEPT : seulement les lignes absentes de la 2e requête');
+    if (/^WITH/.test(c)) assert.equal(r.at(-1).values[0][0], 3, `${c} : la récursion compte jusqu’à 3`);
+    if (/^(BEGIN|SAVEPOINT|ROLLBACK)/.test(c)) assert.equal(r.at(-1).values[0][0], 2, `${c} : la suppression est annulée`);
+    if (c.startsWith('INSERT … ON CONFLICT')) assert.equal(r.at(-1).values[0][0], 'b', 'la ligne existante est mise à jour');
+    if (c.startsWith('SUBSTR(date_fr')) assert.equal(r.at(-1).values[0][0], '2026-07-02', 'la date remise dans l’ordre AAAA-MM-JJ');
     n++;
   });
   assert.ok(n > 100, `${n} écritures vérifiées`);
