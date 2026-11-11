@@ -40260,7 +40260,7 @@ const NIVEAUX=[
 const RYTHMES=[
   {k:'calme',i:'10',t:"10 minutes",d:"~2 activités · rythme tranquille",per:2,min:12},
   {k:'regulier',i:'20',t:"20 minutes",d:"~3 activités · rythme régulier",per:3,min:18},
-  {k:'intensif',i:'30',t:"30 minutes",d:"~5 activités · rythme intensif",per:5,min:30}
+  {k:'intensif',i:'30',t:"30 minutes",d:"~4 activités · rythme intensif",per:4,min:30}
 ];
 const FREQS=[
   {k:7,i:'7',t:"Tous les jours",d:"Sept jours sur sept"},
@@ -40272,6 +40272,11 @@ const PATTERN={2:[1,4],3:[1,3,5],5:[1,2,3,4,5],7:[0,1,2,3,4,5,6]};
 const JOURS=['D','L','M','M','J','V','S'];
 /* Un défi : environ 6 minutes ; c’est aussi la durée d’une leçon sans vidéo connue (dureeActiviteS). */
 const MIN_PAR_ACTIVITE=6;
+/* Elisa, 11 novembre, 16 h 36 : « il ne faut pas qu’une personne ait plus de 4 cours dans son planning par jour ». Le rythme
+   intensif passe de 5 à 4 leçons par séance, et une journée ne reçoit jamais plus de 4 leçons, celles déjà validées ce jour-là
+   comprises (planRemplir) : avant, un rééquilibrage ajoutait une séance entière à ce qui était déjà fait aujourd’hui (3 faites +
+   3 à faire). Un planning d’avant trop chargé est rééquilibré à l’ouverture (planSurcharge). */
+const PLAN_MAX_JOUR=4;
 let draft={niveau:null,rythme:null,freq:null};
 let semaineOffset=0,jourSel=null;
 let planToolsOpen=false;
@@ -40319,7 +40324,8 @@ function distribuerSessions(pool,dates){
 }
 /* Réf. 5 (3 novembre, 17 h 32 : « vérifie bien que la page s’adapte si on met autre chose que 30 min »). Le parcours ne faisait
    jamais moins de 30 séances : 20 et 30 minutes donnaient le même planning (3 leçons par jour, puis des jours vides en fin de
-   parcours) et la même date de fin. La durée suit maintenant le rythme : 2, 3 ou 5 activités par séance (10, 20 ou 30 minutes). */
+   parcours) et la même date de fin. La durée suit maintenant le rythme : 2, 3 ou 4 activités par séance (10, 20 ou 30 minutes ;
+   4 au lieu de 5 depuis le 11 novembre, 16 h 36 : jamais plus de 4 cours par jour). */
 function nbSeancesDefaut(pool,perPref){
   return Math.max(1,Math.ceil((pool.length||1)/Math.max(1,perPref)));
 }
@@ -40373,7 +40379,7 @@ function nettoyerPlan(){
   const depuis=new Set(leconsDepuis(from));
   const manquantes=allLessons.map(l=>l.id).filter(id=>depuis.has(id)&&!vus.has(id)&&!arch.has(id)&&!itemDone(id));
   if(manquantes.length){
-    const per=Math.max(1,p.per||3),tJour=dstr(auj());
+    const per=planPer(p.per),tJour=dstr(auj());
     let dernier=p.sessions.length?p.sessions[p.sessions.length-1].d:tJour;
     if(dernier<tJour)dernier=tJour;
     let cible=p.sessions.find(s=>s.d===dernier)||null;
@@ -40481,6 +40487,29 @@ function statsPlan(){
   return {total:all.length,done,reste:remaining.length,seances:p.sessions.length,aVenir,fin,nL,nD,resteL,resteD,
     moy:p.sessions.length?Math.round(toutesActivites().reduce((a,id)=>a+dureeActiviteS(id),0)/60/p.sessions.length):0};
 }
+/* La taille d’une séance : celle du rythme, jamais plus de PLAN_MAX_JOUR */
+function planPer(v){return Math.max(1,Math.min(PLAN_MAX_JOUR,Math.round(+v)||3));}
+/* Combien de leçons déjà validées sont posées sur chaque jour (planAnchorDone) */
+function planFaitsParJour(seances){const m={};(seances||[]).forEach(s=>{m[s.d]=(m[s.d]||0)+s.lessons.length;});return m;}
+/* Les leçons à faire, en séances de `per`, à partir du jour `premier` (il compte toujours), puis sur les jours d’étude du rythme ;
+   un jour qui a déjà des leçons validées n’en reçoit que ce qu’il faut pour rester à `per` (au plus PLAN_MAX_JOUR). */
+function planRemplir(reste,per,freq,premier,faits){
+  const cap=planPer(per),pat=PATTERN[freq]||PATTERN[7],out=[];
+  let d=jour0(premier),i=0,g=0;
+  while(i<reste.length&&g<4000){
+    const iso=dstr(d),place=Math.max(0,cap-((faits&&faits[iso])||0));
+    if(place){out.push({d:iso,lessons:reste.slice(i,i+place)});i+=place;}
+    do{d=addJ(d,1);g++;}while(pat.indexOf(d.getDay())<0&&g<4000);
+  }
+  return out;
+}
+/* Un jour d’aujourd’hui ou à venir avec plus de PLAN_MAX_JOUR leçons dont une reste à faire, ou un rythme d’avant à 5 */
+function planSurcharge(p){
+  if(!p||!Array.isArray(p.sessions))return false;
+  if(+p.per>PLAN_MAX_JOUR)return true;
+  const t=dstr(auj());
+  return p.sessions.some(s=>s&&s.d>=t&&Array.isArray(s.lessons)&&s.lessons.length>PLAN_MAX_JOUR&&s.lessons.some(id=>!itemDone(id)));
+}
 /* Elisa, 10 novembre, 6 h 23 (capture du Planning : 1, 5, 3, 2, 2, 1, 2 activités) : « rééquilibrer ». Les activités qui restent à
    faire sont réparties en séances de même taille, celle du rythme (p.per), sur les jours d’étude à partir d’aujourd’hui (ou du
    prochain jour d’étude si aujourd’hui est un repos sans séance prévue). Les activités validées restent au jour où elles l’ont été.
@@ -40491,14 +40520,14 @@ function planReequilibrer(p){
   const vus=new Set(),reste=[],faits=[];
   [...tri.flatMap(s=>s.lessons),...(Array.isArray(p.archive)?p.archive:[])].forEach(id=>{const k=cle(id);if(vus.has(k))return;vus.add(k);(itemDone(id)?faits:reste).push(id);});
   if(!reste.length)return 0;
-  const per=Math.max(1,Math.round(+p.per)||2);
+  const per=planPer(p.per||2);
   const pat=PATTERN[p.freq]||PATTERN[7],etude=d=>pat.indexOf(d.getDay())>=0;
   const seanceAuj=tri.find(s=>s.d===t);
   let d=auj();
   if(!etude(d)&&!(seanceAuj&&seanceAuj.lessons.some(id=>!itemDone(id))))for(let g=0;g<14&&!etude(d);g++)d=addJ(d,1);
-  const n=Math.ceil(reste.length/per),dates=[dstr(d)];
-  for(let g=0;dates.length<n&&g<4000;g++){d=addJ(d,1);if(etude(d))dates.push(dstr(d));}
-  const nouv=planMergeSessions(planAnchorDone({sessions:tri},faits),dates.map((x,i)=>({d:x,lessons:reste.slice(i*per,(i+1)*per)})));
+  /* 16 h 36 : au plus PLAN_MAX_JOUR leçons par jour, celles déjà validées ce jour-là comprises */
+  const ancrees=planAnchorDone({sessions:tri},faits);
+  const nouv=planMergeSessions(ancrees,planRemplir(reste,per,p.freq,d,planFaitsParJour(ancrees)));
   const sig=l=>JSON.stringify(l.filter(s=>s.lessons.length).map(s=>[s.d,s.lessons]));
   if(sig(nouv)===sig(tri)&&!(p.archive&&p.archive.length))return 0;
   p.sessions=nouv;p.archive=[];
@@ -40514,7 +40543,9 @@ function planDecalerAuto(){
   if(!p||!Array.isArray(p.sessions))return 0;
   const t=dstr(auj());
   const enRetard=p.sessions.filter(s=>s&&s.d&&s.d<t&&Array.isArray(s.lessons)&&s.lessons.some(id=>!itemDone(id)));
-  if(!enRetard.length&&p.equilibre===1)return 0;
+  const surcharge=planSurcharge(p);
+  if(!enRetard.length&&p.equilibre===1&&!surcharge)return 0;
+  if(+p.per>PLAN_MAX_JOUR){p.per=PLAN_MAX_JOUR;p.rythme='intensif';}
   if(enRetard.length){
     const manques=new Set(Array.isArray(p.manques)?p.manques:[]);
     enRetard.forEach(s=>manques.add(s.d));
@@ -40651,7 +40682,7 @@ function collectPlanItems(p){
   return {remaining,done};
 }
 function nearestPlanLoad(v){
-  const loads=[2,3,5],n=Math.max(1,+v||3);
+  const loads=[2,3,PLAN_MAX_JOUR],n=Math.max(1,+v||3);
   return loads.reduce((best,x)=>Math.abs(x-n)<Math.abs(best-n)?x:best,loads[0]);
 }
 function initialPlanAdjustDraft(p){
@@ -40661,11 +40692,13 @@ function initialPlanAdjustDraft(p){
 function planAdjustPreview(p,forced){
   const choice=forced||planAdjustDraft||initialPlanAdjustDraft(p);
   const data=collectPlanItems(p),count=data.remaining.length;
-  const n=count?Math.ceil(count/choice.per):0;
-  const dates=n?datesMotif(auj(),choice.freq,n):[];
+  /* 16 h 36 : aujourd’hui ne reçoit que ce qui manque pour rester à la taille de la séance (les leçons validées aujourd’hui comptent) */
+  const ancrees=planAnchorDone(p,data.done);
+  const seances=count?planRemplir(data.remaining,choice.per,choice.freq,auj(),planFaitsParJour(ancrees)):[];
+  const n=seances.length,dates=seances.map(s=>s.d);
   const end=dates.length?dates[dates.length-1]:null;
   const late=latePlanDetails();
-  return {choice,data,count,n,dates,end,lateCount:late?late.count:0};
+  return {choice,data,count,n,dates,end,ancrees,seances,lateCount:late?late.count:0};
 }
 function setPlanAdjust(field,value){
   const p=state.plan;if(!p)return;
@@ -40710,12 +40743,12 @@ function planAdjustCommit(preview){
   const sc=document.getElementById('scr-planning'),scrollY=sc?sc.scrollTop:0;
   const triggerWasTop=planAdjustTrigger?.classList?.contains('pl-overview-adjust');
   const depuisCompte=!!planAdjustTrigger?.closest?.('#scr-compte');
-  p.sessions=planMergeSessions(planAnchorDone(p,preview.data.done),distribuerSessions(preview.data.remaining,preview.dates));
+  p.sessions=planMergeSessions(preview.ancrees,preview.seances);
   p.archive=[];
   p.per=preview.choice.per;
   p.freq=preview.choice.freq;
   p.equilibre=1;
-  p.rythme=preview.choice.per===2?'calme':(preview.choice.per===5?'intensif':'regulier');
+  p.rythme=preview.choice.per===2?'calme':(preview.choice.per===PLAN_MAX_JOUR?'intensif':'regulier');
   try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours (11 h 08)
   semaineOffset=0;jourSel=dstr(auj());planToolsOpen=false;planAdjustDraft=null;
   hidePlanAdjustSheet(false);
@@ -41755,7 +41788,7 @@ function planAdjustSheetHTML(p){
   const loads=[
     {n:2,name:'Léger',min:12},
     {n:3,name:'Régulier',min:18},
-    {n:5,name:'Intensif',min:30}
+    {n:PLAN_MAX_JOUR,name:'Intensif',min:24}
   ];
   const copy=planAdjustCopy(v);
   return `<p class="pl-adjust-lead">Un programme qui s’adapte à toi, pas l’inverse.</p>
@@ -46817,7 +46850,8 @@ function finishOnboard(action){
   else if(ancien.niveau!==draft.niveau||ancien.rythme!==draft.rythme||+ancien.freq!==+draft.freq){
     const neuf=apercuPlan(draft.niveau,draft.rythme,draft.freq),pool=neuf.sessions.reduce((a,x)=>a.concat(x.lessons),[]);
     const reste=pool.filter(id=>!itemDone(id)),per=(RYTHMES.find(r=>r.k===draft.rythme)||RYTHMES[1]).per;
-    neuf.sessions=planMergeSessions(planAnchorDone(ancien,pool.filter(id=>itemDone(id))),distribuerSessions(reste,reste.length?datesMotif(auj(),draft.freq,Math.ceil(reste.length/per)):[]));
+    const ancrees=planAnchorDone(ancien,pool.filter(id=>itemDone(id)));
+    neuf.sessions=planMergeSessions(ancrees,planRemplir(reste,per,draft.freq,auj(),planFaitsParJour(ancrees)));   // 16 h 36 : 4 par jour au plus
     state.plan=neuf;
   }
   state.name=String(draft.name||state.name||'').trim().slice(0,32);
@@ -48490,7 +48524,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-parcours-bascule-v2850';
+  const SW_CACHE='requete-2026-11-11-quatre-par-jour-v2851';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

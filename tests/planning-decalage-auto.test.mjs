@@ -15,7 +15,8 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const lq = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const fn = n => { const i = app.indexOf('function ' + n + '('); assert.ok(i >= 0, n); return app.slice(i, app.indexOf('\n}\n', i) + 3); };
-const code = ['jour0', 'auj', 'dstr', 'parseD', 'addJ', 'planMergeSessions', 'trierSessions', 'sessionDe', 'debutPlan', 'jourRepos', 'itemDoneDay', 'planAnchorDone', 'planReequilibrer', 'planDecalerAuto'].map(fn).join('\n');
+const code = ['jour0', 'auj', 'dstr', 'parseD', 'addJ', 'planMergeSessions', 'trierSessions', 'sessionDe', 'debutPlan', 'jourRepos', 'itemDoneDay', 'planAnchorDone',
+  'planPer', 'planFaitsParJour', 'planRemplir', 'planSurcharge', 'planReequilibrer', 'planDecalerAuto'].map(fn).join('\n');
 const PATTERN = { 2: [1, 4], 3: [1, 3, 5], 5: [1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };
 
 /* Aujourd’hui = today ; sessions : [['11-09', [1, 2, 3]], …] ; done : { id: jour de validation } ; o.per : la taille d’une séance ;
@@ -25,7 +26,7 @@ function decaler(today, freq, sessions, done = {}, o = {}) {
   const RealDate = Date;
   const lessons = Object.fromEntries(Object.entries(done).map(([id, d]) => [id, { done: true, at: new RealDate('2026-' + d + 'T18:00:00').getTime() }]));
   const ctx = {
-    PATTERN, save: () => { saved++; }, itemDone: id => id in done, isDefiId: () => false, INTERVALS: [1], DAY: 864e5,
+    PATTERN, PLAN_MAX_JOUR: 4, save: () => { saved++; }, itemDone: id => id in done, isDefiId: () => false, INTERVALS: [1], DAY: 864e5,
     state: { lessons, plan: Object.assign({ freq, per: o.per || 3, sessions: sessions.map(([d, l]) => ({ d: '2026-' + d, lessons: [...l] })) }, o.ancien ? {} : { equilibre: 1 }) },
     Date: class extends RealDate { constructor(...a) { super(...(a.length ? a : [today + 'T09:00:00'])); } },
   };
@@ -85,7 +86,7 @@ test('les cas vérifiés dans le navigateur le 10 novembre (fausse horloge, vrai
   assert.deepEqual(decaler('2026-11-12', 7, [['11-08', [1]], ['11-09', [2]], ['11-10', [3]]], { 1: '11-08', 2: '11-09' }, { per: 1 }).jours, ['11-08:1', '11-09:2', '11-12:3']);
   /* Deux fois le même jour : la deuxième ne change rien */
   const RealDate = Date;
-  const ctx = { PATTERN, save() {}, itemDone: () => false, isDefiId: () => false, INTERVALS: [1], DAY: 864e5,
+  const ctx = { PATTERN, PLAN_MAX_JOUR: 4, save() {}, itemDone: () => false, isDefiId: () => false, INTERVALS: [1], DAY: 864e5,
     state: { lessons: {}, plan: { freq: 7, per: 1, equilibre: 1, sessions: [{ d: '2026-11-09', lessons: [1] }, { d: '2026-11-10', lessons: [2] }] } },
     Date: class extends RealDate { constructor(...a) { super(...(a.length ? a : ['2026-11-10T00:30:00'])); } } };
   vm.runInNewContext(code + ';this.f=planDecalerAuto;', ctx);
@@ -115,7 +116,9 @@ test('un nouveau planning (onboarding, « Adapter mon rythme ») démarre le jou
   assert.deepEqual(d('2026-11-15', 2, 3), ['11-15', '11-16', '11-19'], 'dimanche, 2 jours : dimanche, puis lundi, jeudi');
   assert.deepEqual(d('2026-11-09', 7, 3), ['11-09', '11-10', '11-11']);
   assert.ok(fn('apercuPlan').includes('const dates=datesMotif(auj(),freq,n);'), 'la création');
-  assert.ok(fn('planAdjustPreview').includes('const dates=n?datesMotif(auj(),choice.freq,n):[];'), '« Adapter mon rythme »');
+  /* 11 novembre, 16 h 36 : « Adapter mon rythme » place les leçons avec planRemplir (le jour même, puis les jours du rythme, 4 par
+     jour au plus) ; mêmes jours que datesMotif quand rien n’est validé aujourd’hui (tests/retours-1636.test.mjs). */
+  assert.ok(fn('planAdjustPreview').includes('const seances=count?planRemplir(data.remaining,choice.per,choice.freq,auj(),planFaitsParJour(ancrees)):[];'), '« Adapter mon rythme »');
 });
 
 test('« 0 séance validée sur 7 » (Elisa, 10 novembre, 6 h 49) : la semaine et l’avancement se disent en positif', () => {

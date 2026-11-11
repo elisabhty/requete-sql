@@ -113,7 +113,8 @@ test('refaire l’onboarding depuis Mon compte : le planning reste, ou seules le
       RYTHMES: [{ k: 'calme', per: 2 }, { k: 'regulier', per: 3 }], auj: () => 'auj', datesMotif: (a, f, n) => Array.from({ length: n }, (_, i) => 'j' + i),
       apercuPlan: (n, r, f) => { appels.push(['apercu', n, r, f]); return { niveau: n, rythme: r, freq: f, sessions: [{ d: 'j0', lessons: [0, 2] }, { d: 'j1', lessons: [13, 4] }] }; },
       planAnchorDone: (p, done) => { appels.push(['ancrees', done]); return [{ d: 'hier', lessons: done }]; },
-      distribuerSessions: (pool, dates) => { appels.push(['reste', pool, dates]); return [{ d: dates[0], lessons: pool }]; },
+      planRemplir: (pool, per, freq, premier, faits) => { appels.push(['reste', pool, per, freq, premier, faits]); return [{ d: 'j0', lessons: pool }]; },
+      planFaitsParJour: s => ({ [s[0].d]: s[0].lessons.length }),
       planMergeSessions: (a, b) => a.concat(b) });
     vm.runInContext(fo, ctx);
     ctx.finishOnboard('compte');
@@ -124,7 +125,7 @@ test('refaire l’onboarding depuis Mon compte : le planning reste, ou seules le
   assert.equal(x.ctx.state.plan, ancien, 'rien de changé : le même planning');
   assert.deepEqual(plain(x.appels), [['fin', 'compte']]);
   x = fin(ancien, { rythme: 'regulier' });
-  assert.deepEqual(plain(x.appels.slice(0, 3)), [['apercu', 'bases', 'regulier', 7], ['ancrees', [0, 2]], ['reste', [13, 4], ['j0']]]);
+  assert.deepEqual(plain(x.appels.slice(0, 3)), [['apercu', 'bases', 'regulier', 7], ['ancrees', [0, 2]], ['reste', [13, 4], 3, 7, 'auj', { hier: 2 }]]);
   assert.deepEqual(plain(x.ctx.state.plan.sessions), [{ d: 'hier', lessons: [0, 2] }, { d: 'j0', lessons: [13, 4] }], 'les validées à leur jour, le reste à partir d’aujourd’hui');
   x = fin(null, {});
   assert.deepEqual(plain(x.appels[0]), ['apercu', 'bases', 'calme', 7], 'le premier onboarding : le planning se crée');

@@ -91,7 +91,7 @@ test('« commencer toujours par la même leçon » : tout nouveau parcours part 
   assert.ok(info.includes('const startId=ids.length?ids[0]:(allLessons[0]||{}).id,startMod=moduleDeLecon(startId);') && !info.includes('NIVEAUX.find'));
 });
 
-test('Réf. 5 : la promesse suit le rythme — 36, 24 ou 15 jours pour 10, 20 ou 30 minutes (71 leçons, tous les jours)', () => {
+test('Réf. 5 : la promesse suit le rythme — 36, 24 ou 18 jours pour 10, 20 ou 30 minutes (71 leçons, tous les jours ; 4 leçons par jour au plus depuis le 11 novembre, 16 h 36)', () => {
   assert.ok(!code.includes('DUREE_PARCOURS_JOURS') && !code.includes('~30 jours'), 'plus de plancher de 30 jours');
   const ctx = vm.createContext({ allLessons: Array.from({ length: 71 }, (_, id) => ({ id })) });
   const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i > 0, a); return app.slice(i, app.indexOf(b, i)); };
@@ -100,14 +100,15 @@ test('Réf. 5 : la promesse suit le rythme — 36, 24 ou 15 jours pour 10, 20 ou
     fn('leconsDepuis', '/* 3 novembre, 17 h 32 (Elisa) : « commencer toujours'), fn('buildMixPool', 'function apercuPlan('), fn('apercuPlan', 'function validerPlan(')].join('\n')
     + '\nauj=()=>new Date(2026,10,3);', ctx);
   const plan = r => vm.runInContext(`apercuPlan('bases','${r}',7)`, ctx);
-  for (const [r, n] of [['calme', 36], ['regulier', 24], ['intensif', 15]]) {
+  for (const [r, n] of [['calme', 36], ['regulier', 24], ['intensif', 18]]) {
     const p = plan(r);
     assert.equal(p.sessions.length, n, r);
     assert.ok(p.sessions.every(s => s.lessons.length > 0), `${r} : pas de séance vide en fin de parcours`);
     assert.equal(p.sessions.reduce((a, s) => a + s.lessons.length, 0), 71);
     assert.equal(p.sessions[0].lessons[0], 0, 'la première leçon d’abord');
   }
-  assert.equal(plan('intensif').sessions.at(-1).d, '2026-11-17');
+  assert.equal(plan('intensif').sessions.at(-1).d, '2026-11-20');
+  assert.ok(['calme', 'regulier', 'intensif'].every(r => plan(r).sessions.every(s => s.lessons.length <= 4)), 'jamais plus de 4 leçons par jour');
   /* Les jours et la date de fin de la promesse viennent des séances qui ont des leçons */
   const info = fn('obPlanInfo', '/* La construction');
   assert.ok(info.includes('const pleines=p.sessions.filter(x=>(x.lessons||[]).length);') && info.includes('const last=pleines.length?pleines[pleines.length-1].d:dstr(auj());') && info.includes('sessions:pleines.length,'));
