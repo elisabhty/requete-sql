@@ -273,22 +273,23 @@ const rctx = (freq = 7, extra = {}) => {
   return ctx;
 };
 
-test('le rappel : les huit messages d’Elisa, un par jour, jamais le même deux séances de suite', () => {
+test('le rappel : les messages d’Elisa (8, puis 19 de plus le 11 novembre), un par jour, au hasard, puis remélangés', () => {
   const ctx = rctx();
-  assert.deepEqual(JSON.parse(JSON.stringify(ctx.RAPPEL_MESSAGES)), [
-    ['👀 On te voit scroller…', 'Et si tu faisais un petit SELECT ?'],
-    ['🚨 Alerte procrastination', '5 minutes de SQL et on oublie tout.'],
-    ['🧠 Ton cerveau t’appelle', 'Il réclame sa dose de SQL.'],
-    ['💔 Tu nous ghostes ?', 'Ton prochain cours attend toujours.'],
-    ['☕ SQL ou café ?', 'Les deux, c’est encore mieux.'],
-    ['🫣 Encore 5 minutes ?', 'Cette fois, on parle de SQL.'],
-    ['🐛 Erreur 404', 'Motivation introuvable. On relance ?'],
-    ['😏 Netflix peut attendre', 'Une petite requête d’abord ?']]);
+  const L = JSON.parse(JSON.stringify(ctx.RAPPEL_MESSAGES));
+  assert.equal(L.length, 27);
+  assert.deepEqual(L[0], ['👀 On te voit scroller…', 'Et si tu faisais un petit SELECT\u00a0?']);
+  assert.deepEqual(L[8], ['🫣 On ne juge pas…', 'Mais ton dernier SELECT date un peu.'], '11 novembre, 22 h 11');
+  assert.deepEqual(L[26], ['🫣 C’est donc ça, la fidélité\u00a0?', '2 heures sur TikTok, 0 minute sur SQL.']);
   const msg = d => JSON.stringify(vm.runInContext(`rappelMessage(new Date(${d.getTime()}))`, ctx));
-  const jours = Array.from({ length: 16 }, (_, i) => new Date(2026, 10, 5 + i, 7, 45));
-  const m = jours.map(msg);
-  assert.equal(new Set(m.slice(0, 8)).size, 8, 'huit jours de suite : les huit messages');
-  assert.deepEqual(m.slice(8), m.slice(0, 8), 'puis ils recommencent');
+  /* Un tour : autant de jours que de messages, chacun une fois (le tour commence au jour n multiple de 27, depuis 1970) */
+  const n0 = Math.ceil(Date.UTC(2026, 10, 5) / 864e5 / 27) * 27;
+  const tour = k => Array.from({ length: 27 }, (_, i) => new Date((n0 + 27 * k + i) * 864e5 + 12 * 36e5)).map(msg);
+  const t0 = tour(0), t1 = tour(1);
+  assert.equal(new Set(t0).size, 27, 'un tour : les 27, une fois chacun');
+  assert.equal(new Set(t1).size, 27);
+  assert.notDeepEqual(t0, t1, 'puis l’ordre est remélangé');
+  const suite = t0.concat(t1);
+  for (let i = 0; i < suite.length; i++) for (let j = i + 1; j <= i + 7 && j < suite.length; j++) assert.notEqual(suite[i], suite[j], 'pas deux fois le même en une semaine');
   assert.equal(msg(new Date(2026, 10, 5, 23, 59)), msg(new Date(2026, 10, 5, 0, 1)), 'le message dépend du jour, pas de l’heure');
   assert.ok(app.includes("  try{ const [t,b]=rappelMessage(now); new Notification(t,{body:b,tag:'requete-daily'}); }catch(e){}"), 'sur le web aussi');
   const code = (rappel + cut('function tickRappel(){', 'function plusIcon(kind){')).replace(/\/\*[\s\S]*?\*\//g, '');
@@ -306,10 +307,10 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
     assert.equal(notes.length, 56, 'freq ' + freq);
     for (const n of notes) assert.deepEqual([n.title, n.body], [...vm.runInContext('rappelMessage', ctx)(n.schedule.at)], 'le message de son jour');
     assert.ok(notes.every((n, i) => i === 0 || n.title !== notes[i - 1].title), 'deux séances de suite : deux messages');
-    if (freq === 7) assert.equal(new Set(notes.slice(0, 8).map(n => n.title)).size, 8, 'une semaine et un jour : les huit');
+    if (freq === 7) assert.equal(new Set(notes.slice(0, 8).map(n => n.title)).size, 8, 'une semaine et un jour : huit messages différents');
   }
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-11-flamme-une-fois-v2868"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-11-rappels-hasard-v2869"), 'le cache de l’appli change');
 });
