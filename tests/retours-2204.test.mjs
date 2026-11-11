@@ -92,7 +92,7 @@ test('à l’ouverture et au retour dans l’appli : le jour noté, puis les rap
 
 test('« Adapter mon rythme » : les rappels suivent le nouveau planning', () => {
   const c = cut('function planAdjustCommit(preview){', '\n}\n');
-  const i = c.indexOf("p.rythme=preview.choice.per===2?'calme':(preview.choice.per===5?'intensif':'regulier');"), j = c.indexOf('  try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours (11 h 08)');
+  const i = c.indexOf("p.rythme=preview.choice.per===2?'calme':(preview.choice.per===PLAN_MAX_JOUR?'intensif':'regulier');"), j = c.indexOf('  try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours (11 h 08)');
   assert.ok(c.includes('p.sessions=planMergeSessions(') && i > 0 && j > i, 'reprogrammés une fois le planning recalculé');
   assert.ok(c.includes('save();renderPlanning();'), 'et l’enregistrement le vérifie (rappelAuto)');
   /* Passer de « en semaine » à « lundi, mercredi, vendredi » : les rappels du mardi et du jeudi partent */
@@ -108,5 +108,5 @@ test('Mon compte : « Prochain rappel : demain à 10:00. », sans la phrase sur 
   const f = cut('function rappelFeuilleHTML(){', 'function rappelPeindre(){');
   assert.ok(f.includes("    :d.on?(prochain?`Prochain rappel\\u00a0: ${rappelQuand(prochain)}.`"));
   assert.ok(!app.includes('Il suit ton planning\\u00a0: les jours de séance seulement'), 'la dernière phrase est partie');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-parcours-bascule-v2850';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-quatre-par-jour-v2851';"), 'le cache de l’appli change');
 });

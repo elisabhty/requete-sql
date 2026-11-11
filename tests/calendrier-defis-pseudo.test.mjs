@@ -27,7 +27,8 @@ test('réf 1 — le calendrier garde les activités validées, au jour de leur v
   assert.ok(app.includes('if(entry.done&&Number.isFinite(atVal)&&atVal>0) entry.at=atVal;'), 'la sauvegarde garde ce jour');
   assert.ok(!app.includes("plur(p.archive.length,'activité')"), 'plus de « … déjà terminées ont été retirées du calendrier »');
   const ctx = vm.createContext({});
-  vm.runInContext(cut('function nettoyerPlan(', 'function migrerPlan(') + cut('function isDefiId(', 'function itemMeta(') + cut('function trierSessions(', 'function sessionDe('), ctx);
+  vm.runInContext(cut('function nettoyerPlan(', 'function migrerPlan(') + cut('function isDefiId(', 'function itemMeta(') + cut('function trierSessions(', 'function sessionDe(')
+    + 'const PLAN_MAX_JOUR=4;' + cut('function planPer(', '/* Combien de leçons'), ctx);   // 4 leçons par jour au plus (16 h 36)
   const today = new Date(2026, 9, 31);
   Object.assign(ctx, {
     allLessons: [0, 1, 2, 3, 4, 5].map(id => ({ id })), NIVEAUX: [{ k: 'debutant', from: 0 }], leconsDepuis: () => [0, 1, 2, 3, 4, 5],
@@ -53,7 +54,8 @@ test('réf 1 — le calendrier garde les activités validées, au jour de leur v
   assert.equal(vm.runInContext("itemDoneDay(9,'2026-11-04')", ctx), '2026-10-31', 'une séance à venir : aujourd’hui');
   assert.deepEqual(plain(vm.runInContext("planMergeSessions([{d:'2026-11-02',lessons:[4]},{d:'2026-10-30',lessons:[1]}],[{d:'2026-11-02',lessons:[4,7]}])", ctx)),
     [{ d: '2026-10-30', lessons: [1] }, { d: '2026-11-02', lessons: [4, 7] }], 'réunies jour par jour, sans doublon');
-  for (const f of ['planAdjustCommit']) assert.ok(fn(f).includes('p.sessions=planMergeSessions(planAnchorDone(p,'), f + ' : les validées restent au calendrier');
+  /* 16 h 36 : les validées sont ancrées dans l’aperçu (planAdjustPreview), qui compte celles d’aujourd’hui pour rester à 4 par jour */
+  assert.ok(fn('planAdjustPreview').includes('const ancrees=planAnchorDone(p,data.done);') && fn('planAdjustCommit').includes('p.sessions=planMergeSessions(preview.ancrees,preview.seances);'), 'planAdjustCommit : les validées restent au calendrier');
 });
 
 test('réf 3 — un glissement vertical sur la barre d’onglets fait défiler l’écran ; un toucher change toujours d’onglet', () => {
