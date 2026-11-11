@@ -6577,8 +6577,8 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
     /* Elisa, 5 novembre, 19 h 41 : « je n’ai pas de haptique dans l’application ». Les coups de moins de 10 ms (le toucher de chaque
        bouton, 6 à 8 ms) passaient par selectionChanged, qui ne fait rien hors d’une sélection commencée (selectionStart) : presque
        aucun toucher ne vibrait. Chaque coup est maintenant un vrai impact, léger, moyen ou fort selon sa durée.
-       Un seul coup par toucher : le bouton a déjà vibré en s’enfonçant (au pointerdown, voir buzz) ; le petit coup que redonne le même
-       geste (son clic, ou un autre écouteur du même appui) est sauté. */
+       Un seul coup par toucher : le bouton a déjà vibré quand le doigt s’est levé dessus (toucher confirmé, voir lqToucheCible) ; le petit
+       coup que redonne le même geste (son clic, ou un autre écouteur du même toucher) est sauté. */
     var doublon=function(){
       var ev=window.event;if(!ev)return false;
       if(ev===window.__toucheEv)return true;
@@ -6586,11 +6586,17 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
       return ev.type==='click'&&!!b&&!!ev.target&&!!b.contains&&b.contains(ev.target)&&Date.now()-(window.__toucheA||0)<1500;
     };
     window.__toucheDoublon=doublon;
+    /* 11 novembre, 12 h 46 (« étudie tout ce qui est haptique ») : un choix qui change (interrupteur, onglet, filtre, curseur, étoile,
+       pays) donne le cran de sélection d’iOS, plus sec et plus discret qu’un impact. Il ne sonne que dans une sélection ouverte
+       (selectionStart) : on l’ouvre à chaque cran. Les coups de 6 ms et moins sont ces crans ; au-dessus, des impacts. */
+    var cran=function(){try{if(H.selectionStart&&H.selectionChanged){H.selectionStart();H.selectionChanged();}else H.impact({style:'LIGHT'});}catch(e){}};
+    window.__cran=cran;
     var tap=function(ms){
       try{
         if(ms<12&&doublon())return;
         if(ms>=22)H.impact({style:'HEAVY'});
         else if(ms>=12)H.impact({style:'MEDIUM'});
+        else if(ms<=6)cran();
         else H.impact({style:'LIGHT'});
       }catch(e){}
     };
@@ -7371,8 +7377,13 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   L.classList.add('is-intro');
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
-  var son=null,sonCtx=null,avantSon=null;
-  if(!calme){
+  /* 11 novembre, 12 h 46 (« étudie le lancement de l’application ») : l’ouverture entière (2 s, son et haptique) se joue à la première
+     ouverture du jour ; les suivantes, le même jour, s’ouvrent d’un fondu, sans attendre (Apple : ne pas faire patienter à chaque
+     lancement). Revenir dans l’appli encore ouverte ne rejoue rien. La table de données se prépare après la page, plus pendant. */
+  var jour=(function(){var x=new Date();return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();})(),court=false;
+  try{court=!calme&&localStorage.getItem('rq-intro-jour')===jour;}catch(e){}
+  var son=null,sonCtx=null,avantSon=null,table=null;
+  if(!calme&&!court){
     /* « Requête » en lettres, deux ondes et la table, créés tout de suite et invisibles jusqu’au départ */
     var nom=L.querySelector('.ld-name');
     if(nom){var t=nom.textContent;nom.setAttribute('aria-label',t);
@@ -7384,6 +7395,8 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
        le fond, jusqu’à disparaître vers 1 050 unités : un halo de données autour de la touche, le haut et le bas de l’écran restent
        nets. Les plus proches font défiler leur nombre. Puis la requête choisit ses résultats : une dizaine de cases proches
        s’allument l’une après l’autre aux couleurs de l’appli (--p, en ms), juste avant la plongée. */
+    table=function(){
+    table=null;
     var iw=window.innerWidth||390,ih=window.innerHeight||844,u=Math.max(iw,ih)/2732,demi=iw/2/u,haut=ih/2/u-14,bas=ih/2/u+14;
     var graine=11,alea=function(){graine=graine*16807%2147483647;return graine/2147483647;};
     var mele=function(a,b,f){var r='#';for(var i=1;i<7;i+=2){var v=Math.round(parseInt(a.substr(i,2),16)*f+parseInt(b.substr(i,2),16)*(1-f));r+=(v<16?'0':'')+v.toString(16);}return r;};
@@ -7405,6 +7418,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     }
     h+='</div>';
     L.insertAdjacentHTML('afterbegin',h);
+    };
     /* Le son (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son ») : assets/sons/ouverture.m4a, calé sur
        l’animation (tools/sons/ouverture.py), chargé pendant le démarrage. Web Audio en session « ambient » : il se mêle à la
        musique en cours au lieu de la couper, et se tait en mode silencieux. Pas prêt à temps : l’ouverture reste muette. */
@@ -7464,7 +7478,9 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     if(L.classList.contains('is-play')||L.classList.contains('fade-out'))return;
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
-    if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
+    if(calme||court){L.classList.add('fade-out');setTimeout(ranger,340);return;}
+    if(table)table();
+    try{localStorage.setItem('rq-intro-jour',jour);}catch(e){}
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       L.classList.add('is-play');
       jouerSon();
@@ -13805,6 +13821,8 @@ function coachPaint(){
   sl.innerHTML=defiIndicesHTML(COACH.c,COACH.n,COACH.view,COACH.diag,coachNext(),COACH.kind);
   if(COACH.kind==='solo'&&typeof defiSesSave==='function')defiSesSave();
   const card=sl.querySelector('.coach');
+  /* Un essai raté dans un défi : la carte secoue et le téléphone avertit, comme « Pas encore » dans une leçon (11 novembre). */
+  if(card&&COACH.fx==='is-new-ko'&&typeof buzz==='function')buzz('warning');
   if(card&&COACH.fx&&!prefersReduceMotion()){card.classList.add(COACH.fx);setTimeout(()=>card.classList.remove('is-new-hint','is-new-ko'),900);}
   /* 9 novembre, 0 h 31 (Elisa) : « pour l’indice ne met pas un coup de patte à part en bas (notif en bas de page) » : plus de
      pastille « Un coup de patte ? · voir l’indice » en bas de l’écran. L’indice arrive dans sa carte, au-dessus de l’éditeur, qui
@@ -31739,7 +31757,7 @@ function lvOpPlace(){
    la zone s’entoure d’une onde plus forte, le téléphone vibre. */
 function lvOpNudge(){
   const P=LV&&LV.op; if(!P)return;
-  if(navigator.vibrate)navigator.vibrate([10,50,10]);
+  buzz('warning');   // 11 novembre : un rappel, pas une réussite
   const els=[P.layer.querySelector('.lv-op-spot'),P.layer.querySelector('.lv-op-tip,.lv-op-finger')];
   els.forEach(e=>{ e.classList.remove('is-nudge'); void e.offsetWidth; e.classList.add('is-nudge'); });
   clearTimeout(P.nudgeT);
@@ -33405,7 +33423,7 @@ function checkPetitDefi(i){
   fb.hidden=false;
   fb.className='pdefi-fb '+(ok?'ok':'ko');
   fb.innerHTML=ok?`<b>✓</b> ${esc(d.a)}`: `<b>Pas tout à fait.</b> Réponse attendue : <code>${esc(d.a)}</code>`;
-  if(navigator.vibrate)navigator.vibrate(ok?8:25);
+  buzz(ok?'success':'error');
 }
 function stripNoteHtml(s){
   const html=String(s||'');
@@ -33618,7 +33636,7 @@ function initAskSlots(){
       if(box.dataset.done)return;box.dataset.done='1';
       box.querySelectorAll('.ij-ask-opts button').forEach((x,j)=>{x.classList.add(j===ok?'is-right':(j===i?'is-wrong':'is-off'));x.setAttribute('aria-disabled','true');});
       fb.innerHTML=i===ok?box.dataset.yes:box.dataset.no;fb.className='ij-ask-fb '+(i===ok?'is-ok':'is-ko');fb.hidden=false;
-      if(navigator.vibrate)navigator.vibrate(i===ok?8:[10,40,10]);
+      buzz(i===ok?'success':'error');   // 11 novembre : une mauvaise réponse ne vibre plus comme une bonne
     }));
   });
 }
@@ -38016,6 +38034,9 @@ if(typeof document!=='undefined'&&document.addEventListener)document.addEventLis
 function setLessonOut(html){
   const out=document.getElementById('lesson-out');
   if(!out)return;
+  /* 11 novembre (« étudie tout ce qui est haptique ») : la réussite vibrait déjà (celebrate), pas l’échec. « Pas encore » ou le temps
+     écoulé : l’avertissement d’iOS ; une erreur SQL : l’erreur. Les encadrés d’information ne vibrent pas. */
+  {const h=String(html||'');if(h.includes('class="feedback err'))buzz('error');else if(h.includes('class="feedback warn')&&!/console-lock|Non exécutable ici/.test(h))buzz('warning');}
   const scr=document.getElementById('scr-lesson');
   const y=scr?scr.scrollTop:0;
   const live=out.getAttribute('aria-live');
@@ -38186,7 +38207,7 @@ function runLesson(){
         setLessonOut(`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>${(current.noExecOk&&current.noExecOk.t)||'GRANT SELECT suffit pour consulter <code>clients</code>.'}</p></div></div>`+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
           :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
         pulseCta('#lesson-out .next-btn');
-        if(navigator.vibrate)navigator.vibrate(12);
+        buzz('success');
         return;
       }
       markExoPassed();
@@ -38253,7 +38274,7 @@ function runLesson(){
       setLessonOut(head+table+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
         :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
       pulseCta('#lesson-out .next-btn');
-      if(navigator.vibrate)navigator.vibrate(12);
+      buzz('success');
     }else{
       const dejaExo=etapesDe(current.id).exo;
       setEtape(current.id,'exo');
@@ -41766,7 +41787,7 @@ function repondreQcm(i,choix){
     btns.forEach(b=>{b.disabled=true;if(+b.dataset.k===q.b)b.classList.add('bon');});
     if(expl){expl.classList.add('on');expl.innerHTML='<b>✓ Bonne réponse.</b> '+q.e;}
     document.getElementById('qcm-'+i).classList.add('ok');
-    if(navigator.vibrate)navigator.vibrate(10);
+    buzz('success');
     const next=()=>{
       if(mode!=='lesson'||!current||current.id!==id)return;
       if(lecCompletee(id))validerLecon(id); else renderValidation();
@@ -41777,7 +41798,7 @@ function repondreQcm(i,choix){
     const mauvais=picked||zone.querySelector('.qopt[data-k="'+choix+'"]');
     if(mauvais){mauvais.classList.add('faux');mauvais.disabled=true;}
     if(expl){expl.classList.add('on');expl.innerHTML='<b>Pas tout à fait.</b> '+q.e+' Les autres réponses restent ouvertes.';}
-    if(navigator.vibrate)navigator.vibrate(30);
+    buzz('error');
   }
 }
 let bilanAutoTimer=null;
@@ -46708,22 +46729,45 @@ function lqStreakToast(){
   if(navigator.vibrate)navigator.vibrate([10,50,18]);
   clearTimeout(lqStreakToast.t);lqStreakToast.t=setTimeout(()=>t.classList.remove('on'),2800);
 }
+/* Le toucher (11 novembre, 12 h 46) : le retour haptique part quand le toucher est confirmé (le doigt se lève sans avoir glissé),
+   plus quand il se pose. Avant, faire défiler une liste en commençant sur une ligne ou une carte vibrait à chaque fois, sans rien
+   toucher. Un choix (interrupteur, onglet, case, filtre, segment, étoile) donne le cran de sélection ; un bouton, un petit impact ;
+   un appui long, rien (il a son propre retour). */
+const LQ_CHOIX='[role="switch"],[role="tab"],[role="radio"],[role="option"],[role="checkbox"],[aria-pressed],input[type="checkbox"],input[type="radio"],label,.fchip,.chip,.tabbar .tab,.jeu-seg button,.def-levels>button,.ent-status>button,.catalog-filters button,.wk-day,.av-star';
 const LQ_PRESS='.journey-primary,.lq-hero-cta,.btn-run,.xf-run,.qopt,.lq-step button,.home-module-summary,#modules .row,.lq-streak,.journey-resource,.journey-shortcuts button,.fchip,.def-levels>button,.ent-status>button,.jeu-seg button,.account-sections>button,.wk-day,.ls-next,.ls-prev,.tabbar .tab,.catalog-filters button,.plan-next-actions>button';
+function lqToucheCible(t){
+  if(!t||!t.closest)return null;
+  const el=t.closest('button,[role="button"],[role="switch"],[role="tab"],[role="radio"],[role="option"],[role="checkbox"],input[type="checkbox"],input[type="radio"],label,'+LQ_PRESS);
+  if(!el||el.disabled||(el.getAttribute('aria-disabled')==='true'&&!el.hasAttribute('data-jc-gate')))return null;
+  if(el.tagName==='LABEL'&&!el.querySelector('input[type="checkbox"],input[type="radio"]'))return null;   // une étiquette de champ : rien
+  return el;
+}
 if(typeof document!=='undefined'){
+  let lqT=null;
   document.addEventListener('pointerdown',e=>{
-    if(!document.documentElement.classList.contains('lq'))return;
-    const el=e.target&&e.target.closest&&e.target.closest(LQ_PRESS);
-    if(!el||el.disabled||(el.getAttribute('aria-disabled')==='true'&&!el.hasAttribute('data-jc-gate')))return;
-    try{if(navigator.vibrate&&navigator.userActivation?.hasBeenActive)navigator.vibrate(5);}catch(err){}
-  },{passive:true});
+    if(e.pointerType==='mouse'||(e.button||0)!==0){lqT=null;return;}
+    const el=lqToucheCible(e.target);
+    lqT=el?{el,id:e.pointerId,x:e.clientX,y:e.clientY,t:Date.now()}:null;
+  },true);
+  document.addEventListener('pointermove',e=>{if(lqT&&e.pointerId===lqT.id&&Math.hypot(e.clientX-lqT.x,e.clientY-lqT.y)>10)lqT=null;},{capture:true,passive:true});
+  document.addEventListener('pointercancel',()=>{lqT=null;},true);
+  document.addEventListener('pointerup',e=>{
+    const T=lqT;lqT=null;
+    if(!T||e.pointerId!==T.id||Date.now()-T.t>600||!T.el.isConnected)return;
+    if(T.el.disabled||(T.el.getAttribute('aria-disabled')==='true'&&!T.el.hasAttribute('data-jc-gate')))return;
+    buzz(T.el.matches(LQ_CHOIX)||!!T.el.closest('.av-stars,[role="radiogroup"],[role="tablist"]')?'selection':'light');
+    try{window.__toucheEv=e;window.__toucheB=T.el;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS)
+  },true);
 }
 function buzz(type='light'){
   try{
     /* Dans l’appli iOS (19 h 41) : le moteur haptique directement, avec le retour qui correspond (réussite, avertissement, erreur) */
     const C=window.Capacitor,H=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Haptics;
     if(H&&typeof type==='string'){
+      const doublon=/^(light|selection)$/.test(type)&&typeof window.__toucheDoublon==='function'&&window.__toucheDoublon();
       if(/^(success|warning|error)$/.test(type)&&H.notification)H.notification({type:type.toUpperCase()});
-      else if(H.impact&&!(/^(light|selection)$/.test(type)&&typeof window.__toucheDoublon==='function'&&window.__toucheDoublon()))H.impact({style:type==='heavy'?'HEAVY':type==='medium'?'MEDIUM':'LIGHT'});
+      else if(type==='selection'){if(!doublon&&typeof window.__cran==='function')window.__cran();else if(!doublon&&H.impact)H.impact({style:'LIGHT'});}
+      else if(H.impact&&!doublon)H.impact({style:type==='heavy'?'HEAVY':type==='medium'?'MEDIUM':'LIGHT'});
       return;
     }
     if(!navigator.vibrate||!navigator.userActivation?.hasBeenActive) return;
@@ -46741,13 +46785,6 @@ function buzz(type='light'){
   }catch(e){}
 }
 document.addEventListener('touchstart',()=>{},{passive:true});
-document.addEventListener('pointerdown',e=>{
-  const b=e.target&&e.target.closest&&e.target.closest('button,[role="button"]');
-  if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate'))){
-    buzz('light');
-    try{window.__toucheEv=e;window.__toucheB=b;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS, 19 h 41)
-  }
-},true);
 /* Bouton verrouillé (data-jc-gate) : il amène à la vidéo ou à l’activité à terminer, au-dessus de lui ; la flèche ↑ s’élance au toucher, puis revient. */
 document.addEventListener('click',e=>{
   const b=e.target&&e.target.closest&&e.target.closest('.ls-next[data-jc-gate]'); if(!b)return;
@@ -47067,6 +47104,70 @@ function closePlusDetails(){
   el.open=false;
   try{if(document.activeElement&&el.contains(document.activeElement))document.activeElement.blur();}catch(e){}
   document.querySelector(`[onclick="openPlusDetails('${id}')"]`)?.focus({preventScroll:true});
+}
+/* ---------- Les feuilles se ferment en glissant vers le bas (11 novembre, 12 h 46 : « micro-interactions ») ----------
+   Les feuilles qui montent du bas portent une poignée, mais ne suivaient pas le doigt : sur l’iPhone, on les ferme en les tirant vers le
+   bas. Le doigt posé sur une feuille (son en-tête, ou son contenu quand il est tout en haut) et qui descend l’entraîne avec lui ; le
+   fond s’éclaircit. Relâchée assez bas (un tiers de sa hauteur, 160 px au plus) ou lancée vite, elle part et se ferme comme sa croix
+   (un cran quand on passe le seuil) ; sinon elle revient d’un rebond. Pas depuis un champ, un éditeur ou un sticker qu’on décolle. */
+const LQ_FEUILLES=[
+  ['.viz.on',p=>p.querySelector(':scope>.viz-head>button:last-child'),p=>{const b=p.previousElementSibling;return b&&b.classList.contains('viz-back')?b:null;},true],
+  ['#scr-compte .plus-details[open]',()=>({click:()=>{if(typeof closePlusDetails==='function')closePlusDetails();}}),()=>document.querySelector('#scr-compte .account-sheet-backdrop'),true],
+  ['.pays-feuille.on .pays-boite',p=>p.querySelector('.pays-x'),p=>p.parentElement.querySelector('.pays-fond'),false],
+  ['.lq-ask.on .lq-ask-sheet',p=>p.querySelector('.lq-ask-x'),p=>p.parentElement.querySelector('.lq-ask-back'),false],
+  ['.dx-feuille.on .dx-f-boite',p=>p.querySelector('.dx-f-x'),p=>p.parentElement.querySelector('.dx-f-fond'),false],
+  ['.imp-sheet.on',p=>p.querySelector('.imp-x'),()=>document.getElementById('imp-back'),true]
+];
+const LQ_FEUILLE_SANS='input,textarea,select,[contenteditable="true"],.editor-area,.stk-board,.stk-cell,.lv-seek,[data-sans-glisse]';
+if(typeof document!=='undefined'&&typeof window!=='undefined'){
+  let G=null;
+  const defilant=(t,p)=>{for(let n=t;n&&n!==p.parentElement;n=n.parentElement){if(n.nodeType!==1)continue;const o=getComputedStyle(n).overflowY;if(/(auto|scroll)/.test(o)&&n.scrollHeight>n.clientHeight+1)return n;if(n===p)break;}return null;};
+  const fin=()=>{window.removeEventListener('touchmove',bouge,{passive:false});window.removeEventListener('touchend',lache);window.removeEventListener('touchcancel',lache);};
+  const poser=(y,anim)=>{const g=G;g.p.style.transition=anim?'transform '+anim:'none';g.p.style.transform=y?`translate3d(0,${y}px,0)`:'';
+    if(g.fond){g.fond.style.transition=anim?'opacity '+anim:'none';g.fond.style.opacity=y>0?String(Math.max(0,1-y/(g.h*1.1))):'';}};
+  const bouge=e=>{
+    if(!G)return fin();
+    const t=[...e.changedTouches].find(q=>q.identifier===G.id);if(!t)return;
+    const dx=t.clientX-G.x0,dy=t.clientY-G.y0;
+    if(!G.on){
+      if(dy<=0||Math.abs(dy)<Math.abs(dx)||(G.sc&&G.sc.scrollTop>0)){if(Math.abs(dx)>=8||Math.abs(dy)>=8||dy<-4){G=null;fin();}return;}
+      if(e.cancelable)e.preventDefault();   // vers le bas, contenu tout en haut : le geste est à la feuille dès le départ (pas de rebond d’iOS)
+      if(dy<8)return;
+      G.on=true;G.h=G.p.getBoundingClientRect().height||600;G.seuil=Math.min(160,G.h/3);
+      const a=document.activeElement;if(a&&a.blur&&G.p.contains(a)&&/^(INPUT|TEXTAREA)$/.test(a.tagName))a.blur();
+    }
+    if(e.cancelable)e.preventDefault();
+    const y=Math.max(0,dy-8);G.y=y;G.pts.push([y,e.timeStamp]);while(G.pts.length>2&&e.timeStamp-G.pts[1][1]>100)G.pts.shift();
+    const passe=y>=G.seuil;if(passe!==G.passe){G.passe=passe;if(passe&&typeof buzz==='function')buzz('selection');}
+    poser(y,null);
+  };
+  const lache=e=>{
+    const g=G;fin();G=null;
+    if(!g||!g.on)return;
+    const vite=prefersReduceMotion();
+    /* La vitesse au lâcher : sur les 100 dernières ms du geste ; un doigt resté immobile avant de se lever ne lance rien. */
+    const P=g.pts,a=P[0],b=P[P.length-1],tl=e&&e.timeStamp||b[1],vv=P.length>1&&tl-b[1]<120?(b[0]-a[0])/Math.max(16,b[1]-a[1]):0;
+    if(g.y>=g.seuil||(vv>0.5&&g.y>40)){
+      G=g;poser(g.h+40,vite?'.12s ease-in':'.24s cubic-bezier(.3,0,.8,.6)');G=null;
+      setTimeout(()=>{const b=g.fermer(g.p);if(b&&b.click)b.click();
+        if(g.garder)setTimeout(()=>{g.p.style.transition='';g.p.style.transform='';if(g.fond){g.fond.style.transition='';g.fond.style.opacity='';}},60);},vite?110:220);
+    }else{
+      G=g;poser(0,vite?'.15s ease-out':'.34s cubic-bezier(.25,1.35,.45,1)');G=null;
+      setTimeout(()=>{if(!g.p.style.transform){g.p.style.transition='';if(g.fond)g.fond.style.transition='';}},360);
+    }
+  };
+  document.addEventListener('touchstart',e=>{
+    if(G||e.touches.length!==1)return;
+    const t=e.target;if(!t||!t.closest||t.closest(LQ_FEUILLE_SANS))return;
+    for(const [sel,fermer,fond,garder] of LQ_FEUILLES){
+      const p=t.closest(sel);if(!p)continue;
+      if(!fermer(p))return;
+      const q=e.touches[0];
+      G={p,fermer,fond:fond(p),garder,sc:defilant(t,p),id:q.identifier,x0:q.clientX,y0:q.clientY,y:0,pts:[],on:false,passe:false};
+      window.addEventListener('touchmove',bouge,{passive:false});window.addEventListener('touchend',lache);window.addEventListener('touchcancel',lache);
+      return;
+    }
+  },{passive:true});
 }
 /* Clavier ouvert (iPhone) : la feuille ouverte remonte au-dessus du clavier, là où on la voit. Sans cela, iOS laisse la feuille derrière le
    clavier et décale la page : le toucher d’« Enregistrer » tombait à côté et la feuille ne se fermait pas (Elisa, 31 octobre, 15 h 16,
@@ -48173,7 +48274,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-pays-attente-v2844';
+  const SW_CACHE='requete-2026-11-11-haptique-v2845';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -2757,8 +2757,8 @@ test('bouton verrouillé de la leçon (« Valide la leçon : … ») : il s’en
     && css.includes('@keyframes lsGateGo{0%{top:0;opacity:1}42%{top:-15px;opacity:0}43%{top:9px;opacity:0}100%{top:0;opacity:1}}'), 'à l’appui la flèche monte d’un cran, au toucher elle s’élance puis revient par le bas');
   assert.ok(css.includes('@media (prefers-reduced-motion:reduce){#lesson-body .ls-nav .ls-next[data-jc-gate],#lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}}')
     && css.includes('html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate]::after{animation:none!important;transition:none!important}'), 'mouvement réduit : ni saut ni élan');
-  assert.ok(html.includes("if(!el||el.disabled||(el.getAttribute('aria-disabled')==='true'&&!el.hasAttribute('data-jc-gate')))return;")
-    && html.includes("if(b&&!b.disabled&&(b.getAttribute('aria-disabled')!=='true'||b.hasAttribute('data-jc-gate'))){\n    buzz('light');"), 'le bouton verrouillé vibre à l’appui, comme un bouton actif');
+  assert.ok(html.includes("if(!el||el.disabled||(el.getAttribute('aria-disabled')==='true'&&!el.hasAttribute('data-jc-gate')))return null;")
+    && html.includes("if(T.el.disabled||(T.el.getAttribute('aria-disabled')==='true'&&!T.el.hasAttribute('data-jc-gate')))return;"), 'le bouton verrouillé vibre au toucher, comme un bouton actif (toucher confirmé, 11 novembre)');
   assert.ok(html.includes("e.target.closest('.ls-next[data-jc-gate]'); if(!b)return;\n  b.classList.remove('is-go'); void b.offsetWidth; b.classList.add('is-go');\n  clearTimeout(b._goT); b._goT=setTimeout(()=>b.classList.remove('is-go'),720);\n},true);"), 'au toucher (ou au clavier), la flèche s’élance, puis la classe est retirée');
   assert.ok(html.includes('class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">'), 'le bouton ouvre toujours la vidéo');
 });
@@ -2983,7 +2983,7 @@ test('mail à toucher : le bouton lecture ne l’ouvre pas, et l’image s’arr
   const close = cut('function lvOpClose(){', '/* ---------- Moments « À toi » joués sur l’image');
   assert.ok(close.includes('LV.op=null;') && !close.includes('opened'), 'fermer la notification n’ouvre rien : seule la lecture qui reprend déplie le mail');
   const nudge = cut('function lvOpNudge(){', 'function lvOpClose(){');
-  for (const part of ['if(navigator.vibrate)navigator.vibrate([10,50,10]);', "e.classList.add('is-nudge')", "classList.remove('is-nudge')"])
+  for (const part of ["buzz('warning');", "e.classList.add('is-nudge')", "classList.remove('is-nudge')"])
     assert.ok(nudge.includes(part), `notification qui remue : ${part}`);
   for (const part of ['.lv-op-spot.is-nudge{animation:lvOpPulse', '.lv-op-tip.is-nudge{animation:lvOpWiggle', '@keyframes lvOpWiggle{', 'html[data-motion="reduce"] .lv-op-spot.is-nudge'])
     assert.ok(html.includes(part), `style : ${part}`);

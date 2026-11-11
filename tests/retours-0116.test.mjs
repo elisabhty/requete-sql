@@ -26,6 +26,8 @@ function inserer(largeur = 430, hauteur = 932) {
     navigator: {}, requestAnimationFrame() {}, setTimeout() {}
   });
   vm.runInContext(intro, ctx);
+  assert.equal(html.length, 0, 'la table se prépare quand l’appli est prête, plus pendant le chargement (11 novembre)');
+  ctx.window.__introJouer();
   assert.equal(html.length, 1);
   return html[0];
 }

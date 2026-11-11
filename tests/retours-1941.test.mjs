@@ -174,7 +174,8 @@ test('le bouton : jaune soleil, anneau blanc, empreinte qui se colore, menthe un
 const pont = () => {
   const H = [], timers = [];
   const win = { Capacitor: { isNativePlatform: () => true, getPlatform: () => 'ios', Plugins: { Haptics: {
-    impact: o => H.push(['impact', o.style]), notification: o => H.push(['notification', o.type]) } } } };
+    impact: o => H.push(['impact', o.style]), notification: o => H.push(['notification', o.type]),
+    selectionStart: () => {}, selectionChanged: () => H.push(['selection', 'cran']) } } } };
   const ctx = vm.createContext({ window: win, navigator: {}, setTimeout: (f, ms) => timers.push([f, ms]),
     document: { documentElement: { classList: { add: () => {} } }, querySelector: () => null } });
   vm.runInContext(cut('/* ---------- App iOS (Capacitor) ----------', '  window.nativeAppReady=') + '})();', ctx);
@@ -184,7 +185,8 @@ const pont = () => {
 test('l’haptique : chaque toucher est un vrai impact (avant, selectionChanged ne faisait rien), un seul par toucher', () => {
   const x = pont();
   for (const ms of [4, 6, 8, 10, 12, 15, 24, 30]) x.vibre(ms);
-  assert.deepEqual(x.H.map(h => h[1]), ['LIGHT', 'LIGHT', 'LIGHT', 'LIGHT', 'MEDIUM', 'MEDIUM', 'HEAVY', 'HEAVY']);
+  /* 11 novembre (« étudie tout ce qui est haptique ») : les plus brefs (4 à 6 ms : un choix qui change) donnent le cran de sélection d’iOS */
+  assert.deepEqual(x.H.map(h => h[1]), ['cran', 'cran', 'LIGHT', 'LIGHT', 'MEDIUM', 'MEDIUM', 'HEAVY', 'HEAVY']);
   x.H.length = 0;
   for (const p of [[10, 40, 15], [15, 60, 15], [20, 60, 20], [10, 60, 20], [12, 40, 12]]) x.vibre(p);
   assert.deepEqual(x.H, [['notification', 'SUCCESS'], ['notification', 'WARNING'], ['notification', 'ERROR'], ['notification', 'SUCCESS'], ['notification', 'SUCCESS']]);
@@ -199,10 +201,10 @@ test('l’haptique : chaque toucher est un vrai impact (avant, selectionChanged 
   x.win.event = { type: 'click', target: ailleurs }; x.vibre(8);
   x.win.__toucheA = Date.now() - 2000; x.win.event = { type: 'click', target: cible }; x.vibre(8);
   x.win.event = undefined; x.vibre(6);
-  assert.deepEqual(x.H.map(h => h[1]), ['MEDIUM', 'LIGHT', 'LIGHT', 'LIGHT']);
+  assert.deepEqual(x.H.map(h => h[1]), ['MEDIUM', 'LIGHT', 'LIGHT', 'cran']);
   assert.equal(typeof x.win.__toucheDoublon, 'function');
   /* Le toucher d’un bouton le note, pour le pont */
-  assert.ok(app.includes("    buzz('light');\n    try{window.__toucheEv=e;window.__toucheB=b;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS, 19 h 41)"));
+  assert.ok(app.includes("    buzz(T.el.matches(LQ_CHOIX)||!!T.el.closest('.av-stars,[role=\"radiogroup\"],[role=\"tablist\"]')?'selection':'light');\n    try{window.__toucheEv=e;window.__toucheB=T.el;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS)"));
 });
 
 test('buzz() parle directement au moteur haptique d’iOS : réussite, avertissement, erreur, impacts', () => {
@@ -309,5 +311,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-11-pays-attente-v2844"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-11-haptique-v2845"), 'le cache de l’appli change');
 });
