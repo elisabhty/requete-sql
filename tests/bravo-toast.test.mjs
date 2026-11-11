@@ -37,12 +37,14 @@ test('bilan « Bravo ! » d’une leçon seule : « Leçon au complet », jamais
 });
 
 /* toastLift(t) pose --toast-lift (la hauteur de la notification au-dessus du bas de l’écran) à partir du bouton collant du cours. */
-function lift({inLesson = true, nav = null, innerHeight = 800, before = '99px'} = {}) {
-  const props = {'--toast-lift': before};
-  const t = {style: {removeProperty: k => { delete props[k]; }, setProperty: (k, v) => { props[k] = v; }}};
+function lift({inLesson = true, nav = null, lst = null, innerHeight = 800, before = '99px', classes = null} = {}) {
+  const props = {'--toast-lift': before}, cls = classes || new Set(['is-over']);
+  const t = {style: {removeProperty: k => { delete props[k]; }, setProperty: (k, v) => { props[k] = v; }}, classList: {add: c => cls.add(c), remove: c => cls.delete(c)}};
   const el = nav && {classList: {contains: c => (nav.cls || []).includes(c)}, getBoundingClientRect: () => nav.rect};
+  /* 11 novembre, 20 h 26 : la page de départ d’un cours (#lesson-start) et son bouton « Commencer » */
+  const page = lst && {querySelector: s => s === '.lst-go' ? {getBoundingClientRect: () => lst.rect} : null};
   const ctx = vm.createContext({
-    document: {body: {classList: {contains: c => c === 'in-lesson' && inLesson}}, querySelector: () => el || null},
+    document: {body: {classList: {contains: c => c === 'in-lesson' && inLesson}}, querySelector: s => s.startsWith('#lesson-start') ? page : (el || null)},
     window: {innerHeight},
   });
   vm.runInContext(cut('function toastLift(t){', 'function toast(msg,sub,tone){'), ctx);
@@ -60,6 +62,12 @@ test('notification : au ras du bas de l’écran quand aucun bouton collant n’
   assert.equal(lift({nav: {rect: {top: -90, bottom: -10, height: 80}}}), BAS, 'bouton au-dessus de l’écran : en bas');
   assert.equal(lift({nav: {rect: {top: 700, bottom: 780, height: 80}}}), '124px', 'bouton collant visible : 24 px au-dessus de lui (800 − 700 + 24)');
   assert.equal(lift({nav: {rect: {top: 640, bottom: 720, height: 80}}, innerHeight: 720}), '104px', 'la hauteur de la fenêtre compte (iPhone : barre de Safari)');
+  /* 20 h 26 : devant la page de départ d’un cours, juste au-dessus de « Commencer » (800 − 690 + 14) ; ailleurs, la classe part */
+  const cls = new Set();
+  assert.equal(lift({lst: {rect: {top: 690, bottom: 756, height: 66}}, classes: cls}), '124px');
+  assert.ok(cls.has('is-over'), 'passe devant la page (z-index au-dessus du sien)');
+  const cls2 = new Set(['is-over']); lift({classes: cls2});
+  assert.ok(!cls2.has('is-over'), 'sans la page de départ, la notification reprend sa place');
   assert.ok(html.includes('body.in-lesson .toast{bottom:var(--toast-lift,calc(max(8px,var(--safe-bottom)) + 92px))}'), 'dans un cours, la notification suit --toast-lift');
   const toast = cut('function toast(msg,sub,tone){', '/* ---------- Rendu : assistant');
   assert.ok(toast.includes('toastLift(t);t.classList.add(\'on\');'), 'toast() mesure avant d’afficher');

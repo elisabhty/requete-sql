@@ -174,7 +174,7 @@ test('gagner pendant une leçon ou une partie : le bilan le montre, ou un toast 
   assert.ok(take('async function boot(', 'function initSpotlight(').includes('stkSync();'), 'au démarrage, ce qui est déjà mérité');
   assert.ok(take('function renderBravoSlide(', '\n}\n').includes('${stkBravoHtml()}'), 'bilan de la leçon');
   assert.ok(take('function openLesson(', '\n}\n').includes('stkLeaveLesson();') && take('function leaveLessonScreen(', '\n}\n').includes('stkLeaveLesson();'), 'en quittant la leçon avant son bilan, un toast');
-  assert.ok(block.includes("if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...won);return;}"), 'pendant une partie de Jouer, pas de toast qui ferait quitter la manche');
+  assert.ok(block.includes("if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...held);return;}"), 'pendant une partie de Jouer, pas de toast qui ferait quitter la manche (sauf la première requête de l’onboarding, 11 novembre, 20 h 26)');
   assert.ok(take('function openStickers(', '\n}\n').includes("if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(()=>openStickers(id));return;}"), 'partir d’une partie demande confirmation (une vraie fenêtre, puis on y va)');
   assert.ok(take('function noteActivityDay(', '\n}\n').includes('try{stkAfterProgress();}catch(e){}'), 'un dessin qui échoue ne casse pas la validation');
   assert.ok(block.includes("if(t.classList.contains('on')&&tries<6)"), 'le toast attend que le précédent soit parti');
