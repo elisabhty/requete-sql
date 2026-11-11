@@ -26,11 +26,12 @@ test('les trois chiffres sous la carte : jamais un zéro, selon où on en est', 
   const lecons = Array.from({ length: 6 }, (_, i) => ({ id: i + 1, video: { moments: 2 } }));
   const ctx = vm.createContext({ allLessons: lecons, MODULES: [{ lessons: lecons.slice(0, 3) }, { lessons: lecons.slice(3) }, { lessons: [] }],
     CARTES: { 1: {}, 2: {}, 3: {}, 4: {} }, itemDone: id => faits.has(id), itemCommence: id => commencees.has(id),
-    exercicesFaits: id => Object.keys(ans[id] || {}).length });
+    exercicesFaits: id => Object.keys(ans[id] || {}).length,
+    CHALLENGES: { length: 477 }, ENTRETIEN: Array(142).fill({}), dureeVideoS: () => 2440 });
   vm.runInContext(cut('const HOME_STAT_SVG=', '/* Ce que l’étiquette de la séance dit à VoiceOver'), ctx);
-  const chiffres = () => [...ctx.homeStatsHTML().matchAll(/<li class="lq-stat is-(\w+)"><span class="lq-stat-ic" aria-hidden="true"><svg[^]*?<\/svg><\/span><b>(\d+)<\/b><span>([^<]+)<\/span><\/li>/g)]
+  const chiffres = () => [...ctx.homeStatsHTML().matchAll(/<li class="lq-stat is-(\w+)"><span class="lq-stat-ic" aria-hidden="true"><svg[^]*?<\/svg><\/span><b>([^<]+)<\/b><span>([^<]+)<\/span><\/li>/g)]
     .map(m => `${m[1]} ${m[2]} ${m[3]}`).join(' · ');
-  assert.equal(chiffres(), 'cible 6 leçons à découvrir · barres 2 modules · cartes 4 cartes à récolter', 'rien de commencé : ce que le parcours réserve');
+  assert.equal(chiffres().replace(/\u00a0/g, ' '), 'manette 477 défis à relever · video 4 h de vidéo · bulle 142 questions d’entretien', 'rien de commencé : ce que l’app réserve au-delà des leçons (19 h 39)');
   commencees.add(1); ans[1] = { a: 1 };
   assert.equal(chiffres(), 'barres 1 leçon lancée · coche 1 exercice fait · cible 6 leçons au total', 'avant la première leçon validée : les exercices faits');
   delete ans[1];
@@ -78,5 +79,5 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=313">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-tous-niveaux-v2860';") && app.includes("const SW_CACHE='requete-2026-11-11-tous-niveaux-v2860';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-11-kpi-accueil-v2861';") && app.includes("const SW_CACHE='requete-2026-11-11-kpi-accueil-v2861';"));
 });
