@@ -44286,10 +44286,14 @@ function obPaywallHTML(){
       ${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours gratuits</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span>
       <span class="pw-o-plus">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span>`,
     `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${essaiAn} jours gratuits`:''}, soit ${parSemaineTexte} par semaine`);
-  const inclus=[['coche','Accès complet'],['coche','Sans engagement'],essaiAn?['moins','Sans essai']:['coche','À la semaine']];
+  /* 11 novembre, 19 h 20 (Elisa : « remplacer “– Sans essai” par un avantage plus valorisant » ; « Accès immédiat » au lieu d’« Accès
+     complet », « Résiliable à tout moment » au lieu de « Sans essai ») : trois avantages, plus de tiret « ce qu’elle n’a pas ». */
+  /* Sur deux lignes chacun, comme les trois repères de l’annuelle (« Économise / 266 € ») : « Résiliable à tout moment » tient dans la
+     carte sans que les colonnes se coupent chacune à un endroit différent. */
+  const inclus=[['coche','Accès<br>immédiat'],['coche','Sans<br>engagement'],['coche','Résiliable à<br>tout moment']];
   const carteSe=carte('semaine',`<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${se.titre}</span>${prixHtml('semaine')}
       <span class="pw-o-inclus">${inclus.map(([i,t])=>`<span class="${i==='moins'?'is-non':''}">${PW_ICO[i]}${t}</span>`).join('')}</span>`,
-    `${se.titre}, ${obPrixTexte('semaine')} ${se.par}${essaiAn?', sans essai gratuit':''}`);
+    `${se.titre}, ${obPrixTexte('semaine')} ${se.par}, ${inclus.map(([,t])=>t.replace('<br>',' ').toLowerCase()).join(', ')}`);
   const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve">${PW_ICO.laurier}<span class="pw-preuve-t"><b>+${OB_COMMUNAUTE.toLocaleString('fr-FR')} apprenant·es</b> font déjà confiance à Requête<small>Chiffre et avis issus du site requeteapp.com</small></span>${PW_ICO.laurier}</p>`:'';
   const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
   return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
@@ -48605,7 +48609,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-paywall-devise-v2858';
+  const SW_CACHE='requete-2026-11-11-hebdo-avantages-v2859';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
