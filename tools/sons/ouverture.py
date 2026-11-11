@@ -11,10 +11,14 @@ suit #loader ; le 0 est l’instant où #loader prend la classe is-play) :
   1,53 s      on appuie sur la touche : un petit toc ;
   1,62 s      la plongée : un souffle qui enfle ;
   1,93 s      l’appli apparaît : un accord de do majeur, doux, qui s’éteint.
+Avec le chat (14 h 36 : « Est-ce possible de mettre le chat qui marche dessus ? »), assets/sons/ouverture-chat.m4a : la même
+construction, puis un « pof » quand il se pose sur la touche (1,38 s), deux petits pas, un miaou quand il s’assoit (2,0 s, le
+miaou de l’île, assets/sons/miaou.wav), un toc à son coup de pattes (2,15 s), le toc de la touche Entrée (2,43 s), la plongée,
+l’accord (2,83 s).
 Son synthétisé ici (aucun enregistrement), en stéréo, avec un peu de réverbération ; crête à -4 dB. La version courte de
 l’ouverture (les autres ouvertures du jour) est muette.
 
-    python3 tools/sons/ouverture.py      # écrit assets/sons/ouverture.m4a (et tools/sons/sortie/ouverture.wav)
+    python3 tools/sons/ouverture.py      # écrit assets/sons/ouverture.m4a et ouverture-chat.m4a (et leurs .wav dans tools/sons/sortie)
 """
 import math
 import os
@@ -39,6 +43,15 @@ LETTRES = [1.110 + 0.036 * j for j in range(7)]
 APPUI = 1.440 + 0.64 * 0.14
 PLONGEE = 1.440 + 0.64 * 0.28
 ARRIVEE = 1.930
+# Avec le chat, comme CHAT dans le même script
+POSE = 1.380
+PAS = [1.560, 1.740]
+MIAOU = 2.010
+PATTE = 2.150
+APPUI_CHAT = 2.340 + 0.64 * 0.14
+PLONGEE_CHAT = 2.340 + 0.64 * 0.28
+ARRIVEE_CHAT = 2.830
+DUREE_CHAT = 3.5
 
 gauche = np.zeros(N)
 droite = np.zeros(N)
@@ -109,72 +122,106 @@ def toc(grave=1.0):
     return 0.8 * corps + 0.45 * clac + 0.32 * declic
 
 
-# 1. L’envol : un souffle léger qui monte (400 → 2 400 Hz) pendant que les points partent
-duree = 0.5
-for pan in (-0.4, 0.4):
-    s_ = souffle(duree, 400, 2400, 0.0, lambda t: np.clip(t / 0.3, 0, 1) ** 1.5 * np.clip((duree - t) / 0.2, 0, 1))
-    poser(s_, 0.0, pan, 0.05)
+def composer(chat):
+    """Compose l’ouverture (avec ou sans le chat) dans gauche et droite, puis l’écrit en .wav et en .m4a."""
+    global N, gauche, droite
+    N = int(SR * (DUREE_CHAT if chat else DUREE))
+    gauche, droite = np.zeros(N), np.zeros(N)
 
-# 2. Les cases qui se posent : un « tic » de touche de clavier (un clic aigu bref et un petit corps), de plus en plus aigu
-for i, (t0, c) in enumerate(CASES):
-    n = int(0.05 * SR)
-    tt = np.arange(n) / SR
-    fr = 1500 * 2 ** (i / 32)
-    tic = (0.6 * bruit_bande(n, 2500, 8000) * enveloppe(n, 0.0003, 0.004)
-           + np.sin(2 * np.pi * fr * tt) * enveloppe(n, 0.0005, 0.009)
-           + 0.5 * np.sin(2 * np.pi * (fr / 4) * tt) * enveloppe(n, 0.001, 0.012))
-    poser(tic, t0 - 0.002, -0.6 + 0.4 * c, 0.16)
+    # 1. L’envol : un souffle léger qui monte (400 → 2 400 Hz) pendant que les points partent
+    duree = 0.5
+    for pan in (-0.4, 0.4):
+        s_ = souffle(duree, 400, 2400, 0.0, lambda t: np.clip(t / 0.3, 0, 1) ** 1.5 * np.clip((duree - t) / 0.2, 0, 1))
+        poser(s_, 0.0, pan, 0.05)
 
-# 3. La touche entière : le toc de la touche Entrée, net
-poser(toc(), ENTIERE - 0.002, 0.0, 0.66)
+    # 2. Les cases qui se posent : un « tic » de touche de clavier (un clic aigu bref et un petit corps), de plus en plus aigu
+    for i, (t0, c) in enumerate(CASES):
+        n = int(0.05 * SR)
+        tt = np.arange(n) / SR
+        fr = 1500 * 2 ** (i / 32)
+        tic = (0.6 * bruit_bande(n, 2500, 8000) * enveloppe(n, 0.0003, 0.004)
+               + np.sin(2 * np.pi * fr * tt) * enveloppe(n, 0.0005, 0.009)
+               + 0.5 * np.sin(2 * np.pi * (fr / 4) * tt) * enveloppe(n, 0.001, 0.012))
+        poser(tic, t0 - 0.002, -0.6 + 0.4 * c, 0.16)
 
-# 4. Les lettres : sept clochettes qui montent, une par lettre posée
-pentatonique = [84, 86, 88, 91, 93, 96, 98]       # do6 ré6 mi6 sol6 la6 do7 ré7
-for i, t0 in enumerate(LETTRES):
-    fr = note(pentatonique[i])
-    n = int(0.6 * SR)
-    tt = np.arange(n) / SR
-    cloche = (np.sin(2 * np.pi * fr * tt)
-              + 0.22 * np.sin(2 * np.pi * fr * 2.0 * tt) * np.exp(-tt / 0.07)
-              + 0.10 * np.sin(2 * np.pi * fr * 3.01 * tt) * np.exp(-tt / 0.04)) * enveloppe(n, 0.0015, 0.16)
-    poser(cloche, t0, -0.45 + 0.15 * i, 0.11)
+    # 3. La touche entière : le toc de la touche Entrée, net
+    poser(toc(), ENTIERE - 0.002, 0.0, 0.66)
 
-# 5. L’appui : un petit toc, plus léger
-poser(toc(1.15), APPUI - 0.002, 0.0, 0.42)
+    # 4. Les lettres : sept clochettes qui montent, une par lettre posée
+    pentatonique = [84, 86, 88, 91, 93, 96, 98]       # do6 ré6 mi6 sol6 la6 do7 ré7
+    for i, t0 in enumerate(LETTRES):
+        fr = note(pentatonique[i])
+        n = int(0.6 * SR)
+        tt = np.arange(n) / SR
+        cloche = (np.sin(2 * np.pi * fr * tt)
+                  + 0.22 * np.sin(2 * np.pi * fr * 2.0 * tt) * np.exp(-tt / 0.07)
+                  + 0.10 * np.sin(2 * np.pi * fr * 3.01 * tt) * np.exp(-tt / 0.04)) * enveloppe(n, 0.0015, 0.16)
+        poser(cloche, t0, -0.45 + 0.15 * i, 0.11)
 
-# 6. La plongée : un souffle qui enfle (300 → 2 600 Hz) jusqu’à ce que la touche remplisse l’écran
-duree = 0.52
-for pan in (-0.25, 0.25):
-    s_ = souffle(duree, 300, 2600, 0.0, lambda t: (np.clip(t / 0.42, 0, 1) ** 2.2) * np.clip((duree - t) / 0.12, 0, 1))
-    poser(s_, PLONGEE, pan, 0.12)
+    if chat:
+        # 4 bis. Le chat : un « pof » doux quand il se pose (corps grave, souffle feutré), deux pas de velours, un miaou quand il
+        # s’assoit, un toc à son coup de pattes
+        n = int(0.12 * SR)
+        tt = np.arange(n) / SR
+        pof = (np.sin(2 * np.pi * np.cumsum(140 + 60 * np.exp(-tt / 0.02)) / SR) * enveloppe(n, 0.002, 0.04)
+               + 0.5 * bruit_bande(n, 200, 1500) * enveloppe(n, 0.002, 0.03))
+        poser(pof, POSE - 0.004, -0.3, 0.55)
+        for k, t0 in enumerate(PAS):
+            n = int(0.06 * SR)
+            pas = bruit_bande(n, 300, 2500) * enveloppe(n, 0.003, 0.015)
+            poser(pas, t0, -0.2 + 0.1 * k, 0.12)
+        with wave.open(os.path.join(RACINE, 'assets', 'sons', 'miaou.wav'), 'rb') as w:
+            miaou = np.frombuffer(w.readframes(w.getnframes()), dtype='<i2').astype(float) / 32767
+            if w.getnchannels() == 2:
+                miaou = miaou.reshape(-1, 2).mean(1)
+        poser(miaou, MIAOU, 0.0, 0.55)
+        poser(toc(1.3), PATTE - 0.002, 0.0, 0.36)
 
-# 7. L’arrivée : do majeur, doux (do5 mi5 sol5 do6, assez haut pour le haut-parleur de l’iPhone), qui s’éteint
-for midi, g, pan in ((72, 0.07, -0.2), (76, 0.055, 0.2), (79, 0.05, 0.0), (84, 0.035, 0.0)):
-    fr = note(midi)
-    n = int(0.6 * SR)
-    tt = np.arange(n) / SR
-    voix = (np.sin(2 * np.pi * fr * tt) + 0.12 * np.sin(6 * np.pi * fr * tt)) * np.minimum(1, tt / 0.012) * np.exp(-tt / 0.24)
-    poser(voix, ARRIVEE, pan, g)
+    # 5. L’appui (avec le chat, la touche Entrée sous ses pattes) : un toc
+    if chat:
+        poser(toc(), APPUI_CHAT - 0.002, 0.0, 0.6)
+    else:
+        poser(toc(1.15), APPUI - 0.002, 0.0, 0.42)
 
-# Réverbération légère (bruit qui décroît, 0,5 s), puis limiteur doux et crête à -4 dB
-n = int(0.5 * SR)
-for canal in (gauche, droite):
-    ri = alea.standard_normal(n) * np.exp(-np.arange(n) / SR / 0.11)
-    ri /= np.sum(np.abs(ri))
-    mouille = np.convolve(canal, ri * 7, mode='full')[:N]
-    canal += 0.16 * mouille
-stereo = np.stack([gauche, droite], axis=1)
-stereo = np.tanh(stereo * 1.6) / 1.6
-stereo *= 10 ** (-4 / 20) / np.max(np.abs(stereo))
-fin = int(0.03 * SR)
-stereo[-fin:] *= np.linspace(1, 0, fin)[:, None]
+    # 6. La plongée : un souffle qui enfle (300 → 2 600 Hz) jusqu’à ce que la touche remplisse l’écran
+    duree = 0.52
+    for pan in (-0.25, 0.25):
+        s_ = souffle(duree, 300, 2600, 0.0, lambda t: (np.clip(t / 0.42, 0, 1) ** 2.2) * np.clip((duree - t) / 0.12, 0, 1))
+        poser(s_, PLONGEE_CHAT if chat else PLONGEE, pan, 0.12)
 
-os.makedirs(os.path.dirname(SORTIE_WAV), exist_ok=True)
-os.makedirs(os.path.dirname(SORTIE_M4A), exist_ok=True)
-with wave.open(SORTIE_WAV, 'wb') as w:
-    w.setnchannels(2)
-    w.setsampwidth(2)
-    w.setframerate(SR)
-    w.writeframes((stereo * 32767).astype('<i2').tobytes())
-subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', SORTIE_WAV, '-c:a', 'aac', '-b:a', '96k', SORTIE_M4A], check=True)
-print('écrit', os.path.relpath(SORTIE_M4A, RACINE), os.path.getsize(SORTIE_M4A), 'octets')
+    # 7. L’arrivée : do majeur, doux (do5 mi5 sol5 do6, assez haut pour le haut-parleur de l’iPhone), qui s’éteint
+    for midi, g, pan in ((72, 0.07, -0.2), (76, 0.055, 0.2), (79, 0.05, 0.0), (84, 0.035, 0.0)):
+        fr = note(midi)
+        n = int(0.6 * SR)
+        tt = np.arange(n) / SR
+        voix = (np.sin(2 * np.pi * fr * tt) + 0.12 * np.sin(6 * np.pi * fr * tt)) * np.minimum(1, tt / 0.012) * np.exp(-tt / 0.24)
+        poser(voix, ARRIVEE_CHAT if chat else ARRIVEE, pan, g)
+
+    # Réverbération légère (bruit qui décroît, 0,5 s), puis limiteur doux et crête à -4 dB
+    n = int(0.5 * SR)
+    for canal in (gauche, droite):
+        ri = alea.standard_normal(n) * np.exp(-np.arange(n) / SR / 0.11)
+        ri /= np.sum(np.abs(ri))
+        mouille = np.convolve(canal, ri * 7, mode='full')[:N]
+        canal += 0.16 * mouille
+    stereo = np.stack([gauche, droite], axis=1)
+    stereo = np.tanh(stereo * 1.6) / 1.6
+    stereo *= 10 ** (-4 / 20) / np.max(np.abs(stereo))
+    fin = int(0.03 * SR)
+    stereo[-fin:] *= np.linspace(1, 0, fin)[:, None]
+
+    wav = SORTIE_WAV.replace('.wav', '-chat.wav') if chat else SORTIE_WAV
+    m4a = SORTIE_M4A.replace('.m4a', '-chat.m4a') if chat else SORTIE_M4A
+    os.makedirs(os.path.dirname(wav), exist_ok=True)
+    os.makedirs(os.path.dirname(m4a), exist_ok=True)
+    with wave.open(wav, 'wb') as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes((stereo * 32767).astype('<i2').tobytes())
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', wav, '-c:a', 'aac', '-b:a', '96k', m4a], check=True)
+    print('écrit', os.path.relpath(m4a, RACINE), os.path.getsize(m4a), 'octets')
+
+
+composer(False)
+composer(True)

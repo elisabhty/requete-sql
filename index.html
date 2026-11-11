@@ -7378,7 +7378,12 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
    après l’autre dans la touche >_ (un cran haptique par case posée) ; les cases se soudent, la touche apparaît d’un coup net
    (coup fort), puis les sept derniers points deviennent les lettres de « Requête » (un cran chacune). On appuie sur la touche
    (coup moyen) et on y plonge. Ouverture entière à la première ouverture du jour ; les suivantes, une version courte (moins d’une
-   seconde, deux crans et un coup) : Elisa, 13 h 10, « courte avec vibrations ». Revenir dans l’appli encore ouverte ne rejoue rien. */
+   seconde, deux crans et un coup) : Elisa, 13 h 10, « courte avec vibrations ». Revenir dans l’appli encore ouverte ne rejoue rien.
+   14 h 36 (« Est-ce possible de mettre le chat qui marche dessus ? », puis ses deux GIF) : dans l’ouverture pleine, la touche
+   entière, le chat saute dessus depuis la gauche (coup léger, la touche plie), y marche jusqu’au milieu (un cran par pas),
+   s’assoit et tape deux fois de ses pattes : la touche s’enfonce (coup moyen), puis la seconde fois c’est la touche Entrée
+   (coup fort) et on plonge. Ses images (assets/ouverture-chat-*.webp) se chargent pendant le démarrage ; pas prêtes à temps,
+   l’ouverture se joue sans lui. */
 (function(){
   var d=document.documentElement,L=document.getElementById('loader'),C=window.Capacitor;
   if(!L||!d.classList.contains('is-native'))return;
@@ -7408,26 +7413,44 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     k:function(i){return [22*i,380+32*i];},l:function(j){return [560+28*j,1110+36*j];}};
   var COURTE={soude:360,dSoude:70,fin:430,appui:470,dPlonge:420,sortie:790,dSortie:190,
     k:function(i,c){return [0,c<2?240:290];},l:function(){return [0,290];}};
-  var T=court?COURTE:PLEINE;
+  /* Avec le chat : la même construction, puis il saute à 1 100 et se pose sur la touche à 1 380, marche jusqu’au milieu (1 800),
+     s’assoit ; ses deux coups de pattes tombent sur ses images 5 et 9 (70 ms chacune) : 2 150, puis 2 430, au plus bas de l’appui
+     qui lance la plongée (2 340 + 14 % de 640). Le violet s’efface de 2 830 à 3 190. */
+  var CHAT={soude:980,dSoude:100,fin:1080,chat:1100,pose:1380,arret:1800,patte:2150,appui:2340,dPlonge:640,sortie:2830,dSortie:360,k:PLEINE.k,l:PLEINE.l};
+  var T=null,HAPTIQUE=[];
+  var CHAT_IMG=['assets/ouverture-chat-marche.webp','assets/ouverture-chat-appui.webp'],chatPret=0;
+  if(!calme&&!court&&window.Image){
+    CHAT_IMG.forEach(function(u){
+      try{
+        var im=new window.Image();
+        im.onload=function(){var pret=function(){chatPret++;};if(im.decode)im.decode().then(pret,pret);else pret();};
+        im.src=u;
+      }catch(e){}
+    });
+  }
   /* L’ordre des cases : en diagonale (colonne + rangée), de gauche à droite dans chaque diagonale */
   var ORDRE=[];
   for(var c=0;c<4;c++)for(var r=0;r<4;r++)ORDRE.push([c,r]);
   ORDRE.sort(function(a,b){return (a[0]+a[1])-(b[0]+b[1])||a[0]-b[0];});
-  var son=null,sonCtx=null,avantSon=null;
+  var sons={},sonCtx=null,avantSon=null;
   if(!calme&&!court){
     /* Le son (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son ») : assets/sons/ouverture.m4a, calé sur
        l’animation (tools/sons/ouverture.py), chargé pendant le démarrage. Web Audio en session « ambient » : il se mêle à la
        musique en cours au lieu de la couper, et se tait en mode silencieux. Pas prêt à temps : l’ouverture reste muette.
-       La version courte est muette. */
+       La version courte est muette. Avec le chat, son propre son (assets/sons/ouverture-chat.m4a). */
     try{
       var AC=window.AudioContext||window.webkitAudioContext;
       if(AC&&window.fetch){
         var as=navigator.audioSession;
         if(as&&as.type!=='ambient'){avantSon=as.type;as.type='ambient';}
         sonCtx=new AC();
-        window.fetch('assets/sons/ouverture.m4a').then(function(r){return r.arrayBuffer();})
-          .then(function(b){return new Promise(function(ok,ko){sonCtx.decodeAudioData(b,ok,ko);});})
-          .then(function(b){son=b;}).catch(function(){});
+        var charger=function(cle,u){
+          window.fetch(u).then(function(r){return r.arrayBuffer();})
+            .then(function(b){return new Promise(function(ok,ko){sonCtx.decodeAudioData(b,ok,ko);});})
+            .then(function(b){sons[cle]=b;}).catch(function(){});
+        };
+        charger('base','assets/sons/ouverture.m4a');
+        if(window.Image)charger('chat','assets/sons/ouverture-chat.m4a');
       }
     }catch(e){}
   }
@@ -7441,6 +7464,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     sonCtx=null;
   };
   var jouerSon=function(){
+    var son=sons[T===CHAT?'chat':'base'];
     if(!son||!sonCtx){finSon();return;}
     try{
       if(sonCtx.state!=='running'&&sonCtx.resume)sonCtx.resume();
@@ -7463,22 +7487,32 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     for(var i=0;i<cases.length&&i<pts.length;i++)vers(cases[i],pts[i]);
     for(var j=0;j<lettres.length&&16+j<pts.length;j++){var x=T.l(j);vers(lettres[j],pts[16+j],j);
       lettres[j].style.setProperty('--a',x[0]+'ms');lettres[j].style.setProperty('--v',Math.round((x[1]-x[0])/0.8)+'ms');}
-    [['--t-soude',T.soude],['--d-soude',T.dSoude],['--t-fin',T.fin],['--t-appui',T.appui],['--d-plonge',T.dPlonge],['--t-sortie',T.sortie],['--d-sortie',T.dSortie]]
-      .forEach(function(v){L.style.setProperty(v[0],v[1]+'ms');});
+    var v=[['--t-soude',T.soude],['--d-soude',T.dSoude],['--t-fin',T.fin],['--t-appui',T.appui],['--d-plonge',T.dPlonge],['--t-sortie',T.sortie],['--d-sortie',T.dSortie]];
+    /* Le chat : derrière la touche (elle le recouvre quand elle remplit l’écran), une bande d’images qui défile pour la marche,
+       une autre pour l’arrêt et les coups de pattes */
+    if(T===CHAT){
+      L.insertAdjacentHTML('beforeend','<div class="in-chat" aria-hidden="true"><i class="in-chat-y"><i class="in-chat-p"><i class="in-chat-m"><b></b></i><i class="in-chat-a"><b></b></i></i></i></div>');
+      L.classList.add('is-chat');
+      v.push(['--t-chat',CHAT.chat],['--d-saut',CHAT.pose-CHAT.chat],['--t-pose',CHAT.pose],['--d-marche',CHAT.arret-CHAT.pose],['--t-arret',CHAT.arret],['--t-patte0',CHAT.patte-65],['--t-chat-fin',CHAT.appui+180]);
+    }
+    v.forEach(function(x){L.style.setProperty(x[0],x[1]+'ms');});
   };
   /* L’haptique suit les cases : un cran par case posée (et par lettre), un coup fort quand la touche est entière, un coup moyen
      quand on appuie dessus (au plus bas, 14 % de la plongée). Courte : un cran par moitié, un coup moyen. Un coup à la fois, chacun
      à son heure : si le fil principal est occupé, un cran en retard de plus de 45 ms, ou à moins de 25 ms du précédent, saute au
-     lieu de s’entasser ; les coups forts et moyens partent toujours. Sans l’extension Haptics, une vibration quand la touche est
-     entière. */
-  var HAPTIQUE=[];
-  if(court)HAPTIQUE=[[240,'cran'],[290,'cran'],[COURTE.fin,'MEDIUM']];
-  else{
-    for(var n=0;n<16;n++)HAPTIQUE.push([PLEINE.k(n)[1],'cran']);
-    HAPTIQUE.push([PLEINE.fin,'HEAVY']);
-    for(var m=0;m<7;m++)HAPTIQUE.push([PLEINE.l(m)[1],'cran']);
-    HAPTIQUE.push([PLEINE.appui+Math.round(PLEINE.dPlonge*0.14),'MEDIUM']);
-  }
+     lieu de s’entasser ; les coups (léger, moyen, fort) partent toujours. Sans l’extension Haptics, une vibration quand la touche
+     est entière. */
+  var haptique=function(){
+    if(T===COURTE)return [[240,'cran'],[290,'cran'],[COURTE.fin,'MEDIUM']];
+    var H=[];
+    for(var n=0;n<16;n++)H.push([T.k(n)[1],'cran']);
+    H.push([T.fin,'HEAVY']);
+    for(var m=0;m<7;m++)H.push([T.l(m)[1],'cran']);
+    /* Le chat : il se pose (coup léger), deux pas (crans), un coup de pattes (moyen), la touche Entrée (fort) */
+    if(T===CHAT)H.push([CHAT.pose,'LIGHT'],[CHAT.pose+180,'cran'],[CHAT.pose+360,'cran'],[CHAT.patte,'MEDIUM'],[CHAT.appui+Math.round(CHAT.dPlonge*0.14),'HEAVY']);
+    else H.push([T.appui+Math.round(T.dPlonge*0.14),'MEDIUM']);
+    return H;
+  };
   var vibrer=function(){
     var H=C&&C.Plugins&&C.Plugins.Haptics;
     if(!H||!H.impact){setTimeout(function(){try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}},T.fin);return;}
@@ -7501,6 +7535,8 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
     if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
+    T=court?COURTE:chatPret>=CHAT_IMG.length?CHAT:PLEINE;
+    HAPTIQUE=haptique();
     construire();
     if(court)L.classList.add('is-court');
     else try{localStorage.setItem('rq-intro-jour',jour);}catch(e){}
@@ -48297,7 +48333,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-11-logo-v2846';
+  const SW_CACHE='requete-2026-11-11-chat-v2847';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

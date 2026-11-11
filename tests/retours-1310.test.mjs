@@ -135,5 +135,5 @@ test('styles : les cases recomposent la touche, qui se pose, s’écrit, s’enf
   assert.ok(112 * 1.152 > 128 && 112 * 1.152 < 130);
   assert.ok(Math.abs(448 * 128 / 112 - 512) < 1e-9, 'le dégradé de 448, agrandi de 128/112, fait la touche');
   /* Le press (14 % de la plongée) tombe sur le coup moyen */
-  assert.ok(intro.includes("HAPTIQUE.push([PLEINE.appui+Math.round(PLEINE.dPlonge*0.14),'MEDIUM']);"));
+  assert.ok(intro.includes("else H.push([T.appui+Math.round(T.dPlonge*0.14),'MEDIUM']);"));
 });

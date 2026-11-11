@@ -3291,6 +3291,19 @@ html.is-native.lq #loader.is-intro .ld-name{position:absolute;z-index:0;left:0;r
 html.is-native.lq #loader.is-intro .in-l{display:inline-block;position:relative;will-change:transform}
 html.is-native.lq #loader.is-intro .in-l::before{content:"";position:absolute;left:50%;top:50%;width:calc(30*var(--u));height:calc(30*var(--u));
   margin:calc(-15*var(--u)) 0 0 calc(-15*var(--u));background:#D2C6F7;opacity:0}
+/* Le chat (11 novembre, 14 h 36 : « Est-ce possible de mettre le chat qui marche dessus ? ») : 420 de côté, ses pattes 10 sous le
+   haut de la touche, derrière elle (quand elle remplit l’écran, elle le recouvre). Deux bandes de 12 images (ses GIF détourés par
+   tools/chat-ouverture.py) défilent par crans : la marche, puis l’arrêt et les coups de pattes. .in-chat le porte de gauche à
+   droite, .in-chat-y fait le saut, .in-chat-p suit la touche quand elle plie ou s’enfonce. Quand la touche commence à grandir, il
+   s’efface (ses oreilles ne dépassent pas de la touche qui remplit l’écran). */
+html.is-native.lq #loader.is-intro .in-chat{position:absolute;z-index:1;left:calc(50% - 210*var(--u));top:calc(50% - 653*var(--u));
+  width:calc(420*var(--u));height:calc(420*var(--u));opacity:0;will-change:transform}
+html.is-native.lq #loader.is-intro .in-chat i{position:absolute;inset:0;display:block}
+html.is-native.lq #loader.is-intro :is(.in-chat-m,.in-chat-a){overflow:hidden}
+html.is-native.lq #loader.is-intro :is(.in-chat-m,.in-chat-a)>b{position:absolute;left:0;top:0;width:1200%;height:100%;
+  background:url(assets/ouverture-chat-marche.webp) 0 0/100% 100% no-repeat;will-change:transform}
+html.is-native.lq #loader.is-intro .in-chat-a{opacity:0}
+html.is-native.lq #loader.is-intro .in-chat-a>b{background-image:url(assets/ouverture-chat-appui.webp)}
 /* Si la base met du temps à se préparer : l’anneau et la phrase, dessous */
 html.is-native.lq #loader.is-intro .spinner{position:absolute;z-index:1;left:50%;top:calc(50% + 330*var(--u) + 54px);margin:0 0 0 -17px;width:34px!important;height:34px!important;
   box-shadow:inset 0 0 0 5px rgba(106,77,244,.16);opacity:0;transition:opacity .3s ease;animation:none}
@@ -3315,6 +3328,18 @@ html.is-native.lq #loader.is-intro.is-play .ld-name{opacity:1;animation:introFad
 html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLettre var(--v) linear var(--a) both}
 html.is-native.lq #loader.is-intro.is-play .in-l::before{animation:introLettreDot var(--v) linear var(--a) both}
 html.is-native.lq #loader.is-intro.is-play{animation:introOut var(--d-sortie) ease-out var(--t-sortie) forwards}
+/* Avec le chat : la touche plie quand il s’y pose, s’enfonce à son coup de pattes, puis la touche Entrée ; il la suit */
+html.is-native.lq #loader.is-intro.is-chat.is-play .logo-badge{animation:introApparait 34ms linear calc(var(--t-fin) - 34ms) forwards,introPose .34s linear var(--t-fin) forwards,
+  introAtterrit 260ms linear var(--t-pose),introPatte 260ms linear var(--t-patte0),introPlonge var(--d-plonge) linear var(--t-appui) forwards}
+html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat{animation:introOn 1ms linear var(--t-chat) forwards,introSautX var(--d-saut) linear var(--t-chat) both,
+  introMarcheX var(--d-marche) cubic-bezier(.25,0,.6,1) var(--t-pose) forwards,introFade .18s linear var(--t-chat-fin) forwards}
+html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-y{animation:introSautY var(--d-saut) linear var(--t-chat) both}
+html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-p{animation:introAtterrit 260ms linear var(--t-pose),introPatte 260ms linear var(--t-patte0),
+  introChatEntree var(--d-plonge) linear var(--t-appui) forwards}
+html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-m{animation:introFade 1ms linear var(--t-arret) forwards}
+html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-m>b{animation:introChatPas 720ms steps(12) var(--t-pose) infinite both}
+html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-a{animation:introOn 1ms linear var(--t-arret) forwards}
+html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-a>b{animation:introChatAssis 770ms steps(11) var(--t-arret) both}
 html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}
 /* Le vol d’une case : du point (sa taille, sa couleur, à angle droit) à sa place, en accélérant puis en freinant ; elle se pose aux
    82 % (un peu grande), puis se tasse */
@@ -3352,6 +3377,23 @@ html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwar
   55%{color:rgba(27,22,64,0)}
   80%{transform:translateY(calc(-10*var(--u))) scale(1.18);color:#1B1640;animation-timing-function:cubic-bezier(.3,0,.3,1)}
   100%{transform:none;color:#1B1640}}
+/* Le saut du chat : de hors de l’écran, à gauche et plus bas, jusqu’au coin de la touche, en arc ; puis il marche jusqu’au milieu */
+@keyframes introSautX{from{transform:translateX(calc(-50vw - 230*var(--u)))}to{transform:translateX(calc(-130*var(--u)))}}
+@keyframes introSautY{
+  0%{transform:translateY(calc(260*var(--u)));animation-timing-function:cubic-bezier(.2,.6,.4,1)}
+  50%{transform:translateY(calc(-190*var(--u)));animation-timing-function:cubic-bezier(.6,0,.8,.4)}
+  100%{transform:none}}
+@keyframes introMarcheX{from{transform:translateX(calc(-130*var(--u)))}to{transform:none}}
+/* La touche qui plie sous le chat, puis son coup de pattes ; il suit l’appui de la touche Entrée */
+@keyframes introAtterrit{0%{transform:none;animation-timing-function:cubic-bezier(.3,0,.5,1)}30%{transform:translateY(calc(9*var(--u)));animation-timing-function:cubic-bezier(.3,0,.4,1)}100%{transform:none}}
+@keyframes introPatte{0%{transform:none;animation-timing-function:cubic-bezier(.3,0,.6,1)}25%{transform:translateY(calc(14*var(--u)));animation-timing-function:cubic-bezier(.3,0,.4,1)}100%{transform:none}}
+@keyframes introChatEntree{
+  0%{transform:none;animation-timing-function:cubic-bezier(.3,0,.6,1)}
+  14%{transform:translateY(calc(22*var(--u)));animation-timing-function:cubic-bezier(.3,0,.5,1)}
+  28%,100%{transform:translateY(calc(14*var(--u)))}}
+/* Ses images, une à une : la marche en boucle (12 en 720 ms), l’arrêt une fois (11 pas de 70 ms, puis la dernière reste) */
+@keyframes introChatPas{from{transform:none}to{transform:translateX(-100%)}}
+@keyframes introChatAssis{from{transform:none}to{transform:translateX(-91.6667%)}}
 @keyframes introLettreDot{0%{opacity:1;transform:none}50%{opacity:1;transform:scale(1.5)}78%,100%{opacity:0;transform:scale(.5)}}
 @keyframes introFade{to{opacity:0}}
 @keyframes introGlow{0%{opacity:0;transform:scale(.45)}35%{opacity:1}100%{opacity:0;transform:scale(1.2)}}
@@ -3361,7 +3403,7 @@ html.is-native.lq #loader.is-intro.fatal{display:flex;flex-direction:column;alig
 html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;opacity:1;
   display:flex;align-items:center;justify-content:center;font:700 32px/1 var(--mono);color:#fff;animation:none}
 html.is-native.lq #loader.is-intro.fatal .logo-badge::before,html.is-native.lq #loader.is-intro.fatal .logo-badge::after,html.is-native.lq #loader.is-intro.fatal::after,
-html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k){display:none}
+html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k,.in-chat){display:none}
 html.is-native.lq #loader.is-intro.fatal p{position:static;opacity:1;color:#1B1640}
 
 /* ---------- 38. L’appui : chaque bouton répond ----------
