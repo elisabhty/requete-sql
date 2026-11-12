@@ -2175,7 +2175,10 @@ html #onboarding.ob-vitrine .ob-acc-fond small{margin-top:6px;color:rgba(255,255
 html #onboarding.ob-vitrine .ob-acc-fond:focus-visible{outline:3px solid var(--v-sun);outline-offset:-6px}
 html #onboarding.ob-vitrine .ob-acc-feuille{position:relative;flex:none;display:flex;flex-direction:column;margin:0!important;padding:10px 24px 6px;border-radius:30px 30px 0 0;background:#fff;color:var(--v-ink);box-shadow:0 -10px 40px rgba(14,6,50,.28)}
 html #onboarding.ob-vitrine .ob-acc-poignee{align-self:center;flex:none;display:block;width:40px;height:5px;margin:0 0 16px;border-radius:99px;background:#DCD5F2}
-html #onboarding.ob-vitrine .ob-acc-chat{position:absolute;z-index:-1;right:22px;bottom:calc(100% - 22px);width:96px;height:auto;pointer-events:none;-webkit-user-drag:none;user-select:none}
+/* 12 novembre, 20 h 24 (Elisa : « le GIF passe derrière la page de connexion, je veux qu’il soit devant ») : il était derrière la
+   feuille (z-index:-1), le bas coupé par son bord, et passait devant puis derrière selon que la feuille s’animait ou non. Il est
+   devant, entier, posé sur le coin de la feuille. */
+html #onboarding.ob-vitrine .ob-acc-chat{position:absolute;z-index:2;right:18px;bottom:calc(100% - 26px);width:104px;height:auto;pointer-events:none;-webkit-user-drag:none;user-select:none}
 html #onboarding.ob-vitrine .ob-account.is-feuille .ob-title{margin:0!important;color:var(--v-ink)!important;font-size:27px!important;text-align:center!important}
 html #onboarding.ob-vitrine .ob-account.is-feuille .ob-title em{color:var(--v-accent-ink)!important}
 html #onboarding.ob-vitrine .ob-account.is-feuille .ob-compte-sub{margin:7px auto 0!important;max-width:320px;color:var(--v-ink-3);font-size:14.5px}
@@ -2314,5 +2317,9 @@ html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note .pw-confiance svg{widt
 /* Derrière l’onboarding ouvert, l’appli se met en veille : l’accueil (un millier d’éléments, une quinzaine d’animations dont sept
    sans fin) continuait de s’animer sous une page qui le recouvre entièrement, et chaque mesure de l’onboarding le remettait à jour
    avec elle (deux fois plus lente). Tant que #onboarding est ouvert (.on : display:flex, sans fondu), la scène et la barre d’onglets
-   ne sont ni peintes ni animées ; elles reviennent à l’instant où il se ferme, dans l’état où elles étaient. */
+   ne sont ni peintes ni animées ; elles reviennent à l’instant où il se ferme, dans l’état où elles étaient.
+   20 h 24 (« à l’arrivée sur l’appli j’ai eu un flash ») : essayé sans content-visibility (seulement cachées, animations en pause),
+   de peur d’un éclair au moment de les montrer. Mesuré, processeur ralenti 4 fois : les montrer coûte pareil (une image de 100 à
+   250 ms des deux façons), mais chaque changement de page coûte le double sans lui (objectif 328 ms contre 157, offre 504 contre
+   363, et une tâche longue par image sur « jours » et « avis »). Il reste donc. */
 #app:has(>#onboarding.on)>.stage,#app:has(>#onboarding.on)>#tabbar{visibility:hidden;content-visibility:hidden}

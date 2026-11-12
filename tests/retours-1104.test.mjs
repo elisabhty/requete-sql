@@ -49,13 +49,14 @@ test('les deux images du coucou : le GIF d’Elisa et son chat au repos', () => 
   const anim = fs.readFileSync(path.join(ROOT, ANIM)), fixe = fs.readFileSync(path.join(ROOT, FIXE));
   for (const f of [anim, fixe]) { assert.equal(f.subarray(0, 4).toString(), 'RIFF'); assert.equal(f.subarray(8, 12).toString(), 'WEBP'); assert.equal(f.subarray(12, 16).toString(), 'VP8X'); }
   const taille = f => [f.readUIntLE(24, 3) + 1, f.readUIntLE(27, 3) + 1];
-  assert.deepEqual(taille(anim), [289, 352]); assert.deepEqual(taille(fixe), [289, 352], 'la même toile : on passe de l’un à l’autre sans saut');
+  /* 12 novembre, 20 h 24 (« la première page est floue ») : deux fois plus de pixels (tools/chats-nets.py) ; la balise dit toujours 289 × 352 */
+  assert.deepEqual(taille(anim), [578, 704]); assert.deepEqual(taille(fixe), [578, 704], 'la même toile : on passe de l’un à l’autre sans saut');
   assert.ok(anim.includes('ANIM') && anim.includes('ALPH') && !fixe.includes('ANIM'), 'animé et transparent ; l’autre fixe');
   const durees = []; let j = 12;
   while (j < anim.length) { const id = anim.subarray(j, j + 4).toString(), t = anim.readUInt32LE(j + 4); if (id === 'ANMF') durees.push(anim.readUIntLE(j + 8 + 12, 3)); j += 8 + t + (t & 1); }
   assert.deepEqual(durees, Array(12).fill(420), 'les douze images du GIF, au rythme du GIF');
   assert.equal(anim.readUInt16LE(anim.indexOf('ANIM') + 8 + 4), 0, 'en boucle (la bienvenue)');
-  assert.ok(anim.length < 300000 && fixe.length < 60000, 'léger');
+  assert.ok(anim.length < 350000 && fixe.length < 60000, 'léger');
   assert.ok(sw.includes("  './assets/chat-coucou.webp',\n  './assets/chat-coucou-fixe.webp',\n"), 'hors ligne');
   assert.ok(app.includes("const MASCOT_COUCOU='assets/chat-coucou.webp',MASCOT_COUCOU_FIXE='assets/chat-coucou-fixe.webp',MASCOT_COUCOU_MS=5040;"), '12 × 420 ms');
 });

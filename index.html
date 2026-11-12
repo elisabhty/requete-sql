@@ -6729,9 +6729,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=321">
+<link rel="stylesheet" href="ludique.css?v=322">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=57">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=58">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -24677,7 +24677,9 @@ function syncKbarOffset(){
   const kb=on?keyboardInset():0;
   const kbLift=on&&kb>40;
   if(on&&!kbar.classList.contains('kb-down')){ const oh=kbar.offsetHeight; if(oh>=44) kbarOpenH=oh; }
-  const kh=on?kbarOpenH:0;
+  /* 12 novembre, 20 h 24 : clavier rangé, la barre réduite garde la bande de la barre d’accueil libre sous son bouton (ludique.css) et
+     peut être plus haute que la barre ouverte : la page réserve la plus haute des deux. */
+  const kh=on?Math.max(kbarOpenH,kbar.classList.contains('kb-down')?kbar.offsetHeight||0:0):0;
   document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb-kbNatif():0)+kh)+'px');   // l’app : #app tient déjà au-dessus du clavier
   /* La barre seule (sans le clavier) : les feuilles (.viz) montent déjà au-dessus du clavier ; elles réservent sous leur contenu la
      hauteur de la barre, qui passe par-dessus (Elisa, 4 novembre, 8 h 36, réf. 2 : « je ne peux pas descendre plus » dans une note). */
@@ -40725,14 +40727,14 @@ function stkOpen(id){
 `;   /* Elisa, 2 novembre, 1 h 06 (réf. 3) : plus de texte sous les boutons. */
   }else{
     const how=s.kind==='module'?'Termine ce module pour gagner ce sticker.':s.how;
-    /* 10 novembre, 8 h 50 (Elisa : « 0 leçon validée sur 5, c’est quoi les 5 ? ») : jamais « 0 … sur » ; un module dit ses leçons, en
-       liste, cochées une fois validées ; chacune ouvre sa leçon. */
-    const progT=s.kind==='module'?(s.now?`${s.now} leçon${s.now>1?'s':''} validée${s.now>1?'s':''} sur ${s.goal}`:`${s.goal} leçon${s.goal>1?'s':''} dans ce module`)
-      :s.now?`${unit(s.now)} sur ${s.goal}`:`Objectif\u00a0: ${unit(s.goal)}`;
-    const prog=s.goal>1?`<div class="stk-prog" role="progressbar" aria-label="${escAttr(progT)}" aria-valuemin="0" aria-valuemax="${s.goal}" aria-valuenow="${s.now}"><i style="width:${Math.round(s.now/s.goal*100)}%"></i></div><p class="stk-prog-t">${progT}</p>`:'';
-    const mod=s.kind==='module'?MODULES[s.num-1]:null,suite=mod?mod.lessons.find(l=>!itemDone(l.id)):null;
-    const lecons=mod?`<ol class="stk-lecons" aria-label="${escAttr(`Les leçons du module ${s.num}`)}">${mod.lessons.map((l,i)=>{const ok=itemDone(l.id),pro=!!suite&&l.id===suite.id;
-      return `<li class="${ok?'is-ok':pro?'is-suite':''}"><button type="button" onclick="stkClose();openLesson(${l.id})" aria-label="${escAttr(`${l.titre}${ok?', validée':pro?', la prochaine':''}. Ouvrir la leçon`)}"><b aria-hidden="true">${ok?MEMO_CHECK_SVG:i+1}</b><span>${esc(l.titre)}</span></button></li>`;}).join('')}</ol>`:'';
+    /* 10 novembre, 8 h 50 (Elisa : « 0 leçon validée sur 5, c’est quoi les 5 ? ») : jamais « 0 … sur » ; le module disait alors ses
+       leçons, en liste. 12 novembre, 20 h 24 (ses captures de la fiche : « ne pas mettre toutes les leçons par liste, juste un % ») :
+       plus de liste ; une jauge et son pourcentage, c’est tout (les leçons validées du module, ou l’avancée vers l’objectif).
+       La jauge s’appelle stk-jauge : « stk-prog » est aussi la petite barre des cases de la collection, dont les règles (marge
+       négative, 44 px) la faisaient passer sur le texte du dessus. */
+    const pct=s.goal>0?Math.max(0,Math.min(100,Math.round(s.now/s.goal*100))):0;
+    const progT=s.kind==='module'?`${pct}\u00a0% du module terminé`:`${pct}\u00a0% de l’objectif`;
+    const prog=s.goal>1?`<div class="stk-jauge" role="progressbar" aria-label="${escAttr(progT)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="stk-jauge-b" aria-hidden="true"><i style="width:${pct}%"></i></span><b aria-hidden="true">${pct}\u00a0%</b></div>`:'';
     const go=s.kind==='module'?`<button type="button" class="lq-btn stk-btn" onclick="stkGoModule(${s.num-1})">Continuer le module</button>`
       :s.id==='defis10'?`<button type="button" class="lq-btn stk-btn" onclick="stkClose();switchTab('defis')">Voir les défis</button>`:'';
     body.innerHTML=`
@@ -40740,7 +40742,7 @@ function stkOpen(id){
       <p class="stk-kicker">${kicker} · À gagner</p>
       <h2 class="stk-name" id="stk-name">${esc(s.name)}</h2>
       <p class="stk-when">${esc(how)}</p>
-      ${prog}${lecons}${go?`<div class="stk-actions">${go}</div>`:''}`;
+      ${prog}${go?`<div class="stk-actions">${go}</div>`:''}`;
   }
   document.getElementById('stk-back').classList.add('on');
   document.getElementById('stk-sheet').classList.add('on');
@@ -49813,13 +49815,29 @@ function lqAuRevoir(){
   const el=document.createElement('div');
   el.id='lq-aurevoir';el.className='lq-flamme lq-aurevoir';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
   el.innerHTML=`<div class="lq-flamme-in"><div class="lq-flamme-scene">${chatBonusHtml('aurevoir','lq-flamme-chat')}</div><p class="lq-flamme-bravo">À bientôt\u00a0!</p><h2 class="lq-flamme-t">${t}</h2><p class="lq-flamme-d">Ta progression t’attend sur ton compte.</p></div>`;
-  let tm=0,fini=false;
+  let tm=0,filet=0,fini=false,url='';
   const key=e=>{if(e.key==='Escape'){e.preventDefault();fin();}};
-  const fin=()=>{if(fini)return;fini=true;clearTimeout(tm);document.removeEventListener('keydown',key,true);el.classList.add('is-sort');setTimeout(()=>el.remove(),calme?0:220);};
+  const fin=()=>{if(fini)return;fini=true;clearTimeout(tm);clearTimeout(filet);document.removeEventListener('keydown',key,true);el.classList.add('is-sort');
+    setTimeout(()=>{el.remove();if(url)try{URL.revokeObjectURL(url);}catch(e){}},calme?0:220);};
+  /* 12 novembre, 20 h 24 (Elisa : « cette page bug, parfois on voit pas tout le GIF »). Le GIF ne se joue qu’une fois (6,08 s) et la
+     page se fermait 6,1 s après son ouverture, que l’image soit arrivée ou non ; et un GIF déjà joué dans la session (deuxième
+     déconnexion) restait sur sa dernière image, le chat déjà parti. L’image est maintenant relue à neuf à chaque fois (une adresse
+     « blob » toute neuve : elle repart de sa première image), et la page ne compte ses 6,1 s qu’à partir du moment où elle est
+     affichée (is-joue : le chat entre, puis sort à 5,05 s, voir ludique.css). */
+  const lancer=()=>{if(fini||el.classList.contains('is-joue'))return;clearTimeout(filet);el.classList.add('is-joue');tm=setTimeout(fin,calme?2400:6100);};
   el.addEventListener('click',fin);
   document.addEventListener('keydown',key,true);
+  const img=el.querySelector('img.lq-flamme-chat');
+  if(img&&!calme){
+    const src=img.getAttribute('src');img.removeAttribute('src');
+    const poser=u=>{img.addEventListener('load',lancer,{once:true});img.addEventListener('error',lancer,{once:true});img.src=u;};
+    if(typeof fetch==='function'&&typeof URL!=='undefined'&&typeof URL.createObjectURL==='function')
+      fetch(src).then(r=>r.ok?r.blob():Promise.reject(new Error('image'))).then(b=>{if(fini)return;url=URL.createObjectURL(b);poser(url);}).catch(()=>{if(!fini)poser(src);});
+    else poser(src);
+    filet=setTimeout(lancer,2500);   // l’image n’arrive pas : la page ne reste pas ouverte pour rien
+  }
   document.body.appendChild(el);
-  tm=setTimeout(fin,calme?2400:6100);
+  if(!img||calme)lancer();
 }
 const DEL_SVG={
   nuage:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 18.5h9.6a4.4 4.4 0 0 0 .5-8.77A6 6 0 0 0 6.2 11.1a3.7 3.7 0 0 0 1.3 7.4Z"/></svg>',
@@ -50095,7 +50113,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-fluidite-v2903';
+  const SW_CACHE='requete-2026-11-12-sept-retours-v2904';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

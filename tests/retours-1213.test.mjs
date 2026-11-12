@@ -21,13 +21,13 @@ test('les deux images de « C’est parti ! » : le GIF d’Elisa et le pouce le
   const anim = fs.readFileSync(path.join(ROOT, ANIM)), fixe = fs.readFileSync(path.join(ROOT, FIXE));
   for (const f of [anim, fixe]) { assert.equal(f.subarray(0, 4).toString(), 'RIFF'); assert.equal(f.subarray(8, 12).toString(), 'WEBP'); assert.equal(f.subarray(12, 16).toString(), 'VP8X'); }
   const taille = f => [f.readUIntLE(24, 3) + 1, f.readUIntLE(27, 3) + 1];
-  assert.deepEqual(taille(anim), [302, 359]); assert.deepEqual(taille(fixe), [302, 359]);
+  assert.deepEqual(taille(anim), [604, 718]); assert.deepEqual(taille(fixe), [604, 718]);   // 12 novembre, 20 h 24 : deux fois plus de pixels, la balise garde 302 × 359
   assert.ok(anim.includes('ANIM') && anim.includes('ALPH') && !fixe.includes('ANIM'));
   const durees = []; let j = 12;
   while (j < anim.length) { const id = anim.subarray(j, j + 4).toString(), t = anim.readUInt32LE(j + 4); if (id === 'ANMF') durees.push(anim.readUIntLE(j + 8 + 12, 3)); j += 8 + t + (t & 1); }
   assert.deepEqual(durees, Array(12).fill(420));
   assert.equal(anim.readUInt16LE(anim.indexOf('ANIM') + 8 + 4), 0, 'en boucle');
-  assert.ok(anim.length < 300000 && fixe.length < 60000, 'léger');
+  assert.ok(anim.length < 350000 && fixe.length < 60000, 'léger');
   assert.ok(sw.includes("  './assets/chat-parti.webp',\n  './assets/chat-parti-fixe.webp',\n"), 'hors ligne');
 });
 
