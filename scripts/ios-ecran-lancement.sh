@@ -22,5 +22,9 @@ plist="$app/Info.plist"
 if [ -f "$plist" ] && [ -x /usr/libexec/PlistBuddy ]; then
   /usr/libexec/PlistBuddy -c "Set :UIStatusBarStyle UIStatusBarStyleDarkContent" "$plist" 2>/dev/null \
     || /usr/libexec/PlistBuddy -c "Add :UIStatusBarStyle string UIStatusBarStyleDarkContent" "$plist"
+  # 12 novembre, 18 h 12 (sa capture de la connexion avec Google : « “App” souhaite utiliser “accounts.google.com” pour se
+  # connecter ») : iOS y écrit CFBundleName, qui valait $(PRODUCT_NAME), le nom de la cible Xcode de Capacitor : « App ».
+  /usr/libexec/PlistBuddy -c "Set :CFBundleName Requête" "$plist" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Add :CFBundleName string Requête" "$plist"
 fi
 echo "Écran de lancement à jour : fond lavande, emplacements de la touche et points de données."

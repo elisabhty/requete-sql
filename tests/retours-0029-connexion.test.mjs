@@ -34,8 +34,10 @@ const rendre = ({ practiceDone = true, masquee = false, finVoulue } = {}) => {
 test('après « Ton parcours est prêt » : la mascotte sur sa tache, « Sauvegarde ton parcours », les boutons ; plus de fête', () => {
   const h = rendre({ finVoulue: 'home' });
   assert.ok(h.includes('ob-acc-feuille') && h.includes('ob-acc-chat'), '12 novembre, 16 h 03 : la connexion en feuille, le chat à la clé sur son bord');
-  assert.ok(h.includes('<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>'));
-  assert.ok(h.includes('<p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>'));
+  /* 12 novembre, 18 h 12 (« J’aime pas le “Garde-le” : remplace par la réf. 4 ») : le même titre et la même phrase partout */
+  assert.ok(h.includes('<h1 class="ob-title" id="ob-title">Ton parcours, <em>partout avec toi</em>.</h1>'));
+  assert.ok(h.includes('<p class="ob-compte-sub">Connecte-toi pour retrouver tes cours, tes défis et tes réussites sur tous tes appareils.</p>'));
+  assert.ok(h.includes('<b>Ton parcours est prêt.</b><small>Connecte-toi en un geste, et c’est parti.</small>'));
   assert.ok(!h.includes('Bravo') && !h.includes('ob-compte-confettis') && !h.includes('ob-compte-carte') && !h.includes('réussie'), 'plus de bravo de la requête');
   assert.ok(h.includes('ob-provider-list'), 'Apple, Google et l’e-mail');
   const ordre = ['ob-compte-fond', 'ob-compte-stk', 'ob-title', 'ob-compte-sub', 'ob-provider-list'].map(k => h.indexOf(k));
@@ -45,7 +47,9 @@ test('après « Ton parcours est prêt » : la mascotte sur sa tache, « Sauvega
 test('ouverte depuis l’accueil (« J’ai déjà un compte ») ou Mon compte : « Garde ta progression » ; dans l’app sans connexion, elle est sautée', () => {
   const s = rendre({ practiceDone: false });
   /* 12 novembre, 13 h 33 : une phrase plus directe (« Tu pourras… » laissait croire que la sauvegarde n’était pas immédiate) */
-  assert.ok(s.includes('<p class="ob-compte-sub">Retrouve tes cours, tes défis et tes réussites sur tous tes appareils.</p>') && !s.includes('ob-compte-confettis'));
+  assert.ok(s.includes('<p class="ob-compte-sub">Connecte-toi pour retrouver tes cours, tes défis et tes réussites sur tous tes appareils.</p>') && !s.includes('ob-compte-confettis'));
+  /* 18 h 12 : sans parcours construit (« J’ai déjà un compte »), le haut ne dit pas « Ton parcours est prêt » */
+  assert.ok(s.includes('<b>Bon retour&nbsp;!</b><small>Connecte-toi en un geste, et c’est parti.</small>') && !s.includes('Ton parcours est prêt'));
   assert.ok(app.includes("function obApresPret(fin){draft.finVoulue=fin||'home';const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();}"), 'sans connexion branchée (ou déjà connectée, 12 novembre), droit au paywall');
 });
 
@@ -73,6 +77,6 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=51">') && sw.includes("'./onboarding-vitrine.css?v=51',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-sans-video-v2897';") && app.includes("const SW_CACHE='requete-2026-11-12-sans-video-v2897';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=52">') && sw.includes("'./onboarding-vitrine.css?v=52',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-feuille-lavande-v2898';") && app.includes("const SW_CACHE='requete-2026-11-12-feuille-lavande-v2898';"));
 });
