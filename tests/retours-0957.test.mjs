@@ -22,7 +22,7 @@ test('la confidentialité quitte les feuilles de Défis', () => {
 });
 
 test('Mon compte : « Confidentialité des parties », juste après « Tes données, tes choix », ouvre la rubrique « Ta confidentialité »', () => {
-  assert.ok(app.includes('<span><b>Tes données, tes choix</b><small>Ce qui est gardé, sauvegarde, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>\n            <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg(\'user\')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>'));
+  assert.ok(app.includes('<span><b>Tes données, tes choix</b><small>Ce qui est gardé, copie, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>\n            <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg(\'user\')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>'));
   /* Le vrai code : la feuille s’ouvre (ses rubriques repartent fermées), puis « Ta confidentialité » se déplie et vient sous l’en-tête */
   const appels = [], vu = [];
   const sec = {scrollIntoView: o => vu.push(o)};

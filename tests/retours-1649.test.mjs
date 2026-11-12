@@ -298,7 +298,7 @@ test('« notif in-app » : effacer la progression passe par deux feuilles de l�
   answers.push(true, false); await ctx.resetAllProgress();
   assert.equal(asks.length, 3); assert.deepEqual(plain(ctx.state), before, '« Garder ma progression » : rien ne bouge');
   answers.push(true, true); await ctx.resetAllProgress();
-  assert.deepEqual(asks[1], { ico: '🗑️', titre: 'Effacer toute ta progression ?', texte: 'Leçons, défis, cartes, notes, planning et points de salle seront vidés sur cet appareil, et tes scores retirés du classement. C’est définitif, sauf si tu as exporté ta progression avant.', oui: 'Continuer', non: 'Annuler', danger: true });
+  assert.deepEqual(asks[1], { ico: '🗑️', titre: 'Effacer toute ta progression ?', texte: 'Leçons, défis, cartes, notes, planning et points de salle seront vidés sur cet appareil, et tes scores retirés du classement. C’est définitif.', oui: 'Continuer', non: 'Annuler', danger: true });
   assert.deepEqual(asks[2], { ico: '🗑️', titre: 'Dernière confirmation', texte: 'Tout effacer maintenant ? Ton pseudo, lui, reste à toi.', oui: 'Tout effacer', non: 'Garder ma progression', danger: true });
   const st = plain(ctx.state);
   assert.deepEqual([st.lessons, st.defis, st.notes, st.plan], [{}, {}, [], null], 'tout est vidé');

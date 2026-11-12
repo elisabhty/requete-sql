@@ -6729,7 +6729,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=323">
+<link rel="stylesheet" href="ludique.css?v=324">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=58">
 <style id="lesson-video-css">
@@ -20553,8 +20553,6 @@ async function boot(){
     setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
-    /* Retour de « Restaurer une sauvegarde » : Mon compte, et la carte « Tes données » dit que c’est fait. */
-    try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');setTimeout(()=>lqDone(document.querySelector('#scr-compte .acct-data'),'Restaurée','Sauvegarde restaurée : ta progression est de retour'),500);}}catch(e){}
     if(document.visibilityState!=='hidden')rappelVu();   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)
     tickRappel();
     setInterval(tickRappel,30000);
@@ -49259,7 +49257,7 @@ function renderCompte(){
     ?{title:'Compte connecté',copy:esc(state.accountLabel||'Ta progression est liée à ton compte.'),btn:'Gérer mes données',action:"openPlusDetails('plus-data')"}
     :obAuthReady()
       ?{title:'Mode local actif',copy:'Connecte-toi pour retrouver ta progression sur tous tes appareils. Connexion optionnelle.',btn:'Se connecter',action:"startOnboarding('account')"}
-      :{title:'Mode local actif',copy:'Ta progression est enregistrée sur cet appareil. Garde-en une sauvegarde pour la retrouver ailleurs.',btn:'Sauvegarder ma progression',icon:plusIcon('export'),action:'exportProgress()'};
+      :{title:'Mode local actif',copy:'Ta progression est enregistrée sur cet appareil.',btn:'Télécharger mes données',icon:plusIcon('export'),action:'exportProgress()'};
   const planSummary=state.plan?`${plural(state.plan.freq||7,'séance')} par semaine · ${plural(state.plan.per||3,'activité')}`:'Créer un parcours sur mesure';
   host.innerHTML=`
     <section class="acct-hero" aria-label="Ton profil">
@@ -49329,7 +49327,7 @@ function renderCompte(){
           <a class="acct-faq" href="${escAttr(siteUrl('decouvrir/#faq'))}" target="_blank" rel="noopener"><span class="acct-faq-t"><b>Questions fréquentes</b><small>Toutes les réponses, sur le site de Requête.</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg('faq')}</span></a>
           <button class="acct-faq acct-contact" type="button" onclick="openPlusDetails('plus-contact')"><span class="acct-faq-t"><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg(ACCT_STK.contact)}</span></button>
           <div class="account-settings-list">
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, sauvegarde, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, copie, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg('user')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
             ${typeof abonnementIci==='function'&&abonnementIci()?`<button class="account-setting-row" type="button" onclick="abonnementGerer()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
@@ -49381,11 +49379,7 @@ function renderCompte(){
       <div class="plus-details-body">
         ${accDonneesHTML(`<button class="acc-row" type="button" onclick="exportProgress()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('export')}</span>
-          <div class="at"><b>Sauvegarder ma progression</b><small>Un fichier de sauvegarde, à restaurer ici ou sur un autre appareil</small></div>
-          ${CHEV}</button>
-        <button class="acc-row" type="button" onclick="importProgress()">
-          <span class="acc-row-ico" aria-hidden="true">${plusIcon('import')}</span>
-          <div class="at"><b>Restaurer une sauvegarde</b><small>Le fichier créé par « Sauvegarder ma progression »</small></div>
+          <div class="at"><b>Télécharger mes données</b><small>Une copie de ta progression, de tes notes et de ton planning</small></div>
           ${CHEV}</button>
         ${clsOn()?'':`<button class="acc-row" type="button" onclick="clsQuitter()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('trophy')}</span>
@@ -49466,7 +49460,7 @@ function openLegal(kind){
     </div>`,
     terms:`<div class="legal-copy">
       <p>Requête t’aide à apprendre le SQL en pratiquant. Le contenu est fourni tel quel, à des fins pédagogiques.</p>
-      <p>Le compte est optionnel. Tu peux sauvegarder ta progression, l’effacer ou supprimer ton compte à tout moment depuis Mon compte. Un effacement est définitif, sauf si tu as fait une sauvegarde avant.</p>
+      <p>Le compte est optionnel. Tu peux télécharger une copie de tes données, effacer ta progression ou supprimer ton compte à tout moment depuis Mon compte. Un effacement est définitif.</p>
       <p>Les leçons, les défis et les outils de pratique disponibles dans cette version sont utilisables sans compte.</p>
     </div>`
   };
@@ -49526,9 +49520,9 @@ const DC_RUBRIQUES=[
   {k:'confid',stk:'shield',t:'Ta confidentialité',r:'Personne ne voit tes requêtes.',c:['Dans une salle, les autres joueurs voient ton pseudo, ton drapeau, tes temps et tes réactions. Jamais tes requêtes.',
     'En salle, ta requête part en ligne pour être vérifiée. Seule son empreinte, un code qui ne permet pas de la relire, est gardée 24\u00a0heures au plus.',
     'Ni publicité, ni traceur, rien de revendu\u00a0: l’appli compte seulement comment elle est utilisée, sans savoir qui tu es. Tu peux couper ces statistiques plus bas.']},
-  {k:'gerer',stk:'export',t:'Gérer mes données',r:'Sauvegarder ta progression ou effacer tes informations.',c:['<b>Effacer la progression</b>\u00a0: tes leçons, défis, cartes, notes et planning sont vidés sur cet appareil, et tes scores quittent le classement. Ton pseudo reste à toi.',
+  {k:'gerer',stk:'export',t:'Gérer mes données',r:'Télécharger une copie de tes données ou effacer tes informations.',c:['<b>Effacer la progression</b>\u00a0: tes leçons, défis, cartes, notes et planning sont vidés sur cet appareil, et tes scores quittent le classement. Ton pseudo reste à toi.',
     '<b>Supprimer mon compte</b> (en bas de Mon compte)\u00a0: efface tout ce que le serveur garde pour toi et tout ce qui est sur cet appareil.',
-    'Supprimer l’appli efface aussi ce qui est sur cet appareil\u00a0: sauvegarde ta progression avant.'],actions:true},
+    'Supprimer l’appli efface aussi ce qui est sur cet appareil. Avec un compte connecté, ta progression reste sur ton compte.'],actions:true},
 ];
 const DC_OUVERTES=new Set();
 function accDonneesHTML(actions){
@@ -49841,7 +49835,7 @@ async function saveFile(blob,fileName,title){
 /* Exporter ma progression (Elisa, 31 octobre, 15 h 16, réf. 3 : « vérifie que c’est bien la progression qui est exportée ») : tout l’état
    de l’appli (leçons et révisions, défis, cartes mémo, notes, planning, questions d’entretien, salle de défi et classement, autocollants,
    réglages), et ce qui est gardé à côté : réponses et position des vidéos, quiz « À toi de choisir » réussis, requêtes à trous, projets
-   et bases importées. Le même fichier se réimporte (ici, ou dans l’appli iPhone) avec « Importer une progression ». */
+   et bases importées. (Jusqu’au 12 novembre, le même fichier se réimportait ; voir plus bas.) */
 const EXPORT_EXTRA=k=>k===LV_ANS_KEY||k===LV_POS_KEY||k===PROJ_KEY||k===DBS_KEY||/^rq-(jc-pass|qf)-/.test(k)||
   ['requete-console','requete-rappel','requete-rappel-heure','rq-video-vitesse','rq-jeu-prefs','rq-jeu-nom'].includes(k);
 function progressPayload(){
@@ -49850,47 +49844,28 @@ function progressPayload(){
   return {v:1,app:'requete-sql',exportedAt:new Date().toISOString(),state:normalizeState(state),extra};
 }
 /* Elisa, 4 novembre, 22 h 08 : « le bouton exporter la progression est vraiment cohérent par rapport au fichier qu’elle donne ? De plus
-   on a une interaction qui dit fichier exporté alors qu’on a juste cliqué ». Le fichier est une sauvegarde à restaurer (pas un relevé
-   lisible) : le bouton s’appelle « Sauvegarder ma progression », le fichier requete-sauvegarde-AAAA-MM-JJ.json. Dans l’app iPhone, la
+   on a une interaction qui dit fichier exporté alors qu’on a juste cliqué ». Le fichier est une copie de ses données (pas un relevé
+   lisible) : le bouton s’appelle « Télécharger mes données » depuis le 12 novembre (d’abord « Sauvegarder ma progression », du temps
+   où il se restaurait), le fichier requete-mes-donnees-AAAA-MM-JJ.json. Dans l’app iPhone, la
    feuille de partage d’iOS s’ouvre (pont RequeteWidget.partager : Enregistrer dans Fichiers, AirDrop, Mail…) ; le message ne vient
    qu’une fois le fichier vraiment parti, rien si on annule. Sur le site : la feuille de partage du téléphone, ou un téléchargement. */
 async function exportProgress(){
-  const fileName=`requete-sauvegarde-${new Date().toISOString().slice(0,10)}.json`;
+  const fileName=`requete-mes-donnees-${new Date().toISOString().slice(0,10)}.json`;
   const texte=JSON.stringify(progressPayload(),null,2);
   const C=typeof ilePont==='function'?ilePont():null;
   let how=null;
   if(C){
     try{const r=await C.nativePromise('RequeteWidget','partager',{nom:fileName,texte});how=r&&r.ok?'share':null;}
-    catch(e){how=await saveFile(new Blob([texte],{type:'application/json'}),fileName,'Ma sauvegarde Requête');}
-  }else how=await saveFile(new Blob([texte],{type:'application/json'}),fileName,'Ma sauvegarde Requête');
+    catch(e){how=await saveFile(new Blob([texte],{type:'application/json'}),fileName,'Mes données Requête');}
+  }else how=await saveFile(new Blob([texte],{type:'application/json'}),fileName,'Mes données Requête');
   if(!how)return;
   closePlusDetails();
-  lqDone(document.querySelector('#scr-compte .acct-data'),'Sauvegardée',how==='share'?'Sauvegarde envoyée : garde ce fichier, il se restaure dans Mon compte.':`Sauvegarde téléchargée : ${fileName}`);
+  lqDone(document.querySelector('#scr-compte .acct-data'),'Téléchargées',how==='share'?'C’est fait : ce fichier contient une copie de tes données.':`Fichier téléchargé : ${fileName}`);
 }
-/* Importer une progression : le fichier d’« Exporter ma progression » remplace celle de cet appareil (après confirmation), puis l’appli
-   redémarre pour tout redessiner. */
-function importProgress(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='application/json,.json';
-  inp.onchange=()=>{
-    const f=inp.files&&inp.files[0];if(!f)return;
-    const rd=new FileReader();
-    rd.onload=()=>{
-      let p=null;try{p=JSON.parse(String(rd.result||''));}catch(e){}
-      if(!p||p.v!==1||!p.state||typeof p.state!=='object'){lqInfo('Fichier non reconnu','Choisis le fichier créé par « Sauvegarder ma progression » (requete-sauvegarde-….json).','📄');return;}
-      const st=normalizeState(p.state),nl=Object.values(st.lessons||{}).filter(l=>l&&(l.done||l.level>0)).length,nd=Object.keys(st.defis||{}).length;
-      lqAsk({ico:'📥',titre:'Remplacer ta progression ?',texte:`Ce fichier contient ${plur(nl,'leçon')} commencée${nl>1?'s':''}, ${plur(nd,'défi')} réussi${nd>1?'s':''} et ${plur((st.notes||[]).length,'note')}. Ta progression actuelle sur cet appareil sera remplacée.`,oui:'Importer',non:'Annuler',danger:true})
-        .then(ok=>{
-          if(!ok)return;
-          try{Object.entries(p.extra&&typeof p.extra==='object'?p.extra:{}).forEach(([k,v])=>{if(EXPORT_EXTRA(k)&&typeof v==='string')localStorage.setItem(k,v);});}catch(e){}
-          state=st;state.onboarded=true;save();
-          try{sessionStorage.setItem('rq-import-ok','1');}catch(e){}
-          setTimeout(()=>location.reload(),350);
-        });
-    };
-    rd.readAsText(f);
-  };
-  inp.click();
-}
+/* 12 novembre, 22 h 07 (Elisa : « est-ce vraiment obligatoire, le sauvegarder en local et réinjecter ? Ils peuvent le modifier et
+   le réinjecter avec de fausses infos ») : « Restaurer une sauvegarde » est retirée (importProgress) : avec les comptes, la
+   progression revient en se connectant, et un fichier modifié à la main pouvait réinjecter une progression inventée. Il reste le
+   téléchargement d’une copie de ses données (le droit d’en obtenir une copie, RGPD) : « Télécharger mes données ». */
 /* ---------- Noter l’appli, se déconnecter, supprimer son compte (Elisa, 4 novembre, 22 h 08) ----------
    « Dans compte il manque évaluez-nous, est-ce que ça peut faire le lien avec les avis Apple Store pour que ça apparaisse dans Apple si
    on nous met un avis » ; « mettre se déconnecter aussi » ; « suppression du compte » ; « toutes les choses obligatoires pour passer la
@@ -49912,12 +49887,14 @@ function noterAppli(){
   window.open(appStoreFiche()+'?action=write-review','_blank','noopener');
 }
 /* Se déconnecter (Elisa, 5 novembre, 22 h 14 : « mets le bouton déconnexion même s’il ne fonctionne pas ») : la ligne est toujours
-   là. Sans compte connecté (aucune connexion n’est encore branchée), elle dit où est la progression et propose d’en garder une
-   sauvegarde, plutôt que de ne rien faire. */
+   là. Sans compte connecté, elle dit où est la progression et, si la connexion est branchée, propose de se connecter pour la
+   retrouver ailleurs (12 novembre, 22 h 07 : plus de fichier de sauvegarde à restaurer). */
 async function seDeconnecter(){
   if(state.accountMode!=='connected'){
-    if(await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter. Garde-en une sauvegarde pour la retrouver ailleurs.',oui:'Sauvegarder ma progression',non:'OK'})){
-      if(typeof exportProgress==='function')exportProgress();
+    const peut=typeof obAuthReady==='function'&&obAuthReady();
+    if(await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter.'+(peut?' Connecte-toi pour la retrouver sur tes autres appareils.':''),oui:peut?'Me connecter':'OK',non:peut?'Plus tard':null})&&peut){
+      if(typeof closePlusDetails==='function')closePlusDetails();
+      startOnboarding('account');
     }
     return;
   }
@@ -50015,7 +49992,7 @@ async function compteSupprimer(){
 /* Les deux confirmations dans la DA de l’appli (Elisa, 31 octobre, 16 h 49 : « faire une notif in-app avec la même DA que le site,
    pareil s’il y a encore une notif comme ça ») : c’était la dernière fenêtre du navigateur. */
 async function resetAllProgress(){
-  if(!await lqAsk({ico:'🗑️',titre:'Effacer toute ta progression ?',texte:'Leçons, défis, cartes, notes, planning et points de salle seront vidés sur cet appareil, et tes scores retirés du classement. C’est définitif, sauf si tu as exporté ta progression avant.',oui:'Continuer',non:'Annuler',danger:true}))return;
+  if(!await lqAsk({ico:'🗑️',titre:'Effacer toute ta progression ?',texte:'Leçons, défis, cartes, notes, planning et points de salle seront vidés sur cet appareil, et tes scores retirés du classement. C’est définitif.',oui:'Continuer',non:'Annuler',danger:true}))return;
   if(!await lqAsk({ico:'🗑️',titre:'Dernière confirmation',texte:'Tout effacer maintenant ? Ton pseudo, lui, reste à toi.',oui:'Tout effacer',non:'Garder ma progression',danger:true}))return;
   /* Avec un compte connecté (12 novembre), la progression et les notes du compte sont effacées aussi, avant l’appareil : sinon la
      synchro suivante les ramènerait. Sans réseau, rien n’est effacé. */
@@ -50237,7 +50214,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-contact-v2910';
+  const SW_CACHE='requete-2026-11-12-donnees-v2911';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
