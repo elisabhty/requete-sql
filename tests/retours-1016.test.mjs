@@ -37,7 +37,7 @@ const rendreCompte = ({ authReady = false, obAuthBusy = false, obAuthMessage = '
   const pied = [];
   const ctx = vm.createContext({ slide: 'account', authReady, obAuthBusy, obAuthMessage, draft: { practiceDone }, MASCOT_IMG: 'mascotte.png',
     obFlowHeader: s => `<header data-etape="${s}"></header>`, esc: s => String(s), escAttr: s => String(s), legalUrl: k => `decouvrir/${k}.html`,
-    obSetFooter: (...a) => pied.push(a), obPasserConnexion() {} });
+    obSetFooter: (...a) => pied.push(a), obPasserConnexion() {}, state: {}, obEntry: 'welcome' });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS='), ctx);
   vm.runInContext("var html='';if(slide==='x'){" + page + '}', ctx);
   return { html: ctx.html, pied, ctx };
@@ -78,12 +78,14 @@ test('les boutons : « Bientôt » et vifs sans fournisseur, de vrais boutons av
   assert.ok(html.includes('<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>'), 'le message des boutons, qu’un lecteur d’écran entend aussi');
   assert.ok(!html.includes('ob-local-proof') && !html.includes('Mode local') && !html.includes('sans compte'), 'plus de mode local (10 h 29)');
   /* 6 novembre, 23 h 16 : la phrase des conditions est sous le bouton jaune, dans le pied de page */
-  assert.ok(!html.includes('En continuant') && pied[0][4].html.startsWith('En continuant, tu acceptes les <a class="ob-legal-link" href="decouvrir/terms.html" target="_blank" rel="noopener">Conditions d’utilisation</a>'));
+  assert.ok(!html.includes('En continuant') && pied[0][4].html.startsWith('En continuant, tu acceptes nos <a class="ob-legal-link" href="decouvrir/terms.html" target="_blank" rel="noopener">Conditions d’utilisation</a> et reconnais avoir pris connaissance de notre'));
   assert.ok(!html.includes('ob-auth-availability'));
   assert.deepEqual(pied.map(a => a[0]), ['Continuer'], 'tant que la connexion n’est pas branchée');
   /* Avec un fournisseur : les vrais boutons, et le compte seul */
   const { html: branche, pied: piedBranche } = rendreCompte({ authReady: true });
-  assert.deepEqual(piedBranche.map(a => [a[0], a[1]]), [['', null]], 'connexion branchée : pas de bouton pour passer, le compte est le seul chemin');
+  assert.deepEqual(piedBranche.map(a => [a[0], a[1]]), [['', null]], 'connexion branchée : pas de bouton jaune pour passer');
+  /* 12 novembre, 13 h 33 : sous les boutons, « Continuer sans compte » (obSansCompte) */
+  assert.ok(branche.includes('<button type="button" class="ob-sans-compte" onclick="obSansCompte()" >Continuer sans compte</button>'));
   assert.ok(!branche.includes('is-soon') && !branche.includes('Bientôt') && (branche.match(/ob-provider-chev/g) || []).length === 3, 'Apple, Google et l’e-mail');
   /* Pendant une vraie connexion : boutons occupés */
   assert.equal((rendreCompte({ authReady: true, obAuthBusy: true }).html.match(/disabled aria-busy="true"/g) || []).length, 3);

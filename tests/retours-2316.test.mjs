@@ -39,7 +39,8 @@ test('« En continuant… » juste sous le bouton jaune, avec ses deux liens', (
   const page = cut("}else if(slide==='account'){", "}else if(slide==='name'){");
   assert.ok(!page.includes('class="ob-legal-note"'), 'plus dans la page');
   assert.ok(page.includes("obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});"));
-  assert.ok(page.includes('const legal=`En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl(\'terms\'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl(\'privacy\'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;'));
+  /* 12 novembre, 13 h 33 : on accepte les conditions, on prend connaissance de la politique de confidentialité */
+  assert.ok(page.includes('const legal=`En continuant, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl(\'terms\'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et reconnais avoir pris connaissance de notre <a class="ob-legal-link" href="${escAttr(legalUrl(\'privacy\'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;'));
   /* Le pied de page, pour de vrai : la note sous le bouton reçoit le HTML, puis redevient du texte à l’étape suivante */
   const els = {}; const el = id => (els[id] = els[id] || { id, style: {}, classList: { on: new Set(), toggle(c, v) { v ? this.on.add(c) : this.on.delete(c); } }, set innerHTML(v) { this._html = v; this._txt = null; }, set textContent(v) { this._txt = v; this._html = null; } });
   const ctx = vm.createContext({ document: { getElementById: el }, obJustEntered: false, obCtaLibelle(b, t) { b.label = t; }, obCtaWake() {} });

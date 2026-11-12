@@ -6745,7 +6745,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=316">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=45">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=46">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -46737,6 +46737,19 @@ function obModifiable(){
    Plus de bouton pour rester sans compte ni de carte du mode local sur la page de connexion. Tant que la connexion n’est pas
    branchée, « Continuer » passe la page, pour aller au bout de l’onboarding ; une fois branchée, le compte est le seul chemin
    (ni bouton, ni glissé, ni « Suivant » ne la passent). */
+/* 12 novembre, 13 h 33 (Elisa, d’après une relecture de l’écran « Garde ta progression ») : « Continuer sans compte », pour découvrir
+   l’appli sans s’inscrire. Au début (« J’ai déjà un compte » touché), on part sur l’onboarding. À la fin, une question dit ce que
+   l’on risque (la progression reste sur cet appareil, un autre téléphone ne la retrouvera pas) ; confirmé, le paywall puis l’appli.
+   Le compte se crée plus tard, dans Mon compte. */
+function obSansCompte(){
+  if(obLock||obAuthBusy)return;
+  if(typeof buzz==='function')buzz('light');
+  if(!draft.finVoulue){obGoto('welcome');return;}
+  lqAsk({ico:'💾',chat:typeof chatBonusHtml==='function'?chatBonusHtml('cle'):'',titre:'Continuer sans compte ?',
+    texte:'Sans compte, ta progression reste uniquement sur cet appareil : si tu changes de téléphone, tu pourrais la perdre. Tu pourras créer ton compte plus tard, dans Mon compte.',
+    oui:'Créer mon compte',trois:'Continuer sans compte',non:null})
+    .then(r=>{if(r==='trois'&&OB_SLIDES[obStep]==='account'&&!obLock)obApresCompte();});
+}
 function obPasserConnexion(){
   if(obAuthReady())return;
   buzz('light');
@@ -46957,10 +46970,11 @@ function obMailChampHTML(authReady){
 function obCompteAtoutsHTML(){
   const noms=OB_PROVIDERS.filter(([p])=>p!=='email'&&obFournisseurOk(p)).map(([,n])=>n);
   const ico=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
+  /* 13 h 33 (Elisa, d’après une relecture de l’écran) : des titres plus directs ; les précisions dessous disent ce qui est gardé */
   const L=[
-    ['menthe',ico('<path d="M7.5 18.5H7a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.8 8.1 4.6 4.6 0 0 1 17 18.5h-.5"/><path d="m9 15 2.2 2.2L15.5 13"/>'),'Tes leçons et tes défis','Gardés, même si tu changes de téléphone'],
-    ['soleil',ico('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M8 17h6"/>'),'Tes notes et ton planning','Synchronisés automatiquement'],
-    ['blanc',ico('<rect x="5" y="10.5" width="14" height="10" rx="2.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5M12 14.5v2.5"/>'),'Sans mot de passe',noms.length?`Un geste avec ${noms.join(' ou ')}`:'Un geste suffit']
+    ['menthe',ico('<path d="M7.5 18.5H7a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.8 8.1 4.6 4.6 0 0 1 17 18.5h-.5"/><path d="m9 15 2.2 2.2L15.5 13"/>'),'Ne perds rien de tes progrès','Leçons et défis toujours sauvegardés'],
+    ['soleil',ico('<path d="M19.5 8.5A8 8 0 0 0 5.2 7.2M4.5 15.5a8 8 0 0 0 14.3 1.3"/><path d="M19.8 4v4.6h-4.6M4.2 20v-4.6h4.6"/>'),'Retrouve tout, partout','Notes et planning synchronisés'],
+    ['blanc',ico('<rect x="5" y="10.5" width="14" height="10" rx="2.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5M12 14.5v2.5"/>'),'Connecte-toi en un geste',noms.length?`Avec ${noms.join(' ou ')}, sans mot de passe`:'Sans mot de passe']
   ];
   return `<ul class="ob-compte-atouts" aria-label="Avec un compte">${L.map(([c,i,t,d],k)=>`<li style="--i:${k}"><span class="ob-ca-ico is-${c}">${i}</span><span class="ob-ca-txt"><b>${esc(t)}</b><small>${esc(d)}</small></span></li>`).join('')}</ul>`;
 }
@@ -47460,6 +47474,10 @@ function obSetFooter(primary,primaryAction,secondary,secondaryAction,note,disabl
   if(skip){skip.textContent=secondary||'';skip.style.display=secondary?'':'none';skip.onclick=secondaryAction||null;}
   /* La note sous les boutons : du texte, ou du HTML pour la phrase des conditions et ses liens (compte, 6 novembre, 23 h 16) */
   if(footNote){const h=!!note&&typeof note==='object';if(h)footNote.innerHTML=note.html||'';else footNote.textContent=note||'';footNote.classList.toggle('is-legal',h);}
+  /* 12 novembre, 13 h 33 : sans aucun bouton (la connexion branchée : ses boutons sont dans la page), le pied ne garde plus la place
+     du bouton jaune sous sa phrase (onboarding-vitrine.css) */
+  const pied=btn&&btn.closest?btn.closest('.ob-foot'):null;
+  if(pied)pied.classList.toggle('is-sans-bouton',!primary&&!secondary);
 }
 function obRythmeMinutes(rythme){
   return parseInt(String(rythme&&rythme.t||''),10)||(rythme&&rythme.min)||20;
@@ -47570,6 +47588,8 @@ function paintOb(){
     /* 10 novembre, 17 h 11 : elle vient après « Ton parcours est prêt », plus après la première requête : le bravo de la requête
        s’efface (les confettis sont sur la dernière page), elle propose de sauvegarder le parcours. */
     const reussie=false,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee(),finale=!!draft.finVoulue;
+    /* 12 novembre, 13 h 33 : « Continuer sans compte » (pas depuis Mon compte, où « Retour » suffit) */
+    const sansCompte=authReady&&!masquee&&!(state.onboarded&&obEntry==='account');
     /* 12 novembre (réf. 12 et 13 : « ça fait un peu vide », d’après le « Welcome Back » de HeyRua, sans e-mail) : la page s’organise
        comme lui (is-grand) : le chat à la clé en grand au milieu, le titre et sa phrase dessous, les boutons Apple et Google en bas. */
     html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}">${obFlowHeader(slide)}
@@ -47580,16 +47600,18 @@ function paintOb(){
       :finale?`<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>
       <p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>`
       :`<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
-      <p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>`}
+      <p class="ob-compte-sub">Retrouve tes cours, tes défis et tes réussites sur tous tes appareils.</p>`}
       ${masquee||reussie?'':obCompteAtoutsHTML()}
       ${masquee?'':`<div class="ob-provider-list">
         ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
         ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
+        ${sansCompte?`<button type="button" class="ob-sans-compte" onclick="obSansCompte()" ${obAuthBusy?'disabled':''}>Continuer sans compte</button>`:''}
       </div>`}${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
       </div>`;
     /* Elisa, 6 novembre, 23 h 16 (réf. 4) : « Met le en continuant… juste en bas du bouton jaune » : la phrase des conditions passe
        sous le bouton, dans le pied de page. */
-    const legal=`En continuant, tu acceptes les <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et la <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
+    /* 12 novembre, 13 h 33 : on accepte les conditions ; la politique de confidentialité, on en prend connaissance */
+    const legal=`En continuant, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et reconnais avoir pris connaissance de notre <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
     obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
   }else if(slide==='paywall'){
     if(obJustEntered&&typeof statUneFois==='function')statUneFois('paywall_vu','paywall:'+statJour());
@@ -49697,7 +49719,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-chat-clavier-pays-v2882';
+  const SW_CACHE='requete-2026-11-12-compte-sans-compte-v2883';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -124,16 +124,51 @@ test('la connexion remplie : ce que le compte garde vraiment, et les fournisseur
   vm.runInContext(cut('function obFournisseurOk(f){', '\n') + '\n' + cut('function obCompteAtoutsHTML(){', 'function obCompteCarteHTML(){'), ctx);
   const h = ctx.obCompteAtoutsHTML();
   assert.equal((h.match(/<li /g) || []).length, 3);
-  for (const t of ['Tes leçons et tes défis', 'Gardés, même si tu changes de téléphone', 'Tes notes et ton planning', 'Synchronisés automatiquement', 'Sans mot de passe', 'Un geste avec Apple ou Google'])
+  /* 13 h 33 (Elisa, d’après une relecture de l’écran) : des titres plus directs, une précision d’une ligne dessous */
+  for (const t of ['Ne perds rien de tes progrès', 'Leçons et défis toujours sauvegardés', 'Retrouve tout, partout', 'Notes et planning synchronisés',
+    'Connecte-toi en un geste', 'Avec Apple ou Google, sans mot de passe'])
     assert.ok(h.includes(t), t);
   ctx.window.REQUETE_AUTH = { fournisseurs: ['apple'] };
-  assert.ok(ctx.obCompteAtoutsHTML().includes('Un geste avec Apple<'), 'Apple seul');
+  assert.ok(ctx.obCompteAtoutsHTML().includes('Avec Apple, sans mot de passe<'), 'Apple seul');
   assert.ok(app.includes("      ${masquee||reussie?'':obCompteAtoutsHTML()}\n      ${masquee?'':`<div class=\"ob-provider-list\">"));
   /* ce qu’elle promet existe : la synchro emporte leçons, défis, jours de série, planning et notes, quelques secondes après un changement */
   const ext = cut('function csExtraire(){', '\n}\n');
   assert.ok(ext.includes('extractProgression({lessons,defis,entretien,actDays}') && ext.includes("key:'planning:main'") && ext.includes('extractSavedNotes('));
   assert.ok(app.includes('clearTimeout(CS.t);CS.t=setTimeout(()=>{csSync();},5000);'));
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-account.is-grand{--stk0:104px}'));
+});
+
+/* 12 novembre, 13 h 33 (Elisa, une relecture de l’écran « Garde ta progression ») : une phrase plus directe, des titres plus courts,
+   « Continuer sans compte » sous les boutons, la mention légale juste, et la page resserrée pour tout tenir. */
+test('« Garde ta progression » : « Continuer sans compte », sa question à la fin, la mention légale', () => {
+  const p = cut("}else if(slide==='account'){", "}else if(slide==='paywall'){");
+  assert.ok(p.includes('<p class="ob-compte-sub">Retrouve tes cours, tes défis et tes réussites sur tous tes appareils.</p>'));
+  assert.ok(p.includes("const sansCompte=authReady&&!masquee&&!(state.onboarded&&obEntry==='account');"), 'pas depuis Mon compte');
+  assert.ok(p.includes("${sansCompte?`<button type=\"button\" class=\"ob-sans-compte\" onclick=\"obSansCompte()\" ${obAuthBusy?'disabled':''}>Continuer sans compte</button>`:''}"));
+  assert.ok(p.includes('En continuant, tu acceptes nos <a') && p.includes('et reconnais avoir pris connaissance de notre <a'));
+  const vers = [], questions = [];
+  let reponse = 'trois';
+  const ctx = vm.createContext({ obLock: false, obAuthBusy: false, draft: {}, OB_SLIDES: ['account'], obStep: 0, buzz() {}, chatBonusHtml: k => `<chat ${k}>`,
+    obGoto: s => vers.push('page ' + s), obApresCompte: () => vers.push('paywall'), lqAsk: o => { questions.push(o); return Promise.resolve(reponse); } });
+  vm.runInContext(cut('function obSansCompte(){', 'function obPasserConnexion(){'), ctx);
+  ctx.obSansCompte();
+  assert.deepEqual(vers, ['page welcome'], 'au début (« J’ai déjà un compte ») : l’onboarding, sans question');
+  return (async () => {
+    vers.length = 0; ctx.draft.finVoulue = 'home';
+    ctx.obSansCompte(); await new Promise(r => setTimeout(r, 0));
+    assert.equal(questions[0].titre, 'Continuer sans compte ?');
+    assert.equal(questions[0].texte, 'Sans compte, ta progression reste uniquement sur cet appareil : si tu changes de téléphone, tu pourrais la perdre. Tu pourras créer ton compte plus tard, dans Mon compte.');
+    assert.deepEqual([questions[0].oui, questions[0].trois, questions[0].non, questions[0].chat], ['Créer mon compte', 'Continuer sans compte', null, '<chat cle>']);
+    assert.deepEqual(vers, ['paywall'], 'confirmé : le paywall');
+    reponse = true; ctx.obSansCompte(); await new Promise(r => setTimeout(r, 0));
+    assert.deepEqual(vers, ['paywall'], '« Créer mon compte » : on reste sur la page');
+    /* sans bouton dans le pied, il ne garde plus la place du bouton jaune */
+    assert.ok(app.includes("  if(pied)pied.classList.toggle('is-sans-bouton',!primary&&!secondary);"));
+    for (const r of ['html #onboarding.ob-vitrine .ob-foot.is-sans-bouton{padding-bottom:calc(var(--safe-bottom,0px) + 14px)!important}',
+      'html #onboarding.ob-vitrine .ob-account.is-grand .ob-compte-haut+.ob-title{margin-top:4px!important}',
+      'html #onboarding.ob-vitrine .ob-compte-atouts{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px;margin:14px auto 0!important;padding:12px 14px;'])
+      assert.ok(ob.includes(r), r);
+  })();
 });
 
 test('le pays : sa carte, le chat assis dessus qui hoche la tête quand le drapeau se pose', () => {
