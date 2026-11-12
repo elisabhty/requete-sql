@@ -20545,6 +20545,7 @@ async function boot(){
     jeuFromUrl();
     resetLeconFromUrl();
     apercuFromUrl();
+    try{obGardeDemarrer(true);}catch(e){}   // l’abonnement (12 novembre, 21 h 06) : sans lui, le paywall, avant que l’écran de lancement parte
     setTimeout(()=>{try{homeStatsCompter();}catch(e){}},document.documentElement.classList.contains('is-native')?3300:700);   // après l’ouverture
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
     setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
@@ -38629,7 +38630,7 @@ function jeuInvitation(){
 function jeuInvitationOublier(){try{sessionStorage.removeItem(JEU_INV);sessionStorage.removeItem(JEU_INV_DE);}catch(e){}}
 function jeuFromUrl(){
   const inv=jeuInvitation();if(!inv)return;
-  if(!state.onboarded){try{sessionStorage.setItem(JEU_INV,inv.code);if(inv.de)sessionStorage.setItem(JEU_INV_DE,inv.de);else sessionStorage.removeItem(JEU_INV_DE);}catch(e){}return;}
+  if(!state.onboarded||(typeof obGardeBloque==='function'&&obGardeBloque())){try{sessionStorage.setItem(JEU_INV,inv.code);if(inv.de)sessionStorage.setItem(JEU_INV_DE,inv.de);else sessionStorage.removeItem(JEU_INV_DE);}catch(e){}return;}
   jeuInvitationOublier();
   try{const u=new URL(location.href);u.searchParams.delete('partie');u.searchParams.delete('de');history.replaceState(history.state,'',u.pathname+u.search+u.hash);}catch(e){}
   jeuEntrerInvitation(inv.code);
@@ -44742,6 +44743,7 @@ function startOnboarding(initial='welcome'){
   obEntry=OB_SLIDES.includes(initial)&&initial!=='bonjour'?initial:'welcome';
   obStep=OB_SLIDES.indexOf(obEntry==='welcome'?'bonjour':obEntry);   // l’onboarding complet commence par « bonjour » (12 novembre)
   obLock=false;obLegalMode=null;obAuthMessage='';obAuthBusy=false;
+  obGarde=obEntry==='paywall'&&!!state.onboarded;   /* ouvert droit sur le paywall, onboarding déjà fait : la garde de l’abonnement (obGardeVoir) */
   const plan=state.plan||{},profile=state.profile||{};
   draft={
     niveau:plan.niveau||'debutant',
@@ -44935,6 +44937,9 @@ function closeOnboardingAuth(){
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
   root.setAttribute('aria-hidden','true');obBarreEtat(false);
   renderCompte();
+  /* La garde de l’abonnement (12 novembre, 21 h 06) : refermée par un autre chemin que l’abonnement, elle revient aussitôt */
+  obGarde=false;
+  if(typeof obGardeVoir==='function')obGardeVoir();
 }
 const OB_SORTIE_MS=110;
 function obGoto(target){
@@ -45016,6 +45021,53 @@ function obCompteConnu(r){
   return !!(state.plan&&Array.isArray(state.plan.sessions)&&state.plan.sessions.length);
 }
 function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}
+/* ---------- La garde de l’abonnement (Elisa, 12 novembre, 21 h 04 : « j’ai changé de compte et j’ai pas eu le paywall » ; 21 h 06 :
+   « ok pour le 1 ») ----------
+   Le paywall n’était contrôlé qu’à la fin de l’onboarding : une fois l’onboarding fait sur l’iPhone, plus rien ne regardait
+   l’abonnement (se reconnecter avec un autre compte ramenait droit dans l’appli ; un essai annulé gardait l’appli). L’abonnement
+   reste celui du compte Apple de l’iPhone (achat.js), et l’appli le vérifie à chaque ouverture, à chaque retour au premier plan et
+   après chaque connexion : sans abonnement actif, le paywall s’ouvre par-dessus l’appli, sans « Retour ». Il se referme de lui-même
+   dès que l’abonnement est là (achat, « Restaurer », ou une réponse de RevenueCat).
+   - seulement dans l’app iPhone avec l’achat branché (obAchatPret) : le site ne change pas ;
+   - seulement sur un « non » sûr (REQUETE_ACHAT.etat) : sans réponse (hors ligne, première ouverture), on entre ;
+   - en pleine partie entre amis, il attend la fin de la partie. */
+let obGarde=false,obGardePrete=false,obGardeSuivie=false,obGardeT=0;
+function obGardeEtat(){
+  if(!obAchatPret())return 'oui';
+  try{const a=window.REQUETE_ACHAT;return typeof a.etat==='function'?a.etat():(a.actif()?'oui':'inconnu');}catch(e){return 'inconnu';}
+}
+/* Vrai tant que le paywall doit rester devant l’appli (une invitation à une salle attend derrière lui, comme pendant l’onboarding) */
+function obGardeBloque(){return !!state.onboarded&&!obApercu&&obGardeEtat()==='non';}
+function obGardeVoir(){
+  clearTimeout(obGardeT);
+  if(!state.onboarded||obApercu)return false;
+  const e=obGardeEtat(),root=document.getElementById('onboarding'),ouvert=!!(root&&root.classList.contains('on'));
+  if(e==='oui'){if(obGarde&&ouvert)obGardeFermer();return false;}
+  if(e!=='non')return false;
+  if(obGarde&&ouvert)return true;
+  if(ouvert)return false;   /* une autre page de l’onboarding est ouverte (connexion, widget) : à sa fermeture (closeOnboardingAuth) */
+  if(typeof JEU!=='undefined'&&JEU){obGardeT=setTimeout(obGardeVoir,20000);return false;}
+  startOnboarding('paywall');
+  return true;
+}
+function obGardeFermer(){
+  if(!obGarde)return;
+  obGarde=false;obPwSortie=false;obPwBusy=false;
+  closeOnboardingAuth();
+  if(typeof jeuFromUrl==='function')setTimeout(jeuFromUrl,350);   /* l’invitation qui attendait derrière le paywall */
+}
+/* Au démarrage de l’appli (lancee), et quand achat.js a fini de se charger : celui des deux qui arrive en dernier lance la garde. */
+function obGardeDemarrer(lancee){
+  if(lancee)obGardePrete=true;
+  if(!obGardePrete||!obAchatPret())return;
+  const a=window.REQUETE_ACHAT,voir=()=>{try{obGardeVoir();}catch(e){}};
+  if(!obGardeSuivie){
+    obGardeSuivie=true;
+    try{if(typeof a.suivre==='function')a.suivre(voir);}catch(e){}
+    try{if(typeof a.verifier==='function')Promise.resolve(a.verifier()).then(voir,()=>{});}catch(e){}
+  }
+  voir();
+}
 /* Ce que le compte a rapporté (csSync) remplit les réponses de l’onboarding qu’on n’a pas données : le rythme du planning, le prénom,
    le profil. finishOnboard garde ainsi le planning du compte et son profil (12 novembre, réf. 14). */
 function obDraftDepuisEtat(){
@@ -45132,9 +45184,11 @@ function obPaywallHTML(){
   const sortie=obSortieVue()?obSortieInfo():null;
   const rappel=sortie?`<button type="button" class="pw-lien pw-rappel" onclick="obPaywallVue(true)">Offre −${sortie.pct}&nbsp;%</button>`:'';
   const droite=obAchatPret()?`<span class="pw-top-d">${rappel}<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button></span>`:'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
-  return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
+  /* La garde de l’abonnement (obGardeVoir) : le paywall devant l’appli n’a pas de « Retour » ; son parcours existe déjà, il l’attend. */
+  const garde=typeof obGarde!=='undefined'&&obGarde;
+  return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${garde?'<span class="pw-sans-retour" aria-hidden="true"></span>':obBackButton()}${droite}</div>
     <div class="pw-hero"><img class="pw-chat" src="assets/chat-diplome${fixe?'-fixe':''}.webp" width="304" height="367" alt="" draggable="false">
-      <span class="pw-tag">Ton parcours est prêt&nbsp;🚀</span>
+      <span class="pw-tag">${garde?'Ton parcours t’attend':'Ton parcours est prêt'}&nbsp;🚀</span>
       <h1 class="ob-title" id="ob-title">${nom?`${esc(nom)}, tu`:'Tu'} es ${typeof accord==='function'?accord('prête','prêt','prêt·e'):'prêt·e'} à atteindre <em>ton objectif</em>&nbsp;!</h1>
       <p class="pw-but"><b>${esc(b.goal)}</b>${b.endLabel?`, fin estimée le ${esc(b.endLabel)}`:', à ton rythme'}.</p></div>
     <ul class="pw-plus">
@@ -45164,7 +45218,10 @@ function obPaywallChoisir(k){
   obPaywallPied();
 }
 function obPaywallPasser(){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
-function obPaywallEntrer(){obPwSortie=false;if(typeof buzz==='function')buzz('success');finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
+function obPaywallEntrer(){obPwSortie=false;if(typeof buzz==='function')buzz('success');
+  /* La garde de l’abonnement : l’appli est derrière, telle qu’on l’avait laissée ; surtout pas finishOnboard, qui referait le planning */
+  if(typeof obEntry!=='undefined'&&obEntry==='paywall'&&state.onboarded){if(typeof obGardeFermer==='function')obGardeFermer();return;}
+  finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
 async function obPaywallAcheter(){
   if(!obAchatPret()){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
   if(obPwBusy)return;
@@ -46379,6 +46436,8 @@ function obNext(){
 function obBack(){
   if(obLegalMode){obLegalMode=null;paintOb();return;}
   if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;
+  /* La garde de l’abonnement : ni « Retour », ni glissé, ni Échap ne sortent du paywall (de l’offre de bienvenue, ils ramènent aux offres) */
+  if(typeof obGarde!=='undefined'&&obGarde&&OB_SLIDES[obStep]==='paywall'){if(obPwSortie)obSortieRefuser();return;}
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
   if(OB_SLIDES[obStep]==='paywall'&&obPwSortie){obSortieRefuser();return;}   /* de l’offre de bienvenue, « Retour » ramène aux offres */
   if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
@@ -47396,7 +47455,10 @@ async function obStartAuth(provider,btn){
     if(typeof csSync==='function')csSync({premier:true});   // 12 novembre : la progression rejoint le compte (ou en revient)
     draft.accountMode='connected';
     obAuthBusy=false;obAuthMessage='';
-    if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();renderCompte();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
+    /* 21 h 06 (« j’ai changé de compte et j’ai pas eu le paywall ») : connecté depuis l’appli, ou reconnecté après une déconnexion,
+       sans abonnement actif sur cet iPhone : le paywall, sans refermer la page entre les deux. */
+    if(obEntry==='account'&&state.onboarded&&typeof obGardeBloque==='function'&&obGardeBloque()){obGarde=true;obEntry='paywall';obGoto('paywall');}
+    else if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();renderCompte();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
     else if(!draft.finVoulue){
       /* 12 novembre (réf. 14, son choix : « Mon compte ») : connecté depuis « J’ai déjà un compte », au début de l’onboarding, on arrive
          sur Mon compte, pas sur l’accueil. La progression du compte arrive d’abord (6 s au plus) : son planning, son prénom et ses
@@ -47838,6 +47900,7 @@ function paintOb(){
   root.classList.toggle('ob-feuille-seule',slide==='account'&&!obLegalMode&&authReady&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));
   root.classList.toggle('ob-paywall-step',slide==='paywall'&&!obLegalMode);
   root.classList.toggle('ob-sortie-step',slide==='paywall'&&!obLegalMode&&obPwSortie);
+  root.classList.toggle('ob-garde',slide==='paywall'&&typeof obGarde!=='undefined'&&!!obGarde);
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
   root.classList.toggle('ob-bonjour-step',slide==='bonjour'&&!obLegalMode);
@@ -50113,7 +50176,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-sept-retours-v2904';
+  const SW_CACHE='requete-2026-11-12-garde-v2905';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -50153,7 +50216,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=10"></script>
-<script src="achat.js?v=4"></script>
+<script src="achat.js?v=5"></script>
 <script src="compte-moteurs.js?v=1"></script>
 <script src="connexion.js?v=3"></script>
 </body>

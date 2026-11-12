@@ -77,10 +77,10 @@ test('prix de la boutique du pays, essai caché pour qui l’a déjà eu, restau
 });
 
 test('le paywall affiche les prix de la boutique quand ils sont là, et charge achat.js', () => {
-  assert.match(html, /<script src="achat\.js\?v=4"><\/script>/);
+  assert.match(html, /<script src="achat\.js\?v=5"><\/script>/);
   assert.match(html, /function obPrixTexte\(k\)\{const b=obPrixBoutique\(k\);return b\?b\.texte:obEuros\(OB_OFFRES\[k\]\.prix\);\}/);
   assert.match(html, /<b>\$\{obPrixTexte\(k\)\}<\/b> \$\{sur\(OB_OFFRES\[k\]\.par\)\}/);
   assert.match(html, /Soit <\/span><b>\$\{parSemaineTexte\}<\/b> par semaine/);
   assert.ok(html.includes('`S’abonner pour ${prix}`') && html.includes('puis ${prix} ${o.par} à partir du') && html.includes('${prix} aujourd’hui, puis'), 'le bouton et le pied suivent aussi');
-  assert.match(readFileSync(new URL('../sw.js', import.meta.url), 'utf8'), /'\.\/achat\.js\?v=4',/);
+  assert.match(readFileSync(new URL('../sw.js', import.meta.url), 'utf8'), /'\.\/achat\.js\?v=5',/);
 });
