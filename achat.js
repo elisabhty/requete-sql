@@ -52,6 +52,24 @@
      que ce compte y a droit (statut 2). Dans le doute, l'offre ne se
      montre pas : personne ne doit lire « −50 % » puis voir le plein tarif
      sur la feuille d'Apple.
+
+   12 novembre, 21 h 06 (Elisa : « j'ai changé de compte et j'ai pas eu
+   le paywall » ; « ok pour le 1 ») : la garde. L'abonnement reste celui
+   du compte Apple de l'iPhone (pas du compte Requête), et l'app le
+   vérifie à chaque ouverture, à chaque retour au premier plan et après
+   chaque connexion (index.html, obGardeVoir) : sans abonnement actif,
+   le paywall.
+   - etat() → 'oui' | 'non' | 'inconnu', tout de suite : ce qu'on sait.
+     'inconnu' (jamais eu de réponse de RevenueCat) ne bloque personne.
+   - verifier() → Promise<etat> : redemande à RevenueCat.
+   - suivre(fn) : fn(etat) à chaque changement (réponse du serveur,
+     achat, restauration, retour dans l'app).
+   Une abonnée hors ligne n'est jamais bloquée : RevenueCat rend d'abord
+   ce qu'il a en mémoire, et une vieille réponse peut dire « expiré »
+   alors qu'Apple a renouvelé depuis. Un « non » ne remplace donc un
+   « oui » que s'il vient d'une réponse du serveur plus récente que
+   celle qui disait « oui » (requestDate, gardée dans GARDE_VU). Sans
+   réseau, on garde le « oui ».
    ===================================================================== */
 (function(){
   'use strict';
@@ -60,6 +78,7 @@
   var RC_CLE_IOS = 'appl_qLAPPmCbplIcNyriYbILgTzVYYQ';
   var DROIT = 'premium';
   var GARDE = 'requete-premium';
+  var GARDE_VU = 'requete-premium-vu';
   var PRODUITS = {an:'fr.requete.app.annuel', semaine:'fr.requete.app.hebdo', bienvenue:'fr.requete.app.annuel.bienvenue'};
 
   var C = window.Capacitor;
@@ -67,17 +86,42 @@
   var P = natif && C.Plugins && C.Plugins.Purchases;
   if (!RC_CLE_IOS || !P) return;
 
-  var actifConnu = false;
-  try { actifConnu = localStorage.getItem(GARDE) === '1'; } catch (e) {}
+  /* Ce qu'on sait : true (abonnée), false (pas abonnée), null (jamais eu de réponse). Et la date de la réponse qui l'a dit. */
+  var su = null, vu = '';
+  try { var g = localStorage.getItem(GARDE); su = g === '1' ? true : g === '0' ? false : null; vu = localStorage.getItem(GARDE_VU) || ''; } catch (e) {}
+  var actifConnu = su === true;
+  var suiveurs = [], dit = null;
   var paquets = {};      /* 'an' | 'semaine' → le paquet RevenueCat (à repasser tel quel à purchasePackage) */
   var essais = {};       /* 'an' | 'semaine' → false si Apple dit « déjà eu l'essai » */
   var statuts = {};      /* la réponse d'Apple telle quelle : 0 inconnu, 1 pas éligible, 2 éligible, 3 pas d'offre de lancement */
 
+  function etat(){ return su === true ? 'oui' : su === false ? 'non' : 'inconnu'; }
+  /* Les suiveurs sont prévenus après coup (au tour suivant) : l'achat ou la restauration en cours finit d'abord, le paywall
+     ouvre l'app lui-même, puis la garde constate que tout est en ordre. */
+  var plusTard = typeof setTimeout === 'function' ? function(f){ setTimeout(f, 0); } : function(f){ Promise.resolve().then(f); };
+  function prevenir(){
+    var e = etat();
+    if (e === dit) return;
+    dit = e;
+    plusTard(function(){ suiveurs.slice().forEach(function(fn){ try { fn(e); } catch (x) {} }); });
+  }
   function noterClient(info){
     var ci = info && (info.customerInfo || info);
-    var a = !!(ci && ci.entitlements && ci.entitlements.active && ci.entitlements.active[DROIT]);
-    actifConnu = a;
-    try { localStorage.setItem(GARDE, a ? '1' : '0'); } catch (e) {}
+    if (!ci || !ci.entitlements) return actifConnu;      /* rien de lisible : on garde ce qu'on sait */
+    var a = !!(ci.entitlements.active && ci.entitlements.active[DROIT]);
+    var date = String(ci.requestDate || ''), t = Date.parse(date), tVu = Date.parse(vu);
+    if (!a && su === true) {
+      /* « Non » alors qu'on la savait abonnée : seulement si le serveur a répondu depuis (voir l'en-tête). */
+      var plusRecent = isFinite(t) && isFinite(tVu) && t > tVu;
+      if (!plusRecent) {
+        if (!vu && date) { vu = date; try { localStorage.setItem(GARDE_VU, date); } catch (e) {} }
+        return actifConnu;
+      }
+    }
+    su = a; actifConnu = a;
+    if (date) vu = date;
+    try { localStorage.setItem(GARDE, a ? '1' : '0'); if (date) localStorage.setItem(GARDE_VU, date); } catch (e) {}
+    prevenir();
     return a;
   }
   function offreDe(pq){
@@ -118,7 +162,12 @@
   }
 
   var pret = P.configure({apiKey: RC_CLE_IOS})
-    .then(function(){ return P.getCustomerInfo().then(noterClient).catch(function(){}); })
+    .then(function(){
+      /* RevenueCat rend d'abord ce qu'il a en mémoire, puis interroge son serveur : la vraie réponse arrive ici, un peu plus tard.
+         (Le pont de Capacitor attend (options, fonction) pour une méthode à rappel.) */
+      try { if (typeof P.addCustomerInfoUpdateListener === 'function') P.addCustomerInfoUpdateListener({}, function(info){ if (info) noterClient(info); }); } catch (e) {}
+      return P.getCustomerInfo().then(noterClient).catch(function(){});
+    })
     .then(chargerOffres)
     .catch(function(){});
 
@@ -137,6 +186,9 @@
     },
     restaurer: function(){ return pret.then(function(){ return P.restorePurchases(); }).then(noterClient); },
     actif: function(){ return actifConnu; },
+    etat: etat,
+    verifier: function(){ return pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){}).then(etat); },
+    suivre: function(fn){ if (typeof fn === 'function') suiveurs.push(fn); },
     essaiDispo: function(offre){ return essais[offre] !== false; },
     prix: function(offre){
       var pq = paquets[offre], p = pq && pq.product;
@@ -148,4 +200,6 @@
       return !!(i && typeof p.price === 'number' && i.prix < p.price && statuts.bienvenue === 2);
     }
   };
+  /* L'app est peut-être déjà ouverte (ce fichier se charge après elle) : la garde démarre dès que le crochet existe. */
+  try { if (typeof window.obGardeDemarrer === 'function') window.obGardeDemarrer(); } catch (e) {}
 })();
