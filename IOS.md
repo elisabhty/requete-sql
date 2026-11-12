@@ -367,6 +367,32 @@ dans Requête. Mets l’appli à jour si besoin. », puis efface les inscrits se
 répond `envoyees`, `oubliees` et `restantes` (Apple indisponible) : relancer la même commande renvoie seulement à ceux qui restent.
 `"veille": true` : la clé d’Apple manque. « Clé d’annonce absente ou fausse » : le mot de passe ne correspond pas au secret.
 
+### Les retours par e-mail (12 novembre, 22 h 07)
+
+Un message « Contacte-nous », un avis de leçon qui porte un commentaire, un pseudo signalé au classement : chacun arrive par
+e-mail, en plus du tableau de bord. À chaque nouvelle ligne, la base prévient la fonction `alerte-mail`
+(`supabase/functions/alerte-mail`, migration `supabase/migrations/20261112214500_alerte_mail.sql`), qui écrit un e-mail en texte
+simple et l’envoie par Resend. L’adresse laissée dans un message devient l’adresse de réponse : « Répondre » suffit. Les pièces
+jointes ne partent pas, seulement un lien de lecture valable 7 jours. Rien n’est à mettre à jour dans l’appli : tout se passe
+côté serveur, y compris pour les versions déjà installées.
+
+**Une seule fois (Elisa)** :
+
+1. resend.com › créer un compte **avec l’adresse où tu veux recevoir les retours** (contact@requeteapp.com). Tant que le domaine
+   requeteapp.com n’est pas vérifié chez Resend, l’adresse d’essai de Resend n’écrit qu’à l’adresse du compte.
+2. Resend › **API Keys** › Create API Key (« Sending access » suffit) : copier la clé.
+3. supabase.com › projet requete-sql › **Edge Functions** › **Secrets** › Add new secret : `RESEND_API_KEY`, avec cette clé.
+
+Facultatifs : `ALERTE_MAIL_A` (une autre adresse d’arrivée ; par défaut contact@requeteapp.com) et `ALERTE_MAIL_DE`
+(l’expéditeur, une fois un domaine vérifié chez Resend, par exemple `Requête <retours@requeteapp.com>` ; alors `ALERTE_MAIL_A`
+peut être n’importe quelle adresse).
+
+Pour essayer : envoyer un message depuis l’appli (Mon compte › Contacte-nous). L’e-mail arrive dans la minute (regarder aussi
+les indésirables la première fois). Sans la clé, la fonction répond « veille » et rien n’est perdu : ce qui a moins de 2 jours
+part dès que la clé est là. Garde-fous : 40 e-mails par jour au plus, regroupés à partir du 10e (un toutes les 10 minutes) ;
+un envoi raté est réessayé chaque heure, 5 fois au plus. Ce qui ne part pas reste lisible dans Supabase (vues `contact_boite`
+et `avis_commentaires`). Vérification de la base : `supabase/tests/alerte_mail.sql` (tout est annulé à la fin).
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre

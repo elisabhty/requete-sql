@@ -173,7 +173,7 @@ test('Tes données, tes choix (6 novembre, 10 h 16) : quatre rubriques fermées 
 });
 
 test('la confidentialité dit où partent les messages (appli, site, notes App Store)', () => {
-  const li = '<li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus.</li>';
+  const li = '<li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus. Pour les lire sans attendre, nous en recevons une copie par e-mail, par le service d’envoi Resend (États-Unis).</li>';
   assert.equal(app.split(li).length - 1, 2, 'dans la confidentialité de l’appli et dans le choix « sans compte »');
   assert.ok(site.includes('<li><b>Messages de contact.</b> Depuis l’appli (Mon compte, «&nbsp;Contacte-nous&nbsp;»), ton message, son sujet'));
   assert.ok(site.includes('ou depuis l’appli (Mon compte, «&nbsp;Contacte-nous&nbsp;»)&nbsp;; «&nbsp;Supprimer mon compte&nbsp;» efface tout d’un coup.'), 'les droits s’exercent aussi depuis l’appli');
