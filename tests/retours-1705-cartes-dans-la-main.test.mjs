@@ -89,3 +89,13 @@ test('le style : éventail dans la main, carte tirée redressée, mouvement réd
   assert.ok(css.indexOf('html.lq .mc-main{position:relative') < css.indexOf('Défis — la refonte du 7 novembre'), 'avant la section des défis');
   assert.ok(!css.includes('html.lq .is-flipped .mc-flip>.is-recto'), 'l’ancienne règle retournait toutes les cartes du bloc');
 });
+
+// 17 h 38 (Elisa, à l’écoute des passages suspects des voix : « Oui après absent ») : le bruit qui suivait « absents » dans le
+// chapitre 2 de COALESCE est rendu muet, sans réencoder ni changer la durée.
+test('voix de COALESCE, chapitre 2 : plus de bruit après « absents »', async () => {
+  const {muetteFin} = await import('../tools/voix/clics.mjs');
+  const f = new URL('../assets/voix/coalesce/ch02.mp3', import.meta.url), b = readFileSync(f);
+  assert.ok(muetteFin(b, 35).equals(b), 'les 35 dernières trames sont déjà muettes');
+  assert.ok(!muetteFin(b, 36).equals(b), 'la trame d’avant porte encore la fin du mot');
+  assert.ok(lire('tools/voix/A-REGENERER.md').includes('12 novembre, 17 h 38 : `coalesce/ch02`, le bruit après « absents » est retiré'));
+});
