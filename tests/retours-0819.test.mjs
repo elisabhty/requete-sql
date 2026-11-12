@@ -50,7 +50,8 @@ test('obFit suit la vraie taille de l’onboarding et se relance pendant que le 
     setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, clearTimeout: () => {},
     obFit: () => { fits++; },
   });
-  vm.runInContext(src, ctx);
+  /* 12 novembre, 21 h 53 : le même suivi note la hauteur sans clavier (obHPleine, déclarée à côté d’obGoto) */
+  vm.runInContext('let obHPleine=0,obHPleineL=0;' + src, ctx);
   assert.equal(ro.el, racine, 'la taille de #onboarding est suivie');
   ro.cb([{ contentRect: { height: 932 } }]); assert.equal(fits, 1);
   ro.cb([{ contentRect: { height: 932 } }]); assert.equal(fits, 1, 'même hauteur : rien à refaire');

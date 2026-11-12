@@ -44942,6 +44942,15 @@ function closeOnboardingAuth(){
   if(typeof obGardeVoir==='function')obGardeVoir();
 }
 const OB_SORTIE_MS=110;
+/* 12 novembre, 21 h 53 (Elisa, le prénom, clavier ouvert : « quand on a le clavier dans le champ et qu’on veut passer à la suite,
+   c’est là où il y a un flash »). Dans l’app, la page rétrécit au-dessus du clavier. « Continuer » peignait la page suivante dans
+   cette demi-hauteur (le clavier ne se fermait qu’à ce moment-là, le champ retiré) : elle se mesurait toute petite, puis se
+   remesurait à la bonne taille une fraction de seconde après, quand la vue reprenait sa hauteur. Maintenant le clavier se ferme
+   dès le toucher : la vue reprend sa hauteur pendant que la page d’avant s’efface (figée, telle qu’elle était), et la suivante
+   n’est peinte, une seule fois, qu’à la bonne hauteur (obHPleine : la hauteur de l’onboarding sans clavier, notée par le
+   ResizeObserver ; on attend au plus OB_CLAVIER_MS). Sans vue rétrécie (Safari, ordinateur), rien ne change. */
+const OB_CLAVIER_MS=450;
+let obHPleine=0,obHPleineL=0;
 function obGoto(target){
   if(obLock)return;
   const n=typeof target==='number'?target:OB_SLIDES.indexOf(target);
@@ -44951,9 +44960,21 @@ function obGoto(target){
   obLock=true;
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');
   if(root)root.dataset.obDir=cible>obStep?'fwd':'back';
+  const champ=document.activeElement,clavier=!!(champ&&champ.tagName&&/^(INPUT|TEXTAREA)$/.test(champ.tagName)&&typeof body.contains==='function'&&body.contains(champ));
+  if(clavier){try{body.style.height=body.offsetHeight+'px';champ.blur();}catch(e){}}
   body.classList.add('out');
+  const t0=Date.now();
+  const peindre=()=>{
+    if(clavier){try{body.style.height='';}catch(e){}}
+    if(root&&root.classList)root.classList.remove('ob-clavier');
+    obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;paintOb();
+  };
+  const attendre=()=>{
+    if(clavier&&root&&obHPleine>0&&root.clientHeight<obHPleine-60&&Date.now()-t0<OB_CLAVIER_MS){setTimeout(attendre,30);return;}
+    peindre();
+  };
   /* 12 novembre, 19 h 36 (« quand on touche sur les boutons, ça met du temps ») : la page d’avant s’efface en 110 ms (180 avant) */
-  setTimeout(()=>{obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;paintOb();},prefersReduceMotion()?0:OB_SORTIE_MS);
+  setTimeout(attendre,prefersReduceMotion()?0:OB_SORTIE_MS);
 }
 /* 4 novembre, 2 h 13 : « quand on clique sur Voir mon parcours, on atterrit » sur « Choisis ton pseudo » : la mini-page venait après
    la dernière page, celle du parcours prêt, si bien qu’aucun de ses deux boutons ne menait d’abord où il le disait. Elle passe avant (une fois :
@@ -46971,6 +46992,7 @@ let obFitMemo={};
 function obFitDefile(){const b=typeof document!=='undefined'&&document.getElementById('ob-body');return b&&b.parentElement||null;}
 function obFit(){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');if(!body||!root)return;
+  if(typeof obLock!=='undefined'&&obLock)return;   /* un changement de page est en cours : la page qui s’efface ne se remesure pas, la suivante le sera en arrivant */
   /* ob-fit-5 (3 novembre) : un palier de plus, pour l’engagement seulement. */
   const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];
   const metZ=z=>{const v=String(Math.round(z*1000)/1000);if(root.style.getPropertyValue('--obz')!==v)root.style.setProperty('--obz',v);};
@@ -47072,7 +47094,10 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
   /* La vue met environ une demi-seconde à changer de taille avec le clavier : on remesure pendant ce temps-là. */
   const obRefitBientot=()=>{obClavierT.forEach(clearTimeout);obClavierT=[120,520,900].map(t=>setTimeout(obRefit,t));};
   if(typeof ResizeObserver==='function'){
-    const ro=new ResizeObserver(es=>{const h=Math.round(es[es.length-1].contentRect.height);if(h===obTailleH)return;obTailleH=h;obRefit();});
+    const ro=new ResizeObserver(es=>{const c=es[es.length-1].contentRect,h=Math.round(c.height),l=Math.round(c.width);
+      /* La plus grande hauteur vue à cette largeur : celle de l’onboarding sans clavier (obGoto l’attend avant de peindre la page suivante) */
+      if(l!==obHPleineL){obHPleineL=l;obHPleine=h;}else if(h>obHPleine)obHPleine=h;
+      if(h===obTailleH)return;obTailleH=h;obRefit();});
     const suivre=()=>{const r=document.getElementById('onboarding');if(r)ro.observe(r);};
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',suivre,{once:true});else suivre();
   }
@@ -47087,7 +47112,9 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
   const obClavier=on=>{
     const r=document.getElementById('onboarding');if(!r)return;
     clearTimeout(obClavierAttente);
-    if(on)r.classList.add('ob-clavier');else obClavierAttente=setTimeout(()=>r.classList.remove('ob-clavier'),60);   // d’un champ à l’autre : il reste
+    /* D’un champ à l’autre, il reste. Pendant un changement de page (obLock), aussi : la page qui s’efface ne se remet pas en page
+       sous les yeux ; obGoto retire la classe au moment de peindre la suivante. */
+    if(on)r.classList.add('ob-clavier');else obClavierAttente=setTimeout(()=>{if(typeof obLock!=='undefined'&&obLock)return;r.classList.remove('ob-clavier');},60);
   };
   const obChampTexte=t=>{const b=document.getElementById('ob-body');return !!(b&&t&&b.contains(t)&&/^(INPUT|TEXTAREA)$/.test(t.tagName)&&!/^(checkbox|radio|range|button|submit|reset|file|color)$/i.test(t.type||''));};
   const obTactile=()=>{try{return typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches;}catch(e){return false;}};
@@ -50210,7 +50237,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-abonnement-v2908';
+  const SW_CACHE='requete-2026-11-12-clavier-v2909';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
