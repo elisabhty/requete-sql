@@ -217,7 +217,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=321">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=53">') && sw.includes("'./onboarding-vitrine.css?v=53',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=321">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=54">') && sw.includes("'./onboarding-vitrine.css?v=54',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-12-rappel-sans-exemple-v2899' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-12-stickers-bonjour-v2900' && app.includes(`const SW_CACHE='${cache}';`));
 });

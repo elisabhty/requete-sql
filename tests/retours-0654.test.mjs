@@ -43,7 +43,7 @@ test('la page et le pied se mettent à l’échelle de l’écran (--obz)', () =
   /* Le bandeau de notification de l’étape du rappel suit l’échelle de la page */
   assert.ok(app.includes('if(Math.abs(dy)>2)z.style.transform=`translateY(${Math.round(dy/obZ())}px)`;'));
   /* La feuille est rechargée (cache du service worker) */
-  assert.ok(app.includes('onboarding-vitrine.css?v=53') && fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes('./onboarding-vitrine.css?v=53'));
+  assert.ok(app.includes('onboarding-vitrine.css?v=54') && fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes('./onboarding-vitrine.css?v=54'));
 });
 
 test('« Ton parcours est prêt » et « On construit ton parcours » se resserrent aussi sur l’iPhone SE', () => {
