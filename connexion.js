@@ -32,7 +32,9 @@
    - connecte() → bool ; utilisateur() → {id, email} ou null ;
    - jeton() → Promise<string|null> : un jeton d'accès valide, renouvelé
      s'il expire dans la minute ; null (et session oubliée) si le serveur
-     ne la reconnaît plus.
+     ne la reconnaît plus ;
+   - revoquerApple() → Promise<bool> : avant la suppression du compte,
+     révoque l'accès « Se connecter avec Apple » (fonction apple-jeton).
    ===================================================================== */
 (function(){
   'use strict';
@@ -149,10 +151,27 @@
           var prenom = typeof p.givenName === 'string' ? p.givenName.trim().slice(0, 80) : '';
           if (prenom) s.prenom = prenom;
           garder(s);
+          /* Le code d'autorisation d'Apple (10 minutes) part à la fonction apple-jeton, qui l'échange et garde le jeton d'Apple pour
+             pouvoir le révoquer si la personne supprime son compte. Sans réponse, la connexion continue. */
+          var code = fournisseur === 'apple' ? (r.authorizationCode || (r.accessToken && r.accessToken.token)) : null;
+          if (typeof code === 'string' && code) fonction({action: 'garder', code: code}, s.access_token).catch(function(){});
           return {id: s.user.id, email: s.user.email, prenom: prenom || null,
             label: s.user.email || (fournisseur === 'apple' ? 'Compte Apple' : 'Compte Google')};
         });
       });
+  }
+
+  function fonction(corps, jeton){
+    return fetch(SB + '/functions/v1/apple-jeton?forceFunctionRegion=eu-west-3', {method: 'POST',
+      headers: {apikey: CLE, Authorization: 'Bearer ' + jeton, 'Content-Type': 'application/json'}, body: JSON.stringify(corps)})
+      .then(function(r){ return r.json().catch(function(){ return null; }); });
+  }
+  /* Avant la suppression du compte : l'accès « Se connecter avec Apple » est révoqué chez Apple (règle 5.1.1(v)). */
+  function revoquerApple(){
+    var s = lire();
+    if (!s || s.fournisseur !== 'apple') return Promise.resolve(false);
+    return jeton().then(function(t){ return t ? fonction({action: 'revoquer'}, t) : null; })
+      .then(function(j){ return !!(j && j.ok && j.revoque); }).catch(function(){ return false; });
   }
 
   function signOut(){
@@ -195,6 +214,7 @@
     signIn: signIn,
     signOut: signOut,
     jeton: jeton,
+    revoquerApple: revoquerApple,
     connecte: function(){ return !!lire(); },
     utilisateur: function(){ var s = lire(); return s ? {id: s.user.id, email: s.user.email, fournisseur: s.fournisseur} : null; }
   };

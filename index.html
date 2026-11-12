@@ -49029,6 +49029,9 @@ async function compteSupprimer(){
      avec lui, la progression synchronisée. Sans clé de jeu sur l’appareil, une clé neuve suffit à l’appel. */
   const connecte=!!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.connecte==='function'&&window.REQUETE_AUTH.connecte());
   const cle=state.salle&&typeof state.salle.cle==='string'&&state.salle.cle?state.salle.cle:(connecte&&typeof clsCle==='function'?clsCle():'');
+  /* Connecté avec Apple : l’accès « Se connecter avec Apple » est révoqué chez Apple d’abord (règle 5.1.1(v)), tant que le compte
+     existe encore ; sans réponse, la suppression continue. */
+  if(connecte&&typeof window.REQUETE_AUTH.revoquerApple==='function'){try{await window.REQUETE_AUTH.revoquerApple();}catch(e){}}
   if(cle){
     try{
       await clsRpc('compte_supprimer',{p_cle:cle},{compte:connecte}).catch(e=>{
@@ -49245,7 +49248,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-synchro-v2874';
+  const SW_CACHE='requete-2026-11-12-apple-v2875';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
