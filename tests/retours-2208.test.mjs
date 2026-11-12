@@ -41,7 +41,7 @@ test('Mon compte : noter l’appli sur l’App Store, se déconnecter, supprimer
   assert.ok(app.includes('<button class="account-setting-row" type="button" onclick="seDeconnecter()">'), 'se déconnecter : toujours');
   assert.ok(app.includes('<button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()">'), 'supprimer : toujours là');
   const f = cut('async function compteSupprimer(){', '\n}\n');
-  assert.ok(f.includes("clsRpc('compte_supprimer',{p_cle:cle})") && f.includes("clsRpc('jeu_pseudo_liberer',{p_cle:cle})"), 'le serveur d’abord, l’ancienne fonction en secours');
+  assert.ok(f.includes("clsRpc('compte_supprimer',{p_cle:cle},{compte:connecte})") && f.includes("clsRpc('jeu_pseudo_liberer',{p_cle:cle})"), 'le serveur d’abord (avec le jeton du compte connecté), l’ancienne fonction en secours');
   assert.ok(f.indexOf("clsRpc('compte_supprimer'") < f.indexOf('localStorage.clear()'), 'l’appareil n’est vidé qu’après le serveur');
   assert.equal((f.match(/lqAsk\(/g) || []).length, 2, 'deux confirmations');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');

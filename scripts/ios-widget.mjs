@@ -63,6 +63,24 @@ if (existsSync(infoApp)) {
   else if (k > 0 && t.indexOf('</plist>', k) > k) writeFileSync(infoApp, t.slice(0, k) + schema + t.slice(k));
 }
 
+/* 1 quinquies. « Continuer avec Google » (12 novembre, la connexion, connexion.js) : Google rend la main à l’app par un schéma
+   d’URL, l’identifiant du client iOS à l’envers (com.googleusercontent.apps.…). Ajouté une fois, en tête des schémas existants, dès
+   que GOOGLE_IOS est rempli dans connexion.js ; vide, rien n’est touché (Google n’est pas proposé). */
+if (existsSync(infoApp)) {
+  const cx = existsSync(join(racine, 'connexion.js')) ? readFileSync(join(racine, 'connexion.js'), 'utf8') : '';
+  const m = cx.match(/var GOOGLE_IOS = '([0-9A-Za-z-]+)\.apps\.googleusercontent\.com';/);
+  if (m) {
+    const schemaG = `com.googleusercontent.apps.${m[1]}`;
+    const t = readFileSync(infoApp, 'utf8'), k = t.lastIndexOf('</dict>');
+    const dictG = `\t\t<dict>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>google</string>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>${schemaG}</string>\n\t\t\t</array>\n\t\t</dict>\n`;
+    const cle = t.indexOf('<key>CFBundleURLTypes</key>'), ouv = cle >= 0 ? t.indexOf('<array>', cle) : -1;
+    if (t.includes(`<string>${schemaG}</string>`)) {}
+    else if (ouv > 0) writeFileSync(infoApp, t.slice(0, ouv + 7) + '\n' + dictG + t.slice(ouv + 7).replace(/^\n/, ''));
+    else if (k > 0 && t.indexOf('</plist>', k) > k) writeFileSync(infoApp, t.slice(0, k) + `\t<key>CFBundleURLTypes</key>\n\t<array>\n${dictG}\t</array>\n` + t.slice(k));
+    else console.warn('⚠️  Info.plist inattendu : le schéma de Google n’y est pas (« Continuer avec Google » ne reviendrait pas dans l’app).');
+  }
+}
+
 /* 2. Main.storyboard : le contrôleur de l’app, qui enregistre le pont du widget. Seulement une fois le projet prêt (étape 3) :
    un storyboard qui désignerait un contrôleur absent du projet ouvrirait l’app sur un écran vide. */
 const sb = readFileSync(story, 'utf8');
