@@ -4,6 +4,7 @@ import Capacitor
 import WidgetKit
 import ActivityKit
 import UserNotifications
+import StoreKit
 
 // Le pont entre l’app web et l’iPhone (Elisa, 4 novembre) :
 // - le widget (3 h 54) : index.html (widgetMaj) appelle Capacitor.nativePromise('RequeteWidget', 'maj', { serie, jour, fait, limite }) ;
@@ -101,7 +102,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "accueilMaj", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "accueilFin", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "notifAutoriser", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -485,6 +487,30 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
                 pop.permittedArrowDirections = []
             }
             vc.present(feuille, animated: true)
+        }
+    }
+
+    /// « Gérer mon abonnement », dans Mon compte (12 novembre, 21 h 42) : la feuille d’Apple (changer d’offre, annuler), sans
+    /// quitter l’app. C’est aussi le seul moyen d’annuler un abonnement de test pris dans TestFlight. Répond { ok } quand elle se
+    /// referme ; ok est faux si elle n’a pas pu s’ouvrir (la page ouvre alors les abonnements de l’App Store).
+    @objc func abonnementGerer(_ call: CAPPluginCall) {
+        guard #available(iOS 15.0, *) else {
+            call.resolve(["ok": false])
+            return
+        }
+        DispatchQueue.main.async {
+            guard let scene = self.bridge?.viewController?.view.window?.windowScene else {
+                call.resolve(["ok": false])
+                return
+            }
+            Task { @MainActor in
+                do {
+                    try await AppStore.showManageSubscriptions(in: scene)
+                    call.resolve(["ok": true])
+                } catch {
+                    call.resolve(["ok": false])
+                }
+            }
         }
     }
 }

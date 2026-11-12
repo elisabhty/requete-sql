@@ -45068,6 +45068,19 @@ function obGardeDemarrer(lancee){
   }
   voir();
 }
+/* « Gérer mon abonnement », dans Mon compte (Elisa, 12 novembre, 21 h 42 : « oui ») : la feuille d’Apple, ouverte dans l’app par le
+   pont natif (RequeteWidgetPlugin, abonnementGerer) : changer d’offre, annuler. Seulement dans l’app iPhone avec l’achat branché.
+   C’est aussi le seul moyen d’annuler un abonnement de test pris dans TestFlight (il reste actif jusqu’à la fin de sa période).
+   Si la feuille ne s’ouvre pas : la page des abonnements de l’App Store. Au retour, l’abonnement est relu (la garde suit). */
+function abonnementIci(){return obAchatPret()&&typeof ilePont==='function'&&!!ilePont();}
+async function abonnementGerer(){
+  const C=typeof ilePont==='function'?ilePont():null;if(!C)return;
+  let ok=false;
+  try{const r=await C.nativePromise('RequeteWidget','abonnementGerer',{});ok=!!(r&&r.ok);}catch(e){}
+  if(!ok){try{await C.nativePromise('RequeteWidget','ouvrir',{url:'https://apps.apple.com/account/subscriptions'});}catch(e){}return;}
+  try{const a=window.REQUETE_ACHAT;if(a&&typeof a.verifier==='function')await a.verifier();}catch(e){}
+  try{obGardeVoir();}catch(e){}
+}
 /* « Mon compte », en haut à gauche du paywall de la garde (Elisa, 12 novembre, 21 h 31 : « oui ») : sans abonnement, plus moyen
    d’atteindre Mon compte dans l’appli ; or se déconnecter et supprimer son compte doivent rester possibles (règle 5.1.1(v) d’Apple :
    la suppression du compte se fait dans l’appli). Une petite fenêtre, les mêmes actions que dans l’appli, avec leurs confirmations
@@ -49292,6 +49305,7 @@ function renderCompte(){
             <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg('user')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+            ${typeof abonnementIci==='function'&&abonnementIci()?`<button class="account-setting-row" type="button" onclick="abonnementGerer()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
           </div>
           <div class="account-settings-list acct-compte-actions">
             <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}</small></span></button>
@@ -50196,7 +50210,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-essai-v2907';
+  const SW_CACHE='requete-2026-11-12-abonnement-v2908';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

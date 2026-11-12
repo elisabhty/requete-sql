@@ -239,3 +239,33 @@ test('« Mon compte » sur le paywall de la garde : se déconnecter, supprimer s
   /* Le lien a le style discret de « Restaurer » */
   assert.ok(lire('onboarding-vitrine.css').includes('html #onboarding.ob-vitrine .pw-lien{min-height:44px;padding:0 4px;border:0;background:none;color:rgba(255,255,255,.85);font:600 14px/1 var(--v-ui);'));
 });
+
+/* 21 h 42 (« Je peux aussi ajouter “Gérer mon abonnement” dans Mon compte, utile aux vrais abonnés » : « oui ») : la feuille
+   d’Apple, dans l’app. Le seul moyen, aussi, d’annuler un abonnement de test pris dans TestFlight. */
+test('« Gérer mon abonnement » dans Mon compte : la feuille d’Apple par le pont natif, seulement dans l’app avec l’achat branché', async () => {
+  const pont = lire('resources/ios/widget/App/RequeteWidgetPlugin.swift');
+  assert.ok(pont.includes('import StoreKit\n'));
+  assert.ok(pont.includes('        CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise)\n    ]'));
+  const m = pont.slice(pont.indexOf('    @objc func abonnementGerer(_ call: CAPPluginCall) {'), pont.indexOf('// MARK: - La leçon en cours'));
+  assert.ok(m.includes('guard #available(iOS 15.0, *) else {') && m.includes('guard let scene = self.bridge?.viewController?.view.window?.windowScene else {'));
+  assert.ok(m.includes('Task { @MainActor in') && m.includes('try await AppStore.showManageSubscriptions(in: scene)') && m.includes('call.resolve(["ok": true])'));
+  assert.ok(!m.includes('call.reject('), 'jamais rejeté : ok vaut faux, et la page ouvre les abonnements de l’App Store');
+  assert.equal(m.split('}').length, m.split('{').length + 1, 'la méthode se ferme, puis la classe (une accolade fermante de plus)');
+  /* La ligne de Mon compte, après « Compte connecté » */
+  assert.ok(app.includes("${typeof abonnementIci==='function'&&abonnementIci()?`<button class=\"account-setting-row\" type=\"button\" onclick=\"abonnementGerer()\"><span class=\"plus-row-icon is-stk\">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span>"));
+  const src = cut('function abonnementIci(){', '\n/* « Mon compte », en haut à gauche');
+  const essai = async ({pret = true, natif = true, feuille = true} = {}) => {
+    const appels = [];
+    const C = {nativePromise: (p, k, d) => { appels.push([p, k, d && d.url].filter(Boolean).join(' ')); return k === 'abonnementGerer' ? (feuille === 'erreur' ? Promise.reject(new Error('x')) : Promise.resolve({ok: feuille})) : Promise.resolve({}); }};
+    const ctx = vm.createContext({obAchatPret: () => pret, ilePont: () => (natif ? C : null), obGardeVoir: () => appels.push('garde'),
+      window: {REQUETE_ACHAT: {verifier: () => { appels.push('relu'); return Promise.resolve('oui'); }}}});
+    const ici = vm.runInContext(src + ';abonnementIci()', ctx);
+    await vm.runInContext('abonnementGerer()', ctx);
+    return {ici, appels};
+  };
+  assert.deepEqual(await essai(), {ici: true, appels: ['RequeteWidget abonnementGerer', 'relu', 'garde']}, 'la feuille refermée : l’abonnement est relu, la garde suit');
+  assert.deepEqual((await essai({feuille: false})).appels, ['RequeteWidget abonnementGerer', 'RequeteWidget ouvrir https://apps.apple.com/account/subscriptions']);
+  assert.deepEqual((await essai({feuille: 'erreur'})).appels, ['RequeteWidget abonnementGerer', 'RequeteWidget ouvrir https://apps.apple.com/account/subscriptions']);
+  assert.deepEqual(await essai({natif: false}), {ici: false, appels: []}, 'le site : pas de ligne, rien');
+  assert.equal((await essai({pret: false})).ici, false, 'l’app sans l’achat branché : pas de ligne');
+});
