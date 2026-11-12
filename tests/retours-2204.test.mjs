@@ -101,12 +101,12 @@ test('« Adapter mon rythme » : les rappels suivent le nouveau planning', () =>
   x.ctx.state.plan.sessions = [{ d: '2026-11-06', lessons: [1, 2, 3] }, { d: '2026-11-09', lessons: [4, 5, 6] }, { d: '2026-11-11', lessons: [7, 8] }];
   x.ctx.state.plan.freq = 3;
   assert.deepEqual(x.jours(), ['2026-11-06', '2026-11-09', '2026-11-11']);
-  assert.ok(app.includes('function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto===\'function\')rappelAuto(); }'));
+  assert.ok(app.includes('function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto===\'function\')rappelAuto(); if(typeof csPlusTard===\'function\')csPlusTard(); }'));
 });
 
 test('Mon compte : « Prochain rappel : demain à 10:00. », sans la phrase sur le planning', () => {
   const f = cut('function rappelFeuilleHTML(){', 'function rappelPeindre(){');
   assert.ok(f.includes("    :d.on?(prochain?`Prochain rappel\\u00a0: ${rappelQuand(prochain)}.`"));
   assert.ok(!app.includes('Il suit ton planning\\u00a0: les jours de séance seulement'), 'la dernière phrase est partie');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-connexion-v2873';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-synchro-v2874';"), 'le cache de l’appli change');
 });

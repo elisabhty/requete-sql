@@ -543,3 +543,30 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 - **Rappel quotidien** : dans l’app, il devient une notification locale programmée chaque jour
   (plugin `@capacitor/local-notifications`, déjà branché). iOS demande l’autorisation à l’activation.
 - **Hors ligne** : tout le contenu est embarqué. Seul le mode Jouer a besoin d’internet.
+
+## La connexion (Apple et Google)
+
+Branchée le 12 novembre (Elisa, 1 h 04 : « il faut brancher la connexion », avant la sortie, avec Apple et Google ; Apple l’exige
+dès qu’on propose Google, règle 4.8). `connexion.js` définit `REQUETE_AUTH` : le plugin `@capgo/capacitor-social-login` ouvre la
+feuille d’Apple ou de Google, Supabase échange le jeton d’identité contre une session (gardée sur l’iPhone, renouvelée).
+`compte-moteurs.js` (produit depuis `account/*.mjs` par `npm run build:www`) synchronise leçons, défis, entretien, jours
+d’activité, planning et notes avec les fonctions `progression_*` et `documents_*` (`csSync` dans index.html).
+
+**Éteinte tant que `ACTIVE` vaut `false`** dans `connexion.js` : la page de connexion reste cachée sur l’iPhone. Pour l’allumer :
+
+1. **Apple** (developer.apple.com › Certificates, Identifiers & Profiles › Identifiers › fr.requete.app) : cocher
+   « Sign In with Apple », Save. Le droit `com.apple.developer.applesignin` est déjà dans `App.entitlements`.
+2. **Supabase** (Authentication › Sign In / Providers › Apple) : activer, « Client IDs » : `fr.requete.app`. Pas de clé
+   secrète : elle ne sert qu’à la connexion par le web (et Apple impose de la refaire tous les 6 mois).
+3. **Google** (console.cloud.google.com › Google Auth Platform) : Branding (nom « Requête », e-mail de contact), Audience
+   « External », puis deux clients : **iOS** (Bundle ID `fr.requete.app`) et **Web application**.
+4. **Supabase** (Providers › Google) : activer ; « Client IDs » : l’identifiant Web, une virgule, l’identifiant iOS ; le
+   secret du client Web ; cocher « Skip nonce check » (le SDK Google d’iOS ne transmet pas le nonce).
+5. Dans `connexion.js` : `GOOGLE_IOS` et `GOOGLE_WEB` (les identifiants complets, `…apps.googleusercontent.com`), puis
+   `ACTIVE = true`. `ios-widget.mjs` ajoute le schéma d’URL de Google à Info.plist au prochain `npm run ios`.
+6. **Avant d’envoyer à Apple** : App Store Connect › App Privacy (adresse e-mail et identifiant, liés à la personne, pour le
+   fonctionnement de l’app), la page de confidentialité du site (compte, progression synchronisée, suppression), et un compte
+   de démonstration pour l’App Review (règle 2.1) si la connexion est demandée quelque part.
+
+Supprimer son compte (Mon compte) efface aussi le compte Supabase et sa progression synchronisée (`compte_supprimer` avec le
+jeton). « Effacer toute ta progression » efface aussi celle du compte, avant l’appareil.

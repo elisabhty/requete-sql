@@ -174,7 +174,7 @@ test('automatique : reprogrammé quand ce qui est prévu change, et seulement al
 });
 
 test('branché partout : chaque enregistrement, l’ouverture, le retour dans l’appli ; sur le web, la page aussi suit le planning', () => {
-  assert.ok(app.includes("function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); }"));
+  assert.ok(app.includes("function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); if(typeof csPlusTard==='function')csPlusTard(); }"));
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);"));
   assert.ok(app.includes("    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); tickRappel(); rappelAuto(400); } });"));
   /* La page ouverte (web) : la notification de l’heure, seulement un jour de séance pas encore faite */
@@ -216,5 +216,5 @@ test('Mon compte : le prochain rappel, et qu’il suit le planning', () => {
   const loin = `${t.toLocaleDateString('fr-FR', { weekday: 'long' })} ${t.getDate() === 1 ? '1er' : t.getDate()} ${t.toLocaleDateString('fr-FR', { month: 'long' })} à 19:00`;
   assert.ok(feuille([{ d: J(3), lessons: [1] }]).includes(`Prochain rappel : ${loin}.`), loin);
   assert.ok(feuille([{ d: J(1), lessons: [1] }], [1]).includes('Ton planning ne prévoit plus de séance : pas de rappel pour l’instant.'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-connexion-v2873';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-synchro-v2874';"), 'le cache de l’appli change');
 });

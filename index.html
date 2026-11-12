@@ -20227,7 +20227,7 @@ const Store={
 let state={lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:'',profile:{},accountMode:null,entretien:{}};
 const INTERVALS=[1,3,7,21,60];
 const DAY=86400000;
-function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); }   // le rappel suit le planning (21 h 41)
+function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); if(typeof csPlusTard==='function')csPlusTard(); }   // le rappel suit le planning (21 h 41)
 async function wipeStorageIfUpdated(){
   const force=/#fresh\b|\bfresh=1\b/.test(location.href);
   let prev=null;
@@ -43588,6 +43588,7 @@ function deleteNote(id){
   };
   const fin=()=>{
     state.notes=(state.notes||[]).filter(x=>x.id!==id);
+    if(gone&&typeof csNoteSupprimee==='function')csNoteSupprimee(id);
     save();notesEnter=false;
     if(typeof renderNotes==='function')renderNotes();
     if(gone)lqSay('Note supprimée');
@@ -46480,6 +46481,139 @@ if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
   window.addEventListener('requete-session-perdue',compteSessionVerifier);
   window.addEventListener('load',compteSessionVerifier);
 }
+/* ---------- La progression synchronisée avec le compte (12 novembre, la connexion) ----------
+   Les moteurs préparés début novembre (account/*.mjs, réunis dans compte-moteurs.js : REQUETE_MOTEURS) gardent une file par compte
+   et parlent aux fonctions progression_* et documents_* avec le jeton du compte (connexion.js). Ce qui part : leçons (réussite, étapes,
+   date, révisions), défis réussis, marques de l’entretien, jours d’activité, planning, notes. Au retour sur un appareil, ce que le
+   compte connaît s’ajoute à ce qui est ici (une réussite n’est jamais perdue ; le planning du compte remplace celui d’un appareil qui
+   se connecte pour la première fois) ; puis ce qui est ici part. Une seule synchro à la fois ; relancée 5 s après un enregistrement,
+   au lancement et au retour du réseau. Sans compte connecté, rien ne part. */
+const CS={user:null,prog:null,docs:null,cours:null,t:0,dedans:false};
+const CS_VERROUS={};
+const CS_STORE={
+  get:k=>{try{return Promise.resolve(JSON.parse(localStorage.getItem(k)||'null'));}catch(e){return Promise.resolve(null);}},
+  set:(k,v)=>new Promise(r=>{localStorage.setItem(k,JSON.stringify(v));r();}),
+  withLock:(k,fn)=>{const n=(CS_VERROUS[k]||Promise.resolve()).then(()=>fn());CS_VERROUS[k]=n.catch(()=>{});return n;}
+};
+function csPret(){
+  const A=typeof window!=='undefined'&&window.REQUETE_AUTH,M=typeof window!=='undefined'&&window.REQUETE_MOTEURS;
+  if(!A||!M||typeof A.connecte!=='function'||!A.connecte())return null;
+  const u=A.utilisateur&&A.utilisateur();if(!u||!u.id)return null;
+  if(CS.user!==u.id){
+    const auth={
+      getSession:async()=>{const t=await A.jeton();return {data:{session:t?{access_token:t}:null},error:null};},
+      getUser:async t=>{const r=await fetch(JEU_SB+'/auth/v1/user',{headers:{apikey:JEU_SB_KEY,Authorization:'Bearer '+t}});const j=await r.json().catch(()=>null);return r.ok?{data:{user:j},error:null}:{data:null,error:j||{status:r.status}};}
+    };
+    const o={accountId:u.id,auth,url:JEU_SB,apikey:JEU_SB_KEY,store:CS_STORE,enabled:true};
+    CS.user=u.id;CS.prog=M.createProgressionSync(o);CS.docs=M.createDocumentsSync(o);
+  }
+  return CS;
+}
+const csEntier=(v,max)=>Number.isFinite(v)&&v>=0?Math.min(Math.round(v),max):undefined;
+/* Ce qui part : une copie nettoyée (un nombre à virgule ou une étape inconnue ne bloque pas tout l’envoi). */
+function csExtraire(){
+  const M=window.REQUETE_MOTEURS,lessonIds=allLessons.map(l=>l.id),out={prog:[],docs:[]};
+  const lessons={};
+  for(const [id,l] of Object.entries(state.lessons||{})){
+    if(!l||typeof l!=='object')continue;
+    const c={};if(l.done)c.done=true;
+    if(l.etapes&&typeof l.etapes==='object')c.etapes=Object.fromEntries(Object.keys(l.etapes).filter(k=>/^(exo|q\d{1,3})$/.test(k)&&l.etapes[k]).map(k=>[k,1]));
+    const at=csEntier(l.at,4102444800000),due=csEntier(l.due,4102444800000),level=csEntier(l.level,4);
+    if(at)c.at=at;if(due)c.due=due;if(level!=null)c.level=level;
+    lessons[id]=c;
+  }
+  const actDays=Object.fromEntries(Object.entries(state.actDays||{}).filter(([d,n])=>/^\d{4}-\d{2}-\d{2}$/.test(d)&&n>0));
+  const entretien=Object.fromEntries(Object.entries(state.entretien||{}).filter(([k,v])=>/^[A-Za-z0-9_.-]{1,96}$/.test(k)&&(v==='ok'||v==='review')));
+  const defis=Object.fromEntries(Object.entries(state.defis||{}).filter(([k,v])=>v&&/^[A-Za-z0-9_.-]{1,96}$/.test(k)));
+  try{out.prog=M.extractProgression({lessons,defis,entretien,actDays},{lessonIds,challengeIds:CHALLENGES.map(c=>c.id).filter(id=>defis[id])});}catch(e){out.prog=[];}
+  try{const tz=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'UTC',p=M.extractPlan(state,{lessonIds,timeZone:tz});if(p&&p.sessions.length)out.prog.push({key:'planning:main',data:p});}catch(e){}
+  try{out.docs=M.extractSavedNotes((state.notes||[]).filter(n=>n&&/^[A-Za-z0-9_.-]{1,96}$/.test(String(n.id))&&(String(n.txt||'').trim()||String(n.sql||'').trim()))
+    .map(n=>({id:String(n.id),txt:String(n.txt||'').slice(0,20000),sql:String(n.sql||'').slice(0,12000),ctx:String(n.ctx||'').slice(0,300),ts:Number.isSafeInteger(n.ts)&&n.ts>=0?n.ts:Date.now(),pin:!!n.pin})));}catch(e){out.docs=[];}
+  return out;
+}
+/* Ce que le compte connaît s’ajoute à l’appareil. Rend vrai si l’appareil a changé. */
+function csAppliquer(prog,docs,premier){
+  let change=false;const L=state.lessons||(state.lessons={});
+  for(const e of (prog&&prog.elements)||[]){
+    if(!e||e.deleted||!e.data||typeof e.key!=='string')continue;
+    const [kind,...r]=e.key.split(':'),id=r.join(':'),d=e.data;
+    if(kind==='lesson'){
+      const k=/^\d+$/.test(id)?+id:id;if(!allLessons.some(l=>l.id===k))continue;
+      const l=L[k]||(L[k]={level:0});
+      if(d.done&&!l.done){l.done=true;change=true;}
+      if(d.at&&l.done&&(!l.at||d.at<l.at)){l.at=d.at;change=true;}
+      if(d.etapes){for(const s of Object.keys(d.etapes))if(!(l.etapes&&l.etapes[s])){l.etapes=Object.assign({},l.etapes,{[s]:true});change=true;}}
+      if(d.due&&!l.due){l.due=d.due;change=true;}
+      if(Number.isFinite(d.level)&&d.level>(l.level||0)){l.level=d.level;change=true;}
+    }else if(kind==='challenge'){if(d.done&&!(state.defis||(state.defis={}))[id]){state.defis[id]=true;change=true;}}
+    else if(kind==='interview'){const E=state.entretien||(state.entretien={});if(!E[id]&&(d.mark==='ok'||d.mark==='review')){E[id]=d.mark;change=true;}}
+    else if(kind==='activity'){const A=state.actDays||(state.actDays={});if(!(A[id]>0)){A[id]=1;change=true;}}
+    else if(kind==='planning'&&id==='main'&&premier&&Array.isArray(d.sessions)&&d.sessions.length){
+      state.plan={niveau:d.niveau,rythme:d.rythme,freq:d.freq,per:d.per,mix:d.mix,sessions:d.sessions.map(x=>({d:x.d,lessons:x.lessons.slice()})),archive:(d.archive||[]).slice(),equilibre:1};change=true;
+    }
+  }
+  try{
+    const distantes=window.REQUETE_MOTEURS.notesFromSnapshot(docs,{accountId:CS.user}),N=state.notes||(state.notes=[]);
+    for(const n of distantes){
+      const i=N.findIndex(x=>String(x.id)===n.id);
+      if(i<0){N.push({id:n.id,txt:n.txt,sql:n.sql,ctx:n.ctx,ts:n.ts,pin:n.pin});change=true;}
+      else if(n.ts>(N[i].ts||0)){N[i]=Object.assign({},N[i],{txt:n.txt,sql:n.sql,ctx:n.ctx,ts:n.ts,pin:n.pin});change=true;}
+    }
+  }catch(e){}
+  return change;
+}
+const csStable=x=>JSON.stringify(x,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
+async function csEnvoyer(moteur,items,elements,fusion){
+  for(const it of items){
+    const e=elements&&elements[it.key];
+    if(e&&!e.deleted&&csStable(fusion(it.key,e.data,it.data))===csStable(e.data))continue;   // déjà sur le compte
+    try{await moteur.enqueue(it.key,it.data);}catch(err){}
+  }
+  let r=await moteur.flush();
+  /* Un conflit de révision sur une donnée qui va dans les deux sens (planning, révisions, entretien, note) : ce qu’a fait cet appareil
+     l’emporte, une fois ; une remise à zéro faite ailleurs (époque, génération) : celle du compte l’emporte. */
+  const conflits=(r&&r.conflicts)||[];
+  if(conflits.length){
+    for(const c of conflits)await moteur.resolve(c.key,c.reason==='revision'?'local':'remote').catch(()=>moteur.resolve(c.key,'remote').catch(()=>{}));
+    r=await moteur.flush();
+  }
+  return r;
+}
+function csSync(o){
+  const cs=csPret();if(!cs)return Promise.resolve(null);
+  if(CS.cours)return CS.cours;
+  const premierCle='requete-compte-premier:'+cs.user;
+  CS.cours=(async()=>{
+    let premier=false;try{premier=!localStorage.getItem(premierCle);}catch(e){}
+    const [p,d]=await Promise.all([cs.prog.pull(),cs.docs.pull()]);
+    if(csAppliquer(p,d,premier||(o&&o.premier&&premier))){
+      CS.dedans=true;
+      try{save();stkSync&&stkSync();renderModules();renderDefis();renderProgress();renderCollection();renderNotes();renderPlanning();renderCompte();renderGreeting();}catch(e){}
+      CS.dedans=false;
+    }
+    try{localStorage.setItem(premierCle,'1');}catch(e){}
+    const x=csExtraire(),elts=a=>Object.fromEntries(((a&&a.elements)||[]).map(e=>[e.key,e]));
+    const M=window.REQUETE_MOTEURS;
+    const rp=await csEnvoyer(cs.prog,x.prog,elts(p),M.mergeProgression);
+    const rd=await csEnvoyer(cs.docs,x.docs,elts(d),(k,a,b)=>b);
+    return {progression:rp&&rp.pending,notes:rd&&rd.pending};
+  })().catch(e=>({erreur:e&&(e.code||e.message)||'sync'})).finally(()=>{CS.cours=null;});
+  return CS.cours;
+}
+/* Après un enregistrement : 5 s plus tard, une seule fois (pas pendant que la synchro elle-même enregistre). */
+function csPlusTard(){
+  if(CS.dedans||!csPret())return;
+  clearTimeout(CS.t);CS.t=setTimeout(()=>{csSync();},5000);
+}
+/* Une note supprimée sur l’appareil l’est aussi sur le compte (sinon elle reviendrait à la synchro suivante). */
+function csNoteSupprimee(id){
+  const cs=csPret();if(!cs||!/^[A-Za-z0-9_.-]{1,96}$/.test(String(id)))return;
+  cs.docs.reset('note:'+id,'SUPPRIMER').catch(()=>{});
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
+  window.addEventListener('load',()=>setTimeout(()=>{csSync();},1500));
+  window.addEventListener('online',()=>{csSync();});
+}
 function obFournisseurOk(f){const a=typeof window!=='undefined'&&window.REQUETE_AUTH;return !a||!Array.isArray(a.fournisseurs)||a.fournisseurs.includes(f);}
 /* La pomme en dessin : le caractère d’Apple (U+F8FF) ne s’affichait que sur ses appareils. */
 const OB_ICO_APPLE='<svg viewBox="0 0 24 24"><path fill="currentColor" d="M16.37 12.62c-.03-2.6 2.13-3.86 2.22-3.92-1.21-1.77-3.1-2.01-3.77-2.04-1.6-.16-3.13.95-3.95.95-.82 0-2.07-.93-3.41-.9-1.75.03-3.37 1.02-4.27 2.59-1.82 3.16-.47 7.83 1.31 10.39.87 1.25 1.9 2.66 3.26 2.61 1.31-.05 1.8-.85 3.38-.85 1.58 0 2.02.85 3.4.82 1.41-.02 2.3-1.27 3.16-2.53 1-1.45 1.41-2.86 1.43-2.93-.03-.01-2.74-1.05-2.76-4.19ZM13.78 4.98c.72-.88 1.21-2.09 1.08-3.31-1.04.04-2.3.69-3.05 1.57-.67.77-1.26 2.01-1.1 3.2 1.16.09 2.35-.59 3.07-1.46Z"/></svg>';
@@ -46607,6 +46741,7 @@ async function obStartAuth(provider,btn){
     state.accountProvider=provider;
     state.accountLabel=String(result.email||result.label||provider).slice(0,120);
     save();
+    if(typeof csSync==='function')csSync({premier:true});   // 12 novembre : la progression rejoint le compte (ou en revient)
     draft.accountMode='connected';
     obAuthBusy=false;obAuthMessage='';
     if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();renderCompte();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
@@ -48919,6 +49054,17 @@ async function compteSupprimer(){
 async function resetAllProgress(){
   if(!await lqAsk({ico:'🗑️',titre:'Effacer toute ta progression ?',texte:'Leçons, défis, cartes, notes, planning et points de salle seront vidés sur cet appareil, et tes scores retirés du classement. C’est définitif, sauf si tu as exporté ta progression avant.',oui:'Continuer',non:'Annuler',danger:true}))return;
   if(!await lqAsk({ico:'🗑️',titre:'Dernière confirmation',texte:'Tout effacer maintenant ? Ton pseudo, lui, reste à toi.',oui:'Tout effacer',non:'Garder ma progression',danger:true}))return;
+  /* Avec un compte connecté (12 novembre), la progression et les notes du compte sont effacées aussi, avant l’appareil : sinon la
+     synchro suivante les ramènerait. Sans réseau, rien n’est effacé. */
+  if(typeof csPret==='function'&&csPret()){
+    try{
+      await csSync();
+      await Promise.all([CS.prog.resetAll('EFFACER'),CS.docs.resetAll('EFFACER')]);
+    }catch(e){
+      lqInfo('Pas de réseau','Il faut une connexion internet pour effacer aussi ta progression de ton compte. Réessaie dans un instant : rien n’a été effacé.','📶');
+      return;
+    }
+  }
   /* La feuille se ferme une fois l’action faite (réf. 9) ; les points du classement général partent avec la progression. */
   closePlusDetails();
   try{const cle=state.salle&&state.salle.cle;if(cle&&typeof clsRpc==='function')clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});}catch(e){}
@@ -49099,7 +49245,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-connexion-v2873';
+  const SW_CACHE='requete-2026-11-12-synchro-v2874';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -49140,6 +49286,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=10"></script>
 <script src="achat.js?v=3"></script>
+<script src="compte-moteurs.js?v=1"></script>
 <script src="connexion.js?v=1"></script>
 </body>
 </html>
