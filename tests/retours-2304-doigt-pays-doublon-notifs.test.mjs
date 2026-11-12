@@ -49,7 +49,7 @@ test('le choix du pays, clavier ouvert : la feuille ne bouge plus, son fond couv
   assert.ok(f.includes("const partir=()=>{clearTimeout(attente);try{input.blur();}catch(e){}if(f.id==='pays-feuille')paysFeuilleFermer();"));
   const fermer = cut('function paysFeuilleFermer(vite){', '\n}\n');
   assert.ok(fermer.includes('paysVueRendre();setTimeout(()=>paysVueRendre(true),1200);'));
-  assert.ok(html.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0);\n    if(typeof paysVueRendre==='function')paysVueRendre();};"));
+  assert.ok(html.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre);\n    if(typeof paysVueRendre==='function')paysVueRendre();};"));
 });
 
 test('la page derrière n’est rendue au clavier qu’une fois la feuille partie ET la vue revenue', () => {
@@ -124,4 +124,26 @@ test('une notification se lit en entier : elle passe à la ligne, et reste plus 
   assert.ok(html.includes("clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),toastDuree(msg,sub));"));
   /* Les notifications de l’app passent toutes par toast() ou par « Carte copiée » : aucune autre n’écrit dans le bandeau */
   assert.equal((html.match(/getElementById\('toast-s'\)\.textContent=/g) || []).length, 2);
+});
+
+/* 12 novembre, 23 h 26 (Elisa : « vérifie pour les flashs dans les pages si tout est ok »). Le tour de tous les écrans à clavier
+   (18 écrans, clavier simulé dans Chrome : annonce, vue rétrécie 0,45 s après, départ, vue revenue 10 ms après) n’a trouvé qu’un
+   autre défaut : entre le départ annoncé du clavier et le retour de la vue, kb-ouvert tombait déjà et la barre d’onglets
+   réapparaissait au bas de la vue encore rétrécie, juste au-dessus du clavier, le temps d’une image. */
+test('clavier qui part : la mise en page « clavier » tient jusqu’au retour de la vue (la barre d’onglets ne clignote plus au-dessus de lui)', () => {
+  const fit = cut('const fit=()=>{raf=0;const kb=', "\n  const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};");
+  assert.ok(fit.includes("const serre=typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&window.innerHeight<kbNatBase-1;"), 'dans l’app seulement, clavier annoncé parti, vue encore rétrécie');
+  assert.ok(fit.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre);"));
+  /* La sécurité : si la vue ne revenait pas, sa hauteur du moment est prise pour bonne au bout de 0,6 s */
+  assert.ok(fit.includes("clearTimeout(serreT);\n    if(serre)serreT=setTimeout(()=>{ if(!kbNatH&&window.innerHeight<kbNatBase-1){kbNatBase=window.innerHeight;fit();} },600);"));
+  assert.ok(html.includes('let raf=0,serreT=0;'));
+  /* Le calcul, joué : annonce, vue rétrécie, départ annoncé, vue revenue */
+  const src = `(function(natif){let kbNatH=0,kbNatBase=852;const window={innerHeight:852};const dxNatif=()=>natif;
+    const serre=()=>typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&window.innerHeight<kbNatBase-1;
+    const ouvert=()=>kbNatH>0||serre();const out=[];
+    kbNatH=285;out.push(ouvert());window.innerHeight=567;out.push(ouvert());kbNatH=0;out.push(ouvert());window.innerHeight=852;kbNatBase=852;out.push(ouvert());return out.join();})`;
+  assert.equal(vm.runInNewContext(src)(true), 'true,true,true,false', 'dans l’app : ouvert jusqu’au retour de la vue');
+  assert.equal(vm.runInNewContext(src)(false), 'true,true,false,false', 'ailleurs : comme avant');
+  /* La règle qui cachait puis remontrait la barre trop tôt est inchangée : c’est le moment qui change */
+  assert.ok(css.includes('html.is-native.kb-ouvert #app>.tabbar{visibility:hidden}'));
 });
