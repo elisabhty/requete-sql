@@ -90,12 +90,15 @@ test('le style : éventail dans la main, carte tirée redressée, mouvement réd
   assert.ok(!css.includes('html.lq .is-flipped .mc-flip>.is-recto'), 'l’ancienne règle retournait toutes les cartes du bloc');
 });
 
-// 17 h 38 (Elisa, à l’écoute des passages suspects des voix : « Oui après absent ») : le bruit qui suivait « absents » dans le
-// chapitre 2 de COALESCE est rendu muet, sans réencoder ni changer la durée.
-test('voix de COALESCE, chapitre 2 : plus de bruit après « absents »', async () => {
+// 17 h 38 puis 17 h 46 (Elisa, à l’écoute des passages suspects des voix : « Oui après absent », puis « Non t’as supprimé le absent
+// là ») : seul ce qui suit le mot « absents » est muet dans le chapitre 2 de COALESCE (un souffle et un tic de fin de fichier) ; le mot,
+// dit vite et bas, reste entier. Sans réencoder ni changer la durée.
+test('voix de COALESCE, chapitre 2 : plus de bruit après « absents », et le mot est entier', async () => {
   const {muetteFin} = await import('../tools/voix/clics.mjs');
   const f = new URL('../assets/voix/coalesce/ch02.mp3', import.meta.url), b = readFileSync(f);
-  assert.ok(muetteFin(b, 35).equals(b), 'les 35 dernières trames sont déjà muettes');
-  assert.ok(!muetteFin(b, 36).equals(b), 'la trame d’avant porte encore la fin du mot');
-  assert.ok(lire('tools/voix/A-REGENERER.md').includes('12 novembre, 17 h 38 : `coalesce/ch02`, le bruit après « absents » est retiré'));
+  assert.ok(muetteFin(b, 16).equals(b), 'les 16 dernières trames sont déjà muettes : le souffle et le tic');
+  assert.ok(!muetteFin(b, 17).equals(b), 'pas une de plus');
+  assert.ok(!muetteFin(b, 35).equals(b), 'les trames du mot « absents » gardent leur son');
+  const note = lire('tools/voix/A-REGENERER.md');
+  assert.ok(note.includes('le bruit qui suit « absents » est retiré, le mot reste entier') && note.includes('ne jamais rendre muet un son à moins de 100 ms d’une voix sans l’avoir fait écouter'));
 });
