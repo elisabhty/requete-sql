@@ -79,5 +79,5 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=321">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-stickers-bonjour-v2900';") && app.includes("const SW_CACHE='requete-2026-11-12-stickers-bonjour-v2900';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-kpi-avis-site-v2901';") && app.includes("const SW_CACHE='requete-2026-11-12-kpi-avis-site-v2901';"));
 });

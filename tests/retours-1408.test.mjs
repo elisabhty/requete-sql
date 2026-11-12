@@ -144,7 +144,7 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
   /* Sur le site, ce sont de vrais avis, publiés avec l’accord des personnes, et la voix est une voix de synthèse */
   assert.ok(site.includes('N’ajouter ici que de VRAIS avis, avec l’accord de la personne'));
   assert.ok(read('decouvrir/mentions-legales.html').includes('sont lus par une <b>voix de synthèse</b>'));
-  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête</p>'), 'la carte dit que ce sont de vrais avis (14 h 50) ; la voix, les mentions légales (15 h 30)');
+  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com</p>'), 'la carte dit que ce sont de vrais avis (14 h 50) ; la voix, les mentions légales (15 h 30)');
   /* 15 h 20 : l’ordre du site pour tout le monde (Sofia B. d’abord, Aminata C. en dernier), quel que soit l’objectif */
   const ordre = g => [...lecteur(g).ctx.obTemoinsListe()].map(t => t.prenom);
   /* 12 novembre (réf. 1, « ne mets que cette personne, pas les autres ») : Sofia B. seule ; les trois restent recopiés du site */
@@ -192,7 +192,7 @@ test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d�
   assert.equal(a('ob-tv-stars', 'aria-label'), '5 étoiles sur 5');
   assert.equal(a('ob-tv-audio', 'src'), 'decouvrir/avis/sofia-b.mp3');
   assert.equal(a('ob-tv-play', 'aria-label'), 'Écouter l’avis de Sofia B.');
-  assert.ok(t('ob-tv-tx').startsWith('Avis de Sofia B., Data Analyst junior, septembre 2026 : « J’ai décroché mon premier poste') && t('ob-tv-tx').endsWith('» Un vrai avis, recueilli par Requête.'), 'le texte pour un lecteur d’écran');
+  assert.ok(t('ob-tv-tx').startsWith('Avis de Sofia B., Data Analyst junior, septembre 2026 : « J’ai décroché mon premier poste') && t('ob-tv-tx').endsWith('» Un vrai avis, recueilli sur le site requeteapp.com.'), 'le texte pour un lecteur d’écran');
   assert.equal(d.el('ob-tv-wave').children.length, 48, 'les 48 barres de l’onde');
   assert.deepEqual([a('ob-tv-prev', 'aria-label'), a('ob-tv-next', 'aria-label')], ['Témoignage précédent : Aminata C.', 'Témoignage suivant : Thomas L.']);
   assert.deepEqual(d.pastilles.map(p => p.getAttribute('aria-pressed')), ['true', 'false', 'false']);
@@ -233,7 +233,7 @@ test('le style : la carte du site, qui prend la hauteur qui reste ; ses animatio
   for (const k of ['.ob-enter .ob-tv-ph{animation:obvTvIn .6s var(--v-pop) .08s backwards}', '.ob-enter .ob-tv-faces>*{animation:obvTvFace .42s var(--v-pop) calc(.74s + var(--i,0) * 70ms) backwards}',
     ' .ob-tv:not(.is-lecture) .ob-tv-play::after{animation:obvTvRing 2.4s ease-out 1.4s infinite}', ' .ob-tv-wave i.cur{animation:obvTvCur .45s ease-in-out infinite alternate}'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=54">') && sw.includes("'./onboarding-vitrine.css?v=54',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=55">') && sw.includes("'./onboarding-vitrine.css?v=55',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2501, cache);
 });

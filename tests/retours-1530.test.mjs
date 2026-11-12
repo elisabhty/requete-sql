@@ -11,8 +11,8 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), ml = fs.read
 const i = app.indexOf('/* ---------- « Ils apprécient Requête » (Elisa, 4 novembre, 14 h 08) ----------'), j = app.indexOf('/* 14 h 08 (réf. 3) : « mettre une flèche animée', i);
 const code = app.slice(i, j).replace(/\/\*[\s\S]*?\*\//g, '');
 
-test('la carte : « De vrais avis, recueillis par Requête », sans la voix de synthèse', () => {
-  assert.ok(code.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête</p>'));
+test('la carte : « De vrais avis, recueillis sur le site requeteapp.com », sans la voix de synthèse', () => {
+  assert.ok(code.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com</p>'));
   assert.ok(!/voix de synthèse/.test(code), 'ni sous la photo, ni pour un lecteur d’écran');
 });
 
