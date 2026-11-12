@@ -44791,7 +44791,13 @@ function obFinFlux(){
 function obCompteVisible(){return !(typeof obConnexionMasquee==='function'&&obConnexionMasquee());}
 function obAchatPret(){return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.acheter==='function');}
 function obAbonne(){try{return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.actif==='function'&&window.REQUETE_ACHAT.actif());}catch(e){return false;}}
-function obApresPret(fin){draft.finVoulue=fin||'home';if(obCompteVisible())obGoto('account');else obApresCompte();}
+function obApresPret(fin){draft.finVoulue=fin||'home';const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();}   // déjà connectée (dès le début, 12 novembre) : pas une deuxième fois
+/* Le compte avait-il déjà quelque chose (csDistant, renvoyé par csSync) ? Sans réponse du compte : le planning arrivé sur l’appareil. */
+function obCompteConnu(r){
+  const d=(r&&r.distant)||(typeof CS!=='undefined'&&CS&&CS.distant)||null;
+  if(d)return !!(d.plan||d.progres||d.notes);
+  return !!(state.plan&&Array.isArray(state.plan.sessions)&&state.plan.sessions.length);
+}
 function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}
 /* Ce que le compte a rapporté (csSync) remplit les réponses de l’onboarding qu’on n’a pas données : le rythme du planning, le prénom,
    le profil. finishOnboard garde ainsi le planning du compte et son profil (12 novembre, réf. 14). */
@@ -46745,6 +46751,17 @@ function csExtraire(){
   return out;
 }
 /* Ce que le compte connaît s’ajoute à l’appareil. Rend vrai si l’appareil a changé. */
+/* Ce que le compte contenait déjà, avant que cet appareil n’y envoie quoi que ce soit : un planning, de la progression, des notes.
+   Un compte vide est un compte qui vient d’être créé (12 novembre : « J’ai déjà un compte » touché par une nouvelle personne). */
+function csDistant(prog,docs){
+  const vivants=a=>((a&&a.elements)||[]).filter(e=>e&&!e.deleted&&e.data&&typeof e.key==='string');
+  const P=vivants(prog);
+  return {
+    plan:P.some(e=>e.key==='planning:main'&&Array.isArray(e.data.sessions)&&e.data.sessions.length>0),
+    progres:P.some(e=>/^(lesson|challenge|interview|activity):/.test(e.key)),
+    notes:vivants(docs).length>0
+  };
+}
 function csAppliquer(prog,docs,premier){
   let change=false;const L=state.lessons||(state.lessons={});
   for(const e of (prog&&prog.elements)||[]){
@@ -46798,7 +46815,9 @@ function csSync(o){
   const premierCle='requete-compte-premier:'+cs.user;
   CS.cours=(async()=>{
     let premier=false;try{premier=!localStorage.getItem(premierCle);}catch(e){}
+    CS.distant=null;
     const [p,d]=await Promise.all([cs.prog.pull(),cs.docs.pull()]);
+    CS.distant=csDistant(p,d);
     if(csAppliquer(p,d,premier||(o&&o.premier&&premier))){
       CS.dedans=true;
       try{save();stkSync&&stkSync();renderModules();renderDefis();renderProgress();renderCollection();renderNotes();renderPlanning();renderCompte();renderGreeting();}catch(e){}
@@ -46809,8 +46828,8 @@ function csSync(o){
     const M=window.REQUETE_MOTEURS;
     const rp=await csEnvoyer(cs.prog,x.prog,elts(p),M.mergeProgression);
     const rd=await csEnvoyer(cs.docs,x.docs,elts(d),(k,a,b)=>b);
-    return {progression:rp&&rp.pending,notes:rd&&rd.pending};
-  })().catch(e=>({erreur:e&&(e.code||e.message)||'sync'})).finally(()=>{CS.cours=null;});
+    return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant};
+  })().catch(e=>({erreur:e&&(e.code||e.message)||'sync',distant:CS.distant})).finally(()=>{CS.cours=null;});
   return CS.cours;
 }
 /* Après un enregistrement : 5 s plus tard, une seule fois (pas pendant que la synchro elle-même enregistre). */
@@ -46974,11 +46993,24 @@ async function obStartAuth(provider,btn){
     else if(!draft.finVoulue){
       /* 12 novembre (réf. 14, son choix : « Mon compte ») : connecté depuis « J’ai déjà un compte », au début de l’onboarding, on arrive
          sur Mon compte, pas sur l’accueil. La progression du compte arrive d’abord (6 s au plus) : son planning, son prénom et ses
-         réponses servent à finir l’onboarding, au lieu d’être remplacés par les réponses par défaut. */
-      draft.finConnexion='compte';
-      try{await Promise.race([typeof csSync==='function'?csSync({premier:true}):null,new Promise(r=>setTimeout(r,6000))]);}catch(e){}
-      try{if(typeof obDraftDepuisEtat==='function')obDraftDepuisEtat();}catch(e){}
-      obApresCompte();
+         réponses servent à finir l’onboarding, au lieu d’être remplacés par les réponses par défaut.
+         9 h 53 (« Oui, exactement ») : un compte vide vient d’être créé, par une nouvelle personne qui a pris le bouton pour un
+         raccourci. Elle reste connectée et enchaîne sur les questions, comme un onboarding normal ; son prénom (Apple, Google) est déjà
+         dans le champ. Sans réponse du compte, le planning arrivé sur l’appareil décide. */
+      obAuthBusy=true;obAuthMessage=obTypo('C’est bon ! On récupère ta progression…');
+      paintOb();
+      let r=null;
+      try{r=await Promise.race([typeof csSync==='function'?csSync({premier:true}):null,new Promise(ok=>setTimeout(ok,6000))]);}catch(e){}
+      obAuthBusy=false;obAuthMessage='';
+      if(obCompteConnu(r)){
+        draft.finConnexion='compte';
+        try{if(typeof obDraftDepuisEtat==='function')obDraftDepuisEtat();}catch(e){}
+        obApresCompte();
+      }else{
+        if(result.prenom&&!String(draft.name||'').trim())draft.name=String(result.prenom).trim().slice(0,32);
+        obGoto('questions');
+        setTimeout(()=>{try{obBandeau('Ton compte est prêt. Quelques questions pour préparer ton parcours.');}catch(e){}},420);
+      }
     }
     else obApresCompte();
   }catch(e){
@@ -49564,7 +49596,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-connexion-mon-compte-v2880';
+  const SW_CACHE='requete-2026-11-12-compte-neuf-questions-v2881';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

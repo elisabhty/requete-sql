@@ -45,7 +45,7 @@ test('après « Ton parcours est prêt » : la mascotte sur sa tache, « Sauvega
 test('ouverte depuis l’accueil (« J’ai déjà un compte ») ou Mon compte : « Garde ta progression » ; dans l’app sans connexion, elle est sautée', () => {
   const s = rendre({ practiceDone: false });
   assert.ok(s.includes('<p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>') && !s.includes('ob-compte-confettis'));
-  assert.ok(app.includes("function obApresPret(fin){draft.finVoulue=fin||'home';if(obCompteVisible())obGoto('account');else obApresCompte();}"), 'sans connexion branchée, droit au paywall');
+  assert.ok(app.includes("function obApresPret(fin){draft.finVoulue=fin||'home';const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();}"), 'sans connexion branchée (ou déjà connectée, 12 novembre), droit au paywall');
 });
 
 test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par palier ; au dernier, le haut part', () => {
@@ -73,5 +73,5 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=44">') && sw.includes("'./onboarding-vitrine.css?v=44',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-connexion-mon-compte-v2880';") && app.includes("const SW_CACHE='requete-2026-11-12-connexion-mon-compte-v2880';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-compte-neuf-questions-v2881';") && app.includes("const SW_CACHE='requete-2026-11-12-compte-neuf-questions-v2881';"));
 });

@@ -53,7 +53,7 @@ test('validation Apple : dans l’app iPhone sans connexion branchée, pas de bo
   const s = cut("}else if(slide==='account'){", "}else if(slide==='name'){");
   assert.ok(s.includes("masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee()"));
   assert.ok(s.includes("${masquee?'':`<div class=\"ob-provider-list\">"), 'pas de boutons');
-  assert.ok(app.includes("function obCompteVisible(){return !(typeof obConnexionMasquee==='function'&&obConnexionMasquee());}") && app.includes("if(obCompteVisible())obGoto('account');else obApresCompte();"), 'sautée : « Ton parcours est prêt » mène droit au paywall');
+  assert.ok(app.includes("function obCompteVisible(){return !(typeof obConnexionMasquee==='function'&&obConnexionMasquee());}") && app.includes("if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();"), 'sautée : « Ton parcours est prêt » mène droit au paywall');
 });
 
 test('validation Apple : les textes de confidentialité disent la suppression de compte et la vérification en ligne', () => {

@@ -139,3 +139,19 @@ test('les cloches de la liste : l’alerte s’active sur place, sans changer de
   assert.ok(!onglets.includes('screen.scrollTo({top:0,') && onglets.includes('if(y<haut)screen.scrollTo('), 'Éditeur, Épinglées, Historique : on reste où l’on est');
   assert.ok(cut('function entretienBack(){', 'returnToParent();').includes('const sc=document.getElementById(\'scr-entretien\'),y=entListeY;'), 'retour à la liste des questions : à sa place');
 });
+
+/* 9 h 53 (« Oui, exactement ») : « J’ai déjà un compte » touché par une nouvelle personne crée un compte vide : elle reste connectée et
+   enchaîne sur les questions ; un compte qui a déjà une progression mène à Mon compte. À la fin, pas de deuxième page de connexion. */
+test('compte vide ou déjà rempli : csDistant le dit avant tout envoi ; déjà connectée, la fin de l’onboarding ne redemande pas', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(cut('function csDistant(prog,docs){', 'function csAppliquer(prog,docs,premier){'), ctx);
+  const el = (key, data, deleted) => ({ key, data, deleted: !!deleted });
+  assert.deepEqual(JSON.parse(JSON.stringify(ctx.csDistant({ elements: [] }, { elements: [] }))), { plan: false, progres: false, notes: false }, 'compte neuf');
+  assert.deepEqual(JSON.parse(JSON.stringify(ctx.csDistant({ elements: [el('planning:main', { sessions: [{ d: '2026-11-12', lessons: [1] }] })] }, null))), { plan: true, progres: false, notes: false });
+  assert.deepEqual(JSON.parse(JSON.stringify(ctx.csDistant({ elements: [el('lesson:3', { done: true }), el('planning:main', { sessions: [] })] }, { elements: [el('note:a', { txt: 'x' }, true)] }))),
+    { plan: false, progres: true, notes: false }, 'un planning vide ne compte pas ; une note effacée non plus');
+  const sync = cut('function csSync(o){', '/* Après un enregistrement');
+  assert.ok(sync.indexOf('CS.distant=csDistant(p,d);') < sync.indexOf('csEnvoyer('), 'lu avant que l’appareil n’envoie ce qu’il a');
+  assert.ok(sync.includes('return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant};'));
+  assert.ok(app.includes("const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();"));
+});
