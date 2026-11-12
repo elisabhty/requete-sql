@@ -94,15 +94,24 @@ test('réf. 12, 13 et 14 : la connexion en grand ; fermer la feuille d’Apple o
   assert.ok(app.includes("ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}"));
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-account.is-grand .ob-provider-list{margin-top:auto!important;padding-top:26px}'), 'les boutons en bas');
   const auth = cut('async function obStartAuth(provider,btn){', '/* Elisa, 31 octobre, 8 h 37 (Réf 6)');
+  /* Son choix : connecté depuis « J’ai déjà un compte », on arrive sur Mon compte ; le compte remplit d’abord les réponses */
+  assert.ok(auth.includes("draft.finConnexion='compte';") && auth.indexOf('csSync({premier:true})') < auth.indexOf('obDraftDepuisEtat();'));
+  assert.ok(app.includes("function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}"));
+  assert.ok(app.includes("finishOnboard(draft.finVoulue||draft.finConnexion||'home');}\nasync function obPaywallAcheter(){"));
+  const dctx = vm.createContext({ state: { plan: { niveau: 'avance', rythme: 'intensif', freq: 3 }, name: 'Léa', profile: { goal: 'job', pays: 'BE' } },
+    draft: { niveau: 'debutant', rythme: 'regulier', freq: 7, name: '', goal: '' }, PAYS_CODES: ['FR', 'BE'] });
+  vm.runInContext(cut('function obDraftDepuisEtat(){', '\n}\n') + '\n}', dctx);
+  dctx.obDraftDepuisEtat();
+  assert.deepEqual(JSON.parse(JSON.stringify(dctx.draft)), { niveau: 'avance', rythme: 'intensif', freq: 3, name: 'Léa', goal: 'job', pays: 'BE', paysAuto: false });
   assert.ok(!auth.includes("throw new Error('Connexion annulée')") && !auth.includes("'Connexion annulée.'"));
   assert.ok(auth.includes("obAuthMessage=!vite?'':provider==='apple'?"), 'fermée à la main : rien ; refermée aussitôt par iOS : quoi faire');
 });
 
-test('réf. 15 : le vote se met à jour sur place, sans flash ; ses résultats en pour cent, à partir de 10 votes, sans aucun nombre', () => {
+test('réf. 15 : le vote se met à jour sur place, sans flash ; ses résultats en pour cent, dès le premier vote, sans aucun nombre', () => {
   const voter = cut('function parcoursVoter(){', '/* Sur place :');
   assert.ok(!voter.includes('renderParcoursScreen()'), 'la page n’est plus redessinée');
   const sql = lire('supabase/migrations/20261112090000_parcours_resultats.sql');
-  assert.ok(sql.includes("select jsonb_build_object('seuil', 10, 'parts',") && sql.includes('case when t.total >= 10 then') && !/'votes'|'total'/.test(sql.split('$$')[1]));
+  assert.ok(sql.includes("select jsonb_build_object('seuil', 1, 'parts',") && sql.includes('case when t.total >= 1 then') && !/'votes'|'total'/.test(sql.split('$$')[1]), 'son choix : dès le premier vote');
   assert.ok(sql.includes('grant execute on function public.parcours_resultats() to anon, authenticated;'));
   /* Les résultats posés sur la page : une barre et un pourcentage par choix, une fois voté */
   const opts = ['python', 'excel', 'powerbi'].map(id => {

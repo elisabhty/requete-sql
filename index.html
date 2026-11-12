@@ -27898,9 +27898,9 @@ function parcoursVoteMaj(anim){
   const ok=host.querySelector('.pc-vote-ok');if(ok)ok.innerHTML=parcoursVoteMsg(vp);
   parcoursResultatsPeindre();
 }
-/* Les résultats du vote (parcours_resultats : la part de chaque parcours en pour cent, sans aucun nombre de votes, à partir du seuil
-   de la base ; supabase/migrations/20261112090000_parcours_resultats.sql) : une barre derrière chaque choix, son pourcentage à droite,
-   une fois qu’on a voté. Sous le seuil, une phrase le dit ; hors ligne, ou la fonction absente, rien ne s’affiche. */
+/* Les résultats du vote (parcours_resultats : la part de chaque parcours en pour cent, sans aucun nombre de votes, dès le premier vote,
+   son choix ; supabase/migrations/20261112090000_parcours_resultats.sql) : une barre derrière chaque choix, son pourcentage à droite,
+   une fois qu’on a voté. Si la base posait un seuil plus haut, une phrase le dirait ; hors ligne, rien ne s’affiche. */
 let parcoursRes=null,parcoursResLe=0,parcoursResVa=false;
 function parcoursResultatsCharger(force){
   if(parcoursResVa||(!force&&Date.now()-parcoursResLe<60000)||typeof clsRpc!=='function')return Promise.resolve(parcoursRes);
@@ -44792,7 +44792,19 @@ function obCompteVisible(){return !(typeof obConnexionMasquee==='function'&&obCo
 function obAchatPret(){return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.acheter==='function');}
 function obAbonne(){try{return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.actif==='function'&&window.REQUETE_ACHAT.actif());}catch(e){return false;}}
 function obApresPret(fin){draft.finVoulue=fin||'home';if(obCompteVisible())obGoto('account');else obApresCompte();}
-function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||'home');else obGoto('paywall');}
+function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}
+/* Ce que le compte a rapporté (csSync) remplit les réponses de l’onboarding qu’on n’a pas données : le rythme du planning, le prénom,
+   le profil. finishOnboard garde ainsi le planning du compte et son profil (12 novembre, réf. 14). */
+function obDraftDepuisEtat(){
+  const p=state.plan||{},pr=state.profile||{};
+  if(p.niveau)draft.niveau=p.niveau;
+  if(p.rythme)draft.rythme=p.rythme;
+  if(+p.freq)draft.freq=+p.freq;
+  if(!String(draft.name||'').trim()&&state.name)draft.name=state.name;
+  ['goal','ageRange','genre','job','source','referral'].forEach(k=>{if(!draft[k]&&pr[k])draft[k]=pr[k];});
+  if(!draft.pays&&PAYS_CODES.includes(pr.pays)){draft.pays=pr.pays;draft.paysAuto=!!pr.paysAuto;}
+  if(!draft.pacte&&pr.pacte&&Number.isFinite(pr.pacte.at)){draft.pacte=pr.pacte.sig||'empreinte';draft.pacteAt=pr.pacte.at;}
+}
 /* ---------- Le paywall (Elisa, 10 novembre, 17 h 11) ----------
    Ses prix : 5,99 € par semaine et 44,99 € par an (17 h 50, après la comparaison : les médianes des apps éducatives ; d’abord 4,99 €
    et 59 €). « Une page étudiée psychologiquement, dans la DA du site » :
@@ -44925,7 +44937,7 @@ function obPaywallChoisir(k){
   obPaywallPied();
 }
 function obPaywallPasser(){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
-function obPaywallEntrer(){if(typeof buzz==='function')buzz('success');finishOnboard(draft.finVoulue||'home');}
+function obPaywallEntrer(){if(typeof buzz==='function')buzz('success');finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
 async function obPaywallAcheter(){
   if(!obAchatPret()){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
   if(obPwBusy)return;
@@ -46959,6 +46971,15 @@ async function obStartAuth(provider,btn){
     draft.accountMode='connected';
     obAuthBusy=false;obAuthMessage='';
     if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();renderCompte();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
+    else if(!draft.finVoulue){
+      /* 12 novembre (réf. 14, son choix : « Mon compte ») : connecté depuis « J’ai déjà un compte », au début de l’onboarding, on arrive
+         sur Mon compte, pas sur l’accueil. La progression du compte arrive d’abord (6 s au plus) : son planning, son prénom et ses
+         réponses servent à finir l’onboarding, au lieu d’être remplacés par les réponses par défaut. */
+      draft.finConnexion='compte';
+      try{await Promise.race([typeof csSync==='function'?csSync({premier:true}):null,new Promise(r=>setTimeout(r,6000))]);}catch(e){}
+      obDraftDepuisEtat();
+      obApresCompte();
+    }
     else obApresCompte();
   }catch(e){
     obAuthBusy=false;
@@ -49543,7 +49564,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-retours-onboarding-v2878';
+  const SW_CACHE='requete-2026-11-12-connexion-mon-compte-v2879';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
