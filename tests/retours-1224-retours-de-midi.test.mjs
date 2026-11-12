@@ -162,3 +162,19 @@ test('trouvés au test de bout en bout : message de connexion lisible, paywall a
   assert.ok(app.includes("es ${typeof accord==='function'?accord('prête','prêt','prêt·e'):'prêt·e'} à atteindre <em>ton objectif</em>"));
   assert.ok(app.includes("${masquee||reussie||!authReady?'':obCompteAtoutsHTML()}"));
 });
+
+/* 12 novembre, 14 h 08 (Elisa : « améliore mon appli comme tu le sens ») : les chiffres de l’accueil montent une fois à l’arrivée ;
+   la page de confidentialité décrit le compte de l’appli iPhone ; seul le prénom est gardé avec le compte ; plus de « bientôt ». */
+test('14 h 08 : les chiffres de l’accueil montent une fois ; la confidentialité décrit le compte', () => {
+  const f = cut('let homeStatsComptes=false;', 'function homeStatsHTML(){try{');
+  assert.ok(f.includes('if(homeStatsComptes||typeof document===\'undefined\'||prefersReduceMotion()') && f.includes("b.textContent=fin+suf;"), 'une fois, pas en mouvement réduit, le vrai chiffre à la fin');
+  assert.ok(f.includes("if(ob&&ob.classList.contains('on'))return;") && f.includes("ld.style.display!=='none'"), 'pas sous l’onboarding ni sous l’ouverture');
+  assert.ok(app.includes("if(name==='learn'&&typeof homeStatsCompter==='function')setTimeout(homeStatsCompter,380);"));
+  const conf = lire('decouvrir/confidentialite.html');
+  for (const t of ['<section id="compte"><h2>Ton compte (appli iPhone)</h2>', 'tu te connectes avec Apple ou avec Google, sans mot de passe chez nous', 'Tes leçons et exercices validés, tes défis réussis',
+    'l’accès «&nbsp;Se connecter avec Apple&nbsp;» est retiré chez Apple', 'Dernière mise à jour&nbsp;: 12 novembre 2026'])
+    assert.ok(conf.includes(t), t);
+  assert.ok(!conf.includes('Si Requête propose un jour une connexion'));
+  assert.ok(lire('connexion.js').includes("appel('user', {data: {given_name: donne}}, s.access_token, 'PUT')"), 'le prénom seul');
+  assert.ok(!app.includes(":'bientôt'}"));
+});

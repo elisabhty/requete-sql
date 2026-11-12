@@ -124,7 +124,7 @@ test('l’appli : la page ne montre que les fournisseurs du crochet ; le jeton d
   ctx.window.REQUETE_AUTH = {fournisseurs: ['apple', 'google']};
   assert.equal(ctx.obFournisseurOk('google'), true); assert.equal(ctx.obFournisseurOk('email'), false);
   assert.match(app, /\$\{obFournisseurOk\('email'\)\?`<p class="ob-divider"/, 'le champ e-mail et son « ou » disparaissent');
-  assert.match(app, /<script src="connexion\.js\?v=2"><\/script>/);
+  assert.match(app, /<script src="connexion\.js\?v=3"><\/script>/);
   const vus = [];
   const c2 = vm.createContext({window: {REQUETE_AUTH: {jeton: () => Promise.resolve('acces')}}, JEU_SB: 'https://x', JEU_SB_KEY: 'k', Promise, JSON, Object,
     fetch: (u, o) => { vus.push(o.headers); return Promise.resolve({ok: true, status: 200, json: () => Promise.resolve({ok: true})}); }});
@@ -149,7 +149,7 @@ test('le prénom : donné par Apple une seule fois, il est gardé avec le compte
   assert.equal(m.appels[1].url, 'https://exemple.supabase.co/auth/v1/user');
   assert.equal(m.appels[1].o.method, 'PUT');
   assert.equal(m.appels[1].o.headers.Authorization, 'Bearer acces');
-  assert.deepEqual(m.appels[1].corps, {data: {given_name: 'Elisa', full_name: 'Elisa Blanchart'}});
+  assert.deepEqual(m.appels[1].corps, {data: {given_name: 'Elisa'}}, 'le prénom seul : le nom de famille n’est pas gardé');
   assert.equal(m.appels[0].o.method, 'POST');
   m = monter({reponses: [{status: 200, json: {...neuf, user: {...neuf.user, user_metadata: {given_name: 'Elisa', full_name: 'Elisa Blanchart'}}}}], login: avec({})});
   r = await m.A.signIn('apple');

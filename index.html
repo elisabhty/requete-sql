@@ -20539,6 +20539,7 @@ async function boot(){
     jeuFromUrl();
     resetLeconFromUrl();
     apercuFromUrl();
+    setTimeout(()=>{try{homeStatsCompter();}catch(e){}},document.documentElement.classList.contains('is-native')?3300:700);   // après l’ouverture
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
     setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
     setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône (appui long, comme Duolingo)
@@ -26292,6 +26293,7 @@ function switchTab(name){
   activeTab=name;
   syncTabBack(name);
   if(name==='learn'&&typeof obWidgetBientot==='function')obWidgetBientot();
+  if(name==='learn'&&typeof homeStatsCompter==='function')setTimeout(homeStatsCompter,380);   // les chiffres de l’accueil montent, une fois
   document.getElementById('fab')?.classList.remove('is-tucked');
   document.querySelectorAll('.tab').forEach(t=>{
     const on=t.dataset.tab===name;
@@ -27406,6 +27408,34 @@ const HOME_STAT_SVG={
   video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5" width="18.4" height="14" rx="3.6"/><path d="M10 9.1v5.8l4.9-2.9z" fill="currentColor"/></svg>',
   bulle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 4.5h12.4a2.8 2.8 0 0 1 2.8 2.8v7.1a2.8 2.8 0 0 1-2.8 2.8h-5.6l-4.6 3.6v-3.6H5.8A2.8 2.8 0 0 1 3 14.4V7.3a2.8 2.8 0 0 1 2.8-2.8z"/><path d="M10.4 9.1a1.7 1.7 0 1 1 2.3 1.6c-.5.2-.7.6-.7 1.1M12 13.8h.01"/></svg>'
 };
+/* 12 novembre, 14 h 08 (Elisa : « améliore mon appli comme tu le sens ») : à l’arrivée sur l’accueil (l’ouverture finie, ou
+   l’onboarding terminé), les chiffres des trois tuiles montent de zéro à leur valeur, l’un après l’autre, une seule fois par ouverture
+   de l’appli. Mouvement réduit, onboarding ouvert ou tuiles absentes : rien. Le chiffre final est écrit quoi qu’il arrive. */
+let homeStatsComptes=false;
+function homeStatsCompter(){
+  try{
+    if(homeStatsComptes||typeof document==='undefined'||prefersReduceMotion()||typeof requestAnimationFrame!=='function')return;
+    const ob=document.getElementById('onboarding');if(ob&&ob.classList.contains('on'))return;
+    const ld=document.getElementById('loader');if(ld&&ld.style.display!=='none'&&!ld.classList.contains('fade-out'))return;   // encore sous l’ouverture
+    const scr=document.getElementById('scr-learn');if(!scr||!scr.classList.contains('active'))return;
+    const bs=[...scr.querySelectorAll('.lq-stats .lq-stat>b')];if(!bs.length)return;
+    homeStatsComptes=true;
+    bs.forEach((b,i)=>{
+      const m=/^(\d+)(.*)$/.exec(b.textContent||'');if(!m)return;
+      const fin=+m[1],suf=m[2],D=650,dep=i*110;if(fin<2)return;
+      let t0=0;b.textContent='0'+suf;
+      const pas=now=>{
+        if(!b.isConnected)return;
+        if(!t0)t0=now+dep;
+        const k=Math.max(0,Math.min(1,(now-t0)/D)),e=1-Math.pow(1-k,3);
+        b.textContent=Math.round(fin*e)+suf;
+        if(k<1)requestAnimationFrame(pas);else{b.textContent=fin+suf;const li=b.parentElement;if(li&&li.animate)li.animate([{transform:'none'},{transform:'scale(1.06)'},{transform:'none'}],{duration:260,easing:'cubic-bezier(.34,1.56,.64,1)'});}
+      };
+      requestAnimationFrame(pas);
+      setTimeout(()=>{if(b.isConnected&&b.textContent!==fin+suf)b.textContent=fin+suf;},dep+D+600);   // onglet en arrière-plan : le vrai chiffre quand même
+    });
+  }catch(e){}
+}
 function homeStatsHTML(){try{
   if(typeof allLessons==='undefined'||!allLessons.length)return '';
   const ls=allLessons,nL=ls.length,fait=l=>itemDone(l.id);
@@ -41853,7 +41883,7 @@ function renderTodayHero(){
     const s=info.today,tot=s.lessons.length,faites=tot-resteDe(s),pct=tot?Math.round(faites/tot*100):0;
     const left=tot-faites;
     if(!resteDe(s))return `<div class="today-hero done"><div class="th-tag">Aujourd’hui</div>
-      <h3>Séance terminée ✓</h3><p>Tes ${plur(tot,'activité')} du jour sont terminées. Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</p>
+      <h3>Séance terminée ✓</h3><p>Tes ${plur(tot,'activité')} du jour sont terminées. ${info.suivante?`Prochaine séance ${libelleJour(info.suivante.d).toLowerCase()}.`:'Reviens quand tu veux pour la suite.'}</p>
       ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
     return `<div class="today-hero"><div class="th-tag">Aujourd’hui · Parcours progressif</div>
       <h3>${left} à faire</h3>
@@ -47944,6 +47974,7 @@ function obTerminer(action){
   semaineOffset=0;jourSel=null;
   renderGreeting();renderHomeHero();renderProgress();renderPlanning();renderCompte();
   celebrate();
+  if(typeof homeStatsCompter==='function')setTimeout(homeStatsCompter,500);
   /* 20 h 26 : quelques secondes après l’arrivée, « Nouveau sticker · Première requête » (la requête d’essai de l’onboarding) */
   if(typeof stkAfterProgress==='function')setTimeout(()=>{try{stkAfterProgress();}catch(e){}},2600);
   if(action==='salle'||(typeof jeuInvitation==='function'&&jeuInvitation())){
@@ -49703,7 +49734,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-test-bout-en-bout-v2885';
+  const SW_CACHE='requete-2026-11-12-compte-prive-chiffres-v2886';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -49745,6 +49776,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 <script src="multiplayer-security.js?v=10"></script>
 <script src="achat.js?v=3"></script>
 <script src="compte-moteurs.js?v=1"></script>
-<script src="connexion.js?v=2"></script>
+<script src="connexion.js?v=3"></script>
 </body>
 </html>
