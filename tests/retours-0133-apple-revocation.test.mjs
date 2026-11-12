@@ -100,7 +100,7 @@ test('l’app : le code d’Apple part à la connexion ; la révocation passe av
   };
   ctx.window = ctx;
   vm.createContext(ctx);
-  vm.runInContext(cx.replace('var ACTIVE = false;', 'var ACTIVE = true;'), ctx);
+  vm.runInContext(cx.replace(/var ACTIVE = (true|false);/, 'var ACTIVE = true;'), ctx);
   await ctx.REQUETE_AUTH.signIn('apple');
   await new Promise(r => setTimeout(r, 10));
   const g = appels.find(a => a.url.includes('/functions/v1/apple-jeton'));
