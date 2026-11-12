@@ -1,4 +1,7 @@
-# Progression commune web et iPhone — préparation inactive
+# Progression commune web et iPhone
+
+> 12 novembre : raccordée à l’app iPhone (`compte-moteurs.js`, `csSync` dans index.html) derrière l’interrupteur `ACTIVE` de
+> `connexion.js` ; voir IOS.md, « La connexion ». Le texte ci-dessous décrit la préparation de novembre.
 
 Le backend est préparé dans Supabase. Le moteur `account/progression.mjs` n'est importé par aucun écran et son option `enabled` vaut `false` par défaut. Aucun écouteur n'est ajouté à `save()`, aucun envoi automatique n'est activé et aucune progression réelle n'a été migrée.
 

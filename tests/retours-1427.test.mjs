@@ -93,7 +93,7 @@ test('« Pas de réseau » : le chat lève son téléphone à la place du picto 
   assert.deepEqual([vus[0].chat, vus[0].ico, vus[0].titre, vus[0].oui, vus[0].non], ['<img chat="reseau">', '📶', 'Pas de réseau', 'OK', null]);
   assert.equal(vus[1].chat, '', 'un autre picto : pas de chat');
   assert.ok(app.includes("${o.ico||o.chat?'':' is-nostk'}\">${o.chat?`<span class=\"lq-ask-stk is-chat\" aria-hidden=\"true\">${o.chat}</span>`:o.ico?lqAskStk(o.ico):''}"), 'lqAsk montre le chat');
-  assert.equal((app.match(/lqInfo\('Pas de réseau',/g) || []).length, 3, 'les trois feuilles « Pas de réseau » passent par lqInfo et le picto 📶');
+  assert.equal((app.match(/lqInfo\('Pas de réseau',/g) || []).length, 4, 'les quatre feuilles « Pas de réseau » (la quatrième : effacer aussi la progression du compte, 12 novembre) passent par lqInfo et le picto 📶');
   assert.ok(lq.includes('html.lq .lq-ask-stk.is-chat{width:96px;height:auto;margin-bottom:8px;rotate:0deg}'));
 });
 
