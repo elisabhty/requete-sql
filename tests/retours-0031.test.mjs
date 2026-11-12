@@ -258,7 +258,8 @@ test('« En direct » ne raconte plus les essais manqués des autres, ni au lect
 
 test('la page de connexion : Apple, Google, le trait « ou », puis l’adresse e-mail en champ', () => {
   const page = cut("  }else if(slide==='account'){", "  }else if(slide==='name'){");
-  assert.ok(page.includes("${OB_PROVIDERS.filter(([provider])=>provider!=='email').map(") && page.includes('<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}'));
+  /* 12 novembre (la connexion branchée) : seulement les fournisseurs du crochet ; le « ou » et le champ e-mail, si l’e-mail en est. */
+  assert.ok(page.includes("${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(") && page.includes("${obFournisseurOk('email')?`<p class=\"ob-divider\" aria-hidden=\"true\">ou</p>${obMailChampHTML(authReady)}`:''}"));
   const ctx = vm.createContext({ obAuthBusy: false, obProviderIcon: p => `<i data-p="${p}"></i>` });
   vm.runInContext(cut('function obMailChampHTML(authReady){', '\nfunction obCompteCarteHTML(){'), ctx);
   const bientot = ctx.obMailChampHTML(false), branche = ctx.obMailChampHTML(true);
