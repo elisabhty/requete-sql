@@ -25,7 +25,7 @@ test('réf. 5 et 6 : « bonjour » ouvre l’onboarding, « questions » annonce
   assert.ok(app.includes('const OB_PROFILE_SLIDES=[\'name\','), 'les étapes comptées commencent toujours au prénom');
   /* « bonjour » : la bulle, le chat qui fait coucou, le nom en grand, la promesse ; « Commencer » et « J’ai déjà un compte » */
   const bonjour = cut("}else if(slide==='bonjour'){", "}else if(slide==='questions'){");
-  for (const k of ['<p class="ob-bubble ob-bj-bulle">${obTypo(\'Coucou ! On apprend le SQL ensemble ?\')}</p>', 'src="assets/chat-coucou${fixe?\'-fixe\':\'\'}.webp"',
+  for (const k of ['<p class="ob-bubble ob-bj-bulle">${obTypo(\'Coucou ! On explore le monde des données ?\')}</p>',   // 12 h 24 (réf. 1) 'src="assets/chat-coucou${fixe?\'-fixe\':\'\'}.webp"',
     '<h1 class="ob-bj-nom" id="ob-title">Requête</h1>', "obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'');"])
     assert.ok(bonjour.includes(k), k);
   const questions = cut("}else if(slide==='questions'){", "}else if(slide==='account'){");
@@ -86,7 +86,8 @@ test('réf. 7 : un projet créé naît sur sa carte (la base tombe, les lettres 
 
 test('réf. 8 et 9 : la page qui part éteint ses flous, la nouvelle refait ses calques ; le pays part en 0,9 s', () => {
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-slide.out *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;will-change:auto!important}'));
-  assert.ok(app.includes("  body.innerHTML=html;\n  obInsecables(body);\n") && app.includes("  body.style.display='none';void body.offsetHeight;body.style.display='';\n  body.scrollTop=0;"));
+  /* 12 h 24 (« toujours les traces violettes ») : la page refaite d’un bloc ne suffisait pas ; tout l’onboarding est repeint */
+  assert.ok(app.includes("  body.innerHTML=html;\n  obInsecables(body);\n") && app.includes("  obRepeindre();\n  body.scrollTop=0;"));
   assert.ok(app.includes('const PAYS_ATTENTE=900;'));
 });
 

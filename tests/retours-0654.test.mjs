@@ -43,7 +43,7 @@ test('la page et le pied se mettent à l’échelle de l’écran (--obz)', () =
   /* Le bandeau de notification de l’étape du rappel suit l’échelle de la page */
   assert.ok(app.includes('if(Math.abs(dy)>2)z.style.transform=`translateY(${Math.round(dy/obZ())}px)`;'));
   /* La feuille est rechargée (cache du service worker) */
-  assert.ok(app.includes('onboarding-vitrine.css?v=44') && fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes('./onboarding-vitrine.css?v=44'));
+  assert.ok(app.includes('onboarding-vitrine.css?v=45') && fs.readFileSync(path.join(root, 'sw.js'), 'utf8').includes('./onboarding-vitrine.css?v=45'));
 });
 
 test('« Ton parcours est prêt » et « On construit ton parcours » se resserrent aussi sur l’iPhone SE', () => {
@@ -85,8 +85,10 @@ function essai({ contenu, pied = 90, H = 667, larg = 375 }) {
   };
   const screen = { childElementCount: 4, cloneNode: () => copie(() => contenu[palier()]) };
   const foot = { cloneNode: () => copie(() => pied, 12 + 44), getBoundingClientRect: () => ({ width: larg }) };
-  const body = { firstElementChild: screen, clientWidth: larg, appendChild() {}, contains: () => false };
+  /* 12 novembre, 12 h 24 : la page commence sous la barre d’état ; ici, la marge du haut du cadre (40) la contient, comme avant */
+  const body = { firstElementChild: screen, clientWidth: larg, appendChild() {}, contains: () => false, getBoundingClientRect: () => ({ top: 0 }) };
   const rootEl = {
+    getBoundingClientRect: () => ({ top: 0 }),
     clientHeight: H, clientWidth: larg, dataset, style: { setProperty: (k, v) => { props[k] = v; }, getPropertyValue: k => props[k] || '' },
     classList: { add: (...c) => c.forEach(x => classes.add(x)), remove: (...c) => c.forEach(x => classes.delete(x)), contains: c => classes.has(c) },
     querySelector: s => (s === '.ob-foot' ? foot : null), appendChild() {}

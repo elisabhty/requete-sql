@@ -53,7 +53,7 @@ test('envoyer le commentaire : gardé sur l’appareil (espaces resserrés, 500 
   for (const k of ['html.lq #scr-lesson .bravo-avis .av-com.is-cache{display:none}', 'html.lq #scr-lesson .bravo-avis .av-com.is-ouvert>.av-com-lien{display:none}',
     'html.lq #scr-lesson .bravo-avis .av-com-zone textarea{display:block;width:100%;min-height:92px;', '.av-com-champ,.av-com-merci),html.lq #scr-lesson .bravo-avis{animation:none!important}}'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=315">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=316">'));
 });
 
 const repriseLab = ({onboarded = false, apercu = false, legal = null} = {}) => {
@@ -87,7 +87,8 @@ test('l’onboarding repris là où on l’a quitté : l’étape et les répons
   /* Branché : gardé à chaque page, repris à l’ouverture (sans la vidéo, avec un bandeau), oublié à la fin */
   const start = cut('function startOnboarding(initial=', 'let obApercu=false;');
   assert.ok(start.includes("const reprise=obEntry==='welcome'&&!state.onboarded&&!obApercu?obRepriseLire():null;"));
-  assert.ok(start.includes("Object.assign(draft,reprise.draft);\n    obStep=OB_SLIDES.indexOf(reprise.slide);") && start.includes("'On reprend là où tu en étais. La salle t’attend à la fin.':'On reprend là où tu en étais.');"));
+  /* 12 novembre, 12 h 24 (« pas de texte notifié noir ») : plus de bandeau à la reprise, la page se suffit */
+  assert.ok(start.includes("Object.assign(draft,reprise.draft);\n    obStep=OB_SLIDES.indexOf(reprise.slide);") && !start.includes('obBandeau('));
   assert.ok(app.includes("  obRepriseGarder(slide);\n  if(obJustEntered&&!state.onboarded&&!obLegalMode)obCompter(slide);"));
   assert.ok(cut('function finishOnboard(action){', 'function obTerminer(action){').includes('obRepriseOublier();'));
   assert.ok(cut('function obApercuOuvrir(){', 'function obApercuFermer(').includes("obStep=OB_SLIDES.indexOf('bonjour');obEntry='welcome';"), 'l’aperçu repart du début (« bonjour », 12 novembre)');

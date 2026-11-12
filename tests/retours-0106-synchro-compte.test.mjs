@@ -67,7 +67,7 @@ const plan = {niveau: 'debutant', rythme: 'regulier', freq: 7, per: 3, mix: true
 
 test('compte-moteurs.js est à jour avec account/*.mjs', () => {
   assert.equal(moteurs, assembler(), 'relancer node scripts/compte-moteurs.mjs');
-  assert.match(app, /<script src="compte-moteurs\.js\?v=1"><\/script>\n<script src="connexion\.js\?v=1"><\/script>/);
+  assert.match(app, /<script src="compte-moteurs\.js\?v=1"><\/script>\n<script src="connexion\.js\?v=2"><\/script>/);
 });
 
 test('sans compte connecté, rien ne part', async () => {

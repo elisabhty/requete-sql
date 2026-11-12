@@ -71,7 +71,8 @@ test('les questions de l’onboarding : la question en arrivant, il hoche la tê
   assert.equal(oui(false, 7), 'oui', 'les jours (un nombre)');
   for (const s of ["${obMascotDit('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !',obMascotOui(draft.ageRange||draft.genre))}",
     "${obMascotDit(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.',obMascotOui(draft.job))}",
-    "${obMascotDit('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.',obMascotOui(code))}",
+    /* 12 novembre, 12 h 24 : le pays n’a plus de bulle ; son chat, assis sur la carte, hoche la tête une fois le pays posé */
+    "src=\"assets/${oui?'chat-oui':'chat-question'}${fixe?'-fixe':''}.webp\"",
     "${obMascotDit('Même dix minutes suffisent pour avancer.',obMascotOui(draft.rythme))}",
     "${obMascotDit('Même deux jours par semaine, ça fait avancer !',obMascotOui(draft.freq))}",
     "${obMascotDit('Comment tes adversaires vont-ils t’appeler ?','pseudo')}"])

@@ -45,7 +45,7 @@ function lancer({ images = true, court = false } = {}) {
 
 test('chat : ses images se chargent pendant le démarrage ; prêtes, l’ouverture pleine le fait entrer', async () => {
   const s = lancer();
-  assert.deepEqual(s.charges, ['assets/ouverture-chat-marche.webp', 'assets/ouverture-chat-appui.webp']);
+  assert.deepEqual(s.charges, ['assets/ouverture-chat-marche-grille.webp', 'assets/ouverture-chat-appui-grille.webp']);   // 12 novembre, 12 h 24 : en grilles
   await attendre(); await attendre(); await attendre();
   const log = s.jouer();
   assert.ok(s.L.cls.has('is-chat') && s.L.cls.has('is-play'));
@@ -80,25 +80,33 @@ test('chat : sans ses images à temps, l’ouverture pleine se joue sans lui ; �
   assert.ok(c.L.cls.has('is-chat') && !c.L.cls.has('is-court'));
 });
 
-test('chat : ses deux bandes de 12 images, détourées, et leur défilé par crans derrière la touche', () => {
+/* 12 novembre, 12 h 24 (Elisa : « le chat bug, il apparaît puis pas ») : plus de bande de 12 images (4 272 px de large), que WebKit
+   découpait en tuiles peintes à la demande sur l’iPhone (au-delà de 1 280 px), vides quand le démarrage occupait le fil principal :
+   une grille de 4 × 3, d’un seul tenant. */
+test('chat : ses deux grilles de 12 images (4 × 3), détourées, et leur défilé par crans derrière la touche', () => {
   for (const n of ['marche', 'appui']) {
-    const b = lire(`assets/ouverture-chat-${n}.webp`);
+    const b = lire(`assets/ouverture-chat-${n}-grille.webp`);
     assert.equal(b.toString('latin1', 0, 4), 'RIFF'); assert.equal(b.toString('latin1', 8, 16), 'WEBPVP8X');
     assert.ok(b[20] & 0x10, `${n} : avec transparence`);
-    assert.deepEqual([b.readUIntLE(24, 3) + 1, b.readUIntLE(27, 3) + 1], [12 * 356, 357], `${n} : 12 images de 356 × 357`);
+    assert.deepEqual([b.readUIntLE(24, 3) + 1, b.readUIntLE(27, 3) + 1], [4 * 356, 3 * 357], `${n} : 4 × 3 images de 356 × 357`);
     assert.ok(b.length < 300000, `${n} : ${b.length} octets`);
+    assert.ok(!fs.existsSync(new URL(`../assets/ouverture-chat-${n}.webp`, import.meta.url)), `${n} : plus de bande`);
   }
+  /* Le calque de la grille reste sous la limite des tuiles de WebKit (1 024 px quand la mémoire manque), même sur le plus grand iPad */
+  const u = 1376 / 2732, cote = 420 * u;
+  assert.ok(4 * cote < 1024 && 3 * cote < 1024, `${Math.round(4 * cote)} × ${Math.round(3 * cote)}`);
   for (const part of [
     'html.is-native.lq #loader.is-intro .in-chat{position:absolute;z-index:1;left:calc(50% - 210*var(--u));top:calc(50% - 653*var(--u));',
     'width:calc(420*var(--u));height:calc(420*var(--u));opacity:0;will-change:transform}',
-    'background:url(assets/ouverture-chat-marche.webp) 0 0/100% 100% no-repeat;will-change:transform}',
-    'html.is-native.lq #loader.is-intro .in-chat-a>b{background-image:url(assets/ouverture-chat-appui.webp)}',
+    'html.is-native.lq #loader.is-intro :is(.in-chat-m,.in-chat-a)>b{position:absolute;left:0;top:0;width:400%;height:300%;',
+    'background:url(assets/ouverture-chat-marche-grille.webp) 0 0/100% 100% no-repeat;will-change:transform}',
+    'html.is-native.lq #loader.is-intro .in-chat-a>b{background-image:url(assets/ouverture-chat-appui-grille.webp)}',
     'html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-m>b{animation:introChatPas 720ms linear var(--t-pose) infinite both}',   // 12 novembre : en paliers
     'html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-a>b{animation:introChatAssis 770ms linear var(--t-arret) both}',
-    '@keyframes introChatPas{0%,8.33332%{transform:none}8.33333%,16.66666%{transform:translateX(-8.33333%)}',
-    '91.66667%,100%{transform:translateX(-91.66667%)}}',
-    '@keyframes introChatAssis{0%,9.0909%{transform:none}9.09091%,18.18181%{transform:translateX(-8.33333%)}',
-    '90.90909%,99.99999%{transform:translateX(-83.33333%)}100%{transform:translateX(-91.66667%)}}',
+    '@keyframes introChatPas{0%,8.33332%{transform:none}8.33333%,16.66666%{transform:translate(-25%,0)}',
+    '91.66667%,100%{transform:translate(-75%,-66.66667%)}}',
+    '@keyframes introChatAssis{0%,9.0909%{transform:none}9.09091%,18.18181%{transform:translate(-25%,0)}',
+    '90.90909%,99.99999%{transform:translate(-50%,-66.66667%)}100%{transform:translate(-75%,-66.66667%)}}',
     'introAtterrit 260ms linear var(--t-pose),introPatte 260ms linear var(--t-patte0),introPlonge var(--d-plonge) linear var(--t-appui) forwards}',
     'introChatEntree var(--d-plonge) linear var(--t-appui) forwards}',
     '@keyframes introSautX{from{transform:translateX(calc(-50vw - 230*var(--u)))}to{transform:translateX(calc(-130*var(--u)))}}',

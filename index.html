@@ -4396,7 +4396,10 @@
   #onboarding .ob-slide.on{animation:none}
   #onboarding .ob-slide.out{animation:obPageOut .2s ease both}
   @keyframes obPageOut{to{opacity:0;transform:translateY(-10px);filter:blur(3px)}}
-  #onboarding #ob-body{width:100%;height:100%;padding:calc(var(--safe-top) + 20px) 24px 12px;overflow-y:auto;overscroll-behavior:contain}
+  /* 12 novembre, 12 h 24 (Elisa, le prénom clavier ouvert : l’en-tête passait sous l’heure) : la zone sûre du haut n’est plus une marge
+     intérieure de la page qui défile, mais l’espace au-dessus d’elle (.ob-slides) : ce qui défile s’arrête net sous la barre d’état. */
+  #onboarding .ob-slides{margin-top:var(--safe-top)}
+  #onboarding #ob-body{width:100%;height:100%;padding:20px 24px 12px;overflow-y:auto;overscroll-behavior:contain}
   /* La vidéo « Le métier de data analyst » avant l’accueil (Elisa, 4 novembre, 3 h 37) : la page de la vitrine dans un cadre, sur son
      fond clair jusque sous l’heure et la barre d’accueil ; elle s’efface sur l’accueil violet. Tant que le cadre ne s’est pas
      annoncé (chargement, hors ligne), un « Passer la vidéo » de l’appli, à la place du sien, permet toujours d’avancer. */
@@ -4503,7 +4506,7 @@
   #onboarding.ob-legal-step .ob-foot{display:none}
   .ob-foot-note{min-height:16px;margin:0;text-align:center;color:var(--ink-3);font-size:10.8px;line-height:1.35}
   /* Entretien guidé : densité équilibrée, une question par écran. */
-  #onboarding.ob-profile-step #ob-body{padding-top:calc(var(--safe-top) + 12px)}
+  #onboarding.ob-profile-step #ob-body{padding-top:12px}
   #onboarding.ob-profile-step .ob-foot{padding-top:8px}
   .ob-flow-top{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:18px;margin-bottom:18px}
   .ob-flow-top .ob-back{margin:0 0 0 -10px}
@@ -6119,7 +6122,7 @@
   #scr-compte.active .account-progress-hub{animation-delay:.06s}#scr-compte.active .account-settings-block{animation-delay:.12s}
 
   /* Onboarding — durée visible, compte honnête et mode local rassurant */
-  #onboarding.ob-account-step #ob-body{padding-top:calc(var(--safe-top) + 10px)}
+  #onboarding.ob-account-step #ob-body{padding-top:10px}
   .ob-flow-top{grid-template-columns:auto 1fr;gap:7px 12px;margin-bottom:15px}
   .ob-flow-top .ob-back{margin:0 0 0 -10px;padding-bottom:0}
   .ob-flow-top.ob-flow-solo{grid-template-columns:auto}
@@ -6600,6 +6603,12 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
   var vp=document.querySelector('meta[name=viewport]');
   if(vp)vp.setAttribute('content','width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
   try{P.StatusBar&&P.StatusBar.setStyle({style:'LIGHT'});}catch(e){}
+  /* 12 novembre, 12 h 24 (Elisa, le prénom clavier ouvert : « Regarde comment la page part en haut », et « Choisis ton pseudo, la
+     page part loin aussi en haut ») : à l’appui sur un champ, iOS faisait défiler la vue entière de l’appli pour le montrer, et
+     l’en-tête passait sous l’heure ; aucune remise à zéro en JavaScript ne l’atteignait (pour la page, rien n’avait bougé). La vue de
+     l’appli ne défile plus du tout (capacitor.config.json, ios.scrollEnabled à false, et ici pour une appli installée avant) : le
+     plugin Keyboard la ramène à zéro dès qu’elle bouge. Ce qui défile dans la page (écrans, feuilles, onboarding) défile toujours. */
+  try{var kbScroll=P.Keyboard&&P.Keyboard.setScroll&&P.Keyboard.setScroll({isDisabled:true});if(kbScroll&&kbScroll.catch)kbScroll.catch(function(){});}catch(e){}
   var H=P.Haptics;
   if(H){
     /* Elisa, 5 novembre, 19 h 41 : « je n’ai pas de haptique dans l’application ». Les coups de moins de 10 ms (le toucher de chaque
@@ -6734,9 +6743,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=315">
+<link rel="stylesheet" href="ludique.css?v=316">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=44">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=45">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -7443,11 +7452,15 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
      qui lance la plongée (2 340 + 14 % de 640). Le violet s’efface de 2 830 à 3 190. */
   var CHAT={soude:980,dSoude:100,fin:1080,chat:1100,pose:1380,arret:1800,patte:2150,appui:2340,dPlonge:640,sortie:2830,dSortie:360,k:PLEINE.k,l:PLEINE.l};
   var T=null,HAPTIQUE=[];
-  var CHAT_IMG=['assets/ouverture-chat-marche.webp','assets/ouverture-chat-appui.webp'],chatPret=0,chatFini=0;
+  /* 12 novembre, 12 h 24 (« le chat bug, il apparaît puis pas ») : ses images en grilles de 4 × 3 (tools/chat-ouverture.py), pas
+     en bandes de 12 : WebKit découpait la bande (plus large que 1 280 px) en tuiles peintes à la demande, vides pendant la marche
+     quand le démarrage occupait le fil principal. Décodées avant de partir et gardées (garde) jusqu’à la fin : rien à redécoder. */
+  var CHAT_IMG=['assets/ouverture-chat-marche-grille.webp','assets/ouverture-chat-appui-grille.webp'],chatPret=0,chatFini=0,garde=[];
   if(!calme&&window.Image){
     CHAT_IMG.forEach(function(u){
       try{
         var im=new window.Image();
+        garde.push(im);
         im.onload=function(){var pret=function(){chatPret++;chatFini++;};if(im.decode)im.decode().then(pret,pret);else pret();};
         im.onerror=function(){chatFini++;};
         im.src=u;
@@ -7481,7 +7494,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     }catch(e){}
   }
   setTimeout(function(){if(!L.classList.contains('is-play')&&!L.classList.contains('fade-out'))L.classList.add('is-long');},2600);
-  var ranger=function(){L.style.display='none';};
+  var ranger=function(){L.style.display='none';garde.length=0;};
   /* Fin du son : la session audio d’avant revient, le contexte est fermé */
   var finSon=function(){
     try{if(avantSon!=null&&navigator.audioSession){navigator.audioSession.type=avantSon;}}catch(e){}
@@ -44522,7 +44535,21 @@ addEventListener('message',e=>{
   if(e.data.requete==='video-prete'){ const v=document.getElementById('ob-video'); if(v)v.classList.add('is-prete'); }
   else if(e.data.requete==='video-fin')obVideoFermer();
 });
+/* 12 novembre, 12 h 24 (Elisa : « les chats aussi ont des problèmes à l’onboarding, des flashs ») : les GIF des chats ne se
+   chargeaient qu’au moment de s’afficher (le hochement de tête au premier choix, le chat de la page suivante, celui du pays) : un
+   instant de vide à leur place, puis le chat. À l’ouverture de l’onboarding, tous ses chats sont chargés et décodés d’avance, l’un
+   après l’autre, et gardés (OB_CHATS) jusqu’à la fin de l’onboarding : chaque page les trouve prêts. */
+const OB_CHATS=[];
+function obChatsPrecharger(){
+  if(OB_CHATS.length||typeof Image!=='function')return;
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  ['coucou','parti','question','oui','cle','pseudo','ordi','presente','reveil','bravo'].forEach((n,i)=>{
+    const im=new Image();OB_CHATS.push(im);
+    setTimeout(()=>{try{im.src=`assets/chat-${n}${fixe?'-fixe':''}.webp`;if(im.decode)im.decode().catch(()=>{});}catch(e){}},i*90);
+  });
+}
 function startOnboarding(initial='welcome'){
+  obChatsPrecharger();
   obEntry=OB_SLIDES.includes(initial)&&initial!=='bonjour'?initial:'welcome';
   obStep=OB_SLIDES.indexOf(obEntry==='welcome'?'bonjour':obEntry);   // l’onboarding complet commence par « bonjour » (12 novembre)
   obLock=false;obLegalMode=null;obAuthMessage='';obAuthBusy=false;
@@ -44557,7 +44584,8 @@ function startOnboarding(initial='welcome'){
   if(reprise){
     Object.assign(draft,reprise.draft);
     obStep=OB_SLIDES.indexOf(reprise.slide);
-    setTimeout(()=>{try{obBandeau(typeof jeuInvitation==='function'&&jeuInvitation()?'On reprend là où tu en étais. La salle t’attend à la fin.':'On reprend là où tu en étais.');}catch(e){}},650);
+    /* 12 novembre, 12 h 24 (« pas de texte notifié noir ») : plus de bandeau « On reprend là où tu en étais » par-dessus l’en-tête ;
+       la page où l’on reprend se suffit à elle-même */
   }else if(obEntry==='welcome'&&obVideoVoulue())obVideoOuvrir();
   paintOb();
 }
@@ -46178,6 +46206,17 @@ function obNameNext(){
   document.getElementById('ob-prenom')?.focus({preventScroll:true});
 }
 let obCheerT=null;
+/* 12 novembre, 12 h 24 (Elisa : la page qui remonte avec le clavier) : clavier ouvert, la carte « Enchantée… » sous le champ faisait
+   défiler la page. La bulle du chat porte la question et sa réponse, l’une sur l’autre (même case de grille, la bulle garde la taille
+   de la plus longue) : clavier ouvert, dès le prénom tapé, la réponse remplace la question, sans que rien ne bouge (onboarding-vitrine.css,
+   ob-clavier). Sans prénom, la réponse garde la place d’un prénom courant. Clavier fermé, la carte revient comme avant. */
+function obPrenomReponse(n){
+  n=String(n||'').trim();
+  return `Enchantée, <em>${esc(n||'Léa')}</em>&nbsp;! J’ai hâte d’en savoir plus sur toi.`;
+}
+function obPrenomBulle(n){
+  return `<span class="ob-bulle-q">${esc(obTypo('Salut ! Comment dois-je t’appeler ?'))}</span><span class="ob-bulle-r" aria-hidden="true">${obPrenomReponse(n)}</span>`;
+}
 function obNamePreview(){
   const box=document.getElementById('ob-name-greet'),ini=document.getElementById('ob-name-initial'),wrap=document.getElementById('ob-name-preview');
   if(!box||!ini)return;
@@ -46190,6 +46229,10 @@ function obNamePreview(){
   /* Le texte d’abord, puis la mesure (obFit) : la carte est mesurée à sa vraie hauteur, deux lignes comprises. */
   ini.textContent=(Array.from(n)[0]||'').toUpperCase();
   box.innerHTML=n?`Enchantée, <em>${esc(n)}</em>&nbsp;!`:'';
+  /* 12 novembre, 12 h 24 : clavier ouvert, la carte ne trouve plus de place sous le champ sans faire défiler la page ; c’est la bulle
+     du chat qui répond (ob-clavier, voir obPrenomBulle) */
+  const ecran=wrap&&wrap.closest?wrap.closest('.ob-name'):null;
+  if(ecran){ecran.classList.toggle('has-prenom',!!n);const r=ecran.querySelector('.ob-bulle-r');if(r)r.innerHTML=obPrenomReponse(n);}
   if(wrap){
     const was=wrap.hidden;wrap.hidden=!n;
     if(was!==wrap.hidden){
@@ -46505,7 +46548,7 @@ function obFit(){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');if(!body||!root)return;
   /* ob-fit-5 (3 novembre) : un palier de plus, pour l’engagement seulement. */
   const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];
-  const metZ=z=>root.style.setProperty('--obz',String(Math.round(z*1000)/1000));
+  const metZ=z=>{const v=String(Math.round(z*1000)/1000);if(root.style.getPropertyValue('--obz')!==v){root.style.setProperty('--obz',v);if(typeof obRepeindre==='function')obRepeindre();}};
   const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();}));
   const screen=body.firstElementChild,foot=root.querySelector('.ob-foot');
   /* Conditions et confidentialité : un long texte qui défile, à sa taille. */
@@ -46518,7 +46561,8 @@ function obFit(){
   /* La mesure se fait sur des copies invisibles de la page et du pied, à l’échelle essayée : un changement de zoom ne se répercute
      sur les éléments déjà affichés qu’à l’image suivante (WebKit comme Chrome), une copie neuve est mise en page tout de suite. */
   const bcs=getComputedStyle(body),pT=parseFloat(bcs.paddingTop)||0,pB=parseFloat(bcs.paddingBottom)||0,pL=parseFloat(bcs.paddingLeft)||0;
-  const H=root.clientHeight,larg=body.clientWidth-pL-(parseFloat(bcs.paddingRight)||0);
+  /* La page commence sous la barre d’état (12 novembre, .ob-slides) : la hauteur à remplir s’arrête à son bord. */
+  const H=root.clientHeight-Math.max(0,Math.round(body.getBoundingClientRect().top-root.getBoundingClientRect().top)),larg=body.clientWidth-pL-(parseFloat(bcs.paddingRight)||0);
   const avecPied=!!foot&&getComputedStyle(foot).display!=='none',fcs=avecPied?getComputedStyle(foot):null,lPied=avecPied?foot.getBoundingClientRect().width:0;
   /* Ce qui ne change pas d’échelle : les marges du cadre et du pied (zones sûres comprises). */
   const fixe=pT+pB+(avecPied?(parseFloat(fcs.paddingTop)||0)+(parseFloat(fcs.paddingBottom)||0):0);
@@ -46617,6 +46661,22 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
   }
   document.addEventListener('focusin',e=>{const b=document.getElementById('ob-body'),t=e.target;if(b&&t&&b.contains(t)&&/^(INPUT|TEXTAREA)$/.test(t.tagName))obRefitBientot();});
   ['keyboardWillShow','keyboardDidShow','keyboardDidHide'].forEach(n=>window.addEventListener(n,obRefitBientot));
+  /* 12 novembre, 12 h 24 (Elisa, le prénom clavier ouvert : « Regarde comment la page part en haut » ; pour « Choisis ton pseudo » :
+     le haut de la page d’abord, et plus de page qui remonte avec le clavier). Le clavier ouvert, la page n’avait plus la place de
+     montrer le champ au-dessus du bouton : elle défilait (obChampEnVue) et son en-tête passait sous l’heure. Clavier ouvert sur un
+     champ (ob-clavier, au toucher), la phrase sous le titre s’efface, le chat et le pied se resserrent (onboarding-vitrine.css) :
+     l’en-tête, le titre, le chat et le champ tiennent ensemble au-dessus du bouton, sans défiler. */
+  let obClavierAttente=0;
+  const obClavier=on=>{
+    const r=document.getElementById('onboarding');if(!r)return;
+    clearTimeout(obClavierAttente);
+    if(on)r.classList.add('ob-clavier');else obClavierAttente=setTimeout(()=>r.classList.remove('ob-clavier'),60);   // d’un champ à l’autre : il reste
+  };
+  const obChampTexte=t=>{const b=document.getElementById('ob-body');return !!(b&&t&&b.contains(t)&&/^(INPUT|TEXTAREA)$/.test(t.tagName)&&!/^(checkbox|radio|range|button|submit|reset|file|color)$/i.test(t.type||''));};
+  const obTactile=()=>{try{return typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches;}catch(e){return false;}};
+  document.addEventListener('focusin',e=>{if(obChampTexte(e.target)&&obTactile())obClavier(true);});
+  document.addEventListener('focusout',e=>{if(obChampTexte(e.target))obClavier(false);});
+  window.addEventListener('keyboardWillHide',()=>obClavier(false));
 }
 /* Même capture : dans la bulle, « Salut ! Comment dois-je t’appeler » puis « ? » seul sur la ligne d’en dessous. Les espaces avant
    « ? ! ; » deviennent des fines insécables, celles avant « : » et « » » et après « « » des insécables : la ponctuation ne part plus
@@ -46891,6 +46951,19 @@ function obMailChampHTML(authReady){
   return `<button type="button" class="ob-provider is-email is-champ${authReady?'':' is-soon'}" data-provider="email" style="--i:2" onclick="obStartAuth('email',this)" aria-label="Continuer avec une adresse e-mail${authReady?'':', bientôt'}" ${obAuthBusy?'disabled aria-busy="true"':''}>`+
     `${obProviderIcon('email')}<span class="ob-champ-ph">Ton adresse e-mail</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`;
 }
+/* 12 novembre, 12 h 24 (réf. 2, la page de connexion : « les espaces sont horribles, remplis stp ») : entre la phrase et les
+   boutons, ce que le compte garde vraiment (la synchronisation : leçons, défis, jours de série, notes, planning, envoyés quelques
+   secondes après chaque changement) et comment on se connecte (les fournisseurs branchés, sans mot de passe). */
+function obCompteAtoutsHTML(){
+  const noms=OB_PROVIDERS.filter(([p])=>p!=='email'&&obFournisseurOk(p)).map(([,n])=>n);
+  const ico=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
+  const L=[
+    ['menthe',ico('<path d="M7.5 18.5H7a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.8 8.1 4.6 4.6 0 0 1 17 18.5h-.5"/><path d="m9 15 2.2 2.2L15.5 13"/>'),'Tes leçons et tes défis','Gardés, même si tu changes de téléphone'],
+    ['soleil',ico('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M8 17h6"/>'),'Tes notes et ton planning','Synchronisés automatiquement'],
+    ['blanc',ico('<rect x="5" y="10.5" width="14" height="10" rx="2.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5M12 14.5v2.5"/>'),'Sans mot de passe',noms.length?`Un geste avec ${noms.join(' ou ')}`:'Un geste suffit']
+  ];
+  return `<ul class="ob-compte-atouts" aria-label="Avec un compte">${L.map(([c,i,t,d],k)=>`<li style="--i:${k}"><span class="ob-ca-ico is-${c}">${i}</span><span class="ob-ca-txt"><b>${esc(t)}</b><small>${esc(d)}</small></span></li>`).join('')}</ul>`;
+}
 function obCompteCarteHTML(){
   return `<div class="ob-compte-carte"><span class="ob-compte-carte-ico" aria-hidden="true">${OB_ICO_NUAGE}</span><span class="ob-compte-carte-txt"><b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, exercices, défis et ta collection sur tous tes appareils.</small></span></div>`;
 }
@@ -46985,6 +47058,10 @@ async function obStartAuth(provider,btn){
     if(typeof stat==='function')stat('connexion',null,{f:String(provider).slice(0,10)});
     state.accountProvider=provider;
     state.accountLabel=String(result.email||result.label||provider).slice(0,120);
+    /* 12 novembre, 12 h 24 (Elisa : « pour le prénom, fais en sorte de récupérer l’info ») : le prénom du compte (donné par Apple ou
+       Google, ou gardé avec le compte, connexion.js) va dans le champ du prénom et dans l’appli, s’ils sont encore vides. */
+    const prenomCompte=String(result.prenom||'').trim().slice(0,32);
+    if(prenomCompte){if(!String(draft.name||'').trim())draft.name=prenomCompte;if(!String(state.name||'').trim())state.name=prenomCompte;}
     save();
     if(typeof csSync==='function')csSync({premier:true});   // 12 novembre : la progression rejoint le compte (ou en revient)
     draft.accountMode='connected';
@@ -47007,9 +47084,8 @@ async function obStartAuth(provider,btn){
         try{if(typeof obDraftDepuisEtat==='function')obDraftDepuisEtat();}catch(e){}
         obApresCompte();
       }else{
-        if(result.prenom&&!String(draft.name||'').trim())draft.name=String(result.prenom).trim().slice(0,32);
+        /* 12 h 24 (« pas de texte notifié noir ») : plus de bandeau par-dessus la page des questions, qui le dit déjà */
         obGoto('questions');
-        setTimeout(()=>{try{obBandeau('Ton compte est prêt. Quelques questions pour préparer ton parcours.');}catch(e){}},420);
       }
     }
     else obApresCompte();
@@ -47118,6 +47194,9 @@ function obPaysJouer(){
   obDemoTimers.push(setTimeout(()=>{
     if(OB_SLIDES[obStep]!=='pays'||!c.isConnected)return;
     c.classList.remove('is-cherche');c.classList.add('is-trouve');
+    /* 12 h 24 : le chat assis sur la carte hoche la tête (son GIF « oui », préchargé avec ceux de l’onboarding) */
+    const chat=c.querySelector('.ob-pays-chat');
+    if(chat&&!(typeof mascotReduced==='function'&&mascotReduced())){chat.src='assets/chat-oui.webp';chat.width=294;chat.height=351;chat.classList.add('is-oui');}
     if(typeof buzz==='function')buzz('success');
   },1300));
 }
@@ -47140,12 +47219,12 @@ const MASCOT_QUESTION='assets/chat-question.webp',MASCOT_QUESTION_FIXE='assets/c
 /* Les questions de l’onboarding (âge, métier, pays, rythme, jours) : le chat se pose la question en arrivant ; une fois répondu (la page
    redessinée par un choix), il hoche la tête (Elisa, 7 novembre, 15 h 38 : son GIF). */
 function obMascotOui(rep){return !obJustEntered&&rep!=null&&rep!==''?'oui':'';}
-function obMascotDit(text,anim,droite){
+function obMascotDit(text,anim,droite,bulle){
   const T={coucou:['chat-coucou',289,352],presente:['chat-presente',315,362],parti:['chat-parti',302,359],reveil:['chat-reveil',272,311],oui:['chat-oui',294,351],pseudo:['chat-pseudo',298,305]};
   const g=Object.prototype.hasOwnProperty.call(T,anim)?T[anim]:null;
   if(!g)return obMascotQuestion(text);
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
-  return `<div class="ob-chat${droite?' is-droite':''}"><img class="ob-chat-stk is-gif is-${anim}" src="assets/${g[0]}${fixe?'-fixe':''}.webp" width="${g[1]}" height="${g[2]}" alt="La mascotte Requête" draggable="false"><div class="ob-bubble">${esc(text)}</div></div>`;
+  return `<div class="ob-chat${droite?' is-droite':''}"><img class="ob-chat-stk is-gif is-${anim}" src="assets/${g[0]}${fixe?'-fixe':''}.webp" width="${g[1]}" height="${g[2]}" alt="La mascotte Requête" draggable="false"><div class="ob-bubble${bulle?' ob-bulle-duo':''}">${bulle||esc(text)}</div></div>`;
 }
 /* Elisa, 7 novembre, 12 h 06 : son GIF « Il tape sur son ordi » pour « On construit ton parcours… » : il tape vite, l’écran
    s’illumine. 12 images de 420 ms, en boucle pendant la construction ; en mouvement réduit, l’écran allumé (chat-ordi-fixe.webp). */
@@ -47392,6 +47471,16 @@ function obInviteHTML(){
   const stk=typeof lqStkSvg==='function'?`<span class="ob-invite-stk" aria-hidden="true">${lqStkSvg('target')}</span>`:'';
   return `<div class="ob-invite" role="note">${stk}<span class="ob-invite-t"><b>${inv.de?`${esc(inv.de)} t’invite`:'Tu es invité·e'} à un défi SQL</b><small>Inscris-toi pour rejoindre ${inv.de?'sa':'la'} salle&nbsp;: tu y entres juste après.</small></span></div>`;
 }
+/* Repeindre tout l’onboarding, deux images plus tard : son fond se décale d’un centième de pixel et la page prend un voile violet
+   d’alpha 0,004 (--ob-rp, onboarding-vitrine.css), à l’œil rien ne change, mais WebKit repeint toute leur surface, sans garder un
+   morceau de la page d’avant. */
+let obRpN=0,obRpT=0;
+function obRepeindre(){
+  const r=typeof document!=='undefined'&&document.getElementById('onboarding');
+  if(!r||typeof requestAnimationFrame!=='function')return;
+  cancelAnimationFrame(obRpT);
+  obRpT=requestAnimationFrame(()=>{obRpT=requestAnimationFrame(()=>{obRpN=obRpN?0:1;r.style.setProperty('--ob-rp',String(obRpN));});});
+}
 function paintOb(){
   const root=document.getElementById('onboarding');
   const slide=OB_SLIDES[obStep]||'ready';
@@ -47446,15 +47535,17 @@ function paintOb(){
     obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('questions'),'',null,'Ta progression sera sauvegardée sur tous tes appareils.');
   }else if(slide==='bonjour'){
     /* 12 novembre (réf. 5, l’écran de bienvenue de HeyRua) : le chat fait coucou sous sa bulle, le nom de l’appli en grand et sa
-       promesse ; « Commencer », et « J’ai déjà un compte » quand la connexion est branchée. Invité par un ami : « Je m’inscris ». */
+       promesse ; « Commencer », et « J’ai déjà un compte » quand la connexion est branchée. Invité par un ami : « Je m’inscris ».
+       12 h 24 (réf. 1) : ses textes, « Coucou ! On explore le monde des données ? » et « Apprends en pratiquant, progresse en
+       t’amusant. » */
     const fixe=typeof mascotReduced==='function'&&mascotReduced(),invite=obInviteHTML();
     html=`<div class="ob-screen ob-bonjour">
       <div class="ob-bj-scene">
-        <p class="ob-bubble ob-bj-bulle">${obTypo('Coucou ! On apprend le SQL ensemble ?')}</p>
+        <p class="ob-bubble ob-bj-bulle">${obTypo('Coucou ! On explore le monde des données ?')}</p>
         <img class="ob-bj-chat" src="assets/chat-coucou${fixe?'-fixe':''}.webp" width="289" height="352" alt="La mascotte Requête te fait coucou" draggable="false">
       </div>
       <h1 class="ob-bj-nom" id="ob-title">Requête</h1>
-      <p class="ob-bj-lead">${obTypo('Apprends le SQL en écrivant de vraies requêtes.')}</p>${invite}
+      <p class="ob-bj-lead">${obTypo('Apprends en pratiquant, progresse en t’amusant.')}</p>${invite}
     </div>`;
     obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'');
   }else if(slide==='questions'){
@@ -47490,6 +47581,7 @@ function paintOb(){
       <p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>`
       :`<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
       <p class="ob-compte-sub">Tu pourras la sauvegarder et reprendre tes cours sur tous tes appareils.</p>`}
+      ${masquee||reussie?'':obCompteAtoutsHTML()}
       ${masquee?'':`<div class="ob-provider-list">
         ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
         ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
@@ -47511,9 +47603,9 @@ function paintOb(){
        « Continuer » s’allume dès que le prénom est tapé, et l’accueil à son nom arrive en animation (obNamePreview). La mascotte dit
        « Salut ! » : « Enchantée » est gardé pour l’accueil au prénom, qui le dit juste en dessous. */
     const nameValue=esc(draft.name||'').replace(/"/g,'&quot;');
-    html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
+    html=`<div class="ob-screen ob-profile ob-name${(draft.name||'').trim()?' has-prenom':''}">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te <em>connaître</em>.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
-      ${obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou')}
+      ${obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou',false,obPrenomBulle(draft.name))}
       <label class="ob-field"><span>Ton prénom</span><input id="ob-prenom" type="text" maxlength="32" value="${nameValue}" placeholder="Ex. Léa" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obNameNext();}"></label>
       <div class="ob-name-preview" id="ob-name-preview" aria-hidden="true" hidden><span class="ob-name-initial" id="ob-name-initial"></span><span class="ob-name-msg"><b id="ob-name-greet"></b><span class="ob-name-sub">J’ai hâte d’en savoir plus sur toi.</span></span><i class="ob-name-spark"></i><i class="ob-name-spark"></i></div></div>`;
     obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());
@@ -47533,21 +47625,29 @@ function paintOb(){
     setTimeout(()=>{if(OB_SLIDES[obStep]!=='pseudo')return;if(pg.raison==='pris'||pg.raison==='refuse')psAfficher('ob',pg.raison,psForme(pg.voulu||''),pg.idees);else if(v)psVerif('ob',v);},0);
   }else if(slide==='pays'){
     /* 4 novembre, 13 h 18 : « une page où il détecte le pays où la personne vit » (voir paysDetecte). En arrivant, la carte cherche un
-       instant (le globe tourne : « Je cherche où tu es… »), puis le drapeau du pays deviné se pose d’un rebond ; il reste à confirmer
-       (« Oui, c’est ça »), ou à changer dans la liste (paysFeuille). Rien de deviné : la carte le dit, et la liste s’ouvre d’un appui. */
+       instant (le globe tourne : « Je cherche où tu es… »), puis le drapeau du pays deviné se pose d’un rebond ; il reste à confirmer,
+       ou à changer dans la liste (paysFeuille). Rien de deviné : la carte le dit, et la liste s’ouvre d’un appui.
+       12 novembre, 12 h 24 (Elisa, ses textes) : la carte dit « Chaque pays a ses particularités ! Le tien nous aide à adapter ton
+       expérience. 🌍 », puis le pays, « Pays détecté automatiquement » ; dessous, « Ce n’est pas ton pays ? Modifier » ; le bouton,
+       « Oui, c’est bien ça ». Plus de bulle (elle parlait de langues à venir) : le chat est assis sur la carte et hoche la tête quand
+       le drapeau se pose. */
     if(draft.pays===undefined){const p=paysDetecte();draft.pays=p||'';draft.paysAuto=!!p;draft.paysCherche=!!p;}
     const code=PAYS_CODES.includes(draft.pays)?draft.pays:'',prenom=(draft.name||'').trim();
     const cherche=!!(draft.paysCherche&&obJustEntered&&!prefersReduceMotion()),pop=!!draft.paysPop;
     draft.paysCherche=false;draft.paysPop=false;
+    const fixe=typeof mascotReduced==='function'&&mascotReduced(),oui=!!code&&!cherche&&!obJustEntered;
+    const chat=`<img class="ob-pays-chat${oui?' is-oui':''}" src="assets/${oui?'chat-oui':'chat-question'}${fixe?'-fixe':''}.webp" width="${oui?294:287}" height="${oui?351:362}" alt="" draggable="false">`;
     html=`<div class="ob-screen ob-profile ob-pays-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Tu vis <em>où</em>${prenom?`, ${esc(prenom)}`:''}&nbsp;?</h1>
-      ${obMascotDit('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.',obMascotOui(code))}
-      <div class="ob-pays-carte${code?' is-on':''}${cherche?' is-cherche':''}${pop?' is-trouve':''}" role="status" aria-live="polite">
-        <span class="ob-pays-radar" aria-hidden="true"><span class="ob-pays-globe"><i style="--k:0">🌍</i><i style="--k:2">🌎</i><i style="--k:1">🌏</i></span><b>Je cherche où tu es…</b></span>
-        ${code?`<span class="ob-pays-trouve"><span class="ob-pays-drapeau" aria-hidden="true">${paysDrapeau(code)}</span><span class="ob-pays-copy"><b>${esc(paysNom(code))}</b><small>${draft.paysAuto?'📍 Deviné grâce à ton téléphone':'✓ Choisi par toi'}</small></span></span>`
-          :`<button type="button" class="ob-pays-trouve is-vide" onclick="obPaysListe()"><span class="ob-pays-drapeau" aria-hidden="true">🌍</span><span class="ob-pays-copy"><b>Choisis ton pays</b><small>Je n’ai pas réussi à le deviner.</small></span></button>`}
+      <div class="ob-pays-carte is-v2${code?' is-on':''}${cherche?' is-cherche':''}${pop?' is-trouve':''}">${chat}
+        <p class="ob-pays-msg">${obTypo('Chaque pays a ses particularités ! Le tien nous aide à adapter ton expérience.')} <span aria-hidden="true">🌍</span></p>
+        <div class="ob-pays-zone" role="status" aria-live="polite">
+          <span class="ob-pays-radar" aria-hidden="true"><span class="ob-pays-globe"><i style="--k:0">🌍</i><i style="--k:2">🌎</i><i style="--k:1">🌏</i></span><b>Je cherche où tu es…</b></span>
+          ${code?`<span class="ob-pays-trouve"><span class="ob-pays-drapeau" aria-hidden="true">${paysDrapeau(code)}</span><span class="ob-pays-copy"><b>${esc(paysNom(code))}</b><small>${draft.paysAuto?'Pays détecté automatiquement':'Choisi par toi'}</small></span></span>`
+            :`<button type="button" class="ob-pays-trouve is-vide" onclick="obPaysListe()"><span class="ob-pays-drapeau" aria-hidden="true">🌍</span><span class="ob-pays-copy"><b>Choisis ton pays</b><small>Je n’ai pas réussi à le deviner.</small></span></button>`}
+        </div>
       </div>
-      <button type="button" class="ob-pays-changer" onclick="obPaysListe()">${code?'Ce n’est pas ça&nbsp;? <u>Changer de pays</u>':'<u>Choisir dans la liste</u>'}</button></div>`;
-    obSetFooter(code&&draft.paysAuto?'Oui, c’est ça':'Continuer',()=>obGoto('age'),'','','',!code);
+      <button type="button" class="ob-pays-changer" onclick="obPaysListe()">${code?'Ce n’est pas ton pays&nbsp;? <u>Modifier</u>':'<u>Choisir dans la liste</u>'}</button></div>`;
+    obSetFooter(code&&draft.paysAuto?'Oui, c’est bien ça':'Continuer',()=>obGoto('age'),'','','',!code);
   }else if(slide==='age'){
     html=`<div class="ob-screen ob-profile ob-age-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>
       ${obMascotDit('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !',obMascotOui(draft.ageRange||draft.genre))}
@@ -47755,11 +47855,11 @@ function paintOb(){
   body.classList.remove('out');
   body.innerHTML=html;
   obInsecables(body);
-  /* 12 novembre (réf. 8 : « sur l’onboarding surtout, parfois il y a des traces violettes de page précédente ») : sur l’iPhone, WebKit
-     gardait parfois à l’écran des calques de la page qui vient de partir (le lecteur sombre et flouté des avis, des cartes qui
-     s’effaçaient), par-dessus la nouvelle. Les flous d’arrière-plan s’éteignent dès que la page sort (onboarding-vitrine.css), et la
-     page qui arrive est remise en place d’un bloc : ses calques sont refaits à neuf, sans rien garder de l’ancienne. */
-  body.style.display='none';void body.offsetHeight;body.style.display='';
+  /* 12 novembre (réf. 8 : « sur l’onboarding surtout, parfois il y a des traces violettes de page précédente ») ; 12 h 24 :
+     « Toujours les traces violettes d’autre page ». Sur l’iPhone, WebKit ne repeint pas toujours en entier une page mise à
+     l’échelle (--obz, la propriété zoom) quand son contenu change : des morceaux de la page d’avant restaient peints sur le violet.
+     Après chaque page (et chaque nouvelle échelle, obFit), tout l’onboarding est repeint (obRepeindre). */
+  obRepeindre();
   body.scrollTop=0;
   obFitSoon();
   /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
@@ -47830,6 +47930,7 @@ function finishOnboard(action){
   obTerminer(action);
 }
 function obTerminer(action){
+  OB_CHATS.length=0;   // les chats de l’onboarding n’ont plus à rester prêts
   if(typeof ileObFin==='function')ileObFin(true);   // le chat, les étoiles plein les yeux : le parcours est prêt
   const root=document.getElementById('onboarding');
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
@@ -49596,7 +49697,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-compte-neuf-questions-v2881';
+  const SW_CACHE='requete-2026-11-12-chat-clavier-pays-v2882';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -49638,6 +49739,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 <script src="multiplayer-security.js?v=10"></script>
 <script src="achat.js?v=3"></script>
 <script src="compte-moteurs.js?v=1"></script>
-<script src="connexion.js?v=1"></script>
+<script src="connexion.js?v=2"></script>
 </body>
 </html>

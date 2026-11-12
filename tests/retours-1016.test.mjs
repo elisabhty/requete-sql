@@ -146,7 +146,9 @@ test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, 
     await vm.runInContext("obStartAuth('apple',null)", c);
     assert.deepEqual(v, attendu, connu ? 'compte connu' : 'compte nouveau');
     assert.equal(vm.runInContext('draft.finConnexion', c), connu ? 'compte' : undefined);
-    if (!connu) { assert.equal(vm.runInContext('draft.name', c), 'Léa'); assert.deepEqual(bandeaux, ['Ton compte est prêt. Quelques questions pour préparer ton parcours.']); }
+    /* 12 novembre, 12 h 24 (« pas de texte notifié noir ») : plus de bandeau ; le prénom du compte est dans le champ et dans l’appli */
+    assert.equal(vm.runInContext('draft.name', c), 'Léa'); assert.equal(vm.runInContext('state.name', c), 'Léa');
+    if (!connu) assert.deepEqual(bandeaux, []);
   }
   assert.ok(connexion.includes("'Connexion impossible pour le moment. Réessaie dans un instant.'") && !connexion.includes('continue sans compte'), 'un échec propose de réessayer');
 });

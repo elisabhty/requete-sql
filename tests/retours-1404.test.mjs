@@ -35,7 +35,8 @@ test('obMascotDit : le chat qui va avec la bulle, à droite pour le présentateu
 });
 
 test('les bulles qui changent de chat', () => {
-  assert.ok(app.includes("${obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou')}"), 'le prénom : coucou');
+  /* 12 novembre, 12 h 24 : sa bulle porte aussi la réponse, montrée clavier ouvert (obPrenomBulle) */
+  assert.ok(app.includes("${obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou',false,obPrenomBulle(draft.name))}"), 'le prénom : coucou');
   assert.ok(app.includes("${obMascotDit('Je t’encouragerai directement depuis ton écran d’accueil !','parti')}"), 'le widget : C’est parti !');
   assert.ok(app.includes("${draft.practiceFailed?obMascotQuestion('Le moteur SQL n’a pas pu démarrer ici : tu essaieras dans ta première leçon.'):obMascotDit('Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.','presente',true)}"), 'la première requête : il la présente ; sans moteur, la question');
   assert.ok(app.includes("${obMascotDit(OB_WT_TEXTES[0],'presente',true).replace('class=\"ob-bubble\"','class=\"ob-bubble\" id=\"ob-wt-bulle\"')}"), 'le tutoriel du widget : il présente chaque étape');

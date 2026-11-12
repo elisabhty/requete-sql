@@ -3,9 +3,15 @@
 
 À partir de ses deux GIF sur fond vert (12 images chacun, générés par Elisa) : la marche, en boucle, et l’arrêt, assis, deux
 coups de pattes. Le fond vert est retiré (transparence selon le vert qui dépasse le rouge et le bleu, puis le vert ramené au
-niveau des deux autres, pour qu’aucun liseré vert ne reste), et chaque GIF devient une bande de 12 images côte à côte, en WebP
-avec transparence : assets/ouverture-chat-marche.webp et assets/ouverture-chat-appui.webp (ludique.css, 37 bis, les fait
-défiler par crans).
+niveau des deux autres, pour qu’aucun liseré vert ne reste), et chaque GIF devient une grille de 12 images (4 colonnes, 3 rangées,
+dans l’ordre de lecture), en WebP avec transparence : assets/ouverture-chat-marche-grille.webp et
+assets/ouverture-chat-appui-grille.webp (ludique.css, 37 bis, les fait défiler par crans).
+
+12 novembre, 12 h 24 (Elisa, « le chat bug, il apparaît puis pas ») : plus de bande de 12 images côte à côte. Sur l’iPhone, WebKit
+découpe en tuiles de 512 px tout calque plus large que 1 280 px (1 024 quand la mémoire manque) et ne peint une tuile qu’en arrivant
+dessus : la bande faisait 1 572 px de large sur un iPhone 15, si bien que pendant la marche, quand le démarrage occupait le fil
+principal, des images du chat restaient vides. En grille, le calque fait 4 × 131 sur 3 × 131 px (846 sur 634 au plus, sur le plus
+grand iPad) : un seul tenant, peint une fois.
 
     python3 tools/chat-ouverture.py marche.gif appui.gif
 """
@@ -36,8 +42,9 @@ def detourer(a):
 def bande(fichier, nom):
     vues = [detourer(a) for a in images(fichier)]
     assert len(vues) == 12, f'{fichier} : {len(vues)} images (12 attendues)'
-    sortie = os.path.join(RACINE, 'assets', f'ouverture-chat-{nom}.webp')
-    Image.fromarray(np.concatenate(vues, axis=1), 'RGBA').save(sortie, 'WEBP', quality=90, alpha_quality=100, method=6)
+    sortie = os.path.join(RACINE, 'assets', f'ouverture-chat-{nom}-grille.webp')
+    rangees = [np.concatenate(vues[r * 4:(r + 1) * 4], axis=1) for r in range(3)]
+    Image.fromarray(np.concatenate(rangees, axis=0), 'RGBA').save(sortie, 'WEBP', quality=90, alpha_quality=100, method=6)
     print('écrit', os.path.relpath(sortie, RACINE), os.path.getsize(sortie), 'octets')
 
 

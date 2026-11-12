@@ -169,12 +169,18 @@ test('après la construction, l’ouverture ne bouge qu’en transform et opacit
     assert.ok(props.length && props.every(p => p === 'transform' || p === 'opacity'), n + ' : ' + props.join(', '));
   }
   assert.ok(!/is-chat\.is-play[^{]*\{animation:[^}]*steps\(/.test(regles), 'plus de steps() dans l’ouverture avec le chat');
-  /* Les paliers donnent les mêmes images que steps(12) et steps(11), à chaque instant */
-  const points = n => [...kf(n).matchAll(/([\d.%,]+)\{transform:([^}]+)\}/g)].flatMap(r => r[1].split(',').map(o => [parseFloat(o), r[2] === 'none' ? 0 : -parseFloat(r[2].match(/-([\d.]+)%/)[1])])).sort((a, b) => a[0] - b[0]);
-  const a = (pts, p) => { for (let i = 0; i < pts.length - 1; i++) { const [x, u] = pts[i], [y, v] = pts[i + 1]; if (p >= x && p <= y) return y === x ? v : u + (v - u) * (p - x) / (y - x); } return pts.at(-1)[1]; };
-  for (const [n, pas, fin] of [['introChatPas', 12, -100], ['introChatAssis', 11, -91.6667]]) {
+  /* Les paliers donnent les mêmes images que steps(12) et steps(11), à chaque instant. 12 h 24 : les images sont rangées en grille de
+     4 × 3 (le calque d’un seul tenant, voir retours-1436) : l’image k est en colonne k % 4 (-25 % chacune), rangée k / 4 (-33,33333 %). */
+  const xy = t => { if (t.trim() === 'none') return [0, 0]; const m = /translate\(([-\d.]+)%?,([-\d.]+)%?\)/.exec(t); assert.ok(m, t); return [+m[1], +m[2]]; };
+  const points = n => [...kf(n).matchAll(/([\d.%,]+)\{transform:([^}]+)\}/g)].flatMap(r => r[1].split(',').map(o => [parseFloat(o), xy(r[2])])).sort((a, b) => a[0] - b[0]);
+  const a = (pts, p) => { for (let i = 0; i < pts.length - 1; i++) { const [x, u] = pts[i], [y, v] = pts[i + 1]; if (p >= x && p <= y) return y === x ? v : [0, 1].map(j => u[j] + (v[j] - u[j]) * (p - x) / (y - x)); } return pts.at(-1)[1]; };
+  const case_ = k => [-25 * (k % 4), -100 / 3 * Math.floor(k / 4)];
+  for (const [n, pas] of [['introChatPas', 12], ['introChatAssis', 11]]) {
     const pts = points(n);
-    for (let i = 0; i < 20000; i++) { const p = i / 200; assert.ok(Math.abs(a(pts, p) - Math.floor(p / 100 * pas) / pas * fin) < 0.001, n + ' à ' + p + ' %'); }
+    for (let i = 0; i < 20000; i++) {
+      const p = i / 200, k = Math.floor(p / 100 * pas), [x, y] = a(pts, p), [ex, ey] = case_(k);
+      assert.ok(Math.abs(x - ex) < 0.001 && Math.abs(y - ey) < 0.001, `${n} à ${p} % : ${x}, ${y} au lieu de ${ex}, ${ey}`);
+    }
   }
-  assert.equal(a(points('introChatAssis'), 100), -91.66667, 'assis, la dernière image reste');
+  assert.deepEqual(a(points('introChatAssis'), 100), [-75, -66.66667], 'assis, la dernière image reste');
 });
