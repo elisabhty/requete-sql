@@ -15,7 +15,7 @@ const tuiles = extra => {
   const lecons = Array.from({ length: 3 }, (_, i) => ({ id: i + 1, video: { moments: 2 } }));
   const ctx = vm.createContext({ allLessons: lecons, MODULES: [{ lessons: lecons }], CARTES: {}, itemDone: () => false, itemCommence: () => false, exercicesFaits: () => 0, ...extra });
   vm.runInContext(cut('const HOME_STAT_SVG=', '/* Ce que l’étiquette de la séance dit à VoiceOver'), ctx);
-  return [...ctx.homeStatsHTML().matchAll(/<li class="lq-stat is-(\w+)">[^]*?<b>([^<]+)<\/b><span>([^<]+)<\/span><\/li>/g)].map(m => `${m[1]} ${m[2].replace(/ /g, ' ')} ${m[3]}`);
+  return [...ctx.homeStatsHTML().matchAll(/<li class="lq-stat is-(\w+)"[^>]*>[^]*?<b>([^<]+)<\/b><span>([^<]+)<\/span><\/li>/g)].map(m => `${m[1]} ${m[2].replace(/ /g, ' ')} ${m[3]}`);
 };
 
 test('avant la première leçon : défis, vidéo, entretien ; plus rien qui répète la ligne du parcours', () => {

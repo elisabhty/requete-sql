@@ -178,3 +178,32 @@ test('14 h 08 : les chiffres de l’accueil montent une fois ; la confidentialit
   assert.ok(lire('connexion.js').includes("appel('user', {data: {given_name: donne}}, s.access_token, 'PUT')"), 'le prénom seul');
   assert.ok(!app.includes(":'bientôt'}"));
 });
+
+/* 12 novembre, 14 h 15 (Elisa : « C’est tout ? Niveau micro-interaction, stickers, animation cours, UI/UX, espace… ? ») : les tuiles
+   de chiffres mènent quelque part, un sticker entamé montre où il en est, son cadenas fait « non », retoucher un onglet remonte en
+   haut, le graphique vide est moins haut, la vignette du premier cours dit sa vraie durée. */
+test('14 h 15 : tuiles en raccourcis, progression des stickers, onglet retouché, graphique vide', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(cut('function stkProgHtml(s){', '\n}') + '\n}', ctx);
+  assert.equal(ctx.stkProgHtml({got: 0, goal: 12, now: 4}), '<span class="stk-prog"><i aria-hidden="true"><i style="width:33%"></i></i><b aria-hidden="true">4/12</b><span class="acct-sr">4 sur 12</span></span>');
+  assert.equal(ctx.stkProgHtml({got: 0, goal: 12, now: 0}), '', 'rien de commencé : rien');
+  assert.equal(ctx.stkProgHtml({got: 1, goal: 12, now: 12}), '', 'gagné : rien');
+  assert.equal(ctx.stkProgHtml({got: 0, goal: 1, now: 0}), '', 'un seul pas : rien');
+  assert.ok(app.includes("if(btn.classList.contains('is-lock')&&!prefersReduceMotion()){btn.classList.remove('is-non');void btn.offsetWidth;btn.classList.add('is-non');"));
+  /* les tuiles de l’accueil */
+  const vers = [];
+  const c2 = vm.createContext({ buzz() {}, switchTab: t => vers.push(t), prefersReduceMotion: () => true, lqHautSur: () => 59,
+    document: { getElementById: id => (id === 'scr-learn' ? { scrollTop: 100, getBoundingClientRect: () => ({ top: 0 }), scrollTo: o => vers.push('haut ' + o.top) } : id === 'modules' ? { getBoundingClientRect: () => ({ top: 700 }) } : null) } });
+  vm.runInContext(cut('function homeStatAller(ico,el){', '\n}') + '\n}', c2);
+  c2.homeStatAller('manette'); c2.homeStatAller('bulle'); c2.homeStatAller('cartes'); c2.homeStatAller('video');
+  assert.deepEqual(vers, ['defis', 'entretien', 'collection', 'haut 671'], 'chaque tuile mène à ce qu’elle compte ; les autres, au parcours');
+  assert.ok(app.includes("onclick=\"acctStatAller('planning')\"") && app.includes("onclick=\"acctStatAller('learn')\"") && app.includes("onclick=\"acctStatAller('defis')\""), 'Mon compte');
+  /* l’onglet déjà ouvert, retouché : en haut */
+  const h = cut('/* 12 novembre, 14 h 15 : retoucher l’onglet déjà ouvert', 'function homeStatAller(ico,el){');
+  assert.ok(h.includes("if(!t||typeof activeTab==='undefined'||t.dataset.tab!==activeTab)return;") && h.includes('if(!scr||scr.scrollTop<8)return;') && h.includes('e.stopPropagation();e.preventDefault();') && h.includes('},true);'));
+  assert.ok(app.includes("<div class=\"pgr-chart${total14||active14?'':' is-vide'}\">") && lq.includes('html.lq .pgr-chart.is-vide .pgr-bars{height:44px}'));
+  for (const r of ['html.lq .lq-stat[role="button"]:active{transform:translateY(2px) scale(.97);border-color:var(--accent-2,#8B6CFF)}', 'html.lq .acct-stat.is-lien:active{transform:scale(.94)}',
+    '@keyframes stkNon{', 'html.lq:not([data-motion="reduce"]) .stk-cell.is-non .stk-lock{animation:stkNon .44s'])
+    assert.ok(lq.includes(r), r);
+  assert.ok(lq.indexOf('@keyframes stkNon{') < lq.indexOf('Défis — la refonte du 7 novembre'), 'avant la partie des Défis de la feuille');
+});
