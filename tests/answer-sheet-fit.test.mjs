@@ -81,7 +81,7 @@ test('la réduction ne dépasse pas 70 % ; elle ne regonfle qu’une fois l’é
 test('réf. 4 : la feuille qui grandit est mesurée tout de suite, l’attente est courte, la réduction rapide', () => {
   assert.ok(html.includes('const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=150, LV_PK_BOT=22;'));
   assert.ok(html.includes('  if(P.fitDone&&!calm){ wait(); return; }'), 'au calme, pas d’attente');
-  assert.ok(html.includes('  const t0=performance.now(), D=200;'));
+  assert.ok(html.includes('  const t0=performance.now(), D=Math.abs(dy-d0)>40?320:200;'), 'réduction en 0,2 s ; 0,32 s quand l’image descend de plus de 40 px');
   const q = player();
   q.first();
   const z0 = q.ctx.LV.zoom;
@@ -100,7 +100,8 @@ test('la taille de l’écran change : la réduction est recalculée', () => {
   p.P.box.style.top = '1000px';
   p.fit();
   assert.equal(p.ctx.LV.zoom, 1, 'retour à la taille normale');
-  assert.equal(p.frame.style.transform, '');
+  /* 12 novembre : la feuille est loin sous le contenu, l’image descend vers elle (160 px au plus), sans réduction. */
+  assert.equal(p.frame.style.transform, 'translateY(160.0px)');
 });
 
 test('lvPt suit la réduction (zones tactiles, gerbe), sauf pour la place de la feuille', () => {
