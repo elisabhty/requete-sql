@@ -33,9 +33,9 @@ const element = (texte = '') => {
 };
 const state = ctx => vm.runInContext('state', ctx);
 
-const rendreCompte = ({ authReady = false, obAuthBusy = false, obAuthMessage = '', practiceDone = true } = {}) => {
+const rendreCompte = ({ authReady = false, obAuthBusy = false, obAuthMessage = '', practiceDone = true, obAuthQui = '', obAuthFait = false } = {}) => {
   const pied = [];
-  const ctx = vm.createContext({ slide: 'account', authReady, obAuthBusy, obAuthMessage, draft: { practiceDone }, MASCOT_IMG: 'mascotte.png',
+  const ctx = vm.createContext({ slide: 'account', authReady, obAuthBusy, obAuthMessage, obAuthQui, obAuthFait, draft: { practiceDone }, MASCOT_IMG: 'mascotte.png',
     obFlowHeader: s => `<header data-etape="${s}"></header>`, esc: s => String(s), escAttr: s => String(s), legalUrl: k => `decouvrir/${k}.html`,
     obSetFooter: (...a) => pied.push(a), obPasserConnexion() {}, state: {}, obEntry: 'welcome' });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS='), ctx);
@@ -86,8 +86,16 @@ test('les boutons : « Bientôt » et vifs sans fournisseur, de vrais boutons av
   assert.deepEqual(piedBranche.map(a => [a[0], a[1]]), [['', null]], 'connexion branchée : pas de bouton pour passer, le compte est le seul chemin');
   assert.ok(!branche.includes('sans compte'), '12 novembre, 13 h 44 : « Pas de sans compte stp »');
   assert.ok(!branche.includes('is-soon') && !branche.includes('Bientôt') && (branche.match(/ob-provider-chev/g) || []).length === 3, 'Apple, Google et l’e-mail');
-  /* Pendant une vraie connexion : boutons occupés */
-  assert.equal((rendreCompte({ authReady: true, obAuthBusy: true }).html.match(/disabled aria-busy="true"/g) || []).length, 3);
+  /* Pendant une vraie connexion : boutons occupés. 12 novembre, 18 h 12 (« les deux boutons tournent en même temps ») : seul le
+     bouton touché tourne et dit « Connexion… » ; l’autre attend, grisé */
+  const occupe = rendreCompte({ authReady: true, obAuthBusy: true, obAuthQui: 'google' }).html;
+  assert.ok(occupe.includes('class="ob-provider is-google is-moi" data-provider="google" style="--i:1" onclick="obStartAuth(\'google\',this)" disabled aria-busy="true">'));
+  assert.ok(occupe.includes('<span>Connexion…</span><i class="ob-provider-spinner"></i></button>'));
+  assert.ok(occupe.includes('class="ob-provider is-apple is-attente" data-provider="apple" style="--i:0" onclick="obStartAuth(\'apple\',this)" disabled>') && occupe.includes('<span>Continuer avec Apple</span><i class="ob-provider-chev" aria-hidden="true"></i></button>'));
+  assert.equal((occupe.match(/ob-provider-spinner/g) || []).length, 2, 'Google, et le champ de l’e-mail (qui garde son anneau)');
+  const fait = rendreCompte({ authReady: true, obAuthBusy: true, obAuthQui: 'apple', obAuthFait: true, obAuthMessage: 'On récupère ta progression…' }).html;
+  assert.ok(fait.includes('<span>Connecté</span><i class="ob-provider-ok" aria-hidden="true">') && fait.includes('<p class="ob-auth-message is-info" role="status">On récupère ta progression…</p>'));
+  assert.ok(rendreCompte({ authReady: true, obAuthMessage: 'Connexion impossible.' }).html.includes('<p class="ob-auth-message is-err" role="status">Connexion impossible.</p>'));
 });
 
 test('sans fournisseur, toucher un bouton ne connecte à rien : la page le dit, sans se redessiner', () => {

@@ -36,17 +36,19 @@ test('le rappel : la bulle du chat montre un vrai rappel de la liste, le plus SQ
 test('la connexion est une feuille à mi-écran, au-dessus de « Ton parcours est prêt »', () => {
   const p = cut("}else if(slide==='account'){", "}else if(slide==='paywall'){");
   assert.ok(p.includes('<div class="ob-screen ob-profile ob-account is-feuille">${obFlowHeader(slide)}'));
-  assert.ok(p.includes('<button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="Revenir à mon parcours">') && p.includes("<b>Ton parcours est prêt${prenom?', '+esc(prenom):''}.</b><small>Garde-le, et c’est parti.</small>"), 'le haut referme la feuille sur le parcours');
+  /* 18 h 12 : « Connecte-toi en un geste, et c’est parti. » à la place de « Garde-le… » */
+  assert.ok(p.includes('<button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="${finale?\'Revenir à mon parcours\':\'Revenir en arrière\'}">') && p.includes("const haut=finale?`Ton parcours est prêt${prenom?', '+esc(prenom):''}.`:") && p.includes('<b>${haut}</b><small>Connecte-toi en un geste, et c’est parti.</small></button>'), 'le haut referme la feuille sur le parcours');
   assert.ok(p.includes('<div class="ob-acc-feuille"><i class="ob-acc-poignee" aria-hidden="true"></i><img class="ob-acc-chat" src="assets/chat-cle${chatFixe?\'-fixe\':\'\'}.webp"'), 'la poignée, le chat à la clé sur le bord');
   for (const f of ['chat-cle.webp', 'chat-cle-fixe.webp']) assert.ok(fs.existsSync(path.join(root, 'assets', f)), f);
-  assert.ok(p.includes("${authReady?obCompteAtoutsHTML():''}") && p.includes("onclick=\"obStartAuth('${provider}',this)\""), 'ses trois atouts, Apple et Google : les mêmes boutons');
+  assert.ok(p.includes("${authReady?obCompteAtoutsHTML():''}") && p.includes("onclick=\"obStartAuth('${provider}',this)\""), 'ses trois repères, Apple et Google : les mêmes boutons');
   assert.ok(!/sans compte|Plus tard|obSansCompte/i.test(p.slice(p.indexOf('if(!masquee){'), p.indexOf('}else\n    html='))), 'le compte reste le seul chemin');
   assert.ok(html.includes("root.classList.toggle('ob-compte-feuille',slide==='account'&&!obLegalMode&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));"));
   for (const r of ['html #onboarding.ob-vitrine.ob-compte-feuille .ob-slides{background-color:rgba(22,12,70,.4);',
     'html #onboarding.ob-vitrine .ob-screen.ob-account.is-feuille{display:flex;flex-direction:column;min-height:100%;padding-bottom:0!important}',
     'html #onboarding.ob-vitrine .ob-acc-feuille{position:relative;flex:none;display:flex;flex-direction:column;margin:0!important;padding:10px 24px 6px;border-radius:30px 30px 0 0;background:#fff;',
-    'html #onboarding.ob-vitrine .ob-account.is-feuille .ob-ca-txt small{display:none}',
-    'html #onboarding.ob-vitrine.ob-compte-feuille .ob-foot{background:#fff!important;',
+    /* 18 h 12 : la feuille est lavande et porte sa phrase des conditions ; son pied est caché (un seul bloc qui monte) */
+    'html #onboarding.ob-vitrine.ob-feuille-seule .ob-foot{display:none!important}',
+    'html #onboarding.ob-vitrine .ob-acc-feuille{padding:10px 22px calc(var(--safe-bottom,0px) + max(12px,22px - max(0px,var(--safe-bottom,0px) - 34px)));background:#F4F2FC}',
     '@keyframes obvFeuilleMonte{from{transform:translateY(64vh)}to{transform:none}}'])
     assert.ok(obv.includes(r), r);
   assert.ok(obv.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-screen.ob-account.is-feuille>.ob-acc-feuille,html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-compte-feuille.ob-enter .ob-foot{animation:obvFeuilleMonte .5s cubic-bezier(.2,.9,.25,1) both}'), 'la feuille et son pied montent ensemble');

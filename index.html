@@ -6731,7 +6731,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=321">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=51">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=52">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -44510,6 +44510,9 @@ let obEntry='welcome';
 let obLegalMode=null;
 let obAuthMessage='';
 let obAuthBusy=false;
+/* 12 novembre, 18 h 12 (« les deux boutons tournent en même temps ») : le bouton touché (obAuthQui), et où en est la connexion
+   (obAuthFait : le compte a répondu, la progression arrive) */
+let obAuthQui='',obAuthFait=false;
 let obJustEntered=false;
 let obSelectionTimer=0;
 let obDemoTimers=[];
@@ -47275,15 +47278,17 @@ function obMailChampHTML(authReady){
    boutons, ce que le compte garde vraiment (la synchronisation : leçons, défis, jours de série, notes, planning, envoyés quelques
    secondes après chaque changement) et comment on se connecte (les fournisseurs branchés, sans mot de passe). */
 function obCompteAtoutsHTML(){
-  const noms=OB_PROVIDERS.filter(([p])=>p!=='email'&&obFournisseurOk(p)).map(([,n])=>n);
   const ico=d=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
   /* 13 h 33 (Elisa, d’après une relecture de l’écran) : des titres plus directs ; les précisions dessous disent ce qui est gardé */
+  /* 18 h 12 (« c’est pas UI UX, tout blanc ça fait bizarre » ; le titre et sa phrase disent maintenant « partout avec toi » et « sur
+     tous tes appareils ») : plus trois lignes qui le répétaient, mais une rangée de trois repères dans une carte, ce qui est gardé et
+     comment on se connecte. */
   const L=[
-    ['menthe',ico('<path d="M7.5 18.5H7a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.8 8.1 4.6 4.6 0 0 1 17 18.5h-.5"/><path d="m9 15 2.2 2.2L15.5 13"/>'),'Ne perds rien de tes progrès','Leçons et défis toujours sauvegardés'],
-    ['soleil',ico('<path d="M19.5 8.5A8 8 0 0 0 5.2 7.2M4.5 15.5a8 8 0 0 0 14.3 1.3"/><path d="M19.8 4v4.6h-4.6M4.2 20v-4.6h4.6"/>'),'Retrouve tout, partout','Notes et planning synchronisés'],
-    ['blanc',ico('<rect x="5" y="10.5" width="14" height="10" rx="2.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5M12 14.5v2.5"/>'),'Connecte-toi en un geste',noms.length?`Avec ${noms.join(' ou ')}, sans mot de passe`:'Sans mot de passe']
+    ['menthe',ico('<path d="M7.5 18.5H7a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.8 8.1 4.6 4.6 0 0 1 17 18.5h-.5"/><path d="m9 15 2.2 2.2L15.5 13"/>'),'Leçons et défis','sauvegardés'],
+    ['soleil',ico('<path d="M19.5 8.5A8 8 0 0 0 5.2 7.2M4.5 15.5a8 8 0 0 0 14.3 1.3"/><path d="M19.8 4v4.6h-4.6M4.2 20v-4.6h4.6"/>'),'Notes et planning','synchronisés'],
+    ['blanc',ico('<rect x="5" y="10.5" width="14" height="10" rx="2.6"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5M12 14.5v2.5"/>'),'Sans','mot de passe']
   ];
-  return `<ul class="ob-compte-atouts" aria-label="Avec un compte">${L.map(([c,i,t,d],k)=>`<li style="--i:${k}"><span class="ob-ca-ico is-${c}">${i}</span><span class="ob-ca-txt"><b>${esc(t)}</b><small>${esc(d)}</small></span></li>`).join('')}</ul>`;
+  return `<ul class="ob-compte-atouts" aria-label="Avec un compte">${L.map(([c,i,t,d],k)=>`<li style="--i:${k}"><span class="ob-ca-ico is-${c}">${i}</span><span class="ob-ca-txt">${esc(t)} <b>${esc(d)}</b></span></li>`).join('')}</ul>`;
 }
 function obCompteCarteHTML(){
   return `<div class="ob-compte-carte"><span class="ob-compte-carte-ico" aria-hidden="true">${OB_ICO_NUAGE}</span><span class="ob-compte-carte-txt"><b>Sauvegarde ta progression</b><small>Crée un compte pour retrouver tes cours, exercices, défis et ta collection sur tous tes appareils.</small></span></div>`;
@@ -47358,7 +47363,9 @@ async function obStartAuth(provider,btn){
   if(obAuthBusy)return;
   const adapter=window.REQUETE_AUTH;
   if(!adapter||typeof adapter.signIn!=='function'){obConnexionBientot(provider,btn);return;}
-  obAuthBusy=true;obAuthMessage='Connexion en cours…';paintOb();
+  /* 18 h 12 : plus de carte « Connexion en cours… » sous les boutons (elle ressemblait à un troisième bouton) : le bouton touché le
+     dit lui-même (« Connexion… » et son anneau), l’autre attend, grisé, sans tourner. */
+  obAuthBusy=true;obAuthQui=provider;obAuthFait=false;obAuthMessage='';paintOb();
   const debut=Date.now();
   try{
     const result=await adapter.signIn(provider);
@@ -47395,7 +47402,7 @@ async function obStartAuth(provider,btn){
          9 h 53 (« Oui, exactement ») : un compte vide vient d’être créé, par une nouvelle personne qui a pris le bouton pour un
          raccourci. Elle reste connectée et enchaîne sur les questions, comme un onboarding normal ; son prénom (Apple, Google) est déjà
          dans le champ. Sans réponse du compte, le planning arrivé sur l’appareil décide. */
-      obAuthBusy=true;obAuthMessage=obTypo('C’est bon ! On récupère ta progression…');
+      obAuthBusy=true;obAuthFait=true;obAuthMessage=obTypo('C’est bon ! On récupère ta progression…');
       paintOb();
       let r=null;
       try{r=await Promise.race([typeof csSync==='function'?csSync({premier:true}):null,new Promise(ok=>setTimeout(ok,6000))]);}catch(e){}
@@ -47816,6 +47823,7 @@ function paintOb(){
   root.dataset.obSlide=slide;
   root.classList.toggle('ob-account-step',slide==='account'&&!obLegalMode);
   root.classList.toggle('ob-compte-feuille',slide==='account'&&!obLegalMode&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));
+  root.classList.toggle('ob-feuille-seule',slide==='account'&&!obLegalMode&&authReady&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));
   root.classList.toggle('ob-paywall-step',slide==='paywall'&&!obLegalMode);
   root.classList.toggle('ob-sortie-step',slide==='paywall'&&!obLegalMode&&obPwSortie);
   root.classList.toggle('ob-auth-ready',authReady);
@@ -47905,19 +47913,35 @@ function paintOb(){
        mur : « Ton parcours est prêt » reste au-dessus, assombri, et la feuille monte du bas avec le titre, les trois atouts sur une
        ligne chacun, Apple et Google. Toucher le haut (ou « Retour ») la referme sur le parcours. Le compte reste le seul chemin. */
     const prenom=(draft.name||'').trim(),chatFixe=typeof mascotReduced==='function'&&mascotReduced();
+    /* 12 novembre, 18 h 12 (Elisa, ses captures de l’iPhone : « c’est pas UI UX, tout blanc ça fait bizarre et les deux boutons
+       tournent en même temps, puis l’UI UX de connexion aussi bizarre. Et deux bouts arrivent décollés. J’aime pas le “Garde-le” :
+       remplace par la réf. 4. “Connecte-toi en un geste, et c’est parti” ») :
+       - la feuille est lavande, comme les pages de l’appli, avec ses repères dans une carte blanche et ses boutons qui ressortent ;
+       - un seul bloc : la phrase des conditions est dans la feuille (plus dans le pied, qui montait à part, à une autre vitesse) ;
+       - seul le bouton touché tourne et dit « Connexion… » ; l’autre attend, grisé ; plus de carte « Connexion en cours… » ;
+       - les textes : « Ton parcours, partout avec toi. » et sa phrase (réf. 4) ; au-dessus, « Connecte-toi en un geste, et c’est
+         parti. ». Le haut ne dit « Ton parcours est prêt » qu’à qui vient de le construire. */
+    const legalHtml=`En continuant, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et reconnais avoir pris connaissance de notre <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
+    const haut=finale?`Ton parcours est prêt${prenom?', '+esc(prenom):''}.`:typeof obEntry!=='undefined'&&obEntry==='account'&&state.onboarded?'Ton compte Requête':'Bon retour&nbsp;!';
+    const qui=typeof obAuthQui==='string'?obAuthQui:'',fait=typeof obAuthFait!=='undefined'&&!!obAuthFait;
+    const bouton=([provider,label],i)=>{
+      const moi=obAuthBusy&&qui===provider,fin=moi&&fait;
+      const droite=moi?(fin?'<i class="ob-provider-ok" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>':'<i class="ob-provider-spinner"></i>'):obAuthBusy?'<i class="ob-provider-chev" aria-hidden="true"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>');
+      return `<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}${moi?' is-moi':obAuthBusy?' is-attente':''}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?`disabled${moi?' aria-busy="true"':''}`:''}>${obProviderIcon(provider)}<span>${moi?(fin?'Connecté':'Connexion…'):`Continuer avec ${label}`}</span>${droite}</button>`;
+    };
+    const messageF=obAuthMessage?`<p class="ob-auth-message ${obAuthBusy?'is-info':'is-err'}" role="status">${esc(obAuthMessage)}</p>`:'';
     if(!masquee){
     html=`<div class="ob-screen ob-profile ob-account is-feuille">${obFlowHeader(slide)}
-      <button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="Revenir à mon parcours"><span class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Ton parcours est prêt${prenom?', '+esc(prenom):''}.</b><small>Garde-le, et c’est parti.</small></button>
+      <button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="${finale?'Revenir à mon parcours':'Revenir en arrière'}">${finale?'<span class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}<b>${haut}</b><small>Connecte-toi en un geste, et c’est parti.</small></button>
       <div class="ob-acc-feuille"><i class="ob-acc-poignee" aria-hidden="true"></i><img class="ob-acc-chat" src="assets/chat-cle${chatFixe?'-fixe':''}.webp" alt="" aria-hidden="true" draggable="false">
-      ${finale?`<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>
-      <p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>`
-      :`<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
-      <p class="ob-compte-sub">Retrouve tes cours, tes défis et tes réussites sur tous tes appareils.</p>`}
+      <h1 class="ob-title" id="ob-title">Ton parcours, <em>partout avec toi</em>.</h1>
+      <p class="ob-compte-sub">Connecte-toi pour retrouver tes cours, tes défis et tes réussites sur tous tes appareils.</p>
       ${authReady?obCompteAtoutsHTML():''}
       <div class="ob-provider-list">
-        ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
+        ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(bouton).join('')}
         ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
-      </div>${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
+      </div>${messageF}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
+      ${authReady?`<p class="ob-acc-legal">${legalHtml}</p>`:''}
       </div></div>`;
     }else
     html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}">${obFlowHeader(slide)}
@@ -47939,7 +47963,9 @@ function paintOb(){
        sous le bouton, dans le pied de page. */
     /* 12 novembre, 13 h 33 : on accepte les conditions ; la politique de confidentialité, on en prend connaissance */
     const legal=`En continuant, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et reconnais avoir pris connaissance de notre <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
-    obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
+    /* 12 novembre, 18 h 12 : la feuille porte elle-même cette phrase (un seul bloc qui monte) ; le pied reste vide, et caché */
+    if(!masquee&&authReady)obSetFooter('',null,'','','');
+    else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
   }else if(slide==='paywall'){
     if(obJustEntered&&typeof statUneFois==='function')statUneFois('paywall_vu','paywall:'+statJour());
     /* L’offre de bienvenue (obPwSortie) est une vue de cette page ; si la boutique ne la donne plus, on retombe sur les offres
@@ -50055,7 +50081,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-sans-video-v2897';
+  const SW_CACHE='requete-2026-11-12-feuille-lavande-v2898';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -124,12 +124,11 @@ test('la connexion remplie : ce que le compte garde vraiment, et les fournisseur
   vm.runInContext(cut('function obFournisseurOk(f){', '\n') + '\n' + cut('function obCompteAtoutsHTML(){', 'function obCompteCarteHTML(){'), ctx);
   const h = ctx.obCompteAtoutsHTML();
   assert.equal((h.match(/<li /g) || []).length, 3);
-  /* 13 h 33 (Elisa, d’après une relecture de l’écran) : des titres plus directs, une précision d’une ligne dessous */
-  for (const t of ['Ne perds rien de tes progrès', 'Leçons et défis toujours sauvegardés', 'Retrouve tout, partout', 'Notes et planning synchronisés',
-    'Connecte-toi en un geste', 'Avec Apple ou Google, sans mot de passe'])
-    assert.ok(h.includes(t), t);
-  ctx.window.REQUETE_AUTH = { fournisseurs: ['apple'] };
-  assert.ok(ctx.obCompteAtoutsHTML().includes('Avec Apple, sans mot de passe<'), 'Apple seul');
+  /* 13 h 33 (Elisa, d’après une relecture de l’écran) : des titres plus directs, une précision d’une ligne dessous.
+     18 h 12 (« tout blanc ça fait bizarre » ; le titre dit déjà « partout avec toi ») : trois repères courts, dans une carte */
+  for (const t of ['Leçons et défis <b>sauvegardés</b>', 'Notes et planning <b>synchronisés</b>', 'Sans <b>mot de passe</b>'])
+    assert.ok(h.includes('<span class="ob-ca-txt">' + t + '</span>'), t);
+  assert.ok(!/Ne perds rien|Retrouve tout|en un geste/.test(h), 'plus de phrases qui répètent le titre');
   assert.ok(app.includes("      ${masquee||reussie||!authReady?'':obCompteAtoutsHTML()}\n      ${masquee?'':`<div class=\"ob-provider-list\">"));
   /* ce qu’elle promet existe : la synchro emporte leçons, défis, jours de série, planning et notes, quelques secondes après un changement */
   const ext = cut('function csExtraire(){', '\n}\n');
