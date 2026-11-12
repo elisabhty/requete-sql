@@ -249,7 +249,7 @@ test('lancement : l’ouverture se joue en entier (son, haptique) ; les cases se
   assert.ok(!('rq-intro-jour' in s.store), '17 h 56 : plus de jour noté'); 
   assert.equal(s.L.style['--t-fin'], '1080ms');
   s.run(1080); assert.ok(s.log.includes('vibre 25'));
-  s.run(2300); assert.equal(s.L.style.display, 'none');
+  s.run(1930); s.run(2300); assert.equal(s.L.style.display, 'none', 'la sortie à 1,93 s (l’appli prête), rangée 0,37 s plus tard');
 });
 
 /* Elisa, 11 novembre, 17 h 56 : « je n’aime pas l’animation d’arrivée courte, je préfère la longue » */

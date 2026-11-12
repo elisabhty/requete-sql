@@ -88,5 +88,5 @@ test('la pastille : la coche tourne et se trace, une onde part, l’avatar bondi
 test('le genre ne sort pas de l’appareil : la salle ne l’envoie pas', () => {
   assert.ok(!cut('function jeuSend(m){', '\n}\n').includes('genre'));
   assert.ok(conf.includes('ton genre et ta profession (si tu les indiques)'), 'Confidentialité : il reste sur l’appareil');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-connexion-on-v2876';") && app.includes("const SW_CACHE='requete-2026-11-12-connexion-on-v2876';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-depart-rapide-v2877';") && app.includes("const SW_CACHE='requete-2026-11-12-depart-rapide-v2877';"));
 });

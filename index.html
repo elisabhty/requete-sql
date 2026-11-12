@@ -6734,7 +6734,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=313">
+<link rel="stylesheet" href="ludique.css?v=314">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=43">
 <style id="lesson-video-css">
@@ -7443,12 +7443,13 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
      qui lance la plongée (2 340 + 14 % de 640). Le violet s’efface de 2 830 à 3 190. */
   var CHAT={soude:980,dSoude:100,fin:1080,chat:1100,pose:1380,arret:1800,patte:2150,appui:2340,dPlonge:640,sortie:2830,dSortie:360,k:PLEINE.k,l:PLEINE.l};
   var T=null,HAPTIQUE=[];
-  var CHAT_IMG=['assets/ouverture-chat-marche.webp','assets/ouverture-chat-appui.webp'],chatPret=0;
+  var CHAT_IMG=['assets/ouverture-chat-marche.webp','assets/ouverture-chat-appui.webp'],chatPret=0,chatFini=0;
   if(!calme&&window.Image){
     CHAT_IMG.forEach(function(u){
       try{
         var im=new window.Image();
-        im.onload=function(){var pret=function(){chatPret++;};if(im.decode)im.decode().then(pret,pret);else pret();};
+        im.onload=function(){var pret=function(){chatPret++;chatFini++;};if(im.decode)im.decode().then(pret,pret);else pret();};
+        im.onerror=function(){chatFini++;};
         im.src=u;
       }catch(e){}
     });
@@ -7457,7 +7458,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
   var ORDRE=[];
   for(var c=0;c<4;c++)for(var r=0;r<4;r++)ORDRE.push([c,r]);
   ORDRE.sort(function(a,b){return (a[0]+a[1])-(b[0]+b[1])||a[0]-b[0];});
-  var sons={},sonCtx=null,avantSon=null;
+  var sons={},sonsFinis={},sonCtx=null,avantSon=null;
   if(!calme){
     /* Le son (Elisa, 4 novembre, 1 h 51 : « il n’y a pas d’haptique d’onde ni de son ») : assets/sons/ouverture.m4a, calé sur
        l’animation (tools/sons/ouverture.py), chargé pendant le démarrage. Web Audio en session « ambient » : il se mêle à la
@@ -7472,7 +7473,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         var charger=function(cle,u){
           window.fetch(u).then(function(r){return r.arrayBuffer();})
             .then(function(b){return new Promise(function(ok,ko){sonCtx.decodeAudioData(b,ok,ko);});})
-            .then(function(b){sons[cle]=b;}).catch(function(){});
+            .then(function(b){sons[cle]=b;}).catch(function(){}).then(function(){sonsFinis[cle]=true;});
         };
         charger('base','assets/sons/ouverture.m4a');
         if(window.Image)charger('chat','assets/sons/ouverture-chat.m4a');
@@ -7554,8 +7555,22 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     };
     suivant(0);
   };
-  window.__introJouer=function(){
-    if(L.classList.contains('is-play')||L.classList.contains('fade-out'))return;
+  /* 12 novembre (« Le départ est trop long, ça reste trop longtemps sur ça », sur l’écran de lancement fixe) : l’ouverture n’attend
+     plus la fin du démarrage. Dès que l’état est lu et que le chat et son son sont prêts, le démarrage (boot) la lance à sa porte
+     suivante (__introPorte). Il attend ensuite la fin de la construction (les cases, la soudure et les lettres s’animent en partie
+     hors du compositeur : rien ne doit les freiner), puis reprend pendant la marche du chat, qui ne bouge qu’en transform et opacité,
+     sans jamais lancer une étape juste avant un retour haptique. La sortie (le violet qui s’efface sur l’appli) attend que l’appli
+     soit prête (hideLoader) : si le démarrage n’a pas fini à l’heure, la touche, qui remplit l’écran, reste le temps qu’il finisse. */
+  var lance=false,prete=false,t0=-1,sortieDue=false;
+  var horloge=function(){var p=window.performance;return p&&p.now?p.now():Date.now();};
+  var sortir=function(){
+    if(L.classList.contains('is-sortie'))return;
+    L.classList.add('is-sortie');
+    setTimeout(ranger,T.dSortie+10);
+  };
+  var jouer=function(){
+    if(lance)return;
+    lance=true;
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
     if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
@@ -7563,11 +7578,56 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     HAPTIQUE=haptique();
     construire();
     requestAnimationFrame(function(){requestAnimationFrame(function(){
+      t0=horloge();
       L.classList.add('is-play');
       jouerSon();
       vibrer();
-      setTimeout(ranger,T.sortie+T.dSortie+10);
+      setTimeout(function(){sortieDue=true;if(prete)sortir();},T.sortie);
     });});
+  };
+  /* L’appli est prête (hideLoader) : l’ouverture part si elle attendait encore ; partie, elle sort à son heure, ou tout de suite si
+     son heure est passée */
+  window.__introJouer=function(){
+    prete=true;
+    if(!lance){jouer();return;}
+    if(sortieDue)sortir();
+  };
+  /* Le chat et son son ont fini de se charger (prêts ou non) : rien à attendre de plus pour partir */
+  var actifsPrets=function(){
+    if(window.Image&&chatFini<CHAT_IMG.length)return false;
+    return !sonCtx||!!sonsFinis[chatPret>=CHAT_IMG.length?'chat':'base'];
+  };
+  /* La fin de la construction : la dernière lettre posée (elle se tasse jusqu’au bout de son vol) */
+  var finConstruction=function(){
+    var m=T.fin+40;
+    for(var j=0;j<7;j++){var x=T.l(j);m=Math.max(m,x[0]+Math.round((x[1]-x[0])/0.8));}
+    return m+10;
+  };
+  /* La porte, entre deux étapes du démarrage : null quand rien n’attend (sur le site, en mouvement réduit, l’appli prête) ; sinon une
+     promesse, tenue quand l’étape suivante peut partir sans rien freiner. Pas encore partie, l’ouverture attend le chat et son son
+     250 ms au plus en tout (ils arrivent d’ordinaire pendant ce temps) ; sinon le démarrage continue et elle partira plus tard. Aucune
+     étape ne part à moins de 130 ms d’un retour haptique, ou de la durée de la plus longue étape vue jusque-là (300 ms au plus) :
+     un appareil plus lent garde ses crans et ses coups à l’heure. */
+  var pas=0,finEtape=-1,attente=0;
+  window.__introPorte=function(){
+    if(calme||prete||L.classList.contains('fade-out')||document.visibilityState==='hidden')return null;
+    var debut=horloge();
+    if(finEtape>=0)pas=Math.max(pas,debut-finEtape);
+    return new Promise(function(ok){
+      var fini=function(){finEtape=horloge();ok();};
+      var essai=function(){
+        if(!lance){
+          if(actifsPrets())jouer();
+          else{var n=horloge();if(attente<250){setTimeout(function(){attente+=horloge()-n;essai();},10);}else fini();return;}
+        }
+        if(t0<0){if(horloge()-debut>600)fini();else setTimeout(essai,16);return;}   // pas d’image (appli en arrière-plan) : on n’attend pas
+        var t=horloge()-t0,fin=finConstruction(),marge=Math.min(300,Math.max(130,pas*1.1));
+        if(t<fin){setTimeout(essai,fin-t);return;}
+        for(var i=0;i<HAPTIQUE.length;i++){var h=HAPTIQUE[i][0];if(h>=t-4&&h-t<marge){setTimeout(essai,h-t+8);return;}}
+        fini();
+      };
+      essai();
+    });
   };
 })();
   </script>
@@ -20400,6 +20460,13 @@ function hideLoader(){
     setTimeout(()=>{loader.style.display='none';}, 380);
   },Math.max(0,LOADER_MIN_MS-t));
 }
+/* 12 novembre (Elisa : « Le départ est trop long, ça reste trop longtemps sur ça ») : dans l’appli iOS, l’ouverture animée joue
+   pendant le démarrage au lieu de l’attendre. Entre deux étapes, boot passe par cette porte : l’ouverture y part dès que tout est
+   prêt, et le démarrage lui laisse la main le temps de ce qui doit rester fluide (voir __introPorte, dans le script qui suit
+   #loader). Sur le site, en mouvement réduit ou l’ouverture finie, la porte est ouverte (null). */
+function bootPorte(){
+  return typeof window!=='undefined'&&typeof window.__introPorte==='function'?window.__introPorte():null;
+}
 async function boot(){
   /* Seul l'échec du moteur SQL est fatal. Une erreur de rendu ne doit pas
      bloquer l'app sur le loader avec un message de connexion trompeur. */
@@ -20437,12 +20504,23 @@ async function boot(){
       state.notes=Object.keys(old).filter(k=>old[k]&&String(old[k]).trim()).map(k=>({
         id:'n'+k+Date.now(),txt:String(old[k]),sql:'',ctx:CARTES[k]?`Carte ${k} · ${CARTES[k].k}`:'',ts:Date.now(),pin:false}));
     }
+    /* L’état est lu : dans l’appli iOS, l’ouverture animée peut partir. Entre deux étapes, le démarrage passe par sa porte (bootPorte). */
+    await bootPorte();
     await loadCustomDbs();
     ensureDemoDbs();
     loadProjState();
-    renderModules(); renderDefis(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
+    await bootPorte();
+    renderModules();
+    await bootPorte();
+    renderDefis();
+    await bootPorte();
+    renderProgress();
+    await bootPorte();
+    renderCollection(); renderNotes(); renderPlanning(); buildKbar();
+    await bootPorte();
     setupEditor('ed-console','hl-console');
     renderConsoleScreen();
+    await bootPorte();
     maybeOnboard();
     restoreNav();
     jeuFromUrl();
@@ -49248,7 +49326,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-connexion-on-v2876';
+  const SW_CACHE='requete-2026-11-12-depart-rapide-v2877';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

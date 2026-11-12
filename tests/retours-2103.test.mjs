@@ -153,7 +153,7 @@ test('appli iOS : la première image reprend l’écran de lancement (les points
     'margin:calc(-15*var(--u)) 0 0 calc(-15*var(--u));background:#D2C6F7}',
     /* Le déroulé */
     'html.is-native.lq #loader.is-intro.is-play .in-d{opacity:0}',
-    'html.is-native.lq #loader.is-intro.is-play{animation:introOut var(--d-sortie) ease-out var(--t-sortie) forwards}',
+    'html.is-native.lq #loader.is-intro.is-play.is-sortie{animation:introOut var(--d-sortie) ease-out forwards}',   // 12 novembre : la sortie attend l’appli prête
     'html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}',
     'html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;opacity:1;',
     'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k,.in-chat){display:none}'
