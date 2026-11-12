@@ -21,7 +21,7 @@ const keyframes = name => { const i = code.indexOf(`@keyframes ${name}{`); asser
 test('onboarding : en changeant d’étape, la page apparaît en fondu, déjà à sa place', () => {
   for (const k of ['obvOutFwd', 'obvOutBack', 'obvInFwd', 'obvInBack', 'obvApparait'])
     assert.ok(!/transform|translate|scale|rotate/.test(keyframes(k)), `${k} : l’opacité seulement`);
-  assert.ok(code.includes('html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .14s ease-in both!important}'), 'la page qui sort, en fondu court');
+  assert.ok(code.includes('html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .1s ease-in both!important}'), 'la page qui sort, en fondu court (0,1 s depuis le 12 novembre, 19 h 36)');
   assert.ok(code.includes('  animation-name:obvInFwd;animation-duration:.26s}') && code.includes('  animation-name:obvInBack;animation-duration:.26s}'));
   assert.ok(code.includes('  animation:obvApparait .26s ease-out backwards}'), 'à l’ouverture aussi');
 });

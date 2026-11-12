@@ -9,18 +9,21 @@ import {readFileSync} from 'node:fs';
 const lire = f => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 const app = lire('index.html'), obv = lire('onboarding-vitrine.css');
 const debut = obv.indexOf('/* ---------- 12 novembre, 19 h 05 (Elisa, sa capture de la page du pays');
-const bloc = obv.slice(debut).replace(/\/\*[\s\S]*?\*\//g, ''), P = 'html #onboarding.ob-vitrine ';
+const suite = obv.indexOf('/* ---------- 12 novembre, 19 h 36', debut);
+const bloc = obv.slice(debut, suite > 0 ? suite : undefined).replace(/\/\*[\s\S]*?\*\//g, ''), P = 'html #onboarding.ob-vitrine ';
 /* clamp(mini, a·vh − b, maxi), pour une hauteur d’écran donnée */
 const sousBarre = h => { const m = bloc.match(/--ob-sous-barre:clamp\((\d+)px,calc\(([\d.]+)vh - ([\d.]+)px\),(\d+)px\)/); assert.ok(m); return Math.min(+m[4], Math.max(+m[1], +m[2] * h / 100 - +m[3])); };
 
-test('le bloc est le dernier de la feuille : il l’emporte sur les échelles du 4 et du 9 novembre', () => {
+test('le bloc vient après les échelles du 4 et du 9 novembre : il l’emporte', () => {
   assert.ok(debut > 0);
   assert.ok(debut > obv.indexOf('/* ---------- Le rythme des espacements (4 novembre, 15 h 42') && debut > obv.indexOf('/* ===== 9 novembre, 20 h 49'));
   assert.ok(debut > obv.indexOf('/* ---------- 12 novembre, 18 h 36'), 'après les autocollants de « bonjour »');
 });
 
 test('l’en-tête : « Retour » à la même hauteur sur toutes les pages qui en ont un', () => {
-  assert.ok(bloc.includes(P + '#ob-body:has(>.ob-screen>.ob-flow-top:first-child){padding-top:6px}'));
+  /* 19 h 36 : les marges de la page passent par des variables (--ob-pt), divisées par l’échelle pour garder leur taille à l’écran */
+  assert.ok(bloc.includes(P + '#ob-body:has(>.ob-screen>.ob-flow-top:first-child){--ob-pt:6px}'));
+  assert.ok(obv.includes(P + '#ob-body{--ob-pt:20px;--ob-px:24px;--ob-pb:12px}') && obv.includes('html #onboarding.ob-vitrine.ob-profile-step #ob-body{--ob-pt:12px}') && obv.includes('html #onboarding.ob-vitrine.ob-account-step #ob-body{--ob-pt:10px}'));
   /* Les marges d’avant (20, 12 et 10 px selon la page) restent celles des pages sans en-tête ; la règle d’ici est plus précise */
   assert.ok(app.includes('#onboarding #ob-body{width:100%;height:100%;padding:20px 24px 12px;') && app.includes('#onboarding.ob-profile-step #ob-body{padding-top:12px}') && app.includes('#onboarding.ob-account-step #ob-body{padding-top:10px}'));
   /* Toutes les pages à en-tête le posent en premier dans la page */

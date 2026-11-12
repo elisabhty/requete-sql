@@ -79,22 +79,18 @@ test('la page commence sous la barre d’état : rien de ce qui défile ne passe
   assert.ok(app.includes('  #onboarding .ob-slides{margin-top:var(--safe-top)}\n  #onboarding #ob-body{width:100%;height:100%;padding:20px 24px 12px;overflow-y:auto;overscroll-behavior:contain}'));
   assert.ok(app.includes('  #onboarding.ob-profile-step #ob-body{padding-top:12px}') && app.includes('  #onboarding.ob-account-step #ob-body{padding-top:10px}'));
   assert.ok(!/#ob-body\{[^}]*safe-top/.test(app), 'plus de zone sûre dans la page qui défile');
-  assert.ok(cut('function obFit(){', '\n}\n').includes('const H=root.clientHeight-Math.max(0,Math.round(body.getBoundingClientRect().top-root.getBoundingClientRect().top))'));
+  /* 19 h 36 : la place est celle du cadre de la page (.ob-slides), qui commence sous la barre d’état et s’arrête au pied */
+  assert.ok(cut('function obFit(){', '\n}\n').includes("const hauteur=z=>{root.style.setProperty('--obz',String(z));const h=body.getBoundingClientRect().height;H=cadre.clientHeight;return h;};"));
 });
 
-test('les traces de la page d’avant : tout l’onboarding est repeint après chaque page et chaque échelle', () => {
-  const frames = [], props = {};
-  const ctx = vm.createContext({ document: { getElementById: () => ({ style: { setProperty: (k, v) => { props[k] = v; } } }) },
-    requestAnimationFrame: f => { frames.push(f); return frames.length; }, cancelAnimationFrame: () => {} });
-  vm.runInContext(cut('let obRpN=0,obRpT=0;', 'function paintOb(){'), ctx);
-  ctx.obRepeindre(); frames.shift()(); assert.equal(props['--ob-rp'], undefined, 'pas à la première image');
-  frames.shift()(); assert.equal(props['--ob-rp'], '1', 'à la deuxième');
-  ctx.obRepeindre(); frames.shift()(); frames.shift()(); assert.equal(props['--ob-rp'], '0', 'et ainsi de suite');
-  assert.ok(app.includes("  obInsecables(body);\n  /* 12 novembre (réf. 8") && app.includes("  obRepeindre();\n  body.scrollTop=0;\n  obFitSoon();"));
+test('les traces de la page d’avant : plus de zoom, donc plus rien à repeindre de force (19 h 36)', () => {
+  /* 12 h 24 : tout l’onboarding était repeint deux images après chaque page (obRepeindre, --ob-rp) pour effacer ce que WebKit
+     laissait d’une page au zoom. Les traces restaient sur ce qui s’anime, et repeindre faisait un éclair : c’est le zoom qui part. */
+  assert.ok(!app.includes('obRepeindre(') && !app.includes('obRpN') && !ob.includes('--ob-rp'));
+  assert.ok(app.includes("  obInsecables(body);\n  /* 12 novembre (réf. 8") && app.includes("  if(body.parentElement)body.parentElement.scrollTop=0;\n  obFitSoon();"));
   assert.ok(!app.includes("body.style.display='none';void body.offsetHeight"), 'plus de page refaite d’un bloc');
-  assert.ok(cut('function obFit(){', '\n}\n').includes("if(root.style.getPropertyValue('--obz')!==v){root.style.setProperty('--obz',v);if(typeof obRepeindre==='function')obRepeindre();}"));
-  assert.ok(ob.includes('html:root #onboarding.ob-vitrine{background-position:0 calc(var(--ob-rp,0) * .01px)!important}'));
-  assert.ok(ob.includes('html #onboarding.ob-vitrine #ob-body{background-color:rgba(69,41,204,calc(var(--ob-rp,0) * .004))}'));
+  assert.ok(cut('function obFit(){', '\n}\n').includes("const metZ=z=>{const v=String(Math.round(z*1000)/1000);if(root.style.getPropertyValue('--obz')!==v)root.style.setProperty('--obz',v);};"));
+  assert.ok(!/[;{]\s*zoom\s*:/.test(ob.replace(/\/\*[\s\S]*?\*\//g, '')), 'aucune règle de l’onboarding n’utilise la propriété zoom');
 });
 
 test('les chats de l’onboarding chargés et décodés d’avance, gardés jusqu’à la fin', () => {

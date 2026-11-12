@@ -6731,7 +6731,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=321">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=56">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=57">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -44934,6 +44934,7 @@ function closeOnboardingAuth(){
   root.setAttribute('aria-hidden','true');obBarreEtat(false);
   renderCompte();
 }
+const OB_SORTIE_MS=110;
 function obGoto(target){
   if(obLock)return;
   const n=typeof target==='number'?target:OB_SLIDES.indexOf(target);
@@ -44944,7 +44945,8 @@ function obGoto(target){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');
   if(root)root.dataset.obDir=cible>obStep?'fwd':'back';
   body.classList.add('out');
-  setTimeout(()=>{obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;paintOb();},prefersReduceMotion()?0:180);
+  /* 12 novembre, 19 h 36 (« quand on touche sur les boutons, ça met du temps ») : la page d’avant s’efface en 110 ms (180 avant) */
+  setTimeout(()=>{obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;paintOb();},prefersReduceMotion()?0:OB_SORTIE_MS);
 }
 /* 4 novembre, 2 h 13 : « quand on clique sur Voir mon parcours, on atterrit » sur « Choisis ton pseudo » : la mini-page venait après
    la dernière page, celle du parcours prêt, si bien qu’aucun de ses deux boutons ne menait d’abord où il le disait. Elle passe avant (une fois :
@@ -46513,7 +46515,7 @@ function obNamePreview(){
         if(root){root.classList.remove('ob-cheer');void root.offsetWidth;root.classList.add('ob-cheer');clearTimeout(obCheerT);obCheerT=setTimeout(()=>root.classList.remove('ob-cheer'),900);}
       }
       if(typeof obFit==='function')obFit();
-    }else if(n&&typeof obFit==='function'&&document.getElementById('ob-body')?.scrollHeight>document.getElementById('ob-body')?.clientHeight+1)obFit();
+    }else if(n&&typeof obFit==='function'&&(c=>c&&c.scrollHeight>c.clientHeight+1)(typeof obFitDefile==='function'?obFitDefile():null))obFit();
   }
 }
 /* L'accueil tape une vraie requête de la base du cours : la promesse
@@ -46843,82 +46845,87 @@ function obFitSoon(){
   const st=obStep;
   obFit();
   const again=()=>{if(obStep===st)obFit();};
-  if(typeof document!=='undefined'&&document.fonts&&document.fonts.ready)document.fonts.ready.then(again);
+  /* 12 novembre, 19 h 36 : les polices déjà là, inutile de repasser pour elles ; les repassages ne coûtent plus rien quand rien n’a
+     bougé (obFit compare la page à ce qu’il a mesuré), on en garde deux pour ce qui se pose après coup. */
+  if(typeof document!=='undefined'&&document.fonts&&document.fonts.status!=='loaded'&&document.fonts.ready)document.fonts.ready.then(again);
   document.querySelectorAll('#ob-body img').forEach(im=>{if(!im.complete)im.addEventListener('load',again,{once:true});});
-  [350,900,1800].forEach(t=>setTimeout(again,t));
+  [400,1500].forEach(t=>setTimeout(again,t));
 }
 /* 11 novembre, 6 h 54 (Elisa, capture du paywall dans Safari, l’offre hebdomadaire coupée sous le bouton : « Il y a de la marge en bas,
    on peut tout faire tenir sur une page (iOS). Vérifie toutes les pages par rapport aux espaces à laisser, UI UX psychologique, pour que
    tout soit bien dans tous les iPhone (SE → 18 Pro Max) en zoomant et dézoomant par rapport à l’écran, mais tous les éléments doivent
-   y être »). Plus rien ne disparaît pour faire de la place : la page entière, contenu et pied, se met à l’échelle de l’écran (--obz,
-   la propriété zoom, voir onboarding-vitrine.css). Sur les grands iPhone, elle s’agrandit, jusqu’à 1,12 (la page de 393 pt à la
+   y être »). Plus rien ne disparaît pour faire de la place : la page se met à l’échelle de l’écran (--obz : un transform depuis le
+   12 novembre, 19 h 36, voir plus bas et onboarding-vitrine.css ; le pied garde sa taille). Sur les grands iPhone, elle s’agrandit, jusqu’à 1,12 (la page de 393 pt à la
    largeur de l’écran) ; sinon elle garde sa taille. Si elle déborde, elle rapetisse d’un bloc (les titres gardent leur place dans la
    page) jusqu’à 0,86 ; puis elle se resserre par paliers (marges, illustrations, cartes : ob-fit-1 à 5) ; puis l’échelle descend jusqu’à
    0,8 (iPhone SE dans Safari, le plus serré). Si elle ne tenait toujours pas, elle défilerait plutôt que de couper (ob-fit-defile). */
 const OB_Z_REF=393,OB_Z_MAX=1.12,OB_Z_DOUX=.86,OB_Z_MIN=.8;
 function obZ(){const r=typeof document!=='undefined'&&document.getElementById('onboarding');return r&&parseFloat(r.style.getPropertyValue('--obz'))||1;}
+/* 12 novembre, 19 h 36 (Elisa : « Sur l’onboarding, il n’est pas fluide. Des fois, quand on touche sur les boutons, ça met du temps,
+   c’est pas fluide et il y a des flashs. Il y a des bugs » ; sa capture de la page du parcours : des rectangles lavande posés sur
+   « 100 % » et sur la première ligne). Deux causes, mesurées :
+   1. L’échelle passait par la propriété zoom. WebKit (l’iPhone) repeint mal ce qui est animé dans une page mise au zoom : des
+      morceaux de la page d’avant restaient sur ce qui s’anime (les « traces violettes » du matin, les rectangles de la capture), et
+      le rattrapage (obRepeindre : tout repeindre deux images plus tard) faisait un éclair. L’échelle est maintenant un transform sur
+      la page (#ob-body, voir onboarding-vitrine.css) : plus de zoom, plus de rattrapage. Le pied (bouton, liens, mentions) garde sa
+      taille : le bouton jaune ne change plus de taille d’une page à l’autre.
+   2. obFit mesurait sur des copies de la page (une copie et une mise en page par essai, quatre à six essais), puis recommençait cinq
+      fois par page (polices, images, 350, 900 et 1 800 ms) : 170 à 560 ms de calcul à chaque page sur un téléphone moyen, en pleine
+      animation d’entrée. Il mesure maintenant sur la page elle-même (une classe retire les hauteurs imposées le temps de la
+      mesure, rien n’est copié), retient l’échelle trouvée pour chaque page, et ne remesure que si quelque chose a bougé. */
+let obFitMemo={};
+function obFitDefile(){const b=typeof document!=='undefined'&&document.getElementById('ob-body');return b&&b.parentElement||null;}
 function obFit(){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');if(!body||!root)return;
   /* ob-fit-5 (3 novembre) : un palier de plus, pour l’engagement seulement. */
   const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];
-  const metZ=z=>{const v=String(Math.round(z*1000)/1000);if(root.style.getPropertyValue('--obz')!==v){root.style.setProperty('--obz',v);if(typeof obRepeindre==='function')obRepeindre();}};
+  const metZ=z=>{const v=String(Math.round(z*1000)/1000);if(root.style.getPropertyValue('--obz')!==v)root.style.setProperty('--obz',v);};
   const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();}));
-  const screen=body.firstElementChild,foot=root.querySelector('.ob-foot');
+  const screen=body.firstElementChild,cadre=body.parentElement,foot=root.querySelector('.ob-foot');
   /* Conditions et confidentialité : un long texte qui défile, à sa taille. */
-  if(obLegalMode||!screen){root.classList.remove(...C,'ob-fit-defile');metZ(1);apres();return;}
+  if(obLegalMode||!screen||!cadre){root.classList.remove(...C,'ob-fit-defile','ob-jauge');metZ(1);apres();return;}
   /* Clavier ouvert sur un champ : la page garde son échelle et défile jusqu’au champ (obChampEnVue), elle ne rapetisse pas sous
      les doigts ; elle se réajuste quand le clavier se ferme. */
   const a=document.activeElement;
   if(a&&body.contains(a)&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&root.dataset.obzSlide===root.dataset.obSlide){apres();return;}
   root.dataset.obzSlide=root.dataset.obSlide||'';
-  /* La mesure se fait sur des copies invisibles de la page et du pied, à l’échelle essayée : un changement de zoom ne se répercute
-     sur les éléments déjà affichés qu’à l’image suivante (WebKit comme Chrome), une copie neuve est mise en page tout de suite. */
-  const bcs=getComputedStyle(body),pT=parseFloat(bcs.paddingTop)||0,pB=parseFloat(bcs.paddingBottom)||0,pL=parseFloat(bcs.paddingLeft)||0;
-  /* La page commence sous la barre d’état (12 novembre, .ob-slides) : la hauteur à remplir s’arrête à son bord. */
-  const H=root.clientHeight-Math.max(0,Math.round(body.getBoundingClientRect().top-root.getBoundingClientRect().top)),larg=body.clientWidth-pL-(parseFloat(bcs.paddingRight)||0);
-  const avecPied=!!foot&&getComputedStyle(foot).display!=='none',fcs=avecPied?getComputedStyle(foot):null,lPied=avecPied?foot.getBoundingClientRect().width:0;
-  /* Ce qui ne change pas d’échelle : les marges du cadre et du pied (zones sûres comprises). */
-  const fixe=pT+pB+(avecPied?(parseFloat(fcs.paddingTop)||0)+(parseFloat(fcs.paddingBottom)||0):0);
-  const copie=el=>{
-    const c=el.cloneNode(true);c.classList.add('ob-mesure');c.setAttribute('aria-hidden','true');
-    c.querySelectorAll('video').forEach(v=>{v.removeAttribute('autoplay');v.removeAttribute('src');v.preload='none';v.querySelectorAll('source').forEach(x=>x.remove());});
-    return c;
-  };
-  /* Une copie de la page et une du pied, gardées le temps des essais : WebKit (l’iPhone) met leur nouvelle échelle en page tout de
-     suite ; Chrome garde un instant l’ancienne pour ce qu’elles contiennent (vu en mesurant), on y refait alors une copie neuve à
-     chaque essai. */
-  let cP=null,cF=null,neuve=false;
-  const temoin=c=>{const e=[...c.querySelectorAll('*')].find(x=>x.offsetWidth>0);return e?e.getBoundingClientRect().width/e.offsetWidth:0;};
-  const poser=z=>{
-    if(!cP||neuve){if(cP)cP.remove();cP=copie(screen);body.appendChild(cP);if(cF){cF.remove();cF=null;}}
-    cP.style.cssText+=`;position:absolute;left:${pL/z}px;top:0;width:${larg/z}px;height:auto;min-height:0;max-height:none;zoom:${z}`;   // ses longueurs sont à son échelle
-    if(avecPied){if(!cF){cF=copie(foot);root.appendChild(cF);}cF.style.cssText+=`;position:absolute;left:0;bottom:0;width:${lPied}px`;cF.style.setProperty('--obz',String(z));}
-  };
-  const hauteur=z=>{
-    poser(z);
-    if(!neuve){const t=temoin(cP),u=cF?temoin(cF):z;if((t&&Math.abs(t-z)>.004)||(u&&Math.abs(u-z)>.004)){neuve=true;poser(z);}}
-    let h=pT+pB+cP.getBoundingClientRect().height;
-    if(cF)h+=cF.getBoundingClientRect().height;
-    return h;
-  };
-  const ranger=()=>{if(cP)cP.remove();if(cF)cF.remove();cP=cF=null;};
+  /* La place : la hauteur du cadre de la page (.ob-slides : sous la barre d’état, au-dessus du pied). La page : #ob-body, marges
+     comprises, sans ses hauteurs imposées (ob-jauge), à l’échelle essayée : getBoundingClientRect rend sa hauteur à l’écran. */
+  const zMax=Math.max(1,Math.min(OB_Z_MAX,(root.clientWidth||OB_Z_REF)/OB_Z_REF)),z0=obZ();
+  const dernier=screen.lastElementChild;
+  const signe=()=>[screen.childElementCount,screen.scrollHeight,dernier?dernier.offsetTop+dernier.offsetHeight:0,foot?foot.offsetHeight:0].join(',');
+  const cle=[root.dataset.obSlide,root.clientWidth,root.clientHeight,screen.className].join('|');
+  const tient=()=>cadre.scrollHeight<=cadre.clientHeight+1;
+  /* Repassage sur la même page (polices, images, minuteurs d’obFitSoon) : rien n’a bougé et tout tient, on ne touche à rien. */
+  const meme=root.dataset.obzCle===cle;
+  if(meme&&root.dataset.obzSigne===signe()&&tient()){apres();return;}
+  /* Page déjà mesurée à cette taille (retour en arrière, deuxième passage) : son échelle et ses paliers, repris tels quels s’ils
+     tiennent toujours. */
+  let hOk=0;
+  const noter=()=>{root.dataset.obzCle=cle;root.dataset.obzSigne=signe();if(hOk)root.dataset.obzNat=String(Math.round(hOk));};
+  const su=obFitMemo[cle];
+  if(su&&root.dataset.obzCle!==cle){
+    root.classList.remove(...C,'ob-fit-defile');su.c.forEach(k=>root.classList.add(k));metZ(su.z);
+    if(su.s===signe()&&tient()){noter();apres();return;}
+  }
+  root.classList.add('ob-jauge');
+  let H=0;
+  const pcs=getComputedStyle(body),fixe=((parseFloat(pcs.paddingTop)||0)+(parseFloat(pcs.paddingBottom)||0))*z0;   // les marges gardent leur taille à l’écran
+  const hauteur=z=>{root.style.setProperty('--obz',String(z));const h=body.getBoundingClientRect().height;H=cadre.clientHeight;return h;};
+  /* Quelque chose a bougé sur la même page : une seule mesure à l’échelle en place ; si elle tient toujours, au plus près (ou au
+     plus grand), on la garde. */
+  if(meme){const h0=hauteur(z0);if(h0<=H+1&&(z0>=zMax-.001||h0>H-12||Math.abs(h0-(+root.dataset.obzNat||-99))<2||root.classList.contains('ob-fit-1'))){root.classList.remove('ob-jauge');noter();apres();return;}}
+  root.classList.remove(...C,'ob-fit-defile');
   /* L’échelle où la page remplirait juste l’écran si tout grandissait d’un bloc (le fixe à part) : le point de départ des essais. */
   const prevoir=(z,h)=>z*(H-fixe)/Math.max(1,h-fixe);
-  const zMax=Math.max(1,Math.min(OB_Z_MAX,(root.clientWidth||OB_Z_REF)/OB_Z_REF));
-  /* Repassage sur la même page à la même taille (polices, images, minuteurs d’obFitSoon) : si l’échelle en place tient toujours,
-     au plus près (ou au plus grand), on la garde : une seule mesure. */
-  const cle=[root.dataset.obSlide,root.clientWidth,H,screen.childElementCount].join('|'),z0=obZ();
-  if(root.dataset.obzCle===cle){const h0=hauteur(z0);if(h0<=H+1&&(z0>=zMax-.001||h0>H-6||root.classList.contains('ob-fit-1'))){ranger();apres();return;}}
-  root.dataset.obzCle=cle;
-  root.classList.remove(...C,'ob-fit-defile');
   /* La plus grande échelle entre lo et hi où la page tient (hi dès qu’elle y tient), sinon 0 : on part de la prévision, puis on
-     resserre l’encadrement (trois ou quatre mesures en général). */
+     resserre l’encadrement (deux ou trois mesures en général). */
   const plusGrande=(lo,hi)=>{
-    const hHi=hauteur(hi);if(hHi<=H+1)return hi;
+    const hHi=hauteur(hi);if(hHi<=H+1){hOk=hHi;return hi;}
     let ok=0,ko=hi,z=Math.max(lo,Math.min(hi-.004,prevoir(hi,hHi)));
     for(let i=0;i<5;i++){
       const h=hauteur(z);
-      if(h<=H+1){ok=z;if(ko-z<.012||h>H-6)break;z=Math.min(ko-.004,Math.max(z+.004,prevoir(z,h)));}
+      if(h<=H+1){ok=z;hOk=h;if(ko-z<.02||h>H-12)break;z=Math.min(ko-.004,Math.max(z+.004,prevoir(z,h)));}   // à 12 px près (1,5 % de l’écran) : un essai de moins
       else{ko=z;if(z<=lo+1e-4)break;z=Math.max(lo,Math.min(ko-.004,prevoir(z,h)-.004));if(ok&&z<=ok)break;}
     }
     return ok;
@@ -46928,13 +46935,15 @@ function obFit(){
   for(let k=0;!z&&k<C.length;k++){
     root.classList.add(C[k]);
     const h=hauteur(OB_Z_DOUX);if(h>H+1)continue;
-    z=OB_Z_DOUX;const zp=Math.min(zMax,prevoir(OB_Z_DOUX,h)-.004);
-    if(zp>OB_Z_DOUX+.01){if(hauteur(zp)<=H+1)z=zp;else{const zm=(OB_Z_DOUX+zp)/2;if(hauteur(zm)<=H+1)z=zm;}}
+    z=OB_Z_DOUX;hOk=h;const zp=Math.min(zMax,prevoir(OB_Z_DOUX,h)-.004);
+    if(zp>OB_Z_DOUX+.01){const hp=hauteur(zp);if(hp<=H+1){z=zp;hOk=hp;}else{const zm=(OB_Z_DOUX+zp)/2,hm=hauteur(zm);if(hm<=H+1){z=zm;hOk=hm;}}}
   }
   if(!z)z=plusGrande(OB_Z_MIN,OB_Z_DOUX);
   if(!z){z=OB_Z_MIN;root.classList.add('ob-fit-defile');}
-  ranger();
+  root.classList.remove('ob-jauge');
   metZ(z);
+  noter();
+  obFitMemo[cle]={z:obZ(),c:C.filter(k=>root.classList.contains(k)).concat(root.classList.contains('ob-fit-defile')?['ob-fit-defile']:[]),s:root.dataset.obzSigne};
   apres();
 }
 /* 1 h 31 : les modules du parcours prennent la place qui reste dans la carte ; un module qui ne tient pas entier est masqué
@@ -46956,11 +46965,12 @@ function obChampEnVue(){
   if(!body||!a||a===body||!body.contains(a)||!/^(INPUT|TEXTAREA)$/.test(a.tagName))return;
   const champ=a.closest('.ob-field')||a,suite=champ.nextElementSibling;
   const avec=suite&&!suite.hidden&&suite.offsetHeight>0&&suite.matches('.ob-name-preview,.ps-etat')?suite:champ;
-  const b=body.getBoundingClientRect(),haut=champ.getBoundingClientRect().top,bas=avec.getBoundingClientRect().bottom,m=12;
+  /* 12 novembre, 19 h 36 : c’est le cadre de la page (.ob-slides) qui défile, à l’échelle de l’écran */
+  const cadre=body.parentElement||body,b=cadre.getBoundingClientRect(),haut=champ.getBoundingClientRect().top,bas=avec.getBoundingClientRect().bottom,m=12;
   let d=0;
   if(bas+m>b.bottom)d=Math.min(bas+m-b.bottom,haut-m-b.top);   // le haut du champ ne passe jamais au-dessus du bord
   else if(haut-m<b.top)d=haut-m-b.top;
-  if(Math.abs(d)>1)body.scrollTop+=d;
+  if(Math.abs(d)>1)cadre.scrollTop+=d;
 }
 if(typeof window!=='undefined'&&typeof document!=='undefined'){
   let obTailleH=-1,obClavierT=[];
@@ -47813,16 +47823,6 @@ function obInviteHTML(){
   const stk=typeof lqStkSvg==='function'?`<span class="ob-invite-stk" aria-hidden="true">${lqStkSvg('target')}</span>`:'';
   return `<div class="ob-invite" role="note">${stk}<span class="ob-invite-t"><b>${inv.de?`${esc(inv.de)} t’invite`:'Tu es invité·e'} à un défi SQL</b><small>Inscris-toi pour rejoindre ${inv.de?'sa':'la'} salle&nbsp;: tu y entres juste après.</small></span></div>`;
 }
-/* Repeindre tout l’onboarding, deux images plus tard : son fond se décale d’un centième de pixel et la page prend un voile violet
-   d’alpha 0,004 (--ob-rp, onboarding-vitrine.css), à l’œil rien ne change, mais WebKit repeint toute leur surface, sans garder un
-   morceau de la page d’avant. */
-let obRpN=0,obRpT=0;
-function obRepeindre(){
-  const r=typeof document!=='undefined'&&document.getElementById('onboarding');
-  if(!r||typeof requestAnimationFrame!=='function')return;
-  cancelAnimationFrame(obRpT);
-  obRpT=requestAnimationFrame(()=>{obRpT=requestAnimationFrame(()=>{obRpN=obRpN?0:1;r.style.setProperty('--ob-rp',String(obRpN));});});
-}
 function paintOb(){
   const root=document.getElementById('onboarding');
   const slide=OB_SLIDES[obStep]||'ready';
@@ -48255,11 +48255,10 @@ function paintOb(){
   body.innerHTML=html;
   obInsecables(body);
   /* 12 novembre (réf. 8 : « sur l’onboarding surtout, parfois il y a des traces violettes de page précédente ») ; 12 h 24 :
-     « Toujours les traces violettes d’autre page ». Sur l’iPhone, WebKit ne repeint pas toujours en entier une page mise à
-     l’échelle (--obz, la propriété zoom) quand son contenu change : des morceaux de la page d’avant restaient peints sur le violet.
-     Après chaque page (et chaque nouvelle échelle, obFit), tout l’onboarding est repeint (obRepeindre). */
-  obRepeindre();
-  body.scrollTop=0;
+     « Toujours les traces violettes d’autre page » ; 19 h 36 : « des flashs, des bugs ». Sur l’iPhone, WebKit repeint mal une page
+     mise à l’échelle par la propriété zoom quand son contenu change et s’anime. Le rattrapage du matin (tout repeindre après
+     chaque page) n’y suffisait pas et faisait un éclair : l’échelle est maintenant un transform (voir obFit), sans rattrapage. */
+  if(body.parentElement)body.parentElement.scrollTop=0;
   obFitSoon();
   /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
      d'être construit, c'est le moment de réussite de l'onboarding. */
@@ -50096,7 +50095,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-espacements-v2902';
+  const SW_CACHE='requete-2026-11-12-fluidite-v2903';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -35,7 +35,7 @@ test('clavier ouvert : le champ où l’on tape revient en vue, avec l’accueil
   assert.equal(ecran({ champ: [60, 120], st: 100 }), 48, 'passé au-dessus du bord (défilé de 100) : il redescend');
   assert.equal(ecran({ champ: [200, 260] }), 0, 'déjà en vue : rien ne bouge');
   assert.equal(ecran({ actif: 'BUTTON' }), 0, 'seulement quand on tape dans un champ');
-  assert.ok(fn('obFit', 'function obFitChips(').includes('const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();}));') && fn('obFit', 'function obFitChips(').includes('  metZ(z);\n  apres();\n}'), 'obFit le ramène en vue après avoir mis la page à l’échelle (l’image suivante)');
+  assert.ok(fn('obFit', 'function obFitChips(').includes('const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();}));') && /\n  metZ\(z\);\n  noter\(\);\n  obFitMemo\[cle\]=[^\n]+\n  apres\(\);\n\}/.test(fn('obFit', 'function obFitChips(')), 'obFit le ramène en vue après avoir mis la page à l’échelle (l’image suivante)');
 });
 
 test('obFit suit la vraie taille de l’onboarding et se relance pendant que le clavier s’ouvre ou se ferme', () => {
@@ -81,6 +81,6 @@ test('« ? » ne part plus seul à la ligne : espaces insécables devant la ponc
   ctx.obInsecables({});
   assert.deepEqual(textes.map(t => t.nodeValue), ['Salut ! Ça va ?', "WHERE ville = 'Paris' ;"], 'le code SQL reste tel quel');
   delete ctx.document.createTreeWalker; ctx.obInsecables({});   // sans TreeWalker : rien, sans erreur
-  assert.ok(app.includes('  body.innerHTML=html;\n  obInsecables(body);\n') && app.includes("  obRepeindre();\n  body.scrollTop=0;\n  obFitSoon();"), 'à chaque page');
+  assert.ok(app.includes('  body.innerHTML=html;\n  obInsecables(body);\n') && app.includes("  if(body.parentElement)body.parentElement.scrollTop=0;\n  obFitSoon();"), 'à chaque page');
   assert.ok(app.includes('if(bulle)bulle.textContent=obTypo(OB_WT_TEXTES[p]);'), 'et dans la bulle du tutoriel du widget, qui change de texte');
 });

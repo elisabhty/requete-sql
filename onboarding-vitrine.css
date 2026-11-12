@@ -501,7 +501,7 @@ html #onboarding.ob-vitrine[data-ob-slide="practice"] .ob-cta:disabled{font-size
    Le rebond reste au toucher d’une réponse (ob-selection-update), là où c’est le doigt qui le provoque. */
 html #onboarding.ob-vitrine .ob-screen{animation:none!important}
 html #onboarding.ob-vitrine .ob-slide.out{animation:none!important}
-html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .14s ease-in both!important}
+html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .1s ease-in both!important}
 html #onboarding.ob-vitrine[data-ob-dir="back"] .ob-slide.out .ob-screen>:not(.ob-flow-top){animation-name:obvOutBack!important}
 html #onboarding.ob-vitrine.ob-enter .ob-screen>:not(.ob-flow-top):not(.ob-promise-stk):not(.ob-success):not(.mascot-stk):not(.ob-name-preview):not(.ob-level-hint):not(.ob-rhythm-summary):not(.ob-practice-reward):not(.ob-auth-message){
   animation:obvApparait .26s ease-out backwards}
@@ -1820,16 +1820,14 @@ html #onboarding.ob-vitrine.ob-sortie-step #ob-foot-note .pw-sans{text-wrap:bala
    notes, mentions) se met à l’échelle --obz que calcule obFit : agrandie sur les grands iPhone, réduite là où elle déborderait. Les
    marges de l’écran (zones sûres, côtés) restent fixes : seul ce qu’elles entourent change d’échelle. */
 html #onboarding.ob-vitrine{--obz:1}
-html #onboarding.ob-vitrine #ob-body>*,html #onboarding.ob-vitrine .ob-foot>*{zoom:var(--obz)}
+/* 12 novembre, 19 h 36 : l’échelle n’est plus la propriété zoom (WebKit repeignait mal ce qui s’anime dedans) mais un transform sur
+   la page, écrit en fin de feuille ; le pied garde sa taille. */
 /* Le bouton jaune garde sa hauteur d’une page à l’autre (réf. 7, 4 novembre) ; dans Safari, la barre d’outils du bas fait déjà
    une partie de cette marge : on ne l’ajoute pas deux fois (la zone sûre au-delà de 34 pt est celle de la barre). */
 html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + max(12px,clamp(34px,6.6vh,58px) - max(0px,var(--safe-bottom,0px) - 34px)))!important}
 /* « Ton parcours est prêt » (12 novembre, 14 h 59) : deux boutons, pas de note ; la marge du bas est celle qui laisse le bouton jaune à
    la hauteur des autres pages (le lien « Voir mon parcours » occupe la place de la marge en plus). */
 html #onboarding.ob-vitrine[data-ob-slide="ready"] .ob-foot:has(#ob-foot-note:empty){padding-bottom:calc(var(--safe-bottom,0px) + max(12px,clamp(20px,3.6vh,32px) - max(0px,var(--safe-bottom,0px) - 34px)))!important}
-/* Les copies de mesure d’obFit : invisibles, sans animation (on mesure la page posée, pas son entrée). */
-html #onboarding.ob-vitrine .ob-mesure,html #onboarding.ob-vitrine .ob-mesure *{animation:none!important;transition:none!important}
-html #onboarding.ob-vitrine .ob-mesure{visibility:hidden!important;pointer-events:none!important;z-index:-1!important}
 
 /* ---------- Des pages plus compactes, rien de retiré (11 novembre, 6 h 54) ----------
    Les pages les plus chargées (l’accueil, le rappel, les listes de choix, le paywall) perdaient des éléments sur les iPhone courants.
@@ -2153,12 +2151,6 @@ html #onboarding.ob-vitrine.ob-clavier .ob-name.has-prenom .ob-bulle-q{visibilit
 html #onboarding.ob-vitrine.ob-clavier .ob-name.has-prenom .ob-bulle-r{visibility:visible}
 html #onboarding.ob-vitrine .ob-bulle-r em{font-style:normal;color:var(--v-accent-ink)}
 
-/* 12 novembre, 12 h 24 (« toujours les traces violettes d’autre page ») : obRepeindre bascule --ob-rp (0 ou 1) après chaque page et
-   chaque nouvelle échelle : le fond glisse d’un centième de pixel, la page prend un voile d’alpha 0,004. Invisible, mais WebKit
-   repeint alors toute la surface de l’onboarding et de sa page : plus aucun morceau de la page d’avant ne reste peint. */
-html:root #onboarding.ob-vitrine{background-position:0 calc(var(--ob-rp,0) * .01px)!important}   /* :root : après le fond de safari-surface.css */
-html #onboarding.ob-vitrine #ob-body{background-color:rgba(69,41,204,calc(var(--ob-rp,0) * .004))}
-
 /* 12 novembre, 13 h 50 (test de bout en bout avant la mise en production) : le message de la page de connexion (« Connexion
    impossible… », « On récupère ta progression… ») était écrit en blanc sur un fond lilas pâle, illisible. Une carte blanche, le texte
    à l’encre, centré sous les boutons. */
@@ -2284,8 +2276,43 @@ html #onboarding.ob-vitrine:is(.ob-fit-3,.ob-fit-4,.ob-fit-5) .ob-account.is-feu
    3. Toutes les pages posent leur contenu sous leur titre ; la place libre est d’un seul tenant, au-dessus du bouton jaune.
    4. Le pseudo (sans « Retour ») garde la place de l’en-tête : son titre est sur la ligne des autres. Clavier ouvert, tout remonte. */
 html #onboarding.ob-vitrine{--ob-sous-barre:clamp(12px,calc(3.5vh - 7.6px),22px)}
-html #onboarding.ob-vitrine #ob-body:has(>.ob-screen>.ob-flow-top:first-child){padding-top:6px}
+html #onboarding.ob-vitrine #ob-body:has(>.ob-screen>.ob-flow-top:first-child){--ob-pt:6px}
 html #onboarding.ob-vitrine .ob-screen>.ob-flow-top:not(.ob-flow-solo)+*,html #onboarding.ob-vitrine .ob-screen>.ob-flow-top:not(.ob-flow-solo)+.ob-title{margin-top:var(--ob-sous-barre)!important}
 html #onboarding.ob-vitrine .ob-screen>.ob-flow-solo+.ob-title{margin-top:14px!important}
 html #onboarding.ob-vitrine .ob-screen.ob-pseudo>.ob-flow-solo:empty+.ob-title{margin-top:calc(59px + var(--ob-sous-barre))!important}
 html #onboarding.ob-vitrine.ob-clavier .ob-screen:is(.ob-name,.ob-pseudo)>.ob-flow-top+.ob-title{margin-top:8px!important}
+
+/* ---------- 12 novembre, 19 h 36 (Elisa : « Sur l’onboarding, il n’est pas fluide. Des fois, quand on touche sur les boutons, ça met
+   du temps, c’est pas fluide et il y a des flashs. Il y a des bugs » ; sa capture : des rectangles lavande sur « 100 % » et sur la
+   première ligne du parcours) ----------
+   L’échelle de la page (--obz, calculée par obFit) était la propriété zoom. WebKit repeint mal ce qui s’anime dans une page au
+   zoom : des restes de la page d’avant sur les éléments animés, et un éclair quand on forçait tout à se repeindre. Elle est
+   maintenant un transform, que tous les moteurs traitent pareil :
+   - le cadre (.ob-slides) est ce qui défile, à la taille de l’écran ;
+   - la page (#ob-body) est plus grande ou plus petite que lui d’un facteur 1/échelle, puis ramenée à sa taille par scale() : tout
+     ce qu’elle contient (les hauteurs en %, les marges automatiques, les tailles en vw) se met en page comme avant, dans son
+     repère ; ses marges, divisées par l’échelle, gardent leur taille à l’écran (le contenu reste aligné sur le bouton jaune) ;
+   - le pied n’est plus mis à l’échelle : le bouton jaune, ses liens et ses mentions ont la même taille sur toutes les pages.
+   ob-jauge : le temps d’une mesure (obFit), la page et son écran perdent leurs hauteurs imposées. */
+html #onboarding.ob-vitrine .ob-slides{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+html #onboarding.ob-vitrine .ob-slides::-webkit-scrollbar{display:none}
+html #onboarding.ob-vitrine #ob-body{--ob-pt:20px;--ob-px:24px;--ob-pb:12px}
+html #onboarding.ob-vitrine.ob-profile-step #ob-body{--ob-pt:12px}
+html #onboarding.ob-vitrine.ob-account-step #ob-body{--ob-pt:10px}
+html #onboarding.ob-vitrine:has(.ob-foot-hidden) #ob-body{--ob-pb:calc(var(--safe-bottom,0px) + 28px)}
+html #onboarding.ob-vitrine.ob-compte-feuille #ob-body{--ob-px:0px;--ob-pb:0px}
+html #onboarding.ob-vitrine #ob-body{inset:0 auto auto 0;width:calc(100% / var(--obz));height:calc(100% / var(--obz));overflow:visible;
+  padding:calc(var(--ob-pt) / var(--obz)) calc(var(--ob-px) / var(--obz)) calc(var(--ob-pb) / var(--obz))!important;
+  transform:scale(var(--obz));transform-origin:0 0}
+html #onboarding.ob-vitrine.ob-jauge #ob-body{height:auto!important}
+html #onboarding.ob-vitrine.ob-jauge #ob-body>*{height:auto!important;min-height:0!important;max-height:none!important}
+/* Le pied du paywall : sa rangée de garanties et sa ligne de prix tenaient sur une ligne parce que le zoom les rapetissait avec la
+   page. À leur taille (le pied ne change plus d’échelle), elles suivent la largeur de l’écran : 12 px à partir de 435 pt de large,
+   10,8 px sur un iPhone de 393 pt (ce qu’on voyait déjà), jamais deux lignes pour trois garanties. */
+html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note.is-legal,html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note .pw-confiance{font-size:min(12px,2.76vw)!important}
+html #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note .pw-confiance svg{width:1.25em;height:1.25em}
+/* Derrière l’onboarding ouvert, l’appli se met en veille : l’accueil (un millier d’éléments, une quinzaine d’animations dont sept
+   sans fin) continuait de s’animer sous une page qui le recouvre entièrement, et chaque mesure de l’onboarding le remettait à jour
+   avec elle (deux fois plus lente). Tant que #onboarding est ouvert (.on : display:flex, sans fondu), la scène et la barre d’onglets
+   ne sont ni peintes ni animées ; elles reviennent à l’instant où il se ferme, dans l’état où elles étaient. */
+#app:has(>#onboarding.on)>.stage,#app:has(>#onboarding.on)>#tabbar{visibility:hidden;content-visibility:hidden}
