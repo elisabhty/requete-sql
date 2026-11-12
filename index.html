@@ -6729,7 +6729,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=324">
+<link rel="stylesheet" href="ludique.css?v=325">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=58">
 <style id="lesson-video-css">
@@ -39342,6 +39342,9 @@ function openCard(id){
    mémo ! » et la carte arrive ; en revenant sur le bilan, « Ta carte mémo », sans arrivée. */
 /* 11 novembre, 17 h 20 : une leçon qui donne deux cartes les montre l’une sous l’autre, chacune à retourner (« Et une deuxième
    carte » pour la suivante). */
+/* 12 novembre, 23 h 04 (Elisa, sa capture du verso : « mettre un doigt qui 👉 animé au niveau de “Elle t’attend dans tes cartes mémo”
+   au lieu du rond flèche ») : carte retournée, le rond à flèches (retourner) laisse la place à un doigt qui montre la phrase et
+   avance vers elle par petits coups ; côté recto, « Touche la carte pour la retourner » garde son rond à flèches. */
 /* 12 novembre, 17 h 05 (Elisa, sa capture du bilan : « Est-ce possible de les mettre dans des mains (style emoji) car là ça fait trop
    redondant titre + carte (animation / 2 cartes dans une main ou deux mains à retourner) ») : un seul bloc, un seul titre, et les
    cartes en éventail dans une main jaune. On en tire une du doigt : elle sort de la main, se redresse et se retourne ; « Recto » la
@@ -39357,7 +39360,7 @@ function bravoUnlockHtml(l){
     <p class="bv-sec-k">Ta récompense</p>
     <h2 class="mc-reveal-h" id="mc-reveal-h">${titre}</h2>
     <div class="mc-main a-${Math.min(nb,2)}">${cs.map((e,k)=>bravoUnlockCarte(l,e,k,nb)).join('')}${MEMO_MAIN_SVG}${chat}</div>
-    <p class="mc-hint" aria-hidden="true"><span class="mc-hint-ico">${MEMO_TURN_SVG}</span><span class="when-recto">Touche ${nb>1?'une':'la'} carte pour la retourner</span><span class="when-verso">Elle t’attend dans tes cartes mémo</span></p>
+    <p class="mc-hint" aria-hidden="true"><span class="mc-hint-ico when-recto">${MEMO_TURN_SVG}</span><span class="mc-hint-doigt when-verso">👉</span><span class="when-recto">Touche ${nb>1?'une':'la'} carte pour la retourner</span><span class="when-verso">Elle t’attend dans tes cartes mémo</span></p>
   </section>`;
 }
 function bravoUnlockCarte(l,e,k,nb){
@@ -41519,6 +41522,7 @@ function toastLift(t){
      au milieu du contenu (Elisa, 25 octobre : « notification trop haute », sur iPhone comme sur ordinateur). */
   t.style.setProperty('--toast-lift','calc(max(8px,var(--safe-bottom)) + 14px)');
 }
+function toastDuree(msg,sub){ return Math.min(6000,(sub?2800:2000)+45*Math.max(0,String(msg||'').length+String(sub||'').length-45)); }
 function toast(msg,sub,tone){
   const t=document.getElementById('toast');
   const mini=document.getElementById('toast-mini');
@@ -41537,7 +41541,10 @@ function toast(msg,sub,tone){
   document.getElementById('toast-t').textContent=msg;
   document.getElementById('toast-s').textContent=sub||'';
   toastId=null;toastAction=null;toastLift(t);t.classList.add('on');
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),sub?2800:2000);
+  /* 12 novembre, 23 h 04 (Elisa, sur « Flamme en direct activée » : « on voit pas toute la notification ») : le titre et la phrase
+     passent à la ligne au lieu d’être coupés (ludique.css), et une notification longue reste le temps d’être lue : 2 s (2,8 s
+     avec une phrase) comme avant, plus 45 ms par signe au-delà de 45, 6 s au plus. */
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),toastDuree(msg,sub));
   if(navigator.vibrate)navigator.vibrate(8);
 }
 /* Une question en feuille, dans le style de l’app, à la place de la boîte du navigateur (qui affiche l’adresse du site et
@@ -44675,9 +44682,12 @@ function paysFeuille(actuel,choisir){
       </div>
     </div>`;
   document.body.appendChild(f);
+  /* La page derrière la feuille ne suit pas le clavier de la recherche (html.pays-ouvert, ludique.css) : elle garde sa hauteur. */
+  document.documentElement.classList.add('pays-ouvert');
   const input=f.querySelector('input'),liste=f.querySelector('.pays-liste');
   let pris=null,attente=0;
-  const partir=()=>{clearTimeout(attente);if(f.id==='pays-feuille')paysFeuilleFermer();if(pris){const c=pris;pris=null;choisir(c);}};
+  /* Le clavier part avec la feuille (le champ rend le focus), pas un quart de seconde après elle. */
+  const partir=()=>{clearTimeout(attente);try{input.blur();}catch(e){}if(f.id==='pays-feuille')paysFeuilleFermer();if(pris){const c=pris;pris=null;choisir(c);}};
   f.querySelector('.pays-fond').onclick=partir;
   f.querySelector('.pays-x').onclick=partir;
   liste.addEventListener('click',e=>{
@@ -44715,6 +44725,16 @@ function paysFeuilleFermer(vite){
   if(!f)return;
   f.id='';f.classList.remove('on');
   setTimeout(()=>f.remove(),vite||prefersReduceMotion()?0:260);
+  paysVueRendre();setTimeout(()=>paysVueRendre(true),1200);
+}
+/* La page derrière la feuille des pays reprend sa vie avec le clavier une fois la feuille partie ET le clavier aussi (la vue revenue à
+   sa hauteur) : rendue plus tôt, elle se serait tassée au-dessus du clavier pour quelques millisecondes. force : au bout de 1,2 s,
+   quoi qu’il arrive. */
+function paysVueRendre(force){
+  const r=document.documentElement;
+  if(!r.classList.contains('pays-ouvert')||document.getElementById('pays-feuille'))return;
+  if(!force&&(kbNatH>0||window.innerHeight<kbNatBase-1))return;
+  r.classList.remove('pays-ouvert');
 }
 /* Les couleurs suivent la surface visible : celles des barres du navigateur. */
 function obBarreEtat(){
@@ -49073,7 +49093,14 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
     /* L’app, clavier ouvert : la partie de la vue au-dessus du clavier (--app-h) et ce que la vue n’a pas compensé en rétrécissant
        (--kb-app) ; #app s’y tient, comme si la vue avait rétréci (ludique.css, 48d). 0 et la vue entière sur le web. */
     const ka=kbNatif();document.documentElement.style.setProperty('--kb-app',ka+'px');document.documentElement.style.setProperty('--app-h',(window.innerHeight-ka)+'px');
-    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0);};
+    /* 12 novembre, 23 h 04 (Elisa : « il y a un flash au niveau du choix du pays avec le clavier ») : une feuille qui ne doit pas bouger
+       quand le clavier arrive a besoin de trois repères. --vue-h : la hauteur de la vue sans clavier (elle ne change ni quand le clavier
+       s’annonce, ni quand la vue rétrécit 0,45 s plus tard, ni dans les 10 ms entre le départ du clavier et le retour de la vue) ;
+       --kb-vue : ce dont la vue a rétréci en ce moment ; --kb-tot : la hauteur du clavier de l’app tant qu’il est là. */
+    const vh=Math.max(kbNatBase,window.innerHeight);
+    document.documentElement.style.setProperty('--vue-h',vh+'px');document.documentElement.style.setProperty('--kb-vue',Math.max(0,vh-window.innerHeight)+'px');document.documentElement.style.setProperty('--kb-tot',kbNatH+'px');
+    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0);
+    if(typeof paysVueRendre==='function')paysVueRendre();};
   const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
   vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);
   /* Le clavier de l’app s’annonce, puis la page rétrécit : recalé aussitôt, sans attendre l’image suivante. */
@@ -49253,6 +49280,8 @@ function renderCompte(){
   }).join('');
   const readingSummary=[state.preferences?.largeText?'Texte agrandi':null,state.preferences?.reduceMotion?'Animations réduites':null].filter(Boolean).join(' · ')||'Texte et animations par défaut';
   /* Tes données : l’état du stockage et l’action utile tout de suite. */
+  /* 12 novembre, 23 h 04 (Elisa : « il y a un doublon de mon compte connecté, garder celui du haut ») : cette carte dit déjà « Compte
+     connecté » et l’adresse ; la ligne du même nom, plus bas dans « Compte et assistance », est retirée. */
   const data=connected
     ?{title:'Compte connecté',copy:esc(state.accountLabel||'Ta progression est liée à ton compte.'),btn:'Gérer mes données',action:"openPlusDetails('plus-data')"}
     :obAuthReady()
@@ -49329,7 +49358,6 @@ function renderCompte(){
           <div class="account-settings-list">
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, copie, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg('user')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>
-            ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account is-stk">${lqStkSvg(ACCT_STK.account)}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
             ${typeof abonnementIci==='function'&&abonnementIci()?`<button class="account-setting-row" type="button" onclick="abonnementGerer()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
           </div>
           <div class="account-settings-list acct-compte-actions">
@@ -50214,7 +50242,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-alertes-v2912';
+  const SW_CACHE='requete-2026-11-12-pays-v2913';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

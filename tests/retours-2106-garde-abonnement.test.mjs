@@ -251,7 +251,7 @@ test('« Gérer mon abonnement » dans Mon compte : la feuille d’Apple par le 
   assert.ok(m.includes('Task { @MainActor in') && m.includes('try await AppStore.showManageSubscriptions(in: scene)') && m.includes('call.resolve(["ok": true])'));
   assert.ok(!m.includes('call.reject('), 'jamais rejeté : ok vaut faux, et la page ouvre les abonnements de l’App Store');
   assert.equal(m.split('}').length, m.split('{').length + 1, 'la méthode se ferme, puis la classe (une accolade fermante de plus)');
-  /* La ligne de Mon compte, après « Compte connecté » */
+  /* La ligne de Mon compte, sous « Confidentialité des parties » (la ligne « Compte connecté » est partie le 12 novembre, 23 h 04) */
   assert.ok(app.includes("${typeof abonnementIci==='function'&&abonnementIci()?`<button class=\"account-setting-row\" type=\"button\" onclick=\"abonnementGerer()\"><span class=\"plus-row-icon is-stk\">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span>"));
   const src = cut('function abonnementIci(){', '\n/* « Mon compte », en haut à gauche');
   const essai = async ({pret = true, natif = true, feuille = true} = {}) => {

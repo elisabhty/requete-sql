@@ -26,11 +26,12 @@ test('l’app tient au-dessus du clavier, que la vue rétrécisse ou non', () =>
     'html.is-native.kb-ouvert #app{height:var(--app-h,100dvh);min-height:var(--app-h,100dvh)}',
     'html.lq .viz.on{bottom:calc(var(--kb,0px) - var(--kb-app,0px))!important}',
     'html.lq.is-native .imp-sheet{bottom:var(--kb-app,0px);max-height:calc(var(--app-h,100dvh) - 12px)}',
-    'html.is-native .pays-feuille{bottom:var(--kb-app,0px)}',
-    'html.is-native .pays-feuille .pays-boite{max-height:calc(var(--app-h,100dvh) - var(--safe-top) - 10px)}',
+    /* 12 novembre, 23 h 04 : la feuille des pays ne monte plus au-dessus du clavier (elle sautait) ; il glisse par-dessus son bas */
+    'html.is-native .pays-feuille .pays-boite{height:min(calc(var(--vue-h,100vh) * .82),760px);max-height:calc(var(--vue-h,100dvh) - var(--safe-top) - 10px);margin-bottom:calc(-1 * var(--kb-vue,0px))}',
     'html.is-native.kb-ouvert #app>.tabbar{visibility:hidden}',
     'html.lq.kb-ouvert #scr-compte .ct-pied{padding-bottom:14px}'])
     assert.ok(css.includes(r), r);
+  assert.ok(!css.includes('html.is-native .pays-feuille{bottom:var(--kb-app,0px)}'));
   assert.ok(html.includes("  document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb-kbNatif():0)+kh)+'px');"), 'les écrans ne réservent que la barre des touches');
   const q = cut('function lqPrompt(o){', 'el.querySelector(\'.lq-ask-back\').onclick');
   assert.ok(q.includes("el.style.height=(open?vv.height-kbNatif():window.innerHeight)+'px';") && q.includes('CLAV.forEach(n=>window.addEventListener(n,fit));')

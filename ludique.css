@@ -2050,6 +2050,10 @@ html.lq .toast{background:#fff!important;border:2px solid var(--line)!important;
 html.lq .toast .t-kicker{font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important;font-weight:700!important;color:var(--accent-ink)!important}
 html.lq .toast .tmini{border-radius:13px!important;font-family:var(--display)!important;font-size:13px!important;box-shadow:0 3px 0 rgba(20,10,60,.14)}
 html.lq .toast #toast-t{font-family:var(--display);font-weight:700}
+/* 12 novembre, 23 h 04 (Elisa, sur « Flamme en direct activée » : « on voit pas toute la notification ») : le titre et la phrase
+   tenaient sur une seule ligne, coupée par « … ». Ils passent à la ligne : tout se lit, quelle que soit la largeur de l’écran. */
+html.lq .toast b,html.lq .toast small{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word}
+html.lq .toast small{text-wrap:pretty}
 html.lq .toast .tgo,html.lq .toast #toast-go{background:var(--accent)!important;color:#fff!important;border-radius:14px!important;box-shadow:0 3px 0 var(--accent-lip)!important;font-family:var(--display)!important;font-weight:700!important}
 
 /* ---------- 27. Premiers pas (onboarding) ---------- */
@@ -4833,12 +4837,26 @@ html.lq .viz.on{bottom:calc(var(--kb,0px) - var(--kb-app,0px))!important}
 html.is-native.kb-ouvert body{min-height:var(--app-h,100dvh)}
 html.is-native.kb-ouvert #app{height:var(--app-h,100dvh);min-height:var(--app-h,100dvh)}
 html.lq.is-native .imp-sheet{bottom:var(--kb-app,0px);max-height:calc(var(--app-h,100dvh) - 12px)}
-html.is-native .pays-feuille{bottom:var(--kb-app,0px)}
-html.is-native .pays-feuille .pays-boite{max-height:calc(var(--app-h,100dvh) - var(--safe-top) - 10px)}
+/* 12 novembre, 23 h 04 (Elisa : « il y a un flash au niveau du choix du pays avec le clavier ») : la feuille montait d’un coup au-dessus
+   du clavier dès qu’il s’annonçait (son haut sautait de 84 px, et une bande claire restait dessous le temps que le clavier arrive), puis
+   se recalait 0,45 s plus tard quand la vue rétrécissait. Elle ne bouge plus : sa hauteur vient de la vue sans clavier (--vue-h), son
+   fond couvre toute la vue, le clavier glisse par-dessus son bas comme sur une feuille de l’iPhone, et la liste gagne en bas la hauteur
+   du clavier pour que le dernier pays reste atteignable. Quand la vue rétrécit, le bas de la feuille descend d’autant sous la vue
+   (--kb-vue) : son haut ne bouge pas. */
+html.is-native .pays-feuille .pays-boite{height:min(calc(var(--vue-h,100vh) * .82),760px);max-height:calc(var(--vue-h,100dvh) - var(--safe-top) - 10px);margin-bottom:calc(-1 * var(--kb-vue,0px))}
+html.is-native .pays-feuille .pays-liste{padding-bottom:calc(6px + var(--kb-tot,0px))}
+/* Et la page derrière la feuille (Mon compte, l’onboarding) garde sa hauteur tant que la feuille est là : elle ne se tasse plus
+   au-dessus du clavier (dans l’onboarding, toute la page se réduisait derrière le voile). */
+html.is-native.pays-ouvert body{min-height:var(--vue-h,100dvh)}
+html.is-native.pays-ouvert #app{height:var(--vue-h,100dvh);min-height:var(--vue-h,100dvh)}
+/* Dans l’onboarding, l’écart sous la barre de progression se règle sur la hauteur de la vue : tant que la feuille est là, sur celle
+   de la vue sans clavier, pour que le titre ne remonte pas de 10 px derrière le voile quand la vue rétrécit. */
+html.is-native.pays-ouvert #onboarding.ob-vitrine{--ob-sous-barre:clamp(12px,calc(var(--vue-h,100vh) * .035 - 7.6px),22px)}
 /* La barre d’onglets reste sous le clavier, comme dans les applis de l’iPhone : posée au-dessus de lui, elle cachait le bas de l’écran
    (la recherche de l’entretien ramenée au-dessus du clavier passait dessous). Au-dessus du clavier, pas de place à garder pour le bas
    arrondi de l’écran sous les pieds collants. */
 html.is-native.kb-ouvert #app>.tabbar{visibility:hidden}
+html.is-native.kb-ouvert.pays-ouvert #app>.tabbar{visibility:visible}
 html.lq.kb-ouvert #scr-compte .ct-pied{padding-bottom:14px}
 /* 48d bis. Éditeur de note, clavier ouvert : « Enregistrer » reste posé au-dessus du clavier et la note défile dessous (Elisa, 11 novembre,
    11 h 21 : « on ne peut pas aller en bas pour chercher Enregistrer »). Avec la barre des touches SQL (la requête associée), c’est la
@@ -8857,6 +8875,11 @@ html.lq .mc-hint-ico{display:block;flex:none;width:18px;height:18px}
 html.lq .mc-hint-ico svg{display:block;width:100%;height:100%}
 html.lq .mc-hint .when-verso,html.lq .is-flipped .mc-hint .when-recto{display:none}
 html.lq .is-flipped .mc-hint .when-verso{display:inline}
+/* Carte retournée : un doigt montre « Elle t’attend dans tes cartes mémo » et avance vers elle, deux petits coups puis une pause. */
+html.lq .is-flipped .mc-hint .mc-hint-doigt{display:inline-block;flex:none;font:normal 400 calc(19px * var(--mc-fs))/1 system-ui,-apple-system,sans-serif;animation:mcDoigt 1.7s ease-in-out .5s infinite}
+@keyframes mcDoigt{0%,52%,100%{translate:0 0}14%{translate:6px 0}26%{translate:1px 0}38%{translate:5px 0}}
+@media (prefers-reduced-motion:reduce){html.lq .is-flipped .mc-hint .mc-hint-doigt{animation:none}}
+html[data-motion="reduce"].lq .is-flipped .mc-hint .mc-hint-doigt{animation:none}
 /* Arrivée de la carte au bilan, une seule fois, à sa première réussite (is-new, puis is-in quand le bloc entre à l'écran) */
 @keyframes mcDeal{0%{opacity:0;transform:translateY(44px) rotate(-9deg) scale(.86)}62%{opacity:1;transform:translateY(-6px) rotate(1.5deg) scale(1.02)}100%{opacity:1;transform:none}}
 @keyframes mcShine{from{transform:translateX(-130%) skewX(-18deg)}to{transform:translateX(260%) skewX(-18deg)}}
