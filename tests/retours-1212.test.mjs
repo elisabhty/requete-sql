@@ -208,7 +208,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
   for (const f of ['index.html', 'conditions.html', 'confidentialite.html', 'mentions-legales.html', 'module.html', 'connexion.html'])
     assert.ok(lire('decouvrir/' + f).includes(`vitrine.css?v=${v}`), `${f} : la feuille du site à jour`);
   /* 6 novembre : les conditions (l’app pour iPhone, plus « bientôt ») et la confidentialité (les durées de conservation) changent */
-  for (const [f, jour] of [['conditions.html', 6], ['mentions-legales.html', 5], ['confidentialite.html', 11]]) {   // 11 : l’alerte en notification (retours-1555)
+  for (const [f, jour] of [['conditions.html', 6], ['mentions-legales.html', 5], ['confidentialite.html', 12]]) {   // 12 : le compte de l’appli iPhone
     const p = lire('decouvrir/' + f);
     assert.ok(p.includes('«&nbsp;Contacte-nous&nbsp;»') && !p.includes('Nous contacter') && p.includes(`Dernière mise à jour&nbsp;: ${jour} novembre 2026`), f);
   }
@@ -219,5 +219,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=316">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=48">') && sw.includes("'./onboarding-vitrine.css?v=48',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-12-test-bout-en-bout-v2885' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-12-compte-prive-chiffres-v2886' && app.includes(`const SW_CACHE='${cache}';`));
 });

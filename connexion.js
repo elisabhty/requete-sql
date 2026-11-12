@@ -168,8 +168,7 @@
           garder(s);
           /* Apple vient de donner le prénom et le compte ne l'a pas encore : il le garde (sans réponse, la connexion continue) */
           if (fournisseur === 'apple' && donne && !(u.user_metadata && u.user_metadata.given_name)) {
-            var complet = [donne, typeof p.familyName === 'string' ? p.familyName.trim() : ''].filter(Boolean).join(' ').slice(0, 80);
-            appel('user', {data: {given_name: donne, full_name: complet}}, s.access_token, 'PUT').catch(function(){});
+            appel('user', {data: {given_name: donne}}, s.access_token, 'PUT').catch(function(){});   // le prénom seul, pas le nom
           }
           /* Le code d'autorisation d'Apple (10 minutes) part à la fonction apple-jeton, qui l'échange et garde le jeton d'Apple pour
              pouvoir le révoquer si la personne supprime son compte. Sans réponse, la connexion continue. */
