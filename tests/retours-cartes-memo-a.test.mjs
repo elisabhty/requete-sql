@@ -70,7 +70,7 @@ test('le bilan : la carte gagnée se retourne sur place ; la face cachée est in
   assert.ok(reveal.includes("if(!root.classList.contains('is-new')||prefersReduceMotion()){root.classList.add('is-in');return;}"), 'l’arrivée, une seule fois, et pas en mouvement réduit');
   assert.ok(reveal.includes('new IntersectionObserver('), 'quand le bloc entre à l’écran');
   assert.ok(fn('renderBravoSlide').includes("${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}"), 'le verso tient lieu de « Ce que tu retiens »');
-  for (const part of ['html.lq .mc-flip>.mc-side{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden;', 'html.lq .is-flipped .mc-flip>.is-verso{transform:none;visibility:visible}',
+  for (const part of ['html.lq .mc-flip>.mc-side{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden;', 'html.lq .mc-flip.is-flipped>.is-verso{transform:none;visibility:visible}',
     'html.lq .mc-reveal.is-in .mc-flip{animation:mcDeal .8s var(--pop) both}', 'html.lq .is-flipped .mc-seal{opacity:0;scale:.6}'])
     assert.ok(css.includes(part), part);
 });

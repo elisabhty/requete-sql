@@ -8796,10 +8796,10 @@ html.lq .mc-reveal-h{margin:0 0 16px;font:800 calc(26px * var(--mc-fs))/1.1 var(
 html.lq .mc-reveal-h em{font-style:normal;color:var(--accent)}
 /* Les deux faces dans la même case ; la boîte prend la hauteur de la face visible (--mc-h, mesurée par memoFlipFit()) */
 html.lq .mc-flip{position:relative;display:grid;align-items:start;max-width:360px;height:var(--mc-h,auto);margin:0 auto;perspective:1400px;text-align:left;transition:height .55s cubic-bezier(.3,1.1,.5,1)}
-html.lq .mc-flip>.mc-side{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden;transition:transform .7s cubic-bezier(.3,1.3,.5,1),visibility 0s linear .35s}
+html.lq .mc-flip>.mc-side{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden;transition:transform .7s cubic-bezier(.3,1.3,.5,1),visibility 0s linear .2s}
 html.lq .mc-flip>.is-verso{transform:rotateY(180deg);visibility:hidden}
-html.lq .is-flipped .mc-flip>.is-recto{transform:rotateY(-180deg);visibility:hidden}
-html.lq .is-flipped .mc-flip>.is-verso{transform:none;visibility:visible}
+html.lq .mc-flip.is-flipped>.is-recto{transform:rotateY(-180deg);visibility:hidden}
+html.lq .mc-flip.is-flipped>.is-verso{transform:none;visibility:visible}
 html.lq .mc-flip .is-recto .mc-face{justify-content:center;min-height:calc(250px * var(--mc-fs));padding-top:52px;padding-bottom:30px}
 html.lq .mc-flip .is-recto .mc-top{position:absolute;left:18px;top:16px}
 html.lq .mc-flip .is-recto .mc-k{margin-top:0}
@@ -9679,6 +9679,47 @@ html.lq .pgr-chart.is-vide .pgr-bars li em{display:none}
 }
 @keyframes stkNon{0%,100%{transform:none}20%{transform:translateX(-4px) rotate(-10deg)}45%{transform:translateX(4px) rotate(8deg)}70%{transform:translateX(-2px) rotate(-4deg)}}
 @keyframes stkProgIn{from{transform:scaleX(0)}to{transform:none}}
+
+/* 12 novembre, 17 h 05 (Elisa, sa capture du bilan : « Est-ce possible de les mettre dans des mains (style emoji) car là ça fait trop
+   redondant titre + carte ») : les cartes gagnées tiennent en éventail dans une main jaune (index.html, bravoUnlockHtml). Chaque
+   carte garde sa boîte à deux faces (.mc-flip), toutes dans la même case de la scène ; dans la main, elles sont plus petites et
+   penchées (rotate, translate, scale : l’arrivée mcDeal, qui anime transform, s’y ajoute sans les écraser). La carte tirée
+   (.is-flipped) se redresse, reprend sa taille et passe devant ; la main et l’autre carte s’effacent le temps de la lire. */
+html.lq .mc-main{position:relative;display:grid;max-width:360px;margin:calc(-40px * var(--mc-fs)) auto 0;padding-bottom:64px;transition:padding-bottom .45s cubic-bezier(.3,1.1,.5,1),margin-top .45s cubic-bezier(.3,1.1,.5,1)}
+html.lq .mc-main>.mc-flip{grid-area:1/1;z-index:1;width:100%;margin:0;transform-origin:50% calc(300px * var(--mc-fs));translate:var(--tx,0) calc(var(--dy,0px) + var(--ty,0px));rotate:var(--rz,0deg);scale:var(--sc,1);cursor:pointer;
+  transition:height .55s cubic-bezier(.3,1.1,.5,1),translate .5s cubic-bezier(.3,1.2,.5,1),rotate .5s cubic-bezier(.3,1.2,.5,1),scale .5s cubic-bezier(.3,1.2,.5,1),opacity .25s ease}
+html.lq .mc-main.a-1>.mc-flip{--rz:-3deg;--sc:.86}
+html.lq .mc-main.a-2>.mc-flip{--sc:.72}
+html.lq .mc-main.a-2>.mc-flip[data-k="0"]{--rz:-9deg;--tx:-7%;--dy:-12px}
+html.lq .mc-main.a-2>.mc-flip[data-k="1"]{--rz:7deg;--tx:6%;z-index:2}
+html.lq .mc-main.a-2>.mc-flip:not(.is-flipped) .mc-seal{right:10px;top:-22px}
+html.lq .mc-main>.mc-flip:not(.is-flipped):active{--ty:-12px}
+html.lq .mc-reveal .mc-main>.mc-flip.is-flipped{z-index:5;--rz:0deg;--tx:0;--ty:0;--dy:0px;--sc:1;cursor:auto}
+html.lq .mc-main.a-2>.mc-flip[data-k="0"] .mc-seal{display:none}
+html.lq .mc-main-main{position:absolute;z-index:3;left:47%;bottom:0;width:min(150px,45%);height:auto;translate:-50% 0;overflow:visible;pointer-events:none;
+  transition:opacity .25s ease,translate .45s cubic-bezier(.3,1.1,.5,1)}
+html.lq .mc-main .mc-reveal-chat{z-index:4;right:-6px;bottom:-4px;width:calc(72px * var(--mc-fs,1))}
+html.lq .mc-reveal.is-flipped .mc-main{margin-top:0;padding-bottom:0}
+html.lq .mc-reveal.is-flipped .mc-main>.mc-flip:not(.is-flipped){opacity:0;--ty:26px;pointer-events:none}
+html.lq .mc-reveal.is-flipped .mc-main>.mc-flip:not(.is-flipped) *{visibility:hidden}
+html.lq .mc-reveal.is-flipped .mc-main-main{opacity:0;translate:-50% 44px}
+html.lq .mc-main>.mc-flip.is-flipped .mc-seal{visibility:hidden}
+/* L’arrivée (is-new, puis is-in) : la main monte, les cartes s’y glissent l’une après l’autre, puis celle du dessus se soulève une
+   fois pour dire « tire-moi » */
+@keyframes mcMainMonte{from{opacity:0;translate:-50% 46px}}
+@keyframes mcPioche{0%,100%{translate:var(--tx,0) var(--dy,0px)}45%{translate:var(--tx,0) calc(var(--dy,0px) - 16px)}}
+html.lq .mc-reveal.is-new:not(.is-in) .mc-main-main{opacity:0}
+html.lq .mc-reveal.is-new.is-in .mc-main-main{animation:mcMainMonte .5s var(--pop) both}
+html.lq .mc-reveal.is-new.is-in .mc-main>.mc-flip{animation:mcDeal .8s var(--pop) .2s backwards,mcPioche .7s ease-in-out 2s 1}
+html.lq .mc-reveal.is-new.is-in .mc-main>.mc-flip[data-k="1"]{animation-delay:.36s,2.25s}
+html.lq .mc-reveal.is-new.is-in .mc-main.a-2>.mc-flip[data-k="0"]{animation-name:mcDeal}
+html.lq .mc-reveal:not(.is-new).is-in .mc-main>.mc-flip{animation:none}
+@media (prefers-reduced-motion:reduce){
+  html.lq :is(.mc-main,.mc-main>.mc-flip,.mc-main-main){animation:none!important;transition:none!important}
+  html.lq .mc-reveal.is-new:not(.is-in) .mc-main-main{opacity:1}
+}
+html[data-motion="reduce"].lq :is(.mc-main,.mc-main>.mc-flip,.mc-main-main){animation:none!important;transition:none!important}
+html[data-motion="reduce"].lq .mc-reveal.is-new:not(.is-in) .mc-main-main{opacity:1}
 
 /* 12 novembre, 15 h 30 (Elisa : « améliorer la fluidité, l’appui sur les boutons… tout ce que tu peux améliorer »). L’audit de
    tous les écrans : ces boutons-là ne répondaient pas sous le doigt (rien ne bougeait à l’appui), ou étaient plus petits que le
