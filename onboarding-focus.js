@@ -32,7 +32,10 @@
       returnFocus = null;
     }
     // Une nouvelle étape remplace son contenu et peut supprimer le focus.
-    if (active && !dialog.contains(document.activeElement)) focusDialog();
+    // Une fenêtre ouverte par-dessus l’accueil (la liste des pays et sa recherche, une question) garde le sien : le lui reprendre
+    // refermait le clavier à peine ouvert.
+    const ailleurs = document.activeElement?.closest?.('[role="dialog"],[role="alertdialog"]');
+    if (active && !dialog.contains(document.activeElement) && !(ailleurs && ailleurs !== dialog)) focusDialog();
   }
   dialog.addEventListener('keydown', event => {
     if (!opened || event.key !== 'Tab') return;
