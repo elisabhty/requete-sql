@@ -233,7 +233,7 @@ test('le style : la carte du site, qui prend la hauteur qui reste ; ses animatio
   for (const k of ['.ob-enter .ob-tv-ph{animation:obvTvIn .6s var(--v-pop) .08s backwards}', '.ob-enter .ob-tv-faces>*{animation:obvTvFace .42s var(--v-pop) calc(.74s + var(--i,0) * 70ms) backwards}',
     ' .ob-tv:not(.is-lecture) .ob-tv-play::after{animation:obvTvRing 2.4s ease-out 1.4s infinite}', ' .ob-tv-wave i.cur{animation:obvTvCur .45s ease-in-out infinite alternate}'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=47">') && sw.includes("'./onboarding-vitrine.css?v=47',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=48">') && sw.includes("'./onboarding-vitrine.css?v=48',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2501, cache);
 });
