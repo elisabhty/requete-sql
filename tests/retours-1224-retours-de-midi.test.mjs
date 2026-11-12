@@ -130,7 +130,7 @@ test('la connexion remplie : ce que le compte garde vraiment, et les fournisseur
     assert.ok(h.includes(t), t);
   ctx.window.REQUETE_AUTH = { fournisseurs: ['apple'] };
   assert.ok(ctx.obCompteAtoutsHTML().includes('Avec Apple, sans mot de passe<'), 'Apple seul');
-  assert.ok(app.includes("      ${masquee||reussie?'':obCompteAtoutsHTML()}\n      ${masquee?'':`<div class=\"ob-provider-list\">"));
+  assert.ok(app.includes("      ${masquee||reussie||!authReady?'':obCompteAtoutsHTML()}\n      ${masquee?'':`<div class=\"ob-provider-list\">"));
   /* ce qu’elle promet existe : la synchro emporte leçons, défis, jours de série, planning et notes, quelques secondes après un changement */
   const ext = cut('function csExtraire(){', '\n}\n');
   assert.ok(ext.includes('extractProgression({lessons,defis,entretien,actDays}') && ext.includes("key:'planning:main'") && ext.includes('extractSavedNotes('));
@@ -152,4 +152,13 @@ test('« Garde ta progression » : sa phrase, la mention légale, la page resser
     'html #onboarding.ob-vitrine .ob-account.is-grand .ob-compte-haut+.ob-title{margin-top:4px!important}',
     'html #onboarding.ob-vitrine .ob-compte-atouts{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px;margin:14px auto 0!important;padding:12px 14px;'])
     assert.ok(ob.includes(r), r);
+});
+
+/* 12 novembre, 13 h 50 : le test de bout en bout avant la mise en production (onboarding entier au doigt, tous les onglets, console,
+   notes, défi solo). Trois défauts trouvés : le message de la connexion illisible (blanc sur lilas), la carte des avantages qui
+   coupait le champ e-mail sur le site (connexion pas branchée), « prêt·e » sur le paywall alors que le genre est connu. */
+test('trouvés au test de bout en bout : message de connexion lisible, paywall accordé, pas de carte sans connexion branchée', () => {
+  assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-auth-message{margin:12px 0 0!important;padding:11px 14px!important;border-radius:14px!important;background:#fff!important;color:var(--v-ink)!important;'));
+  assert.ok(app.includes("es ${typeof accord==='function'?accord('prête','prêt','prêt·e'):'prêt·e'} à atteindre <em>ton objectif</em>"));
+  assert.ok(app.includes("${masquee||reussie||!authReady?'':obCompteAtoutsHTML()}"));
 });
