@@ -45,7 +45,7 @@ test('le chiffre est le vrai nombre de défis, un rouleau par chiffre ; inconnu,
     assert.equal(roues.map(m => m[1]).join(''), String(n));
     assert.deepEqual(roues.map(m => +m[2]), [...String(n)].map((_, i) => i));
     for (const m of roues) assert.equal(m[3].replace(/<\/?b>/g, ''), '01234567890123456789', 'deux tours de 0 à 9');
-    assert.ok(h.includes('<span class="bjs-lib">défis<svg class="bjs-fleche"'));
+    assert.ok(h.includes('<span class="bjs-lib">KPI<svg class="bjs-fleche"'));
   }
   assert.ok(!stickers(null).includes('is-nb') && !stickers(0).includes('is-nb'));
   assert.ok(stickers(null).includes('is-sql') && stickers(null).includes('is-tab'));
