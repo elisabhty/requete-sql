@@ -185,7 +185,7 @@ test('réf. 6 et 7 : la première page parle de tous les appareils, et le bouton
   assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
   /* 4 novembre, 14 h 08 (réf. 3) : « monter encore le bouton jaune » : jusqu’à 58 px au-dessus de la barre d’accueil, 34 px au moins */
   assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + clamp(34px,6.6vh,58px))!important}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=50">') && sw.includes("'./onboarding-vitrine.css?v=50',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=51">') && sw.includes("'./onboarding-vitrine.css?v=51',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   /* Le cache a changé de nom ce jour-là (rappel-jours, v2497), et de nouveau à chaque version qui a suivi */
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2497, cache);

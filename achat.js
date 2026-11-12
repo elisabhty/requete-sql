@@ -36,6 +36,22 @@
    - prix(offre) → {prix, texte, parSemaine, devise} ou null : les prix de la
      boutique du pays de la personne (en dollars aux États-Unis…), pour
      que le paywall n'affiche pas des euros à tout le monde.
+
+   12 novembre, 16 h 34 (Elisa : « fais-le pour le −50 ») : l'offre de
+   bienvenue. Un deuxième abonnement annuel du même groupe,
+   fr.requete.app.annuel.bienvenue : même prix que l'annuel, avec une
+   offre de lancement Apple « payée d'avance, 1 an » à moitié prix (et
+   pas d'essai gratuit : Apple n'accorde qu'une offre de lancement par
+   personne et par groupe). Le paywall ne la propose qu'à qui referme la
+   feuille de paiement d'Apple (index.html, obSortieProposer).
+   - 'bienvenue' est une troisième offre pour acheter() et prix() ;
+     prix('bienvenue').intro = {prix, texte} : ce qu'Apple facture la
+     première année ;
+   - sortieDispo() → bool : vrai seulement si la boutique renvoie le
+     produit, son prix de lancement sur un an, et qu'Apple dit en clair
+     que ce compte y a droit (statut 2). Dans le doute, l'offre ne se
+     montre pas : personne ne doit lire « −50 % » puis voir le plein tarif
+     sur la feuille d'Apple.
    ===================================================================== */
 (function(){
   'use strict';
@@ -44,7 +60,7 @@
   var RC_CLE_IOS = 'appl_qLAPPmCbplIcNyriYbILgTzVYYQ';
   var DROIT = 'premium';
   var GARDE = 'requete-premium';
-  var PRODUITS = {an:'fr.requete.app.annuel', semaine:'fr.requete.app.hebdo'};
+  var PRODUITS = {an:'fr.requete.app.annuel', semaine:'fr.requete.app.hebdo', bienvenue:'fr.requete.app.annuel.bienvenue'};
 
   var C = window.Capacitor;
   var natif = !!(C && typeof C.isNativePlatform === 'function' && C.isNativePlatform());
@@ -55,6 +71,7 @@
   try { actifConnu = localStorage.getItem(GARDE) === '1'; } catch (e) {}
   var paquets = {};      /* 'an' | 'semaine' → le paquet RevenueCat (à repasser tel quel à purchasePackage) */
   var essais = {};       /* 'an' | 'semaine' → false si Apple dit « déjà eu l'essai » */
+  var statuts = {};      /* la réponse d'Apple telle quelle : 0 inconnu, 1 pas éligible, 2 éligible, 3 pas d'offre de lancement */
 
   function noterClient(info){
     var ci = info && (info.customerInfo || info);
@@ -65,6 +82,8 @@
   }
   function offreDe(pq){
     var t = pq && (pq.packageType || ''), id = pq && pq.product && pq.product.identifier;
+    /* Le produit de bienvenue d'abord : c'est aussi un annuel, il ne doit jamais prendre la place du paquet « an ». */
+    if (id === PRODUITS.bienvenue) return 'bienvenue';
     if (t === 'ANNUAL' || id === PRODUITS.an) return 'an';
     if (t === 'WEEKLY' || id === PRODUITS.semaine) return 'semaine';
     return '';
@@ -81,9 +100,18 @@
           var s = el && el[paquets[k].product.identifier];
           /* 1 = pas éligible (déjà eu l'essai) ; 0 = inconnu, 2 = éligible, 3 = pas d'offre : on ne cache l'essai que sur un « non » net. */
           essais[k] = !(s && Number(s.status) === 1);
+          statuts[k] = s ? Number(s.status) : 0;
         });
       });
     }).catch(function(){});
+  }
+  /* Le prix de lancement d'un produit : {prix, texte} seulement s'il est payant et couvre un an d'un coup (« P1Y », un seul cycle). */
+  function introDe(p){
+    var i = p && p.introPrice;
+    if (!i || typeof i.price !== 'number' || !(i.price > 0) || !i.priceString) return null;
+    var unAn = String(i.period || '').toUpperCase() === 'P1Y' || (String(i.periodUnit || '').toUpperCase() === 'YEAR' && Number(i.periodNumberOfUnits) === 1);
+    if (!unAn || (i.cycles != null && Number(i.cycles) !== 1)) return null;
+    return {prix: i.price, texte: i.priceString};
   }
   function annule(e){
     return !!(e && (e.userCancelled || e.code === '1' || e.code === 1 || /cancel/i.test(String(e.message || ''))));
@@ -113,7 +141,11 @@
     prix: function(offre){
       var pq = paquets[offre], p = pq && pq.product;
       if (!p || typeof p.price !== 'number') return null;
-      return {prix: p.price, texte: p.priceString || '', parSemaine: p.pricePerWeekString || '', devise: p.currencyCode || ''};
+      return {prix: p.price, texte: p.priceString || '', parSemaine: p.pricePerWeekString || '', devise: p.currencyCode || '', intro: introDe(p)};
+    },
+    sortieDispo: function(){
+      var pq = paquets.bienvenue, p = pq && pq.product, i = introDe(p);
+      return !!(i && typeof p.price === 'number' && i.prix < p.price && statuts.bienvenue === 2);
     }
   };
 })();
