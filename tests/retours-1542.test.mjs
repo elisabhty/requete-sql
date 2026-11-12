@@ -22,13 +22,14 @@ test('une échelle commune : 16 px sous la barre d’étapes, 10 px sous le titr
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-fit-1 .ob-chat{grid-template-columns:58px 1fr!important;margin:10px 0 12px!important}'));
 });
 
-test('les pages courtes : le pays et l’âge grandissent et se posent au tiers de la place qui reste', () => {
-  for (const k of ['html #onboarding.ob-vitrine .ob-screen.ob-pays-step{min-height:100%}', 'html #onboarding.ob-vitrine .ob-pays-step .ob-pays-carte{margin-top:auto;min-height:116px;padding:18px 20px}',
-    'html #onboarding.ob-vitrine .ob-pays-step .ob-pays-changer{margin-bottom:auto}', "html #onboarding.ob-vitrine .ob-screen.ob-pays-step::after{content:'';margin-top:auto}",
+test('les pages courtes : l’âge grandit et se pose au tiers de la place qui reste ; le pays suit son titre (12 novembre, 19 h 05)', () => {
+  for (const k of ['html #onboarding.ob-vitrine .ob-screen.ob-pays-step{min-height:100%}', 'html #onboarding.ob-vitrine .ob-pays-step .ob-pays-carte{min-height:116px;padding:18px 20px}',
     'html #onboarding.ob-vitrine .ob-screen.ob-age-step{min-height:100%}', 'html #onboarding.ob-vitrine .ob-age-step .ob-age-grid{margin-top:auto;margin-bottom:auto}',
     "html #onboarding.ob-vitrine .ob-screen.ob-age-step::after{content:'';margin-top:auto}", 'html #onboarding.ob-vitrine .ob-age-tile{min-height:100px}'])
     assert.ok(rythme.includes(k), k);
-  /* Trois marges automatiques (au-dessus, au-dessous, puis l’élément vide de la fin) : un tiers de la place au-dessus, deux tiers en dessous */
+  /* Trois marges automatiques (au-dessus, au-dessous, puis l’élément vide de la fin) : un tiers de la place au-dessus, deux tiers en dessous.
+     Le pays n’en a plus aucune : sa carte flottait au milieu, loin de son titre (voir retours-1905-espacements). */
+  assert.ok(!/\.ob-pays-step[^{]*\{[^}]*margin-(top|bottom):auto/.test(rythme));
   assert.ok(app.includes('<div class="ob-screen ob-profile ob-pays-step">') && app.includes('<div class="ob-screen ob-profile ob-age-step">'));
 });
 
@@ -41,5 +42,5 @@ test('les petits écrans : la mascotte se fait petite au palier 3, part au palie
   for (const k of ['.ob-fit-3 .ob-chat{display:none', '.ob-fit-4 .ob-chat{display:none', '.ob-rappel-step .ob-notif{display:none}'])
     assert.ok(!css.includes(k), k);
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'cinq paliers, comme avant');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=55">') && sw.includes("'./onboarding-vitrine.css?v=55',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=56">') && sw.includes("'./onboarding-vitrine.css?v=56',"), 'feuille rechargée');
 });

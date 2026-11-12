@@ -205,7 +205,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=14', 'onboarding-vitrine.css?v=55']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=14', 'onboarding-vitrine.css?v=56']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });
@@ -353,7 +353,8 @@ test('4 novembre, 1 h 31 : la première requête en deux pages, « Ton parcours 
   for (const k of ['html #onboarding.ob-vitrine .ob-screen.ob-build{height:100%}', 'html #onboarding.ob-vitrine .ob-build-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}',
     'html #onboarding.ob-vitrine .ob-build-path{position:relative;flex:0 1 auto;min-height:56px;overflow:hidden;align-content:flex-start}',
     'html #onboarding.ob-vitrine .ob-practice.is-result .ob-practice-table{flex:1 0 auto;grid-auto-rows:1fr;align-items:center}',
-    'html #onboarding.ob-vitrine .ob-screen.ob-practice:not(.is-result)>.ob-title{margin-top:auto!important}'])
+    /* 12 novembre, 19 h 05 : le titre de la première requête est sur la ligne des autres pages, la place libre sous la console */
+    'html #onboarding.ob-vitrine .ob-screen.ob-practice:not(.is-result)>.ob-practice-card{margin-bottom:auto!important}'])
     assert.ok(css.includes(k), k);
   const chips = fn('obFitChips', "if(typeof window!=='undefined')window.addEventListener('resize'");
   const ctx = vm.createContext({});
