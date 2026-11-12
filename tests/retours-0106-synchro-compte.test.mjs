@@ -84,7 +84,7 @@ test('un iPhone envoie sa progression, un autre la retrouve en se connectant', a
     plan, notes: [{id: 'n1', txt: 'GROUP BY avant HAVING', sql: '', ctx: '', ts: 100, pin: true}, {id: 'vide', txt: '  ', sql: '', ts: 1}]
   }});
   const r = await A.ctx.csSync({premier: true});
-  assert.deepEqual(JSON.parse(JSON.stringify(r)), {progression: 0, notes: 0}, 'tout est parti');
+  assert.deepEqual(JSON.parse(JSON.stringify(r)), {progression: 0, notes: 0, distant: {plan: false, progres: false, notes: false}}, 'tout est parti (et le compte était vide avant, 12 novembre)');
   const el = srv.comptes['u-1'].prog.el;
   assert.deepEqual(Object.keys(el).sort(), ['activity:2026-11-11', 'challenge:f1', 'interview:q7', 'lesson:0', 'lesson:1', 'planning:main']);
   assert.deepEqual(J(el['lesson:0'].data), {done: true, at: 1762900000123, due: 1763000000000, level: 2, etapes: {exo: 1, q1: 1}});

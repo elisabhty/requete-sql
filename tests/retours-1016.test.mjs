@@ -123,14 +123,31 @@ test('sans fournisseur, toucher un bouton ne connecte à rien : la page le dit, 
 test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, puis le paywall (10 novembre)', async () => {
   const vers = [];
   const ctx = vm.createContext({
-    window: { REQUETE_AUTH: { signIn: async p => ({ email: `elisa@${p}.test` }) } }, state: {}, draft: {}, obEntry: 'welcome', obAuthBusy: false, obAuthMessage: '',
+    window: { REQUETE_AUTH: { signIn: async p => ({ email: `elisa@${p}.test` }) } }, state: {}, draft: { finVoulue: 'home' }, obEntry: 'welcome', obAuthBusy: false, obAuthMessage: '',
     paintOb() {}, save() {}, obGoto: t => vers.push(t), obApresCompte: () => vers.push('paywall'), buzz() {}, closeOnboardingAuth() {}, renderCompte() {}, toast() {},
   });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS=') + connexion, ctx);
   await vm.runInContext("obStartAuth('apple',null)", ctx);
   assert.equal(state(ctx).accountMode, 'connected');
   assert.equal(state(ctx).accountLabel, 'elisa@apple.test');
-  assert.deepEqual(vers, ['paywall']);
+  assert.deepEqual(vers, ['paywall'], 'à la fin de l’onboarding (« Ton parcours est prêt ») : le paywall');
+  /* 12 novembre, 9 h 53 : depuis « J’ai déjà un compte », au début : un compte qui a déjà une progression mène à Mon compte (après le
+     paywall s’il y en a un) ; un compte vide (une nouvelle personne) reste connecté et enchaîne sur les questions, son prénom déjà là */
+  for (const [connu, attendu] of [[true, ['paywall']], [false, ['questions']]]) {
+    const v = [], bandeaux = [];
+    const c = vm.createContext({
+      window: { REQUETE_AUTH: { signIn: async () => ({ email: 'lea@apple.test', prenom: 'Léa' }) } }, state: {}, draft: {}, obEntry: 'welcome', obAuthBusy: false, obAuthMessage: '',
+      paintOb() {}, save() {}, obGoto: t => v.push(t), obApresCompte: () => v.push('paywall'), buzz() {}, obTypo: x => x, obBandeau: t => bandeaux.push(t),
+      setTimeout: (f, ms) => (ms < 1000 ? f() : 0), obDraftDepuisEtat() {},
+    });
+    vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS=') + connexion + cut('function obCompteConnu(r){', '\n}\n') + '\n}', c);
+    /* Ce que le compte contenait (csDistant, posé par csSync) ; la synchro elle-même n’est pas branchée ici */
+    vm.runInContext(`CS.distant={plan:${connu},progres:false,notes:false}`, c);
+    await vm.runInContext("obStartAuth('apple',null)", c);
+    assert.deepEqual(v, attendu, connu ? 'compte connu' : 'compte nouveau');
+    assert.equal(vm.runInContext('draft.finConnexion', c), connu ? 'compte' : undefined);
+    if (!connu) { assert.equal(vm.runInContext('draft.name', c), 'Léa'); assert.deepEqual(bandeaux, ['Ton compte est prêt. Quelques questions pour préparer ton parcours.']); }
+  }
   assert.ok(connexion.includes("'Connexion impossible pour le moment. Réessaie dans un instant.'") && !connexion.includes('continue sans compte'), 'un échec propose de réessayer');
 });
 
