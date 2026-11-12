@@ -582,9 +582,10 @@ activés) sont réglés. Remettre `ACTIVE = false` cache de nouveau la page de c
    compte depuis le 12 novembre), liés à la personne, pour le fonctionnement de l’app), la page de confidentialité du site (compte, progression synchronisée, suppression), et un compte
    de démonstration pour l’App Review (règle 2.1) si la connexion est demandée quelque part.
 
-**Le compte reste facultatif** (12 novembre, 13 h 33) : sous les boutons Apple et Google, « Continuer sans compte » ; à la fin de
-l’onboarding, une question rappelle que la progression reste alors sur l’appareil, puis le paywall. Le compte se crée plus tard
-dans Mon compte. Pour l’App Review (règle 5.1.1(v)), la note peut le dire : la connexion n’est pas obligatoire.
+**Le compte est le seul chemin** une fois la connexion branchée (10 novembre, 10 h 29 ; redit le 12 novembre, 13 h 44 : « Pas de
+sans compte stp ») : pas de « Continuer sans compte ». Pour l’App Review (règle 5.1.1(v)), la note doit expliquer pourquoi la
+connexion est demandée (la progression et le planning synchronisés entre appareils) ; Apple peut se connecter avec son propre
+identifiant Apple.
 
 Supprimer son compte (Mon compte) efface aussi le compte Supabase et sa progression synchronisée (`compte_supprimer` avec le
 jeton). « Effacer toute ta progression » efface aussi celle du compte, avant l’appareil.

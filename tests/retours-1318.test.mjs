@@ -166,7 +166,7 @@ test('la liste en feuille : recherche sans accents, pays proches en tête, le pa
 });
 
 test('les feuilles de style : la page (rechargée, v19) et ses animations, la feuille des pays et les pastilles (v136)', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=46">') && sw.includes("'./onboarding-vitrine.css?v=46',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=47">') && sw.includes("'./onboarding-vitrine.css?v=47',"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=316">'));
   for (const k of ['html #onboarding.ob-vitrine .ob-pays-carte.is-on{border-color:var(--v-sun);background:#FFFBEB;box-shadow:0 5px 0 var(--v-sun-lip)}',
     'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-radar{display:flex}', 'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-trouve{display:none}',
