@@ -394,6 +394,17 @@ part dès que la clé est là. Garde-fous : 40 e-mails par jour au plus, regroup
 un envoi raté est réessayé chaque heure, 5 fois au plus. Ce qui ne part pas reste lisible dans Supabase (vues `contact_boite`
 et `avis_commentaires`). Vérification de la base : `supabase/tests/alerte_mail.sql` (tout est annulé à la fin).
 
+### « Une méthode fondée sur la recherche » dans l’onboarding (13 novembre, 0 h 07)
+
+La scène de la vidéo « Le métier de data analyst » qui parle de la recherche sur l’apprentissage (`decouvrir/video.html`,
+scène `sme`) est devenue une page de l’onboarding, `methode`, entre « On construit ton parcours » et « Ils apprécient
+Requête » : trois cartes (pratiquer, se tester, réviser au bon moment, avec les jours de révision de l’appli), puis « 1,5 × »,
+qui ouvre les trois études. Le parcours compte une étape de plus (14). La vidéo du site n’a pas changé.
+
+**Reste à faire, avec l’accord d’Elisa** : la vue `public.onboarding_entonnoir` (tableau de bord) ne connaît pas encore l’étape.
+Elle est comptée dans `onboarding_etape` comme les autres dès la nouvelle version ; pour la voir dans l’entonnoir, il faut une
+migration qui ajoute `('methode', 11, 'Méthode fondée sur la recherche')` et décale les rangs suivants (19 au lieu de 18).
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre
