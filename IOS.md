@@ -414,6 +414,13 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
    touche Entrée (11 novembre, 14 h 36 : « le chat qui marche dessus » ; ses deux GIF sur fond vert, détourés en bandes de 12
    images par `python3 tools/chat-ouverture.py marche.gif appui.gif`). Plus de version courte pour les ouvertures suivantes du
    jour (17 h 56 : « je préfère la longue »).
+   **Départ rapide** (12 novembre : « Le départ est trop long ça reste trop longtemps sur ça ») : l’ouverture n’attend plus la fin
+   du démarrage. Dès que l’état est lu et que le chat et son son sont prêts, `boot` la lance à sa première porte (`bootPorte`,
+   qui appelle `__introPorte`), attend la fin de la construction (cases, soudure, lettres), puis reprend pendant la marche du
+   chat, sans lancer d’étape à moins de 130 ms d’un retour haptique. Pendant ce temps, tout ce qui bouge doit rester en
+   transform et opacité, sans `steps()` (WebKit ne les joue jamais dans le compositeur) : les images du chat défilent en paliers.
+   La sortie (classe `is-sortie`) attend l’appli prête ; sinon la touche, qui remplit l’écran, reste. Mesuré dans Chromium : de
+   l’écran de lancement à l’animation, 0,4 s au lieu de 0,8 s (1,4 s au lieu de 3,1 s sur un processeur quatre fois plus lent).
    **Son et haptique** (4 novembre, 1 h 51 ; 11 novembre) : un son calé sur l’animation (`assets/sons/ouverture.m4a`, fabriqué par
    `python3 tools/sons/ouverture.py` : envol, un « tic » par case posée, le toc de la touche entière, une clochette par lettre,
    l’appui, le souffle de la plongée, un accord d’arrivée), joué par Web Audio en session « ambient » : il se mêle à la musique
