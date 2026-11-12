@@ -19,5 +19,5 @@ test('la fiche : un petit espace entre le recto et l’ampoule', () => {
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=315">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-retours-onboarding-v2878';") && app.includes("const SW_CACHE='requete-2026-11-12-retours-onboarding-v2878';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-connexion-mon-compte-v2879';") && app.includes("const SW_CACHE='requete-2026-11-12-connexion-mon-compte-v2879';"));
 });
