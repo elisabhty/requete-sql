@@ -77,8 +77,9 @@ test('« En tête » : le parcours qui a le plus de votes, lu à la base de l’
   assert.equal(s.calls.length, 1, 'pas plus d’une fois toutes les 5 minutes');
   await s.ctx.parcoursTeteCharger(true);
   assert.equal(s.calls.length, 2);
-  assert.ok(block.includes('parcoursEnvoyerVote().then(ok=>{if(activeTab===\'parcours\')renderParcoursScreen();if(ok)parcoursTeteCharger(true);});'));
-  assert.ok(block.includes('  if(p)parcoursTeteCharger();\n}'), 'à chaque ouverture de la page d’un parcours');
+  /* 12 novembre (réf. 15) : le vote se met à jour sur place, sans redessiner la page ; puis « En tête » et les résultats */
+  assert.ok(block.includes('parcoursEnvoyerVote().then(ok=>{parcoursVoteMaj();if(ok){parcoursTeteCharger(true);parcoursResultatsCharger(true);}});'));
+  assert.ok(block.includes('  if(p){parcoursTeteCharger();if(parcoursVote()){parcoursResultatsPeindre();parcoursResultatsCharger();}}\n}'), 'à chaque ouverture de la page d’un parcours');
   /* Une réponse inattendue (SQL, un parcours inconnu) ou hors ligne : pas de badge */
   for (const opt of [{ tete: 'sql' }, { tete: 'java' }, { tete: null }, { rpcKo: true }]) {
     const t = sandbox(opt);

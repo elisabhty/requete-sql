@@ -31,9 +31,11 @@ function bacQuitter(J, o = {}) {
 test('l’hôte seul qui quitte sa salle d’attente : « Veux-tu quitter la salle ? », en partant il la ferme (13 h 09, 13 h 11)', () => {
   for (const created of [true, false]) {
     const q = bacQuitter({ view: 'lobby', synced: true, solo: false, created })();
-    assert.equal(q.titre, 'Veux-tu quitter la salle\u00a0?');
-    assert.equal(q.texte, 'Tu y es seul·e : en partant, tu la fermes.', created ? 'qui l’a ouverte' : 'resté seul après le départ de l’hôte');
-    assert.equal(q.oui, 'Quitter'); assert.equal(q.non, 'Rester'); assert.ok(!q.danger);
+    /* 12 novembre (réf. 3 et 4, « Ma proposition ») : son titre, sa phrase ; rester en bouton plein, partir dessous */
+    assert.equal(q.titre, 'Quitter la salle\u00a0?');
+    assert.equal(q.texte, 'Tu es encore seul·e dans la salle. Si tu la quittes, elle sera automatiquement supprimée.', created ? 'qui l’a ouverte' : 'resté seul après le départ de l’hôte');
+    assert.equal(q.oui, 'Rester dans la salle'); assert.equal(q.trois, 'Quitter et supprimer la salle'); assert.equal(q.non, null);
+    assert.ok(q.partirSiTrois && !q.danger);
   }
   assert.ok(!app.includes('Tu pourras y revenir depuis Défis'), 'plus de « Tu pourras y revenir »');
   /* Ce qui existait reste : avec d’autres, un autre devient l’hôte ; en pleine manche, la manche est perdue */

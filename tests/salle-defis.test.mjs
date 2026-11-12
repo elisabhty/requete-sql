@@ -1673,7 +1673,7 @@ test('12 h 36 : l’ami resté seul garde la salle d’attente en hôte ; le pod
     host.ev('jeuStop()'); sec(w, 40);
     assert.equal(guests[0].view(), 'lobby', 'plus de « Cette salle est vide » 30 s après le départ de l’hôte');
     assert.ok(guests[0].ev('jeuIsHost()'));
-    assert.match(guests[0].ev('jeuLeaveQuestion().texte'), /^Tu y es seul/, 'pas « Personne ne l’a encore rejointe »');
+    assert.match(guests[0].ev('jeuLeaveQuestion().texte'), /^Tu es encore seul/, 'pas « Personne ne l’a encore rejointe »');
     const ghost = makeClient(w, 'Tard');
     guests[0].ev('jeuStop()'); sec(w, 120);
     ghost.join('ROOM42'); sec(w, 60);
@@ -1722,18 +1722,18 @@ test('12 h 47 : en temps normal, l’écran de fin arrive avec la fin de l’hô
 test('13 h 09 : l’hôte seul quitte sa salle d’attente (« Veux-tu quitter la salle ? », 13 h 11) ; son code ne mène plus à personne', () => {
   const w = new World();
   const h = makeClient(w, 'Hôte'); const asks = []; let partie = 0;
-  h.ctx.lqAsk = q => { asks.push(q.titre + ' ' + q.texte); return { then: f => f(true) }; }; h.ctx.__partie = () => { partie++; h.ev('jeuStop()'); };
+  h.ctx.lqAsk = q => { asks.push(q.titre + ' ' + q.texte); return { then: f => f(q.partirSiTrois ? 'trois' : true) }; }; h.ctx.__partie = () => { partie++; h.ev('jeuStop()'); };
   h.host('SEUL42'); sec(w, 3);
   assert.equal(h.view(), 'lobby');
   h.ev('jeuLeaveAsk(()=>__partie())'); sec(w, 2);
-  assert.deepEqual(asks, ['Veux-tu quitter la salle\u00a0? Tu y es seul·e : en partant, tu la fermes.']); assert.equal(partie, 1);
+  assert.deepEqual(asks, ['Quitter la salle\u00a0? Tu es encore seul·e dans la salle. Si tu la quittes, elle sera automatiquement supprimée.']); assert.equal(partie, 1);
   const tard = makeClient(w, 'Tard'); tard.join('SEUL42'); sec(w, 60);
   assert.equal(tard.view(), 'empty', 'la salle est fermée : « Cette salle est vide »');
   /* resté seul après le départ de l’hôte : pareil */
   const { w: w2, host, guests } = room({ n: 2 });
   host.ev('jeuStop()'); sec(w2, 5);
   assert.ok(guests[0].ev('jeuIsHost()'));
-  assert.match(guests[0].ev('jeuLeaveQuestion().texte'), /en partant, tu la fermes/);
+  assert.match(guests[0].ev('jeuLeaveQuestion().texte'), /elle sera automatiquement supprimée/);
 });
 
 /* 9 novembre, 13 h 20 (Elisa : la salle d’attente selon le rôle ; « Retirer ce joueur » à 60 s, avec une question, jamais tout seul) */

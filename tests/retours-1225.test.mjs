@@ -23,7 +23,7 @@ test('réf. 1 : « Ta séance du jour, sans déverrouiller l’écran »', () =>
 
 test('réf. 2 : le pays touché se coche, la feuille attend deux secondes avant de partir avec lui', () => {
   const f = cut('function paysFeuille(actuel,choisir){', 'function paysFiltrer(f,texte){');
-  assert.ok(html.includes('const PAYS_ATTENTE=2000;'));
+  assert.ok(html.includes('const PAYS_ATTENTE=900;'), '12 novembre (réf. 9) : raccourci à 0,9 s');
   assert.ok(f.includes("const partir=()=>{clearTimeout(attente);if(f.id==='pays-feuille')paysFeuilleFermer();if(pris){const c=pris;pris=null;choisir(c);}};"), 'part avec le pays coché');
   assert.ok(f.includes("x.classList.add('is-on','is-pris');x.setAttribute('aria-pressed','true');") && f.includes(`x.insertAdjacentHTML('beforeend','<i class="pays-ok" aria-hidden="true">✓</i>')`), 'coché tout de suite');
   assert.ok(f.includes('pris=b.dataset.pays;\n    clearTimeout(attente);attente=setTimeout(partir,prefersReduceMotion()?700:PAYS_ATTENTE);'), 'un autre pays touché reprend l’attente');

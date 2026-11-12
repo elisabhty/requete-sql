@@ -83,7 +83,7 @@ test('déjà inscrit : le pays deviné une fois, sans rien demander ; pas pendan
 });
 
 test('l’onboarding : la page « Tu vis où ? » juste après le prénom, dans le compte des étapes', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job',"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job',"));
   assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job',"));
   assert.ok(app.includes("  else if(slide==='name')obGoto('pays');\n  else if(slide==='pays')obGoto('age');"));
   assert.ok(app.includes("  if((draft.name||'').trim()){obGoto('pays');return;}"), '« Continuer » et Entrée au prénom');
@@ -163,8 +163,8 @@ test('la liste en feuille : recherche sans accents, pays proches en tête, le pa
 });
 
 test('les feuilles de style : la page (rechargée, v19) et ses animations, la feuille des pays et les pastilles (v136)', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=314">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=44">') && sw.includes("'./onboarding-vitrine.css?v=44',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=315">'));
   for (const k of ['html #onboarding.ob-vitrine .ob-pays-carte.is-on{border-color:var(--v-sun);background:#FFFBEB;box-shadow:0 5px 0 var(--v-sun-lip)}',
     'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-radar{display:flex}', 'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-trouve{display:none}',
     'html #onboarding.ob-vitrine .ob-pays-globe i:first-child{opacity:1}', '@keyframes obvPaysGlobe{', '@keyframes obvPaysPose{'])

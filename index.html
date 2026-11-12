@@ -6734,9 +6734,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=314">
+<link rel="stylesheet" href="ludique.css?v=315">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=43">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=44">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -21771,8 +21771,9 @@ function createProjectFromForm(event){
   projOf(id);saveProjState();
   consoleCreateOpen=false;
   openConsoleProject(id);
-  /* La coche sur le titre du projet, au lieu d’une notification (9 h 24 : « pareil ailleurs, ex : console »). */
-  requestAnimationFrame(()=>lqDone(document.querySelector('#scr-console .lgtitle h1'),'Projet créé','Projet créé : importe un fichier ou crée une table.'));
+  /* La coche sur le titre du projet, au lieu d’une notification (9 h 24 : « pareil ailleurs, ex : console »). 12 novembre (réf. 7,
+     sur la coche posée sur « Jjekz ») : « une belle interaction, mais pas le V encore pour cette action » : le projet naît (lqProjetNe). */
+  requestAnimationFrame(()=>lqProjetNe('Projet créé : importe un fichier ou crée une table.'));
 }
 async function renameDb(id){
   if(isDemoDb(id))return;
@@ -21780,7 +21781,9 @@ async function renameDb(id){
   const name=await lqPrompt({ico:'✏️',titre:'Renommer le projet',valeur:meta.name,placeholder:'Analyse des ventes',max:40,oui:'Renommer'});
   if(!name||name===meta.name)return;
   meta.name=name.slice(0,40);
-  persistCustomDbs(id);renderConsoleHome();lqDone(document.querySelector(`#scr-console [data-db="${CSS.escape(id)}"]`)||document.querySelector('#scr-console .console-title-row h1'),'Renommé','Projet renommé');
+  persistCustomDbs(id);renderConsoleHome();
+  const carte=document.querySelector(`#scr-console [data-db="${CSS.escape(id)}"]`);
+  if(carte)lqDone(carte,'Renommé','Projet renommé');else lqProjetNe('Projet renommé : '+meta.name,true);
 }
 function consoleSchemaStats(){
   const database=activeDb();
@@ -21844,8 +21847,14 @@ function setConsoleProjectPanel(panel){
   consoleProjectPanel=panel;
   renderConsoleSide();
   syncConsoleProjectPanels();
-  const screen=document.getElementById('scr-console');
-  if(screen)screen.scrollTo({top:0,behavior:prefersReduceMotion()?'auto':'smooth'});
+  /* 12 novembre (Elisa : « quand on clique sur un bouton, à part besoin, ne pas nous emmener en haut de la page ») : changer
+     d’onglet (Éditeur, Épinglées, Historique) ne remonte plus en haut de l’écran ; seulement si les onglets sont sortis par le haut,
+     l’écran les ramène juste sous la barre d’état. */
+  const screen=document.getElementById('scr-console'),tabs=screen&&screen.querySelector('.console-project-tabs');
+  if(screen&&tabs){
+    const haut=(typeof lqHautSur==='function'?lqHautSur():0)+8,y=tabs.getBoundingClientRect().top;
+    if(y<haut)screen.scrollTo({top:Math.max(0,screen.scrollTop+y-haut),behavior:prefersReduceMotion()?'auto':'smooth'});
+  }
 }
 function onConsoleTabsKey(event){
   const tabs=['editor','pins','history'];
@@ -27655,14 +27664,17 @@ function renderParcoursScreen(){
     if(b)b.setAttribute('aria-label','Retour aux parcours');
   }
   host.innerHTML=p?parcoursPageHTML(p):parcoursListeHTML();
-  if(p)parcoursTeteCharger();
+  if(p){parcoursTeteCharger();if(parcoursVote()){parcoursResultatsPeindre();parcoursResultatsCharger();}}
 }
 function parcoursListeHTML(){
   const done=parcoursSqlFaites(),pct=TOTAL?Math.min(100,Math.round(done/TOTAL*100)):0,al=parcoursAlertes(),v=parcoursVote();
   const vp=v&&PARCOURS.find(p=>p.id===v.id);
   const nMods=MODULES.filter(m=>m.lessons.length).length;
+  /* 12 novembre (Elisa, sur les cloches de la liste : « une micro-interaction qui dit que c’est bon, mais pas emmené vers une autre
+     page ») : la cloche est un bouton à part, posé sur la carte ; elle active ou coupe l’alerte sur place (parcoursCloche). La carte,
+     elle, ouvre toujours la page du parcours. */
   const soon=parcoursAVenir().map(p=>{const on=al.includes(p.id);
-    return `<li><button type="button" class="pc-card is-soon" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir${on?', alerte activée':''}"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-card-copy"><b>${esc(p.titre)}</b><em class="pc-tag">À venir</em></span><span class="pc-bell${on?' is-on':''}" aria-hidden="true">${PC_BELL_SVG}</span></button></li>`;}).join('');
+    return `<li class="pc-soon"><button type="button" class="pc-card is-soon" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-card-copy"><b>${esc(p.titre)}</b><em class="pc-tag">À venir</em></span><span class="pc-bell-place" aria-hidden="true"></span></button><button type="button" class="pc-bell${on?' is-on':''}" aria-pressed="${on?'true':'false'}" aria-label="${escAttr('M’avertir au lancement de '+p.titre)}" onclick="parcoursCloche('${p.id}',this)">${PC_BELL_SVG}<i class="pc-bell-ok" aria-hidden="true"></i></button></li>`;}).join('');
   return `<div class="pc-view">
     <p class="pc-sec">Disponible</p>
     <button type="button" class="pc-card is-on" onclick="returnToHome()" aria-label="${escAttr(`Parcours SQL, ${parcoursSqlEtat(done).toLowerCase()} : ${parcoursValidees(done)}`)}"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg('db')}</i><span class="pc-card-copy"><span class="pc-card-top"><b>SQL</b><em class="pc-tag is-on">${parcoursSqlEtat(done)}</em></span><span class="pc-card-meta">${PC_BOOK_SVG}${nMods} modules · ${TOTAL} leçons</span><span class="pc-bar" aria-hidden="true"><i style="width:${pct}%"></i></span><small>${parcoursValidees(done)}</small></span><span class="pc-card-go" aria-hidden="true">${DEF_CHEV_SVG}</span></button>
@@ -27858,11 +27870,75 @@ function parcoursVoter(){
   const id=parcoursChoix||(coche&&coche.value);
   const p=PARCOURS.find(x=>x.id===id&&!x.dispo);
   if(!p||parcoursEnvoi||parcoursVoteFait(p.id))return;
-  if(typeof buzz==='function')buzz('light');
+  if(typeof buzz==='function')buzz('success');
   state.parcoursVote={id:p.id,le:Date.now(),envoye:false};save();
   parcoursChoix=null;
-  parcoursEnvoyerVote().then(ok=>{if(activeTab==='parcours')renderParcoursScreen();if(ok)parcoursTeteCharger(true);});
-  renderParcoursScreen();
+  /* 12 novembre (réf. 15 : « il y a un flash au vote et on voit pas les résultats ? ») : la page n’est plus redessinée (son entrée se
+     rejouait : le flash, et l’écran pouvait remonter) ; ce que le vote change se met à jour sur place, puis les résultats s’affichent. */
+  parcoursEnvoyerVote().then(ok=>{parcoursVoteMaj();if(ok){parcoursTeteCharger(true);parcoursResultatsCharger(true);}});
+  parcoursVoteMaj(true);
+}
+/* Sur place : « Ton vote » sous le bon parcours, le bouton (« Envoi… », puis « Vote enregistré », d’un petit bond), le message, les résultats. */
+function parcoursVoteMaj(anim){
+  const host=typeof document!=='undefined'&&document.getElementById('parcours-body');
+  if(!host||!host.querySelector('.pc-vote'))return;
+  const v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
+  host.querySelectorAll('.pc-opt').forEach(l=>{
+    const i=l.querySelector('input'),t=l.querySelector('.pc-opt-t'),m=t&&t.querySelector('.pc-opt-moi'),moi=!!(v&&i&&v.id===i.value);
+    if(moi&&t&&!m)t.insertAdjacentHTML('beforeend','<small class="pc-opt-moi">Ton vote</small>');else if(!moi&&m)m.remove();
+  });
+  const coche=host.querySelector('input[name="pc-vote"]:checked'),sel=coche?coche.value:(v&&v.id);
+  const btn=host.querySelector('.pc-vote-go'),bt=btn&&btn.querySelector('span');
+  if(btn){
+    const envoi=parcoursEnvoi&&v&&v.id===sel;
+    btn.disabled=envoi||parcoursVoteFait(sel);
+    if(bt)bt.textContent=envoi?'Envoi…':parcoursVoteLabel(sel);
+    if(anim&&!prefersReduceMotion()){btn.classList.remove('is-vote');void btn.offsetWidth;btn.classList.add('is-vote');setTimeout(()=>btn.classList.remove('is-vote'),700);}
+  }
+  const ok=host.querySelector('.pc-vote-ok');if(ok)ok.innerHTML=parcoursVoteMsg(vp);
+  parcoursResultatsPeindre();
+}
+/* Les résultats du vote (parcours_resultats : la part de chaque parcours en pour cent, sans aucun nombre de votes, à partir du seuil
+   de la base ; supabase/migrations/20261112090000_parcours_resultats.sql) : une barre derrière chaque choix, son pourcentage à droite,
+   une fois qu’on a voté. Sous le seuil, une phrase le dit ; hors ligne, ou la fonction absente, rien ne s’affiche. */
+let parcoursRes=null,parcoursResLe=0,parcoursResVa=false;
+function parcoursResultatsCharger(force){
+  if(parcoursResVa||(!force&&Date.now()-parcoursResLe<60000)||typeof clsRpc!=='function')return Promise.resolve(parcoursRes);
+  parcoursResVa=true;
+  return clsRpc('parcours_resultats',{}).then(r=>{parcoursRes=r&&typeof r==='object'?r:null;parcoursResLe=Date.now();})
+    .catch(()=>{}).then(()=>{parcoursResVa=false;parcoursResultatsPeindre();return parcoursRes;});
+}
+function parcoursResultatsPeindre(){
+  const host=typeof document!=='undefined'&&document.getElementById('parcours-body');
+  if(!host||!host.querySelector('.pc-vote'))return;
+  const v=parcoursVote(),r=v?parcoursRes:null,parts=r&&r.parts&&typeof r.parts==='object'?r.parts:null;
+  host.querySelectorAll('.pc-opt').forEach(l=>{
+    const i=l.querySelector('input'),id=i&&i.value;let b=l.querySelector('.pc-res');
+    const n=parts&&id?Number(parts[id]):NaN,pc=Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):null;
+    if(pc==null){if(b)b.remove();l.classList.remove('has-res');return;}
+    if(!b){l.insertAdjacentHTML('beforeend','<span class="pc-res"><i aria-hidden="true"></i><b></b></span>');b=l.querySelector('.pc-res');}
+    l.classList.add('has-res');
+    requestAnimationFrame(()=>b.style.setProperty('--p',pc+'%'));
+    b.querySelector('b').textContent=pc+'\u00a0%';
+  });
+  let note=host.querySelector('.pc-res-note');
+  const seuil=r&&!parts&&Number(r.seuil)>1?Number(r.seuil):0;
+  if(seuil){
+    if(!note){host.querySelector('.pc-vote-ok')?.insertAdjacentHTML('afterend','<p class="pc-res-note"></p>');note=host.querySelector('.pc-res-note');}
+    if(note)note.textContent=`Les résultats s’afficheront dès ${seuil}\u00a0votes.`;
+  }else if(note)note.remove();
+}
+/* La cloche d’un parcours à venir, dans la liste : l’alerte s’active (ou se coupe) sur place. Activée, la cloche se remplit, sonne,
+   lâche deux ondes, et une coche menthe se pose à son coin ; coupée, elle se vide d’un petit frisson. La carte annonce l’état. */
+function parcoursCloche(id,btn){
+  if(!btn||!parcoursAVenir().some(p=>p.id===id))return;
+  const on=!parcoursAlertes().includes(id);
+  parcoursAlerte(id,on);
+  btn.classList.toggle('is-on',on);btn.setAttribute('aria-pressed',on?'true':'false');
+  if(!prefersReduceMotion()){
+    btn.classList.remove('is-sonne','is-coupe');void btn.offsetWidth;btn.classList.add(on?'is-sonne':'is-coupe');
+    clearTimeout(btn._pcT);btn._pcT=setTimeout(()=>btn.classList.remove('is-sonne','is-coupe'),1300);
+  }
 }
 /* Le vote part à la base de l’appli (Supabase, Paris), avec l’identifiant tiré au hasard de l’appareil (le même que le classement
    des défis) : ni nom, ni e-mail. Hors ligne, ou si la base ne répond pas (parcours_voter : supabase/migrations/…_parcours_vote.sql),
@@ -38323,7 +38399,11 @@ function jeuLeaveQuestion(){
   /* 9 novembre, 13 h 09 (Elisa : « si la personne qui est l’hôte et seule part, ça quitte carrément la salle » ; 13 h 11 : « il y a quand
      même “veux-tu quitter la salle” ») : plus de « Ta salle » à retrouver dans Défis (8 novembre, 23 h 44) : l’hôte seul qui part ferme
      sa salle, et la question le dit. Son départ (« bye », jeuStop) la retire des salles ouvertes ; son code ne mène plus à personne. */
-  if(!J.solo&&v==='lobby'&&J.synced&&jeuIsHost()&&!jeuCommencee())return {ico:'👋',titre:'Veux-tu quitter la salle\u00a0?',texte:`Tu y es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'} : en partant, tu la fermes.`,oui:'Quitter',non:'Rester'};
+  /* 12 novembre (réf. 3 et 4, « Ma proposition ») : « Quitter la salle ? », la phrase d’Elisa, et le bouton plein pour rester ;
+     « Quitter et supprimer la salle » dessous (o.trois : la croix et le fond, eux, gardent dans la salle). */
+  if(!J.solo&&v==='lobby'&&J.synced&&jeuIsHost()&&!jeuCommencee())return {ico:'👋',titre:'Quitter la salle\u00a0?',
+    texte:`Tu es encore ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'} dans la salle. Si tu la quittes, elle sera automatiquement supprimée.`,
+    oui:'Rester dans la salle',trois:'Quitter et supprimer la salle',non:null,partirSiTrois:true};
   return null;
 }
 function jeuLeaveOk(){return !jeuLeaveQuestion();}
@@ -38341,7 +38421,7 @@ function jeuVersClassement(){
 function jeuLeaveAsk(suite){
   const q=jeuLeaveQuestion(),J=JEU;
   if(!q){suite();return;}
-  lqAsk(q).then(ok=>{if(ok&&JEU===J){J.leaveOk=true;suite();}});
+  lqAsk(q).then(r=>{const part=q.partirSiTrois?r==='trois':r===true;if(part&&JEU===J){J.leaveOk=true;suite();}});
 }
 if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{if(!document.hidden&&JEU)jeuResume();});
 if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('pagehide',()=>{const J=JEU;if(J&&!J.solo&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}});
@@ -41382,6 +41462,39 @@ function lqDone(el,label,say){
   requestAnimationFrame(follow);
   setTimeout(()=>c.remove(),1100);
 }
+/* La naissance d’un projet (Elisa, 12 novembre, réf. 7 : « met une belle interaction mais pas le V encore pour cette action ») : sur la
+   carte violette du projet, l’autocollant de la base tombe d’en haut et rebondit, des étincelles jaunes et menthe en jaillissent, les
+   lettres du nom montent une à une, et « Projet local » saute ; une vibration de réussite. Renommé (renomme) : le nom se réécrit et
+   scintille, sans la chute de la base. Le lecteur d’écran entend say. Mouvement réduit : la carte s’allume seulement (lqFresh). */
+function lqProjetNe(say,renomme){
+  lqSay(say);
+  if(typeof buzz==='function')buzz('success');
+  const h1=document.querySelector('#scr-console .console-title-row.is-project h1')||document.querySelector('#scr-console .lgtitle h1');
+  if(!h1)return;
+  const row=h1.closest('.console-title-row'),hero=h1.parentElement;
+  if(prefersReduceMotion()||!row){lqFresh(h1);return;}
+  const html=h1.innerHTML,txt=h1.textContent;
+  let k=0;
+  const lettres=c=>Array.from(c).map(ch=>`<span class="lq-ne-l" style="--i:${k++}">${esc(ch)}</span>`).join('');
+  /* Les mots restent entiers (ils ne se coupent qu’aux espaces et après « _ », comme le titre) */
+  h1.innerHTML=txt.split(/(\s+)/).map(m=>/^\s+$/.test(m)?m:m.split(/(?<=_)/).map(b=>`<span class="lq-ne-m">${lettres(b)}</span>`).join('<wbr>')).join('');
+  h1.setAttribute('aria-label',txt);
+  row.classList.remove('lq-ne','lq-ne-renomme');void row.offsetWidth;
+  row.classList.add('lq-ne');if(renomme)row.classList.add('lq-ne-renomme');
+  const stk=hero.querySelector('.console-hero-stk');
+  let ec=null;
+  if(stk){
+    ec=document.createElement('span');ec.className='lq-ne-eclats';ec.setAttribute('aria-hidden','true');
+    ec.innerHTML=Array.from({length:10},(_,i)=>`<i style="--a:${i*36+(i%2?14:0)}deg;--d:${i%3?44:58}px;--t:${i*18}ms">${LQC_STAR}</i>`).join('');
+    stk.after(ec);
+  }
+  const fin=Math.max(1250,620+k*45);
+  clearTimeout(row._lqNe);
+  row._lqNe=setTimeout(()=>{
+    if(h1.isConnected&&h1.textContent===txt){h1.innerHTML=html;h1.removeAttribute('aria-label');}
+    row.classList.remove('lq-ne','lq-ne-renomme');if(ec)ec.remove();
+  },fin);
+}
 /* La poubelle des notes (Elisa, 11 novembre, 21 h 11 : plus de « Note supprimée » ni d’« Annuler », « une micro-interaction vraiment,
    vraiment fun, vraiment cool » à la place). La note se froisse en boulette ; une petite poubelle rose (avec une tête) sort à sa place,
    ouvre le couvercle et la bouche en « o » ; la boulette part en cloche et tombe dedans ; le couvercle claque, la poubelle s’écrase,
@@ -43162,8 +43275,12 @@ function entSesRestore(){
 /* « Continuer la préparation » (Elisa, 2 novembre, 23 h 22 : « il ne faut pas que ce soit les déjà maîtrisées ») : une série lancée par
    la carte violette ne passe que par les questions pas encore maîtrisées, quel que soit l’onglet ouvert (« Toutes », « Maîtrisées »).
    Une question touchée dans la liste, elle, suit l’onglet comme avant (31 octobre, réf. 2). entRun est déclaré avec entOpen. */
+/* 12 novembre (« à part besoin, ne pas nous emmener en haut ») : de la liste à une question, la page de la question commence en haut ;
+   au retour, la liste reprend où on l’avait laissée (entListeY). */
+let entListeY=0;
 function openEntretienQuestion(id,run){
   if(!entAllItems().some(x=>x.id===id))return;
+  if(!entOpen){const sc=document.getElementById('scr-entretien');entListeY=sc?sc.scrollTop:0;}
   entRun=!!run;
   entOpen=id;
   renderEntretien();
@@ -43266,7 +43383,8 @@ function entretienBack(){
   if(entOpen){
     entOpen=null;entRun=false;
     renderEntretien();
-    entScrollTop();
+    const sc=document.getElementById('scr-entretien'),y=entListeY;
+    if(sc){sc.scrollTop=y;requestAnimationFrame(()=>{sc.scrollTop=y;});}
     return;
   }
   returnToParent();
@@ -43776,7 +43894,9 @@ let obLock=false;
 /* « pseudo » : la mini-page du pseudo, après l’onboarding (hors du tunnel compté). */
 /* Elisa, 10 novembre, 17 h 11 (« mettre la page de connexion et le paywall au bon moment », son choix : « À la fin ») : les questions
    d’abord, puis « Ton parcours est prêt », la connexion et le paywall, et l’app. On paie après avoir vu son parcours. */
-const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];
+/* 12 novembre (réf. 5 et 6, d’après HeyRua : « mettre ces écrans, on n’en a pas ») : « bonjour », le chat qui salue avec le nom de
+   l’appli, avant l’accueil ; « questions », l’annonce des questions, juste avant le prénom. Hors des étapes comptées (obFlowSteps). */
+const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -44281,8 +44401,9 @@ function paysCompleter(){
 /* La liste des pays, en feuille : une recherche, les pays proches en tête, puis tous les pays de A à Z ; le pays choisi est coché.
    choisir(code) reçoit le pays touché. Elisa, 11 novembre, 12 h 25 (réf. 2, dans Mon compte : « quand on appuie, ça sélectionne direct
    et ça part, je préfère attendre quelques secondes ») : le pays touché se coche, la feuille reste deux secondes, puis part avec lui ;
-   un autre pays touché entre-temps prend sa place, et la croix ou le fond gardent le pays coché. */
-const PAYS_ATTENTE=2000;
+   un autre pays touché entre-temps prend sa place, et la croix ou le fond gardent le pays coché. 12 novembre (réf. 9, dans Mon compte
+   et l’onboarding) : « le temps une fois sélectionné doit être raccourci » : 0,9 s, le temps de voir la coche se poser. */
+const PAYS_ATTENTE=900;
 function paysFeuille(actuel,choisir){
   paysFeuilleFermer(true);
   const f=document.createElement('div');
@@ -44402,8 +44523,8 @@ addEventListener('message',e=>{
   else if(e.data.requete==='video-fin')obVideoFermer();
 });
 function startOnboarding(initial='welcome'){
-  obEntry=OB_SLIDES.includes(initial)?initial:'welcome';
-  obStep=OB_SLIDES.indexOf(obEntry);
+  obEntry=OB_SLIDES.includes(initial)&&initial!=='bonjour'?initial:'welcome';
+  obStep=OB_SLIDES.indexOf(obEntry==='welcome'?'bonjour':obEntry);   // l’onboarding complet commence par « bonjour » (12 novembre)
   obLock=false;obLegalMode=null;obAuthMessage='';obAuthBusy=false;
   const plan=state.plan||{},profile=state.profile||{};
   draft={
@@ -44459,7 +44580,7 @@ function obRepriseLire(){
     if(r&&r.slide==='promise')r.slide='temoignages';   // la page « 24 jours » a rejoint celle des jours (17 h 27)
     if(!r||r.v!==1||!OB_SLIDES.includes(r.slide)||!r.draft||typeof r.draft!=='object'||Array.isArray(r.draft))return null;
     if(!(Date.now()-Number(r.at)<14*864e5))return null;
-    if(r.slide==='welcome'||OB_WIDGET_SLIDES.includes(r.slide))return null;
+    if(['bonjour','welcome','questions'].includes(r.slide)||OB_WIDGET_SLIDES.includes(r.slide))return null;
     return {slide:r.slide==='pseudo'?'ready':r.slide,draft:r.draft};
   }catch(e){return null;}
 }
@@ -44579,7 +44700,7 @@ let obApercu=false;
 function obApercuOuvrir(){
   startOnboarding('welcome');
   obApercu=true;
-  obStep=OB_SLIDES.indexOf('welcome');obEntry='welcome';
+  obStep=OB_SLIDES.indexOf('bonjour');obEntry='welcome';
   /* Comme un nouveau visiteur : rien de prérempli depuis le profil de l’appareil. */
   draft={niveau:'debutant',rythme:'regulier',freq:7,name:'',goal:obVitrineGoal(),ageRange:'',job:'',source:'',referral:'',
     practiceDone:false,practiceRows:[],accountMode:null};
@@ -45808,7 +45929,7 @@ const ILE_OB_TITRES={welcome:'Bienvenue',name:'Ton prénom',pays:'Ton pays',age:
   widgetTuto:'Ton widget',pseudo:'Ton pseudo',ready:'Ton parcours t’attend'};
 function ileObEtat(){
   const slide=OB_SLIDES[obStep]||'welcome',steps=typeof obFlowSteps==='function'?obFlowSteps():[],total=Math.max(1,steps.length),i=steps.indexOf(slide);
-  const etape=slide==='welcome'?0:slide==='ready'?total:i>=0?i+1:(ileOb?ileOb.etape:0);
+  const etape=['bonjour','welcome','questions'].includes(slide)?0:slide==='ready'?total:i>=0?i+1:(ileOb?ileOb.etape:0);
   const minutes=slide==='ready'?0:Math.max(1,Math.ceil((total-Math.max(0,etape-1))*12/60));   // comme l’en-tête : 12 s par étape ; 0 : le parcours est prêt
   const prenom=String(draft&&draft.name||'').trim().slice(0,24);
   return {etape,total,titre:ILE_OB_TITRES[slide]||'Ton parcours',bonjour:prenom?`Bienvenue, ${prenom}`:'Bienvenue sur Requête',minutes};
@@ -45910,7 +46031,9 @@ function obNext(){
   const slide=OB_SLIDES[obStep];
   /* Tunnel : promesse prouvée → personnalisation → première réussite →
      (sauvegarde du succès si la connexion existe) → écran final. */
-  if(slide==='welcome')obGoto('name');
+  if(slide==='bonjour')obGoto('welcome');
+  else if(slide==='welcome')obGoto('questions');
+  else if(slide==='questions')obGoto('name');
   else if(slide==='name')obGoto('pays');
   else if(slide==='pays')obGoto('age');
   else if(slide==='age')obGoto('job');
@@ -45934,11 +46057,11 @@ function obNext(){
 }
 function obBack(){
   if(obLegalMode){obLegalMode=null;paintOb();return;}
-  if(OB_SLIDES[obStep]==='welcome'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}
+  if(OB_SLIDES[obStep]==='bonjour'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}
   if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
   if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
-  if(OB_SLIDES[obStep]==='account'){obGoto(draft.finVoulue?'ready':'welcome');return;}   // « J’ai déjà un compte » : retour à l’accueil
+  if(OB_SLIDES[obStep]==='account'){obGoto(draft.finVoulue?'ready':'bonjour');return;}   // « J’ai déjà un compte » (sur « bonjour ») : retour
   if(OB_SLIDES[obStep]==='ready'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}
   obGoto(obStep-1);
 }
@@ -46811,9 +46934,22 @@ async function obStartAuth(provider,btn){
   const adapter=window.REQUETE_AUTH;
   if(!adapter||typeof adapter.signIn!=='function'){obConnexionBientot(provider,btn);return;}
   obAuthBusy=true;obAuthMessage='Connexion en cours…';paintOb();
+  const debut=Date.now();
   try{
     const result=await adapter.signIn(provider);
-    if(!result)throw new Error('Connexion annulée');
+    /* 12 novembre (réf. 14, « regarde le message que j’ai : connexion annulée ») : fermer la feuille d’Apple ou de Google n’affiche
+       plus de message ; le bouton fait juste « non » de la tête. Refermée aussitôt ouverte (moins d’une seconde et demie), c’est
+       iOS qui l’a fermée : sans identifiant Apple sur l’iPhone, ou sans réseau. On le dit, avec quoi faire. */
+    if(!result){
+      obAuthBusy=false;
+      const vite=Date.now()-debut<1500;
+      obAuthMessage=!vite?'':provider==='apple'?'Connexion avec Apple impossible : vérifie qu’un identifiant Apple est connecté sur cet iPhone (Réglages), puis réessaie.'
+        :'Connexion avec Google impossible pour le moment. Vérifie ta connexion à Internet, puis réessaie.';
+      paintOb();
+      if(!vite&&!prefersReduceMotion()){const b=document.querySelector(`#ob-body .ob-provider[data-provider="${provider}"]`);if(b&&b.animate)b.animate([{transform:'none'},{transform:'translateX(-7px)'},{transform:'translateX(6px)'},{transform:'translateX(-3px)'},{transform:'none'}],{duration:380,easing:'ease-out'});}
+      if(typeof buzz==='function')buzz('light');
+      return;
+    }
     state.accountMode='connected';
     if(typeof stat==='function')stat('connexion',null,{f:String(provider).slice(0,10)});
     state.accountProvider=provider;
@@ -46826,7 +46962,7 @@ async function obStartAuth(provider,btn){
     else obApresCompte();
   }catch(e){
     obAuthBusy=false;
-    obAuthMessage=(e&&e.message==='Connexion annulée')?'Connexion annulée.':'Connexion impossible pour le moment. Réessaie dans un instant.';
+    obAuthMessage='Connexion impossible pour le moment. Réessaie dans un instant.';
     paintOb();
   }
 }
@@ -47018,7 +47154,9 @@ const OB_TEMOINS=[
 /* L’ordre des avis : celui du site, pour tout le monde. (14 h 08, le premier suivait l’objectif choisi juste avant ; Elisa, 15 h 20, sur
    la capture où Aminata C. s’affichait d’abord : « mettre la deuxième en premier et celle sur l’écran en dernier » : Sofia B. d’abord,
    Aminata C. en dernier, quel que soit l’objectif.) */
-function obTemoinsListe(){return OB_TEMOINS.slice();}
+/* 12 novembre (réf. 1, sur l’étape « 1 000+ personnes apprécient Requête ») : « ne mets que cette personne, pas les autres » : l’avis de
+   Sofia B. seul, sans les pastilles ni les flèches pour passer à un autre. Les trois avis restent ceux du site (OB_TEMOINS). */
+function obTemoinsListe(){return OB_TEMOINS.slice(0,1);}
 /* « Plus de 1 000 personnes accompagnées » : un chiffre affiché seulement quand il est vérifié. Un nombre ici le montre au-dessus des
    avis (« Plus de 1 000 personnes accompagnées ») ; null le cache. Elisa, 4 novembre, 14 h 50 : « vrai chiffre, 1000+, car j’ai un
    site web » (on y apprend sans compte : le serveur ne compte pas ces personnes). */
@@ -47039,9 +47177,9 @@ function obTemoinsHtml(){
       <span class="ob-stk lav ob-tv-stk">Découvre ce qu’ils en pensent${OB_STK_AVIS}</span>
       <div class="ob-tv-ph">
         <img class="ob-tv-img" id="ob-tv-img" src="${escAttr(r.photo)}" width="640" height="640" alt="${escAttr(r.prenom+', '+r.info)}" draggable="false">
-        <div class="ob-tv-pick" role="group" aria-label="Choisir un témoignage">${liste.map((x,j)=>`<button type="button" aria-pressed="${j?'false':'true'}" aria-label="Témoignage ${escAttr(obTvDe(x.prenom))}" onclick="obTemoinsChoisir(${j})"><img src="${escAttr(x.mini)}" width="64" height="64" alt="" draggable="false"></button>`).join('')}</div>
+        ${liste.length>1?`<div class="ob-tv-pick" role="group" aria-label="Choisir un témoignage">${liste.map((x,j)=>`<button type="button" aria-pressed="${j?'false':'true'}" aria-label="Témoignage ${escAttr(obTvDe(x.prenom))}" onclick="obTemoinsChoisir(${j})"><img src="${escAttr(x.mini)}" width="64" height="64" alt="" draggable="false"></button>`).join('')}</div>`:''}
         <div class="ob-tv-voix" id="ob-tv-voix" role="group">
-          <div class="ob-tv-btns"><button type="button" class="ob-tv-nav" id="ob-tv-prev" onclick="obTemoinsPasser(-1)">${obTvFleche(0)}</button><button type="button" class="ob-tv-play" id="ob-tv-play" aria-pressed="false" aria-describedby="ob-tv-tx" onclick="obTemoinsLire()"><svg class="pl" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg><svg class="pa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.3"/><rect x="13.5" y="5" width="4" height="14" rx="1.3"/></svg></button><button type="button" class="ob-tv-nav" id="ob-tv-next" onclick="obTemoinsPasser(1)">${obTvFleche(1)}</button></div>
+          <div class="ob-tv-btns">${liste.length>1?`<button type="button" class="ob-tv-nav" id="ob-tv-prev" onclick="obTemoinsPasser(-1)">${obTvFleche(0)}</button>`:''}<button type="button" class="ob-tv-play" id="ob-tv-play" aria-pressed="false" aria-describedby="ob-tv-tx" onclick="obTemoinsLire()"><svg class="pl" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5Z"/></svg><svg class="pa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.3"/><rect x="13.5" y="5" width="4" height="14" rx="1.3"/></svg></button>${liste.length>1?`<button type="button" class="ob-tv-nav" id="ob-tv-next" onclick="obTemoinsPasser(1)">${obTvFleche(1)}</button>`:''}</div>
           <div class="ob-tv-main"><p class="ob-tv-cap"><i class="ob-tv-stars" id="ob-tv-stars" role="img"></i><span id="ob-tv-date"></span></p><p class="ob-tv-who"><b id="ob-tv-nom"></b><span id="ob-tv-info"></span></p><div class="ob-tv-wave" id="ob-tv-wave" role="slider" tabindex="0" aria-valuemin="0"></div></div>
         </div>
         <audio id="ob-tv-audio" preload="none"></audio>
@@ -47104,24 +47242,40 @@ function obTemoinsMontrer(i){
 }
 function obTemoinsChoisir(j){if(obTv&&j!==obTv.i)obTemoinsMontrer(j);}
 function obTemoinsPasser(d){if(obTv)obTemoinsMontrer(obTv.i+d);}
+/* 12 novembre (réf. 10, « le son ne fonctionne pas ») : dans l’appli iPhone, la vue web lit les sons en session « ambiante », que le
+   bouton silencieux coupe. Pendant l’avis, la session passe en « lecture », comme les cours en vidéo (LvSfx) : la voix passe même
+   l’iPhone en silencieux ; elle revient à la fin de l’avis, en pause, ou en quittant l’étape. */
+let obTvSession=null;
+function obTemoinsSession(on){
+  try{
+    const as=typeof navigator!=='undefined'?navigator.audioSession:null;if(!as)return;
+    if(on){if(as.type!=='playback'){if(obTvSession==null)obTvSession=as.type;as.type='playback';}}
+    else if(obTvSession!=null){as.type=obTvSession;obTvSession=null;}
+  }catch(e){}
+}
 function obTemoinsLire(){
   const au=document.getElementById('ob-tv-audio');if(!au)return;
-  if(au.paused){const pr=au.play();if(pr&&typeof pr.catch==='function')pr.catch(()=>obTemoinsEtat(false));}else au.pause();
+  if(au.paused){
+    obTemoinsSession(true);
+    if(au.preload==='none')au.preload='auto';
+    const pr=au.play();if(pr&&typeof pr.catch==='function')pr.catch(()=>{obTemoinsEtat(false);obTemoinsSession(false);});
+  }else au.pause();
 }
 /* En quittant l’étape (ou l’appli), l’avis s’arrête. */
 function obTemoinsCouper(){
   const au=document.getElementById('ob-tv-audio');
   if(au&&!au.paused)try{au.pause();}catch(e){}
   if(obTv)cancelAnimationFrame(obTv.raf);
+  obTemoinsSession(false);
 }
 function obTemoinsBrancher(){
   const t=obTv,au=document.getElementById('ob-tv-audio'),w=document.getElementById('ob-tv-wave'),ph=document.querySelector('#ob-tv .ob-tv-ph');
   if(!t||!au||!w||!ph)return;
   const boucle=()=>{obTemoinsPeindre();if(!au.paused&&obTv===t)t.raf=requestAnimationFrame(boucle);};
   au.addEventListener('play',()=>{obTemoinsEtat(true);cancelAnimationFrame(t.raf);boucle();});
-  au.addEventListener('pause',()=>{obTemoinsEtat(false);cancelAnimationFrame(t.raf);obTemoinsPeindre();});
+  au.addEventListener('pause',()=>{obTemoinsEtat(false);cancelAnimationFrame(t.raf);obTemoinsPeindre();obTemoinsSession(false);});
   /* À la fin d’un avis, le suivant s’affiche, sans se lancer tout seul (comme sur le site). */
-  au.addEventListener('ended',()=>{au.currentTime=0;obTemoinsEtat(false);obTemoinsPeindre();if(t.liste.length>1)obTemoinsMontrer(t.i+1);});
+  au.addEventListener('ended',()=>{au.currentTime=0;obTemoinsEtat(false);obTemoinsPeindre();obTemoinsSession(false);if(t.liste.length>1)obTemoinsMontrer(t.i+1);});
   au.addEventListener('loadedmetadata',obTemoinsPeindre);
   const aller=f=>{
     f=Math.max(0,Math.min(1,f));
@@ -47196,6 +47350,8 @@ function paintOb(){
   root.classList.toggle('ob-paywall-step',slide==='paywall'&&!obLegalMode);
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
+  root.classList.toggle('ob-bonjour-step',slide==='bonjour'&&!obLegalMode);
+  root.classList.toggle('ob-questions-step',slide==='questions'&&!obLegalMode);
   root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||OB_WIDGET_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
   root.classList.toggle('ob-legal-step',!!obLegalMode);
   root.classList.toggle('ob-enter',obJustEntered);
@@ -47233,7 +47389,32 @@ function paintOb(){
     /* 17 h 32 (Réf. 8, « c’est un mode avec compte, justement ») : plus de « Aucun compte n’est nécessaire » : le pseudo se choisit à la fin. */
     /* 11 h 08 (réf. 6) : « ça sera enregistré sur tous les appareils, car compte obligatoire ». */
     /* Invité par un ami (5 novembre, 14 h) : « Je m’inscris », l’inscription étant obligatoire pour entrer dans sa salle. */
-    obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('name'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'Ta progression sera sauvegardée sur tous tes appareils.');
+    /* 12 novembre : « J’ai déjà un compte » passe sur la page « bonjour », juste avant ; le bouton mène à l’annonce des questions. */
+    obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('questions'),'',null,'Ta progression sera sauvegardée sur tous tes appareils.');
+  }else if(slide==='bonjour'){
+    /* 12 novembre (réf. 5, l’écran de bienvenue de HeyRua) : le chat fait coucou sous sa bulle, le nom de l’appli en grand et sa
+       promesse ; « Commencer », et « J’ai déjà un compte » quand la connexion est branchée. Invité par un ami : « Je m’inscris ». */
+    const fixe=typeof mascotReduced==='function'&&mascotReduced(),invite=obInviteHTML();
+    html=`<div class="ob-screen ob-bonjour">
+      <div class="ob-bj-scene">
+        <p class="ob-bubble ob-bj-bulle">${obTypo('Coucou ! On apprend le SQL ensemble ?')}</p>
+        <img class="ob-bj-chat" src="assets/chat-coucou${fixe?'-fixe':''}.webp" width="289" height="352" alt="La mascotte Requête te fait coucou" draggable="false">
+      </div>
+      <h1 class="ob-bj-nom" id="ob-title">Requête</h1>
+      <p class="ob-bj-lead">${obTypo('Apprends le SQL en écrivant de vraies requêtes.')}</p>${invite}
+    </div>`;
+    obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'');
+  }else if(slide==='questions'){
+    /* 12 novembre (réf. 6, HeyRua : « Some quick questions to personalise your learning! ») : le chat annonce les questions, le pouce
+       levé, juste avant le prénom. */
+    const fixe=typeof mascotReduced==='function'&&mascotReduced();
+    html=`<div class="ob-screen ob-questions"><div class="ob-flow-top ob-flow-solo">${obBackButton()}</div>
+      <div class="ob-qs-scene">
+        <p class="ob-bubble ob-qs-bulle" id="ob-title">Quelques questions rapides pour <b>personnaliser ton apprentissage</b>&nbsp;!</p>
+        <img class="ob-qs-chat" src="assets/chat-parti${fixe?'-fixe':''}.webp" width="302" height="359" alt="La mascotte Requête, le pouce levé" draggable="false">
+      </div>
+    </div>`;
+    obSetFooter('Continuer',()=>obGoto('name'),'',null,'');
   }else if(slide==='account'){
     /* Elisa, 4 novembre, 10 h 16 : « mettre la page de connexion (il faut pas qu’elle marche encore) ». Sans fournisseur branché
        (window.REQUETE_AUTH), chaque bouton porte « Bientôt » et ne connecte à rien (obConnexionBientot) ; « Continuer » passe la
@@ -47245,7 +47426,9 @@ function paintOb(){
     /* 10 novembre, 17 h 11 : elle vient après « Ton parcours est prêt », plus après la première requête : le bravo de la requête
        s’efface (les confettis sont sur la dernière page), elle propose de sauvegarder le parcours. */
     const reussie=false,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee(),finale=!!draft.finVoulue;
-    html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':''}">${obFlowHeader(slide)}
+    /* 12 novembre (réf. 12 et 13 : « ça fait un peu vide », d’après le « Welcome Back » de HeyRua, sans e-mail) : la page s’organise
+       comme lui (is-grand) : le chat à la clé en grand au milieu, le titre et sa phrase dessous, les boutons Apple et Google en bas. */
+    html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}">${obFlowHeader(slide)}
       ${obCompteHautHTML(reussie)}
       ${reussie?`<h1 class="ob-title" id="ob-title">Ta première requête est <em>réussie</em>&nbsp;!<span class="ob-fete-emoji" aria-hidden="true"> 🎉</span></h1>
       <p class="ob-compte-lead"><span>Tu viens de franchir une première étape.</span> <span>Et ce n’est que le début&nbsp;!</span></p>
@@ -47519,6 +47702,11 @@ function paintOb(){
   body.classList.remove('out');
   body.innerHTML=html;
   obInsecables(body);
+  /* 12 novembre (réf. 8 : « sur l’onboarding surtout, parfois il y a des traces violettes de page précédente ») : sur l’iPhone, WebKit
+     gardait parfois à l’écran des calques de la page qui vient de partir (le lecteur sombre et flouté des avis, des cartes qui
+     s’effaçaient), par-dessus la nouvelle. Les flous d’arrière-plan s’éteignent dès que la page sort (onboarding-vitrine.css), et la
+     page qui arrive est remise en place d’un bloc : ses calques sont refaits à neuf, sans rien garder de l’ancienne. */
+  body.style.display='none';void body.offsetHeight;body.style.display='';
   body.scrollTop=0;
   obFitSoon();
   /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
@@ -49312,12 +49500,41 @@ boot();
    pourtant les décaler (un overflow:hidden se défile par script), et l’app restait alors remontée de quelques pixels, une bande
    vide sous la barre d’onglets. Hors saisie (le clavier de l’iPhone peut avoir besoin de ce décalage le temps d’écrire), on les
    remet aussitôt à zéro ; et à la fermeture du clavier. */
+/* 12 novembre (Elisa, réf. 2 et 11 : le prénom et le pseudo de l’onboarding, « ça met la page tout en haut », le titre sous l’heure) :
+   dans l’appli iPhone, le clavier rétrécit la vue (Keyboard « native ») ; iOS faisait pourtant défiler #app pour montrer le champ,
+   et l’onboarding entier (son en-tête « Retour, Étape… » compris) remontait sous la barre d’état. Là, ce décalage n’est jamais
+   utile : #app, la scène et la page restent à zéro, même pendant la saisie. Dans Safari, rien ne change (le clavier recouvre la page). */
 (function lockShell(){
   const els=['#app','#app>.stage'].map(q=>document.querySelector(q)).filter(Boolean);
+  const natif=()=>typeof dxNatif==='function'&&dxNatif();
   const typing=()=>{const a=document.activeElement;return !!(a&&a.matches&&a.matches('input,textarea,select,[contenteditable="true"]'));};
-  const reset=()=>{ if(typing())return; els.forEach(el=>{ if(el.scrollTop||el.scrollLeft){ el.scrollTop=0; el.scrollLeft=0; } }); };
+  const reset=()=>{ if(typing()&&!natif())return; els.forEach(el=>{ if(el.scrollTop||el.scrollLeft){ el.scrollTop=0; el.scrollLeft=0; } }); };
   els.forEach(el=>el.addEventListener('scroll',reset,{passive:true}));
   document.addEventListener('focusout',()=>setTimeout(reset,350));
+  if(natif()){
+    const page=()=>{ if((window.scrollY||window.pageYOffset||0)>0)window.scrollTo(0,0); reset(); };
+    window.addEventListener('scroll',page,{passive:true});
+    document.addEventListener('focusin',()=>{page();setTimeout(page,120);setTimeout(page,520);});
+    ['keyboardWillShow','keyboardDidShow'].forEach(n=>window.addEventListener(n,()=>{page();setTimeout(page,80);}));
+  }
+})();
+/* 12 novembre (Elisa, dernière réf. : en tapant une recherche, « ça me met la barre de sélection | en haut ») : iOS remontait le champ
+   où l’on tape (et son curseur) tout en haut de l’écran, sous l’heure et la batterie, qu’il croit visibles. Un champ d’un écran qui
+   passe sous la barre d’état redescend juste dessous, à chaque lettre, à la prise du focus et quand le clavier change la vue. */
+function lqChampSousBarre(){
+  const a=document.activeElement;
+  if(!a||!a.matches||!a.matches('input,textarea')||a.closest('#onboarding,.lq-ask,#pays-feuille,.kbar'))return;
+  const sc=a.closest('.screen');if(!sc||sc.scrollHeight<=sc.clientHeight)return;
+  const boite=a.closest('label,.catalog-search>div,.ent-search,.console-query-search')||a;
+  const haut=(typeof lqHautSur==='function'?lqHautSur():0)+6,top=boite.getBoundingClientRect().top;
+  if(top<haut)sc.scrollTop=Math.max(0,sc.scrollTop-(haut+8-top));
+}
+(function(){
+  const bientot=()=>requestAnimationFrame(()=>requestAnimationFrame(lqChampSousBarre));
+  document.addEventListener('input',bientot,true);
+  document.addEventListener('focusin',()=>{bientot();setTimeout(lqChampSousBarre,400);});
+  if(window.visualViewport)visualViewport.addEventListener('resize',bientot);
+  ['keyboardDidShow'].forEach(n=>window.addEventListener(n,bientot));
 })();
 
 /* Service worker : met l'app en cache pour qu'elle démarre sans réseau.
@@ -49326,7 +49543,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-depart-rapide-v2877';
+  const SW_CACHE='requete-2026-11-12-retours-onboarding-v2878';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

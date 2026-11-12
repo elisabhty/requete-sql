@@ -108,7 +108,7 @@ test('réf. 3 : le bouton jaune remonte encore, et chaque bouton jaune a sa flè
 });
 
 test('« Ils apprécient Requête » : entre le parcours construit et l’engagement (16 h 09 ; la promesse a rejoint les jours à 17 h 27), compté dans les étapes, l’avis s’arrête quand on change d’étape', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact',"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact',"));
   assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice'];"), '« Étape X sur N » le compte');
   assert.ok(app.includes("  else if(slide==='build')obGoto('temoignages');\n  else if(slide==='temoignages')obGoto('pact');"), 'Suivant, au balayage');
   const s = lastCut("}else if(slide==='goal'){", "}else if(slide==='level'){");
@@ -147,7 +147,8 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
   assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis par Requête</p>'), 'la carte dit que ce sont de vrais avis (14 h 50) ; la voix, les mentions légales (15 h 30)');
   /* 15 h 20 : l’ordre du site pour tout le monde (Sofia B. d’abord, Aminata C. en dernier), quel que soit l’objectif */
   const ordre = g => [...lecteur(g).ctx.obTemoinsListe()].map(t => t.prenom);
-  for (const g of ['career', 'interview', 'work', 'advanced', 'curious', undefined]) assert.deepEqual(ordre(g), ['Sofia B.', 'Thomas L.', 'Aminata C.'], String(g));
+  /* 12 novembre (réf. 1, « ne mets que cette personne, pas les autres ») : Sofia B. seule ; les trois restent recopiés du site */
+  for (const g of ['career', 'interview', 'work', 'advanced', 'curious', undefined]) assert.deepEqual(ordre(g), ['Sofia B.'], String(g));
   /* Embarqués dans l’app iPhone (www/) ; sur le web, le service worker les range au passage (decouvrir/, réseau d’abord) */
   assert.ok(read('scripts/build-www.mjs').includes("for (const f of ['decouvrir/video.html', 'decouvrir/mascotte.webp', 'decouvrir/voix', 'decouvrir/avis'])"));
   assert.ok(sw.includes("if (url.pathname.includes('/decouvrir/')) {"));
@@ -155,6 +156,10 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
 
 test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 8 formateurs te feront progresser »', () => {
   const { ctx } = lecteur('career');
+  const seul = ctx.obTemoinsHtml();
+  assert.ok(!seul.includes('ob-tv-pick') && !seul.includes('ob-tv-nav') && seul.includes('id="ob-tv-play"'), '12 novembre : un seul avis, ni pastilles ni flèches');
+  /* La mécanique à plusieurs avis reste (si l’on en remet) : on la vérifie avec les trois */
+  ctx.obTemoinsListe = () => ctx.OB_TEMOINS.slice();
   const html = ctx.obTemoinsHtml();
   assert.ok(!html.includes('ob-tv-stat') && !html.includes('ob-tv-badge'), 'le chiffre est dans le titre (obTemoinsTitre, 16 h 09)');
   assert.ok(html.includes('<img class="ob-tv-img" id="ob-tv-img" src="decouvrir/avis/sofia-b.webp" width="640" height="640" alt="Sofia B., Data Analyst junior" draggable="false">'), 'même après « Me reconvertir »');
@@ -179,6 +184,7 @@ test('la carte : la photo, les pastilles, la lecture et l’onde ; puis « 8 for
 
 test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d’un avis à l’autre, l’onde qui avance', () => {
   const { ctx, d } = lecteur('work');
+  ctx.obTemoinsListe = () => ctx.OB_TEMOINS.slice();   // la mécanique à plusieurs avis (l’appli n’en montre qu’un depuis le 12 novembre)
   ctx.obTemoinsHtml();
   ctx.obTemoinsMontrer(0);
   const t = id => d.el(id).textContent, a = (id, k) => d.el(id).getAttribute(k);
@@ -212,7 +218,7 @@ test('le lecteur : le nom, le métier, la note et la date ; écouter, passer d�
   /* Les gestes sur la carte ne changent pas d’étape ; balayer la photo change d’avis */
   const b = cut(bloc, 'function obTemoinsBrancher(){', "if(typeof document!=='undefined')document.addEventListener('visibilitychange'");
   assert.ok(b.includes("ph.addEventListener('pointerdown',e=>{e.stopPropagation();") && b.includes('obTemoinsPasser(dx<0?1:-1);'));
-  assert.ok(b.includes("au.addEventListener('ended',()=>{au.currentTime=0;obTemoinsEtat(false);obTemoinsPeindre();if(t.liste.length>1)obTemoinsMontrer(t.i+1);});"), 'à la fin, l’avis suivant s’affiche sans se lancer');
+  assert.ok(b.includes("au.addEventListener('ended',()=>{au.currentTime=0;obTemoinsEtat(false);obTemoinsPeindre();obTemoinsSession(false);if(t.liste.length>1)obTemoinsMontrer(t.i+1);});"), 'à la fin, l’avis suivant s’affiche sans se lancer (et la session audio d’avant revient, 12 novembre)');
 });
 
 test('le style : la carte du site, qui prend la hauteur qui reste ; ses animations avec les mouvements autorisés', () => {
@@ -227,7 +233,7 @@ test('le style : la carte du site, qui prend la hauteur qui reste ; ses animatio
   for (const k of ['.ob-enter .ob-tv-ph{animation:obvTvIn .6s var(--v-pop) .08s backwards}', '.ob-enter .ob-tv-faces>*{animation:obvTvFace .42s var(--v-pop) calc(.74s + var(--i,0) * 70ms) backwards}',
     ' .ob-tv:not(.is-lecture) .ob-tv-play::after{animation:obvTvRing 2.4s ease-out 1.4s infinite}', ' .ob-tv-wave i.cur{animation:obvTvCur .45s ease-in-out infinite alternate}'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=44">') && sw.includes("'./onboarding-vitrine.css?v=44',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2501, cache);
 });

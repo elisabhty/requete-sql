@@ -13,14 +13,15 @@ const bloc = app.slice(i, j);
 
 test('les avis : Sofia B. d’abord, Thomas L., puis Aminata C. en dernier, quel que soit l’objectif', () => {
   assert.ok(i > 0 && j > i);
-  assert.ok(bloc.includes('function obTemoinsListe(){return OB_TEMOINS.slice();}') && !bloc.includes('OB_TEMOINS_ORDRE'), 'plus d’ordre selon l’objectif');
+  /* 12 novembre (réf. 1, « ne mets que cette personne, pas les autres ») : l’avis de Sofia B. seul, quel que soit l’objectif */
+  assert.ok(bloc.includes('function obTemoinsListe(){return OB_TEMOINS.slice(0,1);}') && !bloc.includes('OB_TEMOINS_ORDRE'), 'plus d’ordre selon l’objectif');
   assert.ok(bloc.includes('  const liste=obTemoinsListe(),r=liste[0],'));
   for (const goal of ['career', 'interview', 'work', 'curious']) {
     const ctx = vm.createContext({ draft: { goal }, escAttr: s => String(s), obNombre: n => String(n), obTypo: s => s, document: { addEventListener() {} } });
     vm.runInContext(bloc, ctx);
     const html = ctx.obTemoinsHtml();
     const pastilles = [...html.matchAll(/aria-label="Témoignage (?:de |d’)([^"]+)" onclick="obTemoinsChoisir\((\d)\)"/g)].map(m => m[1]);
-    assert.deepEqual(pastilles, ['Sofia B.', 'Thomas L.', 'Aminata C.'], goal);
+    assert.deepEqual(pastilles, [], goal + ' : un seul avis, pas de pastilles');
     assert.ok(html.includes('src="decouvrir/avis/sofia-b.webp"'), goal + ' : la photo de Sofia B. à l’arrivée');
   }
 });

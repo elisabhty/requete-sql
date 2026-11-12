@@ -249,7 +249,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   assert.ok(page.includes('autocapitalize="none" autocorrect="off" spellcheck="false"') && page.includes('oninput="obPseudoTape(this)"') && page.includes('<p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>'));
   assert.ok(page.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,'',!v);"), '« Plus tard » depuis l’app ; obligatoire pendant l’onboarding (4 novembre, 17 h 27)');
   assert.ok(!page.includes('unique dans l’appli') && !page.includes('Il est unique et ne se changera plus') && !page.includes('ob-helper'), 'ni « unique dans l’appli », ni texte en bas');
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
   const back = app.slice(app.lastIndexOf('function obBack(){'), app.indexOf('\n}', app.lastIndexOf('function obBack(){')));
   assert.ok(back.includes("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'pas de retour depuis la mini-page');
   /* La fin de l’onboarding : la mini-page, puis l’appli */
