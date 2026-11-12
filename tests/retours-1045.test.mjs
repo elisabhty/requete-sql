@@ -79,7 +79,7 @@ test('la page du résultat, sans « Bravo » : le résultat se déplie, puis la 
 
 test('la page de connexion : son texte, Apple et l’e-mail ; plus de fête (elle vient après « Ton parcours est prêt »)', () => {
   const html = rendre({ finVoulue: 'home' });
-  assert.ok(html.startsWith('<div class="ob-screen ob-profile ob-account"><header data-etape="account"></header>'));
+  assert.ok(html.startsWith('<div class="ob-screen ob-profile ob-account is-grand"><header data-etape="account"></header>'), '12 novembre : la mise en page en grand (réf. 12 et 13)');
   assert.ok(html.includes('<img class="ob-promise-stk ob-compte-stk" src="mascotte.png" width="450" height="674" alt="" draggable="false">'), 'la mascotte au-dessus du titre');
   assert.ok(html.includes('<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>') && !html.includes('réussie') && !html.includes('Bravo'));
   const ordre = ['ob-compte-stk', 'ob-title', 'ob-compte-sub', 'ob-provider-list', 'ob-compte-msg'].map(k => html.indexOf(k));
@@ -141,7 +141,7 @@ test('tout centré à la verticale, et les animations en mouvements autorisés',
     ' .ob-account.is-fete .ob-fete-emoji{animation:obvFeteEmoji 1.2s var(--v-pop) .4s both}', ' .ob-compte-msg.is-new{transform-origin:50% 0;animation:obvBubbleIn'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
   assert.ok(css.includes('@keyframes obvFeteEmoji{'));
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=43">') && sw.includes("'./onboarding-vitrine.css?v=43',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=44">') && sw.includes("'./onboarding-vitrine.css?v=44',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && /^requete-2026-11-[0-3]\d-[a-z-]+-v\d+$/.test(cache));
 });

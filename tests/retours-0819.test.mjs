@@ -81,6 +81,6 @@ test('« ? » ne part plus seul à la ligne : espaces insécables devant la ponc
   ctx.obInsecables({});
   assert.deepEqual(textes.map(t => t.nodeValue), ['Salut ! Ça va ?', "WHERE ville = 'Paris' ;"], 'le code SQL reste tel quel');
   delete ctx.document.createTreeWalker; ctx.obInsecables({});   // sans TreeWalker : rien, sans erreur
-  assert.ok(app.includes('  body.innerHTML=html;\n  obInsecables(body);\n  body.scrollTop=0;\n  obFitSoon();'), 'à chaque page');
+  assert.ok(app.includes('  body.innerHTML=html;\n  obInsecables(body);\n') && app.includes("  body.style.display='none';void body.offsetHeight;body.style.display='';\n  body.scrollTop=0;\n  obFitSoon();"), 'à chaque page');
   assert.ok(app.includes('if(bulle)bulle.textContent=obTypo(OB_WT_TEXTES[p]);'), 'et dans la bulle du tutoriel du widget, qui change de texte');
 });

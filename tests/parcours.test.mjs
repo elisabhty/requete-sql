@@ -102,7 +102,8 @@ test('liste et page d’un parcours : ouvrir, revenir (vers la liste ou l’accu
   assert.deepEqual([...ctx.state.parcoursAlertes], ['python']);
   ctx.parcoursAlerte('sql', true);
   assert.deepEqual([...ctx.state.parcoursAlertes], ['python'], 'pas d’alerte pour un parcours déjà ouvert');
-  assert.ok(ctx.parcoursListeHTML().includes('Python pour la data, à venir, alerte activée'));
+  /* 12 novembre : la cloche est un bouton à part, sur la carte ; elle dit si l’alerte est active (aria-pressed) */
+  assert.ok(ctx.parcoursListeHTML().includes('<button type="button" class="pc-bell is-on" aria-pressed="true" aria-label="M’avertir au lancement de Python pour la data" onclick="parcoursCloche(\'python\',this)">'));
   ctx.parcoursAlerte('python', false);
   assert.deepEqual([...ctx.state.parcoursAlertes], []);
   // Le vote part à la base de l’appli, avec la clé de l’appareil ; revoter le remplace.

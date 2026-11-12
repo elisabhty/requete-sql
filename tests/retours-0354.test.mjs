@@ -29,7 +29,7 @@ const flux = (globals = {}) => {
 };
 
 test('le tunnel de fin : sources, rappel (s’il peut être demandé) ; le compte et le paywall après « Ton parcours est prêt » (10 novembre) ; le widget après la première leçon (13 h 48)', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
   /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte est toujours là ; 10 h 45
      (« passer directement à la connexion ») : juste après la première requête. */
   assert.deepEqual([...flux().obFinFlux()], ['practice', 'source'], 'navigateur sans notifications : le compte, puis la question');

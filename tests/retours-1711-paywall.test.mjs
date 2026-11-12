@@ -24,7 +24,7 @@ const monter = ({ achat = null, offre, name = 'Elisa' } = {}) => {
 };
 
 test('l’ordre : les questions, « Ton parcours est prêt », la connexion, le paywall, puis l’app', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['welcome','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
   const { ctx, vers } = monter();
   ctx.obApresPret('home'); assert.deepEqual(vers, ['→account'], 'la connexion d’abord');
   ctx.obApresCompte(); assert.deepEqual(vers, ['→account', '→paywall'], 'puis le paywall');

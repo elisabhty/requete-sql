@@ -97,7 +97,8 @@ test('dans le parcours : à l’entrée par l’accueil, l’aperçu et « Revoi
   assert.ok(fn('replayOnboarding', '/* Enregistrer un fichier').includes('startOnboarding();\n  obVideoOuvrir();'));
   assert.ok(fn('closeOnboardingAuth', 'function obGoto(').includes('obVideoFermer(true);'));
   const back = fn('obBack', 'function obPick(');
-  assert.ok(back.indexOf("if(OB_SLIDES[obStep]==='welcome'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}") > 0
+  /* 12 novembre : la première page est « bonjour » (réf. 5) ; le retour arrière y rouvre la vidéo */
+  assert.ok(back.indexOf("if(OB_SLIDES[obStep]==='bonjour'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}") > 0
     && back.indexOf('obVideoOuvrir') < back.indexOf("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'balayage arrière sur l’accueil : la vidéo');
   assert.ok(app.includes("if(slide==='welcome'&&!obVideoOn())obRunWelcomeDemo();"), 'pas de vibration de la console sous la vidéo');
   /* maybeOnboard, exécuté seul (comme tests/premiere-visite.test.mjs) */

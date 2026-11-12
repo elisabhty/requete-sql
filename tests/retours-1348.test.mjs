@@ -53,7 +53,7 @@ test('envoyer le commentaire : gardé sur l’appareil (espaces resserrés, 500 
   for (const k of ['html.lq #scr-lesson .bravo-avis .av-com.is-cache{display:none}', 'html.lq #scr-lesson .bravo-avis .av-com.is-ouvert>.av-com-lien{display:none}',
     'html.lq #scr-lesson .bravo-avis .av-com-zone textarea{display:block;width:100%;min-height:92px;', '.av-com-champ,.av-com-merci),html.lq #scr-lesson .bravo-avis{animation:none!important}}'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=314">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=315">'));
 });
 
 const repriseLab = ({onboarded = false, apercu = false, legal = null} = {}) => {
@@ -90,7 +90,7 @@ test('l’onboarding repris là où on l’a quitté : l’étape et les répons
   assert.ok(start.includes("Object.assign(draft,reprise.draft);\n    obStep=OB_SLIDES.indexOf(reprise.slide);") && start.includes("'On reprend là où tu en étais. La salle t’attend à la fin.':'On reprend là où tu en étais.');"));
   assert.ok(app.includes("  obRepriseGarder(slide);\n  if(obJustEntered&&!state.onboarded&&!obLegalMode)obCompter(slide);"));
   assert.ok(cut('function finishOnboard(action){', 'function obTerminer(action){').includes('obRepriseOublier();'));
-  assert.ok(cut('function obApercuOuvrir(){', 'function obApercuFermer(').includes("obStep=OB_SLIDES.indexOf('welcome');obEntry='welcome';"), 'l’aperçu repart de l’accueil');
+  assert.ok(cut('function obApercuOuvrir(){', 'function obApercuFermer(').includes("obStep=OB_SLIDES.indexOf('bonjour');obEntry='welcome';"), 'l’aperçu repart du début (« bonjour », 12 novembre)');
 });
 
 test('où l’onboarding perd du monde : chaque étape comptée une fois par appareil, envoyée en lot, gardée hors ligne', async () => {

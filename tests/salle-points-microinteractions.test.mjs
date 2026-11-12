@@ -89,7 +89,7 @@ test('ref 4 — le chrono descend jusqu’à 00:00 (6 novembre, 7 h 52 ; depuis 
 test('ref 9 — la page d’un défi : le bouton retour ouvre une vraie fenêtre, puis ramène aux Défis', () => {
   assert.ok(fn('goBack').includes("if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(goBack);return;}"));
   const ask = fn('jeuLeaveAsk');
-  assert.ok(ask.includes('if(!q){suite();return;}') && ask.includes('lqAsk(q).then(ok=>{if(ok&&JEU===J){J.leaveOk=true;suite();}});'));
+  assert.ok(ask.includes('if(!q){suite();return;}') && ask.includes("lqAsk(q).then(r=>{const part=q.partirSiTrois?r==='trois':r===true;if(part&&JEU===J){J.leaveOk=true;suite();}});"));
   const engine = app.slice(app.indexOf('/* ---------- Salle de défi : un défi tiré au sort'), app.indexOf('/* Le même défi, seul ou à plusieurs'));
   assert.ok(!engine.includes('confirm('), 'plus de confirm(), qui ne s’affiche pas partout');
   assert.ok(s42.includes('html.lq #scr-lesson .jeu-draw h1,html.lq #scr-lesson .jeu-draw .l-kicker + h1{color:var(--sun-hi)!important}'), 'le titre du tirage en jaune sur la scène violette');
