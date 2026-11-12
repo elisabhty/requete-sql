@@ -41,5 +41,5 @@ test('les petits écrans : la mascotte se fait petite au palier 3, part au palie
   for (const k of ['.ob-fit-3 .ob-chat{display:none', '.ob-fit-4 .ob-chat{display:none', '.ob-rappel-step .ob-notif{display:none}'])
     assert.ok(!css.includes(k), k);
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), 'cinq paliers, comme avant');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=52">') && sw.includes("'./onboarding-vitrine.css?v=52',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=53">') && sw.includes("'./onboarding-vitrine.css?v=53',"), 'feuille rechargée');
 });
