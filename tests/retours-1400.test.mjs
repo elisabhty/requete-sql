@@ -106,13 +106,8 @@ test('pas encore inscrite : l’accueil annonce l’invitation, « Je m’inscri
   assert.ok(app.includes("    obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('questions'),"));
   assert.ok(app.includes("    obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),"), '12 novembre : « Je m’inscris » dès la page « bonjour »');
   assert.ok(app.includes('  #onboarding .ob-screen.welcome.has-invite .ob-welcome-demo{display:none!important}'));
-  const video = cut('function obVideoVoulue(){', '\n}\n') + '\n}\n';
-  const vctx = vm.createContext({ obVideoSite: false, OB_VIDEO_VUE: 'v', localStorage: memoire(), jeuInvitation: () => ({ code: 'PRET02', de: '' }) });
-  vm.runInContext(video, vctx);
-  assert.equal(vctx.obVideoVoulue(), true, 'invité : la vidéo aussi');
-  vctx.jeuInvitation = () => null;
-  assert.equal(vctx.obVideoVoulue(), true, 'sans invitation : la vidéo comme avant');
-  assert.ok(!video.includes('jeuInvitation'));
+  /* 12 novembre, 18 h 06 (« Supprime la vidéo ») : plus de vidéo du métier dans l’appli, invité ou non */
+  assert.ok(!app.includes('obVideoVoulue'));
   /* La dernière page */
   assert.ok(app.includes("    const inv=!state.onboarded&&typeof jeuInvitation==='function'?jeuInvitation():null;"));
   assert.ok(app.includes("<p class=\"ob-lead\">${inv?`${inv.de?`<b>${esc(inv.de)}</b> t’attend dans sa salle de défi`:'Ta salle de défi t’attend'}. Ta première leçon sera là à ton retour.`:'Commence par ta première leçon et avance jusqu’à ton objectif.'}</p>"));
@@ -170,5 +165,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button>'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-entree-v2896';") && app.includes("const SW_CACHE='requete-2026-11-12-entree-v2896';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-sans-video-v2897';") && app.includes("const SW_CACHE='requete-2026-11-12-sans-video-v2897';"));
 });

@@ -4400,20 +4400,6 @@
      intérieure de la page qui défile, mais l’espace au-dessus d’elle (.ob-slides) : ce qui défile s’arrête net sous la barre d’état. */
   #onboarding .ob-slides{margin-top:var(--safe-top)}
   #onboarding #ob-body{width:100%;height:100%;padding:20px 24px 12px;overflow-y:auto;overscroll-behavior:contain}
-  /* La vidéo « Le métier de data analyst » avant l’accueil (Elisa, 4 novembre, 3 h 37) : la page de la vitrine dans un cadre, sur son
-     fond clair jusque sous l’heure et la barre d’accueil ; elle s’efface sur l’accueil violet. Tant que le cadre ne s’est pas
-     annoncé (chargement, hors ligne), un « Passer la vidéo » de l’appli, à la place du sien, permet toujours d’avancer. */
-  html #onboarding #ob-video{position:absolute;inset:0;z-index:60;background:#F4F2FC;opacity:0;transition:opacity .3s ease}
-  html #onboarding #ob-video.on{opacity:1}
-  html #onboarding #ob-video[hidden]{display:none}
-  #onboarding .ob-video-in{position:absolute;top:var(--safe-top,env(safe-area-inset-top,0px));right:env(safe-area-inset-right,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px)}
-  #onboarding #ob-video iframe{display:block;width:100%;height:100%;border:0;background:#F4F2FC;color-scheme:light}
-  #onboarding .ob-video-skip{position:absolute;top:calc(var(--safe-top,env(safe-area-inset-top,0px)) + 10px);right:calc(env(safe-area-inset-right,0px) + 16px);display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 15px;border-radius:14px;background:#fff;border:2px solid #E6E1F6;box-shadow:0 3px 0 #DCD5F2;font:700 15px/1 'Bricolage Grotesque','Inter',system-ui,sans-serif;color:#5335E0;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  #onboarding .ob-video-skip:active{transform:translateY(3px);box-shadow:0 0 0 #DCD5F2}
-  #onboarding .ob-video-skip svg{width:16px;height:16px}
-  #onboarding #ob-video.is-prete .ob-video-skip{display:none}
-  @media (max-width:460px){#onboarding .ob-video-skip{padding:0 13px}#onboarding .ob-video-skip span{display:none}}
-  @media (prefers-reduced-motion:reduce){html #onboarding #ob-video{transition:none}}
   .ob-screen{width:100%;max-width:440px;min-height:100%;margin:0 auto;display:flex;flex-direction:column;animation:obPageIn .34s var(--ease-ios) both}
   /* Aucun bloc ne doit s'écraser pour tenir dans la hauteur : quand l'écran
      est trop court, le corps défile. */
@@ -7410,7 +7396,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #sgbd-back{z-index:84}
 #sgbd-sheet{z-index:85}
 </style>
-<link rel="stylesheet" href="safari-surface.css?v=13">
+<link rel="stylesheet" href="safari-surface.css?v=14">
 <!-- Toutes les tailles d’écran (3 novembre) : chargé en dernier, il décide de la mise en page du téléphone au grand écran. -->
 <link rel="stylesheet" href="responsive.css?v=1">
 <script src="safari-surface.js?v=9" defer></script>
@@ -7707,8 +7693,6 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
       <button class="ob-skip" id="ob-skip" type="button">Passer</button>
       <p class="ob-foot-note" id="ob-foot-note"></p>
     </div>
-    <!-- La vidéo « Le métier de data analyst » avant l’accueil (4 novembre, 3 h 37) : le cadre se crée à l’ouverture (obVideoOuvrir) -->
-    <div class="ob-video" id="ob-video" hidden><div class="ob-video-in"></div><button type="button" class="ob-video-skip" onclick="obVideoFermer()">Passer<span>&nbsp;la vidéo</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
   </div>
 
   <div class="burst" id="burst" aria-hidden="true"></div>
@@ -44196,9 +44180,6 @@ function renderStartCta(){ renderHomeHero(); }
 function maybeOnboard(){
   const apercu=obApercuDemande();
   const viaConnexion=depuisConnexion(),viaVitrine=depuisVitrine();
-  /* Arrivé du site (./?depuis=…) : la vidéo du métier, juste avant l’appli sur le site, n’est pas reproposée (obVideoVoulue). */
-  obVideoSite=viaVitrine;
-  if(viaVitrine)try{ localStorage.setItem('rq-video-vue','1'); }catch(e){}
   oublierDepuis();
   /* Chaque connexion depuis la vitrine ouvre l’accueil (Elisa, 30 octobre, 22 h 50 : « revenir à chaque connexion à l’accueil de
      l’appli ») : l’écran de la dernière visite est oublié, restoreNav (juste après, au démarrage) n’a plus rien à reprendre. Un
@@ -44731,70 +44712,13 @@ function paysFeuilleFermer(vite){
   f.id='';f.classList.remove('on');
   setTimeout(()=>f.remove(),vite||prefersReduceMotion()?0:260);
 }
-/* Les couleurs suivent la surface visible, y compris une vidéo au-dessus de l'onboarding. */
+/* Les couleurs suivent la surface visible : celles des barres du navigateur. */
 function obBarreEtat(){
   if(typeof window.rqSyncBrowserChrome==='function')window.rqSyncBrowserChrome();
 }
-/* ---------- La vidéo « Le métier de data analyst », avant l’accueil ----------
-   Elisa, 4 novembre, 3 h 37 : « dans l’onboarding il faudrait implémenter la vidéo data analyst ». C’est la vidéo de la vitrine
-   (decouvrir/video.html, avec sa voix et sa musique), ouverte dans un cadre par-dessus l’accueil. Son « Passer la vidéo » et son
-   « Commencer » de fin ouvrent l’accueil : avec ?onboarding, la page les signale à l’appli au lieu de changer de page.
-   Sur le site, elle vient déjà avant l’appli (« Commencer » › la vidéo › ./?depuis=video) : elle n’est montrée qu’à qui ne l’a pas
-   vue, l’app iPhone, l’appli installée sur l’écran d’accueil, l’adresse de l’appli ouverte directement, et une seule fois (passée ou
-   vue jusqu’au bout). L’aperçu (?app=onboarding) et « Revoir l’intro » la remontrent, sans rien retenir pour l’aperçu.
-   Un retour arrière (balayage) depuis l’accueil y ramène, comme le bouton Précédent du navigateur sur le site. */
-let obVideoSite=false,obVideoMontree=false;
-const OB_VIDEO_VUE='rq-video-vue';
-/* 5 novembre, 15 h 01 : invité par un ami, on passe « bien sûr par l’onboarding depuis le début » : la vidéo aussi (l’invitation
-   attend sous elle, sur l’accueil). */
-function obVideoVoulue(){
-  if(obVideoSite)return false;
-  try{ return !localStorage.getItem(OB_VIDEO_VUE); }catch(e){ return true; }
-}
-function obVideoOn(){ const v=document.getElementById('ob-video'); return !!(v&&v.classList.contains('on')); }
-function obVideoCadres(root,on){
-  root.querySelectorAll(':scope>.ob-progress,:scope>.ob-slides,:scope>.ob-foot').forEach(el=>{ el.inert=!!on; if(on)el.setAttribute('aria-hidden','true'); else el.removeAttribute('aria-hidden'); });
-}
-function obVideoOuvrir(){
-  const root=document.getElementById('onboarding'),v=document.getElementById('ob-video');
-  if(!root||!v||obVideoOn())return;
-  obDemoTimers.forEach(clearTimeout);obDemoTimers=[];   // l’accueil, dessous, s’animera quand la vidéo s’effacera
-  const old=v.querySelector('iframe'); if(old)old.remove();
-  const f=document.createElement('iframe');
-  f.title='Vidéo : le métier de data analyst';
-  f.setAttribute('allow','autoplay; fullscreen');
-  /* Le cadre ne doit jamais devenir l’appli (une ancienne copie de la page, sans ?onboarding, y mènerait) : on referme. */
-  f.addEventListener('load',()=>{ try{ const p=f.contentWindow.location.pathname; if(p&&!/\/decouvrir\/video\.html$/.test(p)&&p!=='blank')obVideoFermer(); }catch(e){} });
-  f.src='decouvrir/video.html?onboarding';
-  v.querySelector('.ob-video-in').appendChild(f);
-  v.classList.remove('is-prete');
-  v.hidden=false; void v.offsetWidth; v.classList.add('on');
-  root.classList.add('ob-video-step');
-  obVideoCadres(root,true);
-  obVideoMontree=true;
-  obBarreEtat();
-  try{ f.focus({preventScroll:true}); }catch(e){}
-}
-/* sansSuite : l’onboarding se ferme (rien à animer, rien à retenir). */
-function obVideoFermer(sansSuite){
-  const root=document.getElementById('onboarding'),v=document.getElementById('ob-video');
-  if(!root||!v||!obVideoOn())return;
-  if(!sansSuite&&!(typeof obApercu!=='undefined'&&obApercu))try{ localStorage.setItem(OB_VIDEO_VUE,'1'); }catch(e){}
-  v.classList.remove('on');
-  root.classList.remove('ob-video-step');
-  obVideoCadres(root,false);
-  /* L’accueil s’anime maintenant : la console qui s’écrit, la mascotte qui dit coucou. */
-  if(!sansSuite){ obJustEntered=true; paintOb(); }
-  obBarreEtat();
-  const f=v.querySelector('iframe');
-  setTimeout(()=>{ if(obVideoOn())return; v.hidden=true; if(f){ try{ f.src='about:blank'; }catch(e){} f.remove(); } },sansSuite||prefersReduceMotion()?0:320);
-}
-addEventListener('message',e=>{
-  const f=document.querySelector('#ob-video iframe');
-  if(!f||e.source!==f.contentWindow||!e.data||typeof e.data!=='object')return;
-  if(e.data.requete==='video-prete'){ const v=document.getElementById('ob-video'); if(v)v.classList.add('is-prete'); }
-  else if(e.data.requete==='video-fin')obVideoFermer();
-});
+/* 12 novembre, 18 h 06 (Elisa, sur l’app iPhone : « Supprime la vidéo ») : la vidéo « Le métier de data analyst » ne passe plus avant
+   l’accueil (ni dans l’aperçu, ni dans « Revoir l’intro ») ; l’onboarding s’ouvre directement sur sa première page. Son cadre, son
+   bouton « Passer » et leur code sont retirés. La page decouvrir/video.html reste sur le site. */
 /* 12 novembre, 12 h 24 (Elisa : « les chats aussi ont des problèmes à l’onboarding, des flashs ») : les GIF des chats ne se
    chargeaient qu’au moment de s’afficher (le hochement de tête au premier choix, le chat de la page suivante, celui du pays) : un
    instant de vide à leur place, puis le chat. À l’ouverture de l’onboarding, tous ses chats sont chargés et décodés d’avance, l’un
@@ -44839,14 +44763,14 @@ function startOnboarding(initial='welcome'){
   obBarreEtat(true);
   obJustEntered=true;
   brancherObSwipeV2();
-  obVideoMontree=false;obFinRappel=obFinWidget=null;
+  obFinRappel=obFinWidget=null;
   const reprise=obEntry==='welcome'&&!state.onboarded&&!obApercu?obRepriseLire():null;
   if(reprise){
     Object.assign(draft,reprise.draft);
     obStep=OB_SLIDES.indexOf(reprise.slide);
     /* 12 novembre, 12 h 24 (« pas de texte notifié noir ») : plus de bandeau « On reprend là où tu en étais » par-dessus l’en-tête ;
        la page où l’on reprend se suffit à elle-même */
-  }else if(obEntry==='welcome'&&obVideoVoulue())obVideoOuvrir();
+  }
   paintOb();
 }
 /* 13 h 48 (« ok » pour la proposition 3) : iOS ferme souvent une app laissée en arrière-plan ; l’onboarding repartait alors de
@@ -44993,7 +44917,6 @@ function obApercuOuvrir(){
   draft={niveau:'debutant',rythme:'regulier',freq:7,name:'',goal:obVitrineGoal(),ageRange:'',job:'',source:'',referral:'',
     practiceDone:false,practiceRows:[],accountMode:null};
   obJustEntered=true;
-  obVideoOuvrir();   // la vidéo d’abord, même déjà vue sur cet appareil
   paintOb();
 }
 function obApercuFermer(){
@@ -45003,7 +44926,6 @@ function obApercuFermer(){
 }
 function closeOnboardingAuth(){
   if(typeof ileObFin==='function')ileObFin(false);
-  obVideoFermer(true);
   const root=document.getElementById('onboarding');
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
   root.setAttribute('aria-hidden','true');obBarreEtat(false);
@@ -46459,7 +46381,6 @@ function obNext(){
 }
 function obBack(){
   if(obLegalMode){obLegalMode=null;paintOb();return;}
-  if(OB_SLIDES[obStep]==='bonjour'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}
   if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
   if(OB_SLIDES[obStep]==='paywall'&&obPwSortie){obSortieRefuser();return;}   /* de l’offre de bienvenue, « Retour » ramène aux offres */
@@ -48302,7 +48223,7 @@ function paintOb(){
   /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
      d'être construit, c'est le moment de réussite de l'onboarding. */
   if(slide==='ready'){ setTimeout(()=>{ if(OB_SLIDES[obStep]==='ready'&&typeof celebrate==='function') celebrate(); },260); }
-  if(slide==='welcome'&&!obVideoOn())obRunWelcomeDemo();   // sous la vidéo, l’accueil attend qu’elle s’efface
+  if(slide==='welcome')obRunWelcomeDemo();
   if(slide==='rappel')obNotifCaler();
   if(slide==='temoignages')obTemoinsBrancher();
   if(slide==='widget')obWidgetPromoJouer();
@@ -49730,7 +49651,6 @@ function replayOnboarding(){
   closePlusDetails();
   state.onboarded=false; save();
   startOnboarding();
-  obVideoOuvrir();   // « Revoir l’intro » : la vidéo du métier aussi, même déjà vue
 }
 /* Enregistrer un fichier : sur téléphone (ou dans l’app), la feuille de partage — Photos, Fichiers, imprimer… ;
    ailleurs, un téléchargement. Renvoie 'share', 'download', ou null si la personne a renoncé. */
@@ -50135,7 +50055,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-entree-v2896';
+  const SW_CACHE='requete-2026-11-12-sans-video-v2897';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
