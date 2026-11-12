@@ -33,7 +33,7 @@ const rendre = ({ practiceDone = true, masquee = false, finVoulue } = {}) => {
    « Ton parcours est prêt » ; le bravo de la première requête et sa carte s'effacent, les confettis sont sur la dernière page. */
 test('après « Ton parcours est prêt » : la mascotte sur sa tache, « Sauvegarde ton parcours », les boutons ; plus de fête', () => {
   const h = rendre({ finVoulue: 'home' });
-  assert.ok(h.includes('ob-compte-fond') && h.includes('ob-compte-stk'), 'la mascotte sur sa tache');
+  assert.ok(h.includes('ob-acc-feuille') && h.includes('ob-acc-chat'), '12 novembre, 16 h 03 : la connexion en feuille, le chat à la clé sur son bord');
   assert.ok(h.includes('<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>'));
   assert.ok(h.includes('<p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>'));
   assert.ok(!h.includes('Bravo') && !h.includes('ob-compte-confettis') && !h.includes('ob-compte-carte') && !h.includes('réussie'), 'plus de bravo de la requête');
@@ -73,6 +73,6 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=49">') && sw.includes("'./onboarding-vitrine.css?v=49',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-fluidite-recherches-v2890';") && app.includes("const SW_CACHE='requete-2026-11-12-fluidite-recherches-v2890';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=50">') && sw.includes("'./onboarding-vitrine.css?v=50',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-feuille-connexion-v2891';") && app.includes("const SW_CACHE='requete-2026-11-12-feuille-connexion-v2891';"));
 });

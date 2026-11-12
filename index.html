@@ -6745,7 +6745,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=319">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=49">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=50">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -45303,6 +45303,18 @@ async function obRappelDemander(){
    fasse l’action ou que ça ouvre la pop-up si c’est pas possible d’autoriser sans »). « Autoriser » ouvre la vraie demande d’iOS (on
    ne peut pas autoriser sans elle), comme le bouton du bas, puis programme le rappel. « Ne pas autoriser » passe à la suite, sans
    rappel et sans ouvrir la demande d’iOS : elle reste possible plus tard, dans Mon compte. */
+/* 12 novembre, 16 h 03 (Elisa, d’après la page de Knowunity qui montre une vraie notification : « ajouter un exemple de notification
+   dans la liste qu’on a déjà, la meilleure que tu trouves, un peu rigolote ») : à la place de sa phrase, le chat au réveil montre un
+   rappel tel qu’il arrivera, pris dans la liste des rappels (RAPPEL_MESSAGES, ou celle du site) : « 📉 SELECT motivation — Résultat :
+   0 ligne. On corrige ça ? », la blague SQL de la liste. Si elle en sort un jour, le premier de la liste prend sa place. */
+function obRappelExemple(){
+  const L=typeof rappelListe==='function'?rappelListe():(typeof RAPPEL_MESSAGES!=='undefined'?RAPPEL_MESSAGES:[]);
+  return L.find(m=>/SELECT motivation/.test(m[0]))||L[0]||['📉 SELECT motivation','Résultat\u00a0: 0 ligne. On corrige ça\u00a0?'];
+}
+function obRappelExempleHTML(){
+  const [t,m]=obRappelExemple();
+  return `<span class="ob-nx" role="img" aria-label="${escAttr(`Exemple de rappel\u00a0: ${t}. ${m}`)}"><span class="ob-nx-h" aria-hidden="true"><img src="assets/icon-192.png" width="20" height="20" alt="" draggable="false"><strong>${esc(t)}</strong><i>maintenant</i></span><span class="ob-nx-m" aria-hidden="true">${esc(m)}</span></span>`;
+}
 let obRappelEnCours=false;
 function obRappelRefuser(){
   if(obLock||obRappelEnCours)return;
@@ -46600,8 +46612,50 @@ function obRunBuild(){
     if(T&&typeof buzz==='function')buzz('success');
     if(T)obBuildConfetti();
     draft.buildDone=true;
+    /* 12 novembre, 16 h 03 : le parcours prêt, sa progression projetée prend la place des modules (ils viennent de se poser un à un) :
+       même hauteur, la page ne bouge pas. Sans la place d’un graphique (petit écran : moins de 104 px), les modules restent. */
+    const montrer=()=>{
+      const bd=document.querySelector('#ob-body .ob-build'),ch=bd&&bd.querySelector('.ob-build-path'),pr=bd&&bd.querySelector('.ob-proj');
+      if(!bd||!ch||!pr||OB_SLIDES[obStep]!=='build')return;
+      const h=ch.offsetHeight;if(h<104)return;
+      pr.style.height=h+'px';bd.classList.add('a-proj');
+    };
+    if(T)obDemoTimers.push(setTimeout(montrer,1100));else montrer();
   };
   obDemoTimers.push(setTimeout(tick,T?Math.round(t0-performance.now()):0));
+}
+/* 12 novembre, 16 h 03 (Elisa, d’après « Ta progression projetée » de Knowunity : « est-ce que tu peux intégrer un graphique pour la
+   progression ? »). La courbe est celle du plan réellement construit, pas un dessin : chaque séance (sa date, ses leçons) ajoute ses
+   leçons au total ; elle va de 0 aujourd’hui au nombre de leçons du parcours le jour de la dernière séance. Un repère à mi-parcours
+   (le jour où la moitié des leçons est faite). Aucun chiffre inventé : ni note promise, ni pourcentage d’élèves. */
+function obProjection(){
+  try{
+    const niv=draft.niveau||'debutant',ryt=RYTHMES.find(r=>r.k===(draft.rythme||'regulier'))||RYTHMES[1];
+    const p=apercuPlan(niv,ryt.k,draft.freq||7),pleines=p.sessions.filter(x=>(x.lessons||[]).length);
+    if(pleines.length<2)return null;
+    const t0=auj().getTime(),fin=parseD(pleines[pleines.length-1].d),t1=fin.getTime();
+    if(!(t1>t0))return null;
+    let n=0;const pts=[[0,0]];
+    pleines.forEach(x=>{n+=x.lessons.filter(id=>!isDefiId(id)).length;pts.push([Math.max(0,Math.min(1,(parseD(x.d).getTime()-t0)/(t1-t0))),n]);});
+    if(!n)return null;
+    const jour=d=>(d.getDate()===1?'1er':d.getDate())+' '+d.toLocaleDateString('fr-FR',{month:'short'}).replace(/\.$/,'')+'.';
+    const k=pts.findIndex(q=>q[1]>=n/2),m=pts[k],dm=new Date(t0+m[0]*(t1-t0));
+    return {pts:pts.map(([x,y])=>[x,y/n]),total:n,fin:jour(fin).replace(/(mai|juin|août|mars)\.$/,'$1'),
+      mi:{x:m[0],y:m[1]/n,n:m[1],jour:jour(dm).replace(/(mai|juin|août|mars)\.$/,'$1')},seances:pleines.length};
+  }catch(e){return null;}
+}
+function obProjectionHTML(){
+  const g=obProjection();if(!g)return '';
+  const X=x=>(x*100).toFixed(2),Y=y=>(50-y*44).toFixed(2);
+  const trait=g.pts.map(([x,y],i)=>(i?'L':'M')+X(x)+' '+Y(y)).join('');
+  const milieu=g.mi.x>.12&&g.mi.x<.8;
+  return `<div class="ob-proj" role="img" aria-label="${escAttr(`Ta progression projetée\u00a0: de 0 leçon aujourd’hui à ${plur(g.total,'leçon')} le ${g.fin}, en ${plur(g.seances,'séance')}\u00a0; la moitié le ${g.mi.jour}`)}">
+    <p class="ob-proj-t" aria-hidden="true"><b>Ta progression projetée</b><em class="ob-proj-fin">${plur(g.total,'leçon')}</em></p>
+    <div class="ob-proj-g" aria-hidden="true"><svg viewBox="0 0 100 50" preserveAspectRatio="none"><path class="ob-proj-aire" d="${trait}L100 50L0 50Z"/><path class="ob-proj-trait" d="${trait}"/></svg>
+      <i class="ob-proj-pt is-0" style="left:0;bottom:0"></i>
+      ${milieu?`<i class="ob-proj-pt is-mi" style="left:${X(g.mi.x)}%;bottom:${(g.mi.y*88).toFixed(2)}%"></i><span class="ob-proj-mi" style="left:${X(g.mi.x)}%;bottom:${(g.mi.y*88).toFixed(2)}%">La moitié le ${esc(g.mi.jour)}</span>`:''}
+      <i class="ob-proj-pt is-fin" style="left:100%;bottom:88%"></i></div>
+    <p class="ob-proj-x" aria-hidden="true"><span>Aujourd’hui</span><span>${esc(g.fin)}</span></p></div>`;
 }
 /* À 100 % : une gerbe de confettis part du bout de la barre, monte et retombe (Web Animations, comme lqConfetti), puis s’efface. */
 function obBuildConfetti(){
@@ -47730,6 +47784,7 @@ function paintOb(){
   const authReady=!!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signIn==='function');
   root.dataset.obSlide=slide;
   root.classList.toggle('ob-account-step',slide==='account'&&!obLegalMode);
+  root.classList.toggle('ob-compte-feuille',slide==='account'&&!obLegalMode&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));
   root.classList.toggle('ob-paywall-step',slide==='paywall'&&!obLegalMode);
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
@@ -47813,6 +47868,26 @@ function paintOb(){
     const reussie=false,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee(),finale=!!draft.finVoulue;
     /* 12 novembre (réf. 12 et 13 : « ça fait un peu vide », d’après le « Welcome Back » de HeyRua, sans e-mail) : la page s’organise
        comme lui (is-grand) : le chat à la clé en grand au milieu, le titre et sa phrase dessous, les boutons Apple et Google en bas. */
+    /* 12 novembre, 16 h 03 (Elisa, d’après un fil de X : « on a transformé la page de connexion en feuille au lieu d’un écran complet »,
+       +10 % de fins d’onboarding : « mets, comme il a dit, la partie connexion à la moitié de l’écran »). La connexion n’est plus un
+       mur : « Ton parcours est prêt » reste au-dessus, assombri, et la feuille monte du bas avec le titre, les trois atouts sur une
+       ligne chacun, Apple et Google. Toucher le haut (ou « Retour ») la referme sur le parcours. Le compte reste le seul chemin. */
+    const prenom=(draft.name||'').trim(),chatFixe=typeof mascotReduced==='function'&&mascotReduced();
+    if(!masquee){
+    html=`<div class="ob-screen ob-profile ob-account is-feuille">${obFlowHeader(slide)}
+      <button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="Revenir à mon parcours"><span class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Ton parcours est prêt${prenom?', '+esc(prenom):''}.</b><small>Garde-le, et c’est parti.</small></button>
+      <div class="ob-acc-feuille"><i class="ob-acc-poignee" aria-hidden="true"></i><img class="ob-acc-chat" src="assets/chat-cle${chatFixe?'-fixe':''}.webp" alt="" aria-hidden="true" draggable="false">
+      ${finale?`<h1 class="ob-title" id="ob-title">Sauvegarde ton <em>parcours</em>.</h1>
+      <p class="ob-compte-sub">Crée ton compte pour retrouver ta progression et ton planning sur tous tes appareils.</p>`
+      :`<h1 class="ob-title" id="ob-title">Garde ta <em>progression</em>.</h1>
+      <p class="ob-compte-sub">Retrouve tes cours, tes défis et tes réussites sur tous tes appareils.</p>`}
+      ${authReady?obCompteAtoutsHTML():''}
+      <div class="ob-provider-list">
+        ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
+        ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
+      </div>${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
+      </div></div>`;
+    }else
     html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}">${obFlowHeader(slide)}
       ${obCompteHautHTML(reussie)}
       ${reussie?`<h1 class="ob-title" id="ob-title">Ta première requête est <em>réussie</em>&nbsp;!<span class="ob-fete-emoji" aria-hidden="true"> 🎉</span></h1>
@@ -47972,7 +48047,7 @@ function paintOb(){
     if(!draft.rappelHeure)draft.rappelHeure=rappelHeure();
     const fq=draft.freq||7,quand=fq===7?'chaque jour':fq===5?'en semaine':'tes jours de séance';
     html=`<div class="ob-screen ob-profile ob-rappel-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un petit <em>rappel</em><br>${quand}&nbsp;?</h1>
-      ${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil')}
+      ${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil',false,obRappelExempleHTML())}
       ${obRappelCarte()}
       <div class="ob-notif" id="ob-notif"><div class="ob-notif-cadre"><div class="ob-notif-alert"><b aria-hidden="true">«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small aria-hidden="true">Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button><button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button></span></div></div>
         <svg class="ob-notif-arrow" viewBox="0 0 40 70" aria-hidden="true"><path d="M20 66V8M6 22 20 7l14 15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -48035,7 +48110,7 @@ function paintOb(){
       <div class="ob-build-card"><div class="ob-build-top"><span class="ob-build-k" id="ob-build-k" role="status">Construction en cours…</span><b class="ob-build-pct" id="ob-build-pct" aria-hidden="true">0 %</b></div>
         <div class="ob-build-track" aria-hidden="true"><div class="ob-build-bar"><i id="ob-build-fill"></i></div><b class="ob-build-head"></b><span class="ob-build-burst">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--a:${i*45+22}deg"></i>`).join('')}</span></div>
         <ul class="ob-build-list">${rows.map(([ico,t,d],i)=>`<li style="--i:${i}"><span class="ob-build-ico" aria-hidden="true">${ico}</span><span><b>${t}</b><small>${d}</small></span><i class="ob-build-ok" aria-hidden="true"></i></li>`).join('')}</ul>
-        <div class="ob-build-path" aria-hidden="true">${b.modules.map((m,i)=>`<span class="${m.skip?'is-skip':m.start?'is-start':''}" style="--i:${i}">${esc(m.t)}</span>`).join('')}</div></div></div>`;
+        <div class="ob-build-path" aria-hidden="true">${b.modules.map((m,i)=>`<span class="${m.skip?'is-skip':m.start?'is-start':''}" style="--i:${i}">${esc(m.t)}</span>`).join('')}</div>${obProjectionHTML()}</div></div>`;
     /* 1 h 31 : « Découvre ce que tu vas apprendre », avec une flèche animée (elle avance une fois le parcours prêt ; obSetFooter la pose).
        4 novembre, 17 h 27 : la page « 24 jours » qui suivait rejoint celle des jours (réf. 8 et 9) ; le bouton mène aux avis. */
     obSetFooter('Continuer',()=>obGoto('temoignages'),'','','',true);
@@ -49947,7 +50022,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-fluidite-recherches-v2890';
+  const SW_CACHE='requete-2026-11-12-feuille-connexion-v2891';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
