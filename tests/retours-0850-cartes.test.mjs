@@ -5,8 +5,8 @@
      la largeur de la carte (100cqi), comme la pastille « Voir la leçon » le 7 novembre (8 h 17). Dans l’album, la taille suit la largeur
      de l’écran ; une notion en mots se mesure à son mot le plus long et passe à la ligne entre ses mots.
    - Plus de « Voir la leçon » sur les cartes à débloquer.
-   - Les chiffres : la fiche d’un sticker de module dit ses leçons (en liste) ; jamais « 0 … sur » ; l’en-tête de la collection ne dit
-     plus « 0 module complet » ni deux fois le même nombre. */
+   - Les chiffres : la fiche d’un sticker de module dit ses leçons (en liste, remplacée le 12 novembre par une jauge et un
+     pourcentage) ; jamais « 0 … sur » ; l’en-tête de la collection ne dit plus « 0 module complet » ni deux fois le même nombre. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -45,14 +45,17 @@ test('l’album suit la largeur de l’écran (pas la carte), de l’iPhone SE a
   assert.ok(ctx.memoKw('GROUP BY').includes('--kn:8'), 'GROUP BY reste ensemble');
 });
 
-test('la fiche d’un sticker de module : ses leçons en liste, jamais « 0 leçon sur 5 »', () => {
+test('la fiche d’un sticker à gagner : une jauge et son pourcentage, jamais « 0 leçon sur 5 »', () => {
+  /* 12 novembre, 20 h 24 (Elisa, ses captures de la fiche : « ne pas mettre toutes les leçons par liste, juste un % ») : la liste
+     des leçons du 10 novembre est retirée ; il reste une jauge et son pourcentage. */
   const o = fn('function stkOpen(id){');
-  assert.ok(o.includes("const progT=s.kind==='module'?(s.now?`${s.now} leçon${s.now>1?'s':''} validée${s.now>1?'s':''} sur ${s.goal}`:`${s.goal} leçon${s.goal>1?'s':''} dans ce module`)"));
-  assert.ok(o.includes(":s.now?`${unit(s.now)} sur ${s.goal}`:`Objectif\\u00a0: ${unit(s.goal)}`;"), 'un accomplissement pas commencé : son objectif');
-  assert.ok(o.includes('<ol class="stk-lecons" aria-label="${escAttr(`Les leçons du module ${s.num}`)}">') && o.includes('onclick="stkClose();openLesson(${l.id})"'), 'chaque leçon ouvre sa leçon');
-  assert.ok(o.includes('${prog}${lecons}${go?'));
-  for (const r of ['html.lq .stk-lecons{display:grid;', 'html.lq .stk-lecons .is-ok b{background:var(--mint);', 'html.lq .stk-lecons .is-suite b{background:var(--accent);color:#fff}'])
-    assert.ok(css.includes(r), r);
+  const NB = String.fromCharCode(92) + 'u00a0';
+  assert.ok(o.includes('const pct=s.goal>0?Math.max(0,Math.min(100,Math.round(s.now/s.goal*100))):0;'));
+  assert.ok(o.includes("const progT=s.kind==='module'?`${pct}" + NB + '% du module terminé`:`${pct}' + NB + '% de l’objectif`;'));
+  assert.ok(o.includes('const prog=s.goal>1?`<div class="stk-jauge" role="progressbar" aria-label="${escAttr(progT)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="stk-jauge-b" aria-hidden="true"><i style="width:${pct}%"></i></span><b aria-hidden="true">${pct}' + NB + "%</b></div>`:'';"), 'un seul pas (goal 1) : pas de jauge');
+  assert.ok(o.includes('${prog}${go?'));
+  assert.ok(!o.includes('stk-lecons') && !o.includes('openLesson(') && !/ sur \$\{s\.goal\}/.test(o), 'plus de liste, plus de « n sur m »');
+  assert.ok(!css.includes('.stk-lecons') && !css.includes('.stk-prog-t'), 'les règles de la liste et de l’ancienne phrase sont parties');
 });
 
 test('l’en-tête de la collection : jamais « 0 carte » ni « 0 module complet », pas deux fois le même nombre', () => {
