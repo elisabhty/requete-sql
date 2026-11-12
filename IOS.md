@@ -570,3 +570,11 @@ d’activité, planning et notes avec les fonctions `progression_*` et `document
 
 Supprimer son compte (Mon compte) efface aussi le compte Supabase et sa progression synchronisée (`compte_supprimer` avec le
 jeton). « Effacer toute ta progression » efface aussi celle du compte, avant l’appareil.
+
+**La révocation d’Apple** (règle 5.1.1(v) : « use the Sign in with Apple REST API to revoke user tokens ») : à la connexion avec
+Apple, le code d’autorisation part à la fonction `apple-jeton`, qui l’échange chez Apple et garde le jeton de renouvellement
+(`requete_private.apple_jeton`, serveur seulement) ; à la suppression du compte, elle le révoque avant `compte_supprimer`.
+Il lui faut une clé (developer.apple.com › Keys › « + », cocher **Sign in with Apple** › Configure : identifiant principal
+fr.requete.app ; télécharger le .p8, une seule fois) et trois secrets dans Supabase (Edge Functions › Secrets) :
+`APPLE_SIWA_KEY` (le contenu du .p8, lignes BEGIN et END comprises), `APPLE_SIWA_KEY_ID` (10 caractères), `APPLE_TEAM_ID`.
+Sans eux, la fonction répond « veille » : la connexion et la suppression marchent, sans la révocation.
