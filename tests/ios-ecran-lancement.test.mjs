@@ -103,7 +103,7 @@ test('Script : recopie l’écran de lancement dans le projet iOS, avant chaque 
     fs.cpSync(new URL('resources/ios', root), path.join(t, 'resources/ios'), { recursive: true });
     fs.writeFileSync(path.join(app, 'Base.lproj/LaunchScreen.storyboard'), 'ancien');
     const out = execFileSync('bash', [path.join(t, 'scripts/ios-ecran-lancement.sh')], { encoding: 'utf8' });
-    assert.ok(out.includes('Écran de lancement à jour : fond lavande, points de données.'));
+    assert.ok(out.includes('Écran de lancement à jour : fond lavande, emplacements de la touche et points de données.'));
     assert.equal(fs.readFileSync(path.join(app, 'Base.lproj/LaunchScreen.storyboard'), 'utf8'), sb);
     assert.ok(!fs.existsSync(path.join(app, 'Assets.xcassets/SplashLogo.imageset')), 'l’image de la touche ne sert plus');
     assert.ok(fs.existsSync(path.join(app, 'Assets.xcassets/Splash.imageset')), 'le reste du projet n’est pas touché');

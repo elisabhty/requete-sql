@@ -110,13 +110,16 @@ test('styles : les cases recomposent la touche, qui se pose, s’écrit, s’enf
     'html.is-native.lq #loader.is-intro .in-k{position:absolute;z-index:1;left:calc(50% + (var(--c)*128 - 248)*var(--u));top:calc(var(--cy) + (var(--r)*128 - 248)*var(--u));',
     'background:linear-gradient(135deg,#8060FF,#593CE7);background-size:calc(448*var(--u)) calc(448*var(--u));',
     'background-position:calc(var(--c)*-112*var(--u)) calc(var(--r)*-112*var(--u));box-shadow:0 calc(8*var(--u)) 0 #4B30CC;',
-    'html.is-native.lq #loader.is-intro .in-k::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#D2C6F7;opacity:0}',
+    /* 12 novembre, 17 h 51 : le voile déborde un peu de la case et couvre son épaisseur, à angle droit comme le point */
+    'html.is-native.lq #loader.is-intro .in-k::after{content:"";position:absolute;inset:calc(-2*var(--u)) calc(-2*var(--u)) calc(-10*var(--u)) calc(-2*var(--u));background:#D2C6F7;opacity:0}',
     /* Le vol, la soudure, la touche */
-    'html.is-native.lq #loader.is-intro.is-play .in-k{animation:introCase var(--v) linear var(--a) both,introSoude var(--d-soude) cubic-bezier(.5,0,.8,.4) var(--t-soude) forwards,\n  introFade 1ms linear var(--t-fin) forwards}',
-    '0%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(var(--k));border-radius:0;',
-    '82%{opacity:1;transform:scale(1.07);border-radius:calc(26*var(--u));',
+    'html.is-native.lq #loader.is-intro.is-play .in-k{animation:introCase var(--v) linear var(--a) both,introSoude var(--d-soude) cubic-bezier(.5,0,.8,.4) var(--t-soude) forwards,\n  introCoins 1ms linear var(--t-soude) forwards,introFade 1ms linear var(--t-fin) forwards}',
+    /* 12 novembre, 17 h 51 (« ça bug au début ») : le vol et la soudure n’animent que transform et opacity (le compositeur les joue seul) */
+    '0%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(var(--k));animation-timing-function:cubic-bezier(.5,0,.2,1)}',
+    '82%{opacity:1;transform:scale(1.07);animation-timing-function:cubic-bezier(.3,0,.3,1)}',
+    '@keyframes introSoude{from{transform:none}to{transform:scale(1.152)}}',
     '@keyframes introVoile{0%{opacity:1}40%,100%{opacity:0}}',
-    'to{transform:scale(1.152);border-radius:var(--rf);box-shadow:0 calc(8*var(--u)) 0 var(--ombre,#4B30CC)}}',
+    '@keyframes introCoins{to{border-radius:var(--rf);box-shadow:0 calc(8*var(--u)) 0 var(--ombre,#4B30CC)}}',
     'html.is-native.lq #loader.is-intro.is-play .in-k>b{animation:introNombre var(--v) linear var(--a) both,introFade 90ms linear var(--t-soude) forwards}',
     'html.is-native.lq #loader.is-intro.is-play .logo-badge{animation:introApparait 34ms linear calc(var(--t-fin) - 34ms) forwards,introPose .34s linear var(--t-fin) forwards,introPlonge var(--d-plonge) linear var(--t-appui) forwards}',
     'html.is-native.lq #loader.is-intro.is-play::after{animation:introOn 1ms linear var(--t-fin) forwards,introFade .16s linear calc(var(--t-appui) + 100ms) forwards}',
@@ -126,8 +129,10 @@ test('styles : les cases recomposent la touche, qui se pose, s’écrit, s’enf
     /* Les lettres */
     'html.is-native.lq #loader.is-intro .in-l::before{content:"";position:absolute;left:50%;top:50%;width:calc(30*var(--u));height:calc(30*var(--u));',
     'html.is-native.lq #loader.is-intro.is-play .in-l{animation:introLettre var(--v) linear var(--a) both}',
-    '0%{transform:translate(var(--dx),var(--dy));color:rgba(27,22,64,0);',
-    '80%{transform:translateY(calc(-10*var(--u))) scale(1.18);color:#1B1640;'
+    '0%{transform:translate(var(--dx),var(--dy));animation-timing-function:cubic-bezier(.5,0,.2,1)}',
+    '80%{transform:translateY(calc(-10*var(--u))) scale(1.18);animation-timing-function:cubic-bezier(.3,0,.3,1)}',
+    'html.is-native.lq #loader.is-intro.is-play .in-l>b{animation:introLettreTxt var(--v) linear var(--a) both}',
+    '@keyframes introLettreTxt{0%,55%{opacity:0}80%,100%{opacity:1}}'
   ]) assert.ok(bloc.includes(part), part);
   /* 112 × 1,152 dépasse à peine 128 : les cases se chevauchent d’un fil, la touche (512) les recouvre */
   assert.ok(112 * 1.152 > 128 && 112 * 1.152 < 130);

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Écran de lancement de l’appli iOS : fond lavande et 23 points de données, aux places exactes de la première image de
+# Écran de lancement de l’appli iOS : fond lavande, les 16 emplacements de la touche (12 novembre) et 23 points de données, aux places exactes de la première image de
 # l’ouverture animée (« Le logo se construit », 11 novembre ; ludique.css, 37 bis ; écrit par tools/ecran-lancement.py).
 # Elisa, 3 novembre, 23 h 02 : « quand j’ouvre l’appli, il y a un écran noir » : l’ancien écran étirait sur tout l’écran une
 # image de 2732 × 2732 px, sur un fond « couleur système » (noir en mode sombre) : trop lourde pour iOS, qui la sautait.
@@ -15,4 +15,12 @@ fi
 cp "$racine/resources/ios/LaunchScreen.storyboard" "$app/Base.lproj/LaunchScreen.storyboard"
 # L’image de la touche (jusqu’au 11 novembre) ne sert plus
 rm -rf "$app/Assets.xcassets/SplashLogo.imageset"
-echo "Écran de lancement à jour : fond lavande, points de données."
+# 12 novembre, 17 h 51 (Elisa, sa capture de l’écran de lancement : l’heure et « TestFlight » en blanc sur le fond lavande) :
+# pendant l’écran de lancement, iOS suit la clé UIStatusBarStyle d’Info.plist ; sans elle, en mode sombre, la barre d’état est
+# blanche, puis l’appli la repasse en sombre : un saut au départ. Sombre dès le lancement.
+plist="$app/Info.plist"
+if [ -f "$plist" ] && [ -x /usr/libexec/PlistBuddy ]; then
+  /usr/libexec/PlistBuddy -c "Set :UIStatusBarStyle UIStatusBarStyleDarkContent" "$plist" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Add :UIStatusBarStyle string UIStatusBarStyleDarkContent" "$plist"
+fi
+echo "Écran de lancement à jour : fond lavande, emplacements de la touche et points de données."
