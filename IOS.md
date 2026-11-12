@@ -371,10 +371,11 @@ répond `envoyees`, `oubliees` et `restantes` (Apple indisponible) : relancer la
 
 Un message « Contacte-nous », un avis de leçon qui porte un commentaire, un pseudo signalé au classement : chacun arrive par
 e-mail, en plus du tableau de bord. À chaque nouvelle ligne, la base prévient la fonction `alerte-mail`
-(`supabase/functions/alerte-mail`, migration `supabase/migrations/20261112214500_alerte_mail.sql`), qui écrit un e-mail en texte
+(`supabase/functions/alerte-mail`, migration `supabase/migrations/20261112215758_alerte_mail.sql`), qui écrit un e-mail en texte
 simple et l’envoie par Resend. L’adresse laissée dans un message devient l’adresse de réponse : « Répondre » suffit. Les pièces
 jointes ne partent pas, seulement un lien de lecture valable 7 jours. Rien n’est à mettre à jour dans l’appli : tout se passe
-côté serveur, y compris pour les versions déjà installées.
+côté serveur, y compris pour les versions déjà installées. Migration appliquée et fonction déployée le 12 novembre (23 h) ;
+il ne manque que la clé de Resend.
 
 **Une seule fois (Elisa)** :
 

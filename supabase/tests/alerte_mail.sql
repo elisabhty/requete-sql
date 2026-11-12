@@ -1,6 +1,12 @@
 -- Owner SQL editor only. All fixtures are rolled back; no e-mail is sent (the pg_net requests queued here vanish with the rollback).
 -- Les retours par e-mail (migration alerte_mail) : ce qui prévient, ce qui est pris une seule fois, rendu, rattrapé, limité.
 begin;
+-- La file d’attente de pg_net (les appels à la fonction). Si l’éditeur n’a pas le droit de la lire, ces vérifications-là sont passées.
+create function pg_temp.alerte_file() returns bigint language plpgsql as $f$
+begin
+  if not has_table_privilege('net.http_request_queue', 'select') then return null; end if;
+  return (select count(*) from net.http_request_queue);
+end $f$;
 do $$
 declare
   c text := repeat('e', 64);
@@ -17,12 +23,14 @@ begin
   delete from requete_private.alerte_envoi where jour = v_jour;
 
   -- 1. Un message « Contacte-nous » : la fonction est prévenue, la ligne est prise une seule fois, avec tout ce qu’il faut
-  select count(*) into v_file from net.http_request_queue;
+  v_file := pg_temp.alerte_file();
   insert into public.contact_message (cle, type, message, email, infos, pieces)
   values (c, 'bug', 'L’écran reste blanc', 'lea@exemple.test', '{"version":"2911","appareil":"iPhone"}', array[repeat('1', 32) || '/capture.png'])
   returning id into v_id;
-  if (select count(*) from net.http_request_queue) <> v_file + 1 then raise exception 'FAIL contact : fonction non prévenue'; end if;
-  if (select url from net.http_request_queue order by id desc limit 1) <> requete_private.alerte_url() then raise exception 'FAIL adresse'; end if;
+  if pg_temp.alerte_file() <> v_file + 1 then raise exception 'FAIL contact : fonction non prévenue'; end if;
+  if v_file is not null then
+    if (select url from net.http_request_queue order by id desc limit 1) <> requete_private.alerte_url() then raise exception 'FAIL adresse'; end if;
+  end if;
   if not requete_private.alerte_attend() then raise exception 'FAIL attend'; end if;
   v := public.alerte_prendre();
   select e into m from jsonb_array_elements(v) e where e ->> 'genre' = 'contact' and e ->> 'ref' = v_id::text;
@@ -60,34 +68,34 @@ begin
   end if;
 
   -- 4. Un avis : sans commentaire, rien ; avec, un e-mail ; la note seule qui change, rien ; le commentaire qui change, il repart
-  select count(*) into v_file from net.http_request_queue;
+  v_file := pg_temp.alerte_file();
   insert into public.avis_lecon (cle, lecon, titre, note) values (c, 12, 'Les jointures', 4);
-  if (select count(*) from net.http_request_queue) <> v_file then raise exception 'FAIL avis sans commentaire : prévenu'; end if;
+  if pg_temp.alerte_file() <> v_file then raise exception 'FAIL avis sans commentaire : prévenu'; end if;
   if exists (select 1 from jsonb_array_elements(public.alerte_prendre()) e where e ->> 'ref' = c || ':12') then raise exception 'FAIL avis sans commentaire pris'; end if;
   update public.avis_lecon set note = 5, commentaire = 'Très clair', note_le = now() where cle = c and lecon = 12;
-  if (select count(*) from net.http_request_queue) <> v_file + 1 then raise exception 'FAIL commentaire : non prévenu'; end if;
+  if pg_temp.alerte_file() <> v_file + 1 then raise exception 'FAIL commentaire : non prévenu'; end if;
   select e into m from jsonb_array_elements(public.alerte_prendre()) e where e ->> 'genre' = 'avis' and e ->> 'ref' = c || ':12';
   if m is null or m ->> 'commentaire' <> 'Très clair' or m ->> 'note' <> '5' or m ->> 'titre' <> 'Les jointures' or m ->> 'lecon' <> '12' then
     raise exception 'FAIL avis : contenu %', m;
   end if;
   update public.avis_lecon set note = 3, commentaire = 'Très clair', note_le = now() where cle = c and lecon = 12;
-  if (select count(*) from net.http_request_queue) <> v_file + 1 then raise exception 'FAIL même commentaire : prévenu'; end if;
+  if pg_temp.alerte_file() <> v_file + 1 then raise exception 'FAIL même commentaire : prévenu'; end if;
   if (select alerte_le is null from public.avis_lecon where cle = c and lecon = 12) then raise exception 'FAIL même commentaire : remis'; end if;
   update public.avis_lecon set commentaire = 'Très clair, merci', note_le = now() where cle = c and lecon = 12;
-  if (select count(*) from net.http_request_queue) <> v_file + 2 then raise exception 'FAIL commentaire changé : non prévenu'; end if;
+  if pg_temp.alerte_file() <> v_file + 2 then raise exception 'FAIL commentaire changé : non prévenu'; end if;
   select e into m from jsonb_array_elements(public.alerte_prendre()) e where e ->> 'genre' = 'avis' and e ->> 'ref' = c || ':12';
   if m is null or m ->> 'commentaire' <> 'Très clair, merci' or m ->> 'essai' <> '1' then raise exception 'FAIL commentaire changé : %', m; end if;
   insert into public.avis_lecon (cle, lecon, note, commentaire) values (c, 13, 2, 'Trop rapide');
-  if (select count(*) from net.http_request_queue) <> v_file + 3 then raise exception 'FAIL avis avec commentaire dès le départ'; end if;
+  if pg_temp.alerte_file() <> v_file + 3 then raise exception 'FAIL avis avec commentaire dès le départ'; end if;
   update public.avis_lecon set commentaire = null where cle = c and lecon = 13;
   if exists (select 1 from jsonb_array_elements(public.alerte_prendre()) e where e ->> 'ref' = c || ':13') then raise exception 'FAIL commentaire retiré pris'; end if;
 
   -- 5. Un pseudo signalé : prévenu, avec le nombre de signalements
   insert into public.jeu_joueur (cle, pseudo) values (repeat('1', 64), 'Signale') returning id into v_a;
   insert into public.jeu_joueur (cle, pseudo) values (repeat('2', 64), 'Temoin') returning id into v_b;
-  select count(*) into v_file from net.http_request_queue;
+  v_file := pg_temp.alerte_file();
   insert into public.jeu_signalement (joueur, par, pseudo) values (v_a, v_b, 'Signale');
-  if (select count(*) from net.http_request_queue) <> v_file + 1 then raise exception 'FAIL signalement : non prévenu'; end if;
+  if pg_temp.alerte_file() <> v_file + 1 then raise exception 'FAIL signalement : non prévenu'; end if;
   select e into m from jsonb_array_elements(public.alerte_prendre()) e where e ->> 'genre' = 'signalement' and e ->> 'ref' = v_a || ':' || v_b;
   if m is null or m ->> 'pseudo' <> 'Signale' or m ->> 'signalements' <> '1' or m ->> 'masque' <> 'false' then raise exception 'FAIL signalement : %', m; end if;
 
@@ -106,20 +114,20 @@ begin
   if not exists (select 1 from jsonb_array_elements(v) e where e ->> 'genre' = 'contact' and e ->> 'ref' = v_id::text)
      or not exists (select 1 from jsonb_array_elements(v) e where e ->> 'genre' = 'avis' and e ->> 'ref' = c || ':12')
      or not exists (select 1 from jsonb_array_elements(v) e where e ->> 'genre' = 'signalement') then
-    raise exception 'FAIL regroupement après l’attente : %', v;
+    raise exception 'FAIL regroupement après l’attente (% lignes prises)', jsonb_array_length(v);
   end if;
   if (select envois from requete_private.alerte_envoi where jour = v_jour) <> 11 then raise exception 'FAIL un seul e-mail pour le lot'; end if;
 
   -- 7. Le rattrapage : il ne rappelle la fonction que s’il reste quelque chose
-  select count(*) into v_file from net.http_request_queue;
+  v_file := pg_temp.alerte_file();
   if not requete_private.alerte_attend() then
     perform requete_private.alerte_rattraper();
-    if (select count(*) from net.http_request_queue) <> v_file then raise exception 'FAIL rattrapage à vide'; end if;
+    if pg_temp.alerte_file() <> v_file then raise exception 'FAIL rattrapage à vide'; end if;
   end if;
   insert into public.contact_message (cle, type, message) values (c, 'autre', 'à rattraper');
-  select count(*) into v_file from net.http_request_queue;
+  v_file := pg_temp.alerte_file();
   perform requete_private.alerte_rattraper();
-  if (select count(*) from net.http_request_queue) <> v_file + 1 then raise exception 'FAIL rattrapage'; end if;
+  if pg_temp.alerte_file() <> v_file + 1 then raise exception 'FAIL rattrapage'; end if;
 end $$;
 
 -- L’appli n’a aucun droit : ni prendre, ni rendre, ni lire le compte du jour

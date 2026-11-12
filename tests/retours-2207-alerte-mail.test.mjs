@@ -11,7 +11,7 @@ import {createAlerteHandler, ecrire, cleEnvoi, etoiles, RESEND, SUJETS} from '..
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
-const sql = lire('supabase/migrations/20261112214500_alerte_mail.sql');
+const sql = lire('supabase/migrations/20261112215758_alerte_mail.sql');
 const entree = lire('supabase/functions/alerte-mail/index.ts');
 const poignee = lire('supabase/functions/alerte-mail/handler.mjs');
 const N = String.fromCharCode(0xa0);
@@ -239,7 +239,7 @@ test('la confidentialité le dit, sur le site comme dans l’appli, et IOS.md ex
   assert.ok(!page.includes(N + ';') && !/prochainement|bientôt disponible/i.test(page.slice(page.indexOf('Messages de contact'), page.indexOf('Rappel quotidien'))));
   const doc = lire('IOS.md');
   const bloc = doc.slice(doc.indexOf('### Les retours par e-mail'), doc.indexOf('### Les raccourcis de l’icône'));
-  for (const morceau of ['`RESEND_API_KEY`', '`ALERTE_MAIL_A`', '`ALERTE_MAIL_DE`', 'supabase/functions/alerte-mail', '20261112214500_alerte_mail.sql',
+  for (const morceau of ['`RESEND_API_KEY`', '`ALERTE_MAIL_A`', '`ALERTE_MAIL_DE`', 'supabase/functions/alerte-mail', '20261112215758_alerte_mail.sql',
     'supabase/tests/alerte_mail.sql', 'Sending access', '40 e-mails par jour'])
     assert.ok(bloc.includes(morceau), morceau);
   assert.ok(!bloc.includes('—'));
