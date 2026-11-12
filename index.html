@@ -6745,7 +6745,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=316">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=46">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=47">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -46737,19 +46737,6 @@ function obModifiable(){
    Plus de bouton pour rester sans compte ni de carte du mode local sur la page de connexion. Tant que la connexion n’est pas
    branchée, « Continuer » passe la page, pour aller au bout de l’onboarding ; une fois branchée, le compte est le seul chemin
    (ni bouton, ni glissé, ni « Suivant » ne la passent). */
-/* 12 novembre, 13 h 33 (Elisa, d’après une relecture de l’écran « Garde ta progression ») : « Continuer sans compte », pour découvrir
-   l’appli sans s’inscrire. Au début (« J’ai déjà un compte » touché), on part sur l’onboarding. À la fin, une question dit ce que
-   l’on risque (la progression reste sur cet appareil, un autre téléphone ne la retrouvera pas) ; confirmé, le paywall puis l’appli.
-   Le compte se crée plus tard, dans Mon compte. */
-function obSansCompte(){
-  if(obLock||obAuthBusy)return;
-  if(typeof buzz==='function')buzz('light');
-  if(!draft.finVoulue){obGoto('welcome');return;}
-  lqAsk({ico:'💾',chat:typeof chatBonusHtml==='function'?chatBonusHtml('cle'):'',titre:'Continuer sans compte ?',
-    texte:'Sans compte, ta progression reste uniquement sur cet appareil : si tu changes de téléphone, tu pourrais la perdre. Tu pourras créer ton compte plus tard, dans Mon compte.',
-    oui:'Créer mon compte',trois:'Continuer sans compte',non:null})
-    .then(r=>{if(r==='trois'&&OB_SLIDES[obStep]==='account'&&!obLock)obApresCompte();});
-}
 function obPasserConnexion(){
   if(obAuthReady())return;
   buzz('light');
@@ -47581,15 +47568,13 @@ function paintOb(){
     /* Elisa, 4 novembre, 10 h 16 : « mettre la page de connexion (il faut pas qu’elle marche encore) ». Sans fournisseur branché
        (window.REQUETE_AUTH), chaque bouton porte « Bientôt » et ne connecte à rien (obConnexionBientot) ; « Continuer » passe la
        page. Avec un fournisseur, ils connectent, et c’est le seul chemin : plus de mode local (10 h 29, « on a le paywall qui arrive
-       après »). 10 h 45 : son texte, « Continuer avec Apple » et « Continuer avec un e-mail », tout centré à la verticale, juste
+       après » ; redit le 12 novembre, 13 h 44 : « Pas de sans compte stp »). 10 h 45 : son texte, « Continuer avec Apple » et « Continuer avec un e-mail », tout centré à la verticale, juste
        après la première requête (le « Bravo » de la requête est supprimé) et avec des confettis de ouf à l’arrivée (obFeteConnexion).
        Ouverte sans première requête réussie (moteur SQL indisponible, ou depuis Mon compte), elle ne parle pas de réussite. */
     const message=obAuthMessage?`<p class="ob-auth-message" role="status">${esc(obAuthMessage)}</p>`:'';
     /* 10 novembre, 17 h 11 : elle vient après « Ton parcours est prêt », plus après la première requête : le bravo de la requête
        s’efface (les confettis sont sur la dernière page), elle propose de sauvegarder le parcours. */
     const reussie=false,masquee=typeof obConnexionMasquee==='function'&&obConnexionMasquee(),finale=!!draft.finVoulue;
-    /* 12 novembre, 13 h 33 : « Continuer sans compte » (pas depuis Mon compte, où « Retour » suffit) */
-    const sansCompte=authReady&&!masquee&&!(state.onboarded&&obEntry==='account');
     /* 12 novembre (réf. 12 et 13 : « ça fait un peu vide », d’après le « Welcome Back » de HeyRua, sans e-mail) : la page s’organise
        comme lui (is-grand) : le chat à la clé en grand au milieu, le titre et sa phrase dessous, les boutons Apple et Google en bas. */
     html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}">${obFlowHeader(slide)}
@@ -47605,7 +47590,6 @@ function paintOb(){
       ${masquee?'':`<div class="ob-provider-list">
         ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(([provider,label],i)=>`<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?'disabled aria-busy="true"':''}>${obProviderIcon(provider)}<span>Continuer avec ${label}</span>${obAuthBusy?'<i class="ob-provider-spinner"></i>':(!authReady?'<small>Bientôt</small>':'<i class="ob-provider-chev">›</i>')}</button>`).join('')}
         ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
-        ${sansCompte?`<button type="button" class="ob-sans-compte" onclick="obSansCompte()" ${obAuthBusy?'disabled':''}>Continuer sans compte</button>`:''}
       </div>`}${message}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
       </div>`;
     /* Elisa, 6 novembre, 23 h 16 (réf. 4) : « Met le en continuant… juste en bas du bouton jaune » : la phrase des conditions passe
@@ -49719,7 +49703,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-compte-sans-compte-v2883';
+  const SW_CACHE='requete-2026-11-12-compte-seul-chemin-v2884';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

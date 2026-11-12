@@ -139,44 +139,17 @@ test('la connexion remplie : ce que le compte garde vraiment, et les fournisseur
 });
 
 /* 12 novembre, 13 h 33 (Elisa, une relecture de l’écran « Garde ta progression ») : une phrase plus directe, des titres plus courts,
-   « Continuer sans compte » sous les boutons, la mention légale juste, et la page resserrée pour tout tenir. */
-test('« Garde ta progression » : « Continuer sans compte », sa question à la fin, la mention légale', () => {
+   la mention légale juste, la page resserrée. 13 h 44 : « Pas de sans compte stp » : le compte reste le seul chemin. */
+test('« Garde ta progression » : sa phrase, la mention légale, la page resserrée ; pas de « sans compte »', () => {
   const p = cut("}else if(slide==='account'){", "}else if(slide==='paywall'){");
   assert.ok(p.includes('<p class="ob-compte-sub">Retrouve tes cours, tes défis et tes réussites sur tous tes appareils.</p>'));
-  assert.ok(p.includes("const sansCompte=authReady&&!masquee&&!(state.onboarded&&obEntry==='account');"), 'pas depuis Mon compte');
-  assert.ok(p.includes("${sansCompte?`<button type=\"button\" class=\"ob-sans-compte\" onclick=\"obSansCompte()\" ${obAuthBusy?'disabled':''}>Continuer sans compte</button>`:''}"));
   assert.ok(p.includes('En continuant, tu acceptes nos <a') && p.includes('et reconnais avoir pris connaissance de notre <a'));
-  const vers = [], questions = [];
-  let reponse = 'trois';
-  const ctx = vm.createContext({ obLock: false, obAuthBusy: false, draft: {}, OB_SLIDES: ['account'], obStep: 0, buzz() {}, chatBonusHtml: k => `<chat ${k}>`,
-    obGoto: s => vers.push('page ' + s), obApresCompte: () => vers.push('paywall'), lqAsk: o => { questions.push(o); return Promise.resolve(reponse); } });
-  vm.runInContext(cut('function obSansCompte(){', 'function obPasserConnexion(){'), ctx);
-  ctx.obSansCompte();
-  assert.deepEqual(vers, ['page welcome'], 'au début (« J’ai déjà un compte ») : l’onboarding, sans question');
-  return (async () => {
-    vers.length = 0; ctx.draft.finVoulue = 'home';
-    ctx.obSansCompte(); await new Promise(r => setTimeout(r, 0));
-    assert.equal(questions[0].titre, 'Continuer sans compte ?');
-    assert.equal(questions[0].texte, 'Sans compte, ta progression reste uniquement sur cet appareil : si tu changes de téléphone, tu pourrais la perdre. Tu pourras créer ton compte plus tard, dans Mon compte.');
-    assert.deepEqual([questions[0].oui, questions[0].trois, questions[0].non, questions[0].chat], ['Créer mon compte', 'Continuer sans compte', null, '<chat cle>']);
-    assert.deepEqual(vers, ['paywall'], 'confirmé : le paywall');
-    reponse = true; ctx.obSansCompte(); await new Promise(r => setTimeout(r, 0));
-    assert.deepEqual(vers, ['paywall'], '« Créer mon compte » : on reste sur la page');
-    /* sans bouton dans le pied, il ne garde plus la place du bouton jaune */
-    assert.ok(app.includes("  if(pied)pied.classList.toggle('is-sans-bouton',!primary&&!secondary);"));
-    for (const r of ['html #onboarding.ob-vitrine .ob-foot.is-sans-bouton{padding-bottom:calc(var(--safe-bottom,0px) + 14px)!important}',
-      'html #onboarding.ob-vitrine .ob-account.is-grand .ob-compte-haut+.ob-title{margin-top:4px!important}',
-      'html #onboarding.ob-vitrine .ob-compte-atouts{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px;margin:14px auto 0!important;padding:12px 14px;'])
-      assert.ok(ob.includes(r), r);
-  })();
-});
-
-test('le pays : sa carte, le chat assis dessus qui hoche la tête quand le drapeau se pose', () => {
-  const p = cut("}else if(slide==='pays'){", "}else if(slide==='age'){");
-  assert.ok(p.includes('<div class="ob-pays-carte is-v2${code?\' is-on\':\'\'}${cherche?\' is-cherche\':\'\'}${pop?\' is-trouve\':\'\'}">${chat}'));
-  assert.ok(!p.includes('obMascotDit('), 'plus de bulle');
-  const jouer = cut('function obPaysJouer(){', 'function obPaysListe(){');
-  assert.ok(jouer.includes("chat.src='assets/chat-oui.webp';chat.width=294;chat.height=351;chat.classList.add('is-oui');"));
-  for (const r of ['html #onboarding.ob-vitrine .ob-pays-carte.is-v2::before{display:none}', 'html #onboarding.ob-vitrine .ob-pays-msg::before{content:\'\';float:right;width:64px;height:20px}'])
+  assert.ok(!app.includes('Continuer sans compte') && !app.includes('function obSansCompte(') && !ob.includes('.ob-sans-compte'), 'pas de « Continuer sans compte »');
+  assert.ok(p.includes("obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});"), 'branchée : aucun bouton pour passer');
+  /* sans bouton dans le pied, il ne garde plus la place du bouton jaune */
+  assert.ok(app.includes("  if(pied)pied.classList.toggle('is-sans-bouton',!primary&&!secondary);"));
+  for (const r of ['html #onboarding.ob-vitrine .ob-foot.is-sans-bouton{padding-bottom:calc(var(--safe-bottom,0px) + 14px)!important}',
+    'html #onboarding.ob-vitrine .ob-account.is-grand .ob-compte-haut+.ob-title{margin-top:4px!important}',
+    'html #onboarding.ob-vitrine .ob-compte-atouts{display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px;margin:14px auto 0!important;padding:12px 14px;'])
     assert.ok(ob.includes(r), r);
 });
