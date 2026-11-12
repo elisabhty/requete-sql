@@ -6743,7 +6743,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=318">
+<link rel="stylesheet" href="ludique.css?v=319">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=49">
 <style id="lesson-video-css">
@@ -21736,7 +21736,7 @@ function renderConsoleHome(){
   const mine=dbCatalog.filter(d=>!isDemoDb(d.id)),demos=dbCatalog.filter(d=>isDemoDb(d.id));
   const create=consoleCreateOpen?`<form class="console-create-card" onsubmit="createProjectFromForm(event)">
     <label for="console-project-name">Nom du nouveau projet</label>
-    <div class="console-create-row"><input id="console-project-name" name="projectName" maxlength="40" autocomplete="off" placeholder="Analyse des ventes"></div>
+    <div class="console-create-row"><input id="console-project-name" name="projectName" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="Analyse des ventes"></div>
     <div class="console-create-acts"><button type="button" class="console-create-cancel" onclick="closeProjectCreator()">Annuler</button><button type="submit" class="console-create-cta">Créer le projet</button></div>
   </form>`:'';   // 9 novembre, 21 h 50 (Elisa : « le bouton Annuler n’est pas au bon endroit ») : le champ seul sur sa ligne, puis « Annuler » et « Créer le projet » côte à côte
   host.innerHTML=`<div class="console-quick-actions">
@@ -24685,7 +24685,9 @@ function syncKbarOffset(){
   const kbar=document.getElementById('kbar');
   if(!kbar) return;
   const on=kbar.classList.contains('on');
-  const kb=keyboardInset();
+  /* 12 novembre, 15 h 30 : barre fermée, la hauteur du clavier ne sert à rien ; la lire obligeait à mettre en page tout l’écran,
+     à chaque changement d’onglet (showKbar(false)), avant même son rendu. */
+  const kb=on?keyboardInset():0;
   const kbLift=on&&kb>40;
   if(on&&!kbar.classList.contains('kb-down')){ const oh=kbar.offsetHeight; if(oh>=44) kbarOpenH=oh; }
   const kh=on?kbarOpenH:0;
@@ -26179,7 +26181,10 @@ function filterCourseCatalog(value){
   courseSearch=value;
   const q=String(value||'').trim();
   const {tokens,hits}=SQ.searchLessons(q);
-  const searching=tokens.length>0;
+  /* 12 novembre, 15 h 30 (« vérifier toutes les recherches ») : la première lettre tapée (« j » de jointure) affichait « Aucun cours ne
+     correspond » avec le chat à la loupe, le temps d’en taper une deuxième. Une lettre seule n’est pas encore une recherche : les
+     suggestions restent. Un signe ou un chiffre (« * », « % », « = », « 1 ») cherche tout de suite, comme avant. */
+  const searching=tokens.length>0&&!(tokens.length===1&&/^[a-z]$/.test(tokens[0])&&!hits.length);
   const host=document.getElementById('course-search-results');
   if(!host)return;
   const filtered=searching||courseFilter!=='all';
@@ -26187,7 +26192,7 @@ function filterCourseCatalog(value){
   document.querySelectorAll('[data-course-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.courseFilter===courseFilter)));
   const clear=document.getElementById('clear-course-search');if(clear)clear.hidden=!value;
   const suggest=document.getElementById('course-search-suggest');
-  if(suggest){suggest.hidden=!!value||courseFilter!=='all';if(!suggest.hidden&&!suggest.dataset.ready){suggest.innerHTML=courseSuggestHTML();suggest.dataset.ready='1';}}
+  if(suggest){suggest.hidden=searching||(!!value&&tokens.length!==1)||courseFilter!=='all';/* une lettre seule : les suggestions restent (12 novembre) */if(!suggest.hidden&&!suggest.dataset.ready){suggest.innerHTML=courseSuggestHTML();suggest.dataset.ready='1';}}
   const status=document.getElementById('course-search-status');
   let count=0,html='';
   const emptyTitle=searching?'Aucun cours ne correspond':courseFilter==='due'?'Tu es à jour':courseFilter==='done'?'Tes réussites apparaîtront ici':'Tout est validé !';
@@ -26343,10 +26348,10 @@ function switchTab(name){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','leaving'));
     scr.classList.add('active');
     document.body.classList.remove('in-lesson');
-    if(!restoringNav) scr.scrollTop=tabScrollPositions[name]||0;
     showKbar(false);
     if(name==='planning'&&!tabScrollPositions[name]) setTimeout(scrollToToday,30);
     refreshTabScreen(name);
+    if(!restoringNav) scr.scrollTop=tabScrollPositions[name]||0;   // après le rendu (voir plus bas)
     saveNav({view:'tab',tab:name});
     return;
   }
@@ -26360,10 +26365,13 @@ function switchTab(name){
   }
   scr.classList.add('active');
   document.body.classList.remove('in-lesson');
-  scr.scrollTop=tabScrollPositions[name]||0;
   showKbar(false);
   if(name==='planning'&&!tabScrollPositions[name]) setTimeout(scrollToToday,30);
   refreshTabScreen(name);
+  /* 12 novembre, 15 h 30 (« améliorer la fluidité ») : la position se règle après le rendu de l’écran, plus avant. Régler scrollTop
+     oblige le navigateur à mettre en page l’écran tout de suite : fait avant le rendu, il mettait en page l’ancien contenu (jusqu’à
+     1 500 éléments), jeté l’instant d’après, puis le nouveau. Une mise en page par changement d’écran au lieu de deux. */
+  scr.scrollTop=tabScrollPositions[name]||0;
   saveNav({view:'tab',tab:name});
 }
 /* ---------- Retour par glissement depuis le bord gauche (comme sur iOS) ----------
@@ -27580,6 +27588,10 @@ function lqSesAjuste(host){
   const hi=host&&typeof host.querySelector==='function'?host.querySelector('.lq-hero-hi'):null;
   const t=hi&&hi.querySelector('.lq-hi-title'),m=hi&&hi.querySelector('.journey-session-meta');
   if(!t||typeof t.getBoundingClientRect!=='function')return;
+  /* 12 novembre, 15 h 30 : l’accueil redessiné pendant qu’un autre écran est affiché (le Planning le met à jour) n’est pas mesuré :
+     la mesure donnait 0, mais obligeait à mettre en page l’écran en cours au milieu de son rendu. Il se mesure à son retour. */
+  const ecran=typeof hi.closest==='function'?hi.closest('.screen'):null;
+  if(ecran&&ecran.classList&&!ecran.classList.contains('active'))return;
   const card=hi.closest('.lq-hero'),nom=t.querySelector('.lq-hi-nom');
   hi.classList.remove('is-court','is-serre');if(card)card.classList.remove('is-ses-bas');
   t.style.removeProperty('--hi-fs');if(nom)nom.style.removeProperty('max-width');
@@ -38864,6 +38876,17 @@ if(typeof document!=='undefined'&&document.addEventListener)document.addEventLis
   const shell=t.closest('.editor-shell'),nx=area.nextElementSibling;
   const p=shell?shell.querySelector(':scope>.ed-pied'):(nx&&nx.classList.contains('ed-pied')?nx:null);
   if(p)p.classList.add('is-perime');
+  /* 12 novembre, 15 h 30 (la Console) : après une erreur, dès qu’on corrige la requête, le bouton rouge « Erreur » redevient
+     « Exécuter » (il restait rouge 2,6 s sous le doigt) ; l’éditeur vidé, l’erreur de la requête effacée s’en va avec elle (son encadré
+     et « ✕ Erreur » restaient sous un éditeur vide). Un résultat réussi reste affiché : on peut s’y référer en écrivant la suite. */
+  if(t.id==='ed-console'){
+    const btn=document.getElementById('btn-run-console'),out=document.getElementById('console-out');
+    if(btn&&btn.classList.contains('is-ko')&&!btn.classList.contains('running')&&typeof setRunLoading==='function'){setRunLoading(btn,false);if(typeof updateConsolePinButton==='function')updateConsolePinButton();}
+    if(!t.value.trim()&&out&&out.querySelector('.feedback.err,.console-lock')&&!out.querySelector('.query-loading')){
+      out.innerHTML='';out.style.minHeight='';
+      if(p&&p.querySelector('.is-ko'))p.remove();
+    }
+  }
 },true);
 function setLessonOut(html){
   const out=document.getElementById('lesson-out');
@@ -39909,6 +39932,7 @@ function stkImg(id){
     o.im.decoding='async';
     o.im.onerror=()=>{o.ko=true;clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
     o.im.onload=()=>{o.ok=true;delete stkMasks[id];for(const k of [...stkSilCache.keys()])if(k.startsWith(id+'|'))stkSilCache.delete(k);
+      if(typeof stkFaits!=='undefined')for(const k of [...stkFaits.keys()])if(k.startsWith(id+'|'))stkFaits.delete(k);
       clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
     o.im.src=`assets/stickers/${id}.webp?v=${STK_IMG_V}`;
   }
@@ -40117,23 +40141,44 @@ function stkFontWatch(){
   if(document.fonts.check(f)){stkFontOk=true;return;}
   if(!stkFontWatch.p)stkFontWatch.p=document.fonts.load(f).then(()=>{stkFontOk=true;stkPaint(document);},()=>{});
 }
+/* 12 novembre, 15 h 30 (« améliorer la fluidité ») : Mon compte et la planche redessinaient chaque sticker à chaque ouverture (son
+   image, sa découpe, deux ombres floutées : 75 ms pour la planche sur un ordinateur, davantage sur un téléphone). Le dernier dessin de
+   chaque sticker (même taille, même état) est gardé : le suivant en est une simple copie. Rien n’est gardé en double longtemps : le
+   canvas affiché remplace l’ancien dans la réserve. Une image 3D qui arrive ou la police des stickers vident la réserve. */
+const stkFaits=new Map();
 function stkPaint(root){
   if(!root||!root.querySelectorAll)return;
   const dpr=Math.min(3,window.devicePixelRatio||1);
+  /* Les mesures d’abord, toutes ensemble ; les dessins ensuite : mesurer entre deux dessins refaisait la mise en page à chaque sticker. */
+  const lot=[];
   root.querySelectorAll('canvas[data-stk]').forEach(cv=>{
     if(!cv.offsetWidth)return;
     /* Le sticker lui-même (sa boîte .stk-art), à la fraction de pixel près : arrondie à l’entier, une colonne de 105,3 px donnerait un dessin
        trop petit d’un pixel d’écran, que le navigateur étire (flou). Le canvas déborde de STK_PAD de chaque côté, pour l’ombre. */
     const w=parseFloat(getComputedStyle(cv.parentElement).width);if(!w)return;
+    /* Les silhouettes de la planche et la découpe vide restent à plat : sans ombre. */
+    const mode=cv.dataset.mode||'art';
+    lot.push({cv,w,mode,ombre:mode==='art'||(mode==='lock'&&!cv.closest('.stk-cell'))});
+  });
+  lot.forEach(({cv,w,mode,ombre})=>{
     const px=Math.round(w*dpr),pad=Math.round(STK_PAD*dpr),n=px+2*pad;
     /* Les deux côtés : un canvas neuf mesure 300 × 150, et 300 tombe juste (100 px affichés sur un écran ×3). */
+    const id=cv.dataset.stk;
+    const o=stkImgs[id],etat=!STK_3D.has(id)?'v':o&&o.ok?'i':o&&o.ko?'k':'a';
+    const cle=[id,mode,n,px,ombre?1:0,etat,stkFontOk?1:0].join('|'),fait=etat==='a'?null:stkFaits.get(cle);
+    /* Ce canvas porte déjà ce dessin (stkPaint repasse sur toute la page quand une image ou la police arrive) : on n’y touche pas. */
+    if(etat!=='a'&&cv._stkCle===cle&&cv.width===n&&cv.height===n){stkFaits.set(cle,cv);return;}
     if(cv.width!==n||cv.height!==n){cv.width=n;cv.height=n;}
     const ctx=cv.getContext('2d');if(!ctx)return;
     ctx.clearRect(0,0,n,n);
-    const id=cv.dataset.stk,mode=cv.dataset.mode||'art';
-    /* Les silhouettes de la planche et la découpe vide restent à plat : sans ombre. */
-    if(mode==='art'||(mode==='lock'&&!cv.closest('.stk-cell')))stkShadow(ctx,id,px,mode,pad,dpr,n);
+    /* Le même sticker, déjà dessiné à cette taille dans cet état : on le recopie. */
+    if(fait&&fait!==cv&&fait._stkCle===cle&&fait.width===n&&fait.height===n){
+      try{ctx.drawImage(fait,0,0);cv._stkCle=cle;stkFaits.set(cle,cv);return;}catch(e){}
+    }
+    if(ombre)stkShadow(ctx,id,px,mode,pad,dpr,n);
     ctx.save();ctx.translate(pad,pad);stkDraw(ctx,id,px,mode);ctx.restore();
+    cv._stkCle=etat==='a'?'':cle;
+    if(etat!=='a'){stkFaits.set(cle,cv);if(stkFaits.size>90)stkFaits.delete(stkFaits.keys().next().value);}
   });
   root.querySelectorAll('.stk-art.is-holo').forEach(el=>{
     const m=stkMask(el.dataset.holo);if(!m)return;
@@ -43171,7 +43216,9 @@ function entInFilter(q){return (entFilter==='all'||ENT_FAMILLE_DE[q.cat]===entFi
    choisis, et « Question suivante » reste dans les résultats. */
 let entSearch='';
 function entFold(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’‘]/g,"'").toLowerCase();}
-function entSearchTerms(){return entFold(entSearch).split(/\s+/).filter(Boolean);}
+/* 12 novembre, 15 h 30 : « l’index », « d’une jointure », « qu’est-ce » : l’article élidé ne compte pas (5 questions pour « l’index »,
+   12 pour « index »). */
+function entSearchTerms(){return entFold(entSearch).split(/\s+/).map(w=>w.replace(/^(?:l|d|j|n|s|c|m|t|qu)'(?=.{2})/,'')).filter(Boolean);}
 const ENT_HAY=new WeakMap();
 function entHay(q){
   let h=ENT_HAY.get(q);
@@ -43872,11 +43919,11 @@ function openNote(id,pre){
       ${e.ctx?`<span class="cchip">${esc(e.ctx)}</span>`:''}
       <span style="font-size:12px;color:var(--ink-3)">${n?fmtDate(e.ts):'Maintenant'}</span>
     </div>
-    <textarea class="ne-ta" id="ne-ta" placeholder="Écris ce que tu veux retenir…"></textarea>
+    <textarea class="ne-ta" id="ne-ta" aria-label="Ta note" placeholder="Écris ce que tu veux retenir…"></textarea>
     <div class="ne-lab"><span>Requête associée</span>${e.sql?`<button class="ne-open" type="button" onclick="noteToConsole()">Ouvrir dans la console ›</button>`:''}</div>
     <div class="editor-shell ne-sql-shell">
       <div class="editor-area"><pre><code id="hl-ne-sql"></code></pre>
-      <textarea id="ne-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="-- optionnel"></textarea></div>
+      <textarea id="ne-sql" aria-label="Requête SQL de la note (facultative)" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="-- optionnel"></textarea></div>
     </div>
     <div class="ne-row ne-act">
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
@@ -44611,7 +44658,7 @@ function paysFeuille(actuel,choisir){
   f.innerHTML=`<button type="button" class="pays-fond" aria-label="Fermer la liste des pays" tabindex="-1"></button>
     <div class="pays-boite">
       <div class="pays-tete"><h2 id="pays-feuille-t">Choisis ton pays</h2><button type="button" class="pays-x" aria-label="Fermer">✕</button></div>
-      <label class="pays-cherche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Rechercher un pays" aria-label="Rechercher un pays" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"></label>
+      <label class="pays-cherche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" placeholder="Rechercher un pays" aria-label="Rechercher un pays" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search"><button type="button" class="pays-vider lq-clear" aria-label="Effacer la recherche" hidden>${typeof LQ_X_SVG==='string'?LQ_X_SVG:'✕'}</button></label>
       <div class="pays-liste">
         <p class="pays-titre" data-groupe="proches">Les plus proches</p><ul class="pays-ul" data-groupe="proches">${PAYS_PROCHES.map(ligne).join('')}</ul>
         <p class="pays-titre" data-groupe="tous">Tous les pays</p><ul class="pays-ul" data-groupe="tous">${paysListe().map(p=>ligne(p.code)).join('')}</ul>
@@ -44634,7 +44681,11 @@ function paysFeuille(actuel,choisir){
     pris=b.dataset.pays;
     clearTimeout(attente);attente=setTimeout(partir,prefersReduceMotion()?700:PAYS_ATTENTE);
   });
-  input.addEventListener('input',()=>paysFiltrer(f,input.value));
+  /* 12 novembre, 15 h 30 (« vérifier toutes les recherches ») : la recherche d’un pays n’avait pas de croix pour repartir de zéro
+     (celle du navigateur n’existe pas partout) ; la même que les autres recherches, qui rend le clavier au champ. */
+  const vider=f.querySelector('.pays-vider');
+  input.addEventListener('input',()=>{ if(vider)vider.hidden=!input.value; paysFiltrer(f,input.value); });
+  if(vider)vider.addEventListener('click',e=>{ e.preventDefault(); input.value=''; vider.hidden=true; paysFiltrer(f,''); try{input.focus({preventScroll:true});}catch(x){} });
   f.addEventListener('keydown',e=>{ if(e.key==='Escape'){e.preventDefault();partir();} });
   requestAnimationFrame(()=>requestAnimationFrame(()=>f.classList.add('on')));
   /* Au clavier physique, la recherche est prête ; au toucher, le clavier ne s’ouvre pas d’office (il cacherait la liste). */
@@ -49896,7 +49947,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-quatre-pages-v2889';
+  const SW_CACHE='requete-2026-11-12-fluidite-recherches-v2890';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
