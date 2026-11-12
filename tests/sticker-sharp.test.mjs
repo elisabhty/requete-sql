@@ -105,7 +105,8 @@ function paintWorld(dpr = 3) {
     getComputedStyle: el => ({ width: el.cssWidth }),
     stkMask: () => '', stkGlitter: () => '', stkFontWatch: () => {}, STK_HOLO: {},
   });
-  vm.runInContext(take('const STK_INK=', '/* Dans l’ordre de MODULES') + take('function stkPaint(root){', '/* ---------- Écran Stickers ---------- */'), ctx);
+  /* 12 novembre : stkPaint garde le dernier dessin de chaque sticker (stkFaits) ; ici chaque canvas est neuf, tout est dessiné. */
+  vm.runInContext('let stkFontOk=true;' + take('const STK_INK=', '/* Dans l’ordre de MODULES') + take('const stkFaits=new Map();', '/* ---------- Écran Stickers ---------- */'), ctx);
   const canvases = [];
   const sticker = ({ id = 'requete', mode, cssWidth = '105.328px', offsetWidth = 125, inCell = false } = {}) => {
     const rec = recorder();
