@@ -47,8 +47,9 @@ test('la carte des types : trois points, le tableau de son brouillon, une syntax
 });
 
 test('au bilan de la leçon, les deux cartes ; plus d’annonce de déblocage depuis le 11 novembre (le bilan l’accueille)', () => {
-  assert.ok(fn('bravoUnlockHtml').includes('return cs.map((e,k)=>bravoUnlockCarte(l,e,k,cs.length)).join(\'\');'));
-  assert.ok(fn('bravoUnlockCarte').includes("'Deux nouvelles cartes <em>mémo</em>&nbsp;!'") && fn('bravoUnlockCarte').includes("'Et une deuxième carte <em>mémo</em>&nbsp;!'"));
+  /* 12 novembre, 17 h 05 : les deux cartes dans la même main, sous un seul titre (plus de « Et une deuxième carte ») */
+  assert.ok(fn('bravoUnlockHtml').includes("${cs.map((e,k)=>bravoUnlockCarte(l,e,k,nb)).join('')}"));
+  assert.ok(fn('bravoUnlockHtml').includes("'Deux nouvelles cartes <em>mémo</em>&nbsp;!'") && !app.includes('deuxième carte <em>mémo</em>'));
   assert.ok(fn('showUnlock').includes('lastUnlockedId=id;') && !fn('showUnlock').includes('toast'));
   assert.ok(fn('revealBravoCard').includes("document.querySelectorAll('#lesson-body .mc-reveal').forEach(revealBravoUne);"));
 });

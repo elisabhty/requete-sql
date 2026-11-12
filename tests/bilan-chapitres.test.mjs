@@ -11,8 +11,8 @@ const css = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const fn = n => { const a = app.indexOf(`function ${n}(`); assert.ok(a > 0, n); return app.slice(a, app.indexOf('\n}', a) + 2); };
 
 test('trois chapitres, chacun son étiquette et son titre', () => {
-  /* 11 novembre, 17 h 20 : une section par carte de la leçon ; l’étiquette sur la première seulement */
-  assert.ok(fn('bravoUnlockCarte').includes(`\${k?'':'<p class="bv-sec-k">Ta récompense</p>'}\n    <h2 class="mc-reveal-h" id="\${hid}">`));
+  /* 11 novembre, 17 h 20 : une section par carte de la leçon ; 12 novembre, 17 h 05 : un seul bloc, les cartes dans une main */
+  assert.ok(fn('bravoUnlockHtml').includes(`<p class="bv-sec-k">Ta récompense</p>\n    <h2 class="mc-reveal-h" id="mc-reveal-h">\${titre}</h2>`));
   const avis = fn('bravoAvisHtml');
   assert.ok(avis.includes('<p class="bv-sec-k">Ton avis</p>') && !avis.includes('av-lab'), 'plus d’autocollant « Ton avis »');
   assert.ok(avis.includes('<div class="av-carte">'), 'les étoiles dans une carte simple, le titre dehors');

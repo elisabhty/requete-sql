@@ -6743,7 +6743,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=319">
+<link rel="stylesheet" href="ludique.css?v=320">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=51">
 <style id="lesson-video-css">
@@ -39354,35 +39354,54 @@ function openCard(id){
    mémo ! » et la carte arrive ; en revenant sur le bilan, « Ta carte mémo », sans arrivée. */
 /* 11 novembre, 17 h 20 : une leçon qui donne deux cartes les montre l’une sous l’autre, chacune à retourner (« Et une deuxième
    carte » pour la suivante). */
+/* 12 novembre, 17 h 05 (Elisa, sa capture du bilan : « Est-ce possible de les mettre dans des mains (style emoji) car là ça fait trop
+   redondant titre + carte (animation / 2 cartes dans une main ou deux mains à retourner) ») : un seul bloc, un seul titre, et les
+   cartes en éventail dans une main jaune. On en tire une du doigt : elle sort de la main, se redresse et se retourne ; « Recto » la
+   remet dans la main. Une seule pastille « n sur 72 », sur la carte du dessus (le total de la collection). */
 function bravoUnlockHtml(l){
-  const cs=memoDeLecon(l.id);
-  return cs.map((e,k)=>bravoUnlockCarte(l,e,k,cs.length)).join('');
+  const cs=memoDeLecon(l.id),nb=cs.length;
+  if(!nb)return '';
+  const neuve=lastUnlockedId===l.id;
+  /* La carte toute neuve : le chat retourne la sienne, à côté (Elisa, 7 novembre, 15 h 38 : son GIF, une fois) */
+  const chat=neuve&&typeof chatBonusHtml==='function'?`<span class="mc-reveal-chat" aria-hidden="true">${chatBonusHtml('carte')}</span>`:'';
+  const titre=nb>1?(neuve?'Deux nouvelles cartes <em>mémo</em>&nbsp;!':'Tes cartes <em>mémo</em>'):(neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>');
+  return `<section class="bravo-unlock mc-reveal${neuve?' is-new':''}" aria-labelledby="mc-reveal-h">
+    <p class="bv-sec-k">Ta récompense</p>
+    <h2 class="mc-reveal-h" id="mc-reveal-h">${titre}</h2>
+    <div class="mc-main a-${Math.min(nb,2)}">${cs.map((e,k)=>bravoUnlockCarte(l,e,k,nb)).join('')}${MEMO_MAIN_SVG}${chat}</div>
+    <p class="mc-hint" aria-hidden="true"><span class="mc-hint-ico">${MEMO_TURN_SVG}</span><span class="when-recto">Touche ${nb>1?'une':'la'} carte pour la retourner</span><span class="when-verso">Elle t’attend dans tes cartes mémo</span></p>
+  </section>`;
 }
 function bravoUnlockCarte(l,e,k,nb){
-  const c=e.c,n=memoSerial(e.cid),neuve=lastUnlockedId===l.id;
+  const c=e.c,n=memoSerial(e.cid);
   const owned=memoCartes().filter(x=>isUnlocked(x.lid)).length;
   /* 12 novembre, 14 h 59 : deux cartes gagnées d’un coup affichaient toutes les deux « 2 sur 72 ». Chacune porte son rang dans la
      collection : « 1 sur 72 » puis « 2 sur 72 » (la dernière porte le total). */
   const rang=Math.max(1,owned-(nb-1-k));
-  /* La carte toute neuve : le chat retourne la sienne, à côté (Elisa, 7 novembre, 15 h 38 : son GIF, une fois) */
-  const chat=neuve&&!k&&typeof chatBonusHtml==='function'?`<span class="mc-reveal-chat" aria-hidden="true">${chatBonusHtml('carte')}</span>`:'';
-  const hid='mc-reveal-h'+(k?'-'+k:''),titre=k?(neuve?'Et une deuxième carte <em>mémo</em>&nbsp;!':'Ta deuxième carte <em>mémo</em>'):nb>1?(neuve?'Deux nouvelles cartes <em>mémo</em>&nbsp;!':'Tes cartes <em>mémo</em>'):(neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>');
-  return `<section class="bravo-unlock mc-reveal${neuve?' is-new':''}${k?' is-suite':''}" aria-labelledby="${hid}">
-    ${k?'':'<p class="bv-sec-k">Ta récompense</p>'}
-    <h2 class="mc-reveal-h" id="${hid}">${titre}</h2>
-    <div class="mc-flip">${chat}
+  return `<div class="mc-flip" data-k="${k}">
       <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(e.cid,{shine:true})}</button>
       <div class="mc-side is-verso" aria-hidden="true" inert><div class="mc-verso is-card">${memoVerso(e.cid,{head:true})}<button type="button" class="mc-recto-btn" onclick="memoFlip(this,false)">${MEMO_TURN_SVG}Recto</button></div></div>
       <span class="mc-seal" aria-hidden="true"><b>${rang}</b><small>sur ${TOTAL_CARTES}</small></span>
-    </div>
-    <p class="mc-hint" aria-hidden="true"><span class="mc-hint-ico">${MEMO_TURN_SVG}</span><span class="when-recto">Touche la carte pour la retourner</span><span class="when-verso">Elle t’attend dans tes cartes mémo</span></p>
-  </section>`;
+    </div>`;
 }
+/* La main qui tient les cartes, façon emoji : un poing jaune, le pouce posé sur les cartes. Un dessin maison, en décor (aria-hidden). */
+const MEMO_MAIN_SVG=(()=>{
+  const d='M62 118C44 118 30 104 30 86c0-16 6-26 16-36l40-36c8-8 22-8 30 0s8 20 0 28L96 62c-4 4-2 8 4 8h54a8.5 8.5 0 0 1 0 17h2a8 8 0 0 1 0 16h-6a7.5 7.5 0 0 1 0 15z';
+  return '<svg class="mc-main-main" viewBox="0 0 200 130" aria-hidden="true" focusable="false"><defs><linearGradient id="mcMainG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFDD77"/><stop offset="1" stop-color="#FFBE2E"/></linearGradient></defs>'
+    +`<path d="${d}" transform="translate(0 6)" fill="#1B1640" fill-opacity=".2" stroke="#1B1640" stroke-opacity=".2" stroke-width="6" stroke-linejoin="round" paint-order="stroke"/>`
+    /* L’ombre est dans le dessin (le même tracé, 6 px plus bas) : pas de filtre CSS, qui ferait recomposer la main à chaque image */
+    +`<path d="${d}" fill="url(#mcMainG)" stroke="#fff" stroke-width="6" stroke-linejoin="round" paint-order="stroke"/><path d="${d}" fill="none" stroke="#E0A100" stroke-width="2" stroke-linejoin="round"/>`
+    +'<path d="M93 65c-9 8-13 17-12 28M120 87h36M116 103h42" fill="none" stroke="#E0A100" stroke-width="2.4" stroke-linecap="round"/>'
+    +'<path d="M91 23c6-6 15-7 20-2" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" opacity=".8"/></svg>';
+})();
 /* Retourner : la face cachée devient inerte, le focus suit (le titre du verso, ou la carte). Sans animation : d'un coup. */
 function memoFlip(el,toVerso){
-  const root=el&&el.closest('.mc-reveal'); if(!root)return;
-  const r=root.querySelector('.is-recto'),v=root.querySelector('.is-verso');
+  const box=el&&el.closest('.mc-flip'),root=box&&box.closest('.mc-reveal'); if(!root)return;
+  const r=box.querySelector('.is-recto'),v=box.querySelector('.is-verso');
+  /* La carte tirée porte is-flipped, et le bloc aussi (la main et les autres cartes s’effacent, la phrase du dessous change) */
+  box.classList.toggle('is-flipped',toVerso);
   root.classList.toggle('is-flipped',toVerso);
+  root.querySelectorAll('.mc-flip').forEach(b=>{if(b!==box)b.toggleAttribute('inert',toVerso);});
   r.toggleAttribute('inert',toVerso); r.setAttribute('aria-hidden',String(toVerso));
   v.toggleAttribute('inert',!toVerso); v.setAttribute('aria-hidden',String(!toVerso));
   memoFlipFit(root);
@@ -39392,11 +39411,13 @@ function memoFlip(el,toVerso){
   setTimeout(go,still?40:420);
   if(!still&&navigator.vibrate)navigator.vibrate(12);
 }
-/* La boîte des deux faces prend la hauteur de la face visible (la hauteur glisse pendant le retournement). */
+/* La boîte des deux faces prend la hauteur de la face visible (la hauteur glisse pendant le retournement) ; une boîte par carte. */
 function memoFlipFit(root){
-  const box=root&&root.querySelector('.mc-flip'); if(!box)return;
-  const face=box.querySelector(root.classList.contains('is-flipped')?'.is-verso':'.is-recto');
-  if(face)box.style.setProperty('--mc-h',face.offsetHeight+'px');
+  if(!root)return;
+  root.querySelectorAll('.mc-flip').forEach(box=>{
+    const face=box.querySelector(box.classList.contains('is-flipped')?'.is-verso':'.is-recto');
+    if(face)box.style.setProperty('--mc-h',face.offsetHeight+'px');
+  });
 }
 addEventListener('resize',()=>document.querySelectorAll('.mc-reveal').forEach(memoFlipFit));
 /* Appelée après le rendu du bilan (renderLessonFlow) : la hauteur, puis l'arrivée de la carte quand elle entre à l'écran. */
@@ -50111,7 +50132,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-offre-bienvenue-v2892';
+  const SW_CACHE='requete-2026-11-12-cartes-dans-la-main-v2893';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
