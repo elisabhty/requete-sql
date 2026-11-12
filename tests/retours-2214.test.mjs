@@ -56,5 +56,5 @@ test('connecté : la vraie déconnexion (confirmée), puis l’étape du compte'
   assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Te déconnecter ?', 'signOut', 'enregistre', 'ferme', 'onboarding']);
   assert.equal(x.ctx.state.accountMode, 'guest');
   assert.ok(!('accountProvider' in x.ctx.state) && !('accountLabel' in x.ctx.state));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-clavier-v2914';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-methode-v2915';"), 'le cache de l’appli change');
 });

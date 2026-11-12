@@ -26,7 +26,7 @@ test('réf. 4 et 2 : les phrases centrées le sont vraiment (la largeur maximale
     'la cause : « .ob-slides p » écrasait les marges automatiques');
   assert.ok(section.includes('html #onboarding.ob-vitrine .ob-slides p.ob-lead,html #onboarding.ob-vitrine .ob-slides p.ob-legal-note{margin-left:auto!important;margin-right:auto!important}'));
   /* Plus spécifique que « .ob-slides p » (0,1,1) : un identifiant, des classes */
-  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=58">'));
+  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=59">'));
 });
 
 test('réf. 3 : le cadre de la notification s’écarte de la carte de l’heure (son anneau de 9 px compris)', () => {
@@ -96,7 +96,7 @@ test('le pseudo, obligatoire pendant l’onboarding : pas de « Plus tard », et
 
 test('réf. 8 et 9 : la page « 24 jours » rejoint celle des jours, sans le bilan sur un an', () => {
   const ob = vm.runInNewContext(app.match(/const OB_SLIDES = (\[[^\]]+\]);/)[1]);
-  assert.ok(!ob.includes('promise') && ob.indexOf('build') + 1 === ob.indexOf('temoignages'));
+  assert.ok(!ob.includes('promise') && ob.indexOf('build') + 1 === ob.indexOf('methode') && ob.indexOf('methode') + 1 === ob.indexOf('temoignages'));
   const j = slide('jours', "}else if(slide==='build'){");
   assert.ok(!j.includes('Voilà ce que ça t’apporte en un an') && !j.includes('OB_ICO_ACTIVITES') && !j.includes('OB_ICO_HEURES'));
   assert.ok(j.includes('<div class="ob-apport ob-proj"><p class="ob-apport-k">À ce rythme</p>'));

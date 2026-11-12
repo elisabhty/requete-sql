@@ -108,13 +108,13 @@ test('réf. 3 : le bouton jaune remonte encore, et chaque bouton jaune a sa flè
 });
 
 test('« Ils apprécient Requête » : entre le parcours construit et l’engagement (16 h 09 ; la promesse a rejoint les jours à 17 h 27), compté dans les étapes, l’avis s’arrête quand on change d’étape', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact',"));
-  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','temoignages','pact','practice'];"), '« Étape X sur N » le compte');
-  assert.ok(app.includes("  else if(slide==='build')obGoto('temoignages');\n  else if(slide==='temoignages')obGoto('pact');"), 'Suivant, au balayage');
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact',"));
+  assert.ok(app.includes("const OB_PROFILE_SLIDES=['name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice'];"), '« Étape X sur N » le compte');
+  assert.ok(app.includes("  else if(slide==='build')obGoto('methode');\n  else if(slide==='methode')obGoto('temoignages');\n  else if(slide==='temoignages')obGoto('pact');"), 'Suivant, au balayage (la méthode entre les deux depuis le 13 novembre)');
   const s = lastCut("}else if(slide==='goal'){", "}else if(slide==='level'){");
   assert.ok(s.includes("obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);"), 'l’objectif mène au niveau');
   assert.ok(s.includes('<div class="ob-screen ob-profile ob-temoins">${obFlowHeader(slide)}${obTemoinsTitre()}') && s.includes("obSetFooter('Continuer',()=>obGoto('pact'),'','','');"));
-  assert.ok(lastCut("}else if(slide==='build'){", "}else if(slide==='pact'){").includes("obSetFooter('Continuer',()=>obGoto('temoignages'),'','','',true);"), 'le parcours construit mène aux avis');
+  assert.ok(lastCut("}else if(slide==='build'){", "}else if(slide==='pact'){").includes("obSetFooter('Continuer',()=>obGoto('methode'),'','','',true);") && app.includes("    obSetFooter('Continuer',()=>obGoto('temoignages'),'','','');\n  }else if(slide==='temoignages'){"), 'le parcours construit mène à la méthode (13 novembre), qui mène aux avis');
   const peindre = lastCut('function paintOb(){', '  body.classList.remove(\'out\');');
   assert.ok(peindre.includes("  obDemoTimers.forEach(clearTimeout);obDemoTimers=[];\n  obTemoinsCouper();"), 'en changeant d’étape, l’avis s’arrête');
   assert.ok(app.includes("  if(slide==='temoignages')obTemoinsBrancher();"));
@@ -233,7 +233,7 @@ test('le style : la carte du site, qui prend la hauteur qui reste ; ses animatio
   for (const k of ['.ob-enter .ob-tv-ph{animation:obvTvIn .6s var(--v-pop) .08s backwards}', '.ob-enter .ob-tv-faces>*{animation:obvTvFace .42s var(--v-pop) calc(.74s + var(--i,0) * 70ms) backwards}',
     ' .ob-tv:not(.is-lecture) .ob-tv-play::after{animation:obvTvRing 2.4s ease-out 1.4s infinite}', ' .ob-tv-wave i.cur{animation:obvTvCur .45s ease-in-out infinite alternate}'])
     assert.ok(media.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine' + k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=58">') && sw.includes("'./onboarding-vitrine.css?v=58',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=59">') && sw.includes("'./onboarding-vitrine.css?v=59',"), 'feuille rechargée');
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && Number((cache.match(/-v(\d+)$/) || [])[1]) >= 2501, cache);
 });
