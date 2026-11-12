@@ -49,7 +49,12 @@ function ctx({ ua = IPHONE, touch = 5, store = {}, reply = () => ({ ok: true }),
 
 test('Mon compte : « Aide et prise en main » devient « Nous contacter » (« Contacte-nous » depuis le 5 novembre), dans sa feuille', () => {
   assert.ok(!app.includes('Aide et prise en main') && !app.includes("openLegal('help')") && !app.includes('account-help'), 'plus d’aide');
-  assert.ok(app.includes(`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')"><span class="plus-row-icon help is-stk">\${lqStkSvg(ACCT_STK.contact)}</span><span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span>`));
+  /* 12 novembre, 22 h 07 (« Le Contacte-nous, mets-le avec Questions fréquentes ») : une carte comme celle de la FAQ, juste dessous, plus une ligne de la liste */
+  assert.ok(app.includes(`<button class="acct-faq acct-contact" type="button" onclick="openPlusDetails('plus-contact')"><span class="acct-faq-t"><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="acct-faq-ill" aria-hidden="true">\${lqStkSvg(ACCT_STK.contact)}</span></button>`));
+  assert.ok(!app.includes(`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-contact')">`), 'plus dans la liste');
+  const aide = app.slice(app.indexOf('Compte et assistance</p>'));
+  assert.ok(aide.indexOf('class="acct-faq" href=') < aide.indexOf('class="acct-faq acct-contact"') && aide.indexOf('class="acct-faq acct-contact"') < aide.indexOf('<div class="account-settings-list">'), 'la FAQ, puis « Contacte-nous », avant la liste');
+  assert.ok(fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8').includes('html.lq #scr-compte button.acct-faq{width:100%;font:inherit;text-align:left;cursor:pointer;'));
   assert.ok(app.includes("const ACCT_STK={account:'user',route:'route',bell:'bell',reading:'eye',privacy:'shield',help:'help',contact:'bubble'};"), 'la bulle de discussion');
   assert.ok(app.includes(`<details class="plus-details" id="plus-contact">
       <summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>

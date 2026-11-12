@@ -84,7 +84,7 @@ function contact({ store = {}, compte = null } = {}) {
 }
 
 test('réf. 7 : « Contacte-nous », le sujet, un exemple qui suit le sujet, « Envoyer mon message » toujours visible, puis la confirmation', async () => {
-  assert.ok(app.includes('<span><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span>') && app.includes('<summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small>'));
+  assert.ok(app.includes('<span class="acct-faq-t"><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span>') && app.includes('<summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small>'));
   assert.ok(!/>Nous contacter</.test(app) && !app.includes('«&nbsp;Nous contacter&nbsp;»') && !app.includes('« Nous contacter »'), 'plus de « Nous contacter » à l’écran');
   const t = contact();
   const h = t.ev('ctHTML()');
@@ -217,7 +217,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=322">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=58">') && sw.includes("'./onboarding-vitrine.css?v=58',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=323">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=58">') && sw.includes("'./onboarding-vitrine.css?v=58',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-12-clavier-v2909' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-12-contact-v2910' && app.includes(`const SW_CACHE='${cache}';`));
 });
