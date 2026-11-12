@@ -224,7 +224,7 @@ test('les gestes : toucher une table l’allume (encore : tout se rallume), la t
   assert.ok(cut('function umlToileClic(e){', '\n').includes("e.target.closest('.umd-t')))umlFocus(null)"));
   assert.ok(cut('function umlFocusLien(i){', '\n').includes('umlFocus({i:+i},true)'));
   const ap = cut('function umlAppliquer(){', '\n}\n');
-  for (const k of ["plan.classList.toggle('is-focus',!!s);", "x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i)))", "b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); if(hb)hb.setAttribute('aria-pressed',String(sel));",
+  for (const k of ["plan.classList.toggle('is-focus',!!s&&(s.i!=null||on.size>0));", "x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i)))", "b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); if(hb)hb.setAttribute('aria-pressed',String(sel));",
     "r.classList.toggle('is-on',!!t&&cols.has(t.dataset.t+'\\u0001'+r.dataset.c))", "bulle.hidden=!s;"])
     assert.ok(ap.includes(k), k);
   const bas = cut('function umlBasculeEx(btn){', '\n}\n');
@@ -254,7 +254,7 @@ test('la DA : les traits en couleur, la table touchée et le reste effacé, la b
     'html.lq #schema-sheet .umd-plan.is-focus .umd-t:not(.is-sel):not(.is-lie){opacity:.4;filter:saturate(.35)}', 'html.lq #schema-sheet .umd-t.is-sel::after{box-shadow:inset 0 0 0 2.5px var(--c)}',
     'html.lq #schema-sheet .umd-t.is-ex .umd-c:not(.is-plus){height:40px;padding-top:2px}', 'html.lq #schema-sheet .umd-c.is-on{background:var(--lcs,var(--cs))}',
     'html.lq #schema-sheet .umd-v{flex:0 3 auto;min-width:34px;max-width:58%;margin-left:auto;', 'html.lq #schema-sheet .umd-x{display:flex;align-items:center;gap:4px;align-self:flex-start;max-width:100%;height:14px;',
-    'html.lq #schema-sheet .umd-bulle{position:sticky;bottom:12px;z-index:3;', 'html.lq #schema-sheet .umd-liens[open] .umd-chev{transform:rotate(180deg)}',
+    'html.lq #schema-sheet .umd-bulle{position:sticky;bottom:-6px;z-index:3;', 'html.lq #schema-sheet .umd-liens[open] .umd-chev{transform:rotate(180deg)}',
     'html.lq #schema-sheet .umd-j{display:block;padding:8px 10px;border-radius:11px;background:var(--code-bg);color:var(--code-ink);',
     'html.lq #schema-sheet .umd-bt.is-ex[aria-pressed="true"] .umd-sw::after{transform:translateX(12px)}',
     /* « backwards » : après l’arrivée, une carte pressée s’enfonce et l’effacement s’applique */

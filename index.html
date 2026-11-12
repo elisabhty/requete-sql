@@ -6743,9 +6743,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=317">
+<link rel="stylesheet" href="ludique.css?v=318">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=48">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=49">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -25250,7 +25250,9 @@ function umlPlan(m,W,ex,plies){
   /* Les cartes : une colonne au milieu ; de chaque côté, la place des couloirs (5 px au moins entre deux). */
   const vmax={g:0,d:0};
   faisceaux.forEach(f=>{ vmax[f.cote]=Math.max(vmax[f.cote],f.voie); });
-  const base=W<420?40:64,bg=Math.max(base,6+G.voie0+vmax.g*5),bd=Math.max(base,6+G.voie0+vmax.d*5);
+  /* 12 novembre, 14 h 59 : une base sans aucune relation (deux tables importées) n’a pas de trait à loger sur les côtés : ses cartes
+     prennent la largeur (10 px de marge), leurs exemples longs se lisent mieux. */
+  const base=!faisceaux.length?10:W<420?40:64,bg=Math.max(base,6+G.voie0+vmax.g*5),bd=Math.max(base,6+G.voie0+vmax.d*5);
   const libreW=W-bg-bd,cw=Math.round(Math.max(170,Math.min(380,libreW))),x=Math.round(bg+Math.max(0,(libreW-cw)/2));
   Object.values(cartes).forEach(c=>{ c.x=x; c.w=cw; });
   const place={g:x,d:W-x-cw};
@@ -25545,7 +25547,9 @@ function umlAppliquer(){
   const s=umlSel&&(umlSel.t!=null?m.tables.some(t=>t.name===umlSel.t):!!m.liens[umlSel.i])?umlSel:null;
   umlSel=s;
   const {on,tables,cols}=umlAllumes(m,s);
-  plan.classList.toggle('is-focus',!!s);
+  /* 12 novembre, 14 h 59 (capture : la table « infos » touchée, sans relation, et toute la table « cours » grisée, comme éteinte) : une
+     table qui n’a aucun lien n’a rien à mettre en avant, les autres gardent leurs couleurs ; sa carte reste cerclée, la bulle le dit. */
+  plan.classList.toggle('is-focus',!!s&&(s.i!=null||on.size>0));
   plan.querySelectorAll('.umd-a,.umd-m,.umd-f').forEach(x=>x.classList.toggle('is-on',(x.dataset.is||x.dataset.i).split(' ').some(i=>on.has(+i))));
   plan.querySelectorAll('.umd-t').forEach(b=>{ const t=b.dataset.t,sel=!!s&&s.t===t,hb=b.querySelector('.umd-hb'); b.classList.toggle('is-sel',sel); b.classList.toggle('is-lie',!sel&&tables.has(t)); if(hb)hb.setAttribute('aria-pressed',String(sel)); });
   plan.querySelectorAll('.umd-c[data-c]').forEach(r=>{ const t=r.closest('.umd-t'); r.classList.toggle('is-on',!!t&&cols.has(t.dataset.t+'\u0001'+r.dataset.c)); });
@@ -25584,12 +25588,15 @@ function umlDefiler(){
   let y0,y1;
   if(umlSel.t!=null){ const c=p.cartes.find(z=>z.name===umlSel.t); if(!c)return; y0=c.y; y1=c.y+c.h; }
   else{ const a=p.arcs.find(z=>z.i===umlSel.i); if(!a)return; y0=Math.min(a.y1,a.y2)-40; y1=Math.max(a.y1,a.y2)+24; }
-  const haut=plan.getBoundingClientRect().top-body.getBoundingClientRect().top+body.scrollTop,vu=Math.max(120,body.clientHeight-96-150);
+  /* La place prise par la bulle : sa vraie hauteur (trois relations : 270 px, pas 150 ; la table allumée restait à moitié dessous). */
+  const bulle=document.getElementById('umd-bulle'),hb=bulle&&!bulle.hidden&&bulle.offsetHeight?bulle.offsetHeight+24:150;
+  const haut=plan.getBoundingClientRect().top-body.getBoundingClientRect().top+body.scrollTop,vu=Math.max(120,body.clientHeight-96-hb);
   body.scrollTo({top:Math.max(0,haut+y0-96-Math.max(0,(vu-(y1-y0))/2)),behavior:umlDoux()?'smooth':'auto'});
 }
 let schCtx=null;   // 'console' : le schéma de la base ouverte dans la Console (sinon : celle du défi, ou celle du cours)
 let schVue=null;   // '__uml__' : ouvrir sur le schéma UML
 let schRetour=null;   // le bouton qui a ouvert la feuille : le focus y revient à la fermeture
+let schEnHaut=false;  // une autre base que la dernière fois : la feuille s’ouvre en haut
 function renderSchemaSheet(){
   const body=document.getElementById('schema-body');
   if(!body)return;
@@ -25614,6 +25621,7 @@ function renderSchemaSheet(){
   const modele=avecUml?umlModele(database,tables):null;
   if(modele)umlDernier={m:modele,W:umlLargeur(),p:null};
   umlSel=null;
+  const autreBase=body.dataset.base!==key;
   body.dataset.base=key;   // avant la toile : ses tables pliées sont celles de cette base (22 h 19)
   const umlBloc=modele?umlPanneau(modele,umlDernier.W,cur==='__uml__'):'';
   const teintesTab=modele?umlTeintes(modele,umlOrdre(modele).ordre):null;
@@ -25641,6 +25649,10 @@ function renderSchemaSheet(){
         return `<div class="sch-col${c.b==='pk'?' is-pk':''}${fk?' is-fk':''}"><span class="sch-r">${badges}<span class="cn">${esc(c.c)}</span>${droite}</span>${x||nt?`<span class="cxl">${x?`<span class="cx${x.k==='null'?' is-null':''}"><small>ex&nbsp;:</small><b>${esc(x.v)}</b></span>`:''}${nt?`<small class="cd">${esc(nt)}</small>`:''}</span>`:''}</div>`; }).join('')||'<div class="sch-col"><span class="cn">—</span></div>'}
     </div>`;
   }).join('')||'<p class="viz-e">Aucune table disponible.</p>');
+  /* Une autre base que la dernière fois : son schéma s’ouvre en haut, pas là où on avait laissé la précédente (12 novembre, 14 h 59) ;
+     la feuille fermée n’a pas de défilement à régler : openSchemaSheet le refait une fois la feuille affichée. */
+  schEnHaut=autreBase;
+  if(autreBase)body.scrollTop=0;
   }finally{if(dId)database.close();}
 }
 const schTabSel={},schBaseOuverte={};
@@ -25674,11 +25686,13 @@ function openSchemaSheet(ctx,vue){
   lqVizCap('schema-sheet','db',`${plur(n,'table')}, leurs colonnes et leurs clés.`);
   document.getElementById('schema-back').classList.add('on');
   document.getElementById('schema-sheet').classList.add('on');
+  const enHaut=schEnHaut,corps=document.getElementById('schema-body'); schEnHaut=false;
+  if(enHaut&&corps)corps.scrollTop=0;
   showKbar(false);
   document.getElementById('fab').classList.add('hide');
   /* La toile à sa vraie largeur, une fois la feuille ouverte ; le focus dans la feuille, sur sa pastille ouverte (au clavier, on
      reste dedans : Tab en fait le tour) */
-  requestAnimationFrame(()=>{ umlAjuster(); const f=document.querySelector('#schema-body .sch-tab.on')||document.querySelector('#schema-sheet .viz-head button'); if(f)try{ f.focus({preventScroll:true}); }catch(e){} });
+  requestAnimationFrame(()=>{ umlAjuster(); const f=document.querySelector('#schema-body .sch-tab.on')||document.querySelector('#schema-sheet .viz-head button'); if(f)try{ f.focus({preventScroll:true}); }catch(e){} if(enHaut&&corps)corps.scrollTop=0; });
 }
 function closeSchemaSheet(){
   const s=document.getElementById('schema-sheet'),ouverte=s.classList.contains('on');
@@ -39324,6 +39338,9 @@ function bravoUnlockHtml(l){
 function bravoUnlockCarte(l,e,k,nb){
   const c=e.c,n=memoSerial(e.cid),neuve=lastUnlockedId===l.id;
   const owned=memoCartes().filter(x=>isUnlocked(x.lid)).length;
+  /* 12 novembre, 14 h 59 : deux cartes gagnées d’un coup affichaient toutes les deux « 2 sur 72 ». Chacune porte son rang dans la
+     collection : « 1 sur 72 » puis « 2 sur 72 » (la dernière porte le total). */
+  const rang=Math.max(1,owned-(nb-1-k));
   /* La carte toute neuve : le chat retourne la sienne, à côté (Elisa, 7 novembre, 15 h 38 : son GIF, une fois) */
   const chat=neuve&&!k&&typeof chatBonusHtml==='function'?`<span class="mc-reveal-chat" aria-hidden="true">${chatBonusHtml('carte')}</span>`:'';
   const hid='mc-reveal-h'+(k?'-'+k:''),titre=k?(neuve?'Et une deuxième carte <em>mémo</em>&nbsp;!':'Ta deuxième carte <em>mémo</em>'):nb>1?(neuve?'Deux nouvelles cartes <em>mémo</em>&nbsp;!':'Tes cartes <em>mémo</em>'):(neuve?'Nouvelle carte <em>mémo</em>&nbsp;!':'Ta carte <em>mémo</em>');
@@ -39333,7 +39350,7 @@ function bravoUnlockCarte(l,e,k,nb){
     <div class="mc-flip">${chat}
       <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(e.cid,{shine:true})}</button>
       <div class="mc-side is-verso" aria-hidden="true" inert><div class="mc-verso is-card">${memoVerso(e.cid,{head:true})}<button type="button" class="mc-recto-btn" onclick="memoFlip(this,false)">${MEMO_TURN_SVG}Recto</button></div></div>
-      <span class="mc-seal" aria-hidden="true"><b>${owned}</b><small>sur ${TOTAL_CARTES}</small></span>
+      <span class="mc-seal" aria-hidden="true"><b>${rang}</b><small>sur ${TOTAL_CARTES}</small></span>
     </div>
     <p class="mc-hint" aria-hidden="true"><span class="mc-hint-ico">${MEMO_TURN_SVG}</span><span class="when-recto">Touche la carte pour la retourner</span><span class="when-verso">Elle t’attend dans tes cartes mémo</span></p>
   </section>`;
@@ -48004,6 +48021,13 @@ function paintOb(){
     const dates=new Set(p.sessions.map(s=>s.d)),d0=auj();
     const week=Array.from({length:NB_JOURS_VUS},(_,i)=>dates.has(dstr(addJ(d0,i))));
     const nWeek=week.filter(Boolean).length;
+    /* 12 novembre, 14 h 59 (Elisa, capture de la page : « tu peux améliorer ces pages ? ») : sous chaque barre, son jour (« Auj. », « ven. »,
+       « sam. »…) : on voit quels jours tombent les séances, pas seulement combien ; la ligne du milieu a son libellé, comme les deux
+       autres ; et le pied de cette page ne garde plus de place pour une note vide (onboarding-vitrine.css) : la page n’est plus réduite à
+       87 % au-dessus d’une bande vide. */
+    const JOURS_C=['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'],JOURS_L=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+    const jourCourt=i=>i?JOURS_C[addJ(d0,i).getDay()]:'Auj.';
+    const joursOn=week.map((on,i)=>on?(i?JOURS_L[addJ(d0,i).getDay()]:'aujourd’hui'):null).filter(Boolean);
     /* 3 novembre, 17 h 32 : « améliore la dernière page de manière animée ». La coche se trace dans son rond, deux ondes en partent ;
        le prénom se souligne ; les lignes du récapitulatif arrivent l’une après l’autre, leur pastille rebondit ; les sept jours se
        remplissent un à un, les jours de séance en jaune ; puis le bouton se réveille. Réf. 8 (« c’est un mode avec compte,
@@ -48012,9 +48036,9 @@ function paintOb(){
       <h1 class="ob-title" id="ob-title">Ton parcours est prêt${firstName?', <em>'+esc(firstName)+'</em>':''}.</h1><p class="ob-lead">${inv?`${inv.de?`<b>${esc(inv.de)}</b> t’attend dans sa salle de défi`:'Ta salle de défi t’attend'}. Ta première leçon sera là à ton retour.`:'Commence par ta première leçon et avance jusqu’à ton objectif.'}</p>
       ${mascotMedalHtml({hi:'C’est parti\u00a0!',intro:!mascotReduced(),anim:'parti'})}
       <div class="ob-ready-summary"><div class="ob-ready-row" style="--i:0"><span class="ob-ready-ico">◎</span><div><small>Ton objectif</small><b>${esc(goalLabel)}</b></div></div>
-        <div class="ob-ready-row" style="--i:1"><span class="ob-ready-ico">✓</span><div><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
+        <div class="ob-ready-row" style="--i:1"><span class="ob-ready-ico">✓</span><div><small>Ton niveau, ton rythme</small><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
         <div class="ob-ready-row" style="--i:2"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
-      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes ${NB_JOURS_VUS} prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" aria-label="${plur(nWeek,'séance')} sur les sept prochains jours">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
+      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes ${NB_JOURS_VUS} prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" role="img" aria-label="${escAttr(`${plur(nWeek,'séance')} sur les ${NB_JOURS_VUS} prochains jours${nWeek?'\u00a0: '+joursOn.join(', '):''}`)}">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><div class="ob-ready-jours" aria-hidden="true">${week.map((on,i)=>`<span class="${on?'on':''}" style="--i:${i}">${jourCourt(i)}</span>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
     /* Invité par un ami (5 novembre, 14 h) : l’inscription finie, on rejoint sa salle ; le parcours attend le retour. */
     if(inv)obSetFooter('Rejoindre la salle',()=>obApresPret('salle'),'','',(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* Revenu de Mon compte (« Personnalisation ») : on enregistre et on y revient (audit de Mon compte, 6 novembre) */
@@ -49872,7 +49896,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-moments-et-voix-v2888';
+  const SW_CACHE='requete-2026-11-12-quatre-pages-v2889';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -166,6 +166,6 @@ test('la feuille : la DA de la vitrine, le bouton qui ne fait pas défiler, tout
   assert.ok(c.slice(m).includes('#plus-pacte .pc-pacte:not(.is-deja) .ob-hold.is-done{animation:obvHoldOk .5s var(--v-pop)}'));
   assert.ok(ov.includes('@keyframes obvHoldOk{') && ov.includes('@keyframes obvHoldHalo{'), 'les mêmes mouvements que l’onboarding');
   /* Les feuilles et le cache rafraîchis */
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=317">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=48">'));
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=48'") && sw.includes("const CACHE = 'requete-2026-11-12-moments-et-voix-v2888';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=318">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=49">'));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=49'") && sw.includes("const CACHE = 'requete-2026-11-12-quatre-pages-v2889';"));
 });
