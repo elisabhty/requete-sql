@@ -43,9 +43,9 @@ test('les prix : 44,99 € / an en gros, 0,86 € par semaine, −86 %, 5,99 €
   const { ctx } = monter();
   const h = nb(ctx.obPaywallHTML());
   assert.ok(h.includes('<span class="pw-o-p"><b>44,99 €</b> / an</span>') && h.includes('<span class="pw-o-p"><b>5,99 €</b> / semaine</span>'));
-  assert.ok(h.includes('<i class="pw-essai">3 jours gratuits</i>') && h.includes('<span class="pw-o-s"><span class="pw-soit">Soit </span><b>0,86 €</b> par semaine</span>'));
+  assert.ok(h.includes('<i class="pw-essai">3 jours d’essai</i>') && h.includes('<span class="pw-o-s"><span class="pw-soit">Soit </span><b>0,86 €</b> par semaine</span>'));
   assert.ok(h.includes('<span class="pw-badge">−86 %</span>') && h.includes('Meilleur choix</span>'));
-  assert.ok(/class="pw-offre is-an is-on" role="radio" aria-checked="true" aria-label="Annuel, 44,99 € par an, 3 jours gratuits, soit 0,86 € par semaine"/.test(h)
+  assert.ok(/class="pw-offre is-an is-on" role="radio" aria-checked="true" aria-label="Annuel, 44,99 € par an, 3 jours d’essai, soit 0,86 € par semaine"/.test(h)
     && /class="pw-offre is-semaine" role="radio" aria-checked="false" aria-label="Hebdomadaire, 5,99 € par semaine, accès immédiat, tous les niveaux, résiliable à tout moment"/.test(h), 'lu en entier par VoiceOver');
   assert.ok(h.indexOf('is-an') < h.indexOf('is-semaine'), 'l’annuelle en haut');
   assert.ok(h.includes('Elisa, tu es prêt·e à atteindre <em>ton objectif</em> !') && h.includes('<b>Progresser en SQL</b>, fin estimée le 3 décembre.'), 'son parcours d’abord');
@@ -63,7 +63,7 @@ test('le pied : le bouton dit ce qu’il fait, trois réassurances, la date et l
   let [libelle, , , , note] = pied.at(-1);
   assert.equal(nb(libelle), 'Essayer gratuitement 3 jours');
   const n = nb(note.html);
-  assert.ok(n.includes(`<b class="pw-sans">3 jours gratuits, puis 44,99 € par an à partir du ${dateEssai(3)}.</b> Renouvellement automatique, sauf annulation 24 h avant (réglages Apple).`));
+  assert.ok(n.includes(`<b class="pw-sans">3 jours d’essai, puis 44,99 € par an à partir du ${dateEssai(3)}.</b> Renouvellement automatique, sauf annulation 24 h avant (réglages Apple).`));
   assert.ok(n.includes('Paiement Apple') && n.includes('Annulable') && n.includes('Données protégées') && n.includes('Conditions') && n.includes('Confidentialité'));
   assert.equal((nb(ctx.obPaywallHTML()).match(/pw-essai/g) || []).length, 1, 'la pastille sur l’annuelle seulement');
   ctx.obPaywallChoisir('semaine');
