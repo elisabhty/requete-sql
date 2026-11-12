@@ -6745,7 +6745,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=319">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=50">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=51">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -45174,7 +45174,11 @@ function obPaywallHTML(){
       <span class="pw-o-inclus">${inclus.map(([i,t])=>`<span class="${i==='moins'?'is-non':''}">${PW_ICO[i]}${t}</span>`).join('')}</span>`,
     `${se.titre}, ${obPrixTexte('semaine')} ${se.par}, ${inclus.map(([,t])=>t.replace('<br>',' ').toLowerCase()).join(', ')}`);
   const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve">${PW_ICO.laurier}<span class="pw-preuve-t"><b>+${OB_COMMUNAUTE.toLocaleString('fr-FR')} apprenant·es</b> font déjà confiance à Requête<small>Chiffre et avis issus du site requeteapp.com</small></span>${PW_ICO.laurier}</p>`:'';
-  const droite=obAchatPret()?'<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button>':'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
+  /* 12 novembre, 16 h 34 : une fois l’offre de bienvenue vue (et refusée), elle reste à portée, sans insister : « Offre −50 % » dans
+     la barre du haut, à côté de « Restaurer ». Elle ne disparaît pas dans le dos de la personne. */
+  const sortie=obSortieVue()?obSortieInfo():null;
+  const rappel=sortie?`<button type="button" class="pw-lien pw-rappel" onclick="obPaywallVue(true)">Offre −${sortie.pct}&nbsp;%</button>`:'';
+  const droite=obAchatPret()?`<span class="pw-top-d">${rappel}<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button></span>`:'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
   return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}${droite}</div>
     <div class="pw-hero"><img class="pw-chat" src="assets/chat-diplome${fixe?'-fixe':''}.webp" width="304" height="367" alt="" draggable="false">
       <span class="pw-tag">Ton parcours est prêt&nbsp;🚀</span>
@@ -45207,15 +45211,95 @@ function obPaywallChoisir(k){
   obPaywallPied();
 }
 function obPaywallPasser(){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
-function obPaywallEntrer(){if(typeof buzz==='function')buzz('success');finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
+function obPaywallEntrer(){obPwSortie=false;if(typeof buzz==='function')buzz('success');finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
 async function obPaywallAcheter(){
   if(!obAchatPret()){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
   if(obPwBusy)return;
   const live=document.getElementById('pw-live');obPwBusy=true;obPaywallPied();if(live)live.textContent='';
   try{const o=draft.offre==='semaine'?'semaine':'an',essai=obEssai(o);const ok=await window.REQUETE_ACHAT.acheter(o);obPwBusy=false;
-    if(ok){if(typeof stat==='function')stat(essai?'essai':'achat',null,{o});obPaywallEntrer();return;}}
+    if(ok){if(typeof stat==='function')stat(essai?'essai':'achat',null,{o});obPaywallEntrer();return;}
+    /* La feuille d’Apple refermée sans payer : une fois, l’offre de bienvenue (si la boutique la donne à ce compte). */
+    if(obSortieProposer())return;}
   catch(e){obPwBusy=false;if(live)live.textContent='Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.';}
   obPaywallPied();
+}
+/* ---------- L’offre de bienvenue (Elisa, 12 novembre, 16 h 03 : « est-ce qu’on peut avoir une offre à −50 ? » ; 16 h 34 : « fais-le
+   pour le −50 ») ----------
+   Quand la personne referme la feuille de paiement d’Apple, le paywall lui propose une fois l’annuel à moitié prix la première
+   année : le produit fr.requete.app.annuel.bienvenue et son offre de lancement « payée d’avance » (achat.js). Rien n’est écrit en
+   dur : le pourcentage se calcule sur les deux prix de la boutique, et la page n’existe que si Apple dit que ce compte a droit à
+   l’offre (REQUETE_ACHAT.sortieDispo). Ni compte à rebours ni « offre limitée » : on dit ce qui est facturé aujourd’hui, ce qui le
+   sera ensuite, et qu’il n’y a pas d’essai gratuit ici. « Non merci » ramène aux offres ; l’offre reste ensuite dans la barre du
+   haut (« Offre −50 % »), sans revenir d’elle-même. */
+const OB_SORTIE_VUE='requete-offre-bienvenue';
+let obPwSortie=false;
+function obSortieVue(){try{return !!localStorage.getItem(OB_SORTIE_VUE);}catch(e){return false;}}
+function obSortieInfo(){
+  try{
+    const a=window.REQUETE_ACHAT;if(!a||typeof a.sortieDispo!=='function'||!a.sortieDispo())return null;
+    const p=a.prix('bienvenue'),i=p&&p.intro;
+    if(!p||!i||!p.texte||!i.texte||!(i.prix>0)||!(i.prix<p.prix))return null;
+    const pct=Math.round((1-i.prix/p.prix)*100);if(pct<5)return null;
+    const sem=Math.floor(i.prix/OB_OFFRES.an.semaines*100)/100,gain=Math.round((p.prix-i.prix)*100)/100;
+    const ins=t=>String(t).replace(/ /g,'\u00a0');   /* un prix ne se coupe pas entre le nombre et la devise */
+    return {pct,intro:ins(i.texte),plein:ins(p.texte),parSemaine:obDevise(sem,p.devise),economie:obDevise(gain,p.devise,Number.isInteger(gain))};
+  }catch(e){return null;}
+}
+function obSortieProposer(){
+  if(obPwSortie||obSortieVue()||!obSortieInfo())return false;
+  try{localStorage.setItem(OB_SORTIE_VUE,'1');}catch(e){}
+  if(typeof stat==='function')stat('offre',null,{o:'bienvenue'});
+  obPaywallVue(true);
+  return true;
+}
+/* D’une vue du paywall à l’autre (les offres ↔ l’offre de bienvenue), avec le même fondu que d’une page à la suivante */
+function obPaywallVue(sortie){
+  if(obPwBusy)return;
+  obPwSortie=!!sortie&&!!obSortieInfo();
+  const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');
+  const peindre=()=>{obLock=false;obJustEntered=true;paintOb();};
+  if(!body||obLock||prefersReduceMotion()){peindre();return;}
+  obLock=true;if(root)root.dataset.obDir=obPwSortie?'fwd':'back';
+  body.classList.add('out');setTimeout(peindre,180);
+}
+function obSortieHTML(){
+  const x=obSortieInfo();if(!x)return '';
+  const fixe=typeof mascotReduced==='function'&&mascotReduced();
+  const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
+  const reperes=[x.economie?['pieces',`Économise<br><b>${x.economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],['agenda','Payé<br><b>aujourd’hui</b>']].filter(Boolean);
+  return `<div class="ob-screen ob-paywall is-sortie"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}</div>
+    <div class="pw-hero"><img class="pw-chat" src="assets/chat-presente${fixe?'-fixe':''}.webp" width="315" height="362" alt="" draggable="false">
+      <span class="pw-tag">Offre de bienvenue&nbsp;🎁</span>
+      <h1 class="ob-title" id="ob-title"><em>−${x.pct}&nbsp;%</em> sur ta première année</h1>
+      <p class="pw-but">Tout Requête pendant un an&nbsp;: <b>${x.intro}</b> au lieu de ${x.plein}.</p></div>
+    <div class="pw-sortie" role="group" aria-label="${escAttr(`Annuel, la première année : ${x.intro} au lieu de ${x.plein}, payé aujourd’hui, puis ${x.plein} par an`)}">
+      <span class="pw-badge" aria-hidden="true">−${x.pct}&nbsp;%</span>
+      <span class="pw-s-t" aria-hidden="true">Annuel, la première année</span>
+      <span class="pw-s-p" aria-hidden="true"><b>${x.intro}</b><s>${x.plein}</s></span>
+      <span class="pw-s-l" aria-hidden="true"><span class="pw-s-puis">puis ${x.plein} par an</span>${x.parSemaine?`<span class="pw-o-s">Soit <b>${x.parSemaine}</b> par semaine</span>`:''}</span>
+      <span class="pw-o-plus" aria-hidden="true">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span></div>
+    <ul class="pw-plus">
+      <li>${PW_ICO.video}<span><b>${nLecons}&nbsp;leçons vidéo</b>et leurs exercices</span></li>
+      <li>${PW_ICO.manette}<span><b>${nDefis}&nbsp;défis</b>en solo ou entre amis</span></li>
+      <li>${PW_ICO.cartes}<span><b>Cartes mémo,</b>entretien et console SQL</span></li></ul>
+    <p class="ob-compte-msg" id="pw-live" role="status" aria-live="polite"></p></div>`;
+}
+function obSortiePied(){
+  const x=obSortieInfo();if(!x)return;
+  /* Ce qui est facturé, en clair et en premier (règle 3.1.2 d’Apple) : le montant d’aujourd’hui, puis celui de chaque année. */
+  const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
+  const legal=confiance+`<b class="pw-sans">${x.intro} aujourd’hui pour la première année, puis ${x.plein} par an.</b> Pas d’essai gratuit sur cette offre. Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+    +`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+  obSetFooter(`Profiter de −${x.pct}\u00a0%`,obSortieAcheter,obPwBusy?'':'Non merci',obSortieRefuser,{html:legal},obPwBusy);
+}
+function obSortieRefuser(){if(obPwBusy)return;if(typeof buzz==='function')buzz('light');obPaywallVue(false);}
+async function obSortieAcheter(){
+  if(obPwBusy||!obAchatPret())return;
+  const live=document.getElementById('pw-live');obPwBusy=true;obSortiePied();if(live)live.textContent='';
+  try{const ok=await window.REQUETE_ACHAT.acheter('bienvenue');obPwBusy=false;
+    if(ok){if(typeof stat==='function')stat('achat',null,{o:'bienvenue'});obPaywallEntrer();return;}}
+  catch(e){obPwBusy=false;if(live)live.textContent='Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.';}
+  if(obPwSortie)obSortiePied();
 }
 async function obPaywallRestaurer(){
   const live=document.getElementById('pw-live');
@@ -46354,6 +46438,7 @@ function obBack(){
   if(OB_SLIDES[obStep]==='bonjour'&&obVideoMontree&&!obVideoOn()){obVideoOuvrir();return;}
   if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
+  if(OB_SLIDES[obStep]==='paywall'&&obPwSortie){obSortieRefuser();return;}   /* de l’offre de bienvenue, « Retour » ramène aux offres */
   if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
   if(OB_SLIDES[obStep]==='account'){obGoto(draft.finVoulue?'ready':'bonjour');return;}   // « J’ai déjà un compte » (sur « bonjour ») : retour
   if(OB_SLIDES[obStep]==='ready'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}
@@ -47779,6 +47864,7 @@ function obRepeindre(){
 function paintOb(){
   const root=document.getElementById('onboarding');
   const slide=OB_SLIDES[obStep]||'ready';
+  if(obPwSortie&&(slide!=='paywall'||!obSortieInfo()))obPwSortie=false;   /* l’offre de bienvenue n’existe que sur le paywall, tant que la boutique la donne */
   obDemoTimers.forEach(clearTimeout);obDemoTimers=[];
   obTemoinsCouper();
   const authReady=!!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signIn==='function');
@@ -47786,6 +47872,7 @@ function paintOb(){
   root.classList.toggle('ob-account-step',slide==='account'&&!obLegalMode);
   root.classList.toggle('ob-compte-feuille',slide==='account'&&!obLegalMode&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));
   root.classList.toggle('ob-paywall-step',slide==='paywall'&&!obLegalMode);
+  root.classList.toggle('ob-sortie-step',slide==='paywall'&&!obLegalMode&&obPwSortie);
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
   root.classList.toggle('ob-bonjour-step',slide==='bonjour'&&!obLegalMode);
@@ -47910,8 +47997,10 @@ function paintOb(){
     obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
   }else if(slide==='paywall'){
     if(obJustEntered&&typeof statUneFois==='function')statUneFois('paywall_vu','paywall:'+statJour());
-    html=obPaywallHTML();
-    obPaywallPied();
+    /* L’offre de bienvenue (obPwSortie) est une vue de cette page ; si la boutique ne la donne plus, on retombe sur les offres
+       (obPwSortie est remis à faux en tête de paintOb). */
+    if(obPwSortie){html=obSortieHTML();obSortiePied();}
+    else{html=obPaywallHTML();obPaywallPied();}
   }else if(slide==='name'){
     /* Le prénom (Elisa, 31 octobre, 17 h 53 : « non, ici ce sera le prénom, et une fois connecté la première fois, une mini-page pour
        le choix du pseudo ») : il sert à saluer ; le pseudo, unique et public, se choisit après l’onboarding (étape « pseudo »). */
@@ -50022,7 +50111,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-feuille-connexion-v2891';
+  const SW_CACHE='requete-2026-11-12-offre-bienvenue-v2892';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -50062,7 +50151,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=10"></script>
-<script src="achat.js?v=3"></script>
+<script src="achat.js?v=4"></script>
 <script src="compte-moteurs.js?v=1"></script>
 <script src="connexion.js?v=3"></script>
 </body>
