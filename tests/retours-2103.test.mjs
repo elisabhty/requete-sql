@@ -87,7 +87,7 @@ test('appli iOS : derrière l’écran de lancement, la page se dessine à l’i
   assert.equal((s.html[0].match(/<i class="in-d" aria-hidden="true" style="left:[\d.]+%;top:[\d.]+%"><\/i>/g) || []).length, 23);
   assert.equal(s.nom.attrs['aria-label'], 'Requête');
   assert.equal((s.nom.innerHTML.match(/class="in-l"/g) || []).length, 7);
-  assert.ok(s.nom.innerHTML.includes('<span class="in-l" aria-hidden="true" style="--i:4">ê</span>'));
+  assert.ok(s.nom.innerHTML.includes('<span class="in-l" aria-hidden="true" style="--i:4"><b>ê</b></span>'));
   s.run(2600); assert.ok(s.cls.has('is-long'), 'l’anneau et la phrase si l’appli tarde');
   s.ctx.window.__introJouer();
   assert.equal(s.html.length, 2); assert.equal((s.html[1].match(/<i class="in-k" /g) || []).length, 16, 'les seize cases de la touche, au départ');
@@ -156,7 +156,7 @@ test('appli iOS : la première image reprend l’écran de lancement (les points
     'html.is-native.lq #loader.is-intro.is-play.is-sortie{animation:introOut var(--d-sortie) ease-out forwards}',   // 12 novembre : la sortie attend l’appli prête
     'html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}',
     'html.is-native.lq #loader.is-intro.fatal .logo-badge{position:static;width:88px;height:88px;margin:0;border-radius:26px;background:var(--danger)!important;opacity:1;',
-    'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k,.in-chat){display:none}'
+    'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-s,.in-k,.in-chat){display:none}'
   ]) assert.ok(s.includes(part), part);
   assert.ok(!s.includes('introCursor'), 'pas de curseur qui clignote (on aurait dit un bug)');
   assert.ok(css.includes('html.lq #loader{background:var(--deep)!important;'), 'le site garde son écran violet');

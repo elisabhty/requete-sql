@@ -111,7 +111,7 @@ test('chat : ses deux grilles de 12 images (4 × 3), détourées, et leur défil
     'introChatEntree var(--d-plonge) linear var(--t-appui) forwards}',
     '@keyframes introSautX{from{transform:translateX(calc(-50vw - 230*var(--u)))}to{transform:translateX(calc(-130*var(--u)))}}',
     'introMarcheX var(--d-marche) cubic-bezier(.25,0,.6,1) var(--t-pose) forwards,introFade .18s linear var(--t-chat-fin) forwards}',
-    'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-k,.in-chat){display:none}'
+    'html.is-native.lq #loader.is-intro.fatal :is(.in-d,.in-s,.in-k,.in-chat){display:none}'
   ]) assert.ok(bloc.includes(part), part);
   /* Ses pattes (en bas de l’image, ligne 334 sur 357) 10 unités sous le haut de la touche (-270), derrière elle (z-index 1 < 2) */
   assert.ok(Math.abs(-653 + 420 * 334 / 357 - (-270 + 10)) < 2);
