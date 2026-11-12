@@ -82,7 +82,7 @@ test('lecteur : une seule balise audio, déverrouillée au premier appui, qui su
   assert.ok(cut('function lvPkShow(i,p){', 'function lvPkValid(').includes('if(!kept){ const V=lvVoiceV(); if(V)lvVoiceSay(V.picks[i]); }'), 'consigne du moment dite à l’ouverture (pas s’il est déjà fait)');
   assert.ok(cut('function lvPkVerdict(', 'function lvPkFrom(').includes('lvVoiceWin(first);') && cut('function lvPkVerdict(', 'function lvPkFrom(').includes('lvVoiceKo(P);'));
   assert.ok(cut('function lvPkWin(', 'function lvEndHide(').includes('lvVoiceWin(first);'), 'gestes : la même réaction');
-  assert.ok(html.includes('function lvVoiceWin(first){ const V=lvVoiceV(); if(V)lvVoiceSay(first?V.ok:(V.late||V.ok)); }'), 'réussi après une erreur : « Bien rattrapé ! »');
+  assert.ok(html.includes('function lvVoiceWin(first){ const V=lvVoiceV(); if(V)lvVoiceSay(first?V.ok:(V.late||V.ok)); if(LV&&LV.pk'), 'réussi après une erreur : « Bien rattrapé ! » (puis le chat dit oui, 12 novembre)');
   assert.ok(cut('function lvEndShow(root,id,win){', 'lvCardSync(id);').includes('lvVoiceSay(win?V.end.win:LV.retry?V.end.retry:null);'), 'écran de fin : leçon validée, ou « Encore un effort ! »');
   assert.ok(cut('function lvOpShow(i,o){', 'function lvOpPlace(').includes('{ const V=lvVoiceV(); if(V)lvVoiceSay(V.opens[i]); }'), 'message à toucher : sa consigne');
   assert.ok(cut('function lvPkClose(answered){', 'function lvOpShow(').includes('LvVoice.stopSay();') && cut('function lvOpClose(){', 'const LV_PK_ICO=').includes('LvVoice.stopSay();'));

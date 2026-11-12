@@ -3166,7 +3166,7 @@ test('rejouer les moments ratés, revoir le passage : la vidéo saute d’un mom
     && html.includes('if(video instanceof LvAnim)video.skip=i=>!!(LV&&LV.video===video&&LV.redo&&!LV.redo.list.includes(i));'), 'pendant « Rejouer », les moments réussis sont passés');
   const show = cut('function lvPkShow(i,p){', 'function lvPkTry(k){');
   assert.ok(show.includes('<button type="button" class="lv-pk-back" aria-label="Revoir le passage avant ce moment">') && show.includes("box.querySelector('.lv-pk-back').addEventListener('click',()=>lvPkBack(i));")
-    && show.includes('if(!lvRedoNext(i))lvPlay();'), 'carte : « ↺ Revoir », et « Continuer » enchaîne pendant « Rejouer »');
+    && show.includes('if(!lvRedoNext(i)){ lvPlay(); lvResumeCue(); }'), 'carte : « ↺ Revoir », et « Continuer » enchaîne pendant « Rejouer »');
   assert.ok(html.includes('.lv-pk-back{margin-left:auto;') && html.includes('.lv-pk.is-ok .lv-pk-back{display:none}'), 'bouton « ↺ Revoir » discret, retiré une fois le moment réussi');
 });
 

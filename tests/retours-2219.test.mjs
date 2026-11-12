@@ -118,5 +118,5 @@ test('la base de démo des cours s’appelle NutriBoost', () => {
   assert.equal(ctx.projectName('cours'), 'NutriBoost');
   assert.ok(!app.includes("name:'Cours'") && !app.includes("return 'Cours';"));
   assert.ok(app.includes("fname.textContent=(activeDbId==='cours'?'nutriboost':isDemoDb(activeDbId)?activeDbId:'projet')+'.sql';"), 'son brouillon : nutriboost.sql');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=317">') && sw.includes("const CACHE = 'requete-2026-11-12-raccourcis-stickers-v2887';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=317">') && sw.includes("const CACHE = 'requete-2026-11-12-moments-et-voix-v2888';"));
 });
