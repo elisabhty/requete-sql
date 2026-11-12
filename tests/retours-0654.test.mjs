@@ -145,5 +145,5 @@ test('obFit ne remesure que si quelque chose a bougé ; une page déjà vue repr
   /* Le code : la mémoire par page, la signature, et deux repassages seulement */
   const f = cut('function obFit(){', '/* 1 h 31');
   assert.ok(f.includes("if(meme&&root.dataset.obzSigne===signe()&&tient()){apres();return;}") && f.includes('const su=obFitMemo[cle];'));
-  assert.ok(app.includes('const OB_SORTIE_MS=110;') && app.includes("paintOb();},prefersReduceMotion()?0:OB_SORTIE_MS);"), 'la page d’avant s’efface en 110 ms');
+  assert.ok(app.includes('const OB_SORTIE_MS=110;') && app.includes("setTimeout(attendre,prefersReduceMotion()?0:OB_SORTIE_MS);"), 'la page d’avant s’efface en 110 ms (puis, clavier ouvert, la suivante attend la bonne hauteur : retours-2153)');
 });
