@@ -15,9 +15,9 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const fn = name => { const i = app.indexOf(`function ${name}(`); assert.ok(i >= 0, name); const j = app.indexOf('\n}\n', i); return app.slice(i, j + 3); };
 
 function monter({actif = true, google = false, login, reponses = []} = {}) {
-  let code = actif ? src.replace('var ACTIVE = false;', 'var ACTIVE = true;') : src;
-  if (google) code = code.replace("var GOOGLE_IOS = '';", "var GOOGLE_IOS = '123-ios.apps.googleusercontent.com';")
-    .replace("var GOOGLE_WEB = '';", "var GOOGLE_WEB = '123-web.apps.googleusercontent.com';");
+  let code = src.replace(/var ACTIVE = (true|false);/, `var ACTIVE = ${actif};`)
+    .replace(/var GOOGLE_IOS = '[^']*';/, google ? "var GOOGLE_IOS = '123-ios.apps.googleusercontent.com';" : "var GOOGLE_IOS = '';")
+    .replace(/var GOOGLE_WEB = '[^']*';/, google ? "var GOOGLE_WEB = '123-web.apps.googleusercontent.com';" : "var GOOGLE_WEB = '';");
   const store = new Map(), appels = [], evenements = [];
   const SL = {
     init: null, logins: [], logouts: [],
@@ -42,9 +42,11 @@ function monter({actif = true, google = false, login, reponses = []} = {}) {
 }
 const session = (n = 3600) => ({access_token: 'acces', refresh_token: 'renouv', expires_in: n, user: {id: 'u-1', email: 'elisa@exemple.fr'}});
 
-test('éteint (ACTIVE à false) : pas de REQUETE_AUTH, l’appli reste sans compte', () => {
+test('éteint (ACTIVE à false) : pas de REQUETE_AUTH, l’appli reste sans compte ; allumée le 12 novembre, avec les identifiants Google', () => {
   assert.equal(monter({actif: false}).A, undefined);
-  assert.match(src, /var ACTIVE = false;/, 'livré éteint tant que la synchronisation et les réglages ne sont pas faits');
+  assert.match(src, /var ACTIVE = true;/, '12 novembre, 7 h 40 : réglages Apple, Google et Supabase faits');
+  assert.match(src, /var GOOGLE_IOS = '473682844926-[0-9a-z]+\.apps\.googleusercontent\.com';/);
+  assert.match(src, /var GOOGLE_WEB = '473682844926-[0-9a-z]+\.apps\.googleusercontent\.com';/);
 });
 
 test('Apple seul tant que les identifiants Google sont vides ; Apple et Google quand ils sont posés', () => {

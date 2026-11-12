@@ -552,7 +552,10 @@ feuille d’Apple ou de Google, Supabase échange le jeton d’identité contre 
 `compte-moteurs.js` (produit depuis `account/*.mjs` par `npm run build:www`) synchronise leçons, défis, entretien, jours
 d’activité, planning et notes avec les fonctions `progression_*` et `documents_*` (`csSync` dans index.html).
 
-**Éteinte tant que `ACTIVE` vaut `false`** dans `connexion.js` : la page de connexion reste cachée sur l’iPhone. Pour l’allumer :
+**Allumée le 12 novembre** (`ACTIVE = true` dans `connexion.js`) : Apple (Sign In with Apple sur fr.requete.app, clé « Requete
+Sign in with Apple », Key ID GTYQ8X2RCP, équipe RN77C85JG4), Google (projet Google Cloud « Requete », requete-514506, écran de
+consentement « Requête » publié en production, clients « Requete iOS » et « Requete Web (Supabase) ») et Supabase (Apple et Google
+activés) sont réglés. Remettre `ACTIVE = false` cache de nouveau la page de connexion. Les réglages, pour mémoire :
 
 1. **Apple** (developer.apple.com › Certificates, Identifiers & Profiles › Identifiers › fr.requete.app) : cocher
    « Sign In with Apple », Save. Le droit `com.apple.developer.applesignin` est déjà dans `App.entitlements`.

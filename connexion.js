@@ -39,13 +39,15 @@
 (function(){
   'use strict';
   /* Les identifiants OAuth de Google (Google Cloud › Google Auth Platform › Clients) : publics, faits pour être dans l'app.
-     Le client « iOS » (bundle fr.requete.app) et le client « Web application » (l'audience que Supabase vérifie). */
-  var GOOGLE_IOS = '';
-  var GOOGLE_WEB = '';
-  /* L'interrupteur : tant qu'il est à false, REQUETE_AUTH n'est pas défini et l'appli reste sans compte (la page de connexion
+     Le client « iOS » (bundle fr.requete.app) et le client « Web application » (l'audience que Supabase vérifie). Projet Google
+     Cloud « Requete » (requete-514506), écran de consentement « Requête » publié en production le 12 novembre. */
+  var GOOGLE_IOS = '473682844926-1k6vlbb8q1kt0oiej87nm7eikfhh9uj5.apps.googleusercontent.com';
+  var GOOGLE_WEB = '473682844926-k354pnsj3g2i3goj23ifmeetgpe93vf7.apps.googleusercontent.com';
+  /* 12 novembre, 7 h 40 (Elisa : « fais le réglage de la connexion ») : Apple, Google et Supabase réglés, l'interrupteur passe à true.
+     L'interrupteur : tant qu'il est à false, REQUETE_AUTH n'est pas défini et l'appli reste sans compte (la page de connexion
      cachée sur l'iPhone). Il passe à true quand la synchronisation de la progression est branchée et que les réglages Apple,
      Google et Supabase sont faits (IOS.md, « La connexion ») : sans eux, la page promettrait une sauvegarde qui n'a pas lieu. */
-  var ACTIVE = false;
+  var ACTIVE = true;
   var APP_ID = 'fr.requete.app';
   var GARDE = 'requete-session';
 
