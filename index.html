@@ -6743,7 +6743,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=316">
+<link rel="stylesheet" href="ludique.css?v=317">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=48">
 <style id="lesson-video-css">
@@ -8026,7 +8026,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <div class="kbar-in" id="kbar-in"></div>
   </div></div>
 
-  <nav class="tabbar" onkeydown="navigateMainTabs(event)" role="tablist" aria-label="Navigation principale">
+  <nav class="tabbar" id="tabbar" onkeydown="navigateMainTabs(event)" role="tablist" aria-label="Navigation principale">
     <button class="tab active" role="tab" aria-selected="true" data-tab="learn" onclick="switchTab('learn')">
       <svg viewBox="0 0 24 24" fill="none"><path d="m3.5 10.5 8.5-7 8.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 9.5V20h13V9.5M9.5 20v-6h5v6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tab-label">Accueil</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="planning" onclick="switchTab('planning')">
@@ -27411,6 +27411,30 @@ const HOME_STAT_SVG={
 /* 12 novembre, 14 h 08 (Elisa : « améliore mon appli comme tu le sens ») : à l’arrivée sur l’accueil (l’ouverture finie, ou
    l’onboarding terminé), les chiffres des trois tuiles montent de zéro à leur valeur, l’un après l’autre, une seule fois par ouverture
    de l’appli. Mouvement réduit, onboarding ouvert ou tuiles absentes : rien. Le chiffre final est écrit quoi qu’il arrive. */
+/* Mon compte : la série mène au planning, les leçons à l’accueil, les points aux défis (14 h 15) */
+function acctStatAller(vers){if(typeof buzz==='function')buzz('light');switchTab(vers);}
+/* 12 novembre, 14 h 15 : retoucher l’onglet déjà ouvert remonte en haut de sa page, en douceur (le geste d’iOS). Seulement quand
+   l’onglet touché est exactement la page affichée, et qu’elle n’est pas déjà en haut. */
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function'){
+  document.addEventListener('click',e=>{
+    const t=e.target&&e.target.closest?e.target.closest('.tabbar .tab'):null;
+    if(!t||typeof activeTab==='undefined'||t.dataset.tab!==activeTab)return;
+    const scr=document.querySelector('.screen.active');
+    if(!scr||scr.scrollTop<8)return;
+    e.stopPropagation();e.preventDefault();
+    if(typeof buzz==='function')buzz('light');
+    try{scr.scrollTo({top:0,behavior:prefersReduceMotion()?'auto':'smooth'});}catch(x){scr.scrollTop=0;}
+  },true);
+}
+function homeStatAller(ico,el){
+  if(typeof buzz==='function')buzz('light');
+  const vers={manette:'defis',bulle:'entretien',cartes:'collection'}[ico];
+  if(vers){switchTab(vers);return;}
+  const scr=document.getElementById('scr-learn'),cible=document.getElementById('modules');
+  if(!scr||!cible)return;
+  const y=cible.getBoundingClientRect().top-scr.getBoundingClientRect().top+scr.scrollTop-((typeof lqHautSur==='function'?lqHautSur():0)+70);
+  try{scr.scrollTo({top:Math.max(0,y),behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){scr.scrollTop=Math.max(0,y);}
+}
 let homeStatsComptes=false;
 function homeStatsCompter(){
   try{
@@ -27460,7 +27484,10 @@ function homeStatsHTML(){try{
     :[t('barres',lancees,'leçon lancée','leçons lancées'),faites?t('coche',faites,'leçon validée','leçons validées'):exos?t('coche',exos,'exercice fait','exercices faits'):aGagner,t('cible',nL,'leçon au total','leçons au total')];
   const vues=tuiles.filter(x=>x.n>0);
   if(!vues.length)return '';
-  return `<ul class="lq-stats" aria-label="Tes chiffres">${vues.map(x=>`<li class="lq-stat is-${x.ico}"><span class="lq-stat-ic" aria-hidden="true">${HOME_STAT_SVG[x.ico]}</span><b>${x.n}${x.suf}</b><span>${x.mot}</span></li>`).join('')}</ul>`;
+  /* 12 novembre, 14 h 15 (Elisa : « micro-interactions, UI/UX… ») : les tuiles ressemblaient à des boutons sans rien faire. Chacune
+     mène à ce qu’elle compte : les défis, les questions d’entretien, les cartes mémo ; les autres (vidéo, leçons, exercices), au
+     parcours, plus bas sur l’accueil (homeStatAller). */
+  return `<ul class="lq-stats" role="group" aria-label="Tes chiffres">${vues.map(x=>`<li class="lq-stat is-${x.ico}" role="button" tabindex="0" onclick="homeStatAller('${x.ico}',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();homeStatAller('${x.ico}',this);}"><span class="lq-stat-ic" aria-hidden="true">${HOME_STAT_SVG[x.ico]}</span><b>${x.n}${x.suf}</b><span>${x.mot}</span></li>`).join('')}</ul>`;
 }catch(e){return '';}}
 /* Ce que l’étiquette de la séance dit à VoiceOver : le même résumé que le bilan et le planning (session.summary), avec les minutes que
    l’écran montre et, en retard, la séance qu’elles comptent : « Séance d’hier à reprendre : 2 activités à rattraper, environ
@@ -40045,7 +40072,7 @@ function renderStickers(){
   const cell=s=>{
     const placed=onBoard.has(s.id),state=!s.got?'lock':placed?'placed':'got',rar=stkRarete(s.id);
     const label=s.name+(rar?`, ${rar.toLowerCase()}`:'')+(!s.got?', à gagner':placed?', sur le tableau':'')+(S.fresh[s.id]?', nouveau':'');
-    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button>${s.cap?`<small class="stk-cap">${esc(s.cap)}</small>`:''}${stkRarHtml(s.id,s.got)}</li>`;
+    return `<li><button type="button" class="stk-cell is-${state}" data-id="${s.id}" aria-label="${escAttr(label)}" onclick="stkCellClick(this)">${stkArtHtml(s.id,s.got?'art':'lock')}${!s.got?STK_LOCK_SVG:''}${S.fresh[s.id]?'<em class="stk-new">Nouveau</em>':''}</button>${s.cap?`<small class="stk-cap">${esc(s.cap)}</small>`:''}${typeof stkProgHtml==='function'?stkProgHtml(s):''}${stkRarHtml(s.id,s.got)}</li>`;
   };
   /* Les compteurs en « 7/21 » ; le lecteur d’écran entend « 7 sur 21 » */
   const compte=(n,t,mot)=>`<span><b aria-hidden="true">${n}/${t}${mot?` ${mot}${n>1?'s':''}`:''}</b><b class="acct-sr">${n} sur ${t}${mot?` ${mot}${n>1?'s':''}`:''}</b></span>`;
@@ -40088,7 +40115,16 @@ function stkSeen(){
 }
 function stkCellClick(btn){
   if(btn._noClick&&performance.now()<btn._noClick)return;
+  /* 12 novembre, 14 h 15 : un sticker pas encore gagné, son cadenas fait « non » pendant que sa fiche s’ouvre */
+  if(btn.classList.contains('is-lock')&&!prefersReduceMotion()){btn.classList.remove('is-non');void btn.offsetWidth;btn.classList.add('is-non');setTimeout(()=>btn.classList.remove('is-non'),460);}
   stkOpen(btn.dataset.id);
+}
+/* 14 h 15 : sous un sticker entamé et pas encore gagné (3 leçons sur 12, 2 jours de série sur 7), une petite barre et le compte ;
+   rien tant que rien n’est commencé (29 barres vides n’apprennent rien), ni une fois gagné. */
+function stkProgHtml(s){
+  if(!s||s.got||!(s.goal>1)||!(s.now>0))return '';
+  const now=Math.min(s.now,s.goal),pc=Math.max(6,Math.round(now/s.goal*100));
+  return `<span class="stk-prog"><i aria-hidden="true"><i style="width:${pc}%"></i></i><b aria-hidden="true">${now}/${s.goal}</b><span class="acct-sr">${now} sur ${s.goal}</span></span>`;
 }
 /* Le reflet des stickers holo bouge quand on fait défiler la planche, comme une carte qu’on incline. */
 function stkScrollHolo(){
@@ -42436,7 +42472,7 @@ function planOverviewHTML(st){
       <div class="pgr-stat is-s${streak?' on':''}"><small>Série</small><b>${streak?`<span class="pgr-flame" aria-hidden="true">${FLAME_SVG}</span>`:''}${streak}<em> j</em></b><p>Record ${record} j</p></div>
       ${timeTile}
     </div>
-    <div class="pgr-chart"><div class="pgr-chart-h"><b>14 derniers jours</b><small>${plur(total14,'activité')} · ${plur(active14,'jour')} actif${active14>1?'s':''}</small></div>
+    <div class="pgr-chart${total14||active14?'':' is-vide'}"><div class="pgr-chart-h"><b>14 derniers jours</b><small>${plur(total14,'activité')} · ${plur(active14,'jour')} actif${active14>1?'s':''}</small></div>
       <ol class="pgr-bars" role="img" aria-label="Activités validées par jour sur les 14 derniers jours : ${total14} au total, ${active14} jours actifs">${bars}</ol>
       <p class="pgr-trend">${total14||active14?`Ces 7 derniers jours : <b>${plur(week,'activité')}</b>, ${trend}.`:'Ton rythme apparaîtra ici dès ta première activité validée.'}</p></div>
     <div class="pgr-next"><span><small>Prochain cap</small><b>${esc(nextMeta?nextMeta.titre:'Parcours validé')}</b><em>${st.reste?`Fin estimée · ${end} · ${plur(st.aVenir,'séance')} à venir`:'Toutes les séances sont faites'}</em></span>
@@ -48793,9 +48829,9 @@ function renderCompte(){
       <section class="acct-block" id="acct-progress" aria-labelledby="acct-progress-t">
         <div class="acct-head"><h2 id="acct-progress-t">Ma progression</h2><span>${activitesCompte(progress.done,progress.total,{verbe:'terminée',zero:'à découvrir'})}</span></div>
         <div class="acct-stats">
-          <div class="acct-stat is-streak${st.streak?' is-on':''}" style="--i:0"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('flame')}</span><b>${st.streak}</b><small>jour${st.streak>1?'s':''} de série</small></div>
-          <div class="acct-stat" style="--i:1"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('book')}</span><b>${st.lessons}</b><small>leçon${st.lessons>1?'s':''}</small></div>
-          <div class="acct-stat is-defis" style="--i:2"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point${kd.pts>1?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}`:'À jouer'}</span></div>
+          <div class="acct-stat is-lien is-streak${st.streak?' is-on':''}" style="--i:0" role="button" tabindex="0" onclick="acctStatAller('planning')" onkeydown="if(event.key==='Enter'){acctStatAller('planning');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('flame')}</span><b>${st.streak}</b><small>jour${st.streak>1?'s':''} de série</small></div>
+          <div class="acct-stat is-lien" style="--i:1" role="button" tabindex="0" onclick="acctStatAller('learn')" onkeydown="if(event.key==='Enter'){acctStatAller('learn');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('book')}</span><b>${st.lessons}</b><small>leçon${st.lessons>1?'s':''}</small></div>
+          <div class="acct-stat is-lien is-defis" style="--i:2" role="button" tabindex="0" onclick="acctStatAller('defis')" onkeydown="if(event.key==='Enter'){acctStatAller('defis');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point${kd.pts>1?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}`:'À jouer'}</span></div>
         </div>
         <div class="acct-card acct-week-card">
           <div class="acct-card-head"><b>Tes ${NB_JOURS_VUS} prochains jours</b>${weekPlanned?`<span>${semaineCompte(weekComplete,weekPlanned)}</span>`:''}</div>
@@ -49734,7 +49770,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-compte-prive-chiffres-v2886';
+  const SW_CACHE='requete-2026-11-12-raccourcis-stickers-v2887';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -29,7 +29,7 @@ test('les trois chiffres sous la carte : jamais un zéro, selon où on en est', 
     exercicesFaits: id => Object.keys(ans[id] || {}).length,
     CHALLENGES: { length: 477 }, ENTRETIEN: Array(142).fill({}), dureeVideoS: () => 2440 });
   vm.runInContext(cut('const HOME_STAT_SVG=', '/* Ce que l’étiquette de la séance dit à VoiceOver'), ctx);
-  const chiffres = () => [...ctx.homeStatsHTML().matchAll(/<li class="lq-stat is-(\w+)"><span class="lq-stat-ic" aria-hidden="true"><svg[^]*?<\/svg><\/span><b>([^<]+)<\/b><span>([^<]+)<\/span><\/li>/g)]
+  const chiffres = () => [...ctx.homeStatsHTML().matchAll(/<li class="lq-stat is-(\w+)"[^>]*><span class="lq-stat-ic" aria-hidden="true"><svg[^]*?<\/svg><\/span><b>([^<]+)<\/b><span>([^<]+)<\/span><\/li>/g)]
     .map(m => `${m[1]} ${m[2]} ${m[3]}`).join(' · ');
   assert.equal(chiffres().replace(/\u00a0/g, ' '), 'manette 477 défis à relever · video 4 h de vidéo · bulle 142 questions d’entretien', 'rien de commencé : ce que l’app réserve au-delà des leçons (19 h 39)');
   commencees.add(1); ans[1] = { a: 1 };
@@ -42,7 +42,7 @@ test('les trois chiffres sous la carte : jamais un zéro, selon où on en est', 
   assert.equal(chiffres(), 'barres 3 leçons lancées · coche 2 leçons validées · cible 6 leçons au total', 'la maquette, sans son « 0 leçon validée »');
   lecons.forEach(l => faits.add(l.id));
   assert.equal(chiffres(), 'coche 6 leçons validées · cartes 4 cartes gagnées · cible 2 modules terminés', 'tout validé : ce qui est gagné');
-  assert.ok(ctx.homeStatsHTML().startsWith('<ul class="lq-stats" aria-label="Tes chiffres">'), 'une liste, lue par VoiceOver');
+  assert.ok(ctx.homeStatsHTML().startsWith('<ul class="lq-stats" role="group" aria-label="Tes chiffres">'), 'un groupe de raccourcis, lu par VoiceOver (12 novembre, 14 h 15)');
   ctx.allLessons = []; assert.equal(ctx.homeStatsHTML(), '', 'sans leçons, rien');
 });
 
@@ -78,6 +78,6 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     'background:#fff;box-shadow:0 3px 0 var(--lip)}', 'html.lq .lq-stat.is-coche .lq-stat-ic{background:#DCF6E9;color:#14935A}',
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=316">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-compte-prive-chiffres-v2886';") && app.includes("const SW_CACHE='requete-2026-11-12-compte-prive-chiffres-v2886';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=317">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-raccourcis-stickers-v2887';") && app.includes("const SW_CACHE='requete-2026-11-12-raccourcis-stickers-v2887';"));
 });
