@@ -45068,6 +45068,22 @@ function obGardeDemarrer(lancee){
   }
   voir();
 }
+/* « Mon compte », en haut à gauche du paywall de la garde (Elisa, 12 novembre, 21 h 31 : « oui ») : sans abonnement, plus moyen
+   d’atteindre Mon compte dans l’appli ; or se déconnecter et supprimer son compte doivent rester possibles (règle 5.1.1(v) d’Apple :
+   la suppression du compte se fait dans l’appli). Une petite fenêtre, les mêmes actions que dans l’appli, avec leurs confirmations
+   (seDeconnecter, compteSupprimer). Sans compte connecté : « Me connecter », pour retrouver son compte (et pouvoir le supprimer).
+   Après une déconnexion ou une connexion, le paywall revient tant que l’abonnement manque (closeOnboardingAuth, obStartAuth). */
+async function obGardeCompte(){
+  if(obPwBusy||typeof lqAsk!=='function')return;
+  const connecte=state.accountMode==='connected';
+  const lab=String(state.accountLabel||'').trim(),four={apple:'Apple',google:'Google'}[String(state.accountProvider||'').toLowerCase()]||'';
+  const texte=connecte?(lab.includes('@')?`Compte connecté avec ${lab}.`:four?`Compte connecté avec ${four}.`:'Ton compte est connecté.'):'Aucun compte n’est connecté sur cet appareil.';
+  const r=await lqAsk({chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Mon compte',texte,oui:connecte?'Me déconnecter':'Me connecter',trois:'Supprimer mon compte',troisDanger:true,non:'Fermer'});
+  if(r==='trois'){if(typeof compteSupprimer==='function')compteSupprimer();return;}
+  if(!r)return;
+  if(connecte){if(typeof seDeconnecter==='function')seDeconnecter();}
+  else startOnboarding('account');
+}
 /* Ce que le compte a rapporté (csSync) remplit les réponses de l’onboarding qu’on n’a pas données : le rythme du planning, le prénom,
    le profil. finishOnboard garde ainsi le planning du compte et son profil (12 novembre, réf. 14). */
 function obDraftDepuisEtat(){
@@ -45184,9 +45200,10 @@ function obPaywallHTML(){
   const sortie=obSortieVue()?obSortieInfo():null;
   const rappel=sortie?`<button type="button" class="pw-lien pw-rappel" onclick="obPaywallVue(true)">Offre −${sortie.pct}&nbsp;%</button>`:'';
   const droite=obAchatPret()?`<span class="pw-top-d">${rappel}<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button></span>`:'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
-  /* La garde de l’abonnement (obGardeVoir) : le paywall devant l’appli n’a pas de « Retour » ; son parcours existe déjà, il l’attend. */
+  /* La garde de l’abonnement (obGardeVoir) : le paywall devant l’appli n’a pas de « Retour » ; son parcours existe déjà, il l’attend.
+     À la place du « Retour », « Mon compte » (obGardeCompte) : se déconnecter et supprimer son compte restent possibles. */
   const garde=typeof obGarde!=='undefined'&&obGarde;
-  return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${garde?'<span class="pw-sans-retour" aria-hidden="true"></span>':obBackButton()}${droite}</div>
+  return `<div class="ob-screen ob-paywall"><div class="ob-flow-top ob-flow-solo pw-top">${garde?'<button type="button" class="pw-lien pw-compte" onclick="obGardeCompte()">Mon compte</button>':obBackButton()}${droite}</div>
     <div class="pw-hero"><img class="pw-chat" src="assets/chat-diplome${fixe?'-fixe':''}.webp" width="304" height="367" alt="" draggable="false">
       <span class="pw-tag">${garde?'Ton parcours t’attend':'Ton parcours est prêt'}&nbsp;🚀</span>
       <h1 class="ob-title" id="ob-title">${nom?`${esc(nom)}, tu`:'Tu'} es ${typeof accord==='function'?accord('prête','prêt','prêt·e'):'prêt·e'} à atteindre <em>ton objectif</em>&nbsp;!</h1>
@@ -50176,7 +50193,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-garde-v2905';
+  const SW_CACHE='requete-2026-11-12-garde-v2906';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

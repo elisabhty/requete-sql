@@ -179,7 +179,7 @@ test('aucune sortie : ni « Retour », ni glissé, ni Échap ; la page n’a pas
   assert.deepEqual(essai(false, false), ['ferme'], 'sans la garde, une page ouverte depuis l’appli se referme comme avant');
   const page = cut('function obPaywallHTML(){', '\nfunction obPaywallPied(){');
   assert.ok(page.includes("const garde=typeof obGarde!=='undefined'&&obGarde;"));
-  assert.ok(page.includes(`\${garde?'<span class="pw-sans-retour" aria-hidden="true"></span>':obBackButton()}\${droite}</div>`));
+  assert.ok(page.includes(`\${garde?'<button type="button" class="pw-lien pw-compte" onclick="obGardeCompte()">Mon compte</button>':obBackButton()}\${droite}</div>`), 'à la place du « Retour » : « Mon compte »');
   assert.ok(page.includes("<span class=\"pw-tag\">${garde?'Ton parcours t’attend':'Ton parcours est prêt'}&nbsp;🚀</span>"));
   assert.ok(app.includes("  root.classList.toggle('ob-garde',slide==='paywall'&&typeof obGarde!=='undefined'&&!!obGarde);"));
   /* Ouvert droit sur le paywall, onboarding déjà fait : c’est la garde ; refermé, elle est levée puis revue */
@@ -207,4 +207,35 @@ test('après une connexion depuis l’appli (ou une reconnexion) : le paywall si
   assert.ok(i > 0 && j > i, 'le paywall d’abord ; sinon, comme avant, « Compte connecté »');
   /* Le paywall de la fin de l’onboarding ne change pas */
   assert.ok(app.includes("function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}"));
+});
+
+/* 21 h 31 (« Tu veux que j’ajoute un lien discret “Mon compte” en haut à gauche du paywall ? » : « oui ») : sans abonnement, on
+   n’atteint plus Mon compte dans l’appli ; se déconnecter et supprimer son compte restent possibles depuis le paywall (Apple,
+   règle 5.1.1(v) : la suppression du compte se fait dans l’appli). */
+test('« Mon compte » sur le paywall de la garde : se déconnecter, supprimer son compte, ou se connecter', async () => {
+  const fn = cut('async function obGardeCompte(){', '\n}\n') + '\n}';
+  const essai = async (st, reponse, busy = false) => {
+    const appels = [], demandes = [];
+    const ctx = vm.createContext({state: st, obPwBusy: busy, lqAsk: async o => { demandes.push(o); return reponse; }, chatBonusHtml: k => `<img data-k="${k}">`,
+      seDeconnecter: () => appels.push('deconnexion'), compteSupprimer: () => appels.push('suppression'), startOnboarding: k => appels.push(['onboarding', k])});
+    await vm.runInContext(fn + ';obGardeCompte()', ctx);
+    return {appels, o: demandes[0]};
+  };
+  const lea = {accountMode: 'connected', accountProvider: 'apple', accountLabel: 'lea@exemple.fr'};
+  const a = await essai(lea, false);
+  assert.deepEqual({...a.o}, {chat: '<img data-k="salut">', titre: 'Mon compte', texte: 'Compte connecté avec lea@exemple.fr.', oui: 'Me déconnecter', trois: 'Supprimer mon compte', troisDanger: true, non: 'Fermer'});
+  assert.deepEqual(a.appels, [], '« Fermer » : rien');
+  assert.deepEqual((await essai(lea, true)).appels, ['deconnexion'], 'la déconnexion de l’appli, avec sa confirmation et son « À bientôt ! »');
+  assert.deepEqual((await essai(lea, 'trois')).appels, ['suppression'], 'la suppression de l’appli, avec ses deux confirmations');
+  assert.equal((await essai({accountMode: 'connected', accountProvider: 'google', accountLabel: 'google'}, false)).o.texte, 'Compte connecté avec Google.');
+  assert.equal((await essai({accountMode: 'connected'}, false)).o.texte, 'Ton compte est connecté.');
+  /* Sans compte connecté : on peut retrouver son compte (et le supprimer ensuite), ou effacer ce qui est sur l’appareil */
+  const g = await essai({accountMode: 'guest'}, true);
+  assert.equal(g.o.texte, 'Aucun compte n’est connecté sur cet appareil.'); assert.equal(g.o.oui, 'Me connecter'); assert.equal(g.o.trois, 'Supprimer mon compte');
+  assert.deepEqual(g.appels, [['onboarding', 'account']], 'la page de connexion ; refermée ou connectée, le paywall revient (closeOnboardingAuth, obStartAuth)');
+  assert.deepEqual((await essai({accountMode: 'guest'}, 'trois')).appels, ['suppression']);
+  /* Pendant un paiement : rien */
+  const p = await essai(lea, true, true); assert.equal(p.o, undefined); assert.deepEqual(p.appels, []);
+  /* Le lien a le style discret de « Restaurer » */
+  assert.ok(lire('onboarding-vitrine.css').includes('html #onboarding.ob-vitrine .pw-lien{min-height:44px;padding:0 4px;border:0;background:none;color:rgba(255,255,255,.85);font:600 14px/1 var(--v-ui);'));
 });
