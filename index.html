@@ -45178,13 +45178,16 @@ function obPaywallHTML(){
   const carte=(k,corps,label)=>{const on=o===k;
     return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" aria-label="${escAttr(label)}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">${corps}</button>`;};
   const an=OB_OFFRES.an,se=OB_OFFRES.semaine;
+  /* 12 novembre, 21 h 35 (Elisa : « 3 jours d’essai au lieu de 3 jours gratuits ») : la pastille de l’annuelle, son libellé lu à
+     voix haute et la phrase sous le bouton. Le bouton (« Essayer gratuitement 3 jours ») et « 0 € aujourd’hui » disent toujours
+     que l’essai ne coûte rien. */
   const reperes=[economie?['pieces',`Économise<br><b>${economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],
     essaiAn?['agenda',`<b>${zero}</b><br>aujourd’hui`]:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
   const carteAn=carte('an',`<span class="pw-reco">${PW_ICO.couronne}Meilleur choix</span><span class="pw-badge">−${eco}&nbsp;%</span>
       <span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${an.titre}</span>${prixHtml('an')}
-      ${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours gratuits</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span>
+      ${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours d’essai</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span>
       <span class="pw-o-plus">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span>`,
-    `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${essaiAn} jours gratuits`:''}, soit ${parSemaineTexte} par semaine`);
+    `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${essaiAn} jours d’essai`:''}, soit ${parSemaineTexte} par semaine`);
   /* 11 novembre, 19 h 20 (Elisa : « remplacer “– Sans essai” par un avantage plus valorisant » ; « Accès immédiat » au lieu d’« Accès
      complet », « Résiliable à tout moment » au lieu de « Sans essai ») : trois avantages, plus de tiret « ce qu’elle n’a pas ». */
   /* Sur deux lignes chacun, comme les trois repères de l’annuelle (« Économise / 266 € ») : « Résiliable à tout moment » tient dans la
@@ -45221,7 +45224,7 @@ function obPaywallPied(){
      du premier prélèvement (règle d’Apple : ce qui se passe à la fin de l’essai est dit en clair). */
   const libelle=essai?`Essayer gratuitement ${essai} jours`:`S’abonner pour ${prix}`;
   const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
-  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours gratuits, puis ${prix} ${o.par} à partir du ${obDateApresEssai(essai)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours d’essai, puis ${prix} ${o.par} à partir du ${obDateApresEssai(essai)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
     :`<b class="pw-sans">${prix} aujourd’hui, puis ${k==='an'?'chaque année':'chaque semaine'}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;
   const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
   obSetFooter(libelle,obPaywallAcheter,'','',{html:legal},obPwBusy);
@@ -50193,7 +50196,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-garde-v2906';
+  const SW_CACHE='requete-2026-11-12-essai-v2907';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
