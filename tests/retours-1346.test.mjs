@@ -102,8 +102,9 @@ test('15 h 12 : la page de départ tient sur un écran, sans défilement ; elle 
 });
 
 test('15 h 12 : l’onboarding repasse son ajustement une fois polices, images et démo posées ; 4e palier ; « Bientôt » ne couvre plus le texte', () => {
-  assert.ok(app.includes('  body.scrollTop=0;\n  obFitSoon();'));
-  assert.ok(app.includes("[350,900,1800].forEach(t=>setTimeout(again,t));"));
+  assert.ok(app.includes('  if(body.parentElement)body.parentElement.scrollTop=0;\n  obFitSoon();'));
+  /* 12 novembre, 19 h 36 : deux repassages au lieu de trois ; ils ne coûtent plus rien quand rien n’a bougé */
+  assert.ok(app.includes("[400,1500].forEach(t=>setTimeout(again,t));") && app.includes("document.querySelectorAll('#ob-body img').forEach(im=>{if(!im.complete)im.addEventListener('load',again,{once:true});});"));
   assert.ok(app.includes("const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];"), '4e palier, puis un 5e pour l’engagement (3 novembre)');
   const ob = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
   assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-fit-4 .ob-pact .ob-hold{width:82px;height:82px}'), 'le bouton à l’empreinte se resserre au 4e palier');

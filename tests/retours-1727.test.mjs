@@ -26,7 +26,7 @@ test('réf. 4 et 2 : les phrases centrées le sont vraiment (la largeur maximale
     'la cause : « .ob-slides p » écrasait les marges automatiques');
   assert.ok(section.includes('html #onboarding.ob-vitrine .ob-slides p.ob-lead,html #onboarding.ob-vitrine .ob-slides p.ob-legal-note{margin-left:auto!important;margin-right:auto!important}'));
   /* Plus spécifique que « .ob-slides p » (0,1,1) : un identifiant, des classes */
-  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=56">'));
+  assert.ok(lire('index.html').includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=57">'));
 });
 
 test('réf. 3 : le cadre de la notification s’écarte de la carte de l’heure (son anneau de 9 px compris)', () => {
@@ -39,7 +39,7 @@ test('réf. 3 : le cadre de la notification s’écarte de la carte de l’heure
 test('réf. 6 : la pastille cochée d’une tuile choisie s’efface dès que la page sort', () => {
   assert.ok(section.includes('html #onboarding.ob-vitrine .ob-slide.out :is(.ob-tile.on,.ob-answer.on,.ob-pays-carte.is-on)::before{opacity:0!important;visibility:hidden!important;animation:none!important}'));
   assert.ok(css.includes('html #onboarding.ob-vitrine .ob-tile.on::before{content:\'\';position:absolute;z-index:1;right:-9px;top:-9px;'), 'elle dépasse du coin de la tuile');
-  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .14s'), 'la page qui sort');
+  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .1s'), 'la page qui sort');
 });
 
 test('réf. 1 : « Découvre ce qu’ils en pensent », un autocollant comme ceux de la vitrine, posé sur la carte des avis', () => {

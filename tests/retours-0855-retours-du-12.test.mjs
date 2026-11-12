@@ -86,8 +86,9 @@ test('réf. 7 : un projet créé naît sur sa carte (la base tombe, les lettres 
 
 test('réf. 8 et 9 : la page qui part éteint ses flous, la nouvelle refait ses calques ; le pays part en 0,9 s', () => {
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-slide.out *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;will-change:auto!important}'));
-  /* 12 h 24 (« toujours les traces violettes ») : la page refaite d’un bloc ne suffisait pas ; tout l’onboarding est repeint */
-  assert.ok(app.includes("  body.innerHTML=html;\n  obInsecables(body);\n") && app.includes("  obRepeindre();\n  body.scrollTop=0;"));
+  /* 12 h 24 (« toujours les traces violettes ») : la page refaite d’un bloc ne suffisait pas, tout repeindre non plus (19 h 36 :
+     « des flashs ») ; l’échelle n’est plus la propriété zoom, voir retours-1936-fluidite */
+  assert.ok(app.includes("  body.innerHTML=html;\n  obInsecables(body);\n") && !app.includes('obRepeindre('));
   assert.ok(app.includes('const PAYS_ATTENTE=900;'));
 });
 
