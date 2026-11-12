@@ -42,7 +42,8 @@ test('chaque bulle de l’onboarding : le chat qui pose la question ; l’image 
   }
   /* 14 h 04 : quelques bulles ont un autre chat (obMascotDit : coucou, « C’est parti ! », le présentateur, retours-1404) */
   const n = (app.match(/obMascot(?:Question|Dit)\(/g) || []).length;
-  assert.ok(n >= 18, `les bulles de l’onboarding passent toutes par obMascotQuestion ou obMascotDit (${n})`);
+  /* 12 novembre, 12 h 24 : la page du pays n’a plus de bulle (sa carte dit tout, le chat est assis dessus) */
+  assert.ok(n >= 17, `les bulles de l’onboarding passent toutes par obMascotQuestion ou obMascotDit (${n})`);
 });
 
 test('à la largeur de l’autocollant, sans balancement par-dessus', () => {

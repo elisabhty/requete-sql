@@ -40,7 +40,8 @@ function monter({actif = true, google = false, login, reponses = []} = {}) {
   vm.runInContext(code, ctx);
   return {A: ctx.REQUETE_AUTH, SL, store, appels, evenements};
 }
-const session = (n = 3600) => ({access_token: 'acces', refresh_token: 'renouv', expires_in: n, user: {id: 'u-1', email: 'elisa@exemple.fr'}});
+/* Un compte qui connaît déjà le prénom (12 novembre, 12 h 24) : rien à lui envoyer de plus après la connexion */
+const session = (n = 3600) => ({access_token: 'acces', refresh_token: 'renouv', expires_in: n, user: {id: 'u-1', email: 'elisa@exemple.fr', user_metadata: {given_name: 'Elisa'}}});
 
 test('éteint (ACTIVE à false) : pas de REQUETE_AUTH, l’appli reste sans compte ; allumée le 12 novembre, avec les identifiants Google', () => {
   assert.equal(monter({actif: false}).A, undefined);
@@ -123,7 +124,7 @@ test('l’appli : la page ne montre que les fournisseurs du crochet ; le jeton d
   ctx.window.REQUETE_AUTH = {fournisseurs: ['apple', 'google']};
   assert.equal(ctx.obFournisseurOk('google'), true); assert.equal(ctx.obFournisseurOk('email'), false);
   assert.match(app, /\$\{obFournisseurOk\('email'\)\?`<p class="ob-divider"/, 'le champ e-mail et son « ou » disparaissent');
-  assert.match(app, /<script src="connexion\.js\?v=1"><\/script>/);
+  assert.match(app, /<script src="connexion\.js\?v=2"><\/script>/);
   const vus = [];
   const c2 = vm.createContext({window: {REQUETE_AUTH: {jeton: () => Promise.resolve('acces')}}, JEU_SB: 'https://x', JEU_SB_KEY: 'k', Promise, JSON, Object,
     fetch: (u, o) => { vus.push(o.headers); return Promise.resolve({ok: true, status: 200, json: () => Promise.resolve({ok: true})}); }});
@@ -133,4 +134,34 @@ test('l’appli : la page ne montre que les fournisseurs du crochet ; le jeton d
   assert.equal(vus[0].Authorization, undefined, 'les appels du jeu partent comme avant');
   assert.equal(vus[1].Authorization, 'Bearer acces');
   assert.match(fn('compteSupprimer'), /clsRpc\('compte_supprimer',\{p_cle:cle\},\{compte:connecte\}\)/);
+});
+
+/* Elisa, 12 novembre, 12 h 24 : « Pour le prénom, fais en sorte de récupérer l’info ». Apple ne donne le prénom qu’à la toute première
+   autorisation de l’appli : il est alors gardé avec le compte (user_metadata, PUT /auth/v1/user) ; les connexions suivantes le
+   retrouvent dans le compte ; avec Google, le premier mot de son nom. */
+test('le prénom : donné par Apple une seule fois, il est gardé avec le compte ; sinon, celui que le compte connaît', async () => {
+  const neuf = {access_token: 'acces', refresh_token: 'renouv', expires_in: 3600, user: {id: 'u-1', email: 'e@exemple.fr', user_metadata: {}}};
+  const avec = profile => o => Promise.resolve({provider: o.provider, result: {idToken: 'jeton', profile}});
+  let m = monter({reponses: [{status: 200, json: neuf}, {status: 200, json: {}}], login: avec({givenName: ' Elisa ', familyName: 'Blanchart'})});
+  let r = await m.A.signIn('apple');
+  assert.equal(r.prenom, 'Elisa');
+  assert.equal(m.appels.length, 2, 'le compte ne le connaissait pas : il le garde');
+  assert.equal(m.appels[1].url, 'https://exemple.supabase.co/auth/v1/user');
+  assert.equal(m.appels[1].o.method, 'PUT');
+  assert.equal(m.appels[1].o.headers.Authorization, 'Bearer acces');
+  assert.deepEqual(m.appels[1].corps, {data: {given_name: 'Elisa', full_name: 'Elisa Blanchart'}});
+  assert.equal(m.appels[0].o.method, 'POST');
+  m = monter({reponses: [{status: 200, json: {...neuf, user: {...neuf.user, user_metadata: {given_name: 'Elisa', full_name: 'Elisa Blanchart'}}}}], login: avec({})});
+  r = await m.A.signIn('apple');
+  assert.equal(r.prenom, 'Elisa', 'Apple ne le redonne pas : le compte le rend');
+  assert.equal(m.appels.length, 1);
+  m = monter({google: true, reponses: [{status: 200, json: {...neuf, user: {...neuf.user, user_metadata: {full_name: 'Léa Martin', name: 'Léa Martin'}}}}], login: avec({})});
+  r = await m.A.signIn('google');
+  assert.equal(r.prenom, 'Léa', 'Google : le premier mot du nom du compte');
+  assert.equal(m.appels.length, 1, 'rien n’est envoyé pour Google');
+  m = monter({reponses: [{status: 200, json: {...neuf, user: {...neuf.user, user_metadata: {name: 'elisa@exemple.fr'}}}}], login: avec({})});
+  r = await m.A.signIn('apple');
+  assert.equal(r.prenom, null, 'une adresse n’est pas un prénom');
+  /* l’appli met le prénom du compte dans le champ et dans l’appli, s’ils sont vides */
+  assert.ok(app.includes("    const prenomCompte=String(result.prenom||'').trim().slice(0,32);\n    if(prenomCompte){if(!String(draft.name||'').trim())draft.name=prenomCompte;if(!String(state.name||'').trim())state.name=prenomCompte;}"));
 });

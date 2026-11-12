@@ -44,7 +44,9 @@ test('« enlève les notions de facultatif » : ni texte d’aide, ni « Passer 
 test('« Enchantée, Elisa ! J’ai hâte d’en savoir plus sur toi. », en grand et en animation', () => {
   const name = slide('name', "}else if(slide==='pseudo'){");
   assert.ok(name.includes('<span class="ob-name-msg"><b id="ob-name-greet"></b><span class="ob-name-sub">J’ai hâte d’en savoir plus sur toi.</span></span>'));
-  assert.ok(name.includes("obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou')"), '« Enchantée » n’est dit qu’une fois');
+  /* 12 novembre, 12 h 24 : clavier ouvert, c’est la bulle qui répond « Enchantée… » (la carte est cachée) : jamais les deux à la fois */
+  assert.ok(name.includes("obMascotDit('Salut ! Comment dois-je t’appeler ?','coucou',false,obPrenomBulle(draft.name))"), '« Enchantée » n’est dit qu’une fois');
+  assert.ok(css.includes('html #onboarding.ob-vitrine.ob-clavier .ob-name-preview{display:none!important}') && css.includes('html #onboarding.ob-vitrine:not(.ob-clavier) .ob-bulle-duo>.ob-bulle-r{display:none}'));
   const prev = fn('obNamePreview', '/* L\'accueil tape');
   assert.ok(prev.includes("box.innerHTML=n?`Enchantée, <em>${esc(n)}</em>&nbsp;!`:'';"), 'le prénom échappé, surligné');
   /* Le texte est posé avant la mesure : la carte est mesurée à sa vraie hauteur (sinon, à 320 px, elle débordait de 15 px) */
@@ -203,7 +205,7 @@ test('première page : sous les barres de Safari, le fond est uni (grille et hal
 
 test('feuilles rechargées et cache renouvelé', () => {
   const sw = lire('sw.js');
-  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=44']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
+  for (const f of ['safari-surface.css?v=13', 'onboarding-vitrine.css?v=45']) assert.ok(app.includes(`<link rel="stylesheet" href="${f}">`) && sw.includes(`'./${f}',`), f);
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
   assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache !== 'requete-2026-11-03-apercu-v2466');
 });

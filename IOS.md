@@ -390,6 +390,10 @@ de l’app, noire. La fenêtre prend maintenant le fond de l’app au lancement 
 la page avant chaque ouverture du clavier (index.html, `fondSousClavier`, pont `RequeteWidget.fond`) : le violet de
 l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 
+**La vue ne défile pas** (12 novembre, 12 h 24 : « regarde comment la page part en haut ») : `ios.scrollEnabled` est à `false`
+dans `capacitor.config.json`, et l’appli appelle `Keyboard.setScroll({isDisabled: true})` au lancement : à l’appui sur un champ,
+iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la page (écrans, feuilles, onboarding) défile comme avant.
+
 ## Réglages à vérifier avant l’envoi
 
 1. **Identifiant de l’app** : `appId` dans `capacitor.config.json` (`fr.requete.app` par défaut).
@@ -574,8 +578,8 @@ activés) sont réglés. Remettre `ACTIVE = false` cache de nouveau la page de c
    secret du client Web ; cocher « Skip nonce check » (le SDK Google d’iOS ne transmet pas le nonce).
 5. Dans `connexion.js` : `GOOGLE_IOS` et `GOOGLE_WEB` (les identifiants complets, `…apps.googleusercontent.com`), puis
    `ACTIVE = true`. `ios-widget.mjs` ajoute le schéma d’URL de Google à Info.plist au prochain `npm run ios`.
-6. **Avant d’envoyer à Apple** : App Store Connect › App Privacy (adresse e-mail et identifiant, liés à la personne, pour le
-   fonctionnement de l’app), la page de confidentialité du site (compte, progression synchronisée, suppression), et un compte
+6. **Avant d’envoyer à Apple** : App Store Connect › App Privacy (adresse e-mail, identifiant et nom (le prénom, gardé avec le
+   compte depuis le 12 novembre), liés à la personne, pour le fonctionnement de l’app), la page de confidentialité du site (compte, progression synchronisée, suppression), et un compte
    de démonstration pour l’App Review (règle 2.1) si la connexion est demandée quelque part.
 
 Supprimer son compte (Mon compte) efface aussi le compte Supabase et sa progression synchronisée (`compte_supprimer` avec le

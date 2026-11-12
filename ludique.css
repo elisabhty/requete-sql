@@ -3343,10 +3343,15 @@ html.is-native.lq #loader.is-intro .in-chat{position:absolute;z-index:1;left:cal
   width:calc(420*var(--u));height:calc(420*var(--u));opacity:0;will-change:transform}
 html.is-native.lq #loader.is-intro .in-chat i{position:absolute;inset:0;display:block}
 html.is-native.lq #loader.is-intro :is(.in-chat-m,.in-chat-a){overflow:hidden}
-html.is-native.lq #loader.is-intro :is(.in-chat-m,.in-chat-a)>b{position:absolute;left:0;top:0;width:1200%;height:100%;
-  background:url(assets/ouverture-chat-marche.webp) 0 0/100% 100% no-repeat;will-change:transform}
+/* 12 novembre, 12 h 24 (« le chat bug, il apparaît puis pas ») : ses images en grille de 4 × 3, plus en bande de 12. WebKit découpe
+   sur l’iPhone tout calque plus large que 1 280 px (1 024 quand la mémoire manque) en tuiles de 512 px, qu’il ne peint qu’en arrivant
+   dessus ; la bande faisait 1 572 px (iPhone 15) : pendant la marche, le démarrage occupant le fil principal, des images restaient
+   vides et le chat disparaissait. La grille fait 524 × 393 px (846 × 634 sur le plus grand iPad) : un calque d’un seul tenant, peint
+   une fois avant de partir. */
+html.is-native.lq #loader.is-intro :is(.in-chat-m,.in-chat-a)>b{position:absolute;left:0;top:0;width:400%;height:300%;
+  background:url(assets/ouverture-chat-marche-grille.webp) 0 0/100% 100% no-repeat;will-change:transform}
 html.is-native.lq #loader.is-intro .in-chat-a{opacity:0}
-html.is-native.lq #loader.is-intro .in-chat-a>b{background-image:url(assets/ouverture-chat-appui.webp)}
+html.is-native.lq #loader.is-intro .in-chat-a>b{background-image:url(assets/ouverture-chat-appui-grille.webp)}
 /* Si la base met du temps à se préparer : l’anneau et la phrase, dessous */
 html.is-native.lq #loader.is-intro .spinner{position:absolute;z-index:1;left:50%;top:calc(50% + 330*var(--u) + 54px);margin:0 0 0 -17px;width:34px!important;height:34px!important;
   box-shadow:inset 0 0 0 5px rgba(106,77,244,.16);opacity:0;transition:opacity .3s ease;animation:none}
@@ -3439,9 +3444,10 @@ html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwar
 /* Ses images, une à une : la marche en boucle (12 en 720 ms), l’arrêt une fois (11 pas de 70 ms, puis la dernière reste) */
 /* 12 novembre : en paliers plutôt qu’en steps(), que WebKit n’anime jamais hors du fil principal ; en paliers (et linear), le
    compositeur joue seul la marche et l’arrêt du chat, même quand le démarrage occupe le fil pendant l’ouverture. Chaque image reste
-   1/12 de la boucle (60 ms) ou 1/11 de l’arrêt (70 ms) ; le saut d’une image à la suivante dure 0,00001 % de l’animation. */
-@keyframes introChatPas{0%,8.33332%{transform:none}8.33333%,16.66666%{transform:translateX(-8.33333%)}16.66667%,24.99999%{transform:translateX(-16.66667%)}25%,33.33332%{transform:translateX(-25%)}33.33333%,41.66666%{transform:translateX(-33.33333%)}41.66667%,49.99999%{transform:translateX(-41.66667%)}50%,58.33332%{transform:translateX(-50%)}58.33333%,66.66666%{transform:translateX(-58.33333%)}66.66667%,74.99999%{transform:translateX(-66.66667%)}75%,83.33332%{transform:translateX(-75%)}83.33333%,91.66666%{transform:translateX(-83.33333%)}91.66667%,100%{transform:translateX(-91.66667%)}}
-@keyframes introChatAssis{0%,9.0909%{transform:none}9.09091%,18.18181%{transform:translateX(-8.33333%)}18.18182%,27.27272%{transform:translateX(-16.66667%)}27.27273%,36.36363%{transform:translateX(-25%)}36.36364%,45.45454%{transform:translateX(-33.33333%)}45.45455%,54.54544%{transform:translateX(-41.66667%)}54.54545%,63.63635%{transform:translateX(-50%)}63.63636%,72.72726%{transform:translateX(-58.33333%)}72.72727%,81.81817%{transform:translateX(-66.66667%)}81.81818%,90.90908%{transform:translateX(-75%)}90.90909%,99.99999%{transform:translateX(-83.33333%)}100%{transform:translateX(-91.66667%)}}
+   1/12 de la boucle (60 ms) ou 1/11 de l’arrêt (70 ms) ; le saut d’une image à la suivante dure 0,00001 % de l’animation. Les images
+   se lisent dans la grille de gauche à droite, rangée après rangée (12 h 24) : -25 % par colonne, -33,33333 % par rangée. */
+@keyframes introChatPas{0%,8.33332%{transform:none}8.33333%,16.66666%{transform:translate(-25%,0)}16.66667%,24.99999%{transform:translate(-50%,0)}25%,33.33332%{transform:translate(-75%,0)}33.33333%,41.66666%{transform:translate(0,-33.33333%)}41.66667%,49.99999%{transform:translate(-25%,-33.33333%)}50%,58.33332%{transform:translate(-50%,-33.33333%)}58.33333%,66.66666%{transform:translate(-75%,-33.33333%)}66.66667%,74.99999%{transform:translate(0,-66.66667%)}75%,83.33332%{transform:translate(-25%,-66.66667%)}83.33333%,91.66666%{transform:translate(-50%,-66.66667%)}91.66667%,100%{transform:translate(-75%,-66.66667%)}}
+@keyframes introChatAssis{0%,9.0909%{transform:none}9.09091%,18.18181%{transform:translate(-25%,0)}18.18182%,27.27272%{transform:translate(-50%,0)}27.27273%,36.36363%{transform:translate(-75%,0)}36.36364%,45.45454%{transform:translate(0,-33.33333%)}45.45455%,54.54544%{transform:translate(-25%,-33.33333%)}54.54545%,63.63635%{transform:translate(-50%,-33.33333%)}63.63636%,72.72726%{transform:translate(-75%,-33.33333%)}72.72727%,81.81817%{transform:translate(0,-66.66667%)}81.81818%,90.90908%{transform:translate(-25%,-66.66667%)}90.90909%,99.99999%{transform:translate(-50%,-66.66667%)}100%{transform:translate(-75%,-66.66667%)}}
 @keyframes introLettreDot{0%{opacity:1;transform:none}50%{opacity:1;transform:scale(1.5)}78%,100%{opacity:0;transform:scale(.5)}}
 @keyframes introFade{to{opacity:0}}
 @keyframes introGlow{0%{opacity:0;transform:scale(.45)}35%{opacity:1}100%{opacity:0;transform:scale(1.2)}}

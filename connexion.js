@@ -26,8 +26,8 @@
 
    Le crochet :
    - fournisseurs : ['apple'] ou ['apple', 'google'] (pas d'e-mail) ;
-   - signIn('apple' | 'google') → Promise<{id, email, label}> ; null si la
-     personne a fermé la feuille ; une vraie erreur est relancée ;
+   - signIn('apple' | 'google') → Promise<{id, email, prenom, label}> ; null
+     si la personne a fermé la feuille ; une vraie erreur est relancée ;
    - signOut() → Promise : oublie la session (et la ferme côté serveur) ;
    - connecte() → bool ; utilisateur() → {id, email} ou null ;
    - jeton() → Promise<string|null> : un jeton d'accès valide, renouvelé
@@ -81,10 +81,10 @@
   function garder(s){
     try { if (s) localStorage.setItem(GARDE, JSON.stringify(s)); else localStorage.removeItem(GARDE); } catch (e) {}
   }
-  function appel(chemin, corps, jeton){
+  function appel(chemin, corps, jeton, methode){
     var h = {apikey: CLE, 'Content-Type': 'application/json'};
     if (jeton) h.Authorization = 'Bearer ' + jeton;
-    return fetch(SB + '/auth/v1/' + chemin, {method: 'POST', headers: h, body: JSON.stringify(corps || {})})
+    return fetch(SB + '/auth/v1/' + chemin, {method: methode || 'POST', headers: h, body: JSON.stringify(corps || {})})
       .then(function(r){
         return r.json().catch(function(){ return null; }).then(function(j){
           if (!r.ok) {
@@ -105,6 +105,18 @@
       user: {id: typeof u.id === 'string' ? u.id : null, email: typeof u.email === 'string' && u.email ? u.email : null},
       fournisseur: fournisseur
     };
+  }
+  /* Le prénom (Elisa, 12 novembre, 12 h 24 : « pour le prénom, fais en sorte de récupérer l'info ») : Apple ne le donne qu'à la
+     toute première autorisation de l'appli (givenName), Google à chaque connexion. Celui d'Apple est gardé avec le compte
+     (user_metadata.given_name, comme le conseille Supabase) : une connexion suivante, sur un autre appareil ou après une
+     réinstallation, le retrouve. À défaut, le premier mot du nom que Supabase tient du jeton (full_name ou name, chez Google). */
+  function prenomDuCompte(u){
+    var m = (u && u.user_metadata) || {};
+    var g = typeof m.given_name === 'string' ? m.given_name.trim() : '';
+    if (g) return g.slice(0, 32);
+    var n = typeof m.full_name === 'string' && m.full_name.trim() ? m.full_name : (typeof m.name === 'string' ? m.name : '');
+    n = n.trim();
+    return n && n.indexOf('@') < 0 ? n.split(/\s+/)[0].slice(0, 32) : '';
   }
   function hex(octets){
     var t = ''; for (var i = 0; i < octets.length; i++) t += (octets[i] < 16 ? '0' : '') + octets[i].toString(16);
@@ -149,10 +161,16 @@
         if (nonce) corps.nonce = nonce.brut;
         return appel('token?grant_type=id_token', corps).then(function(j){
           var s = session(j, fournisseur);
-          var p = r.profile || {};
-          var prenom = typeof p.givenName === 'string' ? p.givenName.trim().slice(0, 80) : '';
+          var p = r.profile || {}, u = (j && j.user) || {};
+          var donne = typeof p.givenName === 'string' ? p.givenName.trim().slice(0, 32) : '';
+          var prenom = donne || prenomDuCompte(u);
           if (prenom) s.prenom = prenom;
           garder(s);
+          /* Apple vient de donner le prénom et le compte ne l'a pas encore : il le garde (sans réponse, la connexion continue) */
+          if (fournisseur === 'apple' && donne && !(u.user_metadata && u.user_metadata.given_name)) {
+            var complet = [donne, typeof p.familyName === 'string' ? p.familyName.trim() : ''].filter(Boolean).join(' ').slice(0, 80);
+            appel('user', {data: {given_name: donne, full_name: complet}}, s.access_token, 'PUT').catch(function(){});
+          }
           /* Le code d'autorisation d'Apple (10 minutes) part à la fonction apple-jeton, qui l'échange et garde le jeton d'Apple pour
              pouvoir le révoquer si la personne supprime son compte. Sans réponse, la connexion continue. */
           var code = fournisseur === 'apple' ? (r.authorizationCode || (r.accessToken && r.accessToken.token)) : null;

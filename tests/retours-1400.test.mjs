@@ -117,8 +117,8 @@ test('pas encore inscrite : l’accueil annonce l’invitation, « Je m’inscri
   assert.ok(app.includes("    const inv=!state.onboarded&&typeof jeuInvitation==='function'?jeuInvitation():null;"));
   assert.ok(app.includes("<p class=\"ob-lead\">${inv?`${inv.de?`<b>${esc(inv.de)}</b> t’attend dans sa salle de défi`:'Ta salle de défi t’attend'}. Ta première leçon sera là à ton retour.`:'Commence par ta première leçon et avance jusqu’à ton objectif.'}</p>"));
   assert.ok(app.includes("    if(inv)obSetFooter('Rejoindre la salle',()=>obApresPret('salle'),'',''"), 'un seul bouton : la salle, après la connexion et le paywall (10 novembre)');
-  /* La reprise d’une inscription commencée le rappelle */
-  assert.ok(app.includes("'On reprend là où tu en étais. La salle t’attend à la fin.'"));
+  /* 12 novembre, 12 h 24 (« pas de texte notifié noir ») : la reprise n’a plus de bandeau ; la dernière page annonce la salle */
+  assert.ok(!app.includes("'On reprend là où tu en étais. La salle t’attend à la fin.'"));
 });
 
 test('l’inscription finie : Défis puis la salle, sans ouvrir la première leçon ; sans invitation, rien ne change', () => {
@@ -130,7 +130,7 @@ test('l’inscription finie : Défis puis la salle, sans ouvrir la première le�
       celebrate() {}, semaineOffset: 0, jourSel: null, state: { plan: { sessions: [{ lessons: [7] }] } }, isDefiId: () => false,
       switchTab: t => appels.push('onglet ' + t), openLesson: id => appels.push('leçon ' + id), requestAnimationFrame: f => f(),
       jeuInvitation: () => inv, jeuFromUrl() {}, setTimeout: (f, t) => appels.push(f === ctx.jeuFromUrl ? `invitation ${t} ms` : 'minuteur') });
-    vm.runInContext('var semaineOffset=0,jourSel=null;' + fin, ctx);
+    vm.runInContext('var semaineOffset=0,jourSel=null,OB_CHATS=[];' + fin, ctx);
     ctx.obTerminer(action);
     return appels;
   };
@@ -170,5 +170,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button>'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-compte-neuf-questions-v2881';") && app.includes("const SW_CACHE='requete-2026-11-12-compte-neuf-questions-v2881';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-chat-clavier-pays-v2882';") && app.includes("const SW_CACHE='requete-2026-11-12-chat-clavier-pays-v2882';"));
 });

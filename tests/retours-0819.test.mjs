@@ -45,7 +45,7 @@ test('obFit suit la vraie taille de l’onboarding et se relance pendant que le 
   const racine = { classList: { contains: c => c === 'on' && on } }, corps = { contains: t => t.dedans };
   const ctx = vm.createContext({
     window: { addEventListener: (n, f) => { wl[n] = f; } },
-    document: { readyState: 'complete', getElementById: id => (id === 'onboarding' ? racine : id === 'ob-body' ? corps : null), addEventListener: (n, f) => { dl[n] = f; } },
+    document: { readyState: 'complete', getElementById: id => (id === 'onboarding' ? racine : id === 'ob-body' ? corps : null), addEventListener: (n, f) => { (dl[n] = dl[n] || []).push(f); } },
     ResizeObserver: class { constructor(cb) { ro.cb = cb; } observe(el) { ro.el = el; } },
     setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, clearTimeout: () => {},
     obFit: () => { fits++; },
@@ -57,10 +57,10 @@ test('obFit suit la vraie taille de l’onboarding et se relance pendant que le 
   ro.cb([{ contentRect: { height: 587 } }]); assert.equal(fits, 2, 'le clavier rétrécit la vue : l’écran se resserre');
   on = false; ro.cb([{ contentRect: { height: 932 } }]); assert.equal(fits, 2, 'onboarding fermé : rien');
   on = true;
-  dl.focusin({ target: { tagName: 'INPUT', dedans: true } });
+  dl.focusin.forEach(f => f({ target: { tagName: 'INPUT', dedans: true } }));
   assert.deepEqual(timers.map(t => t[1]), [120, 520, 900], 'au toucher du champ : trois mesures, le temps que la vue change de taille');
   timers.forEach(t => t[0]()); assert.equal(fits, 5);
-  timers.length = 0; dl.focusin({ target: { tagName: 'BUTTON', dedans: true } }); dl.focusin({ target: { tagName: 'INPUT', dedans: false } });
+  timers.length = 0; dl.focusin.forEach(f => { f({ target: { tagName: 'BUTTON', dedans: true } }); f({ target: { tagName: 'INPUT', dedans: false } }); });
   assert.equal(timers.length, 0, 'un bouton, ou un champ hors de l’onboarding : rien');
   for (const n of ['keyboardWillShow', 'keyboardDidShow', 'keyboardDidHide']) assert.equal(typeof wl[n], 'function', n);
   assert.equal(typeof wl.resize, 'undefined', 'le resize reste celui d’avant (une seule écoute)');
@@ -81,6 +81,6 @@ test('« ? » ne part plus seul à la ligne : espaces insécables devant la ponc
   ctx.obInsecables({});
   assert.deepEqual(textes.map(t => t.nodeValue), ['Salut ! Ça va ?', "WHERE ville = 'Paris' ;"], 'le code SQL reste tel quel');
   delete ctx.document.createTreeWalker; ctx.obInsecables({});   // sans TreeWalker : rien, sans erreur
-  assert.ok(app.includes('  body.innerHTML=html;\n  obInsecables(body);\n') && app.includes("  body.style.display='none';void body.offsetHeight;body.style.display='';\n  body.scrollTop=0;\n  obFitSoon();"), 'à chaque page');
+  assert.ok(app.includes('  body.innerHTML=html;\n  obInsecables(body);\n') && app.includes("  obRepeindre();\n  body.scrollTop=0;\n  obFitSoon();"), 'à chaque page');
   assert.ok(app.includes('if(bulle)bulle.textContent=obTypo(OB_WT_TEXTES[p]);'), 'et dans la bulle du tutoriel du widget, qui change de texte');
 });

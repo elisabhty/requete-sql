@@ -89,13 +89,16 @@ test('l’onboarding : la page « Tu vis où ? » juste après le prénom, dans 
   assert.ok(app.includes("  if((draft.name||'').trim()){obGoto('pays');return;}"), '« Continuer » et Entrée au prénom');
   const page = cut("}else if(slide==='pays'){", "}else if(slide==='age'){");
   for (const k of ["if(draft.pays===undefined){const p=paysDetecte();draft.pays=p||'';draft.paysAuto=!!p;draft.paysCherche=!!p;}",
-    'Tu vis <em>où</em>${prenom?`, ${esc(prenom)}`:\'\'}&nbsp;?', "obMascotDit('Requête parlera bientôt d’autres langues : ton pays m’aidera à te proposer la tienne.',obMascotOui(code))",
+    'Tu vis <em>où</em>${prenom?`, ${esc(prenom)}`:\'\'}&nbsp;?',
+    /* 12 novembre, 12 h 24 (Elisa, ses textes) : la carte dit pourquoi, puis le pays ; « Modifier » ; « Oui, c’est bien ça » */
+    "${obTypo('Chaque pays a ses particularités ! Le tien nous aide à adapter ton expérience.')} <span aria-hidden=\"true\">🌍</span>",
     'const cherche=!!(draft.paysCherche&&obJustEntered&&!prefersReduceMotion())', '<b>Je cherche où tu es…</b>',
-    "${draft.paysAuto?'📍 Deviné grâce à ton téléphone':'✓ Choisi par toi'}", 'Je n’ai pas réussi à le deviner.',
+    "${draft.paysAuto?'Pays détecté automatiquement':'Choisi par toi'}", 'Je n’ai pas réussi à le deviner.',
     '<button type="button" class="ob-pays-trouve is-vide" onclick="obPaysListe()">',
-    "${code?'Ce n’est pas ça&nbsp;? <u>Changer de pays</u>':'<u>Choisir dans la liste</u>'}",
-    "obSetFooter(code&&draft.paysAuto?'Oui, c’est ça':'Continuer',()=>obGoto('age'),'','','',!code);"])
+    "${code?'Ce n’est pas ton pays&nbsp;? <u>Modifier</u>':'<u>Choisir dans la liste</u>'}",
+    "obSetFooter(code&&draft.paysAuto?'Oui, c’est bien ça':'Continuer',()=>obGoto('age'),'','','',!code);"])
     assert.ok(page.includes(k), k);
+  assert.ok(!page.includes('bientôt'), 'plus de langues « bientôt » : jamais de promesse à venir');
   assert.ok(app.includes("  if(slide==='pays')obPaysJouer();"), 'la recherche, puis le drapeau, après le dessin');
   const jouer = cut('function obPaysJouer(){', 'function obPaysListe(){');
   assert.ok(jouer.includes("c.classList.remove('is-cherche');c.classList.add('is-trouve');") && jouer.includes('},1300));') && jouer.includes('obDemoTimers.push('));
@@ -163,8 +166,8 @@ test('la liste en feuille : recherche sans accents, pays proches en tête, le pa
 });
 
 test('les feuilles de style : la page (rechargée, v19) et ses animations, la feuille des pays et les pastilles (v136)', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=44">') && sw.includes("'./onboarding-vitrine.css?v=44',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=315">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=45">') && sw.includes("'./onboarding-vitrine.css?v=45',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=316">'));
   for (const k of ['html #onboarding.ob-vitrine .ob-pays-carte.is-on{border-color:var(--v-sun);background:#FFFBEB;box-shadow:0 5px 0 var(--v-sun-lip)}',
     'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-radar{display:flex}', 'html #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-trouve{display:none}',
     'html #onboarding.ob-vitrine .ob-pays-globe i:first-child{opacity:1}', '@keyframes obvPaysGlobe{', '@keyframes obvPaysPose{'])

@@ -92,6 +92,6 @@ test('la page : l’accueil, chaque étape, le parcours prêt, la fin ; rien pou
   ctx.obApercu = false; ctx.ilePont = () => null; va(2); assert.equal(appels.length, n, 'dans un navigateur : rien');
   /* Branchée : la fin de chaque page, la fin de l’onboarding, sa fermeture */
   assert.ok(app.includes("  obJustEntered=false;\n  if(typeof ileObSync==='function')ileObSync();   // la Dynamic Island suit l’étape (10 novembre)\n}"));
-  assert.ok(app.includes("function obTerminer(action){\n  if(typeof ileObFin==='function')ileObFin(true);"));
+  assert.ok(app.includes("function obTerminer(action){\n  OB_CHATS.length=0;   // les chats de l’onboarding n’ont plus à rester prêts\n  if(typeof ileObFin==='function')ileObFin(true);"));
   assert.ok(app.includes("function closeOnboardingAuth(){\n  if(typeof ileObFin==='function')ileObFin(false);"));
 });
