@@ -49086,7 +49086,7 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
    réf. 9). --kb : la hauteur cachée par le clavier, 0 sans clavier. */
 (function(){
   const vv=window.visualViewport;if(!vv)return;
-  let raf=0;
+  let raf=0,serreT=0;
   /* Dans l’app, le clavier qui ne fait pas rétrécir la page compte aussi (kbNatif, 11 novembre) ; html.kb-ouvert : un clavier à l’écran. */
   const fit=()=>{raf=0;const kb=Math.max(Math.round(window.innerHeight-vv.height-vv.offsetTop),kbNatif());document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');
     document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');   // Safari : les barres qui flottent sur le clavier
@@ -49099,7 +49099,14 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
        --kb-vue : ce dont la vue a rétréci en ce moment ; --kb-tot : la hauteur du clavier de l’app tant qu’il est là. */
     const vh=Math.max(kbNatBase,window.innerHeight);
     document.documentElement.style.setProperty('--vue-h',vh+'px');document.documentElement.style.setProperty('--kb-vue',Math.max(0,vh-window.innerHeight)+'px');document.documentElement.style.setProperty('--kb-tot',kbNatH+'px');
-    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0);
+    /* 12 novembre, 23 h 26 (Elisa : « vérifie pour les flashs dans les pages ») : dans l’app, la vue ne reprend sa hauteur que 10 ms
+       après l’annonce du départ du clavier. Entre les deux, kb-ouvert tombait déjà : la barre d’onglets réapparaissait au bas de la
+       vue encore rétrécie, juste au-dessus du clavier, le temps d’une image, avant de redescendre. kb-ouvert tient maintenant
+       jusqu’au retour de la vue (serre) ; si elle ne revenait pas, la hauteur du moment est prise pour bonne au bout de 0,6 s. */
+    const serre=typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&window.innerHeight<kbNatBase-1;
+    clearTimeout(serreT);
+    if(serre)serreT=setTimeout(()=>{ if(!kbNatH&&window.innerHeight<kbNatBase-1){kbNatBase=window.innerHeight;fit();} },600);
+    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre);
     if(typeof paysVueRendre==='function')paysVueRendre();};
   const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
   vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);
@@ -50242,7 +50249,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-pays-v2913';
+  const SW_CACHE='requete-2026-11-13-clavier-v2914';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
