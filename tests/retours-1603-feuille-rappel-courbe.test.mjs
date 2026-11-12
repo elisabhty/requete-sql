@@ -15,22 +15,12 @@ const lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 const html = lire('index.html'), obv = lire('onboarding-vitrine.css');
 const cut = (a, b) => { const i = html.indexOf(a); assert.ok(i > 0, `repère : ${a}`); const j = html.indexOf(b, i); assert.ok(j > i, `repère : ${b}`); return html.slice(i, j); };
 
-test('le rappel : la bulle du chat montre un vrai rappel de la liste, le plus SQL', () => {
-  const ctx = vm.createContext({escAttr: s => String(s).replace(/"/g, '&quot;'), esc: s => String(s)});
-  vm.runInContext(cut('const RAPPEL_MESSAGES=[', '/* « Est-ce que je pourrais ajouter') + cut('function obRappelExemple(){', 'let obRappelEnCours=false;'), ctx);
-  ctx.liste = null;
-  vm.runInContext('function rappelListe(){return liste||RAPPEL_MESSAGES;}', ctx);
-  const ex = [...vm.runInContext('obRappelExemple()', ctx)];
-  assert.deepEqual(ex, ['📉 SELECT motivation', 'Résultat : 0 ligne. On corrige ça ?'], 'pris dans la liste, pas réécrit');
-  const h = vm.runInContext('obRappelExempleHTML()', ctx);
-  assert.ok(h.includes('role="img" aria-label="Exemple de rappel : 📉 SELECT motivation. Résultat : 0 ligne. On corrige ça ?"'), 'lu comme un exemple');
-  assert.ok(h.includes('<img src="assets/icon-192.png" width="20" height="20" alt="" draggable="false"><strong>📉 SELECT motivation</strong><i>maintenant</i>'), 'l’icône de l’appli, le titre, « maintenant »');
-  assert.ok(fs.existsSync(path.join(root, 'assets/icon-192.png')));
-  /* La liste du site ne l’a plus : le premier de la liste prend sa place. */
-  ctx.liste = [['☕ SQL ou café ?', 'Les deux, c’est encore mieux.'], ['a', 'b'], ['c', 'd'], ['e', 'f']];
-  assert.deepEqual([...vm.runInContext('obRappelExemple()', ctx)], ['☕ SQL ou café ?', 'Les deux, c’est encore mieux.']);
-  assert.ok(lire('rappels.json').includes('SELECT motivation'), 'il est aussi dans la liste du site');
-  assert.ok(obv.includes('html #onboarding.ob-vitrine .ob-nx-h strong{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;'));
+/* 12 novembre, 18 h 34 (Elisa, sa capture de l’iPhone : « Enlève l’exemple de la notification ») : la fausse notification dans la
+   bulle du chat (16 h 03) est retirée ; il redit sa phrase. La liste des rappels, elle, ne change pas. */
+test('le rappel : plus d’exemple de notification dans la bulle, le chat redit sa phrase', () => {
+  assert.ok(html.includes("${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil')}\n      ${obRappelCarte()}"));
+  assert.ok(!html.includes('obRappelExemple') && !html.includes('ob-nx') && !obv.includes('ob-nx'));
+  assert.ok(html.includes('SELECT motivation') && lire('rappels.json').includes('SELECT motivation'), 'le rappel reste dans la liste de ceux qu’on reçoit');
 });
 
 test('la connexion est une feuille à mi-écran, au-dessus de « Ton parcours est prêt »', () => {

@@ -60,7 +60,7 @@ test('chatBonusHtml : les six nouveaux, à leur taille ; l’image fixe en mouve
 });
 
 test('le rappel de l’onboarding : le réveil qui sonne, dans sa bulle', () => {
-  assert.ok(app.includes("${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil',false,obRappelExempleHTML())}\n      ${obRappelCarte()}"), '12 novembre : sa bulle montre un vrai rappel de la liste');
+  assert.ok(app.includes("${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil')}\n      ${obRappelCarte()}"), '12 novembre, 18 h 34 : sa phrase, plus d’exemple de notification');
   const ctx = vm.createContext({ esc: s => String(s), mascotReduced: () => false });
   vm.runInContext(cut('const MASCOT_QUESTION=', 'function obMascotQuestion(text){') + cut('function obMascotQuestion(text){', '\n}') + '\n}', ctx);
   assert.equal(ctx.obMascotDit('Avec moi', 'reveil'), '<div class="ob-chat"><img class="ob-chat-stk is-gif is-reveil" src="assets/chat-reveil.webp" width="272" height="311" alt="La mascotte Requête" draggable="false"><div class="ob-bubble">Avec moi</div></div>');

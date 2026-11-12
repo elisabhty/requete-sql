@@ -6731,7 +6731,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=321">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=52">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=53">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -45336,18 +45336,8 @@ async function obRappelDemander(){
    fasse l’action ou que ça ouvre la pop-up si c’est pas possible d’autoriser sans »). « Autoriser » ouvre la vraie demande d’iOS (on
    ne peut pas autoriser sans elle), comme le bouton du bas, puis programme le rappel. « Ne pas autoriser » passe à la suite, sans
    rappel et sans ouvrir la demande d’iOS : elle reste possible plus tard, dans Mon compte. */
-/* 12 novembre, 16 h 03 (Elisa, d’après la page de Knowunity qui montre une vraie notification : « ajouter un exemple de notification
-   dans la liste qu’on a déjà, la meilleure que tu trouves, un peu rigolote ») : à la place de sa phrase, le chat au réveil montre un
-   rappel tel qu’il arrivera, pris dans la liste des rappels (RAPPEL_MESSAGES, ou celle du site) : « 📉 SELECT motivation — Résultat :
-   0 ligne. On corrige ça ? », la blague SQL de la liste. Si elle en sort un jour, le premier de la liste prend sa place. */
-function obRappelExemple(){
-  const L=typeof rappelListe==='function'?rappelListe():(typeof RAPPEL_MESSAGES!=='undefined'?RAPPEL_MESSAGES:[]);
-  return L.find(m=>/SELECT motivation/.test(m[0]))||L[0]||['📉 SELECT motivation','Résultat\u00a0: 0 ligne. On corrige ça\u00a0?'];
-}
-function obRappelExempleHTML(){
-  const [t,m]=obRappelExemple();
-  return `<span class="ob-nx" role="img" aria-label="${escAttr(`Exemple de rappel\u00a0: ${t}. ${m}`)}"><span class="ob-nx-h" aria-hidden="true"><img src="assets/icon-192.png" width="20" height="20" alt="" draggable="false"><strong>${esc(t)}</strong><i>maintenant</i></span><span class="ob-nx-m" aria-hidden="true">${esc(m)}</span></span>`;
-}
+/* 12 novembre, 16 h 03 : à la place de sa phrase, le chat au réveil montrait un rappel de la liste, en fausse notification.
+   18 h 34 (Elisa, sa capture de l’iPhone : « Enlève l’exemple de la notification ») : retiré ; il redit sa phrase. */
 let obRappelEnCours=false;
 function obRappelRefuser(){
   if(obLock||obRappelEnCours)return;
@@ -48107,7 +48097,7 @@ function paintOb(){
     if(!draft.rappelHeure)draft.rappelHeure=rappelHeure();
     const fq=draft.freq||7,quand=fq===7?'chaque jour':fq===5?'en semaine':'tes jours de séance';
     html=`<div class="ob-screen ob-profile ob-rappel-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Un petit <em>rappel</em><br>${quand}&nbsp;?</h1>
-      ${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil',false,obRappelExempleHTML())}
+      ${obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil')}
       ${obRappelCarte()}
       <div class="ob-notif" id="ob-notif"><div class="ob-notif-cadre"><div class="ob-notif-alert"><b aria-hidden="true">«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small aria-hidden="true">Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button><button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button></span></div></div>
         <svg class="ob-notif-arrow" viewBox="0 0 40 70" aria-hidden="true"><path d="M20 66V8M6 22 20 7l14 15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -50081,7 +50071,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-12-feuille-lavande-v2898';
+  const SW_CACHE='requete-2026-11-12-rappel-sans-exemple-v2899';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
