@@ -53,7 +53,7 @@ test('le tunnel de fin : sources, rappel (s’il peut être demandé) ; le compt
   /* Retenu pour tout l’onboarding : une permission accordée en route ne retire pas l’étape (ni ne fausse « Suivant »). */
   const w = flux({Notification: {permission: 'default'}}); w.obFinFlux(); w.Notification.permission = 'granted';
   assert.deepEqual([...w.obFinFlux()], ['practice', 'source', 'rappel']);
-  assert.ok(app.includes('obVideoMontree=false;obFinRappel=obFinWidget=null;'), 'oublié à chaque nouvel onboarding');
+  assert.ok(app.includes('  obFinRappel=obFinWidget=null;\n  const reprise='), 'oublié à chaque nouvel onboarding');
   /* Suivant, Précédent */
   assert.ok(fn('obNext', 'function obBack(){').includes("else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));"));
   assert.ok(fn('obBack', 'function obPick(').includes("if(OB_SLIDES[obStep]==='ready'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}"));

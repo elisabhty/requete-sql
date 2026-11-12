@@ -25,9 +25,8 @@ const N = ' ';
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const plur = (n, m, pl) => n + ' ' + (Math.abs(n) > 1 ? (pl || m + 's') : m);
 
-test('invité : la vidéo d’intro passe aussi, l’invitation attend sur l’accueil', () => {
-  const v = fn('obVideoVoulue');
-  assert.ok(!v.includes('jeuInvitation') && v.includes('return !localStorage.getItem(OB_VIDEO_VUE);'));
+test('invité : l’onboarding depuis le début, l’invitation attend sur l’accueil (plus de vidéo d’intro depuis le 12 novembre, 18 h 06)', () => {
+  assert.ok(!app.includes('obVideoVoulue') && app.includes('function obInviteHTML(){'));
 });
 
 test('réf. 2 : « Réinitialiser cette table ? », le nom en gras, l’avertissement sans encadré, deux boutons qui disent ce qu’ils font', () => {
