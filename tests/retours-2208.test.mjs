@@ -65,11 +65,11 @@ test('validation Apple : les textes de confidentialité disent la suppression de
   assert.ok(!conf.includes('permettra de supprimer le compte'));
 });
 
-test('Sauvegarder ma progression : un fichier de sauvegarde, et le message seulement une fois le fichier parti', () => {
+test('Télécharger mes données (d’abord « Sauvegarder ma progression ») : un fichier, et le message seulement une fois le fichier parti', () => {
   const f = cut('async function exportProgress(){', '\n}\n');
-  assert.ok(f.includes('requete-sauvegarde-') && f.includes("C.nativePromise('RequeteWidget','partager',{nom:fileName,texte})"));
+  assert.ok(f.includes('requete-mes-donnees-') && f.includes("C.nativePromise('RequeteWidget','partager',{nom:fileName,texte})"));
   assert.ok(f.includes('if(!how)return;') && f.indexOf('if(!how)return;') < f.indexOf('lqDone('), 'rien si on annule');
-  assert.ok(app.includes('<b>Sauvegarder ma progression</b>') && app.includes('<b>Restaurer une sauvegarde</b>') && !app.includes('<b>Exporter ma progression</b>'));
+  assert.ok(app.includes('<b>Télécharger mes données</b>') && !app.includes('<b>Sauvegarder ma progression</b>') && !app.includes('<b>Restaurer une sauvegarde</b>') && !app.includes('<b>Exporter ma progression</b>'));
   assert.ok(swift.includes('CAPPluginMethod(name: "partager", returnType: CAPPluginReturnPromise)') && swift.includes('UIActivityViewController(activityItems: [url], applicationActivities: nil)'));
   assert.ok(swift.includes('CAPPluginMethod(name: "ouvrir", returnType: CAPPluginReturnPromise)') && swift.includes('UIApplication.shared.open(url, options: [:])'));
 });

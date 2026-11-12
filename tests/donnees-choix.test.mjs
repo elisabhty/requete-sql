@@ -27,7 +27,7 @@ function feuille() {
 
 test('le titre, la phrase de résumé et la ligne des réglages', () => {
   assert.ok(app.includes('<summary><span>Tes données, tes choix</span><small>Tu sais ce qui est enregistré et tu gardes le contrôle.</small><i aria-hidden="true">×</i></summary>'));
-  assert.ok(app.includes(`onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">\${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, sauvegarde, effacement</small></span>`));
+  assert.ok(app.includes(`onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">\${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, copie, effacement</small></span>`));
   assert.ok(!app.includes('<b>Données et confidentialité</b>') && !app.includes('<span>Données et confidentialité</span>'), 'plus l’ancien titre à l’écran');
 });
 
@@ -36,7 +36,7 @@ test('quatre rubriques fermées au départ, chacune avec son résumé ; ouvertes
   const h = t.ev("accDonneesHTML('<i>actions</i>')");
   const titres = [...h.matchAll(/<span class="dc-tt"><b>([^<]+)<\/b><small>([^<]+)<\/small><\/span>/g)].map(m => [m[1], m[2]]);
   assert.deepEqual(titres, [['Sur ton appareil', 'Tes cours, ta progression et tes bases importées.'], ['En ligne', 'Seulement ce qu’il faut pour jouer à plusieurs et te répondre.'],
-    ['Ta confidentialité', 'Personne ne voit tes requêtes.'], ['Gérer mes données', 'Sauvegarder ta progression ou effacer tes informations.']]);
+    ['Ta confidentialité', 'Personne ne voit tes requêtes.'], ['Gérer mes données', 'Télécharger une copie de tes données ou effacer tes informations.']]);
   assert.equal((h.match(/ hidden>/g) || []).length, 4, 'les quatre fermées');
   assert.deepEqual([...h.matchAll(/data-k="([a-z]+)"/g)].map(m => m[1]), ['tel', 'nuage', 'shield', 'export'], 'un autocollant par rubrique');
   /* Ouvrir « En ligne » */
@@ -56,7 +56,8 @@ test('les actions sont rangées dans « Gérer mes données », la politique et 
   const data = cut('<details class="plus-details" id="plus-data">', '<details class="plus-details" id="plus-contact">');
   const i = data.indexOf('${accDonneesHTML(`'), j = data.indexOf('`)}');
   assert.ok(i > 0 && j > i);
-  for (const a of ['exportProgress()', 'importProgress()', 'clsQuitter()', 'resetAllProgress()']) assert.ok(data.slice(i, j).includes(a), a);
+  for (const a of ['exportProgress()', 'clsQuitter()', 'resetAllProgress()']) assert.ok(data.slice(i, j).includes(a), a);
+  assert.ok(!data.includes('importProgress') && !app.includes('function importProgress('), '12 novembre, 22 h 07 : « Restaurer une sauvegarde » est retirée (retours-2207)');
   assert.ok(data.indexOf('<p class="dc-legal-t">Pour tout lire</p>') > j);
   assert.ok(data.includes('<b>Politique de confidentialité</b><small>Les durées de conservation, tes droits, les services utilisés</small>'));
 });
@@ -98,5 +99,5 @@ test('le style : une carte blanche par rubrique, le lilas sur le titre ouvert ; 
   assert.ok(!css.includes('.acc-donnees'), 'le style de l’ancienne carte est parti');
   const stk = cut('function lqStkSvg(k){', '\n}');
   assert.ok(stk.includes("    tel:['<rect x=\"12\" y=\"3.5\" width=\"24\" height=\"41\" rx=\"6.5\"/>',") && stk.includes("    nuage:['<path d=\"M14.5 39h20"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=323">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=324">'));
 });

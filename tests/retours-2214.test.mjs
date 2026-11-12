@@ -33,12 +33,17 @@ const deco = ({ mode, oui }) => {
   return { ctx, appels, go: () => vm.runInContext('seDeconnecter()', ctx) };
 };
 
-test('sans compte : « Aucun compte connecté », et la sauvegarde proposée ; rien d’autre ne bouge', async () => {
+test('sans compte : « Aucun compte connecté » ; la connexion proposée si elle est branchée (plus de sauvegarde à restaurer) ; rien d’autre ne bouge', async () => {
+  /* 12 novembre, 22 h 07 : « Restaurer une sauvegarde » est retirée ; pour retrouver sa progression ailleurs, on se connecte */
   let x = deco({ mode: 'guest', oui: true });
   await x.go();
   assert.deepEqual(JSON.parse(JSON.stringify(x.appels)), [
-    ['demande', 'Aucun compte connecté', 'Ta progression est enregistrée sur cet appareil, sans compte : il n’y a rien à déconnecter. Garde-en une sauvegarde pour la retrouver ailleurs.', 'Sauvegarder ma progression', 'OK'],
-    ['sauvegarde']]);
+    ['demande', 'Aucun compte connecté', 'Ta progression est enregistrée sur cet appareil, sans compte : il n’y a rien à déconnecter.', 'OK', null]], 'connexion pas branchée : un simple « OK »');
+  x = deco({ mode: 'guest', oui: true }); x.ctx.obAuthReady = () => true;
+  await x.go();
+  assert.deepEqual(JSON.parse(JSON.stringify(x.appels)), [
+    ['demande', 'Aucun compte connecté', 'Ta progression est enregistrée sur cet appareil, sans compte : il n’y a rien à déconnecter. Connecte-toi pour la retrouver sur tes autres appareils.', 'Me connecter', 'Plus tard'],
+    ['ferme'], ['onboarding', 'account']]);
   assert.equal(x.ctx.state.accountMode, 'guest');
   x = deco({ mode: undefined, oui: false });
   await x.go();
@@ -51,5 +56,5 @@ test('connecté : la vraie déconnexion (confirmée), puis l’étape du compte'
   assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Te déconnecter ?', 'signOut', 'enregistre', 'ferme', 'onboarding']);
   assert.equal(x.ctx.state.accountMode, 'guest');
   assert.ok(!('accountProvider' in x.ctx.state) && !('accountLabel' in x.ctx.state));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-contact-v2910';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-12-donnees-v2911';"), 'le cache de l’appli change');
 });

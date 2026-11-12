@@ -50,7 +50,7 @@ test('réf. 2 — « Question suivante » reste dans l’onglet : à revoir, tou
   assert.ok(app.includes(`<button type="button" class="ent-suite" onclick="nextEntretien('\${id}')"><span>\${entNextTarget(id)?'Question suivante':'Retour aux questions'}</span>`), 'le bouton le dit');
 });
 
-test('réf. 3 — l’export contient toute la progression, et le même fichier se réimporte', () => {
+test('réf. 3 — l’export contient toute la progression (il ne se réimporte plus depuis le 12 novembre, retours-2207)', () => {
   const block = cut('const EXPORT_EXTRA=', 'async function exportProgress(){');
   const store = { 'requete-sql-v3': '{}', 'requete-sql-app-version': 'x', 'requete-nav-v1': 'x', 'requete-nav-long-v1': 'x', 'rq-video-reponses': '{"a":1}', 'rq-video-pos': '{"b":2}',
     'requete-sql-proj-v1': '{"cours":{}}', 'requete-sql-dbs-v1': '[]', 'rq-jc-pass-12': '1', 'rq-qf-7': '["a"]', 'requete-rappel': '1', 'rq-recent-search': '[]', 'autre': 'x' };
@@ -65,11 +65,7 @@ test('réf. 3 — l’export contient toute la progression, et le même fichier 
   assert.deepEqual(Object.keys(p.state).sort(), ['defis', 'entretien', 'lessons', 'notes', 'plan', 'salle'], 'l’état complet de la progression');
   assert.deepEqual(Object.keys(p.extra).sort(), ['requete-rappel', 'requete-sql-dbs-v1', 'requete-sql-proj-v1', 'rq-jc-pass-12', 'rq-qf-7', 'rq-video-pos', 'rq-video-reponses'],
     'vidéos, quiz réussis, requêtes à trous, projets, bases importées, rappel ; pas la navigation ni la version');
-  const imp = cut('function importProgress(){', '\nasync function resetAllProgress(){');
-  assert.ok(imp.includes("if(!p||p.v!==1||!p.state||typeof p.state!=='object')") && imp.includes("titre:'Remplacer ta progression ?'") && imp.includes('setTimeout(()=>location.reload(),350);'));
-  assert.ok(imp.includes('if(EXPORT_EXTRA(k)&&typeof v===\'string\')localStorage.setItem(k,v);'), 'seules les clés connues sont réécrites');
-  assert.ok(app.includes('<div class="at"><b>Restaurer une sauvegarde</b><small>Le fichier créé par « Sauvegarder ma progression »</small></div>'), '22 h 08 : sauvegarder, restaurer');
-  assert.ok(app.includes("try{if(sessionStorage.getItem('rq-import-ok')){sessionStorage.removeItem('rq-import-ok');switchTab('compte');"), 'au retour : Mon compte dit que c’est fait');
+  assert.ok(!app.includes('function importProgress(') && !app.includes('rq-import-ok') && !app.includes('<b>Restaurer une sauvegarde</b>'), 'plus de réinjection');
 });
 
 test('réf. 4 — la même marge de 20 px sur toutes les pages, et les pastilles de points centrées sur leur ligne', () => {
@@ -112,7 +108,7 @@ test('réf. 9 — une feuille se ferme une fois l’action faite, et reste au-de
   assert.ok(app.includes(`onclick="closePlusDetails();startOnboarding('name')"`), 'Personnalisation');
   assert.ok(cut('function replayOnboarding(){', 'startOnboarding();').includes('closePlusDetails();'), 'Revoir l’intro');
   assert.ok(cut('async function resetAllProgress(){', 'state={').includes('closePlusDetails();'), 'Effacer la progression');
-  assert.ok(cut('async function exportProgress(){', 'function importProgress(){').includes('closePlusDetails();'), 'Exporter');
+  assert.ok(cut('async function exportProgress(){', '\n}\n').includes('closePlusDetails();'), 'Exporter');
   /* 16 h 49 : le pseudo ne se change plus — plus de champ ni de bouton « Enregistrer » sous le clavier dans Mon compte */
   const acc = cut('function accPseudoHTML(', 'function replayOnboarding(');
   assert.ok(!app.includes('class="acc-save"') && acc.includes('<span class="acc-pseudo-flag" role="img" aria-label="${attr(typeof paysNom===\'function\'?paysNom(pays):pays)}">${drap}</span>'), 'le pseudo, et le drapeau de son pays (21 h 01, à la place du cadenas)');

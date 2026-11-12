@@ -532,10 +532,11 @@ iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la p
   **Avec la connexion Apple** (quand elle sera branchée) : Apple demande aussi de révoquer le jeton « Se connecter avec Apple » à la
   suppression (appel serveur à `appleid.apple.com/auth/revoke`, avec la clé du compte développeur).
 - **Effacement** : « Effacer la progression » retire aussi la place au classement (`jeu_oublier`).
-- **Passer du site à l’app** : Mon compte › Données › « Sauvegarder ma progression » sur le site (un fichier
-  `requete-sauvegarde-AAAA-MM-JJ.json`), puis « Restaurer une sauvegarde » dans l’app : leçons, défis, notes, planning, projets et
-  la place au classement suivent. Dans l’app, la sauvegarde ouvre la feuille de partage d’iOS (pont `RequeteWidget.partager`) ;
-  le message « Sauvegardée » ne vient qu’une fois le fichier parti.
+- **Télécharger mes données** : Mon compte › Tes données, tes choix › « Télécharger mes données » (un fichier
+  `requete-mes-donnees-AAAA-MM-JJ.json`, une copie de la progression, des notes et du planning). Dans l’app, la feuille de partage
+  d’iOS (pont `RequeteWidget.partager`) ; le message ne vient qu’une fois le fichier parti. « Restaurer une sauvegarde » est
+  retirée depuis le 12 novembre : une progression faite sur le site ne se reprend plus dans l’app (la progression de l’app suit le
+  compte).
 - **Noter Requête** (Mon compte, dans l’app seulement) : ouvre la page « Écrire un avis » de la fiche App Store
   (`itms-apps://itunes.apple.com/app/id6830361256?action=write-review`, pont `RequeteWidget.ouvrir`) ; l’avis paraît sur la fiche.
   Elle ne marche qu’une fois l’appli publiée.
