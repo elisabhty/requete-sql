@@ -147,7 +147,7 @@ test('l’abonnement arrive (achat, « Restaurer », réponse de RevenueCat) : l
   const n = appli(); n.ctx.obGardeVoir(); n.ctx.closeOnboardingAuth();
   assert.deepEqual(n.appels, ['paywall', 'ferme', 'paywall']); assert.ok(n.cls.has('on') && n.ctx.gardeOuverte());
   /* Une invitation à une salle attend derrière lui, comme pendant l’onboarding */
-  assert.ok(app.includes("  if(!state.onboarded||(typeof obGardeBloque==='function'&&obGardeBloque())){try{sessionStorage.setItem(JEU_INV,inv.code);"));
+  assert.ok(app.includes("  if(!state.onboarded||(typeof obCompteBloque==='function'&&obCompteBloque())||(typeof obGardeBloque==='function'&&obGardeBloque())){try{sessionStorage.setItem(JEU_INV,inv.code);"), '13 novembre, 3 h 22 : et derrière la page de connexion');
 });
 
 test('la garde démarre quand l’appli ET achat.js sont là, une seule fois ; elle suit les changements', async () => {
@@ -159,7 +159,7 @@ test('la garde démarre quand l’appli ET achat.js sont là, une seule fois ; e
   m.R.etat = 'non'; m.R.suivis[0](); assert.deepEqual(m.appels, ['paywall'], 'RevenueCat a répondu « non » : le paywall');
   const sans = appli({branche: false}); sans.ctx.obGardeDemarrer(true); assert.equal(sans.R.suivis.length, 0, 'le site : rien');
   /* Dans boot, après les autres étapes du démarrage (l’aperçu est alors connu), avant que l’écran de lancement parte */
-  assert.ok(app.includes('    resetLeconFromUrl();\n    apercuFromUrl();\n    try{obGardeDemarrer(true);}catch(e){}'));
+  assert.ok(app.includes('    resetLeconFromUrl();\n    apercuFromUrl();\n    try{obCompteGardeDemarrer();}catch(e){}') && app.includes('\n    try{obGardeDemarrer(true);}catch(e){}'), '13 novembre, 3 h 22 : la garde du compte juste avant');
   assert.ok(src.includes("try { if (typeof window.obGardeDemarrer === 'function') window.obGardeDemarrer(); } catch (e) {}"));
 });
 
