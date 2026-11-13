@@ -608,6 +608,30 @@ lisent dans App Store Connect.
 Après la **troisième** leçon, la page du widget (« Je t’encouragerai directement depuis ton écran d’accueil ! »), 2 s après le
 retour à l’accueil ; elle venait après la première. Jamais les deux au même retour.
 
+### L’invitation à un défi ouvre l’app : les liens universels (13 novembre, 19 h 31)
+
+Elisa : « Est-ce que cette invite nous emmène vraiment sur l’application ? », puis « vas-y ». L’invitation partagée depuis une
+salle (`https://requeteapp.com/?partie=CODE&de=pseudo`), touchée dans Messages ou WhatsApp, ouvre Requête directement dans la
+salle quand l’app est installée ; sinon, le site, comme avant (la section iPhone redit le code).
+
+- **Le site** : `.well-known/apple-app-site-association` (envoyé par GitHub Pages avec le reste du dossier) dit à Apple que les
+  liens `/?partie=XXXXXX` et `/decouvrir/?partie=XXXXXX` s’ouvrent dans `RN77C85JG4.fr.requete.app`. Le reste du site s’ouvre
+  toujours dans Safari.
+- **L’app** : `App.entitlements` déclare `applinks:requeteapp.com` (Associated Domains). Xcode ajoute la capacité à l’identifiant
+  `fr.requete.app` en signant (`-allowProvisioningUpdates`), comme pour les push et la connexion Apple.
+- **Le lien** : `SceneDelegate.swift` le reçoit (l’app fermée : `connectionOptions.userActivities` ; ouverte :
+  `scene(_:continue:)`), `RequeteRaccourci.invitation` en fait le raccourci `fr.requete.app.partie.CODE|pseudo`, et la page
+  (`raccourciOuvrir`, puis `jeuFromUrl`) entre dans la salle, après l’onboarding, la connexion ou le paywall s’il le faut.
+
+Il faut une nouvelle version de l’app (la mise à jour à distance ne change pas les capacités) :
+`cd ~/SQL && git pull --ff-only && npm run ios:testflight 2>&1 | tee ios-envoi.log`. Si la signature refuse « Associated
+Domains » : Xcode › cible App › Signing & Capabilities, la capacité doit montrer `applinks:requeteapp.com` ; relancer l’envoi.
+
+Pour essayer : s’envoyer une invitation dans Messages et la toucher. Apple lit le fichier du site à l’installation de l’app, par
+ses propres serveurs : quelques heures après sa mise en ligne, le temps qu’ils le voient. Si le lien s’ouvre quand même dans
+Safari : appui long sur le lien › « Ouvrir dans Requête » (iOS retient ce choix ; toucher « requeteapp.com » en haut à droite
+dans l’app fait l’inverse).
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre

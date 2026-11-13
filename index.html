@@ -47364,6 +47364,15 @@ function raccourcisBrancher(){
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
+  /* Une invitation à un défi (13 novembre, 19 h 31, les liens universels) : https://requeteapp.com/?partie=CODE&de=pseudo, touchée
+     dans Messages ou WhatsApp, ouvre l’app (SceneDelegate) et arrive ici en « fr.requete.app.partie.CODE|pseudo ». Le chemin de
+     l’invitation du site (jeuFromUrl) : l’onboarding, la connexion ou le paywall d’abord s’il le faut, puis la salle. */
+  const inv=/\.partie\.([A-Za-z0-9]{6})(?:\|(.*))?$/.exec(type);
+  if(inv){
+    try{sessionStorage.setItem(JEU_INV,inv[1].toUpperCase());if(inv[2])sessionStorage.setItem(JEU_INV_DE,inv[2]);else sessionStorage.removeItem(JEU_INV_DE);}catch(e){}
+    if(typeof jeuFromUrl==='function')jeuFromUrl();
+    return;
+  }
   /* « Reprendre », dans l’île ou sur l’écran verrouillé (10 novembre) : la vidéo de la leçon repart là où elle s’était arrêtée,
      comme le bouton lecture (un moment « À toi » ouvert attend toujours sa réponse). */
   if(type.endsWith('.lecon-reprendre')){
@@ -51415,7 +51424,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-voile-v2960';
+  const SW_CACHE='requete-2026-11-13-liens-v2961';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

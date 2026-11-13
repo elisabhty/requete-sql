@@ -40,8 +40,27 @@ enum RequeteRaccourci {
     /// Un lien de Requête (le bouton « Allumer ma flamme » du widget La cheminée, 7 novembre) : son hôte devient un raccourci,
     /// « seance » donne « fr.requete.app.seance ». La page ignore ce qu’elle ne connaît pas (index.html, raccourciOuvrir).
     static func ouvrir(_ lien: URL) {
+        if lien.scheme == "https" {
+            invitation(lien)
+            return
+        }
         guard lien.scheme == "requete", let hote = lien.host, !hote.isEmpty else { return }
         recevoir("fr.requete.app." + hote)
+    }
+
+    /// Une invitation à un défi (13 novembre, 19 h 31, les liens universels) : https://requeteapp.com/?partie=SNUWBB&de=lea, touchée
+    /// dans Messages ou WhatsApp, ouvre l’app (SceneDelegate) ; elle devient le raccourci « fr.requete.app.partie.SNUWBB|lea », et la
+    /// page entre dans la salle (index.html, raccourciOuvrir, puis jeuFromUrl : l’onboarding d’abord s’il n’est pas fini).
+    static func invitation(_ lien: URL) {
+        let hote: String = (lien.host ?? "").lowercased()
+        guard hote == "requeteapp.com" || hote == "www.requeteapp.com" else { return }
+        let elements: [URLQueryItem] = URLComponents(url: lien, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        let code: String = (elements.first(where: { $0.name == "partie" })?.value ?? "").uppercased()
+        let permis: Set<Character> = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+        guard code.count == 6, code.allSatisfy({ permis.contains($0) }) else { return }
+        let brut: String = elements.first(where: { $0.name == "de" })?.value ?? ""
+        let de: String = String(brut.prefix(40)).replacingOccurrences(of: "|", with: "")
+        recevoir("fr.requete.app.partie." + code + (de.isEmpty ? "" : "|" + de))
     }
 }
 

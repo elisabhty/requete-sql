@@ -10,6 +10,9 @@ import Capacitor
 //   RequeteRaccourci les passe à la page (RequeteWidgetPlugin.swift) ;
 // - les liens de Requête (le bouton « Allumer ma flamme » du widget La cheminée, 7 novembre) arrivent ici aussi, l’app déjà
 //   ouverte (scene(_:openURLContexts:)) ou lancée par le lien (connectionOptions) : RequeteRaccourci.ouvrir en fait un raccourci.
+//   13 novembre, 19 h 31 (les liens universels) : une invitation à un défi, https://requeteapp.com/?partie=CODE, touchée dans
+//   Messages ou WhatsApp, arrive en activité « navigation web », l’app déjà ouverte (scene(_:continue:)) ou lancée par le lien
+//   (connectionOptions.userActivities) : RequeteRaccourci.ouvrir aussi.
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
@@ -29,6 +32,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if let lien = connectionOptions.urlContexts.first?.url {
             RequeteRaccourci.ouvrir(lien)
         }
+        for activite in connectionOptions.userActivities where activite.activityType == NSUserActivityTypeBrowsingWeb {
+            if let lien = activite.webpageURL {
+                RequeteRaccourci.ouvrir(lien)
+            }
+        }
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
@@ -46,6 +54,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        if userActivity.activityType == NSUserActivityTypeBrowsingWeb, let lien = userActivity.webpageURL {
+            RequeteRaccourci.ouvrir(lien)
+        }
         SceneDelegateProxy.shared.scene(scene, continue: userActivity)
     }
 }
