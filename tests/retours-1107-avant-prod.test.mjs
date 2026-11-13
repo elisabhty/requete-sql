@@ -103,7 +103,7 @@ test('aucune répétition de plus de 255 dans la dernière version d’une fonct
 });
 
 test('les migrations du dépôt portent le numéro de version de la base, dans l’ordre', () => {
-  assert.equal(fichiers.at(-1), '20261113101430_correctifs_jeton_ile_et_stat_oublier.sql');
+  assert.equal(fichiers.at(-1), '20261113152709_avis_lecon_zero.sql', 'la dernière : la leçon 0 dans les avis (retours-1619)');
   for (const f of fichiers) assert.match(f, /^\d{14}_[a-z0-9_]+\.sql$/, f);
   assert.equal(new Set(fichiers.map(f => f.slice(0, 14))).size, fichiers.length, 'un numéro par migration');
 });

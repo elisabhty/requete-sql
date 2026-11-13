@@ -34096,10 +34096,13 @@ function avisEnvoyer(){
   const n=av[id].n,l=typeof allLessons!=='undefined'?allLessons.find(x=>String(x.id)===id):null;
   avisEnvoi=true;
   const c=typeof av[id].c==='string'?av[id].c:'';
+  /* 13 novembre, 16 h 19 (« Est-ce que je vais recevoir ? Par mail ») : la 1re leçon porte le numéro 0, que la base refusait
+     (« invalide ») ; restée en tête de file, elle bloquait tous les avis suivants. La base l’accepte désormais
+     (20261113152709_avis_lecon_zero.sql), et un avis que la base refuse pour de bon passe « refusé » : il ne bloque plus la file. */
   return clsRpc('lecon_noter',{p_cle:clsCle(),p_lecon:+id,p_note:n,p_titre:l?String(l.titre||'').slice(0,120):null,p_commentaire:c||null}).then(r=>{
-    const ok=!!(r&&r.ok);
-    if(ok&&state.avis&&state.avis[id]&&state.avis[id].n===n&&(state.avis[id].c||'')===c){state.avis[id].envoye=true;save();}
-    return ok;
+    const ok=!!(r&&r.ok),refus=!ok&&!!r&&r.raison==='invalide';
+    if((ok||refus)&&state.avis&&state.avis[id]&&state.avis[id].n===n&&(state.avis[id].c||'')===c){state.avis[id].envoye=ok?true:'refus';save();}
+    return ok||refus;
   }).catch(()=>false).then(ok=>{avisEnvoi=false;if(ok)avisEnvoyer();return ok;});
 }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
@@ -51248,7 +51251,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-extraire-v2945';
+  const SW_CACHE='requete-2026-11-13-avis-v2946';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
