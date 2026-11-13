@@ -138,7 +138,7 @@ test('le bilan : le titre dit l’issue, les trois cases, une manche ratée dans
     jeuNivBars: k => `[${k}]`, jeuBtn2: (i, l, o) => `[${i}|${l}|${o}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), ctx);
   assert.ok(ctx.jeuFinBoutonsHTML(2, true).startsWith('<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-d" onclick="jeuNiveauSuivant()">') && ctx.jeuFinBoutonsHTML(2, true).includes('<span class="jeu-prog-t">Passer au niveau difficile</span><span class="jeu-prog-x">×4<span class="lq-sr"> points par défi</span></span>'));
-  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Revanche</span>') && ctx.jeuFinBoutonsHTML(0, false).includes('[classement|Voir mon classement|jeuVersClassement()]'));
+  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Rejouer</span>') && ctx.jeuFinBoutonsHTML(0, false).includes('[quit|Quitter la salle|jeuQuitterSalle()]'));
   /* Le style : la pêche, la pastille à 44 px de toucher, la carte de la prochaine étape, les trois cases */
   for (const k of ['html.lq #app .jeu-rounds .jr.is-miss{border-style:solid;border-color:#FFDCC8;background:#FFF9F5;', 'html.lq #app .jr.is-miss .jr-ico{background:#FFE1D1;color:#A24A1E;',
     'html.lq #app .jr-corr::after{content:"";position:absolute;inset:-9px -6px}', 'html.lq #app .jeu-prog{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;',
@@ -153,8 +153,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-sol[data-vue="moi"]{background:#EAF8F0}', 'html.lq .dx-feuille button.jc-bascule{flex:none;',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-revanche-v2971';") && app.includes("const SW_CACHE='requete-2026-11-13-revanche-v2971';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=349">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-rejouer-v2972';") && app.includes("const SW_CACHE='requete-2026-11-13-rejouer-v2972';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=350">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -169,13 +169,14 @@ test('11 h 53 : le niveau suivant ramène à l’écran Défis, déjà choisi ; 
   ctx.JEU.niv = 'm'; ctx.jeuNiveauSuivant(); assert.equal(ctx.jeuNiv, 'd');
   const b = vm.createContext({ JEU: { solo: true, niv: 'd' }, JEU_RELANCE_SVG: '<rv>', JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, DEF_CHEV_SVG: '›', jeuNivBars: k => k, jeuBtn2: (i, l) => `[${l}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), b);
-  assert.ok(!b.jeuFinBoutonsHTML(2, true).includes('jeu-prog') && b.jeuFinBoutonsHTML(2, true).includes('<span>Revanche</span>'), 'Difficile : « Revanche » seulement');
+  assert.ok(!b.jeuFinBoutonsHTML(2, true).includes('jeu-prog') && b.jeuFinBoutonsHTML(2, true).includes('<span>Rejouer</span>'), 'Difficile : « Rejouer » seulement');
   assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();') && fn('jeuAgain').includes("jeuSend({t:'again',g:J.g+1});"), '« Rejouer » : une nouvelle partie dans la même salle');
 });
 
 /* 11 h 57 (Elisa) : « Retour aux défis » devient « Voir mon classement » ; « ne pas tout mettre en vert, mettre des pills ou pointillé ». */
 test('11 h 57 : « Voir mon classement », et le bilan en pastilles : le vert à la coche seulement', () => {
-  assert.ok(fn('jeuFinBoutonsHTML').includes("jeuBtn2('classement','Voir mon classement','jeuVersClassement()')") && !app.includes("'Retour aux défis'"));
+  /* 13 novembre, 22 h 05 : « Quitter la salle » le remplace en solo (jeuVersClassement reste, pour qui l’appelle) */
+  assert.ok(fn('jeuFinBoutonsHTML').includes("jeuBtn2('quit','Quitter la salle','jeuQuitterSalle()')") && !fn('jeuFinBoutonsHTML').includes("'Voir mon classement'") && !app.includes("'Retour aux défis'"));
   const v = fn('jeuVersClassement');
   assert.ok(v.includes("DEFIS.onglet='classement';DEFIS.carte='';") && v.includes("leaveLessonScreen('defis');") && v.includes('jeuLeaveAsk(jeuVersClassement)'));
   const fin = cut("}else if(v==='final'){", '/* Fondu enchaîné');
