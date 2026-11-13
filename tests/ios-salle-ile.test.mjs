@@ -71,8 +71,9 @@ test('ce que l’île lit de l’état : moi, ma place, « Victoire ! », qui ar
   const L = entre(swift, 'enum LectureSalle {', '\n}\n');
   for (const k of ['if n == 1 { return "1er" }\n        return "\\(n)e"', 'if j.p == a.moi { return "Toi" }',
     'if e.nouveau.isEmpty || e.nouveau == a.moi { return "" }', `if e.joueurs.count < 2 { return "Partie terminée${FINE}!" }`,
-    `if p == 1 { return "Victoire${FINE}!" }`, 'if place(e, a) == 1 { return "Rejouer" }\n        return "Revanche"',
-    'if e.phase == "fin" {\n            if place(e, a) == 1 { return .etoiles }\n            return .rieur\n        }\n        if e.phase == "attente" && !arrivee(e, a).isEmpty { return .clin }\n        return .ouvert',
+    `if p == 1 { return "Victoire${FINE}!" }`, 'if gagne(e, a) { return "Rejouer" }\n        return "Revanche"',
+    `if personneNaMarque(e) { return "Match nul${FINE}!" }`, 'let p: Int = moi(e, a)?.pts ?? 0\n        return p > 0 && place(e, a) == 1',
+    'if e.phase == "fin" {\n            if gagne(e, a) { return .etoiles }\n            return .rieur\n        }\n        if e.phase == "attente" && !arrivee(e, a).isEmpty { return .clin }\n        return .ouvert',
     'if voyelles.contains(initiale) { return "qu’" + n }', 'return "on attend \\(qui) lance"', 'if attendus.isEmpty { return "tout le monde est prêt" }',
     'if e.phase == "pause" { return texte + " terminée" }'])
     assert.ok(L.includes(k), k);
