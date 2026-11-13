@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=335">
+<link rel="stylesheet" href="ludique.css?v=336">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=67">
 <style id="lesson-video-css">
@@ -29338,7 +29338,6 @@ function dxPcGens(t,ton){return dxPc(`is-gens ${ton||'is-doux'}`,t,DX_GENS_SVG);
     const p=JSON.parse(localStorage.getItem('rq-jeu-prefs')||'{}');
     if(['jouer','classement'].includes(p.onglet))DEFIS.onglet=p.onglet;
     if(['monde','pays','amis'].includes(p.portee))DEFIS.portee=p.portee;
-    if(p.periode==='semaine')DEFIS.periode='semaine';
   }catch(e){}
 })();
 function dxRang(n,txt){n=Math.max(1,Math.floor(+n||1));return txt?(n===1?'1er':n+'e'):(n===1?'1<sup>er</sup>':`${n}<sup>e</sup>`);}
@@ -29790,20 +29789,17 @@ function defisPortee(k){
   if(!['monde','pays','amis'].includes(k)||(k==='pays'&&!paysDuProfil()))return;
   DEFIS.portee=k;jeuSavePrefs();defisClassementPeindre();if(typeof buzz==='function')buzz('light');
 }
-function defisPeriode(k){
-  DEFIS.periode=k==='semaine'?'semaine':'tout';jeuSavePrefs();defisClassementPeindre();if(typeof buzz==='function')buzz('light');
-}
 function defisClassementPeindre(){
   const host=document.getElementById('defis-classement');if(!host)return;
   const pays=paysDuProfil();
   if(DEFIS.portee==='pays'&&!pays)DEFIS.portee='monde';
   const chip=(k,l)=>`<button type="button" class="dx-chip${DEFIS.portee===k?' on':''}" aria-pressed="${DEFIS.portee===k}" onclick="defisPortee('${k}')">${l}</button>`;
-  const per=(k,l)=>`<button type="button" role="radio" aria-checked="${DEFIS.periode===k}" class="room-opt${DEFIS.periode===k?' on':''}" onclick="defisPeriode('${k}')">${l}</button>`;
   /* Refonte du 7 novembre (designer produit) : plus de carte autour de l’onglet (son titre « Classement » répétait l’onglet ; il reste
-     pour le lecteur d’écran) ; les filtres sur le fond ; « 5 joueurs classés » en légende, écrit dès la première réponse. */
+     pour le lecteur d’écran) ; les filtres sur le fond ; « 5 joueurs classés » en légende, écrit dès la première réponse.
+     13 novembre, 16 h 31 (Elisa : « Supprime l’onglet semaine ») : plus de choix « Depuis toujours / Cette semaine », le classement est
+     celui depuis toujours (DEFIS.periode reste 'tout', et un ancien choix « semaine » gardé sur l’appareil n’est plus repris). */
   host.innerHTML=`<section class="dx-cls is-v2" aria-labelledby="dx-cls-h"><h2 class="lq-sr" id="dx-cls-h">Classement</h2>
-    <div class="dx-filtres"><div class="dx-filters" role="group" aria-label="Qui">${chip('monde','🌍 Monde')}${pays?chip('pays',`${paysDrapeau(pays)} ${esc(paysNom(pays))}`):''}${chip('amis','Mes adversaires')}</div>
-    <div class="room-seg dx-periode" role="radiogroup" aria-label="Période">${per('tout','Depuis toujours')}${per('semaine','Cette semaine')}</div></div>
+    <div class="dx-filtres"><div class="dx-filters" role="group" aria-label="Qui">${chip('monde','🌍 Monde')}${pays?chip('pays',`${paysDrapeau(pays)} ${esc(paysNom(pays))}`):''}${chip('amis','Mes adversaires')}</div></div>
     <p class="dx-cls-compte" id="dx-cls-k" aria-live="polite"></p>
     <div class="dx-pager" id="dx-pager"></div>
     <p class="dx-h3" id="dx-place-h">Ta place dans le classement</p><div id="dx-place"></div>
@@ -51251,7 +51247,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-avis-v2946';
+  const SW_CACHE='requete-2026-11-13-classement-v2947';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
