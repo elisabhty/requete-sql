@@ -27334,7 +27334,7 @@ function mascotBravo(btn,on){
    sourire (12 images de 500 ms, une seule fois). Son image fixe (mouvements réduits) : la pancarte « VS ». Le faux damier du GIF a des
    pixels rosés (247, 238, 246) : effacés eux aussi ; l’oreille touche le haut du GIF (images 4 à 8) : sa découpe y est refermée. */
 function chatBonusHtml(k,cls){
-  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311],cle:[309,302],avion:[313,311],reveil:[272,311],trophee:[290,311],reseau:[300,310],rire:[315,305],pied:[319,362],oui:[294,351],serment:[302,362],pseudo:[298,305],effort:[340,365],stickers:[309,291],carte:[270,311],eureka:[294,311],duel:[300,308]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
+  const T={loupe:[307,356],dodo:[321,348],chrono:[340,352],salut:[284,308],aurevoir:[295,308],jongle:[304,311],cle:[309,302],avion:[313,311],reveil:[272,311],trophee:[290,311],reseau:[300,310],rire:[315,305],pied:[319,362],oui:[294,351],serment:[302,362],pseudo:[298,305],effort:[340,365],stickers:[309,291],carte:[270,311],eureka:[294,311],duel:[300,308],triste:[306,343]},t=Object.prototype.hasOwnProperty.call(T,k)?T[k]:null;if(!t)return '';
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   return `<img class="chat-bonus is-${k}${cls?' '+cls:''}" src="assets/chat-${k}${fixe?'-fixe':''}.webp" width="${t[0]}" height="${t[1]}" alt="" draggable="false">`;
 }
@@ -51063,7 +51063,10 @@ async function seDeconnecter(){
     await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter.',oui:'OK',non:null});
     return;
   }
-  if(!await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Te déconnecter ?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
+  /* 13 novembre, 18 h 23 (Elisa, son GIF : le chat baisse les oreilles, tout triste, joint les pattes, puis se reprend et fait signe) :
+     « mettre ce GIF en disant “Tu nous quittes déjà ?” pour la déconnexion ». 12 images de 420 ms, en boucle dans la question ;
+     mouvement réduit : son image la plus triste (chat-triste-fixe.webp). Après la déconnexion, il salue et s’en va, comme avant. */
+  if(!await lqAsk({ico:'🥺',chat:typeof chatBonusHtml==='function'?chatBonusHtml('triste'):'',titre:'Tu nous quittes déjà\u00a0?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
   if(typeof closePlusDetails==='function')closePlusDetails();
@@ -51379,7 +51382,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-podium-v2954';
+  const SW_CACHE='requete-2026-11-13-triste-v2955';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
