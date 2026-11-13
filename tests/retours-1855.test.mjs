@@ -194,27 +194,46 @@ test('le classement : les 5 premiers, puis « … » et sa place (14 novembre), 
   const lignes = p => Array.from({ length: p < 4 ? 5 : 3 }, (_, i) => ({ id: 'id' + (p * 5 + i), pseudo: '@j' + (p * 5 + i), pays: 'FR', pts: 900 - (p * 5 + i), parties: 3, rang: p * 5 + i + 1, moi: p * 5 + i === 11 }));
   const c = bac({ rpc: (f, b) => f === 'jeu_classement_v2' ? { lignes: lignes(b.p_page), total: 23, moi: { rang: 12, pts: 889, page: 2 }, rangs: { monde: 12, pays: 4, mon_pays: 'FR' } } : {} });
   assert.equal(c.ev('DEFIS.periode'), 'tout', 'depuis toujours par défaut');
-  c.ev('clsPageCharger(0)'); await attendre();
-  assert.deepEqual(J(c.appels.at(-1)), ['jeu_classement_v2', { p_cle: 'K'.repeat(32), p_portee: 'monde', p_periode: 'tout', p_page: 0, p_pays: null, p_pseudos: null }]);
+  c.ev('clsPageCharger(0)'); await attendre(); await attendre();
+  const cls = c.appels.filter(a => a[0] === 'jeu_classement_v2');
+  assert.deepEqual(J(cls[0]), ['jeu_classement_v2', { p_cle: 'K'.repeat(32), p_portee: 'monde', p_periode: 'tout', p_page: 0, p_pays: null, p_pseudos: null }]);
+  /* 0 h 41 : 12e, le joueur juste devant (11e) n’est pas dans les 5 premiers : sa page (la 3e) se charge, une fois, pour l’écart */
+  assert.deepEqual(cls.map(a => a[1].p_page), [0, 2], 'la page du joueur juste devant');
+  assert.ok(c.els['dx-place'].innerHTML.includes('<p class="room-sub">1&nbsp;pt te sépare de @j10, 11<sup>e</sup>.</p><div class="dx-jauge" aria-hidden="true"><span class="dx-jauge-bar"><i style="width:100%"></i></span>'), 'l’écart et la jauge');
   /* 14 novembre, 0 h 32 (Elisa : « les 5 premiers dans les 3 onglets, puis … et ma place à moi ») : une seule liste, plus de pages */
   assert.equal(c.ev('clsPagesNb()'), 1, '23 joueurs : une seule liste');
   c.ev("DEFIS.cls.moi={id:'id11',pseudo:'@j11',pays:'FR',pts:889,parties:3,rang:12,page:2}");
   const suite = c.ev('clsMoiSuiteHTML(DEFIS.cls.pages[0])');
-  assert.ok(suite.startsWith('<li class="dx-cls-etc" aria-hidden="true"><span>…</span></li><li class="is-me is-r4" style="--i:6">'), '« … » puis sa ligne');
+  assert.ok(suite.startsWith('<li class="dx-cls-etc"><span><b aria-hidden="true">…</b> 6\u00a0autres joueurs</span></li><li class="is-me is-r4" style="--i:6">'), '« … 6 autres joueurs » puis sa ligne');
   assert.ok(suite.includes('<span class="dx-rk">12</span>') && suite.includes('<b>@j11</b><small><i>Toi</i>'), 'à sa place, 12e');
   assert.equal(c.ev("clsMoiSuiteHTML([{id:'id11',moi:true,rang:12}])"), '', 'déjà dans les 5 premiers : rien de plus');
+  c.ev("DEFIS.cls.moi={id:'id5',pseudo:'@j5',pts:894,parties:3,rang:6}");
+  assert.ok(c.ev('clsMoiSuiteHTML(DEFIS.cls.pages[0])').startsWith('<li class="is-me is-r4" style="--i:6">'), '6e, juste derrière le 5e : sa ligne suit, sans « … »');
+  c.ev("DEFIS.cls.moi={id:'id7',pseudo:'@j7',pts:892,parties:3,rang:8}");
+  assert.ok(c.ev('clsMoiSuiteHTML(DEFIS.cls.pages[0])').includes('<span><b aria-hidden="true">…</b> 2\u00a0autres joueurs</span>'));
   c.ev("DEFIS.cls.moi={id:'x',pts:0,rang:30}");
   assert.equal(c.ev('clsMoiSuiteHTML(DEFIS.cls.pages[0])'), '', 'pas encore de points : pas de ligne');
-  assert.ok(app.includes("ul.innerHTML=l?l.filter(x=>x&&!hide.has(x.id)).map(clsLigneHTML).join('')+(i===0?clsMoiSuiteHTML(l):''):"));
+  assert.ok(app.includes("const h=!v?clsAttenteHTML():i>0?v.map(clsLigneHTML).join(''):clsPodiumHTML(v)+v.filter(x=>Math.floor(+x.rang||0)>3).map(clsLigneHTML).join('')+clsMoiSuiteHTML(v);")
+    && app.includes('if(ul._dxH!==h){ul.innerHTML=h;ul._dxH=h;}'), 'le podium, les 4e et 5e, puis sa ligne ; réécrits seulement s’ils changent');
   assert.ok(lq.includes('html.lq #scr-defis .dx-list>li.dx-cls-etc{') && lq.includes('html.lq #scr-defis .dx-cls-etc>span{'));
+  /* 0 h 41 (« plus UI/UX ») : le podium des 3 premiers ; une place se touche (sa fiche), la tienne non ; une marche vide attend */
+  const pod = c.ev('clsPodiumHTML(DEFIS.cls.pages[0])');
+  assert.ok(pod.startsWith('<li class="dx-cls-pod"><div class="dx-pod" role="group" aria-label="Podium"><button type="button" class="dx-pod-m is-1" onclick="dxFicheCls(\'id0\')" aria-label="@j0, 1er, 900 points\u00a0: voir sa fiche">'));
+  assert.ok(pod.includes('<span class="dx-pod-n" aria-hidden="true">@j0</span><small aria-hidden="true">900\u00a0pts</small><i class="dx-pod-bloc" aria-hidden="true">'), 'son pseudo, ses points, sa marche');
+  const seul = c.ev("clsPodiumHTML([{id:'me',pseudo:'@elisa',pays:'FR',pts:385,parties:2,rang:1,moi:true}])");
+  assert.ok(seul.includes('<div class="dx-pod-m is-1 is-me">') && seul.includes('<small aria-hidden="true"><i>Toi</i> · 385\u00a0pts</small>') && seul.includes('<span class="lq-sr">1er\u00a0: toi, @elisa, 385 points</span>'), 'seule classée : 1re, sans bouton');
+  assert.ok(seul.includes('<div class="dx-pod-m is-2 is-libre">') && seul.includes('<span class="dx-pod-n" aria-hidden="true">À prendre</span><small aria-hidden="true">2<sup>e</sup> place</small>') && seul.includes('<div class="dx-pod-m is-3 is-libre">'), 'les marches vides attendent');
+  assert.ok(lq.includes('html.lq #scr-defis .dx-pod-m.is-1{order:2}') && lq.includes('html.lq #scr-defis .dx-pod-m.is-2{order:1}'), 'dans l’ordre des places pour le lecteur d’écran, 2-1-3 à l’écran');
   c.ev("DEFIS.cls.moi={rang:12,pts:889,page:2}");
   c.ev('clsPlacePeindre()');
   assert.ok(!c.els['dx-place'].innerHTML.includes('dx-place-go'), 'plus de « Page 3 › » : sa ligne est dans la liste');
   /* La semaine, puis un pays : la clé change, les pages repartent de zéro */
+  let n0 = c.appels.length;
   c.ev("DEFIS.periode='semaine';DEFIS.portee='pays';clsPageCharger(0)"); await attendre();
-  assert.deepEqual(J(c.appels.at(-1)[1]), { p_cle: 'K'.repeat(32), p_portee: 'pays', p_periode: 'semaine', p_page: 0, p_pays: 'FR', p_pseudos: null });
+  assert.deepEqual(J(c.appels[n0][1]), { p_cle: 'K'.repeat(32), p_portee: 'pays', p_periode: 'semaine', p_page: 0, p_pays: 'FR', p_pseudos: null });
+  n0 = c.appels.length;
   c.ev("DEFIS.portee='amis';clsPageCharger(0)"); await attendre();
-  assert.ok(Array.isArray(c.appels.at(-1)[1].p_pseudos), 'mes amis : leurs pseudos');
+  assert.ok(Array.isArray(c.appels[n0][1].p_pseudos), 'mes amis : leurs pseudos');
   /* La page reste dans son conteneur ; une seule, la navigation se cache (clsNavPeindre) */
   assert.ok(bloc.includes('clsNavPeindre();clsPageCharger(p);clsPageCharger(p+1);'), 'la page vue et la suivante se chargent');
 });
@@ -240,7 +259,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=357">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=358">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-top-v2985');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-podium-v2986');
 });
