@@ -438,15 +438,18 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    /// Une autre page de l’onboarding : { etape, total, titre, bonjour, minutes }.
+    /// Une autre page de l’onboarding : { etape, total, titre, bonjour, minutes }. 13 novembre, 8 h 01 : { anime, avant } quand on
+    /// quitte l’app (avant : l’étape que l’île montrait la dernière fois ; RequeteAccueilPont.maj).
     @objc func accueilMaj(_ call: CAPPluginCall) {
         guard #available(iOS 16.2, *) else {
             call.resolve()
             return
         }
         let etat: RequeteAccueil.ContentState = RequeteAccueilPont.etat(call, fini: false)
+        let anime: Bool = call.getBool("anime") ?? false
+        let avant: Int? = call.getInt("avant")
         Task {
-            await RequeteAccueilPont.maj(etat)
+            await RequeteAccueilPont.maj(etat, anime: anime, avant: avant)
             call.resolve()
         }
     }
@@ -551,6 +554,7 @@ struct RequeteLecon: ActivityAttributes {
         var moments: Int? = nil   // les moments de la leçon
         var objectif: Int? = nil  // les moments à réussir pour valider la leçon
         var pause: Bool? = nil    // la vidéo est en pause (10 novembre) : « Reprendre » dans l’île et sur l’écran verrouillé
+        var clin: Bool? = nil     // le chat fait un clin d’œil (13 novembre, 8 h 01) : l’île vient d’apparaître, on a quitté l’app
     }
 
     var titre: String
@@ -617,21 +621,34 @@ enum RequeteLeconPont {
         }
     }
 
+    /// Chaque mise à jour a son tour : une plus récente arrête ce qui restait à jouer de la précédente.
+    static var tour: Int = 0
+
     /// 5 novembre, 6 h 45 : on quitte l’app avec un moment réussi de plus (anime). La Dynamic Island apparaît d’abord avec l’ancien
     /// compte ; le nouveau arrive une seconde après, quand elle est à l’écran : le chiffre roule, la case se remplit. Une tâche de fond
     /// garde l’app éveillée le temps de cette seconde.
+    /// 13 novembre, 8 h 01 (« Plus vivant ») : à chaque fois qu’on quitte l’app en pleine leçon, avec ou sans moment de plus. À
+    /// la même seconde, le chat fait un clin d’œil (clin) ; huit dixièmes plus tard, il rouvre les yeux.
     static func maj(_ etat: RequeteLecon.ContentState, anime: Bool) async {
+        tour += 1
+        let mien: Int = tour
         let fond = RequeteTacheDeFond()
         if anime { fond.debut() }
+        let perime: Date = Date().addingTimeInterval(3600)
         for a in Activity<RequeteLecon>.activities {
-            let avant: Int? = a.content.state.reussis
-            if anime, let ancien = avant, ancien != etat.reussis {
+            if anime {
                 var attente: RequeteLecon.ContentState = etat
-                attente.reussis = ancien
-                await a.update(ActivityContent(state: attente, staleDate: Date().addingTimeInterval(3600)))
+                attente.reussis = a.content.state.reussis ?? etat.reussis
+                await a.update(ActivityContent(state: attente, staleDate: perime))
                 try? await Task.sleep(nanoseconds: 1_100_000_000)
+                if mien != tour { break }
+                var salut: RequeteLecon.ContentState = etat
+                salut.clin = true
+                await a.update(ActivityContent(state: salut, staleDate: perime))
+                try? await Task.sleep(nanoseconds: 800_000_000)
+                if mien != tour { break }
             }
-            await a.update(ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)))
+            await a.update(ActivityContent(state: etat, staleDate: perime))
         }
         if anime { fond.fin() }
     }
@@ -680,6 +697,7 @@ struct RequeteAccueil: ActivityAttributes {
         var bonjour: String   // « Bienvenue, Elisa », ou « Bienvenue sur Requête » avant le prénom
         var minutes: Int      // le temps qui reste, comme l’en-tête de l’onboarding ; 0 sur le parcours prêt
         var fini: Bool        // l’onboarding est terminé : le parcours est prêt
+        var clin: Bool? = nil // le chat fait signe (13 novembre, 8 h 01) : l’île vient d’apparaître, on a quitté l’app
     }
 
     var app: String
@@ -712,14 +730,38 @@ enum RequeteAccueilPont {
         }
     }
 
-    static func maj(_ etat: RequeteAccueil.ContentState) async {
+    /// Chaque mise à jour a son tour : une plus récente arrête ce qui restait à jouer de la précédente.
+    static var tour: Int = 0
+
+    /// 13 novembre, 8 h 01 (« Plus vivant ») : on quitte l’app en plein onboarding (anime). L’île apparaît avec l’étape qu’elle
+    /// montrait la dernière fois (avant) ; une seconde après, l’anneau avance jusqu’à l’étape du moment et le chat fait signe
+    /// (clin) ; huit dixièmes plus tard, il reprend son regard. Une tâche de fond garde l’app éveillée ces deux secondes.
+    static func maj(_ etat: RequeteAccueil.ContentState, anime: Bool, avant: Int?) async {
         if Activity<RequeteAccueil>.activities.isEmpty {
             _ = await debut(etat)
             return
         }
+        tour += 1
+        let mien: Int = tour
+        let fond = RequeteTacheDeFond()
+        if anime { fond.debut() }
+        let perime: Date = Date().addingTimeInterval(3600)
         for a in Activity<RequeteAccueil>.activities {
-            await a.update(ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)))
+            if anime {
+                var attente: RequeteAccueil.ContentState = etat
+                attente.etape = min(etat.etape, max(0, avant ?? etat.etape))
+                await a.update(ActivityContent(state: attente, staleDate: perime))
+                try? await Task.sleep(nanoseconds: 1_100_000_000)
+                if mien != tour { break }
+                var salut: RequeteAccueil.ContentState = etat
+                salut.clin = true
+                await a.update(ActivityContent(state: salut, staleDate: perime))
+                try? await Task.sleep(nanoseconds: 800_000_000)
+                if mien != tour { break }
+            }
+            await a.update(ActivityContent(state: etat, staleDate: perime))
         }
+        if anime { fond.fin() }
     }
 
     static func fin(fini: Bool) async {

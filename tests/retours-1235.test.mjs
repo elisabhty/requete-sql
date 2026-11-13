@@ -33,7 +33,7 @@ test('la Live Activity : le même type dans l’app et dans le widget, iOS les r
   const type = t => sansCommentaires(cut(t, 'struct RequeteLecon: ActivityAttributes {', '\n}\n')).replace(/\s+/g, ' ').trim();
   assert.equal(type(widget), type(pont));
   /* 5 novembre, 6 h 45 : les moments réussis (« 2/4 »), facultatifs (une activité d’avant les ignore) ; retours-0645 */
-  assert.ok(type(widget).includes('public struct ContentState: Codable, Hashable { var progression: Double var allumee: Bool var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil var pause: Bool? = nil } var titre: String var module: String'));
+  assert.ok(type(widget).includes('public struct ContentState: Codable, Hashable { var progression: Double var allumee: Bool var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil var pause: Bool? = nil var clin: Bool? = nil } var titre: String var module: String'));
   for (const t of [widget, pont]) {
     assert.ok(t.includes('import ActivityKit\n'));
     assert.ok(t.includes('@available(iOS 16.1, *)\nstruct RequeteLecon: ActivityAttributes {'), 'iOS 16.1 : l’app reste installable en iOS 15');
@@ -79,7 +79,7 @@ test('le pont : leconDebut, leconMaj, leconFin (iOS 16.2), et rien de resté à 
   const p = cut(pont, 'enum RequeteLeconPont {', '\n}\n');
   for (const k of ['guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }', 'try Activity<RequeteLecon>.request(',
     'content: ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600))', 'pushType: nil',
-    'await a.update(ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)))',
+    'await a.update(ActivityContent(state: etat, staleDate: perime))',
     'let politique: ActivityUIDismissalPolicy = reussie ? .after(Date().addingTimeInterval(15 * 60)) : .immediate',
     'await a.end(dernier, dismissalPolicy: politique)',
     'await a.end(nil, dismissalPolicy: .immediate)', 'await toutArreter()'])
@@ -143,7 +143,7 @@ test('la page lance la Live Activity à l’ouverture de la leçon, la suit par 
   ctx.LV.video.currentTime = 12; ctx.ileMaj(false);
   assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.12, allumee: false, pause: false}]);
   ctx.LV.video.currentTime = 13; ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.13, allumee: false, pause: false}], 'on quitte l’app : tout de suite');
+  assert.deepEqual(appels.shift(), ['RequeteWidget', 'leconMaj', {progression: 0.13, allumee: false, pause: false, anime: true}], 'on quitte l’app : tout de suite, et l’île s’anime (13 novembre, 8 h 01)');
   ctx.LV.id = 99; ctx.ileMaj(true);
   assert.equal(appels.length, 0, 'une autre leçon : rien');
   ctx.LV.id = 12; ctx.LV.fin = true; ctx.ileMaj(true);

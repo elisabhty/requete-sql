@@ -61,7 +61,7 @@ test('dans tout le widget : plus de choix passé à Text, plus de choix dans un 
   assert.ok(!/Text\([^)\n]*\?[^)\n]*:/.test(code), 'Text reçoit une constante typée, pas « a ? "…" : "…" »');
   for (const ligne of code.split('\n')) assert.ok(ligne.split(' ? ').length <= 2, `un seul choix par ligne : ${ligne.trim()}`);
   /* Le reste a passé la vérification d’Xcode le 4 novembre (seule la bulle a échoué) : la forme est gardée */
-  for (const k of ['.frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)', '.rotationEffect(.degrees(humeur == .fete ? -8 : 0))'])
+  for (const k of ['.frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)', '.rotationEffect(.degrees(penche))', 'return humeur == .fete ? -8 : 0'])   // 13 novembre, 8 h 01 : l’angle est choisi à part (penche)
     assert.ok(swift.includes(k), k);
 });
 

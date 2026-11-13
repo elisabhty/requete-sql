@@ -20,12 +20,39 @@ enum Humeur: String {
     case fete      // la séance du jour est faite : la flamme dorée, et le chat saute de joie entre des étincelles
 }
 
+/// Elisa, 13 novembre, 8 h 01 : « Améliore la Dynamic Island / widget » ; son choix : « Plus vivant ». iOS n’anime pas un widget en
+/// boucle : il anime le passage d’une entrée à la suivante. Or l’app recharge les widgets chaque fois qu’on la quitte (index.html,
+/// widgetMaj) : le fournisseur pose alors trois entrées à la suite, à 1,3 s d’écart, et le widget joue une petite scène au moment où
+/// l’on arrive sur l’écran d’accueil : le chat plonge, ressort d’un bond, puis se pose. Chaque temps est un état complet : si iOS en
+/// saute un, rien ne manque. À partir d’iOS 17 seulement : avant, un widget change sans animation.
+enum Scene {
+    static let plonge: Int = 0   // l’entrée posée au rechargement
+    static let bond: Int = 1     // 1,3 s après
+    static let pose: Int = 2     // 2,6 s après, et tout le reste du temps
+    static let ecart: TimeInterval = 1.3
+
+    static var joue: Bool {
+        if #available(iOSApplicationExtension 17.0, *) {
+            return true
+        }
+        return false
+    }
+
+    /// Quand l’entrée posée arrive : après la scène, ou tout de suite sans elle.
+    static func arrivee(_ maintenant: Date) -> Date {
+        if joue { return maintenant.addingTimeInterval(2 * ecart) }
+        return maintenant
+    }
+}
+
 struct SerieEntree: TimelineEntry {
     let date: Date
     let serie: Int
     let faitAujourdhui: Bool
     /// Un jour de repos du planning : la série tient sans séance aujourd’hui, le soir ne presse donc pas.
     var repos: Bool = false
+    /// Le temps de la petite scène du retour (Scene) : posé, sauf pendant les 2,6 s qui suivent un rechargement.
+    var temps: Int = Scene.pose
 
     var humeur: Humeur {
         if faitAujourdhui { return .fete }
@@ -52,20 +79,32 @@ struct SerieFournisseur: TimelineProvider {
         }
     }
 
-    /// Une entrée maintenant, puis à chaque changement du chat (minuit, 5 h, midi, 18 h) sur sept jours.
+    /// Une entrée maintenant, puis à chaque changement du chat (minuit, 5 h, midi, 18 h) sur sept jours. 13 novembre, 8 h 01 : la
+    /// petite scène du retour d’abord (Scene), deux entrées avant l’entrée posée.
     func getTimeline(in context: Context, completion: @escaping (Timeline<SerieEntree>) -> Void) {
         let cal = Calendar.current
         let maintenant = Date()
         let aujourdhui = cal.startOfDay(for: maintenant)
-        var dates = [maintenant]
+        let depart: Date = Scene.arrivee(maintenant)
+        var dates = [depart]
         for j in 0...7 {
             guard let jour = cal.date(byAdding: .day, value: j, to: aujourdhui) else { break }
             for heure in [0, 5, 12, 18] {
-                guard let d = cal.date(bySettingHour: heure, minute: 0, second: 0, of: jour), d > maintenant else { continue }
+                guard let d = cal.date(bySettingHour: heure, minute: 0, second: 0, of: jour), d > depart else { continue }
                 dates.append(d)
             }
         }
-        completion(Timeline(entries: dates.map { entree(pour: $0) }, policy: .atEnd))
+        var entrees: [SerieEntree] = []
+        if Scene.joue {
+            var plonge: SerieEntree = entree(pour: maintenant)
+            plonge.temps = Scene.plonge
+            var bond: SerieEntree = entree(pour: maintenant.addingTimeInterval(Scene.ecart))
+            bond.temps = Scene.bond
+            entrees.append(plonge)
+            entrees.append(bond)
+        }
+        entrees.append(contentsOf: dates.map { entree(pour: $0) })
+        completion(Timeline(entries: entrees, policy: .atEnd))
     }
 
     private func cle(_ date: Date) -> String {
@@ -128,10 +167,32 @@ struct SerieVue: View {
         return Color.white.opacity(humeur == .soir ? 0.85 : 0.55)
     }
 
-    /// Le soir, la flamme grandit et rougeoie : elle attend la séance du jour.
+    /// Le soir, la flamme grandit et rougeoie : elle attend la séance du jour. Au bond du chat (Scene), elle gonfle un instant.
     private var tailleFlamme: CGFloat {
-        if entree.faitAujourdhui { return 1 }
-        return humeur == .soir ? 1.25 : 0.88
+        let souffle: CGFloat = entree.temps == Scene.bond ? 1.14 : 1
+        if entree.faitAujourdhui { return souffle }
+        let base: CGFloat = humeur == .soir ? 1.25 : 0.88
+        return base * souffle
+    }
+
+    /// La petite scène du retour (13 novembre, 8 h 01) : le chat plonge, puis ressort plus haut que sa place (moins le soir, où la
+    /// phrase passe juste au-dessus de ses oreilles), avant de s’y poser.
+    private var decalChat: CGFloat {
+        if entree.temps == Scene.plonge { return 0.2 }
+        if entree.temps != Scene.bond { return 0 }
+        return humeur == .soir ? -0.03 : -0.06
+    }
+
+    /// Au bond, il penche la tête ; la séance faite, il reste penché de l’autre côté (le saut de joie).
+    private var penche: Double {
+        if entree.temps == Scene.bond { return 7 }
+        return humeur == .fete ? -8 : 0
+    }
+
+    /// Les étincelles de la fête : discrètes quand le chat plonge, plus grandes à son bond.
+    private var eclat: CGFloat {
+        if entree.temps == Scene.plonge { return 0.6 }
+        return entree.temps == Scene.bond ? 1.3 : 1
     }
 
     private var lueur: Color {
@@ -183,6 +244,7 @@ struct SerieVue: View {
         return ZStack(alignment: .topTrailing) {
             if humeur == .fete {
                 etincelles(w, h)
+                    .scaleEffect(eclat)
                     .transition(.scale(scale: 0.2).combined(with: .opacity))   // elles jaillissent de derrière le chat
             }
             chatVue(w, h)
@@ -210,17 +272,19 @@ struct SerieVue: View {
         .frame(width: w, height: h)
         .animation(ressort, value: entree.faitAujourdhui)
         .animation(ressort, value: humeur)
+        .animation(saut, value: entree.temps)   // la petite scène du retour
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(libelle))
     }
 
     private func chatVue(_ w: CGFloat, _ h: CGFloat) -> some View {
-        Image("Mascotte")
+        let centre: CGFloat = h * (hauteurChat + decalChat)
+        return Image("Mascotte")
             .resizable()
             .scaledToFit()
             .frame(width: w * 0.66)
-            .rotationEffect(.degrees(humeur == .fete ? -8 : 0))   // le saut de joie : en l’air, et penché
-            .position(x: w / 2, y: h * hauteurChat)
+            .rotationEffect(.degrees(penche))   // le saut de joie : en l’air, et penché
+            .position(x: w / 2, y: centre)
     }
 
     /// Le soir, sous la flamme. Comme la bulle (16 h 28) : la phrase et les mesures d’abord, chacune avec son type.
@@ -461,6 +525,25 @@ struct VerrouVue: View {
         return entree.repos ? "Jour de repos." : "Séance du jour : 0 sur 1."
     }
 
+    /// 13 novembre, 8 h 01 (« Plus vivant ») : le soir d’un jour de séance, tant que la flamme attend, le temps qui reste bouge tout
+    /// seul sur l’écran verrouillé : un anneau qui se vide autour de la flamme (le rond), « 3:12:45 » qui défile (le bandeau). iOS
+    /// les fait avancer sans rien recevoir (timerInterval, style .timer), comme la Live Activity « Ta flamme en direct ».
+    private var soirPresse: Bool {
+        if fait || entree.repos { return false }
+        return entree.humeur == .soir
+    }
+
+    /// De 18 h à minuit, le jour de l’entrée.
+    private var soiree: ClosedRange<Date> {
+        let cal = Calendar.current
+        let jour: Date = cal.startOfDay(for: entree.date)
+        let secours: Date = entree.date.addingTimeInterval(6 * 3600)
+        let minuit: Date = cal.date(byAdding: .day, value: 1, to: jour) ?? secours
+        let dixHuit: Date = cal.date(bySettingHour: 18, minute: 0, second: 0, of: jour) ?? entree.date
+        let debut: Date = min(dixHuit, minuit)
+        return debut...minuit
+    }
+
     var body: some View {
         Group {
             switch famille {
@@ -476,12 +559,18 @@ struct VerrouVue: View {
         .accessibilityLabel(Text(libelle))
     }
 
-    /// Le rond : la flamme, et « 0/1 » dessous (un jour de repos, la flamme seule).
+    /// Le rond : la flamme, et « 0/1 » dessous (un jour de repos, la flamme seule). Le soir, plus petits, dans l’anneau qui se vide.
     private var rond: some View {
-        let flamme: Font = Font.system(size: 20, weight: .bold)
-        let chiffre: Font = Font.system(size: 12, weight: .heavy, design: .rounded)
+        let presse: Bool = soirPresse
+        let tailleFlamme: CGFloat = presse ? 15 : 20
+        let tailleChiffre: CGFloat = presse ? 10 : 12
+        let flamme: Font = Font.system(size: tailleFlamme, weight: .bold)
+        let chiffre: Font = Font.system(size: tailleChiffre, weight: .heavy, design: .rounded)
         return ZStack {
             AccessoryWidgetBackground()
+            if presse {
+                anneauDuSoir
+            }
             VStack(spacing: 1) {
                 Image(systemName: symbole)
                     .font(flamme)
@@ -496,12 +585,28 @@ struct VerrouVue: View {
         }
     }
 
-    /// Le bandeau : la flamme, « Requête » et la phrase du moment.
+    /// L’anneau du soir : plein à 18 h, vide à minuit ; iOS le fait avancer tout seul.
+    private var anneauDuSoir: some View {
+        let periode: ClosedRange<Date> = soiree
+        return ProgressView(timerInterval: periode, countsDown: true) {
+            EmptyView()
+        } currentValueLabel: {
+            EmptyView()
+        }
+        .progressViewStyle(.circular)
+        .widgetAccentable()
+    }
+
+    /// Le bandeau : la flamme, « Requête » et la phrase du moment. Le soir, dessous, le temps qui reste avant minuit, qui défile.
     private var bandeau: some View {
         let flamme: Font = Font.system(size: 28, weight: .bold)
         let titre: Font = Font.system(size: 15, weight: .heavy, design: .rounded)
         let texte: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
+        let compteur: Font = Font.system(size: 14, weight: .heavy, design: .rounded)
         let ecart: CGFloat = 8
+        let presse: Bool = soirPresse
+        let lignes: Int = presse ? 1 : 2
+        let minuit: Date = soiree.upperBound
         return HStack(alignment: .center, spacing: ecart) {
             Image(systemName: symbole)
                 .font(flamme)
@@ -512,8 +617,14 @@ struct VerrouVue: View {
                     .widgetAccentable()
                 Text(phrase)
                     .font(texte)
-                    .lineLimit(2)
+                    .lineLimit(lignes)
                     .minimumScaleFactor(0.8)
+                if presse {
+                    Text(minuit, style: .timer)
+                        .font(compteur)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                }
             }
             Spacer(minLength: 0)
         }
@@ -631,6 +742,7 @@ struct ChemineeEntree: TimelineEntry {
     var cle: String = ""         // le mot-clé de sa carte mémo (« LEFT JOIN ») ; vide pour un défi
     var defi: Bool = false       // la prochaine activité est un défi
     var carte: String = ""       // le mot-clé de la dernière carte mémo gagnée
+    var temps: Int = Scene.pose  // la petite scène du retour (13 novembre, 8 h 01 ; voir Scene)
 
     var heure: Int { Calendar.current.component(.hour, from: date) }
     var lumiere: Lumiere { Lumiere(heure: heure) }
@@ -714,20 +826,32 @@ struct ChemineeFournisseur: TimelineProvider {
         }
     }
 
-    /// Une entrée maintenant, puis à chaque changement de la pièce (minuit, 5 h, midi, 18 h, 21 h) sur sept jours.
+    /// Une entrée maintenant, puis à chaque changement de la pièce (minuit, 5 h, midi, 18 h, 21 h) sur sept jours. 13 novembre,
+    /// 8 h 01 : la petite scène du retour d’abord (Scene), deux entrées avant l’entrée posée.
     func getTimeline(in context: Context, completion: @escaping (Timeline<ChemineeEntree>) -> Void) {
         let cal = Calendar.current
         let maintenant = Date()
         let aujourdhui = cal.startOfDay(for: maintenant)
-        var dates = [maintenant]
+        let depart: Date = Scene.arrivee(maintenant)
+        var dates = [depart]
         for j in 0...7 {
             guard let jour = cal.date(byAdding: .day, value: j, to: aujourdhui) else { break }
             for heure in [0, 5, 12, 18, 21] {
-                guard let d = cal.date(bySettingHour: heure, minute: 0, second: 0, of: jour), d > maintenant else { continue }
+                guard let d = cal.date(bySettingHour: heure, minute: 0, second: 0, of: jour), d > depart else { continue }
                 dates.append(d)
             }
         }
-        completion(Timeline(entries: dates.map { entree(pour: $0) }, policy: .atEnd))
+        var entrees: [ChemineeEntree] = []
+        if Scene.joue {
+            var plonge: ChemineeEntree = entree(pour: maintenant)
+            plonge.temps = Scene.plonge
+            var bond: ChemineeEntree = entree(pour: maintenant.addingTimeInterval(Scene.ecart))
+            bond.temps = Scene.bond
+            entrees.append(plonge)
+            entrees.append(bond)
+        }
+        entrees.append(contentsOf: dates.map { entree(pour: $0) })
+        completion(Timeline(entries: entrees, policy: .atEnd))
     }
 
     /// La séance du jour (comme le widget de la flamme), et ce que l’app range pour la pièce (RequeteWidgetPlugin.swift, maj).
@@ -1031,11 +1155,16 @@ struct PieceVue: View {
         let cy: CGFloat = p.y(arche.midY)
         let feu: Feu = entree.feu
         let fondu: Animation = .easeInOut(duration: 0.6)
+        // La petite scène du retour (13 novembre, 8 h 01) : le feu se tasse, reprend d’un souffle, puis se pose. Froide, la
+        // cheminée ne bouge pas.
+        let souffle: CGFloat = PieceVue.souffle(feu, entree.temps)
+        let reprise: Animation = .spring(response: 0.5, dampingFraction: 0.5)
         return ZStack(alignment: .topLeading) {
             lueur(largeur)
             Image(feu.image)
                 .resizable()
                 .frame(width: cote, height: cote)
+                .scaleEffect(souffle, anchor: .bottom)
                 .offset(x: decalX, y: decalY)
                 .id(feu)
                 .transition(.opacity)
@@ -1044,6 +1173,14 @@ struct PieceVue: View {
         .clipShape(Arche())
         .position(x: cx, y: cy)
         .animation(fondu, value: feu)
+        .animation(reprise, value: entree.temps)
+    }
+
+    /// La taille du feu pendant la scène : un peu tassé, puis plus haut que sa place.
+    static func souffle(_ feu: Feu, _ temps: Int) -> CGFloat {
+        if feu == .froid { return 1 }
+        if temps == Scene.plonge { return 0.94 }
+        return temps == Scene.bond ? 1.08 : 1
     }
 
     /// La lueur au fond de l’arche : orangée sous des braises, dorée sous une flambée ; rien, la cheminée froide.
@@ -1295,6 +1432,8 @@ struct ChemineeVue: View {
         let basBouton: CGFloat = 14 * u
         let nomChat: String = entree.chat
         let fr = Locale(identifier: "fr_FR")
+        // La petite scène du retour (13 novembre, 8 h 01) : le chat se tasse, fait un petit bond, puis se pose.
+        let bond: CGFloat = ChemineeVue.bond(entree.temps) * u
         return ZStack(alignment: .topLeading) {
             Image(nomChat)
                 .resizable()
@@ -1303,6 +1442,7 @@ struct ChemineeVue: View {
                 .padding(.leading, gauche)
                 .padding(.bottom, bas)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .offset(y: bond)
                 .id(nomChat)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .accessibilityHidden(true)
@@ -1319,7 +1459,14 @@ struct ChemineeVue: View {
         }
         .frame(width: taille.width, height: taille.height)
         .animation(ressort, value: nomChat)
+        .animation(ressort, value: entree.temps)
         .environment(\.locale, fr)
+    }
+
+    /// Le décalage du chat pendant la scène, en points d’un widget de 364 de large : vers le bas, puis vers le haut.
+    static func bond(_ temps: Int) -> CGFloat {
+        if temps == Scene.plonge { return 6 }
+        return temps == Scene.bond ? -8 : 0
     }
 
     /// La phrase et la séance du jour (un jour de repos du planning, pas d’objectif : la phrase seule).
@@ -1908,6 +2055,8 @@ struct PocheVue: View {
         return ZStack(alignment: .topLeading) {
             chat(m)
             colonne(m, q)
+                .id(q)   // 13 novembre, 8 h 01 : une autre question, et elle pousse la précédente vers la gauche
+                .transition(.push(from: .trailing))
         }
         .frame(width: taille.width, height: taille.height)
         .animation(ressort, value: repondu)
@@ -2105,6 +2254,7 @@ struct PocheVue: View {
             if let symbole = style.symbole {
                 Image(systemName: symbole)
                     .font(icone)
+                    .transition(.scale(scale: 0.2).combined(with: .opacity))   // le verdict se pose d’un rebond
             }
             Text(verbatim: texte)
                 .font(police)
@@ -2287,6 +2437,7 @@ struct CaseSemaine: Hashable {
 struct SemaineEntree: TimelineEntry {
     let date: Date
     let jours: [CaseSemaine]
+    var temps: Int = Scene.pose   // la petite scène du retour (13 novembre, 8 h 01 ; voir Scene)
 }
 
 enum SemaineRangement {
@@ -2480,18 +2631,30 @@ struct SemaineFournisseur: TimelineProvider {
         }
     }
 
-    /// Maintenant, puis chaque minuit sur sept jours : aujourd’hui avance, et le lundi, une nouvelle semaine commence.
+    /// Maintenant, puis chaque minuit sur sept jours : aujourd’hui avance, et le lundi, une nouvelle semaine commence. 13 novembre,
+    /// 8 h 01 : la petite scène du retour d’abord (Scene), deux entrées avant l’entrée posée.
     func getTimeline(in context: Context, completion: @escaping (Timeline<SemaineEntree>) -> Void) {
         let cal = Calendar.current
         let maintenant = Date()
         let debut: Date = cal.startOfDay(for: maintenant)
-        var dates = [maintenant]
+        let depart: Date = Scene.arrivee(maintenant)
+        var dates = [depart]
         for j in 1...7 {
-            if let d = cal.date(byAdding: .day, value: j, to: debut) {
+            if let d = cal.date(byAdding: .day, value: j, to: debut), d > depart {
                 dates.append(d)
             }
         }
-        completion(Timeline(entries: dates.map { SemaineRangement.entree($0) }, policy: .atEnd))
+        var entrees: [SemaineEntree] = []
+        if Scene.joue {
+            var plonge: SemaineEntree = SemaineRangement.entree(maintenant)
+            plonge.temps = Scene.plonge
+            var bond: SemaineEntree = SemaineRangement.entree(maintenant.addingTimeInterval(Scene.ecart))
+            bond.temps = Scene.bond
+            entrees.append(plonge)
+            entrees.append(bond)
+        }
+        entrees.append(contentsOf: dates.map { SemaineRangement.entree($0) })
+        completion(Timeline(entries: entrees, policy: .atEnd))
     }
 }
 
@@ -2557,6 +2720,7 @@ struct SemaineVue: View {
         let coin: CGFloat = 10 * u
         let forme = RoundedRectangle(cornerRadius: coin, style: .continuous)
         let derniere: Int = entree.jours.count - 1
+        let pouls: Animation = .spring(response: 0.45, dampingFraction: 0.5)
         return HStack(spacing: 0) {
             ForEach(entree.jours, id: \.self) { j in
                 colonne(j, j.rang == derniere, v, f, p)
@@ -2564,6 +2728,16 @@ struct SemaineVue: View {
         }
         .clipShape(forme)
         .overlay(forme.stroke(p.ligne, lineWidth: 1))
+        .animation(pouls, value: entree.temps)   // la petite scène du retour : la case d’aujourd’hui bat
+    }
+
+    /// La taille de la case d’aujourd’hui pendant la scène (13 novembre, 8 h 01) : sa flamme se tasse, bat plus grand, puis se pose.
+    /// Seulement une flamme, allumée ou en attente : ni la lune, ni NULL.
+    private func battement(_ j: CaseSemaine) -> CGFloat {
+        if !j.aujourdhui { return 1 }
+        if j.etat != .fait && j.etat != .attente { return 1 }
+        if entree.temps == Scene.plonge { return 0.72 }
+        return entree.temps == Scene.bond ? 1.24 : 1
     }
 
     /// Une colonne : le nom du jour, puis sa case ; aujourd’hui en braise.
@@ -2586,6 +2760,7 @@ struct SemaineVue: View {
                 .fill(p.ligne)
                 .frame(height: 1)
             valeur(j.etat, f, p)
+                .scaleEffect(battement(j))
                 .frame(maxWidth: .infinity)
                 .frame(height: hautCase)
                 .background(fondCase)
@@ -2635,12 +2810,14 @@ struct SemaineVue: View {
         let droite: String = SemaineRangement.duJour(entree.jours)
         let couleur: Color = couleurDuJour(p)
         let ecart: CGFloat = 8 * u
+        let flammes: Int = entree.jours.filter { $0.etat == .fait }.count
         return HStack(alignment: .firstTextBaseline, spacing: ecart) {
             Text(verbatim: gauche)
                 .font(f.pied)
                 .foregroundColor(p.pied)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
+                .chiffreQuiRoule(flammes)   // une flamme de plus : le compte roule (iOS 17)
             Spacer(minLength: 0)
             Text(verbatim: droite)
                 .font(f.etat)
@@ -2699,6 +2876,7 @@ struct RequeteLecon: ActivityAttributes {
         var moments: Int? = nil   // les moments de la leçon
         var objectif: Int? = nil  // les moments à réussir pour valider la leçon
         var pause: Bool? = nil    // la vidéo est en pause (10 novembre) : « Reprendre » dans l’île et sur l’écran verrouillé
+        var clin: Bool? = nil     // le chat fait un clin d’œil (13 novembre, 8 h 01) : l’île vient d’apparaître, on a quitté l’app
     }
 
     var titre: String
@@ -2748,6 +2926,7 @@ struct LeconBarre: View {
             }
         }
         .frame(height: 7)
+        .animation(.easeOut(duration: 0.6), value: progression)   // 13 novembre, 8 h 01 : la barre avance sous les yeux (iOS 17)
     }
 }
 
@@ -2833,6 +3012,7 @@ struct LeconCase: View {
             RoundedRectangle(cornerRadius: 4, style: .continuous)
                 .stroke(contour, lineWidth: 2)
         )
+        .animation(.spring(response: 0.45, dampingFraction: 0.55), value: pleine)   // la case se remplit d’un rebond (iOS 17)
     }
 }
 
@@ -3013,6 +3193,33 @@ struct MorceauLunettes: Shape {
     }
 }
 
+/// 13 novembre, 8 h 01 (« Plus vivant ») : quand le regard du chat change, il cligne. Les yeux d’avant se ferment (ils s’écrasent
+/// en un trait), ceux d’après s’ouvrent. iOS 17 et plus ; avant, la Dynamic Island passe de l’un à l’autre en fondu.
+struct Paupiere: ViewModifier {
+    let ouverture: CGFloat
+
+    func body(content: Content) -> some View {
+        content.scaleEffect(x: 1, y: ouverture, anchor: .center)
+    }
+}
+
+extension AnyTransition {
+    /// Les yeux fermés (un trait), puis ouverts.
+    static var paupieres: AnyTransition {
+        AnyTransition.modifier(active: Paupiere(ouverture: 0.08), identity: Paupiere(ouverture: 1))
+    }
+
+    /// Le clignement : on ferme vite, on rouvre juste après.
+    static var clignement: AnyTransition {
+        let ouvre: Animation = Animation.easeOut(duration: 0.18).delay(0.12)
+        let ferme: Animation = Animation.easeIn(duration: 0.12)
+        return AnyTransition.asymmetric(
+            insertion: AnyTransition.paupieres.animation(ouvre),
+            removal: AnyTransition.paupieres.animation(ferme)
+        )
+    }
+}
+
 /// Les lunettes du chat : les montures lilas sur le noir de l’île, et les yeux du moment.
 struct LunettesChat: View {
     let regard: Regard
@@ -3032,9 +3239,12 @@ struct LunettesChat: View {
             MorceauLunettes(quoi: .montures).stroke(lilas, style: monture)
             MorceauLunettes(quoi: .pont).stroke(lilas, style: monture)
             yeux(e, paupiere)
+                .id(regard)   // un autre regard : d’autres yeux, qui s’ouvrent quand les premiers se ferment
+                .transition(AnyTransition.clignement)
         }
         .frame(width: largeur, height: hauteur)
         .shadow(color: lueur, radius: flou)
+        .animation(.easeInOut(duration: 0.3), value: regard)
     }
 
     @ViewBuilder
@@ -3104,6 +3314,7 @@ struct LeconReprendre: View {
 func leconRegard(_ e: RequeteLecon.ContentState, perime: Bool) -> Regard {
     if e.fini { return .etoiles }
     if perime { return .endormi }
+    if e.clin == true { return .clin }   // 13 novembre, 8 h 01 : on vient de quitter l’app, il fait un clin d’œil
     let n: Int = e.moments ?? 0
     let r: Int = min(n, max(0, e.reussis ?? 0))
     let but: Int = min(n, max(1, e.objectif ?? n))
@@ -3438,8 +3649,11 @@ struct DirectDroite: View {
 }
 
 /// Tout petit (une leçon aussi dans l’île : ses lunettes sont à elle) : la flamme braise, dorée une fois allumée ; minuit passé, la
-/// lune.
+/// lune. 13 novembre, 8 h 01 (« Plus vivant ») : tant que la flamme attend, un anneau se vide tout seul autour d’elle jusqu’à
+/// minuit, comme la barre de l’île ouverte (iOS le fait avancer sans rien recevoir).
+@available(iOS 16.1, *)
 struct DirectMinimal: View {
+    let flamme: RequeteFlammeDirect
     let moment: MomentDirect
 
     private var symbole: String {
@@ -3459,10 +3673,29 @@ struct DirectMinimal: View {
     }
 
     var body: some View {
-        let police: Font = Font.system(size: 14, weight: .bold)
-        return Image(systemName: symbole)
-            .font(police)
-            .foregroundColor(teinte)
+        let attend: Bool = moment == .attend
+        let taille: CGFloat = attend ? 10 : 14
+        let police: Font = Font.system(size: taille, weight: .bold)
+        return ZStack {
+            if attend {
+                anneau
+            }
+            Image(systemName: symbole)
+                .font(police)
+                .foregroundColor(teinte)
+        }
+    }
+
+    private var anneau: some View {
+        let periode: ClosedRange<Date> = periodeDirect(flamme)
+        return ProgressView(timerInterval: periode, countsDown: true) {
+            EmptyView()
+        } currentValueLabel: {
+            EmptyView()
+        }
+        .progressViewStyle(.circular)
+        .tint(braise)
+        .frame(width: 22, height: 22)
     }
 }
 
@@ -3575,7 +3808,7 @@ struct RequeteFlammeDirecte: Widget {
             } compactTrailing: {
                 DirectDroite(flamme: context.attributes, moment: momentDirect(context))
             } minimal: {
-                DirectMinimal(moment: momentDirect(context))
+                DirectMinimal(flamme: context.attributes, moment: momentDirect(context))
             }
             .widgetURL(lienDirect(momentDirect(context)))
             .keylineTint(braise)
@@ -3604,6 +3837,7 @@ struct RequeteAccueil: ActivityAttributes {
         var bonjour: String   // « Bienvenue, Elisa », ou « Bienvenue sur Requête » avant le prénom
         var minutes: Int      // le temps qui reste, comme l’en-tête de l’onboarding ; 0 sur le parcours prêt
         var fini: Bool        // l’onboarding est terminé : le parcours est prêt
+        var clin: Bool? = nil // le chat fait signe (13 novembre, 8 h 01) : l’île vient d’apparaître, on a quitté l’app
     }
 
     var app: String
@@ -3623,6 +3857,9 @@ enum LectureAccueil {
     static func regard(_ e: RequeteAccueil.ContentState, perime: Bool) -> Regard {
         if e.fini { return .etoiles }
         if perime { return .endormi }
+        // 13 novembre, 8 h 01 : on vient de quitter l’app, le chat fait signe (sur l’accueil, où il cligne déjà, il sourit).
+        if e.clin == true && e.etape <= 0 { return .rieur }
+        if e.clin == true { return .clin }
         if e.etape <= 0 { return .clin }
         if e.etape >= e.total && e.minutes <= 0 { return .rieur }
         return .ouvert
@@ -3676,10 +3913,12 @@ struct AccueilAnneau: View {
                 Image(systemName: "checkmark")
                     .font(coche)
                     .foregroundColor(menthe)
+                    .transition(.scale(scale: 0.2).combined(with: .opacity))
             }
         }
         .padding(trait / 2)
         .frame(width: taille, height: taille)
+        .animation(.spring(response: 0.6, dampingFraction: 0.72), value: part)   // 13 novembre, 8 h 01 : l’anneau avance sous les yeux
     }
 }
 
@@ -4153,6 +4392,9 @@ struct SalleGauche: View {
         let soloHaut: String = fin ? "\(LectureSalle.moi(etat, salle)?.pts ?? 0)" : LectureSalle.manches(etat)
         let soloBas: String = fin ? "points" : "manche"
         let soloTeinte: Color = fin ? dore : Color.white
+        // 13 novembre, 8 h 01 (« Plus vivant ») : la place, la manche et les points roulent quand ils changent (iOS 17).
+        let points: Int = LectureSalle.moi(etat, salle)?.pts ?? 0
+        let soloValeur: Int = fin ? points : etat.manche
         return VStack(alignment: .leading, spacing: 0) {
             if etat.phase == "attente" {
                 Text("Salle")
@@ -4165,6 +4407,7 @@ struct SalleGauche: View {
                 Text(soloHaut)
                     .font(grande)
                     .foregroundColor(soloTeinte)
+                    .chiffreQuiRoule(soloValeur)
                 Text(soloBas)
                     .font(petite)
                     .foregroundColor(lilasPale)
@@ -4172,6 +4415,7 @@ struct SalleGauche: View {
                 Text(LectureSalle.rang(place))
                     .font(grande)
                     .foregroundColor(teinte)
+                    .chiffreQuiRoule(-place)   // une place gagnée : le chiffre monte
                 Text("sur \(etat.joueurs.count)")
                     .font(petite)
                     .foregroundColor(lilasPale)
@@ -4201,6 +4445,7 @@ struct SalleTemps: View {
                     Text(LectureSalle.compte(etat, salle))
                         .font(grande)
                         .foregroundColor(lilasClair)
+                        .chiffreQuiRoule(etat.joueurs.count)   // un ami arrive : le compte roule (13 novembre, 8 h 01)
                     Text("joueurs")
                         .font(petite)
                         .foregroundColor(lilasPale)

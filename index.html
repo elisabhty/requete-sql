@@ -6734,7 +6734,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=328">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=63">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=64">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -45789,13 +45789,21 @@ function obNotifCaler(){
     if(Math.abs(dy)>2)z.style.transform=`translateY(${Math.round(dy/obZ())}px)`;
   });
 }
-/* Le widget, tel qu’il est sur l’iPhone (RequeteWidget.swift) : la flamme, la série, le chat qui dépasse du bas. */
-function obWidgetTuile(n){
-  return `<span class="ob-wg"><span class="ob-wg-top"><span class="ob-wg-fl">${FLAME_SVG}</span><b class="ob-wg-n" data-n="${n}">${n}</b></span><img class="ob-wg-cat" src="${MASCOT_IMG}" alt="" draggable="false"></span>`;
+/* Le widget, tel qu’il est sur l’iPhone (RequeteWidget.swift, SerieVue) : la flamme du jour et « 0/1 », le chat qui dépasse du bas.
+   13 novembre, 8 h 01 (Elisa : « Améliore la Dynamic Island / widget », son choix : « Plus vivant », la page du widget comprise) :
+   la tuile montrait encore un nombre de jours, que le vrai widget n’affiche plus depuis le 4 novembre. Elle est maintenant dessinée
+   comme lui, avec ses quatre moments (data-m) : « jour » (la flamme et 0/1), « matin » (la flamme rangée dans le coin, le chat dit
+   « Une petite requête ? »), « soir » (la flamme grandit et rougeoie, « Ta flamme t’attend ! ») et « fete » (la séance faite : la
+   flamme dorée et sa coche, 1/1, le chat penché entre des étincelles). Sur la page du widget, elle les joue en boucle
+   (obWidgetPromoJouer) ; dans le tutoriel, elle reste sur « fete ». */
+const OB_WG_ETOILE='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.5 14.4 9.6 22.5 12l-8.1 2.4L12 22.5l-2.4-8.1L1.5 12l8.1-2.4Z"/></svg>';
+const OB_WG_COCHE='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5.5 12.5 4.2 4.2L18.5 8" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function obWidgetTuile(moment){
+  const m=['matin','soir','fete'].includes(moment)?moment:'jour';
+  return `<span class="ob-wg" data-m="${m}"><span class="ob-wg-top"><span class="ob-wg-flw"><span class="ob-wg-fl">${FLAME_SVG}</span><i class="ob-wg-ok">${OB_WG_COCHE}</i></span><b class="ob-wg-obj"><span class="ob-wg-ch"><i>0</i><i>1</i></span><small>/1</small></b></span><span class="ob-wg-bulle">Une petite requête\u202f?</span><span class="ob-wg-leg">Ta flamme t’attend\u202f!</span><span class="ob-wg-etin">${OB_WG_ETOILE}${OB_WG_ETOILE}${OB_WG_ETOILE}</span><img class="ob-wg-cat" src="${MASCOT_IMG}" alt="" draggable="false"></span>`;
 }
-function obWidgetSerie(){ try{ return Math.max(1,streakJours()); }catch(e){ return 1; } }
 function obTelPromo(){
-  return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span><span class="ob-ph-home">${obWidgetTuile(obWidgetSerie())}<i class="ob-ph-app a1"></i><i class="ob-ph-app a2"></i><i class="ob-ph-app a3"></i><i class="ob-ph-app a4"></i><i class="ob-ph-app a5"></i></span></span></span>`;
+  return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span><span class="ob-ph-home">${obWidgetTuile('jour')}<i class="ob-ph-app a1"></i><i class="ob-ph-app a2"></i><i class="ob-ph-app a3"></i><i class="ob-ph-app a4"></i><i class="ob-ph-app a5"></i></span></span></span>`;
 }
 const OB_WT_TEXTES=['D’abord, maintiens appuyé sur ton écran d’accueil…','Appuie ensuite sur « + », en haut à gauche, puis sur « Ajouter un widget ».','Cherche « Requête » et ajoute mon widget !'];
 function obTelTuto(){
@@ -45804,17 +45812,30 @@ function obTelTuto(){
   return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span>
     <span class="ob-ph-edit">+</span><span class="ob-ph-ok">OK</span>
     <span class="ob-ph-menu"><span>Ajouter un widget</span><span>Personnaliser</span><span>Modifier le fond d’écran</span><span>Modifier les pages</span></span>
-    <span class="ob-ph-grid">${apps}<span class="ob-ph-placed">${obWidgetTuile(obWidgetSerie())}</span></span>
-    <span class="ob-ph-sheet"><span class="ob-ph-search"><i></i><b>Requête</b></span><span class="ob-ph-preview">${obWidgetTuile(obWidgetSerie())}</span><span class="ob-ph-add">Ajouter le widget</span></span>
+    <span class="ob-ph-grid">${apps}<span class="ob-ph-placed">${obWidgetTuile('fete')}</span></span>
+    <span class="ob-ph-sheet"><span class="ob-ph-search"><i></i><b>Requête</b></span><span class="ob-ph-preview">${obWidgetTuile('fete')}</span><span class="ob-ph-add">Ajouter le widget</span></span>
     <b class="ob-ph-doigt"></b></span></span>`;
 }
 /* Le widget surgit, la flamme s’allume et la série monte jusqu’à sa valeur. */
+/* La page du widget : le widget dessiné vit sa journée, en boucle (13 novembre, 8 h 01, « Plus vivant »). Chaque moment tient le
+   temps de le lire ; entre deux, le chat plonge et ressort dans sa nouvelle pose, comme le vrai (SerieVue). */
+const OB_WG_MOMENTS=[['matin',2700],['soir',2700],['fete',3600]];
 function obWidgetPromoJouer(){
-  const n=document.querySelector('.ob-ph-promo .ob-wg-n');if(!n||prefersReduceMotion())return;
-  const fin=+n.dataset.n||1,t0=performance.now()+520,d=Math.min(900,240+fin*120);
-  n.textContent='0';
-  const tick=now=>{ if(!document.body.contains(n))return; const k=Math.max(0,Math.min(1,(now-t0)/d)); n.textContent=String(Math.round(fin*(1-Math.pow(1-k,3)))); if(k<1)requestAnimationFrame(tick); else buzz('light'); };
-  requestAnimationFrame(tick);
+  const wg=document.querySelector('.ob-ph-promo .ob-wg');if(!wg)return;
+  if(prefersReduceMotion()){wg.dataset.m='fete';return;}   // sans mouvement : le plus beau moment, posé
+  let i=0;
+  const suivant=()=>{
+    if(OB_SLIDES[obStep]!=='widget'||!document.body.contains(wg))return;
+    const [m,duree]=OB_WG_MOMENTS[i%OB_WG_MOMENTS.length],premierTour=i<OB_WG_MOMENTS.length;i++;
+    wg.classList.add('is-vie','is-plonge');   // le chat plonge…
+    obDemoTimers.push(setTimeout(()=>{
+      if(!document.body.contains(wg))return;
+      wg.dataset.m=m;wg.classList.remove('is-plonge');   // … et ressort dans sa nouvelle pose, comme sur l’écran d’accueil
+      if(m==='fete'&&premierTour)buzz('light');
+    },230));
+    obDemoTimers.push(setTimeout(suivant,duree));
+  };
+  obDemoTimers.push(setTimeout(suivant,1500));
 }
 /* Les trois étapes du tutoriel, en boucle : la bulle dit l’étape que le téléphone montre. */
 function obWidgetTutoJouer(){
@@ -46614,6 +46635,9 @@ function ileMaj(force){
   if(premier||neuf)ileEtat.vus=mo.reussis;
   const data={progression:p,allumee:ileAllumee(),pause};
   if(mo)Object.assign(data,{reussis:ileEtat.vus,moments:mo.moments,objectif:mo.objectif},neuf?{anime:true}:{});
+  /* 13 novembre, 8 h 01 (« Améliore la Dynamic Island / widget », « Plus vivant ») : chaque fois qu’on quitte l’app en pleine leçon
+     (force), l’île s’anime : elle apparaît, puis le chat fait un clin d’œil (RequeteWidgetPlugin.swift, RequeteLeconPont.maj). */
+  if(force)data.anime=true;
   ileAppel('leconMaj',data);
 }
 function ileFin(reussie){
@@ -46649,8 +46673,22 @@ function ileObSync(){
   const data=ileObEtat(),k=JSON.stringify(data);
   if(ileOb&&ileOb.k===k)return;
   const m=ileOb?'accueilMaj':'accueilDebut';
-  ileOb={k,etape:data.etape};
+  ileOb={k,etape:data.etape,vue:ileOb?ileOb.vue:data.etape};   // vue : l’étape que l’île montrait la dernière fois qu’on a quitté l’app
   ileAppel(m,data);
+}
+/* 13 novembre, 8 h 01 (« Améliore la Dynamic Island / widget », « Plus vivant ») : on quitte l’app en plein onboarding. L’île apparaît
+   avec l’étape qu’elle montrait la dernière fois ; une seconde après, l’anneau avance jusqu’à l’étape du moment et le chat fait signe
+   (RequeteWidgetPlugin.swift, accueilMaj avec anime et avant). */
+function ileObSalut(){
+  if(!ileOb||!ilePont()||state.onboarded||(typeof obApercu!=='undefined'&&obApercu))return;
+  const root=typeof document!=='undefined'&&document.getElementById('onboarding');
+  if(!root||!root.classList.contains('on'))return;
+  const data=ileObEtat(),avant=ileOb.vue==null?data.etape:ileOb.vue;
+  ileOb.vue=data.etape;
+  ileAppel('accueilMaj',Object.assign({},data,{anime:true,avant}));
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ try{ileObSalut();}catch(e){} } });
 }
 function ileObFin(fini){
   if(!ileOb)return;
@@ -50605,7 +50643,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-garde-compte-v2924';
+  const SW_CACHE='requete-2026-11-13-vivant-v2925';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

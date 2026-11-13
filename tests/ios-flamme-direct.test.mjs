@@ -39,7 +39,7 @@ test('le widget : l’écran verrouillé, l’île (ouverte, compacte, minimale)
     'DynamicIslandExpandedRegion(.trailing) {\n                    DirectFin(', 'DynamicIslandExpandedRegion(.center) {\n                    DirectCentre(',
     'DynamicIslandExpandedRegion(.bottom) {\n                    DirectBas(',
     '} compactLeading: {\n                LunettesChat(regard: regardDirect(momentDirect(context)), largeur: 30)',
-    '} compactTrailing: {\n                DirectDroite(', '} minimal: {\n                DirectMinimal(moment: momentDirect(context))',
+    '} compactTrailing: {\n                DirectDroite(', '} minimal: {\n                DirectMinimal(flamme: context.attributes, moment: momentDirect(context))',
     '.widgetURL(lienDirect(momentDirect(context)))\n            .keylineTint(braise)'])
     assert.ok(act.includes(k), k);
   assert.equal(act.split('.widgetURL(lienDirect(momentDirect(context)))').length, 3, 'l’écran verrouillé et l’île mènent à la séance');

@@ -354,6 +354,49 @@ developer.apple.com › Identifiers › fr.requete.app › coche Push Notificati
 version installée depuis Xcode (développement) a un jeton du bac à sable d’Apple : la fonction le reconnaît (refusé en production,
 elle essaie le bac à sable) et s’en souvient.
 
+### Plus vivant : la scène du retour, le temps qui défile, le clin d’œil (13 novembre, 8 h 01)
+
+Elisa, 13 novembre, 8 h 01 : « Améliore la Dynamic Island / widget » ; ses réponses : tout (la Dynamic Island, les widgets de
+l’accueil, le widget verrouillé, la page du widget), et « Plus vivant ». iOS ne laisse ni un widget ni une Live Activity tourner
+en boucle : ce qui bouge tout seul, ce sont ses minuteurs et ses barres (`Text(…, style: .timer)`, `ProgressView(timerInterval:)`),
+et le passage d’un état à l’autre (animé à partir d’iOS 17). Trois moyens, donc, tous publics :
+
+- **La petite scène du retour** (`Scene`, dans `RequeteWidget.swift`). L’app recharge les widgets chaque fois qu’on la quitte
+  (index.html, `widgetMaj`) : le fournisseur pose alors trois entrées à la suite, à 1,3 s d’écart, et le widget joue une scène au
+  moment où l’on arrive sur l’écran d’accueil. **Ta flamme** : le chat plonge, ressort plus haut et penché, se pose ; la flamme
+  gonfle un instant ; la séance faite, les étincelles suivent. **La cheminée** : le feu se tasse et reprend d’un souffle (jamais
+  froide), le chat fait un petit bond. **Ta semaine** : la flamme d’aujourd’hui bat, et le compte « 4 flammes » roule quand il
+  change. Chaque temps est un état complet (si iOS en saute un, rien ne manque) ; les entrées de minuit, 5 h, midi, 18 h restent
+  posées. À partir d’iOS 17 seulement : avant, un widget change sans animation, et trois sauts de suite ne diraient rien.
+- **Le temps qui défile.** Sur l’écran verrouillé, le soir d’un jour de séance, tant que la flamme attend : dans le rond, un
+  anneau se vide tout seul de 18 h à minuit autour de la flamme et de « 0/1 » ; dans le bandeau, sous « Ta flamme t’attend ! »,
+  « 3:12:45 » défile. Dans l’île de « Ta flamme en direct », toute petite (une autre activité à côté), le même anneau autour de
+  la flamme. Le petit widget de l’accueil n’a pas de compte à rebours : le soir, la phrase passe juste au-dessus des oreilles du
+  chat, il n’y a pas la place d’une ligne de plus (La cheminée l’a déjà).
+- **L’arrivée de l’île.** On quitte l’app en pleine leçon : l’île apparaît ; une seconde après, le chat fait un clin d’œil (et
+  le compte des moments roule, s’il a changé) ; huit dixièmes plus tard, il rouvre les yeux (`RequeteLeconPont.maj`, `anime` :
+  la page l’envoie maintenant à chaque départ, index.html, `ileMaj`). En plein onboarding, pareil, et l’anneau avance depuis
+  l’étape que l’île montrait la dernière fois (`ileObSalut`, `accueilMaj` avec `anime` et `avant`). Le champ `clin` est
+  facultatif dans les deux types (une activité d’avant se lit encore) ; une tâche de fond garde l’app éveillée ces deux secondes ;
+  une mise à jour plus récente arrête ce qui restait à jouer (`tour`). Les yeux du chat **clignent** à chaque changement de regard
+  (`Paupiere`, `AnyTransition.clignement`) : ceux d’avant se ferment, ceux d’après s’ouvrent. La jauge des moments, la barre et
+  l’anneau de l’onboarding avancent sous les yeux ; dans la salle, la place, la manche, les points et les joueurs roulent.
+- **La requête de poche** : la question suivante pousse l’autre vers la gauche, le symbole du verdict se pose d’un rebond.
+- **La page du widget, dans l’app** (après la troisième leçon) : la tuile était encore dessinée avec un nombre de jours, que le
+  vrai widget n’affiche plus depuis le 4 novembre. Elle est dessinée comme lui (`obWidgetTuile`) et joue sa journée en boucle
+  (`obWidgetPromoJouer`) : le matin (la flamme rangée dans le coin, « Une petite requête ? »), le soir (elle grandit et rougeoie,
+  « Ta flamme t’attend ! »), la séance faite (dorée, sa coche, « 1/1 », le chat penché entre des étincelles) ; entre deux, le
+  chat plonge et ressort. Mouvements réduits : la séance faite, posée. Dans le tutoriel, la tuile reste sur la séance faite.
+
+Ce qui n’a pas été fait, et pourquoi : une vraie animation continue dans un widget (une flamme qui danse) demande une interface
+privée d’iOS ou une police truquée en guise de pellicule ; la première risque un refus de l’App Store, la seconde ne peut pas se
+vérifier sans iPhone. La barre du temps d’une manche dans l’île demanderait l’heure de début de la manche, que l’état de la salle
+ne porte pas.
+
+**À vérifier sur l’iPhone** (rien de tout cela ne se voit ici, où le Swift n’est ni compilé ni dessiné) : `npm run ios:verif`
+d’abord, puis TestFlight ; la scène du retour sur chaque widget (iOS décide de l’instant exact où il montre chaque entrée) ; le
+rond du soir sur l’écran verrouillé ; le clin d’œil en quittant une leçon.
+
 ### Le jour où un parcours ouvre : la notification (11 novembre, 15 h 55)
 
 « M’avertir au lancement », sur la page d’un parcours à venir, est une vraie notification dans l’appli iPhone : en activant

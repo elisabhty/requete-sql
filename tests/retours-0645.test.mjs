@@ -55,7 +55,7 @@ test('le widget : une case par moment, la coche qui se pose, le contour doré su
 test('le type de la Live Activity : trois champs de plus, facultatifs, les mêmes dans l’app et dans le widget', () => {
   const type = t => sansCommentaires(cut(t, 'struct RequeteLecon: ActivityAttributes {', '\n}\n')).replace(/\s+/g, ' ').trim();
   assert.equal(type(widget), type(pont));
-  assert.ok(type(pont).includes('var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil var pause: Bool? = nil }'),
+  assert.ok(type(pont).includes('var fini: Bool var reussis: Int? = nil var moments: Int? = nil var objectif: Int? = nil var pause: Bool? = nil var clin: Bool? = nil }'),
     'facultatifs : une activité lancée par une version d’avant se lit encore');
 });
 
@@ -70,11 +70,13 @@ test('le pont : les moments de la page, puis le nouveau compte une seconde aprè
   }
   assert.ok(cut(pont, '@objc func leconMaj(_ call: CAPPluginCall) {', '\n    }\n').includes('let anime: Bool = call.getBool("anime") ?? false'));
   const maj = cut(pont, 'static func maj(_ etat: RequeteLecon.ContentState, anime: Bool) async {', '\n    }\n');
-  for (const k of ['let fond = RequeteTacheDeFond()', 'if anime { fond.debut() }', 'let avant: Int? = a.content.state.reussis',
-    'if anime, let ancien = avant, ancien != etat.reussis {', 'attente.reussis = ancien', 'try? await Task.sleep(nanoseconds: 1_100_000_000)',
-    'await a.update(ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)))', 'if anime { fond.fin() }'])
+  /* 13 novembre, 8 h 01 (« Plus vivant ») : à chaque départ de l’app ; l’ancien compte, une seconde, le clin d’œil, huit dixièmes, puis l’état */
+  for (const k of ['let fond = RequeteTacheDeFond()', 'if anime { fond.debut() }', 'let perime: Date = Date().addingTimeInterval(3600)',
+    'attente.reussis = a.content.state.reussis ?? etat.reussis', 'try? await Task.sleep(nanoseconds: 1_100_000_000)',
+    'salut.clin = true', 'try? await Task.sleep(nanoseconds: 800_000_000)', 'if mien != tour { break }',
+    'await a.update(ActivityContent(state: etat, staleDate: perime))', 'if anime { fond.fin() }'])
     assert.ok(maj.includes(k), k);
-  assert.ok(maj.indexOf('attente.reussis = ancien') < maj.indexOf('Task.sleep') && maj.indexOf('Task.sleep') < maj.lastIndexOf('state: etat,'), 'l’ancien compte, une seconde, puis le nouveau');
+  assert.ok(maj.indexOf('attente.reussis = ') < maj.indexOf('Task.sleep') && maj.indexOf('Task.sleep') < maj.indexOf('salut.clin = true') && maj.indexOf('salut.clin = true') < maj.lastIndexOf('state: etat,'), 'l’ancien compte, une seconde, le clin d’œil, puis le nouveau');
   const fond = cut(pont, 'final class RequeteTacheDeFond {', '\n}\n');
   for (const k of ['private var id: UIBackgroundTaskIdentifier = .invalid', 'self.id = UIApplication.shared.beginBackgroundTask(withName: "RequeteLecon") { [weak self] in',
     'UIApplication.shared.endBackgroundTask(self.id)', 'DispatchQueue.main.async {'])
@@ -120,7 +122,7 @@ test('la page : les moments partent dès que la vidéo les donne ; un moment ré
   ctx.LV.video.currentTime = 33; ctx.ileMaj(true);
   assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.33, allumee: false, pause: false, reussis: 2, moments: 4, objectif: 3, anime: true}]);
   ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.33, allumee: false, pause: false, reussis: 2, moments: 4, objectif: 3}], 'rien de neuf : pas d’animation');
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.33, allumee: false, pause: false, reussis: 2, moments: 4, objectif: 3, anime: true}], 'rien de neuf : le compte ne bouge pas, le chat fait quand même son clin d’œil (13 novembre, 8 h 01)');
   ctx.LV.video.currentTime = 52; ctx.ileMaj(false);
   assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0.52, allumee: false, pause: false, reussis: 2, moments: 4, objectif: 3}], 'de retour dans l’app : le compte montré');
   /* Leçon réussie : la carte garde ses moments */
@@ -136,7 +138,7 @@ test('la page : une leçon reprise, ses moments déjà réussis montrés dès l�
   ctx.ileDebut({id: 12, titre: 'WHERE', video: {moments: 3}});
   assert.deepEqual(appels.shift(), ['leconDebut', {titre: 'WHERE', module: 'Module 2 · Les jointures', progression: 0, allumee: false, pause: false, reussis: 1, moments: 3, objectif: 3}]);
   ctx.ileMaj(true);
-  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, pause: false, reussis: 1, moments: 3, objectif: 3}], 'déjà montré : pas d’animation');
+  assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, pause: false, reussis: 1, moments: 3, objectif: 3, anime: true}], 'déjà montré : le même compte, et le clin d’œil du départ');
   /* Tout recommencer : le compte redescend, en roulant aussi */
   etat.ok = 0; ctx.ileMaj(true);
   assert.deepEqual(appels.shift(), ['leconMaj', {progression: 0, allumee: false, pause: false, reussis: 0, moments: 3, objectif: 3, anime: true}]);
