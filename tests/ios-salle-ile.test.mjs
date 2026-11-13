@@ -142,7 +142,7 @@ const page = ({vue = 'lobby', moi = 'L', hote = 'M', joueurs = ['M', 'L'], prets
     ilePont: () => (natif ? C : null), ileAppel: (m, d) => C.nativePromise('RequeteWidget', m, d),
     clsCle: () => 'cle'.repeat(10), clsRpc: (f, b) => { rpc.push([f, ici(b)]); return rejet ? Promise.reject(new Error('non')) : Promise.resolve({ok: true}); },
     fetch: (u, o) => { posts.push([u, JSON.parse(o.body), o.keepalive]); return Promise.resolve({ok: true}); },
-    jeuIsHost: () => x.J.hostPid === x.J.me && !x.relit, jeuNextRound: () => appels.push(['jeuNextRound']), jeuPeutLancer: () => true, jeuLancer: () => appels.push(['jeuNextRound']), jeuAgain: () => appels.push(['jeuAgain']),
+    jeuIsHost: () => x.J.hostPid === x.J.me && !x.relit, jeuNextRound: () => appels.push(['jeuNextRound']), jeuPeutLancer: () => true, jeuLancer: () => appels.push(['jeuNextRound']), jeuAgain: () => appels.push(['jeuAgain']), jeuRevanche: () => appels.push(['jeuRevanche']),
     jeuTexteInvitation: () => 'Rejoins-moi', jeuLienInvitation: () => 'https://exemple/?partie=K7P2QX',
     setTimeout: (f, ms) => { minuteurs.push({f, ms}); return minuteurs.length; }, clearTimeout: () => {},
     document: {addEventListener: () => {}},
@@ -244,7 +244,13 @@ test('les boutons de l’île : Partager (la feuille d’iOS), Lancer et Rejouer
   x.relit = false; x.minuteurs.at(-1).f();
   assert.ok(x.appels.some(a => a[0] === 'jeuNextRound'), 'puis on lance');
   x.J.over = true; x.run("ileSalleAction('rejouer')");
-  assert.ok(x.appels.some(a => a[0] === 'jeuAgain'));
+  /* 14 novembre, 0 h 20 : dans une salle, « Rejouer » de l’île dit qu’on en est (le vote du podium) ; seul, la partie repart */
+  assert.ok(x.appels.some(a => a[0] === 'jeuRevanche') && !x.appels.some(a => a[0] === 'jeuAgain'), 'dans une salle : le vote');
+  x.J.rv = {[x.J.me]: true}; const n = x.appels.length; x.run("ileSalleAction('rejouer')");
+  assert.equal(x.appels.length, n, 'déjà dit : on ne se ravise pas depuis l’île');
+  x.J.solo = true; x.run("ileSalleAction('rejouer')");
+  assert.ok(x.appels.some(a => a[0] === 'jeuAgain'), 'seul : la partie repart');
+  x.J.solo = false;
   const g = page(); g.run("ileSalleAction('lancer')");
   for (let i = 0; i < 20 && g.minuteurs.length; i++) g.minuteurs.shift().f();
   assert.ok(!g.appels.some(a => a[0] === 'jeuNextRound'), 'pas l’hôte : rien');
