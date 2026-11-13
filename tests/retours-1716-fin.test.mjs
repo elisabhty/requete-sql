@@ -12,9 +12,10 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const fn = n => { const a = app.indexOf(`function ${n}(`); assert.ok(a > 0, n); return app.slice(a, app.indexOf('\n}\n', a) + 2); };
 
-test('la dernière manche entre amis mène tout droit à l’écran de fin (plus « Le podium arrive dans 5 s »)', () => {
+test('la dernière manche entre amis : sa carte 5 s (« Tes points arrivent »), puis l’écran de fin (plus « Le podium arrive »)', () => {
   const v = fn('jeuView');
-  assert.ok(v.includes("if(fin&&n>=J.nb-1&&!jeuSoloLike(n))return'final';\n  return (fin?'res':'play')+n;"));
+  /* 17 h 31 : 5 s sur la carte de la manche, avec « Tes points arrivent dans 5 s », puis l’écran de fin */
+  assert.ok(v.includes("if(fin&&n>=J.nb-1&&!jeuSoloLike(n)){const t=jeuFinAuto(n);return t&&Date.now()<t?'play'+n:'final';}"));
 });
 
 test('trois issues : la victoire, la défaite, le 0 à 0 ; tes points et leur détail ; « Revanche »', () => {

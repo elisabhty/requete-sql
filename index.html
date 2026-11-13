@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=339">
+<link rel="stylesheet" href="ludique.css?v=340">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=67">
 <style id="lesson-video-css">
@@ -37205,11 +37205,16 @@ function jeuView(){
      partie ; les autres restaient sur « Le podium arrive… » jusqu’au relais d’hôte (70 s environ). Chacun a déjà toutes les manches et
      tous les temps : passé l’heure de la suite (jeuFinAuto) et une marge, l’écran de fin se pose chez soi. La fin de l’hôte, si elle
      arrive, ne change rien ; « Rejouer » attend d’être l’hôte (jeuFinBoutonsHTML), et le nouvel hôte envoie la fin aussitôt (jeuTick). */
+  /* 13 novembre, 17 h 16 puis 17 h 31 (Elisa : « fusionner les deux pages » ; « avant, sur la page où tu as mis ta requête, une barre
+     qui dit : dans 5 secondes, voir les points ») : entre amis, la dernière manche finie reste 5 s sur sa carte (« Bravo, défi résolu »,
+     ou « Temps écoulé »), avec « Tes points arrivent dans 5 s » et sa barre ; puis l’écran de fin, et la page des points par-dessus.
+     Plus de « Manche terminée » ni de « Le podium arrive ». L’hôte envoie la fin de partie au même moment (jeuTick) ; « Revanche »
+     ne l’attend pas (jeuRejouer). */
+  if(fin&&n>=J.nb-1&&!jeuSoloLike(n)){const t=jeuFinAuto(n);return t&&Date.now()<t?'play'+n:'final';}
   if(fin&&n>=J.nb-1&&!jeuIsHost()){const t=jeuFinAuto(n);if(t&&Date.now()>=t+JEU_FIN_MARGE)return'final';}
   /* 13 novembre, 17 h 16 (Elisa : « fusionner les deux pages ») : entre amis, la dernière manche finie mène tout droit à l’écran de
      fin, qui dit l’issue (victoire, défaite, 0 à 0) avec le podium ; plus de « Manche terminée » puis « Le podium arrive dans 5 s ».
      L’hôte envoie la fin de partie 5 s plus tard, comme avant (jeuTick) ; « Revanche » ne l’attend pas (jeuRejouer). */
-  if(fin&&n>=J.nb-1&&!jeuSoloLike(n))return'final';
   return (fin?'res':'play')+n;
 }
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
@@ -37846,7 +37851,9 @@ function jeuPatch(v){
     /* 9 novembre, 10 h 01 : trouvée, ou (seul) finie au chrono, sans que la page le montre encore. En salle classée, la bonne réponse
        revient du serveur par le fil de la salle, pas par jeuRun : l’encart vert n’apparaissait pas (l’éditeur restait jusqu’à la suite).
        La carte prend la place de l’éditeur, sur place. */
-    {const r=J.rounds[n];if(r&&(r.found[J.me]!=null||(J.slShown&&jeuRoundDone(n)))&&!document.getElementById('jeu-done')){J.keep=v;J.view='';jeuPaint();return;}}
+    {const r=J.rounds[n];if(r&&(r.found[J.me]!=null||(J.slShown&&jeuRoundDone(n)))&&!document.getElementById('jeu-done')){J.keep=v;J.view='';jeuPaint();return;}
+     /* Entre amis, la dernière manche finie : la carte prend son compte à rebours (« Tes points arrivent dans 5 s »), ou « Temps écoulé ». */
+     if(r&&n>=J.nb-1&&jeuRoundDone(n)&&!document.getElementById('jeu-auto')){J.keep=v;J.view='';jeuPaint();return;}}
     jeuDirectPeindre(n);
     const wl=document.getElementById('jeu-waitline');if(wl)wl.innerHTML=jeuWaitLine(n);
   }else{
@@ -38043,7 +38050,7 @@ function jeuRender(){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     current=c;exoFails=0;
     const mine=r.found[J.me]!=null,sl=jeuSoloLike(n);J.slShown=sl;
-    const rate=!mine&&sl&&jeuRoundDone(n);edOn=!mine&&!rate;   // seul, finie au chrono : « Temps écoulé » à la place de l’éditeur (9 novembre, 10 h 01)
+    const rate=!mine&&jeuRoundDone(n)&&(sl||n>=J.nb-1);edOn=!mine&&!rate;   // 13 novembre : entre amis aussi, à la dernière   // seul, finie au chrono : « Temps écoulé » à la place de l’éditeur (9 novembre, 10 h 01)
     const fige=jeuFige(n),took0=fige?r.found[J.me]:Date.now()-r.t1,dur0=jeuDureeMs(jeuNivManche(n));
     /* Une seule action pendant la manche : « Exécuter » (le schéma passe dans la barre de l’éditeur, plus de « Pas à pas »). */
     /* Tant qu’on cherche : ce que vaut le défi, palier par palier (200, 175, 150… ; en Moyen 400, 350… toutes les 3 min ; en Difficile
@@ -38121,7 +38128,7 @@ function jeuRender(){
     }
     /* La suite part toute seule (17 h 31) : le compte à rebours et sa barre */
     const auto=jeuFinAuto(n),reste=auto?Math.max(0,auto-Date.now()):0;
-    const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto" style="--reste:${reste}ms;--depart:${Math.max(0,Math.min(100,100-reste/JEU_AUTO_MS*100)).toFixed(1)}%">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Le podium arrive'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b> s</span><i class="jr2-barre" aria-hidden="true"></i>`:jeuAutoAttente(n)}</p>`;
+    const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto" style="--reste:${reste}ms;--depart:${Math.max(0,Math.min(100,100-reste/JEU_AUTO_MS*100)).toFixed(1)}%">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Tes points arrivent'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b> s</span><i class="jr2-barre" aria-hidden="true"></i>`:jeuAutoAttente(n)}</p>`;
     html=`${jeuNetSlot()}${hero}${classement}${autoHTML}`;
     /* Une fois par manche : les points montent, et la première place a ses confettis */
     if(!r.resVu){r.resVu=1;
@@ -38133,13 +38140,16 @@ function jeuRender(){
     const cg=jeuCreditGame();
     const jouees=J.rounds.filter(Boolean).length;
     /* Les points de la partie ont leur page, une fois le podium ou le bilan posé dessous (11 novembre, 21 h 33). */
-    if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage({pts:cg.pts,total:cg.total,solo:!!J.solo});},700);
+    /* 13 novembre, 17 h 31 : entre amis, la page des points vient d’abord, quelle que soit l’issue (o.issue, plus bas) ; seul, avec des
+       points, comme avant. */
+    const ptsPage=(o,d)=>setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage(o);},d);
     /* 9 novembre, 12 h 36 (Elisa : « regarde s’il n’y a pas d’erreur dans la logique hôte, salle, joueur, quitter la salle ») : la
        forme de l’écran de fin se décide à son arrivée et ne bouge plus ; le podium d’une partie à deux devenait un bilan « seul » 55 s
        après le départ d’un joueur à 0 point (il n’est plus compté présent). « Rejouer » le remet à zéro (case 'again'). */
     if(J.seulFin==null)J.seulFin=J.solo||sc.every(x=>x.pid===J.me);
     const seul=J.seulFin;
     jeuTitreNav(seul);
+    if(seul&&cg&&cg.pts>0)ptsPage({pts:cg.pts,total:cg.total,solo:!!J.solo},700);
     if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
@@ -38213,6 +38223,7 @@ function jeuRender(){
       jeuPlaces(sc);
       const moi=sc.find(x=>x.pid===J.me)||{pts:0,ms:0,place:sc.length||1},premier=sc[0]||null,second=sc[1]||null;
       const nul=sc.length>0&&sc.every(x=>x.pts===0),winner=!nul&&moi.place===1&&moi.pts>0;
+      if(cg)ptsPage({pts:cg.pts,total:cg.total,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||''},0);   // avant le podium (17 h 31)
       const nom=x=>esc(x&&x.name||'Joueur'),ecart=(a,b)=>{const d=Math.max(0,(a&&a.pts||0)-(b&&b.pts||0));return `${d.toLocaleString('fr-FR')}\u00a0point${d>1?'s':''}`;};
       let ton,titre,chat,med='',phrase;
       if(winner){ton='is-or';titre='Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
@@ -38314,7 +38325,7 @@ function jeuAtterrir(root,avantH){
    « Manche suivante ». Les 5 s partent du moment où ce téléphone voit la manche finie : de retour d’une autre appli ou après un
    rechargement, encore 5 s pour voir le résultat, puis la suite ; rien ne reste bloqué (« ça s’est bloqué à 1 s »). */
 const JEU_AUTO_MS=5000,JEU_AUTO_SOLO_MS=10000;   // seul : 10 s pour lire sa requête et son résultat (Elisa, 9 novembre, 19 h 40)
-function jeuAutoAttente(n){const J=JEU,last=!!J&&n>=J.nb-1,sl=!!J&&jeuSoloLike(n);return `<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>${last?(sl?'Ton bilan arrive…':'Le podium arrive…'):'La manche suivante arrive…'}</span>`;}
+function jeuAutoAttente(n){const J=JEU,last=!!J&&n>=J.nb-1,sl=!!J&&jeuSoloLike(n);return `<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>${last?(sl?'Ton bilan arrive…':'Tes points arrivent…'):'La manche suivante arrive…'}</span>`;}
 function jeuFinAuto(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
   if(!r||J.over||Date.now()<r.t1||!jeuRoundDone(n))return 0;
@@ -38521,7 +38532,7 @@ function jeuFoundHTML(r,pid){
   /* Un essai manqué dans cette manche : l’encart était rouge (coachKo) */
   const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;
   /* Seul : la suite (jeuSuiteHTML), la manche suivante ou l’écran de fin. La correction, elle, est sur l’écran de fin (11 h 31). */
-  const suite=sl?jeuSuiteHTML(n)
+  const suite=sl||(last&&jeuRoundDone(n))?jeuSuiteHTML(n)   // entre amis, la dernière finie : « Tes points arrivent dans 5 s » (13 novembre)
     :`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div>`;
   return `<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">
       ${coachOkHTML({ko,det,pts})}
@@ -38533,7 +38544,7 @@ function jeuFoundHTML(r,pid){
    carte se redessine : « La manche suivante démarre dans 5 s », ou « Ton bilan arrive dans 5 s » à la dernière. */
 function jeuSuiteHTML(n){
   const J=JEU,last=n>=J.nb-1,auto=jeuFinAuto(n),reste=auto?Math.max(0,auto-Date.now()):0;
-  return `<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?'Ton bilan arrive':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>${reste?`<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:${Math.min(1,Math.max(0,1-reste/JEU_AUTO_SOLO_MS)).toFixed(3)}"></i>`:''}</div>`;
+  return `<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?(jeuSoloLike(n)?'Ton bilan arrive':'Tes points arrivent'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>${reste?`<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:${Math.min(1,Math.max(0,1-reste/JEU_AUTO_SOLO_MS)).toFixed(3)}"></i>`:''}</div>`;
 }
 /* 9 novembre, 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel ») : seul, le chrono à 0, la manche reste à
    l’écran comme une manche trouvée : la carte de l’indice dit « Temps écoulé », dans la pêche des défis à rattraper, puis la suite
@@ -38691,26 +38702,41 @@ const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><
    module (MU) : la pièce tombe et se plaque au centre, « +12 points », « Bravo ! », ce que la partie rapporte et le nouveau total de
    salle, que le compteur en haut fait rouler ; « Voir le bilan » (ou la croix, ou Échap) referme la page sur le podium ou le bilan
    de la partie, déjà posé dessous. Plus de pastille de points à chaque manche : la carte « Trouvé » les donne déjà. */
+/* 13 novembre, 17 h 31 (Elisa, sa capture de cette page : « il faut que tu la fasses pour tous les cas, si on a 0-0, si on a 1-0,
+   si on a perdu, si on a gagné ; et cette page-là, tu dois la mettre avant la page du podium ») : entre amis, elle s’ouvre à chaque fin
+   de partie, avant l’écran de fin (o.issue) : la victoire (« Tu as gagné ! »), la défaite avec des points (« Bien joué ! », qui
+   l’emporte), la défaite sans point (« Pas cette fois ! », qui a trouvé), le 0 à 0 (personne n’a trouvé) ; la pièce s’éteint à 0 point,
+   les confettis sont pour la victoire. « Voir le podium » la referme sur l’écran de fin ; « Revanche » dessous. Seul : comme avant,
+   avec des points seulement. */
 function jeuPtsPage(o){
-  if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||typeof document.body.appendChild!=='function'||typeof MU==='undefined'||typeof moduleUpClose!=='function')return;
+  if(!o||!(o.pts>0||o.issue)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||typeof document.body.appendChild!=='function'||typeof MU==='undefined'||typeof moduleUpClose!=='function')return;
   if(MU){ clearTimeout(jeuPtsPage.t); jeuPtsPage.t=setTimeout(()=>jeuPtsPage(o),900); return; }
-  const fmt=v=>(+v||0).toLocaleString('fr-FR'),pl=o.pts>1?'s':'',total=o.total>0?o.total:0;
+  const fmt=v=>(+v||0).toLocaleString('fr-FR'),pl=o.pts>1?'s':'',total=o.total>0?o.total:0,qui=o.qui?esc(o.qui):'';
+  const issue=o.issue||'',zero=!(o.pts>0),fete=!zero&&(!issue||issue==='victoire');
+  const suite=issue&&issue!=='nul'?'Voir le podium':'Voir le bilan';   // le 0 à 0 n’a pas de podium (la liste des joueurs)
+  const kick=issue==='victoire'?'Victoire\u00a0!':o.solo?'Partie solo terminée':'Partie terminée';
+  const h=issue==='victoire'?'Tu as gagné\u00a0!':issue==='nul'?'0 à 0\u00a0!':issue==='defaite'?(zero?'Pas cette fois\u00a0!':'Bien joué\u00a0!'):'Bravo\u00a0!';
+  const totalTx=total?` Tes points de salle passent à <b>${fmt(total)}</b>.`:'';
+  const p=issue==='nul'?'Personne n’a trouvé. Égalité parfaite\u00a0: la revanche\u00a0?'
+    :issue==='defaite'&&zero?`${qui||'L’autre joueur'} a trouvé, pas toi. Prends ta revanche\u00a0!`
+    :issue==='defaite'?`${qui||'L’autre joueur'} l’emporte, mais tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`
+    :`Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`;
   const box=document.createElement('div');
-  box.innerHTML=`<div class="mu mu-acc mu-pts" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">
+  box.innerHTML=`<div class="mu mu-acc mu-pts${zero?' is-zero':''}${issue?' is-'+issue:''}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">
     <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
-    ${total?`<div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${JEU_COIN_SVG}</span><span>Points de salle</span><b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b></div>`:''}
-    <button type="button" class="mu-x" aria-label="Voir le bilan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    ${total&&!zero?`<div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${JEU_COIN_SVG}</span><span>Points de salle</span><b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b></div>`:''}
+    <button type="button" class="mu-x" aria-label="${suite}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="mu-in">
-      <span class="mu-kick" id="mu-k">${o.solo?'Partie solo terminée':'Partie terminée'}</span>
+      <span class="mu-kick" id="mu-k">${kick}</span>
       <div class="mu-stage" aria-hidden="true">
         <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
         <div class="mu-st mu-done mu-coin">${JEU_COIN_SVG}</div>
-        <span class="mu-tag">+${fmt(o.pts)} point${pl}</span>
+        <span class="mu-tag">${zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>
       </div>
-      <h2 class="mu-h" id="mu-h" tabindex="-1">Bravo&nbsp;!</h2>
-      <p class="mu-p" id="mu-p">Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${total?` Tes points de salle passent à <b>${fmt(total)}</b>.`:''}</p>
+      <h2 class="mu-h" id="mu-h" tabindex="-1">${h}</h2>
+      <p class="mu-p" id="mu-p">${p}</p>
       <div class="mu-acts">
-        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_PLAY}</span><span class="mu-go-l">Voir le bilan</span></button>
+        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_PLAY}</span><span class="mu-go-l">${suite}</span></button>
         ${o.solo?'':'<button type="button" class="mu-later mu-rejouer">Revanche</button>'}
       </div>
     </div>
@@ -38726,17 +38752,17 @@ function jeuPtsPage(o){
   const rj=el.querySelector('.mu-rejouer');
   if(rj)rj.addEventListener('click',()=>{fermer();setTimeout(()=>{if(typeof jeuRevanche==='function')jeuRevanche();},60);});
   el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); fermer(); } });
-  if(typeof lqSay==='function')lqSay(`+${o.pts} point${pl}`+(total?`, total de salle : ${total} points`:''));
-  if(typeof buzz==='function')buzz('success');
+  if(typeof lqSay==='function')lqSay(`${issue?h.replace(/\u00a0/g,' ')+' ':''}${zero?'0 point':`+${o.pts} point${pl}`}`+(total&&!zero?`, total de salle : ${total} points`:''));
+  if(typeof buzz==='function')buzz(fete?'success':'light');
   const alb=el.querySelector('.mu-album');
   if(prefersReduceMotion()){ el.classList.add('is-still','is-a','is-ready','is-album'); if(alb)alb.classList.add('is-hit'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} return; }
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(MU&&MU.el===el)el.classList.add('is-a'); }));
   T(()=>{
     muImpact(el,false);
-    if(navigator.vibrate)navigator.vibrate([18,30,10]);
-    lqConfetti({n:60});
-    muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);
+    if(navigator.vibrate)navigator.vibrate(fete?[18,30,10]:[12]);
+    if(fete)lqConfetti({n:60});   // la victoire (13 novembre, 17 h 31) ; seul, comme avant
+    muSound(fete?[[0,'stamp',0,.8],[110,'chord',0,.5]]:[[0,'stamp',0,.6]]);
   },560);
   if(alb){ T(()=>el.classList.add('is-album'),1150); T(()=>{ alb.classList.add('is-hit'); muSound([[0,'pop',3,.6]]); if(navigator.vibrate)navigator.vibrate(8); },1500); }
   T(()=>{ el.classList.add('is-ready'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} },1500);
@@ -51322,7 +51348,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-fin-v2951';
+  const SW_CACHE='requete-2026-11-13-points-v2952';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

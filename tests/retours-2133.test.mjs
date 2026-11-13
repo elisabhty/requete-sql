@@ -108,7 +108,7 @@ test('nouveaux stickers : une page, plusieurs ensemble sur la même ; plus de ba
 test('la série du jour et les points : des pages, plus de notifications ; la page des points mène au bilan', () => {
   assert.ok(!app.includes('function lqStreakToast(') && !app.includes('function jeuPtsPop('));
   const p = fn('jeuPtsPage');
-  assert.ok(p.includes("${o.solo?'Partie solo terminée':'Partie terminée'}") && p.includes('<span class="mu-go-l">Voir le bilan</span>'));
+  assert.ok(p.includes("const kick=issue==='victoire'?'Victoire\\u00a0!':o.solo?'Partie solo terminée':'Partie terminée';") && p.includes("const suite=issue&&issue!=='nul'?'Voir le podium':'Voir le bilan';") && p.includes('<span class="mu-go-l">${suite}</span>'));
   assert.ok(p.includes("const fermer=()=>moduleUpClose();") && p.includes("el.querySelector('.mu-go').addEventListener('click',fermer);"), '« Voir le bilan » referme la page sur le bilan');
   assert.ok(p.includes("if(MU){ clearTimeout(jeuPtsPage.t); jeuPtsPage.t=setTimeout(()=>jeuPtsPage(o),900); return; }"), 'une page à la fois');
 });

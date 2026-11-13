@@ -365,8 +365,9 @@ test('manches enchaînées sans doublon, podium, points cumulés une seule fois'
   for (let n = 0; n < 3; n++) {
     host.ev('jeuNextRound()'); sec(w, 4.5);
     host.found(); sec(w, 3); guests[0].found(); sec(w, 1.5);
-    assert.equal(host.view(), n < 2 ? 'res' + n : 'final', '13 novembre, 17 h 16 : la dernière mène tout droit à l’écran de fin');
+    assert.equal(host.view(), n < 2 ? 'res' + n : 'play2', '13 novembre, 17 h 31 : la dernière reste sur sa carte, le temps du compte à rebours');
   }
+  assert.match(host.html, /Tes points arrivent dans <b id="jeu-auto-n">\d<\/b>/, 'la barre : « Tes points arrivent dans 5 s »');
   const cids = host.ev('JEU.rounds.map(r=>r.cid)');
   assert.equal(new Set(cids).size, 3, 'trois défis différents : ' + cids);
   host.ev('jeuFinish()'); sec(w, 1.5);
@@ -1047,7 +1048,10 @@ test('la manche se clôt seule quand tout le monde a trouvé, sinon à la fin du
   sec(w, 10);
   assert.equal(host.view(), 'play1', 'la suivante part toute seule');
   sec(w, 10 * 60);
-  for (const c of [host, ...guests]) assert.equal(c.view(), 'final', c.name + ' : personne n’a trouvé, elle finit au chrono (la dernière : l’écran de fin, 13 novembre)');
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name + ' : personne n’a trouvé, elle finit au chrono');
+  assert.match(guests[0].html, /Temps écoulé/); assert.match(guests[0].html, /Tes points arrivent dans/, '13 novembre, 17 h 31 : « Temps écoulé », puis les points');
+  sec(w, 6);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'final', c.name + ' : puis l’écran de fin (13 novembre)');
   assert.match(guests[0].html, /<i>1 défi trouvé sur 2<\/i>/, 'la manche finie au chrono compte, sans être trouvée');
   assert.match(guests[0].html, /<h1 id="jr2-t">Pas cette fois\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Hôte l’emporte de \d+\u00a0points?\. À toi la revanche\u00a0!<\/p>/, 'la défaite : qui l’emporte et de combien');
   assert.match(host.html, /<h1 id="jr2-t">Tu as gagné\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Devant Ami1, de \d+\u00a0points?\.<\/p>/, 'la victoire : devant qui et de combien');
@@ -1526,8 +1530,8 @@ test('8 novembre, 10 h 10 : entre amis, à 0, la manche suivante part toute seul
   sec(w, 4);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'play1', c.name);
   sec(w, 10 * 60 + 1);
-  assert.equal(host.view(), 'final', '13 novembre, 17 h 16 : plus de « Le podium arrive dans 5 s », l’écran de fin tout de suite');
-  assert.doesNotMatch(host.html, /Le podium arrive/);
+  assert.equal(host.view(), 'play1', '13 novembre, 17 h 31 : la carte de la manche, le temps du compte à rebours');
+  assert.match(host.html, /Tes points arrivent dans <b id="jeu-auto-n">\d<\/b>/); assert.doesNotMatch(host.html, /Le podium arrive/);
   sec(w, 6);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'final', c.name + ' : le podium, tout seul');
 });
@@ -1726,7 +1730,7 @@ test('12 h 47 : l’hôte perd le réseau pile à la fin de la dernière manche 
   host.ev('jeuNextRound()'); sec(w, 4.5);
   guests[0].found(); guests[1].found(); sec(w, 2);
   host.found(); sec(w, 1); host.offline = true; sec(w, 3);
-  for (const g of guests) assert.equal(g.view(), 'final', g.name + ' : l’écran de fin tout de suite (13 novembre, 17 h 16)');
+  for (const g of guests) assert.equal(g.view(), 'play0', g.name + ' : sa carte, « Tes points arrivent dans 5 s » (13 novembre, 17 h 31)');
   sec(w, 5);
   for (const g of guests) { assert.equal(g.view(), 'final', g.name + ' : le podium, sans l’hôte'); assert.match(g.html, /jeu-podium/); assert.doesNotMatch(g.html, /jeuAgain\(\)/); }
   assert.equal(guests[0].J('over'), false, 'la fin de partie n’est pas encore partie');
@@ -1797,7 +1801,8 @@ test('14 h 01 : pas tous prêts, le bouton se débloque à 30 s ; « n’est pas
     assert.match(c.html, /Retour automatique dans <b id="jeu-oups-n">30<\/b>\u00a0s/, '14 h 24 : le compte à rebours'); }
   for (const c of [host, guests[0]]) assert.deepEqual(c.live(), ['Hôte', 'Ami1'], c.name + ' : la partie se joue à deux');
   sec(w, 3.5); host.found(); guests[0].found(); sec(w, 2.5);
-  assert.equal(host.view(), 'final', 'la manche finit sans attendre les absents de la partie (la dernière : l’écran de fin)');
+  assert.equal(host.view(), 'play0', 'la manche finit sans attendre les absents de la partie (la dernière : sa carte, puis l’écran de fin)');
+  assert.match(host.html, /Tes points arrivent dans/);
   /* Un « prêt » touché trop tard ne change rien */
   guests[1].ev('jeuToggleReady()'); sec(w, 1); assert.equal(guests[1].view(), 'oups');
   /* 14 h 24 : au bout de 30 s, retour sur Défis tout seul */

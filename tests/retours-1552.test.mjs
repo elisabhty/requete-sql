@@ -80,15 +80,15 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
 
 test('les points gagnés : une page en fin de partie (11 novembre, 21 h 33), plus de pastille à la manche', () => {
   const pop = cut('function jeuPtsPage(o){', '\n/* Points de la partie (une seule fois)');
-  assert.ok(pop.includes("if(!o||!(o.pts>0)||typeof document==='undefined'||typeof document.createElement!=='function'"), 'rien sans points ni sans page');
-  assert.ok(pop.includes('<span class="mu-tag">+${fmt(o.pts)} point${pl}</span>') && pop.includes('<span class="mu-go-l">Voir le bilan</span>'), 'la pièce, « +12 points », « Voir le bilan »');
+  assert.ok(pop.includes("if(!o||!(o.pts>0||o.issue)||typeof document==='undefined'||typeof document.createElement!=='function'"), 'rien sans points (seul) ni sans page ; entre amis, toutes les issues (13 novembre, 17 h 31)');
+  assert.ok(pop.includes("<span class=\"mu-tag\">${zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>") && pop.includes('<span class="mu-go-l">${suite}</span>'), 'la pièce, « +12 points », « Voir le bilan » (seul) ou « Voir le podium »');
   assert.ok(pop.includes('<b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b>'), 'le total roule de l’ancien au nouveau');
-  assert.ok(pop.includes("if(typeof lqSay==='function')lqSay(`+${o.pts} point${pl}`"), 'le lecteur d’écran entend le résultat');
+  assert.ok(pop.includes("if(typeof lqSay==='function')lqSay(`${issue?h.replace(/\\u00a0/g,' ')+' ':''}${zero?'0 point':`+${o.pts} point${pl}`}`"), 'le lecteur d’écran entend le résultat (et l’issue entre amis)');
   assert.ok(!app.includes('function jeuPtsPop('), 'plus de pastille');
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
   assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x&&x.pts>0&&typeof lqSay==='function')lqSay(`+${x.pts} points`);}"), 'à la manche, la carte « Trouvé » les montre ; le lecteur d’écran les dit');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage({pts:cg.pts,total:cg.total,solo:!!J.solo});},700);"));
+  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(seul&&cg&&cg.pts>0)ptsPage({pts:cg.pts,total:cg.total,solo:!!J.solo},700);"));
   assert.ok(app.includes('    return {pts,total:s.pts};\n  }catch(e){return null;}'), 'la partie créditée une seule fois renvoie ses points');
   /* Le compteur sait partir d’un nombre et écrire « 1 274 » */
   const cu = cut('function jeuCountUp(el){', '\n/* Les points d’une partie');

@@ -43,7 +43,7 @@ test('trouvé : la carte de l’indice reste à la place de l’éditeur, son en
   assert.ok(f.includes("const det=coachOkDetail([`Résolu en <b>${jeuDureeLisible(x.ms)}</b>`,sl||pos<0?'':pos===0?'1er à trouver':`${pos+1}e à trouver`,x.essai?`du premier coup <span class=\"coach-ok-bonus\">+${x.essai}\\u00a0✨</span>`:'']);"), 'le temps, la place entre amis, le premier coup (le record, sur l’écran de fin : 11 h 31)');
   assert.ok(f.includes("const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;"), 'après un essai manqué, le vert part du rouge');
   const suite = cut('function jeuSuiteHTML(n){', '\n}\n');
-  assert.ok(f.includes("const suite=sl?jeuSuiteHTML(n)") && suite.includes('`<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?\'Ton bilan arrive\':\'La manche suivante démarre\'} dans <b id="jeu-auto-n">') && suite.includes('<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:'), 'seul : la suite, son compte à rebours et sa barre (8 h 50)');
+  assert.ok(f.includes("const suite=sl||(last&&jeuRoundDone(n))?jeuSuiteHTML(n)") && suite.includes('`<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?(jeuSoloLike(n)?\'Ton bilan arrive\':\'Tes points arrivent\'):\'La manche suivante démarre\'} dans <b id="jeu-auto-n">') && suite.includes('<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:'), 'seul : la suite, son compte à rebours et sa barre (8 h 50)');
   assert.ok(f.includes('<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">'), 'à plusieurs : qui cherche encore, et les réactions groupées');
   assert.ok(!f.includes('jeu-hostbar') && !f.includes('jeuHostBarHTML'), 'plus de « Clore la manche » pour l’hôte (9 novembre, 8 h 42)');
   /* 10 h 37 : « Voir ma requête et son résultat » ; 11 h 31 : la correction attend l’écran de fin, jamais sur le défi */
@@ -92,5 +92,5 @@ test('résultats et fin de partie allégés ; les points de la partie ont leur p
   for (const k of ['html.lq .jeu-pd i{padding:0!important;background:none!important;', 'html.lq .jeu-pd i:not(:last-child)::after{content:"·";', 'html.lq .jeu-rank li.is-me{', 'html.lq .jeu-sol>summary{display:flex;'])
     assert.ok(s50.includes(k), k);
   const pop = cut('function jeuPtsPage(o){', '\n/* Points de la partie (une seule fois)');
-  assert.ok(pop.includes('<div class="mu mu-acc mu-pts" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">'), 'une page, dans la DA de la fin d’un module');
+  assert.ok(pop.includes('<div class="mu mu-acc mu-pts${zero?\' is-zero\':\'\'}${issue?\' is-\'+issue:\'\'}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">'), 'une page, dans la DA de la fin d’un module');
 });

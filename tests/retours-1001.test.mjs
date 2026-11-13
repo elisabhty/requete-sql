@@ -35,7 +35,8 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   assert.ok(v.includes("if(J.over)return'final';"), 'finie : l’écran de fin');
   assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono : sa carte, 5 s, puis l’écran de fin');
   /* 11 novembre, 21 h 33 : plus de pastille de points à la manche (la carte « Trouvé » les montre) ; ceux de la partie ont leur page */
-  assert.ok(app.includes("if(cg&&cg.pts>0)setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage({pts:cg.pts,total:cg.total,solo:!!J.solo});},700);"), 'les points de la partie, une page sur l’écran de fin');
+  /* 13 novembre, 17 h 31 : seul, avec des points, comme avant ; entre amis, à chaque fin de partie (retours-1731-points) */
+  assert.ok(app.includes("const ptsPage=(o,d)=>setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage(o);},d);") && app.includes("if(seul&&cg&&cg.pts>0)ptsPage({pts:cg.pts,total:cg.total,solo:!!J.solo},700);"), 'les points de la partie, une page sur l’écran de fin');
   /* Ses boutons : ceux du bilan (jeuFinBoutonsHTML depuis 10 h 37 : la prochaine étape en carte, « Réessayer » sans défi résolu,
      « Retour aux défis » à la place de « Changer de niveau ») */
   const ctx = vm.createContext({ JEU: { solo: true, niv: 'f' }, jeuIsHost: () => true, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>',
@@ -70,7 +71,7 @@ test('seul, finie au chrono : « Temps écoulé » à la place de l’éditeur, 
   assert.ok(r.includes('      ${jeuSuiteHTML(n)}\n    </section>`;') && !r.includes('jeuCorrBoutonHTML') && !r.includes('jeuFinBoutonsHTML'), 'la suite, toujours ; la correction sur l’écran de fin (11 h 31)');
   assert.ok(!r.includes('jeuRetenter') && !r.includes('Retenter ce défi'), 'plus de « Retenter ce défi » : « Réessayer » le doublait');
   assert.ok(!r.includes('Point obtenu') && !r.includes('Non validée'), 'l’essentiel : plus de « 0 point obtenu », « Non validée »');
-  assert.ok(app.includes("const rate=!mine&&sl&&jeuRoundDone(n);edOn=!mine&&!rate;") && app.includes("${mine?jeuFoundHTML(r,J.me):rate?jeuRateHTML(r):editorBlock(false,'defi.sql',{jeu:1})}"));
+  assert.ok(app.includes("const rate=!mine&&jeuRoundDone(n)&&(sl||n>=J.nb-1);edOn=!mine&&!rate;") && app.includes("${mine?jeuFoundHTML(r,J.me):rate?jeuRateHTML(r):editorBlock(false,'defi.sql',{jeu:1})}"));
   assert.ok(app.includes("+'|'+(r&&r.closed?'c':'')+(r&&jeuRoundDone(n)?'d':'');"), 'le chrono à 0 redessine la page');
   assert.ok(fn('jeuRetenter').includes('if(JEU)jeuStop();'), 'seule dans sa salle aussi, on la quitte pour la page du défi');
   for (const k of ['html.lq .coach-to{display:grid;grid-template-columns:28px minmax(0,1fr);', 'border:2px solid #FFD2BC;border-radius:16px;background:#FFF1E8;',
@@ -81,7 +82,7 @@ test('seul, finie au chrono : « Temps écoulé » à la place de l’éditeur, 
 
 test('trouvée sans que la page le montre (la réponse du serveur en salle classée) : la carte prend la place de l’éditeur', () => {
   const p = fn('jeuPatch');
-  assert.ok(p.includes("{const r=J.rounds[n];if(r&&(r.found[J.me]!=null||(J.slShown&&jeuRoundDone(n)))&&!document.getElementById('jeu-done')){J.keep=v;J.view='';jeuPaint();return;}}"));
+  assert.ok(p.includes("{const r=J.rounds[n];if(r&&(r.found[J.me]!=null||(J.slShown&&jeuRoundDone(n)))&&!document.getElementById('jeu-done')){J.keep=v;J.view='';jeuPaint();return;}"));
   assert.ok(p.indexOf("if(jeuSoloLike(n)!==J.slShown)") < p.indexOf("document.getElementById('jeu-done')"), 'après le passage seul / à plusieurs');
 });
 
