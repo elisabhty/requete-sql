@@ -412,7 +412,8 @@ de leçon, une ligne « Leçon débloquée » montre le cadenas qui s’ouvre et
 
 ### La note de l’app, puis la page du widget (13 novembre, 1 h 02)
 
-Après la **première** leçon validée, de retour à l’accueil, l’app demande à iOS sa fenêtre aux cinq étoiles (le pont
+Après la **deuxième** leçon validée (1 h 38 ; la première finit déjà sur la page du sticker du module 1), de retour à l’accueil,
+l’app demande à iOS sa fenêtre aux cinq étoiles (le pont
 `RequeteWidget.noter`, StoreKit : `AppStore.requestReview(in:)`, `SKStoreReviewController` avant iOS 16). Une seule demande
 (`requete-note-demandee`), 2,6 s après le retour, une fois la leçon suivante ouverte sur le chemin. C’est iOS qui décide de
 l’afficher : trois fois par an au plus pour une même personne, **jamais dans une version TestFlight** (elle apparaît lancée
@@ -423,7 +424,7 @@ Une **deuxième demande** (1 h 18), et pas plus : 7 jours au moins après la pre
 Supabase. L’entonnoir compte seulement les demandes (« Note demandée à iOS », 1re et 2e fois) ; les notes elles-mêmes se
 lisent dans App Store Connect.
 
-Après la **deuxième** leçon, la page du widget (« Je t’encouragerai directement depuis ton écran d’accueil ! »), 2 s après le
+Après la **troisième** leçon, la page du widget (« Je t’encouragerai directement depuis ton écran d’accueil ! »), 2 s après le
 retour à l’accueil ; elle venait après la première. Jamais les deux au même retour.
 
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
