@@ -408,10 +408,10 @@ test('13 novembre, 21 h 33 : la revanche ; chacun dit s’il en est, et quand to
   assert.equal(guests[0].view(), 'final');
   /* 22 h 14 : Ami2 a gagné : lui touche « Rejouer », les autres « Revanche » */
   assert.deepEqual(guests[0].ev('JSON.stringify([...jeuGagnants()])'), JSON.stringify([guests[1].J('me')]), 'un seul gagnant, Ami2');
-  assert.match(guests[1].html, /<b>On rejoue\u00a0\?<\/b><small>Touche Rejouer pour dire que tu es de la partie\.<\/small>/);
+  assert.match(guests[1].html, /<b>On rejoue\u00a0\?<\/b><small>Touche <mark class="jeu-rv-mot">Rejouer<\/mark> pour dire que tu es de la partie\.<\/small>/);
   assert.match(guests[1].html, /onclick="jeuRevanche\(\)"><svg[^]*?<\/svg><span>Rejouer<\/span>/);
   assert.match(host.html, /onclick="jeuRevanche\(\)"><svg[^]*?<\/svg><span>Revanche<\/span>/);
-  assert.match(guests[0].html, /<b>On rejoue\u00a0\?<\/b><small>Touche Revanche pour dire que tu es de la partie\.<\/small>/);
+  assert.match(guests[0].html, /<b>On rejoue\u00a0\?<\/b><small>Touche <mark class="jeu-rv-mot">Revanche<\/mark> pour dire que tu es de la partie\.<\/small>/);
   guests[0].ev('jeuRevanche()'); sec(w, 0.5);
   assert.equal(guests[0].J('revanche'), true);
   assert.match(guests[0].html, /class="journey-primary jeu-revanche on" aria-pressed="true"/);

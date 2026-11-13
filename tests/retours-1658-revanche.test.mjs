@@ -28,7 +28,7 @@ test('le podium : une carte en direct (qui en est, qui est là), puis « Quitter
   const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ');
   vm.runInContext(relance + fn('jeuRevanche') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
   let h = ctx.jeuRevancheHTML();
-  assert.ok(h.startsWith('<div class="jeu-rv" id="jeu-rv">') && h.includes('<b>On rejoue\u00a0?</b><small>Touche Revanche pour dire que tu es de la partie.</small>'));
+  assert.ok(h.startsWith('<div class="jeu-rv" id="jeu-rv">') && h.includes('<b>On rejoue\u00a0?</b><small>Touche <mark class="jeu-rv-mot">Revanche</mark> pour dire que tu es de la partie.</small>'));
   assert.ok(h.includes('<span class="jeu-rv-av" aria-hidden="true"><b class="jeu-av" data-c="1">S</b><b class="jeu-av" data-c="0">J</b></span>0/2 pour la revanche</span>'), 'toi, puis qui est là');
   assert.ok(h.includes('<span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>') && h.includes('<span class="jeu-rv-ico"><svg'), 'les flèches en rond, en direct');
   assert.ok(h.includes('<button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()"><quit><span>Quitter la salle</span></button>') && h.includes('<button type="button" class="journey-primary jeu-revanche" aria-pressed="false" onclick="jeuRevanche()"><svg') && h.includes('</svg><span>Revanche</span></button>'));
@@ -102,10 +102,10 @@ test('22 h 14 : qui a gagné touche « Rejouer », les autres « Revanche » ; c
   ctx.sc = [{ pid: 'h', pts: 275, ms: 1000 }, { pid: 'g', pts: 230, ms: 2000 }, { pid: 'k', pts: 0, ms: 9000 }];
   ctx.JEU.rv = {};
   let h = ctx.jeuRevancheHTML();
-  assert.ok(h.includes('<b>On rejoue ?</b><small>Touche Revanche pour dire que tu es de la partie.</small>') && h.includes('<span>Revanche</span></button>'), '2e : « Revanche »');
+  assert.ok(h.includes('<b>On rejoue ?</b><small>Touche <mark class="jeu-rv-mot">Revanche</mark> pour dire que tu es de la partie.</small>') && h.includes('<span>Revanche</span></button>'), '2e : « Revanche »');
   ctx.JEU.me = 'h';
   h = ctx.jeuRevancheHTML();
-  assert.ok(h.includes('<b>On rejoue ?</b><small>Touche Rejouer pour dire que tu es de la partie.</small>') && h.includes('<span>Rejouer</span></button>') && h.includes('0/3 pour rejouer'), '1re : « Rejouer »');
+  assert.ok(h.includes('<b>On rejoue ?</b><small>Touche <mark class="jeu-rv-mot">Rejouer</mark> pour dire que tu es de la partie.</small>') && h.includes('<span>Rejouer</span></button>') && h.includes('0/3 pour rejouer'), '1re : « Rejouer »');
   ctx.JEU.me = 'k'; ctx.JEU.rv = { h: true };
   assert.ok(ctx.jeuRevancheHTML().includes('<b>@lea veut rejouer !</b>'), 'le gagnant veut rejouer');
   ctx.JEU.rv = { g: true };
@@ -148,4 +148,11 @@ test('22 h 38 (la partie à 6) : les six joueurs, « @sam et 2 autres », « En 
   assert.ok(css.includes('html.lq #jeu-root .jeu-podium .jeu-step-n{display:block;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;overflow-wrap:normal}'));
   const i = css.indexOf('html.lq #jeu-root .jeu-podium .jeu-step-n{');
   assert.ok(i < css.indexOf('Défis — la refonte du 7 novembre') && (i < css.indexOf('Les exemples de widgets (Elisa, 13 novembre, 9 h 19') || i > css.indexOf('Défis — la refonte du 7 novembre')), 'avant les Défis, hors des widgets');
+});
+
+test('23 h 03 : « Touche Revanche » ou « Touche Rejouer » : le mot du bouton surligné du jaune de l’appli', () => {
+  assert.ok(app.includes(':`Touche <mark class="jeu-rv-mot">${bouton}</mark> pour dire que tu es de la partie.`;'));
+  const r = 'html.lq #jeu-root .jeu-rv-mot{padding:1px 5px;margin:0 1px;border-radius:5px;background:var(--sun);color:var(--ink);font-weight:800;';
+  assert.ok(css.includes(r) && css.indexOf(r) < css.indexOf('Défis — la refonte du 7 novembre'));
+  assert.ok(css.includes('html.lq{--sun:#FFC83D;'), 'le jaune de l’appli');
 });
