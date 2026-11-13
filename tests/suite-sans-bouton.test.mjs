@@ -87,5 +87,5 @@ test('9 novembre, 19 h 40 : seul, la suite part 10 s après (le temps de lire sa
   ctx.JEU = { solo: true, nb: 3, over: false, rounds: [r], synced: true, syncAt: 0, echoAt: 1_000_000 };
   assert.equal(ctx.jeuFinAuto(0), 1_010_000);
   ctx.JEU.over = true;
-  assert.match(ctx.jeuAutoAttente(2), /Ton bilan arrive…/, 'seul, la dernière : le bilan');
+  assert.match(ctx.jeuAutoAttente(2), /Tes points arrivent…/, 'seul, la dernière : les points (18 h 48)');
 });
