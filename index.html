@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=351">
+<link rel="stylesheet" href="ludique.css?v=352">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38778,23 +38778,25 @@ function jeuRevancheHTML(){
   const rv=J.rv||{},on=!!rv[J.me],live=typeof jeuLive==='function'?jeuLive():[J.me],ord=jeuOrder();
   const win=jeuGagnants(),moiG=win.has(J.me),mot=p=>win.has(p)?'Rejouer':'Revanche',bouton=mot(J.me);
   const nom=p=>esc((J.players[p]||{}).name||'Joueur'),liste=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' et '+a[a.length-1];
+  /* 22 h 38 (la partie à 6) : « @sam, @tom et @jean_baptiste9 veulent leur revanche ! » prenait quatre lignes : au-delà de max noms,
+     « @sam et 2 autres » */
+  const court=(a,max)=>a.length<=max?liste(a):`${a.slice(0,max-1).join(', ')} et ${a.length-max+1}\u00a0autre${a.length-max+1>1?'s':''}`;
   const autres=live.filter(p=>p!==J.me),oui=autres.filter(p=>rv[p]),attente=autres.filter(p=>!rv[p]);
   const qui=[J.me,...autres];
-  const av=qui.slice(0,5).map(p=>`<b class="jeu-av${rv[p]?' is-oui':''}" data-c="${Math.max(0,ord.indexOf(p))%6}">${jeuInitial((J.players[p]||{}).name)}</b>`).join('');
+  const av=qui.slice(0,6).map(p=>`<b class="jeu-av${rv[p]?' is-oui':''}" data-c="${Math.max(0,ord.indexOf(p))%6}">${jeuInitial((J.players[p]||{}).name)}</b>`).join('');
   const n=qui.filter(p=>rv[p]).length;
   const dans=autres.length?`${n}/${qui.length} ${moiG?'pour rejouer':'pour la revanche'}`:`Tu es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'} dans la salle`;
   const titre=on?(attente.length?`Tu es de la partie\u00a0!`:'La partie repart…')
-    :oui.length?`${liste(oui.map(nom))} ${oui.some(p=>win.has(p))?(oui.length>1?'veulent rejouer':'veut rejouer'):(oui.length>1?'veulent leur revanche':'veut sa revanche')}\u00a0!`
+    :oui.length?`${court(oui.map(nom),2)} ${oui.some(p=>win.has(p))?(oui.length>1?'veulent rejouer':'veut rejouer'):(oui.length>1?'veulent leur revanche':'veut sa revanche')}\u00a0!`
     :'On rejoue\u00a0?';   // 22 h 22 (Elisa) : « On rejoue ? » pour tout le monde ; le bouton garde son mot
   const choix=[...new Set(attente.map(mot))];
-  const sous=on?(attente.length?`On attend ${liste(attente.map(nom))}${choix.length===1?`\u00a0: ${choix[0]} ou Quitter la salle`:''}.`:'Tout le monde a répondu.')
+  const sous=on?(attente.length?`On attend ${court(attente.map(nom),3)}${choix.length===1?`\u00a0: ${choix[0]} ou Quitter la salle`:''}.`:'Tout le monde a répondu.')
     :`Touche ${bouton} pour dire que tu es de la partie.`;
   return `<div class="jeu-rv${on?' is-on':''}" id="jeu-rv">
     <div class="jeu-rv-live" role="status" aria-live="polite">
       <span class="jeu-rv-ico">${JEU_RELANCE_SVG}</span>
-      <div class="jeu-rv-tx"><b>${titre}</b><small>${sous}</small>
+      <div class="jeu-rv-tx"><span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span><b>${titre}</b><small>${sous}</small>
         <span class="jeu-rv-qui"><span class="jeu-rv-av" aria-hidden="true">${av}</span>${dans}</span></div>
-      <span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>
     </div>
     <div class="jeu-rv-btns">
       <button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()">${JEU_ICO.quit}<span>Quitter la salle</span></button>
@@ -51562,7 +51564,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-badges-v2975';
+  const SW_CACHE='requete-2026-11-13-sixjoueurs-v2976';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

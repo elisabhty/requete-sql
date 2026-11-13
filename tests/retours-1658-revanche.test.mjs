@@ -122,3 +122,30 @@ test('22 h 14 : qui a gagné touche « Rejouer », les autres « Revanche » ; c
   ctx.sc = [{ pid: 'h', pts: 275, ms: 1000 }, { pid: 'g', pts: 275, ms: 1000 }, { pid: 'k', pts: 0, ms: 9000 }];
   assert.deepEqual([...ctx.jeuGagnants()].sort(), ['g', 'h']);
 });
+
+test('22 h 38 (la partie à 6) : les six joueurs, « @sam et 2 autres », « En direct » qui flotte, le podium sur une ligne', () => {
+  const ligne = n => { const a = app.indexOf(`function ${n}(`); return app.slice(a, app.indexOf('\n', a) + 1); };
+  const ids = ['a', 'b', 'c', 'd', 'e', 'f'], noms = ['@lea', '@sam', '@marie_charlotte', '@ines', '@tom', '@jean_baptiste9'];
+  const ctx = vm.createContext({ JEU: { me: 'c', solo: false, players: Object.fromEntries(ids.map((p, i) => [p, { name: noms[i] }])) },
+    JEU_ICO: { quit: '<quit>' }, esc: s => String(s), jeuMaj: t => t.charAt(0).toUpperCase() + t.slice(1), jeuPretMot: () => 'prête',
+    jeuLive: () => ids, jeuOrder: () => ids, jeuInitial: n => String(n).charAt(1).toUpperCase(), accord: f => f,
+    jeuScores: () => ids.map((pid, i) => ({ pid, pts: i === 3 ? 500 : 100, ms: 1000 + i })) });
+  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ');
+  vm.runInContext(relance + ligne('jeuPlaces') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
+  ctx.JEU.rv = { b: true, e: true, f: true };
+  let h = ctx.jeuRevancheHTML();
+  assert.equal((h.match(/class="jeu-av/g) || []).length, 6, 'les six joueurs');
+  assert.ok(h.includes('<b>@sam et 2 autres veulent leur revanche !</b>'), h.match(/<b>[^<]*<\/b>/)[0]);
+  assert.ok(h.includes('3/6 pour la revanche'));
+  assert.ok(h.includes('<div class="jeu-rv-tx"><span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span><b>'), '« En direct » en tête du texte, qui flotte à droite');
+  ctx.JEU.rv = { c: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<small>On attend @lea, @sam et 3 autres.</small>'));
+  ctx.JEU.rv = { c: true, b: true, e: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<small>On attend @lea, @ines et @jean_baptiste9.</small>'), 'trois noms : tous');
+  ctx.JEU.rv = { a: true, b: true, d: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<b>@lea et 2 autres veulent rejouer !</b>'), 'avec @ines, qui a gagné');
+  assert.ok(css.includes('html.lq #jeu-root .jeu-rv-tx>.jeu-rv-direct{float:right;margin:0 0 4px 8px}') && css.includes('html.lq #jeu-root .jeu-rv-qui{clear:both;white-space:nowrap}'));
+  assert.ok(css.includes('html.lq #jeu-root .jeu-podium .jeu-step-n{display:block;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;overflow-wrap:normal}'));
+  const i = css.indexOf('html.lq #jeu-root .jeu-podium .jeu-step-n{');
+  assert.ok(i < css.indexOf('Défis — la refonte du 7 novembre') && (i < css.indexOf('Les exemples de widgets (Elisa, 13 novembre, 9 h 19') || i > css.indexOf('Défis — la refonte du 7 novembre')), 'avant les Défis, hors des widgets');
+});
