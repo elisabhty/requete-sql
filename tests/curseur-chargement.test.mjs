@@ -17,8 +17,9 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 test('le curseur est chargé par l’appli et par chaque page de la vitrine, avec l’empreinte de son contenu, et gardé hors ligne', () => {
   const v = createHash('sha1').update(fs.readFileSync(path.join(root, 'assets/curseur.js'))).digest('hex').slice(0, 8);
   assert.ok(app.includes(`<script src="assets/curseur.js?v=${v}" defer></script>`), `appli : écrire assets/curseur.js?v=${v}`);
-  const pages = fs.readdirSync(path.join(root, 'decouvrir')).filter(f => f.endsWith('.html'));
-  assert.ok(pages.length >= 7);
+  /* 13 novembre : connexion.html n’est plus qu’un renvoi vers la section iPhone (retours-0144-site), sans curseur à charger */
+  const pages = fs.readdirSync(path.join(root, 'decouvrir')).filter(f => f.endsWith('.html') && f !== 'connexion.html');
+  assert.ok(pages.length >= 6);
   for (const p of pages) assert.ok(lire('decouvrir/' + p).includes(`<script src="../assets/curseur.js?v=${v}" defer></script>\n</head>`), `${p} : écrire ../assets/curseur.js?v=${v}`);
   assert.ok(sw.includes("'./assets/curseur.js',"), 'préchargé par le service worker');
 });

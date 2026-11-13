@@ -1,6 +1,8 @@
 # Requête — Apprends le SQL
 
-Application web progressive pour apprendre le SQL en pratiquant sur une **vraie base SQLite** dans le navigateur.
+Application iPhone (Capacitor) pour apprendre le SQL en pratiquant sur une **vraie base SQLite**. Le site requeteapp.com (`decouvrir/`) la présente.
+
+Depuis le 13 novembre 2026, l’appli ne s’ouvre plus dans un navigateur : l’adresse du site mène toujours à `decouvrir/`, et « Commencer » y descend vers la section iPhone (le lien de l’App Store). `index.html` ne se charge plus que dans l’app iPhone, en local (`localhost`, pour la mise au point) et dans les navigateurs pilotés par les tests.
 
 ## Fonctionnalités
 

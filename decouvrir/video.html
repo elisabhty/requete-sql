@@ -730,12 +730,8 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 @media (prefers-reduced-motion:reduce){
   #frame:has(#end.on) .ft .ico,#frame:has(#end.on) .ft.more::after,#frame:has(#end.on) .ft.more .ico svg,#end.on a,#end.on button,#end.on a::after,#end.on a svg{animation:none}
 }
-/* Vers l’appli (Elisa, 3 novembre, 13 h 04) : « Passer la vidéo » et « Commencer » ouvrent directement l’onboarding, sans passer
-   par la page de connexion (« Se connecter » y mène toujours). Comme en quittant la page de connexion, l’écran passe au violet de
-   l’écran de chargement de l’appli pendant qu’elle se charge, au lieu de rester sur la vidéo ou de montrer du blanc. */
-body::after{content:'';position:fixed;inset:0;z-index:1000;pointer-events:none;opacity:0;transition:opacity .28s;
-  background:linear-gradient(180deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%)}
-body.vd-leave::after{opacity:1}
+/* 13 novembre, 1 h 44 : l’appli web n’existe plus. « Passer la vidéo » et « Commencer » mènent à la section iPhone du site ;
+   le voile violet du passage vers l’appli est retiré. */
 /* Dans l’onboarding de l’appli : seul « Passer la vidéo » reste en haut, à droite ; l’appli gère l’heure et la barre d’accueil. */
 html.vd-onboarding .bar.top{justify-content:flex-end}
 html.vd-onboarding .pill.back,html.vd-onboarding .pill.login{display:none}
@@ -746,8 +742,7 @@ html.vd-onboarding .pill.back,html.vd-onboarding .pill.login{display:none}
 <div class="bar top">
   <a class="pill back" href="./" aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span class="lg">Retour</span></a>
   <span class="bar-r">
-    <a class="pill login" href="connexion.html#cx-form"><svg class="me" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.8"/><path d="M4.6 20c1.4-3.6 4.2-5.6 7.4-5.6s6 2 7.4 5.6"/></svg>Se connecter</a>
-    <a class="pill" href="../?depuis=video" aria-label="Passer la vidéo"><span>Passer<span class="lg">&nbsp;la vidéo</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <a class="pill" href="./#mobile" aria-label="Passer la vidéo"><span>Passer<span class="lg">&nbsp;la vidéo</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
   </span>
 </div>
 
@@ -1037,7 +1032,7 @@ html.vd-onboarding .pill.back,html.vd-onboarding .pill.login{display:none}
     <span class="go-tr" aria-hidden="true"><span class="go-av"><img src="../assets/anim/formatrice.webp" alt=""><img src="../assets/anim/formateur-antoine.webp" alt=""><img src="../assets/anim/formatrice-perle.webp" alt=""><img src="../assets/anim/formateur-dorian.webp" alt=""></span><span>70+ cours avec<br>tes formateurs</span></span>
   </button>
 <div id="end">
-  <a href="../?depuis=video">Commencer<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  <a href="./#mobile">Commencer<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
   <button type="button" id="again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Revoir la vidéo</button>
 </div>
 <p class="sr" id="live" aria-live="polite"></p>
@@ -1787,30 +1782,13 @@ Promise.all([document.fonts ? document.fonts.ready : 0, sonLoad(), ...$$('img').
   });
 </script>
 <script>
-/* Vers l’appli : la vidéo s’arrête, l’écran passe au violet de l’écran de chargement, puis l’onboarding s’ouvre (../?depuis=video).
-   Dans l’onboarding (?onboarding) : la vidéo s’arrête et le dit à l’appli, qui ouvre son accueil ; la page ne change pas. */
+/* Vers la section iPhone du site (13 novembre, 1 h 44 : l’appli web n’existe plus ; « Passer la vidéo » et « Commencer » y
+   mènent) : la vidéo s’arrête, puis le lien fait son travail. */
 (function(){
-  var tc = document.querySelector('meta[name="theme-color"]'), tc0 = tc && tc.content;
-  var dansAppli = document.documentElement.classList.contains('vd-onboarding');
-  var dire = function(m){ try { window.parent.postMessage({requete: m}, '*'); } catch (err) {} };
-  if (dansAppli) dire('video-prete');
   document.addEventListener('click', function(e){
-    var a = e.target.closest && e.target.closest('a[href^="../?depuis="]');
-    if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
-    e.preventDefault();
+    var a = e.target.closest && e.target.closest('a[href="./#mobile"]');
+    if (!a) return;
     try { if (typeof pause === 'function') pause(); } catch (err) {}
-    if (dansAppli) { dire('video-fin'); return; }
-    document.body.classList.add('vd-leave');
-    document.documentElement.style.backgroundColor = '#6E50F6';
-    if (tc) tc.content = '#6E50F6';
-    setTimeout(function(){ location.href = a.href; }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280);
-  });
-  /* Retour arrière depuis l’appli : la page revient telle quelle. */
-  addEventListener('pageshow', function(e){
-    if (!e.persisted) return;
-    document.body.classList.remove('vd-leave');
-    document.documentElement.style.backgroundColor = '';
-    if (tc) tc.content = tc0;
   });
 })();
 </script>

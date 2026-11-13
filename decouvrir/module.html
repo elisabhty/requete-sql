@@ -31,8 +31,7 @@ html{scroll-padding-top:156px}
     </nav>
     <div class="nav-cta">
       <div class="lang" data-lang><button type="button" class="lang-btn" aria-expanded="false" aria-label="Langue du site : français"><svg class="gl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.8 3.9 5.8 3.9 9s-1.3 6.2-3.9 9c-2.6-2.8-3.9-5.8-3.9-9S9.4 5.8 12 3Z"/></svg><span class="lb-s">FR</span><span class="lb-l">Français</span><svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div class="lang-menu" hidden><p class="lang-h">Langue</p><button type="button" class="lang-o on" lang="fr" aria-current="true"><b>FR</b>Français<i aria-hidden="true">✓</i></button><button type="button" class="lang-o" lang="en" data-soon="English version coming soon."><b>EN</b>English<small>Bientôt</small></button><button type="button" class="lang-o" lang="es" data-soon="La versión en español llega muy pronto."><b>ES</b>Español<small>Bientôt</small></button><button type="button" class="lang-o" lang="pt" data-soon="A versão em português chega em breve."><b>PT</b>Português<small>Bientôt</small></button></div></div>
-      <a class="btn btn-s login" href="connexion.html"><svg class="me" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle class="me-h" cx="12" cy="8" r="3.8" pathLength="1"/><path class="me-b" d="M4.6 20c1.4-3.6 4.2-5.6 7.4-5.6s6 2 7.4 5.6" pathLength="1"/></svg><span class="lbl">Se connecter</span></a>
-      <a class="btn btn-p" href="video.html">Commencer</a>
+      <a class="btn btn-p" href="./#mobile">Commencer</a>
     </div>
     <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
@@ -45,7 +44,7 @@ html{scroll-padding-top:156px}
     <a href="#programme">Programme du parcours</a>
     <a href="./#faq">Questions fréquentes</a>
     <a href="./#avis">Donner ton avis</a>
-    <a class="btn btn-s btn-lg" href="connexion.html">Se connecter</a>
+    <a class="btn btn-s btn-lg" href="video.html">Voir la vidéo</a>
   </nav>
 </header>
 
@@ -69,31 +68,31 @@ html{scroll-padding-top:156px}
       </nav>
       <nav class="foot-col" aria-label="L’appli">
         <h4>L’appli</h4>
-        <a href="video.html">Commencer</a>
-        <a href="connexion.html">Se connecter</a>
+        <a href="./#mobile">Commencer</a>
         <a href="video.html">Le métier en 2 minutes</a>
-        <a href="./#mobile">Requête sur mobile</a>
+        <a href="./#mobile">Requête sur iPhone</a>
       </nav>
     </div>
     <div class="foot-legal"><span>© 2026 Requête</span><nav aria-label="Informations légales"><a href="mentions-legales.html">Mentions légales</a><a href="confidentialite.html">Confidentialité</a><a href="conditions.html">Conditions d’utilisation</a></nav></div>
   </div>
 </footer>
 
-<script src="modules.js?v=1b84092f"></script>
+<script src="modules.js?v=2d7fcd5c"></script>
 <script>
-/* Service worker de l’appli : s’il est déjà installé dans ce navigateur, on lui demande de se mettre à jour.
-   Une ancienne version servait vitrine.css et modules.js depuis son cache sans revérifier ; dès que la
-   nouvelle prend la main, la page se recharge une fois pour repartir sur des fichiers à jour. */
+/* L’appli web n’existe plus (13 novembre, 1 h 44 : « retirer l’appli sur mon site ») : si ce navigateur l’avait gardée hors ligne,
+   son service worker et ses caches sont retirés ; il servait aussi les pages du site depuis son cache. La page se recharge alors
+   une fois, pour repartir sur des fichiers à jour. */
 (function(){
   var sw=navigator.serviceWorker;
-  if(!sw||!sw.controller)return;
-  var deja=false;try{deja=sessionStorage.getItem('rq-vitrine-maj')==='1';}catch(e){}
-  sw.addEventListener('controllerchange',function(){
-    if(deja)return;deja=true;
+  try{if(window.caches)caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){});}catch(e){}
+  if(!sw||!sw.getRegistrations)return;
+  var avait=!!sw.controller;
+  sw.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}).then(function(){
+    var deja=false;try{deja=sessionStorage.getItem('rq-vitrine-maj')==='1';}catch(e){}
+    if(!avait||deja)return;
     try{sessionStorage.setItem('rq-vitrine-maj','1');}catch(e){}
     location.reload();
-  });
-  sw.getRegistration().then(function(r){if(r)r.update();}).catch(function(){});
+  }).catch(function(){});
 })();
 
 document.documentElement.classList.add('js');
@@ -179,7 +178,7 @@ document.documentElement.classList.add('js');
     +'<h1>'+e(m.titre)+'</h1>'
     +'<p class="lead">'+e(m.accroche)+'</p>'
     +'<ul class="pills pills-in"><li>'+V.barres(m.niveau)+e(m.niveau.texte)+'</li><li>'+ic('horloge',2.2)+'≈ '+duree+' de vidéo</li><li>'+ic('livre',2.2)+nb+' cours</li></ul>'
-    +'<div class="cta-row"><a class="btn btn-y btn-lg" href="video.html">Commencer le parcours'+FL+'</a><a class="btn btn-g btn-lg" href="#programme">Voir le programme</a></div>'
+    +'<div class="cta-row"><a class="btn btn-y btn-lg" href="./#mobile">Commencer le parcours'+FL+'</a><a class="btn btn-g btn-lg" href="#programme">Voir le programme</a></div>'
     +'</div><div class="mh-art" aria-hidden="true">'+aff+'</div></div>'
     +'<svg class="hero-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46C240 86 520 86 760 58S1220 6 1440 34V80H0Z" fill="#F7F6FD"/></svg></section>';
 
@@ -191,10 +190,10 @@ document.documentElement.classList.add('js');
     +'<p class="label">Détails</p><ul class="dl">'+details.map(function(d){return '<li>'+d[0]+'<span>'+d[1]+'</span></li>';}).join('')+'</ul></section>';
 
   var side='<aside class="panel side" aria-label="Commencer le parcours">'
-    +'<p class="price"><b>Dès 10&nbsp;min par jour</b><span>dans ton navigateur, même hors ligne</span></p>'
-    +'<a class="btn btn-p btn-lg" href="video.html">Commencer le parcours'+FL+'</a>'
-    +'<a class="btn btn-s btn-lg" href="connexion.html">Se connecter</a>'
-    +'<p class="label">Aussi sur iPhone</p>'+document.querySelector('footer .stores').outerHTML.replace('stores sm','stores sm side-st')
+    +'<p class="price"><b>Dès 10&nbsp;min par jour</b><span>sur ton iPhone, même hors ligne</span></p>'
+    +'<a class="btn btn-p btn-lg" href="./#mobile">Commencer le parcours'+FL+'</a>'
+    +'<a class="btn btn-s btn-lg" href="video.html">Voir la vidéo</a>'
+    +'<p class="label">L’appli iPhone</p>'+document.querySelector('footer .stores').outerHTML.replace('stores sm','stores sm side-st')
     +'<p class="label">Ce parcours comprend</p><ul class="dl">'
     +'<li>'+ic('lecture')+'<span>'+nb+' cours en vidéo interactive</span></li>'
     +'<li>'+ic('livre')+'<span>'+nbChap+' modules, du plus simple au plus avancé</span></li>'
@@ -222,7 +221,7 @@ document.documentElement.classList.add('js');
   var tabs='<nav class="tabs" aria-label="Sections du parcours"><a href="#apropos" class="on" id="t-pres">Présentation</a><a href="#programme" id="t-prog">Programme</a></nav>';
 
   var dark='<div class="dark rv"><h2>Commence le parcours '+e(m.nom)+' aujourd’hui&nbsp;!</h2>'
-    +'<a class="btn btn-lg" href="video.html">Commencer</a><a class="alt" href="connexion.html">Se connecter</a>'
+    +'<a class="btn btn-lg" href="./#mobile">Commencer</a><a class="alt" href="video.html">Voir la vidéo</a>'
     +'<div class="hint">'+ic('ampoule')+'<div><b class="hint-t">Un parcours adapté à ton objectif</b><p>Reconversion, préparation aux entretiens, évolution professionnelle ou perfectionnement&nbsp;: choisis ton objectif et retrouve un parcours d’apprentissage adapté à tes besoins, directement dans l’application.</p><a href="./#objectif">Choisir mon objectif →</a></div></div></div>';
 
   page.innerHTML=hero+'<div class="wrap"><div class="fiche">'+tabs+apropos+side+skills+prog+'</div>'+dark+'</div>';

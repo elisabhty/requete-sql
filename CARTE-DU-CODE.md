@@ -36,7 +36,7 @@ Où se trouve quoi dans le dépôt. Pour chaque fichier, son rôle en une ou deu
 
 | Dossier | Rôle |
 |---|---|
-| `decouvrir/` | Le site vitrine : l'accueil (`index.html`), les pages des modules, la vidéo de présentation (`video.html`), la connexion, et les pages légales (confidentialité, conditions, mentions légales). |
+| `decouvrir/` | Le site vitrine : l'accueil (`index.html`), les pages des modules, la vidéo de présentation (`video.html`, derrière « Voir la vidéo »), `connexion.html` (un simple renvoi vers la section iPhone depuis le 13 novembre : l’appli ne s’ouvre plus dans un navigateur), et les pages légales (confidentialité, conditions, mentions légales). |
 
 ## Le serveur (Supabase)
 

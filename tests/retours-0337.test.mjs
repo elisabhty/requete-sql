@@ -38,28 +38,21 @@ test('12 novembre, 18 h 06 : plus de vidéo dans l’appli, l’onboarding s’o
   assert.ok(mo.includes('const viaConnexion=depuisConnexion(),viaVitrine=depuisVitrine();\n  oublierDepuis();'));
 });
 
-test('decouvrir/video.html?onboarding : ni « Retour » ni « Se connecter », et la fin est dite à l’appli au lieu de changer de page', () => {
+test('decouvrir/video.html?onboarding : ni « Retour » ni « Se connecter » ; depuis le 13 novembre, la fin mène à la section iPhone du site', () => {
   assert.ok(page.indexOf("if(/[?&]onboarding\\b/.test(location.search)&&window.parent!==window)document.documentElement.classList.add('vd-onboarding');") < page.indexOf('<style>'), 'dès la première image');
   assert.ok(page.includes('html.vd-onboarding .bar.top{justify-content:flex-end}') && page.includes('html.vd-onboarding .pill.back,html.vd-onboarding .pill.login{display:none}'));
-  const iife = cut(page, '/* Vers l’appli : la vidéo s’arrête', '</script>');
-  const run = embed => {
-    const sent = [], calls = [], body = new Set(); let click = null;
-    const ctx = vm.createContext({
-      document: {querySelector: () => null, documentElement: {classList: {contains: c => embed && c === 'vd-onboarding'}, style: {}},
-        body: {classList: {add: c => body.add(c), remove: c => body.delete(c)}}, addEventListener: (t, h) => { if (t === 'click') click = h; }},
-      window: {parent: {postMessage: (m, o) => sent.push([m.requete, o])}}, location: {href: 'video.html'},
-      matchMedia: () => ({matches: false}), setTimeout: f => f(), addEventListener() {}, pause: () => calls.push('pause')});
-    vm.runInContext(iife, ctx);
-    const a = {href: '../?depuis=video'};
-    let prevented = false;
-    click({target: {closest: () => a}, preventDefault() { prevented = true; }, defaultPrevented: false, button: 0});
-    return {sent, calls, body, prevented, href: ctx.location.href};
-  };
-  const e = run(true);
-  assert.deepEqual(e.sent, [['video-prete', '*'], ['video-fin', '*']], 'prête, puis la fin');
-  assert.ok(e.prevented && e.calls.includes('pause')); assert.equal(e.href, 'video.html', 'la page reste'); assert.equal(e.body.has('vd-leave'), false);
-  const s = run(false);
-  assert.deepEqual(s.sent, [], 'sur le site : rien à dire'); assert.equal(s.href, '../?depuis=video', 'sur le site : vers l’appli, comme avant'); assert.ok(s.body.has('vd-leave'));
+  /* L’appli n’ouvre plus cette page dans un cadre (12 novembre : la scène « Une méthode fondée sur la recherche » est une page de
+     l’onboarding) et ne s’ouvre plus dans un navigateur (13 novembre, 1 h 44) : plus de message « video-fin » ni de voile violet,
+     la vidéo s’arrête et le lien fait son travail. */
+  const iife = cut(page, '/* Vers la section iPhone du site', '</script>');
+  let click = null; const calls = [];
+  vm.runInContext(iife, vm.createContext({document: {addEventListener: (t, h) => { if (t === 'click') click = h; }}, pause: () => calls.push('pause')}));
+  let prevented = false;
+  click({target: {closest: s => (s === 'a[href="./#mobile"]' ? {href: './#mobile'} : null)}, preventDefault() { prevented = true; }});
+  assert.deepEqual(calls, ['pause']); assert.equal(prevented, false, 'le lien n’est pas retenu');
+  click({target: {closest: () => null}, preventDefault() {}});
+  assert.deepEqual(calls, ['pause'], 'ailleurs : rien');
+  assert.ok(!page.includes('video-fin') && !page.includes('postMessage') && !page.includes('vd-leave'));
 });
 
 test('l’app iPhone embarque la vidéo : la page, sa mascotte, sa voix et sa musique', () => {
@@ -70,6 +63,6 @@ test('l’app iPhone embarque la vidéo : la page, sa mascotte, sa voix et sa mu
   for (const c of voix.scenes) assert.ok(fs.statSync(path.join(ROOT, 'decouvrir/voix', c.id + '.mp3')).size > 2000, c.id);
   assert.ok(fs.existsSync(path.join(ROOT, 'decouvrir/voix/musique.mp3')) && fs.existsSync(path.join(ROOT, 'decouvrir/mascotte.webp')));
   /* La page n’utilise que ce qui est embarqué : ../assets (copié en entier), sa mascotte et voix/ */
-  const refs = [...page.matchAll(/(?:src|href)="(?!https?:|data:|#|\.\.\/assets\/|\.\.\/\?depuis=)([^"]+)"/g)].map(m => m[1]);
-  assert.deepEqual([...new Set(refs)].sort(), ['./', 'connexion.html#cx-form', 'mascotte.webp'], 'Retour et Se connecter, masqués dans l’appli');
+  const refs = [...page.matchAll(/(?:src|href)="(?!https?:|data:|#|\.\.\/assets\/)([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual([...new Set(refs)].sort(), ['./', './#mobile', 'mascotte.webp'], 'Retour, et la section iPhone du site (13 novembre : plus de « Se connecter »)');
 });

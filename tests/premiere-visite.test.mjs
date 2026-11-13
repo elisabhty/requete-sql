@@ -18,26 +18,26 @@ const root = path.resolve(import.meta.dirname, '..');
 const lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 const video = lire('decouvrir/video.html'), app = lire('index.html');
 
-test('vidéo du métier : « Passer la vidéo » et « Commencer » ouvrent l’onboarding, « Se connecter » le formulaire', () => {
-  assert.ok(video.includes('<a class="pill" href="../?depuis=video" aria-label="Passer la vidéo">'), 'Passer la vidéo');
-  assert.ok(video.includes('<div id="end">\n  <a href="../?depuis=video">Commencer'), 'Commencer, à la fin de la vidéo');
-  assert.ok(video.includes('<a class="pill login" href="connexion.html#cx-form">'), 'Se connecter, pour qui a un compte');
-  assert.equal((video.match(/href="connexion\.html"/g) || []).length, 0, 'plus aucun passage obligé par la page de connexion');
+/* 13 novembre, 1 h 44 (Elisa : « retirer l’appli sur mon site quand on appuie sur commencer et faire descendre vers l’appli ») :
+   l’appli ne s’ouvre plus dans un navigateur. La vidéo reste sur le site, derrière « Voir la vidéo » ; « Passer la vidéo » et
+   « Commencer » (à la fin) mènent à la section iPhone du site ; plus de « Se connecter » (retours-0144-site.test.mjs). */
+test('vidéo du métier : « Passer la vidéo » et « Commencer » mènent à la section iPhone du site, plus de « Se connecter »', () => {
+  assert.ok(video.includes('<a class="pill" href="./#mobile" aria-label="Passer la vidéo">'), 'Passer la vidéo');
+  assert.ok(video.includes('<div id="end">\n  <a href="./#mobile">Commencer'), 'Commencer, à la fin de la vidéo');
+  assert.ok(!video.includes('class="pill login"') && !video.includes('href="connexion.html'), 'plus de « Se connecter »');
+  assert.ok(!video.includes('?depuis='), 'plus aucun lien vers l’appli');
 });
 
-test('vidéo → appli : l’écran passe au violet de l’écran de chargement, jamais au blanc', () => {
-  assert.ok(video.includes("body::after{content:'';position:fixed;inset:0;z-index:1000;pointer-events:none;opacity:0;transition:opacity .28s;\n  background:linear-gradient(180deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%)}\nbody.vd-leave::after{opacity:1}"));
-  const js = video.slice(video.indexOf('/* Vers l’appli : la vidéo s’arrête'), video.lastIndexOf('</script>'));
-  assert.ok(js.includes("e.target.closest('a[href^=\"../?depuis=\"]')"), 'les liens vers l’appli');
-  assert.ok(js.includes("document.body.classList.add('vd-leave');") && js.includes("document.documentElement.style.backgroundColor = '#6E50F6';"), 'violet, zone de l’heure comprise');
-  assert.ok(js.includes('e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button'), 'un nouvel onglet reste un nouvel onglet');
-  assert.ok(js.includes("addEventListener('pageshow'"), 'retour arrière : la page revient telle quelle');
+test('vidéo → section iPhone : la vidéo s’arrête, sans voile violet (il couvrait l’ouverture de l’appli)', () => {
+  assert.ok(!video.includes('vd-leave'));
+  const js = video.slice(video.indexOf('/* Vers la section iPhone du site'), video.lastIndexOf('</script>'));
+  assert.ok(js.includes("e.target.closest('a[href=\"./#mobile\"]')") && js.includes("if (typeof pause === 'function') pause();"));
 });
 
 test('arrivée dans l’appli depuis la vidéo : le site n’est pas reproposé, l’onboarding s’ouvre', () => {
-  /* Le script de tête retient qu’on vient du site (?depuis=…) : la prochaine ouverture de l’adresse reste dans l’appli. */
-  /* 5 novembre, 14 h : une invitation (?partie=…) aussi (retours-1400.test.mjs). */
-  assert.ok(app.includes("if(/[?&](depuis|partie)=/.test(q))ls.setItem('rq-vu-appli','1');"));
+  /* 13 novembre, 1 h 44 : le script de tête ne retient plus rien (l’appli ne s’ouvre plus dans un navigateur) ; maybeOnboard,
+     lui, n’a pas changé (l’app iPhone, la mise au point en local). */
+  assert.ok(!app.includes('rq-vu-appli'));
   const src = app.slice(app.indexOf('function maybeOnboard(){'), app.indexOf('function startOnboarding(){', app.indexOf('function maybeOnboard(){')));
   const arrive = (search, { onboarded = false, comptes = false, lecons = {} } = {}) => {
     const appels = [];

@@ -146,5 +146,5 @@ test('base de l’appli : un vote par appareil, par la seule fonction parcours_v
   assert.ok(sql.includes('on conflict (cle) do update set parcours = excluded.parcours, vote_le = now();'), 'revoter remplace le vote');
   assert.ok(sql.includes('grant execute on function public.parcours_voter(text, text) to anon, authenticated;'));
   assert.ok(sql.includes('create or replace view public.parcours_votes with (security_invoker = true)') && sql.includes('revoke all on public.parcours_votes from public, anon, authenticated;'), 'les résultats, pour le tableau de bord seulement');
-  assert.ok(privacy.includes('<li><b>Vote pour le prochain parcours</b> (facultatif).') && privacy.includes('<li><b>Alerte «&nbsp;M’avertir au lancement&nbsp;»</b> (facultatif, appli iPhone).'), 'l’alerte en notification : retours-1555');
+  assert.ok(privacy.includes('<li><b>Vote pour le prochain parcours</b> (facultatif).') && privacy.includes('<li><b>Alerte «&nbsp;M’avertir au lancement&nbsp;»</b> (facultatif).'), 'l’alerte en notification : retours-1555');
 });

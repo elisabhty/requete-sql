@@ -25,6 +25,21 @@ npm run ios           # copie l’app web, synchronise et ouvre Xcode
 
 Dans Xcode : choisis ton équipe (Signing & Capabilities), puis lance sur un iPhone ou un simulateur.
 
+## Le site ne lance plus l’appli (13 novembre, 1 h 44)
+
+Elisa : « retirer l’appli sur mon site quand on appuie sur commencer et faire descendre vers l’appli ». Requête n’existe
+plus que sur iPhone :
+
+- `index.html`, ouvert dans un navigateur, renvoie toujours à `decouvrir/` (script de tête), et retire au passage
+  l’ancienne appli gardée hors ligne (service worker, caches). Il ne se charge plus que dans l’app (Capacitor), en local
+  (`localhost`) et dans les navigateurs pilotés par les tests.
+- Sur le site, tous les « Commencer » descendent à la section iPhone (`#mobile`, le lien de l’App Store) ; « Se
+  connecter » a disparu ; la vidéo reste derrière « Voir la vidéo » et sa fin mène aussi à `#mobile` ;
+  `decouvrir/connexion.html` n’est plus qu’un renvoi.
+- La FAQ, la politique de confidentialité et les conditions disent ce que fait l’app : compte Apple ou Google,
+  abonnement Requête Premium par l’App Store (RevenueCat reçoit un identifiant d’achat anonyme), progression sur
+  l’iPhone et dans le compte. Aucun prix sur le site.
+
 ## À chaque mise à jour du site
 
 ```bash
@@ -517,11 +532,11 @@ iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la p
   ajouter « Localisation approximative » (le pays), usage « Fonctionnalités de l’app », non liée à l’identité, sans pistage.
 - **Invitation à une salle** (5 novembre, 14 h) : « Partager l’invitation » ouvre la feuille de partage d’iOS (`navigator.share`,
   pris en charge par la vue web de l’app) avec « Rejoins-moi… », le code et le lien public
-  `https://elisabhty.github.io/requete-sql/?partie=CODE&de=pseudo`. Ce lien ouvre Safari, pas l’app installée : pour qu’il
-  ouvre l’app, il faudra des liens universels (le fichier `apple-app-site-association` à la racine du domaine, donc un
-  domaine à soi ou le dépôt `elisabhty.github.io`, et la capacité « Associated Domains » de l’App ID). Sur le site, qui
-  n’est pas encore inscrit s’inscrit d’abord (tout le parcours de bienvenue), puis entre dans la salle ; un inscrit y entre
-  directement.
+  `https://requeteapp.com/?partie=CODE&de=pseudo`. Ce lien ouvre Safari, pas l’app installée : pour qu’il
+  ouvre l’app, il faudra des liens universels (le fichier `apple-app-site-association` à la racine du domaine et la
+  capacité « Associated Domains » de l’App ID). Depuis le 13 novembre (l’appli ne s’ouvre plus dans un navigateur), ce
+  lien mène à la section iPhone du site, qui redit le code : « Tu es invité·e à un défi. Installe Requête, puis entre le
+  code … dans Pratiquer › Défis › “Rejoindre avec un code” ».
 - **Pseudo unique** : choisi sur une mini-page juste après l’onboarding (le prénom de l’onboarding reste sur l’appareil),
   réservé dans la table `jeu_pseudo` (même identifiant au hasard que le classement), il ne se change plus et n’est jamais
   libéré tout seul (pas de ménage) : seul « Supprimer mon compte » le libère, avec les scores. Pour libérer un pseudo sur

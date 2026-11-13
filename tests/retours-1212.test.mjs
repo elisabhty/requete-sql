@@ -205,10 +205,10 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
   assert.ok(site.includes('aria-describedby="ctex"></textarea>') && site.includes("if(ex)ex.textContent='Ex.\\u00a0: '+(EX[v]||EX['Une question']);"));
   assert.ok(vcss.includes('.ct-ex{margin:-6px 4px 0;font:500 13.5px/1.45 var(--ui);color:var(--ink-3);text-wrap:pretty}'));
   const v = crypto.createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'decouvrir/vitrine.css'))).digest('hex').slice(0, 8);
-  for (const f of ['index.html', 'conditions.html', 'confidentialite.html', 'mentions-legales.html', 'module.html', 'connexion.html'])
+  for (const f of ['index.html', 'conditions.html', 'confidentialite.html', 'mentions-legales.html', 'module.html'])   // 13 novembre : connexion.html n’est plus qu’un renvoi
     assert.ok(lire('decouvrir/' + f).includes(`vitrine.css?v=${v}`), `${f} : la feuille du site à jour`);
   /* 6 novembre : les conditions (l’app pour iPhone, plus « bientôt ») et la confidentialité (les durées de conservation) changent */
-  for (const [f, jour] of [['conditions.html', 6], ['mentions-legales.html', 5], ['confidentialite.html', 13]]) {   // 12 : le compte de l’appli iPhone ; 13 : le décompte après l’accueil
+  for (const [f, jour] of [['conditions.html', 13], ['mentions-legales.html', 5], ['confidentialite.html', 13]]) {   // 12 : le compte de l’appli iPhone ; 13 : le décompte après l’accueil, puis l’appli sur iPhone seulement (conditions aussi)
     const p = lire('decouvrir/' + f);
     assert.ok(p.includes('«&nbsp;Contacte-nous&nbsp;»') && !p.includes('Nous contacter') && p.includes(`Dernière mise à jour&nbsp;: ${jour} novembre 2026`), f);
   }
@@ -219,5 +219,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=327">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=60">') && sw.includes("'./onboarding-vitrine.css?v=60',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-13-note-v2920' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-13-site-v2921' && app.includes(`const SW_CACHE='${cache}';`));
 });

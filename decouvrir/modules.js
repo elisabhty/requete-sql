@@ -29,7 +29,7 @@ window.MODULES=[
     ['jeu','Gamifié et interactif'],
     ['carte','Des cartes mémo à débloquer au fil des cours'],
     ['langue','En français'],
-    ['appareil','Sur ordinateur, tablette et téléphone'],
+    ['appareil','Sur iPhone'],
     ['horsligne','Même hors ligne, à ton rythme'],
     ['maj','Mis à jour le 3 novembre 2026']
   ],

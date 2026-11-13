@@ -22,17 +22,27 @@ const pseudo = cut('const PS_CAR=', 'function psForme(v)') + cut('function psFor
 const nettoyer = cut('function jeuCleanCode(v){', '\n}\n') + '\n}\n';
 const memoire = () => { const m = new Map(); return { m, getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k) }; };
 
-test('le lien d’une invitation mène à l’appli, pas au site, et s’en souvient', () => {
+/* 13 novembre, 1 h 44 (Elisa : « retirer l’appli sur mon site ») : l’appli ne s’ouvre plus dans un navigateur. Le lien d’une
+   invitation mène à la section iPhone du site, qui redit le code à entrer dans l’app (retours-0144-site.test.mjs). */
+test('le lien d’une invitation mène à la section iPhone du site, qui redit le code ; l’app, le local et les tests gardent l’appli', () => {
   const tete = cut('<script>(function(){try{var q=location.search', '</script>').slice('<script>'.length);
-  const visite = (search, garde = {}) => {
-    const ls = memoire(); Object.entries(garde).forEach(([k, v]) => ls.setItem(k, v));
-    const vers = [];
-    vm.runInContext(tete, vm.createContext({ location: { search, protocol: 'https:', replace: u => vers.push(u) }, localStorage: ls, window: {}, navigator: {}, matchMedia: () => ({ matches: false }) }));
-    return { vers, vu: ls.getItem('rq-vu-appli') };
+  const visite = (search, { hote = 'requeteapp.com', protocole = 'https:', capacitor = false, pilote = false } = {}) => {
+    const vers = [], retires = [];
+    const caches = { keys: () => ({ then: f => f(['requete-2026']) }), delete: k => retires.push('cache ' + k) };
+    vm.runInContext(tete, vm.createContext({ location: { search, hostname: hote, protocol: protocole, replace: u => vers.push(u) },
+      window: capacitor ? { Capacitor: {} } : { caches }, caches,
+      navigator: { webdriver: pilote, serviceWorker: { getRegistrations: () => ({ then: f => f([{ unregister: () => retires.push('service worker') }]) }) } } }));
+    return { vers, retires };
   };
-  assert.deepEqual(visite('?partie=PRET02&de=elisa_sql'), { vers: [], vu: '1' }, 'invité : l’appli, et la prochaine visite aussi');
-  assert.deepEqual(visite(''), { vers: ['decouvrir/'], vu: null }, 'un nouveau visiteur sans invitation : le site, comme avant');
-  assert.deepEqual(visite('?depuis=vitrine'), { vers: [], vu: '1' });
+  assert.deepEqual(visite('?partie=pret02&de=elisa_sql'), { vers: ['decouvrir/?partie=PRET02#mobile'], retires: ['service worker', 'cache requete-2026'] }, 'invité : la section iPhone, le code redit, l’ancienne appli hors ligne retirée');
+  assert.deepEqual(visite('').vers, ['decouvrir/'], 'sans invitation : le site');
+  assert.deepEqual(visite('?depuis=vitrine').vers, ['decouvrir/'], 'les anciens liens vers l’appli : le site aussi');
+  assert.deepEqual(visite('?app=onboarding').vers, ['decouvrir/']);
+  assert.deepEqual(visite('?partie=PRE02').vers, ['decouvrir/'], 'un code abîmé : le site, sans code');
+  /* L’app iPhone, la mise au point en local et les navigateurs pilotés par les tests gardent l’appli */
+  for (const o of [{ capacitor: true }, { hote: 'localhost' }, { hote: '127.0.0.1' }, { pilote: true }, { protocole: 'capacitor:' }, { protocole: 'file:' }])
+    assert.deepEqual(visite('?partie=PRET02', o), { vers: [], retires: [] }, JSON.stringify(o));
+  assert.ok(!app.includes('rq-vu-appli'), 'plus rien à retenir sur l’appareil');
 });
 
 test('l’invitation : lue dans le lien, gardée le temps de l’inscription, puis on entre dans la salle sans taper le code', () => {
@@ -165,5 +175,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button>'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-note-v2920';") && app.includes("const SW_CACHE='requete-2026-11-13-note-v2920';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-site-v2921';") && app.includes("const SW_CACHE='requete-2026-11-13-site-v2921';"));
 });
