@@ -139,7 +139,7 @@ test('les nouveaux accomplissements : premier défi, code partagé, 1ᵉʳ à pl
 test('déclencheurs : partager ou copier le code d’une salle, finir une partie', () => {
   const share = fn('jeuShare');
   assert.ok(share.includes("const gagne=()=>{if(typeof stkMarquer==='function')stkMarquer('code');};"));
-  assert.ok(share.includes("await navigator.share({title:'Défi SQL sur Requête',text,url});gagne();return;"), 'partagé');
+  assert.ok(share.includes("await navigator.share({title:'Défi SQL sur Requête',text,url});gagne();jeuStatInvitation('partage');return;"), 'partagé');
   assert.ok(share.includes("if(typeof buzz==='function')buzz('light');gagne();"), 'ou copié');
   assert.ok(!/AbortError'\)return;[^}]*gagne/.test(share), 'partage annulé : rien');
   const credit = fn('jeuCreditGame');

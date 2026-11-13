@@ -36653,7 +36653,11 @@ function jeuStart(code,host,cid,opts){
   opts=opts||{};
   const solo=!!opts.solo,verif=!!opts.verif&&!host&&!solo;
   const nom=solo?(jeuSavedNom()||'Toi'):jeuAskNom(opts.nomId);if(!nom){if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('pseudo',code);return;}
-  if(!solo&&!opts.reprise&&typeof stat==='function')stat(host?'salle_creee':'salle_rejointe');
+  if(!solo&&!opts.reprise&&typeof stat==='function'){
+    if(host)stat('salle_creee');
+    else stat('salle_rejointe',undefined,{via:jeuViaLien&&jeuViaLien===code?'lien':'code',nouveau:!(state.salle&&state.salle.parties>0)});   // 19 h 41
+  }
+  if(!host)jeuViaLien='';
   if(typeof CHALLENGES==='undefined'||!SQL){const m=jeuMsgEl(opts.nomId);if(m)m.textContent='Le moteur SQL se charge encore, réessaie dans un instant.';if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('moteur',code);return;}
   if(JEU)jeuStop();
   /* 8 novembre, 15 h 27 : cherchée depuis la feuille du code (verif), la salle laisse la feuille ouverte tant que l’hôte n’a pas répondu. */
@@ -38481,6 +38485,7 @@ function jeuCopyCode(){
   const J=JEU;if(!J)return;
   const btn=document.getElementById('jeu-copy'),out=document.getElementById('jeu-copied');
   jeuCopyText(J.code).then(()=>{
+    jeuStatInvitation('code');
     /* 23 h 55 : « micro-interaction au copiage » : les tuiles passent au menthe l’une après l’autre en sautant, le bouton s’enfonce
        puis devient « Code copié » avec sa coche qui se dessine et des confettis ; tout revient au bout de 1,8 s. */
     if(out){out.textContent='Code copié';out.classList.add('is-ok');}
@@ -38511,14 +38516,21 @@ function jeuLienInvitation(J){
   return base+'?partie='+J.code+(de?'&de='+encodeURIComponent(de):'')+(/[?&]jeu=local\b/.test(location.search)?'&jeu=local':'');
 }
 function jeuTexteInvitation(J){return `Rejoins-moi sur Requête pour un défi SQL\u00a0! Code de la salle\u00a0: ${J.code}`;}
+/* 13 novembre, 19 h 41 (Elisa : « est-ce que je peux avoir ces informations dans Supabase ? Combien de liens partagés ? Combien de
+   personnes avaient un code quand elles sont arrivées ? ») : les statistiques anonymes (stat) comptent l’invitation partagée
+   (« invitation », a « partagee » : la feuille de partage, l’invitation copiée, le code copié, le bouton de l’île), le lien d’invitation
+   qui ouvre l’app (a « ouverte », nouveau : avant la fin de l’inscription), et la salle rejointe par le lien ou par le code tapé
+   (« salle_rejointe », via ; nouveau : aucune partie avant sur cet appareil). Ni code de salle, ni pseudo. */
+var jeuViaLien='';   // var : lue par jeuStart, défini plus haut
+function jeuStatInvitation(via){if(typeof stat==='function')stat('invitation',undefined,{a:'partagee',via});}
 async function jeuShare(){
   const J=JEU;if(!J)return;
   const url=jeuLienInvitation(J),text=jeuTexteInvitation(J);
   const out=document.getElementById('jeu-copied'),dire=t=>{if(out){out.classList.remove('is-ok');out.textContent=t;}};
   /* Partagé ou copié : le sticker « Code partagé » (11 novembre) */
   const gagne=()=>{if(typeof stkMarquer==='function')stkMarquer('code');};
-  if(navigator.share){try{await navigator.share({title:'Défi SQL sur Requête',text,url});gagne();return;}catch(e){if(e&&e.name==='AbortError')return;}}
-  try{await jeuCopyText(text+'\n'+url);dire('Invitation copiée\u00a0: colle-la dans un message à tes amis.');if(typeof buzz==='function')buzz('light');gagne();}
+  if(navigator.share){try{await navigator.share({title:'Défi SQL sur Requête',text,url});gagne();jeuStatInvitation('partage');return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  try{await jeuCopyText(text+'\n'+url);dire('Invitation copiée\u00a0: colle-la dans un message à tes amis.');if(typeof buzz==='function')buzz('light');gagne();jeuStatInvitation('copie');}
   catch(e){dire(url);}
 }
 /* Un défi trouvé en salle compte dans la progression, comme dans l’entraînement libre. */
@@ -39014,6 +39026,7 @@ function jeuFromUrl(){
   /* 13 novembre, 3 h 22 : l’invitation attend aussi derrière la page de connexion (la garde du compte), puis derrière le paywall */
   if(!state.onboarded||(typeof obCompteBloque==='function'&&obCompteBloque())||(typeof obGardeBloque==='function'&&obGardeBloque())){try{sessionStorage.setItem(JEU_INV,inv.code);if(inv.de)sessionStorage.setItem(JEU_INV_DE,inv.de);else sessionStorage.removeItem(JEU_INV_DE);}catch(e){}return;}
   jeuInvitationOublier();
+  jeuViaLien=inv.code;   // la salle rejointe compte « par le lien » (19 h 41)
   try{const u=new URL(location.href);u.searchParams.delete('partie');u.searchParams.delete('de');history.replaceState(history.state,'',u.pathname+u.search+u.hash);}catch(e){}
   jeuEntrerInvitation(inv.code);
 }
@@ -46733,7 +46746,7 @@ function ileSalleAction(quoi){
   const J=JEU;if(!J)return;
   if(quoi==='partager'){
     const C=typeof ilePont==='function'?ilePont():null;
-    if(C)Promise.resolve(C.nativePromise('RequeteWidget','partagerTexte',{texte:jeuTexteInvitation(J),url:jeuLienInvitation(J)})).catch(()=>{});
+    if(C){Promise.resolve(C.nativePromise('RequeteWidget','partagerTexte',{texte:jeuTexteInvitation(J),url:jeuLienInvitation(J)})).catch(()=>{});if(typeof jeuStatInvitation==='function')jeuStatInvitation('ile');}
     return;
   }
   const essai=k=>{
@@ -47370,6 +47383,7 @@ function raccourciOuvrir(type){
   const inv=/\.partie\.([A-Za-z0-9]{6})(?:\|(.*))?$/.exec(type);
   if(inv){
     try{sessionStorage.setItem(JEU_INV,inv[1].toUpperCase());if(inv[2])sessionStorage.setItem(JEU_INV_DE,inv[2]);else sessionStorage.removeItem(JEU_INV_DE);}catch(e){}
+    if(typeof stat==='function')stat('invitation',undefined,{a:'ouverte',nouveau:!state.onboarded});   // 19 h 41 : le lien qui ouvre l’app
     if(typeof jeuFromUrl==='function')jeuFromUrl();
     return;
   }
@@ -51424,7 +51438,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-liens-v2961';
+  const SW_CACHE='requete-2026-11-13-invitations-v2962';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -48,7 +48,7 @@ test('coupées : plus rien ne part, la file est vidée et le serveur oublie ; «
 
 test('les moments suivis dans l’app', () => {
   for (const s of ["stat('flamme',n)", "stat('semaine_feu',", "stat('lecon_validee',null,{l:", "stat('lecon_debut',null,{l:", "stat('video_quittee',null,{l:", "stat('moment',null,{l:",
-    "stat('module_termine',i+1)", "stat('defi',ok?1:0,", "stat('partie',me?me.pts:0,", "stat(host?'salle_creee':'salle_rejointe')", "statUneFois('paywall_vu',", "stat('offre',null,{o:k})",
+    "stat('module_termine',i+1)", "stat('defi',ok?1:0,", "stat('partie',me?me.pts:0,", "if(host)stat('salle_creee');", "stat('salle_rejointe',undefined,{via:", "stat('invitation',undefined,{a:'partagee',via})", "stat('invitation',undefined,{a:'ouverte',nouveau:!state.onboarded})", "statUneFois('paywall_vu',", "stat('offre',null,{o:k})",
     "stat('paywall_passe',", "stat(essai?'essai':'achat',null,{o})", "stat('restaure')", "stat('connexion',null,", "stat(ok?'rappel_oui':'rappel_non')", "stat('widget')", "stat('erreur',null,{m:"])
     assert.ok(app.includes(s), s);
 });
