@@ -2,6 +2,10 @@
 
 _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Elisa décide de ce qui est généré._
 
+**13 novembre, 14 h 14 : fait.** Les 12 phrases ci-dessous ont été générées (fichiers envoyés par Elisa) et intégrées : les 104 légendes
+du cours ont leur voix, « n’est jamais vide » remplace « ne peut pas être nulle » à l’écran, le chapitre 3 (1,6 LU plus fort que le
+reste) est ramené au niveau du cours, sans réencodage. La vidéo dure 10 min 48.
+
 **13 novembre, 13 h 19 : « Les bases de données relationnelles », ses légendes muettes** (Elisa, sur sa capture : « certains textes ne
 sont pas parlés »). Sept légendes ajoutées après la voix du cours, ou jamais générées, la phrase de la relecture du 10 novembre, et les quatre phrases
 ajoutées à 13 h 49 avant la première requête :
