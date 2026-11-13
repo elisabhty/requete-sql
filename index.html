@@ -6729,7 +6729,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=326">
+<link rel="stylesheet" href="ludique.css?v=327">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=59">
 <style id="lesson-video-css">
@@ -20342,6 +20342,7 @@ function markDone(id,review){
   /* Le jour de la validation (la première fois) : le planning garde l’activité à ce jour-là, cochée */
   if(!cur.at) cur.at=Date.now();
   state.lessons[id]=cur; noteActivityDay('lecon'); save();
+  if(!review&&typeof obCompterLecon==='function')obCompterLecon('fin');   // l’entonnoir : 1re et 2e leçon terminées
 }
 
 /* ============================================================
@@ -30307,6 +30308,7 @@ function lessonStartShow(l,go){
      s’ouvre sur son bilan (la vidéo se revoit depuis le bilan ou l’étape du cours). */
   root.querySelector('.lst-go').onclick=()=>{if(typeof buzz==='function')buzz('light');
     if(done){ root.classList.add('is-out'); setTimeout(()=>root.remove(),prefersReduceMotion()?0:220); if(current===l)setLessonStep(3); return; }
+    if(typeof obCompterLecon==='function')obCompterLecon('debut');   // l’entonnoir : la 1re leçon commencée
     close(true);};
   root.querySelector('.lst-close').onclick=()=>close(false);
   root.tabIndex=-1;
@@ -33372,6 +33374,24 @@ function bravoNoteFly(el,before,after){
     tgt.animate([{opacity:1,transform:'translate(-50%,-50%) scale(1)'},{opacity:0,transform:'translate(-50%,-50%) scale(.8)'}],{duration:320,fill:'forwards'}).onfinish=()=>tgt.remove();
   },2500);
 }
+/* « Leçon débloquée » (Elisa, 13 novembre, 1 h 18 : « le cadenas qui s’ouvre sur l’écran de fin de leçon… avec le titre de la
+   leçon débloquée, donnerait la récompense au bon moment »). Sous la carte « Bravo ! », quand cette leçon validée vient d’ouvrir
+   la suivante : l’autocollant cadenas remue, son anse se lève, et la ligne mène à la leçon. Elle reste là tant que la leçon
+   débloquée n’est pas entamée (le bilan revu le lendemain la montre encore) ; ensuite, plus rien à annoncer. */
+function bravoOuvreHtml(l){
+  try{
+    if(!l||typeof leconCle!=='function'||typeof lqStkSvg!=='function')return '';
+    const cle=leconCle(),r=leconRang(l.id);
+    if(!cle||r<0||leconRang(cle.id)!==r+1||!lecCompletee(l.id)||lecCompletee(cle.id)||leconEntamee(cle.id))return '';
+    const m=typeof moduleDeLecon==='function'?moduleDeLecon(cle.id):null,mi=m?MODULES.indexOf(m):-1;
+    const nouveauModule=!!m&&m.lessons[0].id===cle.id&&mi>0;
+    return `<button type="button" class="bravo-stk bravo-ouvre" onclick="openLesson(${cle.id})">
+    <span class="bravo-ouvre-art" aria-hidden="true">${lqStkSvg('cadenas')}</span>
+    <span class="bravo-stk-copy"><small>${nouveauModule?'Nouveau module débloqué':'Leçon débloquée'}</small><b>${esc(cle.titre)}</b><em>${esc(nouveauModule?`Module ${mi+1} · ${m.titre}`:(cle.résumé||''))}</em></span>
+    ${DEF_CHEV_SVG}
+  </button>`;
+  }catch(e){return '';}
+}
 /* La suite du parcours : une carte violette, comme celle de l’accueil, avec son bouton blanc « Continuer ». Le titre se lit en entier
    (deux lignes s’il le faut, plus de « Sous-requête dans WHER… »). Toute la carte est le bouton ; c’est sa pastille blanche qui
    s’enfonce sous le doigt. */
@@ -33822,6 +33842,7 @@ function renderBravoSlide(l){
     <div class="ls-main bravo-wrap">
       ${bravoHeroHtml(l)}
       ${stkBravoHtml()}
+      ${typeof bravoOuvreHtml==='function'?bravoOuvreHtml(l):''}
       ${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
       ${bravoAvisHtml(l)}
@@ -42072,8 +42093,8 @@ function lqStkSvg(k){
     verrou:['<rect x="5" y="28" width="38" height="14" rx="5.5"/><rect x="5" y="6" width="17" height="17" rx="6"/><rect x="27" y="15" width="15" height="10.5" rx="3"/><path d="M30 15v-3.2a4.5 4.5 0 0 1 9 0V15" fill="none" stroke-width="10"/>',
       `<rect x="5" y="28" width="38" height="14" rx="5.5" fill="#6A4DF4" ${W}/><path d="M11 35h16" stroke="#fff" stroke-width="2.8" ${R}/><rect x="5" y="6" width="17" height="17" rx="6" fill="#9FF0C6" ${W}/><path d="M10.5 14.5h6" stroke="#fff" stroke-width="2.6" ${R} opacity=".9"/><path d="M30 15v-3.2a4.5 4.5 0 0 1 9 0V15" fill="none" ${W} ${R}/><rect x="27" y="15" width="15" height="10.5" rx="3" fill="#FFC83D" ${W}/><circle cx="34.5" cy="20.2" r="1.7" fill="${I}"/>`],
     /* 13 novembre, 0 h 32 : le cadenas d’une leçon verrouillée (feuille « Leçon verrouillée ») — corps jaune, anse lilas, serrure. */
-    cadenas:['<rect x="8" y="21" width="32" height="22" rx="7"/><path d="M15.5 22v-6.5a8.5 8.5 0 0 1 17 0V22" fill="none" stroke-width="12"/>',
-      `<path d="M15.5 23v-7.5a8.5 8.5 0 0 1 17 0V23" fill="none" stroke="${I}" stroke-width="7.5" ${R}/><path d="M15.5 23v-7.5a8.5 8.5 0 0 1 17 0V23" fill="none" stroke="#C9BEFF" stroke-width="3" ${R}/><rect x="8" y="21" width="32" height="22" rx="7" fill="#FFC83D" ${W}/><path d="M12.5 26.5h9" stroke="#fff" stroke-width="2.4" ${R} opacity=".85"/><circle cx="24" cy="30.6" r="3" fill="${I}"/><path d="M24 31.5v5" stroke="${I}" stroke-width="3" ${R}/>`],
+    cadenas:['<rect x="8" y="21" width="32" height="22" rx="7"/><path class="stk-anse" d="M15.5 22v-6.5a8.5 8.5 0 0 1 17 0V22" fill="none" stroke-width="12"/>',
+      `<path class="stk-anse" d="M15.5 23v-7.5a8.5 8.5 0 0 1 17 0V23" fill="none" stroke="${I}" stroke-width="7.5" ${R}/><path class="stk-anse" d="M15.5 23v-7.5a8.5 8.5 0 0 1 17 0V23" fill="none" stroke="#C9BEFF" stroke-width="3" ${R}/><rect x="8" y="21" width="32" height="22" rx="7" fill="#FFC83D" ${W}/><path d="M12.5 26.5h9" stroke="#fff" stroke-width="2.4" ${R} opacity=".85"/><circle cx="24" cy="30.6" r="3" fill="${I}"/><path d="M24 31.5v5" stroke="${I}" stroke-width="3" ${R}/>`],
     /* 8 novembre, 15 h 09 : l’onglet Adversaires (la maquette d’Elisa) — deux épées croisées. */
     epees:['<g transform="rotate(-45 24 24)"><path d="M24-1l4 7V35h-8V6z"/><rect x="16" y="35" width="16" height="5" rx="2.5"/><rect x="21.8" y="40" width="4.4" height="4"/><circle cx="24" cy="44.8" r="3.1"/></g><g transform="rotate(45 24 24)"><path d="M24-1l4 7V35h-8V6z"/><rect x="16" y="35" width="16" height="5" rx="2.5"/><rect x="21.8" y="40" width="4.4" height="4"/><circle cx="24" cy="44.8" r="3.1"/></g>',
       `<g transform="rotate(-45 24 24)"><path d="M24-1l4 7V35h-8V6z" fill="#C9BEFF" ${W} ${J}/><path d="M24 9V32" stroke="#fff" stroke-width="2" ${R} opacity=".9"/><rect x="21.8" y="39.5" width="4.4" height="5" fill="${I}"/><circle cx="24" cy="44.8" r="3.1" fill="#FFC83D" stroke="${I}" stroke-width="2"/><rect x="16" y="35" width="16" height="5" rx="2.5" fill="#6A4DF4" ${W}/></g><g transform="rotate(45 24 24)"><path d="M24-1l4 7V35h-8V6z" fill="#C9BEFF" ${W} ${J}/><path d="M24 9V32" stroke="#fff" stroke-width="2" ${R} opacity=".9"/><rect x="21.8" y="39.5" width="4.4" height="5" fill="${I}"/><circle cx="24" cy="44.8" r="3.1" fill="#FFC83D" stroke="${I}" stroke-width="2"/><rect x="16" y="35" width="16" height="5" rx="2.5" fill="#6A4DF4" ${W}/></g>`]
@@ -44916,6 +44937,20 @@ function obCompter(etape){
   try{localStorage.setItem(OB_COMPTE,JSON.stringify(c));}catch(e){}
   clearTimeout(obCompteT);obCompteT=setTimeout(obCompteEnvoyer,1500);
 }
+/* L’entonnoir continue après l’accueil (Elisa, 13 novembre, 1 h 18 : « prolonger l’entonnoir après l’onboarding… tu verrais si les
+   gens apprennent vraiment une fois entrés ») : la première leçon commencée (« Commencer » touché), la première et la deuxième
+   leçon validées. Les mêmes règles que l’accueil (une fois par appareil, ni nom ni réponse), et seulement si les statistiques
+   anonymes sont restées activées. Chaque étape compte aussi celles d’avant : l’entonnoir ne remonte jamais. */
+function obCompterLecon(quoi){
+  try{
+    if(!state.onboarded||(typeof statActif==='function'&&!statActif()))return;
+    const n=allLessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length;
+    if(quoi==='debut'){if(n===0)obCompter('leconDebut');return;}
+    if(n<1||n>2)return;
+    obCompter('leconDebut');obCompter('leconUne');
+    if(n===2)obCompter('leconDeux');
+  }catch(e){}
+}
 function obCompteEnvoyer(){
   const c=obCompteLire(),reste=c.vues.filter(v=>!c.parties.includes(v)).slice(0,30);
   if(!reste.length||obCompteEnvoi||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
@@ -45503,13 +45538,32 @@ function obWidgetProposer(){
   return true;
 }
 /* Noter l’app (Elisa, 13 novembre, 1 h 02 : « une notif Apple de noter l’application après le premier cours ») : la fenêtre aux
-   cinq étoiles d’iOS, demandée une fois, de retour à l’accueil après la première leçon validée, quand l’animation de la leçon
-   suivante qui s’ouvre est finie. iOS décide seul de l’afficher (jamais dans une version TestFlight) ; la ligne « Noter Requête » de
-   Mon compte reste là pour qui veut écrire un avis. Rend vrai si la demande part : le widget attendra le retour suivant. */
-const NOTE_DEMANDEE='requete-note-demandee';
+   cinq étoiles d’iOS, demandée de retour à l’accueil après la première leçon validée, quand l’animation de la leçon suivante qui
+   s’ouvre est finie. iOS décide seul de l’afficher (jamais dans une version TestFlight) ; la ligne « Noter Requête » de Mon compte
+   reste là pour qui veut écrire un avis. Rend vrai si la demande part : le widget attendra le retour suivant.
+   1 h 18 : « une deuxième demande de note plus tard… à un moment fort (un module terminé, ou 7 jours de série) ». Une deuxième
+   fois donc, et pas plus : 7 jours au moins après la première, quand un vrai module (5 leçons au moins) est terminé ou que la
+   série atteint 7 jours. iOS ne dit ni si la fenêtre est apparue ni si une note a été donnée ; qui a déjà noté n’est pas
+   redemandé par iOS avant un an. L’entonnoir compte seulement les demandes (note, noteDeux), si les statistiques sont activées. */
+const NOTE_DEMANDEE='requete-note-demandee',NOTE_JOUR='requete-note-jour',NOTE_ECART_J=7,NOTE_MODULE_MIN=5,NOTE_SERIE_J=7;
 let noteT=0;
+function noteFaites(){try{return Math.max(0,Math.min(2,Math.floor(+localStorage.getItem(NOTE_DEMANDEE))||0));}catch(e){return 2;}}
+function noteJoursDepuis(){
+  try{const j=localStorage.getItem(NOTE_JOUR);return j?Math.round((parseD(dstr(auj()))-parseD(j))/864e5):Infinity;}catch(e){return Infinity;}
+}
+function noteMomentFort(){
+  try{
+    if(MODULES.some(m=>m.lessons.length>=NOTE_MODULE_MIN&&m.lessons.every(x=>lecCompletee(x.id))))return true;
+    return typeof streakJours==='function'&&streakJours()>=NOTE_SERIE_J;
+  }catch(e){return false;}
+}
 function notePossible(){
-  try{return !!state.onboarded&&!!ilePont()&&!localStorage.getItem(NOTE_DEMANDEE)&&leconsFaitesN()>=1;}catch(e){return false;}
+  try{
+    if(!state.onboarded||!ilePont())return false;
+    const n=noteFaites();
+    if(n===0)return leconsFaitesN()>=1;
+    return n===1&&noteJoursDepuis()>=NOTE_ECART_J&&noteMomentFort();
+  }catch(e){return false;}
 }
 function noteProposer(){
   if(!notePossible()||accueilOccupe())return false;
@@ -45517,9 +45571,13 @@ function noteProposer(){
   noteT=setTimeout(()=>{
     try{
       if(activeTab!=='learn'||!notePossible()||accueilOccupe())return;
-      localStorage.setItem(NOTE_DEMANDEE,'1');
-      const oublier=()=>{try{localStorage.removeItem(NOTE_DEMANDEE);}catch(e){}};
-      Promise.resolve(ilePont().nativePromise('RequeteWidget','noter',{})).then(r=>{if(!(r&&r.ok))oublier();},oublier);
+      const avant=noteFaites(),jourAvant=localStorage.getItem(NOTE_JOUR);
+      localStorage.setItem(NOTE_DEMANDEE,String(avant+1));localStorage.setItem(NOTE_JOUR,dstr(auj()));
+      const oublier=()=>{try{if(avant)localStorage.setItem(NOTE_DEMANDEE,String(avant));else localStorage.removeItem(NOTE_DEMANDEE);if(jourAvant)localStorage.setItem(NOTE_JOUR,jourAvant);else localStorage.removeItem(NOTE_JOUR);}catch(e){}};
+      Promise.resolve(ilePont().nativePromise('RequeteWidget','noter',{})).then(r=>{
+        if(!(r&&r.ok)){oublier();return;}
+        try{if(typeof obCompter==='function'&&(typeof statActif!=='function'||statActif()))obCompter(avant?'noteDeux':'note');}catch(e){}
+      },oublier);
     }catch(e){}
   },1700);
   return true;
@@ -50427,7 +50485,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-note-v2917';
+  const SW_CACHE='requete-2026-11-13-bilan-v2918';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

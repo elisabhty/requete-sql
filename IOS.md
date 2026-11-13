@@ -405,6 +405,11 @@ L’entonnoir de l’onboarding (la vue `public.onboarding_entonnoir`, tableau d
 construit » et « Ils apprécient Requête » : 19 étapes. Migration `supabase/migrations/20261113001301_onboarding_entonnoir_methode.sql`,
 appliquée le 13 novembre à 1 h 13 avec l’accord d’Elisa.
 
+Il continue après l’accueil (1 h 18) : « 1re leçon commencée » (« Commencer » touché), « 1re leçon terminée », « 2e leçon
+terminée », puis les demandes de note. 24 lignes ; ces étapes ne partent que si les statistiques anonymes sont activées.
+Migration `20261113002420_onboarding_entonnoir_premieres_lecons.sql`, appliquée le 13 novembre à 1 h 24. Sur l’écran de fin
+de leçon, une ligne « Leçon débloquée » montre le cadenas qui s’ouvre et mène à la leçon suivante.
+
 ### La note de l’app, puis la page du widget (13 novembre, 1 h 02)
 
 Après la **première** leçon validée, de retour à l’accueil, l’app demande à iOS sa fenêtre aux cinq étoiles (le pont
@@ -412,6 +417,11 @@ Après la **première** leçon validée, de retour à l’accueil, l’app deman
 (`requete-note-demandee`), 2,6 s après le retour, une fois la leçon suivante ouverte sur le chemin. C’est iOS qui décide de
 l’afficher : trois fois par an au plus pour une même personne, **jamais dans une version TestFlight** (elle apparaît lancée
 depuis Xcode, et dans la version de l’App Store). La ligne « Noter Requête » de Mon compte ouvre toujours la page d’avis.
+
+Une **deuxième demande** (1 h 18), et pas plus : 7 jours au moins après la première, à un moment fort (un module d’au moins
+5 leçons terminé, ou 7 jours de série). iOS ne dit ni si la fenêtre est apparue ni si une note a été donnée : rien de tel dans
+Supabase. L’entonnoir compte seulement les demandes (« Note demandée à iOS », 1re et 2e fois) ; les notes elles-mêmes se
+lisent dans App Store Connect.
 
 Après la **deuxième** leçon, la page du widget (« Je t’encouragerai directement depuis ton écran d’accueil ! »), 2 s après le
 retour à l’accueil ; elle venait après la première. Jamais les deux au même retour.

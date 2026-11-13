@@ -25,6 +25,10 @@ function accueil({ faites = 1, natif = true, note = false, widget = false, enLec
     state: { onboarded: true }, allLessons: [1, 2, 3, 4].map(id => ({ id })), lecCompletee: id => id <= ctx.faites, faites,
     activeTab: 'learn', enLecon, feuille, ouverts: [],
     obWidgetPossible: () => natif,
+    /* 1 h 18 : la deuxième demande regarde la date, les modules et la série ; l’entonnoir compte les demandes (retours-0118) */
+    jour: '2026-11-13', auj: () => new Date(ctx.jour + 'T00:00:00'), parseD: j => new Date(j + 'T00:00:00'),
+    dstr: d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
+    MODULES: [], streakJours: () => 0, comptes: [], obCompter: e => ctx.comptes.push(e), statActif: () => true,
     ilePont: () => natif ? { nativePromise: (p, m, d) => { appels.push(p + ' ' + m); return reponse instanceof Error ? Promise.reject(reponse) : Promise.resolve(reponse); } } : null,
     setTimeout: (f, d) => { minuteurs.push([f, d]); return minuteurs.length; }, clearTimeout: () => {},
     document: { body: { classList: { contains: c => c === 'in-lesson' && ctx.enLecon } }, getElementById: () => null, querySelector: () => ctx.feuille ? {} : null },
@@ -41,6 +45,8 @@ test('après la première leçon : la note de l’app est demandée à iOS, une 
   await a.retour();
   assert.deepEqual(a.appels, ['RequeteWidget noter']);
   assert.equal(a.stock.get('requete-note-demandee'), '1');
+  assert.equal(a.stock.get('requete-note-jour'), '2026-11-13', 'le jour de la demande : la deuxième attendra une semaine');
+  assert.deepEqual([...a.ctx.comptes], ['note'], 'l’entonnoir compte la demande');
   assert.deepEqual([...a.ctx.ouverts], [], 'pas de page du widget après la première leçon');
   /* Les retours suivants, toujours avec une seule leçon : plus rien */
   await a.retour(); await a.retour();
@@ -88,6 +94,8 @@ test('la note ne passe pas par-dessus autre chose, attend la fin de l’animatio
     await b.retour();
     assert.deepEqual(b.appels, ['RequeteWidget noter']);
     assert.equal(b.stock.has('requete-note-demandee'), false);
+    assert.equal(b.stock.has('requete-note-jour'), false);
+    assert.deepEqual([...b.ctx.comptes], [], 'rien de compté');
     assert.deepEqual([...b.ctx.ouverts], [], 'et le widget n’a pas pris sa place');
   }
   /* Le retour à l’accueil déclenche le tout */
