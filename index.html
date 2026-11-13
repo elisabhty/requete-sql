@@ -20409,7 +20409,13 @@ function restoreNav(){
   navTried=true;
   let nav=null;
   try{ nav=JSON.parse(sessionStorage.getItem(NAV_KEY)); }catch(e){}
-  if(!nav){
+  /* 13 novembre, 15 h 32 (Elisa : « quand on revient sur l’appli, pourquoi on revient pas sur l’accueil ? ») : dans l’app iPhone, un
+     lancement (l’appli fermée puis rouverte) commence toujours sur l’accueil ; sa carte « Continuer » reprend la leçon en cours. La
+     page où l’on était n’est reprise que si l’appli s’est seulement rechargée, sans être fermée (nouvelle version, langue) : c’est
+     sessionStorage qui s’en souvient. Dans Safari, qui décharge la page dès qu’on change d’application, la reprise des 6 dernières
+     heures reste. */
+  const natif=typeof dxNatif==='function'&&dxNatif();
+  if(!nav&&!natif){
     try{
       const long=JSON.parse(localStorage.getItem(NAV_KEY_LONG));
       if(long&&long.nav&&Date.now()-(long.ts||0)<NAV_REPRISE_MS) nav=long.nav;
@@ -51149,7 +51155,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-reglages-v2939';
+  const SW_CACHE='requete-2026-11-13-accueil-v2940';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
