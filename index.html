@@ -38164,7 +38164,7 @@ function jeuRender(){
     /* 18 h 48 (Elisa : « même un défi solo raté, mets le message “le bilan s’affiche”, comme les autres ; sois cohérent ») : seul
        aussi, la page des points vient à chaque fois, même sans point (« Tu vas y arriver ! », le chat qui lève le poing), puis se
        referme toute seule sur le bilan. */
-    if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,total:cg.total,solo:!!J.solo}:{pts:0,total:cg.total,solo:!!J.solo,issue:'rate',nb:jouees},700);
+    if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},700);
     if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
@@ -38238,7 +38238,7 @@ function jeuRender(){
       jeuPlaces(sc);
       const moi=sc.find(x=>x.pid===J.me)||{pts:0,ms:0,place:sc.length||1},premier=sc[0]||null,second=sc[1]||null;
       const nul=sc.length>0&&sc.every(x=>x.pts===0),winner=!nul&&moi.place===1&&moi.pts>0;
-      if(cg)ptsPage({pts:cg.pts,total:cg.total,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0},0);   // avant le podium (17 h 31) ; sa médaille (18 h 11)
+      if(cg)ptsPage({pts:cg.pts,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0},0);   // avant le podium (17 h 31) ; sa médaille (18 h 11)
       const nom=x=>esc(x&&x.name||'Joueur'),ecart=(a,b)=>{const d=Math.max(0,(a&&a.pts||0)-(b&&b.pts||0));return `${d.toLocaleString('fr-FR')}\u00a0point${d>1?'s':''}`;};
       let ton,titre,chat,med='',phrase;
       if(winner){ton='is-or';titre='Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
@@ -38711,7 +38711,7 @@ function jeuCountUp(el){
 }
 /* Les points gagnés, en notification (Elisa, 31 octobre, 15 h 52 : « faire une notification sur le nombre de points obtenus avec
    animation, micro-interaction » ; 16 h 29 : « pas assez clean ») : une pastille blanche qui descend du haut, la pièce qui tourne, le
-   nombre qui monte ; en fin de partie, le total de salle à côté. Le détail des points est dans la carte « Trouvé » et les résultats.
+   nombre qui monte ; en fin de partie, le total de salle à côté (plus depuis le 13 novembre, 19 h). Le détail des points est dans la carte « Trouvé » et les résultats.
    Le lecteur d’écran entend le résultat (lqSay). */
 const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26.6" r="20" fill="#1B1640" opacity=".28"/><circle cx="24" cy="24" r="20" fill="#fff"/><circle cx="24" cy="24" r="16.3" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5"/><circle cx="24" cy="24" r="11.6" fill="none" stroke="#E0A100" stroke-width="2"/><path d="M24 15.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff" stroke="#1B1640" stroke-width="2" stroke-linejoin="round"/></svg>';
 /* Les points d’une partie (Elisa, 11 novembre, 21 h 33 : « pareil pour les points : lors d’un jeu en solo ou en multijoueur, c’est
@@ -38728,13 +38728,17 @@ const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><
 function jeuPtsPage(o){
   if(!o||!(o.pts>0||o.issue)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||typeof document.body.appendChild!=='function'||typeof MU==='undefined'||typeof moduleUpClose!=='function')return;
   if(MU){ clearTimeout(jeuPtsPage.t); jeuPtsPage.t=setTimeout(()=>jeuPtsPage(o),900); return; }
-  const fmt=v=>(+v||0).toLocaleString('fr-FR'),pl=o.pts>1?'s':'',total=o.total>0?o.total:0,qui=o.qui?esc(o.qui):'';
+  const fmt=v=>(+v||0).toLocaleString('fr-FR'),pl=o.pts>1?'s':'',qui=o.qui?esc(o.qui):'';
   const issue=o.issue||'',zero=!(o.pts>0),fete=!zero&&(!issue||issue==='victoire');
   /* 17 h 49 (Elisa : « l’écran avec le 0-0, c’est ça qui doit être entre les manches, quand il y en a 2 ou 3 ; toujours pareil, gagné,
      perdu, 0-0 ») : o.manche, la page d’une manche avant la dernière : « Manche 1/3 terminée », l’issue de la manche, tes points et le
      total de ta partie ; en bas, « La manche 2 démarre dans 5 s » et sa barre, sans bouton ; elle se referme toute seule quand la
      manche suivante part (jeuRender), ou d’un toucher sur la croix (le classement dessous). */
   const M=o.manche&&typeof o.manche==='object'?o.manche:null;
+  /* 13 novembre, 19 h (Elisa : « ne pas préciser les points de la salle ; je ne veux pas que tu enlèves la salle, juste les points ») :
+     la page ne dit plus le total de salle (ni « Tes points de salle passent à … », ni l’encart « Points de salle ») ; entre les
+     manches, le total de ta partie reste. */
+  const total=M&&o.total>0?o.total:0;
   const suite=M?'Voir le classement':issue==='victoire'||issue==='defaite'?'Voir le podium':'Voir le bilan';   // le 0 à 0 n’a pas de podium (la liste des joueurs), seul non plus
   const kick=M?`Manche ${M.n+1}/${M.nb} terminée`:issue==='victoire'?'Victoire\u00a0!':o.solo?'Partie solo terminée':'Partie terminée';
   /* 18 h 35 (Elisa : « pourquoi tu ne fais pas des pages comme “Manche gagnée”, “Bien joué” pour le 0-0, et quand on a perdu ? Il faut
@@ -38743,7 +38747,7 @@ function jeuPtsPage(o){
      (« La suite ! » entre les manches) ; les titres encouragent : « La revanche t’attend ! », « Tu vas te rattraper ! », « Match nul ! ». */
   const enc=zero&&!!issue,chatEnc=enc&&typeof chatBonusHtml==='function'?chatBonusHtml(issue==='nul'?'duel':'effort'):'';
   const h=issue==='victoire'?(M?'Manche gagnée\u00a0!':'Tu as gagné\u00a0!'):issue==='nul'?'Match nul\u00a0!':issue==='rate'?'Tu vas y arriver\u00a0!':issue==='defaite'?(zero?(M?'Tu vas te rattraper\u00a0!':'La revanche t’attend\u00a0!'):'Bien joué\u00a0!'):'Bravo\u00a0!';
-  const totalTx=!total?'':M?` Ta partie\u00a0: <b>${fmt(total)}</b> point${total>1?'s':''}.`:` Tes points de salle passent à <b>${fmt(total)}</b>.`;
+  const totalTx=total?` Ta partie\u00a0: <b>${fmt(total)}</b> point${total>1?'s':''}.`:'';
   const p=issue==='rate'?`${o.nb>1?'Ces défis t’ont':'Ce défi t’a'} résisté cette fois, mais chaque essai t’entraîne.`
     :issue==='nul'?(M?'Personne n’a trouvé cette manche\u00a0: tout se joue à la suivante\u00a0!':'Ce défi a résisté à tout le monde. Une revanche pour vous départager\u00a0?')
     :issue==='defaite'&&zero?(M?`${qui||'L’autre joueur'} a trouvé cette manche. La suivante peut être la tienne\u00a0!`:`${qui||'L’autre joueur'} a trouvé cette fois. Chaque défi t’entraîne\u00a0: à toi la prochaine\u00a0!`)
@@ -38762,7 +38766,7 @@ function jeuPtsPage(o){
   const box=document.createElement('div');
   box.innerHTML=`<div class="mu mu-acc mu-pts${zero?' is-zero':''}${enc?' is-encourage':''}${issue?' is-'+issue:''}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">
     <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
-    ${total&&!zero?`<div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${JEU_COIN_SVG}</span><span>${M?'Ta partie':'Points de salle'}</span><b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b></div>`:''}
+    ${total&&!zero?`<div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${JEU_COIN_SVG}</span><span>Ta partie</span><b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b></div>`:''}
     <button type="button" class="mu-x" aria-label="${suite}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="mu-in">
       <span class="mu-kick" id="mu-k">${kick}</span>
@@ -38787,7 +38791,7 @@ function jeuPtsPage(o){
   if(auto)MU.timers.push(setTimeout(()=>{if(MU&&MU.el===el)fermer();},FIN_MS));
   el.querySelector('.mu-x').addEventListener('click',fermer);
   el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); fermer(); } });
-  if(typeof lqSay==='function')lqSay(`${issue?h.replace(/\u00a0/g,' ')+' ':''}${zero?'0 point':`+${o.pts} point${pl}`}`+(total&&!zero?`, total de salle : ${total} points`:''));
+  if(typeof lqSay==='function')lqSay(`${issue?h.replace(/\u00a0/g,' ')+' ':''}${zero?'0 point':`+${o.pts} point${pl}`}`+(total&&!zero?`, ta partie : ${total} points`:''));
   if(typeof buzz==='function')buzz(fete?'success':'light');
   const alb=el.querySelector('.mu-album');
   if(prefersReduceMotion()){ el.classList.add('is-still','is-a','is-ready','is-album'); if(alb)alb.classList.add('is-hit'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} return; }
@@ -51388,7 +51392,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-solo-v2958';
+  const SW_CACHE='requete-2026-11-13-salle-v2959';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
