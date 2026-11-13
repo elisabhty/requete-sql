@@ -607,7 +607,7 @@ test('solo : la manche trouvée reste à l’écran, « Bravo, défi résolu ! �
      repliée ; ni correction, ni boutons de fin sur le défi */
   assert.match(s.html, /<b class="jeu-timer is-ok" id="jeu-timer" role="timer" aria-label="Résolu en 1 min 0[5-9]">01:0[5-9]<\/b>/, 'le chrono s’arrête sur le temps mis, au vert');
   assert.match(s.html, /<b class="jeu-hud-m">Défi solo<\/b>/); assert.doesNotMatch(s.html, /Manche 1<small>\/1|Manche 1\/1/);
-  assert.match(s.html, /Tes points arrivent dans <b id="jeu-auto-n">\d+<\/b>/); assert.match(s.html, /<details class="jeu-done-sql"><summary>Voir ma requête et son résultat<\/summary>/);
+  assert.match(s.html, /Tes points arrivent dans <b id="jeu-auto-n">\d+<\/b>/); assert.doesNotMatch(s.html, /jeu-done-sql|Voir ma requête/);   // 13 novembre, 20 h 33
   assert.doesNotMatch(s.html, /jeuCorrection\(|jeu-fin-actions|jeuRejouer\(/, 'rien de la fin sur le défi');
   assert.equal(s.ev('jeuLeaveQuestion()'), null, 'plus rien à perdre : on part sans question');
   sec(w, 10);
@@ -1654,7 +1654,7 @@ test('10 h 37 : à plusieurs, le chrono continue après sa trouvaille, sans corr
   assert.match(host.html, /<b class="jeu-timer" id="jeu-timer" role="timer" aria-label="Temps restant de la manche">09:[34]\d<\/b>/, 'le chrono continue');
   assert.match(host.html, /<b class="jeu-hud-m">Manche unique<\/b>/);
   assert.doesNotMatch(host.html, /jeuCorrection\(|Défi solo/, 'la correction attend la fin de la partie');
-  assert.match(host.html, /<details class="jeu-done-sql"><summary>Voir ma requête et son résultat<\/summary>/);
+  assert.doesNotMatch(host.html, /jeu-done-sql|Voir ma requête/, 'plus de « Voir ma requête et son résultat » (13 novembre, 20 h 33)');
   sec(w, 10 * 60 + 8);
   assert.equal(host.view(), 'final', 'le podium');
   assert.match(host.html, /<div class="jeu-card jeu-corr-l"><p class="jeu-card-h">Les défis de la partie<\/p><ol class="jeu-corr-liste"><li><button type="button" class="jcl-b" onclick="jeuCorrection\(0\)"><span class="jcl-t"><small><i class="is-ok">Résolu en 2\d s<\/i><\/small>/, 'sous le classement, chaque défi et sa correction');
@@ -1873,18 +1873,18 @@ test('9 novembre, 18 h : la salle pleine refuse vraiment le 7e (transport local 
   assert.ok(/function jeuTropPlein\(\)\{[\s\S]{0,260}l\.slice\(J\.max\)/.test(app) && app.includes('  jeuTropPlein();\n'), 'l’hôte refait le compte à chaque battement');
 });
 
-test('9 novembre, 17 h 59 : « 1 ligne · 1 ms » dans le bloc de la requête, sous « Voir ma requête et son résultat »', () => {
+test('13 novembre, 20 h 33 : plus de « Voir ma requête et son résultat » sur la carte de la salle (sa requête est dans la correction, à la fin)', () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
-  assert.ok(app.includes("const pied=`<span class=\"jeu-sql-pied\">${typeof edPiedHTML==='function'?edPiedHTML(userRes,ms):''}</span>`;"), 'le pied dans le bloc sombre');
-  assert.ok(css.includes('html.lq .jeu-done-sql .result-meta{display:none!important}'), 'plus de pastille au-dessus du tableau');
+  assert.ok(!app.includes('r.mine') && !app.includes('jeu-done-sql') && !css.includes('.jeu-done-sql'));
+  assert.ok(app.includes('    r.sql=sql;   // « Ta requête » dans la correction'), 'la requête acceptée reste pour la correction');
+  assert.ok(css.includes('html.lq .jeu-sql-pied{display:flex;'), 'le pied des éditeurs garde ses styles');
 });
 
 test('9 novembre, 18 h 09 : « N lignes · ms » en pied de chaque éditeur (défi, salle, console, Teste) ; pâlit quand on retouche', () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const css = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   for (const s of ["edPied('ed-console',res,ms);", "edPied('ed-console',null);", "edPied('ed-lesson',userRes,ms);", "edPied('ed-lesson',write?null:userRes,ms);", "edPied(ta,follow?null:res,ms);", "edPied(ta,'err');"]) assert.ok(app.includes("typeof edPied==='function'&&" + s), s);
-  assert.ok(app.includes("const pied=`<span class=\"jeu-sql-pied\">${typeof edPiedHTML==='function'?edPiedHTML(userRes,ms):''}</span>`;"), 'la carte de la salle prend le même pied');
   assert.ok(app.includes("if(p)p.classList.add('is-perime');") && css.includes('html.lq .ed-pied.is-perime{opacity:.4}'), 'retouchée : le pied pâlit');
   assert.ok(css.includes('html.lq #lesson-out>.result-meta,html.lq .xf-result>.result-meta{display:none!important}'), 'plus de pastille sous l’éditeur');
 });

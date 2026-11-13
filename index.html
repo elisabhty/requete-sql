@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=345">
+<link rel="stylesheet" href="ludique.css?v=346">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38567,13 +38567,14 @@ function jeuFoundHTML(r,pid){
   const pts=`<strong class="jeu-done-pts coach-ok-pts"><em data-n="${x.pts}">+${x.pts}</em><small>pts</small></strong>`;
   /* Un essai manqué dans cette manche : l’encart était rouge (coachKo) */
   const ko=typeof COACH!=='undefined'&&!!COACH&&COACH.kind==='room'&&COACH.round===n&&!!COACH.diag;
-  /* Seul : la suite (jeuSuiteHTML), la manche suivante ou l’écran de fin. La correction, elle, est sur l’écran de fin (11 h 31). */
+  /* Seul : la suite (jeuSuiteHTML), la manche suivante ou l’écran de fin. La correction, elle, est sur l’écran de fin (11 h 31).
+     13 novembre, 20 h 33 (Elisa : « enlève Voir ma requête et son résultat ») : plus rien à déplier sur la carte pendant la partie ;
+     sa requête acceptée est dans la correction, à la fin (« Ta requête », jeuCorrHTML). */
   const suite=sl||(last&&jeuRoundDone(n))?jeuSuiteHTML(n)   // entre amis, la dernière finie : « Tes points arrivent dans 5 s » (13 novembre)
     :`<div class="jeu-done-wait"><p id="jeu-waitline">${jeuWaitLine(n)}</p><div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}',this)" aria-label="Réagir ${e}">${e}</button>`).join('')}</div></div>`;
   return `<section class="coach is-ok jeu-done" id="jeu-done" aria-label="Défi résolu" aria-live="polite">
       ${coachOkHTML({ko,det,pts})}
       ${suite}
-      ${r.mine?`<details class="jeu-done-sql"><summary>Voir ma requête et son résultat</summary>${r.mine}</details>`:''}
     </section>`;
 }
 /* Seul : ce qui vient sous la carte de la manche finie, et une barre qui se remplit jusqu’à elle (8 h 50), de là où elle en est si la
@@ -38910,10 +38911,7 @@ function jeuRun(){
   if(resultatsDefiEgaux(userRes,solRes,c,alt=>{const d=defiSandbox(c);try{return execChallengeResult(d,alt);}finally{d.close();}})){
     const took=Date.now()-r.t1;
     document.querySelectorAll('#lesson-body .btn-run').forEach(b=>b.disabled=true);
-    /* « 1 ligne · 1 ms » dans le bloc de la requête, en pied (Elisa, 9 novembre, 17 h 59 : « intégrer les 1 lignes à l’intérieur
-       du moteur ») : au-dessus du tableau, il ne reste que l’invitation à faire glisser. */
-    const pied=`<span class="jeu-sql-pied">${typeof edPiedHTML==='function'?edPiedHTML(userRes,ms):''}</span>`;
-    r.mine=`<div class="ex-code jeu-sql-code">${highlight(sql)}${pied}</div>${renderTable(userRes,ms)}`;r.sql=sql;   // r.sql : « Ta requête » dans la correction (10 h 37)
+    r.sql=sql;   // « Ta requête » dans la correction (10 h 37) ; plus de « Voir ma requête et son résultat » sur la carte (13 novembre, 20 h 33)
     jeuCredit(c.id);
     jeuSend({t:'found',n,ms:took,p1:r.tries===1?1:0});
     if(JEU===J&&J.view==='play'+n){J.keep=J.view;J.view='';jeuRender();}
@@ -51476,7 +51474,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-widgets-v2964';
+  const SW_CACHE='requete-2026-11-13-carte-v2965';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
