@@ -672,8 +672,8 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
 **Ce qui reste, et que le code ne peut pas vérifier** :
 
 - **Les pages légales** (11 h 29, « complète ») : plus aucun « à compléter » en ligne. L’éditrice, la directrice de la
-  publication et la responsable du traitement : Elisa Blanchart, entrepreneur individuel (EI), enseigne HORMEND AI LABS (nom
-  commercial HORMEND ; ajoutés à 11 h 41, « tu peux mettre hormend AI lab etc ») ; le SIRET (911 203 370 00034) et
+  publication et la responsable du traitement : Elisa Blanchart, entrepreneur individuel (EI), enseigne HORMEND AI LABS (11 h 43,
+  « je veux HORMEND AI LABS » : l’enseigne seule, pas le nom commercial HORMEND) ; le SIRET (911 203 370 00034) et
   l’adresse viennent de l’avis de situation Sirene du 13 novembre 2026 qu’elle a joint. Le médiateur : MCP Médiation, retrouvé
   dans ses mails. **Restent à elle** : le **téléphone** (la ligne est masquée en attendant ; la loi le demande à un éditeur
   professionnel), et la convention du médiateur, **au nom de Hormend Nutrition** (la même entreprise individuelle) et valable
