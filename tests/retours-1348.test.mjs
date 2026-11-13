@@ -127,13 +127,13 @@ test('où l’onboarding perd du monde : chaque étape comptée une fois par app
   assert.equal(app.split('Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un)').length, 3);
 });
 
-test('le widget après la première leçon : une fois, de retour à l’accueil, dans l’app iPhone ; il rend ensuite la main', () => {
+test('le widget après la deuxième leçon (13 novembre, 1 h 02 : « juste après le deuxième cours » ; après la première avant) : une fois, de retour à l’accueil, dans l’app iPhone ; il rend ensuite la main', () => {
   assert.ok(app.includes("const OB_FIN_SLIDES=['source','rappel'];") && app.includes("const OB_WIDGET_SLIDES=['widget','widgetTuto'];"));
   const flux = cut('function obFinFlux(){', 'function obFinSuivante(');
   assert.ok(!flux.includes("'widget'") && !flux.includes('obWidgetPossible'), 'plus dans le tunnel');
-  const lab = ({onboarded = true, natif = true, vu = false, fait = true, enLecon = false, ouvert = false} = {}) => {
+  const lab = ({onboarded = true, natif = true, vu = false, faites = 2, enLecon = false, ouvert = false} = {}) => {
     const ls = stockage(); if (vu) ls.setItem('requete-widget-propose', '1');
-    const ctx = vm.createContext({localStorage: ls, state: {onboarded}, allLessons: [{id: 1}, {id: 2}], lecCompletee: id => fait && id === 2,
+    const ctx = vm.createContext({localStorage: ls, state: {onboarded}, allLessons: [{id: 1}, {id: 2}, {id: 3}], lecCompletee: id => id <= faites,
       obWidgetPossible: () => natif, ouverts: [], activeTab: 'learn', setTimeout: f => { f(); return 1; }, clearTimeout: () => {},
       document: {body: {classList: {contains: c => c === 'in-lesson' && enLecon}}, getElementById: id => id === 'onboarding' ? {classList: {contains: () => ouvert}} : null, querySelector: () => null}});
     ctx.startOnboarding = s => ctx.ouverts.push(s);
@@ -144,7 +144,8 @@ test('le widget après la première leçon : une fois, de retour à l’accueil,
   assert.equal(ok.ctx.obWidgetProposer(), true); assert.deepEqual([...ok.ctx.ouverts], ['widget']);
   assert.equal(ok.ls.getItem('requete-widget-propose'), '1');
   assert.equal(ok.ctx.obWidgetProposer(), false, 'une seule fois');
-  for (const o of [{fait: false}, {natif: false}, {vu: true}, {onboarded: false}, {enLecon: true}, {ouvert: true}]) assert.equal(lab(o).ctx.obWidgetProposer(), false, JSON.stringify(o));
+  for (const o of [{faites: 0}, {faites: 1}, {natif: false}, {vu: true}, {onboarded: false}, {enLecon: true}, {ouvert: true}]) assert.equal(lab(o).ctx.obWidgetProposer(), false, JSON.stringify(o));
+  assert.equal(lab({faites: 3}).ctx.obWidgetProposer(), true, 'et plus tard, pour qui ne l’a pas encore vu');
   /* Le retour à l’accueil le propose ; ses deux boutons rendent la main */
   assert.ok(app.includes("  activeTab=name;\n  syncTabBack(name);\n  if(name==='learn'&&typeof obWidgetBientot==='function')obWidgetBientot();"));
   assert.ok(app.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');") && app.includes("obSetFooter('C’est fait\\u00a0!',obWidgetFin,'','','');"));
