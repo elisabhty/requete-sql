@@ -134,11 +134,11 @@ test('le bilan : le titre dit l’issue, les trois cases, une manche ratée dans
   assert.ok(fin.includes("head(`Fin de la partie · ${JEU_NIVL[J.niv]}`,titre,sous)"), '« Niveau facile », sans point');
   assert.ok(fin.includes("<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;"), '« — » sans défi résolu');
   assert.ok(fin.includes("<span class=\"jr-ico\" aria-hidden=\"true\">${ok?ICO_OK:ab?ICO_KO:JEU_ICO.reveil}</span>"), 'le réveil pour le chrono, la croix pour une manche quittée');
-  const ctx = vm.createContext({ JEU: { solo: true, niv: 'm' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>', DEF_CHEV_SVG: '›',
+  const ctx = vm.createContext({ JEU: { solo: true, niv: 'm' }, JEU_RELANCE_SVG: '<rv>', JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>', DEF_CHEV_SVG: '›',
     jeuNivBars: k => `[${k}]`, jeuBtn2: (i, l, o) => `[${i}|${l}|${o}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), ctx);
   assert.ok(ctx.jeuFinBoutonsHTML(2, true).startsWith('<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-d" onclick="jeuNiveauSuivant()">') && ctx.jeuFinBoutonsHTML(2, true).includes('<span class="jeu-prog-t">Passer au niveau difficile</span><span class="jeu-prog-x">×4<span class="lq-sr"> points par défi</span></span>'));
-  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Réessayer</span>') && ctx.jeuFinBoutonsHTML(0, false).includes('[classement|Voir mon classement|jeuVersClassement()]'));
+  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Revanche</span>') && ctx.jeuFinBoutonsHTML(0, false).includes('[classement|Voir mon classement|jeuVersClassement()]'));
   /* Le style : la pêche, la pastille à 44 px de toucher, la carte de la prochaine étape, les trois cases */
   for (const k of ['html.lq #app .jeu-rounds .jr.is-miss{border-style:solid;border-color:#FFDCC8;background:#FFF9F5;', 'html.lq #app .jr.is-miss .jr-ico{background:#FFE1D1;color:#A24A1E;',
     'html.lq #app .jr-corr::after{content:"";position:absolute;inset:-9px -6px}', 'html.lq #app .jeu-prog{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;',
@@ -153,8 +153,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-sol[data-vue="moi"]{background:#EAF8F0}', 'html.lq .dx-feuille button.jc-bascule{flex:none;',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-vote-v2970';") && app.includes("const SW_CACHE='requete-2026-11-13-vote-v2970';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=348">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-revanche-v2971';") && app.includes("const SW_CACHE='requete-2026-11-13-revanche-v2971';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=349">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -167,9 +167,9 @@ test('11 h 53 : le niveau suivant ramène à l’écran Défis, déjà choisi ; 
   ctx.jeuNiveauSuivant();
   assert.deepEqual([ctx.jeuNiv, ctx.jeuNivUser, ctx.jeuNb, ctx.DEFIS.onglet, ctx.DEFIS.carte, ouverts, prefs.length], ['m', true, 2, 'jouer', '', ['défis'], 1]);
   ctx.JEU.niv = 'm'; ctx.jeuNiveauSuivant(); assert.equal(ctx.jeuNiv, 'd');
-  const b = vm.createContext({ JEU: { solo: true, niv: 'd' }, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, DEF_CHEV_SVG: '›', jeuNivBars: k => k, jeuBtn2: (i, l) => `[${l}]` });
+  const b = vm.createContext({ JEU: { solo: true, niv: 'd' }, JEU_RELANCE_SVG: '<rv>', JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, DEF_CHEV_SVG: '›', jeuNivBars: k => k, jeuBtn2: (i, l) => `[${l}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), b);
-  assert.ok(!b.jeuFinBoutonsHTML(2, true).includes('jeu-prog') && b.jeuFinBoutonsHTML(2, true).includes('<span>Rejouer</span>'), 'Difficile : « Rejouer » seulement');
+  assert.ok(!b.jeuFinBoutonsHTML(2, true).includes('jeu-prog') && b.jeuFinBoutonsHTML(2, true).includes('<span>Revanche</span>'), 'Difficile : « Revanche » seulement');
   assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();') && fn('jeuAgain').includes("jeuSend({t:'again',g:J.g+1});"), '« Rejouer » : une nouvelle partie dans la même salle');
 });
 
