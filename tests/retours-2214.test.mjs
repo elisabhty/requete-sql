@@ -52,8 +52,8 @@ test('sans compte : « Aucun compte connecté » ; la connexion proposée si ell
 test('connecté : la vraie déconnexion (confirmée), puis l’étape du compte', async () => {
   const x = deco({ mode: 'connected', oui: true });
   await x.go();
-  assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Te déconnecter ?', 'signOut', 'enregistre', 'ferme', 'onboarding']);
+  assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Tu nous quittes déjà\u00a0?', 'signOut', 'enregistre', 'ferme', 'onboarding']);
   assert.equal(x.ctx.state.accountMode, 'guest');
   assert.ok(!('accountProvider' in x.ctx.state) && !('accountLabel' in x.ctx.state));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-podium-v2954';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-triste-v2955';"), 'le cache de l’appli change');
 });

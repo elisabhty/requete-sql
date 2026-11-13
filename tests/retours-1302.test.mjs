@@ -47,8 +47,8 @@ test('la question « Se déconnecter » : la patte qui salue, à la place de �
     return vm.runInContext('seDeconnecter()', ctx);
   };
   return deco('guest', false).then(() => deco('connected', true)).then(() => {
-    assert.deepEqual(appels, [['demande', 'Aucun compte connecté', '<img data-k="salut">'], ['demande', 'Te déconnecter ?', '<img data-k="salut">'], ['onboarding', 'account'], ['au revoir']],
-      'il salue dans les deux questions ; déconnecté, la page de connexion s’ouvre, puis il s’en va par-dessus');
+    assert.deepEqual(appels, [['demande', 'Aucun compte connecté', '<img data-k="salut">'], ['demande', 'Tu nous quittes déjà\u00a0?', '<img data-k="triste">'], ['onboarding', 'account'], ['au revoir']],
+      'il salue sans compte ; connecté, « Tu nous quittes déjà ? » et le chat tout triste (13 novembre, 18 h 23) ; déconnecté, la page de connexion s’ouvre, puis il s’en va par-dessus');
   });
 });
 
