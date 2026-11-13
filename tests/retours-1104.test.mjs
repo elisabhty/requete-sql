@@ -73,7 +73,7 @@ test('l’image du chat : le coucou à la bienvenue et sur la carte de la leçon
   assert.ok(vm.runInContext(`mascotMedalHtml({hi:'Coucou !',anim:'coucou'})`, ctx).includes(`<img class="mstk-cat is-coucou" src="${ANIM}"`), 'dans l’autocollant');
   /* Où */
   const hero = cut('function renderHomeHero(){', 'const LQ_VIDEO_SVG=');
-  assert.ok(hero.includes("hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!',intro,anim:nxt==null?'diplome':'poisson',repos:nxt==null?'':'rire',uneFois:true,joue:intro})"), 'la carte de la leçon ; le parcours terminé a le diplômé (12 h 38)');
+  assert.ok(hero.includes("hi:nxt==null?'Bravo\\u00a0!':'Ravi de te revoir\\u00a0!',intro,anim:nxt==null?'diplome':'bienvenue',uneFois:true,joue:intro})"), 'la carte de la leçon ; le parcours terminé a le diplômé (12 h 38)');
   assert.ok(app.includes("${mascotMedalHtml({hi:'Coucou\\u00a0!',intro:!mascotReduced(),anim:'coucou'})}"), 'la bienvenue');
 });
 

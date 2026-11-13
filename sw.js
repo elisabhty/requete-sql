@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-13-classement-v2947';
+const CACHE = 'requete-2026-11-13-bienvenue-v2948';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -98,8 +98,8 @@ const PRECACHE = [
   './assets/chat-rire.webp',
   './assets/chat-rire-fixe.webp',
   './assets/chat-rire-repos.webp',
-  './assets/chat-poisson.webp',
-  './assets/chat-poisson-fixe.webp',
+  './assets/chat-bienvenue.webp',
+  './assets/chat-bienvenue-fixe.webp',
   './assets/chat-pied.webp',
   './assets/chat-pied-fixe.webp',
   './assets/chat-oui.webp',

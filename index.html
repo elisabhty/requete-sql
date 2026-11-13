@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=336">
+<link rel="stylesheet" href="ludique.css?v=337">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=67">
 <style id="lesson-video-css">
@@ -27241,18 +27241,25 @@ const MASCOT_RIRE='assets/chat-rire.webp',MASCOT_RIRE_FIXE='assets/chat-rire-fix
    du fou rire (chat-rire-repos.webp), posée dans le même cadre que lui (classe is-repos, comme is-rire) : au toucher, le rire part de
    cette image même ; il s’y repose ensuite. Le coucou (l’ordinateur sous le bras) se joue toujours à l’arrivée, puis le repos. */
 const MASCOT_RIRE_REPOS='assets/chat-rire-repos.webp';
-function mascotFixe(img){return img&&img.hasAttribute&&img.hasAttribute('data-repos')?MASCOT_RIRE_REPOS:mascotAnimDe(img).fixe;}
+/* L’image du repos ; la bienvenue (13 novembre), elle, se repose en tournant en boucle. */
+function mascotFixe(img){if(img&&img.hasAttribute&&img.hasAttribute('data-repos'))return MASCOT_RIRE_REPOS;const a=mascotAnimDe(img);return a.boucle&&!(typeof mascotReduced==='function'&&mascotReduced())?a.src:a.fixe;}
 function mascotPoser(img){if(!img)return;img.src=mascotFixe(img);if(img.hasAttribute&&img.hasAttribute('data-repos')&&img.classList)img.classList.add('is-repos');}
 /* Les GIF de l’autocollant : leur image animée, leur image fixe, leur taille. o.uneFois : joué quand il dit bonjour (o.joue : tout de
    suite), au repos sinon (mascotCoucouJoue) ; sans : en boucle. */
 /* Elisa, 10 novembre, 8 h 29 (son GIF : le chat câline son poisson, le salue, le fait tomber, le ramasse, un cœur) : « Remplacer le
    premier GIF par ça, puis quand on le touche, le GIF qui rigole, ensuite il est au repos ». Sur l’accueil, il remplace le coucou à
    l’arrivée : 9 images de 230 ms, une fois. Le faux damier blanc et gris du GIF est effacé, son contour blanc refait (6 px, comme les
-   autres autocollants), deux traits parasites des bords retirés. Ensuite le repos (la première image du fou rire, 8 h 12). */
-const MASCOT_POISSON='assets/chat-poisson.webp',MASCOT_POISSON_FIXE='assets/chat-poisson-fixe.webp',MASCOT_POISSON_MS=2070;
+   autres autocollants), deux traits parasites des bords retirés. Ensuite le repos (la première image du fou rire, 8 h 12). Remplacé
+   le 13 novembre par la bienvenue, juste en dessous (les fichiers chat-poisson*.webp restent dans assets, hors de l’appli). */
+/* 13 novembre, 16 h 37 (son GIF : le chat assis sourit, penche la tête et ferme les yeux de plaisir) : « mettre ce gif au lieu de
+   celui avec le poisson en bienvenue. Et quand on le touche, […] celui qui était mort de rire ». Sur l’accueil, il remplace le chat au
+   poisson et tourne en boucle (12 images de 330 ms) : c’est lui qu’on voit ; au toucher, le fou rire, puis de nouveau la bienvenue.
+   Le GIF a une vraie transparence : recadré sur le chat, bord adouci (le contour blanc gardé, sans halo). Mouvement réduit : sa
+   première image, le sourire. Il est assis comme au début du fou rire : au toucher, pas de saut (CSS, .is-bienvenue.is-rire). */
+const MASCOT_BIENVENUE='assets/chat-bienvenue.webp',MASCOT_BIENVENUE_FIXE='assets/chat-bienvenue-fixe.webp';
 const MASCOT_ANIMS={
   coucou:{src:MASCOT_COUCOU,fixe:MASCOT_COUCOU_FIXE,w:289,h:352},
-  poisson:{src:MASCOT_POISSON,fixe:MASCOT_POISSON_FIXE,w:376,h:402,ms:MASCOT_POISSON_MS},
+  bienvenue:{src:MASCOT_BIENVENUE,fixe:MASCOT_BIENVENUE_FIXE,w:302,h:360,boucle:true},
   parti:{src:MASCOT_PARTI,fixe:MASCOT_PARTI_FIXE,w:302,h:359},
   diplome:{src:MASCOT_DIPLOME,fixe:MASCOT_DIPLOME_FIXE,w:304,h:367}
 };
@@ -27260,7 +27267,7 @@ function mascotAnimDe(img){return MASCOT_ANIMS[img&&img.getAttribute?img.getAttr
 function mascotChatHtml(o){
   const a=o&&o.anim&&Object.prototype.hasOwnProperty.call(MASCOT_ANIMS,o.anim)?MASCOT_ANIMS[o.anim]:null;
   if(a){
-    const fixe=(typeof mascotReduced==='function'&&mascotReduced())||(!!o.uneFois&&!o.joue),repos=o.repos==='rire'&&!!o.uneFois;
+    const fixe=(typeof mascotReduced==='function'&&mascotReduced())||(!!o.uneFois&&!o.joue&&!a.boucle),repos=o.repos==='rire'&&!!o.uneFois;
     return `<img class="mstk-cat is-${o.anim}${repos&&fixe?' is-repos':''}" src="${fixe?(repos?MASCOT_RIRE_REPOS:a.fixe):a.src}" width="${a.w}" height="${a.h}" alt="" draggable="false" data-anim="${o.anim}"${o.uneFois?' data-une-fois=""':''}${repos?' data-repos="rire"':''}>`;
   }
   return `<img class="mstk-cat" src="${MASCOT_IMG}" width="450" height="674" alt="" draggable="false">`;
@@ -27280,6 +27287,7 @@ function mascotCoucouJoue(img){
   if(typeof mascotReduced==='function'&&mascotReduced())return;
   clearTimeout(img._coucouT);
   const a=mascotAnimDe(img);
+  if(a.boucle){if(img.getAttribute('src')!==a.src){if(img.classList)img.classList.remove('is-repos');img.src=a.src;}return;}   // la bienvenue tourne déjà
   const joue=()=>{if(img.classList)img.classList.remove('is-repos');img.src=a.src;mascotCoucouPose(img);};
   if(img.getAttribute('src')===a.src){img.src=a.fixe;requestAnimationFrame(()=>requestAnimationFrame(joue));}
   else joue();
@@ -27462,7 +27470,7 @@ function renderHomeHero(){
   const intro=typeof mascotWavedThisSession!=='undefined'&&!mascotWavedThisSession&&!mascotReduced()&&typeof host.querySelector==='function'&&!host.querySelector('.mascot-stk')&&mascotAccueilLibre();
   if(intro){mascotWavedThisSession=true;setTimeout(()=>{const b=host.querySelector('.mascot-stk.is-intro');if(b)b.classList.remove('is-intro');},3800);}
   /* « Ravi de te revoir ! » plutôt que « Coucou ! » (Elisa, 30 octobre, 22 h 58) ; le premier écran de bienvenue garde « Coucou ! ». */
-  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro,anim:nxt==null?'diplome':'poisson',repos:nxt==null?'':'rire',uneFois:true,joue:intro}):'';
+  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml({kw:nxt==null?'COMMIT;':'SELECT',niv:nivC,nivCourt:true,hi:nxt==null?'Bravo\u00a0!':'Ravi de te revoir\u00a0!',intro,anim:nxt==null?'diplome':'bienvenue',uneFois:true,joue:intro}):'';
   if(nxt==null){
     const html=`<section class="journey-complete lq-hero is-complete has-hi" data-mc="0">${heading}<span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta lq-hero-cta-defis" type="button" aria-label="Continuer à pratiquer : les défis" onclick="homeVersDefis(this)"><span>Continuer à pratiquer</span><span class="lq-fleche" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></button></section>${stats}${streak}`;
     if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
@@ -51247,7 +51255,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-classement-v2947';
+  const SW_CACHE='requete-2026-11-13-bienvenue-v2948';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
