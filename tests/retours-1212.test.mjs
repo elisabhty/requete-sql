@@ -208,7 +208,8 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
   for (const f of ['index.html', 'conditions.html', 'confidentialite.html', 'mentions-legales.html', 'module.html'])   // 13 novembre : connexion.html n’est plus qu’un renvoi
     assert.ok(lire('decouvrir/' + f).includes(`vitrine.css?v=${v}`), `${f} : la feuille du site à jour`);
   /* 6 novembre : les conditions (l’app pour iPhone, plus « bientôt ») et la confidentialité (les durées de conservation) changent */
-  for (const [f, jour] of [['conditions.html', 13], ['mentions-legales.html', 5], ['confidentialite.html', 13]]) {   // 12 : le compte de l’appli iPhone ; 13 : le décompte après l’accueil, puis l’appli sur iPhone seulement (conditions aussi)
+  /* Mentions légales : le 13 aussi, depuis que l’éditrice y est nommée (retours-1129-pages-legales.test.mjs) */
+  for (const [f, jour] of [['conditions.html', 13], ['mentions-legales.html', 13], ['confidentialite.html', 13]]) {   // 12 : le compte de l’appli iPhone ; 13 : le décompte après l’accueil, puis l’appli sur iPhone seulement (conditions aussi)
     const p = lire('decouvrir/' + f);
     assert.ok(p.includes('«&nbsp;Contacte-nous&nbsp;»') && !p.includes('Nous contacter') && p.includes(`Dernière mise à jour&nbsp;: ${jour} novembre 2026`), f);
   }
