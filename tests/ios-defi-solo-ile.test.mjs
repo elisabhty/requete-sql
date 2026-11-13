@@ -36,16 +36,21 @@ test('l’île : « 1/3 » et le chrono à droite ; seul, la manche et les point
   for (const k of ['static func solo(_ a: RequeteSalle) -> Bool {\n        return a.max <= 1',
     'let m: Int = min(nb, max(1, e.manche))\n        return "\\(m)/\\(nb)"',
     'if p > 1 { return "\\(p)\\u{00A0}pts" }\n        return "\\(p)\\u{00A0}pt"',
-    'if e.phase == "attente" { return compte(e, a) }\n        if e.phase != "fin" { return manches(e) }\n        if solo(a) { return points(e, a) }\n        return rang(place(e, a))',
-    'if solo(a) { return "Ton score\\u{202F}: " + points(e, a) }\n        if e.phase == "fin" { return podium(e, a).joined(separator: "   ") }\n        return scores(e, a)'])
+    'if e.phase == "attente" { return compte(e, a) }\n        if e.phase != "fin" { return manches(e) }\n        if !aUnePlace(e, a) { return points(e, a) }\n        return rang(place(e, a))',
+    'if seul(e, a) { return "Ton score\\u{202F}: " + points(e, a) }\n        if e.phase == "fin" { return podium(e, a).joined(separator: "   ") }\n        return scores(e, a)',
+    /* 13 novembre, 23 h 20 (« 1er sur 1 », « Toi 0 ») : seul dans sa salle, comme seul ; personne n’a de point, pas de place */
+    'static func seul(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Bool {\n        return solo(a) || e.joueurs.count < 2',
+    'return !e.joueurs.contains { (j: JoueurSalle) -> Bool in j.pts > 0 }',
+    'static func aUnePlace(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Bool {\n        return !seul(e, a) && !personneNaMarque(e)'])
     assert.ok(L.includes(k), k);
   const droite = entre(swift, 'struct SalleDroite: View {', '\n}\n');
   assert.ok(droite.includes('if LectureSalle.enCours(etat) {\n                HStack(alignment: .firstTextBaseline, spacing: 4) {\n                    Text(LectureSalle.manches(etat))'), 'la manche, puis le chrono');
   assert.ok(droite.includes('Text(LectureSalle.court(etat, salle))'));
   assert.ok(entre(swift, 'struct SalleMinimale: View {', '\n}\n').includes('let texte: String = LectureSalle.court(etat, salle)'));
   const gauche = entre(swift, 'struct SalleGauche: View {', '\n}\n');
-  assert.ok(gauche.includes('} else if LectureSalle.solo(salle) {\n                Text(soloHaut)') && gauche.includes('let soloBas: String = fin ? "points" : "manche"'));
-  assert.ok(swift.includes('if LectureSalle.solo(a) { return "Défi en solo" }'));
+  assert.ok(gauche.includes('} else if !LectureSalle.aUnePlace(etat, salle) {\n                Text(soloHaut)') && gauche.includes('let soloBas: String = fin ? "points" : "manche"'));
+  assert.ok(swift.includes('if LectureSalle.seul(e, a) { return "Défi en solo" }\n        if LectureSalle.personneNaMarque(e) { return LectureSalle.manche(e) }'), '« Défi en solo » seul dans sa salle ; la manche tant que personne n’a de point');
+  assert.ok(swift.includes('if !LectureSalle.seul(e, a) && LectureSalle.personneNaMarque(e) { return e.defi }'), 'sous le titre, le défi seul (la manche est déjà le titre)');
   for (const v of ['struct SalleBas: View {', 'struct SalleDetail: View {']) assert.ok(entre(swift, v, '\n}\n').includes('LectureSalle.tableau(etat, salle)'), v);
   assert.equal(swift.split('Text(timerInterval: LectureSalle.chrono(etat), countsDown: true)').length - 1, 3, 'à droite de l’île, ouverte, et sur l’écran verrouillé');
   const code = sansCommentaires(entre(swift, '// MARK: - La salle dans l’île', '@main'));

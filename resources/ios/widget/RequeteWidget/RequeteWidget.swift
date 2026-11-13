@@ -4263,6 +4263,28 @@ enum LectureSalle {
         return a.max <= 1
     }
 
+    /// 13 novembre, 23 h 20 (la capture d’Elisa : « 1er sur 1 », « Toi 0 », « bizarre ») : seul dans sa salle entre amis, elle se
+    /// lit comme une partie seule : « Défi en solo », la manche, « Ton score ».
+    static func seul(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Bool {
+        return solo(a) || e.joueurs.count < 2
+    }
+
+    /// Personne n’a encore de point (le début de la partie, ou le 0 à 0) : tout le monde serait « 1er », une place n’y dit rien.
+    static func personneNaMarque(_ e: RequeteSalle.ContentState) -> Bool {
+        return !e.joueurs.contains { (j: JoueurSalle) -> Bool in j.pts > 0 }
+    }
+
+    /// Une place à dire (« 2e sur 4 ») : à plusieurs, dès qu’un joueur a des points.
+    static func aUnePlace(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Bool {
+        return !seul(e, a) && !personneNaMarque(e)
+    }
+
+    /// Gagné : la première place, avec des points (au 0 à 0, personne), comme le podium de l’app (jeuGagnants).
+    static func gagne(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Bool {
+        let p: Int = moi(e, a)?.pts ?? 0
+        return p > 0 && place(e, a) == 1
+    }
+
     /// « 1/3 » : la manche du moment, sur celles de la partie.
     static func manches(_ e: RequeteSalle.ContentState) -> String {
         let nb: Int = max(1, e.nb)
@@ -4281,13 +4303,13 @@ enum LectureSalle {
     static func court(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         if e.phase == "attente" { return compte(e, a) }
         if e.phase != "fin" { return manches(e) }
-        if solo(a) { return points(e, a) }
+        if !aUnePlace(e, a) { return points(e, a) }
         return rang(place(e, a))
     }
 
     /// « Léa 240 · Toi 210 » à plusieurs ; seul, « Ton score : 240 pts ».
     static func tableau(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
-        if solo(a) { return "Ton score\u{202F}: " + points(e, a) }
+        if seul(e, a) { return "Ton score\u{202F}: " + points(e, a) }
         if e.phase == "fin" { return podium(e, a).joined(separator: "   ") }
         return scores(e, a)
     }
@@ -4343,6 +4365,7 @@ enum LectureSalle {
     /// La fin : « Victoire ! » à la première place (à plusieurs), sinon « 2e sur 4 ».
     static func titreFin(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         if e.joueurs.count < 2 { return "Partie terminée\u{202F}!" }
+        if personneNaMarque(e) { return "Match nul\u{202F}!" }
         let p: Int = place(e, a)
         let n: Int = e.joueurs.count
         if p == 1 { return "Victoire\u{202F}!" }
@@ -4360,7 +4383,7 @@ enum LectureSalle {
 
     /// « Rejouer » pour l’hôte à la première place, « Revanche » sinon.
     static func rejouer(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
-        if place(e, a) == 1 { return "Rejouer" }
+        if gagne(e, a) { return "Rejouer" }
         return "Revanche"
     }
 
@@ -4380,7 +4403,7 @@ enum LectureSalle {
     /// la salle le reste du temps.
     static func regard(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Regard {
         if e.phase == "fin" {
-            if place(e, a) == 1 { return .etoiles }
+            if gagne(e, a) { return .etoiles }
             return .rieur
         }
         if e.phase == "attente" && !arrivee(e, a).isEmpty { return .clin }
@@ -4390,7 +4413,7 @@ enum LectureSalle {
     /// Le chat de l’écran verrouillé : il salue en attente, il code pendant la partie, il saute de joie à la première place.
     static func chat(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         if e.phase == "attente" { return "ChatSalut" }
-        if e.phase == "fin" && place(e, a) == 1 { return "ChatBravo" }
+        if e.phase == "fin" && gagne(e, a) { return "ChatBravo" }
         if e.phase == "fin" { return "ChatSalut" }
         return "ChatOrdi"
     }
@@ -4470,8 +4493,7 @@ struct SalleDroite: View {
     var body: some View {
         let police: Font = Font.system(size: 14, weight: .heavy, design: .rounded)
         let petite: Font = Font.system(size: 11, weight: .heavy, design: .rounded)
-        let place: Int = LectureSalle.place(etat, salle)
-        let doree: Bool = etat.phase == "fin" && place == 1
+        let doree: Bool = etat.phase == "fin" && LectureSalle.gagne(etat, salle)
         let teinte: Color = doree ? dore : lilasClair
         return Group {
             if LectureSalle.enCours(etat) {
@@ -4504,8 +4526,7 @@ struct SalleMinimale: View {
 
     var body: some View {
         let police: Font = Font.system(size: 12, weight: .heavy, design: .rounded)
-        let place: Int = LectureSalle.place(etat, salle)
-        let doree: Bool = etat.phase == "fin" && place == 1
+        let doree: Bool = etat.phase == "fin" && LectureSalle.gagne(etat, salle)
         let texte: String = LectureSalle.court(etat, salle)
         let teinte: Color = doree ? dore : lilasClair
         return Text(texte)
@@ -4543,7 +4564,7 @@ struct SalleGauche: View {
                 Text(salle.code)
                     .font(code)
                     .foregroundColor(Color.white)
-            } else if LectureSalle.solo(salle) {
+            } else if !LectureSalle.aUnePlace(etat, salle) {
                 Text(soloHaut)
                     .font(grande)
                     .foregroundColor(soloTeinte)
@@ -4577,8 +4598,7 @@ struct SalleTemps: View {
         let grande: Font = Font.system(size: 22, weight: .heavy, design: .rounded)
         let petite: Font = Font.system(size: 11, weight: .bold, design: .rounded)
         let symbole: Font = Font.system(size: 26, weight: .bold)
-        let place: Int = LectureSalle.place(etat, salle)
-        let teinte: Color = place == 1 ? dore : lilas
+        let teinte: Color = LectureSalle.gagne(etat, salle) ? dore : lilas
         return Group {
             if etat.phase == "attente" {
                 VStack(alignment: .trailing, spacing: 0) {
@@ -4623,7 +4643,7 @@ struct SalleCentre: View {
         let petite: Font = Font.system(size: 12, weight: .bold, design: .rounded)
         let arrivee: String = LectureSalle.arrivee(etat, salle)
         let fin: Bool = etat.phase == "fin"
-        let teinte: Color = fin && LectureSalle.place(etat, salle) == 1 ? dore : Color.white
+        let teinte: Color = fin && LectureSalle.gagne(etat, salle) ? dore : Color.white
         let accueil: String = arrivee.isEmpty ? "On attend les amis" : arrivee + " arrive\u{202F}!"
         let haut: String = fin ? LectureSalle.titreFin(etat, salle) : etat.defi
         let bas: String = fin ? etat.defi : LectureSalle.manche(etat)
@@ -4751,7 +4771,8 @@ struct SalleVerrouille: View {
     static func titre(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
         if e.phase == "attente" { return "Salle " + a.code }
         if e.phase == "fin" { return LectureSalle.titreFin(e, a) }
-        if LectureSalle.solo(a) { return "Défi en solo" }
+        if LectureSalle.seul(e, a) { return "Défi en solo" }
+        if LectureSalle.personneNaMarque(e) { return LectureSalle.manche(e) }   // personne n’a de point : pas de « 1er sur 4 »
         let rang: String = LectureSalle.rang(LectureSalle.place(e, a))
         return "\(rang) sur \(e.joueurs.count)"
     }
@@ -4763,9 +4784,10 @@ struct SalleVerrouille: View {
             let qui: String = LectureSalle.attente(e, a)
             return "\(compte) · \(qui)"
         }
-        if e.phase == "fin" && e.joueurs.count < 2 { return e.defi }
+        if e.phase == "fin" && (e.joueurs.count < 2 || LectureSalle.personneNaMarque(e)) { return e.defi }
         let rang: String = LectureSalle.rang(LectureSalle.place(e, a))
         if e.phase == "fin" { return "\(e.defi) · \(rang) sur \(e.joueurs.count)" }
+        if !LectureSalle.seul(e, a) && LectureSalle.personneNaMarque(e) { return e.defi }   // la manche est déjà dans le titre
         let manche: String = LectureSalle.manche(e)
         return "\(e.defi) · \(manche)"
     }
@@ -4774,8 +4796,7 @@ struct SalleVerrouille: View {
         let chat: String = LectureSalle.chat(etat, salle)
         let titre: String = SalleVerrouille.titre(etat, salle)
         let sous: String = SalleVerrouille.sous(etat, salle)
-        let place: Int = LectureSalle.place(etat, salle)
-        let teinte: Color = etat.phase == "fin" && place == 1 ? dore : Color.white
+        let teinte: Color = etat.phase == "fin" && LectureSalle.gagne(etat, salle) ? dore : Color.white
         let grande: Font = Font.system(size: 19, weight: .heavy, design: .rounded)
         let petite: Font = Font.system(size: 13, weight: .bold, design: .rounded)
         let hote: Bool = LectureSalle.hote(etat, salle)
