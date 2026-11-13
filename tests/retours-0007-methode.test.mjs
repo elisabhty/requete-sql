@@ -39,6 +39,10 @@ test('l’ordre : la méthode vient après le parcours construit et avant les av
   /* L’île dynamique et l’entonnoir (le serveur accepte tout nom d’étape de 2 à 16 lettres) */
   assert.ok(html.includes("build:'Ton parcours se prépare',methode:'Fondée sur la recherche',temoignages:"));
   assert.match('methode', /^[a-zA-Z]{2,16}$/);
+  /* Le tableau de l’entonnoir la montre à sa place (migration appliquée le 13 novembre, 1 h 13, avec son « oui ») : 19 étapes */
+  const sql = lire('supabase/migrations/20261113001301_onboarding_entonnoir_methode.sql');
+  assert.ok(sql.includes("('build', 10, 'Parcours construit'), ('methode', 11, 'Méthode fondée sur la recherche'), ('temoignages', 12, 'Ils apprécient Requête')"));
+  assert.ok(sql.includes("('termine', 19, 'Onboarding terminé')") && sql.includes('with (security_invoker = true)') && sql.includes('revoke all on public.onboarding_entonnoir from public, anon, authenticated;'));
   assert.ok(html.includes("  if(slide==='methode')obMethodeAnimer();"));
 });
 

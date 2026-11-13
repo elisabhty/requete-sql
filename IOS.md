@@ -401,9 +401,9 @@ scène `sme`) est devenue une page de l’onboarding, `methode`, entre « On con
 Requête » : trois cartes (pratiquer, se tester, réviser au bon moment, avec les jours de révision de l’appli), puis « 1,5 × »,
 qui ouvre les trois études. Le parcours compte une étape de plus (14). La vidéo du site n’a pas changé.
 
-**Reste à faire, avec l’accord d’Elisa** : la vue `public.onboarding_entonnoir` (tableau de bord) ne connaît pas encore l’étape.
-Elle est comptée dans `onboarding_etape` comme les autres dès la nouvelle version ; pour la voir dans l’entonnoir, il faut une
-migration qui ajoute `('methode', 11, 'Méthode fondée sur la recherche')` et décale les rangs suivants (19 au lieu de 18).
+L’entonnoir de l’onboarding (la vue `public.onboarding_entonnoir`, tableau de bord) la montre au rang 11, entre « Parcours
+construit » et « Ils apprécient Requête » : 19 étapes. Migration `supabase/migrations/20261113001301_onboarding_entonnoir_methode.sql`,
+appliquée le 13 novembre à 1 h 13 avec l’accord d’Elisa.
 
 ### La note de l’app, puis la page du widget (13 novembre, 1 h 02)
 

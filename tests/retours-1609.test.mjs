@@ -51,8 +51,8 @@ test('l’ordre : les questions se suivent, puis le parcours (la promesse est su
   assert.ok(app.includes("    obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);") && app.includes("    obSetFooter('Continuer',()=>obGoto('methode'),'','','',true);\n    obRunBuild();"));
   assert.ok(app.includes("    obSetFooter('Continuer',()=>obGoto('pact'),'','','');\n  }else if(slide==='level'){"), 'les avis mènent à l’engagement');
   /* L’entonnoir de l’onboarding, dans le même ordre (la dernière migration qui le définit) */
-  const sql = read('supabase/migrations/20261104173026_onboarding_entonnoir_sans_promesse.sql');
+  const sql = read('supabase/migrations/20261113001301_onboarding_entonnoir_methode.sql');   // 13 novembre : la méthode y entre, après le parcours construit
   const rangs = [...sql.matchAll(/\('([a-zA-Z]+)', (\d+), '/g)].map(m => [m[1], +m[2]]);
-  assert.deepEqual(rangs.map(r => r[0]), ['welcome', 'name', 'pays', 'age', 'job', 'goal', 'level', 'rhythm', 'jours', 'build', 'temoignages', 'pact', 'practice', 'account', 'source', 'rappel', 'ready', 'termine']);
+  assert.deepEqual(rangs.map(r => r[0]), ['welcome', 'name', 'pays', 'age', 'job', 'goal', 'level', 'rhythm', 'jours', 'build', 'methode', 'temoignages', 'pact', 'practice', 'account', 'source', 'rappel', 'ready', 'termine']);
   assert.deepEqual(rangs.map(r => r[1]), rangs.map((_, k) => k + 1), 'des rangs qui se suivent');
 });
