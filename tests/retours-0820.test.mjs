@@ -87,7 +87,7 @@ test('le style : l’encart vert comme la boîte « Défi résolu », le vert qu
     'html[data-motion="reduce"].lq .coach-ok,html[data-motion="reduce"].lq .coach-ok *{animation:none!important}',
   ]) assert.ok(lq.includes(k), k);
   assert.ok(lq.includes('html.lq .feedback.ok{background:var(--success-soft)!important;border-color:#BFE6CF!important;'), 'les couleurs de « Défi résolu »');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=335">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=336">'));
   /* 8 h 50 (« Change de couleur pour le vert Garde, sinon ça fait trop ») : « Garde » au bleu ciel, plus en menthe */
   assert.ok(!lq.includes('html.lq .consigne.dq .dq-sec.is-garde{background:#E5FAEF}') && lq.includes("background:#9CD7FF url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23134E7C'"));
 });

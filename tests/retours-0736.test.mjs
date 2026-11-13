@@ -26,6 +26,6 @@ test('les écarts de la page : 18 px sous le sous-titre, 12 px pour la légende,
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=335">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-avis-v2946';") && app.includes("const SW_CACHE='requete-2026-11-13-avis-v2946';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=336">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-classement-v2947';") && app.includes("const SW_CACHE='requete-2026-11-13-classement-v2947';"));
 });

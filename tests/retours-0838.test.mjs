@@ -78,6 +78,6 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     'background:#fff;box-shadow:0 3px 0 var(--lip)}', 'html.lq .lq-stat.is-coche .lq-stat-ic{background:#DCF6E9;color:#14935A}',
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=335">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-avis-v2946';") && app.includes("const SW_CACHE='requete-2026-11-13-avis-v2946';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=336">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-classement-v2947';") && app.includes("const SW_CACHE='requete-2026-11-13-classement-v2947';"));
 });
