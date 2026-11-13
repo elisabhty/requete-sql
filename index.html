@@ -36402,6 +36402,13 @@ function jeuDe(n){return (jeuVoy(n)?'d’':'de ')+esc(n);}
 function jeuQue(n){return (jeuVoy(n)?'qu’':'que ')+esc(n);}
 /* Les temps s’écrivent « 02:15 » (le temps mis pour trouver, les indices qui arrivent). */
 function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+/* 13 novembre, 23 h 26 (la partie à 6 : @marie_charlotte et @ines, 495 points et « 00:06 » toutes les deux, l’une devant l’autre) :
+   à égalité de points, le plus rapide passe devant ; quand leurs temps se lisent pareil à la seconde, le dixième les départage à
+   l’écran aussi (« 00:06,2 » et « 00:06,8 »). */
+function jeuChronoFin(x,sc){
+  const t=jeuChrono(x.ms),meme=(sc||[]).some(y=>y!==x&&y.pid!==x.pid&&y.pts===x.pts&&x.pts>0&&jeuChrono(y.ms)===t);
+  return meme?`${t},${Math.floor((Math.max(0,x.ms)%1000)/100)}`:t;
+}
 /* Le chrono d’une manche, depuis le 6 novembre, 7 h 52 : le temps qui reste, de 20:00 à 00:00 (arrondi à la seconde du dessus : 20:00
    au départ, 00:01 dans la dernière seconde). */
 function jeuRebours(ms,max){const m=max>=60000?max:JEU_NIV_MANCHE.d;return jeuChrono(Math.ceil(Math.min(m,Math.max(0,+ms||0))/1000)*1000);}
@@ -38302,11 +38309,14 @@ function jeuRender(){
       const nom=x=>esc(x&&x.name||'Joueur'),ecart=(a,b)=>{const d=Math.max(0,(a&&a.pts||0)-(b&&b.pts||0));return `${d.toLocaleString('fr-FR')}\u00a0point${d>1?'s':''}`;};
       let ton,titre,chat,med='',phrase;
       if(winner){ton='is-or';titre='Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
-        phrase=!second?'':second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`:`${nom(second)} n’a ${J.nb>1?'rien':'pas'} trouvé.`;}
+        /* 23 h 26 : à égalité de points, « de 0 point » ne disait rien : c’est le temps qui départage */
+        phrase=!second?'':second.pts===moi.pts?`À égalité de points avec ${nom(second)}, tu passes devant au temps.`
+          :second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`:`${nom(second)} n’a ${J.nb>1?'rien':'pas'} trouvé.`;}
       /* 18 h 35 (« il faut justement encourager ; revanche ») : le match nul et la défaite encouragent, comme la page des points */
       else if(nul){ton='is-nul';titre='Match nul\u00a0!';chat='duel';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Une revanche pour vous départager\u00a0?`;}
       else{ton='is-ok';titre=moi.pts>0?'Bien joué\u00a0!':'La revanche t’attend\u00a0!';chat='effort';med=moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):'';
-        phrase=moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\u00a0!`;}
+        phrase=moi.pts>0&&premier&&premier.pts===moi.pts?`À égalité de points, ${nom(premier)} passe devant au temps. À toi la revanche\u00a0!`
+          :moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\u00a0!`;}
       /* Le détail de tes points : une seule manche, celui de la manche (le défi, le premier coup, la place) ; plusieurs, les défis trouvés. */
       let pills='';
       if(J.nb===1&&moi.pts>0){const y=J.rounds[0]?jeuRanking(0).find(x=>x.pid===J.me):null;
@@ -38326,8 +38336,8 @@ function jeuRender(){
       const ord=jeuOrder(),av=x=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(x.pid))%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`;
       /* Le 0 à 0 : pas de podium vide, les joueurs, chacun à 0 */
       const classement=nul?`<div class="jeu-card jr2-card"><p class="jeu-card-h">Les joueurs</p><ol class="jr2-list">${sc.map((x,i)=>`<li class="jr2-row is-miss${x.pid===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">–</span>${av(x)}<span class="jr2-nm"><b>${nom(x)}${x.pid===J.me?' <small>(toi)</small>':''}</b><small>Pas trouvé</small></span><em class="jr2-p">0</em></li>`).join('')}</ol></div>`
-        :`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
-        ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.pts>0?x.place:'–'}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${x.pts>0?jeuChrono(x.ms):'Pas trouvé'}</small></li>`).join('')}</ol>${tie}</div>`:tie}`;
+        :`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChronoFin(g[0],sc):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
+        ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.pts>0?x.place:'–'}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${x.pts>0?jeuChronoFin(x,sc):'Pas trouvé'}</small></li>`).join('')}</ol>${tie}</div>`:tie}`;
       html=`${jeuNetSlot()}${hero}${classement}
         ${jeuCorrListeHTML()}
         ${jeuRevancheHTML()}`;
@@ -51601,7 +51611,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-notes-v2979';
+  const SW_CACHE='requete-2026-11-13-egalite-v2980';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
