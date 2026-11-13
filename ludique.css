@@ -9794,6 +9794,55 @@ html.lq input[type="search"]::-webkit-search-cancel-button,html.lq input[type="s
 @media (prefers-reduced-motion:reduce){html.lq :is(#scr-planning :is(.planning-progress,.plan-modules)>summary,.plus-details>summary,#schema-sheet .umd-liens>summary,.acct-badges-more>button,.note-back-list,.lst-close):active{transform:none}}
 
 /* ==========================================================================
+   Le parcours se suit — 13 novembre, 0 h 32 (Elisa : « verrouiller les cours en laissant que le premier cours pour un nouvel
+   apprenant, qui va du coup suivre son parcours jusqu’à la fin (mettre comme un verrou ou quelque chose comme ça, mais joli) »).
+   Une leçon à venir garde sa place sur le chemin, en lilas pâle, un cadenas à la place de son numéro ; un module pas encore
+   atteint porte un petit cadenas au coin de sa tuile ; au planning, une pastille au bout de la ligne. Toucher un cadenas le fait
+   remuer (lqCadNon), puis la feuille « Leçon verrouillée » dit où reprendre. Quand une leçon s’ouvre, son cadenas reste un
+   instant sur la pastille, son anse se lève, il se dore et s’efface (lqCadPart) : le repère « Tu es ici » arrive dessous.
+   ========================================================================== */
+html.lq .lq-cad{display:block;width:24px;height:24px;overflow:visible}
+html.lq .lz-sr{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* Le chemin de l’accueil et les leçons trouvées par la recherche */
+html.lq #scr-learn #modules .home-module .row.is-verrou .lz-num,
+html.lq #course-search-results .row.is-verrou .lz-num{--lipc:#E4DEF7;display:grid!important;place-items:center;background:#F7F4FF!important;border-color:#E4DEF7!important;color:#ADA2DA!important}
+html.lq #scr-learn #modules .home-module .row.is-verrou .lz-num .lq-cad{width:26px;height:26px}
+html.lq #course-search-results .row.is-verrou .lz-num .lq-cad{width:22px;height:22px}
+html.lq #scr-learn #modules .home-module .row.is-verrou .lz-body b,
+html.lq #course-search-results .row.is-verrou .lz-body b,
+html.lq #scr-learn #modules .home-module .row.is-verrou .lz-body small,
+html.lq #course-search-results .row.is-verrou .lz-body small{color:var(--ink-3)!important}
+/* Un module pas encore atteint : sa tuile pâlit, un cadenas au coin ; le titre reste lisible, le module se déplie toujours */
+html.lq .home-module-num{position:relative}
+html.lq .home-module.is-verrou .home-module-num{background:#F7F4FF!important;color:#ADA2DA!important}
+html.lq .home-module-num .home-module-cad{position:absolute;right:-8px;bottom:-8px;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #E4DEF7;color:#8E82CC;box-shadow:0 2px 0 #E4DEF7}
+html.lq .home-module-num .home-module-cad svg{width:14px!important;height:14px!important;stroke:currentColor!important;stroke-width:2.7!important}
+/* Le planning : la pastille au bout de la ligne, à la place de « Validé » */
+html.lq #app .pl-chip-verrou{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#F7F4FF;border:2px solid #E4DEF7;color:#ADA2DA}
+html.lq #app .pl-chip-verrou .lq-cad{width:15px;height:15px;stroke-width:2.7}
+html.lq #app .pl-chip.is-verrou .ct>span,html.lq #app .pl-next-row.is-verrou .ct>span{color:var(--ink-3)!important}
+/* « Avancement global » : le bouton d’un module verrouillé */
+html.lq .pgr-mod>button.is-verrou{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#F7F4FF;border-color:#E4DEF7;color:var(--ink-3);box-shadow:0 3px 0 #E4DEF7}
+html.lq .pgr-mod>button.is-verrou .lq-cad{flex:none;width:16px;height:16px;stroke-width:2.7}
+/* Touché : le cadenas dit non */
+html.lq #scr-learn #modules .home-module .row.is-verrou.lq-non .lz-num,
+html.lq #course-search-results .row.is-verrou.lq-non .lz-num,
+html.lq #app .is-verrou.lq-non .pl-chip-verrou,
+html.lq .pgr-mod>button.is-verrou.lq-non .lq-cad{animation:lqCadNon .5s ease both!important}
+@keyframes lqCadNon{0%,100%{transform:none}18%{transform:translateX(-5px) rotate(-8deg)}38%{transform:translateX(5px) rotate(7deg)}58%{transform:translateX(-3px) rotate(-4deg)}78%{transform:translateX(2px) rotate(2deg)}}
+/* La leçon vient de s’ouvrir : le cadenas, posé sur la pastille, s’ouvre et s’efface */
+html.lq #scr-learn #modules .home-module .row .lz-ouvre{position:absolute;z-index:2;left:calc(4px + var(--zz,0px));top:calc(50% - 31px);display:grid;place-items:center;width:62px;height:62px;border-radius:50%;
+  background:#F7F4FF;border:2px solid #E4DEF7;color:#ADA2DA;box-shadow:0 5px 0 #E4DEF7;pointer-events:none;opacity:0;animation:lqCadPart 1.6s ease both}
+html.lq #scr-learn #modules .home-module .row .lz-ouvre .lq-cad{width:26px;height:26px}
+html.lq #scr-learn #modules .home-module .row .lz-ouvre .lq-cad-anse{transform-box:fill-box;transform-origin:100% 100%;animation:lqCadAnse 1.6s ease both}
+@keyframes lqCadPart{0%,58%{opacity:1;transform:none;color:#ADA2DA}66%{opacity:1;transform:scale(1.12);color:#E0A100}78%{opacity:1;transform:scale(1.04);color:#E0A100}100%{opacity:0;transform:scale(.5);color:#E0A100}}
+@keyframes lqCadAnse{0%,52%{transform:none}64%,100%{transform:translateY(-1.5px) rotate(22deg)}}
+@media (max-width:360px){
+  html.lq #scr-learn #modules .home-module .row .lz-ouvre{width:54px;height:54px;top:calc(50% - 27px)}
+  html.lq .home-module-num .home-module-cad{right:-7px;bottom:-7px;width:23px;height:23px}
+}
+
+/* ==========================================================================
    Défis — la refonte du 7 novembre (« il faut que quelqu’un m’aide pour la partie design/product design sur la partie défi »).
    Deux designers : le produit (structure, parcours, états : les fonctions de rendu de index.html) et le visuel (la DA du site en un
    seul jeu de composants : sections 1 à 19), réunis en une feuille (section 20 : la nouvelle structure habillée de la DA).

@@ -75,12 +75,13 @@ test('les jours de révision sont ceux de l’app (INTERVALS), pas une liste rec
   assert.ok(vm.runInNewContext(bloc + ';obMethodeHtml()', {}).includes('<span style="--j:4">J+60</span>'));
 });
 
-test('« Voir les études » : le bloc « 1,5 × » est un bouton, il ouvre les trois références de la vidéo et dit que rien n’a été mesuré sur Requête', () => {
+test('« Voir les études » : le bloc « 1,5 × » est un bouton, il ouvre les trois références de la vidéo (0 h 32, réf. 1 : la phrase s’arrête à « publiées », sans parler de Requête)', () => {
   const { h, e } = page();
   assert.ok(h.includes('<button type="button" class="ob-me-x" onclick="obMethodeSources()">'));
   assert.ok(/<u>Voir les études<svg [^>]*aria-hidden="true">/.test(h));
   const f = cut('function obMethodeSources(){', '\n}\n');
-  assert.ok(f.includes("lqAsk({ico:'🔬',titre:'Les études',texte:'Ces résultats viennent d’études publiées, pas d’une mesure faite sur Requête.',"));
+  assert.ok(f.includes("lqAsk({ico:'🔬',titre:'Les études',texte:'Ces résultats viennent d’études publiées.',"));
+  assert.ok(!/Requête/.test(f), 'la feuille ne parle pas de Requête');
   assert.ok(f.includes('corps:`<ul class="ob-me-refs">${OB_ME_ETUDES.map(([t,r])=>`<li><b>${esc(t)}</b><span>${esc(r)}</span></li>`).join(\'\')}</ul>`,oui:\'OK\',non:null});'));
   /* Les mêmes références, les mêmes chiffres que dans les sources de la vidéo */
   const sources = texte(video.slice(video.indexOf('Pratiquer plutôt qu’écouter&nbsp;: environ 6'), video.indexOf('id="src-close"')));
