@@ -126,7 +126,8 @@ test('pas encore inscrite : l’accueil annonce l’invitation, « Je m’inscri
   assert.ok(!app.includes("'On reprend là où tu en étais. La salle t’attend à la fin.'"));
 });
 
-test('l’inscription finie : Défis puis la salle, sans ouvrir la première leçon ; sans invitation, rien ne change', () => {
+/* 13 novembre, 9 h 56 : sans invitation, la fin de l’inscription mène à l’accueil (avant, elle ouvrait la première leçon). */
+test('l’inscription finie : Défis puis la salle, sans ouvrir la première leçon ; sans invitation, l’accueil', () => {
   const fin = cut('function obTerminer(action){', '\nfunction celebrate(){');
   const terminer = (action, inv) => {
     const appels = [];
@@ -135,13 +136,13 @@ test('l’inscription finie : Défis puis la salle, sans ouvrir la première le�
       celebrate() {}, semaineOffset: 0, jourSel: null, state: { plan: { sessions: [{ lessons: [7] }] } }, isDefiId: () => false,
       switchTab: t => appels.push('onglet ' + t), openLesson: id => appels.push('leçon ' + id), requestAnimationFrame: f => f(),
       jeuInvitation: () => inv, jeuFromUrl() {}, setTimeout: (f, t) => appels.push(f === ctx.jeuFromUrl ? `invitation ${t} ms` : 'minuteur') });
-    vm.runInContext('var semaineOffset=0,jourSel=null,OB_CHATS=[];' + fin, ctx);
+    vm.runInContext('var semaineOffset=0,jourSel=null,OB_CHATS=[];' + cut('function obVersAccueil(){', '\n}') + '\n}\n' + fin, ctx);
     ctx.obTerminer(action);
     return appels;
   };
   assert.deepEqual(terminer('salle', { code: 'PRET02' }), ['onglet defis', 'invitation 450 ms']);
   assert.deepEqual(terminer('home', { code: 'PRET02' }), ['onglet defis', 'invitation 450 ms'], 'une invitation en attente passe avant la leçon');
-  assert.deepEqual(terminer('home', null), ['onglet learn', 'leçon 7', 'invitation 450 ms']);
+  assert.deepEqual(terminer('home', null), ['onglet learn', 'invitation 450 ms'], 'l’accueil, sans leçon ouverte');
   assert.deepEqual(terminer('plan-ready', null), ['onglet planning', 'invitation 450 ms']);
 });
 
@@ -175,5 +176,5 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button>'));
   assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-exemples-v2927';") && app.includes("const SW_CACHE='requete-2026-11-13-exemples-v2927';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-accueil-v2928';") && app.includes("const SW_CACHE='requete-2026-11-13-accueil-v2928';"));
 });

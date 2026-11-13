@@ -41,10 +41,12 @@ test('le bandeau vert n’est plus pixelisé : une fois posé, l’animation ne 
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=65">') && sw.includes("'./onboarding-vitrine.css?v=65',"), 'feuille rechargée');
 });
 
-test('« Commencer la première leçon » a la flèche animée du bouton de la construction', () => {
+/* 13 novembre, 9 h 56 : le bouton dit « Commencer » et mène à l’accueil, plus dans la première leçon (retours-0956-video-heros.test.mjs). */
+test('« Commencer » (avant, « Commencer la première leçon ») a la flèche animée du bouton de la construction', () => {
   /* 14 h 08 (réf. 3) : obSetFooter pose la même flèche sur chaque bouton jaune, après le libellé (plus d’ajout à la main ici) */
   /* Invité par un ami, « Rejoindre la salle » à la place (5 novembre, 14 h, retours-1400.test.mjs). */
-  assert.ok(app.includes("    else obSetFooter('Commencer la première leçon',()=>obApresPret('home'),"), '10 novembre : puis la connexion et le paywall');
+  assert.ok(app.includes("    else obSetFooter('Commencer',()=>obApresPret('home'),"), '10 novembre : puis la connexion et le paywall');
+  assert.ok(!app.includes("obSetFooter('Commencer la première leçon'"));
   const fleche = "const OB_CTA_FLECHE='<span class=\"ob-cta-arrow\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 12h14M13 6l6 6-6 6\"/></svg></span>';";
   assert.ok(app.includes(fleche) && app.includes("  if(btn){const was=btn.disabled;obCtaLibelle(btn,primary);"), 'la même flèche, posée après le libellé');
   assert.ok(!app.includes("?.insertAdjacentHTML('beforeend','<span class=\"ob-cta-arrow\""), 'une seule flèche par bouton');

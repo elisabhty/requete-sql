@@ -133,7 +133,9 @@ test('refaire l’onboarding depuis Mon compte : le planning reste, ou seules le
   assert.ok(app.includes("    else if(state.onboarded&&obEntry!=='welcome')obSetFooter('Enregistrer',()=>finishOnboard('compte'),'Voir mon parcours',()=>finishOnboard('plan-ready'),'');"));
   const t = cut('function obTerminer(action){', '\nfunction celebrate(){');
   assert.ok(t.includes("}else if(action==='compte'){\n    switchTab('compte');"));
-  assert.ok(t.includes("const firstId=state.plan.sessions.map(x=>x.lessons.find(id=>!isDefiId(id)&&!(typeof itemDone==='function'&&itemDone(id)))).find(id=>id!=null);"), 'la leçon à faire, pas une leçon déjà validée');
+  /* 13 novembre, 9 h 56 : la fin de l’onboarding n’ouvre plus de leçon (elle mène à l’accueil, retours-0956-video-heros.test.mjs) ;
+     la recherche de la leçon à faire, pas une leçon déjà validée, n’a plus lieu d’être ici. */
+  assert.ok(!t.includes('firstId') && !t.includes('openLesson') && t.includes('    obVersAccueil();\n  }\n  setTimeout(jeuFromUrl,450);'));
 });
 
 test('le compte connecté garde son nom à chaque enregistrement', () => {

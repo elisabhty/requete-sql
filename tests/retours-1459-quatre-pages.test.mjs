@@ -34,7 +34,8 @@ test('« Ton parcours est prêt » : le pied ne garde plus de place vide, la pag
   const regle = 'html #onboarding.ob-vitrine[data-ob-slide="ready"] .ob-foot:has(#ob-foot-note:empty){padding-bottom:calc(var(--safe-bottom,0px) + max(12px,clamp(20px,3.6vh,32px) - max(0px,var(--safe-bottom,0px) - 34px)))!important}';
   assert.ok(obv.includes(regle), 'sous « Voir mon parcours » : 20 à 32 px, plus la zone sûre');
   assert.ok(obv.indexOf(regle) > obv.indexOf('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + max(12px,clamp(34px,6.6vh,58px)'), 'après la règle des autres pages, qu’elle remplace ici');
-  assert.ok(html.includes("else obSetFooter('Commencer la première leçon',()=>obApresPret('home'),'Voir mon parcours',()=>obApresPret('plan-ready'),"), 'les deux boutons restent');
+  /* 13 novembre, 9 h 56 : « Commencer » (il mène à l’accueil, plus dans la première leçon) */
+  assert.ok(html.includes("else obSetFooter('Commencer',()=>obApresPret('home'),'Voir mon parcours',()=>obApresPret('plan-ready'),"), 'les deux boutons restent');
 });
 
 test('schéma : un titre long s’arrête avant l’étoile de l’en-tête, sur deux lignes au plus', () => {

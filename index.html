@@ -49119,8 +49119,10 @@ function paintOb(){
     if(inv)obSetFooter('Rejoindre la salle',()=>obApresPret('salle'),'','',(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* Revenu de Mon compte (« Personnalisation ») : on enregistre et on y revient (audit de Mon compte, 6 novembre) */
     else if(state.onboarded&&obEntry!=='welcome')obSetFooter('Enregistrer',()=>finishOnboard('compte'),'Voir mon parcours',()=>finishOnboard('plan-ready'),'');
-    else if(typeof obApercu!=='undefined'&&obApercu)obSetFooter('Commencer la première leçon',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),'');
-    else obSetFooter('Commencer la première leçon',()=>obApresPret('home'),'Voir mon parcours',()=>obApresPret('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
+    /* 13 novembre, 9 h 56 : le bouton mène à l’accueil, plus dans la première leçon ; il dit « Commencer » (avant, « Commencer la
+       première leçon », 4 novembre). */
+    else if(typeof obApercu!=='undefined'&&obApercu)obSetFooter('Commencer',()=>finishOnboard('home'),'Voir mon parcours',()=>finishOnboard('plan-ready'),'');
+    else obSetFooter('Commencer',()=>obApresPret('home'),'Voir mon parcours',()=>obApresPret('plan-ready'),(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* 4 novembre, 2 h 13 : « Commencer la première leçon avec la flèche animée », la même que sur le bouton de la construction
        (obSetFooter la pose, comme sur tous les boutons jaunes depuis 14 h 08). */
     /* Le bouton se réveille une fois tout posé (coche, récapitulatif, semaine). */
@@ -49223,13 +49225,12 @@ function obTerminer(action){
     switchTab('planning');
   }else if(action==='compte'){
     switchTab('compte');   // « Enregistrer » au bout de « Personnalisation » : retour à Mon compte, sans ouvrir de leçon
-  }else if(action==='accueil'){
-    obVersAccueil();   // connecté à un compte qui existait déjà (13 novembre, 2 h 41) : l’accueil, sans ouvrir de leçon
   }else{
-    switchTab('learn');
-    /* La leçon à faire, pas la première du planning (déjà validée quand on refait l’onboarding) */
-    const firstId=state.plan.sessions.map(x=>x.lessons.find(id=>!isDefiId(id)&&!(typeof itemDone==='function'&&itemDone(id)))).find(id=>id!=null);
-    if(firstId!=null)requestAnimationFrame(()=>openLesson(firstId));
+    /* L’accueil, sans ouvrir de leçon. D’abord pour qui se connecte à un compte qui existait déjà (13 novembre, 2 h 41) ; depuis
+       9 h 56 (Elisa : « une personne qui vient sur l’appli après l’onboarding tombe bien sur l’accueil et pas sur le cours ? »),
+       pour tout le monde : un nouvel inscrit arrivait droit dans sa première leçon, sans avoir vu l’accueil. Elle l’y attend,
+       en haut de la page. */
+    obVersAccueil();
   }
   setTimeout(jeuFromUrl,450);
 }
@@ -50990,7 +50991,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-exemples-v2927';
+  const SW_CACHE='requete-2026-11-13-accueil-v2928';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

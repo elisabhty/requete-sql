@@ -10,7 +10,8 @@
    2. La connexion. Toute connexion mène à l’accueil (déjà demandé le 30 octobre, 22 h 50) : reconnexion après une déconnexion (on
       restait sur Mon compte), connexion derrière le paywall de la garde, « J’ai déjà un compte » sur un iPhone neuf (c’était Mon
       compte depuis le 12 novembre, réf. 14). Vérifié en simulation sur ces trois chemins : l’onglet Accueil, en haut, sans leçon
-      ouverte. Le nouvel inscrit garde ce que promet « Commencer la première leçon ». */
+      ouverte. Le nouvel inscrit garde ce que promet « Commencer la première leçon ». (Depuis 9 h 56, le même jour : l’accueil pour
+      lui aussi, et son bouton dit « Commencer » ; retours-0956-video-heros.test.mjs.) */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -217,11 +218,11 @@ test('toute connexion mène à l’accueil : reconnexion, connexion derrière le
   /* La nouvelle inscrite, à la fin de l’onboarding : ce que son bouton a promis, rien de changé */
   const e = monter({finVoulue: 'home'}); await e.ctx.obStartAuth('apple', null);
   assert.deepEqual(e.appels, ['suite']); assert.equal(e.ctx.draft.finConnexion, undefined);
-  /* La fin de l’onboarding : « accueil » ouvre l’onglet sans ouvrir de leçon ; « home » ouvre toujours la première leçon */
+  /* La fin de l’onboarding : l’accueil, sans ouvrir de leçon. D’abord pour « accueil » seul (« home » ouvrait la première leçon) ;
+     depuis le 13 novembre, 9 h 56, pour tout le monde (retours-0956-video-heros.test.mjs). */
   const terminer = cut('function obTerminer(action){', '\nfunction celebrate(){');
-  assert.ok(terminer.includes("}else if(action==='accueil'){\n    obVersAccueil();"));
-  const i = terminer.indexOf("action==='accueil'"), j = terminer.indexOf('requestAnimationFrame(()=>openLesson(firstId))');
-  assert.ok(i > 0 && j > i && !terminer.slice(i, terminer.indexOf('}else{', i)).includes('openLesson'), 'pas de leçon ouverte d’office');
+  assert.ok(terminer.includes("  }else{\n    /* L’accueil, sans ouvrir de leçon.") && terminer.includes("    obVersAccueil();\n  }\n  setTimeout(jeuFromUrl,450);"));
+  assert.ok(!terminer.includes('openLesson'), 'pas de leçon ouverte d’office');
   assert.ok(app.includes("function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}"));
   assert.ok(app.includes("  finishOnboard(draft.finVoulue||draft.finConnexion||'home');}"), 'après le paywall aussi');
   assert.ok(!app.includes("draft.finConnexion='compte'"));
