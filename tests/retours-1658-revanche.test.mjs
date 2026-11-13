@@ -26,7 +26,7 @@ test('le podium : une carte en direct (qui en est, qui est là), puis « Quitter
     jeuLive: () => ['g', 'h'], jeuOrder: () => ['h', 'g'], jeuInitial: n => String(n).replace('@', '').charAt(0).toUpperCase(), accord: (f, m, n) => f,
     jeuSend: m => envois.push(m), jeuRevancheVerif() { ctx.verifs = (ctx.verifs || 0) + 1; }, jeuRedraw() { ctx.dessins = (ctx.dessins || 0) + 1; }, buzz() {} });
   const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ');
-  vm.runInContext(relance + fn('jeuRevanche') + fn('jeuRevancheHTML'), ctx);
+  vm.runInContext(relance + fn('jeuRevanche') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
   let h = ctx.jeuRevancheHTML();
   assert.ok(h.startsWith('<div class="jeu-rv" id="jeu-rv">') && h.includes('<b>La revanche\u00a0?</b><small>Touche Revanche pour dire que tu es de la partie.</small>'));
   assert.ok(h.includes('<span class="jeu-rv-av" aria-hidden="true"><b class="jeu-av" data-c="1">S</b><b class="jeu-av" data-c="0">J</b></span>0/2 pour la revanche</span>'), 'toi, puis qui est là');
@@ -89,4 +89,36 @@ test('21 h 33 : le serveur fait suivre « revanche » (on, rien d’autre) ; l�
   assert.ok(sql.includes('rien n’est changé'), 'garde-fou si la fonction a bougé');
   assert.ok(app.includes("jeuSend({t:'revanche',on});"));
   assert.ok(/case 'revanche':[^]*?J\.rv\[m\.pid\]=!!m\.on;/.test(app));
+});
+
+test('22 h 14 : qui a gagné touche « Rejouer », les autres « Revanche » ; chacun voit le mot de celui qui a touché', () => {
+  const ligne = n => { const a = app.indexOf(`function ${n}(`); return app.slice(a, app.indexOf('\n', a) + 1); };
+  const ctx = vm.createContext({ JEU: { me: 'g', solo: false, players: { h: { name: '@lea' }, g: { name: '@sam' }, k: { name: '@zoe' } } },
+    JEU_ICO: { quit: '<quit>' }, esc: s => String(s), jeuMaj: t => t.charAt(0).toUpperCase() + t.slice(1), jeuPretMot: () => 'prête',
+    jeuLive: () => ['h', 'g', 'k'], jeuOrder: () => ['h', 'g', 'k'], jeuInitial: n => String(n).charAt(1).toUpperCase(), accord: f => f,
+    jeuScores: () => ctx.sc.map(x => ({ ...x })) });
+  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ');
+  vm.runInContext(relance + ligne('jeuPlaces') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
+  ctx.sc = [{ pid: 'h', pts: 275, ms: 1000 }, { pid: 'g', pts: 230, ms: 2000 }, { pid: 'k', pts: 0, ms: 9000 }];
+  ctx.JEU.rv = {};
+  let h = ctx.jeuRevancheHTML();
+  assert.ok(h.includes('<b>La revanche ?</b><small>Touche Revanche pour dire que tu es de la partie.</small>') && h.includes('<span>Revanche</span></button>'), '2e : « Revanche »');
+  ctx.JEU.me = 'h';
+  h = ctx.jeuRevancheHTML();
+  assert.ok(h.includes('<b>On rejoue ?</b><small>Touche Rejouer pour dire que tu es de la partie.</small>') && h.includes('<span>Rejouer</span></button>') && h.includes('0/3 pour rejouer'), '1re : « Rejouer »');
+  ctx.JEU.me = 'k'; ctx.JEU.rv = { h: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<b>@lea veut rejouer !</b>'), 'le gagnant veut rejouer');
+  ctx.JEU.rv = { g: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<b>@sam veut sa revanche !</b>'));
+  ctx.JEU.rv = { h: true, g: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<b>@lea et @sam veulent rejouer !</b>'), 'avec le gagnant, « rejouer » pour tous');
+  ctx.JEU.me = 'g'; ctx.JEU.rv = { g: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<small>On attend @lea et @zoe.</small>'), 'l’un a « Rejouer », l’autre « Revanche » : leurs noms');
+  ctx.JEU.rv = { g: true, k: true };
+  assert.ok(ctx.jeuRevancheHTML().includes('<small>On attend @lea : Rejouer ou Quitter la salle.</small>'));
+  /* Le 0 à 0 : personne n’a gagné, tout le monde « Revanche » ; ex æquo en tête : les deux « Rejouer » */
+  ctx.sc = [{ pid: 'h', pts: 0, ms: 9000 }, { pid: 'g', pts: 0, ms: 9000 }, { pid: 'k', pts: 0, ms: 9000 }];
+  assert.equal(ctx.jeuGagnants().size, 0);
+  ctx.sc = [{ pid: 'h', pts: 275, ms: 1000 }, { pid: 'g', pts: 275, ms: 1000 }, { pid: 'k', pts: 0, ms: 9000 }];
+  assert.deepEqual([...ctx.jeuGagnants()].sort(), ['g', 'h']);
 });
