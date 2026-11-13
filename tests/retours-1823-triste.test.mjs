@@ -20,3 +20,13 @@ test('la question de la déconnexion : « Tu nous quittes déjà ? » et le chat
   const b = fs.readFileSync(path.join(ROOT, 'assets/chat-triste.webp'));
   assert.equal(b.toString('latin1', 0, 4), 'RIFF'); assert.ok(b.includes(Buffer.from('ANIM')), 'animé');
 });
+
+test('18 h 28 : la page des −50 % aussi, « Tu nous quittes déjà ? » dans une bulle, avec le même GIF', () => {
+  const html = (() => { const a = app.indexOf('function obSortieHTML(){'); return app.slice(a, app.indexOf('\n}\n', a)); })();
+  assert.ok(html.includes('<img class="pw-chat is-triste" src="assets/chat-triste${fixe?\'-fixe\':\'\'}.webp" width="306" height="343" alt="" draggable="false"><p class="pw-bulle">Tu nous quittes déjà&nbsp;?</p>'));
+  assert.ok(!html.includes('chat-presente'), 'plus le chat qui présente');
+  const ov = fs.readFileSync(path.join(ROOT, 'onboarding-vitrine.css'), 'utf8');
+  assert.ok(ov.includes('html #onboarding.ob-vitrine .pw-bulle{position:absolute;right:-6px;top:-62px;'));
+  const m = ov.indexOf('html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .pw-bulle{animation:pwBulle .5s var(--v-pop) .45s both}');
+  assert.ok(m > ov.indexOf('@media (prefers-reduced-motion:no-preference){', ov.indexOf('3 novembre, 17 h 32')), 'son entrée, dans le bloc des animations');
+});
