@@ -68,7 +68,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
 test('le pont : leconDebut, leconMaj, leconFin (iOS 16.2), et rien de resté à la relance de l’app', () => {
   const noms = [...pont.matchAll(/CAPPluginMethod\(name: "(\w+)", returnType: CAPPluginReturnPromise\)/g)].map(m => m[1]);
   assert.deepEqual(noms, ['maj', 'raccourcis', 'fond', 'leconDebut', 'leconMaj', 'leconFin', 'partager', 'ouvrir', 'flammeProgrammer', 'flammeAllumee', 'flammeArreter',
-    'salleDebut', 'salleMaj', 'salleFin', 'partagerTexte', 'accueilDebut', 'accueilMaj', 'accueilFin', 'notifAutoriser', 'notifJeton', 'abonnementGerer', 'noter'],
+    'salleDebut', 'salleMaj', 'salleFin', 'partagerTexte', 'accueilDebut', 'accueilMaj', 'accueilFin', 'notifAutoriser', 'notifJeton', 'abonnementGerer', 'noter', 'widgetsPoses'],
     'partager et ouvrir : la sauvegarde et « Noter Requête » (4 novembre, 22 h 08) ; puis ta flamme en direct (7 novembre, ios-flamme-direct) et la salle dans l’île (ios-salle-ile), l’onboarding dans l’île (ios-accueil-ile)');
   const classe = cut(pont, 'public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {', '\n}\n');
   for (const n of noms) assert.ok(classe.includes(`@objc func ${n}(_ call: CAPPluginCall) {`), `${n} dans la classe`);

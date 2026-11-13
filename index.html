@@ -45327,6 +45327,21 @@ if(typeof document!=='undefined'&&typeof document.addEventListener==='function')
   if(document.hidden){const s=Math.round((Date.now()-statVisibleDepuis)/1000);if(s>=5&&s<=14400)stat('duree',s);}
   else statVisibleDepuis=Date.now();
 });
+/* 13 novembre, 20 h 04 (Elisa : « Oui, pour le widget, s’il te plaît ») : quels widgets sont posés, une fois par jour : leur nombre
+   (la valeur, 0 sans widget) et la liste « genre:taille » (RequeteCheminee:systemMedium…). Une app d’avant cette version n’a pas la
+   méthode (widgetsPoses) : rien ne part, et l’on redemandera. */
+function statWidgetsPoses(){
+  const C=typeof window!=='undefined'?window.Capacitor:null;
+  if(!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||!statActif())return;
+  let vu={};try{vu=JSON.parse(localStorage.getItem(STAT_VU)||'{}')||{};}catch(e){vu={};}
+  const cle='widgets:'+statJour();if(vu[cle])return;
+  return Promise.resolve(C.nativePromise('RequeteWidget','widgetsPoses',{})).then(r=>{
+    if(!r||!Array.isArray(r.widgets))return;
+    const l=r.widgets.map(x=>String(x).replace(/[^A-Za-z0-9:]/g,'').slice(0,48)).filter(Boolean).sort();
+    const k=l.reduce((a,x)=>a.length+x.length+1<=280?(a?a+','+x:x):a,'');
+    statUneFois('widget_pose',cle,l.length,{k});
+  }).catch(()=>{});
+}
 /* Une seule fois : à vie (« installation ») ou par jour (« ouverture:2026-11-10 ») ; les clés datées de plus d'une semaine s'en vont */
 function statUneFois(t,cle,v,d){
   if(!statActif())return false;
@@ -47387,6 +47402,7 @@ function raccourcisBrancher(){
   if(raccourcisBranches||!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
   raccourcisBranches=true;
   try{ Promise.resolve(C.nativePromise('RequeteWidget','raccourcis',{items:RACCOURCIS})).catch(()=>{}); }catch(e){}
+  setTimeout(()=>{try{statWidgetsPoses();}catch(e){}},6000);   // 20 h 04 : les widgets posés, une fois par jour
   /* 13 novembre, 19 h 52, statistiques : un rappel touché (la notification ouvre l’app) */
   const LN=C.Plugins&&C.Plugins.LocalNotifications;
   if(LN&&typeof LN.addListener==='function')try{LN.addListener('localNotificationActionPerformed',e=>{const id=+(e&&e.notification&&e.notification.id)||0;if(typeof stat==='function')stat('rappel_ouvert',undefined,{k:id>=100?'seance':'n'+id});});}catch(e){}
@@ -51460,7 +51476,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-usage-v2963';
+  const SW_CACHE='requete-2026-11-13-widgets-v2964';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

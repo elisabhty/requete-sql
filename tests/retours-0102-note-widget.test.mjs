@@ -122,7 +122,7 @@ test('la note ne passe pas par-dessus autre chose, attend la fin de l’animatio
 
 test('côté iPhone : la fenêtre d’Apple (StoreKit), jamais un écran maison ; « Noter Requête » reste dans Mon compte', () => {
   assert.ok(pont.includes('import StoreKit\n'));
-  assert.ok(pont.includes('        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise)\n    ]'));
+  assert.ok(pont.includes('        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "widgetsPoses", returnType: CAPPluginReturnPromise)\n    ]'));
   const m = pont.slice(pont.indexOf('    @objc func noter(_ call: CAPPluginCall) {'), pont.indexOf('// MARK: - La leçon en cours'));
   assert.ok(m.includes('guard let scene = self.bridge?.viewController?.view.window?.windowScene else {'));
   assert.ok(m.includes('Task { @MainActor in\n                if #available(iOS 16.0, *) {\n                    AppStore.requestReview(in: scene)\n                } else {\n                    SKStoreReviewController.requestReview(in: scene)\n                }\n                call.resolve(["ok": true])'));

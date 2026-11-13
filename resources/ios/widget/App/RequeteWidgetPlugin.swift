@@ -123,7 +123,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "notifAutoriser", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "widgetsPoses", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -555,6 +556,19 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
                 }
                 call.resolve(["ok": true])
             }
+        }
+    }
+
+    /// Les widgets posés (Elisa, 13 novembre, 20 h 04 : « Oui, pour le widget, s’il te plaît », les statistiques anonymes) : un
+    /// « genre:taille » par widget posé (« RequeteCheminee:systemMedium », « RequeteSerieVerrou:accessoryCircular »), rien d’autre.
+    /// La page en fait un décompte par jour (index.html, statWidgetsPoses).
+    @objc func widgetsPoses(_ call: CAPPluginCall) {
+        WidgetCenter.shared.getCurrentConfigurations { resultat in
+            var liste: [String] = []
+            if case .success(let infos) = resultat {
+                liste = infos.map { info in info.kind + ":" + String(describing: info.family) }
+            }
+            call.resolve(["ok": true, "widgets": liste])
         }
     }
 }

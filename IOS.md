@@ -632,6 +632,14 @@ ses propres serveurs : quelques heures après sa mise en ligne, le temps qu’il
 Safari : appui long sur le lien › « Ouvrir dans Requête » (iOS retient ce choix ; toucher « requeteapp.com » en haut à droite
 dans l’app fait l’inverse).
 
+### Les widgets posés, dans les statistiques (13 novembre, 20 h 04)
+
+Elisa : « Oui, pour le widget, s’il te plaît ». Le pont a la méthode `widgetsPoses` (`RequeteWidgetPlugin.swift`) : la liste
+« genre:taille » des widgets posés (`WidgetCenter.getCurrentConfigurations`, par exemple `RequeteCheminee:systemMedium`), rien
+d’autre. La page la demande une fois par jour (`statWidgetsPoses`) et l’envoie dans les statistiques anonymes (`widget_pose`) ;
+Supabase : `select public.stat_tableau(30) -> 'reglages';` (`widgets_poses`, `widgets_par_genre`). Il faut la nouvelle version
+de l’app : avant, la méthode n’existe pas et rien ne part.
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre
