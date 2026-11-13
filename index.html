@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=344">
+<link rel="stylesheet" href="ludique.css?v=345">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -33817,8 +33817,9 @@ function moduleUpStart(){
 }
 function moduleUpClose(instant){
   if(!MU)return;
-  const {el,timers,snd,apercu}=MU;
+  const {el,timers,snd,apercu,apres}=MU;
   MU=null;
+  if(typeof apres==='function')try{apres();}catch(e){}   // la page des points d’une partie : l’écran de fin apparaît (13 novembre, 19 h 15)
   if(apercu)try{ const u=new URL(location.href); u.searchParams.delete('apercu'); u.searchParams.delete('module'); history.replaceState(history.state,'',u.pathname+u.search+u.hash); }catch(e){}
   timers.forEach(clearTimeout);
   document.body.classList.remove('mu-on');
@@ -38142,7 +38143,7 @@ function jeuRender(){
       if(page){
         let tot=0;for(let i=0;i<=n;i++){if(J.rounds[i]){const y=jeuRanking(i).find(x=>x.pid===J.me);if(y)tot+=y.pts;}}
         const issue=!rk.length?'nul':moi&&moi.place===1?'victoire':'defaite',qui=issue==='defaite'&&rk[0]?((J.players[rk[0].pid]||{}).name||''):'';
-        jeuPtsPage({pts:pts,total:n>0?tot:0,solo:false,issue,qui,place:got&&moi?moi.place:0,manche:{n,nb:J.nb,fin:jeuFinAuto(n)}});   // « Ta partie » dès la 2e manche ; la médaille de la manche (18 h 11)
+        jeuVoiler(J,()=>jeuPtsPage({pts:pts,total:n>0?tot:0,solo:false,issue,qui,place:got&&moi?moi.place:0,manche:{n,nb:J.nb,fin:jeuFinAuto(n)},apres:jeuVoileLever}));   // « Ta partie » dès la 2e manche ; la médaille de la manche (18 h 11)
       }
       setTimeout(()=>{const b=document.querySelector('#jeu-root .jr2-n');if(b&&JEU===J)jeuCountUp(b);},300);
       if(!page&&ton==='is-or'&&typeof lqConfetti==='function'&&!prefersReduceMotion())setTimeout(()=>{if(JEU===J&&J.view==='res'+n)lqConfetti({n:36});},420);
@@ -38164,7 +38165,10 @@ function jeuRender(){
     /* 18 h 48 (Elisa : « même un défi solo raté, mets le message “le bilan s’affiche”, comme les autres ; sois cohérent ») : seul
        aussi, la page des points vient à chaque fois, même sans point (« Tu vas y arriver ! », le chat qui lève le poing), puis se
        referme toute seule sur le bilan. */
-    if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},700);
+    /* 19 h 15 (Elisa, la partie avec Claude : « avant la page Bravo, on voit le podium ; je veux le voir qu’à la fin ») : l’écran de
+       fin (le podium, ou le bilan) reste voilé (jeu-voile) le temps de la page des points, qui s’ouvre tout de suite ; il apparaît
+       quand elle se referme (jeuVoileLever), ses points qui montent. */
+    if(seul&&cg)jeuVoiler(J,()=>ptsPage(Object.assign(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},{apres:jeuVoileLever}),0));
     if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
@@ -38224,8 +38228,9 @@ function jeuRender(){
         `${bande}
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Ton récap’</p><ol class="jeu-rounds">${recap}</ol></div>
         ${jeuFinBoutonsHTML(nOk,all)}`;
-      if(!prefersReduceMotion()&&!keep)setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
-      if(all&&!keep)setTimeout(celebrate,300);   // redessiné sur place (la revanche, 13 novembre) : pas une deuxième fois
+      /* Voilé (19 h 15) : les points montent quand il apparaît ; les confettis, la page des points les a déjà eus */
+      if(!prefersReduceMotion()&&!keep&&!J.voile)setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
+      if(all&&!keep&&!J.voile)setTimeout(celebrate,300);   // redessiné sur place (la revanche, 13 novembre) : pas une deuxième fois
     }else{
       /* 13 novembre, 17 h 16 (Elisa, ses captures « 2e place, bien joué ! » puis « Le podium ») : « Fusionner les deux pages car ce
          sont la même chose dit différemment, du coup avec le bouton défier ou quelque chose comme ça. Faire une page défaite, 0-0,
@@ -38238,7 +38243,7 @@ function jeuRender(){
       jeuPlaces(sc);
       const moi=sc.find(x=>x.pid===J.me)||{pts:0,ms:0,place:sc.length||1},premier=sc[0]||null,second=sc[1]||null;
       const nul=sc.length>0&&sc.every(x=>x.pts===0),winner=!nul&&moi.place===1&&moi.pts>0;
-      if(cg)ptsPage({pts:cg.pts,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0},0);   // avant le podium (17 h 31) ; sa médaille (18 h 11)
+      if(cg)jeuVoiler(J,()=>ptsPage({pts:cg.pts,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0,apres:jeuVoileLever},0));   // avant le podium (17 h 31) ; sa médaille (18 h 11)
       const nom=x=>esc(x&&x.name||'Joueur'),ecart=(a,b)=>{const d=Math.max(0,(a&&a.pts||0)-(b&&b.pts||0));return `${d.toLocaleString('fr-FR')}\u00a0point${d>1?'s':''}`;};
       let ton,titre,chat,med='',phrase;
       if(winner){ton='is-or';titre='Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
@@ -38272,7 +38277,7 @@ function jeuRender(){
         ${jeuCorrListeHTML()}
         ${host?`<button type="button" class="journey-primary jeu-revanche" onclick="jeuRejouer()"><span>Revanche</span>${DEF_CHEV_SVG}</button><p class="jeu-wait jeu-revanche-n"><i class="jeu-dot" aria-hidden="true"></i>Même salle, même code&nbsp;: tout le monde revient.</p>`:jeuRevancheHTML()}
         ${jeuBtn2('quit','Quitter la salle','goBack()')}`;
-      if(!keep){
+      if(!keep&&!J.voile){   // voilé (19 h 15) : jeuVoileLever
         if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jr2-n');if(b&&JEU===J)jeuCountUp(b);},300);
         if(winner)setTimeout(celebrate,300);   // redessiné sur place (la revanche) : pas une deuxième fois
       }
@@ -38299,6 +38304,7 @@ function jeuRender(){
   const atterrit=keep&&/^play/.test(v)&&!!prevEd&&!html.includes('id="ed-lesson"');
   const avantH=atterrit?root.offsetHeight:0;
   root.innerHTML=html;
+  if(root.classList)root.classList[(v==='final'||/^res/.test(v))&&J.voile?'add':'remove']('jeu-voile');   // 19 h 15 : pas le podium avant la page des points
   if(!keep){
     root.classList.remove('jeu-in','jeu-cascade');void root.offsetWidth;
     /* Juste après le tirage : la manche arrive en cascade (la barre et le chrono, le titre, la question, l’éditeur…). */
@@ -38725,6 +38731,23 @@ const JEU_COIN_SVG='<svg class="lq-stk" viewBox="0 0 48 48" aria-hidden="true"><
    l’emporte), la défaite sans point (« Pas cette fois ! », qui a trouvé), le 0 à 0 (personne n’a trouvé) ; la pièce s’éteint à 0 point,
    les confettis sont pour la victoire. « Voir le podium » la referme sur l’écran de fin ; « Revanche » dessous. Seul : comme avant,
    avec des points seulement. */
+/* 13 novembre, 19 h 15 (Elisa : « avant la page Bravo, on voit le podium ; je veux le voir qu’à la fin ») : l’écran dessous (le podium,
+   le bilan, le classement d’une manche) reste caché (#jeu-root.jeu-voile, display:none : ses animations d’entrée partent quand il
+   apparaît) tant que la page des points est là ; elle le découvre en se refermant (MU.apres), ses points qui montent. Filet : si la
+   page ne s’est pas ouverte au bout de 4 s (une autre page devant), l’écran se montre. */
+function jeuVoiler(J,ouvrir){
+  J.voile=true;ouvrir();
+  setTimeout(()=>{if(JEU===J&&J.voile&&!(typeof MU!=='undefined'&&MU&&MU.apres===jeuVoileLever))jeuVoileLever();},4000);
+}
+function jeuVoileLever(){
+  const J=JEU;if(J)J.voile=false;
+  const root=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-root'):null;
+  if(!root||!root.classList||typeof root.classList.contains!=='function'||!root.classList.contains('jeu-voile'))return;
+  root.classList.remove('jeu-voile');
+  if(typeof prefersReduceMotion==='function'&&prefersReduceMotion())return;
+  root.classList.remove('jeu-in','jeu-cascade');void root.offsetWidth;root.classList.add('jeu-in');
+  const b=root.querySelector('.jr2-n, .jeu-bilan b[data-n]');if(b)setTimeout(()=>{if(b.isConnected)jeuCountUp(b);},300);
+}
 function jeuPtsPage(o){
   if(!o||!(o.pts>0||o.issue)||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||typeof document.body.appendChild!=='function'||typeof MU==='undefined'||typeof moduleUpClose!=='function')return;
   if(MU){ clearTimeout(jeuPtsPage.t); jeuPtsPage.t=setTimeout(()=>jeuPtsPage(o),900); return; }
@@ -38783,7 +38806,7 @@ function jeuPtsPage(o){
   const el=box.firstElementChild;
   document.body.appendChild(el);
   document.body.classList.add('mu-on');
-  MU={el,pts:o.pts,stage:'c',snd:false,timers:[],manche:M?M.n:null};
+  MU={el,pts:o.pts,stage:'c',snd:false,timers:[],manche:M?M.n:null,apres:typeof o.apres==='function'?o.apres:null};
   const fermer=()=>moduleUpClose();
   /* La page d’une manche : son compte à rebours (la manche suivante part toute seule, jeuTick) ; la fin d’une partie entre amis : le
      sien, puis le podium (18 h 11) */
@@ -51392,7 +51415,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-salle-v2959';
+  const SW_CACHE='requete-2026-11-13-voile-v2960';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -41,7 +41,7 @@ test('la page d’une manche : gagnée, perdue avec ou sans points, 0 à 0 ; san
 test('les branchements : la vue res l’ouvre une fois, avant la dernière ; jeuRender la referme ; ses styles', () => {
   assert.ok(app.includes("const page=!sl&&!last&&typeof jeuPtsPage==='function';"));
   assert.ok(app.includes("const issue=!rk.length?'nul':moi&&moi.place===1?'victoire':'defaite',qui=issue==='defaite'&&rk[0]?((J.players[rk[0].pid]||{}).name||''):'';"));
-  assert.ok(app.includes("jeuPtsPage({pts:pts,total:n>0?tot:0,solo:false,issue,qui,place:got&&moi?moi.place:0,manche:{n,nb:J.nb,fin:jeuFinAuto(n)}});"));
+  assert.ok(app.includes("jeuVoiler(J,()=>jeuPtsPage({pts:pts,total:n>0?tot:0,solo:false,issue,qui,place:got&&moi?moi.place:0,manche:{n,nb:J.nb,fin:jeuFinAuto(n)},apres:jeuVoileLever}));"));
   assert.ok(app.includes("if(!page&&ton==='is-or'&&typeof lqConfetti==='function'"), 'les confettis une seule fois');
   assert.ok(fn('jeuRender').includes("if(typeof MU!=='undefined'&&MU&&MU.manche!=null&&v!=='res'+MU.manche&&typeof moduleUpClose==='function')moduleUpClose();"));
   assert.ok(css.includes('html.lq .mu.mu-pts .mu-auto-barre::after{content:"";display:block;height:100%;width:calc(var(--p0,0) * 100%);'));
