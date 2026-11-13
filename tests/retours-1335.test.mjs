@@ -33,7 +33,7 @@ test('« prête », « prêt » ou « prêt·e » : ta ligne et ton bouton suive
     const { ctx, lignes } = salle(g);
     const [moi, lea, sam] = lignes();
     const Mot = mot[0].toUpperCase() + mot.slice(1);   // 13 h 20 : « Prête » en vert, « En attente » en gris
-    assert.ok(moi.includes('Elisa <small>(toi)</small>') && moi.includes(`</i>${Mot}</em>`), `${g || 'sans réponse'} : ${Mot} pour toi`);
+    assert.ok(moi.includes('<span class="jeu-pl-nom">Elisa</span> <small>(toi)</small>') && moi.includes(`</i>${Mot}</em>`), `${g || 'sans réponse'} : ${Mot} pour toi`);
     assert.ok(lea.includes('</i>Prêt·e</em>'), 'Léa : son genre n’est pas connu ici');
     assert.ok(sam.includes('<em class="jeu-state is-att">En attente</em>') && !sam.includes('is-ready'));
     assert.equal(ctx.jeuPretBouton(false), `Je suis ${mot}`);
@@ -44,7 +44,8 @@ test('« prête », « prêt » ou « prêt·e » : ta ligne et ton bouton suive
   assert.equal(sans.jeuPretMot(true), 'prêt·e', 'sans le genre (bac à sable, page à part) : la forme inclusive');
   /* Plus de « c’est bon » dans la salle */
   assert.ok(!app.includes('✓ c’est bon') && !app.includes('C’est bon pour moi'));
-  assert.ok(app.includes('onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button>'));
+  /* 13 novembre, 23 h 58 : le bouton « Je suis prête » et la carte « Préviens l’hôte… » ne font plus qu’un (retours-2358-pret) */
+  assert.ok(app.includes('<button type="button" class="jeu-lob jeu-lob-pret ${cls}" id="jeu-pret" aria-pressed="${on}"') && app.includes('onclick="jeuToggleReady()">'));
   assert.ok(app.includes("const l=rd.querySelector('span');if(l)l.textContent=jeuPretBouton(on);}"));
 });
 
@@ -88,5 +89,5 @@ test('la pastille : la coche tourne et se trace, une onde part, l’avatar bondi
 test('le genre ne sort pas de l’appareil : la salle ne l’envoie pas', () => {
   assert.ok(!cut('function jeuSend(m){', '\n}\n').includes('genre'));
   assert.ok(conf.includes('ton genre et ta profession (si tu les indiques)'), 'Confidentialité : il reste sur l’appareil');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-classement-v2981';") && app.includes("const SW_CACHE='requete-2026-11-13-classement-v2981';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-pret-v2982';") && app.includes("const SW_CACHE='requete-2026-11-14-pret-v2982';"));
 });

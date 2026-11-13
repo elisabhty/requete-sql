@@ -48,5 +48,5 @@ test('au dernier palier, la mascotte reste ; elle ne part que sur les écrans le
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=68">') && sw.includes("'./onboarding-vitrine.css?v=68',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-classement-v2981';") && app.includes("const SW_CACHE='requete-2026-11-13-classement-v2981';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-pret-v2982';") && app.includes("const SW_CACHE='requete-2026-11-14-pret-v2982';"));
 });
