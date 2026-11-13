@@ -121,3 +121,17 @@ test('le genre se change dans Profil et objectif (« Tu es… »), et l’appli 
   assert.ok(vm.runInContext('accGenreHTML()', ctx).includes('class="ct-type on" role="radio" aria-checked="true" onclick="accGenre(\'f\')"'));
   assert.ok(lq.includes('html.lq #scr-compte .plus-details-body>.acc-genre{margin:4px 18px 18px}'));
 });
+
+test('15 h 32 : l’appli rouverte commence sur l’accueil ; rechargée sans être fermée, elle reste où l’on était', () => {
+  const f = cut(app, 'function restoreNav(){', '\n  if(!state.onboarded)return;');
+  const essai = (natif, session, long) => {
+    const ctx = vm.createContext({ dxNatif: () => natif, NAV_KEY: 'nav', NAV_KEY_LONG: 'long', NAV_REPRISE_MS: 6 * 3600e3, navTried: false, Date,
+      sessionStorage: { getItem: k => (k === 'nav' ? session : null) }, localStorage: { getItem: k => (k === 'long' ? long : null) } });
+    vm.runInContext(f + '\n  return nav;\n}\nthis.r=JSON.stringify(restoreNav() ?? null);', ctx);
+    return ctx.r;
+  };
+  const long = JSON.stringify({ nav: { view: 'tab', tab: 'compte' }, ts: Date.now() - 60000 });
+  assert.equal(essai(true, null, long), 'null', 'app iPhone rouverte : l’accueil');
+  assert.equal(essai(true, JSON.stringify({ view: 'tab', tab: 'compte' }), long), '{"view":"tab","tab":"compte"}', 'rechargée (nouvelle version, langue) : la même page');
+  assert.equal(essai(false, null, long), '{"view":"tab","tab":"compte"}', 'Safari : la reprise des 6 dernières heures reste');
+});
