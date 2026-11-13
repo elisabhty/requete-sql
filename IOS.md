@@ -527,6 +527,21 @@ iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la p
 - **Après une connexion, l’accueil** (13 novembre, 2 h 41 : « quand on se connecte sur l’appli on va toujours pas sur
   l’accueil ») : reconnexion après une déconnexion, connexion derrière le paywall, « J’ai déjà un compte » sur un iPhone neuf
   (c’était Mon compte). La nouvelle inscrite garde ce que promet « Commencer la première leçon ».
+- **Sans compte connecté, pas d’appli** (13 novembre, 3 h 22 ; Elisa : « je suis déconnectée mais j’ai quand même accès à Mon
+  compte, et quand je fais retour alors que je suis déconnectée j’y suis aussi ») : la garde du compte (index.html,
+  `obCompteBloque`, `obCompteGardeVoir`). Une fois l’onboarding fait, dans l’appli où la connexion est branchée
+  (`REQUETE_AUTH`), sans compte connecté, la page de connexion reste devant l’appli, sans « Retour » : au lancement, après une
+  déconnexion, au retour au premier plan, et dès qu’une session est perdue (compte supprimé ailleurs). Elle passe avant le
+  paywall : on se connecte, puis l’abonnement est vérifié. Une invitation à une salle attend derrière elle. Sans connexion
+  branchée (la mise au point dans un navigateur), rien ne change.
+- **Le prix sur la feuille d’Apple** (13 novembre, 3 h 22 ; Elisa, sa capture : « Requête Premium annuel bienvenue, 44,99 € par
+  an », « je pense qu’on est sur le mauvais prix ») : 44,99 € est le prix normal du produit « bienvenue » ; son −50 % est une
+  offre de lancement, et Apple n’en accorde qu’une par personne et par groupe d’abonnements (l’essai de 3 jours en est une).
+  Un compte Apple qui a déjà pris l’essai voit donc le prix normal, et la liste « Abonnements disponibles » d’Apple montre
+  toujours tous les produits du groupe à leur prix normal. Dans l’appli, la page de l’offre de bienvenue ne s’affiche que si
+  la boutique dit que la personne y a droit (`sortieDispo`, achat.js). À vérifier dans App Store Connect (pas pu le lire le
+  13 novembre, session fermée) : Abonnements › « annuel bienvenue » › Prix de l’abonnement › offre de lancement, la liste des
+  pays et le prix de la France.
 
 - **Confidentialité (App Store Connect)** : l’app ne collecte rien sans compte.
   Seule la *Salle de défi* en mode « Entre amis » envoie un pseudo, des temps, un signe de vie et des réactions,

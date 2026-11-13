@@ -27,7 +27,7 @@ test('la connexion est une feuille à mi-écran, au-dessus de « Ton parcours es
   const p = cut("}else if(slide==='account'){", "}else if(slide==='paywall'){");
   assert.ok(p.includes('<div class="ob-screen ob-profile ob-account is-feuille">${obFlowHeader(slide)}'));
   /* 18 h 12 : « Connecte-toi en un geste, et c’est parti. » à la place de « Garde-le… » */
-  assert.ok(p.includes('<button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="${finale?\'Revenir à mon parcours\':\'Revenir en arrière\'}">') && p.includes("const haut=finale?`Ton parcours est prêt${prenom?', '+esc(prenom):''}.`:") && p.includes('<b>${haut}</b><small>Connecte-toi en un geste, et c’est parti.</small></button>'), 'le haut referme la feuille sur le parcours');
+  assert.ok(p.includes('<button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="${finale?\'Revenir à mon parcours\':\'Revenir en arrière\'}">') && p.includes("const haut=finale?`Ton parcours est prêt${prenom?', '+esc(prenom):''}.`:") && p.includes("<b>${haut}</b><small>Connecte-toi en un geste, et c’est parti.</small>${fige?'</div>':'</button>'}"), 'le haut referme la feuille sur le parcours (sauf devant l’appli, sans compte : 13 novembre, 3 h 22)');
   assert.ok(p.includes('<div class="ob-acc-feuille"><i class="ob-acc-poignee" aria-hidden="true"></i><img class="ob-acc-chat" src="assets/chat-cle${chatFixe?\'-fixe\':\'\'}.webp"'), 'la poignée, le chat à la clé sur le bord');
   for (const f of ['chat-cle.webp', 'chat-cle-fixe.webp']) assert.ok(fs.existsSync(path.join(root, 'assets', f)), f);
   assert.ok(p.includes("${authReady?obCompteAtoutsHTML():''}") && p.includes("onclick=\"obStartAuth('${provider}',this)\""), 'ses trois repères, Apple et Google : les mêmes boutons');

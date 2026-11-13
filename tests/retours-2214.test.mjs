@@ -41,9 +41,8 @@ test('sans compte : « Aucun compte connecté » ; la connexion proposée si ell
     ['demande', 'Aucun compte connecté', 'Ta progression est enregistrée sur cet appareil, sans compte : il n’y a rien à déconnecter.', 'OK', null]], 'connexion pas branchée : un simple « OK »');
   x = deco({ mode: 'guest', oui: true }); x.ctx.obAuthReady = () => true;
   await x.go();
-  assert.deepEqual(JSON.parse(JSON.stringify(x.appels)), [
-    ['demande', 'Aucun compte connecté', 'Ta progression est enregistrée sur cet appareil, sans compte : il n’y a rien à déconnecter. Connecte-toi pour la retrouver sur tes autres appareils.', 'Me connecter', 'Plus tard'],
-    ['ferme'], ['onboarding', 'account']]);
+  /* 13 novembre, 3 h 22 (réf. 2) : connexion branchée, plus de fenêtre « sans compte » : la page de connexion, sans détour */
+  assert.deepEqual(JSON.parse(JSON.stringify(x.appels)), [['ferme'], ['onboarding', 'account']]);
   assert.equal(x.ctx.state.accountMode, 'guest');
   x = deco({ mode: undefined, oui: false });
   await x.go();
@@ -56,5 +55,5 @@ test('connecté : la vraie déconnexion (confirmée), puis l’étape du compte'
   assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Te déconnecter ?', 'signOut', 'enregistre', 'ferme', 'onboarding']);
   assert.equal(x.ctx.state.accountMode, 'guest');
   assert.ok(!('accountProvider' in x.ctx.state) && !('accountLabel' in x.ctx.state));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-pays-v2923';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-garde-compte-v2924';"), 'le cache de l’appli change');
 });

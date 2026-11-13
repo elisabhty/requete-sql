@@ -6732,9 +6732,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=327">
+<link rel="stylesheet" href="ludique.css?v=328">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=62">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=63">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -20549,6 +20549,7 @@ async function boot(){
     jeuFromUrl();
     resetLeconFromUrl();
     apercuFromUrl();
+    try{obCompteGardeDemarrer();}catch(e){}   // le compte (13 novembre, 3 h 22) : sans compte connecté, la page de connexion, avant le paywall
     try{obGardeDemarrer(true);}catch(e){}   // l’abonnement (12 novembre, 21 h 06) : sans lui, le paywall, avant que l’écran de lancement parte
     setTimeout(()=>{try{homeStatsCompter();}catch(e){}},document.documentElement.classList.contains('is-native')?3300:700);   // après l’ouverture
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
@@ -38721,7 +38722,8 @@ function jeuInvitation(){
 function jeuInvitationOublier(){try{sessionStorage.removeItem(JEU_INV);sessionStorage.removeItem(JEU_INV_DE);}catch(e){}}
 function jeuFromUrl(){
   const inv=jeuInvitation();if(!inv)return;
-  if(!state.onboarded||(typeof obGardeBloque==='function'&&obGardeBloque())){try{sessionStorage.setItem(JEU_INV,inv.code);if(inv.de)sessionStorage.setItem(JEU_INV_DE,inv.de);else sessionStorage.removeItem(JEU_INV_DE);}catch(e){}return;}
+  /* 13 novembre, 3 h 22 : l’invitation attend aussi derrière la page de connexion (la garde du compte), puis derrière le paywall */
+  if(!state.onboarded||(typeof obCompteBloque==='function'&&obCompteBloque())||(typeof obGardeBloque==='function'&&obGardeBloque())){try{sessionStorage.setItem(JEU_INV,inv.code);if(inv.de)sessionStorage.setItem(JEU_INV_DE,inv.de);else sessionStorage.removeItem(JEU_INV_DE);}catch(e){}return;}
   jeuInvitationOublier();
   try{const u=new URL(location.href);u.searchParams.delete('partie');u.searchParams.delete('de');history.replaceState(history.state,'',u.pathname+u.search+u.hash);}catch(e){}
   jeuEntrerInvitation(inv.code);
@@ -45067,7 +45069,8 @@ function closeOnboardingAuth(){
   root.classList.remove('on','ob-account-step','ob-welcome-step','ob-profile-step','ob-legal-step');
   root.setAttribute('aria-hidden','true');obBarreEtat(false);
   renderCompte();
-  /* La garde de l’abonnement (12 novembre, 21 h 06) : refermée par un autre chemin que l’abonnement, elle revient aussitôt */
+  /* La garde de l’abonnement (12 novembre, 21 h 06) : refermée par un autre chemin que l’abonnement, elle revient aussitôt.
+     13 novembre, 3 h 22 : celle du compte aussi, et d’abord (obGardeVoir commence par elle). */
   obGarde=false;
   if(typeof obGardeVoir==='function')obGardeVoir();
 }
@@ -45192,6 +45195,7 @@ function obGardeBloque(){return !!state.onboarded&&!obApercu&&obGardeEtat()==='n
 function obGardeVoir(){
   clearTimeout(obGardeT);
   if(!state.onboarded||obApercu)return false;
+  if(typeof obCompteGardeVoir==='function'&&obCompteGardeVoir())return false;   /* 13 novembre, 3 h 22 : sans compte connecté, la page de connexion d’abord */
   const e=obGardeEtat(),root=document.getElementById('onboarding'),ouvert=!!(root&&root.classList.contains('on'));
   if(e==='oui'){if(obGarde&&ouvert)obGardeFermer();return false;}
   if(e!=='non')return false;
@@ -45249,6 +45253,38 @@ async function obGardeCompte(){
   if(!r)return;
   if(connecte){if(typeof seDeconnecter==='function')seDeconnecter();}
   else startOnboarding('account');
+}
+/* ---------- La garde du compte (Elisa, 13 novembre, 3 h 22, réf. 2 : « il y a un vrai souci, je suis déconnectée mais j’ai quand
+   même accès à Mon compte, et quand je fais retour alors que je suis déconnectée j’y suis aussi ») ----------
+   Le compte n’était demandé qu’à la fin de l’onboarding. Une fois déconnectée, la page de connexion s’ouvrait bien, mais son
+   « Retour » (le bouton, le haut de la page, le glissé, Échap) la refermait sur l’appli, restée ouverte derrière ; et au lancement
+   suivant, l’appli s’ouvrait sans compte. Comme pour l’abonnement : dans l’appli où la connexion est branchée (obAuthReady), sans
+   compte connecté, la page de connexion reste devant l’appli, sans « Retour », au lancement, après une déconnexion, au retour au
+   premier plan, et dès qu’une session est perdue (compteSessionVerifier). Elle passe avant le paywall : on se connecte, puis
+   l’abonnement est vérifié (obStartAuth). Elle se referme d’elle-même à la connexion.
+   - seulement une fois l’onboarding fait (avant, c’est l’onboarding qui mène au compte) ; jamais dans l’aperçu ;
+   - sans connexion branchée (le site de mise au point), rien ne change ;
+   - en pleine partie entre amis, elle attend la fin de la partie, comme le paywall. */
+let obCompteGardePrete=false,obCompteGardeT=0;
+function obCompteBloque(){return !!state.onboarded&&!obApercu&&obAuthReady()&&state.accountMode!=='connected';}
+function obCompteGardeVoir(){
+  clearTimeout(obCompteGardeT);
+  if(!obCompteGardePrete||!obCompteBloque())return false;
+  const root=document.getElementById('onboarding'),ouvert=!!(root&&root.classList.contains('on'));
+  if(ouvert&&OB_SLIDES[obStep]==='account')return true;
+  /* Une autre page de l’onboarding est ouverte (le widget, par exemple) : à sa fermeture (closeOnboardingAuth). Le paywall de la
+     garde, lui, laisse la place : le compte d’abord. */
+  if(ouvert&&!(obGarde&&OB_SLIDES[obStep]==='paywall'))return false;
+  if(typeof JEU!=='undefined'&&JEU){obCompteGardeT=setTimeout(obCompteGardeVoir,20000);return false;}
+  try{if(typeof closePlusDetails==='function')closePlusDetails();}catch(e){}
+  startOnboarding('account');
+  return true;
+}
+/* Au démarrage de l’appli, juste avant la garde de l’abonnement ; puis à chaque fois que la session a pu changer (compteGardeVerifier). */
+function obCompteGardeDemarrer(){obCompteGardePrete=true;return compteGardeVerifier();}
+function compteGardeVerifier(){
+  try{if(typeof compteSessionVerifier==='function')compteSessionVerifier();}catch(e){}
+  try{return obCompteGardeVoir();}catch(e){return false;}
 }
 /* Ce que le compte a rapporté (csSync) remplit les réponses de l’onboarding qu’on n’a pas données : le rythme du planning, le prénom,
    le profil. finishOnboard garde ainsi le planning du compte et son profil (12 novembre, réf. 14). */
@@ -46733,6 +46769,8 @@ function obBack(){
   if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;
   /* La garde de l’abonnement : ni « Retour », ni glissé, ni Échap ne sortent du paywall (de l’offre de bienvenue, ils ramènent aux offres) */
   if(typeof obGarde!=='undefined'&&obGarde&&OB_SLIDES[obStep]==='paywall'){if(obPwSortie)obSortieRefuser();return;}
+  /* La garde du compte (13 novembre, 3 h 22) : pareil pour la page de connexion, tant que personne n’est connecté */
+  if(OB_SLIDES[obStep]==='account'&&typeof obCompteBloque==='function'&&obCompteBloque())return;
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
   if(OB_SLIDES[obStep]==='paywall'&&obPwSortie){obSortieRefuser();return;}   /* de l’offre de bienvenue, « Retour » ramène aux offres */
   if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
@@ -47444,6 +47482,11 @@ function compteSessionVerifier(){
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
   window.addEventListener('requete-session-perdue',compteSessionVerifier);
   window.addEventListener('load',compteSessionVerifier);
+  /* 13 novembre, 3 h 22 : et la garde du compte suit (session perdue, connexion.js arrivé après le lancement, retour au premier plan) */
+  const garde=()=>{try{if(typeof compteGardeVerifier==='function')compteGardeVerifier();}catch(e){}};
+  window.addEventListener('requete-session-perdue',garde);
+  window.addEventListener('load',garde);
+  if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')garde();});
 }
 /* ---------- La progression synchronisée avec le compte (12 novembre, la connexion) ----------
    Les moteurs préparés début novembre (account/*.mjs, réunis dans compte-moteurs.js : REQUETE_MOTEURS) gardent une file par compte
@@ -47770,7 +47813,8 @@ async function obStartAuth(provider,btn){
        22 h 50 : « revenir à chaque connexion à l’accueil de l’appli ») : toute connexion mène à l’accueil (obVersAccueil), plus à
        Mon compte ni à l’écran où l’on s’était déconnecté ; derrière le paywall aussi, pour le jour où il se referme. */
     if(obEntry==='account'&&state.onboarded&&typeof obGardeBloque==='function'&&obGardeBloque()){obVersAccueil();obGarde=true;obEntry='paywall';obGoto('paywall');}
-    else if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();obVersAccueil();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
+    else if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();obVersAccueil();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');
+      if(typeof jeuFromUrl==='function')setTimeout(jeuFromUrl,350);}   /* 13 novembre, 3 h 22 : l’invitation qui attendait derrière la page de connexion */
     else if(!draft.finVoulue){
       /* 12 novembre (réf. 14, son choix : « Mon compte ») : connecté depuis « J’ai déjà un compte », au début de l’onboarding, on
          arrivait sur Mon compte ; depuis le 13 novembre, 2 h 41, sur l’accueil (finConnexion « accueil » : l’onglet, sans ouvrir de
@@ -47850,6 +47894,8 @@ function obBackButton(){
 function obFlowHeader(slide){
   const steps=obFlowSteps();
   const active=steps.indexOf(slide);
+  /* La garde du compte (13 novembre, 3 h 22) : la page de connexion sans « Retour », il n’y a nulle part où revenir. */
+  if(slide==='account'&&typeof obCompteBloque==='function'&&obCompteBloque())return '<div class="ob-flow-top ob-flow-solo"></div>';
   /* Écran hors tunnel (compte ouvert depuis Mon compte) : retour seul. */
   if(active<0||(state.onboarded&&slide===obEntry&&obEntry!=='welcome'))return `<div class="ob-flow-top ob-flow-solo">${obBackButton()}</div>`;
   const remaining=Math.max(1,Math.ceil((steps.length-active)*12/60));
@@ -48319,7 +48365,7 @@ function paintOb(){
        t’amusant. »
        18 h 36 : des autocollants animés autour du chat (obBonjourStickers). 18 h 54 : la bulle dit « Coucou ! On explore les données
        ensemble ? ». 13 novembre, 1 h 32 (sur sa capture) : « le monde des données » → « Coucou ! On explore le monde des données
-       ensemble ? ». */
+       ensemble ? ». 13 novembre, 3 h 22 (réf. 1) : le sous-titre devient « Des premiers pas aux plus grands défis. » */
     const fixe=typeof mascotReduced==='function'&&mascotReduced(),invite=obInviteHTML();
     html=`<div class="ob-screen ob-bonjour">
       <div class="ob-bj-scene">
@@ -48330,7 +48376,7 @@ function paintOb(){
         </div>
       </div>
       <h1 class="ob-bj-nom" id="ob-title">Requête</h1>
-      <p class="ob-bj-lead">${obTypo('Apprends en pratiquant, progresse en t’amusant.')}</p>${invite}
+      <p class="ob-bj-lead">${obTypo('Des premiers pas aux plus grands défis.')}</p>${invite}
     </div>`;
     obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'');
   }else if(slide==='questions'){
@@ -48379,9 +48425,12 @@ function paintOb(){
       return `<button type="button" class="ob-provider is-${provider}${authReady?'':' is-soon'}${moi?' is-moi':obAuthBusy?' is-attente':''}" data-provider="${provider}" style="--i:${i}" onclick="obStartAuth('${provider}',this)" ${obAuthBusy?`disabled${moi?' aria-busy="true"':''}`:''}>${obProviderIcon(provider)}<span>${moi?(fin?'Connecté':'Connexion…'):`Continuer avec ${label}`}</span>${droite}</button>`;
     };
     const messageF=obAuthMessage?`<p class="ob-auth-message ${obAuthBusy?'is-info':'is-err'}" role="status">${esc(obAuthMessage)}</p>`:'';
+    /* 13 novembre, 3 h 22 (réf. 2) : la garde du compte. Le haut de la page n’est plus un bouton « Revenir en arrière » : un simple
+       titre, qui ne referme rien. */
+    const fige=typeof obCompteBloque==='function'&&obCompteBloque();
     if(!masquee){
     html=`<div class="ob-screen ob-profile ob-account is-feuille">${obFlowHeader(slide)}
-      <button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="${finale?'Revenir à mon parcours':'Revenir en arrière'}">${finale?'<span class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}<b>${haut}</b><small>Connecte-toi en un geste, et c’est parti.</small></button>
+      ${fige?'<div class="ob-acc-fond is-fige">':`<button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="${finale?'Revenir à mon parcours':'Revenir en arrière'}">`}${finale?'<span class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}<b>${haut}</b><small>Connecte-toi en un geste, et c’est parti.</small>${fige?'</div>':'</button>'}
       <div class="ob-acc-feuille"><i class="ob-acc-poignee" aria-hidden="true"></i><img class="ob-acc-chat" src="assets/chat-cle${chatFixe?'-fixe':''}.webp" alt="" aria-hidden="true" draggable="false">
       <h1 class="ob-title" id="ob-title">Ton parcours, <em>partout avec toi</em>.</h1>
       <p class="ob-compte-sub">Connecte-toi pour retrouver tes cours, tes défis et tes réussites sur tous tes appareils.</p>
@@ -50230,10 +50279,14 @@ function noterAppli(){
 async function seDeconnecter(){
   if(state.accountMode!=='connected'){
     const peut=typeof obAuthReady==='function'&&obAuthReady();
-    if(await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter.'+(peut?' Connecte-toi pour la retrouver sur tes autres appareils.':''),oui:peut?'Me connecter':'OK',non:peut?'Plus tard':null})&&peut){
+    /* 13 novembre, 3 h 22 (réf. 2) : dans l’appli, on ne reste plus sans compte. Plus de fenêtre « Aucun compte connecté » : la page
+       de connexion, que la garde du compte tient devant l’appli. La fenêtre reste pour la mise au point, sans connexion branchée. */
+    if(peut){
       if(typeof closePlusDetails==='function')closePlusDetails();
       startOnboarding('account');
+      return;
     }
+    await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Aucun compte connecté',texte:'Ta progression est enregistrée sur cet appareil, sans compte\u00a0: il n’y a rien à déconnecter.',oui:'OK',non:null});
     return;
   }
   if(!await lqAsk({ico:'👋',chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Te déconnecter ?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
@@ -50552,7 +50605,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-pays-v2923';
+  const SW_CACHE='requete-2026-11-13-garde-compte-v2924';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
