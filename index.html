@@ -49385,7 +49385,12 @@ if(typeof document!=='undefined'){
     const T=lqT;lqT=null;
     if(!T||e.pointerId!==T.id||Date.now()-T.t>600||!T.el.isConnected)return;
     if(T.el.disabled||(T.el.getAttribute('aria-disabled')==='true'&&!T.el.hasAttribute('data-jc-gate')))return;
-    buzz(T.el.matches(LQ_CHOIX)||!!T.el.closest('.av-stars,[role="radiogroup"],[role="tablist"]')?'selection':'light');
+    /* 13 novembre, 15 h 08 (Elisa : « il n’y a pas les haptiques au niveau de l’onboarding ») : presque chaque toucher de l’onboarding
+       est un choix (une tuile d’un groupe) et ne donnait que le cran de sélection d’iOS, à peine sensible. Dans l’onboarding, un choix
+       donne un vrai petit coup, et le bouton qui fait avancer (« Continuer », « Commencer »…) un coup moyen. */
+    const obT=T.el.closest('#onboarding');
+    if(obT)buzz(T.el.id==='ob-next'?'medium':'light');
+    else buzz(T.el.matches(LQ_CHOIX)||!!T.el.closest('.av-stars,[role="radiogroup"],[role="tablist"]')?'selection':'light');
     try{window.__toucheEv=e;window.__toucheB=T.el;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS)
   },true);
 }
@@ -51142,7 +51147,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-maj-v2937';
+  const SW_CACHE='requete-2026-11-13-haptique-v2938';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
