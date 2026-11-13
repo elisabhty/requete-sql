@@ -39,22 +39,24 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   assert.ok(app.includes("const ptsPage=(o,d)=>setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage(o);},d);") && app.includes("if(seul&&cg)jeuVoiler(J,()=>ptsPage(Object.assign(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},{apres:jeuVoileLever}),0));"), 'les points de la partie, une page sur l’écran de fin');
   /* Ses boutons : ceux du bilan (jeuFinBoutonsHTML depuis 10 h 37 : la prochaine étape en carte, « Réessayer » sans défi résolu,
      « Retour aux défis » à la place de « Changer de niveau ») */
-  const ctx = vm.createContext({ JEU: { solo: true, niv: 'f' }, jeuIsHost: () => true, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>',
+  const ctx = vm.createContext({ JEU: { solo: true, niv: 'f' }, jeuIsHost: () => true, JEU_RELANCE_SVG: '<rv>', JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>',
     DEF_CHEV_SVG: '<svg>›</svg>', jeuNivBars: k => `[${k}]`, jeuBtn2: (i, l, o) => `[${i}|${l}|${o}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), ctx);
   /* 11 h 38 (« trop de cadres, trop de boutons ») : la prochaine étape, une ligne sans cadre */
   assert.equal(ctx.jeuFinBoutonsHTML(1, true), '<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant()">[m]'
     + '<span class="jeu-prog-t">Passer au niveau moyen</span><span class="jeu-prog-x">×2<span class="lq-sr"> points par défi</span></span><svg>›</svg></button>'
-    + '<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[classement|Voir mon classement|jeuVersClassement()]</div>');
-  assert.equal(ctx.jeuFinBoutonsHTML(1, false), '<div class="jeu-fin-actions"><button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer</span><svg>›</svg></button>[classement|Voir mon classement|jeuVersClassement()]</div>', 'pas tout résolu : pas de prochaine étape');
-  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Réessayer</span>'), 'rien de résolu : « Réessayer »');
+    + '<button type="button" class="journey-primary jeu-revanche jeu-revanche-solo" onclick="jeuRejouer()"><rv><span>Revanche</span></button>[classement|Voir mon classement|jeuVersClassement()]</div>');
+  assert.equal(ctx.jeuFinBoutonsHTML(1, false), '<div class="jeu-fin-actions"><button type="button" class="journey-primary jeu-revanche jeu-revanche-solo" onclick="jeuRejouer()"><rv><span>Revanche</span></button>[classement|Voir mon classement|jeuVersClassement()]</div>', 'pas tout résolu : pas de prochaine étape');
+  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Revanche</span>'), 'rien de résolu : « Revanche » aussi (13 novembre, 21 h 52)');
   ctx.JEU.niv = 'd'; assert.ok(!ctx.jeuFinBoutonsHTML(2, true).includes('jeu-prog'), 'au plus haut niveau, pas de prochaine étape'); ctx.JEU.niv = 'f';
   ctx.JEU.solo = false;
-  assert.ok(ctx.jeuFinBoutonsHTML(1, true).includes('[quit|Quitter la salle|goBack()]') && !ctx.jeuFinBoutonsHTML(1, true).includes('jeu-prog'), 'dans une salle : la quitter');
-  /* 12 h 36 : pas encore l’hôte (il vient de partir), pas de « Rejouer » qui ne ferait rien */
-  ctx.jeuIsHost = () => false;
-  ctx.jeuRevancheHTML = () => '[revanche]';   // 13 novembre, 16 h 58 : la revanche (retours-1658-revanche)
-  assert.ok(!ctx.jeuFinBoutonsHTML(1, true).includes('jeuRejouer()') && ctx.jeuFinBoutonsHTML(1, true).includes('[revanche]'));
+  /* 13 novembre, 21 h 52 : dans une salle, même seule, hôte ou non, la carte de la revanche (son « Quitter la salle » et
+     « Revanche ») ; plus de « Rejouer », ni de second « Quitter la salle » dessous */
+  ctx.jeuRevancheHTML = () => '[revanche]';
+  for (const hote of [true, false]) {
+    ctx.jeuIsHost = () => hote;
+    assert.equal(ctx.jeuFinBoutonsHTML(1, true), '<div class="jeu-fin-actions">[revanche]</div>', hote ? 'hôte' : 'ami');
+  }
   ctx.jeuIsHost = () => true;
   /* « Rejouer » touché avant que la fin de partie revienne : elle part, la partie suivante la suit */
   assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();J.rejouer=true;jeuFinish();'));

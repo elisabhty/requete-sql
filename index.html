@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=348">
+<link rel="stylesheet" href="ludique.css?v=349">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38623,12 +38623,13 @@ function jeuFinBoutonsHTML(nOk,all){
      récapitulatif et « Rejouer » : les barres du niveau, « Passer au niveau moyen », ce qu’y vaut un défi, la flèche. */
   const prog=J.solo&&all&&nextNiv?`<button type="button" class="jeu-prog is-${nextNiv}" onclick="jeuNiveauSuivant()">${jeuNivBars(nextNiv)}`+
     `<span class="jeu-prog-t">Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</span><span class="jeu-prog-x">×${JEU_NIV_X[nextNiv]||1}<span class="lq-sr"> points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
-  /* 12 h 36 : seul sur l’écran de fin d’une salle entre amis dont l’hôte vient de partir, on n’en est pas encore l’hôte (25 s au plus) :
-     « Rejouer » ne faisait rien. On le dit ; le bouton revient dès qu’on prend la main (jeuSig redessine). */
-  const main=J.solo||jeuIsHost()?`<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>${nOk?'Rejouer':'Réessayer'}</span>${DEF_CHEV_SVG}</button>`
-    :jeuRevancheHTML();   // 13 novembre, 16 h 58 : la revanche, pour qui n’est pas l’hôte
-  return `<div class="jeu-fin-actions">${prog}${main}`+
-    (J.solo?jeuBtn2('classement','Voir mon classement','jeuVersClassement()'):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
+  /* 13 novembre, 21 h 52 (Elisa : « quand on a fait une partie en solo, ça met Rejouer au lieu de Revanche ») : « Revanche » sur
+     chaque écran de fin. Dans une salle, même seule, la carte de la revanche (Quitter la salle, Revanche : seule, elle relance
+     aussitôt ; à plusieurs, on attend que chacun ait répondu) ; avant, l’hôte avait « Rejouer » et « Quitter la salle », et un
+     ami la carte avec un second « Quitter la salle » dessous. En solo, « Revanche » relance tout de suite (jeuRejouer). */
+  if(!J.solo)return `<div class="jeu-fin-actions">${jeuRevancheHTML()}</div>`;
+  return `<div class="jeu-fin-actions">${prog}<button type="button" class="journey-primary jeu-revanche jeu-revanche-solo" onclick="jeuRejouer()">${JEU_RELANCE_SVG}<span>Revanche</span></button>`+
+    jeuBtn2('classement','Voir mon classement','jeuVersClassement()')+'</div>';
 }
 /* La correction (Elisa, 9 novembre, 10 h 37 : « pouvoir voir la correction et le résultat finalement, mais sur l’écran bilan, qui
    ouvre une page en restant sur celle-ci » ; 11 h 31 : « pas directement sur le défi mais sur l’écran de fin ») : sur l’écran de fin
@@ -51548,7 +51549,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-vote-v2970';
+  const SW_CACHE='requete-2026-11-13-revanche-v2971';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
