@@ -64,6 +64,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "<1>Maîtriser SQL jusqu’au niveau avancé</1>, fin estimée le {1} {m1}.": "<1>Master SQL up to an advanced level</1>, estimated finish on {m1} {1}.",
     "<1>Apprendre par curiosité</1>, fin estimée le {1} {m1}.": "<1>Learn out of curiosity</1>, estimated finish on {m1} {1}.",
     /* L’onboarding */
+    "<1>Salut, moi c’est Requête !</1> <2>On explore le monde des données ensemble ?</2>": "<1>Hi, I’m Requête!</1> <2>Shall we explore the world of data together?</2>",
+    "Salut, moi c’est Requête !": "Hi, I’m Requête!",
+    "On explore le monde des données ensemble ?": "Shall we explore the world of data together?",
     "Me reconvertir dans la data": "Move into a data career",
     "{1} leçons": "{1} lessons",
     "{1} {m1}": "{m1} {1}",

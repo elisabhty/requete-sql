@@ -6742,7 +6742,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=329">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=65">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=66">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -48747,11 +48747,16 @@ function paintOb(){
        t’amusant. »
        18 h 36 : des autocollants animés autour du chat (obBonjourStickers). 18 h 54 : la bulle dit « Coucou ! On explore les données
        ensemble ? ». 13 novembre, 1 h 32 (sur sa capture) : « le monde des données » → « Coucou ! On explore le monde des données
-       ensemble ? ». 13 novembre, 3 h 22 (réf. 1) : le sous-titre devient « Des premiers pas aux plus grands défis. » */
+       ensemble ? ». 13 novembre, 3 h 22 (réf. 1) : le sous-titre devient « Des premiers pas aux plus grands défis. »
+       13 novembre, 13 h 06 (Elisa : « il n’y a pas le “Salut, moi c’est Requête…”, 2e bulle : “On explore le monde des données
+       ensemble ?” », puis 13 h 09 : « non, l’une après l’autre ») : le chat se présente d’abord. Une seule bulle, deux phrases
+       l’une après l’autre : « Salut, moi c’est Requête ! », puis, deux secondes plus tard, « On explore le monde des données
+       ensemble ? », qui reste. La bulle a d’emblée la taille de la plus longue : rien ne bouge autour. La suite ne part qu’une
+       fois l’écran de lancement parti (obBjParler). En mouvement réduit, les deux phrases sont là ensemble, l’une sous l’autre. */
     const fixe=typeof mascotReduced==='function'&&mascotReduced(),invite=obInviteHTML();
     html=`<div class="ob-screen ob-bonjour">
       <div class="ob-bj-scene">
-        <p class="ob-bubble ob-bj-bulle">${obTypo('Coucou ! On explore le monde des données ensemble ?')}</p>
+        <p class="ob-bubble ob-bj-bulle ob-bj-suite"><span class="ob-bj-dit ob-bj-dit-1">${obTypo('Salut, moi c’est Requête !')}</span> <span class="ob-bj-dit ob-bj-dit-2">${obTypo('On explore le monde des données ensemble ?')}</span></p>
         <div class="ob-bj-autour">
           <img class="ob-bj-chat" src="assets/chat-coucou${fixe?'-fixe':''}.webp" width="289" height="352" alt="La mascotte Requête te fait coucou" draggable="false">
           ${typeof obBonjourStickers==='function'?obBonjourStickers():''}
@@ -48761,6 +48766,7 @@ function paintOb(){
       <p class="ob-bj-lead">${obTypo('Des premiers pas aux plus grands défis.')}</p>${invite}
     </div>`;
     obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'');
+    setTimeout(obBjParler,0);
   }else if(slide==='questions'){
     /* 12 novembre (réf. 6, HeyRua : « Some quick questions to personalise your learning! ») : le chat annonce les questions, le pouce
        levé, juste avant le prénom. */
@@ -50248,6 +50254,19 @@ function appVersionNote(){
 /* Le réglage « Langue » de Mon compte (langues.js ; Elisa, 13 novembre, 12 h 57 : « peuvent changer la langue avec un réglage que
    tu vas mettre en place »). Il n’existe que s’il y a un choix : une langue en cours de traduction n’est proposée qu’aux iPhone en
    essai. Le nom de chaque langue s’écrit dans sa langue. Changer de langue recharge l’appli ; le choix reste sur l’appareil. */
+/* Le premier écran de l’onboarding (13 novembre, 13 h 09) : la bulle passe de « Salut, moi c’est Requête ! » à « On explore le monde
+   des données ensemble ? ». Le compte à rebours (onboarding-vitrine.css, .is-parle) ne part qu’une fois l’écran de lancement parti :
+   sinon la première phrase serait dite derrière lui, et personne ne la verrait. */
+function obBjParler(){
+  const b=document.querySelector('#onboarding .ob-bj-suite');
+  if(!b||b.classList.contains('is-parle'))return;
+  const parti=()=>{const l=document.getElementById('loader');return !l||l.classList.contains('is-sortie')||l.classList.contains('fade-out')||getComputedStyle(l).display==='none';};
+  let n=0;
+  const t=setInterval(()=>{
+    if(!b.isConnected){clearInterval(t);return;}
+    if(parti()||++n>80){clearInterval(t);b.classList.add('is-parle');}
+  },150);
+}
 function langueLigneHTML(chevron){
   const L=window.REQUETE_LANGUE;
   if(!L||L.disponibles().length<2)return '';
@@ -51060,7 +51079,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-accueil-v2931';
+  const SW_CACHE='requete-2026-11-13-accueil-v2932';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

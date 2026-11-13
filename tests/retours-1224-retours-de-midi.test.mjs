@@ -111,7 +111,7 @@ test('les chats de l’onboarding chargés et décodés d’avance, gardés jusq
 
 test('« bonjour » : ses nouveaux textes ; plus de bandeau noir après la connexion ni à la reprise', () => {
   const b = cut("}else if(slide==='bonjour'){", "}else if(slide==='questions'){");
-  assert.ok(b.includes("${obTypo('Coucou ! On explore le monde des données ensemble ?')}") && b.includes("${obTypo('Des premiers pas aux plus grands défis.')}") && !app.includes('progresse en t’amusant.'), 'le sous-titre du 13 novembre, 3 h 22');
+  assert.ok(b.includes("${obTypo('On explore le monde des données ensemble ?')}") && b.includes("${obTypo('Des premiers pas aux plus grands défis.')}") && !app.includes('progresse en t’amusant.'), 'le sous-titre du 13 novembre, 3 h 22');
   assert.ok(!app.includes('Ton compte est prêt. Quelques questions') && !app.includes("'On reprend là où tu en étais.'"));
 });
 

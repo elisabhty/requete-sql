@@ -25,7 +25,7 @@ test('réf. 5 et 6 : « bonjour » ouvre l’onboarding, « questions » annonce
   assert.ok(app.includes('const OB_PROFILE_SLIDES=[\'name\','), 'les étapes comptées commencent toujours au prénom');
   /* « bonjour » : la bulle, le chat qui fait coucou, le nom en grand, la promesse ; « Commencer » et « J’ai déjà un compte » */
   const bonjour = cut("}else if(slide==='bonjour'){", "}else if(slide==='questions'){");
-  for (const k of ['<p class="ob-bubble ob-bj-bulle">${obTypo(\'Coucou ! On explore le monde des données ensemble ?\')}</p>',   // 12 h 24 (réf. 1) ; 13 novembre, 1 h 32 : « le monde des données » 'src="assets/chat-coucou${fixe?\'-fixe\':\'\'}.webp"',
+  for (const k of ['<span class="ob-bj-dit ob-bj-dit-2">${obTypo(\'On explore le monde des données ensemble ?\')}</span></p>',   // 12 h 24 (réf. 1) ; 13 novembre, 1 h 32 : « le monde des données » 'src="assets/chat-coucou${fixe?\'-fixe\':\'\'}.webp"',
     '<h1 class="ob-bj-nom" id="ob-title">Requête</h1>', "obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'');"])
     assert.ok(bonjour.includes(k), k);
   const questions = cut("}else if(slide==='questions'){", "}else if(slide==='account'){");

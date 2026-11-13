@@ -183,9 +183,9 @@ test('la carte d’attente a son style, son anneau ne tourne pas en mouvement r�
     assert.ok(css.includes(r), r);
   const i = css.indexOf('html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-att-rond{animation:obvSpin .9s linear infinite}');
   assert.ok(i > css.indexOf('@media (prefers-reduced-motion:no-preference){') && i < css.indexOf('@keyframes obvSpin{'), 'dans le média « no-preference »');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=65">') && app.includes('<script src="achat.js?v=6"></script>'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=66">') && app.includes('<script src="achat.js?v=6"></script>'));
   const sw = lire('sw.js');
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=65',") && sw.includes("'./achat.js?v=6',"));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=66',") && sw.includes("'./achat.js?v=6',"));
 });
 
 /* ---------- La connexion mène à l’accueil ---------- */
