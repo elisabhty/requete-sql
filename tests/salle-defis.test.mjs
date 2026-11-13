@@ -372,9 +372,9 @@ test('manches enchaînées sans doublon, podium, points cumulés une seule fois'
   assert.equal(new Set(cids).size, 3, 'trois défis différents : ' + cids);
   host.ev('jeuFinish()'); sec(w, 1.5);
   assert.equal(host.view(), 'final'); assert.equal(guests[0].view(), 'final');
-  assert.match(host.html, /onclick="jeuRejouer\(\)"><span>Revanche/);
+  assert.match(host.html, /onclick="jeuRejouer\(\)"><svg[^]*?<\/svg><span>Revanche/);
   /* 13 novembre, 16 h 58 : l’ami aussi a son bouton, la revanche (il sera prêt à la relance) */
-  assert.match(guests[0].html, /onclick="jeuRevanche\(\)"><span>Revanche/);
+  assert.match(guests[0].html, /onclick="jeuRevanche\(\)"><svg[^]*?<\/svg><span>Revanche/);
   assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)/);
   assert.equal(host.ev('state.salle.parties'), 1);
   const sum = c => c.ev('JEU.rounds.reduce((s,r,i)=>s+((jeuRanking(i).find(x=>x.pid===JEU.me)||{pts:0}).pts),0)');
@@ -409,8 +409,8 @@ test('13 novembre, 16 h 58 : la revanche ; l’ami touche « Rejouer dans cette 
   guests[0].ev('jeuRevanche()'); sec(w, 0.5);
   assert.equal(guests[0].J('revanche'), true);
   assert.match(guests[0].html, /class="journey-primary jeu-revanche on" aria-pressed="true"/);
-  assert.match(guests[0].html, /pour la revanche ✓/);
-  assert.match(guests[0].html, /Tu seras prêt·e dès que Hôte relance la partie\./);
+  assert.match(guests[0].html, /<span>Prêt·e ✓<\/span>/);   // la carte en direct (13 novembre, 21 h 15)
+  assert.match(guests[0].html, /<b>Tu es prêt·e\u00a0!<\/b><small>Tu repars dès que Hôte relance\.<\/small>/);
   guests[1].ev('jeuRevanche()'); guests[1].ev('jeuRevanche()'); sec(w, 0.5);
   assert.equal(guests[1].J('revanche'), false, 'touché de nouveau, il se ravise');
   /* L’hôte relance, depuis le podium (jeuRejouer, comme son bouton) */
@@ -1719,7 +1719,7 @@ test('12 h 36 : l’ami resté seul garde la salle d’attente en hôte ; le pod
     assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)|jeuAgain\(\)/);
     sec(w, 20);
     assert.ok(guests[0].ev('jeuIsHost()'));
-    assert.match(guests[0].html, /jeuRejouer\(\)"><span>Revanche/, 'devenu hôte : « Revanche » (jeuRejouer, 13 novembre)');
+    assert.match(guests[0].html, /jeuRejouer\(\)"><svg[^]*?<\/svg><span>Revanche/, 'devenu hôte : « Revanche » (jeuRejouer, 13 novembre)');
   }
   assert.ok(html.includes("const main=J.solo||jeuIsHost()?"), 'le bilan : « Rejouer » chez l’hôte, sinon la ligne d’attente');
 });

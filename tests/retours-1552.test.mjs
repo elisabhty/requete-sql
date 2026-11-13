@@ -39,7 +39,7 @@ test('réf. 2 et 3 — « En attente d’un joueur », des boutons secondaires e
   assert.ok(!app.includes('📡 Connexion perdue'), 'plus de bandeau à émoji');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   /* 9 novembre, 10 h 37 : la fin d’une partie seule dit « Retour aux défis » (jeuFinBoutonsHTML), plus « Changer de niveau » */
-  assert.ok(cut('function jeuFinBoutonsHTML(', '\n}\n').includes("(J.solo?jeuBtn2('classement','Voir mon classement','jeuVersClassement()'):jeuBtn2('quit','Quitter la salle','goBack()'))") && r.includes("jeuBtn2('quit','Quitter la salle','goBack()')"));
+  assert.ok(cut('function jeuFinBoutonsHTML(', '\n}\n').includes("(J.solo?jeuBtn2('classement','Voir mon classement','jeuVersClassement()'):jeuBtn2('quit','Quitter la salle','goBack()'))") && app.includes('<button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()">${JEU_ICO.quit}<span>Quitter la salle</span></button>'));   // le podium : jeuRevancheHTML (13 novembre, 21 h 15)
   assert.ok(!/class="jeu-close" onclick="[^"]+">[A-Z]/.test(r), 'chaque bouton du bas a son pictogramme');
   const ctx = vm.createContext({});
   vm.runInContext(cut('const JEU_ICO={', '\nfunction jeuRedraw(){'), ctx);

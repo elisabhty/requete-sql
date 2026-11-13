@@ -56,5 +56,5 @@ test('le style : la pastille du drapeau, l’étiquette du niveau de la mascotte
   /* Les couleurs de l’étiquette de la mascotte de l’accueil */
   assert.ok(lq.includes('html.lq .mstk-niv>b{display:block;padding:9px 9px 6px;border-radius:10px;background:#1E1A3B;color:var(--mint);'));
   assert.ok(!lq.includes('acc-pseudo-lock'), 'le cadenas est parti');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=347">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=348">'));
 });
