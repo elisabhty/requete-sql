@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=346">
+<link rel="stylesheet" href="ludique.css?v=347">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38635,19 +38635,30 @@ function jeuCorrHTML(r,c,k){
   const sec=(cls,titre,chip,corps)=>`<section class="jc-sec ${cls}"><div class="jc-h"><b>${titre}</b>${chip||''}</div>${corps}</section>`;
   /* Ce qu’elle renvoie : le nombre de lignes (et « Glisse » quand le tableau déborde) monte sur la ligne du titre. */
   const res=defiAttenduHTML(c),meta=(res.match(/^<div class="result-meta">[\s\S]*?<\/div>/)||[''])[0];
-  const moi=ok&&r.sql?sec('is-moi','Ta requête','<span class="jc-chip is-ok">Acceptée</span>',`<div class="ex-code">${highlight(sqlEnLignes(r.sql))}</div>`)
-    :!ok&&r.essai?sec('is-essai','Ton dernier essai','',`<div class="ex-code">${highlight(sqlEnLignes(r.essai))}</div>`):'';
+  /* 13 novembre, 20 h 45 (Elisa : « Fais un lien Voir ma requête, que quand on a réussi le défi ; et quand on est sur la requête,
+     Voir une solution. Pour éviter deux cadres requête ! ») : un seul cadre. Défi réussi : son lien bascule entre la solution et ta
+     requête acceptée (jeuCorrBascule) ; pas réussi : la solution seule (plus de cadre « Ton dernier essai »). */
+  const mien=ok&&r.sql?`<div class="jc-vue is-moi" hidden><div class="ex-code">${highlight(sqlEnLignes(r.sql))}</div><p class="jc-note">Ta requête, acceptée&nbsp;: elle renvoie le même résultat.</p></div>`:'';
+  const solution=`<section class="jc-sec is-sol" data-vue="sol"><div class="jc-h"><b class="jc-t is-sol">Une solution</b>${mien?'<b class="jc-t is-moi" hidden>Ta requête</b><span class="jc-chip is-ok jc-t is-moi" hidden>Acceptée</span><button type="button" class="jc-bascule" onclick="jeuCorrBascule(this)" aria-pressed="false">Voir ma requête</button>':''}</div>
+    <div class="jc-vue is-sol"><div class="sql-copy-wrap"><div class="ex-code">${highlight(sqlEnLignes(c.sol))}</div>${sqlCopyBtn()}</div><p class="jc-note">D’autres requêtes peuvent donner le même résultat&nbsp;: c’est lui qui compte.</p></div>${mien}</section>`;
   return `<div class="room-head"><span class="room-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><div>
     <p class="room-kicker">${J.nb>1?`Correction · manche ${k+1}`:'La correction'}</p>
     <h2 id="dx-f-t">${esc(c.titre)}</h2>
     <p class="room-sub dx-f-pcs" id="dx-f-p">${dxPcNiv(c.niv)}${etat}</p></div><i class="room-sp s2" aria-hidden="true"></i></div>
     <div class="dx-f-corps" data-k="corr">
-    ${sec('is-sol','Une solution','',`<div class="sql-copy-wrap"><div class="ex-code">${highlight(sqlEnLignes(c.sol))}</div>${sqlCopyBtn()}</div><p class="jc-note">D’autres requêtes peuvent donner le même résultat&nbsp;: c’est lui qui compte.</p>`)}
+    ${solution}
     ${res?sec('is-res','Ce qu’elle renvoie',meta,res.slice(meta.length)):''}
     ${c.indice?sec('is-piste','Le raisonnement','',`<p class="jc-p">${escCode(c.indice)}</p>`):''}
-    ${moi}
     <div class="dx-f-pied"><button type="button" class="room-go" onclick="defisFeuilleFermer()"><span>J’ai compris</span>${DEF_CHEV_SVG}</button></div>
     </div>`;
+}
+/* « Voir ma requête » ⇄ « Voir une solution », dans le même cadre (13 novembre, 20 h 45) */
+function jeuCorrBascule(b){
+  const s=b&&b.closest?b.closest('.jc-sec'):null;if(!s)return;
+  const moi=s.dataset.vue!=='moi';s.dataset.vue=moi?'moi':'sol';
+  s.querySelectorAll('.jc-vue,.jc-t').forEach(e=>{e.hidden=!e.classList.contains(moi?'is-moi':'is-sol');});
+  b.textContent=moi?'Voir une solution':'Voir ma requête';b.setAttribute('aria-pressed',String(moi));
+  if(typeof buzz==='function')buzz('light');
 }
 function jeuCorrection(k){
   const J=JEU,r=J&&J.rounds[k],c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;
@@ -51474,7 +51485,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-carte-v2965';
+  const SW_CACHE='requete-2026-11-13-correction-v2966';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
