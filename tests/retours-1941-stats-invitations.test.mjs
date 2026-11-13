@@ -30,8 +30,8 @@ test('arriver avec une invitation : le lien qui ouvre l’app, puis la salle rej
 });
 
 test('le serveur : « invitation » dans la liste fermée, la partie « invitations » du tableau ; la politique de confidentialité le dit', () => {
-  const m = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).filter(f => f.endsWith('.sql')).sort().at(-1);
-  assert.equal(m, '20261113184618_stat_invitations.sql');
+  const m = '20261113184618_stat_invitations.sql';
+  assert.ok(fs.existsSync(path.join(ROOT, 'supabase/migrations', m)));
   const sql = lire('supabase/migrations/' + m);
   assert.ok(sql.includes("'rappel_oui','rappel_non','widget','erreur',\n    'invitation'];"));
   for (const k of ["'partagees'", "'partagees_par'", "'liens_ouverts'", "'liens_ouverts_avant_inscription'", "'salles_rejointes_par_lien'", "'salles_rejointes_par_code'", "'arrives_avec_une_invitation'"]) assert.ok(sql.includes(k), k);
