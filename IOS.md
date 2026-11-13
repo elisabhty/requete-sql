@@ -635,6 +635,73 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 dans `capacitor.config.json`, et l’appli appelle `Keyboard.setScroll({isDisabled: true})` au lancement : à l’appui sur un champ,
 iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la page (écrans, feuilles, onboarding) défile comme avant.
 
+## Corriger l’appli sans repasser par Apple (13 novembre, 11 h 49)
+
+Elisa : « je voulais savoir comment faire si je veux modifier un cours, ajouter un parcours, modifier une faute, etc. sans passer
+par une mise en prod Apple », puis « oui stp ».
+
+**Le principe.** L’appli envoyée à Apple contient une coque native (Swift, widgets, plugins) et tout le contenu web (`www/` :
+`index.html`, les styles, les scripts, les cours, les voix). `maj.js` permet de remplacer ce contenu web par une version plus
+récente publiée sur requeteapp.com, sans nouvel envoi. Le plugin est `@capgo/capacitor-updater` (open source), en mode manuel :
+aucun compte, aucun service tiers, rien n’est envoyé à Capgo (`capacitor.config.json` : `autoUpdate` à `false`, `updateUrl`,
+`statsUrl` et `channelUrl` vides). L’appli ne parle qu’à requeteapp.com (dit dans la politique de confidentialité).
+
+**Ce qui peut partir ainsi** : un cours corrigé ou ajouté, un parcours, une faute, un texte, un écran, un style, une voix, un
+défi, une correction de bug dans le JavaScript. **Ce qui passe toujours par Apple** : tout le natif (`resources/ios`, les
+widgets, l’île, un plugin ajouté ou mis à jour, `capacitor.config.json`, l’icône, l’écran de lancement), et ce qui se règle
+dans App Store Connect (prix, abonnements, fiche). Apple autorise le téléchargement de code interprété (JavaScript) tant qu’il
+ne change pas l’objet de l’appli telle qu’elle a été présentée, ne crée pas de boutique et ne contourne pas la sécurité du
+système : corriger et enrichir les cours reste dans ce cadre ; une fonction d’une tout autre nature, non.
+
+**Publier** (trois gestes, dans cet ordre) :
+
+1. Modifier, vérifier dans le Simulateur (`npm run ios`), enregistrer dans Git. Le numéro de version est celui de `SW_CACHE`
+   (`v2929`…) : `maj.js`, `index.html` et `sw.js` portent le même.
+2. En essai d’abord : `node scripts/maj-publier.mjs --essai`, puis enregistrer `maj/publication.json` et pousser. Seuls les
+   iPhone « en essai » la reçoivent : dans l’appli, Mon compte, sept touchers rapprochés sur le numéro de version, tout en bas
+   (« Versions d’essai activées » ; sept autres pour en sortir). Ouvrir l’appli, attendre une minute : la ligne dit
+   « Version v2929 · v2930 au prochain lancement ». Fermer l’appli pour de bon (la balayer), la rouvrir : « Version v2930 ».
+3. Pour tout le monde : `node scripts/maj-publier.mjs`, enregistrer, pousser.
+
+`node scripts/maj-publier.mjs --etat` dit ce qui est publié. `--retirer` retire la publication : les iPhone qui l’avaient
+téléchargée reviennent, au lancement suivant, au contenu de leur appli. `--natif-min 1.1` réserve une version aux applis 1.1 et
+plus (elle s’appuie sur du natif ajouté en 1.1) ; les autres gardent leur contenu.
+
+**Ce qui se passe ensuite.**
+
+- La mise en ligne du site (`.github/workflows/deploy-pages.yml`) lance `scripts/maj-paquet.mjs --ci` : il ressort le commit
+  publié, refait son `www/` (les scripts de `npm run build:www`), écrit `maj/version.json` (la version que chaque iPhone doit
+  avoir) et `maj/<version>/manifeste.json` (chaque fichier, son empreinte SHA-256, son adresse), puis vérifie que chaque
+  adresse mène bien à un fichier de cette empreinte. Un fichier encore identique sur le site est pris à son adresse
+  habituelle ; un fichier qui a changé depuis est recopié sous `maj/<version>/www/`. Rien de tout cela n’est gardé dans Git
+  (`.gitignore`), sauf `maj/publication.json`. Pousser le site sans toucher à ce fichier ne change donc rien pour les iPhone.
+  Une erreur dans cette étape arrête la mise en ligne : le site et les iPhone restent tels quels.
+- Sur l’iPhone (`maj.js`) : quelques secondes après le démarrage, puis à chaque retour dans l’appli (au plus toutes les
+  30 minutes), l’appli lit `maj/version.json`. Une version plus récente : le plugin fabrique le nouveau contenu en reprenant
+  dans l’appli chaque fichier inchangé (les 108 Mo de voix ne sont pas retéléchargés) et en ne téléchargeant que le reste.
+  Elle s’installe **au lancement suivant**, sous l’écran de lancement, jamais pendant une leçon. Il faut donc deux lancements
+  pour voir une correction : un pour la télécharger, un pour l’installer.
+- La progression, le compte et les réglages ne bougent pas : ils sont dans le stockage de l’appli, pas dans son contenu.
+
+**Les garde-fous.**
+
+- Une version téléchargée doit confirmer qu’elle démarre (`REQUETE_MAJ.pret`, à la fin de `boot`, seulement si les écrans se
+  sont préparés sans erreur). Sans confirmation dans les 20 secondes (`appReadyTimeout`), le plugin revient de lui-même à la
+  version d’avant et efface la fautive. Deux essais ratés sur un même iPhone, et la version y est écartée sept jours.
+- Les adresses de téléchargement doivent être sous `https://requeteapp.com/`, et chaque fichier est vérifié par son empreinte.
+- Quand l’appli est mise à jour par l’App Store, le plugin efface les versions téléchargées : le contenu embarqué reprend,
+  puis la version publiée est retéléchargée si elle est plus récente que lui.
+- Le manifeste de confidentialité de l’app (`resources/ios/widget/App/PrivacyInfo.xcprivacy`) déclare ce que le plugin
+  utilise : ses réglages (`CA92.1`), la place libre avant un téléchargement (`E174.1`), la date des fichiers qu’il range (`C617.1`).
+
+**Pour comprendre après coup** : Mon compte, tout en bas (« Version v2929 », « · v2930 au prochain lancement », « · versions
+d’essai »). Le dernier événement est gardé sur l’appareil (`requete-maj-etat` : « à jour », « prête », « vérification ratée »,
+« version écartée », « version retirée »…).
+
+**À vérifier sur un vrai iPhone** (le natif ne se compile ni ne tourne chez Claude) : `npm run ios:verif` puis TestFlight après
+l’ajout du plugin ; puis un premier essai complet (étape 2 ci-dessus) avant la sortie publique. Tests :
+`tests/retours-1149-maj-a-distance.test.mjs`.
+
 ## Vérification avant la mise en production (13 novembre, 11 h 07)
 
 Elisa : « ok pas de bug côté code et supabase, tout est ok ? on va bientôt déployer en prod ».
