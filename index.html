@@ -6734,7 +6734,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=327">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=60">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=61">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -45285,11 +45285,19 @@ function obEssai(k){
 /* Les prix de la boutique Apple du pays de la personne (REQUETE_ACHAT.prix, achat.js) quand l’achat est branché :
    44,99 € en France, mais 39,99 $ aux États-Unis. Sinon, les prix d’Elisa en euros (OB_OFFRES). */
 function obPrixBoutique(k){try{const a=window.REQUETE_ACHAT,p=a&&typeof a.prix==='function'&&a.prix(k);return p&&typeof p.prix==='number'&&p.texte?p:null;}catch(e){return null;}}
-function obPrixTexte(k){const b=obPrixBoutique(k);return b?b.texte:obEuros(OB_OFFRES[k].prix);}
-/* Un montant dans la devise de la boutique, écrit à la française (« 0,76 $US », « 0,86 € ») ; '' si la devise est inconnue. */
+/* 13 novembre, 2 h 20 (Elisa, sa capture TestFlight de l’offre de bienvenue : « $19.99, 0,38 $US et 20 $US se mélangent. Utilise
+   les prix localisés fournis par l’App Store ») : le texte tout fait de la boutique (priceString) suit les réglages de l’iPhone
+   (« $19.99 » à l’anglaise sur l’un, « 19,99 $US » sur l’autre), alors que l’app écrit elle-même le prix par semaine et l’économie.
+   Tous les montants s’écrivent maintenant de la même main : le prix et la devise que donne l’App Store pour le pays de la personne,
+   écrits par obDevise (« 19,99 $US », « 0,38 $US », « 20 $US » ; « 22,49 € » en France). Le texte de la boutique ne sert plus que
+   si elle ne dit pas sa devise. */
+function obPrixEcrit(prix,devise,texte){return obDevise(prix,devise)||String(texte||'').replace(/ /g,'\u00a0');}
+function obPrixTexte(k){const b=obPrixBoutique(k);return b?obPrixEcrit(b.prix,b.devise,b.texte):obEuros(OB_OFFRES[k].prix);}
+/* Un montant dans la devise de la boutique, écrit à la française (« 0,76 $US », « 0,86 € ») ; '' si la devise est inconnue.
+   Les décimales sont celles de la devise (deux pour l’euro et le dollar, aucune pour le yen) ; entier : sans décimales. */
 function obDevise(x,devise,entier){
   if(!devise)return '';
-  try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency:devise,minimumFractionDigits:entier?0:2,maximumFractionDigits:entier?0:2}).format(x);}catch(e){return '';}
+  try{return new Intl.NumberFormat('fr-FR',Object.assign({style:'currency',currency:devise},entier?{minimumFractionDigits:0,maximumFractionDigits:0}:{})).format(x);}catch(e){return '';}
 }
 function obOffreInfo(){
   const an=OB_OFFRES.an,se=OB_OFFRES.semaine,ba=obPrixBoutique('an'),bs=obPrixBoutique('semaine');
@@ -45345,11 +45353,14 @@ function obPaywallHTML(){
   /* 12 novembre, 21 h 35 (Elisa : « 3 jours d’essai au lieu de 3 jours gratuits ») : la pastille de l’annuelle, son libellé lu à
      voix haute et la phrase sous le bouton. Le bouton (« Essayer gratuitement 3 jours ») et « 0 € aujourd’hui » disent toujours
      que l’essai ne coûte rien. */
+  /* 13 novembre, 2 h 20 : la pastille de l’essai et « Soit … par semaine » sont rangées ensemble (pw-o-l). Avec un montant long
+     (« Soit 0,76 $US par semaine »), elles se touchaient : elles se resserrent un peu (is-long) pour tenir côte à côte, et si la
+     place manque encore, la seconde passe dessous, à droite, sous le prix. */
   const reperes=[economie?['pieces',`Économise<br><b>${economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],
     essaiAn?['agenda',`<b>${zero}</b><br>aujourd’hui`]:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
   const carteAn=carte('an',`<span class="pw-reco">${PW_ICO.couronne}Meilleur choix</span><span class="pw-badge">−${eco}&nbsp;%</span>
       <span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${an.titre}</span>${prixHtml('an')}
-      ${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours d’essai</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span>
+      <span class="pw-o-l${essaiAn&&parSemaineTexte.replace(/&nbsp;/g,' ').length>7?' is-long':''}">${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours d’essai</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span></span>
       <span class="pw-o-plus">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span>`,
     `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${essaiAn} jours d’essai`:''}, soit ${parSemaineTexte} par semaine`);
   /* 11 novembre, 19 h 20 (Elisa : « remplacer “– Sans essai” par un avantage plus valorisant » ; « Accès immédiat » au lieu d’« Accès
@@ -45424,7 +45435,12 @@ async function obPaywallAcheter(){
    dur : le pourcentage se calcule sur les deux prix de la boutique, et la page n’existe que si Apple dit que ce compte a droit à
    l’offre (REQUETE_ACHAT.sortieDispo). Ni compte à rebours ni « offre limitée » : on dit ce qui est facturé aujourd’hui, ce qui le
    sera ensuite, et qu’il n’y a pas d’essai gratuit ici. « Non merci » ramène aux offres ; l’offre reste ensuite dans la barre du
-   haut (« Offre −50 % »), sans revenir d’elle-même. */
+   haut (« Offre −50 % »), sans revenir d’elle-même.
+   13 novembre, 2 h 20, son texte : « Débloque tout Requête pendant un an. » sous le titre ; dans la carte, « Ton accès annuel »,
+   « 19,99 $US au lieu de 39,99 $US » (barré), « pour la première année, puis 39,99 $US/an. » ; dans les repères, « Résiliable à
+   tout moment » à la place de « Payé aujourd’hui » ; le bouton : « J’en profite à −50 % ». Ce qui est payé aujourd’hui reste dit en
+   gras sous le bouton (la mention qu’Apple demande). Sa carte ne reprend pas « Soit … par semaine » : avec la nouvelle ligne, la
+   pastille passait dessous, toute la page rapetissait (0,95 → 0,89 sur un iPhone 15) et ne tenait plus sur un iPhone SE. */
 const OB_SORTIE_VUE='requete-offre-bienvenue';
 let obPwSortie=false;
 function obSortieVue(){try{return !!localStorage.getItem(OB_SORTIE_VUE);}catch(e){return false;}}
@@ -45432,11 +45448,12 @@ function obSortieInfo(){
   try{
     const a=window.REQUETE_ACHAT;if(!a||typeof a.sortieDispo!=='function'||!a.sortieDispo())return null;
     const p=a.prix('bienvenue'),i=p&&p.intro;
-    if(!p||!i||!p.texte||!i.texte||!(i.prix>0)||!(i.prix<p.prix))return null;
+    if(!p||!i||!(i.prix>0)||!(i.prix<p.prix))return null;
     const pct=Math.round((1-i.prix/p.prix)*100);if(pct<5)return null;
-    const sem=Math.floor(i.prix/OB_OFFRES.an.semaines*100)/100,gain=Math.round((p.prix-i.prix)*100)/100;
-    const ins=t=>String(t).replace(/ /g,'\u00a0');   /* un prix ne se coupe pas entre le nombre et la devise */
-    return {pct,intro:ins(i.texte),plein:ins(p.texte),parSemaine:obDevise(sem,p.devise),economie:obDevise(gain,p.devise,Number.isInteger(gain))};
+    const gain=Math.round((p.prix-i.prix)*100)/100;
+    /* Tous les montants de la même main (obPrixEcrit) : plus de « $19.99 » à côté de « 20 $US ». */
+    const intro=obPrixEcrit(i.prix,p.devise,i.texte),plein=obPrixEcrit(p.prix,p.devise,p.texte);if(!intro||!plein)return null;
+    return {pct,intro,plein,economie:obDevise(gain,p.devise,Number.isInteger(gain))};
   }catch(e){return null;}
 }
 function obSortieProposer(){
@@ -45460,17 +45477,17 @@ function obSortieHTML(){
   const x=obSortieInfo();if(!x)return '';
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
-  const reperes=[x.economie?['pieces',`Économise<br><b>${x.economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],['agenda','Payé<br><b>aujourd’hui</b>']].filter(Boolean);
+  const reperes=[x.economie?['pieces',`Économise<br><b>${x.economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],['renouv','Résiliable à<br><b>tout moment</b>']].filter(Boolean);
   return `<div class="ob-screen ob-paywall is-sortie"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}</div>
     <div class="pw-hero"><img class="pw-chat" src="assets/chat-presente${fixe?'-fixe':''}.webp" width="315" height="362" alt="" draggable="false">
       <span class="pw-tag">Offre de bienvenue&nbsp;🎁</span>
       <h1 class="ob-title" id="ob-title"><em>−${x.pct}&nbsp;%</em> sur ta première année</h1>
-      <p class="pw-but">Tout Requête pendant un an&nbsp;: <b>${x.intro}</b> au lieu de ${x.plein}.</p></div>
-    <div class="pw-sortie" role="group" aria-label="${escAttr(`Annuel, la première année : ${x.intro} au lieu de ${x.plein}, payé aujourd’hui, puis ${x.plein} par an`)}">
+      <p class="pw-but">Débloque tout Requête pendant un&nbsp;an.</p></div>
+    <div class="pw-sortie" role="group" aria-label="${escAttr(`Ton accès annuel : ${x.intro} au lieu de ${x.plein} pour la première année, puis ${x.plein} par an. Résiliable à tout moment.`)}">
       <span class="pw-badge" aria-hidden="true">−${x.pct}&nbsp;%</span>
-      <span class="pw-s-t" aria-hidden="true">Annuel, la première année</span>
-      <span class="pw-s-p" aria-hidden="true"><b>${x.intro}</b><s>${x.plein}</s></span>
-      <span class="pw-s-l" aria-hidden="true"><span class="pw-s-puis">puis ${x.plein} par an</span>${x.parSemaine?`<span class="pw-o-s">Soit <b>${x.parSemaine}</b> par semaine</span>`:''}</span>
+      <span class="pw-s-t" aria-hidden="true">Ton accès annuel</span>
+      <span class="pw-s-p" aria-hidden="true"><b>${x.intro}</b><span class="pw-s-au">au lieu de <s>${x.plein}</s></span></span>
+      <span class="pw-s-l" aria-hidden="true"><span class="pw-s-puis">pour la première année, puis ${x.plein}/an.</span></span>
       <span class="pw-o-plus" aria-hidden="true">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span></div>
     <ul class="pw-plus">
       <li>${PW_ICO.video}<span><b>${nLecons}&nbsp;leçons vidéo</b>et leurs exercices</span></li>
@@ -45484,7 +45501,7 @@ function obSortiePied(){
   const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
   const legal=confiance+`<b class="pw-sans">${x.intro} aujourd’hui pour la première année, puis ${x.plein} par an.</b> Pas d’essai gratuit sur cette offre. Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
     +`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
-  obSetFooter(`Profiter de −${x.pct}\u00a0%`,obSortieAcheter,obPwBusy?'':'Non merci',obSortieRefuser,{html:legal},obPwBusy);
+  obSetFooter(`J’en profite à −${x.pct}\u00a0%`,obSortieAcheter,obPwBusy?'':'Non merci',obSortieRefuser,{html:legal},obPwBusy);
 }
 function obSortieRefuser(){if(obPwBusy)return;if(typeof buzz==='function')buzz('light');obPaywallVue(false);}
 async function obSortieAcheter(){
@@ -50491,7 +50508,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-site-v2921';
+  const SW_CACHE='requete-2026-11-13-prix-v2922';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

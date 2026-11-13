@@ -81,9 +81,11 @@ test('le pied : le bouton dit ce qu’il fait, trois réassurances, la date et l
 test('les prix de la boutique : l’économie dans la devise du pays, et rien quand la devise manque', () => {
   const usd = monter({ achat: { acheter: async () => true, prix: k => k === 'an' ? { prix: 39.99, texte: '39,99 $', parSemaine: '0,76 $', devise: 'USD' } : { prix: 4.99, texte: '4,99 $', parSemaine: '4,99 $', devise: 'USD' } } });
   const h = nb(usd.ctx.obPaywallHTML());
-  assert.ok(h.includes('<b>39,99 $</b> / an') && /Économise<br><b>219 \$/.test(h), h.match(/Économise[^/]*/)?.[0]);
+  /* 13 novembre, 2 h 20 : le prix facturé s’écrit de la même main que l’économie (la devise de la boutique), plus avec son texte tout fait */
+  assert.ok(h.includes('<b>39,99 $US</b> / an') && /Économise<br><b>219 \$US/.test(h), h.match(/Économise[^/]*/)?.[0]);
   const sans = monter({ achat: { acheter: async () => true, prix: k => k === 'an' ? { prix: 39.99, texte: '39,99 $', parSemaine: '0,76 $' } : { prix: 4.99, texte: '4,99 $', parSemaine: '4,99 $' } } });
   assert.ok(!sans.ctx.obPaywallHTML().includes('Économise'), 'sans devise connue, pas de montant inventé');
+  assert.ok(nb(sans.ctx.obPaywallHTML()).includes('<b>39,99 $</b> / an'), 'sans devise connue, le texte de la boutique reste le seul prix affiché');
 });
 
 test('tant que l’achat n’est pas branché : « Continuer » discret et le bouton entrent dans l’app ; branché, seul le paiement passe', async () => {

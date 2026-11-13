@@ -510,6 +510,13 @@ iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la p
 
 ## Points App Store
 
+- **Les prix affichés** (13 novembre, 2 h 20 ; Elisa, sa capture TestFlight : « $19.99, 0,38 $US et 20 $US se mélangent ») : le
+  texte tout fait de la boutique (`priceString`) suit les réglages de l’iPhone (« $19.99 » sur l’un, « 19,99 $US » sur
+  l’autre). Tous les montants du paywall et de l’offre de bienvenue s’écrivent donc de la même main : le prix et la devise
+  que donne l’App Store pour le pays de la personne (`price`, `currencyCode`), écrits par `obDevise` (index.html). Le
+  11 novembre déjà, en TestFlight, la boutique renvoyait des dollars alors que la feuille de paiement d’Apple affichait
+  44,99 € : le paywall montre la devise que la boutique lui donne.
+
 - **Confidentialité (App Store Connect)** : l’app ne collecte rien sans compte.
   Seule la *Salle de défi* en mode « Entre amis » envoie un pseudo, des temps, un signe de vie et des réactions,
   via la base Supabase de l’appli (projet « requete-sql », à Paris ; effacés au bout de 24 h).
