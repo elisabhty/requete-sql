@@ -211,7 +211,7 @@ test('les styles : la galerie dans ludique.css (avant la section des défis, san
 });
 
 test('la nouvelle version arrive sur les iPhone, et IOS.md raconte les exemples', () => {
-  tous(app, ['<link rel="stylesheet" href="ludique.css?v=352">', '<link rel="stylesheet" href="onboarding-vitrine.css?v=68">']);
+  tous(app, ['<link rel="stylesheet" href="ludique.css?v=353">', '<link rel="stylesheet" href="onboarding-vitrine.css?v=68">']);
   assert.match(app, /const SW_CACHE='requete-2026-11-13-[a-z]+-v29\d\d';/);
   const s = entre(ios, '### Les exemples de widgets (13 novembre, 9 h 19)', '\n### ');
   tous(s, ['wgxHTML', 'widget-cheminee.webp', 'widgetVerrou', 'Comment l’ajouter', 'Ce qui n’a pas été fait']);
