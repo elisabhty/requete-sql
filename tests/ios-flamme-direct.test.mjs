@@ -137,7 +137,7 @@ test('le pont : programmer (iOS 26 à l’heure dite, sinon tout de suite), allu
 /* La page, dans un bac à sable : l’heure figée, un planning sans séance le jeudi ni le dimanche */
 const ANNEE = 2026, MOIS = 10;   // novembre
 const heure = (j, h, m = 0) => new Date(ANNEE, MOIS, j, h, m).getTime();
-const page = ({ maintenant = heure(7, 12), actifs = [], rappel = '19:00', rappelOn = true, on = true, prochaine = 4, natif = true, auto = true, ok = true, stockage = {}, onboarded = true, ileEtat = null, rejet = false } = {}) => {
+const page = ({ maintenant = heure(7, 12), actifs = [], rappel = '19:00', rappelOn = true, on = true, prochaine = 20, natif = true, auto = true, ok = true, stockage = {}, onboarded = true, ileEtat = null, rejet = false } = {}) => {
   const appels = [], minuteurs = [], vu = [], magasin = { ...stockage };
   if (on) magasin['requete-flamme-direct'] = '1';
   const C = {
@@ -163,8 +163,8 @@ const page = ({ maintenant = heure(7, 12), actifs = [], rappel = '19:00', rappel
     jourRepos: (j, start) => !!start && j >= start && [0, 4].includes(new Date(j + 'T12:00').getDay()),
     jourActif: j => actifs.includes(j),
     rappelHeure: () => rappel, rappelOn: () => rappelOn, rappelMessage: d => ['🐛 Erreur 404', 'Motivation introuvable. On relance ? ' + d.getHours()],
-    recommendedSession: () => (prochaine == null ? null : { id: prochaine }), minutesDe: ids => (ids[0] === 4 ? 3 : 6),
-    isDefiId: id => typeof id === 'string', CHALLENGES: [{ id: 'af4', titre: 'Le meilleur client' }], allLessons: [{ id: 4, titre: 'LEFT JOIN' }],
+    recommendedSession: () => (prochaine == null ? null : { id: prochaine }), minutesDe: ids => (ids[0] === 20 ? 3 : 6),
+    isDefiId: id => typeof id === 'string', CHALLENGES: [{ id: 'af4', titre: 'Le meilleur client' }], allLessons: [{ id: 20, titre: 'LEFT JOIN' }], lessonNumAffiche: id => ({ 20: 4 })[id] ?? id,   // 13 novembre, 23 h 09 : le numéro du parcours, pas l’identifiant
     rappelAuto: ms => vu.push(['rappelAuto', ms]), renderCompte: () => vu.push(['renderCompte']), toast: (a, b, c) => vu.push(['toast', a, b, c || '']),
     setTimeout: (f, ms) => { minuteurs.push({ f, ms }); return minuteurs.length; }, clearTimeout: () => {},
   });

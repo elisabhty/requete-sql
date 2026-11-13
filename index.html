@@ -27798,6 +27798,18 @@ function lessonPos(id){
   if(!LESSON_POS.size)MODULES.forEach((m,mi)=>m.lessons.forEach((l,li)=>LESSON_POS.set(l.id,{mi,li:li+1,n:m.lessons.length})));
   return LESSON_POS.get(id);
 }
+/* 13 novembre, 23 h 09 (Elisa : « dans Notes, là où la note a été prise, ça marque Leçon … : c’est pas le bon titre ») : le contexte
+   d’une note gardait le numéro interne de la leçon (« Leçon 13 · DISTINCT ») alors que le parcours la montre 3e de son module. Le
+   numéro affiché est celui du parcours, partout ; le contexte enregistré ne change pas (il sert à reconnaître une note déjà prise),
+   il se lit au moment de l’afficher (noteCtxLisible), les notes déjà prises comprises. */
+function lessonNumAffiche(id){const p=lessonPos(id);return p?p.li:id;}
+function noteCtxLisible(ctx){
+  return String(ctx||'').replace(/^(Révision · leçon|Leçon) (\d+)(?= · |$)/,(m,k,id)=>{
+    const l=typeof allLessons!=='undefined'?allLessons.find(x=>String(x.id)===id):null;if(!l)return m;
+    const n=lessonNumAffiche(l.id);
+    return k==='Leçon'?`Leçon ${n}`:`Révision · Leçon ${n} · ${l.titre}`;
+  });
+}
 let lqAutoOpenModule=null,catalogToolsOpen=false,lqPathCurrent,lqDoneSnapshot=null,lqFermeSnapshot=null;
 /* Leçon « Tu es ici » du chemin : la même que la carte « Reprendre » de
    l’accueil (séance recommandée), sinon la première leçon pas terminée. */
@@ -39301,7 +39313,7 @@ function openReview(id){
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Révision';
   document.getElementById('lesson-body').innerHTML=`
-    <div class="l-kicker">Révision · leçon ${l.id}</div><h1>${l.titre}</h1>
+    <div class="l-kicker">Révision · leçon ${lessonNumAffiche(l.id)}</div><h1>${l.titre}</h1>
     <div class="consigne"><span class="tag">De mémoire</span><p>${l.consigne}</p></div>
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Le cours est masqué volontairement. ${(()=>{const r=reviewQueue.filter(x=>x!==id).length;return r?`Encore ${r} leçon${r>1?'s':''} à revoir après celle-ci.`:'C’est la dernière leçon à revoir.';})()}</p>
     ${editorBlock(false,'revision.sql')}`;
@@ -44232,7 +44244,7 @@ function revealEntretien(id){
 function noteCardHtml(n,i){
   const label=String(n.txt||'').replace(/```[a-z]*/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
   return `<div class="ncard ${n.pin?'pin':''}${n.id===noteFreshId?' is-fresh':''}" data-id="${n.id}" style="--i:${Math.min(i||0,8)}" role="button" tabindex="0" aria-label="Ouvrir la note ${escAttr(label||'sans titre')}" onclick="openNote('${n.id}')" onkeydown="if(event.target!==this)return;if(event.key==='Enter'||event.key===' '){event.preventDefault();openNote('${n.id}')}">
-        ${n.ctx?`<div class="nctx">${esc(n.ctx)}</div>`:''}
+        ${n.ctx?`<div class="nctx">${esc(noteCtxLisible(n.ctx))}</div>`:''}
         ${n.txt?`<div class="ntxt">${noteBlocksHtml(n.txt)}</div>`:''}
         ${n.sql?`<div class="nsql">${highlight(n.sql)}</div>`:''}
         <div class="nfoot"><span class="ndate">${fmtDate(n.ts)}</span>
@@ -44316,7 +44328,7 @@ function renderNotesSurface(wrap,prefix,opts){
   const all=sortedNotes();
   const nTok=SQ.fold(searchQ).split(' ').filter(Boolean);
   const plain=n=>String(n.txt||'').replace(/```[a-z]*/g,' ');
-  const matched=nTok.length?all.filter(n=>SQ.matches(nTok,n.ctx,plain(n),n.sql)):all;
+  const matched=nTok.length?all.filter(n=>SQ.matches(nTok,noteCtxLisible(n.ctx),plain(n),n.sql)):all;
   const fCount={all:matched.length,pin:matched.filter(n=>n.pin).length,sql:matched.filter(n=>n.sql&&n.sql.trim()).length};
   if(notesFilter!=='all'&&!fCount[notesFilter])notesFilter='all';
   const list=notesFilter==='pin'?matched.filter(n=>n.pin):notesFilter==='sql'?matched.filter(n=>n.sql&&n.sql.trim()):matched;
@@ -44469,7 +44481,7 @@ function openNote(id,pre){
   document.getElementById('note-body').innerHTML=`
     <button class="note-back-list" type="button" onclick="backToNotesList()">‹ Mes notes</button>
     <div class="ne-ctx">
-      ${e.ctx?`<span class="cchip">${esc(e.ctx)}</span>`:''}
+      ${e.ctx?`<span class="cchip">${esc(noteCtxLisible(e.ctx))}</span>`:''}
       <span style="font-size:12px;color:var(--ink-3)">${n?fmtDate(e.ts):'Maintenant'}</span>
     </div>
     <textarea class="ne-ta" id="ne-ta" aria-label="Ta note" placeholder="Écris ce que tu veux retenir…"></textarea>
@@ -46931,7 +46943,7 @@ function flammeDirectQuoi(){
     const n=Math.max(1,minutesDe([id],true)||1);
     if(isDefiId(id)){const c=CHALLENGES.find(x=>x.id===id);return {titre:c?`Défi · ${c.titre}`:'Défi',action:`Défi express · ${n} min`};}
     const l=allLessons.find(x=>x.id===id);
-    return {titre:l?`Leçon ${l.id} · ${l.titre}`:'',action:`Leçon express · ${n} min`};
+    return {titre:l?`Leçon ${lessonNumAffiche(l.id)} · ${l.titre}`:'',action:`Leçon express · ${n} min`};   // le numéro du parcours (23 h 09)
   }catch(e){return {titre:'',action:'Allumer ma flamme'};}
 }
 function flammeDirectListe(k,type){try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v.filter(x=>typeof x===type):[];}catch(e){return [];}}
@@ -51589,7 +51601,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-surligne-v2978';
+  const SW_CACHE='requete-2026-11-13-notes-v2979';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
