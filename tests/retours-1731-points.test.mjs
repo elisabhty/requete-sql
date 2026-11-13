@@ -39,8 +39,12 @@ test('la page des points, pour chaque issue entre amis', () => {
   const n = page({ pts: 0, total: 0, solo: false, issue: 'nul' });
   assert.ok(n.includes('>Match nul !</h2>') && n.includes('Ce défi a résisté à tout le monde. Une revanche pour vous départager ?') && n.includes('<img data-k="duel">') && n.includes('<span>Le bilan s’affiche dans'));
   const s = page({ pts: 120, total: 300, solo: true });
-  assert.ok(s.includes('Partie solo terminée') && s.includes('>Bravo !</h2>') && s.includes('Voir le bilan') && !s.includes('mu-rejouer'), 'seul : comme avant');
-  assert.equal(page({ pts: 0, total: 0, solo: true }), '', 'seul, sans point : pas de page');
+  /* 18 h 48 (« même un défi solo raté, le bilan s’affiche, comme les autres ; sois cohérent ») */
+  assert.ok(s.includes('Partie solo terminée') && s.includes('>Bravo !</h2>') && s.includes('<span>Le bilan s’affiche dans <b class="mu-auto-n">6</b> s</span>') && !s.includes('mu-go') && !s.includes('mu-rejouer'), 'seul, avec des points : le compte à rebours du bilan');
+  const r = page({ pts: 0, total: 300, solo: true, issue: 'rate', nb: 1 });
+  assert.ok(r.includes('mu-pts is-zero is-encourage is-rate') && r.includes('>Tu vas y arriver !</h2>') && r.includes('Ce défi t’a résisté cette fois, mais chaque essai t’entraîne.') && r.includes('<img data-k="effort">') && r.includes('<span class="mu-tag">Courage !</span>') && r.includes('<span>Le bilan s’affiche dans') && r.includes('Partie solo terminée') && !r.includes('mu-album'), 'seul, sans point : sa page, puis le bilan');
+  assert.ok(page({ pts: 0, total: 0, solo: true, issue: 'rate', nb: 2 }).includes('Ces défis t’ont résisté cette fois'));
+  assert.equal(page({ pts: 0, total: 0, solo: true }), '', 'sans issue ni point : pas de page');
 });
 
 test('avant le podium : la page s’ouvre à l’arrivée sur l’écran de fin, quelle que soit l’issue ; les confettis pour la victoire', () => {
@@ -52,7 +56,7 @@ test('avant le podium : la page s’ouvre à l’arrivée sur l’écran de fin,
 });
 
 test('la carte de la dernière manche : « Tes points arrivent dans 5 s » et sa barre, trouvée ou pas', () => {
-  assert.ok(app.includes("${last?(sl?'Ton bilan arrive':'Tes points arrivent'):'La manche suivante démarre'} dans <b id=\"jeu-auto-n\">"));
+  assert.ok(app.includes("${last?'Tes points arrivent':'La manche suivante démarre'} dans <b id=\"jeu-auto-n\">"));
   assert.ok(app.includes("const suite=sl||(last&&jeuRoundDone(n))?jeuSuiteHTML(n)"));
   assert.ok(app.includes("const rate=!mine&&jeuRoundDone(n)&&(sl||n>=J.nb-1);edOn=!mine&&!rate;"), 'pas trouvée : « Temps écoulé », puis la barre');
   assert.ok(fn('jeuPatch').includes("if(r&&n>=J.nb-1&&jeuRoundDone(n)&&!document.getElementById('jeu-auto')){J.keep=v;J.view='';jeuPaint();return;}"));

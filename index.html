@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=343">
+<link rel="stylesheet" href="ludique.css?v=344">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38133,7 +38133,7 @@ function jeuRender(){
     }
     /* La suite part toute seule (17 h 31) : le compte à rebours et sa barre */
     const auto=jeuFinAuto(n),reste=auto?Math.max(0,auto-Date.now()):0;
-    const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto" style="--reste:${reste}ms;--depart:${Math.max(0,Math.min(100,100-reste/JEU_AUTO_MS*100)).toFixed(1)}%">${auto&&Date.now()<auto?`<span>${last?(sl?'Ton bilan arrive':'Tes points arrivent'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b> s</span><i class="jr2-barre" aria-hidden="true"></i>`:jeuAutoAttente(n)}</p>`;
+    const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto" style="--reste:${reste}ms;--depart:${Math.max(0,Math.min(100,100-reste/JEU_AUTO_MS*100)).toFixed(1)}%">${auto&&Date.now()<auto?`<span>${last?'Tes points arrivent':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b> s</span><i class="jr2-barre" aria-hidden="true"></i>`:jeuAutoAttente(n)}</p>`;
     html=`${jeuNetSlot()}${hero}${classement}${autoHTML}`;
     /* Une fois par manche : les points montent, et la première place a ses confettis */
     if(!r.resVu){r.resVu=1;
@@ -38161,7 +38161,10 @@ function jeuRender(){
     if(J.seulFin==null)J.seulFin=J.solo||sc.every(x=>x.pid===J.me);
     const seul=J.seulFin;
     jeuTitreNav(seul);
-    if(seul&&cg&&cg.pts>0)ptsPage({pts:cg.pts,total:cg.total,solo:!!J.solo},700);
+    /* 18 h 48 (Elisa : « même un défi solo raté, mets le message “le bilan s’affiche”, comme les autres ; sois cohérent ») : seul
+       aussi, la page des points vient à chaque fois, même sans point (« Tu vas y arriver ! », le chat qui lève le poing), puis se
+       referme toute seule sur le bilan. */
+    if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,total:cg.total,solo:!!J.solo}:{pts:0,total:cg.total,solo:!!J.solo,issue:'rate',nb:jouees},700);
     if(seul){
       const rows=J.rounds.map((r,i)=>r?{r,c:CHALLENGES.find(x=>x.id===r.cid),ms:r.found[J.me]}:null).filter(Boolean);
       const got=rows.filter(x=>x.ms!=null),pts=(sc[0]||{}).pts||0;
@@ -38338,7 +38341,7 @@ function jeuAtterrir(root,avantH){
    « Manche suivante ». Les 5 s partent du moment où ce téléphone voit la manche finie : de retour d’une autre appli ou après un
    rechargement, encore 5 s pour voir le résultat, puis la suite ; rien ne reste bloqué (« ça s’est bloqué à 1 s »). */
 const JEU_AUTO_MS=5000,JEU_AUTO_SOLO_MS=10000;   // seul : 10 s pour lire sa requête et son résultat (Elisa, 9 novembre, 19 h 40)
-function jeuAutoAttente(n){const J=JEU,last=!!J&&n>=J.nb-1,sl=!!J&&jeuSoloLike(n);return `<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>${last?(sl?'Ton bilan arrive…':'Tes points arrivent…'):'La manche suivante arrive…'}</span>`;}
+function jeuAutoAttente(n){const J=JEU,last=!!J&&n>=J.nb-1;return `<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>${last?'Tes points arrivent…':'La manche suivante arrive…'}</span>`;}
 function jeuFinAuto(n){
   const J=JEU,r=J&&n>=0?J.rounds[n]:null;
   if(!r||J.over||Date.now()<r.t1||!jeuRoundDone(n))return 0;
@@ -38554,10 +38557,11 @@ function jeuFoundHTML(r,pid){
     </section>`;
 }
 /* Seul : ce qui vient sous la carte de la manche finie, et une barre qui se remplit jusqu’à elle (8 h 50), de là où elle en est si la
-   carte se redessine : « La manche suivante démarre dans 5 s », ou « Ton bilan arrive dans 5 s » à la dernière. */
+   carte se redessine : « La manche suivante démarre dans 5 s », ou « Ton bilan arrive dans 5 s » à la dernière. 13 novembre, 18 h 48 :
+   « Tes points arrivent », seul aussi : la page des points passe avant le bilan, comme entre amis avant le podium. */
 function jeuSuiteHTML(n){
   const J=JEU,last=n>=J.nb-1,sl=jeuSoloLike(n),auto=jeuFinAuto(n),reste=auto?Math.max(0,auto-Date.now()):0;
-  return `<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?(sl?'Ton bilan arrive':'Tes points arrivent'):'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>${reste?`<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:${Math.min(1,Math.max(0,1-reste/(sl?JEU_AUTO_SOLO_MS:JEU_AUTO_MS))).toFixed(3)}"></i>`:''}</div>`;
+  return `<div class="coach-ok-suite"><p class="jeu-auto" id="jeu-auto">${reste?`<span>${last?'Tes points arrivent':'La manche suivante démarre'} dans <b id="jeu-auto-n">${Math.max(1,Math.ceil(reste/1000))}</b>\u00a0s</span>`:jeuAutoAttente(n)}</p>${reste?`<i class="coach-ok-barre" aria-hidden="true" style="--d:${reste}ms;--p0:${Math.min(1,Math.max(0,1-reste/(sl?JEU_AUTO_SOLO_MS:JEU_AUTO_MS))).toFixed(3)}"></i>`:''}</div>`;
 }
 /* 9 novembre, 10 h 01 (Elisa : « pas de répétition de page, il faut vraiment l’essentiel ») : seul, le chrono à 0, la manche reste à
    l’écran comme une manche trouvée : la carte de l’indice dit « Temps écoulé », dans la pêche des défis à rattraper, puis la suite
@@ -38731,16 +38735,17 @@ function jeuPtsPage(o){
      total de ta partie ; en bas, « La manche 2 démarre dans 5 s » et sa barre, sans bouton ; elle se referme toute seule quand la
      manche suivante part (jeuRender), ou d’un toucher sur la croix (le classement dessous). */
   const M=o.manche&&typeof o.manche==='object'?o.manche:null;
-  const suite=M?'Voir le classement':issue&&issue!=='nul'?'Voir le podium':'Voir le bilan';   // le 0 à 0 n’a pas de podium (la liste des joueurs)
+  const suite=M?'Voir le classement':issue==='victoire'||issue==='defaite'?'Voir le podium':'Voir le bilan';   // le 0 à 0 n’a pas de podium (la liste des joueurs), seul non plus
   const kick=M?`Manche ${M.n+1}/${M.nb} terminée`:issue==='victoire'?'Victoire\u00a0!':o.solo?'Partie solo terminée':'Partie terminée';
   /* 18 h 35 (Elisa : « pourquoi tu ne fais pas des pages comme “Manche gagnée”, “Bien joué” pour le 0-0, et quand on a perdu ? Il faut
      justement encourager. Revanche ») : sans point, plus de pièce grise ni de rayons éteints. Le chat prend la place de la pièce : il
      lève le poing (« Encore un effort », la défaite) ou sort sa pancarte « VS » (le duel, le match nul), sous l’étiquette « Revanche ! »
      (« La suite ! » entre les manches) ; les titres encouragent : « La revanche t’attend ! », « Tu vas te rattraper ! », « Match nul ! ». */
   const enc=zero&&!!issue,chatEnc=enc&&typeof chatBonusHtml==='function'?chatBonusHtml(issue==='nul'?'duel':'effort'):'';
-  const h=issue==='victoire'?(M?'Manche gagnée\u00a0!':'Tu as gagné\u00a0!'):issue==='nul'?'Match nul\u00a0!':issue==='defaite'?(zero?(M?'Tu vas te rattraper\u00a0!':'La revanche t’attend\u00a0!'):'Bien joué\u00a0!'):'Bravo\u00a0!';
+  const h=issue==='victoire'?(M?'Manche gagnée\u00a0!':'Tu as gagné\u00a0!'):issue==='nul'?'Match nul\u00a0!':issue==='rate'?'Tu vas y arriver\u00a0!':issue==='defaite'?(zero?(M?'Tu vas te rattraper\u00a0!':'La revanche t’attend\u00a0!'):'Bien joué\u00a0!'):'Bravo\u00a0!';
   const totalTx=!total?'':M?` Ta partie\u00a0: <b>${fmt(total)}</b> point${total>1?'s':''}.`:` Tes points de salle passent à <b>${fmt(total)}</b>.`;
-  const p=issue==='nul'?(M?'Personne n’a trouvé cette manche\u00a0: tout se joue à la suivante\u00a0!':'Ce défi a résisté à tout le monde. Une revanche pour vous départager\u00a0?')
+  const p=issue==='rate'?`${o.nb>1?'Ces défis t’ont':'Ce défi t’a'} résisté cette fois, mais chaque essai t’entraîne.`
+    :issue==='nul'?(M?'Personne n’a trouvé cette manche\u00a0: tout se joue à la suivante\u00a0!':'Ce défi a résisté à tout le monde. Une revanche pour vous départager\u00a0?')
     :issue==='defaite'&&zero?(M?`${qui||'L’autre joueur'} a trouvé cette manche. La suivante peut être la tienne\u00a0!`:`${qui||'L’autre joueur'} a trouvé cette fois. Chaque défi t’entraîne\u00a0: à toi la prochaine\u00a0!`)
     :issue==='defaite'?`${qui||'L’autre joueur'} ${M?'remporte la manche':'l’emporte'}, mais tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`
     :`Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`;
@@ -38749,7 +38754,8 @@ function jeuPtsPage(o){
      bouton ; « Le podium s’affiche dans 6 s » et sa barre, puis elle se referme toute seule sur le podium (la correction et
      « Revanche » y sont). La croix y mène tout de suite. La médaille de ta place (1re, 2e, 3e) se pose sur la pièce, à la fin d’une
      partie comme entre les manches. */
-  const FIN_MS=6000,auto=!M&&!!issue?{fin:Date.now()+FIN_MS,t:issue==='nul'?'Le bilan s’affiche':'Le podium s’affiche'}:null;
+  /* 18 h 48 : seul aussi (« le bilan s’affiche », comme les autres) ; plus aucune page de fin n’a de bouton. */
+  const FIN_MS=6000,auto=!M?{fin:Date.now()+FIN_MS,t:issue==='victoire'||issue==='defaite'?'Le podium s’affiche':'Le bilan s’affiche'}:null;
   const A=M?{fin:M.fin,t:`La manche ${M.n+2} démarre`,tot:JEU_AUTO_MS}:auto?{fin:auto.fin,t:auto.t,tot:FIN_MS}:null;
   const resteM=A&&A.fin?Math.max(0,A.fin-Date.now()):0;
   const place=Math.floor(+o.place||0),med=!zero&&place>=1&&place<=3&&typeof lqStkSvg==='function'?`<span class="mu-med is-${place}">${lqStkSvg('medal'+place)}</span>`:'';
@@ -38763,15 +38769,11 @@ function jeuPtsPage(o){
       <div class="mu-stage" aria-hidden="true">
         <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
         ${chatEnc?`<div class="mu-st mu-done mu-chat">${chatEnc}</div>`:`<div class="mu-st mu-done mu-coin">${JEU_COIN_SVG}${med}</div>`}
-        <span class="mu-tag">${enc?(M?'La suite\u00a0!':'Revanche\u00a0!'):zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>
+        <span class="mu-tag">${enc?(issue==='rate'?'Courage\u00a0!':M?'La suite\u00a0!':'Revanche\u00a0!'):zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>
       </div>
       <h2 class="mu-h" id="mu-h" tabindex="-1">${h}</h2>
       <p class="mu-p" id="mu-p">${p}</p>
-      ${A?`<div class="mu-acts mu-auto"><p class="mu-auto-t" aria-live="off"><span>${A.t} dans <b class="mu-auto-n">${Math.max(1,Math.ceil(resteM/1000))}</b>\u00a0s</span></p><i class="mu-auto-barre" aria-hidden="true" style="--d:${resteM}ms;--p0:${Math.min(1,Math.max(0,1-resteM/A.tot)).toFixed(3)}"></i></div>`
-      :`<div class="mu-acts">
-        <button type="button" class="mu-go"><span class="mu-go-ico">${MU_PLAY}</span><span class="mu-go-l">${suite}</span></button>
-        ${o.solo?'':'<button type="button" class="mu-later mu-rejouer">Revanche</button>'}
-      </div>`}
+      <div class="mu-acts mu-auto"><p class="mu-auto-t" aria-live="off"><span>${A.t} dans <b class="mu-auto-n">${Math.max(1,Math.ceil(resteM/1000))}</b>\u00a0s</span></p><i class="mu-auto-barre" aria-hidden="true" style="--d:${resteM}ms;--p0:${Math.min(1,Math.max(0,1-resteM/A.tot)).toFixed(3)}"></i></div>
     </div>
   </div>`;
   const el=box.firstElementChild;
@@ -38779,15 +38781,11 @@ function jeuPtsPage(o){
   document.body.classList.add('mu-on');
   MU={el,pts:o.pts,stage:'c',snd:false,timers:[],manche:M?M.n:null};
   const fermer=()=>moduleUpClose();
-  const go=el.querySelector('.mu-go');if(go)go.addEventListener('click',fermer);
   /* La page d’une manche : son compte à rebours (la manche suivante part toute seule, jeuTick) ; la fin d’une partie entre amis : le
      sien, puis le podium (18 h 11) */
-  if(A&&A.fin){const nb=el.querySelector('.mu-auto-n');MU.timers.push(setInterval(()=>{if(nb)nb.textContent=String(Math.max(1,Math.ceil((A.fin-Date.now())/1000)));},250));}
+  if(A.fin){const nb=el.querySelector('.mu-auto-n');MU.timers.push(setInterval(()=>{if(nb)nb.textContent=String(Math.max(1,Math.ceil((A.fin-Date.now())/1000)));},250));}
   if(auto)MU.timers.push(setTimeout(()=>{if(MU&&MU.el===el)fermer();},FIN_MS));
   el.querySelector('.mu-x').addEventListener('click',fermer);
-  /* 13 novembre, 16 h 58 : entre amis, la revanche dès cette page (l’hôte relance la salle ; les autres seront prêts à la relance) */
-  const rj=el.querySelector('.mu-rejouer');
-  if(rj)rj.addEventListener('click',()=>{fermer();setTimeout(()=>{if(typeof jeuRevanche==='function')jeuRevanche();},60);});
   el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); fermer(); } });
   if(typeof lqSay==='function')lqSay(`${issue?h.replace(/\u00a0/g,' ')+' ':''}${zero?'0 point':`+${o.pts} point${pl}`}`+(total&&!zero?`, total de salle : ${total} points`:''));
   if(typeof buzz==='function')buzz(fete?'success':'light');
@@ -51390,7 +51388,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-encourage-v2957';
+  const SW_CACHE='requete-2026-11-13-solo-v2958';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

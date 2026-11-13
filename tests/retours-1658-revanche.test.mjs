@@ -12,10 +12,10 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const fn = n => { const a = app.indexOf(`function ${n}(`); assert.ok(a > 0, n); return app.slice(a, app.indexOf('\n}\n', a) + 2); };
 
-test('la page des points d’une partie entre amis : « Revanche » sous « Voir le bilan » (17 h 16)', () => {
+test('la page des points n’a plus de bouton : « Revanche » est sur le podium, après le compte à rebours (18 h 11, puis 18 h 48)', () => {
   const page = fn('jeuPtsPage');
-  assert.ok(page.includes("${o.solo?'':'<button type=\"button\" class=\"mu-later mu-rejouer\">Revanche</button>'}"));
-  assert.ok(page.includes("if(rj)rj.addEventListener('click',()=>{fermer();setTimeout(()=>{if(typeof jeuRevanche==='function')jeuRevanche();},60);});"));
+  assert.ok(!page.includes('mu-rejouer') && !page.includes('mu-go') && page.includes('<div class="mu-acts mu-auto">'));
+  assert.ok(!css.includes('.mu-rejouer'));
 });
 
 test('le podium : l’hôte relance (jeuRejouer, même avant que la fin revienne) ; les autres ont la revanche', () => {
