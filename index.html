@@ -14072,7 +14072,7 @@ function coachVoir(i){if(!COACH||i<1||i>COACH.n)return;COACH.view=i;coachPaint()
 /* Un essai raté : « Pas tout à fait. Réessaie ! » sous l’indice, la ligne secoue d’un rien (9 novembre, 7 h 37 puis 7 h 51). */
 function coachKo(diag){if(!COACH)return;COACH.diag=diag;COACH.fx='is-new-ko';coachPaint();}
 /* Un nouvel indice : il prend la place du précédent, la carte rebondit. */
-function coachSet(n){if(!COACH)return;n=Math.min(3,n);if(n>COACH.n){COACH.n=n;COACH.view=n;COACH.fx='is-new-hint';if(typeof buzz==='function')buzz('light');}coachPaint();}
+function coachSet(n){if(!COACH)return;n=Math.min(3,n);if(n>COACH.n&&COACH.kind!=='room'&&typeof stat==='function')stat('indice',n,{c:String(COACH.c&&COACH.c.id).slice(0,20)});if(n>COACH.n){COACH.n=n;COACH.view=n;COACH.fx='is-new-hint';if(typeof buzz==='function')buzz('light');}coachPaint();}
 /* En salle : à chaque seconde, les indices du moment et le compte à rebours. */
 function coachRoomTick(){
   if(typeof JEU==='undefined'||!JEU)return;
@@ -23130,6 +23130,7 @@ function closeImportSheet(){
    préparée par table (plus une requête recompilée à chaque ligne), et la main rendue à l’écran toutes les ~100 ms pour que le bouton
    dise où on en est (suivre, de 0 à 1). */
 async function createImportedTables(database,tables,suivre){
+  if(typeof stat==='function')stat('import',tables.length);   // 13 novembre, 19 h 52, statistiques : un import, et son nombre de tables (jamais leur contenu)
   const now=()=>typeof performance!=='undefined'&&performance.now?performance.now():Date.now();
   const total=tables.reduce((n,t)=>n+t.rows.length,0)||1;let fait=0,pause=now();
   for(const t of tables){
@@ -24070,6 +24071,7 @@ function runConsole(o){
   const surEditeur=!!(o&&o.surEditeur),direct=!!(o&&o.direct);
   const sql=document.getElementById('ed-console').value.trim();
   const out=document.getElementById('console-out');
+  if(sql&&typeof statUneFois==='function'&&typeof statJour==='function')statUneFois('console','console:'+statJour());   // 13 novembre, 19 h 52, statistiques : la console servie ce jour-là
   if(out&&!surEditeur)out.style.minHeight='';
   const btn=document.getElementById('btn-run-console')||document.querySelector('#scr-console .btn-run');
   if(!sql){out.innerHTML='';return;}
@@ -38952,6 +38954,9 @@ function jeuBonusOut(){
 function jeuBonusPris(r){ const J=JEU; return !!(J&&r&&!(J.solo||r.one)&&Object.keys(r.found||{}).some(p=>p!==J.me)); }
 function jeuStop(){
   const J=JEU;if(!J)return;
+  /* 13 novembre, 19 h 52, statistiques : où l’on quitte une salle : en attente (l’hôte seul : personne n’est venu), en pleine partie (un abandon), à la fin */
+  try{const v=String(J.view||''),ou=/^(lobby|empty)$/.test(v)?'attente':/^(draw|play|res)/.test(v)?'partie':v==='final'?'fin':'';
+    if(ou&&typeof stat==='function')stat('salle_quittee',undefined,{ou,solo:!!J.solo,hote:J.hostPid===J.me,joueurs:typeof jeuLive==='function'?jeuLive().length:0});}catch(e){}
   if(typeof coachPeekOff==='function')coachPeekOff();
   /* On quitte avant le podium : les points déjà gagnés ne sont pas perdus. */
   try{if(!J.scored&&J.played){J.depart=true;const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
@@ -39510,6 +39515,7 @@ function runLesson(){
         :`<button class="next-btn" onclick="openJeu()">Salle de défi →</button>`));
       pulseCta('#lesson-out .next-btn');
     }else if(mode==='review'){
+      if(typeof stat==='function')stat('revision',exoFails?0:1,{l:current.id});   // 13 novembre, 19 h 52, statistiques : réussie, du premier coup (1) ou non
       markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
       reviewQueue.shift();revSesSave(true);
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>Cette leçon reviendra plus tard, à un intervalle plus long.</p></div></div>`;
@@ -39990,6 +39996,7 @@ async function shareCard(id){
   try{
     if(navigator.share){
       await navigator.share({title,text,url});
+      if(typeof stat==='function')stat('partage',undefined,{quoi:'carte'});   // 13 novembre, 19 h 52, statistiques
       if(navigator.vibrate)navigator.vibrate(10);
       return;
     }
@@ -40477,6 +40484,7 @@ let stkLessonNew=[],stkLessonShown=false;
 function stkAfterProgress(){
   const won=stkSync();
   if(!won.length)return;
+  if(typeof stat==='function')won.forEach(id=>stat('sticker',undefined,{s:String(id).slice(0,24)}));   // 13 novembre, 19 h 52, statistiques 
   /* 20 h 26 : la première requête faite dans l’onboarding s’annonce tout de suite, même si la première leçon s’est déjà ouverte : elle
      n’attend pas son bilan, qui garde ce que la leçon fait gagner (le sticker du module). */
   const ev=stkState().ev||{},now=won.filter(id=>id==='requete'&&ev.requete),held=won.filter(id=>!now.includes(id));
@@ -42833,7 +42841,7 @@ function lqFeuOuvrir(jours){
 }
 async function lqFeuPartager(){
   const el=document.getElementById('lq-flamme');if(!el||!navigator.share)return;
-  try{await navigator.share({title:'Requête — Apprends le SQL',text:el.dataset.partage||'',url:'https://requeteapp.com/'});}catch(e){}
+  try{await navigator.share({title:'Requête — Apprends le SQL',text:el.dataset.partage||'',url:'https://requeteapp.com/'});if(typeof stat==='function')stat('partage',undefined,{quoi:'flamme'});}catch(e){}   // 13 novembre, 19 h 52, statistiques
 }
 function lqFlammeFermer(){
   const el=document.getElementById('lq-flamme');if(!el||el.classList.contains('is-sort'))return;
@@ -43354,6 +43362,7 @@ function repondreQcm(i,choix){
   const btns=zone.querySelectorAll('.qopt');
   const picked=zone.querySelector('.qopt[data-k="'+choix+'"]');
   if(picked)picked.classList.add('sel');
+  if(typeof stat==='function')stat('qcm',choix===q.b?1:0,{l:id,q:i});   // 13 novembre, 19 h 52, statistiques
   if(choix===q.b){
     setEtape(id,'q'+i);
     btns.forEach(b=>{b.disabled=true;if(+b.dataset.k===q.b)b.classList.add('bon');});
@@ -44073,6 +44082,7 @@ function paintEntFoot(id){
   });
 }
 function setEntretienMark(id,mark){
+  if(typeof stat==='function')stat('entretien',mark==='ok'?1:0,{q:String(id).slice(0,20)});   // 13 novembre, 19 h 52, statistiques : je savais (1), à revoir (0)
   state.entretien=state.entretien||{};
   state.entretien[id]=mark==='ok'?'ok':'review';
   entRevealed[id]=1;
@@ -45311,6 +45321,12 @@ function stat(t,v,d){
   try{localStorage.setItem(STAT_FILE,JSON.stringify(f.slice(-300)));}catch(err){}
   clearTimeout(statT);statT=setTimeout(()=>{try{statEnvoyer();}catch(err){}},4000);
 }
+/* 13 novembre, 19 h 52, statistiques : le temps passé dans l’appli, chaque fois qu’elle passe en arrière-plan (de 5 s à 4 h) */
+let statVisibleDepuis=Date.now();
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){const s=Math.round((Date.now()-statVisibleDepuis)/1000);if(s>=5&&s<=14400)stat('duree',s);}
+  else statVisibleDepuis=Date.now();
+});
 /* Une seule fois : à vie (« installation ») ou par jour (« ouverture:2026-11-10 ») ; les clés datées de plus d'une semaine s'en vont */
 function statUneFois(t,cle,v,d){
   if(!statActif())return false;
@@ -47371,12 +47387,17 @@ function raccourcisBrancher(){
   if(raccourcisBranches||!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
   raccourcisBranches=true;
   try{ Promise.resolve(C.nativePromise('RequeteWidget','raccourcis',{items:RACCOURCIS})).catch(()=>{}); }catch(e){}
+  /* 13 novembre, 19 h 52, statistiques : un rappel touché (la notification ouvre l’app) */
+  const LN=C.Plugins&&C.Plugins.LocalNotifications;
+  if(LN&&typeof LN.addListener==='function')try{LN.addListener('localNotificationActionPerformed',e=>{const id=+(e&&e.notification&&e.notification.id)||0;if(typeof stat==='function')stat('rappel_ouvert',undefined,{k:id>=100?'seance':'n'+id});});}catch(e){}
   if(typeof C.addListener==='function')C.addListener('RequeteWidget','raccourci',e=>raccourciOuvrir(e&&e.type));
 }
 /* 11 h 08 (réf. 3, « le lien ne fonctionne pas vers les défis ») : touché pendant l’onboarding (ou en pleine séance), le raccourci ne
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 function raccourciOuvrir(type){
   type=String(type||'');
+  /* 13 novembre, 19 h 52, statistiques : quel raccourci sert (l’icône, l’île, le widget, l’invitation), sans le code d’une salle */
+  if(type&&typeof stat==='function')stat('raccourci',undefined,{k:type.replace(/^fr\.requete\.app\./,'').split(/[|.]/)[0].slice(0,24)});
   /* Une invitation à un défi (13 novembre, 19 h 31, les liens universels) : https://requeteapp.com/?partie=CODE&de=pseudo, touchée
      dans Messages ou WhatsApp, ouvre l’app (SceneDelegate) et arrive ici en « fr.requete.app.partie.CODE|pseudo ». Le chemin de
      l’invitation du site (jeuFromUrl) : l’onboarding, la connexion ou le paywall d’abord s’il le faut, puis la salle. */
@@ -49184,7 +49205,8 @@ function paintOb(){
     if(!masquee&&authReady)obSetFooter('',null,'','','');
     else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
   }else if(slide==='paywall'){
-    if(obJustEntered&&typeof statUneFois==='function')statUneFois('paywall_vu','paywall:'+statJour());
+    /* 13 novembre, 19 h 52, statistiques (Elisa : « tout ce que tu peux trouver, mets-le ») : d’où vient le paywall, l’inscription ou le retour dans l’app sans abonnement */
+    if(obJustEntered&&typeof statUneFois==='function'){const depuis=state.onboarded?'retour':'onboarding';statUneFois('paywall_vu','paywall:'+depuis+':'+statJour(),undefined,{depuis});}
     /* L’offre de bienvenue (obPwSortie) est une vue de cette page ; si la boutique ne la donne plus, on retombe sur les offres
        (obPwSortie est remis à faux en tête de paintOb). */
     if(obPwSortie){html=obSortieHTML();obSortiePied();}
@@ -51438,7 +51460,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-invitations-v2962';
+  const SW_CACHE='requete-2026-11-13-usage-v2963';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
