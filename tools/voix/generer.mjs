@@ -59,11 +59,17 @@ async function apiKey(){
 /* Un fichier est fait quand son .mp3 et son .json sont là, avec le même texte et la même voix (Elisa, 5 novembre, 0 h 38 : vingt cours
    passent à la voix d’Anaïs ; leurs textes ne changent pas, leurs fichiers sont refaits). */
 function fait(job, out, el){
-  try {
-    if (!fs.existsSync(path.join(out, el.id + '.mp3'))) return false;
-    const j = JSON.parse(fs.readFileSync(path.join(out, el.id + '.json'), 'utf8'));
-    return j.texte === el.texte && (!j.voix || !job.voix || j.voix.id === job.voix.id);
-  } catch (e) { return false; }
+  const ici = dir => {
+    try {
+      if (!fs.existsSync(path.join(dir, el.id + '.mp3'))) return false;
+      const j = JSON.parse(fs.readFileSync(path.join(dir, el.id + '.json'), 'utf8'));
+      return j.texte === el.texte && (!j.voix || !job.voix || j.voix.id === job.voix.id);
+    } catch (e) { return false; }
+  };
+  if (ici(out)) return true;
+  /* 13 novembre : un fichier déjà fait à part pour ce cours (sortie/<cours>-complements, -retouches…), même texte, même voix, compte
+     comme fait : il n’est jamais payé deux fois. */
+  try { const s = path.dirname(out), c = path.basename(out); return fs.readdirSync(s).some(d => d.startsWith(c + '-') && ici(path.join(s, d))); } catch (e) { return false; }
 }
 
 /* Une phrase sans contexte (ni texte d’avant ni texte d’après : « Bien vu ! », « Bravo ! Tu as validé la leçon. », une consigne) que la

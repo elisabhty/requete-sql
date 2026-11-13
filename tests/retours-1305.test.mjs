@@ -19,7 +19,6 @@ test('les voix à refaire : une par cours, au format des retouches, sans changer
     'projet-normaliser': ['Deuxième forme normale : chaque colonne dépend de toute la clé, les colonnes qui repèrent chaque ligne.', 'La clé d’une inscription, c’est le couple client et atelier'],
     'with-recursive': ['Ixèpte en retire 12, les jours de juillet avec au moins une commande : il reste 19 jours.'],
     'group-by-colonnes': ['Conseil : mets aussi dans le SELECT chaque colonne du groupe baï.'],
-    'bases-relationnelles': ['sa valeur est unique et n’est jamais vide.'],
     having: ['WHERE filtre les lignes avant les groupes', 'WHERE filtre d’abord les lignes, puis hèvinngue filtre les groupes.']
   };
   for (const [cours, phrases] of Object.entries(attendu)) {
@@ -35,7 +34,12 @@ test('les voix à refaire : une par cours, au format des retouches, sans changer
     }
   }
   const doc = lire('tools/voix/A-REGENERER.md');
-  assert.ok(doc.includes('with-recursive-relecture,group-by-colonnes-relecture,projet-normaliser-relecture,bases-relationnelles-relecture,having-relecture'));
+  /* 13 novembre : « jamais vide » (Bases relationnelles) est refaite à part, avec les légendes muettes du cours (tools/voix/bases-relationnelles-complements.json). */
+  assert.ok(doc.includes('--cours with-recursive-relecture,group-by-colonnes-relecture,projet-normaliser-relecture,having-relecture --oui'));
+  assert.ok(!fs.existsSync(path.join(ROOT, 'tools/voix/bases-relationnelles-relecture.json')));
+  const comp = JSON.parse(lire('tools/voix/bases-relationnelles-complements.json'));
+  assert.ok(comp.elements.some(e => e.id === 'ch06c' && e.texte.includes('sa valeur est unique et n’est jamais vide.')));
+  assert.deepEqual(comp.legendes, [['"Cette colonne est la <b>clé primaire</b> : sa valeur est unique et ne peut pas être nulle."', '"Cette colonne est la <b>clé primaire</b> : sa valeur est unique et n’est jamais vide."']]);
 });
 
 test('la vidéo de fin : 71 cours et 247 requêtes, les mêmes nombres que l’app', () => {

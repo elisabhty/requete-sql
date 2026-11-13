@@ -241,13 +241,22 @@ test('le cours « Les bases de données relationnelles » a sa voix : chaque phr
   assert.ok(/\nCourse\(\{duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 519\.2, moments: MOMENTS, opens: OPENS, voice: VOICE,\n/.test(page));
   assert.equal(VOICE.dir, '../voix/bases-relationnelles/');
   const keys = new Set(CAPTIONS.map(c => vkey(c[2])));
-  const phrases = job.elements.filter(e => e.phrases && e.id !== 'ch00').reduce((n, e) => n + e.phrases.length, 0);
-  assert.equal(VOICE.caps.length, phrases, 'une phrase par légende, chapitres 1 à 11');
+  /* 13 novembre (Elisa, 13 h 19 : « certains textes ne sont pas parlés ») : chaque légende a sa voix, et chaque voix sa légende.
+     Les compléments (ch05b, ch06b, ch06c : des phrases générées à part, tools/voix/bases-relationnelles-complements.json) comptent.
+     Tant qu’ils ne sont pas générés et intégrés, ce test donne la liste des légendes encore muettes. */
+  const dites = new Set(VOICE.caps.map(c => c[0])), plainCap = h => h.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+  assert.deepEqual(CAPTIONS.filter(c => !dites.has(vkey(c[2]))).map(c => plainCap(c[2])), [], 'légendes muettes');
+  assert.equal(VOICE.caps.length, CAPTIONS.length, 'une voix par légende, chapitres 1 à 11');
   for (const [k, f, a, b] of VOICE.caps) {
     assert.ok(keys.has(k), `légende trouvée : ${k}`);
     assert.ok(b - a > 0.5 && a >= 0, `${k} : passage de ${a} à ${b}`);
-    assert.ok(/^ch(0[1-9]|1[01])$/.test(f), f);   // 20 h 10 : chapitre 11, « À retenir », lui aussi dit
+    assert.ok(/^ch(0[1-9]|1[01])[a-z]?$/.test(f), f);   // 20 h 10 : chapitre 11, « À retenir », lui aussi dit ; 13 novembre : ch05b…
+    assert.ok(job.elements.some(e => e.id === f && e.phrases), `${f} : dans tools/voix/bases-relationnelles.json`);
   }
+  /* Le cours lui-même liste ses compléments (pour l’intégration), avec les mêmes textes que le fichier qui les fait générer. */
+  const comp = JSON.parse(read('tools/voix/bases-relationnelles-complements.json'));
+  assert.equal(comp.cours, 'bases-relationnelles-complements'); assert.deepEqual(comp.voix, job.voix); assert.equal(comp.modele, job.modele);
+  for (const e of comp.elements) assert.deepEqual(job.elements.find(x => x.id === e.id), e, `${e.id} : le même dans le cours`);
   assert.ok(VOICE.intro && VOICE.intro[0] === 'ch00' && VOICE.intro[2] - VOICE.intro[1] > 3, 'l’intro dit le titre et le sous-titre');
   const M = (page.match(/\{at: [\d.]+, from: [\d.]+, kind: /g) || []).length, O = (page.match(/\{at: OPEN\d, sel: /g) || []).length;
   for (let i = 1; i <= M; i++) assert.ok(VOICE.say['at' + i] && VOICE.say['indice' + i], `moment ${i} : consigne et indice`);
