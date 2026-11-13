@@ -691,7 +691,7 @@ test('le bilan d’une partie de 2 manches dit l’essentiel une fois : le nivea
   s.ev("jeuStart('SOLO89',true,null,{solo:true})"); sec(w, 4);
   sec(w, 30); s.ed.value = "SELECT 'faux'"; s.ev('jeuRun()'); sec(w, 1); s.found(); sec(w, 1);   // un essai manqué : pas de premier coup
   sec(w, 14); assert.equal(s.view(), 'play1');
-  sec(w, 10 * 60 + 1);
+  sec(w, 10 * 60 - 5);   // la carte seule : 5 s (13 novembre, 20 h 54)
   assert.equal(s.view(), 'play1'); assert.match(s.html, /Tes points arrivent dans/);
   sec(w, 11);
   assert.equal(s.view(), 'final');
@@ -1449,7 +1449,7 @@ test('8 novembre, 9 h 31 : seul, à 0, la manche s’arrête et la suite part to
   assert.match(s.html, /La manche suivante démarre dans <b id="jeu-auto-n">\d+<\/b>/, 'trouvée : la suite part aussi toute seule');
   sec(w, 14);
   assert.equal(s.view(), 'play2');
-  sec(w, 10 * 60 + 2);
+  sec(w, 10 * 60 - 5);   // la carte seule : 5 s (13 novembre, 20 h 54)
   assert.equal(s.view(), 'play2', 'la dernière manche arrivée à 0 : « Temps écoulé », le bilan 5 s après (10 h 01)');
   assert.match(s.html, /Tes points arrivent dans/);
   sec(w, 10);
@@ -1548,7 +1548,7 @@ test('8 novembre, 10 h 10 : seul, à 0, la manche suivante part toute seule 5 s 
   assert.ok(/^(draw1|play1)$/.test(s.view()), 'la manche 2, toute seule');
   sec(w, 4);
   assert.equal(s.view(), 'play1');
-  sec(w, 10 * 60 + 1);
+  sec(w, 10 * 60 - 6);   // la carte seule : 5 s (13 novembre, 20 h 54)
   assert.equal(s.view(), 'play1', 'la dernière manche à 0 : « Temps écoulé », puis le bilan (10 h 01)');
   sec(w, 10);
   assert.equal(s.view(), 'final');
@@ -1671,7 +1671,7 @@ test('10 h 37 : seul, deux manches ratées : « On retente ? », le bandeau et s
   assert.match(s.html, /<b class="jeu-timer is-fin" id="jeu-timer" role="timer" aria-label="Temps écoulé">00:00<\/b>/);
   assert.equal(s.J('rounds[0].essai'), "SELECT 'faux'", 'son dernier essai, pour la correction');
   sec(w, 14); assert.equal(s.view(), 'play1');
-  sec(w, 10 * 60 + 1);
+  sec(w, 10 * 60 - 6);   // la carte seule : 5 s (13 novembre, 20 h 54)
   assert.match(s.html, /<p>La correction t’attend dans ton bilan\.<\/p>/);
   sec(w, 11);
   assert.equal(s.view(), 'final');
