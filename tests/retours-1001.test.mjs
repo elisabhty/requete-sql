@@ -36,7 +36,7 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   assert.ok(v.includes("if(fin&&jeuSoloLike(n)&&(n<J.nb-1||Date.now()<jeuFinAuto(n)))return'play'+n;"), 'trouvée ou finie au chrono : sa carte, 5 s, puis l’écran de fin');
   /* 11 novembre, 21 h 33 : plus de pastille de points à la manche (la carte « Trouvé » les montre) ; ceux de la partie ont leur page */
   /* 13 novembre, 17 h 31 : seul, avec des points, comme avant ; entre amis, à chaque fin de partie (retours-1731-points) */
-  assert.ok(app.includes("const ptsPage=(o,d)=>setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage(o);},d);") && app.includes("if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,total:cg.total,solo:!!J.solo}:{pts:0,total:cg.total,solo:!!J.solo,issue:'rate',nb:jouees},700);"), 'les points de la partie, une page sur l’écran de fin');
+  assert.ok(app.includes("const ptsPage=(o,d)=>setTimeout(()=>{if(JEU===J&&J.view==='final')jeuPtsPage(o);},d);") && app.includes("if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},700);"), 'les points de la partie, une page sur l’écran de fin');
   /* Ses boutons : ceux du bilan (jeuFinBoutonsHTML depuis 10 h 37 : la prochaine étape en carte, « Réessayer » sans défi résolu,
      « Retour aux défis » à la place de « Changer de niveau ») */
   const ctx = vm.createContext({ JEU: { solo: true, niv: 'f' }, jeuIsHost: () => true, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_COIN_SVG: '<coin>',

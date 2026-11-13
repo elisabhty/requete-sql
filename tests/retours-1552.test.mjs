@@ -88,7 +88,7 @@ test('les points gagnés : une page en fin de partie (11 novembre, 21 h 33), plu
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
   assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x&&x.pts>0&&typeof lqSay==='function')lqSay(`+${x.pts} points`);}"), 'à la manche, la carte « Trouvé » les montre ; le lecteur d’écran les dit');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,total:cg.total,solo:!!J.solo}:{pts:0,total:cg.total,solo:!!J.solo,issue:'rate',nb:jouees},700);"));
+  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},700);"));
   assert.ok(app.includes('    return {pts,total:s.pts};\n  }catch(e){return null;}'), 'la partie créditée une seule fois renvoie ses points');
   /* Le compteur sait partir d’un nombre et écrire « 1 274 » */
   const cu = cut('function jeuCountUp(el){', '\n/* Les points d’une partie');

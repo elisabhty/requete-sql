@@ -26,7 +26,8 @@ const page = o => {
 test('la page des points, pour chaque issue entre amis', () => {
   const v = page({ pts: 920, total: 920, solo: false, issue: 'victoire', qui: '', place: 1 });
   assert.ok(v.includes('class="mu mu-acc mu-pts is-victoire"') && v.includes('Victoire !') && v.includes('>Tu as gagné !</h2>'));
-  assert.ok(v.includes('Tu gagnes <b>920</b> points. Tes points de salle passent à <b>920</b>.'));
+  /* 19 h (« ne pas préciser les points de la salle ») : ni la phrase, ni l’encart */
+  assert.ok(v.includes('Tu gagnes <b>920</b> points.</p>') && !v.includes('points de salle') && !v.includes('Points de salle') && !v.includes('mu-album'));
   /* 18 h 11 : plus de bouton ; « Le podium s’affiche dans 6 s », la médaille de la place sur la pièce */
   assert.ok(v.includes('<span>Le podium s’affiche dans <b class="mu-auto-n">6</b> s</span>') && !v.includes('mu-go') && !v.includes('mu-rejouer'));
   assert.ok(v.includes('<coin><span class="mu-med is-1"><svg data-k="medal1"></svg></span>'));
@@ -48,7 +49,7 @@ test('la page des points, pour chaque issue entre amis', () => {
 });
 
 test('avant le podium : la page s’ouvre à l’arrivée sur l’écran de fin, quelle que soit l’issue ; les confettis pour la victoire', () => {
-  assert.ok(app.includes("if(cg)ptsPage({pts:cg.pts,total:cg.total,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0},0);"));
+  assert.ok(app.includes("if(cg)ptsPage({pts:cg.pts,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0},0);"));
   assert.ok(fn('jeuPtsPage').includes('if(auto)MU.timers.push(setTimeout(()=>{if(MU&&MU.el===el)fermer();},FIN_MS));'), 'elle se referme toute seule sur le podium');
   const f = fn('jeuPtsPage');
   assert.ok(f.includes('if(fete)lqConfetti({n:60});') && f.includes("zero=!(o.pts>0),fete=!zero&&(!issue||issue==='victoire');"));
