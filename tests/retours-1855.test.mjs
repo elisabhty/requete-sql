@@ -162,7 +162,7 @@ test('« Rejoins une partie » : l’hôte et son drapeau, les places, le niveau
   assert.ok(h.includes('<h3 class="dx-rj-h" id="dx-rejoindre-h">Rejoins une partie</h3><span class="dx-live">1 en direct</span>'));
   assert.ok(h.includes('<b><span class="dx-nom">@lea&lt;b&gt;</span><span class="dx-pc is-gens is-doux"><svg') && h.includes('<span>2/5</span></span></b>'), 'le pseudo échappé, les places (la pastille aux silhouettes, 8 novembre)');
   assert.ok(h.includes('<small class="dx-pcs"><span class="dx-pc is-niv is-m is-blanc"><i class="jeu-bars is-m" aria-hidden="true"><b></b><b></b><b></b></i><span>Moyen</span></span><span class="dx-pc-t">3\u00a0manches</span></small>') && h.includes('<i class="jeu-flag" aria-hidden="true">[BE]</i>'));
-  assert.ok(h.includes("onclick=\"sallesRejoindre('AAA111')\""));
+  assert.ok(h.includes("onclick=\"sallesRejoindre('AAA111',this)\""));
   /* 12 h 52 : un seul cadre ; la rangée du barème reste dessous */
   assert.ok(!h.includes('defisCarte(') && !h.includes('Trouver une salle') && !h.includes('Créer ma salle'));
   assert.ok(c.els['defis-salles'].innerHTML.includes('<b>Comment sont calculés les points&nbsp;?</b>'));
@@ -240,7 +240,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=355">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=356">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-ile-v2983');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-rejoindre-v2984');
 });
