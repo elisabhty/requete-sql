@@ -36,8 +36,9 @@ test('le lien ?app=onboarding ouvre l’aperçu sur un appareil qui a déjà son
   /* Sans le lien, rien ne change */
   assert.deepEqual(arrive('', { onboarded: true }), []);
   assert.deepEqual(arrive('?app', { onboarded: true }), [], '?app seul : l’appli, sans aperçu');
-  /* « app » garde l’appli : le script de tête ne renvoie pas vers le site */
-  assert.ok(app.includes("/[?&]app\\b/.test(q))return;"));
+  /* 13 novembre, 1 h 44 : l’appli ne s’ouvre plus dans un navigateur, « ?app » ne la garde plus (retours-0144-site) ; l’aperçu
+     reste en local et dans l’app. */
+  assert.ok(!app.includes("/[?&]app\\b/.test(q))return;"));
 });
 
 test('l’aperçu part d’un brouillon vierge et se referme à la fin sans rien enregistrer', () => {

@@ -53,7 +53,8 @@ test('l’appli est bien lue : modules, leçons et cartes mémo', () => {
    plus de carte « Sans réseau » (« enlève la carte sans réseau »), et un nouveau texte sous « Tout pour apprendre vraiment ». */
 test('les cinq atouts sont des widgets « tableau de bord », comme les cartes chiffrées de « Pourquoi le SQL »', () => {
   const titres = [...section.matchAll(/<div class="panel tile db w\d rv[^"]*"(?: id="[\w-]+")?>\s*(?:<div class="en-in">\s*<div class="en-txt">\s*)?<div class="db-head"><span class="db-ic c\d"><svg[^>]*>.*?<\/svg><\/span><span class="db-t"><small>[^<]+<\/small><\/span><span class="db-badge[^"]*">[^<]+<\/span><\/div>\s*<h3>([^<]+)<\/h3>/gs)].map(m => m[1]);
-  assert.deepEqual(titres, ['Un labo SQL dans ton navigateur', 'Des cartes à collectionner', 'Tes propres données', 'Cas pratiques et révisions', 'Entraîne-toi pour l’entretien']);
+  assert.deepEqual(titres, ['Un labo SQL dans ta poche',   // 13 novembre : plus « dans ton navigateur », l’appli est sur iPhone
+    'Des cartes à collectionner', 'Tes propres données', 'Cas pratiques et révisions', 'Entraîne-toi pour l’entretien']);
   assert.equal((section.match(/<div class="panel tile db /g) || []).length, titres.length, 'chaque carte suit le même modèle');
   /* Plus les anciennes vignettes ; depuis le 10 novembre, la réponse attendue de l’entretien n’a plus d’exemple SQL, comme dans l’appli */
   assert.doesNotMatch(section, /class="(?:chips|streak|memo|mini-code)\b/, 'plus les anciennes vignettes (pastilles, flammes, mini-cartes, code seul)');
@@ -206,7 +207,8 @@ test('« Comment ça marche » : les trois étapes reprennent le planning, la s�
 /* Elisa, 30 octobre, 18 h 58 : des sous-textes concrets pour « Ton objectif ? », un nouveau sous-titre pour les avis, et plus de
    « Sans compte » sur la vitrine (« si compte obligatoire car paiement »). */
 test('vitrine : objectifs, sous-titre des avis, plus de « Sans compte » ; le nombre de cartes mémo est celui de l’appli', () => {
-  const objectifs = [...vitrine.matchAll(/<a class="g(?: wide)?" href="video\.html" data-goal="(\w+)">.*?<span>([^<]+)<small>([^<]+)<\/small><\/span><\/a>/g)].map(m => [m[1], m[2], m[3]]);
+  /* 13 novembre, 1 h 44 : chaque objectif descend à la section iPhone (retours-0144-site), plus à la vidéo */
+  const objectifs = [...vitrine.matchAll(/<a class="g(?: wide)?" href="#mobile" data-goal="(\w+)">.*?<span>([^<]+)<small>([^<]+)<\/small><\/span><\/a>/g)].map(m => [m[1], m[2], m[3]]);
   assert.deepEqual(objectifs, [
     ['career', 'Me reconvertir dans la data', 'Acquiers les bases pour décrocher ton premier poste'],
     ['interview', 'Réussir un entretien', 'Entraîne-toi sur des questions proches du réel'],
@@ -224,9 +226,9 @@ test('vitrine : objectifs, sous-titre des avis, plus de « Sans compte » ; le n
   const module = fs.readFileSync(path.join(root, 'decouvrir/module.html'), 'utf8');
   for (const [nom, h] of [['index.html', vitrine], ['module.html', module]]) assert.doesNotMatch(h, /[Ss]ans compte/, `${nom} : plus de « Sans compte »`);
   assert.ok(vitrine.includes('</svg><span><span>Dès 10&nbsp;min</span> <span>par jour</span></span></li>') && /const RYTHMES=\[\s*\{k:'calme',i:'10'/.test(app), 'à la place : dès 10 minutes, le rythme le plus court de l’appli');
-  assert.ok(module.includes("<p class=\"price\"><b>Dès 10&nbsp;min par jour</b><span>dans ton navigateur, même hors ligne</span></p>"));
+  assert.ok(module.includes("<p class=\"price\"><b>Dès 10&nbsp;min par jour</b><span>sur ton iPhone, même hors ligne</span></p>"));
   const conf = fs.readFileSync(path.join(root, 'decouvrir/confidentialite.html'), 'utf8');
-  assert.ok(conf.includes('sera géré avec RevenueCat, un prestataire de gestion des achats intégrés, et relié à ton compte Requête.') && !conf.includes('sans compte Requête'), 'confidentialité : l’abonnement sera relié au compte');
+  assert.ok(conf.includes('l’appli s’appuie sur RevenueCat (RevenueCat, Inc., États-Unis), un prestataire de gestion des achats intégrés.') && conf.includes('Il reçoit un identifiant d’achat anonyme créé sur ton iPhone') && !conf.includes('sans compte Requête'), 'confidentialité : l’abonnement, tel qu’il est branché (13 novembre)');
   /* La fiche du parcours annonçait une carte mémo par cours (65) : l’appli en a une par leçon qui en a une */
   const ctx = vm.createContext({window: {}});
   vm.runInContext(fs.readFileSync(path.join(root, 'decouvrir/modules.js'), 'utf8'), ctx);

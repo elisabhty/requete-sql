@@ -22,17 +22,20 @@
      • COMPTE .................... Mon compte
      Chaque partie commence par « En bref : » ; les petits titres « ---------- » découpent l’intérieur. Les commentaires datés
      (« Elisa, 10 novembre, 17 h 11 : … ») gardent la demande d’origine : à garder quand on modifie. Le reste du dépôt : CARTE-DU-CODE.md. -->
-<!-- Elisa, 2 novembre, 15 h 30 : « faire le lien entre le site et l’appli » — un nouveau visiteur de l’adresse principale voit d’abord le site
-     (decouvrir/). Restent dans l’appli : qui a déjà un parcours sur cet appareil, qui arrive du site (?depuis=…, retenu), l’appli
-     installée (écran d’accueil, App Store), ?app pour forcer l’appli, et les navigateurs pilotés (tests). 5 novembre, 14 h : le lien
-     d’une invitation (?partie=CODE, retenu) mène à l’appli, où l’on s’inscrit puis entre dans la salle. -->
-<script>(function(){try{var q=location.search,ls=localStorage;
-  if(/[?&](depuis|partie)=/.test(q))ls.setItem('rq-vu-appli','1');
-  var sa=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;
-  if(sa||window.Capacitor||navigator.webdriver||!/^https?:$/.test(location.protocol)||/[?&]app\b/.test(q))return;
-  if(ls.getItem('requete-sql-v3')){ls.setItem('rq-vu-appli','1');return;}   // retenu : effacer sa progression ne renvoie pas vers le site
-  if(ls.getItem('rq-vu-appli'))return;
-  location.replace('decouvrir/');}catch(e){}})();</script>
+<!-- Elisa, 2 novembre, 15 h 30 : « faire le lien entre le site et l’appli » — un nouveau visiteur de l’adresse principale voyait d’abord
+     le site (decouvrir/), puis l’appli s’ouvrait dans le navigateur.
+     13 novembre, 1 h 44 : « je veux retirer l’appli sur mon site » (et son choix : « Tout retirer »). Requête n’existe plus que sur
+     iPhone : dans un navigateur, cette adresse mène toujours au site, même pour qui avait un parcours ici, même avec ?depuis= ou
+     ?app. Une invitation à un défi (?partie=CODE) mène à la section iPhone du site, qui redit le code. L’ancienne appli gardée
+     hors ligne par le navigateur (service worker, caches) est retirée au passage. Restent ici : l’app iPhone (Capacitor), une page
+     servie en local (localhost : la mise au point) et les navigateurs pilotés (les tests). -->
+<script>(function(){try{var q=location.search,h=location.hostname;
+  if(window.Capacitor||navigator.webdriver||!/^https?:$/.test(location.protocol)||h==='localhost'||h==='127.0.0.1')return;
+  window.__rqVersSite=1;
+  try{if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});});
+    if(window.caches)caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});}catch(e){}
+  var m=/[?&]partie=([A-Za-z0-9]{6})(?![A-Za-z0-9])/.exec(q);
+  location.replace('decouvrir/'+(m?'?partie='+m[1].toUpperCase()+'#mobile':''));}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -42,7 +45,7 @@
   nat=window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform();
   if(ios&&v>=26&&/Safari\//.test(u)&&!inst&&!nat)document.documentElement.classList.add('safari-glass');}catch(e){}})();</script>
 <title>Requête — Apprends le SQL</title>
-<meta name="description" content="Apprends le SQL en écrivant des requêtes sur une base SQLite interactive. Leçons courtes, défis pratiques et console dans ton navigateur, sans installation.">
+<meta name="description" content="Apprends le SQL en écrivant des requêtes sur une vraie base. Leçons courtes, défis pratiques et console SQL, dans l’appli Requête pour iPhone.">
 <!-- 22 h 24 : la couleur du haut de l’écran de chargement, le premier écran (violet) ; safari-surface.js la met ensuite à jour à chaque écran. -->
 <meta name="theme-color" content="#6E50F6">
 <meta name="color-scheme" content="light">
@@ -48220,8 +48223,8 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà joués et trouvés l’accompagne, sans être montrée à personne&nbsp;: elle évite de te les tirer au sort à nouveau, à toi comme à ceux qui jouent avec toi, et nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus. Pour les lire sans attendre, nous en recevons une copie par e-mail, par le service d’envoi Resend (États-Unis).</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours. Un commentaire nous arrive aussi par e-mail (Resend), sans cet identifiant.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées.</p>`
-        : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
+        ? `<p>Tu te connectes à Requête avec Apple ou Google&nbsp;: ta progression est enregistrée sur cet iPhone et sauvegardée avec ton compte.</p><ul><li>Leçons, défis, notes et planning sont enregistrés sur cet iPhone et sauvegardés avec ton compte&nbsp;; les bases que tu importes restent sur cet iPhone.</li><li>Le moteur SQL tourne sur ton iPhone.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà joués et trouvés l’accompagne, sans être montrée à personne&nbsp;: elle évite de te les tirer au sort à nouveau, à toi comme à ceux qui jouent avec toi, et nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus. Pour les lire sans attendre, nous en recevons une copie par e-mail, par le service d’envoi Resend (États-Unis).</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours. Un commentaire nous arrive aussi par e-mail (Resend), sans cet identifiant.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li></ul><p>Le détail complet est dans la politique de confidentialité, sur requeteapp.com.</p>`
+        : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu te connectes avec Apple ou Google. Depuis Mon compte, tu peux télécharger une copie de tes données, effacer ta progression ou supprimer ton compte.</p><p>L’accès aux cours demande un abonnement Requête Premium, vendu par l’App Store.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
     /* Chiffres tirés du contenu réel, jamais codés en dur. */
@@ -49723,19 +49726,19 @@ function openLegal(kind){
   const titles={privacy:'Confidentialité',terms:'Conditions'};
   const html={
     privacy:`<div class="legal-copy">
-      <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
+      <p>Requête est une app d’apprentissage SQL. Tu t’y connectes avec Apple ou Google&nbsp;: ta progression est enregistrée sur cet iPhone et sauvegardée avec ton compte.</p>
       <ul>
-        <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
+        <li>Leçons, défis, notes et planning&nbsp;: enregistrés sur cet iPhone et sauvegardés avec ton compte. Les bases que tu importes restent sur cet iPhone.</li>
         <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà joués et trouvés l’accompagne, sans être montrée à personne&nbsp;: elle évite de te les tirer au sort à nouveau, à toi comme à ceux qui jouent avec toi, et nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus. Pour les lire sans attendre, nous en recevons une copie par e-mail, par le service d’envoi Resend (États-Unis).</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours. Un commentaire nous arrive aussi par e-mail (Resend), sans cet identifiant.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
-        <li>Le moteur SQL tourne dans le navigateur.</li>
-        <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
+        <li>Le moteur SQL tourne sur ton iPhone.</li>
+        <li>Le rappel quotidien n’envoie une notification que si tu l’actives et autorises les notifications, à l’heure choisie.</li>
       </ul>
-      <p>«&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, efface d’un coup ce que le serveur garde pour cet appareil, puis tout ce qui est sur l’appareil. Si tu te connectes plus tard, Requête indiquera clairement quelles données sont synchronisées.</p>
+      <p>«&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, efface d’un coup ce que le serveur garde pour cet appareil, puis tout ce qui est sur l’appareil. Le détail complet est dans la politique de confidentialité, sur requeteapp.com.</p>
     </div>`,
     terms:`<div class="legal-copy">
       <p>Requête t’aide à apprendre le SQL en pratiquant. Le contenu est fourni tel quel, à des fins pédagogiques.</p>
-      <p>Le compte est optionnel. Tu peux télécharger une copie de tes données, effacer ta progression ou supprimer ton compte à tout moment depuis Mon compte. Un effacement est définitif.</p>
-      <p>Les leçons, les défis et les outils de pratique disponibles dans cette version sont utilisables sans compte.</p>
+      <p>Tu te connectes avec Apple ou Google. Tu peux télécharger une copie de tes données, effacer ta progression ou supprimer ton compte à tout moment depuis Mon compte. Un effacement est définitif.</p>
+      <p>L’accès aux leçons, aux défis et aux outils de pratique demande un abonnement Requête Premium, vendu par l’App Store.</p>
     </div>`
   };
   const sheet=document.getElementById('card-sheet');
@@ -50488,10 +50491,12 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-note-v2920';
+  const SW_CACHE='requete-2026-11-13-site-v2921';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
+    /* Dans un navigateur, la page part vers le site (script de tête, 13 novembre) : rien à garder hors ligne. */
+    if(window.__rqVersSite)return;
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE),{updateViaCache:'none'}).catch(e=>console.warn('Service worker non enregistré :',e));
     /* Les animations des cours sont rangées pour le hors ligne après coup, en fond (voir « warm » dans sw.js) :
        quelques secondes après l’ouverture, et pas pendant qu’une vidéo est ouverte. */

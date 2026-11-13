@@ -112,7 +112,7 @@ test('base de l’appli : la table des inscrits, sans droit direct ; parcours_al
   /* L’appel de l’appli a les paramètres de la fonction */
   assert.ok(block.includes("clsRpc('parcours_alerter',{p_cle:clsCle(),p_parcours:id,p_jeton:on?P.jeton:null,p_on:on})"));
   const conf = lire('decouvrir/confidentialite.html');
-  assert.ok(conf.includes('<li><b>Alerte «&nbsp;M’avertir au lancement&nbsp;»</b> (facultatif, appli iPhone).') && conf.includes('ton vote, tes alertes de parcours, tes avis sur les leçons'));
+  assert.ok(conf.includes('<li><b>Alerte «&nbsp;M’avertir au lancement&nbsp;»</b> (facultatif).') && conf.includes('ton vote, tes alertes de parcours, tes avis sur les leçons'));
 });
 
 /* ---------- La fonction d’envoi ---------- */

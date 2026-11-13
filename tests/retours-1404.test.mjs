@@ -73,11 +73,8 @@ test('le site : les GIF du chat, leur image fixe en mouvement réduit', () => {
     assert.ok(vit.includes(r), r);
 });
 
-test('la page de connexion du site : le chat qui dit « Re-bonjour ! »', () => {
-  assert.ok(cx.includes('<span class="cx-bubble" id="cx-bubble">Re-bonjour&nbsp;!</span>') && cx.includes('<picture class="cx-chat-p"><source media="(prefers-reduced-motion: reduce)" srcset="../assets/chat-coucou-fixe.webp"><img class="cx-chat" src="../assets/chat-coucou.webp" width="289" height="352" alt="" loading="lazy"></picture>'));
-  assert.ok(cx.indexOf('class="cx-chat"') > cx.indexOf('id="cx-bubble"') && cx.indexOf('class="cx-chat"') < cx.indexOf('<section class="cx-panel">'), 'dans le décor, au pied de la bulle');
-  for (const r of ['.cx-stage:has(.cx-chat) .cx-bubble{right:calc(var(--chat) - 10px)!important;bottom:calc(var(--chat) * .82)!important}',
-    '@media (max-width:959px){.cx-stage:has(.cx-chat) .k1{display:none}.cx-stage:has(.cx-chat) .cx-bubble{bottom:30px!important}}',
-    '@media (max-width:359px){.cx-chat{display:none}', '@media (min-width:960px){.cx-stage{--chat:clamp(112px,23cqw,156px)}.cx-chat{right:1%;bottom:-2%}.cx-stage:has(.cx-chat) .k4{right:auto;left:46%}}'])
-    assert.ok(cx.includes(r), r);
+/* 13 novembre, 1 h 44 : la page de connexion du site (le chat qui disait « Re-bonjour ! ») n’est plus qu’un renvoi vers la section
+   iPhone : l’appli ne s’ouvre plus dans un navigateur (retours-0144-site.test.mjs). */
+test('la page de connexion du site : un renvoi vers la section iPhone, plus de chat', () => {
+  assert.ok(cx.includes("location.replace('./#mobile')") && !cx.includes('cx-bubble') && !cx.includes('chat-coucou'));
 });

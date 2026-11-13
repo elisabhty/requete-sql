@@ -166,5 +166,5 @@ test('le style de la carte, et la nouvelle version en cache', () => {
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-steps') && !lq.includes('.lq-step ') && !lq.includes('.lq-hero-kicker'), 'le style des anciennes cartes est parti avec elles');
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=327">'));
-  assert.ok(sw.includes("'requete-2026-11-13-note-v2920'"));
+  assert.ok(sw.includes("'requete-2026-11-13-site-v2921'"));
 });

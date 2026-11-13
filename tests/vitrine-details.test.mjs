@@ -18,19 +18,16 @@ const lire = f => fs.readFileSync(path.join(root, 'decouvrir', f), 'utf8');
 const css = lire('vitrine.css');
 const video = lire('video.html');
 
-test('« Se connecter » est dans la barre de chaque page, en icône sur mobile et en texte sur ordinateur', () => {
+/* 13 novembre, 1 h 44 (Elisa : « retirer l’appli sur mon site quand on appuie sur commencer et faire descendre vers l’appli ») :
+   plus de « Se connecter » sur le site (retours-0144-site.test.mjs) ; la barre garde la langue et « Commencer », qui descend à la
+   section iPhone. La feuille garde les règles de l’ancien bouton, sans effet. */
+test('plus de « Se connecter » dans la barre : la langue et « Commencer », qui descend à la section iPhone', () => {
   for (const page of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html']) {
     const h = lire(page);
-    const a = h.match(/<a class="btn btn-s login" href="connexion\.html">([\s\S]*?)<\/a>/);
-    assert.ok(a, `${page} : lien de connexion dans la barre`);
-    assert.match(a[1], /<svg class="me"[^>]*aria-hidden="true"/, `${page} : icône décorative`);
-    assert.match(a[1], /<span class="lbl">Se connecter<\/span>/, `${page} : le texte reste lu par les lecteurs d’écran`);
+    assert.ok(!h.includes('class="btn btn-s login"') && !h.includes('connexion.html') && !h.includes('>Se connecter<'), `${page} : plus de lien de connexion`);
+    const cta = h.slice(h.indexOf('<div class="nav-cta">'), h.indexOf('<button type="button" class="burger"'));
+    assert.ok(cta.includes(`<a class="btn btn-p" href="${page === 'index.html' ? '' : './'}#mobile">Commencer</a>`), `${page} : « Commencer » descend à l’appli`);
   }
-  /* La règle qui cachait le bouton sur mobile est suivie d’une règle qui l’affiche */
-  const cache = css.indexOf('.nav-cta .login{display:none}'), montre = css.indexOf('.nav-cta .login{display:inline-flex;position:relative;width:42px');
-  assert.ok(cache >= 0 && montre > cache, 'le bouton icône l’emporte sur l’ancien display:none');
-  assert.match(css, /\.nav-cta \.login \.lbl\{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect\(0 0 0 0\)/, 'libellé masqué visuellement, pas supprimé');
-  assert.match(css, /@media \(min-width:960px\)\{\s*\.nav-cta \.login\{width:auto/, 'sur ordinateur, le texte revient');
 });
 
 test('la flèche de « Ton objectif ? » est en couleur d’accent et visible même sans JavaScript', () => {
@@ -119,19 +116,14 @@ test('programme : les 15 parties sont des modules, comme dans l’appli ; la fic
   }
 });
 
-test('connexion : décor compact, sans mascotte ni pastille ronde, avec salut ; plus de flamme (13 h 46 : « pas beau »)', () => {
+/* 13 novembre, 1 h 44 : la page de connexion ouvrait l’appli dans le navigateur ; elle n’est plus qu’un renvoi vers la section
+   iPhone du site (retours-0144-site.test.mjs). Ses tests de mise en page (le décor, « Re-bonjour ! », « Découvrir Requête ») sont
+   partis avec elle. */
+test('connexion : un simple renvoi vers la section iPhone du site', () => {
   const h = lire('connexion.html');
-  assert.doesNotMatch(h, /<span class="sticker lav cx-tag">Aperçu<\/span>/);
-  assert.doesNotMatch(h, /mascotte\.webp|class="cx-masc"|class="cx-round"/);
-  assert.match(h, /class="cx-bubble" id="cx-bubble">Re-bonjour&nbsp;!/);
-  assert.doesNotMatch(h, /class="cx-streak" id="cx-streak"/, 'la flamme +1 est retirée');
-  assert.ok(h.includes('  .cx-show{padding-bottom:112px}\n  .cx-stage{min-height:100px;margin-top:12px}'), 'deux rangées aérées, le cadre plus haut');
-  const mobStart = h.indexOf('@media (max-width:959px){');
-  const mob = h.slice(mobStart, h.indexOf('@media (max-width:359px){', mobStart));
-  for (const r of ['.cx-stage{container-type:inline-size;min-height:clamp(112px,34vw,150px)', '.cx-streak{font-size:clamp(12px,3.5cqw,14px)', '.cx-bubble{right:0;bottom:20px'])
-    assert.ok(mob.includes(r), `mobile : ${r}`);
-  assert.match(h, /@media \(max-width:359px\)\{[\s\S]*?\.cx-stage\{min-height:76px\}[\s\S]*?\.cx-s\.s5\{display:block;[\s\S]*?\.cx-panel\{margin-top:-72px\}/);
-  assert.match(h, /@container \(max-width:499px\)\{\.k3\{display:none\}\}/);
+  assert.ok(h.includes('<meta http-equiv="refresh" content="0; url=./#mobile">') && h.includes("<script>location.replace('./#mobile');</script>"));
+  assert.ok(h.includes('<meta name="robots" content="noindex">') && h.includes('<a href="./#mobile">'), 'hors des moteurs de recherche, avec un lien de secours');
+  assert.doesNotMatch(h, /<form|cx-card|\?depuis=/);
 });
 
 test('langue : bien en vue — dans la barre dès 480 px, en tête du menu sur les petits téléphones ; le français seul actif', () => {
@@ -196,12 +188,12 @@ test('plus de point avant les tracés animés : le trait reste caché jusqu’au
   for (const m of starts) assert.match(m[2], /^opacity:0/, `${m[1].trim()} : opacity:0 tant que le dessin n’a pas commencé`);
 });
 
-test('« Se connecter » partout à la place de « Ouvrir l’appli », et la carte d’avis n’est plus coupée en bas', () => {
+test('« Voir la vidéo » dans le menu (13 novembre : plus de « Se connecter »), et la carte d’avis n’est plus coupée en bas', () => {
   for (const page of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html']) {
     const h = lire(page);
     assert.doesNotMatch(h, /Ouvrir l’appli/, `${page} : plus de « Ouvrir l’appli »`);
     const menu = h.slice(h.indexOf('<nav class="menu" id="menu"'), h.indexOf('</nav>', h.indexOf('<nav class="menu" id="menu"')));
-    assert.ok(menu.includes('<a class="btn btn-s btn-lg" href="connexion.html">Se connecter</a>'), `${page} : bouton du menu`);
+    assert.ok(menu.includes('<a class="btn btn-s btn-lg" href="video.html">Voir la vidéo</a>') && !menu.includes('Se connecter'), `${page} : bouton du menu`);
     for (const label of ['Choisir un objectif', 'Parcours de formation', 'Questions fréquentes'])
       assert.ok(menu.includes(`>${label}</a>`), `${page} : « ${label} » dans le menu mobile`);
     assert.ok(!menu.includes('>Ton objectif</a>') && !menu.includes('>Les parcours</a>') && !menu.includes('>Questions</a>'), `${page} : anciens libellés retirés`);
@@ -209,7 +201,7 @@ test('« Se connecter » partout à la place de « Ouvrir l’appli », et la ca
   }
   const home = lire('index.html');
   const menu = home.slice(home.indexOf('<nav class="menu" id="menu"'), home.indexOf('</nav>', home.indexOf('<nav class="menu" id="menu"')));
-  assert.ok(menu.includes('>Pourquoi apprendre SQL</a>') && menu.includes('>Requête sur mobile</a>') && menu.includes('>Contacte-nous</a>'));
+  assert.ok(menu.includes('>Pourquoi apprendre SQL</a>') && menu.includes('>Requête sur iPhone</a>') && menu.includes('>Contacte-nous</a>'));
   /* .avis coupait tout ce qui dépassait, y compris l’ombre de sa dernière carte : on ne coupe plus que sur les côtés */
   assert.match(css, /@supports \(overflow:clip\)\{\.avis\{overflow:visible;overflow-x:clip\}\}/);
 });
@@ -276,18 +268,17 @@ test('témoignages : « Ils recommandent » dans le lecteur, pour montrer que ce
 });
 
 test('« cas pratiques » à la place de « défis métier » sur la vitrine, la vidéo et les pages légales', () => {
-  const pages = ['index.html', 'module.html', 'connexion.html', 'video.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html', 'modules.js'];
+  const pages = ['index.html', 'module.html', 'video.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html', 'modules.js'];   // 13 novembre : connexion.html n’est plus qu’un renvoi
   for (const f of pages) assert.doesNotMatch(lire(f), /[Dd]éfis? métier/, `${f} : plus de « défis métier »`);
   assert.match(lire('index.html'), /<li>477 cas pratiques<\/li>/, 'ce qui est inclus (6 novembre : 267, puis les sept bases ajoutées)');
   assert.match(lire('index.html'), /<h3>Cas pratiques et révisions<\/h3>/);
-  assert.match(lire('connexion.html'), /<span class="sticker sun">477 cas pratiques<svg/, 'autocollant de la page de connexion');
   const v = lire('video.html');
   assert.ok(v.includes('<span>Des <em>cas pratiques</em>,</span>'), 'titre de la scène');
   assert.ok(v.includes("[101.5, 'Cas pratiques']"), 'chapitre');
   /* 6 novembre, 17 h 16 : la vidéo compte aussi 477 cas pratiques (la voix ne dit pas ce nombre : l’autocollant, la tuile, le texte de VoiceOver) */
   assert.ok(v.includes('<div class="stk sun" id="stk-df">477 cas pratiques<svg'), 'autocollant de la vidéo');
   assert.ok(v.includes('<b>477 cas pratiques</b>'), 'tuile des fonctionnalités');
-  assert.ok(!/\b267\b/.test(v) && !/\b267\b/.test(lire('index.html')) && !/\b267\b/.test(lire('connexion.html')), 'plus aucun 267 sur le site');
+  assert.ok(!/\b267\b/.test(v) && !/\b267\b/.test(lire('index.html')), 'plus aucun 267 sur le site');
   assert.ok(v.includes('<div class="df-stamp" id="df-stamp">Cas résolu&nbsp;!</div>'));
   /* Le défi entre amis est une autre fonction de l’appli : il garde son nom */
   assert.match(lire('index.html'), /lancer des défis entre amis/);
@@ -502,14 +493,13 @@ test('contact : la zone des pièces jointes compte les fichiers, et le message s
 });
 
 /* Elisa, 30 octobre, 18 h 05 (sur la page de la vidéo) : « mettre un bouton se connecter ». */
-test('vidéo : « Se connecter » dans la barre du haut, qui mène au formulaire de connexion', () => {
+test('vidéo : « Retour » et « Passer la vidéo » dans la barre du haut (13 novembre : plus de « Se connecter »)', () => {
   const bar = video.slice(video.indexOf('<div class="bar top">'), video.indexOf('</div>', video.indexOf('<div class="bar top">')));
   const liens = [...bar.matchAll(/<a class="pill[^"]*" href="([^"]+)"(?: aria-label="([^"]+)")?>/g)].map(m => [m[1], m[2] || '']);
-  /* 3 novembre, 13 h 04 : « Passer la vidéo » ouvre directement l’onboarding de l’appli ; « Se connecter » mène toujours au formulaire. */
-  assert.deepEqual(liens, [['./', 'Retour'], ['connexion.html#cx-form', ''], ['../?depuis=video', 'Passer la vidéo']]);
-  assert.match(bar, /<a class="pill login" href="connexion\.html#cx-form"><svg class="me"[^>]*aria-hidden="true">.*?<\/svg>Se connecter<\/a>/s, 'icône et texte « Se connecter »');
-  assert.ok(lire('connexion.html').includes('<form class="cx-card" id="cx-form"'), 'le formulaire de connexion existe');
-  /* Sur téléphone, les trois boutons tiennent : « Retour » en flèche, « Passer la vidéo » en « Passer », « Se connecter » écrit */
+  /* 13 novembre, 1 h 44 : l’appli ne s’ouvre plus dans un navigateur ; « Passer la vidéo » mène à la section iPhone du site. */
+  assert.deepEqual(liens, [['./', 'Retour'], ['./#mobile', 'Passer la vidéo']]);
+  assert.ok(!bar.includes('Se connecter') && !video.includes('connexion.html'));
+  /* Sur téléphone : « Retour » en flèche, « Passer la vidéo » en « Passer » */
   assert.match(video, /@media \(max-width:460px\)\{\.bar-r\{gap:8px\}\.pill\{padding:0 13px\}\.pill \.lg\{display:none\}\.pill\.back\{width:44px;/);
   assert.ok(bar.includes('<span class="lg">Retour</span>') && bar.includes('<span>Passer<span class="lg">&nbsp;la vidéo</span></span>'));
 });
@@ -534,7 +524,7 @@ test('sous « Ton objectif ? » : le lien et les trois promesses sont centrés, 
   /* Les promesses : centrées sous la carte (même largeur qu’elle), coupées toutes au même endroit sur téléphone */
   const tr = h.slice(h.indexOf('<ul class="trust'), h.indexOf('</ul>', h.indexOf('<ul class="trust')));
   assert.deepEqual([...tr.matchAll(/<\/svg><span><span>([^<]+)<\/span> <span>([^<]+)<\/span><\/span><\/li>/g)].map(m => [m[1], m[2]]),
-    [['10&nbsp;min', 'par jour'], ['Aucune', 'installation'], ['Disponible', 'hors ligne']]);
+    [['10&nbsp;min', 'par jour'], ['Appli', 'iPhone'], ['Disponible', 'hors ligne']]);   // 13 novembre : « Appli iPhone » à la place de « Aucune installation »
   assert.match(css, /\.trust\{margin:20px 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;max-width:470px;/);
   assert.ok(css.includes('.pick{position:relative;margin-top:28px;max-width:470px;'), 'la carte fait 470 px au plus, comme la ligne');
   const etroit = css.slice(css.indexOf('@media (max-width:489.98px),(min-width:700px) and (max-width:959.98px){'));
@@ -598,13 +588,6 @@ test('héros : une fusée en autocollant, animée, remplace le trophée de la pa
 });
 
 /* 30 octobre (21 h 10) : « centre le bouton ». Vers 360 px, « Découvrir Requête » passait sur deux lignes, calé à gauche. */
-test('connexion : « Découvrir Requête » tient sur une ligne, centré dans son bouton', () => {
-  const h = lire('connexion.html');
-  assert.ok(h.includes('<a class="cx-back" href="./"><svg viewBox="0 0 24 24"') && h.includes('</svg>Découvrir Requête</a>'));
-  const r = h.match(/\n\.cx-back\{([^}]*)\}/)[1];
-  assert.ok(r.includes('display:inline-flex;align-items:center;justify-content:center;') && r.includes('white-space:nowrap;'), 'centré, sans retour à la ligne');
-  assert.ok(h.includes('@media (max-width:399px){.cx-top{gap:8px}.cx-back{padding:0 11px}}'), 'sur petit écran, il tient à côté du logo');
-});
 
 /* 30 octobre (21 h 17) : « fais une carte en dessous avec la partie entretien (à mettre dans l’ordre des autres) au lieu de
    mettre à part », « monte “Requête, bientôt dans ta poche” », et un nouveau texte pour les parcours. */
@@ -635,14 +618,10 @@ test('la prépa entretien devient une carte des atouts ; « bientôt dans ta poc
    il y a un bug dans l’animation, puis on n’atterrit pas sur la page d’accueil directement ». Deux causes : la page de
    l’appli se rechargeait à la première ouverture (le service worker qui s’installe en prend le contrôle), ce qui relançait
    l’animation d’arrivée après un éclair de l’écran de chargement ; et « Se connecter » ouvrait le parcours de bienvenue. */
-test('connexion : nouveau texte, « Se connecter » mène à l’accueil (avec un compte), sans rechargement à la première ouverture', async () => {
+test('arrivée dans l’appli (maybeOnboard) : l’accueil avec un compte, sans rechargement à la première ouverture', async () => {
   const vm = await import('node:vm');
-  const cx = lire('connexion.html');
-  assert.ok(cx.includes('<h1 id="cx-h">Ta prochaine requête <em>t’attend</em>.</h1>'));
-  assert.ok(cx.includes('<p>Retrouve tes cours, tes cas pratiques, tes données, ta collection, exactement là où tu les avais laissés.</p>'));
-  assert.ok(cx.includes("const APP = '../?depuis=vitrine', ACCUEIL = '../?depuis=connexion';"), 'chaque bouton dit qu’on arrive de la vitrine');
-  assert.ok(cx.includes("enter(go, 'Connexion…', 'C’est parti !', ACCUEIL);"), '« Se connecter » : directement l’accueil');
-  assert.ok(cx.includes("enter(e.currentTarget, 'Préparation…', 'Bienvenue !'));") && cx.includes('leave(); });'), 'créer un compte, continuer sans compte : le parcours reste');
+  /* 13 novembre, 1 h 44 : la page de connexion du site n’est plus qu’un renvoi (plus haut) ; l’arrivée dans l’appli, elle, n’a
+     pas changé (l’app iPhone, la mise au point en local). */
   const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   /* Le service worker ne recharge la page que s’il en remplace un autre (une vraie nouvelle version) */
   assert.ok(app.includes('const _swHadController=!!navigator.serviceWorker.controller;'));

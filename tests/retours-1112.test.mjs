@@ -21,14 +21,16 @@ test('le site : le badge de l’App Store mène à la fiche, plus de Google Play
   assert.ok(lire('index.html').includes(`function appStoreFiche(){return '${FICHE}';}`), 'la même fiche que dans l’app');
 });
 
-test('la section « mobile » : « Requête, dans ta poche », l’iPhone, et le navigateur pour les autres téléphones', () => {
+test('la section « mobile » : « Requête, dans ta poche », l’iPhone seulement (13 novembre : plus de navigateur pour les autres téléphones)', () => {
   const h = lire('decouvrir/index.html');
   assert.ok(h.includes('<span class="sticker lav">iPhone<svg'), 'plus d’Android');
   assert.ok(h.includes('<h2 id="mobile-h">Requête, <em>dans ta poche</em>.</h2>'));
-  assert.ok(h.includes('<span>Pas d’iPhone&nbsp;? Requête marche aussi dans le navigateur de ton téléphone&nbsp;: <a href="connexion.html">ouvre l’appli</a> et ajoute-la à ton écran d’accueil.</span>'));
+  /* 13 novembre, 1 h 44 : l’appli ne s’ouvre plus dans un navigateur (retours-0144-site) */
+  assert.ok(!h.includes('Pas d’iPhone') && !h.includes('connexion.html') && !h.includes('ajoute-la à ton écran d’accueil'));
+  assert.ok(h.includes('<span>Connexion en un geste avec Apple ou Google&nbsp;: ta progression te suit.</span>'));
   assert.ok(!h.includes('En attendant, Requête'), 'plus d’« en attendant »');
-  assert.ok(lire('decouvrir/module.html').includes(`+'<p class="label">Aussi sur iPhone</p>'+document.querySelector('footer .stores').outerHTML`), 'la fiche d’un parcours');
-  assert.ok(lire('decouvrir/conditions.html').includes('Requête s’utilise dans un navigateur, sur ordinateur ou sur téléphone, et dans l’application pour iPhone.'));
+  assert.ok(lire('decouvrir/module.html').includes(`+'<p class="label">L’appli iPhone</p>'+document.querySelector('footer .stores').outerHTML`), 'la fiche d’un parcours');
+  assert.ok(lire('decouvrir/conditions.html').includes('Requête est une application pour iPhone, à télécharger dans l’App Store&nbsp;; ce site la présente.'));
   const css = lire('decouvrir/vitrine.css');
   assert.ok(css.includes('a.store{cursor:pointer;color:#fff;text-decoration:none;') && css.includes('a.store:focus-visible{outline:3px solid var(--accent);outline-offset:3px}'), 'un lien qui se touche');
 });

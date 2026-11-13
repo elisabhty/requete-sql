@@ -50,14 +50,12 @@ test('vidéo du métier : la première image est complète (lecture, durée, pol
   assert.ok(video.includes('dureeConnue = true; fit(); ticks(); ui(C.time());'));
 });
 
-test('connexion → appli : la page passe au violet de l’écran de chargement, jamais au blanc', () => {
-  assert.ok(cx.includes('body.cx::after{content:\'\';position:fixed;inset:0;z-index:100;pointer-events:none;opacity:0;transition:opacity .28s;'));
-  assert.ok(cx.includes('background:linear-gradient(180deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%)}\nbody.cx.cx-leave::after{opacity:1}'));
-  assert.ok(app.includes('html.lq #loader{background:var(--immersive-background)!important}') || surf.includes('html.lq #loader{background:var(--immersive-background)!important}'), 'même dégradé que l’écran de chargement');
+/* 13 novembre, 1 h 44 : la page de connexion du site, qui menait à l’appli par un voile violet, n’est plus qu’un renvoi vers la
+   section iPhone (retours-0144-site.test.mjs) ; l’écran de chargement de l’appli garde son dégradé. */
+test('l’écran de chargement de l’appli garde son dégradé violet ; la page de connexion du site n’y mène plus', () => {
+  assert.ok(app.includes('html.lq #loader{background:var(--immersive-background)!important}') || surf.includes('html.lq #loader{background:var(--immersive-background)!important}'));
   assert.ok(surf.includes('--immersive-background:linear-gradient(180deg,var(--immersive-top) 0%,var(--immersive-mid) 48%,var(--immersive-bottom) 100%)') && surf.includes('--immersive-top:#6E50F6;'));
-  const leave = cut(cx, 'function leave(dest){', '\n  }');
-  assert.ok(leave.includes("document.body.classList.add('cx-leave');"));
-  assert.ok(leave.includes("document.documentElement.style.backgroundColor = document.body.style.backgroundColor = '#6E50F6';"), 'zone de l’heure violette');
+  assert.ok(cx.includes("location.replace('./#mobile')") && !cx.includes('cx-leave'));
 });
 
 test('« Commencer » d’un cours : le lecteur s’ouvre par-dessus la page de départ, qui n’est retirée qu’une fois couverte', () => {
