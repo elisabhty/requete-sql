@@ -233,6 +233,8 @@
 #m3{overflow:visible}
 /* 13 novembre, 13 h 19 (Elisa, sur sa capture : « le badge relationnelle est derrière ») : les lignes de la table, posées après lui, passaient devant. */
 #stamp4{right:56px;top:214px;z-index:3}
+/* La console de l’appli (13 novembre) : blanche, à côté de l’étiquette violette du moteur SQL */
+#app6 span{background:#fff;color:var(--accent-ink);border:3px solid var(--line);box-shadow:0 9px 0 var(--lip)}
 .kp{margin-left:auto;height:46px;padding:0 18px;border-radius:999px;background:#fff;color:var(--ci);font-family:var(--ui);font-size:24px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:inset 0 0 0 3px var(--cb)}
 .kp .emo{font-size:24px}
 .kpw{margin-left:auto;position:relative;height:46px;width:260px}
@@ -552,6 +554,8 @@
         <div class="rows" id="rows6"></div>
       </div>
     </div>
+    <div class="abs badge" id="mot6"><span>⚙️ Moteur SQL</span></div>
+    <div class="abs badge" id="app6"><span>📱 Dans l’appli : la console SQL</span></div>
     <div class="abs badge" id="badge6"><span>✓ La table est lue, jamais modifiée</span></div>
     <div class="abs badge" id="badge7"><span>✓ Une ligne par client</span></div>
     <div class="abs card jn" id="jn6">
@@ -605,7 +609,7 @@
 <script src="moments.js"></script>
 <script>
 'use strict';
-const DURATION = 527.55;
+const DURATION = 548.05;
 
 /* Extraits de la base de l’app (vérifiés dans SQLite). La table clients en entier : ses 10 lignes et ses 9 colonnes. */
 const COLS = ['id', 'prenom', 'nom', 'adresse', 'ville', 'age', 'email', 'telephone', 'date_inscription'];
@@ -653,10 +657,10 @@ const CHAPTERS = [
   {n:5, label:'Base de données et SGBD', a:154.55, b:233.35},
   {n:6, label:'La clé primaire',       a:233.35,  b:330.7},
   {n:7, label:'La clé étrangère',      a:330.7, b:405.25},
-  {n:8, label:'Lire une table',        a:405.25, b:438.25},
-  {n:9, label:'Choisir les colonnes',  a:438.25, b:484.5},
-  {n:10, label:'Deux pièges',           a:484.5, b:513.95},
-  {n:11, label:'À retenir',            a:513.95, b:DURATION}
+  {n:8, label:'Lire une table',        a:405.25, b:458.75},
+  {n:9, label:'Choisir les colonnes',  a:458.75, b:490.6},
+  {n:10, label:'Deux pièges',           a:490.6, b:534.45},   // puis l’annonce des jointures (13 novembre, 13 h 49)
+  {n:11, label:'À retenir',            a:534.45, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -747,31 +751,37 @@ const CAPTIONS = [
   [387.35, 393.85, "La clé étrangère se déclare avec <code>FOREIGN KEY</code> et sa colonne, puis <code>REFERENCES</code> et la clé visée."],
   [394.45, 399.65, "Le SGBD vérifie alors chaque lien : existe-t-il un client d’identifiant 99 ?"],
   [399.75, 405.05, "Aucune ligne de <code>clients.id</code> ne porte cet identifiant :<br>la commande est <b>refusée</b>."],
-  [405.55, 409.45, "Pour lire une table, on écrit <code>SELECT * FROM</code> suivi de son nom."],
-  [409.55, 413.45, "L’étoile <code>*</code> permet de sélectionner toutes les colonnes."],
-  [413.55, 418.05, "<code>FROM clients</code> indique dans quelle table récupérer les données."],
-  [418.15, 421.95, "La requête affiche les <b>10 clients</b>, un par ligne."],
-  [422.05, 427.95, "Chaque ligne contient toutes les informations enregistrées dans les <b>9 colonnes</b> de la table."],
-  [428.05, 431.85, "Avec <code>SELECT</code>, tu consultes uniquement les données."],
-  [431.95, 437.85, "Le résultat s’affiche, mais les informations enregistrées dans la table restent inchangées."],
-  [438.55, 444.45, "Pour envoyer un e-mail aux clients, trois colonnes suffisent : le prénom, le nom et <span class=\"nw\">l’e-mail</span>."],
-  [444.55, 449.35, "Il suffit d’écrire leurs noms à la place de l’étoile, séparés par une <b>virgule</b>."],
-  [449.45, 455.55, "Les colonnes s’affichent <b>dans l’ordre où on les écrit</b> : d’abord le prénom, puis le nom, puis <span class=\"nw\">l’e-mail</span>."],
-  [455.65, 460.95, "Le résultat affiche une ligne par client, avec son prénom, son nom et son <span class=\"nw\">e-mail</span>."],
-  [461.05, 466.55, "Les coordonnées de Sophie Martin ne sont plus répétées pour chacune de ses commandes."],
-  [466.65, 470.05, "Elles sont regroupées dans la <b>table clients</b>."],
-  [470.15, 473.95, "Dans une prochaine leçon, tu découvriras les <b>jointures</b>."],
-  [474.05, 478.35, "Elles permettent de réunir les informations de plusieurs tables."],
-  [478.45, 484.2, "Tu pourras ainsi retrouver qui a commandé quoi, comme dans notre feuille Excel de départ."],
-  [484.8, 489.55, "Pour sélectionner plusieurs colonnes, sépare leurs noms par une <b>virgule</b>."],
-  [489.65, 493.85, "N’en ajoute pas après la dernière : <code>SELECT prenom, nom, email</code>."],
-  [493.95, 497.45, "Et si tu oublies la virgule entre <code>prenom</code> et <code>email</code> ?"],
-  [497.55, 502.25, "Le SGBD interprète <code>email</code> comme un nouveau titre pour la colonne <code>prenom</code>."],
-  [502.35, 507.85, "Résultat : les prénoms s’affichent sous le titre « email », sans les adresses e-mail."],
-  [507.95, 513.65, "Avec une virgule de trop avant <code>FROM</code>, la requête provoque une erreur."],
-  [514.25, 519.05, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [519.15, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
-      : [519.15, 999, "Chaque sujet a sa table, des clés relient les tables, et <code>SELECT</code> les lit."]
+  // Elisa, 13 novembre, 13 h 49 : « expliquer ce qu’est une requête, et quand on écrit, expliquer ce qu’est un moteur SQL, qui permet
+  // de taper le SELECT qu’elle tape » : avant la première requête du cours
+  [405.55, 411.05, "Rappel : une <b>requête</b> est une instruction écrite en SQL, pour lire ou modifier des données."],
+  [411.15, 415.35, "Une requête s’écrit dans un <b class=\"nw\">moteur SQL</b>, comme cette fenêtre."],
+  [415.45, 420.55, "On y tape la requête, puis on l’<b>exécute</b> : le résultat s’affiche juste en dessous."],
+  [420.65, 425.95, "Dans l’appli, ton moteur SQL, c’est la <b class=\"nw\">console SQL</b> : tu y écriras tes propres requêtes."],
+  [426.05, 429.95, "Pour lire une table, on écrit <code>SELECT * FROM</code> suivi de son nom."],
+  [430.05, 433.95, "L’étoile <code>*</code> permet de sélectionner toutes les colonnes."],
+  [434.05, 438.55, "<code>FROM clients</code> indique dans quelle table récupérer les données."],
+  [438.65, 442.45, "La requête affiche les <b>10 clients</b>, un par ligne."],
+  [442.55, 448.45, "Chaque ligne contient toutes les informations enregistrées dans les <b>9 colonnes</b> de la table."],
+  [448.55, 452.35, "Avec <code>SELECT</code>, tu consultes uniquement les données."],
+  [452.45, 458.35, "Le résultat s’affiche, mais les informations enregistrées dans la table restent inchangées."],
+  [459.05, 464.95, "Pour envoyer un e-mail aux clients, trois colonnes suffisent : le prénom, le nom et <span class=\"nw\">l’e-mail</span>."],
+  [465.05, 469.85, "Il suffit d’écrire leurs noms à la place de l’étoile, séparés par une <b>virgule</b>."],
+  [469.95, 476.05, "Les colonnes s’affichent <b>dans l’ordre où on les écrit</b> : d’abord le prénom, puis le nom, puis <span class=\"nw\">l’e-mail</span>."],
+  [476.15, 481.45, "Le résultat affiche une ligne par client, avec son prénom, son nom et son <span class=\"nw\">e-mail</span>."],
+  [481.55, 487.05, "Les coordonnées de Sophie Martin ne sont plus répétées pour chacune de ses commandes."],
+  [487.15, 490.55, "Elles sont regroupées dans la <b>table clients</b>."],
+  [490.9, 495.65, "Pour sélectionner plusieurs colonnes, sépare leurs noms par une <b>virgule</b>."],
+  [495.75, 499.95, "N’en ajoute pas après la dernière : <code>SELECT prenom, nom, email</code>."],
+  [500.05, 503.55, "Et si tu oublies la virgule entre <code>prenom</code> et <code>email</code> ?"],
+  [503.65, 508.35, "Le SGBD interprète <code>email</code> comme un nouveau titre pour la colonne <code>prenom</code>."],
+  [508.45, 513.95, "Résultat : les prénoms s’affichent sous le titre « email », sans les adresses e-mail."],
+  [514.05, 519.75, "Avec une virgule de trop avant <code>FROM</code>, la requête provoque une erreur."],
+  [520.1, 523.9, "Dans une prochaine leçon, tu découvriras les <b>jointures</b>."],
+  [524.0, 528.3, "Elles permettent de réunir les informations de plusieurs tables."],
+  [528.4, 534.1, "Tu pourras ainsi retrouver qui a commandé quoi, comme dans notre feuille Excel de départ."],
+  [534.75, 539.55, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [539.65, 999, "<b>Ajoute ce résumé à tes notes</b> pour le retrouver facilement."]
+      : [539.65, 999, "Chaque sujet a sa table, des clés relient les tables, et <code>SELECT</code> les lit."]
 ];
 
 /* Pas de question du lecteur en pleine vidéo : les moments « À toi » (MOMENTS) font participer l’élève. */
@@ -821,7 +831,7 @@ const MOMENTS = [
       why: c === 1 ? '' : `La commande ${id} renvoie à ${cli(c)[1]} ${cli(c)[2]} : son <code>client_id</code> vaut ${c}.`})),
     tip: 'Cherche l’identifiant 1 dans <code>client_id</code>.'},
   // choisir les colonnes : ce que va afficher la requête, juste avant « Exécuter » (Réf 22 : la correction)
-  {at: 449.4, from: 438.25, kind: 'pick', text: true, prompt: 'Que va afficher <code>SELECT prenom, nom, email</code> ?', options: [
+  {at: 469.9, from: 458.75, kind: 'pick', text: true, prompt: 'Que va afficher <code>SELECT prenom, nom, email</code> ?', options: [
     {label: 'Les 10 clients, avec 3 colonnes', ok: true, why: 'Les 10 clients apparaissent toujours dans le résultat, mais seules les 3 colonnes indiquées après <code>SELECT</code> sont affichées : prénom, nom et e-mail.'},
     {label: 'Les 10 clients, avec leurs 9 colonnes', why: 'Les 9 colonnes, c’est l’étoile <code>*</code>. Ici, seules trois colonnes s’affichent.'},
     {label: '3 lignes : prénom, nom et e-mail', why: 'Une colonne n’est pas une ligne : les 10 clients gardent chacun la leur.'}],
@@ -1048,6 +1058,9 @@ function build(){
   const e7 = rel($('#th6').children[6], $('#pan6'));
   const PANE = Math.round(e7.x + e7.w - $('#tbl6').clientWidth + 14), W3 = [220, 250, 450];
   stackBelow('#badge6', '#tbl6', 0, 30);
+  /* Le moteur SQL (13 novembre, 13 h 49) : son étiquette sous la fenêtre, puis la console de l’appli dessous */
+  stackBelow('#mot6', '#s6code', 0, 40);
+  stackBelow('#app6', '#mot6', 0, 44);
   stackBelow('#badge7', '#tbl6', 0, 30);
   /* Pour la jointure, le tableau et son badge remontent en haut de l’écran ; la carte se pose sous le badge. */
   const TOP6 = $('#tbl6').offsetTop, TOPB7 = $('#badge7').offsetTop, UP7 = TOP6 - 300;
@@ -1909,27 +1922,36 @@ function build(){
   sceneOn('#s6', 405.25);
   show('#s6code', 405.3, {y: 60}, 0.6);
   cue(405.3, 'whoosh', 0.7);
-  te = typeLine($('#q61'), 405.8, 16, false, $('#cols7'));   // prenom, nom, email : tapés au chapitre 7, à la place de l’étoile
+  // Une requête s’écrit dans un moteur SQL, comme cette fenêtre : on y tape la requête, on l’exécute ; dans l’appli, la console SQL
+  show('#mot6', 411.45, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(411.45, 'pop', 0.7, 2);
+  pulse('#s6code .fname', 412.25, 3, 'rgba(201,188,255,.35)');
+  bump('#s6run', 417.05, 1.05, 3);   // le bouton Exécuter (son fond est un dégradé : il grossit au lieu de changer de couleur)
+  cue(417.05, 'tick', 0.55, 2);
+  show('#app6', 420.95, {y: 30}, 0.5);
+  cue(420.95, 'whoosh', 0.5);
+  hide(['#mot6', '#app6'], 425.8, {y: 0, scale: 0.85}, 0.3);
+  te = typeLine($('#q61'), 426.3, 16, false, $('#cols7'));   // prenom, nom, email : tapés au chapitre 7, à la place de l’étoile
   te = typeLine($('#q62'), te + 0.1, 16);
   // L’étoile * sélectionne toutes les colonnes ; FROM clients, la table où récupérer les données (Elisa, 28 octobre, Réf 19)
-  pulse('#star6', 410.35, 3, 'rgba(255,224,138,.35)');
-  bump('#star6', 410.35, 1.3, 1);
-  pulse('#tn6', 414.05, 3, 'rgba(201,188,255,.35)');
-  press($('#s6run'), 416.55);
-  show('#tbl6', 416.8, {y: 40}, 0.5);
+  pulse('#star6', 430.85, 3, 'rgba(255,224,138,.35)');
+  bump('#star6', 430.85, 1.3, 1);
+  pulse('#tn6', 434.55, 3, 'rgba(201,188,255,.35)');
+  press($('#s6run'), 437.05);
+  show('#tbl6', 437.3, {y: 40}, 0.5);
   const r6 = $$('#rows6 .tr');
-  rowsIn(r6, 416.95, 0.06);
+  rowsIn(r6, 437.45, 0.06);
   gsap.set('#cnt7', {autoAlpha: 0});
-  show('#cnt6', 418.45, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  cue(418.45, 'pop', 0.7, 3);
+  show('#cnt6', 438.95, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(438.95, 'pop', 0.7, 3);
   // Les 9 colonnes défilent, jusqu’à la dernière, puis reviennent
-  tl.to('#pan6', {x: -PAN, duration: 2.6, ease: 'power1.inOut'}, 422.35);
-  cue(422.35, 'whoosh', 0.4);
-  tl.to('#pan6', {x: 0, duration: 0.9, ease: 'power2.inOut'}, 425.35);
+  tl.to('#pan6', {x: -PAN, duration: 2.6, ease: 'power1.inOut'}, 442.85);
+  cue(442.85, 'whoosh', 0.4);
+  tl.to('#pan6', {x: 0, duration: 0.9, ease: 'power2.inOut'}, 445.85);
   // La table est lue, sans être modifiée
-  show('#badge6', 429.05, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(429.05, 'chord', 0.7);
-  hide('#badge6', 437.55, {y: 0, scale: 0.8}, 0.3);
+  show('#badge6', 449.55, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(449.55, 'chord', 0.7);
+  hide('#badge6', 458.05, {y: 0, scale: 0.8}, 0.3);
 
   /* ===== 8 · Choisir les colonnes ===== */
   // Pour écrire aux clients : le prénom, le nom et l’e-mail ; les six autres colonnes s’estompent
@@ -1937,120 +1959,130 @@ function build(){
   const colCells = j => [th6[j], ...r6.map(r => r.children[j + 1])];   // dans une ligne, le premier enfant est le surlignage
   const keepH = KEEP.map(j => th6[j]);
   gsap.set('#pan6', {'--k0': '64px', '--k1': '150px', '--k2': '160px', '--k3': '300px', '--k4': '170px', '--k5': '80px', '--k6': '360px', '--k7': '250px', '--k8': '260px'});   // valeurs de départ, pour que le repli parte des largeurs réelles
-  tl.to(DROP.flatMap(colCells), {opacity: 0.2, duration: 0.45}, 439.05);
-  cue(439.05, 'fold', 0.45);
-  tl.to(keepH.slice(0, 2), {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 439.95);
-  cue(439.95, 'pop', 0.6, 2);
+  tl.to(DROP.flatMap(colCells), {opacity: 0.2, duration: 0.45}, 459.55);
+  cue(459.55, 'fold', 0.45);
+  tl.to(keepH.slice(0, 2), {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 460.45);
+  cue(460.45, 'pop', 0.6, 2);
   // La colonne email est plus loin : le tableau défile jusqu’à elle, puis revient
-  tl.to('#pan6', {x: -PANE, duration: 0.9, ease: 'power2.inOut'}, 440.65);
-  cue(440.65, 'whoosh', 0.4);
-  tl.to(keepH[2], {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 441.65);
-  cue(441.65, 'pop', 0.6, 4);
-  tl.to('#pan6', {x: 0, duration: 0.7, ease: 'power2.inOut'}, 442.65);
+  tl.to('#pan6', {x: -PANE, duration: 0.9, ease: 'power2.inOut'}, 461.15);
+  cue(461.15, 'whoosh', 0.4);
+  tl.to(keepH[2], {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 462.15);
+  cue(462.15, 'pop', 0.6, 4);
+  tl.to('#pan6', {x: 0, duration: 0.7, ease: 'power2.inOut'}, 463.15);
   // À la place de l’étoile : leurs noms, séparés par une virgule
-  tl.to('#star6', {scale: 0.2, autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 444.85);
-  cue(444.85, 'fold', 0.4);
-  tl.set('#star6', {display: 'none'}, 445.1);
-  te = typeMore($('#cols7'), 445.25, 16);
+  tl.to('#star6', {scale: 0.2, autoAlpha: 0, duration: 0.25, ease: 'power2.in'}, 465.35);
+  cue(465.35, 'fold', 0.4);
+  tl.set('#star6', {display: 'none'}, 465.6);
+  te = typeMore($('#cols7'), 465.75, 16);
   ['#k7a', '#k7b'].forEach((s, i) => {
-    const t = 446.95 + i * 0.35;
+    const t = 467.45 + i * 0.35;
     tl.to(s, {scale: 1.7, y: -6, color: '#FFC94A', duration: 0.2, ease: 'power2.out'}, t)
       .to(s, {scale: 1, y: 0, color: '#FFE08A', duration: 0.3, ease: 'back.out(2)'}, t + 0.2);
     cue(t, 'pop', 0.75, 3 + i);
   });
   // Exécuter : les six colonnes se replient, les trois autres s’élargissent
-  press($('#s6run'), 449.75);
-  tl.to(DROP.flatMap(colCells), {opacity: 0, paddingLeft: 0, paddingRight: 0, duration: 0.3}, 450.0);
+  press($('#s6run'), 470.25);
+  tl.to(DROP.flatMap(colCells), {opacity: 0, paddingLeft: 0, paddingRight: 0, duration: 0.3}, 470.5);
   tl.to('#pan6', {'--k0': '0px', '--k3': '0px', '--k4': '0px', '--k5': '0px', '--k7': '0px', '--k8': '0px',
-    '--k1': W3[0] + 'px', '--k2': W3[1] + 'px', '--k6': W3[2] + 'px', width: $('#tbl6').clientWidth, duration: 0.75, ease: 'power3.inOut'}, 450.1);
-  cue(450.1, 'whoosh', 0.5);
-  tl.to('#cnt6', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 450.55);
-  tl.fromTo('#cnt7', {autoAlpha: 0, y: 24}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)', immediateRender: false}, 450.65);
-  cue(450.65, 'pop', 0.8, 4);
+    '--k1': W3[0] + 'px', '--k2': W3[1] + 'px', '--k6': W3[2] + 'px', width: $('#tbl6').clientWidth, duration: 0.75, ease: 'power3.inOut'}, 470.6);
+  cue(470.6, 'whoosh', 0.5);
+  tl.to('#cnt6', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 471.05);
+  tl.fromTo('#cnt7', {autoAlpha: 0, y: 24}, {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)', immediateRender: false}, 471.15);
+  cue(471.15, 'pop', 0.8, 4);
   // 1, 2, 3 : l’ordre des colonnes est celui de la requête (les rangs prennent leur place une fois les colonnes élargies)
   gsap.set(['#o7a', '#o7b', '#o7c'], {display: 'none'});
-  tl.set(['#o7a', '#o7b', '#o7c'], {display: 'inline-flex'}, 450.95);
+  tl.set(['#o7a', '#o7b', '#o7c'], {display: 'inline-flex'}, 471.45);
   [['#o7a', '#c7a'], ['#o7b', '#c7b'], ['#o7c', '#c7c']].forEach(([o, w], i) => {
-    const t = 451.85 + i * 0.6;
+    const t = 472.35 + i * 0.6;
     show(o, t, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
     tl.to(w, {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.22, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
     cue(t, 'pop', 0.9, 1 + i * 2);
   });
-  tl.to(keepH, {color: '#6A6490', backgroundColor: 'rgba(228,220,255,0)', duration: 0.3}, 453.75);
+  tl.to(keepH, {color: '#6A6490', backgroundColor: 'rgba(228,220,255,0)', duration: 0.3}, 474.25);
   // Une ligne par client, avec son prénom, son nom et son e-mail ; les coordonnées de Sophie Martin, une seule fois (Réf 23)
-  bump('#cnt7', 456.05, 1.1, 1);
-  cue(456.05, 'tick', 0.55, 2);
-  show('#badge7', 458.05, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(458.05, 'chord', 0.7);
-  hlRow(r6[0], 461.55);
-  pulse(r6[0].children[7], 462.05, 3, 'rgba(201,188,255,.55)');
-  // Dans une prochaine leçon, les jointures : elles réunissent les informations de plusieurs tables, comme la feuille Excel de départ
-  hide('#s6code', 470.45, {y: -40}, 0.4);
-  hlRow(r6[0], 470.45, 0);
-  tl.to('#tbl6', {top: TOP6 - UP7, duration: 0.6, ease: 'power3.inOut'}, 470.85);
-  tl.to('#badge7', {top: TOPB7 - UP7, duration: 0.6, ease: 'power3.inOut'}, 470.85);
-  cue(470.85, 'whoosh', 0.45);
-  show('#jn6', 471.65, {y: 50}, 0.5);
-  cue(471.65, 'whoosh', 0.55);
-  const [jr1, jr2] = $$('#jn6 .jnr'), jc = [...jr1.children], jr = [...jr2.children];
-  gsap.set([...jc, ...jr], {autoAlpha: 0, scale: 0.6});
-  tl.to(jc, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.12}, 474.35);
-  jc.forEach((_, i) => { if (i % 2 === 0) cue(474.35 + i * 0.12, 'pop', 0.55, i); });
-  tl.to(jr, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', stagger: 0.15}, 479.05);
-  cue(479.2, 'chord', 0.6);
-  hide(['#tbl6', '#badge7', '#jn6'], 484.05);
-  sceneOff('#s6', 484.55);
+  bump('#cnt7', 476.55, 1.1, 1);
+  cue(476.55, 'tick', 0.55, 2);
+  show('#badge7', 478.55, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(478.55, 'chord', 0.7);
+  hlRow(r6[0], 482.05);
+  pulse(r6[0].children[7], 482.55, 3, 'rgba(201,188,255,.55)');
+  // Fin du chapitre : la scène s’efface, les deux pièges suivent (Elisa, 13 novembre, 13 h 49 : « tu parles de SELECT, ensuite
+  // jointure, ensuite les pièges sur SELECT, tu peux échanger ? » ; les pièges viennent maintenant juste après SELECT)
+  hlRow(r6[0], 490.1, 0);
+  hide('#s6code', 490.1, {y: -40}, 0.4);
+  hide(['#tbl6', '#badge7'], 490.1, {y: 0}, 0.4);
+  sceneOff('#s6', 490.65);
 
   /* ===== 9 · Deux pièges ===== */
-  sceneOn('#s9', 484.5);
-  show('#qdemo .codepill', 484.55, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
-  cue(484.55, 'whoosh', 0.6);
+  sceneOn('#s9', 490.6);
+  show('#qdemo .codepill', 490.65, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
+  cue(490.65, 'whoosh', 0.6);
   // Une virgule entre deux colonnes
   ['#cm9a', '#cm9b'].forEach((s, i) => {
-    const t = 485.4 + i * 0.3;
+    const t = 491.5 + i * 0.3;
     tl.to(s, {scale: 1.7, y: -6, color: '#FFC94A', duration: 0.2, ease: 'power2.out'}, t)
       .to(s, {scale: 1, y: 0, color: '#FFE08A', duration: 0.3, ease: 'back.out(2)'}, t + 0.2);
     cue(t, 'pop', 0.8, 4 + i);
   });
   gsap.set('#brkPath', {strokeDasharray: `${BRK} ${BRK + 2}`, strokeDashoffset: BRK + 1});
-  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut'}, 486.2);
-  show('#qlabel', 486.55, {y: 14});
+  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut'}, 492.3);
+  show('#qlabel', 492.65, {y: 14});
   // Sans virgule entre prenom et email : email devient un nouveau titre pour la colonne prenom (Elisa, 28 octobre, sans parler d’AS ni d’alias)
-  show('#trapA', 494.15, {y: 50});
-  cue(494.15, 'whoosh', 0.6);
-  press($('#goA'), 495.05, '#4B30CC', 6);
-  show('#resA', 495.3, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  cue(495.3, 'pop', 0.8, 2);
+  show('#trapA', 500.25, {y: 50});
+  cue(500.25, 'whoosh', 0.6);
+  press($('#goA'), 501.15, '#4B30CC', 6);
+  show('#resA', 501.4, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(501.4, 'pop', 0.8, 2);
   const mrr = $$('#resA .mrr');
   gsap.set(mrr, {autoAlpha: 0, y: 10});
-  tl.to(mrr, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.08}, 495.5);
+  tl.to(mrr, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.08}, 501.6);
   gsap.set('#thEmail .mbox', {autoAlpha: 0, scale: 1.25});
-  tl.to('#thEmail .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 498.15);
-  tl.to('#thEmail', {color: '#C2323A', duration: 0.2}, 498.15);
-  cue(498.15, 'miss', 0.7, 2);
+  tl.to('#thEmail .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 504.25);
+  tl.to('#thEmail', {color: '#C2323A', duration: 0.2}, 504.25);
+  cue(504.25, 'miss', 0.7, 2);
   // Résultat : les prénoms, sous le titre « email », sans les adresses e-mail
-  show('#noteA', 502.75, {y: 0, x: -24}, 0.45);
-  cue(502.75, 'pop', 0.7, 4);
-  tl.to('#thEmail', {scale: 1.15, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 503.75);
+  show('#noteA', 508.85, {y: 0, x: -24}, 0.45);
+  cue(508.85, 'pop', 0.7, 4);
+  tl.to('#thEmail', {scale: 1.15, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 509.85);
   // Une virgule de trop avant FROM : la requête provoque une erreur
-  show('#trapB', 508.25, {y: 50});
-  cue(508.25, 'whoosh', 0.6);
-  press($('#goB'), 509.15, '#4B30CC', 6);
+  show('#trapB', 514.35, {y: 50});
+  cue(514.35, 'whoosh', 0.6);
+  press($('#goB'), 515.25, '#4B30CC', 6);
   gsap.set('#badComma .mbox', {autoAlpha: 0, scale: 1.4});
-  tl.to('#badComma .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 509.4);
-  tl.to('#badComma', {color: '#FF9DA1', duration: 0.2}, 509.4);
-  show('#errB', 509.4, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  tl.to('#errB', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 509.8);
-  cue(509.4, 'error', 0.9);
-  hide(['#qdemo', '#trapA', '#trapB'], 513.4);
-  sceneOff('#s9', 513.95);
+  tl.to('#badComma .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 515.5);
+  tl.to('#badComma', {color: '#FF9DA1', duration: 0.2}, 515.5);
+  show('#errB', 515.5, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#errB', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 515.9);
+  cue(515.5, 'error', 0.9);
+  hide(['#qdemo', '#trapA', '#trapB'], 519.5);
+  sceneOff('#s9', 520.05);
+
+  /* ===== 9 bis · Plus tard : les jointures (après les deux pièges, 13 novembre, 13 h 49) ===== */
+  // Le tableau des clients revient en haut de l’écran ; la carte des jointures se pose dessous : elles réunissent les informations de
+  // plusieurs tables, comme la feuille Excel de départ
+  sceneOn('#s6', 520.0);
+  tl.set('#tbl6', {top: TOP6 - UP7}, 520.0);
+  tl.set('#badge7', {top: TOPB7 - UP7}, 520.0);
+  show('#tbl6', 520.15, {y: 0}, 0.5);
+  show('#badge7', 520.45, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(520.15, 'whoosh', 0.45);
+  show('#jn6', 521.6, {y: 50}, 0.5);
+  cue(521.6, 'whoosh', 0.55);
+  const [jr1, jr2] = $$('#jn6 .jnr'), jc = [...jr1.children], jr = [...jr2.children];
+  gsap.set([...jc, ...jr], {autoAlpha: 0, scale: 0.6});
+  tl.to(jc, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.12}, 524.3);
+  jc.forEach((_, i) => { if (i % 2 === 0) cue(524.3 + i * 0.12, 'pop', 0.55, i); });
+  tl.to(jr, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', stagger: 0.15}, 529.0);
+  cue(529.15, 'chord', 0.6);
+  hide(['#tbl6', '#badge7', '#jn6'], 533.9);
+  sceneOff('#s6', 534.45);
 
   /* ===== 10 · À retenir ===== */
-  recapScene(513.55, [514.65, 516.45, 518.25]);
-  hold(516.25, 5.2);
-  hold(518.05, 5.2);
+  recapScene(534.05, [535.15, 536.95, 538.75]);
+  hold(536.75, 5.2);
+  hold(538.55, 5.2);
   // Le bouton « Ajouter à mes notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(519.2, 'pop', 0.85, 5);
+  if (APP) cue(539.7, 'pop', 0.85, 5);
 }
 
 /* Voix off (tools/voix/integrer.mjs, voix Agathe d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende,
@@ -2153,8 +2185,8 @@ const VOICE = {dir: '../voix/bases-relationnelles/', intro: ["ch00",0,7.01],
   say: {"at1":["at1",0.04,5.79],"at2":["at2",0.04,2.94],"at3":["at3",0.02,4.33],"at4":["at4",0.04,3.26],"at5":["at5",0.04,4.14],"touche1":["touche1",0.06,1.65],"touche2":["touche2",0.06,2.01],"lienapres":["lienapres",0,4.02],"bienvu":["bienvu",0.06,1.09],"rattrape":["rattrape",0.03,1.25],"presque":["presque",0.19,3.49],"indice1":["indice1",0.15,2.7],"indice2":["indice2",0.14,3.43],"indice3":["indice3",0.12,3.396],"indice4":["indice4",0.12,3.68],"indice5":["indice5",0.05,2.92],"finbravo":["finbravo",0,2.46],"fineffort":["fineffort",0.04,3.77]},
   toi: {"at1":[0.65,0.92],"at2":[0.64,1.01],"at3":[0.63,0.9],"at4":[0.64,0.89],"at5":[0.65,0.9]}};
 /* Fin de la voix off */
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 519.2, moments: MOMENTS, opens: OPENS, voice: VOICE,
-  glyphs: '📊👥📦🧾🔑🔗❓🔎👀🗂️🏷️➕📋⚠️💬💼🚚⚙️🗄️💶📒🛒✏️🌾🐟💊🔒🤝🙌💜👋📅🙂✓✕?!→↔↑↓·…⋮«»+', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 539.7, moments: MOMENTS, opens: OPENS, voice: VOICE,
+  glyphs: '📱📊👥📦🧾🔑🔗❓🔎👀🗂️🏷️➕📋⚠️💬💼🚚⚙️🗄️💶📒🛒✏️🌾🐟💊🔒🤝🙌💜👋📅🙂✓✕?!→↔↑↓·…⋮«»+', dom, build});
 </script>
 </body>
 </html>

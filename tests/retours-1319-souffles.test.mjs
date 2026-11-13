@@ -93,8 +93,8 @@ test('les outils : integrer.mjs applique la règle à chaque intégration, souff
 
 test('les 7 légendes muettes : générées à part, sans refaire les chapitres ; jamais payées deux fois', () => {
   const comp = JSON.parse(lire('tools/voix/bases-relationnelles-complements.json')), job = JSON.parse(lire('tools/voix/bases-relationnelles.json'));
-  assert.deepEqual(comp.elements.map(e => e.id), ['ch05b', 'ch06b', 'ch06c', 'ch11']);
-  assert.equal(comp.elements.reduce((n, e) => n + e.texte.length, 0), 688, 'environ 690 crédits');
+  assert.deepEqual(comp.elements.map(e => e.id), ['ch05b', 'ch06b', 'ch06c', 'ch08a', 'ch11']);   // ch08a : 13 h 49, la requête et le moteur SQL
+  assert.equal(comp.elements.reduce((n, e) => n + e.texte.length, 0), 1023, 'environ 1 020 crédits');
   const page = lire('assets/anim/bases-relationnelles.html');
   const CAPTIONS = vm.runInContext(page.slice(page.indexOf('const CAPTIONS = ['), page.indexOf('\n];', page.indexOf('const CAPTIONS = [')) + 3).replace('const CAPTIONS =', 'CAPTIONS =') + ';CAPTIONS', vm.createContext({APP: true, CAPTIONS: null}));
   const plain = h => h.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
@@ -111,6 +111,7 @@ test('les 7 légendes muettes : générées à part, sans refaire les chapitres 
   /* le cours les liste à leur place (après leur chapitre) ; ch05 et ch06 ne changent pas : leurs fichiers ne sont pas refaits */
   const ids = job.elements.map(e => e.id);
   assert.ok(ids.indexOf('ch05b') === ids.indexOf('ch05') + 1 && ids.indexOf('ch06b') === ids.indexOf('ch06') + 1 && ids.indexOf('ch06c') === ids.indexOf('ch06') + 2);
+  assert.ok(ids.indexOf('ch08a') === ids.indexOf('ch08') - 1, 'ch08a : juste avant le chapitre 8');
   assert.equal(job.elements.find(e => e.id === 'ch05').phrases.length, 12);
   assert.equal(job.elements.find(e => e.id === 'ch06').phrases.length, 16);
   /* generer.mjs : un fichier fait dans sortie/<cours>-complements compte comme fait pour le cours */

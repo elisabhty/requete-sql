@@ -3,7 +3,8 @@
 _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Elisa décide de ce qui est généré._
 
 **13 novembre, 13 h 19 : « Les bases de données relationnelles », ses légendes muettes** (Elisa, sur sa capture : « certains textes ne
-sont pas parlés »). Sept légendes ajoutées après la voix du cours, ou jamais générées, et la phrase de la relecture du 10 novembre :
+sont pas parlés »). Sept légendes ajoutées après la voix du cours, ou jamais générées, la phrase de la relecture du 10 novembre, et les quatre phrases
+ajoutées à 13 h 49 avant la première requête :
 
   - chapitre 5 (`ch05b`, 289 caractères) : « Le SQL est le langage qui permet de communiquer avec le SGBD. », « Une requête est une
     instruction écrite en SQL : elle demande au SGBD de lire ou de modifier des données. », « Ici, SELECT * FROM produits demande
@@ -12,12 +13,17 @@ sont pas parlés »). Sept légendes ajoutées après la voix du cours, ou jamai
     son type : TEXT pour un prénom ou un e-mail, REAL pour un prix à virgule, comme 29,90 €. » ;
   - chapitre 6 (`ch06c`, 89 caractères) : « Cette colonne est la clé primaire : sa valeur est unique et n’est jamais vide. » (la relecture
     du 10 novembre ; la légende change avec sa voix, pas avant) ;
+  - chapitre 8 (`ch08a`, 335 caractères ; Elisa, 13 h 49 : « expliquer ce qu’est une requête et ce qu’est un moteur SQL, qui permet
+    de taper le SELECT qu’elle tape ») : « Rappel : une requête est une instruction écrite en SQL, pour lire ou modifier des
+    données. », « Une requête s’écrit dans un moteur SQL, comme cette fenêtre. », « On y tape la requête, puis on l’exécute : le
+    résultat s’affiche juste en dessous. », « Dans l’appli, ton moteur SQL, c’est la console SQL : tu y écriras tes propres
+    requêtes. » ;
   - chapitre 11, « À retenir » (`ch11`, 115 caractères) : « Pour finir, voici les trois idées à retenir. », « Ajoute ce résumé à tes notes
     pour le retrouver facilement. ».
 
   Générées à part (`tools/voix/bases-relationnelles-complements.json`), avec la phrase d’avant et celle d’après pour le ton : les
   autres phrases du cours gardent leur voix (avant, il fallait refaire les chapitres 5, 6 et 11 en entier : 2 385 caractères, plus
-  1 402 pour la relecture). Environ 690 crédits :
+  1 402 pour la relecture). Environ 1 020 crédits :
 
 ```
 cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours bases-relationnelles-complements --oui

@@ -238,7 +238,7 @@ test('le cours « Les bases de données relationnelles » a sa voix : chaque phr
   const vSrc = page.slice(page.indexOf('const VOICE = {'), page.indexOf('/* Fin de la voix off */'));
   assert.ok(vSrc.length > 100, 'VOICE dans la page');
   const VOICE = vm.runInContext(vSrc.replace('const VOICE =', 'VOICE =') + ';VOICE', vm.createContext({VOICE: null}));
-  assert.ok(/\nCourse\(\{duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 519\.2, moments: MOMENTS, opens: OPENS, voice: VOICE,\n/.test(page));
+  assert.ok(/\nCourse\(\{duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 539\.7, moments: MOMENTS, opens: OPENS, voice: VOICE,\n/.test(page));
   assert.equal(VOICE.dir, '../voix/bases-relationnelles/');
   const keys = new Set(CAPTIONS.map(c => vkey(c[2])));
   /* 13 novembre (Elisa, 13 h 19 : « certains textes ne sont pas parlés ») : chaque légende a sa voix, et chaque voix sa légende.
