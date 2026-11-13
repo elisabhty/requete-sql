@@ -48,7 +48,7 @@ test('avant le podium : la page s’ouvre à l’arrivée sur l’écran de fin,
 });
 
 test('la carte de la dernière manche : « Tes points arrivent dans 5 s » et sa barre, trouvée ou pas', () => {
-  assert.ok(app.includes("${last?(jeuSoloLike(n)?'Ton bilan arrive':'Tes points arrivent'):'La manche suivante démarre'} dans <b id=\"jeu-auto-n\">"));
+  assert.ok(app.includes("${last?(sl?'Ton bilan arrive':'Tes points arrivent'):'La manche suivante démarre'} dans <b id=\"jeu-auto-n\">"));
   assert.ok(app.includes("const suite=sl||(last&&jeuRoundDone(n))?jeuSuiteHTML(n)"));
   assert.ok(app.includes("const rate=!mine&&jeuRoundDone(n)&&(sl||n>=J.nb-1);edOn=!mine&&!rate;"), 'pas trouvée : « Temps écoulé », puis la barre');
   assert.ok(fn('jeuPatch').includes("if(r&&n>=J.nb-1&&jeuRoundDone(n)&&!document.getElementById('jeu-auto')){J.keep=v;J.view='';jeuPaint();return;}"));
