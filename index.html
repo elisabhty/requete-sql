@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=347">
+<link rel="stylesheet" href="ludique.css?v=348">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -37869,6 +37869,9 @@ function jeuPatch(v){
   }else{
     const pl=document.getElementById('jeu-players');
     if(pl)pl.innerHTML=jeuPlayersHTML(v==='lobby'?'lobby':'res');
+    /* Le podium : la carte de la revanche suit la salle (qui est là, qui relance), 13 novembre, 21 h 15 */
+    const rv=v==='final'&&document.getElementById('jeu-rv');
+    if(rv){const x=document.createElement('div');x.innerHTML=jeuRevancheHTML();const nv=x.firstElementChild;if(nv&&nv.outerHTML!==rv.outerHTML)rv.replaceWith(nv);}
   }
   jeuNetMaj();
   const go=document.getElementById('jeu-go');
@@ -38281,8 +38284,7 @@ function jeuRender(){
         ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.pts>0?x.place:'–'}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${x.pts>0?jeuChrono(x.ms):'Pas trouvé'}</small></li>`).join('')}</ol>${tie}</div>`:tie}`;
       html=`${jeuNetSlot()}${hero}${classement}
         ${jeuCorrListeHTML()}
-        ${host?`<button type="button" class="journey-primary jeu-revanche" onclick="jeuRejouer()"><span>Revanche</span>${DEF_CHEV_SVG}</button><p class="jeu-wait jeu-revanche-n"><i class="jeu-dot" aria-hidden="true"></i>Même salle, même code&nbsp;: tout le monde revient.</p>`:jeuRevancheHTML()}
-        ${jeuBtn2('quit','Quitter la salle','goBack()')}`;
+        ${jeuRevancheHTML()}`;
       if(!keep&&!J.voile){   // voilé (19 h 15) : jeuVoileLever
         if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jr2-n');if(b&&JEU===J)jeuCountUp(b);},300);
         if(winner)setTimeout(celebrate,300);   // redessiné sur place (la revanche) : pas une deuxième fois
@@ -38729,10 +38731,45 @@ function jeuRevanche(){
   if(typeof buzz==='function')buzz(J.revanche?'success':'light');
   jeuRedraw();   // le même écran, redessiné sans son entrée ni ses confettis (keep)
 }
+/* 13 novembre, 21 h 15 (Elisa, sur le podium : « fusionner le bouton Revanche et le texte en bas ; faire comprendre qu’une personne est
+   en train de relancer, avec les flèches en rond, en direct, pour dire qu’il y a quelqu’un dans la salle ; et en bas deux boutons,
+   Revanche et Quitter la salle, qui nous fait revenir à l’onglet Défis ») : une carte « en direct » (qui relance, qui est encore là,
+   les flèches qui tournent), puis les deux boutons côte à côte. Elle suit la salle sur place (jeuPatch) : un joueur qui part, l’hôte
+   qui change, « Prête ✓ ». */
+const JEU_RELANCE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12A8 8 0 0 1 17.7 6.4"/><path d="M18.2 2.6v3.9h-3.9"/><path d="M5.8 21.4v-3.9h3.9"/></svg>';
 function jeuRevancheHTML(){
-  const J=JEU,on=!!(J&&J.revanche),h=J&&J.players&&(J.players[J.hostPid]||{}).name,hote=h?esc(h):'';
-  return `<button type="button" class="journey-primary jeu-revanche${on?' on':''}" aria-pressed="${on}" onclick="jeuRevanche()"><span>${on?`${jeuMaj(jeuPretMot(true))} pour la revanche ✓`:'Revanche'}</span>${on?'':DEF_CHEV_SVG}</button>`+
-    `<p class="jeu-wait jeu-revanche-n"><i class="jeu-dot" aria-hidden="true"></i>${on?`Tu seras ${jeuPretMot(true)} dès que ${hote||'l’hôte'} relance la partie.`:`${hote?hote+' relance':'L’hôte relance'} la partie, ici, avec le même code.`}</p>`;
+  const J=JEU;if(!J)return '';
+  const host=jeuIsHost(),on=!host&&!!J.revanche,live=typeof jeuLive==='function'?jeuLive():[J.me];
+  const hp=J.players&&J.players[J.hostPid],hote=hp&&hp.name?esc(hp.name):'l’hôte',hoteLa=host||live.includes(J.hostPid);
+  const autres=live.filter(p=>p!==J.me).length,ord=jeuOrder();
+  const qui=[J.hostPid,...live.filter(p=>p!==J.hostPid)].filter(p=>live.includes(p));
+  const av=qui.slice(0,5).map(p=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(p))%6}">${jeuInitial((J.players[p]||{}).name)}</b>`).join('');
+  const dans=autres?`${live.length} dans la salle`:`Tu es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'} dans la salle`;
+  const titre=host?(autres?'Relance la partie':'Relance la salle')
+    :!hoteLa?'L’hôte revient…':on?`Tu es ${jeuPretMot(true)}\u00a0!`:`${hote} va relancer la partie`;
+  const sous=host?(autres?'Tout le monde revient, avec le même code.':'Tes amis pourront revenir avec le même code.')
+    :on?`Tu repars dès que ${hote} relance.`:'Touche Revanche pour dire que tu en es.';
+  return `<div class="jeu-rv${on?' is-on':''}" id="jeu-rv">
+    <div class="jeu-rv-live" role="status" aria-live="polite">
+      <span class="jeu-rv-ico">${JEU_RELANCE_SVG}</span>
+      <div class="jeu-rv-tx"><b>${titre}</b><small>${sous}</small>
+        <span class="jeu-rv-qui"><span class="jeu-rv-av" aria-hidden="true">${av}</span>${dans}</span></div>
+      <span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>
+    </div>
+    <div class="jeu-rv-btns">
+      <button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()">${JEU_ICO.quit}<span>Quitter la salle</span></button>
+      <button type="button" class="journey-primary jeu-revanche${on?' on':''}"${host?'':` aria-pressed="${on}"`} onclick="${host?'jeuRejouer()':'jeuRevanche()'}">${on?'':JEU_RELANCE_SVG}<span>${on?`${jeuMaj(jeuPretMot(true))} ✓`:'Revanche'}</span></button>
+    </div>
+  </div>`;
+}
+/* « Quitter la salle », sur le podium (21 h 15) : retour à l’onglet Défis, « Jouer » (la question d’abord s’il y a quelque chose à perdre) */
+function jeuQuitterSalle(){
+  if(typeof mode!=='undefined'&&mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(jeuQuitterSalle);return;}
+  if(typeof DEFIS!=='undefined'){DEFIS.onglet='jouer';DEFIS.carte='';}
+  jeuInvite='';
+  if(typeof closeSchemaSheet==='function')closeSchemaSheet();
+  if(typeof closeLessonWhere==='function')closeLessonWhere(true);
+  leaveLessonScreen('defis');
 }
 function jeuCountUp(el){
   if(!el||prefersReduceMotion())return;
@@ -51485,7 +51522,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-six-v2968';
+  const SW_CACHE='requete-2026-11-13-direct-v2969';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

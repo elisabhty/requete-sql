@@ -29,7 +29,7 @@ test('trois issues : la victoire, la défaite, le 0 à 0 ; tes points et leur d�
     'pills=`<i>${ok} défi${ok>1?\'s\':\'\'} trouvé${ok>1?\'s\':\'\'} sur ${jouees}</i>`;',
     '<section class="jr2-hero jeu-issue ${ton}" aria-labelledby="jr2-t">',
     '<p class="jeu-card-h">Les joueurs</p>',
-    '<button type="button" class="journey-primary jeu-revanche" onclick="jeuRejouer()"><span>Revanche</span>'])
+    '        ${jeuRevancheHTML()}`;'])
     assert.ok(app.includes(k), k);
   assert.ok(!app.includes("head('Salle de défi · Fin de partie'"), 'plus de deuxième titre « Le podium »');
 });
