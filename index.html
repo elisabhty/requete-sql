@@ -40,6 +40,10 @@
      Apple ». maj.js, chargé avant tout le reste : dans l’app iPhone, une version plus récente déjà téléchargée depuis requeteapp.com
      s’installe ici, sous l’écran de lancement (jamais en cours d’utilisation). Dans un navigateur, il ne fait rien. Voir maj.js. -->
 <script src="maj.js?v=1"></script>
+<!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
+     langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
+     fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
+<script src="langues.js?v=1"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -20513,6 +20517,7 @@ async function boot(){
     await wipeStorageIfUpdated();
     const saved=await Store.get(KEY);
     state=normalizeState(saved||state);
+    try{window.REQUETE_LANGUE&&window.REQUETE_LANGUE.valeur('prenom',()=>state.name);}catch(e){}   // langues.js : « Bonjour {prenom} » se traduit une fois pour tous les prénoms
     applyReadingPreferences();
     if(state.onboarded==null) state.onboarded=false;
     if(state.name==null) state.name='';
@@ -50194,7 +50199,7 @@ function renderCompte(){
       <summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body ct-body" id="ct-body">${ctHTML()}</div>
     </details>
-    <p class="app-version-note" id="app-version-note" onclick="majEssaiTap()">${esc(appVersionNote())}</p>
+    <p class="app-version-note" id="app-version-note" onclick="majEssaiTap()">${esc(appVersionNote())}</p>${langueNoteHTML()}
     <button type="button" class="account-sheet-backdrop" onclick="closePlusDetails()" aria-label="Fermer les réglages ouverts"></button>`;
   stkPaint(host.querySelector('.acct-badges'));
   pacteFeuilleBrancher();
@@ -50239,6 +50244,13 @@ function appVersionNote(){
   }catch(_){}
   return t;
 }
+/* Le choix de la langue (langues.js ; 13 novembre, 12 h 30). Une langue en cours de traduction n’est proposée qu’aux iPhone en essai :
+   pour tous les autres, cette ligne n’existe pas. Changer de langue recharge l’appli. */
+function langueNoteHTML(){
+  const L=window.REQUETE_LANGUE;
+  if(!L||L.disponibles().length<2)return '';
+  return `<p class="app-version-note" id="app-langue-note" data-notrad style="margin-top:0">${L.disponibles().map(c=>`<button type="button" onclick="REQUETE_LANGUE.changer('${c}')" aria-pressed="${c===L.code}" style="all:unset;cursor:pointer;padding:12px 10px;font:inherit;color:inherit;${c===L.code?'text-decoration:underline;text-underline-offset:3px':''}">${esc(L.nom(c))}</button>`).join('·')}</p>`;
+}
 let majTaps=[];
 function majEssaiTap(){
   const M=window.REQUETE_MAJ;
@@ -50254,6 +50266,9 @@ function majEssaiTap(){
   toast(essai?'Versions d’essai activées':'Versions d’essai désactivées',essai?'Cet iPhone reçoit les versions publiées en essai.':'Cet iPhone suit les versions publiées pour tous.','info');
   const p=document.getElementById('app-version-note');
   if(p)p.textContent=appVersionNote();
+  const l=document.getElementById('app-langue-note');
+  if(l)l.remove();
+  if(p)p.insertAdjacentHTML('afterend',langueNoteHTML());
 }
 function openLegal(kind){
   /* Les pages légales sont celles du site (Réf 6) ; seule l’aide reste une feuille de l’app. */
@@ -51030,7 +51045,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-accueil-v2929';
+  const SW_CACHE='requete-2026-11-13-accueil-v2930';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

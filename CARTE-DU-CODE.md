@@ -14,6 +14,7 @@ Où se trouve quoi dans le dépôt. Pour chaque fichier, son rôle en une ou deu
 | `multiplayer-security.js` | Les parties classées : l'identité du joueur vient du serveur et chaque requête jouée en salle est revérifiée par `jeu-verifier`. |
 | `achat.js` | Les abonnements de l'app iPhone par RevenueCat (`window.REQUETE_ACHAT`, attendu par le paywall). Éteint tant que la clé `appl_` n'est pas collée dedans. |
 | `maj.js` | La mise à jour à distance de l'app iPhone : corriger un cours ou une faute sans repasser par Apple (`window.REQUETE_MAJ`). Chargé en premier ; ne fait rien dans un navigateur. Avec `maj/publication.json`, `scripts/maj-publier.mjs` et `scripts/maj-paquet.mjs` : voir IOS.md, « Corriger l'appli sans repasser par Apple ». |
+| `langues.js`, `langue-en.js` | L'appli en plusieurs langues (`window.REQUETE_LANGUE`) : le français reste la source, `langue-en.js` donne les traductions, remplacées à l'affichage. L'anglais est en essai. Voir LANGUES.md. |
 | `import-formats.js` | L'import de fichiers dans la console (Excel, CSV, JSON, SQL, SQLite), sans bibliothèque. |
 | `onboarding-focus.js` | Le focus du clavier dans la fenêtre de l'onboarding (accessibilité). |
 | `perf-probe.js` | Une sonde de fluidité, chargée seulement avec `?perf=1`. |
