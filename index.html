@@ -50155,10 +50155,25 @@ function renderCompte(){
           <div class="account-settings-list">
             <button class="account-setting-row" type="button" onclick="paysChanger()"><span class="plus-row-icon is-drapeau" aria-hidden="true">${paysDuProfil()?paysDrapeau(paysDuProfil()):'🌍'}</span><span><b>Pays</b><small>${paysDuProfil()?esc(paysNom(paysDuProfil())):'Choisir mon pays'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${paysDuProfil()?`<label class="account-setting-row dx-drapeau-row"><span class="plus-row-icon is-stk" aria-hidden="true">${lqStkSvg('target')}</span><span><b>Afficher mon drapeau</b><small>${typeof paysMontre==='function'&&!paysMontre()?'Masqué dans les défis':'Dans les défis, à côté de ton pseudo'}</small></span><input type="checkbox" role="switch" class="pc-switch" ${typeof paysMontre==='function'&&!paysMontre()?'':'checked'} onchange="paysMontrer(this.checked)" aria-label="Afficher mon drapeau dans les défis"></label>`:''}
+            ${langueLigneHTML(CHEV)}
             <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route is-stk">${lqStkSvg(ACCT_STK.route)}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-pacte')"><span class="plus-row-icon is-stk">${lqStkSvg('pen')}</span><span><b>Mon engagement</b><small id="acct-pacte-sum">${pacteResume()}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>${langueLigneHTML(CHEV)}
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-pacte')"><span class="plus-row-icon is-stk">${lqStkSvg('pen')}</span><span><b>Mon engagement</b><small id="acct-pacte-sum">${pacteResume()}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
+          </div>
+        </div>
+        <div class="account-settings-group">
+          <p class="account-settings-group-title">Compte et assistance</p>
+          <a class="acct-faq" href="${escAttr(siteUrl('decouvrir/#faq'))}" target="_blank" rel="noopener"><span class="acct-faq-t"><b>Questions fréquentes</b><small>Toutes les réponses, sur le site de Requête.</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg('faq')}</span></a>
+          <button class="acct-faq acct-contact" type="button" onclick="openPlusDetails('plus-contact')"><span class="acct-faq-t"><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg(ACCT_STK.contact)}</span></button>
+          <div class="account-settings-list">
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, copie, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg('user')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>
+          </div>
+          <div class="account-settings-list acct-compte-actions">
+            ${typeof abonnementIci==='function'&&abonnementIci()?`<button class="account-setting-row" type="button" onclick="abonnementGerer()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span></button>`:''}
+            <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}</small></span></button>
+            <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>Supprimer mon compte</b><small>Ton pseudo, tes scores et toutes tes données</small></span></button>
           </div>
         </div>
         ${surIphone?`<div class="account-settings-group">
@@ -50169,20 +50184,6 @@ function renderCompte(){
             ${widgetsIci?`<button class="account-setting-row acct-flamme-direct" type="button" role="switch" aria-checked="${flammeDirectOn()}" onclick="flammeDirectBasculer()"><span class="plus-row-icon is-stk">${lqStkSvg('flame')}</span><span><b>Ta flamme en direct</b><small>${flammeDirectResume()}</small></span><span class="account-setting-end"><span class="acc-toggle${flammeDirectOn()?' on':''}" aria-hidden="true"><i></i></span></span></button>`:''}
           </div>
         </div>`:''}
-        <div class="account-settings-group">
-          <p class="account-settings-group-title">Compte et assistance</p>
-          <a class="acct-faq" href="${escAttr(siteUrl('decouvrir/#faq'))}" target="_blank" rel="noopener"><span class="acct-faq-t"><b>Questions fréquentes</b><small>Toutes les réponses, sur le site de Requête.</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg('faq')}</span></a>
-          <button class="acct-faq acct-contact" type="button" onclick="openPlusDetails('plus-contact')"><span class="acct-faq-t"><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg(ACCT_STK.contact)}</span></button>
-          <div class="account-settings-list">
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, copie, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg('user')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>
-            ${typeof abonnementIci==='function'&&abonnementIci()?`<button class="account-setting-row" type="button" onclick="abonnementGerer()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
-          </div>
-          <div class="account-settings-list acct-compte-actions">
-            <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}</small></span></button>
-            <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>Supprimer mon compte</b><small>Ton pseudo, tes scores et toutes tes données</small></span></button>
-          </div>
-        </div>
       </section>
     </div>
     <details class="plus-details" id="plus-profile-settings">
@@ -50348,9 +50349,10 @@ function majEssaiTap(){
   toast(essai?'Versions d’essai activées':'Versions d’essai désactivées',essai?'Cet iPhone reçoit les versions publiées en essai.':'Cet iPhone suit les versions publiées pour tous.','info');
   const p=document.getElementById('app-version-note');
   if(p)p.textContent=appVersionNote();
-  /* Le réglage « Langue » apparaît (ou disparaît) tout de suite : sa ligne après « Confort de lecture », sa feuille avant « Contacte-nous » */
+  /* Le réglage « Langue » apparaît (ou disparaît) tout de suite : sa ligne sous « Pays » (et « Afficher mon drapeau » ; 13 novembre,
+     15 h 17), sa feuille avant « Contacte-nous » */
   document.querySelectorAll('#plus-langue,.account-setting-row[onclick*="plus-langue"]').forEach(x=>x.remove());
-  const c=document.getElementById('plus-contact'),r=document.querySelector('.account-setting-row[onclick*="plus-reading"]');
+  const c=document.getElementById('plus-contact'),r=document.querySelector('.account-setting-row.dx-drapeau-row')||document.querySelector('.account-setting-row[onclick="paysChanger()"]');
   if(c)c.insertAdjacentHTML('beforebegin',langueReglageHTML());
   if(r)r.insertAdjacentHTML('afterend',langueLigneHTML(typeof ACCT_CHEV==='string'?ACCT_CHEV:''));
 }
@@ -51147,7 +51149,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-haptique-v2938';
+  const SW_CACHE='requete-2026-11-13-reglages-v2939';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

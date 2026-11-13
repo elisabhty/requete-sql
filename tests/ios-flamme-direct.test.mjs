@@ -282,7 +282,7 @@ test('la flamme allumée : « Flamme allumée ! » (discrète si la leçon est d
 
 test('Mon compte : « Ta flamme en direct », un interrupteur dans « Sur ton iPhone », l’app seulement', async () => {
   const compte = entre(app, 'function renderCompte(){', '\nfunction ');
-  const g = compte.slice(compte.indexOf('Sur ton iPhone</p>'), compte.indexOf('Compte et assistance</p>'));
+  const g = compte.slice(compte.indexOf('Sur ton iPhone</p>'), compte.indexOf('</section>', compte.indexOf('Sur ton iPhone</p>')));   // 13 novembre, 15 h 17 : le dernier groupe
   const ligne = '${widgetsIci?`<button class="account-setting-row acct-flamme-direct" type="button" role="switch" aria-checked="${flammeDirectOn()}" onclick="flammeDirectBasculer()"><span class="plus-row-icon is-stk">${lqStkSvg(\'flame\')}</span><span><b>Ta flamme en direct</b><small>${flammeDirectResume()}</small></span><span class="account-setting-end"><span class="acc-toggle${flammeDirectOn()?\' on\':\'\'}" aria-hidden="true"><i></i></span></span></button>`:\'\'}';
   assert.ok(g.includes(ligne), 'la ligne, avec son interrupteur');
   assert.ok(g.indexOf("openPlusDetails('plus-widget-verrou')") < g.indexOf('flammeDirectBasculer()'), 'après les widgets (« Évaluer » est partie le 11 novembre, 12 h 25)');

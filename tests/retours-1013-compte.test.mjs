@@ -99,6 +99,8 @@ test('« Se déconnecter » : en bas, avec « Supprimer mon compte », dans leur
   const bloc = compte.slice(i, compte.indexOf('</div>', i));
   assert.ok(bloc.indexOf('onclick="seDeconnecter()"') > 0 && bloc.indexOf('onclick="seDeconnecter()"') < bloc.indexOf('onclick="compteSupprimer()"'));
   assert.ok(!bloc.includes('${CHEV}'), 'des actions, pas des pages');
+  /* 13 novembre, 15 h 17 : « gérer mon abo en haut de se déconnecter » : dans le même bloc, juste au-dessus */
+  assert.ok(bloc.indexOf('onclick="abonnementGerer()"') > 0 && bloc.indexOf('onclick="abonnementGerer()"') < bloc.indexOf('onclick="seDeconnecter()"'));
   assert.ok(bloc.includes("${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}"));
   assert.ok(lq.includes('html.lq #scr-compte .acct-compte-actions .account-setting-row{grid-template-columns:40px minmax(0,1fr)!important}'));
 });

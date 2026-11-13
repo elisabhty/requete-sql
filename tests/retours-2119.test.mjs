@@ -104,7 +104,8 @@ test('refaire l’onboarding garde l’engagement pris (finishOnboard réécrit 
 test('Mon compte › Mon engagement : la ligne sous « Parcours et rythme », la feuille, le certificat au rythme du parcours', () => {
   const r = cut('function renderCompte(){', '\nfunction ');
   const parcours = r.indexOf('<b>Parcours et rythme</b>'), ligne = r.indexOf("onclick=\"openPlusDetails('plus-pacte')\""), rappel = r.indexOf('<b>Rappel de séance</b>');
-  assert.ok(parcours > 0 && ligne > parcours && rappel > ligne, 'juste sous « Parcours et rythme »');
+  /* 13 novembre, 15 h 17 : « rappel de séance en bas de parcours et rythme » : Parcours et rythme, Rappel de séance, Mon engagement */
+  assert.ok(parcours > 0 && rappel > parcours && ligne > rappel, 'sous « Rappel de séance », lui-même sous « Parcours et rythme »');
   assert.ok(r.includes(`<span class="plus-row-icon is-stk">\${lqStkSvg('pen')}</span><span><b>Mon engagement</b><small id="acct-pacte-sum">\${pacteResume()}</small></span>`));
   assert.ok(r.includes('<details class="plus-details" id="plus-pacte">\n      <summary><span>Un engagement envers <span class="pc-nw">toi-même</span></span><small>${pacteLead(pacteRythme().m,pacteRythme().f)}</small><i aria-hidden="true">×</i></summary>\n      <div class="plus-details-body pc-body">${pacteFeuilleHTML()}</div>\n    </details>'));
   assert.ok(r.includes("  stkPaint(host.querySelector('.acct-badges'));\n  pacteFeuilleBrancher();"), 'le bouton branché à chaque rendu (la feuille peut rester ouverte)');
@@ -167,5 +168,5 @@ test('la feuille : la DA de la vitrine, le bouton qui ne fait pas défiler, tout
   assert.ok(ov.includes('@keyframes obvHoldOk{') && ov.includes('@keyframes obvHoldHalo{'), 'les mêmes mouvements que l’onboarding');
   /* Les feuilles et le cache rafraîchis */
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=330">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=67">'));
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=67'") && sw.includes("const CACHE = 'requete-2026-11-13-haptique-v2938';"));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=67'") && sw.includes("const CACHE = 'requete-2026-11-13-reglages-v2939';"));
 });

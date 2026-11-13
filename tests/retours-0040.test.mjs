@@ -15,8 +15,9 @@ const compte = cut('function renderCompte(){', '\nfunction ');
 
 test('Mon compte : « Sur ton iPhone », les deux widgets (plus d’« Évaluer l’application » depuis le 11 novembre, 12 h 25), sur iPhone', () => {
   assert.ok(compte.includes("const widgetsIci=typeof obWidgetPossible==='function'&&obWidgetPossible();"), 'le pont RequeteWidget de l’app iPhone');
-  const g = compte.slice(compte.indexOf('<p class="account-settings-group-title">Sur ton iPhone</p>'), compte.indexOf('<p class="account-settings-group-title">Compte et assistance</p>'));
-  assert.ok(g.length > 0 && compte.indexOf('Apprentissage</p>') < compte.indexOf('Sur ton iPhone</p>'), 'entre « Apprentissage » et « Compte et assistance »');
+  /* 13 novembre, 15 h 17 : « compte et assistance en haut de widget » : Apprentissage, Compte et assistance, puis Sur ton iPhone */
+  const g = compte.slice(compte.indexOf('<p class="account-settings-group-title">Sur ton iPhone</p>'), compte.indexOf('</section>', compte.indexOf('Sur ton iPhone</p>')));
+  assert.ok(g.length > 0 && compte.indexOf('Apprentissage</p>') < compte.indexOf('Compte et assistance</p>') && compte.indexOf('Compte et assistance</p>') < compte.indexOf('Sur ton iPhone</p>'), 'après « Apprentissage » et « Compte et assistance »');
   const a = g.indexOf("openPlusDetails('plus-widget-accueil')"), v = g.indexOf("openPlusDetails('plus-widget-verrou')");
   assert.ok(a > 0 && v > a && !g.includes('noterAppli()'), 'accueil puis verrouillé, sans « Évaluer »');
   assert.ok(g.includes("${lqStkSvg('widgets')}") && g.includes("${lqStkSvg('verrou')}"), 'des autocollants, comme les autres lignes');
