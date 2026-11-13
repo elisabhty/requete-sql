@@ -15,7 +15,7 @@ const page = o => {
   let html = '';
   const el = { classList: { add() {} }, querySelector: s => s === '.mu-go' ? null : ({ addEventListener() {}, classList: { add() {} }, focus() {}, textContent: '' }), addEventListener() {} };
   const ctx = vm.createContext({ document: { createElement: () => ({ set innerHTML(v) { html = v; }, get firstElementChild() { return el; } }), body: { appendChild() {}, classList: { add() {} } } },
-    moduleUpClose() {}, JEU_COIN_SVG: '<coin>', MU_PLAY: '▶', JEU_AUTO_MS: 5000, esc: s => String(s), lqSay() {}, buzz() {}, prefersReduceMotion: () => true,
+    moduleUpClose() {}, JEU_COIN_SVG: '<coin>', MU_PLAY: '▶', JEU_AUTO_MS: 5000, lqStkSvg: k => `<svg data-k="${k}"></svg>`, esc: s => String(s), lqSay() {}, buzz() {}, prefersReduceMotion: () => true,
     setTimeout, setInterval: () => 0, navigator: {}, Date });
   vm.runInContext('var MU=null;' + fn('jeuPtsPage'), ctx);
   ctx.jeuPtsPage(o);
@@ -41,7 +41,7 @@ test('la page d’une manche : gagnée, perdue avec ou sans points, 0 à 0 ; san
 test('les branchements : la vue res l’ouvre une fois, avant la dernière ; jeuRender la referme ; ses styles', () => {
   assert.ok(app.includes("const page=!sl&&!last&&typeof jeuPtsPage==='function';"));
   assert.ok(app.includes("const issue=!rk.length?'nul':moi&&moi.place===1?'victoire':'defaite',qui=issue==='defaite'&&rk[0]?((J.players[rk[0].pid]||{}).name||''):'';"));
-  assert.ok(app.includes("jeuPtsPage({pts:pts,total:n>0?tot:0,solo:false,issue,qui,manche:{n,nb:J.nb,fin:jeuFinAuto(n)}});"));
+  assert.ok(app.includes("jeuPtsPage({pts:pts,total:n>0?tot:0,solo:false,issue,qui,place:got&&moi?moi.place:0,manche:{n,nb:J.nb,fin:jeuFinAuto(n)}});"));
   assert.ok(app.includes("if(!page&&ton==='is-or'&&typeof lqConfetti==='function'"), 'les confettis une seule fois');
   assert.ok(fn('jeuRender').includes("if(typeof MU!=='undefined'&&MU&&MU.manche!=null&&v!=='res'+MU.manche&&typeof moduleUpClose==='function')moduleUpClose();"));
   assert.ok(css.includes('html.lq .mu.mu-pts .mu-auto-barre::after{content:"";display:block;height:100%;width:calc(var(--p0,0) * 100%);'));
