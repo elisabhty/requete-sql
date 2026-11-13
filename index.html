@@ -24278,13 +24278,16 @@ function normalizeState(raw){
   }
   if(salleSrc.clsRefus){const r=salleNom(salleSrc.clsRefus);if(r)salle.clsRefus=r;}
   if(Array.isArray(salleSrc.masques)){const m=salleSrc.masques.filter(uuid).slice(-50);if(m.length)salle.masques=m;}
+  /* 13 novembre, 23 h 38 (Elisa : « l’onglet Classement ne semble pas fonctionner ») : la file des parties à envoyer au classement
+     ne gardait que l’ancienne forme ({u:'abc123', pts, n…}). Les parties vérifiées par le serveur ({u:'K7P2QX-0', salle, g},
+     jeu_score_v2) n’y passaient pas (le tiret du u, ni salle ni g) : le save() de clsEnvoyer vidait la file, aucune partie n’arrivait
+     au classement, qui restait vide pour tout le monde. */
   if(Array.isArray(salleSrc.envoi)){
-    const q=salleSrc.envoi.filter(p=>p&&typeof p==='object'&&typeof p.u==='string'&&/^[A-Za-z0-9]{6,24}$/.test(p.u)).map(p=>{
-      const n=Math.max(1,Math.min(salleN(p.n),5)),ok=Math.min(salleN(p.ok),n);
-      return {u:p.u,pts:salleN(p.pts),n,ok,solo:p.solo?1:0,niv:['f','m','d'].includes(p.niv)?p.niv:'f'};
-    }).slice(-20);
+    const q=salleSrc.envoi.filter(p=>p&&typeof p==='object'&&typeof p.salle==='string'&&/^[A-Z0-9]{6}$/.test(p.salle)&&Number.isInteger(p.g)&&p.g>=0&&p.g<=1e6)
+      .map(p=>({u:p.salle+'-'+p.g,salle:p.salle,g:p.g})).slice(-20);
     if(q.length)salle.envoi=q;
   }
+  if(salleSrc.clsRattrape)salle.clsRattrape=1;
   /* Temps d’apprentissage, en secondes : par jour (AAAA-MM-JJ) et par activité (l<id> leçon, d<id> défi, console,
      entretien, jeu). Voir studyTick. */
   const study={days:{},items:{}};
@@ -28865,6 +28868,18 @@ function clsRpc(fn,body,o){
   return jeton.then(t=>fetch(JEU_SB+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({apikey:JEU_SB_KEY,'Content-Type':'application/json'},t?{Authorization:'Bearer '+t}:{}),body:JSON.stringify(body)}))
     .then(r=>r.json().catch(()=>null).then(j=>{if(!r.ok)throw Object.assign({status:r.status},j||{});return j;}));
 }
+/* Le rattrapage (23 h 38), une fois par appareil : les parties jouées depuis que la file se vidait (salle.comptees, « K7P2QX-0 »)
+   repartent au classement. Le serveur ne compte une partie qu’une fois (son reçu) et refuse celles qu’il n’a plus (« partie non
+   vérifiée » : elles sortent de la file). */
+function clsRattraper(){
+  const s=clsSalle();if(s.clsRattrape)return;
+  s.clsRattrape=1;
+  const deja=new Set((Array.isArray(s.envoi)?s.envoi:[]).map(p=>p&&p.u));
+  const l=(Array.isArray(s.comptees)?s.comptees:[]).filter(x=>typeof x==='string'&&/^[A-Z0-9]{6}-\d{1,6}$/.test(x)&&!deja.has(x)).slice(0,20).reverse()
+    .map(x=>{const i=x.lastIndexOf('-');return {u:x,salle:x.slice(0,i),g:+x.slice(i+1)};});
+  s.envoi=(Array.isArray(s.envoi)?s.envoi:[]).concat(l).slice(-20);
+  save();
+}
 /* Une partie terminée (jeuCreditGame) : elle part au classement, ou attend le réseau (20 au plus, dans la progression). */
 function clsEnvoyer(p){
   if(!p||!p.salle||!Number.isInteger(p.g))return;
@@ -28873,6 +28888,7 @@ function clsEnvoyer(p){
   save();clsFlush();
 }
 function clsFlush(){
+  clsRattraper();
   const s=clsSalle(),q=(Array.isArray(s.envoi)?s.envoi:[]).filter(p=>p.salle&&Number.isInteger(p.g));
   s.envoi=q;
   if(CLS.flushing||!q.length||!clsOn())return;
@@ -28884,6 +28900,8 @@ function clsFlush(){
     CLS.flushing=false;
     const s2=clsSalle();s2.envoi=(s2.envoi||[]).filter(x=>x.u!==q[0].u);s2.clsId=r&&r.id||s2.clsId;delete s2.clsRefus;save();
     if(CLS.data&&r)CLS.data.moi=Object.assign({},CLS.data.moi||{},{id:r.id,pts:r.pts,parties:r.parties,rang:r.rang,pseudo:nom});
+    /* 23 h 38 : le classement de l’onglet (DEFIS.cls) se relit avec ces points ; ouvert, il se redessine */
+    if(typeof DEFIS!=='undefined'&&DEFIS.cls){DEFIS.cls.cle='';DEFIS.cls.rangs=null;if(DEFIS.onglet==='classement'&&typeof activeTab!=='undefined'&&activeTab==='defis'&&typeof defisClassementPeindre==='function')defisClassementPeindre();}
     CLS.at=0;clsDefis();
     if(s2.envoi.length)clsFlush();else clsCharger(true);
   },e=>{
@@ -29429,6 +29447,7 @@ function defisOnglet(k){
   if(k==='amis')k='jouer';
   if(!['jouer','classement','stats'].includes(k))return;
   DEFIS.onglet=k;if(k!=='stats')jeuSavePrefs();
+  if(k==='classement')DEFIS.cls.cle='';   // 23 h 38 : l’onglet touché se relit (les points arrivés depuis)
   defisPeindre();
   const scr=document.getElementById('scr-defis'),tabs=document.getElementById('defis-tabs');
   /* Mes stats est une page à part (les onglets se cachent) : elle s’ouvre en haut. */
@@ -29451,6 +29470,7 @@ function defisPeindre(){
   else defisStatsPeindre();
   sallesSuivre();
   paysSync();
+  if(typeof clsFlush==='function')clsFlush();   // les parties qui attendent le réseau (ou le rattrapage) partent au classement (23 h 38)
 }
 /* Les listes seules (drapeaux arrivés, salles rafraîchies), sans toucher aux champs en cours de saisie. */
 function defisListes(){
@@ -51611,7 +51631,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-egalite-v2980';
+  const SW_CACHE='requete-2026-11-13-classement-v2981';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
