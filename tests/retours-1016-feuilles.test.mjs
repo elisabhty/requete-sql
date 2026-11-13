@@ -149,7 +149,7 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
   assert.ok(!fn('openJeu').includes('scrollIntoView'), 'un lien d’invitation : la feuille du code, plus de défilement');
   const re = fn('perfRematch');
   assert.ok(re.includes("DEFIS.onglet='jouer';DEFIS.carte='creer';jeuSavePrefs();defisPeindre();") && re.includes("document.querySelector('#dx-feuille .room-go')"), '« Les redéfier » : la feuille Créer, son bouton fait signe');
-  assert.ok(secu.includes("const button = document.querySelector('#dx-feuille .room-go') || document.querySelector('.screen.active .room-go');"), 'la vérification en ligne grise le bouton de la feuille');
+  assert.ok(secu.includes("const button = document.querySelector('#dx-feuille .room-go') || (options.verif ? null : document.querySelector('.screen.active .room-go'));"), 'la vérification en ligne grise le bouton de la feuille');
   assert.ok(app.includes("||!!document.querySelector('.lq-ask.on,#lesson-video,#dx-feuille');\n}") && app.includes("    if(accueilOccupe())return false;\n    localStorage.setItem(OB_WIDGET_VU,'1');"));
 });
 

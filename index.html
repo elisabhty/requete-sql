@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=355">
+<link rel="stylesheet" href="ludique.css?v=356">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -29612,11 +29612,16 @@ function salleLigneHTML(s,qui){
      pseudo, le niveau en blanc avec ses barres, puis les manches. */
   return `<li><b class="jeu-av" data-c="${perfColor(n)}" aria-hidden="true">${jeuInitial(n)}${jeuFlag(n,pays)}</b>`+
     `<span class="dx-t"><b><span class="dx-nom">${esc(n)}</span>${dxPcGens(`${s.nb}/${s.max}`)}</b><small class="dx-pcs">${dxPcNiv(s.niv)}<span class="dx-pc-t">${qui?'salle ouverte':m}</span></small></span>`+
-    `<button type="button" class="dx-join" onclick="sallesRejoindre('${s.code}')" aria-label="${escAttr(`Rejoindre la salle de ${s.hote}\u00a0: ${niv}, ${m}, ${s.nb} joueur${s.nb>1?'s':''} sur ${s.max}`)}">Rejoindre</button></li>`;
+    `<button type="button" class="dx-join" onclick="sallesRejoindre('${s.code}',this)" aria-label="${escAttr(`Rejoindre la salle de ${s.hote}\u00a0: ${niv}, ${m}, ${s.nb} joueur${s.nb>1?'s':''} sur ${s.max}`)}">Rejoindre</button></li>`;
 }
-function sallesRejoindre(code){
+function sallesRejoindre(code,b){
   if(!/^[A-Z0-9]{6}$/.test(code||''))return;
   if(typeof CHALLENGES==='undefined'||!SQL){if(typeof lqSay==='function')lqSay('Le moteur SQL se charge encore, réessaie dans un instant.');return;}
+  /* 14 novembre, 0 h 25 (Elisa : « quand j’ai cliqué sur Rejoindre, ça a clignoté ») : la salle se cherche une à deux secondes sans
+     que rien ne bouge, puis la page change. Le bouton touché le dit tout de suite (« Connexion… », la liste ne le redessine pas), et
+     revient s’il ne s’est rien passé au bout de 12 s. */
+  if(b&&b.classList){if(b.classList.contains('is-cherche'))return;b.classList.add('is-cherche');b.disabled=true;b.dataset.txt=b.textContent;b.textContent='Connexion…';
+    setTimeout(()=>{if(b.isConnected&&b.classList.contains('is-cherche')){b.classList.remove('is-cherche');b.disabled=false;b.textContent=b.dataset.txt||'Rejoindre';}},12000);}
   /* 20 h 04 : la salle publique se cherche sur place, comme un lien en plein défi : pleine ou commencée, le message par-dessus
      Défis (jeuInvitationEchec), plus d’écran entier. */
   jeuPseudoPuis(()=>jeuStart(code,false,null,{nomId:'jeu-nom',pub:true,verif:true,enLecon:true}));
@@ -37916,9 +37921,11 @@ function jeuLobbyEtatHTML(){
 /* Le message ne se redessine que s’il change (il entre en fondu) ; le bouton « Lancer » suit à chaque instant. */
 function jeuLobbyEtatMaj(){
   const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-lobby-etat'):null;
-  if(el){const h=jeuLobbyEtatHTML();if((el.dataset&&el.dataset.h)!==h){
+  /* 14 novembre, 0 h 25 : la carte posée par la salle d’attente est connue (J.lobH) ; avant, data-h vide la faisait redessiner au
+     premier tour, et son entrée en fondu se rejouait juste après l’arrivée : elle clignotait. */
+  if(el&&JEU){const h=jeuLobbyEtatHTML();if(JEU.lobH!==h){
     const garde=document.activeElement&&document.activeElement.id==='jeu-pret';   // la carte touchée garde le focus (23 h 58)
-    el.innerHTML=h;if(el.dataset)el.dataset.h=h;
+    el.innerHTML=h;JEU.lobH=h;
     if(garde){const b=document.getElementById('jeu-pret');if(b&&b.focus)b.focus({preventScroll:true});}}}
   const go=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-go'):null;
   if(go&&JEU&&JEU.view==='lobby'){const off=!jeuPeutLancer();if(go.disabled!==off)go.disabled=off;if(go.setAttribute)go.setAttribute('aria-disabled',String(off));
@@ -38131,7 +38138,7 @@ function jeuRender(){
       host&&J.pub?'Invite tes amis avec le code ou le lien de l’invitation.':host&&J.pour?`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`:'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
       `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n${jeuBadgeTous()?' is-tous':''}" id="jeu-n">${jeuBadgeHTML()}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
-      <div class="jeu-lobby-etat" id="jeu-lobby-etat" role="status" aria-live="polite" data-h="">${jeuLobbyEtatHTML()}</div>
+      <div class="jeu-lobby-etat" id="jeu-lobby-etat" role="status" aria-live="polite">${(J.lobH=jeuLobbyEtatHTML())}</div>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuLancer()"${jeuPeutLancer()?'':' disabled aria-disabled="true"'}><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button>`
         :''}</div>`;   // 23 h 58 : l’invité se dit prêt en touchant la carte au-dessus (jeuLobbyEtatHTML)   // 13 h 20 : le message au-dessus du bouton (jeuLobbyEtatHTML) ; « Je suis prête » et sa flèche qui avance
     /* Le cadre et son code en haut, puis les joueurs. */
@@ -39216,6 +39223,8 @@ function jeuEntrerInvitation(code){
 function jeuInvitationEchec(r){
   const m=(typeof DX_CODE_MSG!=='undefined'&&DX_CODE_MSG[r])||DX_CODE_MSG.introuvable,nb=t=>String(t).replace(/&nbsp;/g,'\u00a0');
   jeuInvite='';
+  /* 14 novembre, 0 h 25 : « Connexion… » sur le bouton « Rejoindre » de la liste reprend son mot */
+  try{document.querySelectorAll('.dx-join.is-cherche').forEach(b=>{b.classList.remove('is-cherche');b.disabled=false;b.textContent=b.dataset.txt||'Rejoindre';});}catch(e){}
   /* 20 h 24 (Elisa) : « Retour aux défis », sa flèche qui avance ; la croix laisse là où l’on était (un défi en cours). */
   const surDefis=typeof activeTab!=='undefined'&&activeTab==='defis'&&!document.body.classList.contains('in-lesson');
   if(typeof lqAsk==='function')lqAsk({ico:r==='complete'?'👥':r==='commencee'?'⏱️':'🔎',titre:nb(m[0]),texte:nb(m[1]),oui:"Retour aux défis",fleche:true,non:null})
@@ -51646,7 +51655,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-ile-v2983';
+  const SW_CACHE='requete-2026-11-14-rejoindre-v2984';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

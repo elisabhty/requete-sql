@@ -22,7 +22,8 @@
     const controller = new AbortController();
     const deadline = setTimeout(() => controller.abort(), 10000);
     // 5 November, 10:16: rooms open from a sheet above the screen; its button waits too.
-    const button = document.querySelector('#dx-feuille .room-go') || document.querySelector('.screen.active .room-go');
+    // 14 November, 0:25: joining from the list (or a link) must not grey out « Créer ma partie » for a second: only the sheet's button waits.
+    const button = document.querySelector('#dx-feuille .room-go') || (options.verif ? null : document.querySelector('.screen.active .room-go'));
     if (button) button.disabled = true;
     try {
       const before = Date.now();

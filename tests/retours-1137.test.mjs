@@ -48,7 +48,7 @@ function bac(o = {}) {
 const attendre = () => new Promise(r => setImmediate(r));
 const J = v => JSON.parse(JSON.stringify(v));
 const salle = (code, niv, hote, nb = 2) => ({ code, niv, manches: 1, nb, max: 6, hote, joueurs: [] });
-const codes = h => [...h.matchAll(/sallesRejoindre\('([A-Z0-9]{6})'\)/g)].map(m => m[1]);
+const codes = h => [...h.matchAll(/sallesRejoindre\('([A-Z0-9]{6})',this\)/g)].map(m => m[1]);
 
 /* 8 novembre, 22 h 27 (« accepte 6 max dans une salle, comme ça on a deux lignes pleines ») : six joueurs, l’hôte et 5 invités ;
    la phrase suit JEU_MAX. */
@@ -170,7 +170,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=355">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=356">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-14-ile-v2983' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-14-rejoindre-v2984' && app.includes(`const SW_CACHE='${cache}';`));
 });
