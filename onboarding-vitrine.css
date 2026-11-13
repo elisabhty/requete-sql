@@ -752,6 +752,13 @@ html #onboarding.ob-vitrine .ob-success{position:relative}
 html #onboarding.ob-vitrine .ob-success>i{position:absolute;inset:0;border-radius:50%;border:2px solid var(--v-mint);opacity:0;pointer-events:none}
 
 @media (prefers-reduced-motion:no-preference){
+  /* La bulle du premier écran dit deux phrases, l’une après l’autre (13 novembre, 13 h 09). Les deux occupent la même place : la
+     bulle a la taille de la plus longue. La suite part quand index.html pose .is-parle (l’écran de lancement est parti). */
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-bj-bulle.ob-bj-suite{display:grid!important;justify-items:center}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-bj-suite>.ob-bj-dit{grid-area:1/1;align-self:center}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-bj-suite>.ob-bj-dit-2{opacity:0}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-bj-suite.is-parle>.ob-bj-dit-1{animation:obBjDit1 .3s ease-in 2.2s both}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-bj-suite.is-parle>.ob-bj-dit-2{animation:obBjDit2 .4s cubic-bezier(.2,.9,.3,1.2) 2.5s both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-bj-chat{animation:obvBjChat .6s var(--v-pop) .08s both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-bj-nom{animation:obvBjNom .55s var(--v-pop) .32s both}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-enter .ob-qs-chat{animation:obvBjChat .55s var(--v-pop) .12s both}
@@ -2059,6 +2066,12 @@ html #onboarding.ob-vitrine .ob-qs-bulle{font-weight:500!important;font-size:22p
 /* 13 novembre, 1 h 32 : la bulle du premier écran dit « … le monde des données ensemble ? ». Plus longue, elle passait sur trois
    lignes et toute la page rapetissait (0,918 → 0,875). Un peu plus large et un point de moins : deux lignes, la page garde sa taille. */
 html #onboarding.ob-vitrine .ob-bj-bulle{max-width:372px;padding-left:18px!important;padding-right:18px!important;font-size:20px!important;text-wrap:balance}
+/* 13 novembre, 13 h 06 (Elisa : « il n’y a pas le “Salut, moi c’est Requête…”, 2e bulle : “On explore le monde des données ensemble ?” »),
+   13 h 09 (« non, l’une après l’autre ») : une seule bulle, deux phrases. Sans mouvement (ici), elles sont l’une sous l’autre ;
+   avec (plus haut, dans le bloc du mouvement), la seconde remplace la première. */
+html #onboarding.ob-vitrine .ob-bj-dit{display:block}
+@keyframes obBjDit1{to{opacity:0;transform:translateY(-6px)}}
+@keyframes obBjDit2{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 html #onboarding.ob-vitrine .ob-qs-bulle b{font-weight:800}
 html #onboarding.ob-vitrine :is(.ob-bj-bulle,.ob-qs-bulle)::before{left:calc(50% - 8px)!important;top:auto!important;bottom:-10px!important;transform:rotate(-45deg)!important}
 html #onboarding.ob-vitrine :is(.ob-bj-chat,.ob-qs-chat){display:block;width:min(62vw,250px);height:auto;margin:0 auto;-webkit-user-drag:none}
