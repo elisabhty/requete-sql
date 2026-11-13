@@ -118,7 +118,7 @@ test('réf. 7 : l’objectif sur l’accueil… puis supprimé (5 novembre, 20 h
   assert.equal((app.match(/\$\{stats\}\$\{streak\}`;/g) || []).length, 2, 'sous les deux cartes du cours : les chiffres, puis la série');
   /* L’objectif reste modifiable dans Mon compte, Profil et objectif */
   assert.ok(app.includes("openPlusDetails('plus-profile-settings')"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=337">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=338">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {
