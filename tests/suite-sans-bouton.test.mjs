@@ -39,7 +39,7 @@ test('quelle que soit la fin de la manche, la suite part 5 s après que ce tél�
   ctx.JEU.over = true;
   assert.equal(ctx.jeuFinAuto(0), 0, 'la partie finie : plus rien');
   assert.equal(ctx.jeuAutoAttente(0), '<span class="jeu-auto-att"><i class="jeu-dot" aria-hidden="true"></i>La manche suivante arrive…</span>');
-  assert.match(ctx.jeuAutoAttente(2), /Le podium arrive…/, 'à plusieurs, la dernière : le podium');
+  assert.match(ctx.jeuAutoAttente(2), /Tes points arrivent…/, 'à plusieurs, la dernière : les points, puis le podium (13 novembre, 17 h 31)');
 });
 
 test('plus de bouton « Manche suivante » : la même ligne chez tous, puis « La manche suivante arrive… »', () => {
