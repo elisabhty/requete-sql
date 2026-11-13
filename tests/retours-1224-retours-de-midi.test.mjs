@@ -37,7 +37,7 @@ test('le clavier ouvert sur un champ : ob-clavier ; la phrase s’efface, le pie
     window: { addEventListener: (n, f) => { (wl[n] = wl[n] || []).push(f); } },
     document: { readyState: 'complete', getElementById: id => (id === 'onboarding' ? racine : id === 'ob-body' ? corps : null), addEventListener: (n, f) => { (dl[n] = dl[n] || []).push(f); } },
     setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, clearTimeout: id => { if (timers[id - 1]) timers[id - 1][0] = () => {}; },
-    obFit: () => {}, matchMedia: q => ({ matches: q === '(pointer:coarse)' })
+    obFit: () => {}, matchMedia: q => ({ matches: q === '(pointer:coarse)' }), KB_ANIM_MS: 260, kbEnMouvement: () => false
   });
   vm.runInContext(src, ctx);
   const ev = (n, t) => (dl[n] || []).forEach(f => f({ target: t }));

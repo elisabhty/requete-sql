@@ -69,7 +69,8 @@ test('le champ touché revient au-dessus du clavier de l’app, sans passer sous
 
 test('le champ revient en vue quand le clavier s’annonce, quand la vue rétrécit et quand on passe d’un champ à l’autre', () => {
   const b = cut('if(typeof window!==\'undefined\'&&typeof document!==\'undefined\'&&typeof window.addEventListener===\'function\'){\n  let cevT=[];', 'function keyboardInset(){');
-  assert.ok(b.includes("const cevBientot=()=>{cevT.forEach(clearTimeout);cevT=[60,320,650,1000].map(t=>setTimeout(champEnVue,t));};"));
+  /* 13 novembre, 14 h 24 : la vue ne rétrécit plus (Keyboard « none ») : une fois le clavier arrivé, puis une vérification */
+  assert.ok(b.includes("const cevBientot=()=>{cevT.forEach(clearTimeout);cevT=[KB_ANIM_MS+40,700].map(t=>setTimeout(champEnVue,t));};"));
   assert.ok(b.includes("['keyboardWillShow','keyboardDidShow'].forEach(n=>window.addEventListener(n,cevBientot));"));
   assert.ok(b.includes("window.addEventListener('resize',()=>{if(kbNatH)cevBientot();});") && b.includes("document.addEventListener('focusin',()=>{if(kbNatH)cevBientot();});"));
   /* « Exécuter » suit la requête, dans une leçon, un défi et la console (et dans Safari, ensureRunRowVisible) */

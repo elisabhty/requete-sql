@@ -1334,7 +1334,8 @@ html.lq .acct-head span{font-size:14px;line-height:1.3;color:var(--ink-2);white-
 /* Ma progression : trois chiffres dans une seule carte */
 html.lq .acct-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:14px 0;border:2px solid var(--line);border-radius:22px;background:#fff}
 html.lq .acct-stat{display:flex;flex-direction:column;align-items:center;min-width:0;padding:0 6px;text-align:center}
-html.lq .acct-stat+.acct-stat{border-left:2px solid var(--line-2)}
+/* 13 novembre, 14 h 24 (Réf 5) : plus de trait entre les trois chiffres de « Ma progression » (avec le coin arrondi des chiffres
+   cliquables, le trait se courbait en haut et en bas). */
 html.lq .acct-stat-ico{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink)}
 html.lq .acct-stat-ico svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 html.lq .acct-stat.is-streak .acct-stat-ico{background:#FFF0DC}
@@ -9977,6 +9978,25 @@ html.lq .wtu-revoir:focus-visible{outline:3px solid var(--accent);outline-offset
   html.lq .wgx-points button,html.lq .wgx-po-chat,html.lq .wgx-po-rep i,html.lq .wgx-po-rep u{transition:none!important}
 }
 html[data-motion="reduce"].lq :is(.wgx-points button,.wgx-po-chat,.wgx-po-rep i,.wgx-po-rep u){transition:none!important}
+
+/* Le clavier qui monte (13 novembre, 14 h 24 ; Elisa : « des sauts au niveau des champs à clavier / flash », le pseudo, le prénom,
+   « Contacte-nous »). Dans l’app, la vue ne change plus de taille avec le clavier (Keyboard en mode « none », index.html) : l’appli
+   se cale sur lui dès qu’il s’annonce, et suit son mouvement (0,26 s, la courbe du clavier d’iOS) au lieu de sauter d’un coup, puis
+   une deuxième fois 0,45 s plus tard. L’appli (#app : --app-h), les feuilles de Mon compte et l’import montent et descendent avec lui.
+   Sous le clavier, que la vue ne laisse plus à la fenêtre de l’app : la couleur du bas de la page (--fond-clavier, fondSousClavier),
+   le violet du bas sur l’onboarding (plus de bande d’une autre couleur le temps qu’il monte). */
+@media (prefers-reduced-motion:no-preference){
+  html.is-native:not([data-motion="reduce"]) #app{transition:height .26s cubic-bezier(.38,.7,.125,1),min-height .26s cubic-bezier(.38,.7,.125,1)}
+  html.lq.is-native:not([data-motion="reduce"]) #scr-compte .plus-details[open],html.lq.is-native:not([data-motion="reduce"]) .imp-sheet{transition:bottom .26s cubic-bezier(.38,.7,.125,1),max-height .26s cubic-bezier(.38,.7,.125,1)}
+}
+html.lq.is-native.kb-ouvert,html.lq.is-native.kb-ouvert body{background:var(--fond-clavier,var(--bg))!important}
+html.lq.is-native.kb-ouvert:has(#onboarding.on) body{background:#4529CC!important}
+
+/* Profil et objectif (13 novembre, 14 h 24) : « Tu es… » sous le pseudo, dans la marge des lignes de la feuille (18 px), les pastilles
+   de « Contacte-nous ». */
+html.lq #scr-compte .plus-details-body>.acc-genre{margin:4px 18px 18px}
+html.lq #scr-compte .acc-genre .ct-types{margin:0 0 8px}
+html.lq #scr-compte .acc-genre-n{display:block;font-size:13px;line-height:1.35;color:var(--ink-3)}
 
 /* ==========================================================================
    Défis — la refonte du 7 novembre (« il faut que quelqu’un m’aide pour la partie design/product design sur la partie défi »).

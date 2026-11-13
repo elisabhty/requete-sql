@@ -635,6 +635,13 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 dans `capacitor.config.json`, et l’appli appelle `Keyboard.setScroll({isDisabled: true})` au lancement : à l’appui sur un champ,
 iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la page (écrans, feuilles, onboarding) défile comme avant.
 
+**La vue garde sa taille** (13 novembre, 14 h 24 : « des sauts au niveau des champs à clavier / flash ») : le plugin Keyboard
+rétrécissait la vue 0,45 s après l’apparition du clavier (`resize: native`), d’où un deuxième saut et une image de travers. Au
+lancement, l’appli passe le clavier en mode `none` (`Keyboard.setResizeMode`, index.html, sans nouvelle version Apple) : la vue ne
+bouge plus, l’appli se cale sur le clavier dès qu’il s’annonce (`--app-h`, `--kb`) et suit son mouvement en 0,26 s (ludique.css,
+« Le clavier qui monte »). Sous le clavier, la couleur du bas de la page (`--fond-clavier`). `capacitor.config.json` garde
+`native` : c’est l’appli qui choisit au lancement, et une mise à jour à distance peut revenir en arrière.
+
 ## Corriger l’appli sans repasser par Apple (13 novembre, 11 h 49)
 
 Elisa : « je voulais savoir comment faire si je veux modifier un cours, ajouter un parcours, modifier une faute, etc. sans passer
