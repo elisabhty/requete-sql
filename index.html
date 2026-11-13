@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=337">
+<link rel="stylesheet" href="ludique.css?v=338">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=67">
 <style id="lesson-video-css">
@@ -37006,10 +37006,12 @@ function jeuOnMsg(m){
       break;
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
+      const revanche=!!J.revanche&&!replay;J.revanche=false;   // « Prête pour la revanche » (13 novembre, 16 h 58)
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
       J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;J.partants=null;J.horsPartie=false;
       jeuApplyCfg();jeuDrain();
       if(J.ranked&&J.solo&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuNextRound();},100);
+      if(revanche&&!jeuIsHost())setTimeout(()=>{if(JEU===J&&!J.rounds.length&&!J.ready[J.me])jeuSend({t:'ready',on:true});},400);
       break;}
     case 'bye':
       if(m.pid===J.me)return;
@@ -38191,8 +38193,8 @@ function jeuRender(){
         `${bande}
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Ton récap’</p><ol class="jeu-rounds">${recap}</ol></div>
         ${jeuFinBoutonsHTML(nOk,all)}`;
-      if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
-      if(all)setTimeout(celebrate,300);
+      if(!prefersReduceMotion()&&!keep)setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
+      if(all&&!keep)setTimeout(celebrate,300);   // redessiné sur place (la revanche, 13 novembre) : pas une deuxième fois
     }else{
       jeuPlaces(sc);
       const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
@@ -38205,10 +38207,10 @@ function jeuRender(){
         `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
         ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>${tie}</div>`:tie}
         ${jeuCorrListeHTML()}
-        ${host?`<button type="button" class="journey-primary" onclick="jeuAgain()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`}
+        ${host?`<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:jeuRevancheHTML()}
         ${jeuBtn2('quit','Quitter la salle','goBack()')}
         ${jeuNetSlot()}`;
-      if(winner)setTimeout(celebrate,300);
+      if(winner&&!keep)setTimeout(celebrate,300);   // redessiné sur place (la revanche, 13 novembre) : pas une deuxième fois
     }
   }
   /* 9 novembre, 16 h 59 (Elisa : « sur iPhone, vérifie bien que l’écran “Oups, la partie a déjà démarré” soit bien centré, pas tout en
@@ -38526,7 +38528,7 @@ function jeuFinBoutonsHTML(nOk,all){
   /* 12 h 36 : seul sur l’écran de fin d’une salle entre amis dont l’hôte vient de partir, on n’en est pas encore l’hôte (25 s au plus) :
      « Rejouer » ne faisait rien. On le dit ; le bouton revient dès qu’on prend la main (jeuSig redessine). */
   const main=J.solo||jeuIsHost()?`<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>${nOk?'Rejouer':'Réessayer'}</span>${DEF_CHEV_SVG}</button>`
-    :`<p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>L’hôte peut relancer une partie dans cette salle.</p>`;
+    :jeuRevancheHTML();   // 13 novembre, 16 h 58 : la revanche, pour qui n’est pas l’hôte
   return `<div class="jeu-fin-actions">${prog}${main}`+
     (J.solo?jeuBtn2('classement','Voir mon classement','jeuVersClassement()'):jeuBtn2('quit','Quitter la salle','goBack()'))+'</div>';
 }
@@ -38617,6 +38619,23 @@ function jeuCorrFermer(){
 /* « Rejouer » : la fin de partie peut être encore en route (le serveur, ou la marge de 2 s après le chrono : jeuFinish) ; elle part, et
    la partie suivante la suit dès qu’elle est là (case 'end'). */
 function jeuRejouer(){const J=JEU;if(!J||!jeuIsHost())return;if(J.over)return jeuAgain();J.rejouer=true;jeuFinish();}
+/* 13 novembre, 16 h 58 (Elisa, après une partie à deux : « à la fin, mettre un bouton, pouvoir rejouer dans la même salle ») : à la
+   fin d’une partie entre amis, « Rejouer dans cette salle » pour tout le monde, sur le podium et sur la page des points. L’hôte relance
+   la salle (jeuRejouer : tout le monde revient dans la salle d’attente, avec le même code). Un joueur dit qu’il en est : son bouton
+   passe « Prête pour la revanche ✓ » (touché de nouveau, il se ravise) et, dès que l’hôte relance, il est prêt tout seul
+   (case 'again') : l’hôte n’a plus qu’à lancer. Avant, il ne voyait que « L’hôte peut relancer une partie dans cette salle. » */
+function jeuRevanche(){
+  const J=JEU;if(!J||J.solo)return;
+  if(jeuIsHost()){jeuRejouer();return;}
+  J.revanche=!J.revanche;
+  if(typeof buzz==='function')buzz(J.revanche?'success':'light');
+  jeuRedraw();   // le même écran, redessiné sans son entrée ni ses confettis (keep)
+}
+function jeuRevancheHTML(){
+  const J=JEU,on=!!(J&&J.revanche),h=J&&J.players&&(J.players[J.hostPid]||{}).name,hote=h?esc(h):'';
+  return `<button type="button" class="journey-primary jeu-revanche${on?' on':''}" aria-pressed="${on}" onclick="jeuRevanche()"><span>${on?`${jeuMaj(jeuPretMot(true))} pour la revanche ✓`:'Rejouer dans cette salle'}</span>${on?'':DEF_CHEV_SVG}</button>`+
+    `<p class="jeu-wait jeu-revanche-n"><i class="jeu-dot" aria-hidden="true"></i>${on?`Tu seras ${jeuPretMot(true)} dès que ${hote||'l’hôte'} relance la partie.`:`${hote?hote+' relance':'L’hôte relance'} la partie, ici, avec le même code.`}</p>`;
+}
 function jeuCountUp(el){
   if(!el||prefersReduceMotion())return;
   const to=+el.dataset.n||0,from=+el.dataset.from||0,t0=performance.now(),D=700,plus=el.textContent.trim().startsWith('+'),fr=el.dataset.fmt==='fr';
@@ -38654,6 +38673,7 @@ function jeuPtsPage(o){
       <p class="mu-p" id="mu-p">Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${total?` Tes points de salle passent à <b>${fmt(total)}</b>.`:''}</p>
       <div class="mu-acts">
         <button type="button" class="mu-go"><span class="mu-go-ico">${MU_PLAY}</span><span class="mu-go-l">Voir le bilan</span></button>
+        ${o.solo?'':'<button type="button" class="mu-later mu-rejouer">Rejouer dans cette salle</button>'}
       </div>
     </div>
   </div>`;
@@ -38664,6 +38684,9 @@ function jeuPtsPage(o){
   const fermer=()=>moduleUpClose();
   el.querySelector('.mu-go').addEventListener('click',fermer);
   el.querySelector('.mu-x').addEventListener('click',fermer);
+  /* 13 novembre, 16 h 58 : entre amis, la revanche dès cette page (l’hôte relance la salle ; les autres seront prêts à la relance) */
+  const rj=el.querySelector('.mu-rejouer');
+  if(rj)rj.addEventListener('click',()=>{fermer();setTimeout(()=>{if(typeof jeuRevanche==='function')jeuRevanche();},60);});
   el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); fermer(); } });
   if(typeof lqSay==='function')lqSay(`+${o.pts} point${pl}`+(total?`, total de salle : ${total} points`:''));
   if(typeof buzz==='function')buzz('success');
@@ -51255,7 +51278,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-bienvenue-v2948';
+  const SW_CACHE='requete-2026-11-13-revanche-v2949';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

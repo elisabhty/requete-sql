@@ -52,7 +52,8 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   assert.ok(ctx.jeuFinBoutonsHTML(1, true).includes('[quit|Quitter la salle|goBack()]') && !ctx.jeuFinBoutonsHTML(1, true).includes('jeu-prog'), 'dans une salle : la quitter');
   /* 12 h 36 : pas encore l’hôte (il vient de partir), pas de « Rejouer » qui ne ferait rien */
   ctx.jeuIsHost = () => false;
-  assert.ok(!ctx.jeuFinBoutonsHTML(1, true).includes('jeuRejouer()') && ctx.jeuFinBoutonsHTML(1, true).includes('L’hôte peut relancer une partie dans cette salle.'));
+  ctx.jeuRevancheHTML = () => '[revanche]';   // 13 novembre, 16 h 58 : la revanche (retours-1658-revanche)
+  assert.ok(!ctx.jeuFinBoutonsHTML(1, true).includes('jeuRejouer()') && ctx.jeuFinBoutonsHTML(1, true).includes('[revanche]'));
   ctx.jeuIsHost = () => true;
   /* « Rejouer » touché avant que la fin de partie revienne : elle part, la partie suivante la suit */
   assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();J.rejouer=true;jeuFinish();'));

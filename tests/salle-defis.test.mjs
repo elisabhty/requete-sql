@@ -371,9 +371,10 @@ test('manches enchaînées sans doublon, podium, points cumulés une seule fois'
   assert.equal(new Set(cids).size, 3, 'trois défis différents : ' + cids);
   host.ev('jeuFinish()'); sec(w, 1.5);
   assert.equal(host.view(), 'final'); assert.equal(guests[0].view(), 'final');
-  assert.match(host.html, /Rejouer dans cette salle/);
-  assert.doesNotMatch(guests[0].html, /Rejouer dans cette salle/);
-  assert.match(guests[0].html, /L’hôte peut relancer/);
+  assert.match(host.html, /onclick="jeuRejouer\(\)"><span>Rejouer dans cette salle/);
+  /* 13 novembre, 16 h 58 : l’ami aussi a son bouton, la revanche (il sera prêt à la relance) */
+  assert.match(guests[0].html, /onclick="jeuRevanche\(\)"><span>Rejouer dans cette salle/);
+  assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)/);
   assert.equal(host.ev('state.salle.parties'), 1);
   const sum = c => c.ev('JEU.rounds.reduce((s,r,i)=>s+((jeuRanking(i).find(x=>x.pid===JEU.me)||{pts:0}).pts),0)');
   assert.equal(host.ev('state.salle.pts'), sum(host), 'les points des trois manches, une seule fois');
@@ -396,6 +397,28 @@ test('« Rejouer dans cette salle » : même code, retour en salle d’attente, 
   host.ev('jeuNextRound()'); sec(w, 1);
   assert.notEqual(host.ev('JEU.rounds[0].cid'), first, 'on évite le défi qu’on vient de jouer');
   assert.equal(guests[1].J('rounds[0].cid'), host.ev('JEU.rounds[0].cid'));
+});
+
+test('13 novembre, 16 h 58 : la revanche ; l’ami touche « Rejouer dans cette salle », il est prêt dès que l’hôte relance', () => {
+  const { w, host, guests } = room({ n: 3, nb: 1 });
+  guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
+  host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); guests[0].found(); guests[1].found(); sec(w, 2);
+  host.ev('jeuFinish()'); sec(w, 1.5);
+  assert.equal(guests[0].view(), 'final');
+  guests[0].ev('jeuRevanche()'); sec(w, 0.5);
+  assert.equal(guests[0].J('revanche'), true);
+  assert.match(guests[0].html, /class="journey-primary jeu-revanche on" aria-pressed="true"/);
+  assert.match(guests[0].html, /pour la revanche ✓/);
+  assert.match(guests[0].html, /Tu seras prêt·e dès que Hôte relance la partie\./);
+  guests[1].ev('jeuRevanche()'); guests[1].ev('jeuRevanche()'); sec(w, 0.5);
+  assert.equal(guests[1].J('revanche'), false, 'touché de nouveau, il se ravise');
+  /* L’hôte relance, depuis le podium (jeuRejouer, comme son bouton) */
+  host.ev('jeuRejouer()'); sec(w, 2);
+  for (const c of [host, ...guests]) { assert.equal(c.view(), 'lobby', c.name); assert.equal(c.J('g'), 1); }
+  assert.equal(guests[0].J('ready[JEU.me]'), true, 'prêt tout seul à la relance');
+  assert.equal(host.ev(`JEU.ready[${JSON.stringify(guests[0].J('me'))}]`), true, 'l’hôte le voit prêt');
+  assert.ok(!guests[1].J('ready[JEU.me]'), 'celui qui s’est ravisé reste en attente');
+  assert.equal(guests[0].J('revanche'), false, 'la revanche ne vaut que pour une relance');
 });
 
 test('l’hôte change le niveau et le nombre de manches dans la salle d’attente', () => {
@@ -1688,7 +1711,7 @@ test('12 h 36 : l’ami resté seul garde la salle d’attente en hôte ; le pod
     assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)|jeuAgain\(\)/);
     sec(w, 20);
     assert.ok(guests[0].ev('jeuIsHost()'));
-    assert.match(guests[0].html, /jeuAgain\(\)/, 'devenu hôte : « Rejouer dans cette salle »');
+    assert.match(guests[0].html, /jeuRejouer\(\)"><span>Rejouer dans cette salle/, 'devenu hôte : « Rejouer dans cette salle » (jeuRejouer depuis le 13 novembre)');
   }
   assert.ok(html.includes("const main=J.solo||jeuIsHost()?"), 'le bilan : « Rejouer » chez l’hôte, sinon la ligne d’attente');
 });
