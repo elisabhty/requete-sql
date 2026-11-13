@@ -78,5 +78,5 @@ test('les styles : tout suit la taille de la mascotte, qui rapetisse palier par 
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=67">') && sw.includes("'./onboarding-vitrine.css?v=67',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-clavier-v2936';") && app.includes("const SW_CACHE='requete-2026-11-13-clavier-v2936';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-maj-v2937';") && app.includes("const SW_CACHE='requete-2026-11-13-maj-v2937';"));
 });

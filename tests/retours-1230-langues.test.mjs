@@ -162,7 +162,7 @@ test('le SQL : sur la vraie base du cours, la requête récrite donne le même r
 });
 
 test('index.html : langues.js juste après maj.js, le prénom confié au moteur, le choix de la langue seulement en essai', () => {
-  const i = app.indexOf('<script src="maj.js?v=1"></script>'), j = app.indexOf('<script src="langues.js?v=2"></script>');
+  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf('<script src="langues.js?v=2"></script>');
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
   assert.ok(sw.includes("'./langues.js?v=2',") && sw.includes("'./langue-en.js?v=2',"));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name)"));

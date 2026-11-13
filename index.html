@@ -39,7 +39,7 @@
 <!-- Elisa, 13 novembre, 11 h 49 : « modifier un cours, ajouter un parcours, modifier une faute, sans passer par une mise en prod
      Apple ». maj.js, chargé avant tout le reste : dans l’app iPhone, une version plus récente déjà téléchargée depuis requeteapp.com
      s’installe ici, sous l’écran de lancement (jamais en cours d’utilisation). Dans un navigateur, il ne fait rien. Voir maj.js. -->
-<script src="maj.js?v=1"></script>
+<script src="maj.js?v=2"></script>
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
@@ -50287,7 +50287,12 @@ function appVersionNote(){
     const e=window.REQUETE_MAJ&&window.REQUETE_MAJ.branchee?window.REQUETE_MAJ.etat():null;
     if(e&&e.prete)t+=' · v'+e.prete+' au prochain lancement';
     else if(e&&e.retour)t+=' · version d’origine au prochain lancement';
-    if(e&&e.canal==='essai')t+=' · versions d’essai';
+    if(e&&e.canal==='essai'){
+      t+=' · versions d’essai';
+      /* En essai, le dernier événement de la mise à jour à distance (« à jour », « prête », « vérification ratée »…) : pour comprendre
+         sur le téléphone ce qui se passe (13 novembre, 14 h 59). */
+      if(e.dernier&&e.dernier.quoi)t+=' · '+e.dernier.quoi+(e.dernier.detail?' ('+String(e.dernier.detail).slice(0,60)+')':'');
+    }
   }catch(_){}
   return t;
 }
@@ -51137,7 +51142,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-clavier-v2936';
+  const SW_CACHE='requete-2026-11-13-maj-v2937';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
