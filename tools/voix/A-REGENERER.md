@@ -2,17 +2,49 @@
 
 _5 novembre 2026, d’après le contrôle des voix du 4 novembre. Elisa décide de ce qui est généré._
 
-**10 novembre, 13 h 05 : les voix de la relecture finale, revues avec Elisa** (« corrige en parlant un peu de ce qu’est une clé, et le reste de la meilleure des manières » ; « oui, fais le filtre »). Cinq chapitres, chacun avec la voix de son cours ; la page garde ses textes tant que la voix n’est pas refaite (`tools/voix/<cours>-relecture.json`, même nombre de légendes qu’avant) :
+**13 novembre, 13 h 19 : « Les bases de données relationnelles », ses légendes muettes** (Elisa, sur sa capture : « certains textes ne
+sont pas parlés »). Sept légendes ajoutées après la voix du cours, ou jamais générées, et la phrase de la relecture du 10 novembre :
+
+  - chapitre 5 (`ch05b`, 289 caractères) : « Le SQL est le langage qui permet de communiquer avec le SGBD. », « Une requête est une
+    instruction écrite en SQL : elle demande au SGBD de lire ou de modifier des données. », « Ici, SELECT * FROM produits demande
+    d’afficher tous les produits de notre catalogue (la table produits). » ;
+  - chapitre 6 (`ch06b`, 195 caractères) : « INTEGER est le type de donnée de la colonne id : un nombre entier. », « Chaque colonne a
+    son type : TEXT pour un prénom ou un e-mail, REAL pour un prix à virgule, comme 29,90 €. » ;
+  - chapitre 6 (`ch06c`, 89 caractères) : « Cette colonne est la clé primaire : sa valeur est unique et n’est jamais vide. » (la relecture
+    du 10 novembre ; la légende change avec sa voix, pas avant) ;
+  - chapitre 11, « À retenir » (`ch11`, 115 caractères) : « Pour finir, voici les trois idées à retenir. », « Ajoute ce résumé à tes notes
+    pour le retrouver facilement. ».
+
+  Générées à part (`tools/voix/bases-relationnelles-complements.json`), avec la phrase d’avant et celle d’après pour le ton : les
+  autres phrases du cours gardent leur voix (avant, il fallait refaire les chapitres 5, 6 et 11 en entier : 2 385 caractères, plus
+  1 402 pour la relecture). Environ 690 crédits :
+
+```
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours bases-relationnelles-complements --oui
+```
+
+  Puis « fini » : `node tools/voix/integrer.mjs bases-relationnelles tools/voix/sortie/bases-relationnelles-complements --garder`.
+  Les compléments (`ch05b`…) vont aux légendes encore muettes ; `generer.mjs` ne les refera pas pour le cours lui-même.
+
+**13 novembre, 13 h 19 : le souffle d’avant une phrase reste avec elle** (même cours : « un trou : clients, commandes et produits.
+Coupure. Elle est gérée… »). Entre « …et produits. » et « Elle est gérée… », la voix reprend son souffle (0,26 s, sans voix) ; la coupe
+du 5 novembre l’avait laissé à la fin de la phrase d’avant : un souffle, puis près d’une seconde de silence avant la phrase qu’il
+annonçait. 10 coupes déplacées dans 7 cours, sans régénérer ni toucher au son (`tools/voix/souffles.mjs`) : ANY et ALL (3), Bases
+relationnelles (2), Conversion de types, JOIN et GROUP BY, Jointure à 3 tables, LEFT JOIN, WITH (CTE). Trois d’entre elles étaient
+l’attaque d’un « s » ou d’un « f », sous le seuil des silences : le mot commençait dans la phrase d’avant. `integrer.mjs` applique
+la même règle à chaque intégration (`souffles-lib.mjs`).
+
+**10 novembre, 13 h 05 : les voix de la relecture finale, revues avec Elisa** (« corrige en parlant un peu de ce qu’est une clé, et le reste de la meilleure des manières » ; « oui, fais le filtre »). Quatre chapitres, chacun avec la voix de son cours ; la page garde ses textes tant que la voix n’est pas refaite (`tools/voix/<cours>-relecture.json`, même nombre de légendes qu’avant) :
   - Normalisation (Agathe, ch05, 697 caractères) : « Deuxième forme normale : chaque colonne dépend de toute la clé, les colonnes qui repèrent chaque ligne. » puis « La clé d’une inscription, c’est le couple client et atelier : la date d’inscription dépend des deux. » ;
   - WITH RECURSIVE (Anaïs, ch06, 419 caractères) : « Ixèpte en retire 12, les jours de juillet avec au moins une commande : il reste 19 jours. » (la table a 14 dates, dont deux en août) ;
   - GROUP BY sur plusieurs colonnes (Antoine, ch05, 291 caractères) : « Conseil : mets aussi dans le SELECT chaque colonne du groupe baï. » (ce n’est pas une règle : la vidéo montre ensuite que la requête s’exécute) ;
-  - Bases relationnelles (Agathe, ch06, 1391 caractères, déjà à refaire pour ses légendes muettes) : « sa valeur est unique et n’est jamais vide » ;
+  - (Bases relationnelles : « sa valeur est unique et n’est jamais vide », refaite à part avec ses légendes muettes, le 13 novembre, plus haut.)
   - HAVING (voix du cours, ch04, 407 caractères) : « WHERE filtre les lignes avant les groupes » et « WHERE filtre d’abord les lignes, puis HAVING filtre les groupes » (« trier », c’est ORDER BY ; les étiquettes de la page disent déjà « filtre »).
 
-  Environ 3 200 crédits :
+  Environ 1 860 crédits :
 
 ```
-cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours with-recursive-relecture,group-by-colonnes-relecture,projet-normaliser-relecture,bases-relationnelles-relecture,having-relecture --oui
+cd ~/SQL && git pull --ff-only && node tools/voix/generer.mjs --toutes --cours with-recursive-relecture,group-by-colonnes-relecture,projet-normaliser-relecture,having-relecture --oui
 ```
 
   Puis « fini » : `node tools/voix/integrer.mjs <cours> tools/voix/sortie/<cours>-relecture --garder` pour chacun.
@@ -99,7 +131,7 @@ Dans les listes ci-dessous, les lignes de ces 20 cours sont donc caduques (Mia, 
 8. Bravo : tu as terminé ton apprentissage du SQL !
 9. Et maintenant, place à la pratique : des défis t’attendent !
 
-**`bases-relationnelles` (Agathe) : 7 légendes muettes.** Les chapitres 5 et 6 sont à refaire en entier (5 légendes ajoutées après la génération), et le chapitre 11 « À retenir » n’a jamais été généré : ch05, ch06 et ch11, 2385 caractères.
+**`bases-relationnelles` (Agathe) : 7 légendes muettes.** _(13 novembre : générées à part, sans refaire les chapitres : voir tout en haut.)_ Les chapitres 5 et 6 étaient à refaire en entier (5 légendes ajoutées après la génération), et le chapitre 11 « À retenir » n’a jamais été généré : ch05, ch06 et ch11, 2385 caractères.
 
 - Le SQL est le langage qui permet de communiquer avec le SGBD.
 - Une requête est une instruction écrite en SQL : elle demande au SGBD de lire ou de modifier des données.

@@ -10,7 +10,13 @@
    --garder (6 novembre : une phrase refaite à part, tools/voix/<cours>-retouches.json) : un fichier absent du dossier garde ce que la
    page a déjà pour lui (ses phrases calées, sa consigne), et son .mp3 reste dans assets/voix/<cours>/.
    - enfin, le volume : chaque fichier ramené au niveau des chapitres du cours (tools/voix/volume.mjs, sans réencodage ; Elisa,
-     6 novembre, 19 h 56 : « il faut que le son reste homogène avec le reste »). */
+     6 novembre, 19 h 56 : « il faut que le son reste homogène avec le reste »).
+   13 novembre (Elisa, 13 h 19, « Les bases de données relationnelles » : « un trou : clients, commandes et produits. Coupure. Elle
+   est gérée… » ; « certains textes ne sont pas parlés ») :
+   - le souffle d’avant une phrase reste avec elle (souffles-lib.mjs) : la coupe passe avant lui, jamais après ;
+   - un complément (ch05b, ch06c… : des phrases ajoutées à un chapitre après sa voix, générées à part, ou une phrase refaite) va aux
+     légendes encore muettes de la page, où qu’elles soient, sans refaire le chapitre ;
+   - avec --garder, une phrase dont la légende a changé (legendes d’un complément) n’est plus gardée : sa nouvelle voix la remplace. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -18,6 +24,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {aToi} from './atoi-lib.mjs';
 import {mesureFichier, planifier, regler} from './volume.mjs';
+import {levels, souffles} from './souffles-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '..', '..');
@@ -69,14 +76,7 @@ function sim(a, b){   // ressemblance de deux textes (0 à 1), sur les bigrammes
 }
 
 function probe(f){ return +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim(); }
-/* Niveau du son toutes les 10 ms (mono, 16 kHz). */
-function levels(f){
-  const buf = execFileSync('ffmpeg', ['-v', 'error', '-i', f, '-ac', '1', '-ar', '16000', '-f', 'f32le', '-'], {maxBuffer: 1 << 30});
-  const x = new Float32Array(buf.buffer, buf.byteOffset, buf.length >> 2), F = 160, out = new Float32Array(Math.ceil(x.length / F));
-  for (let i = 0; i < out.length; i++) { let s = 0, n = 0; for (let j = i * F; j < Math.min(x.length, (i + 1) * F); j++) { s += x[j] * x[j]; n++; } out[i] = Math.sqrt(s / Math.max(1, n)); }
-  const sorted = Array.from(out).sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * 0.95)] || 0.1;
-  return {rms: out, thr: Math.max(0.004, 0.07 * p95)};
-}
+/* Le niveau du son toutes les 10 ms et le seuil des silences : levels(), dans souffles-lib.mjs. */
 /* Silences d’au moins 80 ms : [début, fin] en secondes. */
 function silences(L){
   const out = []; let run = 0;
@@ -188,11 +188,16 @@ function garde(el){
     say[el.id] = ANCIEN.say[el.id]; if (ANCIEN.toi && ANCIEN.toi[el.id]) toi[el.id] = ANCIEN.toi[el.id]; return true;
   }
   if (el.id === 'ch00') { intro = ANCIEN.intro; return !!intro; }
-  const kept = (ANCIEN.caps || []).filter(c => c[1] === el.id);
+  /* Une phrase dont la légende a changé (les legendes d’un complément, posées plus haut) : sa voix d’avant n’est plus gardée. */
+  const kept = (ANCIEN.caps || []).filter(c => c[1] === el.id && CLES.has(c[0]));
   kept.forEach(c => { caps.push(c); const j = CAPTIONS.findIndex((x, k) => k >= ci && vkey(x[2]) === c[0]); if (j >= 0) ci = j + 1; });
   return kept.length > 0;
 }
-const capN = CAPTIONS.map(c => norm(plainCap(c[2])));
+const capN = CAPTIONS.map(c => norm(plainCap(c[2]))), CLES = new Set(CAPTIONS.map(c => vkey(c[2])));
+/* Un complément (ch05b, ch06c…) : des phrases d’un chapitre générées à part. Elles vont aux légendes encore muettes, où qu’elles
+   soient dans la page : ni celles qui ont déjà leur voix (gardée ou intégrée), ni l’ordre des chapitres ne sont touchés. */
+const COMPLEMENT = /^ch\d+[a-z]$/;
+const voixPrises = () => new Set(caps.map(c => c[0]).concat(ANCIEN ? (ANCIEN.caps || []).filter(c => CLES.has(c[0]) && job.elements.some(e => e.id === c[1] && !fs.existsSync(path.join(RAW, e.id + '.mp3')))).map(c => c[0]) : []));
 for (const el of job.elements) {
   const src = path.join(RAW, el.id + '.mp3'), recf = path.join(RAW, el.id + '.json');
   if (!fs.existsSync(src)) {
@@ -217,15 +222,18 @@ for (const el of job.elements) {
   const T = timing(rec);
   let spans = T ? locate(T, el.phrases) : null;
   if (!spans || spans.some(x => !x)) { report.push(`${el.id} : minutage incomplet, découpage aux silences`); spans = bySilence(L, el.phrases.length, dur); }
-  const clips = bounds(L, spans, dur);
+  /* Les bords de chaque phrase, puis chaque souffle rendu à la phrase qu’il précède (13 novembre). */
+  const clips = souffles(L, bounds(L, spans, dur)).clips;
   if (el.id === 'ch00') { intro = [el.id, clips[0][0], clips[clips.length - 1][1]]; continue; }
-  /* Chaque phrase à sa légende : la plus ressemblante parmi les suivantes, dans l’ordre. */
+  /* Chaque phrase à sa légende : la plus ressemblante parmi les suivantes, dans l’ordre ; pour un complément, parmi les muettes. */
+  const prises = COMPLEMENT.test(el.id) ? voixPrises() : null;
   el.phrases.forEach((p, k) => {
     /* legendes : le texte de la légende quand la phrase dite en diffère (code lu à voix haute, preparer.mjs). */
     const q = norm((el.legendes && el.legendes[k]) || p); let best = -1, bs = 0;
-    for (let j = ci; j < Math.min(CAPTIONS.length, ci + 4); j++) { const v = sim(q, capN[j]); if (v > bs) { bs = v; best = j; } }
+    const [de, a] = prises ? [0, CAPTIONS.length] : [ci, Math.min(CAPTIONS.length, ci + 4)];
+    for (let j = de; j < a; j++) { if (prises && prises.has(vkey(CAPTIONS[j][2]))) continue; const v = sim(q, capN[j]); if (v > bs) { bs = v; best = j; } }
     if (best < 0 || bs < 0.8) { report.push(`${el.id} · phrase ${k + 1} sans légende (${Math.round(bs * 100)} %) : ${p}`); return; }
-    ci = best + 1;
+    if (prises) prises.add(vkey(CAPTIONS[best][2])); else ci = best + 1;
     caps.push([vkey(CAPTIONS[best][2]), el.id].concat(clips[k]));
   });
 }
