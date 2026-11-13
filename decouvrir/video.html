@@ -1835,6 +1835,8 @@ Promise.all([document.fonts ? document.fonts.ready : 0, sonLoad(), ...$$('img').
   if (!document.documentElement.classList.contains('vd-site')) return;
   var fin = document.querySelector('#end a');
   if (fin && fin.firstChild && fin.firstChild.nodeType === 3) fin.firstChild.nodeValue = 'Découvrir l’appli';
+  /* La page qui rétrécit la fenêtre rétrécit le cadre : l’image suit, même si le navigateur tarde à prévenir le cadre (13 novembre, 10 h 38). */
+  try { if ('ResizeObserver' in window && typeof fit === 'function') new ResizeObserver(function(){ fit(); }).observe(document.documentElement); } catch (err) {}
   window.requeteVideo = {
     pause: function(){ try { if (!C.paused()) pause(); } catch (err) {} },
     focus: function(){ try { var go = document.getElementById('go'), b = go && !go.hidden && !go.classList.contains('out') ? go : document.getElementById('pp'); if (b) b.focus({preventScroll: true}); } catch (err) {} }

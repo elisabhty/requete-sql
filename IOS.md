@@ -47,8 +47,13 @@ titre, de manière bien détourée, bien fondue ; quand on clique sur Commencer 
 sur la partie appli ».
 
 - **Où** : `decouvrir/index.html`, le bloc `#video` (`.hv`), juste après le titre du héros. C’est `video.html?site` dans un
-  cadre sans fond. Sur téléphone, sous le titre ; sur tablette et ordinateur, à côté du texte (le titre, le texte et les avis à
-  gauche, la vidéo à droite), « Ton objectif » et la photo dessous (`vitrine.css`, « La vidéo du héros »).
+  cadre sans fond. Sous le titre, centrée, jusqu’à 959 px de large ; sur ordinateur (960 px et plus), à côté du texte (le titre,
+  le texte et les avis à gauche, la vidéo à droite), « Ton objectif » et la photo dessous (`vitrine.css`, « La vidéo du héros »).
+- **Elle suit la fenêtre** (10 h 38, Elisa, une fenêtre d’ordinateur rétrécie à 558 × 636 : « elle ne suit pas le rapetissement
+  de fenêtre, c’est pas centré » ; la vidéo restait large de 470 px, collée à gauche, plus haute que la fenêtre). Sur téléphone
+  (moins de 500 px), toute la largeur. De 500 à 959 px, `min(100%, 470px, (100vh − 236px) × 0,8)`, 280 px au moins : arrivée
+  par « Commencer », la vidéo, sa barre et son bouton tiennent dans la hauteur de la fenêtre. Sur ordinateur, 440 px au plus,
+  et la même limite de hauteur. Dans le cadre, `fit()` recale l’image à chaque changement de taille.
 - **Fondue, détourée** : l’affiche de la vidéo a le dégradé du héros (`--deep`) ; un liseré clair, un halo lavande et une ombre
   la détourent, dessinés par la page (`.hv-card::before` : le cadre couperait une ombre venue de la vidéo). La carte fait la
   largeur de la vidéo, sa hauteur (5/4) plus les 64 px de la barre de lecture.

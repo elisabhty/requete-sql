@@ -73,7 +73,7 @@ test('le site : la vidéo suit le titre du héros, dans un cadre sans fond ; des
   assert.ok(!/href="video\.html"/.test(site), 'plus de lien vers la page seule');
   /* La feuille : la carte fait la largeur de la vidéo, sa hauteur (5/4) plus les 64 px de la barre ; le liseré, le halo et l’ombre sont ici */
   const feuille = css.slice(css.indexOf('/* ---------- La vidéo du héros (Elisa, 13 novembre, 9 h 56) ----------'));
-  assert.ok(feuille.includes('.hv{margin:26px 0 0;max-width:470px}') && feuille.includes('.hv-card{position:relative;height:0;padding-bottom:calc(125% + 64px)}'));
+  assert.ok(feuille.includes('.hv{margin:26px auto 0;max-width:470px}') && feuille.includes('.hv-card{position:relative;height:0;padding-bottom:calc(125% + 64px)}'));
   const carte = cut(feuille, '.hv-card::before{', '}');
   assert.ok(carte.includes('bottom:64px') && carte.includes('border-radius:20px'), 'le fond de la carte s’arrête au-dessus de la barre de lecture');
   assert.ok(carte.includes('background:linear-gradient(170deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%)') && css.includes('--deep:linear-gradient(170deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%);'), 'fondue : le dégradé du héros');
@@ -83,15 +83,43 @@ test('le site : la vidéo suit le titre du héros, dans un cadre sans fond ; des
   /* Le halo de « Commencer » ne bat que si le mouvement est permis */
   assert.ok(feuille.includes('@media (prefers-reduced-motion:no-preference){\n  .hv.vu .hv-card::before{animation:hv-vu .9s var(--press) 2}\n}'));
   assert.equal((feuille.match(/animation:/g) || []).length, 1);
-  /* Tablette et ordinateur : la vidéo à côté du texte, « Ton objectif » et la photo dessous */
-  const tablette = cut(feuille, '@media (min-width:700px) and (max-width:959px){', '\n}'), ordi = cut(feuille, '@media (min-width:960px){', '\n}');
-  assert.ok(tablette.includes('.hv{grid-column:1;grid-row:3 / span 4;') && tablette.includes('.hero .lead{grid-column:2;grid-row:4}') && tablette.includes('.visual{grid-row:7 / span 2}'));
-  assert.ok(tablette.includes('.proof{grid-column:2;grid-row:5;flex-direction:column;align-items:flex-start;gap:10px}'), 'dans la colonne étroite, les visages au-dessus de leur texte (il sortait de l’écran à 700 px)');
+  /* Ordinateur : la vidéo à côté du texte, « Ton objectif » et la photo dessous (la tablette et la fenêtre rétrécie : test suivant) */
+  const ordi = cut(feuille, '@media (min-width:960px){', '\n}');
   assert.ok(ordi.includes('.hero-grid>div:first-child{display:contents}') && ordi.includes('.hv{grid-column:2;grid-row:1 / span 6;justify-self:center;margin:0;width:min(100%,440px,max(300px,calc((100vh - 296px) * .8)))}'));
   assert.ok(ordi.includes('.pick{grid-column:1;grid-row:7;') && ordi.includes('.visual{grid-column:2;grid-row:7 / span 2}'));
   /* Chaque page du site charge la feuille à jour */
   const v = crypto.createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'decouvrir/vitrine.css'))).digest('hex').slice(0, 8);
   for (const f of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html']) assert.ok(lire('decouvrir/' + f).includes(`href="vitrine.css?v=${v}"`), f);
+});
+
+/* 13 novembre, 10 h 38 (Elisa, la fenêtre de son ordinateur rétrécie à 558 × 636 : « rendre la partie vidéo responsive, car je trouve
+   qu’elle ne suit pas le rapetissement de fenêtre, c’est pas centré »). Entre 500 et 699 px, la vidéo restait large de 470 px, collée
+   à gauche, plus haute que la fenêtre ; sur tablette, elle était à gauche du texte. Sous le titre, elle est maintenant centrée, et
+   dès 500 px sa largeur suit aussi la hauteur de la fenêtre. Vérifié dans son Chrome et en rétrécissant une fenêtre pas à pas,
+   de 1 440 à 340 px : marges égales des deux côtés, l’image suit le cadre, aucun débordement. */
+test('le site : sous le titre, la vidéo est centrée et suit la fenêtre qu’on rétrécit, en largeur comme en hauteur', () => {
+  const feuille = css.slice(css.indexOf('/* ---------- La vidéo du héros (Elisa, 13 novembre, 9 h 56) ----------'));
+  assert.ok(feuille.includes('.hv{margin:26px auto 0;max-width:470px}'), 'centrée dès qu’elle est plus étroite que sa colonne');
+  const moyen = cut(feuille, '@media (min-width:500px) and (max-width:959px){', '\n}');
+  assert.ok(moyen.includes('.hv{max-width:none;width:min(100%,470px,max(280px,calc((100vh - 236px) * .8)))}'));
+  /* Arrivée par « Commencer » : 84 px sous la barre, l’image (5/4), sa barre de lecture (64), le bouton (12 + 60) : tout tient dans la fenêtre */
+  assert.ok(css.includes('scroll-padding-top:84px') && css.includes('.btn-lg{min-height:60px;') && feuille.includes('.hv-go{display:flex;margin-top:12px}'));
+  const largeur = (w, h) => Math.min(w - 40, 470, Math.max(280, (h - 236) * 0.8));
+  assert.equal(largeur(558, 636), 320, 'sa fenêtre : 320 px, et plus 470');
+  for (const [w, h] of [[558, 636], [640, 740], [700, 740], [900, 800], [820, 1180], [959, 620]]) {
+    const l = largeur(w, h);
+    assert.ok(l <= w - 40 && 84 + l * 1.25 + 64 + 12 + 60 <= h, `${w} × ${h} : ${l} px`);
+  }
+  assert.equal(largeur(820, 1180), 470, 'une tablette debout : la largeur d’avant');
+  /* Tablette : plus de vidéo à gauche du texte ; elle a sa ligne, centrée, puis le texte et les avis, puis « Ton objectif » et la photo */
+  const tablette = cut(feuille, '@media (min-width:700px) and (max-width:959px){', '\n}');
+  for (const r of ['.kicker{grid-row:1}', '.hero h1{grid-row:2}', '.hv{grid-column:1/-1;grid-row:3;margin-top:30px}', '.hero .lead{grid-row:4}', '.proof{grid-column:1/-1;grid-row:5}', '.pick{grid-row:6}', '.trust{grid-row:7}', '.visual{grid-row:6 / span 2}'])
+    assert.ok(tablette.includes(r), r);
+  assert.ok(!feuille.includes('grid-row:3 / span 4') && !feuille.includes('.hero .lead{grid-column:2'), 'plus de vidéo à côté du texte sur tablette');
+  /* Téléphone (moins de 500 px) : toute la largeur, sans limite de hauteur */
+  assert.ok(!/@media \(max-width:499px\)[^}]*\.hv/.test(feuille));
+  /* Dans le cadre, l’image suit sa taille même si le navigateur tarde à prévenir le cadre */
+  assert.ok(video.includes("try { if ('ResizeObserver' in window && typeof fit === 'function') new ResizeObserver(function(){ fit(); }).observe(document.documentElement); } catch (err) {}"));
 });
 
 test('le site : « Commencer » signale la vidéo sans la lancer ; elle s’arrête hors de l’écran ; une seule voix à la fois', () => {
@@ -173,22 +201,25 @@ test('video.html?site : la fin dit « Découvrir l’appli », la page peut arr�
   const monter = ({site = true, joue = false, affiche = true} = {}) => {
     const appels = [], texte = {nodeType: 3, nodeValue: 'Commencer'};
     const go = {hidden: !affiche, classList: {contains: () => false}, focus: () => appels.push('focus affiche')}, pp = {focus: () => appels.push('focus lecture')};
-    const window = {};
-    const ctx = vm.createContext({window, C: {paused: () => !joue}, pause: () => appels.push('pause'),
+    const RO = function (cb) { this.observe = () => { cb(); }; };
+    const window = site ? {ResizeObserver: RO} : {};
+    const ctx = vm.createContext({window, ResizeObserver: RO, fit: () => appels.push('taille'), C: {paused: () => !joue}, pause: () => appels.push('pause'),
       document: {documentElement: {classList: {contains: c => site && c === 'vd-site'}}, querySelector: s => (s === '#end a' ? {firstChild: texte} : null), getElementById: id => (id === 'go' ? go : id === 'pp' ? pp : null)}});
     vm.runInContext(bloc, ctx);
     return {appels, texte, api: window.requeteVideo};
   };
   const a = monter({joue: true});
   assert.equal(a.texte.nodeValue, 'Découvrir l’appli');
-  a.api.pause(); assert.deepEqual(a.appels, ['pause']);
-  a.api.focus(); assert.deepEqual(a.appels, ['pause', 'focus affiche']);
+  assert.deepEqual(a.appels, ['taille'], 'la taille du cadre est observée');
+  a.api.pause(); assert.deepEqual(a.appels, ['taille', 'pause']);
+  a.api.focus(); assert.deepEqual(a.appels, ['taille', 'pause', 'focus affiche']);
   const b = monter({joue: false, affiche: false});
+  b.appels.length = 0;
   b.api.pause(); assert.deepEqual(b.appels, [], 'déjà arrêtée : rien');
   b.api.focus(); assert.deepEqual(b.appels, ['focus lecture'], 'l’affiche partie : le bouton de lecture');
   /* Seule (requeteapp.com/video.html) : « Commencer », et rien d’exposé */
   const c = monter({site: false});
-  assert.equal(c.texte.nodeValue, 'Commencer'); assert.equal(c.api, undefined);
+  assert.equal(c.texte.nodeValue, 'Commencer'); assert.equal(c.api, undefined); assert.deepEqual(c.appels, []);
   assert.ok(video.includes('<a href="./#mobile">Commencer<svg'), 'le libellé de la page seule');
   /* La lecture prévient la page (pour couper l’avis audio) */
   assert.ok(video.includes("C.play(); setPlaying(true); sonSync(); siteJoue(); }"));
