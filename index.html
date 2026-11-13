@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=352">
+<link rel="stylesheet" href="ludique.css?v=353">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -37669,13 +37669,38 @@ function jeuReagirMaj(){
   f.classList.toggle('is-ecrit',ecrit);
   f.classList.toggle('is-haut',!!(p&&!p.hidden));   // au-dessus de « Un coup de patte ? » tant qu’elle est là (19 h 49)
   if(ecrit&&J.reagir)jeuReagirFermer(false);
-  const d=jeuReagirDroite();if(f.style)f.style.right=d==null?'':d+'px';
+  jeuReagirPlacer(f);
+}
+/* 13 novembre, 22 h 53 (Elisa : « décale-le », après la partie à 6 où « Réagir » couvrait le bout d’une ligne du classement) : pendant
+   qu’on fait défiler la salle, il s’efface (rien de ce qu’on lit n’est caché) et revient dès qu’on s’arrête : en haut de la manche, la
+   pastille « Réagir » ; plus bas, et sur les résultats et le podium, son sourire seul, rond, contre le bord de l’écran, à côté du
+   texte plutôt que dessus. */
+const JEU_REAGIR_PETIT_Y=40;
+function jeuReagirPlacer(f){
+  if(!f||!f.classList)return;
+  const sl=typeof document!=='undefined'&&document.getElementById?document.getElementById('scr-lesson'):null;
+  /* Sur les résultats et le podium, toujours le sourire seul : les listes y passent dessous dès la première page */
+  const v=String(typeof JEU!=='undefined'&&JEU&&JEU.view||'');
+  const petit=/^(final|res)/.test(v)||!!(sl&&(sl.scrollTop||0)>JEU_REAGIR_PETIT_Y);
+  f.classList.toggle('is-petit',petit);
+  const d=jeuReagirDroite();if(f.style)f.style.right=d==null?'':(petit?Math.max(6,d-14):d)+'px';
+}
+let jeuReagirDefileT=0;
+function jeuReagirDefile(ev){
+  const s=ev&&ev.target;if(!s||s.id!=='scr-lesson')return;
+  const f=document.getElementById('jeu-reagir');if(!f)return;
+  jeuReagirPlacer(f);
+  if(f.classList.contains('is-ouvert'))return;   // la rangée ouverte reste là
+  f.classList.add('is-defile');
+  clearTimeout(jeuReagirDefileT);
+  jeuReagirDefileT=setTimeout(()=>{const g=document.getElementById('jeu-reagir');if(g)g.classList.remove('is-defile');},700);
 }
 let jeuReagirEcoutee=false;
 function jeuReagirEcoute(){
   if(jeuReagirEcoutee||typeof document.addEventListener!=='function')return;jeuReagirEcoutee=true;
   const suivre=()=>setTimeout(()=>{if(typeof JEU!=='undefined'&&JEU)jeuReagirMaj();},0);
   document.addEventListener('focusin',suivre);document.addEventListener('focusout',suivre);
+  document.addEventListener('scroll',jeuReagirDefile,{capture:true,passive:true});   // 22 h 53 : il s’efface pendant qu’on fait défiler
   if(typeof window!=='undefined'&&typeof window.addEventListener==='function')window.addEventListener('resize',suivre);
 }
 /* Les réactions en direct (18 h 36 : « voir la réaction des autres en temps réel sur l’écran avec leur pseudo ») : chacune monte le
@@ -51564,7 +51589,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-sixjoueurs-v2976';
+  const SW_CACHE='requete-2026-11-13-reagir-v2977';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
