@@ -29,7 +29,7 @@ const flux = (globals = {}) => {
 };
 
 test('le tunnel de fin : sources, rappel (s’il peut être demandé) ; le compte et le paywall après « Ton parcours est prêt » (10 novembre) ; le widget après la première leçon (13 h 48)', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','widgetVerrou','widgetVerrouTuto','pseudo','ready','account','paywall'];"));
   /* 4 novembre, 10 h 16 (« mettre la page de connexion, il faut pas qu’elle marche encore ») : le compte est toujours là ; 10 h 45
      (« passer directement à la connexion ») : juste après la première requête. */
   assert.deepEqual([...flux().obFinFlux()], ['practice', 'source'], 'navigateur sans notifications : le compte, puis la question');
@@ -100,11 +100,12 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
   assert.deepEqual(await essai({apercu: true}), {appels: ['vers widget'], store: {}}, 'aperçu : rien demandé, rien gardé');
 });
 
-test('le widget : l’écran d’accueil avec la série, puis le tutoriel en trois temps qui tournent avec la bulle', () => {
+test('le widget : l’écran d’accueil avec ses exemples (13 novembre, 9 h 19 ; avant, la série dans un iPhone dessiné), puis le tutoriel en trois temps qui tournent avec la bulle', () => {
   const w = slide('widget', "}else if(slide==='widgetTuto'){");
-  assert.ok(w.includes("obMascotDit('Je t’encouragerai directement depuis ton écran d’accueil !','parti')") && w.includes('${obTelPromo()}'));
+  assert.ok(w.includes("obMascotDit('Je t’encouragerai directement depuis ton écran d’accueil !','parti')") && w.includes("${wgxHTML('accueil',true)}") && !app.includes('obTelPromo'));
   assert.ok(w.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');"), '« Pas maintenant » rend la main à l’app (13 h 48 : après la première leçon)');
-  const t = slide('widgetTuto', "}else if(slide==='rhythm'){");
+  const t = slide('widgetTuto', "}else if(slide==='widgetVerrou'){");
+  assert.ok(t.includes("obSetFooter('Suivant',()=>obGoto('widgetVerrou'),'','','');"), '13 novembre, 9 h 19 : « Suivant » mène à l’écran verrouillé');
   assert.ok(t.includes('<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>') && t.includes('<div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>'));
   assert.ok(t.includes('<ol class="ob-sr-steps">'), 'les trois étapes, lues par VoiceOver');
   const textes = vm.runInNewContext(app.match(/const OB_WT_TEXTES=(\[[^\]]+\]);/)[1]);
