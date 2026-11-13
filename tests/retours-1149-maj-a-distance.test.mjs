@@ -348,9 +348,9 @@ test('Mon compte : le numéro de version dit ce qui attend ; sept touchers pour 
   const d = app.indexOf('function appVersionLabel(){'), f = app.indexOf('function openLegal(kind){');
   const toasts = [];
   const etat = {version: 2928, branchee: true, prete: 0, canal: '', retour: false};
-  const note = {textContent: ''};
+  const note = {textContent: '', insertAdjacentHTML() {}};   // la ligne des langues (langues.js) se glisse après : rien à y mettre ici
   const ctx = {window: {APP_VERSION: 'requete-essai-v2928', REQUETE_MAJ: {branchee: true, etat: () => etat, canal(c) { if (arguments.length) etat.canal = c; return etat.canal; }}},
-    toast: (...a) => toasts.push(a), document: {getElementById: id => (id === 'app-version-note' ? note : null)}, Date};
+    toast: (...a) => toasts.push(a), esc: x => String(x), document: {getElementById: id => (id === 'app-version-note' ? note : null)}, Date};
   vm.runInNewContext(app.slice(d, f) + ';this.api={appVersionLabel,appVersionNote,majEssaiTap};', ctx);
   assert.equal(ctx.api.appVersionNote(), 'Version v2928');
   etat.prete = 2930;
