@@ -2,6 +2,7 @@
    - L’éditrice, la directrice de la publication et la responsable du traitement : Elisa Blanchart, entrepreneur individuel (EI).
    - Le SIRET et l’adresse : ceux de l’avis de situation au répertoire Sirene qu’elle a joint, daté du 13 novembre 2026
      (911 203 370 00034 ; le dossier de janvier portait encore l’ancien établissement, 00026).
+   - 11 h 41, « tu peux mettre hormend AI lab etc » : l’enseigne HORMEND AI LABS et le nom commercial HORMEND, comme dans l’avis.
    - Le téléphone : elle le donnera plus tard ; à sa demande, la ligne est masquée d’ici là (plus de « à compléter » en ligne).
    - Le médiateur : MCP Médiation, retrouvé dans ses mails à sa demande (convention du 31 janvier 2026, attestation valable
      jusqu’au 31 janvier 2027, au nom de Hormend Nutrition, le nom commercial de la même entreprise individuelle). */
@@ -27,6 +28,8 @@ test('plus aucun « à compléter » sur le site', () => {
 test('mentions légales : l’éditrice, son SIRET, son adresse, la directrice de la publication ; pas de ligne de téléphone vide', () => {
   const bloc = /<section id="editeur">[\s\S]*?<\/section>/.exec(mentions)[0];
   assert.ok(bloc.includes('<dt>Éditeur</dt><dd>Elisa Blanchart, entrepreneur individuel (EI)</dd>'));
+  /* 11 h 41 (« tu peux mettre hormend AI lab etc ») : l’enseigne et le nom commercial, écrits comme dans l’avis Sirene */
+  assert.ok(bloc.includes('<dt>Éditeur</dt><dd>Elisa Blanchart, entrepreneur individuel (EI)</dd>\n<dt>Enseigne</dt><dd>HORMEND AI LABS (nom commercial&nbsp;: HORMEND)</dd>\n<dt>SIRET</dt>'));
   assert.ok(bloc.includes('<dt>SIRET</dt><dd>911&nbsp;203&nbsp;370&nbsp;00034</dd>'));
   const siret = /<dt>SIRET<\/dt><dd>([^<]+)<\/dd>/.exec(bloc)[1].replace(/&nbsp;/g, '');
   assert.match(siret, /^\d{14}$/); assert.ok(luhn(siret) && luhn(siret.slice(0, 9)), 'la clé du SIRET et celle du SIREN');
@@ -34,14 +37,14 @@ test('mentions légales : l’éditrice, son SIRET, son adresse, la directrice d
   assert.ok(bloc.includes('<dt>E-mail</dt><dd><a href="mailto:contact@requeteapp.com">contact@requeteapp.com</a></dd>'));
   assert.ok(bloc.includes('<dt>Directrice de la publication</dt><dd>Elisa Blanchart</dd>'));
   assert.ok(!bloc.includes('Téléphone'), 'la ligne revient avec le numéro');
-  assert.equal((bloc.match(/<dt>/g) || []).length, 5);
+  assert.equal((bloc.match(/<dt>/g) || []).length, 6);
   assert.ok(mentions.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 13 novembre 2026</p>'));
   /* L’hébergeur garde le sien */
   assert.ok(mentions.includes('Téléphone&nbsp;: +1 877 448 4820'));
 });
 
 test('confidentialité : le responsable du traitement est nommé', () => {
-  assert.ok(conf.includes('<section id="responsable"><h2>Responsable du traitement</h2><p>Le responsable du traitement est l’éditeur de Requête (Elisa Blanchart, entrepreneur individuel), joignable à <a href="mailto:contact@requeteapp.com">contact@requeteapp.com</a>.</p></section>'));
+  assert.ok(conf.includes('<section id="responsable"><h2>Responsable du traitement</h2><p>Le responsable du traitement est l’éditeur de Requête (Elisa Blanchart, entrepreneur individuel, enseigne HORMEND AI LABS), joignable à <a href="mailto:contact@requeteapp.com">contact@requeteapp.com</a>.</p></section>'));
 });
 
 test('conditions : le médiateur de la consommation, quand et comment le saisir', () => {
