@@ -19,7 +19,7 @@ const sansCommentaires = t => t.replace(/\/\/.*$/gm, '').replace(/"(?:[^"\\]|\\.
 test('le même type dans l’app et dans le widget', () => {
   const type = t => sansCommentaires(entre(t, 'struct RequeteAccueil: ActivityAttributes {', '\n}\n')).replace(/\s+/g, ' ').trim();
   assert.equal(type(swift), type(pont));
-  assert.equal(type(swift), 'struct RequeteAccueil: ActivityAttributes { public struct ContentState: Codable, Hashable { var etape: Int var total: Int var titre: String var bonjour: String var minutes: Int var fini: Bool } var app: String');
+  assert.equal(type(swift), 'struct RequeteAccueil: ActivityAttributes { public struct ContentState: Codable, Hashable { var etape: Int var total: Int var titre: String var bonjour: String var minutes: Int var fini: Bool var clin: Bool? = nil } var app: String');   // clin : 13 novembre, 8 h 01, facultatif (une activité d’avant se lit encore)
   for (const t of [swift, pont]) assert.ok(t.includes('@available(iOS 16.1, *)\nstruct RequeteAccueil: ActivityAttributes {'));
 });
 
@@ -50,7 +50,7 @@ test('le widget : les yeux du chat à gauche, l’anneau à droite, l’île ouv
     assert.ok(act.includes(k), k);
   assert.ok(swift.includes('            RequeteSalleIle()\n        }\n        if #available(iOS 16.1, *) {\n            RequeteAccueilIle()\n        }\n'), 'le paquet');
   const L = entre(swift, 'enum LectureAccueil {', '\n}\n');
-  for (const k of ['if e.fini { return .etoiles }\n        if perime { return .endormi }\n        if e.etape <= 0 { return .clin }\n        if e.etape >= e.total && e.minutes <= 0 { return .rieur }\n        return .ouvert',
+  for (const k of ['if e.fini { return .etoiles }\n        if perime { return .endormi }\n', 'if e.clin == true && e.etape <= 0 { return .rieur }\n        if e.clin == true { return .clin }\n        if e.etape <= 0 { return .clin }\n        if e.etape >= e.total && e.minutes <= 0 { return .rieur }\n        return .ouvert',
     'return Double(fait) / Double(total)', 'return "Étape \\(e.etape) sur \\(e.total) · " + duree', 'let duree: String = "≈\\u{00A0}\\(max(1, e.minutes))\\u{00A0}min"',
     'if e.fini { return "C’est parti\\u{202F}! Ta première leçon t’attend." }'])
     assert.ok(L.includes(k), k);

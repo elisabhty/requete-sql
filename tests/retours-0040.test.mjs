@@ -177,7 +177,7 @@ test('le widget de l’écran verrouillé, dans l’extension : rond, bandeau, l
   assert.ok(swift.includes('self.containerBackground(for: .widget) { Color.clear }'), 'iOS 17 : containerBackground, sinon « Adoptez l’API »');
   assert.ok(swift.includes('private var symbole: String { fait ? "flame.fill" : "flame" }'), 'pleine quand la séance est faite');
   /* La règle d’IOS.md (archive du 4 novembre) : les polices et mesures d’abord, typées. */
-  for (const l of ['let flamme: Font = Font.system(size: 20, weight: .bold)', 'let titre: Font = Font.system(size: 15, weight: .heavy, design: .rounded)', 'let texte: String = texteLigne'])
+  for (const l of ['let tailleFlamme: CGFloat = presse ? 15 : 20', 'let flamme: Font = Font.system(size: tailleFlamme, weight: .bold)', 'let titre: Font = Font.system(size: 15, weight: .heavy, design: .rounded)', 'let texte: String = texteLigne'])
     assert.ok(swift.includes(l), l);
   assert.ok(lire('IOS.md').includes('### Le widget de l’écran verrouillé (6 novembre)'));
 });

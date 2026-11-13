@@ -42,9 +42,10 @@ test('le moment du chat : la bulle de 5 h à midi, la flamme de 18 h à minuit (
 
 test('le fournisseur : une entrée maintenant, puis à minuit, 5 h, midi et 18 h sur sept jours ; le jour de repos vient de « limite »', () => {
   const t = entre('func getTimeline(in context: Context', 'private func cle(');
-  for (const k of ['var dates = [maintenant]', 'for j in 0...7 {', 'for heure in [0, 5, 12, 18] {',
-    'guard let d = cal.date(bySettingHour: heure, minute: 0, second: 0, of: jour), d > maintenant else { continue }',
-    'completion(Timeline(entries: dates.map { entree(pour: $0) }, policy: .atEnd))'])
+  /* 13 novembre, 8 h 01 : la petite scène du retour (Scene) passe avant l’entrée posée (depart) */
+  for (const k of ['let depart: Date = Scene.arrivee(maintenant)', 'var dates = [depart]', 'for j in 0...7 {', 'for heure in [0, 5, 12, 18] {',
+    'guard let d = cal.date(bySettingHour: heure, minute: 0, second: 0, of: jour), d > depart else { continue }',
+    'entrees.append(contentsOf: dates.map { entree(pour: $0) })\n        completion(Timeline(entries: entrees, policy: .atEnd))'])
     assert.ok(t.includes(k), k);
   /* Les heures des entrées sont celles où le chat change */
   const h = humeurDuSwift();
@@ -69,11 +70,11 @@ test('chaque pose : la bulle du matin, la flamme du soir, le saut de joie, et un
     '.scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)', '.frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)',
     '.transition(.scale(scale: 0.3, anchor: .bottomLeading).combined(with: .opacity))',
     /* le soir : la flamme grandit et rougeoie */
-    `let phrase: String = entree.serie > 0 ? "Ta flamme t’attend${ESPACE}!" : "Allume ta flamme${ESPACE}!"`, 'return humeur == .soir ? 1.25 : 0.88',
+    `let phrase: String = entree.serie > 0 ? "Ta flamme t’attend${ESPACE}!" : "Allume ta flamme${ESPACE}!"`, 'let base: CGFloat = humeur == .soir ? 1.25 : 0.88',
     'case .soir: return braise.opacity(0.9)', '.shadow(color: lueur, radius: w * 0.06)',
     '.transition(.opacity.combined(with: .offset(y: h * 0.05)))',
     /* la fête : la flamme dorée, le chat en l’air et penché, les étincelles */
-    'if entree.faitAujourdhui { return dore }', '.rotationEffect(.degrees(humeur == .fete ? -8 : 0))   // le saut de joie', 'Image(systemName: "sparkle")',
+    'if entree.faitAujourdhui { return dore }', '.rotationEffect(.degrees(penche))   // le saut de joie', 'return humeur == .fete ? -8 : 0', 'Image(systemName: "sparkle")',
     '.transition(.scale(scale: 0.2).combined(with: .opacity))   // elles jaillissent de derrière le chat',
     'private var saut: Animation { .spring(response: 0.5, dampingFraction: 0.5) }',
     /* le chat plonge vite, et ressort un peu après : d’un bond, s’il fête la séance */

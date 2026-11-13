@@ -58,7 +58,7 @@ test('le widget La cheminée : grand, très grand avec iOS 27 (et Xcode 27), dan
 
 test('le fournisseur : la séance du jour avec les règles de la flamme, ce que l’app range, une entrée à 0 h, 5 h, 12 h, 18 h et 21 h', () => {
   const p = entre(swift, 'struct ChemineeFournisseur: TimelineProvider {', '\nprivate let lavande');
-  for (const k of ['for heure in [0, 5, 12, 18, 21] {', 'completion(Timeline(entries: dates.map { entree(pour: $0) }, policy: .atEnd))',
+  for (const k of ['for heure in [0, 5, 12, 18, 21] {', 'entrees.append(contentsOf: dates.map { entree(pour: $0) })\n        completion(Timeline(entries: entrees, policy: .atEnd))',
     'let flamme: SerieEntree = SerieFournisseur().flammeDu(date)', 'if context.isPreview && e.flamme.serie == 0 && !e.fait {'])
     assert.ok(p.includes(k), k);
   assert.ok(swift.includes('extension SerieFournisseur {\n    /// Le jour de la flamme pour la cheminée : les mêmes règles que le widget de la flamme (entree(pour:)).\n    func flammeDu(_ date: Date) -> SerieEntree {\n        entree(pour: date)\n    }\n}'));
