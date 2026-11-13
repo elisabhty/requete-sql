@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=354">
+<link rel="stylesheet" href="ludique.css?v=355">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -37391,7 +37391,7 @@ function jeuPlayersHTML(kind){
       }else{delete pretAt[pid];state='<em class="jeu-state is-att">En attente</em>';}   // 13 h 20 : « Prêt·e » en vert, « En attente » en gris
     }
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuChrono(r.found[pid]):(away?'parti·e':'…')}</em>`;
-    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span>${esc(p.name)}${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
+    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span><span class="jeu-pl-nom">${esc(p.name)}</span>${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
   });
   if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un joueur…</span></li>');
   return rows.join('');
@@ -37902,12 +37902,24 @@ function jeuLobbyEtatHTML(){
     else{t=`En attente de ${qui}…`;p='';}
   }else if(J.ready[J.me]){cls='is-ok';ico=JEU_ICO.check;t=`Tu es ${mot} !`;p='En attente des autres joueurs…';}
   else{ico=JEU_MAIN;t=`Préviens l’hôte quand tu es ${mot} !`;p='L’hôte lance la partie.';}
+  /* 13 novembre, 23 h 58 (Elisa, sa capture de la salle d’attente : « fusionne les deux boutons en bas : Préviens, avec une flèche animée
+     et un 👆 animé ») : chez l’invité, la carte et « Je suis prête » ne font plus qu’un, la carte se touche. Avant d’être prête : le doigt
+     qui tapote, la phrase, la flèche qui avance ; prête, la coche verte ; touchée de nouveau, elle se remet en attente. */
+  if(!host){
+    const on=!!J.ready[J.me],lu=on?`${t} ${p} Touche pour te remettre en attente.`:`${t} ${p} Touche pour dire que tu es ${mot}.`;
+    return `<button type="button" class="jeu-lob jeu-lob-pret ${cls}" id="jeu-pret" aria-pressed="${on}" aria-label="${esc(lu).replace(/"/g,'&quot;')}" onclick="jeuToggleReady()">`+
+      `<span class="jeu-lob-ico${on?'':' is-doigt'}" aria-hidden="true">${on?ico:'<i class="jeu-doigt">👆</i>'}</span><span class="jeu-lob-tx"><b>${t}</b>${p?`<small>${p}</small>`:''}</span>`+
+      `${on?'':`<i class="jeu-lob-fl" aria-hidden="true">${DEF_CHEV_SVG}</i>`}</button>`;
+  }
   return `<div class="jeu-lob ${cls}"><span class="jeu-lob-ico" aria-hidden="true">${ico}</span><span class="jeu-lob-tx"><b>${t}</b>${p?`<small>${p}</small>`:''}</span></div>`;
 }
 /* Le message ne se redessine que s’il change (il entre en fondu) ; le bouton « Lancer » suit à chaque instant. */
 function jeuLobbyEtatMaj(){
   const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-lobby-etat'):null;
-  if(el){const h=jeuLobbyEtatHTML();if((el.dataset&&el.dataset.h)!==h){el.innerHTML=h;if(el.dataset)el.dataset.h=h;}}
+  if(el){const h=jeuLobbyEtatHTML();if((el.dataset&&el.dataset.h)!==h){
+    const garde=document.activeElement&&document.activeElement.id==='jeu-pret';   // la carte touchée garde le focus (23 h 58)
+    el.innerHTML=h;if(el.dataset)el.dataset.h=h;
+    if(garde){const b=document.getElementById('jeu-pret');if(b&&b.focus)b.focus({preventScroll:true});}}}
   const go=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-go'):null;
   if(go&&JEU&&JEU.view==='lobby'){const off=!jeuPeutLancer();if(go.disabled!==off)go.disabled=off;if(go.setAttribute)go.setAttribute('aria-disabled',String(off));
     const l=document.getElementById('jeu-go-label'),t=jeuLobbyLabel();if(l&&l.textContent!==t)l.textContent=t;}
@@ -38121,7 +38133,7 @@ function jeuRender(){
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n${jeuBadgeTous()?' is-tous':''}" id="jeu-n">${jeuBadgeHTML()}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       <div class="jeu-lobby-etat" id="jeu-lobby-etat" role="status" aria-live="polite" data-h="">${jeuLobbyEtatHTML()}</div>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuLancer()"${jeuPeutLancer()?'':' disabled aria-disabled="true"'}><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button>`
-        :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${jeuPretBouton(!!J.ready[J.me])}</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button>`}</div>`;   // 13 h 20 : le message au-dessus du bouton (jeuLobbyEtatHTML) ; « Je suis prête » et sa flèche qui avance
+        :''}</div>`;   // 23 h 58 : l’invité se dit prêt en touchant la carte au-dessus (jeuLobbyEtatHTML)   // 13 h 20 : le message au-dessus du bouton (jeuLobbyEtatHTML) ; « Je suis prête » et sa flèche qui avance
     /* Le cadre et son code en haut, puis les joueurs. */
     html=frame+players+`${jeuNetSlot()}`;
   }else if(v.startsWith('draw')){
@@ -51631,7 +51643,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-classement-v2981';
+  const SW_CACHE='requete-2026-11-14-pret-v2982';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
