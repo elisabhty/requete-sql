@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=356">
+<link rel="stylesheet" href="ludique.css?v=357">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -29867,7 +29867,15 @@ function clsLigneHTML(x,i){
       :`<button type="button" class="dx-t dx-t-btn" onclick="${fiche}" aria-label="${escAttr(`${x.pseudo}, ${dxRang(rk,1)}, ${clsPts(x.pts)} points : voir sa fiche`)}"><b>${esc(x.pseudo)}</b><small>${dxParties(x.parties)}</small></button>`)+
     `<span class="dx-pts">${clsPts(x.pts)}<small> pts</small></span>`+(me?'':`<span class="dx-go" aria-hidden="true">${DEF_CHEV_SVG}</span>`)+`</li>`;
 }
-function clsPagesNb(){const t=DEFIS.cls.total;return t==null?1:Math.max(1,Math.min(CLS_PAGES_MAX,Math.ceil(t/CLS_PAR_PAGE)));}
+/* 14 novembre, 0 h 32 (Elisa, sa capture du classement : « dans joueurs classés, mettre les 5 premiers dans les 3 onglets, puis … et
+   ma place à moi (ça dépend du classement) ») : une seule liste, plus de pages qu’on fait glisser : les 5 premiers du classement choisi
+   (Monde, son pays, Mes adversaires), puis, si l’on n’en est pas, « … » et sa propre ligne, à sa place dans ce classement. */
+function clsPagesNb(){return 1;}
+function clsMoiSuiteHTML(l){
+  const m=DEFIS.cls.moi;
+  if(!m||!(+m.pts>0)||(l||[]).some(x=>x&&(x.moi||(m.id&&x.id===m.id))))return '';
+  return `<li class="dx-cls-etc" aria-hidden="true"><span>…</span></li>`+clsLigneHTML(Object.assign({},m,{moi:true}),(l||[]).length+1);
+}
 /* Personne de classé (Elisa, 7 novembre, 21 h 44 : « l’état vide pourrait être plus motivant ») : « Le classement n’attend que toi ! »,
    puis la phrase de la période et du pays, accordée (« Sois la première », « Sois le premier ») ; sans genre connu, une phrase qui
    n’en a pas besoin. */
@@ -29907,7 +29915,7 @@ function clsPagerRemplir(){
     const hide=new Set(Array.isArray((state.salle||{}).masques)?state.salle.masques:[]);
     [...sc.children].forEach((ul,i)=>{
       const l=c.pages[i];
-      ul.innerHTML=l?l.filter(x=>x&&!hide.has(x.id)).map(clsLigneHTML).join(''):[0,1,2,3,4].map(j=>`<li class="is-wait" style="--i:${j}"><span class="dx-rk"></span><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('');
+      ul.innerHTML=l?l.filter(x=>x&&!hide.has(x.id)).map(clsLigneHTML).join('')+(i===0?clsMoiSuiteHTML(l):''):[0,1,2,3,4].map(j=>`<li class="is-wait" style="--i:${j}"><span class="dx-rk"></span><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('');
       ul.classList.toggle('is-wait',!l);
     });
   }
@@ -51655,7 +51663,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-rejoindre-v2984';
+  const SW_CACHE='requete-2026-11-14-top-v2985';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

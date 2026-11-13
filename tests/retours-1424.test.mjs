@@ -74,8 +74,9 @@ test('réf. 4 : personne de classé → le message, plus « 1 à 0 sur 0 »', ()
   vm.runInContext(fn('clsPagesNb') + fn('clsCompteEcrire') + fn('clsNavPeindre'), ctx);   // le compte « 5 joueurs classés » s’écrit avec (refonte du 7 novembre)
   ctx.clsNavPeindre();
   assert.equal(el.textContent, '');
+  /* 14 novembre, 0 h 32 : une seule liste (les 5 premiers, puis « … » et sa place) : plus de page 3 */
   ctx.DEFIS.cls.total = 12; ctx.DEFIS.cls.page = 2; ctx.clsNavPeindre();
-  assert.equal(el.textContent, '11 à 12 sur 12');
+  assert.equal(el.textContent, '1 à 5 sur 12');
 });
 
 test('la suppression du compte retire aussi des classements, et la liste le dit', () => {
@@ -160,6 +161,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=356">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-rejoindre-v2984';") && app.includes("const SW_CACHE='requete-2026-11-14-rejoindre-v2984';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=357">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-top-v2985';") && app.includes("const SW_CACHE='requete-2026-11-14-top-v2985';"));
 });

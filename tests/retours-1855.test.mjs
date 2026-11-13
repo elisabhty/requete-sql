@@ -190,32 +190,32 @@ test('une salle créée est publique par défaut ; l’hôte la publie dès que 
   assert.ok(app.includes("if(host&&live.length<2)return '';"), '20 h 12 : seul dans sa salle, plus de carte sous les joueurs');
 });
 
-test('le classement : 5 par page qu’on fait glisser, depuis toujours par défaut, la semaine en vue, sa place toujours là', async () => {
+test('le classement : les 5 premiers, puis « … » et sa place (14 novembre), depuis toujours par défaut, sa place toujours là', async () => {
   const lignes = p => Array.from({ length: p < 4 ? 5 : 3 }, (_, i) => ({ id: 'id' + (p * 5 + i), pseudo: '@j' + (p * 5 + i), pays: 'FR', pts: 900 - (p * 5 + i), parties: 3, rang: p * 5 + i + 1, moi: p * 5 + i === 11 }));
   const c = bac({ rpc: (f, b) => f === 'jeu_classement_v2' ? { lignes: lignes(b.p_page), total: 23, moi: { rang: 12, pts: 889, page: 2 }, rangs: { monde: 12, pays: 4, mon_pays: 'FR' } } : {} });
   assert.equal(c.ev('DEFIS.periode'), 'tout', 'depuis toujours par défaut');
   c.ev('clsPageCharger(0)'); await attendre();
   assert.deepEqual(J(c.appels.at(-1)), ['jeu_classement_v2', { p_cle: 'K'.repeat(32), p_portee: 'monde', p_periode: 'tout', p_page: 0, p_pays: null, p_pseudos: null }]);
-  assert.equal(c.ev('clsPagesNb()'), 5, '23 joueurs : 5 pages de 5');
-  c.ev('DEFIS.cls.page=1;clsNavPeindre()');
-  assert.equal(c.els['dx-range'].textContent, '6 à 10 sur 23');
-  assert.equal(c.els['dx-prev'].disabled, false);
-  c.ev('DEFIS.cls.page=4;clsNavPeindre()');
-  assert.equal(c.els['dx-range'].textContent, '21 à 23 sur 23');
-  assert.equal(c.els['dx-next'].disabled, true);
+  /* 14 novembre, 0 h 32 (Elisa : « les 5 premiers dans les 3 onglets, puis … et ma place à moi ») : une seule liste, plus de pages */
+  assert.equal(c.ev('clsPagesNb()'), 1, '23 joueurs : une seule liste');
+  c.ev("DEFIS.cls.moi={id:'id11',pseudo:'@j11',pays:'FR',pts:889,parties:3,rang:12,page:2}");
+  const suite = c.ev('clsMoiSuiteHTML(DEFIS.cls.pages[0])');
+  assert.ok(suite.startsWith('<li class="dx-cls-etc" aria-hidden="true"><span>…</span></li><li class="is-me is-r4" style="--i:6">'), '« … » puis sa ligne');
+  assert.ok(suite.includes('<span class="dx-rk">12</span>') && suite.includes('<b>@j11</b><small><i>Toi</i>'), 'à sa place, 12e');
+  assert.equal(c.ev("clsMoiSuiteHTML([{id:'id11',moi:true,rang:12}])"), '', 'déjà dans les 5 premiers : rien de plus');
+  c.ev("DEFIS.cls.moi={id:'x',pts:0,rang:30}");
+  assert.equal(c.ev('clsMoiSuiteHTML(DEFIS.cls.pages[0])'), '', 'pas encore de points : pas de ligne');
+  assert.ok(app.includes("ul.innerHTML=l?l.filter(x=>x&&!hide.has(x.id)).map(clsLigneHTML).join('')+(i===0?clsMoiSuiteHTML(l):''):"));
+  assert.ok(lq.includes('html.lq #scr-defis .dx-list>li.dx-cls-etc{') && lq.includes('html.lq #scr-defis .dx-cls-etc>span{'));
+  c.ev("DEFIS.cls.moi={rang:12,pts:889,page:2}");
   c.ev('clsPlacePeindre()');
-  /* 8 novembre, 11 h 08 (« ce niveau premium ») : ta place dans le bandeau violet ; « Page 3 › » y ramène */
-  assert.ok(c.els['dx-place'].innerHTML.includes('<button type="button" class="dx-pc is-verre dx-place-go" onclick="clsAllerPage(2)"') && c.els['dx-place'].innerHTML.includes('<span>Page 3</span>'), 'un toucher ramène à sa page');
+  assert.ok(!c.els['dx-place'].innerHTML.includes('dx-place-go'), 'plus de « Page 3 › » : sa ligne est dans la liste');
   /* La semaine, puis un pays : la clé change, les pages repartent de zéro */
   c.ev("DEFIS.periode='semaine';DEFIS.portee='pays';clsPageCharger(0)"); await attendre();
   assert.deepEqual(J(c.appels.at(-1)[1]), { p_cle: 'K'.repeat(32), p_portee: 'pays', p_periode: 'semaine', p_page: 0, p_pays: 'FR', p_pseudos: null });
   c.ev("DEFIS.portee='amis';clsPageCharger(0)"); await attendre();
   assert.ok(Array.isArray(c.appels.at(-1)[1].p_pseudos), 'mes amis : leurs pseudos');
-  /* Le défilement horizontal aimanté, une page à la fois */
-  for (const k of ['html.lq #scr-defis .dx-pages{display:flex;gap:10px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;',
-    'html.lq #scr-defis .dx-page{flex:0 0 calc(100% - 22px);margin:0;scroll-snap-align:start;scroll-snap-stop:always}', 'html.lq #scr-defis .dx-dots i.on{width:22px;background:var(--accent)}'])
-    assert.ok(lq.includes(k), k);
-  assert.ok(bloc.includes("sc.addEventListener('scroll',()=>{clearTimeout(t);t=setTimeout(()=>clsPageVue(),90);},{passive:true});"), 'la page suit le doigt');
+  /* La page reste dans son conteneur ; une seule, la navigation se cache (clsNavPeindre) */
   assert.ok(bloc.includes('clsNavPeindre();clsPageCharger(p);clsPageCharger(p+1);'), 'la page vue et la suivante se chargent');
 });
 
@@ -240,7 +240,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=356">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=357">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-rejoindre-v2984');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-top-v2985');
 });

@@ -38,6 +38,6 @@ test('étape 1 → étape 2 tout seul : après la cinquième, la première ; une
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=356">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-rejoindre-v2984';") && app.includes("const SW_CACHE='requete-2026-11-14-rejoindre-v2984';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=357">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-top-v2985';") && app.includes("const SW_CACHE='requete-2026-11-14-top-v2985';"));
 });
