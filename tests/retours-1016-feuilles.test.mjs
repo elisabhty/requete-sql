@@ -150,7 +150,7 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
   const re = fn('perfRematch');
   assert.ok(re.includes("DEFIS.onglet='jouer';DEFIS.carte='creer';jeuSavePrefs();defisPeindre();") && re.includes("document.querySelector('#dx-feuille .room-go')"), '« Les redéfier » : la feuille Créer, son bouton fait signe');
   assert.ok(secu.includes("const button = document.querySelector('#dx-feuille .room-go') || document.querySelector('.screen.active .room-go');"), 'la vérification en ligne grise le bouton de la feuille');
-  assert.ok(app.includes("document.querySelector('.lq-ask.on,#lesson-video,#dx-feuille'))return false;"));
+  assert.ok(app.includes("||!!document.querySelector('.lq-ask.on,#lesson-video,#dx-feuille');\n}") && app.includes("    if(accueilOccupe())return false;\n    localStorage.setItem(OB_WIDGET_VU,'1');"));
 });
 
 test('la DA : une rangée de trois cases dans le cadre, la feuille qui monte du bas, son bouton qui reste en bas sur un petit écran', () => {

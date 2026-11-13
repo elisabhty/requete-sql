@@ -405,6 +405,17 @@ qui ouvre les trois études. Le parcours compte une étape de plus (14). La vid�
 Elle est comptée dans `onboarding_etape` comme les autres dès la nouvelle version ; pour la voir dans l’entonnoir, il faut une
 migration qui ajoute `('methode', 11, 'Méthode fondée sur la recherche')` et décale les rangs suivants (19 au lieu de 18).
 
+### La note de l’app, puis la page du widget (13 novembre, 1 h 02)
+
+Après la **première** leçon validée, de retour à l’accueil, l’app demande à iOS sa fenêtre aux cinq étoiles (le pont
+`RequeteWidget.noter`, StoreKit : `AppStore.requestReview(in:)`, `SKStoreReviewController` avant iOS 16). Une seule demande
+(`requete-note-demandee`), 2,6 s après le retour, une fois la leçon suivante ouverte sur le chemin. C’est iOS qui décide de
+l’afficher : trois fois par an au plus pour une même personne, **jamais dans une version TestFlight** (elle apparaît lancée
+depuis Xcode, et dans la version de l’App Store). La ligne « Noter Requête » de Mon compte ouvre toujours la page d’avis.
+
+Après la **deuxième** leçon, la page du widget (« Je t’encouragerai directement depuis ton écran d’accueil ! »), 2 s après le
+retour à l’accueil ; elle venait après la première. Jamais les deux au même retour.
+
 ### Les raccourcis de l’icône (4 novembre, 9 h 02)
 
 L’appui long sur l’icône de l’app propose, comme Duolingo : **« 😱 Tu supprimes Requête ? — On te retrouvera. »** (ouvre

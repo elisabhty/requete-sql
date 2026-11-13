@@ -103,7 +103,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "accueilFin", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "notifAutoriser", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -510,6 +511,27 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
                 } catch {
                     call.resolve(["ok": false])
                 }
+            }
+        }
+    }
+
+    /// Noter l’app, à la demande d’iOS (Elisa, 13 novembre, 1 h 02 : « une notif Apple de noter l’application après le premier
+    /// cours ») : la petite fenêtre aux cinq étoiles d’Apple, par-dessus l’app. iOS décide seul de la montrer (trois fois par an au
+    /// plus pour une même personne, jamais dans une version TestFlight) et ne dit pas si elle est apparue : { ok } veut seulement
+    /// dire que la demande est passée.
+    @objc func noter(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard let scene = self.bridge?.viewController?.view.window?.windowScene else {
+                call.resolve(["ok": false])
+                return
+            }
+            Task { @MainActor in
+                if #available(iOS 16.0, *) {
+                    AppStore.requestReview(in: scene)
+                } else {
+                    SKStoreReviewController.requestReview(in: scene)
+                }
+                call.resolve(["ok": true])
             }
         }
     }

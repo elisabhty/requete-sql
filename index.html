@@ -45470,20 +45470,58 @@ async function obPaywallRestaurer(){
 function obFinSuivante(slide){const f=obFinFlux(),i=f.indexOf(slide);return i>=0&&i<f.length-1?f[i+1]:'ready';}
 function obFinPrecedente(slide){const f=obFinFlux();if(slide==='ready')return f[f.length-1];const i=f.indexOf(slide);return i>0?f[i-1]:'practice';}
 function obFlowSteps(){return [...OB_PROFILE_SLIDES,...obFinFlux().slice(1)];}
-/* Le widget, après la première leçon : une fois, dans l’app iPhone qui a son widget, de retour à l’accueil (pas pendant une leçon,
-   ni par-dessus une autre fenêtre). « Pas maintenant » et « C’est fait ! » ferment, et c’est tout : il ne revient pas. */
+/* Le widget, après la deuxième leçon (Elisa, 13 novembre, 1 h 02 : « la mettre juste après le deuxième cours » ; elle venait après
+   la première) : une fois, dans l’app iPhone qui a son widget, de retour à l’accueil (pas pendant une leçon, ni par-dessus une
+   autre fenêtre). « Pas maintenant » et « C’est fait ! » ferment, et c’est tout : il ne revient pas.
+   Après la première leçon, c’est la note de l’app qu’on demande (noteProposer) ; jamais les deux au même retour à l’accueil. */
 const OB_WIDGET_VU='requete-widget-propose';
 let obWidgetT=0;
-function obWidgetBientot(){ clearTimeout(obWidgetT); obWidgetT=setTimeout(()=>{try{if(activeTab==='learn')obWidgetProposer();}catch(e){}},900); }
+function obWidgetBientot(){
+  clearTimeout(obWidgetT);
+  obWidgetT=setTimeout(()=>{
+    try{
+      if(activeTab!=='learn'||noteProposer())return;
+      /* La page du widget laisse finir, sur le chemin, l’animation de la leçon qui s’ouvre (1,6 s) : 2 s après le retour à l’accueil */
+      obWidgetT=setTimeout(()=>{try{if(activeTab==='learn')obWidgetProposer();}catch(e){}},1100);
+    }catch(e){}
+  },900);
+}
+function leconsFaitesN(){return allLessons.filter(l=>lecCompletee(l.id)).length;}
+/* Une leçon en cours, l’onboarding, ou une feuille déjà ouverte : ni la note ni le widget ne passent par-dessus */
+function accueilOccupe(){
+  const root=document.getElementById('onboarding');
+  return document.body.classList.contains('in-lesson')||!!(root&&root.classList.contains('on'))||!!document.getElementById('pays-feuille')||!!document.querySelector('.lq-ask.on,#lesson-video,#dx-feuille');
+}
 function obWidgetProposer(){
   try{
     if(!state.onboarded||!obWidgetPossible()||localStorage.getItem(OB_WIDGET_VU))return false;
-    if(!allLessons.some(l=>lecCompletee(l.id)))return false;
-    const root=document.getElementById('onboarding');
-    if(document.body.classList.contains('in-lesson')||(root&&root.classList.contains('on'))||document.getElementById('pays-feuille')||document.querySelector('.lq-ask.on,#lesson-video,#dx-feuille'))return false;
+    if(leconsFaitesN()<2)return false;
+    if(accueilOccupe())return false;
     localStorage.setItem(OB_WIDGET_VU,'1');
   }catch(e){return false;}
   startOnboarding('widget');
+  return true;
+}
+/* Noter l’app (Elisa, 13 novembre, 1 h 02 : « une notif Apple de noter l’application après le premier cours ») : la fenêtre aux
+   cinq étoiles d’iOS, demandée une fois, de retour à l’accueil après la première leçon validée, quand l’animation de la leçon
+   suivante qui s’ouvre est finie. iOS décide seul de l’afficher (jamais dans une version TestFlight) ; la ligne « Noter Requête » de
+   Mon compte reste là pour qui veut écrire un avis. Rend vrai si la demande part : le widget attendra le retour suivant. */
+const NOTE_DEMANDEE='requete-note-demandee';
+let noteT=0;
+function notePossible(){
+  try{return !!state.onboarded&&!!ilePont()&&!localStorage.getItem(NOTE_DEMANDEE)&&leconsFaitesN()>=1;}catch(e){return false;}
+}
+function noteProposer(){
+  if(!notePossible()||accueilOccupe())return false;
+  clearTimeout(noteT);
+  noteT=setTimeout(()=>{
+    try{
+      if(activeTab!=='learn'||!notePossible()||accueilOccupe())return;
+      localStorage.setItem(NOTE_DEMANDEE,'1');
+      const oublier=()=>{try{localStorage.removeItem(NOTE_DEMANDEE);}catch(e){}};
+      Promise.resolve(ilePont().nativePromise('RequeteWidget','noter',{})).then(r=>{if(!(r&&r.ok))oublier();},oublier);
+    }catch(e){}
+  },1700);
   return true;
 }
 function obWidgetFin(){
@@ -50389,7 +50427,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-verrou-v2916';
+  const SW_CACHE='requete-2026-11-13-note-v2917';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
