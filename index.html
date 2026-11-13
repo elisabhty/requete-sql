@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=357">
+<link rel="stylesheet" href="ludique.css?v=358">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -29803,6 +29803,10 @@ function clsPageCharger(page){
        rechargement a posé sa page d’attente avant la réponse ; on la remplace par le message, plus par une page vide. */
     const sc=document.getElementById('dx-pages');
     if(sc&&c.total>0&&sc.children.length===clsPagesNb())clsPagerRemplir();else clsPagerPeindre();
+    /* 14 novembre, 0 h 41 : classé après le 6e, le joueur juste devant toi n’est pas dans les 5 premiers : sa page se charge, pour
+       « 40 pts te séparent de @nora, 11e » et la jauge de « Ta place ». */
+    const rkm=page===0&&c.moi?Math.floor(+c.moi.rang||0):0;
+    if(rkm>CLS_PAR_PAGE+1)clsPageCharger(Math.floor((rkm-2)/CLS_PAR_PAGE));
   },e=>{
     if(c.cle!==cle)return;
     c.busy[page]=false;
@@ -29874,7 +29878,9 @@ function clsPagesNb(){return 1;}
 function clsMoiSuiteHTML(l){
   const m=DEFIS.cls.moi;
   if(!m||!(+m.pts>0)||(l||[]).some(x=>x&&(x.moi||(m.id&&x.id===m.id))))return '';
-  return `<li class="dx-cls-etc" aria-hidden="true"><span>…</span></li>`+clsLigneHTML(Object.assign({},m,{moi:true}),(l||[]).length+1);
+  /* 0 h 41 : « … » dit combien de joueurs séparent le dernier montré de toi ; juste derrière lui (6e), ta ligne suit, sans « … ». */
+  const der=Math.max(0,...(l||[]).map(x=>Math.floor(+(x&&x.rang)||0))),entre=Math.max(0,Math.floor(+m.rang||0)-der-1);
+  return (entre?`<li class="dx-cls-etc"><span><b aria-hidden="true">…</b> ${clsPts(entre)} autre${entre>1?'s':''} joueur${entre>1?'s':''}</span></li>`:'')+clsLigneHTML(Object.assign({},m,{moi:true}),(l||[]).length+1);
 }
 /* Personne de classé (Elisa, 7 novembre, 21 h 44 : « l’état vide pourrait être plus motivant ») : « Le classement n’attend que toi ! »,
    puis la phrase de la période et du pays, accordée (« Sois la première », « Sois le premier ») ; sans genre connu, une phrase qui
@@ -29898,7 +29904,7 @@ function clsPagerPeindre(){
   if(c.total===0){host.innerHTML=DEFIS.portee==='amis'
     ?'<div class="dx-cls-msg"><p class="perf-top-msg">Aucun de tes adversaires n’est encore classé. Joue à plusieurs&nbsp;: crée une partie et partage son code.</p><button type="button" class="perf-top-btn" aria-haspopup="dialog" onclick="defisCarte(\'creer\')">Créer ma partie</button></div>'
     :clsVideHTML();clsPlacePeindre();return;}
-  host.innerHTML=`<div class="dx-pages" id="dx-pages" tabindex="0" aria-label="Classement, ${n} page${n>1?'s':''} : glisse pour changer de page">${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="Page ${i+1} sur ${n}"></ul>`).join('')}</div>
+  host.innerHTML=`<div class="dx-pages" id="dx-pages"${n>1?` tabindex="0" aria-label="Classement, ${n} pages : glisse pour changer de page"`:''}>${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="${n>1?`Page ${i+1} sur ${n}`:'Classement'}"></ul>`).join('')}</div>
     <div class="dx-nav"><button type="button" class="dx-arrow" id="dx-prev" aria-label="Page précédente" onclick="clsAllerPage(DEFIS.cls.page-1)">‹</button><span class="dx-dots" id="dx-dots" aria-hidden="true"></span><small id="dx-range" aria-live="polite"></small><button type="button" class="dx-arrow" id="dx-next" aria-label="Page suivante" onclick="clsAllerPage(DEFIS.cls.page+1)">›</button></div>`;
   const sc=document.getElementById('dx-pages');
   if(sc){
@@ -29909,17 +29915,40 @@ function clsPagerPeindre(){
   }
   clsPagerRemplir();
 }
+/* 14 novembre, 0 h 41 (Elisa : « plus UI/UX ») : les 3 premiers sur un podium en tête de la liste, puis les 4e et 5e en lignes, puis
+   sa propre ligne. Réécrite seulement si elle a changé (la page de son voisin de classement, chargée ensuite, ne refait pas monter les
+   marches). */
 function clsPagerRemplir(){
   const c=DEFIS.cls,sc=document.getElementById('dx-pages');
   if(sc){
     const hide=new Set(Array.isArray((state.salle||{}).masques)?state.salle.masques:[]);
     [...sc.children].forEach((ul,i)=>{
-      const l=c.pages[i];
-      ul.innerHTML=l?l.filter(x=>x&&!hide.has(x.id)).map(clsLigneHTML).join('')+(i===0?clsMoiSuiteHTML(l):''):[0,1,2,3,4].map(j=>`<li class="is-wait" style="--i:${j}"><span class="dx-rk"></span><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('');
+      const l=c.pages[i],v=l?l.filter(x=>x&&!hide.has(x.id)):null;
+      const h=!v?clsAttenteHTML():i>0?v.map(clsLigneHTML).join(''):clsPodiumHTML(v)+v.filter(x=>Math.floor(+x.rang||0)>3).map(clsLigneHTML).join('')+clsMoiSuiteHTML(v);
+      if(ul._dxH!==h){ul.innerHTML=h;ul._dxH=h;}
       ul.classList.toggle('is-wait',!l);
     });
   }
   clsNavPeindre();clsPlacePeindre();
+}
+/* Le podium : les marches montent, puis les joueurs s’y posent (3e, 2e, 1er). La médaille est sur la marche ; une place se touche
+   comme une ligne (la fiche du joueur, pour le défier). Une marche sans joueur attend : « À prendre ». Toi : cerclée de violet, « Toi ». */
+function clsPodiumHTML(l){
+  const marche=pl=>{
+    const x=(l||[]).find(y=>y&&Math.floor(+y.rang||0)===pl),bloc=`<i class="dx-pod-bloc" aria-hidden="true">${lqStkSvg('medal'+pl)}</i>`;
+    if(!x)return `<div class="dx-pod-m is-${pl} is-libre"><span class="dx-pod-av" aria-hidden="true"><b class="jeu-av is-empty">?</b></span><span class="dx-pod-n" aria-hidden="true">À prendre</span><small aria-hidden="true">${dxRang(pl)} place</small>${bloc}<span class="lq-sr">${dxRang(pl,1)} : place à prendre</span></div>`;
+    const me=!!x.moi,corps=`<span class="dx-pod-av" aria-hidden="true"><b class="jeu-av" data-c="${me?0:perfColor(x.pseudo)}">${jeuInitial(x.pseudo)}${jeuFlag(x.pseudo,x.pays||'')}</b></span>`+
+      `<span class="dx-pod-n" aria-hidden="true">${esc(x.pseudo)}</span><small aria-hidden="true">${me?'<i>Toi</i> · ':''}${clsPts(x.pts)}\u00a0pts</small>${bloc}`;
+    return me?`<div class="dx-pod-m is-${pl} is-me">${corps}<span class="lq-sr">${dxRang(pl,1)} : toi, ${esc(x.pseudo)}, ${clsPts(x.pts)} points</span></div>`
+      :`<button type="button" class="dx-pod-m is-${pl}" onclick="dxFicheCls('${escAttr(x.id)}')" aria-label="${escAttr(`${x.pseudo}, ${dxRang(pl,1)}, ${clsPts(x.pts)} points : voir sa fiche`)}">${corps}</button>`;
+  };
+  return `<li class="dx-cls-pod"><div class="dx-pod" role="group" aria-label="Podium">${[1,2,3].map(marche).join('')}</div></li>`;
+}
+/* En attendant la réponse : le podium et deux lignes, en gris. */
+function clsAttenteHTML(){
+  const m=pl=>`<div class="dx-pod-m is-${pl}"><span class="dx-pod-av"><b class="jeu-av is-empty"></b></span><span class="dx-pod-n"></span><small></small><i class="dx-pod-bloc"></i></div>`;
+  return `<li class="dx-cls-pod is-wait" aria-hidden="true"><div class="dx-pod">${[1,2,3].map(m).join('')}</div></li>`+
+    [0,1].map(j=>`<li class="is-wait" style="--i:${j}" aria-hidden="true"><span class="dx-rk"></span><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li>`).join('');
 }
 /* « 5 joueurs classés » : écrit à chaque remplissage (avant, seulement quand le pager était reconstruit : la première page arrivée par
    clsPagerRemplir laissait l’ancien surtitre jusqu’au rendu suivant). Rien tant que personne n’est classé. */
@@ -29955,7 +29984,9 @@ function clsAllerPage(p){
 }
 /* Ta place, toujours visible sous les pages ; un toucher ramène à sa page. */
 function clsPlacePeindre(){
-  const host=document.getElementById('dx-place'),note=document.getElementById('dx-cls-note'),tete=document.getElementById('dx-place-h');if(!host)return;
+  const el=document.getElementById('dx-place'),note=document.getElementById('dx-cls-note'),tete=document.getElementById('dx-place-h');if(!el)return;
+  /* 14 novembre : réécrite seulement si elle a changé ; l’autocollant et la jauge ne rejouent pas leur entrée à chaque réponse. */
+  const host={set innerHTML(h){if(el._dxH!==h){el.innerHTML=h;el._dxH=h;}}};
   const c=DEFIS.cls,m=c.moi,nom=jeuSavedNom();
   /* 8 novembre, 15 h 09 (Elisa) : « Supprimer les boutons masquer mon profil » : plus de « Ne plus apparaître » (ici et sous le Top 5) ;
      qui s’était retiré avant garde « Y apparaître avec mon pseudo ». */
@@ -29980,9 +30011,12 @@ function clsPlacePeindre(){
      ta page), puis l’écart. */
   const rk=Math.max(1,+m.rang||1),pts=Math.max(0,+m.pts||0),tous=Object.values(c.pages||{}).flat().filter(y=>y&&!y.moi);
   const devant=rk>1?tous.find(y=>+y.rang===rk-1):null,suivant=rk===1?tous.find(y=>+y.rang===2):null;
-  let ecart='';
-  if(devant){const d=Math.max(0,(+devant.pts||0)-pts);ecart=d?`${clsPts(d)}&nbsp;pts te séparent de ${esc(devant.pseudo)}, ${dxRang(rk-1)}.`:`À égalité avec ${esc(devant.pseudo)}&nbsp;: le chrono vous départage.`;}
-  else if(rk===1)ecart=suivant&&pts>(+suivant.pts||0)?`Tu es en tête, ${clsPts(pts-(+suivant.pts||0))}&nbsp;pts devant ${esc(suivant.pseudo)}.`:'Tu es en tête du classement.';
+  let ecart='',jauge='';
+  if(devant){const d=Math.max(0,(+devant.pts||0)-pts);ecart=d?`${clsPts(d)}&nbsp;pt${d>1?'s te séparent':' te sépare'} de ${esc(devant.pseudo)}, ${dxRang(rk-1)}.`:`À égalité avec ${esc(devant.pseudo)}&nbsp;: le chrono vous départage.`;
+    /* 0 h 41 : la jauge jusqu’à lui (tes points sur les siens), son initiale au bout ; la phrase au-dessus la dit. */
+    const p=Math.max(6,Math.min(100,Math.round(pts/Math.max(1,+devant.pts||0)*100)));
+    jauge=`<div class="dx-jauge" aria-hidden="true"><span class="dx-jauge-bar"><i style="width:${p}%"></i></span><b class="jeu-av" data-c="${perfColor(devant.pseudo)}">${jeuInitial(devant.pseudo)}</b></div>`;}
+  else if(rk===1)ecart=suivant&&pts>(+suivant.pts||0)?`Tu es en tête, ${clsPts(pts-(+suivant.pts||0))}&nbsp;pt${pts-(+suivant.pts||0)>1?'s':''} devant ${esc(suivant.pseudo)}.`:'Tu es en tête du classement.';
   const page=Number.isInteger(+m.page)?+m.page:-1,go=page>=0&&page<clsPagesNb(),uneSeule=clsPagesNb()<=1&&page===0;
   /* 8 novembre, 11 h 08 (« modifie les pages défis pour ce niveau premium ») : ta place dans le bandeau violet de « Ta salle de
      défi » : ton avatar en autocollant, « Ta place » en surtitre, ton rang en titre jaune (« 5e mondial », « 2e en France », « 1er parmi
@@ -29992,7 +30026,7 @@ function clsPlacePeindre(){
   if(tete)tete.hidden=true;
   const versPage=go&&!uneSeule?`<button type="button" class="dx-pc is-verre dx-place-go" onclick="clsAllerPage(${page})" aria-label="${escAttr(`Aller à ta page du classement, la page ${page+1}`)}"><span>Page ${page+1}</span>${DEF_CHEV_SVG}</button>`:'';
   host.innerHTML=`<div class="dx-bande dx-place-bande" role="group" aria-labelledby="dx-place-t"><span class="room-stk dx-fiche-av" aria-hidden="true"><b class="jeu-av" data-c="0">${jeuInitial(nom)}${jeuFlag(nom,paysMontre()?paysDuProfil():'')}</b></span><div>
-    <p class="room-kicker">${DEFIS.periode==='semaine'?'Ta place cette semaine':'Ta place'}</p><h2 id="dx-place-t">${rk<=3?['🥇','🥈','🥉'][rk-1]+' ':''}${dxRang(rk)} ${esc(ou)}</h2>${ecart?`<p class="room-sub">${ecart}</p>`:''}
+    <p class="room-kicker">${DEFIS.periode==='semaine'?'Ta place cette semaine':'Ta place'}</p><h2 id="dx-place-t">${rk<=3?['🥇','🥈','🥉'][rk-1]+' ':''}${dxRang(rk)} ${esc(ou)}</h2>${ecart?`<p class="room-sub">${ecart}</p>`:''}${jauge}
     <p class="dx-bande-pcs">${dxPcPts(`${clsPts(pts)}\u00a0pts`)}${versPage}</p></div><i class="room-sp s1" aria-hidden="true"></i><i class="room-sp s2" aria-hidden="true"></i></div>${jouer}`;
 }
 /* Signaler depuis une page du classement : comme clsSignaler (masqué pour soi tout de suite, compté par la base). */
@@ -51663,7 +51697,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-top-v2985';
+  const SW_CACHE='requete-2026-11-14-podium-v2986';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
