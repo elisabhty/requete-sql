@@ -671,8 +671,12 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
 
 **Ce qui reste, et que le code ne peut pas vérifier** :
 
-- **Les pages légales du site ont encore sept « à compléter »** (en ligne) : l’éditeur, le SIRET, l’adresse, le téléphone et la
-  directrice de la publication (mentions légales), le responsable du traitement (confidentialité), le médiateur (conditions).
+- **Les pages légales** (11 h 29, « complète ») : plus aucun « à compléter » en ligne. L’éditrice, la directrice de la
+  publication et la responsable du traitement : Elisa Blanchart, entrepreneur individuel (EI) ; le SIRET (911 203 370 00034) et
+  l’adresse viennent de l’avis de situation Sirene du 13 novembre 2026 qu’elle a joint. Le médiateur : MCP Médiation, retrouvé
+  dans ses mails. **Restent à elle** : le **téléphone** (la ligne est masquée en attendant ; la loi le demande à un éditeur
+  professionnel), et la convention du médiateur, **au nom de Hormend Nutrition** (la même entreprise individuelle) et valable
+  **jusqu’au 31 janvier 2027** : à lui signaler que Requête en fait partie, et à renouveler.
 - Un vrai achat, « Restaurer » et l’offre à −50 % avec un compte de test d’Apple (seulement simulés ici) ; dans App Store
   Connect, que l’essai de 3 jours et l’offre de bienvenue couvrent tous les pays.
 - Huit tests échouent, les mêmes depuis plusieurs jours : ils comparent d’anciens textes du site ou de l’appli, pas des
