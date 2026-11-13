@@ -53,3 +53,10 @@ test('15 h 54 : « 🔥 Ta semaine est en feu ! », et l’embrasement plus waou
   assert.ok(lq.indexOf('html.lq .lq-feu-gerbe i{') > lq.indexOf('@media (prefers-reduced-motion:reduce){html.lq .lq-flamme,html.lq .lq-flamme *{animation:none!important}}'));
   assert.ok(/html\.lq \.lq-feu-gerbe i\{[^}]*opacity:0;/.test(lq) && /html\.lq \.lq-feu-onde\{[^}]*opacity:0;/.test(lq) && /html\.lq \.lq-feu-eclat\{[^}]*opacity:0;/.test(lq));
 });
+
+test('16 h 02 : « réchauffe Requête » : le chat prend la lumière du feu, une flaque de lumière jusqu’à lui', () => {
+  for (const r of ['lqFeuRechauffe .9s ease-out calc(var(--t) + .05s) forwards', 'lqFeuVacille 1.3s ease-in-out calc(var(--t) + .95s) infinite alternate',
+    '@keyframes lqFeuRechauffe{from{filter:none}to{filter:sepia(.12) saturate(1.22) brightness(1.1) hue-rotate(6deg)}}',
+    'html.lq .lq-feu-scene::before{content:"";', 'html[data-motion="reduce"].lq .lq-feu-chat{filter:sepia(.12) saturate(1.22) brightness(1.1) hue-rotate(6deg)}'])
+    assert.ok(lq.includes(r), r);
+});

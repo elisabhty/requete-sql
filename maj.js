@@ -60,7 +60,7 @@
   'use strict';
 
   /* Le même identifiant que SW_CACHE (index.html) et CACHE (sw.js) : la montée de version le remplace partout à la fois. */
-  var NOM = 'requete-2026-11-13-feu-v2943';
+  var NOM = 'requete-2026-11-13-chaleur-v2944';
   var ORIGINE = 'https://requeteapp.com/';
   var ANNONCE = ORIGINE + 'maj/version.json';
   var PAUSE_MS = 30 * 60 * 1000;           // entre deux lectures de l'annonce
