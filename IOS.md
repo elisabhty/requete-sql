@@ -635,6 +635,50 @@ l’onboarding, sinon le fond de ce qui est en bas de l’écran.
 dans `capacitor.config.json`, et l’appli appelle `Keyboard.setScroll({isDisabled: true})` au lancement : à l’appui sur un champ,
 iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la page (écrans, feuilles, onboarding) défile comme avant.
 
+## Vérification avant la mise en production (13 novembre, 11 h 07)
+
+Elisa : « ok pas de bug côté code et supabase, tout est ok ? on va bientôt déployer en prod ».
+
+**Deux bugs dans la base, corrigés** (`20261113101430_correctifs_jeton_ile_et_stat_oublier.sql`, appliquée à la production avec
+son accord, vérifiée par un essai annulé : rien n’est resté dans la base) :
+
+- **Le jeton de la Live Activity d’une salle n’était jamais gardé.** `jeu_ile_jeton_v2` contrôlait le jeton avec `{16,400}` :
+  Postgres n’accepte pas plus de 255 répétitions dans une expression régulière, et ne le dit qu’à l’exécution (« invalid
+  repetition count(s) »). 17 appels sur 17 en échec le 12 novembre, la table `requete_private.ile` vide : l’île d’une salle ne
+  pouvait pas être mise à jour par le serveur, l’appli fermée. La forme (`^[0-9a-f]+$`) et la longueur (16 à 400) sont
+  maintenant contrôlées séparément, dans la fonction et dans la contrainte de la table. À revoir sur deux iPhone : l’île d’une
+  salle, l’appli fermée.
+- **`stat_oublier` n’existait pas.** L’appli l’appelle à « Supprimer mon compte » et quand on coupe l’interrupteur des
+  statistiques ; elle recevait 404, les statistiques anonymes restaient (la politique de confidentialité dit qu’elles sont
+  effacées). La fonction existe : elle efface les événements de l’appareil, avec la même empreinte brouillée que `stat_noter`.
+
+**Ce qui a été vérifié, et comment** :
+
+- Le projet est sain (`ACTIVE_HEALTHY`) ; les 70 migrations du dépôt sont celles de la base, dans le même ordre.
+- Sécurité : les 34 tables ont la RLS ; aucune fonction `security definer` sans `search_path` ; le schéma privé est fermé à
+  l’appli ; les conseils de Supabase ne signalent aucune erreur (les avertissements « fonction exécutable par anon » sont le
+  fonctionnement voulu : l’appli passe par ces fonctions, avec la clé de l’appareil ; « mots de passe compromis » ne s’applique
+  pas, la connexion passe par Apple et Google).
+- Les 5 tâches planifiées tournent, sans échec depuis 7 jours. Les 3 fonctions Edge que l’appli appelle (`apple-jeton`,
+  `jeu-ile`, `jeu-verifier`) sont déployées et répondent 200 ; `compte-supprimer` et `jeu-compte-verifier`, dans le dépôt, ne
+  sont appelées par rien.
+- Chaque fonction de la base appelée par l’appli existe, avec les bons paramètres et les bons droits (44 appels comparés à la
+  base). `tests/retours-1107-avant-prod.test.mjs` garde les deux familles d’erreurs : une fonction appelée sans migration qui
+  la crée, et une répétition de plus de 255.
+- Le Swift compile (`npm run ios:verif` sur le Mac, 10 h 40 : « BUILD SUCCEEDED », aucune erreur), widgets et île compris.
+- Un tour de l’appli dans un navigateur (les cinq onglets, une leçon, la console, les huit pages de Mon compte) : aucune erreur
+  JavaScript. La clé RevenueCat est celle de production (`appl_`), la clé Supabase est la clé publique.
+
+**Ce qui reste, et que le code ne peut pas vérifier** :
+
+- **Les pages légales du site ont encore sept « à compléter »** (en ligne) : l’éditeur, le SIRET, l’adresse, le téléphone et la
+  directrice de la publication (mentions légales), le responsable du traitement (confidentialité), le médiateur (conditions).
+- Un vrai achat, « Restaurer » et l’offre à −50 % avec un compte de test d’Apple (seulement simulés ici) ; dans App Store
+  Connect, que l’essai de 3 jours et l’offre de bienvenue couvrent tous les pays.
+- Huit tests échouent, les mêmes depuis plusieurs jours : ils comparent d’anciens textes du site ou de l’appli, pas des
+  pannes. Un seul mérite une écoute : la voix du cours « Les bases de données relationnelles » (93 passages dans la page, 95
+  phrases dans le script).
+
 ## Réglages à vérifier avant l’envoi
 
 1. **Identifiant de l’app** : `appId` dans `capacitor.config.json` (`fr.requete.app` par défaut).
