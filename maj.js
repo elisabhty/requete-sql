@@ -60,7 +60,7 @@
   'use strict';
 
   /* Le même identifiant que SW_CACHE (index.html) et CACHE (sw.js) : la montée de version le remplace partout à la fois. */
-  var NOM = 'requete-2026-11-13-clavier-v2936';
+  var NOM = 'requete-2026-11-13-maj-v2937';
   var ORIGINE = 'https://requeteapp.com/';
   var ANNONCE = ORIGINE + 'maj/version.json';
   var PAUSE_MS = 30 * 60 * 1000;           // entre deux lectures de l'annonce
@@ -171,8 +171,11 @@
       var refus = lire(CLE.refus);
       if (refus && !(entier(refus.version) > VERSION)) ecrire(CLE.refus, null);
     }
-    /* Même après un démarrage raté, on lit l'annonce : c'est peut-être elle qui apporte la correction. */
-    setTimeout(function () { verifier(); }, ATTENTE_MS);
+    /* Même après un démarrage raté, on lit l'annonce : c'est peut-être elle qui apporte la correction.
+       13 novembre, 14 h 59 (Elisa : « Sur TestFlight, j'ai toujours la version 29 ») : à chaque lancement, l'annonce est lue, même si
+       elle l'a été il y a moins d'une demi-heure. Avant, une lecture faite juste avant la publication (« à jour ») faisait attendre
+       30 minutes, même en relançant l'appli. La demi-heure ne vaut plus que pour les retours dans l'appli. */
+    setTimeout(function () { verifier(true); }, ATTENTE_MS);
   }
   function reprendre() { if (signale && P && !installation) confirmer(); }
   /* boot (index.html) : pret() quand les écrans sont prêts, pret(false) quand le démarrage a échoué. */

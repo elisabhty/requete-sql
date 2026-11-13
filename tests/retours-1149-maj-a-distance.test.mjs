@@ -120,10 +120,14 @@ test('une version plus récente est annoncée : téléchargée en arrière-plan,
   assert.equal(p.lu('requete-maj-prete').version, 2930);
   assert.equal(p.M.etat().prete, 2930, 'Mon compte peut dire « v2930 au prochain lancement »');
   assert.equal(p.lu('requete-maj-etat').quoi, 'prête');
-  /* dans la demi-heure, on ne relit pas l’annonce */
+  /* dans la demi-heure, on ne relit pas l’annonce (retour dans l’appli) */
   const n = p.adresses.length;
   assert.equal(await p.M.verifier(), 'attente');
   assert.equal(p.adresses.length, n);
+  /* 13 novembre, 14 h 59 : au lancement, si (la minuterie du démarrage force la lecture) */
+  p.minuteurs[0].f();
+  for (let i = 0; i < 20; i++) await Promise.resolve();
+  assert.ok(p.adresses.length > n && p.adresses[n].startsWith(ANNONCE + '?t='), 'à chaque lancement, l’annonce est relue');
 });
 
 test('au lancement suivant : la version prête s’installe tout de suite, et c’est elle qui confirmera', async () => {
@@ -326,9 +330,9 @@ test('les versions d’essai : seulement pour les iPhone en essai, et on en sort
 /* ---------- l’appli : index.html, sw.js, la configuration ---------- */
 
 test('index.html : maj.js en premier, le démarrage confirmé à la fin de boot, le numéro de version partout le même', () => {
-  const i = app.indexOf('<script src="maj.js?v=1"></script>');
+  const i = app.indexOf('<script src="maj.js?v=2"></script>');
   assert.ok(i > 0 && i < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>') && i < app.indexOf('<style>'), 'chargé avant le moteur SQL et les styles');
-  assert.ok(sw.includes("'./maj.js?v=1',"), 'gardé hors ligne comme les autres scripts');
+  assert.ok(sw.includes("'./maj.js?v=2',"), 'gardé hors ligne comme les autres scripts');
   const nom = /var NOM = '([^']+)';/.exec(MAJ)[1];
   assert.ok(app.includes(`const SW_CACHE='${nom}';`) && sw.includes(`const CACHE = '${nom}';`), 'maj.js, index.html et sw.js : le même numéro');
   assert.equal(versionDe(MAJ), +/v(\d+)$/.exec(nom)[1]);
