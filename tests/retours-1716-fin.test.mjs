@@ -22,9 +22,9 @@ test('trois issues : la victoire, la défaite, le 0 à 0 ; tes points et leur d�
   for (const k of ["const nul=sc.length>0&&sc.every(x=>x.pts===0),winner=!nul&&moi.place===1&&moi.pts>0;",
     "if(winner){ton='is-or';titre='Tu as gagné\\u00a0!';chat='trophee';med=lqStkSvg('medal1');",
     "phrase=!second?'':second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`:`${nom(second)} n’a ${J.nb>1?'rien':'pas'} trouvé.`;}",
-    "else if(nul){ton='is-nul';titre='0 à 0\\u00a0!';chat='reveil';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Égalité parfaite\\u00a0: la revanche\\u00a0?`;}",
-    "else{ton='is-ko';titre='Pas cette fois\\u00a0!';chat='effort';",
-    "phrase=`${nom(premier)} l’emporte${moi.pts>0?` de ${ecart(premier,moi)}`:''}. À toi la revanche\\u00a0!`;}",
+    "else if(nul){ton='is-nul';titre='Match nul\\u00a0!';chat='duel';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Une revanche pour vous départager\\u00a0?`;}",
+    "else{ton='is-ok';titre=moi.pts>0?'Bien joué\\u00a0!':'La revanche t’attend\\u00a0!';chat='effort';",
+    "phrase=moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\\u00a0!`;}",
     "const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;",
     'pills=`<i>${ok} défi${ok>1?\'s\':\'\'} trouvé${ok>1?\'s\':\'\'} sur ${jouees}</i>`;',
     '<section class="jr2-hero jeu-issue ${ton}" aria-labelledby="jr2-t">',
@@ -35,6 +35,6 @@ test('trois issues : la victoire, la défaite, le 0 à 0 ; tes points et leur d�
 });
 
 test('le 0 à 0 a son ton ; les styles avant la refonte des défis', () => {
-  assert.ok(css.includes('html.lq #jeu-root .jr2-hero.is-nul h1{color:#fff}'));
-  assert.ok(css.indexOf('html.lq #jeu-root .jr2-hero.is-nul h1') < css.indexOf('Défis — la refonte du 7 novembre'));
+  assert.ok(css.includes('html.lq #jeu-root .jr2-hero.is-nul::before{') && !css.includes('.jr2-hero.is-nul h1{color:#fff}'), 'le match nul : sa lueur lilas, le titre doré comme les autres (18 h 35)');
+  assert.ok(css.indexOf('html.lq #jeu-root .jr2-hero.is-nul::before') < css.indexOf('Défis — la refonte du 7 novembre'));
 });

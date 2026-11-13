@@ -81,7 +81,7 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
 test('les points gagnés : une page en fin de partie (11 novembre, 21 h 33), plus de pastille à la manche', () => {
   const pop = cut('function jeuPtsPage(o){', '\n/* Points de la partie (une seule fois)');
   assert.ok(pop.includes("if(!o||!(o.pts>0||o.issue)||typeof document==='undefined'||typeof document.createElement!=='function'"), 'rien sans points (seul) ni sans page ; entre amis, toutes les issues (13 novembre, 17 h 31)');
-  assert.ok(pop.includes("<span class=\"mu-tag\">${zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>") && pop.includes('<span class="mu-go-l">${suite}</span>'), 'la pièce, « +12 points », « Voir le bilan » (seul) ou « Voir le podium »');
+  assert.ok(pop.includes("<span class=\"mu-tag\">${enc?(M?'La suite\\u00a0!':'Revanche\\u00a0!'):zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>") && pop.includes('<span class="mu-go-l">${suite}</span>'), 'la pièce, « +12 points », « Voir le bilan » (seul) ou « Voir le podium »');
   assert.ok(pop.includes('<b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b>'), 'le total roule de l’ancien au nouveau');
   assert.ok(pop.includes("if(typeof lqSay==='function')lqSay(`${issue?h.replace(/\\u00a0/g,' ')+' ':''}${zero?'0 point':`+${o.pts} point${pl}`}`"), 'le lecteur d’écran entend le résultat (et l’issue entre amis)');
   assert.ok(!app.includes('function jeuPtsPop('), 'plus de pastille');
