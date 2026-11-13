@@ -36,6 +36,10 @@
     if(window.caches)caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});}catch(e){}
   var m=/[?&]partie=([A-Za-z0-9]{6})(?![A-Za-z0-9])/.exec(q);
   location.replace('decouvrir/'+(m?'?partie='+m[1].toUpperCase()+'#mobile':''));}catch(e){}})();</script>
+<!-- Elisa, 13 novembre, 11 h 49 : « modifier un cours, ajouter un parcours, modifier une faute, sans passer par une mise en prod
+     Apple ». maj.js, chargé avant tout le reste : dans l’app iPhone, une version plus récente déjà téléchargée depuis requeteapp.com
+     s’installe ici, sous l’écran de lancement (jamais en cours d’utilisation). Dans un navigateur, il ne fait rien. Voir maj.js. -->
+<script src="maj.js?v=1"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -20460,6 +20464,7 @@ async function loadSqlEngine(){
 }
 function bootFatal(){
   try{window.nativeAppReady&&window.nativeAppReady();}catch(e){}   // dans l’appli : l’écran de lancement part, le message se lit
+  try{window.REQUETE_MAJ&&window.REQUETE_MAJ.pret(false);}catch(e){}   // maj.js : rien n’est confirmé, mais une correction publiée peut encore arriver
   const loader=document.getElementById('loader');
   if(loader) loader.classList.add('fatal');
   document.getElementById('loader').innerHTML=
@@ -20503,6 +20508,7 @@ async function boot(){
   }catch(e){ bootFatal(); return; }
   try{lqHeads();}catch(e){}
   try{lqTabbarScroll();}catch(e){}
+  let demarrageOk=false;   // maj.js : seule une version dont les écrans se sont préparés sans erreur est confirmée (13 novembre, 11 h 49)
   try{
     await wipeStorageIfUpdated();
     const saved=await Store.get(KEY);
@@ -20564,11 +20570,15 @@ async function boot(){
     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); tickRappel(); rappelAuto(400); } });   // un nouveau jour : les rappels glissent (21 h 41) ; l’appli ouverte : pas de rappel ce jour-là (22 h 04)
     initSpotlight();
     initStudyClock();
+    demarrageOk=true;
   }catch(e){
     console.error('Erreur pendant l’initialisation :',e);
     /* Une erreur avant la reprise ne doit pas renvoyer à l’accueil au rechargement : on reprend quand même la page ouverte. */
     if(!navTried&&state&&state.onboarded){try{restoreNav();}catch(err){}}
   }
+  /* La mise à jour à distance (maj.js) : cette version a démarré, on le confirme. Une version téléchargée qui n’arrive pas ici sans
+     erreur n’est pas confirmée : au bout de 20 secondes, l’appli revient d’elle-même à la version d’avant. */
+  try{window.REQUETE_MAJ&&window.REQUETE_MAJ.pret(demarrageOk);}catch(e){}
   hideLoader();
 }
 /* Spotlight : le curseur dépose les coordonnées du halo sur la carte survolée.
@@ -50184,7 +50194,7 @@ function renderCompte(){
       <summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body ct-body" id="ct-body">${ctHTML()}</div>
     </details>
-    <p class="app-version-note">${esc(appVersionLabel())}</p>
+    <p class="app-version-note" id="app-version-note" onclick="majEssaiTap()">${esc(appVersionNote())}</p>
     <button type="button" class="account-sheet-backdrop" onclick="closePlusDetails()" aria-label="Fermer les réglages ouverts"></button>`;
   stkPaint(host.querySelector('.acct-badges'));
   pacteFeuilleBrancher();
@@ -50215,6 +50225,35 @@ function appVersionLabel(){
   const v=window.APP_VERSION||'';
   const m=v.match(/v\d+$/);
   return m?('Version '+m[0]):(v?('Version '+v):'Version en cours');
+}
+/* La mise à jour à distance (maj.js ; Elisa, 13 novembre, 11 h 49). Sous Mon compte, le numéro de version dit aussi ce qui attend :
+   une version téléchargée s’installe au prochain lancement de l’appli (jamais pendant une leçon). Sept touchers rapprochés sur ce
+   numéro mettent cet iPhone « en essai » : il reçoit les versions publiées en essai, avant tout le monde ; sept autres l’en sortent. */
+function appVersionNote(){
+  let t=appVersionLabel();
+  try{
+    const e=window.REQUETE_MAJ&&window.REQUETE_MAJ.branchee?window.REQUETE_MAJ.etat():null;
+    if(e&&e.prete)t+=' · v'+e.prete+' au prochain lancement';
+    else if(e&&e.retour)t+=' · version d’origine au prochain lancement';
+    if(e&&e.canal==='essai')t+=' · versions d’essai';
+  }catch(_){}
+  return t;
+}
+let majTaps=[];
+function majEssaiTap(){
+  const M=window.REQUETE_MAJ;
+  if(!M||!M.branchee)return;
+  const t=Date.now();
+  majTaps=majTaps.filter(x=>t-x<4000);
+  majTaps.push(t);
+  if(majTaps.length<7)return;
+  majTaps=[];
+  const essai=M.canal()!=='essai';
+  M.canal(essai?'essai':'');
+  if(typeof buzz==='function')buzz('light');
+  toast(essai?'Versions d’essai activées':'Versions d’essai désactivées',essai?'Cet iPhone reçoit les versions publiées en essai.':'Cet iPhone suit les versions publiées pour tous.','info');
+  const p=document.getElementById('app-version-note');
+  if(p)p.textContent=appVersionNote();
 }
 function openLegal(kind){
   /* Les pages légales sont celles du site (Réf 6) ; seule l’aide reste une feuille de l’app. */
@@ -50991,7 +51030,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-accueil-v2928';
+  const SW_CACHE='requete-2026-11-13-accueil-v2929';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

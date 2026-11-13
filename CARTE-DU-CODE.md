@@ -13,6 +13,7 @@ Où se trouve quoi dans le dépôt. Pour chaque fichier, son rôle en une ou deu
 | `responsive.css`, `anim-responsive.css`, `safari-surface.css`, `safari-surface.js`, `ux-polish.css`, `home-journey.css`, `memo-collection.css` | Des retouches par sujet : toutes les tailles d'écran, les animations sur petit écran, les barres de Safari, une passe UI de septembre, l'accueil, les cartes mémo. |
 | `multiplayer-security.js` | Les parties classées : l'identité du joueur vient du serveur et chaque requête jouée en salle est revérifiée par `jeu-verifier`. |
 | `achat.js` | Les abonnements de l'app iPhone par RevenueCat (`window.REQUETE_ACHAT`, attendu par le paywall). Éteint tant que la clé `appl_` n'est pas collée dedans. |
+| `maj.js` | La mise à jour à distance de l'app iPhone : corriger un cours ou une faute sans repasser par Apple (`window.REQUETE_MAJ`). Chargé en premier ; ne fait rien dans un navigateur. Avec `maj/publication.json`, `scripts/maj-publier.mjs` et `scripts/maj-paquet.mjs` : voir IOS.md, « Corriger l'appli sans repasser par Apple ». |
 | `import-formats.js` | L'import de fichiers dans la console (Excel, CSV, JSON, SQL, SQLite), sans bibliothèque. |
 | `onboarding-focus.js` | Le focus du clavier dans la fenêtre de l'onboarding (accessibilité). |
 | `perf-probe.js` | Une sonde de fluidité, chargée seulement avec `?perf=1`. |
