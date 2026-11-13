@@ -153,7 +153,7 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-sol[data-vue="moi"]{background:#EAF8F0}', 'html.lq .dx-feuille button.jc-bascule{flex:none;',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-gagnant-v2973';") && app.includes("const SW_CACHE='requete-2026-11-13-gagnant-v2973';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-onrejoue-v2974';") && app.includes("const SW_CACHE='requete-2026-11-13-onrejoue-v2974';"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=350">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 

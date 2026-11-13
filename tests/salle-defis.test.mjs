@@ -411,7 +411,7 @@ test('13 novembre, 21 h 33 : la revanche ; chacun dit s’il en est, et quand to
   assert.match(guests[1].html, /<b>On rejoue\u00a0\?<\/b><small>Touche Rejouer pour dire que tu es de la partie\.<\/small>/);
   assert.match(guests[1].html, /onclick="jeuRevanche\(\)"><svg[^]*?<\/svg><span>Rejouer<\/span>/);
   assert.match(host.html, /onclick="jeuRevanche\(\)"><svg[^]*?<\/svg><span>Revanche<\/span>/);
-  assert.match(guests[0].html, /<b>La revanche\u00a0\?<\/b><small>Touche Revanche pour dire que tu es de la partie\.<\/small>/);
+  assert.match(guests[0].html, /<b>On rejoue\u00a0\?<\/b><small>Touche Revanche pour dire que tu es de la partie\.<\/small>/);
   guests[0].ev('jeuRevanche()'); sec(w, 0.5);
   assert.equal(guests[0].J('revanche'), true);
   assert.match(guests[0].html, /class="journey-primary jeu-revanche on" aria-pressed="true"/);
@@ -683,7 +683,7 @@ test('seule dans sa salle, une manche, le chrono à 0 : « Temps écoulé » sur
   assert.match(h.html, /<h1>Pas encore cette fois\u00a0!<\/h1>/);
   assert.match(h.html, /<div class="jeu-bilan is-2"><div><b data-n="0">0<\/b><small>point<\/small><\/div><div><b>—<\/b><small>ton temps<\/small><\/div><\/div>/);
   assert.match(h.html, /<i class="jr-why">Temps écoulé<\/i>/); assert.match(h.html, /onclick="jeuCorrection\(0\)"/);
-  assert.match(h.html, /<b>La revanche \?<\/b>/); assert.match(h.html, /Tu es seul·e dans la salle/); assert.match(h.html, /onclick="jeuRevanche\(\)"/); assert.match(h.html, /Quitter la salle/);
+  assert.match(h.html, /<b>On rejoue \?<\/b>/); assert.match(h.html, /Tu es seul·e dans la salle/); assert.match(h.html, /onclick="jeuRevanche\(\)"/); assert.match(h.html, /Quitter la salle/);
   assert.equal((h.html.match(/Quitter la salle/g) || []).length, 1, 'un seul « Quitter la salle » (13 novembre, 21 h 52)');
   assert.equal(h.J('over'), true, 'la fin de partie est partie');
   assert.equal(h.ev('state.salle.parties'), 1, 'la partie compte');
