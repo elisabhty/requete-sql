@@ -95,7 +95,7 @@ test('l’accueil du site dit ce qu’est Requête : une appli pour iPhone, avec
     'Une installation est-elle nécessaire ?': 'Oui. Requête est une application pour iPhone, à télécharger dans l’App Store. Elle exécute SQL sur une vraie base SQLite, directement sur ton iPhone. Une fois ton compte connecté, les cours se suivent aussi hors ligne ; la sauvegarde de ta progression et les défis entre amis demandent une connexion internet.',
     'Un compte est-il nécessaire pour utiliser Requête ?': 'Oui. Tu te connectes en un geste avec Apple ou Google, sans mot de passe à créer. Ta progression est alors sauvegardée dans ton compte.',
     'Où sont enregistrées ma progression et mes notes ?': 'Sur ton iPhone et dans ton compte : tes leçons validées, tes défis réussis, ton planning et tes notes y sont sauvegardés, pour les retrouver sur un autre iPhone ou après une réinstallation. Les fichiers que tu importes, eux, restent sur ton iPhone.',
-    'Puis-je utiliser Requête sur mon téléphone ?': 'Oui, sur iPhone : Requête est une application à part entière, à télécharger dans l’App Store. Elle n’est pas proposée sur Android.',
+    'Puis-je utiliser Requête sur mon téléphone ?': 'Oui, sur iPhone : Requête est une application à part entière, à télécharger dans l’App Store. La version Android arrive bientôt, sur Google Play.',   // 2 h 41 : « bientôt pour Google Play »
   };
   for (const [q, r] of Object.entries(attendu)) { assert.equal(reponse(q), r, q); assert.equal(ecran[q], r, q + ' (à l’écran)'); }
   for (const q of faq.mainEntity) assert.equal(ecran[q.name], q.acceptedAnswer.text, q.name);
@@ -157,7 +157,7 @@ test('confidentialité : l’appli sur iPhone, le compte, l’abonnement par l�
   assert.ok(abo.includes('<a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">politique de confidentialité de RevenueCat</a>'));
   assert.ok(abo.includes('Supprimer ton compte Requête ne résilie pas l’abonnement&nbsp;: il se gère depuis Mon compte › «&nbsp;Gérer mon abonnement&nbsp;», ou dans les réglages de ton identifiant Apple.'));
   const achat = lire('achat.js');
-  assert.ok(achat.includes('var pret = P.configure({apiKey: RC_CLE_IOS})') && !/logIn\(|setEmail\(|setAttributes\(|appUserID/.test(achat), 'un achat sans identifiant de compte');
+  assert.ok(achat.includes('var demarre = P.configure({apiKey: RC_CLE_IOS});') && !/logIn\(|setEmail\(|setAttributes\(|appUserID/.test(achat), 'un achat sans identifiant de compte');
   assert.ok(!/\b(sera|passera|recevrons|seront)\b/.test(texte(abo)), 'au présent : l’abonnement existe');
   /* Les cookies, les droits */
   assert.ok(p.includes('ni outil de mesure d’audience d’un tiers, ni pixel de suivi. Le seul décompte est celui des écrans de l’accueil, fait par Requête elle-même (voir plus haut). Ce site ne dépose aucun cookie. Dans l’appli, le seul stockage utilisé'));

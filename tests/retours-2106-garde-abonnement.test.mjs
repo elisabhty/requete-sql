@@ -202,9 +202,10 @@ test('payer ou restaurer depuis la garde referme le paywall sans refaire l’onb
 
 test('après une connexion depuis l’appli (ou une reconnexion) : le paywall si l’abonnement manque, sans refermer la page entre les deux', () => {
   const auth = cut('async function obStartAuth(provider,btn){', '\n  }catch(e){');
-  const i = auth.indexOf("if(obEntry==='account'&&state.onboarded&&typeof obGardeBloque==='function'&&obGardeBloque()){obGarde=true;obEntry='paywall';obGoto('paywall');}");
-  const j = auth.indexOf("else if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();renderCompte();toast('Compte connecté'");
-  assert.ok(i > 0 && j > i, 'le paywall d’abord ; sinon, comme avant, « Compte connecté »');
+  /* 13 novembre, 2 h 41 : dans les deux cas, l’accueil (obVersAccueil), derrière le paywall ou tout de suite (retours-0241) */
+  const i = auth.indexOf("if(obEntry==='account'&&state.onboarded&&typeof obGardeBloque==='function'&&obGardeBloque()){obVersAccueil();obGarde=true;obEntry='paywall';obGoto('paywall');}");
+  const j = auth.indexOf("else if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();obVersAccueil();toast('Compte connecté'");
+  assert.ok(i > 0 && j > i, 'le paywall d’abord ; sinon « Compte connecté », sur l’accueil');
   /* Le paywall de la fin de l’onboarding ne change pas */
   assert.ok(app.includes("function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}"));
 });

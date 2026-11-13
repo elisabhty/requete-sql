@@ -97,7 +97,7 @@ test('réf. 12, 13 et 14 : la connexion en grand ; fermer la feuille d’Apple o
   assert.ok(ob.includes('html #onboarding.ob-vitrine .ob-account.is-grand .ob-provider-list{margin-top:auto!important;padding-top:26px}'), 'les boutons en bas');
   const auth = cut('async function obStartAuth(provider,btn){', '/* Elisa, 31 octobre, 8 h 37 (Réf 6)');
   /* Son choix : connecté depuis « J’ai déjà un compte », on arrive sur Mon compte ; le compte remplit d’abord les réponses */
-  assert.ok(auth.includes("draft.finConnexion='compte';") && auth.indexOf('csSync({premier:true})') < auth.indexOf('obDraftDepuisEtat();}'));
+  assert.ok(auth.includes("draft.finConnexion='accueil';")   /* 13 novembre, 2 h 41 : l’accueil, plus Mon compte (retours-0241) */ && auth.indexOf('csSync({premier:true})') < auth.indexOf('obDraftDepuisEtat();}'));
   assert.ok(app.includes("function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}"));
   assert.ok(app.includes("finishOnboard(draft.finVoulue||draft.finConnexion||'home');}\nasync function obPaywallAcheter(){"));
   const dctx = vm.createContext({ state: { plan: { niveau: 'avance', rythme: 'intensif', freq: 3 }, name: 'Léa', profile: { goal: 'job', pays: 'BE' } },
