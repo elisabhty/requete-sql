@@ -45,3 +45,12 @@ test('les styles : la revanche au vert, comme « Prête ✓ » en salle d’atte
   assert.ok(css.includes('html.lq .journey-primary.jeu-revanche.on{background:var(--success)!important;color:#fff!important;'));
   assert.ok(css.indexOf('La revanche (13 novembre') < css.indexOf('Défis — la refonte du 7 novembre'));
 });
+
+test('17 h (la partie à deux) : revenu dans une salle finie, la partie n’est pas comptée une deuxième fois', () => {
+  const f = fn('jeuCreditGame');
+  assert.ok(f.includes("const partie=String(J.code||'')+'-'+(J.g|0),s0=state.salle&&typeof state.salle==='object'?state.salle:null;"));
+  assert.ok(f.includes('if(s0&&Array.isArray(s0.comptees)&&s0.comptees.includes(partie))return null;'));
+  assert.ok(f.indexOf('s0.comptees.includes(partie))return null;') < f.indexOf('s.pts=(s.pts||0)+pts;'), 'avant les points');
+  assert.ok(f.includes("s.comptees=[partie].concat(Array.isArray(s.comptees)?s.comptees.filter(x=>x!==partie):[]).slice(0,40);"));
+  assert.ok(app.includes("{const c=(Array.isArray(salleSrc.comptees)?salleSrc.comptees:[]).filter(x=>typeof x==='string'&&/^[A-Za-z0-9]{4,12}-\\d{1,6}$/.test(x)).slice(0,40);if(c.length)salle.comptees=c;}"), 'gardées dans la progression');
+});

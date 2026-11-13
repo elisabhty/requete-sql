@@ -24256,6 +24256,8 @@ function normalizeState(raw){
   const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
   if(uuid(salleSrc.clsId))salle.clsId=salleSrc.clsId;
   if(salleSrc.horsCls)salle.horsCls=1;
+  /* Les parties déjà comptées (jeuCreditGame, 13 novembre) : « CODE-numéro », les 40 dernières. */
+  {const c=(Array.isArray(salleSrc.comptees)?salleSrc.comptees:[]).filter(x=>typeof x==='string'&&/^[A-Za-z0-9]{4,12}-\d{1,6}$/.test(x)).slice(0,40);if(c.length)salle.comptees=c;}
   if(typeof salleSrc.defisEnv==='string'&&salleSrc.defisEnv.length<=4000)salle.defisEnv=salleSrc.defisEnv;
   /* Le pseudo réservé (jeu_pseudo) et la date de sa dernière confirmation. */
   if(typeof salleSrc.pseudo==='string'){const p=psForme(salleSrc.pseudo);if(p)salle.pseudo=p;}
@@ -38707,6 +38709,11 @@ function jeuPtsPage(o){
 function jeuCreditGame(){
   const J=JEU;if(!J||J.scored||!J.played||!J.rounds.some(Boolean))return;
   J.scored=true;
+  /* 13 novembre, 17 h (la partie à deux avec Elisa) : revenu dans une salle finie (l’appli rouverte, le code saisi de nouveau), la
+     partie relue dans l’historique était comptée une deuxième fois (points de salle, parties, page « +1 025 points »). Chaque partie
+     (le code de la salle et son numéro) ne compte qu’une fois sur l’appareil : salle.comptees, les 40 dernières. */
+  const partie=String(J.code||'')+'-'+(J.g|0),s0=state.salle&&typeof state.salle==='object'?state.salle:null;
+  if(s0&&Array.isArray(s0.comptees)&&s0.comptees.includes(partie))return null;
   try{if(typeof stat==='function'){const me=jeuPlaces(jeuScores()).find(x=>x.pid===J.me);stat('partie',me?me.pts:0,{solo:!!J.solo,niv:String(J.niv||'').slice(0,4)});}}catch(e){}
   try{
     const sc=jeuPlaces(jeuScores()),me=sc.find(x=>x.pid===J.me),pts=me?me.pts:0;
@@ -38714,6 +38721,7 @@ function jeuCreditGame(){
     /* Nouveau record : mieux que la meilleure partie précédente (pas à la toute première partie). */
     J.record=pts>0&&(s.parties||0)>0&&pts>(s.best||0);
     s.pts=(s.pts||0)+pts;s.parties=(s.parties||0)+1;s.best=Math.max(s.best||0,pts);
+    s.comptees=[partie].concat(Array.isArray(s.comptees)?s.comptees.filter(x=>x!==partie):[]).slice(0,40);
     /* Le tableau « Tes performances » : les manches comptées comme dans les scores (terminées, ou toutes à la fin de la partie). */
     const cur=jeuCur(),played=J.rounds.filter((r,n)=>r&&(n<cur||jeuRoundDone(n)||J.over||(J.depart&&r.found[J.me]!=null)));
     const mine=played.map(r=>r.found[J.me]).filter(v=>v!=null&&Number.isFinite(+v)).map(v=>Math.max(0,Math.round(+v)));
@@ -51278,7 +51286,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-revanche-v2949';
+  const SW_CACHE='requete-2026-11-13-revanche-v2950';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
