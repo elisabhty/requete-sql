@@ -46951,7 +46951,10 @@ function ileSalleAction(quoi){
     if(JEU!==J)return;
     if(jeuIsHost()){
       if(quoi==='lancer'&&jeuPeutLancer())jeuLancer();   // comme le bouton : tout le monde prêt, deux joueurs au moins (13 h 20)
-      if(quoi==='rejouer'&&J.over)jeuAgain();
+      /* 14 novembre, 0 h 20 : « Rejouer » (ou « Revanche ») de l’île fait comme le bouton du podium : seul, la partie repart ; dans une
+         salle, l’hôte dit qu’il en est, et la salle repart quand tout le monde a répondu (jeuRevancheVerif). Avant, il relançait la salle
+         sans attendre les autres. */
+      if(quoi==='rejouer'&&J.over){if(J.solo)jeuAgain();else if(!(J.rv&&J.rv[J.me]))jeuRevanche();}
       return;
     }
     if(k<16)setTimeout(()=>essai(k+1),500);
@@ -51643,7 +51646,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-pret-v2982';
+  const SW_CACHE='requete-2026-11-14-ile-v2983';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

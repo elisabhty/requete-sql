@@ -34,3 +34,9 @@ test('un pseudo long se coupe, « (toi) » et « hôte » restent entiers', () =
   assert.ok(app.includes('<span><span class="jeu-pl-nom">${esc(p.name)}</span>${me?\' <small>(toi)</small>\':\'\'}${host?\' <small class="jeu-tag">hôte</small>\':\'\'}</span>'));
   assert.ok(css.includes('html.lq #jeu-root .jeu-players .jeu-pl-nom{min-width:0;overflow:hidden;text-overflow:ellipsis}') && css.includes('html.lq #jeu-root .jeu-players li>span>small{flex:none}'));
 });
+
+test('14 novembre, 0 h 20 : « Rejouer » de l’île fait comme le bouton du podium (seul : la partie repart ; dans une salle : on vote)', () => {
+  const a = fn('ileSalleAction');
+  assert.ok(a.includes("if(quoi==='rejouer'&&J.over){if(J.solo)jeuAgain();else if(!(J.rv&&J.rv[J.me]))jeuRevanche();}"));
+  assert.ok(!a.includes("if(quoi==='rejouer'&&J.over)jeuAgain();"), 'plus de relance qui n’attend pas les autres');
+});
