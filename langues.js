@@ -59,9 +59,30 @@
     } catch (e) {}
     var voulu = lire(CLE), dispo = disponibles();
     if (voulu && dispo.indexOf(voulu) >= 0) return voulu;
-    /* Sans choix : la langue de l'iPhone, si elle est terminée ; sinon le français. */
-    var n = ''; try { n = String(navigator.language || '').slice(0, 2).toLowerCase(); } catch (e) {}
-    return LANGUES[n] && !LANGUES[n].essai ? n : 'fr';
+    return automatique();
+  }
+  /* Sans choix (Elisa, 13 novembre, 12 h 57 : « vérifie par rapport aux langues de chaque pays laquelle afficher, par exemple en
+     Afrique beaucoup seront en français, mais peuvent changer la langue avec un réglage »).
+     1. La première langue de l'iPhone que l'appli parle (une langue en essai ne compte pas).
+     2. Sinon (un iPhone en arabe, en espagnol, en allemand…) : le français dans les pays où il est langue officielle ou seconde
+        langue courante, l'anglais partout ailleurs. Le pays : celui des réglages de l'iPhone (« ar-MA »), à défaut son fuseau
+        horaire. La Belgique, la Suisse et le Canada n'y sont pas : un iPhone en français y est déjà en français, et les autres
+        (néerlandais, allemand) lisent plus volontiers l'anglais.
+     Dans tous les cas, le réglage « Langue » de Mon compte permet de changer. */
+  var FRANCOPHONES = 'FR MC LU SN CI ML BF NE TG BJ GN CM GA CG CD CF TD DJ KM MG BI MU MR MA DZ TN HT GP MQ GF RE YT PM BL MF NC PF WF'.split(' ');
+  var FUSEAUX = ('Europe/Paris Europe/Monaco Europe/Luxembourg Africa/Dakar Africa/Abidjan Africa/Bamako Africa/Ouagadougou Africa/Niamey Africa/Lome Africa/Porto-Novo ' +
+    'Africa/Conakry Africa/Douala Africa/Libreville Africa/Brazzaville Africa/Kinshasa Africa/Lubumbashi Africa/Bangui Africa/Ndjamena Africa/Djibouti Indian/Comoro ' +
+    'Indian/Antananarivo Africa/Bujumbura Indian/Mauritius Africa/Nouakchott Africa/Casablanca Africa/El_Aaiun Africa/Algiers Africa/Tunis America/Port-au-Prince ' +
+    'America/Guadeloupe America/Martinique America/Cayenne Indian/Reunion Indian/Mayotte America/Miquelon America/St_Barthelemy America/Marigot Pacific/Noumea ' +
+    'Pacific/Tahiti Pacific/Marquesas Pacific/Gambier Pacific/Wallis').split(' ');
+  function automatique() {
+    var finies = Object.keys(LANGUES).filter(function (c) { return !LANGUES[c].essai; }), liste = [], i, m;
+    try { liste = (navigator.languages && navigator.languages.length ? Array.prototype.slice.call(navigator.languages) : [navigator.language || '']).map(String); } catch (e) {}
+    for (i = 0; i < liste.length; i++) { var c = liste[i].slice(0, 2).toLowerCase(); if (finies.indexOf(c) >= 0) return c; }
+    if (finies.indexOf('en') < 0) return 'fr';
+    for (i = 0; i < liste.length; i++) if ((m = /[-_]([A-Za-z]{2})(?![A-Za-z])/.exec(liste[i]))) return FRANCOPHONES.indexOf(m[1].toUpperCase()) >= 0 ? 'fr' : 'en';
+    var fuseau = ''; try { fuseau = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+    return FUSEAUX.indexOf(fuseau) >= 0 ? 'fr' : 'en';
   }
   var CODE = choisir();
   var TRAD = null;   // {textes: {français: traduction}, base: {…}} une fois le fichier de la langue chargé

@@ -17,6 +17,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
   textes: {
+    /* Mon compte : le réglage de la langue */
+    "Langue": "Language",
+    "L’appli se recharge dans la langue choisie.": "The app reloads in the language you choose.",
     /* La page de connexion et le paywall */
     "Ton compte Requête": "Your Requête account",
     "Connecte-toi en un geste, et c’est parti.": "Sign in with one tap and you’re in.",

@@ -50100,7 +50100,7 @@ function renderCompte(){
             <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route is-stk">${lqStkSvg(ACCT_STK.route)}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-pacte')"><span class="plus-row-icon is-stk">${lqStkSvg('pen')}</span><span><b>Mon engagement</b><small id="acct-pacte-sum">${pacteResume()}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>${langueLigneHTML(CHEV)}
           </div>
         </div>
         ${surIphone?`<div class="account-settings-group">
@@ -50195,11 +50195,12 @@ function renderCompte(){
           <span class="acc-ext" aria-hidden="true">${LEGAL_EXT_SVG}</span></a>
       </div>
     </details>
+    ${langueReglageHTML()}
     <details class="plus-details" id="plus-contact">
       <summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body ct-body" id="ct-body">${ctHTML()}</div>
     </details>
-    <p class="app-version-note" id="app-version-note" onclick="majEssaiTap()">${esc(appVersionNote())}</p>${langueNoteHTML()}
+    <p class="app-version-note" id="app-version-note" onclick="majEssaiTap()">${esc(appVersionNote())}</p>
     <button type="button" class="account-sheet-backdrop" onclick="closePlusDetails()" aria-label="Fermer les réglages ouverts"></button>`;
   stkPaint(host.querySelector('.acct-badges'));
   pacteFeuilleBrancher();
@@ -50244,12 +50245,24 @@ function appVersionNote(){
   }catch(_){}
   return t;
 }
-/* Le choix de la langue (langues.js ; 13 novembre, 12 h 30). Une langue en cours de traduction n’est proposée qu’aux iPhone en essai :
-   pour tous les autres, cette ligne n’existe pas. Changer de langue recharge l’appli. */
-function langueNoteHTML(){
+/* Le réglage « Langue » de Mon compte (langues.js ; Elisa, 13 novembre, 12 h 57 : « peuvent changer la langue avec un réglage que
+   tu vas mettre en place »). Il n’existe que s’il y a un choix : une langue en cours de traduction n’est proposée qu’aux iPhone en
+   essai. Le nom de chaque langue s’écrit dans sa langue. Changer de langue recharge l’appli ; le choix reste sur l’appareil. */
+function langueLigneHTML(chevron){
   const L=window.REQUETE_LANGUE;
   if(!L||L.disponibles().length<2)return '';
-  return `<p class="app-version-note" id="app-langue-note" data-notrad style="margin-top:0">${L.disponibles().map(c=>`<button type="button" onclick="REQUETE_LANGUE.changer('${c}')" aria-pressed="${c===L.code}" style="all:unset;cursor:pointer;padding:12px 10px;font:inherit;color:inherit;${c===L.code?'text-decoration:underline;text-underline-offset:3px':''}">${esc(L.nom(c))}</button>`).join('·')}</p>`;
+  return `<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-langue')"><span class="plus-row-icon" aria-hidden="true" style="display:grid;place-items:center;color:var(--violet,#6E50F6)"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></span><span><b>Langue</b><small data-notrad>${esc(L.nom(L.code))}</small></span><span class="account-setting-end">${chevron||''}</span></button>`;
+}
+function langueReglageHTML(){
+  const L=window.REQUETE_LANGUE;
+  if(!L||L.disponibles().length<2)return '';
+  return `<details class="plus-details" id="plus-langue">
+      <summary><span>Langue</span><small data-notrad>${esc(L.nom(L.code))}</small><i aria-hidden="true">×</i></summary>
+      <div class="plus-details-body" style="padding:6px 18px 18px">
+        ${L.disponibles().map(c=>`<button type="button" data-notrad onclick="REQUETE_LANGUE.changer('${c}')" aria-pressed="${c===L.code}" style="all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;width:100%;min-height:52px;cursor:pointer;font:inherit;font-size:16px;font-weight:${c===L.code?700:500};color:var(--ink)">${esc(L.nom(c))}<span aria-hidden="true">${c===L.code?'✓':''}</span></button>`).join('')}
+        <p style="margin:8px 0 0;font-size:13px;line-height:1.4;color:var(--ink-3)">L’appli se recharge dans la langue choisie.</p>
+      </div>
+    </details>`;
 }
 let majTaps=[];
 function majEssaiTap(){
@@ -50266,9 +50279,11 @@ function majEssaiTap(){
   toast(essai?'Versions d’essai activées':'Versions d’essai désactivées',essai?'Cet iPhone reçoit les versions publiées en essai.':'Cet iPhone suit les versions publiées pour tous.','info');
   const p=document.getElementById('app-version-note');
   if(p)p.textContent=appVersionNote();
-  const l=document.getElementById('app-langue-note');
-  if(l)l.remove();
-  if(p)p.insertAdjacentHTML('afterend',langueNoteHTML());
+  /* Le réglage « Langue » apparaît (ou disparaît) tout de suite : sa ligne après « Confort de lecture », sa feuille avant « Contacte-nous » */
+  document.querySelectorAll('#plus-langue,.account-setting-row[onclick*="plus-langue"]').forEach(x=>x.remove());
+  const c=document.getElementById('plus-contact'),r=document.querySelector('.account-setting-row[onclick*="plus-reading"]');
+  if(c)c.insertAdjacentHTML('beforebegin',langueReglageHTML());
+  if(r)r.insertAdjacentHTML('afterend',langueLigneHTML(typeof ACCT_CHEV==='string'?ACCT_CHEV:''));
 }
 function openLegal(kind){
   /* Les pages légales sont celles du site (Réf 6) ; seule l’aide reste une feuille de l’app. */
@@ -51045,7 +51060,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-accueil-v2930';
+  const SW_CACHE='requete-2026-11-13-accueil-v2931';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
