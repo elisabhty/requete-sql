@@ -204,7 +204,8 @@ test('l’haptique : chaque toucher est un vrai impact (avant, selectionChanged 
   assert.deepEqual(x.H.map(h => h[1]), ['MEDIUM', 'LIGHT', 'LIGHT', 'cran']);
   assert.equal(typeof x.win.__toucheDoublon, 'function');
   /* Le toucher d’un bouton le note, pour le pont */
-  assert.ok(app.includes("    buzz(T.el.matches(LQ_CHOIX)||!!T.el.closest('.av-stars,[role=\"radiogroup\"],[role=\"tablist\"]')?'selection':'light');\n    try{window.__toucheEv=e;window.__toucheB=T.el;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS)"));
+  /* 13 novembre, 15 h 08 : dans l’onboarding, un vrai coup (léger pour un choix, moyen pour avancer) */
+  assert.ok(app.includes("    if(obT)buzz(T.el.id==='ob-next'?'medium':'light');\n    else buzz(T.el.matches(LQ_CHOIX)||!!T.el.closest('.av-stars,[role=\"radiogroup\"],[role=\"tablist\"]')?'selection':'light');\n    try{window.__toucheEv=e;window.__toucheB=T.el;window.__toucheA=Date.now();}catch(x){}   // un seul coup par toucher (pont iOS)"));
 });
 
 test('buzz() parle directement au moteur haptique d’iOS : réussite, avertissement, erreur, impacts', () => {
@@ -313,5 +314,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-13-maj-v2937"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-13-haptique-v2938"), 'le cache de l’appli change');
 });
