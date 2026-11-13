@@ -36934,6 +36934,14 @@ function jeuOnMsg(m){
       J.order=J.order.filter(p=>p!==m.who);delete J.players[m.who];
       break;}
     case 'ping':if(!addP())return;break;
+    /* 13 novembre, 21 h 33 (Elisa : « on attend que les personnes quittent la salle, ou appuient sur Revanche ; quand tout le monde a
+       répondu, ça relance ») : chacun dit s’il en est ; l’hôte relance quand tous ceux qui sont là ont dit oui (jeuRevancheVerif). */
+    case 'revanche':
+      if(!addP())return;
+      if((m.g|0)!==J.g)return;
+      J.rv=J.rv||{};J.rv[m.pid]=!!m.on;
+      if(m.pid===J.me)J.revanche=!!m.on;
+      break;
     case 'ready':{
       if(!addP())return;
       if((m.g|0)>J.g)return jeuLater(m);
@@ -37015,7 +37023,7 @@ function jeuOnMsg(m){
       break;
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
-      const revanche=!!J.revanche&&!replay;J.revanche=false;   // « Prête pour la revanche » (13 novembre, 16 h 58)
+      const revanche=!!J.revanche&&!replay;J.revanche=false;J.rv={};   // « Prête pour la revanche » (13 novembre, 16 h 58) ; les réponses repartent à zéro (21 h 33)
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
       J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;J.partants=null;J.horsPartie=false;
       jeuApplyCfg();jeuDrain();
@@ -37252,7 +37260,7 @@ function jeuPing(){const J=JEU;if(!J||(J.solo&&!J.ranked)||!J.synced||J.full||J.
 /* Ce qui change à l’écran sans nouveau message : arrivées, départs, prêts. */
 function jeuSig(){
   const J=JEU,n=jeuCur(),r=n>=0?J.rounds[n]:null;
-  return jeuOrder().map(p=>p+(jeuPresent(p)?'+':'-')+(jeuIsReady(p)?'r':'')+(r&&r.found[p]!=null?'f':'')).join(',')+'|'+J.hostPid+'|'+J.net+'|'+J.nb+J.niv+(J.replaying&&Date.now()<J.replayEnd?'r':'')+'|'+(r&&r.closed?'c':'')+(r&&jeuRoundDone(n)?'d':'');
+  return (J.over&&J.rv?'rv:'+Object.keys(J.rv).filter(p=>J.rv[p]).sort().join('.')+'|':'')+jeuOrder().map(p=>p+(jeuPresent(p)?'+':'-')+(jeuIsReady(p)?'r':'')+(r&&r.found[p]!=null?'f':'')).join(',')+'|'+J.hostPid+'|'+J.net+'|'+J.nb+J.niv+(J.replaying&&Date.now()<J.replayEnd?'r':'')+'|'+(r&&r.closed?'c':'')+(r&&jeuRoundDone(n)?'d':'');
 }
 function jeuTick(){
   const J=JEU;if(!J)return;
@@ -37260,6 +37268,7 @@ function jeuTick(){
   if(gap>8000)jeuResume();
   jeuFlush();
   jeuHostWatch();
+  jeuRevancheVerif();   // 21 h 33 : tout le monde a dit « Revanche » (ou est parti) : ça relance
   jeuTropPlein();
   jeuNetMaj();
   jeuReagirMaj();   // « Réagir », en bas à droite
@@ -38726,10 +38735,26 @@ function jeuRejouer(){const J=JEU;if(!J||!jeuIsHost())return;if(J.over)return je
    (case 'again') : l’hôte n’a plus qu’à lancer. Avant, il ne voyait que « L’hôte peut relancer une partie dans cette salle. » */
 function jeuRevanche(){
   const J=JEU;if(!J||J.solo)return;
-  if(jeuIsHost()){jeuRejouer();return;}
-  J.revanche=!J.revanche;
-  if(typeof buzz==='function')buzz(J.revanche?'success':'light');
+  /* 21 h 33 : l’hôte aussi dit qu’il en est ; plus personne n’attend un autre pour relancer */
+  J.rv=J.rv||{};
+  const on=!J.rv[J.me];J.rv[J.me]=on;J.revanche=on;
+  jeuSend({t:'revanche',on});
+  if(typeof buzz==='function')buzz(on?'success':'light');
   jeuRedraw();   // le même écran, redessiné sans son entrée ni ses confettis (keep)
+  jeuRevancheVerif();
+}
+/* 13 novembre, 21 h 33 (Elisa : « on peut jouer à deux, à un, tant qu’on appuie sur Revanche ; on attend que les personnes quittent la
+   salle ou appuient sur Revanche ; quand tout le monde a répondu, ça relance ») : chez l’hôte, quand tous ceux qui sont encore là ont
+   touché « Revanche » (ceux qui partent ne comptent plus), la salle repart (jeuAgain) ; chacun y est prêt tout seul (case 'again'), et
+   la partie se lance dès que tout le monde l’est (10 s au plus : sinon, la salle d’attente, comme avant). */
+function jeuRevancheVerif(){
+  const J=JEU;if(!J||J.solo||!jeuIsHost())return;
+  const live=jeuLive();
+  if(J.over&&J.view==='final'&&J.relanceG!==J.g&&live.length&&live.every(p=>J.rv&&J.rv[p])){J.relanceG=J.g;J.relanceAuto=Date.now();jeuAgain();return;}
+  if(J.relanceAuto&&!J.over&&!J.rounds.length){
+    if(Date.now()-J.relanceAuto>10000){J.relanceAuto=0;return;}
+    if(live.every(p=>p===J.me||J.ready[p])){J.relanceAuto=0;jeuNextRound();}
+  }else if(J.relanceAuto&&J.rounds.length)J.relanceAuto=0;
 }
 /* 13 novembre, 21 h 15 (Elisa, sur le podium : « fusionner le bouton Revanche et le texte en bas ; faire comprendre qu’une personne est
    en train de relancer, avec les flèches en rond, en direct, pour dire qu’il y a quelqu’un dans la salle ; et en bas deux boutons,
@@ -38739,16 +38764,17 @@ function jeuRevanche(){
 const JEU_RELANCE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12A8 8 0 0 1 17.7 6.4"/><path d="M18.2 2.6v3.9h-3.9"/><path d="M5.8 21.4v-3.9h3.9"/></svg>';
 function jeuRevancheHTML(){
   const J=JEU;if(!J)return '';
-  const host=jeuIsHost(),on=!host&&!!J.revanche,live=typeof jeuLive==='function'?jeuLive():[J.me];
-  const hp=J.players&&J.players[J.hostPid],hote=hp&&hp.name?esc(hp.name):'l’hôte',hoteLa=host||live.includes(J.hostPid);
-  const autres=live.filter(p=>p!==J.me).length,ord=jeuOrder();
-  const qui=[J.hostPid,...live.filter(p=>p!==J.hostPid)].filter(p=>live.includes(p));
-  const av=qui.slice(0,5).map(p=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(p))%6}">${jeuInitial((J.players[p]||{}).name)}</b>`).join('');
-  const dans=autres?`${live.length} dans la salle`:`Tu es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'} dans la salle`;
-  const titre=host?(autres?'Relance la partie':'Relance la salle')
-    :!hoteLa?'L’hôte revient…':on?`Tu es ${jeuPretMot(true)}\u00a0!`:`${hote} va relancer la partie`;
-  const sous=host?(autres?'Tout le monde revient, avec le même code.':'Tes amis pourront revenir avec le même code.')
-    :on?`Tu repars dès que ${hote} relance.`:'Touche Revanche pour dire que tu en es.';
+  const rv=J.rv||{},on=!!rv[J.me],live=typeof jeuLive==='function'?jeuLive():[J.me],ord=jeuOrder();
+  const nom=p=>esc((J.players[p]||{}).name||'Joueur'),liste=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' et '+a[a.length-1];
+  const autres=live.filter(p=>p!==J.me),oui=autres.filter(p=>rv[p]),attente=autres.filter(p=>!rv[p]);
+  const qui=[J.me,...autres];
+  const av=qui.slice(0,5).map(p=>`<b class="jeu-av${rv[p]?' is-oui':''}" data-c="${Math.max(0,ord.indexOf(p))%6}">${jeuInitial((J.players[p]||{}).name)}</b>`).join('');
+  const n=qui.filter(p=>rv[p]).length;
+  const dans=autres.length?`${n}/${qui.length} pour la revanche`:`Tu es ${typeof accord==='function'?accord('seule','seul','seul·e'):'seul·e'} dans la salle`;
+  const titre=on?(attente.length?`Tu es de la partie\u00a0!`:'La partie repart…')
+    :oui.length?`${liste(oui.map(nom))} ${oui.length>1?'veulent leur':'veut sa'} revanche\u00a0!`:'La revanche\u00a0?';
+  const sous=on?(attente.length?`On attend ${liste(attente.map(nom))}\u00a0: Revanche ou Quitter la salle.`:'Tout le monde a répondu.')
+    :'Touche Revanche pour dire que tu es de la partie.';
   return `<div class="jeu-rv${on?' is-on':''}" id="jeu-rv">
     <div class="jeu-rv-live" role="status" aria-live="polite">
       <span class="jeu-rv-ico">${JEU_RELANCE_SVG}</span>
@@ -38758,7 +38784,7 @@ function jeuRevancheHTML(){
     </div>
     <div class="jeu-rv-btns">
       <button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()">${JEU_ICO.quit}<span>Quitter la salle</span></button>
-      <button type="button" class="journey-primary jeu-revanche${on?' on':''}"${host?'':` aria-pressed="${on}"`} onclick="${host?'jeuRejouer()':'jeuRevanche()'}">${on?'':JEU_RELANCE_SVG}<span>${on?`${jeuMaj(jeuPretMot(true))} ✓`:'Revanche'}</span></button>
+      <button type="button" class="journey-primary jeu-revanche${on?' on':''}" aria-pressed="${on}" onclick="jeuRevanche()">${on?'':JEU_RELANCE_SVG}<span>${on?`${jeuMaj(jeuPretMot(true))} ✓`:'Revanche'}</span></button>
     </div>
   </div>`;
 }
@@ -51522,7 +51548,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-direct-v2969';
+  const SW_CACHE='requete-2026-11-13-vote-v2970';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

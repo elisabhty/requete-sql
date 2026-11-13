@@ -372,7 +372,7 @@ test('manches enchaînées sans doublon, podium, points cumulés une seule fois'
   assert.equal(new Set(cids).size, 3, 'trois défis différents : ' + cids);
   host.ev('jeuFinish()'); sec(w, 1.5);
   assert.equal(host.view(), 'final'); assert.equal(guests[0].view(), 'final');
-  assert.match(host.html, /onclick="jeuRejouer\(\)"><svg[^]*?<\/svg><span>Revanche/);
+  assert.match(host.html, /onclick="jeuRevanche\(\)"><svg[^]*?<\/svg><span>Revanche/);   // l’hôte aussi dit qu’il en est (13 novembre, 21 h 33)
   /* 13 novembre, 16 h 58 : l’ami aussi a son bouton, la revanche (il sera prêt à la relance) */
   assert.match(guests[0].html, /onclick="jeuRevanche\(\)"><svg[^]*?<\/svg><span>Revanche/);
   assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)/);
@@ -400,25 +400,33 @@ test('« Rejouer dans cette salle » : même code, retour en salle d’attente, 
   assert.equal(guests[1].J('rounds[0].cid'), host.ev('JEU.rounds[0].cid'));
 });
 
-test('13 novembre, 16 h 58 : la revanche ; l’ami touche « Rejouer dans cette salle », il est prêt dès que l’hôte relance', () => {
+test('13 novembre, 21 h 33 : la revanche ; chacun dit s’il en est, et quand tous ceux qui restent ont répondu, la partie repart toute seule', () => {
   const { w, host, guests } = room({ n: 3, nb: 1 });
   guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
   host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); guests[0].found(); guests[1].found(); sec(w, 2);
   host.ev('jeuFinish()'); sec(w, 1.5);
   assert.equal(guests[0].view(), 'final');
+  assert.match(guests[0].html, /<b>La revanche\u00a0\?<\/b><small>Touche Revanche pour dire que tu es de la partie\.<\/small>/);
   guests[0].ev('jeuRevanche()'); sec(w, 0.5);
   assert.equal(guests[0].J('revanche'), true);
   assert.match(guests[0].html, /class="journey-primary jeu-revanche on" aria-pressed="true"/);
-  assert.match(guests[0].html, /<span>Prêt·e ✓<\/span>/);   // la carte en direct (13 novembre, 21 h 15)
-  assert.match(guests[0].html, /<b>Tu es prêt·e\u00a0!<\/b><small>Tu repars dès que Hôte relance\.<\/small>/);
+  assert.match(guests[0].html, /<span>Prêt·e ✓<\/span>/);
+  assert.match(guests[0].html, /<b>Tu es de la partie\u00a0!<\/b><small>On attend Hôte et Ami2\u00a0: Revanche ou Quitter la salle\.<\/small>/);
+  assert.equal(host.ev(`JEU.rv[${JSON.stringify(guests[0].J('me'))}]`), true, 'les autres le savent');
+  host.ev('jeuRedraw()'); sec(w, 0.2);   // dans l’appli, jeuPatch remplace la carte sur place (ici, pas de vrai DOM)
+  assert.match(host.html, /<b>Ami1 veut sa revanche\u00a0!<\/b>/, 'les autres le voient en direct');
+  assert.match(host.html, /1\/3 pour la revanche/);
   guests[1].ev('jeuRevanche()'); guests[1].ev('jeuRevanche()'); sec(w, 0.5);
   assert.equal(guests[1].J('revanche'), false, 'touché de nouveau, il se ravise');
-  /* L’hôte relance, depuis le podium (jeuRejouer, comme son bouton) */
-  host.ev('jeuRejouer()'); sec(w, 2);
-  for (const c of [host, ...guests]) { assert.equal(c.view(), 'lobby', c.name); assert.equal(c.J('g'), 1); }
-  assert.equal(guests[0].J('ready[JEU.me]'), true, 'prêt tout seul à la relance');
-  assert.equal(host.ev(`JEU.ready[${JSON.stringify(guests[0].J('me'))}]`), true, 'l’hôte le voit prêt');
-  assert.ok(!guests[1].J('ready[JEU.me]'), 'celui qui s’est ravisé reste en attente');
+  host.ev('jeuRevanche()'); sec(w, 2);
+  assert.equal(host.J('g'), 0, 'Ami2 n’a pas répondu : on l’attend');
+  /* Ami2 quitte la salle : ceux qui restent ont tous dit oui, ça relance */
+  guests[1].ev('jeuQuitterSalle(); jeuStop()'); sec(w, 2);   // dans l’appli, leaveLessonScreen appelle jeuStop
+  for (const c of [host, guests[0]]) assert.equal(c.J('g'), 1, c.name + ' : la salle repart');
+  sec(w, 2);
+  assert.equal(host.ev(`JEU.ready[${JSON.stringify(guests[0].J('me'))}]`), true, 'Ami1 prêt tout seul');
+  sec(w, 5);
+  for (const c of [host, guests[0]]) assert.ok(/^(draw0|play0)$/.test(c.view()), c.name + ' : la partie repart toute seule : ' + c.view());
   assert.equal(guests[0].J('revanche'), false, 'la revanche ne vaut que pour une relance');
 });
 
@@ -1719,7 +1727,11 @@ test('12 h 36 : l’ami resté seul garde la salle d’attente en hôte ; le pod
     assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)|jeuAgain\(\)/);
     sec(w, 20);
     assert.ok(guests[0].ev('jeuIsHost()'));
-    assert.match(guests[0].html, /jeuRejouer\(\)"><svg[^]*?<\/svg><span>Revanche/, 'devenu hôte : « Revanche » (jeuRejouer, 13 novembre)');
+    assert.match(guests[0].html, /jeuRevanche\(\)"><svg[^]*?<\/svg><span>Revanche/, 'devenu hôte : « Revanche », comme tout le monde (21 h 33)');
+    guests[0].ev('jeuRevanche()'); sec(w, 2);
+    assert.equal(guests[0].J('g'), 1, 'seul dans la salle, sa revanche suffit : ça relance');
+    sec(w, 6);
+    assert.ok(/^(draw0|play0)$/.test(guests[0].view()), 'et la partie repart toute seule : ' + guests[0].view());
   }
   assert.ok(html.includes("const main=J.solo||jeuIsHost()?"), 'le bilan : « Rejouer » chez l’hôte, sinon la ligne d’attente');
 });
