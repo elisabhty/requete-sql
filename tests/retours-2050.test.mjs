@@ -46,7 +46,7 @@ test('20 h 29 : le premier cours dit ce qu’est le SQL et une requête, puis le
     '<span><code>prenom</code><b>TEXT</b></span><span><code>email</code><b>TEXT</b></span><span><code>prix</code><b>REAL</b></span>',
     "pulse($$('#rq1 .kw'), 208.1, 3, 'rgba(255,224,138,.55)');", "stackBelow('#pkty', '#pk5', 0, 34);", 'const DURATION = 548.05;'])   // 13 novembre, 13 h 49 : + 20,5 s (le moteur SQL, avant la première requête)
     assert.ok(p.includes(t), t);
-  assert.ok(app.includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 42'"), 'la fiche du cours : sa nouvelle durée (13 novembre : le moteur SQL, avant la première requête)');
+  assert.ok(app.includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 48'"), 'la fiche du cours : sa nouvelle durée (13 novembre : le moteur SQL, avant la première requête, et ses voix)');
 });
 
 test('20 h 56 : les étiquettes des types sans le nom de la table ; « 1er » en exposant ; le résultat de CASE au-dessus de la légende', () => {

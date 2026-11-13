@@ -103,9 +103,8 @@ test('les 7 légendes muettes : générées à part, sans refaire les chapitres 
     assert.ok(e.texte.startsWith('[cheerful] ') && e.texte === '[cheerful] ' + e.phrases.join('\n\n'), `${e.id} : le ton et le texte du cours`);
     if (e.id !== 'ch11') assert.ok(e.avant && e.apres, `${e.id} : la phrase d’avant et celle d’après, pour le ton`);
     (e.legendes || e.phrases).forEach(l => {
-      /* chaque phrase a sa légende dans la page (celle de ch06c : son nouveau texte, posé quand sa voix arrive) */
-      const vise = e.id === 'ch06c' ? 'Cette colonne est la clé primaire : sa valeur est unique et ne peut pas être nulle.' : l;
-      assert.ok(legendes.has(vise), `${e.id} : ${vise}`);
+      /* chaque phrase a sa légende dans la page (celle de ch06c : son nouveau texte, posé avec sa voix le 13 novembre, 14 h 14) */
+      assert.ok(legendes.has(l), `${e.id} : ${l}`);
     });
   }
   /* le cours les liste à leur place (après leur chapitre) ; ch05 et ch06 ne changent pas : leurs fichiers ne sont pas refaits */

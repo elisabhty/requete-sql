@@ -220,5 +220,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=329">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=66">') && sw.includes("'./onboarding-vitrine.css?v=66',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-13-accueil-v2934' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-13-accueil-v2935' && app.includes(`const SW_CACHE='${cache}';`));
 });

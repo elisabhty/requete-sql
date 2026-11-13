@@ -59,7 +59,8 @@ test('SELECT, puis les deux pièges, puis l’annonce des jointures, puis « À 
 });
 
 test('la fiche de la leçon et le site : la nouvelle durée', () => {
-  assert.ok(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 42'"));
-  assert.ok(fs.readFileSync(path.join(ROOT, 'decouvrir/modules.js'), 'utf8').includes('["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 642]'));
+  /* 14 h 14 : les voix intégrées (la vidéo attend la fin de chaque phrase) : 10 min 48 */
+  assert.ok(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').includes("thumb:'assets/anim/bases-relationnelles-thumb.webp',duree:'10 min 48'"));
+  assert.ok(fs.readFileSync(path.join(ROOT, 'decouvrir/modules.js'), 'utf8').includes('["Les bases de données relationnelles", "Tables, clés et lecture avec SELECT", 648]'));
   assert.ok(page.includes('const DURATION = 548.05;') && page.includes('notesAt: 539.7,'));
 });

@@ -245,7 +245,7 @@ test('le cours « Les bases de données relationnelles » a sa voix : chaque phr
      Les compléments (ch05b, ch06b, ch06c : des phrases générées à part, tools/voix/bases-relationnelles-complements.json) comptent.
      Tant qu’ils ne sont pas générés et intégrés, ce test donne la liste des légendes encore muettes. */
   const dites = new Set(VOICE.caps.map(c => c[0])), plainCap = h => h.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
-  assert.deepEqual(CAPTIONS.filter(c => !dites.has(vkey(c[2]))).map(c => plainCap(c[2])), [], 'légendes muettes');
+  assert.deepEqual(Array.from(CAPTIONS.filter(c => !dites.has(vkey(c[2]))), c => plainCap(c[2])), [], 'légendes muettes');   // (Array.from : un tableau de ce test, pas de la page)
   assert.equal(VOICE.caps.length, CAPTIONS.length, 'une voix par légende, chapitres 1 à 11');
   for (const [k, f, a, b] of VOICE.caps) {
     assert.ok(keys.has(k), `légende trouvée : ${k}`);
