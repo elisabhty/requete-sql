@@ -40,7 +40,7 @@ test('réf. 2 et 3 — « En attente d’un joueur », des boutons secondaires e
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
   /* 9 novembre, 10 h 37 : la fin d’une partie seule dit « Retour aux défis » (jeuFinBoutonsHTML), plus « Changer de niveau » ;
      13 novembre, 21 h 52 : dans une salle, même seule, « Quitter la salle » est celui de la carte de la revanche */
-  assert.ok(cut('function jeuFinBoutonsHTML(', '\n}\n').includes("jeuBtn2('classement','Voir mon classement','jeuVersClassement()')+'</div>'") && app.includes('<button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()">${JEU_ICO.quit}<span>Quitter la salle</span></button>'));   // le podium : jeuRevancheHTML (13 novembre, 21 h 15)
+  assert.ok(cut('function jeuFinBoutonsHTML(', '\n}\n').includes("jeuBtn2('quit','Quitter la salle','jeuQuitterSalle()')+'</div>'") && app.includes('<button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()">${JEU_ICO.quit}<span>Quitter la salle</span></button>'));   // le podium : jeuRevancheHTML (13 novembre, 21 h 15)
   assert.ok(!/class="jeu-close" onclick="[^"]+">[A-Z]/.test(r), 'chaque bouton du bas a son pictogramme');
   const ctx = vm.createContext({});
   vm.runInContext(cut('const JEU_ICO={', '\nfunction jeuRedraw(){'), ctx);

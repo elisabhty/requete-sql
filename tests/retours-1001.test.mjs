@@ -45,9 +45,9 @@ test('une partie d’une seule manche repasse par l’écran de fin (11 h 31) ; 
   /* 11 h 38 (« trop de cadres, trop de boutons ») : la prochaine étape, une ligne sans cadre */
   assert.equal(ctx.jeuFinBoutonsHTML(1, true), '<div class="jeu-fin-actions"><button type="button" class="jeu-prog is-m" onclick="jeuNiveauSuivant()">[m]'
     + '<span class="jeu-prog-t">Passer au niveau moyen</span><span class="jeu-prog-x">×2<span class="lq-sr"> points par défi</span></span><svg>›</svg></button>'
-    + '<button type="button" class="journey-primary jeu-revanche jeu-revanche-solo" onclick="jeuRejouer()"><rv><span>Revanche</span></button>[classement|Voir mon classement|jeuVersClassement()]</div>');
-  assert.equal(ctx.jeuFinBoutonsHTML(1, false), '<div class="jeu-fin-actions"><button type="button" class="journey-primary jeu-revanche jeu-revanche-solo" onclick="jeuRejouer()"><rv><span>Revanche</span></button>[classement|Voir mon classement|jeuVersClassement()]</div>', 'pas tout résolu : pas de prochaine étape');
-  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Revanche</span>'), 'rien de résolu : « Revanche » aussi (13 novembre, 21 h 52)');
+    + '<button type="button" class="journey-primary jeu-rejouer-solo" onclick="jeuRejouer()"><rv><span>Rejouer</span></button>[quit|Quitter la salle|jeuQuitterSalle()]</div>');
+  assert.equal(ctx.jeuFinBoutonsHTML(1, false), '<div class="jeu-fin-actions"><button type="button" class="journey-primary jeu-rejouer-solo" onclick="jeuRejouer()"><rv><span>Rejouer</span></button>[quit|Quitter la salle|jeuQuitterSalle()]</div>', 'pas tout résolu : pas de prochaine étape');
+  assert.ok(ctx.jeuFinBoutonsHTML(0, false).includes('<span>Rejouer</span>'), 'rien de résolu : « Rejouer » aussi (13 novembre, 22 h 05)');
   ctx.JEU.niv = 'd'; assert.ok(!ctx.jeuFinBoutonsHTML(2, true).includes('jeu-prog'), 'au plus haut niveau, pas de prochaine étape'); ctx.JEU.niv = 'f';
   ctx.JEU.solo = false;
   /* 13 novembre, 21 h 52 : dans une salle, même seule, hôte ou non, la carte de la revanche (son « Quitter la salle » et
