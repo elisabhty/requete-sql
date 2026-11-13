@@ -57,7 +57,9 @@ test('la page : le chat du GIF, « Bravo ! », le titre, la semaine, ce qui rest
   const o = cut('function lqFlammeOuvrir(){', '\nfunction lqFlammeFermer(');
   assert.ok(o.includes('<img class="lq-flamme-chat" src="assets/${fixe?\'chat-allumette-fixe\':\'chat-allumette\'}.webp" width="374" height="436" alt="" draggable="false">'), 'le GIF détouré ; fixe en mouvement réduit');
   assert.ok(o.includes("el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');") && o.includes("ok.focus({preventScroll:true})"), 'une vraie fenêtre, le bouton prêt');
-  assert.ok(o.includes('<p class="lq-flamme-bravo" aria-hidden="true">Bravo\\u00a0!</p><h2 class="lq-flamme-t" id="lq-flamme-t"><span class="lq-sr">Bravo\\u00a0! </span>${titre}</h2>'));
+  /* 13 novembre, 15 h 50 (proposition A) : « Chaque jour, tu te rapproches de ton objectif ! » en titre, la flamme allumée dessous */
+  assert.ok(o.includes('<p class="lq-flamme-bravo" aria-hidden="true">Bravo\\u00a0!</p><h2 class="lq-flamme-t" id="lq-flamme-t"><span class="lq-sr">Bravo\\u00a0! </span>Chaque jour, tu te rapproches de <em>ton objectif</em>\\u00a0!<span class="lq-sr"> ${titre}.</span></h2>'));
+  assert.ok(o.includes('`<p class="lq-flamme-sous" aria-hidden="true">${titre}</p>`'), 'la flamme du jour, en sous-titre');
   assert.ok(o.includes('<button type="button" class="lq-flamme-ok" onclick="lqFlammeFermer()">Continuer</button>') && o.includes("if(e.key==='Escape')"));
   assert.ok(o.includes("lqConfetti({n:40})") && o.includes("buzz('success')"));
   for (const k of ['html.lq .lq-flamme{position:fixed;inset:0;z-index:9985;', 'linear-gradient(170deg,#6E50F6 0%,#5538E6 48%,#4529CC 100%)',
