@@ -70,7 +70,7 @@ test('du tirage à la manche : 3, 2, 1 plus courts, puis un fondu enchaîné (la
     assert.ok(s49.includes(k), k);
   const tail = r.slice(r.indexOf('  root.innerHTML=html;'), r.indexOf("  if(edOn&&document.getElementById('ed-lesson')){"));
   assert.ok(tail.length > 50 && !tail.includes('edOn'), 'la fin du dessin localisée');
-  const ctx = vm.createContext({ root, html: '<x>', keep: false, fromDraw: true, ghost: null, setTimeout });
+  const ctx = vm.createContext({ root, html: '<x>', keep: false, fromDraw: true, ghost: null, setTimeout, v: 'play0', J: {} });
   vm.runInContext(tail, ctx);
   assert.ok(cls.has('jeu-cascade') && !cls.has('jeu-in'));
   assert.deepEqual(kids.map(k => k.style.props['--k']), [0, 1, 2, 3, 4, 5, 6, 7, 7]);
@@ -88,7 +88,7 @@ test('les points gagnés : une page en fin de partie (11 novembre, 21 h 33), plu
   const run = cut('function jeuRun(){', '\nfunction jeuStop(){');
   assert.ok(run.includes("{const x=jeuRanking(n).find(y=>y.pid===J.me);if(x&&x.pts>0&&typeof lqSay==='function')lqSay(`+${x.pts} points`);}"), 'à la manche, la carte « Trouvé » les montre ; le lecteur d’écran les dit');
   const r = cut('function jeuRender(){', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(seul&&cg)ptsPage(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},700);"));
+  assert.ok(r.includes("const cg=jeuCreditGame();") && r.includes("if(seul&&cg)jeuVoiler(J,()=>ptsPage(Object.assign(cg.pts>0?{pts:cg.pts,solo:!!J.solo}:{pts:0,solo:!!J.solo,issue:'rate',nb:jouees},{apres:jeuVoileLever}),0));"));
   assert.ok(app.includes('    return {pts,total:s.pts};\n  }catch(e){return null;}'), 'la partie créditée une seule fois renvoie ses points');
   /* Le compteur sait partir d’un nombre et écrire « 1 274 » */
   const cu = cut('function jeuCountUp(el){', '\n/* Les points d’une partie');

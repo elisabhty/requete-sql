@@ -38,7 +38,7 @@ test('le podium : l’hôte relance (jeuRejouer, même avant que la fin revienne
 test('la relance : prêt tout seul, une seule fois, jamais en relisant l’historique', () => {
   assert.ok(app.includes("const revanche=!!J.revanche&&!replay;J.revanche=false;"));
   assert.ok(app.includes("if(revanche&&!jeuIsHost())setTimeout(()=>{if(JEU===J&&!J.rounds.length&&!J.ready[J.me])jeuSend({t:'ready',on:true});},400);"));
-  assert.ok(app.includes('if(!keep){\n        if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector(\'#jeu-root .jr2-n\');if(b&&JEU===J)jeuCountUp(b);},300);\n        if(winner)setTimeout(celebrate,300);'), 'redessiné sur place : pas de deuxièmes confettis');
+  assert.ok(app.includes('if(!keep&&!J.voile){   // voilé (19 h 15) : jeuVoileLever\n        if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector(\'#jeu-root .jr2-n\');if(b&&JEU===J)jeuCountUp(b);},300);\n        if(winner)setTimeout(celebrate,300);'), 'redessiné sur place : pas de deuxièmes confettis');
 });
 
 test('les styles : la revanche au vert, comme « Prête ✓ » en salle d’attente', () => {
