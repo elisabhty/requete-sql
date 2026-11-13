@@ -2,7 +2,9 @@
    le widget en combinant tout : QCM, choix de la réponse à l’intérieur d’une requête, cas pratique etc., une centaine de questions
    cohérentes. » La banque POCHE_PLUS (index.html) : cinq genres, chaque question rattachée à sa leçon. Ici, chaque requête tourne sur
    la base de l’app (sql.js) : la bonne réponse marche et chaque autre échoue ou donne autre chose ; le résultat annoncé est le vrai ;
-   la ligne fausse échoue, et corrigée, elle marche. Le widget (RequeteWidget.swift) lit le genre et l’énoncé. */
+   la ligne fausse échoue, et corrigée, elle marche. Le widget (RequeteWidget.swift) lit le genre et l’énoncé.
+   13 novembre, 8 h 32 (« il faudrait éviter les questions combien il y a de lignes car on ne peut pas exécuter ») : les vingt-cinq
+   « Quel résultat ? » sont parties, il reste quatre genres ; l’entretien a sa banque et son test (retours-0832-poche-entretien). */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -25,12 +27,13 @@ const SEED = extractSeed(app);
 const LIGNES = ['Ligne 1', 'Ligne 2', 'Ligne 3'];
 const nom = p => `${p.g} l${p.l} « ${p.e || p.q[0]} »`;
 
-test('une centaine de questions, de cinq genres, rattachées aux leçons du parcours', () => {
-  assert.ok(PLUS.length >= 100, PLUS.length + ' questions');
+test('une centaine de questions, de quatre genres, rattachées aux leçons du parcours', () => {
+  assert.ok(PLUS.length >= 95, PLUS.length + ' questions');
   const genres = {};
   for (const p of PLUS) genres[p.g] = (genres[p.g] || 0) + 1;
-  assert.deepEqual(Object.keys(genres).sort(), ['cas', 'erreur', 'qcm', 'resultat', 'trou']);
-  assert.ok(genres.qcm >= 30 && genres.cas >= 30 && genres.resultat >= 20 && genres.erreur >= 6, JSON.stringify(genres));
+  assert.deepEqual(Object.keys(genres).sort(), ['cas', 'erreur', 'qcm', 'trou'], 'plus de « resultat » : le widget n’exécute rien');
+  assert.ok(genres.qcm >= 30 && genres.cas >= 30 && genres.erreur >= 6, JSON.stringify(genres));
+  assert.ok(PLUS.every(p => p.r === undefined), 'plus de résultat annoncé');
   for (const p of PLUS) assert.ok(LECONS.includes(p.l), nom(p) + ' : une leçon du parcours');
   assert.ok(new Set(PLUS.map(p => p.l)).size >= 60, 'presque toutes les leçons');
   assert.ok(PLUS.filter(p => p.l === LECONS[0]).length >= 5, 'de quoi commencer avant la première leçon');
@@ -87,37 +90,30 @@ test('sur la base de l’app : la bonne réponse, le vrai résultat, la vraie li
       assert.ok(bon.ok, `${nom(p)} : la bonne réponse échoue (${bon.err})`);
       p.c.forEach((c, i) => { if (i !== p.b) { const r = essai(code.replace('___', c)); assert.ok(!r.ok || r.sig !== bon.sig, `${nom(p)} : « ${c} » marche aussi`); } });
       n++;
-    } else if (p.g === 'resultat') {
-      const r = essai(code);
-      assert.ok(r.ok, `${nom(p)} : ${r.err}`);
-      const res = r.r[r.r.length - 1];
-      assert.ok(['lignes', 'valeur', 'colonnes'].includes(p.r), nom(p) + ' : ce qu’on compte');
-      if (p.r === 'valeur') assert.ok(res.values.length === 1 && res.columns.length === 1, nom(p) + ' : une seule valeur');
-      const vu = String(p.r === 'lignes' ? res.values.length : p.r === 'colonnes' ? res.columns.length : res.values[0][0]);
-      assert.equal(vu, p.c[p.b], nom(p));
-      n++;
     } else if (p.g === 'erreur') {
       assert.ok(!essai(code).ok, nom(p) + ' : la requête fausse échoue');
       n++;
     }
   }
-  assert.ok(n >= 75, n + ' requêtes vérifiées');
+  assert.ok(n >= 50, n + ' requêtes vérifiées');
 });
 
 test('le widget lit le genre et l’énoncé : l’étiquette, l’énoncé au-dessus du code, les lignes numérotées, la consigne', () => {
   const q = entre(swift, 'struct QuestionPoche: Codable, Hashable {', '\n}\n');
   assert.ok(q.includes('var genre: String? = nil') && q.includes('var enonce: String? = nil'), 'facultatifs : les anciennes questions se lisent encore');
   const r = entre(swift, 'enum PocheRangement {', '\nstruct BoutCode');
-  for (const k of ['case "qcm": return "QCM · " + q.titre', 'case "cas": return "Cas pratique · " + q.titre', 'case "resultat": return "Quel résultat\\u{202F}? · " + q.titre',
-    'case "erreur": return "Trouve l’erreur · " + q.titre', 'case "erreur": return "Touche la ligne fausse"', 'case "resultat": return "Touche le bon résultat"',
-    'q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && (!q.code.isEmpty || aEnonce(q))', 'let place: CGFloat = aEnonce(q) ? 34 : 50', 'if q.genre == "erreur" { return false }'])
+  for (const k of ['case "qcm": return "QCM · " + q.titre', 'case "cas": return "Cas pratique · " + q.titre',
+    'case "erreur": return "Trouve l’erreur · " + q.titre', 'case "erreur": return "Touche la ligne fausse"',
+    'q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && (!q.code.isEmpty || aEnonce(q))', 'let place: CGFloat = aEnonce(q) ? 35 : 53', 'if q.genre == "erreur" { return false }'])
     assert.ok(r.includes(k), k);
+  assert.ok(!r.includes('Quel résultat') && !r.includes('Touche le bon résultat'), '13 novembre : « Quel résultat ? » est parti');
   const v = entre(swift, 'struct PocheVue: View {', '\n}\n');
   for (const k of ['if PocheRangement.aEnonce(q) {\n                enonce(u, q, m)', 'if !q.code.isEmpty {\n                code(u, v, q, m)', 'let lignes: Int = seul ? 3 : 1',
     'ligne(item.element, item.offset, q, police, taille)', 'if numero {\n                Text(verbatim: "\\(n + 1) ")', 'consigne(u, q)'])
     assert.ok(v.includes(k), k);
   /* La page envoie le genre et l’énoncé */
   assert.ok(app.includes(".map(({p})=>({titre:module[p.l]||'',code:p.q||[],choix:p.c,bon:p.b,oui:p.oui,non:p.non,genre:p.g||'trou',enonce:p.e||''}));"));
+  assert.ok(app.includes(".filter(p=>p.g!=='resultat');"), 'une ancienne question « resultat » ne part plus au widget');
 });
 
 test('10 novembre, 8 h 24 (« problème de formatage et ce n’est pas responsive ») : les mesures viennent de la vraie taille du widget', () => {
@@ -125,7 +121,7 @@ test('10 novembre, 8 h 24 (« problème de formatage et ce n’est pas responsiv
   for (const k of ['u = min(taille.width / 364, taille.height / 170)', 'chat = min(taille.width * 0.29, taille.height * 0.62)', 'contenu = max(120, taille.width - gauche - 14 * u)'])
     assert.ok(m.includes(k), k);
   const v = entre(swift, 'struct PocheVue: View {', '\n}\n');
-  for (const k of ['let m = MesurePoche(taille)', '.frame(maxWidth: .infinity)\n        .frame(height: hauteur)', 'PocheRangement.policeReponses(q, u: u, largeur: m.contenu)',
+  for (const k of ['let m = MesurePoche(taille)', '.frame(maxWidth: .infinity)\n            .frame(height: hauteur)', 'PocheRangement.policeReponses(q, u: u, largeur: m.contenu)',
     'PocheRangement.policeCode(q, u: u, v: v, largeur: m.contenu)', '.frame(minWidth: largeur, minHeight: hauteur)', 'verdictOuConsigne(u, q)\n                .frame(maxWidth: .infinity, alignment: .leading)\n            if repondu {\n                suivante(u, v)'])
     assert.ok(v.includes(k), k);
   assert.ok(!v.includes('242 * u'), 'plus de largeur fixe');

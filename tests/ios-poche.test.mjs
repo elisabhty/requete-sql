@@ -21,6 +21,7 @@ const entre = (t, a, b) => { const i = t.indexOf(a); assert.ok(i >= 0, a); const
 const ici = x => JSON.parse(JSON.stringify(x));   // des tableaux de ce contexte (deepEqual compare aussi leur prototype)
 const POCHE = ici(vm.runInNewContext(entre(app, 'const POCHE=[', '\n];\n') + '\n];POCHE'));
 const POCHE_PLUS = ici(vm.runInNewContext(entre(app, 'const POCHE_PLUS=[', '\n];\n') + '\n];POCHE_PLUS'));
+const POCHE_ENTRETIEN = ici(vm.runInNewContext(entre(app, 'const POCHE_ENTRETIEN=[', '\n];\n') + '\n];POCHE_ENTRETIEN'));
 const MODULES = ici(vm.runInNewContext(entre(app, 'const MODULES = [', 'const CHALLENGES=[').replace(/guide\(/g, '(') + ';MODULES', {}));
 const LECONS = MODULES.flatMap(m => m.lessons);
 const SQL = await createRequire(import.meta.url)('../vendor/sqljs/sql-wasm.js')({ locateFile: f => new URL('../vendor/sqljs/' + f, import.meta.url).pathname });
@@ -88,32 +89,39 @@ test('sur la base de l’app : la bonne réponse s’exécute, chaque autre éch
   assert.ok(executees >= 60, executees + ' requêtes exécutées');
 });
 
-test('la page range une trentaine de questions : les leçons faites (et la première, pour commencer), celles à revoir d’abord, le même ordre toute la journée', () => {
+test('la page range trente questions : une d’entretien, une révision ; les leçons faites (et la première), celles à revoir d’abord, le même ordre toute la journée', () => {
   const src = entre(app, 'function widgetPoche(){', 'if(typeof document!==');
   const essaiPage = ({ faites, dues = [], jour = new Date(2026, 10, 7) }) => {
-    const ctx = vm.createContext({ POCHE, POCHE_PLUS, MODULES, allLessons: LECONS, itemDone: id => faites.includes(id),
+    const ctx = vm.createContext({ POCHE, POCHE_PLUS, POCHE_ENTRETIEN, MODULES, allLessons: LECONS, itemDone: id => faites.includes(id),
       dueList: () => LECONS.filter(l => dues.includes(l.id)), auj: () => jour,
       dstr: d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` });
     vm.runInContext(src, ctx);
     return JSON.parse(JSON.stringify(ctx.widgetPoche()));
   };
-  /* 10 novembre : aucune leçon faite, les questions de la toute première leçon (le widget n’est plus vide) */
+  const revisions = l => l.filter(q => q.genre !== 'entretien'), entretien = l => l.filter(q => q.genre === 'entretien');
+  /* 10 novembre : aucune leçon faite, les questions de la toute première leçon (le widget n’est plus vide) ; 13 novembre : l’entretien
+     remplit le reste de la série, sans attendre les leçons */
   const decouverte = essaiPage({ faites: [] });
-  assert.equal(decouverte.length, POCHE.filter(p => p.l === 0).length + POCHE_PLUS.filter(p => p.l === 0).length);
-  assert.ok(decouverte.length >= 5 && decouverte.every(q => q.titre === 'Introduction'), 'une découverte');
+  assert.equal(decouverte.length, 30);
+  assert.equal(revisions(decouverte).length, POCHE.filter(p => p.l === 0).length + POCHE_PLUS.filter(p => p.l === 0).length);
+  assert.ok(revisions(decouverte).length >= 5 && revisions(decouverte).every(q => q.titre === 'Introduction'), 'une découverte');
   const trois = essaiPage({ faites: [0, 4, 17] });
-  assert.deepEqual([...new Set(trois.map(q => q.titre))].sort(), ['Agrégats et regroupements', 'Introduction', 'Lire une table']);
+  assert.deepEqual([...new Set(revisions(trois).map(q => q.titre))].sort(), ['Agrégats et regroupements', 'Introduction', 'Lire une table']);
   const h = trois.find(q => q.titre === 'Agrégats et regroupements' && q.genre === 'trou');
   assert.deepEqual(Object.keys(h), ['titre', 'code', 'choix', 'bon', 'oui', 'non', 'genre', 'enonce'], 'ce que lit le widget (QuestionPoche)');
   assert.equal(h.choix[h.bon], 'HAVING');
+  assert.deepEqual(Object.keys(entretien(trois)[0]), Object.keys(h), 'l’entretien a la même forme');
   const toutes = LECONS.map(l => l.id);
   const a = essaiPage({ faites: toutes }), b = essaiPage({ faites: toutes });
   assert.equal(a.length, 30, 'trente au plus');
   assert.ok(new Set(a.map(q => q.genre)).size >= 3, 'des genres mêlés');
+  assert.deepEqual(a.map(q => q.genre === 'entretien'), a.map((q, i) => i % 2 === 0), 'une question d’entretien, une révision, et ainsi de suite');
+  assert.ok(a.every(q => q.genre !== 'resultat'), 'plus aucun « Quel résultat ? »');
   assert.deepEqual(a, b, 'le même ordre dans la journée');
   assert.notDeepEqual(essaiPage({ faites: toutes, jour: new Date(2026, 10, 8) }), a, 'un autre le lendemain');
-  const dues = essaiPage({ faites: toutes, dues: [77, 89] });
+  const dues = revisions(essaiPage({ faites: toutes, dues: [77, 89] }));
   const nDues = POCHE.concat(POCHE_PLUS).filter(p => [77, 89].includes(p.l)).length;
+  assert.ok(nDues >= 2 && nDues <= 15);
   assert.ok(dues.slice(0, nDues).every(q => ['Sous-requêtes et ensembles', 'Fonctions de fenêtre'].includes(q.titre)), 'les leçons à revoir d’abord');
   assert.ok(dues.slice(0, nDues).some(q => q.code[0] === POCHE.find(p => p.l === 77).q[0]), 'leur requête à trou aussi');
   /* Le bac à sable de la série (retours-0354) n’a pas de leçons : la question reste vide, la série part quand même */

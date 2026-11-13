@@ -168,18 +168,61 @@ suivante. Son choix pour la flamme : « la séance seule » — répondre dans l
 - **Les questions** : une par leçon, dans index.html (`POCHE`), chacune avec son commentaire SQL quand plusieurs réponses
   s’exécutent (« -- 60 unités ou moins »). `tests/ios-poche.test.mjs` exécute chaque requête sur la base de l’app : la bonne
   réponse marche, chaque autre échoue ou donne autre chose. Une question à changer : la modifier là, le test dit si elle tient.
-- **Les questions du widget** (10 novembre, « crée des questions juste pour le widget en combinant tout ») : 122 de plus, dans
-  index.html (`POCHE_PLUS`), de cinq genres : la requête à trou, le **cas pratique** (un besoin, puis la requête à compléter),
-  **Quel résultat ?** (combien de lignes, quelle valeur), le **QCM** (une question, sans code) et **Trouve l’erreur** (les lignes
-  numérotées, on touche la fausse). Chacune est rattachée à sa leçon. L’étiquette du widget dit le genre, l’énoncé passe
-  au-dessus du code. `tests/ios-poche-plus.test.mjs` exécute chaque requête : la bonne réponse, le vrai résultat, la vraie ligne
-  fausse. Sans leçon faite, les questions de la toute première leçon : le widget n’est plus vide.
-- **Ce que range l’app** : jusqu’à trente questions des leçons faites, tous genres mêlés, celles à revoir d’abord, dans le même ordre toute la
-  journée (`widgetPoche`, avec la série, dans `widgetMaj`). Le pont les garde (`maj`) ; une nouvelle série repart de la première
-  question, la même laisse le widget où il en est.
+- **Les questions du widget** (10 novembre, « crée des questions juste pour le widget en combinant tout ») : 97 de plus, dans
+  index.html (`POCHE_PLUS`), de quatre genres : la requête à trou, le **cas pratique** (un besoin, puis la requête à compléter),
+  le **QCM** (une question, sans code) et **Trouve l’erreur** (les lignes numérotées, on touche la fausse). Chacune est
+  rattachée à sa leçon. L’étiquette du widget dit le genre, l’énoncé passe au-dessus du code. `tests/ios-poche-plus.test.mjs`
+  exécute chaque requête : la bonne réponse, la vraie ligne fausse. Le cinquième genre, « Quel résultat ? », est parti le
+  13 novembre (plus bas).
+- **Ce que range l’app** : trente questions par jour, une d’entretien puis une révision (les leçons faites, celles à revoir
+  d’abord), dans le même ordre toute la journée (`widgetPoche`, avec la série, dans `widgetMaj`). Le pont les garde (`maj`) ;
+  une nouvelle série repart de la première question, la même laisse le widget où il en est.
 - **Les boutons** passent par **App Intents** (`RepondrePoche`, `SuivantePoche`, cachés de Raccourcis) : ils écrivent la réponse
   touchée et la question du moment dans le groupe d’apps, puis iOS redessine le widget. Les widgets n’ont de boutons qu’à partir
-  d’**iOS 17** : le widget n’existe qu’à partir de là. Sans leçon faite, il le dit, et un appui ouvre la séance du jour.
+  d’**iOS 17** : le widget n’existe qu’à partir de là. Tant que l’app n’a rangé aucune question (jamais ouverte depuis la pose
+  du widget), il le dit (« Pas encore de question »), et un appui ouvre la séance du jour.
+
+### La requête de poche : l’entretien, plus de « Quel résultat ? », trois étages (13 novembre, 8 h 32)
+
+Elisa, 13 novembre, 8 h 32 : « Tu vois le widget du QCM, il faudrait éviter les questions combien il y a de lignes car on ne peut
+pas exécuter […] Et il faudrait que tu génères des questions, pas que sur les cours, mais sur les parties, toutes les parties en
+fait […] Je veux juste des questions niveau, tu sais, entretien, toutes les questions possibles, mais pas sur quel est le
+résultat. Et j’ai l’impression que ce widget-là, il est mal formaté […] Il y a des trous, il y a des espaces. »
+
+- **Plus de « Quel résultat ? »** : les vingt-cinq questions qui demandaient ce qu’une requête renvoie (combien de lignes, quelle
+  valeur) sont parties de `POCHE_PLUS`. Le widget n’exécute rien : il ne pose plus de question dont la réponse est un résultat.
+  `widgetPoche` les filtre, le widget aussi (`PocheRangement.questions`) : une série rangée avant la mise à jour n’en montre plus.
+  Restent les requêtes à compléter (trou, cas pratique), Trouve l’erreur et les QCM.
+- **L’entretien** : `POCHE_ENTRETIEN` (index.html), dix questions par partie du programme, quinze parties, 150 en tout. Ce qu’un
+  recruteur demande de vive voix : une notion (« Que garantit l’atomicité ? »), une différence (`UNION` ou `UNION ALL`), un piège
+  (`NOT IN` et les `NULL`), un bon réflexe (un `SELECT` avant un `UPDATE` risqué). Aucun code à lire, aucune requête à exécuter.
+  Une question : `m` (le rang de la partie dans `MODULES`), `e`, trois réponses `c`, la bonne `b`, les pourquoi `oui` et `non`.
+  L’étiquette du widget dit « Entretien · la partie ». Elles ne dépendent d’aucune leçon : le widget les pose dès le premier jour.
+- **Écrire une question d’entretien** : l’énoncé en 100 caractères au plus ; chaque réponse en 18 caractères au plus, avec des
+  mots de 12 au plus (le widget les écrit sur deux lignes et ne coupe pas un mot) ; un long mot-clé (`ROW_NUMBER`,
+  `SERIALIZABLE`) va dans l’énoncé, pas dans une réponse. `tests/retours-0832-poche-entretien.test.mjs` refait la mesure du
+  widget : aucune réponse sous 10 points, sur trois tailles d’iPhone.
+- **La série du jour** (`widgetPoche`) : une question d’entretien, une révision, et ainsi de suite, trente au plus. L’entretien
+  prend une question par partie à chaque tour, les parties commencées d’abord : les quinze premières touchent tout le
+  programme. Quand les révisions manquent (les premiers jours), l’entretien remplit la série.
+- **La mise en page, en trois étages** (`PocheVue.colonne`) : l’étiquette en haut ; l’énoncé et la requête au **milieu** de la
+  place qui reste (`milieu`) ; les réponses puis le pied (la consigne, ou le verdict et la flèche) en bas, à hauteur fixe.
+  Avant, tout s’empilait depuis le haut à 4 points d’écart, et le vide tombait d’un bloc sous les réponses. Maintenant il se
+  partage au-dessus et en dessous de l’énoncé, et rien ne bouge quand on répond.
+- **L’énoncé seul** (QCM, entretien) grandit quand il est court : de 14 à 17 points (`tailleEnonce`), trois lignes au plus.
+- **Les réponses en mots** (`formeProse`) : sur une ligne si les trois y tiennent à 11 points ; sinon sur deux lignes, dans des
+  puces plus hautes. Le widget ne peut pas mesurer un texte avant de le dessiner : la largeur est estimée lettre par lettre
+  (`cadratin`), calée un peu large.
+- **Le verdict en pastille** : le ✓ ou le ✗ se pose sur le coin de la puce touchée (`pastille`). Avant, il prenait sa place
+  dans la ligne, et le texte de la réponse rétrécissait au moment de répondre.
+- **Le code** gagne un peu : une requête de deux lignes s’écrit à 11,5 points (elle prenait la taille d’une de trois lignes).
+
+**À regarder sur l’iPhone** (rien de tout cela n’est compilé ni dessiné ici : `npm run ios:verif` d’abord) : une question
+d’entretien à deux lignes de réponses ; un cas pratique de trois lignes ; la pastille après une bonne puis une mauvaise
+réponse ; l’étiquette longue (« Entretien · Agrégats et regroupements »), qui rétrécit pour tenir.
+
+**Ce qui n’a pas été fait** : les requêtes à compléter et Trouve l’erreur restent (elles ne demandent pas de résultat) ; la
+rubrique Entretien de l’app (ses 142 questions ouvertes) n’a pas changé ; le widget ne dit pas où on en est dans la série.
 
 ### La carte mémo (retirée le 10 novembre)
 
@@ -381,7 +424,8 @@ et le passage d’un état à l’autre (animé à partir d’iOS 17). Trois moy
   une mise à jour plus récente arrête ce qui restait à jouer (`tour`). Les yeux du chat **clignent** à chaque changement de regard
   (`Paupiere`, `AnyTransition.clignement`) : ceux d’avant se ferment, ceux d’après s’ouvrent. La jauge des moments, la barre et
   l’anneau de l’onboarding avancent sous les yeux ; dans la salle, la place, la manche, les points et les joueurs roulent.
-- **La requête de poche** : la question suivante pousse l’autre vers la gauche, le symbole du verdict se pose d’un rebond.
+- **La requête de poche** : la question suivante pousse l’autre vers la gauche, le symbole du verdict se pose d’un rebond (en
+  pastille sur le coin de la puce depuis le 13 novembre, 8 h 32).
 - **La page du widget, dans l’app** (après la troisième leçon) : la tuile était encore dessinée avec un nombre de jours, que le
   vrai widget n’affiche plus depuis le 4 novembre. Elle est dessinée comme lui (`obWidgetTuile`) et joue sa journée en boucle
   (`obWidgetPromoJouer`) : le matin (la flamme rangée dans le coin, « Une petite requête ? »), le soir (elle grandit et rougeoie,

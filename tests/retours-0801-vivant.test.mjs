@@ -74,7 +74,9 @@ test('Ta semaine : la case d’aujourd’hui bat (une flamme seulement), le comp
 test('La requête de poche : la question suivante pousse l’autre, le symbole du verdict se pose', () => {
   const vue = entre(widget, 'struct PocheVue: View {', '\nstruct RequetePoche: Widget {');
   tous(vue, ['colonne(m, q)\n                .id(q)', '.transition(.push(from: .trailing))', '.animation(ressort, value: repondu)',
-    'Image(systemName: symbole)\n                    .font(icone)\n                    .transition(.scale(scale: 0.2).combined(with: .opacity))']);
+    /* 13 novembre, 8 h 32 : le symbole est devenu une pastille sur le coin de la puce (le texte ne rétrécit plus) ; il se pose pareil */
+    'Image(systemName: nom)\n                    .font(icone)', '.overlay(Circle().strokeBorder(Color.white, lineWidth: lisere))\n                    .transition(.scale(scale: 0.2).combined(with: .opacity))',
+    '.overlay(pastille(style, u), alignment: .topTrailing)']);
   assert.ok(widget.includes('struct QuestionPoche: Codable, Hashable {'), 'la question sert d’identité');
 });
 
@@ -244,5 +246,5 @@ test('les moments de la tuile sont des états, les passages des transitions ; l�
 
 test('la feuille de style et le cache changent de version', () => {
   assert.ok(app.includes('onboarding-vitrine.css?v=64'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-vivant-v2925';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-entretien-v2926';"));
 });
