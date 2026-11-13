@@ -92,5 +92,5 @@ test('résultats et fin de partie allégés ; les points de la partie ont leur p
   for (const k of ['html.lq .jeu-pd i{padding:0!important;background:none!important;', 'html.lq .jeu-pd i:not(:last-child)::after{content:"·";', 'html.lq .jeu-rank li.is-me{', 'html.lq .jeu-sol>summary{display:flex;'])
     assert.ok(s50.includes(k), k);
   const pop = cut('function jeuPtsPage(o){', '\n/* Points de la partie (une seule fois)');
-  assert.ok(pop.includes('<div class="mu mu-acc mu-pts${zero?\' is-zero\':\'\'}${issue?\' is-\'+issue:\'\'}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">'), 'une page, dans la DA de la fin d’un module');
+  assert.ok(pop.includes('<div class="mu mu-acc mu-pts${zero?\' is-zero\':\'\'}${enc?\' is-encourage\':\'\'}${issue?\' is-\'+issue:\'\'}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">'), 'une page, dans la DA de la fin d’un module');
 });

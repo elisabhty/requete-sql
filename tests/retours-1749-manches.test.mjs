@@ -15,7 +15,7 @@ const page = o => {
   let html = '';
   const el = { classList: { add() {} }, querySelector: s => s === '.mu-go' ? null : ({ addEventListener() {}, classList: { add() {} }, focus() {}, textContent: '' }), addEventListener() {} };
   const ctx = vm.createContext({ document: { createElement: () => ({ set innerHTML(v) { html = v; }, get firstElementChild() { return el; } }), body: { appendChild() {}, classList: { add() {} } } },
-    moduleUpClose() {}, JEU_COIN_SVG: '<coin>', MU_PLAY: '▶', JEU_AUTO_MS: 5000, lqStkSvg: k => `<svg data-k="${k}"></svg>`, esc: s => String(s), lqSay() {}, buzz() {}, prefersReduceMotion: () => true,
+    moduleUpClose() {}, JEU_COIN_SVG: '<coin>', MU_PLAY: '▶', JEU_AUTO_MS: 5000, lqStkSvg: k => `<svg data-k="${k}"></svg>`, chatBonusHtml: k => `<img data-k="${k}">`, esc: s => String(s), lqSay() {}, buzz() {}, prefersReduceMotion: () => true,
     setTimeout, setInterval: () => 0, navigator: {}, Date });
   vm.runInContext('var MU=null;' + fn('jeuPtsPage'), ctx);
   ctx.jeuPtsPage(o);
@@ -33,9 +33,9 @@ test('la page d’une manche : gagnée, perdue avec ou sans points, 0 à 0 ; san
   assert.ok(d.html.includes('>Bien joué !</h2>') && d.html.includes('@lea remporte la manche, mais tu gagnes <b>230</b> points. Ta partie : <b>505</b> points.'));
   assert.ok(d.html.includes('<span>Ta partie</span>') && d.html.includes('La manche 3 démarre'));
   const z = page({ pts: 0, total: 0, solo: false, issue: 'defaite', qui: '@lea', manche: { n: 0, nb: 2, fin } });
-  assert.ok(z.html.includes('>Pas cette fois !</h2>') && z.html.includes('@lea a trouvé, pas toi. Rattrape-toi à la manche suivante !'));
+  assert.ok(z.html.includes('>Tu vas te rattraper !</h2>') && z.html.includes('@lea a trouvé cette manche. La suivante peut être la tienne !') && z.html.includes('<img data-k="effort">') && z.html.includes('>La suite !</span>'));
   const n = page({ pts: 0, total: 0, solo: false, issue: 'nul', manche: { n: 0, nb: 2, fin } });
-  assert.ok(n.html.includes('>0 à 0 !</h2>') && n.html.includes('Personne n’a trouvé cette manche. Tout se joue à la suivante !') && n.html.includes('is-zero is-nul'));
+  assert.ok(n.html.includes('>Match nul !</h2>') && n.html.includes('Personne n’a trouvé cette manche : tout se joue à la suivante !') && n.html.includes('is-zero is-encourage is-nul') && n.html.includes('<img data-k="duel">'));
 });
 
 test('les branchements : la vue res l’ouvre une fois, avant la dernière ; jeuRender la referme ; ses styles', () => {

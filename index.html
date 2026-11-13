@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=342">
+<link rel="stylesheet" href="ludique.css?v=343">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38240,9 +38240,10 @@ function jeuRender(){
       let ton,titre,chat,med='',phrase;
       if(winner){ton='is-or';titre='Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
         phrase=!second?'':second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`:`${nom(second)} n’a ${J.nb>1?'rien':'pas'} trouvé.`;}
-      else if(nul){ton='is-nul';titre='0 à 0\u00a0!';chat='reveil';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Égalité parfaite\u00a0: la revanche\u00a0?`;}
-      else{ton='is-ko';titre='Pas cette fois\u00a0!';chat='effort';med=moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):'';
-        phrase=`${nom(premier)} l’emporte${moi.pts>0?` de ${ecart(premier,moi)}`:''}. À toi la revanche\u00a0!`;}
+      /* 18 h 35 (« il faut justement encourager ; revanche ») : le match nul et la défaite encouragent, comme la page des points */
+      else if(nul){ton='is-nul';titre='Match nul\u00a0!';chat='duel';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Une revanche pour vous départager\u00a0?`;}
+      else{ton='is-ok';titre=moi.pts>0?'Bien joué\u00a0!':'La revanche t’attend\u00a0!';chat='effort';med=moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):'';
+        phrase=moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\u00a0!`;}
       /* Le détail de tes points : une seule manche, celui de la manche (le défi, le premier coup, la place) ; plusieurs, les défis trouvés. */
       let pills='';
       if(J.nb===1&&moi.pts>0){const y=J.rounds[0]?jeuRanking(0).find(x=>x.pid===J.me):null;
@@ -38732,10 +38733,15 @@ function jeuPtsPage(o){
   const M=o.manche&&typeof o.manche==='object'?o.manche:null;
   const suite=M?'Voir le classement':issue&&issue!=='nul'?'Voir le podium':'Voir le bilan';   // le 0 à 0 n’a pas de podium (la liste des joueurs)
   const kick=M?`Manche ${M.n+1}/${M.nb} terminée`:issue==='victoire'?'Victoire\u00a0!':o.solo?'Partie solo terminée':'Partie terminée';
-  const h=issue==='victoire'?(M?'Manche gagnée\u00a0!':'Tu as gagné\u00a0!'):issue==='nul'?'0 à 0\u00a0!':issue==='defaite'?(zero?'Pas cette fois\u00a0!':'Bien joué\u00a0!'):'Bravo\u00a0!';
+  /* 18 h 35 (Elisa : « pourquoi tu ne fais pas des pages comme “Manche gagnée”, “Bien joué” pour le 0-0, et quand on a perdu ? Il faut
+     justement encourager. Revanche ») : sans point, plus de pièce grise ni de rayons éteints. Le chat prend la place de la pièce : il
+     lève le poing (« Encore un effort », la défaite) ou sort sa pancarte « VS » (le duel, le match nul), sous l’étiquette « Revanche ! »
+     (« La suite ! » entre les manches) ; les titres encouragent : « La revanche t’attend ! », « Tu vas te rattraper ! », « Match nul ! ». */
+  const enc=zero&&!!issue,chatEnc=enc&&typeof chatBonusHtml==='function'?chatBonusHtml(issue==='nul'?'duel':'effort'):'';
+  const h=issue==='victoire'?(M?'Manche gagnée\u00a0!':'Tu as gagné\u00a0!'):issue==='nul'?'Match nul\u00a0!':issue==='defaite'?(zero?(M?'Tu vas te rattraper\u00a0!':'La revanche t’attend\u00a0!'):'Bien joué\u00a0!'):'Bravo\u00a0!';
   const totalTx=!total?'':M?` Ta partie\u00a0: <b>${fmt(total)}</b> point${total>1?'s':''}.`:` Tes points de salle passent à <b>${fmt(total)}</b>.`;
-  const p=issue==='nul'?(M?'Personne n’a trouvé cette manche. Tout se joue à la suivante\u00a0!':'Personne n’a trouvé. Égalité parfaite\u00a0: la revanche\u00a0?')
-    :issue==='defaite'&&zero?`${qui||'L’autre joueur'} a trouvé, pas toi. ${M?'Rattrape-toi à la manche suivante\u00a0!':'Prends ta revanche\u00a0!'}`
+  const p=issue==='nul'?(M?'Personne n’a trouvé cette manche\u00a0: tout se joue à la suivante\u00a0!':'Ce défi a résisté à tout le monde. Une revanche pour vous départager\u00a0?')
+    :issue==='defaite'&&zero?(M?`${qui||'L’autre joueur'} a trouvé cette manche. La suivante peut être la tienne\u00a0!`:`${qui||'L’autre joueur'} a trouvé cette fois. Chaque défi t’entraîne\u00a0: à toi la prochaine\u00a0!`)
     :issue==='defaite'?`${qui||'L’autre joueur'} ${M?'remporte la manche':'l’emporte'}, mais tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`
     :`Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`;
   /* 18 h 11 (Elisa : « à la fin, le podium, avec les résultats et la correction ; quand on n’a qu’une manche aussi, le même écran
@@ -38748,7 +38754,7 @@ function jeuPtsPage(o){
   const resteM=A&&A.fin?Math.max(0,A.fin-Date.now()):0;
   const place=Math.floor(+o.place||0),med=!zero&&place>=1&&place<=3&&typeof lqStkSvg==='function'?`<span class="mu-med is-${place}">${lqStkSvg('medal'+place)}</span>`:'';
   const box=document.createElement('div');
-  box.innerHTML=`<div class="mu mu-acc mu-pts${zero?' is-zero':''}${issue?' is-'+issue:''}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">
+  box.innerHTML=`<div class="mu mu-acc mu-pts${zero?' is-zero':''}${enc?' is-encourage':''}${issue?' is-'+issue:''}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">
     <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
     ${total&&!zero?`<div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${JEU_COIN_SVG}</span><span>${M?'Ta partie':'Points de salle'}</span><b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b></div>`:''}
     <button type="button" class="mu-x" aria-label="${suite}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -38756,8 +38762,8 @@ function jeuPtsPage(o){
       <span class="mu-kick" id="mu-k">${kick}</span>
       <div class="mu-stage" aria-hidden="true">
         <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
-        <div class="mu-st mu-done mu-coin">${JEU_COIN_SVG}${med}</div>
-        <span class="mu-tag">${zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>
+        ${chatEnc?`<div class="mu-st mu-done mu-chat">${chatEnc}</div>`:`<div class="mu-st mu-done mu-coin">${JEU_COIN_SVG}${med}</div>`}
+        <span class="mu-tag">${enc?(M?'La suite\u00a0!':'Revanche\u00a0!'):zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>
       </div>
       <h2 class="mu-h" id="mu-h" tabindex="-1">${h}</h2>
       <p class="mu-p" id="mu-p">${p}</p>
@@ -51384,7 +51390,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-sortie-v2956';
+  const SW_CACHE='requete-2026-11-13-encourage-v2957';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

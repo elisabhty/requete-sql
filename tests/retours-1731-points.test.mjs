@@ -17,7 +17,7 @@ const page = o => {
   let html = '';
   const el = { classList: { add() {} }, querySelector: () => ({ addEventListener() {}, classList: { add() {} }, focus() {}, textContent: '' }), addEventListener() {} };
   const ctx = vm.createContext({ document: { createElement: () => ({ set innerHTML(v) { html = v; }, get firstElementChild() { return el; } }), body: { appendChild() {}, classList: { add() {} } } },
-    MU: null, moduleUpClose() {}, JEU_COIN_SVG: '<coin>', MU_PLAY: '▶', JEU_AUTO_MS: 5000, lqStkSvg: k => `<svg data-k="${k}"></svg>`, esc: s => String(s), lqSay() {}, buzz() {}, prefersReduceMotion: () => true, setTimeout: () => 0, setInterval: () => 0, navigator: {}, Date });
+    MU: null, moduleUpClose() {}, JEU_COIN_SVG: '<coin>', MU_PLAY: '▶', JEU_AUTO_MS: 5000, lqStkSvg: k => `<svg data-k="${k}"></svg>`, chatBonusHtml: k => `<img data-k="${k}">`, esc: s => String(s), lqSay() {}, buzz() {}, prefersReduceMotion: () => true, setTimeout: () => 0, setInterval: () => 0, navigator: {}, Date });
   vm.runInContext('var MU=null;' + fn('jeuPtsPage').replace('function jeuPtsPage(', 'function jeuPtsPage('), ctx);
   ctx.jeuPtsPage(o);
   return html;
@@ -33,10 +33,11 @@ test('la page des points, pour chaque issue entre amis', () => {
   const d = page({ pts: 230, total: 230, solo: false, issue: 'defaite', qui: '@lea', place: 2 });
   assert.ok(d.includes('>Bien joué !</h2>') && d.includes('@lea l’emporte, mais tu gagnes <b>230</b> points.') && d.includes('<span class="mu-med is-2">'));
   const z = page({ pts: 0, total: 500, solo: false, issue: 'defaite', qui: '@lea' });
-  assert.ok(z.includes('mu-pts is-zero is-defaite') && z.includes('>Pas cette fois !</h2>') && z.includes('@lea a trouvé, pas toi. Prends ta revanche !'));
-  assert.ok(z.includes('<span class="mu-tag">0 point</span>') && !z.includes('mu-album') && !z.includes('mu-med'), '0 point : ni « +0 », ni compteur de salle qui ne bouge pas, ni médaille');
+  /* 18 h 35 : « il faut justement encourager ; revanche » : le chat lève le poing à la place d’une pièce grise */
+  assert.ok(z.includes('mu-pts is-zero is-encourage is-defaite') && z.includes('>La revanche t’attend !</h2>') && z.includes('@lea a trouvé cette fois. Chaque défi t’entraîne : à toi la prochaine !'));
+  assert.ok(z.includes('<div class="mu-st mu-done mu-chat"><img data-k="effort"></div>') && z.includes('<span class="mu-tag">Revanche !</span>') && !z.includes('<coin>') && !z.includes('mu-album') && !z.includes('mu-med'), 'ni pièce grise, ni compteur de salle qui ne bouge pas, ni médaille');
   const n = page({ pts: 0, total: 0, solo: false, issue: 'nul' });
-  assert.ok(n.includes('>0 à 0 !</h2>') && n.includes('Personne n’a trouvé. Égalité parfaite : la revanche ?') && n.includes('<span>Le bilan s’affiche dans'));
+  assert.ok(n.includes('>Match nul !</h2>') && n.includes('Ce défi a résisté à tout le monde. Une revanche pour vous départager ?') && n.includes('<img data-k="duel">') && n.includes('<span>Le bilan s’affiche dans'));
   const s = page({ pts: 120, total: 300, solo: true });
   assert.ok(s.includes('Partie solo terminée') && s.includes('>Bravo !</h2>') && s.includes('Voir le bilan') && !s.includes('mu-rejouer'), 'seul : comme avant');
   assert.equal(page({ pts: 0, total: 0, solo: true }), '', 'seul, sans point : pas de page');

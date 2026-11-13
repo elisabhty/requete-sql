@@ -1053,7 +1053,7 @@ test('la manche se clôt seule quand tout le monde a trouvé, sinon à la fin du
   sec(w, 6);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'final', c.name + ' : puis l’écran de fin (13 novembre)');
   assert.match(guests[0].html, /<i>1 défi trouvé sur 2<\/i>/, 'la manche finie au chrono compte, sans être trouvée');
-  assert.match(guests[0].html, /<h1 id="jr2-t">Pas cette fois\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Hôte l’emporte de \d+\u00a0points?\. À toi la revanche\u00a0!<\/p>/, 'la défaite : qui l’emporte et de combien');
+  assert.match(guests[0].html, /<h1 id="jr2-t">Bien joué\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Hôte l’emporte de \d+\u00a0points?\. À toi la revanche\u00a0!<\/p>/, 'la défaite, qui encourage (18 h 35) : qui l’emporte et de combien');
   assert.match(host.html, /<h1 id="jr2-t">Tu as gagné\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Devant Ami1, de \d+\u00a0points?\.<\/p>/, 'la victoire : devant qui et de combien');
   assert.doesNotMatch(guests[0].html, /close par l’hôte/);
 });
@@ -1154,7 +1154,7 @@ test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille 
   assert.equal(host.view(), 'final');
   assert.doesNotMatch(host.html, /Tu as gagné/, 'personne n’a marqué : pas de gagnant');
   /* 13 novembre, 17 h 16 : le 0 à 0, sa page (le seul ex æquo possible), sans podium vide */
-  assert.match(host.html, /class="jr2-hero jeu-issue is-nul"/); assert.match(host.html, /<h1 id="jr2-t">0 à 0\u00a0!<\/h1>/);
+  assert.match(host.html, /class="jr2-hero jeu-issue is-nul"/); assert.match(host.html, /<h1 id="jr2-t">Match nul\u00a0!<\/h1>/);
   assert.match(host.html, /Personne n’a trouvé ce défi\./); assert.doesNotMatch(host.html, /jeu-podium/, 'pas de médaille d’or à 0 point');
   const w2 = new World();
   const h = makeClient(w2, 'Hôte'); h.ev('jeuNb=1'); h.host('TIE001'); sec(w2, 1);
