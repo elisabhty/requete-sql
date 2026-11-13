@@ -70,6 +70,19 @@
    « oui » que s'il vient d'une réponse du serveur plus récente que
    celle qui disait « oui » (requestDate, gardée dans GARDE_VU). Sans
    réseau, on garde le « oui ».
+
+   13 novembre, 2 h 41 (Elisa : « pour chaque pays on a les bons prix
+   sur le paywall ? ») : oui, dès que la boutique a répondu. Mais la
+   garde ouvrait le paywall avant (au lancement, ou hors ligne), avec
+   les prix en euros écrits dans index.html, et il ne se repeignait
+   jamais : hors de la zone euro, on lisait « 44,99 € » puis un autre
+   prix sur la feuille d'Apple. Le paywall attend maintenant la boutique :
+   - prixConnus() → bool : l'annuel et l'hebdomadaire sont lus ;
+   - prixEtat() → 'oui' | 'attente' | 'echec' (pas de réponse au bout de
+     12 s, erreur, offre vide) ;
+   - suivrePrix(fn) : fn(etat) à chaque réponse de la boutique ;
+   - rechargerPrix() → Promise<etat> : redemande (« Réessayer »). C'est
+     aussi fait au retour du réseau et au retour dans l'app.
    ===================================================================== */
 (function(){
   'use strict';
@@ -132,7 +145,26 @@
     if (t === 'WEEKLY' || id === PRODUITS.semaine) return 'semaine';
     return '';
   }
+  /* Les prix de la boutique : lus, attendus ou en échec (voir l'en-tête, 13 novembre). */
+  var prixCharge = null, prixRate = false, suiveursPrix = [], DELAI_PRIX = 12000;
+  function prixConnus(){ return !!(paquets.an && paquets.semaine); }
+  function prixEtat(){ return prixConnus() ? 'oui' : (prixRate && !prixCharge ? 'echec' : 'attente'); }
+  function direPrix(){
+    var e = prixEtat();
+    plusTard(function(){ suiveursPrix.slice().forEach(function(fn){ try { fn(e); } catch (x) {} }); });
+  }
   function chargerOffres(){
+    if (prixCharge) return prixCharge;
+    var lecture = lireOffres();
+    /* Une boutique qui ne répond pas (réseau coupé en route) : au bout de 12 s, « Réessayer » plutôt qu'une attente sans fin.
+       Si elle répond plus tard quand même, ses prix sont pris et le paywall prévenu. */
+    var delai = typeof setTimeout === 'function' ? new Promise(function(_, non){ setTimeout(function(){ non(new Error('delai')); }, DELAI_PRIX); }) : null;
+    var fin = function(rate){ prixRate = rate || !prixConnus(); prixCharge = null; direPrix(); };
+    lecture.then(function(){ if (!prixCharge && prixConnus() && prixRate) { prixRate = false; direPrix(); } }, function(){});
+    prixCharge = (delai ? Promise.race([lecture, delai]) : lecture).then(function(){ fin(false); }, function(){ fin(true); });
+    return prixCharge;
+  }
+  function lireOffres(){
     return P.getOfferings().then(function(r){
       var cur = r && (r.current || (r.all && r.all['default']));
       var liste = (cur && cur.availablePackages) || [];
@@ -146,8 +178,8 @@
           essais[k] = !(s && Number(s.status) === 1);
           statuts[k] = s ? Number(s.status) : 0;
         });
-      });
-    }).catch(function(){});
+      }, function(){});   /* sans réponse sur l'essai : les prix restent bons, l'essai reste proposé (essaiDispo) */
+    });
   }
   /* Le prix de lancement d'un produit : {prix, texte} seulement s'il est payant et couvre un an d'un coup (« P1Y », un seul cycle). */
   function introDe(p){
@@ -161,20 +193,31 @@
     return !!(e && (e.userCancelled || e.code === '1' || e.code === 1 || /cancel/i.test(String(e.message || ''))));
   }
 
-  var pret = P.configure({apiKey: RC_CLE_IOS})
+  /* 13 novembre, 2 h 41 : les prix se lisent en même temps que l'abonnement, dès que RevenueCat a démarré ; acheter, restaurer et
+     vérifier n'attendent plus la lecture des prix (elle pouvait durer). */
+  var demarre = P.configure({apiKey: RC_CLE_IOS});
+  var pret = demarre
     .then(function(){
       /* RevenueCat rend d'abord ce qu'il a en mémoire, puis interroge son serveur : la vraie réponse arrive ici, un peu plus tard.
          (Le pont de Capacitor attend (options, fonction) pour une méthode à rappel.) */
       try { if (typeof P.addCustomerInfoUpdateListener === 'function') P.addCustomerInfoUpdateListener({}, function(info){ if (info) noterClient(info); }); } catch (e) {}
       return P.getCustomerInfo().then(noterClient).catch(function(){});
     })
-    .then(chargerOffres)
     .catch(function(){});
+  demarre.then(chargerOffres, function(){ prixRate = true; direPrix(); });   /* RevenueCat ne démarre pas : pas de prix, le paywall le dit */
 
-  /* De retour dans l'app (abonnement annulé ou repris dans les réglages Apple) : on relit le droit. */
+  function rechargerPrix(){
+    if (!prixConnus()) prixRate = false;   /* tout de suite « attente » : le paywall se repeint avant la réponse */
+    return pret.then(function(){ return prixConnus() ? null : chargerOffres(); }).then(prixEtat, prixEtat);
+  }
+  /* De retour dans l'app (abonnement annulé ou repris dans les réglages Apple) : on relit le droit ; et les prix, s'ils manquent. */
   document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'visible') pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){});
+    if (document.visibilityState !== 'visible') return;
+    pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){});
+    if (!prixConnus() && prixRate) rechargerPrix();
   });
+  /* Le réseau revient : les prix qui manquaient sont redemandés. */
+  try { if (typeof window.addEventListener === 'function') window.addEventListener('online', function(){ if (!prixConnus()) rechargerPrix(); }); } catch (e) {}
 
   window.REQUETE_ACHAT = {
     acheter: function(offre){
@@ -198,7 +241,11 @@
     sortieDispo: function(){
       var pq = paquets.bienvenue, p = pq && pq.product, i = introDe(p);
       return !!(i && typeof p.price === 'number' && i.prix < p.price && statuts.bienvenue === 2);
-    }
+    },
+    prixConnus: prixConnus,
+    prixEtat: prixEtat,
+    suivrePrix: function(fn){ if (typeof fn === 'function') suiveursPrix.push(fn); },
+    rechargerPrix: rechargerPrix
   };
   /* L'app est peut-être déjà ouverte (ce fichier se charge après elle) : la garde démarre dès que le crochet existe. */
   try { if (typeof window.obGardeDemarrer === 'function') window.obGardeDemarrer(); } catch (e) {}

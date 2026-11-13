@@ -6734,7 +6734,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=327">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=61">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=62">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -45182,7 +45182,7 @@ function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finC
    - seulement dans l’app iPhone avec l’achat branché (obAchatPret) : le site ne change pas ;
    - seulement sur un « non » sûr (REQUETE_ACHAT.etat) : sans réponse (hors ligne, première ouverture), on entre ;
    - en pleine partie entre amis, il attend la fin de la partie. */
-let obGarde=false,obGardePrete=false,obGardeSuivie=false,obGardeT=0;
+let obGarde=false,obGardePrete=false,obGardeSuivie=false,obGardeT=0,obPrixSuivis=false;
 function obGardeEtat(){
   if(!obAchatPret())return 'oui';
   try{const a=window.REQUETE_ACHAT;return typeof a.etat==='function'?a.etat():(a.actif()?'oui':'inconnu');}catch(e){return 'inconnu';}
@@ -45212,6 +45212,8 @@ function obGardeDemarrer(lancee){
   if(lancee)obGardePrete=true;
   if(!obGardePrete||!obAchatPret())return;
   const a=window.REQUETE_ACHAT,voir=()=>{try{obGardeVoir();}catch(e){}};
+  /* Les prix de la boutique, dès qu’elle les donne : le paywall ouvert entre-temps se repeint (13 novembre, 2 h 41) */
+  if(!obPrixSuivis&&typeof a.suivrePrix==='function'){obPrixSuivis=true;try{a.suivrePrix(()=>{try{obPaywallPrix();}catch(e){}});}catch(e){}}
   if(!obGardeSuivie){
     obGardeSuivie=true;
     try{if(typeof a.suivre==='function')a.suivre(voir);}catch(e){}
@@ -45291,6 +45293,13 @@ function obPrixBoutique(k){try{const a=window.REQUETE_ACHAT,p=a&&typeof a.prix==
    Tous les montants s’écrivent maintenant de la même main : le prix et la devise que donne l’App Store pour le pays de la personne,
    écrits par obDevise (« 19,99 $US », « 0,38 $US », « 20 $US » ; « 22,49 € » en France). Le texte de la boutique ne sert plus que
    si elle ne dit pas sa devise. */
+/* 13 novembre, 2 h 41 (Elisa : « pour chaque pays on a les bons prix sur le paywall ? ») : dans l’app, les prix écrits ici en euros
+   (OB_OFFRES) ne doivent jamais passer pour ceux de la boutique. Or la garde ouvrait le paywall avant que la boutique ait répondu
+   (au lancement, hors ligne) : « 44,99 € » partout, et rien ne le repeignait ensuite. Tant que la boutique branchée n’a pas donné
+   ses prix (REQUETE_ACHAT.prixEtat : 'attente', puis 'echec' sans réponse), le paywall le dit à la place des offres, et se repeint
+   dès qu’ils arrivent (obPaywallPrix, suivi par obGardeDemarrer). Sans boutique branchée (le site, la mise au point), 'oui' : les
+   prix d’Elisa en euros, comme avant. */
+function obPrixEtat(){try{const a=window.REQUETE_ACHAT;if(!a||typeof a.prixEtat!=='function')return 'oui';const e=a.prixEtat();return e==='attente'||e==='echec'?e:'oui';}catch(e){return 'oui';}}
 function obPrixEcrit(prix,devise,texte){return obDevise(prix,devise)||String(texte||'').replace(/ /g,'\u00a0');}
 function obPrixTexte(k){const b=obPrixBoutique(k);return b?obPrixEcrit(b.prix,b.devise,b.texte):obEuros(OB_OFFRES[k].prix);}
 /* Un montant dans la devise de la boutique, écrit à la française (« 0,76 $US », « 0,86 € ») ; '' si la devise est inconnue.
@@ -45344,7 +45353,7 @@ function obPaywallHTML(){
   const o=draft.offre==='semaine'?'semaine':'an',b=typeof obPlanInfo==='function'?obPlanInfo():{goal:'Progresser en SQL',endLabel:'',minutes:20};
   const {parSemaineTexte,eco,economie,zero}=obOffreInfo(),nom=(draft.name||state.name||'').trim();
   const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
-  const fixe=typeof mascotReduced==='function'&&mascotReduced(),essaiAn=obEssai('an');
+  const fixe=typeof mascotReduced==='function'&&mascotReduced(),essaiAn=obEssai('an'),etatPrix=obPrixEtat();
   const sur=par=>par.replace(/^par /,'/&nbsp;');
   const prixHtml=k=>`<span class="pw-o-p"><b>${obPrixTexte(k)}</b> ${sur(OB_OFFRES[k].par)}</span>`;
   const carte=(k,corps,label)=>{const on=o===k;
@@ -45390,7 +45399,8 @@ function obPaywallHTML(){
       <li>${PW_ICO.video}<span><b>${nLecons}&nbsp;leçons vidéo</b>et leurs exercices</span></li>
       <li>${PW_ICO.manette}<span><b>${nDefis}&nbsp;défis</b>en solo ou entre amis</span></li>
       <li>${PW_ICO.cartes}<span><b>Cartes mémo,</b>entretien et console SQL</span></li></ul>
-    <div class="pw-offres" role="radiogroup" aria-label="Choisis ton offre">${carteAn}${carteSe}</div>
+    ${etatPrix==='oui'?`<div class="pw-offres" role="radiogroup" aria-label="Choisis ton offre">${carteAn}${carteSe}</div>`
+      :`<div class="pw-attente${etatPrix==='echec'?' is-echec':''}" role="status" aria-live="polite">${etatPrix==='echec'?'':'<i class="pw-att-rond" aria-hidden="true"></i>'}<p><b>${etatPrix==='echec'?'Les offres ne se chargent pas':'On récupère les offres…'}</b>${etatPrix==='echec'?'Vérifie ta connexion à Internet, puis réessaie.':'Les prix sont ceux de l’App Store de ton pays.'}</p></div>`}
     ${preuve}<p class="ob-compte-msg" id="pw-live" role="status" aria-live="polite"></p></div>`;
 }
 function obPaywallPied(){
@@ -45399,13 +45409,32 @@ function obPaywallPied(){
      du premier prélèvement (règle d’Apple : ce qui se passe à la fin de l’essai est dit en clair). */
   const libelle=essai?`Essayer gratuitement ${essai} jours`:`S’abonner pour ${prix}`;
   const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
+  /* 13 novembre, 2 h 41 : tant que la boutique n’a pas donné ses prix, ni prix ni achat ; sans réponse, « Réessayer ». */
+  const etatPrix=obPrixEtat();
+  if(etatPrix!=='oui'){
+    const liens=`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+    obSetFooter(etatPrix==='echec'?'Réessayer':'Chargement des offres…',etatPrix==='echec'?obPaywallRecharger:null,'','',{html:confiance+liens},etatPrix!=='echec'||obPwBusy);
+    return;
+  }
   const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours d’essai, puis ${prix} ${o.par} à partir du ${obDateApresEssai(essai)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
     :`<b class="pw-sans">${prix} aujourd’hui, puis ${k==='an'?'chaque année':'chaque semaine'}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;
   const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
   obSetFooter(libelle,obPaywallAcheter,'','',{html:legal},obPwBusy);
 }
+/* Les prix de la boutique viennent d’arriver (ou de manquer) : le paywall ouvert se repeint, sans rejouer son entrée. */
+function obPaywallPrix(){
+  const root=document.getElementById('onboarding');
+  if(!root||!root.classList.contains('on')||OB_SLIDES[obStep]!=='paywall'||obPwBusy||obLock)return;
+  obJustEntered=false;paintOb();
+}
+function obPaywallRecharger(){
+  const a=window.REQUETE_ACHAT;if(obPwBusy||!a||typeof a.rechargerPrix!=='function')return;
+  if(typeof buzz==='function')buzz('light');
+  try{Promise.resolve(a.rechargerPrix()).then(obPaywallPrix,obPaywallPrix);}catch(e){}
+  obPaywallPrix();   // tout de suite : « On récupère les offres… »
+}
 function obPaywallChoisir(k){
-  if(!OB_OFFRES[k]||obPwBusy)return;
+  if(!OB_OFFRES[k]||obPwBusy||obPrixEtat()!=='oui')return;
   draft.offre=k;
   if(typeof stat==='function')stat('offre',null,{o:k});
   document.querySelectorAll('#ob-body .pw-offre').forEach(b=>{const on=b.dataset.offre===k;b.classList.toggle('is-on',on);b.setAttribute('aria-checked',String(on));});
@@ -45418,6 +45447,7 @@ function obPaywallEntrer(){obPwSortie=false;if(typeof buzz==='function')buzz('su
   if(typeof obEntry!=='undefined'&&obEntry==='paywall'&&state.onboarded){if(typeof obGardeFermer==='function')obGardeFermer();return;}
   finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
 async function obPaywallAcheter(){
+  if(obPrixEtat()!=='oui')return;   // pas d’achat sans les prix de la boutique sous les yeux
   if(!obAchatPret()){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
   if(obPwBusy)return;
   const live=document.getElementById('pw-live');obPwBusy=true;obPaywallPied();if(live)live.textContent='';
@@ -47691,6 +47721,14 @@ function obFeteConnexion(){
   setTimeout(()=>buzz('light'),620);
   setTimeout(()=>layer.remove(),5400);
 }
+/* L’accueil, en haut de page, quel que soit l’écran laissé derrière la page de connexion (une feuille de Mon compte restée ouverte
+   se referme). Derrière l’onboarding encore ouvert, rien ne s’affiche par-dessus : la note d’iOS et la page du widget attendent
+   (accueilOccupe). */
+function obVersAccueil(){
+  try{if(typeof closePlusDetails==='function')closePlusDetails();}catch(e){}
+  try{if(typeof tabScrollPositions!=='undefined')tabScrollPositions.learn=0;}catch(e){}
+  try{switchTab('learn');}catch(e){}
+}
 async function obStartAuth(provider,btn){
   if(obAuthBusy)return;
   const adapter=window.REQUETE_AUTH;
@@ -47727,12 +47765,16 @@ async function obStartAuth(provider,btn){
     draft.accountMode='connected';
     obAuthBusy=false;obAuthMessage='';
     /* 21 h 06 (« j’ai changé de compte et j’ai pas eu le paywall ») : connecté depuis l’appli, ou reconnecté après une déconnexion,
-       sans abonnement actif sur cet iPhone : le paywall, sans refermer la page entre les deux. */
-    if(obEntry==='account'&&state.onboarded&&typeof obGardeBloque==='function'&&obGardeBloque()){obGarde=true;obEntry='paywall';obGoto('paywall');}
-    else if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();renderCompte();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
+       sans abonnement actif sur cet iPhone : le paywall, sans refermer la page entre les deux.
+       13 novembre, 2 h 41 (Elisa : « quand on se connecte sur l’appli on va toujours pas sur l’accueil » ; déjà le 30 octobre,
+       22 h 50 : « revenir à chaque connexion à l’accueil de l’appli ») : toute connexion mène à l’accueil (obVersAccueil), plus à
+       Mon compte ni à l’écran où l’on s’était déconnecté ; derrière le paywall aussi, pour le jour où il se referme. */
+    if(obEntry==='account'&&state.onboarded&&typeof obGardeBloque==='function'&&obGardeBloque()){obVersAccueil();obGarde=true;obEntry='paywall';obGoto('paywall');}
+    else if(obEntry==='account'&&state.onboarded){closeOnboardingAuth();obVersAccueil();toast('Compte connecté','Ta progression peut maintenant être synchronisée.');}
     else if(!draft.finVoulue){
-      /* 12 novembre (réf. 14, son choix : « Mon compte ») : connecté depuis « J’ai déjà un compte », au début de l’onboarding, on arrive
-         sur Mon compte, pas sur l’accueil. La progression du compte arrive d’abord (6 s au plus) : son planning, son prénom et ses
+      /* 12 novembre (réf. 14, son choix : « Mon compte ») : connecté depuis « J’ai déjà un compte », au début de l’onboarding, on
+         arrivait sur Mon compte ; depuis le 13 novembre, 2 h 41, sur l’accueil (finConnexion « accueil » : l’onglet, sans ouvrir de
+         leçon). La progression du compte arrive d’abord (6 s au plus) : son planning, son prénom et ses
          réponses servent à finir l’onboarding, au lieu d’être remplacés par les réponses par défaut.
          9 h 53 (« Oui, exactement ») : un compte vide vient d’être créé, par une nouvelle personne qui a pris le bouton pour un
          raccourci. Elle reste connectée et enchaîne sur les questions, comme un onboarding normal ; son prénom (Apple, Google) est déjà
@@ -47743,7 +47785,7 @@ async function obStartAuth(provider,btn){
       try{r=await Promise.race([typeof csSync==='function'?csSync({premier:true}):null,new Promise(ok=>setTimeout(ok,6000))]);}catch(e){}
       obAuthBusy=false;obAuthMessage='';
       if(obCompteConnu(r)){
-        draft.finConnexion='compte';
+        draft.finConnexion='accueil';
         try{if(typeof obDraftDepuisEtat==='function')obDraftDepuisEtat();}catch(e){}
         obApresCompte();
       }else{
@@ -48747,6 +48789,8 @@ function obTerminer(action){
     switchTab('planning');
   }else if(action==='compte'){
     switchTab('compte');   // « Enregistrer » au bout de « Personnalisation » : retour à Mon compte, sans ouvrir de leçon
+  }else if(action==='accueil'){
+    obVersAccueil();   // connecté à un compte qui existait déjà (13 novembre, 2 h 41) : l’accueil, sans ouvrir de leçon
   }else{
     switchTab('learn');
     /* La leçon à faire, pas la première du planning (déjà validée quand on refait l’onboarding) */
@@ -50508,7 +50552,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-prix-v2922';
+  const SW_CACHE='requete-2026-11-13-pays-v2923';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -50550,7 +50594,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=10"></script>
-<script src="achat.js?v=5"></script>
+<script src="achat.js?v=6"></script>
 <script src="compte-moteurs.js?v=1"></script>
 <script src="connexion.js?v=3"></script>
 </body>

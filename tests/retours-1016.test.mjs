@@ -140,8 +140,8 @@ test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, 
   assert.equal(state(ctx).accountMode, 'connected');
   assert.equal(state(ctx).accountLabel, 'elisa@apple.test');
   assert.deepEqual(vers, ['paywall'], 'à la fin de l’onboarding (« Ton parcours est prêt ») : le paywall');
-  /* 12 novembre, 9 h 53 : depuis « J’ai déjà un compte », au début : un compte qui a déjà une progression mène à Mon compte (après le
-     paywall s’il y en a un) ; un compte vide (une nouvelle personne) reste connecté et enchaîne sur les questions, son prénom déjà là */
+  /* 12 novembre, 9 h 53 : depuis « J’ai déjà un compte », au début : un compte qui a déjà une progression mène à l’accueil (13 novembre,
+     2 h 41 : « quand on se connecte sur l’appli on va toujours pas sur l’accueil » ; c’était Mon compte), après le paywall s’il y en a un ; un compte vide (une nouvelle personne) reste connecté et enchaîne sur les questions, son prénom déjà là */
   for (const [connu, attendu] of [[true, ['paywall']], [false, ['questions']]]) {
     const v = [], bandeaux = [];
     const c = vm.createContext({
@@ -154,7 +154,7 @@ test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, 
     vm.runInContext(`CS.distant={plan:${connu},progres:false,notes:false}`, c);
     await vm.runInContext("obStartAuth('apple',null)", c);
     assert.deepEqual(v, attendu, connu ? 'compte connu' : 'compte nouveau');
-    assert.equal(vm.runInContext('draft.finConnexion', c), connu ? 'compte' : undefined);
+    assert.equal(vm.runInContext('draft.finConnexion', c), connu ? 'accueil' : undefined);
     /* 12 novembre, 12 h 24 (« pas de texte notifié noir ») : plus de bandeau ; le prénom du compte est dans le champ et dans l’appli */
     assert.equal(vm.runInContext('draft.name', c), 'Léa'); assert.equal(vm.runInContext('state.name', c), 'Léa');
     if (!connu) assert.deepEqual(bandeaux, []);

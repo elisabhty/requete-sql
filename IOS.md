@@ -516,6 +516,17 @@ iOS ne fait plus monter toute l’appli sous l’heure. Ce qui défile dans la p
   que donne l’App Store pour le pays de la personne (`price`, `currencyCode`), écrits par `obDevise` (index.html). Le
   11 novembre déjà, en TestFlight, la boutique renvoyait des dollars alors que la feuille de paiement d’Apple affichait
   44,99 € : le paywall montre la devise que la boutique lui donne.
+- **Les prix par pays** (13 novembre, 2 h 41 ; Elisa : « pour chaque pays on a les bons prix sur le paywall ? ») : le prix et la
+  devise viennent de l’App Store du pays du compte Apple (RevenueCat, `achat.js`, `prix()`). Les prix se règlent dans App Store
+  Connect, abonnement par abonnement (« Prix de l’abonnement ») : à partir du prix de base (la France), Apple propose un prix
+  comparable pour chaque pays, modifiable pays par pays ; l’essai de 3 jours et l’offre de bienvenue (offres de lancement) se
+  règlent aussi par pays. Dans l’app, les prix en euros écrits dans `index.html` (`OB_OFFRES`) ne servent plus qu’au site et à la
+  mise au point : tant que la boutique n’a pas répondu, le paywall affiche « On récupère les offres… », puis se repeint ; sans
+  réponse (12 s, hors ligne), « Les offres ne se chargent pas » et « Réessayer ». Avant, la garde ouvrait le paywall au
+  lancement avec « 44,99 € » pour tout le monde, sans jamais le corriger.
+- **Après une connexion, l’accueil** (13 novembre, 2 h 41 : « quand on se connecte sur l’appli on va toujours pas sur
+  l’accueil ») : reconnexion après une déconnexion, connexion derrière le paywall, « J’ai déjà un compte » sur un iPhone neuf
+  (c’était Mon compte). La nouvelle inscrite garde ce que promet « Commencer la première leçon ».
 
 - **Confidentialité (App Store Connect)** : l’app ne collecte rien sans compte.
   Seule la *Salle de défi* en mode « Entre amis » envoie un pseudo, des temps, un signe de vie et des réactions,
