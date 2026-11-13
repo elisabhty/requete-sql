@@ -44,7 +44,7 @@ export function lister(dossier, prefixe = '') {
 
 export function adresse(chemin) { return chemin.split('/').map(encodeURIComponent).join('/'); }
 
-/* Le numéro de version d’un maj.js (« var NOM = 'requete-2026-11-13-accueil-v2935'; » donne 2928). */
+/* Le numéro de version d’un maj.js (« var NOM = 'requete-2026-11-13-exemple-v2928'; » donne 2928). */
 export function versionDe(texte) {
   const m = /var NOM = '([^']+)';/.exec(String(texte));
   const n = m && /v(\d+)$/.exec(m[1]);

@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=1"></script>
+<script src="langues.js?v=2"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -6606,6 +6606,12 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
      l’appli ne défile plus du tout (capacitor.config.json, ios.scrollEnabled à false, et ici pour une appli installée avant) : le
      plugin Keyboard la ramène à zéro dès qu’elle bouge. Ce qui défile dans la page (écrans, feuilles, onboarding) défile toujours. */
   try{var kbScroll=P.Keyboard&&P.Keyboard.setScroll&&P.Keyboard.setScroll({isDisabled:true});if(kbScroll&&kbScroll.catch)kbScroll.catch(function(){});}catch(e){}
+  /* 13 novembre, 14 h 24 (Elisa : « des sauts au niveau des champs à clavier / flash », le pseudo, le prénom, « Contacte-nous »).
+     En mode « native », le plugin Keyboard rétrécit la vue de l’appli 0,45 s APRÈS l’apparition du clavier (la durée de son animation
+     + 0,2 s), et la rend 10 ms après l’annonce de son départ : la page se remettait en place une deuxième fois, en retard, et une image
+     passait entre la vue changée et la page recalée (le flash). La vue garde maintenant toujours sa taille (mode « none ») : l’appli se
+     cale sur le clavier dès qu’il s’annonce (--app-h, --kb), une seule fois, et suit son mouvement (ludique.css, « Le clavier qui monte »). */
+  try{var kbMode=P.Keyboard&&P.Keyboard.setResizeMode&&P.Keyboard.setResizeMode({mode:'none'});if(kbMode&&kbMode.catch)kbMode.catch(function(){});}catch(e){}
   var H=P.Haptics;
   if(H){
     /* Elisa, 5 novembre, 19 h 41 : « je n’ai pas de haptique dans l’application ». Les coups de moins de 10 ms (le toucher de chaque
@@ -6740,9 +6746,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=329">
+<link rel="stylesheet" href="ludique.css?v=330">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=66">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=67">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -23579,10 +23585,15 @@ const IOS_KB_OVERLAY=(()=>{
    (le plugin retire à WebKit son propre recul du clavier : visualViewport ne bouge pas). La feuille de note restait alors derrière le
    clavier, sans pouvoir défiler jusqu’à « Enregistrer » (Elisa, 11 novembre, 11 h 21). 0 sur le web, et clavier fermé. */
 let kbNatH=0,kbNatBase=typeof window!=='undefined'?(window.innerHeight||0):0;
+/* 13 novembre, 14 h 24 : le clavier d’iOS monte et descend en 0,25 s environ ; l’appli suit le même mouvement (ludique.css, « Le clavier qui monte »).
+   kbAnimFin : la fin du mouvement en cours. Pendant ce temps, rien ne se remesure ni ne défile (une fois, à la fin). */
+const KB_ANIM_MS=260;let kbAnimFin=0;
+function kbEnMouvement(){return Date.now()<kbAnimFin;}
 function kbNatif(){ return kbNatH?Math.max(0,Math.round(kbNatH-Math.max(0,kbNatBase-window.innerHeight))):0; }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
-  window.addEventListener('keyboardWillShow',e=>{ if(!kbNatH)kbNatBase=Math.max(kbNatBase,window.innerHeight); kbNatH=Math.max(0,Math.round(+(e&&e.keyboardHeight)||0)); });
-  ['keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,()=>{ kbNatH=0; }));
+  window.addEventListener('keyboardWillShow',e=>{ if(!kbNatH)kbNatBase=Math.max(kbNatBase,window.innerHeight); const h=Math.max(0,Math.round(+(e&&e.keyboardHeight)||0)); if(h!==kbNatH)kbAnimFin=Date.now()+KB_ANIM_MS; kbNatH=h; });
+  window.addEventListener('keyboardWillHide',()=>{ if(kbNatH)kbAnimFin=Date.now()+KB_ANIM_MS; kbNatH=0; });
+  window.addEventListener('keyboardDidHide',()=>{ kbNatH=0; });
   window.addEventListener('resize',()=>{ if(!kbNatH)kbNatBase=window.innerHeight; });
   /* La barre des touches SQL suit le clavier de l’app dès qu’il s’annonce, puis quand il s’en va. */
   ['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,()=>{ try{ syncKbarOffset(); }catch(e){} }));
@@ -23598,6 +23609,7 @@ function champEnVue(){
   let sc=a.parentElement;
   while(sc&&sc!==document.body&&!(/(auto|scroll)/.test(getComputedStyle(sc).overflowY)&&sc.scrollHeight>sc.clientHeight+1))sc=sc.parentElement;
   if(!sc||sc===document.body)return;
+  const st0=sc.scrollTop;
   const kbar=document.getElementById('kbar'),kh=kbar&&kbar.classList.contains('on')?kbar.getBoundingClientRect().height:0;
   const s=sc.getBoundingClientRect(),nav=sc.querySelector('.navbar');
   const bas=Math.min(window.innerHeight-kbNatif()-kh,s.bottom)-12,haut=s.top+(nav?nav.offsetHeight:0)+8;
@@ -23616,10 +23628,15 @@ function champEnVue(){
     const d2=Math.min(r2.bottom-h.getBoundingClientRect().top+10,r2.top-haut);
     if(d2>1)sc.scrollTop+=d2;
   }
+  /* 13 novembre, 14 h 24 : la place trouvée, le défilant y glisse en douceur (un seul mouvement, le clavier arrivé), au lieu d’y sauter. */
+  const vise=sc.scrollTop;
+  if(Math.abs(vise-st0)>1&&!(typeof prefersReduceMotion==='function'&&prefersReduceMotion())){sc.scrollTop=st0;try{sc.scrollTo({top:vise,behavior:'smooth'});}catch(e){sc.scrollTop=vise;}}
 }
 if(typeof window!=='undefined'&&typeof document!=='undefined'&&typeof window.addEventListener==='function'){
   let cevT=[];
-  const cevBientot=()=>{cevT.forEach(clearTimeout);cevT=[60,320,650,1000].map(t=>setTimeout(champEnVue,t));};
+  /* 13 novembre, 14 h 24 : une fois le clavier arrivé (KB_ANIM_MS), puis une vérification ; avant, quatre recalages (60 ms à 1 s) qui
+     faisaient sauter le champ pendant que la vue changeait de taille. */
+  const cevBientot=()=>{cevT.forEach(clearTimeout);cevT=[KB_ANIM_MS+40,700].map(t=>setTimeout(champEnVue,t));};
   ['keyboardWillShow','keyboardDidShow'].forEach(n=>window.addEventListener(n,cevBientot));
   window.addEventListener('resize',()=>{if(kbNatH)cevBientot();});
   document.addEventListener('focusin',()=>{if(kbNatH)cevBientot();});
@@ -26308,6 +26325,10 @@ function refreshTabScreen(tab){
   else if(tab==='parcours') renderParcoursScreen();
   majBadgePlanning();
 }
+/* Le toucher (ou la flèche du clavier) qui change d’onglet vient-il de la barre du bas ? L’évènement en cours le dit. */
+function tabDepuisBarre(){
+  try{const e=typeof window!=='undefined'?window.event:null,t=e&&e.target;return !!(t&&typeof t.closest==='function'&&t.closest('#tabbar'));}catch(x){return false;}
+}
 function switchTab(name){
   if(name==='jeu')name='defis';
   annulerBilanAuto();
@@ -26336,6 +26357,10 @@ function switchTab(name){
      Selon le SGBD, Entretien, Notes, Cartes mémo, Stickers…) ouverte depuis une carte s’ouvre toujours en haut ; elle ne reprend plus
      la position où on l’avait quittée (le bas, après un résultat). Les onglets du bas et les retours gardent leur position. */
   if(primaryTabFor(name)!==name&&!tabBackNav)tabScrollPositions[name]=0;
+  /* 13 novembre, 14 h 24 : « quand on appuie sur les boutons on arrive pas tout le temps en haut des pages ». Une page principale
+     (Accueil, Planning, Défis…) ouverte par un bouton d’une autre page (une carte, un chiffre de « Ma progression », « Voir tout »…)
+     s’ouvre en haut, comme les sous-pages. Seuls la barre du bas et le retour retrouvent la position où on l’avait laissée. */
+  if(name!==activeTab&&!tabBackNav&&!restoringNav&&!(typeof tabDepuisBarre==='function'&&tabDepuisBarre()))tabScrollPositions[name]=0;
   activeTab=name;
   syncTabBack(name);
   if(name==='learn'&&typeof obWidgetBientot==='function')obWidgetBientot();
@@ -44680,6 +44705,18 @@ function genreDe(){
   const g=d||p||'';return g==='f'||g==='h'?g:'';
 }
 function accord(f,h,n){const g=genreDe();return g==='f'?f:g==='h'?h:n;}
+/* 13 novembre, 14 h 24 (« bien prendre en compte le genre de chacun pour la personnalisation ») : un texte écrit en forme inclusive,
+   comme les rappels (aussi en ligne, rappels.json), s’accorde au genre choisi : « inaperçu·e » devient « inaperçue » ou « inaperçu »,
+   « Explorateur·rice » « Exploratrice » ou « Explorateur », « relationnel·le » « relationnelle » ou « relationnel ». Sans réponse, ou
+   « Ne pas dire », le texte reste tel quel. Le pluriel (« apprenant·es ») ne parle pas de la personne : il ne change pas. */
+function accordTexte(t){
+  const g=genreDe();
+  if(typeof t!=='string'||!g||t.indexOf('·')<0)return t;
+  return t.replace(/(\p{L}+)·(rice|le|e)(?!\p{L})/gu,(m,mot,fin)=>{
+    if(fin==='rice')return g==='f'?(/eur$/.test(mot)?mot.slice(0,-3)+'rice':mot+'rice'):mot;
+    return g==='f'?mot+fin:mot;
+  });
+}
 function obJobNom(k){return k==='student'?accord('Étudiante','Étudiant','Étudiant·e'):(OB_JOBS.find(j=>j[0]===k)||[])[1]||'';}
 /* « Comment as-tu connu Requête ? » (4 novembre, 3 h 54, d’après Duolingo) : la réponse reste sur l’appareil (state.profile.source). */
 const OB_SOURCES=[
@@ -45506,7 +45543,7 @@ async function obPaywallAcheter(){
     if(ok){if(typeof stat==='function')stat(essai?'essai':'achat',null,{o});obPaywallEntrer();return;}
     /* La feuille d’Apple refermée sans payer : une fois, l’offre de bienvenue (si la boutique la donne à ce compte). */
     if(obSortieProposer())return;}
-  catch(e){obPwBusy=false;if(live)live.textContent='Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.';}
+  catch(e){obPwBusy=false;if(live)live.textContent=`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`;}
   obPaywallPied();
 }
 /* ---------- L’offre de bienvenue (Elisa, 12 novembre, 16 h 03 : « est-ce qu’on peut avoir une offre à −50 ? » ; 16 h 34 : « fais-le
@@ -45590,7 +45627,7 @@ async function obSortieAcheter(){
   const live=document.getElementById('pw-live');obPwBusy=true;obSortiePied();if(live)live.textContent='';
   try{const ok=await window.REQUETE_ACHAT.acheter('bienvenue');obPwBusy=false;
     if(ok){if(typeof stat==='function')stat('achat',null,{o:'bienvenue'});obPaywallEntrer();return;}}
-  catch(e){obPwBusy=false;if(live)live.textContent='Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.';}
+  catch(e){obPwBusy=false;if(live)live.textContent=`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`;}
   if(obPwSortie)obSortiePied();
 }
 async function obPaywallRestaurer(){
@@ -47752,18 +47789,22 @@ function obChampEnVue(){
 if(typeof window!=='undefined'&&typeof document!=='undefined'){
   let obTailleH=-1,obClavierT=[];
   const obRefit=()=>{const r=document.getElementById('onboarding');if(r&&r.classList.contains('on'))obFit();};
-  /* La vue met environ une demi-seconde à changer de taille avec le clavier : on remesure pendant ce temps-là. */
-  const obRefitBientot=()=>{obClavierT.forEach(clearTimeout);obClavierT=[120,520,900].map(t=>setTimeout(obRefit,t));};
+  /* 13 novembre, 14 h 24 : la vue ne change plus de taille 0,45 s après le clavier (mode « none ») ; on remesure quand il a fini de
+     bouger (KB_ANIM_MS), puis une fois encore. */
+  const obRefitBientot=()=>{obClavierT.forEach(clearTimeout);obClavierT=[KB_ANIM_MS+60,750].map(t=>setTimeout(obRefit,t));};
   if(typeof ResizeObserver==='function'){
     const ro=new ResizeObserver(es=>{const c=es[es.length-1].contentRect,h=Math.round(c.height),l=Math.round(c.width);
       /* La plus grande hauteur vue à cette largeur : celle de l’onboarding sans clavier (obGoto l’attend avant de peindre la page suivante) */
       if(l!==obHPleineL){obHPleineL=l;obHPleine=h;}else if(h>obHPleine)obHPleine=h;
-      if(h===obTailleH)return;obTailleH=h;obRefit();});
+      if(h===obTailleH)return;obTailleH=h;
+      /* Pendant que l’appli suit le clavier (13 novembre), une image sur deux changerait l’échelle : remesurée à la fin (obRefitBientot) */
+      if(typeof kbEnMouvement==='function'&&kbEnMouvement())return;
+      obRefit();});
     const suivre=()=>{const r=document.getElementById('onboarding');if(r)ro.observe(r);};
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',suivre,{once:true});else suivre();
   }
   document.addEventListener('focusin',e=>{const b=document.getElementById('ob-body'),t=e.target;if(b&&t&&b.contains(t)&&/^(INPUT|TEXTAREA)$/.test(t.tagName))obRefitBientot();});
-  ['keyboardWillShow','keyboardDidShow','keyboardDidHide'].forEach(n=>window.addEventListener(n,obRefitBientot));
+  ['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,obRefitBientot));
   /* 12 novembre, 12 h 24 (Elisa, le prénom clavier ouvert : « Regarde comment la page part en haut » ; pour « Choisis ton pseudo » :
      le haut de la page d’abord, et plus de page qui remonte avec le clavier). Le clavier ouvert, la page n’avait plus la place de
      montrer le champ au-dessus du bouton : elle défilait (obChampEnVue) et son en-tête passait sous l’heure. Clavier ouvert sur un
@@ -47817,8 +47858,12 @@ function couleurDuBas(){
 }
 function fondSousClavier(){
   const C=typeof window!=='undefined'?window.Capacitor:null;
-  if(!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
+  if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
   const couleur=couleurDuBas();
+  /* 13 novembre, 14 h 24 : la vue ne rétrécit plus (Keyboard « none ») ; sous le clavier, c’est le bas de la page web qu’on voit à
+     travers lui : il prend la même couleur (--fond-clavier, ludique.css, « Le clavier qui monte »). */
+  try{document.documentElement.style.setProperty('--fond-clavier',couleur);}catch(e){}
+  if(typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
   if(couleur===fondSousClavier.derniere)return;
   fondSousClavier.derniere=couleur;
   try{Promise.resolve(C.nativePromise('RequeteWidget','fond',{couleur})).catch(()=>{fondSousClavier.derniere=null;});}catch(e){fondSousClavier.derniere=null;}
@@ -48681,7 +48726,7 @@ function obBonjourStickers(){
 function obInviteHTML(){
   const inv=!state.onboarded&&typeof jeuInvitation==='function'?jeuInvitation():null;if(!inv)return '';
   const stk=typeof lqStkSvg==='function'?`<span class="ob-invite-stk" aria-hidden="true">${lqStkSvg('target')}</span>`:'';
-  return `<div class="ob-invite" role="note">${stk}<span class="ob-invite-t"><b>${inv.de?`${esc(inv.de)} t’invite`:'Tu es invité·e'} à un défi SQL</b><small>Inscris-toi pour rejoindre ${inv.de?'sa':'la'} salle&nbsp;: tu y entres juste après.</small></span></div>`;
+  return `<div class="ob-invite" role="note">${stk}<span class="ob-invite-t"><b>${inv.de?`${esc(inv.de)} t’invite`:`Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'}`} à un défi SQL</b><small>Inscris-toi pour rejoindre ${inv.de?'sa':'la'} salle&nbsp;: tu y entres juste après.</small></span></div>`;
 }
 function paintOb(){
   const root=document.getElementById('onboarding');
@@ -49108,7 +49153,7 @@ function paintOb(){
   }else{
     const p=apercuPlan(draft.niveau||'debutant',draft.rythme||'regulier',draft.freq||7);
     const ryt=RYTHMES.find(r=>r.k===(draft.rythme||'regulier'))||RYTHMES[1];
-    const nivLabel={debutant:'Débutant',bases:'Bases',inter:'Analyste'}[draft.niveau]||'Débutant';
+    const debLabel=accord('Débutante','Débutant','Débutant·e'),nivLabel={debutant:debLabel,bases:'Bases',inter:'Analyste'}[draft.niveau]||debLabel;
     const firstId=p.sessions[0].lessons.find(id=>!isDefiId(id))||p.sessions[0].lessons[0];
     const first=allLessons.find(l=>l.id===firstId);
     const goalLabel=(OB_GOALS.find(g=>g[0]===draft.goal)||[])[1]||'Progresser en SQL';
@@ -49550,8 +49595,8 @@ function rappelOrdre(c,len){
 }
 function rappelMessage(d){
   const L=rappelListe(),len=L.length,n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
-  const c=Math.floor(n/len),p=n-c*len;
-  return L[rappelOrdre(c,len)[p]];
+  const c=Math.floor(n/len),p=n-c*len,m=L[rappelOrdre(c,len)[p]];
+  return typeof accordTexte==='function'&&Array.isArray(m)?m.map(accordTexte):m;
 }
 /* App iOS : le rappel passe par des notifications locales (plugin LocalNotifications), car les notifications web n’y existent pas.
    Une notification qui se répète garde toujours le même texte : les séances à venir sont donc posées une à une, avec leur message
@@ -49845,7 +49890,7 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
    réf. 9). --kb : la hauteur cachée par le clavier, 0 sans clavier. */
 (function(){
   const vv=window.visualViewport;if(!vv)return;
-  let raf=0,serreT=0;
+  let raf=0,serreT=0,partT=0;
   /* Dans l’app, le clavier qui ne fait pas rétrécir la page compte aussi (kbNatif, 11 novembre) ; html.kb-ouvert : un clavier à l’écran. */
   const fit=()=>{raf=0;const kb=Math.max(Math.round(window.innerHeight-vv.height-vv.offsetTop),kbNatif());document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');
     document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');   // Safari : les barres qui flottent sur le clavier
@@ -49865,7 +49910,12 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
     const serre=typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&window.innerHeight<kbNatBase-1;
     clearTimeout(serreT);
     if(serre)serreT=setTimeout(()=>{ if(!kbNatH&&window.innerHeight<kbNatBase-1){kbNatBase=window.innerHeight;fit();} },600);
-    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre);
+    /* 13 novembre, 14 h 24 : le clavier qui descend garde kb-ouvert le temps de son mouvement ; l’appli reprend sa hauteur avec lui
+       (ludique.css, « Le clavier qui monte »), et la barre d’onglets ne réapparaît qu’une fois le clavier parti (elle ne descend pas avec lui). */
+    const part=!kbNatH&&typeof kbEnMouvement==='function'&&kbEnMouvement();
+    clearTimeout(partT);
+    if(part)partT=setTimeout(fit,Math.max(0,kbAnimFin-Date.now())+10);
+    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part);
     if(typeof paysVueRendre==='function')paysVueRendre();};
   const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
   vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);
@@ -49977,7 +50027,6 @@ function renderCompte(){
   const initial=((Array.from(name)[0]||Array.from(String(psMien()||'').replace(/^@+/,''))[0]||'R')).toUpperCase();   // sans prénom : la lettre du pseudo, comme la feuille du profil
   const st=compteStats(),kd=salleKpi();
   const progress=progressContinuer();
-  const nivLab={debutant:'Niveau débutant',bases:'Quelques bases',inter:'Niveau analyste'}[(state.plan&&state.plan.niveau)||(state.profile&&state.profile.niveau)]||null;
   const remind=rappelOn();
   const hour=rappelHeure();
   const connected=state.accountMode==='connected';
@@ -49992,8 +50041,6 @@ function renderCompte(){
   /* 21 h 54 : l’objectif sur la carte du profil, à la place de la ligne « Profil et objectif » des réglages (la carte ouvre la même
      feuille) */
   const objHero=profileGoal?`<span class="acct-obj"><span class="acct-obj-ico" aria-hidden="true">${typeof obOptionIcon==='function'?obOptionIcon(profileGoalO[2]):''}</span><span>Mon objectif\u00a0: <strong>${esc(profileGoal)}</strong></span></span>`:'';
-  const profileJob=obJobNom(profile.job);
-  const profileSummary=[profileGoal,profileJob,nivLab].filter(Boolean).join(' · ')||'Objectif, niveau et rythme';
   const CHEV=ACCT_CHEV;
   const plural=(n,word)=>`${n} ${word}${n>1?'s':''}`;
   const accountTitle=name||(connected?'Mon profil':'Ton espace Requête');
@@ -50134,17 +50181,10 @@ function renderCompte(){
       </section>
     </div>
     <details class="plus-details" id="plus-profile-settings">
-      <summary><span>Profil et objectif</span><small>Adapte le parcours à tes besoins</small><i aria-hidden="true">×</i></summary>
+      <summary><span>Profil et objectif</span><small>Ton pseudo, ton niveau et ton objectif</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
         ${accPseudoHTML(jeuSavedNom())}
-        <button class="acc-row" type="button" onclick="closePlusDetails();startOnboarding('name')">
-          <span class="acc-row-ico" aria-hidden="true">${plusIcon('target')}</span>
-          <div class="at"><b>Personnalisation</b><small>${esc(profileSummary)}</small></div>
-          ${CHEV}</button>
-        <button class="acc-row" type="button" onclick="replayOnboarding()">
-          <span class="acc-row-ico" aria-hidden="true">${plusIcon('replay')}</span>
-          <div class="at"><b>Revoir l’intro</b><small>Accueil et choix de connexion</small></div>
-          ${CHEV}</button>
+        ${accGenreHTML()}
         ${st.due?`<p class="acc-note">${st.due} leçon${st.due>1?'s':''} à réviser aujourd’hui.</p>`:''}
       </div>
     </details>
@@ -50341,6 +50381,24 @@ function openLegal(kind){
    (aplat violet du héros, avatar contouré comme sur les avis, le cadenas dans sa pastille, le @ en jaune, le trait menthe qui
    se dessine sous le pseudo comme sous « le SQL »). Le texte ne change pas : « Pseudo », le pseudo, le cadenas — toujours
    sans sous-titre ni mention d’unicité (18 h 39). */
+/* 13 novembre, 14 h 24 (« bien prendre en compte le genre de chacun pour la personnalisation ») : sans « Personnalisation », la
+   réponse de l’onboarding (Une femme, Un homme, Ne pas dire) se change ici ; un compte venu d’avant la question (4 novembre) peut la
+   donner. Les mots qui parlent de la personne s’accordent aussitôt (accord, accordTexte). */
+function accGenreHTML(){
+  const g=typeof state!=='undefined'&&state&&state.profile&&typeof state.profile.genre==='string'?state.profile.genre:'';
+  const attr=typeof escAttr==='function'?escAttr:esc;
+  return `<div class="acc-genre"><p class="ct-l" id="acc-genre-q">Tu es…</p><div class="ct-types" role="radiogroup" aria-labelledby="acc-genre-q">${OB_GENRES.map(([k,label,aria])=>`<button type="button" class="ct-type${g===k?' on':''}" role="radio" aria-checked="${g===k}" onclick="accGenre('${k}')"${aria?` aria-label="${attr(aria)}"`:''}>${esc(label)}</button>`).join('')}</div><small class="acc-genre-n">Pour accorder les mots qui parlent de toi.</small></div>`;
+}
+function accGenre(k){
+  if(!OB_GENRES.some(x=>x[0]===k))return;
+  if(!state.profile||typeof state.profile!=='object')state.profile={};
+  if(state.profile.genre===k)return;
+  state.profile.genre=k;
+  if(typeof draft!=='undefined'&&draft&&typeof draft==='object')draft.genre=k;
+  save();
+  if(typeof buzz==='function')buzz('selection');
+  renderCompte();
+}
 function accPseudoHTML(name){
   const n=jeuNom(name);
   if(!n)return `<button type="button" class="acc-pseudo is-vide" onclick="closePlusDetails();psPage({})"><span class="acc-pseudo-av" aria-hidden="true">?</span><span class="acc-pseudo-t"><small>Pseudo</small><b><span class="acc-pseudo-nm">Choisis ton pseudo</span></b></span><span class="acc-pseudo-go" aria-hidden="true">${ACCT_CHEV}</span></button>`;
@@ -51079,7 +51137,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-accueil-v2935';
+  const SW_CACHE='requete-2026-11-13-clavier-v2936';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

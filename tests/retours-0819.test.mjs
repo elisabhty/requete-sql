@@ -49,6 +49,7 @@ test('obFit suit la vraie taille de l’onboarding et se relance pendant que le 
     ResizeObserver: class { constructor(cb) { ro.cb = cb; } observe(el) { ro.el = el; } },
     setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, clearTimeout: () => {},
     obFit: () => { fits++; },
+    KB_ANIM_MS: 260, kbEnMouvement: () => false,
   });
   /* 12 novembre, 21 h 53 : le même suivi note la hauteur sans clavier (obHPleine, déclarée à côté d’obGoto) */
   vm.runInContext('let obHPleine=0,obHPleineL=0;' + src, ctx);
@@ -59,11 +60,13 @@ test('obFit suit la vraie taille de l’onboarding et se relance pendant que le 
   on = false; ro.cb([{ contentRect: { height: 932 } }]); assert.equal(fits, 2, 'onboarding fermé : rien');
   on = true;
   dl.focusin.forEach(f => f({ target: { tagName: 'INPUT', dedans: true } }));
-  assert.deepEqual(timers.map(t => t[1]), [120, 520, 900], 'au toucher du champ : trois mesures, le temps que la vue change de taille');
-  timers.forEach(t => t[0]()); assert.equal(fits, 5);
+  /* 13 novembre, 14 h 24 : la vue ne change plus de taille avec le clavier (mode « none ») : une mesure quand il a fini de monter,
+     puis une vérification (avant : 120, 520 et 900 ms, le temps que la vue rétrécisse) */
+  assert.deepEqual(timers.map(t => t[1]), [320, 750], 'au toucher du champ : deux mesures, le clavier arrivé');
+  timers.forEach(t => t[0]()); assert.equal(fits, 4);
   timers.length = 0; dl.focusin.forEach(f => { f({ target: { tagName: 'BUTTON', dedans: true } }); f({ target: { tagName: 'INPUT', dedans: false } }); });
   assert.equal(timers.length, 0, 'un bouton, ou un champ hors de l’onboarding : rien');
-  for (const n of ['keyboardWillShow', 'keyboardDidShow', 'keyboardDidHide']) assert.equal(typeof wl[n], 'function', n);
+  for (const n of ['keyboardWillShow', 'keyboardDidShow', 'keyboardWillHide', 'keyboardDidHide']) assert.equal(typeof wl[n], 'function', n);
   assert.equal(typeof wl.resize, 'undefined', 'le resize reste celui d’avant (une seule écoute)');
   assert.ok(app.includes("window.addEventListener('resize',()=>{const r=document.getElementById('onboarding');if(r&&r.classList.contains('on'))obFit();});"));
 });

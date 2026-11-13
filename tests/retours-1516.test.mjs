@@ -105,8 +105,9 @@ test('réf. 8 — vitrine : la phrase sur toute la largeur, une barre de progres
 });
 
 test('réf. 9 — une feuille se ferme une fois l’action faite, et reste au-dessus du clavier', () => {
-  assert.ok(app.includes(`onclick="closePlusDetails();startOnboarding('name')"`), 'Personnalisation');
-  assert.ok(cut('function replayOnboarding(){', 'startOnboarding();').includes('closePlusDetails();'), 'Revoir l’intro');
+  /* 13 novembre, 14 h 24 : « Personnalisation » et « Revoir l’intro » quittent Profil et objectif */
+  assert.ok(!app.includes(`onclick="closePlusDetails();startOnboarding('name')"`), 'plus de « Personnalisation »');
+  assert.ok(!app.includes('onclick="replayOnboarding()"'), 'plus de « Revoir l’intro »');
   assert.ok(cut('async function resetAllProgress(){', 'state={').includes('closePlusDetails();'), 'Effacer la progression');
   assert.ok(cut('async function exportProgress(){', '\n}\n').includes('closePlusDetails();'), 'Exporter');
   /* 16 h 49 : le pseudo ne se change plus — plus de champ ni de bouton « Enregistrer » sous le clavier dans Mon compte */

@@ -26,7 +26,7 @@ function page({stock = {}, langue = 'fr-FR', charger = true, fuseau = 'Europe/Pa
     localStorage: {getItem: k => (k in local ? local[k] : null), setItem: (k, v) => { local[k] = String(v); }, removeItem: k => { delete local[k]; }},
     document: {write: h => ecrits.push(h), documentElement: {}, title: '', addEventListener() {}}, Map, WeakMap, JSON, Object, Array, String, RegExp, Math};
   /* anglaisFini : le jour où l’anglais ne sera plus « en essai » */
-  vm.runInNewContext(anglaisFini ? MOTEUR.replace("fichier: 'langue-en.js?v=1', essai: true", "fichier: 'langue-en.js?v=1'") : MOTEUR, ctx);
+  vm.runInNewContext(anglaisFini ? MOTEUR.replace("fichier: 'langue-en.js?v=2', essai: true", "fichier: 'langue-en.js?v=2'") : MOTEUR, ctx);
   const L = win.REQUETE_LANGUE;
   if (charger && ecrits.length) vm.runInNewContext(EN, ctx);
   return {L, ecrits, local, win};
@@ -52,7 +52,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   const p = page({stock: {...ESSAI, 'requete-langue': 'en'}});
   assert.equal(p.L.code, 'en');
   assert.equal(p.L.locale, 'en-US');
-  assert.deepEqual(p.ecrits, ['<script src="langue-en.js?v=1"><\/script>'], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
+  assert.deepEqual(p.ecrits, ['<script src="langue-en.js?v=2"><\/script>'], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
   assert.deepEqual([...p.L.disponibles()], ['fr', 'en']);
   assert.equal(p.L.nom('en'), 'English');
   /* changer de langue : enregistré, puis l’appli se recharge */
@@ -60,7 +60,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   assert.equal(p.local['requete-langue'], 'fr');
   assert.equal(p.win.recharge, true);
   assert.equal(p.L.changer('de'), false);
-  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=1', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
+  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=2', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
 });
 
 test('traduire un texte : tel quel, avec ses nombres, le prénom, les mois et les jours ; sans traduction, il reste en français et il est noté', () => {
@@ -162,9 +162,9 @@ test('le SQL : sur la vraie base du cours, la requête récrite donne le même r
 });
 
 test('index.html : langues.js juste après maj.js, le prénom confié au moteur, le choix de la langue seulement en essai', () => {
-  const i = app.indexOf('<script src="maj.js?v=1"></script>'), j = app.indexOf('<script src="langues.js?v=1"></script>');
+  const i = app.indexOf('<script src="maj.js?v=1"></script>'), j = app.indexOf('<script src="langues.js?v=2"></script>');
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
-  assert.ok(sw.includes("'./langues.js?v=1',") && sw.includes("'./langue-en.js?v=1',"));
+  assert.ok(sw.includes("'./langues.js?v=2',") && sw.includes("'./langue-en.js?v=2',"));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name)"));
   assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
   assert.ok(app.includes("${langueLigneHTML(CHEV)}") && app.indexOf("${langueLigneHTML(CHEV)}") > app.indexOf("openPlusDetails('plus-reading')"), 'sa ligne dans les réglages, après « Confort de lecture »');

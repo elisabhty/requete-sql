@@ -49,7 +49,7 @@ test('le choix du pays, clavier ouvert : la feuille ne bouge plus, son fond couv
   assert.ok(f.includes("const partir=()=>{clearTimeout(attente);try{input.blur();}catch(e){}if(f.id==='pays-feuille')paysFeuilleFermer();"));
   const fermer = cut('function paysFeuilleFermer(vite){', '\n}\n');
   assert.ok(fermer.includes('paysVueRendre();setTimeout(()=>paysVueRendre(true),1200);'));
-  assert.ok(html.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre);\n    if(typeof paysVueRendre==='function')paysVueRendre();};"));
+  assert.ok(html.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part);\n    if(typeof paysVueRendre==='function')paysVueRendre();};"));
 });
 
 test('la page derrière n’est rendue au clavier qu’une fois la feuille partie ET la vue revenue', () => {
@@ -133,10 +133,10 @@ test('une notification se lit en entier : elle passe à la ligne, et reste plus 
 test('clavier qui part : la mise en page « clavier » tient jusqu’au retour de la vue (la barre d’onglets ne clignote plus au-dessus de lui)', () => {
   const fit = cut('const fit=()=>{raf=0;const kb=', "\n  const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};");
   assert.ok(fit.includes("const serre=typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&window.innerHeight<kbNatBase-1;"), 'dans l’app seulement, clavier annoncé parti, vue encore rétrécie');
-  assert.ok(fit.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre);"));
+  assert.ok(fit.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part);"));
   /* La sécurité : si la vue ne revenait pas, sa hauteur du moment est prise pour bonne au bout de 0,6 s */
   assert.ok(fit.includes("clearTimeout(serreT);\n    if(serre)serreT=setTimeout(()=>{ if(!kbNatH&&window.innerHeight<kbNatBase-1){kbNatBase=window.innerHeight;fit();} },600);"));
-  assert.ok(html.includes('let raf=0,serreT=0;'));
+  assert.ok(html.includes('let raf=0,serreT=0,partT=0;'));   // 13 novembre, 14 h 24 : part, le clavier qui descend encore
   /* Le calcul, joué : annonce, vue rétrécie, départ annoncé, vue revenue */
   const src = `(function(natif){let kbNatH=0,kbNatBase=852;const window={innerHeight:852};const dxNatif=()=>natif;
     const serre=()=>typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&window.innerHeight<kbNatBase-1;

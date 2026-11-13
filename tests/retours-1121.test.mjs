@@ -57,7 +57,7 @@ test('les feuilles, la barre des touches SQL et la ligne « Exécuter » suivent
   assert.ok(kb.includes('const kb=Math.max(Math.round(window.innerHeight-vv.height-vv.offsetTop),kbNatif());'));
   assert.ok(html.includes("document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');"), '--kb comme avant (réf. 9 du 31 octobre)');
   assert.ok(kb.includes("document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');"), 'Safari : les barres qui flottent sur le clavier');
-  assert.ok(kb.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre);"))   // serre : la vue pas encore revenue (12 novembre, 23 h 26);
+  assert.ok(kb.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part);"))   // serre : la vue pas encore revenue (12 novembre, 23 h 26);
   assert.ok(kb.includes("['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide','resize'].forEach(n=>window.addEventListener(n,fit));"), 'recalé aussitôt');
   assert.ok(css.includes('html.lq .viz.on{bottom:calc(var(--kb,0px) - var(--kb-app,0px))!important}'), 'la feuille monte de --kb (dans l’app, #app tient déjà au-dessus du clavier : retours-1150)');
 });

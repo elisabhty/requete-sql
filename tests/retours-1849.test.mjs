@@ -63,8 +63,8 @@ test('Mon compte : « Aide et prise en main » devient « Nous contacter » (« 
   assert.ok(app.includes("const titles={privacy:'Confidentialité',terms:'Conditions'};"), 'la feuille Aide n’existe plus');
   /* À l’ouverture, le formulaire (pas le « merci » d’avant) */
   assert.ok(app.includes("if(id==='plus-contact'&&typeof ctAvant==='function')ctAvant();"));
-  /* « Revoir l’intro » reste dans Profil et objectif */
-  assert.ok(app.includes('<div class="at"><b>Revoir l’intro</b><small>Accueil et choix de connexion</small></div>'));
+  /* 13 novembre, 14 h 24 : « Revoir l’intro » et « Personnalisation » ne sont plus dans Profil et objectif */
+  assert.ok(!app.includes('<b>Revoir l’intro</b>') && !app.includes('<b>Personnalisation</b>'));
 });
 
 test('le formulaire : quatre sujets, le message (1000 caractères), l’e-mail facultatif, les infos techniques d’un bug', () => {
