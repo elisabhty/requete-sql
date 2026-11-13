@@ -1,7 +1,8 @@
 /* Elisa, 13 novembre, 1 h 02, sur la page du widget (« Je t’encouragerai directement depuis ton écran d’accueil ! ») :
    « par rapport à cette page, la mettre juste après le deuxième cours, et une notif Apple de noter l’application après le premier
    cours ».
-   Après la première leçon validée : la fenêtre aux cinq étoiles d’iOS, demandée une fois. Après la deuxième : la page du widget.
+   1 h 38, « ok » pour reculer chacune d’une leçon (la première finit déjà sur la page du sticker du module 1) :
+   après la deuxième leçon validée, la fenêtre aux cinq étoiles d’iOS ; après la troisième, la page du widget.
    Jamais les deux au même retour à l’accueil. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -40,20 +41,24 @@ function accueil({ faites = 1, natif = true, note = false, widget = false, enLec
   return { ctx, stock, appels, minuteurs, retour };
 }
 
-test('après la première leçon : la note de l’app est demandée à iOS, une fois ; la page du widget attend la deuxième', async () => {
+test('après la deuxième leçon : la note de l’app est demandée à iOS, une fois ; la page du widget attend la troisième', async () => {
+  /* Après la première leçon : rien (la page du sticker du module 1 vient de passer) */
   const a = accueil({ faites: 1 });
+  await a.retour();
+  assert.deepEqual(a.appels, []); assert.deepEqual([...a.ctx.ouverts], []);
+  a.ctx.faites = 2;
   await a.retour();
   assert.deepEqual(a.appels, ['RequeteWidget noter']);
   assert.equal(a.stock.get('requete-note-demandee'), '1');
   assert.equal(a.stock.get('requete-note-jour'), '2026-11-13', 'le jour de la demande : la deuxième attendra une semaine');
   assert.deepEqual([...a.ctx.comptes], ['note'], 'l’entonnoir compte la demande');
-  assert.deepEqual([...a.ctx.ouverts], [], 'pas de page du widget après la première leçon');
-  /* Les retours suivants, toujours avec une seule leçon : plus rien */
+  assert.deepEqual([...a.ctx.ouverts], [], 'pas de page du widget après la deuxième leçon');
+  /* Les retours suivants, toujours avec deux leçons : plus rien */
   await a.retour(); await a.retour();
   assert.deepEqual(a.appels, ['RequeteWidget noter'], 'une seule demande');
   assert.deepEqual([...a.ctx.ouverts], []);
-  /* La deuxième leçon validée : la page du widget, une fois */
-  a.ctx.faites = 2;
+  /* La troisième leçon validée : la page du widget, une fois */
+  a.ctx.faites = 3;
   await a.retour();
   assert.deepEqual([...a.ctx.ouverts], ['widget']);
   assert.equal(a.stock.get('requete-widget-propose'), '1');
@@ -62,8 +67,8 @@ test('après la première leçon : la note de l’app est demandée à iOS, une 
   assert.deepEqual(a.appels, ['RequeteWidget noter']);
 });
 
-test('jamais les deux au même retour : deux leçons faites d’affilée, la note d’abord, le widget au retour suivant', async () => {
-  const a = accueil({ faites: 2 });
+test('jamais les deux au même retour : trois leçons faites d’affilée, la note d’abord, le widget au retour suivant', async () => {
+  const a = accueil({ faites: 3 });
   await a.retour();
   assert.deepEqual(a.appels, ['RequeteWidget noter']);
   assert.deepEqual([...a.ctx.ouverts], []);
@@ -72,12 +77,12 @@ test('jamais les deux au même retour : deux leçons faites d’affilée, la not
 });
 
 test('la note ne passe pas par-dessus autre chose, attend la fin de l’animation, et se redemande si iOS n’a pas pu la recevoir', async () => {
-  /* Rien avant la première leçon ; rien hors de l’app iPhone (le site) */
-  for (const o of [{ faites: 0 }, { natif: false }, { note: true }]) { const a = accueil(o); await a.retour(); assert.deepEqual(a.appels, [], JSON.stringify(o)); }
+  /* Rien avant la deuxième leçon ; rien hors de l’app iPhone (le site) */
+  for (const o of [{ faites: 0 }, { faites: 1 }, { faites: 2, natif: false }, { faites: 2, note: true }]) { const a = accueil(o); await a.retour(); assert.deepEqual(a.appels, [], JSON.stringify(o)); }
   /* En pleine leçon ou sous une feuille : ni note ni widget */
-  for (const o of [{ enLecon: true }, { feuille: true }]) { const a = accueil({ faites: 2, ...o }); await a.retour(); assert.deepEqual(a.appels, []); assert.deepEqual([...a.ctx.ouverts], []); }
+  for (const o of [{ enLecon: true }, { feuille: true }]) { const a = accueil({ faites: 3, ...o }); await a.retour(); assert.deepEqual(a.appels, []); assert.deepEqual([...a.ctx.ouverts], []); }
   /* Les délais : 0,9 s après le retour à l’accueil, puis 1,7 s (le cadenas de la leçon suivante s’ouvre en 1,6 s) */
-  const a = accueil({ faites: 1 });
+  const a = accueil({ faites: 2 });
   vm.runInContext('obWidgetBientot()', a.ctx);
   assert.equal(a.minuteurs.length, 1); assert.equal(a.minuteurs[0][1], 900);
   a.minuteurs.shift()[0]();
@@ -90,7 +95,7 @@ test('la note ne passe pas par-dessus autre chose, attend la fin de l’animatio
   assert.equal(a.stock.has('requete-note-demandee'), false);
   /* Le pont n’a pas pu (pas de fenêtre, ou une app plus ancienne sans la méthode) : on redemandera */
   for (const reponse of [{ ok: false }, new Error('méthode inconnue')]) {
-    const b = accueil({ faites: 1, reponse });
+    const b = accueil({ faites: 2, reponse });
     await b.retour();
     assert.deepEqual(b.appels, ['RequeteWidget noter']);
     assert.equal(b.stock.has('requete-note-demandee'), false);
@@ -103,7 +108,7 @@ test('la note ne passe pas par-dessus autre chose, attend la fin de l’animatio
   assert.ok(bientot.includes("      if(activeTab!=='learn'||noteProposer())return;\n"), 'la note d’abord ; si elle part, le widget attend le retour suivant');
   assert.ok(bientot.includes("      obWidgetT=setTimeout(()=>{try{if(activeTab==='learn')obWidgetProposer();}catch(e){}},1100);"), 'la page du widget : 2 s après le retour, une fois la leçon suivante ouverte sur le chemin');
   {
-    const w = accueil({ faites: 2, note: true });
+    const w = accueil({ faites: 3, note: true });
     vm.runInContext('obWidgetBientot()', w.ctx);
     assert.equal(w.minuteurs[0][1], 900); w.minuteurs.shift()[0]();
     assert.equal(w.minuteurs[0][1], 1100); assert.deepEqual([...w.ctx.ouverts], []);
@@ -111,7 +116,8 @@ test('la note ne passe pas par-dessus autre chose, attend la fin de l’animatio
     assert.deepEqual([...w.ctx.ouverts], ['widget']);
   }
   assert.ok(html.includes("  if(name==='learn'&&typeof obWidgetBientot==='function')obWidgetBientot();"));
-  assert.ok(bloc.includes('    if(leconsFaitesN()<2)return false;'), 'le widget : à partir de deux leçons');
+  assert.ok(bloc.includes('    if(leconsFaitesN()<3)return false;'), 'le widget : à partir de trois leçons');
+  assert.ok(bloc.includes('    if(n===0)return leconsFaitesN()>=2;'), 'la note : à partir de deux');
 });
 
 test('côté iPhone : la fenêtre d’Apple (StoreKit), jamais un écran maison ; « Noter Requête » reste dans Mon compte', () => {

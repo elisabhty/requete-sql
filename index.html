@@ -45505,10 +45505,12 @@ async function obPaywallRestaurer(){
 function obFinSuivante(slide){const f=obFinFlux(),i=f.indexOf(slide);return i>=0&&i<f.length-1?f[i+1]:'ready';}
 function obFinPrecedente(slide){const f=obFinFlux();if(slide==='ready')return f[f.length-1];const i=f.indexOf(slide);return i>0?f[i-1]:'practice';}
 function obFlowSteps(){return [...OB_PROFILE_SLIDES,...obFinFlux().slice(1)];}
-/* Le widget, après la deuxième leçon (Elisa, 13 novembre, 1 h 02 : « la mettre juste après le deuxième cours » ; elle venait après
-   la première) : une fois, dans l’app iPhone qui a son widget, de retour à l’accueil (pas pendant une leçon, ni par-dessus une
-   autre fenêtre). « Pas maintenant » et « C’est fait ! » ferment, et c’est tout : il ne revient pas.
-   Après la première leçon, c’est la note de l’app qu’on demande (noteProposer) ; jamais les deux au même retour à l’accueil. */
+/* Le widget, après la troisième leçon : une fois, dans l’app iPhone qui a son widget, de retour à l’accueil (pas pendant une
+   leçon, ni par-dessus une autre fenêtre). « Pas maintenant » et « C’est fait ! » ferment, et c’est tout : il ne revient pas.
+   Elisa, 13 novembre, 1 h 02 : « la mettre juste après le deuxième cours » (elle venait après le premier), la note de l’app
+   après le premier. 1 h 38 (« ok ») : chacune recule d’une leçon. La première leçon finit déjà sur la page du sticker du module 1 ;
+   la note d’iOS aussitôt après, cela faisait deux fenêtres coup sur coup. Donc : la note après la deuxième leçon (noteProposer),
+   le widget après la troisième ; jamais les deux au même retour à l’accueil. */
 const OB_WIDGET_VU='requete-widget-propose';
 let obWidgetT=0;
 function obWidgetBientot(){
@@ -45530,7 +45532,7 @@ function accueilOccupe(){
 function obWidgetProposer(){
   try{
     if(!state.onboarded||!obWidgetPossible()||localStorage.getItem(OB_WIDGET_VU))return false;
-    if(leconsFaitesN()<2)return false;
+    if(leconsFaitesN()<3)return false;
     if(accueilOccupe())return false;
     localStorage.setItem(OB_WIDGET_VU,'1');
   }catch(e){return false;}
@@ -45538,8 +45540,8 @@ function obWidgetProposer(){
   return true;
 }
 /* Noter l’app (Elisa, 13 novembre, 1 h 02 : « une notif Apple de noter l’application après le premier cours ») : la fenêtre aux
-   cinq étoiles d’iOS, demandée de retour à l’accueil après la première leçon validée, quand l’animation de la leçon suivante qui
-   s’ouvre est finie. iOS décide seul de l’afficher (jamais dans une version TestFlight) ; la ligne « Noter Requête » de Mon compte
+   cinq étoiles d’iOS, demandée de retour à l’accueil après la deuxième leçon validée (1 h 38 ; la première, à 1 h 02), quand
+   l’animation de la leçon suivante qui s’ouvre est finie. iOS décide seul de l’afficher (jamais dans une version TestFlight) ; la ligne « Noter Requête » de Mon compte
    reste là pour qui veut écrire un avis. Rend vrai si la demande part : le widget attendra le retour suivant.
    1 h 18 : « une deuxième demande de note plus tard… à un moment fort (un module terminé, ou 7 jours de série) ». Une deuxième
    fois donc, et pas plus : 7 jours au moins après la première, quand un vrai module (5 leçons au moins) est terminé ou que la
@@ -45561,7 +45563,7 @@ function notePossible(){
   try{
     if(!state.onboarded||!ilePont())return false;
     const n=noteFaites();
-    if(n===0)return leconsFaitesN()>=1;
+    if(n===0)return leconsFaitesN()>=2;
     return n===1&&noteJoursDepuis()>=NOTE_ECART_J&&noteMomentFort();
   }catch(e){return false;}
 }
@@ -50486,7 +50488,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-monde-v2919';
+  const SW_CACHE='requete-2026-11-13-note-v2920';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
