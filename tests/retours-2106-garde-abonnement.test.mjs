@@ -246,7 +246,7 @@ test('« Mon compte » sur le paywall de la garde : se déconnecter, supprimer s
 test('« Gérer mon abonnement » dans Mon compte : la feuille d’Apple par le pont natif, seulement dans l’app avec l’achat branché', async () => {
   const pont = lire('resources/ios/widget/App/RequeteWidgetPlugin.swift');
   assert.ok(pont.includes('import StoreKit\n'));
-  assert.ok(pont.includes('        CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise)\n    ]'));
+  assert.ok(pont.includes('        CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "widgetsPoses", returnType: CAPPluginReturnPromise)\n    ]'));
   const m = pont.slice(pont.indexOf('    @objc func abonnementGerer(_ call: CAPPluginCall) {'), pont.indexOf('    /// Noter l’app, à la demande d’iOS'));
   assert.ok(m.includes('guard #available(iOS 15.0, *) else {') && m.includes('guard let scene = self.bridge?.viewController?.view.window?.windowScene else {'));
   assert.ok(m.includes('Task { @MainActor in') && m.includes('try await AppStore.showManageSubscriptions(in: scene)') && m.includes('call.resolve(["ok": true])'));

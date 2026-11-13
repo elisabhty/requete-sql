@@ -46,7 +46,8 @@ test('les raccourcis de Duolingo, version Requête : posés au démarrage de l�
 });
 
 test('9 h 19 : « Fais une petite requête ! » ouvre l’onglet Défis ; « Tu supprimes Requête ? », l’accueil, où le chat le dit dans sa bulle', () => {
-  let x = page(); x.ctx.raccourcisBrancher(); x.ecoute['RequeteWidget:raccourci']({ type: 'fr.requete.app.requete' });
+  let x = page(); x.ctx.raccourcisBrancher(); x.vu.length = 0;   // le relevé des widgets posés, 6 s après (retours-2004)
+  x.ecoute['RequeteWidget:raccourci']({ type: 'fr.requete.app.requete' });
   assert.deepEqual(x.vu, [['onglet', 'defis']], 'l’onglet Défis');
   x = page(); const avant = Date.now(); x.ctx.raccourciOuvrir('fr.requete.app.adieu');
   assert.deepEqual(x.vu, [['onglet', 'learn'], ['attend', 450], ['bulle']], 'l’accueil, puis la bulle');
