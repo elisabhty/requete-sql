@@ -40,6 +40,31 @@ plus que sur iPhone :
   abonnement Requête Premium par l’App Store (RevenueCat reçoit un identifiant d’achat anonyme), progression sur
   l’iPhone et dans le compte. Aucun prix sur le site.
 
+### La vidéo dans le héros du site (13 novembre, 9 h 56)
+
+Elisa : « mettre la vidéo data analyst finalement après “Apprends le SQL, la compétence n°1 des data analysts”, juste après ce
+titre, de manière bien détourée, bien fondue ; quand on clique sur Commencer on tombe sur la vidéo et on a un bouton pour aller
+sur la partie appli ».
+
+- **Où** : `decouvrir/index.html`, le bloc `#video` (`.hv`), juste après le titre du héros. C’est `video.html?site` dans un
+  cadre sans fond. Sur téléphone, sous le titre ; sur tablette et ordinateur, à côté du texte (le titre, le texte et les avis à
+  gauche, la vidéo à droite), « Ton objectif » et la photo dessous (`vitrine.css`, « La vidéo du héros »).
+- **Fondue, détourée** : l’affiche de la vidéo a le dégradé du héros (`--deep`) ; un liseré clair, un halo lavande et une ombre
+  la détourent, dessinés par la page (`.hv-card::before` : le cadre couperait une ombre venue de la vidéo). La carte fait la
+  largeur de la vidéo, sa hauteur (5/4) plus les 64 px de la barre de lecture.
+- **`video.html?site`** (classe `vd-site`, posée dès la première image quand la page est dans un cadre) : ni fond ni barre du
+  haut, l’image sur toute la largeur (`fit()`), la barre de lecture en blanc sur le violet, « Découvrir l’appli » à la fin.
+  Ouverte seule (`requeteapp.com/video.html`), la page n’a pas changé ; plus aucun lien du site n’y mène.
+- **« Commencer »** (la barre, l’affiche « +55 », le dernier appel, le pied, sur toutes les pages du site) et « Voir la vidéo »
+  mènent à `#video` : la page descend, un halo jaune bat deux fois autour de la vidéo, son bouton de lecture reçoit le focus.
+  La vidéo ne part pas seule : elle parle, c’est son affiche (« Avec le son ») qui la lance, d’un toucher.
+- **Vers l’appli** : « Découvrir l’appli », sous la vidéo et à sa fin, descend à la section iPhone (`#mobile`). Les cinq
+  objectifs, « Requête sur iPhone » et « Commencer le parcours » (pages des parcours) y mènent toujours. Au dernier appel,
+  « Voir la vidéo » est devenu « Requête sur iPhone » (sinon, deux boutons pour la même vidéo).
+- **Le son** : la vidéo s’arrête quand elle sort de l’écran ou qu’on part vers la section iPhone ; elle coupe l’avis audio
+  en cours quand elle démarre, et s’arrête quand on lance un avis (`requeteVideo`, `requeteVideoJoue`, `requeteVersAppli`).
+- Après un changement de `vitrine.css` : son numéro (`vitrine.css?v=`, les 8 premiers caractères de son sha1) dans les cinq pages.
+
 ## À chaque mise à jour du site
 
 ```bash
@@ -474,6 +499,21 @@ les a déjà vues, il faut réinstaller l’app et refaire trois leçons.
 
 **Ce qui n’a pas été fait** : la Dynamic Island n’a pas de page d’exemples ; le tutoriel de l’écran d’accueil d’après la leçon
 garde ses trois temps (celui de Mon compte en a cinq) ; les exemples sont des dessins, pas des captures de l’iPhone.
+
+### La fin de l’onboarding mène à l’accueil (13 novembre, 9 h 56)
+
+Elisa : « une personne qui vient sur l’appli après l’onboarding tombe bien sur l’accueil et pas sur le cours ? » Ce n’était
+pas le cas du nouvel inscrit : « Commencer la première leçon », sur « Ton parcours est prêt », l’envoyait droit dans sa
+première leçon (seul celui qui retrouvait un compte arrivait à l’accueil, depuis le 13 novembre, 2 h 41). Maintenant, la fin
+de l’onboarding mène à l’accueil pour tout le monde, en haut de la page, sans leçon ouverte (`obTerminer` → `obVersAccueil`) ;
+le bouton dit **Commencer**. Ne changent pas : « Voir mon parcours » (le planning), « Rejoindre la salle » (une invitation),
+« Enregistrer » (revenu de Mon compte).
+
+Vérifié le même jour, en simulation (une fausse boutique, pas l’App Store) : sans abonnement, le paywall reste devant l’appli
+(ni « Retour », ni onglets) ; « Restaurer » sans achat dit « Aucun abonnement à restaurer sur ce compte Apple. » et le paywall
+reste, avec un achat il ouvre l’appli ; l’offre de bienvenue à −50 % (`fr.requete.app.annuel.bienvenue`) achetée, l’appli
+s’ouvre. Les montants s’écrivent tous de la même façon depuis 2 h 41 (« 19,99 $US au lieu de 39,99 $US ») : une capture avec
+« $19.99 » et « 20 $US » vient d’une version plus ancienne.
 
 ### Le jour où un parcours ouvre : la notification (11 novembre, 15 h 55)
 

@@ -39,24 +39,29 @@ test('l’appli : dans un navigateur, son adresse mène au site ; elle ne s’y 
   assert.ok(app.includes('<meta name="description" content="Apprends le SQL en écrivant des requêtes sur une vraie base. Leçons courtes, défis pratiques et console SQL, dans l’appli Requête pour iPhone.">'));
 });
 
-test('le site : « Commencer » descend à la section iPhone, plus aucun lien vers l’appli ni vers la connexion', () => {
+/* 13 novembre, 9 h 56 (Elisa : « quand on clique sur Commencer on tombe sur la vidéo et on a un bouton pour aller sur la partie
+   appli ») : « Commencer » et « Voir la vidéo » mènent à la vidéo du héros (#video, retours-0956-video-heros.test.mjs) ; la section
+   iPhone garde les objectifs, « Requête sur iPhone » et « Commencer le parcours ». */
+test('le site : « Commencer » mène à la vidéo du héros, la section iPhone reste à un bouton ; plus aucun lien vers l’appli ni vers la connexion', () => {
   for (const f of PAGES) {
-    const h = site[f], ici = f === 'index.html' ? '#mobile' : './#mobile';
+    const h = site[f], ici = f === 'index.html' ? '#mobile' : './#mobile', video = f === 'index.html' ? '#video' : './#video';
     assert.doesNotMatch(h, /href="\.\.\/(?:\?[^"]*)?"|href="\.\.\/index\.html|\?depuis=|connexion\.html|>Se connecter</, `${f} : plus de chemin vers l’appli`);
     const cta = h.slice(h.indexOf('<div class="nav-cta">'), h.indexOf('<button type="button" class="burger"'));
-    assert.ok(cta.includes(`<a class="btn btn-p" href="${ici}">Commencer</a>`), `${f} : la barre`);
+    assert.ok(cta.includes(`<a class="btn btn-p" href="${video}">Commencer</a>`), `${f} : la barre`);
     const menu = h.slice(h.indexOf('<nav class="menu" id="menu"'), h.indexOf('</nav>', h.indexOf('<nav class="menu" id="menu"')));
-    assert.ok(menu.includes('<a class="btn btn-s btn-lg" href="video.html">Voir la vidéo</a>'), `${f} : la vidéo, derrière son bouton`);
+    assert.ok(menu.includes(`<a class="btn btn-s btn-lg" href="${video}">Voir la vidéo</a>`), `${f} : la vidéo, derrière son bouton`);
+    assert.ok(!/href="video\.html"/.test(h), `${f} : plus de lien vers la page de la vidéo, elle est dans le héros`);
     const pied = h.slice(h.indexOf('<footer>'), h.indexOf('</footer>'));
-    assert.ok(pied.includes(`<a href="${ici}">Commencer</a>`) && pied.includes(`<a href="${ici}">Requête sur iPhone</a>`) && !pied.includes('Requête sur mobile'), `${f} : le pied`);
+    assert.ok(pied.includes(`<a href="${video}">Commencer</a>`) && pied.includes(`<a href="${video}">Le métier en 2 minutes</a>`) && pied.includes(`<a href="${ici}">Requête sur iPhone</a>`) && !pied.includes('Requête sur mobile'), `${f} : le pied`);
     assert.ok(pied.includes('aria-label="Télécharger dans l’App Store"'), `${f} : le badge de l’App Store`);
   }
   const h = site['index.html'];
   assert.ok(h.includes('id="mobile"') && h.includes('<h2 id="mobile-h">Requête, <em>dans ta poche</em>.</h2>'), 'la section où tout descend');
   assert.equal((h.match(/<a class="g(?: wide)?" href="#mobile" data-goal="\w+">/g) || []).length, 5, 'les cinq objectifs');
-  assert.ok(h.includes('<a class="poster more" href="#mobile">') && h.includes('<a class="btn btn-p btn-lg" href="#mobile">'), 'l’affiche « +55 autres cours » et le dernier bouton');
+  assert.ok(h.includes('<a class="poster more" href="#video">') && h.includes('<a class="btn btn-p btn-lg" href="#video">Commencer<svg'), 'l’affiche « +55 autres cours » et le dernier bouton');
+  assert.ok(h.includes('<a class="btn btn-s btn-lg" href="#mobile">Requête sur iPhone</a>\n        </div>'), 'à côté du dernier « Commencer » : le chemin direct vers l’appli (pas deux boutons pour la même vidéo)');
   assert.ok(!/href="video\.html"[^>]*data-goal/.test(h) && !h.includes('rq-vitrine-objectif\',') && !h.includes("localStorage.setItem('rq-vitrine-objectif'"), 'un objectif ne mène plus à la vidéo, et n’est plus gardé');
-  assert.ok(site['module.html'].includes('<a class="btn btn-p btn-lg" href="./#mobile">') && site['module.html'].includes('<a class="alt" href="video.html">Voir la vidéo'));
+  assert.ok(site['module.html'].includes('<a class="btn btn-p btn-lg" href="./#mobile">Commencer le parcours') && site['module.html'].includes('<a class="alt" href="./#video">Voir la vidéo'));
 });
 
 test('le site ne garde plus l’ancienne appli hors ligne : caches vidés, service worker retiré, un seul rechargement', () => {

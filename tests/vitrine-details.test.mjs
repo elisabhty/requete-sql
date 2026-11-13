@@ -21,12 +21,13 @@ const video = lire('video.html');
 /* 13 novembre, 1 h 44 (Elisa : « retirer l’appli sur mon site quand on appuie sur commencer et faire descendre vers l’appli ») :
    plus de « Se connecter » sur le site (retours-0144-site.test.mjs) ; la barre garde la langue et « Commencer », qui descend à la
    section iPhone. La feuille garde les règles de l’ancien bouton, sans effet. */
-test('plus de « Se connecter » dans la barre : la langue et « Commencer », qui descend à la section iPhone', () => {
+/* 13 novembre, 9 h 56 : « Commencer » mène à la vidéo du héros (#video), qui a son bouton vers la section iPhone. */
+test('plus de « Se connecter » dans la barre : la langue et « Commencer », qui mène à la vidéo du héros', () => {
   for (const page of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html']) {
     const h = lire(page);
     assert.ok(!h.includes('class="btn btn-s login"') && !h.includes('connexion.html') && !h.includes('>Se connecter<'), `${page} : plus de lien de connexion`);
     const cta = h.slice(h.indexOf('<div class="nav-cta">'), h.indexOf('<button type="button" class="burger"'));
-    assert.ok(cta.includes(`<a class="btn btn-p" href="${page === 'index.html' ? '' : './'}#mobile">Commencer</a>`), `${page} : « Commencer » descend à l’appli`);
+    assert.ok(cta.includes(`<a class="btn btn-p" href="${page === 'index.html' ? '' : './'}#video">Commencer</a>`), `${page} : « Commencer » mène à la vidéo`);
   }
 });
 
@@ -193,7 +194,7 @@ test('« Voir la vidéo » dans le menu (13 novembre : plus de « Se connecter �
     const h = lire(page);
     assert.doesNotMatch(h, /Ouvrir l’appli/, `${page} : plus de « Ouvrir l’appli »`);
     const menu = h.slice(h.indexOf('<nav class="menu" id="menu"'), h.indexOf('</nav>', h.indexOf('<nav class="menu" id="menu"')));
-    assert.ok(menu.includes('<a class="btn btn-s btn-lg" href="video.html">Voir la vidéo</a>') && !menu.includes('Se connecter'), `${page} : bouton du menu`);
+    assert.ok(menu.includes(`<a class="btn btn-s btn-lg" href="${page === 'index.html' ? '' : './'}#video">Voir la vidéo</a>`) && !menu.includes('Se connecter'), `${page} : bouton du menu`);
     for (const label of ['Choisir un objectif', 'Parcours de formation', 'Questions fréquentes'])
       assert.ok(menu.includes(`>${label}</a>`), `${page} : « ${label} » dans le menu mobile`);
     assert.ok(!menu.includes('>Ton objectif</a>') && !menu.includes('>Les parcours</a>') && !menu.includes('>Questions</a>'), `${page} : anciens libellés retirés`);

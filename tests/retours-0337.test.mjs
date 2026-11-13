@@ -46,12 +46,19 @@ test('decouvrir/video.html?onboarding : ni « Retour » ni « Se connecter » ; 
      la vidéo s’arrête et le lien fait son travail. */
   const iife = cut(page, '/* Vers la section iPhone du site', '</script>');
   let click = null; const calls = [];
-  vm.runInContext(iife, vm.createContext({document: {addEventListener: (t, h) => { if (t === 'click') click = h; }}, pause: () => calls.push('pause')}));
+  let mode = '';
+  const doc = {addEventListener: (t, h) => { if (t === 'click') click = h; }, documentElement: {classList: {contains: c => c === mode}}};
+  vm.runInContext(iife, vm.createContext({document: doc, pause: () => calls.push('pause'), parent: {requeteVersAppli: () => calls.push('appli')}}));
   let prevented = false;
   click({target: {closest: s => (s === 'a[href="./#mobile"]' ? {href: './#mobile'} : null)}, preventDefault() { prevented = true; }});
   assert.deepEqual(calls, ['pause']); assert.equal(prevented, false, 'le lien n’est pas retenu');
   click({target: {closest: () => null}, preventDefault() {}});
   assert.deepEqual(calls, ['pause'], 'ailleurs : rien');
+  /* 13 novembre, 9 h 56 : dans le héros du site (video.html?site), le lien est retenu (il ouvrirait l’accueil dans le cadre) et
+     c’est la page autour qui descend à sa section iPhone. */
+  mode = 'vd-site';
+  click({target: {closest: s => (s === 'a[href="./#mobile"]' ? {href: './#mobile'} : null)}, preventDefault() { prevented = true; }});
+  assert.deepEqual(calls, ['pause', 'pause', 'appli']); assert.equal(prevented, true, 'dans le héros : le lien est retenu');
   assert.ok(!page.includes('video-fin') && !page.includes('postMessage') && !page.includes('vd-leave'));
 });
 

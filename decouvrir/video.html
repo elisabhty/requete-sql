@@ -11,6 +11,10 @@
 <!-- Dans l’onboarding de l’appli (../index.html, Elisa, 4 novembre, 3 h 37) : video.html?onboarding, ouverte dans un cadre. Repéré dès
      la première image : ni « Retour » ni « Se connecter », et la fin (« Passer la vidéo », « Commencer ») est signalée à l’appli. -->
 <script>if(/[?&]onboarding\b/.test(location.search)&&window.parent!==window)document.documentElement.classList.add('vd-onboarding');</script>
+<!-- Sur la page d’accueil du site (Elisa, 13 novembre, 9 h 56 : « mettre la vidéo data analyst […] juste après ce titre, de manière
+     bien détourée, bien fondue ») : video.html?site, ouverte dans un cadre du héros violet. Repéré dès la première image : ni fond
+     ni barre du haut, et la fin (« Découvrir l’appli ») est signalée à la page. -->
+<script>if(/[?&]site\b/.test(location.search)&&window.parent!==window)document.documentElement.classList.add('vd-site');</script>
 <link rel="preload" href="../assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/inter-semibold.woff2" as="font" type="font/woff2" crossorigin>
 <!-- L’affiche de départ écrit aussi en Inter gras (« 70+ cours ») et en JetBrains Mono (durée, SELECT, GROUP BY, JOIN) : chargées tout de suite. -->
@@ -735,6 +739,23 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 /* Dans l’onboarding de l’appli : seul « Passer la vidéo » reste en haut, à droite ; l’appli gère l’heure et la barre d’accueil. */
 html.vd-onboarding .bar.top{justify-content:flex-end}
 html.vd-onboarding .pill.back,html.vd-onboarding .pill.login{display:none}
+/* Sur la page d’accueil du site (13 novembre, 9 h 56) : la vidéo vit dans le héros violet, juste après le titre. Le cadre de la page
+   n’a ni fond ni barre du haut (« Retour » et « Passer la vidéo » n’ont plus lieu d’être : la page est autour, et son bouton
+   « Découvrir l’appli » est sous la vidéo). L’image occupe toute la largeur du cadre ; son ombre est dessinée par la page (un
+   cadre couperait la sienne). La barre de lecture passe en blanc sur le violet. */
+html.vd-site,html.vd-site body{background:transparent}
+html.vd-site body{justify-content:flex-start}
+html.vd-site .bar.top{display:none}
+html.vd-site #frame{--fw:100vw;border-radius:20px;box-shadow:none}
+html.vd-site .bar.bottom{max-width:none;padding:12px 2px 6px;gap:10px}
+html.vd-site .ctl{background:#fff;color:var(--accent-ink);box-shadow:0 4px 0 rgba(27,22,64,.32)}
+html.vd-site .ctl:active{box-shadow:0 0 0 rgba(27,22,64,.32)}
+html.vd-site #seek .track{background:rgba(255,255,255,.26)}
+html.vd-site #seek .fill{background:var(--sun)}
+html.vd-site #seek .tick{background:#5B3FEA}
+html.vd-site #time{min-width:76px;color:rgba(255,255,255,.88)}
+html.vd-site #src-btn{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.35);box-shadow:none}
+html.vd-site .ctl:focus-visible,html.vd-site #seek:focus-visible,html.vd-site #src-btn:focus-visible{outline-color:#fff}
 </style>
 <script src="../assets/curseur.js?v=60b94b87" defer></script>
 </head>
@@ -1056,9 +1077,12 @@ function fit(){
   [].forEach.call(document.querySelectorAll('.bar'), function(b){ bars += b.offsetHeight; });
   var availH = innerHeight - bars - 8, availW = Math.min(innerWidth - 24, 880);
   var s = Math.min(availW / 1080, availH / 1350);
+  /* Dans le héros du site (video.html?site) : la page donne au cadre la largeur de la vidéo, et sa hauteur plus celle de la barre. */
+  var site = document.documentElement.classList.contains('vd-site');
+  if (site) s = innerWidth / 1080;
   f.style.width = Math.floor(1080 * s) + 'px';
   f.style.height = Math.floor(1350 * s) + 'px';
-  f.style.borderRadius = Math.max(16, 48 * s) + 'px';
+  f.style.borderRadius = site ? '20px' : Math.max(16, 48 * s) + 'px';
   st.style.transform = 'scale(' + s + ')';
 }
 fit();
@@ -1719,7 +1743,9 @@ function sonUnlock(){
   SON.pool.concat([SON.musicEl]).forEach(a => { a.__unlock = true; const p = a.play(); if (p && p.then) p.then(() => { if (a.__unlock) a.pause(); a.__unlock = false; }).catch(() => { a.__unlock = false; }); });
   SON.musicEl.preload = 'auto';
 }
-function play(){ const go = $('#go'); if (go && !go.hidden && !go.classList.contains('out')) { go.classList.add('out'); setTimeout(() => { go.hidden = true; }, 400); C.time(0); } if (C.time() >= VDUR() - .05) C.time(0); endEl.classList.remove('on'); C.play(); setPlaying(true); sonSync(); }
+function play(){ const go = $('#go'); if (go && !go.hidden && !go.classList.contains('out')) { go.classList.add('out'); setTimeout(() => { go.hidden = true; }, 400); C.time(0); } if (C.time() >= VDUR() - .05) C.time(0); endEl.classList.remove('on'); C.play(); setPlaying(true); sonSync(); siteJoue(); }
+/* Dans le héros du site : la page est prévenue que la vidéo parle, pour couper l’avis audio qui jouerait en même temps. */
+function siteJoue(){ try { if (document.documentElement.classList.contains('vd-site') && typeof parent.requeteVideoJoue === 'function') parent.requeteVideoJoue(); } catch (err) {} }
 function pause(){ C.pause(); setPlaying(false); sonSync(); }
 function toggle(){ if (!GO.hidden && !GO.classList.contains('out')) return GO.click(); C.paused() || C.time() >= VDUR() - .05 ? play() : pause(); }
 function ended(){ setPlaying(false); endEl.classList.add('on'); }
@@ -1761,7 +1787,9 @@ GO.addEventListener('click', e => {
   sonUnlock(); goWant = true;
   if (goReady) play(); else GO.classList.add('tap');
 });
-GO.focus({preventScroll: true});
+/* Dans le héros du site, le focus reste à la page : c’est elle qui le donne à la vidéo, quand on y vient par « Commencer ». */
+const SITE = document.documentElement.classList.contains('vd-site');
+if (!SITE) GO.focus({preventScroll: true});
 const voixPrete = () => new Promise(res => {
   const a = SON.pool[0]; if (!a || a.readyState >= 3) return res();
   const ok = () => res(); a.addEventListener('canplay', ok, {once: true}); a.addEventListener('error', ok, {once: true}); setTimeout(ok, 4000);
@@ -1789,7 +1817,28 @@ Promise.all([document.fonts ? document.fonts.ready : 0, sonLoad(), ...$$('img').
     var a = e.target.closest && e.target.closest('a[href="./#mobile"]');
     if (!a) return;
     try { if (typeof pause === 'function') pause(); } catch (err) {}
+    /* Dans le héros du site, le lien ne doit pas ouvrir la page d’accueil dans le cadre de la vidéo : c’est la page autour qui
+       descend à sa section iPhone. */
+    if (document.documentElement.classList.contains('vd-site')) {
+      e.preventDefault();
+      try { if (typeof parent.requeteVersAppli === 'function') parent.requeteVersAppli(); else parent.location.hash = '#mobile'; }
+      catch (err) { try { top.location.href = a.href; } catch (err2) {} }
+    }
   });
+})();
+</script>
+<script>
+/* Dans le héros du site (video.html?site, 13 novembre, 9 h 56). La fin de la vidéo dit où elle mène (« Découvrir l’appli », comme
+   le bouton de la page, sous la vidéo : sur le site, « Commencer » mène à la vidéo). Et la page peut arrêter la vidéo (elle sort
+   de l’écran, ou on part vers la section iPhone) ou lui donner le focus (on y arrive par « Commencer »). */
+(function(){
+  if (!document.documentElement.classList.contains('vd-site')) return;
+  var fin = document.querySelector('#end a');
+  if (fin && fin.firstChild && fin.firstChild.nodeType === 3) fin.firstChild.nodeValue = 'Découvrir l’appli';
+  window.requeteVideo = {
+    pause: function(){ try { if (!C.paused()) pause(); } catch (err) {} },
+    focus: function(){ try { var go = document.getElementById('go'), b = go && !go.hidden && !go.classList.contains('out') ? go : document.getElementById('pp'); if (b) b.focus({preventScroll: true}); } catch (err) {} }
+  };
 })();
 </script>
 </body>
