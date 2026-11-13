@@ -19,13 +19,14 @@ const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const MOTEUR = lire('langues.js'), EN = lire('langue-en.js'), app = lire('index.html'), sw = lire('sw.js');
 
 /* langues.js dans une fausse page. stock : le stockage de l’iPhone ; langue : celle de l’iPhone. */
-function page({stock = {}, langue = 'fr-FR', charger = true} = {}) {
+function page({stock = {}, langue = 'fr-FR', charger = true, fuseau = 'Europe/Paris', anglaisFini = false} = {}) {
   const ecrits = [], local = {...stock};
   const win = {};
-  const ctx = {window: win, navigator: {language: langue}, location: {hostname: 'localhost.invalide', search: '', reload() { win.recharge = true; }},
+  const ctx = {window: win, navigator: Array.isArray(langue) ? {language: langue[0], languages: langue} : {language: langue}, Intl: {DateTimeFormat: () => ({resolvedOptions: () => ({timeZone: fuseau})})}, location: {hostname: 'localhost.invalide', search: '', reload() { win.recharge = true; }},
     localStorage: {getItem: k => (k in local ? local[k] : null), setItem: (k, v) => { local[k] = String(v); }, removeItem: k => { delete local[k]; }},
     document: {write: h => ecrits.push(h), documentElement: {}, title: '', addEventListener() {}}, Map, WeakMap, JSON, Object, Array, String, RegExp, Math};
-  vm.runInNewContext(MOTEUR, ctx);
+  /* anglaisFini : le jour où l’anglais ne sera plus « en essai » */
+  vm.runInNewContext(anglaisFini ? MOTEUR.replace("fichier: 'langue-en.js?v=1', essai: true", "fichier: 'langue-en.js?v=1'") : MOTEUR, ctx);
   const L = win.REQUETE_LANGUE;
   if (charger && ecrits.length) vm.runInNewContext(EN, ctx);
   return {L, ecrits, local, win};
@@ -165,18 +166,51 @@ test('index.html : langues.js juste après maj.js, le prénom confié au moteur,
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
   assert.ok(sw.includes("'./langues.js?v=1',") && sw.includes("'./langue-en.js?v=1',"));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name)"));
-  assert.ok(app.includes('onclick="majEssaiTap()">${esc(appVersionNote())}</p>${langueNoteHTML()}'));
-  const d = app.indexOf('function langueNoteHTML(){'), f = app.indexOf('let majTaps=[];');
+  assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
+  assert.ok(app.includes("${langueLigneHTML(CHEV)}") && app.indexOf("${langueLigneHTML(CHEV)}") > app.indexOf("openPlusDetails('plus-reading')"), 'sa ligne dans les réglages, après « Confort de lecture »');
+  const d = app.indexOf('function langueLigneHTML(chevron){'), f = app.indexOf('let majTaps=[];');
   const ctx = {window: {}, esc: s => String(s)};
-  vm.runInNewContext(app.slice(d, f) + ';this.html=langueNoteHTML;', ctx);
+  vm.runInNewContext(app.slice(d, f) + ';this.html=langueReglageHTML;this.ligne=langueLigneHTML;', ctx);
   assert.equal(ctx.html(), '', 'sans le moteur : rien');
   ctx.window.REQUETE_LANGUE = {code: 'fr', disponibles: () => ['fr'], nom: c => c};
-  assert.equal(ctx.html(), '', 'une seule langue : la ligne n’existe pas');
+  assert.equal(ctx.html(), '', 'une seule langue : le réglage n’existe pas');
   ctx.window.REQUETE_LANGUE = {code: 'en', disponibles: () => ['fr', 'en'], nom: c => ({fr: 'Français', en: 'English'})[c]};
   const h = ctx.html();
-  assert.ok(h.includes('id="app-langue-note" data-notrad') && h.includes("REQUETE_LANGUE.changer('fr')") && h.includes("REQUETE_LANGUE.changer('en')"));
-  assert.ok(/aria-pressed="true"[^>]*>English/.test(h) && /aria-pressed="false"[^>]*>Français/.test(h));
+  assert.ok(h.includes('<details class="plus-details" id="plus-langue">') && h.includes('<summary><span>Langue</span><small data-notrad>English</small>'));
+  assert.ok(h.includes("REQUETE_LANGUE.changer('fr')") && h.includes("REQUETE_LANGUE.changer('en')"));
+  assert.ok(/aria-pressed="true"[^>]*>English<span aria-hidden="true">✓/.test(h) && /aria-pressed="false"[^>]*>Français<span aria-hidden="true"><\/span>/.test(h), 'chaque langue écrite dans sa langue, la langue en cours cochée');
+  const ligne = ctx.ligne('>');
+  assert.ok(ligne.includes(`onclick="openPlusDetails('plus-langue')"`) && ligne.includes('<b>Langue</b><small data-notrad>English</small>'), 'la ligne dit la langue en cours');
+  ctx.window.REQUETE_LANGUE = {code: 'fr', disponibles: () => ['fr'], nom: c => c};
+  assert.equal(ctx.ligne('>'), '', 'une seule langue : pas de ligne non plus');
+  assert.ok(app.includes("c.insertAdjacentHTML('beforebegin',langueReglageHTML())") && app.includes("r.insertAdjacentHTML('afterend',langueLigneHTML("), 'après les sept touchers, le réglage apparaît tout de suite');
   /* les fichiers de langue partent avec l’appli (scripts/build-www.mjs copie les .js de la racine) */
   assert.ok(fs.existsSync(path.join(ROOT, 'langues.js')) && fs.existsSync(path.join(ROOT, 'langue-en.js')));
   assert.ok(lire('LANGUES.md').includes('REQUETE_LANGUE.manquants()'));
+});
+
+test('le jour où l’anglais est terminé : la langue de l’iPhone, sinon celle du pays (le français là où il se parle, l’anglais ailleurs)', () => {
+  const code = (langue, fuseau, stock) => page({langue, fuseau, stock, anglaisFini: true, charger: false}).L.code;
+  /* la langue de l’iPhone d’abord */
+  assert.equal(code('fr-FR'), 'fr');
+  assert.equal(code('en-US', 'America/New_York'), 'en');
+  assert.equal(code('en-GB', 'Europe/Paris'), 'en', 'une Anglaise à Paris garde l’anglais');
+  assert.equal(code('fr-CA', 'America/Toronto'), 'fr');
+  assert.equal(code(['ar-MA', 'fr-MA', 'en-MA'], 'Africa/Casablanca'), 'fr', 'la première langue de l’iPhone que l’appli parle');
+  assert.equal(code(['de-DE', 'en-DE'], 'Europe/Berlin'), 'en');
+  /* ni français ni anglais : le pays des réglages */
+  for (const l of ['ar-MA', 'ar-DZ', 'ar-TN', 'wo-SN', 'es-CI', 'pt-CD', 'mg-MG', 'ar-MR', 'de-LU', 'ht-HT', 'ff-CM']) assert.equal(code(l, 'UTC'), 'fr', l);
+  for (const l of ['de-DE', 'es-ES', 'es-MX', 'pt-BR', 'it-IT', 'nl-BE', 'de-CH', 'ja-JP', 'ar-EG', 'sw-KE', 'rw-RW', 'zh-Hans-CN', 'hi-IN', 'tr-TR']) assert.equal(code(l, 'UTC'), 'en', l);
+  assert.equal(code('de-DE', 'Europe/Paris'), 'en', 'un Allemand de passage à Paris : le pays de ses réglages, pas le lieu');
+  /* sans pays dans les réglages : le fuseau horaire */
+  assert.equal(code('ar', 'Africa/Casablanca'), 'fr');
+  assert.equal(code('ar', 'Africa/Dakar'), 'fr');
+  assert.equal(code('ar', 'Africa/Cairo'), 'en');
+  assert.equal(code('es-419', 'America/Bogota'), 'en');
+  assert.equal(code('ja', 'Asia/Tokyo'), 'en');
+  /* le choix fait dans Mon compte passe avant tout */
+  assert.equal(code('en-US', 'America/New_York', {'requete-langue': 'fr'}), 'fr');
+  assert.equal(code('fr-FR', 'Europe/Paris', {'requete-langue': 'en'}), 'en');
+  /* aujourd’hui (l’anglais en essai) : tout le monde reste en français */
+  for (const l of ['en-US', 'de-DE', 'ar-EG', 'ja-JP']) assert.equal(page({langue: l, fuseau: 'Asia/Tokyo', charger: false}).L.code, 'fr', l);
 });

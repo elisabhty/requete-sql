@@ -12,13 +12,28 @@ de la page par leur traduction. Un texte sans traduction reste en français, et 
 
 En français, `langues.js` ne fait rien (ni fichier chargé, ni observateur).
 
-## Qui voit l’anglais
+## Quelle langue pour qui
 
-Tant qu’une langue porte `essai: true` (dans `langues.js`), elle n’est proposée qu’aux iPhone « en essai » : Mon compte, sept
-touchers sur le numéro de version (voir IOS.md, « Corriger l’appli sans repasser par Apple »). Une ligne « Français · English »
-apparaît alors sous le numéro de version ; changer de langue recharge l’appli. Personne d’autre ne voit cette ligne, et un
-iPhone réglé en anglais reste en français. Le jour où l’anglais est complet : retirer `essai: true`, et un iPhone en anglais
-passe en anglais tout seul.
+Elisa, 13 novembre, 12 h 57 : « vérifie par rapport aux langues de chaque pays laquelle afficher, par exemple en Afrique beaucoup
+seront en français, mais peuvent changer la langue avec un réglage ».
+
+Dans l’ordre (`langues.js`, `choisir` et `automatique`) :
+
+1. **Le choix de la personne** : Mon compte, « Langue » (une ligne des réglages, après « Confort de lecture »). Chaque langue y
+   est écrite dans sa langue ; un toucher recharge l’appli. Le choix reste sur l’appareil (`requete-langue`) : sur un nouvel
+   iPhone, l’appli repart de la langue du téléphone (accepté par Elisa).
+2. **La langue de l’iPhone**, si l’appli la parle : un iPhone en anglais ouvre l’appli en anglais, même à Paris.
+3. **Sinon, le pays** (un iPhone en arabe, en espagnol, en allemand…) : le français là où il est langue officielle ou seconde
+   langue courante, l’anglais partout ailleurs. Le pays est celui des réglages de l’iPhone (« ar-MA »), à défaut son fuseau
+   horaire ; pas l’endroit où la personne se trouve ce jour-là. La liste (`FRANCOPHONES`) : France et ses territoires, Monaco,
+   Luxembourg, Sénégal, Côte d’Ivoire, Mali, Burkina Faso, Niger, Togo, Bénin, Guinée, Cameroun, Gabon, les deux Congo,
+   Centrafrique, Tchad, Djibouti, Comores, Madagascar, Burundi, Maurice, Mauritanie, Maroc, Algérie, Tunisie, Haïti. La Belgique,
+   la Suisse et le Canada n’y sont pas : un iPhone en français y est déjà en français, les autres lisent plus volontiers
+   l’anglais. Le Rwanda non plus (passé à l’anglais). Cette liste se corrige en une ligne.
+
+**Tant que l’anglais est « en essai »** (`essai: true` dans `langues.js`), rien de cela ne s’applique : tout le monde est en
+français, et le réglage « Langue » n’existe que sur les iPhone en essai (Mon compte, sept touchers sur le numéro de version ;
+voir IOS.md, « Corriger l’appli sans repasser par Apple »). Le jour où l’anglais est complet : retirer `essai: true`.
 
 Pour la mise au point sur un ordinateur : `http://localhost:…/index.html?langue=en`.
 
