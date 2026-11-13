@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=330">
+<link rel="stylesheet" href="ludique.css?v=331">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=67">
 <style id="lesson-video-css">
@@ -33425,22 +33425,39 @@ function bravoNoteFly(el,before,after){
   },2500);
 }
 /* « Leçon débloquée » (Elisa, 13 novembre, 1 h 18 : « le cadenas qui s’ouvre sur l’écran de fin de leçon… avec le titre de la
-   leçon débloquée, donnerait la récompense au bon moment »). Sous la carte « Bravo ! », quand cette leçon validée vient d’ouvrir
-   la suivante : l’autocollant cadenas remue, son anse se lève, et la ligne mène à la leçon. Elle reste là tant que la leçon
-   débloquée n’est pas entamée (le bilan revu le lendemain la montre encore) ; ensuite, plus rien à annoncer. */
-function bravoOuvreHtml(l){
+   leçon débloquée, donnerait la récompense au bon moment »). 15 h 37 : « supprimer le nouveau module débloqué et en bas, à continuer
+   sur ta lancée, faire une animation où le cadenas s’ouvre au moment où on passe sur le cadre ». Plus de ligne à part sous « Bravo ! » :
+   la leçon que celle-ci vient d’ouvrir est la séance suivante ; sa carte, en bas, porte l’autocollant cadenas, qui s’ouvre quand la
+   carte arrive à l’écran (bravoCadWire). Rien à annoncer si la suivante est déjà entamée ou validée (le bilan revu plus tard). */
+function bravoDebloque(l){
   try{
-    if(!l||typeof leconCle!=='function'||typeof lqStkSvg!=='function')return '';
+    if(!l||typeof leconCle!=='function')return null;
     const cle=leconCle(),r=leconRang(l.id);
-    if(!cle||r<0||leconRang(cle.id)!==r+1||!lecCompletee(l.id)||lecCompletee(cle.id)||leconEntamee(cle.id))return '';
+    if(!cle||r<0||leconRang(cle.id)!==r+1||!lecCompletee(l.id)||lecCompletee(cle.id)||leconEntamee(cle.id))return null;
     const m=typeof moduleDeLecon==='function'?moduleDeLecon(cle.id):null,mi=m?MODULES.indexOf(m):-1;
-    const nouveauModule=!!m&&m.lessons[0].id===cle.id&&mi>0;
-    return `<button type="button" class="bravo-stk bravo-ouvre" onclick="openLesson(${cle.id})">
-    <span class="bravo-ouvre-art" aria-hidden="true">${lqStkSvg('cadenas')}</span>
-    <span class="bravo-stk-copy"><small>${nouveauModule?'Nouveau module débloqué':'Leçon débloquée'}</small><b>${esc(cle.titre)}</b><em>${esc(nouveauModule?`Module ${mi+1} · ${m.titre}`:(cle.résumé||''))}</em></span>
-    ${DEF_CHEV_SVG}
-  </button>`;
-  }catch(e){return '';}
+    return {id:cle.id,nouveauModule:!!m&&m.lessons[0].id===cle.id&&mi>0};
+  }catch(e){return null;}
+}
+let bravoCadObs=null;
+function bravoCadWire(){
+  if(bravoCadObs){bravoCadObs.disconnect();bravoCadObs=null;}
+  const el=document.querySelector('#lesson-body .bravo-next-btn.has-cad');if(!el)return;
+  const ouvrir=()=>{
+    if(!el.isConnected||el.classList.contains('is-ouvre'))return;
+    el.classList.add('is-ouvre');
+    if(prefersReduceMotion())return;
+    /* Le cran de l’anse qui se lève (0,7 s, ludique.css), puis le petit saut */
+    setTimeout(()=>{if(el.isConnected&&typeof buzz==='function')buzz('medium');},720);
+    setTimeout(()=>{if(el.isConnected&&typeof buzz==='function')buzz('light');},1000);
+  };
+  const scr=document.getElementById('scr-lesson');
+  if(!scr||typeof IntersectionObserver==='undefined'){setTimeout(ouvrir,600);return;}
+  bravoCadObs=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting)return;
+    bravoCadObs.disconnect();bravoCadObs=null;
+    ouvrir();
+  }),{root:scr,threshold:.6});
+  bravoCadObs.observe(el);
 }
 /* La suite du parcours : une carte violette, comme celle de l’accueil, avec son bouton blanc « Continuer ». Le titre se lit en entier
    (deux lignes s’il le faut, plus de « Sous-requête dans WHER… »). Toute la carte est le bouton ; c’est sa pastille blanche qui
@@ -33465,7 +33482,9 @@ function bravoNextHtml(l){
     const mark=defi?'⚑':'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.6v12.8c0 .9 1 1.4 1.7.9l9.4-6.4c.6-.4.6-1.4 0-1.8L9.7 4.7C9 4.2 8 4.7 8 5.6Z"/></svg>';
     /* Après une leçon, c’est la séance suivante (Elisa, 27 octobre, 10 h 11) ; prévue un autre jour, avec sa date. */
     const lab=/^Prochaine séance · /.test(session.label)?session.label.replace(/^Prochaine séance/,'Séance suivante'):'Séance suivante';
-    return `<button type="button" class="bravo-next-btn" onclick="openItem(${arg})">
+    const deb=!defi&&typeof bravoDebloque==='function'?bravoDebloque(l):null,cad=!!deb&&deb.id===id&&typeof lqStkSvg==='function';
+    return `<button type="button" class="bravo-next-btn${cad?' has-cad':''}" onclick="openItem(${arg})">
+      ${cad?`<span class="bn-cad" aria-hidden="true">${lqStkSvg('cadenas')}<i></i><i></i><i></i></span><span class="lq-sr">${deb.nouveauModule?'Nouveau module débloqué':'Leçon débloquée'}.</span>`:''}
       <span class="bravo-next-lab">${esc(lab)}</span>
       <span class="bn-copy"><b>${esc(meta.titre)}</b><small>${esc(session.summary)}</small></span>
       <span class="bn-cta"><span class="bn-num${defi?' defi':''}" aria-hidden="true">${mark}</span>Continuer</span>
@@ -33892,7 +33911,6 @@ function renderBravoSlide(l){
     <div class="ls-main bravo-wrap">
       ${bravoHeroHtml(l)}
       ${stkBravoHtml()}
-      ${typeof bravoOuvreHtml==='function'?bravoOuvreHtml(l):''}
       ${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}
       ${bravoUnlockHtml(l)}
       ${bravoAvisHtml(l)}
@@ -35473,7 +35491,7 @@ function renderLessonFlow(){
     if(d!=null){const ta=document.getElementById('ed-lesson');if(ta){ta.value=d;syncHL('ed-lesson','hl-lesson');fitSqlEditor(ta);}}
   }
   if(lessonStep===2) renderValidation();
-  if(lessonStep===3){ requestAnimationFrame(revealBravoCard); requestAnimationFrame(bravoNoteWire); requestAnimationFrame(bravoFinWire); stkPaint(document.getElementById('lesson-body')); setTimeout(moduleUpCheck,250); }
+  if(lessonStep===3){ requestAnimationFrame(revealBravoCard); requestAnimationFrame(bravoNoteWire); requestAnimationFrame(bravoFinWire); requestAnimationFrame(bravoCadWire); stkPaint(document.getElementById('lesson-body')); setTimeout(moduleUpCheck,250); }
   if(lessonStep===0&&!lessonHasVideo(l)){
     buildSommaire();
     initTesteEditor();
@@ -51155,7 +51173,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-accueil-v2940';
+  const SW_CACHE='requete-2026-11-13-cadenas-v2941';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

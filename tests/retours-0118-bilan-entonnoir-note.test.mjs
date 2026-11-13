@@ -18,37 +18,42 @@ const css = lire('ludique.css');
 const cut = (a, b) => { const i = html.indexOf(a); assert.ok(i >= 0, a); const j = html.indexOf(b, i + a.length); assert.ok(j > i, b); return html.slice(i, j); };
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-test('le bilan : « Leçon débloquée », le cadenas qui s’ouvre et le titre de la leçon, juste sous « Bravo ! »', () => {
-  const f = cut('function bravoOuvreHtml(l){', '\n}\n') + '\n}';
+test('le bilan : la leçon débloquée est la séance suivante ; son cadenas s’ouvre quand sa carte arrive à l’écran (15 h 37)', () => {
+  /* 13 novembre, 15 h 37 : « supprimer le nouveau module débloqué et en bas, à continuer sur ta lancée, faire une animation où le
+     cadenas s’ouvre au moment où on passe sur le cadre » */
+  const f = cut('function bravoDebloque(l){', '\n}\n') + '\n}';
   const L = [{ id: 0, titre: 'Les bases' }, { id: 2, titre: 'Renommer <AS>', résumé: 'Un nom lisible' }, { id: 13, titre: 'DISTINCT', résumé: 'Valeurs uniques' }];
   const MODULES = [{ titre: 'Introduction', lessons: [L[0]] }, { titre: 'Lire une table', lessons: [L[1], L[2]] }];
-  const ligne = ({ vue, cle, faites = [], entamee = false }) => vm.runInNewContext(f + ';bravoOuvreHtml(l)', {
+  const deb = ({ vue, cle, faites = [], entamee = false }) => JSON.stringify(vm.runInNewContext(f + ';bravoDebloque(l)', {
     l: L[vue], leconCle: () => cle == null ? null : L[cle], leconRang: id => L.findIndex(x => x.id === id), lecCompletee: id => faites.includes(L.findIndex(x => x.id === id)),
-    leconEntamee: () => entamee, moduleDeLecon: id => MODULES.find(m => m.lessons.some(x => x.id === id)), MODULES, lqStkSvg: k => '<svg data-stk="' + k + '"></svg>', esc, DEF_CHEV_SVG: '<svg class="chev"></svg>' });
-  /* La 2e leçon validée ouvre la 3e, dans le même module */
-  const h = ligne({ vue: 1, cle: 2, faites: [0, 1] });
-  assert.ok(h.startsWith('<button type="button" class="bravo-stk bravo-ouvre" onclick="openLesson(13)">'), 'toute la ligne mène à la leçon débloquée');
-  assert.ok(h.includes('<span class="bravo-ouvre-art" aria-hidden="true"><svg data-stk="cadenas"></svg></span>'), 'l’autocollant cadenas de l’app');
-  assert.ok(h.includes('<small>Leçon débloquée</small><b>DISTINCT</b><em>Valeurs uniques</em>'));
-  /* La 1re leçon (seule de son module) ouvre un nouveau module : on le dit, et le titre est échappé */
-  const m = ligne({ vue: 0, cle: 1, faites: [0] });
-  assert.ok(m.includes('<small>Nouveau module débloqué</small><b>Renommer &lt;AS&gt;</b><em>Module 2 · Lire une table</em>'));
-  /* Rien à annoncer : la suivante déjà entamée ou validée, la prochaine étape ailleurs, la leçon pas validée, le parcours fini */
-  assert.equal(ligne({ vue: 1, cle: 2, faites: [0, 1], entamee: true }), '');
-  assert.equal(ligne({ vue: 0, cle: 2, faites: [0, 1] }), '', 'le bilan d’une ancienne leçon, revu plus tard');
-  assert.equal(ligne({ vue: 1, cle: 1, faites: [0] }), '', 'pas encore validée');
-  assert.equal(ligne({ vue: 2, cle: null, faites: [0, 1, 2] }), '');
-  /* Sa place : sous la carte « Bravo ! » et le sticker gagné, avant la carte mémo */
+    leconEntamee: () => entamee, moduleDeLecon: id => MODULES.find(m => m.lessons.some(x => x.id === id)), MODULES }));
+  assert.equal(deb({ vue: 1, cle: 2, faites: [0, 1] }), '{"id":13,"nouveauModule":false}', 'la 2e leçon ouvre la 3e, dans le même module');
+  assert.equal(deb({ vue: 0, cle: 1, faites: [0] }), '{"id":2,"nouveauModule":true}', 'la 1re ouvre un nouveau module');
+  for (const c of [{ vue: 1, cle: 2, faites: [0, 1], entamee: true }, { vue: 0, cle: 2, faites: [0, 1] }, { vue: 1, cle: 1, faites: [0] }, { vue: 2, cle: null, faites: [0, 1, 2] }])
+    assert.equal(deb(c), 'null', JSON.stringify(c));
+  /* Plus de ligne à part sous « Bravo ! » */
   const b = cut('function renderBravoSlide(l){', '\n}\n');
-  assert.ok(b.includes("      ${stkBravoHtml()}\n      ${typeof bravoOuvreHtml==='function'?bravoOuvreHtml(l):''}\n      ${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}\n      ${bravoUnlockHtml(l)}"));
+  assert.ok(b.includes("      ${stkBravoHtml()}\n      ${typeof CARTES!=='undefined'&&CARTES[l.id]?'':bravoRecapHtml(l)}") && !html.includes('bravoOuvreHtml') && !html.includes('bravo-ouvre'));
+  /* La carte de la séance suivante, quand c’est cette leçon : l’autocollant cadenas, et ce qu’il annonce pour la lecture d’écran */
+  const n = cut('function bravoNextHtml(l){', '\n}\n');
+  assert.ok(n.includes("const deb=!defi&&typeof bravoDebloque==='function'?bravoDebloque(l):null,cad=!!deb&&deb.id===id&&typeof lqStkSvg==='function';"));
+  assert.ok(n.includes("<button type=\"button\" class=\"bravo-next-btn${cad?' has-cad':''}\" onclick=\"openItem(${arg})\">"));
+  assert.ok(n.includes("${cad?`<span class=\"bn-cad\" aria-hidden=\"true\">${lqStkSvg('cadenas')}<i></i><i></i><i></i></span><span class=\"lq-sr\">${deb.nouveauModule?'Nouveau module débloqué':'Leçon débloquée'}.</span>`:''}"));
+  /* Il s’ouvre quand la carte est aux trois cinquièmes à l’écran, une fois, avec deux retours haptiques */
+  const w = cut('function bravoCadWire(){', '\n}\n');
+  assert.ok(w.includes('}),{root:scr,threshold:.6});') && w.includes("el.classList.add('is-ouvre');") && w.includes("buzz('medium')"));
+  assert.ok(html.includes('requestAnimationFrame(bravoFinWire); requestAnimationFrame(bravoCadWire);'));
   /* L’anse de l’autocollant se lève : ses trois tracés (ombre et contour blanc, trait, reflet lilas) portent la même classe */
   const stk = cut("    cadenas:['", '`],');
   assert.equal(stk.split('<path class="stk-anse" d="M15.5 2').length - 1, 3);
   const debut = css.indexOf('Le parcours se suit — 13 novembre, 0 h 32'), fin = css.indexOf('Défis — la refonte du 7 novembre');
   const bloc = css.slice(debut, fin);
-  assert.ok(bloc.includes('html.lq .bravo-ouvre-art .lq-stk{display:block;width:48px;height:48px;overflow:visible;animation:bvCadenas 1.5s ease .5s both}'));
-  assert.ok(bloc.includes('html.lq .bravo-ouvre-art .stk-anse{transform-origin:32.5px 23px;animation:bvAnse .45s var(--pop) 1.25s both}'), 'elle pivote sur son pied droit, une fois le cadenas remué');
-  assert.ok(bloc.includes('@keyframes bvAnse{from{transform:none}to{transform:translateY(-2.5px) rotate(26deg)}}'));
+  for (const k of ['html.lq #scr-lesson .bravo-next-btn.is-ouvre .bn-cad .lq-stk{animation:bvCadenas 1.3s ease both}',
+    'html.lq #scr-lesson .bravo-next-btn.is-ouvre .bn-cad .stk-anse{animation:bvAnse .45s var(--pop) .7s both}',
+    'html.lq #scr-lesson .bravo-next-btn .bn-cad .stk-anse{transform-origin:32.5px 23px}',
+    '@keyframes bvAnse{from{transform:none}to{transform:translateY(-2.5px) rotate(26deg)}}',
+    'html[data-motion="reduce"].lq #scr-lesson .bravo-next-btn.is-ouvre .bn-cad .stk-anse{transform:translateY(-2.5px) rotate(26deg)}'])
+    assert.ok(bloc.includes(k), k);
   assert.ok(!bloc.includes('drop-shadow('));
 });
 
