@@ -82,10 +82,13 @@ test('la correction : une solution mise en lignes et à copier, ce qu’elle ren
   assert.ok(ok.includes('D’autres requêtes peuvent donner le même résultat&nbsp;: c’est lui qui compte.'), 'une solution, pas la seule');
   assert.ok(ok.includes('<section class="jc-sec is-res"><div class="jc-h"><b>Ce qu’elle renvoie</b><div class="result-meta"><span class="rm-n">2 lignes</span></div></div>\n  <div class="table-scroll">TABLE</div></section>'), 'le nombre de lignes sur la ligne du titre');
   assert.ok(ok.includes('<p class="jc-p">Compte avec <code>COUNT(*)</code>.</p>'), 'le raisonnement : la piste du défi');
-  assert.ok(ok.includes('<b>Ta requête</b><span class="jc-chip is-ok">Acceptée</span></div><div class="ex-code">«select a\nfrom vols»</div>'), 'ta requête, acceptée');
+  /* 13 novembre, 20 h 45 (Elisa : « un lien Voir ma requête, que quand on a réussi ; sur la requête, Voir une solution ; pour éviter deux
+     cadres requête ») : un seul cadre, et son lien */
+  assert.ok(ok.includes('<section class="jc-sec is-sol" data-vue="sol"><div class="jc-h"><b class="jc-t is-sol">Une solution</b><b class="jc-t is-moi" hidden>Ta requête</b><span class="jc-chip is-ok jc-t is-moi" hidden>Acceptée</span><button type="button" class="jc-bascule" onclick="jeuCorrBascule(this)" aria-pressed="false">Voir ma requête</button></div>'), 'le lien, défi réussi');
+  assert.ok(ok.includes('<div class="jc-vue is-moi" hidden><div class="ex-code">«select a\nfrom vols»</div>') && (ok.match(/class="ex-code"/g) || []).length === 2 && (ok.match(/<section class="jc-sec is-sol"/g) || []).length === 1, 'ta requête dans le même cadre, cachée d’abord');
   assert.ok(ok.includes('<button type="button" class="room-go" onclick="defisFeuilleFermer()"><span>J’ai compris</span>›</button>'));
   const rate = ctx.jeuCorrHTML({ cid: 'x1', found: {}, essai: 'SELECT * FROM vols' }, c, 0);
-  assert.ok(rate.includes('<span class="dx-pc is-to"><reveil><span>Temps écoulé</span></span>') && rate.includes('<b>Ton dernier essai</b></div><div class="ex-code">«SELECT *\nFROM vols»</div>') && !rate.includes('Ta requête'));
+  assert.ok(rate.includes('<span class="dx-pc is-to"><reveil><span>Temps écoulé</span></span>') && !rate.includes('Ton dernier essai') && !rate.includes('jc-bascule') && !rate.includes('Ta requête'), 'pas réussi : la solution seule');
   assert.ok(!ctx.jeuCorrHTML({ cid: 'x1', found: {} }, c, 0).includes('jc-sec is-essai'), 'sans essai, rien');
   ctx.JEU.nb = 1;
   assert.ok(ctx.jeuCorrHTML({ cid: 'x1', found: {} }, c, 0).includes('<p class="room-kicker">La correction</p>'));
@@ -147,11 +150,11 @@ test('le bilan : le titre dit l’issue, les trois cases, une manche ratée dans
 test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la correction dans la feuille des Défis ; les versions', () => {
   const jeu = lq.indexOf('9 novembre, 10 h 37 (Elisa, la relecture'), defis = lq.indexOf('Défis — la refonte du 7 novembre'), feuille = lq.indexOf('/* La feuille de la correction : l’en-tête violet');
   assert.ok(jeu > 0 && jeu < defis && feuille > defis, 'les règles des Défis restent limitées à leurs pages (retours-2144-defis)');
-  for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-moi{background:#EAF8F0}', 'html.lq .dx-feuille .jc-sec.is-essai{background:#FFF1E8}',
+  for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-sol[data-vue="moi"]{background:#EAF8F0}', 'html.lq .dx-feuille button.jc-bascule{flex:none;',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-carte-v2965';") && app.includes("const SW_CACHE='requete-2026-11-13-carte-v2965';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=346">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-correction-v2966';") && app.includes("const SW_CACHE='requete-2026-11-13-correction-v2966';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=347">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -226,4 +229,22 @@ test('17 h 09 : de l’éditeur à « Bravo, défi résolu ! », la hauteur perd
   const a = fn('jeuAtterrir');
   assert.ok(a.includes("sp.className='jeu-amorti'") && a.includes("sp.style.transition='height .5s cubic-bezier(.3,.7,.2,1)';sp.style.height='0px';"), 'la hauteur perdue s’amortit');
   assert.ok(a.includes("scr.scrollTo({top:cible,behavior:doux?'smooth':'auto'})"), 'la carte revient doucement (tout de suite en mouvement réduit)');
+});
+
+test('13 novembre, 20 h 45 : « Voir ma requête » ⇄ « Voir une solution » dans le même cadre ; la pastille du niveau, ses barres côte à côte', () => {
+  const b = { textContent: 'Voir ma requête', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
+  const el = cls => ({ classList: { contains: c => cls.includes(c) }, hidden: !cls.includes('is-sol') });
+  const parts = [el('jc-vue is-sol'), el('jc-vue is-moi'), el('jc-t is-sol'), el('jc-t is-moi')];
+  const sec = { dataset: { vue: 'sol' }, querySelectorAll: () => parts };
+  b.closest = () => sec;
+  const ctx = vm.createContext({});
+  vm.runInContext(fn('jeuCorrBascule'), ctx);
+  ctx.jeuCorrBascule(b);
+  assert.equal(sec.dataset.vue, 'moi'); assert.equal(b.textContent, 'Voir une solution'); assert.equal(b.attrs['aria-pressed'], 'true');
+  assert.deepEqual(parts.map(p => p.hidden), [true, false, true, false]);
+  ctx.jeuCorrBascule(b);
+  assert.equal(b.textContent, 'Voir ma requête'); assert.deepEqual(parts.map(p => p.hidden), [false, true, false, true]);
+  const lq = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'ludique.css'), 'utf8');
+  const i = lq.indexOf('html.lq #jeu-root .jr2-niv .jeu-bars{display:inline-flex;align-items:flex-end;gap:2px;width:auto;height:12px;');
+  assert.ok(i > 0 && i < lq.indexOf('Défis — la refonte du 7 novembre'), 'les barres côte à côte, avant les règles des Défis');
 });
