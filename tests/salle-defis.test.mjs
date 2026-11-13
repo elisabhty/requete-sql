@@ -1972,7 +1972,7 @@ test('9 novembre, 21 h 57 : importer dans un projet qui a déjà des tables : id
   assert.ok(app.includes("oui:bilan.nouvelles.length?'Ajouter au projet':'Mettre à jour le projet',trois:'Remplacer le contenu',troisDanger:true,non:null"), 'ajouter ou remplacer le contenu');
   assert.ok(app.includes("oui:un?'Mettre à jour':'Les mettre à jour',trois:un?'Conserver la version actuelle':'Conserver les versions actuelles',non:null"), 'les tables différentes : mettre à jour ou conserver');
   assert.ok(app.includes("copierTablesSqlite(p.bytes,database,pendingImport.saute);") && app.includes("if(saute&&saute.has(String(t).toLowerCase()))continue;"), 'une base SQLite saute ses tables identiques');
-  assert.ok(app.includes("{const tr=el.querySelector('.lq-ask-trois');if(tr)tr.onclick=()=>fin('trois');}"), 'lqAsk : un deuxième choix');
+  assert.ok(app.includes("{const tr=el.querySelector('.lq-ask-trois');if(tr)tr.onclick=()=>{if(typeof o.surTrois==='function')try{o.surTrois();}catch(e){}fin('trois');};}"), 'lqAsk : un deuxième choix (13 novembre : o.surTrois dans le geste)');
 });
 
 test('9 novembre, 22 h 09 : l’historique de la Console garde le début d’une requête de plus de 20 000 caractères, et ne l’épingle pas', () => {

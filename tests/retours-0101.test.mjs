@@ -86,7 +86,7 @@ test('8 h 53 : le pas à pas « utilise » les lignes de la table (plus « part 
 });
 
 test('8 h 55 puis 9 h 12 : après un SELECT, une seule rangée « Pas à pas » ; épingler en icône à côté d’Exécuter', () => {
-  assert.ok(app.includes("paint(`<div class=\"console-out-ready result-live\">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms)}</div>`);"));
+  assert.ok(app.includes("paint(`<div class=\"console-out-ready result-live\">${vizCtaHTML(sql,'ed-console')}${renderTable(res,ms,{extraire:!!consoleResultat})}</div>`);"))   // 13 novembre, 16 h 10 : « Extraire »;
   assert.ok(app.includes('<button type="button" class="viz-row" style="--n:${et.length}" onclick="openViz(\'${taId}\')"'), 'une seule action, toute la rangée');
   assert.ok(app.includes("const et=[['FROM',1],['WHERE',c.where],['GROUP BY',c.group],['HAVING',c.having],['SELECT',1],['ORDER BY',c.order],['LIMIT',c.limit]]"), 'les étapes dans l’ordre d’exécution');
   assert.ok(app.includes("const c=typeof splitClauses==='function'?splitClauses(sql):null;\n  if(!c)return '';"), 'seulement pour un SELECT');
