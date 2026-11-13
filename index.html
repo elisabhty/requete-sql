@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=338">
+<link rel="stylesheet" href="ludique.css?v=339">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=67">
 <style id="lesson-video-css">
@@ -37206,6 +37206,10 @@ function jeuView(){
      tous les temps : passé l’heure de la suite (jeuFinAuto) et une marge, l’écran de fin se pose chez soi. La fin de l’hôte, si elle
      arrive, ne change rien ; « Rejouer » attend d’être l’hôte (jeuFinBoutonsHTML), et le nouvel hôte envoie la fin aussitôt (jeuTick). */
   if(fin&&n>=J.nb-1&&!jeuIsHost()){const t=jeuFinAuto(n);if(t&&Date.now()>=t+JEU_FIN_MARGE)return'final';}
+  /* 13 novembre, 17 h 16 (Elisa : « fusionner les deux pages ») : entre amis, la dernière manche finie mène tout droit à l’écran de
+     fin, qui dit l’issue (victoire, défaite, 0 à 0) avec le podium ; plus de « Manche terminée » puis « Le podium arrive dans 5 s ».
+     L’hôte envoie la fin de partie 5 s plus tard, comme avant (jeuTick) ; « Revanche » ne l’attend pas (jeuRejouer). */
+  if(fin&&n>=J.nb-1&&!jeuSoloLike(n))return'final';
   return (fin?'res':'play')+n;
 }
 /* L’hôte a disparu : le plus ancien arrivé encore présent prend le relais. */
@@ -38198,21 +38202,53 @@ function jeuRender(){
       if(!prefersReduceMotion()&&!keep)setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
       if(all&&!keep)setTimeout(celebrate,300);   // redessiné sur place (la revanche, 13 novembre) : pas une deuxième fois
     }else{
+      /* 13 novembre, 17 h 16 (Elisa, ses captures « 2e place, bien joué ! » puis « Le podium ») : « Fusionner les deux pages car ce
+         sont la même chose dit différemment, du coup avec le bouton défier ou quelque chose comme ça. Faire une page défaite, 0-0,
+         gagnant ; pas d’ex æquo possible à part 0/0 (aucun n’a trouvé) car ça se joue sur le temps ». La dernière manche entre amis
+         mène tout droit ici (jeuView : plus de page « Manche terminée » puis « Le podium arrive »). En tête, le cadre violet des
+         résultats de manche dit l’issue de la partie : la victoire (le trophée, devant qui et de combien), la défaite (« Pas cette
+         fois ! », qui l’emporte et de combien), le 0 à 0 (personne n’a trouvé) ; tes points et leur détail. Puis le podium (au
+         0 à 0, les joueurs, sans podium), les défis de la partie et leur correction, et « Revanche » : l’hôte relance la salle, les
+         autres disent qu’ils en sont (jeuRevancheHTML). */
       jeuPlaces(sc);
+      const moi=sc.find(x=>x.pid===J.me)||{pts:0,ms:0,place:sc.length||1},premier=sc[0]||null,second=sc[1]||null;
+      const nul=sc.length>0&&sc.every(x=>x.pts===0),winner=!nul&&moi.place===1&&moi.pts>0;
+      const nom=x=>esc(x&&x.name||'Joueur'),ecart=(a,b)=>{const d=Math.max(0,(a&&a.pts||0)-(b&&b.pts||0));return `${d.toLocaleString('fr-FR')}\u00a0point${d>1?'s':''}`;};
+      let ton,titre,chat,med='',phrase;
+      if(winner){ton='is-or';titre='Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
+        phrase=!second?'':second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`:`${nom(second)} n’a ${J.nb>1?'rien':'pas'} trouvé.`;}
+      else if(nul){ton='is-nul';titre='0 à 0\u00a0!';chat='reveil';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Égalité parfaite\u00a0: la revanche\u00a0?`;}
+      else{ton='is-ko';titre='Pas cette fois\u00a0!';chat='effort';med=moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):'';
+        phrase=`${nom(premier)} l’emporte${moi.pts>0?` de ${ecart(premier,moi)}`:''}. À toi la revanche\u00a0!`;}
+      /* Le détail de tes points : une seule manche, celui de la manche (le défi, le premier coup, la place) ; plusieurs, les défis trouvés. */
+      let pills='';
+      if(J.nb===1&&moi.pts>0){const y=J.rounds[0]?jeuRanking(0).find(x=>x.pid===J.me):null;
+        if(y)pills=[`<i>Défi ${y.val}${y.x>1?` ×${y.x}`:''}</i>`,y.essai?`<i class="is-essai">Du premier coup +${y.essai}</i>`:'',y.rang?`<i class="is-rang">${y.place===1?'1er':y.place+'e'} +${y.rang}</i>`:''].join('');}
+      else if(J.nb>1){const ok=J.rounds.filter(r=>r&&r.found[J.me]!=null).length;pills=`<i>${ok} défi${ok>1?'s':''} trouvé${ok>1?'s':''} sur ${jouees}</i>`;}
+      const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;
+      const ico=`${typeof chatBonusHtml==='function'?chatBonusHtml(chat):''}${med?`<i class="jr2-med">${med}</i>`:''}`;
+      const hero=`<section class="jr2-hero jeu-issue ${ton}" aria-labelledby="jr2-t">
+        <div class="jr2-top"><span class="jr2-k">${kick}</span><span class="jr2-niv">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</span></div>
+        <div class="jr2-main"><span class="jr2-chat" aria-hidden="true">${ico}</span><div class="jr2-tx"><h1 id="jr2-t">${titre}</h1>${phrase?`<p class="jr2-defi" id="jeu-sub">${phrase}</p>`:''}</div></div>
+        <div class="jr2-bas"><p class="jr2-pts"><b class="jr2-n" data-n="${moi.pts}">${moi.pts>0?'+':''}${moi.pts}</b><small>point${moi.pts>1?'s':''}</small></p></div>
+        ${pills?`<p class="jr2-pills">${pills}</p>`:''}
+      </section>`;
       const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
-      const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
       const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));
       const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte ${jeuDureeMs(J.niv)/60000} min).</p>`:'';
-      /* Gagnée entre amis : le trophée aussi (14 h 27) */
-      const trophee=winner&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`:'';
-      html=trophee+head('Salle de défi · Fin de partie',winner?(trophee?'Tu as gagné\u00a0!':'Tu as gagné ! 🏆'):'Le podium',`${jouees} manche${jouees>1?'s':''} jouée${jouees>1?'s':''}.`)+
-        `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
-        ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${jeuChrono(x.ms)}</small></li>`).join('')}</ol>${tie}</div>`:tie}
+      const ord=jeuOrder(),av=x=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(x.pid))%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`;
+      /* Le 0 à 0 : pas de podium vide, les joueurs, chacun à 0 */
+      const classement=nul?`<div class="jeu-card jr2-card"><p class="jeu-card-h">Les joueurs</p><ol class="jr2-list">${sc.map((x,i)=>`<li class="jr2-row is-miss${x.pid===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">–</span>${av(x)}<span class="jr2-nm"><b>${nom(x)}${x.pid===J.me?' <small>(toi)</small>':''}</b><small>Pas trouvé</small></span><em class="jr2-p">0</em></li>`).join('')}</ol></div>`
+        :`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChrono(g[0].ms):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
+        ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.pts>0?x.place:'–'}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${x.pts>0?jeuChrono(x.ms):'Pas trouvé'}</small></li>`).join('')}</ol>${tie}</div>`:tie}`;
+      html=`${jeuNetSlot()}${hero}${classement}
         ${jeuCorrListeHTML()}
-        ${host?`<button type="button" class="journey-primary" onclick="jeuRejouer()"><span>Rejouer dans cette salle</span>${DEF_CHEV_SVG}</button>`:jeuRevancheHTML()}
-        ${jeuBtn2('quit','Quitter la salle','goBack()')}
-        ${jeuNetSlot()}`;
-      if(winner&&!keep)setTimeout(celebrate,300);   // redessiné sur place (la revanche, 13 novembre) : pas une deuxième fois
+        ${host?`<button type="button" class="journey-primary jeu-revanche" onclick="jeuRejouer()"><span>Revanche</span>${DEF_CHEV_SVG}</button><p class="jeu-wait jeu-revanche-n"><i class="jeu-dot" aria-hidden="true"></i>Même salle, même code&nbsp;: tout le monde revient.</p>`:jeuRevancheHTML()}
+        ${jeuBtn2('quit','Quitter la salle','goBack()')}`;
+      if(!keep){
+        if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector('#jeu-root .jr2-n');if(b&&JEU===J)jeuCountUp(b);},300);
+        if(winner)setTimeout(celebrate,300);   // redessiné sur place (la revanche) : pas une deuxième fois
+      }
     }
   }
   /* 9 novembre, 16 h 59 (Elisa : « sur iPhone, vérifie bien que l’écran “Oups, la partie a déjà démarré” soit bien centré, pas tout en
@@ -38635,7 +38671,7 @@ function jeuRevanche(){
 }
 function jeuRevancheHTML(){
   const J=JEU,on=!!(J&&J.revanche),h=J&&J.players&&(J.players[J.hostPid]||{}).name,hote=h?esc(h):'';
-  return `<button type="button" class="journey-primary jeu-revanche${on?' on':''}" aria-pressed="${on}" onclick="jeuRevanche()"><span>${on?`${jeuMaj(jeuPretMot(true))} pour la revanche ✓`:'Rejouer dans cette salle'}</span>${on?'':DEF_CHEV_SVG}</button>`+
+  return `<button type="button" class="journey-primary jeu-revanche${on?' on':''}" aria-pressed="${on}" onclick="jeuRevanche()"><span>${on?`${jeuMaj(jeuPretMot(true))} pour la revanche ✓`:'Revanche'}</span>${on?'':DEF_CHEV_SVG}</button>`+
     `<p class="jeu-wait jeu-revanche-n"><i class="jeu-dot" aria-hidden="true"></i>${on?`Tu seras ${jeuPretMot(true)} dès que ${hote||'l’hôte'} relance la partie.`:`${hote?hote+' relance':'L’hôte relance'} la partie, ici, avec le même code.`}</p>`;
 }
 function jeuCountUp(el){
@@ -38675,7 +38711,7 @@ function jeuPtsPage(o){
       <p class="mu-p" id="mu-p">Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${total?` Tes points de salle passent à <b>${fmt(total)}</b>.`:''}</p>
       <div class="mu-acts">
         <button type="button" class="mu-go"><span class="mu-go-ico">${MU_PLAY}</span><span class="mu-go-l">Voir le bilan</span></button>
-        ${o.solo?'':'<button type="button" class="mu-later mu-rejouer">Rejouer dans cette salle</button>'}
+        ${o.solo?'':'<button type="button" class="mu-later mu-rejouer">Revanche</button>'}
       </div>
     </div>
   </div>`;
@@ -51286,7 +51322,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-revanche-v2950';
+  const SW_CACHE='requete-2026-11-13-fin-v2951';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
