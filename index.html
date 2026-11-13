@@ -6732,9 +6732,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=328">
+<link rel="stylesheet" href="ludique.css?v=329">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=64">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=65">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -44257,7 +44257,7 @@ let obLock=false;
    d’abord, puis « Ton parcours est prêt », la connexion et le paywall, et l’app. On paie après avoir vu son parcours. */
 /* 12 novembre (réf. 5 et 6, d’après HeyRua : « mettre ces écrans, on n’en a pas ») : « bonjour », le chat qui salue avec le nom de
    l’appli, avant l’accueil ; « questions », l’annonce des questions, juste avant le prénom. Hors des étapes comptées (obFlowSteps). */
-const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','pseudo','ready','account','paywall'];
+const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','widgetVerrou','widgetVerrouTuto','pseudo','ready','account','paywall'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -45148,7 +45148,7 @@ const OB_FIN_SLIDES=['source','rappel'];
 function obConnexionMasquee(){return typeof appliNative==='function'&&appliNative()&&!obAuthReady();}
 /* 13 h 48 (« ok » pour la proposition 6 : environ 20 écrans avant la première leçon) : le widget et son tutoriel sortent du tunnel ;
    ils arrivent une fois, de retour à l’accueil après la première leçon terminée (obWidgetProposer), puis rendent la main à l’app. */
-const OB_WIDGET_SLIDES=['widget','widgetTuto'];
+const OB_WIDGET_SLIDES=['widget','widgetTuto','widgetVerrou','widgetVerrouTuto'];
 function obFinFlux(){
   /* Elisa, 4 novembre, 10 h 16 : « mettre la page de connexion (il faut pas qu’elle marche encore) » : elle est toujours là ; sans
      fournisseur de connexion branché, ses boutons sont « Bientôt » et ne connectent à rien (obConnexionBientot). 10 h 45 : « supprimer
@@ -45670,8 +45670,11 @@ function noteProposer(){
   },1700);
   return true;
 }
+/* « C’est fait ! », au bout des quatre pages : la statistique du widget, puis la sortie. */
+function obWidgetFait(){ if(typeof stat==='function')stat('widget'); obWidgetFin(); }
 function obWidgetFin(){
   try{localStorage.setItem(OB_WIDGET_VU,'1');}catch(e){}
+  try{wgxStop();if(document.getElementById('wtu-ob-verrou'))wtuStop();}catch(e){}
   if(!state.onboarded){obGoto(obFinSuivante(obFinFlux().slice(-1)[0]));return;}   // pendant l’onboarding (ancienne page restée ouverte) : la suite du tunnel
   closeOnboardingAuth();
 }
@@ -45802,9 +45805,6 @@ function obWidgetTuile(moment){
   const m=['matin','soir','fete'].includes(moment)?moment:'jour';
   return `<span class="ob-wg" data-m="${m}"><span class="ob-wg-top"><span class="ob-wg-flw"><span class="ob-wg-fl">${FLAME_SVG}</span><i class="ob-wg-ok">${OB_WG_COCHE}</i></span><b class="ob-wg-obj"><span class="ob-wg-ch"><i>0</i><i>1</i></span><small>/1</small></b></span><span class="ob-wg-bulle">Une petite requête\u202f?</span><span class="ob-wg-leg">Ta flamme t’attend\u202f!</span><span class="ob-wg-etin">${OB_WG_ETOILE}${OB_WG_ETOILE}${OB_WG_ETOILE}</span><img class="ob-wg-cat" src="${MASCOT_IMG}" alt="" draggable="false"></span>`;
 }
-function obTelPromo(){
-  return `<span class="ob-ph-frame"><span class="ob-ph-screen"><span class="ob-ph-island"></span><span class="ob-ph-home">${obWidgetTuile('jour')}<i class="ob-ph-app a1"></i><i class="ob-ph-app a2"></i><i class="ob-ph-app a3"></i><i class="ob-ph-app a4"></i><i class="ob-ph-app a5"></i></span></span></span>`;
-}
 const OB_WT_TEXTES=['D’abord, maintiens appuyé sur ton écran d’accueil…','Appuie ensuite sur « + », en haut à gauche, puis sur « Ajouter un widget ».','Cherche « Requête » et ajoute mon widget !'];
 function obTelTuto(){
   /* Chaque app à sa case : le widget posé à la fin (2 × 2) passe par-dessus les quatre premières, sans pousser les autres. */
@@ -45821,7 +45821,7 @@ function obTelTuto(){
    temps de le lire ; entre deux, le chat plonge et ressort dans sa nouvelle pose, comme le vrai (SerieVue). */
 const OB_WG_MOMENTS=[['matin',2700],['soir',2700],['fete',3600]];
 function obWidgetPromoJouer(){
-  const wg=document.querySelector('.ob-ph-promo .ob-wg');if(!wg)return;
+  const wg=document.querySelector('#ob-body .wgx .ob-wg');if(!wg)return;   // 13 novembre, 9 h 19 : la tuile de la galerie (avant, celle d’un iPhone dessiné)
   if(prefersReduceMotion()){wg.dataset.m='fete';return;}   // sans mouvement : le plus beau moment, posé
   let i=0;
   const suivant=()=>{
@@ -46639,13 +46639,19 @@ function wtuVerrouWidgets(){
 function wtuTexteHTML(t){ return esc(t).replace(/«\u00a0(.+?)\u00a0»/g,'<b>«\u00a0$1\u00a0»</b>'); }
 /* Sous l’iPhone : la barre des étapes (on peut en toucher une), l’étape du moment (son numéro, son texte, son astuce), puis
    « Précédent » et « Suivant » (à la dernière : « Revoir depuis le début »). */
-function wtuGuideHTML(k){
+function wtuGuideHTML(k,ob){
   const W=WTU[k],n=W.etapes.length;
   const barres=W.etapes.map((t,i)=>`<li><button type="button" class="wtu-etape${i?'':' is-on'}" data-i="${i+1}" onclick="wtuAller('${k}',${i+1})" aria-label="Étape ${i+1} sur ${n}"${i?'':' aria-current="step"'}><b class="wtu-barre" aria-hidden="true"></b></button></li>`).join('');
   const pas=W.etapes.map((t,i)=>`<div class="wtu-pas${i?'':' is-on'}" data-i="${i+1}"${i?' aria-hidden="true"':''}><span class="wtu-num">Étape ${i+1} sur ${n}</span><p class="wtu-txt">${wtuTexteHTML(t)}</p>${W.astuces[i]?`<p class="wtu-astuce">${wtuTexteHTML(W.astuces[i])}</p>`:''}</div>`).join('');
   /* Les étapes s’enchaînent seules : le lecteur d’écran ne les annonce que quand on en touche une (wtuAller) */
   return `<ol class="wtu-etapes" aria-label="Les étapes">${barres}</ol>
-        <div class="wtu-guide" aria-live="off">${pas}</div>`;
+        <div class="wtu-guide" aria-live="off">${pas}</div>${ob?'':`
+        <button type="button" class="wtu-revoir" onclick="wtuPage('${k}','exemples')">Voir les exemples</button>`}`;
+}
+/* La première page de la feuille (13 novembre, 9 h 19 : « tu vas mettre des exemples en première page ») : la galerie des
+   exemples, puis « Comment l’ajouter », qui mène au pas-à-pas. */
+function wtuExemplesHTML(k){
+  return `<div class="wtu-ex">${wgxHTML(k,false)}<button type="button" class="lq-btn wtu-go" onclick="wtuPage('${k}','etapes')">Comment l’ajouter</button></div>`;
 }
 /* Les icônes du menu du « + » (celles de l’iPhone, en trait) et de la barre d’état. */
 const WTU_ICO={
@@ -46658,7 +46664,8 @@ const WTU_ICO={
 function wtuAccueilHTML(){
   const app=(i,r,c)=>`<span class="wtu-app t${i}" style="--i:${i};grid-area:${r}/${c}"><i></i><em></em><u></u></span>`;
   const apps=Array.from({length:20},(_,i)=>app(i,Math.floor(i/4)+1,i%4+1)).join('');
-  return `<div class="wtu" id="wtu-accueil" data-wtu="accueil" data-step="1">
+  return `<div class="wtu" id="wtu-accueil" data-wtu="accueil" data-step="1" data-page="exemples">
+        ${wtuExemplesHTML('accueil')}
         <div class="wtu-scene" aria-hidden="true" onclick="wtuRejouer('accueil')"><span class="wtu-tel"><span class="wtu-ecran">
           <span class="wtu-ile"></span><span class="wtu-statut"><b>9:41</b>${WTU_ICO.etat}</span>
           <span class="wtu-pill wtu-pplus" data-cible="plus">+</span><span class="wtu-pill wtu-ok" data-cible="ok">OK</span>
@@ -46678,11 +46685,13 @@ function wtuAccueilHTML(){
         ${wtuGuideHTML('accueil')}
       </div>`;
 }
-function wtuVerrouHTML(){
+/* ob : le même pas-à-pas dans la page d’après la leçon (widgetVerrouTuto), sans page d’exemples (la page d’avant les montre). */
+function wtuVerrouHTML(ob){
   let date='Vendredi 6 novembre';
   try{ const d=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long'}).format(new Date()); date=d.charAt(0).toUpperCase()+d.slice(1); }catch(e){}
   const w=wtuVerrouWidgets();
-  return `<div class="wtu" id="wtu-verrou" data-wtu="verrou" data-step="1">
+  return `<div class="wtu" id="${ob?'wtu-ob-verrou':'wtu-verrou'}" data-wtu="verrou" data-step="1" data-page="${ob?'etapes':'exemples'}">
+        ${ob?'':wtuExemplesHTML('verrou')}
         <div class="wtu-scene" aria-hidden="true" onclick="wtuRejouer('verrou')"><span class="wtu-tel"><span class="wtu-ecran is-nuit">
           <span class="wtu-carte"><span class="wtu-date">${esc(date)}</span><span class="wtu-heure">9:41</span>
             <span class="wtu-zone" data-cible="zone"><span class="wtu-plus">+</span><span class="wtu-pose-r">${w.rond}</span><span class="wtu-pose-b">${w.bande}</span></span></span>
@@ -46696,10 +46705,11 @@ function wtuVerrouHTML(){
           </span>
           <b class="wtu-doigt"></b>
         </span></span></div>
-        ${wtuGuideHTML('verrou')}
+        ${wtuGuideHTML('verrou',ob)}
       </div>`;
 }
 /* La feuille : l’iPhone dessiné et ses étapes, rien d’autre (7 novembre, 0 h 03 : ni cadre violet, ni ligne sur l’app pour iPhone). */
+/* 13 novembre, 9 h 19 : une première page d’exemples avant le pas-à-pas (data-page : « exemples », puis « etapes »). */
 function wtuFeuilleHTML(k){
   return k==='verrou'?wtuVerrouHTML():wtuAccueilHTML();
 }
@@ -46717,11 +46727,34 @@ function wtuCibles(box){
 }
 let WTU_T=0,WTU_K='';
 function wtuStop(){ clearTimeout(WTU_T);WTU_T=0;WTU_K=''; }
+/* Le pas-à-pas dont on parle : celui de la page d’après la leçon tant qu’elle est à l’écran, sinon celui de Mon compte. */
+function wtuBoite(k){
+  try{
+    const ob=document.getElementById('wtu-ob-'+k),root=document.getElementById('onboarding');
+    if(ob&&root&&root.classList.contains('on')&&OB_SLIDES[obStep]==='widgetVerrouTuto')return ob;
+  }catch(e){}
+  return document.getElementById('wtu-'+k);
+}
+/* D’une page de la feuille à l’autre : les exemples (la galerie repart), ou le pas-à-pas (il repart de la première étape). */
+function wtuPage(k,page){
+  const box=wtuBoite(k);if(!box)return;
+  if(typeof buzz==='function')buzz('selection');
+  box.dataset.page=page==='etapes'?'etapes':'exemples';
+  const corps=box.closest('.plus-details-body');if(corps)corps.scrollTop=0;
+  if(page==='etapes'){
+    wgxStop();
+    const g=box.querySelector('.wtu-guide');if(g)g.setAttribute('aria-live','off');
+    requestAnimationFrame(()=>wtuJouer(k,1));
+  }else{
+    wtuStop();
+    requestAnimationFrame(()=>wgxJouer(box.querySelector('.wgx')));
+  }
+}
 /* Une étape : son geste se joue, puis, après un temps de pause, vient l’étape suivante ; après la dernière, la première (7 novembre,
    0 h 03 : « étape 1 → étape 2 tout seul »). Tant que la feuille reste ouverte. */
 function wtuJouer(k,i){
   clearTimeout(WTU_T);
-  const box=document.getElementById('wtu-'+k),W=WTU[k];if(!box||!W){wtuStop();return;}
+  const box=wtuBoite(k),W=WTU[k];if(!box||!W){wtuStop();return;}
   WTU_K=k;
   const n=W.etapes.length;i=((i-1)%n+n)%n+1;
   wtuCibles(box);
@@ -46730,21 +46763,160 @@ function wtuJouer(k,i){
   box.querySelectorAll('.wtu-etape').forEach(b=>{const j=+b.dataset.i,on=j===i;b.classList.toggle('is-on',on);b.classList.toggle('is-fait',j<i);if(on)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});
   box.querySelectorAll('.wtu-pas').forEach(p=>{const on=+p.dataset.i===i;p.classList.toggle('is-on',on);if(on)p.removeAttribute('aria-hidden');else p.setAttribute('aria-hidden','true');});
   const suite=i===n?1:i+1;
-  WTU_T=setTimeout(()=>{ const d=box.closest('details'); if(!d||!d.open||!document.body.contains(box)){wtuStop();return;} wtuJouer(k,suite); },W.durees[i-1]+(i===n?1800:1200));
+  WTU_T=setTimeout(()=>{
+    /* Tant que la feuille reste ouverte sur le pas-à-pas ; dans la page d’après la leçon, tant qu’elle est à l’écran */
+    const d=box.closest('details'),la=d?d.open&&box.dataset.page!=='exemples':wtuBoite(k)===box;
+    if(!la||!document.body.contains(box)){wtuStop();return;}
+    wtuJouer(k,suite);
+  },W.durees[i-1]+(i===n?1800:1200));
 }
 /* Une barre touchée : son étape tout de suite, annoncée au lecteur d’écran ; l’enchaînement repart de là. */
 function wtuAller(k,i){
   if(typeof buzz==='function')buzz('selection');
-  const g=document.getElementById('wtu-'+k)?.querySelector('.wtu-guide');if(g)g.setAttribute('aria-live','polite');
+  const g=wtuBoite(k)?.querySelector('.wtu-guide');if(g)g.setAttribute('aria-live','polite');
   wtuJouer(k,i);
 }
 /* Un toucher sur l’iPhone dessiné rejoue le geste de l’étape. */
-function wtuRejouer(k){ const box=document.getElementById('wtu-'+k); if(box)wtuJouer(k,+box.dataset.step||1); }
+function wtuRejouer(k){ const box=wtuBoite(k); if(box)wtuJouer(k,+box.dataset.step||1); }
 /* La feuille s’ouvre : le pas-à-pas part de la première étape ; elle se ferme : il s’arrête. */
 function wtuToggle(el){
-  const k=el&&el.id==='plus-widget-verrou'?'verrou':'accueil';
-  if(el&&el.open){ const g=document.getElementById('wtu-'+k)?.querySelector('.wtu-guide');if(g)g.setAttribute('aria-live','off'); requestAnimationFrame(()=>wtuJouer(k,1)); }
-  else if(WTU_K===k)wtuStop();
+  /* 13 novembre, 9 h 19 : la feuille s’ouvre sur ses exemples, dont la galerie part (avant, le pas-à-pas partait tout de suite) */
+  const k=el&&el.id==='plus-widget-verrou'?'verrou':'accueil',box=document.getElementById('wtu-'+k);
+  if(el&&el.open){
+    wtuStop();
+    if(box){box.dataset.page='exemples';requestAnimationFrame(()=>wgxJouer(box.querySelector('.wgx')));}
+  }else{
+    if(WTU_K===k)wtuStop();
+    wgxStop();
+  }
+}
+/* ---------- Les exemples de widgets ----------
+   Elisa, 13 novembre, 9 h 19 : « dans les deux pages de Mon compte, sur l’écran verrouillé et widget sur l’iPhone, tu vas mettre
+   des exemples en première page, et pareil pour la page que tu vas afficher après la leçon […] tu vas mettre d’abord le widget
+   normal et après le widget verrouillé, à la suite […] avec un suivant, fais comme tu le sens ».
+   Une galerie qu’on fait glisser, la même partout : les vrais widgets de l’app, dessinés comme RequeteWidget.swift les dessine.
+   L’écran d’accueil : Ta flamme (petit), La requête de poche et Ta semaine (moyens), La cheminée (grand ; sa pièce est une image
+   composée avec les éléments du widget, assets/widget-cheminee.webp). L’écran verrouillé : le rond, le bandeau et la ligne de la
+   date, à trois moments (en journée, le soir, la séance faite). Elle avance seule (wgxJouer), jusqu’à ce qu’on la touche ; avec
+   moins d’animations, elle attend qu’on la fasse glisser. ob : dans l’onboarding, la tuile de Ta flamme est celle qui vit
+   (obWidgetTuile) ; dans Mon compte, celle de la feuille (wtuTuile). */
+const WGX_FLAMME_PLEINE='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.3 1.8c.5 2.4 1.6 4 3 5.6 1.7 2 3.7 4.4 3.7 8a7.5 7.5 0 0 1-15 0c0-2.5 1.2-4.5 2.6-6.1.2 1.1.8 2 1.8 2.6-.1-3.6.9-7.5 3.9-10.1Z"/></svg>';
+const WGX_LUNE='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+const WGX_COCHE='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5.5 12.5 4.2 4.2L18.5 8" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const WGX_FLECHE='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const WGX={
+  accueil:[
+    {k:'flamme',t:'Ta flamme',f:'Petit',d:'La flamme du jour, et le chat qui change avec la journée.'},
+    {k:'poche',t:'La requête de poche',f:'Moyen',d:'Une question SQL : tu réponds dans le widget, sans ouvrir l’app.'},
+    {k:'semaine',t:'Ta semaine',f:'Moyen',d:'Ta semaine en résultat de requête : une flamme par jour actif.'},
+    {k:'cheminee',t:'La cheminée',f:'Grand',d:'La pièce du chat : le feu flambe quand ta séance est faite.'}],
+  verrou:[
+    {k:'jour',t:'En journée',f:'',d:'Ta séance du jour, en rond, en bandeau ou sur la ligne de la date.'},
+    {k:'soir',t:'Le soir',f:'',d:'Le temps qui reste avant minuit défile tout seul.'},
+    {k:'fait',t:'Séance faite',f:'',d:'La flamme se remplit : 1/1.'}]
+};
+/* La requête de poche (RequetePoche) : une question d’entretien de la banque ; une seconde et demie après son arrivée, la bonne
+   réponse est touchée sous les yeux (is-rep, posé par wgxMarquer). */
+function wgxPocheHTML(){
+  return `<span class="wgx-w wgx-moyen wgx-poche"><img class="wgx-po-chat is-q" src="assets/chat-question-fixe.webp" alt="" draggable="false"><img class="wgx-po-chat is-oui" src="assets/chat-oui-fixe.webp" alt="" draggable="false">
+    <span class="wgx-po-col"><span class="wgx-po-etq">Entretien · Lire une table</span>
+      <span class="wgx-po-q">Comment tester qu’une valeur est NULL ?</span>
+      <span class="wgx-po-rep"><i>= NULL</i><i>== NULL</i><i class="is-bon">IS NULL<u>${WGX_COCHE}</u></i></span>
+      <span class="wgx-po-pied"><em class="wgx-po-cons">Touche la bonne réponse</em><em class="wgx-po-verd"><b>Bien vu !</b> <code>IS NULL</code>, jamais <code>= NULL</code>.</em><i class="wgx-po-fl">${WGX_FLECHE}</i></span></span></span>`;
+}
+/* Ta semaine (RequeteSemaine, sa version claire) : la requête, une colonne par jour, puis le pied comme sous un résultat. */
+function wgxSemaineHTML(){
+  const J=[['lun','fait'],['mar','fait'],['mer','repos'],['jeu','fait'],['ven','fait',1],['sam','avenir'],['dim','avenir']];
+  const V={fait:WGX_FLAMME_PLEINE,repos:WGX_LUNE+'<small>repos</small>',avenir:'<u>·</u>'};
+  return `<span class="wgx-w wgx-moyen wgx-semaine"><span class="wgx-se-in"><span class="wgx-se-sql"><b>SELECT</b> jour, flamme <b>FROM</b> ma_semaine;</span>
+    <span class="wgx-se-grille">${J.map(j=>`<span class="wgx-se-col is-${j[1]}${j[2]?' is-jour':''}"><em>${j[0]}</em><i>${V[j[1]]}</i></span>`).join('')}</span>
+    <span class="wgx-se-pied"><span>7 lignes · 4 flammes</span><b>vendredi : flamme allumée</b></span></span></span>`;
+}
+/* La cheminée (RequeteCheminee) : la séance faite, le soir. La pièce est une image ; le titre et « 1/1 » sont écrits par-dessus. */
+function wgxChemineeHTML(){
+  return `<span class="wgx-w wgx-grand wgx-cheminee"><img src="assets/widget-cheminee.webp" width="676" height="708" alt="" draggable="false">
+    <span class="wgx-ch-t"><b>Flamme allumée !</b><small>Bien joué, à demain.</small></span><span class="wgx-ch-p"><i>${WGX_COCHE}</i>1/1</span></span>`;
+}
+/* L’écran verrouillé (RequeteFlammeVerrou) : la ligne de la date (le jour en court, puis le widget, comme iOS l’écrit), puis sous
+   l’heure le rond et le bandeau. Le soir d’un jour de séance, l’anneau se vide autour de la flamme et le temps qui reste s’affiche. */
+function wgxVerrouHTML(etat){
+  const fait=etat==='fait',soir=etat==='soir',fl=fait?WGX_FLAMME_PLEINE:FLAME_SVG,compte=fait?'1/1':'0/1';
+  let jour='ven. 13';
+  try{jour=new Intl.DateTimeFormat('fr-FR',{weekday:'short',day:'numeric'}).format(new Date());}catch(e){}
+  const phrase=fait?'Séance du jour validée':soir?'Ta flamme t’attend !':'Séance du jour : 0/1';
+  return `<span class="wgx-w wgx-verrou is-${fait?'fait':soir?'soir':'jour'}">
+    <span class="wgx-vr-ligne"><span>${esc(jour)}</span>${fl}<b>${fait?'Séance du jour validée':'Séance du jour 0/1'}</b></span>
+    <span class="wgx-vr-heure">${soir?'20:47':'9:41'}</span>
+    <span class="wgx-vr-rang"><span class="wgx-vr-rond">${soir?'<svg class="wgx-vr-anneau" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-opacity=".28" stroke-width="3.4"/><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="57.4 106.8" transform="rotate(-90 20 20)"/></svg>':''}${fl}<b>${compte}</b></span>
+      <span class="wgx-vr-bande">${fl}<span><b>Requête</b><small>${phrase}</small>${soir?'<em>3:12:45</em>':''}</span></span></span></span>`;
+}
+function wgxDessin(k,x,ob){
+  if(k==='verrou')return wgxVerrouHTML(x.k);
+  if(x.k==='poche')return wgxPocheHTML();
+  if(x.k==='semaine')return wgxSemaineHTML();
+  if(x.k==='cheminee')return wgxChemineeHTML();
+  return `<span class="wgx-w wgx-petit">${ob?obWidgetTuile('jour'):wtuTuile()}</span>`;
+}
+function wgxHTML(k,ob){
+  const L=WGX[k]||[],n=L.length;
+  const ex=L.map((x,i)=>`<figure class="wgx-ex${i?'':' is-on'}" data-ex="${x.k}"><span class="wgx-scene" aria-hidden="true">${wgxDessin(k,x,ob)}</span><figcaption class="wgx-leg"><b>${x.t}${x.f?`<i>${x.f}</i>`:''}</b><small>${x.d}</small></figcaption></figure>`).join('');
+  const points=L.map((x,i)=>`<button type="button" class="${i?'':'is-on'}" onclick="wgxAller(this,${i})" aria-label="Exemple ${i+1} sur ${n} : ${esc(x.t)}"></button>`).join('');
+  return `<div class="wgx" data-wgx="${k}" data-i="0"><div class="wgx-piste" tabindex="0" role="group" aria-label="${k==='verrou'?'Exemples sur l’écran verrouillé':'Exemples de widgets'}" onscroll="wgxDefile(this.parentNode)" onpointerdown="wgxMain(this.parentNode)" ontouchstart="wgxMain(this.parentNode)">${ex}</div><div class="wgx-points">${points}</div></div>`;
+}
+const WGX_DUREE=4200,WGX_REPONSE=1500;
+let WGX_T=0,WGX_R=0;
+function wgxStop(){ clearTimeout(WGX_T);clearTimeout(WGX_R);WGX_T=0;WGX_R=0; }
+/* L’exemple du moment : son point, et sa petite scène (la requête de poche reçoit sa réponse ; ailleurs, elle se remet à zéro). */
+function wgxMarquer(box,i){
+  if(!box)return;
+  const exs=box.querySelectorAll('.wgx-ex');if(!exs.length)return;
+  i=Math.max(0,Math.min(exs.length-1,i));
+  if(box.dataset.vu==='1'&&+box.dataset.i===i)return;
+  box.dataset.i=String(i);box.dataset.vu='1';
+  exs.forEach((e,j)=>{e.classList.toggle('is-on',j===i);if(j!==i){const p=e.querySelector('.wgx-poche');if(p)p.classList.remove('is-rep');}});
+  box.querySelectorAll('.wgx-points button').forEach((b,j)=>{b.classList.toggle('is-on',j===i);if(j===i)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');});
+  clearTimeout(WGX_R);
+  const po=exs[i].querySelector('.wgx-poche');
+  if(po)WGX_R=setTimeout(()=>{if(document.body.contains(po)&&+box.dataset.i===i)po.classList.add('is-rep');},prefersReduceMotion()?0:WGX_REPONSE);
+}
+function wgxMontrer(box,i,doux){
+  const p=box&&box.querySelector('.wgx-piste');if(!p)return;
+  const n=p.children.length;if(!n)return;
+  i=((i%n)+n)%n;
+  const x=i*p.clientWidth,glisse=!!doux&&!prefersReduceMotion();
+  /* Pendant qu’elle glisse d’elle-même vers un exemple, les positions du trajet ne comptent pas : seul l’exemple visé (cible) */
+  if(glisse)box.dataset.cible=String(i);else delete box.dataset.cible;
+  if(typeof p.scrollTo==='function')p.scrollTo({left:x,behavior:glisse?'smooth':'auto'});else p.scrollLeft=x;
+  wgxMarquer(box,i);
+}
+/* La galerie glisse (le doigt, ou son avance) : l’exemple le plus au centre devient celui du moment. */
+function wgxDefile(box){
+  const p=box&&box.querySelector('.wgx-piste');if(!p||!p.clientWidth)return;
+  const i=Math.round(p.scrollLeft/p.clientWidth);
+  if(box.dataset.cible!=null){if(String(i)!==box.dataset.cible)return;delete box.dataset.cible;}
+  wgxMarquer(box,i);
+}
+/* On la touche : elle n’avance plus seule, on regarde à son rythme. */
+function wgxMain(box){ if(box){box.dataset.main='1';delete box.dataset.cible;clearTimeout(WGX_T);WGX_T=0;} }
+function wgxAller(el,i){
+  const box=el&&el.closest('.wgx');if(!box)return;
+  if(typeof buzz==='function')buzz('selection');
+  wgxMain(box);wgxMontrer(box,i,true);
+}
+/* Elle part du premier exemple et avance toute seule, tant qu’elle est à l’écran et qu’on n’y a pas touché. */
+function wgxJouer(box){
+  wgxStop();
+  if(!box)return;
+  delete box.dataset.main;delete box.dataset.vu;delete box.dataset.cible;
+  wgxMontrer(box,0,false);
+  if(prefersReduceMotion())return;
+  const tour=()=>{
+    const p=box.querySelector('.wgx-piste');
+    if(!document.body.contains(box)||box.dataset.main||!p||!p.clientWidth){WGX_T=0;return;}
+    wgxMontrer(box,(+box.dataset.i||0)+1,true);
+    WGX_T=setTimeout(tour,WGX_DUREE);
+  };
+  WGX_T=setTimeout(tour,WGX_DUREE);
 }
 /* ---------- La Dynamic Island : la leçon en cours ----------
    Elisa, 4 novembre, 12 h 35 : « tu peux faire une Dynamic Island ». Une leçon en vidéo s’ouvre : l’iPhone la suit en Live Activity
@@ -46813,7 +46985,7 @@ let ileOb=null;   // le dernier état envoyé (k), pour ne pas renvoyer deux foi
 const ILE_OB_TITRES={welcome:'Bienvenue',name:'Ton prénom',pays:'Ton pays',age:'Ton âge',job:'Ton métier',goal:'Ton objectif',level:'Ton niveau',
   rhythm:'Ton rythme',jours:'Tes jours de séance',build:'Ton parcours se prépare',methode:'Fondée sur la recherche',temoignages:'Ils apprennent avec Requête',pact:'Ton engagement',
   practice:'Ta première requête',account:'Ton compte',source:'Comment tu nous as connus',rappel:'Ton rappel',widget:'Ton widget',
-  widgetTuto:'Ton widget',pseudo:'Ton pseudo',ready:'Ton parcours t’attend'};
+  widgetTuto:'Ton widget',widgetVerrou:'Ton widget',widgetVerrouTuto:'Ton widget',pseudo:'Ton pseudo',ready:'Ton parcours t’attend'};
 function ileObEtat(){
   const slide=OB_SLIDES[obStep]||'welcome',steps=typeof obFlowSteps==='function'?obFlowSteps():[],total=Math.max(1,steps.length),i=steps.indexOf(slide);
   const etape=['bonjour','welcome','questions'].includes(slide)?0:slide==='ready'?total:i>=0?i+1:(ileOb?ileOb.etape:0);
@@ -46950,7 +47122,9 @@ function obNext(){
   else if(slide==='practice')obGoto(obAfterPractice());
   else if(OB_FIN_SLIDES.includes(slide))obGoto(obFinSuivante(slide));
   else if(slide==='widget')obGoto('widgetTuto');
-  else if(slide==='widgetTuto'){if(typeof stat==='function')stat('widget');obWidgetFin();}
+  else if(slide==='widgetTuto')obGoto('widgetVerrou');
+  else if(slide==='widgetVerrou')obGoto('widgetVerrouTuto');
+  else if(slide==='widgetVerrouTuto')obWidgetFait();
   else if(slide==='account')obPasserConnexion();
   else if(slide==='paywall'){if(!obAchatPret())obPaywallPasser();}   // une fois l’achat branché, seul le paiement passe la page
   else if(slide==='pseudo')obPseudoSuivant();
@@ -48813,20 +48987,36 @@ function paintOb(){
       <p class="ob-rappel-note">Modifiable à tout moment dans Mon compte.</p></div>`;
     obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');
   }else if(slide==='widget'){
-    /* L’écran d’accueil (d’après Duolingo) : le widget de la série, la flamme et le chat, posé parmi les apps. App iPhone seulement. */
-    html=`<div class="ob-screen ob-profile ob-widget-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Ta série sur ton<br><em>écran d’accueil</em></h1>
+    /* L’écran d’accueil (d’après Duolingo) : les widgets de l’app, posés sur l’écran d’accueil. App iPhone seulement.
+       13 novembre, 9 h 19 (« tu vas afficher des exemples […] d’abord le widget normal et après le widget verrouillé […] avec un
+       suivant ») : quatre pages à la suite. 1. les exemples de l’écran d’accueil (la galerie, wgxHTML ; avant, un seul widget
+       dans un iPhone dessiné) ; 2. comment en ajouter un (widgetTuto) ; 3. les exemples de l’écran verrouillé (widgetVerrou) ;
+       4. comment les ajouter (widgetVerrouTuto). « Pas maintenant », sur les deux pages d’exemples, ferme le tout. */
+    html=`<div class="ob-screen ob-profile ob-widget-step ob-wgx-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Requête sur ton<br><em>écran d’accueil</em></h1>
       ${obMascotDit('Je t’encouragerai directement depuis ton écran d’accueil !','parti')}
-      <div class="ob-ph ob-ph-promo" aria-hidden="true">${obTelPromo()}</div></div>`;
+      ${wgxHTML('accueil',true)}</div>`;
     obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');
   }else if(slide==='widgetTuto'){
     /* Le tutoriel animé (d’après Duolingo) : appui long sur l’écran d’accueil, les apps tremblent ; « + » (6 novembre, 11 h 12 : le
        bouton de l’iPhone d’Elisa), « Ajouter un widget » ;
-       la recherche « Requête », le widget, « Ajouter le widget ». La bulle de la mascotte suit chaque étape (obWidgetTutoJouer). */
+       la recherche « Requête », le widget, « Ajouter le widget ». La bulle de la mascotte suit chaque étape (obWidgetTutoJouer).
+       13 novembre, 9 h 19 : « Suivant » mène à l’écran verrouillé (avant, « C’est fait ! » fermait ici). */
     html=`<div class="ob-screen ob-profile ob-widget-step ob-wtuto">${obFlowHeader(slide)}<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget Requête</h1>
       ${obMascotDit(OB_WT_TEXTES[0],'presente',true).replace('class="ob-bubble"','class="ob-bubble" id="ob-wt-bulle"')}
       <div class="ob-ph ob-ph-tuto" id="ob-wt" data-phase="1" aria-hidden="true">${obTelTuto()}</div>
       <ol class="ob-sr-steps">${OB_WT_TEXTES.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`;
-    obSetFooter('C’est fait\u00a0!',obWidgetFin,'','','');
+    obSetFooter('Suivant',()=>obGoto('widgetVerrou'),'','','');
+  }else if(slide==='widgetVerrou'){
+    /* L’écran verrouillé, après l’écran d’accueil : ses exemples (le rond, le bandeau, la ligne de la date, à trois moments). */
+    html=`<div class="ob-screen ob-profile ob-widget-step ob-wgx-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Et sur ton<br><em>écran verrouillé</em></h1>
+      ${obMascotDit('Ta séance du jour, sans déverrouiller ton iPhone !','reveil')}
+      ${wgxHTML('verrou',true)}</div>`;
+    obSetFooter('Continuer',()=>obGoto('widgetVerrouTuto'),'Pas maintenant',obWidgetFin,'');
+  }else if(slide==='widgetVerrouTuto'){
+    /* Comment les ajouter : le pas-à-pas de Mon compte (wtuVerrouHTML), sur une carte blanche ; ses cinq étapes s’enchaînent seules. */
+    html=`<div class="ob-screen ob-profile ob-widget-step ob-wvtuto">${obFlowHeader(slide)}<h1 class="ob-title ob-sr" id="ob-title">Ajouter le widget de l’écran verrouillé</h1>
+      <div class="ob-wv-carte">${wtuVerrouHTML(true)}</div></div>`;
+    obSetFooter('C’est fait\u00a0!',obWidgetFait,'','','');
   }else if(slide==='rhythm'){
     const subtitles={calme:'Pour garder le rythme',regulier:'Le bon équilibre',intensif:'Pour progresser plus vite'};
     html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>rythme</em> te convient&nbsp;?</h1>
@@ -48952,8 +49142,10 @@ function paintOb(){
   if(slide==='rappel')obNotifCaler();
   if(slide==='temoignages')obTemoinsBrancher();
   if(slide==='methode')obMethodeAnimer();
-  if(slide==='widget')obWidgetPromoJouer();
+  if(slide==='widget'||slide==='widgetVerrou'){wgxJouer(document.querySelector('#ob-body .wgx'));if(slide==='widget')obWidgetPromoJouer();}
+  else if(OB_WIDGET_SLIDES.includes(slide))wgxStop();
   if(slide==='widgetTuto')obWidgetTutoJouer();
+  if(slide==='widgetVerrouTuto')requestAnimationFrame(()=>wtuJouer('verrou',1));
   if(slide==='jours')obJoursCompter(obJustEntered);
   if(slide==='pays')obPaysJouer();
   obRepriseGarder(slide);
@@ -50798,7 +50990,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-13-entretien-v2926';
+  const SW_CACHE='requete-2026-11-13-exemples-v2927';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

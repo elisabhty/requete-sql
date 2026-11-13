@@ -187,7 +187,7 @@ test('les deux fichiers Swift : accolades, parenthèses et crochets équilibrés
 /* ---------- La page du widget, dans l’app ---------- */
 test('la tuile est dessinée comme le vrai widget : la flamme et « 0/1 », la coche, la bulle, la phrase du soir, les étincelles, le chat', () => {
   const ctx = vm.createContext({FLAME_SVG: '<svg class="f"/>', MASCOT_IMG: 'chat.webp'});
-  vm.runInContext(entre(app, "const OB_WG_ETOILE=", '\nfunction obTelPromo(){') + ';this.tuile=obWidgetTuile;', ctx);
+  vm.runInContext(entre(app, "const OB_WG_ETOILE=", '\nconst OB_WT_TEXTES=') + ';this.tuile=obWidgetTuile;', ctx);
   const t = ctx.tuile('fete');
   assert.ok(t.startsWith('<span class="ob-wg" data-m="fete"><span class="ob-wg-top"><span class="ob-wg-flw"><span class="ob-wg-fl"><svg class="f"/></span><i class="ob-wg-ok">'));
   for (const k of ['<b class="ob-wg-obj"><span class="ob-wg-ch"><i>0</i><i>1</i></span><small>/1</small></b>', '<span class="ob-wg-bulle">Une petite requête ?</span>', '<span class="ob-wg-leg">Ta flamme t’attend !</span>',
@@ -196,7 +196,8 @@ test('la tuile est dessinée comme le vrai widget : la flamme et « 0/1 », la c
   assert.ok(ctx.tuile().includes('data-m="jour"') && ctx.tuile('n’importe quoi').includes('data-m="jour"') && ctx.tuile('soir').includes('data-m="soir"'));
   /* Plus de nombre de jours : le vrai widget n’en affiche plus depuis le 4 novembre */
   assert.ok(!app.includes('ob-wg-n') && !obv.includes('ob-wg-n') && !app.includes('obWidgetSerie'));
-  assert.ok(app.includes("<span class=\"ob-ph-home\">${obWidgetTuile('jour')}") && app.split("${obWidgetTuile('fete')}").length === 3, 'la page part du jour ; le tutoriel reste sur la fête');
+  /* 13 novembre, 9 h 19 : la tuile est le premier exemple de la galerie (avant, dans un iPhone dessiné) */
+  assert.ok(app.includes("${ob?obWidgetTuile('jour'):wtuTuile()}") && app.split("${obWidgetTuile('fete')}").length === 3, 'la page part du jour ; le tutoriel reste sur la fête');
   /* Les phrases sont celles du widget */
   assert.ok(widget.includes('"Une petite requête\\u{202F}?"') && widget.includes('"Ta flamme t’attend\\u{202F}!"'));
 });
@@ -205,7 +206,7 @@ test('la page du widget joue la journée en boucle : matin, soir, fête ; entre 
   const jouer = reduit => {
     const timers = [], journal = [], classes = new Set(), wg = {dataset: {m: 'jour'}, classList: {add: (...c) => { c.forEach(x => classes.add(x)); journal.push('+' + c.join(',')); }, remove: c => { classes.delete(c); journal.push('-' + c); }}};
     const ctx = vm.createContext({OB_SLIDES: ['widget'], obStep: 0, obDemoTimers: [], prefersReduceMotion: () => reduit, buzz: f => journal.push('buzz'),
-      document: {querySelector: s => (s === '.ob-ph-promo .ob-wg' ? wg : null), body: {contains: () => true}}, setTimeout: (f, d) => { timers.push({f, d}); return timers.length; }});
+      document: {querySelector: s => (s === '#ob-body .wgx .ob-wg' ? wg : null), body: {contains: () => true}}, setTimeout: (f, d) => { timers.push({f, d}); return timers.length; }});
     vm.runInContext(entre(app, 'const OB_WG_MOMENTS=', '\n/* Les trois étapes du tutoriel, en boucle') + ';this.jouer=obWidgetPromoJouer;', ctx);
     ctx.jouer();
     return {timers, journal, wg, classes, ctx};
@@ -238,13 +239,13 @@ test('les moments de la tuile sont des états, les passages des transitions ; l�
     `${P}[data-m="fete"] .ob-wg-cat{transform:translate(-50%,-7%) rotate(-8deg)}`, `${P}.is-plonge .ob-wg-cat{transform:translate(-50%,28%);transition:transform .2s ease-in}`,
     `${P}-cat{transition:transform .55s var(--v-pop)}`]);
   const media = obv.slice(obv.indexOf('@media (prefers-reduced-motion:no-preference){'), obv.indexOf('@media (prefers-reduced-motion:reduce){', obv.indexOf('@media (prefers-reduced-motion:no-preference){')));
-  assert.ok(media.includes('  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-ph-home .ob-wg.is-vie .ob-wg-cat{animation:none}'));
+  assert.ok(media.includes('  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .wgx-petit .ob-wg.is-vie .ob-wg-cat{animation:none}'));
   /* Le nouveau bloc n’a pas d’animation à lui : des transitions seulement */
   const bloc = obv.slice(obv.indexOf('le widget dessiné vit ----------'));
   assert.ok(bloc.length > 500 && !/animation:/.test(bloc));
 });
 
 test('la feuille de style et le cache changent de version', () => {
-  assert.ok(app.includes('onboarding-vitrine.css?v=64'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-entretien-v2926';"));
+  assert.ok(app.includes('onboarding-vitrine.css?v=65'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-exemples-v2927';"));
 });

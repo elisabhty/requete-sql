@@ -86,11 +86,21 @@ test('les deux pas-à-pas : cinq étapes, une action chacune, les boutons de l�
   assert.ok(e.includes(`<p class="wtu-astuce">Pas de <b>«${NB}+${NB}»</b>${NB}? Selon ta version d’iOS, le bouton s’appelle <b>«${NB}Modifier${NB}»</b>.</p>`), 'l’astuce sous l’étape 2');
   /* 7 novembre, 0 h 03 : « ne pas mettre les suivant précédent » ; les étapes s’enchaînent seules (retours-0003). */
   assert.ok(!/wtu-(nav|prec|suiv)|Précédent|Suivant/.test(e), 'ni « Précédent » ni « Suivant »');
-  assert.equal((e.match(/<button /g) || []).length, 5, 'pas d’autre bouton que les cinq barres');
+  /* 13 novembre, 9 h 19 : sous les étapes, « Voir les exemples » ramène à la première page de la feuille ; après la leçon (ob), non */
+  assert.equal((e.match(/<button /g) || []).length, 6, 'les cinq barres, et « Voir les exemples »');
+  assert.ok(e.includes(`<button type="button" class="wtu-revoir" onclick="wtuPage('accueil','exemples')">Voir les exemples</button>`));
+  assert.equal((ctx.wtuGuideHTML('verrou', true).match(/<button /g) || []).length, 5, 'après la leçon : pas d’autre bouton que les cinq barres');
   assert.ok(e.includes('<div class="wtu-guide" aria-live="off">'), 'l’enchaînement n’est pas annoncé à chaque étape');
   /* « ne pas mettre les cadres violets, supprimer la dernière phrase pour iPhone dans les deux » : l’iPhone dessiné et ses étapes, rien d’autre. */
   const f = ctx.wtuFeuilleHTML('verrou');
-  assert.equal(f, ctx.wtuVerrouHTML(), 'la feuille : le pas-à-pas seul');
+  assert.equal(f, ctx.wtuVerrouHTML(), 'la feuille : ses exemples, puis le pas-à-pas');
+  /* 13 novembre, 9 h 19 (« tu vas mettre des exemples en première page ») : la feuille s’ouvre sur ses exemples */
+  assert.ok(f.includes('<div class="wtu" id="wtu-verrou" data-wtu="verrou" data-step="1" data-page="exemples">') && f.includes('<div class="wgx" data-wgx="verrou" data-i="0">'));
+  assert.ok(f.includes(`<button type="button" class="lq-btn wtu-go" onclick="wtuPage('verrou','etapes')">Comment l’ajouter</button>`));
+  assert.equal((f.match(/<figure class="wgx-ex/g) || []).length, 3, 'en journée, le soir, la séance faite');
+  assert.equal((a.match(/<figure class="wgx-ex/g) || []).length, 4, 'Ta flamme, La requête de poche, Ta semaine, La cheminée');
+  const ob = ctx.wtuVerrouHTML(true);
+  assert.ok(ob.includes('<div class="wtu" id="wtu-ob-verrou" data-wtu="verrou" data-step="1" data-page="etapes">') && !ob.includes('wgx') && !ob.includes('wtu-revoir'), 'après la leçon : le pas-à-pas seul, sous un autre nom');
   assert.ok(!/acc-note|wtu-note|wtu-web|pour iPhone|App Store/.test(f), 'ni cadre violet ni ligne sur l’app pour iPhone');
   assert.doesNotMatch(f, /[Bb]ientôt|[Pp]rochainement/, 'jamais « bientôt » (11 h 12)');
   ctx.appliNative = () => true;
@@ -139,10 +149,19 @@ test('le pas-à-pas : les étapes s’enchaînent seules, 1 → 2 → … → 5 
   assert.equal(box.dataset.step, '4', 'feuille fermée : plus rien ne bouge');
   assert.equal(minuteurs.length, n);
   assert.equal(ev('WTU_K'), '', 'arrêté');
+  /* 13 novembre, 9 h 19 : la feuille s’ouvre sur ses exemples ; « Comment l’ajouter » lance le pas-à-pas */
   ctx.wtuToggle({ id: 'plus-widget-accueil', open: true });
-  assert.equal(ev('WTU_K'), 'accueil', 'la feuille s’ouvre : le pas-à-pas repart');
+  assert.equal(box.dataset.page, 'exemples', 'la feuille s’ouvre sur ses exemples');
+  assert.equal(ev('WTU_K'), '', 'le pas-à-pas attend');
+  ctx.wtuPage('accueil', 'etapes');
+  assert.equal(box.dataset.page, 'etapes');
+  assert.equal(ev('WTU_K'), 'accueil', '« Comment l’ajouter » : le pas-à-pas repart');
   assert.equal(box.dataset.step, '1', 'de la première étape');
   assert.equal(guide.attrs['aria-live'], 'off', 'et se tait de nouveau');
+  /* Sur la page des exemples, la minuterie d’une étape ne relance rien */
+  ctx.wtuPage('accueil', 'exemples');
+  assert.equal(ev('WTU_K'), '', '« Voir les exemples » : le pas-à-pas s’arrête');
+  ctx.wtuPage('accueil', 'etapes');
   ctx.wtuToggle({ id: 'plus-widget-accueil', open: false });
   assert.equal(ev('WTU_K'), '');
 });

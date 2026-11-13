@@ -441,6 +441,40 @@ ne porte pas.
 d’abord, puis TestFlight ; la scène du retour sur chaque widget (iOS décide de l’instant exact où il montre chaque entrée) ; le
 rond du soir sur l’écran verrouillé ; le clin d’œil en quittant une leçon.
 
+### Les exemples de widgets (13 novembre, 9 h 19)
+
+Elisa, 13 novembre, 9 h 19 : « dans les deux pages de Mon compte, sur l’écran verrouillé et widget sur l’iPhone, tu vas mettre des
+exemples en première page, et pareil pour la page que tu vas afficher après la leçon […] tu vas mettre d’abord le widget normal et
+après le widget verrouillé, à la suite […] avec un suivant, ou je sais pas, fais comme tu veux, comme tu le sens. »
+
+- **Une galerie, la même partout** (`wgxHTML`, dans index.html ; ses styles dans ludique.css, `.wgx`) : on la fait glisser, elle
+  avance seule toutes les 4,2 s (`wgxJouer`) jusqu’à ce qu’on la touche, un point par exemple. Avec moins d’animations, elle
+  attend qu’on la fasse glisser.
+- **L’écran d’accueil**, quatre exemples, les vrais widgets de l’app avec leur taille : **Ta flamme** (petit), **La requête de
+  poche** (moyen : une question d’entretien de la banque, et la bonne réponse touchée sous les yeux une seconde et demie plus
+  tard), **Ta semaine** (moyen), **La cheminée** (grand). Chaque dessin reprend les mesures de `RequeteWidget.swift` (`--u` : un
+  point d’un widget large de 364). La pièce de La cheminée est une image, `assets/widget-cheminee.webp`, composée avec les
+  éléments du widget (la pièce du soir, le feu vif, les objets, le chat) aux places d’`Agencement.grand` ; le titre et « 1/1 »
+  sont écrits par-dessus. Un widget qui change dans le Swift : son dessin est à reprendre ici (`wgxPocheHTML`, `wgxSemaineHTML`,
+  `wgxChemineeHTML`, `wgxVerrouHTML`).
+- **L’écran verrouillé**, trois moments : en journée, le soir (l’anneau qui se vide, « 3:12:45 »), la séance faite. Chacun
+  montre la ligne de la date, le rond et le bandeau, avec les phrases du vrai widget (`VerrouVue`).
+- **Mon compte** : chaque feuille (« Widgets de l’écran d’accueil », « Widgets de l’écran verrouillé ») s’ouvre sur ses
+  exemples ; **Comment l’ajouter** mène au pas-à-pas d’avant, qui n’a pas changé ; « Voir les exemples », sous les étapes, en
+  revient (`wtuPage`, `data-page`).
+- **Après la troisième leçon**, quatre pages à la suite au lieu de deux : `widget` (les exemples de l’écran d’accueil ; avant,
+  un seul widget dans un iPhone dessiné), `widgetTuto` (son tutoriel, inchangé ; son bouton devient **Suivant**), `widgetVerrou`
+  (les exemples de l’écran verrouillé), `widgetVerrouTuto` (le pas-à-pas de Mon compte, sur une carte blanche ;
+  **C’est fait !**). « Pas maintenant », sur les deux pages d’exemples, ferme le tout. Le même pas-à-pas sert donc deux fois ;
+  `wtuBoite` dit lequel est à l’écran.
+
+**À regarder sur l’iPhone** : la galerie qui glisse au doigt dans les deux feuilles de Mon compte. Les quatre pages d’après la
+leçon ne se montrent qu’une fois, après la troisième leçon validée (`requete-widget-propose`) : pour les revoir sur un iPhone qui
+les a déjà vues, il faut réinstaller l’app et refaire trois leçons.
+
+**Ce qui n’a pas été fait** : la Dynamic Island n’a pas de page d’exemples ; le tutoriel de l’écran d’accueil d’après la leçon
+garde ses trois temps (celui de Mon compte en a cinq) ; les exemples sont des dessins, pas des captures de l’iPhone.
+
 ### Le jour où un parcours ouvre : la notification (11 novembre, 15 h 55)
 
 « M’avertir au lancement », sur la page d’un parcours à venir, est une vraie notification dans l’appli iPhone : en activant

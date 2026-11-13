@@ -16,9 +16,11 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 test('les deux feuilles : ni « Précédent » ni « Suivant », ni cadre violet, ni ligne pour iPhone', () => {
   const wtu = cut('const WTU={', '\n};\n');
   assert.ok(!/\bnote:/.test(wtu), 'plus de note pour les cadres violets');
-  const guide = cut('function wtuGuideHTML(k){', '\n}\n');
+  const guide = cut('function wtuGuideHTML(k,ob){', '\n}\n');
   assert.ok(!/wtu-nav|wtu-prec|wtu-suiv|wtuPas|Précédent|Suivant/.test(guide), 'plus de boutons');
-  assert.ok(guide.includes('<div class="wtu-guide" aria-live="off">${pas}</div>`;'), 'les étapes, juste sous les barres');
+  assert.ok(guide.includes('<div class="wtu-guide" aria-live="off">${pas}</div>${ob?'), 'les étapes, juste sous les barres');
+  /* 13 novembre, 9 h 19 : dessous, un seul lien, « Voir les exemples » (la première page de la feuille) */
+  assert.ok(guide.includes(`<button type="button" class="wtu-revoir" onclick="wtuPage('\${k}','exemples')">Voir les exemples</button>`));
   assert.ok(app.includes("function wtuFeuilleHTML(k){\n  return k==='verrou'?wtuVerrouHTML():wtuAccueilHTML();\n}"), 'le pas-à-pas seul, dans l’app comme dans Safari');
   assert.ok(!app.includes('function wtuPas(') && !app.includes('wtu-web') && !app.includes('wtu-note'), 'le code des boutons et des lignes est parti');
   assert.ok(!/\.wtu-(nav|prec|note|web)\b/.test(lq), 'leurs styles aussi');
@@ -27,14 +29,15 @@ test('les deux feuilles : ni « Précédent » ni « Suivant », ni cadre violet
 test('étape 1 → étape 2 tout seul : après la cinquième, la première ; une barre touchée y mène', () => {
   const jouer = cut('function wtuJouer(k,i){', '\n}\n');
   assert.ok(jouer.includes('const suite=i===n?1:i+1;'), 'l’étape suivante, puis la première');
-  assert.ok(jouer.includes("wtuJouer(k,suite); },W.durees[i-1]+(i===n?1800:1200));"), 'le geste, une pause, puis la suite (un peu plus longue avant de repartir)');
-  assert.ok(jouer.includes("if(!d||!d.open||!document.body.contains(box)){wtuStop();return;}"), 'feuille fermée : tout s’arrête');
+  assert.ok(jouer.includes("    wtuJouer(k,suite);\n  },W.durees[i-1]+(i===n?1800:1200));"), 'le geste, une pause, puis la suite (un peu plus longue avant de repartir)');
+  /* 13 novembre, 9 h 19 : la feuille a deux pages ; le pas-à-pas ne tourne que sur la sienne (et, après la leçon, sur sa page) */
+  assert.ok(jouer.includes("const d=box.closest('details'),la=d?d.open&&box.dataset.page!=='exemples':wtuBoite(k)===box;\n    if(!la||!document.body.contains(box)){wtuStop();return;}"), 'feuille fermée : tout s’arrête');
   const aller = cut('function wtuAller(k,i){', '\n}\n');
   assert.ok(aller.includes("g.setAttribute('aria-live','polite')") && aller.includes('wtuJouer(k,i);'), 'touchée : annoncée, et l’enchaînement repart de là');
-  assert.ok(cut('function wtuToggle(el){', '\n}\n').includes("g.setAttribute('aria-live','off')"), 'à l’ouverture, l’enchaînement se tait de nouveau');
+  assert.ok(cut('function wtuPage(k,page){', '\n}\n').includes("g.setAttribute('aria-live','off')"), 'au départ du pas-à-pas, l’enchaînement se tait de nouveau');
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=328">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-entretien-v2926';") && app.includes("const SW_CACHE='requete-2026-11-13-entretien-v2926';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=329">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-13-exemples-v2927';") && app.includes("const SW_CACHE='requete-2026-11-13-exemples-v2927';"));
 });

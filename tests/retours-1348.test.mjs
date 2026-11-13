@@ -53,7 +53,7 @@ test('envoyer le commentaire : gardé sur l’appareil (espaces resserrés, 500 
   for (const k of ['html.lq #scr-lesson .bravo-avis .av-com.is-cache{display:none}', 'html.lq #scr-lesson .bravo-avis .av-com.is-ouvert>.av-com-lien{display:none}',
     'html.lq #scr-lesson .bravo-avis .av-com-zone textarea{display:block;width:100%;min-height:92px;', '.av-com-champ,.av-com-merci),html.lq #scr-lesson .bravo-avis{animation:none!important}}'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=328">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=329">'));
 });
 
 const repriseLab = ({onboarded = false, apercu = false, legal = null} = {}) => {
@@ -128,7 +128,7 @@ test('où l’onboarding perd du monde : chaque étape comptée une fois par app
 });
 
 test('le widget après la troisième leçon (13 novembre, 1 h 38 : la note après la deuxième, lui ensuite ; après la première à l’origine) : une fois, de retour à l’accueil, dans l’app iPhone ; il rend ensuite la main', () => {
-  assert.ok(app.includes("const OB_FIN_SLIDES=['source','rappel'];") && app.includes("const OB_WIDGET_SLIDES=['widget','widgetTuto'];"));
+  assert.ok(app.includes("const OB_FIN_SLIDES=['source','rappel'];") && app.includes("const OB_WIDGET_SLIDES=['widget','widgetTuto','widgetVerrou','widgetVerrouTuto'];"));
   const flux = cut('function obFinFlux(){', 'function obFinSuivante(');
   assert.ok(!flux.includes("'widget'") && !flux.includes('obWidgetPossible'), 'plus dans le tunnel');
   const lab = ({onboarded = true, natif = true, vu = false, faites = 3, enLecon = false, ouvert = false} = {}) => {
@@ -148,8 +148,10 @@ test('le widget après la troisième leçon (13 novembre, 1 h 38 : la note aprè
   assert.equal(lab({faites: 4}).ctx.obWidgetProposer(), true, 'et plus tard, pour qui ne l’a pas encore vu');
   /* Le retour à l’accueil le propose ; ses deux boutons rendent la main */
   assert.ok(app.includes("  activeTab=name;\n  syncTabBack(name);\n  if(name==='learn'&&typeof obWidgetBientot==='function')obWidgetBientot();"));
-  assert.ok(app.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');") && app.includes("obSetFooter('C’est fait\\u00a0!',obWidgetFin,'','','');"));
+  assert.ok(app.includes("obSetFooter('Continuer',()=>obGoto('widgetTuto'),'Pas maintenant',obWidgetFin,'');") && app.includes("obSetFooter('C’est fait\\u00a0!',obWidgetFait,'','','');"));
+  /* 13 novembre, 9 h 19 : quatre pages (l’écran d’accueil, son tutoriel, l’écran verrouillé, le sien) ; « C’est fait ! » est au bout */
+  assert.ok(app.includes("function obWidgetFait(){ if(typeof stat==='function')stat('widget'); obWidgetFin(); }"));
   const fin = cut('function obWidgetFin(){', '\n}\n');
   assert.ok(fin.includes("localStorage.setItem(OB_WIDGET_VU,'1')") && fin.includes('closeOnboardingAuth();'));
-  assert.ok(app.includes("  else if(slide==='widget')obGoto('widgetTuto');\n  else if(slide==='widgetTuto'){if(typeof stat==='function')stat('widget');obWidgetFin();}"), 'Suivant, au balayage (10 novembre : compté dans les statistiques)');
+  assert.ok(app.includes("  else if(slide==='widget')obGoto('widgetTuto');\n  else if(slide==='widgetTuto')obGoto('widgetVerrou');\n  else if(slide==='widgetVerrou')obGoto('widgetVerrouTuto');\n  else if(slide==='widgetVerrouTuto')obWidgetFait();"), 'Suivant, au balayage (10 novembre : compté dans les statistiques)');
 });
