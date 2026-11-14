@@ -43,7 +43,9 @@ test('une durée se dit d’une seule façon : « Résolu en », la seconde enta
   const perf = cut('function renderDefisPerf(){', '\nfunction ');
   assert.ok(perf.includes("const dl=typeof jeuDureeLisible==='function'?jeuDureeLisible:jeuChrono;"));
   assert.ok(perf.includes('<small>Temps moyen</small><b>${trouves?dl(avg):\'—\'}</b>') && perf.includes('<small>Le plus rapide</small><b>${fast?dl(fast):\'—\'}</b>'));
-  assert.ok(perf.includes("${h.ok?` · ${dl(h.ms)}`:''}") && !perf.includes('jeuChrono(h.ms)'), 'l’historique aussi');
+  /* 14 novembre : la ligne de l’historique a sa fonction (perfHistLigneHTML), la même lecture */
+  const ligneH = cut('function perfHistLigneHTML(', '\nfunction ');
+  assert.ok(ligneH.includes("dl=typeof jeuDureeLisible==='function'?jeuDureeLisible:jeuChrono;") && ligneH.includes("${h.ok?` · ${dl(h.ms)}`:''}") && !ligneH.includes('jeuChrono(h.ms)') && !perf.includes('jeuChrono(h.ms)'), 'l’historique aussi');
   assert.ok(lq.includes('html.lq #scr-defis .perf-times b{font-family:var(--display);letter-spacing:-.01em}'));
 });
 

@@ -185,8 +185,8 @@ test('réf 4 — la sauvegarde garde les joueurs de chaque partie entre amis et 
   assert.deepEqual(plain(st.hist[0].ppl), [{ n: 'Léa', pts: 12, place: 1 }, { n: 'Elisa', pts: 9, place: 2, me: 1 }, { n: 'bTom/b', pts: 0, place: 3 }], 'pseudos nettoyés, triés par place');
   assert.ok(!('ppl' in st.hist[1]), 'une partie seul n’a pas de podium');
   assert.deepEqual(plain(st.mates), { 'léa': { n: 'Léa', g: 3, w: 3, l: 0, at: 50 }, 'tom': { n: 'TOM', g: 2, w: 1, l: 0, at: 60 } }, 'les comptes restent cohérents (devant + derrière ≤ parties)');
-  const many = {}; for (let i = 0; i < 40; i++) many['a' + i] = { n: 'A' + i, g: 1, at: i };
-  assert.equal(Object.keys(ctx.normalizeState({ salle: { mates: many } }).salle.mates).length, 30, 'les 30 derniers amis');
+  const many = {}; for (let i = 0; i < 130; i++) many['a' + i] = { n: 'A' + i, g: 1, at: i };
+  assert.equal(Object.keys(ctx.normalizeState({ salle: { mates: many } }).salle.mates).length, 100, 'les 100 derniers amis (14 novembre, 10 h 12 ; avant 30)');
   const credit = fn('jeuCreditGame');
   assert.ok(credit.includes("const ppl=vs?sc.slice(0,8).map(x=>Object.assign({n:jeuNom(x.name)||'Joueur',pts:x.pts,place:x.place},x.pid===J.me?{me:1}:{})):null;"));
   assert.ok(credit.includes('m.n=n;m.g=(m.g||0)+1;if(me.place<x.place)m.w=(m.w||0)+1;else if(me.place>x.place)m.l=(m.l||0)+1;m.at=Date.now();mates[key]=m;'));
@@ -202,8 +202,9 @@ function perfCtx(salle) {
     jeuInitial: n => String(n || '?').trim().charAt(0).toUpperCase(), JEU_FRIENDS_SVG: '<svg data-k="friends"></svg>', DEF_CHEV_SVG: '<svg data-k="chev"></svg>',
     /* Le Top 5 de tous les joueurs a ses propres tests (classement.test.mjs) */
     clsTopHTML: () => '<p data-k="top5"></p>', clsFlush() {}, clsCharger() {},
+    clsPts: n => (+n || 0).toLocaleString('fr-FR'), JEU_HIST_MAX: 500,
   });
-  vm.runInContext(['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'perfPodiumHTML', 'perfMateHTML', 'perfCapHTML', 'perfTeintes', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
+  vm.runInContext('const PERF_HIST_VU=4,PERF_HIST_PAS=25;let perfHistVu=PERF_HIST_VU;' + ['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'pseudoBr', 'perfPodiumHTML', 'perfMateHTML', 'perfCapHTML', 'perfTeintes', 'perfRecordHaut', 'perfHistPas', 'perfHistLigneHTML', 'perfHistPiedHTML', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
 }
 
@@ -233,7 +234,7 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
     ['is-down', 'Zoé', '3 parties ensemble · ' + mates[2][2].split(' · ')[1], '0 fois devant, 2 fois derrière, 1 ex æquo', '0–2', 'à rattraper'],
   ], 'les plus récents d’abord (à égalité, les plus affrontés), et le score entre vous');
   assert.ok(h.includes(`<button type="button" class="perf-rematch" onclick="perfRematch('m')"><svg data-k="friends"></svg><span>Les redéfier</span>`), 'les redéfier, au niveau de la dernière partie');
-  assert.ok(h.includes('<span class="perf-g"><b>À plusieurs · Moyen · avec Léa et Tom</b>'), 'l’historique dit avec qui');
+  assert.ok(h.includes('<span class="perf-g"><b>À plusieurs · Moyen</b><small class="perf-g-avec">avec Léa et Tom</small>'), 'l’historique dit avec qui (14 novembre : sous le titre court)');
   /* Quatrième : sous le podium, sa place et ses points ; deux ex æquo partagent une marche ; une marche vide attend */
   const f = perfCtx({ ...salle, hist: [{ at: now, pts: 120, n: 3, ok: 2, ms: 1, niv: 'f', solo: 0, place: 4, players: 5,
     ppl: [{ n: 'Léa', pts: 412, place: 1 }, { n: 'Tom', pts: 300, place: 2 }, { n: 'Ana', pts: 300, place: 2 }, { n: 'Elisa', pts: 120, place: 4, me: 1 }, { n: 'Zoé', pts: 50, place: 5 }] }] });

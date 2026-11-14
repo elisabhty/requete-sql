@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=372">
+<link rel="stylesheet" href="ludique.css?v=373">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -7916,7 +7916,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         <section class="console-project-panel console-library-panel" id="console-panel-history" role="tabpanel" aria-labelledby="console-tab-history" hidden>
           <div class="console-library-head"><h2>Historique</h2><button type="button" id="console-clear-history" onclick="clearConsoleHistory()">Effacer</button></div>
           <div class="console-query-list" id="console-hist"></div>
-          <p class="console-library-help">Les 24 dernières exécutions sont conservées.</p>
+          <p class="console-library-help">Jusqu’à 100 exécutions, gardées sur cet appareil.</p>
         </section>
       </div>
     </section>
@@ -20381,6 +20381,13 @@ const QCM={};
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
 const APP_VERSION='2026-09-01-curriculum-v259';
 const KEY='requete-sql-v3';
+/* 14 novembre, 10 h 12 (Elisa : « les historiques… est-ce que ça va rester que sur le portable de la personne, donc est-ce qu’on peut
+   en mettre en infinité ? ») : l’historique des parties et la liste des adversaires restent sur l’appareil (ni le compte ni le
+   classement ne les gardent). Ils passent de 12 parties et 30 adversaires à 500 et 100 (100 : autant que « Mes adversaires » du
+   classement en demande). Pas d’infini : tout ce que l’appli garde sur l’iPhone tient dans une place limitée, partagée avec la
+   progression, les notes et la Console ; 500 parties à 8 joueurs pèsent environ 250 Ko. Les totaux (points, parties, réussite,
+   record, podiums) sont des compteurs : eux comptent toutes les parties, depuis la première. */
+const JEU_HIST_MAX=500,JEU_ADV_MAX=100;
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
 /* sessionStorage disparaît dès que le navigateur décharge l'onglet — ce que
@@ -20713,7 +20720,10 @@ let dbCatalog=[{id:'cours',name:'NutriBoost'}];   // la base de démo des cours 
 let pendingImport=null;
 let consoleView='list';
 const PROJ_KEY='requete-sql-proj-v1';
-const HIST_MAX=24;
+/* 14 novembre, 10 h 12 (Elisa : « est-ce qu’on peut en mettre en infinité ? ») : l’historique d’un projet passe de 24 exécutions à 100,
+   dans la limite de 120 000 caractères de requêtes par projet (les plus anciennes partent d’abord) : il reste sur l’appareil, dans une
+   place partagée avec la progression et les notes. */
+const HIST_MAX=100,HIST_CAR_MAX=120000;
 const PIN_MAX=12;
 /* 9 novembre, 22 h 09 (Elisa : « est-ce que l’historique coûte ? ») : il reste sur l’appareil, mais un script de milliers de lignes, lancé
    plusieurs fois, pouvait remplir la mémoire du navigateur. Une requête de plus de 20 000 caractères garde son début dans l’historique
@@ -21672,15 +21682,26 @@ function loadProjState(){
     saveProjState();
   }
 }
+/* 14 novembre : l’appareil plein (les historiques plus longs), l’enregistrement ne se perd plus en silence : les historiques des
+   projets raccourcissent de moitié (les exécutions les plus anciennes), jusqu’à trois fois, et l’enregistrement repart. Les
+   brouillons, épingles et descriptions ne bougent pas. */
 function saveProjState(){
-  try{ localStorage.setItem(PROJ_KEY,JSON.stringify(projState)); }catch(e){}
+  for(let essai=0;essai<4;essai++){
+    try{ localStorage.setItem(PROJ_KEY,JSON.stringify(projState)); return true; }
+    catch(e){
+      let court=false;
+      Object.values(projState).forEach(p=>{if(p&&Array.isArray(p.hist)&&p.hist.length>10){p.hist=p.hist.slice(0,Math.ceil(p.hist.length/2));court=true;}});
+      if(!court)return false;
+    }
+  }
+  return false;
 }
 function projOf(id){
   const k=id||'cours';
   if(!projState[k]||typeof projState[k]!=='object') projState[k]={draft:'',hist:[],pins:[]};
   if(!Array.isArray(projState[k].hist)) projState[k].hist=[];
   if(!Array.isArray(projState[k].pins)) projState[k].pins=[];
-  projState[k].hist=dedupeConsoleQueries(projState[k].hist,HIST_MAX);
+  projState[k].hist=dedupeConsoleQueries(projState[k].hist,HIST_MAX,HIST_CAR_MAX);
   projState[k].pins=dedupeConsoleQueries(projState[k].pins,PIN_MAX);
   if(projState[k].draft==null) projState[k].draft='';
   return projState[k];
@@ -22052,22 +22073,26 @@ function consoleSqlKey(sql){
   }
   return key.replace(/;\s*$/,'').trim();
 }
-function dedupeConsoleQueries(list,limit){
-  const seen=new Set(),clean=[];
+function dedupeConsoleQueries(list,limit,car){
+  const seen=new Set(),clean=[];let tot=0;
   for(const it of Array.isArray(list)?list:[]){
     const key=consoleSqlKey(it&&it.sql);
     if(!key||seen.has(key))continue;
     seen.add(key);
     /* Gardées avant le 9 novembre (22 h 09) : une requête trop longue garde son début */
-    clean.push(typeof HIST_SQL_MAX!=='undefined'&&String(it.sql).length>HIST_SQL_MAX?Object.assign({},it,{sql:String(it.sql).slice(0,HIST_SQL_MAX),coupe:true}):it);
+    const row=typeof HIST_SQL_MAX!=='undefined'&&String(it.sql).length>HIST_SQL_MAX?Object.assign({},it,{sql:String(it.sql).slice(0,HIST_SQL_MAX),coupe:true}):it;
+    /* car : le poids total des requêtes gardées (14 novembre) ; la plus récente reste toujours. */
+    tot+=String(row.sql).length;
+    if(car&&clean.length&&tot>car)break;
+    clean.push(row);
     if(limit&&clean.length>=limit)break;
   }
   return clean;
 }
-function promoteConsoleQuery(list,entry,limit){
+function promoteConsoleQuery(list,entry,limit,car){
   const key=consoleSqlKey(entry&&entry.sql);
-  if(!key)return dedupeConsoleQueries(list,limit);
-  return dedupeConsoleQueries([entry,...(Array.isArray(list)?list:[])],limit);
+  if(!key)return dedupeConsoleQueries(list,limit,car);
+  return dedupeConsoleQueries([entry,...(Array.isArray(list)?list:[])],limit,car);
 }
 function removeConsoleQuery(list,sql){
   const key=consoleSqlKey(sql);
@@ -22145,7 +22170,7 @@ function recordConsoleRun(sql,ok,extra){
   const p=projOf(activeDbId);
   const plein=String(sql||'').trim(),coupe=plein.length>HIST_SQL_MAX;
   const row={sql:coupe?plein.slice(0,HIST_SQL_MAX):plein,ok:!!ok,ts:Date.now(),n:extra&&extra.n,ms:extra&&extra.ms,err:extra&&extra.err,coupe:coupe||undefined};
-  p.hist=promoteConsoleQuery(p.hist,row,HIST_MAX);
+  p.hist=promoteConsoleQuery(p.hist,row,HIST_MAX,HIST_CAR_MAX);
   saveProjState();
   renderConsoleSide();
 }
@@ -24335,7 +24360,7 @@ function normalizeState(raw){
       .map(o=>Object.assign({n:salleNom(o.n)||'Joueur',pts:salleN(o.pts),place:Math.max(1,Math.min(salleN(o.place),99))},o.me?{me:1}:{})).sort((a,b)=>a.place-b.place):[];
     return Object.assign({at:salleBig(h.at),pts:salleN(h.pts),n,ok:Math.min(salleN(h.ok),n),ms:salleBig(h.ms),niv:['f','m','d'].includes(h.niv)?h.niv:'f',
       solo:h.solo?1:0,place:Math.min(salleN(h.place),99),players:Math.max(1,Math.min(salleN(h.players),99))},ppl.length>1?{ppl}:{});
-  }).filter(h=>h.at>0&&h.n>0).sort((a,b)=>b.at-a.at).slice(0,12);
+  }).filter(h=>h.at>0&&h.n>0).sort((a,b)=>b.at-a.at).slice(0,typeof JEU_HIST_MAX!=='undefined'?JEU_HIST_MAX:500);
   salle.mates={};
   Object.keys(salleObj(salleSrc.mates)).forEach(k=>{
     const m=salleSrc.mates[k];if(!m||typeof m!=='object'||Array.isArray(m))return;
@@ -24343,7 +24368,7 @@ function normalizeState(raw){
     const w=Math.min(salleN(m.w),g);
     salle.mates[n.toLowerCase()]={n,g,w,l:Math.min(salleN(m.l),g-w),at:salleBig(m.at)};
   });
-  Object.keys(salle.mates).sort((a,b)=>salle.mates[b].at-salle.mates[a].at).slice(30).forEach(k=>{delete salle.mates[k];});
+  Object.keys(salle.mates).sort((a,b)=>salle.mates[b].at-salle.mates[a].at).slice(typeof JEU_ADV_MAX!=='undefined'?JEU_ADV_MAX:100).forEach(k=>{delete salle.mates[k];});
   /* Classement général (voir clsEnvoyer) : la clé secrète de l’appareil, les parties qui attendent le réseau, les joueurs masqués
      (signalés), le choix de ne plus apparaître, l’identifiant public et un pseudo refusé par le filtre. */
   if(typeof salleSrc.cle==='string'&&/^[A-Za-z0-9]{24,64}$/.test(salleSrc.cle))salle.cle=salleSrc.cle;
@@ -28901,7 +28926,8 @@ function renderDefis(){
 function perfDay(at){
   const d=new Date(at),t=new Date();t.setHours(0,0,0,0);
   const k=Math.round((t-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5);
-  return k<=0?'Aujourd’hui':k===1?'Hier':d.getDate()+'\u00a0'+['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][d.getMonth()];
+  /* 14 novembre : l’historique garde 500 parties, plus d’un an parfois : une partie d’une autre année dit son année (« 12 nov. 2025 »). */
+  return k<=0?'Aujourd’hui':k===1?'Hier':d.getDate()+'\u00a0'+['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][d.getMonth()]+(d.getFullYear()!==t.getFullYear()?'\u00a0'+d.getFullYear():'');
 }
 /* Avec qui : les pseudos des autres joueurs (« avec Léa et Tom », « avec Léa, Tom +2 ») ; une partie notée avant qu’on garde les
    pseudos dit seulement combien ils étaient. */
@@ -28918,6 +28944,46 @@ function perfBadge(h){
   if(!h.solo&&h.place>3)return h.place+'e';
   return h.ok>=h.n?'✓':h.ok+'/'+h.n;
 }
+/* L’historique de Mes stats (14 novembre, 10 h 12 : « montre les historiques s’il y en a 30 ») : les 4 dernières parties, puis
+   « Voir les 26 autres parties » les déplie, 25 de plus à chaque toucher, sans redessiner le tableau (les nouvelles lignes arrivent
+   seules) ; tout déplié, « Réduire ». Le titre d’une partie va à la ligne au lieu d’être coupé (« … avec @chloe_sql, @noah +4 »). */
+const PERF_HIST_VU=4,PERF_HIST_PAS=25;
+let perfHistVu=PERF_HIST_VU;
+/* Combien de lignes le prochain toucher ajoute : 25, ou tout ce qui reste quand il en reste 35 au plus (30 parties : un seul toucher,
+   « Voir les 26 autres parties », pas 25 puis « l’autre partie »). */
+function perfHistPas(n){const reste=Math.max(0,n-perfHistVu);return reste<=PERF_HIST_PAS+10?reste:PERF_HIST_PAS;}
+function perfHistLigneHTML(h,i){
+  const plur=(n,w)=>`${w}${n>1?'s':''}`,dl=typeof jeuDureeLisible==='function'?jeuDureeLisible:jeuChrono;
+  /* Le titre court (« À plusieurs · Facile »), puis avec qui, puis le jour et les défis : une partie à 6 tenait sur quatre lignes en gras. */
+  const avec=!h.solo&&h.players>1?`<small class="perf-g-avec">${esc(perfWith(h))}</small>`:'';
+  return `<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${h.solo?'En solo':'À plusieurs'} · ${JEU_NIVL[h.niv]||'Facile'}</b>${avec}<small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'résolu')}${h.ok?` · ${dl(h.ms)}`:''}</small></span><em>+${clsPts(h.pts)}</em></li>`;
+}
+function perfHistPiedHTML(n){
+  if(n<=PERF_HIST_VU)return '';
+  const reste=n-perfHistVu,plus=perfHistPas(n);
+  if(reste>0)return `<button type="button" class="perf-hist-plus" aria-controls="perf-hist" onclick="perfHistPlus()"><span>${reste===plus?`Voir ${reste>1?`les ${clsPts(reste)} autres parties`:'l’autre partie'}`:`Voir ${plus} parties de plus`}</span>${DEF_CHEV_SVG}</button>`+
+    (reste>plus?`<p class="perf-hist-k">${clsPts(perfHistVu)} sur ${clsPts(n)} parties</p>`:'');
+  return `${n>=JEU_HIST_MAX?`<p class="perf-hist-k">Seules tes ${clsPts(JEU_HIST_MAX)} dernières parties sont gardées.</p>`:''}<button type="button" class="perf-hist-plus is-moins" aria-controls="perf-hist" onclick="perfHistPlus(true)"><span>Réduire</span>${DEF_CHEV_SVG}</button>`;
+}
+function perfHistPlus(moins){
+  const ol=document.getElementById('perf-hist');if(!ol)return;
+  const h=Array.isArray((state.salle||{}).hist)?state.salle.hist:[],avant=perfHistVu;
+  perfHistVu=moins?PERF_HIST_VU:Math.min(h.length,perfHistVu+perfHistPas(h.length));
+  if(moins)[...ol.children].slice(PERF_HIST_VU).forEach(li=>li.remove());
+  else ol.insertAdjacentHTML('beforeend',h.slice(avant,perfHistVu).map((x,j)=>perfHistLigneHTML(x,Math.min(j,8))).join(''));
+  const box=ol.parentElement;
+  [...box.querySelectorAll('.perf-hist-plus,.perf-hist-k')].forEach(e=>e.remove());
+  box.insertAdjacentHTML('beforeend',perfHistPiedHTML(h.length));
+  if(typeof buzz==='function')buzz('light');
+  /* Réduire : la liste remonte d’un coup ; si son titre est passé au-dessus de l’écran, on y revient. */
+  if(moins){const t=document.getElementById('perf-hist-h'),scr=document.getElementById('scr-defis');
+    if(t&&scr&&t.getBoundingClientRect().top<scr.getBoundingClientRect().top+60)try{t.scrollIntoView({block:'start',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){}}
+  const b=box.querySelector('.perf-hist-plus');if(b)try{b.focus({preventScroll:true});}catch(e){}
+}
+/* Un pseudo qui peut aller à la ligne (14 novembre, 10 h 12 : « tu regardes si les textes ne se tronquent pas, on voit tout ») :
+   sur un podium à 375 px, « @marie_charlotte » devenait « @marie_cha… » ; il passe en entier sur deux lignes, coupé de préférence
+   après « _ », « . » ou « - » (« @marie_ » puis « charlotte »). Échappé ici. */
+function pseudoBr(n){return esc(n).replace(/([_.-])(?=[^\s<])/g,'$1<wbr>');}
 /* La couleur d’un ami : toujours la même (son pseudo la choisit), sur le podium comme dans la liste. */
 function perfColor(n){let c=0;for(const ch of String(n||''))c=(c*31+ch.codePointAt(0))>>>0;return c%6;}
 /* Le podium de la dernière partie entre amis, celui de la fin de partie : les marches montent, les médailles tombent, les pseudos
@@ -28928,7 +28994,7 @@ function perfPodiumHTML(h){
     const g=ppl.filter(x=>x.place===pl).slice(0,2);
     return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.me)?' is-me':''}" style="--i:${i}"><span class="jeu-medal perf-medal">${lqStkSvg('medal'+pl)}</span>`+
       `<span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${perfColor(x.n)}" aria-hidden="true">${jeuInitial(x.n)}${typeof jeuFlag==='function'?jeuFlag(x.n):''}</b>`).join(''):'<b class="jeu-av is-empty" aria-hidden="true">?</b>'}</span>`+
-      `<span class="jeu-step-n">${g.length?g.map(x=>esc(x.n)+(x.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span>`+
+      `<span class="jeu-step-n">${g.length?g.map(x=>pseudoBr(x.n)+(x.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span>`+
       `<small>${g.length?`${g[0].pts} pt${g[0].pts>1?'s':''}`:'&nbsp;'}</small><i><em>${pl}</em></i></div>`;
   }).join('')}</div>`;
 }
@@ -29331,10 +29397,12 @@ function renderDefisPerf(){
   const host=document.getElementById('defis-perf');if(!host)return;
   const s=state.salle&&typeof state.salle==='object'?state.salle:{},num=v=>Math.max(0,Math.floor(+v||0));
   const pts=num(s.pts),parties=num(s.parties),best=num(s.best),manches=num(s.manches),trouves=Math.min(num(s.trouves),manches);
-  const hist=Array.isArray(s.hist)?s.hist.slice(0,12):[],lv=s.lv&&typeof s.lv==='object'?s.lv:{},pl=Array.isArray(s.pl)?s.pl:[0,0,0];
+  const hist=Array.isArray(s.hist)?s.hist:[],lv=s.lv&&typeof s.lv==='object'?s.lv:{},pl=Array.isArray(s.pl)?s.pl:[0,0,0];
   const rate=manches?Math.round(trouves/manches*100):0,avg=trouves?num(s.tms)/trouves:0,fast=num(s.fast);
   const plur=(n,w)=>`${w}${n>1?'s':''}`;
-  const kpi=(cls,v,lab,i)=>`<div class="perf-kpi${cls}${v!=null&&String(v).length>4?' is-long':''}" style="--i:${i}"><b${v==null?'':` data-count-to="${v}" data-delay="${.12+i*.08}" data-dur=".9"`}>${v==null?'—':v}</b><small>${lab}</small></div>`;
+  /* 14 novembre : « 10850 points » s’écrit « 10 850 », comme le classement (data-sep : le compteur garde l’espace en montant) ;
+     au-delà de 7 caractères (« 1 250 000 »), le chiffre rapetisse encore pour tenir dans sa case. */
+  const kpi=(cls,v,lab,i)=>`<div class="perf-kpi${cls}${v!=null&&String(v).length>4?' is-long':''}${v!=null&&String(v).length>6?' is-xlong':''}" style="--i:${i}"><b${v==null?'':` data-count-to="${v}" data-sep="1" data-delay="${.12+i*.08}" data-dur=".9"`}>${v==null?'—':clsPts(v)}</b><small>${lab}</small></div>`;
   const R=26,C=+(2*Math.PI*R).toFixed(2);
   const ring=`<div class="perf-ratebox" style="--i:3"><div class="perf-rate"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="perf-ring-bg" cx="32" cy="32" r="${R}"/><circle class="perf-ring" cx="32" cy="32" r="${R}" style="--c:${C}px;--v:${(C*(1-rate/100)).toFixed(2)}px"/></svg>
     <span class="perf-rate-n">${manches?`<b data-count-to="${rate}" data-delay=".25" data-dur="1" data-suffix=" %">${rate} %</b>`:'<b>—</b>'}</span></div>
@@ -29354,7 +29422,7 @@ function renderDefisPerf(){
   const vsAny=last.some(vsOf);
   const chart=last.length
     ?`<div class="perf-chart${vsAny?' has-vs':''}" role="group" aria-label="Points des ${last.length} dernières parties">${last.map((h,i)=>{const vs=vsOf(h),autres=vs?h.ppl.filter(x=>!x.me).slice(0,7):[],tt=vs?perfTeintes(h.ppl):{};
-      return `<button type="button" class="perf-bar${i===bi?' is-best':''}${i===last.length-1?' is-on':''}${vs?' is-vs':''}" style="--h:${Math.max(5,Math.round(h.pts/top*100))}%;--i:${i}" data-cap="${escAttr(`${perfDay(h.at)} · ${perfGame(h)} · ${h.pts} ${plur(h.pts,'point')}`)}" data-caph="${escAttr(perfCapHTML(h))}" aria-label="${escAttr(`${perfDay(h.at)}, ${h.pts} ${plur(h.pts,'point')}${vs?`, à ${nbOf(h)} joueurs`:''}`)}" onclick="perfPick(this)">${i===bi?`<em>${h.pts}</em>`:''}<i></i>${autres.map((x,k)=>`<span class="perf-o" data-c="${tt[x.n]}" style="--y:${Math.max(4,Math.round((+x.pts||0)/top*100))}%;--x:${zig(k)}px" aria-hidden="true"></span>`).join('')}${vs?`<b class="perf-n" aria-hidden="true">${nbOf(h)}</b>`:''}</button>`;}).join('')}</div>
+      return `<button type="button" class="perf-bar${i===bi?' is-best':''}${i===last.length-1?' is-on':''}${vs?' is-vs':''}" style="--h:${Math.max(5,Math.round(h.pts/top*100))}%;--i:${i}" data-cap="${escAttr(`${perfDay(h.at)} · ${perfGame(h)} · ${h.pts} ${plur(h.pts,'point')}`)}" data-caph="${escAttr(perfCapHTML(h))}" aria-label="${escAttr(`${perfDay(h.at)}, ${h.pts} ${plur(h.pts,'point')}${vs?`, à ${nbOf(h)} joueurs`:''}`)}" onclick="perfPick(this)">${i===bi?`<em${perfRecordHaut(h,autres,top)}>${clsPts(h.pts)}</em>`:''}<i></i>${autres.map((x,k)=>`<span class="perf-o" data-c="${tt[x.n]}" style="--y:${Math.max(4,Math.round((+x.pts||0)/top*100))}%;--x:${zig(k)}px" aria-hidden="true"></span>`).join('')}${vs?`<b class="perf-n" aria-hidden="true">${nbOf(h)}</b>`:''}</button>`;}).join('')}</div>
       <p class="perf-cap" aria-live="polite">${perfCapHTML(last[last.length-1])}</p>${vsAny?'<p class="perf-legend"><span><i class="perf-legend-o" aria-hidden="true"></i>les points de tes adversaires</span><span class="perf-legend-t">au pied de chaque barre : le nombre de joueurs</span></p>':''}`
     :`<div class="perf-chart is-ghost" aria-hidden="true">${[38,62,46,80,54,70].map((h,i)=>`<span class="perf-bar" style="--h:${h}%;--i:${i}"><i></i></span>`).join('')}</div>
       <p class="perf-cap">${parties?'Tes prochaines parties s’afficheront ici, en barres.':'Joue ta première partie : tes points s’afficheront ici, partie après partie.'}</p>`;
@@ -29376,7 +29444,8 @@ function renderDefisPerf(){
     <h4>${mates.length>1?`Tes ${mates.length} derniers adversaires`:mates.length?'Ton dernier adversaire':'Tes derniers adversaires'}</h4>${mates.length?`<ul class="perf-mates">${mates.map(perfMateHTML).join('')}</ul>`:'<p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'}
     <button type="button" class="perf-rematch" onclick="perfRematch('${vsLast?vsLast.niv:''}')">${JEU_FRIENDS_SVG}<span>${mates.length?'Les redéfier':'Jouer à plusieurs'}</span>${DEF_CHEV_SVG}</button>
   </div>`;
-  const rows=hist.slice(0,4).map((h,i)=>`<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${esc(perfGame(h))}</b><small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'résolu')}${h.ok?` · ${dl(h.ms)}`:''}</small></span><em>+${h.pts}</em></li>`).join('');
+  perfHistVu=Math.max(PERF_HIST_VU,Math.min(perfHistVu,hist.length));
+  const rows=hist.slice(0,perfHistVu).map((h,i)=>perfHistLigneHTML(h,i)).join('');
   host.innerHTML=`<section class="perf-card${parties?'':' is-empty'}" aria-labelledby="perf-h">
     <div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('chart')}</span><div><p class="perf-kicker">Tableau de bord</p><h2 id="perf-h">Tes performances</h2></div></div>
     <div class="perf-kpis">${kpi(' is-sun',pts,plur(pts,'point'),0)}${kpi('',parties,plur(parties,'partie'),1)}${kpi('',best||null,'record<em>en une partie</em>',2)}</div>
@@ -29384,10 +29453,16 @@ function renderDefisPerf(){
     <div class="perf-block"><h3>Tes dernières parties</h3>${chart}</div>
     ${manches?`<div class="perf-block"><h3>Réussite par niveau</h3><ul class="perf-lv">${lvRows}</ul></div>
     ${friends}`:''}
-    ${rows?`<div class="perf-block"><h3>Historique</h3><ol class="perf-hist">${rows}</ol></div>`:''}
+    ${rows?`<div class="perf-block perf-histo"><h3 id="perf-hist-h">Historique</h3><ol class="perf-hist" id="perf-hist" aria-labelledby="perf-hist-h">${rows}</ol>${perfHistPiedHTML(hist.length)}</div>`:''}
   </section>`;
   perfReveal(host.firstElementChild);
   clsFlush();if(typeof clsDefis==='function')clsDefis();
+}
+/* Le chiffre du record, au-dessus de sa barre (14 novembre) : une partie à plusieurs où les autres ont marqué autant ou plus posait
+   leurs pastilles sur le chiffre (« 927 » caché, on ne lisait que « 2 ») ; il monte alors au-dessus de la plus haute pastille. */
+function perfRecordHaut(h,autres,top){
+  const bh=Math.max(5,Math.round(h.pts/top*100)),dm=autres.length?Math.max(...autres.map(x=>Math.max(4,Math.round((+x.pts||0)/top*100)))):0;
+  return dm>=bh-12?` style="--hl:${dm}%;--hlpx:11px"`:'';
 }
 /* Sous les barres : la partie choisie. Seul : le jour, la partie, les points. À plusieurs (pseudos connus) : chaque joueur, sa
    couleur, ses points, dans l’ordre du classement de la partie. */
@@ -29577,6 +29652,7 @@ function paysMontrer(on){
 function defisOnglet(k){
   if(k==='amis')k='jouer';
   if(!['jouer','classement','stats'].includes(k))return;
+  if(k==='stats'&&DEFIS.onglet!=='stats')perfHistVu=PERF_HIST_VU;   // Mes stats rouverte : l’historique revient à ses 4 dernières parties
   DEFIS.onglet=k;if(k!=='stats')jeuSavePrefs();
   if(k==='classement')DEFIS.cls.cle='';   // 23 h 38 : l’onglet touché se relit (les points arrivés depuis)
   defisPeindre();
@@ -30069,7 +30145,7 @@ function clsPodiumHTML(l){
     const x=(l||[]).find(y=>y&&Math.floor(+y.rang||0)===pl),bloc=`<i class="dx-pod-bloc" aria-hidden="true">${lqStkSvg('medal'+pl)}</i>`;
     if(!x)return `<div class="dx-pod-m is-${pl} is-libre"><span class="dx-pod-av" aria-hidden="true"><b class="jeu-av is-empty">?</b></span><span class="dx-pod-n" aria-hidden="true">À prendre</span><small aria-hidden="true">${dxRang(pl)} place</small>${bloc}<span class="lq-sr">${dxRang(pl,1)} : place à prendre</span></div>`;
     const me=!!x.moi,corps=`<span class="dx-pod-av" aria-hidden="true"><b class="jeu-av" data-c="${me?0:perfColor(x.pseudo)}">${jeuInitial(x.pseudo)}${jeuFlag(x.pseudo,x.pays||'')}</b></span>`+
-      `<span class="dx-pod-n" aria-hidden="true">${esc(x.pseudo)}</span><small aria-hidden="true">${me?'<i>Toi</i> · ':''}${clsPts(x.pts)}\u00a0pts</small>${bloc}`;
+      `<span class="dx-pod-n" aria-hidden="true">${pseudoBr(x.pseudo)}</span><small aria-hidden="true">${me?'<i>Toi</i> · ':''}${clsPts(x.pts)}\u00a0pts</small>${bloc}`;
     return me?`<div class="dx-pod-m is-${pl} is-me">${corps}<span class="lq-sr">${dxRang(pl,1)} : toi, ${esc(x.pseudo)}, ${clsPts(x.pts)} points</span></div>`
       :`<button type="button" class="dx-pod-m is-${pl}" onclick="dxFicheCls('${escAttr(x.id)}')" aria-label="${escAttr(`${x.pseudo}, ${dxRang(pl,1)}, ${clsPts(x.pts)} points : voir sa fiche`)}">${corps}</button>`;
   };
@@ -30234,7 +30310,7 @@ function dxFicheChiffres(){
   const k=typeof document!=='undefined'&&document.getElementById?document.getElementById('dx-fiche-kpi'):null;
   if(k)k.innerHTML=dxFicheKpiHTML();
 }
-/* Vos parties ensemble, les plus récentes d’abord (l’historique des 12 dernières parties, gardé sur l’appareil) : la date, le niveau,
+/* Vos parties ensemble, les plus récentes d’abord (l’historique des 500 dernières parties, gardé sur l’appareil) : la date, le niveau,
    les manches, ta place et la sienne, tes points et les siens. */
 function dxDuels(n){
   const k=drapCle(n),h=Array.isArray((state.salle||{}).hist)?state.salle.hist:[];
@@ -30250,7 +30326,7 @@ function dxFicheDuelHTML(m,e){
   const lu=`Face à face\u00a0: ${e.n} ${vic(m.l)}, toi ${vic(m.w)}, en ${m.g} confrontation${pl(m.g)}`;
   const conf=`${m.g} confrontation${pl(m.g)}`;
   const liste=d.length?`<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste">${d.map(x=>`<li class="is-${x.res}"><b>${x.res==='w'?'Gagnée':x.res==='l'?'Perdue':'Égalité'}</b><span>${clsPts(x.moi)}&nbsp;pts contre ${clsPts(x.lui)}</span><small>${esc(perfDay(x.at))} · ${esc((typeof JEU_NIVL!=='undefined'&&JEU_NIVL[x.niv])||'Facile')} · ${x.n} manche${pl(x.n)}</small></li>`).join('')}</ol>`+
-    (d.length<m.g?'<p class="dx-duel-note">Seules tes 12 dernières parties sont gardées.</p>':'')+'</div>':'';
+    (d.length<m.g?`<p class="dx-duel-note">Seules tes ${clsPts(JEU_HIST_MAX)} dernières parties sont gardées.</p>`:'')+'</div>':'';
   return `<div class="dx-fiche-duel${m.w>m.l?' is-up':m.w<m.l?' is-down':''}" role="group" aria-label="${escAttr(lu)}">
     <div class="dx-duel-score" aria-hidden="true"><span${m.l>m.w?' class="is-tete"':''}><b>${m.l}</b><small>${esc(e.n)}</small></span><i>–</i><span${m.w>m.l?' class="is-tete"':''}><b>${m.w}</b><small>Toi</small></span></div>
     ${d.length?`<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>${conf}</span>${DEF_CHEV_SVG}</button>`:`<p class="dx-duel-voir">${conf}</p>`}
@@ -35909,7 +35985,8 @@ function actCountUp(root,instant){
   const reduce=instant||motionOff();
   root.querySelectorAll('[data-count-to]').forEach(b=>{
     const to=+b.dataset.countTo,from=+(b.dataset.from||0),dec=+(b.dataset.dec||0),suf=b.dataset.suffix||'';
-    const fmt=v=>v.toFixed(dec).replace('.',',')+suf;
+    /* data-sep : les milliers séparés, comme le classement (« 10 850 points », 14 novembre). */
+    const fmt=b.dataset.sep?v=>(+v.toFixed(dec)).toLocaleString('fr-FR',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suf:v=>v.toFixed(dec).replace('.',',')+suf;
     clearTimeout(b._cu);
     if(reduce){b.textContent=fmt(to);return;}
     b.textContent=fmt(from);
@@ -38694,7 +38771,7 @@ function jeuRender(){
         if(!g.length)return `<div class="dx-pod-m is-${pl} is-libre" aria-hidden="true"><span class="dx-pod-av"><b class="jeu-av is-empty">?</b></span><span class="dx-pod-n">Place libre</span><small>&nbsp;</small>${bloc}</div>`;
         const me=g.some(x=>x.pid===J.me);
         return `<div class="dx-pod-m is-${pl}${me?' is-me':''}${g.length>1?' is-ex':''}"><span class="dx-pod-av" aria-hidden="true">${g.slice(0,3).map(av).join('')}</span>`+
-          `${g.map(x=>`<span class="dx-pod-n" aria-hidden="true">${nom(x)}</span>`).join('')}<small aria-hidden="true">${me?'<i>Toi</i> · ':''}${ptsTx(g[0].pts)}</small><small class="dx-pod-t" aria-hidden="true">${jeuChronoFin(g[0],sc)}</small>${bloc}`+
+          `${g.map(x=>`<span class="dx-pod-n" aria-hidden="true">${typeof pseudoBr==='function'?pseudoBr(x&&x.name||'Joueur'):nom(x)}</span>`).join('')}<small aria-hidden="true">${me?'<i>Toi</i> · ':''}${ptsTx(g[0].pts)}</small><small class="dx-pod-t" aria-hidden="true">${jeuChronoFin(g[0],sc)}</small>${bloc}`+
           `<span class="lq-sr">${pl===1?'1er':pl+'e'}${g.length>1?' ex æquo':''} : ${g.map(x=>nom(x)+(x.pid===J.me?' (toi)':'')).join(' et ')}, ${g[0].pts} point${g[0].pts>1?'s':''} en ${jeuChronoFin(g[0],sc)}</span></div>`;
       };
       const autres=sc.filter(x=>!surPodium.has(x.pid));
@@ -39483,12 +39560,12 @@ function jeuCreditGame(){
         const key=n.toLowerCase(),m=mates[key]&&typeof mates[key]==='object'?mates[key]:{g:0,w:0,l:0};
         m.n=n;m.g=(m.g||0)+1;if(me.place<x.place)m.w=(m.w||0)+1;else if(me.place>x.place)m.l=(m.l||0)+1;m.at=Date.now();mates[key]=m;
       });
-      Object.keys(mates).sort((a,b)=>(mates[b].at||0)-(mates[a].at||0)).slice(30).forEach(key=>{delete mates[key];});
+      Object.keys(mates).sort((a,b)=>(mates[b].at||0)-(mates[a].at||0)).slice(typeof JEU_ADV_MAX!=='undefined'?JEU_ADV_MAX:100).forEach(key=>{delete mates[key];});
     }
     /* Mieux qu’avant (Elisa, 9 novembre, 12 h 17) : plus de points que la partie précédente jouée seule au même niveau. */
     {const av=(Array.isArray(s.hist)?s.hist:[]).find(h=>h&&h.niv===k&&h.solo===(vs?0:1));J.mieux=!!av&&pts>(+av.pts||0);}
     s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:vs?0:1,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
-      .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);
+      .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,typeof JEU_HIST_MAX!=='undefined'?JEU_HIST_MAX:500);
     save();
     /* 1re place, Champion, 5 parties à plusieurs : les stickers de parties (11 novembre) — montrés à la fin de la partie */
     if(typeof stkAfterProgress==='function')try{stkAfterProgress();}catch(e){}
@@ -52092,7 +52169,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-executer-v3001';
+  const SW_CACHE='requete-2026-11-14-historiques-v3002';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

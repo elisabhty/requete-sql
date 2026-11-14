@@ -1359,7 +1359,7 @@ test('les points sont crédités même si on quitte avant le podium, et un défi
 });
 
 /* Elisa, 31 octobre, 8 h 06 : « avoir un tableau de performance pour la page défis ». Chaque partie y est notée : manches jouées et
-   trouvées, temps, place entre amis, niveau, et l’historique des 12 dernières. */
+   trouvées, temps, place entre amis, niveau, et l’historique des dernières parties (500 depuis le 14 novembre ; 12 avant). */
 test('tableau de performance : une partie entre amis notée pour chacun, avec sa place', () => {
   const { w, host, guests } = room({ n: 2, nb: 3, niv: 'm' });
   for (let n = 0; n < 3; n++) {

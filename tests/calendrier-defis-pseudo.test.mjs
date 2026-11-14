@@ -110,8 +110,10 @@ function perfCtx(salle) {
     escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     /* Le Top 5 de tous les joueurs a ses propres tests (classement.test.mjs) */
     clsTopHTML: () => '', clsFlush() {}, clsCharger() {},
+    /* 14 novembre : les milliers séparés, l’historique qui se déplie (tests/retours-1012-historiques.test.mjs) */
+    clsPts: n => (+n || 0).toLocaleString('fr-FR'), JEU_HIST_MAX: 500,
   });
-  vm.runInContext(fn('jeuChrono') + fn('jeuDureeLisible') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('perfCapHTML') + fn('perfTeintes') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
+  vm.runInContext('const PERF_HIST_VU=4,PERF_HIST_PAS=25;let perfHistVu=PERF_HIST_VU;' + fn('jeuChrono') + fn('jeuDureeLisible') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('pseudoBr') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('perfCapHTML') + fn('perfTeintes') + fn('perfRecordHaut') + fn('perfHistPas') + fn('perfHistLigneHTML') + fn('perfHistPiedHTML') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
 }
 
@@ -120,7 +122,7 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.ok(fn('renderDefis').includes('renderDefisRoom();renderDefisPerf();renderDefisJoin();renderDefisRules();'));
   const h = perfCtx(SALLE);
   assert.match(h, /<h2 id="perf-h">Tes performances<\/h2>/);
-  assert.match(h, /class="perf-kpi is-sun" style="--i:0"><b data-count-to="2316"[^>]*>2316<\/b><small>points<\/small>/, 'les points, en jaune soleil, qui montent');
+  assert.match(h, /class="perf-kpi is-sun" style="--i:0"><b data-count-to="2316"[^>]*>2\u202f316<\/b><small>points<\/small>/, 'les points, en jaune soleil, qui montent (les milliers séparés, 14 novembre)');
   assert.match(h, /data-count-to="8"[^>]*>8<\/b><small>parties<\/small>/);
   assert.match(h, /data-count-to="512"[^>]*>512<\/b><small>record<em>en une partie<\/em><\/small>/);
   assert.match(h, /data-count-to="78"[^>]*>78\u202f%<\/b>/, 'réussite : 14 défis résolus sur 18');
@@ -136,8 +138,9 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.ok(h.includes('<b>2</b><small>1re place</small>') && h.includes('Sur 5 parties à plusieurs.'), 'les podiums à plusieurs');
   const rows = h.match(/<li style="--i:\d"><span class="perf-rk/g);
   assert.equal(rows.length, 4, 'les quatre dernières parties');
-  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>À plusieurs · Moyen · 3 joueurs</b><small>Aujourd’hui · 3/3 résolus · 3\u00a0min\u00a021</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus');
+  assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>À plusieurs · Moyen</b><small class="perf-g-avec">3 joueurs</small><small>Aujourd’hui · 3/3 résolus · 3\u00a0min\u00a021</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus (14 novembre : sous le titre court)');
   assert.ok(h.includes('<span class="perf-rk">0/1</span>') && h.includes('<span class="perf-rk">✓</span>'), 'seul : coché, ou trouvés sur joués');
+  assert.ok(h.includes('onclick="perfHistPlus()"><span>Voir l’autre partie</span>'), 'cinq parties : la cinquième se déplie (14 novembre)');
   /* Avant la première partie : le même tableau, vide, qui dit ce qui s’y affichera */
   const e = perfCtx({ pts: 0, parties: 0, best: 0 });
   assert.ok(e.includes('perf-card is-empty') && e.includes('<b>—</b><small>record<em>en une partie</em></small>') && e.includes('perf-chart is-ghost'));
@@ -167,9 +170,9 @@ test('réf 4 — « le trait est grossier » : le contour ne cerne plus l’en-t
 test('réf 4 — chaque partie nourrit le tableau ; la sauvegarde le garde propre', () => {
   const credit = fn('jeuCreditGame');
   for (const part of ['s.manches=(s.manches||0)+played.length;s.trouves=(s.trouves||0)+mine.length;s.tms=(s.tms||0)+ms;',
-    'if(vs){s.amis=(s.amis||0)+1;if(place>=1&&place<=3&&pts>0)', "lv[k]=[(l[0]||0)+played.length,(l[1]||0)+mine.length];", '.concat(Array.isArray(s.hist)?s.hist:[]).slice(0,12);'])
+    'if(vs){s.amis=(s.amis||0)+1;if(place>=1&&place<=3&&pts>0)', "lv[k]=[(l[0]||0)+played.length,(l[1]||0)+mine.length];", ".concat(Array.isArray(s.hist)?s.hist:[]).slice(0,typeof JEU_HIST_MAX!=='undefined'?JEU_HIST_MAX:500);"])
     assert.ok(credit.includes(part), part);
-  const ctx = vm.createContext({});
+  const ctx = vm.createContext({ JEU_HIST_MAX: 500, JEU_ADV_MAX: 100 });
   vm.runInContext(cut('function normalizeState(', 'function normalize('), ctx);
   const st = ctx.normalizeState({ salle: { pts: 30, parties: 2, best: 20, manches: 3, trouves: 9, tms: -4, fast: 'x', amis: 1, pl: [1, 'a'], lv: { f: [3, 5], z: [1, 1] },
     hist: [{ at: 10, pts: 5, n: 2, ok: 7, niv: 'q', solo: 1 }, 'x', { at: 0, n: 1 }, { at: 20, pts: 9, n: 1, ok: 1, niv: 'd', place: 2, players: 3 }] } }).salle;

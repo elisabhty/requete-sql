@@ -39,11 +39,11 @@ assert(removeConsoleQuery([old,duplicate],old.sql).length===0,'désépingler ret
 const recordStart=html.indexOf('function recordConsoleRun(');
 const recordEnd=html.indexOf('function pinConsoleQuery(',recordStart);
 const recordSource=html.slice(recordStart,recordEnd);
-assert(recordSource.includes('p.hist=promoteConsoleQuery(p.hist,row,HIST_MAX)'), 'l’historique utilise la promotion plutôt qu’une insertion systématique');
+assert(recordSource.includes('p.hist=promoteConsoleQuery(p.hist,row,HIST_MAX,HIST_CAR_MAX)'), 'l’historique utilise la promotion plutôt qu’une insertion systématique');
 const projectStart=html.indexOf('function projOf(');
 const projectEnd=html.indexOf('function projectName(',projectStart);
 const projectSource=html.slice(projectStart,projectEnd);
-assert(projectSource.includes('dedupeConsoleQueries(projState[k].hist,HIST_MAX)')&&projectSource.includes('dedupeConsoleQueries(projState[k].pins,PIN_MAX)'), 'historique et épingles existants sont assainis au chargement');
+assert(projectSource.includes('dedupeConsoleQueries(projState[k].hist,HIST_MAX,HIST_CAR_MAX)')&&projectSource.includes('dedupeConsoleQueries(projState[k].pins,PIN_MAX)'), 'historique et épingles existants sont assainis au chargement');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed?1:0);
