@@ -21,10 +21,10 @@ test('la garde du compte ne bloque plus : obCompteBloque est toujours faux', () 
 
 test('« Continuer sans compte » : pendant l’onboarding, le paywall ; depuis Mon compte, « Plus tard » referme la page', () => {
   const src = cut('function obSansCompte(){', '\nfunction obPasserConnexion(){');
-  const run = (onboarded, entree) => {
+  const run = (onboarded, entree, draft = {finVoulue: 'home'}) => {
     const appels = [];
-    const ctx = vm.createContext({appels, state: {onboarded}, obEntry: entree, draft: {}, obAuthBusy: false, buzz() {},
-      closeOnboardingAuth: () => appels.push('ferme'), obApresCompte: () => appels.push('paywall')});
+    const ctx = vm.createContext({appels, state: {onboarded}, obEntry: entree, draft, obAuthBusy: false, buzz() {},
+      closeOnboardingAuth: () => appels.push('ferme'), obApresCompte: () => appels.push('paywall'), obGoto: k => appels.push('page ' + k)});
     vm.runInContext(src + ';this.f=obSansCompte;this.h=obSansCompteHTML;', ctx);
     return {ctx, appels};
   };
@@ -41,6 +41,12 @@ test('« Continuer sans compte » : pendant l’onboarding, le paywall ; depuis 
   assert.ok(mc.ctx.h().includes('>Plus tard</button>') && !mc.ctx.h().includes('ob-sans-compte-note'));
   const occupe = run(false, 'welcome'); occupe.ctx.obAuthBusy = true; occupe.ctx.f();
   assert.deepEqual(occupe.appels, [], 'pendant une connexion en cours : rien');
+  /* 11 h 56 (« Sans compte -> onboarding quand même n’est ce pas ? ») : par « J’ai déjà un compte », au tout début (draft.finVoulue
+     vide), sans compte mène aux questions de l’onboarding, comme « Commencer » ; jamais droit au paywall */
+  const debut = run(false, 'welcome', {});
+  debut.ctx.f();
+  assert.deepEqual(debut.appels, ['page welcome'], 'l’onboarding d’abord (questions, pseudo), puis le compte et le paywall');
+  assert.equal(debut.ctx.draft.accountMode, undefined, 'le choix du compte revient après « Ton parcours est prêt »');
   /* sur la feuille du compte, sous Apple et Google, avant la phrase des conditions */
   const page = cut("}else if(slide==='account'){", "}else if(slide==='paywall'){");
   assert.ok(page.includes("${authReady?obSansCompteHTML():''}\n      ${authReady?`<p class=\"ob-acc-legal\">${legalHtml}</p>`:''}"));

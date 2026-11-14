@@ -48990,6 +48990,10 @@ function obSansCompte(){
   if(typeof obAuthBusy!=='undefined'&&obAuthBusy)return;
   if(typeof buzz==='function')buzz('light');
   if(state.onboarded&&obEntry==='account'){closeOnboardingAuth();return;}
+  /* 14 novembre, 11 h 56 (Elisa : « Sans compte -> onboarding quand même n’est ce pas ? ») : ouverte au tout début par « J’ai déjà un
+     compte » (avant les questions, draft.finVoulue vide), la page menait droit au paywall, sans questions ni pseudo. Sans compte, on
+     fait l’onboarding comme avec « Commencer » ; la page du compte revient après « Ton parcours est prêt », puis le paywall. */
+  if(!state.onboarded&&!draft.finVoulue){obGoto('welcome');return;}
   draft.accountMode='guest';
   obApresCompte();
 }
@@ -52245,7 +52249,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-sanscompte-v3004';
+  const SW_CACHE='requete-2026-11-14-onboarding-v3005';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
