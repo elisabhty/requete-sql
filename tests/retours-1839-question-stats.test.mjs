@@ -15,8 +15,9 @@ test('la page : juste après « bonjour », le chat à la loupe, le titre, trois
   const p = cut("}else if(slide==='stats'){", "}else if(slide==='questions'){");
   assert.ok(p.includes('<img class="ob-stats-chat" src="assets/chat-loupe${fixe?\'-fixe\':\'\'}.webp"'));
   assert.ok(p.includes('<h1 class="ob-title" id="ob-title">Tu nous aides à <em>améliorer</em> Requête&nbsp;?</h1>'));
-  assert.ok(p.includes('<p class="ob-lead">Avec ton accord, l’appli compte ce qui marche et ce qui coince. C’est comme ça qu’on rend les leçons plus claires.</p>'));
-  for (const k of ['<b>Anonyme</b>Ni ton nom, ni ton e-mail, ni ton pseudo.', '<b>Jamais tes réponses</b>Ni tes requêtes, ni ce que tu écris.', '<b>À toi de choisir</b>Tu changes d’avis quand tu veux, dans Mon&nbsp;compte.'])
+  /* 18 h 54 : ses textes (le sous-titre, les trois garanties) */
+  assert.ok(p.includes('<p class="ob-lead">Avec ton accord, nous analysons ce qui fonctionne et ce qui peut être amélioré pour rendre ton expérience encore meilleure.</p>'));
+  for (const k of ['<b>Tes données restent anonymes</b>Ni ton nom, ni ton e-mail, ni ton pseudo.', '<b>Tes réponses restent privées</b>Ni tes requêtes SQL, ni ce que tu écris.', '<b>Tu gardes le contrôle</b>Tu peux changer d’avis à tout moment dans Mon&nbsp;compte.'])
     assert.ok(p.includes(k), k);
   /* Les deux réponses : la même classe, rien qui pousse vers le oui (5.1.1(iv)) */
   assert.ok(p.includes('<button type="button" class="ob-stats-btn" onclick="obStatsRepondre(true)">Oui, avec plaisir</button><button type="button" class="ob-stats-btn" onclick="obStatsRepondre(false)">Non merci</button>'));
