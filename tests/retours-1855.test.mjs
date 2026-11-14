@@ -40,8 +40,8 @@ function bac(o = {}) {
     psForme: v => { const h = String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 15); return h ? '@' + h : ''; },
     psLibre: () => Promise.resolve({ ok: false, raison: 'pris' }), lqSay: t => appels.push(['say', t]), buzz() {}, lqAsk: () => Promise.resolve(false),
     prefersReduceMotion: () => true, renderDefisRoom() {}, jeuSavePrefs() {}, renderCompte() {}, jeuPaint() {}, JEU: null, activeTab: 'defis', jeuInvite: '',
-    /* 14 novembre, 10 h 12 : l’historique de Mes stats revient à 4 lignes ; les pseudos longs vont à la ligne (pseudoBr) */
-    PERF_HIST_VU: 4, pseudoBr: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/([_.-])(?=[^\s<])/g, '$1<wbr>'),
+    /* 14 novembre : l’historique de Mes stats revient à sa première page ; les pseudos longs vont à la ligne (pseudoBr) */
+    perfHistPage: 0, pseudoBr: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/([_.-])(?=[^\s<])/g, '$1<wbr>'),
   });
   vm.runInContext(bloc, ctx);
   return { ctx, els, el, appels, minut, ev: c => vm.runInContext(c, ctx), tick: () => { const l = minut.splice(0); l.forEach(([f]) => f()); } };
@@ -261,7 +261,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=373">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=374">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-historiques-v3002');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-pages-v3003');
 });

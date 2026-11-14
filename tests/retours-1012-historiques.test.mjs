@@ -2,8 +2,10 @@
    d’historique ; est-ce que ça va rester que sur le portable de la personne, donc est-ce qu’on peut en mettre en infinité ? Et la
    partie stat aussi, avec au moins 7 personnes dans le classement. Tu regardes si les textes ne se tronquent pas, on voit tout. »
    Ce qui a changé : l’historique des parties garde 500 parties (avant 12) et 100 adversaires (avant 30) ; celui de la Console,
-   100 exécutions par projet (avant 24) dans la limite de 120 000 caractères ; Mes stats déplie l’historique ; les pseudos longs
-   vont à la ligne sur les podiums ; les milliers sont séparés ; le chiffre du record ne se cache plus sous les pastilles. */
+   100 exécutions par projet (avant 24) dans la limite de 120 000 caractères ; Mes stats montre l’historique ; les pseudos longs
+   vont à la ligne sur les podiums ; les milliers sont séparés ; le chiffre du record ne se cache plus sous les pastilles.
+   10 h 53 (« il faut plusieurs pages, des numéros de pages 1, 2, 3, 4, pour que l’utilisateur ne puisse pas scroller à l’infini ;
+   vérifier que ça ne saute pas ») : Mes stats, la Console et le face-à-face passent en pages de 5, avec leurs numéros. */
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
@@ -67,33 +69,98 @@ test('l’appareil plein : l’historique de la Console raccourcit de moitié et
   assert.equal(vide.saveProjState(), false, 'rien à raccourcir : il s’arrête');
 });
 
-function perf(hist, vu) {
+function perf(hist, page) {
   const ctx = vm.createContext({ state: { salle: { hist } }, esc, clsPts: n => (+n || 0).toLocaleString('fr-FR'), JEU_HIST_MAX: 500, JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' },
     DEF_CHEV_SVG: '<svg data-k="chev"></svg>', lqStkSvg: k => `<svg data-k="${k}"></svg>`, Date, Math, buzz() {}, prefersReduceMotion: () => true });
-  vm.runInContext(`const PERF_HIST_VU=4,PERF_HIST_PAS=25;let perfHistVu=${vu || 4};` + fn('jeuChrono') + fn('jeuDureeLisible') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') +
-    fn('perfHistPas') + fn('perfHistLigneHTML') + fn('perfHistPiedHTML') + ';var lire=()=>perfHistVu;', ctx);
+  vm.runInContext(`const PERF_HIST_PAR=5;let perfHistPage=${page || 0};` + fn('jeuChrono') + fn('jeuDureeLisible') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') +
+    fn('lqPagesNums') + fn('lqPagesHTML') + fn('lqPagesK') + fn('perfHistLigneHTML') + fn('perfHistLignesHTML') + fn('perfHistPiedHTML') + ';var lire=()=>perfHistPage;', ctx);
   return ctx;
 }
 const parties = n => Array.from({ length: n }, (_, i) => ({ at: Date.now() - i * 864e5, pts: 1200 + i, n: 3, ok: 2, ms: 90000, niv: 'm', solo: i % 2, place: 2, players: 6,
   ppl: i % 2 ? undefined : [{ n: '@marie_charlotte', pts: 1500, place: 1 }, { n: '@elisa', pts: 1200, place: 2, me: 1 }, { n: '@jean_baptiste9', pts: 9, place: 3 }] }));
+const nums = h => [...h.matchAll(/<button type="button" class="lq-pg([^"]*)"[^>]*>([^<]*)(?:<svg[^>]*><\/svg>)?<\/button>|<span class="lq-pg-etc"[^>]*>…<\/span>/g)]
+  .map(m => m[0].startsWith('<span') ? '…' : /is-prec/.test(m[1]) ? '‹' : /is-suiv/.test(m[1]) ? '›' : /is-on/.test(m[1]) ? `[${m[2]}]` : m[2]).join(' ');
 
-test('Mes stats : 4 parties, puis « Voir les 26 autres parties » ; au-delà de 35 qui restent, 25 de plus à chaque fois ; tout déplié, « Réduire »', () => {
-  assert.equal(perf(parties(4)).perfHistPiedHTML(4), '', 'quatre parties : rien à déplier');
-  const t = perf(parties(30));
-  assert.ok(t.perfHistPiedHTML(30).startsWith('<button type="button" class="perf-hist-plus" aria-controls="perf-hist" onclick="perfHistPlus()"><span>Voir les 26 autres parties</span>'));
-  assert.ok(!t.perfHistPiedHTML(30).includes('perf-hist-k'), 'un seul toucher : pas de compteur');
-  const c = perf(parties(120));
-  const p = c.perfHistPiedHTML(120);
-  assert.ok(p.includes('<span>Voir 25 parties de plus</span>') && p.includes('<p class="perf-hist-k">4 sur 120 parties</p>'));
-  const f = perf(parties(500), 500).perfHistPiedHTML(500);
-  assert.ok(f.includes('<p class="perf-hist-k">Seules tes 500 dernières parties sont gardées.</p>') && f.includes('class="perf-hist-plus is-moins"') && f.includes('<span>Réduire</span>'));
-  assert.ok(!perf(parties(30), 30).perfHistPiedHTML(30).includes('Seules tes'), 'moins de 500 : rien n’est perdu, on ne le dit pas');
-  /* Le déplier, sans redessiner le tableau */
-  const plus = fn('perfHistPlus');
-  assert.ok(plus.includes("ol.insertAdjacentHTML('beforeend',h.slice(avant,perfHistVu).map((x,j)=>perfHistLigneHTML(x,Math.min(j,8))).join(''));"));
-  assert.ok(plus.includes('[...ol.children].slice(PERF_HIST_VU).forEach(li=>li.remove());'));
-  assert.ok(fn('renderDefisPerf').includes('const rows=hist.slice(0,perfHistVu).map((h,i)=>perfHistLigneHTML(h,i)).join(\'\');'));
-  assert.ok(fn('defisOnglet').includes("if(k==='stats'&&DEFIS.onglet!=='stats')perfHistVu=PERF_HIST_VU;"), 'rouverte, la liste revient à 4');
+test('(10 h 53) des pages, avec leurs numéros : sept places au plus, la première, la dernière, la page vue et ses voisines', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(fn('lqPagesNums'), ctx);
+  const N = (p, n) => plain(ctx.lqPagesNums(p, n)).map(k => k < 0 ? '…' : k + 1).join(' ');
+  assert.equal(N(0, 6), '1 2 3 4 5 6');
+  assert.equal(N(6, 7), '1 2 3 4 5 6 7');
+  assert.equal(N(0, 24), '1 2 3 4 5 … 24');
+  assert.equal(N(3, 24), '1 2 3 4 5 … 24');
+  assert.equal(N(4, 24), '1 … 4 5 6 … 24');
+  assert.equal(N(9, 24), '1 … 9 10 11 … 24');
+  assert.equal(N(19, 24), '1 … 19 20 21 … 24');
+  assert.equal(N(20, 24), '1 … 20 21 22 23 24');
+  assert.equal(N(23, 100), '1 … 23 24 25 … 100');
+  for (const n of [8, 24, 100]) for (let p = 0; p < n; p++) assert.equal(ctx.lqPagesNums(p, n).length, 7, `${p}/${n} : toujours sept places`);
+});
+
+test('Mes stats : 5 parties par page ; « ‹ 1 [2] 3 … › » puis « 6 à 10 sur 30 parties » ; les flèches grisées au bout', () => {
+  assert.equal(perf(parties(5)).perfHistPiedHTML(5), '', 'cinq parties : une seule page, pas de numéros');
+  const t = perf(parties(30), 1), p = t.perfHistPiedHTML(30);
+  assert.equal(nums(p), '‹ 1 [2] 3 4 5 6 ›');
+  assert.ok(p.startsWith('<nav class="lq-pages" aria-label="Pages de l’historique"><button type="button" class="lq-pg is-prec" onclick="perfHistAller(0)" aria-label="Page précédente">'));
+  assert.ok(p.includes('<button type="button" class="lq-pg is-on" onclick="perfHistAller(1)" aria-label="Page 2" aria-current="page">2</button>'));
+  assert.ok(p.includes('<p class="lq-pages-k">6 à 10 sur 30 parties</p>'));
+  assert.equal((t.perfHistLignesHTML(parties(30)).match(/<li /g) || []).length, 5);
+  assert.ok(perf(parties(30), 0).perfHistPiedHTML(30).includes('aria-label="Page précédente" disabled>'), 'première page : ‹ grisée');
+  const d = perf(parties(28), 5).perfHistPiedHTML(28);
+  assert.ok(d.includes('aria-label="Page suivante" disabled>') && d.includes('<p class="lq-pages-k">26 à 28 sur 28 parties</p>'), 'dernière page');
+  assert.ok(perf(parties(26), 5).perfHistPiedHTML(26).includes('<p class="lq-pages-k">26 sur 26 parties</p>'), 'une seule ligne : « 26 sur 26 »');
+  const c = perf(parties(500), 99).perfHistPiedHTML(500);
+  assert.equal(nums(c), '‹ 1 … 96 97 98 99 [100] ›');
+  assert.ok(c.includes('class="lq-pg is-on is-long"') && c.includes('<p class="lq-pages-k">Seules tes 500 dernières parties sont gardées.</p>'), '3 chiffres : plus petit ; la limite dite à la dernière page');
+  assert.ok(!perf(parties(500), 3).perfHistPiedHTML(500).includes('Seules tes'), 'seulement à la dernière page');
+  const r = fn('renderDefisPerf');
+  assert.ok(r.includes('perfHistPage=Math.max(0,Math.min(perfHistPage,Math.ceil(hist.length/PERF_HIST_PAR)-1));') && r.includes('<div class="lq-pages-pied" id="perf-hist-pages">${perfHistPiedHTML(hist.length)}</div>'));
+  assert.ok(fn('defisOnglet').includes("if(k==='stats'&&DEFIS.onglet!=='stats')perfHistPage=0;"), 'rouverte, Mes stats revient à la première page');
+  assert.ok(!app.includes('perfHistPlus') && !css.includes('perf-hist-plus'), 'plus de « Voir les autres parties »');
+});
+
+test('changer de page ne fait pas sauter l’écran : la liste ne raccourcit pas, et les numéros restent sous le doigt', () => {
+  const g = fn('lqPagesChanger');
+  assert.ok(g.includes("liste.style.minHeight=Math.max(parseFloat(liste.style.minHeight)||0,h)+'px';"), 'jamais plus courte que les pages d’avant');
+  assert.ok(g.includes('const d=pied.getBoundingClientRect().top-avant;') && g.includes('if(Math.abs(d)>.5){const sc=lqScrollParent(liste);if(sc)sc.scrollTop+=d;}'), 'si elle grandit, l’écran suit');
+  assert.ok(g.includes("const on=pied.querySelector('.lq-pg[aria-current]');if(on)try{on.focus({preventScroll:true});}catch(e){}"));
+  /* Simulé : une page plus haute (+120 px) ; les numéros étaient à 500 px, l’écran défile de 120 px */
+  let haut = 300, top = 500;
+  const liste = { style: {}, getBoundingClientRect: () => ({ height: haut }), parentElement: null };
+  const pied = { getBoundingClientRect: () => ({ top }), querySelector: () => null };
+  const sc = { scrollTop: 1000 };
+  const ctx = vm.createContext({ getComputedStyle: () => ({ overflowY: 'visible' }), document: { scrollingElement: sc }, buzz() {} });
+  vm.runInContext(fn('lqScrollParent') + fn('lqPagesChanger'), ctx);
+  ctx.lqPagesChanger(liste, pied, () => { haut = 420; top = 620; });
+  assert.equal(sc.scrollTop, 1120);
+  assert.equal(liste.style.minHeight, '300px');
+  ctx.lqPagesChanger(liste, pied, () => { haut = 420; top = 620; });
+  assert.equal(sc.scrollTop, 1120, 'même hauteur : rien ne bouge');
+  assert.equal(liste.style.minHeight, '420px');
+  /* Les trois historiques passent par là */
+  assert.ok(fn('perfHistAller').includes("lqPagesChanger(ol,pied,()=>{ol.classList.add('is-page');ol.innerHTML=perfHistLignesHTML(h);if(pied)pied.innerHTML=perfHistPiedHTML(h.length);});"));
+  assert.ok(fn('consoleHistAller').includes('lqPagesChanger(h,pied,()=>renderConsoleSide());'));
+  assert.ok(fn('dxDuelsAller').includes('lqPagesChanger(ol,pied,()=>{const r=dxDuelPageHTML(d);ol.innerHTML=r.lignes;if(pied)pied.innerHTML=r.pied;});'));
+});
+
+test('la Console : 5 exécutions par page ; nouvelle recherche, filtre, projet ou exécution : retour à la première page (pas pour une épingle)', () => {
+  assert.ok(app.includes('const CONSOLE_HIST_PAR=5;'));
+  assert.ok(app.includes('<div class="console-query-list" id="console-hist"></div>\n          <div class="lq-pages-pied" id="console-hist-pages"></div>'));
+  const side = fn('renderConsoleSide');
+  assert.ok(side.includes('const histVus=histRows.slice(consoleHistPage*CONSOLE_HIST_PAR,(consoleHistPage+1)*CONSOLE_HIST_PAR);') && side.includes('? histVus.map(({it,i})=>{'));
+  assert.ok(side.includes("if(hpg)hpg.innerHTML=histNb>1?lqPagesHTML(consoleHistPage,histNb,'consoleHistAller','de l’historique')+lqPagesK(consoleHistPage,CONSOLE_HIST_PAR,histRows.length,'exécutions'):'';"));
+  for (const f of ['openConsoleProject', 'filterConsoleQueries', 'clearConsoleQuerySearch', 'setConsoleHistFilter', 'recordConsoleRun'])
+    assert.ok(fn(f).includes('consoleHistDebut()'), f);
+  assert.ok(!fn('toggleHistoryPin').includes('consoleHistDebut'), 'épingler garde la page');
+});
+
+test('le face-à-face : 5 confrontations par page ; « Les confrontations les plus anciennes ne sont plus gardées »', () => {
+  assert.ok(app.includes('const DX_DUEL_PAR=5;'));
+  assert.ok(fn('dxFicheDuelHTML').includes('<ol class="dx-duel-liste" id="dx-duel-liste">${pg.lignes}</ol><div class="lq-pages-pied" id="dx-duel-pages">${pg.pied}</div>'));
+  assert.ok(fn('dxFiche').includes('dxDuelPage=0;'), 'une fiche ouverte commence à la première page');
+  for (const r of ['html.lq .lq-pg{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:36px;', 'html.lq .lq-pg-etc{flex:none;width:30px;',
+    'html.lq .lq-pg.is-on{border-color:var(--accent);background:var(--accent);color:#fff;', 'html.lq .lq-pg:disabled{opacity:.35;'])
+    assert.ok(css.includes(r), r);
 });
 
 test('une ligne de l’historique : le titre court, avec qui dessous, puis le jour ; les points séparés', () => {
