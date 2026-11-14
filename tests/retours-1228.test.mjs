@@ -29,8 +29,8 @@ test('tout le monde commence au même endroit : le niveau du compte, ce sont les
   assert.deepEqual(CHOIX.map(niveau => monde({ niveau }).rang()), [1, 1, 1, 1], 'au départ, niveau 1 pour tout le monde');
   assert.deepEqual(CHOIX.map(niveau => monde({ niveau, dansLeProfil: true }).rang()), [1, 1, 1, 1], 'pendant « Refaire mon planning » aussi');
   assert.deepEqual([0, 11, 30, 45, 71].map(faites => monde({ niveau: 'inter', faites }).rang()), [1, 2, 3, 4, 5], 'les leçons validées font monter');
-  const nc = fn('niveauCompte');
-  assert.ok(nc.includes('const acquis=ids.filter(id=>itemDone(id)).length;') && !nc.includes('depart') && !nc.includes('choisi'));
+  const nc = fn('niveauCompte'), ns = fn('nivSeuils');
+  assert.ok(nc.includes('const s=nivSeuils();') && ns.includes('acquis:ids.filter(id=>itemDone(id)).length') && ![nc, ns].some(f => f.includes('depart') || f.includes('choisi')));
 });
 
 test('les défis conseillés : Facile, Moyen ou Difficile selon le choix de l’onboarding, puis plus haut avec le niveau', () => {

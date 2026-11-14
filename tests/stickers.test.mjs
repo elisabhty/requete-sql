@@ -77,7 +77,7 @@ test('première mise en route : ce qui était déjà mérité est gagné sans da
   w.done.add(0);
   assert.deepEqual([...w.run('stkSync()')], ['intro', 'requete']);
   assert.equal(w.ctx.state.stickers.got.intro, 1, 'sans date');
-  assert.ok(block.includes("s.got>1?`Gagné le ${") && block.includes("'Module terminé':'Accomplissement atteint'"), 'la fiche n’invente pas de date');
+  assert.ok(block.includes("s.got>1?`Gagné le ${") && block.includes("'Module terminé':s.kind==='niveau'?'Niveau atteint':'Accomplissement atteint'"), 'la fiche n’invente pas de date');
 });
 
 test('accomplissements : une seule liste, pour Mon compte et pour les stickers', () => {
@@ -101,10 +101,11 @@ test('dessins : un par module, dans l’ordre de MODULES, et un par accomplissem
   assert.equal(ids.length, 15);
   assert.equal(new Set(ids).size, 15);
   const accIds = ['requete', 'defi1', 'lecons10', 'serie3', 'code', 'donnees', 'defis10', 'premier', 'difficile', 'serie7', 'amis5', 'serie14', 'champion', 'serie30', 'parcours'];
-  assert.deepEqual([...d3].sort(), [...ids, ...accIds].sort(), 'chaque sticker a son rendu 3D, aucun en trop');
+  /* 14 novembre : les stickers de niveau, chacun dès que son image est là (niv1 d’abord) */
+  assert.deepEqual([...d3].sort(), [...ids, ...accIds, 'niv1'].sort(), 'chaque sticker a son rendu 3D, aucun en trop');
   for (const id of d3) assert.ok(fs.existsSync(new URL(`../assets/stickers/${id}.webp`, import.meta.url)), `${id} : assets/stickers/${id}.webp`);
   assert.deepEqual([...art].sort(), [...ids, 'requete', 'lecons10', 'serie3', 'defis10', 'serie7', 'parcours'].sort(), 'le dessin à plat reste en secours pour les 21 premiers');
-  assert.deepEqual(Object.keys(vm.runInContext('STK_HOLO', ctx)), ['defis10', 'serie7', 'parcours', 'premier', 'difficile', 'serie14', 'champion', 'serie30']);
+  assert.deepEqual(Object.keys(vm.runInContext('STK_HOLO', ctx)), ['defis10', 'serie7', 'parcours', 'premier', 'difficile', 'serie14', 'champion', 'serie30', 'niv4', 'niv5']);
 });
 
 test('rendu : chaque dessin se trace (silhouette de découpe, puis couleurs), le bord blanc suit la silhouette', () => {
@@ -175,10 +176,10 @@ test('gagner pendant une leçon ou une partie : le bilan le montre, ou sa page e
   assert.ok(take('async function boot(', 'function initSpotlight(').includes('stkSync();'), 'au démarrage, ce qui est déjà mérité');
   assert.ok(take('function renderBravoSlide(', '\n}\n').includes('${stkBravoHtml()}'), 'bilan de la leçon');
   assert.ok(take('function openLesson(', '\n}\n').includes('stkLeaveLesson();') && take('function leaveLessonScreen(', '\n}\n').includes('stkLeaveLesson();'), 'en quittant la leçon avant son bilan, un toast');
-  assert.ok(block.includes("if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){stkLessonNew.push(...held);return;}"), 'pendant une partie de Jouer, pas de toast qui ferait quitter la manche (sauf la première requête de l’onboarding, 11 novembre, 20 h 26)');
+  assert.ok(block.includes("if((mode==='lesson'||mode==='jeu')&&document.body.classList.contains('in-lesson')){\n    stkLessonNew.push(...held);"), 'pendant une partie de Jouer, pas de toast qui ferait quitter la manche (sauf la première requête de l’onboarding, 11 novembre, 20 h 26)');
   assert.ok(take('function openStickers(', '\n}\n').includes("if(mode==='jeu'&&!jeuLeaveOk()){jeuLeaveAsk(()=>openStickers(id));return;}"), 'partir d’une partie demande confirmation (une vraie fenêtre, puis on y va)');
   assert.ok(take('function noteActivityDay(', '\n}\n').includes('try{stkAfterProgress();}catch(e){}'), 'un dessin qui échoue ne casse pas la validation');
-  assert.ok(!block.includes('function stkAnnounce(') && block.includes('if(won.length&&!shown)setTimeout(()=>stkPageOuvrir(won),450);'), 'plus de bandeau « Nouveau sticker » : sa page');
+  assert.ok(!block.includes('function stkAnnounce(') && block.includes('else if(won.length&&!shown)setTimeout(()=>stkPageOuvrir(won),450);'), 'plus de bandeau « Nouveau sticker » : sa page');
 });
 
 test('télécharger : PNG détouré, partagé sur téléphone (Photos, Fichiers, imprimante), téléchargé sur ordinateur', () => {

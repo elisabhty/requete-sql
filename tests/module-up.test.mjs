@@ -62,7 +62,7 @@ test('l’écran : la récompense du module terminé, le chemin des modules, la 
 });
 
 test('une seule fois, au bilan de la leçon qui termine le module ; jamais sans module suivant', () => {
-  assert.ok(cut('function renderLessonFlow(){', '/* ---------- Requête à trous').includes('setTimeout(moduleUpCheck,250);'), 'branché au bilan');
+  assert.ok(cut('function renderLessonFlow(){', '/* ---------- Requête à trous').includes('setTimeout(()=>{moduleUpCheck();nivUpCheck();},250);'), 'branché au bilan (puis le niveau gagné, 14 novembre)');
   const check = cut('function moduleUpCheck(){', 'function moduleUpHtml(i,n){');
   assert.ok(check.includes("if(MU||mode!=='lesson'||lessonStep!==3"), 'seulement au bilan d’une leçon');
   assert.ok(check.includes("stkLessonNew.map(stkInfo).find(x=>x&&x.kind==='module'&&!MU_SEEN.has(x.id))") && check.includes('MU_SEEN.add(s.id);'),

@@ -32,8 +32,9 @@ test('finishOnboard note la requête d’essai réussie, et l’arrivée l’ann
 
 test('pendant la première leçon, la première requête s’annonce tout de suite ; le reste attend le bilan', () => {
   const ann = [], pages = [], ctx = vm.createContext({ state: { stickers: { got: {}, fresh: {}, board: [], since: 1, ev: { requete: 1 } } }, mode: 'lesson',
-    document: { body: { classList: { contains: c => c === 'in-lesson' } } }, stkAnnounce: ids => ann.push([...ids]), stkPageOuvrir: ids => pages.push(...[].concat(ids)) });
-  vm.runInContext(fn('stkState') + 'let stkLessonNew=[];' + fn('stkAfterProgress'), ctx);
+    document: { body: { classList: { contains: c => c === 'in-lesson' } } }, stkAnnounce: ids => ann.push([...ids]), stkPageOuvrir: ids => pages.push(...[].concat(ids)),
+    stkEstNiv: id => /^niv[1-5]$/.test(id), nivRangVu: () => 1, nivRangAtteint: () => 1, save: () => {} });
+  vm.runInContext(fn('stkState') + 'let stkLessonNew=[],stkLessonNiv=null;' + fn('stkAfterProgress'), ctx);
   ctx.stkSync = () => ['intro', 'requete'];
   ctx.stkAfterProgress();
   assert.deepEqual(pages, ['requete'], 'sa page vient tout de suite (20 h 54 : « C’est pas une page qui vient ? »)');
@@ -62,11 +63,12 @@ test('la page d’un accomplissement : le sticker tombe, « Récupérer le stick
   assert.ok(html.includes("plus?'Récupérer les stickers':'Récupérer le sticker'") && html.includes('Voir ma collection') && !html.includes('mu-card') && !html.includes('mu-path'));
   const ouvrir = fn('stkPageOuvrir');
   /* 11 novembre, 21 h 33 : tout sticker gagné a sa page ; plusieurs ensemble, une seule page ; elle attend les autres pages et la fin d’une leçon */
-  assert.ok(ouvrir.includes("if(MU||(video&&video.classList.contains('on'))||(ob&&ob.classList.contains('on'))||document.getElementById('lq-flamme')||document.getElementById('lq-feu')||(document.body.classList.contains('in-lesson')&&!stkPageFile.includes('requete'))){"), 'une page à la fois');
-  assert.ok(ouvrir.includes('MU={el,acc:id,accs:liste,stage:\'a\',snd:false,timers:[]};') && ouvrir.includes("openStickers(id);"));
+  assert.ok(ouvrir.includes("const lecon=document.body.classList.contains('in-lesson')&&!stkPageFile.includes('requete')&&!(stkPageBilan&&stkPageNiv&&mode==='lesson'&&lessonStep===3);")
+    && ouvrir.includes("if(MU||(video&&video.classList.contains('on'))||(ob&&ob.classList.contains('on'))||document.getElementById('lq-flamme')||document.getElementById('lq-feu')||lecon){"), 'une page à la fois (le niveau gagné : sur le bilan de la leçon, 14 novembre)');
+  assert.ok(ouvrir.includes("MU={el,acc:id||'niveau',accs:liste,niv:niveau,stage:sans?'c':'a',snd:false,timers:[],apres};") && ouvrir.includes("openStickers(id);"));
   assert.ok(fn('moduleUpGo').includes("if(MU.acc){ if(MU.stage==='a')stkPageCollect(); else if(MU.stage==='c')moduleUpClose(); return; }"));
   const col = fn('stkPageCollect');
   assert.ok(col.includes("muSet(go.querySelector('.mu-go-l'),'Continuer',vite);") && col.includes("'Ton sticker est dans ta collection&nbsp;!'"));
   assert.ok(app.includes('.mu-acc .mu-acts{margin-top:auto}'));
-  assert.ok(fn('stkAfterProgress').includes('if(now.length)stkPageOuvrir(now);') && fn('stkAfterProgress').includes('stkPageOuvrir(held);'));
+  assert.ok(fn('stkAfterProgress').includes('if(now.length){stkPageOuvrir(now,up);up=null;}') && fn('stkAfterProgress').includes('stkPageOuvrir(held,up);'));
 });

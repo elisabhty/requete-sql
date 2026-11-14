@@ -13,9 +13,11 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 
 test('la salle de défi se place au niveau de la personne, les trois niveaux restent choisissables', () => {
   const ctx = vm.createContext({ rank: 1, niveauCompte: () => ({ rank: ctx.rank }), jeuChallenges: () => [1] });
-  vm.runInContext(cut('function jeuNivAuto(){', '\n}') + '\n}', ctx);
+  vm.runInContext(cut('function jeuNivAuto(rk){', '\n}') + '\n}', ctx);
   const auto = r => { ctx.rank = r; return vm.runInContext('jeuNivAuto()', ctx); };
   assert.deepEqual([1, 2, 3, 4, 5].map(auto), ['f', 'm', 'm', 'd', 'd']);
+  /* 14 novembre : la page « Nouveau niveau » demande le conseil d’un autre niveau (avant, après) */
+  ctx.rank = 1; assert.deepEqual([2, 4].map(r => vm.runInContext(`jeuNivAuto(${r})`, ctx)), ['m', 'd']);
   assert.ok(app.includes('  if(!jeuNivUser)jeuNiv=jeuNivAuto();'), 'tant qu’on n’a pas choisi soi-même');
   assert.ok(app.includes("if(k==='niv'){jeuNiv=v;jeuNivUser=true;}"), 'un niveau touché est retenu');
   assert.ok(app.includes("${k===auto&&!vide?'<em class=\"room-lv-auto\">Niveau recommandé</em>':''}"));
