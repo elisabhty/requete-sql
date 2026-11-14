@@ -140,7 +140,7 @@ test('« Nouvelle carte mémo ! » : il retourne la sienne, seulement pour une c
 });
 
 test('eurêka : la ligne de l’indice d’un défi, et « Ce que tu retiens »', () => {
-  const ctx = vm.createContext({ esc: s => String(s), escCode: s => String(s), highlight: s => s, defiSquelette: s => s, defiTables: () => ['vols'], jeuChrono: () => '', chatBonusHtml: k => `<img k="${k}">` });
+  const ctx = vm.createContext({ esc: s => String(s), escCode: s => String(s), highlight: s => s, defiSquelette: s => s, defiTables: () => ['vols'], defiOuChercher: () => 'Où chercher', defiOutils: () => 'L’outil', jeuChrono: () => '', chatBonusHtml: k => `<img k="${k}">` });
   vm.runInContext(cut('function defiIndices(c){', '\n}') + '\n}' + cut('function defiIndicesHTML(c,n,view,diag,next,kind){', '\nfunction coachNext(){'), ctx);
   const c = { sol: 'SELECT 1', indice: 'Une piste' };
   const un = ctx.defiIndicesHTML(c, 1, 1, '', null, 'solo'), zero = ctx.defiIndicesHTML(c, 0, 0, '', null, 'solo');
