@@ -110,7 +110,7 @@ test('réf. 12, 13 et 14 : la connexion en grand ; fermer la feuille d’Apple o
 });
 
 test('réf. 15 : le vote se met à jour sur place, sans flash ; ses résultats en pour cent, dès le premier vote, sans aucun nombre', () => {
-  const voter = cut('function parcoursVoter(){', '/* Sur place :');
+  const voter = cut('function parcoursVoter(btn){', '/* Sur place :');   // 14 novembre : le bouton touché (sa carte : l’accueil ou la page)
   assert.ok(!voter.includes('renderParcoursScreen()'), 'la page n’est plus redessinée');
   const sql = lire('supabase/migrations/20261112090000_parcours_resultats.sql');
   assert.ok(sql.includes("select jsonb_build_object('seuil', 1, 'parts',") && sql.includes('case when t.total >= 1 then') && !/'votes'|'total'/.test(sql.split('$$')[1]), 'son choix : dès le premier vote');
@@ -126,7 +126,7 @@ test('réf. 15 : le vote se met à jour sur place, sans flash ; ses résultats e
   vm.runInContext(cut('let parcoursRes=null', 'function parcoursCloche(id,btn){').replace('let parcoursRes=null,', 'var parcoursRes=null,'), ctx);
   vm.runInContext("parcoursRes={seuil:10,parts:{python:46,excel:31,powerbi:23}}", ctx);
   ctx.parcoursResultatsPeindre();
-  assert.deepEqual(opts.map(l => [l.classList.has('has-res'), l.kids[0].style['--p'], l.kids.b.textContent]),
+  assert.deepEqual(opts.map(l => [l.classList.has('has-res'), l.kids[0].style['--pc-part'], l.kids.b.textContent]),   // 14 novembre : --pc-part (--p est pris par l’anneau)
     [[true, '46%', '46 %'], [true, '31%', '31 %'], [true, '23%', '23 %']]);
 });
 

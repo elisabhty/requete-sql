@@ -25,7 +25,8 @@ function sandbox({ tete = null, rpcKo = false } = {}) {
   const ctx = vm.createContext({
     state: { lessons: {} }, save() {}, MODULES: [], TOTAL: 0, lqStkSvg: k => `<svg data-k="${k}"></svg>`, esc: String, escAttr: String, DEF_CHEV_SVG: '',
     activeTab: 'parcours', switchTab() {}, returnToParent() {}, returnToHome() {}, buzz() {}, lqSay() {}, mascotReduced: () => false, Date,
-    document: { getElementById: () => null, querySelector: () => null, querySelectorAll: q => (q === '#parcours-body .pc-opt' ? opts : []) },
+    /* 14 novembre, 19 h 54 : « En tête » se pose sur chaque carte de vote affichée (la page d’un parcours, l’accueil) */
+    document: { getElementById: id => (id === 'parcours-body' ? { querySelector: q => (q === '.pc-vote' ? {} : null), querySelectorAll: q => (q === '.pc-opt' ? opts : []) } : null), querySelector: () => null, querySelectorAll: () => [] },
     clsCle: () => 'cle', clsRpc: (fn, body) => { calls.push([fn, body]); return rpcKo ? Promise.reject(new Error('réseau')) : Promise.resolve(fn === 'parcours_en_tete' ? { parcours: tete } : { ok: true }); }
   });
   vm.runInContext(block, ctx);
@@ -57,11 +58,11 @@ test('l’alerte avec sa cloche, le vote avec son pictogramme, une icône par pa
   const { ctx } = sandbox();
   const page = ctx.parcoursPageHTML(P(ctx, 'python'));
   assert.ok(page.includes('<i class="pc-alert-ico" aria-hidden="true"><svg') && page.includes('<b>M’avertir au lancement</b><small>Reçois une notification le jour de l’ouverture.</small>'));
-  assert.ok(/<legend><i class="pc-vote-ico" aria-hidden="true"><svg[\s\S]*?<\/svg><\/i><span>Quel parcours aimerais-tu découvrir ensuite \?<\/span><\/legend>/.test(page), 'la question est la légende du groupe, avec son pictogramme');
+  assert.ok(/<legend><i class="pc-vote-ico" aria-hidden="true"><svg[\s\S]*?<\/svg><\/i><span>Quel parcours <span class="pc-insec">aimerais-tu<\/span> découvrir ensuite \?<\/span><\/legend>/.test(page), 'la question est la légende du groupe, avec son pictogramme');
   assert.ok(page.includes('<p class="pc-vote-sub">Ton vote nous aide à choisir le prochain !</p>'));
   for (const [id, k] of [['python', 'term'], ['excel', 'table'], ['powerbi', 'chart']])
     assert.ok(page.includes(`value="${id}"`) && page.includes(`<i class="pc-opt-ico" aria-hidden="true"><svg data-k="${k}"></svg></i>`), `${id} : l’autocollant de l’appli, pas le logo de la marque`);
-  assert.ok(/<button type="button" class="pc-vote-go" onclick="parcoursVoter\(\)"><svg[\s\S]*?<\/svg><span>Voter<\/span><\/button>/.test(page));
+  assert.ok(/<button type="button" class="pc-vote-go" onclick="parcoursVoter\(this\)"><svg[\s\S]*?<\/svg><span>Voter<\/span><\/button>/.test(page));
   assert.ok(!page.includes('pc-tete'), 'sans vote en tête, pas de badge');
 });
 

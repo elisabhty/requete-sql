@@ -706,8 +706,11 @@ système : corriger et enrichir les cours reste dans ce cadre ; une fonction d�
 
 **Les parcours à venir, cachés pour la 1.0** (14 novembre, 19 h 36 ; l’audit App Review, règle 2.1 ; Elisa : « cacher les pages
 et les ajouter quand elles seront prêtes, une par une, avec la fonction à distance ») : `PARCOURS_AVENIR_MONTRES=false`
-(index.html) cache les pastilles « À venir » de l’accueil, la section « À venir », les pages de Python, Excel et Power BI et le
-vote. Un parcours prêt passe à `dispo:true` et apparaît, avec ses vraies leçons. Deux précautions : ne pas remettre les pages
+(index.html) cache les pastilles « À venir » de l’accueil, la section « À venir », les pages de Python, Excel et Power BI et
+l’alerte de lancement. Le vote reste (19 h 54, « comment ils vont faire pour voter ? ») : c’est un sondage qui marche, rien n’y
+est annoncé ; il est sur l’accueil, sous les modules du parcours SQL (la même carte que sur la page d’un parcours, cochée sur
+son vote, ses résultats en pour cent une fois voté). Un parcours prêt passe à `dispo:true` et apparaît, avec ses vraies leçons
+(et sort du vote). Deux précautions : ne pas remettre les pages
 d’annonce juste après la validation (la règle 2.5.19 du 16 octobre 2026 interdit les fonctions cachées pendant la vérification
 puis montrées) ; et un parcours entier, surtout Python, qui demandera son propre moteur, passe de préférence par une mise à
 jour sur l’App Store, décrite dans les notes pour la vérification (et annoncée dans « Nouveautés ») ; la mise à jour à
@@ -963,7 +966,7 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
   `contact_boite` : Storage › contact-pieces, puis le dossier du même nom, pour les ouvrir. Le ménage des 3 ans
   n’efface que les messages : supprimer à la main les fichiers des messages traités (et les dossiers sans message,
   si un envoi a échoué après le dépôt).
-- **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre) : le parcours choisi, sa date et l’empreinte
+- **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre ; sur l’accueil, sous les modules, depuis le 14 novembre) : le parcours choisi, sa date et l’empreinte
   de l’identifiant tiré au hasard par l’appareil partent dans la table `parcours_vote` (fonction `parcours_voter`, un vote
   par appareil, revoter le remplace). Appliquée le 4 novembre : `supabase/migrations/20261104160653_parcours_vote.sql`.
   **Résultats** : vue `parcours_votes`. Le badge « En tête » de la page d’un parcours lit `parcours_en_tete` (le seul

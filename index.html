@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=381">
+<link rel="stylesheet" href="ludique.css?v=382">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -7746,6 +7746,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
       <div class="home-progress" id="home-progress" hidden></div>
       <div id="home-hero"></div>
       <div id="modules" class="group-stack lq-units"></div>
+      <div id="home-vote" class="home-vote" hidden></div>
     </section>
 
     <section id="scr-practice" class="screen journey-hub" aria-label="Pratiquer">
@@ -26658,6 +26659,7 @@ function filterCourseCatalog(value){
   if(!host)return;
   const filtered=searching||courseFilter!=='all';
   document.querySelectorAll('#modules>.home-module').forEach(m=>m.hidden=filtered);
+  const vote=document.getElementById('home-vote');if(vote)vote.hidden=filtered||!vote.firstElementChild;   /* le vote, sous les modules */
   document.querySelectorAll('[data-course-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.courseFilter===courseFilter)));
   const clear=document.getElementById('clear-course-search');if(clear)clear.hidden=!value;
   const suggest=document.getElementById('course-search-suggest');
@@ -28288,11 +28290,16 @@ const PC_BOOK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 let parcoursVue=null,parcoursDeListe=false,parcoursChoix=null,parcoursEnvoi=false;
 /* 14 novembre, 19 h 36 (Elisa : « Est-ce qu’on peut cacher les pages et les ajouter quand elles seront prêtes, une par une, avec la
    fonction à distance ») : pour la 1.0 (l’audit App Review, règle 2.1 : pas de contenu « à venir » dans une appli soumise), les
-   parcours à venir sont cachés : ni pastilles sur l’accueil, ni section « À venir », ni pages, ni vote. Un parcours prêt passe à
-   dispo:true et apparaît avec ses leçons. Les alertes et le vote déjà donnés restent gardés sur l’appareil, sans rien afficher.
-   true : les annonces reviennent telles qu’avant (alerte de lancement, vote). */
+   parcours à venir sont cachés : ni pastilles sur l’accueil, ni section « À venir », ni pages, ni alerte de lancement. Un parcours
+   prêt passe à dispo:true et apparaît avec ses leçons. Les alertes déjà demandées restent gardées sur l’appareil, sans rien afficher.
+   19 h 54 (« Mais comment ils vont faire pour voter ? Pour le prochain parcours ? ») : le vote, lui, reste. C’est un sondage qui
+   marche (son choix part à la base de l’appli, les résultats s’affichent), rien n’y est annoncé : il vient sur l’accueil, sous les
+   modules du parcours SQL (parcoursVoteAccueilHTML).
+   true : les annonces reviennent telles qu’avant (pastilles, section « À venir », pages, alerte de lancement). */
 let PARCOURS_AVENIR_MONTRES=false;
 function parcoursAVenir(){return PARCOURS_AVENIR_MONTRES?PARCOURS.filter(p=>!p.dispo):[];}
+/* Les choix du vote : les parcours pas encore ouverts, montrés ou non */
+function parcoursVotables(){return PARCOURS.filter(p=>!p.dispo);}
 function parcoursAlertes(){return Array.isArray(state.parcoursAlertes)?state.parcoursAlertes.filter(id=>PARCOURS.some(p=>p.id===id&&!p.dispo)):[];}
 function parcoursVote(){const v=state.parcoursVote;return v&&PARCOURS.some(p=>p.id===v.id&&!p.dispo)?v:null;}
 function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}
@@ -28360,11 +28367,10 @@ function parcoursListeHTML(){
    sur le parcours qui a le plus de votes (parcoursTete : de vrais votes, à partir de 10, sans égalité). L’étiquette garde
    « En préparation » (jamais « bientôt » dans les textes). */
 function parcoursPageHTML(p){
-  const on=parcoursAlertes().includes(p.id),v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
+  const on=parcoursAlertes().includes(p.id);
   /* 16 h 11 : le choix coché est le parcours affiché (la carte suit le choix, parcoursMontrer) ; le vote, le même sur les trois
      pages, est marqué « Ton vote » sous son nom. */
   const sel=p.id;
-  const opts=parcoursAVenir().map(o=>`<label class="pc-opt"><input type="radio" name="pc-vote" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value)"><i class="pc-opt-ico" aria-hidden="true">${lqStkSvg(o.stk)}</i><span class="pc-opt-t">${esc(o.titre)}${v&&v.id===o.id?'<small class="pc-opt-moi">Ton vote</small>':''}</span>${o.id===parcoursTete?PC_TETE_HTML:''}</label>`).join('');
   const themes=parcoursThemesHTML(p);
   const chat=typeof mascotReduced==='function'&&mascotReduced()?'assets/chat-ordi-fixe.webp':'assets/chat-ordi.webp';
   return `<div class="pc-view">
@@ -28383,14 +28389,23 @@ function parcoursPageHTML(p){
       <span class="pc-alert-copy"><b>M’avertir au lancement</b><small>Reçois une notification le jour de l’ouverture.</small></span>
       <input type="checkbox" role="switch" class="pc-switch"${on?' checked':''} onchange="parcoursAlerte('${p.id}',this.checked)">
     </label>
-    <fieldset class="pc-vote">
-      <legend><i class="pc-vote-ico" aria-hidden="true">${PC_ICO.vote}</i><span>Quel parcours aimerais-tu découvrir ensuite\u00a0?</span></legend>
+    ${parcoursVoteHTML(sel,'pc-vote')}
+  </div>`;
+}
+/* Le vote, d’après sa maquette (11 novembre, 15 h 15) : la question en légende avec son pictogramme, une icône par parcours, « Ton
+   vote » sous son nom, « En tête », le bouton avec sa coche, le message. Le même sur la page d’un parcours (coché : le parcours
+   affiché) et sur l’accueil (coché : son vote ; rien tant qu’il n’a pas voté, et le bouton attend un choix). nom : le groupe des
+   boutons radio, un par carte (les deux cartes peuvent être dans la page en même temps). */
+function parcoursVoteHTML(sel,nom){
+  const v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
+  const opts=parcoursVotables().map(o=>`<label class="pc-opt"><input type="radio" name="${nom}" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value,this)"><i class="pc-opt-ico" aria-hidden="true">${lqStkSvg(o.stk)}</i><span class="pc-opt-t">${esc(o.titre)}${v&&v.id===o.id?'<small class="pc-opt-moi">Ton vote</small>':''}</span>${o.id===parcoursTete?PC_TETE_HTML:''}</label>`).join('');
+  return `<fieldset class="pc-vote">
+      <legend><i class="pc-vote-ico" aria-hidden="true">${PC_ICO.vote}</i><span>Quel parcours <span class="pc-insec">aimerais-tu</span> découvrir ensuite\u00a0?</span></legend>
       <p class="pc-vote-sub">Ton vote nous aide à choisir le prochain\u00a0!</p>
       <div class="pc-opts">${opts}</div>
-      <button type="button" class="pc-vote-go" onclick="parcoursVoter()"${parcoursVoteFait(sel)?' disabled':''}>${PC_ICO.coche}<span>${parcoursVoteLabel(sel)}</span></button>
+      <button type="button" class="pc-vote-go" onclick="parcoursVoter(this)"${!sel||parcoursVoteFait(sel)?' disabled':''}>${PC_ICO.coche}<span>${parcoursVoteLabel(sel)}</span></button>
       <p class="pc-vote-ok" role="status" aria-live="polite">${parcoursVoteMsg(vp)}</p>
-    </fieldset>
-  </div>`;
+    </fieldset>`;
 }
 function parcoursThemesHTML(p){return (p.themes||[]).map(t=>`<li>${PC_ICO[t[0]]||''}<span>${esc(t[1])}</span></li>`).join('');}
 const PC_TETE_HTML=`<em class="pc-tete">${PC_TETE_SVG}En tête</em>`;
@@ -28406,13 +28421,12 @@ function parcoursTeteCharger(force){
   }).catch(()=>{}).then(()=>{parcoursTeteVa=false;parcoursTetePeindre();return parcoursTete;});
 }
 function parcoursTetePeindre(){
-  if(typeof document==='undefined'||!document.querySelectorAll)return;
-  document.querySelectorAll('#parcours-body .pc-opt').forEach(l=>{
+  parcoursVoteHotes().forEach(h=>h.querySelectorAll('.pc-opt').forEach(l=>{
     const i=l.querySelector('input'),b=l.querySelector('.pc-tete');
     if(!i)return;
     if(i.value===parcoursTete&&!b)l.insertAdjacentHTML('beforeend',PC_TETE_HTML);
     else if(i.value!==parcoursTete&&b)b.remove();
-  });
+  }));
 }
 function parcoursVoteFait(id){const v=parcoursVote();return !!v&&v.id===id&&v.envoye!==false;}
 function parcoursVoteLabel(id){const v=parcoursVote();return !v?'Voter':v.id===id?(v.envoye!==false?'Vote enregistré':'Voter'):'Changer mon vote';}
@@ -28422,11 +28436,14 @@ function parcoursVoteMsg(vp){
   if(parcoursEnvoi)return 'Envoi de ton vote…';
   return v.envoye!==false?`Merci\u00a0! Ton vote\u00a0: ${esc(vp.titre)}.`:`Ton vote (${esc(vp.titre)}) est gardé sur ton appareil\u00a0: il partira dès que possible.`;
 }
-function parcoursChoisir(id){
-  if(!parcoursAVenir().some(p=>p.id===id))return;
+function parcoursChoisir(id,el){
+  if(!parcoursVotables().some(p=>p.id===id))return;
   parcoursChoix=id;
-  const btn=document.querySelector('#parcours-body .pc-vote-go'),t=btn&&btn.querySelector('span');
+  /* el : le bouton radio touché ; sa carte (l’accueil ou la page d’un parcours) a son propre bouton Voter */
+  const carte=el&&typeof el.closest==='function'?el.closest('.pc-vote'):null;
+  const btn=carte?carte.querySelector('.pc-vote-go'):document.querySelector('#parcours-body .pc-vote-go'),t=btn&&btn.querySelector('span');
   if(btn){btn.disabled=parcoursVoteFait(id);if(t)t.textContent=parcoursVoteLabel(id);else btn.textContent=parcoursVoteLabel(id);}
+  if(carte&&!carte.closest('#parcours-body'))return;   /* le vote de l’accueil ne change pas la page d’un parcours */
   if(parcoursVue&&parcoursVue!==id){const avant=parcoursVue;parcoursVue=id;parcoursMontrer(id,avant);}
 }
 /* 11 novembre, 16 h 11 (« quand on clique sur Python, adapte le cadre du haut, de manière fluide ») : le vote sert aussi à passer
@@ -28537,9 +28554,10 @@ function parcoursPushSync(){
     .reduce((p,[id,on])=>p.then(ok=>un(id,on).then(o=>ok&&o)),Promise.resolve(true))
     .then(ok=>{parcoursPushVa=false;save();return ok;});
 }
-function parcoursVoter(){
-  const coche=document.querySelector('#parcours-body input[name="pc-vote"]:checked');
-  const id=parcoursChoix||(coche&&coche.value);
+function parcoursVoter(btn){
+  const carte=btn&&typeof btn.closest==='function'?btn.closest('.pc-vote'):null;
+  const coche=carte?carte.querySelector('input:checked'):document.querySelector('#parcours-body input[name="pc-vote"]:checked');
+  const id=carte?coche&&coche.value:parcoursChoix||(coche&&coche.value);
   const p=PARCOURS.find(x=>x.id===id&&!x.dispo);
   if(!p||parcoursEnvoi||parcoursVoteFait(p.id))return;
   if(typeof buzz==='function')buzz('success');
@@ -28552,22 +28570,22 @@ function parcoursVoter(){
 }
 /* Sur place : « Ton vote » sous le bon parcours, le bouton (« Envoi… », puis « Vote enregistré », d’un petit bond), le message, les résultats. */
 function parcoursVoteMaj(anim){
-  const host=typeof document!=='undefined'&&document.getElementById('parcours-body');
-  if(!host||!host.querySelector('.pc-vote'))return;
   const v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
-  host.querySelectorAll('.pc-opt').forEach(l=>{
-    const i=l.querySelector('input'),t=l.querySelector('.pc-opt-t'),m=t&&t.querySelector('.pc-opt-moi'),moi=!!(v&&i&&v.id===i.value);
-    if(moi&&t&&!m)t.insertAdjacentHTML('beforeend','<small class="pc-opt-moi">Ton vote</small>');else if(!moi&&m)m.remove();
+  parcoursVoteHotes().forEach(host=>{
+    host.querySelectorAll('.pc-opt').forEach(l=>{
+      const i=l.querySelector('input'),t=l.querySelector('.pc-opt-t'),m=t&&t.querySelector('.pc-opt-moi'),moi=!!(v&&i&&v.id===i.value);
+      if(moi&&t&&!m)t.insertAdjacentHTML('beforeend','<small class="pc-opt-moi">Ton vote</small>');else if(!moi&&m)m.remove();
+    });
+    const coche=host.querySelector('.pc-vote input:checked'),sel=coche?coche.value:(v&&v.id);
+    const btn=host.querySelector('.pc-vote-go'),bt=btn&&btn.querySelector('span');
+    if(btn){
+      const envoi=parcoursEnvoi&&v&&v.id===sel;
+      btn.disabled=envoi||!sel||parcoursVoteFait(sel);
+      if(bt)bt.textContent=envoi?'Envoi…':parcoursVoteLabel(sel);
+      if(anim&&!prefersReduceMotion()){btn.classList.remove('is-vote');void btn.offsetWidth;btn.classList.add('is-vote');setTimeout(()=>btn.classList.remove('is-vote'),700);}
+    }
+    const ok=host.querySelector('.pc-vote-ok');if(ok)ok.innerHTML=parcoursVoteMsg(vp);
   });
-  const coche=host.querySelector('input[name="pc-vote"]:checked'),sel=coche?coche.value:(v&&v.id);
-  const btn=host.querySelector('.pc-vote-go'),bt=btn&&btn.querySelector('span');
-  if(btn){
-    const envoi=parcoursEnvoi&&v&&v.id===sel;
-    btn.disabled=envoi||parcoursVoteFait(sel);
-    if(bt)bt.textContent=envoi?'Envoi…':parcoursVoteLabel(sel);
-    if(anim&&!prefersReduceMotion()){btn.classList.remove('is-vote');void btn.offsetWidth;btn.classList.add('is-vote');setTimeout(()=>btn.classList.remove('is-vote'),700);}
-  }
-  const ok=host.querySelector('.pc-vote-ok');if(ok)ok.innerHTML=parcoursVoteMsg(vp);
   parcoursResultatsPeindre();
 }
 /* Les résultats du vote (parcours_resultats : la part de chaque parcours en pour cent, sans aucun nombre de votes, dès le premier vote,
@@ -28581,24 +28599,31 @@ function parcoursResultatsCharger(force){
     .catch(()=>{}).then(()=>{parcoursResVa=false;parcoursResultatsPeindre();return parcoursRes;});
 }
 function parcoursResultatsPeindre(){
-  const host=typeof document!=='undefined'&&document.getElementById('parcours-body');
-  if(!host||!host.querySelector('.pc-vote'))return;
   const v=parcoursVote(),r=v?parcoursRes:null,parts=r&&r.parts&&typeof r.parts==='object'?r.parts:null;
-  host.querySelectorAll('.pc-opt').forEach(l=>{
-    const i=l.querySelector('input'),id=i&&i.value;let b=l.querySelector('.pc-res');
-    const n=parts&&id?Number(parts[id]):NaN,pc=Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):null;
-    if(pc==null){if(b)b.remove();l.classList.remove('has-res');return;}
-    if(!b){l.insertAdjacentHTML('beforeend','<span class="pc-res"><i aria-hidden="true"></i><b></b></span>');b=l.querySelector('.pc-res');}
-    l.classList.add('has-res');
-    requestAnimationFrame(()=>b.style.setProperty('--p',pc+'%'));
-    b.querySelector('b').textContent=pc+'\u00a0%';
-  });
-  let note=host.querySelector('.pc-res-note');
   const seuil=r&&!parts&&Number(r.seuil)>1?Number(r.seuil):0;
-  if(seuil){
-    if(!note){host.querySelector('.pc-vote-ok')?.insertAdjacentHTML('afterend','<p class="pc-res-note"></p>');note=host.querySelector('.pc-res-note');}
-    if(note)note.textContent=`Les résultats s’afficheront dès ${seuil}\u00a0votes.`;
-  }else if(note)note.remove();
+  parcoursVoteHotes().forEach(host=>{
+    host.querySelectorAll('.pc-opt').forEach(l=>{
+      const i=l.querySelector('input'),id=i&&i.value;let b=l.querySelector('.pc-res');
+      const n=parts&&id?Number(parts[id]):NaN,pc=Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):null;
+      if(pc==null){if(b)b.remove();l.classList.remove('has-res');return;}
+      if(!b){l.insertAdjacentHTML('beforeend','<span class="pc-res"><i aria-hidden="true"></i><b></b></span>');b=l.querySelector('.pc-res');}
+      l.classList.add('has-res');
+      /* --pc-part, pas --p : --p est enregistré pour l’anneau de progression (@property, un nombre, non hérité) ; la barre restait à 0 */
+      requestAnimationFrame(()=>b.style.setProperty('--pc-part',pc+'%'));
+      b.querySelector('b').textContent=pc+'\u00a0%';
+    });
+    let note=host.querySelector('.pc-res-note');
+    if(seuil){
+      if(!note){host.querySelector('.pc-vote-ok')?.insertAdjacentHTML('afterend','<p class="pc-res-note"></p>');note=host.querySelector('.pc-res-note');}
+      if(note)note.textContent=`Les résultats s’afficheront dès ${seuil}\u00a0votes.`;
+    }else if(note)note.remove();
+  });
+}
+/* Là où une carte de vote est affichée : la page d’un parcours (#parcours-body) et l’accueil (#home-vote) */
+function parcoursVoteHotes(){
+  if(typeof document==='undefined'||!document||typeof document.getElementById!=='function')return [];
+  return ['parcours-body','home-vote'].map(id=>document.getElementById(id))
+    .filter((h,i,a)=>h&&typeof h.querySelector==='function'&&h.querySelector('.pc-vote')&&a.indexOf(h)===i);
 }
 /* La cloche d’un parcours à venir, dans la liste : l’alerte s’active (ou se coupe) sur place. Activée, la cloche se remplit, sonne,
    lâche deux ondes, et une coche menthe se pose à son coin ; coupée, elle se vide d’un petit frisson. La carte annonce l’état. */
@@ -28638,6 +28663,28 @@ if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
     if(parcoursAlertes().length&&parcoursPushPont())parcoursPushJeton(false).then(()=>parcoursPushSync());else parcoursPushSync();}catch(e){}},4000));
   window.addEventListener('online',()=>{try{parcoursEnvoyerVote();parcoursPushSync();}catch(e){}});
 }
+/* 14 novembre, 19 h 54 (Elisa : « Mais comment ils vont faire pour voter ? Pour le prochain parcours ? ») : les pages des parcours
+   à venir sont cachées pour la 1.0, pas le vote. Il vient sur l’accueil, sous les modules du parcours SQL : la même carte que sur la
+   page d’un parcours, coché sur son vote s’il a voté. Les résultats et « En tête » ne sont lus à la base de l’appli qu’une fois la
+   carte à l’écran (pas à chaque ouverture de l’appli). Plus de parcours à venir : pas de carte. */
+function parcoursVoteAccueilHTML(){
+  if(!parcoursVotables().length)return '';
+  const v=parcoursVote();
+  return parcoursVoteHTML(v?v.id:'','pc-vote-a');
+}
+let parcoursVoteVu=null;
+function parcoursVoteLire(){parcoursTeteCharger();if(parcoursVote())parcoursResultatsCharger();}
+function renderParcoursVoteAccueil(){
+  const host=typeof document!=='undefined'&&document&&typeof document.getElementById==='function'?document.getElementById('home-vote'):null;
+  if(!host)return;
+  const html=parcoursVoteAccueilHTML();
+  if(host.__lqHtml!==html){host.innerHTML=html;host.__lqHtml=html;if(html&&parcoursVote())parcoursResultatsPeindre();}
+  if(!html){host.hidden=true;return;}
+  if(parcoursVoteVu)return;
+  if(typeof IntersectionObserver!=='function'){parcoursVoteLire();return;}
+  parcoursVoteVu=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))parcoursVoteLire();},{rootMargin:'0px 0px 160px 0px'});
+  parcoursVoteVu.observe(host);
+}
 function renderModules(){
   const host=document.getElementById('modules');
   if(!host)return;
@@ -28674,6 +28721,7 @@ function renderModules(){
     host.innerHTML=html;host.__lqHtml=html;
     host.querySelectorAll('.home-module[open]').forEach(d=>{d.__lqParsed=true;});
   }
+  renderParcoursVoteAccueil();
   filterCourseCatalog(courseSearch);
   /* Leçons validées depuis la dernière visite de l’accueil : leur pastille
      se remplit sous les yeux (seulement quand l’accueil est affiché). */
@@ -53117,7 +53165,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-parcours-v3030';
+  const SW_CACHE='requete-2026-11-14-vote-v3031';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
