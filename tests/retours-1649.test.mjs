@@ -395,13 +395,14 @@ test('réf. 6 — « Tes dernières parties » : les parties à 2, 3, 4, 5 (et j
   assert.ok(bars[2][0].includes('aria-label="Aujourd’hui, 380 points, à 5 joueurs"'));
   /* Dessous : la partie choisie, joueur par joueur, dans l’ordre du classement */
   const cap = h.match(/<p class="perf-cap" aria-live="polite">([\s\S]*?)<\/p>/)[1];
-  assert.ok(cap.startsWith('<span class="perf-cap-t">Aujourd’hui · à 5 · Moyen</span><span class="perf-cap-ppl">'));
-  const chips = [...cap.matchAll(/<span( class="is-me")?><i class="jeu-av" data-c="(\d)" aria-hidden="true">[^<]*<\/i>([^<]+)<b>(\d+)<\/b><\/span>/g)].map(m => [m[3], +m[4], !!m[1], +m[2]]);
+  /* 14 novembre, 14 h 33 : au-delà de 3 joueurs, une ligne (le 1er, toi, « +3 ») ; chacun avec sa place (retours-1433-stats-courte) */
+  assert.ok(cap.startsWith('<span class="perf-cap-t">Aujourd’hui · à 5 · Moyen</span><span class="perf-cap-ppl is-court">'));
+  const chips = [...cap.matchAll(/<span(?: class="([^"]*)")?><i class="jeu-av" data-c="(\d)" aria-hidden="true">[^<]*<\/i><small class="perf-cap-pl">[^<]+<\/small><em class="perf-cap-n">([^<]+)<\/em><b>(\d+)<\/b><\/span>/g)].map(m => [m[3], +m[4], /is-me/.test(m[1] || ''), +m[2]]);
   assert.deepEqual(chips.map(x => x.slice(0, 3)), [['Léa', 420, false], ['Toi', 380, true], ['Tom', 300, false], ['Ana &lt;3', 150, false], ['Zoé', 0, false]], 'les pseudos échappés, « Toi » pour soi');
   assert.equal(chips[1][3], 0, '« Toi » en violet');
   assert.deepEqual(chips.filter(x => !x[2]).map(x => x[3]), c5, 'chaque pastille a la couleur de son point');
   /* 18 h 19 : « pourquoi nombre de joueurs = 3 ? » : plus de chiffre d’exemple dans la légende */
-  assert.ok(h.includes('<p class="perf-legend"><span><i class="perf-legend-o" aria-hidden="true"></i>les points de tes adversaires</span><span class="perf-legend-t">au pied de chaque barre : le nombre de joueurs</span></p>'), 'une légende, sans chiffre trompeur');
+  assert.ok(h.includes('<p class="perf-legend is-ligne"><span><i class="perf-legend-o" aria-hidden="true"></i>points des adversaires</span><span class="perf-legend-t">au pied des barres&nbsp;: nombre de joueurs</span></p>'), 'une légende, sans chiffre trompeur');
   assert.ok(!app.includes('perf-legend-n') && !css.includes('perf-legend-n'));
   assert.ok(bars[0][0].includes(`data-caph="${escAttr(vm.runInContext('perfCapHTML(state.salle.hist[2])', ctx))}"`), 'toucher une barre écrit sa partie');
   assert.equal(vm.runInContext('perfCapHTML(state.salle.hist[1])', ctx), 'Hier · En solo · Facile · 250 points');

@@ -79,7 +79,7 @@ test('les mots : « Mes adversaires », « Créer ma partie », « À plusieurs 
     "ou=DEFIS.portee==='amis'?'parmi tes adversaires':", "const ou=D.portee==='amis'?'parmi tes adversaires':",
     "onclick=\"defisCarte(\\'creer\\')\">Créer ma partie</button>", ":friends?['Créer ma partie','Ta salle de défi',", '<span>Créer ma partie</span>',
     "${h.solo?'En solo':'À plusieurs'}", '<div class="perf-block perf-friends"><h3>À plusieurs</h3>', 'Ton prochain podium à plusieurs s’affichera ici.',
-    "`Sur ${amis} ${plur(amis,'partie')} à plusieurs.`", '</i>les points de tes adversaires</span>', 'termine une partie, seul ou à plusieurs, pour ouvrir le classement.',
+    "`Sur ${amis} ${plur(amis,'partie')} à plusieurs.`", '</i>points des adversaires</span>', 'termine une partie, seul ou à plusieurs, pour ouvrir le classement.',
     'Il faut une connexion internet pour jouer à plusieurs.'])
     assert.ok(app.includes(k), k);
   for (const k of ["chip('amis','Mes amis')", 'Aucun de tes amis', 'parmi tes amis', 'Créer une partie</button>', "'Entre amis'", '<h3>Entre amis</h3>', 'podium entre amis s’affichera',

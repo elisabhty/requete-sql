@@ -144,7 +144,8 @@ test('« Comment sont calculés les points ? » : une rangée bien visible sous 
   const rangee = '<button type="button" class="dx-points" onclick="defisStats(true)"><span class="dx-points-stk" aria-hidden="true"><svg data-k="trophy"></svg></span><span class="dx-points-t"><b>Comment sont calculés les points&nbsp;?</b><small>Vitesse, niveau, premier coup et place dans la salle</small></span><svg data-k="chev"></svg></button>';
   assert.equal(h, rangee, 'sous le cadre, seule (12 h 52 : un seul cadre au-dessus)');
   assert.ok(!h.includes('dx-lien') && !h.includes('dx-regles') && !h.includes('Comment on marque'));
-  assert.ok(app.includes('<h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span>Comment sont calculés les points&nbsp;?</h2>'), 'le même titre dans Mes stats');
+  /* 14 novembre, 14 h 33 : le titre est le bouton qui ouvre le barème replié (retours-1433-stats-courte) */
+  assert.ok(app.includes('<span class="room-rules-stk" aria-hidden="true">${lqStkSvg(\'target\')}</span><span class="room-rules-tt">Comment sont calculés les points&nbsp;?<small>'), 'le même titre dans Mes stats');
   assert.ok(!app.includes('Comment on marque des points</'), 'plus l’ancien titre à l’écran');
   for (const k of ['html.lq #scr-defis .dx-points{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 16px;', 'border-radius:18px;background:var(--accent-soft);box-shadow:0 3px 0 #D2C6FA;',
     'html.lq #scr-defis .dx-points-t b{color:var(--ink);font:700 15.5px/1.2 var(--display);', 'html.lq #scr-defis .dx-points:focus-visible{outline:3px solid var(--accent);outline-offset:2px}'])
@@ -170,7 +171,7 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 });
 
 test('les versions : la feuille de style et le cache', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=376">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=377">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-14-feuille-v3014' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-14-stats-v3015' && app.includes(`const SW_CACHE='${cache}';`));
 });
