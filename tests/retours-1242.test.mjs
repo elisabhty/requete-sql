@@ -93,7 +93,11 @@ test('« Comment sont calculés les points ? » : le barème du niveau choisi, s
   assert.ok(d.h.includes('Le chrono part de 15&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.') && f.h.includes('Le chrono part de 6&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
   assert.ok(d.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && d.h.includes('<span>Manche parfaite en Difficile</span><b>825</b><small>seul</small><i aria-hidden="true">·</i><b>1\u202f025</b>'), '1 025, avec l’espace des milliers');
   assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×4\u00a0pts</small></button>'));
-  assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 2' + NB + 'min' + NB + '; en Difficile, quadruple et 2' + NB + 'min' + NB + '30. Le premier coup vaut +25 partout. Le chrono' + NB + ': 6' + NB + 'min en Facile, 12 en Moyen, 15 en Difficile.</small></li>'));
+  /* 14 novembre, 7 h 39 : la ligne du niveau suit le niveau choisi (avant : « ×2 · ×4 » et le même texte partout) */
+  assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×1</span><small>Les points de base, un palier par minute. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le Facile');
+  assert.ok(m.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2</span><small>Les points de vitesse et de place comptent double, un palier toutes les 2'+NB+'min. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le Moyen');
+  assert.ok(d.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×4</span><small>Les points de vitesse et de place comptent quadruple, un palier toutes les 2'+NB+'min'+NB+'30. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le Difficile');
+  assert.ok(!f.h.includes('×2 · ×4'));
   assert.ok(app.includes('<small>Vitesse, niveau, premier coup et place dans la salle</small>'));
   for (const r of ['html.lq .room-rules-niv{display:flex;', 'html.lq .room-rules-niv button.is-on{background:#fff;', '@media (prefers-reduced-motion:reduce){html.lq .room-rules-niv button{transition:none}}']) assert.ok(lq.includes(r), r);
 });

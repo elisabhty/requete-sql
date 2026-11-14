@@ -44,7 +44,7 @@ test('le cadre « Comment on marque des points » : les paliers en marches, le p
   assert.ok(h.includes('<li><b>🥇 Premier à trouver</b><span>+50</span><small>À plusieurs : 2e +30 · 3e +20 · 4e +10. Seul à jouer la manche, pas de bonus de place</small></li>'));
   assert.ok(h.includes('<li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>'));
   /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la ligne du niveau ; le cadre montre le Facile au départ (retours-1242 : les autres) */
-  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 2 min ; en Difficile, quadruple et 2 min 30. Le premier coup vaut +25 partout. Le chrono : 6 min en Facile, 12 en Moyen, 15 en Difficile.</small></li>'), 'la durée de chaque niveau (14 novembre, 7 h 17 ; 8 novembre, 8 h 52 avant) ; le premier coup fixe (9 h 17)');
+  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×1</span><small>Les points de base, un palier par minute. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le niveau choisi, le Facile au départ (14 novembre, 7 h 39) ; le premier coup fixe (8 novembre, 9 h 17)');
   assert.ok(h.includes('<p class="room-rules-max"><span>Manche parfaite en Facile</span><b>225</b><small>seul</small><i aria-hidden="true">·</i><b>275</b><small>à plusieurs</small></p>'));
   assert.ok(!h.includes('Rapidité') && !h.includes('baisse doucement'), 'l’ancien barème est parti');
   assert.ok(sec.cls.has('is-in'), 'sans IntersectionObserver : tout de suite');

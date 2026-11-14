@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=367">
+<link rel="stylesheet" href="ludique.css?v=368">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -29331,6 +29331,10 @@ function renderDefisRules(){
   const k=JEU_NIV_X[defisReglesNiv]?defisReglesNiv:(typeof jeuNiv!=='undefined'&&JEU_NIV_X[jeuNiv]?jeuNiv:'f');
   const x=JEU_NIV_X[k],d=JEU_NIV_DUREE[k],fin=jeuDureeMs(k)/1000;
   const top=JEU_PALIERS[0][1]*x,mn=t=>String(t/60).replace('.',','),last=JEU_PALIERS[JEU_PALIERS.length-1][0]*d;
+  /* 14 novembre, 7 h 39 (Elisa : « pourquoi ×2 ×4 à côté de Niveau du défi », puis « oui » à la ligne qui suit le niveau choisi) : la
+     ligne du niveau dit le coefficient du niveau choisi au-dessus (×1, ×2 ou ×4) et la longueur de ses paliers ; avant, « ×2 · ×4 » et
+     le même texte pour les trois niveaux, la durée de la manche en plus (la ligne « Trouvé vite » la donne). */
+  const nivDit=`${x>1?`Les points de vitesse et de place comptent ${x===2?'double':'quadruple'}`:'Les points de base'}, un palier ${d===1?'par minute':`toutes les ${jeuMinDit(60*d)}`}. Le premier coup vaut +${JEU_PTS_ESSAI} à tous les niveaux.`;
   const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]*d:0,b=Math.min(t*d,fin);return {a,p:p*x,lab:i?`${mn(a)}–${mn(b)}`:`≤ ${mn(b)}`,dit:i?`de ${jeuMinDit(a)} à ${jeuMinDit(b)}`:`jusqu’à ${jeuMinDit(b)}`};})
     .concat([{a:last,p:JEU_PTS_MIN*x,lab:`${mn(last)} +`,dit:`après ${jeuMinDit(last)}`}]).filter(m=>m.a<fin);
   const choix=['f','m','d'].map(n=>`<button type="button" role="radio" aria-checked="${n===k}" class="${n===k?'is-on':''}" onclick="defisRulesNiv('${n}')">${JEU_NIVL[n]}${JEU_NIV_X[n]>1?`<small>×${JEU_NIV_X[n]}\u00a0pts</small>`:''}</button>`).join('');
@@ -29341,7 +29345,7 @@ function renderDefisRules(){
       <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
-      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure ${jeuMinDit(60*JEU_NIV_DUREE.m)} ; en Difficile, quadruple et ${jeuMinDit(60*JEU_NIV_DUREE.d)}. Le premier coup vaut +${JEU_PTS_ESSAI} partout. Le chrono : ${JEU_NIV_MANCHE.f/60000} min en Facile, ${JEU_NIV_MANCHE.m/60000} en Moyen, ${JEU_NIV_MANCHE.d/60000} en Difficile.</small></li>
+      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×${x}</span><small>${nivDit}</small></li>
       <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
       <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
@@ -51964,7 +51968,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-manches-v2996';
+  const SW_CACHE='requete-2026-11-14-niveau-v2997';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
