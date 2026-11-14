@@ -153,8 +153,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-sol[data-vue="moi"]{background:#EAF8F0}', 'html.lq .dx-feuille button.jc-bascule{flex:none;',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-relance-v2994';") && app.includes("const SW_CACHE='requete-2026-11-14-relance-v2994';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=365">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-delai-v2995';") && app.includes("const SW_CACHE='requete-2026-11-14-delai-v2995';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=366">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
@@ -170,7 +170,7 @@ test('11 h 53 : le niveau suivant ramène à l’écran Défis, déjà choisi ; 
   const b = vm.createContext({ JEU: { solo: true, niv: 'd' }, JEU_RELANCE_SVG: '<rv>', JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, DEF_CHEV_SVG: '›', jeuNivBars: k => k, jeuBtn2: (i, l) => `[${l}]` });
   vm.runInContext(fn('jeuFinBoutonsHTML'), b);
   assert.ok(!b.jeuFinBoutonsHTML(2, true).includes('jeu-prog') && b.jeuFinBoutonsHTML(2, true).includes('<span>Rejouer</span>'), 'Difficile : « Rejouer » seulement');
-  assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();') && fn('jeuAgain').includes("jeuSend(auto?{t:'again',g:J.g+1,auto:1}:{t:'again',g:J.g+1});"), '« Rejouer » : une nouvelle partie dans la même salle');
+  assert.ok(line('jeuRejouer').includes('if(J.over)return jeuAgain();') && fn('jeuAgain').includes("const m={t:'again',g:J.g+1};if(auto)m.auto=1;if(Array.isArray(who))m.who=who;\n  jeuSend(m);"), '« Rejouer » : une nouvelle partie dans la même salle');
 });
 
 /* 11 h 57 (Elisa) : « Retour aux défis » devient « Voir mon classement » ; « ne pas tout mettre en vert, mettre des pills ou pointillé ». */

@@ -55,8 +55,8 @@ test('le podium : une carte en direct (qui en est, qui est là), puis « Quitter
   assert.equal(ctx.JEU.rv.g, false); assert.equal(envois.at(-1).on, false, 'touché de nouveau : elle se ravise');
   /* La relance, chez l’hôte : tous ceux qui sont là ont dit oui ; puis la partie part quand tout le monde est prêt (10 s au plus) */
   const v = fn('jeuRevancheVerif');
-  assert.ok(v.includes("if(J.over&&J.view==='final'&&J.relanceG!==J.g&&live.length&&live.every(p=>J.rv&&J.rv[p])){\n    if(!J.relanceAt||Date.now()<J.relanceAt)return;   // le compte à rebours de la carte (6 h 33)\n    J.relanceAt=0;J.relanceG=J.g;J.relanceAuto=Date.now();jeuAgain(true);return;}"));
-  assert.ok(v.includes("if(live.every(p=>p===J.me||J.ready[p])){J.relanceAuto=0;jeuNextRound();}") && v.includes('Date.now()-J.relanceAuto>10000'));
+  assert.ok(v.includes("if(J.over&&J.view==='final'&&J.relanceG!==J.g&&live.length&&live.every(p=>J.rv&&J.rv[p])){\n    if(!J.relanceAt||Date.now()<J.relanceAt)return;   // le compte à rebours de la carte (6 h 33)\n    J.relanceAt=0;J.relanceG=J.g;J.relanceAuto=Date.now();J.relanceWho=null;jeuAgain(true);return;}"));
+  assert.ok(v.includes("if(qui.every(p=>p===J.me||J.ready[p])){const w=J.relanceWho;J.relanceAuto=0;J.relanceWho=null;if(w)jeuNextRound(qui);else jeuNextRound();}") && v.includes('Date.now()-J.relanceAuto>10000'));
   assert.ok(app.includes("  jeuRevancheVerif();   // 21 h 33"), 'à chaque battement');
   assert.ok(app.includes("    case 'revanche':\n      if(!addP())return;\n      if((m.g|0)!==J.g)return;\n      J.rv=J.rv||{};J.rv[m.pid]=!!m.on;"));
   /* « Quitter la salle » : l’onglet Défis, « Jouer » ; la carte suit la salle sur place */
@@ -69,7 +69,7 @@ test('le podium : une carte en direct (qui en est, qui est là), puis « Quitter
 });
 
 test('la relance : prêt tout seul, une seule fois, jamais en relisant l’historique', () => {
-  assert.ok(app.includes("const revanche=!!J.revanche&&!replay;J.revanche=false;"));
+  assert.ok(app.includes("const revanche=!!J.revanche&&!replay,rvOui=Object.keys(J.rv||{}).some(p=>J.rv[p]);J.revanche=false;"));
   assert.ok(app.includes("if(revanche&&!jeuIsHost())setTimeout(()=>{if(JEU===J&&!J.rounds.length&&!J.ready[J.me])jeuSend({t:'ready',on:true});},400);"));
   assert.ok(app.includes('if(!keep&&!J.voile){   // voilé (19 h 15) : jeuVoileLever\n        if(!prefersReduceMotion())setTimeout(()=>{const b=document.querySelector(\'#jeu-root .jr2-n\');if(b&&JEU===J)jeuCountUp(b);},300);\n        if(winner)setTimeout(celebrate,300);'), 'redessiné sur place : pas de deuxièmes confettis');
 });
@@ -175,11 +175,11 @@ test('6 h 33 : la relance ne saute plus : le compte à rebours, le fondu, la sc�
   assert.ok(app.includes('const JEU_RELANCE_MS=3000,JEU_RELANCE_SEUL_MS=1600,JEU_FONDU_MS=280,JEU_RELANCE_SCENE_MS=10500;'), '3 s à plusieurs, 1,6 s seule');
   const suivre = fn('jeuRelanceSuivre');
   assert.ok(suivre.includes('if(reste<=0){jeuRevancheVerif();return;}') && suivre.includes('J.relanceT=setTimeout(()=>{if(JEU===J)jeuRelanceSuivre();},Math.min(reste%1000||1000,reste)+5);'), 'le compte suit sa propre horloge, à la seconde près');
-  assert.ok(fn('jeuAgain').includes("jeuSend(auto?{t:'again',g:J.g+1,auto:1}:{t:'again',g:J.g+1});"), 'la relance voulue par tous se dit');
+  assert.ok(fn('jeuAgain').includes("const m={t:'again',g:J.g+1};if(auto)m.auto=1;if(Array.isArray(who))m.who=who;\n  jeuSend(m);"), 'la relance voulue par tous se dit (le serveur ne fait suivre que g : chacun sait s’il a dit oui)');
   const again = app.slice(app.indexOf("    case 'again':{"), app.indexOf("    case 'bye':"));
-  assert.ok(again.includes('J.relanceScene=revanche&&m.auto?Date.now()+JEU_RELANCE_SCENE_MS:0;'), 'ceux qui ont dit oui : la scène du tirage');
+  assert.ok(again.includes('J.relanceScene=revanche&&!J.solo?Date.now()+JEU_RELANCE_SCENE_MS:0;'), 'ceux qui ont dit oui : la scène du tirage');
   assert.ok(again.includes("ro.classList.add('jeu-sort');J.fondu=Date.now()+JEU_FONDU_MS;"), 'l’écran de fin s’efface en douceur');
-  assert.ok(again.includes('if(m.auto&&!replay&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuRevancheVerif();},JEU_FONDU_MS+20);'), 'l’hôte n’attend pas le battement suivant');
+  assert.ok(again.includes('if(J.relanceAuto&&!replay&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuRevancheVerif();},JEU_FONDU_MS+20);'), 'l’hôte n’attend pas le battement suivant');
   assert.ok(app.includes("      if(J.relanceAuto&&!replay&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuRevancheVerif();},0);"), 'ni, à plusieurs, après le dernier « prêt »');
   assert.ok(fn('jeuView').includes("if(n<0)return jeuRoomEmpty()?'empty':jeuRelanceScene()?'relance':'lobby';"));
   const r = fn('jeuRender');
@@ -190,4 +190,24 @@ test('6 h 33 : la relance ne saute plus : le compte à rebours, le fondu, la sc�
   assert.ok(fn('jeuDrawNote').includes("JEU.solo||jeuLive().length<2?'Un défi au hasard, au niveau choisi.'"), 'seule dans sa salle : pas « Tout le monde reçoit le même défi »');
   assert.ok(fn('jeuRevanche').includes("if(J.view==='final'&&typeof document!=='undefined'&&document.getElementById('jeu-rv'))jeuPaint();else jeuRedraw();"), 'toucher « Revanche » ne rejoue plus l’entrée du podium');
   assert.ok(css.includes('html.lq #jeu-root.jeu-sort{animation:jeuSort .28s cubic-bezier(.4,0,.6,1) both!important;pointer-events:none}') && css.includes('@keyframes jeuRvBarre{from{transform:scaleX(0)}to{transform:scaleX(1)}}'));
+});
+
+/* 14 novembre, 6 h 57 (Elisa : « oui 30 s, ou ça repart en défi en solo s’il n’y a que moi qui ai appuyé et que personne ne rejoint au
+   bout de 30 s ; c’est à partir de la dernière personne qui a appuyé ») : les parcours sont dans salle-defis.test.mjs ; ici, les
+   branchements et les styles. */
+test('6 h 57 : 30 s après le dernier « oui » : la carte compte, la partie part sans les autres (seule : en solo), « partie sans toi »', () => {
+  assert.ok(app.includes('const JEU_RV_ATTENTE_MS=30000;'));
+  assert.ok(app.includes('      if(m.on)J.rvDernier=Date.now();   // les 30 s repartent du dernier « oui » (14 novembre, 6 h 57)') && fn('jeuRevanche').includes('if(on)J.rvDernier=Date.now();'));
+  assert.ok(fn('jeuRvLimite').includes('return oui.length&&oui.length<live.length?J.rvDernier+JEU_RV_ATTENTE_MS:0;'), 'quelqu’un a dit oui, pas tout le monde');
+  const v = fn('jeuRevancheVerif');
+  assert.ok(v.includes('if(J.rv&&J.rv[J.me]){const oui=live.filter(p=>J.rv[p]);J.relanceAt=0;J.relanceG=J.g;J.relanceAuto=Date.now();J.relanceWho=oui;jeuAgain(true,oui);}') && v.includes('else jeuRvSansMoi();'));
+  const sans = fn('jeuRvSansMoi');
+  assert.ok(sans.includes('J.detache=true;J.horsPartie=true;J.oupsRv=true;J.oupsAt=Date.now();J.leaveOk=true;') && sans.includes("J.t.beacon({v:1,t:'bye'"), 'l’hôte qui n’a pas répondu passe la main');
+  assert.ok(fn('jeuTick').includes('if(J.detache){jeuOupsMaj();') && fn('jeuSend').includes('if(!JEU||JEU.detache)return \'\';'));
+  const h = fn('jeuRevancheHTML');
+  assert.ok(h.includes("const limQui=on?(oui.length?`la partie repart sans ${court(attente.map(nom),2)}`:`tu rejoues en solo`):'la partie repart sans toi';"));
+  assert.ok(h.includes('<span class="jeu-rv-lim">${JEU_ICO.reveil}<span>Sans réponse, ${limQui} dans\\u00a0<b id="jeu-rv-lim">'));
+  assert.ok(app.includes("J.oupsRv?'Oups, la revanche est partie sans toi !':'Oups, la partie a déjà démarré !',J.oupsRv?'Tu n’as pas répondu à temps. Pas de panique, d’autres salles t’attendent.'"));
+  assert.ok(css.includes('html.lq #jeu-root .jeu-rv-lim{display:flex;align-items:center;gap:6px;margin-top:7px;color:#9A4E06;font:700 12.5px/1.3 var(--ui)}') && css.includes('html.lq #jeu-root .jeu-rv-barre.is-lim::after{background:linear-gradient(90deg,#F6B73C,#E8890C)}'));
+  assert.ok(css.indexOf('.jeu-rv-lim{') < css.indexOf('Défis — la refonte du 7 novembre'));
 });
