@@ -353,7 +353,7 @@ test('manche : les paliers de temps, +25 du premier coup, +50 / +30 / +20 aux pr
   assert.ok(guests[1].html.includes('<p class="jr2-pills"><i>Défi 200</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">1er +50</i></p>'), 'du premier coup');
   assert.doesNotMatch(host.html, /rapidité<\/i>/);
   assert.equal((host.html.match(/class="jr2-pills"/g) || []).length, 1, 'le détail : une seule fois, le sien, dans le cadre');
-  assert.match(host.html, /<em>00:\d\d<\/em>/, 'le temps en 00:00');
+  assert.match(host.html, /<em>\d+\u00a0s<\/em>|<em>\d+\u00a0min/, 'le temps en clair, « 12 s » (14 novembre, 5 h 41)');
   /* 17 h 31 : « il faut que ça continue seul sans interruption » : le même compte à rebours chez tous, plus de bouton */
   for (const c of [host, ...guests]) assert.match(c.html, /<p class="jeu-auto jr2-auto" id="jeu-auto"[^>]*><span>La manche suivante démarre dans <b id="jeu-auto-n">\d<\/b>/, c.name);
   assert.doesNotMatch(host.html, /id="jeu-go"|<span>Manche suivante<\/span>/);
@@ -406,6 +406,16 @@ test('14 novembre, 5 h 35 : la manche de la revanche s’ouvre sur « C’est pa
   host.ev('jeuNextRound()'); sec(w, 4.5); guests[0].found(); sec(w, 1); host.found(); sec(w, 1); guests[1].found(); sec(w, 1);
   assert.equal(guests[0].ev('JEU.dit&&JEU.dit.cur&&JEU.dit.cur.k'), 'tous', 'la partie d’avant finit sur « Tout le monde a trouvé ! »');
   sec(w, 2); host.ev('jeuFinish()'); sec(w, 1.5);
+  /* 5 h 41 (« corrige ») : le calcul des points en clair, « 175 + 30 = 205 » : la somme tombe juste, le défi dit son temps */
+  for (const c of [host, ...guests]) {
+    const m = c.html.match(/<p class="jr2-calc">([^]*?)<\/p>/); assert.ok(m, c.name + ' : le calcul');
+    const nums = [...m[1].matchAll(/<b>([\d\s\u202f]+)<\/b>/g)].map(x => +x[1].replace(/\D/g, ''));
+    const total = nums.pop();
+    assert.ok(nums.length >= 2 && nums.reduce((x, y) => x + y, 0) === total, c.name + ' : ' + nums.join(' + ') + ' = ' + total);
+    assert.match(m[1], /<small>défi en \d+\u00a0s<\/small>/, c.name + ' : le défi et son temps');
+    assert.match(m[1], /<i class="jr2-op" aria-hidden="true">=<\/i><span class="lq-sr">égale<\/span><span class="jr2-terme is-total">/);
+    assert.doesNotMatch(c.html, /class="jr2-pills"/, c.name + ' : plus de pastilles « Défi 175 » sur la fin');
+  }
   host.ev('jeuAgain()'); sec(w, 1.5);
   for (const c of [host, ...guests]) assert.equal(c.ev('JEU.dit'), null, c.name + ' : le commentateur repart à zéro');
   guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
@@ -415,6 +425,25 @@ test('14 novembre, 5 h 35 : la manche de la revanche s’ouvre sur « C’est pa
     assert.doesNotMatch(c.html, /Tout le monde a trouvé/, c.name + ' : pas le mot de la partie d’avant');
     assert.match(c.html, /id="jeu-direct-dit"[^>]*>[^]*?C’est parti/, c.name + ' : « C’est parti ! »');
   }
+});
+
+test('14 novembre, 5 h 41 : « Partager l’invitation » en blanc quand tout le monde est prêt (et toujours chez l’invité) ; la flèche de l’invité', () => {
+  const app = html, lq = fs.readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
+  const fn = n => { const i = app.indexOf(`function ${n}(`); return app.slice(i, app.indexOf('\n}', i) + 2); };
+  const { w, host, guests } = room({ n: 3, nb: 1 });
+  assert.equal(host.ev('jeuPartageCalme()'), false, 'l’hôte qui attend : le partage reste en avant');
+  assert.match(host.html, /class="jeu-btn is-wide jeu-share" id="jeu-share"/);
+  for (const g of guests) { assert.equal(g.ev('jeuPartageCalme()'), true, g.name); assert.match(g.html, /class="jeu-btn is-wide jeu-share is-calme" id="jeu-share"/, g.name + ' : son action, c’est sa carte « Prête »'); }
+  guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
+  assert.equal(host.ev('jeuPartageCalme()'), true, 'tout le monde prêt : seul « Lancer » reste en avant');
+  assert.ok(app.includes("if(pa&&pa.classList&&JEU&&JEU.view==='lobby')pa.classList.toggle('is-calme',jeuPartageCalme());"), 'le bouton suit sur place');
+  /* La flèche flottante : chez l’invité seulement, en salle d’attente ; partie avec la salle */
+  const vb = fn('jeuVersBasMaj');
+  assert.ok(vb.includes("if(!J||J.view!=='lobby'||J.solo||J.hostPid===J.me||!pret||typeof pret.getBoundingClientRect!=='function'){if(f&&f.remove)f.remove();return;}"));
+  assert.ok(vb.includes('<span class="jeu-vb-avs" aria-hidden="true">${avs}</span><i class="jeu-vb-fl" aria-hidden="true">${JEU_FLECHE_BAS}</i>') && vb.includes("const cache=!H||r.top<H-90;"));
+  assert.ok(fn('jeuVersBas').includes("p.scrollIntoView({block:'center'"), 'la toucher descend jusqu’à la carte');
+  assert.ok(app.includes("  jeuVersBasMaj();   // chez l’invité, la flèche vers sa carte « Prête » (14 novembre, 5 h 41)") && fn('jeuStop').includes("document.getElementById('jeu-vers-bas')?.remove();"));
+  assert.ok(lq.includes('html.lq .jeu-vers-bas{position:fixed;') && lq.includes('html.lq .jeu-vers-bas.is-cache{opacity:0;visibility:hidden;pointer-events:none;') && lq.includes('html.lq #jeu-root .jeu-share.is-calme{'));
 });
 
 test('13 novembre, 21 h 33 : la revanche ; chacun dit s’il en est, et quand tous ceux qui restent ont répondu, la partie repart toute seule', () => {

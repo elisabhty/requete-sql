@@ -15,12 +15,15 @@ const fn = n => { const a = app.indexOf(`function ${n}(`); return app.slice(a, a
 
 test('des temps qui se lisent pareil : le dixième les départage à l’écran', () => {
   const ctx = vm.createContext({});
-  vm.runInContext(ligne('jeuChrono') + fn('jeuChronoFin'), ctx);
+  vm.runInContext(ligne('jeuDureeLisible') + fn('jeuChronoFin'), ctx);
+  /* 14 novembre, 5 h 41 (Elisa : « corrige », trois façons d’écrire un temps sur la fin) : en clair partout, comme « Résolu en » */
   const sc = [{ pid: 'm', pts: 495, ms: 6230 }, { pid: 'i', pts: 495, ms: 6870 }, { pid: 'l', pts: 460, ms: 6400 }, { pid: 't', pts: 0, ms: 1200000 }, { pid: 'u', pts: 0, ms: 1200000 }];
-  assert.equal(ctx.jeuChronoFin(sc[0], sc), '00:06,2');
-  assert.equal(ctx.jeuChronoFin(sc[1], sc), '00:06,8');
-  assert.equal(ctx.jeuChronoFin(sc[2], sc), '00:06', 'autres points : la seconde suffit');
-  assert.equal(ctx.jeuChronoFin(sc[3], sc), '20:00', 'à 0 point, pas de départage à dire');
+  assert.equal(ctx.jeuChronoFin(sc[0], sc), '6,2\u00a0s');
+  assert.equal(ctx.jeuChronoFin(sc[1], sc), '6,8\u00a0s');
+  assert.equal(ctx.jeuChronoFin(sc[2], sc), '6\u00a0s', 'autres points : la seconde suffit');
+  assert.equal(ctx.jeuChronoFin(sc[3], sc), '20\u00a0min', 'à 0 point, pas de départage à dire');
+  const sc2 = [{ pid: 'a', pts: 300, ms: 62300 }, { pid: 'b', pts: 300, ms: 62800 }];
+  assert.equal(ctx.jeuChronoFin(sc2[0], sc2), '1\u00a0min\u00a002,3', 'avec des minutes : « 1 min 02,3 »');
   assert.ok(app.includes('<small class="dx-pod-t" aria-hidden="true">${jeuChronoFin(g[0],sc)}</small>') && app.includes("${x.pts>0?jeuChronoFin(x,sc):'Pas trouvé'}</small>"), 'le podium et le classement final');
 });
 
