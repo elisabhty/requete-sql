@@ -73,8 +73,31 @@ texte.
 - `REQUETE_LANGUE.base(db)` renomme les tables, les colonnes et les valeurs d’une base SQLite.
 
 Le test rejoue des requêtes sur la vraie base du cours : la requête récrite sur la base anglaise donne le même résultat que la
-requête d’origine sur la base française. Ces deux fonctions ne sont pas encore branchées dans les leçons : elles le seront avec
-la traduction du premier module (la base, les requêtes des leçons et des défis, leurs corrections).
+requête d’origine sur la base française.
+
+**Branché depuis le module 1 (14 novembre)** : en anglais, `buildDb` crée la base avec `sql(SCHEMA_SQL)` (les valeurs par défaut
+aussi : `DEFAULT 'processing'`), et les noms des produits sont traduits (`Prebiotic Fiber`…). Le schéma et l’aide à la saisie
+(`SCHEMA_META`) prennent les noms anglais. La solution d’un exercice et sa requête de vérification passent par `langueSql` ; un
+défi qui a sa propre base (Aéroport, Zoo…) reste en français pour l’instant (`langueSqlDe`), et son code affiché aussi
+(`REQUETE_LANGUE.autreBase`). Le code affiché dans `<code>` est récrit pour la base de la langue (`<code>prenom</code>` devient
+`first_name`) : une table suivie d’une parenthèse reste une table (`REFERENCES clients(id)`), une colonne citée seule prend la
+traduction commune à ses tables (`client_id`), sinon celle de la première table qui l’a (`nom` : `last_name`).
+
+## Les vidéos des cours
+
+Chaque vidéo (`assets/anim/<cours>.html`) charge `../../langues.js?v=4` avec `data-textes="{langue}/<cours>.js?v=1"` : en anglais,
+`assets/anim/en/<cours>.js` ajoute ses textes (`REQUETE_LANGUE.ajouter`). Dans le moteur (`core.js`), `fr()` rend le texte traduit
+(les légendes, les moments « À toi » envoyés au lecteur, les chapitres), les lignes de code (`.ln`, `.codepill`, `.rq`, `.tye`, `.m`)
+sont récrites pour la base anglaise avant la frappe, et la voix est celle de la langue (`voix` dans le fichier de la vidéo) : sans
+voix anglaise, la vidéo garde ses pauses de lecture, sans voix. Les clés des voix restent celles des légendes françaises.
+En français, la vidéo rend exactement la même chose qu’avant (vérifié dans un navigateur, `window.__ready` identique).
+
+Pour une vidéo : 1. ajouter la ligne `langues.js` ; 2. récolter ses textes en anglais (`?langue=en`, parcourir la timeline, puis
+`REQUETE_LANGUE.manquants()`) ; 3. écrire `en/<cours>.js` ; 4. regarder les images : un mot plus long (`first_name`,
+`customer_id`) peut demander une colonne plus large (`html[lang="en"] …` et `EN` dans la page), un même mot qui change selon
+l’endroit se règle sur l’élément (`data-en="name"`), une image qui porte du texte a sa version (`data-en-src`, le badge
+NutriBoost) ; 5. sa vignette en anglais (`assets/anim/en/<cours>-thumb.webp`, la première image de la vidéo en anglais) et son
+nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des clients restent tels quels.
 
 ## Où on en est
 
@@ -85,6 +108,11 @@ la traduction du premier module (la base, les requêtes des leçons et des défi
 - **Le moteur a appris** (14 novembre) : le pseudo d’un autre joueur (« Profil de @nora ») se range sous `{p1}` ; ton pseudo sous
   `{pseudo}` et le nom de ton niveau sous `{niveau}` (remis traduit) ; un nombre français à milliers (« 1 200 ») est un seul
   nombre, écrit « 1,200 » en anglais.
+- **Le module 1** (14 novembre) : la base en anglais, la vidéo « Les bases de données relationnelles » (282 textes, son code,
+  ses cinq moments, le badge et la vignette en anglais), l’écran de la leçon, son lecteur et sa fin. Sa voix anglaise reste à
+  générer (environ 10 000 caractères, autant de crédits ElevenLabs).
+- **À reprendre avec les défis** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base française ; une
+  requête écrite en anglais sur un défi de la base des cours y serait refusée. À régler avant de traduire les défis.
 - **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :
   les textes des vidéos (`assets/anim/<cours>.html`), leurs voix en anglais (`tools/voix/` ; environ 258 000 caractères au
   total, soit autant de crédits ElevenLabs, à valider avant toute dépense ; le moteur des vidéos attend déjà la fin de chaque

@@ -92,7 +92,7 @@ test('les vidéos n’ont plus « Ce que tu retiens » ni le bouton « Ajouter �
   }
   assert.ok(core.includes("const RECAP_CH = chapters.findIndex(c => c.label === 'À retenir');") && core.includes("const RECAP_A = RECAP_CH > 0 && !QS.has('recap') ? chapters[RECAP_CH].a : null;"));
   assert.ok(core.includes('chapters = chapters.slice(0, RECAP_CH)') && core.includes('notesAt = null;'), 'ni le chapitre ni le bouton');
-  assert.ok(core.includes("if (k >= 0 && plain(captions[k][2]) !== 'À toi !') captions[k] = [captions[k][0], 999].concat(captions[k].slice(2));"), 'la dernière légende reste affichée jusqu’à la fin');
+  assert.ok(core.includes("if (k >= 0 && plainFr(captions[k][2]) !== 'À toi !') captions[k] = [captions[k][0], 999].concat(captions[k].slice(2));"), 'la dernière légende reste affichée jusqu’à la fin');
   const end = core.slice(core.indexOf('function recapEnd(a, end){'), core.indexOf('/* ---------- Le cours ---------- */'));
   assert.ok(end.includes('s >= a - 1.0 && s < a - 0.01') && end.includes('(v.autoAlpha === 0 || v.opacity === 0)'), 'arrêt sur l’image d’avant les fondus de sortie de la scène');
   assert.ok(end.includes('const RECAP_REST = 1.2;') && end.includes('readTime(c[2])'), 'la dernière image reste le temps de lire, puis un instant');

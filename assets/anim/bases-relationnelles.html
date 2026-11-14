@@ -5,6 +5,9 @@
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
 <title>Requête · Les bases de données relationnelles en vidéo</title>
+<!-- La langue de l’appli (14 novembre, le module 1 en anglais) : en français, rien ne change ; dans une autre langue, les textes de
+     cette vidéo sont dans {langue}/bases-relationnelles.js (en/bases-relationnelles.js pour l’anglais). -->
+<script src="../../langues.js?v=4" data-textes="{langue}/bases-relationnelles.js?v=1"></script>
 <link rel="stylesheet" href="core.css">
 <style>
 #s0 .sub{font-size:56px;top:658px}
@@ -23,6 +26,15 @@
 #cap .cap-stk{left:-26px}
 #cap .cap-stk::after{content:"Votre formatrice";position:absolute;left:50%;bottom:-6px;top:auto;translate:-50% 0;rotate:-3deg;padding:6px 13px;border-radius:14px;
   background:#9FF0C6;color:#1B1640;font:800 22px/1 var(--display,'Bricolage Grotesque',system-ui);letter-spacing:0;white-space:nowrap;box-shadow:0 3px 0 rgba(27,22,64,.25)}
+
+/* L’anglais (14 novembre, le module 1 en anglais) : les noms des colonnes sont plus longs (first_name, customer_id) ; leurs colonnes
+   s’élargissent, la feuille Excel passe à 25 px pour garder ses sept colonnes dans la carte. Le français ne change pas. */
+html[lang="en"] .xrw{grid-template-columns:52px 148px 143px 214px 218px 80px 67px}
+html[lang="en"] .xh,html[lang="en"] .xd{font-size:25px}
+html[lang="en"] #c3{--g:var(--w0) 160px 152px 1fr !important}
+html[lang="en"] .dbt{--g:200px 190px 1fr}
+html[lang="en"] #pan6{--k1:204px;--k2:190px}
+html[lang="en"] #cap .cap-stk::after{content:"Your instructor"}
 
 /* Une couleur par table, comme dans les autres cours : clients, produits, commandes */
 .k-cl{--c:#7C5CFF;--cs:#EEE9FF;--ci:#4B30CC;--cb:rgba(124,92,255,.3);--cl:#D5CBFF}
@@ -398,7 +410,7 @@
     </div>
     <div class="abs mt t3 k-pr" id="p3" style="left:120px;width:840px;--w0:0px;--g:var(--w0) 330px 1fr">
       <div class="tt"><span class="emo">📦</span><span>produits</span></div>
-      <div class="gr hd"><span><i class="v">id</i></span><span><i class="v">nom</i></span><span><i class="v">prix</i></span></div>
+      <div class="gr hd"><span><i class="v">id</i></span><span><i class="v" data-en="name">nom</i></span><span><i class="v">prix</i></span></div>
     </div>
     <div class="abs card nmc" id="nm4">
       <div class="nmh"><span class="emo">🏷️</span><span>Le nom complet d’une colonne&nbsp;: table.colonne</span></div>
@@ -448,7 +460,7 @@
     <div class="abs acc" id="acc"><span class="emo">🤝</span>J’accepte la mission</div>
     <i class="abs bdray" id="bdray"></i>
     <div class="abs bdg" id="bdg">
-      <img src="badge-nutriboost.webp" alt="Badge NutriBoost, équipe projet : Analyste-développeur, projet base de données. Mission : analyser les besoins métier, concevoir la base de données, implémenter dans le SGBD. Mission acceptée." draggable="false">
+      <img src="badge-nutriboost.webp" data-en-src="badge-nutriboost-en.webp" alt="Badge NutriBoost, équipe projet : Analyste-développeur, projet base de données. Mission : analyser les besoins métier, concevoir la base de données, implémenter dans le SGBD. Mission acceptée." draggable="false">
       <div class="bdsh"><i id="bdshi"></i></div>
       <i class="bdok" id="bdok"></i>
     </div>
@@ -610,6 +622,8 @@
 <script>
 'use strict';
 const DURATION = 548.05;
+/* La langue de l’appli (../../langues.js) : en anglais, quelques colonnes plus larges (first_name, customer_id). */
+const EN = typeof window !== 'undefined' && !!window.REQUETE_LANGUE && window.REQUETE_LANGUE.code === 'en';
 
 /* Extraits de la base de l’app (vérifiés dans SQLite). La table clients en entier : ses 10 lignes et ses 9 colonnes. */
 const COLS = ['id', 'prenom', 'nom', 'adresse', 'ville', 'age', 'email', 'telephone', 'date_inscription'];
@@ -1034,7 +1048,7 @@ function build(){
   const flM = plan('#m3', [[0, 0], [6, 3]], i => i);
   gsap.set('#xl', {y: 0, scale: 1});
   /* 4 · Les colonnes id et les clés étrangères, mesurées une fois ouvertes */
-  const OPEN = {'#c3': {'--w0': '64px'}, '#p3': {'--w0': '64px'}, '#m3': {'--w1': '156px', '--w2': '172px'}};
+  const OPEN = {'#c3': {'--w0': '64px'}, '#p3': {'--w0': '64px'}, '#m3': {'--w1': EN ? '200px' : '156px', '--w2': EN ? '186px' : '172px'}};
   Object.entries(OPEN).forEach(([s, v]) => Object.entries(v).forEach(([k, x]) => $(s).style.setProperty(k, x)));
   const band = (b, tb, k) => {
     const T = $(tb), h = $(tb + ' .hd').children[k], rows = $$(tb + ' .rw:not(.more)'), r0 = R(T), hr = R(h), last = R(rows[rows.length - 1].children[k + 1]);
@@ -1056,7 +1070,7 @@ function build(){
   const PAN = $('#pan6').offsetWidth - ($('#tbl6').clientWidth);
   /* 7 · Le défilement jusqu’à la colonne email (la 7e) ; les trois colonnes gardées occupent ensuite toute la largeur du tableau */
   const e7 = rel($('#th6').children[6], $('#pan6'));
-  const PANE = Math.round(e7.x + e7.w - $('#tbl6').clientWidth + 14), W3 = [220, 250, 450];
+  const PANE = Math.round(e7.x + e7.w - $('#tbl6').clientWidth + 14), W3 = EN ? [240, 240, 440] : [220, 250, 450];
   stackBelow('#badge6', '#tbl6', 0, 30);
   /* Le moteur SQL (13 novembre, 13 h 49) : son étiquette sous la fenêtre, puis la console de l’appli dessous */
   stackBelow('#mot6', '#s6code', 0, 40);
@@ -1812,7 +1826,7 @@ function build(){
   cue(330.8, 'whoosh', 0.55);
   // Pour relier les tables, deux colonnes de plus dans la table commandes : client_id et produit_id (Elisa, 28 octobre, Réf 14 : « trop brut,
   // l’arrivée de la notion » ; la clé étrangère n’est nommée qu’une fois ces colonnes expliquées)
-  tl.to('#m3', {'--w1': '156px', '--w2': '172px', duration: 0.6, ease: 'power2.inOut'}, 331.8);
+  tl.to('#m3', {'--w1': EN ? '200px' : '156px', '--w2': EN ? '186px' : '172px', duration: 0.6, ease: 'power2.inOut'}, 331.8);
   cue(331.8, 'whoosh', 0.45);
   hdIn('#m3', 1, 332.1);
   hdIn('#m3', 2, 332.2);
@@ -1958,7 +1972,7 @@ function build(){
   const KEEP = [1, 2, 6], DROP = [0, 3, 4, 5, 7, 8], th6 = $$('#th6 > div');
   const colCells = j => [th6[j], ...r6.map(r => r.children[j + 1])];   // dans une ligne, le premier enfant est le surlignage
   const keepH = KEEP.map(j => th6[j]);
-  gsap.set('#pan6', {'--k0': '64px', '--k1': '150px', '--k2': '160px', '--k3': '300px', '--k4': '170px', '--k5': '80px', '--k6': '360px', '--k7': '250px', '--k8': '260px'});   // valeurs de départ, pour que le repli parte des largeurs réelles
+  gsap.set('#pan6', {'--k0': '64px', '--k1': EN ? '204px' : '150px', '--k2': EN ? '190px' : '160px', '--k3': '300px', '--k4': '170px', '--k5': '80px', '--k6': '360px', '--k7': '250px', '--k8': '260px'});   // valeurs de départ, pour que le repli parte des largeurs réelles
   tl.to(DROP.flatMap(colCells), {opacity: 0.2, duration: 0.45}, 459.55);
   cue(459.55, 'fold', 0.45);
   tl.to(keepH.slice(0, 2), {color: '#4B30CC', backgroundColor: '#E4DCFF', duration: 0.3}, 460.45);

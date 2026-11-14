@@ -1366,8 +1366,10 @@ for (const c of COURSES) {
     let total = 0;
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
     /* Les images de la page comptent aussi (l’illustration NutriBoost des bases relationnelles, Elisa, 27 octobre). */
-    const images = [...page.matchAll(/src="([\w-]+\.(?:webp|png|jpg))"/g)].map(m => m[1]).filter(f => f !== 'mascotte.webp');
+    const images = [...page.matchAll(/(?<!data-[a-z]{2}-)src="([\w-]+\.(?:webp|png|jpg))"/g)].map(m => m[1]).filter(f => f !== 'mascotte.webp');
     for (const f of images) assert.ok(sw.includes(`'./assets/anim/${f}'`), `image préchargée : ${f}`);
+    /* L’image d’une autre langue (data-en-src : le badge en anglais, 14 novembre) remplace la française : préchargée, mais pas comptée deux fois. */
+    for (const m of page.matchAll(/data-[a-z]{2}-src="([\w-]+\.(?:webp|png|jpg))"/g)) assert.ok(sw.includes(`'./assets/anim/${m[1]}'`) && fs.existsSync(path.join(ROOT, 'assets/anim', m[1])), `image de la langue préchargée : ${m[1]}`);
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb, ...images, ...(page.includes('src="moments.js"') ? ['moments.js'] : []), ...(page.includes('src="mail.js"') ? ['mail.js'] : [])])
       total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
     for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
@@ -1393,7 +1395,8 @@ for (const c of COURSES) {
     /* 565 Ko depuis le 11 novembre (et 5 Ko de plus pour les cours qui ont leur propre plafond) : la carte des moments posée dès « À toi ! »
        et l’intro qui place sa rubrique, son sous-titre et son titre (Elisa, 8 h 57 : « des soucis de formatage »), ~2 Ko dans le moteur
        commun et moments.js ; les contrôles ajoutés (check.js) ne sont chargés que par ?check. */
-    assert.ok(total < ((c.maxKo || 520) + 45) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    /* + 48 Ko (45 jusqu’au 14 novembre) : le moteur commun porte la langue de l’appli (les vidéos en anglais, ~2 Ko). */
+    assert.ok(total < ((c.maxKo || 520) + 48) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -1736,7 +1739,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
   assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,")
     && core.includes("const GESTURES = ['tap', 'sort', 'link', 'tune'];")
-    && core.includes("options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),")
+    && core.includes("options: (p.options || []).map(o => ({label: trT(o.label), ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),")
     && core.includes("controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,")
     && core.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
 });
@@ -1898,7 +1901,7 @@ test('Normaliser les inscriptions (projet, chapitre 1) : leçon seule, six momen
   assert.ok(page.includes('spots, act, pick, hint,') && page.includes("if (i === 0) return {text: 'L’e-mail du coach est dans la colonne E.'"), 'un indice par moment à toucher ou à glisser');
   const coreJs = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8'), coreCss = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
   assert.ok(coreJs.includes('function stampIn(sel, t, rot = 7){') && coreCss.includes('.stamp.warn{'), 'moteur : tampon d’alerte, pour tous les chapitres');
-  assert.ok(coreJs.includes('opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),') && coreJs.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at)).concat(cfg.extraClashes ? cfg.extraClashes() : []),'),
+  assert.ok(coreJs.includes('opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: trT(o.label), hand: o.hand || null})),') && coreJs.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at)).concat(cfg.extraClashes ? cfg.extraClashes() : []),'),
     'moteur : mails à ouvrir envoyés au lecteur, sans animation en cours à l’arrêt');
   assert.deepEqual(D.PICKS.map(p => p.at), [...D.PICKS.map(p => p.at)].sort((x, y) => x - y), 'moments dans l’ordre');
   for (const p of D.PICKS.filter(x => x.kind === 'pick')) assert.equal(p.options.filter(o => o.ok).length, 1, `${p.prompt} : une seule bonne réponse`);
@@ -2663,7 +2666,7 @@ test('mise en page (?check) : un élément ou un texte qui sort de son cadre est
 test('moment déjà réussi (vidéo revue, retour en arrière) : il s’ouvre résolu, avec la réponse, sans son ni nouvel essai', () => {
   const show = cut('function lvPkShow(i,p){', 'function lvPkKept(P,a){');
   for (const part of ['const kept=lvPkGet(LV.id,i);', 'if(kept)lvPkKept(P,kept);', "if(!kept){ LvSfx.play('pop',5,.55,0); if(navigator.vibrate)navigator.vibrate(8); }",
-    "sr.textContent=`${kept?'Déjà fait':'À toi'} : ", "box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus("])
+    "sr.textContent=`${lvLt(kept?'Déjà fait :':'À toi :')} ", "box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus("])
     assert.ok(show.includes(part), `ouverture : ${part}`);
   const kept = cut('function lvPkKept(P,a){', 'function lvPkRestore(P,d){');
   for (const part of ['P.done=true;', "box.classList.add('is-ok','is-kept');", 'lvPkValid(P,a.first,false);', "if(dot)dot.className=a.first?'ok':'try';",
@@ -2795,7 +2798,7 @@ test('moment réussi : la validation bien en avant, coche verte animée et « Bi
     '.lv-pk-dots i.try{background:#DE3F46}', '.lv-pkm i.ko{'])
     assert.ok(html.includes(part), `rattrapé : ${part}`);
   assert.ok(!html.includes('.lv-pk-ok.is-ko'), 'plus de badge rouge « Raté » une fois la bonne réponse trouvée');
-  for (const f of ['function lvPkVerdict(', 'function lvPkWin(']) assert.ok(cut(f, f === 'function lvPkWin(' ? 'function lvEndHide(){' : 'function lvPkFrom(i){').includes("'Bien rattrapé, mais seul le premier essai compte : moment raté. '"), `${f} VoiceOver : rattrapé, mais raté`);
+  for (const f of ['function lvPkVerdict(', 'function lvPkWin(']) assert.ok(cut(f, f === 'function lvPkWin(' ? 'function lvEndHide(){' : 'function lvPkFrom(i){').includes("'Bien rattrapé, mais seul le premier essai compte : moment raté.'"), `${f} VoiceOver : rattrapé, mais raté`);
   assert.ok(cut('function lvPkWin(', 'function lvEndHide(){').includes("dot.className=first?'ok':'try';") && cut('function lvPkVerdict(', 'function lvPkFrom(i){').includes("dot.className=first?'ok':'try';"), 'le point du moment : vert du premier coup, rouge sinon');
   for (const part of ['.lv-pk-kick[hidden],.lv-pk-cnt[hidden]{display:none}', '@keyframes lvOkPop{', '@keyframes lvOkTick{0%{stroke:#fff}to{stroke:#fff;stroke-dashoffset:0}}', '@keyframes lvOkRing{',
     '.lv-pk-ok.is-anim .k{stroke-dashoffset:26;stroke:rgba(255,255,255,0);animation:lvOkTick .32s ease-out .28s forwards}'])

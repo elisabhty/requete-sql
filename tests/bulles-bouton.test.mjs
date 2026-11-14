@@ -119,7 +119,8 @@ test('le bouton du bas d’un cours à valider : violet à rebord, cible en auto
   vm.runInContext(cut(app, 'function lvGatePips(l){', 'function lessonVideoSlide(l){') + ';this.pips=lvGatePips;this.deco=lvGateDeco;', g);
   assert.equal(g.pips({ id: 3, video: { moments: 5, seuil: 4 } }), '<i class="ls-pips"><i class="ok"></i><i class="try"></i><i></i><i class="ok"></i><i></i></i>');
   assert.equal(g.pips({ id: 3, video: { moments: 5, erreurs: 2 } }), '', 'règle aux erreurs : pas de pastilles');
-  assert.equal(g.deco(null), '<i class="ls-gate-x" aria-hidden="true"><i class="ls-gate-stk"><svg target/></i></i>');
+  /* data-notrad (14 novembre) : les pastilles restent hors de la phrase « Valide la leçon : réussis au moins… », traduite à part. */
+  assert.equal(g.deco(null), '<i class="ls-gate-x" aria-hidden="true" data-notrad><i class="ls-gate-stk"><svg target/></i></i>');
   /* Le décor suit le texte du bouton (aria-hidden) : l’annonce reste la règle, mot pour mot */
   const slide = cut(app, 'function lessonVideoSlide(l){', 'function openLessonVideo(fin){');
   assert.ok(slide.includes("'Termine la vidéo pour valider la leçon'}${lvGateDeco(l)}</button>`)") && slide.includes('>Termine la vidéo pour continuer${lvGateDeco(null)}</button>`'));

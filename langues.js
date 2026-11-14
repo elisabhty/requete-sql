@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=3', essai: true }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=4', essai: true }
   };
   var CLE = 'requete-langue';
 
@@ -126,7 +126,13 @@
   }
   /* Du SQL affiché (un décor, un exemple) n'est pas un texte à traduire. */
   var SQL_RE = /^(?:<\d+>)?\s*(?:SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|LIMIT|JOIN|INNER JOIN|LEFT JOIN|INSERT|UPDATE|DELETE|CREATE|WITH|UNION)\b/;
+  var connues = null;   // les traductions elles-mêmes : un texte déjà dans la langue n'est pas un texte qui manque
+  function dejaTraduit(cle) {
+    if (!connues) { connues = new Set(); var D = (TRAD && TRAD.textes) || {}; for (var k in D) connues.add(propre(String(D[k]).replace(/<\/?\d+\/?>/g, ''))); }
+    return connues.has(cle.replace(/<\/?\d+\/?>/g, ''));
+  }
   function noter(cle) {
+    if (TRAD && dejaTraduit(cle)) return;
     if (manque.size < MANQUE_MAX && /[A-Za-zÀ-ÿ]{2}/.test(cle.replace(/<[^>]*>/g, '')) && !SQL_RE.test(cle)) manque.set(cle, (manque.get(cle) || 0) + 1);
   }
   /* Pour un texte fabriqué en JavaScript qui ne passe pas par la page (une notification, un texte envoyé au widget). */
@@ -147,6 +153,15 @@
     return liste;
   }
   function casse(modele, mot) { return modele === modele.toUpperCase() && /[A-Z]/.test(modele) ? mot.toUpperCase() : mot; }
+  /* Une colonne citée sans sa table (« la colonne <code>prenom</code> », FOREIGN KEY (client_id) avant REFERENCES) : sa traduction si
+     toutes les tables qui l'ont la traduisent pareil (client_id : customer_id) ; sinon celle de base.defauts, à défaut celle de la
+     première table qui l'a (nom : last_name, celui des clients). */
+  function colonneSeule(nom) {
+    var T = tablesBase(), D = (TRAD.base && TRAD.base.defauts) || {}, vu = null, k;
+    if (Object.prototype.hasOwnProperty.call(D, nom)) return D[nom];
+    for (k in T) if (Object.prototype.hasOwnProperty.call(T[k][1], nom)) { if (vu == null) vu = T[k][1][nom]; else if (vu !== T[k][1][nom]) return vu; }
+    return vu;
+  }
   function sql(requete) {
     var T = tablesBase();
     if (CODE === 'fr' || !T || requete == null) return requete;
@@ -162,7 +177,8 @@
       if (avant >= 0 && L[avant].v === '.') continue;   // schéma.table : rare, laissé
       var apres = suivant(i);
       if (apres >= 0 && L[apres].v === '.') { x.table = nomTable; continue; }   // clients.nom : la table sert de préfixe
-      if (apres >= 0 && L[apres].v === '(') continue;   // une fonction du même nom
+      /* Suivi d'une parenthèse, c'est encore la table (REFERENCES clients(id), INSERT INTO clients (…), CREATE TABLE clients () :
+         aucune fonction SQL ne porte le nom d'une table de la base. */
       x.table = nomTable; citees.push({ table: nomTable, i: i });
       j = apres;
       if (j >= 0 && L[j].g === 'nom' && L[j].v.toUpperCase() === 'AS') j = suivant(j);
@@ -183,7 +199,7 @@
         /* Sans préfixe : la table citée la plus proche qui a cette colonne */
         var mieux = -1;
         for (j = 0; j < citees.length; j++) if (T[citees[j].table][1][nom] && (mieux < 0 || Math.abs(citees[j].i - i) < Math.abs(citees[mieux].i - i))) mieux = j;
-        if (mieux < 0) continue;
+        if (mieux < 0) { var g = colonneSeule(nom); if (g) e.v = casse(e.v, g); continue; }
         table = citees[mieux].table;
       }
       if (T[table][1][nom]) e.v = casse(e.v, T[table][1][nom]);
@@ -221,7 +237,7 @@
   function saute(el) { return !el || SAUTE[el.nodeName] || (el.hasAttribute && el.hasAttribute('data-notrad')) || el.isContentEditable === true; }
   function dansSaute(el) { for (var p = el; p && p.nodeType === 1; p = p.parentNode) if (saute(p)) return true; return false; }
   function simple(el) {   // un morceau mis en forme, sans rôle propre : il se traduit avec sa phrase
-    if (!FORME[el.nodeName] || el.id || el.hasAttribute('data-notrad')) return false;
+    if (!FORME[el.nodeName] || el.id || el.hasAttribute('data-notrad') || el.hasAttribute('data-' + CODE)) return false;
     for (var i = 0; i < el.attributes.length; i++) if (/^on/.test(el.attributes[i].name)) return false;
     return true;
   }
@@ -232,7 +248,7 @@
     for (var n = el.firstChild; n; n = n.nextSibling) {
       if (n.nodeType === 3) { s += n.nodeValue; if (/\S/.test(n.nodeValue)) etat.texte = true; }
       else if (n.nodeType === 1) {
-        if (TEL_QUEL[n.nodeName]) { etat.morceaux.push(n); s += '<' + etat.morceaux.length + '/>'; }
+        if (TEL_QUEL[n.nodeName]) { if (n.nodeName === 'CODE') codeSql(n); etat.morceaux.push(n); s += '<' + etat.morceaux.length + '/>'; }
         else if (simple(n)) {
           etat.morceaux.push(n); var k = etat.morceaux.length, sous = { morceaux: etat.morceaux }, dedans = phrase(n, sous);
           if (dedans == null) return null;
@@ -301,9 +317,34 @@
     if (ecrit !== brut) n.nodeValue = ecrit;
     fait.set(n, ecrit);
   }
+  /* Le code affiché (<code>clients</code>, <code>FOREIGN KEY (client_id)…</code>) : écrit pour la base de la langue, sauf là où
+     l'appli dit qu'une autre base est ouverte (un défi qui a sa propre base : REQUETE_LANGUE.autreBase). */
+  function codeSql(el) {
+    if (!TRAD || !TRAD.base || CODE === 'fr' || !el) return;
+    try { if (API.autreBase && API.autreBase()) return; } catch (e) {}
+    (function tour(p) {
+      for (var n = p.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 1) tour(n);
+        else if (n.nodeType === 3 && fait.get(n) !== n.nodeValue) { var v = sql(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; fait.set(n, v); }
+      }
+    })(el);
+  }
+  /* data-en (data-<langue>) : la traduction écrite sur l'élément lui-même, quand le même mot se traduit selon l'endroit
+     (« nom » : last_name pour un client, name pour un produit). */
+  function surPlace(el) {
+    /* data-en-src : l'image de la langue (une image qui porte du texte) */
+    var src = el.getAttribute && el.getAttribute('data-' + CODE + '-src');
+    if (src && el.getAttribute('src') !== src) el.setAttribute('src', src);
+    var v = el.getAttribute && el.getAttribute('data-' + CODE);
+    if (v == null) return false;
+    if (fait.get(el) !== v) { el.textContent = v; fait.set(el, v); }
+    return true;
+  }
   function passer(el) {
     if (!el || el.nodeType !== 1 || saute(el)) return;
     attributs(el);
+    if (surPlace(el)) return;
+    if (el.nodeName === 'CODE') codeSql(el);
     if (TEL_QUEL[el.nodeName] || !el.firstChild) return;
     var etat = { morceaux: [], texte: false }, s = phrase(el, etat), n;
     if (s != null && etat.texte && s.length <= PHRASE_MAX) {
@@ -369,7 +410,34 @@
     t: t,
     sql: sql,
     base: base,
+    /* Le nom d'une table (identifiant('clients') : customers) ou d'une de ses colonnes (identifiant('produits', 'nom') : name). */
+    identifiant: function (table, colonne) {
+      var T = tablesBase(), x = T && T[String(table).toLowerCase()];
+      if (CODE === 'fr' || !x) return colonne == null ? table : colonne;
+      return colonne == null ? x[0] : (Object.prototype.hasOwnProperty.call(x[1], colonne) ? x[1][colonne] : colonne);
+    },
     valeur: function (nom, f) { valeurs[nom] = f; },
+    /* Un texte HTML fabriqué en JavaScript (une consigne avec du gras ou du code) : traduit comme s'il était dans la page. */
+    html: function (h) {
+      if (CODE === 'fr' || h == null || !TRAD) return h;
+      try { var d = document.createElement('div'); d.innerHTML = String(h); passer(d); return d.innerHTML; } catch (e) { return h; }
+    },
+    /* L'appli dit ici quand une autre base que celle des cours est ouverte (un défi qui a la sienne) : son code reste tel quel. */
+    autreBase: null,
+    /* Le code d'une page qui ne l'écrit pas dans <code> (les lignes d'éditeur d'une vidéo) : écrit pour la base de la langue. */
+    ecrireCode: function (el) { try { codeSql(el); } catch (e) {} },
+    /* La voix de la page dans la langue (une vidéo de cours : assets/anim/en/<cours>.js) ; null tant qu'elle n'existe pas. */
+    voix: null,
+    /* Les textes propres à une page (une vidéo de cours), ajoutés à ceux de la langue. */
+    ajouter: function (code, contenu) {
+      if (code !== CODE || !contenu) return;
+      if (!TRAD) TRAD = { textes: {}, base: null, mots: null };
+      var D = contenu.textes || {}, k;
+      for (k in D) TRAD.textes[k] = D[k];
+      connues = null;
+      if (contenu.voix) API.voix = contenu.voix;
+      try { if (document.body) passer(document.body); } catch (e) {}
+    },
     /* Les textes rencontrés sans traduction, les plus vus d'abord (pour savoir quoi traduire). */
     manquants: function () { return Array.from(manque.entries()).sort(function (a, b) { return b[1] - a[1]; }).map(function (x) { return x[0]; }); },
     changer: function (c) {
@@ -392,7 +460,12 @@
   };
 
   /* Le fichier de la langue, chargé tout de suite après celui-ci, avant le reste de la page : aucun texte français n'apparaît d'abord. */
+  /* Une page d'un autre dossier (une vidéo de cours, assets/anim/) charge ce fichier avec son chemin (../../langues.js) : le fichier de
+     la langue est cherché à côté de lui. data-textes : le fichier des textes de cette page ({langue} : la langue), chargé juste après. */
   if (CODE !== 'fr' && LANGUES[CODE].fichier) {
-    try { document.write('<script src="' + LANGUES[CODE].fichier + '"><\/script>'); } catch (e) {}
+    var moi = document.currentScript, src = (moi && moi.getAttribute('src')) || '', dossier = src.slice(0, src.lastIndexOf('/') + 1);
+    var page = moi && moi.getAttribute('data-textes'), html = '<script src="' + dossier + LANGUES[CODE].fichier + '"><\/script>';
+    if (page) html += '<script src="' + page.replace('{langue}', CODE) + '"><\/script>';
+    try { document.write(html); } catch (e) {}
   }
 })();

@@ -67,7 +67,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   /* 525 Kio depuis le 2 novembre : légendes équilibrées, carte d’intro sous la bulle du lien, cadre du contenu pour le zoom des moments (~4 Kio). */
   /* 535 Kio depuis le 2 novembre, 0 h 40 : la caméra du lecteur sur grand écran (~7 Kio). */
   /* 545 Kio depuis le 2 novembre, 9 h 48 : la voix d’Anaïs dans la page (VOICE, ~4 Kio) et les portraits des formateurs dans le moteur commun. */
-  assert.ok(total < 545 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 550 Kio depuis le 14 novembre : le moteur commun porte la langue de l’appli (les vidéos en anglais, ~3 Kio). */
+  assert.ok(total < 550 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 

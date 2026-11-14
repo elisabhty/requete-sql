@@ -59,7 +59,16 @@ const capText = t => {
   CAP_PHRASES.forEach(p => { t = t.replace(new RegExp(p.replace(/ /g, '[  ]'), 'gi'), m => m.replace(/ /g, NB)); });
   return t;
 };
+/* La langue de l’appli (../../langues.js, chargé par la page avec ses textes : en/<cours>.js ; 14 novembre, le module 1 en anglais).
+   En français, LG est null et rien ne change. Dans une autre langue, fr() rend le texte traduit (sans la typographie française),
+   les légendes et les textes envoyés au lecteur aussi ; la voix est celle de la langue (LG.voix), ou aucune tant qu’elle n’existe pas. */
+const LG = (() => { try { const L = window.REQUETE_LANGUE; return L && L.code !== 'fr' ? L : null; } catch (e) { return null; } })();
+const trT = s => (LG && s ? LG.html(s) : s);
 function fr(h){
+  if (LG) return LG.html(h);
+  return frSource(h);
+}
+function frSource(h){
   let code = 0;
   const out = String(h).split(/(<[^>]+>)/).map(t => {
     if (/^<code[\s>]/.test(t)) { code++; return {t, txt: false}; }
@@ -80,6 +89,7 @@ function fr(h){
 /* Même typographie pour les textes écrits directement dans la page (bulle, récapitulatif, cartes…), hors code. */
 const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .colchip, .th, .tr, .mt, .chips, .cnt, .emo, #cap';
 function frDom(root){
+  if (LG) return;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(n => {
@@ -155,7 +165,9 @@ const VOICE_LEAD = 0.15, VOICE_TAIL = 0.3, VOICE_INTRO = 0.35;
 let VCFG = null, VOICE_MISSING = [];   // la voix donnée par la page (VOICE), une fois rattachée aux légendes
 /* Clé d’une légende : l’empreinte de son texte, sans balises, accents ni ponctuation (l’outil d’intégration, tools/voix/integrer.mjs,
    la calcule avec cette même fonction). Une empreinte plutôt que le texte : la page ne répète pas ses légendes. */
-const vkey = h => { let x = 5381; for (const ch of plain(h).normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()) x = (x * 33 + ch.charCodeAt(0)) | 0; return 'v' + (x >>> 0).toString(36); };
+const plainFr = h => frSource(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB)
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, 'x');
+const vkey = h => { let x = 5381; for (const ch of plainFr(h).normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()) x = (x * 33 + ch.charCodeAt(0)) | 0; return 'v' + (x >>> 0).toString(36); };
 /* La phrase d’une légende : un objet {voice} posé après ses valeurs (la 4e valeur reste le nombre de lignes). */
 const voiceOf = c => { for (let k = 3; k < c.length; k++) if (c[k] && c[k].voice) return c[k].voice; return null; };
 function withVoice(cfg){
@@ -483,10 +495,11 @@ function buildChrome(chapters, captions){
   chapters.forEach(c => {
     const d = document.createElement('div');
     d.className = 'chip';
-    d.innerHTML = `<b>${c.n}</b><span>/ ${chapters.length} · ${c.label}</span>`;
+    d.innerHTML = `<b>${c.n}</b><span${LG ? ' data-notrad' : ''}>/ ${chapters.length} · ${trT(c.label)}</span>`;
     chap.append(d);
   });
   const cap = $('#cap');
+  if (LG) cap.setAttribute('data-notrad', '');   // les légendes arrivent déjà traduites (fr), mot par mot (capWords)
   captions.forEach(c => {
     const d = document.createElement('div');
     d.className = 'c';
@@ -1105,7 +1118,7 @@ function pontDom(LI){
     const pill = document.createElement('div'); pill.className = 'pont-pill'; pill.setAttribute('aria-hidden', 'true');
     /* Un titre long passe à la ligne avant sa parenthèse : « WITH RECURSIVE / (CTE RECURSIVE) ». */
     const t = LI.suite.length > 22 ? LI.suite.replace(/ \(/, '<br>(') : LI.suite;
-    pill.innerHTML = `<span>Prochaine leçon · ${fr(t)}</span>`;
+    pill.innerHTML = LG ? `<span data-notrad>${LG.t('Prochaine leçon')} · ${fr(t)}</span>` : `<span>Prochaine leçon · ${fr(t)}</span>`;
     $('#stage').append(pill);
   }
   return out;
@@ -1334,6 +1347,7 @@ if (typeof addEventListener === 'function') addEventListener('resize', () => { i
 /* cfg : {duration, chapters, captions, questions, picks, notesAt, glyphs, dom(), build(), onRender(T)} */
 function Course(cfg){
   /* La voix off, avant les moments : chaque légende emporte sa phrase là où les moments la déplacent. */
+  if (LG) cfg = Object.assign({}, cfg, {voice: LG.voix || null});
   if (cfg.voice && !QS.has('novoix')) cfg = withVoice(cfg);
   /* Les moments « À toi » ajoutés aux cours d’avant le projet (moments.js) : leurs temps deviennent ceux de la vidéo avec ses moments. */
   if (cfg.moments && !QS.has('nomoments')) cfg = withMoments(cfg);   // ?nomoments : la vidéo sans ses moments (pour en placer de nouveaux)
@@ -1349,7 +1363,7 @@ function Course(cfg){
     chapters = chapters.slice(0, RECAP_CH).map((c, i, a) => i === a.length - 1 ? Object.assign({}, c, {b: duration}) : c);
     captions = captions.filter(c => c[0] < duration - 0.3);
     const k = captions.length - 1;
-    if (k >= 0 && plain(captions[k][2]) !== 'À toi !') captions[k] = [captions[k][0], 999].concat(captions[k].slice(2));
+    if (k >= 0 && plainFr(captions[k][2]) !== 'À toi !') captions[k] = [captions[k][0], 999].concat(captions[k].slice(2));
     notesAt = null;
   }
   let out = 0;
@@ -1400,6 +1414,9 @@ function Course(cfg){
     buildChrome(chapters, captions);
     if (cfg.dom) cfg.dom();
     frDom($('#stage'));
+    /* Dans une autre langue : le SQL des éditeurs, des requêtes et des messages d’erreur, écrit pour la base de la langue (customers),
+       avant que la frappe ne découpe les lignes en caractères. cfg.codeSel : d’autres endroits propres à la page. */
+    if (LG && LG.ecrireCode) $$('.ln, .codepill, .rq, .tye, .m, code' + (cfg.codeSel ? ', ' + cfg.codeSel : '')).forEach(el => LG.ecrireCode(el));
     const fams = ['800 50px "Bricolage Grotesque"', '400 40px "Bricolage Grotesque"', '400 40px JBM', '500 40px JBM', '600 40px JBM', '700 40px JBM', '800 40px JBM',
       '500 40px Inter', '600 40px Inter', '700 40px Inter', '800 40px Inter', '400 40px "Noto Color Emoji"'];
     await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’' + (cfg.glyphs || ''))));
@@ -1439,7 +1456,7 @@ function Course(cfg){
       textIssues: QS.has('check') ? textIssues() : undefined,
       layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
       coverIssues: CHECK2 ? CHECK2(renderAt, out) : undefined,
-      chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
+      chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: trT(c.label)})),
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
       /* Moments « À toi » : l’animation s’arrête, l’élève agit ; la page montre aussitôt le résultat (window.IX : slot, pick,
          leave), le lecteur gère le plateau, le son et la reprise. Gestes (kind) : tap (toucher les bons endroits), sort (glisser
@@ -1450,14 +1467,14 @@ function Course(cfg){
          from : début du passage qui amène le moment (revoir, rejouer). */
       picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
         /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
-        options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
+        options: (p.options || []).map(o => ({label: trT(o.label), ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
         win: typeof momentWin === 'function' ? momentWin(p) : '',
         /* Réglage (tune) : les commandes de la feuille (curseur, choix, bascule), en données ; la page dessine leur effet (IX.tune). */
         controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
           choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
       /* Mail reçu (opens) : l’image s’arrête, l’élève touche l’élément sel pour l’ouvrir ; rien n’est noté. */
       /* hand : {x, y}, le bout d’un doigt seul (sans bulle), en fraction de l’élément, quand la légende dit déjà quoi faire (Elisa, 25 octobre, 16 h 21). */
-      opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: o.label, hand: o.hand || null})),
+      opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: trT(o.label), hand: o.hand || null})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
       captions: captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], duration)), text: plain(c[2])}))
         .concat(PONTS.map(p => ({a: p.a, b: p.b, text: plain(p.html).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')}))).sort((x, y) => x.a - y.a),

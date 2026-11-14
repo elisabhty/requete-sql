@@ -26,7 +26,7 @@ function page({stock = {}, langue = 'fr-FR', charger = true, fuseau = 'Europe/Pa
     localStorage: {getItem: k => (k in local ? local[k] : null), setItem: (k, v) => { local[k] = String(v); }, removeItem: k => { delete local[k]; }},
     document: {write: h => ecrits.push(h), documentElement: {}, title: '', addEventListener() {}}, Map, WeakMap, JSON, Object, Array, String, RegExp, Math};
   /* anglaisFini : le jour où l’anglais ne sera plus « en essai » */
-  vm.runInNewContext(anglaisFini ? MOTEUR.replace("fichier: 'langue-en.js?v=3', essai: true", "fichier: 'langue-en.js?v=3'") : MOTEUR, ctx);
+  vm.runInNewContext(anglaisFini ? MOTEUR.replace("fichier: 'langue-en.js?v=4', essai: true", "fichier: 'langue-en.js?v=4'") : MOTEUR, ctx);
   const L = win.REQUETE_LANGUE;
   if (charger && ecrits.length) vm.runInNewContext(EN, ctx);
   return {L, ecrits, local, win};
@@ -52,7 +52,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   const p = page({stock: {...ESSAI, 'requete-langue': 'en'}});
   assert.equal(p.L.code, 'en');
   assert.equal(p.L.locale, 'en-US');
-  assert.deepEqual(p.ecrits, ['<script src="langue-en.js?v=3"><\/script>'], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
+  assert.deepEqual(p.ecrits, ['<script src="langue-en.js?v=4"><\/script>'], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
   assert.deepEqual([...p.L.disponibles()], ['fr', 'en']);
   assert.equal(p.L.nom('en'), 'English');
   /* changer de langue : enregistré, puis l’appli se recharge */
@@ -60,7 +60,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   assert.equal(p.local['requete-langue'], 'fr');
   assert.equal(p.win.recharge, true);
   assert.equal(p.L.changer('de'), false);
-  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=3', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
+  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=4', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
 });
 
 test('traduire un texte : tel quel, avec ses nombres, le prénom, les mois et les jours ; sans traduction, il reste en français et il est noté', () => {
@@ -141,7 +141,9 @@ test('le SQL : sur la vraie base du cours, la requête récrite donne le même r
   assert.deepEqual(en.exec("SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1")[0].values.flat(), ['customers', 'loyalty', 'orders', 'products']);
   assert.deepEqual(en.exec('SELECT * FROM customers LIMIT 1')[0].columns, ['id', 'first_name', 'last_name', 'address', 'city', 'age', 'email', 'phone', 'signup_date']);
   assert.deepEqual(en.exec('SELECT DISTINCT status FROM orders ORDER BY 1')[0].values.flat(), ['processing', 'shipped']);
-  const valeurs = {'expédiée': 'shipped', 'en_preparation': 'processing', 'Bien-être': 'Wellness', 'Beauté': 'Beauty', 'Boisson': 'Drink', 'Accessoire': 'Accessory'};
+  const valeurs = {'expédiée': 'shipped', 'en_preparation': 'processing', 'Bien-être': 'Wellness', 'Beauté': 'Beauty', 'Boisson': 'Drink', 'Accessoire': 'Accessory',
+    'Fibre Prébiotique': 'Prebiotic Fiber', 'Collagène Marin': 'Marine Collagen', 'Magnésium': 'Magnesium', 'Vitamine D': 'Vitamin D',
+    'Tisane Détox': 'Detox Tea', 'Protéine Végétale': 'Plant Protein', 'Oméga 3': 'Omega 3', 'Shaker Inox': 'Steel Shaker'};
   const requetes = [
     'SELECT prenom, nom, ville FROM clients WHERE ville = \'Paris\' ORDER BY nom',
     'SELECT nom, prix FROM produits WHERE prix > 20 ORDER BY prix DESC, nom',
@@ -162,9 +164,9 @@ test('le SQL : sur la vraie base du cours, la requête récrite donne le même r
 });
 
 test('index.html : langues.js juste après maj.js, le prénom confié au moteur, le choix de la langue seulement en essai', () => {
-  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf('<script src="langues.js?v=3"></script>');
+  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf('<script src="langues.js?v=4"></script>');
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
-  assert.ok(sw.includes("'./langues.js?v=3',") && sw.includes("'./langue-en.js?v=3',"));
+  assert.ok(sw.includes("'./langues.js?v=4',") && sw.includes("'./langue-en.js?v=4',"));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name)"));
   assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
   /* 13 novembre, 15 h 17 : « mets la langue en bas du pays » */

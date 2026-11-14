@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-14-anglais-v3042';
+const CACHE = 'requete-2026-11-14-module-v3043';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -24,8 +24,8 @@ const PRECACHE = [
   './responsive.css?v=1',
   './onboarding-focus.js',
   './maj.js?v=2',
-  './langues.js?v=3',
-  './langue-en.js?v=3',
+  './langues.js?v=4',
+  './langue-en.js?v=4',
   './multiplayer-security.js?v=10',
   './achat.js?v=7',
   './compte-moteurs.js?v=1',
@@ -215,6 +215,10 @@ const PRECACHE = [
   './assets/anim/bases-relationnelles-thumb.webp',
   './assets/anim/nutriboost.webp',
   './assets/anim/badge-nutriboost.webp',
+  /* La vidéo du module 1 en anglais (14 novembre) : ses textes, sa vignette, le badge */
+  './assets/anim/en/bases-relationnelles.js?v=1',
+  './assets/anim/en/bases-relationnelles-thumb.webp',
+  './assets/anim/badge-nutriboost-en.webp',
   './assets/anim/conference-nutrition.webp',
   './assets/anim/evenement-ephemere.webp',
   './assets/anim/colis-dechire.webp',

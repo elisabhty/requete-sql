@@ -153,7 +153,7 @@ function momentIX(P){
         X.got.add(a.k); mark($(a.sel), 'pk-on'); mark($(b.sel), 'pk-on'); line($(a.sel), $(b.sel));
       });
     },
-    spots: i => { start(i); return (P[i].spots || []).map(s => Object.assign({k: String(s.k), label: s.label || String(s.k), side: s.side || undefined}, lay($(s.sel)))); },
+    spots: i => { start(i); return (P[i].spots || []).map(s => Object.assign({k: String(s.k), label: typeof trT === 'function' ? trT(s.label || String(s.k)) : (s.label || String(s.k)), side: s.side || undefined}, lay($(s.sel)))); },
     act(i, k, k2){
       start(i);
       const p = P[i];

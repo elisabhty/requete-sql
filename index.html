@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=3"></script>
+<script src="langues.js?v=4"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -8226,6 +8226,8 @@ const SCHEMA_META=[
  {table:"produits",n:8,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"nom",t:"TEXT"},{c:"categorie",t:"TEXT"},{c:"prix",t:"REAL"},{c:"stock",t:"INTEGER"}]},
  {table:"commandes",n:16,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"numero_commande",t:"TEXT"},{c:"client_id",t:"INTEGER",b:"fk"},{c:"produit_id",t:"INTEGER",b:"fk"},{c:"quantite",t:"INTEGER"},{c:"date_commande",t:"TEXT"},{c:"statut",t:"TEXT"}]},
  {table:"fidelite",n:4,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"client_id",t:"INTEGER",b:"fk"},{c:"points",t:"INTEGER"}]}];
+/* Dans une autre langue, les noms de la base de la langue (buildDb) : le schéma et l’aide à la saisie disent customers, first_name. */
+try{const L=window.REQUETE_LANGUE;if(L&&L.code!=='fr'&&L.identifiant)SCHEMA_META.forEach(t=>{t.cols.forEach(c=>{c.c=L.identifiant(t.table,c.c);});t.table=L.identifiant(t.table);});}catch(e){}
 
 /* ============================================================
    COURS « GUIDE » : un cours décrit en données, rendu comme LAG et LEAD
@@ -20869,7 +20871,9 @@ async function boot(){
     /* 14 novembre, l’interface en anglais : ton pseudo (« Modifier mon profil. Léa, pseudo @lea… ») et le nom de ton niveau (« Niveau 2 :
        Constructrice de requêtes »), mis de côté comme le prénom ; le nom du niveau est remis traduit. */
     try{window.REQUETE_LANGUE&&window.REQUETE_LANGUE.valeur('pseudo',()=>typeof jeuSavedNom==='function'?jeuSavedNom():'');}catch(e){}
-    try{window.REQUETE_LANGUE&&window.REQUETE_LANGUE.valeur('niveau',()=>typeof niveauCompte==='function'?niveauCompte().label:'');}catch(e){}   // langues.js : « Bonjour {prenom} » se traduit une fois pour tous les prénoms
+    try{window.REQUETE_LANGUE&&window.REQUETE_LANGUE.valeur('niveau',()=>typeof niveauCompte==='function'?niveauCompte().label:'');}catch(e){}
+    /* Le titre de la leçon ouverte (« Reprendre · 0:28 : cours {lecon} en plein écran »), remis traduit */
+    try{window.REQUETE_LANGUE&&window.REQUETE_LANGUE.valeur('lecon',()=>typeof current!=='undefined'&&current&&mode==='lesson'&&current.titre||'');}catch(e){}   // langues.js : « Bonjour {prenom} » se traduit une fois pour tous les prénoms
     applyReadingPreferences();
     if(state.onboarded==null) state.onboarded=false;
     if(state.name==null) state.name='';
@@ -21680,7 +21684,14 @@ function attachDateFns(database){
   }
   return database;
 }
-function buildDb(){ if(db)db.close(); db=new SQL.Database(); attachDateFns(db); db.run(SCHEMA_SQL); }
+function buildDb(){ if(db)db.close(); db=new SQL.Database(); attachDateFns(db); db.run(langueSql(SCHEMA_SQL)); }
+/* La base des cours dans la langue de l’appli (langues.js ; 14 novembre, le module 1 en anglais) : en anglais, NutriBoost a ses
+   tables, ses colonnes et ses valeurs en anglais (customers, first_name, 'shipped'), et le SQL des leçons est récrit pour elle
+   (langueSql). En français, rien ne change. */
+function langueSql(s){try{const L=window.REQUETE_LANGUE;return L&&L.code!=='fr'?L.sql(s):s;}catch(e){return s;}}
+/* Le SQL d’un défi : récrit lui aussi, sauf pour un défi qui a sa propre base (Aéroport, Zoo…), restée en français pour l’instant. */
+function langueSqlDe(s,c){return c&&typeof defiBaseId==='function'&&defiBaseId(c)?s:langueSql(s);}
+try{if(window.REQUETE_LANGUE)window.REQUETE_LANGUE.autreBase=()=>{const c=typeof defiActif==='function'&&defiActif();return !!(c&&defiBaseId(c));};}catch(e){}
 /* PRAGMA est propre a la connexion : il ne survit pas a l'export/import des
    octets de la base. Sans ce rappel, les cles etrangeres declarees dans le
    schema ne sont pas verifiees dans les copies de travail — un DELETE sur un
@@ -31806,12 +31817,12 @@ function lvCardHtml(l){
   const v=l.video;
   return LV_FAILED.has(l.id)
     ?`<button type="button" class="lv-card is-failed" onclick="openLessonVideo()" aria-label="La vidéo n’a pas pu se charger. Réessayer">
-            <img src="${v.thumb||v.poster}" alt="" decoding="async">
+            <img src="${lvVignette(v)}" alt="" decoding="async">
             <span class="lv-card-fail" aria-hidden="true"><b>La vidéo n’a pas pu se charger.</b></span>
             <span class="lv-card-bar" aria-hidden="true"><span class="lv-card-meta">Réessayer</span><span class="lv-card-play">${LV_ICO.replay}</span></span>
           </button>`
     :`<button type="button" class="lv-card" onclick="openLessonVideo()" aria-label="${lessonVideoMeta(l)} : cours ${l.titre} en plein écran">
-            <img src="${v.thumb||v.poster}" alt="" decoding="async">
+            <img src="${lvVignette(v)}" alt="" decoding="async">
             <span class="lv-card-bar" aria-hidden="true"><span class="lv-card-meta">${lessonVideoMeta(l)}</span><span class="lv-card-play">${LV_ICO.play}</span></span>
           </button>`;
 }
@@ -31854,7 +31865,17 @@ function lvGatePips(l){
   const n=(l&&l.video&&l.video.moments)||0; if(!n||!lvSeuil(l)||lvErreursMax(l)!=null)return '';
   return `<i class="ls-pips">${Array.from({length:n},(_,j)=>{ const a=lvPkGet(l.id,j); return `<i${a?` class="${a.first?'ok':'try'}"`:''}></i>`; }).join('')}</i>`;
 }
-function lvGateDeco(l){ return `<i class="ls-gate-x" aria-hidden="true"><i class="ls-gate-stk">${typeof lqStkSvg==='function'?lqStkSvg('target'):''}</i>${l?lvGatePips(l):''}</i>`; }
+/* La vignette du cours dans la langue de l’appli : une image qui porte du texte. LV_VIGNETTES : les cours dont la vignette existe
+   dans la langue (assets/anim/<langue>/<cours>-thumb.webp), au fil de leur traduction. */
+const LV_VIGNETTES={en:['bases-relationnelles']};
+function lvVignette(v){
+  try{const L=window.REQUETE_LANGUE,m=/assets\/anim\/([\w-]+)-thumb\./.exec(v.thumb||'');
+    if(L&&L.code!=='fr'&&m&&(LV_VIGNETTES[L.code]||[]).includes(m[1]))return `assets/anim/${L.code}/${m[1]}-thumb.webp`;}catch(e){}
+  return v.thumb||v.poster;
+}
+/* Le début d’une phrase écrite avec un texte venu de la vidéo (déjà dans la langue) : traduit à part (langues.js). */
+function lvLt(s){try{return window.REQUETE_LANGUE?window.REQUETE_LANGUE.t(s):s;}catch(e){return s;}}
+function lvGateDeco(l){ return `<i class="ls-gate-x" aria-hidden="true" data-notrad><i class="ls-gate-stk">${typeof lqStkSvg==='function'?lqStkSvg('target'):''}</i>${l?lvGatePips(l):''}</i>`; }
 function lessonVideoSlide(l){
   const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l), prize=lvPrizeHtml(l), card=lvCardHtml(l);
   /* La carte du cours reprend celle de l’accueil (DA de la vitrine) : pastille du module, titre jaune, vignette collée dessus ;
@@ -32892,7 +32913,7 @@ function lvPkShow(i,p){
   if(!kept){ const V=lvVoiceV(); if(V)lvVoiceSay(V.picks[i]); }
   /* Le chat : il montre l’image pendant la consigne ; moment déjà fait, il dit oui, sans bouger. */
   lvPkCatLoad(); if(kept)lvPkCat(P,'oui',true); else lvPkCat(P,P.hinted?'eureka':'presente');
-  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`${kept?'Déjà fait':'À toi'} : ${String(p.prompt).replace(/<[^>]+>/g,'')}`;
+  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=`${lvLt(kept?'Déjà fait :':'À toi :')} ${String(p.prompt).replace(/<[^>]+>/g,'')}`;
   try{box.querySelector(kept?'.lv-pk-go':'.lv-pk-card').focus({preventScroll:true});}catch(e){}
 }
 /* Moment fini : le verdict prend la place du petit badge et du compteur — coche verte animée et « Bien vu ! » du premier coup.
@@ -33037,7 +33058,7 @@ function lvPkVerdict(P,k,btn,ok,r){
     if(navigator.vibrate)navigator.vibrate([20,60,20]);
     setTimeout(()=>{ btn.classList.remove('is-ko'); btn.classList.add('is-out'); btn.setAttribute('aria-disabled','true'); },460);
   }
-  if(sr)sr.textContent=(ok?(P.tries===1?'Bien vu : ':'Bien rattrapé, mais seul le premier essai compte : moment raté. '):'Pas tout à fait : ')+plain;
+  if(sr)sr.textContent=lvLt(ok?(P.tries===1?'Bien vu :':'Bien rattrapé, mais seul le premier essai compte : moment raté.'):'Pas tout à fait :')+' '+plain;
 }
 /* Début du passage qui amène un moment (le mail, les tables…) : donné par la page (from), sinon 8 s avant ;
    jamais avant la fin du moment précédent. */
@@ -33879,7 +33900,7 @@ function lvPkWin(P,why,rect){
   lvVoiceWin(first);
   if(navigator.vibrate)navigator.vibrate([10,60,20]);
   if(!prefersReduceMotion()&&rect&&rect.w)lvPkBurst(rect);
-  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=(first?'Bien vu : ':'Bien rattrapé, mais seul le premier essai compte : moment raté. ')+String(why).replace(/<[^>]+>/g,'');
+  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=lvLt(first?'Bien vu :':'Bien rattrapé, mais seul le premier essai compte : moment raté.')+' '+String(why).replace(/<[^>]+>/g,'');
   P.timer=setTimeout(()=>{
     if(!LV||LV.pk!==P)return;
     const opts=P.box.querySelector('.lv-pk-opts'), hint=P.box.querySelector('.lv-pk-hint'), go=P.box.querySelector('.lv-pk-go');
@@ -41056,7 +41077,7 @@ function runLesson(){
   const out=document.getElementById('lesson-out');
   if(!sql){if(out)out.innerHTML='';return;}
   const isDefi=mode==='defi';
-  const sol=isDefi?current.sol:current.solution;
+  const sol=langueSqlDe(isDefi?current.sol:current.solution,isDefi?current:null);
   const ordered=exerciseRequiresOrder(current,isDefi);
   const write=!isDefi&&current.write;
   if(!isDefi&&current&&current.noExec){
@@ -41088,8 +41109,8 @@ function runLesson(){
   let userRes,solRes,ms=null;
   try{
     if(write){
-      const d1=sandbox(); try{d1.run(sql); userRes=d1.exec(current.verif);}finally{d1.close();}
-      const d2=sandbox(); try{d2.run(sol); solRes=d2.exec(current.verif);}finally{d2.close();}
+      const d1=sandbox(); try{d1.run(sql); userRes=d1.exec(langueSql(current.verif));}finally{d1.close();}
+      const d2=sandbox(); try{d2.run(sol); solRes=d2.exec(langueSql(current.verif));}finally{d2.close();}
     }else{
       const dU=isDefi?defiSandbox(current):sandbox(); const t0=performance.now();
       try{userRes=isDefi?execChallengeResult(dU,sql):dU.exec(sql); ms=performance.now()-t0;}finally{dU.close();}
@@ -53482,7 +53503,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-anglais-v3042';
+  const SW_CACHE='requete-2026-11-14-module-v3043';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
