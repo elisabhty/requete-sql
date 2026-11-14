@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=362">
+<link rel="stylesheet" href="ludique.css?v=363">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -37995,10 +37995,16 @@ function jeuLobbyEtatMaj(){
    toucher descend jusqu’à la carte. Elle s’en va dès que la carte arrive à l’écran, et revient si on remonte. */
 const JEU_FLECHE_BAS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.5v14M5.5 12.5l6.5 6.5 6.5-6.5"/></svg>';
 let jeuVersBasEcoute=false;
+/* 6 h 06 (Elisa : « oui », la même flèche chez l’hôte) : chez l’hôte, elle descend jusqu’à « Lancer la partie » (ou « Jouer en
+   solo ») ; tout le monde prêt, sa flèche passe au vert et pulse : c’est à lui de lancer. */
+function jeuVersBasCible(){
+  const J=JEU;if(!J||typeof document==='undefined'||typeof document.getElementById!=='function')return null;
+  return document.getElementById(J.hostPid===J.me?'jeu-go':'jeu-pret');
+}
 function jeuVersBasMaj(){
   if(typeof document==='undefined'||typeof document.getElementById!=='function')return;
-  const J=JEU,pret=document.getElementById('jeu-pret');let f=document.getElementById('jeu-vers-bas');
-  if(!J||J.view!=='lobby'||J.solo||J.hostPid===J.me||!pret||typeof pret.getBoundingClientRect!=='function'){if(f&&f.remove)f.remove();return;}
+  const J=JEU,pret=jeuVersBasCible(),host=!!J&&J.hostPid===J.me;let f=document.getElementById('jeu-vers-bas');
+  if(!J||J.view!=='lobby'||J.solo||!pret||typeof pret.getBoundingClientRect!=='function'){if(f&&f.remove)f.remove();return;}
   if(!f){
     if(typeof document.createElement!=='function'||!document.body)return;
     f=document.createElement('button');f.type='button';f.id='jeu-vers-bas';f.className='jeu-vers-bas is-cache';f.onclick=jeuVersBas;
@@ -38013,13 +38019,14 @@ function jeuVersBasMaj(){
   const avs=live.slice(0,MAX).map(p=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(p))%6}">${jeuInitial((J.players[p]||{}).name)}</b>`).join('')+(n>MAX?`<b class="jeu-av is-plus">+${n-MAX}</b>`:'');
   const h=`<span class="jeu-vb-avs" aria-hidden="true">${avs}</span><i class="jeu-vb-fl" aria-hidden="true">${JEU_FLECHE_BAS}</i>`;
   if(f._h!==h){f.innerHTML=h;f._h=h;}
-  f.setAttribute('aria-label',`${n} joueur${n>1?'s':''} dans la salle. Descendre jusqu’à ta carte « ${jeuPretMot(true)} »`);
+  f.setAttribute('aria-label',`${n} joueur${n>1?'s':''} dans la salle. Descendre jusqu’à ${host?`« ${jeuLobbyLabel()} »`:`ta carte « ${jeuPretMot(true)} »`}`);
+  const go=host&&n>=2&&jeuBadgeTous();if(f.classList.contains('is-go')!==go)f.classList.toggle('is-go',go);
   const r=pret.getBoundingClientRect(),H=(typeof window!=='undefined'&&(window.visualViewport&&window.visualViewport.height||window.innerHeight))||0;
-  const cache=!H||r.top<H-90;   // la carte se lit à l’écran (ou on l’a dépassée)
+  const cache=!H||r.top<H-(host?60:90);   // la carte (le bouton chez l’hôte) se lit à l’écran, ou on l’a dépassée
   if(f.classList.contains('is-cache')!==cache){f.classList.toggle('is-cache',cache);f.tabIndex=cache?-1:0;f.setAttribute('aria-hidden',String(cache));}
 }
 function jeuVersBas(){
-  const p=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-pret'):null;if(!p)return;
+  const p=jeuVersBasCible();if(!p)return;
   p.scrollIntoView({block:'center',behavior:typeof prefersReduceMotion==='function'&&prefersReduceMotion()?'auto':'smooth'});
   if(typeof buzz==='function')buzz();
 }
@@ -51780,7 +51787,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-calcul-v2991';
+  const SW_CACHE='requete-2026-11-14-fleche-v2992';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

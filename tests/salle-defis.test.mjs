@@ -439,8 +439,11 @@ test('14 novembre, 5 h 41 : « Partager l’invitation » en blanc quand tout le
   assert.ok(app.includes("if(pa&&pa.classList&&JEU&&JEU.view==='lobby')pa.classList.toggle('is-calme',jeuPartageCalme());"), 'le bouton suit sur place');
   /* La flèche flottante : chez l’invité seulement, en salle d’attente ; partie avec la salle */
   const vb = fn('jeuVersBasMaj');
-  assert.ok(vb.includes("if(!J||J.view!=='lobby'||J.solo||J.hostPid===J.me||!pret||typeof pret.getBoundingClientRect!=='function'){if(f&&f.remove)f.remove();return;}"));
-  assert.ok(vb.includes('<span class="jeu-vb-avs" aria-hidden="true">${avs}</span><i class="jeu-vb-fl" aria-hidden="true">${JEU_FLECHE_BAS}</i>') && vb.includes("const cache=!H||r.top<H-90;"));
+  assert.ok(vb.includes("if(!J||J.view!=='lobby'||J.solo||!pret||typeof pret.getBoundingClientRect!=='function'){if(f&&f.remove)f.remove();return;}"));
+  assert.ok(vb.includes('<span class="jeu-vb-avs" aria-hidden="true">${avs}</span><i class="jeu-vb-fl" aria-hidden="true">${JEU_FLECHE_BAS}</i>') && vb.includes("const cache=!H||r.top<H-(host?60:90);"));
+  /* 6 h 06 (« oui ») : chez l’hôte aussi, vers « Lancer la partie » ; tout le monde prêt, la flèche passe au vert */
+  assert.ok(fn('jeuVersBasCible').includes("return document.getElementById(J.hostPid===J.me?'jeu-go':'jeu-pret');"));
+  assert.ok(vb.includes("const go=host&&n>=2&&jeuBadgeTous();") && lq.includes('html.lq .jeu-vers-bas.is-go .jeu-vb-fl{'));
   assert.ok(fn('jeuVersBas').includes("p.scrollIntoView({block:'center'"), 'la toucher descend jusqu’à la carte');
   assert.ok(app.includes("  jeuVersBasMaj();   // chez l’invité, la flèche vers sa carte « Prête » (14 novembre, 5 h 41)") && fn('jeuStop').includes("document.getElementById('jeu-vers-bas')?.remove();"));
   assert.ok(lq.includes('html.lq .jeu-vers-bas{position:fixed;') && lq.includes('html.lq .jeu-vers-bas.is-cache{opacity:0;visibility:hidden;pointer-events:none;') && lq.includes('html.lq #jeu-root .jeu-share.is-calme{'));
