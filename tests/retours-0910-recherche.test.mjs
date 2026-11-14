@@ -34,7 +34,7 @@ test('une croix pour effacer, la même partout, avec sa micro-interaction', () =
 });
 
 test('la salle d’attente : « Copier le code » puis « Partager l’invitation »', () => {
-  const i = app.indexOf('<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share"');
+  const i = app.indexOf('<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share${jeuPartageCalme()?\' is-calme\':\'\'}"');
   assert.ok(i > 0);
   assert.ok(app.includes('html.lq #jeu-root .jeu-copy+.jeu-share{margin-top:10px}') || app.includes(',html.lq #jeu-root .jeu-copy+.jeu-share{margin-top:10px}'));
 });
