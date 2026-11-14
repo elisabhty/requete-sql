@@ -38,7 +38,7 @@ test('« Connexion perdue » n’apparaît qu’après 4 s sans réseau, et une 
   assert.match(el.innerHTML, /Connexion perdue/);
   ctx.JEU.net = true; ctx.JEU.netBas = 0; ctx.jeuNetMaj();
   assert.equal(el.innerHTML, ''); assert.equal(poses, 2);
-  assert.ok(!app.includes('<div id="jeu-netslot">${jeuNetHTML()}</div>') && (app.match(/\$\{jeuNetSlot\(\)\}/g) || []).length === 7, 'partout la même place');
+  assert.ok(!app.includes('<div id="jeu-netslot">${jeuNetHTML()}</div>') && (app.match(/\$\{jeuNetSlot\(\)\}/g) || []).length === 8, 'partout la même place (la scène du tirage de la revanche aussi, 14 novembre, 6 h 33)');
   assert.ok(fn('jeuPatch').includes('  jeuNetMaj();\n') && fn('jeuTick').includes('  jeuNetMaj();\n'));
   assert.ok(app.includes('J.net=ok;J.netBas=ok?0:(J.netBas||Date.now());') && fn('jeuPost').includes('J.net=false;if(!J.netBas)J.netBas=Date.now();'));
 });

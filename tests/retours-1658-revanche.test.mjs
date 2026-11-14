@@ -24,9 +24,11 @@ test('le podium : une carte en direct (qui en est, qui est là), puis « Quitter
   const ctx = vm.createContext({ JEU: { me: 'g', solo: false, revanche: false, hostPid: 'h', players: { h: { name: '@jjjj' }, g: { name: '@sam' } } },
     JEU_ICO: { quit: '<quit>' }, esc: s => String(s), jeuMaj: t => t.charAt(0).toUpperCase() + t.slice(1), jeuPretMot: () => 'prête', jeuIsHost: () => false,
     jeuLive: () => ['g', 'h'], jeuOrder: () => ['h', 'g'], jeuInitial: n => String(n).replace('@', '').charAt(0).toUpperCase(), accord: (f, m, n) => f,
-    jeuSend: m => envois.push(m), jeuRevancheVerif() { ctx.verifs = (ctx.verifs || 0) + 1; }, jeuRedraw() { ctx.dessins = (ctx.dessins || 0) + 1; }, buzz() {} });
-  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ');
-  vm.runInContext(relance + fn('jeuRevanche') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
+    jeuSend: m => envois.push(m), jeuRevancheVerif() { ctx.verifs = (ctx.verifs || 0) + 1; }, jeuRedraw() { ctx.dessins = (ctx.dessins || 0) + 1; }, buzz() {}, setTimeout: () => 0, clearTimeout() {} });
+  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ')
+  /* 14 novembre, 6 h 33 : le compte à rebours de la relance (jeuRelanceMaj) */
+  const relanceCd = app.slice(app.indexOf('const JEU_RELANCE_MS='), app.indexOf('function jeuRevancheVerif(')).replace('const ', 'var ');
+  vm.runInContext(relance + relanceCd + fn('jeuRevanche') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
   let h = ctx.jeuRevancheHTML();
   assert.ok(h.startsWith('<div class="jeu-rv" id="jeu-rv">') && h.includes('<b>On rejoue\u00a0?</b><small>Touche <mark class="jeu-rv-mot">Revanche</mark> pour dire que tu es de la partie.</small>'));
   assert.ok(h.includes('<span class="jeu-rv-av" aria-hidden="true"><b class="jeu-av" data-c="1">S</b><b class="jeu-av" data-c="0">J</b></span>0/2 pour la revanche</span>'), 'toi, puis qui est là');
@@ -40,15 +42,20 @@ test('le podium : une carte en direct (qui en est, qui est là), puis « Quitter
   assert.deepEqual(JSON.parse(JSON.stringify(envois)), [{ t: 'revanche', on: true }], 'les autres le savent');
   h = ctx.jeuRevancheHTML();
   assert.ok(h.startsWith('<div class="jeu-rv is-on" id="jeu-rv">') && h.includes('class="journey-primary jeu-revanche on" aria-pressed="true" onclick="jeuRevanche()"><span>Prête ✓</span></button>') && h.includes('<b>Tu es de la partie\u00a0!</b><small>On attend @jjjj\u00a0: Revanche ou Quitter la salle.</small>'));
-  ctx.JEU.rv.h = true;
-  assert.ok(ctx.jeuRevancheHTML().includes('<b>La partie repart…</b><small>Tout le monde a répondu.</small>'));
+  ctx.JEU.rv.h = true; ctx.JEU.over = true; ctx.JEU.view = 'final';
+  /* 6 h 33 (« la transition est trop rapide ») : tout le monde a répondu : « C’est reparti dans 3 s », et une barre qui se remplit */
+  h = ctx.jeuRevancheHTML();
+  assert.ok(h.includes('<b>C’est reparti dans <b id="jeu-rv-cd">3</b>\u00a0s</b><small>Tout le monde a répondu.</small>'), h);
+  assert.ok(h.startsWith('<div class="jeu-rv is-on is-part" id="jeu-rv">') && /<i class="jeu-rv-barre" aria-hidden="true" style="--d:3000ms;--e:-\d+ms"><\/i>/.test(h), 'et sa barre');
+  assert.ok(ctx.JEU.relanceAt > Date.now() + 2900 && ctx.JEU.relanceAt <= Date.now() + 3000, 'trois secondes');
+  ctx.JEU.view = undefined;
   ctx.jeuLive = () => ['g'];
   assert.ok(ctx.jeuRevancheHTML().includes('Tu es seule dans la salle'), 'seule : sa revanche suffit');
   ctx.jeuRevanche();
   assert.equal(ctx.JEU.rv.g, false); assert.equal(envois.at(-1).on, false, 'touché de nouveau : elle se ravise');
   /* La relance, chez l’hôte : tous ceux qui sont là ont dit oui ; puis la partie part quand tout le monde est prêt (10 s au plus) */
   const v = fn('jeuRevancheVerif');
-  assert.ok(v.includes("if(J.over&&J.view==='final'&&J.relanceG!==J.g&&live.length&&live.every(p=>J.rv&&J.rv[p])){J.relanceG=J.g;J.relanceAuto=Date.now();jeuAgain();return;}"));
+  assert.ok(v.includes("if(J.over&&J.view==='final'&&J.relanceG!==J.g&&live.length&&live.every(p=>J.rv&&J.rv[p])){\n    if(!J.relanceAt||Date.now()<J.relanceAt)return;   // le compte à rebours de la carte (6 h 33)\n    J.relanceAt=0;J.relanceG=J.g;J.relanceAuto=Date.now();jeuAgain(true);return;}"));
   assert.ok(v.includes("if(live.every(p=>p===J.me||J.ready[p])){J.relanceAuto=0;jeuNextRound();}") && v.includes('Date.now()-J.relanceAuto>10000'));
   assert.ok(app.includes("  jeuRevancheVerif();   // 21 h 33"), 'à chaque battement');
   assert.ok(app.includes("    case 'revanche':\n      if(!addP())return;\n      if((m.g|0)!==J.g)return;\n      J.rv=J.rv||{};J.rv[m.pid]=!!m.on;"));
@@ -97,8 +104,10 @@ test('22 h 14 : qui a gagné touche « Rejouer », les autres « Revanche » ; c
     JEU_ICO: { quit: '<quit>' }, esc: s => String(s), jeuMaj: t => t.charAt(0).toUpperCase() + t.slice(1), jeuPretMot: () => 'prête',
     jeuLive: () => ['h', 'g', 'k'], jeuOrder: () => ['h', 'g', 'k'], jeuInitial: n => String(n).charAt(1).toUpperCase(), accord: f => f,
     jeuScores: () => ctx.sc.map(x => ({ ...x })) });
-  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ');
-  vm.runInContext(relance + ligne('jeuPlaces') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
+  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ')
+  /* 14 novembre, 6 h 33 : le compte à rebours de la relance (jeuRelanceMaj) */
+  const relanceCd = app.slice(app.indexOf('const JEU_RELANCE_MS='), app.indexOf('function jeuRevancheVerif(')).replace('const ', 'var ');
+  vm.runInContext(relance + relanceCd + ligne('jeuPlaces') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
   ctx.sc = [{ pid: 'h', pts: 275, ms: 1000 }, { pid: 'g', pts: 230, ms: 2000 }, { pid: 'k', pts: 0, ms: 9000 }];
   ctx.JEU.rv = {};
   let h = ctx.jeuRevancheHTML();
@@ -130,8 +139,10 @@ test('22 h 38 (la partie à 6) : les six joueurs, « @sam et 2 autres », « En 
     JEU_ICO: { quit: '<quit>' }, esc: s => String(s), jeuMaj: t => t.charAt(0).toUpperCase() + t.slice(1), jeuPretMot: () => 'prête',
     jeuLive: () => ids, jeuOrder: () => ids, jeuInitial: n => String(n).charAt(1).toUpperCase(), accord: f => f,
     jeuScores: () => ids.map((pid, i) => ({ pid, pts: i === 3 ? 500 : 100, ms: 1000 + i })) });
-  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ');
-  vm.runInContext(relance + ligne('jeuPlaces') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
+  const relance = app.slice(app.indexOf('const JEU_RELANCE_SVG='), app.indexOf('\n', app.indexOf('const JEU_RELANCE_SVG='))).replace('const ', 'var ')
+  /* 14 novembre, 6 h 33 : le compte à rebours de la relance (jeuRelanceMaj) */
+  const relanceCd = app.slice(app.indexOf('const JEU_RELANCE_MS='), app.indexOf('function jeuRevancheVerif(')).replace('const ', 'var ');
+  vm.runInContext(relance + relanceCd + ligne('jeuPlaces') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
   ctx.JEU.rv = { b: true, e: true, f: true };
   let h = ctx.jeuRevancheHTML();
   assert.equal((h.match(/class="jeu-av/g) || []).length, 6, 'les six joueurs');
@@ -155,4 +166,28 @@ test('23 h 03 : « Touche Revanche » ou « Touche Rejouer » : le mot du bouton
   const r = 'html.lq #jeu-root .jeu-rv-mot{padding:1px 5px;margin:0 1px;border-radius:5px;background:var(--sun);color:var(--ink);font-weight:800;';
   assert.ok(css.includes(r) && css.indexOf(r) < css.indexOf('Défis — la refonte du 7 novembre'));
   assert.ok(css.includes('html.lq{--sun:#FFC83D;'), 'le jaune de l’appli');
+});
+
+/* 14 novembre, 6 h 33 (Elisa, sa capture « La partie repart… Tout le monde a répondu. » : « la transition tout le monde a répondu est
+   trop rapide, surtout quand on est seul ça saute d’un coup ») : la carte compte, l’écran de fin s’efface, puis la scène du tirage
+   (plus de salle d’attente entre les deux), qui devient le tirage sur place. */
+test('6 h 33 : la relance ne saute plus : le compte à rebours, le fondu, la scène du tirage, puis le tirage sur place', () => {
+  assert.ok(app.includes('const JEU_RELANCE_MS=3000,JEU_RELANCE_SEUL_MS=1600,JEU_FONDU_MS=280,JEU_RELANCE_SCENE_MS=10500;'), '3 s à plusieurs, 1,6 s seule');
+  const suivre = fn('jeuRelanceSuivre');
+  assert.ok(suivre.includes('if(reste<=0){jeuRevancheVerif();return;}') && suivre.includes('J.relanceT=setTimeout(()=>{if(JEU===J)jeuRelanceSuivre();},Math.min(reste%1000||1000,reste)+5);'), 'le compte suit sa propre horloge, à la seconde près');
+  assert.ok(fn('jeuAgain').includes("jeuSend(auto?{t:'again',g:J.g+1,auto:1}:{t:'again',g:J.g+1});"), 'la relance voulue par tous se dit');
+  const again = app.slice(app.indexOf("    case 'again':{"), app.indexOf("    case 'bye':"));
+  assert.ok(again.includes('J.relanceScene=revanche&&m.auto?Date.now()+JEU_RELANCE_SCENE_MS:0;'), 'ceux qui ont dit oui : la scène du tirage');
+  assert.ok(again.includes("ro.classList.add('jeu-sort');J.fondu=Date.now()+JEU_FONDU_MS;"), 'l’écran de fin s’efface en douceur');
+  assert.ok(again.includes('if(m.auto&&!replay&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuRevancheVerif();},JEU_FONDU_MS+20);'), 'l’hôte n’attend pas le battement suivant');
+  assert.ok(app.includes("      if(J.relanceAuto&&!replay&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuRevancheVerif();},0);"), 'ni, à plusieurs, après le dernier « prêt »');
+  assert.ok(fn('jeuView').includes("if(n<0)return jeuRoomEmpty()?'empty':jeuRelanceScene()?'relance':'lobby';"));
+  const r = fn('jeuRender');
+  assert.ok(r.includes("if(J.fondu){if(Date.now()<J.fondu)return;J.fondu=0;}") && r.includes("if(root.classList)root.classList.remove('jeu-sort');"));
+  assert.ok(r.includes('<div class="jeu-draw is-wait is-relance" id="jeu-draw" data-step="3">') && r.includes('<p class="jeu-draw-note" role="status">${jeuDrawNote()}</p>'), 'la scène du tirage, sans compte à rebours');
+  assert.ok(r.includes("if((J.view==='lobby'&&J.solo||J.view==='relance')&&v==='draw0'&&jeuDrawEnPlace(0)){"), 'elle devient le tirage sans être redessinée');
+  assert.ok(fn('jeuDrawEnPlace').includes('jeuMancheNom(n,jeuSoloLike(n))'), 'entre amis, « Manche unique »');
+  assert.ok(fn('jeuDrawNote').includes("JEU.solo||jeuLive().length<2?'Un défi au hasard, au niveau choisi.'"), 'seule dans sa salle : pas « Tout le monde reçoit le même défi »');
+  assert.ok(fn('jeuRevanche').includes("if(J.view==='final'&&typeof document!=='undefined'&&document.getElementById('jeu-rv'))jeuPaint();else jeuRedraw();"), 'toucher « Revanche » ne rejoue plus l’entrée du podium');
+  assert.ok(css.includes('html.lq #jeu-root.jeu-sort{animation:jeuSort .28s cubic-bezier(.4,0,.6,1) both!important;pointer-events:none}') && css.includes('@keyframes jeuRvBarre{from{transform:scaleX(0)}to{transform:scaleX(1)}}'));
 });

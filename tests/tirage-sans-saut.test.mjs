@@ -27,7 +27,8 @@ test('le paquet et le défi tiré dans la même pile, dans le tirage comme dans 
 });
 
 test('seul en ligne : la scène d’attente devient le tirage sur place, sans être redessinée', () => {
-  assert.ok(fn('jeuRender').includes("if(J.view==='lobby'&&J.solo&&v==='draw0'&&jeuDrawEnPlace(0)){J.view=v;J.sig=sig;J.keep=null;jeuAnnounce();return;}"));
+  /* 14 novembre, 6 h 33 : la scène du tirage de la revanche (« relance ») fait de même */
+  assert.ok(fn('jeuRender').includes("if((J.view==='lobby'&&J.solo||J.view==='relance')&&v==='draw0'&&jeuDrawEnPlace(0)){J.view=v;J.sig=sig;J.keep=null;jeuAnnounce();return;}"));
   const ajouts = [], appels = [], cls = new Set(['jeu-draw', 'is-wait']);
   const el = nom => ({nom, insertAdjacentHTML: (ou, h) => ajouts.push([nom, ou, h]), removeAttribute: a => appels.push(['sans', nom, a]), textContent: ''});
   const pile = el('pile'), deck = el('deck'), note = el('note'), kicker = el('kicker');
@@ -37,7 +38,7 @@ test('seul en ligne : la scène d’attente devient le tirage sur place, sans ê
     JEU: {nb: 3, solo: true, rounds: [{cid: 'af1', t0: 0, t1: 3300}], drawT: []}, CHALLENGES: [{id: 'af1', niv: 'f', titre: 'Les vols <retardés>'}],
     JEU_NIVL: {f: 'Facile'}, esc: s => String(s).replace(/</g, '&lt;'), document: {getElementById: id => (id === 'jeu-draw' ? box : null)},
     jeuNivBars: k => `<i class="jeu-bars is-${k}"></i>`, jeuDrawNote: () => 'Un défi au hasard, au niveau choisi.',
-    jeuDrawTimers: n => appels.push(['minuteurs', n]), jeuDrawStep: n => appels.push(['pas', n]),
+    jeuDrawTimers: n => appels.push(['minuteurs', n]), jeuDrawStep: n => appels.push(['pas', n]), jeuSoloLike: () => true,
   });
   vm.runInContext(fn('jeuDrawEnPlace') + line('jeuDrawnHTML') + line('jeuMancheNom'), ctx);
   assert.equal(ctx.jeuDrawEnPlace(0), true);

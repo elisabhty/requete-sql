@@ -480,8 +480,17 @@ test('13 novembre, 21 h 33 : la revanche ; chacun dit s’il en est, et quand to
   assert.equal(host.J('g'), 0, 'Ami2 n’a pas répondu : on l’attend');
   assert.match(host.html, /<small>On attend Ami2\u00a0: Rejouer ou Quitter la salle\.<\/small>/, 'Ami2, le gagnant, a « Rejouer »');
   /* Ami2 quitte la salle : ceux qui restent ont tous dit oui, ça relance */
-  guests[1].ev('jeuQuitterSalle(); jeuStop()'); sec(w, 2);   // dans l’appli, leaveLessonScreen appelle jeuStop
+  guests[1].ev('jeuQuitterSalle(); jeuStop()'); sec(w, 1);   // dans l’appli, leaveLessonScreen appelle jeuStop
+  /* 14 novembre, 6 h 33 (« la transition est trop rapide ») : la carte compte (« C’est reparti dans 3 s », une barre), puis la salle repart */
+  host.ev('jeuRedraw()'); sec(w, 0.2);
+  assert.match(host.html, /<b>C’est reparti dans <b id="jeu-rv-cd">[23]<\/b>\u00a0s<\/b><small>Tout le monde a répondu\.<\/small>/);
+  assert.match(host.html, /<i class="jeu-rv-barre" aria-hidden="true" style="--d:3000ms;--e:-\d+ms"><\/i>/);
+  assert.equal(host.J('g'), 0, 'pas tout de suite : le compte à rebours');
+  sec(w, 2.6);
   for (const c of [host, guests[0]]) assert.equal(c.J('g'), 1, c.name + ' : la salle repart');
+  /* Plus de salle d’attente entre l’écran de fin et le tirage : la scène du tirage, qui devient le tirage */
+  for (const c of [host, guests[0]]) assert.ok(/^(relance|draw0)$/.test(c.ev('jeuView()')), c.name + ' : ' + c.ev('jeuView()'));
+  assert.equal(guests[0].J('relanceScene') > 0, true, 'Ami1 a voulu la revanche : la scène');
   sec(w, 2);
   assert.equal(host.ev(`JEU.ready[${JSON.stringify(guests[0].J('me'))}]`), true, 'Ami1 prêt tout seul');
   sec(w, 5);
@@ -743,7 +752,12 @@ test('seule dans sa salle, une manche, le chrono à 0 : « Temps écoulé » sur
   assert.equal(h.J('over'), true, 'la fin de partie est partie');
   assert.equal(h.ev('state.salle.parties'), 1, 'la partie compte');
   /* 13 novembre, 21 h 52 : seule, « Revanche » relance aussitôt, et la manche part toute seule */
-  h.ev('jeuRevanche()'); sec(w, 2);
+  h.ev('jeuRevanche()'); sec(w, 0.6);
+  /* 14 novembre, 6 h 33 : plus d’un coup : « C’est reparti ! », la barre (1,6 s), puis la manche */
+  assert.equal(h.J('g'), 0, 'pas d’un coup');
+  assert.match(h.html, /<b>C’est reparti\u00a0!<\/b><small>Un nouveau défi arrive…<\/small>/);
+  assert.match(h.html, /style="--d:1600ms;--e:-\d+ms"/);
+  sec(w, 1.4);
   assert.equal(h.J('g'), 1, '« Revanche » : une nouvelle partie dans la même salle');
   assert.ok(/^(draw0|play0)$/.test(h.view()), 'la manche repart sans attendre : ' + h.view());
 });
