@@ -42,7 +42,8 @@ const AUTRES = /Camille Moreau|Oliver Smith|Sophie Martin|Manon Lambert|Simba|Al
 
 test('le défi de la capture : Inès, à l’accueil du club Pulsar, et ce qu’elle doit présenter', () => {
   const c = C.find(x => x.id === 'sm7');
-  assert.equal(c.situation, `Au club Pulsar, une salle de sport de quartier, Inès tient l’accueil${N}: c’est le comptoir de l’entrée, où elle reçoit les adhérents et vend les abonnements, au mois, à l’année ou au tarif étudiant. Lundi, en réunion d’équipe, elle doit présenter combien d’adhérents sont abonnés en ce moment à chacune des trois formules du club${N}: Annuel, Mensuel et Étudiant. À toi de jouer${N}!`);
+  /* 14 novembre : la situation réécrite sur le modèle wf10 (le lieu présenté d’abord), avec ce qu’elle doit présenter */
+  assert.equal(c.situation.replace(/\u00a0/g, ' '), 'Le club Pulsar est une salle de sport de quartier. Inès y tient l’accueil : c’est le comptoir de l’entrée, où elle reçoit les adhérents et vend les abonnements, au mois, à l’année ou au tarif étudiant. Un abonnement reste en cours tant qu’aucune date de fin n’est notée, et un adhérent peut en avoir eu plusieurs. Lundi, en réunion d’équipe, elle doit présenter combien d’adhérents sont abonnés en ce moment à chacune des trois formules du club : Annuel, Mensuel et Étudiant. À toi de jouer !');
   assert.equal(c.titre, `Combien d’adhérents actifs compte chaque formule${N}?`, 'le titre ne change pas');
   assert.deepEqual([...c.garde], ['seulement les abonnements en cours (date de fin vide)'], 'la consigne ne change pas');
   assert.ok(!C.some(x => /^L’accueil (fait|prépare|veut|lance|vérifie|archive|attend|mesure)/.test(x.situation)), 'plus aucun « L’accueil… » sans lieu ni personne');

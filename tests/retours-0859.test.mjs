@@ -38,10 +38,18 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   const h0 = ctx.defiIndicesHTML(c, 0);
   assert.ok(h0.includes('À toi de jouer') && !h0.includes('Indice'), 'avant le premier essai raté : « À toi de jouer », aucun indice (15 h 36)');
   const h1 = ctx.defiIndicesHTML(c, 1), h2 = ctx.defiIndicesHTML(c, 2), h3 = ctx.defiIndicesHTML(c, 3), h9 = ctx.defiIndicesHTML(c, 9);
-  assert.ok(h1.includes('Indice 1/3') && h1.includes('Tu auras besoin de 4 tables : <code>bagages</code>, <code>reservations</code>, <code>passagers</code> et <code>vols</code>.'));
-  assert.ok(!h1.includes('Indice 2/3'));
-  assert.ok(h2.includes('Indice 2/3') && h2.includes(c.indice) && !h2.includes('Indice 1/3'), 'un à la fois, pas 1 + 2');
-  assert.ok(h3.includes('Indice 3/3') && h3.includes('C’était le dernier indice') && !h3.includes(c.indice));
+  /* 14 novembre, 7 h 51 (« Échelle progressive ») : où chercher en mots simples, la piste sans SQL, puis l’outil ; jamais la requête */
+  assert.ok(h1.includes('Indice 1/3') && h1.includes('<b>Où chercher</b>') && h1.includes('4 tables à relier\u00a0: les bagages, les billets, les passagers et les vols.'));
+  assert.ok(!h1.includes('Indice 2/3') && !h1.includes('<code>'), 'le premier indice ne nomme aucune table');
+  assert.ok(h2.includes('Indice 2/3') && h2.includes('<b>La piste</b>') && h2.includes(c.indice) && !h2.includes('Indice 1/3'), 'un à la fois, pas 1 + 2');
+  assert.ok(h3.includes('Indice 3/3') && h3.includes('<b>L’outil</b>') && h3.includes('<code>JOIN … ON</code>') && h3.includes('C’était le dernier indice') && !h3.includes(c.indice));
+  for (const x of ctx.CHALLENGES) {
+    const [[, ou], [, piste], [, outil]] = ctx.defiIndices(x);
+    assert.ok(!ou.includes('la table ') && !ou.includes('<code>'), `${x.id} : où chercher, en mots simples`);
+    assert.doesNotMatch(x.indice, /`|\b(SELECT|FROM|WHERE|JOIN|GROUP BY|HAVING|ORDER BY|COUNT|SUM|AVG|LIMIT|DISTINCT|NULL|OVER|LAG|RANK|CASE|LIKE|EXISTS)\b|\b[a-z]+_[a-z_]+\b/, `${x.id} : la piste sans SQL ni nom de colonne`);
+    for (const m of outil.matchAll(/<code>([^<]*)<\/code>/g)) assert.match(m[1], /^([A-Z_ ()…|.,%]+|julianday|strftime)$/, `${x.id} : l’outil ne montre que des mots-clés (${m[1]})`);
+    assert.ok(!outil.includes(x.sol) && !piste.includes(x.sol), `${x.id} : jamais la requête`);
+  }
   assert.ok(ctx.defiIndicesHTML(c, 3, 1).includes('Indice 1/3'), 'une pastille ramène à un indice déjà donné');
   assert.equal(h9, h3, 'trois au plus');
   const ko = ctx.defiIndicesHTML(c, 1, 0, 'La colonne <code>foo</code> n’existe pas.');

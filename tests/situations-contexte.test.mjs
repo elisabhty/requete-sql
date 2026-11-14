@@ -19,19 +19,25 @@ test('la consigne s’ouvre sur « La situation » ; l’ancien format (une ques
   assert.ok(f.includes('${titre}<span class="tag">La question</span><p class="defi-ctx">${esc(c&&(c.contexte||c.q)||\'\')'));
 });
 
+/* 14 novembre (Elisa : « des défis pas très bien expliqués pour quelqu’un qui arrive sur l’appli », puis « Oui parfait » sur le modèle
+   wf10) : chaque situation s’ouvre sur une phrase qui présente le lieu (« Le Cadran Fêlé est un escape game de Lyon »), puis explique
+   les notions propres au lieu, qui demande et pourquoi. ed2 suit ce modèle. */
 test('ed2, le modèle : l’escape game, le maître du jeu, les avis, le besoin de Malik, puis le défi', () => {
   const c = data.challenges.find(x => x.id === 'ed2');
-  assert.equal(c.situation, 'Au Cadran Fêlé, un escape game lyonnais, des équipes de 2 à 6 joueurs s’enferment dans l’une de ses salles à thème (enquête, épouvante, science-fiction…). Elles ont 60 à 90 minutes pour résoudre les énigmes et sortir. Pendant la partie, un maître du jeu les suit et leur souffle des indices quand elles bloquent. À la sortie, l’équipe peut laisser un avis noté de 1 à 5. Malik, qui dirige les maîtres du jeu, veut les classer selon leur note moyenne avant leurs entretiens annuels. À toi de jouer !');
+  assert.equal(c.situation.replace(/\u00a0/g, ' '), 'Le Cadran Fêlé est un escape game de Lyon : une équipe s’enferme dans une salle à thème et doit en sortir à temps. Pendant la partie, un maître du jeu suit l’équipe et lui souffle des indices quand elle bloque. En sortant, l’équipe peut laisser un avis noté de 1 à 5. Malik, qui dirige les maîtres du jeu, veut les classer selon leur note moyenne avant leurs entretiens annuels. À toi de jouer !');
   assert.match(c.situation, / veut /, 'le besoin');
   assert.ok(mots(c.situation) <= 150, '150 mots au plus');
   assert.ok(c.sol.includes('DENSE_RANK() OVER (ORDER BY AVG(a.note) DESC)'), 'la solution ne change pas');
 });
 
+const LIEUX = { wok: 'La Perle du Wok', aeroport: 'Paris-Charles-de-Gaulle', hopital: 'Quatre-Vents', zoo: 'Grands Chênes', fromagerie: 'Meule d’Or',
+  labo: 'Hélix', voyages: 'Cap Ailleurs', ski: 'Blanchecombe', foodtruck: 'Popote & Pistons', aquarium: 'Trois Marées', velos: 'Cyclavel',
+  apiculture: 'Coteaux Blonds', escape: 'Cadran Fêlé', festival: 'Hautes Herbes', salle_sport: 'Pulsar' };
 test('les 477 situations suivent le modèle : le lieu d’abord, la personne et son besoin, puis « À toi de jouer ! »', () => {
   assert.equal(data.challenges.length, 477);
   for (const c of data.challenges) {
     const s = c.situation;
-    assert.match(s, /^(À|Au|Chez) /, `${c.id} : la situation s’ouvre sur le lieu`);
+    assert.ok(s.split('. ')[0].includes(LIEUX[c.base]) && s.indexOf(LIEUX[c.base]) < 30, `${c.id} : la situation s’ouvre sur le lieu`);
     assert.match(s, /À toi de jouer !$/, `${c.id} : le défi pour finir`);
     assert.equal(s.split('À toi de jouer').length, 2, `${c.id} : une seule fois`);
     assert.ok(mots(s) <= 150, `${c.id} : ${mots(s)} mots`);

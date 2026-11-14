@@ -23,8 +23,9 @@ test('réf. 6 : les fiches des leçons, les cartes mémo et les indices des déf
   for (const t of ['La synchronisation peut aussi s’écrire <b>autrement</b>.', 'Dans PostgreSQL, par exemple : <code>CREATE PROCEDURE</code> et <code>CREATE FUNCTION</code>.',
     "Dans la base de l’app, <code>CAST('CMD-2026-1002481' AS INTEGER)</code> donne 0, sans erreur.",
     'Le même résultat s’obtient aussi avec <code>INSERT … ON CONFLICT DO UPDATE</code>.', 'Leur syntaxe dépend du SGBD\\u00a0: une procédure écrite pour PostgreSQL ne se recopie pas telle quelle ailleurs.',
-    'vaut 1 si le plat peut être commandé et 0 sinon', 'Les dates AAAA-MM-JJ se comparent comme du texte\\u00a0:']) {
-    /* 6 novembre : les pistes de wf1 et ff8, réécrites avec les 267 défis, ne nomment toujours pas SQLite. */
+    ]) {
+    /* 6 novembre : les pistes de wf1 et ff8, réécrites avec les 267 défis, ne nomment toujours pas SQLite. 14 novembre : les pistes
+       ne parlent plus du tout de SQL (l’échelle progressive des indices) ; la première boucle vérifie toujours qu’aucune ne nomme SQLite. */
     assert.ok(app.includes(t), t);
   }
 });

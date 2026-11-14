@@ -57,7 +57,8 @@ test('les défis : plus aucun nom sans accent hors code dans la consigne et la p
   for (const m of app.matchAll(/\b(precis|garde|affiche):\[((?:"(?:[^"\\]|\\.)*",?\s*)+)\]/g))
     for (const w of horsCode(m[2]).matchAll(re)) vus.push(`${m[1]} : ${w[1]} …${m[2].slice(0, 70)}`);
   assert.deepEqual(vus, []);
-  assert.ok(app.includes('Relie la table `reservations` à la table `vols` par `vol_id`.') && app.includes('`reussie` vaut 0 et `indices_demandes` vaut 0.'), 'les autres noms de la phrase aussi');
+  /* 14 novembre : les pistes ne nomment plus ni table ni colonne (l’échelle progressive des indices, retours-0859) */
+  assert.ok(!app.includes('Relie la table `reservations` à la table `vols` par `vol_id`.') && !/\bindice:"[^"]*`/.test(app), 'plus de nom de table ou de colonne dans les pistes');
   assert.ok(app.includes('Les tables `pistes` et `remontees` ont chacune une colonne `nom` et une colonne `etat`'));
 });
 
