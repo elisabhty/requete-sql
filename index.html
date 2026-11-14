@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=383">
+<link rel="stylesheet" href="ludique.css?v=384">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -28292,10 +28292,10 @@ let parcoursVue=null,parcoursDeListe=false,parcoursChoix=null,parcoursEnvoi=fals
    prêt passe à dispo:true et apparaît avec ses leçons. Les alertes déjà demandées restent gardées sur l’appareil, sans rien afficher.
    19 h 54 (« Mais comment ils vont faire pour voter ? Pour le prochain parcours ? ») : le vote, lui, reste. C’est un sondage qui
    marche (son choix part à la base de l’appli, les résultats s’affichent), rien n’y est annoncé.
-   20 h 09 (« Je ne veux pas en bas, peut-être en mode onglet comme Python : Vote pour le prochain parcours › […] Et cocher pour la
-   notif ») : une pastille sous « Parcours SQL » ouvre sa page, faite comme celle de Python : la carte violette, l’alerte de
-   lancement (pour tous les parcours pas encore ouverts), le vote (parcoursVotePageHTML).
-   true : les annonces reviennent telles qu’avant (pastilles, section « À venir », pages des parcours). */
+   20 h 09 : une pastille « Vote pour le prochain parcours › » sous « Parcours SQL » ouvrait une page de vote. 20 h 54 (« supprime
+   finalement l’onglet avec le vote, je vais pas le mettre ») : retirée, avec sa page ; pas de vote dans la 1.0. Les votes déjà
+   donnés restent gardés. Le vote (parcoursVoteHTML) ne vit plus que sur la page d’un parcours, quand les annonces sont montrées.
+   true : les annonces reviennent telles qu’avant (pastilles, section « À venir », pages des parcours, alerte, vote). */
 let PARCOURS_AVENIR_MONTRES=false;
 function parcoursAVenir(){return PARCOURS_AVENIR_MONTRES?PARCOURS.filter(p=>!p.dispo):[];}
 /* Les choix du vote : les parcours pas encore ouverts, montrés ou non */
@@ -28310,29 +28310,15 @@ function parcoursValidees(done){return !done?`${TOTAL} leçons`:done>=TOTAL?`${T
 /* Accueil, sous « Parcours SQL » : la rangée des parcours (elle défile à l’horizontale sur un téléphone). Chaque pastille sur
    deux lignes, le nom puis l’état (19 h 48 : « les écritures et tout ça font tassé »). */
 function parcoursChipsHTML(done){
-  /* 14 novembre : un seul parcours montré (SQL, les autres cachés pour la 1.0) : pas de « Tous les parcours ».
-     20 h 09 : les parcours à venir cachés, la rangée garde la pastille du vote (parcoursChipVoteHTML). */
+  /* 14 novembre : un seul parcours montré (SQL, les autres cachés pour la 1.0) : pas de rangée ni de « Tous les parcours » */
   const vus=PARCOURS.filter(p=>p.dispo||PARCOURS_AVENIR_MONTRES);
-  const vote=!PARCOURS_AVENIR_MONTRES&&parcoursVotables().length?`<li>${parcoursChipVoteHTML()}</li>`:'';
-  if(vus.length<2)return vote?`<ul class="pc-chips is-seul" aria-label="Tes parcours">${vote}</ul>`:'';
+  if(vus.length<2)return '';
   const items=vus.map(p=>p.dispo
     ?`<li><span class="pc-chip is-on"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>${parcoursSqlEtat(done)}</small></span></span></li>`
     :`<li><button type="button" class="pc-chip" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>À venir</small></span></button></li>`).join('');
-  return `<ul class="pc-chips" aria-label="Tes parcours">${items}${vote}<li><button type="button" class="pc-chip is-all" onclick="openParcours()">Tous les parcours${DEF_CHEV_SVG}</button></li></ul>`;
-}
-/* La pastille du vote (20 h 09, ses mots : « Vote pour le prochain parcours › ») ; une fois voté, son choix dessous */
-function parcoursChipVoteHTML(){
-  const v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
-  return `<button type="button" class="pc-chip is-vote" onclick="openParcoursVote()"><i class="pc-chip-vote" aria-hidden="true">${PC_ICO.vote}</i><span class="pc-chip-t"><b>Vote pour le prochain parcours</b>${vp?`<small>Ton vote\u00a0: ${esc(vp.court)}</small>`:''}</span>${DEF_CHEV_SVG}</button>`;
-}
-let parcoursVoteOuvert=false;
-function openParcoursVote(){
-  if(!parcoursVotables().length)return;
-  parcoursVoteOuvert=true;parcoursVue=null;parcoursDeListe=false;parcoursChoix=null;
-  switchTab('parcours');
+  return `<ul class="pc-chips" aria-label="Tes parcours">${items}<li><button type="button" class="pc-chip is-all" onclick="openParcours()">Tous les parcours${DEF_CHEV_SVG}</button></li></ul>`;
 }
 function openParcours(id){
-  parcoursVoteOuvert=false;
   const p=id&&PARCOURS_AVENIR_MONTRES?PARCOURS.find(x=>x.id===id&&!x.dispo):null;
   parcoursDeListe=!!p&&activeTab==='parcours'&&!parcoursVue;
   parcoursVue=p?p.id:null;
@@ -28341,7 +28327,6 @@ function openParcours(id){
 }
 /* Le retour : d’un parcours ouvert depuis la liste, vers la liste ; sinon vers la page d’où l’on vient (l’accueil). */
 function parcoursBack(){
-  parcoursVoteOuvert=false;
   if(parcoursVue&&parcoursDeListe){parcoursVue=null;parcoursDeListe=false;parcoursChoix=null;switchTab('parcours');return;}
   parcoursVue=null;parcoursDeListe=false;parcoursChoix=null;
   returnToParent();
@@ -28351,14 +28336,12 @@ function renderParcoursScreen(){
   if(!scr||!host)return;
   const p=parcoursVue&&PARCOURS_AVENIR_MONTRES?PARCOURS.find(x=>x.id===parcoursVue&&!x.dispo):null;
   if(!p){parcoursVue=null;parcoursDeListe=false;}
-  /* 20 h 09 : la page du vote, ouverte par sa pastille de l’accueil */
-  const vote=!p&&parcoursVoteOuvert&&parcoursVotables().length>0;
-  scr.classList.toggle('is-detail',!!p||vote);
+  scr.classList.toggle('is-detail',!!p);
   const b=document.getElementById('parcours-back'),sp=b&&b.querySelector('span'),liste=!!p&&parcoursDeListe;
   if(sp)sp.textContent=liste?'Parcours':'Accueil';
   if(b)b.setAttribute('aria-label',liste?'Retour aux parcours':'Retour à l’accueil');
-  host.innerHTML=p?parcoursPageHTML(p):vote?parcoursVotePageHTML():parcoursListeHTML();
-  if(p||vote){parcoursTeteCharger();if(parcoursVote()){parcoursResultatsPeindre();parcoursResultatsCharger();}}
+  host.innerHTML=p?parcoursPageHTML(p):parcoursListeHTML();
+  if(p){parcoursTeteCharger();if(parcoursVote()){parcoursResultatsPeindre();parcoursResultatsCharger();}}
 }
 function parcoursListeHTML(){
   const done=parcoursSqlFaites(),pct=TOTAL?Math.min(100,Math.round(done/TOTAL*100)):0,al=parcoursAlertes(),v=parcoursVote();
@@ -28407,35 +28390,9 @@ function parcoursPageHTML(p){
     ${parcoursVoteHTML(sel,'pc-vote')}
   </div>`;
 }
-/* 14 novembre, 20 h 09 (Elisa : « en mode onglet comme Python […] Vote pour le prochain parcours › […] Et cocher pour la notif ») :
-   la page du vote, ouverte par sa pastille sous « Parcours SQL », faite comme celle de Python : la carte violette (l’étiquette, le
-   titre souligné de jaune, sa phrase, le chat à l’ordinateur), l’alerte avec sa cloche, le vote. L’alerte vaut pour tous les
-   parcours pas encore ouverts : une notification le jour où l’un d’eux ouvre (parcoursAlerteTous). Ni date, ni programme. */
-function parcoursVotePageHTML(){
-  const v=parcoursVote(),ids=parcoursVotables().map(p=>p.id),on=parcoursAlertes().some(id=>ids.includes(id));
-  const chat=typeof mascotReduced==='function'&&mascotReduced()?'assets/chat-ordi-fixe.webp':'assets/chat-ordi.webp';
-  return `<div class="pc-view pc-vote-page">
-    <section class="pc-hero" aria-labelledby="pc-titre">
-      <img class="pc-hero-chat" src="${chat}" alt="" width="314" height="358" decoding="async">
-      <div class="pc-hero-copy">
-        <em class="pc-hero-tag">${PC_ICO.vote}Sondage</em>
-        <h2 id="pc-titre">Le prochain parcours</h2>
-        <svg class="pc-hero-trait" viewBox="0 0 160 12" aria-hidden="true"><path d="M3 8.5C38 4.5 92 3 157 4.5" fill="none" stroke="#FFC83D" stroke-width="5" stroke-linecap="round"/><path d="M24 10.5c30-2 66-2.6 98-2" fill="none" stroke="#FFC83D" stroke-width="2.5" stroke-linecap="round" opacity=".7"/></svg>
-        <p class="pc-hero-sub">Dis-nous ce que tu aimerais apprendre après le SQL.</p>
-      </div>
-    </section>
-    <label class="pc-alert">
-      <i class="pc-alert-ico" aria-hidden="true">${PC_BELL_SVG}</i>
-      <span class="pc-alert-copy"><b>M’avertir au lancement</b><small>Reçois une notification le jour où un nouveau parcours ouvre.</small></span>
-      <input type="checkbox" role="switch" class="pc-switch"${on?' checked':''} onchange="parcoursAlerteTous(this.checked)">
-    </label>
-    ${parcoursVoteHTML(v?v.id:'','pc-vote')}
-  </div>`;
-}
 /* Le vote, d’après sa maquette (11 novembre, 15 h 15) : la question en légende avec son pictogramme, une icône par parcours, « Ton
-   vote » sous son nom, « En tête », le bouton avec sa coche, le message. Le même sur la page d’un parcours (coché : le parcours
-   affiché) et sur l’accueil (coché : son vote ; rien tant qu’il n’a pas voté, et le bouton attend un choix). nom : le groupe des
-   boutons radio, un par carte (les deux cartes peuvent être dans la page en même temps). */
+   vote » sous son nom, « En tête », le bouton avec sa coche, le message. Coché : le parcours affiché ; sans choix, le bouton
+   attend. nom : le groupe des boutons radio de la carte. */
 function parcoursVoteHTML(sel,nom){
   const v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
   const opts=parcoursVotables().map(o=>`<label class="pc-opt"><input type="radio" name="${nom}" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value,this)"><i class="pc-opt-ico" aria-hidden="true">${lqStkSvg(o.stk)}</i><span class="pc-opt-t">${esc(o.titre)}${v&&v.id===o.id?'<small class="pc-opt-moi">Ton vote</small>':''}</span>${o.id===parcoursTete?PC_TETE_HTML:''}</label>`).join('');
@@ -28541,14 +28498,6 @@ function parcoursAlerte(id,on){
   const al=parcoursAlertes().filter(x=>x!==id);
   if(on)al.push(id);
   parcoursAlerteFin(al,on,'il ouvre');
-}
-/* 20 h 09 : sur la page du vote, une seule alerte, pour tous les parcours pas encore ouverts */
-function parcoursAlerteTous(on){
-  const ids=parcoursVotables().map(p=>p.id);
-  if(!ids.length)return;
-  const al=parcoursAlertes().filter(x=>!ids.includes(x));
-  if(on)al.push(...ids);
-  parcoursAlerteFin(al,on,'un nouveau parcours ouvre');
 }
 function parcoursAlerteFin(al,on,quand){
   state.parcoursAlertes=al;save();
@@ -53204,7 +53153,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-sitecache-v3034';
+  const SW_CACHE='requete-2026-11-14-sansvote-v3035';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
