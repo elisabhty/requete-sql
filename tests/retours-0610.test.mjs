@@ -70,8 +70,9 @@ test('le site dans l’app iPhone : à son adresse en ligne (le site n’est pas
   const code = cut("const SITE_URL='https://requeteapp.com/';", '/* La date d’inscription');
   const essai = natif => { const ctx = vm.createContext({ appliNative: () => natif, location: { href: 'https://requeteapp.com/index.html?app' }, URL });
     vm.runInContext("const LEGAL_PAGES={privacy:'decouvrir/confidentialite.html'};" + code, ctx); return ctx; };
-  assert.equal(essai(true).siteUrl('decouvrir/#faq'), 'https://requeteapp.com/decouvrir/#faq');
-  assert.equal(essai(true).legalUrl('privacy'), 'https://requeteapp.com/decouvrir/confidentialite.html', 'les pages légales aussi');
+  /* 14 novembre, 20 h 37 : depuis l’appli, la page le sait (?depuis=appli, avant l’ancre ; retours-2037) */
+  assert.equal(essai(true).siteUrl('decouvrir/#faq'), 'https://requeteapp.com/decouvrir/?depuis=appli#faq');
+  assert.equal(essai(true).legalUrl('privacy'), 'https://requeteapp.com/decouvrir/confidentialite.html?depuis=appli', 'les pages légales aussi');
   assert.equal(essai(false).siteUrl('decouvrir/#faq'), 'https://requeteapp.com/decouvrir/#faq');
   const web = vm.createContext({ appliNative: () => false, location: { href: 'http://127.0.0.1:8765/index.html' }, URL });
   vm.runInContext("const LEGAL_PAGES={};" + code, web);

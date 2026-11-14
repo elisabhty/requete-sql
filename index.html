@@ -50291,8 +50291,14 @@ const LEGAL_PAGES={privacy:'decouvrir/confidentialite.html',terms:'decouvrir/con
 /* 10 novembre, 23 h 25 (Elisa : « il faut qu’on puisse mettre le site sur la bonne adresse ») : le site est sur son domaine,
    requeteapp.com (l’ancienne adresse GitHub Pages y redirige). */
 const SITE_URL='https://requeteapp.com/';
+/* 14 novembre, 20 h 37 (l’audit App Review, décision 10 : « Cache ») : ouvertes depuis l’appli, les pages du site le savent
+   (?depuis=appli, avant l’ancre) : elles cachent « Bientôt sur Google Play » et le choix de langue (règle 2.3.10 : pas d’autre
+   plateforme ; et rien « à venir »). Le site, lui, ne change pas. */
 function siteUrl(chemin){
-  if(typeof appliNative==='function'&&appliNative())return SITE_URL+chemin;
+  if(typeof appliNative==='function'&&appliNative()){
+    const i=chemin.indexOf('#'),page=i<0?chemin:chemin.slice(0,i),ancre=i<0?'':chemin.slice(i);
+    return SITE_URL+page+(page.includes('?')?'&':'?')+'depuis=appli'+ancre;
+  }
   try{return new URL(chemin,location.href).href;}catch(e){return chemin;}
 }
 function legalUrl(kind){
@@ -53198,7 +53204,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-nepasdire-v3033';
+  const SW_CACHE='requete-2026-11-14-sitecache-v3034';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
