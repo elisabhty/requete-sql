@@ -20561,12 +20561,11 @@ function loadScript(src){
   });
 }
 async function loadSqlEngine(){
-  /* La copie locale passe en premier : l'app doit démarrer sans réseau.
-     Les CDN ne servent plus que de filet si le fichier local manque. */
+  /* La copie locale seulement : l'app doit démarrer sans réseau. 14 novembre (l’audit avant la mise en production) : plus de
+     filet sur des sites tiers (cdnjs, unpkg) ; un code venu d’ailleurs, sans contrôle d’empreinte, ne s’exécute plus dans l’appli.
+     La copie locale est dans l’app et dans chaque mise à jour à distance (vendor/sqljs). */
   const sources=[
-    {js:'vendor/sqljs/sql-wasm.js',wasm:'vendor/sqljs/sql-wasm.wasm'},
-    {js:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js',wasm:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.wasm'},
-    {js:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.js',wasm:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.wasm'}
+    {js:'vendor/sqljs/sql-wasm.js',wasm:'vendor/sqljs/sql-wasm.wasm'}
   ];
   let lastError=null;
   for(const source of sources){
@@ -48220,6 +48219,9 @@ function raccourciOuvrir(type){
   const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance'),cartes=type.endsWith('.cartes');
   if(!requete&&!adieu&&!avis&&!seance&&!cartes)return;
   if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
+  /* 14 novembre, 12 h 27 (l’audit avant la mise en production) : sans abonnement, le paywall garde l’appli ; un raccourci (widget,
+     île, icône) n’ouvre plus de leçon ni d’onglet dessous. */
+  if(typeof obGardeBloque==='function'&&obGardeBloque())return;
   if(document.querySelector('#scr-lesson.active,#lesson-video')){   // déjà en séance (leçon, vidéo) : on y reste
     if(requete&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, les défis t’attendent juste après.','info');
     else if(seance&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la\u00a0: ta flamme s’allume à la fin.','info');
@@ -52259,7 +52261,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-paywall-v3006';
+  const SW_CACHE='requete-2026-11-14-audit-v3007';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
