@@ -27,7 +27,7 @@ test('trois issues : la victoire, la défaite, le 0 à 0 ; tes points et leur d�
     ":moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\\u00a0!`;}",
     "const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;",
     "const tuiles=[tuile('pts','Points',`${JEU_COIN_SVG}<b class=\"jr2-n\" data-n=\"${moi.pts}\" data-fmt=\"fr\">",   // 14 novembre, 5 h 03 : les points mis en avant, en tuiles
-    "moi.pts>0&&!nul?tuile('place','Place',",
+    "tuile('place','Place',nul?`<b class=\"is-mot\">Ex æquo</b>`:",   // 5 h 19 : la place toujours
     "J.nb>1||moi.pts<=0?tuile('defis','Défis',",
     '<section class="jr2-hero jeu-issue ${ton}" aria-labelledby="jr2-t">',
     '<p class="jeu-card-h">Les joueurs</p>',

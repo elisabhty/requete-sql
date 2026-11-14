@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=360">
+<link rel="stylesheet" href="ludique.css?v=361">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38409,7 +38409,9 @@ function jeuRender(){
       const ok=J.rounds.filter(r=>r&&r.found[J.me]!=null).length,sur=t=>`<small aria-hidden="true">/${t}</small><span class="lq-sr"> sur ${t}</span>`;
       const tuile=(k,l,v)=>`<div class="jr2-tuile is-${k}" role="listitem"><span class="jr2-tl">${l}</span><p class="jr2-tv">${v}</p></div>`;
       const tuiles=[tuile('pts','Points',`${JEU_COIN_SVG}<b class="jr2-n" data-n="${moi.pts}" data-fmt="fr">${moi.pts>0?'+':''}${moi.pts.toLocaleString('fr-FR')}</b>`),
-        moi.pts>0&&!nul?tuile('place','Place',`${moi.place<=3?lqStkSvg('medal'+moi.place):''}<b>${moi.place===1?'1<sup>er</sup>':moi.place+'<sup>e</sup>'}</b>${sur(sc.length||1)}`):'',
+        /* 5 h 19 (Elisa : « mets la place partout quand même, même si non marqué ») : la place toujours, même à 0 point (au temps,
+           comme le classement final) ; au 0 à 0, tout le monde à égalité : « Ex æquo ». La médaille seulement sur le podium. */
+        tuile('place','Place',nul?`<b class="is-mot">Ex æquo</b>`:`${moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):''}<b>${moi.place===1?'1<sup>er</sup>':moi.place+'<sup>e</sup>'}</b>${sur(sc.length||1)}`),
         J.nb>1||moi.pts<=0?tuile('defis','Défis',`<svg class="jr2-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="10.5" fill="#1B1640" opacity=".18"/><circle cx="12" cy="11.5" r="10.5" fill="${ok?'#2BB673':'#B9B3D1'}"/>${ok?'<path d="M7 11.8l3.3 3.3L17 8.4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'<path d="M8.5 8l7 7M15.5 8l-7 7" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'}</svg><b>${ok}</b>${sur(jouees)}`)
           :tuile('temps','Temps',`${lqStkSvg('clock')}<b>${jeuChronoFin(moi,sc)}</b>`)].join('');
       const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;
@@ -38438,7 +38440,7 @@ function jeuRender(){
           `<span class="lq-sr">${pl===1?'1er':pl+'e'}${g.length>1?' ex æquo':''} : ${g.map(x=>nom(x)+(x.pid===J.me?' (toi)':'')).join(' et ')}, ${g[0].pts} point${g[0].pts>1?'s':''} en ${jeuChronoFin(g[0],sc)}</span></div>`;
       };
       const autres=sc.filter(x=>!surPodium.has(x.pid));
-      const lignes=autres.length?`<ol class="jr2-list jeu-fin-list">${autres.map((x,i)=>`<li class="jr2-row${x.pts>0?'':' is-miss'}${x.pid===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">${x.pts>0?x.place:'–'}</span>${av(x)}`+
+      const lignes=autres.length?`<ol class="jr2-list jeu-fin-list">${autres.map((x,i)=>`<li class="jr2-row${x.pts>0?'':' is-miss'}${x.pid===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">${x.place}</span>${av(x)}`+
         `<span class="jr2-nm"><b>${nom(x)}</b><small>${x.pid===J.me?'<i>Toi</i> · ':''}${x.pts>0?jeuChronoFin(x,sc):'Pas trouvé'}</small></span><em class="jr2-p is-tot">${(+x.pts||0).toLocaleString('fr-FR')}<small> pt${x.pts>1?'s':''}</small></em></li>`).join('')}</ol>`:'';
       /* Le 0 à 0 : pas de podium vide, les joueurs, chacun à 0 */
       const classement=nul?`<div class="jeu-card jr2-card"><p class="jeu-card-h">Les joueurs</p><ol class="jr2-list">${sc.map((x,i)=>`<li class="jr2-row is-miss${x.pid===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">–</span>${av(x)}<span class="jr2-nm"><b>${nom(x)}${x.pid===J.me?' <small>(toi)</small>':''}</b><small>Pas trouvé</small></span><em class="jr2-p">0</em></li>`).join('')}</ol></div>`
@@ -51721,7 +51723,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-tuiles-v2988';
+  const SW_CACHE='requete-2026-11-14-place-v2989';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
