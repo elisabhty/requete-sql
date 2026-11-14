@@ -3933,6 +3933,13 @@
   .mu.is-still :is(.mu-kick,.mu-h,.mu-p,.mu-time,.mu-path,.mu-acts),.mu.is-still .mu-rays{opacity:1;transform:none}
   .mu.is-still .mu-done,.mu.is-still .mu-tag{display:none}
   .mu-acc.is-still .mu-done{display:block;opacity:1}
+  /* 14 novembre, 6 h 12 : sous la pièce, le grand nombre doré qui monte (« +225 points ») ; le titre, un cran plus petit, passe dessous */
+  .mu-pts .mu-big{display:flex;align-items:baseline;justify-content:center;gap:8px;margin:4px 0 0;color:#FFD23F}
+  .mu-pts .mu-big b{font:850 66px/1 var(--display);letter-spacing:-.04em;font-variant-numeric:tabular-nums;text-shadow:0 5px 0 rgba(0,0,0,.24)}
+  .mu-pts .mu-big small{color:#DCD5FF;font:800 20px/1 var(--display);letter-spacing:-.01em}
+  .mu.is-a .mu-big{animation:muPop .62s cubic-bezier(.2,.9,.3,1.5) .5s both}
+  .mu-pts.has-big .mu-h{margin-top:12px;font-size:36px}
+  @media (max-height:700px){.mu-pts .mu-big b{font-size:54px}.mu-pts.has-big .mu-h{font-size:32px}}
   .mu-pts .mu-coin svg{display:block;width:100%;height:100%}.mu-pts .mu-album-ico svg{width:22px;height:22px;display:block}.mu-pts .mu-album-n{min-width:46px}.mu-pts .mu-tag{text-transform:none;letter-spacing:0;font-size:13px}.mu-acc.is-still .mu-done.is-multi{display:flex}
   .mu.is-still .mu-pips i.cur{background:#FFD23F;box-shadow:none}
   .mu.is-still .mu-pips i.nx{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.22)}
@@ -6746,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=363">
+<link rel="stylesheet" href="ludique.css?v=364">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -36475,6 +36482,31 @@ function jeuChrono(ms){const s=Math.max(0,Math.floor(ms/1000));return String(Mat
 /* 14 novembre, 5 h 41 (Elisa : « corrige », mes remarques après ma partie : le temps s’écrivait de trois façons sur la fin, « 01:02 »,
    « 1 min 02 » et « 57 s ») : partout comme « Résolu en 1 min 02 » (jeuDureeLisible) ; quand deux temps se lisent pareil, le dixième
    les départage (« 6,2 s », « 1 min 02,4 »). */
+/* Les tuiles et le calcul des points de la fin d’une partie (14 novembre, 5 h 03 et 5 h 41), partagés depuis 6 h 12 par le podium entre
+   amis et le bilan seul (Elisa : « corrige tout », mes remarques après les quatre parties : la fin en solo avait gardé l’ancien
+   bandeau). Le calcul : chaque nombre et ce qu’il compte dessous, le total en or ; seulement s’il additionne au moins deux nombres. */
+function jeuTuile(k,l,v){return `<div class="jr2-tuile is-${k}" role="listitem"><span class="jr2-tl">${l}</span><p class="jr2-tv">${v}</p></div>`;}
+function jeuTuileSur(t){return `<small aria-hidden="true">/${t}</small><span class="lq-sr"> sur ${t}</span>`;}
+function jeuTuilePts(pts){pts=+pts||0;return jeuTuile('pts','Points',`${JEU_COIN_SVG}<b class="jr2-n" data-n="${pts}" data-fmt="fr">${pts>0?'+':''}${pts.toLocaleString('fr-FR')}</b>`);}
+function jeuTuileDefis(ok,t){return jeuTuile('defis','Défis',`<svg class="jr2-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="10.5" fill="#1B1640" opacity=".18"/><circle cx="12" cy="11.5" r="10.5" fill="${ok?'#2BB673':'#B9B3D1'}"/>${ok?'<path d="M7 11.8l3.3 3.3L17 8.4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'<path d="M8.5 8l7 7M15.5 8l-7 7" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'}</svg><b>${ok}</b>${jeuTuileSur(t)}`);}
+function jeuTuileTemps(l,t,ico){const m=/^(\d+)\s+min(?:\s+(\S+))?$/.exec(t),x=/^(\S+)\s+s$/.exec(t);
+  return jeuTuile('temps',l,`${ico&&typeof lqStkSvg==='function'?lqStkSvg('clock'):''}${m?`<b>${m[1]}</b><small>min</small>${m[2]?`<b>${m[2]}</b>`:''}`:x?`<b>${x[1]}</b><small>s</small>`:`<b>${t}</b>`}`);}
+function jeuCalcHTML(termes,total){
+  termes=(termes||[]).filter(Boolean);if(termes.length<2)return '';
+  const f=v=>(+v||0).toLocaleString('fr-FR');
+  return `<p class="jr2-calc">${termes.map((t,i)=>`${i?'<i class="jr2-op" aria-hidden="true">+</i><span class="lq-sr">plus</span>':''}<span class="jr2-terme${t[2]?' '+t[2]:''}"><b>${f(t[0])}</b><small>${t[1]}</small></span>`).join('')}`+
+    `<i class="jr2-op" aria-hidden="true">=</i><span class="lq-sr">égale</span><span class="jr2-terme is-total"><b>${f(total)}</b><small>point${total>1?'s':''}</small></span></p>`;
+}
+/* Le calcul d’une manche : le défi et son temps (sa valeur baisse avec le temps), le premier coup, la place (entre amis) */
+function jeuCalcManche(y,total){
+  if(!y)return '';
+  return jeuCalcHTML([[y.val,`défi${y.x>1?` ×${y.x}`:''} en ${jeuDureeLisible(y.ms)}`],y.essai?[y.essai,'premier coup','is-essai']:null,y.rang?[y.rang,`${y.place===1?'1<sup>re</sup> place':y.place+'<sup>e</sup> place'}`,'is-rang']:null],total);
+}
+/* 6 h 12 : plusieurs manches, le calcul manche par manche (« 230 + 230 = 460 ») ; une manche non trouvée compte 0, en plus pâle */
+function jeuCalcManches(J,total){
+  const t=J.rounds.map((r,i)=>{if(!r)return null;const y=jeuRanking(i).find(z=>z.pid===J.me);return [y?y.pts:0,`manche ${i+1}`,y?'':'is-zero'];});
+  return jeuCalcHTML(t,total);
+}
 function jeuChronoFin(x,sc){
   const t=jeuDureeLisible(x.ms),meme=(sc||[]).some(y=>y!==x&&y.pid!==x.pid&&y.pts===x.pts&&x.pts>0&&jeuDureeLisible(y.ms)===t);
   if(!meme)return t;
@@ -38408,28 +38440,32 @@ function jeuRender(){
           ${meta?`<span class="jr-meta">${meta}</span>`:''}
           ${jeuCorrBoutonHTML(k)}</div></li>`;
       }).join('');
-      /* 14 h 27 : tout trouvé, ou un nouveau record, le chat lève son trophée sous les confettis (son GIF), à droite du titre ; il
-         remplace la coupe du titre */
-      const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat" aria-hidden="true">${chatBonusHtml('trophee')}</div>`
-        :!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class="jeu-fin-chat is-effort" aria-hidden="true">${chatBonusHtml('effort')}</div>`:'';   // rien trouvé : « Encore un effort ! » (15 h 38)
-      /* 10 h 37 (la relecture, ses maquettes 2/2, 1/2 et 0/2) : le titre dit l’issue, « Tout résolu ! », « Bien joué ! » ou
-         « On retente ? » ; le niveau dessous, sans point final ; le bandeau, toujours les trois mêmes cases (les points, les défis
-         résolus, le temps moyen, « — » sans défi résolu), d’un bilan à l’autre. */
       /* 12 h 17 (Elisa) : « Carton plein ! » et « 2 manches, 2 victoires ! » ; « Bien joué ! » et « 2 manches, 1 victoire ! » ; « Pas
          encore cette fois ! » et « Prêt·e à retenter ta chance ? » ; « Tu progresses à chaque défi ! » quand c’est mieux qu’avant (plus de
-         points que la partie d’avant, seule, au même niveau). Le niveau passe dans le surtitre. */
-      const titre=all?(trophee?'Carton plein\u00a0!':'Carton plein ! 🏆'):nOk?'Bien joué\u00a0!':'Pas encore cette fois\u00a0!';
+         points que la partie d’avant, seule, au même niveau). */
+      /* 14 novembre, 6 h 12 (Elisa : « corrige tout » ; la fin en solo avait gardé l’ancien bandeau, « Carton plein ! » et la bande
+         violette) : le même cadre violet qu’entre amis. En haut, la partie et son niveau ; le chat (le trophée quand tout est trouvé ou
+         un record, l’effort quand rien ne l’est, le « oui » sinon), le titre et sa phrase ; puis les tuiles : les points, les défis
+         résolus (plusieurs manches, ou rien trouvé), ton temps (le temps moyen à plusieurs manches) ; le calcul des points ; le record
+         et « Tu progresses » en pastilles. */
+      const titre=all?'Carton plein\u00a0!':nOk?'Bien joué\u00a0!':'Pas encore cette fois\u00a0!';
       const sous=nOk?`${nT} manche${nT>1?'s':''}, ${nOk} victoire${nOk>1?'s':''}\u00a0!`:`${typeof accord==='function'?accord('Prête','Prêt','Prêt·e'):'Prêt·e'} à retenter ta chance\u00a0?`;
-      const progres=J.mieux?`<p class="jeu-progres"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5l5.5-5.5 4 4L20 8.5M14.5 8.5H20V14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Tu progresses à chaque défi\u00a0!</p>`:'';
-      /* Une seule manche : deux cases, les points et ton temps (« 1/1 résolu » ne disait rien) */
-      const bande=`<div class="jeu-bilan${J.record?' has-record':''}${un?' is-2':''}">${J.record?`<span class="jeu-record">${lqStkSvg('trophy')}Nouveau record</span>`:''}<div><b data-n="${pts}">${pts}</b><small>point${pts>1?'s':''}</small></div>`+
-        `${un?'':`<div><b>${nOk}/${nT}</b><small>résolu${nOk>1?'s':''}</small><span class="jeu-dots" aria-hidden="true">${rows.map(x=>`<i${x.ms!=null?' class="ok"':''}></i>`).join('')}</span></div>`}<div><b>${nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'—'}</b><small>${un?'ton temps':'temps moyen'}</small></div></div>`;
-      html=trophee+head(`Fin de la partie · ${JEU_NIVL[J.niv]}`,titre,sous)+progres+
-        `${bande}
+      const chatS=all||J.record?'trophee':nOk?'oui':'effort',tonS=all?'is-or':nOk?'is-ok':'is-ko';
+      const moy=nOk?dur(got.reduce((a,x)=>a+x.ms,0)/nOk):'';
+      const tuilesS=[jeuTuilePts(pts),!un||!nOk?jeuTuileDefis(nOk,nT):'',nOk?jeuTuileTemps(un?'Temps':'Temps moyen',moy,un&&got[0].ms<60000):''].join('');
+      const calcS=!nOk?'':un?jeuCalcManche(jeuRanking(J.rounds.indexOf(got[0].r)).find(z=>z.pid===J.me),pts):jeuCalcManches(J,pts);
+      const extras=(J.record?`<i class="is-rang">${lqStkSvg('trophy')}Nouveau record</i>`:'')+(J.mieux?`<i class="is-essai"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5l5.5-5.5 4 4L20 8.5M14.5 8.5H20V14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Tu progresses à chaque défi\u00a0!</i>`:'');
+      const heroS=`<section class="jr2-hero jeu-issue jeu-bilan-solo ${tonS}" aria-labelledby="jr2-t">
+        <div class="jr2-top"><span class="jr2-k">${un?'Défi solo terminé':`Partie solo terminée · ${nT} manches`}</span><span class="jr2-niv">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</span></div>
+        <div class="jr2-main"><span class="jr2-chat" aria-hidden="true">${typeof chatBonusHtml==='function'?chatBonusHtml(chatS):''}</span><div class="jr2-tx"><h1 id="jr2-t">${titre}</h1><p class="jr2-defi" id="jeu-sub">${sous}</p></div></div>
+        <div class="jr2-tuiles" role="list" aria-label="Ta partie">${tuilesS}</div>
+        ${calcS}${extras?`<p class="jr2-pills">${extras}</p>`:''}
+      </section>`;
+      html=`${heroS}
         <div class="jeu-card jeu-recap"><p class="jeu-card-h">Ton récap’</p><ol class="jeu-rounds">${recap}</ol></div>
         ${jeuFinBoutonsHTML(nOk,all)}`;
       /* Voilé (19 h 15) : les points montent quand il apparaît ; les confettis, la page des points les a déjà eus */
-      if(!prefersReduceMotion()&&!keep&&!J.voile)setTimeout(()=>{const b=document.querySelector('#jeu-root .jeu-bilan b[data-n]');if(b&&JEU===J)jeuCountUp(b);},380);
+      if(!prefersReduceMotion()&&!keep&&!J.voile)setTimeout(()=>{const b=document.querySelector('#jeu-root .jr2-n');if(b&&JEU===J)jeuCountUp(b);},380);
       if(all&&!keep&&!J.voile)setTimeout(celebrate,300);   // redessiné sur place (la revanche, 13 novembre) : pas une deuxième fois
     }else{
       /* 13 novembre, 17 h 16 (Elisa, ses captures « 2e place, bien joué ! » puis « Le podium ») : « Fusionner les deux pages car ce
@@ -38459,23 +38495,19 @@ function jeuRender(){
       /* 14 novembre, 5 h 41 (Elisa : « corrige » ; la pastille disait « Défi 175 » quand la manche avait annoncé 200, sans dire pourquoi) :
          le calcul en clair, « 175 + 30 = 205 », chaque nombre avec ce qu’il compte : le défi et le temps mis (sa valeur baisse avec le
          temps), le premier coup, la place ; le total en or. */
-      let pills='';
-      if(J.nb===1&&moi.pts>0){const y=J.rounds[0]?jeuRanking(0).find(x=>x.pid===J.me):null;
-        if(y){const termes=[[y.val,`défi${y.x>1?` ×${y.x}`:''} en ${jeuDureeLisible(y.ms)}`,''],y.essai?[y.essai,'premier coup','is-essai']:null,y.rang?[y.rang,`${y.place===1?'1<sup>re</sup> place':y.place+'<sup>e</sup> place'}`,'is-rang']:null].filter(Boolean);
-          pills=`<p class="jr2-calc">${termes.map((t,i)=>`${i?'<i class="jr2-op" aria-hidden="true">+</i><span class="lq-sr">plus</span>':''}<span class="jr2-terme ${t[2]}"><b>${t[0]}</b><small>${t[1]}</small></span>`).join('')}`+
-            `<i class="jr2-op" aria-hidden="true">=</i><span class="lq-sr">égale</span><span class="jr2-terme is-total"><b>${moi.pts.toLocaleString('fr-FR')}</b><small>point${moi.pts>1?'s':''}</small></span></p>`;}}
+      /* 14 novembre, 5 h 41 (Elisa : « corrige » ; la pastille disait « Défi 175 » quand la manche avait annoncé 200, sans dire pourquoi) :
+         le calcul en clair, « 175 + 30 = 205 » (jeuCalcManche). 6 h 12 (« corrige tout ») : à plusieurs manches aussi, manche par
+         manche, « 230 + 230 = 460 » (jeuCalcManches). */
+      const pills=moi.pts>0?(J.nb===1?jeuCalcManche(J.rounds[0]?jeuRanking(0).find(x=>x.pid===J.me):null,moi.pts):jeuCalcManches(J,moi.pts)):'';
       /* 14 novembre, 5 h 03 (Elisa : « améliore la carte violette niveau UI/UX pour bien intégrer les points, mise en avant ») : sous
-         l’issue, des tuiles comme à la fin d’une leçon. La première, les points : la plus large, cadre or, la pièce et le nombre qui
-         monte. Puis ta place (sa médaille, « sur 6 ») quand tu as marqué, et les défis trouvés (plusieurs manches, ou rien trouvé) ou ton
-         temps (une seule manche). Plus de trait au-dessus des points ni de pastille « 2 défis trouvés sur 2 » : les tuiles le disent. */
-      const ok=J.rounds.filter(r=>r&&r.found[J.me]!=null).length,sur=t=>`<small aria-hidden="true">/${t}</small><span class="lq-sr"> sur ${t}</span>`;
-      const tuile=(k,l,v)=>`<div class="jr2-tuile is-${k}" role="listitem"><span class="jr2-tl">${l}</span><p class="jr2-tv">${v}</p></div>`;
-      const tuiles=[tuile('pts','Points',`${JEU_COIN_SVG}<b class="jr2-n" data-n="${moi.pts}" data-fmt="fr">${moi.pts>0?'+':''}${moi.pts.toLocaleString('fr-FR')}</b>`),
+         l’issue, des tuiles comme à la fin d’une leçon (jeuTuile…). La première, les points : la plus large, cadre or, la pièce et le
+         nombre qui monte. Puis ta place, et les défis trouvés (plusieurs manches, ou rien trouvé) ou ton temps (une seule manche). */
+      const ok=J.rounds.filter(r=>r&&r.found[J.me]!=null).length;
+      const tuiles=[jeuTuilePts(moi.pts),
         /* 5 h 19 (Elisa : « mets la place partout quand même, même si non marqué ») : la place toujours, même à 0 point (au temps,
            comme le classement final) ; au 0 à 0, tout le monde à égalité : « Ex æquo ». La médaille seulement sur le podium. */
-        tuile('place','Place',nul?`<b class="is-mot">Ex æquo</b>`:`${moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):''}<b>${moi.place===1?'1<sup>er</sup>':moi.place+'<sup>e</sup>'}</b>${sur(sc.length||1)}`),
-        J.nb>1||moi.pts<=0?tuile('defis','Défis',`<svg class="jr2-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="10.5" fill="#1B1640" opacity=".18"/><circle cx="12" cy="11.5" r="10.5" fill="${ok?'#2BB673':'#B9B3D1'}"/>${ok?'<path d="M7 11.8l3.3 3.3L17 8.4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'<path d="M8.5 8l7 7M15.5 8l-7 7" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'}</svg><b>${ok}</b>${sur(jouees)}`)
-          :tuile('temps','Temps',`${moi.ms<60000?lqStkSvg('clock'):''}${(t=>{const m=/^(\d+)\s+min(?:\s+(\S+))?$/.exec(t),x=/^(\S+)\s+s$/.exec(t);return m?`<b>${m[1]}</b><small>min</small>${m[2]?`<b>${m[2]}</b>`:''}`:x?`<b>${x[1]}</b><small>s</small>`:`<b>${t}</b>`;})(jeuChronoFin(moi,sc))}`)].join('');
+        jeuTuile('place','Place',nul?`<b class="is-mot">Ex æquo</b>`:`${moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):''}<b>${moi.place===1?'1<sup>er</sup>':moi.place+'<sup>e</sup>'}</b>${jeuTuileSur(sc.length||1)}`),
+        J.nb>1||moi.pts<=0?jeuTuileDefis(ok,jouees):jeuTuileTemps('Temps',jeuChronoFin(moi,sc),moi.ms<60000)].join('');
       const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;
       const ico=`${typeof chatBonusHtml==='function'?chatBonusHtml(chat):''}${med?`<i class="jr2-med">${med}</i>`:''}`;
       const hero=`<section class="jr2-hero jeu-issue ${ton}" aria-labelledby="jr2-t">
@@ -38993,7 +39025,10 @@ function jeuGagnants(){
 function jeuRevancheHTML(){
   const J=JEU;if(!J)return '';
   const rv=J.rv||{},on=!!rv[J.me],live=typeof jeuLive==='function'?jeuLive():[J.me],ord=jeuOrder();
-  const win=jeuGagnants(),moiG=win.has(J.me),mot=p=>win.has(p)?'Rejouer':'Revanche',bouton=mot(J.me);
+  /* 14 novembre, 6 h 12 (« corrige tout ») : seule dans sa salle, toujours « Rejouer » (même à 0 point), pas de « En direct », et la
+     phrase dit ce que fait le bouton : un nouveau défi, tout de suite. */
+  const seule=!live.some(p=>p!==J.me);
+  const win=jeuGagnants(),moiG=seule||win.has(J.me),mot=p=>seule||win.has(p)?'Rejouer':'Revanche',bouton=mot(J.me);
   const nom=p=>esc((J.players[p]||{}).name||'Joueur'),liste=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' et '+a[a.length-1];
   /* 22 h 38 (la partie à 6) : « @sam, @tom et @jean_baptiste9 veulent leur revanche ! » prenait quatre lignes : au-delà de max noms,
      « @sam et 2 autres » */
@@ -39008,11 +39043,12 @@ function jeuRevancheHTML(){
     :'On rejoue\u00a0?';   // 22 h 22 (Elisa) : « On rejoue ? » pour tout le monde ; le bouton garde son mot
   const choix=[...new Set(attente.map(mot))];
   const sous=on?(attente.length?`On attend ${court(attente.map(nom),3)}${choix.length===1?`\u00a0: ${choix[0]} ou Quitter la salle`:''}.`:'Tout le monde a répondu.')
+    :seule?`Touche <mark class="jeu-rv-mot">${bouton}</mark>\u00a0: un nouveau défi est tiré tout de suite.`
     :`Touche <mark class="jeu-rv-mot">${bouton}</mark> pour dire que tu es de la partie.`;   // 23 h 03 (Elisa) : le mot du bouton, surligné en jaune
   return `<div class="jeu-rv${on?' is-on':''}" id="jeu-rv">
     <div class="jeu-rv-live" role="status" aria-live="polite">
       <span class="jeu-rv-ico">${JEU_RELANCE_SVG}</span>
-      <div class="jeu-rv-tx"><span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span><b>${titre}</b><small>${sous}</small>
+      <div class="jeu-rv-tx">${seule?'':'<span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>'}<b>${titre}</b><small>${sous}</small>
         <span class="jeu-rv-qui"><span class="jeu-rv-av" aria-hidden="true">${av}</span>${dans}</span></div>
     </div>
     <div class="jeu-rv-btns">
@@ -39096,8 +39132,12 @@ function jeuPtsPage(o){
   const p=issue==='rate'?`${o.nb>1?'Ces défis t’ont':'Ce défi t’a'} résisté cette fois, mais chaque essai t’entraîne.`
     :issue==='nul'?(M?'Personne n’a trouvé cette manche\u00a0: tout se joue à la suivante\u00a0!':'Ce défi a résisté à tout le monde. Une revanche pour vous départager\u00a0?')
     :issue==='defaite'&&zero?(M?`${qui||'L’autre joueur'} a trouvé cette manche. La suivante peut être la tienne\u00a0!`:`${qui||'L’autre joueur'} a trouvé cette fois. Chaque défi t’entraîne\u00a0: à toi la prochaine\u00a0!`)
-    :issue==='defaite'?`${qui||'L’autre joueur'} ${M?'remporte la manche':'l’emporte'}, mais tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`
-    :`Tu gagnes <b>${fmt(o.pts)}</b> point${pl}.${totalTx}`;
+    :issue==='defaite'?`${qui||'L’autre joueur'} ${M?'remporte la manche':'l’emporte'}. Tes points comptent quand même\u00a0!${totalTx}`
+    :totalTx.trim()||(issue==='victoire'?(M?'Personne n’a fait mieux cette manche.':'Personne n’a fait mieux que toi.'):'');
+  /* 14 novembre, 6 h 12 (Elisa : « corrige tout » ; les points n’étaient qu’une petite étiquette rose penchée) : sous la pièce, le grand
+     nombre doré qui monte, « +225 points » ; la phrase ne le redit plus (la manche, le total de ta partie, qui l’emporte). L’étiquette
+     reste pour encourager (« Revanche ! », « Courage ! », « La suite ! »). */
+  const big=!zero?`<p class="mu-big" aria-hidden="true"><b class="mu-big-n" data-n="${o.pts}" data-fmt="fr">+${fmt(o.pts)}</b><small>point${pl}</small></p>`:'';
   /* 18 h 11 (Elisa : « à la fin, le podium, avec les résultats et la correction ; quand on n’a qu’une manche aussi, le même écran
      “Bien joué” avec la médaille, sauf qu’en bas : le podium s’affiche dans… ») : entre amis, la page de fin de partie n’a plus de
      bouton ; « Le podium s’affiche dans 6 s » et sa barre, puis elle se referme toute seule sur le podium (la correction et
@@ -39109,7 +39149,7 @@ function jeuPtsPage(o){
   const resteM=A&&A.fin?Math.max(0,A.fin-Date.now()):0;
   const place=Math.floor(+o.place||0),med=!zero&&place>=1&&place<=3&&typeof lqStkSvg==='function'?`<span class="mu-med is-${place}">${lqStkSvg('medal'+place)}</span>`:'';
   const box=document.createElement('div');
-  box.innerHTML=`<div class="mu mu-acc mu-pts${zero?' is-zero':''}${enc?' is-encourage':''}${issue?' is-'+issue:''}" role="dialog" aria-modal="true" aria-labelledby="mu-h" aria-describedby="mu-p">
+  box.innerHTML=`<div class="mu mu-acc mu-pts${zero?' is-zero':' has-big'}${enc?' is-encourage':''}${issue?' is-'+issue:''}" role="dialog" aria-modal="true" aria-labelledby="mu-h"${p?' aria-describedby="mu-p"':''}>
     <i class="mu-rays" aria-hidden="true"></i><i class="mu-sky" aria-hidden="true"></i>
     ${total&&!zero?`<div class="mu-album" aria-hidden="true"><span class="mu-album-ico">${JEU_COIN_SVG}</span><span>Ta partie</span><b class="mu-album-n"><span>${fmt(Math.max(0,total-o.pts))}</span><span>${fmt(total)}</span></b></div>`:''}
     <button type="button" class="mu-x" aria-label="${suite}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -39118,10 +39158,11 @@ function jeuPtsPage(o){
       <div class="mu-stage" aria-hidden="true">
         <i class="mu-glow"></i><i class="mu-ring"></i><i class="mu-flash"></i>
         ${chatEnc?`<div class="mu-st mu-done mu-chat">${chatEnc}</div>`:`<div class="mu-st mu-done mu-coin">${JEU_COIN_SVG}${med}</div>`}
-        <span class="mu-tag">${enc?(issue==='rate'?'Courage\u00a0!':M?'La suite\u00a0!':'Revanche\u00a0!'):zero?'0 point':`+${fmt(o.pts)} point${pl}`}</span>
+        ${zero?`<span class="mu-tag">${enc?(issue==='rate'?'Courage\u00a0!':M?'La suite\u00a0!':'Revanche\u00a0!'):'0 point'}</span>`:''}
       </div>
+      ${big}
       <h2 class="mu-h" id="mu-h" tabindex="-1">${h}</h2>
-      <p class="mu-p" id="mu-p">${p}</p>
+      ${p?`<p class="mu-p" id="mu-p">${p}</p>`:''}
       <div class="mu-acts mu-auto"><p class="mu-auto-t" aria-live="off"><span>${A.t} dans <b class="mu-auto-n">${Math.max(1,Math.ceil(resteM/1000))}</b>\u00a0s</span></p><i class="mu-auto-barre" aria-hidden="true" style="--d:${resteM}ms;--p0:${Math.min(1,Math.max(0,1-resteM/A.tot)).toFixed(3)}"></i></div>
     </div>
   </div>`;
@@ -39142,6 +39183,7 @@ function jeuPtsPage(o){
   if(prefersReduceMotion()){ el.classList.add('is-still','is-a','is-ready','is-album'); if(alb)alb.classList.add('is-hit'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} return; }
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(MU&&MU.el===el)el.classList.add('is-a'); }));
+  const bigN=el.querySelector('.mu-big-n');if(bigN&&typeof jeuCountUp==='function')T(()=>jeuCountUp(bigN),620);
   T(()=>{
     muImpact(el,false);
     if(navigator.vibrate)navigator.vibrate(fete?[18,30,10]:[12]);
@@ -51787,7 +51829,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-fleche-v2992';
+  const SW_CACHE='requete-2026-11-14-bilan-v2993';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

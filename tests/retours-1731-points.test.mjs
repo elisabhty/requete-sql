@@ -25,14 +25,16 @@ const page = o => {
 
 test('la page des points, pour chaque issue entre amis', () => {
   const v = page({ pts: 920, total: 920, solo: false, issue: 'victoire', qui: '', place: 1 });
-  assert.ok(v.includes('class="mu mu-acc mu-pts is-victoire"') && v.includes('Victoire !') && v.includes('>Tu as gagné !</h2>'));
+  assert.ok(v.includes('class="mu mu-acc mu-pts has-big is-victoire"') && v.includes('Victoire !') && v.includes('>Tu as gagné !</h2>'));
   /* 19 h (« ne pas préciser les points de la salle ») : ni la phrase, ni l’encart */
-  assert.ok(v.includes('Tu gagnes <b>920</b> points.</p>') && !v.includes('points de salle') && !v.includes('Points de salle') && !v.includes('mu-album'));
+  /* 14 novembre, 6 h 12 : les points en grand sous la pièce, le nombre qui monte ; la phrase ne les redit plus */
+  assert.ok(v.includes('<p class="mu-big" aria-hidden="true"><b class="mu-big-n" data-n="920" data-fmt="fr">+920</b><small>points</small></p>') && v.includes('Personne n’a fait mieux que toi.</p>') && !v.includes('Tu gagnes') && !v.includes('class="mu-tag"'));
+  assert.ok(!v.includes('points de salle') && !v.includes('Points de salle') && !v.includes('mu-album'));
   /* 18 h 11 : plus de bouton ; « Le podium s’affiche dans 6 s », la médaille de la place sur la pièce */
   assert.ok(v.includes('<span>Le podium s’affiche dans <b class="mu-auto-n">6</b> s</span>') && !v.includes('mu-go') && !v.includes('mu-rejouer'));
   assert.ok(v.includes('<coin><span class="mu-med is-1"><svg data-k="medal1"></svg></span>'));
   const d = page({ pts: 230, total: 230, solo: false, issue: 'defaite', qui: '@lea', place: 2 });
-  assert.ok(d.includes('>Bien joué !</h2>') && d.includes('@lea l’emporte, mais tu gagnes <b>230</b> points.') && d.includes('<span class="mu-med is-2">'));
+  assert.ok(d.includes('>Bien joué !</h2>') && d.includes('@lea l’emporte. Tes points comptent quand même') && d.includes('+230</b><small>points</small>') && d.includes('<span class="mu-med is-2">'));
   const z = page({ pts: 0, total: 500, solo: false, issue: 'defaite', qui: '@lea' });
   /* 18 h 35 : « il faut justement encourager ; revanche » : le chat lève le poing à la place d’une pièce grise */
   assert.ok(z.includes('mu-pts is-zero is-encourage is-defaite') && z.includes('>La revanche t’attend !</h2>') && z.includes('@lea a trouvé cette fois. Chaque défi t’entraîne : à toi la prochaine !'));

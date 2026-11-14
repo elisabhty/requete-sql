@@ -25,12 +25,12 @@ const fin = Date.now() + 5000;
 
 test('la page d’une manche : gagnée, perdue avec ou sans points, 0 à 0 ; sans bouton, le compte à rebours', () => {
   const v = page({ pts: 275, total: 0, solo: false, issue: 'victoire', manche: { n: 0, nb: 3, fin } });
-  assert.ok(v.html.includes('>Manche 1/3 terminée</span>') && v.html.includes('>Manche gagnée !</h2>') && v.html.includes('Tu gagnes <b>275</b> points.</p>'));
+  assert.ok(v.html.includes('>Manche 1/3 terminée</span>') && v.html.includes('>Manche gagnée !</h2>') && v.html.includes('Personne n’a fait mieux cette manche.</p>') && v.html.includes('data-n="275" data-fmt="fr">+275</b>'));
   assert.ok(v.html.includes('<p class="mu-auto-t" aria-live="off"><span>La manche 2 démarre dans <b class="mu-auto-n">5</b> s</span></p><i class="mu-auto-barre"'));
   assert.ok(!v.html.includes('mu-go') && !v.html.includes('Revanche') && !v.html.includes('mu-album'), 'ni bouton ni total à la 1re manche');
   assert.equal(v.MU.manche, 0, 'elle se referme quand la manche suivante part (jeuRender)');
   const d = page({ pts: 230, total: 505, solo: false, issue: 'defaite', qui: '@lea', manche: { n: 1, nb: 3, fin } });
-  assert.ok(d.html.includes('>Bien joué !</h2>') && d.html.includes('@lea remporte la manche, mais tu gagnes <b>230</b> points. Ta partie : <b>505</b> points.'));
+  assert.ok(d.html.includes('>Bien joué !</h2>') && d.html.includes('@lea remporte la manche. Tes points comptent quand même\u00a0! Ta partie : <b>505</b> points.'));
   assert.ok(d.html.includes('<span>Ta partie</span>') && d.html.includes('La manche 3 démarre'));
   const z = page({ pts: 0, total: 0, solo: false, issue: 'defaite', qui: '@lea', manche: { n: 0, nb: 2, fin } });
   assert.ok(z.html.includes('>Tu vas te rattraper !</h2>') && z.html.includes('@lea a trouvé cette manche. La suivante peut être la tienne !') && z.html.includes('<img data-k="effort">') && z.html.includes('>La suite !</span>'));
