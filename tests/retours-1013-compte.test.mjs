@@ -101,7 +101,8 @@ test('« Se déconnecter » : en bas, avec « Supprimer mon compte », dans leur
   assert.ok(!bloc.includes('${CHEV}'), 'des actions, pas des pages');
   /* 13 novembre, 15 h 17 : « gérer mon abo en haut de se déconnecter » : dans le même bloc, juste au-dessus */
   assert.ok(bloc.indexOf('onclick="abonnementGerer()"') > 0 && bloc.indexOf('onclick="abonnementGerer()"') < bloc.indexOf('onclick="seDeconnecter()"'));
-  assert.ok(bloc.includes("${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}"));
+  /* 14 novembre, 13 h 48 : sans compte, « Se connecter » à la place (retours-1346-mon-compte) */
+  assert.ok(bloc.includes('<b>Se déconnecter</b><small>Ta progression reste sur ton compte</small>') && bloc.includes('<b>Se connecter</b><small>Retrouve ta progression sur tous tes appareils</small>'));
   assert.ok(lq.includes('html.lq #scr-compte .acct-compte-actions .account-setting-row{grid-template-columns:40px minmax(0,1fr)!important}'));
 });
 

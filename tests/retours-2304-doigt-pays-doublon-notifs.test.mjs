@@ -103,7 +103,7 @@ test('Mon compte : « Compte connecté » n’est plus dit deux fois, la carte d
   assert.ok(!r.includes('<b>Compte connecté</b>'), 'plus de ligne du même nom dans « Compte et assistance »');
   assert.ok(!r.includes('Progression synchronisable'));
   /* Le reste de « Compte et assistance » est là, dans l’ordre */
-  const ordre = ['<b>Questions fréquentes</b>', '<b>Contacte-nous</b>', '<b>Tes données, tes choix</b>', '<b>Confidentialité des parties</b>', '<b>Gérer mon abonnement</b>', '<b>Se déconnecter</b>', '<b>Supprimer mon compte</b>'].map(x => r.indexOf(x));
+  const ordre = ['<b>Questions fréquentes</b>', '<b>Contacte-nous</b>', '<b>Tes données, tes choix</b>', '<b>Confidentialité des parties</b>', '<b>Gérer mon abonnement</b>', '<b>Se déconnecter</b>', "<b>${connected?'Supprimer mon compte':'Supprimer mes données'}</b>"].map(x => r.indexOf(x));
   assert.ok(ordre.every(i => i > 0) && ordre.join() === [...ordre].sort((a, b) => a - b).join(), ordre.join());
 });
 

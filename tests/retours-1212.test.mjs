@@ -52,9 +52,10 @@ test('réf. 2 et 3 : la suppression du compte dit ce qui part, en deux blocs, pu
   const avecCompte = vm.runInContext(cut('const DEL_SVG={', 'async function compteSupprimer(){') + ';compteSupprimerHTML("",true)', vm.createContext({ esc }));
   assert.ok(avecCompte.includes('<small>Ton pseudo, tes scores et ta place dans les classements, tes avis, ton vote et tes messages, et ton compte.</small>'));
   const f = cut('async function compteSupprimer(){', '\n}\n');
-  assert.ok(f.includes("titre:'Supprimer ton compte ?',texte:'Tu es sur le point de supprimer définitivement ton compte Requête et les données associées.',"));
-  assert.ok(f.includes("corps:compteSupprimerHTML(p,compte),oui:'Continuer vers la confirmation',non:'Conserver mon compte',danger:true"));
-  assert.ok(f.includes("oui:'Supprimer définitivement mon compte',non:'Conserver mon compte',danger:true"), 'la seconde fenêtre dit l’acte final');
+  /* 14 novembre, 13 h 48 : sans compte, « Supprimer mes données » (retours-1346-mon-compte) */
+  assert.ok(f.includes("titre:compte?'Supprimer ton compte ?':'Supprimer tes données ?',texte:compte?'Tu es sur le point de supprimer définitivement ton compte Requête et les données associées.':"));
+  assert.ok(f.includes("corps:compteSupprimerHTML(p,compte),oui:'Continuer vers la confirmation',non:compte?'Conserver mon compte':'Conserver mes données',danger:true"));
+  assert.ok(f.includes("oui:compte?'Supprimer définitivement mon compte':'Supprimer définitivement mes données',non:compte?'Conserver mon compte':'Conserver mes données',danger:true"), 'la seconde fenêtre dit l’acte final');
   /* lqAsk prend un corps (du HTML écrit par l’app) sous le bandeau, que le lecteur d’écran lit aussi */
   const ask = cut('function lqAsk(o){', '/* Elisa, 31 octobre, 8 h 37 (Réf 10)');
   assert.ok(ask.includes("${o.corps?`<div class=\"lq-ask-corps\" id=\"lq-ask-c\">${o.corps}</div>`:''}") && ask.includes("aria-describedby=\"lq-ask-p${o.corps?' lq-ask-c':''}\""));
@@ -220,5 +221,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=376">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=70">') && sw.includes("'./onboarding-vitrine.css?v=70',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-14-reprise-v3011' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-14-compte-v3012' && app.includes(`const SW_CACHE='${cache}';`));
 });

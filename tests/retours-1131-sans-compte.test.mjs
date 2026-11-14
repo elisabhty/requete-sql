@@ -4,7 +4,7 @@
    - La page du compte, à la fin de l’onboarding : « Continuer sans compte » mène au paywall ; la progression reste sur l’iPhone.
    - Plus de page de connexion devant l’appli (ni au lancement, ni après une déconnexion, ni quand la session est perdue).
    - Le pseudo reste obligatoire pendant l’onboarding ; le paywall reste obligatoire (la garde de l’abonnement ne change pas).
-   - Mon compte, sans compte : « Mode local actif · Se connecter » (la ligne « Se déconnecter » reste, comme avant). */
+   - Mon compte, sans compte : « Mode local actif · Se connecter » (et, plus bas, « Se connecter » ; 13 h 48). */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -79,5 +79,5 @@ test('se déconnecter : on reste dans l’appli, sans compte (plus de page de co
 
 test('Mon compte sans compte : « Mode local actif » et « Se connecter » dans la carte du haut', () => {
   assert.ok(app.includes("?{title:'Mode local actif',copy:'Connecte-toi pour retrouver ta progression sur tous tes appareils. Connexion optionnelle.',btn:'Se connecter',action:\"startOnboarding('account')\"}"));
-  /* la ligne « Se déconnecter » reste toujours là (12 novembre, 22 h 14 ; tests/retours-2214.test.mjs) : sans compte, elle ouvre la connexion */
+  /* 14 novembre, 13 h 48 : sans compte, la ligne « Se connecter » remplace « Se déconnecter » (tests/retours-1346-mon-compte.test.mjs) */
 });

@@ -232,7 +232,7 @@ test('« Mon compte » sur le paywall de la garde : se déconnecter, supprimer s
   assert.equal((await essai({accountMode: 'connected'}, false)).o.texte, 'Ton compte est connecté.');
   /* Sans compte connecté : on peut retrouver son compte (et le supprimer ensuite), ou effacer ce qui est sur l’appareil */
   const g = await essai({accountMode: 'guest'}, true);
-  assert.equal(g.o.texte, 'Aucun compte n’est connecté sur cet appareil.'); assert.equal(g.o.oui, 'Me connecter'); assert.equal(g.o.trois, 'Supprimer mon compte');
+  assert.equal(g.o.texte, 'Aucun compte n’est connecté sur cet appareil.'); assert.equal(g.o.oui, 'Me connecter'); assert.equal(g.o.trois, 'Supprimer mes données', '14 novembre, 13 h 48 : sans compte, « Supprimer mes données »');
   assert.deepEqual(g.appels, [['onboarding', 'account']], 'la page de connexion ; refermée ou connectée, le paywall revient (closeOnboardingAuth, obStartAuth)');
   assert.deepEqual((await essai({accountMode: 'guest'}, 'trois')).appels, ['suppression']);
   /* Pendant un paiement : rien */

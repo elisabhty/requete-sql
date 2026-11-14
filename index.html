@@ -46420,7 +46420,7 @@ async function obGardeCompte(){
   const connecte=state.accountMode==='connected';
   const lab=String(state.accountLabel||'').trim(),four={apple:'Apple',google:'Google'}[String(state.accountProvider||'').toLowerCase()]||'';
   const texte=connecte?(lab.includes('@')?`Compte connecté avec ${lab}.`:four?`Compte connecté avec ${four}.`:'Ton compte est connecté.'):'Aucun compte n’est connecté sur cet appareil.';
-  const r=await lqAsk({chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Mon compte',texte,oui:connecte?'Me déconnecter':'Me connecter',trois:'Supprimer mon compte',troisDanger:true,non:'Fermer'});
+  const r=await lqAsk({chat:typeof chatBonusHtml==='function'?chatBonusHtml('salut'):'',titre:'Mon compte',texte,oui:connecte?'Me déconnecter':'Me connecter',trois:connecte?'Supprimer mon compte':'Supprimer mes données',troisDanger:true,non:'Fermer'});
   if(r==='trois'){if(typeof compteSupprimer==='function')compteSupprimer();return;}
   if(!r)return;
   if(connecte){if(typeof seDeconnecter==='function')seDeconnecter();}
@@ -51489,8 +51489,12 @@ function renderCompte(){
           </div>
           <div class="account-settings-list acct-compte-actions">
             ${typeof abonnementIci==='function'&&abonnementIci()?`<button class="account-setting-row" type="button" onclick="abonnementGerer()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Gérer mon abonnement</b><small>Changer d’offre ou annuler</small></span></button>`:''}
-            <button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}</small></span></button>
-            <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>Supprimer mon compte</b><small>Ton pseudo, tes scores et toutes tes données</small></span></button>
+            ${/* 14 novembre, 13 h 48 (Elisa, sa capture de Mon compte sans compte : « on a ces mêmes informations… Est-ce qu’il faut cacher
+                 des boutons ? » ; « Allez, let’s go ») : connecté, « Se déconnecter » et « Supprimer mon compte » ; sans compte, « Se
+                 connecter » (plus de « Se déconnecter » qui ne déconnecte rien) et « Supprimer mes données » (le pseudo, les scores et la
+                 progression, sans compte à supprimer). */''}${connected?`<button class="account-setting-row" type="button" onclick="seDeconnecter()"><span class="plus-row-icon is-stk">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>Ta progression reste sur ton compte</small></span></button>`
+              :obAuthReady()?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon is-stk">${lqStkSvg('restore')}</span><span><b>Se connecter</b><small>Retrouve ta progression sur tous tes appareils</small></span></button>`:''}
+            <button class="account-setting-row is-danger" type="button" onclick="compteSupprimer()"><span class="plus-row-icon is-stk">${lqStkSvg('trash')}</span><span><b>${connected?'Supprimer mon compte':'Supprimer mes données'}</b><small>${connected?'Ton pseudo, tes scores et toutes tes données':'Ton pseudo, tes scores et ta progression'}</small></span></button>
           </div>
         </div>
         ${surIphone?`<div class="account-settings-group">
@@ -51748,7 +51752,7 @@ const DC_RUBRIQUES=[
     'En salle, ta requête part en ligne pour être vérifiée. Seule son empreinte, un code qui ne permet pas de la relire, est gardée 24\u00a0heures au plus.',
     'Ni publicité, ni traceur, rien de revendu\u00a0: l’appli compte seulement comment elle est utilisée, sans savoir qui tu es. Tu peux couper ces statistiques plus bas.']},
   {k:'gerer',stk:'export',t:'Gérer mes données',r:'Télécharger une copie de tes données ou effacer tes informations.',c:['<b>Effacer la progression</b>\u00a0: tes leçons, défis, cartes, notes et planning sont vidés sur cet appareil, et tes scores quittent le classement. Ton pseudo reste à toi.',
-    '<b>Supprimer mon compte</b> (en bas de Mon compte)\u00a0: efface tout ce que le serveur garde pour toi et tout ce qui est sur cet appareil.',
+    '<b>Supprimer mon compte</b> (en bas de Mon compte\u00a0; sans compte, <b>Supprimer mes données</b>)\u00a0: efface tout ce que le serveur garde pour toi et tout ce qui est sur cet appareil.',
     'Supprimer l’appli efface aussi ce qui est sur cet appareil. Avec un compte connecté, ta progression reste sur ton compte.'],actions:true},
 ];
 const DC_OUVERTES=new Set();
@@ -52194,9 +52198,10 @@ async function compteSupprimer(){
   const p=typeof psMien==='function'?psMien():'',compte=state.accountMode==='connected';
   /* Elisa, 5 novembre, 12 h 12 (réf. 2 et 3) : ce qui sera supprimé, en deux blocs (sur Requête, sur cet appareil), puis l’encadré
      « irréversible » ; « Continuer vers la confirmation », car une seconde fenêtre suit, dont le bouton dit l’acte final. */
-  if(!await lqAsk({ico:'🗑️',titre:'Supprimer ton compte ?',texte:'Tu es sur le point de supprimer définitivement ton compte Requête et les données associées.',
-    corps:compteSupprimerHTML(p,compte),oui:'Continuer vers la confirmation',non:'Conserver mon compte',danger:true}))return;
-  if(!await lqAsk({ico:'⚠️',titre:'Dernière confirmation',texte:'Tout supprimer maintenant ? Il ne sera plus possible de revenir en arrière.',oui:'Supprimer définitivement mon compte',non:'Conserver mon compte',danger:true}))return;
+  /* 14 novembre, 13 h 48 : sans compte, « Supprimer mes données » (le pseudo, les scores, la progression) : les deux fenêtres le disent */
+  if(!await lqAsk({ico:'🗑️',titre:compte?'Supprimer ton compte ?':'Supprimer tes données ?',texte:compte?'Tu es sur le point de supprimer définitivement ton compte Requête et les données associées.':'Tu es sur le point de supprimer définitivement ton pseudo, tes scores et ta progression.',
+    corps:compteSupprimerHTML(p,compte),oui:'Continuer vers la confirmation',non:compte?'Conserver mon compte':'Conserver mes données',danger:true}))return;
+  if(!await lqAsk({ico:'⚠️',titre:'Dernière confirmation',texte:'Tout supprimer maintenant ? Il ne sera plus possible de revenir en arrière.',oui:compte?'Supprimer définitivement mon compte':'Supprimer définitivement mes données',non:compte?'Conserver mon compte':'Conserver mes données',danger:true}))return;
   /* Avec un compte connecté (12 novembre), compte_supprimer part avec son jeton : le serveur efface aussi le compte (auth.users) et,
      avec lui, la progression synchronisée. Sans clé de jeu sur l’appareil, une clé neuve suffit à l’appel. */
   const connecte=!!(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.connecte==='function'&&window.REQUETE_AUTH.connecte());
@@ -52454,7 +52459,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-reprise-v3011';
+  const SW_CACHE='requete-2026-11-14-compte-v3012';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

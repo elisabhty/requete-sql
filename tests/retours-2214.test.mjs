@@ -13,10 +13,10 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 
-test('la ligne « Se déconnecter » est toujours là, avant « Supprimer mon compte »', () => {
+test('la ligne « Se déconnecter » : une fois connecté, avant « Supprimer mon compte » (14 novembre, 13 h 48 : sans compte, « Se connecter »)', () => {
   const c = cut('function renderCompte(){', '\nfunction ');
-  const ligne = "<button class=\"account-setting-row\" type=\"button\" onclick=\"seDeconnecter()\"><span class=\"plus-row-icon is-stk\">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>${connected?'Ta progression reste sur ton compte':'Aucun compte connecté sur cet appareil'}</small></span></button>";
-  assert.ok(c.includes('            ' + ligne + '\n'), 'sans condition');
+  const ligne = "${connected?`<button class=\"account-setting-row\" type=\"button\" onclick=\"seDeconnecter()\"><span class=\"plus-row-icon is-stk\">${lqStkSvg('export')}</span><span><b>Se déconnecter</b><small>Ta progression reste sur ton compte</small></span></button>`";
+  assert.ok(c.includes(ligne), 'connecté');
   assert.ok(c.indexOf(ligne) < c.indexOf('onclick="compteSupprimer()"') && c.indexOf(ligne) > c.indexOf('<p class="account-settings-group-title">Compte et assistance</p>'));
 });
 
@@ -57,5 +57,5 @@ test('connecté : la vraie déconnexion (confirmée), puis l’on reste dans l�
   assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Tu nous quittes déjà\u00a0?', 'signOut', 'enregistre', 'ferme', 'mon compte']);
   assert.equal(x.ctx.state.accountMode, 'guest');
   assert.ok(!('accountProvider' in x.ctx.state) && !('accountLabel' in x.ctx.state));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-reprise-v3011';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-compte-v3012';"), 'le cache de l’appli change');
 });
