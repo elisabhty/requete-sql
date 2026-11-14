@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=375">
+<link rel="stylesheet" href="ludique.css?v=376">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=70">
 <style id="lesson-video-css">
@@ -7454,6 +7454,14 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 (function(){
   var d=document.documentElement,L=document.getElementById('loader'),C=window.Capacitor;
   if(!L||!d.classList.contains('is-native'))return;
+  /* 14 novembre, 13 h 36 (Elisa : « quand on quitte l’appli, genre on pousse vers le haut, on va dans une autre, après on revient, ça
+     flash des fois »). En arrière-plan, iOS décharge parfois la page de l’appli pour libérer de la mémoire ; au retour, Capacitor la
+     recharge : l’écran de lancement et toute l’ouverture animée repassaient, et l’on revenait sur l’accueil. Ce n’est pas une arrivée
+     dans l’appli : pas d’ouverture, l’écran de lancement reste un simple aplat et disparaît d’un coup quand la page où l’on était est
+     revenue (restoreNav). sessionStorage (rq-session) ne vit que le temps d’une même ouverture de l’appli : rouverte après avoir été
+     fermée, elle garde son ouverture entière. Même chose après un rechargement voulu (une langue, une version). */
+  var reprise=false;try{reprise=sessionStorage.getItem('rq-session')==='1';}catch(e){}
+  if(reprise){L.classList.add('is-reprise');window.__appReprise=true;return;}
   L.classList.add('is-intro');
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
@@ -20593,6 +20601,8 @@ function bootFatal(){
 const LOADER_MIN_MS=1000;
 function hideLoader(){
   const loader=document.getElementById('loader');
+  /* La page rechargée pendant la même ouverture de l’appli (voir l’en-tête de #loader) : elle apparaît d’un coup, telle qu’on l’avait. */
+  if(typeof window!=='undefined'&&window.__appReprise&&loader){window.nativeAppReady&&window.nativeAppReady();loader.classList.add('fade-out');loader.style.display='none';return;}
   /* Dans l’appli, l’écran de lancement fixe reste jusqu’ici ; l’ouverture animée découvre ensuite l’appli (ludique.css, 37 bis). */
   if(loader&&loader.classList.contains('is-intro')&&typeof window.__introJouer==='function'){window.__introJouer();return;}
   if(window.nativeAppReady)window.nativeAppReady();
@@ -20695,6 +20705,8 @@ async function boot(){
   /* La mise à jour à distance (maj.js) : cette version a démarré, on le confirme. Une version téléchargée qui n’arrive pas ici sans
      erreur n’est pas confirmée : au bout de 20 secondes, l’appli revient d’elle-même à la version d’avant. */
   try{window.REQUETE_MAJ&&window.REQUETE_MAJ.pret(demarrageOk);}catch(e){}
+  /* 14 novembre, 13 h 36 : cette ouverture de l’appli a démarré ; un rechargement d’ici à sa fermeture est une reprise (en-tête de #loader) */
+  if(demarrageOk){try{sessionStorage.setItem('rq-session','1');}catch(e){}}
   hideLoader();
 }
 /* Spotlight : le curseur dépose les coordonnées du halo sur la carte survolée.
@@ -52442,7 +52454,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-comptejeu-v3010';
+  const SW_CACHE='requete-2026-11-14-reprise-v3011';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

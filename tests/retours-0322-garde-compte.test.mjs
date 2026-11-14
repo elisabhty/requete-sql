@@ -178,6 +178,6 @@ test('réf. 5 : pendant le saut de joie, l’animation d’arrivée reste dans l
 });
 
 test('les feuilles de style et le cache changent de version', () => {
-  assert.ok(app.includes('ludique.css?v=375') && app.includes('onboarding-vitrine.css?v=70'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-comptejeu-v3010';"));
+  assert.ok(app.includes('ludique.css?v=376') && app.includes('onboarding-vitrine.css?v=70'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-reprise-v3011';"));
 });
