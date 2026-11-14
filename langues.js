@@ -162,9 +162,13 @@
     for (k in T) if (Object.prototype.hasOwnProperty.call(T[k][1], nom)) { if (vu == null) vu = T[k][1][nom]; else if (vu !== T[k][1][nom]) return vu; }
     return vu;
   }
-  function sql(requete) {
+  /* contexte : le texte autour (le reste de l'éditeur, la phrase) ; ses tables servent aux colonnes citées seules (une ligne
+     « SELECT nom, » dont le FROM produits est à la ligne d'après). */
+  function sql(requete, contexte) {
     var T = tablesBase();
     if (CODE === 'fr' || !T || requete == null) return requete;
+    var autour = [];
+    if (contexte) decouper(String(contexte)).forEach(function (x) { var n = x.g === 'nom' ? x.v.toLowerCase() : ''; if (n && T[n] && autour.indexOf(n) < 0) autour.push(n); });
     var L = decouper(String(requete)), valeursBase = (TRAD.base.valeurs) || {}, i, j;
     var suivant = function (k) { for (k++; k < L.length; k++) if (L[k].g !== 'autre' || /\S/.test(L[k].v)) return k; return -1; };
     var precedent = function (k) { for (k--; k >= 0; k--) if (L[k].g !== 'autre' || /\S/.test(L[k].v)) return k; return -1; };
@@ -188,6 +192,8 @@
       var e = L[i];
       if (e.g === 'chaine') { var c = e.v.slice(1, -1).replace(/''/g, "'"); if (Object.prototype.hasOwnProperty.call(valeursBase, c)) e.v = "'" + String(valeursBase[c]).replace(/'/g, "''") + "'"; continue; }
       if (e.g !== 'nom' || e.alias) continue;
+      /* Un alias entre guillemets doubles (« nom AS "Nom du produit" ») : traduit comme le texte qu'il affiche */
+      if (e.guillemets && TRAD.textes && Object.prototype.hasOwnProperty.call(TRAD.textes, e.v)) { e.v = String(TRAD.textes[e.v]).replace(/"/g, '""'); continue; }
       if (e.table) { e.v = casse(e.v, T[e.table][0]); continue; }
       var nom = e.v.toLowerCase(), p = precedent(i), n = suivant(i), table = '';
       if (n >= 0 && L[n].v === '(') continue;   // COUNT(, une fonction
@@ -199,7 +205,13 @@
         /* Sans préfixe : la table citée la plus proche qui a cette colonne */
         var mieux = -1;
         for (j = 0; j < citees.length; j++) if (T[citees[j].table][1][nom] && (mieux < 0 || Math.abs(citees[j].i - i) < Math.abs(citees[mieux].i - i))) mieux = j;
-        if (mieux < 0) { var g = colonneSeule(nom); if (g) e.v = casse(e.v, g); continue; }
+        if (mieux < 0) {
+          var g = null;
+          for (j = 0; j < autour.length && g == null; j++) if (Object.prototype.hasOwnProperty.call(T[autour[j]][1], nom)) g = T[autour[j]][1][nom];
+          if (g == null) g = colonneSeule(nom);
+          if (g) e.v = casse(e.v, g);
+          continue;
+        }
         table = citees[mieux].table;
       }
       if (T[table][1][nom]) e.v = casse(e.v, T[table][1][nom]);
@@ -322,10 +334,14 @@
   function codeSql(el) {
     if (!TRAD || !TRAD.base || CODE === 'fr' || !el) return;
     try { if (API.autreBase && API.autreBase()) return; } catch (e) {}
+    /* Le contexte : le bloc de code (l'éditeur entier), sinon la phrase ou le paragraphe qui contient ce code */
+    var bloc = null;
+    try { bloc = el.closest ? el.closest('.body, pre, .code, .codepill, .rq, p, li, td, th, .c') : null; } catch (e) {}
+    var contexte = ((bloc || el.parentNode || el).textContent || '') + ' ' + ((el.getAttribute && el.getAttribute('data-table')) || '');
     (function tour(p) {
       for (var n = p.firstChild; n; n = n.nextSibling) {
         if (n.nodeType === 1) tour(n);
-        else if (n.nodeType === 3 && fait.get(n) !== n.nodeValue) { var v = sql(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; fait.set(n, v); }
+        else if (n.nodeType === 3 && fait.get(n) !== n.nodeValue) { var v = sql(n.nodeValue, contexte); if (v !== n.nodeValue) n.nodeValue = v; fait.set(n, v); }
       }
     })(el);
   }

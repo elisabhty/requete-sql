@@ -2651,6 +2651,26 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Recommencer la vidéo": "Restart the video",
     "Tout recommencer": "Start over",
     "Bien rattrapé !": "Nice save!",
-    "Raté": "Missed"
+    "Raté": "Missed",
+    /* Les bilans des leçons du module 1 et des premières leçons du module 2 (15 novembre) */
+    "Les trois idées à retenir": "The three ideas to remember",
+    "Une <1>table</1> range un sujet : <2/>, <3/>, <4/>.": "A <1>table</1> holds one subject: <2/>, <3/>, <4/>.",
+    "Ses colonnes sont des caractéristiques, ses lignes des enregistrements.": "Its columns are attributes, its rows are records.",
+    "Une <1>clé primaire</1> (<2/>) identifie chaque ligne ; une <3>clé étrangère</3> renvoie vers celle d’une autre table :": "A <1>primary key</1> (<2/>) identifies each row; a <3>foreign key</3> points to the one of another table:",
+    "choisit les <1>colonnes</1> à afficher, séparées par une virgule ; l’étoile <2/> les prend toutes :": "chooses the <1>columns</1> to show, separated by a comma; the star <2/> takes them all:",
+    "Il agit sur le résultat, sans modifier la table.": "It works on the result, without changing the table.",
+    "donne un <1>nom d’affichage</1> (un alias) à une colonne.": "gives a column a <1>display name</1> (an alias).",
+    "Il se place <1>juste après la colonne</1> :": "It goes <1>right after the column</1>:",
+    "Un alias avec des espaces ou des symboles s’écrit entre <1>guillemets doubles</1> :": "An alias with spaces or symbols is written between <1>double quotes</1>:",
+    "retire les <1>doublons</1> du résultat.": "removes <1>duplicates</1> from the result.",
+    "Il se place <1>juste après le <2/></1> :": "It goes <1>right after <2/></1>:",
+    "Avec plusieurs colonnes, il compare la <1>combinaison entière</1> des valeurs :": "With several columns, it compares the <1>whole combination</1> of values:",
+    "Pas de séance prévue aujourd’hui. {1} activités prévues demain.": "No session planned today. {1} activities planned tomorrow.",
+    "Pas de séance prévue aujourd’hui. {1} activité prévue demain.": "No session planned today. {1} activity planned tomorrow.",
+    "Demain · {1} activités": "Tomorrow · {1} activities",
+    "Demain · {1} activité": "Tomorrow · {1} activity",
+    /* Les alias des leçons (traduits aussi dans le code : nom AS "Nom du produit") */
+    "Nom du produit": "Product name",
+    "Prix (€)": "Price (€)"
   }
 });

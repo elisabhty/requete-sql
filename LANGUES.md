@@ -111,6 +111,11 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
 - **Le module 1** (14 novembre) : la base en anglais, la vidéo « Les bases de données relationnelles » (282 textes, son code,
   ses cinq moments, le badge et la vignette en anglais), l’écran de la leçon, son lecteur et sa fin. Sa voix anglaise reste à
   générer (environ 10 000 caractères, autant de crédits ElevenLabs).
+- **Le module 2** (15 novembre) : AS et DISTINCT en anglais (vidéos, vignettes, bilans). Les dix autres vidéos du module
+  (WHERE, comparer, AND et OR, NOT, NULL, LIKE, IN, BETWEEN, ORDER BY, LIMIT et OFFSET : environ 1 500 textes) suivent ; une
+  vidéo pas encore traduite reste entièrement en français, avec sa voix. Le code d’une ligne d’éditeur prend la table de son
+  éditeur (`SELECT nom,` puis `FROM produits` : `name`), un alias entre guillemets doubles est traduit comme son texte
+  (`"Nom du produit"` : `"Product name"`), et le code d’un bilan peut dire sa table (5e valeur d’une ligne de `recap`).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans

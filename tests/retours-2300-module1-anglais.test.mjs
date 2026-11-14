@@ -119,7 +119,7 @@ test('la vidéo du module 1 : ses largeurs en anglais, son badge et sa vignette 
     assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, f);
     assert.ok(sw.includes(`'./${f}'`), `préchargé : ${f}`);
   }
-  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles']};") && app.includes('<img src="${lvVignette(v)}" alt="" decoding="async">'));
+  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles',") && app.includes('<img src="${lvVignette(v)}" alt="" decoding="async">'));
 });
 
 test('l’écran de la leçon et son lecteur en anglais', () => {
@@ -150,4 +150,24 @@ test('la voix anglaise du module 1 : prête pour generer.mjs --langue en, fichie
   }
   const total = en.elements.reduce((a, e) => a + e.texte.length, 0);
   assert.ok(total > 7000 && total < 10000, `${total} caractères (autant de crédits)`);
+});
+
+test('le module 2 commence : AS et DISTINCT en anglais (textes, vignettes) ; le code d’une ligne prend la table de son éditeur', () => {
+  for (const c of ['as', 'distinct']) {
+    const pg = lire(`assets/anim/${c}.html`), src = lire(`assets/anim/en/${c}.js`), textes = {};
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    vm.runInNewContext(src, {window: {REQUETE_LANGUE: {ajouter: (l, x) => Object.assign(textes, x.textes)}}});
+    assert.ok(Object.keys(textes).length > 100, `${c} : ${Object.keys(textes).length} textes`);
+    const f = x => [String(x.match(/\{\w+\}/g) || []), String((x.match(/<\d+\/?>/g) || []).sort())];
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000);
+  }
+  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct']};"));
+  const {L} = anglais();
+  assert.equal(L.sql('SELECT nom AS "Nom du produit",', 'SELECT nom AS "Nom du produit", prix FROM produits;'), 'SELECT name AS "Product name",', 'la table de l’éditeur, l’alias traduit');
+  assert.equal(L.sql('nom', 'produits'), 'name');
+  assert.equal(L.sql('nom'), 'last_name');
+  assert.ok(app.includes('["📍","Il se place <b>juste après la colonne</b> :",null,"nom AS \\"Nom du produit\\"","produits"]'), 'le code du bilan de AS : sa table');
+  assert.ok(MOTEUR.includes("((el.getAttribute && el.getAttribute('data-table')) || '')"));
 });

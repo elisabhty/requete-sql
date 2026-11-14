@@ -18,7 +18,7 @@ vm.runInContext(src, ctx);
 const decode = s => s.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const text = s => decode(s.replace(/<[^>]+>/g, ''));
 /* <li><b aria-hidden="true">🔗</b><div><strong>…</strong>[<span>…</span>][<code class="fk-rc">…</code>]</div></li> */
-const CARD = /^<li><b aria-hidden="true">([^<]+)<\/b><div><strong>([\s\S]+?)<\/strong>(?:<span>([\s\S]+?)<\/span>)?(?:<code class="fk-rc">([^<\n]+)<\/code>)?<\/div><\/li>$/;
+const CARD = /^<li><b aria-hidden="true">([^<]+)<\/b><div><strong>([\s\S]+?)<\/strong>(?:<span>([\s\S]+?)<\/span>)?(?:<code class="fk-rc"(?: data-table="[a-z_]+")?>([^<\n]+)<\/code>)?<\/div><\/li>$/;
 
 test('71 cours, tous dans le même format', () => {
   assert.equal(lessons.length, 71);

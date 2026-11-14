@@ -8276,7 +8276,7 @@ function guideBlock(b){
   if(b.scene){const L=GUIDE_XSCENES[GUIDE_CUR]||(GUIDE_XSCENES[GUIDE_CUR]=[]);L.push(guideScene(b.scene));return `<div class="pr-slot" data-xscene="${L.length-1}"></div>`;}
   if(b.sub)return `<p class="st-lab"><i aria-hidden="true">${b.sub[0]}</i>${guideFr(b.sub[1])}</p>`;
   /* Récapitulatif en cartes : [emoji, phrase, précision, exemple de code]. */
-  if(b.recap)return `<ol class="fk-syn-map is-recap"${lab(b.label)}>${b.recap.map(([i,t,sub,code])=>`<li><b aria-hidden="true">${i}</b><div><strong>${guideFr(t)}</strong>${sub?`<span>${guideFr(sub)}</span>`:''}${code?`<code class="fk-rc">${guideEsc(code)}</code>`:''}</div></li>`).join('')}</ol>`;
+  if(b.recap)return `<ol class="fk-syn-map is-recap"${lab(b.label)}>${b.recap.map(([i,t,sub,code,table])=>`<li><b aria-hidden="true">${i}</b><div><strong>${guideFr(t)}</strong>${sub?`<span>${guideFr(sub)}</span>`:''}${code?`<code class="fk-rc"${table?` data-table="${table}"`:''}>${guideEsc(code)}</code>`:''}</div></li>`).join('')}</ol>`;
   if(b.need)return `<div class="ij-need" role="list"${lab(b.label)}>${b.need.map(([i,t,w,c])=>`<div role="listitem"><b>${i?i+' ':''}${guideFr(t)}</b><span${c?` class="is-${c}"`:''}>${guideFr(w)}</span></div>`).join('')}</div>`;
   if(b.warn||b.tip){
     const m=b.warn||b.tip,warn=!!b.warn;
@@ -8808,7 +8808,7 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
   reflex:[
     {recap:[
       ["🏷️","<code>AS</code> donne un <b>nom d’affichage</b> (un alias) à une colonne.","Il agit sur le résultat, sans modifier la table."],
-      ["📍","Il se place <b>juste après la colonne</b> :",null,"nom AS \"Nom du produit\""],
+      ["📍","Il se place <b>juste après la colonne</b> :",null,"nom AS \"Nom du produit\"","produits"],   // 5e valeur : la table du code (sa traduction : name)
       ["💬","Un alias avec des espaces ou des symboles s’écrit entre <b>guillemets doubles</b> :",null,"\"Prix (€)\""]
     ],label:"Les trois idées à retenir"}
   ]
@@ -31867,7 +31867,7 @@ function lvGatePips(l){
 }
 /* La vignette du cours dans la langue de l’appli : une image qui porte du texte. LV_VIGNETTES : les cours dont la vignette existe
    dans la langue (assets/anim/<langue>/<cours>-thumb.webp), au fil de leur traduction. */
-const LV_VIGNETTES={en:['bases-relationnelles']};
+const LV_VIGNETTES={en:['bases-relationnelles','as','distinct']};
 function lvVignette(v){
   try{const L=window.REQUETE_LANGUE,m=/assets\/anim\/([\w-]+)-thumb\./.exec(v.thumb||'');
     if(L&&L.code!=='fr'&&m&&(LV_VIGNETTES[L.code]||[]).includes(m[1]))return `assets/anim/${L.code}/${m[1]}-thumb.webp`;}catch(e){}
@@ -53503,7 +53503,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-module-v3043';
+  const SW_CACHE='requete-2026-11-15-module-v3044';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
