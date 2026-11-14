@@ -822,7 +822,7 @@ test('salle entre amis sans personne : la partie se joue comme seul (écran, poi
   h.ev('jeuFinish()'); sec(w, 1.5);
   assert.equal(h.view(), 'final');
   assert.match(h.html, /Carton plein|Bien joué|Pas encore cette fois/, 'le bilan, pas le podium');
-  assert.doesNotMatch(h.html, /jeu-podium|Tu as gagné/);
+  assert.doesNotMatch(h.html, /jeu-fin-pod|Tu as gagné/);
   assert.match(h.html, /onclick="jeuRevanche\(\)"/); assert.match(h.html, /Quitter la salle/);
   assert.equal(h.ev('state.salle.hist[0].solo'), 1, 'notée « Seul » dans Tes performances');
 });
@@ -1015,7 +1015,7 @@ test('toutes les vues se dessinent sans erreur (échappement des pseudos compris
   clore(host); host.ev('jeuNextRound()'); sec(w, 5); clore(host); sec(w, 1);
   host.ev('jeuNextRound()'); sec(w, 5); clore(host); sec(w, 1);
   host.ev('jeuFinish()'); sec(w, 1);
-  const fin = grab(); assert.match(fin, /class="jeu-podium"/); assert.doesNotMatch(fin, /Classement final/, 'deux joueurs, tous deux sur le podium : pas de liste en double');
+  const fin = grab(); assert.match(fin, /class="dx-pod jeu-fin-pod"/); assert.doesNotMatch(fin, /jeu-fin-list/, 'deux joueurs, tous deux sur le podium : pas de lignes en double');
   assert.deepEqual([...seen].sort(), ['draw', 'final', 'lobby', 'play', 'res']);
 });
 
@@ -1174,7 +1174,7 @@ test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille 
   assert.doesNotMatch(host.html, /Tu as gagné/, 'personne n’a marqué : pas de gagnant');
   /* 13 novembre, 17 h 16 : le 0 à 0, sa page (le seul ex æquo possible), sans podium vide */
   assert.match(host.html, /class="jr2-hero jeu-issue is-nul"/); assert.match(host.html, /<h1 id="jr2-t">Match nul\u00a0!<\/h1>/);
-  assert.match(host.html, /Personne n’a trouvé ce défi\./); assert.doesNotMatch(host.html, /jeu-podium/, 'pas de médaille d’or à 0 point');
+  assert.match(host.html, /Personne n’a trouvé ce défi\./); assert.doesNotMatch(host.html, /jeu-fin-pod/, 'pas de médaille d’or à 0 point');
   const w2 = new World();
   const h = makeClient(w2, 'Hôte'); h.ev('jeuNb=1'); h.host('TIE001'); sec(w2, 1);
   const g = makeClient(w2, 'Ami'); g.join('TIE001'); sec(w2, 3);
@@ -1732,9 +1732,9 @@ test('12 h 36 : l’ami resté seul garde la salle d’attente en hôte ; le pod
   {
     const { w, host, guests } = room({ n: 2, nb: 1 });
     host.ev('jeuNextRound()'); sec(w, 4.5); guests[0].found(); sec(w, 615);
-    assert.equal(guests[0].view(), 'final'); assert.match(guests[0].html, /jeu-podium/);
+    assert.equal(guests[0].view(), 'final'); assert.match(guests[0].html, /jeu-fin-pod/);
     host.offline = true; sec(w, 65);
-    assert.match(guests[0].html, /jeu-podium/, 'l’hôte à 0 point n’est plus compté présent : le podium reste');
+    assert.match(guests[0].html, /jeu-fin-pod/, 'l’hôte à 0 point n’est plus compté présent : le podium reste');
     assert.doesNotMatch(guests[0].html, /jeuRejouer\(\)|jeuAgain\(\)/);
     sec(w, 20);
     assert.ok(guests[0].ev('jeuIsHost()'));
@@ -1755,7 +1755,7 @@ test('12 h 47 : l’hôte perd le réseau pile à la fin de la dernière manche 
   host.found(); sec(w, 1); host.offline = true; sec(w, 3);
   for (const g of guests) assert.equal(g.view(), 'play0', g.name + ' : sa carte, « Tes points arrivent dans 5 s » (13 novembre, 17 h 31)');
   sec(w, 5);
-  for (const g of guests) { assert.equal(g.view(), 'final', g.name + ' : le podium, sans l’hôte'); assert.match(g.html, /jeu-podium/); assert.doesNotMatch(g.html, /jeuAgain\(\)/); }
+  for (const g of guests) { assert.equal(g.view(), 'final', g.name + ' : le podium, sans l’hôte'); assert.match(g.html, /jeu-fin-pod/); assert.doesNotMatch(g.html, /jeuAgain\(\)/); }
   assert.equal(guests[0].J('over'), false, 'la fin de partie n’est pas encore partie');
   sec(w, 90);
   assert.ok(guests[0].ev('jeuIsHost()'));

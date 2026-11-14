@@ -88,7 +88,7 @@ test('résultats et fin de partie allégés ; les points de la partie ont leur p
   /* 1er novembre, 8 h 59 : plus jamais la requête ; le résultat attendu, replié quand on a trouvé */
   assert.ok(!r.includes('<summary class="jeu-card-h">Le résultat attendu</summary>') && r.includes('Tu pourras retenter ce défi plus tard.') && r.includes('const autoHTML=`<p class="jeu-auto jr2-auto" id="jeu-auto"') && !r.includes('highlight(c.sol)'), 'plus de résultat attendu sur les résultats de manche (16 h 04)');
   assert.ok(r.includes('}else if(!sl){') && !r.includes('<p class="jeu-card-h">Au total</p>') && r.includes('<i class="jr2-mv is-up"'), 'dès la 2e manche, un seul classement, au total, avec ▲ ▼ (16 h 04)');
-  assert.ok(r.includes('const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));'), 'la liste finale seulement si le podium ne dit pas tout');
+  assert.ok(r.includes('const surPodium=new Set(sc.filter(x=>x.place<=3&&x.pts>0).map(x=>x.pid));') && r.includes('const autres=sc.filter(x=>!surPodium.has(x.pid));') && r.includes("const lignes=autres.length?"), 'sous le podium, seulement les joueurs qui n’y sont pas (14 novembre)');
   assert.ok(r.includes("const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?"), 'le mot sur l’égalité seulement s’il y a égalité');
   for (const k of ['html.lq .jeu-pd i{padding:0!important;background:none!important;', 'html.lq .jeu-pd i:not(:last-child)::after{content:"·";', 'html.lq .jeu-rank li.is-me{', 'html.lq .jeu-sol>summary{display:flex;'])
     assert.ok(s50.includes(k), k);

@@ -260,7 +260,7 @@ test('réf 4 — le podium s’anime quand il arrive à l’écran ; « Les red�
   const ctx = vm.createContext({ document: { getElementById: () => card }, jeuRoomSet: (k, v) => calls.push([k, v]), JEU_NIVL: { f: 1, m: 1, d: 1 }, prefersReduceMotion: () => true, buzz() {}, setTimeout() {}, jeuChallenges: () => [1], jeuSavePrefs() {} });
   vm.runInContext(fn('perfRematch') + ";perfRematch('m');", ctx);
   assert.deepEqual(calls, [['mode', 'friends'], ['niv', 'm'], ['scroll', 1336], ['nudge', 'is-nudge']], 'entre amis, même niveau, la salle à l’écran, le bouton qui fait signe');
-  /* Le podium de fin de partie a les mêmes médailles */
-  assert.ok(app.includes("<span class=\"jeu-medal\">${lqStkSvg('medal'+pl)}</span>"));
+  /* Le podium de fin de partie a les mêmes médailles (14 novembre : posées sur la marche, comme au classement des Défis) */
+  assert.ok(app.includes("bloc=`<i class=\"dx-pod-bloc\" aria-hidden=\"true\">${lqStkSvg('medal'+pl)}</i>`"));
   assert.ok(fn('lqStkSvg').includes("const MED={medal1:'#FFC83D',medal2:'#DCE0EE',medal3:'#F4A86A'};"));
 });
