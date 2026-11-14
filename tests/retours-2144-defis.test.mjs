@@ -165,7 +165,8 @@ test('depuis le classement : une ligne se touche (ou son nom au clavier) et ouvr
   assert.ok(h.includes('aria-label="Face à face\u00a0: @lea 1 victoire, toi 3 victoires, en 4 confrontations"') && h.includes('<div class="dx-fiche-duel is-up"'));
   assert.ok(h.includes('<p class="dx-duel-voir">4 confrontations</p>'), 'sans parties gardées avec lui : le nombre, sans liste à déplier');
   assert.ok(h.includes('<p class="dx-fiche-h2h">Dernier duel&nbsp;: hier</p>'));
-  assert.ok(h.includes('<button type="button" class="dx-fiche-signal" onclick="dxFicheSignaler(\'a1\')">Signaler ce pseudo</button>'), 'ouverte du classement : « Signaler ce pseudo »');
+  /* 14 novembre, 17 h 42 (règle 1.2 d’Apple ; Elisa : « signaler et bloquer alors comme un lien ») : « Signaler et bloquer » */
+  assert.ok(h.includes('<button type="button" class="dx-fiche-signal" onclick="dxFicheSignaler(\'a1\')">Signaler et bloquer</button>'), 'ouverte du classement : « Signaler et bloquer »');
   assert.ok(h.includes('onclick="dxFicheDefier()"><span>Défier @lea</span>') && !h.includes('dx-fiche-ajout'), 'il mène pas : « Défier » ; déjà dans tes adversaires : pas de « Ajouter »');
   assert.equal(c.appels.filter(x => x[0] === 'jeu_classement_v2').length, 1, 'rien de plus à demander');
   assert.equal(c.appels.length, n);
@@ -314,10 +315,10 @@ test('refonte — la fiche : « En salle maintenant » et « Rejoindre » ; ouve
   assert.ok(h.includes('<div class="dx-fiche-live"><span class="dx-dot" aria-hidden="true"></span><p><b>En salle maintenant</b><small class="dx-pcs"><span class="dx-pc is-niv is-d is-blanc"><i class="jeu-bars is-d" aria-hidden="true"><b></b><b></b><b></b></i><span>Difficile</span></span><span class="dx-pc is-gens is-doux"><svg')
     && h.includes('<span>3/5</span></span></small></p><button type="button" class="dx-join" onclick="dxFicheRejoindre(\'AAA111\')"'));
   assert.ok(h.includes('aria-label="Rejoindre la salle de @kev : Difficile, 3 joueurs sur 5"'));
-  assert.ok(h.indexOf('dx-fiche-live') < h.indexOf('dx-fiche-kpi') && h.indexOf('<span>Défier @lea</span>') < h.indexOf('Signaler ce pseudo'), 'le bouton validé ne change pas');
+  assert.ok(h.indexOf('dx-fiche-live') < h.indexOf('dx-fiche-kpi') && h.indexOf('<span>Défier @lea</span>') < h.indexOf('Signaler et bloquer'), 'le bouton validé ne change pas');
   c.ev("dxFicheRejoindre('AAA111')");
   assert.deepEqual(J(c.appels.slice(-2)), [['fermer', true], ['jeuStart', 'AAA111', false, null, { nomId: 'jeu-nom', pub: true, verif: true, enLecon: true }]], 'la fiche se ferme, puis la salle s’ouvre');
-  assert.ok(fn('dxFicheSignaler').includes('defisFeuilleFermer(true);dxFicheEtat=null;') && fn('dxFicheSignaler').includes('clsSignalerV2(id)'));
+  assert.ok(fn('dxFicheSignaler').includes('defisFeuilleFermer(true);dxFicheEtat=null;') && fn('dxFicheSignaler').includes("jeuSignalerBloquer(n,id||'')"));
 });
 
 test('refonte — la feuille de style : la DA du site sur la nouvelle structure, 44 px partout, Mes stats sans onglets', () => {

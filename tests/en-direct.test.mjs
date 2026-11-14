@@ -335,7 +335,7 @@ test('une réaction d’un autre jaillit de son avatar, dans la rangée du bande
   assert.equal(later[0][1], 1100); later[0][0](); assert.ok(b.gone, 'elle s’en va d’elle-même');
   s.ctx.document.getElementById = () => null; assert.equal(s.ev("jeuReactPop('b','🔥')"), false, 'sans « En direct » : rien');
   const react = cut("    case 'react':", "    case 'rate':{");
-  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}'), 'reçue des autres : de son avatar, et le long de l’écran avec son pseudo (18 h 36) ; à la chaîne, dite une fois (20 h 07)');
+  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine&&!(typeof jeuBloque===\'function\'&&jeuBloque(name))){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}'), 'reçue des autres : de son avatar, et le long de l’écran avec son pseudo (18 h 36) ; à la chaîne, dite une fois (20 h 07)');
   /* 8 novembre, 18 h 36 : la sienne monte avec celles des autres (« Toi ») ; elle ne jaillit plus de son avatar, juste sous les
      réactions qu’on vient de toucher dans le cadre */
   const mienne = cut('function jeuReact(e,btn){', '\n}\n');

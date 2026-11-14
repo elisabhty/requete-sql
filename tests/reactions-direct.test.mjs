@@ -240,7 +240,7 @@ test('les réactions en direct : l’emoji et le pseudo montent juste au-dessus 
 
 test('reçue d’un autre : de son avatar et le long de l’écran ; la carte « Trouvé » garde ses réactions ; on part, elles partent', () => {
   const react = cut("    case 'react':", "    case 'rate':{");
-  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}'), 'à la chaîne, dite une fois');
+  assert.ok(react.includes('if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine&&!(typeof jeuBloque===\'function\'&&jeuBloque(name))){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}'), 'à la chaîne, dite une fois');
   const f = cut('function jeuFoundHTML(r,pid){', '\nfunction jeuCountUp(el){');
   assert.ok(f.includes("${JEU_REACTS.map(e=>`<button type=\"button\" onclick=\"jeuReact('${e}',this)\" aria-label=\"Réagir ${e}\">${e}</button>`).join('')}"));
   const stop = cut('function jeuStop(){', '\n}\n');

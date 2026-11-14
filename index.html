@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=379">
+<link rel="stylesheet" href="ludique.css?v=380">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=71">
 <style id="lesson-video-css">
@@ -24592,6 +24592,8 @@ function normalizeState(raw){
   }
   if(salleSrc.clsRefus){const r=salleNom(salleSrc.clsRefus);if(r)salle.clsRefus=r;}
   if(Array.isArray(salleSrc.masques)){const m=salleSrc.masques.filter(uuid).slice(-50);if(m.length)salle.masques=m;}
+  /* Les joueurs signalés et bloqués (14 novembre, 17 h 42 ; jeuBloquer) : leur pseudo et l’heure, 100 au plus */
+  if(Array.isArray(salleSrc.bloques)){const b=salleSrc.bloques.filter(x=>x&&typeof x==='object'&&typeof x.n==='string'&&x.n.trim()).map(x=>({n:String(x.n).trim().slice(0,40),at:salleBig(x.at)})).slice(-100);if(b.length)salle.bloques=b;}
   /* 13 novembre, 23 h 38 (Elisa : « l’onglet Classement ne semble pas fonctionner ») : la file des parties à envoyer au classement
      ne gardait que l’ancienne forme ({u:'abc123', pts, n…}). Les parties vérifiées par le serveur ({u:'K7P2QX-0', salle, g},
      jeu_score_v2) n’y passaient pas (le tiret du u, ni salle ni g) : le save() de clsEnvoyer vidait la file, aucune partie n’arrivait
@@ -29690,7 +29692,7 @@ function renderDefisPerf(){
      le podium de la dernière partie entre amis, les places gagnées, les amis affrontés et le score entre vous, et de quoi les redéfier. */
   const vsLast=hist.find(h=>!h.solo&&Array.isArray(h.ppl)&&h.ppl.length>1),meLast=vsLast&&vsLast.ppl.find(x=>x.me);
   /* Les 3 dernières personnes avec qui on a joué (Elisa, 31 octobre, 15 h 16), la plus récente en premier, et le score entre vous. */
-  const mates=Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).filter(m=>m&&m.n&&num(m.g)>0)
+  const mates=Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).filter(m=>m&&m.n&&num(m.g)>0&&!(typeof jeuBloque==='function'&&jeuBloque(m.n)))
     .map(m=>({n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)})).sort((a,b)=>b.at-a.at||b.g-a.g).slice(0,3);
   const friends=`<div class="perf-block perf-friends"><h3>À plusieurs</h3>
     <p class="perf-pod-cap">${vsLast?`<b>Ta dernière partie</b> · ${esc(perfDay(vsLast.at))} · ${esc(JEU_NIVL[vsLast.niv]||'Facile')} · ${esc(perfWith(vsLast))}`:'Ton prochain podium à plusieurs s’affichera ici.'}</p>
@@ -30061,7 +30063,7 @@ function sallesCharger(force){
   if(DEFIS.sallesBusy)return DEFIS.sallesBusy;
   if(!force&&DEFIS.salles&&Date.now()-DEFIS.sallesAt<8000)return Promise.resolve(DEFIS.salles);
   DEFIS.sallesBusy=clsRpc('jeu_salles_ouvertes',{p_cle:clsCle()}).then(l=>{
-    DEFIS.salles=(Array.isArray(l)?l:[]).filter(sallesValide).map(s=>Object.assign({},s,{nb:+s.nb,max:+s.max||JEU_MAX,manches:Math.max(1,+s.manches||1)}));
+    DEFIS.salles=(Array.isArray(l)?l:[]).filter(sallesValide).filter(o=>!(typeof jeuSalleBloquee==='function'&&jeuSalleBloquee(o))).map(s=>Object.assign({},s,{nb:+s.nb,max:+s.max||JEU_MAX,manches:Math.max(1,+s.manches||1)}));
     DEFIS.sallesAt=Date.now();DEFIS.sallesErr='';DEFIS.sallesBusy=null;
     DEFIS.salles.forEach(s=>{drapNoter(s.hote,s.pays);(Array.isArray(s.joueurs)?s.joueurs:[]).forEach(j=>j&&drapNoter(j.pseudo,j.pays));});
     sallesRepeindre();
@@ -30253,7 +30255,7 @@ function defisStatsPeindre(){
 /* 8 novembre, 14 h 48 (« je veux marcher qu’avec code ») : tes amis, ce sont ceux avec qui tu as joué ; plus d’ajout par pseudo. */
 function clsAmisPseudos(){
   const s=state.salle||{},n=new Set();
-  Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).forEach(m=>{if(m&&m.n)n.add(m.n);});
+  Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).forEach(m=>{if(m&&m.n&&!(typeof jeuBloque==='function'&&jeuBloque(m.n)))n.add(m.n);});
   return [...n].slice(0,100);
 }
 function clsCleV2(){
@@ -30404,7 +30406,7 @@ function clsPagerRemplir(){
   if(sc){
     const hide=new Set(Array.isArray((state.salle||{}).masques)?state.salle.masques:[]);
     [...sc.children].forEach((ul,i)=>{
-      const l=c.pages[i],v=l?l.filter(x=>x&&!hide.has(x.id)):null;
+      const l=c.pages[i],v=l?l.filter(x=>x&&!hide.has(x.id)&&!(typeof jeuBloque==='function'&&jeuBloque(x.pseudo))):null;
       const h=!v?clsAttenteHTML():i>0?v.map(clsLigneHTML).join(''):clsPodiumHTML(v)+v.filter(x=>Math.floor(+x.rang||0)>3).map(clsLigneHTML).join('')+clsMoiSuiteHTML(v);
       if(ul._dxH!==h){ul.innerHTML=h;ul._dxH=h;}
       ul.classList.toggle('is-wait',!l);
@@ -30513,13 +30515,7 @@ function clsPlacePeindre(){
 /* Signaler depuis une page du classement : comme clsSignaler (masqué pour soi tout de suite, compté par la base). */
 function clsSignalerV2(id){
   const c=DEFIS.cls,x=Object.values(c.pages).flat().find(y=>y&&y.id===id);if(!x)return;
-  lqAsk({ico:'🚩',titre:`Signaler «\u00a0${x.pseudo}\u00a0»\u00a0?`,texte:'Ce pseudo ne s’affichera plus dans ton classement. Après plusieurs signalements, il est masqué pour tout le monde et vérifié.',oui:'Signaler',non:'Annuler',danger:true})
-    .then(ok=>{
-      if(!ok)return;
-      const s=clsSalle();s.masques=(Array.isArray(s.masques)?s.masques:[]).filter(v=>v!==id).concat([id]).slice(-50);save();
-      clsPagerRemplir();lqSay(`${x.pseudo} est signalé et masqué.`);if(typeof buzz==='function')buzz('success');
-      clsRpc('jeu_signaler',{p_cle:clsCle(),p_joueur:id}).catch(()=>{});
-    });
+  clsSalle();jeuSignalerBloquer(x.pseudo,id);   // 14 novembre, 17 h 42 : signalé et bloqué (jeuSignalerBloquer)
 }
 
 /* ---- Amis ----
@@ -30528,7 +30524,7 @@ function clsSignalerV2(id){
    donc plus rien à retirer. 10 novembre : l’onglet Adversaires est retiré ; la liste sert au classement « Mes adversaires ». */
 function amisListe(){
   const s=state.salle||{},num=v=>Math.max(0,Math.floor(+v||0)),out=new Map();
-  Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).forEach(m=>{if(m&&m.n&&num(m.g)>0)out.set(drapCle(m.n),{n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)});});
+  Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).forEach(m=>{if(m&&m.n&&num(m.g)>0&&!(typeof jeuBloque==='function'&&jeuBloque(m.n)))out.set(drapCle(m.n),{n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)});});
   return [...out.values()].sort((a,b)=>b.at-a.at||b.g-a.g);
 }
 /* « Défier » et « Inviter par lien » : une salle privée, au niveau et au nombre de manches habituels ; la salle d’attente donne le
@@ -30662,7 +30658,7 @@ function dxFicheHTML(){
     ${m&&m.g?dxFicheDuelHTML(m,e)+`<p class="dx-fiche-h2h">Dernier duel&nbsp;: ${esc(perfDay(m.at).toLowerCase())}</p>`:''}
     <div class="dx-f-pied">
     <button type="button" class="room-go" onclick="dxFicheDefier()"><span>${dxFicheRevanche(m,e)?'Prendre ta revanche ⚡':`Défier ${esc(e.n)}`}</span>${DEF_CHEV_SVG}</button>
-    ${x?`<button type="button" class="dx-fiche-signal" onclick="dxFicheSignaler('${escAttr(x.id)}')">Signaler ce pseudo</button>`:''}</div>
+    <button type="button" class="dx-fiche-signal" onclick="dxFicheSignaler('${escAttr(x?x.id:'')}')">Signaler et bloquer</button></div>
     </div>`;
 }
 /* La salle ouverte où il attend (hôte ou déjà entré), d’après la liste rafraîchie toutes les 10 s ; sinon null. */
@@ -30675,10 +30671,12 @@ function dxFicheRejoindre(code){
   defisFeuilleFermer(true);dxFicheEtat=null;
   sallesRejoindre(code);
 }
-/* « Signaler ce pseudo » : la fiche se ferme, puis la question de toujours (clsSignalerV2 : masqué pour toi, compté par la base). */
+/* « Signaler et bloquer » (avant le 14 novembre, « Signaler ce pseudo ») : la fiche se ferme, puis la question (jeuSignalerBloquer :
+   bloqué sur l’appareil, signalé au serveur). id : sa ligne du classement, si la fiche en vient. */
 function dxFicheSignaler(id){
+  const n=dxFicheEtat&&dxFicheEtat.n;
   defisFeuilleFermer(true);dxFicheEtat=null;
-  setTimeout(()=>clsSignalerV2(id),typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:260);
+  setTimeout(()=>jeuSignalerBloquer(n,id||''),typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:260);
 }
 function dxFicheOuvrir(retour){
   let el=document.getElementById('dx-feuille');
@@ -37505,6 +37503,100 @@ function jeuSoloAuDemarrage(){
   /* Ses points comptés, on arrive sur Défis ; le lendemain ou plus tard, l’accueil, comme à chaque lancement. */
   if(age>=0&&age<JEU_SOLO_GARDE_MS&&activeTab!=='defis'&&typeof switchTab==='function')switchTab('defis');
 }
+/* 14 novembre, 17 h 42 (Elisa : « Ok signaler et bloquer alors comme un lien » ; règle 1.2 d’Apple : dès que des joueurs voient un contenu
+   venu des autres, pseudos, drapeaux, salles publiques, réactions, il faut pouvoir les signaler et les bloquer, même sans chat). Un seul
+   geste, un lien « Signaler et bloquer » : le pseudo est signalé au serveur (jeu_signaler, masqué pour tous après plusieurs signalements)
+   et bloqué sur l’appareil : il disparaît du classement, de tes adversaires et des salles ouvertes, ses réactions ne s’affichent plus, et
+   il n’entre plus dans une salle dont tu es l’hôte (refusé comme d’une salle complète, sans rien lui dire de plus). Le lien est dans la
+   fiche d’un joueur (classement, adversaires) et en bas de chaque écran d’une salle à plusieurs (jeuSignalerLienHTML). */
+const JEU_BLOQUES_MAX=100;
+function jeuCleNom(n){return String(n||'').trim().replace(/^@+/,'').toLowerCase();}
+function jeuBloques(){const s=typeof state!=='undefined'&&state&&state.salle;return s&&Array.isArray(s.bloques)?s.bloques:[];}
+function jeuBloque(n){const k=jeuCleNom(n);return !!k&&jeuBloques().some(b=>b&&jeuCleNom(b.n)===k);}
+function jeuBloquer(n){
+  const k=jeuCleNom(n);if(!k||typeof state==='undefined'||!state)return;
+  const s=state.salle=state.salle&&typeof state.salle==='object'?state.salle:{};
+  s.bloques=jeuBloques().filter(b=>b&&jeuCleNom(b.n)!==k).concat([{n:String(n).slice(0,40),at:Date.now()}]).slice(-JEU_BLOQUES_MAX);
+  if(typeof save==='function')save();
+}
+function jeuSalleBloquee(o){return !!o&&(jeuBloque(o.hote)||(Array.isArray(o.joueurs)?o.joueurs:[]).some(j=>j&&jeuBloque(j.pseudo)));}
+/* La question, puis le blocage et le signalement. id : celui du classement s’il est connu ; sinon le serveur le retrouve par le pseudo. */
+function jeuSignalerBloquer(n,id){
+  n=jeuNom(n);if(!n||jeuCleNom(n)===jeuCleNom(typeof jeuSavedNom==='function'?jeuSavedNom():''))return;
+  lqAsk({ico:'🚩',titre:`Signaler et bloquer «\u00a0${n}\u00a0»\u00a0?`,texte:'Tu ne verras plus ce joueur, ni dans le classement, ni dans tes adversaires, ni dans les salles ouvertes, et il ne pourra plus entrer dans tes salles. Son pseudo est signalé : après plusieurs signalements, il est masqué pour tout le monde et vérifié.',oui:'Signaler et bloquer',non:'Annuler',danger:true})
+    .then(ok=>{
+      if(!ok)return;
+      jeuBloquer(n);
+      if(id){const s=state.salle;s.masques=(Array.isArray(s.masques)?s.masques:[]).filter(v=>v!==id).concat([id]).slice(-50);if(typeof save==='function')save();}
+      jeuSignalerServeur(n,id);
+      if(typeof lqSay==='function')lqSay(`${n} est signalé et bloqué.`);
+      if(typeof buzz==='function')buzz('success');
+      jeuBloqueApplique();
+    });
+}
+function jeuSignalerServeur(n,id){
+  if(typeof clsRpc!=='function'||typeof clsCle!=='function')return;
+  const env=j=>{try{clsRpc('jeu_signaler',{p_cle:clsCle(),p_joueur:j}).catch(()=>{});}catch(e){}};
+  if(id){env(id);return;}
+  try{clsRpc('jeu_classement_v2',{p_cle:clsCle(),p_portee:'amis',p_periode:'tout',p_page:0,p_pays:null,p_pseudos:[n]}).then(d=>{
+    const l=(d&&Array.isArray(d.lignes)?d.lignes:[]).find(y=>y&&!y.moi&&jeuCleNom(y.pseudo)===jeuCleNom(n));
+    if(l&&l.id)env(l.id);
+  },()=>{});}catch(e){}
+}
+/* Bloqué : ce qui est à l’écran suit (le classement, les salles ouvertes, la salle d’attente dont on est l’hôte : il en sort). */
+function jeuBloqueApplique(){
+  if(typeof clsPagerRemplir==='function')try{clsPagerRemplir();}catch(e){}
+  if(typeof DEFIS!=='undefined'&&DEFIS&&Array.isArray(DEFIS.salles))DEFIS.salles=DEFIS.salles.filter(o=>!jeuSalleBloquee(o));
+  const J=typeof JEU!=='undefined'?JEU:null;
+  if(J&&!J.solo&&jeuIsHost()&&!jeuCommencee())Object.keys(J.players).forEach(p=>{if(p!==J.me&&!J.denied[p]&&jeuBloque(J.players[p].name))jeuSend({t:'deny',who:p,hu:J.helloOf[p]});});
+  if(J)jeuRedraw();
+}
+/* Dans une salle : les autres joueurs de la partie (même partis), sans ceux déjà bloqués. */
+function jeuAutresNoms(){
+  const J=JEU;if(!J||J.solo)return [];
+  const vus=new Set(),out=[];
+  J.order.forEach(p=>{if(p===J.me||J.denied[p])return;const n=(J.players[p]||{}).name;const k=jeuCleNom(n);if(n&&k&&!vus.has(k)&&!jeuBloque(n)){vus.add(k);out.push(n);}});
+  return out;
+}
+function jeuSignalerLienHTML(){return '<p class="jeu-signal-p"><button type="button" class="jeu-signal" onclick="jeuSignalerChoisir()">Signaler et bloquer un joueur</button></p>';}
+/* Sa place en bas de l’écran de la salle : redessinée sur place quand un joueur arrive (jeuPatch ne refait pas tout l’écran). */
+function jeuSignalSlotHTML(){const on=jeuAutresNoms().length>0;return `<div id="jeu-signal-slot" data-on="${on?'1':''}">${on?jeuSignalerLienHTML():''}</div>`;}
+function jeuSignalMaj(){
+  const ss=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-signal-slot'):null;if(!ss)return;
+  const on=jeuAutresNoms().length>0;
+  if(((ss.dataset&&ss.dataset.on)==='1')!==on){ss.innerHTML=on?jeuSignalerLienHTML():'';if(ss.dataset)ss.dataset.on=on?'1':'';}
+}
+/* Un seul autre joueur : la question tout de suite ; plusieurs : une feuille, un lien par joueur. */
+function jeuSignalerChoisir(){
+  const noms=jeuAutresNoms();if(!noms.length)return;
+  if(noms.length===1||typeof document==='undefined'||!document.body){jeuSignalerBloquer(noms[0]);return;}
+  let el=document.getElementById('dx-feuille');const neuf=!el;
+  if(neuf){
+    el=document.createElement('div');el.id='dx-feuille';el.className='dx-feuille';
+    if(typeof dxFeuilleTouche==='function')document.addEventListener('keydown',dxFeuilleTouche,true);
+    const vv=window.visualViewport;if(vv&&typeof dxFeuilleCaler==='function'){vv.addEventListener('resize',dxFeuilleCaler);vv.addEventListener('scroll',dxFeuilleCaler);}
+  }
+  const a=document.activeElement;if(typeof dxFeuilleRetour!=='undefined')dxFeuilleRetour=a&&a!==document.body?a:null;
+  el.dataset.k='signaler';
+  const av=n=>`<b class="jeu-av" data-c="${typeof perfColor==='function'?perfColor(n):0}" aria-hidden="true">${jeuInitial(n)}${typeof jeuFlag==='function'?jeuFlag(n):''}</b>`;
+  const lignes=noms.map(n=>`<li>${av(n)}<span class="dx-sig-n">${esc(n)}</span><button type="button" class="dx-fiche-signal" data-n="${escAttr(n)}" onclick="jeuSignalerDepuisFeuille(this)" aria-label="${escAttr(`Signaler et bloquer ${n}`)}">Signaler et bloquer</button></li>`).join('');
+  el.innerHTML=`<button type="button" class="dx-f-fond" tabindex="-1" aria-label="Fermer" onclick="defisFeuilleFermer()"></button>
+    <div class="dx-f-boite" role="dialog" aria-modal="true" aria-labelledby="dx-f-t" aria-describedby="dx-f-p" tabindex="-1">
+      <button type="button" class="lq-x dx-f-x" aria-label="Fermer" onclick="defisFeuilleFermer()">${typeof LQ_X_SVG!=='undefined'?LQ_X_SVG:'×'}</button>
+      <div class="room-head"><div><p class="room-kicker">Un joueur te gêne&nbsp;?</p><h2 id="dx-f-t">Signaler et bloquer</h2>
+      <p class="room-sub" id="dx-f-p">Tu ne le verras plus, et il ne pourra plus entrer dans tes salles.</p></div></div>
+      <div class="dx-f-corps" data-k="signaler"><ul class="dx-sig-liste">${lignes}</ul></div>
+    </div>`;
+  const bx=el.querySelector('.dx-f-boite');
+  const montrer=()=>{el.classList.add('on');try{bx.focus({preventScroll:true});}catch(e){}if(typeof dxFeuilleCaler==='function')dxFeuilleCaler();};
+  if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
+  if(typeof buzz==='function')buzz('light');
+}
+function jeuSignalerDepuisFeuille(b){
+  const n=b&&b.dataset?b.dataset.n:'';
+  if(typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
+  setTimeout(()=>jeuSignalerBloquer(n),typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:260);
+}
 /* 14 novembre, 16 h 40 (Elisa : « Ok mais si la partie est terminée ? ») : entre amis aussi, une partie en cours que iOS ferme se rouvre
    au lancement. L’appli qui passe derrière garde la salle d’une partie en cours (jeuSalleGarder) ; au lancement (jeuSalleAuDemarrage),
    quittée il y a moins d’1 h, on y revient comme après un rechargement (jeuReprendre) : la manche en cours, au même chrono que les autres ;
@@ -37743,6 +37835,8 @@ function jeuOnMsg(m){
       /* Un arrivant en direct : on se signale tout de suite, pour qu’il nous voie. */
       if(m.pid!==J.me&&J.synced&&!J.solo&&!replay)setTimeout(()=>{if(JEU===J&&!J.full)jeuSend({t:'ping'});},Math.random()*600);
       if(m.pid!==J.me)jeuMaybeDeny(m.pid,m.u);
+      /* Un joueur bloqué (17 h 42) n’entre pas dans la salle d’attente dont on est l’hôte */
+      if(m.pid!==J.me&&!replay&&jeuIsHost()&&!jeuCommencee()&&!J.denied[m.pid]&&typeof jeuBloque==='function'&&jeuBloque(name))jeuSend({t:'deny',who:m.pid,hu:m.u});
       break;}
     case 'deny':{
       if(m.pid!==J.hostPid||!m.who)return;
@@ -37814,7 +37908,7 @@ function jeuOnMsg(m){
       if(J.view==='res'+(+m.n))jeuRedraw();
       break;}
     case 'react':
-      if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}
+      if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine&&!(typeof jeuBloque==='function'&&jeuBloque(name))){const suite=jeuReactSuite(m.pid);if(!suite)jeuToast(`${name} ${m.e}`);jeuReactPop(m.pid,m.e);jeuReactBulle(m.pid,m.e,name,suite);}
       return;
     case 'rate':{
       /* 6 novembre, 16 h (règle de l’expert choisie par Elisa) : un essai, même manqué, fait de lui un joueur de la manche ; la place ne
@@ -38563,6 +38657,7 @@ function jeuReagirEcoute(){
    de la première, un rien de côté, sans le pseudo (déjà dit) : elles montent en grappe derrière elle. */
 function jeuReactBulle(pid,e,nom,suite,quoi){
   const J=JEU;
+  if(J&&J.players[pid]&&typeof jeuBloque==='function'&&jeuBloque(J.players[pid].name))return false;   // bloqué (17 h 42) : ni ses réactions ni ses bulles
   if(!J||typeof document==='undefined'||typeof document.createElement!=='function'||!document.body||document.hidden)return false;
   const root=document.getElementById('jeu-root');if(!root)return false;
   let c=document.getElementById('jeu-rl');
@@ -38821,6 +38916,7 @@ function jeuPatch(v){
     if(rv){const x=document.createElement('div');x.innerHTML=jeuRevancheHTML();const nv=x.firstElementChild;if(nv&&nv.outerHTML!==rv.outerHTML)rv.replaceWith(nv);}
   }
   jeuNetMaj();
+  if(typeof jeuSignalMaj==='function'&&!J.solo)jeuSignalMaj();   // « Signaler et bloquer un joueur » (17 h 42) : un joueur arrive, le lien paraît
   const go=document.getElementById('jeu-go');
   if(go)go.disabled=v==='lobby'&&!jeuPeutLancer();
   if(v==='lobby')jeuLobbyEtatMaj();
@@ -39291,6 +39387,8 @@ function jeuRender(){
   }
   /* 9 novembre, 16 h 59 (Elisa : « sur iPhone, vérifie bien que l’écran “Oups, la partie a déjà démarré” soit bien centré, pas tout en
      haut ») : ces écrans d’une seule carte (oups, partie commencée, complète, introuvable, vide) se centrent dans la hauteur de l’écran. */
+  /* 17 h 42 (règle 1.2) : « Signaler et bloquer un joueur », un lien en bas de chaque écran d’une salle, dès qu’un autre joueur y est passé */
+  if(!J.solo&&/^(lobby|play\d+|res\d+|final)$/.test(v)&&typeof jeuSignalSlotHTML==='function')html+=jeuSignalSlotHTML();
   if(['oups','tard','full','lost','empty'].includes(v))html=`<div class="jeu-centre">${html}</div>`;
   /* Fondu enchaîné : une copie de la scène du tirage reste posée par-dessus et s’efface pendant que la manche arrive. */
   let ghost=null;
@@ -52893,7 +52991,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-salle-v3022';
+  const SW_CACHE='requete-2026-11-14-bloquer-v3023';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

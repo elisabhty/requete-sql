@@ -2547,3 +2547,41 @@ test('16 h 40 : finie pendant l’absence : l’écran de fin, ses points compt�
   s.host.ev('jeuNextRound()'); sec(s.w, 4.5); x.ev('jeuSalleGarder()'); assert.ok(salleGardee(x), 'en cours : gardée');
   x.ev('jeuStop()'); assert.equal(salleGardee(x), null, 'quittée');
 });
+
+/* ---------- 17 h 42 (Elisa : « Ok signaler et bloquer alors comme un lien » ; règle 1.2 d’Apple) ---------- */
+test('17 h 42 : « Signaler et bloquer » : le lien en bas d’une salle à plusieurs ; bloqué, il n’entre plus dans ta salle d’attente et ses réactions ne s’affichent plus', () => {
+  const { w, host, guests } = room({ n: 2, nb: 1 });
+  const ami = guests[0];
+  host.ev('jeuRedraw()'); sec(w, 0.3);   // (le harnais ne garde que l’écran entier : jeuPatch, lui, pose le lien sur place, jeuSignalMaj)
+  assert.match(host.html, /<div id="jeu-signal-slot" data-on="1"><p class="jeu-signal-p"><button type="button" class="jeu-signal" onclick="jeuSignalerChoisir\(\)">Signaler et bloquer un joueur<\/button><\/p><\/div>/, 'en bas de la salle d’attente');
+  /* Un seul autre joueur : la question tout de suite, puis bloqué, et refusé de la salle d’attente (comme d’une salle complète) */
+  host.ev('jeuSignalerChoisir()'); sec(w, 2);
+  assert.deepEqual(host.ev('state.salle.bloques.map(b=>b.n)'), ['Ami1']);
+  assert.equal(ami.view(), 'full', 'il ne voit qu’une salle complète');
+  assert.deepEqual(host.live(), ['Hôte']);
+  host.ev('jeuRedraw()'); sec(w, 0.3);
+  assert.match(host.html, /<div id="jeu-signal-slot" data-on=""><\/div>/, 'plus personne à signaler');
+  /* Il revient avec le code : refusé de nouveau */
+  const b = makeClient(w, 'Ami1'); b.ev("jeuNiv='f';jeuNb=1"); b.join('ROOM42'); sec(w, 4);
+  assert.equal(b.view(), 'full');
+  /* Seul (une partie solo) : pas de lien */
+  const s = makeClient(w, 'Seul'); s.ev("jeuStart('SOLO77',true,null,{solo:true})"); sec(w, 4);
+  assert.doesNotMatch(s.html, /jeu-signal/);
+});
+
+test('17 h 42 : bloqué en pleine partie : il la finit (ses points restent), mais ses réactions ne s’affichent plus ; les salles ouvertes où il est sont cachées', () => {
+  const { w, host, guests } = room({ n: 2, nb: 1 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  host.ev('jeuRedraw()'); sec(w, 0.3);
+  assert.match(host.html, /class="jeu-signal"/, 'pendant la manche aussi');
+  ami.ev("jeuSend({t:'react',e:JEU_REACTS[0]})"); sec(w, 1);
+  const avant = host.toasts.length;
+  assert.ok(avant > 0, 'sa réaction, avant');
+  host.ev("jeuBloquer('@Ami1')");
+  ami.ev("JEU.lastReact=0;jeuSend({t:'react',e:JEU_REACTS[1]})"); sec(w, 1);
+  assert.equal(host.toasts.length, avant, 'bloqué : plus rien de lui');
+  assert.deepEqual(host.live().sort(), ['Ami1', 'Hôte'], 'la partie commencée continue avec lui');
+  assert.equal(host.ev("jeuSalleBloquee({hote:'@kev',joueurs:[{pseudo:'@kev'},{pseudo:'ami1'}]})"), true, 'une salle ouverte où il joue : cachée');
+  assert.equal(host.ev("jeuSalleBloquee({hote:'@kev',joueurs:[{pseudo:'@kev'}]})"), false);
+});
