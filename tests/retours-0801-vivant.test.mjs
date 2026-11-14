@@ -246,6 +246,6 @@ test('les moments de la tuile sont des Ã©tats, les passages des transitions ; lâ
 });
 
 test('la feuille de style et le cache changent de version', () => {
-  assert.ok(app.includes('onboarding-vitrine.css?v=72'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-accord-v3024';"));
+  assert.ok(app.includes('onboarding-vitrine.css?v=73'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-question-v3025';"));
 });

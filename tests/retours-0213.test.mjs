@@ -38,7 +38,7 @@ test('le bandeau vert n’est plus pixelisé : une fois posé, l’animation ne 
   assert.ok(css.includes('@keyframes obvStampIn{0%{opacity:0;transform:scale(.4) rotate(-12deg)}60%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{opacity:1;transform:rotate(-1.5deg)}}'));
   const base = css.match(/html #onboarding\.ob-vitrine \.ob-practice-reward\{[^}]+\}/)[0];
   assert.ok(base.includes('transform:rotate(-1.5deg)') && !/will-change/.test(base), 'penché, sans calque gardé exprès');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=72">') && sw.includes("'./onboarding-vitrine.css?v=72',"), 'feuille rechargée');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && sw.includes("'./onboarding-vitrine.css?v=73',"), 'feuille rechargée');
 });
 
 /* 13 novembre, 9 h 56 : le bouton dit « Commencer » et mène à l’accueil, plus dans la première leçon (retours-0956-video-heros.test.mjs). */
@@ -54,7 +54,7 @@ test('« Commencer » (avant, « Commencer la première leçon ») a la flèche 
 });
 
 test('le pseudo passe avant « Ton parcours est prêt », qui reste la dernière page', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','widgetVerrou','widgetVerrouTuto','pseudo','ready','account','paywall'];"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','stats','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','widgetVerrou','widgetVerrouTuto','pseudo','ready','account','paywall'];"));
   const go = fnLast('obGoto');
   assert.ok(go.includes("if(OB_SLIDES[n]==='ready'&&obPseudoAvant())return;"), 'tout chemin vers la dernière page passe par le pseudo');
   assert.ok(go.indexOf('obPseudoAvant()') < go.indexOf('obLock=true'));

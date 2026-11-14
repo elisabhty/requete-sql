@@ -592,12 +592,13 @@ Migration `20261113002420_onboarding_entonnoir_premieres_lecons.sql`, appliquée
 de leçon, une ligne « Leçon débloquée » montre le cadenas qui s’ouvre et mène à la leçon suivante.
 
 **Depuis le 14 novembre (v3024), les statistiques anonymes et l’entonnoir attendent un accord** (App Review 5.1.1(ii) :
-un accord, même pour des données anonymes). Une case décochée au départ, « Envoyer des statistiques d’usage anonymes pour
-améliorer l’appli », sous la phrase des conditions de la page du compte, et l’interrupteur de Mon compte › Tes données, tes
-choix. Sans elle, rien ne part (`statActif`, clé `rq-stat-accord`) : ni `stat_noter`, ni `onboarding_compter`. Les étapes
-vues restent notées sur l’appareil et partent quand la case est cochée ; l’entonnoir ne compte donc plus que les appareils
-qui ont accepté (les étapes d’avant la page du compte y sont à 100 %). Les appareils installés avant la v3024 n’envoient
-plus rien tant qu’ils ne l’ont pas activé dans Mon compte. App Privacy : « Données d’utilisation » (interactions avec le
+un accord, même pour des données anonymes). Depuis la v3025, une mini-page juste après « Commencer » (la page `stats`) :
+« Tu nous aides à améliorer Requête ? », « Oui, avec plaisir » ou « Non merci », deux boutons de même taille (5.1.1(iv)) ;
+puis l’interrupteur de Mon compte › Tes données, tes choix. Sans « oui », rien ne part (`statActif`, clé `rq-stat-accord`) :
+ni `stat_noter`, ni `onboarding_compter`. Les étapes vues restent notées sur l’appareil et partent avec le « oui » ;
+l’entonnoir ne compte donc plus que les appareils qui ont accepté (la question vient juste après « bonjour » : on y voit
+toujours où l’accueil perd du monde). Les appareils installés avant la v3024 n’envoient plus rien tant qu’ils ne l’ont pas
+activé dans Mon compte ; « J’ai déjà un compte », qui ne passe pas par l’accueil, ne pose pas la question non plus. App Privacy : « Données d’utilisation » (interactions avec le
 produit) et « Diagnostics » (les messages d’erreur), usage « Analyses », non liés à l’identité, sans pistage.
 
 ### La note de l’app, puis la page du widget (13 novembre, 1 h 02)

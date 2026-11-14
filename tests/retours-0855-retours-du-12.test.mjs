@@ -15,12 +15,12 @@ const ob = lire('onboarding-vitrine.css');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 
 test('réf. 5 et 6 : « bonjour » ouvre l’onboarding, « questions » annonce le prénom ; hors des étapes comptées', () => {
-  assert.ok(app.includes("const OB_SLIDES = ['bonjour','welcome','questions','name','pays',"));
+  assert.ok(app.includes("const OB_SLIDES = ['bonjour','stats','welcome','questions','name','pays',"));
   const next = cut('function obNext(){\n  const slide=OB_SLIDES[obStep];', 'function obBack(){');
   assert.ok(next.includes("if(slide==='bonjour')obGoto('welcome');\n  else if(slide==='welcome')obGoto('questions');\n  else if(slide==='questions')obGoto('name');"));
   const start = cut('function startOnboarding(initial=', 'let obApercu=false;');
   assert.ok(start.includes("obStep=OB_SLIDES.indexOf(obEntry==='welcome'?'bonjour':obEntry);"), 'le parcours complet commence par « bonjour »');
-  assert.ok(app.includes("    if(['bonjour','welcome','questions'].includes(r.slide)||OB_WIDGET_SLIDES.includes(r.slide))return null;"), 'une reprise ne repart pas de ces pages');
+  assert.ok(app.includes("    if(['bonjour','stats','welcome','questions'].includes(r.slide)||OB_WIDGET_SLIDES.includes(r.slide))return null;"), 'une reprise ne repart pas de ces pages');
   assert.ok(cut('function obBack(){\n  if(obLegalMode)', 'function obPick(').includes("if(OB_SLIDES[obStep]==='account'){obGoto(draft.finVoulue?'ready':'bonjour');return;}"));
   assert.ok(app.includes('const OB_PROFILE_SLIDES=[\'name\','), 'les étapes comptées commencent toujours au prénom');
   /* « bonjour » : la bulle, le chat qui fait coucou, le nom en grand, la promesse ; « Commencer » et « J’ai déjà un compte » */

@@ -60,7 +60,7 @@ test('la page de confidentialité dit ce qui part désormais', () => {
   /* 14 novembre, 18 h : avec l’accord des statistiques seulement */
   assert.ok(p.includes('<li><b>Écrans de l’accueil</b> (facultatif, avec ton accord). Si tu acceptes les statistiques d’usage anonymes (voir juste après), les écrans de l’accueil de l’appli que tu as vus'));
   assert.ok(p.includes('ni ton nom, ni ton e-mail, ni tes réponses. Nous n’en tirons qu’un décompte (combien d’appareils ont vu chaque écran)'));
-  assert.ok(p.includes('ni outil de mesure d’audience d’un tiers, ni pixel de suivi. La seule mesure est celle que Requête fait elle-même, et seulement si tu l’acceptes&nbsp;: les écrans de l’accueil et les statistiques d’usage anonymes (voir plus haut), demandées par une case décochée au départ.'));
+  assert.ok(p.includes('ni outil de mesure d’audience d’un tiers, ni pixel de suivi. La seule mesure est celle que Requête fait elle-même, et seulement si tu l’acceptes&nbsp;: les écrans de l’accueil et les statistiques d’usage anonymes (voir plus haut), demandées une fois, au premier lancement.'));
   assert.ok(!p.includes('ni outil de mesure d’audience, ni pixel de suivi'), 'plus « aucune mesure » : les écrans de l’accueil sont comptés');
   /* Dans l’ordre : le vote, les avis, les écrans de l’accueil, puis les messages de contact */
   const i = ['<li><b>Vote pour le prochain parcours</b>', '<li><b>Avis sur les leçons</b>', '<li><b>Écrans de l’accueil</b>', '<li><b>Messages de contact.</b>'].map(k => p.indexOf(k));

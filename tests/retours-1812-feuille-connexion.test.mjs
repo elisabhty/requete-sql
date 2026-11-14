@@ -21,8 +21,8 @@ test('les textes : la réf. 4 dans la feuille, « Connecte-toi en un geste, et c
 });
 
 test('un seul bloc : la phrase des conditions est dans la feuille, le pied est caché', () => {
-  assert.ok(feuille.includes("${authReady?`<p class=\"ob-acc-legal\">${legalHtml}</p>${typeof statCaseHTML==='function'?statCaseHTML():''}`:''}\n      </div></div>`;"), 'tout en bas de la feuille');
-  assert.ok(page.includes("if(!masquee&&authReady)obSetFooter('',null,'','','');\n    else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal+(typeof statCaseHTML==='function'?statCaseHTML():'')});"));
+  assert.ok(feuille.includes("${authReady?`<p class=\"ob-acc-legal\">${legalHtml}</p>`:''}\n      </div></div>`;"), 'tout en bas de la feuille');
+  assert.ok(page.includes("if(!masquee&&authReady)obSetFooter('',null,'','','');\n    else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});"));
   assert.ok(app.includes("root.classList.toggle('ob-feuille-seule',slide==='account'&&!obLegalMode&&authReady&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));"));
   assert.ok(obv.includes('html #onboarding.ob-vitrine.ob-feuille-seule .ob-foot{display:none!important}'));
   assert.ok(obv.includes('html #onboarding.ob-vitrine .ob-acc-legal{margin:14px auto 0;max-width:330px;color:var(--v-ink-3);'));

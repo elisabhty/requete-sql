@@ -6755,7 +6755,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=381">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=72">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -45897,7 +45897,7 @@ let obLock=false;
    d’abord, puis « Ton parcours est prêt », la connexion et le paywall, et l’app. On paie après avoir vu son parcours. */
 /* 12 novembre (réf. 5 et 6, d’après HeyRua : « mettre ces écrans, on n’en a pas ») : « bonjour », le chat qui salue avec le nom de
    l’appli, avant l’accueil ; « questions », l’annonce des questions, juste avant le prénom. Hors des étapes comptées (obFlowSteps). */
-const OB_SLIDES = ['bonjour','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','widgetVerrou','widgetVerrouTuto','pseudo','ready','account','paywall'];
+const OB_SLIDES = ['bonjour','stats','welcome','questions','name','pays','age','job','goal','level','rhythm','jours','build','methode','temoignages','pact','practice','source','rappel','widget','widgetTuto','widgetVerrou','widgetVerrouTuto','pseudo','ready','account','paywall'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
 function greetingForHour(hour){
@@ -46569,7 +46569,7 @@ function obRepriseLire(){
     if(r&&r.slide==='promise')r.slide='temoignages';   // la page « 24 jours » a rejoint celle des jours (17 h 27)
     if(!r||r.v!==1||!OB_SLIDES.includes(r.slide)||!r.draft||typeof r.draft!=='object'||Array.isArray(r.draft))return null;
     if(!(Date.now()-Number(r.at)<14*864e5))return null;
-    if(['bonjour','welcome','questions'].includes(r.slide)||OB_WIDGET_SLIDES.includes(r.slide))return null;
+    if(['bonjour','stats','welcome','questions'].includes(r.slide)||OB_WIDGET_SLIDES.includes(r.slide))return null;
     return {slide:r.slide==='pseudo'?'ready':r.slide,draft:r.draft};
   }catch(e){return null;}
 }
@@ -46608,8 +46608,8 @@ function obCompterLecon(quoi){
     if(n===2)obCompter('leconDeux');
   }catch(e){}
 }
-/* 14 novembre, 18 h (l'accord des statistiques, plus bas) : les étapes vues restent notées sur l'appareil, mais ne partent qu'une fois
-   la case « Envoyer des statistiques d'usage anonymes » cochée ; sans elle, rien ne quitte le téléphone. */
+/* 14 novembre, 18 h (l'accord des statistiques, plus bas) : les étapes vues restent notées sur l'appareil, mais ne partent qu'après
+   un « oui » à la question des statistiques (ou l'interrupteur de Mon compte) ; sans lui, rien ne quitte le téléphone. */
 function obCompteEnvoyer(){
   if(typeof statActif==='function'&&!statActif())return Promise.resolve(false);
   const c=obCompteLire(),reste=c.vues.filter(v=>!c.parties.includes(v)).slice(0,30);
@@ -46627,9 +46627,10 @@ function obCompteEnvoyer(){
    par lots de 40 au plus (stat_noter), avec la clé de l'appareil : le serveur la brouille deux fois, on ne peut pas la relier au pseudo.
    Ni nom, ni e-mail, ni requête SQL. « Statistiques anonymes » dans Tes données, tes choix les coupe (et vide la file).
    14 novembre, 18 h (Elisa : « Est-ce possible de le demander en bas avec les conditions d'utilisation etc » ; App Review 5.1.1(ii) :
-   un accord, même pour des données anonymes) : elles attendent un accord. Une case décochée sous la phrase des conditions, sur la
-   page du compte (statCaseHTML), et l'interrupteur de Tes données, tes choix. Tant qu'elle n'est pas cochée, rien n'est noté ni
-   envoyé, ni ces statistiques ni l'entonnoir de l'accueil ; décochée ensuite, la file se vide et ce qui est parti est effacé. */
+   un accord, même pour des données anonymes) : elles attendent un accord. 18 h 39 (« une case décochée, personne ne va la
+   cocher » ; « Ok, une mini-page après commencer ») : la question « Tu nous aides à améliorer Requête ? », juste après
+   « Commencer » (la page « stats », obStatsRepondre), et l'interrupteur de Tes données, tes choix. Sans « oui », rien n'est noté
+   ni envoyé, ni ces statistiques ni l'entonnoir de l'accueil ; retirées ensuite, la file se vide et ce qui est parti est effacé. */
 const STAT_FILE='rq-stat-file',STAT_OFF='rq-stat-off',STAT_VU='rq-stat-vu',STAT_SERIE='rq-stat-serie',STAT_ACCORD='rq-stat-accord';
 let statEnvoi=false,statT=0,statErreurs=0;
 /* L'accord : '1' (la case cochée), '0' (décochée), '' (jamais coché : rien ne part). Avant le 14 novembre, seul le refus était noté. */
@@ -46694,11 +46695,7 @@ function statChoisir(on){
   try{localStorage.setItem(STAT_ACCORD,on?'1':'0');localStorage.removeItem(STAT_OFF);if(!on)localStorage.removeItem(STAT_FILE);}catch(e){}
   /* Cochée : l'ouverture du jour (et l'installation) se notent maintenant, et l'entonnoir de l'accueil part avec */
   if(on){if(avant!=='1')setTimeout(()=>{try{statOuverture();statEnvoyer();if(typeof obCompteEnvoyer==='function')obCompteEnvoyer();}catch(e){}},0);}
-  else if(avant!=='0')statOublier();   // décochée : ce qui est déjà parti est effacé aussi
-}
-/* La case de la page du compte (14 novembre, 18 h), sous la phrase des conditions : décochée tant qu'on ne l'a pas cochée */
-function statCaseHTML(){
-  return `<label class="ob-stat-case"><input type="checkbox"${statActif()?' checked':''} onchange="statChoisir(this.checked)"><span>Envoyer des statistiques d’usage anonymes pour améliorer l’appli</span></label>`;
+  else if(avant==='1')statOublier();   // retirées : ce qui est déjà parti est effacé aussi (un « non » d’emblée n’appelle personne)
 }
 /* Effacer les statistiques de cet appareil sur le serveur (« Supprimer mon compte », ou l'interrupteur coupé) ; sans réseau, rien ne bloque */
 function statOublier(cle){
@@ -46775,7 +46772,11 @@ const OB_CLAVIER_MS=450;
 let obHPleine=0,obHPleineL=0;
 function obGoto(target){
   if(obLock)return;
-  const n=typeof target==='number'?target:OB_SLIDES.indexOf(target);
+  let n=typeof target==='number'?target:OB_SLIDES.indexOf(target);
+  /* 14 novembre, 18 h 39 : la question des statistiques (obStatsDemander), une fois, entre « bonjour » et l’accueil */
+  const demander=typeof obStatsDemander==='function'&&obStatsDemander();
+  if(OB_SLIDES[n]==='welcome'&&demander)n=OB_SLIDES.indexOf('stats');
+  else if(OB_SLIDES[n]==='stats'&&!demander)n=OB_SLIDES.indexOf('welcome');
   if(OB_SLIDES[n]==='ready'&&obPseudoAvant())return;
   const cible=Math.max(0,Math.min(n,OB_STEPS-1));
   if(cible===obStep){paintOb();return;}
@@ -46803,6 +46804,22 @@ function obGoto(target){
     peindre();
   };
   setTimeout(attendre,prefersReduceMotion()?0:OB_SORTIE_MS);
+}
+/* La question des statistiques (14 novembre, 18 h 39) : posée une fois, au premier onboarding, tant qu’aucune réponse n’est gardée
+   (ni l’aperçu de Mon compte, ni un compte déjà inscrit). Répondue, elle ne revient plus, même si l’appareil ne garde rien
+   (obStatsRepondu, le temps de la session). Un toucher dans la demi-seconde qui suit l’arrivée de la page ne compte pas : un double
+   toucher sur « Commencer », juste au-dessus, ne vaut pas un « oui ». */
+var obStatsRepondu=false;
+function obStatsDemander(){
+  if(obStatsRepondu||typeof state==='undefined'||!state||state.onboarded)return false;
+  return !(typeof obApercu!=='undefined'&&obApercu)&&typeof statAccord==='function'&&statAccord()==='';
+}
+function obStatsRepondre(oui){
+  if(obLock||Date.now()-obPeinteLe<500)return;
+  obStatsRepondu=true;
+  if(typeof buzz==='function')buzz('light');
+  if(typeof statChoisir==='function')statChoisir(!!oui);
+  obGoto('welcome');
 }
 /* Un double toucher ne saute plus une page : la page change maintenant au premier toucher, sans le temps du fondu de sortie qui
    absorbait le second. Les boutons du pied ignorent un toucher dans les 280 ms qui suivent l’arrivée d’une page. */
@@ -48702,13 +48719,13 @@ function ileFin(reussie){
    l’onboarding l’arrête, le chat les étoiles plein les yeux (accueilFin) ; fermé sans finir (aperçu, retour), elle part tout de suite.
    Seulement pour un vrai premier onboarding : ni l’aperçu de Mon compte, ni la personnalisation d’un compte déjà inscrit. */
 let ileOb=null;   // le dernier état envoyé (k), pour ne pas renvoyer deux fois le même
-const ILE_OB_TITRES={welcome:'Bienvenue',name:'Ton prénom',pays:'Ton pays',age:'Ton âge',job:'Ton métier',goal:'Ton objectif',level:'Ton niveau',
+const ILE_OB_TITRES={stats:'Bienvenue',welcome:'Bienvenue',name:'Ton prénom',pays:'Ton pays',age:'Ton âge',job:'Ton métier',goal:'Ton objectif',level:'Ton niveau',
   rhythm:'Ton rythme',jours:'Tes jours de séance',build:'Ton parcours se prépare',methode:'Fondée sur la recherche',temoignages:'Ils apprennent avec Requête',pact:'Ton engagement',
   practice:'Ta première requête',account:'Ton compte',source:'Comment tu nous as connus',rappel:'Ton rappel',widget:'Ton widget',
   widgetTuto:'Ton widget',widgetVerrou:'Ton widget',widgetVerrouTuto:'Ton widget',pseudo:'Ton pseudo',ready:'Ton parcours t’attend'};
 function ileObEtat(){
   const slide=OB_SLIDES[obStep]||'welcome',steps=typeof obFlowSteps==='function'?obFlowSteps():[],total=Math.max(1,steps.length),i=steps.indexOf(slide);
-  const etape=['bonjour','welcome','questions'].includes(slide)?0:slide==='ready'?total:i>=0?i+1:(ileOb?ileOb.etape:0);
+  const etape=['bonjour','stats','welcome','questions'].includes(slide)?0:slide==='ready'?total:i>=0?i+1:(ileOb?ileOb.etape:0);
   const minutes=slide==='ready'?0:Math.max(1,Math.ceil((total-Math.max(0,etape-1))*12/60));   // comme l’en-tête : 12 s par étape ; 0 : le parcours est prêt
   const prenom=String(draft&&draft.name||'').trim().slice(0,24);
   return {etape,total,titre:ILE_OB_TITRES[slide]||'Ton parcours',bonjour:prenom?`Bienvenue, ${prenom}`:'Bienvenue sur Requête',minutes};
@@ -48843,6 +48860,7 @@ function obNext(){
   const slide=OB_SLIDES[obStep];
   /* Tunnel : promesse prouvée → personnalisation → première réussite →
      (sauvegarde du succès si la connexion existe) → écran final. */
+  if(slide==='stats')return;   // une des deux réponses, rien d'autre (14 novembre)
   if(slide==='bonjour')obGoto('welcome');
   else if(slide==='welcome')obGoto('questions');
   else if(slide==='questions')obGoto('name');
@@ -48881,6 +48899,7 @@ function obBack(){
   if(OB_SLIDES[obStep]==='paywall'&&obPwSortie){obSortieRefuser();return;}   /* de l’offre de bienvenue, « Retour » ramène aux offres */
   if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
   if(OB_SLIDES[obStep]==='account'){obGoto(draft.finVoulue?'ready':'bonjour');return;}   // « J’ai déjà un compte » (sur « bonjour ») : retour
+  if(OB_SLIDES[obStep]==='welcome'){obGoto('bonjour');return;}   // la question des statistiques, répondue, ne revient pas (14 novembre)
   if(OB_SLIDES[obStep]==='ready'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}
   obGoto(obStep-1);
 }
@@ -50618,6 +50637,7 @@ function paintOb(){
   root.classList.toggle('ob-auth-ready',authReady);
   root.classList.toggle('ob-welcome-step',slide==='welcome'&&!obLegalMode);
   root.classList.toggle('ob-bonjour-step',slide==='bonjour'&&!obLegalMode);
+  root.classList.toggle('ob-stats-ecran',slide==='stats'&&!obLegalMode);
   root.classList.toggle('ob-questions-step',slide==='questions'&&!obLegalMode);
   root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||OB_WIDGET_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
   root.classList.toggle('ob-legal-step',!!obLegalMode);
@@ -50691,6 +50711,26 @@ function paintOb(){
     </div>`;
     obSetFooter(invite?'Je m’inscris':'Commencer',()=>obGoto('welcome'),authReady?'J’ai déjà un compte':'',authReady?()=>obGoto('account'):null,'');
     setTimeout(obBjParler,0);
+  }else if(slide==='stats'){
+    /* 14 novembre, 18 h 39 (Elisa : « Ok, une mini-page après commencer, avec un beau texte et tout ») : la question des
+       statistiques anonymes, une fois, juste après « Commencer » (App Review 5.1.1(ii) : un accord, même pour des données
+       anonymes ; une case décochée sous les conditions, personne ne l’aurait cochée). Le chat à la loupe, le titre, sa phrase, trois
+       promesses ; en bas, à la place du bouton jaune, les deux réponses, de même taille et de même poids (5.1.1(iv) : rien ne
+       pousse vers le oui). L’une ou l’autre mène à l’accueil ; le choix se change dans Mon compte › Tes données, tes choix. */
+    const fixe=typeof mascotReduced==='function'&&mascotReduced();
+    const ico=d=>`<i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg></i>`;
+    html=`<div class="ob-screen ob-stats"><div class="ob-flow-top ob-flow-solo">${obBackButton()}</div>
+      <div class="ob-stats-scene">
+        <img class="ob-stats-chat" src="assets/chat-loupe${fixe?'-fixe':''}.webp" width="307" height="356" alt="" aria-hidden="true" draggable="false">
+        <h1 class="ob-title" id="ob-title">Tu nous aides à <em>améliorer</em> Requête&nbsp;?</h1>
+        <p class="ob-lead">Avec ton accord, l’appli compte ce qui marche et ce qui coince. C’est comme ça qu’on rend les leçons plus claires.</p>
+        <ul class="ob-stats-l">
+          <li>${ico('<path d="M12 3 5 6v5c0 4.4 3 8.3 7 10 4-1.7 7-5.6 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>')}<span><b>Anonyme</b>Ni ton nom, ni ton e-mail, ni ton pseudo.</span></li>
+          <li>${ico('<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.4 8 2.9 10 2 12c1 2.5 5 7 10 7 1.8 0 3.4-.5 4.8-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>')}<span><b>Jamais tes réponses</b>Ni tes requêtes, ni ce que tu écris.</span></li>
+          <li>${ico('<rect x="2.5" y="7" width="19" height="10" rx="5"/><circle cx="16.5" cy="12" r="3"/>')}<span><b>À toi de choisir</b>Tu changes d’avis quand tu veux, dans Mon&nbsp;compte.</span></li>
+        </ul>
+      </div></div>`;
+    obSetFooter('',null,'','',{html:'<span class="ob-stats-choix" role="group" aria-label="Ta réponse"><button type="button" class="ob-stats-btn" onclick="obStatsRepondre(true)">Oui, avec plaisir</button><button type="button" class="ob-stats-btn" onclick="obStatsRepondre(false)">Non merci</button></span>'});
   }else if(slide==='questions'){
     /* 12 novembre (réf. 6, HeyRua : « Some quick questions to personalise your learning! ») : le chat annonce les questions, le pouce
        levé, juste avant le prénom. */
@@ -50752,7 +50792,7 @@ function paintOb(){
         ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
       </div>${messageF}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
       ${authReady?obSansCompteHTML():''}
-      ${authReady?`<p class="ob-acc-legal">${legalHtml}</p>${typeof statCaseHTML==='function'?statCaseHTML():''}`:''}
+      ${authReady?`<p class="ob-acc-legal">${legalHtml}</p>`:''}
       </div></div>`;
     }else
     html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}">${obFlowHeader(slide)}
@@ -50774,10 +50814,9 @@ function paintOb(){
        sous le bouton, dans le pied de page. */
     /* 12 novembre, 13 h 33 : on accepte les conditions ; la politique de confidentialité, on en prend connaissance */
     const legal=`En continuant, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et reconnais avoir pris connaissance de notre <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
-    /* 12 novembre, 18 h 12 : la feuille porte elle-même cette phrase (un seul bloc qui monte) ; le pied reste vide, et caché.
-       14 novembre, 18 h : la case des statistiques suit la phrase, dans la feuille comme dans le pied. */
+    /* 12 novembre, 18 h 12 : la feuille porte elle-même cette phrase (un seul bloc qui monte) ; le pied reste vide, et caché */
     if(!masquee&&authReady)obSetFooter('',null,'','','');
-    else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal+(typeof statCaseHTML==='function'?statCaseHTML():'')});
+    else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
   }else if(slide==='paywall'){
     /* 13 novembre, 19 h 52, statistiques (Elisa : « tout ce que tu peux trouver, mets-le ») : d’où vient le paywall, l’inscription ou le retour dans l’app sans abonnement */
     if(obJustEntered&&typeof statUneFois==='function'){const depuis=state.onboarded?'retour':'onboarding';statUneFois('paywall_vu','paywall:'+depuis+':'+statJour(),undefined,{depuis});}
@@ -53027,7 +53066,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-accord-v3024';
+  const SW_CACHE='requete-2026-11-14-question-v3025';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

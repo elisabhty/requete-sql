@@ -39,26 +39,26 @@ test('la série cassée : notée au retour quand la série d’au moins 2 jours 
   assert.ok(ctx.statLire().some(e => e.t === 'serie_cassee' && e.v === 5));
 });
 
-test('l’accord (14 novembre) : jamais coché, rien n’est noté ni envoyé ; coché, l’ouverture se note et part ; l’ancien refus compte', async () => {
+test('l’accord (14 novembre) : sans réponse, rien n’est noté ni envoyé ; « oui », l’ouverture part ; « non » d’emblée n’appelle personne ; l’ancien refus compte', async () => {
   const { ctx, store, envois, minuteurs } = monter(null);
   assert.equal(ctx.statActif(), false, 'jamais demandé : coupées');
   ctx.statOuverture(); ctx.stat('flamme', 2);
   assert.equal(ctx.statLire().length, 0, 'rien n’attend sur l’appareil'); assert.equal(await ctx.statEnvoyer(), false); assert.equal(envois.length, 0);
-  assert.equal(ctx.statCaseHTML(), '<label class="ob-stat-case"><input type="checkbox" onchange="statChoisir(this.checked)"><span>Envoyer des statistiques d’usage anonymes pour améliorer l’appli</span></label>', 'décochée par défaut');
   ctx.statChoisir(true);
-  assert.equal(store.get('rq-stat-accord'), '1'); assert.ok(ctx.statCaseHTML().includes('<input type="checkbox" checked onchange='));
+  assert.equal(store.get('rq-stat-accord'), '1');
   minuteurs.splice(0).forEach(f => f());
   await new Promise(r => setImmediate(r));
   assert.deepEqual(envois.map(e => e[0]), ['stat_noter'], 'l’installation et l’ouverture du jour partent tout de suite');
   assert.deepEqual(JSON.parse(JSON.stringify(envois[0][1].p_evts.map(e => e.t))), ['installation', 'ouverture']);
+  /* « Non merci » d’emblée : noté, et aucun appel (il n’y a rien à effacer) */
+  const non = monter(null); non.ctx.statChoisir(false);
+  assert.equal(non.store.get('rq-stat-accord'), '0'); assert.equal(non.envois.length, 0);
   /* Avant le 14 novembre, seul le refus était gardé (rq-stat-off) : il vaut toujours refus */
   const vieux = monter(null); vieux.store.set('rq-stat-off', '1');
   assert.equal(vieux.ctx.statAccord(), '0'); vieux.ctx.statChoisir(true);
   assert.equal(vieux.ctx.statActif(), true); assert.ok(!vieux.store.has('rq-stat-off'));
-  /* La case sur la page du compte, sous la phrase des conditions ; dans le pied quand la connexion n’est pas là */
-  assert.ok(app.includes("${authReady?`<p class=\"ob-acc-legal\">${legalHtml}</p>${typeof statCaseHTML==='function'?statCaseHTML():''}`:''}"));
-  assert.ok(app.includes("{html:legal+(typeof statCaseHTML==='function'?statCaseHTML():'')}"));
   assert.ok(app.includes("function obCompteEnvoyer(){\n  if(typeof statActif==='function'&&!statActif())return Promise.resolve(false);"), 'l’entonnoir aussi');
+  assert.ok(!app.includes('statCaseHTML') && !app.includes('ob-stat-case'), '18 h 39 : plus de case sous les conditions, la question la remplace');
 });
 
 test('coupées : plus rien ne part, la file est vidée et le serveur oublie ; « Supprimer mon compte » aussi', async () => {
@@ -83,5 +83,5 @@ test('le serveur : la migration est dans le dépôt, la politique de confidentia
   assert.ok(sql.includes("encode(extensions.digest(v_cle || ':stat', 'sha256'), 'hex')") && sql.includes('revoke all on function public.stat_tableau(integer) from public, anon, authenticated;'));
   assert.ok(sql.includes("interval '400 days'"), '13 mois au plus');
   assert.ok(conf.includes('<b>Statistiques d’usage anonymes</b> (facultatives, avec ton accord).') && conf.includes('effacées automatiquement au bout de 13&nbsp;mois'));
-  assert.ok(conf.includes('Tant que tu ne l’as pas cochée, rien n’est envoyé.') && conf.includes('Tu peux donner ou retirer ton accord à tout moment dans Mon compte › Tes données, tes choix'), 'l’accord, dit dans la politique');
+  assert.ok(conf.includes('L’appli te les demande une fois, juste après «&nbsp;Commencer&nbsp;»&nbsp;: «&nbsp;Tu nous aides à améliorer Requête&nbsp;?&nbsp;», avec deux réponses, «&nbsp;Oui, avec plaisir&nbsp;» et «&nbsp;Non merci&nbsp;». Tant que tu n’as pas dit oui, rien n’est envoyé.') && conf.includes('Tu peux donner ou retirer ton accord à tout moment dans Mon compte › Tes données, tes choix'), 'l’accord, dit dans la politique');
 });

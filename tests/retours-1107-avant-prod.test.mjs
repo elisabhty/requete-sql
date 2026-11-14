@@ -74,7 +74,7 @@ test('stat_oublier efface les statistiques de l’appareil, avec la même emprei
   /* L’appli : la clé de l’appareil, « ok » attendu ; appelée à la suppression du compte et quand on coupe les statistiques */
   const app = lire('index.html');
   assert.ok(app.includes("return clsRpc('stat_oublier',{p_cle:cle||clsCle()}).then(r=>!!(r&&r.ok)).catch(()=>false);"));
-  assert.ok(app.includes("if(typeof statOublier==='function')await statOublier(cle);") && app.includes("else if(avant!=='0')statOublier();"));
+  assert.ok(app.includes("if(typeof statOublier==='function')await statOublier(cle);") && app.includes("else if(avant==='1')statOublier();"));
   /* … ce que promet la politique de confidentialité */
   assert.match(lire('decouvrir/confidentialite.html'), /Supprimer mon compte[\s\S]{0,700}statistiques d’usage/);
 });

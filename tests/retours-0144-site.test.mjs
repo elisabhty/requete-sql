@@ -166,7 +166,7 @@ test('confidentialité : l’appli sur iPhone, le compte, l’abonnement par l�
   assert.ok(achat.includes('var demarre = P.configure({apiKey: RC_CLE_IOS});') && !/logIn\(|setEmail\(|setAttributes\(|appUserID/.test(achat), 'un achat sans identifiant de compte');
   assert.ok(!/\b(sera|passera|recevrons|seront)\b/.test(texte(abo)), 'au présent : l’abonnement existe');
   /* Les cookies, les droits */
-  assert.ok(p.includes('ni outil de mesure d’audience d’un tiers, ni pixel de suivi. La seule mesure est celle que Requête fait elle-même, et seulement si tu l’acceptes&nbsp;: les écrans de l’accueil et les statistiques d’usage anonymes (voir plus haut), demandées par une case décochée au départ. Ce site ne dépose aucun cookie. Dans l’appli, le stockage utilisé'));
+  assert.ok(p.includes('ni outil de mesure d’audience d’un tiers, ni pixel de suivi. La seule mesure est celle que Requête fait elle-même, et seulement si tu l’acceptes&nbsp;: les écrans de l’accueil et les statistiques d’usage anonymes (voir plus haut), demandées une fois, au premier lancement. Ce site ne dépose aucun cookie. Dans l’appli, le stockage utilisé'));
   assert.ok(p.includes('Ce qui ne quitte jamais ton iPhone (tes bases et fichiers importés, tes réglages), nous ne pouvons ni le consulter ni le supprimer à ta place&nbsp;: c’est toi qui le gardes.'));
   assert.ok(p.includes('<b>Rappel quotidien.</b> Il ne s’active que si tu autorises les notifications sur ton iPhone'));
   for (const vieux of ['Sans compte', 'sans compte', 'stockage local de ton navigateur', 'dans ton navigateur', 'ou sur le site', 'appli iOS', '(appli iPhone)', 'hors ligne']) assert.ok(!t.includes(vieux), vieux);

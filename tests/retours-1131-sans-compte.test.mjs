@@ -49,7 +49,7 @@ test('« Continuer sans compte » : pendant l’onboarding, le paywall ; depuis 
   assert.equal(debut.ctx.draft.accountMode, undefined, 'le choix du compte revient après « Ton parcours est prêt »');
   /* sur la feuille du compte, sous Apple et Google, avant la phrase des conditions */
   const page = cut("}else if(slide==='account'){", "}else if(slide==='paywall'){");
-  assert.ok(page.includes("${authReady?obSansCompteHTML():''}\n      ${authReady?`<p class=\"ob-acc-legal\">${legalHtml}</p>${typeof statCaseHTML==='function'?statCaseHTML():''}`:''}"));
+  assert.ok(page.includes("${authReady?obSansCompteHTML():''}\n      ${authReady?`<p class=\"ob-acc-legal\">${legalHtml}</p>`:''}"));
   for (const r of ['html #onboarding.ob-vitrine .ob-sans-compte{margin:12px 0 0;text-align:center}', 'html #onboarding.ob-vitrine .ob-sans-compte-btn{display:inline-flex;',
     'html #onboarding.ob-vitrine .ob-sans-compte-note{max-width:300px;'])
     assert.ok(obv.includes(r), r);
