@@ -46404,9 +46404,10 @@ function paysDetecte(){
 function paysSansAccents(t){ return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’'\-]/g,' ').toLowerCase(); }
 function paysListe(){ return PAYS_CODES.map(code=>({code,nom:paysNom(code)})).sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'})); }
 function paysDuProfil(){ const p=state.profile&&state.profile.pays; return PAYS_CODES.includes(p)?p:''; }
-/* Déjà inscrit avant cette page : le pays deviné, sans rien demander, pour que le drapeau soit là (Mon compte permet d’en changer). */
+/* Déjà inscrit avant cette page : le pays deviné, sans rien demander, pour que le drapeau soit là (Mon compte permet d’en changer).
+   14 novembre : pas pour qui l’a passé dans l’onboarding (paysPasse). */
 function paysCompleter(){
-  if(!state.onboarded||paysDuProfil())return;
+  if(!state.onboarded||paysDuProfil()||(state.profile&&state.profile.paysPasse))return;
   const p=paysDetecte();
   if(!p)return;
   state.profile=Object.assign({},state.profile||{},{pays:p,paysAuto:true});save();
@@ -46773,10 +46774,11 @@ let obHPleine=0,obHPleineL=0;
 function obGoto(target){
   if(obLock)return;
   let n=typeof target==='number'?target:OB_SLIDES.indexOf(target);
-  /* 14 novembre, 18 h 39 : la question des statistiques (obStatsDemander), une fois, entre « bonjour » et l’accueil */
+  /* 14 novembre, 18 h 39 : la question des statistiques (obStatsDemander), une fois, avant l’accueil, ou avant les questions quand un
+     compte neuf arrive de « J’ai déjà un compte » (il saute l’accueil) ; répondue, on va où l’on allait (obStatsSuite). */
   const demander=typeof obStatsDemander==='function'&&obStatsDemander();
-  if(OB_SLIDES[n]==='welcome'&&demander)n=OB_SLIDES.indexOf('stats');
-  else if(OB_SLIDES[n]==='stats'&&!demander)n=OB_SLIDES.indexOf('welcome');
+  if((OB_SLIDES[n]==='welcome'||OB_SLIDES[n]==='questions')&&demander){obStatsSuite=OB_SLIDES[n];n=OB_SLIDES.indexOf('stats');}
+  else if(OB_SLIDES[n]==='stats'&&!demander)n=OB_SLIDES.indexOf(obStatsSuite||'welcome');
   if(OB_SLIDES[n]==='ready'&&obPseudoAvant())return;
   const cible=Math.max(0,Math.min(n,OB_STEPS-1));
   if(cible===obStep){paintOb();return;}
@@ -46809,7 +46811,7 @@ function obGoto(target){
    (ni l’aperçu de Mon compte, ni un compte déjà inscrit). Répondue, elle ne revient plus, même si l’appareil ne garde rien
    (obStatsRepondu, le temps de la session). Un toucher dans la demi-seconde qui suit l’arrivée de la page ne compte pas : un double
    toucher sur « Commencer », juste au-dessus, ne vaut pas un « oui ». */
-var obStatsRepondu=false;
+var obStatsRepondu=false,obStatsSuite='welcome';
 function obStatsDemander(){
   if(obStatsRepondu||typeof state==='undefined'||!state||state.onboarded)return false;
   return !(typeof obApercu!=='undefined'&&obApercu)&&typeof statAccord==='function'&&statAccord()==='';
@@ -46819,7 +46821,7 @@ function obStatsRepondre(oui){
   obStatsRepondu=true;
   if(typeof buzz==='function')buzz('light');
   if(typeof statChoisir==='function')statChoisir(!!oui);
-  obGoto('welcome');
+  obGoto(obStatsSuite||'welcome');
 }
 /* Un double toucher ne saute plus une page : la page change maintenant au premier toucher, sans le temps du fondu de sortie qui
    absorbait le second. Les boutons du pied ignorent un toucher dans les 280 ms qui suivent l’arrivée d’une page. */
@@ -46831,12 +46833,14 @@ function obToucheTropTot(){return Date.now()-obPeinteLe<280;}
 function obPseudoAvant(){
   if(typeof psPage!=='function'||typeof psMien!=='function'||psMien())return false;
   if(typeof obApercu!=='undefined'&&obApercu)return false;
-  /* 4 novembre, 17 h 27 : « pas de Plus tard pour Choisis ton pseudo (obligatoire) » : la page revient tant qu’aucun pseudo n’est
-     réservé, même déjà montrée ; sans réseau, le pseudo tapé est gardé et réservé au retour en ligne (obPseudoSuivant). */
-  const s=clsSalle();if(s.psVoulu)return false;
+  /* 4 novembre, 17 h 27 : « pas de Plus tard pour Choisis ton pseudo (obligatoire) » : la page revenait tant qu’aucun pseudo n’était
+     réservé ; sans réseau, le pseudo tapé est gardé et réservé au retour en ligne (obPseudoSuivant).
+     14 novembre, 18 h 58 (l’audit App Review, décision 5 : « Non obligatoire ») : facultatif. « Plus tard » revient ; montrée une
+     fois (psPage), elle ne se repose pas : le pseudo se demande quand il en faut un (salle entre amis, classement, Mon compte). */
+  const s=clsSalle();if(s.psVoulu||s.psPage)return false;
   s.psPage=1;save();
   const entree=obEntry;
-  psPage({voulu:psAncien(),garder:true,obligatoire:true,suite:()=>{obEntry=entree;obGoto('ready');}});
+  psPage({voulu:psAncien(),garder:true,suite:()=>{obEntry=entree;obGoto('ready');}});
   return true;
 }
 /* Le bouton principal se réveille quand il devient utilisable (un choix fait, une signature, le parcours construit, la première
@@ -50268,6 +50272,8 @@ function obPaysJouer(){
     if(typeof buzz==='function')buzz('success');
   },1300));
 }
+/* « Passer » (14 novembre) : ni le pays deviné, ni un pays choisi ; on passe à l’âge. */
+function obPaysPasser(){draft.pays='';draft.paysAuto=false;draft.paysPasse=true;obGoto('age');}
 function obPaysListe(){
   if(obLock)return;
   paysFeuille(PAYS_CODES.includes(draft.pays)?draft.pays:'',code=>{
@@ -50341,7 +50347,9 @@ function obAnswers(items,champ,value){
    du site (section « Avis des utilisateurs »), plus sur la carte. 12 novembre, 18 h 54 (réf. 1 : « en bas : recueillis sur le site :
    requeteapp.com ») : la ligne dit où ils sont donnés, « De vrais avis, recueillis sur le site requeteapp.com » (le formulaire
    « Donner ton avis » de la vitrine). Dans la barre, la note et la date de l’avis remplacent « Ils
-   recommandent Requête », qui redisait le titre. */
+   recommandent Requête », qui redisait le titre.
+   14 novembre, 18 h 58 (l’audit App Review, décision 7 : « Ok ») : la carte dit aussi que la voix est de synthèse (le règlement
+   européen sur l’IA demande de le signaler) : « De vrais avis, recueillis sur le site requeteapp.com, lus par une voix de synthèse ». */
 const OB_TEMOINS=[
   {prenom:'Sofia B.',info:'Data Analyst junior',date:'septembre 2026',note:5,photo:'decouvrir/avis/sofia-b.webp',mini:'decouvrir/avis/sofia-b-mini.webp',audio:'decouvrir/avis/sofia-b.mp3',duree:18.5,
    onde:[0.87,0.61,0.5,0.83,0.89,0.97,0.12,0.6,0.51,0.58,0.37,0.62,0.26,0.45,0.24,0.23,0.35,0.15,0.12,0.4,0.3,0.43,0.35,0.28,0.35,0.77,0.32,0.27,0.36,0.5,0.27,0.24,0.41,0.29,0.29,0.15,0.12,0.36,0.55,0.28,1,0.49,0.14,0.64,0.59,0.45,0.58,0.12],
@@ -50386,7 +50394,7 @@ function obTemoinsHtml(){
         </div>
         <audio id="ob-tv-audio" preload="none"></audio>
       </div>
-      <p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com</p>
+      <p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com, lus par une voix de synthèse</p>
       <p class="ob-sr" id="ob-tv-tx"></p>
     </div>
     <div class="ob-tv-profs"><span class="ob-tv-faces" aria-hidden="true">${montres.map(([f],j)=>`<img src="assets/anim/${f}.webp" width="420" height="420" alt="" style="--i:${j}" draggable="false">`).join('')}<b style="--i:${montres.length}">+${OB_FORMATEURS.length-montres.length}</b></span><p><b>${OB_FORMATEURS.length} formateurs</b> te feront progresser</p></div>`;
@@ -50848,9 +50856,13 @@ function paintOb(){
       <label class="ob-field ob-field-at"><span>Ton pseudo</span><span class="ob-at-box"><b class="ob-at" aria-hidden="true">@</b><input id="ob-pseudo" type="text" maxlength="15" value="${escAttr(psHandle(v))}" placeholder="lea_sql" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" required aria-required="true" aria-describedby="ob-ps-etat" oninput="obPseudoTape(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();obPseudoSuivant();}"></span></label>
       <p class="ps-etat" id="ob-ps-etat" role="status" aria-live="polite"></p>
       <div class="ps-idees" id="ob-ps-idees"></div></div>`;
-    /* Pendant l’onboarding, le pseudo est obligatoire (17 h 27) : pas de « Plus tard ». Ouverte depuis l’app, la page garde sa sortie. */
+    /* Pendant l’onboarding, le pseudo était obligatoire (17 h 27) : pas de « Plus tard ». 14 novembre, 18 h 58 : facultatif, « Plus
+       tard » partout (obligatoire n’est plus demandé) ; ouverte depuis l’app, la page garde sa sortie. */
     const pg=PS.page||{};
-    obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,'',!v);
+    /* 14 novembre, 18 h 58 (l’audit App Review, décision 3 : « Ok » ; règle 1.2) : le pseudo est public, il se choisit en acceptant
+       les conditions d’utilisation, qui ne tolèrent ni pseudo ni comportement offensant (decouvrir/conditions.html, « Tolérance zéro »). */
+    const cgu=`En choisissant ton pseudo, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a>&nbsp;: aucun pseudo ni comportement offensant n’y est toléré.`;
+    obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,{html:cgu},!v);
     setTimeout(()=>{if(OB_SLIDES[obStep]!=='pseudo')return;if(pg.raison==='pris'||pg.raison==='refuse')psAfficher('ob',pg.raison,psForme(pg.voulu||''),pg.idees);else if(v)psVerif('ob',v);},0);
   }else if(slide==='pays'){
     /* 4 novembre, 13 h 18 : « une page où il détecte le pays où la personne vit » (voir paysDetecte). En arrivant, la carte cherche un
@@ -50876,7 +50888,9 @@ function paintOb(){
         </div>
       </div>
       <button type="button" class="ob-pays-changer" onclick="obPaysListe()">${code?'Ce n’est pas ton pays&nbsp;? <u>Modifier</u>':'<u>Choisir dans la liste</u>'}</button></div>`;
-    obSetFooter(code&&draft.paysAuto?'Oui, c’est bien ça':'Continuer',()=>obGoto('age'),'','','',!code);
+    /* 14 novembre, 18 h 58 (l’audit, décision 5 : « Non obligatoire ») : « Passer ». Sans pays, pas de drapeau ni de classement du
+       pays ; il se choisit plus tard dans Mon compte, et n’est plus deviné en douce (paysCompleter). */
+    obSetFooter(code&&draft.paysAuto?'Oui, c’est bien ça':'Continuer',()=>obGoto('age'),'Passer',obPaysPasser,'',!code);
   }else if(slide==='age'){
     html=`<div class="ob-screen ob-profile ob-age-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel <em>âge</em> as-tu&nbsp;?</h1>
       ${obMascotDit('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !',obMascotOui(draft.ageRange||draft.genre))}
@@ -50885,12 +50899,14 @@ function paintOb(){
     /* 17 h 32 : « enlève les notions de facultatif » : ni « Passer » ni « Facultatif » ; « Continuer » s’allume au choix.
        4 novembre, 17 h 27 : « demander si c’est une femme ou un homme, ou ne veut pas dire (dans l’écran de l’âge, peut-être) » : sous
        les âges, trois choix (OB_GENRES) ; « Continuer » s’allume avec les deux réponses. */
-    obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange||!draft.genre);
+    /* 14 novembre, 18 h 58 (l’audit App Review, décision 2 : « Ok » ; 5.1.1 : rien d’obligatoire qui ne serve pas à l’appli) :
+       « Passer » sous le bouton, ici, au métier et à « Comment as-tu connu Requête ? ». Ce qui a été choisi reste. */
+    obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'',!draft.ageRange||!draft.genre);
   }else if(slide==='job'){
     html=`<div class="ob-screen ob-profile ob-job-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>
       ${obMascotDit(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.',obMascotOui(draft.job))}
       <div class="ob-tiles ob-job-grid" role="radiogroup" aria-label="Ta situation">${OB_JOBS.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.job===k?'true':'false'}" class="ob-tile ob-job-tile ${draft.job===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('job','${k}')">${obOptionIcon(icon)}<span>${esc(obJobNom(k)||label)}</span></button>`).join('')}</div></div>`;
-    obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);
+    obSetFooter('Continuer',()=>obGoto('goal'),'Passer',()=>obGoto('goal'),'',!draft.job);
   }else if(slide==='goal'){
     html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
@@ -50957,7 +50973,7 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-source-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Comment as-tu <em>connu</em> Requête&nbsp;?</h1>
       ${obMascotQuestion('Dis-moi tout : ça m’aide à faire connaître Requête !')}
       <div class="ob-tiles ob-source-grid" role="radiogroup" aria-label="Comment tu as connu Requête">${OB_SOURCES.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.source===k?'true':'false'}" class="ob-tile ob-source-tile ${draft.source===k?'on':''}" style="--d:${i*40}ms" onclick="obPick('source','${k}')">${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div></div>`;
-    obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'','','',!draft.source);
+    obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'Passer',()=>obGoto(obFinSuivante('source')),'',!draft.source);
   }else if(slide==='rappel'){
     /* Le rappel du jour (d’après Duolingo) : la fenêtre d’iOS en aperçu, au centre de l’écran, là où la vraie s’ouvrira, et une flèche
        qui rebondit vers « Autoriser ». Le bouton ouvre la vraie demande (obRappelDemander), puis programme le rappel.
@@ -51179,7 +51195,7 @@ function finishOnboard(action){
     source:draft.source||'',
     referral:draft.source==='referral'?(draft.referral||''):'',
     niveau:draft.niveau,
-    ...(PAYS_CODES.includes(draft.pays)?{pays:draft.pays,paysAuto:!!draft.paysAuto}:{}),
+    ...(PAYS_CODES.includes(draft.pays)?{pays:draft.pays,paysAuto:!!draft.paysAuto}:draft.paysPasse?{paysPasse:true}:{}),
     ...(draft.pacte?{pacte:{at:draft.pacteAt||Date.now(),sig:draft.pacte}}:{})
   };
   state.accountMode=draft.accountMode||state.accountMode||'guest';
@@ -51191,7 +51207,7 @@ function finishOnboard(action){
   save();
   try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours créé (11 h 08)
   /* Première connexion : la mini-page du pseudo (Elisa, 31 octobre, 17 h 53), puis l’appli. */
-  if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)});return;}
+  if(!psMien()&&!clsSalle().psVoulu&&!clsSalle().psPage&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}
   obTerminer(action);
 }
 function obTerminer(action){
@@ -53066,7 +53082,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-textes-v3026';
+  const SW_CACHE='requete-2026-11-14-passer-v3027';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

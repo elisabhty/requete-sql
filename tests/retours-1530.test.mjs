@@ -11,9 +11,10 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), ml = fs.read
 const i = app.indexOf('/* ---------- « Ils apprécient Requête » (Elisa, 4 novembre, 14 h 08) ----------'), j = app.indexOf('/* 14 h 08 (réf. 3) : « mettre une flèche animée', i);
 const code = app.slice(i, j).replace(/\/\*[\s\S]*?\*\//g, '');
 
-test('la carte : « De vrais avis, recueillis sur le site requeteapp.com », sans la voix de synthèse', () => {
-  assert.ok(code.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com</p>'));
-  assert.ok(!/voix de synthèse/.test(code), 'ni sous la photo, ni pour un lecteur d’écran');
+/* 14 novembre, 18 h 58 (l’audit App Review, décision 7 : « Ok ») : la carte le dit aussi, une fois, sous la photo */
+test('la carte : « De vrais avis, recueillis sur le site requeteapp.com, lus par une voix de synthèse »', () => {
+  assert.ok(code.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com, lus par une voix de synthèse</p>'));
+  assert.equal((code.match(/voix de synthèse/g) || []).length, 1, 'une fois, sous la photo');
 });
 
 test('les mentions légales le disent, pour le site et pour l’appli', () => {

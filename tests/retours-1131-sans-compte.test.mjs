@@ -55,10 +55,10 @@ test('« Continuer sans compte » : pendant l’onboarding, le paywall ; depuis 
     assert.ok(obv.includes(r), r);
 });
 
-test('le pseudo reste obligatoire pendant l’onboarding, puis le compte (facultatif), puis le paywall (obligatoire)', () => {
+test('le pseudo (facultatif depuis le 14 novembre, 18 h 58), puis le compte (facultatif), puis le paywall (obligatoire)', () => {
   const avant = cut('function obPseudoAvant(){', '\n/* Le bouton principal');
-  assert.ok(avant.includes('psPage({voulu:psAncien(),garder:true,obligatoire:true,'));
-  assert.ok(app.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,'',!v);"), 'pas de « Plus tard » pendant l’onboarding');
+  assert.ok(avant.includes('psPage({voulu:psAncien(),garder:true,suite:'));
+  assert.ok(app.includes("obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,{html:cgu},!v);"), '« Plus tard » partout, et les conditions sous le bouton');
   assert.ok(app.includes("function obApresPret(fin){draft.finVoulue=fin||'home';const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();}"));
   assert.ok(app.includes("function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}"));
   /* la garde de l’abonnement, inchangée : sans abonnement, le paywall devant l’appli */

@@ -63,7 +63,7 @@ test('réf. 1 : « Découvre ce qu’ils en pensent », un autocollant comme ceu
 test('femme, homme ou ne pas dire : sur l’écran de l’âge, gardé sur l’appareil, et les mots s’accordent', () => {
   const age = slide('age', "}else if(slide==='job'){");
   assert.ok(age.indexOf('ob-age-grid') < age.indexOf('ob-genre-row'), 'sous les âges');
-  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange||!draft.genre);"));
+  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'',!draft.ageRange||!draft.genre);"));
   for (const k of ['html #onboarding.ob-vitrine .ob-age-step .ob-age-grid{margin-bottom:0}', 'html #onboarding.ob-vitrine .ob-age-step .ob-genre{margin-top:18px;margin-bottom:auto}',
     'html #onboarding.ob-vitrine .ob-genre-row{grid-template-columns:repeat(3,minmax(0,1fr))}'])
     assert.ok(section.includes(k), k);
@@ -84,12 +84,12 @@ test('femme, homme ou ne pas dire : sur l’écran de l’âge, gardé sur l’a
   assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), ton pays (seul son drapeau accompagne ton pseudo dans les défis, voir plus bas), la liste de tes amis des défis, la façon dont tu as connu Requête'));
 });
 
-test('le pseudo, obligatoire pendant l’onboarding : pas de « Plus tard », et la page revient tant qu’il n’y en a pas', () => {
+test('le pseudo, facultatif depuis le 14 novembre, 18 h 58 (obligatoire le 4 novembre, 17 h 27) : « Plus tard », montrée une fois', () => {
   const avant = fn('obPseudoAvant', '\n}\n');
-  assert.ok(avant.includes('const s=clsSalle();if(s.psVoulu)return false;') && !avant.includes('if(s.psPage)return false;'), 'déjà montrée ne suffit plus ; gardé hors ligne, si');
-  assert.ok(avant.includes('psPage({voulu:psAncien(),garder:true,obligatoire:true,suite:()=>{obEntry=entree;obGoto(\'ready\');}});'));
+  assert.ok(avant.includes('const s=clsSalle();if(s.psVoulu||s.psPage)return false;'), 'déjà montrée : elle ne revient pas ; gardé hors ligne non plus');
+  assert.ok(avant.includes('psPage({voulu:psAncien(),garder:true,suite:()=>{obEntry=entree;obGoto(\'ready\');}});'));
   const page = slide('pseudo', "}else if(slide==='pays'){");
-  assert.ok(page.includes("    const pg=PS.page||{};\n    obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,'',!v);"));
+  assert.ok(page.includes("    obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,{html:cgu},!v);"));
   /* Sans réseau, le pseudo tapé est gardé et réservé au retour en ligne : l’onboarding ne reste pas bloqué */
   assert.ok(fn('obPseudoSuivant', 'function obPseudoPlusTard(').includes("const s=clsSalle();s.psVoulu=n;save();"));
 });

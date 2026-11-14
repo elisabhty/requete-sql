@@ -24,13 +24,13 @@ const sansCommentaires = s => s.replace(/\/\*[\s\S]*?\*\//g, '');
 /* L’appli sans ses commentaires (ils citent les demandes d’Elisa, donc les textes retirés) */
 const code = sansCommentaires(app);
 
-test('« enlève les notions de facultatif » : ni texte d’aide, ni « Passer », ni « Facultatif » au prénom, à l’âge et à la profession', () => {
+test('« enlève les notions de facultatif » : ni texte d’aide, ni « Facultatif » ; « Passer » à l’âge et au métier depuis le 14 novembre, 18 h 58 (l’audit)', () => {
   const name = sansCommentaires(slide('name', "}else if(slide==='pseudo'){"));
   for (const t of ['ob-helper', 'Il sert à te saluer', 'facultative', 'Passer pour le moment']) assert.ok(!name.includes(t), t);
   assert.ok(name.includes("obSetFooter('Continuer',obNameNext,'','','',!(draft.name||'').trim());"), '« Continuer » s’allume avec le prénom');
   for (const [s, next] of [['age', "}else if(slide==='job'){"], ['job', "}else if(slide==='goal'){"]]) {
     const h = sansCommentaires(slide(s, next));
-    assert.ok(!h.includes('Facultatif') && !h.includes("'Passer'"), s);
+    assert.ok(!h.includes('Facultatif') && h.includes("'Passer'"), s);
   }
   assert.ok(!code.includes('Facultatif · reste sur cet appareil') && !code.includes('1 question facultative'), 'nulle part dans l’appli');
   /* « Continuer » se rallume (avec son rebond) dès qu’un prénom est tapé ; Entrée sur un champ vide fait vibrer le champ */

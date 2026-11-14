@@ -60,6 +60,9 @@ test('posée une fois : « Commencer » y mène tant qu’il n’y a pas de rép
   /* « Non merci » : pareil, l’accueil */
   const n = monter(); n.aller('welcome'); n.ctx.obPeinteLe = 0; n.ctx.obStatsRepondre(false);
   assert.deepEqual(n.ctx.choix, [false]); assert.equal(n.ou(), 'welcome');
+  /* Un compte neuf arrivé de « J’ai déjà un compte » va droit aux questions : la question passe avant, puis les questions */
+  const q = monter(); q.aller('questions'); assert.equal(q.ou(), 'stats'); q.ctx.obPeinteLe = 0; q.ctx.obStatsRepondre(true);
+  assert.equal(q.ou(), 'questions', 'on va où l’on allait');
   /* Même si l’appareil ne garde rien (stockage refusé), la question ne boucle pas */
   const r = monter(); r.ctx.statChoisir = () => {}; r.aller('welcome'); r.ctx.obPeinteLe = 0; r.ctx.obStatsRepondre(true);
   assert.equal(r.ou(), 'welcome');
@@ -70,4 +73,18 @@ test('jamais posée : réponse déjà gardée, l’aperçu de Mon compte, un com
     const m = monter(o); m.aller('welcome');
     assert.equal(m.ou(), 'welcome', JSON.stringify(o));
   }
+});
+
+/* 18 h 58 : ses réponses à l’audit. Le pseudo se choisit en acceptant les conditions, qui ne tolèrent rien d’offensant (1.2) ;
+   Mon compte suit les réponses de l’accueil (les statistiques, le rappel). */
+test('le pseudo : les conditions sous le bouton ; les conditions : tolérance zéro et 24 heures ; Mon compte suit les réponses', () => {
+  const conds = readFileSync(new URL('../decouvrir/conditions.html', import.meta.url), 'utf8');
+  const p = cut("}else if(slide==='pseudo'){", "}else if(slide==='pays'){");
+  assert.ok(p.includes('const cgu=`En choisissant ton pseudo, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl(\'terms\'))}" target="_blank" rel="noopener">Conditions d’utilisation</a>&nbsp;: aucun pseudo ni comportement offensant n’y est toléré.`;'));
+  assert.ok(conds.includes('<p><b>Tolérance zéro.</b> Aucun pseudo, aucune réaction ni aucun comportement injurieux, haineux, harcelant, sexuel ou discriminatoire n’est toléré.')
+    && conds.includes('Nous examinons chaque signalement dans les 24&nbsp;heures&nbsp;: un pseudo contraire à ces règles est retiré, et le joueur qui l’a choisi peut être exclu du service, sans préavis.'));
+  assert.ok(!/sans compte/i.test(conds), 'pas de « sans compte » sur les pages légales');
+  /* Les statistiques : l’interrupteur de Mon compte lit la réponse (statActif) ; le rappel : celui de Mon compte lit ce que l’accueil a noté */
+  assert.ok(app.includes("<input type=\"checkbox\" role=\"switch\" class=\"pc-switch\" ${typeof statActif==='function'&&!statActif()?'':'checked'} onchange=\"statChoisir(this.checked)\""));
+  assert.ok(app.includes("  try{localStorage.setItem('requete-rappel',ok?'1':'0');}catch(e){}") && app.includes("  try{ return localStorage.getItem('requete-rappel')==='1'; }catch(e){ return false; }"));
 });

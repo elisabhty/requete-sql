@@ -45,7 +45,7 @@ test('âge : six tranches en tuiles, choix unique (obligatoire depuis 17 h 32)',
   assert.ok(age.includes("obMascotDit('Pour mieux te connaître. Il n’y a pas d’âge pour apprendre le SQL !',obMascotOui(draft.ageRange||draft.genre))"), 'la mascotte pose la question, comme aux autres étapes ; répondu, il hoche la tête (7 novembre, 15 h 38)');
   assert.ok(age.includes('role="radiogroup" aria-label="Ta tranche d’âge"') && age.includes('role="radio" aria-checked="${draft.ageRange===k?\'true\':\'false\'}" aria-label="${escAttr(label)}"'));
   assert.ok(age.includes("onclick=\"obPick('ageRange','${k}')\"") && age.includes('style="--d:${i*45}ms"'), 'les tuiles arrivent l’une après l’autre');
-  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'','','',!draft.ageRange||!draft.genre);"), '« Continuer » après les deux choix ; ni « Passer » ni « Facultatif » (17 h 32)');
+  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'',!draft.ageRange||!draft.genre);"), '« Continuer » après les deux choix ; « Passer » depuis le 14 novembre, 18 h 58 (l’audit App Review)');
   /* 4 novembre, 17 h 27 : « demander si c’est une femme ou un homme, ou ne veut pas dire (dans l’écran de l’âge, peut-être) » */
   const genres = vm.runInNewContext(app.match(/const OB_GENRES=(\[[^;]*\]);/)[1]);
   assert.deepEqual(Array.from(genres, g => g[1]), ['Une femme', 'Un homme', 'Ne pas dire']);
@@ -60,7 +60,7 @@ test('profession : six situations en tuiles, avec leur pastille de couleur', () 
   const job = slide('job', "}else if(slide==='goal'){");
   assert.ok(job.includes('<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>'));
   assert.ok(job.includes('role="radiogroup" aria-label="Ta situation"') && job.includes("onclick=\"obPick('job','${k}')\"") && job.includes('${obOptionIcon(icon)}<span>${esc(obJobNom(k)||label)}</span>'));
-  assert.ok(job.includes("obSetFooter('Continuer',()=>obGoto('goal'),'','','',!draft.job);"));
+  assert.ok(job.includes("obSetFooter('Continuer',()=>obGoto('goal'),'Passer',()=>obGoto('goal'),'',!draft.job);"));
   assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(!['niveau','rythme','goal','ageRange','genre','job','source','freq'].includes(champ))return;"));
   assert.ok(fn('obPick', 'function obPseudoTape(').includes("if(champ==='genre'&&!OB_GENRES.some(g=>g[0]===val))return;"), 'seulement les trois réponses');
   /* Les réponses restent sur l’appareil, dans le profil, et l’onboarding les reprend (Mon compte › Personnalisation). */

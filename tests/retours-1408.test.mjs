@@ -144,7 +144,7 @@ test('les avis : ceux du site, mot pour mot, avec leurs photos et leurs voix ; l
   /* Sur le site, ce sont de vrais avis, publiés avec l’accord des personnes, et la voix est une voix de synthèse */
   assert.ok(site.includes('N’ajouter ici que de VRAIS avis, avec l’accord de la personne'));
   assert.ok(read('decouvrir/mentions-legales.html').includes('sont lus par une <b>voix de synthèse</b>'));
-  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com</p>'), 'la carte dit que ce sont de vrais avis (14 h 50) ; la voix, les mentions légales (15 h 30)');
+  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com, lus par une voix de synthèse</p>'), 'la carte dit que ce sont de vrais avis (14 h 50) ; la voix, les mentions légales (15 h 30)');
   /* 15 h 20 : l’ordre du site pour tout le monde (Sofia B. d’abord, Aminata C. en dernier), quel que soit l’objectif */
   const ordre = g => [...lecteur(g).ctx.obTemoinsListe()].map(t => t.prenom);
   /* 12 novembre (réf. 1, « ne mets que cette personne, pas les autres ») : Sofia B. seule ; les trois restent recopiés du site */

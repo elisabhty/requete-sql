@@ -12,7 +12,7 @@ const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j 
 const bloc = cut('/* ---------- « Ils apprécient Requête » (Elisa, 4 novembre, 14 h 08) ----------', '/* 14 h 08 (réf. 3) : « mettre une flèche animée');
 
 test('« De vrais avis, recueillis sur le site requeteapp.com » (12 novembre, 18 h 54) : sous la photo, et pour un lecteur d’écran', () => {
-  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com</p>'), '15 h 30 : la voix de synthèse est dans les mentions légales');
+  assert.ok(bloc.includes('<p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com, lus par une voix de synthèse</p>'), '14 novembre, 18 h 58 : la voix de synthèse aussi sur la carte');
   assert.ok(!bloc.includes('Avis réels, lus par une voix de synthèse.'), 'l’ancienne ligne est partie');
   assert.ok(bloc.includes('» Un vrai avis, recueilli sur le site requeteapp.com.`);'));
 });
