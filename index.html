@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=371">
+<link rel="stylesheet" href="ludique.css?v=372">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -8054,6 +8054,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
     <button type="button" class="kbar-dock" id="kbar-dock" aria-label="Masquer le clavier" title="Masquer le clavier"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <span class="kbar-lab" aria-hidden="true">Insérer</span>
     <div class="kbar-in" id="kbar-in"></div>
+    <button type="button" class="kbar-run" id="kbar-run" hidden onclick="kbarRun()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8L18.4 12z"/></svg><span id="kbar-run-l">Exécuter</span></button>
   </div></div>
 
   <nav class="tabbar" id="tabbar" onkeydown="navigateMainTabs(event)" role="tablist" aria-label="Navigation principale">
@@ -24734,6 +24735,7 @@ function refreshKbarNow(ta){
   const box=document.getElementById('kbar-in');
   const bar=document.getElementById('kbar');
   if(!box||!bar) return;
+  kbarRunSync();   // la touche ▶ Exécuter suit son bouton (grisé quand la requête est vide, dans la console)
   const ranked=ta?kbarRankedKeys(ta):KEYS.map(([key,isKw])=>[key,isKw,null]);
   const lessonId=current&&mode==='lesson'?current.id:'';
   const sig=(ta?ta.id:'')+'\0'+lessonId+'\0'+ranked.map(x=>x[0]).join('\0');
@@ -24761,6 +24763,7 @@ function updateKbarDock(){
     kbar.classList.remove('kb-open','kb-down');
     dock.setAttribute('aria-label','Masquer le clavier');
     dock.title='Masquer le clavier';
+    const kr=document.getElementById('kbar-run');if(kr)kr.hidden=true;
     return;
   }
   const kbUp=!kbarKbDismissed&&(keyboardInset()>40||document.activeElement===activeTA);
@@ -24769,6 +24772,7 @@ function updateKbarDock(){
   const label=kbUp?'Masquer le clavier':'Afficher le clavier';
   dock.setAttribute('aria-label',label);
   dock.title=label;
+  kbarRunSync();
 }
 function kbarDockToggle(){
   if(!activeTA) return;
@@ -24783,6 +24787,37 @@ function kbarDockToggle(){
     kbarKbDismissed=false;
     activeTA.focus({preventScroll:true});
   }
+}
+/* Elisa, 14 novembre, 9 h 48 (« Ok » à la touche ▶ Exécuter dans la barre au-dessus du clavier) : sur iPhone SE, pendant un défi, le
+   clavier ouvert cachait le bouton « Exécuter » sous lui ; il fallait d’abord ranger le clavier. La barre des touches SQL porte
+   maintenant, à son bout, une touche ▶ Exécuter (ou ▶ Vérifier) quand le champ actif a son bouton : défi, salle, révision, console,
+   requête à expérimenter d’une leçon. La toucher fait exactement ce que fait le bouton de la page ; le clavier se range, pour que
+   le résultat se voie. Pas de touche pour une note (rien à exécuter), ni clavier rangé (le bouton de la page est alors en vue). */
+function kbarRunBtn(ta){
+  if(!ta||!ta.isConnected)return null;
+  let b=null;
+  if(ta.id==='ed-lesson')b=document.querySelector('#scr-lesson .run-row .btn-run');
+  else if(ta.id==='ed-console')b=document.querySelector('#scr-console .console-run-row .btn-run');
+  else{const f=ta.closest('.exframe');b=f&&f.querySelector('.xf-run');}
+  return b&&b.isConnected&&b.offsetParent!==null?b:null;
+}
+function kbarRunSync(){
+  const k=document.getElementById('kbar-run');if(!k)return;
+  const b=kbarRunBtn(activeTA);
+  k.hidden=!b;
+  if(!b)return;
+  const lab=/Vérifier/.test(b.textContent)?'Vérifier':'Exécuter';
+  const l=document.getElementById('kbar-run-l');if(l&&l.textContent!==lab)l.textContent=lab;
+  k.setAttribute('aria-label',lab==='Vérifier'?'Vérifier la requête':'Exécuter la requête');
+  k.disabled=!!b.disabled;
+}
+function kbarRun(){
+  const b=kbarRunBtn(activeTA);if(!b||b.disabled)return;
+  if(typeof buzz==='function')buzz('light');
+  kbarKbDismissed=true;
+  try{activeTA&&activeTA.blur();}catch(e){}
+  b.click();
+  setTimeout(syncKbarOffset,120);setTimeout(syncKbarOffset,320);
 }
 /* La barre « Insérer » défile de côté : ses bords s’estompent là où il reste des touches à voir, plutôt que de couper net une touche
    (Elisa, 31 octobre, 1 h 34 : « il y a une coupure je crois »). kbarEdges() pose is-start / is-end (ludique.css, 43). */
@@ -52057,7 +52092,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-iphonese-v3000';
+  const SW_CACHE='requete-2026-11-14-executer-v3001';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
