@@ -103,12 +103,14 @@ test('la page : le niveau, son nom, le chemin des cinq niveaux, la suite et les 
   assert.ok(app.includes("if(q&&q.get('apercu')==='niveau'){"), 'aperçu : ?apercu=niveau&niveau=3');
 });
 
-test('le sticker du niveau 1 : WebP carré de 768 px, transparent, dans la planche', () => {
-  const b = fs.readFileSync(path.join(ROOT, 'assets/stickers/niv1.webp'));
-  assert.equal(b.toString('ascii', 8, 16), 'WEBPVP8X');
-  assert.ok(b[20] & 0x10, 'avec transparence');
-  assert.deepEqual([1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)], [768, 768]);
-  assert.ok(app.includes("'niv1']);   // 14 novembre"));
+test('les cinq stickers de niveau : WebP carrés de 768 px, transparents, dans la planche', () => {
+  for (const n of [1, 2, 3, 4, 5]) {
+    const b = fs.readFileSync(path.join(ROOT, `assets/stickers/niv${n}.webp`));
+    assert.equal(b.toString('ascii', 8, 16), 'WEBPVP8X', `niv${n}`);
+    assert.ok(b[20] & 0x10, `niv${n} : avec transparence`);
+    assert.deepEqual([1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)], [768, 768], `niv${n}`);
+  }
+  assert.ok(app.includes("'niv1','niv2','niv3','niv4','niv5']);   // 14 novembre"));
   const r = fn('renderStickers');
   assert.ok(r.includes("${nivs.length>1?group('Niveaux',nivs):''}") && r.includes("list.filter(s=>s.kind==='acc'||(s.kind==='niveau'&&nivs.length<2))"), 'un seul : avec les accomplissements');
 });

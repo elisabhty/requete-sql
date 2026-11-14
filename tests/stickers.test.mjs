@@ -101,8 +101,8 @@ test('dessins : un par module, dans l’ordre de MODULES, et un par accomplissem
   assert.equal(ids.length, 15);
   assert.equal(new Set(ids).size, 15);
   const accIds = ['requete', 'defi1', 'lecons10', 'serie3', 'code', 'donnees', 'defis10', 'premier', 'difficile', 'serie7', 'amis5', 'serie14', 'champion', 'serie30', 'parcours'];
-  /* 14 novembre : les stickers de niveau, chacun dès que son image est là (niv1 d’abord) */
-  assert.deepEqual([...d3].sort(), [...ids, ...accIds, 'niv1'].sort(), 'chaque sticker a son rendu 3D, aucun en trop');
+  /* 14 novembre : les cinq stickers de niveau */
+  assert.deepEqual([...d3].sort(), [...ids, ...accIds, 'niv1', 'niv2', 'niv3', 'niv4', 'niv5'].sort(), 'chaque sticker a son rendu 3D, aucun en trop');
   for (const id of d3) assert.ok(fs.existsSync(new URL(`../assets/stickers/${id}.webp`, import.meta.url)), `${id} : assets/stickers/${id}.webp`);
   assert.deepEqual([...art].sort(), [...ids, 'requete', 'lecons10', 'serie3', 'defis10', 'serie7', 'parcours'].sort(), 'le dessin à plat reste en secours pour les 21 premiers');
   assert.deepEqual(Object.keys(vm.runInContext('STK_HOLO', ctx)), ['defis10', 'serie7', 'parcours', 'premier', 'difficile', 'serie14', 'champion', 'serie30', 'niv4', 'niv5']);
