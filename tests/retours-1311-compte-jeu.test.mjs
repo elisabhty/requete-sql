@@ -144,7 +144,13 @@ test('Supabase : les deux tables privées, effacées avec le compte ; les foncti
     "cle text not null unique check (cle ~ '^[A-Za-z0-9]{24,64}$'),", 'create table if not exists requete_private.compte_stats (',
     'revoke all on table requete_private.compte_joueur from public, anon, authenticated;', 'revoke all on table requete_private.compte_stats from public, anon, authenticated;',
     'grant execute on function public.compte_joueur_lier(text) to authenticated;', "if v_uid is null or coalesce(auth.jwt()->>'is_anonymous', 'false') = 'true' then",
-    "return jsonb_build_object('ok', true, 'cle', null, 'autre', true);", 'select h, at from uniques order by at desc limit 500'])
+    "return jsonb_build_object('ok', true, 'cle', null, 'autre', true);", 'select h, at from uniques order by at desc limit 500',
+    /* 13 h 34 (« Oui vas-y ») : l’époque des effacements */
+    'alter table requete_private.compte_stats add column if not exists epoque integer not null default 0;',
+    'drop function if exists public.compte_stats_garder(text, jsonb, jsonb);',
+    "if p_epoque is not null and p_epoque < v_ep then\n    return jsonb_build_object('ok', true, 'efface', true, 'epoque', v_ep);",
+    'grant execute on function public.compte_stats_garder(text, jsonb, jsonb, integer) to authenticated;',
+    'epoque = requete_private.compte_stats.epoque + 1'])
     assert.ok(sql.includes(k), k);
   assert.ok(!/grant execute on function public\.compte_[a-z_]+\([^)]*\) to [^;]*anon/.test(sql), 'jamais pour anon');
 });

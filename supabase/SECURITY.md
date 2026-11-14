@@ -32,3 +32,14 @@ Après un changement des défis, des bases, du moteur ou de la comparaison, exé
 5. Refaire les tests d'intégration et l'audit des droits. Un ancien onglet doit être rechargé ; il ne doit jamais pouvoir revenir au protocole non vérifié.
 
 Cette protection ne prouve pas qu'un humain a réfléchi sans consulter les solutions, et ne remplace pas un test de charge ni une protection contre la création massive d'identités. Aucun score déclaré par un client n'est accepté comme preuve.
+
+## Le joueur et les parties du compte (14 novembre)
+
+- `requete_private.compte_joueur` (un compte → la clé de joueur de son premier appareil connecté) et `requete_private.compte_stats`
+  (la part de chaque appareil dans « Mes stats », les 500 dernières parties, l’époque des effacements) : RLS sans politique, aucun
+  droit client ; effacées avec le compte (cascade sur `auth.users`).
+- `compte_joueur_lier`, `compte_stats_garder`, `compte_stats_effacer` : SECURITY DEFINER, `search_path` vide, exécutables par
+  `authenticated` seulement (jamais `anon`), identité tirée de `auth.uid()`, sessions anonymes refusées. La clé de joueur n’est
+  rendue qu’au compte qui la possède ; une clé n’appartient qu’à un compte (unique).
+- Testées le 14 novembre contre la vraie base, dans une transaction annulée (deux faux comptes, clé d’un autre compte, appareil
+  invalide, appel sans compte, époques) : rien n’est resté.
