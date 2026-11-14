@@ -115,7 +115,7 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
   `assets/voix/en/<cours>/` et dans la vidéo (`voix` de `assets/anim/en/<cours>.js`). Chaque fichier garde l’id du français ;
-  `cles` donne la légende française de chaque phrase. Une voix anglaise native (choix d’Elisa, 23 h 47).
+  `cles` donne la légende française de chaque phrase. Une voix anglaise native : Tara, « Polished Audio Description » (nF5xXwlriNhsorW8Fykg ; choix d’Elisa, 23 h 56).
 - **À reprendre avec les défis** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base française ; une
   requête écrite en anglais sur un défi de la base des cours y serait refusée. À régler avant de traduire les défis.
 - **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :
