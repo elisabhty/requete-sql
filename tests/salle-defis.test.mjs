@@ -1071,7 +1071,11 @@ test('la manche se clôt seule quand tout le monde a trouvé, sinon à la fin du
   assert.match(guests[0].html, /Temps écoulé/); assert.match(guests[0].html, /Tes points arrivent dans/, '13 novembre, 17 h 31 : « Temps écoulé », puis les points');
   sec(w, 6);
   for (const c of [host, ...guests]) assert.equal(c.view(), 'final', c.name + ' : puis l’écran de fin (13 novembre)');
-  assert.match(guests[0].html, /<i>1 défi trouvé sur 2<\/i>/, 'la manche finie au chrono compte, sans être trouvée');
+  assert.match(guests[0].html, /<div class="jr2-tuile is-defis" role="listitem"><span class="jr2-tl">Défis<\/span><p class="jr2-tv"><svg class="jr2-ok"[^]*?<\/svg><b>1<\/b><small aria-hidden="true">\/2<\/small><span class="lq-sr"> sur 2<\/span><\/p><\/div>/, 'la manche finie au chrono compte, sans être trouvée (la tuile « Défis », 14 novembre)');
+  /* 14 novembre, 5 h 03 : la carte violette met les points en avant : la tuile « Points » d’abord (la pièce, le nombre qui monte), puis la place */
+  assert.match(guests[0].html, /<div class="jr2-tuiles" role="list" aria-label="Ta partie"><div class="jr2-tuile is-pts" role="listitem"><span class="jr2-tl">Points<\/span><p class="jr2-tv"><svg class="lq-stk"[^]*?<\/svg><b class="jr2-n" data-n="\d+" data-fmt="fr">\+\d+<\/b><\/p><\/div><div class="jr2-tuile is-place" role="listitem"><span class="jr2-tl">Place<\/span>/);
+  assert.match(host.html, /<span class="jr2-tl">Place<\/span><p class="jr2-tv"><svg[^]*?<\/svg><b>1<sup>er<\/sup><\/b><small aria-hidden="true">\/2<\/small><span class="lq-sr"> sur 2<\/span>/, 'la victoire : 1er sur 2');
+  assert.doesNotMatch(host.html, /jr2-bas|défis? trouvés? sur/, 'plus de trait au-dessus des points ni de pastille des défis');
   assert.match(guests[0].html, /<h1 id="jr2-t">Bien joué\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Hôte l’emporte de \d+\u00a0points?\. À toi la revanche\u00a0!<\/p>/, 'la défaite, qui encourage (18 h 35) : qui l’emporte et de combien');
   assert.match(host.html, /<h1 id="jr2-t">Tu as gagné\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Devant Ami1, de \d+\u00a0points?\.<\/p>/, 'la victoire : devant qui et de combien');
   assert.doesNotMatch(guests[0].html, /close par l’hôte/);

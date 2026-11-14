@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=359">
+<link rel="stylesheet" href="ludique.css?v=360">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38398,17 +38398,26 @@ function jeuRender(){
       else{ton='is-ok';titre=moi.pts>0?'Bien joué\u00a0!':'La revanche t’attend\u00a0!';chat='effort';med=moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):'';
         phrase=moi.pts>0&&premier&&premier.pts===moi.pts?`À égalité de points, ${nom(premier)} passe devant au temps. À toi la revanche\u00a0!`
           :moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\u00a0!`;}
-      /* Le détail de tes points : une seule manche, celui de la manche (le défi, le premier coup, la place) ; plusieurs, les défis trouvés. */
+      /* Le détail de tes points : une seule manche, celui de la manche (le défi, le premier coup, la place). */
       let pills='';
       if(J.nb===1&&moi.pts>0){const y=J.rounds[0]?jeuRanking(0).find(x=>x.pid===J.me):null;
         if(y)pills=[`<i>Défi ${y.val}${y.x>1?` ×${y.x}`:''}</i>`,y.essai?`<i class="is-essai">Du premier coup +${y.essai}</i>`:'',y.rang?`<i class="is-rang">${y.place===1?'1er':y.place+'e'} +${y.rang}</i>`:''].join('');}
-      else if(J.nb>1){const ok=J.rounds.filter(r=>r&&r.found[J.me]!=null).length;pills=`<i>${ok} défi${ok>1?'s':''} trouvé${ok>1?'s':''} sur ${jouees}</i>`;}
+      /* 14 novembre, 5 h 03 (Elisa : « améliore la carte violette niveau UI/UX pour bien intégrer les points, mise en avant ») : sous
+         l’issue, des tuiles comme à la fin d’une leçon. La première, les points : la plus large, cadre or, la pièce et le nombre qui
+         monte. Puis ta place (sa médaille, « sur 6 ») quand tu as marqué, et les défis trouvés (plusieurs manches, ou rien trouvé) ou ton
+         temps (une seule manche). Plus de trait au-dessus des points ni de pastille « 2 défis trouvés sur 2 » : les tuiles le disent. */
+      const ok=J.rounds.filter(r=>r&&r.found[J.me]!=null).length,sur=t=>`<small aria-hidden="true">/${t}</small><span class="lq-sr"> sur ${t}</span>`;
+      const tuile=(k,l,v)=>`<div class="jr2-tuile is-${k}" role="listitem"><span class="jr2-tl">${l}</span><p class="jr2-tv">${v}</p></div>`;
+      const tuiles=[tuile('pts','Points',`${JEU_COIN_SVG}<b class="jr2-n" data-n="${moi.pts}" data-fmt="fr">${moi.pts>0?'+':''}${moi.pts.toLocaleString('fr-FR')}</b>`),
+        moi.pts>0&&!nul?tuile('place','Place',`${moi.place<=3?lqStkSvg('medal'+moi.place):''}<b>${moi.place===1?'1<sup>er</sup>':moi.place+'<sup>e</sup>'}</b>${sur(sc.length||1)}`):'',
+        J.nb>1||moi.pts<=0?tuile('defis','Défis',`<svg class="jr2-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="10.5" fill="#1B1640" opacity=".18"/><circle cx="12" cy="11.5" r="10.5" fill="${ok?'#2BB673':'#B9B3D1'}"/>${ok?'<path d="M7 11.8l3.3 3.3L17 8.4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'<path d="M8.5 8l7 7M15.5 8l-7 7" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'}</svg><b>${ok}</b>${sur(jouees)}`)
+          :tuile('temps','Temps',`${lqStkSvg('clock')}<b>${jeuChronoFin(moi,sc)}</b>`)].join('');
       const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;
       const ico=`${typeof chatBonusHtml==='function'?chatBonusHtml(chat):''}${med?`<i class="jr2-med">${med}</i>`:''}`;
       const hero=`<section class="jr2-hero jeu-issue ${ton}" aria-labelledby="jr2-t">
         <div class="jr2-top"><span class="jr2-k">${kick}</span><span class="jr2-niv">${jeuNivBars(J.niv)}${JEU_NIVL[J.niv]}</span></div>
         <div class="jr2-main"><span class="jr2-chat" aria-hidden="true">${ico}</span><div class="jr2-tx"><h1 id="jr2-t">${titre}</h1>${phrase?`<p class="jr2-defi" id="jeu-sub">${phrase}</p>`:''}</div></div>
-        <div class="jr2-bas"><p class="jr2-pts"><b class="jr2-n" data-n="${moi.pts}">${moi.pts>0?'+':''}${moi.pts}</b><small>point${moi.pts>1?'s':''}</small></p></div>
+        <div class="jr2-tuiles" role="list" aria-label="Ta partie">${tuiles}</div>
         ${pills?`<p class="jr2-pills">${pills}</p>`:''}
       </section>`;
       const surPodium=new Set(sc.filter(x=>x.place<=3&&x.pts>0).map(x=>x.pid));
@@ -51712,7 +51721,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-podiumjeu-v2987';
+  const SW_CACHE='requete-2026-11-14-tuiles-v2988';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -9999,6 +9999,40 @@ html.lq #jeu-root .jr2-hero.is-nul::before{background:radial-gradient(220px 160p
     linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px) 0 0/22px 22px,linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px) 0 0/22px 22px}
 html.lq #jeu-root .jr2-hero.is-nul .jr2-n{color:rgba(255,255,255,.7)}
 html.lq #jeu-root .jeu-issue{margin-top:6px}
+/* 14 novembre, 5 h 03 (Elisa : « améliore la carte violette niveau UI/UX pour bien intégrer les points, mise en avant ») : sous
+   l’issue, des tuiles comme à la fin d’une leçon. Chaque tuile : un cadre de couleur, son nom en capitales, sa valeur sur fond blanc.
+   Les points d’abord : la tuile la plus large, cadre or, la pièce, le nombre qui monte, une lueur et un reflet qui passe. Puis ta place
+   (lilas, sa médaille) et les défis trouvés (menthe) ou ton temps (ciel). Elles se posent l’une après l’autre. */
+html.lq #jeu-root .jr2-tuiles{display:grid;grid-template-columns:1.35fr repeat(2,minmax(0,1fr));gap:8px;margin:16px 0 0}
+html.lq #jeu-root .jr2-tuiles:has(>.jr2-tuile:nth-child(2):last-child){grid-template-columns:1.35fr minmax(0,1fr)}
+html.lq #jeu-root .jr2-tuiles:has(>.jr2-tuile:only-child){grid-template-columns:minmax(0,1fr)}
+html.lq #jeu-root .jr2-tuile{--c:#C9BEFF;position:relative;display:flex;flex-direction:column;min-width:0;padding:2px;border-radius:16px;background:var(--c);
+  box-shadow:0 4px 0 rgba(17,10,60,.4);animation:jr2Tuile .5s cubic-bezier(.2,1.4,.4,1) .3s both}
+html.lq #jeu-root .jr2-tuile:nth-child(2){animation-delay:.42s}
+html.lq #jeu-root .jr2-tuile:nth-child(3){animation-delay:.54s}
+html.lq #jeu-root .jr2-tuile.is-pts{--c:var(--sun,#FFC83D)}
+html.lq #jeu-root .jr2-tuile.is-defis{--c:#9FF0C6}
+html.lq #jeu-root .jr2-tuile.is-temps{--c:#A8DBFF}
+html.lq #jeu-root .jr2-tl{display:block;padding:4px 6px 3px;color:#1B1640;font:800 10.5px/1.2 var(--display);letter-spacing:.08em;text-align:center;text-transform:uppercase;white-space:nowrap}
+html.lq #jeu-root .jr2-tv{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;margin:0;padding:10px 6px 11px;border-radius:14px;background:#fff;color:#1B1640;white-space:nowrap}
+html.lq #jeu-root .jr2-tv>svg{flex:none;width:20px;height:20px}
+html.lq #jeu-root .jr2-tv b{font:850 clamp(17px,5.6vw,22px)/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+html.lq #jeu-root .jr2-tv b sup{font-size:.6em;vertical-align:.55em;letter-spacing:0}
+html.lq #jeu-root .jr2-tv>small{align-self:flex-end;margin:0 0 2px -3px;color:var(--ink-3);font:700 13px/1 var(--display)}
+/* La tuile des points, mise en avant : plus grande, la pièce qui tombe, une lueur dorée et un reflet */
+html.lq #jeu-root .jr2-tuile.is-pts{box-shadow:0 4px 0 rgba(17,10,60,.4),0 0 24px rgba(255,200,61,.45)}
+html.lq #jeu-root .jr2-tuile.is-pts .jr2-tv{position:relative;overflow:hidden;gap:6px;background:linear-gradient(180deg,#fff,#FFF7DC)}
+html.lq #jeu-root .jr2-tuile.is-pts .jr2-tv::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.9) 50%,transparent 65%);transform:translateX(-120%);animation:jr2Reflet 1.1s ease-in-out 1.15s both}
+html.lq #jeu-root .jr2-tuile.is-pts .jr2-tv>svg{width:26px;height:26px;animation:jr2Piece .6s cubic-bezier(.2,1.4,.4,1) .45s both}
+html.lq #jeu-root .jr2-tuile.is-pts .jr2-n{color:#1B1640;font-size:clamp(22px,7.4vw,30px);font-weight:900}
+html.lq #jeu-root .jr2-hero:is(.is-nul,.is-ok) .jr2-tuile.is-pts .jr2-n[data-n="0"]{color:var(--ink-3)}
+@keyframes jr2Tuile{0%{opacity:0;transform:translateY(10px) scale(.86)}100%{opacity:1;transform:none}}
+@keyframes jr2Piece{0%{opacity:0;transform:translateY(-16px) rotate(-30deg) scale(.6)}100%{opacity:1;transform:none}}
+@keyframes jr2Reflet{to{transform:translateX(120%)}}
+html.lq #jeu-root .jr2-tuiles+.jr2-pills{margin-top:12px}
+@media (prefers-reduced-motion:reduce){html.lq #jeu-root .jr2-tuile.is-pts .jr2-tv::after{display:none}}
+html.lq[data-motion="reduce"] #jeu-root .jr2-tuile.is-pts .jr2-tv::after{display:none}
+@media (max-width:360px){html.lq #jeu-root .jr2-tuiles{gap:6px}html.lq #jeu-root .jr2-tv{padding-left:4px;padding-right:4px}html.lq #jeu-root .jr2-tv>svg{width:17px;height:17px}html.lq #jeu-root .jr2-tuile.is-pts .jr2-tv>svg{width:22px;height:22px}}
 /* La page des points pour toutes les issues (13 novembre, 17 h 31) ; la victoire garde son or et ses confettis. Une pièce à 0 point
    (rare : seule une page sans issue) reste éteinte ; entre amis, depuis 18 h 35, le chat encourage à sa place. */
 html.lq .mu.mu-pts.is-zero .mu-coin{filter:grayscale(.9) brightness(1.08);opacity:.8}
