@@ -70,7 +70,7 @@ test('fermée par le serveur à son heure (de retour après la fin) : « Temps �
 
 test('de retour d’une autre appli : un signe de vie avant « hello », et le serveur compte le joueur présent', () => {
   const sent = [];
-  const ctx = vm.createContext({ Date, JEU: { solo: false, synced: true, full: false }, jeuSend: m => { sent.push(m.t); return 'u' + sent.length; } });
+  const ctx = vm.createContext({ Date, JEU: { solo: false, synced: true, full: false }, jeuCur: () => -1, jeuSend: m => { sent.push(m.t); return 'u' + sent.length; } });
   vm.runInContext(fn('jeuResume'), ctx);
   ctx.jeuResume();
   assert.deepEqual(sent, ['ping', 'hello'], 'les envois partent dans l’ordre : le ping d’abord');

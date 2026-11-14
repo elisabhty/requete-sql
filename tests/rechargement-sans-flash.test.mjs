@@ -46,7 +46,7 @@ test('« Connexion perdue » n’apparaît qu’après 4 s sans réseau, et une 
 test('au retour, une seule reprise : un signe de vie et un « hello », pas trois', () => {
   const sent = [];
   let now = 5_000_000;
-  const ctx = vm.createContext({ Date: { now: () => now }, JEU: { solo: false, synced: true, full: false }, jeuSend: m => { sent.push(m.t); return 'u' + sent.length; } });
+  const ctx = vm.createContext({ Date: { now: () => now }, JEU: { solo: false, synced: true, full: false }, jeuCur: () => -1, jeuSend: m => { sent.push(m.t); return 'u' + sent.length; } });
   vm.runInContext(fn('jeuResume'), ctx);
   ctx.jeuResume(); now += 400; ctx.jeuResume(); now += 900; ctx.jeuResume();
   assert.deepEqual(sent, ['ping', 'hello']);

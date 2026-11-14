@@ -79,6 +79,8 @@ function makeClient(world, name, { skew = 0 } = {}) {
   const ctx = vm.createContext({});
   const store = {}, session = {};
   const c = { name, ctx, offline: false, deaf: false, failPosts: 0, lose: 0, beacons: 0, html: '', toasts: [], out: '', ed: { value: '' }, root: null, misc: { 'back-label': {}, 'nav-title': {}, 'lesson-body': {} }, sockets: 0 };
+  c.endormi = false; c.attente = new Set(); c.ed.dispatchEvent = () => true;
+  c.garde = f => function () { if (c.endormi) { c.attente.add(f); return; } return f.apply(this, arguments); };
   c.root = { classList: { remove() {}, add() {} }, offsetWidth: 0, set innerHTML(v) { c.html = v; }, get innerHTML() { return c.html; } };
   /* Le canal en direct (Supabase Realtime, protocole 1.0.0) : rejoindre « realtime:salle:CODE », battements,
      diffusion. Hors ligne : rien ne passe ; sourd : rien n’arrive (ni le direct, ni les réponses de jeu_historique). */
@@ -123,9 +125,10 @@ function makeClient(world, name, { skew = 0 } = {}) {
   const resp = (ok, body) => ({ ok, status: ok ? 200 : 503, json: () => WP.of(JSON.parse(JSON.stringify(body === undefined ? null : body))) });
   const stubs = {
     console, Date: { now: () => world.now + skew },
-    setTimeout: (f, ms) => world.setTimeout(f, ms), clearTimeout: id => world.clear(id),
-    setInterval: (f, ms) => world.setInterval(f, ms), clearInterval: id => world.clear(id),
-    requestAnimationFrame: f => world.setTimeout(f, 16), cancelAnimationFrame: id => world.clear(id),
+    /* L’appli en arrière-plan (c.endormi, 14 novembre, 15 h 31) : ses minuteurs ne partent plus ; au retour, chacun part une fois. */
+    setTimeout: (f, ms) => world.setTimeout(c.garde(f), ms), clearTimeout: id => world.clear(id),
+    setInterval: (f, ms) => world.setInterval(c.garde(f), ms), clearInterval: id => world.clear(id),
+    requestAnimationFrame: f => world.setTimeout(c.garde(f), 16), cancelAnimationFrame: id => world.clear(id),
     crypto: { getRandomValues: a => { for (let i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 2 ** 32); return a; } },
     localStorage: { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
     sessionStorage: { getItem: k => (k in session ? session[k] : null), setItem: (k, v) => { session[k] = String(v); }, removeItem: k => { delete session[k]; } },
@@ -177,7 +180,7 @@ function makeClient(world, name, { skew = 0 } = {}) {
     resultatsDefiEgaux: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     sandbox: () => ({ exec: sql => [{ columns: ['q'], values: [[sql]] }], close() {} }),
     execChallengeResult: (database,sql) => database.exec(sql),
-    performance: { now: () => world.now }, confirm: () => true, toast() {},
+    performance: { now: () => world.now }, confirm: () => true, toast() {}, Event: class { constructor(type) { this.type = type; } },
     /* La fenêtre de l’appli (lqAsk) répond tout de suite « oui » ; un test peut la remplacer pour compter ou refuser. */
     lqAsk: () => ({ then: f => f(true) }), lqInfo: () => {},
     mode: '', current: null, exoFails: 0,
@@ -2189,4 +2192,107 @@ test('9 novembre, 22 h 09 : l’historique de la Console garde le début d’une
   const i = app.indexOf('function dedupeConsoleQueries('); vm.runInContext(app.slice(i, app.indexOf('\n}\n', i) + 3), ctx);
   const r = ctx.dedupeConsoleQueries([{ sql: 'x'.repeat(30000) }, { sql: 'SELECT 1' }], 24);
   assert.equal(r[0].sql.length, 20000); assert.equal(r[0].coupe, true); assert.equal(r[1].sql, 'SELECT 1');
+});
+
+/* ---------- L’appli en arrière-plan (Elisa, 14 novembre, 15 h 31 : « quand je pars de l’appli en étant en défi, c’est comme si ça
+   s’arrêtait le chrono. Mais quand je suis avec des gens en multijoueur, comment on fait ? Eux, de leur côté, ça défile. Est-ce
+   qu’ils vont pas être dans une autre manche pendant que moi j’y suis pas ? Faut que ça soit synchronisé ») ----------
+   iOS fige l’appli en arrière-plan : plus aucun minuteur, plus rien n’arrive ; l’heure, elle, continue ; et au bout d’un moment, la
+   connexion est coupée. Au retour, les minuteurs en retard partent une fois, et la page redevient visible (wake, jeuResume). */
+function dormir(c) { c.endormi = true; c.deaf = true; }
+function couper(c) { const ws = c.ws; if (ws && ws.readyState === 1) { ws.readyState = 3; if (ws.room) ws.room.subs.delete(ws); } }
+function reveiller(c, { minuteursDabord = false } = {}) {
+  c.deaf = false; c.endormi = false;
+  const minuteurs = () => { const f = [...c.attente]; c.attente.clear(); f.forEach(g => g()); };
+  if (minuteursDabord) minuteurs();
+  c.ev('JEU&&JEU.t&&JEU.t.wake&&JEU.t.wake(false)'); c.ev('JEU&&jeuResume()');
+  if (!minuteursDabord) minuteurs();
+}
+const reste = c => c.ev("(function(){const n=jeuCur(),r=JEU.rounds[n];return Math.round((jeuDureeMs(jeuNivManche(n))-(Date.now()-r.t1))/1000);})()");
+const points = c => c.ev('jeuScores().map(x=>x.name+":"+x.pts).sort()');
+const cids = c => c.ev('JEU.rounds.map(r=>r&&r.cid)');
+
+test('15 h 31 : 40 s en arrière-plan en pleine manche : au retour, la même manche, le même temps que les autres ; il peut trouver', () => {
+  const { w, host, guests } = room({ n: 2, nb: 2 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5); sec(w, 60);
+  assert.equal(ami.view(), 'play0');
+  dormir(ami); sec(w, 40); reveiller(ami); sec(w, 3);
+  assert.equal(ami.view(), 'play0');
+  assert.ok(Math.abs(reste(ami) - reste(host)) <= 1, `le même temps : ${reste(ami)} s et ${reste(host)} s`);
+  assert.ok(reste(host) < 360 - 100, 'le chrono a continué pendant l’absence');
+  assert.ok(!ami.toasts.some(t => /Te revoilà/.test(t)), 'la même manche : rien à dire');
+  ami.found(); sec(w, 2);
+  assert.ok(host.ev('JEU.rounds[0].found[' + JSON.stringify(ami.pid()) + ']!=null'), 'l’hôte voit qu’il a trouvé');
+});
+
+for (const minuteursDabord of [false, true]) test(`15 h 31 : 3 min en arrière-plan (connexion coupée${minuteursDabord ? ', minuteurs d’abord' : ''}) : la partie continue sans lui ; au retour, il est dans la manche en cours, au même temps, avec les mêmes points`, () => {
+  const { w, host, guests } = room({ n: 2, nb: 3 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5); sec(w, 30);
+  host.found(); sec(w, 2);
+  dormir(ami); sec(w, 20); couper(ami); sec(w, 40);
+  /* Sans nouvelles de lui depuis 55 s, il n’est plus compté : tous ceux qui restent ont trouvé, la manche se termine sans l’attendre */
+  assert.deepEqual(host.live(), ['Hôte']);
+  sec(w, 3 * 60 - 60);
+  assert.equal(host.view(), 'play1', 'chez l’hôte, la manche 2 est en cours');
+  reveiller(ami, { minuteursDabord }); sec(w, 4);
+  assert.equal(ami.view(), 'play1', 'à son retour, la manche en cours, comme les autres');
+  assert.deepEqual(host.live().sort(), ['Ami1', 'Hôte'], 'les autres le revoient');
+  assert.deepEqual(cids(ami), cids(host), 'les mêmes défis');
+  assert.ok(Math.abs(reste(ami) - reste(host)) <= 1, `le même temps : ${reste(ami)} s et ${reste(host)} s`);
+  assert.deepEqual(points(ami), points(host), 'les mêmes points chez tous (la manche manquée à 0 pour lui)');
+  assert.equal(ami.ev('JEU.rounds[0].found[JEU.me]==null'), true, 'la manche 1 : pas trouvée');
+  assert.ok(ami.toasts.includes('Te revoilà ! La partie a continué sans toi : manche 2/3.'), 'le lecteur d’écran lui dit que la partie a avancé');
+  ami.found(); sec(w, 2); host.found(); sec(w, 2);
+  for (const c of [host, ami]) assert.equal(c.view(), 'res1', c.name + ' : les résultats de la manche 2, ensemble');
+  sec(w, 12);
+  for (const c of [host, ami]) assert.equal(c.view(), 'play2', c.name + ' : la manche 3, ensemble');
+  assert.ok(Math.abs(reste(ami) - reste(host)) <= 1);
+});
+
+test('15 h 31 : l’hôte part 8 min en arrière-plan : un ami prend la main et la partie continue ; au retour, l’hôte suit, sans rien relancer', () => {
+  const { w, host, guests } = room({ n: 2, nb: 3 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5); sec(w, 20);
+  dormir(host); sec(w, 20); couper(host); sec(w, 8 * 60 - 20);
+  assert.equal(ami.J('hostPid'), ami.pid(), 'l’ami a pris la main');
+  assert.equal(ami.view(), 'play1', 'et la manche 2 est partie sans l’hôte');
+  reveiller(host); sec(w, 8);
+  assert.equal(host.view(), 'play1', 'l’hôte revenu est dans la manche 2');
+  assert.deepEqual(cids(host), cids(ami), 'aucune manche en double, les mêmes défis');
+  assert.equal(host.J('hostPid'), ami.pid(), 'il revient comme simple joueur');
+  assert.ok(Math.abs(reste(ami) - reste(host)) <= 1, `le même temps : ${reste(ami)} s et ${reste(host)} s`);
+  assert.deepEqual(points(host), points(ami));
+  assert.ok(host.toasts.includes('Te revoilà ! La partie a continué sans toi : manche 2/3.'));
+});
+
+test('15 h 31 : revenu après la fin de la partie : l’écran de fin, les mêmes scores', () => {
+  const { w, host, guests } = room({ n: 2, nb: 2 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5); sec(w, 10);
+  ami.found(); sec(w, 2);
+  dormir(ami); sec(w, 20); couper(ami); sec(w, 15 * 60);
+  assert.equal(host.view(), 'final');
+  reveiller(ami); sec(w, 8);
+  assert.equal(ami.view(), 'final', 'l’écran de fin, comme les autres');
+  assert.deepEqual(points(ami), points(host));
+  assert.ok(ami.toasts.includes('Te revoilà ! La partie s’est terminée pendant ton absence.'), 'même si sa vue montre encore 5 s la dernière manche');
+  assert.ok(!ami.toasts.some(t => /continué sans toi/.test(t)), 'pas « manche 2/2 » : la partie est finie');
+});
+
+test('15 h 31 : parti pendant la dernière manche, revenu après la fin : « terminée » ; reparti sur l’écran de fin : rien de plus', () => {
+  const { w, host, guests } = room({ n: 2, nb: 1 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5); sec(w, 10);
+  dormir(ami); sec(w, 20); couper(ami); sec(w, 10 * 60);
+  assert.equal(host.view(), 'final');
+  reveiller(ami); sec(w, 8);
+  assert.equal(ami.view(), 'final');
+  assert.deepEqual(points(ami), points(host));
+  assert.equal(ami.toasts.filter(t => /Te revoilà/.test(t)).length, 1);
+  assert.ok(ami.toasts.includes('Te revoilà ! La partie s’est terminée pendant ton absence.'));
+  dormir(ami); sec(w, 90); reveiller(ami); sec(w, 8);
+  assert.equal(ami.view(), 'final');
+  assert.equal(ami.toasts.filter(t => /Te revoilà/.test(t)).length, 1, 'parti sur l’écran de fin : rien à dire au retour');
 });

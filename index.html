@@ -37451,10 +37451,29 @@ function jeuResume(){
   /* Jusqu’au retour de ce « hello » par le relais, ce qui arrive est du rejeu (messages manqués) : il
      informe, mais ne prouve pas que son auteur est là maintenant. */
   J.replaying=true;J.replayEnd=Date.now()+6000;
+  /* 14 novembre, 15 h 31 : où en était la partie au départ (jeuRetourDire, une fois ce qui a été manqué relu) */
+  if(!J.retour)J.retour={n:jeuCur(),over:!!J.over,g:J.g};
   /* Un signe de vie d’abord (les envois partent dans l’ordre) : le serveur nous compte présent avant que « hello » regarde la manche
      en cours ; sinon, seul dans la salle et parti plus de 55 s (une autre appli), on la retrouvait fermée (8 novembre, 17 h 31). */
   jeuSend({t:'ping'});
   J.resumeU=jeuSend({t:'hello'});
+}
+/* 14 novembre, 15 h 31 (Elisa : « quand je suis avec des gens en multijoueur… est-ce qu’ils vont pas être dans une autre manche pendant
+   que moi j’y suis pas ? Faut que ça soit synchronisé »). La partie n’attend personne : le chrono suit l’heure (il continue l’appli
+   fermée), et sans nouvelles d’un joueur depuis 55 s, les autres ne le comptent plus (la manche finit quand tous ceux qui restent ont
+   trouvé). Au retour, la salle relit ce qui a été manqué : la même manche, le même chrono, les mêmes points que les autres (une manche
+   manquée compte 0). Si la partie a avancé pendant l’absence, le lecteur d’écran le dit (jeuToast), pour que le changement de manche ne
+   surprenne pas. Au retour de son « hello », tout ce qui a été manqué est relu, mais l’écran peut encore montrer 5 s la carte de la
+   dernière manche (jeuView) : la fin se lit sur les manches, pas sur la vue. */
+function jeuRetourDire(){
+  const J=JEU,R=J&&J.retour;if(!R)return;J.retour=null;
+  if(R.over||R.n<0||R.g!==J.g)return;
+  const n=jeuCur(),fini=!!J.over||(n>=J.nb-1&&jeuRoundDone(n));
+  if(!fini&&n<=R.n)return;
+  setTimeout(()=>{
+    if(JEU!==J||!/^(play|res|draw|final)/.test(jeuView()))return;
+    jeuToast(fini?'Te revoilà ! La partie s’est terminée pendant ton absence.':`Te revoilà ! La partie a continué sans toi : manche ${n+1}/${J.nb}.`);
+  },0);
 }
 function jeuIsHost(){const J=JEU;return !!J&&J.hostPid===J.me&&!(J.replaying&&Date.now()<J.replayEnd);}
 function jeuPresent(pid){
@@ -37510,7 +37529,7 @@ function jeuOnMsg(m){
     if(mine){
       J.echoAt=Date.now();
       if(m.t==='hello'&&m.u===J.helloU&&!J.synced)jeuSynced(m);
-      if(m.t==='hello'&&m.u===J.resumeU)J.replaying=false;
+      if(m.t==='hello'&&m.u===J.resumeU){J.replaying=false;jeuRetourDire();}
       if(m.t==='round'){const r=J.rounds[+m.n];if(r&&r.u===m.u)r.conf=true;}
     }
     if(m.t==='bye'){const i=J.seq.indexOf(m.pid);if(i>=0)J.seq.splice(i,1);}
@@ -52694,7 +52713,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-indices-v3018';
+  const SW_CACHE='requete-2026-11-14-retour-v3019';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

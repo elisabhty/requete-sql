@@ -229,9 +229,10 @@ test('réf 4 — « Entre amis » : le podium de la dernière partie, les advers
   const mates = [...h.matchAll(/<li class="(is-\w+)" style="--i:\d"><b class="jeu-av" data-c="\d" aria-hidden="true">(.)<\/b><span class="perf-mate"><b>([^<]+)<\/b><small>([^<]+)<\/small><\/span><span class="perf-h2h" role="img" aria-label="([^"]+)"><em>(\d)<i>–<\/i>(\d)<\/em><small>([^<]+)<\/small>/g)]
     .map(m => [m[1], m[3], m[4], m[5], m[6] + '–' + m[7], m[8]]);
   assert.deepEqual(mates, [
-    ['is-eq', 'Léa', '2 parties ensemble · aujourd’hui', '1 fois devant, 1 fois derrière', '1–1', 'à égalité'],
-    ['is-up', 'Tom', '1 partie ensemble · aujourd’hui', '1 fois devant, 0 fois derrière', '1–0', 'tu mènes'],
-    ['is-down', 'Zoé', '3 parties ensemble · ' + mates[2][2].split(' · ')[1], '0 fois devant, 2 fois derrière, 1 ex æquo', '0–2', 'à rattraper'],
+    /* 14 novembre, 14 h 33 (« qu’on doive pas trop scroller ») : une carte courte par adversaire, ses parties avec toi */
+    ['is-eq', 'Léa', '2 parties', '1 fois devant, 1 fois derrière', '1–1', 'à égalité'],
+    ['is-up', 'Tom', '1 partie', '1 fois devant, 0 fois derrière', '1–0', 'tu mènes'],
+    ['is-down', 'Zoé', '3 parties', '0 fois devant, 2 fois derrière, 1 ex æquo', '0–2', 'à rattraper'],
   ], 'les plus récents d’abord (à égalité, les plus affrontés), et le score entre vous');
   assert.ok(h.includes(`<button type="button" class="perf-rematch" onclick="perfRematch('m')"><svg data-k="friends"></svg><span>Les redéfier</span>`), 'les redéfier, au niveau de la dernière partie');
   assert.ok(h.includes('<span class="perf-g"><b>À plusieurs · Moyen</b><small class="perf-g-avec">avec Léa et Tom</small>'), 'l’historique dit avec qui (14 novembre : sous le titre court)');
