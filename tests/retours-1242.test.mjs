@@ -29,19 +29,20 @@ const salle = () => {
 };
 const pur = x => JSON.parse(JSON.stringify(x));
 
-test('le barème : ×2 en Moyen, ×4 en Difficile, des paliers de 3 et 5 min ; le Facile ne change pas', () => {
-  assert.ok(app.includes('const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};') && !app.includes('JEU_PTS_NIV'), 'plus de bonus de niveau');
-  assert.ok(app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'), 'les paliers du 31 octobre');
+test('le barème : ×2 en Moyen, ×4 en Difficile, des paliers de 2 min et 2 min 30 (14 novembre ; 3 et 5 min avant) ; le Facile, des paliers de 1 min', () => {
+  assert.ok(app.includes('const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:2,d:2.5};') && !app.includes('JEU_PTS_NIV'), 'plus de bonus de niveau');
+  assert.ok(app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'), 'les paliers du 31 octobre, le dernier à 6 min (14 novembre)');
   const c = salle(), ev = x => pur(vm.runInContext(x, c));
   const val = (k, ...s) => s.map(t => ev(`jeuValeur(${t * 1000},'${k}')`));
-  assert.deepEqual(val('f', 60, 61, 120, 300, 420, 421, 1199), [200, 175, 175, 100, 75, 50, 50], 'le Facile : 01:00 vaut encore 200');
-  assert.deepEqual(val('m', 180, 181, 400, 600, 800, 1000, 1199), [400, 350, 300, 250, 200, 150, 150], 'le Moyen : 400, puis −50 toutes les 3 min');
-  assert.deepEqual(val('d', 300, 301, 420, 700, 1000, 1199), [800, 700, 700, 600, 500, 500], 'le Difficile : 800, puis −100 toutes les 5 min');
+  /* 14 novembre, 7 h 17 : six paliers par manche (6, 12 ou 15 min) */
+  assert.deepEqual(val('f', 60, 61, 120, 300, 301, 360), [200, 175, 175, 100, 75, 75], 'le Facile : 01:00 vaut encore 200, jusqu’à 75 à 6 min');
+  assert.deepEqual(val('m', 120, 121, 400, 600, 601, 720), [400, 350, 250, 200, 150, 150], 'le Moyen : 400, puis −50 toutes les 2 min, jusqu’à 12 min');
+  assert.deepEqual(val('d', 150, 151, 420, 700, 751, 900), [800, 700, 600, 400, 300, 300], 'le Difficile : 800, puis −100 toutes les 2 min 30, jusqu’à 15 min');
   /* 8 novembre, 9 h 17 : le premier coup vaut +25 à tous les niveaux (la vitesse et la place gardent ×2 et ×4) */
   assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,true,true,'${k}').pts`)), [225, 425, 825], 'la manche parfaite, seul');
   assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,false,true,'${k}').pts`)), [275, 525, 1025], 'la manche parfaite, entre amis');
   assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,true,true,'${k}').essai`)), [25, 25, 25], 'le premier coup : +25 partout');
-  assert.deepEqual(ev("jeuPts(420000,2,false,false,'d')"), { val: 700, x: 4, essai: 0, rang: 80, pts: 780 }, 'Difficile à 7 min, 3e à trouver');
+  assert.deepEqual(ev("jeuPts(420000,2,false,false,'d')"), { val: 600, x: 4, essai: 0, rang: 80, pts: 680 }, 'Difficile à 7 min, 3e à trouver (le 3e palier depuis le 14 novembre)');
   assert.equal(ev('jeuPts(30000,0,true,true).pts'), 225, 'sans niveau : comme en Facile');
 });
 
@@ -79,19 +80,20 @@ function regles(niv) {
 test('« Comment sont calculés les points ? » : le barème du niveau choisi, ses marches, son premier coup, ses places, sa manche parfaite', () => {
   const f = regles();
   assert.ok(f.h.includes('<div class="room-rules-niv" role="radiogroup" aria-label="Le barème du niveau"><button type="button" role="radio" aria-checked="true" class="is-on" onclick="defisRulesNiv(\'f\')">Facile</button><button type="button" role="radio" aria-checked="false" class="" onclick="defisRulesNiv(\'m\')">Moyen<small>×2\u00a0pts</small></button>'), 'les trois niveaux, le Facile au départ ; « pts » après le coefficient (8 novembre, 13 h 35)');
-  assert.deepEqual(f.marches.map(m => m[0]), [200, 175, 150, 125, 100, 75, 50]);
+  assert.deepEqual(f.marches, [[200, '≤ 1'], [175, '1–2'], [150, '2–3'], [125, '3–4'], [100, '4–5'], [75, '5–6']], 'le Facile : six marches de 1 min (14 novembre)');
   const m = regles('m');
-  /* La manche dure 15 min en Moyen et 20 en Difficile (8 novembre, 8 h 52) : chaque marche tient dans le chrono. */
-  assert.deepEqual(m.marches, [[400, '≤ 3'], [350, '3–6'], [300, '6–9'], [250, '9–12'], [200, '12–15']], 'le Moyen : cinq marches de 3 min, jusqu’à la fin du chrono (15 min)');
-  assert.ok(m.h.includes('Le chrono part de 15&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
+  /* La manche dure 12 min en Moyen et 15 en Difficile (14 novembre, 7 h 17 ; 15 et 20 depuis le 8 novembre) : six marches dans le chrono. */
+  assert.deepEqual(m.marches, [[400, '≤ 2'], [350, '2–4'], [300, '4–6'], [250, '6–8'], [200, '8–10'], [150, '10–12']], 'le Moyen : six marches de 2 min, jusqu’à la fin du chrono (12 min)');
+  assert.ok(m.h.includes('Le chrono part de 12&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
   assert.ok(m.h.includes('<span>jusqu’à 400</span>') && m.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && m.h.includes('<b>🥇 Premier à trouver</b><span>+100</span><small>À plusieurs : 2e +60 · 3e +40 · 4e +20.'));
   assert.ok(m.h.includes('<span>Manche parfaite en Moyen</span><b>425</b><small>seul</small><i aria-hidden="true">·</i><b>525</b><small>à plusieurs</small>'));
   const d = regles('d');
-  assert.deepEqual(d.marches, [[800, '≤ 5'], [700, '5–10'], [600, '10–15'], [500, '15–20']], 'le Difficile : quatre marches de 5 min dans une manche de 20 min');
-  assert.ok(d.h.includes('Le chrono part de 20&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.') && f.h.includes('Le chrono part de 10&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
+  assert.deepEqual(d.marches, [[800, '≤ 2,5'], [700, '2,5–5'], [600, '5–7,5'], [500, '7,5–10'], [400, '10–12,5'], [300, '12,5–15']], 'le Difficile : six marches de 2 min 30 dans une manche de 15 min');
+  assert.ok(d.h.includes('<em class="lq-sr"> points de 2'+NB+'min'+NB+'30 à 5'+NB+'min</em>'), 'lu à voix haute : « 2 min 30 »');
+  assert.ok(d.h.includes('Le chrono part de 15&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.') && f.h.includes('Le chrono part de 6&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
   assert.ok(d.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && d.h.includes('<span>Manche parfaite en Difficile</span><b>825</b><small>seul</small><i aria-hidden="true">·</i><b>1\u202f025</b>'), '1 025, avec l’espace des milliers');
   assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×4\u00a0pts</small></button>'));
-  assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 3' + NB + 'min' + NB + '; en Difficile, quadruple et 5' + NB + 'min. Le premier coup vaut +25 partout. Le chrono' + NB + ': 10' + NB + 'min en Facile, 15 en Moyen, 20 en Difficile.</small></li>'));
+  assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 2' + NB + 'min' + NB + '; en Difficile, quadruple et 2' + NB + 'min' + NB + '30. Le premier coup vaut +25 partout. Le chrono' + NB + ': 6' + NB + 'min en Facile, 12 en Moyen, 15 en Difficile.</small></li>'));
   assert.ok(app.includes('<small>Vitesse, niveau, premier coup et place dans la salle</small>'));
   for (const r of ['html.lq .room-rules-niv{display:flex;', 'html.lq .room-rules-niv button.is-on{background:#fff;', '@media (prefers-reduced-motion:reduce){html.lq .room-rules-niv button{transition:none}}']) assert.ok(lq.includes(r), r);
 });
@@ -103,7 +105,11 @@ test('le serveur compte de même : jeu_score_v2 multiplie la manche et allonge l
   assert.ok(m.includes("'v_pts > v_ok * (case when v_solo then 225 else 275 end) * (case v_niv when ''m'' then 2 when ''d'' then 4 else 1 end)'"), 'le plafond');
   assert.ok(m.includes("raise exception 'plafond de jeu_score introuvable';"), 'rien ne change si la fonction a changé de forme');
   const c = salle();
-  assert.deepEqual(['f', 'm', 'd'].map(k => [vm.runInContext(`JEU_NIV_X.${k}`, c), vm.runInContext(`JEU_NIV_DUREE.${k}`, c)]), [[1, 1], [2, 3], [4, 5]], 'les mêmes nombres que l’appli');
+  assert.deepEqual(['f', 'm', 'd'].map(k => [vm.runInContext(`JEU_NIV_X.${k}`, c), vm.runInContext(`JEU_NIV_DUREE.${k}`, c)]), [[1, 1], [2, 2], [4, 2.5]], 'les mêmes nombres que l’appli (14 novembre)');
+  /* 14 novembre, 7 h 17 : des paliers de 1 min, 2 min, 2 min 30, le dernier à 6 sixièmes (20261114063120) */
+  const m2 = lire('supabase/migrations/20261114063120_salle_manches_plus_courtes.sql');
+  assert.ok(m2.includes("b3 constant text := $a$v_d:=case r.niv when 'm' then 2 when 'd' then 2.5 else 1 end;$a$;") && m2.includes('b4 constant text := $a$when floor(ms/1000.0)<=360*v_d then 75$a$;') && m2.includes('b1 constant text := $a$v_x integer; v_d numeric; res jsonb;$a$;'));
+  assert.ok(m2.includes("when 'm' then interval '12 minutes' when 'd' then interval '15 minutes' else interval '6 minutes' end"), 'la durée de la manche');
 });
 
 /* Elisa, 8 novembre, 9 h 17 (« Ok » à la proposition de 9 h 14) : le premier coup vaut +25 à tous les niveaux, sur le serveur aussi ;

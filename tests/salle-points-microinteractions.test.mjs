@@ -54,11 +54,11 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
 
 test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25 du premier coup, +50 / +30 / +20 / +10 ; les temps en 00:00', () => {
   const ctx = vm.createContext({});
-  vm.runInContext(['const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
-  assert.ok(app.includes('const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));
+  vm.runInContext(['const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:2,d:2.5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
+  assert.ok(app.includes('const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));   // 6, 12, 15 min ; le dernier palier à 6 min (14 novembre, 7 h 17)
   const ev = c => JSON.parse(JSON.stringify(vm.runInContext(c, ctx)));
   assert.deepEqual(ev("[0,999,72000,179999].map(jeuChrono)"), ['00:00', '00:00', '01:12', '02:59']);
-  assert.deepEqual(ev('[0,59000,60999,61000,120999,121000,180999,181000,240999,241000,300999,301000,420999,421000,599999].map(jeuValeur)'),
+  assert.deepEqual(ev('[0,59000,60999,61000,120999,121000,180999,181000,240999,241000,300999,301000,360999,361000,599999].map(jeuValeur)'),
     [200, 200, 200, 175, 175, 150, 150, 125, 125, 100, 100, 75, 75, 50, 50], 'les paliers suivent le chrono affiché : 01:00 vaut encore 200, 01:01 vaut 175');
   assert.deepEqual(ev('jeuPts(72000,0,false,true)'), { val: 175, x: 1, essai: 25, rang: 50, pts: 250 }, 'en Facile (le multiplicateur du niveau : retours-1242)');
   assert.deepEqual(ev('jeuPts(30000,0,false,true)'), { val: 200, x: 1, essai: 25, rang: 50, pts: 275 }, 'une manche parfaite entre amis : 275');
@@ -69,7 +69,7 @@ test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25
   /* 5 novembre, 9 h 18 : entre amis, le +25 du premier coup ne va qu’au premier à trouver (retours-0918) */
   assert.ok(fn('jeuRanking').includes('return rows.map(([pid,ms])=>{const i=rows.findIndex(y=>y[1]===ms);return Object.assign({pid,ms,place:i+1,k},jeuPts(ms,i,seul,!!(r.first&&r.first[pid])&&(seul||i===0),k));});'), 'seul dans la salle : pas de bonus de rang (retours de 16 h 29) ; le premier essai du premier à trouver');
   assert.ok(fn('jeuScores').includes('.sort((a,b)=>b.pts-a.pts||a.ms-b.ms||a.name.localeCompare(b.name));'));
-  assert.ok(fn('jeuScores').includes('J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+jeuDureeMs(jeuNivManche(n));});'), 'une manche non trouvée compte toute la manche (10, 15 ou 20 min)');
+  assert.ok(fn('jeuScores').includes('J.order.forEach(p=>{if(!got.has(p))t[p]=(t[p]||0)+jeuDureeMs(jeuNivManche(n));});'), 'une manche non trouvée compte toute la manche (6, 12 ou 15 min)');
   assert.ok(line('jeuPlaces').includes('if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;'));
 });
 

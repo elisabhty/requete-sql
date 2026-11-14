@@ -84,7 +84,7 @@ test('branché partout : défi seul, salle, fin du chrono, fin de manche ; la m�
   assert.ok(app.includes("if(mode==='defi'&&sql!=null){const k=String(sql).replace(/\\s+/g,' ').trim();if(k===defiDernierKo){renderExoHelp();return;}defiDernierKo=k;}"));
   assert.ok(app.includes('const diag=isDefi?defiDiag(userRes,solRes,current,sql):exoFailDiag(sql,sol,userRes,solRes,ordered);'));
   assert.ok(app.includes('  setLessonOut(table);   // le résultat obtenu sous l’éditeur ; dans la carte, « Pas tout à fait. Réessaie ! », sans indice (9 novembre, 7 h 55)\n  jeuEssaiRate(r);\n  coachRoomTick();\n  coachKo(diag);\n}'), 'salle');
-  assert.ok(app.includes('const JEU_IND_T=[150000,300000,450000];'), 'en salle, à la même minute pour tout le monde');
+  assert.ok(app.includes('function jeuIndT(k){const d=jeuDureeMs(k);return [d/4,d/2,d*3/4];}'), 'en salle, à la même minute pour tout le monde (au quart, à la moitié, aux trois quarts du chrono depuis le 14 novembre)');
   assert.ok(app.includes('Le résultat attendu reste caché&nbsp;: tu peux le recommencer.</p>') && !app.includes('Voici ce qu’il fallait obtenir'), 'fin du chrono : ni la requête ni le résultat, on peut recommencer (3 novembre, 7 h 14)');
   /* 16 h 04 (Elisa) : plus de « Le résultat attendu » sur les résultats de manche ; la correction est au bilan (Voir la correction) */
   assert.ok(!app.includes('<summary class="jeu-card-h">Le résultat attendu</summary>'), 'fin de manche : plus de résultat attendu');
