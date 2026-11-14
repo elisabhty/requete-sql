@@ -20,10 +20,10 @@ test('la dernière manche entre amis : sa carte 5 s (« Tes points arrivent »),
 
 test('trois issues : la victoire, la défaite, le 0 à 0 ; tes points et leur détail ; « Revanche »', () => {
   for (const k of ["const nul=sc.length>0&&sc.every(x=>x.pts===0),winner=!nul&&moi.place===1&&moi.pts>0;",
-    "if(winner){ton='is-or';titre='Tu as gagné\\u00a0!';chat='trophee';med=lqStkSvg('medal1');",
+    "if(winner){ton='is-or';titre=temps?'Gagné au temps\\u00a0!':exae?'Ex æquo\\u00a0!':'Tu as gagné\\u00a0!';chat='trophee';med=lqStkSvg('medal1');",   // 14 novembre, 13 h 58 : au temps (retours-1358)
     ":second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`:`${nom(second)} n’a ${J.nb>1?'rien':'pas'} trouvé.`;}",   // à égalité de points : retours-2326
     "else if(nul){ton='is-nul';titre='Match nul\\u00a0!';chat='duel';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Une revanche pour vous départager\\u00a0?`;}",
-    "else{ton='is-ok';titre=moi.pts>0?'Bien joué\\u00a0!':'La revanche t’attend\\u00a0!';chat='effort';",
+    "else{ton='is-ok';titre=temps?'Battu au temps\\u00a0!':moi.pts>0?'Bien joué\\u00a0!':'La revanche t’attend\\u00a0!';chat='effort';",
     ":moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\\u00a0!`;}",
     "const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;",
     "const tuiles=[jeuTuilePts(moi.pts),",   // 14 novembre, 5 h 03 : les points mis en avant, en tuiles (partagées depuis 6 h 12)

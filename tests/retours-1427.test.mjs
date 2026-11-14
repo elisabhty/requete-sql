@@ -109,7 +109,7 @@ test('la fin d’un défi : le trophée pour tout trouvé, un nouveau record ou 
      un record, l’effort quand rien ne l’est, le « oui » sinon */
   assert.ok(app.includes("const chatS=all||J.record?'trophee':nOk?'oui':'effort',tonS=all?'is-or':nOk?'is-ok':'is-ko';") && app.includes("const titre=all?'Carton plein\\u00a0!':nOk?'Bien joué\\u00a0!':'Pas encore cette fois\\u00a0!';") && app.includes('<span class="jr2-chat" aria-hidden="true">${typeof chatBonusHtml===\'function\'?chatBonusHtml(chatS):\'\'}</span>'), 'seul (« Tout résolu ! », 9 novembre, 10 h 01 ; « Bien joué ! », « On retente ? », 10 h 37)');
   /* 13 novembre, 17 h 16 (« fusionner les deux pages ») : entre amis, le trophée est dans le cadre de l’issue, la victoire (retours-1716-fin) */
-  assert.ok(app.includes("if(winner){ton='is-or';titre='Tu as gagné\\u00a0!';chat='trophee';med=lqStkSvg('medal1');"), 'entre amis');
+  assert.ok(app.includes("if(winner){ton='is-or';titre=temps?'Gagné au temps\\u00a0!':exae?'Ex æquo\\u00a0!':'Tu as gagné\\u00a0!';chat='trophee';med=lqStkSvg('medal1');"), 'entre amis');
   /* 8 novembre, 10 h 24 (« Le chat est coupé ») : posé au haut du contenu, plus au-dessus ; la marge de la phrase passe en !important */
   for (const r of ['html.lq #jeu-root>.jeu-fin-chat{position:absolute;top:0;right:-10px;z-index:1;width:116px;pointer-events:none}', 'html.lq #jeu-root>.jeu-fin-chat .chat-bonus{width:100%}',
     'html.lq #jeu-root:has(>.jeu-fin-chat)>:is(h1,.l-sub){margin-right:100px!important}', '@media (max-width:360px){html.lq #jeu-root>.jeu-fin-chat{width:96px}html.lq #jeu-root:has(>.jeu-fin-chat)>:is(h1,.l-sub){margin-right:82px!important}}'])

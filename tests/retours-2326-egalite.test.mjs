@@ -28,7 +28,8 @@ test('des temps qui se lisent pareil : le dixième les départage à l’écran'
 });
 
 test('à égalité de points, plus de « de 0 point » : le temps départage', () => {
-  assert.ok(app.includes('phrase=!second?\'\':second.pts===moi.pts?`À égalité de points avec ${nom(second)}, tu passes devant au temps.`'));
-  assert.ok(app.includes('phrase=moi.pts>0&&premier&&premier.pts===moi.pts?`À égalité de points, ${nom(premier)} passe devant au temps. À toi la revanche\\u00a0!`'));
+  /* 14 novembre, 13 h 58 (« Garder le temps ») : « Gagné au temps ! », « Battu au temps ! », et de combien (retours-1358-egalite-temps) */
+  assert.ok(app.includes('phrase=!second?\'\':temps?`À égalité de points avec ${nom(second)}\\u00a0: tu as été plus rapide de ${temps.ecart} au total.`'));
+  assert.ok(app.includes('phrase=temps?`À égalité de points\\u00a0: ${nom(premier)} a été plus rapide de ${temps.ecart} au total. À toi la revanche\\u00a0!`'));
   assert.ok(app.includes(':second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`'), 'sinon, l’écart comme avant');
 });

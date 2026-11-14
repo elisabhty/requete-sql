@@ -36821,6 +36821,14 @@ function jeuCalcManches(J,total){
   const t=J.rounds.map((r,i)=>{if(!r)return null;const y=jeuRanking(i).find(z=>z.pid===J.me);return [y?y.pts:0,`manche ${i+1}`,y?'':'is-zero'];});
   return jeuCalcHTML(t,total);
 }
+/* 14 novembre, 13 h 58 (Elisa : « prendre en compte l’ex æquo, par exemple s’il y a deux manches », puis « Garder le temps ») :
+   à égalité de points, le plus rapide au total gagne toujours, et les pages le disent en grand : « Gagné au temps ! », « Battu au
+   temps ! », et de combien (« 12 s », « 1 min 05 » ; sous la seconde, « 0,4 s »). */
+function jeuEcartTemps(a,b){
+  const d=Math.abs((+(a&&a.ms)||0)-(+(b&&b.ms)||0));
+  if(d>=1000)return jeuDureeLisible(d).replace(/ /g,'\u00a0');
+  const t=Math.max(1,Math.round(d/100));return t>=10?'1\u00a0s':`0,${t}\u00a0s`;
+}
 function jeuChronoFin(x,sc){
   const t=jeuDureeLisible(x.ms),meme=(sc||[]).some(y=>y!==x&&y.pid!==x.pid&&y.pts===x.pts&&x.pts>0&&jeuDureeLisible(y.ms)===t);
   if(!meme)return t;
@@ -38826,17 +38834,23 @@ function jeuRender(){
       jeuPlaces(sc);
       const moi=sc.find(x=>x.pid===J.me)||{pts:0,ms:0,place:sc.length||1},premier=sc[0]||null,second=sc[1]||null;
       const nul=sc.length>0&&sc.every(x=>x.pts===0),winner=!nul&&moi.place===1&&moi.pts>0;
-      if(cg)jeuVoiler(J,()=>ptsPage({pts:cg.pts,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0,apres:jeuVoileLever},0));   // avant le podium (17 h 31) ; sa médaille (18 h 11)
+      /* 13 h 58 : à égalité de points avec l’autre (le 2e pour qui gagne, le 1er pour qui perd), gagné ou battu au temps */
+      const egal=x=>x&&x!==moi&&x.pts===moi.pts,auTemps=moi.pts>0?[winner?second:premier].find(x=>egal(x)&&x.ms!==moi.ms)||null:null;
+      /* Même score et même temps à la milliseconde (jeuPlaces : la même place) : ex æquo, la 1re place partagée */
+      const exae=winner&&egal(second)&&second.ms===moi.ms;
+      const temps=auTemps?{avec:auTemps.name||'Joueur',ecart:jeuEcartTemps(moi,auTemps)}:null;
+      if(cg)jeuVoiler(J,()=>ptsPage({pts:cg.pts,solo:false,issue:nul?'nul':winner?'victoire':'defaite',qui:winner||nul?'':premier&&premier.name||'',place:moi.pts>0?moi.place:0,temps,apres:jeuVoileLever},0));   // avant le podium (17 h 31) ; sa médaille (18 h 11)
       const nom=x=>esc(x&&x.name||'Joueur'),ecart=(a,b)=>{const d=Math.max(0,(a&&a.pts||0)-(b&&b.pts||0));return `${d.toLocaleString('fr-FR')}\u00a0point${d>1?'s':''}`;};
       let ton,titre,chat,med='',phrase;
-      if(winner){ton='is-or';titre='Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
-        /* 23 h 26 : à égalité de points, « de 0 point » ne disait rien : c’est le temps qui départage */
-        phrase=!second?'':second.pts===moi.pts?`À égalité de points avec ${nom(second)}, tu passes devant au temps.`
+      if(winner){ton='is-or';titre=temps?'Gagné au temps\u00a0!':exae?'Ex æquo\u00a0!':'Tu as gagné\u00a0!';chat='trophee';med=lqStkSvg('medal1');
+        /* 23 h 26 : à égalité de points, « de 0 point » ne disait rien : c’est le temps qui départage ; 14 novembre, 13 h 58 : de combien */
+        phrase=!second?'':temps?`À égalité de points avec ${nom(second)}\u00a0: tu as été plus rapide de ${temps.ecart} au total.`
+          :exae?`Même score et même temps que ${nom(second)}\u00a0: vous partagez la 1<sup>re</sup> place.`
           :second.pts>0?`Devant ${nom(second)}, de ${ecart(moi,second)}.`:`${nom(second)} n’a ${J.nb>1?'rien':'pas'} trouvé.`;}
       /* 18 h 35 (« il faut justement encourager ; revanche ») : le match nul et la défaite encouragent, comme la page des points */
       else if(nul){ton='is-nul';titre='Match nul\u00a0!';chat='duel';phrase=`Personne n’a trouvé${J.nb>1?' de défi':' ce défi'}. Une revanche pour vous départager\u00a0?`;}
-      else{ton='is-ok';titre=moi.pts>0?'Bien joué\u00a0!':'La revanche t’attend\u00a0!';chat='effort';med=moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):'';
-        phrase=moi.pts>0&&premier&&premier.pts===moi.pts?`À égalité de points, ${nom(premier)} passe devant au temps. À toi la revanche\u00a0!`
+      else{ton='is-ok';titre=temps?'Battu au temps\u00a0!':moi.pts>0?'Bien joué\u00a0!':'La revanche t’attend\u00a0!';chat='effort';med=moi.pts>0&&moi.place<=3?lqStkSvg('medal'+moi.place):'';
+        phrase=temps?`À égalité de points\u00a0: ${nom(premier)} a été plus rapide de ${temps.ecart} au total. À toi la revanche\u00a0!`
           :moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\u00a0!`;}
       /* Le détail de tes points : une seule manche, celui de la manche (le défi, le premier coup, la place). */
       /* 14 novembre, 5 h 41 (Elisa : « corrige » ; la pastille disait « Défi 175 » quand la manche avait annoncé 200, sans dire pourquoi) :
@@ -39565,9 +39579,12 @@ function jeuPtsPage(o){
      lève le poing (« Encore un effort », la défaite) ou sort sa pancarte « VS » (le duel, le match nul), sous l’étiquette « Revanche ! »
      (« La suite ! » entre les manches) ; les titres encouragent : « La revanche t’attend ! », « Tu vas te rattraper ! », « Match nul ! ». */
   const enc=zero&&!!issue,chatEnc=enc&&typeof chatBonusHtml==='function'?chatBonusHtml(issue==='nul'?'duel':'effort'):'';
-  const h=issue==='victoire'?(M?'Manche gagnée\u00a0!':'Tu as gagné\u00a0!'):issue==='nul'?'Match nul\u00a0!':issue==='rate'?'Tu vas y arriver\u00a0!':issue==='defaite'?(zero?(M?'Tu vas te rattraper\u00a0!':'La revanche t’attend\u00a0!'):'Bien joué\u00a0!'):'Bravo\u00a0!';
+  /* 13 h 58 : à égalité de points à la fin de la partie, gagné ou battu au temps (o.temps : avec qui, de combien) */
+  const auT=!M&&!zero&&o.temps&&o.temps.ecart&&(issue==='victoire'||issue==='defaite')?o.temps:null;
+  const h=auT?(issue==='victoire'?'Gagné au temps\u00a0!':'Battu au temps\u00a0!'):issue==='victoire'?(M?'Manche gagnée\u00a0!':'Tu as gagné\u00a0!'):issue==='nul'?'Match nul\u00a0!':issue==='rate'?'Tu vas y arriver\u00a0!':issue==='defaite'?(zero?(M?'Tu vas te rattraper\u00a0!':'La revanche t’attend\u00a0!'):'Bien joué\u00a0!'):'Bravo\u00a0!';
   const totalTx=total?` Ta partie\u00a0: <b>${fmt(total)}</b> point${total>1?'s':''}.`:'';
-  const p=issue==='rate'?`${o.nb>1?'Ces défis t’ont':'Ce défi t’a'} résisté cette fois, mais chaque essai t’entraîne.`
+  const p=auT?(issue==='victoire'?`À égalité de points avec ${esc(auT.avec)}\u00a0: tu as été plus rapide de ${auT.ecart} au total.`:`À égalité de points\u00a0: ${esc(auT.avec)} a été plus rapide de ${auT.ecart} au total. Tes points comptent quand même\u00a0!`)
+    :issue==='rate'?`${o.nb>1?'Ces défis t’ont':'Ce défi t’a'} résisté cette fois, mais chaque essai t’entraîne.`
     :issue==='nul'?(M?'Personne n’a trouvé cette manche\u00a0: tout se joue à la suivante\u00a0!':'Ce défi a résisté à tout le monde. Une revanche pour vous départager\u00a0?')
     :issue==='defaite'&&zero?(M?`${qui||'L’autre joueur'} a trouvé cette manche. La suivante peut être la tienne\u00a0!`:`${qui||'L’autre joueur'} a trouvé cette fois. Chaque défi t’entraîne\u00a0: à toi la prochaine\u00a0!`)
     :issue==='defaite'?`${qui||'L’autre joueur'} ${M?'remporte la manche':'l’emporte'}. Tes points comptent quand même\u00a0!${totalTx}`
@@ -52459,7 +52476,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-compte-v3012';
+  const SW_CACHE='requete-2026-11-14-egalite-v3013';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
