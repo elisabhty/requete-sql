@@ -4422,6 +4422,7 @@ html.lq .perf-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));ga
 html.lq .perf-kpi{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;padding:11px 11px 10px;border:2px solid var(--line);border-radius:17px;background:#fff;box-shadow:0 3px 0 var(--lip)}
 html.lq .perf-kpi b{font:800 23px/1 var(--display);letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 html.lq .perf-kpi.is-long b{font-size:18px}
+html.lq .perf-kpi.is-xlong b{font-size:15px}
 html.lq .perf-kpi small{font:700 11.5px/1.2 var(--display);color:var(--ink-3)}
 html.lq .perf-kpi.is-sun{border-color:var(--sun);background:var(--sun);box-shadow:0 3px 0 var(--sun-lip)}
 html.lq .perf-kpi.is-sun b{color:#1B1640}
@@ -4460,7 +4461,7 @@ html.lq .perf-bar.is-best.is-on i{background:var(--sun-hi)}
 html.lq .perf-bar::after{content:"";position:absolute;left:50%;bottom:-10px;width:5px;height:5px;border-radius:50%;background:var(--mint);translate:-50% 0;opacity:0;transition:opacity .2s}
 html.lq .perf-bar.is-on::after{opacity:1}
 html.lq .perf-bar.is-poke i{animation:perfPoke .42s cubic-bezier(.3,.7,.3,1.4)}
-html.lq .perf-bar em{position:absolute;left:50%;bottom:calc(var(--h) + 5px);translate:-50% 0;font:800 11px/1 var(--display);font-style:normal;color:var(--sun-hi);white-space:nowrap;opacity:0;transition:opacity .3s .7s}
+html.lq .perf-bar em{position:absolute;left:50%;bottom:calc(var(--hl,var(--h)) + var(--hlpx,5px));z-index:4;translate:-50% 0;font:800 11px/1 var(--display);font-style:normal;color:var(--sun-hi);white-space:nowrap;opacity:0;transition:opacity .3s .7s}
 html.lq .perf-card.is-in .perf-bar em{opacity:1}
 html.lq .perf-chart.is-ghost .perf-bar{cursor:default}
 html.lq .perf-chart.is-ghost .perf-bar i{background:rgba(255,255,255,.16)}
@@ -4491,9 +4492,19 @@ html.lq .perf-card.is-in .perf-hist li{animation:dbColIn .34s cubic-bezier(.2,.8
 html.lq .perf-rk{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#fff;box-shadow:0 2px 0 var(--lip);font:800 12.5px/1 var(--display);color:var(--accent-ink)}
 html.lq .perf-rk.is-medal{font-size:19px}
 html.lq .perf-g{min-width:0}
-html.lq .perf-g b{display:block;font:700 13.5px/1.25 var(--display);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 14 novembre (« on voit tout ») : le titre d’une partie va à la ligne au lieu d’être coupé (« À plusieurs · Facile · avec @chloe_sql, @noah +4 »). */
+html.lq .perf-g b{display:block;font:700 13.5px/1.25 var(--display);color:var(--ink);overflow-wrap:anywhere}
 html.lq .perf-g small{display:block;margin-top:2px;color:var(--ink-3);font-size:12px;line-height:1.3}
+html.lq .perf-g small.perf-g-avec{color:var(--ink-2);overflow-wrap:anywhere}
 html.lq .perf-hist em{padding:3px 9px;border-radius:99px;background:var(--sun);box-shadow:0 2px 0 var(--sun-lip);color:#1B1640;font:800 12.5px/1.2 var(--display);font-style:normal;white-space:nowrap}
+/* « Voir les 26 autres parties », « Voir 25 parties de plus », « Réduire » (14 novembre) : sous la liste, en violet, la flèche vers le bas
+   (vers le haut pour Réduire) ; « 29 sur 120 parties » en petit dessous. */
+html.lq .perf-hist-plus{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;margin:8px 0 0;padding:6px 12px;border:0;border-radius:14px;background:none;color:var(--accent-ink);font:700 15px/1.2 var(--display);cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:opacity .12s}
+html.lq .perf-hist-plus svg{flex:none;width:16px;height:16px;rotate:90deg}
+html.lq .perf-hist-plus.is-moins svg{rotate:-90deg}
+html.lq .perf-hist-plus:active{opacity:.55}
+html.lq .perf-hist-k{margin:0 2px;color:var(--ink-3);font:600 12.5px/1.4 var(--ui);text-align:center}
+html.lq .perf-hist-k+.perf-hist-plus{margin-top:4px}
 /* L’arrivée : les tuiles se posent, une après l’autre */
 html.lq .perf-kpi,html.lq .perf-ratebox,html.lq .perf-times>div{transition:opacity .35s ease calc(var(--i,0) * .06s),transform .5s cubic-bezier(.3,.7,.3,1.3) calc(var(--i,0) * .06s)}
 html.lq .perf-card:not(.is-in) .perf-kpi,html.lq .perf-card:not(.is-in) .perf-ratebox,html.lq .perf-card:not(.is-in) .perf-times>div{opacity:0;transform:translateY(10px) scale(.97)}
@@ -9339,7 +9350,7 @@ html.lq #jeu-root .jr2-pl{flex:none;display:grid;place-items:center;width:28px;h
 html.lq #jeu-root .jr2-pl svg{width:28px;height:28px}
 html.lq #jeu-root .jr2-row .jeu-av{flex:none;width:40px;height:40px;font-size:17px;box-shadow:0 2px 0 rgba(27,22,64,.22)!important}
 html.lq #jeu-root .jr2-nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-html.lq #jeu-root .jr2-nm b{font:700 15.5px/1.2 var(--display);letter-spacing:-.005em;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq #jeu-root .jr2-nm b{font:700 15.5px/1.2 var(--display);letter-spacing:-.005em;color:var(--ink);overflow-wrap:anywhere}
 html.lq #jeu-root .jr2-nm b small{font-weight:600;color:var(--ink-3)}
 html.lq #jeu-root .jr2-nm>small{color:var(--ink-3);font:600 12.5px/1.35 var(--ui);font-variant-numeric:tabular-nums}
 html.lq #jeu-root .jr2-nm>small i{font-style:normal;color:var(--accent-ink)}
@@ -10168,7 +10179,8 @@ html.lq :is(#scr-defis,#jeu-root) .dx-pod-m.is-1 .dx-pod-av::after{content:"";po
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1c.9 6 4.9 10 11 11-6.1 1-10.1 5-11 11-.9-6-4.9-10-11-11 6.1-1 10.1-5 11-11Z'/%3E%3C/svg%3E") center/contain no-repeat;
   animation:lqTwinkle 2.6s ease-in-out infinite}
 html.lq :is(#scr-defis,#jeu-root) .dx-pod-m.is-me .dx-pod-av .jeu-av{box-shadow:0 0 0 3px var(--accent),0 3px 0 rgba(27,22,64,.2)!important}
-html.lq :is(#scr-defis,#jeu-root) .dx-pod-n{display:block;max-width:100%;overflow:hidden;color:var(--ink);font:700 13.5px/1.25 var(--display);letter-spacing:-.005em;text-overflow:ellipsis;white-space:nowrap}
+/* 14 novembre (« on voit tout ») : un pseudo long passe sur deux lignes (« @marie_ » puis « charlotte », pseudoBr) au lieu de « @marie_cha… ». */
+html.lq :is(#scr-defis,#jeu-root) .dx-pod-n{display:block;max-width:100%;color:var(--ink);font:700 13.5px/1.2 var(--display);letter-spacing:-.005em;overflow-wrap:anywhere;text-wrap:balance}
 html.lq :is(#scr-defis,#jeu-root) .dx-pod-m.is-me .dx-pod-n{color:var(--accent-ink)}
 html.lq :is(#scr-defis,#jeu-root) .dx-pod-m>small{display:block;max-width:100%;color:var(--ink-2);font:700 12px/1.25 var(--ui);font-variant-numeric:tabular-nums}
 html.lq :is(#scr-defis,#jeu-root) .dx-pod-m>small i{color:var(--accent-ink);font-style:normal}
@@ -10659,6 +10671,7 @@ html.lq #scr-defis .perf-kpis{gap:8px}
 html.lq #scr-defis .perf-kpi{gap:5px;padding:13px 12px 12px}
 html.lq #scr-defis .perf-kpi b{font:800 26px/1 var(--display);letter-spacing:-.025em}
 html.lq #scr-defis .perf-kpi.is-long b{font-size:20px}
+html.lq #scr-defis .perf-kpi.is-xlong b{font-size:16px}
 html.lq #scr-defis .perf-kpi small{color:var(--ink-2);font:600 12.5px/1.25 var(--ui)}
 html.lq #scr-defis .perf-kpi small em{display:block;color:var(--ink-3);font-style:normal}
 /* Les points : la tuile jaune soleil, à plat comme les autres. */
@@ -10688,6 +10701,7 @@ html.lq #scr-defis .perf-lv em{color:var(--ink-2)}
 html.lq #scr-defis :is(.perf-mates,.perf-hist)>li{min-height:60px}
 html.lq #scr-defis .perf-mate b,html.lq #scr-defis .perf-g b{font:700 15px/1.2 var(--display)}
 html.lq #scr-defis .perf-mate small,html.lq #scr-defis .perf-g small{color:var(--ink-3);font:600 12.5px/1.35 var(--ui)}
+html.lq #scr-defis .perf-g small.perf-g-avec{color:var(--ink-2);font-weight:650}
 html.lq #scr-defis .perf-rk{background:#fff;box-shadow:0 2px 0 var(--lip)}
 html.lq #scr-defis .perf-rematch{margin-top:14px}
 

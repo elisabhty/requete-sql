@@ -37,7 +37,7 @@ function bac(o = {}) {
     clsRpc: (f, b) => { appels.push([f, b]); return o.rpcKo ? Promise.reject(new Error('net')) : Promise.resolve(o.rpc ? o.rpc(f, b) : {}); },
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     jeuInitial: n => String(n || '?').replace(/^@+/, '').charAt(0).toUpperCase(), perfColor: () => 2, lqStkSvg: k => `<svg data-k="${k}"></svg>`, chatBonusHtml: k => `<img data-k="${k}">`,
-    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_MAX: 6, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: 'm', jeuNivUser: true,
+    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_MAX: 6, JEU_HIST_MAX: 500, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: 'm', jeuNivUser: true,
     DEF_CHEV_SVG: '<svg data-k="chev"></svg>', CLS_FLAG_SVG: '<svg data-k="flag"></svg>', LQ_X_SVG: '<svg data-k="x"></svg>', perfDay: () => 'Hier', CHALLENGES: [1], SQL: {},
     jeuStart: (...a) => { appels.push(['jeuStart', ...a]); }, jeuPseudoPuis: f => f(), jeuRand: () => 'NOUV01', jeuNom: v => String(v || '').trim(),
     psForme: v => { const h = String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 15); return h ? '@' + h : ''; },
@@ -240,7 +240,7 @@ test('la fiche : « 4 confrontations » déplie vos dernières parties ; la reva
   const f = c.ev('dxFicheHTML()');
   assert.ok(f.includes('<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>4 confrontations</span>'));
   assert.ok(f.includes('<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste"><li class="is-l"><b>Perdue</b><span>120&nbsp;pts contre 200</span><small>Hier · Facile · 1 manche</small></li><li class="is-w"><b>Gagnée</b><span>230&nbsp;pts contre 195</span>'));
-  assert.ok(f.includes('<li class="is-e"><b>Égalité</b>') && f.includes('<p class="dx-duel-note">Seules tes 12 dernières parties sont gardées.</p></div>'), 'trois parties gardées pour quatre jouées : on le dit');
+  assert.ok(f.includes('<li class="is-e"><b>Égalité</b>') && f.includes('<p class="dx-duel-note">Seules tes 500 dernières parties sont gardées.</p></div>'), 'moins de parties gardées que jouées : on le dit');
   assert.ok(f.includes('<span>Prendre ta revanche ⚡</span>'), 'la dernière est perdue : la revanche, même s’il est derrière au total');
   /* Déplier, replier */
   const l = { hidden: true }, b = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
