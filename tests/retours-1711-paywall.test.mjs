@@ -97,7 +97,8 @@ test('tant que l’achat n’est pas branché : « Continuer » discret et le bo
   const h = avec.ctx.obPaywallHTML();
   assert.ok(h.includes('onclick="obPaywallRestaurer()">Restaurer</button>') && !h.includes('pw-passer'), 'branché : « Restaurer », plus de « Continuer »');
   await avec.ctx.obPaywallAcheter(); assert.equal(achete, 'an'); assert.deepEqual(avec.vers, ['plan-ready']);
-  assert.ok(app.includes("  else if(slide==='paywall'){if(!obAchatPret())obPaywallPasser();}"), 'Suivant et le glissé ne passent la page que sans achat branché');
+  /* 14 novembre, 12 h 03 : et jamais dans l’app iPhone, même sans module d’achat (tests/retours-1203-paywall-ferme.test.mjs) */
+  assert.ok(app.includes("  else if(slide==='paywall'){if(obPaywallOuvert())obPaywallPasser();}"), 'Suivant et le glissé ne passent la page que sans achat branché, hors de l’app iPhone');
 });
 
 test('la DA du site : cartes à rebord, la choisie blanche à bord soleil, coche qui rebondit, pied resserré ; « Continuer » au bout de 2 s', () => {

@@ -46289,6 +46289,13 @@ function obFinFlux(){
    salle d’un ami : draft.finVoulue). Un abonnement déjà actif (REQUETE_ACHAT.actif, quand l’achat sera branché) saute le paywall. */
 function obCompteVisible(){return !(typeof obConnexionMasquee==='function'&&obConnexionMasquee());}
 function obAchatPret(){return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.acheter==='function');}
+/* 14 novembre, 12 h 03 (Elisa : « Comment sécuriser cette partie au maximum ») : le paywall ne s’ouvre plus jamais tout seul dans
+   l’app iPhone. Avant, sans module d’achat (RevenueCat absent ou achat.js en panne), il montrait « Continuer » et son
+   bouton laissait entrer sans payer. Dans l’app iPhone, sans module d’achat : « Les offres ne se chargent pas » et « Réessayer »,
+   jamais d’entrée gratuite. « Continuer » ne reste que hors de l’app iPhone (mise au point, tests), où le
+   site renvoie de toute façon vers decouvrir/. Une abonnée déjà entrée n’est pas bloquée par une panne du module (obGardeEtat). */
+function obAppIphone(){try{const C=window.Capacitor;return !!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform());}catch(e){return false;}}
+function obPaywallOuvert(){return !obAchatPret()&&!obAppIphone();}
 function obAbonne(){try{return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.actif==='function'&&window.REQUETE_ACHAT.actif());}catch(e){return false;}}
 function obApresPret(fin){draft.finVoulue=fin||'home';const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();}   // déjà connectée (dès le début, 12 novembre) : pas une deuxième fois
 /* Le compte avait-il déjà quelque chose (csDistant, renvoyé par csSync) ? Sans réponse du compte : le planning arrivé sur l’appareil. */
@@ -46463,7 +46470,7 @@ function obPrixBoutique(k){try{const a=window.REQUETE_ACHAT,p=a&&typeof a.prix==
    ses prix (REQUETE_ACHAT.prixEtat : 'attente', puis 'echec' sans réponse), le paywall le dit à la place des offres, et se repeint
    dès qu’ils arrivent (obPaywallPrix, suivi par obGardeDemarrer). Sans boutique branchée (le site, la mise au point), 'oui' : les
    prix d’Elisa en euros, comme avant. */
-function obPrixEtat(){try{const a=window.REQUETE_ACHAT;if(!a||typeof a.prixEtat!=='function')return 'oui';const e=a.prixEtat();return e==='attente'||e==='echec'?e:'oui';}catch(e){return 'oui';}}
+function obPrixEtat(){try{const a=window.REQUETE_ACHAT;if(!a||typeof a.acheter!=='function')return obAppIphone()?'echec':'oui';if(typeof a.prixEtat!=='function')return 'oui';const e=a.prixEtat();return e==='attente'||e==='echec'?e:'oui';}catch(e){return 'oui';}}
 function obPrixEcrit(prix,devise,texte){return obDevise(prix,devise)||String(texte||'').replace(/ /g,'\u00a0');}
 function obPrixTexte(k){const b=obPrixBoutique(k);return b?obPrixEcrit(b.prix,b.devise,b.texte):obEuros(OB_OFFRES[k].prix);}
 /* Un montant dans la devise de la boutique, écrit à la française (« 0,76 $US », « 0,86 € ») ; '' si la devise est inconnue.
@@ -46550,7 +46557,7 @@ function obPaywallHTML(){
      la barre du haut, à côté de « Restaurer ». Elle ne disparaît pas dans le dos de la personne. */
   const sortie=obSortieVue()?obSortieInfo():null;
   const rappel=sortie?`<button type="button" class="pw-lien pw-rappel" onclick="obPaywallVue(true)">Offre −${sortie.pct}&nbsp;%</button>`:'';
-  const droite=obAchatPret()?`<span class="pw-top-d">${rappel}<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button></span>`:'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>';
+  const droite=obAchatPret()?`<span class="pw-top-d">${rappel}<button type="button" class="pw-lien" onclick="obPaywallRestaurer()">Restaurer</button></span>`:obPaywallOuvert()?'<button type="button" class="pw-lien pw-passer" onclick="obPaywallPasser()">Continuer</button>':'';
   /* La garde de l’abonnement (obGardeVoir) : le paywall devant l’appli n’a pas de « Retour » ; son parcours existe déjà, il l’attend.
      À la place du « Retour », « Mon compte » (obGardeCompte) : se déconnecter et supprimer son compte restent possibles. */
   const garde=typeof obGarde!=='undefined'&&obGarde;
@@ -46592,7 +46599,10 @@ function obPaywallPrix(){
   obJustEntered=false;paintOb();
 }
 function obPaywallRecharger(){
-  const a=window.REQUETE_ACHAT;if(obPwBusy||!a||typeof a.rechargerPrix!=='function')return;
+  const a=window.REQUETE_ACHAT;
+  /* Dans l’app iPhone sans module d’achat : on regarde à nouveau s’il est là (sans relancer l’appli, qui ferait perdre les réponses). */
+  if(!obAchatPret()&&obAppIphone()){if(typeof buzz==='function')buzz('light');obPaywallPrix();return;}
+  if(obPwBusy||!a||typeof a.rechargerPrix!=='function')return;
   if(typeof buzz==='function')buzz('light');
   try{Promise.resolve(a.rechargerPrix()).then(obPaywallPrix,obPaywallPrix);}catch(e){}
   obPaywallPrix();   // tout de suite : « On récupère les offres… »
@@ -46605,14 +46615,14 @@ function obPaywallChoisir(k){
   if(typeof buzz==='function')buzz('light');
   obPaywallPied();
 }
-function obPaywallPasser(){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
+function obPaywallPasser(){if(!obPaywallOuvert())return;if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
 function obPaywallEntrer(){obPwSortie=false;if(typeof buzz==='function')buzz('success');
   /* La garde de l’abonnement : l’appli est derrière, telle qu’on l’avait laissée ; surtout pas finishOnboard, qui referait le planning */
   if(typeof obEntry!=='undefined'&&obEntry==='paywall'&&state.onboarded){if(typeof obGardeFermer==='function')obGardeFermer();return;}
   finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
 async function obPaywallAcheter(){
   if(obPrixEtat()!=='oui')return;   // pas d’achat sans les prix de la boutique sous les yeux
-  if(!obAchatPret()){if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
+  if(!obAchatPret()){if(!obPaywallOuvert())return;if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
   if(obPwBusy)return;
   const live=document.getElementById('pw-live');obPwBusy=true;obPaywallPied();if(live)live.textContent='';
   try{const o=draft.offre==='semaine'?'semaine':'an',essai=obEssai(o);const ok=await window.REQUETE_ACHAT.acheter(o);obPwBusy=false;
@@ -48275,7 +48285,7 @@ function obNext(){
   else if(slide==='widgetVerrou')obGoto('widgetVerrouTuto');
   else if(slide==='widgetVerrouTuto')obWidgetFait();
   else if(slide==='account')obPasserConnexion();
-  else if(slide==='paywall'){if(!obAchatPret())obPaywallPasser();}   // une fois l’achat branché, seul le paiement passe la page
+  else if(slide==='paywall'){if(obPaywallOuvert())obPaywallPasser();}   // une fois l’achat branché (ou dans l’app iPhone), seul le paiement passe la page
   else if(slide==='pseudo')obPseudoSuivant();
   else if(slide==='ready'){const b=document.getElementById('ob-next');if(b&&typeof b.onclick==='function')b.onclick();else finishOnboard('home');}
   else finishOnboard('home');
@@ -52249,7 +52259,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-onboarding-v3005';
+  const SW_CACHE='requete-2026-11-14-paywall-v3006';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
