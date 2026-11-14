@@ -2422,3 +2422,70 @@ test('16 h : une invitation à une salle, reçue au démarrage, passe avant : la
   assert.equal(b.ev('state.salle.parties'), 1, 'ses points comptés');
   assert.equal(garde(b), null);
 });
+
+/* Une partie seul classée (en ligne avec un pseudo : multiplayer-security.js passe secure, l’identité vient du serveur et reste la même
+   d’un lancement à l’autre) : rien n’est gardé sur l’appareil que ce qui n’y est que (la requête, les essais, l’encart) ; au retour, sa
+   salle est relue sur le serveur. */
+function seulClassee({ nb = 3 } = {}) {
+  const w = new World();
+  const a = makeClient(w, 'Seul'); a.ev(`jeuNb=${nb};jeuNiv='f';state.onboarded=true`);
+  a.ev("jeuStart('SOLO92',true,null,{solo:true,secure:true})"); sec(w, 5);
+  return { w, a };
+}
+function rouvrirClassee(w, a, { enLigne = true, monde = w } = {}) {
+  if (!a.endormi) fermer(a);
+  a.deaf = true; couper(a);   // fermée par iOS : sa connexion aussi
+  const b = makeClient(monde, 'Seul', { store: a.store });
+  b.ev(`state.onboarded=true;sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(a.pid())})`);   // l’identité du serveur, la même
+  if (enLigne) b.ev('const __L=jeuStart;jeuStart=function(c,h,cid,o){return __L(c,h,cid,Object.assign({},o||{},{secure:true}));};');
+  b.ev('jeuSoloAuDemarrage()');
+  return b;
+}
+
+test('16 h : classée, fermée en pleine manche, rouverte 3 min après : sa salle relue sur le serveur, la même manche, le même chrono, la requête', () => {
+  const { w, a } = seulClassee();
+  assert.equal(a.J('ranked'), true); assert.equal(a.view(), 'play0');
+  sec(w, 20); a.found(); sec(w, 11); sec(w, 5);
+  assert.equal(a.view(), 'play1');
+  a.ed.value = 'SELECT faux'; a.ev('jeuRun()'); sec(w, 1);
+  a.ed.value = 'SELECT nom FROM'; sec(w, 1);
+  const g = garde(a);
+  assert.equal(g.classe, 1); assert.equal(g.msgs, undefined, 'rien du serveur n’est gardé sur l’appareil');
+  assert.equal(g.ed.v, 'SELECT nom FROM'); assert.equal(g.rk[1].tries, 1);
+  const reste0 = reste(a), cids0 = cids(a), pts = a.ev('jeuScores()[0].pts');
+  fermer(a); sec(w, 180);
+  const b = rouvrirClassee(w, a); sec(w, 3);
+  assert.equal(b.view(), 'play1', 'la même manche');
+  assert.deepEqual(cids(b), cids0);
+  assert.ok(Math.abs(reste(b) - (reste0 - 183)) <= 1, `le même chrono : ${reste0} s, puis ${reste(b)} s`);
+  assert.equal(b.ed.value, 'SELECT nom FROM');
+  assert.equal(b.ev('JEU.rounds[1].tries'), 1);
+  assert.equal(b.ev('jeuScores()[0].pts'), pts);
+  assert.equal(b.J('hostPid'), b.pid(), 'toujours seule dans sa salle');
+  b.found(); sec(w, 2); sec(w, 11); sec(w, 5);
+  assert.equal(b.view(), 'play2', 'la partie continue');
+  b.found(); sec(w, 2); sec(w, 11);
+  assert.equal(b.view(), 'final');
+  assert.equal(b.ev('state.salle.parties'), 1);
+  assert.equal(garde(b), null);
+});
+
+test('16 h : classée, rouverte plus d’1 h après : sa salle relue sans écran, ses points comptés ; hors ligne : gardée pour plus tard ; salle disparue : oubliée', () => {
+  const { w, a } = seulClassee();
+  sec(w, 20); a.found(); sec(w, 15);
+  const pts = a.ev('jeuScores()[0].pts');
+  fermer(a); sec(w, 2 * 3600);
+  /* Hors ligne (multiplayer-security.js reprend alors la partie sur l’appareil, sans secure) : rien ne s’ouvre, elle attend */
+  const h = rouvrirClassee(w, a, { enLigne: false }); sec(w, 1);
+  assert.equal(h.ev('JEU'), null); assert.ok(garde(h), 'gardée pour un prochain lancement');
+  h.endormi = true;
+  const b = rouvrirClassee(w, a); sec(w, 3);
+  assert.equal(b.ev('JEU'), null, 'pas rouverte');
+  assert.equal(b.ev('state.salle.pts'), pts); assert.equal(b.ev('state.salle.parties'), 1);
+  assert.equal(garde(b), null);
+  /* Sa salle n’existe plus (un autre serveur, vide) : oubliée, sans « Salle introuvable » */
+  const { w: w2, a: a2 } = seulClassee(); sec(w2, 10); fermer(a2); sec(w2, 60);
+  const autre = new World(); autre.now = w2.now;
+  const c = rouvrirClassee(w2, a2, { monde: autre }); sec(autre, 10);
+  assert.equal(garde(c), null); assert.notEqual(c.view(), 'lost');
+});
