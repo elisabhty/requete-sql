@@ -12,8 +12,8 @@ assert.deepEqual([lv.rank,lv.label,lv.next,lv.pct,lv.etape],[1,'Explorateur SQL'
 lv=lvCtx.accountLevel(10,B,T);assert.deepEqual([lv.rank,lv.pct],[1,91],'10 leçons sur les 11 du premier palier');
 lv=lvCtx.accountLevel(11,B,T);assert.deepEqual([lv.rank,lv.label,lv.next,lv.pct],[2,'Constructeur de requêtes','Jointures',0]);
 lv=lvCtx.accountLevel(23,B,T);assert.deepEqual([lv.rank,lv.label,lv.next],[3,'Analyste relationnel','Analyses']);
-lv=lvCtx.accountLevel(33,B,T);assert.deepEqual([lv.rank,lv.label,lv.next],[4,'Analyste SQL','Parcours maîtrisé']);
-lv=lvCtx.accountLevel(65,B,T);assert.deepEqual([lv.rank,lv.label,lv.pct],[5,'Parcours maîtrisé',100]);
+lv=lvCtx.accountLevel(33,B,T);assert.deepEqual([lv.rank,lv.label,lv.next],[4,'Architecte des requêtes','Tout le parcours']);   // 14 novembre, 21 h 14 : ses noms
+lv=lvCtx.accountLevel(65,B,T);assert.deepEqual([lv.rank,lv.label,lv.pct],[5,'SELECT * FROM légende',100]);
 lv=lvCtx.accountLevel(250,B,T);assert.equal(lv.rank,5,'au-delà du parcours, le dernier palier');
 lv=lvCtx.accountLevel('abc',B,T);assert.deepEqual([lv.rank,lv.pct],[1,0],'valeur illisible : premier palier');
 /* Accès : l’onglet Compte, et la carte de série de l’accueil qui descend jusqu’à « Ma progression ». */

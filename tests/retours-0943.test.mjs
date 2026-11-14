@@ -28,7 +28,7 @@ function niveau(niv, faites = []) {
 
 test('les cinq paliers suivent les quatre étapes de l’onboarding, puis le parcours maîtrisé', () => {
   assert.deepEqual(JSON.parse(vm.runInNewContext('JSON.stringify((' + cut('const ACCOUNT_LEVELS=', ';\n/* acquis').slice(21) + ').map(l=>[l.label,l.etape]))')),
-    [['Explorateur SQL', 'SELECT'], ['Constructeur de requêtes', 'Filtres & tris'], ['Analyste relationnel', 'Jointures'], ['Analyste SQL', 'Analyses'], ['Parcours maîtrisé', 'Tout le parcours']]);
+    [['Explorateur SQL', 'SELECT'], ['Constructeur de requêtes', 'Filtres & tris'], ['Analyste relationnel', 'Jointures'], ['Architecte des requêtes', 'Analyses'], ['SELECT * FROM légende', 'Tout le parcours']]);   // 14 novembre, 21 h 14 : ses noms
   assert.ok(app.includes("const stages=['SELECT','Filtres & tris','Jointures','Analyses'];"), 'les mêmes étapes que l’onboarding');
 });
 
@@ -40,7 +40,7 @@ test('tout le monde part du palier 1, quel que soit le choix de l’onboarding ;
   assert.equal(niveau('bases', lessons.slice(11, 23).map(l => l.id)).lv.rank, 2, 'les leçons d’avant ne comptent plus : 12 validées, constructeur');
   assert.equal(niveau('bases', lessons.slice(0, 23).map(l => l.id)).lv.rank, 3, 'jointures commencées : analyste relationnel');
   assert.equal(niveau('inter', lessons.slice(33).map(l => l.id)).lv.rank, 3, 'les 32 dernières seulement : analyste relationnel, plus « parcours maîtrisé »');
-  assert.equal(niveau('inter', lessons.map(l => l.id)).lv.label, 'Parcours maîtrisé');
+  assert.equal(niveau('inter', lessons.map(l => l.id)).lv.label, 'SELECT * FROM légende');
 });
 
 test('le badge : la pastille jaune « Niv. 2 », puis le nom ; sous le prénom dans Mon compte et à l’accueil', () => {
