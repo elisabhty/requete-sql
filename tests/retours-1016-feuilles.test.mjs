@@ -144,7 +144,8 @@ test('branchée partout : le message et les réglages dans la feuille ; la salle
   assert.ok(fn('jeuRoomSet').includes("if(k==='mode'){const sub=card.querySelector('.room-sub');"), 'le bandeau garde le niveau quand on choisit les manches');
   assert.ok(fn('jeuRoomSet').includes("if(k==='niv')card.querySelectorAll('.dx-manche').forEach(b=>{const d=b.querySelector('.dx-m-duree');if(d)d.textContent=dxDureeMax(+b.dataset.v);});"), 'les durées des cartes suivent le niveau (8 novembre, 9 h 42)');
   assert.ok(fn('jeuRoomSet').includes("go.textContent=join?'Rejoindre la salle':friends?'Ouvrir la salle':'Lancer la partie';"), 'le bouton garde son libellé');
-  assert.ok(fn('jeuStart').includes("if(!verif&&typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);"), 'la salle s’ouvre : la feuille se referme (sauf le code qu’on cherche encore, 15 h 27)');
+  /* 14 novembre, 16 h : sauf aussi une partie seul refaite sans écran, le temps de compter ses points (jeuSoloClore) */
+  assert.ok(fn('jeuStart').includes("if(!verif&&!muet&&typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);"), 'la salle s’ouvre : la feuille se referme (sauf le code qu’on cherche encore, 15 h 27)');
   assert.ok(fn('switchTab').includes("if(name!=='defis'&&typeof defisFeuilleFermer==='function'&&document.getElementById('dx-feuille'))defisFeuilleFermer(true);"));
   assert.ok(!fn('openJeu').includes('scrollIntoView'), 'un lien d’invitation : la feuille du code, plus de défilement');
   const re = fn('perfRematch');

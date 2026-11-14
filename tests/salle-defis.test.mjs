@@ -75,11 +75,12 @@ class WP {
 }
 
 /* ---------- Joueur : un contexte vm avec le moteur et ses dépendances factices ---------- */
-function makeClient(world, name, { skew = 0 } = {}) {
+function makeClient(world, name, { skew = 0, store: memeStockage = null } = {}) {
   const ctx = vm.createContext({});
-  const store = {}, session = {};
+  /* store : le stockage de l’appareil, partagé avec un contexte d’avant (l’appli fermée puis rouverte, 14 novembre, 16 h) */
+  const store = memeStockage || {}, session = {};
   const c = { name, ctx, offline: false, deaf: false, failPosts: 0, lose: 0, beacons: 0, html: '', toasts: [], out: '', ed: { value: '' }, root: null, misc: { 'back-label': {}, 'nav-title': {}, 'lesson-body': {} }, sockets: 0 };
-  c.endormi = false; c.attente = new Set(); c.ed.dispatchEvent = () => true;
+  c.endormi = false; c.attente = new Set(); c.ed.dispatchEvent = () => true; c.store = store;
   c.garde = f => function () { if (c.endormi) { c.attente.add(f); return; } return f.apply(this, arguments); };
   c.root = { classList: { remove() {}, add() {} }, offsetWidth: 0, set innerHTML(v) { c.html = v; }, get innerHTML() { return c.html; } };
   /* Le canal en direct (Supabase Realtime, protocole 1.0.0) : rejoindre « realtime:salle:CODE », battements,
@@ -2295,4 +2296,129 @@ test('15 h 31 : parti pendant la dernière manche, revenu après la fin : « ter
   dormir(ami); sec(w, 90); reveiller(ami); sec(w, 8);
   assert.equal(ami.view(), 'final');
   assert.equal(ami.toasts.filter(t => /Te revoilà/.test(t)).length, 1, 'parti sur l’écran de fin : rien à dire au retour');
+});
+
+/* ---------- 14 novembre, 16 h (Elisa : « Reprennent comment ? », puis « Ok ») : une partie seul que iOS ferme reprend ----------
+   L’appli fermée : son contexte ne tourne plus (endormi, pour toujours) ; rouverte : un nouveau contexte, le même stockage de
+   l’appareil, et le démarrage (jeuSoloAuDemarrage). */
+function seulEnPartie({ nb = 3, niv = 'f' } = {}) {
+  const w = new World();
+  const a = makeClient(w, 'Seul'); a.ev(`jeuNb=${nb};jeuNiv='${niv}';state.onboarded=true`);
+  a.ev("jeuStart('SOLO90',true,null,{solo:true})"); sec(w, 4);
+  return { w, a };
+}
+/* L’appli passe derrière (visibilitychange : la partie est gardée à cet instant), puis iOS la ferme : plus rien n’y tourne. */
+function fermer(a) { a.ev('JEU&&JEU.journal&&jeuSoloGarder()'); a.endormi = true; }
+function rouvrir(w, a) {
+  if (!a.endormi) fermer(a);
+  const b = makeClient(w, 'Seul', { store: a.store }); b.ev('state.onboarded=true');
+  b.ev('jeuSoloAuDemarrage()');
+  return b;
+}
+const garde = c => c.store['rq-jeu-solo'] ? JSON.parse(c.store['rq-jeu-solo']) : null;
+
+test('16 h : fermée en pleine manche, rouverte 3 min après : la même manche, le chrono qui a continué, la requête, les essais, les points', () => {
+  const { w, a } = seulEnPartie();
+  sec(w, 20); a.found(); sec(w, 11); sec(w, 4);
+  assert.equal(a.view(), 'play1');
+  const pts = a.ev('jeuScores()[0].pts');
+  assert.ok(pts > 0);
+  a.ed.value = 'SELECT faux'; a.ev('jeuRun()'); sec(w, 1);   // un essai manqué : plus de +25 à prendre
+  a.ed.value = 'SELECT nom FROM'; sec(w, 1);   // en train d’écrire
+  assert.equal(garde(a).ed.v, 'SELECT nom FROM', 'la requête en cours est gardée à chaque tour d’horloge');
+  const reste0 = reste(a), cids0 = cids(a);
+  fermer(a); sec(w, 180);
+  const b = rouvrir(w, a); sec(w, 1);
+  assert.equal(b.view(), 'play1', 'la même manche');
+  assert.deepEqual(cids(b), cids0, 'les mêmes défis');
+  assert.ok(Math.abs(reste(b) - (reste0 - 181)) <= 1, `le chrono a continué : ${reste0} s, puis ${reste(b)} s`);
+  assert.equal(b.ed.value, 'SELECT nom FROM', 'la requête telle qu’on l’avait laissée');
+  assert.equal(b.ev('JEU.rounds[1].tries'), 1, 'l’essai manqué compte toujours');
+  assert.equal(b.ev('JEU.rounds[1].essai'), 'SELECT faux');
+  assert.equal(b.ev('jeuScores()[0].pts'), pts, 'les points de la manche 1');
+  assert.equal(b.ev('JEU.rounds[0].sql'), b.ev('CHALLENGES.find(x=>x.id===JEU.rounds[0].cid).sol'), 'la requête trouvée, pour la correction');
+  assert.ok(!b.toasts.length && !/is-new-hint/.test(b.html), 'ni annonce ni indice rejoué');
+  b.found(); sec(w, 1);
+  assert.ok(!b.ev('JEU.rounds[1].first'), 'pas de +25 : ce n’était pas le premier essai');
+  assert.ok(b.ev('jeuScores()[0].pts') > pts);
+  sec(w, 11); sec(w, 4); assert.equal(b.view(), 'play2', 'la partie continue');
+  b.found(); sec(w, 11);
+  assert.equal(b.view(), 'final');
+  assert.equal(b.ev('state.salle.parties'), 1);
+  assert.equal(garde(b), null, 'finie et comptée : plus rien à reprendre');
+});
+
+test('16 h : rouverte après la fin du chrono de la manche : « Temps écoulé », puis la manche suivante ; la dernière : l’écran de fin', () => {
+  const { w, a } = seulEnPartie({ nb: 2 });
+  sec(w, 30);
+  fermer(a); sec(w, 30 * 60);   // fermée 30 min : le chrono de la manche est arrivé à 0 depuis longtemps
+  const c = rouvrir(w, a); sec(w, 1);
+  assert.equal(c.view(), 'play0');
+  assert.match(c.html, /Temps écoulé/);
+  assert.ok(c.ev('JEU.rounds[0].found[JEU.me]') == null, '0 point');
+  sec(w, 10); sec(w, 4);
+  assert.equal(c.view(), 'play1', 'la manche suivante démarre');
+  assert.ok(reste(c) > 300, 'avec tout son chrono');
+  fermer(c); sec(w, 20 * 60);
+  const d = rouvrir(w, c); sec(w, 1);
+  assert.match(d.html, /Temps écoulé/); sec(w, 11);
+  assert.equal(d.view(), 'final', 'la dernière manche finie au chrono : l’écran de fin');
+  assert.equal(d.ev('state.salle.parties'), 1);
+  assert.equal(garde(d), null);
+});
+
+test('16 h : rouverte plus d’1 h après : elle ne reprend pas ; ses points sont comptés, à l’heure où on l’a jouée, et l’on arrive sur Défis', () => {
+  const { w, a } = seulEnPartie();
+  sec(w, 20); a.found(); sec(w, 15);
+  const pts = a.ev('jeuScores()[0].pts'), quittee = a.ev('Date.now()');
+  fermer(a); sec(w, 2 * 3600);
+  const b = makeClient(w, 'Seul', { store: a.store }); b.ev("state.onboarded=true;activeTab='learn';switchTab=function(t){activeTab=t;}");
+  b.ev('jeuSoloAuDemarrage()'); sec(w, 1);
+  assert.equal(b.ev('JEU'), null, 'pas de partie rouverte');
+  assert.equal(b.ev('state.salle.pts'), pts, 'les points de la manche 1');
+  assert.equal(b.ev('state.salle.parties'), 1);
+  assert.ok(Math.abs(b.ev('state.salle.hist[0].at') - quittee) < 2000, 'dans Mes stats, à l’heure de la partie');
+  assert.equal(b.ev('activeTab'), 'defis');
+  assert.equal(garde(b), null);
+  /* Le lendemain : comptée aussi, mais l’accueil, comme à chaque lancement */
+  const { w: w2, a: a2 } = seulEnPartie(); sec(w2, 20); a2.found(); sec(w2, 15); fermer(a2); sec(w2, 30 * 3600);
+  const b2 = makeClient(w2, 'Seul', { store: a2.store }); b2.ev("state.onboarded=true;activeTab='learn';switchTab=function(t){activeTab=t;}");
+  b2.ev('jeuSoloAuDemarrage()'); sec(w2, 1);
+  assert.equal(b2.ev('state.salle.parties'), 1); assert.equal(b2.ev('activeTab'), 'learn');
+});
+
+test('16 h : quittée par « Quitter », finie, ou à 0 point : rien ne reste à reprendre ; rejouer garde la nouvelle partie', () => {
+  const { w, a } = seulEnPartie();
+  assert.ok(garde(a), 'gardée dès le début');
+  a.ev('jeuStop()');
+  assert.equal(garde(a), null, 'quittée : oubliée');
+  const b = rouvrir(w, a); sec(w, 1);
+  assert.equal(b.ev('JEU'), null);
+  /* Rejouer : la nouvelle partie (g 1) est gardée, et reprend comme la première */
+  const { w: w2, a: s } = seulEnPartie({ nb: 1 });
+  sec(w2, 10); s.found(); sec(w2, 11);
+  assert.equal(s.view(), 'final'); assert.equal(garde(s), null);
+  s.ev('jeuRejouer()'); sec(w2, 4);
+  assert.equal(s.ev('JEU.g'), 1); assert.equal(s.view(), 'play0');
+  assert.ok(garde(s));
+  s.ed.value = 'SELECT 2'; sec(w2, 1);
+  const r2 = rouvrir(w2, s); sec(w2, 1);
+  assert.equal(r2.ev('JEU.g'), 1); assert.equal(r2.view(), 'play0'); assert.equal(r2.ed.value, 'SELECT 2');
+  assert.deepEqual(cids(r2), cids(s));
+  assert.ok(!r2.ev('state.salle.parties'), 'la partie d’avant n’est pas comptée une deuxième fois (elle l’a été sur l’autre contexte)');
+  /* Un stockage abîmé ou d’une autre version : oublié, sans rien casser */
+  const { w: w3, a: x } = seulEnPartie(); fermer(x); x.store['rq-jeu-solo'] = '{"v":1,"code":"??","msgs":[]}';
+  const y = rouvrir(w3, x); sec(w3, 1);
+  assert.equal(y.ev('JEU'), null); assert.equal(garde(y), null);
+});
+
+test('16 h : une invitation à une salle, reçue au démarrage, passe avant : la partie seul s’arrête, ses points comptés', () => {
+  const { w, a } = seulEnPartie(); sec(w, 20); a.found(); sec(w, 15);
+  fermer(a); sec(w, 60);
+  const b = makeClient(w, 'Seul', { store: a.store }); b.ev("state.onboarded=true;jeuInvite='ROOM42'");
+  b.ev('jeuSoloAuDemarrage()'); sec(w, 1);
+  assert.equal(b.ev('JEU'), null, 'pas rouverte');
+  assert.equal(b.ev('jeuInvite'), 'ROOM42', 'l’invitation attend toujours son tour');
+  assert.equal(b.ev('state.salle.parties'), 1, 'ses points comptés');
+  assert.equal(garde(b), null);
 });

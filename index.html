@@ -20847,6 +20847,7 @@ async function boot(){
     apercuFromUrl();
     try{obCompteGardeDemarrer();}catch(e){}   // le compte (13 novembre, 3 h 22) : sans compte connecté, la page de connexion, avant le paywall
     try{obGardeDemarrer(true);}catch(e){}   // l’abonnement (12 novembre, 21 h 06) : sans lui, le paywall, avant que l’écran de lancement parte
+    try{jeuSoloAuDemarrage();}catch(e){}   // une partie seul que l’appli fermée avait laissée (14 novembre, 16 h)
     setTimeout(()=>{try{homeStatsCompter();}catch(e){}},document.documentElement.classList.contains('is-native')?3300:700);   // après l’ouverture
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
     setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
@@ -37287,7 +37288,10 @@ function jeuPseudoPuis(f,ko){if(typeof jeuAvecPseudo==='function')jeuAvecPseudo(
 function jeuStart(code,host,cid,opts){
   opts=opts||{};
   const solo=!!opts.solo,verif=!!opts.verif&&!host&&!solo;
-  const nom=solo?(jeuSavedNom()||'Toi'):jeuAskNom(opts.nomId);if(!nom){if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('pseudo',code);return;}
+  /* Une partie seul reprise (jeuSoloAuDemarrage, 14 novembre, 16 h) : son code, son joueur, ses réglages et ce qui s’y est passé ; muette,
+     elle n’est refaite que pour compter ses points (jeuSoloClore). */
+  const sv=solo&&opts.reprise&&opts.reprise.solo||null,muet=!!(sv&&opts.reprise.muet);
+  const nom=sv?(jeuNom(sv.nom)||'Toi'):solo?(jeuSavedNom()||'Toi'):jeuAskNom(opts.nomId);if(!nom){if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('pseudo',code);return;}
   if(!solo&&!opts.reprise&&typeof stat==='function'){
     if(host)stat('salle_creee');
     else stat('salle_rejointe',undefined,{via:jeuViaLien&&jeuViaLien===code?'lien':'code',nouveau:!(state.salle&&state.salle.parties>0)});   // 19 h 41
@@ -37296,25 +37300,30 @@ function jeuStart(code,host,cid,opts){
   if(typeof CHALLENGES==='undefined'||!SQL){const m=jeuMsgEl(opts.nomId);if(m)m.textContent='Le moteur SQL se charge encore, réessaie dans un instant.';if(verif&&typeof dxCodeEtat==='function')dxCodeEtat('moteur',code);return;}
   if(JEU)jeuStop();
   /* 8 novembre, 15 h 27 : cherchée depuis la feuille du code (verif), la salle laisse la feuille ouverte tant que l’hôte n’a pas répondu. */
-  if(!verif&&typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
+  if(!verif&&!muet&&typeof defisFeuilleFermer==='function')defisFeuilleFermer(true);
   const picked=host&&cid?CHALLENGES.find(x=>x.id===cid):null;
-  const niv=picked?picked.niv:jeuNiv;
-  const nb=Math.max(1,Math.min(jeuNb,jeuChallenges(niv).length||1));
-  const me=jeuPid();
+  const niv=sv?sv.niv:picked?picked.niv:jeuNiv;
+  const nb=sv?+sv.nb:Math.max(1,Math.min(jeuNb,jeuChallenges(niv).length||1));
+  const me=sv?sv.me:jeuPid();
   JEU={code,solo,verif,ranked:!!opts.secure,parCode:!!opts.parCode,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),
     players:{},order:[],rounds:[],over:false,net:solo?true:null,view:'',sig:'',
     seenU:new Set(),seenR:new Set(),seq:[],seen:{},ready:{},left:{},denied:{},helloOf:{},
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
-    sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
+    sid:sv?sv.sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
     recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[],okSeen:new Set(),slShown:null,inscrits:new Set(),tard:false,reprise:!!opts.reprise,enLecon:!!opts.enLecon};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
+  JEU.journal=solo&&!opts.secure?[]:null;   // une partie seul garde ce qui s’y passe, pour reprendre si l’appli est fermée (jeuSoloGarder)
   const G=JEU;
   JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;J.netBas=ok?0:(J.netBas||Date.now());if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo&&!opts.secure);
-  if(host){JEU.ready[me]=true;jeuSend({t:'cfg',niv,n:nb,max:JEU.max,solo:solo?1:0});}
-  JEU.helloAt=Date.now();
-  const hu=jeuSend({t:'hello'});
-  if(!host)JEU.helloU=hu;
+  if(sv)jeuSoloRejouer(sv);
+  else{
+    if(host){JEU.ready[me]=true;jeuSend({t:'cfg',niv,n:nb,max:JEU.max,solo:solo?1:0});}
+    JEU.helloAt=Date.now();
+    const hu=jeuSend({t:'hello'});
+    if(!host)JEU.helloU=hu;
+  }
+  if(muet)return;
   jeuInvite='';
   if(!verif)jeuEcran();
   JEU.tick=setInterval(jeuTick,500);
@@ -37331,7 +37340,7 @@ function jeuStart(code,host,cid,opts){
       J.view='';J.lost=true;jeuPaint();};
     J.waitCfg=setTimeout(wait,rep?3000:7000);
   }
-  if(solo&&!opts.secure)jeuNextRound();
+  if(solo&&!opts.secure&&!(sv&&jeuCur()>=0))jeuNextRound();
   if(host&&JEU.pub&&typeof jeuPublier==='function')jeuPublier(JEU,0);
   jeuPaint();
   if(!verif)try{saveNav();}catch(e){}
@@ -37384,6 +37393,91 @@ function jeuReprendre(nav){
   if([1,2,3,5].includes(nav.nb))jeuNb=nav.nb;   // une salle de 5 manches ouverte avant le 8 novembre garde ses 5 manches
   jeuPseudoPuis(()=>jeuStart(nav.code,false,null,{nomId:'jeu-nom',reprise:{host:!!nav.host}}));
 }
+/* 14 novembre, 16 h (Elisa, « Reprennent comment ? » puis « Ok » : si iOS ferme l’appli en pleine partie seul, elle reprend). Une partie
+   seul ne vivait que dans la page : l’appli fermée par iOS pendant qu’on était ailleurs (ou rechargée), elle était perdue avec les points
+   de ses manches déjà jouées, et l’on revenait sur Défis. Elle est maintenant gardée sur l’appareil (jeuSoloGarder) : ce qui s’y est
+   passé (ses messages, rejoués au retour comme une salle relit son historique, jeuSoloRejouer), ce qui n’est que sur ce téléphone (les
+   essais de chaque manche, pour le +25 du premier coup ; la requête trouvée et le dernier essai, pour la correction), la requête en
+   train d’être écrite et l’encart des indices. Au démarrage (jeuSoloAuDemarrage), quittée il y a moins d’1 h, elle reprend : la même
+   manche, le même défi, la requête, les indices. Le chrono a continué pendant l’absence, comme entre amis (sinon, quitter l’appli
+   mettrait le chrono en pause, le temps de chercher la réponse ailleurs) : arrivé à 0, la manche est « Temps écoulé », puis vient la
+   suivante. Quittée il y a plus longtemps, elle s’arrête là : ses points sont comptés (jeuSoloClore), et l’on arrive sur Défis.
+   Quitter la partie (jeuStop) ou la finir (jeuCreditGame) l’oublie. */
+const JEU_SOLO_KEY='rq-jeu-solo',JEU_SOLO_REPRISE_MS=3600000,JEU_SOLO_MAX=400;
+function jeuSoloLire(){try{const o=JSON.parse(localStorage.getItem(JEU_SOLO_KEY)||'null');return o&&typeof o==='object'?o:null;}catch(e){return null;}}
+function jeuSoloOublier(){try{localStorage.removeItem(JEU_SOLO_KEY);}catch(e){}}
+function jeuSoloValide(sv){
+  return !!sv&&sv.v===1&&/^[A-Z0-9]{6}$/.test(String(sv.code||''))&&typeof sv.me==='string'&&!!sv.me&&typeof sv.sid==='string'&&['f','m','d'].includes(sv.niv)&&[1,2,3,5].includes(+sv.nb)&&
+    Array.isArray(sv.msgs)&&sv.msgs.length>0&&sv.msgs.every(m=>m&&typeof m==='object'&&m.v===1&&m.pid===sv.me&&(m.t!=='round'||CHALLENGES.some(c=>c.id===m.cid)));
+}
+function jeuSoloGarder(){
+  const J=typeof JEU!=='undefined'?JEU:null;if(!J||!J.journal)return;
+  if(J.scored){jeuSoloOublier();return;}   // finie et comptée : plus rien à reprendre
+  const n=jeuCur(),r=n>=0?J.rounds[n]:null,ed=typeof document!=='undefined'&&document.getElementById?document.getElementById('ed-lesson'):null;
+  const ecrit=!!(r&&r.found[J.me]==null&&ed&&J.view==='play'+n);
+  const sql=ecrit?String(ed.value||''):J.edReprise&&J.edReprise.g===J.g&&J.edReprise.n===n?J.edReprise.v:'';
+  const co=typeof COACH!=='undefined'&&COACH&&COACH.kind==='room'&&COACH.round===n&&r&&COACH.c&&COACH.c.id===r.cid?COACH:null;
+  const o={v:1,code:J.code,me:J.me,sid:J.sid,nom:J.nom,niv:J.niv,nb:J.nb,at:Date.now(),msgs:J.journal,
+    rk:J.rounds.map(x=>x?{tries:x.tries|0,essai:String(x.essai||'').slice(0,20000),sql:String(x.sql||'').slice(0,20000)}:null),
+    ed:sql?{g:J.g,n,v:sql.slice(0,20000)}:null,
+    coach:co?{g:J.g,n,k:co.n|0,view:co.view|0,diag:String(co.diag||'').slice(0,600)}:null};
+  try{localStorage.setItem(JEU_SOLO_KEY,JSON.stringify(o));}catch(e){}
+}
+/* À chaque tour d’horloge (jeuTick) : la requête, les essais ou l’encart des indices ont changé depuis la dernière fois qu’on l’a gardée. */
+function jeuSoloSig(n,r,ed){const co=typeof COACH!=='undefined'&&COACH&&COACH.kind==='room'&&COACH.round===n?COACH:null;return [String(ed.value||''),r.tries|0,co?co.view+':'+co.diag:''].join('\u0001');}
+function jeuSoloSuivre(){
+  const J=JEU;if(!J||!J.journal||J.scored)return;
+  const n=jeuCur(),r=n>=0?J.rounds[n]:null,ed=document.getElementById('ed-lesson');
+  if(!r||r.found[J.me]!=null||!ed||J.view!=='play'+n)return;
+  const sig=jeuSoloSig(n,r,ed);if(sig===J.soloSig)return;
+  J.soloSig=sig;jeuSoloGarder();
+}
+/* Ce qui s’est passé, relu dans l’ordre : comme une salle qui relit son historique (le chrono de chaque manche part de l’heure où elle a
+   commencé, pas de celle de la relecture ; ni encart vert ni annonce). */
+function jeuSoloRejouer(sv){
+  const J=JEU;J.ready[J.me]=true;
+  J.replaying=true;J.replayEnd=Infinity;
+  try{sv.msgs.forEach(m=>{if(m&&typeof m==='object')jeuOnMsg(Object.assign({},m));});}
+  finally{J.replaying=false;J.replayEnd=0;}
+  J.journal=sv.msgs.slice(0);
+  (Array.isArray(sv.rk)?sv.rk:[]).forEach((x,i)=>{const r=J.rounds[i];if(!r||!x||typeof x!=='object')return;
+    r.tries=Math.max(0,Math.floor(+x.tries||0));if(typeof x.essai==='string'&&x.essai)r.essai=x.essai;if(typeof x.sql==='string'&&x.sql)r.sql=x.sql;});
+  const n=jeuCur(),r=n>=0?J.rounds[n]:null;
+  if(!r||r.found[J.me]!=null)return;
+  if(sv.ed&&sv.ed.g===J.g&&sv.ed.n===n&&typeof sv.ed.v==='string')J.edReprise={g:J.g,n,v:sv.ed.v};
+  /* Les indices : ceux de la minute où l’on revient (le chrono a tourné), l’encart tel qu’on l’avait laissé (sans vibrer ni rejouer
+     l’arrivée d’un indice déjà vu) ; son dernier « Pas encore » aussi, comme un défi repris (openChallenge). */
+  const co=sv.coach,c=CHALLENGES.find(x=>x.id===r.cid);
+  if(co&&co.g===J.g&&co.n===n&&c&&typeof COACH!=='undefined'){
+    const due=jeuIndT(jeuNivManche(n)).filter(t=>Date.now()-r.t1>=t).length,k=Math.max(0,Math.floor(+co.k||0)),vu=Math.max(0,Math.floor(+co.view||0));
+    const diag=typeof co.diag==='string'?co.diag.replace(/<(?!\/?(?:p|code|b|br)\b)[^>]*>/gi,'').replace(/<(\/?)(p|code|b|br)\b[^>]*>/gi,'<$1$2>'):'';
+    COACH={c,kind:'room',round:n,n:due,view:due>k?due:Math.min(due,vu),diag,fx:''};
+  }
+}
+/* Au démarrage de l’appli (boot, après restoreNav, l’invitation reçue et les gardes du compte et de l’abonnement). Une invitation à une
+   salle passe avant (la partie seul s’arrête, ses points comptés), comme quand on en ouvre une en pleine partie ; derrière le paywall
+   aussi, elle s’arrête. */
+function jeuSoloAuDemarrage(){
+  const sv=jeuSoloLire();if(!sv)return;
+  if(typeof state==='undefined'||!state||!state.onboarded||JEU||!jeuSoloValide(sv)){jeuSoloOublier();return;}
+  const age=Date.now()-(+sv.at||0);
+  if(jeuInvite||(typeof obGardeBloque==='function'&&obGardeBloque())){jeuSoloClore(sv);return;}
+  if(age>=0&&age<JEU_SOLO_REPRISE_MS){
+    if(activeTab!=='defis'&&typeof switchTab==='function')switchTab('defis');   // quittée, la partie ramène sur Défis, d’où elle est partie
+    jeuStart(sv.code,true,null,{solo:true,reprise:{solo:sv}});
+    if(!JEU||JEU.code!==sv.code)jeuSoloOublier();
+    return;
+  }
+  jeuSoloClore(sv);
+  /* Ses points comptés, on arrive sur Défis ; le lendemain ou plus tard, l’accueil, comme à chaque lancement. */
+  if(age>=0&&age<24*3600000&&activeTab!=='defis'&&typeof switchTab==='function')switchTab('defis');
+}
+/* Trop tard pour reprendre : la partie est refaite sans écran, le temps de compter ses points comme quand on la quitte (jeuStop), à
+   l’heure où on l’a laissée (l’historique de Mes stats). */
+function jeuSoloClore(sv){
+  jeuSoloOublier();
+  try{jeuStart(sv.code,true,null,{solo:true,reprise:{solo:sv,muet:true}});const J=JEU;if(J&&J.code===sv.code){J.joueAt=+sv.at||0;jeuStop();}}catch(e){}
+}
 function jeuJoin(code){
   const c=jeuCleanCode(code),msg=jeuMsgEl('jeu-nom');
   if(c.length!==6&&typeof dxCodeEtat==='function'&&document.querySelector('#dx-feuille #jeu-code')){dxCodeEtat('incomplet',c);return;}
@@ -37409,7 +37503,10 @@ function jeuSend(m){
   if(m.t==='cfg'||m.t==='ready'||m.t==='host')m.cv=Date.now();
   if(m.g===undefined)m.g=JEU.g;
   const J=JEU;
-  if(!J.ranked)jeuOnMsg(Object.assign({},m,{at:Date.now()}));
+  if(!J.ranked){
+    const mm=Object.assign({},m,{at:Date.now()});jeuOnMsg(mm);
+    if(J.journal&&JEU===J){J.journal.push(mm);if(J.journal.length>JEU_SOLO_MAX)J.journal.splice(2,J.journal.length-JEU_SOLO_MAX);jeuSoloGarder();}   // ses réglages et son arrivée restent en tête
+  }
   if(JEU===J)jeuPost(m);
   return m.u;
 }
@@ -37968,6 +38065,7 @@ function jeuTick(){
     const r=J.rounds[n];
     if(t&&r&&!r.auto&&Date.now()>=t&&jeuIsHost()){r.auto=true;if(n<J.nb-1)jeuNextRound();else if(!jeuSoloLike(n))jeuFinish();}
   }
+  if(JEU===J&&J.journal)jeuSoloSuivre();   // une partie seul : la requête en train d’être écrite (14 novembre, 16 h)
 }
 /* Redessiner la même vue (réglage changé, nouvel hôte, temps reçu…) sans perdre la page, le focus
    ni la requête en cours de frappe. */
@@ -39149,6 +39247,7 @@ function jeuRender(){
   if(edOn&&document.getElementById('ed-lesson')){
     setupEditor('ed-lesson','hl-lesson');
     if(typed){const ed=document.getElementById('ed-lesson');ed.value=typed;ed.dispatchEvent(new Event('input'));}
+    else if(J.edReprise&&J.edReprise.g===J.g&&v==='play'+J.edReprise.n){const ed=document.getElementById('ed-lesson');ed.value=J.edReprise.v;J.edReprise=null;ed.dispatchEvent(new Event('input'));}   // une partie seul reprise (jeuSoloRejouer)
   }
   if(v.startsWith('draw'))jeuDrawStep(+v.slice(4));
   if(v.startsWith('play'))coachRoomTick();
@@ -39859,6 +39958,7 @@ function jeuPtsPage(o){
 function jeuCreditGame(){
   const J=JEU;if(!J||J.scored||!J.played||!J.rounds.some(Boolean))return;
   J.scored=true;
+  if(J.journal)jeuSoloOublier();   // finie (ou quittée) et comptée : plus rien à reprendre
   /* 13 novembre, 17 h (la partie à deux avec Elisa) : revenu dans une salle finie (l’appli rouverte, le code saisi de nouveau), la
      partie relue dans l’historique était comptée une deuxième fois (points de salle, parties, page « +1 025 points »). Chaque partie
      (le code de la salle et son numéro) ne compte qu’une fois sur l’appareil : salle.comptees, les 40 dernières. */
@@ -39896,7 +39996,7 @@ function jeuCreditGame(){
     }
     /* Mieux qu’avant (Elisa, 9 novembre, 12 h 17) : plus de points que la partie précédente jouée seule au même niveau. */
     {const av=(Array.isArray(s.hist)?s.hist:[]).find(h=>h&&h.niv===k&&h.solo===(vs?0:1));J.mieux=!!av&&pts>(+av.pts||0);}
-    s.hist=[Object.assign({at:Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:vs?0:1,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
+    s.hist=[Object.assign({at:J.joueAt||Date.now(),pts,n:played.length,ok:mine.length,ms,niv:k,solo:vs?0:1,place,players:Math.max(1,sc.length)},ppl?{ppl}:{})]
       .concat(Array.isArray(s.hist)?s.hist:[]).slice(0,typeof JEU_HIST_MAX!=='undefined'?JEU_HIST_MAX:500);
     save();
     /* 1re place, Champion, 5 parties à plusieurs : les stickers de parties (11 novembre) — montrés à la fin de la partie */
@@ -39970,6 +40070,7 @@ function jeuStop(){
     if(ou&&typeof stat==='function')stat('salle_quittee',undefined,{ou,solo:!!J.solo,hote:J.hostPid===J.me,joueurs:typeof jeuLive==='function'?jeuLive().length:0});}catch(e){}
   if(typeof coachPeekOff==='function')coachPeekOff();
   /* On quitte avant le podium : les points déjà gagnés ne sont pas perdus. */
+  if(J.journal)jeuSoloOublier();   // quittée : elle ne reprendra pas (14 novembre, 16 h)
   try{if(!J.scored&&J.played){J.depart=true;const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
   /* Prévenir les autres tout de suite : l’hôte qui part passe la main sans attendre. */
   if((!J.solo||J.ranked)&&J.synced&&!J.full&&!J.detache){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
@@ -40022,6 +40123,9 @@ function jeuLeaveAsk(suite){
   lqAsk(q).then(r=>{const part=q.partirSiTrois?r==='trois':r===true;if(part&&JEU===J){J.leaveOk=true;suite();}});
 }
 if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{if(!document.hidden&&JEU)jeuResume();});
+/* L’appli passe derrière (iOS peut la fermer ensuite) : la partie seul est gardée à cet instant ; l’heure dit depuis quand on l’a quittée. */
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{if(document.hidden&&JEU&&JEU.journal)jeuSoloGarder();});
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('pagehide',()=>{if(JEU&&JEU.journal)jeuSoloGarder();});
 if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('pagehide',()=>{const J=JEU;if(J&&!J.solo&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}});
 /* Lien d’invitation (Elisa, 5 novembre, 14 h : « partager le code qui mène vers l’application : rejoins-moi… La personne devra
    s’inscrire obligatoirement si elle n’a pas de compte ; si elle en a un, elle rejoint la salle sans taper le code »).
@@ -52713,7 +52817,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-retour-v3019';
+  const SW_CACHE='requete-2026-11-14-reprise-v3020';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
