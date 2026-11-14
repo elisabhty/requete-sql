@@ -20,7 +20,8 @@ function salle(g) {
   const horloge = { t: 1000 };
   const ctx = vm.createContext({ state: { profile: { genre: g } }, Date: { now: () => horloge.t }, esc,
     JEU_ICO: { check: '<svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 8"/></svg>' },
-    jeuCur: () => -1, jeuOrder: () => ['a', 'b', 'c'], jeuPresent: () => true, jeuInitial: n => esc(String(n)[0]), jeuChrono: s => s + ' s' });
+    jeuCur: () => -1, jeuOrder: () => ['a', 'b', 'c'], jeuPresent: () => true, jeuInitial: n => esc(String(n)[0]), jeuChrono: s => s + ' s',
+    jeuSigBoutonHTML: () => '' });   // le « ⋯ » des autres joueurs (22 h 27) : retours-2227-signaler
   vm.runInContext(genre + pret + `
     var JEU={me:'a',hostPid:'a',max:6,rounds:[],shown:new Set(),ready:{b:true},players:{a:{name:'Elisa'},b:{name:'Léa'},c:{name:'Sam'}}};
     function jeuIsReady(p){return p===JEU.hostPid||!!JEU.ready[p];}
@@ -89,5 +90,5 @@ test('la pastille : la coche tourne et se trace, une onde part, l’avatar bondi
 test('le genre ne sort pas de l’appareil : la salle ne l’envoie pas', () => {
   assert.ok(!cut('function jeuSend(m){', '\n}\n').includes('genre'));
   assert.ok(conf.includes('ton genre et ta profession (si tu les indiques)'), 'Confidentialité : il reste sur l’appareil');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-vibrations-v3039';") && app.includes("const SW_CACHE='requete-2026-11-14-vibrations-v3039';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-signaler-v3040';") && app.includes("const SW_CACHE='requete-2026-11-14-signaler-v3040';"));
 });

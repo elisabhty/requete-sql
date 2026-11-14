@@ -6816,7 +6816,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=384">
+<link rel="stylesheet" href="ludique.css?v=385">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -30193,7 +30193,7 @@ function salleLigneHTML(s,qui){
   /* 8 novembre, 11 h 08 (« ce niveau premium ») : les pastilles de « Ta salle de défi » : les joueurs avec leurs silhouettes à côté du
      pseudo, le niveau en blanc avec ses barres, puis les manches. */
   return `<li><b class="jeu-av" data-c="${perfColor(n)}" aria-hidden="true">${jeuInitial(n)}${jeuFlag(n,pays)}</b>`+
-    `<span class="dx-t"><b><span class="dx-nom">${esc(n)}</span>${dxPcGens(`${s.nb}/${s.max}`)}</b><small class="dx-pcs">${dxPcNiv(s.niv)}<span class="dx-pc-t">${qui?'salle ouverte':m}</span></small></span>`+
+    `<span class="dx-t"${qui?'':` role="button" tabindex="0" data-n="${escAttr(n)}" onclick="dxFiche(this.dataset.n)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${escAttr(`Profil de ${n}`)}"`}><b><span class="dx-nom">${esc(n)}</span>${dxPcGens(`${s.nb}/${s.max}`)}</b><small class="dx-pcs">${dxPcNiv(s.niv)}<span class="dx-pc-t">${qui?'salle ouverte':m}</span></small></span>`+
     `<button type="button" class="dx-join" onclick="sallesRejoindre('${s.code}',this)" aria-label="${escAttr(`Rejoindre la salle de ${s.hote}\u00a0: ${niv}, ${m}, ${s.nb} joueur${s.nb>1?'s':''} sur ${s.max}`)}">Rejoindre</button></li>`;
 }
 function sallesRejoindre(code,b){
@@ -37816,6 +37816,20 @@ function jeuAutresNoms(){
   J.order.forEach(p=>{if(p===J.me||J.denied[p])return;const n=(J.players[p]||{}).name;const k=jeuCleNom(n);if(n&&k&&!vus.has(k)&&!jeuBloque(n)){vus.add(k);out.push(n);}});
   return out;
 }
+/* 14 novembre, 22 h 27 (Elisa : « Je ne vois pas le bloquer et signaler dans les salles ? Ou salle d’attente ? ») : le lien du bas
+   restait sous le pli, et rien ne le montrait à côté des pseudos. Chaque autre joueur de la salle (la salle d’attente,
+   ses résultats) a maintenant son bouton « ⋯ », au bout de sa ligne : « Signaler et bloquer » ce
+   joueur (la question de jeuSignalerBloquer, qui protège d’un toucher raté). Pas de drapeau : il se confondait avec ceux des pays
+   (7 novembre). Seul dans sa salle, il n’y a personne à signaler : rien. Dans « Rejoins une partie », la ligne d’une salle était
+   déjà pleine (pseudo, joueurs, niveau, manches, « Rejoindre ») : son pseudo ouvre le profil du joueur, avec « Signaler et
+   bloquer », comme une ligne du classement. */
+const JEU_SIG_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="18.5" cy="12" r="2" fill="currentColor"/></svg>';
+function jeuSigBoutonHTML(n,cls){
+  n=String(n||'');
+  if(!n||(typeof jeuSavedNom==='function'&&jeuCleNom(n)===jeuCleNom(jeuSavedNom()))||jeuBloque(n))return '';
+  const at=v=>String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<button type="button" class="${cls}" data-n="${at(n)}" onclick="jeuSignalerBloquer(this.dataset.n)" aria-label="${at(`Signaler et bloquer ${n}`)}">${JEU_SIG_SVG}</button>`;
+}
 function jeuSignalerLienHTML(){return '<p class="jeu-signal-p"><button type="button" class="jeu-signal" onclick="jeuSignalerChoisir()">Signaler et bloquer un joueur</button></p>';}
 /* Sa place en bas de l’écran de la salle : redessinée sur place quand un joueur arrive (jeuPatch ne refait pas tout l’écran). */
 function jeuSignalSlotHTML(){const on=jeuAutresNoms().length>0;return `<div id="jeu-signal-slot" data-on="${on?'1':''}">${on?jeuSignalerLienHTML():''}</div>`;}
@@ -38556,7 +38570,7 @@ function jeuPlayersHTML(kind){
       }else{delete pretAt[pid];state='<em class="jeu-state is-att">En attente</em>';}   // 13 h 20 : « Prêt·e » en vert, « En attente » en gris
     }
     else if(r)state=`<em class="jeu-state">${found?'✓ '+jeuDureeLisible(r.found[pid]):(away?'parti·e':'…')}</em>`;
-    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span><span class="jeu-pl-nom">${esc(p.name)}</span>${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}</li>`;
+    return `<li class="${found?'is-found':''}${away?' is-away':''}${isNew?' is-new':''}${pret>=0?' is-pret':''}"${pret>0?` style="--pret:-${pret}ms"`:''}><b class="jeu-av" data-c="${all.indexOf(pid)%6}" aria-hidden="true">${jeuInitial(p.name)}${typeof jeuFlag==='function'?jeuFlag(p.name):''}</b><span><span class="jeu-pl-nom">${esc(p.name)}</span>${me?' <small>(toi)</small>':''}${host?' <small class="jeu-tag">hôte</small>':''}</span>${state}${me?'':jeuSigBoutonHTML(p.name,'jeu-pl-sig')}</li>`;
   });
   if(kind==='lobby'&&list.length<J.max)rows.push('<li class="jeu-slot" aria-hidden="true"><b class="jeu-av is-empty"></b><span>En attente d’un joueur…</span></li>');
   return rows.join('');
@@ -53426,7 +53440,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-vibrations-v3039';
+  const SW_CACHE='requete-2026-11-14-signaler-v3040';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

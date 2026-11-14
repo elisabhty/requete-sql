@@ -948,8 +948,10 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
   (exemple : `supabase/migrations/20261106152605_defis_sept_bases.sql`). Le serveur ne tire un défi que si tous les
   téléphones de la salle le connaissent.
 - **Règle 1.2 (contenu créé par les utilisateurs)** : les pseudos sont filtrés (appli et serveur, jeu_pseudo_ok),
-  chaque ligne du classement a « Signaler » (le joueur est aussitôt masqué pour soi ; 3 signalements le masquent
-  pour tous), « Contacte-nous » dans l’app (l’adresse du site reste à remplir : `CONTACT_EMAIL` dans decouvrir/index.html). À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
+  « Signaler et bloquer » est dans le profil d’un joueur (une ligne du classement, un adversaire, le pseudo d’une salle
+  ouverte dans « Rejoins une partie »), au bout de la ligne de chaque autre joueur d’une salle (« ⋯ », salle d’attente et
+  résultats, depuis le 14 novembre, 22 h 27) et en lien en bas de chaque écran d’une salle à plusieurs (le joueur est aussitôt
+  bloqué et masqué pour soi ; 3 signalements le masquent pour tous), « Contacte-nous » dans l’app (l’adresse du site reste à remplir : `CONTACT_EMAIL` dans decouvrir/index.html). À surveiller : la vue `jeu_moderation` dans l’éditeur SQL de
   Supabase liste les pseudos signalés (Apple demande d’agir vite, sous 24 h) ; `update jeu_joueur set masque = true
   where id = '…'` masque un joueur.
 - **Contacte-nous** (avant « Nous contacter ») (Mon compte, à la place de l’ancienne aide) : le sujet (bug, idée, question, autre), le message,
