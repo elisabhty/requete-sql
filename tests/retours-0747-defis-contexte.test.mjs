@@ -40,8 +40,8 @@ test('chaque situation : le lieu présenté, la personne et sa raison, 150 mots 
   }
 });
 
-test('les trois indices : Où chercher, La piste, L’outil ; plus de squelette de la requête', () => {
+test('les trois indices : Où chercher, La méthode, À compléter (14 novembre, 15 h 15 : « Concret », retours-1515-indices-concrets)', () => {
   const f = app.slice(app.indexOf('function defiIndices(c){'), app.indexOf('\n}\n', app.indexOf('function defiIndices(c){')));
-  assert.ok(f.includes("['Où chercher',defiOuChercher(c)]") && f.includes("['La piste',escCode(c.indice||") && f.includes("['L’outil',defiOutils(c.sol)]"));
-  assert.ok(!f.includes('defiSquelette'), 'le squelette dictait presque la requête');
+  assert.ok(f.includes("['Où chercher',defiOuChercher(c)]") && f.includes("['La méthode',defiMethode(c)]") && f.includes("['À compléter',"));
+  assert.ok(!f.includes('defiSquelette'), 'plus le squelette de mots-clés : la requête à trous');
 });

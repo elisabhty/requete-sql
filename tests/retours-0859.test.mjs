@@ -16,6 +16,7 @@ const ctx = vm.createContext({ esc: s => String(s).replace(/</g, '&lt;'), escCod
 vm.runInContext(cut('const CHALLENGES=[', '\n/* La consigne d’un défi').replace('const CHALLENGES=', 'CHALLENGES='), ctx);
 vm.runInContext(cut('function defiTables(sol){', 'function defisParProgression(){'), ctx);
 vm.runInContext(cut('function normCell(v)', 'function fmtLignes(n)'), ctx);
+vm.runInContext(cut('function sqlEnLignes(sql){', '\n/* La partie s’en va'), ctx);
 const D = id => ctx.CHALLENGES.find(c => c.id === id);
 const aero = cut("aeroport:{nom:'Aéroport',", '\n`}');
 const base = () => { const d = new SQL.Database(); d.run(aero.slice(aero.indexOf('sql:`') + 5)); return d; };
@@ -38,17 +39,16 @@ test('les trois indices : où chercher, la piste, la forme ; jamais la requête 
   const h0 = ctx.defiIndicesHTML(c, 0);
   assert.ok(h0.includes('À toi de jouer') && !h0.includes('Indice'), 'avant le premier essai raté : « À toi de jouer », aucun indice (15 h 36)');
   const h1 = ctx.defiIndicesHTML(c, 1), h2 = ctx.defiIndicesHTML(c, 2), h3 = ctx.defiIndicesHTML(c, 3), h9 = ctx.defiIndicesHTML(c, 9);
-  /* 14 novembre, 7 h 51 (« Échelle progressive ») : où chercher en mots simples, la piste sans SQL, puis l’outil ; jamais la requête */
-  assert.ok(h1.includes('Indice 1/3') && h1.includes('<b>Où chercher</b>') && h1.includes('4 tables à relier\u00a0: les bagages, les billets, les passagers et les vols.'));
-  assert.ok(!h1.includes('Indice 2/3') && !h1.includes('<code>'), 'le premier indice ne nomme aucune table');
-  assert.ok(h2.includes('Indice 2/3') && h2.includes('<b>La piste</b>') && h2.includes(c.indice) && !h2.includes('Indice 1/3'), 'un à la fois, pas 1 + 2');
-  assert.ok(h3.includes('Indice 3/3') && h3.includes('<b>L’outil</b>') && h3.includes('<code>JOIN … ON</code>') && h3.includes('C’était le dernier indice') && !h3.includes(c.indice));
+  /* 14 novembre, 15 h 15 (« les indices sont nuls, on comprend rien », puis « Concret ») : où chercher (tables et colonnes), la méthode
+     clause par clause, puis la requête à compléter ; jamais la requête entière (retours-1515-indices-concrets) */
+  assert.ok(h1.includes('Indice 1/3') && h1.includes('<b>Où chercher</b>') && h1.includes('<code>vols</code>') && !h1.includes('Indice 2/3'));
+  assert.ok(h2.includes('Indice 2/3') && h2.includes('<b>La méthode</b>') && h2.includes('<ul class="coach-etapes">') && !h2.includes('Indice 1/3'), 'un à la fois, pas 1 + 2');
+  assert.ok(h3.includes('Indice 3/3') && h3.includes('<b>À compléter</b>') && h3.includes('<div class="ex-code">') && h3.includes('…') && h3.includes('C’était le dernier indice'));
   for (const x of ctx.CHALLENGES) {
-    const [[, ou], [, piste], [, outil]] = ctx.defiIndices(x);
-    assert.ok(!ou.includes('la table ') && !ou.includes('<code>'), `${x.id} : où chercher, en mots simples`);
-    assert.doesNotMatch(x.indice, /`|\b(SELECT|FROM|WHERE|JOIN|GROUP BY|HAVING|ORDER BY|COUNT|SUM|AVG|LIMIT|DISTINCT|NULL|OVER|LAG|RANK|CASE|LIKE|EXISTS)\b|\b[a-z]+_[a-z_]+\b/, `${x.id} : la piste sans SQL ni nom de colonne`);
-    for (const m of outil.matchAll(/<code>([^<]*)<\/code>/g)) assert.match(m[1], /^([A-Z_ ()…|.,%]+|julianday|strftime)$/, `${x.id} : l’outil ne montre que des mots-clés (${m[1]})`);
-    assert.ok(!outil.includes(x.sol) && !piste.includes(x.sol), `${x.id} : jamais la requête`);
+    const [, [, methode], [, modele]] = ctx.defiIndices(x);
+    const trou = ctx.defiACompleter(x);
+    assert.ok(trou.includes('…') && trou.replace(/\s/g, '') !== x.sol.replace(/;\s*$/, '').replace(/\s/g, ''), `${x.id} : jamais la requête entière`);
+    for (const v of x.sol.match(/'(?:[^']|'')*'/g) || []) if (v.length > 3) assert.ok(!modele.includes(v) && !methode.includes(v), `${x.id} : la valeur ${v} reste à trouver`);
   }
   assert.ok(ctx.defiIndicesHTML(c, 3, 1).includes('Indice 1/3'), 'une pastille ramène à un indice déjà donné');
   assert.equal(h9, h3, 'trois au plus');

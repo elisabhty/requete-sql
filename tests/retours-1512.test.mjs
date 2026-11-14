@@ -41,7 +41,8 @@ test('les textes simples passent par escCode : défis, « Pas encore » des exer
   /* 8 novembre, 18 h 36 puis 19 h 57 : la situation, toujours par escCode ; l’appel « À toi de jouer ! » dans son cadre gris dessous */
   for (const s of ["${c.situation?`<p class=\"defi-ctx\">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}`:''}", "${l.map(x=>`<li>${escCode(x)}</li>`).join('')}", "`<p class=\"dq-t\">${escCode(tri[0])}</p>`"])
     assert.ok(dq.includes(s), s);
-  assert.ok(cut('function defiIndices(c){', '\n}').includes("['La piste',escCode(c.indice||"));
+  /* 14 novembre, 15 h 15 : les indices sont lus dans la solution ; les noms passent par esc (retours-1515-indices-concrets) */
+  assert.ok(cut('function defiOuChercher(c){', '\n}').includes('<code>${esc(t)}</code>'));
   /* 10 novembre : les exemples des questions d’entretien sont partis (entretien-generales) */
   assert.ok(app.includes('<b>Pas encore</b><p>${escCode(check.diag)}</p>') && app.includes('<b>Pas encore</b><p>${escCode(concept.diag)}</p>'));
 });

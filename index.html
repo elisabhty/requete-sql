@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=378">
+<link rel="stylesheet" href="ludique.css?v=379">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=71">
 <style id="lesson-video-css">
@@ -13980,15 +13980,6 @@ const DEFI_TABLES_MOTS={
   festival:{scenes:'les scènes',artistes:'les artistes',concerts:'les concerts',festivaliers:'les festivaliers',billets:'les billets',entrees:'les entrées',benevoles:'les bénévoles',creneaux:'les créneaux',meteo:'la météo'},
   salle_sport:{adherents:'les adhérents',abonnements:'les abonnements',coachs:'les coachs',salles:'les salles',cours:'les cours',planning:'le planning',inscriptions_cours:'les inscriptions aux cours'}
 };
-function defiOuChercher(c){
-  const M=DEFI_TABLES_MOTS[c&&c.base]||{},tb=defiTables(c&&c.sol).map(t=>M[t]||M[String(t).toLowerCase()]||`la table ${t}`);
-  const de=x=>x.replace(/^les /,'des ').replace(/^le /,'du ').replace(/^la /,'de la ').replace(/^l’/,'de l’');
-  const maj=x=>x.charAt(0).toUpperCase()+x.slice(1);
-  if(!tb.length)return 'Ouvre le schéma : chaque information demandée vit dans une table ; repère celles dont parle la situation.';
-  if(tb.length===1)return `Tout se trouve dans une seule table, celle ${de(tb[0])}.`;
-  if(tb.length===2)return `${maj(tb[0])} d’un côté, ${tb[1]} de l’autre.`;
-  return `${tb.length} tables à relier : ${tb.slice(0,-1).join(', ')} et ${tb[tb.length-1]}.`;
-}
 /* L’outil : les notions de la solution, de la plus particulière à la plus courante ; on en montre deux au plus. */
 const DEFI_OUTILS=[
   ['dense',/\bDENSE_RANK\s*\(\s*\)\s*OVER\b/i,'<code>DENSE_RANK() OVER (…)</code>, une fonction de fenêtre qui donne un rang à chaque ligne sans les regrouper, sans trou après les ex æquo'],
@@ -14040,11 +14031,184 @@ function defiOutils(sol){
   const maj=x=>x.charAt(0).toUpperCase()+x.slice(1);
   return out.length===1?`${maj(out[0])}.`:`${maj(out[0])} ; et ${out[1]}.`;
 }
+/* 14 novembre, 15 h 15 (Elisa, sa capture du défi « Quelles expériences sont planifiées ? », indice 2 : « Ah non les indices sont nuls
+   là, on comprend rien ») ; à la question (concret ou intermédiaire), « Concret ». Ce matin (7 h 47) ils étaient « trop explicites » ;
+   l’échelle de 7 h 51 redisait la consigne (la piste) et nommait un mot-clé (l’outil), sans jamais dire avec quelles colonnes écrire la
+   requête. Trois indices concrets, lus dans la solution de chaque défi, toujours sans la donner entière :
+   1. Où chercher : les tables, les colonnes à afficher (avec ce qu’elles veulent dire quand le nom ne le dit pas : « date_experience
+      (date prévue) »), et celles qui servent à filtrer ;
+   2. La méthode : la requête clause par clause, en mots (SELECT les 3 colonnes, FROM experiences, WHERE sur statut, ORDER BY par date
+      prévue), et la notion particulière s’il y en a une (une fonction de fenêtre, CASE, une sous-requête…) ;
+   3. À compléter : la requête elle-même, chaque valeur remplacée par « … » et le tri final aussi ; s’il n’y a ni valeur ni tri, la
+      liste des colonnes. */
+const DEFI_MOTS_SQL=new Set([...DEFI_MOTS,'AS','ASC','DESC','NULLS','FIRST','LAST','ROWS','RANGE','PRECEDING','FOLLOWING','CURRENT','ROW','UNBOUNDED',
+  'INTERSECT','EXCEPT','CAST','INTEGER','REAL','TEXT','NUMERIC','TRUE','FALSE','COLLATE','NOCASE','ESCAPE','GLOB','FILTER','OUTER','RIGHT','FULL','NATURAL','USING','RECURSIVE']);
+function defiJetons(sol){
+  const re=/'(?:[^']|'')*'|[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?|\d+(?:\.\d+)?|<>|!=|>=|<=|\|\||[=<>*\/+\-(),;%.]/g;
+  const out=[];let m,d=0;const s=String(sol||'');
+  while((m=re.exec(s))){
+    const t=m[0],u=t.toUpperCase();
+    if(t===')')d=Math.max(0,d-1);
+    const k=t[0]==="'"?'str':/^\d/.test(t)?'num':/^[A-Za-z_]/.test(t)?'id':t;
+    out.push({t,u,k,d,i:m.index,j:m.index+t.length});
+    if(t==='(')d++;
+  }
+  out.forEach((x,n)=>{x.fn=x.k==='id'&&out[n+1]&&out[n+1].t==='(';});
+  return out;
+}
+/* La requête principale : le premier SELECT hors des parenthèses (après les WITH), et ses clauses à ce niveau. */
+function defiClauses(T){
+  const s=T.findIndex(x=>x.d===0&&x.u==='SELECT');if(s<0)return null;
+  const C={debut:s,parts:[]},CLE=new Set(['SELECT','FROM','WHERE','GROUP','HAVING','ORDER','LIMIT','UNION','EXCEPT','INTERSECT','JOIN',';']);
+  for(let n=s;n<T.length;n++){
+    const x=T[n];if(x.d!==0||!CLE.has(x.u))continue;
+    if(x.u==='UNION'||x.u==='EXCEPT'||x.u==='INTERSECT'||x.u===';'){C.parts.push({k:x.u,n});if(x.u!=='UNION')break;else{C.union=true;break;}}
+    let k=x.u;
+    if(k==='JOIN'){const p=T[n-1]&&T[n-1].u;k=p==='LEFT'||(p==='OUTER'&&T[n-2]&&T[n-2].u==='LEFT')?'LEFT JOIN':p==='CROSS'?'CROSS JOIN':'JOIN';}
+    C.parts.push({k,n});
+  }
+  C.parts.forEach((p,i)=>{const f=C.parts[i+1];p.fin=f?f.n-(/JOIN/.test(f.k)&&/^(LEFT|INNER|CROSS|OUTER)$/.test(T[f.n-1].u)?(T[f.n-2]&&T[f.n-2].u==='LEFT'&&T[f.n-1].u==='OUTER'?2:1):0):T.length;});
+  C.get=k=>C.parts.filter(p=>p.k===k);
+  return C;
+}
+/* Les tables, leurs alias, les noms des résultats intermédiaires (WITH) et des colonnes calculées (AS) : rien de tout ça n’est une colonne */
+function defiNoms(T){
+  const tables=new Set(),alias=new Set(),de={};
+  T.forEach((x,n)=>{
+    if((x.u==='FROM'||x.u==='JOIN')&&T[n+1]&&T[n+1].k==='id'){
+      const tb=T[n+1].t.toLowerCase();tables.add(tb);de[tb]=tb;
+      const a=T[n+2]&&T[n+2].u==='AS'?T[n+3]:T[n+2];
+      if(a&&a.k==='id'&&!DEFI_MOTS_SQL.has(a.u)){alias.add(a.t.toLowerCase());de[a.t.toLowerCase()]=tb;}
+    }
+    if(x.u==='AS'&&T[n+1]&&T[n+1].k==='id')alias.add(T[n+1].t.toLowerCase());
+    if(x.u==='WITH'||(x.t===','&&x.d===0&&T.slice(0,n).some(y=>y.u==='WITH'&&y.d===0)&&!T.slice(0,n).some(y=>y.u==='SELECT'&&y.d===0))){const c=T[n+1];if(c&&c.k==='id'&&c.u!=='RECURSIVE')alias.add(c.t.toLowerCase());}
+  });
+  T.forEach((x,n)=>{if(x.u==='RECURSIVE'&&T[n+1])alias.add(T[n+1].t.toLowerCase());});
+  /* les résultats intermédiaires (WITH) ne sont pas des tables du schéma */
+  const ctes=new Set();T.forEach((x,n)=>{if(T[n+1]&&T[n+1].u==='AS'&&T[n+2]&&T[n+2].t==='('&&x.k==='id')ctes.add(x.t.toLowerCase());});
+  Object.keys(de).forEach(k=>{if(ctes.has(de[k]))delete de[k];});
+  return {tables,alias,de};
+}
+function defiColonnes(T,a,b,N,o){
+  o=o||{};const out=[],d0=T[a]?T[a].d:0;
+  for(let n=a;n<b;n++){
+    const x=T[n];if(x.k!=='id'||x.fn||DEFI_MOTS_SQL.has(x.u))continue;
+    if(o.niveau&&x.d!==d0)continue;
+    const [q,c]=x.t.includes('.')?x.t.split('.'):['',x.t],l=c.toLowerCase();
+    if(!q&&(N.tables.has(l)||N.alias.has(l)))continue;
+    const nom=o.table&&q&&N.de[q.toLowerCase()]?`${N.de[q.toLowerCase()]}.${c}`:c;
+    if(!out.includes(nom))out.push(nom);
+  }
+  return out;
+}
+/* Les éléments du SELECT principal, séparés par les virgules de son niveau */
+function defiSelectListe(T,C){
+  const p=C.get('SELECT')[0];if(!p)return [];
+  const items=[];let cur=[];
+  for(let n=p.n+1;n<p.fin;n++){const x=T[n];if(x.d===0&&x.t===','){items.push(cur);cur=[];}else if(!(x.d===0&&x.u==='DISTINCT'&&!cur.length))cur.push(x);}
+  if(cur.length)items.push(cur);
+  return items;
+}
+const defiNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’'_]/g,' ').replace(/\s+/g,' ').trim();
+const defiSansArticle=s=>String(s||'').replace(/^(?:son|sa|ses|le|la|les|l’|l'|leur|leurs)\s*/i,'');
+function defiOuChercher(c){
+  const T=defiJetons(c&&c.sol),C=defiClauses(T),N=defiNoms(T);
+  const tb=defiTables(c&&c.sol).map(t=>`<code>${esc(t)}</code>`);
+  const et=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} et ${a[a.length-1]}`;
+  let h=!tb.length?'Ouvre le schéma : repère la table dont parle la situation.':tb.length===1?`Table ${tb[0]}.`:`Tables ${et(tb)}.`;
+  if(!C)return h;
+  const items=defiSelectListe(T,C),aff=Array.isArray(c.affiche)?c.affiche:[];
+  const lab=i=>items.length===aff.length&&aff[i]?defiSansArticle(aff[i]):'';
+  if(items.length===1&&items[0].length===1&&items[0][0].t==='*')h+=' À afficher : toutes les colonnes.';
+  else if(items.length){
+    const vus=items.map((it,i)=>{
+      const as=it.findIndex(x=>x.u==='AS'),corps=as>=0?it.slice(0,as):it,alias=as>=0&&it[as+1]?it[as+1].t:'';
+      const simple=corps.length===1&&corps[0].k==='id'&&!DEFI_MOTS_SQL.has(corps[0].u);
+      const l=lab(i);
+      if(simple){
+        const nom=corps[0].t.split('.').pop();
+        return `<code>${esc(nom)}</code>${l&&!defiNorm(l).includes(defiNorm(nom))?` (${esc(l)})`:''}`;
+      }
+      return alias?`<code>${esc(alias)}</code> (à calculer${l?`, ${esc(l)}`:''})`:`un calcul${l?` (${esc(l)})`:''}`;
+    });
+    h+=` À afficher : ${et(vus)}.`;
+  }
+  const filtres=[];T.forEach((x,n)=>{if(x.u!=='WHERE')return;let f=n+1;while(f<T.length&&!(T[f].d<x.d||(T[f].d===x.d&&/^(GROUP|HAVING|ORDER|LIMIT|UNION|EXCEPT|INTERSECT|;|\))$/.test(T[f].u))))f++;
+    defiColonnes(T,n+1,f,N,{table:true}).forEach(k=>{if(!filtres.includes(k))filtres.push(k);});});
+  if(filtres.length)h+=` Pour filtrer : ${et(filtres.slice(0,4).map(k=>`<code>${esc(k)}</code>`))}.`;
+  return h;
+}
+/* Les notions particulières (pas celles que la méthode nomme déjà clause par clause) */
+const DEFI_NOTIONS=new Set(['dense','numero','rang','lag','over','case','julian','strf','coalesce','texte','notexists','exists','union','like','between','in','isnull','round']);
+function defiMethode(c){
+  const T=defiJetons(c&&c.sol),C=defiClauses(T),N=defiNoms(T);
+  if(!C)return defiOutils(c&&c.sol);
+  const L=[],code=t=>`<code>${esc(t)}</code>`;
+  if(T[0]&&T[0].u==='WITH'){
+    const noms=[];T.forEach((x,n)=>{if(x.d===0&&(x.u==='WITH'||x.t===',')&&n<C.debut){const y=T[n+1]&&T[n+1].u==='RECURSIVE'?T[n+2]:T[n+1];if(y&&y.k==='id')noms.push(y.t);}});
+    L.push(`<b>WITH</b> : prépare d’abord ${noms.length>1?`${noms.length} résultats intermédiaires`:'un résultat intermédiaire'} (${noms.map(code).join(', ')}), puis :`);
+  }
+  const items=defiSelectListe(T,C),sel=C.get('SELECT')[0];
+  const fonc=[...new Set(T.slice(sel.n+1,sel.fin).filter(x=>x.fn&&DEFI_FONCS.has(x.u)).map(x=>x.u))];
+  const fenetre=T.slice(sel.n+1,sel.fin).some(x=>x.u==='OVER');
+  const distinct=T[sel.n+1]&&T[sel.n+1].u==='DISTINCT';
+  const nb=items.length===1&&items[0].length===1&&items[0][0].t==='*'?'toutes les colonnes':`${items.length===1?'la colonne':`les ${items.length} colonnes`}`;
+  const calculs=items.filter(it=>{const as=it.findIndex(x=>x.u==='AS'),corps=as>=0?it.slice(0,as):it;return !(corps.length===1&&(corps[0].k==='id'||corps[0].t==='*'));}).length;
+  L.push(`<b>SELECT${distinct?' DISTINCT':''}</b> : ${nb}${calculs?`, dont ${calculs>1?`${calculs} calculs`:'un calcul'}${fonc.length?` (${fonc.slice(0,3).map(code).join(', ')}${fenetre?' avec OVER':''})`:''}`:''}`);
+  const from=C.get('FROM')[0];
+  if(from){const t=T[from.n+1];L.push(`<b>FROM</b> ${t&&t.k==='id'?code(t.t):'une sous-requête'}`);}
+  C.parts.filter(p=>/JOIN/.test(p.k)).forEach(p=>{
+    const t=T[p.n+1],on=T.slice(p.n+1,p.fin).findIndex(x=>x.u==='ON');
+    const cols=on>=0?defiColonnes(T,p.n+1+on+1,p.fin,N):[];
+    const par=cols.filter(k=>k.toLowerCase()!=='id');
+    L.push(`<b>${p.k}</b> ${t&&t.k==='id'?code(t.t):'une sous-requête'}${cols.length?`, reliée par ${(par.length?par:cols).slice(0,2).map(code).join(' et ')}`:''}`);
+  });
+  const w=C.get('WHERE')[0];
+  if(w){
+    const cols=defiColonnes(T,w.n+1,w.fin,N,{table:true,niveau:true}),z=T.slice(w.n+1,w.fin);
+    const nonEx=z.some((x,i)=>x.u==='NOT'&&z[i+1]&&z[i+1].u==='EXISTS'),ouiEx=z.some((x,i)=>x.u==='EXISTS'&&!(z[i-1]&&z[i-1].u==='NOT'));
+    const sous=z.some((x,i)=>x.t==='('&&z[i+1]&&z[i+1].u==='SELECT'),ex=nonEx||ouiEx,ops=['LIKE','BETWEEN','IN','IS'].filter(o=>z.some((x,i)=>x.d===T[w.n].d&&x.u===o&&!(o==='IN'&&z[i+1]&&z[i+1].t==='('&&z[i+2]&&z[i+2].u==='SELECT')));
+    L.push(`<b>WHERE</b>${cols.length?` sur ${cols.slice(0,3).map(code).join(', ')}`:''}${ex?`, avec ${[ouiEx?code('EXISTS'):'',nonEx?code('NOT EXISTS'):''].filter(Boolean).join(' et ')}`:sous?', avec une sous-requête':''}${ops.length?` (${ops.map(o=>code(o==='IS'?'IS NULL':o)).join(', ')})`:''}`);
+  }
+  const g=C.get('GROUP')[0];
+  if(g){const cols=defiColonnes(T,g.n+2,g.fin,N,{table:true});L.push(`<b>GROUP BY</b>${cols.length?` ${cols.slice(0,3).map(code).join(', ')}`:''} : un groupe par valeur`);}
+  if(C.get('HAVING')[0])L.push('<b>HAVING</b> : un filtre sur le calcul de chaque groupe');
+  if(C.get('ORDER')[0])L.push(`<b>ORDER BY</b>${c.tri?` : ${esc(c.tri)}`:''}`);
+  if(C.get('LIMIT')[0])L.push('<b>LIMIT</b> : ne garde que les premières lignes');
+  if(C.union)L.push('<b>UNION</b> : puis une deuxième requête, dont les lignes s’ajoutent aux premières');
+  /* La notion particulière, s’il y en a une que les clauses ne disent pas */
+  const q=String(c&&c.sol||'').replace(/'(?:''|[^'])*'/g,"''"),dits=L.join(' ');
+  const notions=[],exclus=new Set();
+  for(const [k,re,t] of DEFI_OUTILS){
+    if(notions.length>=2)break;
+    if(!DEFI_NOTIONS.has(k)||exclus.has(k)||!re.test(q))continue;
+    if((k==='exists'||k==='notexists')&&/EXISTS/.test(dits))continue;
+    if(k==='union'&&C.union)continue;
+    if((k==='like'||k==='between'||k==='in'||k==='isnull')&&/LIKE|BETWEEN|IN<|IS NULL/.test(dits.replace(/<\/code>/g,'<')))continue;
+    notions.push(t);(DEFI_OUTILS_INCLUS[k]||[]).forEach(x=>exclus.add(x));
+  }
+  return `<ul class="coach-etapes">${L.map(l=>`<li>${l}</li>`).join('')}</ul>${notions.length?`<p class="coach-notion">À utiliser : ${notions.join(' ; ')}.</p>`:''}`;
+}
+/* La requête à compléter : chaque valeur devient « … », et le tri final aussi ; s’il ne reste rien à trouver, la liste des colonnes. */
+function defiACompleter(c){
+  const sol=String(c&&c.sol||'').trim(),T=defiJetons(sol),C=defiClauses(T);
+  const rep=[];   // [début, fin, texte]
+  T.forEach(x=>{if(x.k==='str')rep.push([x.i,x.j,"'…'"]);else if(x.k==='num')rep.push([x.i,x.j,'…']);});
+  const ord=C&&C.get('ORDER')[0];
+  if(ord&&T[ord.n+1]&&T[ord.n+1].u==='BY'){
+    const a=T[ord.n+1].j,last=T[ord.fin-1]&&T[ord.fin-1].t===';'?T[ord.fin-2]:T[ord.fin-1];
+    if(last&&last.j>a){for(let k=rep.length-1;k>=0;k--)if(rep[k][0]>=a&&rep[k][1]<=last.j)rep.splice(k,1);rep.push([a,last.j,' …']);}
+  }
+  if(!rep.length&&C){const s=C.get('SELECT')[0];const d=T[s.n+1]&&T[s.n+1].u==='DISTINCT'?T[s.n+1]:T[s.n];const f=T[s.fin-1];if(f&&f.j>d.j)rep.push([d.j,f.j,' …']);}
+  rep.sort((x,y)=>x[0]-y[0]);
+  let out='',p=0;rep.forEach(([a,b,t])=>{if(a<p)return;out+=sol.slice(p,a)+t;p=b;});out+=sol.slice(p);
+  return out.replace(/\s*;\s*$/,'');
+}
 function defiIndices(c){
   return [
     ['Où chercher',defiOuChercher(c)],
-    ['La piste',escCode(c.indice||'Relis la consigne mot à mot : chaque information demandée est une colonne, chaque condition un filtre.')],
-    ['L’outil',defiOutils(c.sol)]
+    ['La méthode',defiMethode(c)],
+    ['À compléter',`Remplace chaque «&nbsp;…&nbsp;».<div class="ex-code">${highlight(sqlEnLignes(defiACompleter(c)))}</div>`]
   ];
 }
 /* Elisa, 1er novembre, 14 h 33 : « homogénéiser, fusionner pour faire un seul cadre » (« Pas encore » et les indices étaient deux
@@ -14071,7 +14235,7 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   /* Un indice à l’écran : eurêka, l’ampoule s’allume (Elisa, 7 novembre, 15 h 38 : son GIF, une fois), au bout de la ligne de l’indice */
   const chat=n&&typeof chatBonusHtml==='function'?`<span class="coach-chat" aria-hidden="true">${chatBonusHtml('eureka')}</span>`:'';
   const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}${chat}</div>`;
-  const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?`<p class="coach-fin">${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\u00a0: d’ici là, à toi de trouver.':'C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.'}</p>`:''}</div>`
+  const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?`<p class="coach-fin">${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\u00a0: d’ici là, à toi de compléter les «\u00a0…\u00a0».':'C’était le dernier indice\u00a0: à toi de compléter les «\u00a0…\u00a0».'}</p>`:''}</div>`
     :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
   /* Ce que dit un essai manqué (« Pas encore », puis « Un coup de patte ? » le 8 novembre, « Raté » et « Essaie encore » le 9, sous
      l’éditeur à 7 h 23). 9 novembre, 7 h 37 (Elisa) : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais
@@ -52530,7 +52694,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-comptes-v3017';
+  const SW_CACHE='requete-2026-11-14-indices-v3018';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

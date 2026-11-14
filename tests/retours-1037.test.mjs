@@ -125,7 +125,8 @@ test('la feuille monte par-dessus l’écran, qui reste dessous ; elle se referm
   assert.ok(fn('jeuRun').includes('r.tries=(r.tries||0)+1;r.essai=sql;') && fn('jeuRun').includes('r.sql=sql;'));
   assert.ok(mps.includes('round.sql = sql;') && mps.includes("round.mine = `<div class=\"ex-code\">${highlight(sql)}</div>${renderTable(execChallengeResult(base, sql))}`;") && mps.includes('round.essai = sql;'));
   /* Pendant la partie, la requête reste cachée : le dernier indice le dit */
-  assert.ok(app.includes("${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\\u00a0: d’ici là, à toi de trouver.':'C’était le dernier indice. La requête ne sera pas dévoilée : à toi de la trouver.'}"));
+  /* 14 novembre, 15 h 15 : le dernier indice est la requête à compléter (retours-1515-indices-concrets) */
+  assert.ok(app.includes("${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\\u00a0: d’ici là, à toi de compléter les «\\u00a0…\\u00a0».':'C’était le dernier indice\\u00a0: à toi de compléter les «\\u00a0…\\u00a0».'}"));
 });
 
 test('le bilan : le titre dit l’issue, les trois cases, une manche ratée dans la pêche, la prochaine étape, « Réessayer »', () => {
@@ -153,8 +154,8 @@ test('la feuille de style : le jeu avant le bloc des Défis, la feuille de la co
   for (const k of ['html.lq .dx-feuille .jc-sec.is-sol{background:var(--accent-soft)}', 'html.lq .dx-feuille .jc-sec.is-sol[data-vue="moi"]{background:#EAF8F0}', 'html.lq .dx-feuille button.jc-bascule{flex:none;',
     'html.lq .dx-feuille .dx-pc.is-ok{background:var(--mint);color:#0E4A2E;', 'html.lq .dx-feuille .jc-h>.result-meta{flex:none;margin:0;padding:0}'])
     assert.ok(lq.indexOf(k) > feuille, k);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-comptes-v3017';") && app.includes("const SW_CACHE='requete-2026-11-14-comptes-v3017';"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=378">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-indices-v3018';") && app.includes("const SW_CACHE='requete-2026-11-14-indices-v3018';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=379">') && app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
 });
 
 /* 11 h 53 (Elisa) : « Rejouer » garde la même salle ; « Passer au niveau moyen » ramène à l’écran Défis, le niveau suivant déjà choisi ;
