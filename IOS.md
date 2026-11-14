@@ -877,6 +877,16 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
   la boutique dit que la personne y a droit (`sortieDispo`, achat.js). À vérifier dans App Store Connect (pas pu le lire le
   13 novembre, session fermée) : Abonnements › « annuel bienvenue » › Prix de l’abonnement › offre de lancement, la liste des
   pays et le prix de la France.
+- **L’essai vient de la boutique** (14 novembre, 19 h 12 ; l’audit App Review, règle 3.1.2 ; Elisa : « On travaille sur essai
+  3 jours »). Avant, « Essayer gratuitement 3 jours » et « 0 € aujourd’hui » étaient écrits en dur et s’affichaient même quand
+  la boutique ne proposait pas d’essai (statut 3) ou ne répondait pas (statut 0) : refus assuré si l’essai n’est pas actif dans
+  le pays du compte de test d’Apple. Maintenant (`achat.js`, `essai()` et `essaiConnu()`) : l’essai ne s’affiche que si le
+  produit annuel a une offre de lancement gratuite et qu’Apple dit que ce compte y a droit (statut 2) ; sa durée est celle
+  d’App Store Connect (« 3 jours », « 1 semaine »), la date du premier prélèvement aussi. Déjà eu l’essai (1) ou pas d’offre
+  (3) : « S’abonner pour 44,99 € » et « 44,99 € aujourd’hui, puis chaque année ». Sans réponse (0) : le prix et le
+  renouvellement, sans « aujourd’hui ». À faire dans App Store Connect : l’offre de lancement « Essai gratuit, 3 jours » de
+  l’annuel active dans tous les pays où l’appli est vendue. Pour revoir l’essai en TestFlight : un compte de test neuf (un compte
+  qui l’a déjà pris ne le revoit pas, c’est voulu). Tests : `tests/retours-1950-achat.test.mjs`.
 
 - **Confidentialité (App Store Connect)** : l’app ne collecte rien sans compte.
   Seule la *Salle de défi* en mode « Entre amis » envoie un pseudo, des temps, un signe de vie et des réactions,

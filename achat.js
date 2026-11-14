@@ -83,6 +83,19 @@
    - suivrePrix(fn) : fn(etat) à chaque réponse de la boutique ;
    - rechargerPrix() → Promise<etat> : redemande (« Réessayer »). C'est
      aussi fait au retour du réseau et au retour dans l'app.
+
+   14 novembre, 19 h 12 (l'audit App Review, règle 3.1.2 ; Elisa : « On
+   travaille sur essai 3 jours ») : l'essai n'est plus écrit en dur dans
+   le paywall. « Essayer gratuitement 3 jours » et « 0 € aujourd'hui »
+   s'affichaient même pour un produit sans essai ou quand Apple ne
+   répondait pas. Maintenant :
+   - essai(offre) → {n, unite} ou null : seulement si le produit a une
+     offre de lancement gratuite ET qu'Apple dit en clair que ce compte
+     y a droit (statut 2). La durée est celle de la boutique (n jours,
+     semaines, mois ou ans : « 3 jours », « 1 semaine »…) ;
+   - essaiConnu(offre) → bool : Apple a répondu (1, 2 ou 3). Sans
+     réponse, le paywall ne dit ni « 0 € aujourd'hui » ni « 44,99 €
+     aujourd'hui », seulement le prix et le renouvellement.
    ===================================================================== */
 (function(){
   'use strict';
@@ -181,6 +194,22 @@
       }, function(){});   /* sans réponse sur l'essai : les prix restent bons, l'essai reste proposé (essaiDispo) */
     });
   }
+  /* L'essai gratuit d'un produit, tel que la boutique le donne (14 novembre) : {n, unite} ('jour', 'semaine', 'mois', 'an') seulement
+     si son offre de lancement ne coûte rien et qu'Apple dit que ce compte y a droit (statut 2). Dans le doute : null, pas d'essai promis. */
+  var UNITES = {DAY: 'jour', WEEK: 'semaine', MONTH: 'mois', YEAR: 'an'}, LETTRES = {D: 'DAY', W: 'WEEK', M: 'MONTH', Y: 'YEAR'};
+  function essaiDe(k){
+    var pq = paquets[k], p = pq && pq.product, i = p && p.introPrice;
+    if (!i || statuts[k] !== 2 || typeof i.price !== 'number' || i.price !== 0) return null;
+    var u = String(i.periodUnit || '').toUpperCase(), n = Number(i.periodNumberOfUnits);
+    if (!UNITES[u] || !(n > 0)) {
+      var m = /^P(\d+)([DWMY])$/.exec(String(i.period || '').toUpperCase());
+      if (!m) return null;
+      n = Number(m[1]); u = LETTRES[m[2]];
+    }
+    var cycles = i.cycles != null && Number(i.cycles) > 0 ? Number(i.cycles) : 1;
+    n = Math.round(n * cycles);
+    return n > 0 && UNITES[u] ? {n: n, unite: UNITES[u]} : null;
+  }
   /* Le prix de lancement d'un produit : {prix, texte} seulement s'il est payant et couvre un an d'un coup (« P1Y », un seul cycle). */
   function introDe(p){
     var i = p && p.introPrice;
@@ -233,6 +262,8 @@
     verifier: function(){ return pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){}).then(etat); },
     suivre: function(fn){ if (typeof fn === 'function') suiveurs.push(fn); },
     essaiDispo: function(offre){ return essais[offre] !== false; },
+    essai: function(offre){ return essaiDe(offre); },
+    essaiConnu: function(offre){ var s = statuts[offre]; return s === 1 || s === 2 || s === 3; },
     prix: function(offre){
       var pq = paquets[offre], p = pq && pq.product;
       if (!p || typeof p.price !== 'number') return null;

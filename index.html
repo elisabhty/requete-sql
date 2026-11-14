@@ -47047,11 +47047,28 @@ function obDraftDepuisEtat(){
    (REQUETE_ACHAT.essaiDispo, une fois l’achat branché). */
 const OB_OFFRES={an:{prix:44.99,titre:'Annuel',par:'par an',semaines:52,essai:3},semaine:{prix:5.99,titre:'Hebdomadaire',par:'par semaine',semaines:1}};
 function obEuros(x){return (Math.round(x*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:Number.isInteger(x)?0:2,maximumFractionDigits:2})+' €';}
+/* 14 novembre, 19 h 12 (l’audit App Review, règle 3.1.2 ; Elisa : « On travaille sur essai 3 jours ») : l’essai n’est plus écrit en
+   dur. Dans l’app, il ne se montre que si la boutique d’Apple le confirme : une offre de lancement gratuite sur ce produit, et ce
+   compte y a droit (REQUETE_ACHAT.essai, achat.js). Sa durée est celle de la boutique : {n, unite}, « 3 jours », « 1 semaine ».
+   Sans boutique branchée (le site, la mise au point), l’essai d’OB_OFFRES. null : pas d’essai à promettre. */
 function obEssai(k){
-  const j=(OB_OFFRES[k]||{}).essai||0;if(!j)return 0;
-  try{const a=window.REQUETE_ACHAT;if(a&&typeof a.essaiDispo==='function'&&!a.essaiDispo(k))return 0;}catch(e){}
-  return j;
+  try{
+    const a=window.REQUETE_ACHAT;
+    if(a&&typeof a.essai==='function'){const e=a.essai(k);return e&&e.n>0&&e.unite?{n:e.n,unite:e.unite}:null;}
+    if(a&&typeof a.essaiDispo==='function'&&!a.essaiDispo(k))return null;   // un achat.js d’avant le 14 novembre
+  }catch(e){}
+  const j=(OB_OFFRES[k]||{}).essai||0;
+  return j?{n:j,unite:'jour'}:null;
 }
+/* « 3 jours », « 1 semaine », « 2 mois » (l’espace insécable : jamais coupé) */
+function obEssaiTexte(e){
+  if(!e||!(e.n>0))return '';
+  const n=e.n,u=e.unite==='semaine'?(n>1?'semaines':'semaine'):e.unite==='mois'?'mois':e.unite==='an'?(n>1?'ans':'an'):(n>1?'jours':'jour');
+  return `${n}\u00a0${u}`;
+}
+/* La boutique a-t-elle dit si ce compte a droit à un essai (oui, non, ou pas d’offre) ? Sans réponse, le paywall ne dit pas ce qui
+   est facturé aujourd’hui (l’essai peut s’appliquer ou non) : seulement le prix et le renouvellement. Sans boutique : oui. */
+function obEssaiConnu(k){try{const a=window.REQUETE_ACHAT;if(a&&typeof a.essaiConnu==='function')return !!a.essaiConnu(k);}catch(e){}return true;}
 /* Les prix de la boutique Apple du pays de la personne (REQUETE_ACHAT.prix, achat.js) quand l’achat est branché :
    44,99 € en France, mais 39,99 $ aux États-Unis. Sinon, les prix d’Elisa en euros (OB_OFFRES). */
 function obPrixBoutique(k){try{const a=window.REQUETE_ACHAT,p=a&&typeof a.prix==='function'&&a.prix(k);return p&&typeof p.prix==='number'&&p.texte?p:null;}catch(e){return null;}}
@@ -47093,7 +47110,11 @@ function obOffreInfo(){
   return {parSemaine,eco,parSemaineTexte,economie,zero};
 }
 /* Le jour du premier prélèvement après l’essai (« 3 jours gratuits, puis 44,99 € par an à partir du 14 novembre ») */
-function obDateApresEssai(j){const d=new Date();d.setDate(d.getDate()+j);return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}).replace(/^1 /,'1er ');}
+function obDateApresEssai(e){
+  const d=new Date(),n=typeof e==='number'?e:(e&&e.n)||0,u=typeof e==='number'?'jour':(e&&e.unite)||'jour';
+  if(u==='semaine')d.setDate(d.getDate()+7*n);else if(u==='mois')d.setMonth(d.getMonth()+n);else if(u==='an')d.setFullYear(d.getFullYear()+n);else d.setDate(d.getDate()+n);
+  return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}).replace(/^1 /,'1er ');
+}
 /* ---------- Le paywall, refonte (Elisa, 11 novembre, 1 h 42, d’après sa maquette et les conseils qui l’accompagnent) ----------
    Le même violet, le chat diplômé plus grand ; « Elisa, tu es prêt·e à atteindre ton objectif ! » ; les trois avantages en colonnes,
    chacun avec son icône ; l’annuelle « Meilleur choix » (pastilles « 3 jours gratuits » et « −86 % », prix par semaine, et trois
@@ -47137,9 +47158,9 @@ function obPaywallHTML(){
     essaiAn?['agenda',`<b>${zero}</b><br>aujourd’hui`]:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
   const carteAn=carte('an',`<span class="pw-reco">${PW_ICO.couronne}Meilleur choix</span><span class="pw-badge">−${eco}&nbsp;%</span>
       <span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${an.titre}</span>${prixHtml('an')}
-      <span class="pw-o-l${essaiAn&&parSemaineTexte.replace(/&nbsp;/g,' ').length>7?' is-long':''}">${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${essaiAn}&nbsp;jours d’essai</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span></span>
+      <span class="pw-o-l${essaiAn&&parSemaineTexte.replace(/&nbsp;/g,' ').length>7?' is-long':''}">${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${obEssaiTexte(essaiAn)} d’essai</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span></span>
       <span class="pw-o-plus">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span>`,
-    `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${essaiAn} jours d’essai`:''}, soit ${parSemaineTexte} par semaine`);
+    `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${obEssaiTexte(essaiAn)} d’essai`:''}, soit ${parSemaineTexte} par semaine`);
   /* 11 novembre, 19 h 20 (Elisa : « remplacer “– Sans essai” par un avantage plus valorisant » ; « Accès immédiat » au lieu d’« Accès
      complet », « Résiliable à tout moment » au lieu de « Sans essai ») : trois avantages, plus de tiret « ce qu’elle n’a pas ». */
   /* Sur deux lignes chacun, comme les trois repères de l’annuelle (« Économise / 266 € ») : « Résiliable à tout moment » tient dans la
@@ -47175,7 +47196,7 @@ function obPaywallPied(){
   const k=draft.offre==='semaine'?'semaine':'an',o=OB_OFFRES[k],essai=obEssai(k),prix=obPrixTexte(k);
   /* Le bouton dit ce qu’il fait : l’essai, ou le prix exact. Dessous : trois réassurances, puis, avec l’essai, la date et le montant
      du premier prélèvement (règle d’Apple : ce qui se passe à la fin de l’essai est dit en clair). */
-  const libelle=essai?`Essayer gratuitement ${essai} jours`:`S’abonner pour ${prix}`;
+  const libelle=essai?`Essayer gratuitement ${obEssaiTexte(essai)}`:`S’abonner pour ${prix}`;
   const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
   /* 13 novembre, 2 h 41 : tant que la boutique n’a pas donné ses prix, ni prix ni achat ; sans réponse, « Réessayer ». */
   const etatPrix=obPrixEtat();
@@ -47184,8 +47205,10 @@ function obPaywallPied(){
     obSetFooter(etatPrix==='echec'?'Réessayer':'Chargement des offres…',etatPrix==='echec'?obPaywallRecharger:null,'','',{html:confiance+liens},etatPrix!=='echec'||obPwBusy);
     return;
   }
-  const texte=essai?`<b class="pw-sans">${essai}&nbsp;jours d’essai, puis ${prix} ${o.par} à partir du ${obDateApresEssai(essai)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
-    :`<b class="pw-sans">${prix} aujourd’hui, puis ${k==='an'?'chaque année':'chaque semaine'}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;
+  /* 14 novembre, 19 h 12 : sans réponse de la boutique sur l’essai, ni « 0 € » ni « … aujourd’hui » : le prix et le renouvellement. */
+  const texte=essai?`<b class="pw-sans">${obEssaiTexte(essai)} d’essai, puis ${prix} ${o.par} à partir du ${obDateApresEssai(essai)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+    :obEssaiConnu(k)?`<b class="pw-sans">${prix} aujourd’hui, puis ${k==='an'?'chaque année':'chaque semaine'}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+    :`<b class="pw-sans">${prix} ${o.par}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;
   const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
   obSetFooter(libelle,obPaywallAcheter,'','',{html:legal},obPwBusy);
 }
@@ -53082,7 +53105,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-passer-v3027';
+  const SW_CACHE='requete-2026-11-14-essai-v3028';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -53124,7 +53147,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=10"></script>
-<script src="achat.js?v=6"></script>
+<script src="achat.js?v=7"></script>
 <script src="compte-moteurs.js?v=1"></script>
 <script src="connexion.js?v=3"></script>
 </body>
