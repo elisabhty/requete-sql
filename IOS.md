@@ -350,9 +350,11 @@ au parcours prêt : la page la lance et la met à jour à chaque page (index.htm
   étapes, lilas, qui se remplit page après page. Appui long : le chat, « Bienvenue, Elisa », la page du moment, sa barre et
   « Étape 3 sur 18 · ≈ 3 min », le même compte que l’en-tête de l’onboarding.
 - **Écran verrouillé** : la même chose, sur le violet de l’app.
-- **La fin** : le parcours prêt, l’anneau menthe avec sa coche et des étoiles plein les yeux du chat, cinq minutes sur l’écran
-  verrouillé. Fermé sans finir (l’aperçu de Mon compte, par exemple) : elle s’en va tout de suite. Ni l’aperçu ni la
-  personnalisation d’un compte déjà inscrit ne la lancent.
+- **La fin** : depuis le 14 novembre (l’audit App Review ; Elisa : « l’arrêter à la fin de l’onboarding »), elle s’en va tout de
+  suite à la fin de l’onboarding, comme à sa fermeture (l’aperçu de Mon compte, par exemple). Avant, le parcours prêt restait
+  cinq minutes sur l’écran verrouillé (l’anneau menthe, les étoiles plein les yeux du chat). La page envoie `fini:false`
+  (les iPhone déjà installés gardaient les 5 minutes pour `fini:true`), et le plugin (`RequeteAccueilPont.fin`) ne garde plus
+  rien, au prochain build. Ni l’aperçu ni la personnalisation d’un compte déjà inscrit ne la lancent.
 
 ### Ta flamme en direct, jusqu’à minuit (7 novembre)
 

@@ -806,7 +806,9 @@ enum RequeteAccueilPont {
                 bilan.minutes = 0
             }
             let dernier = ActivityContent(state: bilan, staleDate: nil)
-            let politique: ActivityUIDismissalPolicy = fini ? .after(Date().addingTimeInterval(5 * 60)) : .immediate
+            // 14 novembre (l’audit App Review ; Elisa : « l’arrêter à la fin de l’onboarding ») : elle part tout de suite, finie ou
+            // non. Avant, finie, elle restait 5 minutes sur l’écran verrouillé.
+            let politique: ActivityUIDismissalPolicy = .immediate
             await a.end(dernier, dismissalPolicy: politique)
         }
     }

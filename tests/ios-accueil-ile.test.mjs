@@ -33,7 +33,7 @@ test('le pont : accueilDebut, accueilMaj, accueilFin (iOS 16.2), et rien d’en 
   const P = entre(pont, 'enum RequeteAccueilPont {', '\n}\n');
   for (const k of ['let etape: Int = min(total, max(0, call.getInt("etape") ?? 0))', 'await toutArreter()', 'guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }',
     'attributes: RequeteAccueil(app: "Requête")', 'staleDate: Date().addingTimeInterval(3600)', 'if Activity<RequeteAccueil>.activities.isEmpty {\n            _ = await debut(etat)',
-    'let politique: ActivityUIDismissalPolicy = fini ? .after(Date().addingTimeInterval(5 * 60)) : .immediate',
+    'let politique: ActivityUIDismissalPolicy = .immediate',   // 14 novembre : plus de 5 minutes sur l’écran verrouillé
     'for a in Activity<RequeteAccueil>.activities where !a.content.state.fini {'])
     assert.ok(P.includes(k), k);
   assert.ok(entre(pont, 'override public func load() {', '\n    }\n').includes('Task { await RequeteAccueilPont.arreterEnCours() }'), 'à la relance de l’app');
@@ -92,6 +92,6 @@ test('la page : l’accueil, chaque étape, le parcours prêt, la fin ; rien pou
   ctx.obApercu = false; ctx.ilePont = () => null; va(2); assert.equal(appels.length, n, 'dans un navigateur : rien');
   /* Branchée : la fin de chaque page, la fin de l’onboarding, sa fermeture */
   assert.ok(app.includes("  obJustEntered=false;\n  if(typeof ileObSync==='function')ileObSync();   // la Dynamic Island suit l’étape (10 novembre)\n}"));
-  assert.ok(app.includes("function obTerminer(action){\n  OB_CHATS.length=0;   // les chats de l’onboarding n’ont plus à rester prêts\n  if(typeof ileObFin==='function')ileObFin(true);"));
+  assert.ok(app.includes("function obTerminer(action){\n  OB_CHATS.length=0;   // les chats de l’onboarding n’ont plus à rester prêts\n  /* 14 novembre, 19 h 30") && app.includes("     iPhone déjà installés garde ces 5 minutes pour fini:true, d’où fini:false ici. */\n  if(typeof ileObFin==='function')ileObFin(false);"), 'la fin de l’onboarding : l’île part tout de suite');
   assert.ok(app.includes("function closeOnboardingAuth(){\n  if(typeof ileObFin==='function')ileObFin(false);"));
 });
