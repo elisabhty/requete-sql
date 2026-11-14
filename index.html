@@ -6746,7 +6746,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=358">
+<link rel="stylesheet" href="ludique.css?v=359">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -38411,14 +38411,29 @@ function jeuRender(){
         <div class="jr2-bas"><p class="jr2-pts"><b class="jr2-n" data-n="${moi.pts}">${moi.pts>0?'+':''}${moi.pts}</b><small>point${moi.pts>1?'s':''}</small></p></div>
         ${pills?`<p class="jr2-pills">${pills}</p>`:''}
       </section>`;
-      const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
-      const surPodium=new Set(top.flat().map(x=>x.pid)),liste=sc.some(x=>!surPodium.has(x.pid));
+      const surPodium=new Set(sc.filter(x=>x.place<=3&&x.pts>0).map(x=>x.pid));
       const tie=sc.some((x,i)=>i>0&&x.pts>0&&x.pts===sc[i-1].pts)?`<p class="jeu-tie">⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte ${jeuDureeMs(J.niv)/60000} min).</p>`:'';
       const ord=jeuOrder(),av=x=>`<b class="jeu-av" data-c="${Math.max(0,ord.indexOf(x.pid))%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`;
+      const ptsTx=n=>`${(+n||0).toLocaleString('fr-FR')} pt${n>1?'s':''}`;
+      /* 14 novembre, 1 h 02 (Elisa, après le podium du classement : « très joli, je veux le même style pour multijoueur ») : le
+         classement final dans un seul cadre, comme celui des Défis. En tête, le podium (la scène lilas, la lueur du 1er, les marches
+         or, argent et bronze qui montent, la médaille posée sur la marche, puis les joueurs : leurs points et leur temps) ; une marche
+         sans joueur reste en pointillés. Dessous, les autres joueurs en lignes à plat (plus de deuxième liste qui répétait le podium) ;
+         toi, cerclée de violet, « Toi ». */
+      const marche=pl=>{
+        const g=sc.filter(x=>x.place===pl&&x.pts>0),bloc=`<i class="dx-pod-bloc" aria-hidden="true">${lqStkSvg('medal'+pl)}</i>`;
+        if(!g.length)return `<div class="dx-pod-m is-${pl} is-libre" aria-hidden="true"><span class="dx-pod-av"><b class="jeu-av is-empty">?</b></span><span class="dx-pod-n">Place libre</span><small>&nbsp;</small>${bloc}</div>`;
+        const me=g.some(x=>x.pid===J.me);
+        return `<div class="dx-pod-m is-${pl}${me?' is-me':''}${g.length>1?' is-ex':''}"><span class="dx-pod-av" aria-hidden="true">${g.slice(0,3).map(av).join('')}</span>`+
+          `${g.map(x=>`<span class="dx-pod-n" aria-hidden="true">${nom(x)}</span>`).join('')}<small aria-hidden="true">${me?'<i>Toi</i> · ':''}${ptsTx(g[0].pts)}</small><small class="dx-pod-t" aria-hidden="true">${jeuChronoFin(g[0],sc)}</small>${bloc}`+
+          `<span class="lq-sr">${pl===1?'1er':pl+'e'}${g.length>1?' ex æquo':''} : ${g.map(x=>nom(x)+(x.pid===J.me?' (toi)':'')).join(' et ')}, ${g[0].pts} point${g[0].pts>1?'s':''} en ${jeuChronoFin(g[0],sc)}</span></div>`;
+      };
+      const autres=sc.filter(x=>!surPodium.has(x.pid));
+      const lignes=autres.length?`<ol class="jr2-list jeu-fin-list">${autres.map((x,i)=>`<li class="jr2-row${x.pts>0?'':' is-miss'}${x.pid===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">${x.pts>0?x.place:'–'}</span>${av(x)}`+
+        `<span class="jr2-nm"><b>${nom(x)}</b><small>${x.pid===J.me?'<i>Toi</i> · ':''}${x.pts>0?jeuChronoFin(x,sc):'Pas trouvé'}</small></span><em class="jr2-p is-tot">${(+x.pts||0).toLocaleString('fr-FR')}<small> pt${x.pts>1?'s':''}</small></em></li>`).join('')}</ol>`:'';
       /* Le 0 à 0 : pas de podium vide, les joueurs, chacun à 0 */
       const classement=nul?`<div class="jeu-card jr2-card"><p class="jeu-card-h">Les joueurs</p><ol class="jr2-list">${sc.map((x,i)=>`<li class="jr2-row is-miss${x.pid===J.me?' is-me':''}" style="--i:${i}"><span class="jr2-pl">–</span>${av(x)}<span class="jr2-nm"><b>${nom(x)}${x.pid===J.me?' <small>(toi)</small>':''}</b><small>Pas trouvé</small></span><em class="jr2-p">0</em></li>`).join('')}</ol></div>`
-        :`<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}${g.some(x=>x.pid===J.me)?' is-me':''}"><span class="jeu-medal">${lqStkSvg('medal'+pl)}</span><span class="jeu-step-av">${g.length?g.map(x=>`<b class="jeu-av" data-c="${jeuOrder().indexOf(x.pid)%6}" aria-hidden="true">${jeuInitial(x.name)}${typeof jeuFlag==='function'?jeuFlag(x.name):''}</b>`).join(''):''}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)+(x.pid===J.me?' <small>(toi)</small>':'')).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':'')+' · '+jeuChronoFin(g[0],sc):''}</small><i><em>${pl}</em></i></div>`;}).join('')}</div>
-        ${liste?`<div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li${x.pid===J.me?' class="is-me"':''}><span class="jeu-rk">${x.pts>0?x.place:'–'}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em><small class="is-ms">${x.pts>0?jeuChronoFin(x,sc):'Pas trouvé'}</small></li>`).join('')}</ol>${tie}</div>`:tie}`;
+        :`<div class="jeu-card jr2-card jeu-fin-cls"><p class="jeu-card-h">Classement final</p><div class="dx-pod jeu-fin-pod" role="group" aria-label="Podium">${[1,2,3].map(marche).join('')}</div>${lignes}${tie}</div>`;
       html=`${jeuNetSlot()}${hero}${classement}
         ${jeuCorrListeHTML()}
         ${jeuRevancheHTML()}`;
@@ -51697,7 +51712,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-podium-v2986';
+  const SW_CACHE='requete-2026-11-14-podiumjeu-v2987';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

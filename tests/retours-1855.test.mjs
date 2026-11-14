@@ -223,7 +223,7 @@ test('le classement : les 5 premiers, puis « … » et sa place (14 novembre), 
   const seul = c.ev("clsPodiumHTML([{id:'me',pseudo:'@elisa',pays:'FR',pts:385,parties:2,rang:1,moi:true}])");
   assert.ok(seul.includes('<div class="dx-pod-m is-1 is-me">') && seul.includes('<small aria-hidden="true"><i>Toi</i> · 385\u00a0pts</small>') && seul.includes('<span class="lq-sr">1er\u00a0: toi, @elisa, 385 points</span>'), 'seule classée : 1re, sans bouton');
   assert.ok(seul.includes('<div class="dx-pod-m is-2 is-libre">') && seul.includes('<span class="dx-pod-n" aria-hidden="true">À prendre</span><small aria-hidden="true">2<sup>e</sup> place</small>') && seul.includes('<div class="dx-pod-m is-3 is-libre">'), 'les marches vides attendent');
-  assert.ok(lq.includes('html.lq #scr-defis .dx-pod-m.is-1{order:2}') && lq.includes('html.lq #scr-defis .dx-pod-m.is-2{order:1}'), 'dans l’ordre des places pour le lecteur d’écran, 2-1-3 à l’écran');
+  assert.ok(lq.includes('html.lq :is(#scr-defis,#jeu-root) .dx-pod-m.is-1{order:2}') && lq.includes('html.lq :is(#scr-defis,#jeu-root) .dx-pod-m.is-2{order:1}'), 'dans l’ordre des places pour le lecteur d’écran, 2-1-3 à l’écran');
   c.ev("DEFIS.cls.moi={rang:12,pts:889,page:2}");
   c.ev('clsPlacePeindre()');
   assert.ok(!c.els['dx-place'].innerHTML.includes('dx-place-go'), 'plus de « Page 3 › » : sa ligne est dans la liste');
@@ -259,7 +259,7 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   const ms = lire('multiplayer-security.js');
   assert.ok(ms.includes("/failed to fetch|load failed|network ?error|network request failed|abort/i.test(raw)") && ms.includes("const text = offline ? 'La salle est indisponible. Vérifie ta connexion et réessaie.' : raw;"), 'plus de « Load failed » brut');
   assert.ok(app.includes('<script src="multiplayer-security.js?v=10"></script>') && sw.includes("'./multiplayer-security.js?v=10',"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=358">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=359">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-podium-v2986');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-14-podiumjeu-v2987');
 });

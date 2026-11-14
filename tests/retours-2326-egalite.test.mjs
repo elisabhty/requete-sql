@@ -21,7 +21,7 @@ test('des temps qui se lisent pareil : le dixième les départage à l’écran'
   assert.equal(ctx.jeuChronoFin(sc[1], sc), '00:06,8');
   assert.equal(ctx.jeuChronoFin(sc[2], sc), '00:06', 'autres points : la seconde suffit');
   assert.equal(ctx.jeuChronoFin(sc[3], sc), '20:00', 'à 0 point, pas de départage à dire');
-  assert.ok(app.includes("' · '+jeuChronoFin(g[0],sc):''}</small>") && app.includes("<small class=\"is-ms\">${x.pts>0?jeuChronoFin(x,sc):'Pas trouvé'}</small>"), 'le podium et le classement final');
+  assert.ok(app.includes('<small class="dx-pod-t" aria-hidden="true">${jeuChronoFin(g[0],sc)}</small>') && app.includes("${x.pts>0?jeuChronoFin(x,sc):'Pas trouvé'}</small>"), 'le podium et le classement final');
 });
 
 test('à égalité de points, plus de « de 0 point » : le temps départage', () => {
