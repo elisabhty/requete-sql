@@ -146,8 +146,9 @@ test('la vidéo reste sur le site, et ramène à la section iPhone ; la page de 
 
 test('confidentialité : l’appli sur iPhone, le compte, l’abonnement par l’App Store et RevenueCat', () => {
   const p = site['confidentialite.html'], t = corps('confidentialite.html');
-  assert.ok(p.includes('<p class="lead">Requête est une appli pour iPhone&nbsp;: tu t’y connectes avec Apple ou Google, et ton compte sauvegarde ta progression. Ce site, lui, la présente. Voici précisément ce qui circule, et pourquoi.</p>'));
-  assert.ok(p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 13 novembre 2026</p>'));
+  /* 14 novembre : le compte est facultatif (11 h 32) */
+  assert.ok(p.includes('<p class="lead">Requête est une appli pour iPhone&nbsp;: tu peux t’y connecter avec Apple ou Google (c’est facultatif), et ton compte sauvegarde alors ta progression. Ce site, lui, la présente. Voici précisément ce qui circule, et pourquoi.</p>'));
+  assert.ok(p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 14 novembre 2026</p>'));
   assert.ok(p.includes('sont enregistrés dans l’appli, sur ton iPhone. Une partie est aussi sauvegardée avec ton compte (voir «&nbsp;Ton compte&nbsp;»)&nbsp;; ce qui sort de ton iPhone est détaillé plus bas.</p>'));
   assert.ok(p.includes('sont lus et transformés en tables directement sur ton iPhone&nbsp;: ils ne quittent pas ton appareil.'));
   assert.ok(p.includes('<li><a href="#compte">Ton compte</a></li>') && p.includes('<li><a href="#abonnement">Abonnement Requête Premium</a></li>'), 'le sommaire suit les titres');
@@ -173,9 +174,9 @@ test('confidentialité : l’appli sur iPhone, le compte, l’abonnement par l�
 
 test('conditions : une appli pour iPhone, un compte, l’abonnement Requête Premium ; aucun prix sur le site', () => {
   const p = site['conditions.html'], t = corps('conditions.html');
-  assert.ok(p.includes('<p class="lead">Les règles pour utiliser Requête, et celles de l’abonnement Requête Premium.</p>') && p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 13 novembre 2026</p>'));
-  assert.ok(p.includes('<p>Requête est une application pour iPhone, à télécharger dans l’App Store&nbsp;; ce site la présente. Pour l’utiliser, tu te connectes avec Apple ou avec Google, puis tu choisis un abonnement Requête Premium (voir plus bas). Il faut une connexion internet pour te connecter et t’abonner&nbsp;; ensuite, les cours se suivent aussi hors ligne.</p>'));
-  assert.ok(p.includes('<p>Ta progression est enregistrée sur ton iPhone et sauvegardée avec ton compte. Les fichiers que tu importes restent sur ton iPhone, et restent à toi.'));
+  assert.ok(p.includes('<p class="lead">Les règles pour utiliser Requête, et celles de l’abonnement Requête Premium.</p>') && p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 14 novembre 2026</p>'));
+  assert.ok(p.includes('<p>Requête est une application pour iPhone, à télécharger dans l’App Store&nbsp;; ce site la présente. Pour l’utiliser, tu choisis un abonnement Requête Premium (voir plus bas)&nbsp;; te connecter avec Apple ou avec Google est facultatif et sauvegarde ta progression avec ton compte. Il faut une connexion internet pour t’abonner et pour te connecter&nbsp;; ensuite, les cours se suivent aussi hors ligne.</p>'));
+  assert.ok(p.includes('<p>Ta progression est enregistrée sur ton iPhone et, si tu te connectes (c’est facultatif), sauvegardée avec ton compte. Les fichiers que tu importes restent sur ton iPhone, et restent à toi.'));
   assert.ok(p.includes('Tu peux aussi supprimer ton compte depuis l’appli (Mon compte, «&nbsp;Supprimer mon compte&nbsp;»).'));
   const abo = /<section id="premium">[\s\S]*?<\/section>/.exec(p)[0];
   assert.ok(abo.includes('<h2>Abonnement Requête Premium</h2><p>L’accès aux cours et à la pratique demande un abonnement Requête Premium, vendu dans l’appli par l’intermédiaire de l’App Store. Avant tout achat, l’appli affiche le prix, la durée de l’abonnement et ses conditions de renouvellement.</p>'));
@@ -192,7 +193,7 @@ test('conditions : une appli pour iPhone, un compte, l’abonnement Requête Pre
 test('dans l’app, les feuilles légales de secours ne parlent plus de navigateur ni d’usage sans compte', () => {
   const ouvrir = app.slice(app.indexOf('function openLegal(kind){'), app.indexOf("const sheet=document.getElementById('card-sheet');", app.indexOf('function openLegal(kind){')));
   assert.ok(ouvrir.includes('if(LEGAL_PAGES[kind]&&openLegalSite(kind))return;'), 'les pages légales sont celles du site');
-  assert.ok(ouvrir.includes('Tu t’y connectes avec Apple ou Google&nbsp;: ta progression est enregistrée sur cet iPhone et sauvegardée avec ton compte.</p>'));
+  assert.ok(ouvrir.includes('Ta progression est enregistrée sur cet iPhone&nbsp;; si tu te connectes avec Apple ou Google (c’est facultatif), elle est aussi sauvegardée avec ton compte.</p>'));
   assert.ok(ouvrir.includes('<p>L’accès aux leçons, aux défis et aux outils de pratique demande un abonnement Requête Premium, vendu par l’App Store.</p>'));
   assert.doesNotMatch(ouvrir, /sans compte|navigateur\)|dans le navigateur|Le compte est optionnel/);
   const integree = app.slice(app.indexOf("const privacy=obLegalMode==='privacy';"), app.indexOf("}else if(slide==='welcome'){", app.indexOf("const privacy=obLegalMode==='privacy';")));

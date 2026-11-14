@@ -123,7 +123,7 @@ test('Réf. 6 et 7, « la page s’élargit » : l’en-tête de la promesse gar
 
 test('Réf. 8 et première page : plus de « Mode sans compte » ni de « Aucun compte n’est nécessaire »', () => {
   assert.ok(!code.includes('Mode sans compte · sauvegardé sur cet appareil') && !code.includes('Aucun compte n’est nécessaire'));
-  assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');"), 'compte obligatoire (4 novembre, 11 h 08)');
+  assert.ok(app.includes("'Avec un compte, ta progression te suit sur tous tes appareils.');"), 'compte facultatif depuis le 14 novembre, 11 h 32 (il était obligatoire le 4 novembre, 11 h 08)');
 });
 
 test('« On construit ton parcours » : l’effet waouh', () => {

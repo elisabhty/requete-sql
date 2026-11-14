@@ -182,7 +182,8 @@ test('réf. 5 : sous le clavier, la couleur du bas de la page plutôt que du noi
 });
 
 test('réf. 6 et 7 : la première page parle de tous les appareils, et le bouton remonte sur toutes les étapes', () => {
-  assert.ok(app.includes("'Ta progression sera sauvegardée sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
+  /* 14 novembre, 13 h 11 : le compte est facultatif depuis 11 h 32 ; la phrase ne promet plus sans lui */
+  assert.ok(app.includes("'Avec un compte, ta progression te suit sur tous tes appareils.');") && !app.includes("'Ta progression est enregistrée sur cet appareil.');"));
   /* 4 novembre, 14 h 08 (réf. 3) : « monter encore le bouton jaune » : jusqu’à 58 px au-dessus de la barre d’accueil, 34 px au moins */
   assert.ok(sansCommentaires(css).includes('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + clamp(34px,6.6vh,58px))!important}'));
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=70">') && sw.includes("'./onboarding-vitrine.css?v=70',"), 'feuille rechargée');

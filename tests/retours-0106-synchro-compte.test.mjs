@@ -134,7 +134,8 @@ test('une note supprimée l’est aussi sur le compte ; tout effacer vide le com
   const CS = vm.runInContext('CS', A.ctx);
   await Promise.all([CS.prog.resetAll('EFFACER'), CS.docs.resetAll('EFFACER')]);
   assert.deepEqual(srv.comptes['u-1'].prog.el, {}); assert.deepEqual(srv.comptes['u-1'].docs.el, {});
-  assert.match(app, /await Promise\.all\(\[CS\.prog\.resetAll\('EFFACER'\),CS\.docs\.resetAll\('EFFACER'\)\]\);/);
+  /* 14 novembre, 13 h 11 : et les parties du compte (compte_stats_effacer, tests/retours-1311-compte-jeu.test.mjs) */
+  assert.ok(app.includes("const [,,ef]=await Promise.all([CS.prog.resetAll('EFFACER'),CS.docs.resetAll('EFFACER'),clsRpc('compte_stats_effacer',{},{compte:true}).catch(()=>null)]);"));
 });
 
 test('les crochets : après un enregistrement (5 s), à la connexion, au lancement, au retour du réseau', () => {

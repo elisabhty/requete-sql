@@ -24424,6 +24424,23 @@ function normalizeState(raw){
     if(q.length)salle.envoi=q;
   }
   if(salleSrc.clsRattrape)salle.clsRattrape=1;
+  /* Le compte (14 novembre, 13 h 11 ; csStats) : le nom tiré au hasard de cet appareil, la part des autres appareils du compte (même
+     forme que les totaux), la meilleure partie et le plus rapide de cet appareil, la dernière partie envoyée, l’époque du compte. */
+  if(typeof salleSrc.appareil==='string'&&/^[A-Za-z0-9]{8,40}$/.test(salleSrc.appareil))salle.appareil=salleSrc.appareil;
+  if(Number.isInteger(salleSrc.statsEpoque)&&salleSrc.statsEpoque>=0)salle.statsEpoque=salleSrc.statsEpoque;
+  if(typeof salleSrc.bestP==='number')salle.bestP=salleN(salleSrc.bestP);
+  if(typeof salleSrc.fastP==='number')salle.fastP=salleN(salleSrc.fastP);
+  if(salleSrc.statsHaut)salle.statsHaut=salleBig(salleSrc.statsHaut);
+  if(salleSrc.statsAutres&&typeof salleSrc.statsAutres==='object'&&!Array.isArray(salleSrc.statsAutres)){
+    const a=salleSrc.statsAutres,o={};
+    ['pts','parties','manches','trouves','amis','best','fast'].forEach(k=>{o[k]=salleN(a[k]);});o.tms=salleBig(a.tms);
+    o.pl=[0,1,2].map(i=>salleN((Array.isArray(a.pl)?a.pl:[])[i]));
+    o.lv={};['f','m','d'].forEach(k=>{const x=Array.isArray(salleObj(a.lv)[k])?salleObj(a.lv)[k]:[];o.lv[k]=[salleN(x[0]),salleN(x[1])];});
+    o.mates={};
+    Object.keys(salleObj(a.mates)).slice(0,200).forEach(k=>{const m=a.mates[k];if(!m||typeof m!=='object'||Array.isArray(m))return;const n=salleNom(m.n||k);if(!n)return;
+      o.mates[n.toLowerCase()]={n,g:salleN(m.g),w:salleN(m.w),l:salleN(m.l),at:salleBig(m.at)};});
+    salle.statsAutres=o;
+  }
   /* Temps d’apprentissage, en secondes : par jour (AAAA-MM-JJ) et par activité (l<id> leçon, d<id> défi, console,
      entretien, jeu). Voir studyTick. */
   const study={days:{},items:{}};
@@ -39618,6 +39635,7 @@ function jeuCreditGame(){
     /* Nouveau record : mieux que la meilleure partie précédente (pas à la toute première partie). */
     J.record=pts>0&&(s.parties||0)>0&&pts>(s.best||0);
     s.pts=(s.pts||0)+pts;s.parties=(s.parties||0)+1;s.best=Math.max(s.best||0,pts);
+    if(typeof s.bestP==='number')s.bestP=Math.max(s.bestP,pts);   // 14 novembre : la part de cet appareil, avec un compte (csStats)
     s.comptees=[partie].concat(Array.isArray(s.comptees)?s.comptees.filter(x=>x!==partie):[]).slice(0,40);
     /* Le tableau « Tes performances » : les manches comptées comme dans les scores (terminées, ou toutes à la fin de la partie). */
     const cur=jeuCur(),played=J.rounds.filter((r,n)=>r&&(n<cur||jeuRoundDone(n)||J.over||(J.depart&&r.found[J.me]!=null)));
@@ -39625,6 +39643,7 @@ function jeuCreditGame(){
     const ms=mine.reduce((a,v)=>a+v,0),vs=!J.solo&&sc.length>1,place=vs&&me?me.place:0;
     s.manches=(s.manches||0)+played.length;s.trouves=(s.trouves||0)+mine.length;s.tms=(s.tms||0)+ms;
     if(mine.length)s.fast=s.fast?Math.min(s.fast,...mine):Math.min(...mine);
+    if(mine.length&&typeof s.fastP==='number')s.fastP=s.fastP?Math.min(s.fastP,...mine):Math.min(...mine);
     if(vs){s.amis=(s.amis||0)+1;if(place>=1&&place<=3&&pts>0){s.pl=Array.isArray(s.pl)?s.pl:[0,0,0];s.pl[place-1]=(s.pl[place-1]||0)+1;}}
     const lv=s.lv=s.lv&&typeof s.lv==='object'?s.lv:{},k=['f','m','d'].includes(J.niv)?J.niv:'f',l=Array.isArray(lv[k])?lv[k]:[0,0];
     lv[k]=[(l[0]||0)+played.length,(l[1]||0)+mine.length];
@@ -49171,6 +49190,8 @@ function csSync(o){
   CS.cours=(async()=>{
     let premier=false;try{premier=!localStorage.getItem(premierCle);}catch(e){}
     CS.distant=null;
+    /* 14 novembre, 13 h 11 : le pseudo, les points et les parties suivent le compte (csJeu), avant la progression et sans en dépendre */
+    try{await csJeu(cs.user);}catch(e){}
     const [p,d]=await Promise.all([cs.prog.pull(),cs.docs.pull()]);
     CS.distant=csDistant(p,d);
     if(csAppliquer(p,d,premier||(o&&o.premier&&premier))){
@@ -49186,6 +49207,140 @@ function csSync(o){
     return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant};
   })().catch(e=>({erreur:e&&(e.code||e.message)||'sync',distant:CS.distant})).finally(()=>{CS.cours=null;});
   return CS.cours;
+}
+/* ---------- Le joueur et les parties du compte (Elisa, 14 novembre, 13 h 11 : « Connecte-toi pour retrouver… sur tous tes appareils,
+   est-ce vrai ? » ; à « relier le pseudo, les points et les stats au compte » : « Vas-y ») ----------
+   Le jeu tient à la clé de joueur de l’appareil (state.salle.cle) : le pseudo réservé, les points du classement, les salles.
+   - Le joueur du compte (compte_joueur_lier) : la première fois qu’un compte se connecte, la clé de cet appareil devient la sienne ;
+     sur un autre appareil connecté au même compte, il reprend cette clé, donc le pseudo et les points. Le joueur que cet appareil
+     avait jusque-là n’est plus utilisé : son pseudo est libéré (avec ses points du classement, qui n’étaient qu’à lui) ; si le
+     joueur du compte n’avait pas encore de pseudo, il prend celui-là. En pleine salle, on attend la prochaine synchro.
+   - Les parties du compte (compte_stats_garder) : « Mes stats » est la somme de ce que chaque appareil a joué. Chaque appareil envoie
+     sa part (son total moins ce qui vient des autres, statsAutres), reçoit les parts des autres et les 500 dernières parties de
+     tous ; « Tout effacer » vide les parties du compte partout (son époque avance). */
+const CJ={fait:'',statsAt:0};
+const CJ_NOMBRES=['pts','parties','manches','trouves','tms','amis'];
+function cjN(v){return Number.isFinite(+v)?+v:0;}
+function csJeuLibre(){return !(typeof JEU!=='undefined'&&JEU);}
+async function csJeu(user){
+  if(!user)return;
+  await csJoueur(user);
+  await csStats(false);
+}
+async function csJoueur(user){
+  if(CJ.fait===user||!csJeuLibre())return null;
+  const locale=clsCle();
+  let r=await clsRpc('compte_joueur_lier',{p_cle:locale},{compte:true});
+  /* La clé de cet appareil est déjà le joueur d’un autre compte (un iPhone partagé) : ce compte-ci en prend une neuve. */
+  if(r&&r.autre)r=await clsRpc('compte_joueur_lier',{p_cle:jeuRand(32)},{compte:true});
+  if(!r||!r.ok||typeof r.cle!=='string'||!/^[A-Za-z0-9]{24,64}$/.test(r.cle))return null;
+  CJ.fait=user;
+  if(r.cle===locale)return {meme:true};
+  return csJoueurReprendre(r.cle,locale);
+}
+async function csJoueurReprendre(cle,ancienne){
+  if(!csJeuLibre()){CJ.fait='';return null;}
+  const ancien=psMien();
+  let pseudo='';
+  try{const p=await clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:''});if(p&&p.ok&&p.pseudo)pseudo=psForme(p.pseudo);}catch(e){}
+  if(ancienne&&ancienne!==cle){try{await clsRpc('jeu_pseudo_liberer',{p_cle:ancienne});}catch(e){}}
+  if(!pseudo&&ancien){try{const q=await clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:ancien});if(q&&q.ok&&q.pseudo)pseudo=psForme(q.pseudo);}catch(e){}}
+  const s=clsSalle();
+  s.cle=cle;delete s.clsId;delete s.clsRefus;delete s.psVoulu;s.envoi=[];s.clsRattrape=1;
+  if(pseudo)psAdopter(pseudo);
+  else{delete s.pseudo;delete s.pseudoVu;try{localStorage.removeItem('rq-jeu-nom');}catch(e){}save();}
+  try{window.REQUETE_JEU_ID=null;}catch(e){}
+  if(typeof CLS!=='undefined'&&CLS){CLS.data=null;CLS.at=0;}
+  if(typeof DEFIS!=='undefined'&&DEFIS.cls){DEFIS.cls.cle='';DEFIS.cls.rangs=null;}
+  if(pseudo&&ancien&&pseudo!==ancien&&typeof lqSay==='function')lqSay(`Ton compte joue en ${pseudo} : ton pseudo, tes points et tes parties te suivent sur cet iPhone.`);
+  try{if(typeof renderCompte==='function')renderCompte();if(typeof activeTab!=='undefined'&&activeTab==='defis'&&typeof renderDefis==='function')renderDefis();}catch(e){}
+  return {cle,pseudo,ancien};
+}
+/* Ce que cet appareil a joué : son total moins ce qui vient des autres appareils du compte. */
+function csStatsPart(s){
+  const a=s.statsAutres&&typeof s.statsAutres==='object'?s.statsAutres:{},p={};
+  CJ_NOMBRES.forEach(k=>{p[k]=Math.max(0,cjN(s[k])-cjN(a[k]));});
+  p.pl=[0,1,2].map(i=>Math.max(0,cjN((s.pl||[])[i])-cjN((a.pl||[])[i])));
+  p.lv={};['f','m','d'].forEach(k=>{const x=(s.lv&&s.lv[k])||[],y=(a.lv&&a.lv[k])||[];p.lv[k]=[Math.max(0,cjN(x[0])-cjN(y[0])),Math.max(0,cjN(x[1])-cjN(y[1]))];});
+  p.best=typeof s.bestP==='number'?s.bestP:cjN(s.best);
+  p.fast=typeof s.fastP==='number'?s.fastP:cjN(s.fast);
+  p.mates={};
+  const ms=s.mates&&typeof s.mates==='object'?s.mates:{},ma=a.mates&&typeof a.mates==='object'?a.mates:{};
+  for(const [k,m] of Object.entries(ms)){
+    if(!m||typeof m!=='object')continue;const o=ma[k]||{};
+    const g=Math.max(0,cjN(m.g)-cjN(o.g));if(!g)continue;
+    p.mates[k]={n:String(m.n||k).slice(0,40),g,w:Math.max(0,cjN(m.w)-cjN(o.w)),l:Math.max(0,cjN(m.l)-cjN(o.l)),at:cjN(m.at)};
+  }
+  return p;
+}
+/* La somme de plusieurs parts (les autres appareils, ou tous). */
+function csStatsSomme(parts){
+  const t={pl:[0,0,0],lv:{f:[0,0],m:[0,0],d:[0,0]},best:0,fast:0,mates:{}};CJ_NOMBRES.forEach(k=>{t[k]=0;});
+  for(const p of parts){
+    if(!p||typeof p!=='object')continue;
+    CJ_NOMBRES.forEach(k=>{t[k]+=Math.max(0,cjN(p[k]));});
+    [0,1,2].forEach(i=>{t.pl[i]+=Math.max(0,cjN((p.pl||[])[i]));});
+    ['f','m','d'].forEach(k=>{const x=(p.lv&&p.lv[k])||[];t.lv[k][0]+=Math.max(0,cjN(x[0]));t.lv[k][1]+=Math.max(0,cjN(x[1]));});
+    t.best=Math.max(t.best,cjN(p.best));
+    if(cjN(p.fast)>0)t.fast=t.fast?Math.min(t.fast,cjN(p.fast)):cjN(p.fast);
+    for(const [k,m] of Object.entries(p.mates&&typeof p.mates==='object'?p.mates:{})){
+      if(!m||typeof m!=='object')continue;
+      const c=t.mates[k]||(t.mates[k]={n:String(m.n||k),g:0,w:0,l:0,at:0});
+      c.g+=Math.max(0,cjN(m.g));c.w+=Math.max(0,cjN(m.w));c.l+=Math.max(0,cjN(m.l));
+      if(cjN(m.at)>c.at){c.at=cjN(m.at);c.n=String(m.n||c.n);}
+    }
+  }
+  const max=typeof JEU_ADV_MAX!=='undefined'?JEU_ADV_MAX:100;
+  Object.keys(t.mates).sort((a,b)=>t.mates[b].at-t.mates[a].at).slice(max).forEach(k=>{delete t.mates[k];});
+  return t;
+}
+/* Les dernières parties, chacune une fois (son heure), les plus récentes d’abord. */
+function csStatsHist(a,b){
+  const vu=new Set(),out=[];
+  for(const h of [].concat(Array.isArray(a)?a:[],Array.isArray(b)?b:[])){
+    if(!h||typeof h!=='object'||!Number.isFinite(+h.at)||vu.has(+h.at))continue;vu.add(+h.at);out.push(h);
+  }
+  return out.sort((x,y)=>y.at-x.at).slice(0,typeof JEU_HIST_MAX!=='undefined'?JEU_HIST_MAX:500);
+}
+/* Le total affiché (« Mes stats ») : la part de cet appareil plus celle des autres. */
+function csStatsAppliquer(s,part,autres){
+  const t=csStatsSomme([part,autres]);
+  CJ_NOMBRES.forEach(k=>{s[k]=t[k];});
+  s.pl=t.pl;s.lv=t.lv;s.best=t.best;if(t.fast)s.fast=t.fast;else delete s.fast;s.mates=t.mates;
+  s.bestP=cjN(part.best);s.fastP=cjN(part.fast);
+  s.statsAutres=autres;
+}
+async function csStats(force){
+  const cs=typeof csPret==='function'&&csPret();if(!cs||!csJeuLibre())return null;
+  const s=clsSalle();
+  if(typeof s.appareil!=='string'||!/^[A-Za-z0-9]{8,40}$/.test(s.appareil)){s.appareil=jeuRand(16);save();}
+  const haut=Array.isArray(s.hist)&&s.hist[0]?cjN(s.hist[0].at):0;
+  /* Rien de neuf depuis le dernier envoi : une fois toutes les 10 minutes, pour les parties des autres appareils. */
+  if(!force&&haut===cjN(s.statsHaut)&&Date.now()-CJ.statsAt<600000)return null;
+  CJ.statsAt=Date.now();
+  const part=csStatsPart(s);
+  /* Le serveur d’avant l’époque (sans p_epoque) répond « fonction introuvable » : la même chose, sans l’époque. */
+  const garder=a=>clsRpc('compte_stats_garder',a,{compte:true}).catch(e=>{
+    if(e&&(e.status===404||e.code==='PGRST202')&&'p_epoque' in a){const b=Object.assign({},a);delete b.p_epoque;return clsRpc('compte_stats_garder',b,{compte:true});}
+    throw e;});
+  let r=await garder({p_appareil:s.appareil,p_part:part,p_hist:(Array.isArray(s.hist)?s.hist:[]).slice(0,500),p_epoque:Number.isInteger(s.statsEpoque)?s.statsEpoque:null});
+  if(r&&r.efface){
+    /* « Tout effacer » sur un autre appareil du compte : les parties d’ici partent aussi, puis la part (vide) repart. */
+    CJ_NOMBRES.forEach(k=>{s[k]=0;});['pl','lv','mates','hist','fast','statsAutres','bestP','fastP','comptees'].forEach(k=>{delete s[k];});s.best=0;
+    s.statsEpoque=r.epoque;save();
+    r=await garder({p_appareil:s.appareil,p_part:csStatsPart(s),p_hist:[],p_epoque:r.epoque});
+  }
+  if(!r||!r.ok||!r.appareils||typeof r.appareils!=='object')return null;
+  /* Une partie finie pendant l’envoi compte : la part se recalcule sur le total du moment. */
+  const s2=clsSalle(),mienne=csStatsPart(s2);
+  const autres=csStatsSomme(Object.entries(r.appareils).filter(([k])=>k!==s2.appareil).map(([,v])=>v));
+  csStatsAppliquer(s2,mienne,autres);
+  s2.hist=csStatsHist(s2.hist,r.hist);
+  s2.statsHaut=s2.hist[0]?cjN(s2.hist[0].at):0;
+  if(Number.isInteger(r.epoque))s2.statsEpoque=r.epoque;
+  CS.dedans=true;try{save();}finally{CS.dedans=false;}
+  try{if(typeof activeTab!=='undefined'&&activeTab==='defis'&&typeof renderDefis==='function')renderDefis();}catch(e){}
+  return r;
 }
 /* Après un enregistrement : 5 s plus tard, une seule fois (pas pendant que la synchro elle-même enregistre). */
 function csPlusTard(){
@@ -49902,7 +50057,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu te connectes à Requête avec Apple ou Google&nbsp;: ta progression est enregistrée sur cet iPhone et sauvegardée avec ton compte.</p><ul><li>Leçons, défis, notes et planning sont enregistrés sur cet iPhone et sauvegardés avec ton compte&nbsp;; les bases que tu importes restent sur cet iPhone.</li><li>Le moteur SQL tourne sur ton iPhone.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà joués et trouvés l’accompagne, sans être montrée à personne&nbsp;: elle évite de te les tirer au sort à nouveau, à toi comme à ceux qui jouent avec toi, et nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus. Pour les lire sans attendre, nous en recevons une copie par e-mail, par le service d’envoi Resend (États-Unis).</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours. Un commentaire nous arrive aussi par e-mail (Resend), sans cet identifiant.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li></ul><p>Le détail complet est dans la politique de confidentialité, sur requeteapp.com.</p>`
+        ? `<p>Ta progression est enregistrée sur cet iPhone. Si tu te connectes avec Apple ou Google (c’est facultatif), elle est aussi sauvegardée avec ton compte.</p><ul><li>Avec un compte, leçons, défis, notes, planning, ton pseudo, tes points et tes parties sont sauvegardés et te suivent sur tes autres appareils&nbsp;; les bases que tu importes restent sur cet iPhone.</li><li>Le moteur SQL tourne sur ton iPhone.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà joués et trouvés l’accompagne, sans être montrée à personne&nbsp;: elle évite de te les tirer au sort à nouveau, à toi comme à ceux qui jouent avec toi, et nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus. Pour les lire sans attendre, nous en recevons une copie par e-mail, par le service d’envoi Resend (États-Unis).</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours. Un commentaire nous arrive aussi par e-mail (Resend), sans cet identifiant.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li></ul><p>Le détail complet est dans la politique de confidentialité, sur requeteapp.com.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu te connectes avec Apple ou Google. Depuis Mon compte, tu peux télécharger une copie de tes données, effacer ta progression ou supprimer ton compte.</p><p>L’accès aux cours demande un abonnement Requête Premium, vendu par l’App Store.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -49931,7 +50086,8 @@ function paintOb(){
     /* 11 h 08 (réf. 6) : « ça sera enregistré sur tous les appareils, car compte obligatoire ». */
     /* Invité par un ami (5 novembre, 14 h) : « Je m’inscris », l’inscription étant obligatoire pour entrer dans sa salle. */
     /* 12 novembre : « J’ai déjà un compte » passe sur la page « bonjour », juste avant ; le bouton mène à l’annonce des questions. */
-    obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('questions'),'',null,'Ta progression sera sauvegardée sur tous tes appareils.');
+    /* 14 novembre, 13 h 11 : le compte est facultatif (11 h 32) ; avec lui, la progression et le jeu suivent sur tous les appareils */
+    obSetFooter(invite?'Je m’inscris':'Personnaliser mon parcours',()=>obGoto('questions'),'',null,'Avec un compte, ta progression te suit sur tous tes appareils.');
   }else if(slide==='bonjour'){
     /* 12 novembre (réf. 5, l’écran de bienvenue de HeyRua) : le chat fait coucou sous sa bulle, le nom de l’appli en grand et sa
        promesse ; « Commencer », et « J’ai déjà un compte » quand la connexion est branchée. Invité par un ami : « Je m’inscris ».
@@ -51490,9 +51646,9 @@ function openLegal(kind){
   const titles={privacy:'Confidentialité',terms:'Conditions'};
   const html={
     privacy:`<div class="legal-copy">
-      <p>Requête est une app d’apprentissage SQL. Tu t’y connectes avec Apple ou Google&nbsp;: ta progression est enregistrée sur cet iPhone et sauvegardée avec ton compte.</p>
+      <p>Requête est une app d’apprentissage SQL. Ta progression est enregistrée sur cet iPhone&nbsp;; si tu te connectes avec Apple ou Google (c’est facultatif), elle est aussi sauvegardée avec ton compte.</p>
       <ul>
-        <li>Leçons, défis, notes et planning&nbsp;: enregistrés sur cet iPhone et sauvegardés avec ton compte. Les bases que tu importes restent sur cet iPhone.</li>
+        <li>Avec un compte&nbsp;: leçons, défis, notes, planning, ton pseudo, tes points et tes parties sont sauvegardés et te suivent sur tes autres appareils. Les bases que tu importes restent sur cet iPhone.</li>
         <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le serveur de l’appli (Supabase, à Paris). Ces messages s’effacent au bout de 24&nbsp;h. Tes requêtes y sont vérifiées en ligne, sans être montrées aux autres joueurs ni gardées en clair.</li><li>Ton <b>pseudo</b> est unique&nbsp;: il est réservé sur le serveur de l’appli avec un identifiant tiré au hasard (pas ton nom ni ton e-mail), et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.</li><li>Le <b>classement général</b> des défis montre ton pseudo, tes points et ton nombre de parties aux autres joueurs, avec ce même identifiant. La liste des défis que tu as déjà joués et trouvés l’accompagne, sans être montrée à personne&nbsp;: elle évite de te les tirer au sort à nouveau, à toi comme à ceux qui jouent avec toi, et nous dit quand ajouter de nouveaux défis. «&nbsp;Supprimer mon compte&nbsp;» les retire.</li><li>Les messages envoyés depuis <b>Contacte-nous</b> (Mon compte)&nbsp;: ton message, les captures ou fichiers que tu joins, ton e-mail si tu le donnes et, pour un bug, des infos techniques (version, appareil, navigateur, écran) sont enregistrés sur le serveur de l’appli (Supabase, à Paris), seulement pour te répondre et corriger l’appli, puis effacés au bout de 3&nbsp;ans au plus. Pour les lire sans attendre, nous en recevons une copie par e-mail, par le service d’envoi Resend (États-Unis).</li><li>Tes <b>avis sur les leçons</b> (la note, et le commentaire si tu en laisses un) partent au serveur de l’appli avec ce même identifiant tiré au hasard, pour améliorer les cours. Un commentaire nous arrive aussi par e-mail (Resend), sans cet identifiant.</li><li>Pour améliorer l’accueil de l’appli, chaque <b>étape du parcours de bienvenue</b> que tu vois est comptée une fois, avec ce même identifiant&nbsp;: ni ton nom, ni tes réponses.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne sur ton iPhone.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives et autorises les notifications, à l’heure choisie.</li>
@@ -52066,7 +52222,9 @@ async function resetAllProgress(){
   if(typeof csPret==='function'&&csPret()){
     try{
       await csSync();
-      await Promise.all([CS.prog.resetAll('EFFACER'),CS.docs.resetAll('EFFACER')]);
+      /* 14 novembre : les parties du compte aussi (son époque avance : les autres appareils vident les leurs à leur prochaine synchro) */
+      const [,,ef]=await Promise.all([CS.prog.resetAll('EFFACER'),CS.docs.resetAll('EFFACER'),clsRpc('compte_stats_effacer',{},{compte:true}).catch(()=>null)]);
+      if(ef&&Number.isInteger(ef.epoque))clsSalle().statsEpoque=ef.epoque;
     }catch(e){
       lqInfo('Pas de réseau','Il faut une connexion internet pour effacer aussi ta progression de ton compte. Réessaie dans un instant : rien n’a été effacé.','📶');
       return;
@@ -52076,6 +52234,9 @@ async function resetAllProgress(){
   closePlusDetails();
   try{const cle=state.salle&&state.salle.cle;if(cle&&typeof clsRpc==='function')clsRpc('jeu_oublier',{p_cle:cle}).catch(()=>{});}catch(e){}
   const id=state.salle&&state.salle.cle?{cle:state.salle.cle,pseudo:state.salle.pseudo,pseudoVu:state.salle.pseudoVu}:null;
+  /* l’appareil garde son nom et l’époque des parties du compte (csStats) */
+  if(id&&state.salle.appareil)id.appareil=state.salle.appareil;
+  if(id&&Number.isInteger(state.salle.statsEpoque))id.statsEpoque=state.salle.statsEpoque;
   state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,inscritLe:state.inscritLe||null,name:state.name||'',profile:state.profile||{},accountMode:state.accountMode||'guest',accountProvider:state.accountProvider,accountLabel:state.accountLabel,entretien:state.entretien||{}};
   if(id)state.salle=id;
   save(); stkSync(); buildDb(); baseBytes=db.export(); attachDateFns(db); /* voir boot : export() perd les fonctions ajoutées au moteur */
@@ -52281,7 +52442,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-prenom-v3009';
+  const SW_CACHE='requete-2026-11-14-comptejeu-v3010';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
