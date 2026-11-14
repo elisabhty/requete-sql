@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=369">
+<link rel="stylesheet" href="ludique.css?v=370">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -20529,7 +20529,7 @@ function restoreNav(){
     }else if(nav.view==='jeu'&&/^[A-Z0-9]{6}$/.test(nav.code||'')&&typeof jeuReprendre==='function'){
       switchTab('defis');
       setTimeout(()=>jeuReprendre(nav),0);
-    }else if(nav.view==='review'&&nav.reviewId!=null&&allLessons.some(l=>l.id===nav.reviewId)){
+    }else if(nav.view==='review'&&nav.reviewId!=null&&revisable(allLessons.find(l=>l.id===nav.reviewId))){   // 14 novembre : une révision gardée d’avant le 28 octobre (leçon devenue « seule ») ne s’ouvre plus sur « De mémoire undefined »
       openReview(nav.reviewId);
     }else{
       /* Cours retiré ou renuméroté depuis la dernière visite : on revient au
@@ -39745,9 +39745,17 @@ function revSesSave(done){
   try{localStorage.setItem(REV_SES_KEY,JSON.stringify(o));}catch(e){}
 }
 function openReview(id){
+  /* 14 novembre (le tour de l’appli) : une leçon sans exercice à réécrire (toutes, depuis le 28 octobre) n’a rien à réviser ; une file
+     gardée d’une ancienne version passe aux suivantes qui en ont un, sinon on revient à l’onglet. */
+  if(!revisable(allLessons.find(x=>x.id===id))){
+    reviewQueue=(reviewQueue||[]).filter(x=>x!==id&&revisable(allLessons.find(y=>y.id===x)));
+    try{localStorage.removeItem(REV_SES_KEY);}catch(e){}
+    if(reviewQueue.length)return openReview(reviewQueue[0]);
+    switchTab(activeTab||'learn');return;
+  }
   let ses=restoringNav?revSesRead():null;
   if(ses&&ses.id===id){
-    const q=(Array.isArray(ses.queue)?ses.queue:[]).filter(x=>Number.isInteger(x)&&allLessons.some(l=>l.id===x));
+    const q=(Array.isArray(ses.queue)?ses.queue:[]).filter(x=>Number.isInteger(x)&&revisable(allLessons.find(l=>l.id===x)));
     if(q.length)reviewQueue=q;
     /* Leçon déjà révisée avant le rechargement : on enchaîne sur la suivante de la file. */
     if(ses.done){if(q.length){id=q[0];}ses=null;}
@@ -52049,7 +52057,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-contexte-v2998';
+  const SW_CACHE='requete-2026-11-14-tour-v2999';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
