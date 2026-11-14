@@ -111,16 +111,26 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
 - **Le module 1** (14 novembre) : la base en anglais, la vidéo « Les bases de données relationnelles » (282 textes, son code,
   ses cinq moments, le badge et la vignette en anglais), l’écran de la leçon, son lecteur et sa fin. Sa voix anglaise reste à
   générer (environ 10 000 caractères, autant de crédits ElevenLabs).
-- **Le module 2** (15 novembre) : AS et DISTINCT en anglais (vidéos, vignettes, bilans). Les dix autres vidéos du module
-  (WHERE, comparer, AND et OR, NOT, NULL, LIKE, IN, BETWEEN, ORDER BY, LIMIT et OFFSET : environ 1 500 textes) suivent ; une
-  vidéo pas encore traduite reste entièrement en français, avec sa voix. Le code d’une ligne d’éditeur prend la table de son
-  éditeur (`SELECT nom,` puis `FROM produits` : `name`), un alias entre guillemets doubles est traduit comme son texte
-  (`"Nom du produit"` : `"Product name"`), et le code d’un bilan peut dire sa table (5e valeur d’une ligne de `recap`).
+- **Le module 2** (15 novembre) : en entier en anglais : les douze vidéos (AS, DISTINCT, puis WHERE, comparer, AND et OR, NOT,
+  NULL, LIKE, IN, BETWEEN, ORDER BY, LIMIT et OFFSET : environ 1 800 textes), leurs vignettes et les bilans des leçons. Le code
+  d’une ligne d’éditeur prend la table de son éditeur, même si la ligne `FROM` est déjà passée en anglais (`SELECT nom,` puis
+  `FROM products` : `name`) ; une page entière sur une table le dit sur `<body data-table="produits">` ; un alias entre
+  guillemets doubles est traduit comme son texte (`"Nom du produit"` : `"Product name"`) ; le code d’un bilan peut dire sa table
+  (5e valeur d’une ligne de `recap`) ; un nom seul hors des tables se règle dans `base.defauts` (`taille` : `size`). Un prix seul
+  se traduit (« 39,90 € » : « €39.90 »). Dans les vidéos : un éditeur dont une ligne anglaise dépasse prend une police plus petite
+  (`codeFit`), la requête d’une carte de moment (`.mb-q`) est récrite à chaque réglage, les choix d’un réglage montrent leur
+  traduction (`labels`, la valeur jugée reste française), les étiquettes des choix sont traduites en texte (`trTxt`, sans
+  `&lt;` ni `&nbsp;`). L’histoire de BETWEEN passe en anglais (la confirmation renvoyée « in English », « Thank you! »).
+  La feuille « Leçon verrouillée » est traduite (la prochaine étape sous `{etape}`).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
   `assets/voix/en/<cours>/` et dans la vidéo (`voix` de `assets/anim/en/<cours>.js`). Chaque fichier garde l’id du français ;
   `cles` donne la légende française de chaque phrase. Une voix anglaise native : Tara, « Polished Audio Description » (nF5xXwlriNhsorW8Fykg ; choix d’Elisa, 23 h 56).
+  Module 2 (15 novembre) : les douze fichiers sont prêts (`tools/voix/en/as.json` à `limit-offset.json`, environ 32 400
+  caractères) ; `node tools/voix/generer.mjs --toutes --langue en` les génère tous. Le code y est dit en toutes lettres
+  (`<=` : « less than or equal to », `'2023-03-01'` : « 2023, dash, 03, dash, 01 », `ASC` : « ascending ») ; le « À retenir »
+  de WHERE, que la vidéo de l’appli ne joue plus, n’a pas de fichier.
 - **À reprendre avec les défis** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base française ; une
   requête écrite en anglais sur un défi de la base des cours y serait refusée. À régler avant de traduire les défis.
 - **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :

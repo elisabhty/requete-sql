@@ -64,6 +64,37 @@ const capText = t => {
    les légendes et les textes envoyés au lecteur aussi ; la voix est celle de la langue (LG.voix), ou aucune tant qu’elle n’existe pas. */
 const LG = (() => { try { const L = window.REQUETE_LANGUE; return L && L.code !== 'fr' ? L : null; } catch (e) { return null; } })();
 const trT = s => (LG && s ? LG.html(s) : s);
+/* Le contexte d’un moment pour écrire son code : la table de la page (data-table), sa carte, sa consigne. */
+const momentCtx = p => [(document.body && document.body.getAttribute('data-table')) || '', p && p.board && p.board.html, p && p.prompt, p && p.hint]
+  .filter(Boolean).join(' ').replace(/<[^>]*>/g, ' ');
+/* Un texte simple (l’étiquette d’un choix, que le lecteur échappe) : traduit en texte, pas en HTML (« <= » restait « &lt;= ») ; sans
+   traduction, c’est du code (ORDER BY prix DESC), écrit pour la base de la langue. */
+const trTxt = (s, ctx) => {
+  if (!LG || s == null || s === '') return s;
+  const x = String(s), r = LG.t ? LG.t(x) : x;
+  return r !== x ? r : LG.sql ? LG.sql(x, ctx || '') : x;
+};
+/* Dans une autre langue : ce qu’affichent les choix d’un réglage (les valeurs restent celles de la page, en français : c’est sur elles
+   que la réponse est jugée). Un choix de code s’écrit pour la base de la langue (nom : name, pour un produit) ; un mot (rien), comme un texte. */
+const choixLabels = (c, p) => {
+  if (!LG || !c.choices) return null;
+  const ctx = momentCtx(p);
+  return c.choices.map(v => { const s = String(v), t = /[A-Za-zÀ-ÿ]{2}/.test(s) && !/[<>&]/.test(s) ? trT(s) : s;
+    return t !== s ? t : c.code && LG.sql ? LG.sql(s, ctx) : s; });
+};
+/* Dans une autre langue, les identifiants sont plus longs (first_name, last_name, address) : un éditeur dont une ligne dépasserait
+   prend la taille de police qui la fait tenir, pour toutes ses lignes. En français, rien ne change. */
+const codeFit = () => {
+  if (!LG) return;
+  $$('.code .body').forEach(b => {
+    const cs = getComputedStyle(b), box = b.getBoundingClientRect();
+    if (!b.offsetWidth || !box.width) return;
+    const k = box.width / b.offsetWidth, dispo = (b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) * k;
+    let large = 0;
+    b.querySelectorAll('.ln').forEach(l => { const r = document.createRange(); r.selectNodeContents(l); large = Math.max(large, r.getBoundingClientRect().width); });
+    if (large > dispo) b.style.fontSize = (Math.floor(parseFloat(cs.fontSize) * dispo / large * 2) / 2) + 'px';
+  });
+};
 function fr(h){
   if (LG) return LG.html(h);
   return frSource(h);
@@ -1422,6 +1453,7 @@ function Course(cfg){
     await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’' + (cfg.glyphs || ''))));
     await document.fonts.ready;
     smsFit();
+    codeFit();
     chromeTimeline(chapters, captions, duration);
     cfg.build();
     let rest = [];
@@ -1467,11 +1499,11 @@ function Course(cfg){
          from : début du passage qui amène le moment (revoir, rejouer). */
       picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
         /* L’explication de la bonne réponse : le lecteur la remontre quand le moment, déjà réussi, s’ouvre résolu. */
-        options: (p.options || []).map(o => ({label: trT(o.label), ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
+        options: (p.options || []).map(o => ({label: trTxt(o.label, momentCtx(p)), ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
         win: typeof momentWin === 'function' ? momentWin(p) : '',
         /* Réglage (tune) : les commandes de la feuille (curseur, choix, bascule), en données ; la page dessine leur effet (IX.tune). */
         controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
-          choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
+          choices: c.choices || null, ...(LG ? {labels: choixLabels(c, p)} : {}), code: !!c.code, unit: LG && c.unit ? trT(c.unit) : c.unit || ''})), ico: p.ico || ''})),
       /* Mail reçu (opens) : l’image s’arrête, l’élève touche l’élément sel pour l’ouvrir ; rien n’est noté. */
       /* hand : {x, y}, le bout d’un doigt seul (sans bulle), en fraction de l’élément, quand la légende dit déjà quoi faire (Elisa, 25 octobre, 16 h 21). */
       opens: opens.map(o => ({t: unwarp(o.at), sel: o.sel, prompt: fr(o.prompt), label: trT(o.label), hand: o.hand || null})),

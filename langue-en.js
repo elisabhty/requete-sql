@@ -15,7 +15,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
       /* Les produits (14 novembre : le module 1 en anglais) */
       'Fibre Prébiotique': 'Prebiotic Fiber', 'Collagène Marin': 'Marine Collagen', 'Magnésium': 'Magnesium', 'Vitamine D': 'Vitamin D',
       'Tisane Détox': 'Detox Tea', 'Protéine Végétale': 'Plant Protein', 'Oméga 3': 'Omega 3', 'Shaker Inox': 'Steel Shaker'},
-    colonnesValeurs: {commandes: ['statut'], produits: ['categorie', 'nom']}
+    colonnesValeurs: {commandes: ['statut'], produits: ['categorie', 'nom']},
+    /* Un nom seul dans du code, hors des tables (la formule de pagination : OFFSET = (n − 1) × taille) */
+    defauts: {taille: 'size'}
   },
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
@@ -2671,6 +2673,50 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Demain · {1} activité": "Tomorrow · {1} activity",
     /* Les alias des leçons (traduits aussi dans le code : nom AS "Nom du produit") */
     "Nom du produit": "Product name",
-    "Prix (€)": "Price (€)"
+    "Prix (€)": "Price (€)",
+    /* Les vidéos : le dernier chapitre */
+    "À retenir": "Key takeaways",
+    /* Un prix seul */
+    "{1} €": "€{1}",
+    /* Les fiches des cours du module 2 (WHERE à LIMIT et OFFSET) */
+    "sert à <1>filtrer les lignes</1> selon une condition.": "is used to <1>filter rows</1> based on a condition.",
+    "Il se place <1>après <2/></1> :": "It goes <1>after <2/></1>:",
+    "Pour une valeur en texte, utilise des <1>guillemets simples</1> :": "For a text value, use <1>single quotes</1>:",
+    "Les <1>opérateurs de comparaison</1> comparent une colonne à une valeur :": "<1>Comparison operators</1> compare a column with a value:",
+    "et <1/> <2>excluent</2> la limite ; <3/> et <4/> l’incluent :": "and <1/> <2>exclude</2> the limit; <3/> and <4/> include it:",
+    "Un nombre s’écrit tel quel, un texte entre <1>guillemets simples</1> :": "A number is written as is, a text between <1>single quotes</1>:",
+    "relie des conditions : une ligne est gardée si <1>toutes</1> sont vraies.": "links conditions: a row is kept if <1>all</1> of them are true.",
+    "relie des conditions : une ligne est gardée si <1>au moins une</1> est vraie.": "links conditions: a row is kept if <1>at least one</1> is true.",
+    "Avec <1/> et <2/> ensemble, <3>mets les parenthèses</3> : SQL calcule d’abord les <4/>.": "With <1/> and <2/> together, <3>add the parentheses</3>: the <4/> are evaluated first.",
+    "<1>inverse</1> une condition : une ligne est gardée si la condition est fausse.": "<1>reverses</1> a condition: a row is kept if the condition is false.",
+    "Pour inverser un groupe de conditions, mets-le entre <1>parenthèses</1> :": "To reverse a group of conditions, put it between <1>parentheses</1>:",
+    "Pour une simple égalité, <1/> fait la même chose : <2/> sert surtout aux conditions plus riches.": "For a simple equality, <1/> does the same thing: <2/> is mostly useful for richer conditions.",
+    "signifie <1>valeur absente</1> : ni zéro, ni texte vide.": "means <1>missing value</1>: neither zero nor an empty text.",
+    "On le teste avec <1/> ou <2/> :": "You test it with <1/> or <2/>:",
+    "Jamais avec <1/> : une comparaison avec <2/> n’est jamais vraie.": "Never with <1/>: a comparison with <2/> is never true.",
+    "vérifie si le texte correspond au <1>motif</1> : c’est le <2>pattern matching</2>.": "checks whether the text matches the <1>pattern</1>: that’s <2>pattern matching</2>.",
+    "est un <1>wildcard</1> : il remplace <2>n’importe quelle suite</2> de caractères :": "is a <1>wildcard</1>: it stands for <2>any sequence</2> of characters:",
+    "est également un <1>wildcard</1> : il remplace <2>exactement un caractère</2> :": "is also a <1>wildcard</1>: it stands for <2>exactly one character</2>:",
+    "compare une colonne à une <1>liste de valeurs</1> :": "compares a column with a <1>list of values</1>:",
+    "Il remplace plusieurs <1/> sur la même colonne : c’est plus court et plus lisible.": "It replaces several <1/> on the same column: it’s shorter and easier to read.",
+    "Un seul nom de colonne, plusieurs valeurs : pour une autre colonne, ajoute une condition avec <1/> ou <2/>.": "One column name, several values: for another column, add a condition with <1/> or <2/>.",
+    "garde les valeurs <1>comprises entre deux limites</1> :": "keeps the values <1>between two limits</1>:",
+    "Les <1>deux limites sont incluses</1> : c’est l’équivalent de <2/> et <3/>.": "<1>Both limits are included</1>: it’s the same as <2/> and <3/>.",
+    "La <1>limite basse</1> vient en premier : si tu inverses les deux limites, la requête ne renvoie <2>aucune ligne</2>.": "The <1>lower limit</1> comes first: if you swap the two limits, the query returns <2>no rows</2>.",
+    "<1>range</1> le résultat selon une colonne.": "<1>sorts</1> the result by a column.",
+    "Il ne supprime aucune ligne et se place à la fin de la requête.": "It doesn’t remove any rows and goes at the end of the query.",
+    ": du plus petit au plus grand (par défaut). <1/> : du plus grand au plus petit.": ": from smallest to largest (default). <1/>: from largest to smallest.",
+    "trie par <1/>, puis départage les égalités avec <2/>.": "sorts by <1/>, then breaks ties with <2/>.",
+    "Pour un ordre toujours identique, termine par une colonne unique comme <1/>.": "For an order that’s always the same, end with a unique column like <1/>.",
+    "garde seulement les <1>n premières lignes</1> du résultat ; associe-le à <2/> pour garder celles du classement.": "keeps only the <1>first n rows</1> of the result; pair it with <2/> to keep the top of the ranking.",
+    "<1>saute</1> les n premières lignes. Page <2/> : <3/>.": "<1>skips</1> the first n rows. Page <2/>: <3/>.",
+    "Une pagination demande un <1>classement stable</1> : termine <2/> par une colonne unique comme <3/>.": "Pagination needs a <1>stable ranking</1>: end <2/> with a unique column like <3/>.",
+    /* La leçon verrouillée */
+    "Leçon verrouillée": "Lesson locked",
+    "Les leçons s’ouvrent l’une après l’autre. Ta prochaine étape : <1>{etape}</1>.": "Lessons open one after the other. Your next step: <1>{etape}</1>.",
+    "Y aller": "Go",
+    "Reprendre ma leçon": "Resume my lesson",
+    /* Le bouton d’un réglage (moments À toi) */
+    "Valider": "Confirm"
   }
 });

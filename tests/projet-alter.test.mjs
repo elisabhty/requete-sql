@@ -70,7 +70,8 @@ test(`${FILE} : sur le moteur commun, ressources locales, légère`, () => {
   /* 530 Kio depuis le 2 novembre, 0 h 40 : la caméra du lecteur sur grand écran (~7 Kio). */
   /* 535 Kio depuis le 2 novembre, 9 h 33 : les portraits des formateurs dans le moteur commun (une ligne par formateur). */
   /* 545 Kio depuis le 2 novembre, 10 h 27 : une ligne de plus dans le moteur commun par formateur (onze portraits). */
-  assert.ok(total < 545 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
+  /* 552 Kio depuis le 15 novembre : le moteur commun écrit le code et les réglages des moments dans la langue de l’appli (module 2 en anglais), ~3 Kio. */
+  assert.ok(total < 552 * 1024, `animation et ressources : ${Math.round(total / 1024)} Kio`);
   assert.ok(fs.statSync(path.join(ANIM, THUMB)).size > 1000, 'vignette');
 });
 

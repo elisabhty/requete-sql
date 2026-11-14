@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const MOTEUR = lire('langues.js'), EN = lire('langue-en.js'), app = lire('index.html'), sw = lire('sw.js');
-const core = lire('assets/anim/core.js'), page = lire('assets/anim/bases-relationnelles.html'), PAGE_EN = lire('assets/anim/en/bases-relationnelles.js');
+const core = lire('assets/anim/core.js'), where = lire('assets/anim/where.html'), page = lire('assets/anim/bases-relationnelles.html'), PAGE_EN = lire('assets/anim/en/bases-relationnelles.js');
 
 function anglais() {
   const local = {'requete-maj-canal': '"essai"', 'requete-langue': 'en'}, win = {}, ecrits = [];
@@ -163,11 +163,106 @@ test('le module 2 commence : AS et DISTINCT en anglais (textes, vignettes) ; le 
     for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000);
   }
-  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct']};"));
+  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct',"));
   const {L} = anglais();
   assert.equal(L.sql('SELECT nom AS "Nom du produit",', 'SELECT nom AS "Nom du produit", prix FROM produits;'), 'SELECT name AS "Product name",', 'la table de l’éditeur, l’alias traduit');
   assert.equal(L.sql('nom', 'produits'), 'name');
   assert.equal(L.sql('nom'), 'last_name');
   assert.ok(app.includes('["📍","Il se place <b>juste après la colonne</b> :",null,"nom AS \\"Nom du produit\\"","produits"]'), 'le code du bilan de AS : sa table');
-  assert.ok(MOTEUR.includes("((el.getAttribute && el.getAttribute('data-table')) || '')"));
+  assert.ok(MOTEUR.includes("var porte = el.closest ? el.closest('[data-table]') : null;"));
+});
+
+/* Elisa, 15 novembre : « fait la suite du module 2 entier ». Les dix autres vidéos du module 2 (WHERE à LIMIT et OFFSET) en anglais,
+   avec ce qu’elles ont appris au moteur : le contexte d’une ligne déjà traduite, un prix seul, la table d’une page entière, les
+   éditeurs trop étroits pour les noms anglais, les cartes et les réglages des moments, les étiquettes des choix en texte. */
+const M2 = ['where', 'comparer', 'and-or', 'not', 'null', 'like', 'in', 'between', 'order-by', 'limit-offset'];
+const textesDe = c => { const t = {}; vm.runInNewContext(lire(`assets/anim/en/${c}.js`), {window: {REQUETE_LANGUE: {ajouter: (l, x) => { assert.equal(l, 'en'); Object.assign(t, x.textes); }}}}); return t; };
+
+test('le module 2 en entier : chaque vidéo charge ses textes anglais, gardés nombre pour nombre, avec sa vignette, préchargés', () => {
+  /* Un mois peut revenir deux fois en anglais (« before July 14 and after July 20 ») : on compare les marques présentes */
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M2) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+  }
+  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + M2.map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(where.includes("if (LG && LG.ecrireCode) document.querySelectorAll('.ln,.codepill,.rq,.tye,.m,code').forEach(el => LG.ecrireCode(el));"), 'WHERE a son propre moteur');
+});
+
+test('le module 2 : les histoires gardent leur sens en anglais', () => {
+  const b = textesDe('between'), o = textesDe('order-by'), l = textesDe('limit-offset');
+  assert.equal(b['Merci !'], 'Thank you!', 'la confirmation dans la bonne langue');
+  assert.ok(b['Nous leur renverrons la bonne confirmation, en français.'].endsWith('in English.'));
+  assert.equal(o['ORDER BY en action'], 'ORDER BY in action');
+  assert.equal(l['LIMIT en action'], 'LIMIT in action');
+  assert.equal(l['rien'], 'nothing');
+  assert.ok(lire('assets/anim/order-by.html').includes('<b data-en="2nd">2e</b>') && lire('assets/anim/order-by.html').includes('<b data-en="3rd">3e</b>'));
+  for (const c of M2) assert.equal(textesDe(c)['0 ligne'], '0 rows', c);
+  const {L} = anglais();
+  assert.equal(L.t('À retenir'), 'Key takeaways', 'le dernier chapitre de chaque vidéo');
+});
+
+test('le code en anglais : une ligne prend sa table même déjà traduite, la table d’une page entière, un nom seul hors des tables', () => {
+  const {L} = anglais();
+  assert.equal(L.sql(' nom, stock', 'SELECT nom, stock FROM produits'), ' name, stock');
+  assert.equal(L.sql(' nom, stock', 'SELECT nom, stock FROM products'), ' name, stock', 'la ligne FROM déjà passée en anglais');
+  assert.equal(L.sql('OFFSET = (n − 1) × taille'), 'OFFSET = (n − 1) × size');
+  assert.ok(MOTEUR.includes("var contexte = dt + ' ' + morceaux.join(' ');"), 'les lignes d’un éditeur, séparées (« stock» puis «FROM produits »)');
+  for (const c of ['comparer', 'order-by', 'limit-offset']) assert.ok(lire(`assets/anim/${c}.html`).includes('<body data-table="produits">'), c);
+});
+
+test('un prix seul se traduit (« 39,90 € » : « €39.90 ») ; les fiches du module 2 en anglais', () => {
+  const {L} = anglais();
+  assert.equal(L.t('39,90 €'), '€39.90');
+  assert.equal(L.t('3 842,00 €'), '€3,842.00');
+  assert.ok(MOTEUR.includes("return /[A-Za-zÀ-ÿ]{2}/.test(s) || /\\d\\s?€/.test(s);"));
+  for (const [fr, en] of [['sert à <1>filtrer les lignes</1> selon une condition.', 'is used to <1>filter rows</1> based on a condition.'],
+    ['<1>range</1> le résultat selon une colonne.', '<1>sorts</1> the result by a column.'],
+    ['Une pagination demande un <1>classement stable</1> : termine <2/> par une colonne unique comme <3/>.', 'Pagination needs a <1>stable ranking</1>: end <2/> with a unique column like <3/>.']])
+    assert.equal(L.t(fr), en, fr);
+  assert.equal(L.t('Leçon verrouillée'), 'Lesson locked');
+  assert.equal(L.t('Valider'), 'Confirm');
+  assert.ok(app.includes("window.REQUETE_LANGUE.valeur('etape',()=>cle.titre||'')"), 'la prochaine étape, traduite comme un titre de leçon');
+});
+
+test('les vidéos dans une autre langue : éditeurs ajustés, cartes et réglages des moments écrits pour la base, étiquettes en texte', () => {
+  const moments = lire('assets/anim/moments.js');
+  for (const src of [core, where]) {
+    for (const k of ["const momentCtx = p => [(document.body && document.body.getAttribute('data-table')) || ''",
+      'const trTxt = (s, ctx) => {', "return r !== x ? r : LG.sql ? LG.sql(x, ctx || '') : x;",
+      'options: (p.options || []).map(o => ({label: trTxt(o.label, momentCtx(p)),',
+      "choices: c.choices || null, ...(LG ? {labels: choixLabels(c, p)} : {}), code: !!c.code, unit: LG && c.unit ? trT(c.unit) : c.unit || ''",
+      "b.querySelectorAll('.ln').forEach(l => { const r = document.createRange(); r.selectNodeContents(l); large = Math.max(large, r.getBoundingClientRect().width); });"])
+      assert.ok(src.includes(k), k);
+  }
+  assert.ok(core.includes('    smsFit();\n    codeFit();\n'));
+  assert.ok(moments.includes("const code = el => { if (el && typeof LG !== 'undefined' && LG && LG.ecrireCode) el.querySelectorAll('.mb-q').forEach(q => LG.ecrireCode(q)); };"));
+  assert.ok(moments.includes('P[i].show(s, X.board); code(X.board);') && moments.includes('code(d); }'));
+  assert.ok(app.includes('${esc(String(c.labels&&c.labels[j]!=null?c.labels[j]:v))}</button>'), 'le lecteur montre l’étiquette, la page juge la valeur');
+  assert.ok(lire('assets/anim/bases-relationnelles.html').includes('html[lang="en"] .qdemo .codepill{font-size:46px}'));
+});
+
+test('la voix anglaise du module 2 : un fichier par vidéo, la même voix, les mêmes ids, le code dit en toutes lettres', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json'));
+  let total = 0;
+  for (const c of ['as', 'distinct', ...M2]) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id);
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>≠→⇔]|&[a-z]+;|\b(SELECT|FROM|WHERE|ORDER BY|LIMIT|OFFSET|BETWEEN|LIKE|DISTINCT|DESC|ASC)\b|'\d{4}-/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(!JSON.parse(lire('tools/voix/en/where.json')).elements.some(e => e.id === 'ch07'), 'le « À retenir » de WHERE n’est plus joué dans l’appli');
+  assert.ok(total > 28000 && total < 36000, `${total} caractères (autant de crédits)`);
 });

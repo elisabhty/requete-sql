@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-15-module-v3044';
+const CACHE = 'requete-2026-11-15-module-v3045';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -223,6 +223,26 @@ const PRECACHE = [
   './assets/anim/en/as-thumb.webp',
   './assets/anim/en/distinct.js?v=1',
   './assets/anim/en/distinct-thumb.webp',
+  './assets/anim/en/where.js?v=1',
+  './assets/anim/en/where-thumb.webp',
+  './assets/anim/en/comparer.js?v=1',
+  './assets/anim/en/comparer-thumb.webp',
+  './assets/anim/en/and-or.js?v=1',
+  './assets/anim/en/and-or-thumb.webp',
+  './assets/anim/en/not.js?v=1',
+  './assets/anim/en/not-thumb.webp',
+  './assets/anim/en/null.js?v=1',
+  './assets/anim/en/null-thumb.webp',
+  './assets/anim/en/like.js?v=1',
+  './assets/anim/en/like-thumb.webp',
+  './assets/anim/en/in.js?v=1',
+  './assets/anim/en/in-thumb.webp',
+  './assets/anim/en/between.js?v=1',
+  './assets/anim/en/between-thumb.webp',
+  './assets/anim/en/order-by.js?v=1',
+  './assets/anim/en/order-by-thumb.webp',
+  './assets/anim/en/limit-offset.js?v=1',
+  './assets/anim/en/limit-offset-thumb.webp',
   './assets/anim/conference-nutrition.webp',
   './assets/anim/evenement-ephemere.webp',
   './assets/anim/colis-dechire.webp',

@@ -28330,6 +28330,8 @@ function leconVerrouDire(id){
     });
   }catch(e){}
   if(typeof lqAsk!=='function'||!cle)return;
+  /* langues.js : la prochaine étape, nommée {etape}, se traduit comme un titre de leçon */
+  try{window.REQUETE_LANGUE&&window.REQUETE_LANGUE.valeur('etape',()=>cle.titre||'');}catch(e){}
   lqAsk({ico:'🔒',titre:'Leçon verrouillée',texteHtml:`Les leçons s’ouvrent l’une après l’autre. Ta prochaine étape : <b>${esc(cle.titre)}</b>.`,
     oui:leconEntamee(cle.id)?'Reprendre ma leçon':'Y aller',non:'Plus tard',fleche:true}).then(ok=>{if(ok)openLesson(cle.id);});
 }
@@ -31867,7 +31869,7 @@ function lvGatePips(l){
 }
 /* La vignette du cours dans la langue de l’appli : une image qui porte du texte. LV_VIGNETTES : les cours dont la vignette existe
    dans la langue (assets/anim/<langue>/<cours>-thumb.webp), au fil de leur traduction. */
-const LV_VIGNETTES={en:['bases-relationnelles','as','distinct']};
+const LV_VIGNETTES={en:['bases-relationnelles','as','distinct','where','comparer','and-or','not','null','like','in','between','order-by','limit-offset']};
 function lvVignette(v){
   try{const L=window.REQUETE_LANGUE,m=/assets\/anim\/([\w-]+)-thumb\./.exec(v.thumb||'');
     if(L&&L.code!=='fr'&&m&&(LV_VIGNETTES[L.code]||[]).includes(m[1]))return `assets/anim/${L.code}/${m[1]}-thumb.webp`;}catch(e){}
@@ -33551,7 +33553,7 @@ function lvPkCtlHtml(cs){
       `<div class="lv-pk-rg"><i class="lv-pk-rail"></i><i class="lv-pk-fill"></i><input type="range" class="lv-pk-range" min="${+c.min||0}" max="${+c.max||100}" step="${+c.step||1}" value="${+c.value||0}" aria-label="${name}"><i class="lv-pk-knob"></i></div>`+
       `<b class="lv-pk-cv" aria-hidden="true">${esc(String(c.value))}${esc(c.unit||'')}</b></div>`);
     else if(c.type==='seg')out.push(`<div class="lv-pk-c is-seg" data-k="${esc(c.k)}" role="radiogroup" aria-label="${name}"><span class="lv-pk-cl">${lab}</span><div class="lv-pk-seg">`+
-      (c.choices||[]).map(v=>`<button type="button" role="radio" aria-checked="${v===c.value?'true':'false'}"${c.code?' class="is-code"':''} data-v="${esc(String(v))}">${esc(String(v))}</button>`).join('')+`</div></div>`);
+      (c.choices||[]).map((v,j)=>`<button type="button" role="radio" aria-checked="${v===c.value?'true':'false'}"${c.code?' class="is-code"':''} data-v="${esc(String(v))}">${esc(String(c.labels&&c.labels[j]!=null?c.labels[j]:v))}</button>`).join('')+`</div></div>`);
   });
   flush();
   return `<div class="lv-pk-opts lv-pk-ctl">${out.join('')}<button type="button" class="lq-btn lv-pk-try">Valider</button></div>`;
@@ -53503,7 +53505,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3044';
+  const SW_CACHE='requete-2026-11-15-module-v3045';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

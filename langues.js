@@ -167,8 +167,10 @@
   function sql(requete, contexte) {
     var T = tablesBase();
     if (CODE === 'fr' || !T || requete == null) return requete;
-    var autour = [];
-    if (contexte) decouper(String(contexte)).forEach(function (x) { var n = x.g === 'nom' ? x.v.toLowerCase() : ''; if (n && T[n] && autour.indexOf(n) < 0) autour.push(n); });
+    var autour = [], deja = {}, t;
+    /* Le contexte peut être déjà traduit (la ligne FROM products passée avant la ligne SELECT) : les noms anglais des tables comptent aussi */
+    for (t in T) deja[String(T[t][0]).toLowerCase()] = t;
+    if (contexte) decouper(String(contexte)).forEach(function (x) { var n = x.g === 'nom' ? x.v.toLowerCase() : ''; n = T[n] ? n : deja[n] || ''; if (n && autour.indexOf(n) < 0) autour.push(n); });
     var L = decouper(String(requete)), valeursBase = (TRAD.base.valeurs) || {}, i, j;
     var suivant = function (k) { for (k++; k < L.length; k++) if (L[k].g !== 'autre' || /\S/.test(L[k].v)) return k; return -1; };
     var precedent = function (k) { for (k--; k >= 0; k--) if (L[k].g !== 'autre' || /\S/.test(L[k].v)) return k; return -1; };
@@ -245,7 +247,8 @@
   var fait = typeof WeakMap === 'function' ? new WeakMap() : { get: function () {}, set: function () {} };   // élément ou nœud → ce qu'on y a écrit
   var obs = null;
 
-  function lettres(s) { return /[A-Za-zÀ-ÿ]{2}/.test(String(s).replace(/<[^>]*>/g, '')); }
+  /* Un texte à traduire : des mots, ou un prix seul (« 39,90 € » s'écrit « €39.90 » en anglais) */
+  function lettres(s) { s = String(s).replace(/<[^>]*>/g, ''); return /[A-Za-zÀ-ÿ]{2}/.test(s) || /\d\s?€/.test(s); }
   function saute(el) { return !el || SAUTE[el.nodeName] || (el.hasAttribute && el.hasAttribute('data-notrad')) || el.isContentEditable === true; }
   function dansSaute(el) { for (var p = el; p && p.nodeType === 1; p = p.parentNode) if (saute(p)) return true; return false; }
   function simple(el) {   // un morceau mis en forme, sans rôle propre : il se traduit avec sa phrase
@@ -337,7 +340,13 @@
     /* Le contexte : le bloc de code (l'éditeur entier), sinon la phrase ou le paragraphe qui contient ce code */
     var bloc = null;
     try { bloc = el.closest ? el.closest('.body, pre, .code, .codepill, .rq, p, li, td, th, .c') : null; } catch (e) {}
-    var contexte = ((bloc || el.parentNode || el).textContent || '') + ' ' + ((el.getAttribute && el.getAttribute('data-table')) || '');
+    /* Texte par texte, séparés d'une espace : les lignes d'un éditeur se suivent sans retour (« stock» puis «FROM produits») */
+    var morceaux = [];
+    (function lire(p) { for (var n = p.firstChild; n; n = n.nextSibling) { if (n.nodeType === 1) lire(n); else if (n.nodeType === 3) morceaux.push(n.nodeValue); } })(bloc || el.parentNode || el);
+    /* data-table (sur l'élément ou un parent : une page de vidéo entière sur les produits) : la table dont il parle, comptée en premier */
+    var dt = '';
+    try { var porte = el.closest ? el.closest('[data-table]') : null; dt = porte ? porte.getAttribute('data-table') || '' : ''; } catch (e) {}
+    var contexte = dt + ' ' + morceaux.join(' ');
     (function tour(p) {
       for (var n = p.firstChild; n; n = n.nextSibling) {
         if (n.nodeType === 1) tour(n);

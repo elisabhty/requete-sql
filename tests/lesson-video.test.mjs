@@ -30,7 +30,7 @@ test('WHERE : le cours a son animation, son image fixe et sa vignette, présente
   /* « Ce que tu retiens » n’est plus dans la vidéo : elle s’arrête sur la dernière image du résultat, avant sa sortie (82,5 s), la légende encore là. */
   const wp = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   assert.ok(wp.includes('const END = RECAP ? null : 82.48;') && wp.includes('CHAPTERS.length = 6;') && wp.includes('CAPTIONS[16] = [CAPTIONS[16][0], 999, CAPTIONS[16][2]];'), 'la vidéo s’arrête avant « À retenir », sa dernière légende reste affichée');
-  assert.ok(wp.includes('<span>/ ${CHAPTERS.length} · ${c.label}</span>'), 'l’étiquette compte les chapitres restants (6 / 6)');
+  assert.ok(wp.includes("<span${LG ? ' data-notrad' : ''}>/ ${CHAPTERS.length} · ${trT(c.label)}</span>"), 'l’étiquette compte les chapitres restants (6 / 6)');
   /* Les moments « À toi » (Elisa, 26 octobre, 14 h 59) : la page garde son propre moteur et passe par moments.js (momentPlan, momentIX). */
   assert.ok(/duree:'2 min 06',moments:3,seuil:2\}/.test(where) && /\n  leconSeule:true,/.test(where), 'trois moments ; leçon seule, validée avec deux moments réussis du premier coup (Elisa, 28 octobre)');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
@@ -120,7 +120,7 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
   assert.ok(sw.includes("'./assets/anim/evenement-ephemere.webp'"), 'photo préchargée');
   for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-thumb.jpg', 'evenement-ephemere.webp']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
   for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
-  assert.ok(total < 540 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);   // 470 Ko, plus la photo (70 Ko)
+  assert.ok(total < 550 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);   // 470 Ko, plus la photo (70 Ko) ; 550 depuis le 15 novembre (module 2 en anglais)
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
 });
 
@@ -1396,7 +1396,7 @@ for (const c of COURSES) {
        et l’intro qui place sa rubrique, son sous-titre et son titre (Elisa, 8 h 57 : « des soucis de formatage »), ~2 Ko dans le moteur
        commun et moments.js ; les contrôles ajoutés (check.js) ne sont chargés que par ?check. */
     /* + 48 Ko (45 jusqu’au 14 novembre) : le moteur commun porte la langue de l’appli (les vidéos en anglais, ~2 Ko). */
-    assert.ok(total < ((c.maxKo || 520) + 48) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+    assert.ok(total < ((c.maxKo || 520) + 56) * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);   // + 56 depuis le 15 novembre (le moteur dans la langue de l’appli)
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
 }
@@ -1739,7 +1739,7 @@ test('leçon interactive : plateau d’étiquettes, envol jusqu’au trou de la 
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
   assert.ok(core.includes("picks: picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: GESTURES.includes(p.kind) ? p.kind : 'pick', text: !!p.text, prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,")
     && core.includes("const GESTURES = ['tap', 'sort', 'link', 'tune'];")
-    && core.includes("options: (p.options || []).map(o => ({label: trT(o.label), ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),")
+    && core.includes("options: (p.options || []).map(o => ({label: trTxt(o.label, momentCtx(p)), ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),")
     && core.includes("controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,")
     && core.includes('clashes: holdClashes(picks.concat(opens).map(p => p.at))') && core.includes('if (cfg.onRender) cfg.onRender(T);'), 'moteur : moments exportés, aucune animation coupée par un arrêt, rendu suivi par la page');
 });

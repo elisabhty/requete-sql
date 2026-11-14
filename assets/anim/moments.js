@@ -85,7 +85,7 @@ function momentIX(P){
          lavande, l’ancien fond des vidéos : sur le violet, il restait comme un grand cadre blanc autour de la carte (Elisa, 31 octobre,
          1 h 02 : « faire attention, car on a des cadres blancs qui restent »). Il ne peint plus rien : il marque seulement le moment. */
       if (st && b.veil !== false) { const v = document.createElement('div'); v.className = 'mb-veil'; st.append(v); X.add.push(v); mark(st, 'mb-veiled'); }
-      if (st) { st.append(d); X.add.push(d); if (typeof frDom === 'function') try { frDom(d); } catch (e) {} }
+      if (st) { st.append(d); X.add.push(d); if (typeof frDom === 'function') try { frDom(d); } catch (e) {} code(d); }
       X.board = d;
     }
     /* Un réglage : la carte part des valeurs de départ des commandes. */
@@ -104,7 +104,9 @@ function momentIX(P){
     X.got = new Set();
   };
   const tuneStart = p => Object.fromEntries((p.controls || []).map(c => [c.k, c.value]));
-  const draw = (i, s) => { if (X && X.board && P[i].show) try { P[i].show(s, X.board); } catch (e) {} };
+  /* Dans une autre langue : la requête d’une carte (.mb-q), posée ou redessinée, s’écrit pour la base de la langue (ville : city). */
+  const code = el => { if (el && typeof LG !== 'undefined' && LG && LG.ecrireCode) el.querySelectorAll('.mb-q').forEach(q => LG.ecrireCode(q)); };
+  const draw = (i, s) => { if (X && X.board && P[i].show) try { P[i].show(s, X.board); code(X.board); } catch (e) {} };
   const mark = (e, c) => { if (e && !e.classList.contains(c)) { e.classList.add(c); X.cls.push([e, c]); } };
   const flash = (e, c, ms = 650) => { if (!e) return; e.classList.remove(c); void e.offsetWidth; e.classList.add(c); X.cls.push([e, c]); X.tm.push(setTimeout(() => e.classList.remove(c), ms)); };
   const spot = (i, k) => (P[i].spots || []).find(s => String(s.k) === String(k));
@@ -153,7 +155,7 @@ function momentIX(P){
         X.got.add(a.k); mark($(a.sel), 'pk-on'); mark($(b.sel), 'pk-on'); line($(a.sel), $(b.sel));
       });
     },
-    spots: i => { start(i); return (P[i].spots || []).map(s => Object.assign({k: String(s.k), label: typeof trT === 'function' ? trT(s.label || String(s.k)) : (s.label || String(s.k)), side: s.side || undefined}, lay($(s.sel)))); },
+    spots: i => { start(i); return (P[i].spots || []).map(s => Object.assign({k: String(s.k), label: typeof trTxt === 'function' ? trTxt(s.label || String(s.k)) : (s.label || String(s.k)), side: s.side || undefined}, lay($(s.sel)))); },
     act(i, k, k2){
       start(i);
       const p = P[i];
@@ -209,7 +211,7 @@ function momentIX(P){
       start(i); reset();
       const o = P[i].options[k], ok = !!o.ok;
       /* Une réponse glissée dans le trou d’une requête : elle s’y écrit. */
-      if (P[i].slot) { const sl = $(P[i].slot); if (sl) { X.slot0 = [sl, sl.innerHTML]; sl.textContent = o.label; mark(sl, ok ? 'mb-fill' : 'mb-bad');
+      if (P[i].slot) { const sl = $(P[i].slot); if (sl) { X.slot0 = [sl, sl.innerHTML]; sl.textContent = typeof trTxt === 'function' ? trTxt(o.label, typeof momentCtx === 'function' ? momentCtx(P[i]) : '') : o.label; mark(sl, ok ? 'mb-fill' : 'mb-bad');
         if (!ok) X.tm.push(setTimeout(() => { if (X && X.slot0) { sl.innerHTML = X.slot0[1]; sl.classList.remove('mb-bad'); } }, 900)); } }
       sfx(ok ? 'pop' : 'miss', 2, 0.5);
       return new Promise(res => setTimeout(() => res({ok, why: o.why ? fr(o.why) : ''}), 260));

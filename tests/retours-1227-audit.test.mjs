@@ -32,7 +32,7 @@ test('le moteur SQL : la copie locale seulement, plus de code venu de sites tier
   assert.ok(src.includes("const sources=[\n    {js:'vendor/sqljs/sql-wasm.js',wasm:'vendor/sqljs/sql-wasm.wasm'}\n  ];"));
   assert.ok(!/https:\/\/(cdnjs|unpkg|cdn\.jsdelivr)/.test(app), 'aucune adresse de CDN dans l’appli');
   assert.ok(sw.includes("  './vendor/sqljs/sql-wasm.js',\n  './vendor/sqljs/sql-wasm.wasm',"), 'la copie locale est gardée hors ligne');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3044';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3045';"), 'le cache de l’appli change');
 });
 
 test('Supabase : au plus 30 pièces jointes par heure dans l’espace du formulaire de contact (14 novembre, 12 h 41 : « Oui »)', () => {

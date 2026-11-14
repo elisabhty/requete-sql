@@ -5,6 +5,9 @@
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
 <title>Requête · WHERE en vidéo</title>
+<!-- La langue de l’appli (14 novembre) : en français, rien ne change ; dans une autre langue, les textes de cette vidéo sont dans
+     {langue}/where.js (en/where.js pour l’anglais). -->
+<script src="../../langues.js?v=4" data-textes="{langue}/where.js?v=1"></script>
 <style>
 /* Le texte garde la taille prévue sur iPhone (comme core.css : Safari grossissait le texte des blocs plus larges que l’écran). */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -340,6 +343,8 @@ body.pont-on #cap .cap-stk{transform:rotate(-8deg)!important}
   color:#fff;font:700 36px/1.2 var(--ui,Inter,sans-serif);display:flex;align-items:center;justify-content:center}
 body.pont-fin .pont-pill{opacity:var(--pont-a,1);visibility:visible}
 body.pont-fin #stage>section.scene,body.pont-fin #stage>.mb,body.pont-fin #chapter{opacity:calc(1 - var(--pont-a,1))!important}
+/* L’anglais : colonnes élargies pour les noms de colonnes plus longs (first_name, signup_date), prises sur les colonnes qui ont de la marge. */
+html[lang="en"] .rg4{grid-template-columns:199px 182px 389px 136px!important}
 </style>
 </head>
 <body>
@@ -575,7 +580,34 @@ const capText = t => {
   CAP_PHRASES.forEach(p => { t = t.replace(new RegExp(p.replace(/ /g, '[  ]'), 'gi'), m => m.replace(/ /g, NB)); });
   return t;
 };
+/* La langue de l’appli (../../langues.js ; 15 novembre, le module 2 en anglais), comme dans core.js : en français, LG est null et rien
+   ne change ; dans une autre langue, fr() rend le texte traduit, la typographie française n’est pas appliquée, la voix est celle de la
+   langue (LG.voix) ou aucune, et la clé d’une légende reste celle de son texte français (vkey). */
+const LG = (() => { try { const L = window.REQUETE_LANGUE; return L && L.code !== 'fr' ? L : null; } catch (e) { return null; } })();
+const trT = s => (LG && s ? LG.html(s) : s);
+/* Le contexte d’un moment pour écrire son code : la table de la page (data-table), sa carte, sa consigne. */
+const momentCtx = p => [(document.body && document.body.getAttribute('data-table')) || '', p && p.board && p.board.html, p && p.prompt, p && p.hint]
+  .filter(Boolean).join(' ').replace(/<[^>]*>/g, ' ');
+/* Un texte simple (l’étiquette d’un choix, que le lecteur échappe) : traduit en texte, pas en HTML (« <= » restait « &lt;= ») ; sans
+   traduction, c’est du code (ORDER BY prix DESC), écrit pour la base de la langue. */
+const trTxt = (s, ctx) => {
+  if (!LG || s == null || s === '') return s;
+  const x = String(s), r = LG.t ? LG.t(x) : x;
+  return r !== x ? r : LG.sql ? LG.sql(x, ctx || '') : x;
+};
+/* Dans une autre langue : ce qu’affichent les choix d’un réglage (les valeurs restent celles de la page, en français : c’est sur elles
+   que la réponse est jugée). Un choix de code s’écrit pour la base de la langue (nom : name, pour un produit) ; un mot (rien), comme un texte. */
+const choixLabels = (c, p) => {
+  if (!LG || !c.choices) return null;
+  const ctx = momentCtx(p);
+  return c.choices.map(v => { const s = String(v), t = /[A-Za-zÀ-ÿ]{2}/.test(s) && !/[<>&]/.test(s) ? trT(s) : s;
+    return t !== s ? t : c.code && LG.sql ? LG.sql(s, ctx) : s; });
+};
 function fr(h){
+  if (LG) return LG.html(h);
+  return frSource(h);
+}
+function frSource(h){
   let code = 0;
   const out = String(h).split(/(<[^>]+>)/).map(t => {
     if (/^<code[\s>]/.test(t)) { code++; return {t, txt: false}; }
@@ -596,6 +628,7 @@ function fr(h){
 /* Même typographie pour les textes écrits directement dans la page (bulle, récapitulatif, cartes…), hors code. */
 const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .th, .tr, .emo, #cap';
 function frDom(root){
+  if (LG) return;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(n => {
@@ -721,10 +754,11 @@ function buildDom(){
   CHAPTERS.forEach(c => {
     const d = document.createElement('div');
     d.className = 'chip';
-    d.innerHTML = `<b>${c.n}</b><span>/ ${CHAPTERS.length} · ${c.label}</span>`;
+    d.innerHTML = `<b>${c.n}</b><span${LG ? ' data-notrad' : ''}>/ ${CHAPTERS.length} · ${trT(c.label)}</span>`;
     chap.append(d);
   });
   const cap = $('#cap');
+  if (LG) cap.setAttribute('data-notrad', '');   // les légendes arrivent déjà traduites (fr), mot par mot (capWords)
   CAPTIONS.forEach(c => {
     const d = document.createElement('div');
     d.className = 'c';
@@ -1309,10 +1343,10 @@ const MOMENT_CLASHES = [];
 const VOICE_LEAD = 0.15, VOICE_TAIL = 0.3, VOICE_INTRO = 0.35;
 let VCFG = null, VCAPS = new Map();   // posés au départ de applyMoments (VOICE est déclarée plus bas dans la page)
 function voiceInit(){
-  VCFG = typeof VOICE !== 'undefined' && !new URLSearchParams(location.search).has('novoix') ? VOICE : null;
+  VCFG = LG ? (LG.voix || null) : typeof VOICE !== 'undefined' && !new URLSearchParams(location.search).has('novoix') ? VOICE : null;
   VCAPS = new Map(((VCFG && VCFG.caps) || []).map(([k, f, a, b]) => [k, [f, a, b]]));
 }
-const vPlain = h => fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB)
+const vPlain = h => frSource(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB)
   .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, 'x');
 const vkey = h => { let x = 5381; for (const ch of vPlain(h).normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()) x = (x * 33 + ch.charCodeAt(0)) | 0; return 'v' + (x >>> 0).toString(36); };
 /* Les pauses de lecture, allongées là où la voix a besoin de plus de temps (temps de la timeline d’avant les moments). */
@@ -1811,9 +1845,20 @@ const VOICE = {dir: '../voix/where/', intro: ["ch00",0,6.58],
 window.__ready = (async () => {
   buildDom();
   frDom(document.getElementById('stage'));
+  /* Dans une autre langue : le SQL des éditeurs et des requêtes, écrit pour la base de la langue, avant que la frappe ne découpe les lignes. */
+  if (LG && LG.ecrireCode) document.querySelectorAll('.ln,.codepill,.rq,.tye,.m,code').forEach(el => LG.ecrireCode(el));
   const fams = ['800 50px "Bricolage Grotesque"', '400 40px "Bricolage Grotesque"', '400 40px JBM', '500 40px JBM', '700 40px JBM', '800 40px JBM', '500 40px Inter', '600 40px Inter', '700 40px Inter', '800 40px Inter', '400 40px "Noto Color Emoji"'];
   await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’✉️🎉')));
   await document.fonts.ready;
+  /* Un éditeur dont une ligne anglaise dépasserait prend la taille de police qui la fait tenir (comme core.js : codeFit) */
+  if (LG) document.querySelectorAll('.code .body').forEach(b => {
+    const cs = getComputedStyle(b), box = b.getBoundingClientRect();
+    if (!b.offsetWidth || !box.width) return;
+    const k = box.width / b.offsetWidth, dispo = (b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) * k;
+    let large = 0;
+    b.querySelectorAll('.ln').forEach(l => { const r = document.createRange(); r.selectNodeContents(l); large = Math.max(large, r.getBoundingClientRect().width); });
+    if (large > dispo) b.style.fontSize = (Math.floor(parseFloat(cs.fontSize) * dispo / large * 2) / 2) + 'px';
+  });
   build();
   applyMoments();
   pontPlan();
@@ -1828,16 +1873,16 @@ window.__ready = (async () => {
   const COVER = CHECK2 ? CHECK2(renderAt, OUT_DURATION) : undefined;
   return {duration: OUT_DURATION, coverIssues: COVER, fps: FPS, cues: CUES.filter(c => c.t < MP.duration).map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(), notesT: MP.notesAt == null ? null : unwarp(MP.notesAt), holds: HOLD_TOTAL,
     clashes: MOMENT_CLASHES,
-    chapters: MP.chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
+    chapters: MP.chapters.map(c => ({t: unwarp(c.a), n: c.n, label: trT(c.label)})),
     questions: QUESTIONS.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
     /* Moments « À toi » : la même description que le moteur commun (core.js). */
     picks: MP.picks.map(p => ({t: unwarp(p.at), from: p.from != null ? unwarp(p.from) : null, kind: ['tap', 'sort', 'link', 'tune'].includes(p.kind) ? p.kind : 'pick', text: !!p.text,
       prompt: fr(p.prompt), hint: p.hint ? fr(p.hint) : '', next: p.next ? fr(p.next) : '', need: p.need || 0,
-      options: (p.options || []).map(o => ({label: o.label, ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
+      options: (p.options || []).map(o => ({label: trTxt(o.label, momentCtx(p)), ok: !!o.ok, tag: o.tag || '', why: o.ok && (o.why || o.say) ? fr(o.why || o.say) : ''})),
       win: momentWin(p),   // l’explication du moment réussi (moments.js)
       /* Réglage (tune) : les commandes de la feuille, comme dans le moteur commun. */
       controls: (p.controls || []).map(c => ({k: c.k, type: c.type, label: fr(c.label || ''), min: c.min, max: c.max, step: c.step, value: c.value,
-        choices: c.choices || null, code: !!c.code, unit: c.unit || ''})), ico: p.ico || ''})),
+        choices: c.choices || null, ...(LG ? {labels: choixLabels(c, p)} : {}), code: !!c.code, unit: LG && c.unit ? trT(c.unit) : c.unit || ''})), ico: p.ico || ''})),
     /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
     captions: MP.captions.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], MP.duration)), text: fr(c[2]).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')}))
       .concat(PONTS.map(p => ({a: p.a, b: p.b, text: pontPlain(p.html).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')}))).sort((x, y) => x.a - y.a),
