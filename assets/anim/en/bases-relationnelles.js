@@ -283,6 +283,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "Je suis Camille Roux, responsable des opérations chez NutriBoost. Nous gérons actuellement nos données dans Excel, mais ce fichier atteint ses limites : doublons, erreurs de saisie et difficultés de suivi. Nous avons besoin d’une base de données structurée pour centraliser nos informations et faciliter leur gestion au quotidien. En tant que développeur/analyste, ta mission sera de concevoir cette base, puis de l’implémenter dans un système de gestion de bases de données (SGBD) et de nous accompagner dans l’analyse de nos besoins au vu de la croissance rapide de notre marque. Souhaites-tu nous accompagner dans ce projet ?": "I’m Camille Roux, head of operations at NutriBoost. We currently manage our data in Excel, but this file has reached its limits: duplicates, typos and tracking problems. We need a structured database to centralize our information and make it easier to manage day to day. As a developer/analyst, your mission will be to design this database, then implement it in a database management system (DBMS), and help us analyze our needs as our brand grows fast. Would you like to join us on this project?",
     "Avec plaisir ! On commence quand vous le voulez !": "With pleasure! Let’s start whenever you’re ready!",
     "Bienvenue dans l’équipe ! Voici ton badge. Commençons par découvrir nos besoins ensemble.": "Welcome to the team! Here’s your badge. Let’s start by exploring our needs together.",
-    "{1} €": "€{1}"
+    "{1} €": "€{1}",
+    "Pour finir, voici les <1>trois idées à retenir</1>.": "Finally, here are the <1>three ideas to remember</1>.",
+    "<1>Ajoute ce résumé à tes notes</1> pour le retrouver facilement.": "<1>Add this summary to your notes</1> to find it easily."
   }
 });

@@ -2643,6 +2643,14 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Bien vu :": "Nice one:",
     "Pas tout à fait :": "Not quite:",
     "Bien rattrapé, mais seul le premier essai compte : moment raté.": "Nice save, but only the first try counts: moment missed.",
-    "Voir le bilan": "See the summary"
+    "Voir le bilan": "See the summary",
+    /* La fin d’une leçon ratée (14 novembre) */
+    "Encore un effort !": "One more push!",
+    "Rejouer les {1} moments ratés": "Replay the {1} missed moments",
+    "Rejouer le moment raté": "Replay the missed moment",
+    "Recommencer la vidéo": "Restart the video",
+    "Tout recommencer": "Start over",
+    "Bien rattrapé !": "Nice save!",
+    "Raté": "Missed"
   }
 });

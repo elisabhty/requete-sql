@@ -111,6 +111,11 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
 - **Le module 1** (14 novembre) : la base en anglais, la vidéo « Les bases de données relationnelles » (282 textes, son code,
   ses cinq moments, le badge et la vignette en anglais), l’écran de la leçon, son lecteur et sa fin. Sa voix anglaise reste à
   générer (environ 10 000 caractères, autant de crédits ElevenLabs).
+- **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
+  `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
+  `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
+  `assets/voix/en/<cours>/` et dans la vidéo (`voix` de `assets/anim/en/<cours>.js`). Chaque fichier garde l’id du français ;
+  `cles` donne la légende française de chaque phrase. Une voix anglaise native (choix d’Elisa, 23 h 47).
 - **À reprendre avec les défis** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base française ; une
   requête écrite en anglais sur un défi de la base des cours y serait refusée. À régler avant de traduire les défis.
 - **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :

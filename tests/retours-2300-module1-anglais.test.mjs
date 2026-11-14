@@ -131,3 +131,23 @@ test('l’écran de la leçon et son lecteur en anglais', () => {
   assert.ok(app.includes("function lvGateDeco(l){ return `<i class=\"ls-gate-x\" aria-hidden=\"true\" data-notrad>"), 'les pastilles du bouton hors de la phrase');
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('lecon',()=>typeof current!=='undefined'&&current&&mode==='lesson'&&current.titre||'')"));
 });
+
+test('la voix anglaise du module 1 : prête pour generer.mjs --langue en, fichier pour fichier avec le français', () => {
+  const gen = lire('tools/voix/generer.mjs');
+  for (const k of ["const LANGUE = opt('--langue');", "const JOBS = LANGUE ? path.join(DIR, LANGUE) : DIR, SORTIE = LANGUE ? path.join(DIR, 'sortie', LANGUE) : path.join(DIR, 'sortie');",
+    "const jobs = fs.readdirSync(JOBS).filter(f => f.endsWith('.json'));", "x.cours, '--oui', ...(LANGUE ? ['--langue', LANGUE] : [])"])
+    assert.ok(gen.includes(k), k);
+  const fr = JSON.parse(lire('tools/voix/bases-relationnelles.json')), en = JSON.parse(lire('tools/voix/en/bases-relationnelles.json'));
+  assert.equal(en.langue, 'en'); assert.equal(en.cours, 'bases-relationnelles'); assert.equal(en.modele, fr.modele);
+  assert.ok(en.voix && en.voix.id && en.voix.nom);
+  assert.deepEqual(en.elements.map(e => e.id), fr.elements.map(e => e.id), 'les mêmes fichiers, dans le même ordre');
+  const caps = [...page.matchAll(/\["(v[0-9a-z]+)","(ch[0-9a-z]+)",/g)].map(m => [m[1], m[2]]);
+  for (const e of en.elements) {
+    assert.ok(!/[éèàçùâêîôû«»]/.test(e.texte), `${e.id} : en anglais`);
+    if (!e.cles) continue;
+    assert.deepEqual(e.cles, caps.filter(c => c[1] === e.id).map(c => c[0]), `${e.id} : les légendes de son fichier, dans l’ordre`);
+    assert.equal(e.phrases.length, e.cles.length);
+  }
+  const total = en.elements.reduce((a, e) => a + e.texte.length, 0);
+  assert.ok(total > 7000 && total < 10000, `${total} caractères (autant de crédits)`);
+});

@@ -9,7 +9,7 @@
    Un fichier déjà généré n’est pas refait (sauf si son texte ou sa voix a changé) : relancer le script ne dépense rien de plus.
    Une phrase sans contexte (« Bien vu ! », une consigne) déjà dite par la même voix pour un autre cours est reprise, sans rien dépenser.
 
-   Options : <cours> (par défaut le seul fichier .json du dossier), --toutes (toutes les leçons qui ont un fichier manquant ou changé ;
+   Options : <cours> (par défaut le seul fichier .json du dossier), --langue en (la voix anglaise : tools/voix/en/<cours>.json), --toutes (toutes les leçons qui ont un fichier manquant ou changé ;
    avec --cours a,b,c : seulement ces leçons-là),
    --refaire ch06,at2 (regénère ces fichiers),
    --tout (regénère tout), --oui (ne demande pas de confirmation), --cle (redemande la clé API). */
@@ -25,6 +25,11 @@ const KEY_FILE = path.join(os.homedir(), '.config', 'requete', 'elevenlabs.key')
 const args = process.argv.slice(2);
 const flag = f => args.includes(f);
 const opt = f => { const i = args.indexOf(f); return i >= 0 ? (args[i + 1] || '') : null; };
+/* --langue en (14 novembre, les vidéos en anglais) : les cours de tools/voix/en/, rangés dans tools/voix/sortie/en/<cours>/.
+   Sans --langue, rien ne change : le français, tools/voix/<cours>.json. */
+const LANGUE = opt('--langue');
+const JOBS = LANGUE ? path.join(DIR, LANGUE) : DIR, SORTIE = LANGUE ? path.join(DIR, 'sortie', LANGUE) : path.join(DIR, 'sortie');
+const SORTIE_TXT = 'tools/voix/sortie/' + (LANGUE ? LANGUE + '/' : '');
 const nb = n => n.toLocaleString('fr-FR');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -76,7 +81,7 @@ function fait(job, out, el){
    même voix a déjà dite, mot pour mot, pour un autre cours : ses deux fichiers sont copiés, rien n’est dépensé. Les chapitres, dits
    avec leur contexte, sont toujours générés. */
 function reprendre(job, out){
-  const sortie = path.join(DIR, 'sortie');
+  const sortie = typeof SORTIE !== 'undefined' ? SORTIE : path.join(DIR, 'sortie');
   const autres = fs.existsSync(sortie) ? fs.readdirSync(sortie).filter(c => c !== job.cours) : [];
   let n = 0;
   for (const el of job.elements || []) {
@@ -122,7 +127,7 @@ async function call(key, url, init){
 }
 
 async function main(){
-  const jobs = fs.readdirSync(DIR).filter(f => f.endsWith('.json'));
+  const jobs = fs.readdirSync(JOBS).filter(f => f.endsWith('.json'));
   /* --toutes (Elisa, 2 novembre, 10 h 44 : « une commande qui regroupe tout ce que j’ai oublié ») : chaque cours dont un fichier
      manque ou dont le texte a changé, l’un après l’autre ; les cours déjà complets sont sautés sans rien dépenser. */
   if (flag('--toutes')) {
@@ -131,7 +136,7 @@ async function main(){
     const inconnus = seuls.filter(c => !jobs.includes(c + '.json'));
     if (inconnus.length) { console.log('Leçon inconnue : ' + inconnus.join(', ') + '. Rien n’est fait.'); process.exit(1); }
     let repris = 0;
-    const reste = jobs.filter(f => !seuls.length || seuls.includes(f.replace(/\.json$/, ''))).map(f => { const job = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')), out = path.join(DIR, 'sortie', job.cours);
+    const reste = jobs.filter(f => !seuls.length || seuls.includes(f.replace(/\.json$/, ''))).map(f => { const job = JSON.parse(fs.readFileSync(path.join(JOBS, f), 'utf8')), out = path.join(SORTIE, job.cours);
       repris += reprendre(job, out);
       const todo = (job.elements || []).filter(el => !fait(job, out, el)), mus = job.musique && !musiqueFaite(job, out) ? 1 : 0;
       return {cours: f.replace(/\.json$/, ''), voix: job.voix && job.voix.nom, n: todo.length + mus, mus, cost: todo.reduce((a, el) => a + el.texte.length, 0)}; }).filter(x => x.n);
@@ -146,15 +151,15 @@ async function main(){
       if (!a.startsWith('o') && !a.startsWith('y')) { console.log('D’accord, rien n’est fait.'); return; }
     }
     const {execFileSync} = await import('node:child_process');
-    for (const x of reste) execFileSync(process.execPath, [fileURLToPath(import.meta.url), x.cours, '--oui'], {stdio: 'inherit'});
+    for (const x of reste) execFileSync(process.execPath, [fileURLToPath(import.meta.url), x.cours, '--oui', ...(LANGUE ? ['--langue', LANGUE] : [])], {stdio: 'inherit'});
     console.log('\nFini : dis à Claude « fini » pour qu’il intègre les nouvelles voix.');
     return;
   }
   const name = args.find(a => !a.startsWith('--') && jobs.includes(a.replace(/\.json$/, '') + '.json') && args[args.indexOf(a) - 1] !== '--refaire');
   const file = name ? name.replace(/\.json$/, '') + '.json' : (jobs.length === 1 ? jobs[0] : null);
   if (!file) { console.log('Quel cours ? ' + jobs.map(f => f.replace(/\.json$/, '')).join(', ')); process.exit(1); }
-  const job = JSON.parse(fs.readFileSync(path.join(DIR, file), 'utf8'));
-  const out = path.join(DIR, 'sortie', job.cours);
+  const job = JSON.parse(fs.readFileSync(path.join(JOBS, file), 'utf8'));
+  const out = path.join(SORTIE, job.cours);
   fs.mkdirSync(out, {recursive: true});
 
   const redo = new Set((opt('--refaire') || '').split(',').map(s => s.trim()).filter(Boolean));
@@ -164,7 +169,7 @@ async function main(){
   const todo = job.elements.filter(el => flag('--tout') || redo.has(el.id) || !done(el));
   const musTodo = !!job.musique && (flag('--tout') || redo.has('musique') || !musiqueFaite(job, out));
   console.log(`\nVoix off · ${job.titre} · voix ${job.voix.nom} (${job.modele})`);
-  if (!todo.length && !musTodo) { console.log('Tout est déjà généré dans tools/voix/sortie/' + job.cours + '. Rien à faire.'); return; }
+  if (!todo.length && !musTodo) { console.log('Tout est déjà généré dans ' + SORTIE_TXT + job.cours + '. Rien à faire.'); return; }
 
   const key = await apiKey();
   /* Crédits restants (une clé limitée à « Text to Speech » ne peut pas les lire : on s’en passe). */
@@ -250,7 +255,7 @@ async function main(){
   }
   const all = job.elements.every(done) && (!job.musique || musiqueFaite(job, out));
   fs.writeFileSync(path.join(out, '_etat.json'), JSON.stringify({cours: job.cours, complet: all, faits: job.elements.filter(done).map(e => e.id), fini: new Date().toISOString()}));
-  console.log(all ? `\nC’est fini : ${job.elements.length} fichiers dans tools/voix/sortie/${job.cours}. Tu peux le dire à Claude.`
+  console.log(all ? `\nC’est fini : ${job.elements.length} fichiers dans ${SORTIE_TXT}${job.cours}. Tu peux le dire à Claude.`
     : `\n${ok} fichier${ok > 1 ? 's' : ''} généré${ok > 1 ? 's' : ''}, il en manque : relance la même commande pour finir (seuls les manquants seront faits).`);
 }
 
