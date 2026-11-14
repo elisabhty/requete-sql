@@ -2489,3 +2489,61 @@ test('16 h : classée, rouverte plus d’1 h après : sa salle relue sans écran
   const c = rouvrirClassee(w2, a2, { monde: autre }); sec(autre, 10);
   assert.equal(garde(c), null); assert.notEqual(c.view(), 'lost');
 });
+
+/* ---------- 16 h 40 (Elisa : « Ok mais si la partie est terminée ? ») : entre amis, une partie en cours que iOS ferme se rouvre ---------- */
+function fermerSalle(c) { c.ev('jeuSalleGarder()'); c.endormi = true; c.deaf = true; couper(c); }   // passée derrière, puis fermée par iOS
+function rouvrirSalle(w, c) {
+  const b = makeClient(w, c.name, { store: c.store });
+  b.ev(`state.onboarded=true;sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(c.pid())})`);   // l’identité du serveur, la même
+  b.ev('jeuSalleAuDemarrage()');
+  return b;
+}
+const salleGardee = c => c.store['rq-jeu-salle'] ? JSON.parse(c.store['rq-jeu-salle']) : null;
+
+test('16 h 40 : entre amis, fermée par iOS en pleine partie, rouverte 3 min après : la manche en cours, le même chrono, les mêmes points', () => {
+  const { w, host, guests } = room({ n: 2, nb: 3 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5); sec(w, 20);
+  ami.found(); sec(w, 2);
+  fermerSalle(ami);
+  assert.equal(salleGardee(ami).code, 'ROOM42');
+  host.found(); sec(w, 2); sec(w, 3 * 60);
+  assert.equal(host.view(), 'play1');
+  const b = rouvrirSalle(w, ami); sec(w, 5);
+  assert.equal(b.view(), 'play1', 'la manche en cours, comme les autres');
+  assert.deepEqual(cids(b), cids(host));
+  assert.ok(Math.abs(reste(b) - reste(host)) <= 1, `le même chrono : ${reste(b)} s et ${reste(host)} s`);
+  assert.deepEqual(points(b), points(host));
+  assert.ok(b.toasts.includes('Te revoilà ! La partie a continué sans toi : manche 2/3.'));
+  b.found(); sec(w, 2);
+  assert.ok(host.ev(`JEU.rounds[1].found[${JSON.stringify(b.pid())}]!=null`), 'l’hôte la voit trouver');
+});
+
+test('16 h 40 : finie pendant l’absence : l’écran de fin, ses points comptés ; plus d’1 h après : rien ne s’ouvre, ses points comptés ; pas commencée, finie ou quittée : rien à rouvrir', () => {
+  const { w, host, guests } = room({ n: 2, nb: 1 });
+  const ami = guests[0];
+  host.ev('jeuNextRound()'); sec(w, 4.5); sec(w, 20);
+  ami.found(); sec(w, 2);
+  fermerSalle(ami); sec(w, 15 * 60);
+  assert.equal(host.view(), 'final');
+  const b = rouvrirSalle(w, ami); sec(w, 8);
+  assert.equal(b.view(), 'final', 'l’écran de fin, le podium');
+  assert.deepEqual(points(b), points(host));
+  assert.equal(b.ev('state.salle.parties'), 1, 'ses points comptés');
+  assert.ok(b.toasts.includes('Te revoilà ! La partie s’est terminée pendant ton absence.'));
+  b.ev('jeuSalleGarder()'); assert.equal(salleGardee(b), null, 'repartie sur l’écran de fin : rien à rouvrir');
+  /* Plus d’1 h après */
+  const r = room({ n: 2, nb: 1 }), ami2 = r.guests[0];
+  r.host.ev('jeuNextRound()'); sec(r.w, 4.5); sec(r.w, 20); ami2.found(); sec(r.w, 2);
+  fermerSalle(ami2); sec(r.w, 2 * 3600);
+  const c = rouvrirSalle(r.w, ami2); sec(r.w, 3);
+  assert.equal(c.ev('JEU'), null, 'rien ne s’ouvre');
+  assert.equal(c.ev('state.salle.parties'), 1, 'ses points comptés');
+  assert.ok(c.ev('state.salle.pts') > 0);
+  assert.equal(salleGardee(c), null);
+  /* La salle d’attente, une partie finie à l’écran, ou « Quitter » : rien n’est gardé */
+  const s = room({ n: 2, nb: 1 }), x = s.guests[0];
+  x.ev('jeuSalleGarder()'); assert.equal(salleGardee(x), null, 'pas commencée');
+  s.host.ev('jeuNextRound()'); sec(s.w, 4.5); x.ev('jeuSalleGarder()'); assert.ok(salleGardee(x), 'en cours : gardée');
+  x.ev('jeuStop()'); assert.equal(salleGardee(x), null, 'quittée');
+});
