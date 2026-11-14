@@ -219,7 +219,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=380">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=71">') && sw.includes("'./onboarding-vitrine.css?v=71',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=381">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=72">') && sw.includes("'./onboarding-vitrine.css?v=72',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-14-bloquer-v3023' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-14-accord-v3024' && app.includes(`const SW_CACHE='${cache}';`));
 });

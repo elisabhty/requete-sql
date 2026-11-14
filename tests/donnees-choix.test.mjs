@@ -35,7 +35,7 @@ test('quatre rubriques fermées au départ, chacune avec son résumé ; ouvertes
   const t = feuille();
   const h = t.ev("accDonneesHTML('<i>actions</i>')");
   const titres = [...h.matchAll(/<span class="dc-tt"><b>([^<]+)<\/b><small>([^<]+)<\/small><\/span>/g)].map(m => [m[1], m[2]]);
-  assert.deepEqual(titres, [['Sur ton appareil', 'Tes cours, ta progression et tes bases importées.'], ['En ligne', 'Seulement ce qu’il faut pour jouer à plusieurs et te répondre.'],
+  assert.deepEqual(titres, [['Sur ton appareil', 'Tes cours, ta progression et tes bases importées.'], ['En ligne', 'Ce qu’il faut pour jouer à plusieurs et te répondre, et des statistiques si tu les acceptes.'],
     ['Ta confidentialité', 'Personne ne voit tes requêtes.'], ['Gérer mes données', 'Télécharger une copie de tes données ou effacer tes informations.']]);
   assert.equal((h.match(/ hidden>/g) || []).length, 4, 'les quatre fermées');
   assert.deepEqual([...h.matchAll(/data-k="([a-z]+)"/g)].map(m => m[1]), ['tel', 'nuage', 'shield', 'export'], 'un autocollant par rubrique');
@@ -99,5 +99,5 @@ test('le style : une carte blanche par rubrique, le lilas sur le titre ouvert ; 
   assert.ok(!css.includes('.acc-donnees'), 'le style de l’ancienne carte est parti');
   const stk = cut('function lqStkSvg(k){', '\n}');
   assert.ok(stk.includes("    tel:['<rect x=\"12\" y=\"3.5\" width=\"24\" height=\"41\" rx=\"6.5\"/>',") && stk.includes("    nuage:['<path d=\"M14.5 39h20"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=380">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=381">'));
 });

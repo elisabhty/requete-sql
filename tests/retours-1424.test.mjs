@@ -70,8 +70,9 @@ test('réf. 4 : personne de classé → le message, plus « 1 à 0 sur 0 »', ()
   const charger = fn('clsPageCharger');
   assert.ok(charger.includes('if(sc&&c.total>0&&sc.children.length===clsPagesNb())clsPagerRemplir();else clsPagerPeindre();'));
   const el = { textContent: '' }, ctx = vm.createContext({ DEFIS: { cls: { total: 0, page: 0 } }, CLS_PAR_PAGE: 5, CLS_PAGES_MAX: 20, clsPts: n => String(n),
-    document: { getElementById: id => (id === 'dx-range' ? el : null) } });
-  vm.runInContext(fn('clsPagesNb') + fn('clsCompteEcrire') + fn('clsNavPeindre'), ctx);   // le compte « 5 joueurs classés » s’écrit avec (refonte du 7 novembre)
+    state: { salle: {} }, document: { getElementById: id => (id === 'dx-range' ? el : null) } });
+  /* 14 novembre, 18 h : le compte retire les joueurs masqués ou bloqués (clsTotalVu) */
+  vm.runInContext(fn('clsPagesNb') + cut('function clsCache(x){', 'function clsMoiSuiteHTML(l){') + fn('clsCompteEcrire') + fn('clsNavPeindre'), ctx);   // le compte « 5 joueurs classés » s’écrit avec (refonte du 7 novembre)
   ctx.clsNavPeindre();
   assert.equal(el.textContent, '');
   /* 14 novembre, 0 h 32 : une seule liste (les 5 premiers, puis « … » et sa place) : plus de page 3 */
@@ -83,6 +84,12 @@ test('la suppression du compte retire aussi des classements, et la liste le dit'
   assert.ok(fn('compteSupprimerHTML').includes(', tes scores et ta place dans les classements, tes avis, ton vote et tes messages'));
   const mig = lire('supabase/migrations/20261104224931_compte_supprimer.sql'), cls = lire('supabase/migrations/20261031143437_classement_general.sql');
   assert.ok(mig.includes('delete from public.jeu_joueur where cle = v_cle;') && cls.includes('joueur uuid not null references public.jeu_joueur (id) on delete cascade'), 'ses parties partent avec lui');
+  /* 14 novembre, 18 h (l’audit App Review) : abonné, la fenêtre dit que la facturation d’Apple continue et où l’arrêter */
+  const ctx = vm.createContext({ esc: x => x, DEL_SVG: { nuage: '', tel: '', alerte: '' }, obAbonne: () => true });
+  vm.runInContext(cut('function compteSupprimerHTML(', '\nasync function compteSupprimer(){'), ctx);
+  assert.ok(ctx.compteSupprimerHTML('@lea', true).includes('<p class="lq-del-abo">Ton abonnement Requête Premium n’est pas résilié pour autant&nbsp;: Apple continue de le facturer tant que tu ne l’arrêtes pas, dans Mon compte › Gérer mon abonnement ou dans les réglages de ton identifiant Apple.</p>'));
+  ctx.obAbonne = () => false;
+  assert.ok(!ctx.compteSupprimerHTML('@lea', true).includes('lq-del-abo'), 'sans abonnement, rien');
 });
 
 test('import : l’en-tête sous un titre fusionné, les lignes par requête préparée avec la progression, le bouton occupé', async () => {
@@ -161,6 +168,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=380">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-bloquer-v3023';") && app.includes("const SW_CACHE='requete-2026-11-14-bloquer-v3023';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=381">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-accord-v3024';") && app.includes("const SW_CACHE='requete-2026-11-14-accord-v3024';"));
 });

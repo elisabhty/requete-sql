@@ -38,6 +38,6 @@ test('plus d’élastique sous le doigt, sauf si la page ne tient vraiment pas',
 });
 
 test('la nouvelle feuille de style arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=71">'));
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=71',") && sw.includes("const CACHE = 'requete-2026-11-14-bloquer-v3023';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=72">'));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=72',") && sw.includes("const CACHE = 'requete-2026-11-14-accord-v3024';"));
 });

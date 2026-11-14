@@ -9,14 +9,16 @@ const conf = readFileSync(new URL('../decouvrir/confidentialite.html', import.me
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i + a.length); assert.ok(j > i, b); return app.slice(i, j); };
 const code = cut('const STAT_FILE=', "if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){\n  window.addEventListener('load',()=>setTimeout(()=>{try{statOuverture();");
 
-const monter = () => {
-  const store = new Map(), envois = [];
+/* 14 novembre, 18 h : les statistiques attendent un accord (la case de la page du compte) ; accord : '1' coché, '0' décoché, null jamais */
+const monter = (accord = '1') => {
+  const store = new Map(), envois = [], minuteurs = [];
+  if (accord != null) store.set('rq-stat-accord', accord);
   const ctx = vm.createContext({ localStorage: { getItem: k => store.has(k) ? store.get(k) : null, setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) },
     dstr: d => d.toISOString().slice(0, 10), auj: () => new Date('2026-11-10T12:00:00Z'), addJ: (d, n) => new Date(+d + n * 864e5), window: { APP_VERSION: 'requete-x-v2833' },
-    setTimeout: () => 0, clearTimeout() {}, clsCle: () => 'a'.repeat(32), clsRpc: (fn, b) => { envois.push([fn, b]); return Promise.resolve({ ok: true }); },
+    setTimeout: f => { minuteurs.push(f); return 0; }, clearTimeout() {}, clsCle: () => 'a'.repeat(32), clsRpc: (fn, b) => { envois.push([fn, b]); return Promise.resolve({ ok: true }); },
     appliNative: () => true, streakJours: () => 0 });
   vm.runInContext(code, ctx);
-  return { ctx, store, envois };
+  return { ctx, store, envois, minuteurs };
 };
 
 test('la file : un type de la liste, le jour, un nombre ; une fois par jour pour l’ouverture ; par lots de 40', async () => {
@@ -35,6 +37,28 @@ test('la série cassée : notée au retour quand la série d’au moins 2 jours 
   const { ctx, store } = monter();
   store.set('rq-stat-serie', '5'); ctx.statOuverture();
   assert.ok(ctx.statLire().some(e => e.t === 'serie_cassee' && e.v === 5));
+});
+
+test('l’accord (14 novembre) : jamais coché, rien n’est noté ni envoyé ; coché, l’ouverture se note et part ; l’ancien refus compte', async () => {
+  const { ctx, store, envois, minuteurs } = monter(null);
+  assert.equal(ctx.statActif(), false, 'jamais demandé : coupées');
+  ctx.statOuverture(); ctx.stat('flamme', 2);
+  assert.equal(ctx.statLire().length, 0, 'rien n’attend sur l’appareil'); assert.equal(await ctx.statEnvoyer(), false); assert.equal(envois.length, 0);
+  assert.equal(ctx.statCaseHTML(), '<label class="ob-stat-case"><input type="checkbox" onchange="statChoisir(this.checked)"><span>Envoyer des statistiques d’usage anonymes pour améliorer l’appli</span></label>', 'décochée par défaut');
+  ctx.statChoisir(true);
+  assert.equal(store.get('rq-stat-accord'), '1'); assert.ok(ctx.statCaseHTML().includes('<input type="checkbox" checked onchange='));
+  minuteurs.splice(0).forEach(f => f());
+  await new Promise(r => setImmediate(r));
+  assert.deepEqual(envois.map(e => e[0]), ['stat_noter'], 'l’installation et l’ouverture du jour partent tout de suite');
+  assert.deepEqual(JSON.parse(JSON.stringify(envois[0][1].p_evts.map(e => e.t))), ['installation', 'ouverture']);
+  /* Avant le 14 novembre, seul le refus était gardé (rq-stat-off) : il vaut toujours refus */
+  const vieux = monter(null); vieux.store.set('rq-stat-off', '1');
+  assert.equal(vieux.ctx.statAccord(), '0'); vieux.ctx.statChoisir(true);
+  assert.equal(vieux.ctx.statActif(), true); assert.ok(!vieux.store.has('rq-stat-off'));
+  /* La case sur la page du compte, sous la phrase des conditions ; dans le pied quand la connexion n’est pas là */
+  assert.ok(app.includes("${authReady?`<p class=\"ob-acc-legal\">${legalHtml}</p>${typeof statCaseHTML==='function'?statCaseHTML():''}`:''}"));
+  assert.ok(app.includes("{html:legal+(typeof statCaseHTML==='function'?statCaseHTML():'')}"));
+  assert.ok(app.includes("function obCompteEnvoyer(){\n  if(typeof statActif==='function'&&!statActif())return Promise.resolve(false);"), 'l’entonnoir aussi');
 });
 
 test('coupées : plus rien ne part, la file est vidée et le serveur oublie ; « Supprimer mon compte » aussi', async () => {
@@ -58,5 +82,6 @@ test('le serveur : la migration est dans le dépôt, la politique de confidentia
   const sql = readFileSync(new URL('../supabase/migrations/' + m, import.meta.url), 'utf8');
   assert.ok(sql.includes("encode(extensions.digest(v_cle || ':stat', 'sha256'), 'hex')") && sql.includes('revoke all on function public.stat_tableau(integer) from public, anon, authenticated;'));
   assert.ok(sql.includes("interval '400 days'"), '13 mois au plus');
-  assert.ok(conf.includes('<b>Statistiques d’usage anonymes.</b>') && conf.includes('effacées automatiquement au bout de 13&nbsp;mois'));
+  assert.ok(conf.includes('<b>Statistiques d’usage anonymes</b> (facultatives, avec ton accord).') && conf.includes('effacées automatiquement au bout de 13&nbsp;mois'));
+  assert.ok(conf.includes('Tant que tu ne l’as pas cochée, rien n’est envoyé.') && conf.includes('Tu peux donner ou retirer ton accord à tout moment dans Mon compte › Tes données, tes choix'), 'l’accord, dit dans la politique');
 });

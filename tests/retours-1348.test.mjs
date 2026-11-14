@@ -53,7 +53,7 @@ test('envoyer le commentaire : gardé sur l’appareil (espaces resserrés, 500 
   for (const k of ['html.lq #scr-lesson .bravo-avis .av-com.is-cache{display:none}', 'html.lq #scr-lesson .bravo-avis .av-com.is-ouvert>.av-com-lien{display:none}',
     'html.lq #scr-lesson .bravo-avis .av-com-zone textarea{display:block;width:100%;min-height:92px;', '.av-com-champ,.av-com-merci),html.lq #scr-lesson .bravo-avis{animation:none!important}}'])
     assert.ok(css.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=380">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=381">'));
 });
 
 const repriseLab = ({onboarded = false, apercu = false, legal = null} = {}) => {
@@ -102,6 +102,10 @@ test('où l’onboarding perd du monde : chaque étape comptée une fois par app
   vm.runInContext(cut('const OB_COMPTE=', "if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){\n  window.addEventListener('load',()=>setTimeout(()=>{try{obCompteEnvoyer();}") + ';this.OB_COMPTE=OB_COMPTE;', ctx);
   for (const e of ['welcome', 'name', 'name', 'pays', 'x y', '']) ctx.obCompter(e);
   assert.deepEqual(JSON.parse(ls.getItem(ctx.OB_COMPTE)), {vues: ['welcome', 'name', 'pays'], parties: []}, 'une fois chacune, et rien d’autre');
+  /* 14 novembre, 18 h : sans l’accord des statistiques (la case de la page du compte), les étapes restent sur l’appareil */
+  assert.equal(await ctx.obCompteEnvoyer(), false);
+  assert.equal(envois.length, 0, 'rien ne part avant l’accord');
+  ls.setItem('rq-stat-accord', '1');
   assert.equal(await ctx.obCompteEnvoyer(), false);
   assert.deepEqual(envois[0], ['onboarding_compter', {p_cle: 'K'.repeat(32), p_etapes: ['welcome', 'name', 'pays']}]);
   enLigne = true;

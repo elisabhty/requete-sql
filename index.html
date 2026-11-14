@@ -6753,9 +6753,9 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=380">
+<link rel="stylesheet" href="ludique.css?v=381">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=71">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=72">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -28340,7 +28340,7 @@ function parcoursListeHTML(){
     return `<li class="pc-soon"><button type="button" class="pc-card is-soon" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-card-copy"><b>${esc(p.titre)}</b><em class="pc-tag">À venir</em></span><span class="pc-bell-place" aria-hidden="true"></span></button><button type="button" class="pc-bell${on?' is-on':''}" aria-pressed="${on?'true':'false'}" aria-label="${escAttr('M’avertir au lancement de '+p.titre)}" onclick="parcoursCloche('${p.id}',this)">${PC_BELL_SVG}<i class="pc-bell-ok" aria-hidden="true"></i></button></li>`;}).join('');
   return `<div class="pc-view">
     <p class="pc-sec">Disponible</p>
-    <button type="button" class="pc-card is-on" onclick="returnToHome()" aria-label="${escAttr(`Parcours SQL, ${parcoursSqlEtat(done).toLowerCase()} : ${parcoursValidees(done)}`)}"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg('db')}</i><span class="pc-card-copy"><span class="pc-card-top"><b>SQL</b><em class="pc-tag is-on">${parcoursSqlEtat(done)}</em></span><span class="pc-card-meta">${PC_BOOK_SVG}${nMods} modules · ${TOTAL} leçons</span><span class="pc-bar" aria-hidden="true"><i style="width:${pct}%"></i></span><small>${parcoursValidees(done)}</small></span><span class="pc-card-go" aria-hidden="true">${DEF_CHEV_SVG}</span></button>
+    <button type="button" class="pc-card is-on" onclick="returnToHome()" aria-label="${escAttr(`Parcours SQL, ${parcoursSqlEtat(done).toLowerCase()} : ${parcoursValidees(done)}`)}"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg('db')}</i><span class="pc-card-copy"><span class="pc-card-top"><b>SQL</b><em class="pc-tag is-on">${parcoursSqlEtat(done)}</em></span><span class="pc-card-meta">${PC_BOOK_SVG}${nMods} modules · ${TOTAL} leçons</span><span class="pc-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${done?`<small>${parcoursValidees(done)}</small>`:''}</span><span class="pc-card-go" aria-hidden="true">${DEF_CHEV_SVG}</span></button>
     <p class="pc-sec">À venir</p>
     <ul class="pc-list">${soon}</ul>
     <button type="button" class="pc-vote-cta" onclick="openParcours('${(vp||parcoursAVenir()[0]).id}')"><span><b>Quel parcours après SQL\u00a0?</b><small>${vp?`Ton vote\u00a0: ${esc(vp.titre)}.`:'Aide-nous à choisir le prochain.'}</small></span><em>${vp?'Changer':'Voter'}</em></button>
@@ -30358,12 +30358,27 @@ function clsLigneHTML(x,i){
    ma place à moi (ça dépend du classement) ») : une seule liste, plus de pages qu’on fait glisser : les 5 premiers du classement choisi
    (Monde, son pays, Mes adversaires), puis, si l’on n’en est pas, « … » et sa propre ligne, à sa place dans ce classement. */
 function clsPagesNb(){return 1;}
+/* 14 novembre, 18 h (l’audit App Review : après « Signaler et bloquer » sur le 1er, le podium gardait sa marche « À prendre » et
+   « 3 joueurs classés ») : un joueur masqué ou bloqué quitte le classement de l’appareil. Ceux qu’il précédait montent d’autant (le
+   rang vu : celui de la base, moins les joueurs cachés devant), et le compte des joueurs classés le retire. */
+function clsCache(x){
+  if(!x||x.moi)return false;
+  const hide=Array.isArray((state.salle||{}).masques)?state.salle.masques:[];
+  return hide.includes(x.id)||(typeof jeuBloque==='function'&&jeuBloque(x.pseudo));
+}
+function clsCaches(){
+  const c=typeof DEFIS!=='undefined'&&DEFIS.cls?DEFIS.cls:null,vus=new Set();
+  return Object.values(c&&c.pages||{}).flat().filter(x=>clsCache(x)&&!vus.has(x.id)&&vus.add(x.id));
+}
+function clsRangVu(r,caches){const n=Math.floor(+r||0);return n>0?n-(caches||clsCaches()).filter(x=>Math.floor(+x.rang||0)<n).length:0;}
+function clsVus(l){const k=clsCaches();return (l||[]).filter(x=>x&&!clsCache(x)).map(x=>Object.assign({},x,{rang:clsRangVu(x.rang,k)}));}
+function clsTotalVu(){const c=DEFIS.cls;return c.total==null?c.total:Math.max(0,c.total-clsCaches().length);}
 function clsMoiSuiteHTML(l){
   const m=DEFIS.cls.moi;
   if(!m||!(+m.pts>0)||(l||[]).some(x=>x&&(x.moi||(m.id&&x.id===m.id))))return '';
   /* 0 h 41 : « … » dit combien de joueurs séparent le dernier montré de toi ; juste derrière lui (6e), ta ligne suit, sans « … ». */
-  const der=Math.max(0,...(l||[]).map(x=>Math.floor(+(x&&x.rang)||0))),entre=Math.max(0,Math.floor(+m.rang||0)-der-1);
-  return (entre?`<li class="dx-cls-etc"><span><b aria-hidden="true">…</b> ${clsPts(entre)} autre${entre>1?'s':''} joueur${entre>1?'s':''}</span></li>`:'')+clsLigneHTML(Object.assign({},m,{moi:true}),(l||[]).length+1);
+  const rg=clsRangVu(m.rang),der=Math.max(0,...(l||[]).map(x=>Math.floor(+(x&&x.rang)||0))),entre=Math.max(0,rg-der-1);
+  return (entre?`<li class="dx-cls-etc"><span><b aria-hidden="true">…</b> ${clsPts(entre)} autre${entre>1?'s':''} joueur${entre>1?'s':''}</span></li>`:'')+clsLigneHTML(Object.assign({},m,{moi:true,rang:rg}),(l||[]).length+1);
 }
 /* Personne de classé (Elisa, 7 novembre, 21 h 44 : « l’état vide pourrait être plus motivant ») : « Le classement n’attend que toi ! »,
    puis la phrase de la période et du pays, accordée (« Sois la première », « Sois le premier ») ; sans genre connu, une phrase qui
@@ -30384,7 +30399,7 @@ function clsPagerPeindre(){
      mondial ») ; un filtre pas encore servi par la base ne promet plus de mise à jour. */
   if(c.err==='net'&&!c.pages[0]){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Classement indisponible pour le moment&nbsp;: il faut une connexion internet.</p><button type="button" class="perf-top-btn" onclick="DEFIS.cls.cle='';clsPageCharger(0)">Réessayer</button></div>`;clsPlacePeindre();return;}
   if(c.err==='bientot'){host.innerHTML=`<div class="dx-cls-msg"><p class="perf-top-msg">Ce classement n’est pas disponible pour le moment.</p><button type="button" class="perf-top-btn" onclick="DEFIS.periode='tout';defisPortee('monde')">Voir le classement mondial</button></div>`;clsPlacePeindre();return;}
-  if(c.total===0){host.innerHTML=DEFIS.portee==='amis'
+  if(clsTotalVu()===0){host.innerHTML=DEFIS.portee==='amis'
     ?'<div class="dx-cls-msg"><p class="perf-top-msg">Aucun de tes adversaires n’est encore classé. Joue à plusieurs&nbsp;: crée une partie et partage son code.</p><button type="button" class="perf-top-btn" aria-haspopup="dialog" onclick="defisCarte(\'creer\')">Créer ma partie</button></div>'
     :clsVideHTML();clsPlacePeindre();return;}
   host.innerHTML=`<div class="dx-pages" id="dx-pages"${n>1?` tabindex="0" aria-label="Classement, ${n} pages : glisse pour changer de page"`:''}>${Array.from({length:n},(_,i)=>`<ul class="dx-list dx-page" data-page="${i}" aria-label="${n>1?`Page ${i+1} sur ${n}`:'Classement'}"></ul>`).join('')}</div>
@@ -30404,9 +30419,8 @@ function clsPagerPeindre(){
 function clsPagerRemplir(){
   const c=DEFIS.cls,sc=document.getElementById('dx-pages');
   if(sc){
-    const hide=new Set(Array.isArray((state.salle||{}).masques)?state.salle.masques:[]);
     [...sc.children].forEach((ul,i)=>{
-      const l=c.pages[i],v=l?l.filter(x=>x&&!hide.has(x.id)&&!(typeof jeuBloque==='function'&&jeuBloque(x.pseudo))):null;
+      const l=c.pages[i],v=l?clsVus(l):null;
       const h=!v?clsAttenteHTML():i>0?v.map(clsLigneHTML).join(''):clsPodiumHTML(v)+v.filter(x=>Math.floor(+x.rang||0)>3).map(clsLigneHTML).join('')+clsMoiSuiteHTML(v);
       if(ul._dxH!==h){ul.innerHTML=h;ul._dxH=h;}
       ul.classList.toggle('is-wait',!l);
@@ -30436,8 +30450,8 @@ function clsAttenteHTML(){
 /* « 5 joueurs classés » : écrit à chaque remplissage (avant, seulement quand le pager était reconstruit : la première page arrivée par
    clsPagerRemplir laissait l’ancien surtitre jusqu’au rendu suivant). Rien tant que personne n’est classé. */
 function clsCompteEcrire(){
-  const c=DEFIS.cls,k=document.getElementById('dx-cls-k');
-  if(k)k.textContent=c.total?`${clsPts(c.total)} joueur${c.total>1?'s':''} classé${c.total>1?'s':''}${DEFIS.periode==='semaine'?' cette semaine':''}`:'';
+  const k=document.getElementById('dx-cls-k'),t=clsTotalVu();
+  if(k)k.textContent=t?`${clsPts(t)} joueur${t>1?'s':''} classé${t>1?'s':''}${DEFIS.periode==='semaine'?' cette semaine':''}`:'';
 }
 /* Les points, les flèches et « 6 à 10 sur 87 ». Une seule page (ou le chargement) : la navigation se cache et la page prend toute la
    largeur (plus d’amorce d’une page suivante qui n’existe pas). */
@@ -30477,14 +30491,14 @@ function clsPlacePeindre(){
   /* Refonte du 7 novembre : personne de classé, ou classement injoignable : le bloc du dessus dit déjà tout ; ici, seulement
      « Jouer un défi » (le titre « Ta place… » se cache). */
   const horsLigne=(c.err==='net'||c.err==='bientot')&&!c.pages[0];
-  if(tete)tete.hidden=(c.total===0||horsLigne)&&clsOn()&&!!nom;
+  if(tete)tete.hidden=(clsTotalVu()===0||horsLigne)&&clsOn()&&!!nom;
   if(!clsOn()){host.innerHTML='<p class="perf-top-msg">Tu n’apparais pas au classement.</p><button type="button" class="perf-top-btn" onclick="clsQuitter()">Y apparaître avec mon pseudo</button>';return;}
   if(!nom){host.innerHTML='<p class="perf-top-msg">Choisis ton pseudo pour entrer au classement.</p><button type="button" class="perf-top-btn" onclick="psPage({})">Choisir mon pseudo</button>';return;}
   /* « Jouer un défi » (Elisa, 7 novembre, 21 h 44) : d’ici, sans revenir à la main sur l’onglet Jouer. */
   const jouer=`<button type="button" class="room-go dx-cls-go" onclick="defisOnglet('jouer')"><span>Jouer un défi</span>${DEF_CHEV_SVG}</button>`;
   if(horsLigne){host.innerHTML=jouer;return;}
   if(c.total==null){host.innerHTML=`<ul class="dx-list is-wait" aria-label="Chargement de ta place"><li><span class="dx-rk"></span><b class="jeu-av is-empty"></b><span class="dx-t"><b></b><small></small></span></li></ul>${jouer}`;return;}
-  if(c.total===0){host.innerHTML=jouer;return;}
+  if(clsTotalVu()===0){host.innerHTML=jouer;return;}
   if(!m){
     host.innerHTML=`<p class="perf-top-msg">${DEFIS.portee==='pays'&&!paysMontre()?'Ton drapeau est masqué : tu n’apparais pas dans le classement de ton pays.':DEFIS.periode==='semaine'?'Termine un défi cette semaine pour décrocher ta place.':'Termine un défi pour décrocher ta place.'}</p>${jouer}`;
     return;
@@ -30492,7 +30506,7 @@ function clsPlacePeindre(){
   /* Classé : ta place et l’écart avec le joueur juste devant (« 110 pts te séparent de nora, 4e »), pour donner envie de grimper.
      Tout tient sur une page : ta ligne est déjà dans la liste, on ne la répète pas. Plusieurs pages : ta ligne (un toucher ramène à
      ta page), puis l’écart. */
-  const rk=Math.max(1,+m.rang||1),pts=Math.max(0,+m.pts||0),tous=Object.values(c.pages||{}).flat().filter(y=>y&&!y.moi);
+  const rk=Math.max(1,clsRangVu(m.rang)||1),pts=Math.max(0,+m.pts||0),tous=clsVus(Object.values(c.pages||{}).flat().filter(y=>y&&!y.moi));
   const devant=rk>1?tous.find(y=>+y.rang===rk-1):null,suivant=rk===1?tous.find(y=>+y.rang===2):null;
   let ecart='',jauge='';
   if(devant){const d=Math.max(0,(+devant.pts||0)-pts);ecart=d?`${clsPts(d)}&nbsp;pt${d>1?'s te séparent':' te sépare'} de ${esc(devant.pseudo)}, ${dxRang(rk-1)}.`:`À égalité avec ${esc(devant.pseudo)}&nbsp;: le chrono vous départage.`;
@@ -30541,7 +30555,7 @@ function jeuDefier(n){
 let dxFicheEtat=null;
 function dxFicheCls(id){
   const c=typeof DEFIS!=='undefined'&&DEFIS.cls?DEFIS.cls:null,x=c?Object.values(c.pages||{}).flat().find(y=>y&&y.id===id):null;
-  if(x&&!x.moi)dxFiche(x.pseudo,x);
+  if(x&&!x.moi)dxFiche(x.pseudo,Object.assign({},x,{rang:clsRangVu(x.rang)}));
 }
 function dxFiche(n,x){
   n=jeuNom(n);if(!n||drapCle(n)===drapCle(jeuSavedNom()))return;
@@ -30643,7 +30657,10 @@ function dxFicheHTML(){
   const pcs=(e.lieu?dxPc('is-blanc',esc(e.lieu)):'')+(m?dxPc('is-verre is-adv','Ton adversaire'):'');
   /* Refonte du 7 novembre (designer produit), sans rien changer au haut, aux chiffres, au face-à-face ni au bouton validés :
      s’il attend dans une salle ouverte, « En salle maintenant » et « Rejoindre » sous le bandeau ; ouverte depuis le classement,
-     « Signaler ce pseudo » en petit sous les boutons (il quitte chaque ligne du classement). */
+     « Signaler ce pseudo » en petit sous les boutons (il quitte chaque ligne du classement).
+     14 novembre, 18 h 09 (Elisa, sa capture de la fiche : « Ne pas mettre défier car c’est pas possible actuellement ») : plus de
+     bouton « Défier » ni « Prendre ta revanche » : la salle privée qu’il ouvrait n’arrivait jamais chez l’autre joueur (seul son
+     code partagé à la main l’y menait). Il reste « Signaler et bloquer » ; dxFicheDefier attend un vrai moyen d’inviter. */
   const s=dxFicheSalle(e.n),niv=s?(JEU_NIVL[s.niv]||'Facile'):'';
   const c=typeof DEFIS!=='undefined'&&DEFIS.cls?DEFIS.cls:null;
   const x=c?Object.values(c.pages||{}).flat().find(y=>y&&!y.moi&&drapCle(y.pseudo)===drapCle(e.n)):null;
@@ -30657,7 +30674,6 @@ function dxFicheHTML(){
     <div class="dx-fiche-kpi" id="dx-fiche-kpi" aria-live="polite">${dxFicheKpiHTML()}</div>
     ${m&&m.g?dxFicheDuelHTML(m,e)+`<p class="dx-fiche-h2h">Dernier duel&nbsp;: ${esc(perfDay(m.at).toLowerCase())}</p>`:''}
     <div class="dx-f-pied">
-    <button type="button" class="room-go" onclick="dxFicheDefier()"><span>${dxFicheRevanche(m,e)?'Prendre ta revanche ⚡':`Défier ${esc(e.n)}`}</span>${DEF_CHEV_SVG}</button>
     <button type="button" class="dx-fiche-signal" onclick="dxFicheSignaler('${escAttr(x?x.id:'')}')">Signaler et bloquer</button></div>
     </div>`;
 }
@@ -37545,7 +37561,7 @@ function jeuSignalerServeur(n,id){
 }
 /* Bloqué : ce qui est à l’écran suit (le classement, les salles ouvertes, la salle d’attente dont on est l’hôte : il en sort). */
 function jeuBloqueApplique(){
-  if(typeof clsPagerRemplir==='function')try{clsPagerRemplir();}catch(e){}
+  if(typeof clsPagerPeindre==='function')try{clsPagerPeindre();}catch(e){}
   if(typeof DEFIS!=='undefined'&&DEFIS&&Array.isArray(DEFIS.salles))DEFIS.salles=DEFIS.salles.filter(o=>!jeuSalleBloquee(o));
   const J=typeof JEU!=='undefined'?JEU:null;
   if(J&&!J.solo&&jeuIsHost()&&!jeuCommencee())Object.keys(J.players).forEach(p=>{if(p!==J.me&&!J.denied[p]&&jeuBloque(J.players[p].name))jeuSend({t:'deny',who:p,hu:J.helloOf[p]});});
@@ -46592,7 +46608,10 @@ function obCompterLecon(quoi){
     if(n===2)obCompter('leconDeux');
   }catch(e){}
 }
+/* 14 novembre, 18 h (l'accord des statistiques, plus bas) : les étapes vues restent notées sur l'appareil, mais ne partent qu'une fois
+   la case « Envoyer des statistiques d'usage anonymes » cochée ; sans elle, rien ne quitte le téléphone. */
 function obCompteEnvoyer(){
+  if(typeof statActif==='function'&&!statActif())return Promise.resolve(false);
   const c=obCompteLire(),reste=c.vues.filter(v=>!c.parties.includes(v)).slice(0,30);
   if(!reste.length||obCompteEnvoi||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
   obCompteEnvoi=true;
@@ -46606,10 +46625,16 @@ function obCompteEnvoyer(){
    Combien ouvrent l'app, allument leur flamme, finissent une semaine en feu, valident des leçons, jouent, arrivent au paywall, paient…
    Chaque événement (un type d'une liste fermée, le jour, un nombre, quelques détails courts) attend dans une file (localStorage) et part
    par lots de 40 au plus (stat_noter), avec la clé de l'appareil : le serveur la brouille deux fois, on ne peut pas la relier au pseudo.
-   Ni nom, ni e-mail, ni requête SQL. « Statistiques anonymes » dans Tes données, tes choix les coupe (et vide la file). */
-const STAT_FILE='rq-stat-file',STAT_OFF='rq-stat-off',STAT_VU='rq-stat-vu',STAT_SERIE='rq-stat-serie';
+   Ni nom, ni e-mail, ni requête SQL. « Statistiques anonymes » dans Tes données, tes choix les coupe (et vide la file).
+   14 novembre, 18 h (Elisa : « Est-ce possible de le demander en bas avec les conditions d'utilisation etc » ; App Review 5.1.1(ii) :
+   un accord, même pour des données anonymes) : elles attendent un accord. Une case décochée sous la phrase des conditions, sur la
+   page du compte (statCaseHTML), et l'interrupteur de Tes données, tes choix. Tant qu'elle n'est pas cochée, rien n'est noté ni
+   envoyé, ni ces statistiques ni l'entonnoir de l'accueil ; décochée ensuite, la file se vide et ce qui est parti est effacé. */
+const STAT_FILE='rq-stat-file',STAT_OFF='rq-stat-off',STAT_VU='rq-stat-vu',STAT_SERIE='rq-stat-serie',STAT_ACCORD='rq-stat-accord';
 let statEnvoi=false,statT=0,statErreurs=0;
-function statActif(){try{return localStorage.getItem(STAT_OFF)!=='1';}catch(e){return false;}}
+/* L'accord : '1' (la case cochée), '0' (décochée), '' (jamais coché : rien ne part). Avant le 14 novembre, seul le refus était noté. */
+function statAccord(){try{const a=localStorage.getItem(STAT_ACCORD);if(a==='1'||a==='0')return a;return localStorage.getItem(STAT_OFF)==='1'?'0':'';}catch(e){return '0';}}
+function statActif(){return statAccord()==='1';}
 function statLire(){try{const a=JSON.parse(localStorage.getItem(STAT_FILE)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
 function statJour(){try{return dstr(auj());}catch(e){return new Date().toISOString().slice(0,10);}}
 function stat(t,v,d){
@@ -46665,8 +46690,15 @@ function statEnvoyer(){
   }).catch(()=>false).then(ok=>{statEnvoi=false;return ok;});
 }
 function statChoisir(on){
-  try{if(on)localStorage.removeItem(STAT_OFF);else{localStorage.setItem(STAT_OFF,'1');localStorage.removeItem(STAT_FILE);}}catch(e){}
-  if(!on)statOublier();   // coupées : ce qui est déjà parti est effacé aussi
+  const avant=statAccord();
+  try{localStorage.setItem(STAT_ACCORD,on?'1':'0');localStorage.removeItem(STAT_OFF);if(!on)localStorage.removeItem(STAT_FILE);}catch(e){}
+  /* Cochée : l'ouverture du jour (et l'installation) se notent maintenant, et l'entonnoir de l'accueil part avec */
+  if(on){if(avant!=='1')setTimeout(()=>{try{statOuverture();statEnvoyer();if(typeof obCompteEnvoyer==='function')obCompteEnvoyer();}catch(e){}},0);}
+  else if(avant!=='0')statOublier();   // décochée : ce qui est déjà parti est effacé aussi
+}
+/* La case de la page du compte (14 novembre, 18 h), sous la phrase des conditions : décochée tant qu'on ne l'a pas cochée */
+function statCaseHTML(){
+  return `<label class="ob-stat-case"><input type="checkbox"${statActif()?' checked':''} onchange="statChoisir(this.checked)"><span>Envoyer des statistiques d’usage anonymes pour améliorer l’appli</span></label>`;
 }
 /* Effacer les statistiques de cet appareil sur le serveur (« Supprimer mon compte », ou l'interrupteur coupé) ; sans réseau, rien ne bloque */
 function statOublier(cle){
@@ -50720,7 +50752,7 @@ function paintOb(){
         ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
       </div>${messageF}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
       ${authReady?obSansCompteHTML():''}
-      ${authReady?`<p class="ob-acc-legal">${legalHtml}</p>`:''}
+      ${authReady?`<p class="ob-acc-legal">${legalHtml}</p>${typeof statCaseHTML==='function'?statCaseHTML():''}`:''}
       </div></div>`;
     }else
     html=`<div class="ob-screen ob-profile ob-account${reussie?' is-fete':''}${masquee?' is-sans-connexion':' is-grand'}">${obFlowHeader(slide)}
@@ -50742,9 +50774,10 @@ function paintOb(){
        sous le bouton, dans le pied de page. */
     /* 12 novembre, 13 h 33 : on accepte les conditions ; la politique de confidentialité, on en prend connaissance */
     const legal=`En continuant, tu acceptes nos <a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions d’utilisation</a> et reconnais avoir pris connaissance de notre <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Politique de confidentialité</a>.`;
-    /* 12 novembre, 18 h 12 : la feuille porte elle-même cette phrase (un seul bloc qui monte) ; le pied reste vide, et caché */
+    /* 12 novembre, 18 h 12 : la feuille porte elle-même cette phrase (un seul bloc qui monte) ; le pied reste vide, et caché.
+       14 novembre, 18 h : la case des statistiques suit la phrase, dans la feuille comme dans le pied. */
     if(!masquee&&authReady)obSetFooter('',null,'','','');
-    else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});
+    else obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal+(typeof statCaseHTML==='function'?statCaseHTML():'')});
   }else if(slide==='paywall'){
     /* 13 novembre, 19 h 52, statistiques (Elisa : « tout ce que tu peux trouver, mets-le ») : d’où vient le paywall, l’inscription ou le retour dans l’app sans abonnement */
     if(obJustEntered&&typeof statUneFois==='function'){const depuis=state.onboarded?'retour':'onboarding';statUneFois('paywall_vu','paywall:'+depuis+':'+statJour(),undefined,{depuis});}
@@ -52273,16 +52306,16 @@ const DC_CHEV='<svg class="dc-chev" viewBox="0 0 24 24" fill="none" stroke="curr
 const DC_RUBRIQUES=[
   {k:'appareil',stk:'tel',t:'Sur ton appareil',r:'Tes cours, ta progression et tes bases importées.',c:['Ton prénom, ton objectif, tes leçons, tes défis, tes cartes, tes notes, ton planning et tes bases importées restent sur cet appareil.',
     'Le moteur SQL tourne dans l’appli\u00a0: tes requêtes ne quittent pas ton appareil, sauf celles des parties en salle, vérifiées en ligne.']},
-  {k:'ligne',stk:'nuage',t:'En ligne',r:'Seulement ce qu’il faut pour jouer à plusieurs et te répondre.',c:['<b>Ton pseudo</b>, avec un identifiant tiré au hasard\u00a0: ni ton nom, ni ton e-mail. Ton pays aussi, si tu choisis de l’afficher.',
+  {k:'ligne',stk:'nuage',t:'En ligne',r:'Ce qu’il faut pour jouer à plusieurs et te répondre, et des statistiques si tu les acceptes.',c:['<b>Ton pseudo</b>, avec un identifiant tiré au hasard\u00a0: ni ton nom, ni ton e-mail. Ton pays aussi, si tu choisis de l’afficher.',
     '<b>Le classement</b>\u00a0: tes points, tes parties et les défis réussis.',
     '<b>Les salles</b>\u00a0: tes temps, tes réactions et tes messages, effacés au bout de 24\u00a0heures.',
     '<b>«\u00a0Contacte-nous\u00a0»</b>\u00a0: ton message, ce que tu y joins et ton e-mail si tu le donnes, pour te répondre. Le message est effacé au bout de 3\u00a0ans.',
-    '<b>Tes avis</b> sur les leçons, ton vote pour le prochain parcours et les écrans de l’accueil que tu as vus, sans ton prénom ni tes réponses.',
-    '<b>Des statistiques d’usage anonymes</b>\u00a0: tes jours d’usage, flammes, leçons, défis et parties, le paywall vu. Leur identifiant brouillé ne mène ni à toi ni à ton pseudo. Gardées 13\u00a0mois.'],
+    '<b>Tes avis</b> sur les leçons et ton vote pour le prochain parcours, sans ton prénom.',
+    '<b>Des statistiques d’usage anonymes</b>, si tu les acceptes\u00a0: écrans de l’accueil vus, jours d’usage, flammes, leçons, défis, parties, paywall vu. Sans lien avec toi ni ton pseudo. Gardées 13\u00a0mois.'],
     note:'Tout est hébergé chez Supabase, à Paris.'},
   {k:'confid',stk:'shield',t:'Ta confidentialité',r:'Personne ne voit tes requêtes.',c:['Dans une salle, les autres joueurs voient ton pseudo, ton drapeau, tes temps et tes réactions. Jamais tes requêtes.',
     'En salle, ta requête part en ligne pour être vérifiée. Seule son empreinte, un code qui ne permet pas de la relire, est gardée 24\u00a0heures au plus.',
-    'Ni publicité, ni traceur, rien de revendu\u00a0: l’appli compte seulement comment elle est utilisée, sans savoir qui tu es. Tu peux couper ces statistiques plus bas.']},
+    'Ni publicité, ni traceur, rien de revendu. Si tu l’acceptes, l’appli compte comment elle est utilisée, sans savoir qui tu es. Tu choisis plus bas, et tu peux changer d’avis.']},
   {k:'gerer',stk:'export',t:'Gérer mes données',r:'Télécharger une copie de tes données ou effacer tes informations.',c:['<b>Effacer la progression</b>\u00a0: tes leçons, défis, cartes, notes et planning sont vidés sur cet appareil, et tes scores quittent le classement. Ton pseudo reste à toi.',
     '<b>Supprimer mon compte</b> (en bas de Mon compte\u00a0; sans compte, <b>Supprimer mes données</b>)\u00a0: efface tout ce que le serveur garde pour toi et tout ce qui est sur cet appareil.',
     'Supprimer l’appli efface aussi ce qui est sur cet appareil. Avec un compte connecté, ta progression reste sur ton compte.'],actions:true},
@@ -52724,7 +52757,10 @@ function compteSupprimerHTML(p,compte){
       <li><span class="lq-del-i">${DEL_SVG.nuage}</span><span><b>Sur Requête</b><small>${p?`Ton pseudo «&nbsp;${esc(p)}&nbsp;»`:'Ton pseudo'}, tes scores et ta place dans les classements, tes avis, ton vote et tes messages${compte?', et ton compte':''}.</small></span></li>
       <li><span class="lq-del-i">${DEL_SVG.tel}</span><span><b>Sur cet appareil</b><small>Tes leçons, tes défis, tes cartes mémo, tes notes, ton planning et tes projets enregistrés.</small></span></li>
     </ul>
-    <p class="lq-del-warn"><span class="lq-del-wi">${DEL_SVG.alerte}</span><span><b>Cette action est irréversible.</b> Tes données ne pourront pas être récupérées.</span></p>`;
+    <p class="lq-del-warn"><span class="lq-del-wi">${DEL_SVG.alerte}</span><span><b>Cette action est irréversible.</b> Tes données ne pourront pas être récupérées.</span></p>${
+    /* 14 novembre, 18 h (l’audit App Review : Apple demande de dire que la facturation continue) : abonné, l’abonnement ne s’arrête
+       pas avec le compte ; il se résilie chez Apple (Mon compte › Gérer mon abonnement). */
+    typeof obAbonne==='function'&&obAbonne()?`<p class="lq-del-abo">Ton abonnement Requête Premium n’est pas résilié pour autant&nbsp;: Apple continue de le facturer tant que tu ne l’arrêtes pas, dans Mon compte › Gérer mon abonnement ou dans les réglages de ton identifiant Apple.</p>`:''}`;
 }
 async function compteSupprimer(){
   const p=typeof psMien==='function'?psMien():'',compte=state.accountMode==='connected';
@@ -52991,7 +53027,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-bloquer-v3023';
+  const SW_CACHE='requete-2026-11-14-accord-v3024';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

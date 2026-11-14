@@ -167,10 +167,11 @@ test('depuis le classement : une ligne se touche (ou son nom au clavier) et ouvr
   assert.ok(h.includes('<p class="dx-fiche-h2h">Dernier duel&nbsp;: hier</p>'));
   /* 14 novembre, 17 h 42 (règle 1.2 d’Apple ; Elisa : « signaler et bloquer alors comme un lien ») : « Signaler et bloquer » */
   assert.ok(h.includes('<button type="button" class="dx-fiche-signal" onclick="dxFicheSignaler(\'a1\')">Signaler et bloquer</button>'), 'ouverte du classement : « Signaler et bloquer »');
-  assert.ok(h.includes('onclick="dxFicheDefier()"><span>Défier @lea</span>') && !h.includes('dx-fiche-ajout'), 'il mène pas : « Défier » ; déjà dans tes adversaires : pas de « Ajouter »');
+  /* 14 novembre, 18 h 09 (Elisa : « Ne pas mettre défier car c’est pas possible actuellement ») : plus de bouton « Défier » */
+  assert.ok(!h.includes('dxFicheDefier()') && !h.includes('Défier @lea') && !h.includes('dx-fiche-ajout'), 'ni « Défier », ni « Ajouter »');
   assert.equal(c.appels.filter(x => x[0] === 'jeu_classement_v2').length, 1, 'rien de plus à demander');
   assert.equal(c.appels.length, n);
-  c.ev('dxFicheDefier()');
+  c.ev('dxFicheDefier()');   // la fonction attend un vrai moyen d’inviter : elle ouvre toujours une salle privée
   assert.deepEqual(J(c.appels.slice(-2)), [['fermer', true], ['jeuStart', 'NOUV01', true, null, { nomId: 'jeu-nom', pub: false, pour: '@lea' }]], 'la feuille se ferme, puis une salle privée pour lui');
 });
 
@@ -185,7 +186,7 @@ test('la fiche d’un adversaire : ses points demandés à la base (lui seul), v
   const h = c.ev('dxFicheHTML()');
   assert.ok(h.includes('<p class="room-sub dx-f-pcs" id="dx-f-p"><span class="dx-pc is-verre is-adv"><span>Ton adversaire</span></span></p>'), 'pas de place sans classement d’où l’on vient');
   assert.ok(h.includes('<span class="is-tete"><b>2</b><small>@tom</small></span><i>–</i><span><b>0</b><small>Toi</small></span>') && h.includes('<div class="dx-fiche-duel is-down"'));
-  assert.ok(h.includes('<span>Prendre ta revanche ⚡</span>'), 'il mène (pas de partie gardée pour savoir la dernière) : la revanche');
+  assert.ok(!h.includes('Prendre ta revanche') && c.ev("dxFicheRevanche(amisListe()[0],dxFicheEtat)") === true, 'il mène : la revanche serait proposée, mais plus de bouton (14 novembre)');
   /* Sans connexion */
   const k = bac({ rpcKo: true });
   k.ev("dxFiche('@noe')"); await attendre();
@@ -201,7 +202,7 @@ test('la fiche d’un joueur qui n’est pas dans ta liste : « Défier » seul 
   c.ev("dxFicheCls('z')");
   const h = c.ev('dxFicheHTML()');
   assert.ok(h.includes('<p class="room-sub dx-f-pcs" id="dx-f-p"><span class="dx-pc is-blanc"><span>🥉 N°\u00a03 mondial cette semaine</span></span></p>'), 'sa place, dans le classement d’où l’on vient');
-  assert.ok(h.includes('onclick="dxFicheDefier()"><span>Défier @zoe</span>'));
+  assert.ok(!h.includes('Défier @zoe') && h.includes('Signaler et bloquer'), 'plus de « Défier » (14 novembre) : « Signaler et bloquer » seul');
   assert.ok(!h.includes('Ajouter à mes adversaires') && !app.includes('dxFicheAjouter') && !app.includes('amisGarder'), 'on se retrouve avec un code, pas en ajoutant un pseudo');
   assert.equal(c.appels.filter(x => x[0] === 'jeu_classement_v2' && x[1].p_portee === 'amis').length, 1, 'la semaine : ses points depuis toujours sont demandés');
   for (const k of ['html.lq .dx-feuille .dx-fiche-kpi{display:grid;', 'html.lq .dx-feuille .dx-fiche-duel{',
@@ -242,7 +243,7 @@ test('la fiche : « 4 confrontations » déplie vos dernières parties ; la reva
   assert.ok(f.includes('<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>4 confrontations</span>'));
   assert.ok(f.includes('<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste" id="dx-duel-liste"><li class="is-l"><b>Perdue</b><span>120&nbsp;pts contre 200</span><small>Hier · Facile · 1 manche</small></li><li class="is-w"><b>Gagnée</b><span>230&nbsp;pts contre 195</span>'));
   assert.ok(f.includes('<li class="is-e"><b>Égalité</b>') && f.includes('<p class="dx-duel-note">Les confrontations les plus anciennes ne sont plus gardées.</p></div>'), 'moins de parties gardées que jouées : on le dit');
-  assert.ok(f.includes('<span>Prendre ta revanche ⚡</span>'), 'la dernière est perdue : la revanche, même s’il est derrière au total');
+  assert.ok(!f.includes('Prendre ta revanche') && c.ev("dxFicheRevanche(amisListe()[0],dxFicheEtat)") === true, 'la dernière est perdue : la revanche (sans bouton depuis le 14 novembre), même s’il est derrière au total');
   /* Déplier, replier */
   const l = { hidden: true }, b = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
   c.ctx.document.getElementById = id => id === 'dx-fiche-duels' ? l : null;
@@ -251,10 +252,10 @@ test('la fiche : « 4 confrontations » déplie vos dernières parties ; la reva
   /* La dernière gagnée : « Défier », même s’il mène au total */
   const d = bac({ salle: { mates: { lea: { n: '@lea', g: 3, w: 1, l: 2, at: N } }, hist: [h(N, 300, 100, 'w'), h(N - 1e7, 10, 90, 'l'), h(N - 2e7, 10, 90, 'l')] } });
   d.ev("dxFiche('@lea')");
-  assert.ok(d.ev('dxFicheHTML()').includes('<span>Défier @lea</span>') && !d.ev('dxFicheHTML()').includes('dx-duel-note'), 'toutes gardées : pas de note');
+  assert.ok(!d.ev('dxFicheHTML()').includes('Défier') && d.ev("dxFicheRevanche(amisListe()[0],dxFicheEtat)") === false && !d.ev('dxFicheHTML()').includes('dx-duel-note'), 'toutes gardées : pas de note');
   /* Jamais affronté : « Défier », pas de face-à-face */
   const e = bac(); e.ev("dxFiche('@noe')");
-  assert.ok(e.ev('dxFicheHTML()').includes('<span>Défier @noe</span>') && !e.ev('dxFicheHTML()').includes('dx-fiche-duel'));
+  assert.ok(!e.ev('dxFicheHTML()').includes('Défier') && !e.ev('dxFicheHTML()').includes('dx-fiche-duel'));
   for (const k of ['html.lq .dx-feuille .dx-duel-score{display:grid;', 'html.lq .dx-feuille .dx-duel-plus[hidden]{display:none}', 'html.lq .dx-feuille .dx-duel-liste li.is-l b{color:#C2323A}',
     'html.lq .dx-feuille button.dx-duel-voir[aria-expanded="true"] svg{rotate:90deg}'])
     assert.ok(lq.includes(k), k);
@@ -315,7 +316,7 @@ test('refonte — la fiche : « En salle maintenant » et « Rejoindre » ; ouve
   assert.ok(h.includes('<div class="dx-fiche-live"><span class="dx-dot" aria-hidden="true"></span><p><b>En salle maintenant</b><small class="dx-pcs"><span class="dx-pc is-niv is-d is-blanc"><i class="jeu-bars is-d" aria-hidden="true"><b></b><b></b><b></b></i><span>Difficile</span></span><span class="dx-pc is-gens is-doux"><svg')
     && h.includes('<span>3/5</span></span></small></p><button type="button" class="dx-join" onclick="dxFicheRejoindre(\'AAA111\')"'));
   assert.ok(h.includes('aria-label="Rejoindre la salle de @kev : Difficile, 3 joueurs sur 5"'));
-  assert.ok(h.indexOf('dx-fiche-live') < h.indexOf('dx-fiche-kpi') && h.indexOf('<span>Défier @lea</span>') < h.indexOf('Signaler et bloquer'), 'le bouton validé ne change pas');
+  assert.ok(h.indexOf('dx-fiche-live') < h.indexOf('dx-fiche-kpi') && h.indexOf('dx-fiche-kpi') < h.indexOf('Signaler et bloquer') && !h.includes('Défier @lea'), 'plus de « Défier » (14 novembre)');
   c.ev("dxFicheRejoindre('AAA111')");
   assert.deepEqual(J(c.appels.slice(-2)), [['fermer', true], ['jeuStart', 'AAA111', false, null, { nomId: 'jeu-nom', pub: true, verif: true, enLecon: true }]], 'la fiche se ferme, puis la salle s’ouvre');
   assert.ok(fn('dxFicheSignaler').includes('defisFeuilleFermer(true);dxFicheEtat=null;') && fn('dxFicheSignaler').includes("jeuSignalerBloquer(n,id||'')"));
@@ -359,4 +360,31 @@ test('le coefficient mis en avant : il saute à l’arrivée, brille sur le nive
     'html.lq #scr-defis .dx-rapide .room-level.on .room-lv-x::after{content:"";', 'animation:dxXReflet 4.6s ease-in-out 1.2s infinite}', '@keyframes dxXEtincelle{', '@keyframes dxXOnde{',
     'html.lq[data-motion="reduce"] #scr-defis .dx-x-fete{display:none}'])
     assert.ok(lq.includes(k), k);
+});
+
+/* 14 novembre, 18 h (l’audit App Review : après « Signaler et bloquer » sur le 1er, le podium gardait « À prendre » à la 1re place
+   et « 3 joueurs classés ») : un joueur bloqué ou masqué quitte le classement de l’appareil ; ceux qu’il précédait montent d’autant. */
+test('un joueur bloqué quitte le classement : le podium se resserre, le compte le retire, ta place et sa fiche suivent', async () => {
+  const moi = { id: 'me', pseudo: '@elisa_sql', pts: 100, parties: 3, rang: 3 };
+  const lignes = [{ id: 'a', pseudo: '@lea', pts: 300, parties: 9, rang: 1, moi: false }, { id: 'b', pseudo: '@nora', pts: 200, parties: 5, rang: 2, moi: false }, Object.assign({ moi: true }, moi)];
+  const c = bac({ rpc: f => f === 'jeu_classement_v2' ? { lignes, total: 3, moi } : {} });
+  c.ev("DEFIS.periode='tout';DEFIS.portee='monde';defisClassementPeindre()"); await attendre();
+  c.ev('clsCompteEcrire()');
+  assert.equal(c.els['dx-cls-k'].textContent, '3 joueurs classés');
+  c.ctx.jeuBloque = n => n === '@lea'; c.ctx.pseudoBr = n => c.ctx.esc(n); c.ctx.jeuFlag = () => '';
+  c.ev('clsCompteEcrire()');
+  assert.equal(c.els['dx-cls-k'].textContent, '2 joueurs classés', 'le compte le retire');
+  const pod = c.ev('clsPodiumHTML(clsVus(DEFIS.cls.pages[0]))');
+  assert.ok(pod.includes('<button type="button" class="dx-pod-m is-1" onclick="dxFicheCls(\'b\')"') && pod.includes('class="dx-pod-m is-2 is-me"') && !pod.includes('@lea'), 'la 1re marche n’est plus « À prendre »');
+  assert.ok(pod.includes('class="dx-pod-m is-3 is-libre"'), 'seule la 3e attend');
+  c.ev('clsPlacePeindre()');
+  assert.ok(c.els['dx-place'].innerHTML.includes('@nora, 1<sup>er</sup>') || c.els['dx-place'].innerHTML.includes('de @nora'), 'ta place : l’écart avec @nora, devant toi');
+  assert.ok(!c.els['dx-place'].innerHTML.includes('@lea'));
+  c.ev("dxFicheCls('b')");
+  assert.equal(c.ev('dxFicheEtat.lieu'), '🥇 N° 1 mondial', 'sa fiche dit la place qu’on voit');
+  /* Masqué après un signalement (state.salle.masques) : pareil ; plus personne de visible, l’état vide */
+  c.ctx.state.salle.masques = ['b'];
+  assert.equal(c.ev('clsTotalVu()'), 1);
+  assert.equal(c.ev("clsRangVu(3)"), 1, 'toi : 1er de ce que tu vois');
+  assert.ok(app.includes("function jeuBloqueApplique(){\n  if(typeof clsPagerPeindre==='function')try{clsPagerPeindre();}catch(e){}"), 'bloquer repeint tout le classement');
 });

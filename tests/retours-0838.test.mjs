@@ -54,6 +54,10 @@ test('sous « Parcours SQL », plus de « 0 leçon validée sur 71 »', () => {
   assert.equal(ctx.parcoursValidees(5), '5 leçons validées sur 71');
   assert.equal(ctx.parcoursValidees(71), '71 leçons validées');
   assert.ok(app.includes('<p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>'), '« 71 leçons · 15 modules »');
+  /* 14 novembre, 18 h (l’audit) : sur la carte SQL de Parcours, rien de validé, « 71 leçons » n’est plus écrit deux fois (la ligne
+     du dessus le dit déjà, « 15 modules · 71 leçons ») */
+  assert.ok(app.includes('<span class="pc-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${done?`<small>${parcoursValidees(done)}</small>`:\'\'}</span>'));
+  assert.ok(app.includes('${PC_BOOK_SVG}${nMods} modules · ${TOTAL} leçons</span>'));
 });
 
 test('la carte : « 👋 Bonjour, Elisa ! », la phrase dessous, « Continuer ma leçon · Plus que 5 min », puis les chiffres et la série', () => {
@@ -78,6 +82,6 @@ test('le style : la phrase soulignée en jaune, les trois cartes blanches en rel
     'background:#fff;box-shadow:0 3px 0 var(--lip)}', 'html.lq .lq-stat.is-coche .lq-stat-ic{background:#DCF6E9;color:#14935A}',
     '@keyframes lqSalut{', '@media (prefers-reduced-motion:reduce){html.lq .lq-hi-wave{animation:none}}', 'html.lq[data-motion="reduce"] .lq-hi-wave{animation:none}'])
     assert.ok(lq.includes(k), k);
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=380">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-bloquer-v3023';") && app.includes("const SW_CACHE='requete-2026-11-14-bloquer-v3023';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=381">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-accord-v3024';") && app.includes("const SW_CACHE='requete-2026-11-14-accord-v3024';"));
 });
