@@ -71,7 +71,7 @@ test('onboarding : le parcours qui se construit, la promesse en grand chiffre, l
 test('14 h 33 : un seul cadre pour « Pas encore » et l’indice ; en salle, les indices à la même minute pour tous ; la base dans la barre', () => {
   assert.ok(app.includes("${coach?'<div id=\"hint-slot\"></div>':''}"), 'la carte des indices');
   assert.ok(app.includes("    if(isDefi&&COACH&&COACH.c===current){setLessonOut(table);COACH.diag=diag;COACH.fx='is-new-ko';}\n"), 'défi seul : ce qui cloche dans la carte, « Réessaie » (9 novembre, 7 h 37 ; sous l’éditeur à 7 h 23)');
-  assert.ok(app.includes('const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;'), 'en salle : le temps de la manche, le même pour tous');
+  assert.ok(app.includes('const due=jeuIndT(jeuNivManche(n)).filter(t=>Date.now()-r.t1>=t).length;'), 'en salle : le temps de la manche, le même pour tous (selon son chrono depuis le 14 novembre)');
   /* 8 novembre, 23 h 44 : seul, plus de « pour tout le monde » (retours-2344) */
   assert.ok(app.includes("${n?'Indice suivant':'Premier indice'}${seul?'':' pour tout le monde'} dans <b id=\"coach-cd\">${jeuChrono(next)}</b>"));
   /* 8 novembre, 17 h 48 : la barre est entrée dans le cadre de la manche ; 18 h 28 : la base, en pastille de « La situation » ; 18 h 36 :

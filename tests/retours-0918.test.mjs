@@ -170,8 +170,9 @@ test('serveur : l’essai manqué annoncé à la salle, le +25 au seul premier (
 });
 
 test('les indices : les mêmes, à la même minute, pour tous (depuis le début de la manche, à l’horloge du serveur)', () => {
-  assert.ok(app.includes('const JEU_IND_T=[150000,300000,450000];'));
-  assert.ok(fn('coachRoomTick').includes('const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;'));
+  /* 14 novembre, 7 h 17 : au quart, à la moitié et aux trois quarts du chrono de la manche (2 min 30, 5 min et 7 min 30 avant, à tous les niveaux) */
+  assert.ok(app.includes('function jeuIndT(k){const d=jeuDureeMs(k);return [d/4,d/2,d*3/4];}'));
+  assert.ok(fn('coachRoomTick').includes('const due=jeuIndT(jeuNivManche(n)).filter(t=>Date.now()-r.t1>=t).length;'));
   assert.ok(app.includes('if(J.ranked&&m.startAt){const rr=J.rounds[n];rr.t1=+m.startAt-J.skew;rr.t0=rr.t1-JEU_DRAW_MS;}'), 'le début de manche donné par le serveur');
 });
 
@@ -182,5 +183,17 @@ test('« Quitter la salle ? » centré ; la question respire sous les badges du 
     'html.lq #scr-lesson .jeu-bar~h1{margin-top:20px!important}'])
     assert.ok(css.includes(k), k);
   assert.ok(css.indexOf('html.lq .lq-ask:not(.has-field) .lq-ask-cap{padding-left:24px') > css.indexOf('html.lq .lq-ask-cap{padding-right:62px!important}'), 'après la règle de la croix');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=366">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=367">'));
+});
+
+/* 14 novembre, 7 h 17 (Elisa : « Facile on descend à 6 min, Moyen 12 min, Difficile 15 min […] puis quand les indices doivent être là en
+   fonction du temps ») : au quart, à la moitié et aux trois quarts du chrono de la manche. */
+test('14 novembre, 7 h 17 : les indices au quart, à la moitié, aux trois quarts de la manche, selon son niveau', () => {
+  const c = vm.createContext({});
+  vm.runInContext(app.slice(app.indexOf('const JEU_NIV_MANCHE='), app.indexOf('\n', app.indexOf('function jeuDureeMs('))) + '\n' + app.slice(app.indexOf('function jeuIndT('), app.indexOf('\n', app.indexOf('function jeuIndT('))), c);
+  const t = k => JSON.parse(JSON.stringify(vm.runInContext(`jeuIndT('${k}').map(x=>x/1000)`, c)));
+  assert.deepEqual(t('f'), [90, 180, 270], 'Facile (6 min) : 1 min 30, 3 min, 4 min 30');
+  assert.deepEqual(t('m'), [180, 360, 540], 'Moyen (12 min) : 3, 6, 9 min');
+  assert.deepEqual(t('d'), [225, 450, 675], 'Difficile (15 min) : 3 min 45, 7 min 30, 11 min 15');
+  assert.ok(fn('coachNext').includes('return Math.max(0,jeuIndT(jeuNivManche(COACH.round))[COACH.n]-(Date.now()-r.t1));'), 'la carte dit dans combien de temps vient le suivant');
 });

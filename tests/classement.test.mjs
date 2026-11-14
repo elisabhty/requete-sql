@@ -59,8 +59,8 @@ test('le barème du serveur : 50 à 275 points par manche trouvée entre amis, 2
   assert.match(score, /v_pts < v_ok \* 50 or v_pts > v_ok \* \(case when v_solo then 225 else 275 end\)/);
   assert.match(score, /v_n not between 1 and 5/);
   assert.match(score, /on conflict do nothing;\n  if found then/);
-  assert.ok(app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'),
-    'le barème de l’appli (17 h 39) : 200 en 1 min au plus, + 25 du premier coup = 225 seul, + 50 au premier = 275 ; au moins 50');
+  assert.ok(app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'),
+    'le barème de l’appli (17 h 39 ; le dernier palier à 6 min depuis le 14 novembre) : 200 en 1 min au plus, + 25 du premier coup = 225 seul, + 50 au premier = 275 ; au moins 50');
   for (const f of ['jeu_score', 'jeu_renommer', 'jeu_classement', 'jeu_signaler', 'jeu_oublier'])
     assert.match(sql, new RegExp(`grant execute on function public\\.${f}\\(`), f);
   for (const t of ['jeu_joueur', 'jeu_partie', 'jeu_signalement']) assert.match(sql, new RegExp(`alter table public\\.${t} enable row level security;`), t);

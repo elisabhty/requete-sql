@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=366">
+<link rel="stylesheet" href="ludique.css?v=367">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -13960,8 +13960,11 @@ function defiIndices(c){
    cadres de styles différents) ; « les indices se mettent au même moment pour tout le monde, et un par un, pas 1 + 2 ». Une seule
    carte sous l’éditeur, avant le résultat : en haut ce qui cloche dans le dernier essai, dessous l’indice du moment, seul, avec ses
    trois pastilles (on peut revoir un indice déjà donné en touchant sa pastille). Seul, un indice par essai raté ; en salle, ils
-   arrivent à la même minute pour tout le monde (2 min 30, 5 min, 7 min 30), et la carte dit dans combien de temps vient le suivant. */
-const JEU_IND_T=[150000,300000,450000];
+   arrivent à la même minute pour tout le monde (2 min 30, 5 min, 7 min 30), et la carte dit dans combien de temps vient le suivant.
+   14 novembre, 7 h 17 (« quand les indices doivent être là en fonction du temps ») : au quart, à la moitié et aux trois quarts du
+   chrono de la manche, comme avant en Facile (2 min 30, 5 min, 7 min 30 sur 10 min) : 1 min 30, 3 min, 4 min 30 en Facile (6 min) ;
+   3, 6, 9 min en Moyen (12 min) ; 3 min 45, 7 min 30, 11 min 15 en Difficile (15 min). Avant, les mêmes minutes à tous les niveaux. */
+function jeuIndT(k){const d=jeuDureeMs(k);return [d/4,d/2,d*3/4];}
 let COACH=null;
 function coachReset(c,kind,round){COACH={c,kind,round,n:0,view:0,diag:'',fx:''};coachPaint();}
 /* Elisa, 1er novembre, 15 h 36 : la carte « dans la DA du site », remontée juste après la question, « avec un À toi de jouer animé
@@ -13998,7 +14001,7 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
 function coachNext(){
   if(!COACH||COACH.kind!=='room'||typeof JEU==='undefined'||!JEU)return null;
   const r=JEU.rounds&&JEU.rounds[COACH.round];if(!r||COACH.n>=3)return null;
-  return Math.max(0,JEU_IND_T[COACH.n]-(Date.now()-r.t1));
+  return Math.max(0,jeuIndT(jeuNivManche(COACH.round))[COACH.n]-(Date.now()-r.t1));
 }
 function coachPaint(){
   const sl=document.getElementById('hint-slot');if(!sl||!COACH||COACH.c!==current)return;
@@ -14087,7 +14090,7 @@ function coachRoomTick(){
   if(!r||!String(J.view||'').startsWith('play')||!document.getElementById('hint-slot'))return;
   const c=CHALLENGES.find(x=>x.id===r.cid);if(!c)return;
   if(!COACH||COACH.kind!=='room'||COACH.round!==n||COACH.c!==c)COACH={c,kind:'room',round:n,n:0,view:0,diag:'',fx:''};
-  const due=JEU_IND_T.filter(t=>Date.now()-r.t1>=t).length;
+  const due=jeuIndT(jeuNivManche(n)).filter(t=>Date.now()-r.t1>=t).length;
   if(due>COACH.n){coachSet(due);return;}
   const cd=document.getElementById('coach-cd'),nx=coachNext();
   if(cd&&nx!=null)cd.textContent=jeuChrono(nx);
@@ -29319,7 +29322,8 @@ function perfReveal(card){
 let roomRulesObs=null;
 /* 15 h (« Multiplicateur ×2 / ×4 ») : le cadre montre le barème d’un niveau, choisi au-dessus des marches (celui de la salle au départ) :
    ses marches (en Moyen toutes les 3 min, en Difficile toutes les 5 min, jusqu’à la fin du chrono), son premier coup, ses places et sa
-   manche parfaite. */
+   manche parfaite. Depuis le 14 novembre (7 h 17) : six marches par niveau, de 1 min, 2 min ou 2 min 30. */
+function jeuMinDit(s){s=Math.round(s);return s%60?`${Math.floor(s/60)}\u00a0min\u00a0${String(s%60).padStart(2,'0')}`:`${s/60}\u00a0min`;}
 let defisReglesNiv='';
 function defisRulesNiv(k){if(!JEU_NIV_X[k])return;defisReglesNiv=k;renderDefisRules();}
 function renderDefisRules(){
@@ -29327,8 +29331,8 @@ function renderDefisRules(){
   const k=JEU_NIV_X[defisReglesNiv]?defisReglesNiv:(typeof jeuNiv!=='undefined'&&JEU_NIV_X[jeuNiv]?jeuNiv:'f');
   const x=JEU_NIV_X[k],d=JEU_NIV_DUREE[k],fin=jeuDureeMs(k)/1000;
   const top=JEU_PALIERS[0][1]*x,mn=t=>String(t/60).replace('.',','),last=JEU_PALIERS[JEU_PALIERS.length-1][0]*d;
-  const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]*d:0,b=Math.min(t*d,fin);return {a,p:p*x,lab:i?`${mn(a)}–${mn(b)}`:`≤ ${mn(b)}`,dit:i?`de ${mn(a)} à ${mn(b)} min`:`jusqu’à ${mn(b)} min`};})
-    .concat([{a:last,p:JEU_PTS_MIN*x,lab:`${mn(last)} +`,dit:`après ${mn(last)} min`}]).filter(m=>m.a<fin);
+  const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]*d:0,b=Math.min(t*d,fin);return {a,p:p*x,lab:i?`${mn(a)}–${mn(b)}`:`≤ ${mn(b)}`,dit:i?`de ${jeuMinDit(a)} à ${jeuMinDit(b)}`:`jusqu’à ${jeuMinDit(b)}`};})
+    .concat([{a:last,p:JEU_PTS_MIN*x,lab:`${mn(last)} +`,dit:`après ${jeuMinDit(last)}`}]).filter(m=>m.a<fin);
   const choix=['f','m','d'].map(n=>`<button type="button" role="radio" aria-checked="${n===k}" class="${n===k?'is-on':''}" onclick="defisRulesNiv('${n}')">${JEU_NIVL[n]}${JEU_NIV_X[n]>1?`<small>×${JEU_NIV_X[n]}\u00a0pts</small>`:''}</button>`).join('');
   host.innerHTML=`<section class="room-rules" aria-labelledby="room-rules-h">
     <h2 id="room-rules-h"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span>Comment sont calculés les points&nbsp;?</h2>
@@ -29337,7 +29341,7 @@ function renderDefisRules(){
       <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
-      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le premier coup vaut +${JEU_PTS_ESSAI} partout. Le chrono : ${JEU_NIV_MANCHE.f/60000} min en Facile, ${JEU_NIV_MANCHE.m/60000} en Moyen, ${JEU_NIV_MANCHE.d/60000} en Difficile.</small></li>
+      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure ${jeuMinDit(60*JEU_NIV_DUREE.m)} ; en Difficile, quadruple et ${jeuMinDit(60*JEU_NIV_DUREE.d)}. Le premier coup vaut +${JEU_PTS_ESSAI} partout. Le chrono : ${JEU_NIV_MANCHE.f/60000} min en Facile, ${JEU_NIV_MANCHE.m/60000} en Moyen, ${JEU_NIV_MANCHE.d/60000} en Difficile.</small></li>
       <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
       <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
@@ -36369,7 +36373,10 @@ const JEU_HB_MS=15000;
    palier tient ainsi dans la manche (Moyen : cinq paliers de 3 min ; Difficile : quatre de 5 min), et un défi plus dur laisse plus de
    temps. Les feuilles « Joue seul » et « Créer ma partie » l’annoncent sur chaque carte de manches (« 45 min max » pour 3 manches en
    Moyen, dxDureeMax). Le serveur compte la
-   même durée, défi par défi (requete_private.manche_duree). */
+   même durée, défi par défi (requete_private.manche_duree).
+   14 novembre, 7 h 17 (Elisa : « Facile on descend à 6 min, Moyen 12 min, Difficile 15 min par manche ») : 6 min en Facile, 12 en
+   Moyen, 15 en Difficile ; six paliers de points par manche (JEU_PALIERS) et les indices au quart, à la moitié et aux trois quarts
+   (jeuIndT). Trois manches au plus, comme avant. */
 const JEU_DRAW_MS=3300;
 /* Six joueurs par salle au plus, l’hôte et 5 invités (Elisa, 8 novembre, 22 h 27 : « accepte 6 max dans une salle, comme ça on a
    deux lignes pleines » : trois colonnes dans « En direct ») ; cinq depuis le 31 octobre, 16 h 49. Le serveur suit
@@ -36393,7 +36400,11 @@ const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
    encore 100 points ; c’est plus adapté à Requête, les défis demandent plusieurs étapes de réflexion »). Les paliers suivent le
    chrono affiché (01:00 vaut encore 200, 01:01 vaut 175). Le premier essai : la première requête exécutée est la bonne. À égalité
    de points, le plus rapide au total passe devant (une manche non trouvée compte la durée d’une manche) ; même temps : ex æquo. */
-const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];
+/* 14 novembre, 7 h 17 (Elisa : « Facile on descend à 6 min, Moyen 12 min, Difficile 15 min par manche, max 3 manches, et recalcule les
+   points en fonction ») : six paliers qui remplissent la manche, chacun un sixième du chrono : de 1 min en Facile (≤ 1 min 200,
+   1–2 min 175… 5–6 min 75), de 2 min en Moyen, de 2 min 30 en Difficile (JEU_NIV_DUREE). Le palier de 50 (au-delà de 7 min avant) ne
+   sert plus : la manche s’arrête avant. Manche parfaite inchangée. Le serveur compte de même (jeu_score_v2, migration 20261114063120). */
+const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];
 /* Le niveau du défi. 6 novembre, 12 h 42 (« Alors pour les points défis ? ») : un bonus de niveau, +25 en Moyen et +50 en Difficile.
    15 h, après le rapport de l’expert en game design (/home/claude/strategie-defis/STRATEGIE.md : ce bonus ne comblait que 7 % de
    l’écart, un analyste gagnait par heure moins à son niveau qu’un débutant en Facile), le choix d’Elisa : « Multiplicateur ×2 / ×4 ».
@@ -36403,8 +36414,8 @@ const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JE
    8 novembre, 9 h 17 (« Ok » à la proposition de 9 h 14) : le premier coup vaut +25 à tous les niveaux, il ne compte plus ×2 ni ×4 ; à
    +100 en Difficile, il dissuadait de lancer une requête pour regarder les données, un bon réflexe en SQL. La vitesse et la place
    gardent leur multiplicateur. Manche parfaite : 225, 425 ou 825 seul ; 275, 525 ou 1 025 entre amis. */
-const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:3,d:5};
-const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};
+const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:2,d:2.5};   // paliers de 1 min, 2 min, 2 min 30 (14 novembre, 7 h 17 ; 1, 3, 5 min avant)
+const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};   // 6, 12, 15 min (14 novembre, 7 h 17 ; 10, 15, 20 min avant)
 function jeuDureeMs(k){return JEU_NIV_MANCHE[k]||JEU_NIV_MANCHE.f;}
 const JEU_NIVL={f:'Facile',m:'Moyen',d:'Difficile'};
 let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo',jeuNivUser=false,jeuVis='pub';
@@ -51953,7 +51964,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-delai-v2995';
+  const SW_CACHE='requete-2026-11-14-manches-v2996';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

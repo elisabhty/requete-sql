@@ -30,13 +30,13 @@ function rulesHTML({ io = false } = {}) {
 
 test('le cadre « Comment on marque des points » : les paliers en marches, le premier coup, le classement, la manche parfaite', () => {
   const { h, sec } = rulesHTML();
-  assert.ok(h.includes('<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à 200</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de 10&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>'), 'le chrono de 10 min (8 novembre, 8 h 21) ; à 0, la partie continue (9 h 31)');
+  assert.ok(h.includes('<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à 200</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de 6&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>'), 'le chrono de 6 min (14 novembre, 7 h 17 ; 10 min le 8 novembre) ; à 0, la partie continue (9 h 31)');
   const steps = [...h.matchAll(/<li style="--h:(\d+)px;--i:(\d)"><b>(\d+)<\/b><i aria-hidden="true"><\/i><small aria-hidden="true">([^<]+)<\/small><em class="lq-sr"> points ([^<]+)<\/em><\/li>/g)]
     .map(m => [+m[3], m[4], m[5], +m[1]]);
   assert.deepEqual(steps.map(s => s.slice(0, 3)), [
-    [200, '≤ 1', 'jusqu’à 1 min'], [175, '1–2', 'de 1 à 2 min'], [150, '2–3', 'de 2 à 3 min'], [125, '3–4', 'de 3 à 4 min'],
-    [100, '4–5', 'de 4 à 5 min'], [75, '5–7', 'de 5 à 7 min'], [50, '7 +', 'après 7 min']], 'le tableau d’Elisa, palier par palier (et lu à voix haute)');
-  assert.deepEqual(steps.map(s => s[3]), [52, 46, 39, 33, 26, 20, 13], 'des marches qui descendent');
+    [200, '≤ 1', 'jusqu’à 1§min'], [175, '1–2', 'de 1§min à 2§min'], [150, '2–3', 'de 2§min à 3§min'], [125, '3–4', 'de 3§min à 4§min'],
+    [100, '4–5', 'de 4§min à 5§min'], [75, '5–6', 'de 5§min à 6§min']].map(s => [s[0], s[1], s[2].replace(/§/g, '\u00a0')]), 'le tableau d’Elisa, palier par palier (et lu à voix haute) ; six marches dans les 6 min de la manche (14 novembre)');
+  assert.deepEqual(steps.map(s => s[3]), [52, 46, 39, 33, 26, 20], 'des marches qui descendent');
   assert.ok(h.includes('<ol class="room-paliers" aria-label="Points selon le temps pour trouver">') && h.includes('<p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p>'));
   /* 5 novembre, 9 h 18 : entre amis, le +25 ne va qu’au premier à trouver. */
   /* 5 novembre, 14 h 24 : seul dans la salle, le +25 reste et le bonus de place ne compte pas (retours-1424.test.mjs). */
@@ -44,7 +44,7 @@ test('le cadre « Comment on marque des points » : les paliers en marches, le p
   assert.ok(h.includes('<li><b>🥇 Premier à trouver</b><span>+50</span><small>À plusieurs : 2e +30 · 3e +20 · 4e +10. Seul à jouer la manche, pas de bonus de place</small></li>'));
   assert.ok(h.includes('<li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>'));
   /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la ligne du niveau ; le cadre montre le Facile au départ (retours-1242 : les autres) */
-  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 3 min ; en Difficile, quadruple et 5 min. Le premier coup vaut +25 partout. Le chrono : 10 min en Facile, 15 en Moyen, 20 en Difficile.</small></li>'), 'la durée de chaque niveau (8 novembre, 8 h 52) ; le premier coup fixe (9 h 17)');
+  assert.ok(h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2 · ×4</span><small>En Moyen, les points de vitesse et de place comptent double et chaque palier dure 2 min ; en Difficile, quadruple et 2 min 30. Le premier coup vaut +25 partout. Le chrono : 6 min en Facile, 12 en Moyen, 15 en Difficile.</small></li>'), 'la durée de chaque niveau (14 novembre, 7 h 17 ; 8 novembre, 8 h 52 avant) ; le premier coup fixe (9 h 17)');
   assert.ok(h.includes('<p class="room-rules-max"><span>Manche parfaite en Facile</span><b>225</b><small>seul</small><i aria-hidden="true">·</i><b>275</b><small>à plusieurs</small></p>'));
   assert.ok(!h.includes('Rapidité') && !h.includes('baisse doucement'), 'l’ancien barème est parti');
   assert.ok(sec.cls.has('is-in'), 'sans IntersectionObserver : tout de suite');
@@ -83,7 +83,7 @@ test('Supabase — jeu_score accepte le nouveau barème : de 50 à 225 points pa
   assert.equal(body(m), body(avant));
   /* Vérifié sur la vraie base (31 octobre, 17 h 46, sans rien garder) : 225 seul accepté, 226 refusé ; 50 accepté, 49 refusé ;
      3 manches entre amis : 825 accepté, 826 refusé */
-  assert.ok(app.includes("const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[420,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];"));
-  assert.ok(app.includes('const JEU_NIV_MANCHE={f:600000,m:900000,d:1200000};'), 'la manche : 10 min en Facile, 15 en Moyen, 20 en Difficile (8 novembre, 8 h 52)');
+  assert.ok(app.includes("const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];"));
+  assert.ok(app.includes('const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};'), 'la manche : 6 min en Facile, 12 en Moyen, 15 en Difficile (14 novembre, 7 h 17 ; 10, 15, 20 depuis le 8 novembre)');
   assert.ok(app.includes('(une manche non trouvée compte ${jeuDureeMs(J.niv)/60000} min)'));
 });
