@@ -26,9 +26,10 @@ test('trois issues : la victoire, la défaite, le 0 à 0 ; tes points et leur d�
     "else{ton='is-ok';titre=moi.pts>0?'Bien joué\\u00a0!':'La revanche t’attend\\u00a0!';chat='effort';",
     ":moi.pts>0?`${nom(premier)} l’emporte de ${ecart(premier,moi)}. À toi la revanche\\u00a0!`:`${nom(premier)} a trouvé cette fois. À toi la prochaine\\u00a0!`;}",
     "const kick=J.nb===1?'Manche unique terminée':`Partie terminée · ${jouees} manche${jouees>1?'s':''}`;",
-    "const tuiles=[tuile('pts','Points',`${JEU_COIN_SVG}<b class=\"jr2-n\" data-n=\"${moi.pts}\" data-fmt=\"fr\">",   // 14 novembre, 5 h 03 : les points mis en avant, en tuiles
-    "tuile('place','Place',nul?`<b class=\"is-mot\">Ex æquo</b>`:",   // 5 h 19 : la place toujours
-    "J.nb>1||moi.pts<=0?tuile('defis','Défis',",
+    "const tuiles=[jeuTuilePts(moi.pts),",   // 14 novembre, 5 h 03 : les points mis en avant, en tuiles (partagées depuis 6 h 12)
+    "jeuTuile('place','Place',nul?`<b class=\"is-mot\">Ex æquo</b>`:",   // 5 h 19 : la place toujours
+    "J.nb>1||moi.pts<=0?jeuTuileDefis(ok,jouees):jeuTuileTemps('Temps',jeuChronoFin(moi,sc),moi.ms<60000)].join('');",
+    "const pills=moi.pts>0?(J.nb===1?jeuCalcManche(J.rounds[0]?jeuRanking(0).find(x=>x.pid===J.me):null,moi.pts):jeuCalcManches(J,moi.pts)):'';",   // 6 h 12 : le calcul, à plusieurs manches aussi
     '<section class="jr2-hero jeu-issue ${ton}" aria-labelledby="jr2-t">',
     '<p class="jeu-card-h">Les joueurs</p>',
     '        ${jeuRevancheHTML()}`;'])

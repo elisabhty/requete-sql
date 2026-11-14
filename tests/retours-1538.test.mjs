@@ -116,7 +116,7 @@ test('« Encore un effort ! » : la leçon à refaire (une fois), puis l’autoc
   assert.ok(m.img.cls.has('is-bravo') && !m.img.cls.has('is-effort') && /chat-bravo/.test(m.img.src), 'réussie ensuite : le saut de joie');
   const r = monde(true); vm.runInContext("mascotBravo(btn,'effort')", r); assert.equal(r.img.src, 'assets/chat-effort-fixe.webp');
   assert.ok(cut('function lvEndShow(root,id,win){', '\n}').includes("mascotBravo(cat,win?true:LV.retry?'effort':false);"));
-  assert.ok(app.includes(":!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class=\"jeu-fin-chat is-effort\" aria-hidden=\"true\">${chatBonusHtml('effort')}</div>`:'';"), 'un défi sans rien trouvé');
+  assert.ok(app.includes("const chatS=all||J.record?'trophee':nOk?'oui':'effort'"), 'un défi sans rien trouvé : l’effort, dans le cadre violet (14 novembre, 6 h 12)');
   for (const r of ['html.lq .mascot-stk .mstk-cat.is-effort,html.lq .mascot-stk:is(.is-hello,.is-intro,.is-party) .mstk-cat.is-effort{animation:none}',
     'html.lq .lv-end-top .mascot-stk:has(.mstk-cat.is-effort){width:120px;margin:-8px -8px -6px -6px}'])
     assert.ok(lq.includes(r), r);

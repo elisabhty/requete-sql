@@ -105,7 +105,9 @@ test('« Message envoyé ! » : l’avion en papier, une fois, à la place de la
 });
 
 test('la fin d’un défi : le trophée pour tout trouvé, un nouveau record ou une partie gagnée ; le titre perd sa coupe', () => {
-  assert.ok(app.includes("const trophee=(all||J.record)&&typeof chatBonusHtml==='function'?`<div class=\"jeu-fin-chat\" aria-hidden=\"true\">${chatBonusHtml('trophee')}</div>`\n        :!nOk&&nT>0&&typeof chatBonusHtml==='function'?`<div class=\"jeu-fin-chat is-effort\" aria-hidden=\"true\">${chatBonusHtml('effort')}</div>`:'';   // rien trouvé : « Encore un effort ! » (15 h 38)\n") && app.includes("const titre=all?(trophee?'Carton plein\\u00a0!':'Carton plein ! 🏆'):nOk?'Bien joué\\u00a0!':'Pas encore cette fois\\u00a0!';") && app.includes("html=trophee+head(`Fin de la partie · ${JEU_NIVL[J.niv]}`,titre,sous)+progres+"), 'seul (« Tout résolu ! », 9 novembre, 10 h 01 ; « Bien joué ! », « On retente ? », 10 h 37)');
+  /* 14 novembre, 6 h 12 (« corrige tout ») : seul, le chat est dans le cadre violet, comme entre amis : le trophée pour tout trouvé ou
+     un record, l’effort quand rien ne l’est, le « oui » sinon */
+  assert.ok(app.includes("const chatS=all||J.record?'trophee':nOk?'oui':'effort',tonS=all?'is-or':nOk?'is-ok':'is-ko';") && app.includes("const titre=all?'Carton plein\\u00a0!':nOk?'Bien joué\\u00a0!':'Pas encore cette fois\\u00a0!';") && app.includes('<span class="jr2-chat" aria-hidden="true">${typeof chatBonusHtml===\'function\'?chatBonusHtml(chatS):\'\'}</span>'), 'seul (« Tout résolu ! », 9 novembre, 10 h 01 ; « Bien joué ! », « On retente ? », 10 h 37)');
   /* 13 novembre, 17 h 16 (« fusionner les deux pages ») : entre amis, le trophée est dans le cadre de l’issue, la victoire (retours-1716-fin) */
   assert.ok(app.includes("if(winner){ton='is-or';titre='Tu as gagné\\u00a0!';chat='trophee';med=lqStkSvg('medal1');"), 'entre amis');
   /* 8 novembre, 10 h 24 (« Le chat est coupé ») : posé au haut du contenu, plus au-dessus ; la marge de la phrase passe en !important */
