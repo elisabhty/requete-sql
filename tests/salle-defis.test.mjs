@@ -1076,6 +1076,8 @@ test('la manche se clôt seule quand tout le monde a trouvé, sinon à la fin du
   assert.match(guests[0].html, /<div class="jr2-tuiles" role="list" aria-label="Ta partie"><div class="jr2-tuile is-pts" role="listitem"><span class="jr2-tl">Points<\/span><p class="jr2-tv"><svg class="lq-stk"[^]*?<\/svg><b class="jr2-n" data-n="\d+" data-fmt="fr">\+\d+<\/b><\/p><\/div><div class="jr2-tuile is-place" role="listitem"><span class="jr2-tl">Place<\/span>/);
   assert.match(host.html, /<span class="jr2-tl">Place<\/span><p class="jr2-tv"><svg[^]*?<\/svg><b>1<sup>er<\/sup><\/b><small aria-hidden="true">\/2<\/small><span class="lq-sr"> sur 2<\/span>/, 'la victoire : 1er sur 2');
   assert.doesNotMatch(host.html, /jr2-bas|défis? trouvés? sur/, 'plus de trait au-dessus des points ni de pastille des défis');
+  /* 5 h 19 : la place toujours, même à 0 point (au temps), sans médaille */
+  for (const c of [host, ...guests]) assert.match(c.html, /<span class="jr2-tl">Place<\/span><p class="jr2-tv">(<svg[^]*?<\/svg>)?<b>\d<sup>(er|e)<\/sup><\/b><small aria-hidden="true">\/\d<\/small>/, c.name + ' : sa place');
   assert.match(guests[0].html, /<h1 id="jr2-t">Bien joué\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Hôte l’emporte de \d+\u00a0points?\. À toi la revanche\u00a0!<\/p>/, 'la défaite, qui encourage (18 h 35) : qui l’emporte et de combien');
   assert.match(host.html, /<h1 id="jr2-t">Tu as gagné\u00a0!<\/h1><p class="jr2-defi" id="jeu-sub">Devant Ami1, de \d+\u00a0points?\.<\/p>/, 'la victoire : devant qui et de combien');
   assert.doesNotMatch(guests[0].html, /close par l’hôte/);
@@ -1179,6 +1181,8 @@ test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille 
   /* 13 novembre, 17 h 16 : le 0 à 0, sa page (le seul ex æquo possible), sans podium vide */
   assert.match(host.html, /class="jr2-hero jeu-issue is-nul"/); assert.match(host.html, /<h1 id="jr2-t">Match nul\u00a0!<\/h1>/);
   assert.match(host.html, /Personne n’a trouvé ce défi\./); assert.doesNotMatch(host.html, /jeu-fin-pod/, 'pas de médaille d’or à 0 point');
+  /* 14 novembre, 5 h 19 (« mets la place partout quand même, même si non marqué ») : au 0 à 0, la tuile « Place » dit « Ex æquo » */
+  assert.match(host.html, /<span class="jr2-tl">Place<\/span><p class="jr2-tv"><b class="is-mot">Ex æquo<\/b><\/p>/);
   const w2 = new World();
   const h = makeClient(w2, 'Hôte'); h.ev('jeuNb=1'); h.host('TIE001'); sec(w2, 1);
   const g = makeClient(w2, 'Ami'); g.join('TIE001'); sec(w2, 3);

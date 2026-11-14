@@ -78,6 +78,6 @@ test('réf. 4 : la Bibliothèque et Pratiquer retrouvent leurs autocollants, com
     'html.lq #scr-compte .account-setting-row:nth-child(even) .plus-row-icon.is-stk{rotate:6deg}'])
     assert.ok(lq.includes(k), k);
   /* Les feuilles et le cache rafraîchis */
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=360">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-tuiles-v2988';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=361">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-place-v2989';"));
 });
