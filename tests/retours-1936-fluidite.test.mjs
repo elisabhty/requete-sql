@@ -62,14 +62,14 @@ test('obFit mesure la page elle-même, sans copie, et le champ revient en vue da
   assert.ok(bientot.includes("if(typeof document!=='undefined'&&document.fonts&&document.fonts.status!=='loaded'&&document.fonts.ready)document.fonts.ready.then(again);") && bientot.includes('[400,1500].forEach(t=>setTimeout(again,t));'));
 });
 
-test('la page d’avant s’efface plus vite : 110 ms avant la suivante, un fondu de 0,1 s', () => {
+test('la page d’avant s’efface plus vite : la suivante tout de suite (14 novembre : plus de fondu de sortie), en fondu d’entrée', () => {
   const ctx = vm.createContext({ obLock: false, OB_SLIDES: ['a', 'b'], OB_STEPS: 2, obStep: 0, obPseudoAvant: () => false, prefersReduceMotion: () => false, paintOb() { ctx.peint = true; },
     document: { getElementById: id => (id === 'ob-body' ? { classList: { add(c) { ctx.sorti = c; } } } : { dataset: {} }) }, setTimeout: (f, t) => { ctx.delai = t; ctx.apres = f; } });
   vm.runInContext(cut('const OB_SORTIE_MS=110;', '/* 4 novembre, 2 h 13 : « quand on clique sur Voir mon parcours'), ctx);
   ctx.obGoto('b');
-  assert.deepEqual([ctx.sorti, ctx.delai, ctx.peint], ['out', 110, undefined]);
-  ctx.apres(); assert.equal(ctx.peint, true);
-  assert.ok(sansCom.includes(P + '.ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .1s ease-in both!important}'), 'le fondu de sortie tient dans les 110 ms');
+  /* 14 novembre, 12 h 41 (« des traces violettes quand on va de l’un à l’autre ») : sans clavier, ni classe out ni attente */
+  assert.deepEqual([ctx.sorti, ctx.delai, ctx.peint], [undefined, undefined, true]);
+  assert.ok(sansCom.includes(P + '.ob-slide.out .ob-screen>:not(.ob-flow-top){animation:none!important}'), 'plus de fondu de sortie');
 });
 
 test('derrière l’onboarding ouvert, l’appli est en veille : ni peinte ni animée', () => {

@@ -6755,7 +6755,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=374">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=69">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=70">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -29334,7 +29334,9 @@ function psPage(o){
   brancherObSwipeV2();
   /* Déjà ouvert (fin de l’onboarding) : le même fondu qu’entre deux étapes. */
   const body=document.getElementById('ob-body');
-  if(deja&&body&&!prefersReduceMotion()){body.classList.add('out');obLock=true;setTimeout(()=>{obLock=false;paintOb();},180);}else paintOb();
+  /* 14 novembre, 12 h 41 : plus de fondu de sortie (voir obGoto) ; déjà ouvert, la page du pseudo arrive en fondu, comme une étape. */
+  if(deja){obJustEntered=true;if(typeof obPeinteLe!=='undefined')obPeinteLe=Date.now();}
+  paintOb();
 }
 /* « C’est mon pseudo » : il est réservé pour l’appareil ; pris entre-temps, des pseudos libres s’affichent ; sans réseau, on le dit. */
 function obPseudoSuivant(){
@@ -46216,21 +46218,31 @@ function obGoto(target){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');
   if(root)root.dataset.obDir=cible>obStep?'fwd':'back';
   const champ=document.activeElement,clavier=!!(champ&&champ.tagName&&/^(INPUT|TEXTAREA)$/.test(champ.tagName)&&typeof body.contains==='function'&&body.contains(champ));
-  if(clavier){try{body.style.height=body.offsetHeight+'px';champ.blur();}catch(e){}}
-  body.classList.add('out');
   const t0=Date.now();
   const peindre=()=>{
     if(clavier){try{body.style.height='';}catch(e){}}
     if(root&&root.classList)root.classList.remove('ob-clavier');
-    obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;paintOb();
+    obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;obPeinteLe=Date.now();paintOb();
   };
+  /* 14 novembre, 12 h 41 (Elisa, une image de son enregistrement : « des traces violettes quand on va de l’un à l’autre » ; la page
+     du parcours prêt en partant, son haut tout violet, des rectangles violets sur « 100 % » et sur la première ligne). La page qui
+     partait s’effaçait bloc par bloc (un fondu de 110 ms sur chaque bloc) : sur l’iPhone, WebKit crée alors un calque par bloc, et
+     ce qui y était déjà animé (le pourcentage, les lignes, le graphique) restait non repeint, violet, le temps du fondu. Plus de
+     fondu de sortie : la page suivante est peinte tout de suite et apparaît en fondu (ob-enter), sans rien créer sur l’ancienne.
+     Clavier ouvert, la page d’avant reste telle quelle (figée, sans fondu) le temps que la vue reprenne sa hauteur. */
+  if(!clavier){peindre();return;}
+  try{body.style.height=body.offsetHeight+'px';champ.blur();}catch(e){}
+  body.classList.add('out');
   const attendre=()=>{
-    if(clavier&&root&&obHPleine>0&&root.clientHeight<obHPleine-60&&Date.now()-t0<OB_CLAVIER_MS){setTimeout(attendre,30);return;}
+    if(root&&obHPleine>0&&root.clientHeight<obHPleine-60&&Date.now()-t0<OB_CLAVIER_MS){setTimeout(attendre,30);return;}
     peindre();
   };
-  /* 12 novembre, 19 h 36 (« quand on touche sur les boutons, ça met du temps ») : la page d’avant s’efface en 110 ms (180 avant) */
   setTimeout(attendre,prefersReduceMotion()?0:OB_SORTIE_MS);
 }
+/* Un double toucher ne saute plus une page : la page change maintenant au premier toucher, sans le temps du fondu de sortie qui
+   absorbait le second. Les boutons du pied ignorent un toucher dans les 280 ms qui suivent l’arrivée d’une page. */
+let obPeinteLe=0;
+function obToucheTropTot(){return Date.now()-obPeinteLe<280;}
 /* 4 novembre, 2 h 13 : « quand on clique sur Voir mon parcours, on atterrit » sur « Choisis ton pseudo » : la mini-page venait après
    la dernière page, celle du parcours prêt, si bien qu’aucun de ses deux boutons ne menait d’abord où il le disait. Elle passe avant (une fois :
    pseudo déjà réservé ou « Plus tard » déjà choisi, on va droit à la dernière page), et l’onboarding reste ouvert jusque-là. */
@@ -46673,10 +46685,11 @@ function obPaywallVue(sortie){
   if(obPwBusy)return;
   obPwSortie=!!sortie&&!!obSortieInfo();
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');
-  const peindre=()=>{obLock=false;obJustEntered=true;paintOb();};
-  if(!body||obLock||prefersReduceMotion()){peindre();return;}
-  obLock=true;if(root)root.dataset.obDir=obPwSortie?'fwd':'back';
-  body.classList.add('out');setTimeout(peindre,180);
+  const peindre=()=>{obLock=false;obJustEntered=true;obPeinteLe=Date.now();paintOb();};
+  if(!body||obLock){peindre();return;}
+  /* 14 novembre, 12 h 41 : sans fondu de sortie (voir obGoto), la vue suivante arrive en fondu */
+  if(root)root.dataset.obDir=obPwSortie?'fwd':'back';
+  peindre();
 }
 function obSortieHTML(){
   const x=obSortieInfo();if(!x)return '';
@@ -49815,11 +49828,13 @@ function obCtaLibelle(btn,texte){
   btn.textContent=texte||'';
   if(texte&&typeof btn.insertAdjacentHTML==='function')btn.insertAdjacentHTML('beforeend',OB_CTA_FLECHE);
 }
+/* Un toucher sur le pied juste après l’arrivée d’une page (le second d’un double toucher) ne compte pas (voir obToucheTropTot). */
+function obGarderToucher(fn){return typeof fn==='function'?function(e){if(typeof obToucheTropTot==='function'&&obToucheTropTot())return;return fn.call(this,e);}:null;}
 function obSetFooter(primary,primaryAction,secondary,secondaryAction,note,disabled=false){
   const btn=document.getElementById('ob-next'),skip=document.getElementById('ob-skip'),footNote=document.getElementById('ob-foot-note');
-  if(btn){const was=btn.disabled;obCtaLibelle(btn,primary);btn.style.display=primary?'':'none';btn.disabled=!!disabled;btn.onclick=primaryAction||null;
+  if(btn){const was=btn.disabled;obCtaLibelle(btn,primary);btn.style.display=primary?'':'none';btn.disabled=!!disabled;btn.onclick=obGarderToucher(primaryAction);
     if(was&&!btn.disabled&&primary&&!obJustEntered)obCtaWake(btn);}
-  if(skip){skip.textContent=secondary||'';skip.style.display=secondary?'':'none';skip.onclick=secondaryAction||null;}
+  if(skip){skip.textContent=secondary||'';skip.style.display=secondary?'':'none';skip.onclick=obGarderToucher(secondaryAction);}
   /* La note sous les boutons : du texte, ou du HTML pour la phrase des conditions et ses liens (compte, 6 novembre, 23 h 16) */
   if(footNote){const h=!!note&&typeof note==='object';if(h)footNote.innerHTML=note.html||'';else footNote.textContent=note||'';footNote.classList.toggle('is-legal',h);}
   /* 12 novembre, 13 h 33 : sans aucun bouton (la connexion branchée : ses boutons sont dans la page), le pied ne garde plus la place
@@ -49876,6 +49891,11 @@ function paintOb(){
   root.classList.toggle('ob-profile-step',(OB_PROFILE_SLIDES.includes(slide)||OB_FIN_SLIDES.includes(slide)||OB_WIDGET_SLIDES.includes(slide)||slide==='pseudo')&&!obLegalMode);
   root.classList.toggle('ob-legal-step',!!obLegalMode);
   root.classList.toggle('ob-enter',obJustEntered);
+  /* 14 novembre, 12 h 41 (Elisa : « au niveau du pseudo, ça saute »). En arrivant sur une page, obFit la mesure avec les paliers de
+     la page d’avant, puis pose les siens : les marges du titre et du chat (le prénom, le pseudo) et celles du pied ont des
+     transitions (pour le clavier), qui faisaient glisser le champ et le bouton de 4 à 25 px juste après l’arrivée. Pas de
+     transition tant que la page se pose (deux images), seulement pour ce qui suit (le clavier). */
+  if(obJustEntered){root.classList.add('ob-se-pose');requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.remove('ob-se-pose')));}
   const body=document.getElementById('ob-body');
   let html='';
   if(obLegalMode){
@@ -52261,7 +52281,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-audit-v3007';
+  const SW_CACHE='requete-2026-11-14-transitions-v3008';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

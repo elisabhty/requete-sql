@@ -96,8 +96,12 @@ test('le prénom et le pseudo : la page se resserre avec le clavier au lieu de s
     'html:not([data-motion="reduce"]) #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>.ob-lead{max-height:9em;overflow:hidden;transition:max-height .26s',
     'html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-clavier :is(.ob-name,.ob-pseudo)>.ob-lead{display:block!important;max-height:0;opacity:0;',
     'html:not([data-motion="reduce"]) #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>:is(.ob-title,.ob-chat){transition:margin .26s',
-    'html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-foot{transition:padding .26s'])
+    /* 14 novembre, 12 h 41 (« au niveau du pseudo, ça saute ») : le chat du pseudo se replie aussi ; le pied ne glisse plus (il
+       remontait avec la vue, puis redescendait pendant 0,26 s) */
+    'html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-pseudo>.ob-chat{max-height:12em;overflow:hidden;transition:max-height .26s',
+    'html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-clavier .ob-pseudo>.ob-chat{max-height:0;opacity:0;'])
     assert.ok(media.includes(k), k);
+  assert.ok(!ob.includes('.ob-foot{transition:padding'), 'le pied se pose d’un coup, avec la vue');
   /* Mouvements réduits : la phrase disparaît d’un coup, comme avant */
   assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-clavier :is(.ob-name,.ob-pseudo)>.ob-lead{display:none!important}'));
 });

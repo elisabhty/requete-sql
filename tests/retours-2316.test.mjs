@@ -21,7 +21,8 @@ const keyframes = name => { const i = code.indexOf(`@keyframes ${name}{`); asser
 test('onboarding : en changeant d’étape, la page apparaît en fondu, déjà à sa place', () => {
   for (const k of ['obvOutFwd', 'obvOutBack', 'obvInFwd', 'obvInBack', 'obvApparait'])
     assert.ok(!/transform|translate|scale|rotate/.test(keyframes(k)), `${k} : l’opacité seulement`);
-  assert.ok(code.includes('html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .1s ease-in both!important}'), 'la page qui sort, en fondu court (0,1 s depuis le 12 novembre, 19 h 36)');
+  /* 14 novembre, 12 h 41 : plus de fondu de sortie (il laissait des traces violettes sur l’iPhone) ; la suivante arrive en fondu */
+  assert.ok(code.includes('html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:none!important}'), 'la page qui sort, sans fondu');
   assert.ok(code.includes('  animation-name:obvInFwd;animation-duration:.26s}') && code.includes('  animation-name:obvInBack;animation-duration:.26s}'));
   assert.ok(code.includes('  animation:obvApparait .26s ease-out backwards}'), 'à l’ouverture aussi');
 });
@@ -44,7 +45,7 @@ test('« En continuant… » juste sous le bouton jaune, avec ses deux liens', (
   /* Le pied de page, pour de vrai : la note sous le bouton reçoit le HTML, puis redevient du texte à l’étape suivante */
   const els = {}; const el = id => (els[id] = els[id] || { id, style: {}, classList: { on: new Set(), toggle(c, v) { v ? this.on.add(c) : this.on.delete(c); } }, set innerHTML(v) { this._html = v; this._txt = null; }, set textContent(v) { this._txt = v; this._html = null; } });
   const ctx = vm.createContext({ document: { getElementById: el }, obJustEntered: false, obCtaLibelle(b, t) { b.label = t; }, obCtaWake() {} });
-  vm.runInContext(cut('function obSetFooter(', 'function obRythmeMinutes('), ctx);
+  vm.runInContext(cut('function obGarderToucher(', 'function obRythmeMinutes('), ctx);
   ctx.obSetFooter('Continuer', () => {}, '', '', { html: 'En continuant, <a>…</a>' });
   assert.equal(els['ob-foot-note']._html, 'En continuant, <a>…</a>'); assert.ok(els['ob-foot-note'].classList.on.has('is-legal'));
   ctx.obSetFooter('Continuer', () => {}, '', '', 'Ta progression sera sauvegardée sur tous tes appareils.');

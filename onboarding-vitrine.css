@@ -501,8 +501,12 @@ html #onboarding.ob-vitrine[data-ob-slide="practice"] .ob-cta:disabled{font-size
    Le rebond reste au toucher d’une réponse (ob-selection-update), là où c’est le doigt qui le provoque. */
 html #onboarding.ob-vitrine .ob-screen{animation:none!important}
 html #onboarding.ob-vitrine .ob-slide.out{animation:none!important}
-html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:obvOutFwd .1s ease-in both!important}
-html #onboarding.ob-vitrine[data-ob-dir="back"] .ob-slide.out .ob-screen>:not(.ob-flow-top){animation-name:obvOutBack!important}
+/* 14 novembre, 12 h 41 (« des traces violettes quand on va de l’un à l’autre ») : plus de fondu de sortie bloc par bloc (WebKit y
+   laissait des calques non repeints, violets). La page d’avant est remplacée tout de suite ; clavier ouvert, elle reste figée le
+   temps que la vue reprenne sa hauteur (obGoto). */
+html #onboarding.ob-vitrine .ob-slide.out .ob-screen>:not(.ob-flow-top){animation:none!important}
+/* Pendant que la page se pose (paintOb, deux images) : aucune transition, la page arrive à sa place (le pseudo, 14 novembre). */
+html #onboarding.ob-vitrine.ob-se-pose :is(.ob-screen>*,.ob-foot,.ob-foot *){transition:none!important}
 html #onboarding.ob-vitrine.ob-enter .ob-screen>:not(.ob-flow-top):not(.ob-promise-stk):not(.ob-success):not(.mascot-stk):not(.ob-name-preview):not(.ob-level-hint):not(.ob-rhythm-summary):not(.ob-practice-reward):not(.ob-auth-message){
   animation:obvApparait .26s ease-out backwards}
 html #onboarding.ob-vitrine.ob-enter[data-ob-dir="fwd"] .ob-screen>:not(.ob-flow-top):not(.ob-promise-stk):not(.ob-success):not(.mascot-stk):not(.ob-name-preview):not(.ob-level-hint):not(.ob-rhythm-summary):not(.ob-practice-reward):not(.ob-auth-message){
@@ -1006,7 +1010,13 @@ html #onboarding.ob-vitrine .ob-success>i{position:absolute;inset:0;border-radiu
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>.ob-lead{max-height:9em;overflow:hidden;transition:max-height .26s cubic-bezier(.38,.7,.125,1),opacity .18s ease,margin .26s cubic-bezier(.38,.7,.125,1)}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-clavier :is(.ob-name,.ob-pseudo)>.ob-lead{display:block!important;max-height:0;opacity:0;margin-top:0!important;margin-bottom:0!important}
   html:not([data-motion="reduce"]) #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>:is(.ob-title,.ob-chat){transition:margin .26s cubic-bezier(.38,.7,.125,1)}
-  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-foot{transition:padding .26s cubic-bezier(.38,.7,.125,1)}
+  /* 14 novembre, 12 h 41 (« au niveau du pseudo, ça saute ») : le pied ne glisse plus. Au toucher du champ, sa marge du bas
+     glissait vers le bas pendant 0,26 s alors que la vue, rétrécie d’un coup par le clavier, l’avait déjà remonté : le bouton
+     jaune remontait, puis redescendait. Il se pose maintenant d’un coup, avec la vue. */
+  /* Le pseudo, clavier ouvert : le chat se replie avec la phrase, pour laisser voir sous le champ « Disponible » ou « déjà pris »
+     et les pseudos libres, au-dessus du bouton, jusque sur l’iPhone SE (ils passaient sous le bouton). */
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-pseudo>.ob-chat{max-height:12em;overflow:hidden;transition:max-height .26s cubic-bezier(.38,.7,.125,1),opacity .18s ease,margin .26s cubic-bezier(.38,.7,.125,1)}
+  html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-clavier .ob-pseudo>.ob-chat{max-height:0;opacity:0;margin-top:0!important;margin-bottom:0!important}
 }
 @media (prefers-reduced-motion:reduce){
   html #onboarding.ob-vitrine :is(.ob-build-list li,.ob-build-list li::before,.ob-build-ico,.ob-build-path span){transition:none!important}
@@ -2215,6 +2225,12 @@ html #onboarding.ob-vitrine.ob-clavier .ob-foot{padding-bottom:10px!important}
 html #onboarding.ob-vitrine.ob-clavier :is(.ob-name,.ob-pseudo)>.ob-lead{display:none!important}
 html #onboarding.ob-vitrine.ob-clavier :is(.ob-name,.ob-pseudo)>.ob-title{margin-bottom:0!important}
 html #onboarding.ob-vitrine.ob-clavier :is(.ob-name,.ob-pseudo)>.ob-chat{margin:6px 0 8px!important}
+/* Le pseudo, clavier ouvert, mouvement réduit : le chat s’efface aussi (sans repli animé), pour la même place sous le champ */
+html[data-motion="reduce"] #onboarding.ob-vitrine.ob-clavier .ob-pseudo>.ob-chat{display:none!important}
+@media (prefers-reduced-motion:reduce){html #onboarding.ob-vitrine.ob-clavier .ob-pseudo>.ob-chat{display:none!important}}
+/* Clavier ouvert, « déjà pris » et les pseudos libres un peu plus près du champ : ils tiennent entiers au-dessus du bouton (iPhone SE). */
+html #onboarding.ob-vitrine.ob-clavier .ob-pseudo .ps-etat{margin-top:8px!important}
+html #onboarding.ob-vitrine.ob-clavier .ob-pseudo .ps-idees{margin-top:6px!important}
 /* La page du prénom : la carte « Enchantée… » laisse la réponse à la bulle (obPrenomBulle), qui garde sa taille */
 html #onboarding.ob-vitrine.ob-clavier .ob-name-preview{display:none!important}
 html #onboarding.ob-vitrine .ob-bubble.ob-bulle-duo{display:grid!important}

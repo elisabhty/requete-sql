@@ -58,10 +58,11 @@ test('jamais bloqué : au plus 450 ms d’attente, et rien du tout sans champ, s
   assert.ok(m.M.t >= 450 && m.M.t < 520, `peinte au bout de ${m.M.t} ms même si la vue ne grandit pas`);
   assert.equal(m.journal.at(-1), 'peint à 516 pt, hauteur figée [], clavier false');
   assert.ok(SRC.includes('const OB_CLAVIER_MS=450;'));
-  /* Pas de champ en cours (toutes les autres pages) : exactement comme avant */
+  /* Pas de champ en cours (toutes les autres pages) : la suivante tout de suite, sans classe out ni attente (14 novembre, 12 h 41 :
+     plus de fondu de sortie, il laissait des traces violettes sur l’iPhone) */
   const sans = monde({champ: false}); sans.ctx.obGoto('pays');
-  assert.deepEqual(sans.journal, ['classe out']); assert.equal(sans.body.style.height, undefined);
-  assert.equal(sans.tour(), 110); assert.equal(sans.journal.length, 2); assert.equal(sans.timers.length, 0);
+  assert.deepEqual(sans.journal, ['peint à 516 pt, hauteur figée [], clavier false']); assert.equal(sans.body.style.height, undefined);
+  assert.equal(sans.timers.length, 0);
   /* Safari, ordinateur : la vue ne rétrécit pas sous le clavier */
   const safari = monde({hauteur: 852}); safari.ctx.obGoto('pays'); safari.tour(); assert.equal(safari.journal.length, 3);
   /* Hauteur sans clavier inconnue : on n’attend pas */
