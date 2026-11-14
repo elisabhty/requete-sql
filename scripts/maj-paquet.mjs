@@ -124,6 +124,9 @@ export function annoncer({publication, site, construire, origine = ORIGINE, main
   const essai = pub.essai && entier(pub.essai.version) > (tous ? tous.annonce.version : 0) ? faire(pub.essai) : null;
   const annonce = tous ? {...tous.annonce} : {version: 0};
   if (essai) annonce.essai = essai.annonce;
+  /* Les iPhone en essai (14 novembre) : l’empreinte SHA-256 de leur pseudo, jamais le pseudo (maj.js, suivreTesteurs). */
+  const testeurs = Array.isArray(pub.testeurs) ? [...new Set(pub.testeurs.map(String).filter(h => /^[0-9a-f]{64}$/.test(h)))] : [];
+  if (testeurs.length) annonce.testeurs = testeurs;
   annonce.le = maintenant.toISOString();
   mkdirSync(join(site, 'maj'), {recursive: true});
   writeFileSync(join(site, 'maj', 'version.json'), JSON.stringify(annonce, null, 1) + '\n');

@@ -49,11 +49,13 @@ test('sans compte : « Aucun compte connecté » ; la connexion proposée si ell
   assert.deepEqual(x.appels.map(a => a[0]), ['demande'], '« OK » : rien');
 });
 
-test('connecté : la vraie déconnexion (confirmée), puis l’étape du compte', async () => {
+test('connecté : la vraie déconnexion (confirmée), puis l’on reste dans l’appli, sans compte', async () => {
+  /* 14 novembre, 11 h 32 : le compte est facultatif ; la page de connexion ne s’ouvre plus d’elle-même après la déconnexion */
   const x = deco({ mode: 'connected', oui: true });
+  x.ctx.renderCompte = () => x.appels.push(['mon compte']);
   await x.go();
-  assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Tu nous quittes déjà\u00a0?', 'signOut', 'enregistre', 'ferme', 'onboarding']);
+  assert.deepEqual(x.appels.map(a => a[0] === 'demande' ? a[1] : a[0]), ['Tu nous quittes déjà\u00a0?', 'signOut', 'enregistre', 'ferme', 'mon compte']);
   assert.equal(x.ctx.state.accountMode, 'guest');
   assert.ok(!('accountProvider' in x.ctx.state) && !('accountLabel' in x.ctx.state));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-pages-v3003';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-sanscompte-v3004';"), 'le cache de l’appli change');
 });

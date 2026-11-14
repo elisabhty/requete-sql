@@ -31,7 +31,10 @@ test('la connexion est une feuille à mi-écran, au-dessus de « Ton parcours es
   assert.ok(p.includes('<div class="ob-acc-feuille"><i class="ob-acc-poignee" aria-hidden="true"></i><img class="ob-acc-chat" src="assets/chat-cle${chatFixe?\'-fixe\':\'\'}.webp"'), 'la poignée, le chat à la clé sur le bord');
   for (const f of ['chat-cle.webp', 'chat-cle-fixe.webp']) assert.ok(fs.existsSync(path.join(root, 'assets', f)), f);
   assert.ok(p.includes("${authReady?obCompteAtoutsHTML():''}") && p.includes("onclick=\"obStartAuth('${provider}',this)\""), 'ses trois repères, Apple et Google : les mêmes boutons');
-  assert.ok(!/sans compte|Plus tard|obSansCompte/i.test(p.slice(p.indexOf('if(!masquee){'), p.indexOf('}else\n    html='))), 'le compte reste le seul chemin');
+  /* 14 novembre, 11 h 32 (Elisa : « Tu peux avoir une version sans compte si tu veux, mais la personne, elle doit quand même passer par
+     le paywall ») : sous les boutons, une seule sortie discrète, « Continuer sans compte », qui mène au paywall */
+  const feuille = p.slice(p.indexOf('if(!masquee){'), p.indexOf('}else\n    html='));
+  assert.equal((feuille.match(/obSansCompteHTML\(\)/g) || []).length, 1, 'une seule sortie sans compte');
   assert.ok(html.includes("root.classList.toggle('ob-compte-feuille',slide==='account'&&!obLegalMode&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));"));
   for (const r of ['html #onboarding.ob-vitrine.ob-compte-feuille .ob-slides{background-color:rgba(22,12,70,.4);',
     'html #onboarding.ob-vitrine .ob-screen.ob-account.is-feuille{display:flex;flex-direction:column;min-height:100%;padding-bottom:0!important}',

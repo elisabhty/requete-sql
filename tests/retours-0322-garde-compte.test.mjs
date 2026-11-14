@@ -54,52 +54,37 @@ function appli({onboarded = true, mode = 'guest', auth = true, apercu = false, o
   return {ctx, appels, timers, cls, R};
 }
 
-test('réf. 2 : sans compte connecté, la page de connexion s’ouvre devant l’appli ; seulement une fois l’onboarding fait, la connexion branchée', () => {
-  const m = appli();
-  assert.equal(m.ctx.obCompteBloque(), true);
-  assert.equal(m.ctx.obCompteGardeVoir(), true); assert.deepEqual(m.appels, ['feuilles fermées', 'account']); assert.ok(m.cls.has('on'));
-  assert.equal(m.ctx.obCompteGardeVoir(), true); assert.deepEqual(m.appels, ['feuilles fermées', 'account'], 'déjà ouverte : pas une deuxième fois');
-  for (const [nom, o] of [['connectée', {mode: 'connected'}], ['onboarding pas fini : c’est lui qui mène au compte', {onboarded: false}], ['aperçu de l’onboarding', {apercu: true}],
-    ['connexion pas branchée (mise au point)', {auth: false}]]) {
+/* 14 novembre, 11 h 32 (Elisa : « tu peux avoir une version sans compte, mais la personne doit quand même passer par l’onboarding,
+   son pseudo et le paywall ») : la règle 5.1.1(v) d’Apple refuse une appli qui exige un compte pour des fonctions qui n’en dépendent
+   pas. La garde du compte ne bloque plus rien ; celle de l’abonnement reste (tests/retours-1131-sans-compte.test.mjs). */
+test('14 novembre : sans compte connecté, plus de page de connexion devant l’appli, dans aucune situation', () => {
+  for (const [nom, o] of [['sans compte', {}], ['connectée', {mode: 'connected'}], ['onboarding pas fini', {onboarded: false}], ['aperçu', {apercu: true}],
+    ['connexion pas branchée', {auth: false}], ['le paywall de la garde ouvert', {ouvert: true, page: 'paywall', garde: true}]]) {
     const x = appli(o);
     assert.equal(x.ctx.obCompteBloque(), false, nom); assert.equal(x.ctx.obCompteGardeVoir(), false, nom); assert.deepEqual(x.appels, [], nom);
   }
   const tot = appli({prete: false});
-  assert.equal(tot.ctx.obCompteGardeVoir(), false, 'avant la fin du démarrage de l’appli : rien'); assert.deepEqual(tot.appels, []);
-  assert.equal(tot.ctx.obCompteGardeDemarrer(), true, 'le démarrage la lance'); assert.deepEqual(tot.appels, ['feuilles fermées', 'account']);
+  assert.equal(tot.ctx.obCompteGardeDemarrer(), false, 'le démarrage ne l’ouvre plus'); assert.deepEqual(tot.appels, []);
 });
 
-test('réf. 2 : refermée par un autre chemin, elle revient ; elle passe avant le paywall ; elle attend la fin d’une partie ou d’une autre page', () => {
-  const m = appli();
-  m.ctx.obCompteGardeVoir(); m.ctx.closeOnboardingAuth();
-  assert.deepEqual(m.appels, ['feuilles fermées', 'account', 'ferme', 'feuilles fermées', 'account'], 'refermée : elle revient aussitôt');
-  /* Sans abonnement non plus : la connexion d’abord (le paywall suit la connexion, obStartAuth) */
+test('14 novembre : sans compte ni abonnement, le paywall directement ; refermé par un autre chemin, il revient', () => {
   const sansAbo = appli(); sansAbo.ctx.window.REQUETE_ACHAT = {acheter() {}, actif: () => false, etat: () => 'non'};
-  assert.equal(sansAbo.ctx.obGardeVoir(), false, 'la garde de l’abonnement laisse passer celle du compte');
-  assert.deepEqual(sansAbo.appels, ['feuilles fermées', 'account']);
-  const paywall = appli({ouvert: true, page: 'paywall', garde: true});
-  assert.equal(paywall.ctx.obCompteGardeVoir(), true); assert.deepEqual(paywall.appels, ['feuilles fermées', 'account'], 'le paywall de la garde laisse la place');
-  const widget = appli({ouvert: true, page: 'widget'});
-  assert.equal(widget.ctx.obCompteGardeVoir(), false); assert.deepEqual(widget.appels, [], 'une autre page de l’onboarding : à sa fermeture');
-  widget.ctx.closeOnboardingAuth(); assert.deepEqual(widget.appels, ['ferme', 'feuilles fermées', 'account']);
-  const partie = appli({jeu: {code: 'ABC234'}});
-  assert.equal(partie.ctx.obCompteGardeVoir(), false); assert.deepEqual(partie.appels, []);
-  assert.deepEqual(partie.timers.map(t => t.d), [20000], 'en pleine partie : dans 20 s');
-  partie.ctx.JEU = null; partie.timers[0].f(); assert.deepEqual(partie.appels, ['feuilles fermées', 'account']);
+  assert.equal(sansAbo.ctx.obGardeVoir(), true);
+  assert.deepEqual(sansAbo.appels, ['paywall'], 'pas la page de connexion d’abord');
+  sansAbo.ctx.closeOnboardingAuth();
+  assert.deepEqual(sansAbo.appels, ['paywall', 'ferme', 'paywall']);
+  const abonne = appli(); abonne.ctx.window.REQUETE_ACHAT = {acheter() {}, actif: () => true, etat: () => 'oui'};
+  assert.equal(abonne.ctx.obGardeVoir(), false); assert.deepEqual(abonne.appels, [], 'abonnée, sans compte : l’appli');
 });
 
-test('réf. 2 : une session perdue (compte supprimé ailleurs) ramène à la page de connexion', () => {
+test('14 novembre : une session perdue (compte supprimé ailleurs) repasse sans compte, sans ouvrir la page de connexion', () => {
   const m = appli({mode: 'connected'});
   assert.equal(m.ctx.compteGardeVerifier(), false); assert.deepEqual(m.appels, []);
   m.R.session = false;
-  assert.equal(m.ctx.compteGardeVerifier(), true);
-  assert.equal(m.ctx.state.accountMode, 'guest'); assert.deepEqual(m.appels, ['enregistre', 'feuilles fermées', 'account']);
-  /* Branchée aux trois moments où la session a pu changer, et au lancement juste avant la garde de l’abonnement */
-  const b = cut("  window.addEventListener('requete-session-perdue',compteSessionVerifier);", '\n}');
-  assert.ok(b.includes("const garde=()=>{try{if(typeof compteGardeVerifier==='function')compteGardeVerifier();}catch(e){}};"));
-  for (const k of ["window.addEventListener('requete-session-perdue',garde);", "window.addEventListener('load',garde);", "document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')garde();});"]) assert.ok(b.includes(k), k);
+  assert.equal(m.ctx.compteGardeVerifier(), false);
+  assert.equal(m.ctx.state.accountMode, 'guest'); assert.deepEqual(m.appels, ['enregistre']);
   const i = app.indexOf('    try{obCompteGardeDemarrer();}catch(e){}'), j = app.indexOf('    try{obGardeDemarrer(true);}catch(e){}');
-  assert.ok(i > 0 && j > i && j - i < 260, 'au lancement : le compte, puis l’abonnement');
+  assert.ok(i > 0 && j > i && j - i < 260, 'au lancement : le compte (qui ne bloque plus), puis l’abonnement');
 });
 
 test('réf. 2 : rien ne sort de la page gardée (ni « Retour », ni le haut de la page, ni le glissé, ni Échap)', () => {
@@ -193,6 +178,6 @@ test('réf. 5 : pendant le saut de joie, l’animation d’arrivée reste dans l
 });
 
 test('les feuilles de style et le cache changent de version', () => {
-  assert.ok(app.includes('ludique.css?v=374') && app.includes('onboarding-vitrine.css?v=68'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-pages-v3003';"));
+  assert.ok(app.includes('ludique.css?v=374') && app.includes('onboarding-vitrine.css?v=69'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-sanscompte-v3004';"));
 });

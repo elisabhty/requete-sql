@@ -170,7 +170,7 @@ test('index.html : langues.js juste après maj.js, le prénom confié au moteur,
   /* 13 novembre, 15 h 17 : « mets la langue en bas du pays » */
   const reglages = app.slice(app.indexOf('aria-labelledby="acct-settings-t"'));
   assert.ok(reglages.indexOf('${langueLigneHTML(CHEV)}') > reglages.indexOf('dx-drapeau-row') && reglages.indexOf('${langueLigneHTML(CHEV)}') < reglages.indexOf('<b>Parcours et rythme</b>'), 'sa ligne dans les réglages, sous « Pays » (et son drapeau)');
-  const d = app.indexOf('function langueLigneHTML(chevron){'), f = app.indexOf('let majTaps=[];');
+  const d = app.indexOf('function langueLigneHTML(chevron){'), f = app.indexOf('function openLegal(kind){');
   const ctx = {window: {}, esc: s => String(s)};
   vm.runInNewContext(app.slice(d, f) + ';this.html=langueReglageHTML;this.ligne=langueLigneHTML;', ctx);
   assert.equal(ctx.html(), '', 'sans le moteur : rien');
@@ -185,7 +185,8 @@ test('index.html : langues.js juste après maj.js, le prénom confié au moteur,
   assert.ok(ligne.includes(`onclick="openPlusDetails('plus-langue')"`) && ligne.includes('<b>Langue</b><small data-notrad>English</small>'), 'la ligne dit la langue en cours');
   ctx.window.REQUETE_LANGUE = {code: 'fr', disponibles: () => ['fr'], nom: c => c};
   assert.equal(ctx.ligne('>'), '', 'une seule langue : pas de ligne non plus');
-  assert.ok(app.includes("c.insertAdjacentHTML('beforebegin',langueReglageHTML())") && app.includes("r.insertAdjacentHTML('afterend',langueLigneHTML("), 'après les sept touchers, le réglage apparaît tout de suite');
+  /* 14 novembre, 11 h 32 : plus de sept touchers (règle 2.5.19 d’Apple) ; un iPhone est en essai quand l’annonce cite son pseudo (maj.js) */
+  assert.ok(!app.includes('majEssaiTap'), 'plus de geste caché pour passer en essai');
   /* les fichiers de langue partent avec l’appli (scripts/build-www.mjs copie les .js de la racine) */
   assert.ok(fs.existsSync(path.join(ROOT, 'langues.js')) && fs.existsSync(path.join(ROOT, 'langue-en.js')));
   assert.ok(lire('LANGUES.md').includes('REQUETE_LANGUE.manquants()'));

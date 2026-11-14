@@ -697,9 +697,12 @@ système : corriger et enrichir les cours reste dans ce cadre ; une fonction d�
 1. Modifier, vérifier dans le Simulateur (`npm run ios`), enregistrer dans Git. Le numéro de version est celui de `SW_CACHE`
    (`v2929`…) : `maj.js`, `index.html` et `sw.js` portent le même.
 2. En essai d’abord : `node scripts/maj-publier.mjs --essai`, puis enregistrer `maj/publication.json` et pousser. Seuls les
-   iPhone « en essai » la reçoivent : dans l’appli, Mon compte, sept touchers rapprochés sur le numéro de version, tout en bas
-   (« Versions d’essai activées » ; sept autres pour en sortir). Ouvrir l’appli, attendre une minute : la ligne dit
-   « Version v2929 · v2930 au prochain lancement ». Fermer l’appli pour de bon (la balayer), la rouvrir : « Version v2930 ».
+   iPhone « en essai » la reçoivent : ceux dont le pseudo est dans la liste des testeurs (une fois pour toutes :
+   `node scripts/maj-publier.mjs --testeur @ton_pseudo`, enregistrer, pousser ; `--retirer-testeur @ton_pseudo` pour en sortir).
+   La liste ne garde que l’empreinte de chaque pseudo. Ouvrir l’appli, attendre une minute : la ligne de Mon compte dit
+   « Version v2929 · v2930 au prochain lancement · versions d’essai ». Fermer l’appli pour de bon (la balayer), la rouvrir :
+   « Version v2930 ». (Jusqu’au 14 novembre, on passait en essai par sept touchers sur le numéro de version : retirés, la règle
+   2.5.19 d’Apple interdisant les fonctions cachées.)
 3. Pour tout le monde : `node scripts/maj-publier.mjs`, enregistrer, pousser.
 
 `node scripts/maj-publier.mjs --etat` dit ce qui est publié. `--retirer` retire la publication : les iPhone qui l’avaient
@@ -848,13 +851,14 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
 - **Après une connexion, l’accueil** (13 novembre, 2 h 41 : « quand on se connecte sur l’appli on va toujours pas sur
   l’accueil ») : reconnexion après une déconnexion, connexion derrière le paywall, « J’ai déjà un compte » sur un iPhone neuf
   (c’était Mon compte). La nouvelle inscrite garde ce que promet « Commencer la première leçon ».
-- **Sans compte connecté, pas d’appli** (13 novembre, 3 h 22 ; Elisa : « je suis déconnectée mais j’ai quand même accès à Mon
-  compte, et quand je fais retour alors que je suis déconnectée j’y suis aussi ») : la garde du compte (index.html,
-  `obCompteBloque`, `obCompteGardeVoir`). Une fois l’onboarding fait, dans l’appli où la connexion est branchée
-  (`REQUETE_AUTH`), sans compte connecté, la page de connexion reste devant l’appli, sans « Retour » : au lancement, après une
-  déconnexion, au retour au premier plan, et dès qu’une session est perdue (compte supprimé ailleurs). Elle passe avant le
-  paywall : on se connecte, puis l’abonnement est vérifié. Une invitation à une salle attend derrière elle. Sans connexion
-  branchée (la mise au point dans un navigateur), rien ne change.
+- **Le compte est facultatif** (14 novembre, 11 h 32 ; avant, du 13 novembre, 3 h 22, au 14 : « Sans compte connecté, pas
+  d’appli », la page de connexion devant l’appli). La règle 5.1.1(v) d’Apple refuse une appli qui exige un compte pour des
+  fonctions qui n’en dépendent pas (les cours, les défis, la Console). Elisa : « tu peux avoir une version sans compte, mais la
+  personne doit quand même passer par le paywall, l’onboarding, son pseudo ». Le parcours : l’onboarding, le pseudo
+  (obligatoire), « Ton parcours est prêt », la page du compte (Apple, Google, ou « Continuer sans compte »), le paywall
+  (obligatoire), l’appli. Sans compte, la progression reste sur l’iPhone ; Mon compte dit « Mode local actif » et propose « Se
+  connecter ». La garde du compte (`obCompteBloque`) ne bloque plus rien ; celle de l’abonnement (`obGardeVoir`) ne change pas.
+  Tests : `tests/retours-1131-sans-compte.test.mjs`.
 - **Le prix sur la feuille d’Apple** (13 novembre, 3 h 22 ; Elisa, sa capture : « Requête Premium annuel bienvenue, 44,99 € par
   an », « je pense qu’on est sur le mauvais prix ») : 44,99 € est le prix normal du produit « bienvenue » ; son −50 % est une
   offre de lancement, et Apple n’en accorde qu’une par personne et par groupe d’abonnements (l’essai de 3 jours en est une).

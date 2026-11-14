@@ -39,6 +39,7 @@ const rendreCompte = ({ authReady = false, obAuthBusy = false, obAuthMessage = '
     obFlowHeader: s => `<header data-etape="${s}"></header>`, esc: s => String(s), escAttr: s => String(s), legalUrl: k => `decouvrir/${k}.html`,
     obSetFooter: (...a) => pied.push(a), obPasserConnexion() {}, state: {}, obEntry: 'welcome' });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS='), ctx);
+  vm.runInContext(cut('function obSansCompteHTML(){', '\nfunction obPasserConnexion(){'), ctx);   // 14 novembre, 11 h 32 : « Continuer sans compte »
   vm.runInContext("var html='';if(slide==='x'){" + page + '}', ctx);
   return { html: ctx.html, pied, ctx };
 };
@@ -83,8 +84,10 @@ test('les boutons : « Bientôt » et vifs sans fournisseur, de vrais boutons av
   assert.deepEqual(pied.map(a => a[0]), ['Continuer'], 'tant que la connexion n’est pas branchée');
   /* Avec un fournisseur : les vrais boutons, et le compte seul */
   const { html: branche, pied: piedBranche } = rendreCompte({ authReady: true });
-  assert.deepEqual(piedBranche.map(a => [a[0], a[1]]), [['', null]], 'connexion branchée : pas de bouton pour passer, le compte est le seul chemin');
-  assert.ok(!branche.includes('sans compte'), '12 novembre, 13 h 44 : « Pas de sans compte stp »');
+  assert.deepEqual(piedBranche.map(a => [a[0], a[1]]), [['', null]], 'connexion branchée : pas de bouton jaune pour passer');
+  /* 14 novembre, 11 h 32 (Elisa) : « Tu peux avoir une version sans compte si tu veux, mais la personne, elle doit quand même passer
+     par le paywall ». Sous les boutons, « Continuer sans compte » (le pseudo est déjà choisi, le paywall vient après). */
+  assert.ok(branche.includes('<button type="button" class="ob-sans-compte-btn" onclick="obSansCompte()">Continuer sans compte</button>'), 'connexion branchée : on peut continuer sans compte');
   assert.ok(!branche.includes('is-soon') && !branche.includes('Bientôt') && (branche.match(/ob-provider-chev/g) || []).length === 3, 'Apple, Google et l’e-mail');
   /* Pendant une vraie connexion : boutons occupés. 12 novembre, 18 h 12 (« les deux boutons tournent en même temps ») : seul le
      bouton touché tourne et dit « Connexion… » ; l’autre attend, grisé */

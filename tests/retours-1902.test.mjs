@@ -89,5 +89,5 @@ test('13 novembre, 2 h 20 : un seul format de prix, quel que soit le texte de la
     'html #onboarding.ob-vitrine .pw-o-l.is-long :is(.pw-o-s,.pw-essai){padding-left:7px;padding-right:7px}', 'html #onboarding.ob-vitrine .pw-o-l.is-long .pw-o-s{font-size:12px}'])
     assert.ok(css.includes(r), r);
   assert.ok(!css.includes('.pw-soit{display:none}'), '« Soit » reste écrit');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=68">') && readFileSync(new URL('../sw.js', import.meta.url), 'utf8').includes("'./onboarding-vitrine.css?v=68',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=69">') && readFileSync(new URL('../sw.js', import.meta.url), 'utf8').includes("'./onboarding-vitrine.css?v=69',"));
 });

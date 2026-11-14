@@ -135,11 +135,13 @@ test('la connexion remplie : ce que le compte garde vraiment, et les fournisseur
 
 /* 12 novembre, 13 h 33 (Elisa, une relecture de l’écran « Garde ta progression ») : une phrase plus directe, des titres plus courts,
    la mention légale juste, la page resserrée. 13 h 44 : « Pas de sans compte stp » : le compte reste le seul chemin. */
-test('« Garde ta progression » : sa phrase, la mention légale, la page resserrée ; pas de « sans compte »', () => {
+test('« Garde ta progression » : sa phrase, la mention légale, la page resserrée ; « Continuer sans compte » (14 novembre)', () => {
   const p = cut("}else if(slide==='account'){", "}else if(slide==='paywall'){");
   assert.ok(p.includes('<p class="ob-compte-sub">Retrouve tes cours, tes défis et tes réussites sur tous tes appareils.</p>'));
   assert.ok(p.includes('En continuant, tu acceptes nos <a') && p.includes('et reconnais avoir pris connaissance de notre <a'));
-  assert.ok(!app.includes('Continuer sans compte') && !app.includes('function obSansCompte(') && !ob.includes('.ob-sans-compte'), 'pas de « Continuer sans compte »');
+  /* 12 novembre, 13 h 44 : « Pas de sans compte stp » ; 14 novembre, 11 h 32 : « Tu peux avoir une version sans compte si tu veux, mais
+     la personne, elle doit quand même passer par le paywall » : le lien discret sous les boutons, seulement quand la connexion est branchée */
+  assert.ok(p.includes("${authReady?obSansCompteHTML():''}") && app.includes('function obSansCompte(') && ob.includes('.ob-sans-compte'), '« Continuer sans compte »');
   assert.ok(p.includes("obSetFooter(authReady?'':'Continuer',authReady?null:obPasserConnexion,'','',{html:legal});"), 'branchée : aucun bouton pour passer');
   /* sans bouton dans le pied, il ne garde plus la place du bouton jaune */
   assert.ok(app.includes("  if(pied)pied.classList.toggle('is-sans-bouton',!primary&&!secondary);"));

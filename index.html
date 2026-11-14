@@ -6755,7 +6755,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=374">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=68">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=69">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -46388,8 +46388,13 @@ async function obGardeCompte(){
    - seulement une fois l’onboarding fait (avant, c’est l’onboarding qui mène au compte) ; jamais dans l’aperçu ;
    - sans connexion branchée (le site de mise au point), rien ne change ;
    - en pleine partie entre amis, elle attend la fin de la partie, comme le paywall. */
+/* 14 novembre, 11 h 32 (Elisa, après la règle 5.1.1(v) d’Apple : une appli ne peut pas exiger un compte pour des fonctions qui ne
+   dépendent pas d’un compte ; « tu peux avoir une version sans compte, mais la personne doit quand même passer par l’onboarding, son
+   pseudo et le paywall ») : le compte devient facultatif. La page de connexion ne se tient plus devant l’appli : « Continuer sans
+   compte » mène au paywall, et la progression reste sur l’iPhone (Mon compte propose « Se connecter » pour la retrouver partout). Le
+   pseudo reste obligatoire (obPseudoAvant), le paywall aussi (obGardeVoir). */
 let obCompteGardePrete=false,obCompteGardeT=0;
-function obCompteBloque(){return !!state.onboarded&&!obApercu&&obAuthReady()&&state.accountMode!=='connected';}
+function obCompteBloque(){return false;}
 function obCompteGardeVoir(){
   clearTimeout(obCompteGardeT);
   if(!obCompteGardePrete||!obCompteBloque())return false;
@@ -48979,6 +48984,20 @@ function obModifiable(){
    Plus de bouton pour rester sans compte ni de carte du mode local sur la page de connexion. Tant que la connexion n’est pas
    branchée, « Continuer » passe la page, pour aller au bout de l’onboarding ; une fois branchée, le compte est le seul chemin
    (ni bouton, ni glissé, ni « Suivant » ne la passent). */
+/* « Continuer sans compte » (14 novembre, 11 h 32) : pendant l’onboarding, le paywall (obligatoire), puis l’appli ; ouverte depuis
+   Mon compte (« Plus tard »), la page se referme. */
+function obSansCompte(){
+  if(typeof obAuthBusy!=='undefined'&&obAuthBusy)return;
+  if(typeof buzz==='function')buzz('light');
+  if(state.onboarded&&obEntry==='account'){closeOnboardingAuth();return;}
+  draft.accountMode='guest';
+  obApresCompte();
+}
+function obSansCompteHTML(){
+  const depuisCompte=!!state.onboarded&&obEntry==='account';
+  return `<div class="ob-sans-compte"><button type="button" class="ob-sans-compte-btn" onclick="obSansCompte()"${typeof obAuthBusy!=='undefined'&&obAuthBusy?' disabled':''}>${depuisCompte?'Plus tard':'Continuer sans compte'}</button>`+
+    (depuisCompte?'':'<p class="ob-sans-compte-note">Ta progression reste sur cet iPhone. Tu pourras te connecter plus tard, dans Mon compte.</p>')+'</div>';
+}
 function obPasserConnexion(){
   if(obAuthReady())return;
   buzz('light');
@@ -49964,6 +49983,7 @@ function paintOb(){
         ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(bouton).join('')}
         ${obFournisseurOk('email')?`<p class="ob-divider" aria-hidden="true">ou</p>${obMailChampHTML(authReady)}`:''}
       </div>${messageF}<p class="ob-compte-msg" id="ob-auth-live" role="status" aria-live="polite"></p>
+      ${authReady?obSansCompteHTML():''}
       ${authReady?`<p class="ob-acc-legal">${legalHtml}</p>`:''}
       </div></div>`;
     }else
@@ -51345,7 +51365,7 @@ function renderCompte(){
       <summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body ct-body" id="ct-body">${ctHTML()}</div>
     </details>
-    <p class="app-version-note" id="app-version-note" onclick="majEssaiTap()">${esc(appVersionNote())}</p>
+    <p class="app-version-note" id="app-version-note">${esc(appVersionNote())}</p>
     <button type="button" class="account-sheet-backdrop" onclick="closePlusDetails()" aria-label="Fermer les réglages ouverts"></button>`;
   stkPaint(host.querySelector('.acct-badges'));
   pacteFeuilleBrancher();
@@ -51378,8 +51398,9 @@ function appVersionLabel(){
   return m?('Version '+m[0]):(v?('Version '+v):'Version en cours');
 }
 /* La mise à jour à distance (maj.js ; Elisa, 13 novembre, 11 h 49). Sous Mon compte, le numéro de version dit aussi ce qui attend :
-   une version téléchargée s’installe au prochain lancement de l’appli (jamais pendant une leçon). Sept touchers rapprochés sur ce
-   numéro mettent cet iPhone « en essai » : il reçoit les versions publiées en essai, avant tout le monde ; sept autres l’en sortent. */
+   une version téléchargée s’installe au prochain lancement de l’appli (jamais pendant une leçon). Un iPhone « en essai » (son pseudo
+   est dans la liste des testeurs de l’annonce : scripts/maj-publier.mjs --testeur) le dit aussi. 14 novembre, 11 h 32 : plus de sept
+   touchers sur ce numéro (une fonction cachée, interdite par la règle 2.5.19 d’Apple). */
 function appVersionNote(){
   let t=appVersionLabel();
   try{
@@ -51426,28 +51447,6 @@ function langueReglageHTML(){
         <p style="margin:8px 0 0;font-size:13px;line-height:1.4;color:var(--ink-3)">L’appli se recharge dans la langue choisie.</p>
       </div>
     </details>`;
-}
-let majTaps=[];
-function majEssaiTap(){
-  const M=window.REQUETE_MAJ;
-  if(!M||!M.branchee)return;
-  const t=Date.now();
-  majTaps=majTaps.filter(x=>t-x<4000);
-  majTaps.push(t);
-  if(majTaps.length<7)return;
-  majTaps=[];
-  const essai=M.canal()!=='essai';
-  M.canal(essai?'essai':'');
-  if(typeof buzz==='function')buzz('light');
-  toast(essai?'Versions d’essai activées':'Versions d’essai désactivées',essai?'Cet iPhone reçoit les versions publiées en essai.':'Cet iPhone suit les versions publiées pour tous.','info');
-  const p=document.getElementById('app-version-note');
-  if(p)p.textContent=appVersionNote();
-  /* Le réglage « Langue » apparaît (ou disparaît) tout de suite : sa ligne sous « Pays » (et « Afficher mon drapeau » ; 13 novembre,
-     15 h 17), sa feuille avant « Contacte-nous » */
-  document.querySelectorAll('#plus-langue,.account-setting-row[onclick*="plus-langue"]').forEach(x=>x.remove());
-  const c=document.getElementById('plus-contact'),r=document.querySelector('.account-setting-row.dx-drapeau-row')||document.querySelector('.account-setting-row[onclick="paysChanger()"]');
-  if(c)c.insertAdjacentHTML('beforebegin',langueReglageHTML());
-  if(r)r.insertAdjacentHTML('afterend',langueLigneHTML(typeof ACCT_CHEV==='string'?ACCT_CHEV:''));
 }
 function openLegal(kind){
   /* Les pages légales sont celles du site (Réf 6) ; seule l’aide reste une feuille de l’app. */
@@ -51916,8 +51915,8 @@ function noterAppli(){
 async function seDeconnecter(){
   if(state.accountMode!=='connected'){
     const peut=typeof obAuthReady==='function'&&obAuthReady();
-    /* 13 novembre, 3 h 22 (réf. 2) : dans l’appli, on ne reste plus sans compte. Plus de fenêtre « Aucun compte connecté » : la page
-       de connexion, que la garde du compte tient devant l’appli. La fenêtre reste pour la mise au point, sans connexion branchée. */
+    /* Sans compte connecté, la ligne ouvre la page de connexion (le compte est facultatif depuis le 14 novembre). La fenêtre reste
+       pour la mise au point, sans connexion branchée. */
     if(peut){
       if(typeof closePlusDetails==='function')closePlusDetails();
       startOnboarding('account');
@@ -51933,8 +51932,9 @@ async function seDeconnecter(){
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
   if(typeof closePlusDetails==='function')closePlusDetails();
-  startOnboarding('account');
-  if(typeof lqAuRevoir==='function')lqAuRevoir();   // il salue et s’en va, par-dessus la page de connexion (7 novembre, 13 h 02)
+  /* 14 novembre : le compte est facultatif ; on reste dans l’appli, sans compte (la page de connexion ne s’ouvre plus d’elle-même). */
+  if(typeof renderCompte==='function')renderCompte();
+  if(typeof lqAuRevoir==='function')lqAuRevoir();   // il salue et s’en va (7 novembre, 13 h 02)
 }
 /* Après la déconnexion (Elisa, 7 novembre, 13 h 02 : son GIF, il salue de la patte, se retourne et s’en va) : une page comme celle du
    « Bravo » de la flamme, le temps qu’il parte (6 s, le GIF joué une fois ; il s’efface en sortant du cadre), puis la page de
@@ -52245,7 +52245,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-pages-v3003';
+  const SW_CACHE='requete-2026-11-14-sanscompte-v3004';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
