@@ -400,6 +400,23 @@ test('« Rejouer dans cette salle » : même code, retour en salle d’attente, 
   assert.equal(guests[1].J('rounds[0].cid'), host.ev('JEU.rounds[0].cid'));
 });
 
+test('14 novembre, 5 h 35 : la manche de la revanche s’ouvre sur « C’est parti ! », plus sur le mot de la fin de la partie d’avant', () => {
+  const { w, host, guests } = room({ n: 3, nb: 1 });
+  guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
+  host.ev('jeuNextRound()'); sec(w, 4.5); guests[0].found(); sec(w, 1); host.found(); sec(w, 1); guests[1].found(); sec(w, 1);
+  assert.equal(guests[0].ev('JEU.dit&&JEU.dit.cur&&JEU.dit.cur.k'), 'tous', 'la partie d’avant finit sur « Tout le monde a trouvé ! »');
+  sec(w, 2); host.ev('jeuFinish()'); sec(w, 1.5);
+  host.ev('jeuAgain()'); sec(w, 1.5);
+  for (const c of [host, ...guests]) assert.equal(c.ev('JEU.dit'), null, c.name + ' : le commentateur repart à zéro');
+  guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
+  host.ev('jeuNextRound()'); sec(w, 4.5);
+  for (const c of [host, ...guests]) {
+    assert.equal(c.view(), 'play0', c.name);
+    assert.doesNotMatch(c.html, /Tout le monde a trouvé/, c.name + ' : pas le mot de la partie d’avant');
+    assert.match(c.html, /id="jeu-direct-dit"[^>]*>[^]*?C’est parti/, c.name + ' : « C’est parti ! »');
+  }
+});
+
 test('13 novembre, 21 h 33 : la revanche ; chacun dit s’il en est, et quand tous ceux qui restent ont répondu, la partie repart toute seule', () => {
   const { w, host, guests } = room({ n: 3, nb: 1 });
   guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
