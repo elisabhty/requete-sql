@@ -52,8 +52,10 @@ assert(/catch\(e\)\{\s*draft\.practiceRows=\[\];\s*draft\.practiceDone=false;/.t
 console.log('\n--- Le compte ---');
 assert(html.includes('window.REQUETE_AUTH'), 'l’authentification passe par un adaptateur externe, sans faux compte par défaut');
 /* Elisa, 4 novembre, 10 h 29 : « enlève le mode local, on ne va pas prendre cette option, car on a le paywall qui arrive après ». */
-/* 12 novembre, 13 h 44 (Elisa) : « Pas de sans compte stp » */
-assert(!onboarding.includes('Continuer sans compte') && !onboarding.includes('Mode local et privé') && !onboarding.includes('function obChooseGuest()'), 'plus de mode sans compte : le paywall vient après');
+/* 12 novembre, 13 h 44 (Elisa) : « Pas de sans compte stp ». 14 novembre, 11 h 32 : « Tu peux avoir une version sans compte si tu veux,
+   mais la personne, elle doit quand même passer par le paywall » : « Continuer sans compte » mène au paywall, comme le compte. */
+assert(!onboarding.includes('Mode local et privé') && !onboarding.includes('function obChooseGuest()'), 'pas d’ancien mode local');
+assert(onboarding.includes("function obSansCompte(){") && onboarding.includes("draft.accountMode='guest';\n  obApresCompte();"), 'sans compte : la suite du parcours (le paywall)');
 assert(onboarding.includes('function obPasserConnexion(){\n  if(obAuthReady())return;'), 'tant que la connexion n’est pas branchée, « Continuer » passe la page ; ensuite, le compte est le seul chemin');
 
 console.log('\n--- Le parcours produit à la fin ---');

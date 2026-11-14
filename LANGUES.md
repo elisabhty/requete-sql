@@ -32,8 +32,9 @@ Dans l’ordre (`langues.js`, `choisir` et `automatique`) :
    l’anglais. Le Rwanda non plus (passé à l’anglais). Cette liste se corrige en une ligne.
 
 **Tant que l’anglais est « en essai »** (`essai: true` dans `langues.js`), rien de cela ne s’applique : tout le monde est en
-français, et le réglage « Langue » n’existe que sur les iPhone en essai (Mon compte, sept touchers sur le numéro de version ;
-voir IOS.md, « Corriger l’appli sans repasser par Apple »). Le jour où l’anglais est complet : retirer `essai: true`.
+français, et le réglage « Langue » n’existe que sur les iPhone en essai (ceux dont le pseudo est dans la liste des testeurs :
+`node scripts/maj-publier.mjs --testeur @pseudo` ; voir IOS.md, « Corriger l’appli sans repasser par Apple »). Il faut que
+l’anglais soit terminé avant l’envoi à Apple (règle 2.5.19 : pas de fonction cachée). Le jour où l’anglais est complet : retirer `essai: true`.
 
 Pour la mise au point sur un ordinateur : `http://localhost:…/index.html?langue=en`.
 

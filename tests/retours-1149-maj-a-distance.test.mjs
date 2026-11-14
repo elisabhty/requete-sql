@@ -6,7 +6,8 @@
      rien ne part chez un tiers.
    - Les garde-fous : une version qui ne confirme pas son démarrage est retirée par le plugin ; deux essais ratés, et elle est
      écartée sept jours ; une publication retirée ramène au contenu embarqué ; les adresses restent sous requeteapp.com.
-   - Les versions d’essai : réservées aux iPhone « en essai » (sept touchers sur le numéro de version, dans Mon compte).
+   - Les versions d’essai : réservées aux iPhone « en essai ». 14 novembre, 11 h 32 : plus les sept touchers sur le numéro de version
+     (une fonction cachée, interdite par la règle 2.5.19 d’Apple) : l’annonce donne la liste des testeurs (l’empreinte de leur pseudo).
    - Côté site : scripts/maj-publier.mjs écrit maj/publication.json ; la mise en ligne lance scripts/maj-paquet.mjs --ci, qui
      fabrique maj/version.json et le manifeste, et vérifie chaque adresse.
    Le natif (le plugin lui-même) ne tourne pas ici : il est remplacé par un faux, qui note ce qu’on lui demande. */
@@ -18,7 +19,8 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { fabriquer, controler, annoncer, lister, empreinte, versionDe, adresse, FICHIERS_MIN, FICHIERS_MAX } from '../scripts/maj-paquet.mjs';
-import { publier, decrire } from '../scripts/maj-publier.mjs';
+import { publier, decrire, testeurs, empreintePseudo, pseudoNet } from '../scripts/maj-publier.mjs';
+import { webcrypto } from 'node:crypto';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
@@ -52,9 +54,11 @@ function page({version = 2928, natif = true, stock = {}, session = {}, plugin = 
   repondre('download', opts => Promise.resolve({id: 'P' + String(opts.version).slice(1), version: opts.version, status: 'pending'}));
   const win = {
     Capacitor: natif ? {isNativePlatform: () => true, Plugins: {CapacitorUpdater: P}} : undefined,
+    crypto: webcrypto, TextEncoder,
   };
   const ctx = {
     window: win, localStorage: boite(local), sessionStorage: boite(sess), console, Promise, JSON, Math, Date, String, Array, Object, Error, parseInt, isFinite,
+    crypto: webcrypto, TextEncoder, Uint8Array,
     navigator: {onLine: enLigne},
     document: {visibilityState: 'visible', addEventListener: (n, f) => { ecoutes[n] = f; }},
     setTimeout: (f, ms) => { minuteurs.push({f, ms}); return minuteurs.length; }, clearTimeout: () => {},
@@ -298,33 +302,53 @@ test('un téléchargement déjà fait n’est pas refait ; un vieux paquet jamai
 
 /* ---------- maj.js : les versions d’essai ---------- */
 
-test('les versions d’essai : seulement pour les iPhone en essai, et on en sort proprement', async () => {
-  const annonce = {version: 2930, manifeste: 'https://requeteapp.com/maj/2930/manifeste.json', essai: {version: 2932, manifeste: 'https://requeteapp.com/maj/2932/manifeste.json'}};
-  /* un iPhone ordinaire suit la version pour tous */
-  let p = page({annonce});
+test('les versions d’essai : l’annonce dit quels iPhone sont en essai (l’empreinte de leur pseudo), et on en sort proprement', async () => {
+  const moi = {'requete-sql-v3': JSON.stringify({salle: {pseudo: '@Elisa_Data'}})};
+  const base = {version: 2930, manifeste: 'https://requeteapp.com/maj/2930/manifeste.json', essai: {version: 2932, manifeste: 'https://requeteapp.com/maj/2932/manifeste.json'}};
+  const annonce = {...base, testeurs: [empreintePseudo('@elisa_data'), 'b'.repeat(64)]};
+  /* un iPhone ordinaire (un autre pseudo, ou pas de pseudo) suit la version pour tous */
+  let p = page({annonce, stock: {'requete-sql-v3': JSON.stringify({salle: {pseudo: '@lea'}})}});
   p.M.pret();
   assert.equal(await p.M.verifier(true), 'prête');
   assert.equal(p.lu('requete-maj-prete').version, 2930);
-  /* en essai : la version d’essai, plus récente */
+  assert.equal(p.M.canal(), '');
   p = page({annonce});
   p.M.pret();
-  assert.equal(p.M.canal(), '');
-  assert.equal(p.M.canal('essai'), 'essai');
-  await p.souffler(); await p.souffler(); await p.souffler();
-  assert.equal(p.lu('requete-maj-prete').version, 2932, 'changer de canal relit l’annonce tout de suite');
-  assert.equal(p.M.etat().canal, 'essai');
-  /* v2932 d’essai tourne ; l’iPhone sort de l’essai : retour au contenu embarqué au lancement suivant (puis v2930, pour tous) */
-  p = page({version: 2932, actuel: 'P2932', annonce, stock: {'requete-maj-canal': '"essai"'}});
+  assert.equal(await p.M.verifier(true), 'prête');
+  assert.equal(p.lu('requete-maj-prete').version, 2930, 'sans pseudo : pas en essai');
+  /* son pseudo est dans la liste (la même empreinte que le script, majuscules et @ comprises) : la version d’essai, plus récente */
+  p = page({annonce, stock: moi});
   p.M.pret();
-  assert.equal(await p.M.verifier(true), 'à jour');
+  assert.equal(await p.M.verifier(true), 'prête');
+  assert.equal(p.lu('requete-maj-prete').version, 2932);
+  assert.equal(p.M.canal(), 'essai');
+  assert.equal(p.M.etat().canal, 'essai');
+  assert.equal(p.lu('requete-maj-canal'), 'essai', 'gardé : langues.js propose les langues en cours de traduction');
+  /* plus de réglage dans l’appli : canal() ne change rien */
   p.M.canal('');
-  await p.souffler(); await p.souffler(); await p.souffler();
+  assert.equal(p.M.canal(), 'essai');
+  /* v2932 d’essai tourne ; son pseudo sort de la liste : retour au contenu embarqué au lancement suivant (puis v2930, pour tous) */
+  p = page({version: 2932, actuel: 'P2932', annonce: base, stock: {...moi, 'requete-maj-canal': '"essai"'}});
+  p.M.pret();
+  assert.equal(await p.M.verifier(true), 'version retirée');
+  assert.equal(p.M.canal(), '');
   assert.deepEqual(p.lu('requete-maj-retour'), {version: 2932});
-  /* une version d’essai plus ancienne que la version pour tous ne compte pas */
-  p = page({annonce: {...annonce, essai: {version: 2929, manifeste: 'https://requeteapp.com/maj/2929/manifeste.json'}}, stock: {'requete-maj-canal': '"essai"'}});
+  /* un ancien « en essai » gardé sur l’iPhone (les sept touchers d’avant) ne compte plus si l’annonce ne le cite pas */
+  p = page({annonce: base, stock: {'requete-maj-canal': '"essai"'}});
   p.M.pret();
   await p.M.verifier(true);
   assert.equal(p.lu('requete-maj-prete').version, 2930);
+  assert.equal(p.lu('requete-maj-canal'), null);
+  /* une version d’essai plus ancienne que la version pour tous ne compte pas */
+  p = page({annonce: {...annonce, essai: {version: 2929, manifeste: 'https://requeteapp.com/maj/2929/manifeste.json'}}, stock: moi});
+  p.M.pret();
+  await p.M.verifier(true);
+  assert.equal(p.lu('requete-maj-prete').version, 2930);
+  /* une liste mal formée ne met personne en essai */
+  p = page({annonce: {...base, testeurs: ['pas une empreinte', 42]}, stock: moi});
+  p.M.pret();
+  await p.M.verifier(true);
+  assert.equal(p.M.canal(), '');
 });
 
 /* ---------- l’appli : index.html, sw.js, la configuration ---------- */
@@ -347,36 +371,24 @@ test('index.html : maj.js en premier, le démarrage confirmé à la fin de boot,
   assert.ok(MAJ.indexOf("appeler('set'") < MAJ.indexOf('function confirmer()'));
 });
 
-test('Mon compte : le numéro de version dit ce qui attend ; sept touchers pour les versions d’essai', () => {
-  assert.ok(app.includes('<p class="app-version-note" id="app-version-note" onclick="majEssaiTap()">${esc(appVersionNote())}</p>'));
+test('Mon compte : le numéro de version dit ce qui attend ; plus de geste caché (règle 2.5.19)', () => {
+  assert.ok(app.includes('<p class="app-version-note" id="app-version-note">${esc(appVersionNote())}</p>'));
+  assert.ok(!app.includes('majEssaiTap') && !app.includes('majTaps'), 'plus de sept touchers sur le numéro de version');
   const d = app.indexOf('function appVersionLabel(){'), f = app.indexOf('function openLegal(kind){');
-  const toasts = [];
   const etat = {version: 2928, branchee: true, prete: 0, canal: '', retour: false};
-  const note = {textContent: '', insertAdjacentHTML() {}};   // la ligne des langues (langues.js) se glisse après : rien à y mettre ici
-  const ctx = {window: {APP_VERSION: 'requete-essai-v2928', REQUETE_MAJ: {branchee: true, etat: () => etat, canal(c) { if (arguments.length) etat.canal = c; return etat.canal; }}},
-    toast: (...a) => toasts.push(a), esc: x => String(x), document: {getElementById: id => (id === 'app-version-note' ? note : null), querySelector: () => null, querySelectorAll: () => []}, Date};
-  vm.runInNewContext(app.slice(d, f) + ';this.api={appVersionLabel,appVersionNote,majEssaiTap};', ctx);
+  const ctx = {window: {APP_VERSION: 'requete-essai-v2928', REQUETE_MAJ: {branchee: true, etat: () => etat}}, esc: x => String(x), document: {getElementById: () => null}, Date};
+  vm.runInNewContext(app.slice(d, f) + ';this.api={appVersionLabel,appVersionNote};', ctx);
   assert.equal(ctx.api.appVersionNote(), 'Version v2928');
   etat.prete = 2930;
   assert.equal(ctx.api.appVersionNote(), 'Version v2928 · v2930 au prochain lancement');
   etat.prete = 0; etat.retour = true;
   assert.equal(ctx.api.appVersionNote(), 'Version v2928 · version d’origine au prochain lancement');
-  etat.retour = false;
-  for (let i = 0; i < 6; i++) ctx.api.majEssaiTap();
-  assert.equal(etat.canal, '', 'six touchers : rien');
-  ctx.api.majEssaiTap();
-  assert.equal(etat.canal, 'essai');
-  assert.equal(toasts[0][0], 'Versions d’essai activées');
-  assert.equal(note.textContent, 'Version v2928 · versions d’essai');
-  for (let i = 0; i < 7; i++) ctx.api.majEssaiTap();
-  assert.equal(etat.canal, '');
-  assert.equal(toasts[1][0], 'Versions d’essai désactivées');
-  /* sans le plugin (le site, une vieille appli) : la ligne d’avant, et les touchers ne font rien */
+  etat.retour = false; etat.canal = 'essai';
+  assert.equal(ctx.api.appVersionNote(), 'Version v2928 · versions d’essai', 'un iPhone de testeur le dit');
+  /* sans le plugin (le site, une vieille appli) : la ligne d’avant */
   ctx.window.REQUETE_MAJ.branchee = false;
   etat.prete = 2930;
   assert.equal(ctx.api.appVersionNote(), 'Version v2928');
-  for (let i = 0; i < 9; i++) ctx.api.majEssaiTap();
-  assert.equal(toasts.length, 2);
 });
 
 test('la configuration : le plugin en mode manuel, rien chez un tiers ; son usage déclaré à Apple', () => {
@@ -419,7 +431,7 @@ test('maj-publier : pour tous, en essai, retirer', () => {
   assert.deepEqual(pub, {version: 2930, commit: c1, le: '2026-11-14'});
   pub = publier(pub, {commit: c2, version: 2932, essai: true, le: '2026-11-15'});
   assert.deepEqual(pub, {version: 2930, commit: c1, le: '2026-11-14', essai: {version: 2932, commit: c2, le: '2026-11-15'}});
-  assert.equal(decrire(pub), 'Pour tous : v2930 (commit 11111111, publiée le 2026-11-14)\nEn essai : v2932 (commit 22222222, publiée le 2026-11-15)');
+  assert.equal(decrire(pub), 'Pour tous : v2930 (commit 11111111, publiée le 2026-11-14)\nEn essai : v2932 (commit 22222222, publiée le 2026-11-15)\nTesteurs : aucun (scripts/maj-publier.mjs --testeur @pseudo)');
   /* l’essai validé part pour tous : il n’a plus lieu d’être */
   assert.deepEqual(publier(pub, {commit: c2, version: 2932, le: '2026-11-16'}), {version: 2932, commit: c2, le: '2026-11-16'});
   /* un essai plus récent survit à une publication pour tous */
@@ -432,13 +444,38 @@ test('maj-publier : pour tous, en essai, retirer', () => {
   assert.throws(() => publier({}, {commit: 'abc', version: 2930}), /commit invalide/);
   assert.throws(() => publier({}, {commit: c1, version: 0}), /version invalide/);
   assert.throws(() => publier({}, {commit: c1, version: 2930, natifMin: 'bientôt'}), /natif-min/);
-  assert.equal(decrire({version: 0}), 'Pour tous : aucune version publiée (les iPhone gardent le contenu de leur appli)');
+  assert.equal(decrire({version: 0}), 'Pour tous : aucune version publiée (les iPhone gardent le contenu de leur appli)\nTesteurs : aucun (scripts/maj-publier.mjs --testeur @pseudo)');
+  /* Les testeurs (14 novembre) : l’empreinte du pseudo, gardée à chaque publication, retirée à la demande */
+  assert.equal(pseudoNet(' @@Elisa_Data '), '@elisa_data');
+  assert.equal(empreintePseudo('Elisa_Data'), empreintePseudo('@elisa_data'));
+  assert.match(empreintePseudo('@elisa_data'), /^[0-9a-f]{64}$/);
+  let t = testeurs({version: 2930, commit: c1, le: 'x'}, {ajouter: '@elisa_data'});
+  assert.deepEqual(t.testeurs, [empreintePseudo('@elisa_data')]);
+  assert.deepEqual(testeurs(t, {ajouter: 'ELISA_DATA'}).testeurs.length, 1, 'pas deux fois');
+  assert.ok(!JSON.stringify(t).includes('elisa'), 'jamais le pseudo lui-même');
+  t = publier(t, {commit: c2, version: 2931, le: 'y'});
+  assert.deepEqual(t, {version: 2931, commit: c2, le: 'y', testeurs: [empreintePseudo('@elisa_data')]}, 'une publication garde les testeurs');
+  assert.equal(publier(t, {retirer: true}).testeurs.length, 1);
+  assert.ok(decrire(t).endsWith('Testeurs : 1 iPhone en essai'));
+  assert.ok(!('testeurs' in testeurs(t, {retirer: '@elisa_data'})));
+  assert.throws(() => testeurs(t, {ajouter: '@'}), /pseudo vide/);
   /* dans le dépôt : rien n’est publié tant qu’Elisa ne l’a pas décidé, ou alors un commit précis */
   const depot = JSON.parse(lire('maj/publication.json'));
   for (const cible of [depot, depot.essai].filter(Boolean)) {
     assert.ok(Number.isInteger(cible.version) && cible.version >= 0);
     if (cible.version) assert.match(cible.commit, /^[0-9a-f]{40}$/);
   }
+});
+
+test('maj-paquet : l’annonce porte la liste des testeurs (empreintes seulement, dédoublonnées, mal formées écartées)', () => {
+  const site = dossier();
+  try {
+    const h = empreintePseudo('@elisa_data');
+    const r = annoncer({publication: {version: 0, testeurs: [h, h, 'pas une empreinte']}, site, construire: () => { throw new Error('rien à construire'); }, maintenant: new Date('2026-11-14T12:00:00Z')});
+    assert.deepEqual(r.annonce, {version: 0, testeurs: [h], le: '2026-11-14T12:00:00.000Z'});
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(site, 'maj', 'version.json'), 'utf8')).testeurs, [h]);
+    assert.ok(!('testeurs' in annoncer({publication: {version: 0}, site, construire: () => null}).annonce), 'sans testeurs : pas de liste');
+  } finally { fs.rmSync(site, {recursive: true, force: true}); }
 });
 
 test('maj-paquet : un fichier encore identique sur le site garde son adresse, un fichier qui a changé est recopié ; tout est vérifié', () => {

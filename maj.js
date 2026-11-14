@@ -50,8 +50,12 @@
      versions téléchargées : le contenu embarqué, plus récent, reprend.
 
    Les versions d'essai : une publication peut être réservée aux iPhone
-   « en essai » (sept touchers sur le numéro de version, dans Mon
-   compte), pour la voir sur un vrai téléphone avant tout le monde.
+   « en essai », pour la voir sur un vrai téléphone avant tout le monde.
+   Un iPhone est en essai quand son pseudo est dans la liste des testeurs
+   de l'annonce (testeurs : l'empreinte SHA-256 de chaque pseudo, jamais
+   le pseudo lui-même). 14 novembre, 11 h 32 : plus de geste caché (les
+   sept touchers sur le numéro de version), la règle 2.5.19 d'Apple
+   interdisant les fonctions cachées ; c'est l'annonce qui décide.
 
    Sur le site, dans un navigateur, ou sans le plugin : rien ne se passe.
    Publier une version : scripts/maj-publier.mjs (voir IOS.md).
@@ -60,7 +64,7 @@
   'use strict';
 
   /* Le même identifiant que SW_CACHE (index.html) et CACHE (sw.js) : la montée de version le remplace partout à la fois. */
-  var NOM = 'requete-2026-11-14-pages-v3003';
+  var NOM = 'requete-2026-11-14-sanscompte-v3004';
   var ORIGINE = 'https://requeteapp.com/';
   var ANNONCE = ORIGINE + 'maj/version.json';
   var PAUSE_MS = 30 * 60 * 1000;           // entre deux lectures de l'annonce
@@ -76,7 +80,7 @@
     retour: 'requete-maj-retour',   // {version} : revenir au contenu embarqué au prochain lancement
     vu: 'requete-maj-vu',           // date de la dernière lecture de l'annonce
     etat: 'requete-maj-etat',       // le dernier événement, pour comprendre après coup
-    canal: 'requete-maj-canal',     // 'essai' : cet iPhone reçoit aussi les versions d'essai
+    canal: 'requete-maj-canal',     // 'essai' : cet iPhone reçoit aussi les versions d'essai (son pseudo est dans l'annonce)
     session: 'requete-maj-session'  // (sessionStorage) la version déjà installée depuis l'ouverture de l'appli
   };
 
@@ -91,6 +95,28 @@
     return quoi;
   }
   function canal() { return lire(CLE.canal) === 'essai' ? 'essai' : ''; }
+  /* Le pseudo de cet iPhone (state.salle.pseudo, gardé par l'appli), écrit comme le script de publication l'écrit : « @pseudo »,
+     en minuscules. */
+  function monPseudo() {
+    var s = lire('requete-sql-v3'), p = s && s.salle && s.salle.pseudo;
+    p = typeof p === 'string' ? p.trim().replace(/^@+/, '').toLowerCase() : '';
+    return p ? '@' + p : '';
+  }
+  function empreinte(t) {
+    try {
+      if (!(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.resolve('');
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function (b) {
+        return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+      }, function () { return ''; });
+    } catch (e) { return Promise.resolve(''); }
+  }
+  /* L'annonce dit qui est en essai : cet iPhone l'est si l'empreinte de son pseudo y figure ; sinon, il ne l'est plus. */
+  function suivreTesteurs(pub) {
+    var liste = pub && Array.isArray(pub.testeurs) ? pub.testeurs.filter(function (h) { return /^[0-9a-f]{64}$/.test(String(h)); }) : [];
+    var p = monPseudo();
+    if (!liste.length || !p) { ecrire(CLE.canal, null); return Promise.resolve(); }
+    return empreinte(p).then(function (h) { ecrire(CLE.canal, h && liste.indexOf(h) >= 0 ? 'essai' : null); });
+  }
 
   /* Dans l'appli iPhone, la page n'a pas de service worker : c'est ici que « Version », dans Mon compte, prend son numéro. */
   try { if (!window.APP_VERSION) window.APP_VERSION = NOM; } catch (e) {}
@@ -252,6 +278,8 @@
     enCours = true;
     ecrire(CLE.vu, Date.now());
     return chercher(ANNONCE).then(function (pub) {
+      return suivreTesteurs(pub).then(function () { return pub; }, function () { return pub; });
+    }).then(function (pub) {
       var cible = choisir(pub);
       if (!cible) return noter('annonce illisible');
       var v = cible.version;
@@ -308,14 +336,8 @@
     branchee: !!P,
     pret: pret,
     verifier: verifier,
-    /* Sans argument : le canal de cet iPhone ('' ou 'essai'). Avec : le change, puis relit l'annonce. */
-    canal: function (nouveau) {
-      if (arguments.length) {
-        ecrire(CLE.canal, nouveau === 'essai' ? 'essai' : null);
-        if (signale) verifier(true);
-      }
-      return canal();
-    },
+    /* Le canal de cet iPhone ('' ou 'essai') : c'est l'annonce qui le donne (testeurs), plus de réglage dans l'appli. */
+    canal: function () { return canal(); },
     /* Pour « Version », dans Mon compte : la version téléchargée qui attend le prochain lancement, le canal, le dernier événement. */
     etat: function () {
       var prete = lire(CLE.prete);
