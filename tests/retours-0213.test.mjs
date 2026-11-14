@@ -60,10 +60,11 @@ test('le pseudo passe avant « Ton parcours est prêt », qui reste la dernière
   assert.ok(go.indexOf('obPseudoAvant()') < go.indexOf('obLock=true'));
   assert.ok(fnLast('obNext').includes("else if(slide==='pseudo')obPseudoSuivant();"), 'glisser ou Entrée sur la mini-page : le pseudo, pas la fin');
   const fin = fnLast('finishOnboard');
-  /* 14 novembre, 18 h 58 (l’audit App Review, décision 5 : « Non obligatoire ») : facultatif ; la fin de l’onboarding ne la redemande
-     pas si elle a déjà été montrée (avant : obligatoire, redemandée tant qu’il n’y avait pas de pseudo, 4 novembre, 17 h 27). */
-  assert.ok(fin.includes("if(!psMien()&&!clsSalle().psVoulu&&!clsSalle().psPage&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),suite:()=>obTerminer(action)});return;}"),
-    'facultative : montrée une fois');
+  /* 4 novembre, 17 h 27 : « pas de Plus tard pour Choisis ton pseudo (obligatoire) » : sans pseudo réservé ni gardé hors ligne, la fin
+     de l’onboarding le demande encore, même si la page a déjà été montrée (une reprise après fermeture de l’app, par exemple).
+     14 novembre, 20 h 09 (« Pas de plus tard pour le pays et le pseudo !!!! ») : de nouveau, après une heure facultative. */
+  assert.ok(fin.includes("if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)});return;}"),
+    'obligatoire : redemandée à la fin tant qu’il n’y a pas de pseudo');
   assert.ok(fnLast('obTerminer').includes("if(action==='plan-ready'){\n    switchTab('planning');"), '« Voir mon parcours » : le Planning');
 });
 
@@ -82,13 +83,13 @@ function bac({ pseudo = '', dejaVue = false, apercu = false, horsLigne = '' } = 
   return { ctx, log, classes, salle };
 }
 
-test('bac à sable : la mini-page (facultative depuis le 14 novembre), l’onboarding reste ouvert, puis la dernière page', () => {
+test('bac à sable : la mini-page obligatoire, l’onboarding reste ouvert, puis la dernière page', () => {
   const b = bac();
   assert.equal(b.ctx.obPseudoAvant(), true);
-  assert.deepEqual(b.log, ['enregistré', 'mini-page {"voulu":"lea_sql","garder":true}'], '« Plus tard » possible');
+  assert.deepEqual(b.log, ['enregistré', 'mini-page {"voulu":"lea_sql","garder":true,"obligatoire":true}'], 'sans « Plus tard » (14 novembre, 20 h 09)');
   assert.equal(b.salle.psPage, 1, 'notée comme montrée : l’ouverture de l’appli ne la propose plus d’elle-même');
   b.log.length = 0;
-  b.ctx.psPageFin(false);                       // « Plus tard », ou pseudo gardé hors ligne
+  b.ctx.psPageFin(false);                       // pseudo gardé hors ligne (pas de « Plus tard » pendant l’onboarding)
   assert.deepEqual(b.log, ['vers ready'], 'pas de fermeture, pas de barre rendue : « Ton parcours est prêt » prend la place');
   assert.ok(b.classes.has('on'));
   assert.equal(b.ctx.obEntry, 'welcome', 'l’entrée de l’onboarding revient');
@@ -96,8 +97,8 @@ test('bac à sable : la mini-page (facultative depuis le 14 novembre), l’onboa
     const c = bac(opts);
     assert.equal(c.ctx.obPseudoAvant(), false, JSON.stringify(opts)); assert.deepEqual(c.log, []);
   }
-  /* Déjà montrée (« Plus tard ») : elle ne revient pas dans la foulée (14 novembre : facultative ; le 4 novembre, elle revenait) */
-  assert.equal(bac({ dejaVue: true }).ctx.obPseudoAvant(), false);
+  /* Déjà montrée, mais toujours sans pseudo (l’app fermée sur la page, puis rouverte) : elle revient (obligatoire, 17 h 27 ; 14 novembre, 20 h 09) */
+  assert.equal(bac({ dejaVue: true }).ctx.obPseudoAvant(), true);
   /* Ailleurs (ouverture de l’appli, salle de défi) : la mini-page se ferme comme avant */
   const d = bac(); d.ctx.PS.page = {}; d.ctx.PS.suite = () => d.log.push('suite');
   d.ctx.psPageFin(true);

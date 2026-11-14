@@ -84,10 +84,10 @@ test('femme, homme ou ne pas dire : sur l’écran de l’âge, gardé sur l’a
   assert.ok(lire('decouvrir/confidentialite.html').includes('Ton prénom, ta tranche d’âge, ton genre et ta profession (si tu les indiques), ton pays (seul son drapeau accompagne ton pseudo dans les défis, voir plus bas), la liste de tes amis des défis, la façon dont tu as connu Requête'));
 });
 
-test('le pseudo, facultatif depuis le 14 novembre, 18 h 58 (obligatoire le 4 novembre, 17 h 27) : « Plus tard », montrée une fois', () => {
+test('le pseudo, obligatoire pendant l’onboarding (4 novembre, 17 h 27 ; de nouveau le 14 novembre, 20 h 09) : pas de « Plus tard », et la page revient tant qu’il n’y en a pas', () => {
   const avant = fn('obPseudoAvant', '\n}\n');
-  assert.ok(avant.includes('const s=clsSalle();if(s.psVoulu||s.psPage)return false;'), 'déjà montrée : elle ne revient pas ; gardé hors ligne non plus');
-  assert.ok(avant.includes('psPage({voulu:psAncien(),garder:true,suite:()=>{obEntry=entree;obGoto(\'ready\');}});'));
+  assert.ok(avant.includes('const s=clsSalle();if(s.psVoulu)return false;') && !avant.includes('if(s.psVoulu||s.psPage)return false;'), 'déjà montrée ne suffit pas ; gardé hors ligne, si');
+  assert.ok(avant.includes('psPage({voulu:psAncien(),garder:true,obligatoire:true,suite:()=>{obEntry=entree;obGoto(\'ready\');}});'));
   const page = slide('pseudo', "}else if(slide==='pays'){");
   assert.ok(page.includes("    obSetFooter('C’est mon pseudo',obPseudoSuivant,pg.obligatoire?'':'Plus tard',pg.obligatoire?'':obPseudoPlusTard,{html:cgu},!v);"));
   /* Sans réseau, le pseudo tapé est gardé et réservé au retour en ligne : l’onboarding ne reste pas bloqué */
@@ -118,7 +118,7 @@ test('réf. 7 : l’objectif sur l’accueil… puis supprimé (5 novembre, 20 h
   assert.equal((app.match(/\$\{stats\}\$\{streak\}`;/g) || []).length, 2, 'sous les deux cartes du cours : les chiffres, puis la série');
   /* L’objectif reste modifiable dans Mon compte, Profil et objectif */
   assert.ok(app.includes("openPlusDetails('plus-profile-settings')"));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=382">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=383">'));
 });
 
 test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’anneau qui ressemblait à une roue qui charge)', () => {

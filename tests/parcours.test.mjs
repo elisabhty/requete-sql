@@ -157,7 +157,10 @@ test('base de l’appli : un vote par appareil, par la seule fonction parcours_v
 test('1.0 : les parcours à venir cachés ; un parcours prêt (dispo:true) apparaît', () => {
   assert.ok(app.includes('let PARCOURS_AVENIR_MONTRES=false;'), 'cachés par défaut');
   const { ctx } = sandbox({ montres: false });
-  assert.equal(ctx.parcoursChipsHTML(1), '', 'un seul parcours : pas de rangée sur l’accueil');
+  /* 20 h 09 : un seul parcours montré, la rangée garde la pastille du vote, sans « À venir » ni « Tous les parcours » */
+  const seule = ctx.parcoursChipsHTML(1);
+  assert.ok(seule.startsWith('<ul class="pc-chips is-seul" aria-label="Tes parcours"><li><button type="button" class="pc-chip is-vote" onclick="openParcoursVote()">'));
+  assert.ok(!seule.includes('À venir') && !seule.includes('Tous les parcours') && !seule.includes('<b>SQL</b>'));
   const liste = ctx.parcoursListeHTML();
   assert.ok(liste.includes('<p class="pc-sec">Disponible</p>') && !liste.includes('À venir') && !liste.includes('pc-vote-cta'), 'ni « À venir », ni vote');
   ctx.openParcours('python');
@@ -166,4 +169,5 @@ test('1.0 : les parcours à venir cachés ; un parcours prêt (dispo:true) appar
   vm.runInContext("PARCOURS.find(p=>p.id==='python').dispo=true", ctx);
   const chips = ctx.parcoursChipsHTML(1);
   assert.ok(chips.includes('<b>Python</b>') && !chips.includes('Excel') && chips.includes('Tous les parcours'));
+  assert.ok(chips.includes('class="pc-chip is-vote"'), 'le vote reste, pour Excel et Power BI');
 });

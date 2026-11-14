@@ -524,7 +524,8 @@ s’ouvre. Les montants s’écrivent tous de la même façon depuis 2 h 41 (« 
 
 ### Le jour où un parcours ouvre : la notification (11 novembre, 15 h 55)
 
-« M’avertir au lancement », sur la page d’un parcours à venir, est une vraie notification dans l’appli iPhone : en activant
+« M’avertir au lancement » (sur la page d’un parcours à venir, puis, depuis le 14 novembre, sur la page « Vote pour le prochain
+parcours », pour tous les parcours pas encore ouverts) est une vraie notification dans l’appli iPhone : en activant
 l’alerte, iOS demande l’autorisation des notifications (une seule fois) ; l’appareil s’inscrit alors à la base de l’appli
 (`parcours_alerter` : l’empreinte de sa clé, le parcours, le jeton de push d’Apple ; table `parcours_alerte`,
 `supabase/migrations/20261111160000_parcours_alerte_push.sql`, appliquée le 11 novembre). Couper l’alerte efface la ligne ;
@@ -707,10 +708,12 @@ système : corriger et enrichir les cours reste dans ce cadre ; une fonction d�
 **Les parcours à venir, cachés pour la 1.0** (14 novembre, 19 h 36 ; l’audit App Review, règle 2.1 ; Elisa : « cacher les pages
 et les ajouter quand elles seront prêtes, une par une, avec la fonction à distance ») : `PARCOURS_AVENIR_MONTRES=false`
 (index.html) cache les pastilles « À venir » de l’accueil, la section « À venir », les pages de Python, Excel et Power BI et
-l’alerte de lancement. Le vote reste (19 h 54, « comment ils vont faire pour voter ? ») : c’est un sondage qui marche, rien n’y
-est annoncé ; il est sur l’accueil, sous les modules du parcours SQL (la même carte que sur la page d’un parcours, cochée sur
-son vote, ses résultats en pour cent une fois voté). Un parcours prêt passe à `dispo:true` et apparaît, avec ses vraies leçons
-(et sort du vote). Deux précautions : ne pas remettre les pages
+les alertes de chaque parcours. Le vote reste (19 h 54, « comment ils vont faire pour voter ? ») : c’est un sondage qui marche,
+rien n’y est annoncé. Depuis 20 h 09 (« en mode onglet comme Python : Vote pour le prochain parcours › », « et cocher pour la
+notif »), une pastille sous « Parcours SQL » ouvre sa page, faite comme celle de Python : la carte violette (« Sondage », « Le
+prochain parcours »), l’alerte « M’avertir au lancement » (une seule, pour tous les parcours pas encore ouverts :
+`parcoursAlerteTous`), le vote (coché sur son vote, ses résultats en pour cent une fois voté). Un parcours prêt passe à
+`dispo:true` et apparaît, avec ses vraies leçons (et sort du vote). Deux précautions : ne pas remettre les pages
 d’annonce juste après la validation (la règle 2.5.19 du 16 octobre 2026 interdit les fonctions cachées pendant la vérification
 puis montrées) ; et un parcours entier, surtout Python, qui demandera son propre moteur, passe de préférence par une mise à
 jour sur l’App Store, décrite dans les notes pour la vérification (et annoncée dans « Nouveautés ») ; la mise à jour à
@@ -966,14 +969,16 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
   `contact_boite` : Storage › contact-pieces, puis le dossier du même nom, pour les ouvrir. Le ménage des 3 ans
   n’efface que les messages : supprimer à la main les fichiers des messages traités (et les dossiers sans message,
   si un envoi a échoué après le dépôt).
-- **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre ; sur l’accueil, sous les modules, depuis le 14 novembre) : le parcours choisi, sa date et l’empreinte
+- **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre ; depuis le 14 novembre, la page « Vote pour le prochain parcours », par sa pastille sous « Parcours SQL ») : le parcours choisi, sa date et l’empreinte
   de l’identifiant tiré au hasard par l’appareil partent dans la table `parcours_vote` (fonction `parcours_voter`, un vote
   par appareil, revoter le remplace). Appliquée le 4 novembre : `supabase/migrations/20261104160653_parcours_vote.sql`.
   **Résultats** : vue `parcours_votes`. Le badge « En tête » de la page d’un parcours lit `parcours_en_tete` (le seul
   parcours en tête, sans chiffres, à partir de 10 votes et sans égalité ; appliquée le 11 novembre :
   `supabase/migrations/20261111143000_parcours_en_tete.sql`). Dans App Store Connect, déclarer « Identifiant
   utilisateur » (l’identifiant au hasard) et « Autres données d’usage » (le vote) ; usage « Analyses » ; non liés à
-  l’identité, sans pistage. L’alerte « M’avertir au lancement » reste sur l’appareil.
+  l’identité, sans pistage. L’alerte « M’avertir au lancement » ne reste plus seulement sur l’appareil depuis le 11 novembre :
+  avec les notifications acceptées, le jeton de notification d’Apple, les parcours et l’empreinte de l’identifiant vont dans
+  `parcours_alerte` (voir « Le jour où un parcours ouvre »), effacés à l’envoi ou quand l’alerte est coupée.
 - **Avis sur les leçons** (« Donne ton avis sur la leçon », fin de leçon, 4 novembre) : la note (1 à 5 étoiles), le
   commentaire facultatif (500 signes), le numéro et le titre de la leçon, la date et l’empreinte de l’identifiant au hasard
   partent dans la table `avis_lecon` (fonction `lecon_noter`, un avis par appareil et par leçon, le changer le remplace).
