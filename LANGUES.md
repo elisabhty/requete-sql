@@ -78,12 +78,21 @@ la traduction du premier module (la base, les requêtes des leçons et des défi
 
 ## Où on en est
 
-- **Fait** : le système ; l’onboarding en anglais (le pilote).
-- **Ensuite** : les écrans principaux (l’accueil, les onglets, Mon compte, le paywall) ; puis les cours, module par module :
+- **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,
+  les onglets, Mon compte et ses feuilles, le planning, les défis (Jouer, Classement, Mes stats, profil d’un joueur, salle
+  d’attente et partie), les stickers, les cartes, les notes, l’entretien (la liste des questions), la console, « Selon le SGBD »,
+  les pages de fête (niveau, sticker, fin de module), et les noms des modules, des leçons et des niveaux. Environ 2 450 textes.
+- **Le moteur a appris** (14 novembre) : le pseudo d’un autre joueur (« Profil de @nora ») se range sous `{p1}` ; ton pseudo sous
+  `{pseudo}` et le nom de ton niveau sous `{niveau}` (remis traduit) ; un nombre français à milliers (« 1 200 ») est un seul
+  nombre, écrit « 1,200 » en anglais.
+- **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :
   les textes des vidéos (`assets/anim/<cours>.html`), leurs voix en anglais (`tools/voix/` ; environ 258 000 caractères au
   total, soit autant de crédits ElevenLabs, à valider avant toute dépense ; le moteur des vidéos attend déjà la fin de chaque
   phrase, une voix plus longue ou plus courte ne décale rien), les leçons, les défis, les cartes.
-- **Aussi à prévoir** : les dates et les nombres (`'fr-FR'` est écrit en dur à une cinquantaine d’endroits ;
+- **Aussi à prévoir** : les initiales des jours (« L M M J V S D » de la semaine et du planning : des lettres seules, que le
+  moteur ne traduit pas ; à écrire avec `REQUETE_LANGUE.locale`), le détail « en réflexion, 0 point » des joueurs d’une salle
+  (une phrase par combinaison : à traduire morceau par morceau dans le code), les stickers dont l’image porte du français
+  (« 1er défi », « 10 leçons », « jours », « NIV. »… : 15 images, environ 6 500 crédits pour les refaire), les dates et les nombres (`'fr-FR'` est écrit en dur à une cinquantaine d’endroits ;
   `REQUETE_LANGUE.locale` donne la bonne valeur), les noms des produits de la base et les filtres `LIKE`, les noms de pays, les
   widgets et l’île (du Swift : un envoi Apple), les notifications, le site et les pages légales, la fiche App Store (un envoi
   Apple).

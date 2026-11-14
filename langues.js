@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=2', essai: true }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=3', essai: true }
   };
   var CLE = 'requete-langue';
 
@@ -91,7 +91,8 @@
   var valeurs = {};   // {prenom: () => 'Elisa'} : mis de côté avant de chercher la traduction
   var manque = new Map(), MANQUE_MAX = 6000;
   function propre(s) { return String(s).replace(/[   ]/g, ' ').replace(/\s+/g, ' ').trim(); }
-  function nombre(n) { return CODE === 'fr' ? n : n.replace(',', '.'); }
+  /* Un nombre français (« 1 200,5 ») écrit dans la langue (« 1,200.5 ») */
+  function nombre(n) { return CODE === 'fr' ? n : n.replace(/,(\d+)$/, '.$1').replace(/ /g, ','); }
   /* Rend la traduction, ou null. cle : le texte français, déjà nettoyé (propre). */
   function chercher(cle) {
     var D = TRAD && TRAD.textes;
@@ -103,6 +104,9 @@
       var v = ''; try { v = propre(valeurs[k]() || ''); } catch (e) {}
       if (v.length >= 2 && gabarit.indexOf(v) >= 0) { gabarit = gabarit.split(v).join('{' + k + '}'); mis[k] = v; }
     }
+    /* Le pseudo d’un autre joueur (« Profil de @nora ») : {p1}, {p2}… (14 novembre : l’interface en anglais) */
+    var p = 0;
+    gabarit = gabarit.replace(/(^|[^\wÀ-ÿ@])(@[A-Za-z0-9À-ÿ._-]{2,16})/g, function (tout, avant, ps) { p++; mis['p' + p] = ps; return avant + '{p' + p + '}'; });
     /* Les mois et les jours (TRAD.mots) : « le 15 mars » se cherche sous « le {1} {m1} » */
     if (TRAD.mots) {
       if (!TRAD.motsRe) TRAD.motsRe = new RegExp('(^|[^A-Za-zÀ-ÿ])(' + Object.keys(TRAD.mots).sort(function (a, b) { return b.length - a.length; }).map(function (m) { return m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')(?![A-Za-zÀ-ÿ])', 'gi');
@@ -111,9 +115,14 @@
     }
     /* Les nombres, sauf ceux des morceaux (<1/>, <2>…</2>) */
     var i = 0;
-    gabarit = gabarit.replace(/<[^>]*>|\{[a-z0-9]+\}|\d+(?:,\d+)?/g, function (n) { if (n.charAt(0) === '<' || n.charAt(0) === '{') return n; i++; mis[i] = nombre(n); return '{' + i + '}'; });
+    gabarit = gabarit.replace(/<[^>]*>|\{[a-z0-9]+\}|\d{1,3}(?: \d{3})+(?:,\d+)?|\d+(?:,\d+)?/g, function (n) { if (n.charAt(0) === '<' || n.charAt(0) === '{') return n; i++; mis[i] = nombre(n); return '{' + i + '}'; });
     if (gabarit === cle || !Object.prototype.hasOwnProperty.call(D, gabarit)) return null;
-    return String(D[gabarit]).replace(/\{([a-z0-9]+)\}/g, function (tout, nom) { return nom in mis ? mis[nom] : tout; });
+    /* Une valeur nommée qui a sa traduction (le nom d’un niveau) est remise traduite ; le prénom et les pseudos, tels quels */
+    return String(D[gabarit]).replace(/\{([a-z0-9]+)\}/g, function (tout, nom) {
+      if (!(nom in mis)) return tout;
+      var v = mis[nom];
+      return /^(?:\d+|m\d+|p\d+|prenom|pseudo)$/.test(nom) || !Object.prototype.hasOwnProperty.call(D, v) ? v : D[v];
+    });
   }
   /* Du SQL affiché (un décor, un exemple) n'est pas un texte à traduire. */
   var SQL_RE = /^(?:<\d+>)?\s*(?:SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|LIMIT|JOIN|INNER JOIN|LEFT JOIN|INSERT|UPDATE|DELETE|CREATE|WITH|UNION)\b/;
