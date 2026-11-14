@@ -6816,7 +6816,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=385">
+<link rel="stylesheet" href="ludique.css?v=386">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -24649,6 +24649,7 @@ function normalizeState(raw){
      leur pseudo (50 au plus ; « amis », lui, compte les parties à plusieurs). */
   if(salleSrc.paysVoir===false)salle.paysVoir=false;
   if(typeof salleSrc.paysEnv==='string'&&/^([A-Z]{2})?$/.test(salleSrc.paysEnv))salle.paysEnv=salleSrc.paysEnv;
+  if(Number.isInteger(salleSrc.nivEnv)&&salleSrc.nivEnv>=1&&salleSrc.nivEnv<=5)salle.nivEnv=salleSrc.nivEnv;   // le niveau déjà envoyé (nivSync)
   if(Array.isArray(salleSrc.amisAjoutes)){
     const a=salleSrc.amisAjoutes.filter(x=>x&&typeof x==='object'&&!Array.isArray(x)).map(x=>({n:psForme(x.n),at:salleBig(x.at)})).filter(x=>x.n).slice(-50);
     if(a.length)salle.amisAjoutes=a;
@@ -30015,6 +30016,16 @@ function paysSync(){
   DRAP.sync=true;
   clsRpc('jeu_pays',{p_cle:clsCle(),p_pays:voulu||null}).then(r=>{DRAP.sync=false;if(r&&r.ok){clsSalle().paysEnv=voulu;save();}},()=>{DRAP.sync=false;});
 }
+/* 14 novembre, 22 h 39 (Elisa : « Dans le profil du joueur, précisez le niveau ») : le niveau SQL (1 à 5) part avec le pseudo
+   (jeu_niveau), comme le pays : au passage dans les défis, et quand il monte (stkAfterProgress). Les autres joueurs le voient dans
+   son profil (dxFicheNiveau). */
+function nivSync(){
+  const s=state.salle;if(!s||!jeuSavedNom()||DRAP.nivSync)return;
+  let rk=0;try{rk=niveauCompte().rank;}catch(e){return;}
+  if(!(rk>=1&&rk<=5)||s.nivEnv===rk)return;
+  DRAP.nivSync=true;
+  clsRpc('jeu_niveau',{p_cle:clsCle(),p_niveau:rk}).then(r=>{DRAP.nivSync=false;if(r&&r.ok){clsSalle().nivEnv=rk;save();}},()=>{DRAP.nivSync=false;});
+}
 /* Mon compte › Afficher mon drapeau. */
 function paysMontrer(on){
   const s=clsSalle();if(on)delete s.paysVoir;else s.paysVoir=false;save();
@@ -30052,6 +30063,7 @@ function defisPeindre(){
   else defisStatsPeindre();
   sallesSuivre();
   paysSync();
+  nivSync();
   if(typeof clsFlush==='function')clsFlush();   // les parties qui attendent le réseau (ou le rattrapage) partent au classement (23 h 38)
 }
 /* Les listes seules (drapeaux arrivés, salles rafraîchies), sans toucher aux champs en cours de saisie. */
@@ -30665,7 +30677,8 @@ function dxFiche(n,x){
   const pays=D.portee==='pays'&&typeof paysDuProfil==='function'?paysDuProfil():'';
   const ou=D.portee==='amis'?'parmi tes adversaires':pays?paysEn(pays):'mondial';
   const lieu=!rk?'':`${rk<=3?['🥇','🥈','🥉'][rk-1]+' ':''}N°\u00a0${rk} ${ou}${D.periode==='semaine'?' cette semaine':''}`;
-  dxFicheEtat={n,pays:x&&x.pays||'',lieu,pts:tout?Math.max(0,+x.pts||0):null,parties:tout?Math.max(0,+x.parties||0):null,err:false};
+  dxFicheEtat={n,pays:x&&x.pays||'',lieu,pts:tout?Math.max(0,+x.pts||0):null,parties:tout?Math.max(0,+x.parties||0):null,err:false,niveau:0};
+  dxFicheNiveau(dxFicheEtat);   // son niveau SQL (22 h 39) : tout de suite s’il est connu, sinon à l’arrivée de la réponse
   dxDuelPage=0;
   const a=document.activeElement;
   dxFicheOuvrir(a&&a.closest&&a.closest('#scr-defis li')?a:null);
@@ -30748,12 +30761,37 @@ function dxFicheRevanche(m,e){
   const d=dxDuels(e.n);
   return d.length?d[0].res==='l':m.l>m.w;
 }
+/* 14 novembre, 22 h 39 (Elisa : « Dans le profil du joueur, précisez le niveau ») : son niveau SQL, en tête des pastilles sous son
+   pseudo : « Niv. 3 » puis son nom, en jaune soleil, comme le badge de Mon compte. Envoyé par son appli avec son pseudo (nivSync),
+   lu à l’ouverture du profil (jeu_niveaux) et gardé 10 min. Le nom au neutre (« Analyste relationnel·le ») : son genre n’est pas
+   connu. Rien tant qu’il n’est pas connu (une appli d’avant cette version). */
+const NIV_JOUEURS=new Map();
+function nivJoueurNom(k){const L=ACCOUNT_LEVELS[k-1];return L?(L.n||L.label):'';}
+function nivPcHTML(k){
+  return `<span class="dx-pc is-lvl" role="img" aria-label="${escAttr(`Niveau ${k} : ${nivJoueurNom(k)}`)}"><i aria-hidden="true">Niv.&nbsp;${k}</i><span aria-hidden="true">${esc(nivJoueurNom(k))}</span></span>`;
+}
+function dxFicheNiveau(e){
+  const k=drapCle(e.n),c=NIV_JOUEURS.get(k);
+  if(c&&Date.now()-c.at<600000){e.niveau=c.v;return;}
+  if(typeof clsRpc!=='function')return;
+  clsRpc('jeu_niveaux',{p_pseudos:[e.n]}).then(l=>{
+    const x=(Array.isArray(l)?l:[]).find(y=>y&&(drapCle(y.pseudo)===k||drapCle(y.q)===k));
+    const v=x&&+x.niveau>=1&&+x.niveau<=5?+x.niveau:0;
+    NIV_JOUEURS.set(k,{v,at:Date.now()});
+    if(dxFicheEtat!==e||!v)return;
+    e.niveau=v;
+    const p=document.getElementById('dx-f-p');if(p)p.innerHTML=dxFichePcsHTML(e);
+  },()=>{});
+}
+/* Sous le pseudo : son niveau, son rang en blanc, « Ton adversaire » en verre clair (8 novembre, 11 h 08 : « ce niveau premium »). */
+function dxFichePcsHTML(e){
+  const m=amisListe().find(a=>drapCle(a.n)===drapCle(e.n));
+  return (e.niveau?nivPcHTML(e.niveau):'')+(e.lieu?dxPc('is-blanc',esc(e.lieu)):'')+(m?dxPc('is-verre is-adv','Ton adversaire'):'');
+}
 function dxFicheHTML(){
   const e=dxFicheEtat;if(!e)return '';
   const m=amisListe().find(a=>drapCle(a.n)===drapCle(e.n));
-  /* 8 novembre, 11 h 08 (« ce niveau premium ») : sous le pseudo, les pastilles de « Ta salle de défi » : son rang en blanc, « Ton
-     adversaire » en verre clair (les deux s’il le faut). */
-  const pcs=(e.lieu?dxPc('is-blanc',esc(e.lieu)):'')+(m?dxPc('is-verre is-adv','Ton adversaire'):'');
+  const pcs=dxFichePcsHTML(e);
   /* Refonte du 7 novembre (designer produit), sans rien changer au haut, aux chiffres, au face-à-face ni au bouton validés :
      s’il attend dans une salle ouverte, « En salle maintenant » et « Rejoindre » sous le bandeau ; ouverte depuis le classement,
      « Signaler ce pseudo » en petit sous les boutons (il quitte chaque ligne du classement).
@@ -42093,7 +42131,7 @@ function stkAfterProgress(){
   const won=stkSync();
   const a=nivRangAtteint();
   let up=a>de?{de,a}:null;
-  if(up){stkState().rang=a;save();}   // save() renouvelle state.stickers : le relire
+  if(up){stkState().rang=a;save();try{if(typeof nivSync==='function')nivSync();}catch(e){}}   // save() renouvelle state.stickers : le relire ; le niveau part avec le pseudo
   if(!won.length&&!up)return;
   if(typeof stat==='function')won.forEach(id=>stat('sticker',undefined,{s:String(id).slice(0,24)}));   // 13 novembre, 19 h 52, statistiques
   /* 20 h 26 : la première requête faite dans l’onboarding s’annonce tout de suite, même si la première leçon s’est déjà ouverte : elle
@@ -53440,7 +53478,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-signaler-v3040';
+  const SW_CACHE='requete-2026-11-14-profil-v3041';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

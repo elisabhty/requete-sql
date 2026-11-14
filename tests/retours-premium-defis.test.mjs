@@ -57,7 +57,7 @@ test('Mes stats, ta place : le bandeau violet de la feuille, ses pastilles en ve
   assert.ok(place.includes('<div class="dx-bande dx-place-bande" role="group" aria-labelledby="dx-place-t">') && place.includes("<p class=\"room-kicker\">${DEFIS.periode==='semaine'?'Ta place cette semaine':'Ta place'}</p>"));
   assert.ok(place.includes('<p class="dx-bande-pcs">${dxPcPts(`${clsPts(pts)}\\u00a0pts`)}${versPage}</p>') && place.includes('if(tete)tete.hidden=true;'));
   const fiche = fn('dxFicheHTML');
-  assert.ok(fiche.includes("const pcs=(e.lieu?dxPc('is-blanc',esc(e.lieu)):'')+(m?dxPc('is-verre is-adv','Ton adversaire'):'');") && fiche.includes('<p class="room-sub dx-f-pcs" id="dx-f-p">${pcs}</p>'));
+  assert.ok(app.includes("return (e.niveau?nivPcHTML(e.niveau):'')+(e.lieu?dxPc('is-blanc',esc(e.lieu)):'')+(m?dxPc('is-verre is-adv','Ton adversaire'):'');") && fiche.includes('const pcs=dxFichePcsHTML(e);') && fiche.includes('<p class="room-sub dx-f-pcs" id="dx-f-p">${pcs}</p>'), 'son niveau en tête (22 h 39), son rang, « Ton adversaire »');
   assert.ok(fiche.includes('<small class="dx-pcs">${dxPcNiv(s.niv)}${dxPcGens(`${s.nb}/${s.max}`)}</small>'));
 });
 
