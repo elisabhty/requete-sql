@@ -24436,6 +24436,7 @@ function normalizeState(raw){
     if(q.length)salle.envoi=q;
   }
   if(salleSrc.clsRattrape)salle.clsRattrape=1;
+  if(salleSrc.cleCompte)salle.cleCompte=1;   // 14 novembre, 15 h 07 : la clé de cet appareil est le joueur d’un compte (csJoueur)
   /* Le compte (14 novembre, 13 h 11 ; csStats) : le nom tiré au hasard de cet appareil, la part des autres appareils du compte (même
      forme que les totaux), la meilleure partie et le plus rapide de cet appareil, la dernière partie envoyée, l’époque du compte. */
   if(typeof salleSrc.appareil==='string'&&/^[A-Za-z0-9]{8,40}$/.test(salleSrc.appareil))salle.appareil=salleSrc.appareil;
@@ -49279,33 +49280,63 @@ async function csJeu(user){
   await csJoueur(user);
   await csStats(false);
 }
+/* 14 novembre, 15 h 07 (Elisa : « je fais Continuer sans compte, je mets mon pseudo, je me connecte… et je veux me connecter dans un
+   autre compte : c’est comme si je perdais l’ancien pseudo »). Une fois connecté, la clé de cet appareil est le joueur du compte
+   (cleCompte). Après « Se déconnecter », l’appareil la garde. Se connecter ensuite à un AUTRE compte libérait cette clé : le pseudo
+   du premier compte et ses points du classement disparaissaient, et le nouveau compte prenait son pseudo. Maintenant, la clé d’un
+   compte n’est jamais libérée ni son pseudo repris par un autre : le nouveau compte retrouve son joueur (ou en commence un, qui
+   choisit son pseudo), et les parties de cet appareil, qui étaient au compte d’avant, y restent (Mes stats repart de celles du
+   nouveau compte). Seul le joueur d’un appareil qui n’a jamais été connecté est repris par le compte (libéré, son pseudo transmis
+   si le compte n’en a pas). */
 async function csJoueur(user){
   if(CJ.fait===user||!csJeuLibre())return null;
-  const locale=clsCle();
+  const locale=clsCle(),s0=clsSalle();
   let r=await clsRpc('compte_joueur_lier',{p_cle:locale},{compte:true});
-  /* La clé de cet appareil est déjà le joueur d’un autre compte (un iPhone partagé) : ce compte-ci en prend une neuve. */
-  if(r&&r.autre)r=await clsRpc('compte_joueur_lier',{p_cle:jeuRand(32)},{compte:true});
+  /* La clé de cet appareil est déjà le joueur d’un autre compte (un iPhone partagé, ou un autre compte avant) : ce compte-ci en prend une neuve. */
+  const autre=!!(r&&r.autre);
+  if(autre)r=await clsRpc('compte_joueur_lier',{p_cle:jeuRand(32)},{compte:true});
   if(!r||!r.ok||typeof r.cle!=='string'||!/^[A-Za-z0-9]{24,64}$/.test(r.cle))return null;
   CJ.fait=user;
-  if(r.cle===locale)return {meme:true};
-  return csJoueurReprendre(r.cle,locale);
+  if(r.cle===locale){if(!s0.cleCompte){s0.cleCompte=1;save();}return {meme:true};}
+  return csJoueurReprendre(r.cle,locale,autre||!!s0.cleCompte);
 }
-async function csJoueurReprendre(cle,ancienne){
+/* Les parties de cet appareil quittent Mes stats quand il passe à un autre compte : elles restent au compte d’avant (sur le serveur,
+   sous le nom de cet appareil). L’appareil prend un nouveau nom : revenu plus tard sur ce compte-là, il n’écrase pas cette part avec
+   un compteur reparti de zéro, il la retrouve parmi celles « des autres appareils ». */
+function csStatsOublier(s){
+  CJ_NOMBRES.forEach(k=>{s[k]=0;});s.best=0;
+  ['pl','lv','mates','hist','fast','statsAutres','bestP','fastP','comptees','statsHaut','statsEpoque'].forEach(k=>{delete s[k];});
+  s.appareil=jeuRand(16);CJ.statsAt=0;
+}
+async function csJoueurReprendre(cle,ancienne,dUnCompte){
   if(!csJeuLibre()){CJ.fait='';return null;}
   const ancien=psMien();
   let pseudo='';
   try{const p=await clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:''});if(p&&p.ok&&p.pseudo)pseudo=psForme(p.pseudo);}catch(e){}
-  if(ancienne&&ancienne!==cle){try{await clsRpc('jeu_pseudo_liberer',{p_cle:ancienne});}catch(e){}}
-  if(!pseudo&&ancien){try{const q=await clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:ancien});if(q&&q.ok&&q.pseudo)pseudo=psForme(q.pseudo);}catch(e){}}
+  /* Le joueur d’avant n’était qu’à cet appareil (jamais connecté) : libéré, son pseudo passe au compte s’il n’en a pas. Celui d’un
+     autre compte reste à ce compte-là, intact. */
+  if(!dUnCompte){
+    if(ancienne&&ancienne!==cle){try{await clsRpc('jeu_pseudo_liberer',{p_cle:ancienne});}catch(e){}}
+    if(!pseudo&&ancien){try{const q=await clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:ancien});if(q&&q.ok&&q.pseudo)pseudo=psForme(q.pseudo);}catch(e){}}
+  }
   const s=clsSalle();
-  s.cle=cle;delete s.clsId;delete s.clsRefus;delete s.psVoulu;s.envoi=[];s.clsRattrape=1;
+  if(dUnCompte)csStatsOublier(s);
+  s.cle=cle;s.cleCompte=1;delete s.clsId;delete s.clsRefus;delete s.psVoulu;s.envoi=[];s.clsRattrape=1;
   if(pseudo)psAdopter(pseudo);
   else{delete s.pseudo;delete s.pseudoVu;try{localStorage.removeItem('rq-jeu-nom');}catch(e){}save();}
   try{window.REQUETE_JEU_ID=null;}catch(e){}
   if(typeof CLS!=='undefined'&&CLS){CLS.data=null;CLS.at=0;}
   if(typeof DEFIS!=='undefined'&&DEFIS.cls){DEFIS.cls.cle='';DEFIS.cls.rangs=null;}
-  if(pseudo&&ancien&&pseudo!==ancien&&typeof lqSay==='function')lqSay(`Ton compte joue en ${pseudo} : ton pseudo, tes points et tes parties te suivent sur cet iPhone.`);
+  /* 15 h 07 : le message dit ce que devient le pseudo d’avant (« c’est comme si je perdais l’ancien pseudo ») */
+  if(pseudo&&ancien&&pseudo!==ancien&&typeof lqSay==='function')lqSay(dUnCompte?`Ce compte joue en ${pseudo}. ${ancien} reste à l’autre compte.`
+    :`Ton compte joue en ${pseudo} : cet iPhone aussi, à la place de ${ancien}. Tes parties sans compte s’ajoutent à celles du compte.`);
   try{if(typeof renderCompte==='function')renderCompte();if(typeof activeTab!=='undefined'&&activeTab==='defis'&&typeof renderDefis==='function')renderDefis();}catch(e){}
+  /* Un compte qui n’a pas encore de joueur (et ne reprend pas le pseudo d’un autre compte) choisit le sien, comme à l’inscription */
+  /* (pas par-dessus une autre page de l’onboarding ni le paywall : sinon le pseudo se demandera à la première salle, jeuAvecPseudo) */
+  if(!pseudo&&dUnCompte&&state.onboarded&&typeof psPage==='function'){
+    const ob=document.getElementById('onboarding'),ouvert=!!(ob&&ob.classList.contains('on')),garde=typeof obGardeBloque==='function'&&obGardeBloque();
+    if(!ouvert&&!garde){try{psPage({});}catch(e){}}
+  }
   return {cle,pseudo,ancien};
 }
 /* Ce que cet appareil a joué : son total moins ce qui vient des autres appareils du compte. */
@@ -52499,7 +52530,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-lisere-v3016';
+  const SW_CACHE='requete-2026-11-14-comptes-v3017';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

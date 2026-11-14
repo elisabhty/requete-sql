@@ -65,7 +65,9 @@ test('le premier appareil connecté donne sa clé au compte ; un autre la repren
   assert.equal(S.pseudos['CLEB' + 'B'.repeat(24)], undefined, 'le pseudo pris sur cet appareil est libéré');
   assert.deepEqual(j(B.s().envoi), []); assert.equal(B.s().clsRattrape, 1);
   assert.equal(B.ctx.window.REQUETE_JEU_ID, null); assert.equal(B.ctx.CLS.data, null); assert.equal(B.ctx.DEFIS.cls.cle, '');
-  assert.match(B.ctx.dits[0], /^Ton compte joue en @lea : ton pseudo, tes points et tes parties te suivent sur cet iPhone\.$/);
+  /* 14 novembre, 15 h 07 : le message dit ce que devient le pseudo d’avant (retours-1507-changer-de-compte) */
+  assert.equal(B.ctx.dits[0], 'Ton compte joue en @lea : cet iPhone aussi, à la place de @lea_tmp. Tes parties sans compte s’ajoutent à celles du compte.');
+  assert.equal(B.s().cleCompte, 1, 'la clé de cet appareil est maintenant celle d’un compte');
   assert.equal(r.pseudo, '@lea');
   /* une seule fois par compte et par lancement */
   const n = S.appels.length; await B.ctx.csJoueur('u1'); assert.equal(S.appels.length, n);

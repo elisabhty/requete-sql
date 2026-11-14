@@ -247,5 +247,5 @@ test('les moments de la tuile sont des Ã©tats, les passages des transitions ; lâ
 
 test('la feuille de style et le cache changent de version', () => {
   assert.ok(app.includes('onboarding-vitrine.css?v=71'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-lisere-v3016';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-14-comptes-v3017';"));
 });
