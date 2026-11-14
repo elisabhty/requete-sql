@@ -498,6 +498,75 @@ test('13 novembre, 21 h 33 : la revanche ; chacun dit s’il en est, et quand to
   assert.equal(guests[0].J('revanche'), false, 'la revanche ne vaut que pour une relance');
 });
 
+/* 14 novembre, 6 h 57 (Elisa : « oui 30 s, ou ça repart en défi en solo s’il n’y a que moi qui ai appuyé et que personne ne rejoint au bout
+   de 30 s ; c’est à partir de la dernière personne qui a appuyé ») */
+const finDePartie = () => {
+  const r = room({ n: 3, nb: 1 });
+  const { w, host, guests } = r;
+  guests[0].ev('jeuToggleReady()'); guests[1].ev('jeuToggleReady()'); sec(w, 1);
+  host.ev('jeuNextRound()'); sec(w, 4.5); guests[1].found(); sec(w, 1); host.found(); sec(w, 1); guests[0].found(); sec(w, 2);
+  host.ev('jeuFinish()'); sec(w, 1.5);
+  for (const c of r.all) assert.equal(c.view(), 'final', c.name);
+  return r;
+};
+test('6 h 57 : 30 s après le dernier « oui », la revanche part avec ceux qui l’ont dit ; qui n’a pas répondu lit « la revanche est partie sans toi »', () => {
+  const { w, host, guests } = finDePartie();
+  host.ev('jeuRevanche()'); sec(w, 5);
+  guests[0].ev('jeuRevanche()'); sec(w, 1);
+  for (const c of [host, guests[1]]) { c.ev('jeuRedraw()'); } sec(w, 0.2);
+  assert.match(host.html, /<span class="jeu-rv-lim"><svg[^]*?<\/svg><span>Sans réponse, la partie repart sans Ami2 dans\u00a0<b id="jeu-rv-lim">(29|30)<\/b> s<\/span><\/span>/);
+  assert.match(host.html, /<div class="jeu-rv is-on is-lim" id="jeu-rv">/);
+  assert.match(host.html, /<i class="jeu-rv-barre is-lim" aria-hidden="true" style="--d:30000ms;--e:-\d+ms"><\/i>/, 'une barre de 30 s');
+  assert.match(guests[1].html, /Sans réponse, la partie repart sans toi dans\u00a0<b id="jeu-rv-lim">(29|30)<\/b>/);
+  sec(w, 24);
+  assert.equal(host.J('g'), 0, 'les 30 s partent du dernier « oui » (Ami1), pas du premier');
+  sec(w, 6);
+  for (const c of [host, guests[0]]) assert.equal(c.J('g'), 1, c.name + ' : la revanche part');
+  assert.equal(guests[1].ev('jeuView()'), 'oups');
+  sec(w, 0.5); guests[1].ev('jeuRedraw()'); sec(w, 0.2);
+  assert.match(guests[1].html, /Oups, la revanche est partie sans toi !/);
+  assert.match(guests[1].html, /Tu n’as pas répondu à temps\. Pas de panique, d’autres salles t’attendent\./);
+  assert.doesNotMatch(guests[1].html, /Invite tes amis|Jouer en solo/, 'pas de salle d’attente entre les deux');
+  sec(w, 4);
+  for (const c of [host, guests[0]]) assert.ok(/^(draw0|play0)$/.test(c.view()), c.name + ' : ' + c.view());
+  assert.equal(host.ev('JSON.stringify([...JEU.partants].sort())'), JSON.stringify([host.J('me'), guests[0].J('me')].sort()), 'la manche part avec l’hôte et Ami1');
+  assert.equal(guests[1].view(), 'oups', 'Ami2 reste sur son écran');
+  assert.equal(host.ev('jeuSoloLike(0)'), false, 'à deux, pas un défi solo');
+});
+
+test('6 h 57 : seule à avoir dit oui, 30 s plus tard un défi solo, dans la salle', () => {
+  const { w, host, guests } = finDePartie();
+  host.ev('jeuRevanche()'); sec(w, 0.5); host.ev('jeuRedraw()'); sec(w, 0.2);
+  assert.match(host.html, /Sans réponse, tu rejoues en solo dans\u00a0<b id="jeu-rv-lim">(29|30)<\/b>/);
+  sec(w, 31);
+  assert.equal(host.J('g'), 1);
+  for (const g of guests) assert.equal(g.ev('jeuView()'), 'oups', g.name);
+  sec(w, 4);
+  assert.ok(/^(draw0|play0)$/.test(host.view()), host.view());
+  assert.equal(host.ev('jeuSoloLike(0)'), true, 'un défi solo');
+  assert.match(host.html, /Défi solo/);
+});
+
+test('6 h 57 : l’hôte n’a pas répondu : il quitte la salle (« partie sans toi »), un joueur qui a dit oui la reprend et relance', () => {
+  const { w, host, guests } = finDePartie();
+  guests[0].ev('jeuRevanche()'); sec(w, 1); guests[1].ev('jeuRevanche()'); sec(w, 1);
+  host.ev('jeuRedraw()'); sec(w, 0.2);
+  assert.match(host.html, /Sans réponse, la partie repart sans toi dans/);
+  sec(w, 31);
+  assert.equal(host.J('detache'), true, 'l’hôte a dit au revoir');
+  assert.equal(host.ev('jeuView()'), 'oups');
+  host.ev('jeuRedraw()'); sec(w, 0.2);
+  assert.match(host.html, /Oups, la revanche est partie sans toi !/);
+  sec(w, 12);
+  assert.equal(guests[0].J('hostPid'), guests[0].J('me'), 'Ami1, le plus ancien, devient l’hôte');
+  for (const g of guests) assert.equal(g.J('g'), 1, g.name + ' : la revanche part');
+  sec(w, 5);
+  for (const g of guests) assert.ok(/^(draw0|play0)$/.test(g.view()), g.name + ' : ' + g.view());
+  host.ctx.leaveLessonScreen = x => { host.parti = x; };
+  sec(w, 20);
+  assert.equal(host.parti, 'defis', 'au bout de 30 s, l’hôte revient sur Défis');
+});
+
 test('l’hôte change le niveau et le nombre de manches dans la salle d’attente', () => {
   const { w, host, guests } = room({ n: 2, nb: 3 });
   host.ev("jeuLobbySet('niv','d')"); host.ev('jeuLobbySet("nb",5)'); sec(w, 1);

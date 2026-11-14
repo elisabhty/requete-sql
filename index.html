@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=365">
+<link rel="stylesheet" href="ludique.css?v=366">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -36892,7 +36892,7 @@ function jeuJoin(code){
   jeuPseudoPuis(()=>jeuStart(c,false,null,{nomId:'jeu-nom',parCode:true}));
 }
 function jeuSend(m){
-  if(!JEU)return '';
+  if(!JEU||JEU.detache)return '';
   m.v=1;m.pid=JEU.me;m.s=JEU.sid;m.name=JEU.nom;m.u=jeuRand(8);m.cat=JEU_CAT;
   /* Le relais rejoue un historique dont l’ordre, à la seconde près, n’est pas garanti : un horodatage
      d’émetteur départage les réglages, les « prêt » et les prises de main. */
@@ -37064,6 +37064,7 @@ function jeuOnMsg(m){
       if((m.g|0)!==J.g)return;
       J.rv=J.rv||{};J.rv[m.pid]=!!m.on;
       if(m.pid===J.me)J.revanche=!!m.on;
+      if(m.on)J.rvDernier=Date.now();   // les 30 s repartent du dernier « oui » (14 novembre, 6 h 57)
       break;
     case 'ready':{
       if(!addP())return;
@@ -37091,7 +37092,8 @@ function jeuOnMsg(m){
       /* La liste des participants, figée au lancement (celle du serveur en salle classée, sinon celle de l’hôte) : les autres regardent
          la partie se jouer sans eux (« Oups, la partie a déjà démarré ! ») et reviennent à la partie suivante (« Rejouer »). */
       if(n===0){const lst=Array.isArray(m.joueurs)?m.joueurs:Array.isArray(m.who)?m.who:null;
-        if(lst){J.partants=new Set(lst.map(String));if(!J.partants.has(J.me)&&!J.horsPartie&&J.inscrits.has(J.me)){J.horsPartie=true;J.oupsAt=Date.now();}}}
+        if(lst){J.partants=new Set(lst.map(String));if(!J.partants.has(J.me)&&!J.horsPartie&&J.inscrits.has(J.me)){J.horsPartie=true;J.oupsAt=Date.now();}
+          else if(J.partants.has(J.me)&&J.oupsRv&&!J.detache){J.horsPartie=false;J.oupsRv=false;J.oupsAt=0;}}}   // compté quand même (6 h 57)
       /* « Oups » seulement pour qui était dans la salle d’attente au lancement (9 novembre, 18 h 43, vu en vidéo) : un nouveau venu, dont
          le « hello » arrive après la manche 0, lit « La partie a déjà commencé » (J.tard), pas « Tu n’étais pas prête au lancement ». */
       addP();jeuDrain();break;}
@@ -37147,17 +37149,24 @@ function jeuOnMsg(m){
       break;
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
-      const revanche=!!J.revanche&&!replay;J.revanche=false;J.rv={};   // « Prête pour la revanche » (13 novembre, 16 h 58) ; les réponses repartent à zéro (21 h 33)
+      const revanche=!!J.revanche&&!replay,rvOui=Object.keys(J.rv||{}).some(p=>J.rv[p]);J.revanche=false;J.rv={};   // « Prête pour la revanche » (13 novembre, 16 h 58) ; les réponses repartent à zéro (21 h 33)
       /* 6 h 33 : l’écran de fin s’efface en douceur (jeu-sort), puis le tirage arrive avec son entrée ; pas en relisant l’historique */
-      J.relanceAt=0;clearTimeout(J.relanceT);
+      J.relanceAt=0;clearTimeout(J.relanceT);clearTimeout(J.rvLimT);J.rvLimT=0;J.rvDernier=0;
       /* Tout le monde a voulu la revanche : plus de salle d’attente entre l’écran de fin et le tirage (elle passait une demi-seconde,
-         « ça saute d’un coup ») ; la scène du tirage, ses cartes qui se mélangent, le temps que chacun soit prêt (10 s au plus). */
-      J.relanceScene=revanche&&m.auto?Date.now()+JEU_RELANCE_SCENE_MS:0;
+         « ça saute d’un coup ») ; la scène du tirage, ses cartes qui se mélangent, le temps que chacun soit prêt (10 s au plus).
+         Dans une salle, « again » ne part que de la revanche (jeuRevancheVerif) : qui a dit oui le sait (m.auto ne passe pas le serveur). */
+      J.relanceScene=revanche&&!J.solo?Date.now()+JEU_RELANCE_SCENE_MS:0;
+      const rvQui=Array.isArray(m.who)?m.who.map(String):null;
+      /* 6 h 57 : la revanche part sans qui n’a pas répondu (30 s après le dernier « oui ») : lui, « Oups, la revanche est partie sans
+         toi ! », sans repasser par la salle d’attente */
+      const rvSansMoi=!replay&&!J.solo&&!revanche&&rvOui&&(!rvQui||!rvQui.includes(J.me));   // rvOui : une revanche (sinon, « Rejouer » : tous en salle d’attente)
       if(!replay&&J.view==='final'&&typeof document!=='undefined'&&document.getElementById&&!(typeof prefersReduceMotion==='function'&&prefersReduceMotion())){
         const ro=document.getElementById('jeu-root');if(ro&&ro.classList){ro.classList.add('jeu-sort');J.fondu=Date.now()+JEU_FONDU_MS;setTimeout(()=>{if(JEU===J)jeuPaint();},JEU_FONDU_MS+10);}
       }
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
-      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;J.partants=null;J.horsPartie=false;
+      J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';J.seulFin=null;J.partants=null;J.horsPartie=false;J.oupsRv=false;
+      if(rvQui&&rvQui.includes(J.me))J.partants=new Set(rvQui);
+      if(rvSansMoi){J.horsPartie=true;J.oupsRv=true;J.oupsAt=Date.now();}
       /* 14 novembre, 5 h 35 (Elisa : « 1 corrige », après ma partie : la manche de la revanche s’ouvrait sur « Tout le monde a
          trouvé ! », le mot de la fin de la partie d’avant) : le commentateur, ce qu’il a vu des joueurs, leurs remontées et l’éditeur
          suivaient la manche par son numéro ; la nouvelle partie repart à la manche 1 : tout repart à zéro avec elle. */
@@ -37166,7 +37175,7 @@ function jeuOnMsg(m){
       if(J.ranked&&J.solo&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuNextRound();},100);
       /* 6 h 33 : la revanche voulue par tous : l’hôte n’attend pas le battement suivant ; l’écran de fin effacé, le tirage part (seule,
          tout de suite ; à plusieurs, dès que chacun est prêt, case 'ready') */
-      if(m.auto&&!replay&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuRevancheVerif();},JEU_FONDU_MS+20);
+      if(J.relanceAuto&&!replay&&jeuIsHost())setTimeout(()=>{if(JEU===J)jeuRevancheVerif();},JEU_FONDU_MS+20);
       if(revanche&&!jeuIsHost())setTimeout(()=>{if(JEU===J&&!J.rounds.length&&!J.ready[J.me])jeuSend({t:'ready',on:true});},400);
       break;}
     case 'bye':
@@ -37403,6 +37412,7 @@ function jeuSig(){
 }
 function jeuTick(){
   const J=JEU;if(!J)return;
+  if(J.detache){jeuOupsMaj();if(JEU===J&&jeuView()!==J.view)jeuPaint();return;}   // l’hôte parti sans la revanche (6 h 57) : son écran seulement
   const now=Date.now(),gap=now-J.lastTick;J.lastTick=now;
   if(gap>8000)jeuResume();
   jeuFlush();
@@ -38252,7 +38262,7 @@ function jeuRender(){
     /* 14 h 09 (Elisa : « pour les invités non prêts lorsque la partie démarre : 🐱 Oups, la partie a déjà démarré ! ») */
     /* 14 h 22 : « Pas de panique, d’autres salles t’attendent. », et « Retour aux défis » avec sa flèche qui avance (plus « tu joueras la
        prochaine partie ») ; on reste sur cet écran jusqu’au bouton. */
-    html=etat('chat:pied','Oups, la partie a déjà démarré !',`Tu n’étais pas ${jeuPretMot(true)} au lancement. Pas de panique, d’autres salles t’attendent.`,`<button type="button" class="room-go jeu-retour" onclick="openJeu()"><span>Retour aux défis</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button><p class="jeu-oups-auto">Retour automatique dans <b id="jeu-oups-n">${Math.max(1,Math.ceil((JEU_OUPS_MS-(Date.now()-(J.oupsAt||Date.now())))/1000))}</b> s</p>`,'is-lost',true);   // 19 h 30 : sans le code de la salle (on ne peut plus y entrer)
+    html=etat('chat:pied',J.oupsRv?'Oups, la revanche est partie sans toi !':'Oups, la partie a déjà démarré !',J.oupsRv?'Tu n’as pas répondu à temps. Pas de panique, d’autres salles t’attendent.':`Tu n’étais pas ${jeuPretMot(true)} au lancement. Pas de panique, d’autres salles t’attendent.`,`<button type="button" class="room-go jeu-retour" onclick="openJeu()"><span>Retour aux défis</span><i class="jeu-ready-fl" aria-hidden="true">${DEF_CHEV_SVG}</i></button><p class="jeu-oups-auto">Retour automatique dans <b id="jeu-oups-n">${Math.max(1,Math.ceil((JEU_OUPS_MS-(Date.now()-(J.oupsAt||Date.now())))/1000))}</b> s</p>`,'is-lost',true);   // 19 h 30 : sans le code de la salle (on ne peut plus y entrer)
   }else if(v==='tard'){
     html=etat('user','La partie a déjà commencé&nbsp;!','L’hôte a lancé la partie avant ton arrivée. Retourne aux défis pour trouver une autre salle&nbsp;!',retour,'is-lost');   // le même texte que la feuille (20 h 20)
   }else if(v==='full'){
@@ -38700,9 +38710,13 @@ function jeuNiveauSuivant(){
   if(typeof DEFIS!=='undefined'){DEFIS.onglet='jouer';DEFIS.carte='';}
   openJeu();
 }
-function jeuAgain(auto){
+function jeuAgain(auto,who){
   const J=JEU;if(!J||!jeuIsHost()||!J.over)return;
-  jeuSend(auto?{t:'again',g:J.g+1,auto:1}:{t:'again',g:J.g+1});   // auto : la revanche que tout le monde a voulue (la scène du tirage, 6 h 33)
+  /* auto : la revanche voulue (6 h 33) ; who : ceux qui ont dit oui, quand elle part sans les autres (6 h 57). Le serveur ne fait suivre
+     ni l’un ni l’autre (« again » : g seulement) : chacun le sait de son côté (il a dit oui ou non) ; la liste des joueurs vient avec la
+     première manche (who, puis joueurs). */
+  const m={t:'again',g:J.g+1};if(auto)m.auto=1;if(Array.isArray(who))m.who=who;
+  jeuSend(m);
   if(J.solo&&!J.ranked)jeuNextRound();
 }
 /* Salle d’attente : l’hôte peut encore changer le niveau et le nombre de manches. */
@@ -39014,6 +39028,7 @@ function jeuRevanche(){
   /* 21 h 33 : l’hôte aussi dit qu’il en est ; plus personne n’attend un autre pour relancer */
   J.rv=J.rv||{};
   const on=!J.rv[J.me];J.rv[J.me]=on;J.revanche=on;
+  if(on)J.rvDernier=Date.now();
   jeuSend({t:'revanche',on});
   if(typeof buzz==='function')buzz(on?'success':'light');
   /* 6 h 33 : seule la carte « On rejoue ? » change (jeuPatch la remplace) ; redessiner tout l’écran rejouait l’entrée du podium : les
@@ -39051,17 +39066,58 @@ function jeuRelanceSuivre(){
   if(cd){const t=String(Math.max(1,Math.ceil(reste/1000)));if(cd.textContent!==t)cd.textContent=t;}
   J.relanceT=setTimeout(()=>{if(JEU===J)jeuRelanceSuivre();},Math.min(reste%1000||1000,reste)+5);
 }
+/* 14 novembre, 6 h 57 (Elisa : « oui 30 s, ou ça repart en défi en solo s’il n’y a que moi qui ai appuyé et que personne ne rejoint au
+   bout de 30 s ; c’est à partir de la dernière personne qui a appuyé ») : quelqu’un a dit oui, d’autres n’ont pas répondu : 30 s après le
+   dernier « oui », la partie repart avec ceux qui l’ont dit (seule : un défi solo, dans la salle). La carte le dit et compte. Qui n’a pas
+   répondu lit « Oups, la revanche est partie sans toi ! ». L’hôte qui n’a pas répondu quitte la salle (jeuRvSansMoi) : un joueur qui a
+   dit oui en devient l’hôte (le serveur ne laisse personne prendre la main d’un hôte encore là, et l’hôte joue toujours la partie). */
+const JEU_RV_ATTENTE_MS=30000;
+function jeuRvLimite(){
+  const J=JEU;if(!J||J.solo||!J.over||!J.rvDernier)return 0;
+  const live=jeuLive(),oui=live.filter(p=>J.rv&&J.rv[p]);
+  return oui.length&&oui.length<live.length?J.rvDernier+JEU_RV_ATTENTE_MS:0;
+}
+function jeuRvLimSuivre(){
+  const J=JEU;if(!J)return;clearTimeout(J.rvLimT);J.rvLimT=0;
+  const lim=jeuRvLimite();if(!lim)return;
+  const reste=lim-Date.now();
+  const el=typeof document!=='undefined'&&document.getElementById?document.getElementById('jeu-rv-lim'):null;
+  if(el){const t=String(Math.max(1,Math.ceil(reste/1000)));if(el.textContent!==t)el.textContent=t;}
+  if(reste<=0){jeuRevancheVerif();return;}
+  J.rvLimT=setTimeout(()=>{if(JEU===J)jeuRvLimSuivre();},Math.min(reste%1000||1000,reste)+5);
+}
+/* L’hôte qui n’a pas répondu : il dit au revoir à la salle (les autres en reprennent la main) et lit, comme les autres, « Oups, la
+   revanche est partie sans toi ! » ; l’écran reste, sans la salle, jusqu’au retour aux défis (30 s au plus). */
+function jeuRvSansMoi(){
+  const J=JEU;if(!J||J.detache)return;
+  J.detache=true;J.horsPartie=true;J.oupsRv=true;J.oupsAt=Date.now();J.leaveOk=true;
+  try{if(J.synced)J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}
+  clearInterval(J.ping);clearTimeout(J.rvLimT);clearTimeout(J.relanceT);
+  setTimeout(()=>{try{J.t&&J.t.close();}catch(e){}},600);
+  jeuPaint();
+}
 function jeuRevancheVerif(){
   jeuRelanceMaj();
-  const J=JEU;if(!J||J.solo||!jeuIsHost())return;
+  const J=JEU;if(!J||J.solo||J.detache)return;
   const live=jeuLive();
+  /* 6 h 57 : le délai est passé */
+  const lim=jeuRvLimite();
+  if(lim&&Date.now()>=lim&&J.over&&J.view==='final'&&J.relanceG!==J.g){
+    if(!jeuIsHost())return;
+    if(J.rv&&J.rv[J.me]){const oui=live.filter(p=>J.rv[p]);J.relanceAt=0;J.relanceG=J.g;J.relanceAuto=Date.now();J.relanceWho=oui;jeuAgain(true,oui);}
+    else jeuRvSansMoi();
+    return;
+  }
+  if(!jeuIsHost())return;
   if(J.over&&J.view==='final'&&J.relanceG!==J.g&&live.length&&live.every(p=>J.rv&&J.rv[p])){
     if(!J.relanceAt||Date.now()<J.relanceAt)return;   // le compte à rebours de la carte (6 h 33)
-    J.relanceAt=0;J.relanceG=J.g;J.relanceAuto=Date.now();jeuAgain(true);return;}
+    J.relanceAt=0;J.relanceG=J.g;J.relanceAuto=Date.now();J.relanceWho=null;jeuAgain(true);return;}
   if(J.relanceAuto&&!J.over&&!J.rounds.length){
-    if(Date.now()-J.relanceAuto>10000){J.relanceAuto=0;return;}
-    if(live.every(p=>p===J.me||J.ready[p])){J.relanceAuto=0;jeuNextRound();}
-  }else if(J.relanceAuto&&J.rounds.length)J.relanceAuto=0;
+    if(Date.now()-J.relanceAuto>10000){J.relanceAuto=0;J.relanceWho=null;return;}
+    /* sans ceux qui n’ont pas répondu (6 h 57) : on n’attend que ceux qui ont dit oui, et la manche part avec eux seuls (who) */
+    const qui=J.relanceWho?live.filter(p=>J.relanceWho.includes(p)):live;
+    if(qui.every(p=>p===J.me||J.ready[p])){const w=J.relanceWho;J.relanceAuto=0;J.relanceWho=null;if(w)jeuNextRound(qui);else jeuNextRound();}
+  }else if(J.relanceAuto&&J.rounds.length){J.relanceAuto=0;J.relanceWho=null;}
 }
 /* 13 novembre, 21 h 15 (Elisa, sur le podium : « fusionner le bouton Revanche et le texte en bas ; faire comprendre qu’une personne est
    en train de relancer, avec les flèches en rond, en direct, pour dire qu’il y a quelqu’un dans la salle ; et en bas deux boutons,
@@ -39106,10 +39162,17 @@ function jeuRevancheHTML(){
     :`Touche <mark class="jeu-rv-mot">${bouton}</mark> pour dire que tu es de la partie.`;   // 23 h 03 (Elisa) : le mot du bouton, surligné en jaune
   const tot=live.length<2?JEU_RELANCE_SEUL_MS:JEU_RELANCE_MS;   // redessinée en route, la barre reprend où elle en était
   const barre=reste>0?`<i class="jeu-rv-barre" aria-hidden="true" style="--d:${tot}ms;--e:-${Math.max(0,tot-reste)}ms"></i>`:'';
-  return `<div class="jeu-rv${on?' is-on':''}${barre?' is-part':''}" id="jeu-rv">
-    <div class="jeu-rv-live" role="status" aria-live="polite">${barre}
+  /* 6 h 57 : quelqu’un a dit oui, d’autres pas encore : dans combien de temps la partie repart sans eux (ou seule, en solo) ; une barre
+     plus calme, qui se remplit en 30 s et repart à chaque « oui » */
+  const lim=barre?0:jeuRvLimite(),limReste=lim?Math.max(0,lim-Date.now()):0;
+  if(lim&&!J.rvLimT&&typeof setTimeout==='function')J.rvLimT=setTimeout(()=>{if(JEU===J)jeuRvLimSuivre();},0);
+  const limQui=on?(oui.length?`la partie repart sans ${court(attente.map(nom),2)}`:`tu rejoues en solo`):'la partie repart sans toi';
+  const limL=lim?`<span class="jeu-rv-lim">${JEU_ICO.reveil}<span>Sans réponse, ${limQui} dans\u00a0<b id="jeu-rv-lim">${Math.max(1,Math.ceil(limReste/1000))}</b>\u00a0s</span></span>`:'';
+  const barreL=lim?`<i class="jeu-rv-barre is-lim" aria-hidden="true" style="--d:${JEU_RV_ATTENTE_MS}ms;--e:-${Math.max(0,JEU_RV_ATTENTE_MS-limReste)}ms"></i>`:'';
+  return `<div class="jeu-rv${on?' is-on':''}${barre?' is-part':''}${lim?' is-lim':''}" id="jeu-rv">
+    <div class="jeu-rv-live" role="status" aria-live="polite">${barre}${barreL}
       <span class="jeu-rv-ico">${JEU_RELANCE_SVG}</span>
-      <div class="jeu-rv-tx">${seule?'':'<span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>'}<b>${titre}</b><small>${sous}</small>
+      <div class="jeu-rv-tx">${seule?'':'<span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>'}<b>${titre}</b><small>${sous}</small>${limL}
         <span class="jeu-rv-qui"><span class="jeu-rv-av" aria-hidden="true">${av}</span>${dans}</span></div>
     </div>
     <div class="jeu-rv-btns">
@@ -39369,7 +39432,7 @@ function jeuStop(){
   /* On quitte avant le podium : les points déjà gagnés ne sont pas perdus. */
   try{if(!J.scored&&J.played){J.depart=true;const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
   /* Prévenir les autres tout de suite : l’hôte qui part passe la main sans attendre. */
-  if((!J.solo||J.ranked)&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
+  if((!J.solo||J.ranked)&&J.synced&&!J.full&&!J.detache){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
   clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);clearTimeout(J.reagirT);J.drawT.forEach(clearTimeout);
   setTimeout(()=>{try{J.t&&J.t.close();}catch(e){}},600);
   document.getElementById('jeu-rl')?.remove();   // les réactions encore en l’air partent avec la salle
@@ -51890,7 +51953,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-relance-v2994';
+  const SW_CACHE='requete-2026-11-14-delai-v2995';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
