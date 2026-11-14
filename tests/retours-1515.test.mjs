@@ -29,6 +29,7 @@ function sandbox({ tete = null, rpcKo = false } = {}) {
     clsCle: () => 'cle', clsRpc: (fn, body) => { calls.push([fn, body]); return rpcKo ? Promise.reject(new Error('réseau')) : Promise.resolve(fn === 'parcours_en_tete' ? { parcours: tete } : { ok: true }); }
   });
   vm.runInContext(block, ctx);
+  vm.runInContext('PARCOURS_AVENIR_MONTRES=true', ctx);   // cachés pour la 1.0 (14 novembre) : montrés ici pour tester les annonces
   return { ctx, calls, opts };
 }
 const P = (ctx, id) => vm.runInContext(`PARCOURS.find(p=>p.id==='${id}')`, ctx);

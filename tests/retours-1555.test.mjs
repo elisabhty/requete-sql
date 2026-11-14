@@ -29,6 +29,7 @@ function sandbox({ natif = true, reponse = { autorise: true, refuse: false, jeto
     clsCle: () => 'cle', clsRpc: (fn, body) => { calls.push(['rpc', fn, JSON.parse(JSON.stringify(body))]); return rpcKo ? Promise.reject(new Error('réseau')) : Promise.resolve({ ok: true }); }
   });
   vm.runInContext(block, ctx);
+  vm.runInContext('PARCOURS_AVENIR_MONTRES=true', ctx);   // cachés pour la 1.0 (14 novembre) : montrés ici pour tester les annonces
   return { ctx, calls, dits };
 }
 const rpcs = (calls, fn = 'parcours_alerter') => calls.filter(c => c[0] === 'rpc' && c[1] === fn).map(c => c[2]);

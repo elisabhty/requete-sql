@@ -28286,7 +28286,13 @@ const PC_TETE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF7A
 const PC_BELL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15zM10 20.5a2 2 0 0 0 4 0"/></svg>';
 const PC_BOOK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5c2.7-1 5.3-1 8 .8 2.7-1.8 5.3-1.8 8-.8v13c-2.7-1-5.3-1-8 .8-2.7-1.8-5.3-1.8-8-.8z"/><path d="M12 6.3v13"/></svg>';
 let parcoursVue=null,parcoursDeListe=false,parcoursChoix=null,parcoursEnvoi=false;
-function parcoursAVenir(){return PARCOURS.filter(p=>!p.dispo);}
+/* 14 novembre, 19 h 36 (Elisa : « Est-ce qu’on peut cacher les pages et les ajouter quand elles seront prêtes, une par une, avec la
+   fonction à distance ») : pour la 1.0 (l’audit App Review, règle 2.1 : pas de contenu « à venir » dans une appli soumise), les
+   parcours à venir sont cachés : ni pastilles sur l’accueil, ni section « À venir », ni pages, ni vote. Un parcours prêt passe à
+   dispo:true et apparaît avec ses leçons. Les alertes et le vote déjà donnés restent gardés sur l’appareil, sans rien afficher.
+   true : les annonces reviennent telles qu’avant (alerte de lancement, vote). */
+let PARCOURS_AVENIR_MONTRES=false;
+function parcoursAVenir(){return PARCOURS_AVENIR_MONTRES?PARCOURS.filter(p=>!p.dispo):[];}
 function parcoursAlertes(){return Array.isArray(state.parcoursAlertes)?state.parcoursAlertes.filter(id=>PARCOURS.some(p=>p.id===id&&!p.dispo)):[];}
 function parcoursVote(){const v=state.parcoursVote;return v&&PARCOURS.some(p=>p.id===v.id&&!p.dispo)?v:null;}
 function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}
@@ -28297,13 +28303,16 @@ function parcoursValidees(done){return !done?`${TOTAL} leçons`:done>=TOTAL?`${T
 /* Accueil, sous « Parcours SQL » : la rangée des parcours (elle défile à l’horizontale sur un téléphone). Chaque pastille sur
    deux lignes, le nom puis l’état (19 h 48 : « les écritures et tout ça font tassé »). */
 function parcoursChipsHTML(done){
-  const items=PARCOURS.map(p=>p.dispo
+  /* 14 novembre : un seul parcours montré (SQL, les autres cachés pour la 1.0) : pas de rangée ni de « Tous les parcours » */
+  const vus=PARCOURS.filter(p=>p.dispo||PARCOURS_AVENIR_MONTRES);
+  if(vus.length<2)return '';
+  const items=vus.map(p=>p.dispo
     ?`<li><span class="pc-chip is-on"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>${parcoursSqlEtat(done)}</small></span></span></li>`
     :`<li><button type="button" class="pc-chip" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>À venir</small></span></button></li>`).join('');
   return `<ul class="pc-chips" aria-label="Tes parcours">${items}<li><button type="button" class="pc-chip is-all" onclick="openParcours()">Tous les parcours${DEF_CHEV_SVG}</button></li></ul>`;
 }
 function openParcours(id){
-  const p=id?PARCOURS.find(x=>x.id===id&&!x.dispo):null;
+  const p=id&&PARCOURS_AVENIR_MONTRES?PARCOURS.find(x=>x.id===id&&!x.dispo):null;
   parcoursDeListe=!!p&&activeTab==='parcours'&&!parcoursVue;
   parcoursVue=p?p.id:null;
   parcoursChoix=null;
@@ -28318,7 +28327,7 @@ function parcoursBack(){
 function renderParcoursScreen(){
   const scr=document.getElementById('scr-parcours'),host=document.getElementById('parcours-body');
   if(!scr||!host)return;
-  const p=parcoursVue?PARCOURS.find(x=>x.id===parcoursVue&&!x.dispo):null;
+  const p=parcoursVue&&PARCOURS_AVENIR_MONTRES?PARCOURS.find(x=>x.id===parcoursVue&&!x.dispo):null;
   if(!p){parcoursVue=null;parcoursDeListe=false;}
   scr.classList.toggle('is-detail',!!p);
   if(p&&parcoursDeListe){
@@ -28341,9 +28350,9 @@ function parcoursListeHTML(){
   return `<div class="pc-view">
     <p class="pc-sec">Disponible</p>
     <button type="button" class="pc-card is-on" onclick="returnToHome()" aria-label="${escAttr(`Parcours SQL, ${parcoursSqlEtat(done).toLowerCase()} : ${parcoursValidees(done)}`)}"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg('db')}</i><span class="pc-card-copy"><span class="pc-card-top"><b>SQL</b><em class="pc-tag is-on">${parcoursSqlEtat(done)}</em></span><span class="pc-card-meta">${PC_BOOK_SVG}${nMods} modules · ${TOTAL} leçons</span><span class="pc-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${done?`<small>${parcoursValidees(done)}</small>`:''}</span><span class="pc-card-go" aria-hidden="true">${DEF_CHEV_SVG}</span></button>
-    <p class="pc-sec">À venir</p>
+    ${soon.length?`<p class="pc-sec">À venir</p>
     <ul class="pc-list">${soon}</ul>
-    <button type="button" class="pc-vote-cta" onclick="openParcours('${(vp||parcoursAVenir()[0]).id}')"><span><b>Quel parcours après SQL\u00a0?</b><small>${vp?`Ton vote\u00a0: ${esc(vp.titre)}.`:'Aide-nous à choisir le prochain.'}</small></span><em>${vp?'Changer':'Voter'}</em></button>
+    <button type="button" class="pc-vote-cta" onclick="openParcours('${(vp||parcoursAVenir()[0]).id}')"><span><b>Quel parcours après SQL\u00a0?</b><small>${vp?`Ton vote\u00a0: ${esc(vp.titre)}.`:'Aide-nous à choisir le prochain.'}</small></span><em>${vp?'Changer':'Voter'}</em></button>`:''}
   </div>`;
 }
 /* 11 novembre, 15 h 15 (sa maquette) : la carte violette (l’étiquette, le titre souligné d’un trait jaune, sa phrase, ses trois
@@ -53108,7 +53117,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-ile-v3029';
+  const SW_CACHE='requete-2026-11-14-parcours-v3030';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

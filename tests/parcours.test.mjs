@@ -24,6 +24,9 @@ function sandbox(extra = {}) {
     ...extra
   });
   vm.runInContext(block, ctx);
+  /* 14 novembre, 19 h 36 : les parcours à venir sont cachés pour la 1.0 (PARCOURS_AVENIR_MONTRES) ; ces tests les montrent, pour
+     vérifier que les annonces (alerte, vote) marchent toujours le jour où on les remet */
+  if (extra.montres !== false) vm.runInContext('PARCOURS_AVENIR_MONTRES=true', ctx);
   return { ctx, calls };
 }
 
@@ -147,4 +150,20 @@ test('base de l’appli : un vote par appareil, par la seule fonction parcours_v
   assert.ok(sql.includes('grant execute on function public.parcours_voter(text, text) to anon, authenticated;'));
   assert.ok(sql.includes('create or replace view public.parcours_votes with (security_invoker = true)') && sql.includes('revoke all on public.parcours_votes from public, anon, authenticated;'), 'les résultats, pour le tableau de bord seulement');
   assert.ok(privacy.includes('<li><b>Vote pour le prochain parcours</b> (facultatif).') && privacy.includes('<li><b>Alerte «&nbsp;M’avertir au lancement&nbsp;»</b> (facultatif).'), 'l’alerte en notification : retours-1555');
+});
+
+/* 14 novembre, 19 h 36 (Elisa : « Est-ce qu’on peut cacher les pages et les ajouter quand elles seront prêtes, une par une ») : pour
+   la 1.0, les parcours à venir sont cachés (l’audit App Review, règle 2.1). Un parcours prêt passe à dispo:true et apparaît. */
+test('1.0 : les parcours à venir cachés ; un parcours prêt (dispo:true) apparaît', () => {
+  assert.ok(app.includes('let PARCOURS_AVENIR_MONTRES=false;'), 'cachés par défaut');
+  const { ctx } = sandbox({ montres: false });
+  assert.equal(ctx.parcoursChipsHTML(1), '', 'un seul parcours : pas de rangée sur l’accueil');
+  const liste = ctx.parcoursListeHTML();
+  assert.ok(liste.includes('<p class="pc-sec">Disponible</p>') && !liste.includes('À venir') && !liste.includes('pc-vote-cta'), 'ni « À venir », ni vote');
+  ctx.openParcours('python');
+  assert.equal(vm.runInContext('parcoursVue', ctx), null, 'la page d’un parcours à venir ne s’ouvre plus');
+  /* Le jour où Python est prêt : dispo:true, il apparaît à côté de SQL */
+  vm.runInContext("PARCOURS.find(p=>p.id==='python').dispo=true", ctx);
+  const chips = ctx.parcoursChipsHTML(1);
+  assert.ok(chips.includes('<b>Python</b>') && !chips.includes('Excel') && chips.includes('Tous les parcours'));
 });

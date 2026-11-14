@@ -704,6 +704,15 @@ dans App Store Connect (prix, abonnements, fiche). Apple autorise le télécharg
 ne change pas l’objet de l’appli telle qu’elle a été présentée, ne crée pas de boutique et ne contourne pas la sécurité du
 système : corriger et enrichir les cours reste dans ce cadre ; une fonction d’une tout autre nature, non.
 
+**Les parcours à venir, cachés pour la 1.0** (14 novembre, 19 h 36 ; l’audit App Review, règle 2.1 ; Elisa : « cacher les pages
+et les ajouter quand elles seront prêtes, une par une, avec la fonction à distance ») : `PARCOURS_AVENIR_MONTRES=false`
+(index.html) cache les pastilles « À venir » de l’accueil, la section « À venir », les pages de Python, Excel et Power BI et le
+vote. Un parcours prêt passe à `dispo:true` et apparaît, avec ses vraies leçons. Deux précautions : ne pas remettre les pages
+d’annonce juste après la validation (la règle 2.5.19 du 16 octobre 2026 interdit les fonctions cachées pendant la vérification
+puis montrées) ; et un parcours entier, surtout Python, qui demandera son propre moteur, passe de préférence par une mise à
+jour sur l’App Store, décrite dans les notes pour la vérification (et annoncée dans « Nouveautés ») ; la mise à jour à
+distance reste faite pour ajouter des leçons et corriger.
+
 **Publier** (trois gestes, dans cet ordre) :
 
 1. Modifier, vérifier dans le Simulateur (`npm run ios`), enregistrer dans Git. Le numéro de version est celui de `SW_CACHE`

@@ -49,6 +49,7 @@ function sandbox(page, state = {}) {
     clsCle: () => 'cle', clsRpc: () => Promise.resolve({ ok: true })
   });
   vm.runInContext(block, ctx);
+  vm.runInContext('PARCOURS_AVENIR_MONTRES=true', ctx);   // cachés pour la 1.0 (14 novembre) : montrés ici pour tester les annonces
   return { ctx, calls };
 }
 const P = (ctx, id) => vm.runInContext(`PARCOURS.find(p=>p.id==='${id}')`, ctx);
