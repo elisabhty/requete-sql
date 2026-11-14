@@ -113,7 +113,7 @@ function perfCtx(salle) {
     /* 14 novembre : les milliers séparés, l’historique qui se déplie (tests/retours-1012-historiques.test.mjs) */
     clsPts: n => (+n || 0).toLocaleString('fr-FR'), JEU_HIST_MAX: 500,
   });
-  vm.runInContext('const PERF_HIST_VU=4,PERF_HIST_PAS=25;let perfHistVu=PERF_HIST_VU;' + fn('jeuChrono') + fn('jeuDureeLisible') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('pseudoBr') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('perfCapHTML') + fn('perfTeintes') + fn('perfRecordHaut') + fn('perfHistPas') + fn('perfHistLigneHTML') + fn('perfHistPiedHTML') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
+  vm.runInContext('const PERF_HIST_PAR=5;let perfHistPage=0;' + fn('jeuChrono') + fn('jeuDureeLisible') + fn('perfDay') + fn('perfWith') + fn('perfGame') + fn('perfBadge') + fn('perfColor') + fn('pseudoBr') + fn('perfPodiumHTML') + fn('perfMateHTML') + fn('perfCapHTML') + fn('perfTeintes') + fn('perfRecordHaut') + fn('perfHistLignesHTML') + fn('lqPagesNums') + fn('lqPagesHTML') + fn('lqPagesK') + fn('perfHistLigneHTML') + fn('perfHistPiedHTML') + fn('renderDefisPerf') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
 }
 
@@ -137,10 +137,10 @@ test('réf 4 — « Tes performances » : les chiffres, la réussite, les temps,
   assert.ok(h.includes('<em>6/8</em>') && h.includes('--w:75%') && h.includes('<em>2/4</em>'));
   assert.ok(h.includes('<b>2</b><small>1re place</small>') && h.includes('Sur 5 parties à plusieurs.'), 'les podiums à plusieurs');
   const rows = h.match(/<li style="--i:\d"><span class="perf-rk/g);
-  assert.equal(rows.length, 4, 'les quatre dernières parties');
+  assert.equal(rows.length, 5, 'une page de cinq parties (14 novembre, 10 h 53 ; avant, les quatre dernières)');
   assert.ok(h.includes('<span class="perf-rk is-medal"><svg data-k="medal1"></svg></span><span class="perf-g"><b>À plusieurs · Moyen</b><small class="perf-g-avec">3 joueurs</small><small>Aujourd’hui · 3/3 résolus · 3\u00a0min\u00a021</small></span><em>+412</em>'), 'la médaille autocollante, et le nombre de joueurs quand les pseudos ne sont pas connus (14 novembre : sous le titre court)');
   assert.ok(h.includes('<span class="perf-rk">0/1</span>') && h.includes('<span class="perf-rk">✓</span>'), 'seul : coché, ou trouvés sur joués');
-  assert.ok(h.includes('onclick="perfHistPlus()"><span>Voir l’autre partie</span>'), 'cinq parties : la cinquième se déplie (14 novembre)');
+  assert.ok(h.includes('<div class="lq-pages-pied" id="perf-hist-pages"></div>'), 'cinq parties : une seule page, pas de numéros (14 novembre, 10 h 53)');
   /* Avant la première partie : le même tableau, vide, qui dit ce qui s’y affichera */
   const e = perfCtx({ pts: 0, parties: 0, best: 0 });
   assert.ok(e.includes('perf-card is-empty') && e.includes('<b>—</b><small>record<em>en une partie</em></small>') && e.includes('perf-chart is-ghost'));

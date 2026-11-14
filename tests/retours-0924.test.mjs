@@ -204,7 +204,7 @@ function perfCtx(salle) {
     clsTopHTML: () => '<p data-k="top5"></p>', clsFlush() {}, clsCharger() {},
     clsPts: n => (+n || 0).toLocaleString('fr-FR'), JEU_HIST_MAX: 500,
   });
-  vm.runInContext('const PERF_HIST_VU=4,PERF_HIST_PAS=25;let perfHistVu=PERF_HIST_VU;' + ['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'pseudoBr', 'perfPodiumHTML', 'perfMateHTML', 'perfCapHTML', 'perfTeintes', 'perfRecordHaut', 'perfHistPas', 'perfHistLigneHTML', 'perfHistPiedHTML', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
+  vm.runInContext('const PERF_HIST_PAR=5;let perfHistPage=0;' + ['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'pseudoBr', 'perfPodiumHTML', 'perfMateHTML', 'perfCapHTML', 'perfTeintes', 'perfRecordHaut', 'perfHistLignesHTML', 'lqPagesNums', 'lqPagesHTML', 'lqPagesK', 'perfHistLigneHTML', 'perfHistPiedHTML', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
   return host.innerHTML;
 }
 

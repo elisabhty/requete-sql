@@ -367,7 +367,7 @@ function perfHTML(salle) {
     jeuInitial: n => String(n || '?').trim().charAt(0).toUpperCase(), JEU_FRIENDS_SVG: '', DEF_CHEV_SVG: '',
     clsTopHTML: () => '', clsFlush() {}, clsCharger() {},
   });
-  vm.runInContext('const PERF_HIST_VU=4,PERF_HIST_PAS=25;let perfHistVu=PERF_HIST_VU;var JEU_HIST_MAX=500;if(typeof clsPts===\'undefined\')var clsPts=n=>(+n||0).toLocaleString(\'fr-FR\');' + ['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'pseudoBr', 'perfPodiumHTML', 'perfMateHTML', 'perfCapHTML', 'perfTeintes', 'perfRecordHaut', 'perfHistPas', 'perfHistLigneHTML', 'perfHistPiedHTML', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
+  vm.runInContext('const PERF_HIST_PAR=5;let perfHistPage=0;var JEU_HIST_MAX=500;if(typeof clsPts===\'undefined\')var clsPts=n=>(+n||0).toLocaleString(\'fr-FR\');' + ['jeuChrono', 'perfDay', 'perfWith', 'perfGame', 'perfBadge', 'perfColor', 'pseudoBr', 'perfPodiumHTML', 'perfMateHTML', 'perfCapHTML', 'perfTeintes', 'perfRecordHaut', 'perfHistLignesHTML', 'lqPagesNums', 'lqPagesHTML', 'lqPagesK', 'perfHistLigneHTML', 'perfHistPiedHTML', 'renderDefisPerf'].map(fn).join('') + ';renderDefisPerf();', ctx);
   return { h: host.innerHTML, ctx };
 }
 

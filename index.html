@@ -6753,7 +6753,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=373">
+<link rel="stylesheet" href="ludique.css?v=374">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=68">
 <style id="lesson-video-css">
@@ -7916,6 +7916,7 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
         <section class="console-project-panel console-library-panel" id="console-panel-history" role="tabpanel" aria-labelledby="console-tab-history" hidden>
           <div class="console-library-head"><h2>Historique</h2><button type="button" id="console-clear-history" onclick="clearConsoleHistory()">Effacer</button></div>
           <div class="console-query-list" id="console-hist"></div>
+          <div class="lq-pages-pied" id="console-hist-pages"></div>
           <p class="console-library-help">Jusqu’à 100 exécutions, gardées sur cet appareil.</p>
         </section>
       </div>
@@ -20734,6 +20735,17 @@ let projState={};
 let consoleProjectPanel='editor';
 let consoleSchemaOpen=false;
 let consoleQuerySearch='',consoleHistFilter='all';
+/* L’historique de la Console en pages de 5 (14 novembre, 10 h 53) : une page et ses numéros tiennent sur l’écran d’un iPhone SE ;
+   il revient à la première page à chaque nouvelle recherche, filtre, projet ou exécution, pas quand on épingle une ligne. */
+const CONSOLE_HIST_PAR=5;
+let consoleHistPage=0;
+function consoleHistDebut(){consoleHistPage=0;const h=typeof document!=='undefined'&&document.getElementById?document.getElementById('console-hist'):null;if(h)h.style.minHeight='';}
+function consoleHistAller(p){
+  const h=document.getElementById('console-hist'),pied=document.getElementById('console-hist-pages');
+  const n=Math.max(0,Math.floor(+p||0));if(n===consoleHistPage)return;
+  consoleHistPage=n;
+  lqPagesChanger(h,pied,()=>renderConsoleSide());
+}
 let consoleCreateOpen=false;
 const CONSOLE_DB_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"/></svg>';
 const CONSOLE_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
@@ -21895,6 +21907,7 @@ function openConsoleProject(id){
   consoleProjectPanel='editor';
   consoleSchemaOpen=false;
   consoleQuerySearch='';
+  consoleHistDebut();
   const out=document.getElementById('console-out');
   if(out){ out.innerHTML=''; out.style.minHeight=''; }
   typeof edPied==='function'&&edPied('ed-console',null);   // le pied de l’éditeur parlait de l’autre projet
@@ -22033,16 +22046,18 @@ function onConsoleTabsKey(event){
 }
 function filterConsoleQueries(value){
   consoleQuerySearch=String(value||'');
+  consoleHistDebut();
   renderConsoleSide();
 }
 function clearConsoleQuerySearch(){
-  consoleQuerySearch='';
+  consoleQuerySearch='';consoleHistDebut();
   const input=document.getElementById('console-query-search');if(input){input.value='';input.focus({preventScroll:true});}
   renderConsoleSide();
 }
 function setConsoleHistFilter(k){
   if(!['all','ok','err'].includes(k))return;
   consoleHistFilter=consoleHistFilter===k&&k!=='all'?'all':k;
+  consoleHistDebut();
   renderConsoleSide();
   if(navigator.vibrate)navigator.vibrate(6);
 }
@@ -22125,6 +22140,8 @@ function renderConsoleSide(){
   const hc={all:searched.length,ok:searched.filter(({it})=>it.ok).length,err:searched.filter(({it})=>!it.ok).length};
   if(consoleHistFilter!=='all'&&!hc[consoleHistFilter])consoleHistFilter='all';
   const histRows=consoleHistFilter==='ok'?searched.filter(({it})=>it.ok):consoleHistFilter==='err'?searched.filter(({it})=>!it.ok):searched;
+  const histNb=Math.ceil(histRows.length/CONSOLE_HIST_PAR);consoleHistPage=Math.max(0,Math.min(consoleHistPage,histNb-1));
+  const histVus=histRows.slice(consoleHistPage*CONSOLE_HIST_PAR,(consoleHistPage+1)*CONSOLE_HIST_PAR);
   const pinnedSql=new Set(p.pins.map(it=>consoleSqlKey(it.sql)));
   if(pins){
     pins.innerHTML=pinRows.length
@@ -22139,8 +22156,8 @@ function renderConsoleSide(){
     if(qTok.length)SQ.mark(pins.querySelectorAll('code'),qTok);
   }
   if(hist){
-    hist.innerHTML=histRows.length
-      ? histRows.map(({it,i})=>{
+    hist.innerHTML=histVus.length
+      ? histVus.map(({it,i})=>{
           const on=pinnedSql.has(consoleSqlKey(it.sql));
           const meta=it.coupe?['Trop longue : seul le début est gardé',fmtHistWhen(it.ts)].join(' · '):it.ok
             ? [it.n,it.ms!=null?Math.round(it.ms)+' ms':null,fmtHistWhen(it.ts)].filter(Boolean).join(' · ')
@@ -22156,6 +22173,8 @@ function renderConsoleSide(){
       : `<p class="console-query-empty">${q?chatBonusHtml('loupe','is-vide is-petit'):''}<b>${q?'Aucun résultat':consoleHistFilter==='err'?'Aucune erreur':consoleHistFilter==='ok'?'Aucune exécution réussie':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
     if(qTok.length)SQ.mark(hist.querySelectorAll('code'),qTok);
   }
+  const hpg=document.getElementById('console-hist-pages');
+  if(hpg)hpg.innerHTML=histNb>1?lqPagesHTML(consoleHistPage,histNb,'consoleHistAller','de l’historique')+lqPagesK(consoleHistPage,CONSOLE_HIST_PAR,histRows.length,'exécutions'):'';
   const hf=document.getElementById('console-hist-filter');
   if(hf){
     hf.hidden=consoleProjectPanel!=='history'||(p.hist.length<2&&consoleHistFilter==='all');
@@ -22171,6 +22190,7 @@ function recordConsoleRun(sql,ok,extra){
   const plein=String(sql||'').trim(),coupe=plein.length>HIST_SQL_MAX;
   const row={sql:coupe?plein.slice(0,HIST_SQL_MAX):plein,ok:!!ok,ts:Date.now(),n:extra&&extra.n,ms:extra&&extra.ms,err:extra&&extra.err,coupe:coupe||undefined};
   p.hist=promoteConsoleQuery(p.hist,row,HIST_MAX,HIST_CAR_MAX);
+  consoleHistDebut();
   saveProjState();
   renderConsoleSide();
 }
@@ -28944,41 +28964,75 @@ function perfBadge(h){
   if(!h.solo&&h.place>3)return h.place+'e';
   return h.ok>=h.n?'✓':h.ok+'/'+h.n;
 }
-/* L’historique de Mes stats (14 novembre, 10 h 12 : « montre les historiques s’il y en a 30 ») : les 4 dernières parties, puis
-   « Voir les 26 autres parties » les déplie, 25 de plus à chaque toucher, sans redessiner le tableau (les nouvelles lignes arrivent
-   seules) ; tout déplié, « Réduire ». Le titre d’une partie va à la ligne au lieu d’être coupé (« … avec @chloe_sql, @noah +4 »). */
-const PERF_HIST_VU=4,PERF_HIST_PAS=25;
-let perfHistVu=PERF_HIST_VU;
-/* Combien de lignes le prochain toucher ajoute : 25, ou tout ce qui reste quand il en reste 35 au plus (30 parties : un seul toucher,
-   « Voir les 26 autres parties », pas 25 puis « l’autre partie »). */
-function perfHistPas(n){const reste=Math.max(0,n-perfHistVu);return reste<=PERF_HIST_PAS+10?reste:PERF_HIST_PAS;}
+/* Les pages des historiques (Elisa, 14 novembre, 10 h 53 : « pour les historiques, il faut plusieurs pages, des numéros de pages
+   1, 2, 3, 4, pour que l’utilisateur ne puisse pas scroller à l’infini ; vérifier que ça ne saute pas »). Sous la liste :
+   ‹ 1 2 3 4 5 … 12 ›, sept places au plus (la première, la dernière, la page vue et ses voisines), puis « 6 à 10 sur 30 ».
+   Mes stats, la Console et le face-à-face d’un adversaire : 5 lignes par page, la page et ses numéros tiennent à l’écran. */
+function lqPagesNums(p,n){
+  if(n<=7)return Array.from({length:n},(_,i)=>i);
+  if(p<=3)return [0,1,2,3,4,-1,n-1];
+  if(p>=n-4)return [0,-1,n-5,n-4,n-3,n-2,n-1];
+  return [0,-1,p-1,p,p+1,-1,n-1];
+}
+/* p : la page vue (0 pour la première) ; n : le nombre de pages ; fn : la fonction appelée avec le numéro de la page ; quoi : ce
+   que le lecteur d’écran entend (« de l’historique »). */
+function lqPagesHTML(p,n,fn,quoi){
+  if(n<=1)return '';
+  const fl=(k,cls,lab)=>`<button type="button" class="lq-pg ${cls}" onclick="${fn}(${k})" aria-label="${lab}"${k<0||k>=n?' disabled':''}>${DEF_CHEV_SVG}</button>`;
+  return `<nav class="lq-pages" aria-label="Pages ${quoi}">${fl(p-1,'is-prec','Page précédente')}`+
+    lqPagesNums(p,n).map(k=>k<0?'<span class="lq-pg-etc" aria-hidden="true">…</span>'
+      :`<button type="button" class="lq-pg${k===p?' is-on':''}${k>=99?' is-long':''}" onclick="${fn}(${k})" aria-label="Page ${k+1}"${k===p?' aria-current="page"':''}>${k+1}</button>`).join('')+
+    `${fl(p+1,'is-suiv','Page suivante')}</nav>`;
+}
+/* « 6 à 10 sur 30 parties » */
+function lqPagesK(p,par,total,mot){
+  const a=p*par+1,b=Math.min(total,(p+1)*par);
+  return `<p class="lq-pages-k">${clsPts(a)}${b>a?` à ${clsPts(b)}`:''} sur ${clsPts(total)} ${mot}</p>`;
+}
+/* Changer de page sans que ça saute : la liste ne raccourcit jamais (une dernière page de deux lignes garde la hauteur des pages
+   d’avant), et si elle grandit, l’écran défile d’autant : les numéros restent sous le doigt. Le numéro de la page vue reprend le
+   focus (clavier, VoiceOver). */
+function lqScrollParent(el){
+  for(let e=el&&el.parentElement;e;e=e.parentElement){const o=getComputedStyle(e).overflowY;if(/(auto|scroll)/.test(o)&&e.scrollHeight>e.clientHeight)return e;}
+  return document.scrollingElement||document.documentElement;
+}
+function lqPagesChanger(liste,pied,peindre){
+  if(!liste||!pied){peindre();return;}
+  const avant=pied.getBoundingClientRect().top,h=liste.getBoundingClientRect().height;
+  liste.style.boxSizing='border-box';
+  liste.style.minHeight=Math.max(parseFloat(liste.style.minHeight)||0,h)+'px';
+  peindre();
+  const d=pied.getBoundingClientRect().top-avant;
+  if(Math.abs(d)>.5){const sc=lqScrollParent(liste);if(sc)sc.scrollTop+=d;}
+  const on=pied.querySelector('.lq-pg[aria-current]');if(on)try{on.focus({preventScroll:true});}catch(e){}
+  if(typeof buzz==='function')buzz('light');
+}
+/* L’historique de Mes stats (14 novembre, 10 h 12, puis 10 h 53 : des pages) : 5 parties par page. Le titre d’une partie va à la
+   ligne au lieu d’être coupé. */
+const PERF_HIST_PAR=5;
+let perfHistPage=0;
 function perfHistLigneHTML(h,i){
   const plur=(n,w)=>`${w}${n>1?'s':''}`,dl=typeof jeuDureeLisible==='function'?jeuDureeLisible:jeuChrono;
   /* Le titre court (« À plusieurs · Facile »), puis avec qui, puis le jour et les défis : une partie à 6 tenait sur quatre lignes en gras. */
   const avec=!h.solo&&h.players>1?`<small class="perf-g-avec">${esc(perfWith(h))}</small>`:'';
   return `<li style="--i:${i}"><span class="perf-rk${!h.solo&&h.place>=1&&h.place<=3?' is-medal':''}">${perfBadge(h)}</span><span class="perf-g"><b>${h.solo?'En solo':'À plusieurs'} · ${JEU_NIVL[h.niv]||'Facile'}</b>${avec}<small>${perfDay(h.at)} · ${h.ok}/${h.n} ${plur(h.ok,'résolu')}${h.ok?` · ${dl(h.ms)}`:''}</small></span><em>+${clsPts(h.pts)}</em></li>`;
 }
-function perfHistPiedHTML(n){
-  if(n<=PERF_HIST_VU)return '';
-  const reste=n-perfHistVu,plus=perfHistPas(n);
-  if(reste>0)return `<button type="button" class="perf-hist-plus" aria-controls="perf-hist" onclick="perfHistPlus()"><span>${reste===plus?`Voir ${reste>1?`les ${clsPts(reste)} autres parties`:'l’autre partie'}`:`Voir ${plus} parties de plus`}</span>${DEF_CHEV_SVG}</button>`+
-    (reste>plus?`<p class="perf-hist-k">${clsPts(perfHistVu)} sur ${clsPts(n)} parties</p>`:'');
-  return `${n>=JEU_HIST_MAX?`<p class="perf-hist-k">Seules tes ${clsPts(JEU_HIST_MAX)} dernières parties sont gardées.</p>`:''}<button type="button" class="perf-hist-plus is-moins" aria-controls="perf-hist" onclick="perfHistPlus(true)"><span>Réduire</span>${DEF_CHEV_SVG}</button>`;
+function perfHistLignesHTML(hist){
+  return hist.slice(perfHistPage*PERF_HIST_PAR,(perfHistPage+1)*PERF_HIST_PAR).map((h,i)=>perfHistLigneHTML(h,i)).join('');
 }
-function perfHistPlus(moins){
-  const ol=document.getElementById('perf-hist');if(!ol)return;
-  const h=Array.isArray((state.salle||{}).hist)?state.salle.hist:[],avant=perfHistVu;
-  perfHistVu=moins?PERF_HIST_VU:Math.min(h.length,perfHistVu+perfHistPas(h.length));
-  if(moins)[...ol.children].slice(PERF_HIST_VU).forEach(li=>li.remove());
-  else ol.insertAdjacentHTML('beforeend',h.slice(avant,perfHistVu).map((x,j)=>perfHistLigneHTML(x,Math.min(j,8))).join(''));
-  const box=ol.parentElement;
-  [...box.querySelectorAll('.perf-hist-plus,.perf-hist-k')].forEach(e=>e.remove());
-  box.insertAdjacentHTML('beforeend',perfHistPiedHTML(h.length));
-  if(typeof buzz==='function')buzz('light');
-  /* Réduire : la liste remonte d’un coup ; si son titre est passé au-dessus de l’écran, on y revient. */
-  if(moins){const t=document.getElementById('perf-hist-h'),scr=document.getElementById('scr-defis');
-    if(t&&scr&&t.getBoundingClientRect().top<scr.getBoundingClientRect().top+60)try{t.scrollIntoView({block:'start',behavior:prefersReduceMotion()?'auto':'smooth'});}catch(e){}}
-  const b=box.querySelector('.perf-hist-plus');if(b)try{b.focus({preventScroll:true});}catch(e){}
+function perfHistPiedHTML(n){
+  const nb=Math.ceil(n/PERF_HIST_PAR);
+  if(nb<=1)return '';
+  return lqPagesHTML(perfHistPage,nb,'perfHistAller','de l’historique')+lqPagesK(perfHistPage,PERF_HIST_PAR,n,'parties')+
+    (perfHistPage===nb-1&&n>=JEU_HIST_MAX?`<p class="lq-pages-k">Seules tes ${clsPts(JEU_HIST_MAX)} dernières parties sont gardées.</p>`:'');
+}
+function perfHistAller(p){
+  const ol=document.getElementById('perf-hist'),pied=document.getElementById('perf-hist-pages');
+  const h=Array.isArray((state.salle||{}).hist)?state.salle.hist:[],nb=Math.ceil(h.length/PERF_HIST_PAR);
+  p=Math.max(0,Math.min(nb-1,Math.floor(+p||0)));
+  if(!ol||p===perfHistPage)return;
+  perfHistPage=p;
+  lqPagesChanger(ol,pied,()=>{ol.classList.add('is-page');ol.innerHTML=perfHistLignesHTML(h);if(pied)pied.innerHTML=perfHistPiedHTML(h.length);});
 }
 /* Un pseudo qui peut aller à la ligne (14 novembre, 10 h 12 : « tu regardes si les textes ne se tronquent pas, on voit tout ») :
    sur un podium à 375 px, « @marie_charlotte » devenait « @marie_cha… » ; il passe en entier sur deux lignes, coupé de préférence
@@ -29444,8 +29498,8 @@ function renderDefisPerf(){
     <h4>${mates.length>1?`Tes ${mates.length} derniers adversaires`:mates.length?'Ton dernier adversaire':'Tes derniers adversaires'}</h4>${mates.length?`<ul class="perf-mates">${mates.map(perfMateHTML).join('')}</ul>`:'<p class="perf-note">Tes 3 derniers adversaires s’afficheront ici, avec le score entre vous.</p>'}
     <button type="button" class="perf-rematch" onclick="perfRematch('${vsLast?vsLast.niv:''}')">${JEU_FRIENDS_SVG}<span>${mates.length?'Les redéfier':'Jouer à plusieurs'}</span>${DEF_CHEV_SVG}</button>
   </div>`;
-  perfHistVu=Math.max(PERF_HIST_VU,Math.min(perfHistVu,hist.length));
-  const rows=hist.slice(0,perfHistVu).map((h,i)=>perfHistLigneHTML(h,i)).join('');
+  perfHistPage=Math.max(0,Math.min(perfHistPage,Math.ceil(hist.length/PERF_HIST_PAR)-1));
+  const rows=perfHistLignesHTML(hist);
   host.innerHTML=`<section class="perf-card${parties?'':' is-empty'}" aria-labelledby="perf-h">
     <div class="perf-head"><span class="perf-stk" aria-hidden="true">${lqStkSvg('chart')}</span><div><p class="perf-kicker">Tableau de bord</p><h2 id="perf-h">Tes performances</h2></div></div>
     <div class="perf-kpis">${kpi(' is-sun',pts,plur(pts,'point'),0)}${kpi('',parties,plur(parties,'partie'),1)}${kpi('',best||null,'record<em>en une partie</em>',2)}</div>
@@ -29453,7 +29507,7 @@ function renderDefisPerf(){
     <div class="perf-block"><h3>Tes dernières parties</h3>${chart}</div>
     ${manches?`<div class="perf-block"><h3>Réussite par niveau</h3><ul class="perf-lv">${lvRows}</ul></div>
     ${friends}`:''}
-    ${rows?`<div class="perf-block perf-histo"><h3 id="perf-hist-h">Historique</h3><ol class="perf-hist" id="perf-hist" aria-labelledby="perf-hist-h">${rows}</ol>${perfHistPiedHTML(hist.length)}</div>`:''}
+    ${rows?`<div class="perf-block perf-histo"><h3 id="perf-hist-h">Historique</h3><ol class="perf-hist" id="perf-hist" aria-labelledby="perf-hist-h">${rows}</ol><div class="lq-pages-pied" id="perf-hist-pages">${perfHistPiedHTML(hist.length)}</div></div>`:''}
   </section>`;
   perfReveal(host.firstElementChild);
   clsFlush();if(typeof clsDefis==='function')clsDefis();
@@ -29652,7 +29706,7 @@ function paysMontrer(on){
 function defisOnglet(k){
   if(k==='amis')k='jouer';
   if(!['jouer','classement','stats'].includes(k))return;
-  if(k==='stats'&&DEFIS.onglet!=='stats')perfHistVu=PERF_HIST_VU;   // Mes stats rouverte : l’historique revient à ses 4 dernières parties
+  if(k==='stats'&&DEFIS.onglet!=='stats')perfHistPage=0;   // Mes stats rouverte : l’historique revient à sa première page
   DEFIS.onglet=k;if(k!=='stats')jeuSavePrefs();
   if(k==='classement')DEFIS.cls.cle='';   // 23 h 38 : l’onglet touché se relit (les points arrivés depuis)
   defisPeindre();
@@ -30283,6 +30337,7 @@ function dxFiche(n,x){
   const ou=D.portee==='amis'?'parmi tes adversaires':pays?paysEn(pays):'mondial';
   const lieu=!rk?'':`${rk<=3?['🥇','🥈','🥉'][rk-1]+' ':''}N°\u00a0${rk} ${ou}${D.periode==='semaine'?' cette semaine':''}`;
   dxFicheEtat={n,pays:x&&x.pays||'',lieu,pts:tout?Math.max(0,+x.pts||0):null,parties:tout?Math.max(0,+x.parties||0):null,err:false};
+  dxDuelPage=0;
   const a=document.activeElement;
   dxFicheOuvrir(a&&a.closest&&a.closest('#scr-defis li')?a:null);
   /* Depuis le classement « depuis toujours », ses chiffres sont déjà là ; sinon (la semaine, tes adversaires), on les demande. */
@@ -30321,12 +30376,33 @@ function dxDuels(n){
 }
 /* Le face-à-face (22 h 19 : « 3–1 peut être ambigu : est-ce que lea_data a gagné trois fois, ou est-ce toi ? ») : ses victoires sous
    son pseudo, les tiennes sous « Toi », puis « 4 confrontations », qui déplie vos dernières parties. */
+/* Le face-à-face déplié, en pages de 5 (14 novembre, 10 h 53 : « des numéros de pages, pour ne pas scroller à l’infini ») */
+const DX_DUEL_PAR=5;
+let dxDuelPage=0;
+function dxDuelLigneHTML(x){
+  const pl=k=>k>1?'s':'';
+  return `<li class="is-${x.res}"><b>${x.res==='w'?'Gagnée':x.res==='l'?'Perdue':'Égalité'}</b><span>${clsPts(x.moi)}&nbsp;pts contre ${clsPts(x.lui)}</span><small>${esc(perfDay(x.at))} · ${esc((typeof JEU_NIVL!=='undefined'&&JEU_NIVL[x.niv])||'Facile')} · ${x.n} manche${pl(x.n)}</small></li>`;
+}
+function dxDuelPageHTML(d){
+  const nb=Math.ceil(d.length/DX_DUEL_PAR);dxDuelPage=Math.max(0,Math.min(dxDuelPage,nb-1));
+  return {lignes:d.slice(dxDuelPage*DX_DUEL_PAR,(dxDuelPage+1)*DX_DUEL_PAR).map(dxDuelLigneHTML).join(''),
+    pied:nb>1&&typeof lqPagesHTML==='function'?lqPagesHTML(dxDuelPage,nb,'dxDuelsAller','des confrontations')+lqPagesK(dxDuelPage,DX_DUEL_PAR,d.length,'confrontations'):''};
+}
+function dxDuelsAller(p){
+  const e=dxFicheEtat,ol=document.getElementById('dx-duel-liste'),pied=document.getElementById('dx-duel-pages');if(!e||!ol)return;
+  const d=dxDuels(e.n),nb=Math.ceil(d.length/DX_DUEL_PAR);
+  p=Math.max(0,Math.min(nb-1,Math.floor(+p||0)));if(p===dxDuelPage)return;
+  dxDuelPage=p;
+  lqPagesChanger(ol,pied,()=>{const r=dxDuelPageHTML(d);ol.innerHTML=r.lignes;if(pied)pied.innerHTML=r.pied;});
+  const f=document.getElementById('dx-feuille');if(f&&typeof f._marque==='function')f._marque();
+}
 function dxFicheDuelHTML(m,e){
   const d=dxDuels(e.n),pl=x=>x>1?'s':'',vic=x=>`${x} victoire${pl(x)}`;
   const lu=`Face à face\u00a0: ${e.n} ${vic(m.l)}, toi ${vic(m.w)}, en ${m.g} confrontation${pl(m.g)}`;
   const conf=`${m.g} confrontation${pl(m.g)}`;
-  const liste=d.length?`<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste">${d.map(x=>`<li class="is-${x.res}"><b>${x.res==='w'?'Gagnée':x.res==='l'?'Perdue':'Égalité'}</b><span>${clsPts(x.moi)}&nbsp;pts contre ${clsPts(x.lui)}</span><small>${esc(perfDay(x.at))} · ${esc((typeof JEU_NIVL!=='undefined'&&JEU_NIVL[x.niv])||'Facile')} · ${x.n} manche${pl(x.n)}</small></li>`).join('')}</ol>`+
-    (d.length<m.g?`<p class="dx-duel-note">Seules tes ${clsPts(JEU_HIST_MAX)} dernières parties sont gardées.</p>`:'')+'</div>':'';
+  const pg=dxDuelPageHTML(d);
+  const liste=d.length?`<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste" id="dx-duel-liste">${pg.lignes}</ol><div class="lq-pages-pied" id="dx-duel-pages">${pg.pied}</div>`+
+    (d.length<m.g?'<p class="dx-duel-note">Les confrontations les plus anciennes ne sont plus gardées.</p>':'')+'</div>':'';
   return `<div class="dx-fiche-duel${m.w>m.l?' is-up':m.w<m.l?' is-down':''}" role="group" aria-label="${escAttr(lu)}">
     <div class="dx-duel-score" aria-hidden="true"><span${m.l>m.w?' class="is-tete"':''}><b>${m.l}</b><small>${esc(e.n)}</small></span><i>–</i><span${m.w>m.l?' class="is-tete"':''}><b>${m.w}</b><small>Toi</small></span></div>
     ${d.length?`<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>${conf}</span>${DEF_CHEV_SVG}</button>`:`<p class="dx-duel-voir">${conf}</p>`}
@@ -52169,7 +52245,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-historiques-v3002';
+  const SW_CACHE='requete-2026-11-14-pages-v3003';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

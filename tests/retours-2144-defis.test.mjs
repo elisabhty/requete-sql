@@ -239,8 +239,8 @@ test('la fiche : « 4 confrontations » déplie vos dernières parties ; la reva
   c.ev("dxFiche('@lea')");
   const f = c.ev('dxFicheHTML()');
   assert.ok(f.includes('<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>4 confrontations</span>'));
-  assert.ok(f.includes('<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste"><li class="is-l"><b>Perdue</b><span>120&nbsp;pts contre 200</span><small>Hier · Facile · 1 manche</small></li><li class="is-w"><b>Gagnée</b><span>230&nbsp;pts contre 195</span>'));
-  assert.ok(f.includes('<li class="is-e"><b>Égalité</b>') && f.includes('<p class="dx-duel-note">Seules tes 500 dernières parties sont gardées.</p></div>'), 'moins de parties gardées que jouées : on le dit');
+  assert.ok(f.includes('<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste" id="dx-duel-liste"><li class="is-l"><b>Perdue</b><span>120&nbsp;pts contre 200</span><small>Hier · Facile · 1 manche</small></li><li class="is-w"><b>Gagnée</b><span>230&nbsp;pts contre 195</span>'));
+  assert.ok(f.includes('<li class="is-e"><b>Égalité</b>') && f.includes('<p class="dx-duel-note">Les confrontations les plus anciennes ne sont plus gardées.</p></div>'), 'moins de parties gardées que jouées : on le dit');
   assert.ok(f.includes('<span>Prendre ta revanche ⚡</span>'), 'la dernière est perdue : la revanche, même s’il est derrière au total');
   /* Déplier, replier */
   const l = { hidden: true }, b = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
