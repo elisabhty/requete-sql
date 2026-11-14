@@ -46385,6 +46385,15 @@ const OB_JOBS=[
    (state.profile.genre) et accorde les quelques mots qui parlent de la personne (accord) : « Étudiante » ou « Étudiant », « seule »
    ou « seul » ; sans réponse ou « Ne pas dire », la forme inclusive (« Étudiant·e »). */
 const OB_GENRES=[['f','Une femme'],['h','Un homme'],['n','Ne pas dire','Je préfère ne pas le dire']];
+/* 14 novembre, 20 h 31 (Elisa, sur la page de l’âge : « Si la personne passe, faire comme si elle a sélectionné Ne pas dire ») :
+   « Passer », c’est ne pas répondre, même si un choix était déjà coché. À l’âge : pas d’âge, et « Ne pas dire » (les textes
+   restent en forme inclusive, Mon compte montre « Ne pas dire », et un genre d’avant ne revient pas) ; au métier et à « Comment
+   as-tu connu Requête ? » : rien de gardé. */
+function obPasser(slide){
+  if(slide==='age'){draft.ageRange='';draft.genre='n';obGoto('job');}
+  else if(slide==='job'){draft.job='';obGoto('goal');}
+  else if(slide==='source'){draft.source='';draft.referral='';obGoto(obFinSuivante('source'));}
+}
 function genreDe(){
   const d=typeof draft!=='undefined'&&draft&&draft.genre,p=typeof state!=='undefined'&&state&&state.profile&&state.profile.genre;
   const g=d||p||'';return g==='f'||g==='h'?g:'';
@@ -51004,13 +51013,13 @@ function paintOb(){
        4 novembre, 17 h 27 : « demander si c’est une femme ou un homme, ou ne veut pas dire (dans l’écran de l’âge, peut-être) » : sous
        les âges, trois choix (OB_GENRES) ; « Continuer » s’allume avec les deux réponses. */
     /* 14 novembre, 18 h 58 (l’audit App Review, décision 2 : « Ok » ; 5.1.1 : rien d’obligatoire qui ne serve pas à l’appli) :
-       « Passer » sous le bouton, ici, au métier et à « Comment as-tu connu Requête ? ». Ce qui a été choisi reste. */
-    obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'',!draft.ageRange||!draft.genre);
+       « Passer » sous le bouton, ici, au métier et à « Comment as-tu connu Requête ? ». 20 h 31 : « Passer » ne répond pas (obPasser). */
+    obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obPasser('age'),'',!draft.ageRange||!draft.genre);
   }else if(slide==='job'){
     html=`<div class="ob-screen ob-profile ob-job-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Que fais-tu <em>dans la vie</em>&nbsp;?</h1>
       ${obMascotDit(accord('Étudiante','Étudiant','Étudiant·e')+', en poste ou en reconversion : tout le monde a sa place ici.',obMascotOui(draft.job))}
       <div class="ob-tiles ob-job-grid" role="radiogroup" aria-label="Ta situation">${OB_JOBS.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.job===k?'true':'false'}" class="ob-tile ob-job-tile ${draft.job===k?'on':''}" style="--d:${i*45}ms" onclick="obPick('job','${k}')">${obOptionIcon(icon)}<span>${esc(obJobNom(k)||label)}</span></button>`).join('')}</div></div>`;
-    obSetFooter('Continuer',()=>obGoto('goal'),'Passer',()=>obGoto('goal'),'',!draft.job);
+    obSetFooter('Continuer',()=>obGoto('goal'),'Passer',()=>obPasser('job'),'',!draft.job);
   }else if(slide==='goal'){
     html=`<div class="ob-screen ob-profile ob-goal">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Fixons ton <em>objectif</em><br>d’apprentissage.</h1>
       <p class="ob-lead">Cela nous aide à construire un départ qui te ressemble.</p>
@@ -51077,7 +51086,7 @@ function paintOb(){
     html=`<div class="ob-screen ob-profile ob-source-step">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Comment as-tu <em>connu</em> Requête&nbsp;?</h1>
       ${obMascotQuestion('Dis-moi tout : ça m’aide à faire connaître Requête !')}
       <div class="ob-tiles ob-source-grid" role="radiogroup" aria-label="Comment tu as connu Requête">${OB_SOURCES.map(([k,label,icon],i)=>`<button type="button" role="radio" aria-checked="${draft.source===k?'true':'false'}" class="ob-tile ob-source-tile ${draft.source===k?'on':''}" style="--d:${i*40}ms" onclick="obPick('source','${k}')">${obOptionIcon(icon)}<span>${esc(label)}</span></button>`).join('')}</div></div>`;
-    obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'Passer',()=>obGoto(obFinSuivante('source')),'',!draft.source);
+    obSetFooter('Continuer',()=>obGoto(obFinSuivante('source')),'Passer',()=>obPasser('source'),'',!draft.source);
   }else if(slide==='rappel'){
     /* Le rappel du jour (d’après Duolingo) : la fenêtre d’iOS en aperçu, au centre de l’écran, là où la vraie s’ouvrira, et une flèche
        qui rebondit vers « Autoriser ». Le bouton ouvre la vraie demande (obRappelDemander), puis programme le rappel.
@@ -53189,7 +53198,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-pastille-v3032';
+  const SW_CACHE='requete-2026-11-14-nepasdire-v3033';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

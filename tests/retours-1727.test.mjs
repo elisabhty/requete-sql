@@ -63,7 +63,7 @@ test('réf. 1 : « Découvre ce qu’ils en pensent », un autocollant comme ceu
 test('femme, homme ou ne pas dire : sur l’écran de l’âge, gardé sur l’appareil, et les mots s’accordent', () => {
   const age = slide('age', "}else if(slide==='job'){");
   assert.ok(age.indexOf('ob-age-grid') < age.indexOf('ob-genre-row'), 'sous les âges');
-  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obGoto('job'),'',!draft.ageRange||!draft.genre);"));
+  assert.ok(age.includes("obSetFooter('Continuer',()=>obGoto('job'),'Passer',()=>obPasser('age'),'',!draft.ageRange||!draft.genre);"));   // 14 novembre, 20 h 31 : « Passer » vaut « Ne pas dire »
   for (const k of ['html #onboarding.ob-vitrine .ob-age-step .ob-age-grid{margin-bottom:0}', 'html #onboarding.ob-vitrine .ob-age-step .ob-genre{margin-top:18px;margin-bottom:auto}',
     'html #onboarding.ob-vitrine .ob-genre-row{grid-template-columns:repeat(3,minmax(0,1fr))}'])
     assert.ok(section.includes(k), k);
