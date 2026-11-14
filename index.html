@@ -34381,6 +34381,47 @@ function muSound(seq,force){
   const el=MU.el;
   seq.forEach(([d,k,p,g])=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)LvSfx.play(k,p||0,g==null?1:g,0); },d)));
 }
+/* ---------- L’haptique des pages de fête (Elisa, 14 novembre, 22 h 19 : « mets le plus de haptique possible, j’aime trop ça, et
+   fort ») ----------
+   Une partition calée sur l’animation : [ms après le début, coup]. Coups : 'cran' (le cran de sélection d’iOS), 'LIGHT', 'MEDIUM',
+   'HEAVY' (impacts), 'SUCCESS' (la notification de réussite), ou un nombre : une vibration pleine puissance de cette durée en ms
+   (Haptics.vibrate sur iPhone : CHHapticEngine, intensité et netteté au maximum). Sur iPhone, le moteur haptique directement ;
+   ailleurs, navigator.vibrate. Chaque coup est un minuteur de la page (MU.timers) : rien ne vibre une fois la page fermée. */
+function muVibrer(plan){
+  if(!MU||typeof window==='undefined')return;
+  const el=MU.el,C=window.Capacitor,H=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Haptics;
+  const WEB={cran:4,LIGHT:10,MEDIUM:20,HEAVY:35};
+  const coup=k=>{
+    try{
+      if(H){
+        let r;
+        if(k==='cran'){if(H.selectionStart&&H.selectionChanged){H.selectionStart();r=H.selectionChanged();}else r=H.impact({style:'LIGHT'});}
+        else if(k==='SUCCESS')r=H.notification&&H.notification({type:'SUCCESS'});
+        else if(typeof k==='number')r=H.vibrate?H.vibrate({duration:k}):H.impact({style:'HEAVY'});
+        else r=H.impact&&H.impact({style:k});
+        if(r&&r.catch)r.catch(()=>{});
+        return;
+      }
+      if(!navigator.vibrate||!(navigator.userActivation&&navigator.userActivation.hasBeenActive))return;
+      navigator.vibrate(k==='SUCCESS'?[20,40,30]:typeof k==='number'?k:(WEB[k]||10));
+    }catch(e){}
+  };
+  plan.forEach(([d,k])=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)coup(k); },d)));
+}
+/* La chute du sticker (0,12 s à 0,9 s) : de plus en plus fort, puis l’impact (un coup et une vibration pleine) et les rebonds. */
+const MU_HAPT_CHUTE=[[150,'cran'],[240,'LIGHT'],[320,'LIGHT'],[390,'MEDIUM'],[450,'MEDIUM'],[505,'HEAVY'],[560,'HEAVY'],[575,170],[690,'MEDIUM'],[800,'LIGHT']];
+/* « Récupérer le sticker » : le coup de l’appui, des crans pendant qu’il file, l’arrivée dans la collection, la réussite. */
+const MU_HAPT_COLLECTE=[[0,'HEAVY'],[110,'cran'],[190,'cran'],[270,'cran'],[350,'cran'],[430,'cran'],[510,'cran'],[590,'cran'],[670,'cran'],[800,'HEAVY'],[815,140],[1000,'SUCCESS']];
+/* La page « Nouveau niveau » : la chute, « Niveau 2 ! », la pastille du nom ; le chemin qui se remplit (un cran toutes les 45 ms, un
+   coup moyen à chaque niveau passé) ; le nouveau niveau qui s’allume (réussite, longue vibration), puis le feu d’artifice. */
+function nivPartition(de,a){
+  const p=MU_HAPT_CHUTE.concat([[780,'HEAVY'],[1010,'HEAVY']]),d0=Math.max(1,de);
+  if(a>d0){
+    for(let t=1300;t<1900;t+=45)p.push([t,'cran']);
+    for(let k=d0+1;k<a;k++)p.push([1300+Math.round(620*(k-d0)/(a-d0)),'MEDIUM']);
+  }
+  return p.concat([[1900,'SUCCESS'],[1960,380],[2400,'HEAVY'],[2530,'HEAVY'],[2660,'HEAVY'],[2860,'MEDIUM'],[3020,'LIGHT']]);
+}
 /* L’impact : une onde, un éclair, une petite secousse. */
 function muImpact(el,big){
   const ring=el.querySelector('.mu-ring'), flash=el.querySelector('.mu-flash'), inner=el.querySelector('.mu-in');
@@ -34411,13 +34452,13 @@ function moduleUpOpen(i,n){
   el.querySelector('.mu-later').addEventListener('click',()=>moduleUpClose());
   el.querySelector('.mu-x').addEventListener('click',()=>moduleUpClose());
   el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); moduleUpClose(); } });
-  if(prefersReduceMotion()){ moduleUpFinal(true); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} return; }
+  if(prefersReduceMotion()){ moduleUpFinal(true); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} muVibrer([[0,'HEAVY'],[300,'SUCCESS']]); return; }
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(MU&&MU.el===el)el.classList.add('is-a'); }));
   /* Le sticker touche le centre à 55 % de sa chute (0,12 s + 0,78 s) */
+  muVibrer(MU_HAPT_CHUTE.concat([[780,'HEAVY']]));
   T(()=>{
     muImpact(el,false);
-    if(navigator.vibrate)navigator.vibrate([18,30,10]);
     lqConfetti({n:60});
     muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);
   },560);
@@ -34438,14 +34479,14 @@ function moduleUpCollect(){
   const go=el.querySelector('.mu-go');
   go.setAttribute('aria-disabled','true');
   muSound([[0,'pop',3,.7],[180,'whoosh',0,.4],[760,'true',0,.6]],true);
-  if(navigator.vibrate)navigator.vibrate(10);
+  muVibrer(MU_HAPT_COLLECTE);
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   const st=el.querySelector('.mu-done'), alb=el.querySelector('.mu-album'), ico=alb.querySelector('.mu-album-ico');
   const a=st.getBoundingClientRect(), b=ico.getBoundingClientRect();
   const dx=b.left+b.width/2-(a.left+a.width/2), dy=b.top+b.height/2-(a.top+a.height/2), k=Math.max(.05,b.width/Math.max(1,a.width));
   st.animate([{transform:'rotate(-4deg)'},{transform:'translateY(-22px) rotate(-12deg) scale(1.12)',offset:.26},{transform:`translate(${dx}px,${dy}px) rotate(14deg) scale(${k})`,opacity:.85}],
     {duration:820,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'});
-  T(()=>{ st.style.visibility='hidden'; alb.classList.add('is-hit'); if(navigator.vibrate)navigator.vibrate(8); },800);
+  T(()=>{ st.style.visibility='hidden'; alb.classList.add('is-hit'); },800);
   /* Le chemin : du module terminé au suivant */
   T(()=>{
     const pips=el.querySelector('.mu-pips'), pip=pips.querySelector('.cur'), nx=pips.querySelector('.nx');
@@ -34471,12 +34512,13 @@ function moduleUpUnlock(){
   el.classList.add('is-b','is-unlock');
   el.querySelector('.mu-go').setAttribute('aria-disabled','true');
   muSound([[0,'click',0,.7],[200,'stamp',0,.75],[250,'success',0,.65],[620,'chord',0,.5]]);
+  /* Le cadenas saute (un cran, un coup moyen), la carte se retourne : réussite, vibration pleine, puis les confettis */
+  muVibrer([[0,'cran'],[90,'MEDIUM'],[220,'HEAVY'],[235,'SUCCESS'],[290,320],[700,'HEAVY'],[830,'HEAVY'],[1000,'MEDIUM']]);
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   T(()=>{
     el.classList.add('is-open');
     muImpact(el,true);
     lqConfetti({n:90});
-    if(navigator.vibrate)navigator.vibrate([12,40,12,40,24]);
   },220);
   T(()=>moduleUpFinal(false),300);
   T(()=>lqConfetti({n:50}),800);
@@ -34666,24 +34708,29 @@ function stkPageOuvrir(ids,niv,bilan){
   });
   el.querySelector('.mu-x').addEventListener('click',()=>moduleUpClose());
   el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); moduleUpClose(); } });
-  if(prefersReduceMotion()){ el.classList.add('is-still','is-a','is-ready'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} return; }
+  if(prefersReduceMotion()){
+    el.classList.add('is-still','is-a','is-ready'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){}
+    muVibrer(niveau?[[0,'HEAVY'],[60,260],[420,'SUCCESS']]:[[0,'HEAVY'],[300,'SUCCESS']]);   // sans mouvement, l’haptique reste
+    return;
+  }
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(MU&&MU.el===el)el.classList.add('is-a'); }));
   if(niveau){
-    /* Le niveau : un impact plus fort, puis le chemin se remplit et le nouveau niveau s’allume (1,9 s), deuxième salve et vibration de réussite */
+    /* Le niveau : un impact plus fort, puis le chemin se remplit et le nouveau niveau s’allume (1,9 s), deuxième salve ; l’haptique
+       suit tout (nivPartition) */
+    muVibrer(nivPartition(niveau.de,niveau.a));
     T(()=>{
       muImpact(el,true);
-      buzz('heavy');
       lqConfetti({n:90});
       muSound([[0,'stamp',0,.8],[120,'success',0,.6]]);
     },560);
-    T(()=>{ el.classList.add('is-lvl'); buzz('success'); lqConfetti({n:60}); muSound([[0,'chord',0,.55]]); },1900);
+    T(()=>{ el.classList.add('is-lvl'); lqConfetti({n:60}); muSound([[0,'chord',0,.55]]); },1900);
     T(()=>{ el.classList.add('is-ready'); try{el.querySelector('#mu-h').focus({preventScroll:true});}catch(e){} },1500);
     return;
   }
+  muVibrer(MU_HAPT_CHUTE.concat([[780,'HEAVY'],[1100,'SUCCESS']]));
   T(()=>{
     muImpact(el,false);
-    if(navigator.vibrate)navigator.vibrate([18,30,10]);
     lqConfetti({n:60});
     muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);
   },560);
@@ -34697,7 +34744,8 @@ function stkPageCollect(){
   const go=el.querySelector('.mu-go');
   go.setAttribute('aria-disabled','true');
   muSound([[0,'pop',3,.7],[180,'whoosh',0,.4],[760,'true',0,.6]],true);
-  if(navigator.vibrate)navigator.vibrate(10);
+  const vite0=prefersReduceMotion();
+  muVibrer(vite0?[[0,'HEAVY'],[200,'SUCCESS']]:MU_HAPT_COLLECTE);
   const T=(f,d)=>MU.timers.push(setTimeout(()=>{ if(MU&&MU.el===el)f(); },d));
   const st=el.querySelector('.mu-done'),alb=el.querySelector('.mu-album'),ico=alb.querySelector('.mu-album-ico'),vite=prefersReduceMotion();
   if(!vite&&st.animate){
@@ -34706,7 +34754,7 @@ function stkPageCollect(){
     st.animate([{transform:'rotate(-4deg)'},{transform:'translateY(-22px) rotate(-12deg) scale(1.12)',offset:.26},{transform:`translate(${dx}px,${dy}px) rotate(14deg) scale(${k})`,opacity:.85}],
       {duration:820,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'});
   }
-  T(()=>{ st.style.visibility='hidden'; alb.classList.add('is-hit'); if(navigator.vibrate)navigator.vibrate(8); },vite?0:800);
+  T(()=>{ st.style.visibility='hidden'; alb.classList.add('is-hit'); },vite?0:800);
   T(()=>{
     MU.stage='c';
     el.classList.add('is-b');
@@ -53378,7 +53426,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-14-medailles-v3038';
+  const SW_CACHE='requete-2026-11-14-vibrations-v3039';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

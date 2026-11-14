@@ -96,9 +96,9 @@ test('la page : le niveau, son nom, le chemin des cinq niveaux, la suite et les 
   assert.ok(h.includes('<span class="mu-medal-in"><small>Niv.</small><b>${a}</b></span>'), 'la médaille, tant que le sticker du niveau n’a pas d’image');
   assert.ok(h.includes("${!stk.length?'Continuer':plus?'Récupérer les stickers':'Récupérer le sticker'}") && h.includes('<button type="button" class="mu-later">Voir les défis</button>'));
   assert.ok(!/bient[oô]t|prochainement/i.test(h));
-  /* Effet waouh : impact, confettis deux fois, vibrations (moteur haptique sur iPhone), sons */
+  /* Effet waouh : impact, confettis deux fois, haptique (nivPartition), sons */
   const o = fn('stkPageOuvrir');
-  assert.ok(o.includes('muImpact(el,true);') && o.includes("buzz('heavy');") && o.includes('lqConfetti({n:90});') && o.includes("el.classList.add('is-lvl'); buzz('success'); lqConfetti({n:60});"));
+  assert.ok(o.includes('muImpact(el,true);') && o.includes('muVibrer(nivPartition(niveau.de,niveau.a));') && o.includes('lqConfetti({n:90});') && o.includes("el.classList.add('is-lvl'); lqConfetti({n:60});"));
   assert.ok(app.includes('@keyframes muLvFill{to{width:calc((var(--a) - 1) / 4 * 100%)}}') && app.includes('.mu.is-still .mu-lv-fill{width:calc((var(--a) - 1) / 4 * 100%)}'), 'mouvement réduit : le chemin déjà rempli');
   assert.ok(app.includes("if(q&&q.get('apercu')==='niveau'){"), 'aperçu : ?apercu=niveau&niveau=3');
 });
@@ -113,4 +113,26 @@ test('les cinq stickers de niveau : WebP carrés de 768 px, transparents, dans l
   assert.ok(app.includes("'niv1','niv2','niv3','niv4','niv5']);   // 14 novembre"));
   const r = fn('renderStickers');
   assert.ok(r.includes("${nivs.length>1?group('Niveaux',nivs):''}") && r.includes("list.filter(s=>s.kind==='acc'||(s.kind==='niveau'&&nivs.length<2))"), 'un seul : avec les accomplissements');
+});
+
+/* 22 h 19 (Elisa : « mets le plus de haptique possible, j’aime trop ça, et fort ») : une partition calée sur l’animation */
+test('l’haptique : une partition forte, calée sur l’animation, sur le moteur haptique de l’iPhone', () => {
+  const coups = [];
+  const H = { impact: o => { coups.push(o.style); return Promise.resolve(); }, notification: o => { coups.push(o.type); return Promise.resolve(); }, vibrate: o => { coups.push('V' + o.duration); return Promise.resolve(); },
+    selectionStart: () => Promise.resolve(), selectionChanged: () => { coups.push('cran'); return Promise.resolve(); } };
+  const timers = [];
+  const ctx = vm.createContext({ window: { Capacitor: { isNativePlatform: () => true, Plugins: { Haptics: H } } }, navigator: {}, setTimeout: (f, d) => { timers.push([d, f]); return timers.length; } });
+  vm.runInContext('let MU={el:1,timers:[]};' + fn('muVibrer') + cut('const MU_HAPT_CHUTE=', ';\n') + ';' + cut('const MU_HAPT_COLLECTE=', ';\n') + ';' + fn('nivPartition'), ctx);
+  const jouer = plan => { coups.length = 0; timers.length = 0; vm.runInContext(`muVibrer(${plan})`, ctx); timers.sort((a, b) => a[0] - b[0]).forEach(([, f]) => f()); return [...coups]; };
+  const n2 = jouer('nivPartition(1,2)');
+  assert.ok(n2.filter(c => c === 'HEAVY').length >= 7, 'des coups forts');
+  assert.deepEqual(n2.filter(c => /^V/.test(c)), ['V170', 'V380'], 'deux vibrations pleine puissance : l’impact, puis le niveau qui s’allume');
+  assert.ok(n2.includes('SUCCESS') && n2.filter(c => c === 'cran').length >= 12, 'la réussite, et les crans du chemin qui se remplit');
+  assert.equal(jouer('nivPartition(1,4)').filter(c => c === 'MEDIUM').length - n2.filter(c => c === 'MEDIUM').length, 2, 'un coup moyen par niveau passé (2 et 3)');
+  assert.deepEqual(jouer('MU_HAPT_COLLECTE').filter(c => c !== 'cran'), ['HEAVY', 'HEAVY', 'V140', 'SUCCESS'], 'récupérer le sticker');
+  /* Page fermée : plus rien */
+  coups.length = 0; timers.length = 0; vm.runInContext('muVibrer([[10,"HEAVY"]]);MU=null;', ctx); timers.forEach(([, f]) => f());
+  assert.deepEqual(coups, []);
+  assert.ok(fn('moduleUpUnlock').includes("muVibrer([[0,'cran'],[90,'MEDIUM'],[220,'HEAVY'],[235,'SUCCESS'],[290,320],"), 'le module suivant qui se débloque aussi');
+  assert.ok(fn('stkPageCollect').includes('muVibrer(vite0?[[0,\'HEAVY\'],[200,\'SUCCESS\']]:MU_HAPT_COLLECTE);'));
 });

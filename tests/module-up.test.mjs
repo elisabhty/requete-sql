@@ -73,7 +73,7 @@ test('une seule fois, au bilan de la leçon qui termine le module ; jamais sans 
 
 test('le déroulé : impact à l’arrivée ; récupérer le sticker (le son part de cet appui), le module suivant se débloque aussitôt ; l’écran final', () => {
   const open = cut('function moduleUpOpen(i,n){', 'function moduleUpGo(){');
-  for (const part of ["el.classList.add('is-a')", 'muImpact(el,false);', 'lqConfetti({n:60});', "muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);", 'navigator.vibrate([18,30,10])'])
+  for (const part of ["el.classList.add('is-a')", 'muImpact(el,false);', 'lqConfetti({n:60});', "muSound([[0,'stamp',0,.8],[110,'chord',0,.5]]);", "muVibrer(MU_HAPT_CHUTE.concat([[780,'HEAVY']]));"])
     assert.ok(open.includes(part), part);
   assert.ok(open.indexOf('if(prefersReduceMotion()){ moduleUpFinal(true);') < open.indexOf('muImpact('), 'mouvement réduit : l’écran final, d’emblée');
   const go = cut('function moduleUpGo(){', '/* 2. « Récupérer le sticker »');
