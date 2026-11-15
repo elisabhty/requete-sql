@@ -37,7 +37,9 @@ const B = '(?<![\\p{L}\\d_])', E = '(?![\\p{L}\\d_])', W = (x, f = 'gu') => new 
    verticales », « sub-stringue », « pourcent d, barre… ») */
 const FN = {UPPER: 'upper', LOWER: 'lower', TRIM: 'trim', LENGTH: 'length', SUBSTR: 'substring', INSTR: 'in-string', REPLACE: 'replace',
   ROUND: 'round', CEIL: 'ceiling', FLOOR: 'floor', CAST: 'cast', COALESCE: 'coalesce', DATE: 'date', STRFTIME: 'string format time',
-  typeof: 'type of', Typeof: 'type of', CASE: 'case', WHEN: 'when', THEN: 'then', ELSE: 'else', END: 'end', COUNT: 'count'};
+  typeof: 'type of', Typeof: 'type of', CASE: 'case', WHEN: 'when', THEN: 'then', ELSE: 'else', END: 'end', COUNT: 'count',
+  /* Module 4 (15 novembre) : les agrégats */
+  SUM: 'sum', AVG: 'A-V-G', MIN: 'min', MAX: 'max', GROUP_CONCAT: 'group concat'};
 const FNRE = Object.keys(FN).join('|');
 const PARLE = s => s
   .replace(/MARTIN Sophie, (\d+), RUE DES LILAS, PARIS/g, 'MARTIN Sophie, $1, rue des Lilas, Paris')
@@ -49,7 +51,10 @@ const PARLE = s => s
   .replace(/INSTR\(([a-z_]+), ' '\)/g, (t, a) => `in-string of ${a}, space`)
   .replace(/UPPER\(([a-z_]+)\) \+ ' ' \+ ([a-z_]+)/g, 'upper of $1, plus a space, plus $2')
   .replace(/CAST\('?([^'()]+?)'? AS ([A-Z]+)\)/gi, (t, a, b) => `cast ${a} as ${b.toLowerCase()}`)
+  .replace(/\bCOUNT\(\*\)/g, 'count star').replace(/\bCOUNT\(DISTINCT ([a-z_]+)\)/g, 'count distinct $1')
+  .replace(/\bGROUP BY\b/g, 'group by').replace(/\bHAVING\b/g, 'having').replace(/, ', '\)/g, ', comma space)').replace(/separator ', '/g, 'separator comma space')
   .replace(new RegExp(`\\b(${FNRE})\\(\\)`, 'g'), (t, f) => FN[f])
+  .replace(new RegExp(`\\b(${FNRE})\\(([^()]*)\\)`, 'g'), (t, f, a) => `${FN[f]} of ${a.replace(/'([^']*)'/g, '$1')}`)
   .replace(new RegExp(`\\b(${FNRE})\\(([^()]*)\\)`, 'g'), (t, f, a) => `${FN[f]} of ${a.replace(/'([^']*)'/g, '$1')}`)
   .replace(new RegExp(`\\b(${FNRE})\\b`, 'g'), f => FN[f])
   .replace(/\|\|/g, 'two vertical bars')

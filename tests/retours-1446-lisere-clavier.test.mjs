@@ -19,5 +19,5 @@ test('plus d’anneau autour de l’appli sur l’iPhone ni sur un écran de té
   assert.ok(i > 0 && css.includes('@media (max-width:599px){html.lq #app{box-shadow:none}}'));
   /* à côté du clavier qui monte, avant la refonte des Défis (dont les règles ne visent que les Défis) */
   assert.ok(i > css.indexOf('html.lq.is-native.kb-ouvert:has(#onboarding.on) body{background:#4529CC!important}') && i < css.indexOf('Défis — la refonte du 7 novembre'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">') && sw.includes("const CACHE = 'requete-2026-11-15-module-v3053';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">') && sw.includes("const CACHE = 'requete-2026-11-15-module-v3054';"));
 });

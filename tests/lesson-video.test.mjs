@@ -774,7 +774,7 @@ const COURSES = [
     bubble: 'Additionne, fais la moyenne ou trouve les extrêmes d’une&nbsp;colonne.',
     chapters: ['Situation', 'SUM', 'AVG', 'MIN et MAX', 'D’autres colonnes', 'Le résultat', 'À retenir'],
     traps: ['<span>Stock · Tableau de bord</span>', '<span class="cnum" id="cnum2"></span>', '<div class="rg1 th"><div>SUM(stock)</div></div>',
-      '<span class="b">23,9875</span>', '<div class="rg1 th"><div>ROUND(AVG(prix), 2)</div></div>', '<span class="x">✕ ni additionné, ni compté</span>',
+      '<span class="b" data-en="23.9875">23,9875</span>', '<div class="rg1 th"><div>ROUND(AVG(prix), 2)</div></div>', '<span class="x">✕ ni additionné, ni compté</span>',
       '<span>Une valeur, pas un produit</span>', '<span class="ko">✕ pas dans le résultat</span>', '<span>L’âge des 10 clients</span>',
       "{label: '1 075 unités', ok: true,", "kind: 'tap', need: 1,", "{label: 'L’âge du client le plus jeune', to: 'N',",
       '<span class="glow" id="as6d"><span class="kw">AS</span> prix_max</span>', '✓ 4 / 4 · Tableau de bord complet']},
@@ -1347,7 +1347,8 @@ for (const c of COURSES) {
     assert.ok(page.indexOf('src="gsap.min.js"') < page.indexOf('src="core.js"'), 'GSAP chargé avant le moteur');
     if (page.includes('moments: MOMENTS')) assert.ok(page.includes('<script src="core.js"></script>\n<script src="moments.js"></script>'), 'les moments « À toi » : moments.js, juste après le moteur');
     assert.ok(!/https?:\/\//.test(page), 'rien de chargé depuis Internet');
-    assert.ok(page.includes(`Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: ${c.notesAt},`));
+    /* codeSel (15 novembre, le module 4 en anglais) : d’autres endroits où le code se récrit dans une autre langue */
+    assert.ok(page.replace(/Course\(\{codeSel: '[^']+', /, 'Course({').includes(`Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: ${c.notesAt},`));
     assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo : la lecture n’est jamais interrompue');
     assert.ok(page.includes(c.bubble), 'bulle de la mascotte');
     for (const label of c.chapters) assert.ok(page.includes(`label:'${label}'`), `chapitre ${label}`);

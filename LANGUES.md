@@ -127,6 +127,12 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   le code passent dans la base anglaise (`'À commander'` : `'Reorder'`, `'Non renseigné'` : `'Not provided'`, `alerte` : `alert`) ;
   un mot dessiné lettre par lettre prend son `data-en` (`J+7` : `D+7`, les initiales du calendrier) ; une colonne trop étroite pour
   l’anglais s’élargit sous `html[lang="en"]` (l’étiquette de fonctions-texte).
+- **Le module 4** (15 novembre, « oui ») : Agrégats et regroupements, les sept vidéos (COUNT, SUM/AVG/MIN/MAX, GROUP BY, GROUP BY
+  sur plusieurs colonnes, HAVING, l’ordre d’exécution, GROUP_CONCAT : environ 1 150 textes), leurs vignettes et les bilans des
+  leçons. Les alias passent dans la base anglaise (`base.defauts` : `nb_clients` : `customer_count`, `prix_moyen` : `avg_price`,
+  `mois` : `month`, `colonne` : `column`). Le code hors des éditeurs (les cartes `.mini`, les étapes `.cl`) se récrit avec
+  `Course({codeSel: …})`. Une date jour/mois se lit mois/jour en anglais (`{2}/{1}`, ou `data-en` sur une case dessinée) ; un
+  mot dessiné lettre par lettre prend son `data-en` (ORDRE : ORDER) ; un nombre décimal seul aussi (`23,9875` : `23.9875`).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -145,6 +151,9 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `COALESCE('', 'Not provided')` « coalesce of an empty text and Not provided ». Un chapitre dont aucune légende n’est traduite
   (le « Pour finir, voici les trois idées à retenir », coupé dans l’appli) n’a plus de fichier. **Intégrée le 15 novembre**
   (« fini », 6 h 23) : les six vidéos du module 3 parlent anglais (environ 9 Mo), durées et vignettes refaites.
+  Module 4 (15 novembre) : les sept fichiers sont prêts (`tools/voix/en/count.json` à `group-concat.json`, environ 17 800
+  caractères) ; les agrégats se disent comme on les lit (`COUNT(*)` « count star », `AVG(price)` « A-V-G of price »,
+  `GROUP_CONCAT(id, ', ')` « group concat of ID, comma space », `GROUP BY` « group by »).
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

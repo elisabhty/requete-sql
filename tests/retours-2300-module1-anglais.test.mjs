@@ -418,7 +418,7 @@ test('le module 3 en entier : chaque vidéo charge ses textes anglais, gardés n
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.equal(textes['0 ligne'], '0 rows', c);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3].map(c => `'${c}'`).join(',') + ','));
   for (const [c, t] of [['fonctions-numeriques', 'produits'], ['case', 'produits'], ['fonctions-dates', 'commandes'], ['conversion-types', 'commandes'], ['coalesce', 'clients']])
     assert.ok(lire(`assets/anim/${c}.html`).includes(`<body data-table="${t}"`), c);
   const dates = lire('assets/anim/fonctions-dates.html'), texte = lire('assets/anim/fonctions-texte.html');
@@ -473,4 +473,76 @@ test('la voix anglaise du module 3 : intégrée, versionnée, durées et vignett
     assert.ok(lire(`assets/anim/en/${c}.js`).includes(`{voix: {dir: '../voix/en/${c}/', v: '${HV.digest('hex').slice(0, 8)}',`), `${c} : la version de ses fichiers`);
   }
   assert.ok(app.includes("'limit-offset':'3 min 56','fonctions-texte':'3 min 40','fonctions-numeriques':'2 min 51','fonctions-dates':'2 min 59','conversion-types':'3 min 08','case':'2 min 49','coalesce':'2 min 33'}};"));
+});
+
+/* Elisa, 15 novembre, 7 h 17 : « oui » (le module 4 après le module 3). Agrégats et regroupements : COUNT, SUM/AVG/MIN/MAX,
+   GROUP BY, GROUP BY sur plusieurs colonnes, HAVING, l’ordre d’exécution, GROUP_CONCAT. Leurs alias passent dans la base anglaise
+   (nb_clients : customer_count), le code des cartes (.mini, .cl) est récrit (codeSel), les dates des commandes se lisent mois/jour,
+   le grand titre ORDRE devient ORDER ; la voix (Brielle) dit les agrégats comme on les lit (« count star », « A-V-G of price »). */
+const M4 = ['count', 'agregats', 'group-by', 'group-by-colonnes', 'having', 'ordre-execution', 'group-concat'];
+
+test('le module 4 en entier : chaque vidéo charge ses textes anglais, gardés nombre pour nombre, avec sa vignette, préchargés', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M4) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(/Course\(\{(codeSel: '[^']+', )?duration: DURATION,/.test(pg), c);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4].map(c => `'${c}'`).join(',') + ']};'));
+  for (const [c, t] of [['count', 'produits'], ['agregats', 'produits'], ['group-by', 'clients'], ['group-by-colonnes', 'commandes'], ['having', 'clients'], ['ordre-execution', 'commandes'], ['group-concat', 'commandes']])
+    assert.ok(lire(`assets/anim/${c}.html`).includes(`<body data-table="${t}">`), c);
+  for (const c of ['count', 'agregats', 'group-by', 'having', 'group-concat']) assert.ok(lire(`assets/anim/${c}.html`).includes("Course({codeSel: '.mini', duration: DURATION,"), c);
+  const oe = lire('assets/anim/ordre-execution.html');
+  assert.ok(oe.includes("Course({codeSel: '.mini, .cl, .vrow b', duration: DURATION,"));
+  assert.ok(oe.includes('<span>O</span><span>R</span><span>D</span><span data-en="E">R</span><span data-en="R">E</span>'), 'ORDRE : ORDER');
+  assert.ok(oe.includes('<b data-en="#${id}">n°${id}</b>'));
+  assert.ok(lire('assets/anim/group-by-colonnes.html').includes('<b data-en="${m}/${j}">${j}/${m}</b>'), 'les dates des commandes, mois/jour');
+  assert.ok(lire('assets/anim/agregats.html').includes('<span class="b" data-en="23.9875">23,9875</span>'));
+  const {L} = anglais();
+  for (const [fr, en] of [['SELECT ville, COUNT(*) AS nb_clients FROM clients GROUP BY ville', 'SELECT city, COUNT(*) AS customer_count FROM customers GROUP BY city'],
+    ["SELECT produit_id, COUNT(*) AS nb_envois FROM commandes WHERE statut = 'expédiée' GROUP BY produit_id HAVING COUNT(*) >= 2 ORDER BY nb_envois DESC",
+      "SELECT product_id, COUNT(*) AS shipment_count FROM orders WHERE status = 'shipped' GROUP BY product_id HAVING COUNT(*) >= 2 ORDER BY shipment_count DESC"],
+    ['SELECT SUM(stock) AS stock_total, ROUND(AVG(prix), 2) AS prix_moyen, MIN(prix) AS prix_min, MAX(prix) AS prix_max FROM produits',
+      'SELECT SUM(stock) AS total_stock, ROUND(AVG(price), 2) AS avg_price, MIN(price) AS min_price, MAX(price) AS max_price FROM products'],
+    ['COUNT(colonne)', 'COUNT(column)']])
+    assert.equal(L.sql(fr), en);
+  const gbc = textesDe('group-by-colonnes');
+  assert.equal(gbc['{1}/{2}, expédiée'], '{2}/{1}, shipped', 'jour/mois : mois/jour');
+  assert.equal(gbc['{m1} et expédiée : <1>{1} commandes</1>.'], '{m1} and shipped: <1>{1} orders</1>.');
+  for (const [fr, en] of [['compte <1>toutes les lignes</1>, même si certaines colonnes contiennent <2/>.', 'counts <1>all the rows</1>, even if some columns contain <2/>.'],
+    [', <1/>, <2/>, <3/>, <4/>, <5/>, puis <6/>.', ', <1/>, <2/>, <3/>, <4/>, <5/>, then <6/>.'],
+    ['Pour trier les valeurs dans chaque liste, place <1/> <2>à l’intérieur</2> de la fonction.', 'To sort the values in each list, put <1/> <2>inside</2> the function.']])
+    assert.equal(L.t(fr), en, fr);
+});
+
+test('la voix anglaise du module 4 : Brielle, les ids du français, les agrégats dits comme on les lit', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json')), prep = lire('tools/voix/preparer-langue.mjs');
+  const DIRE = new Function(prep.slice(prep.indexOf('const B = '), prep.indexOf('const parFichier')) + '\nreturn DIRE;')();
+  for (const [x, dit] of [['Then COUNT(*) counts the ones left: the counter shows 2.', 'Then count star counts the ones left: the counter shows 2.'],
+    ['With ROUND(AVG(price), 2), the average price becomes €23.99.', 'With round of A-V-G of price, 2, the average price becomes €23.99.'],
+    ['For the categories, COUNT(category) gives 8: one per product.', 'For the categories, count of category gives 8: one per product.'],
+    ["Your turn! What does GROUP_CONCAT(customer_id, ', ') return?", 'Your turn! What does group concat of customer underscore ID, comma space return?']])
+    assert.equal(DIRE(x), dit, x);
+  let total = 0;
+  for (const c of M4) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      /* Les parenthèses restent dans une phrase (« Paris (4) and Lyon (2) ») ; celles du code sont dites (« count star ») */
+      assert.ok(!/[«»<>=≠→⇔|+*%_×−']|\w\(|&[a-z]+;|Pour finir|idées à retenir|\b(SELECT|FROM|WHERE|COUNT|SUM|AVG|MIN|MAX|GROUP BY|HAVING|ORDER BY|GROUP_CONCAT|DISTINCT|NULL|DESC|ROUND)\b/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 16000 && total < 20000, `${total} caractères (autant de crédits)`);
 });

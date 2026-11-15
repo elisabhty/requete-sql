@@ -21,7 +21,10 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* Un nom seul dans du code, hors des tables (la formule de pagination : OFFSET = (n − 1) × taille) */
     defauts: {taille: 'size',
       /* Les alias des requêtes du module 3 (AS destinataire, AS suivi…) */
-      destinataire: 'recipient', numero: 'number', suivi: 'follow_up', alerte: 'alert'}
+      destinataire: 'recipient', numero: 'number', suivi: 'follow_up', alerte: 'alert',
+      /* Les alias du module 4 (AS nb_clients, AS prix_moyen…) */
+      nb_clients: 'customer_count', nb_commandes: 'order_count', nb_envois: 'shipment_count', mois: 'month',
+      stock_total: 'total_stock', prix_moyen: 'avg_price', prix_min: 'min_price', prix_max: 'max_price', colonne: 'column'}
   },
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
@@ -3025,6 +3028,36 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
     "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 4 (Agrégats et regroupements, 15 novembre) */
+    "compte <1>toutes les lignes</1>, même si certaines colonnes contiennent <2/>.": "counts <1>all the rows</1>, even if some columns contain <2/>.",
+    "ne compte que les valeurs <1>renseignées</1> :": "only counts the values that are <1>filled in</1>:",
+    "compte chaque valeur <1>une seule fois</1> :": "counts each value <1>only once</1>:",
+    "<1>additionne</1> les valeurs d’une colonne, <2/> en fait la <3>moyenne</3> :": "<1>adds up</1> a column’s values, <2/> gives their <3>average</3>:",
+    "et <1/> donnent la <2>plus petite</2> et la <3>plus grande</3> valeur :": "and <1/> give the <2>smallest</2> and the <3>largest</3> value:",
+    "Comme <1/>, elles donnent <2>une seule ligne</2> ; les <3/> sont ignorés.": "Like <1/>, they give <2>a single row</2>; <3/> values are ignored.",
+    "rassemble les lignes qui ont la <1>même valeur</1> :": "gathers the rows that have the <1>same value</1>:",
+    "Chaque groupe reçoit un <1>calcul</1> : <2/>, <3/>, <4/>, <5/> ou <6/>.": "Each group gets a <1>calculation</1>: <2/>, <3/>, <4/>, <5/> or <6/>.",
+    "Le <1/> n’affiche que la colonne du <2/> ou un <3>calcul</3> :": "The <1/> only shows the <2/> column or a <3>calculation</3>:",
+    "Un groupe par combinaison": "One group per combination",
+    "rassemble les lignes qui ont le même mois <1>et</1> le même statut.": "gathers the rows that have the same month <1>and</1> the same status.",
+    "Pas de ligne pour une absence": "No row for something missing",
+    "Une combinaison absente de la table ne forme aucun groupe : le résultat n’affiche pas de ligne à {1}.": "A combination that isn’t in the table forms no group: the result shows no row at {1}.",
+    "Tout le GROUP BY dans le SELECT": "All of the GROUP BY in the SELECT",
+    "Affiche chaque colonne de regroupement, pour savoir quel groupe chaque ligne compte.": "Show each grouping column, to know which group each row counts.",
+    "conserve les <1>groupes</1> qui respectent une condition.": "keeps the <1>groups</1> that meet a condition.",
+    "Exemple : <1/> garde les groupes d’au moins {1} lignes.": "Example: <1/> keeps the groups with at least {1} rows.",
+    "sélectionne les <1>lignes</1> avant de former les groupes.": "selects the <1>rows</1> before forming the groups.",
+    "Pour filtrer sur <1/>, utilise <2/>.": "To filter on <1/>, use <2/>.",
+    "Au moment du <1/>, le comptage par groupe n’a pas encore été effectué.": "When the <1/> runs, the count per group hasn’t been done yet.",
+    ", <1/>, <2/>, <3/>, <4/>, <5/>, puis <6/>.": ", <1/>, <2/>, <3/>, <4/>, <5/>, then <6/>.",
+    "WHERE avant, HAVING après": "WHERE before, HAVING after",
+    "Une condition sur un comptage va dans <1/> : <2/> passe avant le regroupement.": "A condition on a count goes in <1/>: <2/> runs before grouping.",
+    "L’alias du SELECT": "The SELECT alias",
+    "peut l’utiliser ; <1/>, exécuté avant, ne le connaît pas encore.": "can use it; <1/>, executed before, doesn’t know it yet.",
+    "réunit les valeurs d’un groupe dans <1>une seule cellule</1>.": "gathers a group’s values into <1>a single cell</1>.",
+    "Le <1>séparateur</1> se précise après la colonne.": "The <1>separator</1> is given after the column.",
+    "Par défaut, les valeurs sont séparées par une virgule sans espace. Les valeurs <1/> sont ignorées.": "By default, the values are separated by a comma with no space. <1/> values are ignored.",
+    "Pour trier les valeurs dans chaque liste, place <1/> <2>à l’intérieur</2> de la fonction.": "To sort the values in each list, put <1/> <2>inside</2> the function.",
     /* Les fiches des cours du module 3 (Fonctions et expressions, 15 novembre) */
     "Une <1>fonction</1> transforme le texte du résultat, sans modifier la table :": "A <1>function</1> transforms the text in the result, without changing the table:",
     "Une <1>fonction par besoin</1> :": "One <1>function per need</1>:",

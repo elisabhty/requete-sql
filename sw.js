@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-15-module-v3053';
+const CACHE = 'requete-2026-11-15-module-v3054';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -255,6 +255,20 @@ const PRECACHE = [
   './assets/anim/en/case-thumb.webp',
   './assets/anim/en/coalesce.js?v=1',
   './assets/anim/en/coalesce-thumb.webp',
+  './assets/anim/en/count.js?v=1',
+  './assets/anim/en/count-thumb.webp',
+  './assets/anim/en/agregats.js?v=1',
+  './assets/anim/en/agregats-thumb.webp',
+  './assets/anim/en/group-by.js?v=1',
+  './assets/anim/en/group-by-thumb.webp',
+  './assets/anim/en/group-by-colonnes.js?v=1',
+  './assets/anim/en/group-by-colonnes-thumb.webp',
+  './assets/anim/en/having.js?v=1',
+  './assets/anim/en/having-thumb.webp',
+  './assets/anim/en/ordre-execution.js?v=1',
+  './assets/anim/en/ordre-execution-thumb.webp',
+  './assets/anim/en/group-concat.js?v=1',
+  './assets/anim/en/group-concat-thumb.webp',
   './assets/anim/conference-nutrition.webp',
   './assets/anim/evenement-ephemere.webp',
   './assets/anim/colis-dechire.webp',
