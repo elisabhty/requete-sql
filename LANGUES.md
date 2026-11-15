@@ -193,6 +193,17 @@ pluriels et les accords (Prête, Prêt, Prêt·e) ont chacun leur clé. À évit
 Les adresses (15 novembre, 19 h 26, Elisa voyait encore l’entretien en français) : chaque fichier de langue est demandé avec
 l’empreinte de son contenu, mise à jour par `tools/langue/versions.mjs` (appelé par les outils qui écrivent ces fichiers).
 
+## Les variantes des messages (15 novembre, 20 h 30)
+
+Elisa : « il y a plusieurs versions des félicitations etc est-ce que tu as tout pris en compte pareil pour les notifications message
+de remerciement d'envoie de message bloquer signaler exécution de la requête message d'erreur ». Les parcours d’écran ne voient
+qu’une variante à la fois ; cette fois, chaque texte écrit dans le code (chaînes, gabarits, concaténations) a été relevé avec ses
+variantes (les deux sens de chaque « a ? b : c », le même sens pour un même test), puis passé par le moteur anglais dans une vraie
+page (jsdom). Environ 650 clés ajoutées : le merci du formulaire de contact selon le sujet, signaler et bloquer (le bouton
+« Signaler » de la fenêtre restait en français), les résultats des parties, les erreurs d’import et de connexion, le pas à pas, le
+planning, l’abonnement. Les notifications (rappels, flamme) passaient déjà toutes (`tools/langue/natif.mjs`). Un mot qui est aussi
+une donnée de la base (« Petit », nom de famille) ne doit pas avoir de clé.
+
 ## Les stickers en anglais (15 novembre, 20 h)
 
 Elisa : « oui vas'y pour le test », puis « oui ». Les 16 stickers 3D qui portent un mot (« 1re requête », « NIV. 1 », « 3 jours »,
