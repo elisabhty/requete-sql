@@ -31,7 +31,7 @@ test('le podium : une carte en direct (qui en est, qui est là), puis « Quitter
   vm.runInContext(relance + relanceCd + fn('jeuRevanche') + fn('jeuGagnants') + fn('jeuRevancheHTML'), ctx);
   let h = ctx.jeuRevancheHTML();
   assert.ok(h.startsWith('<div class="jeu-rv" id="jeu-rv">') && h.includes('<b>On rejoue\u00a0?</b><small>Touche <mark class="jeu-rv-mot">Revanche</mark> pour dire que tu es de la partie.</small>'));
-  assert.ok(h.includes('<span class="jeu-rv-av" aria-hidden="true"><b class="jeu-av" data-c="1">S</b><b class="jeu-av" data-c="0">J</b></span>0/2 pour la revanche</span>'), 'toi, puis qui est là');
+  assert.ok(h.includes('<span class="jeu-rv-av" aria-hidden="true" data-notrad><b class="jeu-av" data-c="1">S</b><b class="jeu-av" data-c="0">J</b></span>0/2 pour la revanche</span>'), 'toi, puis qui est là');
   assert.ok(h.includes('<span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>') && h.includes('<span class="jeu-rv-ico"><svg'), 'les flèches en rond, en direct');
   assert.ok(h.includes('<button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()"><quit><span>Quitter la salle</span></button>') && h.includes('<button type="button" class="journey-primary jeu-revanche" aria-pressed="false" onclick="jeuRevanche()"><svg') && h.includes('</svg><span>Revanche</span></button>'));
   ctx.JEU.rv = { h: true };

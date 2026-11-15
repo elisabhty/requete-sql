@@ -992,7 +992,7 @@ test('un ami arrive pendant une manche commencée seul : « En direct » appara�
   assert.match(av, /^<span class="jd-j is-ok is-premier" data-pid="[\w-]+" data-c="1" data-n="([1-9]\d*)"><b class="jeu-av" data-c="1">A<i class="jd-av-b is-roi[^"]*"><svg/, 'l’ami d’abord, la couronne (même couleur qu’en salle d’attente), ses points');
   assert.match(av, /<span class="jd-j is-pense is-moi" data-pid="[\w-]+" data-c="0" data-n="0"><b class="jeu-av" data-c="0">H<\/b><span class="jd-j-pts"><b class="jd-pts" data-n="0" data-fmt="fr">0<\/b><small>\u00a0pt<\/small><\/span><\/span>$/, 'toi ensuite, en réflexion, 0 point');
   assert.equal(h.ev('JEU.dit.cur.html'), '<b>Ami</b> ouvre le score\u00a0!', 'le commentateur l’a dit, même pendant que la rangée n’était pas redessinée');
-  assert.match(d, /<span class="jeu-sr" id="jeu-direct-qui">Ami\u00a0: trouvé en premier, [\d\u202f\u00a0]+\u00a0points ; Toi\u00a0: en réflexion, 0\u00a0point<\/span>/);
+  assert.match(d, /<span class="jeu-sr" id="jeu-direct-qui" data-notrad>Ami\u00a0: trouvé en premier, [\d\u202f\u00a0]+\u00a0points ; Toi\u00a0: en réflexion, 0\u00a0point<\/span>/);
   const tete = h.ev('jeuDirectJoueurs(0)[0]');
   assert.ok(tete.chef && tete.gain > 0 && tete.essais === 1 && tete.monte === 1, 'en tête, ce que la manche lui rapporte, un essai, une place gagnée');
   assert.doesNotMatch(d, /jeu-direct-ok|1\/2/, '21 h 29 : plus de « 1/2 » dans la barre');

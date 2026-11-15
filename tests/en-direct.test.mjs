@@ -56,7 +56,7 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   assert.deepEqual(xs.map(x => x.c), [1, 0, 2, 3], 'la couleur de son avatar en salle d’attente, quelle que soit sa place');
   const html = s.ev('jeuDirectHTML(0)');
   assert.match(html, /^<section class="jeu-direct" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande"><div class="jeu-direct-h"><span class="jeu-direct-live" aria-hidden="true"><\/span><b id="jeu-direct-t">En direct<\/b><\/div><div class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">/, 'le bandeau : « En direct » en légende, la rangée des présents dessous');
-  assert.match(html, /<\/div><span class="jeu-sr" id="jeu-direct-qui">[^<]*<\/span><p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">.*<\/p><\/div><\/section>$/, 'puis le commentateur');
+  assert.match(html, /<\/div><span class="jeu-sr" id="jeu-direct-qui" data-notrad>[^<]*<\/span><p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">.*<\/p><\/div><\/section>$/, 'puis le commentateur');
   /* 21 h 13 puis 21 h 29 : plus de tableau des scores, de flèche, de « 4 joueurs » ni de « 1/4 » */
   assert.doesNotMatch(html, /<ol|<li|<button|aria-expanded|jeu-direct-chev|jeu-direct-nb|jeu-direct-ok|1\/4|jd-l1/);
   const ps = presents(html);
@@ -66,7 +66,7 @@ test('chaque joueur : ce qu’il fait, ses essais (chaque requête exécutée), 
   assert.match(ps[0].pts, /^<span class="jd-j-pts"><b class="jd-pts" data-n="1000" data-fmt="fr">1.000<\/b><small> pts<\/small><\/span>$/, '21 h 29 : ses points, à côté de son drapeau');
   assert.match(ps[1].pts, /<b class="jd-pts" data-n="0" data-fmt="fr">0<\/b><small> pt<\/small>/);
   assert.equal(ps[2].av, '<b class="jeu-av" data-c="2">' + /data-c="2">([^<]*)/.exec(ps[2].av)[1] + '</b>', 'il teste : l’avatar respire, sans bulle');
-  assert.match(html, /id="jeu-direct-qui">@lea_data : trouvé en premier, 1.000 points ; Toi : en réflexion, 0 point ; @max : teste une requête, 0 point ; @sam_sql : en réflexion, 0 point<\/span>/, 'le lecteur d’écran a la rangée en une phrase');
+  assert.match(html, /id="jeu-direct-qui" data-notrad>@lea_data : trouvé en premier, 1.000 points ; Toi : en réflexion, 0 point ; @max : teste une requête, 0 point ; @sam_sql : en réflexion, 0 point<\/span>/, 'le lecteur d’écran a la rangée en une phrase');
   assert.doesNotMatch(html, /SELECT|ex-code|<table/i, 'jamais la requête ni le résultat des autres');
   /* Chez moi, mes essais sont ceux que j’ai lancés (même relu après une coupure, la salle les recompte) */
   s.J.rounds[0].tries = 0; assert.equal(s.rang(0).find(x => x.me).essais, 2);
@@ -89,7 +89,7 @@ test('les points de toute la partie ; deux à égalité en tête ; parti, il gar
   assert.deepEqual(xs.map(x => [x.pid, x.pts, x.chef, x.etat]), [['b', 1800, true, 'ok'], ['e', 1000, false, 'parti'], ['a', 0, false, 'pense'], ['c', 0, false, 'parti'], ['d', 0, false, 'pense']]);
   const html = s.ev('jeuDirectHTML(1)');
   assert.deepEqual(presents(html).map(p => [p.pid, p.n]), [['b', 1800], ['a', 0], ['d', 0]], '21 h 29 : les présents seulement, avec leurs points de la partie');
-  assert.match(html, /<span class="jeu-sr" id="jeu-direct-qui">@lea_data\u00a0: trouvé en premier, 1.800\u00a0points ; Toi\u00a0: en réflexion, 0\u00a0point ; @sam_sql\u00a0: en réflexion, 0\u00a0point<\/span>/);
+  assert.match(html, /<span class="jeu-sr" id="jeu-direct-qui" data-notrad>@lea_data\u00a0: trouvé en premier, 1.800\u00a0points ; Toi\u00a0: en réflexion, 0\u00a0point ; @sam_sql\u00a0: en réflexion, 0\u00a0point<\/span>/);
   s.J.rounds[1].found.a = 9500;
   assert.deepEqual(s.rang(1).filter(x => x.chef).map(x => x.pid), ['b'], 'b : 1 000 + 1 000, Elisa : 800');
   s.J.rounds[0].found = { a: 1, b: 2 };

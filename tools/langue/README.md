@@ -78,6 +78,13 @@ l'anglais :
 - Ce qui reste dans la liste à la fin s'écrit pareil dans la langue : mots-clés SQL, noms de colonnes, données d'exemple (« Petit »
   y est un nom de famille : ne pas le traduire).
 
+## La salle de défi à deux langues (salle.mjs)
+
+- `salle.mjs --langue <code> [--manches=2] [--captures=dossier]` : une salle à deux onglets (`?jeu=local`), Léa en français (l'hôte)
+  et Sam dans la langue ; deux manches, la fin, la correction, la revanche. Ce qui s'est affiché sans traduction chez Sam va dans
+  `travail/<code>/salle-manque.json` (restent les données, les mots-clés SQL et les pseudos). Avec `--captures`, les deux écrans à
+  chaque étape.
+
 ## Les bases des défis (defis.mjs)
 
 - `defis.mjs --langue <code> recolter [base…]` : écrit `travail/<code>/defis/<base>.md`, ce qui manque pour une base (ses textes,

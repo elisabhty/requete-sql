@@ -94,7 +94,7 @@ les noms propres (une marque, un artiste, une commune) restent tels quels.
 - La source : `tools/langue/defis/en/<base>.json` (`tables`, `defauts` pour les alias des solutions, `gardees` pour les colonnes
   qui ne se traduisent pas, `valeurs`, `valeursColonnes` pour une valeur qui se traduit selon sa colonne, `solutions` pour une
   solution écrite à la main, `valeursRetour`, `textes`). `tools/langue/defis.mjs` les assemble dans `langue-en-defis.js`, chargé
-  par l’appli seulement (`<script src="langues.js?v=6" data-defis>`).
+  par l’appli seulement (`<script src="langues.js?v=7" data-defis>`).
 - Au chargement, `defisLangue` (index.html) passe chaque base dans la langue (son SQL, sa description, ses tables), et chaque
   défi (titre, situation, colonnes à afficher, tri, indices ; sa solution par `sql(sol, null, base)` ou `solution(base, défi)`).
 - Les salles (15 novembre, 16 h 43, Elisa : « vasy ») : le serveur (`jeu-verifier`) a un catalogue par langue,
@@ -140,6 +140,11 @@ RequeteWidgetPlugin.maj), le widget traduit ses propres textes (RequeteWidget.sw
 reçoit déjà traduit ce que l’app lui envoie (la prochaine leçon, les 318 questions de la requête de poche, la leçon et le défi express,
 la salle, l’accueil). Les raccourcis de l’icône et les rappels (les 24 messages) aussi ; un rappel ajouté en ligne (rappels.json)
 n’est envoyé en anglais qu’une fois sa traduction dans langue-en.js. Le chat du widget s’appelle Requête, partout.
+Une salle à deux langues (15 novembre, 16 h 57, Elisa : « un français et un anglais peuvent jouer ensemble ? test pour être sûr ») :
+chaque joueur voit la salle dans sa langue, de la salle d’attente à la revanche (environ 240 textes ajoutés le 15 novembre, vérifiés
+avec `tools/langue/salle.mjs`) ; ce qui passe entre les téléphones n’est que des identifiants et des nombres (le défi, les temps), et
+le serveur vérifie chaque essai sur la base de sa langue. Les places s’écrivent « #2 » en anglais (« 2e » n’a pas de forme unique).
+
 Limites connues : l’alerte « @léa entre dans la salle » est écrite par le serveur (jeu-ile), en français pour tout le monde ; le nom du
 défi dans l’île des autres joueurs est celui de la langue de celui qui l’envoie. Les titres des App Intents du widget (Raccourcis
 d’iOS) restent en français. Le Swift demande un nouveau build Xcode.

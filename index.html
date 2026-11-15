@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=6" data-defis></script>
+<script src="langues.js?v=7" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -38801,9 +38801,14 @@ function jeuDirectTete(xs,avant){
         `<b class="jeu-av" data-c="${x.c}">${jeuInitial(x.vrai)}${typeof jeuFlag==='function'?jeuFlag(x.vrai,x.pays||''):''}${jeuDirectBulle(x,avant,p)}</b>`+
         `<span class="jd-j-pts"><b class="jd-pts${monte?' is-compte':''}" data-n="${x.pts}"${monte?` data-from="${a.pts}"`:''} data-fmt="fr">${x.pts.toLocaleString('fr-FR')}</b><small>${pt(x.pts)}</small></span></span>`;
     }).join(''),
-    qui:ys.map(x=>`${esc(x.nom)}\u00a0: ${premier(x)?'trouvé en premier':mot[x.etat]}, ${x.pts.toLocaleString('fr-FR')}${pt(x.pts).replace('pt','point')}`).join(' ; ')
+    /* 15 novembre (Elisa : « un français et un anglais peuvent jouer ensemble ? ») : la phrase du lecteur d’écran, joueur par joueur,
+       dans la langue de l’appli (jeuTr) ; l’élément est en data-notrad (la phrase entière n’est pas une clé de traduction). */
+    qui:ys.map(x=>jeuTr(`${esc(x.nom)}\u00a0: ${premier(x)?'trouvé en premier':mot[x.etat]}, ${x.pts.toLocaleString('fr-FR')}${pt(x.pts).replace('pt','point')}`)).join(jeuTrEn()?'; ':' ; ')
   };
 }
+/* Un texte de la salle dans la langue de l’appli, quand il est assemblé morceau par morceau (le français, tel quel). */
+function jeuTrEn(){try{const L=typeof window!=='undefined'&&window.REQUETE_LANGUE;return !!(L&&L.code!=='fr');}catch(e){return false;}}
+function jeuTr(s){try{const L=typeof window!=='undefined'&&window.REQUETE_LANGUE;return L&&L.code!=='fr'&&typeof L.t==='function'?L.t(s):s;}catch(e){return s;}}
 /* 20 h 39 (« quand quelqu’un tape une requête, on a un … juste au-dessus de lui, et un validé aussi quand la personne a eu juste à la
    manche ») : une bulle sur la tête de chaque avatar dit ce qu’il fait : les trois petits points tant qu’il écrit (pour soi aussi), la
    coche quand il a trouvé ; 21 h 13, la couronne pour le premier qui a trouvé. Elle se pose quand ça vient de changer ; le premier
@@ -38841,7 +38846,7 @@ function jeuDirectHTML(n,hud){
   const f=J.dit&&J.dit.n===n?J.dit:(J.dit={n,cur:null,at:0,file:[],seq:0});if(!f.cur)f.cur=jeuDitDepart(n,xs);
   return `<section class="jeu-direct${jeuDirectUrgent(n)?' is-urgent':''}" id="jeu-direct" aria-labelledby="jeu-direct-t"><div class="jeu-direct-bande">${hud||''}`+
     `<div class="jeu-direct-h"><span class="jeu-direct-live" aria-hidden="true"></span><b id="jeu-direct-t">En direct</b></div>`+
-    `<div class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</div><span class="jeu-sr" id="jeu-direct-qui">${t.qui}</span>`+
+    `<div class="jeu-direct-av" id="jeu-direct-av" aria-hidden="true">${t.av}</div><span class="jeu-sr" id="jeu-direct-qui" data-notrad>${t.qui}</span>`+
     `<p class="jeu-direct-dit" id="jeu-direct-dit" aria-hidden="true">${jeuDitHTML(f.cur,Date.now()-f.at<600)}</p></div></section>`;
 }
 /* Sur place, sans toucher à l’éditeur, et seulement si quelque chose a changé : ce qui a changé est noté (le commentateur suit la
@@ -39195,7 +39200,7 @@ function jeuPeutLancer(){
 function jeuBadgeHTML(){
   const J=JEU,{live,prets}=jeuPrets();
   if(live.length<2)return `${live.length}/${J.max}`;
-  return `<i class="jeu-prets-pts" aria-hidden="true">${live.map(p=>`<i${jeuIsReady(p)?' class="ok"':''}></i>`).join('')}</i>${prets.length}/${live.length} prêts`;
+  return `<i class="jeu-prets-pts" aria-hidden="true" data-notrad>${live.map(p=>`<i${jeuIsReady(p)?' class="ok"':''}></i>`).join('')}</i>${prets.length}/${live.length} prêts`;
 }
 function jeuBadgeTous(){const {live,prets}=jeuPrets();return live.length>=2&&prets.length===live.length;}
 /* 14 novembre, 5 h 41 (Elisa : « corrige » ; quand tout le monde est prêt, « Partager l’invitation » et « Lancer la partie » étaient
@@ -40399,7 +40404,7 @@ function jeuRevancheHTML(){
     <div class="jeu-rv-live" role="status" aria-live="polite">${barre}${barreL}
       <span class="jeu-rv-ico">${JEU_RELANCE_SVG}</span>
       <div class="jeu-rv-tx">${seule?'':'<span class="jeu-rv-direct"><i aria-hidden="true"></i>En direct</span>'}<b>${titre}</b><small>${sous}</small>${limL}
-        <span class="jeu-rv-qui"><span class="jeu-rv-av" aria-hidden="true">${av}</span>${dans}</span></div>
+        <span class="jeu-rv-qui"><span class="jeu-rv-av" aria-hidden="true" data-notrad>${av}</span>${dans}</span></div>
     </div>
     <div class="jeu-rv-btns">
       <button type="button" class="jeu-close jeu-rv-quit" onclick="jeuQuitterSalle()">${JEU_ICO.quit}<span>Quitter la salle</span></button>
@@ -53672,7 +53677,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3071';
+  const SW_CACHE='requete-2026-11-15-module-v3072';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
