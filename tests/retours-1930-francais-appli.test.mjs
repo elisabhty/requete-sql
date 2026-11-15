@@ -88,3 +88,17 @@ test('la longue traîne : console, import, salles, classement, notes, compte (15
   };
   for (const [fr, en] of Object.entries(attendus)) assert.equal(L.t(fr), en, fr);
 });
+
+test('les messages construits : un nombre ({1}), un nom ou un titre ({x1}) gardent leur place', () => {
+  const {L} = moteur();
+  assert.ok(MOTEUR.includes('function gabaritsX()') && MOTEUR.includes("if (k.indexOf('{x') < 0) continue;"));
+  const attendus = {
+    'Table ventes réinitialisée': 'Table ventes reset',                      // un nom de table, gardé tel quel
+    'Supprimer la table « clients 2026 » ?': 'Delete the “clients 2026” table?',
+    'Leçon 19 · Jointure de 3 tables': 'Lesson 19 · Joining 3 tables',        // un titre de leçon, traduit à sa place (et son nombre)
+    '« Jointures » : tout est maîtrisé': '“Joins”: everything mastered',
+    '3 activités restantes aujourd’hui': '3 activities left today', '1 activité restante aujourd’hui': '1 activity left today',
+    'Description retirée': 'Description removed'                             // une clé exacte passe avant
+  };
+  for (const [fr, en] of Object.entries(attendus)) assert.equal(L.t(fr), en, fr);
+});

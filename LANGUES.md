@@ -184,6 +184,12 @@ pour la base de la langue, lecteur d’écran), la fin du parcours, les 142 ques
 « Module verrouillé ») et d’une zone de saisie (« Éditeur SQL »), et une valeur nommée retenue (`valeur('etape')`) ne cache plus un
 autre texte qui la contient. Une phrase faite de morceaux (le titre d’une leçon dans une phrase) : `lgNt()` et `jeuTr()` (index.html).
 
+Les messages construits (15 novembre, 22 h, Elisa : « oui stp ») : une clé peut garder la place d’un texte quelconque, `{x1}`,
+`{x2}` (« Table {x1} réinitialisée », « Leçon {1} · {x1} ») ; le moteur la reconnaît quand aucune clé exacte ne va (gabaritsX,
+langues.js). Le texte retenu est remis traduit s’il a sa traduction (un titre de leçon), tel quel sinon (le nom d’un projet). Les
+pluriels et les accords (Prête, Prêt, Prêt·e) ont chacun leur clé. À éviter : une clé à place libre presque sans texte fixe
+(« avec {x1} »), elle traduirait à moitié des phrases qui n’ont rien à voir.
+
 ## Où on en est
 
 - **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,

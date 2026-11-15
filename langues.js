@@ -124,13 +124,52 @@
     /* Les nombres, sauf ceux des morceaux (<1/>, <2>…</2>) */
     var i = 0;
     gabarit = gabarit.replace(/<[^>]*>|\{[a-z0-9]+\}|\d{1,3}(?: \d{3})+(?:,\d+)?|\d+(?:,\d+)?/g, function (n) { if (n.charAt(0) === '<' || n.charAt(0) === '{') return n; i++; mis[i] = nombre(n); return '{' + i + '}'; });
-    if (gabarit === cle || !Object.prototype.hasOwnProperty.call(D, gabarit)) return null;
+    var trad = gabarit !== cle && Object.prototype.hasOwnProperty.call(D, gabarit) ? D[gabarit] : null;
+    /* 15 novembre (« les messages construits avec des chiffres ou des noms ») : une clé peut garder une place pour un texte
+       quelconque, {x1}, {x2}… (« Table {x1} réinitialisée », « Leçon {1} · {x1} ») : le nom d’une table, le titre d’une leçon. Ce
+       texte est remis traduit s’il a sa traduction (un titre de leçon), tel quel sinon (un nom de projet). */
+    if (trad == null && avecValeurs) {
+      var X = gabaritsX(), q;
+      for (q = 0; q < X.length && trad == null; q++) {
+        if (X[q].debut && gabarit.indexOf(X[q].debut) < 0) continue;
+        var mx = X[q].re.exec(gabarit);
+        if (!mx) continue;
+        trad = String(D[X[q].cle]);
+        for (var g = 1; g < mx.length; g++) {
+          /* Le texte retenu peut garder des nombres ({2}) : renumérotés pour sa propre clé (« Jointure de {1} tables »), puis remis */
+          var brut = mx[g], nums = [], ren = propre(brut).replace(/\{(\d+)\}/g, function (t, d) { nums.push(d); return '{' + nums.length + '}'; });
+          var dedans = Object.prototype.hasOwnProperty.call(D, ren) ? String(D[ren]).replace(/\{(\d+)\}/g, function (t, d) { return nums[d - 1] ? '{' + nums[d - 1] + '}' : t; }) : null;
+          trad = trad.split('{x' + X[q].noms[g - 1] + '}').join(dedans != null ? dedans : brut);
+        }
+      }
+    }
+    if (trad == null) return null;
     /* Une valeur nommée qui a sa traduction (le nom d’un niveau) est remise traduite ; le prénom et les pseudos, tels quels */
-    return String(D[gabarit]).replace(/\{([a-z0-9]+)\}/g, function (tout, nom) {
+    return String(trad).replace(/\{([a-z0-9]+)\}/g, function (tout, nom) {
       if (!(nom in mis)) return tout;
       var v = mis[nom];
       return /^(?:\d+|m\d+|p\d+|prenom|pseudo)$/.test(nom) || !Object.prototype.hasOwnProperty.call(D, v) ? v : D[v];
     });
+  }
+  /* Les clés à place libre ({x1}…), prêtes à reconnaître un texte : une expression par clé, et son plus long morceau fixe (un
+     premier tri rapide). Refaites quand des textes s'ajoutent (ajouter, charger). */
+  var xCache = null;
+  function gabaritsX() {
+    if (xCache) return xCache;
+    xCache = [];
+    var D = (TRAD && TRAD.textes) || {}, k;
+    for (k in D) {
+      if (k.indexOf('{x') < 0) continue;
+      var noms = [], morceaux = k.split(/\{x(\d+)\}/), src = '', fixe = '';
+      for (var i = 0; i < morceaux.length; i++) {
+        if (i % 2) { noms.push(morceaux[i]); src += '(.+?)'; }
+        else { src += morceaux[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); if (morceaux[i].length > fixe.length) fixe = morceaux[i]; }
+      }
+      xCache.push({ cle: k, re: new RegExp('^' + src + '$'), noms: noms, debut: fixe });
+    }
+    /* Les plus précises d'abord (le plus de texte fixe) */
+    xCache.sort(function (a, b) { return b.debut.length - a.debut.length; });
+    return xCache;
   }
   /* Du SQL affiché (un décor, un exemple) n'est pas un texte à traduire. */
   var SQL_RE = /^(?:<\d+>)?\s*(?:SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|LIMIT|JOIN|INNER JOIN|LEFT JOIN|INSERT|UPDATE|DELETE|CREATE|WITH|UNION)\b/;
@@ -617,7 +656,7 @@
          valeurs s'ajoutent à la base de la langue, pour cette page seulement. */
       var B = contenu.base;
       if (B && TRAD.base) ['tables', 'defauts', 'valeurs'].forEach(function (n) { if (!B[n]) return; var x = TRAD.base[n] = Object.assign({}, TRAD.base[n] || {}); for (var t in B[n]) x[t] = B[n][t]; });
-      connues = null;
+      connues = null; xCache = null;
       if (contenu.voix) API.voix = contenu.voix;
       try { if (document.body) passer(document.body); } catch (e) {}
     },
@@ -633,6 +672,7 @@
     charger: function (code, contenu) {
       if (code !== CODE || !contenu) return;
       TRAD = { textes: contenu.textes || {}, base: contenu.base || null, mots: contenu.mots || null };
+      xCache = null;
       try { document.documentElement.lang = CODE; } catch (e) {}
       observer();
       try { if (document.title) { var ti = chercher(propre(document.title)); if (ti) document.title = ti; } } catch (e) {}
