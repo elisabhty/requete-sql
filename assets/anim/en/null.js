@@ -153,32 +153,32 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "clients à appeler": "customers to call"
   }
 });
-/* Voix off (tools/voix/integrer.mjs --langue en, voix Tara d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
    française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
-window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/null/', intro: ["ch00",0.14,6.64],
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/null/', intro: ["ch00",0.05,6.531],
   caps: [
-    ["v24yofu","ch01",0,4.53],
-    ["vxcsukd","ch01",4.86,8.88],
-    ["v17juucn","ch01",9.24,13.35],
-    ["vzdcypf","ch02",0,4.99],
-    ["v56isxn","ch02",5.4,10.93],
-    ["v14jl7l","ch02",11.28,15.79],
-    ["v16t58da","ch02",16.12,19.65],
-    ["v1p0rth5","ch03",0,5.56],
-    ["vyd9w1h","ch03",5.92,9.88],
-    ["vec5np7","ch03",10.26,15.37],
-    ["vfhwvne","ch03",15.64,20.03],
-    ["v19rdwl4","ch04",0.23,4.35],
-    ["vpulivt","ch04",4.67,7.39],
-    ["vrplhwk","ch04",7.68,12.86],
-    ["vpf7ieq","ch04",13.03,16.34],
-    ["vh17h1t","ch05",0.04,4.36],
-    ["v1xsxsa5","ch05",4.6,9.42],
-    ["ve4cuh","ch06",0,5.49],
-    ["vlvywg8","ch06",5.8,8.88],
-    ["v1h0tc4w","ch06",9.56,13.9],
-    ["v1uarxau","ch07",0.06,2.85],
-    ["v157lrmh","ch07",3.11,6.06]],
-  say: {"at1":["at1",0.04,3.55],"at2":["at2",0.05,6.19],"at3":["at3",0.05,5.98],"indice2":["indice2",0.04,3.37],"indice3":["indice3",0.15,6.02],"lienavant":["lienavant",0.04,3.51],"lienapres":["lienapres",0.07,4.16],"bienvu":["bienvu",0.07,1.32],"rattrape":["rattrape",0,1.35],"presque":["presque",0.04,4.04],"finbravo":["finbravo",0.02,2.68],"fineffort":["fineffort",0,4.29]},
-  toi: {"at1":[0.98,1.14],"at2":[0.97,1.14],"at3":[0.96,1.21]}}});
+    ["v24yofu","ch01",0.03,4.44],
+    ["vxcsukd","ch01",4.73,8.57],
+    ["v17juucn","ch01",8.95,12.94],
+    ["vzdcypf","ch02",0,5.33],
+    ["v56isxn","ch02",5.6,11.28],
+    ["v14jl7l","ch02",11.54,16.49],
+    ["v16t58da","ch02",16.7,20.506],
+    ["v1p0rth5","ch03",0.02,5.49],
+    ["vyd9w1h","ch03",5.83,9.74],
+    ["vec5np7","ch03",10.12,15.1],
+    ["vfhwvne","ch03",15.45,19.95],
+    ["v19rdwl4","ch04",0.05,4.52],
+    ["vpulivt","ch04",4.76,7.75],
+    ["vrplhwk","ch04",8.05,13.46],
+    ["vpf7ieq","ch04",13.82,17.01],
+    ["vh17h1t","ch05",0,4.15],
+    ["v1xsxsa5","ch05",4.6,9.639],
+    ["ve4cuh","ch06",0.01,5.39],
+    ["vlvywg8","ch06",5.6,8.67],
+    ["v1h0tc4w","ch06",9.07,13.36],
+    ["v1uarxau","ch07",0.03,2.84],
+    ["v157lrmh","ch07",3.06,6.06]],
+  say: {"at1":["at1",0.07,3.51],"at2":["at2",0.04,5.878],"at3":["at3",0.07,5.85],"indice2":["indice2",0.07,3.42],"indice3":["indice3",0,6.1],"lienavant":["lienavant",0,3.36],"lienapres":["lienapres",0.04,3.87],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
+  toi: {"at1":[0.93,1.14],"at2":[0.93,1.14],"at3":[0.96,1.1]}}});
 /* Fin de la voix off */

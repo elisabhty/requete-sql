@@ -295,7 +295,7 @@ test('la voix anglaise des modules 1 et 2 : chaque vidéo a la sienne, calée su
     for (const k of ['bienvu', 'rattrape', 'presque', 'finbravo', 'fineffort', 'at1']) assert.ok(voix.say[k], `${c} : ${k}`);
     assert.ok(pg.includes('const VOICE = {dir: \'../voix/' + c + '/\''), `${c} : la voix française reste dans la page`);
   }
-  assert.ok(app.includes("const LV_DUREES={en:{'bases-relationnelles':'10 min 44',") && app.includes("if(k&&d[k[1]])l.video.duree=d[k[1]];"), 'la durée de la vidéo anglaise');
+  assert.ok(app.includes("const LV_DUREES={en:{'bases-relationnelles':'10 min 41',") && app.includes("if(k&&d[k[1]])l.video.duree=d[k[1]];"), 'la durée de la vidéo anglaise');
 });
 
 /* Elisa, 15 novembre, 1 h 25 : « la page tu nous aides à améliorer Requête est pas trad ». Les pages de l’onboarding ajoutées le
@@ -372,4 +372,11 @@ test('l’onboarding entier en anglais : le paywall, l’offre de bienvenue, le 
   assert.notEqual(avis.voix.id, '6u6JbqKdaQy89ENzLSju');
   total += avis.elements[0].texte.length;
   assert.ok(total > 38000 && total < 45000, `${total} caractères`);
+  /* 15 novembre, 2 h 32 : « fini ». Les treize vidéos parlent avec Brielle (fichiers de assets/voix/en/ refaits, durées et
+     vignettes recalculées) ; l’avis de Sofia B. a sa voix anglaise, sa durée et sa forme d’onde. */
+  assert.ok(fs.statSync(path.join(ROOT, 'decouvrir/avis/en/sofia-b.mp3')).size > 100000, 'l’avis de Sofia B. en anglais');
+  assert.ok(app.includes("const OB_TEMOINS_LANGUE={en:{'Sofia B.':{audio:'decouvrir/avis/en/sofia-b.mp3',duree:17.2,"));
+  const onde = /onde:\[([^\]]*)\]\}\}\};/.exec(app.slice(app.indexOf('const OB_TEMOINS_LANGUE=')));
+  assert.ok(onde && onde[1].split(',').length === 48 && onde[1].split(',').every(v => +v >= 0.12 && +v <= 1), 'quarante-huit barres, comme le français');
+  assert.ok(app.includes("'limit-offset':'3 min 56'}};"), 'les durées des vidéos avec la voix de Brielle');
 });

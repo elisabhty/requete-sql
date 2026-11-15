@@ -128,7 +128,8 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `assets/voix/en/<cours>/` et dans la vidéo (`voix` de `assets/anim/en/<cours>.js`). Chaque fichier garde l’id du français ;
   `cles` donne la légende française de chaque phrase. Une voix anglaise native : Brielle (6u6JbqKdaQy89ENzLSju ; choix d’Elisa le
   15 novembre, à la place de Tara, dont l’accent ne lui plaisait pas). L’avis audio de Sofia B. dans l’onboarding a sa voix
-  anglaise à part (`tools/voix/en/avis.json`, Jeni) ; une fois générée, elle va dans `decouvrir/avis/en/` et `OB_TEMOINS_LANGUE`.
+  anglaise à part (`tools/voix/en/avis.json`, Jeni), rangée dans `decouvrir/avis/en/sofia-b.mp3` avec sa durée et sa forme d’onde
+  (`OB_TEMOINS_LANGUE`, index.html). Brielle et Jeni ont été générées et intégrées le 15 novembre à 2 h 32 (« fini »).
   Module 2 (15 novembre) : les douze fichiers sont prêts (`tools/voix/en/as.json` à `limit-offset.json`, environ 32 400
   caractères) ; `node tools/voix/generer.mjs --toutes --langue en` les génère tous. Le code y est dit en toutes lettres
   (`<=` : « less than or equal to », `'2023-03-01'` : « 2023, dash, 03, dash, 01 », `ASC` : « ascending ») ; le « À retenir »
