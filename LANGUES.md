@@ -159,6 +159,16 @@ Pas encore ouvert : le menu des pages françaises annonce toujours « English ve
 noindex. Le jour où l’anglais sort d’essai : `node tools/langue/site.mjs --langue en publier`, puis `construire`.
 À faire alors : la capture de l’appli (app-accueil.webp, en français), la voix de la vidéo et des avis (Jeni pour l’avis de Sofia).
 
+La vidéo du site et la carte des salaires de l’accueil, aux États-Unis (15 novembre, 16 h 57, Elisa : « la vidéo data analyst dans le
+contexte américain, genre les salaires et tout, choisis la voix appropriée ») : les chiffres de la vidéo tiennent dans une chaîne JSON
+(`DON`, decouvrir/video.html) que `en.json` remplace (clé `js:{…}`) : salaire médian Glassdoor (94 k$, fourchette 72 à 122 k$ ; senior
+107 à 166 k$, analytics manager 148 à 232 k$), villes Built In (salaire de base moyen), freelance Upwork (20 à 50 $ de l’heure),
+projections du BLS 2025-2035 (data scientists +35 %, métiers des mathématiques +25 %, ensemble +3 %), le WEF et Huntr comme en
+français. La carte « selon l’expérience » du freelance et les portraits des « 8 formateurs » n’y sont pas (les cours anglais ont une
+seule voix). Les colonnes de la carte des salaires se placent d’après `data-v` (bas, haut, échelle). Sa voix : `tools/voix/en/video-site.json`
+(Killian, Whez8hBysHW6IVGRgjGA, voix américaine ; environ 2 100 caractères), à générer sur le Mac (`node tools/voix/generer.mjs
+video-site --langue en`), puis `node tools/voix/integrer-site.mjs --langue en` (decouvrir/en/voix/, la musique française reprise).
+
 ## Où on en est
 
 - **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,

@@ -232,6 +232,7 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 #tjm .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .tj b{display:block;font:800 132px/1 var(--display);letter-spacing:-6px;color:var(--ink);white-space:nowrap}
 .tj b small{font-size:70px;letter-spacing:-2px;color:var(--accent);margin-left:8px}
+.tj b small.pre,#avg small.pre{margin:0 6px 0 0}
 .tj.alt b{color:var(--ink-3)}
 .tj.alt b small{color:#B2A2FF}
 .tj p{margin:12px 0 0;font:700 30px/1.2 var(--ui);color:var(--ink-2)}
@@ -1113,12 +1114,23 @@ fit();
 'use strict';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-/* ---------- Données (voir « Sources ») ---------- */
-const AVG = 44;                                                     // k€, France
-const CITIES = [['Paris', 45], ['Bordeaux', 40], ['Toulouse', 40], ['Nantes', 40], ['Lyon', 39], ['Lille', 38], ['Marseille', 37]];
-const TJM = [420, 312];                                             // € HT par jour : via un intermédiaire, en direct
-const TJMX = [['1–2 ans', 335], ['3–4 ans', 466], ['5–10 ans', 507], ['+15 ans', 612]];   // Île-de-France
-const SKILLS = [['SQL', 71], ['Python', 46], ['Power BI', 27], ['Excel', 24]];
+/* ---------- Données (voir « Sources ») ----------
+   15 novembre (Elisa : « la vidéo data analyst dans le contexte américain, genre les salaires et tout ») : les chiffres du pays de la
+   page tiennent dans une chaîne JSON. La page anglaise (decouvrir/en/, tools/langue/site.mjs) reçoit celle des États-Unis
+   (tools/langue/site/en.json, sa clé « js:{…} ») ; les textes des scènes et les sources y ont leur version américaine.
+   avg : salaire (k), cities : [ville, k] sur une échelle de 0 à cmax, cu : unité avant et après ; echelle et fourchette : la carte de
+   la fourchette ; tjm : freelance (via un intermédiaire, en direct), tjmx : selon l’expérience (vide : la carte n’existe pas), tju :
+   unité ; skills : [outil, %] ; wef : [data analysts et data scientists, big data] ; da : le dernier chiffre de la carte des offres ;
+   sept : les offres sur 10 qui citent le SQL. Une page d’un autre pays peut ajouter avgU (l’unité du salaire), tjU (celle du
+   freelance), marches (les hauteurs des trois colonnes de la progression), dv ([valeur, texte] des trois lignes de la carte des
+   offres, dvk : la largeur d’un point ; une ligne absente est cachée), ctw (la largeur des noms de ville), pu (l’unité des pourcentages) et formateurs (false :
+   pas de portraits des formateurs). */
+const DON = JSON.parse('{"avg":44,"cities":[["Paris",45],["Bordeaux",40],["Toulouse",40],["Nantes",40],["Lyon",39],["Lille",38],["Marseille",37]],"cmax":50,"cu":["","&nbsp;k€"],"echelle":[25,75],"fourchette":[40,50],"tjm":[420,312],"tjmx":[["1–2 ans",335],["3–4 ans",466],["5–10 ans",507],["+15 ans",612]],"tjxmax":700,"tju":["","&nbsp;€"],"skills":[["SQL",71],["Python",46],["Power BI",27],["Excel",24]],"wef":[41,113],"da":55,"sept":7}');
+const AVG = DON.avg;                                                // k€, France
+const CITIES = DON.cities;
+const TJM = DON.tjm;                                                // € HT par jour : via un intermédiaire, en direct
+const TJMX = DON.tjmx;                                              // Île-de-France
+const SKILLS = DON.skills;
 const CHAPTERS = [[0, 'Le métier'], [6.5, 'Salaires'], [24, 'Freelance'], [31.5, 'Demande'], [42, 'L’IA'], [50, 'Compétences'], [67.5, 'Pourquoi'], [75.5, 'Ton profil'], [82, 'Requête'], [94.5, 'La méthode'], [101.5, 'Cas pratiques'], [111.5, 'Tes données'], [120, 'Entretiens'], [129, 'Fonctionnalités']];
 const SRC = [
   [6.5, 'Source : <b>Glassdoor</b>, salaire de base moyen « Data Analyst », France, octobre 2026.'],
@@ -1163,18 +1175,32 @@ const Q = {
 const DURATION = 134.5;
 
 /* ---------- Construction des graphiques ---------- */
-const CMAX = 50;   // échelle des villes de 0 à 50 k€ : les écarts restent honnêtes
-$('#cities').innerHTML = CITIES.map((c, i) => `<div class="ct${i ? '' : ' top'}"><span>${c[0]}</span><div class="tk2"><i class="fl" style="width:${c[1] / CMAX * 76}%"></i><b class="vl num" style="left:${c[1] / CMAX * 76}%"><span class="cv">0</span>&nbsp;k€</b></div></div>`).join('');
-$('#tjmx').insertAdjacentHTML('beforeend', TJMX.map((c, i) => `<div class="ct${i === TJMX.length - 1 ? ' top' : ''}"><span>${c[0]}</span><div class="tk2"><i class="fl" style="width:${c[1] / 700 * 76}%"></i><b class="vl num" style="left:${c[1] / 700 * 76}%"><span class="xv">0</span>&nbsp;€</b></div></div>`).join(''));
-$('#skills').innerHTML = SKILLS.map((s, i) => `<div class="sk${i ? '' : ' top'}"><span>${s[0]}</span><div class="tk2"><i class="fl" style="width:${s[1] * .8}%"></i><b class="vl num" style="left:${s[1] * .8}%"><span class="sv">0</span>&nbsp;%</b></div></div>`).join('');
+const CMAX = DON.cmax;   // échelle des villes de 0 à 50 k€ : les écarts restent honnêtes
+$('#cities').innerHTML = CITIES.map((c, i) => `<div class="ct${i ? '' : ' top'}"><span>${c[0]}</span><div class="tk2"><i class="fl" style="width:${c[1] / CMAX * 76}%"></i><b class="vl num" style="left:${c[1] / CMAX * 76}%">${DON.cu[0]}<span class="cv">0</span>${DON.cu[1]}</b></div></div>`).join('');
+$('#tjmx').insertAdjacentHTML('beforeend', TJMX.map((c, i) => `<div class="ct${i === TJMX.length - 1 ? ' top' : ''}"><span>${c[0]}</span><div class="tk2"><i class="fl" style="width:${c[1] / DON.tjxmax * 76}%"></i><b class="vl num" style="left:${c[1] / DON.tjxmax * 76}%">${DON.tju[0]}<span class="xv">0</span>${DON.tju[1]}</b></div></div>`).join(''));
+$('#skills').innerHTML = SKILLS.map((s, i) => `<div class="sk${i ? '' : ' top'}"><span>${s[0]}</span><div class="tk2"><i class="fl" style="width:${s[1] * .8}%"></i><b class="vl num" style="left:${s[1] * .8}%"><span class="sv">0</span>${DON.pu || '&nbsp;%'}</b></div></div>`).join('');
 /* Confettis : trajectoires fixes, pour que la vidéo reste identique quand on la rembobine */
 const CONF = [[-330, -210, 300], [-250, -290, -220], [-170, -170, 410], [-90, -310, -160], [-20, -230, 260], [60, -300, -340], [140, -190, 200], [220, -280, -260], [300, -200, 380], [360, -120, -180], [-380, -90, 240], [-300, 20, -300], [250, 30, 330], [380, -40, -240], [-120, -360, 150], [120, -350, -120]];
 const CCOL = ['#FFC83D', '#9FF0C6', '#8B6CFF', '#FF6B8B', '#6A4DF4', '#FFD86B'];
 $('#dm-conf').innerHTML = CONF.map((c, i) => `<i style="background:${CCOL[i % CCOL.length]}"></i>`).join('');
-$('#docs').innerHTML = Array.from({length: 10}, (_, i) => `<div class="doc${i < 7 ? ' sq' : ''}"><i></i><i></i><i></i><i></i><span class="tag">SQL</span></div>`).join('');
+$('#docs').innerHTML = Array.from({length: 10}, (_, i) => `<div class="doc${i < DON.sept ? ' sq' : ''}"><i></i><i></i><i></i><i></i><span class="tag">SQL</span></div>`).join('');
 /* Échelle de la fourchette : 25 k → 75 k */
-const sx = v => ((v - 25) / 50 * 100) + '%';
-gsap.set('#scale .rg', {left: sx(40), width: `calc(${sx(50)} - ${sx(40)})`});
+const sx = v => ((v - DON.echelle[0]) / (DON.echelle[1] - DON.echelle[0]) * 100) + '%';
+gsap.set('#scale .rg', {left: sx(DON.fourchette[0]), width: `calc(${sx(DON.fourchette[1])} - ${sx(DON.fourchette[0])})`});
+/* Ce qu’un autre pays change dans les scènes (voir « Données ») */
+if (DON.avgU) $('#avg').innerHTML = `<small class="pre">${DON.avgU[0]}</small><span id="avg-n">0</span><small>${DON.avgU[1]}</small>`;
+if (DON.tjU) ['tj1', 'tj2'].forEach(id => { $('#' + id).parentNode.innerHTML = `<small class="pre">${DON.tjU[0]}</small><span id="${id}">0</span><small>${DON.tjU[1]}</small>`; });
+if (DON.marches) $$('#s3 .step').forEach((e, i) => { e.style.height = DON.marches[i] + 'px'; });
+if (!TJMX.length) $('#tjmx').style.display = 'none';
+if (DON.ctw) $$('#cities .ct').forEach(e => { e.style.gridTemplateColumns = DON.ctw + 'px 1fr'; });
+if (DON.dv) ['dn', 'up', 'ds'].forEach((k, i) => {
+  if (!DON.dv[i]) { $('#b-' + k).closest('.dv').style.display = 'none'; return; }
+  const [v, t] = DON.dv[i], b = $('#b-' + k), l = $('#v-' + k), w = Math.abs(v) * DON.dvk;
+  b.className = 'b ' + (v < 0 ? 'dn' : 'upb'); l.className = 'v ' + (v < 0 ? 'dn' : 'upv'); l.innerHTML = t;
+  b.style.width = w + '%';
+  if (v >= 0) l.style.left = `calc(${50 + w}% + 16px)`;
+});
+if (DON.formateurs === false) $('#trs').style.display = 'none';
 gsap.set('#scale .mk, #scale .mkl', {left: sx(AVG)});
 $$('#scale .tk').forEach(t => t.style.left = sx(+t.dataset.v));
 
@@ -1304,9 +1330,9 @@ lines('#s4 .ttl', 31.8);
 sw('#s4 .ttl em', 32.4);
 r = typeQ('q5', 31.85);
 rise('#wef', 32.6);
-T.fromTo(P, {wef: 0}, {wef: 41, duration: 1.8, ease: 'power3.out'}, r);
+T.fromTo(P, {wef: 0}, {wef: DON.wef[0], duration: 1.8, ease: 'power3.out'}, r);
 rise('#wef .r2', r + 1.1, {from: {y: 30}, d: .7});
-T.fromTo(P, {wef2: 0}, {wef2: 113, duration: 1.8, ease: 'power3.out'}, r + 1.2);
+T.fromTo(P, {wef2: 0}, {wef2: DON.wef[1], duration: 1.8, ease: 'power3.out'}, r + 1.2);
 rise('#apec', r + 2.2);
 T.fromTo('#b-dn', {scaleX: 0}, {scaleX: 1, duration: .9, ease: 'expo.out'}, r + 2.7);
 T.fromTo('#v-dn', {autoAlpha: 0}, {autoAlpha: 1, duration: .4}, r + 3.1);
@@ -1315,7 +1341,7 @@ T.fromTo('#v-up', {autoAlpha: 0, x: -14}, {autoAlpha: 1, x: 0, duration: .4}, r 
 T.fromTo('#b-ds', {scaleX: 0}, {scaleX: 1, duration: .9, ease: 'expo.out'}, r + 4.0);
 T.fromTo('#v-ds', {autoAlpha: 0, x: -14}, {autoAlpha: 1, x: 0, duration: .4}, r + 4.4);
 rise('#apec .da', r + 4.7, {from: {y: 24}, d: .6});
-T.fromTo(P, {da: 0}, {da: 55, duration: 1.3, ease: 'power3.out'}, r + 4.9);
+T.fromTo(P, {da: 0}, {da: DON.da, duration: 1.3, ease: 'power3.out'}, r + 4.9);
 
 /* S4b · l’IA */
 scene('sai', 42, 50);
@@ -1345,7 +1371,7 @@ $$('#docs .doc.sq').forEach((d, i) => {
   T.to(d, {borderColor: '#6A4DF4', y: -8, duration: .3, ease: 'power2.out'}, at);
   T.fromTo($('.tag', d), {autoAlpha: 0, scale: .4}, {autoAlpha: 1, scale: 1, duration: .45, ease: 'back.out(2.4)'}, at);
 });
-T.fromTo(P, {seven: 0}, {seven: 7, duration: 2.1, ease: 'none'}, r + .2);
+T.fromTo(P, {seven: 0}, {seven: DON.sept, duration: 2.1, ease: 'none'}, r + .2);
 T.to('#docs .doc:not(.sq)', {opacity: .4, duration: .5}, r + 2.4);
 T.fromTo('#stk-n1', {autoAlpha: 0, scale: .4, rotation: -16}, {autoAlpha: 1, scale: 1, rotation: -3, duration: .7, ease: 'back.out(2.2)'}, r + 2.9);
 

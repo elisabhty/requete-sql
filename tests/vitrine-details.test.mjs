@@ -52,7 +52,9 @@ test('vidéo : le data analyst est dans la carte Apec, avec son année, à part 
   assert.ok(da, 'ligne data analyst');
   assert.match(da[1], /Offres de data analyst<small>en 2022<\/small>/, 'année affichée');
   assert.doesNotMatch(da[1], /class="b /, 'pas de barre : chiffre de 2022, pas sur l’échelle 2024-2025');
-  assert.match(video, /T\.fromTo\(P, \{da: 0\}, \{da: 55,/, 'le compteur monte à +55');
+  /* 15 novembre : les chiffres dans DON (la page anglaise a ceux des États-Unis, tests/retours-1830-video-americaine.test.mjs) */
+  assert.match(video, /T\.fromTo\(P, \{da: 0\}, \{da: DON\.da,/, 'le compteur monte à DON.da');
+  assert.equal(JSON.parse(/const DON = JSON\.parse\('([^']*)'\);/.exec(video)[1]).da, 55, 'le compteur monte à +55');
   assert.match(video, /Offres de data analyst \+55 % en 2022<\/b> \(1 345 offres, contre 867 en 2021/, 'chiffres de l’Apec dans les sources');
   assert.ok(video.includes('href="https://corporate.apec.fr/files/live/sites/corporate/files/Nos%20%C3%A9tudes/pdf/les-metiers-cadres-porteurs-en-2023"'), 'lien vers l’édition 2023');
   assert.match(video, /\[31\.5, 'Sources : [^']*éditions 2023, 2025 et 2026\.'\]/, 'source sous la scène');
@@ -78,8 +80,9 @@ test('salaires : une seule carte, la moyenne puis « Avec l’expérience », sa
   const carte = h.match(/<div class="panel stat db rv d1" id="salaires">([\s\S]*?)\n        <\/div>\n/);
   assert.ok(carte, 'carte « Salaire » dans les cartes du haut, cible du lien « Salaires »');
   assert.match(carte[1], /<small>Salaire de base moyen<\/small><b><span class="cnt" data-n="44">44<\/span>&nbsp;k€<\/b>/);
+  /* 15 novembre : chaque fourchette dit aussi ses bornes et l’échelle (data-v), pour l’accueil anglais et ses dollars */
   for (const [lo, hi, v, t] of [[20, 40, '40–50', 'Data analyst'], [36, 60, '48–60', 'Senior'], [70, 92, '65–76', 'Responsable']])
-    assert.ok(carte[1].includes(`style="--lo:${lo};--hi:${hi}"><span class="xt">${v}&nbsp;k€</span><i><b></b></i><small>${t}</small>`), t);
+    assert.ok(carte[1].includes(`style="--lo:${lo};--hi:${hi}"><span class="xt" data-v="${v.replace('–', ',')},30,80">${v}&nbsp;k€</span><i><b></b></i><small>${t}</small>`), t);
   /* --lo / --hi sur une échelle de 30 à 80 k€ */
   const k = x => 30 + x / 2;
   assert.deepEqual([[20, 40], [36, 60], [70, 92]].map(([a, b]) => [k(a), k(b)]), [[40, 50], [48, 60], [65, 76]]);

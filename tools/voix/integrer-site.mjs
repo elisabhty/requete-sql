@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Voix off et musique de la vidéo du site (decouvrir/video.html), Elisa, 2 novembre 2026.
-   À lancer une fois les fichiers générés :   node tools/voix/integrer-site.mjs [dossier]
+   À lancer une fois les fichiers générés :   node tools/voix/integrer-site.mjs [dossier] [--langue en]
    (dossier : par défaut tools/voix/sortie/video-site). Copie chaque phrase (sNN.mp3) et la musique (musique.mp3) dans
    decouvrir/voix/, mesure leur durée (ffprobe) et écrit decouvrir/voix/voix.json : {scenes: [{id, t, fin, d}], musique: {d}}.
    t = début de la scène + 0,35 s (la scène est apparue), fin = début de la scène suivante (la fin de la vidéo pour la dernière).
@@ -12,10 +12,15 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
+/* --langue en (15 novembre, la vidéo du site anglais, chiffres des États-Unis) : tools/voix/en/video-site.json, les fichiers de
+   tools/voix/sortie/en/video-site, rangés dans decouvrir/en/voix/ pour decouvrir/en/video.html ; sans musique à elle, elle reprend
+   celle de la vidéo française (decouvrir/voix/musique.mp3). */
+const li = process.argv.indexOf('--langue'), LANGUE = li > 0 ? process.argv[li + 1] : '';
+const reste = process.argv.slice(2).filter((a, i, t) => a !== '--langue' && t[i - 1] !== '--langue'), sous = LANGUE ? [LANGUE] : [];
 const DIR = path.dirname(fileURLToPath(import.meta.url)), ROOT = path.join(DIR, '..', '..');
-const job = JSON.parse(fs.readFileSync(path.join(DIR, 'video-site.json'), 'utf8'));
-const src = process.argv[2] || path.join(DIR, 'sortie', job.cours), dst = path.join(ROOT, 'decouvrir', 'voix');
-const page = fs.readFileSync(path.join(ROOT, 'decouvrir', 'video.html'), 'utf8');
+const job = JSON.parse(fs.readFileSync(path.join(DIR, ...sous, 'video-site.json'), 'utf8'));
+const src = reste[0] || path.join(DIR, 'sortie', ...sous, job.cours), dst = path.join(ROOT, 'decouvrir', ...sous, 'voix');
+const page = fs.readFileSync(path.join(ROOT, 'decouvrir', ...sous, 'video.html'), 'utf8');
 const FIN = +(/const DURATION = ([\d.]+);/.exec(page) || [])[1];
 if (!FIN) { console.log('DURATION introuvable dans decouvrir/video.html'); process.exit(1); }
 const dur = f => +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim();
@@ -41,6 +46,11 @@ const out = {scenes};
 const m = path.join(src, 'musique.mp3'), mGarde = path.join(dst, 'musique.mp3');
 if (fs.existsSync(m)) { enc(m, mGarde, ['-ac', '2', '-b:a', '96k']); out.musique = {d: +dur(m).toFixed(2)}; console.log(`musique  ${out.musique.d.toFixed(1)} s`); }
 else if (fs.existsSync(mGarde)) { out.musique = {d: avant.musique && avant.musique.d || +dur(mGarde).toFixed(2)}; console.log(`musique  ${out.musique.d.toFixed(1)} s  (inchangée)`); }
+else if (LANGUE && fs.existsSync(path.join(ROOT, 'decouvrir', 'voix', 'musique.mp3'))) {
+  fs.copyFileSync(path.join(ROOT, 'decouvrir', 'voix', 'musique.mp3'), mGarde);
+  let dFr = null; try { dFr = JSON.parse(fs.readFileSync(path.join(ROOT, 'decouvrir', 'voix', 'voix.json'), 'utf8')).musique.d; } catch (e) {}
+  out.musique = {d: dFr || +dur(mGarde).toFixed(2)}; console.log(`musique  ${out.musique.d.toFixed(1)} s  (celle de la vidéo française)`);
+}
 else console.log('Pas de musique : la voix seule.');
 fs.writeFileSync(path.join(dst, 'voix.json'), JSON.stringify(out, null, 1) + '\n');
-console.log(`\n${scenes.length} phrases dans decouvrir/voix/ ; voix.json écrit.`);
+console.log(`\n${scenes.length} phrases dans decouvrir/${LANGUE ? LANGUE + '/' : ''}voix/ ; voix.json écrit.`);
