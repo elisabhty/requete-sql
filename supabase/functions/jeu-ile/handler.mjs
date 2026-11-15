@@ -1,6 +1,6 @@
 // La salle dans l’île (Elisa, 7 novembre, 20 h 16 : la planche « Ta salle vit dans l’île », « Tu pars envoyer le code sur
 // WhatsApp : tu vois tes amis arriver »). Le téléphone dont la salle vient de changer envoie le nouvel état ({ cle, salle, etat,
-// alerte }) ; la fonction vérifie qu’il est dans la salle et que l’état est nouveau (jeu_ile_cibles_v2), puis le pousse par Apple
+// alerte, defi_id }) ; la fonction vérifie qu’il est dans la salle et que l’état est nouveau (jeu_ile_cibles_v2), puis le pousse par Apple
 // aux Live Activities des autres joueurs ; les jetons refusés sont oubliés (jeu_ile_suivi_v2). Pur : le réseau, la base et
 // l’horloge sont donnés par index.ts, les tests donnent les leurs (tests/ios-salle-ile.test.mjs).
 const ID = /^[A-Za-z0-9_-]{4,64}$/;
@@ -51,22 +51,42 @@ export function alerteVoulue(etat, alerte) {
   if (alerte.titre === 'Fin de la partie' && etat.phase === 'fin' && etat.joueurs.length) return {type: 'fin'};
   return null;
 }
-export function alerteServeur(etat, voulue, salle, info) {
+/* 15 novembre, 17 h 45 (Elisa : « corrige stp », pour « l’alerte “@léa entre dans la salle” est en français pour tout le monde ») :
+   l’alerte est écrite dans la langue de celui qui la reçoit (celle que son téléphone a donnée avec son jeton, jeu_ile_jeton_v2). */
+const ALERTES = {
+  fr: {arrivee: (nom, salle, n, max) => [`${nom} entre dans la salle`, `Salle ${salle} · ${n}/${max}`], fin: (nom, pts) => ['Fin de la partie', `1er : ${nom} · ${pts} pts`]},
+  en: {arrivee: (nom, salle, n, max) => [`${nom} joined the room`, `Room ${salle} · ${n}/${max}`], fin: (nom, pts) => ['Game over', `1st: ${nom} · ${pts} pts`]}
+};
+export const langueIle = l => (typeof l === 'string' && Object.prototype.hasOwnProperty.call(ALERTES, l) ? l : 'fr');
+export function alerteServeur(etat, voulue, salle, info, langue = 'fr') {
   if (!voulue || !info || info.ok !== true || !info.noms || typeof info.noms !== 'object' || Array.isArray(info.noms)) return null;
+  const A = ALERTES[langueIle(langue)];
   if (voulue.type === 'arrivee') {
     if (!info.moi || etat.nouveau !== info.moi) return null;
     const nom = propre(info.noms[info.moi], 24);
     if (!nom) return null;
-    const n = Math.min(etat.joueurs.length, MAX_JOUEURS), m = /^Salle ([A-Z0-9]{6}) · ([1-6])\/([1-6])$/.exec(voulue.texte || '');
+    const n = Math.min(etat.joueurs.length, MAX_JOUEURS), m = /^(?:Salle|Room) ([A-Z0-9]{6}) · ([1-6])\/([1-6])$/.exec(voulue.texte || '');
     const max = m && m[1] === salle ? Math.max(n, +m[3]) : MAX_JOUEURS;
-    return {titre: `${nom} entre dans la salle`, texte: `Salle ${salle} · ${n}/${max}`, son: 'miaou.wav'};
+    const [titre, texte] = A.arrivee(nom, salle, n, max);
+    return {titre, texte, son: 'miaou.wav'};
   }
   if (voulue.type === 'fin') {
     const premier = etat.joueurs[0], nom = premier ? propre(info.noms[premier.p], 24) : null;
     if (!nom) return null;
-    return {titre: 'Fin de la partie', texte: `1er : ${nom} · ${premier.pts} pts`, son: 'default'};
+    const [titre, texte] = A.fin(nom, premier.pts);
+    return {titre, texte, son: 'default'};
   }
   return null;
+}
+/* Le nom du défi, dans la langue de celui qui reçoit l’état (même jour) : le téléphone qui pousse donne l’identifiant du défi
+   (defi_id) ; un identifiant inconnu, ou absent (une version d’avant), laisse le titre envoyé. titres : {TITRES, LANGUES_ILE}
+   (titres.mjs, écrit par scripts/build-ile-titres.mjs ; index.ts le prend dans le dépôt, figé à un commit, comme jeu-verifier). */
+export function etatLangue(etat, defiId, langue, titres) {
+  const T = titres && titres.TITRES, ordre = titres && titres.LANGUES_ILE;
+  const t = T && typeof defiId === 'string' && Object.prototype.hasOwnProperty.call(T, defiId) ? T[defiId] : null;
+  const i = ordre ? ordre.indexOf(langueIle(langue)) : -1;
+  if (!t || !etat.defi || i < 0 || !t[i]) return etat;
+  return {...etat, defi: t[i]};
 }
 
 // Ce que reçoit Apple : une mise à jour, ou la fin (le podium reste un quart d’heure sur l’écran verrouillé).
@@ -93,11 +113,11 @@ export async function pousserUn(cible, charge, envoyer) {
   return {ok: false, oublier: r.status === 410 || (r.status === 400 && ['BadDeviceToken', 'DeviceTokenNotForTopic'].includes(r.raison))};
 }
 
-export function createIleHandler({pret, rpc, envoyer, maintenant = () => Math.floor(Date.now() / 1000)}) {
+export function createIleHandler({pret, rpc, envoyer, titres = null, maintenant = () => Math.floor(Date.now() / 1000)}) {
   const headers = {'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'apikey,authorization,content-type', 'Access-Control-Allow-Methods': 'POST,OPTIONS'};
   const reply = (data, status = 200) => new Response(JSON.stringify(data), {status, headers});
-  return async request => {
+  return async request => {   // la langue de chaque cible : r.cibles[i].langue (jeu_ile_cibles_v2), le français sans elle
     if (request.method === 'OPTIONS') return new Response(null, {headers});
     if (request.method !== 'POST') return reply({error: 'Méthode non autorisée.'}, 405);
     try {
@@ -117,8 +137,10 @@ export function createIleHandler({pret, rpc, envoyer, maintenant = () => Math.fl
       if (!r || r.pareil || !Array.isArray(r.cibles) || !r.cibles.length) return reply({ok: true, pousse: 0});
       const voulue = alerteVoulue(etat, alerte);
       const info = voulue ? await rpc('jeu_ile_alerte_v2', {p_cle: b.cle, p_salle: b.salle}).catch(() => null) : null;
-      const cibles = r.cibles.slice(0, MAX_JOUEURS - 1), charge = chargeApns(etat, alerteServeur(etat, voulue, b.salle, info), t);
-      const resultats = await Promise.all(cibles.map(c => pousserUn(c, charge, envoyer).catch(() => ({ok: false}))));
+      const cibles = r.cibles.slice(0, MAX_JOUEURS - 1), charges = {};
+      const charge = langue => (charges[langue] = charges[langue]
+        || chargeApns(etatLangue(etat, b.defi_id, langue, titres), alerteServeur(etat, voulue, b.salle, info, langue), t));
+      const resultats = await Promise.all(cibles.map(c => pousserUn(c, charge(langueIle(c.langue)), envoyer).catch(() => ({ok: false}))));
       const retirer = [], bac = [];
       resultats.forEach((x, i) => { if (x.oublier) retirer.push(cibles[i].jeton); if (x.bac) bac.push(cibles[i].jeton); });
       if (retirer.length || bac.length) await rpc('jeu_ile_suivi_v2', {p_salle: b.salle, p_retirer: retirer, p_bac: bac}).catch(() => null);
