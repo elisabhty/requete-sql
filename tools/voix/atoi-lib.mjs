@@ -22,7 +22,7 @@ export function silences(L){
 export function aToi(L, T, dur, a = 0, b = dur){
   const S = silences(L), low = L.thr * 0.25;
   let e = null;
-  if (T) { const txt = T.chars.join(''), k = txt.indexOf('!'); if (k >= 0 && k < 20 && /toi/i.test(txt.slice(0, k))) e = T.en[k]; }
+  if (T) { const txt = T.chars.join(''), k = txt.indexOf('!'); if (k >= 0 && k < 20 && /toi|turn/i.test(txt.slice(0, k))) e = T.en[k]; }
   const p = e != null ? S.filter(x => x[0] >= 0.25 && x[1] >= e - 0.3 && x[0] <= e + 0.45).sort((x, y) => Math.abs(x[1] - e) - Math.abs(y[1] - e))[0]
     : (S.find(x => x[0] >= a + 0.25 && x[0] <= a + 1.6 && x[1] - x[0] >= 0.15) || S.find(x => x[0] >= a + 0.25 && x[0] <= a + 1.6));
   /* Une consigne qui n’est que « À toi ! » (rien après) : tout le fichier va à la légende. */

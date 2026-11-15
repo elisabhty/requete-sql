@@ -266,3 +266,34 @@ test('la voix anglaise du module 2 : un fichier par vidéo, la même voix, les m
   assert.ok(!JSON.parse(lire('tools/voix/en/where.json')).elements.some(e => e.id === 'ch07'), 'le « À retenir » de WHERE n’est plus joué dans l’appli');
   assert.ok(total > 28000 && total < 36000, `${total} caractères (autant de crédits)`);
 });
+
+/* Elisa, 15 novembre, 1 h 06 : « fini » (la voix anglaise des modules 1 et 2, générée sur son Mac). integrer.mjs --langue en la
+   découpe phrase par phrase sur les légendes françaises (cles), la range dans assets/voix/en/<cours>/ et l’écrit dans le fichier
+   de la vidéo traduite ; la page, sa voix française et ses fichiers ne changent pas. */
+test('la voix anglaise des modules 1 et 2 : chaque vidéo a la sienne, calée sur ses légendes, fichiers présents', () => {
+  const integ = lire('tools/voix/integrer.mjs');
+  for (const k of ["const LI = process.argv.indexOf('--langue'), LANGUE = LI >= 0 ? process.argv[LI + 1] : null;",
+    "const job = JSON.parse(fs.readFileSync(path.join(DIR, LANGUE || '', cours + '.json'), 'utf8'));",
+    "const OUT = path.join(ROOT, 'assets', 'voix', LANGUE || '', cours);",
+    "if (cle && CLES.has(cle)) caps.push([cle, el.id].concat(clips[k]));", 'if (!LANGUE) fs.writeFileSync(PAGE, out);'])
+    assert.ok(integ.includes(k), k);
+  assert.ok(lire('tools/voix/atoi-lib.mjs').includes('/toi|turn/i.test(txt.slice(0, k))'), '« Your turn! » se coupe comme « À toi ! »');
+  const ctx = vm.createContext({location: {search: ''}, URLSearchParams, gsap: {config() {}, timeline: () => ({})}, document: {}});
+  vm.runInContext(core, ctx);
+  const vkey = vm.runInContext('vkey', ctx);
+  for (const c of ['bases-relationnelles', 'as', 'distinct', ...M2]) {
+    let voix = null;
+    vm.runInNewContext(lire(`assets/anim/en/${c}.js`), {window: {REQUETE_LANGUE: {ajouter: (l, x) => { if (x.voix) voix = x.voix; }}}});
+    assert.ok(voix, `${c} : sa voix`);
+    assert.equal(voix.dir, `../voix/en/${c}/`);
+    const pg = lire(`assets/anim/${c}.html`), src = pg.slice(pg.indexOf('const CAPTIONS = ['), pg.indexOf('\n];', pg.indexOf('const CAPTIONS = [')) + 3);
+    const caps = vm.runInNewContext(src.replace('const CAPTIONS =', 'CAPTIONS =') + ';CAPTIONS', {APP: true, CAPTIONS: null});
+    const cles = new Set(caps.map(x => vkey(x[2])));
+    assert.ok(voix.caps.length >= caps.length - 2 && voix.caps.every(x => cles.has(x[0])), `${c} : ${voix.caps.length} phrases sur ${caps.length} légendes`);
+    for (const f of new Set([voix.intro[0], ...voix.caps.map(x => x[1]), ...Object.values(voix.say).map(x => x[0])]))
+      assert.ok(fs.statSync(path.join(ROOT, `assets/voix/en/${c}/${f}.mp3`)).size > 5000, `${c}/${f}.mp3`);
+    for (const k of ['bienvu', 'rattrape', 'presque', 'finbravo', 'fineffort', 'at1']) assert.ok(voix.say[k], `${c} : ${k}`);
+    assert.ok(pg.includes('const VOICE = {dir: \'../voix/' + c + '/\''), `${c} : la voix française reste dans la page`);
+  }
+  assert.ok(app.includes("const LV_DUREES={en:{'bases-relationnelles':'10 min 44',") && app.includes("if(k&&d[k[1]])l.video.duree=d[k[1]];"), 'la durée de la vidéo anglaise');
+});

@@ -131,6 +131,12 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   caractères) ; `node tools/voix/generer.mjs --toutes --langue en` les génère tous. Le code y est dit en toutes lettres
   (`<=` : « less than or equal to », `'2023-03-01'` : « 2023, dash, 03, dash, 01 », `ASC` : « ascending ») ; le « À retenir »
   de WHERE, que la vidéo de l’appli ne joue plus, n’a pas de fichier.
+  **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
+  `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
+  chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ
+  22 Mo pour les treize) et écrit la voix dans `assets/anim/en/<cours>.js` (`voix`, entre les repères « Voix off ») ; la page et
+  sa voix française ne changent pas. Une vidéo anglaise ne dure pas tout à fait autant que la française : sa durée est dans
+  `LV_DUREES` (index.html) et sur sa vignette, refaite après la voix.
 - **À reprendre avec les défis** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base française ; une
   requête écrite en anglais sur un défi de la base des cours y serait refusée. À régler avant de traduire les défis.
 - **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :

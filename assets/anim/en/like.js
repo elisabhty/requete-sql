@@ -172,3 +172,41 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "clients trouvés": "customers found"
   }
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Tara d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/like/', intro: ["ch00",0.07,5.9],
+  caps: [
+    ["v1jowlm2","ch01",0,4.3],
+    ["v1ml8ad5","ch01",4.61,7.9],
+    ["vqjl8jr","ch01",8.16,10.13],
+    ["v1j8cpb6","ch01",10.36,14.08],
+    ["v13t6gxj","ch01",14.38,16.24],
+    ["v1vqet23","ch01",16.59,20.66],
+    ["v1wk5tiz","ch01",20.89,25.02],
+    ["vyhio1m","ch01",25.33,29.4],
+    ["v1ws0xcq","ch02",0,7.09],
+    ["v1joqxgv","ch02",7.5,13.85],
+    ["vu649we","ch02",14.31,19.42],
+    ["vep98xd","ch03",0,4.33],
+    ["v1ucctet","ch03",4.68,9.39],
+    ["v1dks6sg","ch03",9.8,15.06],
+    ["v1i5h8o8","ch03",15.47,19.7],
+    ["v6vuo9j","ch03",20.02,25.27],
+    ["v1iieumg","ch03",25.59,29.1],
+    ["v1bz58gt","ch04",0.04,3.99],
+    ["v8xruf","ch04",4.34,10.08],
+    ["vgr67gn","ch04",10.58,14.58],
+    ["vzizutk","ch04",15.05,22.06],
+    ["v1x83ywd","ch04",22.42,25.9],
+    ["vu7bk6h","ch05",0.04,4.53],
+    ["vkst7rl","ch05",4.9,12.67],
+    ["vxbom6c","ch05",13.13,17.69],
+    ["vbg4q1","ch05",18.18,24.999],
+    ["v1krm1gy","ch06",0,4.97],
+    ["v78or8e","ch06",5.36,9.48],
+    ["v1h0tc4w","ch06",9.8,14.25],
+    ["v1uarxau","ch07",0.11,2.92],
+    ["v157lrmh","ch07",3.17,6.06]],
+  say: {"at1":["at1",0.07,5.878],"at2":["at2",0.15,4.4],"at3":["at3",0.06,6.348],"indice1":["indice1",0.07,2.586],"indice2":["indice2",0.06,4.72],"indice3":["indice3",0.01,4.49],"touche1":["touche1",0.09,2.02],"touche2":["touche2",0.02,1.83],"lienavant":["lienavant",0.07,5.54],"lienapres":["lienapres",0.02,4.59],"bienvu":["bienvu",0.07,1.32],"rattrape":["rattrape",0,1.35],"presque":["presque",0.04,4.04],"finbravo":["finbravo",0.02,2.68],"fineffort":["fineffort",0,4.29]},
+  toi: {"at1":[0.96,1.3],"at2":[0.98,1.28],"at3":[0.93,1.12]}}});
+/* Fin de la voix off */

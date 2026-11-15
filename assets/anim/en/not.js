@@ -169,3 +169,36 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "clients sélectionnés : aucun n’a encore reçu de code.": "customers selected: none has received a code yet."
   }
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Tara d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/not/', intro: ["ch00",0.06,6.531],
+  caps: [
+    ["v1yxp9sf","ch01",0,6.57],
+    ["v4ixiav","ch01",6.88,10.84],
+    ["vwaeyol","ch01",11.02,15.804],
+    ["v1oy1qsn","ch02",0,5.24],
+    ["v1uqfp3j","ch02",5.66,15.82],
+    ["v1pyrl1b","ch02",16.31,20.17],
+    ["vay3dc3","ch02",20.52,23.61],
+    ["v1u5qmpk","ch02",23.97,28.93],
+    ["vds0mof","ch03",0,3.64],
+    ["v1fyg7gm","ch03",3.95,8.65],
+    ["v1ljjiq7","ch03",8.89,13.45],
+    ["v142f84b","ch03",13.7,18.051],
+    ["v1bba0fx","ch04",0,6.36],
+    ["v7xss8m","ch04",6.73,11.01],
+    ["vpowpkl","ch04",11.46,19.64],
+    ["v9isxtn","ch04",20.01,24.22],
+    ["v6gqn9j","ch05",0,4.36],
+    ["v2v9mnl","ch05",4.54,10.45],
+    ["vr2j68m","ch05",10.96,17.08],
+    ["vqsa1a3","ch05",17.34,26.14],
+    ["voht07n","ch06",0,4.27],
+    ["vg49a5e","ch06",4.54,7.83],
+    ["v1d4yjy2","ch06",8.06,9.99],
+    ["v1h0tc4w","ch06",10.34,14.75],
+    ["v1uarxau","ch07",0.03,2.8],
+    ["v157lrmh","ch07",3.08,6.04]],
+  say: {"at1":["at1",0,3.866],"at2":["at2",0.04,12.29],"at3":["at3",0.05,4.41],"indice1":["indice1",0.06,7.07],"indice2":["indice2",0.06,6.39],"indice3":["indice3",0.06,2.54],"lienavant":["lienavant",0.02,5.02],"lienapres":["lienapres",0.04,5.49],"bienvu":["bienvu",0.07,1.32],"rattrape":["rattrape",0,1.35],"presque":["presque",0.04,4.04],"finbravo":["finbravo",0.02,2.68],"fineffort":["fineffort",0,4.29]},
+  toi: {"at1":[0.89,1.06],"at2":[1,1.23],"at3":[0.94,1.14]}}});
+/* Fin de la voix off */

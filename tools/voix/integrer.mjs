@@ -16,7 +16,10 @@
    - le souffle d’avant une phrase reste avec elle (souffles-lib.mjs) : la coupe passe avant lui, jamais après ;
    - un complément (ch05b, ch06c… : des phrases ajoutées à un chapitre après sa voix, générées à part, ou une phrase refaite) va aux
      légendes encore muettes de la page, où qu’elles soient, sans refaire le chapitre ;
-   - avec --garder, une phrase dont la légende a changé (legendes d’un complément) n’est plus gardée : sa nouvelle voix la remplace. */
+   - avec --garder, une phrase dont la légende a changé (legendes d’un complément) n’est plus gardée : sa nouvelle voix la remplace.
+   --langue en (15 novembre, les vidéos en anglais) : tools/voix/en/<cours>.json, ses fichiers de tools/voix/sortie/en/<cours>/,
+   réencodés dans assets/voix/en/<cours>/ ; chaque phrase va à la légende française que donne cles (preparer-langue.mjs), sans
+   comparer les textes ; la voix est écrite dans assets/anim/en/<cours>.js (voix de REQUETE_LANGUE.ajouter), la page ne change pas. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -28,12 +31,14 @@ import {levels, souffles} from './souffles-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '..', '..');
-const ARGS = process.argv.slice(2).filter(a => !a.startsWith('--')), GARDER = process.argv.includes('--garder');
+const LI = process.argv.indexOf('--langue'), LANGUE = LI >= 0 ? process.argv[LI + 1] : null;
+const ARGS = process.argv.slice(2).filter((a, i) => !a.startsWith('--') && !(LI >= 0 && i + 2 === LI + 1)), GARDER = process.argv.includes('--garder');
+if (LANGUE && GARDER) { console.log('--langue et --garder ne vont pas ensemble.'); process.exit(1); }
 const cours = ARGS[0];
 if (!cours) { console.log('Usage : node tools/voix/integrer.mjs <cours> [dossier brut] [--garder]'); process.exit(1); }
-const job = JSON.parse(fs.readFileSync(path.join(DIR, cours + '.json'), 'utf8'));
-const RAW = path.resolve(ARGS[1] || path.join(DIR, 'sortie', cours));
-const OUT = path.join(ROOT, 'assets', 'voix', cours);
+const job = JSON.parse(fs.readFileSync(path.join(DIR, LANGUE || '', cours + '.json'), 'utf8'));
+const RAW = path.resolve(ARGS[1] || path.join(DIR, 'sortie', LANGUE || '', cours));
+const OUT = path.join(ROOT, 'assets', 'voix', LANGUE || '', cours);
 const PAGE = path.join(ROOT, 'assets', 'anim', cours + '.html');
 const r3 = x => Math.round(x * 1000) / 1000;
 
@@ -164,7 +169,7 @@ function bySilence(L, n, dur){
 function apresAToi(L, T, dur){
   const S = silences(L);
   let e = null;
-  if (T) { const txt = T.chars.join(''), k = txt.indexOf('!'); if (k >= 0 && k < 20 && /toi/i.test(txt.slice(0, k))) e = T.en[k]; }
+  if (T) { const txt = T.chars.join(''), k = txt.indexOf('!'); if (k >= 0 && k < 20 && /toi|turn/i.test(txt.slice(0, k))) e = T.en[k]; }
   /* ElevenLabs donne au « ! » la pause qui le suit : la pause cherchée finit près de ce temps (un peu avant ou après). */
   const p = e != null ? S.filter(x => x[0] >= 0.25 && x[1] >= e - 0.3 && x[0] <= e + 0.45).sort((x, y) => Math.abs(x[1] - e) - Math.abs(y[1] - e))[0]
     : S.find(x => x[0] >= 0.4 && x[0] <= 1.6);
@@ -174,7 +179,7 @@ function apresAToi(L, T, dur){
   return r3(Math.max(0, i / 100 - 0.06));
 }
 const MOMENTS_JS = page.includes('src="moments.js"');
-const ATOI_DIT = job.elements.some(el => /^ch\d/.test(el.id) && (el.phrases || []).some(ph => /^À toi\s*!$/.test(ph.trim())));
+const ATOI_DIT = job.elements.some(el => /^ch\d/.test(el.id) && (el.phrases || []).some(ph => /^(À toi|Your turn)\s*!$/.test(ph.trim())));
 fs.mkdirSync(OUT, {recursive: true});
 const caps = [], say = {}, toi = {}, report = [];
 let intro = null, ci = 0, total = 0, bytes = 0, gardes = 0;
@@ -228,6 +233,12 @@ for (const el of job.elements) {
   /* Chaque phrase à sa légende : la plus ressemblante parmi les suivantes, dans l’ordre ; pour un complément, parmi les muettes. */
   const prises = COMPLEMENT.test(el.id) ? voixPrises() : null;
   el.phrases.forEach((p, k) => {
+    /* Dans une autre langue : la légende française de chaque phrase est donnée (cles), il n’y a rien à comparer. */
+    if (LANGUE) {
+      const cle = (el.cles || [])[k];
+      if (cle && CLES.has(cle)) caps.push([cle, el.id].concat(clips[k])); else report.push(`${el.id} · phrase ${k + 1} sans légende : ${p}`);
+      return;
+    }
     /* legendes : le texte de la légende quand la phrase dite en diffère (code lu à voix haute, preparer.mjs). */
     const q = norm((el.legendes && el.legendes[k]) || p); let best = -1, bs = 0;
     const [de, a] = prises ? [0, CAPTIONS.length] : [ci, Math.min(CAPTIONS.length, ci + 4)];
@@ -247,6 +258,23 @@ ${lines}],
   say: ${JSON.stringify(say)}${Object.keys(toi).length ? `,\n  toi: ${JSON.stringify(toi)}` : ''}};
 /* Fin de la voix off */
 `;
+/* Dans une autre langue : la voix va dans le fichier de la vidéo traduite (assets/anim/<langue>/<cours>.js), après ses textes. */
+if (LANGUE) {
+  const F = path.join(ROOT, 'assets', 'anim', LANGUE, cours + '.js'), dir = `../voix/${LANGUE}/${cours}/`;
+  const voix = {dir, intro, caps, say}; if (Object.keys(toi).length) voix.toi = toi;
+  const bloc = `/* Voix off (tools/voix/integrer.mjs --langue ${LANGUE}, voix ${job.voix.nom} d’ElevenLabs, ${job.modele}) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('${LANGUE}', {voix: {dir: '${dir}', intro: ${JSON.stringify(intro)},
+  caps: [
+${lines}],
+  say: ${JSON.stringify(say)}${Object.keys(toi).length ? `,\n  toi: ${JSON.stringify(toi)}` : ''}}});
+/* Fin de la voix off */
+`;
+  let src = fs.readFileSync(F, 'utf8');
+  const a = src.indexOf('/* Voix off (tools/voix/integrer.mjs'), b = src.indexOf('/* Fin de la voix off */\n');
+  src = a >= 0 && b > a ? src.slice(0, a) + bloc + src.slice(b + '/* Fin de la voix off */\n'.length) : src.replace(/\n*$/, '\n') + bloc;
+  fs.writeFileSync(F, src);
+}
 let out = page;
 const a = out.indexOf('/* Voix off (tools/voix/integrer.mjs'), b = out.indexOf('/* Fin de la voix off */\n');
 if (a >= 0 && b > a) out = out.slice(0, a) + block + out.slice(b + '/* Fin de la voix off */\n'.length);
@@ -258,9 +286,9 @@ else {
 }
 /* voice: VOICE en fin de la première ligne de Course({…}) : son début reste celui que vérifient les tests. */
 if (!/\bvoice: VOICE\b/.test(out)) out = out.replace(/(\nCourse\(\{[^\n]*,)\n/, '$1 voice: VOICE,\n');
-fs.writeFileSync(PAGE, out);
+if (!LANGUE) fs.writeFileSync(PAGE, out);
 console.log(`${caps.length} phrases calées sur ${CAPTIONS.length} légendes, intro ${intro ? r3(intro[2] - intro[1]) + ' s' : 'absente'}, ${Object.keys(say).length} phrases à part`);
-console.log(`audio : ${Math.round(total)} s, ${Math.round(bytes / 1024)} Ko dans assets/voix/${cours}${gardes ? ` ; ${gardes} fichier${gardes > 1 ? 's' : ''} gardé${gardes > 1 ? 's' : ''} tel${gardes > 1 ? 's' : ''} quel${gardes > 1 ? 's' : ''}` : ''}`);
+console.log(`audio : ${Math.round(total)} s, ${Math.round(bytes / 1024)} Ko dans assets/voix/${LANGUE ? LANGUE + '/' : ''}${cours}${gardes ? ` ; ${gardes} fichier${gardes > 1 ? 's' : ''} gardé${gardes > 1 ? 's' : ''} tel${gardes > 1 ? 's' : ''} quel${gardes > 1 ? 's' : ''}` : ''}`);
 report.forEach(l => console.log('  · ' + l));
 
 /* Le volume du cours : les phrases et les chapitres qui s’écartent de plus de 1,5 LU de la voix qui explique y sont ramenés, sans
