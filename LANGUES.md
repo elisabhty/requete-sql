@@ -197,6 +197,10 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   (la base des cours n’a que les quatre tables de NutriBoost, voir retours-1230). `sql()` traduit désormais un nom suivi d’une parenthèse quand il est dans les défauts (une
   routine de la base) ; les fonctions SQL (COUNT, ROUND…) restent telles quelles. La date du trigger s’écrit à l’américaine
   (10/25/2026).
+- **Le module 14** (15 novembre, « continue ») : Vues, index et optimisation, les vidéos CREATE VIEW et INDEX.
+  `catalogue_box` devient box_catalog, la colonne `selection_box` box_selection, `idx_commandes_numero` idx_orders_number (des
+  défauts de la base anglaise). Une phrase qui commence par « : » juste après un code (« <code>SCAN commandes</code> : les lignes… »)
+  perd en anglais l’espace française d’avant le deux-points (`langues.js`, pour toutes les pages).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -240,6 +244,8 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   11 100 caractères) ; « SELECT … FOR UPDATE » se dit « select for update », sans la pause des points de suspension.
   Module 13 (15 novembre) : `projet-procedures.json` et `projet-trigger.json` sont prêts (environ 6 500 caractères) ; la date du
   trigger se dit en toutes lettres (October 25, 2026), OLD.prix « old dot price », `calculer_points(80)` « calculate underscore points of 80 ».
+  Module 14 (15 novembre) : `projet-vue.json` et `projet-index.json` sont prêts (environ 6 400 caractères) ;
+  « ON commandes(numero_commande) » se dit « on orders, column order underscore number ».
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

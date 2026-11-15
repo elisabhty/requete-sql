@@ -53,6 +53,8 @@ const PARLE = s => s
   .replace(/\b(1[0-2]|0?[1-9])\/(\d{1,2})\/(\d{4}) at\b/g, (t, m, d, y) => `${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m - 1]} ${+d}, ${y}, at`)
   .replace(/\bCURRENT_TIMESTAMP\b/g, 'current timestamp').replace(/\b(OLD|NEW)\.([a-z_]+)\b/g, (t, a, b) => a.toLowerCase() + ' dot ' + b)
   .replace(/\b([a-z]+(?:_[a-z]+)+)\((\d+)\)/g, '$1 of $2')
+  /* Module 14 (15 novembre) : « ON commandes(numero_commande) » se dit la table, puis sa colonne */
+  .replace(/\bON ([a-z_]+)\(([a-z_]+)\)/g, 'on $1, column $2,')
   .replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$1, dash, $2, dash, $3').replace(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g, '$1, slash, $2, slash, $3')
   .replace(/'%d\/%m\/%Y'/g, 'percent d, slash, percent m, slash, percent capital Y').replace(/'%([a-zA-Z])'/g, 'percent $1')
   .replace(/'\+(\d+) (days?|months?|years?)'/g, 'plus $1 $2')

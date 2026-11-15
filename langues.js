@@ -399,7 +399,10 @@
       var r = chercher(c.cle);
       if (r != null) {
         r = String(r).replace(/<(\/?)(\d+)(\/?)>/g, function (tout, f, k, g) { return '<' + f + (c.retour[k] || k) + g + '>'; });
-        if (poser(el, c.avant + r + c.apres, etat.morceaux)) fait.set(el, cleDe(phrase(el, { morceaux: [] }) || '').cle);
+        /* Une phrase qui commence après un code par « : » (15 novembre, module 14 : « <code>SCAN commandes</code> : les lignes… ») :
+           l’espace d’avant le deux-points est française ; en anglais, le signe suit le code. */
+        var av = /^[:;!?]/.test(r) ? c.avant.replace(/[ \u00a0\u202f]+$/, '') : c.avant;
+        if (poser(el, av + r + c.apres, etat.morceaux)) fait.set(el, cleDe(phrase(el, { morceaux: [] }) || '').cle);
         return;
       }
       /* Pas de traduction : la phrase reste entière en français (jamais à moitié traduite). Si son texte est déjà le nôtre

@@ -35,7 +35,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
       delai_moyen: 'avg_gap', jours_depuis: 'days_since', cumul: 'running_total', montants: 'amounts', moyenne_3: 'average_3', gamme: 'tier',
       produit_le_plus_cher: 'most_expensive',
       /* Les noms du module 13 (CALL expedier_commande(13), SELECT calculer_points(80), CREATE TRIGGER garder_prix) */
-      expedier_commande: 'ship_order', id_commande: 'order_id', calculer_points: 'calculate_points', nom_table: 'table_name', garder_prix: 'track_price'}
+      expedier_commande: 'ship_order', id_commande: 'order_id', calculer_points: 'calculate_points', nom_table: 'table_name', garder_prix: 'track_price',
+      /* Les noms du module 14 (CREATE VIEW catalogue_box, la colonne selection_box du projet, CREATE INDEX idx_commandes_numero) */
+      catalogue_box: 'box_catalog', selection_box: 'box_selection', idx_commandes_numero: 'idx_orders_number'}
   },
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
@@ -3039,6 +3041,19 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
     "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 14 (Vues, index et optimisation, 15 novembre) */
+    "Une <1>vue</1> enregistre une requête sous un nom.": "A <1>view</1> stores a query under a name.",
+    "Elle se consulte comme une table, avec <1/>.": "You read it like a table, with <1/>.",
+    "Elle conserve la <1>requête</1>, pas une copie des résultats.": "It keeps the <1>query</1>, not a copy of the results.",
+    "À chaque consultation, elle utilise les données actuelles.": "Each time it’s read, it uses the current data.",
+    "Elle présente uniquement les <1>colonnes</1> et les <2>lignes</2> utiles.": "It shows only the <1>columns</1> and <2>rows</2> needed.",
+    "Avec des droits configurés séparément, l’agence la consulte sans accéder au catalogue complet.": "With rights set up separately, the agency reads it without accessing the full catalog.",
+    "montre comment la base prévoit d’exécuter une requête.": "shows how the database plans to run a query.",
+    ": la table est parcourue ; <1/> : l’index est utilisé.": ": the table is scanned; <1/>: the index is used.",
+    "Un <1>index</1> permet de retrouver plus rapidement les lignes à partir d’une valeur recherchée.": "An <1>index</1> lets you find rows faster based on a value you’re looking for.",
+    "Ici, le numéro de la commande sert à la retrouver.": "Here, the order number is used to find it.",
+    "Un index a un <1>coût</1> : il occupe de l’espace et doit être entretenu lorsque les données changent.": "An index has a <1>cost</1>: it takes up space and has to be maintained when the data changes.",
+    "Crée-les pour les recherches qui en ont besoin.": "Create them for the searches that need them.",
     /* Les fiches des cours du module 13 (Procédures et triggers, 15 novembre) */
     "Une <1>procédure stockée</1> exécute un traitement réutilisable.": "A <1>stored procedure</1> runs a reusable routine.",
     "Tu l’appelles avec <1/> :": "You call it with <1/>:",
