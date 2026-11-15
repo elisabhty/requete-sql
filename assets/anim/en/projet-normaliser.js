@@ -170,7 +170,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "atelier_id": "workshop_id",
     "maintenant": "now",
     "dépend de": "depends on",
-    "inscrit le": "enrolled on",
+    "inscrit le": "enrolled",
     "Mise à jour": "Update",
     "Suppression": "Deletion",
     "une ligne par inscription": "one row per enrollment",

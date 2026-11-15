@@ -2,6 +2,8 @@
    Les noms, les e-mails, les villes et les adresses des clients restent tels quels. */
 window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
   textes: {
+    "service.client@nutriboost.fr": "support@nutriboost.fr",
+    "SC": "CS",
     "À toi !": "Your turn!",
     "remplacement.sql": "replacement.sql",
     "Touche le bouton.": "Tap the button.",

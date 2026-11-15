@@ -76,7 +76,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "Enchaîne plusieurs <1>JOIN</1> pour récupérer des données réparties dans trois tables.": "Chain several <1>JOIN</1> clauses to get data spread across three tables.",
     "Rappel qualité": "Quality recall",
     "Clients à prévenir": "Customers to notify",
-    "Le prénom et le nom du client": "The customer’s first and last name",
+    "Le prénom et le nom du client": "First and last name",
     "La date de la commande": "The order date",
     "Le produit acheté": "The product bought",
     "<1>client_id</1> → clients": "<1>customer_id</1> → customers",

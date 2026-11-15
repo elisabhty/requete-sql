@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-15-module-v3088';
+const CACHE = 'requete-2026-11-15-module-v3089';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -218,7 +218,7 @@ const PRECACHE = [
   './assets/anim/nutriboost.webp',
   './assets/anim/badge-nutriboost.webp',
   /* La vidéo du module 1 en anglais (14 novembre) : ses textes, sa vignette, le badge */
-  './assets/anim/en/bases-relationnelles.js?v=da85b582',
+  './assets/anim/en/bases-relationnelles.js?v=d40393b4',
   './assets/anim/en/bases-relationnelles-thumb.webp',
   './assets/anim/badge-nutriboost-en.webp',
   './assets/anim/en/as.js?v=9466d9ac',
@@ -281,7 +281,7 @@ const PRECACHE = [
   './assets/anim/en/full-outer-join-thumb.webp',
   './assets/anim/en/cross-join.js?v=6754da28',
   './assets/anim/en/cross-join-thumb.webp',
-  './assets/anim/en/jointure-3-tables.js?v=a4d3ab06',
+  './assets/anim/en/jointure-3-tables.js?v=e1523f88',
   './assets/anim/en/jointure-3-tables-thumb.webp',
   './assets/anim/en/join-group-by.js?v=940fcac7',
   './assets/anim/en/join-group-by-thumb.webp',
@@ -321,7 +321,7 @@ const PRECACHE = [
   './assets/anim/en/fenetres-glissantes-thumb.webp',
   './assets/anim/en/first-last-ntile.js?v=c078faf4',
   './assets/anim/en/first-last-ntile-thumb.webp',
-  './assets/anim/en/projet-normaliser.js?v=63a9c2c9',
+  './assets/anim/en/projet-normaliser.js?v=a12c2f13',
   './assets/anim/en/projet-normaliser-thumb.webp',
   './assets/anim/en/projet-cles.js?v=db66e1ae',
   './assets/anim/en/projet-cles-thumb.webp',
@@ -337,15 +337,15 @@ const PRECACHE = [
   './assets/anim/en/projet-schemas-thumb.webp',
   './assets/anim/en/projet-insert.js?v=9204f54d',
   './assets/anim/en/projet-insert-thumb.webp',
-  './assets/anim/en/projet-update.js?v=28d54b33',
+  './assets/anim/en/projet-update.js?v=2a36df03',
   './assets/anim/en/projet-update-thumb.webp',
   './assets/anim/en/projet-merge.js?v=3449107b',
   './assets/anim/en/projet-merge-thumb.webp',
-  './assets/anim/en/projet-delete.js?v=2195e80b',
+  './assets/anim/en/projet-delete.js?v=e071b806',
   './assets/anim/en/projet-delete-thumb.webp',
-  './assets/anim/en/projet-ondelete.js?v=fa635b9a',
-  './assets/anim/en/projet-transaction.js?v=304faa70',
-  './assets/anim/en/projet-savepoint.js?v=5dd56f8f',
+  './assets/anim/en/projet-ondelete.js?v=aefceed9',
+  './assets/anim/en/projet-transaction.js?v=28719c3b',
+  './assets/anim/en/projet-savepoint.js?v=a38c245f',
   './assets/anim/en/projet-concurrence.js?v=16553ff9',
   './assets/anim/en/projet-procedures.js?v=0e766f17',
   './assets/anim/en/projet-trigger.js?v=6950e6d5',

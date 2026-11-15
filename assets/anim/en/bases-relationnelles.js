@@ -179,7 +179,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "commandes.xlsx": "orders.xlsx",
     "{1} commandes": "{1} orders",
     "Logistique": "Logistics",
-    "Service client": "Customer service",
+    "Service client": "Support",
     "Commercial": "Sales",
     "clé primaire": "primary key",
     "qui ? quoi ?": "who? what?",

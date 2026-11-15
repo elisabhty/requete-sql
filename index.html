@@ -33388,10 +33388,13 @@ function lvZoomTo(z,dy){
     lvPkLayerPlace();
   };
   if((Math.abs(z-from)<.002&&Math.abs(dy-d0)<.5)||prefersReduceMotion()){ apply(z,dy); return; }
-  const t0=performance.now(), D=Math.abs(dy-d0)>40?320:200;
+  /* 15 novembre, 22 h 05 (Elisa : « avant les moments, ça saute un peu ») : quand l’image descend vers la feuille (plus de 40 px), elle
+     part en douceur et se pose en douceur (0,46 s, accélération puis freinage) au lieu de démarrer d’un coup ; la caméra de la vidéo
+     revient à sa taille dans le même temps (__camPause, 0,24 s). */
+  const glisse=Math.abs(dy-d0)>40, t0=performance.now(), D=glisse?460:200;
   const step=now=>{
     if(!LV||LV.video!==V)return;
-    const t=Math.min(1,(now-t0)/D), e=1-Math.pow(1-t,3);
+    const t=Math.min(1,(now-t0)/D), e=glisse?(t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2):1-Math.pow(1-t,3);
     if(t<1)apply(from+(z-from)*e,d0+(dy-d0)*e); else apply(z,dy);
     if(t<1)LV.zoomRaf=requestAnimationFrame(step);
     else if(dy!==d0){ try{ if(V.win&&typeof V.win.__repaint==='function')V.win.__repaint(); }catch(e){} }   // iPhone : pas de trace de l’ancienne place
@@ -53856,7 +53859,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3088';
+  const SW_CACHE='requete-2026-11-15-module-v3089';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

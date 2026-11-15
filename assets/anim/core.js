@@ -830,14 +830,22 @@ function introPills(seconds, moments){
   else m.remove();
   /* L’étincelle s2 ne passe ni sous une ligne du sous-titre ni sous les pastilles : à sa place si c’est libre, sinon juste après
      les pastilles, sinon dessous (11 nov. ; WebKit coupe parfois le sous-titre plus large qu’ailleurs). */
+  /* 15 novembre, 22 h 05 (Elisa : « des badges qui dépassent ») : mesurées avant que la police des pastilles soit chargée, elles
+     paraissaient plus étroites ; en anglais (« 6 “Your turn” moments »), l’étincelle tombait ensuite sur la pastille. La place est
+     recalculée une fois les polices prêtes, depuis sa place d’origine. */
+  const placer = () => {
   const pl = $('#s0.nv .iv-pills'), s2 = $('#s0.nv .iv-spark.s2'), sub = $('#s0.nv .sub');
-  if (pl && s2 && sub) { const t = pl.offsetTop, r = pl.offsetLeft + pl.offsetWidth, h = pl.offsetHeight, cs = getComputedStyle(s2);
+  if (pl && s2 && sub) { s2.style.left = s2.style.top = ''; const t = pl.offsetTop, r = pl.offsetLeft + pl.offsetWidth, h = pl.offsetHeight, cs = getComputedStyle(s2);
     const sb = sub.getBoundingClientRect(), k = sb.width / (sub.offsetWidth || 1), rg = document.createRange(); rg.selectNodeContents(sub);
     const B = (k > 0 ? [...rg.getClientRects()].map(q => [sub.offsetLeft + (q.left - sb.left) / k, sub.offsetTop + (q.top - sb.top) / k, q.width / k, q.height / k])
       : [[sub.offsetLeft, sub.offsetTop, sub.offsetWidth, sub.scrollHeight]]).concat([[pl.offsetLeft, t, pl.offsetWidth, h]]);
     const free = ([x, y]) => x + 56 <= 1000 && B.every(([l, u, w, v]) => x >= l + w + 24 || x + 76 <= l || y >= u + v + 8 || y + 64 <= u);
     const c = [[parseFloat(cs.left), parseFloat(cs.top)], [r + 28, t + (h - 56) / 2], [904, t + h + 26]].find(free);
     if (c) Object.assign(s2.style, {left: c[0] + 'px', top: c[1] + 'px'}); }
+  };
+  placer();
+  try { if (document.fonts) { if (document.fonts.ready) document.fonts.ready.then(placer); document.fonts.addEventListener('loadingdone', placer); } } catch (e) {}
+  setTimeout(placer, 600);
 }
 
 /* Récapitulatif « Les trois idées à retenir » : titre, carte, puis une idée à chaque instant donné. */
@@ -1403,10 +1411,10 @@ function stageRepaint(){
 }
 if (typeof window !== 'undefined') window.__repaint = stageRepaint;
 /* Pendant un moment « À toi », le lecteur de l’app règle lui-même la taille de l’image au-dessus de sa feuille (lvPkFit) : la caméra revient
-   à 1 en 0,12 s, puis reprend sa taille à la fermeture (Elisa, 2 novembre, 1 h 32, réf. 3 : la feuille cachait le bas de la liste). */
+   à 1 en 0,24 s, puis reprend sa taille à la fermeture (Elisa, 2 novembre, 1 h 32, réf. 3 : la feuille cachait le bas de la liste). */
 if (typeof window !== "undefined") window.__camPause = on => {
   if (!CAM.on || !CAM.z || !!CAM.pause === !!on) { CAM.pause = !!on; return; }
-  const [z, o] = camAt(CAM.t || 0), t0 = performance.now(), D = 120;
+  const [z, o] = camAt(CAM.t || 0), t0 = performance.now(), D = 240;   // 15 novembre : 0,24 s (0,12 s sautait, avec l’image qui descend vers la feuille)
   CAM.pause = !!on;
   const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
     if (CAM.pause !== !!on) return;
@@ -1506,7 +1514,14 @@ function Course(cfg){
     confettiCues();
     /* Le lien avec la leçon d’avant : une pause sur la carte de l’intro, juste avant qu’elle ne s’en aille (liens.js). */
     const LI = pontLiens(), PEL = pontDom(LI);
-    $$('#cap .c p').forEach(p => capBalance(p));
+    /* 15 novembre, 22 h 05 : dans une autre langue, les retours voulus du français peuvent faire passer une légende à 4 lignes (une
+       première moitié trop longue qui se replie : « A subquery reads the / price of the products / … »). Ils sont alors retirés : la
+       légende s’équilibre d’elle-même sur 3 lignes. En français, rien ne change. */
+    const capLignes = p => Math.round(p.getBoundingClientRect().height / stageScale().k / (44 * 1.32));
+    $$('#cap .c p').forEach(p => {
+      if (LG && p.querySelector('br') && capLignes(p) > Math.max(3, +(p.closest('.c').dataset.lines || 0))) p.querySelectorAll('br').forEach(b => b.replaceWith(' '));
+      capBalance(p);
+    });
     const pontAv = LI && LI.avant && chapters.length ? [+Math.min(4.35, chapters[0].a - 0.7).toFixed(2), pontDur(LI.avant, 'avant')] : null;
     HOLDS = mergeHolds(captionHolds(captions, duration).concat(EXTRA_HOLDS.filter(h => h[0] < duration), rest, introVoiceHold(chapters))).concat(CUTS.filter(c => c[0] < duration)).sort((x, y) => x[0] - y[0]);
     if (pontAv) HOLDS = HOLDS.concat([pontAv]).sort((x, y) => x[0] - y[0]);

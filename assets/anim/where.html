@@ -1010,14 +1010,20 @@ function introPills(seconds, moments){
   else m.remove();
   /* L’étincelle s2 ne passe ni sous une ligne du sous-titre ni sous les pastilles : à sa place si c’est libre, sinon juste après
      les pastilles, sinon dessous (11 nov., comme core.js). */
+  /* 15 novembre, comme core.js : la place est recalculée une fois les polices prêtes, depuis sa place d’origine. */
+  const placer = () => {
   const pl = $('#s0.nv .iv-pills'), s2 = $('#s0.nv .iv-spark.s2'), sub = $('#s0.nv .sub');
-  if (pl && s2 && sub) { const t = pl.offsetTop, r = pl.offsetLeft + pl.offsetWidth, h = pl.offsetHeight, cs = getComputedStyle(s2);
+  if (pl && s2 && sub) { s2.style.left = s2.style.top = ''; const t = pl.offsetTop, r = pl.offsetLeft + pl.offsetWidth, h = pl.offsetHeight, cs = getComputedStyle(s2);
     const sb = sub.getBoundingClientRect(), k = sb.width / (sub.offsetWidth || 1), rg = document.createRange(); rg.selectNodeContents(sub);
     const B = (k > 0 ? [...rg.getClientRects()].map(q => [sub.offsetLeft + (q.left - sb.left) / k, sub.offsetTop + (q.top - sb.top) / k, q.width / k, q.height / k])
       : [[sub.offsetLeft, sub.offsetTop, sub.offsetWidth, sub.scrollHeight]]).concat([[pl.offsetLeft, t, pl.offsetWidth, h]]);
     const free = ([x, y]) => x + 56 <= 1000 && B.every(([l, u, w, v]) => x >= l + w + 24 || x + 76 <= l || y >= u + v + 8 || y + 64 <= u);
     const c = [[parseFloat(cs.left), parseFloat(cs.top)], [r + 28, t + (h - 56) / 2], [904, t + h + 26]].find(free);
     if (c) Object.assign(s2.style, {left: c[0] + 'px', top: c[1] + 'px'}); }
+  };
+  placer();
+  try { if (document.fonts) { if (document.fonts.ready) document.fonts.ready.then(placer); document.fonts.addEventListener('loadingdone', placer); } } catch (e) {}
+  setTimeout(placer, 600);
 }
 
 function build(){
@@ -1557,7 +1563,13 @@ function pontDom(LI){
 /* Après applyMoments : la pause d’ouverture, puis la fin allongée (OUT_DURATION). */
 function pontPlan(){
   const LI = pontLiens(), PEL = pontDom(LI), c0 = MP.chapters[0];
-  $$('#cap .c p').forEach(p => capBalance(p));
+  /* 15 novembre, comme core.js : dans une autre langue, une légende que les retours voulus du français font passer à 4 lignes perd ces
+     retours et s’équilibre sur 3 lignes. */
+  const capLignes = p => { const k = $('#stage').getBoundingClientRect().width / 1080 || 1; return Math.round(p.getBoundingClientRect().height / k / (44 * 1.32)); };
+  $$('#cap .c p').forEach(p => {
+    if (LG && p.querySelector('br') && capLignes(p) > Math.max(3, +(p.closest('.c').dataset.lines || 0))) p.querySelectorAll('br').forEach(b => b.replaceWith(' '));
+    capBalance(p);
+  });
   PONTS = [];
   const av = LI && LI.avant && c0 ? [+Math.min(MP.s0 ? MP.s0(4.35) : 4.35, c0.a - 0.7).toFixed(2), pontDur(LI.avant, 'avant')] : null;
   if (av) HOLDS = HOLDS.concat([av]).sort((x, y) => x[0] - y[0]);
@@ -1768,7 +1780,7 @@ function camRender(t){
    à 1 en 0,12 s, puis reprend sa taille à la fermeture (Elisa, 2 novembre, 1 h 32, réf. 3 : la feuille cachait le bas de la liste). */
 if (typeof window !== "undefined") window.__camPause = on => {
   if (!CAM.on || !CAM.z || !!CAM.pause === !!on) { CAM.pause = !!on; return; }
-  const [z, o] = camAt(CAM.t || 0), t0 = performance.now(), D = 120;
+  const [z, o] = camAt(CAM.t || 0), t0 = performance.now(), D = 240;   // 15 novembre, comme core.js
   CAM.pause = !!on;
   const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
     if (CAM.pause !== !!on) return;

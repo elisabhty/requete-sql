@@ -2,6 +2,8 @@
    Les noms, les e-mails, les villes et les adresses des clients restent tels quels. */
 window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
   textes: {
+    "service.client@nutriboost.fr": "support@nutriboost.fr",
+    "SC": "CS",
     "À toi !": "Your turn!",
     "J’ai découvert cette protéine pendant un atelier NutriBoost. J’ai beaucoup aimé le goût chocolat et elle se mélange facilement. Je recommande !": "I discovered this protein during a NutriBoost workshop. I really liked the chocolate flavor and it mixes easily. I recommend it!",
     "client_id": "customer_id",

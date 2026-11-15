@@ -81,7 +81,7 @@ test('la réduction ne dépasse pas 70 % ; elle ne regonfle qu’une fois l’é
 test('réf. 4 : la feuille qui grandit est mesurée tout de suite, l’attente est courte, la réduction rapide', () => {
   assert.ok(html.includes('const LV_PK_GAP=18, LV_PK_MIN=16, LV_PK_ZMIN=.7, LV_PK_WAIT=150, LV_PK_BOT=22;'));
   assert.ok(html.includes('  if(P.fitDone&&!calm){ wait(); return; }'), 'au calme, pas d’attente');
-  assert.ok(html.includes('  const t0=performance.now(), D=Math.abs(dy-d0)>40?320:200;'), 'réduction en 0,2 s ; 0,32 s quand l’image descend de plus de 40 px');
+  assert.ok(html.includes('  const glisse=Math.abs(dy-d0)>40, t0=performance.now(), D=glisse?460:200;'), 'réduction en 0,2 s ; 0,46 s, en douceur, quand l’image descend de plus de 40 px');
   const q = player();
   q.first();
   const z0 = q.ctx.LV.zoom;

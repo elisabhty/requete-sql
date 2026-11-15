@@ -399,6 +399,13 @@ recadrage sur la zone du sticker français dans un carré de 768 px.
   decouvrir/en/voix/). GROUP BY n’avait pas ses réactions : `generer.mjs` les comptait faites parce qu’un dossier
   `sortie/en/group-by-colonnes` commence par « group-by- » ; elles ont été reprises de ce dossier (même texte, même voix). Les voix
   anglaises pèsent 111 Mo dans l’appli (les françaises 108 Mo) : une mise à jour à distance les fait télécharger à chaque iPhone.
+  **Les vidéos anglaises vérifiées (15 novembre, 22 h 05)** : les 71 passées aux contrôles du moteur (`?check`) et à
+  `tools/langue/verifier.mjs`, comparées aux françaises. Corrigé : l’étincelle de l’intro sur la pastille « 6 “Your turn” moments »
+  (placée avant le chargement de la police : elle se replace ensuite), les légendes que les retours du français faisaient passer à
+  4 lignes (dans une autre langue, ces retours sont retirés et la légende s’équilibre sur 3 lignes ; 6 restent à 4 lignes, sans
+  déborder), « ✕ left out » (and-or), la pastille 5 (ordre-execution), « Customer service » → « Support » (bases-relationnelles),
+  « First and last name » (jointure-3-tables), « enrolled » (projet-normaliser), l’adresse support@nutriboost.fr. Avant un moment
+  « À toi », l’image descend vers la feuille en 0,46 s, en douceur, et la caméra revient en 0,24 s (avant : 0,32 s et 0,12 s).
   **Une seule voix et une seule photo pour tous les modules** (Elisa, 15 novembre, 2 h 57 et 3 h : « on garde cette voix et cette
   photo », « la blonde ») : Brielle (la voix par défaut de preparer-langue.mjs) et la photo de la formatrice blonde des modules 1 et
   2 (`formatrice.webp`, core.css), quel que soit le formateur du module en français ; l’onboarding anglais présente sa formatrice.
