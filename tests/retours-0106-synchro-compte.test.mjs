@@ -86,7 +86,8 @@ test('un iPhone envoie sa progression, un autre la retrouve en se connectant', a
   const r = await A.ctx.csSync({premier: true});
   assert.deepEqual(JSON.parse(JSON.stringify(r)), {progression: 0, notes: 0, distant: {plan: false, progres: false, notes: false}}, 'tout est parti (et le compte était vide avant, 12 novembre)');
   const el = srv.comptes['u-1'].prog.el;
-  assert.deepEqual(Object.keys(el).sort(), ['activity:2026-11-11', 'challenge:f1', 'interview:q7', 'lesson:0', 'lesson:1', 'planning:main']);
+  /* 16 novembre : la leçon 1, seulement prévue ({level:0}), ne part plus (un compte neuf envoyait 71 fiches vides) */
+  assert.deepEqual(Object.keys(el).sort(), ['activity:2026-11-11', 'challenge:f1', 'interview:q7', 'lesson:0', 'planning:main']);
   assert.deepEqual(J(el['lesson:0'].data), {done: true, at: 1762900000123, due: 1763000000000, level: 2, etapes: {exo: 1, q1: 1}});
   assert.equal(el['planning:main'].data.sessions.length, 2);
   assert.deepEqual(Object.keys(srv.comptes['u-1'].docs.el), ['note:n1'], 'la note vide ne part pas');

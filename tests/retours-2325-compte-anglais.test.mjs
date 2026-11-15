@@ -56,12 +56,15 @@ test('les objectifs et les pluriels de 0 en anglais', () => {
 test('Mon compte : les compteurs au pluriel en anglais, l’heure du rappel à la manière de la langue', () => {
   assert.ok(app.includes("function plurN(n){return Math.abs(n)>1||(n===0&&typeof obLangue==='function'&&!!obLangue());}"));
   assert.ok(app.includes("<small>leçon${plurN(st.lessons)?'s':''}</small>") && app.includes("<small>jour${plurN(st.streak)?'s':''} de série</small>"));
-  const f = app.slice(app.indexOf('function rappelHeureLoc(h){'), app.indexOf('function rappelQuand(t){'));
+  const f = app.slice(app.indexOf('function rappelHeureLoc(h,court){'), app.indexOf('function rappelQuand(t){'));
   const en = vm.runInNewContext(f + ';rappelHeureLoc', {obLangue: () => ({code: 'en'}), obLoc: () => 'en-US', Date});
   const fr = vm.runInNewContext(f + ';rappelHeureLoc', {obLangue: () => null, obLoc: () => 'fr-FR', Date});
   assert.match(en('19:00'), /^7:00\s?PM$/);
   assert.equal(fr('19:00'), '19:00');
-  assert.ok(app.includes("heure:rappelHeureLoc(hour)") && app.includes(">${typeof rappelHeureLoc==='function'?rappelHeureLoc(h):h}</button>"));
+  assert.match(en('19:00', 1), /^7\s?PM$/, '16 novembre : les pastilles des heures, courtes, sur une ligne');
+  assert.match(en('19:30', 1), /^7:30\s?PM$/);
+  assert.equal(fr('19:00', 1), '19:00');
+  assert.ok(app.includes("heure:rappelHeureLoc(hour)") && app.includes(">${typeof rappelHeureLoc==='function'?rappelHeureLoc(h,1):h}</button>"));
 });
 
 test('un rechargement voulu garde la touche, le nom et l’anneau à l’écran', () => {

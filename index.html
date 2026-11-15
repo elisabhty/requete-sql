@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=5b39d81e" data-defis></script>
+<script src="langues.js?v=50893a54" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -44898,7 +44898,7 @@ function nextDayPreviewHTML(){
     const iso=dstr(addJ(auj(),k)),sess=sessionDe(iso);
     if(!sess||!Array.isArray(sess.lessons)||!sess.lessons.length)continue;
     const n=sess.lessons.length;
-    const date=parseD(iso).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    const date=parseD(iso).toLocaleDateString(typeof obLoc==='function'?obLoc():'fr-FR',{weekday:'short',day:'numeric',month:'short'});
     const title=k===1?`Demain · ${date}`:`Prochaine séance · ${date}`;
     const rows=sess.lessons.map((id,i)=>{
       const m=itemMeta(id),ok=itemDone(id),arg=isDefiId(id)?`'${id}'`:id;
@@ -50258,7 +50258,7 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'&&document.addEvent
 }
 function obRhythmSummary(){
   const r=RYTHMES.find(x=>x.k===(draft.rythme||'regulier'))||RYTHMES[1];
-  return `<div class="ob-rhythm-summary" role="status"><span aria-hidden="true">◎</span><span>Ta séance type : <b>${plur(r.per,'activité')} · ≈ ${obRythmeMinutes(r)} min</b>.</span></div>`;
+  return `<div class="ob-rhythm-summary" role="status"><span aria-hidden="true">◎</span><span>Ta séance type : <b>${plur(r.per,'activité')} · ≈ ${obRythmeMinutes(r)} min</b>.</span></div>`;
 }
 /* 11 h 08 (réf. 4, « mettre que ça pourra être modifiable directement dans son planning, donc t’inquiète », et pareil pour le rythme) :
    sous les jours par semaine et sous la durée des séances. */
@@ -50355,6 +50355,9 @@ function csExtraire(){
     if(l.etapes&&typeof l.etapes==='object')c.etapes=Object.fromEntries(Object.keys(l.etapes).filter(k=>/^(exo|q\d{1,3})$/.test(k)&&l.etapes[k]).map(k=>[k,1]));
     const at=csEntier(l.at,4102444800000),due=csEntier(l.due,4102444800000),level=csEntier(l.level,4);
     if(at)c.at=at;if(due)c.due=due;if(level!=null)c.level=level;
+    /* 16 novembre (les parcours de bout en bout) : une leçon seulement prévue au planning ({level:0}, rien de fait) ne part pas.
+       Un compte neuf envoyait 71 de ces fiches vides, une par une, avant son planning. */
+    if(!c.done&&!c.at&&!c.due&&!(c.level>0)&&!(c.etapes&&Object.keys(c.etapes).length))continue;
     lessons[id]=c;
   }
   const actDays=Object.fromEntries(Object.entries(state.actDays||{}).filter(([d,n])=>/^\d{4}-\d{2}-\d{2}$/.test(d)&&n>0));
@@ -50438,7 +50441,11 @@ function csSync(o){
     CS.distant=csDistant(p,d);
     if(csAppliquer(p,d,premier||(o&&o.premier&&premier))){
       CS.dedans=true;
-      try{save();stkSync&&stkSync();renderModules();renderDefis();renderProgress();renderCollection();renderNotes();renderPlanning();renderCompte();renderGreeting();}catch(e){}
+      try{save();stkSync&&stkSync();
+        /* 16 novembre (les parcours de bout en bout) : le niveau que le compte rapporte a déjà été fêté sur l’appareil où il a été
+           gagné. Sur un iPhone neuf, « J’ai déjà un compte » ouvrait « Niveau 1 ! Ta toute première requête SQL a marché ». */
+        try{const a=nivRangAtteint();if(nivRangVu()<a){stkState().rang=a;save();}}catch(e){}
+        renderModules();renderDefis();renderProgress();renderCollection();renderNotes();renderPlanning();renderCompte();renderGreeting();}catch(e){}
       CS.dedans=false;
     }
     try{localStorage.setItem(premierCle,'1');}catch(e){}
@@ -51131,13 +51138,16 @@ const OB_ME_ETUDES=[
   ['Espacer ses révisions','Cepeda et al., « Distributed practice in verbal recall tasks: A review and quantitative synthesis », Psychological Bulletin, 2006. 317 expériences tirées de 184 articles.']
 ];
 function obMethodeHtml(){
-  const jours=(typeof INTERVALS!=='undefined'&&Array.isArray(INTERVALS)?INTERVALS:[1,3,7,21,60]).map((n,i)=>`<span style="--j:${i}">J+${n}</span>`).join('');
+  /* « J+1 » : trop court pour la traduction de la page (une seule lettre), traduit ici (« Day 1 » en anglais). */
+  const jPas=String((typeof natifT==='function'&&natifT('J+{1}'))||'J+{1}');
+  const jN=typeof INTERVALS!=='undefined'&&Array.isArray(INTERVALS)?INTERVALS:[1,3,7,21,60];
+  const jours=jN.map((n,i)=>`<span style="--j:${i}">${jPas.replace('{1}',n)}</span>`).join('');
   /* .ob-me-b : l’arrivée générale des pages anime chaque enfant direct de l’écran et l’emporte sur toute autre animation ; dans ce
      bloc, les cartes et le chiffre gardent la leur (le « 1,5 × » n’apparaît qu’après les trois cartes, pas avant). */
   return `<div class="ob-me-b"><ul class="ob-me" role="list">${OB_METHODE.map((m,i)=>`<li class="ob-me-c is-${m.k}" style="--i:${i}">
       <div class="ob-me-h"><span class="ob-me-i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${m.ico}</svg></span><h2>${m.t}</h2></div>
       <p class="ob-me-r"><span class="ob-me-app" aria-hidden="true">&gt;<i>_</i></span><span class="ob-me-rt">${m.fait}</span></p>
-      ${m.jours?`<p class="ob-me-j" aria-label="Révisions à ${jours.replace(/<[^>]+>/g,' ').trim().replace(/\s+/g,', ')}">${jours}</p>`:''}
+      ${m.jours?`<p class="ob-me-j" aria-label="Révisions à ${jN.map(n=>'J+'+n).join(', ')}">${jours}</p>`:''}
       <p class="ob-me-s">${OB_ME_FIOLE}<span>${m.dit}</span></p>
     </li>`).join('')}</ul>
     <button type="button" class="ob-me-x" onclick="obMethodeSources()"><b><span id="ob-me-n">1,5</span><i aria-hidden="true">×</i><span class="ob-sr"> fois</span></b><span class="ob-me-xt">plus de risques d’échouer avec un enseignement magistral qu’avec un apprentissage actif. <u>Voir les études<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></u></span></button></div>`;
@@ -51155,8 +51165,8 @@ let obMethodeT=0;
 function obMethodeAnimer(){
   const n=document.getElementById('ob-me-n');if(!n)return;
   clearTimeout(obMethodeT);
-  if(!obJustEntered||prefersReduceMotion()){n.textContent='1,5';return;}
-  const dire=v=>{n.textContent=v.toFixed(1).replace('.',',');};
+  const dire=v=>{n.textContent=v.toLocaleString(typeof obLoc==='function'?obLoc():'fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1});};
+  if(!obJustEntered||prefersReduceMotion()){dire(1.5);return;}
   dire(1);
   obMethodeT=setTimeout(()=>{
     const t0=performance.now(),D=750;
@@ -52360,7 +52370,8 @@ async function rappelBoutonsPoser(LN){
 function rappelPlusTardQuand(maintenant){
   const t=new Date(+maintenant+RAPPEL_PLUS_TARD_MS),limite=new Date(maintenant);
   limite.setHours(22,30,0,0);
-  if(t>limite||t.getDate()!==new Date(maintenant).getDate())return null;
+  /* 16 novembre : pas la nuit non plus (« Plus tard » touché à minuit et demi sonnait à 1 h 30) */
+  if(t>limite||t.getHours()<8||t.getDate()!==new Date(maintenant).getDate())return null;
   return t;
 }
 function rappelBouton(action,notif){
@@ -52395,9 +52406,10 @@ function rappelAuto(ms){
 /* « Prochain rappel : demain à 19:00 » (Mon compte) */
 /* 15 novembre, 23 h 25 (Elisa : « Lundi et jeudi à 19:00 », dans l’appli en anglais) : l’heure du rappel à la manière de la langue
    (« 7:00 PM » aux États-Unis) ; en français, « 19:00 ». */
-function rappelHeureLoc(h){
+/* court : les petites pastilles des heures (« 7 PM », sur une ligne ; « 7:00 PM » y passait sur deux). */
+function rappelHeureLoc(h,court){
   if(!obLangue())return h;
-  try{const [a,b]=String(h).split(':').map(Number);return new Date(2024,0,1,a||0,b||0).toLocaleTimeString(obLoc(),{hour:'numeric',minute:'2-digit'});}catch(e){return h;}
+  try{const [a,b]=String(h).split(':').map(Number);return new Date(2024,0,1,a||0,b||0).toLocaleTimeString(obLoc(),court&&!b?{hour:'numeric'}:{hour:'numeric',minute:'2-digit'});}catch(e){return h;}
 }
 function rappelQuand(t){
   const j=new Date(),n=Math.round((new Date(t.getFullYear(),t.getMonth(),t.getDate())-new Date(j.getFullYear(),j.getMonth(),j.getDate()))/864e5);
@@ -52422,7 +52434,7 @@ function rappelHeuresDe(slot,heure){
 function rappelChoixHTML(heure,fSlot,fHeure,lab){
   const slot=rappelSlotId(heure);
   return `<div class="rp-seg" role="radiogroup" aria-labelledby="${lab}">${RAPPEL_SLOTS.map(s=>`<button type="button" role="radio" aria-checked="${s.id===slot}" class="rp-slot${s.id===slot?' on':''}" data-slot="${s.id}" onclick="${fSlot}('${s.id}')">${s.label}</button>`).join('')}</div>
-    <div class="rp-heures" role="radiogroup" aria-label="Heure du rappel">${rappelHeuresDe(slot,heure).map(h=>`<button type="button" role="radio" aria-checked="${h===heure}" class="rp-heure${h===heure?' on':''}" data-h="${h}" onclick="${fHeure}('${h}')">${typeof rappelHeureLoc==='function'?rappelHeureLoc(h):h}</button>`).join('')}</div>`;
+    <div class="rp-heures" role="radiogroup" aria-label="Heure du rappel">${rappelHeuresDe(slot,heure).map(h=>`<button type="button" role="radio" aria-checked="${h===heure}" class="rp-heure${h===heure?' on':''}" data-h="${h}" onclick="${fHeure}('${h}')">${typeof rappelHeureLoc==='function'?rappelHeureLoc(h,1):h}</button>`).join('')}</div>`;
 }
 const RP_INFO_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6h.01"/></svg>';
 function rappelFeuilleHTML(){
@@ -53641,7 +53653,7 @@ async function compteSupprimer(){
     }
   }
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
-  try{const LN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications;if(LN)await LN.cancel({notifications:[1,11,12,13,14,15,16,17].map(id=>({id}))});}catch(e){}
+  try{const LN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications;if(LN)await LN.cancel({notifications:(typeof RAPPEL_IDS!=='undefined'?[...RAPPEL_IDS,RAPPEL_PLUS_TARD_ID]:[1,11,12,13,14,15,16,17]).map(id=>({id}))});}catch(e){}   // 16 novembre : les rappels programmés (100 et plus, « Plus tard ») partent aussi
   try{const C=typeof flammeDirectPont==='function'&&flammeDirectPont();if(C)await C.nativePromise('RequeteWidget','flammeArreter',{});}catch(e){}   // ta flamme en direct, programmée : partie aussi
   try{localStorage.clear();}catch(e){}
   try{sessionStorage.clear();}catch(e){}
@@ -53887,7 +53899,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3090';
+  const SW_CACHE='requete-2026-11-15-module-v3091';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

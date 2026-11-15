@@ -52,6 +52,8 @@ test('« Voir mon planning » ouvre Planning ; « Plus tard » relance le même 
   assert.equal(ctx.rappelPlusTardQuand(h(21, 30)).getMinutes(), 30, '22 h 30 pile, encore');
   assert.equal(ctx.rappelPlusTardQuand(h(21, 31)), null, 'trop tard ce soir');
   assert.equal(ctx.rappelPlusTardQuand(h(23, 30)), null, 'le lendemain : non');
+  assert.equal(ctx.rappelPlusTardQuand(h(0, 38)), null, '16 novembre : touché à minuit et demi, pas de rappel à 1 h 38');
+  assert.equal(ctx.rappelPlusTardQuand(h(7, 30)).getHours(), 8, 'dès 8 h, oui');
   /* « Plus tard », touché maintenant : tout dépend de l’heure ; le message reste le même */
   const avant = ctx.rappelPlusTardQuand(new Date());
   ctx.rappelBouton('plus-tard', { id: 104, title: '😏 Netflix peut attendre', body: 'Une petite requête d’abord ?' });
