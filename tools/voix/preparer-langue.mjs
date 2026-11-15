@@ -89,7 +89,9 @@ const PARLE = s => s
   /* Module 9 (15 novembre) : « ALTER TABLE … SET SCHEMA » se dit en deux temps */
   .replace(/\bALTER TABLE … SET SCHEMA\b/g, 'ALTER TABLE, then SET SCHEMA')
   /* Module 11 (15 novembre) : la règle SET NULL d’un seul tenant (NULL seul passe en minuscules plus loin : pas « SET null ») */
-  .replace(/\bSET NULL\b/g, 'set null');
+  .replace(/\bSET NULL\b/g, 'set null')
+  /* Module 12 (15 novembre) : « SELECT … FOR UPDATE » d’un seul tenant, sans la pause des points de suspension */
+  .replace(/\bSELECT … FOR UPDATE\b/g, 'select for update');
 const DIRE = s => PARLE(s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&'))
   /* Comme les retouches de la voix française : « Prix en euros », « l’euro entre parenthèses », « le numéro de la page moins un » */
   .replace(/Price \(€\)/g, 'Price in euros').replace(/\(€\)/g, 'the euro in parentheses')

@@ -322,7 +322,8 @@ test('le récapitulatif, mot pour mot, dans la vidéo comme dans la fiche de la 
     ['✅', 'COMMIT valide les modifications conservées.', 'Et il termine la transaction.']];
   assert.deepEqual(rows, RECAP, 'la vidéo : les trois idées');
   const fiche = html.slice(html.indexOf('guide({ id:63,'), html.indexOf('guide({ id:70,'));
-  const idees = [...fiche.matchAll(/\["(📍|↩️|✅)","([^"]*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
+  /* le code de la fiche peut porter sa traduction (data-en=\"SAVEPOINT name\", 15 novembre) : des guillemets échappés dans la chaîne */
+  const idees = [...fiche.matchAll(/\["(📍|↩️|✅)","((?:[^"\\]|\\.)*)","([^"]*)"(?:,"([^"]*)")?\]/g)].map(m => [m[1], strip(m[2]), strip(m[3])]);
   assert.deepEqual(idees, RECAP, 'la fiche de la leçon dit la même chose que la vidéo');
 });
 

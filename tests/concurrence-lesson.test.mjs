@@ -272,7 +272,7 @@ test('le message : l’équipe ateliers écrit par SMS ; l’app s’arrête sur
 
 test('chapitre 17 : écran titre, ouverture comme aux autres chapitres, annonce de la prochaine leçon', () => {
   assert.ok(page.includes('<title>Requête · Projet : Concurrence et isolation</title>') && page.includes('<div class="tagpill">Projet · Module 12</div>')
-    && page.includes('<span>C</span><span>O</span><span>N</span><span>C</span><span>U</span><span>R</span><span>R</span><span>E</span><span>N</span><span>C</span><span>E</span>')
+    && page.includes('<span>C</span><span>O</span><span>N</span><span>C</span><span>U</span><span>R</span><span>R</span><span>E</span><span>N</span><span>C</span><span data-en="Y">E</span>')   // en anglais : CONCURRENCY (15 novembre)
     && page.includes('<div class="abs sub">Gérer les accès simultanés</div>'), 'écran titre : « Projet · Module 12 », CONCURRENCE, « Gérer les accès simultanés »');
   const caps = val('CAPTIONS').map(c => c[2]);
   assert.equal(caps[0], 'Depuis le début du module 8, tu construis la base des ateliers bien-être de NutriBoost.');

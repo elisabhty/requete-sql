@@ -955,7 +955,7 @@ test('le module 11 : ON DELETE en anglais, la table avis devient reviews, le nom
   assert.ok(pg.includes('<body data-table="avis">'));
   assert.ok(pg.includes("  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));"));
   assert.ok(pg.includes(`['c1', '<span data-en="name">nom</span>']`), 'le nom d’un produit');
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, c].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, c].map(c => `'${c}'`).join(',') + ','));
   const {L, ctx} = anglais();
   vm.runInNewContext(lire(`assets/anim/en/${c}.js`), ctx);
   assert.equal(L.sql('client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE SET NULL', 'avis'), 'customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE SET NULL');
@@ -971,4 +971,64 @@ test('le module 11 : ON DELETE en anglais, la table avis devient reviews, le nom
   }
   const total = en.elements.reduce((a, e) => a + e.texte.length, 0);
   assert.ok(total > 2800 && total < 4400, `${total} caractères`);
+});
+
+/* Module 12 (« Transactions et concurrence », 15 novembre) : BEGIN, COMMIT, ROLLBACK, SAVEPOINT, FOR UPDATE ;
+   les tables remplacements (replacements) et cadeaux (gifts), les places restantes d’un atelier (spots_left) */
+const M12 = ['projet-transaction', 'projet-savepoint', 'projet-concurrence'];
+test('le module 12 en entier : les transactions, le savepoint before_gift, la concurrence ; requêtes écrites pour la base avant la frappe', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M12) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 200, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(pg.includes(`<body data-table="${c === 'projet-concurrence' ? 'inscriptions' : 'produits'}">`), c);
+    assert.ok(pg.indexOf("  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));") > 0
+      && pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") < pg.indexOf("  $$('.sq .ln').forEach(splitChars);"), c);
+    const {L, ctx} = anglais();
+    vm.runInNewContext(lire(`assets/anim/en/${c}.js`), ctx);
+    for (const [q, en] of [['INSERT INTO remplacements (id, client_id, produit_id, quantite, personnalisation) VALUES (1, 7, 8, 1, \'Léa\');',
+        'INSERT INTO replacements (id, customer_id, product_id, quantity, personalization) VALUES (1, 7, 8, 1, \'Léa\');'],
+      ['INSERT INTO cadeaux (client_id, produit_id, quantite) VALUES (7, 5, 1);', 'INSERT INTO gifts (customer_id, product_id, quantity) VALUES (7, 5, 1);'],
+      ['SAVEPOINT avant_cadeau;', 'SAVEPOINT before_gift;'], ['ROLLBACK TO SAVEPOINT avant_cadeau;', 'ROLLBACK TO SAVEPOINT before_gift;'],
+      ['SELECT places_restantes FROM ateliers WHERE id = 6 FOR UPDATE;', 'SELECT spots_left FROM workshops WHERE id = 6 FOR UPDATE;'],
+      ['INSERT INTO inscriptions (client_id, atelier_id, date_inscription) VALUES (7, 6, \'2026-10-25\');', 'INSERT INTO enrollments (customer_id, workshop_id, enrollment_date) VALUES (7, 6, \'2026-10-25\');']])
+      assert.equal(L.sql(q, c === 'projet-concurrence' ? 'inscriptions' : 'produits'), en, `${c} : ${q}`);
+  }
+  /* « Healthy cooking » et customer_id / personalization, plus longs qu’en français : des colonnes plus larges, en anglais seulement */
+  assert.ok(lire('assets/anim/projet-transaction.html').includes('html[lang="en"] #tr{--g:'));
+  assert.ok(lire('assets/anim/projet-concurrence.html').includes('html[lang="en"] #ta{--g:'));
+  assert.ok(lire('assets/anim/projet-concurrence.html').includes('<span data-en="Y">E</span></div>'), 'CONCURRENCY');
+  assert.equal(textesDe('projet-concurrence')['Nathan Petit attend'], 'Nathan Petit waits');
+  assert.equal(textesDe('projet-savepoint')['Quelle commande choisir ?'], 'Which command?');
+  assert.equal(textesDe('projet-transaction')['Retirer un shaker du stock'], 'Remove a shaker from stock');
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, 'projet-ondelete', ...M12].map(c => `'${c}'`).join(',') + ']};'));
+  /* la fiche du cours SAVEPOINT : « nom » y est un nom de savepoint, pas celui d’un client */
+  assert.ok(app.includes('<code data-en=\\"SAVEPOINT name\\">SAVEPOINT nom</code>') && app.includes('<code data-en=\\"ROLLBACK TO SAVEPOINT name\\">ROLLBACK TO SAVEPOINT nom</code>'));
+});
+
+test('la voix anglaise du module 12 : Brielle, les ids du français, sans code brut', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json'));
+  let total = 0;
+  for (const c of M12) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    assert.ok(fr.elements.every(e => en.elements.some(x => x.id === e.id) || /^indice/.test(e.id) || e.id === chs[chs.length - 1]), c);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→↔⇔|+*%_×÷−'"@]| … |\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|atelier|inscription|cadeau|remplacement|places_restantes/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 9000 && total < 13500, `${total} caractères (autant de crédits)`);
+  assert.ok(JSON.parse(lire('tools/voix/en/projet-concurrence.json')).elements.some(e => e.texte.includes('Select for update reads the spots')));
 });
